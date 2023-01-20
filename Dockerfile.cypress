@@ -1,0 +1,13 @@
+FROM cypress/included:12.3.0
+
+WORKDIR /usr/src/app
+
+COPY package.json package-lock.json .
+RUN npm ci
+
+COPY console-extensions.json cypress.config.ts tsconfig.json webpack.config.ts .
+COPY cypress/ ./cypress
+COPY src/ ./src
+RUN npm run build
+
+ENTRYPOINT ["npm", "run", "cypress:run:ci"]
