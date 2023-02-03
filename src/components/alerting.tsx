@@ -1688,6 +1688,7 @@ const AlertsPage_: React.FC<Alerts> = () => {
       <div className="co-m-pane__body">
         <ListPageFilter
           data={staticData}
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore TODO
           labelFilter="alerts"
           labelPath="labels"
@@ -1851,6 +1852,7 @@ const RulesPage_: React.FC<{}> = () => {
       <div className="co-m-pane__body">
         <ListPageFilter
           data={staticData}
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore TODO
           labelFilter="alerts"
           loaded={loaded}

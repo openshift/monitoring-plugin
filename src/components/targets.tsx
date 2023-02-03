@@ -498,6 +498,7 @@ const ListPage: React.FC<ListPageProps> = ({ loaded, loadError, targets }) => {
       </Helmet>
       <ListPageHeader title={title} />
       {/*
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore TODO */}
       <ListPageBody>
         {loadError && (
@@ -523,6 +524,7 @@ const ListPage: React.FC<ListPageProps> = ({ loaded, loadError, targets }) => {
         )}
         <ListPageFilter
           data={staticData}
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore TODO
           labelFilter="observe-target-labels"
           labelPath="labels"
