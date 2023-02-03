@@ -1,0 +1,12 @@
+FROM registry.redhat.io/rhel8/nodejs-16:1-82
+
+WORKDIR /usr/src/app
+
+RUN npm install --global yarn
+
+COPY package.json yarn.lock .
+RUN yarn
+
+COPY . .
+
+ENTRYPOINT ["yarn", "lint"]
