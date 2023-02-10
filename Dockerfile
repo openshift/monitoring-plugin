@@ -1,10 +1,22 @@
-FROM docker.io/library/node:16 AS build
+FROM registry.redhat.io/ubi8/nodejs-16:1-82.1675799501 AS builder
 
-ADD . /usr/src/app
 WORKDIR /usr/src/app
-RUN yarn install && yarn build
 
-FROM docker.io/library/nginx:stable
+RUN npm install --global yarn
 
-RUN chmod g+rwx /var/cache/nginx /var/run /var/log/nginx
-COPY --from=build /usr/src/app/dist /usr/share/nginx/html
+ENV HUSKY=0
+
+COPY package.json yarn.lock .
+RUN yarn
+
+COPY ./console-extensions.json ./tsconfig.json ./webpack.config.ts .
+COPY ./src ./src
+RUN yarn build
+
+FROM registry.redhat.io/ubi8/nginx-120:1-84.1675799502
+
+USER 1001
+
+COPY --from=builder /usr/src/app/dist /usr/share/nginx/html
+
+ENTRYPOINT ["nginx", "-g", "daemon off;"]
