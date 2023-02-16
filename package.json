@@ -85,8 +85,8 @@
   "consolePlugin": {
     "name": "monitoring-plugin",
     "version": "1.0.0",
-    "displayName": "OpenShift Monitoring Console Plugin",
-    "description": "This plugin adds the monitoring UI to OpenShift console",
+    "displayName": "OpenShift console monitoring plugin",
+    "description": "This plugin adds the monitoring UI to the OpenShift web console",
     "exposedModules": {
       "MonitoringUI": "./components/alerting"
     },
