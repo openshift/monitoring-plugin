@@ -112,6 +112,7 @@ import {
   fuzzyCaseInsensitive,
   getAlertsAndRules,
   labelsToParams,
+  refreshSilences,
   RuleResource,
   silenceMatcherEqualitySymbol,
   SilenceResource,
@@ -1175,6 +1176,8 @@ const ExpireSilenceModal: React.FC<ExpireSilenceModalProps> = ({
 }) => {
   const { t } = useTranslation();
 
+  const dispatch = useDispatch();
+
   const [isInProgress, , setInProgress, setNotInProgress] = useBoolean(false);
   const [errorMessage, setErrorMessage] = React.useState();
 
@@ -1183,7 +1186,7 @@ const ExpireSilenceModal: React.FC<ExpireSilenceModalProps> = ({
     consoleFetchJSON
       .delete(`${window.SERVER_FLAGS.alertManagerBaseURL}/api/v2/silence/${silenceId}`)
       .then(() => {
-        // TODO refreshNotificationPollers();
+        refreshSilences(dispatch);
         setClosed();
       })
       .catch((err) => {

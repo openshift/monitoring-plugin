@@ -15,7 +15,7 @@ import { MinusCircleIcon, PlusCircleIcon } from '@patternfly/react-icons';
 import * as React from 'react';
 import { Helmet } from 'react-helmet';
 import { Trans, useTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 // TODO: These will be available in future versions of the plugin SDK
@@ -31,7 +31,7 @@ import { StatusBox } from './console/utils/status-box';
 
 import { useBoolean } from './hooks/useBoolean';
 import { RootState, Silences } from './types';
-import { SilenceResource, silenceState } from './utils';
+import { refreshSilences, SilenceResource, silenceState } from './utils';
 
 const pad = (i: number): string => (i < 10 ? `0${i}` : String(i));
 
@@ -127,6 +127,8 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
     }
   }
 
+  const dispatch = useDispatch();
+
   const [isOpen, setIsOpen, , setClosed] = useBoolean(false);
 
   const [comment, setComment] = React.useState(defaults.comment ?? '');
@@ -213,7 +215,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
       .post(`${alertManagerBaseURL}/api/v2/silences`, body)
       .then(({ silenceID }) => {
         setError(undefined);
-        // TODO refreshNotificationPollers();
+        refreshSilences(dispatch);
         history.push(`${SilenceResource.plural}/${encodeURIComponent(silenceID)}`);
       })
       .catch((err) => {
