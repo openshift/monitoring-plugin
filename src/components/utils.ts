@@ -1,10 +1,12 @@
 import fuzzy from 'fuzzysearch';
 import * as _ from 'lodash-es';
 import { murmur3 } from 'murmurhash-js';
+import { Dispatch } from 'react-redux';
 import {
   Alert,
   AlertSeverity,
   AlertStates,
+  consoleFetchJSON,
   PrometheusLabels,
   PrometheusRule,
   Rule,
@@ -12,6 +14,7 @@ import {
   SilenceStates,
 } from '@openshift-console/dynamic-plugin-sdk';
 
+import { alertingErrored, alertingLoaded, alertingLoading } from '../actions/observe';
 import { AlertSource, MonitoringResource, PrometheusRulesResponse, Target } from './types';
 
 export const PROMETHEUS_BASE_PATH = window.SERVER_FLAGS.prometheusBaseURL;
@@ -82,6 +85,37 @@ export const silenceMatcherEqualitySymbol = (isEqual: boolean, isRegex: boolean)
     return isEqual ? '=~' : '!~';
   }
   return isEqual ? '=' : '!=';
+};
+
+const getSilenceName = (silence: Silence) => {
+  const name = _.get(_.find(silence.matchers, { name: 'alertname' }), 'value');
+  return name
+    ? name
+    : // No alertname, so fall back to displaying the other matchers
+      silence.matchers
+        .map((m) => `${m.name}${silenceMatcherEqualitySymbol(m.isEqual, m.isRegex)}${m.value}`)
+        .join(', ');
+};
+
+export const refreshSilences = (dispatch: Dispatch): void => {
+  const { alertManagerBaseURL } = window.SERVER_FLAGS;
+  if (!alertManagerBaseURL) {
+    return;
+  }
+
+  dispatch(alertingLoading('silences'));
+
+  consoleFetchJSON(`${alertManagerBaseURL}/api/v2/silences`)
+    .then((silences) => {
+      // Set a name field on the Silence to make things easier
+      _.each(silences, (s) => {
+        s.name = getSilenceName(s);
+      });
+      dispatch(alertingLoaded('silences', silences));
+    })
+    .catch((e) => {
+      dispatch(alertingErrored('silences', e));
+    });
 };
 
 export const alertDescription = (alert: Alert | Rule): string =>
