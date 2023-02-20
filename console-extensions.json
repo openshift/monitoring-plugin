@@ -9,42 +9,58 @@
   },
   {
     "type": "console.navigation/href",
+    "flags": {
+      "required": ["PROMETHEUS", "MONITORING", "CAN_GET_NS"]
+    },
     "properties": {
       "id": "alerting",
-      "name": "Alerting",
+      "name": "%public~Alerting%",
       "href": "/monitoring/alerts",
       "perspective": "admin",
-      "section": "observe"
+      "section": "observe",
+      "startsWith": ["monitoring/alertrules", "monitoring/silences"]
     }
   },
   {
     "type": "console.navigation/href",
+    "flags": {
+      "required": ["PROMETHEUS", "MONITORING", "CAN_GET_NS"]
+    },
     "properties": {
       "id": "metrics",
-      "name": "Metrics",
+      "name": "%public~Metrics%",
       "href": "/monitoring/query-browser",
       "perspective": "admin",
-      "section": "observe"
+      "section": "observe",
+      "insertAfter": "alerts"
     }
   },
   {
     "type": "console.navigation/href",
+    "flags": {
+      "required": ["PROMETHEUS", "MONITORING", "CAN_GET_NS"]
+    },
     "properties": {
       "id": "dashboards",
-      "name": "Dashboards",
+      "name": "%public~Dashboards%",
       "href": "/monitoring/dashboards",
       "perspective": "admin",
-      "section": "observe"
+      "section": "observe",
+      "insertAfter": "metrics"
     }
   },
   {
     "type": "console.navigation/href",
+    "flags": {
+      "required": ["PROMETHEUS", "MONITORING", "CAN_GET_NS"]
+    },
     "properties": {
       "id": "targets",
-      "name": "Targets",
+      "name": "%public~Targets%",
       "href": "/monitoring/targets",
       "perspective": "admin",
-      "section": "observe"
+      "section": "observe",
+      "insertAfter": "dashboards"
     }
   }
 ]
