@@ -2,8 +2,6 @@ FROM registry.redhat.io/ubi8/nodejs-16:1-82.1675799501 AS builder
 
 WORKDIR /usr/src/app
 
-RUN npm install --global yarn
-
 ENV HUSKY=0
 
 COPY package.json yarn.lock .
