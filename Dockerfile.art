@@ -1,10 +1,9 @@
 FROM registry.redhat.io/ubi8/nodejs-16:1-82.1675799501 AS builder
 
 # Copy app sources
+COPY $REMOTE_SOURCES $REMOTE_SOURCES_DIR
+COPY . /usr/src/app
 WORKDIR /usr/src/app
-COPY package.json yarn.lock .
-COPY ./console-extensions.json ./tsconfig.json ./webpack.config.ts .
-COPY ./src ./src
 
 # bootstrap yarn so we can install and run the other tools.
 USER 0
