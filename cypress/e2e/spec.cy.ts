@@ -23,14 +23,16 @@ const shouldBeWatchdogSilencePage = () => {
 };
 
 describe('Monitoring: Alerts', () => {
+  beforeEach(() => {
+    cy.visit('/');
+  });
+
   afterEach(() => {
     checkErrors();
   });
 
   it('displays and filters the Alerts list page, links to detail pages', () => {
-    cy.visit('/');
-
-    cy.log('use sidebar nav to go to Observe -> Alerting');
+    cy.log('use sidebar nav to go to Observe > Alerting');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     // TODO, switch to 'listPage.titleShouldHaveText('Alerting');', when we switch to new test id
     cy.byLegacyTestID('resource-title').should('have.text', 'Alerting');
@@ -60,8 +62,10 @@ describe('Monitoring: Alerts', () => {
   });
 
   it('creates and expires a Silence', () => {
-    cy.visit('monitoring/alerts');
+    cy.log('use sidebar nav to go to Observe > Alerting');
+    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     listPage.rows.shouldBeLoaded();
+
     cy.log('filter to Watchdog alert');
     listPage.filter.byName('Watchdog');
     listPage.rows.countShouldBe(1);
