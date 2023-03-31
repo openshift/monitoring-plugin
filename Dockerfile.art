@@ -1,4 +1,4 @@
-FROM registry.redhat.io/ubi8/nodejs-16:1-82.1675799501 AS builder
+FROM registry.ci.openshift.org/ocp/builder:rhel-8-openshift-nodejs16-base-4.14.art AS builder
 
 # Copy app sources
 COPY $REMOTE_SOURCES $REMOTE_SOURCES_DIR
