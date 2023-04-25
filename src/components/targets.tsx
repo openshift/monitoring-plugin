@@ -60,7 +60,7 @@ const PodMonitorsWatchContext = React.createContext([]);
 const PodsWatchContext = React.createContext([]);
 
 const PodMonitor: React.FC<{ target: Target }> = ({ target }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
 
   const [podMonitors, podMonitorsLoaded, podMonitorsLoadError] =
     React.useContext(PodMonitorsWatchContext);
@@ -69,7 +69,7 @@ const PodMonitor: React.FC<{ target: Target }> = ({ target }) => {
   if (podMonitorsLoadError) {
     return (
       <>
-        <RedExclamationCircleIcon /> {t('public~Error')}
+        <RedExclamationCircleIcon /> {t('Error')}
       </>
     );
   }
@@ -111,7 +111,7 @@ const PodMonitor: React.FC<{ target: Target }> = ({ target }) => {
 };
 
 const ServiceMonitor: React.FC<{ target: Target }> = ({ target }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
 
   const [monitors, monitorsLoaded, monitorsLoadError] = React.useContext(
     ServiceMonitorsWatchContext,
@@ -121,7 +121,7 @@ const ServiceMonitor: React.FC<{ target: Target }> = ({ target }) => {
   if (monitorsLoadError) {
     return (
       <>
-        <RedExclamationCircleIcon /> {t('public~Error')}
+        <RedExclamationCircleIcon /> {t('Error')}
       </>
     );
   }
@@ -163,15 +163,15 @@ const ServiceMonitor: React.FC<{ target: Target }> = ({ target }) => {
 };
 
 const Health: React.FC<{ health: 'up' | 'down' }> = React.memo(({ health }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
 
   return health === 'up' ? (
     <>
-      <GreenCheckCircleIcon /> {t('public~Up')}
+      <GreenCheckCircleIcon /> {t('Up')}
     </>
   ) : (
     <>
-      <RedExclamationCircleIcon /> {t('public~Down')}
+      <RedExclamationCircleIcon /> {t('Down')}
     </>
   );
 });
@@ -207,7 +207,7 @@ type DetailsProps = RouteComponentProps<{ scrapeUrl?: string }> & {
 };
 
 const Details_: React.FC<DetailsProps> = ({ loaded, loadError, match, targets }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
 
   let scrapeUrl = '';
   let target: Target | undefined;
@@ -230,16 +230,16 @@ const Details_: React.FC<DetailsProps> = ({ loaded, loadError, match, targets })
   return (
     <>
       <Helmet>
-        <title>{t('public~Target details')}</title>
+        <title>{t('Target details')}</title>
       </Helmet>
       <div className="pf-c-page__main-breadcrumb">
         <Breadcrumb className="co-breadcrumb">
           <BreadcrumbItem>
             <Link className="pf-c-breadcrumb__link" to="/monitoring/targets">
-              {t('public~Targets')}
+              {t('Targets')}
             </Link>
           </BreadcrumbItem>
-          <BreadcrumbItem isActive>{t('public~Target details')}</BreadcrumbItem>
+          <BreadcrumbItem isActive>{t('Target details')}</BreadcrumbItem>
         </Breadcrumb>
       </div>
       <div className="co-m-nav-title co-m-nav-title--detail co-m-nav-title--breadcrumbs">
@@ -249,39 +249,39 @@ const Details_: React.FC<DetailsProps> = ({ loaded, loadError, match, targets })
       </div>
       <StatusBox data={target} label="target" loaded={loaded} loadError={loadError}>
         <div className="co-m-pane__body">
-          <SectionHeading text={t('public~Target details')} />
+          <SectionHeading text={t('Target details')} />
           {isServiceMonitor && serviceMonitorsLoadError && (
             <WatchErrorAlert
               loadError={serviceMonitorsLoadError}
-              title={t('public~Error loading service monitor data')}
+              title={t('Error loading service monitor data')}
             />
           )}
           {isPodMonitor && podMonitorsLoadError && (
             <WatchErrorAlert
               loadError={podMonitorsLoadError}
-              title={t('public~Error loading pod monitor data')}
+              title={t('Error loading pod monitor data')}
             />
           )}
           <div className="co-m-pane__body-group">
             <div className="row">
               <div className="col-sm-6">
                 <dl className="co-m-pane__details">
-                  <dt>{t('public~Endpoint')}</dt>
+                  <dt>{t('Endpoint')}</dt>
                   <dd>{scrapeUrl}</dd>
-                  <dt>{t('public~Namespace')}</dt>
+                  <dt>{t('Namespace')}</dt>
                   <dd>
                     <ResourceLink kind="Namespace" name={target?.labels?.namespace} />
                   </dd>
-                  <dt>{t('public~Labels')}</dt>
+                  <dt>{t('Labels')}</dt>
                   <dd>
                     <Labels kind="metricstarget" labels={target?.labels} />
                   </dd>
-                  <dt>{t('public~Last scrape')}</dt>
+                  <dt>{t('Last scrape')}</dt>
                   <dd>
                     <Timestamp timestamp={target?.lastScrape} />
                   </dd>
                   {target?.lastError && (
-                    <Alert className="co-alert" title={t('public~Scrape failed')} variant="danger">
+                    <Alert className="co-alert" title={t('Scrape failed')} variant="danger">
                       {target?.lastError}
                     </Alert>
                   )}
@@ -289,11 +289,11 @@ const Details_: React.FC<DetailsProps> = ({ loaded, loadError, match, targets })
               </div>
               <div className="col-sm-6">
                 <dl className="co-m-pane__details">
-                  <dt>{t('public~Status')}</dt>
+                  <dt>{t('Status')}</dt>
                   <dd>
                     <Health health={target?.health} />
                   </dd>
-                  <dt>{t('public~Monitor')}</dt>
+                  <dt>{t('Monitor')}</dt>
                   {isServiceMonitor && (
                     <dd>
                       <ServiceMonitor target={target} />
@@ -379,46 +379,46 @@ type ListProps = {
 };
 
 const List: React.FC<ListProps> = ({ data, loaded, loadError, unfilteredData }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
 
   const columns = React.useMemo<TableColumn<Target>[]>(
     () => [
       {
         id: 'scrapeUrl',
-        title: t('public~Endpoint'),
+        title: t('Endpoint'),
         sort: 'scrapeUrl',
         transforms: [sortable],
         props: { className: tableClasses[0] },
       },
       {
         id: 'monitor',
-        title: t('public~Monitor'),
+        title: t('Monitor'),
         props: { className: tableClasses[1] },
       },
       {
         id: 'health',
-        title: t('public~Status'),
+        title: t('Status'),
         sort: 'health',
         transforms: [sortable],
         props: { className: tableClasses[2] },
       },
       {
         id: 'namespace',
-        title: t('public~Namespace'),
+        title: t('Namespace'),
         sort: 'labels.namespace',
         transforms: [sortable],
         props: { className: tableClasses[3] },
       },
       {
         id: 'lastScrape',
-        title: t('public~Last Scrape'),
+        title: t('Last Scrape'),
         sort: 'lastScrape',
         transforms: [sortable],
         props: { className: tableClasses[4] },
       },
       {
         id: 'lastScrapeDuration',
-        title: t('public~Scrape Duration'),
+        title: t('Scrape Duration'),
         sort: 'lastScrapeDuration',
         transforms: [sortable],
         props: { className: tableClasses[5] },
@@ -447,7 +447,7 @@ type ListPageProps = {
 };
 
 const ListPage: React.FC<ListPageProps> = ({ loaded, loadError, targets }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
 
   const [, , serviceMonitorsLoadError] = React.useContext(ServiceMonitorsWatchContext);
   const [, , podMonitorsLoadError] = React.useContext(PodMonitorsWatchContext);
@@ -464,10 +464,10 @@ const ListPage: React.FC<ListPageProps> = ({ loaded, loadError, targets }) => {
     {
       filter: (filter, target: Target) =>
         filter.selected?.includes(target.health) || isEmpty(filter.selected),
-      filterGroupName: t('public~Status'),
+      filterGroupName: t('Status'),
       items: [
-        { id: 'up', title: t('public~Up') },
-        { id: 'down', title: t('public~Down') },
+        { id: 'up', title: t('Up') },
+        { id: 'down', title: t('Down') },
       ],
       reducer: (target: Target) => target?.health,
       type: 'observe-target-health',
@@ -475,10 +475,10 @@ const ListPage: React.FC<ListPageProps> = ({ loaded, loadError, targets }) => {
     {
       filter: (filter, target: Target) =>
         filter.selected?.includes(targetSource(target)) || isEmpty(filter.selected),
-      filterGroupName: t('public~Source'),
+      filterGroupName: t('Source'),
       items: [
-        { id: AlertSource.Platform, title: t('public~Platform') },
-        { id: AlertSource.User, title: t('public~User') },
+        { id: AlertSource.Platform, title: t('Platform') },
+        { id: AlertSource.User, title: t('User') },
       ],
       reducer: targetSource,
       type: 'observe-target-source',
@@ -489,7 +489,7 @@ const ListPage: React.FC<ListPageProps> = ({ loaded, loadError, targets }) => {
 
   const [staticData, filteredData, onFilterChange] = useListPageFilter(targets, allFilters);
 
-  const title = t('public~Metrics targets');
+  const title = t('Metrics targets');
 
   return (
     <>
@@ -504,7 +504,7 @@ const ListPage: React.FC<ListPageProps> = ({ loaded, loadError, targets }) => {
         {loadError && (
           <Alert
             className="co-alert"
-            title={t('public~Error loading latest targets data')}
+            title={t('Error loading latest targets data')}
             variant="danger"
           >
             {loadError}
@@ -513,13 +513,13 @@ const ListPage: React.FC<ListPageProps> = ({ loaded, loadError, targets }) => {
         {serviceMonitorsLoadError && (
           <WatchErrorAlert
             loadError={serviceMonitorsLoadError}
-            title={t('public~Error loading service monitor data')}
+            title={t('Error loading service monitor data')}
           />
         )}
         {podMonitorsLoadError && (
           <WatchErrorAlert
             loadError={podMonitorsLoadError}
-            title={t('public~Error loading pod monitor data')}
+            title={t('Error loading pod monitor data')}
           />
         )}
         <ListPageFilter
@@ -529,8 +529,8 @@ const ListPage: React.FC<ListPageProps> = ({ loaded, loadError, targets }) => {
           labelFilter="observe-target-labels"
           labelPath="labels"
           loaded={loaded}
-          nameFilterPlaceholder={t('public~Search by endpoint or namespace...')}
-          nameFilterTitle={t('public~Text')}
+          nameFilterPlaceholder={t('Search by endpoint or namespace...')}
+          nameFilterTitle={t('Text')}
           onFilterChange={onFilterChange}
           rowFilters={rowFilters}
         />

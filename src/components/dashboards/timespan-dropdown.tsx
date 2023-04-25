@@ -19,7 +19,8 @@ import { getActivePerspective } from './monitoring-dashboard-utils';
 const CUSTOM_TIME_RANGE_KEY = 'CUSTOM_TIME_RANGE_KEY';
 
 const TimespanDropdown: React.FC<TimeDropdownsProps> = ({ namespace }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
+
   const activePerspective = getActivePerspective(namespace);
 
   const [isOpen, toggleIsOpen, , setClosed] = useBoolean(false);
@@ -51,18 +52,18 @@ const TimespanDropdown: React.FC<TimeDropdownsProps> = ({ namespace }) => {
   );
 
   const items = {
-    [CUSTOM_TIME_RANGE_KEY]: t('public~Custom time range'),
-    '5m': t('public~Last {{count}} minute', { count: 5 }),
-    '15m': t('public~Last {{count}} minute', { count: 15 }),
-    '30m': t('public~Last {{count}} minute', { count: 30 }),
-    '1h': t('public~Last {{count}} hour', { count: 1 }),
-    '2h': t('public~Last {{count}} hour', { count: 2 }),
-    '6h': t('public~Last {{count}} hour', { count: 6 }),
-    '12h': t('public~Last {{count}} hour', { count: 12 }),
-    '1d': t('public~Last {{count}} day', { count: 1 }),
-    '2d': t('public~Last {{count}} day', { count: 2 }),
-    '1w': t('public~Last {{count}} week', { count: 1 }),
-    '2w': t('public~Last {{count}} week', { count: 2 }),
+    [CUSTOM_TIME_RANGE_KEY]: t('Custom time range'),
+    '5m': t('Last {{count}} minute', { count: 5 }),
+    '15m': t('Last {{count}} minute', { count: 15 }),
+    '30m': t('Last {{count}} minute', { count: 30 }),
+    '1h': t('Last {{count}} hour', { count: 1 }),
+    '2h': t('Last {{count}} hour', { count: 2 }),
+    '6h': t('Last {{count}} hour', { count: 6 }),
+    '12h': t('Last {{count}} hour', { count: 12 }),
+    '1d': t('Last {{count}} day', { count: 1 }),
+    '2d': t('Last {{count}} day', { count: 2 }),
+    '1w': t('Last {{count}} week', { count: 1 }),
+    '2w': t('Last {{count}} week', { count: 2 }),
   };
 
   return (
@@ -77,7 +78,7 @@ const TimespanDropdown: React.FC<TimeDropdownsProps> = ({ namespace }) => {
           className="monitoring-dashboards__dropdown-title"
           htmlFor="monitoring-time-range-dropdown"
         >
-          {t('public~Time range')}
+          {t('Time range')}
         </label>
         <Dropdown
           className="monitoring-dashboards__variable-dropdown"

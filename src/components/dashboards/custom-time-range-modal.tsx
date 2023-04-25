@@ -42,7 +42,7 @@ const CustomTimeRangeModal: React.FC<CustomTimeRangeModalProps> = ({
   isOpen,
   setClosed,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
 
   const dispatch = useDispatch();
   const endTime = useSelector(({ observe }: RootState) =>
@@ -85,12 +85,12 @@ const CustomTimeRangeModal: React.FC<CustomTimeRangeModalProps> = ({
       isOpen={isOpen}
       position="top"
       showClose={false}
-      title={t('public~Custom time range')}
+      title={t('Custom time range')}
       variant={ModalVariant.small}
     >
       <Flex className="custom-time-range-modal" direction={{ default: 'column' }}>
         <FlexItem spacer={{ default: 'spacerNone' }}>
-          <label>{t('public~From')}</label>
+          <label>{t('From')}</label>
         </FlexItem>
         <Flex>
           <FlexItem>
@@ -101,7 +101,7 @@ const CustomTimeRangeModal: React.FC<CustomTimeRangeModalProps> = ({
           </FlexItem>
         </Flex>
         <FlexItem spacer={{ default: 'spacerNone' }}>
-          <label>{t('public~To')}</label>
+          <label>{t('To')}</label>
         </FlexItem>
         <Flex>
           <FlexItem>
@@ -114,12 +114,12 @@ const CustomTimeRangeModal: React.FC<CustomTimeRangeModalProps> = ({
         <Flex className="custom-time-range-modal-footer">
           <FlexItem align={{ default: 'alignRight' }}>
             <Button variant="secondary" onClick={setClosed}>
-              {t('public~Cancel')}
+              {t('Cancel')}
             </Button>
           </FlexItem>
           <FlexItem>
             <Button variant="primary" onClick={submit}>
-              {t('public~Save')}
+              {t('Save')}
             </Button>
           </FlexItem>
         </Flex>

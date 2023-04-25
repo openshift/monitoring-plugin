@@ -13,9 +13,10 @@ const LocalizedToggleTemplate: React.FC<LocalizedToggleTemplateProps> = ({
   itemsTitle,
   lastIndex,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
+
   return (
-    <Trans t={t} ns="public">
+    <Trans t={t}>
       <b>
         <>
           {{ firstIndex }} - {{ lastIndex }}
@@ -38,7 +39,8 @@ const TablePagination: React.FC<TablePaginationProps> = ({
   setPage,
   setPerPage,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
+
   const onPerPageSelect = (e, v) => {
     // When changing the number of results per page, keep the start row approximately the same
     const firstRow = (page - 1) * perPage;
@@ -59,16 +61,16 @@ const TablePagination: React.FC<TablePaginationProps> = ({
       titles={{
         items: '',
         page: '',
-        itemsPerPage: t('public~Items per page'),
-        perPageSuffix: t('public~per page'),
-        toFirstPage: t('public~Go to first page'),
-        toPreviousPage: t('public~Go to previous page'),
-        toLastPage: t('public~Go to last page'),
-        toNextPage: t('public~Go to next page'),
-        optionsToggle: t('public~Items per page'),
-        currPage: t('public~Current page'),
-        paginationTitle: t('public~Pagination'),
-        ofWord: t('public~of'),
+        itemsPerPage: t('Items per page'),
+        perPageSuffix: t('per page'),
+        toFirstPage: t('Go to first page'),
+        toPreviousPage: t('Go to previous page'),
+        toLastPage: t('Go to last page'),
+        toNextPage: t('Go to next page'),
+        optionsToggle: t('Items per page'),
+        currPage: t('Current page'),
+        paginationTitle: t('Pagination'),
+        ofWord: t('of'),
       }}
     />
   );

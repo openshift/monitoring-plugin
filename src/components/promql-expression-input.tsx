@@ -252,13 +252,14 @@ export const PromQLExpressionInput: React.FC<PromQLExpressionInputProps> = ({
   onValueChange,
   onSelectionChange,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
+
   const containerRef = React.useRef<HTMLDivElement | null>(null);
   const viewRef = React.useRef<EditorView | null>(null);
   const [metricNames, setMetricNames] = React.useState<Array<string>>([]);
   const [errorMessage, setErrorMessage] = React.useState<string | undefined>();
 
-  const placeholder = t('public~Expression (press Shift+Enter for newlines)');
+  const placeholder = t('Expression (press Shift+Enter for newlines)');
 
   const safeFetch = React.useCallback(useSafeFetch(), []);
 
@@ -272,8 +273,8 @@ export const PromQLExpressionInput: React.FC<PromQLExpressionInputProps> = ({
         if (err.name !== 'AbortError') {
           const message =
             err?.response?.status === 403
-              ? t('public~Access restricted.')
-              : t('public~Failed to load metrics list.');
+              ? t('Access restricted.')
+              : t('Failed to load metrics list.');
           setErrorMessage(message);
         }
       });
@@ -422,7 +423,7 @@ export const PromQLExpressionInput: React.FC<PromQLExpressionInputProps> = ({
         </div>
       )}
       <Button
-        aria-label={t('public~Clear query')}
+        aria-label={t('Clear query')}
         className="query-browser__clear-icon"
         onClick={onClear}
         variant="plain"

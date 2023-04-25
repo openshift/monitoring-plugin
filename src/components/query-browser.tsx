@@ -103,10 +103,10 @@ const GraphEmptyState: React.FC<GraphEmptyStateProps> = ({ children, title }) =>
 
 const SpanControls: React.FC<SpanControlsProps> = React.memo(
   ({ defaultSpanText, onChange, span, hasReducedResolution }) => {
+    const { t } = useTranslation('public');
+
     const [isValid, setIsValid] = React.useState(true);
     const [text, setText] = React.useState(formatPrometheusDuration(span));
-
-    const { t } = useTranslation();
 
     const [isOpen, setIsOpen, , setClosed] = useBoolean(false);
 
@@ -141,7 +141,7 @@ const SpanControls: React.FC<SpanControlsProps> = React.memo(
       <>
         <InputGroup className="query-browser__span">
           <TextInput
-            aria-label={t('public~graph timespan')}
+            aria-label={t('graph timespan')}
             className="query-browser__span-text"
             validated={isValid ? 'default' : 'error'}
             onChange={(v) => setSpan(v, true)}
@@ -153,7 +153,7 @@ const SpanControls: React.FC<SpanControlsProps> = React.memo(
             isOpen={isOpen}
             onSelect={setClosed}
             position={DropdownPosition.right}
-            toggle={<DropdownToggle aria-label={t('public~graph timespan')} onToggle={setIsOpen} />}
+            toggle={<DropdownToggle aria-label={t('graph timespan')} onToggle={setIsOpen} />}
           />
         </InputGroup>
         <Button
@@ -162,14 +162,14 @@ const SpanControls: React.FC<SpanControlsProps> = React.memo(
           type="button"
           variant="tertiary"
         >
-          {t('public~Reset zoom')}
+          {t('Reset zoom')}
         </Button>
         {hasReducedResolution && (
           <Alert
             isInline
             isPlain
             className="query-browser__reduced-resolution"
-            title={t('public~Displaying with reduced resolution due to large dataset.')}
+            title={t('Displaying with reduced resolution due to large dataset.')}
             variant="info"
             truncateTitle={1}
           />
@@ -346,11 +346,12 @@ const Graph: React.FC<GraphProps> = React.memo(
     units,
     width,
   }) => {
+    const { t } = useTranslation('public');
+
     const data: GraphSeries[] = [];
     const tooltipSeriesNames: string[] = [];
     const tooltipSeriesLabels: PrometheusLabels[] = [];
     const legendData: { name: string }[] = [];
-    const { t } = useTranslation();
 
     const [xDomain, setXDomain] = React.useState(fixedXDomain || getXDomain(Date.now(), span));
 
@@ -430,7 +431,7 @@ const Graph: React.FC<GraphProps> = React.memo(
     return (
       <Chart
         containerComponent={graphContainer}
-        ariaTitle={t('public~query browser chart')}
+        ariaTitle={t('query browser chart')}
         domain={domain}
         domainPadding={{ y: 1 }}
         height={200}
@@ -665,7 +666,8 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
   units,
   wrapperClassName,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
+
   const hideGraphs = useSelector(({ observe }: RootState) => !!observe.get('hideGraphs'));
   const tickInterval = useSelector(
     ({ observe }: RootState) => pollInterval ?? observe.getIn(['queryBrowser', 'pollInterval']),
@@ -862,9 +864,9 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
 
   if (isRangeVector) {
     return (
-      <GraphEmptyState title={t('public~Ungraphable results')}>
+      <GraphEmptyState title={t('Ungraphable results')}>
         {t(
-          'public~Query results include range vectors, which cannot be graphed. Try adding a function to transform the data.',
+          'Query results include range vectors, which cannot be graphed. Try adding a function to transform the data.',
         )}
       </GraphEmptyState>
     );
@@ -872,16 +874,16 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
 
   if (error?.json?.error?.match(/invalid expression type "string"/)) {
     return (
-      <GraphEmptyState title={t('public~Ungraphable results')}>
-        {t('public~Query result is a string, which cannot be graphed.')}
+      <GraphEmptyState title={t('Ungraphable results')}>
+        {t('Query result is a string, which cannot be graphed.')}
       </GraphEmptyState>
     );
   }
 
   if (isDatasetTooBig) {
     return (
-      <GraphEmptyState title={t('public~Ungraphable results')}>
-        {t('public~The resulting dataset is too large to graph.')}
+      <GraphEmptyState title={t('Ungraphable results')}>
+        {t('The resulting dataset is too large to graph.')}
       </GraphEmptyState>
     );
   }
@@ -924,7 +926,7 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
                 id="stacked"
                 isChecked={isStacked}
                 data-checked-state={isStacked}
-                label={t('public~Stacked')}
+                label={t('Stacked')}
                 onChange={(v) => setIsStacked(v)}
               />
             )}

@@ -75,7 +75,7 @@ import { PrometheusAPIError, RootState } from './types';
 let focusedQuery;
 
 const MetricsActionsMenu: React.FC<{}> = () => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
 
   const [isOpen, setIsOpen, , setClosed] = useBoolean(false);
 
@@ -93,17 +93,17 @@ const MetricsActionsMenu: React.FC<{}> = () => {
 
   const dropdownItems = [
     <DropdownItem key="add-query" component="button" onClick={addQuery}>
-      {t('public~Add query')}
+      {t('Add query')}
     </DropdownItem>,
     <DropdownItem
       key="collapse-all"
       component="button"
       onClick={() => dispatch(queryBrowserSetAllExpanded(!isAllExpanded))}
     >
-      {isAllExpanded ? t('public~Collapse all query tables') : t('public~Expand all query tables')}
+      {isAllExpanded ? t('Collapse all query tables') : t('Expand all query tables')}
     </DropdownItem>,
     <DropdownItem key="delete-all" component="button" onClick={doDelete}>
-      {t('public~Delete all queries')}
+      {t('Delete all queries')}
     </DropdownItem>,
   ];
 
@@ -120,7 +120,7 @@ const MetricsActionsMenu: React.FC<{}> = () => {
 };
 
 export const ToggleGraph: React.FC<{}> = () => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
 
   const hideGraphs = useSelector(({ observe }: RootState) => !!observe.get('hideGraphs'));
 
@@ -136,14 +136,15 @@ export const ToggleGraph: React.FC<{}> = () => {
       onClick={toggle}
       variant="link"
     >
-      {icon} {hideGraphs ? t('public~Show graph') : t('public~Hide graph')}
+      {icon} {hideGraphs ? t('Show graph') : t('Hide graph')}
     </Button>
   );
 };
 
 const ExpandButton = ({ isExpanded, onClick }) => {
-  const { t } = useTranslation();
-  const title = isExpanded ? t('public~Hide table') : t('public~Show table');
+  const { t } = useTranslation('public');
+
+  const title = isExpanded ? t('Hide table') : t('Show table');
   return (
     <Button
       aria-label={title}
@@ -162,7 +163,7 @@ const ExpandButton = ({ isExpanded, onClick }) => {
 };
 
 const SeriesButton: React.FC<SeriesButtonProps> = ({ index, labels }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
 
   const [colorIndex, isDisabled, isSeriesEmpty] = useSelector(({ observe }: RootState) => {
     const disabledSeries = observe.getIn(['queryBrowser', 'queries', index, 'disabledSeries']);
@@ -193,7 +194,7 @@ const SeriesButton: React.FC<SeriesButtonProps> = ({ index, labels }) => {
   if (isSeriesEmpty) {
     return <div className="query-browser__series-btn-wrap"></div>;
   }
-  const title = isDisabled ? t('public~Show series') : t('public~Hide series');
+  const title = isDisabled ? t('Show series') : t('Hide series');
 
   return (
     <div className="query-browser__series-btn-wrap">
@@ -213,7 +214,7 @@ const SeriesButton: React.FC<SeriesButtonProps> = ({ index, labels }) => {
 };
 
 const QueryKebab: React.FC<{ index: number }> = ({ index }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
 
   const isDisabledSeriesEmpty = useSelector(({ observe }: RootState) =>
     _.isEmpty(observe.getIn(['queryBrowser', 'queries', index, 'disabledSeries'])),
@@ -245,16 +246,16 @@ const QueryKebab: React.FC<{ index: number }> = ({ index }) => {
 
   const dropdownItems = [
     <DropdownItem key="toggle-query" component="button" onClick={toggleIsEnabled}>
-      {isEnabled ? t('public~Disable query') : t('public~Enable query')}
+      {isEnabled ? t('Disable query') : t('Enable query')}
     </DropdownItem>,
     <DropdownItem key="toggle-all-series" component="button" onClick={toggleAllSeries}>
-      {isDisabledSeriesEmpty ? t('public~Hide all series') : t('public~Show all series')}
+      {isDisabledSeriesEmpty ? t('Hide all series') : t('Show all series')}
     </DropdownItem>,
     <DropdownItem key="delete" component="button" onClick={doDelete}>
-      {t('public~Delete query')}
+      {t('Delete query')}
     </DropdownItem>,
     <DropdownItem key="duplicate" component="button" onClick={doClone}>
-      {t('public~Duplicate query')}
+      {t('Duplicate query')}
     </DropdownItem>,
   ];
 
@@ -262,7 +263,7 @@ const QueryKebab: React.FC<{ index: number }> = ({ index }) => {
 };
 
 export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
 
   const [data, setData] = React.useState<PrometheusData>();
   const [error, setError] = React.useState<PrometheusAPIError>();
@@ -336,7 +337,7 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace }) => {
   if (error) {
     return (
       <div className="query-browser__table-message">
-        <Error error={error} title={t('public~Error loading values')} />
+        <Error error={error} title={t('Error loading values')} />
       </div>
     );
   }
@@ -360,7 +361,7 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace }) => {
   if (!result || result.length === 0) {
     return (
       <div className="query-browser__table-message">
-        <YellowExclamationTriangleIcon /> {t('public~No datapoints found.')}
+        <YellowExclamationTriangleIcon /> {t('No datapoints found.')}
       </div>
     );
   }
@@ -371,10 +372,10 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace }) => {
 
   let columns, rows;
   if (data.resultType === 'scalar') {
-    columns = ['', { title: t('public~Value'), transforms }];
+    columns = ['', { title: t('Value'), transforms }];
     rows = [[buttonCell({}), _.get(result, '[1]')]];
   } else if (data.resultType === 'string') {
-    columns = [{ title: t('public~Value'), transforms }];
+    columns = [{ title: t('Value'), transforms }];
     rows = [[result?.[1]]];
   } else {
     const allLabelKeys = _.uniq(_.flatMap(result, ({ metric }) => Object.keys(metric))).sort();
@@ -382,10 +383,10 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace }) => {
     columns = [
       '',
       ...allLabelKeys.map((k) => ({
-        title: <span>{k === '__name__' ? t('public~Name') : k}</span>,
+        title: <span>{k === '__name__' ? t('Name') : k}</span>,
         transforms,
       })),
-      { title: t('public~Value'), transforms },
+      { title: t('Value'), transforms },
     ];
 
     let rowMapper;
@@ -409,7 +410,7 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace }) => {
       rowMapper = ({ metric, value }) => [
         buttonCell(metric),
         ..._.map(allLabelKeys, (k) => metric[k]),
-        _.get(value, '[1]', { title: <span className="text-muted">{t('public~None')}</span> }),
+        _.get(value, '[1]', { title: <span className="text-muted">{t('None')}</span> }),
       ];
     }
 
@@ -442,10 +443,10 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace }) => {
             onClick={toggleAllSeries}
             className="query-browser__series-select-all-btn"
           >
-            {isDisabledSeriesEmpty ? t('public~Unselect all') : t('public~Select all')}
+            {isDisabledSeriesEmpty ? t('Unselect all') : t('Select all')}
           </Button>
           <Table
-            aria-label={t('public~query results table')}
+            aria-label={t('query results table')}
             cells={columns}
             gridBreakPoint={TableGridBreakpoint.none}
             onSort={onSort}
@@ -477,7 +478,7 @@ const PromQLExpressionInput = (props) => (
 );
 
 const Query: React.FC<{ index: number }> = ({ index }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
 
   const id = useSelector(({ observe }: RootState) =>
     observe.getIn(['queryBrowser', 'queries', index, 'id']),
@@ -524,7 +525,7 @@ const Query: React.FC<{ index: number }> = ({ index }) => {
   };
 
   const switchKey = `${id}-${isEnabled}`;
-  const switchLabel = isEnabled ? t('public~Disable query') : t('public~Enable query');
+  const switchLabel = isEnabled ? t('Disable query') : t('Enable query');
 
   return (
     <div
@@ -559,7 +560,7 @@ const Query: React.FC<{ index: number }> = ({ index }) => {
 };
 
 const QueryBrowserWrapper: React.FC<{}> = () => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
 
   const dispatch = useDispatch();
 
@@ -624,13 +625,13 @@ const QueryBrowserWrapper: React.FC<{}> = () => {
         <EmptyState variant={EmptyStateVariant.full}>
           <EmptyStateIcon icon={ChartLineIcon} />
           <Title headingLevel="h2" size="md">
-            {t('public~No query entered')}
+            {t('No query entered')}
           </Title>
           <EmptyStateBody>
-            {t('public~Enter a query in the box below to explore metrics for this cluster.')}
+            {t('Enter a query in the box below to explore metrics for this cluster.')}
           </EmptyStateBody>
           <Button onClick={insertExampleQuery} variant="primary">
-            {t('public~Insert example query')}
+            {t('Insert example query')}
           </Button>
         </EmptyState>
       </div>
@@ -648,7 +649,7 @@ const QueryBrowserWrapper: React.FC<{}> = () => {
 };
 
 const AddQueryButton: React.FC<{}> = () => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
 
   const dispatch = useDispatch();
   const addQuery = React.useCallback(() => dispatch(queryBrowserAddQuery()), [dispatch]);
@@ -660,20 +661,20 @@ const AddQueryButton: React.FC<{}> = () => {
       type="button"
       variant="secondary"
     >
-      {t('public~Add query')}
+      {t('Add query')}
     </Button>
   );
 };
 
 const RunQueriesButton: React.FC<{}> = () => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
 
   const dispatch = useDispatch();
   const runQueries = React.useCallback(() => dispatch(queryBrowserRunQueries()), [dispatch]);
 
   return (
     <Button onClick={runQueries} type="submit" variant="primary">
-      {t('public~Run queries')}
+      {t('Run queries')}
     </Button>
   );
 };
@@ -708,7 +709,7 @@ const PollIntervalDropdown = () => {
 };
 
 const QueryBrowserPage_: React.FC<{}> = () => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
 
   const dispatch = useDispatch();
 
@@ -718,11 +719,11 @@ const QueryBrowserPage_: React.FC<{}> = () => {
   return (
     <>
       <Helmet>
-        <title>{t('public~Metrics')}</title>
+        <title>{t('Metrics')}</title>
       </Helmet>
       <div className="co-m-nav-title">
         <h1 className="co-m-pane__heading">
-          <span>{t('public~Metrics')}</span>
+          <span>{t('Metrics')}</span>
           <div className="co-actions">
             <PollIntervalDropdown />
             <MetricsActionsMenu />

@@ -181,7 +181,7 @@ export const AlertState: React.FC<AlertStateProps> = React.memo(({ state }) => {
 });
 
 const SilenceState = ({ silence }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
 
   const state = silenceState(silence);
   const icon = {
@@ -193,11 +193,11 @@ const SilenceState = ({ silence }) => {
   const getStateKey = (stateData) => {
     switch (stateData) {
       case SilenceStates.Active:
-        return t('public~Active');
+        return t('Active');
       case SilenceStates.Pending:
-        return t('public~Pending');
+        return t('Pending');
       default:
-        return t('public~Expired');
+        return t('Expired');
     }
   };
 
@@ -216,17 +216,13 @@ export const StateTimestamp = ({ text, timestamp }) => (
 );
 
 const AlertStateDescription: React.FC<{ alert }> = ({ alert }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
+
   if (alert && !_.isEmpty(alert.silencedBy)) {
-    return (
-      <StateTimestamp
-        text={t('public~Ends')}
-        timestamp={_.max(_.map(alert.silencedBy, 'endsAt'))}
-      />
-    );
+    return <StateTimestamp text={t('Ends')} timestamp={_.max(_.map(alert.silencedBy, 'endsAt'))} />;
   }
   if (alert && alert.activeAt) {
-    return <StateTimestamp text={t('public~Since')} timestamp={alert.activeAt} />;
+    return <StateTimestamp text={t('Since')} timestamp={alert.activeAt} />;
   }
   return null;
 };
@@ -243,18 +239,18 @@ const SeverityIcon: React.FC<{ severity: string }> = React.memo(({ severity }) =
 });
 
 export const Severity: React.FC<{ severity: string }> = React.memo(({ severity }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
 
   const getSeverityKey = (severityData: string) => {
     switch (severityData) {
       case AlertSeverity.Critical:
-        return t('public~Critical');
+        return t('Critical');
       case AlertSeverity.Info:
-        return t('public~Info');
+        return t('Info');
       case AlertSeverity.Warning:
-        return t('public~Warning');
+        return t('Warning');
       case AlertSeverity.None:
-        return t('public~None');
+        return t('None');
       default:
         return severityData;
     }
@@ -333,32 +329,33 @@ const PopoverField: React.FC<{ bodyContent: React.ReactNode; label: string }> = 
 );
 
 const AlertStateHelp: React.FC<{}> = () => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
+
   return (
     <dl className="co-inline">
       <dt>
-        <AlertStateIcon state={AlertStates.Pending} /> <strong>{t('public~Pending: ')}</strong>
+        <AlertStateIcon state={AlertStates.Pending} /> <strong>{t('Pending: ')}</strong>
       </dt>
       <dd>
         {t(
-          'public~The alert is active but is waiting for the duration that is specified in the alerting rule before it fires.',
+          'The alert is active but is waiting for the duration that is specified in the alerting rule before it fires.',
         )}
       </dd>
       <dt>
-        <AlertStateIcon state={AlertStates.Firing} /> <strong>{t('public~Firing: ')}</strong>
+        <AlertStateIcon state={AlertStates.Firing} /> <strong>{t('Firing: ')}</strong>
       </dt>
       <dd>
         {t(
-          'public~The alert is firing because the alert condition is true and the optional `for` duration has passed. The alert will continue to fire as long as the condition remains true.',
+          'The alert is firing because the alert condition is true and the optional `for` duration has passed. The alert will continue to fire as long as the condition remains true.',
         )}
       </dd>
       <dt>
-        <AlertStateIcon state={AlertStates.Silenced} /> <strong>{t('public~Silenced: ')}</strong>
+        <AlertStateIcon state={AlertStates.Silenced} /> <strong>{t('Silenced: ')}</strong>
       </dt>
       <dt></dt>
       <dd>
         {t(
-          'public~The alert is now silenced for a defined time period. Silences temporarily mute alerts based on a set of label selectors that you define. Notifications will not be sent for alerts that match all the listed values or regular expressions.',
+          'The alert is now silenced for a defined time period. Silences temporarily mute alerts based on a set of label selectors that you define. Notifications will not be sent for alerts that match all the listed values or regular expressions.',
         )}
       </dd>
     </dl>
@@ -366,58 +363,58 @@ const AlertStateHelp: React.FC<{}> = () => {
 };
 
 const SeverityHelp: React.FC<{}> = () => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
+
   return (
     <dl className="co-inline">
       <dt>
-        <SeverityIcon severity={AlertSeverity.Critical} /> <strong>{t('public~Critical: ')}</strong>
+        <SeverityIcon severity={AlertSeverity.Critical} /> <strong>{t('Critical: ')}</strong>
       </dt>
       <dd>
         {t(
-          'public~The condition that triggered the alert could have a critical impact. The alert requires immediate attention when fired and is typically paged to an individual or to a critical response team.',
+          'The condition that triggered the alert could have a critical impact. The alert requires immediate attention when fired and is typically paged to an individual or to a critical response team.',
         )}
       </dd>
       <dt>
-        <SeverityIcon severity={AlertSeverity.Warning} /> <strong>{t('public~Warning: ')}</strong>
+        <SeverityIcon severity={AlertSeverity.Warning} /> <strong>{t('Warning: ')}</strong>
       </dt>
       <dd>
         {t(
-          'public~The alert provides a warning notification about something that might require attention in order to prevent a problem from occurring. Warnings are typically routed to a ticketing system for non-immediate review.',
+          'The alert provides a warning notification about something that might require attention in order to prevent a problem from occurring. Warnings are typically routed to a ticketing system for non-immediate review.',
         )}
       </dd>
       <dt>
-        <SeverityIcon severity={AlertSeverity.Info} /> <strong>{t('public~Info: ')}</strong>
+        <SeverityIcon severity={AlertSeverity.Info} /> <strong>{t('Info: ')}</strong>
       </dt>
-      <dd>{t('public~The alert is provided for informational purposes only.')}</dd>
+      <dd>{t('The alert is provided for informational purposes only.')}</dd>
       <dt>
-        <SeverityIcon severity={AlertSeverity.None} /> <strong>{t('public~None: ')}</strong>
+        <SeverityIcon severity={AlertSeverity.None} /> <strong>{t('None: ')}</strong>
       </dt>
-      <dd>{t('public~The alert has no defined severity.')}</dd>
-      <dd>
-        {t('public~You can also create custom severity definitions for user workload alerts.')}
-      </dd>
+      <dd>{t('The alert has no defined severity.')}</dd>
+      <dd>{t('You can also create custom severity definitions for user workload alerts.')}</dd>
     </dl>
   );
 };
 
 const SourceHelp: React.FC<{}> = () => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
+
   return (
     <dl className="co-inline">
       <dt>
-        <strong>{t('public~Platform: ')}</strong>
+        <strong>{t('Platform: ')}</strong>
       </dt>
       <dd>
         {t(
-          'public~Platform-level alerts relate only to OpenShift namespaces. OpenShift namespaces provide core OpenShift functionality.',
+          'Platform-level alerts relate only to OpenShift namespaces. OpenShift namespaces provide core OpenShift functionality.',
         )}
       </dd>
       <dt>
-        <strong>{t('public~User: ')}</strong>
+        <strong>{t('User: ')}</strong>
       </dt>
       <dd>
         {t(
-          'public~User workload alerts relate to user-defined namespaces. These alerts are user-created and are customizable. User workload monitoring can be enabled post-installation to provide observability into your own services.',
+          'User workload alerts relate to user-defined namespaces. These alerts are user-created and are customizable. User workload monitoring can be enabled post-installation to provide observability into your own services.',
         )}
       </dd>
     </dl>
@@ -440,15 +437,15 @@ const Graph: React.FC<GraphProps> = ({
   query,
   ruleDuration,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
 
   // 3 times the rule's duration, but not less than 30 minutes
   const timespan = Math.max(3 * ruleDuration, 30 * 60) * 1000;
 
   const GraphLink = () =>
     query ? (
-      <Link aria-label={t('public~View in Metrics')} to={queryBrowserURL(query, namespace)}>
-        {t('public~View in Metrics')}
+      <Link aria-label={t('View in Metrics')} to={queryBrowserURL(query, namespace)}>
+        {t('View in Metrics')}
       </Link>
     ) : null;
 
@@ -486,10 +483,10 @@ const SilenceMatchersList = ({ silence }) => (
 );
 
 const SilenceTableRow: React.FC<RowProps<Silence>> = ({ obj }) => {
+  const { t } = useTranslation('public');
+
   const { createdBy, endsAt, firingAlerts, id, name, startsAt } = obj;
   const state = silenceState(obj);
-
-  const { t } = useTranslation();
 
   return (
     <>
@@ -515,13 +512,11 @@ const SilenceTableRow: React.FC<RowProps<Silence>> = ({ obj }) => {
       <td className={classNames(tableSilenceClasses[2], 'co-break-word')}>
         <SilenceState silence={obj} />
         {state === SilenceStates.Pending && (
-          <StateTimestamp text={t('public~Starts')} timestamp={startsAt} />
+          <StateTimestamp text={t('Starts')} timestamp={startsAt} />
         )}
-        {state === SilenceStates.Active && (
-          <StateTimestamp text={t('public~Ends')} timestamp={endsAt} />
-        )}
+        {state === SilenceStates.Active && <StateTimestamp text={t('Ends')} timestamp={endsAt} />}
         {state === SilenceStates.Expired && (
-          <StateTimestamp text={t('public~Expired')} timestamp={endsAt} />
+          <StateTimestamp text={t('Expired')} timestamp={endsAt} />
         )}
       </td>
       <td className={tableSilenceClasses[3]}>{createdBy || '-'}</td>
@@ -624,29 +619,29 @@ const getSourceKey = (source) => {
 };
 
 const SilencedByList: React.FC<{ silences: Silence[] }> = ({ silences }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
 
   const columns = React.useMemo<TableColumn<Silence>[]>(
     () => [
       {
         id: 'name',
         props: { className: tableSilenceClasses[0] },
-        title: t('public~Name'),
+        title: t('Name'),
       },
       {
         id: 'firingAlerts',
         props: { className: tableSilenceClasses[1] },
-        title: t('public~Firing alerts'),
+        title: t('Firing alerts'),
       },
       {
         id: 'state',
         props: { className: tableSilenceClasses[2] },
-        title: t('public~State'),
+        title: t('State'),
       },
       {
         id: 'createdBy',
         props: { className: tableSilenceClasses[3] },
-        title: t('public~Creator'),
+        title: t('Creator'),
       },
       {
         id: 'actions',
@@ -659,7 +654,7 @@ const SilencedByList: React.FC<{ silences: Silence[] }> = ({ silences }) => {
 
   return (
     <VirtualizedTable<Silence>
-      aria-label={t('public~Silenced by')}
+      aria-label={t('Silenced by')}
       columns={columns}
       data={silences}
       loaded={true}
@@ -673,7 +668,7 @@ const SilencedByList: React.FC<{ silences: Silence[] }> = ({ silences }) => {
 type AlertsDetailsPageProps = RouteComponentProps<{ ns?: string; ruleID: string }>;
 
 const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
 
   const isDevPerspective = _.has(match.params, 'ns');
   const namespace = match.params?.ns;
@@ -699,9 +694,6 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
 
   return (
     <>
-      <Helmet>
-        <title>{t('public~{{alertName}} details', { alertName: labels?.alertname })}</title>
-      </Helmet>
       <StatusBox
         data={alert}
         label={AlertResource.label}
@@ -715,10 +707,10 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
                 className="pf-c-breadcrumb__link"
                 to={namespace ? `/dev-monitoring/ns/${namespace}/alerts` : '/monitoring/alerts'}
               >
-                {t('public~Alerts')}
+                {t('Alerts')}
               </Link>
             </BreadcrumbItem>
-            <BreadcrumbItem isActive>{t('public~Alert details')}</BreadcrumbItem>
+            <BreadcrumbItem isActive>{t('Alert details')}</BreadcrumbItem>
           </Breadcrumb>
         </div>
         <div className="co-m-nav-title co-m-nav-title--detail co-m-nav-title--breadcrumbs">
@@ -735,7 +727,7 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
                   onClick={() => history.push(silenceAlertURL(alert))}
                   variant="primary"
                 >
-                  {t('public~Silence alert')}
+                  {t('Silence alert')}
                 </Button>
               </div>
             )}
@@ -746,7 +738,7 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
           <Toolbar className="monitoring-alert-detail-toolbar">
             <ToolbarContent>
               <ToolbarItem variant="label">
-                <SectionHeading text={t('public~Alert details')} />
+                <SectionHeading text={t('Alert details')} />
               </ToolbarItem>
               <ToolbarGroup alignment={{ default: 'alignRight' }}>
                 <ActionServiceProvider context={{ 'alert-detail-toolbar-actions': { alert } }}>
@@ -781,17 +773,17 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
             <div className="row">
               <div className="col-sm-6">
                 <dl className="co-m-pane__details">
-                  <dt>{t('public~Name')}</dt>
+                  <dt>{t('Name')}</dt>
                   <dd>{labels?.alertname}</dd>
                   <dt>
-                    <PopoverField bodyContent={<SeverityHelp />} label={t('public~Severity')} />
+                    <PopoverField bodyContent={<SeverityHelp />} label={t('Severity')} />
                   </dt>
                   <dd>
                     <Severity severity={labels?.severity} />
                   </dd>
                   {alert?.annotations?.description && (
                     <>
-                      <dt>{t('public~Description')}</dt>
+                      <dt>{t('Description')}</dt>
                       <dd>
                         <AlertMessage
                           alertText={alert.annotations.description}
@@ -803,13 +795,13 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
                   )}
                   {alert?.annotations?.summary && (
                     <>
-                      <dt>{t('public~Summary')}</dt>
+                      <dt>{t('Summary')}</dt>
                       <dd>{alert.annotations.summary}</dd>
                     </>
                   )}
                   {alert?.annotations?.message && (
                     <>
-                      <dt>{t('public~Message')}</dt>
+                      <dt>{t('Message')}</dt>
                       <dd>
                         <AlertMessage
                           alertText={alert.annotations.message}
@@ -821,7 +813,7 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
                   )}
                   {runbookURL && (
                     <>
-                      <dt>{t('public~Runbook')}</dt>
+                      <dt>{t('Runbook')}</dt>
                       <dd>
                         <ExternalLink href={runbookURL} text={runbookURL} />
                       </dd>
@@ -832,11 +824,11 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
               <div className="col-sm-6">
                 <dl className="co-m-pane__details">
                   <dt>
-                    <PopoverField bodyContent={<SourceHelp />} label={t('public~Source')} />
+                    <PopoverField bodyContent={<SourceHelp />} label={t('Source')} />
                   </dt>
                   <dd>{alert && getSourceKey(_.startCase(alertSource(alert)))}</dd>
                   <dt>
-                    <PopoverField bodyContent={<AlertStateHelp />} label={t('public~State')} />
+                    <PopoverField bodyContent={<AlertStateHelp />} label={t('State')} />
                   </dt>
                   <dd>
                     <AlertState state={state} />
@@ -850,7 +842,7 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
             <div className="row">
               <div className="col-xs-12">
                 <dl className="co-m-pane__details" data-test="label-list">
-                  <dt>{t('public~Labels')}</dt>
+                  <dt>{t('Labels')}</dt>
                   <dd>
                     <Labels kind="alert" labels={labels} />
                   </dd>
@@ -862,7 +854,7 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
             <div className="row">
               <div className="col-xs-12">
                 <dl className="co-m-pane__details">
-                  <dt>{t('public~Alerting rule')}</dt>
+                  <dt>{t('Alerting rule')}</dt>
                   <dd>
                     <div className="co-resource-item">
                       <MonitoringResourceIcon resource={RuleResource} />
@@ -887,7 +879,7 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
         {silencesLoaded && !_.isEmpty(alert?.silencedBy) && (
           <div className="co-m-pane__body">
             <div className="co-m-pane__body-group">
-              <SectionHeading text={t('public~Silenced by')} />
+              <SectionHeading text={t('Silenced by')} />
               <div className="row">
                 <div className="col-xs-12">
                   <SilencedByList silences={alert?.silencedBy} />
@@ -924,15 +916,15 @@ type ActiveAlertsProps = RouteComponentProps & {
 };
 
 const ActiveAlerts_: React.FC<ActiveAlertsProps> = ({ alerts, history, namespace, ruleID }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
 
   return (
     <div className="co-m-table-grid co-m-table-grid--bordered">
       <div className="row co-m-table-grid__head">
-        <div className="col-xs-6">{t('public~Description')}</div>
-        <div className="col-sm-2 hidden-xs">{t('public~Active since')}</div>
-        <div className="col-sm-2 col-xs-3">{t('public~State')}</div>
-        <div className="col-sm-2 col-xs-3">{t('public~Value')}</div>
+        <div className="col-xs-6">{t('Description')}</div>
+        <div className="col-sm-2 hidden-xs">{t('Active since')}</div>
+        <div className="col-sm-2 col-xs-3">{t('State')}</div>
+        <div className="col-sm-2 col-xs-3">{t('Value')}</div>
       </div>
       <div className="co-m-table-grid__body">
         {_.sortBy(alerts, alertDescription).map((a, i) => (
@@ -966,7 +958,7 @@ const ActiveAlerts_: React.FC<ActiveAlertsProps> = ({ alerts, history, namespace
                       key="silence"
                       onClick={() => history.push(silenceAlertURL(a))}
                     >
-                      {t('public~Silence alert')}
+                      {t('Silence alert')}
                     </DropdownItem>,
                   ]}
                 />
@@ -983,7 +975,7 @@ const ActiveAlerts = withRouter(ActiveAlerts_);
 type AlertRulesDetailsPageProps = RouteComponentProps<{ id: string; ns?: string }>;
 
 const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
 
   const isDevPerspective = _.has(match.params, 'ns');
   const namespace = match.params?.ns;
@@ -1009,7 +1001,7 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
   return (
     <>
       <Helmet>
-        <title>{t('public~{{name}} details', { name: rule?.name || RuleResource.label })}</title>
+        <title>{t('{{name}} details', { name: rule?.name || RuleResource.label })}</title>
       </Helmet>
       <StatusBox data={rule} label={RuleResource.label} loaded={loaded} loadError={loadError}>
         <div className="pf-c-page__main-breadcrumb">
@@ -1019,10 +1011,10 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
                 className="pf-c-breadcrumb__link"
                 to={namespace ? `/dev-monitoring/ns/${namespace}/alerts` : '/monitoring/alertrules'}
               >
-                {namespace ? t('public~Alerts') : t('public~Alerting rules')}
+                {namespace ? t('Alerts') : t('Alerting rules')}
               </Link>
             </BreadcrumbItem>
-            <BreadcrumbItem isActive>{t('public~Alerting rule details')}</BreadcrumbItem>
+            <BreadcrumbItem isActive>{t('Alerting rule details')}</BreadcrumbItem>
           </Breadcrumb>
         </div>
         <div className="co-m-nav-title co-m-nav-title--detail co-m-nav-title--breadcrumbs">
@@ -1036,23 +1028,23 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
         </div>
         <div className="co-m-pane__body">
           <div className="monitoring-heading">
-            <SectionHeading text={t('public~Alerting rule details')} />
+            <SectionHeading text={t('Alerting rule details')} />
           </div>
           <div className="co-m-pane__body-group">
             <div className="row">
               <div className="col-sm-6">
                 <dl className="co-m-pane__details">
-                  <dt>{t('public~Name')}</dt>
+                  <dt>{t('Name')}</dt>
                   <dd>{rule?.name}</dd>
                   <dt>
-                    <PopoverField bodyContent={<SeverityHelp />} label={t('public~Severity')} />
+                    <PopoverField bodyContent={<SeverityHelp />} label={t('Severity')} />
                   </dt>
                   <dd>
                     <Severity severity={rule?.labels?.severity} />
                   </dd>
                   {rule?.annotations?.description && (
                     <>
-                      <dt>{t('public~Description')}</dt>
+                      <dt>{t('Description')}</dt>
                       <dd>
                         <PrometheusTemplate text={rule.annotations.description} />
                       </dd>
@@ -1060,13 +1052,13 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
                   )}
                   {rule?.annotations?.summary && (
                     <>
-                      <dt>{t('public~Summary')}</dt>
+                      <dt>{t('Summary')}</dt>
                       <dd>{rule.annotations.summary}</dd>
                     </>
                   )}
                   {rule?.annotations?.message && (
                     <>
-                      <dt>{t('public~Message')}</dt>
+                      <dt>{t('Message')}</dt>
                       <dd>
                         <PrometheusTemplate text={rule.annotations.message} />
                       </dd>
@@ -1074,7 +1066,7 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
                   )}
                   {runbookURL && (
                     <>
-                      <dt>{t('public~Runbook')}</dt>
+                      <dt>{t('Runbook')}</dt>
                       <dd>
                         <ExternalLink href={runbookURL} text={runbookURL} />
                       </dd>
@@ -1085,18 +1077,18 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
               <div className="col-sm-6">
                 <dl className="co-m-pane__details">
                   <dt>
-                    <PopoverField bodyContent={<SourceHelp />} label={t('public~Source')} />
+                    <PopoverField bodyContent={<SourceHelp />} label={t('Source')} />
                   </dt>
                   <dd>{rule && getSourceKey(_.startCase(alertingRuleSource(rule)))}</dd>
                   {_.isInteger(rule?.duration) && (
                     <>
-                      <dt>{t('public~For')}</dt>
+                      <dt>{t('For')}</dt>
                       <dd>
                         {rule.duration === 0 ? '-' : formatPrometheusDuration(rule.duration * 1000)}
                       </dd>
                     </>
                   )}
-                  <dt>{t('public~Expression')}</dt>
+                  <dt>{t('Expression')}</dt>
                   <dd>
                     <Link to={queryBrowserURL(rule?.query, namespace)}>
                       <CodeBlock>
@@ -1112,7 +1104,7 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
             <div className="row">
               <div className="col-xs-12">
                 <dl className="co-m-pane__details">
-                  <dt>{t('public~Labels')}</dt>
+                  <dt>{t('Labels')}</dt>
                   <dd>
                     <Labels kind="alertrule" labels={rule?.labels} />
                   </dd>
@@ -1126,7 +1118,7 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
             <Toolbar className="monitoring-alert-detail-toolbar">
               <ToolbarContent>
                 <ToolbarItem variant="label">
-                  <SectionHeading text={t('public~Active alerts')} />
+                  <SectionHeading text={t('Active alerts')} />
                 </ToolbarItem>
                 <ToolbarGroup alignment={{ default: 'alignRight' }}>
                   <ToolbarItem>
@@ -1149,7 +1141,7 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
             <div className="row">
               <div className="col-xs-12">
                 {_.isEmpty(rule?.alerts) ? (
-                  <div className="pf-u-text-align-center">{t('public~None found')}</div>
+                  <div className="pf-u-text-align-center">{t('None found')}</div>
                 ) : (
                   <ActiveAlerts alerts={rule.alerts} ruleID={rule?.id} namespace={namespace} />
                 )}
@@ -1174,7 +1166,7 @@ const ExpireSilenceModal: React.FC<ExpireSilenceModalProps> = ({
   setClosed,
   silenceId,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
 
   const dispatch = useDispatch();
 
@@ -1201,18 +1193,18 @@ const ExpireSilenceModal: React.FC<ExpireSilenceModalProps> = ({
       isOpen={isOpen}
       position="top"
       showClose={false}
-      title={t('public~Expire silence')}
+      title={t('Expire silence')}
       variant={ModalVariant.small}
     >
       <Flex direction={{ default: 'column' }}>
-        <FlexItem>{t('public~Are you sure you want to expire this silence?')}</FlexItem>
+        <FlexItem>{t('Are you sure you want to expire this silence?')}</FlexItem>
         <Flex direction={{ default: 'column' }}>
           <FlexItem>
             {errorMessage && (
               <PFAlert
                 className="co-alert co-alert--scrollable"
                 isInline
-                title={t('public~An error occurred')}
+                title={t('An error occurred')}
                 variant="danger"
               >
                 <div className="co-pre-line">{errorMessage}</div>
@@ -1223,12 +1215,12 @@ const ExpireSilenceModal: React.FC<ExpireSilenceModalProps> = ({
             <FlexItem>{isInProgress && <LoadingInline />}</FlexItem>
             <FlexItem align={{ default: 'alignRight' }}>
               <Button variant="secondary" onClick={setClosed}>
-                {t('public~Cancel')}
+                {t('Cancel')}
               </Button>
             </FlexItem>
             <FlexItem>
               <Button variant="primary" onClick={expireSilence}>
-                {t('public~Expire silence')}
+                {t('Expire silence')}
               </Button>
             </FlexItem>
           </Flex>
@@ -1252,7 +1244,7 @@ const SilenceDropdown_: React.FC<SilenceDropdownProps> = ({
   silence,
   Toggle,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
 
   const [isOpen, setIsOpen, , setClosed] = useBoolean(false);
   const [isModalOpen, , setModalOpen, setModalClosed] = useBoolean(false);
@@ -1265,15 +1257,15 @@ const SilenceDropdown_: React.FC<SilenceDropdownProps> = ({
     silenceState(silence) === SilenceStates.Expired
       ? [
           <DropdownItem key="edit-silence" component="button" onClick={editSilence}>
-            {t('public~Recreate silence')}
+            {t('Recreate silence')}
           </DropdownItem>,
         ]
       : [
           <DropdownItem key="edit-silence" component="button" onClick={editSilence}>
-            {t('public~Edit silence')}
+            {t('Edit silence')}
           </DropdownItem>,
           <DropdownItem key="cancel-silence" component="button" onClick={setModalOpen}>
-            {t('public~Expire silence')}
+            {t('Expire silence')}
           </DropdownItem>,
         ];
 
@@ -1312,15 +1304,15 @@ const SilenceDropdownActions: React.FC<{ silence: Silence }> = ({ silence }) => 
 type SilencedAlertsListProps = RouteComponentProps & { alerts: Alerts[] };
 
 const SilencedAlertsList_: React.FC<SilencedAlertsListProps> = ({ alerts, history }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
 
   return _.isEmpty(alerts) ? (
-    <div className="pf-u-text-align-center">{t('public~None found')}</div>
+    <div className="pf-u-text-align-center">{t('None found')}</div>
   ) : (
     <div className="co-m-table-grid co-m-table-grid--bordered">
       <div className="row co-m-table-grid__head">
-        <div className="col-xs-9">{t('public~Name')}</div>
-        <div className="col-xs-3">{t('public~Severity')}</div>
+        <div className="col-xs-9">{t('Name')}</div>
+        <div className="col-xs-3">{t('Severity')}</div>
       </div>
       <div className="co-m-table-grid__body">
         {_.sortBy(alerts, alertDescription).map((a, i) => (
@@ -1342,7 +1334,7 @@ const SilencedAlertsList_: React.FC<SilencedAlertsListProps> = ({ alerts, histor
               <KebabDropdown
                 dropdownItems={[
                   <DropdownItem key="view-rule" onClick={() => history.push(ruleURL(a.rule))}>
-                    {t('public~View alerting rule')}
+                    {t('View alerting rule')}
                   </DropdownItem>,
                 ]}
               />
@@ -1356,7 +1348,8 @@ const SilencedAlertsList_: React.FC<SilencedAlertsListProps> = ({ alerts, histor
 const SilencedAlertsList = withRouter(SilencedAlertsList_);
 
 const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ match }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
+
   const [namespace] = useActiveNamespace();
   const [perspective] = useActivePerspective();
 
@@ -1370,9 +1363,7 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
   return (
     <>
       <Helmet>
-        <title>
-          {t('public~{{name}} details', { name: silence?.name || SilenceResource.label })}
-        </title>
+        <title>{t('{{name}} details', { name: silence?.name || SilenceResource.label })}</title>
       </Helmet>
       <StatusBox
         data={silence}
@@ -1391,10 +1382,10 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
                     : '/monitoring/silences'
                 }
               >
-                {perspective === 'dev' ? t('public~Alerts') : t('public~Silences')}
+                {perspective === 'dev' ? t('Alerts') : t('Silences')}
               </Link>
             </BreadcrumbItem>
-            <BreadcrumbItem isActive>{t('public~Silence details')}</BreadcrumbItem>
+            <BreadcrumbItem isActive>{t('Silence details')}</BreadcrumbItem>
           </Breadcrumb>
         </div>
         <div className="co-m-nav-title co-m-nav-title--detail co-m-nav-title--breadcrumbs">
@@ -1412,30 +1403,30 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
           </h1>
         </div>
         <div className="co-m-pane__body">
-          <SectionHeading text={t('public~Silence details')} />
+          <SectionHeading text={t('Silence details')} />
           <div className="co-m-pane__body-group">
             <div className="row">
               <div className="col-sm-6">
                 <dl className="co-m-pane__details">
                   {silence?.name && (
                     <>
-                      <dt>{t('public~Name')}</dt>
+                      <dt>{t('Name')}</dt>
                       <dd>{silence?.name}</dd>
                     </>
                   )}
-                  <dt>{t('public~Matchers')}</dt>
+                  <dt>{t('Matchers')}</dt>
                   <dd data-test="label-list">
                     {_.isEmpty(silence?.matchers) ? (
-                      <div className="text-muted">{t('public~No matchers')}</div>
+                      <div className="text-muted">{t('No matchers')}</div>
                     ) : (
                       <SilenceMatchersList silence={silence} />
                     )}
                   </dd>
-                  <dt>{t('public~State')}</dt>
+                  <dt>{t('State')}</dt>
                   <dd>
                     <SilenceState silence={silence} />
                   </dd>
-                  <dt>{t('public~Last updated at')}</dt>
+                  <dt>{t('Last updated at')}</dt>
                   <dd>
                     <Timestamp timestamp={silence?.updatedAt} />
                   </dd>
@@ -1443,19 +1434,19 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
               </div>
               <div className="col-sm-6">
                 <dl className="co-m-pane__details">
-                  <dt>{t('public~Starts at')}</dt>
+                  <dt>{t('Starts at')}</dt>
                   <dd>
                     <Timestamp timestamp={silence?.startsAt} />
                   </dd>
-                  <dt>{t('public~Ends at')}</dt>
+                  <dt>{t('Ends at')}</dt>
                   <dd>
                     <Timestamp timestamp={silence?.endsAt} />
                   </dd>
-                  <dt>{t('public~Created by')}</dt>
+                  <dt>{t('Created by')}</dt>
                   <dd>{silence?.createdBy || '-'}</dd>
-                  <dt>{t('public~Comment')}</dt>
+                  <dt>{t('Comment')}</dt>
                   <dd>{silence?.comment || '-'}</dd>
-                  <dt>{t('public~Firing alerts')}</dt>
+                  <dt>{t('Firing alerts')}</dt>
                   <dd>
                     {alertsLoaded ? (
                       <SeverityCounts alerts={silence?.firingAlerts} />
@@ -1470,7 +1461,7 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
         </div>
         <div className="co-m-pane__body">
           <div className="co-m-pane__body-group">
-            <SectionHeading text={t('public~Firing alerts')} />
+            <SectionHeading text={t('Firing alerts')} />
             <div className="row">
               <div className="col-xs-12">
                 {alertsLoaded ? (
@@ -1499,7 +1490,7 @@ const tableAlertClasses = [
 type AlertTableRowProps = RouteComponentProps & RowProps<Alert>;
 
 const AlertTableRow_: React.FC<AlertTableRowProps> = ({ history, obj }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
 
   const { annotations = {}, labels } = obj;
   const description = annotations.description || annotations.message;
@@ -1509,13 +1500,13 @@ const AlertTableRow_: React.FC<AlertTableRowProps> = ({ history, obj }) => {
 
   const dropdownItems = [
     <DropdownItem key="view-rule" onClick={() => history.push(ruleURL(obj.rule))}>
-      {t('public~View alerting rule')}
+      {t('View alerting rule')}
     </DropdownItem>,
   ];
   if (state !== AlertStates.Silenced) {
     dropdownItems.unshift(
       <DropdownItem key="silence-alert" onClick={() => history.push(silenceAlertURL(obj))}>
-        {t('public~Silence alert')}
+        {t('Silence alert')}
       </DropdownItem>,
     );
   }
@@ -1543,7 +1534,7 @@ const AlertTableRow_: React.FC<AlertTableRowProps> = ({ history, obj }) => {
         <AlertStateDescription alert={obj} />
       </td>
       <td className={tableAlertClasses[3]} title={title}>
-        {alertSource(obj) === AlertSource.User ? t('public~User') : t('public~Platform')}
+        {alertSource(obj) === AlertSource.User ? t('User') : t('Platform')}
       </td>
       <td className={tableAlertClasses[4]} title={title}>
         <KebabDropdown dropdownItems={dropdownItems} />
@@ -1568,13 +1559,14 @@ export const severityRowFilter = (): RowFilter => ({
 });
 
 const SilencesNotLoadedWarning: React.FC<{ silencesLoadError: any }> = ({ silencesLoadError }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
+
   return (
     <PFAlert
       className="co-alert"
       isInline
       title={t(
-        'public~Error loading silences from Alertmanager. Some of the alerts below may actually be silenced.',
+        'Error loading silences from Alertmanager. Some of the alerts below may actually be silenced.',
       )}
       variant="warning"
     >
@@ -1593,7 +1585,7 @@ const alertStateOrder = (alert: Alert) => [
 ];
 
 const AlertsPage_: React.FC<Alerts> = () => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
 
   const {
     data,
@@ -1615,11 +1607,11 @@ const AlertsPage_: React.FC<Alerts> = () => {
       defaultSelected: [AlertStates.Firing],
       filter: (filter, alert: Alert) =>
         filter.selected?.includes(alertState(alert)) || _.isEmpty(filter.selected),
-      filterGroupName: t('public~Alert State'),
+      filterGroupName: t('Alert State'),
       items: [
-        { id: AlertStates.Firing, title: t('public~Firing') },
-        { id: AlertStates.Pending, title: t('public~Pending') },
-        { id: AlertStates.Silenced, title: t('public~Silenced') },
+        { id: AlertStates.Firing, title: t('Firing') },
+        { id: AlertStates.Pending, title: t('Pending') },
+        { id: AlertStates.Silenced, title: t('Silenced') },
       ],
       reducer: alertState,
       type: 'alert-state',
@@ -1629,10 +1621,10 @@ const AlertsPage_: React.FC<Alerts> = () => {
       defaultSelected: [AlertSource.Platform],
       filter: (filter, alert: Alert) =>
         filter.selected?.includes(alertSource(alert)) || _.isEmpty(filter.selected),
-      filterGroupName: t('public~Source'),
+      filterGroupName: t('Source'),
       items: [
-        { id: AlertSource.Platform, title: t('public~Platform') },
-        { id: AlertSource.User, title: t('public~User') },
+        { id: AlertSource.Platform, title: t('Platform') },
+        { id: AlertSource.User, title: t('User') },
       ],
       reducer: alertSource,
       type: 'alert-source',
@@ -1647,7 +1639,7 @@ const AlertsPage_: React.FC<Alerts> = () => {
         id: 'name',
         props: { className: tableAlertClasses[0] },
         sort: 'labels.alertname',
-        title: t('public~Name'),
+        title: t('Name'),
         transforms: [sortable],
       },
       {
@@ -1655,7 +1647,7 @@ const AlertsPage_: React.FC<Alerts> = () => {
         props: { className: tableAlertClasses[1] },
         sort: (alerts: Alert[], direction: 'asc' | 'desc') =>
           _.orderBy(alerts, alertSeverityOrder, [direction]) as Alert[],
-        title: t('public~Severity'),
+        title: t('Severity'),
         transforms: [sortable],
       },
       {
@@ -1663,7 +1655,7 @@ const AlertsPage_: React.FC<Alerts> = () => {
         props: { className: tableAlertClasses[2] },
         sort: (alerts: Alert[], direction: 'asc' | 'desc') =>
           _.orderBy(alerts, alertStateOrder, [direction]),
-        title: t('public~State'),
+        title: t('State'),
         transforms: [sortable],
       },
       {
@@ -1671,7 +1663,7 @@ const AlertsPage_: React.FC<Alerts> = () => {
         props: { className: tableAlertClasses[3] },
         sort: (alerts: Alert[], direction: 'asc' | 'desc') =>
           _.orderBy(alerts, alertSource, [direction]),
-        title: t('public~Source'),
+        title: t('Source'),
         transforms: [sortable],
       },
       {
@@ -1703,7 +1695,7 @@ const AlertsPage_: React.FC<Alerts> = () => {
         <div className="row">
           <div className="col-xs-12">
             <VirtualizedTable<Alert>
-              aria-label={t('public~Alerts')}
+              aria-label={t('Alerts')}
               columns={columns}
               data={filteredData ?? []}
               loaded={loaded}
@@ -1748,7 +1740,7 @@ const tableRuleClasses = [
 ];
 
 const RuleTableRow: React.FC<RowProps<Rule>> = ({ obj }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
 
   const title: string = obj.annotations?.description || obj.annotations?.message;
 
@@ -1769,14 +1761,14 @@ const RuleTableRow: React.FC<RowProps<Rule>> = ({ obj }) => {
         {_.isEmpty(obj.alerts) ? '-' : <StateCounts alerts={obj.alerts} />}
       </td>
       <td className={tableRuleClasses[3]} title={title}>
-        {alertingRuleSource(obj) === AlertSource.User ? t('public~User') : t('public~Platform')}
+        {alertingRuleSource(obj) === AlertSource.User ? t('User') : t('Platform')}
       </td>
     </>
   );
 };
 
 const RulesPage_: React.FC<{}> = () => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
 
   const data: Rule[] = useSelector(({ observe }: RootState) => observe.get('rules'));
   const { loaded = false, loadError }: Alerts = useSelector(
@@ -1798,10 +1790,10 @@ const RulesPage_: React.FC<{}> = () => {
       defaultSelected: [AlertSource.Platform],
       filter: (filter, rule: Rule) =>
         filter.selected?.includes(alertingRuleSource(rule)) || _.isEmpty(filter.selected),
-      filterGroupName: t('public~Source'),
+      filterGroupName: t('Source'),
       items: [
-        { id: AlertSource.Platform, title: t('public~Platform') },
-        { id: AlertSource.User, title: t('public~User') },
+        { id: AlertSource.Platform, title: t('Platform') },
+        { id: AlertSource.User, title: t('User') },
       ],
       reducer: alertingRuleSource,
       type: 'alerting-rule-source',
@@ -1816,7 +1808,7 @@ const RulesPage_: React.FC<{}> = () => {
         id: 'name',
         props: { className: tableRuleClasses[0] },
         sort: 'name',
-        title: t('public~Name'),
+        title: t('Name'),
         transforms: [sortable],
       },
       {
@@ -1824,7 +1816,7 @@ const RulesPage_: React.FC<{}> = () => {
         props: { className: tableRuleClasses[1] },
         sort: (rules: Rule[], direction: 'asc' | 'desc') =>
           _.orderBy(rules, alertSeverityOrder, [direction]) as Rule[],
-        title: t('public~Severity'),
+        title: t('Severity'),
         transforms: [sortable],
       },
       {
@@ -1832,7 +1824,7 @@ const RulesPage_: React.FC<{}> = () => {
         props: { className: tableRuleClasses[2] },
         sort: (rules: Rule[], direction: 'asc' | 'desc') =>
           _.orderBy(rules, alertingRuleStateOrder, [direction]),
-        title: t('public~Alert state'),
+        title: t('Alert state'),
         transforms: [sortable],
       },
       {
@@ -1840,7 +1832,7 @@ const RulesPage_: React.FC<{}> = () => {
         props: { className: tableRuleClasses[3] },
         sort: (rules: Rule[], direction: 'asc' | 'desc') =>
           _.orderBy(rules, alertingRuleSource, [direction]),
-        title: t('public~Source'),
+        title: t('Source'),
         transforms: [sortable],
       },
     ],
@@ -1866,7 +1858,7 @@ const RulesPage_: React.FC<{}> = () => {
         <div className="row">
           <div className="col-xs-12">
             <VirtualizedTable<Rule>
-              aria-label={t('public~Alerting rules')}
+              aria-label={t('Alerting rules')}
               columns={columns}
               data={filteredData ?? []}
               loaded={loaded}
@@ -1883,12 +1875,12 @@ const RulesPage_: React.FC<{}> = () => {
 const RulesPage = withFallback(RulesPage_);
 
 const CreateButton: React.FC<{}> = React.memo(() => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
 
   return (
     <Link className="co-m-primary-action" to="/monitoring/silences/~new">
       <Button variant="primary" data-test="create-silence-btn">
-        {t('public~Create silence')}
+        {t('Create silence')}
       </Button>
     </Link>
   );
@@ -1911,7 +1903,7 @@ const silenceStateOrder = (silence: Silence) => [
 ];
 
 const SilencesPage_: React.FC<Silences> = () => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
 
   const {
     data,
@@ -1930,11 +1922,11 @@ const SilencesPage_: React.FC<Silences> = () => {
       defaultSelected: [SilenceStates.Active, SilenceStates.Pending],
       filter: (filter, silence: Silence) =>
         filter.selected?.includes(silenceState(silence)) || _.isEmpty(filter.selected),
-      filterGroupName: t('public~Silence State'),
+      filterGroupName: t('Silence State'),
       items: [
-        { id: SilenceStates.Active, title: t('public~Active') },
-        { id: SilenceStates.Pending, title: t('public~Pending') },
-        { id: SilenceStates.Expired, title: t('public~Expired') },
+        { id: SilenceStates.Active, title: t('Active') },
+        { id: SilenceStates.Pending, title: t('Pending') },
+        { id: SilenceStates.Expired, title: t('Expired') },
       ],
       reducer: silenceState,
       type: 'silence-state',
@@ -1949,7 +1941,7 @@ const SilencesPage_: React.FC<Silences> = () => {
         id: 'name',
         props: { className: tableSilenceClasses[0] },
         sort: 'name',
-        title: t('public~Name'),
+        title: t('Name'),
         transforms: [sortable],
       },
       {
@@ -1957,7 +1949,7 @@ const SilencesPage_: React.FC<Silences> = () => {
         props: { className: tableSilenceClasses[1] },
         sort: (silences: Silence[], direction: 'asc' | 'desc') =>
           _.orderBy(silences, silenceFiringAlertsOrder, [direction]),
-        title: t('public~Firing alerts'),
+        title: t('Firing alerts'),
         transforms: [sortable],
       },
       {
@@ -1965,14 +1957,14 @@ const SilencesPage_: React.FC<Silences> = () => {
         props: { className: tableSilenceClasses[2] },
         sort: (silences: Silence[], direction: 'asc' | 'desc') =>
           _.orderBy(silences, silenceStateOrder, [direction]),
-        title: t('public~State'),
+        title: t('State'),
         transforms: [sortable],
       },
       {
         id: 'createdBy',
         props: { className: tableSilenceClasses[3] },
         sort: 'createdBy',
-        title: t('public~Creator'),
+        title: t('Creator'),
         transforms: [sortable],
       },
       {
@@ -2004,9 +1996,7 @@ const SilencesPage_: React.FC<Silences> = () => {
           <PFAlert
             className="co-alert"
             isInline
-            title={t(
-              'public~Error loading silences from Alertmanager. Alertmanager may be unavailable.',
-            )}
+            title={t('Error loading silences from Alertmanager. Alertmanager may be unavailable.')}
             variant="danger"
           >
             {typeof loadError === 'string' ? loadError : loadError.message}
@@ -2015,7 +2005,7 @@ const SilencesPage_: React.FC<Silences> = () => {
         <div className="row">
           <div className="col-xs-12">
             <VirtualizedTable<Silence>
-              aria-label={t('public~Silences')}
+              aria-label={t('Silences')}
               columns={columns}
               data={filteredData ?? []}
               loaded={loaded}
@@ -2042,7 +2032,7 @@ const Tab: React.FC<{ active: boolean; children: React.ReactNode }> = ({ active,
 );
 
 const AlertingPage: React.FC<RouteComponentProps<{ url: string }>> = ({ match }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
 
   const alertsPath = '/monitoring/alerts';
   const rulesPath = '/monitoring/alertrules';
@@ -2056,20 +2046,20 @@ const AlertingPage: React.FC<RouteComponentProps<{ url: string }>> = ({ match })
         <h1 className="co-m-pane__heading">
           <div className="co-m-pane__name co-resource-item">
             <span className="co-resource-item__resource-name" data-test-id="resource-title">
-              {t('public~Alerting')}
+              {t('Alerting')}
             </span>
           </div>
         </h1>
       </div>
       <ul className="co-m-horizontal-nav__menu">
         <Tab active={url === alertsPath}>
-          <Link to={alertsPath}>{t('public~Alerts')}</Link>
+          <Link to={alertsPath}>{t('Alerts')}</Link>
         </Tab>
         <Tab active={url === silencesPath}>
-          <Link to={silencesPath}>{t('public~Silences')}</Link>
+          <Link to={silencesPath}>{t('Silences')}</Link>
         </Tab>
         <Tab active={url === rulesPath}>
-          <Link to={rulesPath}>{t('public~Alerting rules')}</Link>
+          <Link to={rulesPath}>{t('Alerting rules')}</Link>
         </Tab>
       </ul>
       <Switch>
@@ -2099,7 +2089,9 @@ const PollerPages = () => {
             dispatch(alertingLoaded(alertsKey, alerts));
             dispatch(alertingSetRules(rulesKey, rules));
           })
-          .catch((e) => dispatch(alertingErrored(alertsKey, e)))
+          .catch((e) => {
+            dispatch(alertingErrored(alertsKey, e));
+          })
           .then(() => (pollerTimeouts[alertsKey] = setTimeout(poller, 15 * 1000)));
       };
       pollers[alertsKey] = poller;

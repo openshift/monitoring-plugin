@@ -12,10 +12,10 @@ const Label = ({ k, v }) => (
 );
 
 export const Labels = ({ kind, labels }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
 
   return _.isEmpty(labels) ? (
-    <div className="text-muted">{t('public~No labels')}</div>
+    <div className="text-muted">{t('No labels')}</div>
   ) : (
     <div className={`co-text-${kind}`}>
       <PfLabelGroup className="co-label-group" numLabels={20}>

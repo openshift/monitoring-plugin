@@ -129,7 +129,7 @@ const FilterSelect: React.FC<FilterSelectProps> = ({
   OptionComponent,
   selectedKey,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
 
   const [isOpen, , open, close] = useBoolean(false);
   const [filterText, setFilterText] = React.useState<string>();
@@ -158,7 +158,7 @@ const FilterSelect: React.FC<FilterSelectProps> = ({
     <Select
       className="monitoring-dashboards__variable-dropdown"
       hasInlineFilter={_.size(items) > 1}
-      inlineFilterPlaceholderText={t('public~Filter options')}
+      inlineFilterPlaceholderText={t('Filter options')}
       isOpen={isOpen}
       onFilter={() => null}
       onSelect={onSelect}
@@ -173,7 +173,7 @@ const FilterSelect: React.FC<FilterSelectProps> = ({
           )
         ) : (
           <>
-            <RedExclamationCircleIcon /> {t('public~Select a dashboard from the dropdown')}
+            <RedExclamationCircleIcon /> {t('Select a dashboard from the dropdown')}
           </>
         )
       }
@@ -199,7 +199,8 @@ const VariableOption = ({ itemKey }) =>
   );
 
 const VariableDropdown: React.FC<VariableDropdownProps> = ({ id, name, namespace }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
+
   const activePerspective = getActivePerspective(namespace);
 
   const timespan = useSelector(({ observe }: RootState) =>
@@ -303,7 +304,7 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({ id, name, namespace
           }
           placeholderText={
             <>
-              <RedExclamationCircleIcon /> {t('public~Error loading options')}
+              <RedExclamationCircleIcon /> {t('Error loading options')}
             </>
           }
         />
@@ -345,7 +346,7 @@ const Tag: React.FC<{ color: TagColor; text: string }> = React.memo(({ color, te
 
 const DashboardDropdown: React.FC<DashboardDropdownProps> = React.memo(
   ({ items, onChange, selectedKey }) => {
-    const { t } = useTranslation();
+    const { t } = useTranslation('public');
 
     const allTags = _.flatMap(items, 'tags');
     const uniqueTags = _.uniq(allTags);
@@ -374,7 +375,7 @@ const DashboardDropdown: React.FC<DashboardDropdownProps> = React.memo(
           className="monitoring-dashboards__dropdown-title"
           htmlFor="monitoring-board-dropdown"
         >
-          {t('public~Dashboard')}
+          {t('Dashboard')}
         </label>
         <FilterSelect
           items={selectItems}
@@ -388,7 +389,8 @@ const DashboardDropdown: React.FC<DashboardDropdownProps> = React.memo(
 );
 
 export const PollIntervalDropdown: React.FC<TimeDropdownsProps> = ({ namespace }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
+
   const refreshIntervalFromParams = getQueryArgument('refreshInterval');
   const activePerspective = getActivePerspective(namespace);
   const interval = useSelector(({ observe }: RootState) =>
@@ -411,7 +413,7 @@ export const PollIntervalDropdown: React.FC<TimeDropdownsProps> = ({ namespace }
   return (
     <div className="form-group monitoring-dashboards__dropdown-wrap">
       <label htmlFor="refresh-interval-dropdown" className="monitoring-dashboards__dropdown-title">
-        {t('public~Refresh interval')}
+        {t('Refresh interval')}
       </label>
       <IntervalDropdown
         id="refresh-interval-dropdown"
@@ -433,12 +435,12 @@ const TimeDropdowns: React.FC<{}> = React.memo(() => {
 });
 
 const HeaderTop: React.FC<{}> = React.memo(() => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
 
   return (
     <div className="monitoring-dashboards__header">
       <h1 className="co-m-pane__heading">
-        <span>{t('public~Dashboards')}</span>
+        <span>{t('Dashboards')}</span>
       </h1>
       <TimeDropdowns />
     </div>
@@ -446,21 +448,22 @@ const HeaderTop: React.FC<{}> = React.memo(() => {
 });
 
 const QueryBrowserLink = ({ queries }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
+
   const params = new URLSearchParams();
   queries.forEach((q, i) => params.set(`query${i}`, q));
   const namespace = React.useContext(NamespaceContext);
 
   return (
     <Link
-      aria-label={t('public~Inspect')}
+      aria-label={t('Inspect')}
       to={
         namespace
           ? `/dev-monitoring/ns/${namespace}/metrics?${params.toString()}`
           : `/monitoring/query-browser?${params.toString()}`
       }
     >
-      {t('public~Inspect')}
+      {t('Inspect')}
     </Link>
   );
 };
@@ -668,7 +671,7 @@ const Board: React.FC<BoardProps> = ({ rows }) => (
 type MonitoringDashboardsPageProps = RouteComponentProps<{ board: string; ns?: string }>;
 
 const MonitoringDashboardsPage_: React.FC<MonitoringDashboardsPageProps> = ({ history, match }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
 
   const dispatch = useDispatch();
   const namespace = match.params?.ns;
@@ -796,7 +799,7 @@ const MonitoringDashboardsPage_: React.FC<MonitoringDashboardsPageProps> = ({ hi
     <>
       {!namespace && (
         <Helmet>
-          <title>{t('public~Metrics dashboards')}</title>
+          <title>{t('Metrics dashboards')}</title>
         </Helmet>
       )}
       <NamespaceContext.Provider value={namespace}>
