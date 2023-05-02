@@ -8,7 +8,8 @@ import { useBoolean } from '../hooks/useBoolean';
 import { Board } from './types';
 
 export const useFetchDashboards = (namespace: string): [Board[], boolean, string] => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
+
   const safeFetch = React.useCallback(useSafeFetch(), []);
   const [boards, setBoards] = React.useState<Board[]>([]);
   const [error, setError] = React.useState<string>();
@@ -35,7 +36,7 @@ export const useFetchDashboards = (namespace: string): [Board[], boolean, string
             };
           } catch (e) {
             setError(
-              t('public~Could not parse JSON data for dashboard "{{dashboard}}"', {
+              t('Could not parse JSON data for dashboard "{{dashboard}}"', {
                 dashboard: item.metadata.name,
               }),
             );

@@ -19,7 +19,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 // TODO: These will be available in future versions of the plugin SDK
-const getUser = (state) => state.sdkCore.user;
+const getUser = (state) => state.sdkCore?.user;
 import { formatPrometheusDuration, parsePrometheusDuration } from './console/utils/datetime';
 
 import { withFallback } from './console/console-shared/error/error-boundary';
@@ -41,7 +41,7 @@ const formatDate = (d: Date): string =>
   )}:${pad(d.getSeconds())}`;
 
 const DatetimeTextInput = (props) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
 
   const pattern =
     '\\d{4}/(0?[1-9]|1[012])/(0?[1-9]|[12]\\d|3[01]) (0?\\d|1\\d|2[0-3]):[0-5]\\d(:[0-5]\\d)?';
@@ -52,13 +52,13 @@ const DatetimeTextInput = (props) => {
       <Tooltip
         content={[
           <span className="co-nowrap" key="co-timestamp">
-            {isValid ? new Date(props.value).toISOString() : t('public~Invalid date / time')}
+            {isValid ? new Date(props.value).toISOString() : t('Invalid date / time')}
           </span>,
         ]}
       >
         <TextInput
           {...props}
-          aria-label={t('public~Datetime')}
+          aria-label={t('Datetime')}
           data-test-id="silence-datetime"
           validated={isValid || !!props.isDisabled ? 'default' : 'error'}
           pattern={pattern}
@@ -70,7 +70,7 @@ const DatetimeTextInput = (props) => {
 };
 
 const NegativeMatcherHelp = () => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
 
   return (
     <dl>
@@ -93,19 +93,19 @@ type SilenceFormProps = RouteComponentProps & {
 };
 
 const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, title }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
 
   const durationOff = '-';
   const durations = {
     [durationOff]: durationOff,
-    '30m': t('public~30m'),
-    '1h': t('public~1h'),
-    '2h': t('public~2h'),
-    '6h': t('public~6h'),
-    '12h': t('public~12h'),
-    '1d': t('public~1d'),
-    '2d': t('public~2d'),
-    '1w': t('public~1w'),
+    '30m': t('30m'),
+    '1h': t('1h'),
+    '2h': t('2h'),
+    '6h': t('6h'),
+    '12h': t('12h'),
+    '1d': t('1d'),
+    '2d': t('2d'),
+    '1w': t('1w'),
   };
 
   const now = new Date();
@@ -238,7 +238,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
       <PageHeading
         title={title}
         helpText={t(
-          'public~Silences temporarily mute alerts based on a set of label selectors that you define. Notifications will not be sent for alerts that match all the listed values or regular expressions.',
+          'Silences temporarily mute alerts based on a set of label selectors that you define. Notifications will not be sent for alerts that match all the listed values or regular expressions.',
         )}
       />
 
@@ -247,12 +247,12 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
       <div className="co-m-pane__body">
         <form onSubmit={onSubmit} className="monitoring-silence-alert">
           <div className="co-m-pane__body-group">
-            <SectionHeading text={t('public~Duration')} />
+            <SectionHeading text={t('Duration')} />
             <div className="row">
               <div className="form-group col-sm-4 col-md-5">
-                <label>{t('public~Silence alert from...')}</label>
+                <label>{t('Silence alert from...')}</label>
                 {isStartNow ? (
-                  <DatetimeTextInput isDisabled data-test="silence-from" value={t('public~Now')} />
+                  <DatetimeTextInput isDisabled data-test="silence-from" value={t('Now')} />
                 ) : (
                   <DatetimeTextInput
                     data-test="silence-from"
@@ -263,7 +263,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
                 )}
               </div>
               <div className="form-group col-sm-4 col-md-2">
-                <label>{t('public~For...')}</label>
+                <label>{t('For...')}</label>
                 <Dropdown
                   className="dropdown--full-width"
                   data-test="silence-for"
@@ -278,7 +278,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
                 />
               </div>
               <div className="form-group col-sm-4 col-md-5">
-                <label>{t('public~Until...')}</label>
+                <label>{t('Until...')}</label>
                 {duration === durationOff ? (
                   <DatetimeTextInput
                     data-test="silence-until"
@@ -292,7 +292,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
                     isDisabled
                     value={
                       isStartNow
-                        ? t('public~{{duration}} from now', { duration: durations[duration] })
+                        ? t('{{duration}} from now', { duration: durations[duration] })
                         : getEndsAtValue()
                     }
                   />
@@ -307,20 +307,20 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
                   onChange={(e) => setIsStartNow(e.currentTarget.checked)}
                   type="checkbox"
                 />
-                &nbsp; {t('public~Start immediately')}
+                &nbsp; {t('Start immediately')}
               </label>
             </div>
           </div>
 
           <div className="co-m-pane__body-group">
-            <SectionHeading text={t('public~Alert labels')} />
+            <SectionHeading text={t('Alert labels')} />
             <p className="co-help-text monitoring-silence-alert__paragraph">
-              <Trans t={t} ns="public">
+              <Trans t={t}>
                 Alerts with labels that match these selectors will be silenced instead of firing.
                 Label values can be matched exactly or with a{' '}
                 <ExternalLink
                   href="https://github.com/google/re2/wiki/Syntax"
-                  text={t('public~regular expression')}
+                  text={t('regular expression')}
                 />
               </Trans>
             </p>
@@ -328,22 +328,22 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
             {_.map(matchers, (matcher, i: number) => (
               <div className="row" key={i}>
                 <div className="form-group col-sm-4">
-                  <label>{t('public~Label name')}</label>
+                  <label>{t('Label name')}</label>
                   <TextInput
-                    aria-label={t('public~Label name')}
+                    aria-label={t('Label name')}
                     isRequired
                     onChange={(v: string) => setMatcherField(i, 'name', v)}
-                    placeholder={t('public~Name')}
+                    placeholder={t('Name')}
                     value={matcher.name}
                   />
                 </div>
                 <div className="form-group col-sm-4">
-                  <label>{t('public~Label value')}</label>
+                  <label>{t('Label value')}</label>
                   <TextInput
-                    aria-label={t('public~Label value')}
+                    aria-label={t('Label value')}
                     isRequired
                     onChange={(v: string) => setMatcherField(i, 'value', v)}
-                    placeholder={t('public~Value')}
+                    placeholder={t('Value')}
                     value={matcher.value}
                   />
                 </div>
@@ -355,7 +355,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
                         onChange={(e) => setMatcherField(i, 'isRegex', e.currentTarget.checked)}
                         type="checkbox"
                       />
-                      &nbsp; {t('public~RegEx')}
+                      &nbsp; {t('RegEx')}
                     </label>
                     <Tooltip content={<NegativeMatcherHelp />}>
                       <label>
@@ -364,14 +364,14 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
                           onChange={(e) => setMatcherField(i, 'isEqual', !e.currentTarget.checked)}
                           type="checkbox"
                         />
-                        &nbsp; {t('public~Negative matcher')}
+                        &nbsp; {t('Negative matcher')}
                       </label>
                     </Tooltip>
-                    <Tooltip content={t('public~Remove')}>
+                    <Tooltip content={t('Remove')}>
                       <Button
                         type="button"
                         onClick={() => removeMatcher(i)}
-                        aria-label={t('public~Remove')}
+                        aria-label={t('Remove')}
                         variant="plain"
                       >
                         <MinusCircleIcon />
@@ -390,25 +390,25 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
                 variant="link"
               >
                 <PlusCircleIcon className="co-icon-space-r" />
-                {t('public~Add label')}
+                {t('Add label')}
               </Button>
             </div>
           </div>
 
           <div className="co-m-pane__body-group">
-            <SectionHeading text={t('public~Info')} />
+            <SectionHeading text={t('Info')} />
             <div className="form-group">
-              <label>{t('public~Creator')}</label>
+              <label>{t('Creator')}</label>
               <TextInput
-                aria-label={t('public~Creator')}
+                aria-label={t('Creator')}
                 onChange={(v: string) => setCreatedBy(v)}
                 value={createdBy}
               />
             </div>
             <div className="form-group">
-              <label className="co-required">{t('public~Comment')}</label>
+              <label className="co-required">{t('Comment')}</label>
               <TextArea
-                aria-label={t('public~Comment')}
+                aria-label={t('Comment')}
                 isRequired
                 onChange={(v: string) => setComment(v)}
                 data-test="silence-comment"
@@ -418,10 +418,10 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
             <ButtonBar errorMessage={error} inProgress={inProgress}>
               <ActionGroup className="pf-c-form">
                 <Button type="submit" variant="primary">
-                  {t('public~Silence')}
+                  {t('Silence')}
                 </Button>
                 <Button onClick={history.goBack} variant="secondary">
-                  {t('public~Cancel')}
+                  {t('Cancel')}
                 </Button>
               </ActionGroup>
             </ButtonBar>
@@ -434,24 +434,19 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
 const SilenceForm = withFallback(withRouter(SilenceForm_));
 
 const EditInfo = () => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
 
   return (
-    <Alert
-      className="co-alert"
-      isInline
-      title={t('public~Overwriting current silence')}
-      variant="info"
-    >
+    <Alert className="co-alert" isInline title={t('Overwriting current silence')} variant="info">
       {t(
-        'public~When changes are saved, the currently existing silence will be expired and a new silence with the new configuration will take its place.',
+        'When changes are saved, the currently existing silence will be expired and a new silence with the new configuration will take its place.',
       )}
     </Alert>
   );
 };
 
 export const EditSilence = ({ match }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
 
   const silences: Silences = useSelector(({ observe }: RootState) => observe.get('silences'));
 
@@ -478,14 +473,14 @@ export const EditSilence = ({ match }) => {
       <SilenceForm
         defaults={defaults}
         Info={isExpired ? undefined : EditInfo}
-        title={isExpired ? t('public~Recreate silence') : t('public~Edit silence')}
+        title={isExpired ? t('Recreate silence') : t('Edit silence')}
       />
     </StatusBox>
   );
 };
 
 export const CreateSilence = () => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('public');
 
   const matchers = _.map(getAllQueryArguments(), (value, name) => ({
     name,
@@ -494,8 +489,8 @@ export const CreateSilence = () => {
   }));
 
   return _.isEmpty(matchers) ? (
-    <SilenceForm defaults={{}} title={t('public~Create silence')} />
+    <SilenceForm defaults={{}} title={t('Create silence')} />
   ) : (
-    <SilenceForm defaults={{ matchers }} title={t('public~Silence alert')} />
+    <SilenceForm defaults={{ matchers }} title={t('Silence alert')} />
   );
 };

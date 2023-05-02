@@ -65,6 +65,8 @@ const perPageOptions: PerPageOptions[] = [5, 10, 20, 50, 100].map((n) => ({
 }));
 
 const Table: React.FC<Props> = ({ panel, pollInterval, queries, namespace }) => {
+  const { t } = useTranslation('public');
+
   const [error, setError] = React.useState();
   const [isLoading, setLoading] = React.useState(true);
   const [data, setData] = React.useState();
@@ -74,8 +76,6 @@ const Table: React.FC<Props> = ({ panel, pollInterval, queries, namespace }) => 
   const onSort = (e, index: ISortBy['index'], direction: ISortBy['direction']) =>
     setSortBy({ index, direction });
   const safeFetch = React.useCallback(useSafeFetch(), []);
-
-  const { t } = useTranslation();
 
   const tick = () => {
     Promise.all(
@@ -124,12 +124,12 @@ const Table: React.FC<Props> = ({ panel, pollInterval, queries, namespace }) => 
     return <ErrorAlert message={error} />;
   }
   if (_.isEmpty(panel.styles)) {
-    return <ErrorAlert message={t('public~panel.styles attribute not found')} />;
+    return <ErrorAlert message={t('panel.styles attribute not found')} />;
   }
   if (_.isEmpty(data)) {
     return (
       <EmptyState variant={EmptyStateVariant.xs}>
-        <EmptyStateBody>{t('public~No data found')}</EmptyStateBody>
+        <EmptyStateBody>{t('No data found')}</EmptyStateBody>
       </EmptyState>
     );
   }
@@ -178,7 +178,7 @@ const Table: React.FC<Props> = ({ panel, pollInterval, queries, namespace }) => 
     <>
       <div className="monitoring-dashboards__table-container">
         <PFTable
-          aria-label={t('public~query results table')}
+          aria-label={t('query results table')}
           cells={headers}
           className="monitoring-dashboards__table"
           gridBreakPoint={TableGridBreakpoint.none}
