@@ -1993,7 +1993,12 @@ const SelectAllCheckbox: React.FC<{ silences: Silence[] }> = ({ silences }) => {
   );
 
   return (
-    <Checkbox id="select-all-silences-checkbox" isChecked={isAllSelected} onChange={onChange} />
+    <Checkbox
+      id="select-all-silences-checkbox"
+      isChecked={isAllSelected}
+      isDisabled={activeSilences.length === 0}
+      onChange={onChange}
+    />
   );
 };
 
