@@ -1933,21 +1933,26 @@ const ExpireAllSilencesButton: React.FC<ExpireAllSilencesButtonProps> = ({ setEr
 
   const onClick = () => {
     setInProgress();
-    Promise.all(
+    Promise.allSettled(
       [...selectedSilences].map((silenceID) =>
         consoleFetchJSON.delete(
           `${window.SERVER_FLAGS.alertManagerBaseURL}/api/v2/silence/${silenceID}`,
         ),
       ),
-    )
-      .then(() => {
-        setNotInProgress();
-        setSelectedSilences(new Set());
-        refreshSilences(dispatch);
-      })
-      .catch((err) => {
-        setErrorMessage(_.get(err, 'json.error') || err.message || 'Error expiring silence');
-      });
+    ).then((values) => {
+      setNotInProgress();
+      setSelectedSilences(new Set());
+      refreshSilences(dispatch);
+      const errors = values
+        .filter((v) => v.status === 'rejected')
+        .map((v: PromiseRejectedResult) => v.reason);
+      if (errors.length > 0) {
+        const messages = errors.map(
+          (err) => _.get(err, 'json.error') || err.message || 'Error expiring silence',
+        );
+        setErrorMessage(messages.join(', '));
+      }
+    });
   };
 
   return (
