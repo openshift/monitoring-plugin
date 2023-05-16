@@ -1929,7 +1929,7 @@ const ExpireAllSilencesButton: React.FC<ExpireAllSilencesButtonProps> = ({ setEr
 
   const dispatch = useDispatch();
 
-  const { selectedSilences } = React.useContext(SelectedSilencesContext);
+  const { selectedSilences, setSelectedSilences } = React.useContext(SelectedSilencesContext);
 
   const onClick = () => {
     setInProgress();
@@ -1942,6 +1942,7 @@ const ExpireAllSilencesButton: React.FC<ExpireAllSilencesButtonProps> = ({ setEr
     )
       .then(() => {
         setNotInProgress();
+        setSelectedSilences(new Set());
         refreshSilences(dispatch);
       })
       .catch((err) => {
