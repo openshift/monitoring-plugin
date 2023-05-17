@@ -259,9 +259,7 @@ $screen-phone-landscape-min-width: 567px;
 
 $monitoring-line-height: 18px;
 
-.monitoring-description,
-.monitoring-label-list,
-.monitoring-timestamp {
+.monitoring-description, .monitoring-label-list {
   line-height: $monitoring-line-height;
   margin-top: 4px;
 }
@@ -321,8 +319,6 @@ $monitoring-line-height: 18px;
 }
 
 .monitoring-timestamp {
-  display: flex;
-  flex-flow: row wrap;
   font-size: ($font-size-base - 1);
 }
 
