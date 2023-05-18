@@ -597,3 +597,9 @@ $monitoring-line-height: 18px;
   top: 0;
   z-index: 1050;
 }
+
+.monitoring__title-help-text {
+  font-size: var(--pf-global--FontSize--md);
+  margin-bottom: 1.5rem;
+  margin-top: 5px;
+}
