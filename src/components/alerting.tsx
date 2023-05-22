@@ -120,6 +120,8 @@ import {
   silenceState,
 } from './utils';
 
+import './_monitoring.scss';
+
 const SelectedSilencesContext = React.createContext({
   selectedSilences: new Set(),
   setSelectedSilences: undefined,

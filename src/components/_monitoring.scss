@@ -1,3 +1,6 @@
+$screen-sm-min: 768px;
+$screen-lg-min: 1200px;
+
 %tooltip-background-color-theme-dark {
   .pf-theme-dark & {
     --pf-global--BackgroundColor--dark-100: var(--pf-global--palette--black-1000);
@@ -195,7 +198,7 @@ $screen-phone-landscape-min-width: 567px;
   }
 }
 
-@media (min-width: $screen-phone-landscape-min-width) and (max-width: $screen-md-max) {
+@media (min-width: $screen-phone-landscape-min-width) and (max-width: $screen-lg-min - 1) {
   .monitoring-dashboards__panel--max-2 {
     width: 100%;
   }
@@ -259,9 +262,7 @@ $screen-phone-landscape-min-width: 567px;
 
 $monitoring-line-height: 18px;
 
-.monitoring-description,
-.monitoring-label-list,
-.monitoring-timestamp {
+.monitoring-description, .monitoring-label-list {
   line-height: $monitoring-line-height;
   margin-top: 4px;
 }
@@ -306,7 +307,7 @@ $monitoring-line-height: 18px;
     align-items: baseline;
     display: flex;
     justify-content: space-between;
-    @media (min-width: $pf-global--breakpoint--md) {
+    @media (min-width: var(--global--breakpoint--md)) {
       padding-top: 26px;
     }
   }
@@ -317,13 +318,11 @@ $monitoring-line-height: 18px;
 }
 
 .monitoring-state-icon--pending {
-  color: $pf-color-black-700;
+  color: var(--pf-global--palette--black-700);
 }
 
 .monitoring-timestamp {
-  display: flex;
-  flex-flow: row wrap;
-  font-size: ($font-size-base - 1);
+  font-size: var(--pf-global--FontSize--sm);
 }
 
 .prometheus-template-tag {
@@ -596,5 +595,5 @@ $monitoring-line-height: 18px;
   bottom: 0;
   position: absolute;
   top: 0;
-  z-index: $zindex-modal;
+  z-index: 1050;
 }
