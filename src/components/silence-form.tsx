@@ -7,8 +7,11 @@ import {
   Dropdown,
   DropdownItem,
   DropdownToggle,
+  HelperText,
+  HelperTextItem,
   TextArea,
   TextInput,
+  Title,
   Tooltip,
 } from '@patternfly/react-core';
 import { MinusCircleIcon, PlusCircleIcon } from '@patternfly/react-icons';
@@ -24,7 +27,7 @@ import { formatPrometheusDuration, parsePrometheusDuration } from './console/uti
 
 import { withFallback } from './console/console-shared/error/error-boundary';
 import { ButtonBar } from './console/utils/button-bar';
-import { PageHeading, SectionHeading } from './console/utils/headings';
+import { SectionHeading } from './console/utils/headings';
 import { ExternalLink } from './console/utils/link';
 import { getAllQueryArguments } from './console/utils/router';
 import { StatusBox } from './console/utils/status-box';
@@ -239,12 +242,16 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
       <Helmet>
         <title>{title}</title>
       </Helmet>
-      <PageHeading
-        title={title}
-        helpText={t(
-          'Silences temporarily mute alerts based on a set of label selectors that you define. Notifications will not be sent for alerts that match all the listed values or regular expressions.',
-        )}
-      />
+      <div className="co-m-nav-title co-m-nav-title--detail">
+        <Title headingLevel="h1">{title}</Title>
+        <HelperText>
+          <HelperTextItem className="monitoring__title-help-text">
+            {t(
+              'Silences temporarily mute alerts based on a set of label selectors that you define. Notifications will not be sent for alerts that match all the listed values or regular expressions.',
+            )}
+          </HelperTextItem>
+        </HelperText>
+      </div>
 
       {Info && <Info />}
 
