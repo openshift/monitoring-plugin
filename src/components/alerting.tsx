@@ -1883,7 +1883,8 @@ const RulesPage_: React.FC<{}> = () => {
           data={staticData}
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore TODO
-          labelFilter="alerts"
+          labelFilter="observe-rules"
+          labelPath="labels"
           loaded={loaded}
           onFilterChange={onFilterChange}
           rowFilters={rowFilters}
