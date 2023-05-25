@@ -59,7 +59,6 @@ import {
 } from '@patternfly/react-icons';
 import { sortable } from '@patternfly/react-table';
 import classNames from 'classnames';
-import i18next from 'i18next';
 import * as _ from 'lodash-es';
 import * as React from 'react';
 import { Helmet } from 'react-helmet';
@@ -165,25 +164,27 @@ const AlertStateIcon: React.FC<{ state: string }> = React.memo(({ state }) => {
   }
 });
 
-const getAlertStateKey = (state) => {
+const getAlertStateKey = (state, t) => {
   switch (state) {
     case AlertStates.Firing:
-      return i18next.t('public~Firing');
+      return t('Firing');
     case AlertStates.Pending:
-      return i18next.t('public~Pending');
+      return t('Pending');
     case AlertStates.Silenced:
-      return i18next.t('public~Silenced');
+      return t('Silenced');
     default:
-      return i18next.t('public~Not Firing');
+      return t('Not Firing');
   }
 };
 
 export const AlertState: React.FC<AlertStateProps> = React.memo(({ state }) => {
+  const { t } = useTranslation('public');
+
   const icon = <AlertStateIcon state={state} />;
 
   return icon ? (
     <>
-      {icon} {getAlertStateKey(state)}
+      {icon} {getAlertStateKey(state, t)}
     </>
   ) : null;
 });
@@ -309,6 +310,8 @@ const SeverityCounts: React.FC<{ alerts: Alert[] }> = ({ alerts }) => {
 };
 
 export const StateCounts: React.FC<{ alerts: PrometheusAlert[] }> = ({ alerts }) => {
+  const { t } = useTranslation('public');
+
   const counts = _.countBy(alerts, 'state');
   const states = [AlertStates.Firing, AlertStates.Pending, AlertStates.Silenced].filter(
     (s) => counts[s] > 0,
@@ -318,7 +321,7 @@ export const StateCounts: React.FC<{ alerts: PrometheusAlert[] }> = ({ alerts })
     <>
       {states.map((s) => (
         <div className="monitoring-icon-wrap" key={s}>
-          <AlertStateIcon state={s} /> {counts[s]} {getAlertStateKey(s)}
+          <AlertStateIcon state={s} /> {counts[s]} {getAlertStateKey(s, t)}
         </div>
       ))}
     </>
@@ -641,12 +644,12 @@ const HeaderAlertMessage: React.FC<{ alert: Alert; rule: Rule }> = ({ alert, rul
   );
 };
 
-const getSourceKey = (source) => {
+const getSourceKey = (source, t) => {
   switch (source) {
     case 'Platform':
-      return i18next.t('public~Platform');
+      return t('Platform');
     case 'User':
-      return i18next.t('public~User');
+      return t('User');
     default:
       return source;
   }
@@ -860,7 +863,7 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
                   <dt>
                     <PopoverField bodyContent={<SourceHelp />} label={t('Source')} />
                   </dt>
-                  <dd>{alert && getSourceKey(_.startCase(alertSource(alert)))}</dd>
+                  <dd>{alert && getSourceKey(_.startCase(alertSource(alert)), t)}</dd>
                   <dt>
                     <PopoverField bodyContent={<AlertStateHelp />} label={t('State')} />
                   </dt>
@@ -1113,7 +1116,7 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
                   <dt>
                     <PopoverField bodyContent={<SourceHelp />} label={t('Source')} />
                   </dt>
-                  <dd>{rule && getSourceKey(_.startCase(alertingRuleSource(rule)))}</dd>
+                  <dd>{rule && getSourceKey(_.startCase(alertingRuleSource(rule)), t)}</dd>
                   {_.isInteger(rule?.duration) && (
                     <>
                       <dt>{t('For')}</dt>
@@ -1578,15 +1581,15 @@ const AlertTableRow_: React.FC<AlertTableRowProps> = ({ history, obj }) => {
 };
 const AlertTableRow = withRouter(AlertTableRow_);
 
-export const severityRowFilter = (): RowFilter => ({
+export const severityRowFilter = (t): RowFilter => ({
   filter: (filter, alert: Alert) =>
     filter.selected?.includes(alert.labels?.severity) || _.isEmpty(filter.selected),
-  filterGroupName: i18next.t('public~Severity'),
+  filterGroupName: t('Severity'),
   items: [
-    { id: AlertSeverity.Critical, title: i18next.t('public~Critical') },
-    { id: AlertSeverity.Warning, title: i18next.t('public~Warning') },
-    { id: AlertSeverity.Info, title: i18next.t('public~Info') },
-    { id: AlertSeverity.None, title: i18next.t('public~None') },
+    { id: AlertSeverity.Critical, title: t('Critical') },
+    { id: AlertSeverity.Warning, title: t('Warning') },
+    { id: AlertSeverity.Info, title: t('Info') },
+    { id: AlertSeverity.None, title: t('None') },
   ],
   reducer: ({ labels }: Alert | Rule) => labels?.severity,
   type: 'alert-severity',
@@ -1650,7 +1653,7 @@ const AlertsPage_: React.FC<Alerts> = () => {
       reducer: alertState,
       type: 'alert-state',
     },
-    severityRowFilter(),
+    severityRowFilter(t),
     {
       defaultSelected: [AlertSource.Platform],
       filter: (filter, alert: Alert) =>
@@ -1753,15 +1756,15 @@ const ruleAlertStateFilter = (filter, rule: Rule) =>
   _.some(rule.alerts, (a) => filter.selected?.includes(a.state)) ||
   _.isEmpty(filter.selected);
 
-export const alertStateFilter = (): RowFilter => ({
+export const alertStateFilter = (t): RowFilter => ({
   filter: ruleAlertStateFilter,
-  filterGroupName: i18next.t('public~Alert State'),
+  filterGroupName: t('Alert State'),
   isMatch: ruleHasAlertState,
   items: [
-    { id: AlertStates.Firing, title: i18next.t('public~Firing') },
-    { id: AlertStates.Pending, title: i18next.t('public~Pending') },
-    { id: AlertStates.Silenced, title: i18next.t('public~Silenced') },
-    { id: AlertStates.NotFiring, title: i18next.t('public~Not Firing') },
+    { id: AlertStates.Firing, title: t('Firing') },
+    { id: AlertStates.Pending, title: t('Pending') },
+    { id: AlertStates.Silenced, title: t('Silenced') },
+    { id: AlertStates.NotFiring, title: t('Not Firing') },
   ],
   type: 'alerting-rule-has-alert-state',
 });
@@ -1818,8 +1821,8 @@ const RulesPage_: React.FC<{}> = () => {
       items: [],
       type: 'name',
     } as RowFilter,
-    alertStateFilter(),
-    severityRowFilter(),
+    alertStateFilter(t),
+    severityRowFilter(t),
     {
       defaultSelected: [AlertSource.Platform],
       filter: (filter, rule: Rule) =>
