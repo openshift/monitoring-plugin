@@ -3,7 +3,7 @@
     "type": "console.page/route",
     "properties": {
       "exact": false,
-      "path": "/monitoring/",
+      "path": "/monitoring/(alertrules|alerts|dashboards|query-browser|silences|targets)/",
       "component": { "$codeRef": "MonitoringUI" }
     }
   },
