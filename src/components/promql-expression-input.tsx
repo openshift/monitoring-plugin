@@ -261,6 +261,7 @@ export const PromQLExpressionInput: React.FC<PromQLExpressionInputProps> = ({
 
   const placeholder = t('Expression (press Shift+Enter for newlines)');
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const safeFetch = React.useCallback(useSafeFetch(), []);
 
   React.useEffect(() => {

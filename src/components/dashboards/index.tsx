@@ -215,6 +215,7 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({ id, name, namespace
 
   const dispatch = useDispatch();
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const safeFetch = React.useCallback(useSafeFetch(), []);
 
   const [isError, setIsError] = React.useState(false);
@@ -751,7 +752,7 @@ const MonitoringDashboardsPage_: React.FC<MonitoringDashboardsPageProps> = ({ hi
         setBoard(newBoard);
       }
     },
-    [activePerspective, board, boards, dispatch, namespace],
+    [activePerspective, board, boards, dispatch, history, namespace],
   );
 
   // Display dashboard present in the params or show the first board
