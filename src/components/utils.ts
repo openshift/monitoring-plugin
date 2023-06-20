@@ -9,13 +9,14 @@ import {
   consoleFetchJSON,
   PrometheusLabels,
   PrometheusRule,
+  PrometheusRulesResponse,
   Rule,
   Silence,
   SilenceStates,
 } from '@openshift-console/dynamic-plugin-sdk';
 
 import { alertingErrored, alertingLoaded, alertingLoading } from '../actions/observe';
-import { AlertSource, MonitoringResource, PrometheusRulesResponse, Target } from './types';
+import { AlertSource, MonitoringResource, Target } from './types';
 
 export const PROMETHEUS_BASE_PATH = window.SERVER_FLAGS.prometheusBaseURL;
 

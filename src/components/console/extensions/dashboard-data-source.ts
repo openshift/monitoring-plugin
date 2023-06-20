@@ -1,19 +1,4 @@
-type ExtensionFlags = Partial<{
-  required: string[];
-  disallowed: string[];
-}>;
-
-type Extension<P extends {} = any> = {
-  type: string;
-  properties: P;
-  flags?: ExtensionFlags;
-};
-
-type ExtensionDeclaration<T extends string, P extends {}> = Extension<P> & {
-  type: T;
-};
-
-type CodeRef<T = any> = () => Promise<T>;
+import { CodeRef, Extension, ExtensionDeclaration } from './types';
 
 export type DataSource = ExtensionDeclaration<
   'console.dashboards/datasource',
