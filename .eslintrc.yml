@@ -11,7 +11,7 @@ parser: '@typescript-eslint/parser'
 parserOptions:
   ecmaFeatures:
     jsx: true
-  ecmaVersion: 2016
+  ecmaVersion: 2018
   sourceType: module
 plugins:
   - prettier
@@ -27,7 +27,6 @@ rules:
     - error
   # TODO: Rules below are disabled until we have time to refactor away these issues
   react/display-name: off
-  react-hooks/exhaustive-deps: off
   react/prop-types: off
   "@typescript-eslint/ban-types": off
   "@typescript-eslint/no-explicit-any": off

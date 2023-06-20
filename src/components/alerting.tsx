@@ -514,7 +514,7 @@ const SilenceTableRow: React.FC<RowProps<Silence>> = ({ obj }) => {
         return newSet;
       });
     },
-    [id],
+    [id, setSelectedSilences],
   );
 
   return (
@@ -2001,7 +2001,7 @@ const SelectAllCheckbox: React.FC<{ silences: Silence[] }> = ({ silences }) => {
       const ids = isChecked ? activeSilences.map((s) => s.id) : [];
       setSelectedSilences(new Set(ids));
     },
-    [activeSilences],
+    [activeSilences, setSelectedSilences],
   );
 
   return (
@@ -2093,7 +2093,7 @@ const SilencesPage_: React.FC<Silences> = () => {
         title: '',
       },
     ],
-    [t],
+    [filteredData, t],
   );
 
   return (

@@ -577,6 +577,7 @@ export const TargetsUI: React.FC<{}> = () => {
     kind: referenceForModel(PodMonitorModel),
   });
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const safeFetch = React.useCallback(useSafeFetch(), []);
 
   const tick = () =>
