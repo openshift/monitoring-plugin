@@ -2,12 +2,12 @@ FROM cypress/included:12.3.0
 
 WORKDIR /usr/src/app
 
-COPY package.json package-lock.json .
-RUN npm ci
+COPY package.json yarn.lock .
+RUN yarn install --frozen-lockfile
 
 COPY console-extensions.json cypress.config.ts tsconfig.json webpack.config.ts .
 COPY cypress/ ./cypress
 COPY src/ ./src
-RUN npm run build
+RUN yarn build
 
-ENTRYPOINT ["npm", "run", "cypress:run:ci"]
+ENTRYPOINT ["yarn", "cypress:run:ci"]
