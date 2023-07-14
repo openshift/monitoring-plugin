@@ -14,6 +14,7 @@ import {
   getCustomTheme,
 } from '@patternfly/react-charts';
 
+import { CustomDataSource } from '../extensions/dashboard-data-source';
 import { humanizeNumber } from '../utils/units';
 import { useRefWidth } from '../utils/ref-width-hook';
 import { GraphEmpty } from './graph-empty';
@@ -138,6 +139,7 @@ type GetInstantStats = (
 export const Bar: React.FC<BarProps> = ({
   barSpacing,
   barWidth,
+  customDataSource,
   delay = undefined,
   humanize = humanizeNumber,
   LabelComponent,
@@ -145,6 +147,7 @@ export const Bar: React.FC<BarProps> = ({
   query,
 }) => {
   const [response, , loading] = usePrometheusPoll({
+    customDataSource,
     delay,
     endpoint: PrometheusEndpoint.QUERY,
     query,
@@ -180,6 +183,7 @@ type BarChartProps = {
 type BarProps = {
   barSpacing?: number;
   barWidth?: number;
+  customDataSource?: CustomDataSource;
   delay?: number;
   humanize?: Humanize;
   LabelComponent?: React.ComponentType<LabelComponentProps>;

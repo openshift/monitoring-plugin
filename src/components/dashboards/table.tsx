@@ -20,6 +20,7 @@ import {
 
 import ErrorAlert from '../console/console-shared/alerts/error';
 import { getPrometheusURL } from '../console/graphs/helpers';
+import { CustomDataSource } from '../console/extensions/dashboard-data-source';
 import { usePoll } from '../console/utils/poll-hook';
 import { useSafeFetch } from '../console/utils/safe-fetch-hook';
 
@@ -64,7 +65,7 @@ const perPageOptions: PerPageOptions[] = [5, 10, 20, 50, 100].map((n) => ({
   value: n,
 }));
 
-const Table: React.FC<Props> = ({ panel, pollInterval, queries, namespace }) => {
+const Table: React.FC<Props> = ({ customDataSource, panel, pollInterval, queries, namespace }) => {
   const { t } = useTranslation('public');
 
   const [error, setError] = React.useState();
@@ -79,11 +80,18 @@ const Table: React.FC<Props> = ({ panel, pollInterval, queries, namespace }) => 
   const safeFetch = React.useCallback(useSafeFetch(), []);
 
   const tick = () => {
-    Promise.all(
-      queries.map((q) =>
-        safeFetch(getPrometheusURL({ endpoint: PrometheusEndpoint.QUERY, query: q, namespace })),
-      ),
-    )
+    const allPromises = _.map(queries, (query) =>
+      _.isEmpty(query)
+        ? Promise.resolve()
+        : safeFetch(
+            getPrometheusURL(
+              { endpoint: PrometheusEndpoint.QUERY, query, namespace },
+              customDataSource?.basePath,
+            ),
+          ),
+    );
+
+    Promise.all(allPromises)
       .then((responses: PrometheusResponse[]) => {
         setError(undefined);
         setLoading(false);
@@ -95,15 +103,17 @@ const Table: React.FC<Props> = ({ panel, pollInterval, queries, namespace }) => 
         //   https://grafana.com/docs/grafana/latest/features/panels/table_panel/#merge-multiple-queries-per-table
         setData(
           responses.reduce((acc, response, i: number) => {
-            const id = panel.targets[i].refId;
-            response.data.result.forEach(({ metric, value }) => {
-              const label = _.first(Object.keys(metric));
-              const tag = metric[label];
-              if (!acc[tag]) {
-                acc[tag] = { ...metric };
-              }
-              acc[tag][`Value #${id}`] = value[1] || '';
-            });
+            if (response) {
+              const id = panel.targets[i].refId;
+              response.data.result.forEach(({ metric, value }) => {
+                const label = _.first(Object.keys(metric));
+                const tag = metric[label];
+                if (!acc[tag]) {
+                  acc[tag] = { ...metric };
+                }
+                acc[tag][`Value #${id}`] = value[1] || '';
+              });
+            }
             return acc;
           }, {} as any),
         );
@@ -209,6 +219,7 @@ type Props = {
   pollInterval: number;
   queries: string[];
   namespace?: string;
+  customDataSource?: CustomDataSource;
 };
 
 export default Table;

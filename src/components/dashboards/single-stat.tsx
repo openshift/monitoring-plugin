@@ -4,6 +4,7 @@ import { PrometheusEndpoint, PrometheusResponse } from '@openshift-console/dynam
 import { Bullseye } from '@patternfly/react-core';
 
 import ErrorAlert from '../console/console-shared/alerts/error';
+import { CustomDataSource } from '../console/extensions/dashboard-data-source';
 import { getPrometheusURL } from '../console/graphs/helpers';
 import { usePoll } from '../console/utils/poll-hook';
 import { useSafeFetch } from '../console/utils/safe-fetch-hook';
@@ -57,7 +58,13 @@ const Body: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <Bullseye className="monitoring-dashboards__single-stat">{children}</Bullseye>
 );
 
-const SingleStat: React.FC<Props> = ({ panel, pollInterval, query, namespace }) => {
+const SingleStat: React.FC<Props> = ({
+  customDataSource,
+  namespace,
+  panel,
+  pollInterval,
+  query,
+}) => {
   const {
     decimals,
     format,
@@ -77,8 +84,16 @@ const SingleStat: React.FC<Props> = ({ panel, pollInterval, query, namespace }) 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const safeFetch = React.useCallback(useSafeFetch(), []);
 
-  const tick = () =>
-    safeFetch(getPrometheusURL({ endpoint: PrometheusEndpoint.QUERY, query, namespace }))
+  const url = getPrometheusURL(
+    { endpoint: PrometheusEndpoint.QUERY, query, namespace },
+    customDataSource?.basePath,
+  );
+
+  const tick = () => {
+    if (!url) {
+      return;
+    }
+    safeFetch(url)
       .then((response: PrometheusResponse) => {
         setError(undefined);
         setIsLoading(false);
@@ -91,6 +106,7 @@ const SingleStat: React.FC<Props> = ({ panel, pollInterval, query, namespace }) 
           setValue(undefined);
         }
       });
+  };
 
   usePoll(tick, pollInterval, query);
 
@@ -127,6 +143,7 @@ const SingleStat: React.FC<Props> = ({ panel, pollInterval, query, namespace }) 
 };
 
 type Props = {
+  customDataSource?: CustomDataSource;
   panel: Panel;
   pollInterval: number;
   query: string;

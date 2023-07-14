@@ -46,6 +46,7 @@ import {
 } from '../actions/observe';
 
 import { withFallback } from './console/console-shared/error/error-boundary';
+import { CustomDataSource } from './console/extensions/dashboard-data-source';
 import { GraphEmpty } from './console/graphs/graph-empty';
 import { getPrometheusURL } from './console/graphs/helpers';
 import {
@@ -647,6 +648,7 @@ const getMaxSamplesForSpan = (span: number) =>
   _.clamp(Math.round(span / minStep), minSamples, maxSamples);
 
 const QueryBrowser_: React.FC<QueryBrowserProps> = ({
+  customDataSource,
   defaultSamples,
   defaultTimespan = parsePrometheusDuration('30m'),
   disabledSeries,
@@ -742,15 +744,18 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
       _.isEmpty(query)
         ? Promise.resolve()
         : safeFetch(
-            getPrometheusURL({
-              endpoint: PrometheusEndpoint.QUERY_RANGE,
-              endTime: endTime || now,
-              namespace,
-              query,
-              samples,
-              timeout: '60s',
-              timespan: span,
-            }),
+            getPrometheusURL(
+              {
+                endpoint: PrometheusEndpoint.QUERY_RANGE,
+                endTime: endTime || now,
+                namespace,
+                query,
+                samples,
+                timeout: '60s',
+                timespan: span,
+              },
+              customDataSource?.basePath,
+            ),
           ),
     );
 
@@ -1016,6 +1021,7 @@ type GraphOnZoom = (from: number, to: number) => void;
 type ZoomableGraphProps = GraphProps & { onZoom: GraphOnZoom };
 
 export type QueryBrowserProps = {
+  customDataSource?: CustomDataSource;
   defaultSamples?: number;
   defaultTimespan?: number;
   disabledSeries?: PrometheusLabels[][];

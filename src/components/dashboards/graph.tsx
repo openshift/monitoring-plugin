@@ -1,12 +1,15 @@
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
+import { CustomDataSource } from '../console/extensions/dashboard-data-source';
+
 import { dashboardsSetEndTime, dashboardsSetTimespan } from '../../actions/observe';
 import { FormatSeriesTitle, QueryBrowser } from '../query-browser';
 import { RootState } from '../types';
 import { DEFAULT_GRAPH_SAMPLES, getActivePerspective } from './monitoring-dashboard-utils';
 
 type Props = {
+  customDataSource?: CustomDataSource;
   formatSeriesTitle?: FormatSeriesTitle;
   isStack: boolean;
   pollInterval: number;
@@ -18,6 +21,7 @@ type Props = {
 };
 
 const Graph: React.FC<Props> = ({
+  customDataSource,
   formatSeriesTitle,
   isStack,
   pollInterval,
@@ -47,6 +51,7 @@ const Graph: React.FC<Props> = ({
 
   return (
     <QueryBrowser
+      customDataSource={customDataSource}
       defaultSamples={DEFAULT_GRAPH_SAMPLES}
       fixedEndTime={endTime}
       formatSeriesTitle={formatSeriesTitle}
