@@ -8,6 +8,7 @@ declare interface Window {
     alertManagerBaseURL: string;
     basePath: string;
     prometheusBaseURL: string;
+    prometheusTenancyBaseURL: string;
   };
 }
 

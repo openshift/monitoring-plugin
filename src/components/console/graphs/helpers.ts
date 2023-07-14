@@ -2,6 +2,7 @@ import * as _ from 'lodash-es';
 import { PrometheusEndpoint } from '@openshift-console/dynamic-plugin-sdk';
 
 const PROMETHEUS_BASE_PATH = window.SERVER_FLAGS.prometheusBaseURL;
+const PROMETHEUS_TENANCY_BASE_PATH = window.SERVER_FLAGS.prometheusTenancyBaseURL;
 
 const DEFAULT_PROMETHEUS_SAMPLES = 60;
 const DEFAULT_PROMETHEUS_TIMESPAN = 60 * 60 * 1000;
@@ -34,12 +35,15 @@ const getSearchParams = ({
   return searchParams;
 };
 
-export const getPrometheusURL = (props: PrometheusURLProps): string => {
+export const getPrometheusURL = (
+  props: PrometheusURLProps,
+  basePath: string = props.namespace ? PROMETHEUS_TENANCY_BASE_PATH : PROMETHEUS_BASE_PATH,
+): string => {
   if (props.endpoint !== PrometheusEndpoint.RULES && !props.query) {
     return '';
   }
   const params = getSearchParams(props);
-  return `${PROMETHEUS_BASE_PATH}/${props.endpoint}?${params.toString()}`;
+  return `${basePath}/${props.endpoint}?${params.toString()}`;
 };
 
 type PrometheusURLProps = {
