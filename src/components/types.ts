@@ -1,10 +1,4 @@
-import {
-  Alert,
-  PrometheusLabels,
-  PrometheusRule,
-  Rule,
-  Silence,
-} from '@openshift-console/dynamic-plugin-sdk';
+import { Alert, PrometheusLabels, Rule, Silence } from '@openshift-console/dynamic-plugin-sdk';
 
 import { ObserveState } from '../reducers/observe';
 
@@ -38,12 +32,6 @@ export type Rules = {
   loadError?: string | Error;
 };
 
-type Group = {
-  rules: PrometheusRule[];
-  file: string;
-  name: string;
-};
-
 export type PrometheusAPIError = {
   json: {
     error?: string;
@@ -52,13 +40,6 @@ export type PrometheusAPIError = {
   response: {
     status: number;
   };
-};
-
-export type PrometheusRulesResponse = {
-  data: {
-    groups: Group[];
-  };
-  status: string;
 };
 
 export type Target = {
