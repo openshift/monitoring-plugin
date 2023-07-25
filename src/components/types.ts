@@ -1,4 +1,4 @@
-import { Alert, PrometheusLabels, Rule, Silence } from '@openshift-console/dynamic-plugin-sdk';
+import { Alert, PrometheusLabels, Silence } from '@openshift-console/dynamic-plugin-sdk';
 
 import { ObserveState } from '../reducers/observe';
 
@@ -22,12 +22,6 @@ export type Silences = {
 
 export type Alerts = {
   data: Alert[];
-  loaded: boolean;
-  loadError?: string | Error;
-};
-
-export type Rules = {
-  data: Rule[];
   loaded: boolean;
   loadError?: string | Error;
 };
