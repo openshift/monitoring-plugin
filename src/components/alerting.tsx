@@ -1685,7 +1685,7 @@ const getAdditionalSources = <T extends Alert | Rule>(
   return [];
 };
 
-const AlertsPage_: React.FC<Alerts> = () => {
+const AlertsPage_: React.FC<{}> = () => {
   const { t } = useTranslation('public');
 
   const {
@@ -2090,7 +2090,7 @@ const SelectAllCheckbox: React.FC<{ silences: Silence[] }> = ({ silences }) => {
   );
 };
 
-const SilencesPage_: React.FC<Silences> = () => {
+const SilencesPage_: React.FC<{}> = () => {
   const { t } = useTranslation('public');
 
   const [selectedSilences, setSelectedSilences] = React.useState(new Set());
