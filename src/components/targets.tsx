@@ -552,7 +552,7 @@ const ListPage: React.FC<ListPageProps> = ({ loaded, loadError, targets }) => {
 
 const POLL_INTERVAL = 15 * 1000;
 
-export const TargetsUI: React.FC<{}> = () => {
+export const TargetsUI: React.FC = () => {
   const [error, setError] = React.useState<PrometheusAPIError>();
   const [loaded, setLoaded] = React.useState(false);
   const [targets, setTargets] = React.useState<Target[]>();

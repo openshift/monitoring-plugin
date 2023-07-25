@@ -74,7 +74,7 @@ import { PrometheusAPIError, RootState } from './types';
 // Stores information about the currently focused query input
 let focusedQuery;
 
-const MetricsActionsMenu: React.FC<{}> = () => {
+const MetricsActionsMenu: React.FC = () => {
   const { t } = useTranslation('public');
 
   const [isOpen, setIsOpen, , setClosed] = useBoolean(false);
@@ -119,7 +119,7 @@ const MetricsActionsMenu: React.FC<{}> = () => {
   );
 };
 
-export const ToggleGraph: React.FC<{}> = () => {
+export const ToggleGraph: React.FC = () => {
   const { t } = useTranslation('public');
 
   const hideGraphs = useSelector(({ observe }: RootState) => !!observe.get('hideGraphs'));
@@ -566,7 +566,7 @@ const Query: React.FC<{ index: number }> = ({ index }) => {
   );
 };
 
-const QueryBrowserWrapper: React.FC<{}> = () => {
+const QueryBrowserWrapper: React.FC = () => {
   const { t } = useTranslation('public');
 
   const dispatch = useDispatch();
@@ -655,7 +655,7 @@ const QueryBrowserWrapper: React.FC<{}> = () => {
   );
 };
 
-const AddQueryButton: React.FC<{}> = () => {
+const AddQueryButton: React.FC = () => {
   const { t } = useTranslation('public');
 
   const dispatch = useDispatch();
@@ -673,7 +673,7 @@ const AddQueryButton: React.FC<{}> = () => {
   );
 };
 
-const RunQueriesButton: React.FC<{}> = () => {
+const RunQueriesButton: React.FC = () => {
   const { t } = useTranslation('public');
 
   const dispatch = useDispatch();
@@ -686,7 +686,7 @@ const RunQueriesButton: React.FC<{}> = () => {
   );
 };
 
-const QueriesList: React.FC<{}> = () => {
+const QueriesList: React.FC = () => {
   const count = useSelector(
     ({ observe }: RootState) => observe.getIn(['queryBrowser', 'queries']).size,
   );
@@ -715,7 +715,7 @@ const PollIntervalDropdown = () => {
   return <IntervalDropdown interval={interval} setInterval={setInterval} />;
 };
 
-const QueryBrowserPage_: React.FC<{}> = () => {
+const QueryBrowserPage_: React.FC = () => {
   const { t } = useTranslation('public');
 
   const dispatch = useDispatch();

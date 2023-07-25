@@ -1029,7 +1029,7 @@ export type QueryBrowserProps = {
   filterLabels?: PrometheusLabels;
   fixedEndTime?: number;
   formatSeriesTitle?: FormatSeriesTitle;
-  GraphLink?: React.ComponentType<{}>;
+  GraphLink?: React.ComponentType;
   hideControls?: boolean;
   isStack?: boolean;
   namespace?: string;

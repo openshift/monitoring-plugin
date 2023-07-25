@@ -55,6 +55,7 @@ export const withFallback: WithFallback = (WrappedComponent, FallbackComponent) 
   return Component;
 };
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 type WithFallback = <P = {}>(
   Component: React.ComponentType<P>,
   FallbackComponent?: React.ComponentType<any>,
