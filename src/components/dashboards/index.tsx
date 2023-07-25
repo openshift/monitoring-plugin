@@ -457,7 +457,7 @@ export const PollIntervalDropdown: React.FC<TimeDropdownsProps> = ({ namespace }
   );
 };
 
-const TimeDropdowns: React.FC<{}> = React.memo(() => {
+const TimeDropdowns: React.FC = React.memo(() => {
   const namespace = React.useContext(NamespaceContext);
   return (
     <div className="monitoring-dashboards__options">
@@ -467,7 +467,7 @@ const TimeDropdowns: React.FC<{}> = React.memo(() => {
   );
 });
 
-const HeaderTop: React.FC<{}> = React.memo(() => {
+const HeaderTop: React.FC = React.memo(() => {
   const { t } = useTranslation('public');
 
   return (

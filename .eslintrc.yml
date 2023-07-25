@@ -28,7 +28,6 @@ rules:
   # TODO: Rules below are disabled until we have time to refactor away these issues
   react/display-name: off
   react/prop-types: off
-  "@typescript-eslint/ban-types": off
   "@typescript-eslint/no-explicit-any": off
 settings:
   react:

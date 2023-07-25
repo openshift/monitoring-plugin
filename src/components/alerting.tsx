@@ -355,7 +355,7 @@ const PopoverField: React.FC<{ bodyContent: React.ReactNode; label: string }> = 
   </Popover>
 );
 
-const AlertStateHelp: React.FC<{}> = () => {
+const AlertStateHelp: React.FC = () => {
   const { t } = useTranslation('public');
 
   return (
@@ -389,7 +389,7 @@ const AlertStateHelp: React.FC<{}> = () => {
   );
 };
 
-const SeverityHelp: React.FC<{}> = () => {
+const SeverityHelp: React.FC = () => {
   const { t } = useTranslation('public');
 
   return (
@@ -423,7 +423,7 @@ const SeverityHelp: React.FC<{}> = () => {
   );
 };
 
-const SourceHelp: React.FC<{}> = () => {
+const SourceHelp: React.FC = () => {
   const { t } = useTranslation('public');
 
   return (
@@ -1685,7 +1685,7 @@ const getAdditionalSources = <T extends Alert | Rule>(
   return [];
 };
 
-const AlertsPage_: React.FC<{}> = () => {
+const AlertsPage_: React.FC = () => {
   const { t } = useTranslation('public');
 
   const {
@@ -1874,7 +1874,7 @@ const RuleTableRow: React.FC<RowProps<Rule>> = ({ obj }) => {
   );
 };
 
-const RulesPage_: React.FC<{}> = () => {
+const RulesPage_: React.FC = () => {
   const { t } = useTranslation('public');
 
   const data: Rule[] = useSelector(({ observe }: RootState) => observe.get('rules'));
@@ -1988,7 +1988,7 @@ const RulesPage_: React.FC<{}> = () => {
 };
 const RulesPage = withFallback(RulesPage_);
 
-const CreateSilenceButton: React.FC<{}> = React.memo(() => {
+const CreateSilenceButton: React.FC = React.memo(() => {
   const { t } = useTranslation('public');
 
   return (
@@ -2090,7 +2090,7 @@ const SelectAllCheckbox: React.FC<{ silences: Silence[] }> = ({ silences }) => {
   );
 };
 
-const SilencesPage_: React.FC<{}> = () => {
+const SilencesPage_: React.FC = () => {
   const { t } = useTranslation('public');
 
   const [selectedSilences, setSelectedSilences] = React.useState(new Set());

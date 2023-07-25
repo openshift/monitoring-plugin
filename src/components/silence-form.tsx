@@ -91,7 +91,7 @@ const NegativeMatcherHelp = () => {
 
 type SilenceFormProps = RouteComponentProps & {
   defaults: any;
-  Info?: React.ComponentType<{}>;
+  Info?: React.ComponentType;
   title: string;
 };
 
