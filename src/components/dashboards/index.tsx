@@ -554,29 +554,43 @@ const Card: React.FC<CardProps> = React.memo(({ panel }) => {
   const [dataSourceInfoLoading, setDataSourceInfoLoading] = React.useState<boolean>(true);
   const [customDataSource, setCustomDataSource] = React.useState<CustomDataSource>(undefined);
   const customDataSourceName = panel.datasource?.name;
-  const [extensions] = useResolvedExtensions<DataSourceExtension>(isDataSource);
+  const [extensions, extensionsResolved, extensionsErrors] =
+    useResolvedExtensions<DataSourceExtension>(isDataSource);
   const hasExtensions = !_.isEmpty(extensions);
+
+  console.warn('customDataSource', customDataSource);
+  console.warn('customDataSourceName', customDataSourceName);
+  console.warn('extensions', extensions);
+  console.warn('extensionsResolved', extensionsResolved);
+  console.warn('extensionsErrors', extensionsErrors);
 
   React.useEffect(() => {
     const getCustomDataSource = async () => {
       if (!customDataSourceName) {
         setDataSourceInfoLoading(false);
+        setIsError(false);
         setCustomDataSource(null);
       } else if (hasExtensions) {
         setDataSourceInfoLoading(true);
         const extension = extensions.find(
           (ext) => ext?.properties?.contextId === 'monitoring-dashboards',
         );
+        console.warn('extension', extension);
         const getDataSource = extension?.properties?.getDataSource;
+        console.warn('getDataSource', getDataSource);
         const dataSource = await getDataSource(customDataSourceName);
+        console.warn('dataSource', dataSource);
         setCustomDataSource(dataSource);
         setDataSourceInfoLoading(false);
+        setIsError(false);
       } else {
         setDataSourceInfoLoading(false);
+        console.error('Found customDataSourceName, but found no extensions');
         setIsError(true);
       }
     };
-    getCustomDataSource().catch(() => {
+    getCustomDataSource().catch((err) => {
+      console.error('Caught getCustomDataSource() error:', err);
       setIsError(true);
     });
   }, [extensions, customDataSourceName, hasExtensions]);
