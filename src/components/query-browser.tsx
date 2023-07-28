@@ -104,7 +104,7 @@ const GraphEmptyState: React.FC<GraphEmptyStateProps> = ({ children, title }) =>
 
 const SpanControls: React.FC<SpanControlsProps> = React.memo(
   ({ defaultSpanText, onChange, span, hasReducedResolution }) => {
-    const { t } = useTranslation('public');
+    const { t } = useTranslation('plugin__monitoring-plugin');
 
     const [isValid, setIsValid] = React.useState(true);
     const [text, setText] = React.useState(formatPrometheusDuration(span));
@@ -348,7 +348,7 @@ const Graph: React.FC<GraphProps> = React.memo(
     units,
     width,
   }) => {
-    const { t } = useTranslation('public');
+    const { t } = useTranslation('plugin__monitoring-plugin');
 
     const data: GraphSeries[] = [];
     const tooltipSeriesNames: string[] = [];
@@ -668,7 +668,7 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
   timespan,
   units,
 }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const hideGraphs = useSelector(({ observe }: RootState) => !!observe.get('hideGraphs'));
   const tickInterval = useSelector(

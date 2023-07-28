@@ -252,7 +252,7 @@ export const PromQLExpressionInput: React.FC<PromQLExpressionInputProps> = ({
   onValueChange,
   onSelectionChange,
 }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const containerRef = React.useRef<HTMLDivElement | null>(null);
   const viewRef = React.useRef<EditorView | null>(null);

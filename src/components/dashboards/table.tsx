@@ -66,7 +66,7 @@ const perPageOptions: PerPageOptions[] = [5, 10, 20, 50, 100].map((n) => ({
 }));
 
 const Table: React.FC<Props> = ({ customDataSource, panel, pollInterval, queries, namespace }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const [error, setError] = React.useState();
   const [isLoading, setLoading] = React.useState(true);

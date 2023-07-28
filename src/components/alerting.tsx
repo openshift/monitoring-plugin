@@ -194,7 +194,7 @@ const getAlertStateKey = (state, t) => {
 };
 
 export const AlertState: React.FC<AlertStateProps> = React.memo(({ state }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const icon = <AlertStateIcon state={state} />;
 
@@ -206,7 +206,7 @@ export const AlertState: React.FC<AlertStateProps> = React.memo(({ state }) => {
 });
 
 const SilenceState = ({ silence }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const state = silenceState(silence);
   const icon = {
@@ -241,7 +241,7 @@ export const StateTimestamp = ({ text, timestamp }) => (
 );
 
 const AlertStateDescription: React.FC<{ alert }> = ({ alert }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   if (alert && !_.isEmpty(alert.silencedBy)) {
     return <StateTimestamp text={t('Ends')} timestamp={_.max(_.map(alert.silencedBy, 'endsAt'))} />;
@@ -264,7 +264,7 @@ const SeverityIcon: React.FC<{ severity: string }> = React.memo(({ severity }) =
 });
 
 export const Severity: React.FC<{ severity: string }> = React.memo(({ severity }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const getSeverityKey = (severityData: string) => {
     switch (severityData) {
@@ -326,7 +326,7 @@ const SeverityCounts: React.FC<{ alerts: Alert[] }> = ({ alerts }) => {
 };
 
 export const StateCounts: React.FC<{ alerts: PrometheusAlert[] }> = ({ alerts }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const counts = _.countBy(alerts, 'state');
   const states = [AlertStates.Firing, AlertStates.Pending, AlertStates.Silenced].filter(
@@ -356,7 +356,7 @@ const PopoverField: React.FC<{ bodyContent: React.ReactNode; label: string }> = 
 );
 
 const AlertStateHelp: React.FC = () => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   return (
     <dl className="co-inline">
@@ -390,7 +390,7 @@ const AlertStateHelp: React.FC = () => {
 };
 
 const SeverityHelp: React.FC = () => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   return (
     <dl className="co-inline">
@@ -424,7 +424,7 @@ const SeverityHelp: React.FC = () => {
 };
 
 const SourceHelp: React.FC = () => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   return (
     <dl className="co-inline">
@@ -464,7 +464,7 @@ const Graph: React.FC<GraphProps> = ({
   query,
   ruleDuration,
 }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   // 3 times the rule's duration, but not less than 30 minutes
   const timespan = Math.max(3 * ruleDuration, 30 * 60) * 1000;
@@ -511,7 +511,7 @@ const SilenceMatchersList = ({ silence }) => (
 );
 
 const SilenceTableRow: React.FC<RowProps<Silence>> = ({ obj }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const { createdBy, endsAt, firingAlerts, id, name, startsAt } = obj;
   const state = silenceState(obj);
@@ -672,7 +672,7 @@ const getSourceKey = (source, t: TFunction) => {
 };
 
 const SilencedByList: React.FC<{ silences: Silence[] }> = ({ silences }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const columns = React.useMemo<TableColumn<Silence>[]>(
     () => [
@@ -721,7 +721,7 @@ const SilencedByList: React.FC<{ silences: Silence[] }> = ({ silences }) => {
 type AlertsDetailsPageProps = RouteComponentProps<{ ns?: string; ruleID: string }>;
 
 const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const isDevPerspective = _.has(match.params, 'ns');
   const namespace = match.params?.ns;
@@ -985,7 +985,7 @@ type ActiveAlertsProps = RouteComponentProps & {
 };
 
 const ActiveAlerts_: React.FC<ActiveAlertsProps> = ({ alerts, history, namespace, ruleID }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   return (
     <div className="co-m-table-grid co-m-table-grid--bordered">
@@ -1044,7 +1044,7 @@ const ActiveAlerts = withRouter(ActiveAlerts_);
 type AlertRulesDetailsPageProps = RouteComponentProps<{ id: string; ns?: string }>;
 
 const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const isDevPerspective = _.has(match.params, 'ns');
   const namespace = match.params?.ns;
@@ -1250,7 +1250,7 @@ const ExpireSilenceModal: React.FC<ExpireSilenceModalProps> = ({
   setClosed,
   silenceID,
 }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const dispatch = useDispatch();
 
@@ -1328,7 +1328,7 @@ const SilenceDropdown_: React.FC<SilenceDropdownProps> = ({
   silence,
   Toggle,
 }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const [isOpen, setIsOpen, , setClosed] = useBoolean(false);
   const [isModalOpen, , setModalOpen, setModalClosed] = useBoolean(false);
@@ -1388,7 +1388,7 @@ const SilenceDropdownActions: React.FC<{ silence: Silence }> = ({ silence }) => 
 type SilencedAlertsListProps = RouteComponentProps & { alerts: Alerts[] };
 
 const SilencedAlertsList_: React.FC<SilencedAlertsListProps> = ({ alerts, history }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   return _.isEmpty(alerts) ? (
     <div className="pf-u-text-align-center">{t('None found')}</div>
@@ -1432,7 +1432,7 @@ const SilencedAlertsList_: React.FC<SilencedAlertsListProps> = ({ alerts, histor
 const SilencedAlertsList = withRouter(SilencedAlertsList_);
 
 const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ match }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const [namespace] = useActiveNamespace();
   const [perspective] = useActivePerspective();
@@ -1574,7 +1574,7 @@ const tableAlertClasses = [
 type AlertTableRowProps = RouteComponentProps & RowProps<Alert>;
 
 const AlertTableRow_: React.FC<AlertTableRowProps> = ({ history, obj }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const { annotations = {}, labels } = obj;
   const description = annotations.description || annotations.message;
@@ -1643,7 +1643,7 @@ export const severityRowFilter = (t): RowFilter => ({
 });
 
 const SilencesNotLoadedWarning: React.FC<{ silencesLoadError: any }> = ({ silencesLoadError }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   return (
     <PFAlert
@@ -1686,7 +1686,7 @@ const getAdditionalSources = <T extends Alert | Rule>(
 };
 
 const AlertsPage_: React.FC = () => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const {
     data,
@@ -1847,7 +1847,7 @@ const tableRuleClasses = [
 ];
 
 const RuleTableRow: React.FC<RowProps<Rule>> = ({ obj }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const title: string = obj.annotations?.description || obj.annotations?.message;
 
@@ -1875,7 +1875,7 @@ const RuleTableRow: React.FC<RowProps<Rule>> = ({ obj }) => {
 };
 
 const RulesPage_: React.FC = () => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const data: Rule[] = useSelector(({ observe }: RootState) => observe.get('rules'));
   const { loaded = false, loadError }: Alerts = useSelector(
@@ -1989,7 +1989,7 @@ const RulesPage_: React.FC = () => {
 const RulesPage = withFallback(RulesPage_);
 
 const CreateSilenceButton: React.FC = React.memo(() => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   return (
     <Link className="co-m-primary-action" to="/monitoring/silences/~new">
@@ -2005,7 +2005,7 @@ type ExpireAllSilencesButtonProps = {
 };
 
 const ExpireAllSilencesButton: React.FC<ExpireAllSilencesButtonProps> = ({ setErrorMessage }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const [isInProgress, , setInProgress, setNotInProgress] = useBoolean(false);
 
@@ -2091,7 +2091,7 @@ const SelectAllCheckbox: React.FC<{ silences: Silence[] }> = ({ silences }) => {
 };
 
 const SilencesPage_: React.FC = () => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const [selectedSilences, setSelectedSilences] = React.useState(new Set());
   const [errorMessage, setErrorMessage] = React.useState();
@@ -2209,7 +2209,7 @@ const SilencesPage_: React.FC = () => {
             </PFAlert>
           )}
           {errorMessage && (
-            <PFAlert className="co-alert" isInline title={t('error')} variant="danger">
+            <PFAlert className="co-alert" isInline title={t('Error')} variant="danger">
               {errorMessage}
             </PFAlert>
           )}
@@ -2244,7 +2244,7 @@ const Tab: React.FC<{ active: boolean; children: React.ReactNode }> = ({ active,
 );
 
 const AlertingPage: React.FC<RouteComponentProps<{ url: string }>> = ({ match }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const alertsPath = '/monitoring/alerts';
   const rulesPath = '/monitoring/alertrules';

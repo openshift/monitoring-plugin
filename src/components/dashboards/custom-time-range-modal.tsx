@@ -42,7 +42,7 @@ const CustomTimeRangeModal: React.FC<CustomTimeRangeModalProps> = ({
   isOpen,
   setClosed,
 }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const dispatch = useDispatch();
   const endTime = useSelector(({ observe }: RootState) =>

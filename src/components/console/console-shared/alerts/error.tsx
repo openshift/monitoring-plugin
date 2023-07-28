@@ -9,7 +9,7 @@ const ErrorAlert: React.FC<Props> = ({ message, title }) => {
     <Alert
       isInline
       className="co-alert co-alert--scrollable"
-      title={title || t('console-shared~An error occurred')}
+      title={title || t('plugin__monitoring-plugin~An error occurred')}
       variant="danger"
     >
       {message}
