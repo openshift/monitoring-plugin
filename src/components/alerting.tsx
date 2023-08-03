@@ -1703,9 +1703,12 @@ const AlertsPage_: React.FC = () => {
   );
 
   const rowFilters: RowFilter[] = [
+    // TODO: The "name" filter doesn't really fit useListPageFilter's idea of a RowFilter, but
+    //       useListPageFilter doesn't yet provide a better way to add a filter like this
     {
       filter: (filter, alert: Alert) =>
         fuzzyCaseInsensitive(filter.selected?.[0], alert.labels?.alertname),
+      filterGroupName: '',
       items: [],
       type: 'name',
     } as RowFilter,
@@ -1891,8 +1894,11 @@ const RulesPage_: React.FC = () => {
   );
 
   const rowFilters: RowFilter[] = [
+    // TODO: The "name" filter doesn't really fit useListPageFilter's idea of a RowFilter, but
+    //       useListPageFilter doesn't yet provide a better way to add a filter like this
     {
       filter: (filter, rule: Rule) => fuzzyCaseInsensitive(filter.selected?.[0], rule.name),
+      filterGroupName: '',
       items: [],
       type: 'name',
     } as RowFilter,
@@ -2103,9 +2109,12 @@ const SilencesPage_: React.FC = () => {
   }: Silences = useSelector(({ observe }: RootState) => observe.get('silences') || {});
 
   const rowFilters: RowFilter[] = [
+    // TODO: The "name" filter doesn't really fit useListPageFilter's idea of a RowFilter, but
+    //       useListPageFilter doesn't yet provide a better way to add a filter like this
     {
       filter: (filter, silence: Silence) =>
         fuzzyCaseInsensitive(filter.selected?.[0], silence.name),
+      filterGroupName: '',
       items: [],
       type: 'name',
     } as RowFilter,
