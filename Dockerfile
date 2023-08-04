@@ -10,6 +10,7 @@ COPY package.json yarn.lock .
 RUN yarn
 
 COPY ./console-extensions.json ./tsconfig.json ./webpack.config.ts .
+COPY ./locales ./locales
 COPY ./src ./src
 RUN yarn build
 

@@ -13,20 +13,20 @@ const LocalizedToggleTemplate: React.FC<LocalizedToggleTemplateProps> = ({
   itemsTitle,
   lastIndex,
 }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   return (
     <Trans t={t}>
+      {/*
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore TODO */}
       <b>
-        <>
-          {{ firstIndex }} - {{ lastIndex }}
-        </>
+        {{ firstIndex }} - {{ lastIndex }}
       </b>{' '}
-      of{' '}
-      <b>
-        <>{{ itemCount }}</>
-      </b>{' '}
-      {{ itemsTitle }}
+      {/*
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore TODO */}
+      of <b>{{ itemCount }}</b> {{ itemsTitle }}
     </Trans>
   );
 };
@@ -39,7 +39,7 @@ const TablePagination: React.FC<TablePaginationProps> = ({
   setPage,
   setPerPage,
 }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const onPerPageSelect = (e, v) => {
     // When changing the number of results per page, keep the start row approximately the same
