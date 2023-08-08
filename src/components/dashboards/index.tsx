@@ -227,15 +227,22 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({ id, name, namespace
   const [isError, setIsError] = React.useState(false);
 
   const customDataSourceName = variable?.datasource?.name;
-  const [extensions] = useResolvedExtensions<DataSourceExtension>(isDataSource);
+  // const [extensions] = useResolvedExtensions<DataSourceExtension>(isDataSource);
+  const [extensions, extensionsResolved, extensionErrors] = useResolvedExtensions<DataSourceExtension>(isDataSource);
   const hasExtensions = !_.isEmpty(extensions);
+
+  console.log("JZ variablesDropDown > customDataSourceName: " + JSON.stringify(customDataSourceName));
+  console.log("JZ VariablesDropDown > extensions: " + JSON.stringify(extensions));
+  console.log("JZ VariablesDropDown > extensionsResolved: " + JSON.stringify(extensionsResolved));
+  console.log("JZ VariablesDropDown > extensionErrors: " + JSON.stringify(extensionErrors));
+
 
   const getURL = React.useCallback(
     async (prometheusProps) => {
       try {
         if (!customDataSourceName) {
           return getPrometheusURL(prometheusProps);
-        } else if (hasExtensions) {
+        } else if (extensionsResolved && hasExtensions) {
           const extension = extensions.find(
             (ext) => ext?.properties?.contextId === 'monitoring-dashboards',
           );
@@ -247,7 +254,7 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({ id, name, namespace
         setIsError(true);
       }
     },
-    [customDataSourceName, extensions, hasExtensions],
+    [customDataSourceName, extensions, extensionsResolved, hasExtensions],
   );
 
   React.useEffect(() => {
@@ -554,32 +561,83 @@ const Card: React.FC<CardProps> = React.memo(({ panel }) => {
   const [dataSourceInfoLoading, setDataSourceInfoLoading] = React.useState<boolean>(true);
   const [customDataSource, setCustomDataSource] = React.useState<CustomDataSource>(undefined);
   const customDataSourceName = panel.datasource?.name;
-  const [extensions] = useResolvedExtensions<DataSourceExtension>(isDataSource);
+  // const [extensions] = useResolvedExtensions<DataSourceExtension>(isDataSource);
+  const [extensions, extensionsResolved, extensionErrors] = useResolvedExtensions<DataSourceExtension>(isDataSource);
   const hasExtensions = !_.isEmpty(extensions);
+
+  console.log("JZ CARD > customDataSource", customDataSource)
+  console.log("JZ  CARD > customDataSourceName", customDataSourceName)
+  console.log("JZ  CARD > extensions", extensions)
+  console.log("JZ  CARD > extensionsResolved", extensionsResolved)
+  console.log("JZ  CARD > extensionErrors", extensionErrors)
+  console.log("JZ  CARD > hasExtensions", hasExtensions)
+
 
   React.useEffect(() => {
     const getCustomDataSource = async () => {
       if (!customDataSourceName) {
+        console.warn("JZ !customDataSourceName")
         setDataSourceInfoLoading(false);
         setCustomDataSource(null);
-      } else if (hasExtensions) {
+      } else if (!extensionsResolved) {
+        console.warn("JZ !extensionsResolved")
         setDataSourceInfoLoading(true);
+      } else if (hasExtensions) {
+        console.warn("JZ hasExtensions")
         const extension = extensions.find(
           (ext) => ext?.properties?.contextId === 'monitoring-dashboards',
         );
         const getDataSource = extension?.properties?.getDataSource;
-        const dataSource = await getDataSource(customDataSourceName);
+        console.warn("JZ getDataSource: ",getDataSource )
+        
+        // JZ:TODO add this to other getDataSources to check for empty case 
+        const dataSource = await getDataSource?.(customDataSourceName);
+        console.warn("JZ dataSource: ", dataSource )
         setCustomDataSource(dataSource);
         setDataSourceInfoLoading(false);
       } else {
+        console.warn("extensionErrors: ", extensionErrors)
         setDataSourceInfoLoading(false);
         setIsError(true);
       }
     };
-    getCustomDataSource().catch(() => {
+    getCustomDataSource().catch((err) => {
+      // JZ:TODO add this to other try catches
+      // eslint-disable-next-line no-console
+      console.error(err)
       setIsError(true);
     });
-  }, [extensions, customDataSourceName, hasExtensions]);
+  }, [extensions, extensionsResolved, customDataSourceName, hasExtensions]);
+
+
+//   const getCustomDataSource = async () => {
+//     if (!customDataSourceName) {
+//       setDataSourceInfoLoading(false);
+//       setCustomDataSource(null);
+//     } else if (dataSourceResolved) {
+      
+//     }  
+//     else if (dataSourceResolved) {
+//       setDataSourceInfoLoading(true);
+//       const extension = extensions.find(
+//         (ext) => ext?.properties?.contextId === 'monitoring-dashboards',
+//       );
+//       const getDataSource = extension?.properties?.getDataSource;
+//       const dataSource = await getDataSource(customDataSourceName);
+//       setCustomDataSource(dataSource);
+//       setDataSourceInfoLoading(false);
+//     } else {
+//       console.log("JZ else statement")
+//       // setDataSourceInfoLoading(false);
+//       // setIsError(true);
+//     }
+//   };
+//   getCustomDataSource().catch(() => {
+//     setIsError(true);
+//   });
+// }, [dataSourceExtensions, customDataSourceName, hasExtensions]);
+
+
 
   const formatSeriesTitle = React.useCallback(
     (labels, i) => {
@@ -640,7 +698,7 @@ const Card: React.FC<CardProps> = React.memo(({ panel }) => {
         data-test={`${panel.title.toLowerCase().replace(/\s+/g, '-')}-chart`}
       >
         <CardHeader className="monitoring-dashboards__card-header">
-          <CardTitle>{panel.title}</CardTitle>
+          <CardTitle>{panel.title} hello world</CardTitle>
           <CardActions className="co-overview-card__actions">
             {!isLoading && <QueryBrowserLink queries={queries} />}
           </CardActions>

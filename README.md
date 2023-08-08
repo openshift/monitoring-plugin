@@ -43,3 +43,16 @@ Install the chart into a new namespace or an existing namespace as specified by 
 ```shell
 helm upgrade -i monitoring-plugin charts/openshift-console-plugin -n my-plugin-namespace --create-namespace --set plugin.image=my-plugin-image-location
 ```
+
+## Local Development 
+If you are working on the monitoring-plugin codebase:
+1. `cd` to monitoring-plugin root dir
+2. Run `yarn start` in one terminal
+3. Start docker
+4. Run `yarn start-console` in a second terminal
+If you are working on the console codebase:
+1. `cd`` to monitoring-plugin root dir
+2. Run `yarn start`` in one terminal
+3. cd to console root dir
+4. Run `./bin/bridge -plugins "monitoring-plugin=http://localhost:9001"`
+In either case, the console will then be running locally at http://localhost:9000
