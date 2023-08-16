@@ -75,7 +75,7 @@ import { PrometheusAPIError, RootState } from './types';
 let focusedQuery;
 
 const MetricsActionsMenu: React.FC = () => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const [isOpen, setIsOpen, , setClosed] = useBoolean(false);
 
@@ -120,7 +120,7 @@ const MetricsActionsMenu: React.FC = () => {
 };
 
 export const ToggleGraph: React.FC = () => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const hideGraphs = useSelector(({ observe }: RootState) => !!observe.get('hideGraphs'));
 
@@ -142,7 +142,7 @@ export const ToggleGraph: React.FC = () => {
 };
 
 const ExpandButton = ({ isExpanded, onClick }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const title = isExpanded ? t('Hide table') : t('Show table');
   return (
@@ -163,7 +163,7 @@ const ExpandButton = ({ isExpanded, onClick }) => {
 };
 
 const SeriesButton: React.FC<SeriesButtonProps> = ({ index, labels }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const [colorIndex, isDisabled, isSeriesEmpty] = useSelector(({ observe }: RootState) => {
     const disabledSeries = observe.getIn(['queryBrowser', 'queries', index, 'disabledSeries']);
@@ -214,7 +214,7 @@ const SeriesButton: React.FC<SeriesButtonProps> = ({ index, labels }) => {
 };
 
 const QueryKebab: React.FC<{ index: number }> = ({ index }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const isDisabledSeriesEmpty = useSelector(({ observe }: RootState) =>
     _.isEmpty(observe.getIn(['queryBrowser', 'queries', index, 'disabledSeries'])),
@@ -269,7 +269,7 @@ const QueryKebab: React.FC<{ index: number }> = ({ index }) => {
 };
 
 export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const [data, setData] = React.useState<PrometheusData>();
   const [error, setError] = React.useState<PrometheusAPIError>();
@@ -485,7 +485,7 @@ const PromQLExpressionInput = (props) => (
 );
 
 const Query: React.FC<{ index: number }> = ({ index }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const id = useSelector(({ observe }: RootState) =>
     observe.getIn(['queryBrowser', 'queries', index, 'id']),
@@ -567,7 +567,7 @@ const Query: React.FC<{ index: number }> = ({ index }) => {
 };
 
 const QueryBrowserWrapper: React.FC = () => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const dispatch = useDispatch();
 
@@ -656,7 +656,7 @@ const QueryBrowserWrapper: React.FC = () => {
 };
 
 const AddQueryButton: React.FC = () => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const dispatch = useDispatch();
   const addQuery = React.useCallback(() => dispatch(queryBrowserAddQuery()), [dispatch]);
@@ -674,7 +674,7 @@ const AddQueryButton: React.FC = () => {
 };
 
 const RunQueriesButton: React.FC = () => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const dispatch = useDispatch();
   const runQueries = React.useCallback(() => dispatch(queryBrowserRunQueries()), [dispatch]);
@@ -716,7 +716,7 @@ const PollIntervalDropdown = () => {
 };
 
 const QueryBrowserPage_: React.FC = () => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const dispatch = useDispatch();
 

@@ -18,9 +18,9 @@ i18n
     load: 'languageOnly',
     missingKeyHandler: function (lng, ns, key) {
       // eslint-disable-next-line no-console
-      console.error(`Missing i18n key "${key}" in namespace "${ns}" and language "${lng}."`);
+      console.error(`Missing i18n key "${key}" in namespace "${ns}" and language "${lng}"`);
     },
-    ns: ['public'],
+    ns: ['plugin__monitoring-plugin'],
     nsSeparator: '~',
     react: {
       useSuspense: true,

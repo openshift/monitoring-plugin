@@ -135,7 +135,7 @@ const FilterSelect: React.FC<FilterSelectProps> = ({
   OptionComponent,
   selectedKey,
 }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const [isOpen, , open, close] = useBoolean(false);
   const [filterText, setFilterText] = React.useState<string>();
@@ -205,7 +205,7 @@ const VariableOption = ({ itemKey }) =>
   );
 
 const VariableDropdown: React.FC<VariableDropdownProps> = ({ id, name, namespace }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const activePerspective = getActivePerspective(namespace);
 
@@ -227,8 +227,8 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({ id, name, namespace
   const [isError, setIsError] = React.useState(false);
 
   const customDataSourceName = variable?.datasource?.name;
-  // const [extensions] = useResolvedExtensions<DataSourceExtension>(isDataSource);
   const [extensions, extensionsResolved, extensionErrors] = useResolvedExtensions<DataSourceExtension>(isDataSource);
+
   const hasExtensions = !_.isEmpty(extensions);
 
   console.log("JZ variablesDropDown > customDataSourceName: " + JSON.stringify(customDataSourceName));
@@ -247,10 +247,12 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({ id, name, namespace
             (ext) => ext?.properties?.contextId === 'monitoring-dashboards',
           );
           const getDataSource = extension?.properties?.getDataSource;
-          const dataSource = await getDataSource(customDataSourceName);
+          const dataSource = await getDataSource?.(customDataSourceName);
           return getPrometheusURL(prometheusProps, dataSource?.basePath);
         }
       } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error(error);
         setIsError(true);
       }
     },
@@ -386,7 +388,7 @@ const Tag: React.FC<{ color: TagColor; text: string }> = React.memo(({ color, te
 
 const DashboardDropdown: React.FC<DashboardDropdownProps> = React.memo(
   ({ items, onChange, selectedKey }) => {
-    const { t } = useTranslation('public');
+    const { t } = useTranslation('plugin__monitoring-plugin');
 
     const allTags = _.flatMap(items, 'tags');
     const uniqueTags = _.uniq(allTags);
@@ -429,7 +431,7 @@ const DashboardDropdown: React.FC<DashboardDropdownProps> = React.memo(
 );
 
 export const PollIntervalDropdown: React.FC<TimeDropdownsProps> = ({ namespace }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const refreshIntervalFromParams = getQueryArgument('refreshInterval');
   const activePerspective = getActivePerspective(namespace);
@@ -475,7 +477,7 @@ const TimeDropdowns: React.FC = React.memo(() => {
 });
 
 const HeaderTop: React.FC = React.memo(() => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   return (
     <div className="monitoring-dashboards__header">
@@ -488,7 +490,7 @@ const HeaderTop: React.FC = React.memo(() => {
 });
 
 const QueryBrowserLink = ({ queries }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const params = new URLSearchParams();
   queries.forEach((q, i) => params.set(`query${i}`, q));
@@ -540,7 +542,7 @@ const getPanelClassModifier = (panel: Panel): string => {
 };
 
 const Card: React.FC<CardProps> = React.memo(({ panel }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const namespace = React.useContext(NamespaceContext);
   const activePerspective = getActivePerspective(namespace);
@@ -563,6 +565,7 @@ const Card: React.FC<CardProps> = React.memo(({ panel }) => {
   const customDataSourceName = panel.datasource?.name;
   // const [extensions] = useResolvedExtensions<DataSourceExtension>(isDataSource);
   const [extensions, extensionsResolved, extensionErrors] = useResolvedExtensions<DataSourceExtension>(isDataSource);
+
   const hasExtensions = !_.isEmpty(extensions);
 
   console.log("JZ CARD > customDataSource", customDataSource)
@@ -636,7 +639,6 @@ const Card: React.FC<CardProps> = React.memo(({ panel }) => {
 //     setIsError(true);
 //   });
 // }, [dataSourceExtensions, customDataSourceName, hasExtensions]);
-
 
 
   const formatSeriesTitle = React.useCallback(
@@ -809,7 +811,7 @@ const Board: React.FC<BoardProps> = ({ rows }) => (
 type MonitoringDashboardsPageProps = RouteComponentProps<{ board: string; ns?: string }>;
 
 const MonitoringDashboardsPage_: React.FC<MonitoringDashboardsPageProps> = ({ history, match }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const dispatch = useDispatch();
   const namespace = match.params?.ns;

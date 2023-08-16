@@ -44,7 +44,7 @@ const formatDate = (d: Date): string =>
   )}:${pad(d.getSeconds())}`;
 
 const DatetimeTextInput = (props) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const pattern =
     '\\d{4}/(0?[1-9]|1[012])/(0?[1-9]|[12]\\d|3[01]) (0?\\d|1\\d|2[0-3]):[0-5]\\d(:[0-5]\\d)?';
@@ -73,7 +73,7 @@ const DatetimeTextInput = (props) => {
 };
 
 const NegativeMatcherHelp = () => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   return (
     <dl>
@@ -96,7 +96,7 @@ type SilenceFormProps = RouteComponentProps & {
 };
 
 const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, title }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const durationOff = '-';
   const durations = {
@@ -445,7 +445,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
 const SilenceForm = withFallback(withRouter(SilenceForm_));
 
 const EditInfo = () => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   return (
     <Alert className="co-alert" isInline title={t('Overwriting current silence')} variant="info">
@@ -457,7 +457,7 @@ const EditInfo = () => {
 };
 
 export const EditSilence = ({ match }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const silences: Silences = useSelector(({ observe }: RootState) => observe.get('silences'));
 
@@ -491,7 +491,7 @@ export const EditSilence = ({ match }) => {
 };
 
 export const CreateSilence = () => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const matchers = _.map(getAllQueryArguments(), (value, name) => ({
     name,

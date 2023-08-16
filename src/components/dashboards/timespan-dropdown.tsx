@@ -19,7 +19,7 @@ import { getActivePerspective } from './monitoring-dashboard-utils';
 const CUSTOM_TIME_RANGE_KEY = 'CUSTOM_TIME_RANGE_KEY';
 
 const TimespanDropdown: React.FC<TimeDropdownsProps> = ({ namespace }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const activePerspective = getActivePerspective(namespace);
 

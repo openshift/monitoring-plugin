@@ -12,7 +12,7 @@ const Label = ({ k, v }) => (
 );
 
 export const Labels = ({ kind, labels }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   return _.isEmpty(labels) ? (
     <div className="text-muted">{t('No labels')}</div>

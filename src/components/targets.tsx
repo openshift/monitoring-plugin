@@ -60,7 +60,7 @@ const PodMonitorsWatchContext = React.createContext([]);
 const PodsWatchContext = React.createContext([]);
 
 const PodMonitor: React.FC<{ target: Target }> = ({ target }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const [podMonitors, podMonitorsLoaded, podMonitorsLoadError] =
     React.useContext(PodMonitorsWatchContext);
@@ -111,7 +111,7 @@ const PodMonitor: React.FC<{ target: Target }> = ({ target }) => {
 };
 
 const ServiceMonitor: React.FC<{ target: Target }> = ({ target }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const [monitors, monitorsLoaded, monitorsLoadError] = React.useContext(
     ServiceMonitorsWatchContext,
@@ -163,7 +163,7 @@ const ServiceMonitor: React.FC<{ target: Target }> = ({ target }) => {
 };
 
 const Health: React.FC<{ health: 'up' | 'down' }> = React.memo(({ health }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   return health === 'up' ? (
     <>
@@ -207,7 +207,7 @@ type DetailsProps = {
 };
 
 const Details: React.FC<DetailsProps> = ({ loaded, loadError, targets }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const match = useRouteMatch<{ scrapeUrl?: string }>();
 
@@ -380,7 +380,7 @@ type ListProps = {
 };
 
 const List: React.FC<ListProps> = ({ data, loaded, loadError, unfilteredData }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const columns = React.useMemo<TableColumn<Target>[]>(
     () => [
@@ -448,7 +448,7 @@ type ListPageProps = {
 };
 
 const ListPage: React.FC<ListPageProps> = ({ loaded, loadError, targets }) => {
-  const { t } = useTranslation('public');
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const [, , serviceMonitorsLoadError] = React.useContext(ServiceMonitorsWatchContext);
   const [, , podMonitorsLoadError] = React.useContext(PodMonitorsWatchContext);
