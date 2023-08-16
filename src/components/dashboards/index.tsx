@@ -184,25 +184,28 @@ const FilterSelect: React.FC<FilterSelectProps> = ({
         )
       }
     >
-      {_.map(filteredItems, (v, k) => (
-        <OptionComponent key={k} itemKey={k} />
-      ))}
+      {_.map(filteredItems, (v, k) => {
+        if (OptionComponent) {
+          return <OptionComponent key={k} itemKey={k} />;
+        } else if (isIntervalVariable(k)) {
+          return (
+            <Tooltip content={k}>
+              <SelectOption key={k} value={k}>
+                Auto interval
+              </SelectOption>
+            </Tooltip>
+          );
+        } else {
+          return (
+            <SelectOption key={k} value={k}>
+              {k === MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY ? 'All' : k}
+            </SelectOption>
+          );
+        }
+      })}
     </Select>
   );
 };
-
-const VariableOption = ({ itemKey }) =>
-  isIntervalVariable(itemKey) ? (
-    <Tooltip content={itemKey}>
-      <SelectOption key={itemKey} value={itemKey}>
-        Auto interval
-      </SelectOption>
-    </Tooltip>
-  ) : (
-    <SelectOption key={itemKey} value={itemKey}>
-      {itemKey === MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY ? 'All' : itemKey}
-    </SelectOption>
-  );
 
 const VariableDropdown: React.FC<VariableDropdownProps> = ({ id, name, namespace }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
@@ -344,12 +347,7 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({ id, name, namespace
           }
         />
       ) : (
-        <FilterSelect
-          items={items}
-          onChange={onChange}
-          OptionComponent={VariableOption}
-          selectedKey={variable.value}
-        />
+        <FilterSelect items={items} onChange={onChange} selectedKey={variable.value} />
       )}
     </div>
   );
@@ -918,7 +916,7 @@ type Variable = {
 type FilterSelectProps = {
   items: { [key: string]: string };
   onChange: (v: string) => void;
-  OptionComponent: React.FC<{ itemKey: string }>;
+  OptionComponent?: React.FC<{ itemKey: string }>;
   selectedKey: string;
 };
 
