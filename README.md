@@ -43,3 +43,14 @@ Install the chart into a new namespace or an existing namespace as specified by 
 ```shell
 helm upgrade -i monitoring-plugin charts/openshift-console-plugin -n my-plugin-namespace --create-namespace --set plugin.image=my-plugin-image-location
 ```
+
+### Local Development
+1. Install the dependencies running `yarn install`
+2. Run `yarn start` 
+2. Start docker or podman (requires [Docker](https://www.docker.com) or [podman 3.2.0+](https://podman.io))
+3. In a different terminal, start the console 
+   a. `oc login` (requires [oc](https://console.redhat.com/openshift/downloads) and an [OpenShift cluster](https://console.redhat.com/openshift/create))
+   b. Run `yarn start-console` 
+4. To see the running plugin, point your browser to <http://localhost:9000>. Then locate the menu and navigate to the 'Observe' section. 
+
+
