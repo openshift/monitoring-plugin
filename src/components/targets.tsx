@@ -456,6 +456,7 @@ const ListPage: React.FC<ListPageProps> = ({ loaded, loadError, targets }) => {
   const nameFilter: RowFilter = {
     filter: (filter, target: Target) =>
       fuzzyCaseInsensitive(filter.selected?.[0], target.scrapeUrl) ||
+      fuzzyCaseInsensitive(filter.selected?.[0], target.monitor) ||
       fuzzyCaseInsensitive(filter.selected?.[0], target.labels?.namespace),
     items: [],
     type: 'name',
@@ -530,7 +531,7 @@ const ListPage: React.FC<ListPageProps> = ({ loaded, loadError, targets }) => {
           labelFilter="observe-target-labels"
           labelPath="labels"
           loaded={loaded}
-          nameFilterPlaceholder={t('Search by endpoint or namespace...')}
+          nameFilterPlaceholder={t('Search by endpoint, target, or namespace...')}
           nameFilterTitle={t('Text')}
           onFilterChange={onFilterChange}
           rowFilters={rowFilters}
