@@ -22,7 +22,7 @@
     },
     "properties": {
       "id": "alerting",
-      "name": "%public~Alerting%",
+      "name": "%plugin__monitoring-plugin~Alerting%",
       "href": "/monitoring/alerts",
       "perspective": "admin",
       "section": "observe",
@@ -36,7 +36,7 @@
     },
     "properties": {
       "id": "metrics",
-      "name": "%public~Metrics%",
+      "name": "%plugin__monitoring-plugin~Metrics%",
       "href": "/monitoring/query-browser",
       "perspective": "admin",
       "section": "observe",
@@ -50,7 +50,7 @@
     },
     "properties": {
       "id": "dashboards",
-      "name": "%public~Dashboards%",
+      "name": "%plugin__monitoring-plugin~Dashboards%",
       "href": "/monitoring/dashboards",
       "perspective": "admin",
       "section": "observe",
@@ -64,7 +64,7 @@
     },
     "properties": {
       "id": "targets",
-      "name": "%public~Targets%",
+      "name": "%plugin__monitoring-plugin~Targets%",
       "href": "/monitoring/targets",
       "perspective": "admin",
       "section": "observe",
