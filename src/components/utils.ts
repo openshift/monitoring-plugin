@@ -72,6 +72,11 @@ export const getAlertsAndRules = (
     return _.filter(g.rules, { type: 'alerting' }).map(addID);
   });
 
+  // Add external labels to all `rules[].alerts[].labels`
+  rules.forEach((rule) => {
+    rule.alerts.forEach((alert) => (alert.labels = { ...rule.labels, ...alert.labels }));
+  });
+
   // Add `rule` object to each alert
   const alerts = _.flatMap(rules, (rule) => rule.alerts.map((a) => ({ rule, ...a })));
 
