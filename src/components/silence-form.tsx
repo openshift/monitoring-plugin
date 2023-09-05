@@ -253,9 +253,8 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
         </HelperText>
       </div>
 
-      {Info && <Info />}
-
       <div className="co-m-pane__body">
+        {Info && <Info />}
         <form onSubmit={onSubmit} className="monitoring-silence-alert">
           <div className="co-m-pane__body-group">
             <SectionHeading text={t('Duration')} />
