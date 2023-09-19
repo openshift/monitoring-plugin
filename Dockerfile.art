@@ -1,4 +1,4 @@
-FROM registry.ci.openshift.org/ocp/builder:rhel-8-openshift-nodejs-base-4.14.art AS builder
+FROM registry.ci.openshift.org/ocp/builder:rhel-8-openshift-nodejs-base-4.15.art AS builder
 
 # Copy app sources
 COPY $REMOTE_SOURCES $REMOTE_SOURCES_DIR
@@ -23,7 +23,7 @@ RUN test -d ${REMOTE_SOURCES_DIR}/cachito-gomod-with-deps || exit 1; \
  && source ${REMOTE_SOURCES_DIR}/cachito-gomod-with-deps/cachito.env \
  && yarn && yarn build
 
-FROM registry.ci.openshift.org/ocp/4.14:base
+FROM registry.ci.openshift.org/ocp/4.15:base
 
 ENV NGINX_VERSION=1.20
 RUN yum -y module enable nginx:$NGINX_VERSION && \
