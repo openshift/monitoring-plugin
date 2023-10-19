@@ -1181,11 +1181,18 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
                   )}
                   <dt>{t('Expression')}</dt>
                   <dd>
-                    <Link to={queryBrowserURL(rule?.query, namespace)}>
+                    {/* display a link only if its a metrics based alert */}
+                    {!sourceId || sourceId === 'prometheus' ? (
+                      <Link to={queryBrowserURL(rule?.query, namespace)}>
+                        <CodeBlock>
+                          <CodeBlockCode>{rule?.query}</CodeBlockCode>
+                        </CodeBlock>
+                      </Link>
+                    ) : (
                       <CodeBlock>
                         <CodeBlockCode>{rule?.query}</CodeBlockCode>
                       </CodeBlock>
-                    </Link>
+                    )}
                   </dd>
                 </dl>
               </div>
