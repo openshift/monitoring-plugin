@@ -1,4 +1,4 @@
-FROM registry.redhat.io/ubi8/nodejs-16:1-82.1675799501 AS builder
+FROM registry.redhat.io/ubi8/nodejs-18:1-71.1698060565 AS builder
 
 WORKDIR /usr/src/app
 
