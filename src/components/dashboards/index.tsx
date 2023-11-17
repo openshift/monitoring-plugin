@@ -641,6 +641,7 @@ const Card: React.FC<CardProps> = React.memo(({ panel }) => {
           'co-overview-card--gradient': panel.type === 'grafana-piechart-panel',
         })}
         data-test={`${panel.title.toLowerCase().replace(/\s+/g, '-')}-chart`}
+        data-test-id={panel.id ? `chart-${panel.id}` : undefined}
       >
         <CardHeader className="monitoring-dashboards__card-header">
           <CardTitle>{panel.title}</CardTitle>
