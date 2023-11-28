@@ -23,7 +23,7 @@ RUN test -d ${REMOTE_SOURCES_DIR}/cachito-gomod-with-deps || exit 1; \
  && source ${REMOTE_SOURCES_DIR}/cachito-gomod-with-deps/cachito.env \
  && yarn && yarn build
 
-FROM registry.ci.openshift.org/ocp/4.15:base
+FROM registry.ci.openshift.org/ocp/4.15:base-rhel9
 
 ENV NGINX_VERSION=1.20
 RUN yum -y module enable nginx:$NGINX_VERSION && \
