@@ -18,6 +18,6 @@ FROM registry.redhat.io/ubi8/nginx-120:1-84.1675799502
 
 USER 1001
 
-COPY --from=builder /usr/src/app/dist /usr/share/nginx/html
+COPY --from=builder /usr/src/app/dist /opt/app-root/src
 
 ENTRYPOINT ["nginx", "-g", "daemon off;"]
