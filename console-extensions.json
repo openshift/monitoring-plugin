@@ -11,7 +11,15 @@
     "type": "console.page/route",
     "properties": {
       "exact": false,
-      "path": "/monitoring/(alertrules|alerts|dashboards|graph|query-browser|silences|targets)/",
+      "path": [
+        "/monitoring/alertrules",
+        "/monitoring/alerts",
+        "/monitoring/dashboards",
+        "/monitoring/graph",
+        "/monitoring/query-browser",
+        "/monitoring/silences",
+        "/monitoring/targets"
+      ],
       "component": { "$codeRef": "MonitoringUI" }
     }
   },
