@@ -746,7 +746,12 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
 
   const ruleAlerts = _.filter(alerts?.data, (a) => a.rule.id === match?.params?.ruleID);
   const rule = ruleAlerts?.[0]?.rule;
-  const alert = _.find(ruleAlerts, (a) => _.isEqual(a.labels, getAllQueryArguments()));
+
+  // Search for an alert that matches all of the labels in the URL parameters. We expect there to be
+  // only one such alert that matches, so don't display any alert if multiple matches were found.
+  const queryParams = getAllQueryArguments();
+  const foundAlerts = _.filter(ruleAlerts, (a) => _.isMatch(a.labels, queryParams));
+  const alert = foundAlerts.length === 1 ? foundAlerts[0] : undefined;
 
   const state = alertState(alert);
 
