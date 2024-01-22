@@ -106,8 +106,7 @@ const Table: React.FC<Props> = ({ customDataSource, panel, pollInterval, queries
             if (response) {
               const id = panel.targets[i].refId;
               response.data.result.forEach(({ metric, value }) => {
-                const label = _.first(Object.keys(metric));
-                const tag = metric[label];
+                const tag = Object.values(metric).join('-');
                 if (!acc[tag]) {
                   acc[tag] = { ...metric };
                 }
