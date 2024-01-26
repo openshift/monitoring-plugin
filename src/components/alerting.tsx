@@ -450,7 +450,12 @@ const SourceHelp: React.FC = () => {
 
 type ActionWithHref = Omit<Action, 'cta'> & { cta: { href: string; external?: boolean } };
 
+type ActionWithCallBack = Omit<Action, 'cta'> & { cta: () => void };
+
 const isActionWithHref = (action: Action): action is ActionWithHref => 'href' in action.cta;
+
+const isActionWithCallback = (action: Action): action is ActionWithCallBack =>
+  typeof action.cta === 'function';
 
 const queryBrowserURL = (query: string, namespace: string) =>
   namespace
@@ -1618,6 +1623,26 @@ const AlertTableRow_: React.FC<AlertTableRowProps> = ({ history, obj }) => {
     );
   }
 
+  const getDropdownItemsWithExtension = (actions: Action[]) => {
+    const extensionDropdownItems = [];
+    actions.forEach((action) => {
+      if (isActionWithHref(action)) {
+        extensionDropdownItems.push(
+          <DropdownItem key={action.id} href={action.cta.href}>
+            {action.label}
+          </DropdownItem>,
+        );
+      } else if (isActionWithCallback(action)) {
+        extensionDropdownItems.push(
+          <DropdownItem key={action.id} onClick={action.cta}>
+            {action.label}
+          </DropdownItem>,
+        );
+      }
+    });
+    return dropdownItems.concat(extensionDropdownItems);
+  };
+
   return (
     <>
       <td className={tableAlertClasses[0]} title={title}>
@@ -1644,7 +1669,15 @@ const AlertTableRow_: React.FC<AlertTableRowProps> = ({ history, obj }) => {
         {alertSource(obj) === AlertSource.User ? t('User') : t('Platform')}
       </td>
       <td className={tableAlertClasses[4]} title={title}>
-        <KebabDropdown dropdownItems={dropdownItems} />
+        <ActionServiceProvider context={{ 'monitoring-alert-list-item': { alert } }}>
+          {({ actions, loaded }) => {
+            if (loaded && actions.length > 0) {
+              return <KebabDropdown dropdownItems={getDropdownItemsWithExtension(actions)} />;
+            } else {
+              return <KebabDropdown dropdownItems={dropdownItems} />;
+            }
+          }}
+        </ActionServiceProvider>
       </td>
     </>
   );
