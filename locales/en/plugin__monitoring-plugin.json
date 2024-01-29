@@ -122,6 +122,7 @@
   "Show table": "Show table",
   "Show series": "Show series",
   "Hide series": "Hide series",
+  "Export as CSV": "Export as CSV",
   "Disable query": "Disable query",
   "Enable query": "Enable query",
   "Query must be enabled": "Query must be enabled",
