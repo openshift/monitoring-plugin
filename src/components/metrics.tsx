@@ -223,6 +223,14 @@ const QueryKebab: React.FC<{ index: number }> = ({ index }) => {
     observe.getIn(['queryBrowser', 'queries', index, 'isEnabled']),
   );
 
+  const query = useSelector(({ observe }: RootState) =>
+    observe.getIn(['queryBrowser', 'queries', index, 'query']),
+  );
+
+  const queryTableData = useSelector(({ observe }: RootState) =>
+    observe.getIn(['queryBrowser', 'queries', index, 'queryTableData']),
+  );
+
   const dispatch = useDispatch();
 
   const toggleIsEnabled = React.useCallback(
@@ -244,7 +252,76 @@ const QueryKebab: React.FC<{ index: number }> = ({ index }) => {
     dispatch(queryBrowserDuplicateQuery(index));
   }, [dispatch, index]);
 
-  const dropdownItems = [
+  const isSpan = (item) => item.title?.props?.children;
+  const getSpanText = (item) => item.title.props.children;
+
+  // Takes data from QueryTable and removes/replaces all html objects from columns and rows
+  const convertQueryTable = () => {
+    const getColumns = () => {
+      const columns = queryTableData.columns;
+      const csvColumnHeaders = columns.slice(1).map((columnHeader) => {
+        if (typeof columnHeader?.title === 'string') {
+          return columnHeader.title;
+        } else if (isSpan(columnHeader)) {
+          return getSpanText(columnHeader);
+        } else {
+          return '';
+        }
+      });
+      return csvColumnHeaders;
+    };
+    const getRows = () => {
+      const rows = queryTableData.rows;
+      const csvRows = rows
+        .map((row) => row.slice(1))
+        .map((row) =>
+          row.map((rowItem) => {
+            return isSpan(rowItem) ? getSpanText(rowItem) : rowItem;
+          }),
+        );
+      return csvRows;
+    };
+    const tableData = [getColumns(), ...getRows()];
+    return tableData;
+  };
+
+  const getCsv = (array, delimiter = ',') =>
+    array
+      .map((row) =>
+        row.map((rowItem) => (isNaN(rowItem) ? `"${rowItem}"` : rowItem)).join(delimiter),
+      )
+      .join('\n');
+
+  const downloadCsv = (csvData) => {
+    // Modified from https://codesandbox.io/p/sandbox/react-export-to-csv-l6uhq?file=%2Fsrc%2FApp.jsx%3A39%2C10-39%2C16
+    const blob = new Blob([csvData], { type: 'data:text/csv;charset=utf-8,' });
+    const blobURL = window.URL.createObjectURL(blob);
+    // Create new tag for download file
+    const anchor = document.createElement('a');
+    anchor.download = `OpenShift_Metrics_QueryTable_${query}.csv`;
+    anchor.href = blobURL;
+    anchor.dataset.downloadurl = ['text/csv', anchor.download, anchor.href].join(':');
+    anchor.click();
+    // Remove URL.createObjectURL. The browser should not save the reference to the file.
+    setTimeout(() => {
+      // For Firefox it is necessary to delay revoking the ObjectURL
+      URL.revokeObjectURL(blobURL);
+    }, 100);
+  };
+
+  const doExportCsv = () => {
+    const tableData = convertQueryTable();
+    const csvData = getCsv(tableData);
+    downloadCsv(csvData);
+  };
+
+  const exportDropdownItem = (
+    <DropdownItem key="export" component="button" onClick={doExportCsv}>
+      {t('Export as CSV')}
+    </DropdownItem>
+  );
+
+  const defaultDropdownItems = [
     <DropdownItem key="toggle-query" component="button" onClick={toggleIsEnabled}>
       {isEnabled ? t('Disable query') : t('Enable query')}
     </DropdownItem>,
@@ -265,7 +342,18 @@ const QueryKebab: React.FC<{ index: number }> = ({ index }) => {
     </DropdownItem>,
   ];
 
-  return <KebabDropdown dropdownItems={dropdownItems} />;
+  const hasQueryTableData = () => {
+    if (!query || !queryTableData?.rows || !queryTableData?.columns) {
+      return false;
+    }
+    return true;
+  };
+
+  const drodownItems = hasQueryTableData()
+    ? [...defaultDropdownItems, exportDropdownItem]
+    : defaultDropdownItems;
+
+  return <KebabDropdown dropdownItems={drodownItems} />;
 };
 
 export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace }) => {
@@ -435,6 +523,9 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace }) => {
       rows = _.orderBy(rows, [sort], [sortBy.direction]);
     }
   }
+
+  // Dispatch query table result so QueryKebab can access it for data export
+  dispatch(queryBrowserPatchQuery(index, { queryTableData: { columns, rows } }));
 
   const onSort = (e, i, direction) => setSortBy({ index: i, direction });
 
