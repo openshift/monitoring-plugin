@@ -1669,7 +1669,7 @@ const AlertTableRow_: React.FC<AlertTableRowProps> = ({ history, obj }) => {
         {alertSource(obj) === AlertSource.User ? t('User') : t('Platform')}
       </td>
       <td className={tableAlertClasses[4]} title={title}>
-        <ActionServiceProvider context={{ 'monitoring-alert-list-item': { alert } }}>
+        <ActionServiceProvider context={{ 'monitoring-alert-list-item': { alert: obj } }}>
           {({ actions, loaded }) => {
             if (loaded && actions.length > 0) {
               return <KebabDropdown dropdownItems={getDropdownItemsWithExtension(actions)} />;
