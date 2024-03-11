@@ -164,3 +164,6 @@ export const targetSource = (target: Target): AlertSource =>
   target.labels?.prometheus === 'openshift-monitoring/k8s'
     ? AlertSource.Platform
     : AlertSource.User;
+
+export const isTimeoutError = (err: Error): boolean =>
+  err.name === 'TimeoutError' || err.message.includes('query timed out in expression evaluation');
