@@ -68,7 +68,8 @@ import { humanizeNumberSI } from './console/utils/units';
 import { formatNumber } from './format';
 import { useBoolean } from './hooks/useBoolean';
 import { queryBrowserTheme } from './query-browser-theme';
-import { PrometheusAPIError, RootState } from './types';
+import { PrometheusAPIError, RootState, TimeRange } from './types';
+import { getTimeRanges } from './utils';
 
 const spans = ['5m', '15m', '30m', '1h', '2h', '6h', '12h', '1d', '2d', '1w', '2w'];
 export const colors = queryBrowserTheme.line.colorScale;
@@ -739,27 +740,62 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
 
     // Define this once for all queries so that they have exactly the same time range and X values
     const now = Date.now();
+    const timeRanges = getTimeRanges(span, endTime || now);
 
-    const allPromises = _.map(queries, (query) =>
-      _.isEmpty(query)
-        ? Promise.resolve()
-        : safeFetch(
-            getPrometheusURL(
-              {
-                endpoint: PrometheusEndpoint.QUERY_RANGE,
-                endTime: endTime || now,
-                namespace,
-                query,
-                samples,
-                timeout: '60s',
-                timespan: span,
-              },
-              customDataSource?.basePath,
+    const queryPromises = _.map(queries, (query) => {
+      if (_.isEmpty(query)) {
+        return Promise.resolve([]);
+      } else {
+        const promiseMap: Promise<PrometheusResponse>[] = _.map(
+          timeRanges,
+          (timeRange: TimeRange) =>
+            safeFetch(
+              getPrometheusURL(
+                {
+                  endpoint: PrometheusEndpoint.QUERY_RANGE,
+                  endTime: timeRange.endTime,
+                  namespace,
+                  query,
+                  samples: Math.ceil(samples / timeRanges.length),
+                  timeout: '60s',
+                  timespan: timeRange.duration - 1,
+                },
+                customDataSource?.basePath,
+              ),
             ),
-          ),
-    );
+        );
+        return Promise.all(promiseMap).then((responses) => {
+          const results: PrometheusResult[][] = _.map(responses, 'data.result');
+          const combinedQueries = results.reduce(
+            (accumulator: PrometheusResult[], response: PrometheusResult[]): PrometheusResult[] => {
+              response.forEach((metricResult) => {
+                const index = accumulator.findIndex(
+                  (item) => JSON.stringify(item.metric) === JSON.stringify(metricResult.metric),
+                );
+                if (index === -1) {
+                  accumulator.push(metricResult);
+                } else {
+                  accumulator[index].values = accumulator[index].values.concat(metricResult.values);
+                }
+              });
+              return accumulator;
+            },
+            [],
+          );
+          // Recombine into the original query to allow for the redux store and the things using
+          // it (query duplication, ect) to be able to work. Grab the heading of the first response
+          // for the status and structure of the response
+          const queryResponse = responses.at(0);
+          if (!queryResponse) {
+            return [];
+          }
+          queryResponse.data.result = combinedQueries;
+          return queryResponse;
+        });
+      }
+    });
 
-    return Promise.all(allPromises)
+    return Promise.all(queryPromises)
       .then((responses: PrometheusResponse[]) => {
         const newResults = _.map(responses, 'data.result');
         const numDataPoints = _.sumBy(newResults, (r) => _.sumBy(r, 'values.length'));

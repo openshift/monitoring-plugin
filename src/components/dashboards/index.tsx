@@ -75,6 +75,7 @@ import {
   getActivePerspective,
   getAllVariables,
 } from './monitoring-dashboard-utils';
+import { getTimeRanges, isTimeoutError, QUERY_CHUNK_SIZE } from '../utils';
 
 const intervalVariableRegExps = ['__interval', '__rate_interval', '__auto_interval_[a-z]+'];
 
@@ -256,39 +257,79 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({ id, name, namespace
   );
 
   React.useEffect(() => {
-    if (query) {
-      // Convert label_values queries to something Prometheus can handle
-      // TODO: Once the Prometheus /series endpoint is available through the API proxy, this should
-      // be converted to use that instead
-      const prometheusQuery = query.replace(/label_values\((.*), (.*)\)/, 'count($1) by ($2)');
-
-      const prometheusProps = {
-        endpoint: PrometheusEndpoint.QUERY_RANGE,
-        query: prometheusQuery,
-        samples: DEFAULT_GRAPH_SAMPLES,
-        timeout: '60s',
-        timespan,
-        namespace,
-      };
-
-      dispatch(dashboardsPatchVariable(name, { isLoading: true }, activePerspective));
-
-      getURL(prometheusProps).then((url) =>
-        safeFetch(url)
-          .then(({ data }) => {
-            setIsError(false);
-            const newOptions = _.flatMap(data?.result, ({ metric }) => _.values(metric)).sort();
-            dispatch(dashboardsVariableOptionsLoaded(name, newOptions, activePerspective));
-          })
-          .catch((err) => {
-            dispatch(dashboardsPatchVariable(name, { isLoading: false }, activePerspective));
-            if (err.name !== 'AbortError') {
-              setIsError(true);
-            }
-          }),
-      );
+    if (!query) {
+      return;
     }
-  }, [activePerspective, dispatch, getURL, name, namespace, query, safeFetch, timespan]);
+    // Convert label_values queries to something Prometheus can handle
+    // TODO: Once the Prometheus /series endpoint is available through the API proxy, this should
+    // be converted to use that instead
+    const prometheusQuery = query.replace(/label_values\((.*), (.*)\)/, 'count($1) by ($2)');
+
+    const timeRanges = getTimeRanges(timespan);
+    const newOptions = new Set<string>();
+    let abortError = false;
+    dispatch(dashboardsPatchVariable(name, { isLoading: true }, activePerspective));
+    Promise.allSettled(
+      timeRanges.map(async (timeRange) => {
+        const prometheusProps = {
+          endpoint: PrometheusEndpoint.QUERY_RANGE,
+          query: prometheusQuery,
+          samples: Math.ceil(DEFAULT_GRAPH_SAMPLES / timeRanges.length),
+          timeout: '60s',
+          timespan: timeRange.duration,
+          namespace,
+          endTime: timeRange.endTime,
+        };
+        return getURL(prometheusProps).then((url) =>
+          safeFetch(url)
+            .then(({ data }) => {
+              const responseOptions = _.flatMap(data?.result, ({ metric }) => _.values(metric));
+              responseOptions.forEach(newOptions.add, newOptions);
+            })
+            .catch((err) => {
+              if (isTimeoutError(err)) {
+                // eslint-disable-next-line no-console
+                console.error(
+                  `Timed Out Retrieving Labels from ${new Date(
+                    timeRange.endTime - QUERY_CHUNK_SIZE,
+                  ).toISOString()} - ${new Date(timeRange.endTime).toISOString()} for ${query}`,
+                );
+              } else if (err.name === 'AbortError') {
+                abortError = true;
+              } else {
+                // eslint-disable-next-line no-console
+                console.error(err);
+              }
+            }),
+        );
+      }),
+    ).then((results) => {
+      const errors = results.filter((result) => result.status === 'rejected').length > 0;
+      if (newOptions.size > 0 || !errors) {
+        setIsError(false);
+        // Options were found or no options were found but that wasn't in error
+        const newOptionArray = Array.from(newOptions).sort();
+        dispatch(dashboardsVariableOptionsLoaded(name, newOptionArray, activePerspective));
+      } else {
+        // No options were found, and there were errors (timeouts or other) in fetching the data
+        dispatch(dashboardsPatchVariable(name, { isLoading: false }, activePerspective));
+        if (!abortError) {
+          setIsError(true);
+        }
+      }
+    });
+  }, [
+    activePerspective,
+    dispatch,
+    getURL,
+    name,
+    namespace,
+    query,
+    safeFetch,
+    timespan,
+    variable.includeAll,
+    variable.options,
+  ]);
 
   React.useEffect(() => {
     if (variable.value && variable.value !== getQueryArgument(name)) {
@@ -847,6 +888,10 @@ const MonitoringDashboardsPage_: React.FC<MonitoringDashboardsPageProps> = ({ hi
   }, [board, boards, changeBoard, match.params.board, namespace]);
 
   React.useEffect(() => {
+    // Dashboard query argument is only set in dev perspective, so skip for admin
+    if (activePerspective === 'admin') {
+      return;
+    }
     const newBoard = getQueryArgument('dashboard');
     const allVariables = getAllVariables(boards, newBoard, namespace);
     dispatch(dashboardsPatchAllVariables(allVariables, activePerspective));
