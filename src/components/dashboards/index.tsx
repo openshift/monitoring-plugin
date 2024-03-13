@@ -312,7 +312,7 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({ id, name, namespace
           safeFetch(url)
             .then(({ data }) => {
               const responseOptions = _.flatMap(data?.result, ({ metric }) => _.values(metric));
-              responseOptions.forEach(newOptions.add);
+              responseOptions.forEach(newOptions.add, newOptions);
             })
             .catch((err) => {
               if (isTimeoutError(err)) {
@@ -331,36 +331,18 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({ id, name, namespace
             }),
         );
       }),
-    ).then(() => {
-      const items = getItems(variable.includeAll, variable.options);
-      if (newOptions.size > 0) {
+    ).then((results) => {
+      const errors = results.filter((result) => result.status === 'rejected').length > 0;
+      if (newOptions.size > 0 || !errors) {
+        // Options were found or no options were found but that wasn't in error
         const newOptionArray = Array.from(newOptions).sort();
-        if (items) {
-          dispatch(
-            dashboardsVariableOptionsLoaded(
-              name,
-              _.merge(newOptionArray, items),
-              activePerspective,
-            ),
-          );
-        } else {
-          dispatch(dashboardsVariableOptionsLoaded(name, newOptionArray, activePerspective));
-        }
+        dispatch(dashboardsVariableOptionsLoaded(name, newOptionArray, activePerspective));
       } else {
+        // No options were found, and there were errors (timeouts or other) in fetching the data
         dispatch(dashboardsPatchVariable(name, { isLoading: false }, activePerspective));
-        if (!items && !abortError) {
+        if (!abortError) {
           setIsError(true);
         }
-        /**
-         * At this point we are at one of two locations:
-         * a. There is new or existing data
-         * b. The errors are due to an abort
-         *
-         * a. We have data for the customer to choose from, and only some of the requests have
-         *    failed. If it was a timeout error or a generic error, we use a console log to handle
-         * b. If the errors are due to an abort, then we can ignore any UI updates since the
-         *    user has navigated off
-         */
       }
     });
   }, [
