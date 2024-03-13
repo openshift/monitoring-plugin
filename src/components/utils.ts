@@ -166,4 +166,4 @@ export const targetSource = (target: Target): AlertSource =>
     : AlertSource.User;
 
 export const isTimeoutError = (err: Error): boolean =>
-  err.name === 'TimeoutError' || err.message.includes('query timed out in expression evaluation');
+  err.name === 'TimeoutError' || err.message.includes('timed out');

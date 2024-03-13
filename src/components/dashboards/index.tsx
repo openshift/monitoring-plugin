@@ -75,8 +75,10 @@ import {
   getActivePerspective,
   getAllVariables,
 } from './monitoring-dashboard-utils';
+import { isTimeoutError } from '../utils';
 
 const intervalVariableRegExps = ['__interval', '__rate_interval', '__auto_interval_[a-z]+'];
+const MS_IN_DAY = 1 * 24 * 60 * 60 * 1000;
 
 const isIntervalVariable = (itemKey: string): boolean =>
   _.some(intervalVariableRegExps, (re) => itemKey?.match(new RegExp(`\\$${re}`, 'g')));
@@ -212,7 +214,7 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({ id, name, namespace
 
   const activePerspective = getActivePerspective(namespace);
 
-  const timespan = useSelector(({ observe }: RootState) =>
+  const timespan: number = useSelector(({ observe }: RootState) =>
     observe.getIn(['dashboards', activePerspective, 'timespan']),
   );
 
@@ -256,12 +258,16 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({ id, name, namespace
   );
 
   React.useEffect(() => {
-    if (query) {
-      // Convert label_values queries to something Prometheus can handle
-      // TODO: Once the Prometheus /series endpoint is available through the API proxy, this should
-      // be converted to use that instead
-      const prometheusQuery = query.replace(/label_values\((.*), (.*)\)/, 'count($1) by ($2)');
+    if (!query) {
+      return;
+    }
+    // Convert label_values queries to something Prometheus can handle
+    // TODO: Once the Prometheus /series endpoint is available through the API proxy, this should
+    // be converted to use that instead
+    const prometheusQuery = query.replace(/label_values\((.*), (.*)\)/, 'count($1) by ($2)');
 
+    // less than 1 week doesn't time out so we can retain the old fetch
+    if (timespan < 7 * 24 * 60 * 60) {
       const prometheusProps = {
         endpoint: PrometheusEndpoint.QUERY_RANGE,
         query: prometheusQuery,
@@ -270,9 +276,7 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({ id, name, namespace
         timespan,
         namespace,
       };
-
       dispatch(dashboardsPatchVariable(name, { isLoading: true }, activePerspective));
-
       getURL(prometheusProps).then((url) =>
         safeFetch(url)
           .then(({ data }) => {
@@ -287,8 +291,90 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({ id, name, namespace
             }
           }),
       );
+      return;
     }
-  }, [activePerspective, dispatch, getURL, name, namespace, query, safeFetch, timespan]);
+
+    const offsets = getEndTimes(timespan);
+    let abortError = false;
+    const newOptions = new Set<string>();
+    Promise.allSettled(
+      offsets.map(async (endTime) => {
+        const prometheusProps = {
+          endpoint: PrometheusEndpoint.QUERY_RANGE,
+          query: prometheusQuery,
+          samples: DEFAULT_GRAPH_SAMPLES,
+          timeout: '60s',
+          timespan: MS_IN_DAY,
+          namespace,
+          endTime: endTime,
+        };
+        return getURL(prometheusProps).then((url) =>
+          safeFetch(url)
+            .then(({ data }) => {
+              const responseOptions = _.flatMap(data?.result, ({ metric }) => _.values(metric));
+              responseOptions.forEach(newOptions.add);
+            })
+            .catch((err) => {
+              if (isTimeoutError(err)) {
+                // eslint-disable-next-line no-console
+                console.error(
+                  `Timed Out Retrieving Labels from ${new Date(
+                    endTime - MS_IN_DAY,
+                  ).toISOString()} - ${new Date(endTime).toISOString()} for ${query}`,
+                );
+              } else if (err.name === 'AbortError') {
+                abortError = true;
+              } else {
+                // eslint-disable-next-line no-console
+                console.error(err);
+              }
+            }),
+        );
+      }),
+    ).then(() => {
+      const items = getItems(variable.includeAll, variable.options);
+      if (newOptions.size > 0) {
+        const newOptionArray = Array.from(newOptions).sort();
+        if (items) {
+          dispatch(
+            dashboardsVariableOptionsLoaded(
+              name,
+              _.merge(newOptionArray, items),
+              activePerspective,
+            ),
+          );
+        } else {
+          dispatch(dashboardsVariableOptionsLoaded(name, newOptionArray, activePerspective));
+        }
+      } else {
+        dispatch(dashboardsPatchVariable(name, { isLoading: false }, activePerspective));
+        if (!items && !abortError) {
+          setIsError(true);
+        }
+        /**
+         * At this point we are at one of two locations:
+         * a. There is new or existing data
+         * b. The errors are due to an abort
+         *
+         * a. We have data for the customer to choose from, and only some of the requests have
+         *    failed. If it was a timeout error or a generic error, we use a console log to handle
+         * b. If the errors are due to an abort, then we can ignore any UI updates since the
+         *    user has navigated off
+         */
+      }
+    });
+  }, [
+    activePerspective,
+    dispatch,
+    getURL,
+    name,
+    namespace,
+    query,
+    safeFetch,
+    timespan,
+    variable.includeAll,
+    variable.options,
+  ]);
 
   React.useEffect(() => {
     if (variable.value && variable.value !== getQueryArgument(name)) {
@@ -318,12 +404,7 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({ id, name, namespace
     return null;
   }
 
-  const items = variable.includeAll
-    ? { [MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY]: 'All' }
-    : {};
-  _.each(variable.options, (option) => {
-    items[option] = option;
-  });
+  const items = getItems(variable.includeAll, variable.options);
 
   return (
     <div
@@ -351,6 +432,29 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({ id, name, namespace
       )}
     </div>
   );
+};
+
+/**
+ * This function is used to get the offsets needed to break a long time period down into smaller
+ * chunks which won't timeout
+ *
+ * @param timespan Total length of time to cover
+ */
+const getEndTimes = (timespan: number) => {
+  const offsets = [0];
+  while (offsets.at(-1) < timespan) {
+    const next_time = offsets.at(-1) + MS_IN_DAY;
+    offsets.push(next_time > timespan ? timespan : next_time);
+  }
+  return offsets.map((offset) => Date.now() - offset);
+};
+
+const getItems = (includeAll, options) => {
+  const items = includeAll ? { [MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY]: 'All' } : {};
+  _.each(options, (option) => {
+    items[option] = option;
+  });
+  return items;
 };
 
 const AllVariableDropdowns = () => {
