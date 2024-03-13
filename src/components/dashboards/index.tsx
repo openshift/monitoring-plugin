@@ -266,47 +266,20 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({ id, name, namespace
     // be converted to use that instead
     const prometheusQuery = query.replace(/label_values\((.*), (.*)\)/, 'count($1) by ($2)');
 
-    // less than 1 week doesn't time out so we can retain the old fetch
-    if (timespan < 7 * 24 * 60 * 60) {
-      const prometheusProps = {
-        endpoint: PrometheusEndpoint.QUERY_RANGE,
-        query: prometheusQuery,
-        samples: DEFAULT_GRAPH_SAMPLES,
-        timeout: '60s',
-        timespan,
-        namespace,
-      };
-      dispatch(dashboardsPatchVariable(name, { isLoading: true }, activePerspective));
-      getURL(prometheusProps).then((url) =>
-        safeFetch(url)
-          .then(({ data }) => {
-            setIsError(false);
-            const newOptions = _.flatMap(data?.result, ({ metric }) => _.values(metric)).sort();
-            dispatch(dashboardsVariableOptionsLoaded(name, newOptions, activePerspective));
-          })
-          .catch((err) => {
-            dispatch(dashboardsPatchVariable(name, { isLoading: false }, activePerspective));
-            if (err.name !== 'AbortError') {
-              setIsError(true);
-            }
-          }),
-      );
-      return;
-    }
-
-    const offsets = getEndTimes(timespan);
-    let abortError = false;
+    const timeRanges = getTimeRanges(timespan);
     const newOptions = new Set<string>();
+    let abortError = false;
+    dispatch(dashboardsPatchVariable(name, { isLoading: true }, activePerspective));
     Promise.allSettled(
-      offsets.map(async (endTime) => {
+      timeRanges.map(async (timeRange) => {
         const prometheusProps = {
           endpoint: PrometheusEndpoint.QUERY_RANGE,
           query: prometheusQuery,
-          samples: Math.ceil(DEFAULT_GRAPH_SAMPLES / offsets.length),
+          samples: Math.ceil(DEFAULT_GRAPH_SAMPLES / timeRanges.length),
           timeout: '60s',
-          timespan: MS_IN_DAY,
+          timespan: timeRange.duration,
           namespace,
-          endTime: endTime,
+          endTime: timeRange.endTime,
         };
         return getURL(prometheusProps).then((url) =>
           safeFetch(url)
@@ -319,8 +292,8 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({ id, name, namespace
                 // eslint-disable-next-line no-console
                 console.error(
                   `Timed Out Retrieving Labels from ${new Date(
-                    endTime - MS_IN_DAY,
-                  ).toISOString()} - ${new Date(endTime).toISOString()} for ${query}`,
+                    timeRange.endTime - MS_IN_DAY,
+                  ).toISOString()} - ${new Date(timeRange.endTime).toISOString()} for ${query}`,
                 );
               } else if (err.name === 'AbortError') {
                 abortError = true;
@@ -334,6 +307,7 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({ id, name, namespace
     ).then((results) => {
       const errors = results.filter((result) => result.status === 'rejected').length > 0;
       if (newOptions.size > 0 || !errors) {
+        setIsError(false);
         // Options were found or no options were found but that wasn't in error
         const newOptionArray = Array.from(newOptions).sort();
         dispatch(dashboardsVariableOptionsLoaded(name, newOptionArray, activePerspective));
@@ -417,18 +391,23 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({ id, name, namespace
 };
 
 /**
- * This function is used to get the offsets needed to break a long time period down into smaller
+ * This function is used to get the parameters needed to break a long time period down into smaller
  * chunks which won't timeout
  *
  * @param timespan Total length of time to cover
  */
-const getEndTimes = (timespan: number) => {
-  const offsets = [0];
-  while (offsets.at(-1) < timespan) {
-    const next_time = offsets.at(-1) + MS_IN_DAY;
-    offsets.push(next_time > timespan ? timespan : next_time);
+const getTimeRanges = (timespan: number): Array<TimeRange> => {
+  if (timespan < 7 * 24 * 60 * 60) {
+    // If there is less than a week, leave the end time and duration the same since it won't timeout
+    return [{ endTime: Date.now(), duration: timespan }];
   }
-  return offsets.map((offset) => Date.now() - offset);
+  const startTime = Date.now() - timespan;
+  const timeRanges = [{ endTime: Date.now(), duration: MS_IN_DAY }];
+  while (timeRanges.at(-1).endTime > startTime) {
+    const nextEndTime = timeRanges.at(-1).endTime - MS_IN_DAY;
+    timeRanges.push({ endTime: nextEndTime, duration: MS_IN_DAY });
+  }
+  return timeRanges;
 };
 
 const getItems = (includeAll, options) => {
@@ -998,6 +977,11 @@ type Variable = {
   options?: string[];
   query?: string;
   value?: string;
+};
+
+type TimeRange = {
+  endTime: number;
+  duration: number;
 };
 
 type FilterSelectProps = {
