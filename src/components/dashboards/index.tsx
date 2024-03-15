@@ -394,14 +394,14 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({ id, name, namespace
  * This function is used to get the parameters needed to break a long time period down into smaller
  * chunks which won't timeout
  *
- * @param timespan Total length of time to cover
+ * @param timespan_ms Total length of time to cover in milliseconds
  */
-const getTimeRanges = (timespan: number): Array<TimeRange> => {
-  if (timespan < 7 * 24 * 60 * 60) {
+const getTimeRanges = (timespan_ms: number): Array<TimeRange> => {
+  if (timespan_ms < 7 * 24 * 60 * 60 * 1000) {
     // If there is less than a week, leave the end time and duration the same since it won't timeout
-    return [{ endTime: Date.now(), duration: timespan }];
+    return [{ endTime: Date.now(), duration: timespan_ms }];
   }
-  const startTime = Date.now() - timespan;
+  const startTime = Date.now() - timespan_ms;
   const timeRanges = [{ endTime: Date.now(), duration: MS_IN_DAY }];
   while (timeRanges.at(-1).endTime > startTime) {
     const nextEndTime = timeRanges.at(-1).endTime - MS_IN_DAY;
