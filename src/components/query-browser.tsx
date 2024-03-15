@@ -550,6 +550,9 @@ const minSpan = 30 * 1000;
 // Don't poll more often than this number of milliseconds
 const minPollInterval = 10 * 1000;
 
+// Size in MS that large query timespans will be broken down into
+const queryChunkSize = 24 * 60 * 60 * 1000;
+
 const ZoomableGraph: React.FC<ZoomableGraphProps> = ({
   allSeries,
   disabledSeries,
@@ -739,27 +742,61 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
 
     // Define this once for all queries so that they have exactly the same time range and X values
     const now = Date.now();
+    const timeRanges = getTimeRanges(span, endTime || now);
 
-    const allPromises = _.map(queries, (query) =>
-      _.isEmpty(query)
-        ? Promise.resolve()
-        : safeFetch(
-            getPrometheusURL(
-              {
-                endpoint: PrometheusEndpoint.QUERY_RANGE,
-                endTime: endTime || now,
-                namespace,
-                query,
-                samples,
-                timeout: '60s',
-                timespan: span,
-              },
-              customDataSource?.basePath,
+    const queryPromises = _.map(queries, (query) => {
+      if (_.isEmpty(query)) {
+        return Promise.resolve([]);
+      } else {
+        const promiseMap: Promise<PrometheusResponse>[] = _.map(
+          timeRanges,
+          (timeRange: TimeRange) =>
+            safeFetch(
+              getPrometheusURL(
+                {
+                  endpoint: PrometheusEndpoint.QUERY_RANGE,
+                  endTime: timeRange.endTime,
+                  namespace,
+                  query,
+                  samples: Math.ceil(samples / timeRanges.length),
+                  timeout: '60s',
+                  timespan: timeRange.duration - 1,
+                },
+                customDataSource?.basePath,
+              ),
             ),
-          ),
-    );
+        );
+        return Promise.all(promiseMap).then((responses) => {
+          const results: PrometheusResult[][] = _.map(responses, 'data.result');
+          const combinedQueries = results.reduce(
+            (accumulator: PrometheusResult[], response: PrometheusResult[]): PrometheusResult[] => {
+              response.forEach((valTwo) => {
+                const index = accumulator.findIndex(
+                  (item) => JSON.stringify(item.metric) === JSON.stringify(valTwo.metric),
+                );
+                if (index === -1) {
+                  accumulator.push(valTwo);
+                } else {
+                  accumulator[index].values = accumulator[index].values.concat(valTwo.values);
+                }
+              });
+              return accumulator;
+            },
+            [],
+          );
+          // Each request has succeeded since we are in the .then, so for now we will make an
+          // assumption that the response status codes and the like are the same
+          // TODO: review this assumption
+          const queryResponse = responses[0];
+          queryResponse.data.result = combinedQueries;
+          // Recombine into the original query to allow for the redux store and the things using
+          // it (query duplication, ect) to be able to work
+          return queryResponse;
+        });
+      }
+    });
 
-    return Promise.all(allPromises)
+    return Promise.all(queryPromises)
       .then((responses: PrometheusResponse[]) => {
         const newResults = _.map(responses, 'data.result');
         const numDataPoints = _.sumBy(newResults, (r) => _.sumBy(r, 'values.length'));
@@ -983,6 +1020,26 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
 };
 export const QueryBrowser = withFallback(QueryBrowser_);
 
+/**
+ * This function is used to get the parameters needed to break a long time period down into smaller
+ * chunks which won't timeout
+ *
+ * @param timespan Total length of time to cover
+ */
+const getTimeRanges = (timespan: number, maxEndTime: number = Date.now()): Array<TimeRange> => {
+  if (timespan < queryChunkSize * 7) {
+    // If the query is smaller than a week, leave the the query the same since it won't timeout
+    return [{ endTime: maxEndTime, duration: timespan }];
+  }
+  const startTime = maxEndTime - timespan;
+  const timeRanges = [{ endTime: startTime + queryChunkSize, duration: queryChunkSize }];
+  while (timeRanges.at(-1).endTime < maxEndTime) {
+    const nextEndTime = timeRanges.at(-1).endTime + queryChunkSize;
+    timeRanges.push({ endTime: nextEndTime, duration: queryChunkSize });
+  }
+  return timeRanges;
+};
+
 type AxisDomain = [number, number];
 
 type GraphDataPoint = {
@@ -1056,4 +1113,9 @@ type TooltipProps = {
   style?: { fill: string; labels: PrometheusLabels; name: string; units: string };
   width?: number;
   x?: number;
+};
+
+type TimeRange = {
+  endTime: number;
+  duration: number;
 };
