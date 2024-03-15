@@ -78,7 +78,8 @@ import {
 import { isTimeoutError } from '../utils';
 
 const intervalVariableRegExps = ['__interval', '__rate_interval', '__auto_interval_[a-z]+'];
-const MS_IN_DAY = 1 * 24 * 60 * 60 * 1000;
+// Size in milliseconds that a long query will be broken down into
+const queryChunkSize = 24 * 60 * 60 * 1000;
 
 const isIntervalVariable = (itemKey: string): boolean =>
   _.some(intervalVariableRegExps, (re) => itemKey?.match(new RegExp(`\\$${re}`, 'g')));
@@ -292,7 +293,7 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({ id, name, namespace
                 // eslint-disable-next-line no-console
                 console.error(
                   `Timed Out Retrieving Labels from ${new Date(
-                    timeRange.endTime - MS_IN_DAY,
+                    timeRange.endTime - queryChunkSize,
                   ).toISOString()} - ${new Date(timeRange.endTime).toISOString()} for ${query}`,
                 );
               } else if (err.name === 'AbortError') {
@@ -397,15 +398,15 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({ id, name, namespace
  * @param timespan_ms Total length of time to cover in milliseconds
  */
 const getTimeRanges = (timespan_ms: number): Array<TimeRange> => {
-  if (timespan_ms < 7 * 24 * 60 * 60 * 1000) {
+  if (timespan_ms < 7 * queryChunkSize) {
     // If there is less than a week, leave the end time and duration the same since it won't timeout
     return [{ endTime: Date.now(), duration: timespan_ms }];
   }
   const startTime = Date.now() - timespan_ms;
-  const timeRanges = [{ endTime: Date.now(), duration: MS_IN_DAY }];
+  const timeRanges = [{ endTime: Date.now(), duration: queryChunkSize }];
   while (timeRanges.at(-1).endTime > startTime) {
-    const nextEndTime = timeRanges.at(-1).endTime - MS_IN_DAY;
-    timeRanges.push({ endTime: nextEndTime, duration: MS_IN_DAY });
+    const nextEndTime = timeRanges.at(-1).endTime - queryChunkSize;
+    timeRanges.push({ endTime: nextEndTime, duration: queryChunkSize });
   }
   return timeRanges;
 };
