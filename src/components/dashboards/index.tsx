@@ -913,6 +913,10 @@ const MonitoringDashboardsPage_: React.FC<MonitoringDashboardsPageProps> = ({ hi
   }, [board, boards, changeBoard, match.params.board, namespace]);
 
   React.useEffect(() => {
+    // Dashboard query argument is only set in dev perspective, so skip for admin
+    if (activePerspective === 'admin') {
+      return;
+    }
     const newBoard = getQueryArgument('dashboard');
     const allVariables = getAllVariables(boards, newBoard, namespace);
     dispatch(dashboardsPatchAllVariables(allVariables, activePerspective));
