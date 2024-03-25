@@ -768,27 +768,28 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
           const results: PrometheusResult[][] = _.map(responses, 'data.result');
           const combinedQueries = results.reduce(
             (accumulator: PrometheusResult[], response: PrometheusResult[]): PrometheusResult[] => {
-              response.forEach((valTwo) => {
+              response.forEach((metricResult) => {
                 const index = accumulator.findIndex(
-                  (item) => JSON.stringify(item.metric) === JSON.stringify(valTwo.metric),
+                  (item) => JSON.stringify(item.metric) === JSON.stringify(metricResult.metric),
                 );
                 if (index === -1) {
-                  accumulator.push(valTwo);
+                  accumulator.push(metricResult);
                 } else {
-                  accumulator[index].values = accumulator[index].values.concat(valTwo.values);
+                  accumulator[index].values = accumulator[index].values.concat(metricResult.values);
                 }
               });
               return accumulator;
             },
             [],
           );
-          // Each request has succeeded since we are in the .then, so for now we will make an
-          // assumption that the response status codes and the like are the same
-          // TODO: review this assumption
-          const queryResponse = responses[0];
-          queryResponse.data.result = combinedQueries;
           // Recombine into the original query to allow for the redux store and the things using
-          // it (query duplication, ect) to be able to work
+          // it (query duplication, ect) to be able to work. Grab the heading of the first response
+          // for the status and structure of the response
+          const queryResponse = responses.at(0);
+          if (!queryResponse) {
+            return [];
+          }
+          queryResponse.data.result = combinedQueries;
           return queryResponse;
         });
       }
