@@ -68,7 +68,8 @@ import { humanizeNumberSI } from './console/utils/units';
 import { formatNumber } from './format';
 import { useBoolean } from './hooks/useBoolean';
 import { queryBrowserTheme } from './query-browser-theme';
-import { PrometheusAPIError, RootState } from './types';
+import { PrometheusAPIError, RootState, TimeRange } from './types';
+import { getTimeRanges } from './utils';
 
 const spans = ['5m', '15m', '30m', '1h', '2h', '6h', '12h', '1d', '2d', '1w', '2w'];
 export const colors = queryBrowserTheme.line.colorScale;
@@ -550,9 +551,6 @@ const minSpan = 30 * 1000;
 // Don't poll more often than this number of milliseconds
 const minPollInterval = 10 * 1000;
 
-// Size in MS that large query timespans will be broken down into
-const queryChunkSize = 24 * 60 * 60 * 1000;
-
 const ZoomableGraph: React.FC<ZoomableGraphProps> = ({
   allSeries,
   disabledSeries,
@@ -1020,26 +1018,6 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
 };
 export const QueryBrowser = withFallback(QueryBrowser_);
 
-/**
- * This function is used to get the parameters needed to break a long time period down into smaller
- * chunks which won't timeout
- *
- * @param timespan Total length of time to cover
- */
-const getTimeRanges = (timespan: number, maxEndTime: number = Date.now()): Array<TimeRange> => {
-  if (timespan < queryChunkSize * 7) {
-    // If the query is smaller than a week, leave the the query the same since it won't timeout
-    return [{ endTime: maxEndTime, duration: timespan }];
-  }
-  const startTime = maxEndTime - timespan;
-  const timeRanges = [{ endTime: startTime + queryChunkSize, duration: queryChunkSize }];
-  while (timeRanges.at(-1).endTime < maxEndTime) {
-    const nextEndTime = timeRanges.at(-1).endTime + queryChunkSize;
-    timeRanges.push({ endTime: nextEndTime, duration: queryChunkSize });
-  }
-  return timeRanges;
-};
-
 type AxisDomain = [number, number];
 
 type GraphDataPoint = {
@@ -1113,9 +1091,4 @@ type TooltipProps = {
   style?: { fill: string; labels: PrometheusLabels; name: string; units: string };
   width?: number;
   x?: number;
-};
-
-type TimeRange = {
-  endTime: number;
-  duration: number;
 };
