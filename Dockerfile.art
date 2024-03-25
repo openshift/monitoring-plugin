@@ -1,4 +1,4 @@
-FROM registry.ci.openshift.org/ocp/builder:rhel-8-openshift-nodejs-base-4.16.art AS builder
+FROM registry.ci.openshift.org/ocp/builder:rhel-8-base-nodejs-openshift-4.16 AS builder
 
 # Copy app sources
 COPY $REMOTE_SOURCES $REMOTE_SOURCES_DIR
