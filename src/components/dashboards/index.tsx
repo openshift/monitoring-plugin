@@ -213,7 +213,7 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({ id, name, namespace
 
   const activePerspective = getActivePerspective(namespace);
 
-  const timespan: number = useSelector(({ observe }: RootState) =>
+  const timespan = useSelector(({ observe }: RootState) =>
     observe.getIn(['dashboards', activePerspective, 'timespan']),
   );
 
@@ -359,7 +359,12 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({ id, name, namespace
     return null;
   }
 
-  const items = getItems(variable.includeAll, variable.options);
+  const items = variable.includeAll
+    ? { [MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY]: 'All' }
+    : {};
+  _.each(variable.options, (option) => {
+    items[option] = option;
+  });
 
   return (
     <div
@@ -387,14 +392,6 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({ id, name, namespace
       )}
     </div>
   );
-};
-
-const getItems = (includeAll, options) => {
-  const items = includeAll ? { [MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY]: 'All' } : {};
-  _.each(options, (option) => {
-    items[option] = option;
-  });
-  return items;
 };
 
 const AllVariableDropdowns = () => {
