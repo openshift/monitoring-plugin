@@ -16,9 +16,10 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 
 import { alertingErrored, alertingLoaded, alertingLoading } from '../actions/observe';
-import { AlertSource, MonitoringResource, Target } from './types';
+import { AlertSource, MonitoringResource, Target, TimeRange } from './types';
 
 export const PROMETHEUS_BASE_PATH = window.SERVER_FLAGS.prometheusBaseURL;
+export const QUERY_CHUNK_SIZE = 24 * 60 * 60 * 1000;
 
 export const AlertResource: MonitoringResource = {
   kind: 'Alert',
@@ -164,3 +165,29 @@ export const targetSource = (target: Target): AlertSource =>
   target.labels?.prometheus === 'openshift-monitoring/k8s'
     ? AlertSource.Platform
     : AlertSource.User;
+
+export const isTimeoutError = (err: Error): boolean =>
+  err.name === 'TimeoutError' || err.message.includes('timed out');
+
+/**
+ * This function is used to get the parameters needed to break a long time period down into smaller
+ * chunks which won't timeout
+ *
+ * @param timespan Total length of time to cover
+ */
+export const getTimeRanges = (
+  timespan: number,
+  maxEndTime: number = Date.now(),
+): Array<TimeRange> => {
+  if (timespan < QUERY_CHUNK_SIZE * 7) {
+    // If the query is smaller than a week, leave the the query the same since it won't timeout
+    return [{ endTime: maxEndTime, duration: timespan }];
+  }
+  const startTime = maxEndTime - timespan;
+  const timeRanges = [{ endTime: startTime + QUERY_CHUNK_SIZE, duration: QUERY_CHUNK_SIZE }];
+  while (timeRanges.at(-1).endTime < maxEndTime) {
+    const nextEndTime = timeRanges.at(-1).endTime + QUERY_CHUNK_SIZE;
+    timeRanges.push({ endTime: nextEndTime, duration: QUERY_CHUNK_SIZE });
+  }
+  return timeRanges;
+};

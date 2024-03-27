@@ -52,3 +52,8 @@ export type RootState = {
   k8s: { [key: string]: any };
   observe: ObserveState;
 };
+
+export type TimeRange = {
+  endTime: number;
+  duration: number;
+};
