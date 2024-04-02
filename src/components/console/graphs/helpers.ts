@@ -16,7 +16,7 @@ const getRangeVectorSearchParams = (
   const params = new URLSearchParams();
   params.append('start', `${(endTime - timespan) / 1000}`);
   params.append('end', `${endTime / 1000}`);
-  params.append('step', `${timespan / samples / 1000}`);
+  params.append('step', `${Math.ceil(timespan / samples / 1000)}`);
   return params;
 };
 
