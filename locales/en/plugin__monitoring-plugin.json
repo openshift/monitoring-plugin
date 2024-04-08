@@ -134,6 +134,8 @@
   "No datapoints found.": "No datapoints found.",
   "Unselect all": "Unselect all",
   "Select all": "Select all",
+  "Error loading custom data source": "Error loading custom data source",
+  "An error occurred while loading the custom data source.": "An error occurred while loading the custom data source.",
   "No query entered": "No query entered",
   "Enter a query in the box below to explore metrics for this cluster.": "Enter a query in the box below to explore metrics for this cluster.",
   "Insert example query": "Insert example query",
