@@ -4,6 +4,7 @@ import {
   PrometheusData,
   PrometheusEndpoint,
   PrometheusLabels,
+  useResolvedExtensions,
   YellowExclamationTriangleIcon,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
@@ -60,7 +61,11 @@ import { withFallback } from './console/console-shared/error/error-boundary';
 import { getPrometheusURL } from './console/graphs/helpers';
 import { AsyncComponent } from './console/utils/async';
 import { usePoll } from './console/utils/poll-hook';
-import { getAllQueryArguments, setAllQueryArguments } from './console/utils/router';
+import {
+  getAllQueryArguments,
+  getQueryArgument,
+  setAllQueryArguments,
+} from './console/utils/router';
 import { useSafeFetch } from './console/utils/safe-fetch-hook';
 import { LoadingInline } from './console/utils/status-box';
 
@@ -70,6 +75,11 @@ import IntervalDropdown from './poll-interval-dropdown';
 import { colors, Error, QueryBrowser } from './query-browser';
 import TablePagination from './table-pagination';
 import { PrometheusAPIError, RootState } from './types';
+import {
+  CustomDataSource,
+  DataSource,
+  isDataSource,
+} from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
 
 // Stores information about the currently focused query input
 let focusedQuery;
@@ -356,7 +366,7 @@ const QueryKebab: React.FC<{ index: number }> = ({ index }) => {
   return <KebabDropdown dropdownItems={drodownItems} />;
 };
 
-export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace }) => {
+export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, customDatasource }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
 
   const [data, setData] = React.useState<PrometheusData>();
@@ -402,7 +412,12 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace }) => {
 
   const tick = () => {
     if (isEnabled && isExpanded && query) {
-      safeFetch(getPrometheusURL({ endpoint: PrometheusEndpoint.QUERY, namespace, query }))
+      safeFetch(
+        getPrometheusURL(
+          { endpoint: PrometheusEndpoint.QUERY, namespace, query },
+          customDatasource?.basePath,
+        ),
+      )
         .then((response) => {
           setData(_.get(response, 'data'));
           setError(undefined);
@@ -575,7 +590,10 @@ const PromQLExpressionInput = (props) => (
   />
 );
 
-const Query: React.FC<{ index: number }> = ({ index }) => {
+const Query: React.FC<{ index: number; customDatasource?: CustomDataSource }> = ({
+  index,
+  customDatasource,
+}) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
 
   const id = useSelector(({ observe }: RootState) =>
@@ -652,12 +670,16 @@ const Query: React.FC<{ index: number }> = ({ index }) => {
           <QueryKebab index={index} />
         </div>
       </div>
-      <QueryTable index={index} />
+      <QueryTable index={index} customDatasource={customDatasource} />
     </div>
   );
 };
 
-const QueryBrowserWrapper: React.FC = () => {
+const QueryBrowserWrapper: React.FC<{
+  customDataSourceName: string;
+  customDataSource: CustomDataSource;
+  customDatasourceError: boolean;
+}> = ({ customDataSourceName, customDataSource, customDatasourceError }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
 
   const dispatch = useDispatch();
@@ -701,10 +723,13 @@ const QueryBrowserWrapper: React.FC = () => {
 
   // Update the URL parameters when the queries shown in the graph change
   React.useEffect(() => {
-    const newParams = {};
+    const newParams: Record<string, string> = {};
     _.each(queryStrings, (q, i) => (newParams[`query${i}`] = q || ''));
+    if (customDataSourceName) {
+      newParams.datasource = customDataSourceName;
+    }
     setAllQueryArguments(newParams);
-  }, [queryStrings]);
+  }, [queryStrings, customDataSourceName]);
 
   if (hideGraphs) {
     return null;
@@ -716,6 +741,22 @@ const QueryBrowserWrapper: React.FC = () => {
     const text = 'sort_desc(sum(sum_over_time(ALERTS{alertstate="firing"}[24h])) by (alertname))';
     dispatch(queryBrowserPatchQuery(index, { isEnabled: true, query: text, text }));
   };
+
+  if (customDataSourceName && customDatasourceError) {
+    return (
+      <div className="query-browser__wrapper graph-empty-state">
+        <EmptyState variant={EmptyStateVariant.full}>
+          <EmptyStateIcon icon={ChartLineIcon} />
+          <Title headingLevel="h2" size="md">
+            {t('Error loading custom data source')}
+          </Title>
+          <EmptyStateBody>
+            {t('An error occurred while loading the custom data source.')}
+          </EmptyStateBody>
+        </EmptyState>
+      </div>
+    );
+  }
 
   if (queryStrings.join('') === '') {
     return (
@@ -738,6 +779,7 @@ const QueryBrowserWrapper: React.FC = () => {
 
   return (
     <QueryBrowser
+      customDataSource={customDataSource}
       defaultTimespan={30 * 60 * 1000}
       disabledSeries={disabledSeries}
       queries={queryStrings}
@@ -777,7 +819,7 @@ const RunQueriesButton: React.FC = () => {
   );
 };
 
-const QueriesList: React.FC = () => {
+const QueriesList: React.FC<{ customDatasource?: CustomDataSource }> = ({ customDatasource }) => {
   const count = useSelector(
     ({ observe }: RootState) => observe.getIn(['queryBrowser', 'queries']).size,
   );
@@ -786,7 +828,9 @@ const QueriesList: React.FC = () => {
     <>
       {_.range(count).map((index) => {
         const reversedIndex = count - index - 1;
-        return <Query index={reversedIndex} key={reversedIndex} />;
+        return (
+          <Query index={reversedIndex} key={reversedIndex} customDatasource={customDatasource} />
+        );
       })}
     </>
   );
@@ -814,6 +858,70 @@ const QueryBrowserPage_: React.FC = () => {
   // Clear queries on unmount
   React.useEffect(() => () => dispatch(queryBrowserDeleteAllQueries()), [dispatch]);
 
+  const [customDataSource, setCustomDataSource] = React.useState<CustomDataSource>(undefined);
+  const [customDataSourceIsResolved, setCustomDataSourceIsResolved] =
+    React.useState<boolean>(false);
+  const customDataSourceName = getQueryArgument('datasource');
+  const [extensions, extensionsResolved] = useResolvedExtensions<DataSource>(isDataSource);
+  const hasExtensions = !_.isEmpty(extensions);
+  const [customDatasourceError, setCustomDataSourceError] = React.useState(false);
+
+  // get custom datasources
+  React.useEffect(() => {
+    const getCustomDataSource = async () => {
+      if (!customDataSourceName) {
+        setCustomDataSource(null);
+        return;
+      } else if (extensionsResolved) {
+        setCustomDataSource({ basePath: '', dataSourceType: 'prometheus' });
+
+        if (!hasExtensions) {
+          setCustomDataSourceError(true);
+          return;
+        }
+
+        const extension = extensions.find(
+          (ext) => ext?.properties?.contextId === 'monitoring-dashboards',
+        );
+
+        if (!extension) {
+          setCustomDataSourceError(true);
+          return;
+        }
+
+        const getDataSource = extension?.properties?.getDataSource;
+        const dataSource = await getDataSource?.(customDataSourceName);
+
+        if (!dataSource || !dataSource.basePath) {
+          setCustomDataSourceError(true);
+          return;
+        }
+
+        setCustomDataSource(dataSource);
+        setCustomDataSourceIsResolved(true);
+      }
+    };
+    getCustomDataSource().catch((err) => {
+      // eslint-disable-next-line no-console
+      console.error(err);
+      setCustomDataSourceError(true);
+    });
+  }, [extensions, extensionsResolved, customDataSourceName, hasExtensions]);
+
+  if (customDataSourceName) {
+    if (!extensionsResolved || (!customDataSourceIsResolved && !customDatasourceError)) {
+      return (
+        <div className="co-m-pane__body">
+          <div className="row">
+            <div className="col-xs-12 pf-u-text-align-center">
+              <LoadingInline />
+            </div>
+          </div>
+        </div>
+      );
+    }
+  }
+
   return (
     <>
       <Helmet>
@@ -838,7 +946,11 @@ const QueryBrowserPage_: React.FC = () => {
         </div>
         <div className="row">
           <div className="col-xs-12">
-            <QueryBrowserWrapper />
+            <QueryBrowserWrapper
+              customDataSource={customDataSource}
+              customDataSourceName={customDataSourceName}
+              customDatasourceError={customDatasourceError}
+            />
             <div className="query-browser__controls">
               <div className="query-browser__controls--right">
                 <ActionGroup className="pf-c-form pf-c-form__group--no-top-margin">
@@ -847,7 +959,7 @@ const QueryBrowserPage_: React.FC = () => {
                 </ActionGroup>
               </div>
             </div>
-            <QueriesList />
+            <QueriesList customDatasource={customDataSource} />
           </div>
         </div>
       </div>
@@ -859,6 +971,7 @@ export const QueryBrowserPage = withFallback(QueryBrowserPage_);
 type QueryTableProps = {
   index: number;
   namespace?: string;
+  customDatasource?: CustomDataSource;
 };
 
 type SeriesButtonProps = {

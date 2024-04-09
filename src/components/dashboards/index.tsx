@@ -521,12 +521,22 @@ const HeaderTop: React.FC = React.memo(() => {
   );
 });
 
-const QueryBrowserLink = ({ queries }) => {
+const QueryBrowserLink = ({
+  queries,
+  customDataSourceName,
+}: {
+  queries: Array<string>;
+  customDataSourceName: string;
+}) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
 
   const params = new URLSearchParams();
   queries.forEach((q, i) => params.set(`query${i}`, q));
   const namespace = React.useContext(NamespaceContext);
+
+  if (customDataSourceName) {
+    params.set('datasource', customDataSourceName);
+  }
 
   return (
     <Link
@@ -687,7 +697,9 @@ const Card: React.FC<CardProps> = React.memo(({ panel }) => {
         <CardHeader className="monitoring-dashboards__card-header">
           <CardTitle>{panel.title}</CardTitle>
           <CardActions className="co-overview-card__actions">
-            {!isLoading && <QueryBrowserLink queries={queries} />}
+            {!isLoading && (
+              <QueryBrowserLink queries={queries} customDataSourceName={customDataSourceName} />
+            )}
           </CardActions>
         </CardHeader>
         <CardBody className="co-dashboard-card__body--dashboard">
