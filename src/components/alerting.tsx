@@ -830,11 +830,29 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
                 <ActionServiceProvider context={{ 'alert-detail-toolbar-actions': { alert } }}>
                   {({ actions, loaded }) =>
                     loaded
-                      ? actions.filter(isActionWithHref).map((action) => (
-                          <ToolbarItem key={action.id}>
-                            <Link to={action.cta.href}>{action.label}</Link>
-                          </ToolbarItem>
-                        ))
+                      ? actions.map((action) => {
+                          if (isActionWithHref(action)) {
+                            return (
+                              <ToolbarItem
+                                key={action.id}
+                                spacer={{ default: 'spacerNone' }}
+                                className="pf-u-px-md"
+                              >
+                                <Link to={action.cta.href}>{action.label}</Link>
+                              </ToolbarItem>
+                            );
+                          } else if (isActionWithCallback(action)) {
+                            return (
+                              <ToolbarItem key={action.id} spacer={{ default: 'spacerNone' }}>
+                                <Button variant="link" onClick={action.cta}>
+                                  {action.label}
+                                </Button>
+                              </ToolbarItem>
+                            );
+                          }
+
+                          return null;
+                        })
                       : null
                   }
                 </ActionServiceProvider>
