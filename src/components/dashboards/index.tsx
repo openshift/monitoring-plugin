@@ -245,6 +245,11 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({ id, name, namespace
           );
           const getDataSource = extension?.properties?.getDataSource;
           const dataSource = await getDataSource?.(customDataSourceName);
+
+          if (!dataSource || !dataSource.basePath) {
+            setIsError(true);
+            return;
+          }
           return getPrometheusURL(prometheusProps, dataSource?.basePath);
         }
       } catch (error) {
@@ -621,8 +626,14 @@ const Card: React.FC<CardProps> = React.memo(({ panel }) => {
         );
         const getDataSource = extension?.properties?.getDataSource;
         const dataSource = await getDataSource?.(customDataSourceName);
-        setCustomDataSource(dataSource);
-        setDataSourceInfoLoading(false);
+
+        if (!dataSource || !dataSource.basePath) {
+          setIsError(true);
+          setDataSourceInfoLoading(false);
+        } else {
+          setCustomDataSource(dataSource);
+          setDataSourceInfoLoading(false);
+        }
       } else {
         setDataSourceInfoLoading(false);
         setIsError(true);
