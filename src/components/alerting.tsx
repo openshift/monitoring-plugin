@@ -21,7 +21,6 @@ import {
   SilenceStates,
   TableColumn,
   Timestamp,
-  useActivePerspective,
   useListPageFilter,
   useResolvedExtensions,
   VirtualizedTable,
@@ -118,6 +117,7 @@ import {
   alertSeverityOrder,
   alertState,
   alertURL,
+  devAlertURL,
   fuzzyCaseInsensitive,
   getAlertsAndRules,
   labelsToParams,
@@ -194,7 +194,7 @@ const getAlertStateKey = (state, t) => {
   }
 };
 
-export const AlertState: React.FC<AlertStateProps> = React.memo(({ state }) => {
+const AlertState: React.FC<AlertStateProps> = React.memo(({ state }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
 
   const icon = <AlertStateIcon state={state} />;
@@ -234,14 +234,14 @@ const SilenceState = ({ silence }) => {
   ) : null;
 };
 
-export const StateTimestamp = ({ text, timestamp }) => (
+const StateTimestamp = ({ text, timestamp }) => (
   <div className="text-muted monitoring-timestamp">
     {text}&nbsp;
     <Timestamp timestamp={timestamp} />
   </div>
 );
 
-const AlertStateDescription: React.FC<{ alert }> = ({ alert }) => {
+const AlertStateDescription: React.FC<{ alert: Alert }> = ({ alert }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
 
   if (alert && !_.isEmpty(alert.silencedBy)) {
@@ -264,7 +264,7 @@ const SeverityIcon: React.FC<{ severity: string }> = React.memo(({ severity }) =
   return <Icon />;
 });
 
-export const Severity: React.FC<{ severity: string }> = React.memo(({ severity }) => {
+const Severity: React.FC<{ severity: string }> = React.memo(({ severity }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
 
   const getSeverityKey = (severityData: string) => {
@@ -326,7 +326,7 @@ const SeverityCounts: React.FC<{ alerts: Alert[] }> = ({ alerts }) => {
   );
 };
 
-export const StateCounts: React.FC<{ alerts: PrometheusAlert[] }> = ({ alerts }) => {
+const StateCounts: React.FC<{ alerts: PrometheusAlert[] }> = ({ alerts }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
 
   const counts = _.countBy(alerts, 'state');
@@ -597,7 +597,7 @@ const SilenceTableRowWithCheckbox: React.FC<RowProps<Silence>> = ({ obj }) => (
   <SilenceTableRow showCheckbox={true} obj={obj} />
 );
 
-export const alertMessageResources: {
+const alertMessageResources: {
   [labelName: string]: { kind: string; namespaced?: boolean };
 } = {
   container: ContainerModel,
@@ -740,13 +740,11 @@ type AlertsDetailsPageProps = RouteComponentProps<{ ns?: string; ruleID: string 
 const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
 
-  const isDevPerspective = _.has(match.params, 'ns');
+  const { alertsKey } = usePerspective();
   const namespace = match.params?.ns;
   const hideGraphs = useSelector(({ observe }: RootState) => !!observe.get('hideGraphs'));
 
-  const alerts: Alerts = useSelector(({ observe }: RootState) =>
-    observe.get(isDevPerspective ? 'devAlerts' : 'alerts'),
-  );
+  const alerts: Alerts = useSelector(({ observe }: RootState) => observe.get(alertsKey));
 
   const silencesLoaded = ({ observe }) => observe.get('silences')?.loaded;
 
@@ -1001,7 +999,7 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
     </>
   );
 };
-export const AlertsDetailsPage = withFallback(withRouter(AlertsDetailsPage_));
+const AlertsDetailsPage = withFallback(withRouter(AlertsDetailsPage_));
 
 // Renders Prometheus template text and highlights any {{ ... }} tags that it contains
 const PrometheusTemplate = ({ text }) => (
@@ -1086,16 +1084,14 @@ type AlertRulesDetailsPageProps = RouteComponentProps<{ id: string; ns?: string 
 const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
 
-  const isDevPerspective = _.has(match.params, 'ns');
+  const { rulesKey, alertsKey } = usePerspective();
   const namespace = match.params?.ns;
 
-  const rules: Rule[] = useSelector(({ observe }: RootState) =>
-    observe.get(isDevPerspective ? 'devRules' : 'rules'),
-  );
+  const rules: Rule[] = useSelector(({ observe }: RootState) => observe.get(rulesKey));
   const rule = _.find(rules, { id: _.get(match, 'params.id') });
 
   const { loaded, loadError }: Alerts = useSelector(
-    ({ observe }: RootState) => observe.get(isDevPerspective ? 'devAlerts' : 'alerts') || {},
+    ({ observe }: RootState) => observe.get(alertsKey) || {},
   );
 
   const sourceId = rule?.sourceId;
@@ -1482,12 +1478,10 @@ const SilencedAlertsList = withRouter(SilencedAlertsList_);
 const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ match }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
 
-  const [namespace] = useActiveNamespace();
-  const [perspective] = useActivePerspective();
+  const namespace = useActiveNamespace();
+  const { isDev, alertsKey } = usePerspective();
 
-  const alertsLoaded = useSelector(
-    ({ observe }: RootState) => observe.get(perspective === 'dev' ? 'devAlerts' : 'alerts')?.loaded,
-  );
+  const alertsLoaded = useSelector(({ observe }: RootState) => observe.get(alertsKey)?.loaded);
 
   const silences: Silences = useSelector(({ observe }: RootState) => observe.get('silences'));
   const silence = _.find(silences?.data, { id: _.get(match, 'params.id') });
@@ -1508,13 +1502,9 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
             <BreadcrumbItem>
               <Link
                 className="pf-c-breadcrumb__link"
-                to={
-                  perspective === 'dev'
-                    ? `/dev-monitoring/ns/${namespace}/alerts`
-                    : '/monitoring/silences'
-                }
+                to={isDev ? `/dev-monitoring/ns/${namespace}/alerts` : '/monitoring/silences'}
               >
-                {perspective === 'dev' ? t('Alerts') : t('Silences')}
+                {isDev ? t('Alerts') : t('Silences')}
               </Link>
             </BreadcrumbItem>
             <BreadcrumbItem isActive>{t('Silence details')}</BreadcrumbItem>
@@ -1619,10 +1609,12 @@ const tableAlertClasses = [
   'dropdown-kebab-pf pf-c-table__action',
 ];
 
-type AlertTableRowProps = RouteComponentProps & RowProps<Alert>;
+type AlertTableRowProps = RouteComponentProps<AlertsPageProps> & RowProps<Alert>;
 
-const AlertTableRow_: React.FC<AlertTableRowProps> = ({ history, obj }) => {
+const AlertTableRow_: React.FC<AlertTableRowProps> = ({ history, obj, match }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
+  const { isDev } = usePerspective();
+  const namespace = match.params.ns;
 
   const { annotations = {}, labels } = obj;
   const description = annotations.description || annotations.message;
@@ -1669,7 +1661,7 @@ const AlertTableRow_: React.FC<AlertTableRowProps> = ({ history, obj }) => {
         <div className="co-resource-item">
           <MonitoringResourceIcon resource={AlertResource} />
           <Link
-            to={alertURL(obj, obj.rule.id)}
+            to={isDev ? devAlertURL(obj, obj.rule.id, namespace) : alertURL(obj, obj.rule.id)}
             data-test-id="alert-resource-link"
             className="co-resource-item__resource-name"
           >
@@ -1761,14 +1753,19 @@ const getAdditionalSources = <T extends Alert | Rule>(
   return [];
 };
 
-const AlertsPage_: React.FC = () => {
+type AlertsPageProps = {
+  ns: string | undefined;
+};
+
+const AlertsPage_: React.FC<AlertsPageProps> = () => {
   const { t } = useTranslation('plugin__monitoring-plugin');
+  const { isDev, alertsKey, defaultAlertTenant } = usePerspective();
 
   const {
     data,
     loaded = false,
     loadError,
-  }: Alerts = useSelector(({ observe }: RootState) => observe.get('alerts') || {});
+  }: Alerts = useSelector(({ observe }: RootState) => observe.get(alertsKey) || {});
   const silencesLoadError = useSelector(
     ({ observe }: RootState) => observe.get('silences')?.loadError,
   );
@@ -1803,7 +1800,7 @@ const AlertsPage_: React.FC = () => {
     },
     severityRowFilter(t),
     {
-      defaultSelected: [AlertSource.Platform],
+      defaultSelected: [defaultAlertTenant],
       filter: (filter, alert: Alert) =>
         filter.selected?.includes(alertSource(alert)) || _.isEmpty(filter.selected),
       filterGroupName: t('Source'),
@@ -1818,6 +1815,10 @@ const AlertsPage_: React.FC = () => {
   ];
 
   const [staticData, filteredData, onFilterChange] = useListPageFilter(data, rowFilters);
+
+  if (isDev) {
+    rowFilters.filter((filter) => filter.filterGroupName !== t('Source'));
+  }
 
   const columns = React.useMemo<TableColumn<Alert>[]>(
     () => [
@@ -2373,7 +2374,8 @@ const AlertingPage: React.FC<RouteComponentProps<{ url: string }>> = ({ match })
 const PollerPages = () => {
   const dispatch = useDispatch();
 
-  const { perspective } = usePerspective();
+  const { perspective, isDev, rulesKey, alertsKey } = usePerspective();
+  const namespace = useActiveNamespace();
 
   const [customExtensions] =
     useResolvedExtensions<AlertingRulesSourceExtension>(isAlertingRulesSource);
@@ -2381,19 +2383,21 @@ const PollerPages = () => {
   const alertsSource = React.useMemo(
     () =>
       customExtensions
-        .filter((extension) => extension.properties.contextId === 'observe-alerting')
+        .filter(
+          (extension) =>
+            extension.properties.contextId ===
+            (isDev ? 'dev-observe-alerting' : 'observe-alerting'),
+        )
         .map((extension) => extension.properties),
-    [customExtensions],
+    [customExtensions, isDev],
   );
 
   React.useEffect(() => {
     const { prometheusBaseURL } = window.SERVER_FLAGS;
 
     if (prometheusBaseURL) {
-      const alertsKey = 'alerts';
-      const rulesKey = 'rules';
       dispatch(alertingLoading(alertsKey, perspective));
-      const url = getPrometheusURL({ endpoint: PrometheusEndpoint.RULES });
+      const url = getPrometheusURL({ endpoint: PrometheusEndpoint.RULES, namespace });
       const poller = (): void => {
         fetchAlerts(url, alertsSource)
           .then(({ data }) => {
@@ -2416,10 +2420,18 @@ const PollerPages = () => {
     } else {
       dispatch(alertingErrored('alerts', new Error('prometheusBaseURL not set'), perspective));
     }
-    return () => {
+    return (): void => {
       _.each(pollerTimeouts, clearTimeout);
     };
-  }, [alertsSource, dispatch, perspective]);
+  }, [alertsSource, dispatch, perspective, rulesKey, alertsKey, namespace]);
+
+  if (isDev) {
+    return (
+      <Switch>
+        <Route path="/dev-monitoring/ns/:ns/(alerts)" exact component={AlertsPage} />
+      </Switch>
+    );
+  }
 
   return (
     <Switch>

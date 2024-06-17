@@ -52,6 +52,9 @@ export const labelsToParams = (labels: PrometheusLabels) =>
 export const alertURL = (alert: PrometheusAlert, ruleID: string) =>
   `${AlertResource.plural}/${ruleID}?${labelsToParams(alert.labels)}`;
 
+export const devAlertURL = (alert: Alert, ruleID: string, namespace: string) =>
+  `/dev-monitoring/ns/${namespace}/alerts/${ruleID}?${labelsToParams(alert.labels)}`;
+
 export const getAlertsAndRules = (
   data: PrometheusRulesResponse['data'],
 ): { alerts: Alert[]; rules: Rule[] } => {
