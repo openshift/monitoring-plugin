@@ -152,7 +152,7 @@ const alertSource = (alert: Alert): AlertSource | string => alertingRuleSource(a
 const pollers = {};
 const pollerTimeouts = {};
 
-const silenceAlertURL = (alert: Alert) =>
+const silenceAlertURL = (alert: PrometheusAlert) =>
   `${SilenceResource.plural}/~new?${labelsToParams(alert.labels)}`;
 
 const MonitoringResourceIcon: React.FC<MonitoringResourceIconProps> = ({ className, resource }) => (
@@ -1018,7 +1018,7 @@ const PrometheusTemplate = ({ text }) => (
 );
 
 type ActiveAlertsProps = RouteComponentProps & {
-  alerts: Alert[];
+  alerts: PrometheusAlert[];
   namespace: string;
   ruleID: string;
 };
@@ -1035,7 +1035,7 @@ const ActiveAlerts_: React.FC<ActiveAlertsProps> = ({ alerts, history, namespace
         <div className="col-sm-2 col-xs-3">{t('Value')}</div>
       </div>
       <div className="co-m-table-grid__body">
-        {_.sortBy(alerts, alertDescription).map((a, i) => (
+        {_.sortBy<PrometheusAlert>(alerts, alertDescription).map((a, i) => (
           <div className="row co-resource-list__item" key={i}>
             <div className="col-xs-6">
               <Link
@@ -1431,7 +1431,7 @@ const SilenceDropdownActions: React.FC<{ silence: Silence }> = ({ silence }) => 
   <SilenceDropdown className="co-actions-menu" silence={silence} Toggle={ActionsToggle} />
 );
 
-type SilencedAlertsListProps = RouteComponentProps & { alerts: Alerts[] };
+type SilencedAlertsListProps = RouteComponentProps & { alerts: Alert[] };
 
 const SilencedAlertsList_: React.FC<SilencedAlertsListProps> = ({ alerts, history }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
@@ -1445,7 +1445,7 @@ const SilencedAlertsList_: React.FC<SilencedAlertsListProps> = ({ alerts, histor
         <div className="col-xs-3">{t('Severity')}</div>
       </div>
       <div className="co-m-table-grid__body">
-        {_.sortBy(alerts, alertDescription).map((a, i) => (
+        {_.sortBy<Alert>(alerts, alertDescription).map((a, i) => (
           <div className="row co-resource-list__item" key={i}>
             <div className="col-xs-9">
               <Link
@@ -2410,7 +2410,9 @@ const PollerPages = () => {
     } else {
       dispatch(alertingErrored('alerts', new Error('prometheusBaseURL not set')));
     }
-    return () => _.each(pollerTimeouts, clearTimeout);
+    return () => {
+      _.each(pollerTimeouts, clearTimeout);
+    };
   }, [alertsSource, dispatch]);
 
   return (

@@ -7,6 +7,7 @@ import {
   AlertSeverity,
   AlertStates,
   consoleFetchJSON,
+  PrometheusAlert,
   PrometheusLabels,
   PrometheusRule,
   PrometheusRulesResponse,
@@ -48,7 +49,7 @@ export const fuzzyCaseInsensitive = (a: string, b: string): boolean =>
 export const labelsToParams = (labels: PrometheusLabels) =>
   _.map(labels, (v, k) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join('&');
 
-export const alertURL = (alert: Alert, ruleID: string) =>
+export const alertURL = (alert: PrometheusAlert, ruleID: string) =>
   `${AlertResource.plural}/${ruleID}?${labelsToParams(alert.labels)}`;
 
 export const getAlertsAndRules = (
@@ -125,7 +126,7 @@ export const refreshSilences = (dispatch: Dispatch): void => {
     });
 };
 
-export const alertDescription = (alert: Alert | Rule): string =>
+export const alertDescription = (alert: PrometheusAlert | Rule): string =>
   alert.annotations?.description || alert.annotations?.message || alert.labels?.alertname;
 
 // Determine if an Alert is silenced by a Silence (if all of the Silence's matchers match one of the
