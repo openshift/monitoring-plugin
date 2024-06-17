@@ -20,7 +20,7 @@ const CUSTOM_TIME_RANGE_KEY = 'CUSTOM_TIME_RANGE_KEY';
 const TimespanDropdown: React.FC = () => {
   const { t } = useTranslation('plugin__monitoring-plugin');
 
-  const [perspective] = usePerspective();
+  const { perspective } = usePerspective();
 
   const [isOpen, toggleIsOpen, , setClosed] = useBoolean(false);
   const [isModalOpen, , setModalOpen, setModalClosed] = useBoolean(false);

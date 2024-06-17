@@ -1298,7 +1298,7 @@ const ExpireSilenceModal: React.FC<ExpireSilenceModalProps> = ({
   silenceID,
 }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
-  const [perspective] = usePerspective();
+  const { perspective } = usePerspective();
 
   const dispatch = useDispatch();
 
@@ -2089,7 +2089,7 @@ type ExpireAllSilencesButtonProps = {
 const ExpireAllSilencesButton: React.FC<ExpireAllSilencesButtonProps> = ({ setErrorMessage }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
 
-  const [perspective] = usePerspective();
+  const { perspective } = usePerspective();
 
   const [isInProgress, , setInProgress, setNotInProgress] = useBoolean(false);
 
@@ -2373,7 +2373,7 @@ const AlertingPage: React.FC<RouteComponentProps<{ url: string }>> = ({ match })
 const PollerPages = () => {
   const dispatch = useDispatch();
 
-  const [perspective] = usePerspective();
+  const { perspective } = usePerspective();
 
   const [customExtensions] =
     useResolvedExtensions<AlertingRulesSourceExtension>(isAlertingRulesSource);

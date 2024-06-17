@@ -1,11 +1,17 @@
 import { useActivePerspective } from '@openshift-console/dynamic-plugin-sdk';
 import { Perspective } from 'src/actions/observe';
 
-export const usePerspective = (): [Perspective, 'rules' | 'devRules', 'alerts' | 'devAlerts'] => {
+type usePerspectiveReturn = {
+  perspective: Perspective;
+  rulesKey: 'devRules' | 'rules';
+  alertsKey: 'devAlerts' | 'alerts';
+};
+
+export const usePerspective = (): usePerspectiveReturn => {
   const [perspective] = useActivePerspective();
 
   if (perspective === 'dev') {
-    return ['dev', 'devRules', 'devAlerts'];
+    return { perspective: 'dev', rulesKey: 'devRules', alertsKey: 'devAlerts' };
   }
-  return ['admin', 'rules', 'alerts'];
+  return { perspective: 'admin', rulesKey: 'rules', alertsKey: 'alerts' };
 };

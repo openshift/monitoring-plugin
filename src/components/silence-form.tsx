@@ -133,7 +133,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
 
   const dispatch = useDispatch();
 
-  const [perspective] = usePerspective();
+  const { perspective } = usePerspective();
 
   const [isOpen, setIsOpen, , setClosed] = useBoolean(false);
 

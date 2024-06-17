@@ -477,7 +477,7 @@ export const PollIntervalDropdown: React.FC = () => {
   const { t } = useTranslation('plugin__monitoring-plugin');
 
   const refreshIntervalFromParams = getQueryArgument('refreshInterval');
-  const [perspective] = usePerspective();
+  const { perspective } = usePerspective();
   const interval = useSelector(({ observe }: RootState) =>
     observe.getIn(['dashboards', perspective, 'pollInterval']),
   );
@@ -828,7 +828,7 @@ const MonitoringDashboardsPage_: React.FC<MonitoringDashboardsPageProps> = ({ hi
 
   const dispatch = useDispatch();
   const namespace = match.params?.ns;
-  const [perspective] = usePerspective();
+  const { perspective } = usePerspective();
   const [board, setBoard] = React.useState<string>();
   const [boards, isLoading, error] = useFetchDashboards(namespace);
 
