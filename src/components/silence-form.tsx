@@ -35,6 +35,7 @@ import { StatusBox } from './console/utils/status-box';
 import { useBoolean } from './hooks/useBoolean';
 import { RootState, Silences } from './types';
 import { refreshSilences, SilenceResource, silenceState } from './utils';
+import { usePerspective } from './hooks/usePerspective';
 
 const pad = (i: number): string => (i < 10 ? `0${i}` : String(i));
 
@@ -132,6 +133,8 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
 
   const dispatch = useDispatch();
 
+  const [perspective] = usePerspective();
+
   const [isOpen, setIsOpen, , setClosed] = useBoolean(false);
 
   const [comment, setComment] = React.useState(defaults.comment ?? '');
@@ -218,7 +221,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
       .post(`${alertManagerBaseURL}/api/v2/silences`, body)
       .then(({ silenceID }) => {
         setError(undefined);
-        refreshSilences(dispatch);
+        refreshSilences(dispatch, perspective);
         history.push(`${SilenceResource.plural}/${encodeURIComponent(silenceID)}`);
       })
       .catch((err) => {

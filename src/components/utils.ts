@@ -16,7 +16,7 @@ import {
   SilenceStates,
 } from '@openshift-console/dynamic-plugin-sdk';
 
-import { alertingErrored, alertingLoaded, alertingLoading } from '../actions/observe';
+import { alertingErrored, alertingLoaded, alertingLoading, Perspective } from '../actions/observe';
 import { AlertSource, MonitoringResource, Target, TimeRange } from './types';
 
 export const PROMETHEUS_BASE_PATH = window.SERVER_FLAGS.prometheusBaseURL;
@@ -105,13 +105,13 @@ const getSilenceName = (silence: Silence) => {
         .join(', ');
 };
 
-export const refreshSilences = (dispatch: Dispatch): void => {
+export const refreshSilences = (dispatch: Dispatch, perspective: Perspective): void => {
   const { alertManagerBaseURL } = window.SERVER_FLAGS;
   if (!alertManagerBaseURL) {
     return;
   }
 
-  dispatch(alertingLoading('silences'));
+  dispatch(alertingLoading('silences', perspective));
 
   consoleFetchJSON(`${alertManagerBaseURL}/api/v2/silences`)
     .then((silences) => {
@@ -119,10 +119,10 @@ export const refreshSilences = (dispatch: Dispatch): void => {
       _.each(silences, (s) => {
         s.name = getSilenceName(s);
       });
-      dispatch(alertingLoaded('silences', silences));
+      dispatch(alertingLoaded('silences', silences, perspective));
     })
     .catch((e) => {
-      dispatch(alertingErrored('silences', e));
+      dispatch(alertingErrored('silences', e, perspective));
     });
 };
 

@@ -31,61 +31,63 @@ export enum ActionType {
   ToggleGraphs = 'toggleGraphs',
 }
 
-export const dashboardsPatchVariable = (key: string, patch: any, perspective: string) =>
+export type Perspective = 'admin' | 'dev';
+type AlertingKey =
+  | 'alerts'
+  | 'devAlerts'
+  | 'silences'
+  | 'devSilences'
+  | 'rules'
+  | 'devRules'
+  | 'notificationAlerts';
+
+export const dashboardsPatchVariable = (key: string, patch: any, perspective: Perspective) =>
   action(ActionType.DashboardsPatchVariable, { key, patch, perspective });
 
-export const dashboardsPatchAllVariables = (variables: any, perspective: string) =>
+export const dashboardsPatchAllVariables = (variables: any, perspective: Perspective) =>
   action(ActionType.DashboardsPatchAllVariables, { variables, perspective });
 
-export const DashboardsClearVariables = (perspective: string) =>
+export const DashboardsClearVariables = (perspective: Perspective) =>
   action(ActionType.DashboardsClearVariables, { perspective });
 
-export const dashboardsSetEndTime = (endTime: number, perspective: string) =>
+export const dashboardsSetEndTime = (endTime: number, perspective: Perspective) =>
   action(ActionType.DashboardsSetEndTime, { endTime, perspective });
 
-export const dashboardsSetPollInterval = (pollInterval: number, perspective: string) =>
+export const dashboardsSetPollInterval = (pollInterval: number, perspective: Perspective) =>
   action(ActionType.DashboardsSetPollInterval, { pollInterval, perspective });
 
-export const dashboardsSetTimespan = (timespan: number, perspective: string) =>
+export const dashboardsSetTimespan = (timespan: number, perspective: Perspective) =>
   action(ActionType.DashboardsSetTimespan, { timespan, perspective });
 
 export const dashboardsVariableOptionsLoaded = (
   key: string,
   newOptions: string[],
-  perspective: string,
+  perspective: Perspective,
 ) => action(ActionType.DashboardsVariableOptionsLoaded, { key, newOptions, perspective });
 
-export const alertingLoading = (
-  key: 'alerts' | 'silences' | 'notificationAlerts',
-  perspective = 'admin',
-) =>
+export const alertingLoading = (key: AlertingKey, perspective: Perspective) =>
   action(ActionType.AlertingSetData, {
     key,
     data: { loaded: false, loadError: null, data: null, perspective },
   });
 
-export const alertingLoaded = (
-  key: 'alerts' | 'silences' | 'notificationAlerts' | 'devAlerts',
-  alerts: any,
-  perspective = 'admin',
-) =>
+export const alertingLoaded = (key: AlertingKey, alerts: any, perspective: Perspective) =>
   action(ActionType.AlertingSetData, {
     key,
     data: { loaded: true, loadError: null, data: alerts, perspective },
   });
 
-export const alertingErrored = (
-  key: 'alerts' | 'silences' | 'notificationAlerts' | 'devAlerts',
-  loadError: Error,
-  perspective = 'admin',
-) =>
+export const alertingErrored = (key: AlertingKey, loadError: Error, perspective: Perspective) =>
   action(ActionType.AlertingSetData, {
     key,
     data: { loaded: true, loadError, data: null, perspective },
   });
 
-export const alertingSetRules = (key: 'rules' | 'devRules', rules: Rule[], perspective = 'admin') =>
-  action(ActionType.AlertingSetRules, { key, data: rules, perspective });
+export const alertingSetRules = (
+  key: 'rules' | 'devRules',
+  rules: Rule[],
+  perspective: Perspective,
+) => action(ActionType.AlertingSetRules, { key, data: rules, perspective });
 
 export const toggleGraphs = () => action(ActionType.ToggleGraphs);
 

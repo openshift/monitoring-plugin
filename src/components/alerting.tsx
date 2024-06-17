@@ -129,6 +129,7 @@ import {
 } from './utils';
 
 import './_monitoring.scss';
+import { usePerspective } from './hooks/usePerspective';
 
 const SelectedSilencesContext = React.createContext({
   selectedSilences: new Set(),
@@ -1297,6 +1298,7 @@ const ExpireSilenceModal: React.FC<ExpireSilenceModalProps> = ({
   silenceID,
 }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
+  const [perspective] = usePerspective();
 
   const dispatch = useDispatch();
 
@@ -1308,7 +1310,7 @@ const ExpireSilenceModal: React.FC<ExpireSilenceModalProps> = ({
     consoleFetchJSON
       .delete(`${window.SERVER_FLAGS.alertManagerBaseURL}/api/v2/silence/${silenceID}`)
       .then(() => {
-        refreshSilences(dispatch);
+        refreshSilences(dispatch, perspective);
         setClosed();
       })
       .catch((err) => {
@@ -2087,6 +2089,8 @@ type ExpireAllSilencesButtonProps = {
 const ExpireAllSilencesButton: React.FC<ExpireAllSilencesButtonProps> = ({ setErrorMessage }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
 
+  const [perspective] = usePerspective();
+
   const [isInProgress, , setInProgress, setNotInProgress] = useBoolean(false);
 
   const dispatch = useDispatch();
@@ -2104,7 +2108,7 @@ const ExpireAllSilencesButton: React.FC<ExpireAllSilencesButtonProps> = ({ setEr
     ).then((values) => {
       setNotInProgress();
       setSelectedSilences(new Set());
-      refreshSilences(dispatch);
+      refreshSilences(dispatch, perspective);
       const errors = values
         .filter((v) => v.status === 'rejected')
         .map((v: PromiseRejectedResult) => v.reason);
@@ -2369,6 +2373,8 @@ const AlertingPage: React.FC<RouteComponentProps<{ url: string }>> = ({ match })
 const PollerPages = () => {
   const dispatch = useDispatch();
 
+  const [perspective] = usePerspective();
+
   const [customExtensions] =
     useResolvedExtensions<AlertingRulesSourceExtension>(isAlertingRulesSource);
 
@@ -2386,17 +2392,17 @@ const PollerPages = () => {
     if (prometheusBaseURL) {
       const alertsKey = 'alerts';
       const rulesKey = 'rules';
-      dispatch(alertingLoading(alertsKey));
+      dispatch(alertingLoading(alertsKey, perspective));
       const url = getPrometheusURL({ endpoint: PrometheusEndpoint.RULES });
       const poller = (): void => {
         fetchAlerts(url, alertsSource)
           .then(({ data }) => {
             const { alerts, rules } = getAlertsAndRules(data);
-            dispatch(alertingLoaded(alertsKey, alerts));
-            dispatch(alertingSetRules(rulesKey, rules));
+            dispatch(alertingLoaded(alertsKey, alerts, perspective));
+            dispatch(alertingSetRules(rulesKey, rules, perspective));
           })
           .catch((e) => {
-            dispatch(alertingErrored(alertsKey, e));
+            dispatch(alertingErrored(alertsKey, e, perspective));
           })
           .then(() => {
             if (pollerTimeouts[alertsKey]) {
@@ -2408,12 +2414,12 @@ const PollerPages = () => {
       pollers[alertsKey] = poller;
       poller();
     } else {
-      dispatch(alertingErrored('alerts', new Error('prometheusBaseURL not set')));
+      dispatch(alertingErrored('alerts', new Error('prometheusBaseURL not set'), perspective));
     }
     return () => {
       _.each(pollerTimeouts, clearTimeout);
     };
-  }, [alertsSource, dispatch]);
+  }, [alertsSource, dispatch, perspective]);
 
   return (
     <Switch>
