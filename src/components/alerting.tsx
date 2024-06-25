@@ -1,17 +1,14 @@
 import {
-  Action,
   ActionServiceProvider,
   Alert,
   AlertSeverity,
   AlertStates,
-  BlueInfoCircleIcon,
   consoleFetchJSON,
   GreenCheckCircleIcon,
   ListPageFilter,
   PrometheusAlert,
   PrometheusEndpoint,
   PrometheusLabels,
-  RedExclamationCircleIcon,
   ResourceLink,
   ResourceStatus,
   RowFilter,
@@ -24,7 +21,6 @@ import {
   useListPageFilter,
   useResolvedExtensions,
   VirtualizedTable,
-  YellowExclamationTriangleIcon,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Alert as PFAlert,
@@ -50,13 +46,7 @@ import {
   ToolbarGroup,
   ToolbarItem,
 } from '@patternfly/react-core';
-import {
-  BanIcon,
-  BellIcon,
-  BellSlashIcon,
-  HourglassHalfIcon,
-  OutlinedBellIcon,
-} from '@patternfly/react-icons';
+import { BanIcon, HourglassHalfIcon } from '@patternfly/react-icons';
 import { sortable } from '@patternfly/react-table';
 import classNames from 'classnames';
 import { TFunction } from 'i18next';
@@ -109,7 +99,7 @@ import { QueryBrowserPage, ToggleGraph } from './metrics';
 import { FormatSeriesTitle, QueryBrowser } from './query-browser';
 import { CreateSilence, EditSilence } from './silence-form';
 import { TargetsUI } from './targets';
-import { Alerts, AlertSource, MonitoringResource, RootState, Silences } from './types';
+import { Alerts, AlertSource, RootState, Silences } from './types';
 import {
   alertDescription,
   alertingRuleStateOrder,
@@ -117,7 +107,6 @@ import {
   alertSeverityOrder,
   alertState,
   alertURL,
-  devAlertURL,
   fuzzyCaseInsensitive,
   getAlertsAndRules,
   labelsToParams,
@@ -130,81 +119,32 @@ import {
 
 import './_monitoring.scss';
 import { usePerspective } from './hooks/usePerspective';
+import {
+  alertingRuleSource,
+  alertSource,
+  AlertState,
+  AlertStateDescription,
+  AlertStateIcon,
+  getAdditionalSources,
+  getAlertStateKey,
+  isActionWithCallback,
+  isActionWithHref,
+  MonitoringResourceIcon,
+  ruleURL,
+  Severity,
+  SeverityIcon,
+  silenceAlertURL,
+  SilencesNotLoadedWarning,
+} from './alerting/AlertUtils';
+import AlertsPage from './alerting/AlertsPage';
 
 const SelectedSilencesContext = React.createContext({
   selectedSilences: new Set(),
   setSelectedSilences: undefined,
 });
 
-const ruleURL = (rule: Rule) => `${RuleResource.plural}/${_.get(rule, 'id')}`;
-
-const alertingRuleSource = (rule: Rule): AlertSource | string => {
-  if (rule.sourceId === undefined || rule.sourceId === 'prometheus') {
-    return rule.labels?.prometheus === 'openshift-monitoring/k8s'
-      ? AlertSource.Platform
-      : AlertSource.User;
-  }
-
-  return rule.sourceId;
-};
-
-const alertSource = (alert: Alert): AlertSource | string => alertingRuleSource(alert.rule);
-
 const pollers = {};
 const pollerTimeouts = {};
-
-const silenceAlertURL = (alert: PrometheusAlert) =>
-  `${SilenceResource.plural}/~new?${labelsToParams(alert.labels)}`;
-
-const MonitoringResourceIcon: React.FC<MonitoringResourceIconProps> = ({ className, resource }) => (
-  <span
-    className={classNames(
-      `co-m-resource-icon co-m-resource-${resource.kind.toLowerCase()}`,
-      className,
-    )}
-    title={resource.label}
-  >
-    {resource.abbr}
-  </span>
-);
-
-const AlertStateIcon: React.FC<{ state: string }> = React.memo(({ state }) => {
-  switch (state) {
-    case AlertStates.Firing:
-      return <BellIcon />;
-    case AlertStates.Pending:
-      return <OutlinedBellIcon />;
-    case AlertStates.Silenced:
-      return <BellSlashIcon className="text-muted" />;
-    default:
-      return null;
-  }
-});
-
-const getAlertStateKey = (state, t) => {
-  switch (state) {
-    case AlertStates.Firing:
-      return t('Firing');
-    case AlertStates.Pending:
-      return t('Pending');
-    case AlertStates.Silenced:
-      return t('Silenced');
-    default:
-      return t('Not Firing');
-  }
-};
-
-const AlertState: React.FC<AlertStateProps> = React.memo(({ state }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
-
-  const icon = <AlertStateIcon state={state} />;
-
-  return icon ? (
-    <>
-      {icon} {getAlertStateKey(state, t)}
-    </>
-  ) : null;
-});
 
 const SilenceState = ({ silence }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
@@ -240,56 +180,6 @@ const StateTimestamp = ({ text, timestamp }) => (
     <Timestamp timestamp={timestamp} />
   </div>
 );
-
-const AlertStateDescription: React.FC<{ alert: Alert }> = ({ alert }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
-
-  if (alert && !_.isEmpty(alert.silencedBy)) {
-    return <StateTimestamp text={t('Ends')} timestamp={_.max(_.map(alert.silencedBy, 'endsAt'))} />;
-  }
-  if (alert && alert.activeAt) {
-    return <StateTimestamp text={t('Since')} timestamp={alert.activeAt} />;
-  }
-  return null;
-};
-
-const SeverityIcon: React.FC<{ severity: string }> = React.memo(({ severity }) => {
-  const Icon =
-    {
-      [AlertSeverity.Critical]: RedExclamationCircleIcon,
-      [AlertSeverity.Info]: BlueInfoCircleIcon,
-      [AlertSeverity.None]: BlueInfoCircleIcon,
-      [AlertSeverity.Warning]: YellowExclamationTriangleIcon,
-    }[severity] || YellowExclamationTriangleIcon;
-  return <Icon />;
-});
-
-const Severity: React.FC<{ severity: string }> = React.memo(({ severity }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
-
-  const getSeverityKey = (severityData: string) => {
-    switch (severityData) {
-      case AlertSeverity.Critical:
-        return t('Critical');
-      case AlertSeverity.Info:
-        return t('Info');
-      case AlertSeverity.Warning:
-        return t('Warning');
-      case AlertSeverity.None:
-        return t('None');
-      default:
-        return severityData;
-    }
-  };
-
-  return _.isNil(severity) ? (
-    <>-</>
-  ) : (
-    <>
-      <SeverityIcon severity={severity} /> {getSeverityKey(severity)}
-    </>
-  );
-});
 
 const SeverityBadge: React.FC<{ severity: string }> = React.memo(({ severity }) =>
   _.isNil(severity) || severity === 'none' ? null : (
@@ -448,15 +338,6 @@ const SourceHelp: React.FC = () => {
     </dl>
   );
 };
-
-type ActionWithHref = Omit<Action, 'cta'> & { cta: { href: string; external?: boolean } };
-
-type ActionWithCallBack = Omit<Action, 'cta'> & { cta: () => void };
-
-const isActionWithHref = (action: Action): action is ActionWithHref => 'href' in action.cta;
-
-const isActionWithCallback = (action: Action): action is ActionWithCallBack =>
-  typeof action.cta === 'function';
 
 const queryBrowserURL = (query: string, namespace: string) =>
   namespace
@@ -1601,101 +1482,6 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
 };
 const SilencesDetailsPage = withFallback(SilencesDetailsPage_);
 
-const tableAlertClasses = [
-  'pf-u-w-50 pf-u-w-33-on-sm', // Name
-  'pf-m-hidden pf-m-visible-on-sm', // Severity
-  '', // State
-  'pf-m-hidden pf-m-visible-on-sm', // Source
-  'dropdown-kebab-pf pf-c-table__action',
-];
-
-type AlertTableRowProps = RouteComponentProps<AlertsPageProps> & RowProps<Alert>;
-
-const AlertTableRow_: React.FC<AlertTableRowProps> = ({ history, obj, match }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
-  const { isDev } = usePerspective();
-  const namespace = match.params.ns;
-
-  const { annotations = {}, labels } = obj;
-  const description = annotations.description || annotations.message;
-  const state = alertState(obj);
-
-  const title: string = obj.annotations?.description || obj.annotations?.message;
-
-  const dropdownItems = [
-    <DropdownItem key="view-rule" onClick={() => history.push(ruleURL(obj.rule))}>
-      {t('View alerting rule')}
-    </DropdownItem>,
-  ];
-  if (state !== AlertStates.Silenced) {
-    dropdownItems.unshift(
-      <DropdownItem key="silence-alert" onClick={() => history.push(silenceAlertURL(obj))}>
-        {t('Silence alert')}
-      </DropdownItem>,
-    );
-  }
-
-  const getDropdownItemsWithExtension = (actions: Action[]) => {
-    const extensionDropdownItems = [];
-    actions.forEach((action) => {
-      if (isActionWithHref(action)) {
-        extensionDropdownItems.push(
-          <DropdownItem key={action.id} href={action.cta.href}>
-            {action.label}
-          </DropdownItem>,
-        );
-      } else if (isActionWithCallback(action)) {
-        extensionDropdownItems.push(
-          <DropdownItem key={action.id} onClick={action.cta}>
-            {action.label}
-          </DropdownItem>,
-        );
-      }
-    });
-    return dropdownItems.concat(extensionDropdownItems);
-  };
-
-  return (
-    <>
-      <td className={tableAlertClasses[0]} title={title}>
-        <div className="co-resource-item">
-          <MonitoringResourceIcon resource={AlertResource} />
-          <Link
-            to={isDev ? devAlertURL(obj, obj.rule.id, namespace) : alertURL(obj, obj.rule.id)}
-            data-test-id="alert-resource-link"
-            className="co-resource-item__resource-name"
-          >
-            {labels?.alertname}
-          </Link>
-        </div>
-        <div className="monitoring-description">{description}</div>
-      </td>
-      <td className={tableAlertClasses[1]} title={title}>
-        <Severity severity={labels?.severity} />
-      </td>
-      <td className={tableAlertClasses[2]} title={title}>
-        <AlertState state={state} />
-        <AlertStateDescription alert={obj} />
-      </td>
-      <td className={tableAlertClasses[3]} title={title}>
-        {alertSource(obj) === AlertSource.User ? t('User') : t('Platform')}
-      </td>
-      <td className={tableAlertClasses[4]} title={title}>
-        <ActionServiceProvider context={{ 'monitoring-alert-list-item': { alert: obj } }}>
-          {({ actions, loaded }) => {
-            if (loaded && actions.length > 0) {
-              return <KebabDropdown dropdownItems={getDropdownItemsWithExtension(actions)} />;
-            } else {
-              return <KebabDropdown dropdownItems={dropdownItems} />;
-            }
-          }}
-        </ActionServiceProvider>
-      </td>
-    </>
-  );
-};
-const AlertTableRow = withRouter(AlertTableRow_);
-
 export const severityRowFilter = (t): RowFilter => ({
   filter: (filter, alert: Alert) =>
     filter.selected?.includes(alert.labels?.severity) || _.isEmpty(filter.selected),
@@ -1709,194 +1495,6 @@ export const severityRowFilter = (t): RowFilter => ({
   reducer: ({ labels }: Alert | Rule) => labels?.severity,
   type: 'alert-severity',
 });
-
-const SilencesNotLoadedWarning: React.FC<{ silencesLoadError: any }> = ({ silencesLoadError }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
-
-  return (
-    <PFAlert
-      className="co-alert"
-      isInline
-      title={t(
-        'Error loading silences from Alertmanager. Some of the alerts below may actually be silenced.',
-      )}
-      variant="warning"
-    >
-      {silencesLoadError.json?.error || silencesLoadError.message}
-    </PFAlert>
-  );
-};
-
-// Sort alerts by their state (sort first by the state itself, then by the timestamp relevant to
-// the state)
-const alertStateOrder = (alert: Alert) => [
-  [AlertStates.Firing, AlertStates.Pending, AlertStates.Silenced].indexOf(alertState(alert)),
-  alertState(alert) === AlertStates.Silenced
-    ? _.max(_.map(alert.silencedBy, 'endsAt'))
-    : _.get(alert, 'activeAt'),
-];
-
-const getAdditionalSources = <T extends Alert | Rule>(
-  data: Array<T>,
-  itemSource: (item: T) => string,
-) => {
-  if (data) {
-    const additionalSources = new Set<string>();
-    data.forEach((item) => {
-      const source = itemSource(item);
-      if (source !== AlertSource.Platform && source !== AlertSource.User) {
-        additionalSources.add(source);
-      }
-    });
-    return Array.from(additionalSources).map((item) => ({ id: item, title: _.startCase(item) }));
-  }
-  return [];
-};
-
-type AlertsPageProps = {
-  ns: string | undefined;
-};
-
-const AlertsPage_: React.FC<AlertsPageProps> = () => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
-  const { isDev, alertsKey, defaultAlertTenant } = usePerspective();
-
-  const {
-    data,
-    loaded = false,
-    loadError,
-  }: Alerts = useSelector(({ observe }: RootState) => observe.get(alertsKey) || {});
-  const silencesLoadError = useSelector(
-    ({ observe }: RootState) => observe.get('silences')?.loadError,
-  );
-
-  const alertAdditionalSources = React.useMemo(
-    () => getAdditionalSources(data, alertSource),
-    [data],
-  );
-
-  const rowFilters: RowFilter[] = [
-    // TODO: The "name" filter doesn't really fit useListPageFilter's idea of a RowFilter, but
-    //       useListPageFilter doesn't yet provide a better way to add a filter like this
-    {
-      filter: (filter, alert: Alert) =>
-        fuzzyCaseInsensitive(filter.selected?.[0], alert.labels?.alertname),
-      filterGroupName: '',
-      items: [],
-      type: 'name',
-    } as RowFilter,
-    {
-      defaultSelected: [AlertStates.Firing],
-      filter: (filter, alert: Alert) =>
-        filter.selected?.includes(alertState(alert)) || _.isEmpty(filter.selected),
-      filterGroupName: t('Alert State'),
-      items: [
-        { id: AlertStates.Firing, title: t('Firing') },
-        { id: AlertStates.Pending, title: t('Pending') },
-        { id: AlertStates.Silenced, title: t('Silenced') },
-      ],
-      reducer: alertState,
-      type: 'alert-state',
-    },
-    severityRowFilter(t),
-    {
-      defaultSelected: [defaultAlertTenant],
-      filter: (filter, alert: Alert) =>
-        filter.selected?.includes(alertSource(alert)) || _.isEmpty(filter.selected),
-      filterGroupName: t('Source'),
-      items: [
-        { id: AlertSource.Platform, title: t('Platform') },
-        { id: AlertSource.User, title: t('User') },
-        ...alertAdditionalSources,
-      ],
-      reducer: alertSource,
-      type: 'alert-source',
-    },
-  ];
-
-  const [staticData, filteredData, onFilterChange] = useListPageFilter(data, rowFilters);
-
-  if (isDev) {
-    rowFilters.filter((filter) => filter.filterGroupName !== t('Source'));
-  }
-
-  const columns = React.useMemo<TableColumn<Alert>[]>(
-    () => [
-      {
-        id: 'name',
-        props: { className: tableAlertClasses[0] },
-        sort: 'labels.alertname',
-        title: t('Name'),
-        transforms: [sortable],
-      },
-      {
-        id: 'severity',
-        props: { className: tableAlertClasses[1] },
-        sort: (alerts: Alert[], direction: 'asc' | 'desc') =>
-          _.orderBy(alerts, alertSeverityOrder, [direction]) as Alert[],
-        title: t('Severity'),
-        transforms: [sortable],
-      },
-      {
-        id: 'state',
-        props: { className: tableAlertClasses[2] },
-        sort: (alerts: Alert[], direction: 'asc' | 'desc') =>
-          _.orderBy(alerts, alertStateOrder, [direction]),
-        title: t('State'),
-        transforms: [sortable],
-      },
-      {
-        id: 'source',
-        props: { className: tableAlertClasses[3] },
-        sort: (alerts: Alert[], direction: 'asc' | 'desc') =>
-          _.orderBy(alerts, alertSource, [direction]),
-        title: t('Source'),
-        transforms: [sortable],
-      },
-      {
-        id: 'actions',
-        props: { className: tableAlertClasses[4] },
-        title: '',
-      },
-    ],
-    [t],
-  );
-
-  return (
-    <>
-      <Helmet>
-        <title>Alerting</title>
-      </Helmet>
-      <div className="co-m-pane__body">
-        <ListPageFilter
-          data={staticData}
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore TODO
-          labelFilter="alerts"
-          labelPath="labels"
-          loaded={loaded}
-          onFilterChange={onFilterChange}
-          rowFilters={rowFilters}
-        />
-        {silencesLoadError && <SilencesNotLoadedWarning silencesLoadError={silencesLoadError} />}
-        <div className="row">
-          <div className="col-xs-12">
-            <VirtualizedTable<Alert>
-              aria-label={t('Alerts')}
-              columns={columns}
-              data={filteredData ?? []}
-              loaded={loaded}
-              loadError={loadError}
-              Row={AlertTableRow}
-              unfilteredData={data}
-            />
-          </div>
-        </div>
-      </div>
-    </>
-  );
-};
-const AlertsPage = withFallback(AlertsPage_);
 
 const ruleHasAlertState = (rule: Rule, state: AlertStates): boolean =>
   state === AlertStates.NotFiring ? _.isEmpty(rule.alerts) : _.some(rule.alerts, { state });
@@ -2466,10 +2064,6 @@ const MonitoringUI = () => (
   </Switch>
 );
 
-type AlertStateProps = {
-  state: AlertStates;
-};
-
 type AlertMessageProps = {
   alertText: string;
   labels: PrometheusLabels;
@@ -2483,11 +2077,6 @@ type GraphProps = {
   query: string;
   ruleDuration: number;
   showLegend?: boolean;
-};
-
-type MonitoringResourceIconProps = {
-  className?: string;
-  resource: MonitoringResource;
 };
 
 type OnToggle = (value: boolean, e: MouseEvent) => void;
