@@ -125,6 +125,7 @@ import {
   AlertState,
   AlertStateDescription,
   AlertStateIcon,
+  devRuleURL,
   getAdditionalSources,
   getAlertStateKey,
   isActionWithCallback,
@@ -847,11 +848,7 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
                     <div className="co-resource-item">
                       <MonitoringResourceIcon resource={RuleResource} />
                       <Link
-                        to={
-                          namespace
-                            ? `/dev-monitoring/ns/${namespace}/rules/${rule?.id}`
-                            : ruleURL(rule)
-                        }
+                        to={namespace ? devRuleURL(rule, namespace) : ruleURL(rule)}
                         data-test="alert-rules-detail-resource-link"
                         className="co-resource-item__resource-name"
                       >

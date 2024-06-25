@@ -10,6 +10,8 @@ import {
   alertSource,
   AlertState,
   AlertStateDescription,
+  devRuleURL,
+  devSilenceAlertURL,
   getAdditionalSources,
   isActionWithCallback,
   isActionWithHref,
@@ -168,8 +170,6 @@ const AlertsPage_: React.FC<AlertsPageProps> = () => {
       <div className="co-m-pane__body">
         <ListPageFilter
           data={staticData}
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore TODO
           labelFilter="alerts"
           labelPath="labels"
           loaded={loaded}
@@ -217,13 +217,21 @@ const AlertTableRow_: React.FC<AlertTableRowProps> = ({ history, obj, match }) =
   const title: string = obj.annotations?.description || obj.annotations?.message;
 
   const dropdownItems = [
-    <DropdownItem key="view-rule" onClick={() => history.push(ruleURL(obj.rule))}>
+    <DropdownItem
+      key="view-rule"
+      onClick={() => history.push(isDev ? devRuleURL(obj.rule, namespace) : ruleURL(obj.rule))}
+    >
       {t('View alerting rule')}
     </DropdownItem>,
   ];
   if (state !== AlertStates.Silenced) {
     dropdownItems.unshift(
-      <DropdownItem key="silence-alert" onClick={() => history.push(silenceAlertURL(obj))}>
+      <DropdownItem
+        key="silence-alert"
+        onClick={() =>
+          history.push(isDev ? devSilenceAlertURL(obj, namespace) : silenceAlertURL(obj))
+        }
+      >
         {t('Silence alert')}
       </DropdownItem>,
     );

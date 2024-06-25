@@ -71,9 +71,14 @@ type ActionWithHref = Omit<Action, 'cta'> & { cta: { href: string; external?: bo
 export const isActionWithHref = (action: Action): action is ActionWithHref => 'href' in action.cta;
 
 export const ruleURL = (rule: Rule) => `${RuleResource.plural}/${_.get(rule, 'id')}`;
+export const devRuleURL = (rule: Rule, namespace: string) =>
+  `/dev-monitoring/ns/${namespace}/rules/${rule?.id}`;
 
 export const silenceAlertURL = (alert: PrometheusAlert) =>
   `${SilenceResource.plural}/~new?${labelsToParams(alert.labels)}`;
+
+export const devSilenceAlertURL = (alert: PrometheusAlert, namespace: string) =>
+  `/dev-monitoring/ns/${namespace}/silences/~new?${labelsToParams(alert.labels)}`;
 
 type ActionWithCallBack = Omit<Action, 'cta'> & { cta: () => void };
 export const isActionWithCallback = (action: Action): action is ActionWithCallBack =>
