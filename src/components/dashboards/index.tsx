@@ -455,6 +455,7 @@ const DashboardDropdown: React.FC<DashboardDropdownProps> = React.memo(
           htmlFor="monitoring-board-dropdown"
         >
           {t('Dashboard')}
+          <h1>Hello World</h1>
         </label>
         <FilterSelect
           items={selectItems}
