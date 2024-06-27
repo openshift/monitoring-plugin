@@ -75,7 +75,7 @@ const AlertsPage_: React.FC<AlertsPageProps> = () => {
     [data],
   );
 
-  const rowFilters: RowFilter[] = [
+  let rowFilters: RowFilter[] = [
     // TODO: The "name" filter doesn't really fit useListPageFilter's idea of a RowFilter, but
     //       useListPageFilter doesn't yet provide a better way to add a filter like this
     {
@@ -114,11 +114,14 @@ const AlertsPage_: React.FC<AlertsPageProps> = () => {
     },
   ];
 
-  const [staticData, filteredData, onFilterChange] = useListPageFilter(data, rowFilters);
-
   if (isDev) {
-    rowFilters.filter((filter) => filter.filterGroupName !== t('Source'));
+    rowFilters = rowFilters.filter((filter) => filter.type !== 'alert-source');
   }
+
+  const [staticData, filteredData, onFilterChange] = useListPageFilter(
+    data?.filter((alert: Alert) => (isDev ? alertSource(alert) === AlertSource.User : true)),
+    rowFilters,
+  );
 
   const columns = React.useMemo<TableColumn<Alert>[]>(
     () => [
