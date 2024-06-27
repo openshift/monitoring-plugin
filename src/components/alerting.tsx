@@ -100,26 +100,28 @@ import {
   getSourceKey,
   Graph,
   MonitoringResourceIcon,
-  OnToggle,
   PopoverField,
   queryBrowserURL,
   ruleURL,
-  SelectedSilencesContext,
   Severity,
   SeverityBadge,
   SeverityCounts,
   SeverityHelp,
   silenceAlertURL,
-  SilenceDropdown,
-  SilenceMatchersList,
   SilencesNotLoadedWarning,
-  SilenceState,
-  SilenceTableRow,
   SourceHelp,
-  tableSilenceClasses,
 } from './alerting/AlertUtils';
 import AlertsPage from './alerting/AlertsPage';
 import AlertsDetailsPage from './alerting/AlertsDetailPage';
+import {
+  SelectedSilencesContext,
+  SilenceDropdown,
+  SilenceMatchersList,
+  SilenceState,
+  SilenceTableRow,
+  tableSilenceClasses,
+} from './alerting/SilencesUtils';
+import { OnToggle } from './alerting/AlertUtils';
 
 const pollers = {};
 const pollerTimeouts = {};

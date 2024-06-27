@@ -16,6 +16,7 @@ src/components
 │   │   AlertsRuleDetailPage (Detail page of alert rules)
 │   │   SilencesPage (Lister view of silences)
 │   │   SilencesDetailPage (Detail page of alert rules)
+│   │   SilencesUtils (Utility functions specific to silence functionality)
 ```
 
 Update this doc if changes are needed and remove it once the migration is complete.
