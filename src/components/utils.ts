@@ -7,6 +7,7 @@ import {
   AlertSeverity,
   AlertStates,
   consoleFetchJSON,
+  PrometheusAlert,
   PrometheusLabels,
   PrometheusRule,
   PrometheusRulesResponse,
@@ -15,7 +16,7 @@ import {
   SilenceStates,
 } from '@openshift-console/dynamic-plugin-sdk';
 
-import { alertingErrored, alertingLoaded, alertingLoading } from '../actions/observe';
+import { alertingErrored, alertingLoaded, alertingLoading, Perspective } from '../actions/observe';
 import { AlertSource, MonitoringResource, Target, TimeRange } from './types';
 
 export const PROMETHEUS_BASE_PATH = window.SERVER_FLAGS.prometheusBaseURL;
@@ -48,8 +49,11 @@ export const fuzzyCaseInsensitive = (a: string, b: string): boolean =>
 export const labelsToParams = (labels: PrometheusLabels) =>
   _.map(labels, (v, k) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join('&');
 
-export const alertURL = (alert: Alert, ruleID: string) =>
+export const alertURL = (alert: PrometheusAlert, ruleID: string) =>
   `${AlertResource.plural}/${ruleID}?${labelsToParams(alert.labels)}`;
+
+export const devAlertURL = (alert: Alert, ruleID: string, namespace: string) =>
+  `/dev-monitoring/ns/${namespace}/alerts/${ruleID}?${labelsToParams(alert.labels)}`;
 
 export const getAlertsAndRules = (
   data: PrometheusRulesResponse['data'],
@@ -104,13 +108,13 @@ const getSilenceName = (silence: Silence) => {
         .join(', ');
 };
 
-export const refreshSilences = (dispatch: Dispatch): void => {
+export const refreshSilences = (dispatch: Dispatch, perspective: Perspective): void => {
   const { alertManagerBaseURL } = window.SERVER_FLAGS;
   if (!alertManagerBaseURL) {
     return;
   }
 
-  dispatch(alertingLoading('silences'));
+  dispatch(alertingLoading('silences', perspective));
 
   consoleFetchJSON(`${alertManagerBaseURL}/api/v2/silences`)
     .then((silences) => {
@@ -118,14 +122,14 @@ export const refreshSilences = (dispatch: Dispatch): void => {
       _.each(silences, (s) => {
         s.name = getSilenceName(s);
       });
-      dispatch(alertingLoaded('silences', silences));
+      dispatch(alertingLoaded('silences', silences, perspective));
     })
     .catch((e) => {
-      dispatch(alertingErrored('silences', e));
+      dispatch(alertingErrored('silences', e, perspective));
     });
 };
 
-export const alertDescription = (alert: Alert | Rule): string =>
+export const alertDescription = (alert: PrometheusAlert | Rule): string =>
   alert.annotations?.description || alert.annotations?.message || alert.labels?.alertname;
 
 // Determine if an Alert is silenced by a Silence (if all of the Silence's matchers match one of the

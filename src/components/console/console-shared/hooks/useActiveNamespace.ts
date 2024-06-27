@@ -1,13 +1,5 @@
-import * as React from 'react';
+import { useSelector } from 'react-redux';
 
-type NamespaceContextType = {
-  namespace?: string;
-  setNamespace?: (ns: string) => void;
-};
-
-const NamespaceContext = React.createContext<NamespaceContextType>({});
-
-export const useActiveNamespace = () => {
-  const { namespace, setNamespace } = React.useContext(NamespaceContext);
-  return [namespace, setNamespace];
+export const useActiveNamespace = (): string => {
+  return useSelector(({ UI }) => UI.get('activeNamespace'));
 };

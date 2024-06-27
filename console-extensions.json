@@ -78,5 +78,16 @@
       "section": "observe",
       "insertAfter": "dashboards"
     }
+  },
+  {
+    "type": "console.tab",
+    "properties": {
+      "contextId": "dev-console-observe",
+      "name": "%public~Alerts%",
+      "href": "alerts",
+      "component": {
+        "$codeRef": "MonitoringUI"
+      }
+    }
   }
 ]

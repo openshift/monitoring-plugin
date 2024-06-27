@@ -6,8 +6,6 @@ import { getQueryArgument } from '../console/utils/router';
 
 export const DEFAULT_GRAPH_SAMPLES = 60;
 
-export const getActivePerspective = (namespace: string): string => (namespace ? 'dev' : 'admin');
-
 export const getAllVariables = (boards: Board[], newBoardName: string, namespace: string) => {
   const data = _.find(boards, { name: newBoardName })?.data;
 

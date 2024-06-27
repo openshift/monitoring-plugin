@@ -3,10 +3,10 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import { CustomDataSource } from '../console/extensions/dashboard-data-source';
 
-import { dashboardsSetEndTime, dashboardsSetTimespan } from '../../actions/observe';
+import { dashboardsSetEndTime, dashboardsSetTimespan, Perspective } from '../../actions/observe';
 import { FormatSeriesTitle, QueryBrowser } from '../query-browser';
 import { RootState } from '../types';
-import { DEFAULT_GRAPH_SAMPLES, getActivePerspective } from './monitoring-dashboard-utils';
+import { DEFAULT_GRAPH_SAMPLES } from './monitoring-dashboard-utils';
 
 type Props = {
   customDataSource?: CustomDataSource;
@@ -18,6 +18,7 @@ type Props = {
   units: string;
   onZoomHandle?: (timeRange: number, endTime: number) => void;
   namespace?: string;
+  perspective: Perspective;
 };
 
 const Graph: React.FC<Props> = ({
@@ -30,23 +31,23 @@ const Graph: React.FC<Props> = ({
   units,
   onZoomHandle,
   namespace,
+  perspective,
 }) => {
   const dispatch = useDispatch();
-  const activePerspective = getActivePerspective(namespace);
   const endTime = useSelector(({ observe }: RootState) =>
-    observe.getIn(['dashboards', activePerspective, 'endTime']),
+    observe.getIn(['dashboards', perspective, 'endTime']),
   );
   const timespan = useSelector(({ observe }: RootState) =>
-    observe.getIn(['dashboards', activePerspective, 'timespan']),
+    observe.getIn(['dashboards', perspective, 'timespan']),
   );
 
   const onZoom = React.useCallback(
     (from, to) => {
-      dispatch(dashboardsSetEndTime(to, activePerspective));
-      dispatch(dashboardsSetTimespan(to - from, activePerspective));
+      dispatch(dashboardsSetEndTime(to, perspective));
+      dispatch(dashboardsSetTimespan(to - from, perspective));
       onZoomHandle?.(to - from, to);
     },
-    [activePerspective, dispatch, onZoomHandle],
+    [perspective, dispatch, onZoomHandle],
   );
 
   return (
