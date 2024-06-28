@@ -1,14 +1,22 @@
-FROM registry.access.redhat.com/ubi8/nodejs-16:latest AS build
-USER root
-# RUN command -v yarn || npm i -g yarn
+FROM registry.redhat.io/ubi8/nodejs-18:1-71.1698060565 AS builder
 
-ADD . /usr/src/app
 WORKDIR /usr/src/app
-RUN npm install && npm run build
 
-FROM registry.access.redhat.com/ubi8/nginx-120:latest
+RUN npm install --global yarn
 
-COPY --from=build /usr/src/app/dist /usr/share/nginx/html
-USER 1001
+ENV HUSKY=0
 
-ENTRYPOINT ["nginx", "-g", "daemon off;"]
+COPY package.json yarn.lock .
+RUN yarn
+
+COPY ./console-extensions.json ./tsconfig.json ./webpack.config.ts .
+COPY ./locales ./locales
+COPY ./src ./src
+RUN yarn build
+
+FROM registry.ci.openshift.org/ocp/4.17:base-rhel9
+
+RUN INSTALL_PKGS="nginx" && \
+    dnf install -y --setopt=tsflags=nodocs $INSTALL_PKGS && \
+    rpm -V $INSTALL_PKGS && \
+    yum -y clean all --ena

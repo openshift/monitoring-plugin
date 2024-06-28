@@ -692,8 +692,7 @@ const Card: React.FC<CardProps> = React.memo(({ panel }) => {
         if (!result[dateTime][i]) {
           continue;
         }
-        const val = Object.values(result[dateTime][i]).toString();
-        temp.push(val);
+        temp.push(Object.values(result[dateTime][i]).toString());
       }
       csvString += `${row.join(',')}, ${temp.join(',')}\n`;
     }
