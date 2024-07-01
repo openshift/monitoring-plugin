@@ -1,6 +1,6 @@
 .devcontainer/dev.env
 .DS_Store
-cypress/screenshots/
-cypress/videos/
-dist/
-node_modules/
+web/cypress/screenshots/
+web/cypress/videos/
+web/dist/
+web/node_modules/

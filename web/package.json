@@ -15,10 +15,9 @@
     "lint": "eslint ./src",
     "lint-fix": "eslint ./src --fix",
     "pre-commit:check": "yarn lint",
-    "prepare": "husky install",
     "start": "yarn ts-node node_modules/.bin/webpack serve --stats-error-details",
     "start:standalone": "yarn ts-node node_modules/.bin/webpack serve --stats-error-details --config webpack.standalone.config.ts",
-    "start-console": "./start-console.sh",
+    "start-console": "../scripts/start-console.sh",
     "test": "npm run cypress:run:ci",
     "ts-node": "ts-node -O '{\"module\":\"commonjs\"}'"
   },

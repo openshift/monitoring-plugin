@@ -4,8 +4,8 @@ set -euo pipefail
 
 CONSOLE_IMAGE=${CONSOLE_IMAGE:="quay.io/openshift/origin-console:latest"}
 CONSOLE_PORT=${CONSOLE_PORT:=9000}
-npm_package_consolePlugin_name=${npm_package_consolePlugin_name:="monitoring-plugin"}
 CONSOLE_IMAGE_PLATFORM=${CONSOLE_IMAGE_PLATFORM:="linux/amd64"}
+npm_package_consolePlugin_name=${npm_package_consolePlugin_name:="monitoring-plugin"}
 
 echo "Starting local OpenShift console..."
 
@@ -32,12 +32,9 @@ if [ -x "$(command -v podman)" ]; then
         podman run --pull always --platform $CONSOLE_IMAGE_PLATFORM --rm --network=host --env-file <(set | grep BRIDGE) $CONSOLE_IMAGE
     else
         BRIDGE_PLUGINS="${npm_package_consolePlugin_name}=http://host.containers.internal:9001"
-        podman run --pull always --platform $CONSOLE_IMAGE_PLATFORM \
-            --rm -p "$CONSOLE_PORT":9000 \
-            --env-file <(set | grep BRIDGE) \
-            $CONSOLE_IMAGE
+        podman run --pull always --platform $CONSOLE_IMAGE_PLATFORM --rm -p "$CONSOLE_PORT":9000 --env-file <(set | grep BRIDGE) $CONSOLE_IMAGE
     fi
 else
     BRIDGE_PLUGINS="${npm_package_consolePlugin_name}=http://host.docker.internal:9001"
-   docker run --pull always --platform $CONSOLE_IMAGE_PLATFORM --rm -p "$CONSOLE_PORT":9000 --env-file <(set | grep BRIDGE) $CONSOLE_IMAGE
+    docker run --pull always --platform $CONSOLE_IMAGE_PLATFORM --rm -p "$CONSOLE_PORT":9000 --env-file <(set | grep BRIDGE) $CONSOLE_IMAGE
 fi
