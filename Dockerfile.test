@@ -4,9 +4,9 @@ WORKDIR /usr/src/app
 
 RUN npm install --global yarn
 
-COPY package.json yarn.lock .
+COPY web/package.json web/yarn.lock ./
 RUN yarn
 
-COPY . .
+COPY web/. .
 
 ENTRYPOINT ["yarn", "lint"]
