@@ -7,6 +7,7 @@ import { dashboardsSetEndTime, dashboardsSetTimespan } from '../../actions/obser
 import { FormatSeriesTitle, QueryBrowser } from '../query-browser';
 import { RootState } from '../types';
 import { DEFAULT_GRAPH_SAMPLES, getActivePerspective } from './monitoring-dashboard-utils';
+// import KebabDropdown from '../kebab-dropdown';
 
 type Props = {
   customDataSource?: CustomDataSource;
@@ -18,6 +19,9 @@ type Props = {
   units: string;
   onZoomHandle?: (timeRange: number, endTime: number) => void;
   namespace?: string;
+  onDataChange?: (data: any) => void;
+  //setCsvData?: {};
+  // KebabDropdown:P
 };
 
 const Graph: React.FC<Props> = ({
@@ -30,6 +34,7 @@ const Graph: React.FC<Props> = ({
   units,
   onZoomHandle,
   namespace,
+  onDataChange,
 }) => {
   const dispatch = useDispatch();
   const activePerspective = getActivePerspective(namespace);
@@ -64,6 +69,7 @@ const Graph: React.FC<Props> = ({
       timespan={timespan}
       units={units}
       namespace={namespace}
+      onDataChange={onDataChange}
     />
   );
 };

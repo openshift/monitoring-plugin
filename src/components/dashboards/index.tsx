@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
 import {
@@ -17,6 +18,8 @@ import {
   CardTitle,
   CardActions,
   Tooltip,
+  DropdownItem,
+  // DropdownPosition,
 } from '@patternfly/react-core';
 import { AngleDownIcon, AngleRightIcon } from '@patternfly/react-icons';
 import * as React from 'react';
@@ -57,6 +60,7 @@ import IntervalDropdown from '../poll-interval-dropdown';
 import { RootState } from '../types';
 import BarChart from './bar-chart';
 import Graph from './graph';
+//import graphData from './query-browser.tsx'
 import SingleStat from './single-stat';
 import Table from './table';
 import TimespanDropdown from './timespan-dropdown';
@@ -76,6 +80,7 @@ import {
   getAllVariables,
 } from './monitoring-dashboard-utils';
 import { getTimeRanges, isTimeoutError, QUERY_CHUNK_SIZE } from '../utils';
+import KebabDropdown from '../kebab-dropdown';
 
 const intervalVariableRegExps = ['__interval', '__rate_interval', '__auto_interval_[a-z]+'];
 
@@ -613,6 +618,116 @@ const Card: React.FC<CardProps> = React.memo(({ panel }) => {
   const [extensions, extensionsResolved] = useResolvedExtensions<DataSourceExtension>(isDataSource);
   const hasExtensions = !_.isEmpty(extensions);
 
+  // const [isOpen, setIsOpen] = React.useState(false);
+
+  // const onToggle = (isOpen: boolean) => {
+  //   setIsOpen(isOpen);
+  // };
+
+  // const onFocus = () => {
+  //   const element = document.getElementById('toggle-kebab');
+  //   element.focus();
+  // };
+
+  // const onSelect = () => {
+  //   setIsOpen(false);
+  //   onFocus();
+  // };
+  const formatSeriesTitle = React.useCallback(
+    (labels, i) => {
+      const title = panel.targets?.[i]?.legendFormat;
+      if (_.isNil(title)) {
+        return _.isEmpty(labels) ? '{}' : '';
+      }
+      // Replace Prometheus labels surrounded by {{ }} in the graph legend label templates
+      // Regex is based on https://prometheus.io/docs/concepts/data_model/#metric-names-and-labels
+      // with additional matchers to allow leading and trailing whitespace
+      return title.replace(
+        /{{\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*}}/g,
+        (match, key) => labels[key] ?? '',
+      );
+    },
+    [panel],
+  );
+  const [csvData, setCsvData] = React.useState([]);
+
+
+const csvExportHandler = () => {
+  // eslint-disable-next-line no-console
+  console.log('csvData:', csvData); // Log csvData
+
+  let csvString = '';
+  const result = {};
+  const nameArray = [];
+
+  for (const [i, row] of csvData.entries()) {
+    for (const item of row) {
+      for (const entry of item[1]) {
+        const dateTime = entry.x.toISOString();
+        const value = entry.y;
+        if (!result[dateTime]) {
+          result[dateTime] = [];
+        }
+        const name = formatSeriesTitle(item[0], i);
+        nameArray.push(name); // once per row?
+        if (!name) {
+          continue;
+        }
+        result[dateTime].push({ [name]: value });
+      }
+    }
+  }
+
+  // eslint-disable-next-line no-console
+  console.log('result:', result); // Log result
+
+  const firstDateTime = Object.keys(result)[0];
+  // eslint-disable-next-line no-console
+  console.log('firstDateTime:', firstDateTime); // Log firstDateTime
+
+  const uniqueSeries = new Set();
+
+  if (result[firstDateTime]) {
+    result[firstDateTime].forEach((item) => {
+      const verb = Object.keys(item)[0];
+      uniqueSeries.add(verb);
+    });
+  } else {
+    // eslint-disable-next-line no-console
+    console.error('result[firstDateTime] is undefined'); // Log error if undefined
+    return; // Exit early to avoid further errors
+  }
+
+  const uniqueSeriesArray = Array.from(uniqueSeries);
+  csvString = `DateTime,${uniqueSeriesArray.join(',')}\n`;
+  for (const dateTime in result) {
+    const row = [dateTime];
+    const temp = new Array(uniqueSeriesArray.length).fill(''); // Initialize empty array for row data
+    result[dateTime].forEach((item) => {
+      const name = Object.keys(item)[0];
+      const index = uniqueSeriesArray.indexOf(name);
+      if (index !== -1) {
+        temp[index] = item[name];
+      }
+    });
+    csvString += `${row.join(',')},${temp.join(',')}\n`;
+  }
+
+  const blobCsvData = new Blob([csvString], { type: 'text/csv' });
+  const csvURL = URL.createObjectURL(blobCsvData);
+  const link = document.createElement('a');
+  link.href = csvURL;
+  link.download = `graphData.csv`;
+  link.click();
+};
+
+
+  const dropdownItems = [
+    <DropdownItem key="action" component="button" onClick={csvExportHandler}>
+      {t('Export as CSV')}
+    </DropdownItem>,
+  ];
+
   React.useEffect(() => {
     const getCustomDataSource = async () => {
       if (!customDataSourceName) {
@@ -645,23 +760,6 @@ const Card: React.FC<CardProps> = React.memo(({ panel }) => {
       setIsError(true);
     });
   }, [extensions, extensionsResolved, customDataSourceName, hasExtensions]);
-
-  const formatSeriesTitle = React.useCallback(
-    (labels, i) => {
-      const title = panel.targets?.[i]?.legendFormat;
-      if (_.isNil(title)) {
-        return _.isEmpty(labels) ? '{}' : '';
-      }
-      // Replace Prometheus labels surrounded by {{ }} in the graph legend label templates
-      // Regex is based on https://prometheus.io/docs/concepts/data_model/#metric-names-and-labels
-      // with additional matchers to allow leading and trailing whitespace
-      return title.replace(
-        /{{\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*}}/g,
-        (match, key) => labels[key] ?? '',
-      );
-    },
-    [panel],
-  );
 
   const handleZoom = React.useCallback((timeRange: number, endTime: number) => {
     setQueryArguments({
@@ -711,6 +809,7 @@ const Card: React.FC<CardProps> = React.memo(({ panel }) => {
             {!isLoading && (
               <QueryBrowserLink queries={queries} customDataSourceName={customDataSourceName} />
             )}
+            {panel.type === 'graph' && <KebabDropdown dropdownItems={dropdownItems} />}
           </CardActions>
         </CardHeader>
         <CardBody className="co-dashboard-card__body--dashboard">
@@ -734,17 +833,20 @@ const Card: React.FC<CardProps> = React.memo(({ panel }) => {
                     />
                   )}
                   {panel.type === 'graph' && (
-                    <Graph
-                      formatSeriesTitle={formatSeriesTitle}
-                      isStack={panel.stack}
-                      pollInterval={pollInterval}
-                      queries={queries}
-                      showLegend={panel.legend?.show}
-                      units={panel.yaxes?.[0]?.format}
-                      onZoomHandle={handleZoom}
-                      namespace={namespace}
-                      customDataSource={customDataSource}
-                    />
+                    <>
+                      <Graph
+                        formatSeriesTitle={formatSeriesTitle}
+                        isStack={panel.stack}
+                        pollInterval={pollInterval}
+                        queries={queries}
+                        showLegend={panel.legend?.show}
+                        units={panel.yaxes?.[0]?.format}
+                        onZoomHandle={handleZoom}
+                        namespace={namespace}
+                        customDataSource={customDataSource}
+                        onDataChange={(data) => setCsvData(data)}
+                      />
+                    </>
                   )}
                   {(panel.type === 'singlestat' || panel.type === 'gauge') && (
                     <SingleStat

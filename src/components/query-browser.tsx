@@ -669,6 +669,7 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
   showStackedControl = false,
   timespan,
   units,
+  onDataChange,
 }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
 
@@ -796,9 +797,15 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
       }
     });
 
+    // console.log('JZ queries: ', queries)
+    // console.log('JZ queryPromises: ', queryPromises)
+
     return Promise.all(queryPromises)
       .then((responses: PrometheusResponse[]) => {
         const newResults = _.map(responses, 'data.result');
+
+        // console.log('JZ newResults: ', newResults)
+
         const numDataPoints = _.sumBy(newResults, (r) => _.sumBy(r, 'values.length'));
 
         if (numDataPoints > maxDataPointsHard && samples === minSamples) {
@@ -846,6 +853,8 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
             },
           );
           setGraphData(newGraphData);
+          onDataChange(newGraphData);
+          // console.log('JZ query-browser > newGraphData: ', newGraphData)
 
           _.each(newResults, (r, i) =>
             dispatch(queryBrowserPatchQuery(i, { series: r ? _.map(r, 'metric') : undefined })),
@@ -861,6 +870,11 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
         }
       });
   };
+
+  // console.log('JZ graphData = ', {
+  //   queries: queries,
+  //   graphData: graphData,
+  // });
 
   // Don't poll if an end time was set (because the latest data is not displayed) or if the graph is
   // hidden. Otherwise use a polling interval relative to the graph's timespan.
@@ -954,6 +968,16 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
 
   const isGraphDataEmpty = !graphData || graphData.every((d) => d.length === 0);
   const hasReducedResolution = !isGraphDataEmpty && samples < maxSamplesForSpan && !updating;
+
+  // console.log('JZ graphData = ', {
+  //   queries: queries,
+  //   graphData: graphData,
+  // });
+
+  // setCsvData({
+  //   queries: queries,
+  //   graphData: graphData,
+  // })
 
   return (
     <div
@@ -1091,6 +1115,8 @@ export type QueryBrowserProps = {
   showStackedControl?: boolean;
   timespan?: number;
   units?: string;
+  onDataChange?: (data: any) => void; //data needs a type, figure the type
+  // setCsvData?: {};
 };
 
 type SpanControlsProps = {
