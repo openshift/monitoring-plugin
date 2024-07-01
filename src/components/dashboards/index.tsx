@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
 import {
@@ -648,62 +649,79 @@ const Card: React.FC<CardProps> = React.memo(({ panel }) => {
     },
     [panel],
   );
-
   const [csvData, setCsvData] = React.useState([]);
 
-  const csvExportHandler = () => {
-    let csvString = '';
-    const result = {};
-    const nameArray = []; //
 
-    for (const [i, row] of csvData.entries()) {
-      for (const item of row) {
-        for (const entry of item[1]) {
-          const dateTime = entry.x.toISOString();
-          const value = entry.y;
-          if (!result[dateTime]) {
-            result[dateTime] = [];
-          }
-          const name = formatSeriesTitle(item[0], 0);
-          nameArray.push(name); // once per row?
-          if (!name) {
-            continue;
-          }
-          //const series = item[0][name].toString()
-          result[dateTime].push({ [name]: value });
+const csvExportHandler = () => {
+  // eslint-disable-next-line no-console
+  console.log('csvData:', csvData); // Log csvData
+
+  let csvString = '';
+  const result = {};
+  const nameArray = [];
+
+  for (const [i, row] of csvData.entries()) {
+    for (const item of row) {
+      for (const entry of item[1]) {
+        const dateTime = entry.x.toISOString();
+        const value = entry.y;
+        if (!result[dateTime]) {
+          result[dateTime] = [];
         }
-      }
-    }
-    const firstDateTime = Object.keys(result)[0];
-
-    const uniqueVerbs = new Set();
-
-    result[firstDateTime].forEach((item) => {
-      const verb = Object.keys(item)[0];
-      uniqueVerbs.add(verb);
-    });
-
-    const uniqueVerbsArray = Array.from(uniqueVerbs);
-    csvString = `DateTime,${uniqueVerbsArray.join(',')}\n`;
-    for (const dateTime in result) {
-      const row = [dateTime];
-      const temp = [];
-      for (let i = 0; i < result[dateTime].length; i += 1) {
-        if (!result[dateTime][i]) {
+        const name = formatSeriesTitle(item[0], i);
+        nameArray.push(name); // once per row?
+        if (!name) {
           continue;
         }
-        temp.push(Object.values(result[dateTime][i]).toString());
+        result[dateTime].push({ [name]: value });
       }
-      csvString += `${row.join(',')}, ${temp.join(',')}\n`;
     }
+  }
 
-    const blobCsvData = new Blob([csvString], { type: 'text/csv' });
-    const csvURL = URL.createObjectURL(blobCsvData);
-    const link = document.createElement('a');
-    link.href = csvURL;
-    link.download = `graphData.csv`;
-    link.click();
-  };
+  // eslint-disable-next-line no-console
+  console.log('result:', result); // Log result
+
+  const firstDateTime = Object.keys(result)[0];
+  // eslint-disable-next-line no-console
+  console.log('firstDateTime:', firstDateTime); // Log firstDateTime
+
+  const uniqueSeries = new Set();
+
+  if (result[firstDateTime]) {
+    result[firstDateTime].forEach((item) => {
+      const verb = Object.keys(item)[0];
+      uniqueSeries.add(verb);
+    });
+  } else {
+    // eslint-disable-next-line no-console
+    console.error('result[firstDateTime] is undefined'); // Log error if undefined
+    return; // Exit early to avoid further errors
+  }
+
+  const uniqueSeriesArray = Array.from(uniqueSeries);
+  csvString = `DateTime,${uniqueSeriesArray.join(',')}\n`;
+  for (const dateTime in result) {
+    const row = [dateTime];
+    const temp = new Array(uniqueSeriesArray.length).fill(''); // Initialize empty array for row data
+    result[dateTime].forEach((item) => {
+      const name = Object.keys(item)[0];
+      const index = uniqueSeriesArray.indexOf(name);
+      if (index !== -1) {
+        temp[index] = item[name];
+      }
+    });
+    csvString += `${row.join(',')},${temp.join(',')}\n`;
+  }
+
+  const blobCsvData = new Blob([csvString], { type: 'text/csv' });
+  const csvURL = URL.createObjectURL(blobCsvData);
+  const link = document.createElement('a');
+  link.href = csvURL;
+  link.download = `graphData.csv`;
+  link.click();
+};
+
+
   const dropdownItems = [
     <DropdownItem key="action" component="button" onClick={csvExportHandler}>
       {t('Export as CSV')}
@@ -816,7 +834,6 @@ const Card: React.FC<CardProps> = React.memo(({ panel }) => {
                   )}
                   {panel.type === 'graph' && (
                     <>
-                      {queries}
                       <Graph
                         formatSeriesTitle={formatSeriesTitle}
                         isStack={panel.stack}
