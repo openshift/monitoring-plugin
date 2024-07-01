@@ -62,9 +62,9 @@ $ podman machine init
 $ podman machine start 
 
 # Run the application 
-$ yarn start
-# In a seperate terminal 
-$ yarn start-console
+$ make start-frontend
+# In a separate terminal 
+$ make start-console
 ```
 The application will be running at [localhost:9000](http://localhost:9000/).
 

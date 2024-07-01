@@ -1,30 +1,38 @@
-FROM registry.redhat.io/ubi8/nodejs-18:1-71.1698060565 AS builder
+FROM registry.redhat.io/ubi8/nodejs-18:1-71.1698060565 AS web-builder
 
-WORKDIR /usr/src/app
+WORKDIR /opt/app-root
+
+USER 0
 
 RUN npm install --global yarn
 
 ENV HUSKY=0
 
-COPY package.json yarn.lock .
-RUN yarn
+COPY web/package.json web/yarn.lock web/
+COPY Makefile Makefile
+RUN make install-frontend
 
-COPY ./console-extensions.json ./tsconfig.json ./webpack.config.ts .
-COPY ./locales ./locales
-COPY ./src ./src
-RUN yarn build
+COPY web/ web/
+RUN make build-frontend
 
-FROM registry.ci.openshift.org/ocp/4.17:base-rhel9
+FROM registry.redhat.io/ubi9/go-toolset:1.21 as go-builder
 
-RUN INSTALL_PKGS="nginx" && \
-    dnf install -y --setopt=tsflags=nodocs $INSTALL_PKGS && \
-    rpm -V $INSTALL_PKGS && \
-    yum -y clean all --enablerepo='*' && \
-    chown -R 1001:0 /var/lib/nginx /var/log/nginx /run && \
-    chmod -R ug+rwX /var/lib/nginx /var/log/nginx /run
+WORKDIR /opt/app-root
 
-USER 1001
+COPY Makefile Makefile
+COPY go.mod go.mod
+COPY go.sum go.sum
 
-COPY --from=builder /usr/src/app/dist /usr/share/nginx/html
+RUN go mod download
 
-ENTRYPOINT ["nginx", "-g", "daemon off;"]
+COPY cmd/ cmd/
+COPY pkg/ pkg/
+
+RUN make build-backend
+
+FROM registry.redhat.io/ubi9/ubi-minimal
+
+COPY --from=web-builder /opt/app-root/web/dist /opt/app-root/web/dist
+COPY --from=go-builder /opt/app-root/plugin-backend /opt/app-root
+
+ENTRYPOINT ["/opt/app-root/plugin-backend", "-static-path", "/opt/app-root/web/dist"]
