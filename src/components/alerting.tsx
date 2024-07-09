@@ -2316,6 +2316,17 @@ const SilencesPage_: React.FC = () => {
 };
 const SilencesPage = withFallback(SilencesPage_);
 
+const IncidentsPage_: React.FC = () => {
+  return (
+    <>
+      <Helmet>
+        <title>Alerting</title>
+      </Helmet>
+    </>
+  );
+};
+const IncidentsPage = withFallback(IncidentsPage_);
+
 const Tab: React.FC<{ active: boolean; children: React.ReactNode }> = ({ active, children }) => (
   <li
     className={classNames('co-m-horizontal-nav__menu-item', {
@@ -2332,6 +2343,7 @@ const AlertingPage: React.FC<RouteComponentProps<{ url: string }>> = ({ match })
   const alertsPath = '/monitoring/alerts';
   const rulesPath = '/monitoring/alertrules';
   const silencesPath = '/monitoring/silences';
+  const incidentsPath = '/monitoring/incidents';
 
   const { url } = match;
 
@@ -2350,6 +2362,9 @@ const AlertingPage: React.FC<RouteComponentProps<{ url: string }>> = ({ match })
         <Tab active={url === alertsPath}>
           <Link to={alertsPath}>{t('Alerts')}</Link>
         </Tab>
+        <Tab active={url === incidentsPath}>
+          <Link to={incidentsPath}>{t('Incidents')}</Link>
+        </Tab>
         <Tab active={url === silencesPath}>
           <Link to={silencesPath}>{t('Silences')}</Link>
         </Tab>
@@ -2361,6 +2376,7 @@ const AlertingPage: React.FC<RouteComponentProps<{ url: string }>> = ({ match })
         <Route path={alertsPath} exact component={AlertsPage} />
         <Route path={rulesPath} exact component={RulesPage} />
         <Route path={silencesPath} exact component={SilencesPage} />
+        <Route path={incidentsPath} exact component={IncidentsPage} />
       </Switch>
     </>
   );
@@ -2415,7 +2431,11 @@ const PollerPages = () => {
 
   return (
     <Switch>
-      <Route path="/monitoring/(alerts|alertrules|silences)" exact component={AlertingPage} />
+      <Route
+        path="/monitoring/(alerts|alertrules|silences|incidents)"
+        exact
+        component={AlertingPage}
+      />
       <Route path="/monitoring/alertrules/:id" exact component={AlertRulesDetailsPage} />
       <Route path="/monitoring/alerts/:ruleID" exact component={AlertsDetailsPage} />
       <Route path="/monitoring/silences/:id" exact component={SilencesDetailsPage} />
