@@ -112,6 +112,8 @@
   "Time range": "Time range",
   "Could not parse JSON data for dashboard \"{{dashboard}}\"": "Could not parse JSON data for dashboard \"{{dashboard}}\"",
   "No labels": "No labels",
+  "Queries": "Queries",
+  "Select query": "Select query",
   "Add query": "Add query",
   "Collapse all query tables": "Collapse all query tables",
   "Expand all query tables": "Expand all query tables",
