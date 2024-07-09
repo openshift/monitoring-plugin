@@ -12,7 +12,7 @@ import {
   TimePicker,
 } from '@patternfly/react-core';
 
-import { dashboardsSetEndTime, dashboardsSetTimespan } from '../../actions/observe';
+import { dashboardsSetEndTime, dashboardsSetTimespan, Perspective } from '../../actions/observe';
 import { RootState } from '../types';
 
 import { setQueryArguments } from '../console/utils/router';
@@ -32,13 +32,13 @@ const toISOTimeString = (date: Date): string =>
   ).format(date);
 
 type CustomTimeRangeModalProps = {
-  activePerspective: string;
+  perspective: Perspective;
   isOpen: boolean;
   setClosed: () => void;
 };
 
 const CustomTimeRangeModal: React.FC<CustomTimeRangeModalProps> = ({
-  activePerspective,
+  perspective,
   isOpen,
   setClosed,
 }) => {
@@ -46,10 +46,10 @@ const CustomTimeRangeModal: React.FC<CustomTimeRangeModalProps> = ({
 
   const dispatch = useDispatch();
   const endTime = useSelector(({ observe }: RootState) =>
-    observe.getIn(['dashboards', activePerspective, 'endTime']),
+    observe.getIn(['dashboards', perspective, 'endTime']),
   );
   const timespan = useSelector(({ observe }: RootState) =>
-    observe.getIn(['dashboards', activePerspective, 'timespan']),
+    observe.getIn(['dashboards', perspective, 'timespan']),
   );
 
   // If a time is already set in Redux, default to that, otherwise default to a time range that
@@ -69,8 +69,8 @@ const CustomTimeRangeModal: React.FC<CustomTimeRangeModalProps> = ({
     const from = Date.parse(`${fromDate} ${fromTime}`);
     const to = Date.parse(`${toDate} ${toTime}`);
     if (_.isInteger(from) && _.isInteger(to)) {
-      dispatch(dashboardsSetEndTime(to, activePerspective));
-      dispatch(dashboardsSetTimespan(to - from, activePerspective));
+      dispatch(dashboardsSetEndTime(to, perspective));
+      dispatch(dashboardsSetTimespan(to - from, perspective));
       setQueryArguments({
         endTime: to.toString(),
         timeRange: (to - from).toString(),

@@ -13,24 +13,23 @@ import { dashboardsSetEndTime, dashboardsSetTimespan } from '../../actions/obser
 import { useBoolean } from '../hooks/useBoolean';
 import { RootState } from '../types';
 import CustomTimeRangeModal from './custom-time-range-modal';
-import { TimeDropdownsProps } from './types';
-import { getActivePerspective } from './monitoring-dashboard-utils';
+import { usePerspective } from '../hooks/usePerspective';
 
 const CUSTOM_TIME_RANGE_KEY = 'CUSTOM_TIME_RANGE_KEY';
 
-const TimespanDropdown: React.FC<TimeDropdownsProps> = ({ namespace }) => {
+const TimespanDropdown: React.FC = () => {
   const { t } = useTranslation('plugin__monitoring-plugin');
 
-  const activePerspective = getActivePerspective(namespace);
+  const { perspective } = usePerspective();
 
   const [isOpen, toggleIsOpen, , setClosed] = useBoolean(false);
   const [isModalOpen, , setModalOpen, setModalClosed] = useBoolean(false);
 
   const timespan = useSelector(({ observe }: RootState) =>
-    observe.getIn(['dashboards', activePerspective, 'timespan']),
+    observe.getIn(['dashboards', perspective, 'timespan']),
   );
   const endTime = useSelector(({ observe }: RootState) =>
-    observe.getIn(['dashboards', activePerspective, 'endTime']),
+    observe.getIn(['dashboards', perspective, 'endTime']),
   );
 
   const timeSpanFromParams = getQueryArgument('timeRange');
@@ -44,11 +43,11 @@ const TimespanDropdown: React.FC<TimeDropdownsProps> = ({ namespace }) => {
       } else {
         setQueryArgument('timeRange', parsePrometheusDuration(v).toString());
         removeQueryArgument('endTime');
-        dispatch(dashboardsSetTimespan(parsePrometheusDuration(v), activePerspective));
-        dispatch(dashboardsSetEndTime(null, activePerspective));
+        dispatch(dashboardsSetTimespan(parsePrometheusDuration(v), perspective));
+        dispatch(dashboardsSetEndTime(null, perspective));
       }
     },
-    [activePerspective, dispatch, setModalOpen],
+    [perspective, dispatch, setModalOpen],
   );
 
   const items = {
@@ -69,9 +68,9 @@ const TimespanDropdown: React.FC<TimeDropdownsProps> = ({ namespace }) => {
   return (
     <>
       <CustomTimeRangeModal
-        activePerspective={activePerspective}
         isOpen={isModalOpen}
         setClosed={setModalClosed}
+        perspective={perspective}
       />
       <div className="form-group monitoring-dashboards__dropdown-wrap">
         <label
