@@ -103,7 +103,7 @@ export const silenceMatcherEqualitySymbol = (isEqual: boolean, isRegex: boolean)
   return isEqual ? '=' : '!=';
 };
 
-const getSilenceName = (silence: Silence) => {
+export const getSilenceName = (silence: Silence) => {
   const name = _.get(_.find(silence.matchers, { name: 'alertname' }), 'value');
   return name
     ? name
