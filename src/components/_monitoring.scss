@@ -367,6 +367,10 @@ $monitoring-line-height: 18px;
   margin-left: auto;
 }
 
+.predefined-query-select--padding {
+ padding: 0 !important; // align with query_browser components
+}
+
 .query-browser__dropdown--subtitle {
   padding: 1px 10px;
 }
