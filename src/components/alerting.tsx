@@ -127,6 +127,7 @@ import {
   SilenceResource,
   silenceState,
 } from './utils';
+import IncidentsPage from '../components/Incidents/IncidentsPage';
 
 import './_monitoring.scss';
 
@@ -2315,17 +2316,6 @@ const SilencesPage_: React.FC = () => {
   );
 };
 const SilencesPage = withFallback(SilencesPage_);
-
-const IncidentsPage_: React.FC = () => {
-  return (
-    <>
-      <Helmet>
-        <title>Alerting</title>
-      </Helmet>
-    </>
-  );
-};
-const IncidentsPage = withFallback(IncidentsPage_);
 
 const Tab: React.FC<{ active: boolean; children: React.ReactNode }> = ({ active, children }) => (
   <li

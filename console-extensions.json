@@ -18,7 +18,8 @@
         "/monitoring/graph",
         "/monitoring/query-browser",
         "/monitoring/silences",
-        "/monitoring/targets"
+        "/monitoring/targets",
+        "/monitoring/incidents"
       ],
       "component": { "$codeRef": "MonitoringUI" }
     }
