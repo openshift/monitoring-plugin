@@ -1996,7 +1996,7 @@ const PollerPages = () => {
       const poller = (): void => {
         fetchAlerts(url, alertsSource, namespace)
           .then(({ data }) => {
-            const { alerts, rules } = getAlertsAndRules(data);
+            const { alerts, rules } = getAlertsAndRules(data, !isDev);
             dispatch(alertingLoaded(alertsKey, alerts, perspective));
             dispatch(alertingSetRules(rulesKey, rules, perspective));
           })
@@ -2018,7 +2018,7 @@ const PollerPages = () => {
     return (): void => {
       _.each(pollerTimeouts, clearTimeout);
     };
-  }, [alertsSource, dispatch, perspective, rulesKey, alertsKey, namespace]);
+  }, [alertsSource, dispatch, perspective, rulesKey, alertsKey, namespace, isDev]);
 
   if (isDev) {
     return (

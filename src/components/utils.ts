@@ -57,6 +57,7 @@ export const devAlertURL = (alert: Alert, ruleID: string, namespace: string) =>
 
 export const getAlertsAndRules = (
   data: PrometheusRulesResponse['data'],
+  isAdminPerspective: boolean,
 ): { alerts: Alert[]; rules: Rule[] } => {
   // Flatten the rules data to make it easier to work with, discard non-alerting rules since those
   // are the only ones we will be using and add a unique ID to each rule.
@@ -77,10 +78,14 @@ export const getAlertsAndRules = (
     return _.filter(g.rules, { type: 'alerting' }).map(addID);
   });
 
-  // Add external labels to all `rules[].alerts[].labels`
-  rules.forEach((rule) => {
-    rule.alerts.forEach((alert) => (alert.labels = { ...rule.labels, ...alert.labels }));
-  });
+  // The console codebase and developer perspective actions don't expect the external labels to be
+  // included on the alerts
+  if (isAdminPerspective) {
+    // Add external labels to all `rules[].alerts[].labels`
+    rules.forEach((rule) => {
+      rule.alerts.forEach((alert) => (alert.labels = { ...rule.labels, ...alert.labels }));
+    });
+  }
 
   // Add `rule` object to each alert
   const alerts = _.flatMap(rules, (rule) => rule.alerts.map((a) => ({ rule, ...a })));
