@@ -1,4 +1,4 @@
-FROM registry.ci.openshift.org/ocp/builder:rhel-9-base-nodejs-openshift-4.17 AS builder
+FROM registry.ci.openshift.org/ocp/builder:rhel-9-base-nodejs-openshift-4.17 AS web-builder
 
 # Copy app sources
 COPY $REMOTE_SOURCES $REMOTE_SOURCES_DIR
@@ -23,17 +23,20 @@ RUN test -d ${REMOTE_SOURCES_DIR}/cachito-gomod-with-deps || exit 1; \
  && source ${REMOTE_SOURCES_DIR}/cachito-gomod-with-deps/cachito.env \
  && yarn && yarn build
 
+
+FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.22-openshift-4.17 AS go-builder
+
+# REMOTE_SOURCES should be the pwd i believe "."
+# https://github.com/openshift-eng/ocp-build-data/blob/openshift-4.17/images/monitoring-plugin.yml#L5 also needs to be updated to state the go dependencies I believe
+COPY $REMOTE_SOURCES $REMOTE_SOURCES_DIR
+WORKDIR $REMOTE_SOURCES_DIR/cachito-gomod-with-deps/app
+RUN ls -lR $REMOTE_SOURCES_DIR
+RUN cat $REMOTE_SOURCES_DIR/cachito-gomod-with-deps/cachito.env
+RUN source $REMOTE_SOURCES_DIR/cachito-gomod-with-deps/cachito.env && make build-backend
+
 FROM registry.ci.openshift.org/ocp/4.17:base-rhel9
 
-RUN INSTALL_PKGS="nginx" && \
-    dnf install -y --setopt=tsflags=nodocs $INSTALL_PKGS && \
-    rpm -V $INSTALL_PKGS && \
-    yum -y clean all --enablerepo='*' && \
-    chown -R 1001:0 /var/lib/nginx /var/log/nginx /run && \
-    chmod -R ug+rwX /var/lib/nginx /var/log/nginx /run
+COPY --from=web-builder /opt/app-root/web/dist /opt/app-root/web/dist
+COPY --from=go-builder $REMOTE_SOURCES_DIR/plugin-backend /opt/app-root
 
-USER 1001
-
-COPY --from=builder /usr/src/app/dist /usr/share/nginx/html
-
-ENTRYPOINT ["nginx", "-g", "daemon off;"]
+ENTRYPOINT ["/opt/app-root/plugin-backend", "-static-path", "/opt/app-root/web/dist"]
