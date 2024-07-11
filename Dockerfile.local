@@ -6,14 +6,16 @@ RUN npm install --global yarn
 
 ENV HUSKY=0
 
-COPY web/package.json web/yarn.lock web/
 COPY Makefile Makefile
-RUN make install-frontend
-
 COPY web/ web/
+
+RUN make install-frontend
 RUN make build-frontend
 
-FROM registry.access.redhat.com/ubi9/go-toolset:1.21 as go-builder
+# Almost all images from Red Hat are still on go1.21, however I found one that the cne team has
+# created. Once official Red Hat images are available for local development and pulling this 
+# should be updated
+FROM quay.io/redhat-cne/openshift-origin-release:rhel-9-golang-1.22-openshift-4.17 as go-builder
 
 WORKDIR /opt/app-root
 
@@ -26,7 +28,7 @@ RUN go mod download
 COPY cmd/ cmd/
 COPY pkg/ pkg/
 
-RUN make build-backend
+RUN go build -mod=mod -o plugin-backend cmd/plugin-backend.go
 
 FROM registry.access.redhat.com/ubi9/ubi-minimal
 

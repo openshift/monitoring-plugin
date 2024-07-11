@@ -15,7 +15,7 @@ RUN make install-frontend
 COPY web/ web/
 RUN make build-frontend
 
-FROM registry.redhat.io/ubi9/go-toolset:1.21 as go-builder
+FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.22-openshift-4.17 as go-builder
 
 WORKDIR /opt/app-root
 
@@ -28,7 +28,7 @@ RUN go mod download
 COPY cmd/ cmd/
 COPY pkg/ pkg/
 
-RUN make build-backend
+RUN go build -mod=mod -o plugin-backend cmd/plugin-backend.go
 
 FROM registry.redhat.io/ubi9/ubi-minimal
 
