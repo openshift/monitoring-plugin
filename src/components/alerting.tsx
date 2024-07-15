@@ -1992,7 +1992,10 @@ const PollerPages = () => {
 
     if (prometheusBaseURL) {
       dispatch(alertingLoading(alertsKey, perspective));
-      const url = getPrometheusURL({ endpoint: PrometheusEndpoint.RULES, namespace });
+      const url = getPrometheusURL({
+        endpoint: PrometheusEndpoint.RULES,
+        namespace: isDev ? namespace : '',
+      });
       const poller = (): void => {
         fetchAlerts(url, alertsSource, namespace)
           .then(({ data }) => {
