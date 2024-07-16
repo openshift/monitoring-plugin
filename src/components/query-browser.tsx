@@ -669,6 +669,7 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
   showStackedControl = false,
   timespan,
   units,
+  onDataChange,
 }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
 
@@ -846,6 +847,7 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
             },
           );
           setGraphData(newGraphData);
+          onDataChange(newGraphData);
 
           _.each(newResults, (r, i) =>
             dispatch(queryBrowserPatchQuery(i, { series: r ? _.map(r, 'metric') : undefined })),
@@ -1091,6 +1093,7 @@ export type QueryBrowserProps = {
   showStackedControl?: boolean;
   timespan?: number;
   units?: string;
+  onDataChange?: (data: any) => void;
 };
 
 type SpanControlsProps = {
