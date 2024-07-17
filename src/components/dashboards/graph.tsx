@@ -19,6 +19,7 @@ type Props = {
   onZoomHandle?: (timeRange: number, endTime: number) => void;
   namespace?: string;
   perspective: Perspective;
+  onDataChange?: (data: any) => void;
 };
 
 const Graph: React.FC<Props> = ({
@@ -32,6 +33,7 @@ const Graph: React.FC<Props> = ({
   onZoomHandle,
   namespace,
   perspective,
+  onDataChange,
 }) => {
   const dispatch = useDispatch();
   const endTime = useSelector(({ observe }: RootState) =>
@@ -65,6 +67,7 @@ const Graph: React.FC<Props> = ({
       timespan={timespan}
       units={units}
       namespace={namespace}
+      onDataChange={onDataChange}
     />
   );
 };
