@@ -15,6 +15,7 @@
     "lint": "eslint ./src",
     "lint-fix": "eslint ./src --fix",
     "pre-commit:check": "yarn lint",
+    "prepare": "cd .. && husky install web/.husky",
     "start": "yarn ts-node node_modules/.bin/webpack serve --stats-error-details",
     "start:standalone": "yarn ts-node node_modules/.bin/webpack serve --stats-error-details --config webpack.standalone.config.ts",
     "start-console": "../scripts/start-console.sh",
