@@ -1,4 +1,4 @@
-FROM registry.redhat.io/ubi8/nodejs-18:1-71.1698060565 AS builder
+FROM registry.redhat.io/ubi9/nodejs-20-minimal:1-51 AS builder
 
 WORKDIR /usr/src/app
 
@@ -14,10 +14,10 @@ COPY ./locales ./locales
 COPY ./src ./src
 RUN yarn build
 
-FROM registry.redhat.io/ubi8/nginx-120:1-84.1675799502
+FROM registry.redhat.io/rhel9/nginx-120:1-148
 
 USER 1001
 
-COPY --from=builder /usr/src/app/dist /opt/app-root/src
+COPY --from=builder /usr/src/app/dist /usr/share/nginx/html
 
 ENTRYPOINT ["nginx", "-g", "daemon off;"]
