@@ -856,6 +856,8 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
       })
       .catch((err) => {
         if (err.name !== 'AbortError') {
+          // eslint-disable-next-line no-console
+          console.log(err);
           setError(err);
           setUpdating(false);
         }
