@@ -71,6 +71,11 @@ const mockGroups = [
   ],
 ];
 
+const mockViewport = {
+  start: new Date(2024, 8, 19),
+  end: new Date(2024, 8, 25),
+};
+
 export const IncidentsHeader = () => {
   return (
     <div>

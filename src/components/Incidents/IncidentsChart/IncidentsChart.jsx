@@ -1,111 +1,184 @@
+import { ChartLegend, ChartBaseTheme } from '@patternfly/react-charts';
+import { Flex, FlexItem, Title } from '@patternfly/react-core';
 import * as React from 'react';
 
 export function IncidentGanttChart({ groups, viewport }) {
-    // TODO useResizeObserver()
-    const width = 550;
-    const height = 100;
+  // TODO useResizeObserver()
+  const width = '100%';
+  const height = 200;
 
-    return (
-      <React.Component
-        style={{
-          position: 'relative',
-          width,
-          height,
-          overflow: 'hidden',
-          border: '1px solid #EFEFEF',
-        }}
+  const titleCss = {
+    fontSize: '--pf-v5-c-title--m-lg--FontSize',
+    fontWeight: '--pf-v5-c-title--m-lg--FontWeight',
+    lineHeight: '--pf-v5-c-title--m-lg--LineHeight',
+  };
+
+  return (
+    <div
+      style={{
+        position: 'relative',
+        width,
+        height,
+        overflow: 'hidden',
+        border: '1px solid #EFEFEF',
+        paddingBottom: '50',
+        paddingTop: '50',
+        paddingLeft: '50',
+        paddingRight: '50',
+      }}
+      className="incidents-top-chart-container"
+    >
+      <Flex
+        direction={{ default: 'column' }}
+        style={{ position: 'relative', paddingBottom: '10px' }}
+        className="incidents-top-chart-graph"
       >
-        <React.Component style={{ position: 'relative', paddingBottom: '10px' }}>
+        <FlexItem align={{ md: 'alignLeft' }}>
+          <Title
+            className="incidents-chart-title"
+            style={{
+              paddingLeft: '2rem',
+              marginTop: `0.375rem`,
+              fontSize: '1.125rem',
+              fontWeight: '400',
+              lineHeight: '1.5',
+            }}
+            headingLevel="h2"
+            size="md"
+          >
+            Incidents timeline
+          </Title>
+        </FlexItem>
+        <FlexItem>
           {groups.map((group, i) => (
             <IncidentsRow key={i} incidents={group} viewport={viewport} />
           ))}
+        </FlexItem>
+        <FlexItem>
           <Ticks />
-        </React.Component>
-        <React.Component style={{ position: 'relative', borderTop: '2px solid #F3F3F3' }}>
+        </FlexItem>
+      </Flex>
+      <FlexItem>
+        <div style={{ position: 'relative', borderTop: '2px solid #F3F3F3' }}>
           <TicksHeader viewport={viewport} />
-        </React.Component>
-      </React.Component>
-    );
-  }
+        </div>
+      </FlexItem>
+      <FlexItem>
+        <div>
+          <ChartLegend
+            centerTitle
+            orientation="horizontal"
+            gutter={20}
+            style={{ title: { fontSize: 1 } }}
+            data={[
+              { name: 'One', symbol: { fill: 'tomato' } },
+              { name: 'Two', symbol: { fill: 'orange' } },
+              { name: 'Three', symbol: { fill: 'gold' } },
+            ]}
+            /* theme={{ChartBaseTheme}} */
+          />
+        </div>
+      </FlexItem>
+    </div>
+  );
+}
 
-  export function IncidentsRow({ incidents, viewport }) {
-    return (
-      <React.Component style={{ position: 'relative', height: '10px' }}>
-        {incidents.map((incident, i) => (
-          <IncidentBox key={i} incident={incident} viewport={viewport} />
-        ))}
-      </React.Component>
-    );
-  }
+export function IncidentsRow({ incidents, viewport }) {
+  return (
+    <div style={{ position: 'relative', height: '10px' }} className="incidents-top-chart-rows">
+      {incidents.map((incident, i) => (
+        <IncidentBox key={i} incident={incident} viewport={viewport} />
+      ))}
+    </div>
+  );
+}
 
-  export function IncidentBox({ incident, viewport }) {
-    const incidentDuration = incident.end.getTime() - incident.start.getTime();
-    const viewportDuration = viewport.end.getTime() - viewport.start.getTime();
-    const relativeStart = (incident.start.getTime() - viewport.start.getTime()) / viewportDuration;
-    const relativeDuration = incidentDuration / viewportDuration;
+export function IncidentBox({ incident, viewport }) {
+  const incidentDuration = incident.end.getTime() - incident.start.getTime();
+  const viewportDuration = viewport.end.getTime() - viewport.start.getTime();
+  const relativeStart = (incident.start.getTime() - viewport.start.getTime()) / viewportDuration;
+  const relativeDuration = incidentDuration / viewportDuration;
 
-    return (
-      <React.Component
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left: `${relativeStart * 100}%`,
+        width: `${relativeDuration * 100}%`,
+        top: '15%',
+        height: '70%',
+        backgroundColor: incident.color,
+      }}
+    />
+  );
+}
+
+function formatDate(d) {
+  const options = {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+  };
+  return d.toLocaleString(undefined, options);
+}
+
+export function Ticks() {
+  //TODO should be aligned with days on the bottom part of the chart
+  return (
+    <div className="incidents-top-chart-ticks">
+      <div
         style={{
+          left: '25%',
           position: 'absolute',
-          left: `${relativeStart * 100}%`,
-          width: `${relativeDuration * 100}%`,
-          top: '15%',
-          height: '70%',
-          backgroundColor: incident.color,
+          top: 0,
+          bottom: 0,
+          borderLeft: '1px solid #F3F3F3',
         }}
       />
-    );
-  }
+      <div
+        style={{
+          left: '50%',
+          position: 'absolute',
+          top: 0,
+          bottom: 0,
+          borderLeft: '1px solid #F3F3F3',
+        }}
+      />
+      <div
+        style={{
+          left: '75%',
+          position: 'absolute',
+          top: 0,
+          bottom: 0,
+          borderLeft: '1px solid #F3F3F3',
+        }}
+      />
+    </div>
+  );
+}
 
-  function formatDate(d) {
-    const options = {
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: 'numeric',
-    };
-    return d.toLocaleString(undefined, options);
-  }
+export function TicksHeader({ viewport }) {
+  const duration = viewport.end.getTime() - viewport.start.getTime();
+  const startAt = viewport.start.getTime();
 
-  const TickHeaderBox = () => ({
-    position: 'absolute',
-    height: '100%',
-    transform: 'translate(-50%)',
-  });
-
-  const TickBox = () => ({
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    borderLeft: '1px solid #F3F3F3',
-  });
-
-  export function Ticks() {
-    return (
-      <>
-        <TickBox style={{ left: '25%' }} />
-        <TickBox style={{ left: '50%' }} />
-        <TickBox style={{ left: '75%' }} />
-      </>
-    );
-  }
-
-  export function TicksHeader({ viewport }) {
-    const duration = viewport.end.getTime() - viewport.start.getTime();
-    const startAt = viewport.start.getTime();
-
-    return (
-      <React.Component>
-        <TickHeaderBox style={{ left: '25%' }}>
-          {formatDate(new Date(startAt + duration * 0.25))}
-        </TickHeaderBox>
-        <TickHeaderBox style={{ left: '50%' }}>
-          {formatDate(new Date(startAt + duration * 0.5))}
-        </TickHeaderBox>
-        <TickHeaderBox style={{ left: '75%' }}>
-          {formatDate(new Date(startAt + duration * 0.75))}
-        </TickHeaderBox>
-      </React.Component>
-    );
-  }
+  return (
+    <div>
+      <div
+        style={{ left: '25%', position: 'absolute', height: '100%', transform: 'translate(-50%)' }}
+      >
+        {formatDate(new Date(startAt + duration * 0.25))}
+      </div>
+      <div
+        style={{ left: '50%', position: 'absolute', height: '100%', transform: 'translate(-50%)' }}
+      >
+        {formatDate(new Date(startAt + duration * 0.5))}
+      </div>
+      <div
+        style={{ left: '75%', position: 'absolute', height: '100%', transform: 'translate(-50%)' }}
+      >
+        {formatDate(new Date(startAt + duration * 0.75))}
+      </div>
+    </div>
+  );
+}
