@@ -89,5 +89,13 @@
         "$codeRef": "MonitoringUI"
       }
     }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
+      "path": ["/dev-monitoring/ns/:ns/alerts/:ruleID"],
+      "component": { "$codeRef": "MonitoringUI" }
+    }
   }
 ]

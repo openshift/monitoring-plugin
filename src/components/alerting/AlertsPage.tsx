@@ -11,16 +11,15 @@ import {
   AlertState,
   AlertStateDescription,
   devRuleURL,
-  devSilenceAlertURL,
   getAdditionalSources,
   isActionWithCallback,
   isActionWithHref,
   MonitoringResourceIcon,
   ruleURL,
   Severity,
-  silenceAlertURL,
   SilencesNotLoadedWarning,
 } from './AlertUtils';
+import { newSilenceAlertURL, newDevSilenceAlertURL } from './SilencesUtils';
 import {
   Action,
   Alert,
@@ -229,7 +228,7 @@ const AlertTableRow_: React.FC<AlertTableRowProps> = ({ history, obj, match }) =
       <DropdownItem
         key="silence-alert"
         onClick={() =>
-          history.push(isDev ? devSilenceAlertURL(obj, namespace) : silenceAlertURL(obj))
+          history.push(isDev ? newDevSilenceAlertURL(obj, namespace) : newSilenceAlertURL(obj))
         }
       >
         {t('Silence alert')}

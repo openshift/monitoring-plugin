@@ -10,12 +10,13 @@ src/components
 └───alerting
 │   │   AlertsUtils (Utility functions and components use across the alerting pages)
 │   │   alerts-types (Types used across the alerting pages)
-│   │   AlertsPage (Lister view of alerts for both developer and admin perspectives)
-│   │   AlertsDetailPage (Detail page of alerts)
+│   │   AlertsPage - DONE (Lister view of alerts for both developer and admin perspectives)
+│   │   AlertsDetailPage - DONE (Detail page of alerts)
 │   │   AlertsRulePage (Lister view of alert rules)
 │   │   AlertsRuleDetailPage (Detail page of alert rules)
 │   │   SilencesPage (Lister view of silences)
 │   │   SilencesDetailPage (Detail page of alert rules)
+│   │   SilencesUtils (Utility functions specific to silence functionality)
 ```
 
 Update this doc if changes are needed and remove it once the migration is complete.
