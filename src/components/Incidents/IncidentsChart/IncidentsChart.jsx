@@ -1,6 +1,9 @@
+import * as React from 'react';
+
 import { ChartLegend, ChartBaseTheme } from '@patternfly/react-charts';
 import { Flex, FlexItem, Title } from '@patternfly/react-core';
-import * as React from 'react';
+import './IncidentsChart.css';
+import IncidentsChartLegend from './IncidentsChartLegend';
 
 export function IncidentGanttChart({ groups, viewport }) {
   // TODO useResizeObserver()
@@ -63,22 +66,7 @@ export function IncidentGanttChart({ groups, viewport }) {
           <TicksHeader viewport={viewport} />
         </div>
       </FlexItem>
-      <FlexItem>
-        <div>
-          <ChartLegend
-            centerTitle
-            orientation="horizontal"
-            gutter={20}
-            style={{ title: { fontSize: 1 } }}
-            data={[
-              { name: 'One', symbol: { fill: 'tomato' } },
-              { name: 'Two', symbol: { fill: 'orange' } },
-              { name: 'Three', symbol: { fill: 'gold' } },
-            ]}
-            /* theme={{ChartBaseTheme}} */
-          />
-        </div>
-      </FlexItem>
+      <IncidentsChartLegend />
     </div>
   );
 }
