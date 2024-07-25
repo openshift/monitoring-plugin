@@ -847,7 +847,7 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
             },
           );
           setGraphData(newGraphData);
-          onDataChange(newGraphData);
+          onDataChange?.(newGraphData);
 
           _.each(newResults, (r, i) =>
             dispatch(queryBrowserPatchQuery(i, { series: r ? _.map(r, 'metric') : undefined })),
