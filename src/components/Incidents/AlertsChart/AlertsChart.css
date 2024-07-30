@@ -27,7 +27,7 @@
     lineHeight: '1.5';
 }
 
-.incidents-top-chart-container {
+.incidents-bottom-chart-container {
     position: 'relative';
     width: 100%;
     height: 200;
@@ -41,7 +41,7 @@
     paddingRight: '50';
 }
 
-.incidents-top-chart-graph {
+.incidents-bottom-chart-graph {
     position: 'relative';
     paddingBottom: '10px';
 }

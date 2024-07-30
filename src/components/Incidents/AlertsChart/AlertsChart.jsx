@@ -2,14 +2,14 @@ import * as React from 'react';
 
 import { ChartLegend, ChartBaseTheme } from '@patternfly/react-charts';
 import { Flex, FlexItem, Title } from '@patternfly/react-core';
-import './IncidentsChart.css';
+import './AlertsChart.css';
 import IncidentsChartLegend from './IncidentsChartLegend';
 
-export function IncidentGanttChart({ groups, viewport }) {
+export function AlertsGanttChart({ groups, viewport }) {
   // TODO useResizeObserver()
 
   return (
-    <div style={{}} className="incidents-top-chart-container">
+    <div className="incidents-bottom-chart-container">
       <Flex
         direction={{ default: 'column' }}
         style={{ position: 'relative', paddingBottom: '10px' }}
@@ -28,7 +28,7 @@ export function IncidentGanttChart({ groups, viewport }) {
             headingLevel="h2"
             size="md"
           >
-            Incidents timeline
+            Alerts timeline
           </Title>
         </FlexItem>
         <FlexItem>

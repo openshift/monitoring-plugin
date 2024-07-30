@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { IncidentGanttChart } from '../IncidentsChart/IncidentsChart';
+import { AlertsGanttChart } from '../AlertsChart/AlertsChart';
 
 const mockGroups = [
   [
@@ -78,8 +79,14 @@ const mockViewport = {
 
 export const IncidentsHeader = () => {
   return (
-    <div>
+    <div
+      className="incidents-chart-card-container"
+      style={{
+        border: '6px solid #F3F3F3',
+      }}
+    >
       <IncidentGanttChart groups={mockGroups} viewport={mockViewport} />
+      <AlertsGanttChart groups={mockGroups} viewport={mockViewport} />
     </div>
-  )
-}
+  );
+};
