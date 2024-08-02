@@ -1117,6 +1117,7 @@ const PollerPages = () => {
       <Switch>
         <Route path="/dev-monitoring/ns/:ns/alerts" exact component={AlertsPage} />
         <Route path="/dev-monitoring/ns/:ns/alerts/:ruleID" component={AlertsDetailsPage} />
+        <Route path="/dev-monitoring/ns/:ns/metrics" exact component={QueryBrowserPage} />
       </Switch>
     );
   }
