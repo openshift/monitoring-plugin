@@ -85,6 +85,8 @@ import {
   DataSource,
   isDataSource,
 } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
+import { usePerspective } from './hooks/usePerspective';
+import { useActiveNamespace } from './console/console-shared/hooks/useActiveNamespace';
 
 // Stores information about the currently focused query input
 let focusedQuery;
@@ -97,10 +99,14 @@ type PredefinedQueryType = {
 export const PreDefinedQueriesDropdown = () => {
   const [isOpen, setIsOpen] = React.useState(false);
   const [selected, setSelected] = React.useState('');
+  let predefinedQueries: PredefinedQueryType[];
+
+  const activeNamespace = useActiveNamespace();
+  const { isDev } = usePerspective();
 
   const { t } = useTranslation('plugin__monitoring-plugin');
 
-  const predefinedQueries: PredefinedQueryType[] = [
+  const predefinedQueriesAdmin: PredefinedQueryType[] = [
     {
       name: 'CPU Usage',
       // eslint-disable-next-line max-len
@@ -141,6 +147,61 @@ export const PreDefinedQueriesDropdown = () => {
       query: `sum(irate(container_network_transmit_packets_dropped_total[2h])) by (pod)`,
     },
   ];
+
+  // The developer view queries by namespace.
+  const predefinedQueriesDev: PredefinedQueryType[] = [
+    {
+      name: 'CPU Usage',
+      // eslint-disable-next-line max-len
+      query: `sum(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{namespace='${activeNamespace}'}) by (pod)`,
+    },
+    {
+      name: 'Memory Usage',
+      // eslint-disable-next-line max-len
+      query: `sum(container_memory_working_set_bytes{container!="", namespace='${activeNamespace}'}) by (pod)`,
+    },
+    {
+      name: 'Filesystem Usage',
+      // eslint-disable-next-line max-len
+      query: `topk(25, sort_desc(sum(pod:container_fs_usage_bytes:sum{container="",pod!="",namespace='${activeNamespace}'}) BY (pod, namespace)))`,
+    },
+    {
+      name: 'Recieve bandwidth',
+      // eslint-disable-next-line max-len
+      query: `sum(irate(container_network_receive_bytes_total{namespace='${activeNamespace}'}[2h])) by (pod)`,
+    },
+    {
+      name: 'Transmit bandwidth',
+      // eslint-disable-next-line max-len
+      query: `sum(irate(container_network_transmit_bytes_total{namespace='${activeNamespace}'}[2h])) by (pod)`,
+    },
+    {
+      name: 'Rate of received packets',
+      // eslint-disable-next-line max-len
+      query: `sum(irate(container_network_receive_packets_total{namespace='${activeNamespace}'}[2h])) by (pod)`,
+    },
+    {
+      name: 'Rate of transmitted packets',
+      // eslint-disable-next-line max-len
+      query: `sum(irate(container_network_transmit_packets_total{namespace='${activeNamespace}'}[2h])) by (pod)`,
+    },
+    {
+      name: 'Rate of received packets dropped',
+      // eslint-disable-next-line max-len
+      query: `sum(irate(container_network_receive_packets_dropped_total{namespace='${activeNamespace}'}[2h])) by (pod)`,
+    },
+    {
+      name: 'Rate of transmitted packets dropped',
+      // eslint-disable-next-line max-len
+      query: `sum(irate(container_network_transmit_packets_dropped_total{namespace='${activeNamespace}'}[2h])) by (pod)`,
+    },
+  ];
+
+  if (isDev) {
+    predefinedQueries = predefinedQueriesDev;
+  } else {
+    predefinedQueries = predefinedQueriesAdmin;
+  }
 
   // Note this fires twice when <Select> is clicked.
   const onToggle = (isExpanded: boolean) => {
@@ -541,6 +602,8 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, custom
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const safeFetch = React.useCallback(useSafeFetch(), []);
 
+  // If the namespace is defined getPrometheusURL will use
+  // the PROMETHEUS_TENANCY_BASE_PATH for requests in the developer view
   const tick = () => {
     if (isEnabled && isExpanded && query) {
       safeFetch(
@@ -774,6 +837,9 @@ const Query: React.FC<{ index: number; customDatasource?: CustomDataSource }> = 
   const switchKey = `${id}-${isEnabled}`;
   const switchLabel = isEnabled ? t('Disable query') : t('Enable query');
 
+  const activeNamespace = useActiveNamespace();
+  const { isDev } = usePerspective();
+
   return (
     <div
       className={classNames('query-browser__table', {
@@ -801,7 +867,13 @@ const Query: React.FC<{ index: number; customDatasource?: CustomDataSource }> = 
           <QueryKebab index={index} />
         </div>
       </div>
-      <QueryTable index={index} customDatasource={customDatasource} />
+      {/* If namespace is defined getPrometheusURL() will use the 
+      PROMETHEUS_TENANCY_BASE_PATH for the developer view */}
+      <QueryTable
+        index={index}
+        customDatasource={customDatasource}
+        namespace={isDev ? activeNamespace : undefined}
+      />
     </div>
   );
 };

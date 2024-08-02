@@ -97,5 +97,16 @@
       "path": ["/dev-monitoring/ns/:ns/alerts/:ruleID"],
       "component": { "$codeRef": "MonitoringUI" }
     }
+  },
+  {
+    "type": "console.tab",
+    "properties": {
+      "contextId": "dev-console-observe",
+      "name": "%public~Metrics%",
+      "href": "metrics",
+      "component": {
+        "$codeRef": "MonitoringUI"
+      }
+    }
   }
 ]
