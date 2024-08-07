@@ -26,9 +26,13 @@ start-console:
 lint-frontend:
 	cd web && yarn lint
 
+.PHONY: install-backend
+install-backend:
+	go mod download
+
 .PHONY: build-backend
 build-backend:
-	go build -o plugin-backend cmd/plugin-backend.go
+	go build -mod=readonly -o plugin-backend cmd/plugin-backend.go
 
 .PHONY: start-backend
 start-backend:

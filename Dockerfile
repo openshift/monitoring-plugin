@@ -1,4 +1,4 @@
-FROM registry.redhat.io/ubi8/nodejs-18:1-71.1698060565 AS web-builder
+FROM registry.redhat.io/ubi9/nodejs-18:1-118 AS web-builder
 
 WORKDIR /opt/app-root
 
@@ -15,7 +15,7 @@ RUN make install-frontend
 COPY web/ web/
 RUN make build-frontend
 
-FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.22-openshift-4.17 as go-builder
+FROM quay.io/redhat-cne/openshift-origin-release:rhel-9-golang-1.22-openshift-4.17 as go-builder
 
 WORKDIR /opt/app-root
 
@@ -23,16 +23,28 @@ COPY Makefile Makefile
 COPY go.mod go.mod
 COPY go.sum go.sum
 
-RUN go mod download
+RUN make install-backend
 
 COPY cmd/ cmd/
 COPY pkg/ pkg/
 
-RUN go build -mod=mod -o plugin-backend cmd/plugin-backend.go
+RUN make build-backend
 
 FROM registry.redhat.io/ubi9/ubi-minimal
+
+RUN microdnf -y install nginx findutils && \
+    mkdir /var/cache/nginx && \
+    chown -R 1001:0 /var/lib/nginx /var/log/nginx /run && \
+    chmod -R ug+rwX /var/lib/nginx /var/log/nginx /run
+
+USER 1001
 
 COPY --from=web-builder /opt/app-root/web/dist /opt/app-root/web/dist
 COPY --from=go-builder /opt/app-root/plugin-backend /opt/app-root
 
-ENTRYPOINT ["/opt/app-root/plugin-backend", "-static-path", "/opt/app-root/web/dist"]
+COPY --from=web-builder /opt/app-root/web/dist /usr/share/nginx/html
+
+ENTRYPOINT ["nginx", "-g", "daemon off;"]
+
+# When nginx is removed from CMO, we can use the following ENTRYPOINT instead and remove the nginx install
+# ENTRYPOINT ["/opt/app-root/plugin-backend", "-static-path", "/opt/app-root/web/dist"]
