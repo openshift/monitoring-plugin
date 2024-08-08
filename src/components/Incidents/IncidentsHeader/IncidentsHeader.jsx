@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { IncidentGanttChart } from '../IncidentsChart/IncidentsChart';
+import IncidentGanttChart from '../IncidentsChart/IncidentsChart';
 import AlertsChart from '../AlertsChart/AlertsChart';
 
 const mockGroups = [

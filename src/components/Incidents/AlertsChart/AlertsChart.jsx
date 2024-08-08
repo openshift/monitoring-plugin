@@ -5,10 +5,13 @@ import { VictoryZoomContainer } from 'victory-zoom-container';
 
 const AlertsChart = () => {
   return (
-    <div style={{ height: '400px', width: '450px' }}>
+    <div style={{
+      height: '400px',
+      //TODO: WIDTH SHOULD BE AUTOMATICALLY ADJUSTED
+      width: '100%' }}>
       <Chart
-        ariaDesc="Average number of pets"
-        ariaTitle="Bar chart example"
+        ariaDesc="Alerts Chart"
+        ariaTitle="Alerts Timeline"
         containerComponent={<VictoryZoomContainer />}
         domain={{ x: [0, 3], y: [0, 11] }}
         domainPadding={{ x: [30, 25] }}
@@ -19,7 +22,6 @@ const AlertsChart = () => {
         ]}
         legendPosition="bottom-left"
         height={400}
-        name="chart3"
         padding={{
           bottom: 75, // Adjusted to accommodate legend
           left: 50,
@@ -27,7 +29,8 @@ const AlertsChart = () => {
           top: 50,
         }}
         themeColor={ChartThemeColor.multiOrdered}
-        width={450}
+        //TODO: WIDTH SHOULD BE AUTOMATICALLY ADJUSTED
+        width={1570}
       >
         <ChartAxis dependentAxis showGrid tickFormat={(t) => `June ${t}`} />
         <ChartGroup offset={11} horizontal>
