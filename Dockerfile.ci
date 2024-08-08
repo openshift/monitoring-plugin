@@ -1,37 +1,64 @@
-FROM registry.redhat.io/ubi8/ubi-minimal:8.7-1031 as builder
+FROM registry.redhat.io/ubi9/ubi-minimal as web-builder
 
 ENV APP_ROOT=/opt/app-root \
     HOME=/opt/app-root/src \
     NPM_RUN=start \
     PLATFORM="el8" \
-    NODEJS_VERSION=16 \
+    NODEJS_VERSION=18 \
     NPM_RUN=start \
     NAME=nodejs
 
 ENV NPM_CONFIG_PREFIX=$HOME/.npm-global \
     PATH=$HOME/node_modules/.bin/:$HOME/.npm-global/bin/:$PATH
 
-RUN INSTALL_PKGS="nodejs nodejs-nodemon npm findutils tar" && \
-    microdnf module disable nodejs && \
-    microdnf module enable nodejs:$NODEJS_VERSION && \
-    microdnf --nodocs install $INSTALL_PKGS && \
+RUN INSTALL_PKGS="nodejs nodejs-nodemon npm findutils tar make" && \
+    microdnf module disable nodejs -y && \
+    microdnf module enable nodejs:$NODEJS_VERSION -y && \
+    microdnf --nodocs install $INSTALL_PKGS -y && \
     microdnf clean all && \
     rm -rf /mnt/rootfs/var/cache/* /mnt/rootfs/var/log/dnf* /mnt/rootfs/var/log/yum.*
 
 WORKDIR ${HOME}
 
 ENV HUSKY=0
+COPY web/package*.json ${HOME}/web/
+COPY Makefile Makefile
+RUN make install-frontend-ci
 
-COPY package.json package-lock.json .
-RUN npm ci
+COPY web/ ${HOME}/web
+RUN make build-frontend
 
-COPY . ${HOME}
-RUN npm run build
+FROM quay.io/redhat-cne/openshift-origin-release:rhel-9-golang-1.22-openshift-4.17 as go-builder
 
-FROM registry.redhat.io/ubi8/nginx-120:1-74.1669834626
+WORKDIR /opt/app-root
+
+COPY Makefile Makefile
+COPY go.mod go.mod
+COPY go.sum go.sum
+
+RUN make install-backend
+
+COPY config/ config/
+COPY cmd/ cmd/
+COPY pkg/ pkg/
+
+RUN make build-backend
+
+FROM registry.redhat.io/ubi9/ubi-minimal
+
+RUN microdnf install nginx findutils && \
+    mkdir /var/cache/nginx && \
+    chown -R 1001:0 /var/lib/nginx /var/log/nginx /run && \
+    chmod -R ug+rwX /var/lib/nginx /var/log/nginx /run
 
 USER 1001
 
-COPY --from=builder /opt/app-root/src/dist /usr/share/nginx/html
+COPY --from=web-builder /opt/app-root/src/web/dist /opt/app-root/web/dist
+COPY --from=go-builder /opt/app-root/plugin-backend /opt/app-root/plugin-backend
+
+COPY --from=web-builder /opt/app-root/src/web/dist /usr/share/nginx/html
 
 ENTRYPOINT ["nginx", "-g", "daemon off;"]
+
+# When nginx is removed from CMO, we can use the following ENTRYPOINT instead
+# ENTRYPOINT ["/opt/app-root/plugin-backend", "-static-path", "/opt/app-root/web/dist"]

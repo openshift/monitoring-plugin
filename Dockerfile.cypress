@@ -2,13 +2,16 @@ FROM cypress/included:12.3.0
 
 WORKDIR /usr/src/app
 
-COPY package.json yarn.lock .
+ENV HUSKY=0
+
+COPY web/package.json web/yarn.lock ./
+
 RUN yarn install --frozen-lockfile
 
-COPY console-extensions.json cypress.config.ts tsconfig.json webpack.config.ts .
-COPY cypress/ ./cypress
-COPY locales/ ./locales
-COPY src/ ./src
+COPY web/console-extensions.json web/cypress.config.ts web/tsconfig.json web/webpack.config.ts ./
+COPY web/cypress/ ./cypress
+COPY web/locales/ ./locales
+COPY web/src/ ./src
 RUN yarn build
 
 ENTRYPOINT ["yarn", "cypress:run:ci"]

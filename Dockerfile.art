@@ -1,4 +1,4 @@
-FROM registry.ci.openshift.org/ocp/builder:rhel-9-base-nodejs-openshift-4.17 AS builder
+FROM registry.ci.openshift.org/ocp/builder:rhel-9-base-nodejs-openshift-4.17 AS web-builder
 
 # Copy app sources
 COPY $REMOTE_SOURCES $REMOTE_SOURCES_DIR
@@ -21,7 +21,16 @@ ENV HUSKY=0
 RUN test -d ${REMOTE_SOURCES_DIR}/cachito-gomod-with-deps || exit 1; \
     cp -f $REMOTE_SOURCES_DIR/cachito-gomod-with-deps/app/{.npmrc,.yarnrc,yarn.lock,registry-ca.pem} . \
  && source ${REMOTE_SOURCES_DIR}/cachito-gomod-with-deps/cachito.env \
- && yarn && yarn build
+ && make install-frontend-ci \
+ && make build-frontend
+
+
+FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.22-openshift-4.17 AS go-builder
+
+COPY $REMOTE_SOURCES $REMOTE_SOURCES_DIR
+WORKDIR $REMOTE_SOURCES_DIR/cachito-gomod-with-deps/app
+
+RUN source $REMOTE_SOURCES_DIR/cachito-gomod-with-deps/cachito.env && make build-backend
 
 FROM registry.ci.openshift.org/ocp/4.17:base-rhel9
 
@@ -34,6 +43,12 @@ RUN INSTALL_PKGS="nginx" && \
 
 USER 1001
 
-COPY --from=builder /usr/src/app/dist /usr/share/nginx/html
+COPY --from=web-builder /usr/src/app/dist /usr/share/nginx/html
+
+COPY --from=web-builder /usr/src/app/dist /opt/app-root/web/dist
+COPY --from=go-builder $REMOTE_SOURCES_DIR/plugin-backend /opt/app-root
 
 ENTRYPOINT ["nginx", "-g", "daemon off;"]
+
+# When nginx is removed from CMO, we can use the following ENTRYPOINT instead and remove the nginx install
+# ENTRYPOINT ["/opt/app-root/plugin-backend", "-static-path", "/opt/app-root/web/dist"]
