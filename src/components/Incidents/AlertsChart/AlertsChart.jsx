@@ -1,19 +1,21 @@
 import * as React from 'react';
 
-import { Chart, ChartAxis, ChartBar, ChartGroup, ChartThemeColor } from '@patternfly/react-charts';
+import { Chart, ChartAxis, ChartBar, ChartGroup, ChartLabel, ChartThemeColor } from '@patternfly/react-charts';
 import { VictoryZoomContainer } from 'victory-zoom-container';
+import { Card, CardTitle } from '@patternfly/react-core';
 
+const days = ['Jul 25', 'Jul 26', 'Jul 27', 'Jul 28', 'Jul 29', 'Jul 30', 'Jul 31', 'Aug 1', 'Aug 2', 'Aug 3', 'Aug 4', 'Aug 5', 'Aug 6', 'Aug 7', 'Today',]
 const AlertsChart = () => {
   return (
+    <Card>
+      <CardTitle>Alerts Timeline</CardTitle>
     <div style={{
       height: '400px',
       //TODO: WIDTH SHOULD BE AUTOMATICALLY ADJUSTED
       width: '100%' }}>
       <Chart
-        ariaDesc="Alerts Chart"
-        ariaTitle="Alerts Timeline"
         containerComponent={<VictoryZoomContainer />}
-        domain={{ x: [0, 3], y: [0, 11] }}
+        domain={{ x: [0, 3], y: [0, 15] }}
         domainPadding={{ x: [30, 25] }}
         legendData={[
           { name: 'Critical', symbol: { fill: 'red' } },
@@ -25,21 +27,30 @@ const AlertsChart = () => {
         padding={{
           bottom: 75, // Adjusted to accommodate legend
           left: 50,
-          right: 100, // Adjusted to accommodate tooltip
-          top: 50,
+          right: 25, // Adjusted to accommodate tooltip
+          top: 0,
         }}
         themeColor={ChartThemeColor.multiOrdered}
         //TODO: WIDTH SHOULD BE AUTOMATICALLY ADJUSTED
         width={1570}
       >
-        <ChartAxis dependentAxis showGrid tickFormat={(t) => `June ${t}`} />
-        <ChartGroup offset={11} horizontal>
+      <ChartAxis
+      label="Alerts"
+      axisLabelComponent={
+        <ChartLabel angle={0} dx={-755} dy={-368}/>
+      }
+      dependentAxis
+      showGrid
+      tickFormat={(t) => `June ${t}`} />
+        <ChartGroup
+        offset={11}
+        horizontal>
           <ChartBar
             data={[
               { name: 'Critical', x: 3, y: 4, y0: 1 },
               { name: 'Critical', x: 3, y: 5, y0: 4.5 },
               { name: 'Critical', x: 3, y: 6, y0: 5.5 },
-              { name: 'Critical', x: 3, y: 10.5, y0: 6.5 },
+              { name: 'Critical', x: 3, y: 14.5, y0: 6.5 },
             ]}
             style={{
               data: {
@@ -124,6 +135,7 @@ const AlertsChart = () => {
         </ChartGroup>
       </Chart>
     </div>
+    </Card>
   );
 };
 

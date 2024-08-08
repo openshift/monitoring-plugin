@@ -1,20 +1,21 @@
 import * as React from 'react';
 
-import { Chart, ChartAxis, ChartBar, ChartGroup, ChartThemeColor } from '@patternfly/react-charts';
+import { Chart, ChartAxis, ChartBar, ChartGroup, ChartLabel, ChartThemeColor } from '@patternfly/react-charts';
 import { VictoryZoomContainer } from 'victory-zoom-container';
+import { Card, CardTitle } from '@patternfly/react-core';
 
 const days = ['Jul 25', 'Jul 26', 'Jul 27', 'Jul 28', 'Jul 29', 'Jul 30', 'Jul 31', 'Aug 1', 'Aug 2', 'Aug 3', 'Aug 4', 'Aug 5', 'Aug 6', 'Aug 7', 'Today',]
 const IncidentsChart = () => {
   return (
+    <Card>
+      <CardTitle>Incidents Timeline</CardTitle>
     <div style={{
-      height: '400px',
+      height: '300px',
       //TODO: WIDTH SHOULD BE AUTOMATICALLY ADJUSTED
       width: '100%' }}>
       <Chart
-        ariaDesc="Incidents Chart"
-        ariaTitle="Incidents Timeline"
         containerComponent={<VictoryZoomContainer />}
-        domain={{ x: [0, 3], y: [0, 11] }}
+        domain={{ x: [0, 3], y: [0, 15] }}
         domainPadding={{ x: [30, 25] }}
         legendData={[
           { name: 'Critical', symbol: { fill: 'red' } },
@@ -22,25 +23,28 @@ const IncidentsChart = () => {
           { name: 'Warning', symbol: { fill: 'orange' } },
         ]}
         legendPosition="bottom-left"
-        height={400}
+        height={300}
         padding={{
           bottom: 75, // Adjusted to accommodate legend
           left: 50,
-          right: 100, // Adjusted to accommodate tooltip
-          top: 50,
+          right: 25, // Adjusted to accommodate tooltip
+          top: 0,
         }}
         themeColor={ChartThemeColor.multiOrdered}
         //TODO: WIDTH SHOULD BE AUTOMATICALLY ADJUSTED
         width={1570}
       >
-        {days.map((d, i, t) => {
-          return (
-            <ChartAxis
-            key={i}
-            dependentAxis showGrid tickFormat={t} />
-          )
-        })}
-        <ChartGroup offset={11} horizontal>
+      <ChartAxis
+      label="Incidents"
+      axisLabelComponent={
+        <ChartLabel angle={0} dx={-745} dy={-268}/>
+      }
+      dependentAxis
+      showGrid
+      tickFormat={(t) => `June ${t}`} />
+        <ChartGroup
+        offset={11}
+        horizontal>
           <ChartBar
             data={[
               { name: 'Critical', x: 3, y: 4, y0: 1 },
@@ -131,6 +135,7 @@ const IncidentsChart = () => {
         </ChartGroup>
       </Chart>
     </div>
+    </Card>
   );
 };
 
