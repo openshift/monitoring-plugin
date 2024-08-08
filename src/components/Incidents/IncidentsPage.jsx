@@ -63,7 +63,6 @@ const IncidentsPage = ({
               namespace,
               query,
               samples: Math.ceil(samples / timeRanges.length),
-              timeout: '60s',
               timespan: timeRange.duration - 1,
             },
             customDataSource?.basePath,
