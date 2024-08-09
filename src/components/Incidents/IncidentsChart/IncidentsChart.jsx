@@ -1,151 +1,142 @@
 import * as React from 'react';
 
-import { ChartLegend, ChartBaseTheme } from '@patternfly/react-charts';
-import { Flex, FlexItem, Title } from '@patternfly/react-core';
-import './IncidentsChart.css';
-import IncidentsChartLegend from './IncidentsChartLegend';
+import { Chart, ChartAxis, ChartBar, ChartGroup, ChartLabel, ChartThemeColor } from '@patternfly/react-charts';
+import { VictoryZoomContainer } from 'victory-zoom-container';
+import { Card, CardTitle } from '@patternfly/react-core';
 
-export function IncidentGanttChart({ groups, viewport }) {
-  // TODO useResizeObserver()
-
+const days = ['Jul 25', 'Jul 26', 'Jul 27', 'Jul 28', 'Jul 29', 'Jul 30', 'Jul 31', 'Aug 1', 'Aug 2', 'Aug 3', 'Aug 4', 'Aug 5', 'Aug 6', 'Aug 7', 'Today',]
+const IncidentsChart = () => {
   return (
-    <div style={{}} className="incidents-top-chart-container">
-      <Flex
-        direction={{ default: 'column' }}
-        style={{ position: 'relative', paddingBottom: '10px' }}
-        className="incidents-top-chart-graph"
+    <Card>
+      <CardTitle>Incidents Timeline</CardTitle>
+    <div style={{
+      height: '300px',
+      //TODO: WIDTH SHOULD BE AUTOMATICALLY ADJUSTED
+      width: '100%' }}>
+      <Chart
+        containerComponent={<VictoryZoomContainer />}
+        domain={{ x: [0, 3], y: [0, 15] }}
+        domainPadding={{ x: [30, 25] }}
+        legendData={[
+          { name: 'Critical', symbol: { fill: 'red' } },
+          { name: 'Info', symbol: { fill: 'blue' } },
+          { name: 'Warning', symbol: { fill: 'orange' } },
+        ]}
+        legendPosition="bottom-left"
+        height={300}
+        padding={{
+          bottom: 75, // Adjusted to accommodate legend
+          left: 50,
+          right: 25, // Adjusted to accommodate tooltip
+          top: 0,
+        }}
+        themeColor={ChartThemeColor.multiOrdered}
+        //TODO: WIDTH SHOULD BE AUTOMATICALLY ADJUSTED
+        width={1570}
       >
-        <FlexItem align={{ md: 'alignLeft' }}>
-          <Title
-            className="incidents-chart-title"
+      <ChartAxis
+      label="Incidents"
+      axisLabelComponent={
+        <ChartLabel angle={0} dx={-745} dy={-268}/>
+      }
+      dependentAxis
+      showGrid
+      tickFormat={(t) => `June ${t}`} />
+        <ChartGroup
+        offset={11}
+        horizontal>
+          <ChartBar
+            data={[
+              { name: 'Critical', x: 3, y: 4, y0: 1 },
+              { name: 'Critical', x: 3, y: 5, y0: 4.5 },
+              { name: 'Critical', x: 3, y: 6, y0: 5.5 },
+              { name: 'Critical', x: 3, y: 14.5, y0: 6.5 },
+            ]}
             style={{
-              paddingLeft: '2rem',
-              marginTop: `0.375rem`,
-              fontSize: '1.125rem',
-              fontWeight: '400',
-              lineHeight: '1.5',
+              data: {
+                fill: 'red',
+                stroke: 'red',
+              },
             }}
-            headingLevel="h2"
-            size="md"
-          >
-            Incidents timeline
-          </Title>
-        </FlexItem>
-        <FlexItem>
-          {groups.map((group, i) => (
-            <IncidentsRow key={i} incidents={group} viewport={viewport} />
-          ))}
-        </FlexItem>
-        <FlexItem>
-          <Ticks />
-        </FlexItem>
-      </Flex>
-      <FlexItem>
-        <div style={{ position: 'relative', borderTop: '5px solid #F3F3F3' }}>
-          <TicksHeader viewport={viewport} />
-        </div>
-      </FlexItem>
-      <IncidentsChartLegend />
+          />
+          <ChartBar
+            data={[
+              { name: 'Critical', x: 2.5, y: 3, y0: 2 },
+              { name: 'Critical', x: 2.5, y: 4, y0: 2.5 },
+              { name: 'Critical', x: 2.5, y: 5, y0: 4.5 },
+              { name: 'Critical', x: 2.5, y: 6, y0: 5.5 },
+              { name: 'Critical', x: 2.5, y: 7, y0: 6.5 },
+              { name: 'Critical', x: 2.5, y: 9, y0: 8 },
+            ]}
+            style={{
+              data: {
+                fill: 'red',
+                stroke: 'red',
+              },
+            }}
+          />
+          <ChartBar
+            data={[
+              { name: 'Info', x: 2, y: 3, y0: 2.5 },
+              { name: 'Info', x: 2, y: 4, y0: 3.5 },
+              { name: 'Info', x: 2, y: 5, y0: 4.5 },
+              { name: 'Info', x: 2, y: 6, y0: 5.5 },
+              { name: 'Info', x: 2, y: 7, y0: 6.5 },
+            ]}
+            style={{
+              data: {
+                fill: 'blue',
+                stroke: 'blue',
+              },
+            }}
+          />
+          <ChartBar
+            data={[
+              { name: 'Warning', x: 1.5, y: 4, y0: 3 },
+              { name: 'Warning', x: 1.5, y: 8, y0: 5 },
+              { name: 'Warning', x: 1.5, y: 9, y0: 8.5 },
+              { name: 'Warning', x: 1.5, y: 10.5, y0: 9.5 },
+            ]}
+            style={{
+              data: {
+                fill: 'orange',
+                stroke: 'orange',
+              },
+            }}
+          />
+          <ChartBar
+            data={[
+              { name: 'Warning', x: 1, y: 2, y0: 1 },
+              { name: 'Warning', x: 1, y: 6, y0: 4 },
+              { name: 'Warning', x: 1, y: 9, y0: 8.5 },
+              { name: 'Warning', x: 1, y: 10, y0: 9.5 },
+            ]}
+            style={{
+              data: {
+                fill: 'orange',
+                stroke: 'orange',
+              },
+            }}
+          />
+          <ChartBar
+            data={[
+              { name: 'Warning', x: 0.5, y: 3, y0: 1 },
+              { name: 'Warning', x: 0.5, y: 3.5, y0: 8 },
+              { name: 'Warning', x: 0.5, y: 9, y0: 8.5 },
+              { name: 'Warning', x: 0.5, y: 10.5, y0: 9.5 },
+            ]}
+            style={{
+              data: {
+                fill: 'orange',
+                stroke: 'orange',
+              },
+            }}
+          />
+        </ChartGroup>
+      </Chart>
     </div>
+    </Card>
   );
-}
+};
 
-export function IncidentsRow({ incidents, viewport }) {
-  return (
-    <div style={{ position: 'relative', height: '10px' }} className="incidents-top-chart-rows">
-      {incidents.map((incident, i) => (
-        <IncidentBox key={i} incident={incident} viewport={viewport} />
-      ))}
-    </div>
-  );
-}
-
-export function IncidentBox({ incident, viewport }) {
-  const incidentDuration = incident.end.getTime() - incident.start.getTime();
-  const viewportDuration = viewport.end.getTime() - viewport.start.getTime();
-  const relativeStart = (incident.start.getTime() - viewport.start.getTime()) / viewportDuration;
-  const relativeDuration = incidentDuration / viewportDuration;
-
-  return (
-    <div
-      style={{
-        position: 'absolute',
-        left: `${relativeStart * 100}%`,
-        width: `${relativeDuration * 100}%`,
-        top: '15%',
-        height: '70%',
-        backgroundColor: incident.color,
-      }}
-    />
-  );
-}
-
-function formatDate(d) {
-  const options = {
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: 'numeric',
-  };
-  return d.toLocaleString(undefined, options);
-}
-
-export function Ticks() {
-  //TODO should be aligned with days on the bottom part of the chart
-  return (
-    <div className="incidents-top-chart-ticks">
-      <div
-        style={{
-          left: '25%',
-          position: 'absolute',
-          top: 0,
-          bottom: 0,
-          borderLeft: '1px solid #F3F3F3',
-        }}
-      />
-      <div
-        style={{
-          left: '50%',
-          position: 'absolute',
-          top: 0,
-          bottom: 0,
-          borderLeft: '1px solid #F3F3F3',
-        }}
-      />
-      <div
-        style={{
-          left: '75%',
-          position: 'absolute',
-          top: 0,
-          bottom: 0,
-          borderLeft: '1px solid #F3F3F3',
-        }}
-      />
-    </div>
-  );
-}
-
-export function TicksHeader({ viewport }) {
-  const duration = viewport.end.getTime() - viewport.start.getTime();
-  const startAt = viewport.start.getTime();
-
-  return (
-    <div>
-      <div
-        style={{ left: '25%', position: 'absolute', height: '100%', transform: 'translate(-50%)' }}
-      >
-        {formatDate(new Date(startAt + duration * 0.25))}
-      </div>
-      <div
-        style={{ left: '50%', position: 'absolute', height: '100%', transform: 'translate(-50%)' }}
-      >
-        {formatDate(new Date(startAt + duration * 0.5))}
-      </div>
-      <div
-        style={{ left: '75%', position: 'absolute', height: '100%', transform: 'translate(-50%)' }}
-      >
-        {formatDate(new Date(startAt + duration * 0.75))}
-      </div>
-    </div>
-  );
-}
+export default IncidentsChart;
