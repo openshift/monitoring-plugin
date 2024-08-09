@@ -19,7 +19,7 @@ RUN CACHED_YARN=./artifacts/yarn-${YARN_VERSION}.tar.gz; \
 # use dependencies provided by Cachito
 ENV HUSKY=0
 RUN test -d ${REMOTE_SOURCES_DIR}/cachito-gomod-with-deps || exit 1; \
-    cp -f $REMOTE_SOURCES_DIR/cachito-gomod-with-deps/app/web/{.npmrc,.yarnrc,yarn.lock,registry-ca.pem} . \
+    cp -f $REMOTE_SOURCES_DIR/cachito-gomod-with-deps/app/web/{.npmrc,.yarnrc,yarn.lock,registry-ca.pem} web/ \
  && source ${REMOTE_SOURCES_DIR}/cachito-gomod-with-deps/cachito.env \
  && make install-frontend-ci \
  && make build-frontend
