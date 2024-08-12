@@ -467,19 +467,15 @@
     semver "6.x"
     webpack "^5.73.0"
 
-"@openshift-console/dynamic-plugin-sdk@^0.0.20":
-  version "0.0.20"
-  resolved "https://registry.yarnpkg.com/@openshift-console/dynamic-plugin-sdk/-/dynamic-plugin-sdk-0.0.20.tgz#87cbcaf1d8e79dded9a982fadf6fbd2342590be1"
-  integrity sha512-QdOftHavKJErW4LUl7ntT7Hajj/kJJQOC7TjMAdiAyiCYxmHk0WydT6IYarCF+bRSGD2BxbBivMXYriNU8w3tg==
+"@openshift-console/dynamic-plugin-sdk@^1.6.0":
+  version "1.6.0"
+  resolved "https://registry.yarnpkg.com/@openshift-console/dynamic-plugin-sdk/-/dynamic-plugin-sdk-1.6.0.tgz#edd89aa289230e77cc53bdd2e30a77dc9a270169"
+  integrity sha512-we35a98M5g+ABPpX9OT0QTcxSx9SOmwoXt73a9NNO9wW4KchvSRWj6oB8uoX6F3rv1Wa+ndzYKvbYivxWNNqXA==
   dependencies:
-    "@patternfly/quickstarts" "2.4.0"
-    "@patternfly/react-core" "4.276.8"
-    "@patternfly/react-table" "4.113.0"
     classnames "2.x"
     immutable "3.x"
     lodash "^4.17.21"
     react "^17.0.1"
-    react-helmet "^6.1.0"
     react-i18next "^11.7.3"
     react-redux "7.2.2"
     react-router "5.3.x"
@@ -506,27 +502,12 @@
   resolved "https://registry.yarnpkg.com/@patternfly/patternfly/-/patternfly-4.122.2.tgz#3e774d78996c7027b8c528edb2e90990676458a5"
   integrity sha512-kSoW8mt9eEJcAZX2lX4r/SYvFd44GGb8PUSDjMrpKDZqgn9/9VFh1rSChG4v5kCK6cpS99/gdTapZc3ylf8Rpw==
 
-"@patternfly/patternfly@^4.224.2":
-  version "4.224.2"
-  resolved "https://registry.yarnpkg.com/@patternfly/patternfly/-/patternfly-4.224.2.tgz#9d1b000c3c43457ae47c3556a334412d164fad90"
-  integrity sha512-HGNV26uyHSIECuhjPg/WGn0mXbAotcs6ODfhAOkfYjIgGylddgiwElxUe1rpEHV5mQJJ2rMn4OdeJIIpzRX61g==
-
 "@patternfly/quickstarts@2.0.1":
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/@patternfly/quickstarts/-/quickstarts-2.0.1.tgz#8e8270782eae0e2476ccf4cdbbaa22c7c095097e"
   integrity sha512-tbF1sqlkVb9rEriiHPnKAN5SercMxP27ty+PB87uZ/aF9YkvDD5BUuCbU3JR0e2qe189WksvLrgrAEaamh3gig==
   dependencies:
     "@patternfly/react-catalog-view-extension" "4.12.15"
-    dompurify "^2.2.6"
-    history "^5.0.0"
-    showdown "1.8.6"
-
-"@patternfly/quickstarts@2.4.0":
-  version "2.4.0"
-  resolved "https://registry.yarnpkg.com/@patternfly/quickstarts/-/quickstarts-2.4.0.tgz#2244fc93fe72d9936609ffa1dff25fcd1efc28b3"
-  integrity sha512-dlGtAX8iQarFvmflEvZ7rHaJb1aaBrcqkbzwx0wy2QLL/BID7Y+UQ9ht7k+TBNfnxhPOljM2YTp0rugG5S9q4g==
-  dependencies:
-    "@patternfly/react-catalog-view-extension" "^4.93.15"
     dompurify "^2.2.6"
     history "^5.0.0"
     showdown "1.8.6"
@@ -540,15 +521,6 @@
     "@patternfly/react-core" "^4.135.15"
     "@patternfly/react-styles" "^4.11.4"
     classnames "^2.2.5"
-
-"@patternfly/react-catalog-view-extension@^4.93.15":
-  version "4.96.0"
-  resolved "https://registry.yarnpkg.com/@patternfly/react-catalog-view-extension/-/react-catalog-view-extension-4.96.0.tgz#b3e3e8875b0dc37c204cf71c29ea8a95d0442ad4"
-  integrity sha512-ZMPvaE6KOjbLioCdi1wPtxughsce4+sPq6Us5s4JKu2xgn+e83NcfSD3pAcS5e+M8K3SWwdXd3ycgkD8F+Obvg==
-  dependencies:
-    "@patternfly/patternfly" "^4.224.2"
-    "@patternfly/react-core" "^4.276.6"
-    "@patternfly/react-styles" "^4.92.6"
 
 "@patternfly/react-charts@6.94.19":
   version "6.94.19"
@@ -590,7 +562,7 @@
     tippy.js "5.1.2"
     tslib "^2.0.0"
 
-"@patternfly/react-core@4.276.8", "@patternfly/react-core@^4.276.6", "@patternfly/react-core@^4.276.8":
+"@patternfly/react-core@4.276.8", "@patternfly/react-core@^4.276.8":
   version "4.276.8"
   resolved "https://registry.yarnpkg.com/@patternfly/react-core/-/react-core-4.276.8.tgz#7ef52830dcdda954bd5bec40132da6eef49aba6f"
   integrity sha512-dn322rEzBeiVztZEuCZMUUittNb8l1hk30h9ZN31FLZLLVtXGlThFNV9ieqOJYA9zrYxYZrHMkTnOxSWVacMZg==
