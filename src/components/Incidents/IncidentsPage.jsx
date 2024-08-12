@@ -8,6 +8,7 @@ import { parsePrometheusDuration } from '../console/utils/datetime';
 import { getPrometheusURL } from '../console/graphs/helpers';
 import { useDispatch } from 'react-redux';
 import * as _ from 'lodash-es';
+import { processIncidentsTimestamps } from './utils';
 
 const minSamples = 10;
 const maxSamples = 300;
@@ -28,6 +29,10 @@ const IncidentsPage = ({
   const [incidentsPageData, setIncidentsPageData] = React.useState([]);
   const defaultSpanText = spans.find((s) => parsePrometheusDuration(s) >= defaultTimespan);
   const [span, setSpan] = React.useState(timespan || parsePrometheusDuration(defaultSpanText));
+  //raw data
+  const [data, setData] = React.useState([]);
+  //data that is mapped and changed from timestamps to a format HH/DD/MM/YY
+  const [processedData, setProcessedData] = React.useState([]);
   //will be used to define the Xdomain of chart
   const [xDomain, setXDomain] = React.useState();
   const maxSamplesForSpan = defaultSamples || getMaxSamplesForSpan(span);
@@ -49,57 +54,33 @@ const IncidentsPage = ({
   const now = Date.now();
   const timeRanges = getTimeRanges(span, endTime || now);
 
-  const queries = ['ALERTS'];
-  const queryPromises = _.map(queries, (query) => {
-    if (_.isEmpty(query)) {
-      return Promise.resolve([]);
-    } else {
-      const promiseMap = _.map(timeRanges, (timeRange) =>
-        safeFetch(
+  React.useEffect(() => {
+    (async () => {
+      try {
+        const response = await safeFetch(
           getPrometheusURL(
             {
               endpoint: PrometheusEndpoint.QUERY_RANGE,
-              endTime: timeRange.endTime,
+              endTime: 1722950372519,
               namespace,
-              query,
+              query: 'ALERTS',
               samples: Math.ceil(samples / timeRanges.length),
-              timespan: timeRange.duration - 1,
+              timespan: 86400000 - 1,
             },
             customDataSource?.basePath,
           ),
-        ),
-      );
-      return Promise.all(promiseMap).then((responses) => {
-        const results = _.map(responses, 'data.result');
-        const combinedQueries = results.reduce((accumulator, response) => {
-          response.forEach((metricResult) => {
-            const index = accumulator.findIndex(
-              (item) => JSON.stringify(item.metric) === JSON.stringify(metricResult.metric),
-            );
-            if (index === -1) {
-              accumulator.push(metricResult);
-            } else {
-              accumulator[index].values = accumulator[index].values.concat(metricResult.values);
-            }
-          });
-          return accumulator;
-        }, []);
-        // Recombine into the original query to allow for the redux store and the things using
-        // it (query duplication, ect) to be able to work. Grab the heading of the first response
-        // for the status and structure of the response
-        const queryResponse = responses.at(0);
-        if (!queryResponse) {
-          return [];
-        }
-        queryResponse.data.result = combinedQueries;
-        return queryResponse;
-      });
-    }
-  });
+        );
+        setData(response.data.result);
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.log(err);
+      }
+    })();
+  }, []);
 
-  Promise.all(queryPromises).then((responses) => {
-    const newResults = _.map(responses, 'data.result');
-  });
+  React.useEffect(() => {
+    setProcessedData(processIncidentsTimestamps(data));
+  }, [data]);
 
   return (
     <>

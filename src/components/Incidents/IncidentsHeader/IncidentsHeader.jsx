@@ -79,12 +79,7 @@ const mockViewport = {
 
 export const IncidentsHeader = () => {
   return (
-    <div
-      className="incidents-chart-card-container"
-      style={{
-        border: '6px solid #F3F3F3',
-      }}
-    >
+    <div className="incidents-chart-card-container">
       <IncidentGanttChart groups={mockGroups} viewport={mockViewport} />
       <AlertsChart groups={mockGroups} viewport={mockViewport} />
     </div>
