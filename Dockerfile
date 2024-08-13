@@ -30,9 +30,9 @@ COPY pkg/ pkg/
 
 RUN make build-backend
 
-FROM registry.redhat.io/ubi9/ubi-minimal
+FROM quay.io/redhat-cne/openshift-origin-release:rhel-9-golang-1.22-openshift-4.17
 
-RUN microdnf -y install nginx findutils && \
+RUN dnf install -y nginx findutils && \
     mkdir /var/cache/nginx && \
     chown -R 1001:0 /var/lib/nginx /var/log/nginx /run && \
     chmod -R ug+rwX /var/lib/nginx /var/log/nginx /run
