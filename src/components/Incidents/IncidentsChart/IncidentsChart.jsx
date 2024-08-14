@@ -10,6 +10,9 @@ import {
 } from '@patternfly/react-charts';
 import { VictoryZoomContainer } from 'victory-zoom-container';
 import { Card, CardTitle } from '@patternfly/react-core';
+import global_danger_color_100 from '@patternfly/react-tokens/dist/esm/global_danger_color_100';
+import global_info_color_100 from '@patternfly/react-tokens/dist/esm/global_info_color_100';
+import global_warning_color_100 from '@patternfly/react-tokens/dist/esm/global_warning_color_100';
 
 const days = [
   'Jul 25',
@@ -30,11 +33,7 @@ const days = [
 ];
 const IncidentsChart = () => {
   return (
-    <Card
-      style={{
-        border: '6px solid #F3F3F3',
-      }}
-    >
+    <Card className="incidents-chart-card">
       <CardTitle>Incidents Timeline</CardTitle>
       <div
         style={{
@@ -48,9 +47,9 @@ const IncidentsChart = () => {
           domain={{ x: [0, 3], y: [0, 15] }}
           domainPadding={{ x: [30, 25] }}
           legendData={[
-            { name: 'Critical', symbol: { fill: 'red' } },
-            { name: 'Info', symbol: { fill: 'blue' } },
-            { name: 'Warning', symbol: { fill: 'orange' } },
+            { name: 'Critical', symbol: { fill: global_danger_color_100.var } },
+            { name: 'Info', symbol: { fill: global_info_color_100.var } },
+            { name: 'Warning', symbol: { fill: global_warning_color_100.var } },
           ]}
           legendPosition="bottom-left"
           height={300}
@@ -71,7 +70,7 @@ const IncidentsChart = () => {
             showGrid
             tickFormat={(t) => `June ${t}`}
           />
-          <ChartGroup offset={11} horizontal>
+          <ChartGroup horizontal>
             <ChartBar
               data={[
                 { name: 'Critical', x: 3, y: 4, y0: 1 },
@@ -81,8 +80,8 @@ const IncidentsChart = () => {
               ]}
               style={{
                 data: {
-                  fill: 'red',
-                  stroke: 'red',
+                  fill: global_danger_color_100.var,
+                  stroke: global_danger_color_100.var,
                 },
               }}
             />
@@ -97,8 +96,8 @@ const IncidentsChart = () => {
               ]}
               style={{
                 data: {
-                  fill: 'red',
-                  stroke: 'red',
+                  fill: global_danger_color_100.var,
+                  stroke: global_danger_color_100.var,
                 },
               }}
             />
@@ -112,8 +111,8 @@ const IncidentsChart = () => {
               ]}
               style={{
                 data: {
-                  fill: 'blue',
-                  stroke: 'blue',
+                  fill: global_info_color_100.var,
+                  stroke: global_info_color_100.var,
                 },
               }}
             />
@@ -126,8 +125,8 @@ const IncidentsChart = () => {
               ]}
               style={{
                 data: {
-                  fill: 'orange',
-                  stroke: 'orange',
+                  fill: global_warning_color_100.var,
+                  stroke: global_warning_color_100.var,
                 },
               }}
             />
@@ -140,8 +139,8 @@ const IncidentsChart = () => {
               ]}
               style={{
                 data: {
-                  fill: 'orange',
-                  stroke: 'orange',
+                  fill: global_warning_color_100.var,
+                  stroke: global_warning_color_100.var,
                 },
               }}
             />
@@ -154,8 +153,8 @@ const IncidentsChart = () => {
               ]}
               style={{
                 data: {
-                  fill: 'orange',
-                  stroke: 'orange',
+                  fill: global_warning_color_100.var,
+                  stroke: global_warning_color_100.var,
                 },
               }}
             />
