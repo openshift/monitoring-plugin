@@ -603,3 +603,13 @@ $monitoring-line-height: 18px;
   margin-bottom: 1.5rem;
   margin-top: 5px;
 }
+
+.alerts-chart-card {
+  border: 6px solid;
+  border-color: var(--pf-global--BackgroundColor--200);
+}
+
+.incidents-chart-card {
+  border: 6px solid;
+  border-color: var(--pf-global--BackgroundColor--200);
+}
