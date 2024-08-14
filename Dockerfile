@@ -28,7 +28,10 @@ RUN make install-backend
 COPY cmd/ cmd/
 COPY pkg/ pkg/
 
-RUN make build-backend
+ENV GOEXPERIMENT=strictfipsruntime
+ENV CGO_ENABLED=1
+
+RUN make build-backend BUILD_OPTS="-tags strictfipsruntime"
 
 FROM quay.io/redhat-cne/openshift-origin-release:rhel-9-golang-1.22-openshift-4.17
 
