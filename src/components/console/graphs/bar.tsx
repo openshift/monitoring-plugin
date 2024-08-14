@@ -10,7 +10,6 @@ import {
   ChartBar,
   ChartLabel,
   ChartThemeColor,
-  ChartThemeVariant,
   getCustomTheme,
 } from '@patternfly/react-charts';
 
@@ -52,7 +51,7 @@ const barTheme = {
   },
 };
 
-const theme = getCustomTheme(ChartThemeColor.blue, ChartThemeVariant.light, barTheme);
+const theme = getCustomTheme(ChartThemeColor.blue, barTheme);
 
 const BarChart: React.FC<BarChartProps> = ({
   barSpacing = 15,
