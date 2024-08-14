@@ -32,7 +32,7 @@ install-backend:
 
 .PHONY: build-backend
 build-backend:
-	go build -mod=readonly -o plugin-backend cmd/plugin-backend.go
+	go build $(BUILD_OPTS) -mod=readonly -o plugin-backend cmd/plugin-backend.go
 
 .PHONY: start-backend
 start-backend:
