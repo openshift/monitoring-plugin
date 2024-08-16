@@ -37,7 +37,7 @@
     "@openshift-console/dynamic-plugin-sdk-internal": "^0.0.11",
     "@openshift-console/dynamic-plugin-sdk-webpack": "^0.0.10",
     "@openshift-console/plugin-shared": "^0.0.3",
-    "@patternfly/react-charts": "6.94.19",
+    "@patternfly/react-charts": "7.3.0",
     "@patternfly/react-core": "4.276.8",
     "@patternfly/react-table": "4.113.0",
     "@prometheus-io/codemirror-promql": "^0.37.0",
