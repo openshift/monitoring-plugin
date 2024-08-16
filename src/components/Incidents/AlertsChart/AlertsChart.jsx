@@ -31,7 +31,8 @@ const days = [
   'Aug 7',
   'Today',
 ];
-const AlertsChart = () => {
+const AlertsChart = ({ alertsData }) => {
+  const month = console.log(alertsData);
   return (
     <Card className="alerts-chart-card">
       <CardTitle>Alerts Timeline</CardTitle>
@@ -63,19 +64,23 @@ const AlertsChart = () => {
           //TODO: WIDTH SHOULD BE AUTOMATICALLY ADJUSTED
           width={1570}
         >
+          <ChartAxis dependentAxis showGrid tickFormat={(t) => `Aug ${t}`} />
           <ChartAxis
             label="Alerts"
             axisLabelComponent={
-              <ChartLabel
-                className="alerts-chart-small-label"
-                angle={0}
-                dx={-755}
-                dy={-368}
-              />
+              <ChartLabel angle={0} dy={-140} dx={31} padding={{ top: 20, bottom: 60 }} />
             }
-            dependentAxis
-            showGrid
-            tickFormat={(t) => `June ${t}`}
+            style={{
+              axis: {
+                stroke: 'transparent',
+              },
+              ticks: {
+                stroke: 'transparent',
+              },
+              tickLabels: {
+                fill: 'transparent',
+              },
+            }}
           />
           <ChartGroup horizontal>
             <ChartBar

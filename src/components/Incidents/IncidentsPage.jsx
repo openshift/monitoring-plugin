@@ -85,7 +85,7 @@ const IncidentsPage = ({
   return (
     <>
       <div className="co-m-pane__body">
-        <IncidentsHeader />
+        <IncidentsHeader alertsData={processedData} />
       </div>
     </>
   );
