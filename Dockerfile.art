@@ -48,9 +48,9 @@ RUN INSTALL_PKGS="nginx" && \
 
 USER 1001
 
-COPY --from=web-builder /usr/src/app/dist /usr/share/nginx/html
+COPY --from=web-builder /usr/src/app/web/dist /usr/share/nginx/html
 
-COPY --from=web-builder /usr/src/app/dist /opt/app-root/web/dist
+COPY --from=web-builder /usr/src/app/web/dist /opt/app-root/web/dist
 COPY --from=go-builder $REMOTE_SOURCES_DIR/plugin-backend /opt/app-root
 
 ENTRYPOINT ["nginx", "-g", "daemon off;"]
