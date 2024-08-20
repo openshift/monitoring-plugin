@@ -1,27 +1,65 @@
+import * as React from 'react';
 import moment from 'moment';
+import { ChartBar } from '@patternfly/react-charts';
+import global_danger_color_100 from '@patternfly/react-tokens/dist/esm/global_danger_color_100';
+import global_info_color_100 from '@patternfly/react-tokens/dist/esm/global_info_color_100';
+import global_warning_color_100 from '@patternfly/react-tokens/dist/esm/global_warning_color_100';
+
+export function groupAndDeduplicate(objects) {
+  const groupedObjects = new Map();
+  for (const obj of objects) {
+    // Create a unique key based on metric.alertname + metric.namespace
+    const key = obj.metric.alertname + obj.metric.namespace;
+    // If the key already exists in the map, merge the values
+    if (groupedObjects.has(key)) {
+      const existingObj = groupedObjects.get(key);
+      existingObj.values = existingObj.values.concat(obj.values);
+    } else {
+      groupedObjects.set(key, {
+        metric: obj.metric,
+        values: obj.values.slice(),
+      });
+    }
+  }
+
+  // remove duplicates in each grouped object
+  for (const [key, obj] of groupedObjects.entries()) {
+    const deduplicatedValues = [];
+    const seen = new Set();
+
+    for (const value of obj.values) {
+      const valueString = JSON.stringify(value);
+      if (!seen.has(valueString)) {
+        seen.add(valueString);
+        deduplicatedValues.push(value);
+      }
+    }
+    obj.values = deduplicatedValues;
+  }
+  return Array.from(groupedObjects.values());
+}
 
 export function processIncidentsTimestamps(data) {
-  return data.map((alert) => {
+  const firing = groupAndDeduplicate(data).filter((value) => value.metric.alertstate === 'firing');
+
+  return firing.map((alert, index) => {
     // Process each value
     const processedValues = alert.values.map((value) => {
       const timestamp = value[0];
-      const status = value[1];
 
       // Convert timestamp to date
       const date = new Date(timestamp * 1000);
-      const hours = String(date.getHours()).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const year = String(date.getFullYear()).slice(-2);
-
-      // Format date as HH/DD/MM/YY
-      const formattedDate = `${hours}/${day}/${month}/${year}`;
-      return [formattedDate, status];
+      return [date];
     });
 
     return {
-      ...alert,
+      alertname: alert.metric.alertname,
+      namespace: alert.metric.namespace,
+      severity: alert.metric.severity,
       values: processedValues,
+      alertsStartFiring: processedValues.at(0)[0],
+      alertsEndFiring: processedValues.at(-1)[0],
+      x: firing.length - index,
     };
   });
 }
@@ -30,3 +68,38 @@ const today = moment().startOf('day');
 const threeDaysAgo = moment().subtract(3, 'days');
 const sevenDaysAgo = moment().subtract(7, 'days');
 const fifteenDaysAgo = moment().subtract(15, 'days');
+
+export const createChartBars = (alert, index) => {
+  const data = [];
+
+  alert?.values.forEach((value) => {
+    data.push({
+      y0: new Date(value.at(0)),
+      y: new Date(value.at(-1)),
+      x: alert.x,
+      name: alert.severity,
+      fill:
+        alert.severity === 'danger'
+          ? global_danger_color_100.var
+          : alert.severity === 'warning'
+          ? global_warning_color_100.var
+          : global_info_color_100.var,
+    });
+  });
+  if (data.length === 0) {
+    return null;
+  }
+
+  return (
+    <ChartBar
+      data={data}
+      key={index}
+      style={{
+        data: {
+          fill: ({ datum }) => datum.fill,
+          stroke: ({ datum }) => datum.fill,
+        },
+      }}
+    />
+  );
+};
