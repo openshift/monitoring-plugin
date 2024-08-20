@@ -56,7 +56,7 @@ import {
 import { SectionHeading } from './console/utils/headings';
 import { ExternalLink } from './console/utils/link';
 import { getAllQueryArguments } from './console/utils/router';
-import { LoadingInline, StatusBox } from './console/utils/status-box';
+import { EmptyBox, LoadingInline, StatusBox } from './console/utils/status-box';
 
 import MonitoringDashboardsPage from './dashboards';
 import { useBoolean } from './hooks/useBoolean';
@@ -780,6 +780,9 @@ const RulesPage_: React.FC = () => {
               loadError={loadError}
               Row={RuleTableRow}
               unfilteredData={data}
+              NoDataEmptyMsg={() => {
+                return <EmptyBox label={RuleResource.label} />;
+              }}
             />
           </div>
         </div>
@@ -1029,6 +1032,9 @@ const SilencesPage_: React.FC = () => {
                 loadError={loadError}
                 Row={SilenceTableRowWithCheckbox}
                 unfilteredData={data}
+                NoDataEmptyMsg={() => {
+                  return <EmptyBox label={SilenceResource.label} />;
+                }}
               />
             </div>
           </div>

@@ -70,7 +70,7 @@ export const LoadingBox: React.FC<LoadingBoxProps> = ({ className, message }) =>
 );
 LoadingBox.displayName = 'LoadingBox';
 
-const EmptyBox: React.FC<EmptyBoxProps> = ({ label }) => {
+export const EmptyBox: React.FC<EmptyBoxProps> = ({ label }) => {
   const { t } = useTranslation();
   return (
     <Box>
