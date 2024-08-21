@@ -712,20 +712,8 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
 
   const canStack = _.sumBy(graphData, 'length') <= maxStacks;
 
-  const [devNamespace, setDevNamespace] = React.useState<string>(undefined);
   const activeNamespace = useActiveNamespace();
   const { isDev } = usePerspective();
-
-  // The developer view requires a namespace.
-  // When a defined namespace is passed to getPrometheusURL({namespace, ...})
-  // it uses PROMETHEUS_TENANCY_BASE_PATH
-  React.useEffect(() => {
-    if (isDev) {
-      setDevNamespace(activeNamespace);
-    } else {
-      setDevNamespace(undefined);
-    }
-  }, [isDev, activeNamespace]);
 
   // If provided, `timespan` overrides any existing span setting
   React.useEffect(() => {
@@ -774,7 +762,7 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
                 {
                   endpoint: PrometheusEndpoint.QUERY_RANGE,
                   endTime: timeRange.endTime,
-                  namespace: devNamespace,
+                  namespace: isDev ? activeNamespace : namespace,
                   query,
                   samples: Math.ceil(samples / timeRanges.length),
                   timeout: '60s',
