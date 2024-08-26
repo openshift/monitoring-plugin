@@ -47,6 +47,7 @@ import { DropdownItem } from '@patternfly/react-core';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { Link } from 'react-router-dom';
 import KebabDropdown from '../kebab-dropdown';
+import { EmptyBox } from '../console/utils/status-box';
 
 const tableAlertClasses = [
   'pf-u-w-50 pf-u-w-33-on-sm', // Name
@@ -212,6 +213,9 @@ const AlertsPage_: React.FC<AlertsPageProps> = () => {
               Row={AlertTableRow}
               unfilteredData={data}
               csvData={csvData}
+              NoDataEmptyMsg={() => {
+                return <EmptyBox label={AlertResource.label} />;
+              }}
             />
           </div>
         </div>
