@@ -36,8 +36,6 @@ const IncidentsPage = ({
   const [startingDate, setStartingDate] = React.useState('');
   const [endDate, setEndDate] = React.useState('');
   const [incidentsPageData, setIncidentsPageData] = React.useState([]);
-  //raw data
-  const [data, setData] = React.useState([]);
   //data that is mapped and changed from timestamps to a format HH/DD/MM/YY
   const [processedData, setProcessedData] = React.useState([]);
   //will be used to define the Xdomain of chart
@@ -45,37 +43,35 @@ const IncidentsPage = ({
   const safeFetch = useSafeFetch();
   React.useEffect(() => {
     (async () => {
-      try {
-        const results = await Promise.all(
-          twoWeeksDateRanges.map(async (range) => {
-            const response = await safeFetch(
-              getPrometheusURL(
-                {
-                  endpoint: PrometheusEndpoint.QUERY_RANGE,
-                  endTime: range.endTime,
-                  namespace,
-                  query: 'ALERTS',
-                  samples: 23,
-                  timespan: range.duration - 1,
-                },
-                customDataSource?.basePath,
-              ),
-            );
-            return response.data.result;
-          }),
-        );
-        const aggregatedData = results.reduce((acc, result) => acc.concat(result), []);
-        setData(aggregatedData);
-      } catch (err) {
-        // eslint-disable-next-line no-console
-        console.log(err);
-      }
+      Promise.all(
+        twoWeeksDateRanges.map(async (range) => {
+          const response = await safeFetch(
+            getPrometheusURL(
+              {
+                endpoint: PrometheusEndpoint.QUERY_RANGE,
+                endTime: range.endTime,
+                namespace,
+                query: 'ALERTS',
+                samples: 23,
+                timespan: range.duration - 1,
+              },
+              customDataSource?.basePath,
+            ),
+          );
+          return response.data.result;
+        }),
+      )
+        .then((results) => {
+          const aggregatedData = results.reduce((acc, result) => acc.concat(result), []);
+          setProcessedData(processIncidentsTimestamps(aggregatedData));
+        })
+        .catch((err) => {
+          // eslint-disable-next-line no-console
+          console.log(err);
+        });
     })();
   }, []);
 
-  React.useEffect(() => {
-    setProcessedData(processIncidentsTimestamps(data));
-  }, [data]);
   return (
     <>
       <div className="co-m-pane__body">
