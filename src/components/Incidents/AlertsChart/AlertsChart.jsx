@@ -56,7 +56,7 @@ const AlertsChart = ({ alertsData }) => {
               />
             }
             //TODO: domain ranges should be adjusted based on the amount of rows and day range
-            domain={{ x: [0, 17], y: [0, 15] }}
+            domain={{ x: [0, 2], y: [0, 15] }}
             domainPadding={{ x: [30, 25] }}
             legendData={[
               { name: 'Critical', symbol: { fill: global_danger_color_100.var } },
@@ -64,6 +64,7 @@ const AlertsChart = ({ alertsData }) => {
               { name: 'Warning', symbol: { fill: global_warning_color_100.var } },
             ]}
             legendPosition="bottom-left"
+            //this should be always less than the container height
             height={300}
             padding={{
               bottom: 75, // Adjusted to accommodate legend
@@ -95,79 +96,79 @@ const AlertsChart = ({ alertsData }) => {
               }}
             />
             <ChartGroup horizontal>
-              {/* <ChartBar
-              data={[
-                { name: 'Critical', x: 1.2, y: 4, y0: 1 },
-                { name: 'Critical', x: 1.2, y: 5, y0: 4.5 },
-                { name: 'Critical', x: 1.2, y: 6, y0: 5.5 },
-                { name: 'Critical', x: 1.2, y: 14.5, y0: 6.5 },
-              ]}
-              style={{
-                data: {
-                  fill: global_danger_color_100.var,
-                  stroke: global_danger_color_100.var,
-                },
-              }}
-            />
-            <ChartBar
-              data={[
-                { name: 'Critical', x: 1, y: 3, y0: 2 },
-                { name: 'Critical', x: 1, y: 4, y0: 2.5 },
-                { name: 'Critical', x: 1, y: 5, y0: 4.5 },
-                { name: 'Critical', x: 1, y: 6, y0: 5.5 },
-                { name: 'Critical', x: 1, y: 7, y0: 6.5 },
-                { name: 'Critical', x: 1, y: 9, y0: 8 },
-              ]}
-              style={{
-                data: {
-                  fill: global_danger_color_100.var,
-                  stroke: global_danger_color_100.var,
-                },
-              }}
-            />
-            <ChartBar
-              data={[
-                { name: 'Info', x: 0.8, y: 3, y0: 2.5 },
-                { name: 'Info', x: 0.8, y: 4, y0: 3.5 },
-                { name: 'Info', x: 0.8, y: 5, y0: 4.5 },
-                { name: 'Info', x: 0.8, y: 6, y0: 5.5 },
-                { name: 'Info', x: 0.8, y: 7, y0: 6.5 },
-              ]}
-              style={{
-                data: {
-                  fill: global_info_color_100.var,
-                  stroke: global_info_color_100.var,
-                },
-              }}
-            />
-            <ChartBar
-              data={[
-                { name: 'Warning', x: 0.6, y: 4, y0: 3 },
-                { name: 'Warning', x: 0.6, y: 8, y0: 5 },
-                { name: 'Warning', x: 0.6, y: 9, y0: 8.5 },
-                { name: 'Warning', x: 0.6, y: 10.5, y0: 9.5 },
-              ]}
-              style={{
-                data: {
-                  fill: global_warning_color_100.var,
-                  stroke: global_warning_color_100.var,
-                },
-              }}
-            />
-            <ChartBar
-              data={[
-                { name: 'Warning', x: 0.2, y: 3, y0: 1 },
-                { name: 'Warning', x: 0.2, y: 3.5, y0: 8 },
-                { name: 'Warning', x: 0.2, y: 9, y0: 8.5 },
-                { name: 'Warning', x: 0.2, y: 10.5, y0: 9.5 },
-              ]}
-              style={{
-                data: {
-                  fill: global_warning_color_100.var,
-                  stroke: global_warning_color_100.var,
-                },
-              }}
-            /> */}
+              <ChartBar
+                data={[
+                  { name: 'Critical', x: 1.2, y: 4, y0: 1 },
+                  { name: 'Critical', x: 1.2, y: 5, y0: 4.5 },
+                  { name: 'Critical', x: 1.2, y: 6, y0: 5.5 },
+                  { name: 'Critical', x: 1.2, y: 14.5, y0: 6.5 },
+                ]}
+                style={{
+                  data: {
+                    fill: global_danger_color_100.var,
+                    stroke: global_danger_color_100.var,
+                  },
+                }}
+              />
+              <ChartBar
+                data={[
+                  { name: 'Critical', x: 1, y: 3, y0: 2 },
+                  { name: 'Critical', x: 1, y: 4, y0: 2.5 },
+                  { name: 'Critical', x: 1, y: 5, y0: 4.5 },
+                  { name: 'Critical', x: 1, y: 6, y0: 5.5 },
+                  { name: 'Critical', x: 1, y: 7, y0: 6.5 },
+                  { name: 'Critical', x: 1, y: 9, y0: 8 },
+                ]}
+                style={{
+                  data: {
+                    fill: global_danger_color_100.var,
+                    stroke: global_danger_color_100.var,
+                  },
+                }}
+              />
+              <ChartBar
+                data={[
+                  { name: 'Info', x: 0.8, y: 3, y0: 2.5 },
+                  { name: 'Info', x: 0.8, y: 4, y0: 3.5 },
+                  { name: 'Info', x: 0.8, y: 5, y0: 4.5 },
+                  { name: 'Info', x: 0.8, y: 6, y0: 5.5 },
+                  { name: 'Info', x: 0.8, y: 7, y0: 6.5 },
+                ]}
+                style={{
+                  data: {
+                    fill: global_info_color_100.var,
+                    stroke: global_info_color_100.var,
+                  },
+                }}
+              />
+              <ChartBar
+                data={[
+                  { name: 'Warning', x: 0.6, y: 4, y0: 3 },
+                  { name: 'Warning', x: 0.6, y: 8, y0: 5 },
+                  { name: 'Warning', x: 0.6, y: 9, y0: 8.5 },
+                  { name: 'Warning', x: 0.6, y: 10.5, y0: 9.5 },
+                ]}
+                style={{
+                  data: {
+                    fill: global_warning_color_100.var,
+                    stroke: global_warning_color_100.var,
+                  },
+                }}
+              />
+              <ChartBar
+                data={[
+                  { name: 'Warning', x: 0.2, y: 3, y0: 1 },
+                  { name: 'Warning', x: 0.2, y: 3.5, y0: 8 },
+                  { name: 'Warning', x: 0.2, y: 9, y0: 8.5 },
+                  { name: 'Warning', x: 0.2, y: 10.5, y0: 9.5 },
+                ]}
+                style={{
+                  data: {
+                    fill: global_warning_color_100.var,
+                    stroke: global_warning_color_100.var,
+                  },
+                }}
+              />
               <ChartBar
                 data={[
                   { name: 'Warning', x: 0.4, y: 2, y0: 1 },

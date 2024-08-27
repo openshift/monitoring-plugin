@@ -71,7 +71,6 @@ const fifteenDaysAgo = moment().subtract(15, 'days');
 
 export const createChartBars = (alert, index) => {
   const data = [];
-
   alert?.values.forEach((value) => {
     data.push({
       y0: new Date(value.at(0)),
