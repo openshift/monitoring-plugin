@@ -13,7 +13,7 @@ RUN make install-frontend
 RUN make build-frontend
 
 # Almost all images from Red Hat are still on go1.21, however I found one that the cne team has
-# created. Once official Red Hat images are available for local development and pulling this 
+# created. Once official Red Hat images are available for local development and pulling this
 # should be updated
 FROM quay.io/redhat-cne/openshift-origin-release:rhel-9-golang-1.22-openshift-4.17 as go-builder
 
@@ -47,4 +47,5 @@ COPY --from=web-builder /opt/app-root/web/dist /usr/share/nginx/html
 ENTRYPOINT ["nginx", "-g", "daemon off;"]
 
 # When nginx is removed from CMO, we can use the following ENTRYPOINT instead
+# After it has been removed add the CI checks to this repo. [example](https://github.com/openshift/release/pull/56011)
 # ENTRYPOINT ["/opt/app-root/plugin-backend", "-static-path", "/opt/app-root/web/dist"]

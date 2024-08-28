@@ -34,7 +34,7 @@ WORKDIR $REMOTE_SOURCES_DIR/cachito-gomod-with-deps/app
 ENV GOEXPERIMENT=strictfipsruntime
 ENV CGO_ENABLED=1
 
-RUN source $REMOTE_SOURCES_DIR/cachito-gomod-with-deps/cachito.env \ 
+RUN source $REMOTE_SOURCES_DIR/cachito-gomod-with-deps/cachito.env \
   && make build-backend BUILD_OPTS="-tags strictfipsruntime"
 
 FROM registry.ci.openshift.org/ocp/4.17:base-rhel9
@@ -56,4 +56,5 @@ COPY --from=go-builder $REMOTE_SOURCES_DIR/cachito-gomod-with-deps/app/plugin-ba
 ENTRYPOINT ["nginx", "-g", "daemon off;"]
 
 # When nginx is removed from CMO, we can use the following ENTRYPOINT instead and remove the nginx install
+# After it has been removed add the CI checks to this repo. [example](https://github.com/openshift/release/pull/56011)
 # ENTRYPOINT ["/opt/app-root/plugin-backend", "-static-path", "/opt/app-root/web/dist"]
