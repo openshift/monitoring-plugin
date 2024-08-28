@@ -61,4 +61,5 @@ COPY --from=web-builder /opt/app-root/src/web/dist /usr/share/nginx/html
 ENTRYPOINT ["nginx", "-g", "daemon off;"]
 
 # When nginx is removed from CMO, we can use the following ENTRYPOINT instead
+# After it has been removed add the CI checks to this repo. [example](https://github.com/openshift/release/pull/56011)
 # ENTRYPOINT ["/opt/app-root/plugin-backend", "-static-path", "/opt/app-root/web/dist"]
