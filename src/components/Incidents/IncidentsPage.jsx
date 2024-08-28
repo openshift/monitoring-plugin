@@ -39,6 +39,7 @@ const IncidentsPage = ({
   //data that is mapped and changed from timestamps to a format HH/DD/MM/YY
   const [processedData, setProcessedData] = React.useState([]);
   //will be used to define the Xdomain of chart
+  //IT WILL BE DONE WITH FILTERS. NOT READY YET
   const [xDomain, setXDomain] = React.useState(twoWeeksDateRanges);
   const safeFetch = useSafeFetch();
   React.useEffect(() => {
