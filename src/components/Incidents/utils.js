@@ -69,14 +69,15 @@ const threeDaysAgo = moment().subtract(3, 'days');
 const sevenDaysAgo = moment().subtract(7, 'days');
 const fifteenDaysAgo = moment().subtract(15, 'days');
 
-export const createChartBars = (alert, index) => {
+export const createChartBars = (alert) => {
   const data = [];
-  alert?.values.forEach((value) => {
+
+  for (let i = 0; i < alert.values.length - 1; i++) {
     data.push({
-      y0: new Date(value.at(0)),
-      y: new Date(value.at(-1)),
+      y0: new Date(alert.values[i].at(0)),
+      y: new Date(alert.values[i + 1].at(0)),
       x: alert.x,
-      name: alert.severity,
+      name: alert.severity[0].toUpperCase() + alert.severity.slice(1),
       fill:
         alert.severity === 'danger'
           ? global_danger_color_100.var
@@ -84,21 +85,7 @@ export const createChartBars = (alert, index) => {
           ? global_warning_color_100.var
           : global_info_color_100.var,
     });
-  });
-  if (data.length === 0) {
-    return null;
   }
 
-  return (
-    <ChartBar
-      data={data}
-      key={index}
-      style={{
-        data: {
-          fill: ({ datum }) => datum.fill,
-          stroke: ({ datum }) => datum.fill,
-        },
-      }}
-    />
-  );
+  return data;
 };
