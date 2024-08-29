@@ -41,3 +41,7 @@ start-backend:
 .PHONY: build-image
 build-image:
 	./scripts/build-image.sh
+
+.PHONY: install
+install:
+	make install-frontend && make install-backend

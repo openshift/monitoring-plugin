@@ -61,6 +61,9 @@ $ oc login <clusterAddress> -u <username> -p <password>
 $ podman machine init 
 $ podman machine start 
 
+# Install dependencies 
+$ make install 
+
 # Run the application 
 $ make start-frontend
 # In a separate terminal 
