@@ -108,5 +108,16 @@
         "$codeRef": "MonitoringUI"
       }
     }
+  },
+  {
+    "type": "console.tab",
+    "properties": {
+      "contextId": "dev-console-observe",
+      "name": "%plugin__monitoring-plugin~Dashboards%",
+      "href": "",
+      "component": {
+        "$codeRef": "MonitoringUI"
+      }
+    }
   }
 ]
