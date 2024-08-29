@@ -774,6 +774,7 @@ const RulesPage_: React.FC = () => {
           <div className="col-xs-12">
             <VirtualizedTable<Rule>
               aria-label={t('Alerting rules')}
+              label={t('Alerting rules')}
               columns={columns}
               data={filteredData ?? []}
               loaded={loaded}
@@ -781,7 +782,7 @@ const RulesPage_: React.FC = () => {
               Row={RuleTableRow}
               unfilteredData={data}
               NoDataEmptyMsg={() => {
-                return <EmptyBox label={RuleResource.label} />;
+                return <EmptyBox label={t('Alerting rules')} />;
               }}
             />
           </div>
@@ -1026,6 +1027,7 @@ const SilencesPage_: React.FC = () => {
             <div className="col-xs-12">
               <VirtualizedTable<Silence>
                 aria-label={t('Silences')}
+                label={t('Silences')}
                 columns={columns}
                 data={filteredData ?? []}
                 loaded={loaded}
@@ -1033,7 +1035,7 @@ const SilencesPage_: React.FC = () => {
                 Row={SilenceTableRowWithCheckbox}
                 unfilteredData={data}
                 NoDataEmptyMsg={() => {
-                  return <EmptyBox label={SilenceResource.label} />;
+                  return <EmptyBox label={t('Silences')} />;
                 }}
               />
             </div>

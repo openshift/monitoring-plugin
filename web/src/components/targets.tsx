@@ -41,7 +41,7 @@ import { K8sResourceKind } from './console/module/k8s/types';
 import { SectionHeading } from './console/utils/headings';
 import { usePoll } from './console/utils/poll-hook';
 import { useSafeFetch } from './console/utils/safe-fetch-hook';
-import { LoadingInline, StatusBox } from './console/utils/status-box';
+import { EmptyBox, LoadingInline, StatusBox } from './console/utils/status-box';
 
 import { useBoolean } from './hooks/useBoolean';
 import { Labels } from './labels';
@@ -430,13 +430,17 @@ const List: React.FC<ListProps> = ({ data, loaded, loadError, unfilteredData }) 
 
   return (
     <VirtualizedTable<Target>
-      aria-label="metrics targets"
+      aria-label={t('Metrics targets')}
+      label={t('Metrics targets')}
       columns={columns}
       data={data}
       loaded={loaded}
       loadError={loadError}
       Row={Row}
       unfilteredData={unfilteredData}
+      NoDataEmptyMsg={() => {
+        return <EmptyBox label={t('Metrics targets')} />;
+      }}
     />
   );
 };

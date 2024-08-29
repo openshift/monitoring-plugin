@@ -206,6 +206,7 @@ const AlertsPage_: React.FC<AlertsPageProps> = () => {
           <div className="col-xs-12">
             <VirtualizedTable<Alert>
               aria-label={t('Alerts')}
+              label={t('Alerts')}
               columns={columns}
               data={filteredData ?? []}
               loaded={loaded}
@@ -214,7 +215,7 @@ const AlertsPage_: React.FC<AlertsPageProps> = () => {
               unfilteredData={data}
               csvData={csvData}
               NoDataEmptyMsg={() => {
-                return <EmptyBox label={AlertResource.label} />;
+                return <EmptyBox label={t('Alerts')} />;
               }}
             />
           </div>
