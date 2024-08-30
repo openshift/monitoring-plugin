@@ -30,7 +30,7 @@
     },
     "properties": {
       "id": "alerting",
-      "name": "%plugin__monitoring-plugin~Alerting%",
+      "name": "%public~Alerting%",
       "href": "/monitoring/alerts",
       "perspective": "admin",
       "section": "observe",
@@ -44,7 +44,7 @@
     },
     "properties": {
       "id": "metrics",
-      "name": "%plugin__monitoring-plugin~Metrics%",
+      "name": "%public~Metrics%",
       "href": "/monitoring/query-browser",
       "perspective": "admin",
       "section": "observe",
@@ -58,7 +58,7 @@
     },
     "properties": {
       "id": "dashboards",
-      "name": "%plugin__monitoring-plugin~Dashboards%",
+      "name": "%public~Dashboards%",
       "href": "/monitoring/dashboards",
       "perspective": "admin",
       "section": "observe",
@@ -72,7 +72,7 @@
     },
     "properties": {
       "id": "targets",
-      "name": "%plugin__monitoring-plugin~Targets%",
+      "name": "%public~Targets%",
       "href": "/monitoring/targets",
       "perspective": "admin",
       "section": "observe",
@@ -83,7 +83,7 @@
     "type": "console.tab",
     "properties": {
       "contextId": "dev-console-observe",
-      "name": "%plugin__monitoring-plugin~Alerts%",
+      "name": "%public~Alerts%",
       "href": "alerts",
       "component": {
         "$codeRef": "MonitoringUI"
@@ -102,7 +102,7 @@
     "type": "console.tab",
     "properties": {
       "contextId": "dev-console-observe",
-      "name": "%plugin__monitoring-plugin~Metrics%",
+      "name": "%public~Metrics%",
       "href": "metrics",
       "component": {
         "$codeRef": "MonitoringUI"
