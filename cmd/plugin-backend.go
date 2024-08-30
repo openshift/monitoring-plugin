@@ -28,8 +28,8 @@ func main() {
 	cert := mergeEnvValue("CERT_FILE_PATH", *certArg, "")
 	key := mergeEnvValue("PRIVATE_KEY_FILE_PATH", *keyArg, "")
 	features := mergeEnvValue("MONITORING_PLUGIN_FEATURES", *featuresArg, "")
-	staticPath := mergeEnvValue("MONITORING_PLUGIN_STATIC_PATH", *staticPathArg, "opt/app-root/web/dist")
-	configPath := mergeEnvValue("MONITORING_PLUGIN_MANIFEST_CONFIG_PATH", *configPathArg, "opt/app-root/web/dist")
+	staticPath := mergeEnvValue("MONITORING_PLUGIN_STATIC_PATH", *staticPathArg, "/opt/app-root/web/dist")
+	configPath := mergeEnvValue("MONITORING_PLUGIN_MANIFEST_CONFIG_PATH", *configPathArg, "/opt/app-root/web/dist")
 	pluginConfigPath := mergeEnvValue("MONITORING_PLUGIN_CONFIG_PATH", *pluginConfigArg, "/etc/plugin/config.yaml")
 
 	featuresList := strings.Fields(strings.Join(strings.Split(strings.ToLower(features), ","), " "))
