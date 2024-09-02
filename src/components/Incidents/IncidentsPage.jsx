@@ -10,22 +10,7 @@ import { useDispatch } from 'react-redux';
 import * as _ from 'lodash-es';
 import { processIncidentsTimestamps } from './utils';
 
-const twoWeeksDateRanges = [
-  { endTime: 1723625094404, duration: 86400000 },
-  { endTime: 1723711494404, duration: 86400000 },
-  { endTime: 1723797894404, duration: 86400000 },
-  { endTime: 1723884294404, duration: 86400000 },
-  { endTime: 1723970694404, duration: 86400000 },
-  { endTime: 1724057094404, duration: 86400000 },
-  { endTime: 1724143494404, duration: 86400000 },
-  { endTime: 1724229894404, duration: 86400000 },
-  { endTime: 1724316294404, duration: 86400000 },
-  { endTime: 1724402694404, duration: 86400000 },
-  { endTime: 1724489094404, duration: 86400000 },
-  { endTime: 1724575494404, duration: 86400000 },
-  { endTime: 1724661894404, duration: 86400000 },
-  { endTime: 1724748294404, duration: 86400000 },
-];
+const spans = ['1d', '3d', '7d', '15d'];
 
 const IncidentsPage = ({
   customDataSource,
@@ -38,14 +23,21 @@ const IncidentsPage = ({
   const [incidentsPageData, setIncidentsPageData] = React.useState([]);
   //data that is mapped and changed from timestamps to a format HH/DD/MM/YY
   const [processedData, setProcessedData] = React.useState([]);
-  //will be used to define the Xdomain of chart
-  //IT WILL BE DONE WITH FILTERS. NOT READY YET
-  const [xDomain, setXDomain] = React.useState(twoWeeksDateRanges);
+  const defaultSpanText = spans.find((s) => parsePrometheusDuration(s) >= defaultTimespan);
+  const [span, setSpan] = React.useState(parsePrometheusDuration(defaultSpanText));
+  //used to define the Xdomain of chart
+  const [xDomain, setXDomain] = React.useState();
+
+  const now = Date.now();
+  const endTime = xDomain?.[1];
+  const timeRanges = getTimeRanges(span, endTime || now);
+  //TEMPORARY to manipulate the API request - use values '1d', '3d', '7d', '15d'
+  //and change the defaultTimespan -> it will fetch 1 to 15d and populate the array with data
   const safeFetch = useSafeFetch();
   React.useEffect(() => {
     (async () => {
       Promise.all(
-        twoWeeksDateRanges.map(async (range) => {
+        timeRanges.map(async (range) => {
           const response = await safeFetch(
             getPrometheusURL(
               {
@@ -53,7 +45,7 @@ const IncidentsPage = ({
                 endTime: range.endTime,
                 namespace,
                 query: 'ALERTS',
-                samples: 23,
+                samples: 100,
                 timespan: range.duration - 1,
               },
               customDataSource?.basePath,
@@ -76,7 +68,7 @@ const IncidentsPage = ({
   return (
     <>
       <div className="co-m-pane__body">
-        <IncidentsHeader alertsData={processedData} />
+        <IncidentsHeader alertsData={processedData} chartDays={timeRanges.length} />
       </div>
     </>
   );

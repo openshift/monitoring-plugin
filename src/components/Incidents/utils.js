@@ -82,10 +82,30 @@ export const createChartBars = (alert) => {
         alert.severity === 'danger'
           ? global_danger_color_100.var
           : alert.severity === 'warning'
-          ? global_warning_color_100.var
-          : global_info_color_100.var,
+            ? global_warning_color_100.var
+            : global_info_color_100.var,
     });
   }
 
   return data;
 };
+
+export const formatDate = (date, isTime) => {
+  const dateString = date?.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const timeString = date?.toLocaleTimeString('en-US', { hour12: false });
+  return isTime ? `${dateString} ${timeString}` : dateString;
+};
+
+export function generateDateArray(days) {
+  const currentDate = new Date();
+
+  const dateArray = [];
+  for (let i = 0; i < days; i++) {
+    const newDate = new Date(currentDate);
+    newDate.setDate(currentDate.getDate() - (days - 1 - i));
+    newDate.setHours(0, 0, 0, 0);
+    dateArray.push(newDate);
+  }
+
+  return dateArray;
+}
