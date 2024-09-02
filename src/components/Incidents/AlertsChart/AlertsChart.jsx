@@ -15,21 +15,16 @@ import { Bullseye, Card, CardTitle, Spinner } from '@patternfly/react-core';
 import global_danger_color_100 from '@patternfly/react-tokens/dist/esm/global_danger_color_100';
 import global_info_color_100 from '@patternfly/react-tokens/dist/esm/global_info_color_100';
 import global_warning_color_100 from '@patternfly/react-tokens/dist/esm/global_warning_color_100';
-import { createChartBars } from '../utils';
+import { createChartBars, createDateArray, formatDate, generateDateArray } from '../utils';
 
-const AlertsChart = ({ alertsData }) => {
+const AlertsChart = ({ alertsData, chartDays }) => {
   const [isLoading, setIsLoading] = React.useState(true);
   const [chartData, setChartData] = React.useState();
+  const dateValues = generateDateArray(chartDays);
   React.useEffect(() => {
     setIsLoading(false);
     setChartData(alertsData.map((alert) => createChartBars(alert)));
   }, [alertsData]);
-
-  const formatDate = (date, isTime) => {
-    const dateString = date?.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    const timeString = date?.toLocaleTimeString('en-US', { hour12: false });
-    return isTime ? `${dateString} ${timeString}` : dateString;
-  };
 
   return (
     <Card className="alerts-chart-card">
@@ -90,17 +85,7 @@ const AlertsChart = ({ alertsData }) => {
               tickFormat={(t) =>
                 new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
               }
-              tickValues={[
-                new Date('2024-08-14T00:00:00'),
-                new Date('2024-08-15T00:00:00'),
-                new Date('2024-08-16T00:00:00'),
-                new Date('2024-08-17T00:00:00'),
-                new Date('2024-08-18T00:00:00'),
-                new Date('2024-08-19T00:00:00'),
-                new Date('2024-08-20T00:00:00'),
-                new Date('2024-08-21T00:00:00'),
-                new Date('2024-08-22T00:00:00'),
-              ]}
+              tickValues={dateValues}
             />
             <ChartAxis
               label="Alerts"
