@@ -7,160 +7,126 @@ import {
   ChartGroup,
   ChartLabel,
   ChartThemeColor,
+  ChartTooltip,
+  ChartVoronoiContainer,
 } from '@patternfly/react-charts';
 import { VictoryZoomContainer } from 'victory-zoom-container';
-import { Card, CardTitle } from '@patternfly/react-core';
+import { Bullseye, Card, CardTitle, Spinner } from '@patternfly/react-core';
 import global_danger_color_100 from '@patternfly/react-tokens/dist/esm/global_danger_color_100';
 import global_info_color_100 from '@patternfly/react-tokens/dist/esm/global_info_color_100';
 import global_warning_color_100 from '@patternfly/react-tokens/dist/esm/global_warning_color_100';
+import { createIncidentsChartBars, createDateArray, formatDate, generateDateArray } from '../utils';
 
-const days = [
-  'Jul 25',
-  'Jul 26',
-  'Jul 27',
-  'Jul 28',
-  'Jul 29',
-  'Jul 30',
-  'Jul 31',
-  'Aug 1',
-  'Aug 2',
-  'Aug 3',
-  'Aug 4',
-  'Aug 5',
-  'Aug 6',
-  'Aug 7',
-  'Today',
-];
-const IncidentsChart = () => {
+const IncidentsChart = ({ incidentsData, chartDays }) => {
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [chartData, setChartData] = React.useState();
+  const dateValues = generateDateArray(chartDays);
+  React.useEffect(() => {
+    setIsLoading(false);
+    setChartData(incidentsData.map((incident) => createIncidentsChartBars(incident)));
+  }, [incidentsData]);
+
   return (
     <Card className="incidents-chart-card">
       <CardTitle>Incidents Timeline</CardTitle>
-      <div
-        style={{
-          height: '300px',
-          //TODO: WIDTH SHOULD BE AUTOMATICALLY ADJUSTED
-          width: '100%',
-        }}
-      >
-        <Chart
-          containerComponent={<VictoryZoomContainer />}
-          domain={{ x: [0, 3], y: [0, 15] }}
-          domainPadding={{ x: [30, 25] }}
-          legendData={[
-            { name: 'Critical', symbol: { fill: global_danger_color_100.var } },
-            { name: 'Info', symbol: { fill: global_info_color_100.var } },
-            { name: 'Warning', symbol: { fill: global_warning_color_100.var } },
-          ]}
-          legendPosition="bottom-left"
-          height={300}
-          padding={{
-            bottom: 75, // Adjusted to accommodate legend
-            left: 50,
-            right: 25, // Adjusted to accommodate tooltip
-            top: 0,
+      {isLoading ? (
+        <Bullseye>
+          <Spinner aria-label="incidents-chart-spinner" />
+        </Bullseye>
+      ) : (
+        <div
+          style={{
+            height: '350px',
+            //TODO: WIDTH SHOULD BE AUTOMATICALLY ADJUSTED
+            width: '100%',
           }}
-          themeColor={ChartThemeColor.multiOrdered}
-          //TODO: WIDTH SHOULD BE AUTOMATICALLY ADJUSTED
-          width={1570}
         >
-          <ChartAxis
-            label="Incidents"
-            axisLabelComponent={<ChartLabel angle={0} dx={-745} dy={-268} />}
-            dependentAxis
-            showGrid
-            tickFormat={(t) => `June ${t}`}
-          />
-          <ChartGroup horizontal>
-            <ChartBar
-              data={[
-                { name: 'Critical', x: 3, y: 4, y0: 1 },
-                { name: 'Critical', x: 3, y: 5, y0: 4.5 },
-                { name: 'Critical', x: 3, y: 6, y0: 5.5 },
-                { name: 'Critical', x: 3, y: 14.5, y0: 6.5 },
-              ]}
+          <Chart
+            containerComponent={
+              <ChartVoronoiContainer
+                labelComponent={
+                  <ChartTooltip
+                    constrainToVisibleArea
+                    labelComponent={<ChartLabel dx={-65} textAnchor="start" />}
+                  />
+                }
+                //TODO: add dates based on the time range
+                labels={({ datum }) =>
+                  `Severity: ${datum.name}\nComponent: ${datum.component}\nIncident ID: ${
+                    datum.group_id
+                  }\nStart: ${formatDate(new Date(datum.y0), true)}\nEnd: ${formatDate(
+                    new Date(datum.y),
+                    true,
+                  )}`
+                }
+              />
+            }
+            //TODO: domain ranges should be adjusted based on the amount of rows and day range
+            domainPadding={{ x: [30, 25] }}
+            legendData={[
+              { name: 'Critical', symbol: { fill: global_danger_color_100.var } },
+              { name: 'Info', symbol: { fill: global_info_color_100.var } },
+              { name: 'Warning', symbol: { fill: global_warning_color_100.var } },
+            ]}
+            legendPosition="bottom-left"
+            //this should be always less than the container height
+            height={300}
+            padding={{
+              bottom: 75, // Adjusted to accommodate legend
+              left: 50,
+              right: 25, // Adjusted to accommodate tooltip
+              top: 0,
+            }}
+            themeColor={ChartThemeColor.multiOrdered}
+            //TODO: WIDTH SHOULD BE AUTOMATICALLY ADJUSTED
+            width={1570}
+          >
+            <ChartAxis
+              dependentAxis
+              showGrid
+              tickFormat={(t) =>
+                new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+              }
+              tickValues={dateValues}
+            />
+            <ChartAxis
+              label="Incidents"
+              //TODO: Values of dy and dx should be adjusted according to the chart height
+              axisLabelComponent={
+                <ChartLabel angle={0} dy={-120} dx={33} padding={{ top: 20, bottom: 60 }} />
+              }
               style={{
-                data: {
-                  fill: global_danger_color_100.var,
-                  stroke: global_danger_color_100.var,
+                axis: {
+                  stroke: 'transparent',
+                },
+                ticks: {
+                  stroke: 'transparent',
+                },
+                tickLabels: {
+                  fill: 'transparent',
                 },
               }}
             />
-            <ChartBar
-              data={[
-                { name: 'Critical', x: 2.5, y: 3, y0: 2 },
-                { name: 'Critical', x: 2.5, y: 4, y0: 2.5 },
-                { name: 'Critical', x: 2.5, y: 5, y0: 4.5 },
-                { name: 'Critical', x: 2.5, y: 6, y0: 5.5 },
-                { name: 'Critical', x: 2.5, y: 7, y0: 6.5 },
-                { name: 'Critical', x: 2.5, y: 9, y0: 8 },
-              ]}
-              style={{
-                data: {
-                  fill: global_danger_color_100.var,
-                  stroke: global_danger_color_100.var,
-                },
-              }}
-            />
-            <ChartBar
-              data={[
-                { name: 'Info', x: 2, y: 3, y0: 2.5 },
-                { name: 'Info', x: 2, y: 4, y0: 3.5 },
-                { name: 'Info', x: 2, y: 5, y0: 4.5 },
-                { name: 'Info', x: 2, y: 6, y0: 5.5 },
-                { name: 'Info', x: 2, y: 7, y0: 6.5 },
-              ]}
-              style={{
-                data: {
-                  fill: global_info_color_100.var,
-                  stroke: global_info_color_100.var,
-                },
-              }}
-            />
-            <ChartBar
-              data={[
-                { name: 'Warning', x: 1.5, y: 4, y0: 3 },
-                { name: 'Warning', x: 1.5, y: 8, y0: 5 },
-                { name: 'Warning', x: 1.5, y: 9, y0: 8.5 },
-                { name: 'Warning', x: 1.5, y: 10.5, y0: 9.5 },
-              ]}
-              style={{
-                data: {
-                  fill: global_warning_color_100.var,
-                  stroke: global_warning_color_100.var,
-                },
-              }}
-            />
-            <ChartBar
-              data={[
-                { name: 'Warning', x: 1, y: 2, y0: 1 },
-                { name: 'Warning', x: 1, y: 6, y0: 4 },
-                { name: 'Warning', x: 1, y: 9, y0: 8.5 },
-                { name: 'Warning', x: 1, y: 10, y0: 9.5 },
-              ]}
-              style={{
-                data: {
-                  fill: global_warning_color_100.var,
-                  stroke: global_warning_color_100.var,
-                },
-              }}
-            />
-            <ChartBar
-              data={[
-                { name: 'Warning', x: 0.5, y: 3, y0: 1 },
-                { name: 'Warning', x: 0.5, y: 3.5, y0: 8 },
-                { name: 'Warning', x: 0.5, y: 9, y0: 8.5 },
-                { name: 'Warning', x: 0.5, y: 10.5, y0: 9.5 },
-              ]}
-              style={{
-                data: {
-                  fill: global_warning_color_100.var,
-                  stroke: global_warning_color_100.var,
-                },
-              }}
-            />
-          </ChartGroup>
-        </Chart>
-      </div>
+            <ChartGroup horizontal>
+              {chartData.map((bar, index) => {
+                return (
+                  //we have several arrays and for each array we make a ChartBar
+                  <ChartBar
+                    data={bar}
+                    key={index}
+                    style={{
+                      data: {
+                        fill: ({ datum }) => datum.fill,
+                        stroke: ({ datum }) => datum.fill,
+                      },
+                    }}
+                  />
+                );
+              })}
+            </ChartGroup>
+          </Chart>
+        </div>
+      )}
     </Card>
   );
 };

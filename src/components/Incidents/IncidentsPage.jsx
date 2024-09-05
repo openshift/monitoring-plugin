@@ -8,7 +8,7 @@ import { parsePrometheusDuration } from '../console/utils/datetime';
 import { getPrometheusURL } from '../console/graphs/helpers';
 import { useDispatch } from 'react-redux';
 import * as _ from 'lodash-es';
-import { processIncidentsTimestamps } from './utils';
+import { processAlertTimestamps, processIncidentTimestamps } from './utils';
 
 const spans = ['1d', '3d', '7d', '15d'];
 
@@ -22,7 +22,8 @@ const IncidentsPage = ({
   const [endDate, setEndDate] = React.useState('');
   const [incidentsPageData, setIncidentsPageData] = React.useState([]);
   //data that is mapped and changed from timestamps to a format HH/DD/MM/YY
-  const [processedData, setProcessedData] = React.useState([]);
+  const [alertsData, setAlertsData] = React.useState([]);
+  const [incidentsData, setIncidentsData] = React.useState([]);
   const defaultSpanText = spans.find((s) => parsePrometheusDuration(s) >= defaultTimespan);
   const [span, setSpan] = React.useState(parsePrometheusDuration(defaultSpanText));
   //used to define the Xdomain of chart
@@ -45,7 +46,7 @@ const IncidentsPage = ({
                 endTime: range.endTime,
                 namespace,
                 query: 'ALERTS',
-                samples: 100,
+                samples: 60,
                 timespan: range.duration - 1,
               },
               customDataSource?.basePath,
@@ -56,7 +57,39 @@ const IncidentsPage = ({
       )
         .then((results) => {
           const aggregatedData = results.reduce((acc, result) => acc.concat(result), []);
-          setProcessedData(processIncidentsTimestamps(aggregatedData));
+          setAlertsData(processAlertTimestamps(aggregatedData));
+        })
+        .catch((err) => {
+          // eslint-disable-next-line no-console
+          console.log(err);
+        });
+    })();
+  }, []);
+
+  React.useEffect(() => {
+    (async () => {
+      Promise.all(
+        timeRanges.map(async (range) => {
+          const response = await safeFetch(
+            getPrometheusURL(
+              {
+                endpoint: PrometheusEndpoint.QUERY_RANGE,
+                endTime: range.endTime,
+                namespace,
+                query:
+                  'max by(group_id,component,src_alertname,src_severity)(cluster:health:components:map{})',
+                samples: 23,
+                timespan: range.duration - 1,
+              },
+              customDataSource?.basePath,
+            ),
+          );
+          return response.data.result;
+        }),
+      )
+        .then((results) => {
+          const aggregatedData = results.reduce((acc, result) => acc.concat(result), []);
+          setIncidentsData(processIncidentTimestamps(aggregatedData));
         })
         .catch((err) => {
           // eslint-disable-next-line no-console
@@ -68,7 +101,11 @@ const IncidentsPage = ({
   return (
     <>
       <div className="co-m-pane__body">
-        <IncidentsHeader alertsData={processedData} chartDays={timeRanges.length} />
+        <IncidentsHeader
+          alertsData={alertsData}
+          incidentsData={incidentsData}
+          chartDays={timeRanges.length}
+        />
       </div>
     </>
   );

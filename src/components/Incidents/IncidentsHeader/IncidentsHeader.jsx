@@ -1,11 +1,11 @@
 import * as React from 'react';
-import IncidentGanttChart from '../IncidentsChart/IncidentsChart';
+import IncidentsChart from '../IncidentsChart/IncidentsChart';
 import AlertsChart from '../AlertsChart/AlertsChart';
 
-export const IncidentsHeader = ({ alertsData, chartDays }) => {
+export const IncidentsHeader = ({ alertsData, incidentsData, chartDays }) => {
   return (
     <div className="incidents-chart-card-container">
-      <IncidentGanttChart />
+      <IncidentsChart incidentsData={incidentsData} chartDays={chartDays} />
       <AlertsChart alertsData={alertsData} chartDays={chartDays} />
     </div>
   );
