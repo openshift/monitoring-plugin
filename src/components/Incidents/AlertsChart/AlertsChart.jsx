@@ -15,7 +15,7 @@ import { Bullseye, Card, CardTitle, Spinner } from '@patternfly/react-core';
 import global_danger_color_100 from '@patternfly/react-tokens/dist/esm/global_danger_color_100';
 import global_info_color_100 from '@patternfly/react-tokens/dist/esm/global_info_color_100';
 import global_warning_color_100 from '@patternfly/react-tokens/dist/esm/global_warning_color_100';
-import { createChartBars, createDateArray, formatDate, generateDateArray } from '../utils';
+import { createAlertsChartBars, createDateArray, formatDate, generateDateArray } from '../utils';
 
 const AlertsChart = ({ alertsData, chartDays }) => {
   const [isLoading, setIsLoading] = React.useState(true);
@@ -23,7 +23,7 @@ const AlertsChart = ({ alertsData, chartDays }) => {
   const dateValues = generateDateArray(chartDays);
   React.useEffect(() => {
     setIsLoading(false);
-    setChartData(alertsData.map((alert) => createChartBars(alert)));
+    setChartData(alertsData.map((alert) => createAlertsChartBars(alert)));
   }, [alertsData]);
 
   return (
