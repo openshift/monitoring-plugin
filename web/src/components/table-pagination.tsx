@@ -13,7 +13,7 @@ const LocalizedToggleTemplate: React.FC<LocalizedToggleTemplateProps> = ({
   itemsTitle,
   lastIndex,
 }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
     <Trans t={t}>
@@ -39,7 +39,7 @@ const TablePagination: React.FC<TablePaginationProps> = ({
   setPage,
   setPerPage,
 }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const onPerPageSelect = (e, v) => {
     // When changing the number of results per page, keep the start row approximately the same
