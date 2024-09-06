@@ -35,9 +35,15 @@ import { getAllQueryArguments } from './console/utils/router';
 import { StatusBox } from './console/utils/status-box';
 
 import { useBoolean } from './hooks/useBoolean';
-import { RootState, Silences } from './types';
+import { Silences } from './types';
 import { refreshSilences, SilenceResource, silenceState } from './utils';
-import { usePerspective } from './hooks/usePerspective';
+import {
+  getFetchSilenceAlertUrl,
+  getObserveState,
+  getSilenceAlertUrl,
+  usePerspective,
+} from './hooks/usePerspective';
+import { MonitoringState } from '../reducers/observe';
 
 const pad = (i: number): string => (i < 10 ? `0${i}` : String(i));
 
@@ -47,7 +53,7 @@ const formatDate = (d: Date): string =>
   )}:${pad(d.getSeconds())}`;
 
 const DatetimeTextInput = (props) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const pattern =
     '\\d{4}/(0?[1-9]|1[012])/(0?[1-9]|[12]\\d|3[01]) (0?\\d|1\\d|2[0-3]):[0-5]\\d(:[0-5]\\d)?';
@@ -76,7 +82,7 @@ const DatetimeTextInput = (props) => {
 };
 
 const NegativeMatcherHelp = () => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
     <dl>
@@ -99,7 +105,7 @@ type SilenceFormProps = RouteComponentProps & {
 };
 
 const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, title }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const durationOff = '-';
   const durations = {
@@ -135,7 +141,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
 
   const dispatch = useDispatch();
 
-  const { perspective } = usePerspective();
+  const { perspective, silencesKey } = usePerspective();
 
   const [isOpen, setIsOpen, , setClosed] = useBoolean(false);
 
@@ -196,8 +202,8 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
       return;
     }
 
-    const { alertManagerBaseURL } = window.SERVER_FLAGS;
-    if (!alertManagerBaseURL) {
+    const url = getFetchSilenceAlertUrl(perspective);
+    if (!url) {
       setError('Alertmanager URL not set');
       return;
     }
@@ -220,11 +226,11 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
     };
 
     consoleFetchJSON
-      .post(`${alertManagerBaseURL}/api/v2/silences`, body)
+      .post(getFetchSilenceAlertUrl(perspective), body)
       .then(({ silenceID }) => {
         setError(undefined);
-        refreshSilences(dispatch, perspective);
-        history.push(`${SilenceResource.plural}/${encodeURIComponent(silenceID)}`);
+        refreshSilences(dispatch, perspective, silencesKey);
+        history.push(getSilenceAlertUrl(perspective, silenceID));
       })
       .catch((err) => {
         const errorMessage =
@@ -347,7 +353,11 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
                   <TextInput
                     aria-label={t('Label name')}
                     isRequired
-                    onChange={(_e, v: string) => setMatcherField(i, 'name', v)}
+                    onChange={(_e, v: string) =>
+                      typeof _e === 'string'
+                        ? setMatcherField(i, 'name', _e)
+                        : setMatcherField(i, 'name', v)
+                    }
                     placeholder={t('Name')}
                     value={matcher.name}
                   />
@@ -357,7 +367,11 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
                   <TextInput
                     aria-label={t('Label value')}
                     isRequired
-                    onChange={(_e, v: string) => setMatcherField(i, 'value', v)}
+                    onChange={(_e, v: string) =>
+                      typeof _e === 'string'
+                        ? setMatcherField(i, 'value', _e)
+                        : setMatcherField(i, 'value', v)
+                    }
                     placeholder={t('Value')}
                     value={matcher.value}
                   />
@@ -417,7 +431,9 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
               <TextInput
                 aria-label={t('Creator')}
                 isRequired
-                onChange={(_e, v: string) => setCreatedBy(v)}
+                onChange={(_e, v: string) =>
+                  typeof _e === 'string' ? setCreatedBy(_e) : setCreatedBy(v)
+                }
                 value={createdBy}
               />
             </div>
@@ -426,7 +442,9 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
               <TextArea
                 aria-label={t('Comment')}
                 isRequired
-                onChange={(_E, v: string) => setComment(v)}
+                onChange={(_e, v: string) =>
+                  typeof _e === 'string' ? setComment(_e) : setComment(v)
+                }
                 data-test="silence-comment"
                 value={comment}
               />
@@ -450,7 +468,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
 const SilenceForm = withFallback(withRouter(SilenceForm_));
 
 const EditInfo = () => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
     <Alert className="co-alert" isInline title={t('Overwriting current silence')} variant="info">
@@ -462,9 +480,12 @@ const EditInfo = () => {
 };
 
 export const EditSilence = ({ match }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const { silencesKey, perspective } = usePerspective();
 
-  const silences: Silences = useSelector(({ observe }: RootState) => observe.get('silences'));
+  const silences: Silences = useSelector((state: MonitoringState) =>
+    getObserveState(perspective, state)?.get(silencesKey),
+  );
 
   const silence: Silence = _.find(silences?.data, { id: match.params.id });
   const isExpired = silenceState(silence) === SilenceStates.Expired;
@@ -496,7 +517,7 @@ export const EditSilence = ({ match }) => {
 };
 
 export const CreateSilence = () => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const matchers = _.map(getAllQueryArguments(), (value, name) => ({
     name,

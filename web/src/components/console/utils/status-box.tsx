@@ -15,7 +15,7 @@ const Box: React.FC<BoxProps> = ({ children, className }) => (
 );
 
 const LoadError: React.FC<LoadErrorProps> = ({ label, className, message, canRetry = true }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   return (
     <Box className={className}>
       <div className="pf-u-text-align-center cos-error-title">
@@ -69,7 +69,7 @@ export const LoadingBox: React.FC<LoadingBoxProps> = ({ className, message }) =>
 LoadingBox.displayName = 'LoadingBox';
 
 export const EmptyBox: React.FC<EmptyBoxProps> = ({ label }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   return (
     <Box>
       <div data-test="empty-message" className="pf-u-text-align-center">
@@ -97,7 +97,7 @@ const MsgBox: React.FC<MsgBoxProps> = ({ title, detail, className = '' }) => (
 MsgBox.displayName = 'MsgBox';
 
 const AccessDenied: React.FC<AccessDeniedProps> = ({ message }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   return (
     <div>
       <Box className="pf-u-text-align-center">
@@ -131,7 +131,7 @@ Data.displayName = 'Data';
 
 export const StatusBox: React.FC<StatusBoxProps> = (props) => {
   const { loadError, loaded, skeleton, data, ...dataProps } = props;
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   if (loadError) {
     const status = _.get(loadError, 'response.status');

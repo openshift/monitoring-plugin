@@ -1,7 +1,7 @@
 /* eslint-env node */
 
 import CopyWebpackPlugin from 'copy-webpack-plugin';
-import { Configuration as WebpackConfiguration } from 'webpack';
+import { DefinePlugin, Configuration as WebpackConfiguration } from 'webpack';
 import { Configuration as WebpackDevServerConfiguration } from 'webpack-dev-server';
 import * as path from 'path';
 import { ConsoleRemotePlugin } from '@openshift-console/dynamic-plugin-sdk-webpack';
@@ -86,7 +86,7 @@ const config: Configuration = {
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
-      'Access-Control-Allow-Headers': 'X-Requested-With, Content-Type, Authorization'
+      'Access-Control-Allow-Headers': 'X-Requested-With, Content-Type, Authorization',
     },
     devMiddleware: {
       writeToDisk: true,
@@ -96,6 +96,11 @@ const config: Configuration = {
     new ConsoleRemotePlugin(),
     new CopyWebpackPlugin({
       patterns: [{ from: path.resolve(__dirname, 'locales'), to: 'locales' }],
+    }),
+    new DefinePlugin({
+      'process.env': {
+        I18N_NAMESPACE: JSON.stringify('plugin__monitoring-plugin'),
+      },
     }),
   ],
   devtool: 'source-map',

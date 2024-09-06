@@ -12,6 +12,7 @@ import { LoadingInline } from '../console/utils/status-box';
 
 import { formatNumber } from '../format';
 import { Panel } from './types';
+import { usePerspective } from '../hooks/usePerspective';
 
 const colorMap = {
   'super-light-blue': 'blue-100',
@@ -80,12 +81,14 @@ const SingleStat: React.FC<Props> = ({
   const [error, setError] = React.useState<string>();
   const [isLoading, setIsLoading] = React.useState(true);
   const [value, setValue] = React.useState<string>();
+  const { perspective } = usePerspective();
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const safeFetch = React.useCallback(useSafeFetch(), []);
 
   const url = getPrometheusURL(
     { endpoint: PrometheusEndpoint.QUERY, query, namespace },
+    perspective,
     customDataSource?.basePath,
   );
 
