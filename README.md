@@ -1,3 +1,11 @@
+[!WARNING]
+> This branch is a work in progress towards using the monitoring-plugin for ACM purposes. Rather than trying to merge all my changes at once. I have made this branch which I expect to stay up for a while with PR's located on it. Rather than fighting roles and role bindings manually I have taken a bit of extra time to skip ahead to [OU-407](https://issues.redhat.com/browse/OU-407) and start on a branch [here](https://github.com/PeterYurkovich/observability-operator/tree/acm) which can be used for deployment.
+The following URL's can be used to test the proxies:
+```
+/api/proxy/plugin/monitoring-plugin/backend/proxy/thanos-querier/api/v1/rules?
+/api/proxy/plugin/monitoring-plugin/backend/proxy/alertmanager/api/v2/silences
+```
+
 # monitoring-plugin
 
 This plugin adds the monitoring UI to the OpenShift web console.

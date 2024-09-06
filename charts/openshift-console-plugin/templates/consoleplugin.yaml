@@ -1,4 +1,4 @@
-apiVersion: console.openshift.io/v1alpha1
+apiVersion: console.openshift.io/v1
 kind: ConsolePlugin
 metadata:
   name: {{ template "openshift-console-plugin.name" . }}
@@ -6,9 +6,22 @@ metadata:
   labels:
     {{- include "openshift-console-plugin.labels" . | nindent 4 }}
 spec:
-  displayName: {{ default (printf "%s Plugin" (include "openshift-console-plugin.name" .)) .Values.plugin.description }}
-  service:
-    name: {{ template "openshift-console-plugin.name" . }}
-    namespace: {{ .Release.Namespace }}
-    port: {{ .Values.plugin.port }}
-    basePath: {{ .Values.plugin.basePath }}
+  backend:
+    service:
+      basePath: /
+      name: {{ template "openshift-console-plugin.name" . }}
+      namespace: {{ .Release.Namespace }}
+      port: 9443
+    type: Service
+  displayName: {{ default (printf "%s" (include "openshift-console-plugin.name" .)) .Values.plugin.description }}
+  i18n:
+    loadType: ''
+  proxy:
+  - alias: backend
+    authorization: UserToken
+    endpoint:
+      service:
+        name: {{ template "openshift-console-plugin.name" . }}
+        namespace: {{ .Release.Namespace }}
+        port: 9443
+      type: Service
