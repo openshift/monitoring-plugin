@@ -45,3 +45,14 @@ build-image:
 .PHONY: install
 install:
 	make install-frontend && make install-backend
+
+
+export REGISTRY_ORG?=openshift-observability-ui
+export TAG?=latest
+IMAGE=quay.io/${REGISTRY_ORG}/monitoring-plugin:${TAG}
+
+.PHONY: deploy
+deploy:
+	helm uninstall monitoring-plugin -n monitoring-plugin-ns || true
+	PUSH=1 scripts/build-image.sh
+	helm install monitoring-plugin charts/openshift-console-plugin -n monitoring-plugin-ns --create-namespace --set plugin.image=$(IMAGE)

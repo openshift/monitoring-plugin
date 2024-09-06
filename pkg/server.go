@@ -12,22 +12,27 @@ import (
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/openshift/monitoring-plugin/pkg/proxy"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 	"k8s.io/apiserver/pkg/server/dynamiccertificates"
+	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/rest"
 )
 
 var log = logrus.WithField("module", "server")
 
 type Config struct {
-	Port             int
-	CertFile         string
-	PrivateKeyFile   string
-	Features         map[string]bool
-	StaticPath       string
-	ConfigPath       string
-	PluginConfigPath string
-	LogLevel         string
+	Port                  int
+	CertFile              string
+	PrivateKeyFile        string
+	Features              map[string]bool
+	StaticPath            string
+	ConfigPath            string
+	PluginConfigPath      string
+	LogLevel              string
+	ThanosQuerierLocation string
+	AlertmanagerLocation  string
 }
 
 type PluginConfig struct {
@@ -46,7 +51,31 @@ func (pluginConfig *PluginConfig) MarshalJSON() ([]byte, error) {
 }
 
 func Start(cfg *Config) {
-	router, pluginConfig := setupRoutes(cfg)
+	acmMode := cfg.Features["acm"]
+
+	if (len(cfg.AlertmanagerLocation) > 0 || len(cfg.ThanosQuerierLocation) > 0) && !acmMode {
+		log.Panic("alertmanager-location and thanos-querier-location cannot be set without the 'acm' feature flag")
+	}
+	if (len(cfg.AlertmanagerLocation) == 0 || len(cfg.ThanosQuerierLocation) == 0) && acmMode {
+		log.Panic("alertmanager-location and thanos-querier-location must be set to use the 'acm' feature flag")
+	}
+
+	// Uncomment the following line for local development:
+	// k8sconfig, err := clientcmd.BuildConfigFromFlags("", "$HOME/.kube/config")
+
+	// Comment the following line for local development:
+	k8sconfig, err := rest.InClusterConfig()
+
+	if err != nil {
+		panic(fmt.Errorf("cannot get in cluster config: %w", err))
+	}
+
+	k8sclient, err := dynamic.NewForConfig(k8sconfig)
+	if err != nil {
+		panic(fmt.Errorf("error creating dynamicClient: %w", err))
+	}
+
+	router, pluginConfig := setupRoutes(cfg, k8sclient, acmMode)
 	router.Use(corsHeaderMiddleware())
 
 	tlsConfig := &tls.Config{
@@ -112,13 +141,21 @@ func Start(cfg *Config) {
 	}
 }
 
-func setupRoutes(cfg *Config) (*mux.Router, *PluginConfig) {
+func setupRoutes(cfg *Config, k8sclient *dynamic.DynamicClient, acmMode bool) (*mux.Router, *PluginConfig) {
 	configHandlerFunc, pluginConfig := configHandler(cfg)
 
 	router := mux.NewRouter()
 
 	router.PathPrefix("/health").HandlerFunc(healthHandler())
+
+	// uses the namespace and name to forward requests to a particular alert manager instance
+	if acmMode {
+		router.PathPrefix("/proxy/{kind}").Handler(proxy.NewProxyHandler(k8sclient, cfg.CertFile, cfg.AlertmanagerLocation, cfg.ThanosQuerierLocation))
+	}
+
+	// TODO: needs to check for acm feature and adjust the plugin-manifest to be something appropriate
 	router.Path("/plugin-manifest.json").Handler(manifestHandler(cfg))
+	// needs to make sure that acm is an appropriate feature and can be served from here
 	router.PathPrefix("/features").HandlerFunc(featuresHandler(cfg))
 	router.PathPrefix("/config").HandlerFunc(configHandlerFunc)
 	router.PathPrefix("/").Handler(filesHandler(http.Dir(cfg.StaticPath)))

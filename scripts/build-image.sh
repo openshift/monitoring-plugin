@@ -17,7 +17,7 @@ BASE_IMAGE="quay.io/${REGISTRY_ORG}/monitoring-plugin"
 IMAGE=${BASE_IMAGE}:${TAG}
 
 echo "Building image '${IMAGE}' with ${OCI_BIN}"
-$OCI_BIN build -t $IMAGE --platform=linux/amd64 .
+$OCI_BIN build -t $IMAGE --platform=linux/amd64 -f Dockerfile.local .
 
 if [[ $PUSH == 1 ]]; then
     $OCI_BIN push $IMAGE
