@@ -89,24 +89,6 @@ const IncidentsChart = ({ incidentsData, chartDays }) => {
               }
               tickValues={dateValues}
             />
-            <ChartAxis
-              label="Incidents"
-              //TODO: Values of dy and dx should be adjusted according to the chart height
-              axisLabelComponent={
-                <ChartLabel angle={0} dy={-120} dx={33} padding={{ top: 20, bottom: 60 }} />
-              }
-              style={{
-                axis: {
-                  stroke: 'transparent',
-                },
-                ticks: {
-                  stroke: 'transparent',
-                },
-                tickLabels: {
-                  fill: 'transparent',
-                },
-              }}
-            />
             <ChartGroup horizontal>
               {chartData.map((bar, index) => {
                 return (
