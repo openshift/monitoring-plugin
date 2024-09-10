@@ -1,6 +1,3 @@
-import * as React from 'react';
-import moment from 'moment';
-import { ChartBar } from '@patternfly/react-charts';
 import global_danger_color_100 from '@patternfly/react-tokens/dist/esm/global_danger_color_100';
 import global_info_color_100 from '@patternfly/react-tokens/dist/esm/global_info_color_100';
 import global_warning_color_100 from '@patternfly/react-tokens/dist/esm/global_warning_color_100';
@@ -75,11 +72,6 @@ export function processAlertTimestamps(data) {
     };
   });
 }
-
-const today = moment().startOf('day');
-const threeDaysAgo = moment().subtract(3, 'days');
-const sevenDaysAgo = moment().subtract(7, 'days');
-const fifteenDaysAgo = moment().subtract(15, 'days');
 
 export const createAlertsChartBars = (alert) => {
   const data = [];
@@ -167,3 +159,14 @@ export function processIncidentTimestamps(data) {
     };
   });
 }
+
+const QUERY_CHUNK_SIZE = 24 * 60 * 60 * 1000;
+export const getIncidentsTimeRanges = (timespan, maxEndTime = Date.now()) => {
+  const startTime = maxEndTime - timespan;
+  const timeRanges = [{ endTime: startTime + QUERY_CHUNK_SIZE, duration: QUERY_CHUNK_SIZE }];
+  while (timeRanges.at(-1).endTime < maxEndTime) {
+    const nextEndTime = timeRanges.at(-1).endTime + QUERY_CHUNK_SIZE;
+    timeRanges.push({ endTime: nextEndTime, duration: QUERY_CHUNK_SIZE });
+  }
+  return timeRanges;
+};

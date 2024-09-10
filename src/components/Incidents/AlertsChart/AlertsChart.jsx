@@ -36,7 +36,7 @@ const AlertsChart = ({ alertsData, chartDays }) => {
       ) : (
         <div
           style={{
-            height: '350px',
+            height: '450px',
             //TODO: WIDTH SHOULD BE AUTOMATICALLY ADJUSTED
             width: '100%',
           }}
@@ -45,10 +45,7 @@ const AlertsChart = ({ alertsData, chartDays }) => {
             containerComponent={
               <ChartVoronoiContainer
                 labelComponent={
-                  <ChartTooltip
-                    constrainToVisibleArea
-                    labelComponent={<ChartLabel dx={-65} textAnchor="start" />}
-                  />
+                  <ChartTooltip constrainToVisibleArea labelComponent={<ChartLabel />} />
                 }
                 //TODO: add dates based on the time range
                 labels={({ datum }) =>
@@ -68,7 +65,7 @@ const AlertsChart = ({ alertsData, chartDays }) => {
             ]}
             legendPosition="bottom-left"
             //this should be always less than the container height
-            height={300}
+            height={400}
             padding={{
               bottom: 75, // Adjusted to accommodate legend
               left: 50,

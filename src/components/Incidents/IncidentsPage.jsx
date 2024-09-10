@@ -1,40 +1,72 @@
 import * as React from 'react';
-import { Helmet } from 'react-helmet';
 import { IncidentsHeader } from './IncidentsHeader/IncidentsHeader';
 import { useSafeFetch } from '../console/utils/safe-fetch-hook';
-import { PrometheusEndpoint } from '@openshift-console/dynamic-plugin-sdk';
-import { getTimeRanges } from '../utils';
+import {
+  ListPageFilter,
+  PrometheusEndpoint,
+  useListPageFilter,
+} from '@openshift-console/dynamic-plugin-sdk';
 import { parsePrometheusDuration } from '../console/utils/datetime';
 import { getPrometheusURL } from '../console/graphs/helpers';
-import { useDispatch } from 'react-redux';
-import * as _ from 'lodash-es';
-import { processAlertTimestamps, processIncidentTimestamps } from './utils';
+import { getIncidentsTimeRanges, processAlertTimestamps, processIncidentTimestamps } from './utils';
+import { useTranslation } from 'react-i18next';
+import {
+  Bullseye,
+  Dropdown,
+  DropdownItem,
+  DropdownPosition,
+  DropdownToggle,
+  Flex,
+  Spinner,
+} from '@patternfly/react-core';
+import { Helmet } from 'react-helmet';
+import { useBoolean } from '../hooks/useBoolean';
 
-const spans = ['1d', '3d', '7d', '15d'];
-
-const IncidentsPage = ({
-  customDataSource,
-  defaultTimespan = parsePrometheusDuration('7d'),
-  namespace,
-  timespan,
-}) => {
-  const [startingDate, setStartingDate] = React.useState('');
-  const [endDate, setEndDate] = React.useState('');
-  const [incidentsPageData, setIncidentsPageData] = React.useState([]);
-  //data that is mapped and changed from timestamps to a format HH/DD/MM/YY
+const IncidentsPage = ({ customDataSource, namespace }) => {
+  const { t } = useTranslation('plugin__monitoring-plugin');
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [defaultDaysSpan] = React.useState('7d');
+  const [span, setSpan] = React.useState(parsePrometheusDuration(defaultDaysSpan));
   const [alertsData, setAlertsData] = React.useState([]);
   const [incidentsData, setIncidentsData] = React.useState([]);
-  const defaultSpanText = spans.find((s) => parsePrometheusDuration(s) >= defaultTimespan);
-  const [span, setSpan] = React.useState(parsePrometheusDuration(defaultSpanText));
-  //used to define the Xdomain of chart
-  const [xDomain, setXDomain] = React.useState();
-
+  const [isOpen, setIsOpen, , setClosed] = useBoolean(false);
   const now = Date.now();
-  const endTime = xDomain?.[1];
-  const timeRanges = getTimeRanges(span, endTime || now);
-  //TEMPORARY to manipulate the API request - use values '1d', '3d', '7d', '15d'
-  //and change the defaultTimespan -> it will fetch 1 to 15d and populate the array with data
+  const timeRanges = getIncidentsTimeRanges(span, now);
   const safeFetch = useSafeFetch();
+  const title = t('Incidents');
+
+  const incidentTypeFilter = (t) => ({
+    filter: () => console.log('here should be filter function'),
+    filterGroupName: t('Incident type'),
+    isMatch: () => console.log('here should be filter state'),
+    items: [
+      { id: 'long-standing', title: t('Long standing') },
+      { id: 'informative', title: t('Informative') },
+      { id: 'inactive', title: t('Inactive') },
+    ],
+    type: 'name',
+  });
+  const [staticData, filteredData, onFilterChange] = useListPageFilter(alertsData, [
+    incidentTypeFilter(t),
+  ]);
+  const changeDaysFilter = (days) => {
+    setSpan(parsePrometheusDuration(days));
+  };
+  const dropdownItems = [
+    <DropdownItem key="1-day-filter" component="button" onClick={() => changeDaysFilter('1d')}>
+      {t('1 day')}
+    </DropdownItem>,
+    <DropdownItem key="3-day-filter" component="button" onClick={() => changeDaysFilter('3d')}>
+      {t('3 days')}
+    </DropdownItem>,
+    <DropdownItem key="7-day-filter" component="button" onClick={() => changeDaysFilter('7d')}>
+      {t('7 days')}
+    </DropdownItem>,
+    <DropdownItem key="15-day-filter" component="button" onClick={() => changeDaysFilter('15d')}>
+      {t('15 days')}
+    </DropdownItem>,
+  ];
+
   React.useEffect(() => {
     (async () => {
       Promise.all(
@@ -46,7 +78,7 @@ const IncidentsPage = ({
                 endTime: range.endTime,
                 namespace,
                 query: 'ALERTS',
-                samples: 60,
+                samples: 24,
                 timespan: range.duration - 1,
               },
               customDataSource?.basePath,
@@ -64,7 +96,7 @@ const IncidentsPage = ({
           console.log(err);
         });
     })();
-  }, []);
+  }, [span]);
 
   React.useEffect(() => {
     (async () => {
@@ -78,7 +110,7 @@ const IncidentsPage = ({
                 namespace,
                 query:
                   'max by(group_id,component,src_alertname,src_severity)(cluster:health:components:map{})',
-                samples: 23,
+                samples: 24,
                 timespan: range.duration - 1,
               },
               customDataSource?.basePath,
@@ -90,23 +122,53 @@ const IncidentsPage = ({
         .then((results) => {
           const aggregatedData = results.reduce((acc, result) => acc.concat(result), []);
           setIncidentsData(processIncidentTimestamps(aggregatedData));
+          setIsLoading(false);
         })
         .catch((err) => {
           // eslint-disable-next-line no-console
           console.log(err);
         });
     })();
-  }, []);
+  }, [span]);
 
   return (
     <>
-      <div className="co-m-pane__body">
-        <IncidentsHeader
-          alertsData={alertsData}
-          incidentsData={incidentsData}
-          chartDays={timeRanges.length}
-        />
-      </div>
+      <Helmet>
+        <title>{title}</title>
+      </Helmet>
+      {isLoading ? (
+        <Bullseye>
+          <Spinner aria-label="incidents-chart-spinner" />
+        </Bullseye>
+      ) : (
+        <div className="co-m-pane__body">
+          <Flex direction={{ default: 'row' }}>
+            <ListPageFilter
+              data={staticData}
+              hideNameLabelFilters={true}
+              loaded={true}
+              onFilterChange={onFilterChange}
+              rowFilters={[incidentTypeFilter(t)]}
+            />
+            <Dropdown
+              dropdownItems={dropdownItems}
+              isOpen={isOpen}
+              onSelect={setClosed}
+              position={DropdownPosition.left}
+              toggle={
+                <DropdownToggle id="incidents-page-days-filter-toggle" onToggle={setIsOpen}>
+                  Date range
+                </DropdownToggle>
+              }
+            />
+          </Flex>
+          <IncidentsHeader
+            alertsData={alertsData}
+            incidentsData={incidentsData}
+            chartDays={timeRanges.length}
+          />
+        </div>
+      )}
     </>
   );
 };

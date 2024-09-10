@@ -45,10 +45,7 @@ const IncidentsChart = ({ incidentsData, chartDays }) => {
             containerComponent={
               <ChartVoronoiContainer
                 labelComponent={
-                  <ChartTooltip
-                    constrainToVisibleArea
-                    labelComponent={<ChartLabel dx={-65} textAnchor="start" />}
-                  />
+                  <ChartTooltip constrainToVisibleArea labelComponent={<ChartLabel />} />
                 }
                 //TODO: add dates based on the time range
                 labels={({ datum }) =>
