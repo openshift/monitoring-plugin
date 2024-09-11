@@ -190,7 +190,7 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
               <ToolbarItem variant="label">
                 <SectionHeading text={t('Alert details')} />
               </ToolbarItem>
-              <ToolbarGroup alignment={{ default: 'alignRight' }}>
+              <ToolbarGroup align={{ default: 'alignRight' }}>
                 <ActionServiceProvider context={{ 'alert-detail-toolbar-actions': { alert } }}>
                   {({ actions, loaded }) =>
                     loaded

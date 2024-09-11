@@ -13,7 +13,6 @@ import {
   CardBody,
   CardHeader,
   CardTitle,
-  CardActions,
   Tooltip,
   DropdownItem,
 } from '@patternfly/react-core';
@@ -170,7 +169,7 @@ const FilterSelect: React.FC<FilterSelectProps> = ({
       isOpen={isOpen}
       onFilter={() => null}
       onSelect={onSelect}
-      onToggle={onToggle}
+      onToggle={(_e, v) => onToggle(v)}
       onTypeaheadInputChanged={(v) => setFilterText(v.toLowerCase())}
       placeholderText={
         Object.keys(items).includes(selectedKey) ? (
@@ -781,16 +780,24 @@ const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
         data-test={`${panel.title.toLowerCase().replace(/\s+/g, '-')}-chart`}
         data-test-id={panel.id ? `chart-${panel.id}` : undefined}
       >
-        <CardHeader className="monitoring-dashboards__card-header">
+        <CardHeader
+          actions={{
+            actions: (
+              <>
+                {!isLoading && (
+                  <QueryBrowserLink queries={queries} customDataSourceName={customDataSourceName} />
+                )}
+                {panel.type === 'graph' && isThereCsvData() && (
+                  <KebabDropdown dropdownItems={dropdownItems} />
+                )}
+              </>
+            ),
+            hasNoOffset: false,
+            className: 'co-overview-card__actions',
+          }}
+          className="monitoring-dashboards__card-header"
+        >
           <CardTitle>{panel.title}</CardTitle>
-          <CardActions className="co-overview-card__actions">
-            {!isLoading && (
-              <QueryBrowserLink queries={queries} customDataSourceName={customDataSourceName} />
-            )}
-            {panel.type === 'graph' && isThereCsvData() && (
-              <KebabDropdown dropdownItems={dropdownItems} />
-            )}
-          </CardActions>
         </CardHeader>
         <CardBody className="co-dashboard-card__body--dashboard">
           {isError ? (
