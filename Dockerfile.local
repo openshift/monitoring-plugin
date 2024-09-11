@@ -32,20 +32,9 @@ RUN go build -mod=mod -o plugin-backend cmd/plugin-backend.go
 
 FROM registry.access.redhat.com/ubi9/ubi-minimal
 
-RUN microdnf install nginx findutils && \
-    mkdir /var/cache/nginx && \
-    chown -R 1001:0 /var/lib/nginx /var/log/nginx /run && \
-    chmod -R ug+rwX /var/lib/nginx /var/log/nginx /run
-
 USER 1001
 
 COPY --from=web-builder /opt/app-root/web/dist /opt/app-root/web/dist
 COPY --from=go-builder /opt/app-root/plugin-backend /opt/app-root
 
-COPY --from=web-builder /opt/app-root/web/dist /usr/share/nginx/html
-
-ENTRYPOINT ["nginx", "-g", "daemon off;"]
-
-# When nginx is removed from CMO, we can use the following ENTRYPOINT instead
-# After it has been removed add the CI checks to this repo. [example](https://github.com/openshift/release/pull/56011)
-# ENTRYPOINT ["/opt/app-root/plugin-backend", "-static-path", "/opt/app-root/web/dist"]
+ENTRYPOINT ["/opt/app-root/plugin-backend", "-static-path", "/opt/app-root/web/dist"]
