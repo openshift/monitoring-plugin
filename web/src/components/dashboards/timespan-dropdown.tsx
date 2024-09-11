@@ -1,5 +1,13 @@
 import * as _ from 'lodash';
-import { Dropdown, DropdownToggle, DropdownItem } from '@patternfly/react-core';
+// TODO: These will be available in future versions of the plugin SDK
+import { formatPrometheusDuration, parsePrometheusDuration } from '../console/utils/datetime';
+import {
+  Select,
+  SelectList,
+  SelectOption,
+  MenuToggle,
+  MenuToggleElement,
+} from '@patternfly/react-core';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -22,7 +30,7 @@ const TimespanDropdown: React.FC = () => {
 
   const { perspective } = usePerspective();
 
-  const [isOpen, toggleIsOpen, , setClosed] = useBoolean(false);
+  const [isOpen, toggleIsOpen, setOpen, setClosed] = useBoolean(false);
   const [isModalOpen, , setModalOpen, setModalClosed] = useBoolean(false);
 
   const timespan = useSelector(({ observe }: RootState) =>
@@ -65,12 +73,29 @@ const TimespanDropdown: React.FC = () => {
     '2w': t('Last {{count}} week', { count: 2 }),
   };
 
+  const selectedKey =
+    endTime || endTimeFromParams
+      ? CUSTOM_TIME_RANGE_KEY
+      : formatPrometheusDuration(_.toNumber(timeSpanFromParams) || timespan);
+
+  const toggle = (toggleRef: React.Ref<MenuToggleElement>) => (
+    <MenuToggle
+      id="monitoring-time-range-dropdown"
+      onClick={toggleIsOpen}
+      isExpanded={isOpen}
+      ref={toggleRef}
+      className="monitoring-dashboards__dropdown-button"
+    >
+      {items[selectedKey]}
+    </MenuToggle>
+  );
+
   return (
     <>
       <CustomTimeRangeModal
+        perspective={perspective}
         isOpen={isModalOpen}
         setClosed={setModalClosed}
-        perspective={perspective}
       />
       <div className="form-group monitoring-dashboards__dropdown-wrap">
         <label
@@ -79,31 +104,26 @@ const TimespanDropdown: React.FC = () => {
         >
           {t('Time range')}
         </label>
-        <Dropdown
+        <Select
           className="monitoring-dashboards__variable-dropdown"
-          dropdownItems={_.map(items, (name, key) => (
-            <DropdownItem component="button" key={key} onClick={() => onChange(key)}>
-              {name}
-            </DropdownItem>
-          ))}
           isOpen={isOpen}
-          onSelect={setClosed}
-          toggle={
-            <DropdownToggle
-              className="monitoring-dashboards__dropdown-button"
-              id="monitoring-time-range-dropdown"
-              onToggle={toggleIsOpen}
-            >
-              {
-                items[
-                  endTime || endTimeFromParams
-                    ? CUSTOM_TIME_RANGE_KEY
-                    : formatPrometheusDuration(_.toNumber(timeSpanFromParams) || timespan)
-                ]
-              }
-            </DropdownToggle>
-          }
-        />
+          onSelect={(_event, value) => {
+            if (value) {
+              onChange(value);
+            }
+            setClosed();
+          }}
+          toggle={toggle}
+          onOpenChange={(open) => (open ? setOpen() : setClosed())}
+        >
+          <SelectList>
+            {_.map(items, (name, key) => (
+              <SelectOption key={key} value={key} isSelected={selectedKey === key}>
+                {name}
+              </SelectOption>
+            ))}
+          </SelectList>
+        </Select>
       </div>
     </>
   );
