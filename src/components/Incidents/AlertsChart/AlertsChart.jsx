@@ -36,7 +36,7 @@ const AlertsChart = ({ alertsData, chartDays }) => {
       ) : (
         <div
           style={{
-            height: '450px',
+            height: '700px',
             //TODO: WIDTH SHOULD BE AUTOMATICALLY ADJUSTED
             width: '100%',
           }}
@@ -65,7 +65,7 @@ const AlertsChart = ({ alertsData, chartDays }) => {
             ]}
             legendPosition="bottom-left"
             //this should be always less than the container height
-            height={400}
+            height={650}
             padding={{
               bottom: 75, // Adjusted to accommodate legend
               left: 50,
@@ -83,24 +83,6 @@ const AlertsChart = ({ alertsData, chartDays }) => {
                 new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
               }
               tickValues={dateValues}
-            />
-            <ChartAxis
-              label="Alerts"
-              //TODO: Values of dy and dx should be adjusted according to the chart height
-              axisLabelComponent={
-                <ChartLabel angle={0} dy={-120} dx={33} padding={{ top: 20, bottom: 60 }} />
-              }
-              style={{
-                axis: {
-                  stroke: 'transparent',
-                },
-                ticks: {
-                  stroke: 'transparent',
-                },
-                tickLabels: {
-                  fill: 'transparent',
-                },
-              }}
             />
             <ChartGroup horizontal>
               {chartData.map((bar, index) => {

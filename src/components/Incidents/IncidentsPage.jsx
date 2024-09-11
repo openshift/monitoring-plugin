@@ -24,9 +24,9 @@ import { useBoolean } from '../hooks/useBoolean';
 
 const IncidentsPage = ({ customDataSource, namespace }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
-  const [isLoading, setIsLoading] = React.useState(true);
-  const [defaultDaysSpan] = React.useState('7d');
-  const [span, setSpan] = React.useState(parsePrometheusDuration(defaultDaysSpan));
+  const [incidentsAreLoading, setIncidentsAreLoading] = React.useState(true);
+  const [alertsAreLoading, setAlertsAreLoading] = React.useState(true);
+  const [span, setSpan] = React.useState(parsePrometheusDuration('7d'));
   const [alertsData, setAlertsData] = React.useState([]);
   const [incidentsData, setIncidentsData] = React.useState([]);
   const [isOpen, setIsOpen, , setClosed] = useBoolean(false);
@@ -90,6 +90,7 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
         .then((results) => {
           const aggregatedData = results.reduce((acc, result) => acc.concat(result), []);
           setAlertsData(processAlertTimestamps(aggregatedData));
+          setAlertsAreLoading(false);
         })
         .catch((err) => {
           // eslint-disable-next-line no-console
@@ -122,7 +123,7 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
         .then((results) => {
           const aggregatedData = results.reduce((acc, result) => acc.concat(result), []);
           setIncidentsData(processIncidentTimestamps(aggregatedData));
-          setIsLoading(false);
+          setIncidentsAreLoading(false);
         })
         .catch((err) => {
           // eslint-disable-next-line no-console
@@ -136,7 +137,7 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
       <Helmet>
         <title>{title}</title>
       </Helmet>
-      {isLoading ? (
+      {alertsAreLoading && incidentsAreLoading ? (
         <Bullseye>
           <Spinner aria-label="incidents-chart-spinner" />
         </Bullseye>
