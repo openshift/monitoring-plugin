@@ -20,12 +20,14 @@ import {
   EmptyStateVariant,
   Switch,
   Title,
-  Select,
-  SelectVariant,
-  SelectOption,
   Grid,
   GridItem,
 } from '@patternfly/react-core';
+import {
+  Select as SelectDeprecated,
+  SelectOption as SelectOptionDeprecated,
+  SelectVariant as SelectVariantDeprecated,
+} from '@patternfly/react-core/deprecated';
 import {
   AngleDownIcon,
   AngleRightIcon,
@@ -253,9 +255,9 @@ export const PreDefinedQueriesDropdown = () => {
         <label htmlFor="predefined-query-select-label">{t('Queries')}</label>
       </GridItem>
       <GridItem component="li">
-        <Select
+        <SelectDeprecated
           id={selected}
-          variant={SelectVariant.typeahead}
+          variant={SelectVariantDeprecated.typeahead}
           typeAheadAriaLabel={t('Select query')}
           onToggle={onToggle}
           onSelect={onSelect}
@@ -266,11 +268,11 @@ export const PreDefinedQueriesDropdown = () => {
           width={400}
         >
           {predefinedQueries.map((option) => (
-            <SelectOption key={option.name} value={option.query}>
+            <SelectOptionDeprecated key={option.name} value={option.query}>
               {option.name}
-            </SelectOption>
+            </SelectOptionDeprecated>
           ))}
-        </Select>
+        </SelectDeprecated>
       </GridItem>
     </Grid>
   );
@@ -867,7 +869,7 @@ const Query: React.FC<{ index: number; customDatasource?: CustomDataSource }> = 
           <QueryKebab index={index} />
         </div>
       </div>
-      {/* If namespace is defined getPrometheusURL() will use the 
+      {/* If namespace is defined getPrometheusURL() will use the
       PROMETHEUS_TENANCY_BASE_PATH for the developer view */}
       <QueryTable
         index={index}

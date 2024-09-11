@@ -9,8 +9,6 @@ import {
 import {
   Button,
   Label,
-  Select,
-  SelectOption,
   Card as PFCard,
   CardBody,
   CardHeader,
@@ -19,6 +17,10 @@ import {
   Tooltip,
   DropdownItem,
 } from '@patternfly/react-core';
+import {
+  Select as SelectDeprecated,
+  SelectOption as SelectOptionDeprecated,
+} from '@patternfly/react-core/deprecated';
 import { AngleDownIcon, AngleRightIcon } from '@patternfly/react-icons';
 import * as React from 'react';
 import { Helmet } from 'react-helmet';
@@ -161,7 +163,7 @@ const FilterSelect: React.FC<FilterSelectProps> = ({
     : items;
 
   return (
-    <Select
+    <SelectDeprecated
       className="monitoring-dashboards__variable-dropdown"
       hasInlineFilter={_.size(items) > 1}
       inlineFilterPlaceholderText={t('Filter options')}
@@ -190,20 +192,20 @@ const FilterSelect: React.FC<FilterSelectProps> = ({
         } else if (isIntervalVariable(k)) {
           return (
             <Tooltip content={k}>
-              <SelectOption key={k} value={k}>
+              <SelectOptionDeprecated key={k} value={k}>
                 Auto interval
-              </SelectOption>
+              </SelectOptionDeprecated>
             </Tooltip>
           );
         } else {
           return (
-            <SelectOption key={k} value={k}>
+            <SelectOptionDeprecated key={k} value={k}>
               {k === MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY ? 'All' : k}
-            </SelectOption>
+            </SelectOptionDeprecated>
           );
         }
       })}
-    </Select>
+    </SelectDeprecated>
   );
 };
 
@@ -382,7 +384,7 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({
         {name}
       </label>
       {isError ? (
-        <Select
+        <SelectDeprecated
           isDisabled={true}
           onToggle={
             // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -439,7 +441,10 @@ const DashboardDropdown: React.FC<DashboardDropdownProps> = React.memo(
     const uniqueTags = _.uniq(allTags);
 
     const OptionComponent = ({ itemKey }) => (
-      <SelectOption className="monitoring-dashboards__dashboard_dropdown_item" value={itemKey}>
+      <SelectOptionDeprecated
+        className="monitoring-dashboards__dashboard_dropdown_item"
+        value={itemKey}
+      >
         {items[itemKey]?.title}
         {items[itemKey]?.tags?.map((tag, i) => (
           <Tag
@@ -448,7 +453,7 @@ const DashboardDropdown: React.FC<DashboardDropdownProps> = React.memo(
             text={tag}
           />
         ))}
-      </SelectOption>
+      </SelectOptionDeprecated>
     );
 
     const selectItems = _.mapValues(items, 'title');
