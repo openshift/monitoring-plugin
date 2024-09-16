@@ -11,8 +11,6 @@ export function groupAndDeduplicate(objects, keyType) {
       key = obj.metric.alertname + obj.metric.namespace;
     } else if (keyType === 'group_id') {
       key = obj.metric.group_id;
-    } else {
-      throw new Error('Invalid keyType provided');
     }
 
     // If the key already exists in the map, merge the values
@@ -48,9 +46,8 @@ export function groupAndDeduplicate(objects, keyType) {
 
 export function processAlertTimestamps(data) {
   const firing = groupAndDeduplicate(data, 'alertname+namespace').filter(
-    (value) => value.metric.alertstate === 'firing',
+    (alert) => alert.metric.alertname !== 'Watchdog',
   );
-
   return firing.map((alert, index) => {
     // Process each value
     const processedValues = alert.values.map((value) => {
@@ -58,7 +55,7 @@ export function processAlertTimestamps(data) {
 
       // Convert timestamp to date
       const date = new Date(timestamp * 1000);
-      return [date];
+      return [date, value[1]];
     });
 
     return {
@@ -66,8 +63,6 @@ export function processAlertTimestamps(data) {
       namespace: alert.metric.namespace,
       severity: alert.metric.severity,
       values: processedValues,
-      alertsStartFiring: processedValues.at(0)[0],
-      alertsEndFiring: processedValues.at(-1)[0],
       x: firing.length - index,
     };
   });
@@ -83,9 +78,9 @@ export const createAlertsChartBars = (alert) => {
       x: alert.x,
       name: alert.severity[0].toUpperCase() + alert.severity.slice(1),
       fill:
-        alert.severity === 'danger'
+        alert.values[i].at(1) === '2'
           ? global_danger_color_100.var
-          : alert.severity === 'warning'
+          : alert.values[i].at(1) === '1'
           ? global_warning_color_100.var
           : global_info_color_100.var,
     });
@@ -106,9 +101,9 @@ export const createIncidentsChartBars = (incident) => {
       component: incident.component,
       group_id: incident.group_id,
       fill:
-        incident.severity === 'danger'
+        incident.values[i].at(1) === '2'
           ? global_danger_color_100.var
-          : incident.severity === 'warning'
+          : incident.values[i].at(1) === '1'
           ? global_warning_color_100.var
           : global_info_color_100.var,
     });
@@ -139,13 +134,15 @@ export function generateDateArray(days) {
 
 export function processIncidentTimestamps(data) {
   // Deduplicate and group the data by group_id
-  const firing = groupAndDeduplicate(data, 'group_id');
+  const incidents = groupAndDeduplicate(data, 'group_id').filter(
+    (incident) => incident.metric.src_alertname !== 'Watchdog',
+  );
 
-  return firing.map((incident, index) => {
+  return incidents.map((incident, index) => {
     const processedValues = incident.values.map((value) => {
       const timestamp = value[0];
       const date = new Date(timestamp * 1000);
-      return [date];
+      return [date, value[1]];
     });
 
     return {
@@ -153,9 +150,7 @@ export function processIncidentTimestamps(data) {
       group_id: incident.metric.group_id,
       severity: incident.metric.src_severity,
       values: processedValues,
-      incidentStartFiring: processedValues.at(0)[0],
-      incidentEndFiring: processedValues.at(-1)[0],
-      x: firing.length - index,
+      x: incidents.length - index,
     };
   });
 }
