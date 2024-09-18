@@ -58,7 +58,7 @@ func Start(cfg *Config) {
 
 	logrusLevel, err := logrus.ParseLevel(cfg.LogLevel)
 	if err != nil {
-		logrus.WithError(err).Fatal("unable to set the log level")
+		logrus.WithError(err).Warn("Invalid log level. Defaulting to 'error'")
 		logrusLevel = logrus.ErrorLevel
 	}
 
