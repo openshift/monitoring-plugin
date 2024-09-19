@@ -8,7 +8,12 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { parsePrometheusDuration } from '../console/utils/datetime';
 import { getPrometheusURL } from '../console/graphs/helpers';
-import { getIncidentsTimeRanges, processAlertTimestamps, processIncidentTimestamps } from './utils';
+import {
+  filterIncident,
+  getIncidentsTimeRanges,
+  processAlertTimestamps,
+  processIncidentTimestamps,
+} from './utils';
 import { useTranslation } from 'react-i18next';
 import {
   Bullseye,
@@ -36,7 +41,7 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
   const title = t('Incidents');
 
   const incidentTypeFilter = (t) => ({
-    filter: () => console.log('here should be filter function'),
+    filter: (filter, incident) => filterIncident(incident, filter),
     filterGroupName: t('Incident type'),
     isMatch: () => console.log('here should be filter state'),
     items: [
@@ -44,11 +49,12 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
       { id: 'informative', title: t('Informative') },
       { id: 'inactive', title: t('Inactive') },
     ],
-    type: 'name',
+    type: 'incident-type',
   });
-  const [staticData, filteredData, onFilterChange] = useListPageFilter(alertsData, [
+  const [staticData, filteredData, onFilterChange] = useListPageFilter(incidentsData, [
     incidentTypeFilter(t),
   ]);
+
   const changeDaysFilter = (days) => {
     setSpan(parsePrometheusDuration(days));
   };
@@ -110,7 +116,7 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
                 endTime: range.endTime,
                 namespace,
                 query:
-                  'max by(group_id,component,src_alertname,src_severity)(cluster:health:components:map{})',
+                  'max by(group_id,component,src_alertname,src_severity,type)(cluster:health:components:map{})',
                 samples: 24,
                 timespan: range.duration - 1,
               },
@@ -165,7 +171,7 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
           </Flex>
           <IncidentsHeader
             alertsData={alertsData}
-            incidentsData={incidentsData}
+            incidentsData={filteredData}
             chartDays={timeRanges.length}
           />
         </div>

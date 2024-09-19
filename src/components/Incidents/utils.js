@@ -92,7 +92,6 @@ export function processAlertTimestamps(data) {
 
 export const createAlertsChartBars = (alert) => {
   const data = [];
-
   for (let i = 0; i < alert.values.length - 1; i++) {
     data.push({
       y0: new Date(alert.values[i].at(0)),
@@ -113,7 +112,6 @@ export const createAlertsChartBars = (alert) => {
 
 export const createIncidentsChartBars = (incident) => {
   const data = [];
-
   for (let i = 0; i < incident.values.length - 1; i++) {
     data.push({
       y0: new Date(incident.values[i].at(0)),
@@ -196,6 +194,7 @@ export function processIncidentTimestamps(data) {
       component: incident.metric.component,
       group_id: incident.metric.group_id,
       severity: incident.metric.src_severity,
+      type: incident.metric.type,
       values: processedValues,
       x: incidents.length - index,
     };
@@ -212,3 +211,86 @@ export const getIncidentsTimeRanges = (timespan, maxEndTime = Date.now()) => {
   }
   return timeRanges;
 };
+
+/**
+ * Filters a single incident based on the selected filter criteria.
+ *
+ * @param {Object} incident - The incident object to check against the filters.
+ * @param {Object} filters - An object containing all and selected filters.
+ * @param {Array<string>} filters.all - An array of all available filters.
+ * @param {Array<string>} filters.selected - An array of selected filters.
+ *
+ * @returns {boolean} Returns true if the incident matches all the selected filters, otherwise false.
+ *
+ * @description
+ * The function checks the incident against the following filter criteria:
+ * - If the "informative" filter is selected, it checks if `severity === 'info'`.
+ * - If the "long-standing" filter is selected, it checks if the incident has been active (i.e., "firing")
+ *   for 7 or more days by comparing the difference between the first and last timestamps in the `values` array.
+ * - If the "inactive" filter is selected, it checks if any value in the `values` array corresponds to the current day
+ *   and current hour (i.e., both the date and the hour match the current UTC date and hour).
+ *
+ * @example
+ * const filters = {
+ *   "selected": ["informative", "long-standing", "inactive"],
+ *   "all": ["long-standing", "informative", "inactive"]
+ * };
+ *
+ * const incident = {
+ *   "component": "compute",
+ *   "group_id": "73850a6a-e39e-4601-8910-3b4f60f4d53e",
+ *   "severity": "info",
+ *   "type": "alert",
+ *   "values": [
+ *     ["2024-09-01T00:00:00.000Z", "1"],
+ *     ["2024-09-08T00:00:00.000Z", "1"]
+ *   ],
+ *   "x": 7
+ * };
+ *
+ */
+export function filterIncident(incident, filters) {
+  const { selected } = filters;
+  const currentDate = new Date(); // Get the current date and time in UTC
+  const currentDay = currentDate.getUTCDate();
+  const currentMonth = currentDate.getUTCMonth();
+  const currentYear = currentDate.getUTCFullYear();
+  const currentHour = currentDate.getUTCHours();
+
+  // Check if "informative" is selected
+  if (selected.includes('informative') && incident.severity !== 'info') {
+    return false;
+  }
+
+  // Check if "long-standing" is selected
+  if (selected.includes('long-standing')) {
+    const values = incident.values.map((v) => new Date(v[0]));
+    const firstDate = values[0];
+    const lastDate = values[values.length - 1];
+
+    // Calculate the difference in days between the first and last date
+    const dayDifference = (lastDate - firstDate) / (1000 * 60 * 60 * 24);
+    if (dayDifference < 7) {
+      return false;
+    }
+  }
+
+  // Check if "inactive" is selected
+  if (selected.includes('inactive')) {
+    const hasMatchingDayAndHour = incident.values.some((v) => {
+      const valueDate = new Date(v[0]);
+      return (
+        valueDate.getUTCDate() === currentDay &&
+        valueDate.getUTCMonth() === currentMonth &&
+        valueDate.getUTCFullYear() === currentYear &&
+        valueDate.getUTCHours() === currentHour
+      );
+    });
+
+    if (!hasMatchingDayAndHour) {
+      return false;
+    }
+  }
+
+  return true;
+}
