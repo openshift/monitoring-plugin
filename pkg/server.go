@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
@@ -13,6 +14,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
+	"k8s.io/apiserver/pkg/server/dynamiccertificates"
 )
 
 var log = logrus.WithField("module", "server")
@@ -50,6 +52,30 @@ func Start(cfg *Config) {
 	tlsConfig := &tls.Config{
 		MinVersion: tls.VersionTLS12,
 	}
+	tlsEnabled := cfg.CertFile != "" && cfg.PrivateKeyFile != ""
+	if tlsEnabled {
+		// Build and run the controller which reloads the certificate and key
+		// files whenever they change.
+		certKeyPair, err := dynamiccertificates.NewDynamicServingContentFromFiles("serving-cert", cfg.CertFile, cfg.PrivateKeyFile)
+		if err != nil {
+			logrus.WithError(err).Fatal("unable to create TLS controller")
+		}
+		ctrl := dynamiccertificates.NewDynamicServingCertificateController(
+			tlsConfig,
+			nil,
+			certKeyPair,
+			nil,
+			nil,
+		)
+
+		// Check that the cert and key files are valid.
+		if err := ctrl.RunOnce(); err != nil {
+			logrus.WithError(err).Fatal("invalid certificate/key files")
+		}
+
+		ctx := context.Background()
+		go ctrl.Run(1, ctx.Done())
+	}
 
 	timeout := 30 * time.Second
 	if pluginConfig != nil {
@@ -75,7 +101,7 @@ func Start(cfg *Config) {
 		httpServer.Handler = loggedRouter
 	}
 
-	if cfg.CertFile != "" && cfg.PrivateKeyFile != "" {
+	if tlsEnabled {
 		log.Infof("listening on https://:%d", cfg.Port)
 		logrus.SetLevel(logrusLevel)
 		panic(httpServer.ListenAndServeTLS(cfg.CertFile, cfg.PrivateKeyFile))
