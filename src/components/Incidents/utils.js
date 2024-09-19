@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 import global_danger_color_100 from '@patternfly/react-tokens/dist/esm/global_danger_color_100';
 import global_info_color_100 from '@patternfly/react-tokens/dist/esm/global_info_color_100';
 import global_warning_color_100 from '@patternfly/react-tokens/dist/esm/global_warning_color_100';
@@ -11,8 +12,6 @@ export function groupAndDeduplicate(objects, keyType) {
       key = obj.metric.alertname + obj.metric.namespace;
     } else if (keyType === 'group_id') {
       key = obj.metric.group_id;
-    } else {
-      throw new Error('Invalid keyType provided');
     }
 
     // If the key already exists in the map, merge the values
@@ -48,9 +47,8 @@ export function groupAndDeduplicate(objects, keyType) {
 
 export function processAlertTimestamps(data) {
   const firing = groupAndDeduplicate(data, 'alertname+namespace').filter(
-    (value) => value.metric.alertstate === 'firing',
+    (alert) => alert.metric.alertname !== 'Watchdog',
   );
-
   return firing.map((alert, index) => {
     // Process each value
     const processedValues = alert.values.map((value) => {
@@ -58,7 +56,7 @@ export function processAlertTimestamps(data) {
 
       // Convert timestamp to date
       const date = new Date(timestamp * 1000);
-      return [date];
+      return [date, value[1]];
     });
 
     return {
@@ -66,8 +64,6 @@ export function processAlertTimestamps(data) {
       namespace: alert.metric.namespace,
       severity: alert.metric.severity,
       values: processedValues,
-      alertsStartFiring: processedValues.at(0)[0],
-      alertsEndFiring: processedValues.at(-1)[0],
       x: firing.length - index,
     };
   });
@@ -75,7 +71,6 @@ export function processAlertTimestamps(data) {
 
 export const createAlertsChartBars = (alert) => {
   const data = [];
-
   for (let i = 0; i < alert.values.length - 1; i++) {
     data.push({
       y0: new Date(alert.values[i].at(0)),
@@ -96,7 +91,6 @@ export const createAlertsChartBars = (alert) => {
 
 export const createIncidentsChartBars = (incident) => {
   const data = [];
-
   for (let i = 0; i < incident.values.length - 1; i++) {
     data.push({
       y0: new Date(incident.values[i].at(0)),
@@ -106,9 +100,9 @@ export const createIncidentsChartBars = (incident) => {
       component: incident.component,
       group_id: incident.group_id,
       fill:
-        incident.severity === 'danger'
+        incident.values[i].at(1) === '2'
           ? global_danger_color_100.var
-          : incident.severity === 'warning'
+          : incident.values[i].at(1) === '1'
           ? global_warning_color_100.var
           : global_info_color_100.var,
     });
@@ -139,23 +133,24 @@ export function generateDateArray(days) {
 
 export function processIncidentTimestamps(data) {
   // Deduplicate and group the data by group_id
-  const firing = groupAndDeduplicate(data, 'group_id');
+  const incidents = groupAndDeduplicate(data, 'group_id').filter(
+    (incident) => incident.metric.src_alertname !== 'Watchdog',
+  );
 
-  return firing.map((incident, index) => {
+  return incidents.map((incident, index) => {
     const processedValues = incident.values.map((value) => {
       const timestamp = value[0];
       const date = new Date(timestamp * 1000);
-      return [date];
+      return [date, value[1]];
     });
 
     return {
       component: incident.metric.component,
       group_id: incident.metric.group_id,
       severity: incident.metric.src_severity,
+      type: incident.metric.type,
       values: processedValues,
-      incidentStartFiring: processedValues.at(0)[0],
-      incidentEndFiring: processedValues.at(-1)[0],
-      x: firing.length - index,
+      x: incidents.length - index,
     };
   });
 }
@@ -170,3 +165,86 @@ export const getIncidentsTimeRanges = (timespan, maxEndTime = Date.now()) => {
   }
   return timeRanges;
 };
+
+/**
+ * Filters a single incident based on the selected filter criteria.
+ *
+ * @param {Object} incident - The incident object to check against the filters.
+ * @param {Object} filters - An object containing all and selected filters.
+ * @param {Array<string>} filters.all - An array of all available filters.
+ * @param {Array<string>} filters.selected - An array of selected filters.
+ *
+ * @returns {boolean} Returns true if the incident matches all the selected filters, otherwise false.
+ *
+ * @description
+ * The function checks the incident against the following filter criteria:
+ * - If the "informative" filter is selected, it checks if `severity === 'info'`.
+ * - If the "long-standing" filter is selected, it checks if the incident has been active (i.e., "firing")
+ *   for 7 or more days by comparing the difference between the first and last timestamps in the `values` array.
+ * - If the "inactive" filter is selected, it checks if any value in the `values` array corresponds to the current day
+ *   and current hour (i.e., both the date and the hour match the current UTC date and hour).
+ *
+ * @example
+ * const filters = {
+ *   "selected": ["informative", "long-standing", "inactive"],
+ *   "all": ["long-standing", "informative", "inactive"]
+ * };
+ *
+ * const incident = {
+ *   "component": "compute",
+ *   "group_id": "73850a6a-e39e-4601-8910-3b4f60f4d53e",
+ *   "severity": "info",
+ *   "type": "alert",
+ *   "values": [
+ *     ["2024-09-01T00:00:00.000Z", "1"],
+ *     ["2024-09-08T00:00:00.000Z", "1"]
+ *   ],
+ *   "x": 7
+ * };
+ *
+ */
+export function filterIncident(incident, filters) {
+  const { selected } = filters;
+  const currentDate = new Date(); // Get the current date and time in UTC
+  const currentDay = currentDate.getUTCDate();
+  const currentMonth = currentDate.getUTCMonth();
+  const currentYear = currentDate.getUTCFullYear();
+  const currentHour = currentDate.getUTCHours();
+
+  // Check if "informative" is selected
+  if (selected.includes('informative') && incident.severity !== 'info') {
+    return false;
+  }
+
+  // Check if "long-standing" is selected
+  if (selected.includes('long-standing')) {
+    const values = incident.values.map((v) => new Date(v[0]));
+    const firstDate = values[0];
+    const lastDate = values[values.length - 1];
+
+    // Calculate the difference in days between the first and last date
+    const dayDifference = (lastDate - firstDate) / (1000 * 60 * 60 * 24);
+    if (dayDifference < 7) {
+      return false;
+    }
+  }
+
+  // Check if "inactive" is selected
+  if (selected.includes('inactive')) {
+    const hasMatchingDayAndHour = incident.values.some((v) => {
+      const valueDate = new Date(v[0]);
+      return (
+        valueDate.getUTCDate() === currentDay &&
+        valueDate.getUTCMonth() === currentMonth &&
+        valueDate.getUTCFullYear() === currentYear &&
+        valueDate.getUTCHours() === currentHour
+      );
+    });
+
+    if (!hasMatchingDayAndHour) {
+      return false;
+    }
+  }
+
+  return true;
+}
