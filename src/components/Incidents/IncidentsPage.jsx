@@ -49,7 +49,7 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
       { id: 'informative', title: t('Informative') },
       { id: 'inactive', title: t('Inactive') },
     ],
-    type: 'informative',
+    type: 'incident-type',
   });
   const [staticData, filteredData, onFilterChange] = useListPageFilter(incidentsData, [
     incidentTypeFilter(t),
