@@ -197,6 +197,7 @@ export function processIncidentTimestamps(data) {
       type: incident.metric.type,
       values: processedValues,
       x: incidents.length - index,
+      state: 'informative',
     };
   });
 }
@@ -249,7 +250,7 @@ export const getIncidentsTimeRanges = (timespan, maxEndTime = Date.now()) => {
  * };
  *
  */
-export function filterIncident(incident, filters) {
+export function filterIncident(filters, incident) {
   const { selected } = filters;
   const currentDate = new Date(); // Get the current date and time in UTC
   const currentDay = currentDate.getUTCDate();
