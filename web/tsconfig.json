@@ -8,9 +8,9 @@
     "jsx": "react",
     "allowJs": true,
     "strict": false,
-    "noUnusedLocals": true
+    "noUnusedLocals": true,
+    "skipLibCheck": true
   },
-  "include": [
-    "src"
-  ]
+  "include": ["src"],
+  "exclude": ["node_modules"]
 }
