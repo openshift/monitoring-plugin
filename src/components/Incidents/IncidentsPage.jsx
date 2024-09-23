@@ -12,7 +12,7 @@ import {
   filterIncident,
   getIncidentsTimeRanges,
   processAlertTimestamps,
-  processIncidentTimestamps,
+  processIncidents,
 } from './utils';
 import { useTranslation } from 'react-i18next';
 import {
@@ -48,7 +48,7 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
     filterGroupName: t('Incident type'),
     isMatch: (incident, prop) => matcher(incident, prop),
     items: [
-      { id: 'long-standing', title: t('Long standing') },
+      { id: 'longStanding', title: t('Long standing') },
       { id: 'informative', title: t('Informative') },
       { id: 'inactive', title: t('Inactive') },
     ],
@@ -131,7 +131,7 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
       )
         .then((results) => {
           const aggregatedData = results.reduce((acc, result) => acc.concat(result), []);
-          setIncidentsData(processIncidentTimestamps(aggregatedData));
+          setIncidentsData(processIncidents(aggregatedData));
           setIncidentsAreLoading(false);
         })
         .catch((err) => {

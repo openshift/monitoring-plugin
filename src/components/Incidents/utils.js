@@ -183,7 +183,7 @@ export function generateDateArray(days) {
   return dateArray;
 }
 
-export function processIncidentTimestamps(data) {
+export function processIncidents(data) {
   // Deduplicate and group the data by group_id
   const incidents = groupAndDeduplicate(data, 'group_id').filter(
     (incident) => incident.metric.src_alertname !== 'Watchdog',
@@ -219,7 +219,7 @@ export function processIncidentTimestamps(data) {
       values: processedValues,
       x: incidents.length - index,
       informative: incident.metric.src_severity === 'info' ? true : false,
-      'long-standing': dayDifference < 7 ? false : true,
+      longStanding: dayDifference < 7 ? true : false,
       inactive: !hasMatchingDayAndHour ? true : false,
     };
   });
@@ -248,16 +248,14 @@ export const getIncidentsTimeRanges = (timespan, maxEndTime = Date.now()) => {
  *
  * @description
  * The function checks the incident against the following filter criteria:
- * - If the "informative" filter is selected, it checks if `severity === 'info'`.
- * - If the "long-standing" filter is selected, it checks if the incident has been active (i.e., "firing")
- *   for 7 or more days by comparing the difference between the first and last timestamps in the `values` array.
- * - If the "inactive" filter is selected, it checks if any value in the `values` array corresponds to the current day
- *   and current hour (i.e., both the date and the hour match the current UTC date and hour).
+ * - if the informative filter is selected it checks the informative prop of the incident object
+ * - If the "long-standing" filter is selected, it checks the longStanding property of the incident object
+ * - If the "inactive" filter is selected, it checks it checks that the incident is active in the most recent hour
  *
  * @example
  * const filters = {
- *   "selected": ["informative", "long-standing", "inactive"],
- *   "all": ["long-standing", "informative", "inactive"]
+ *   "selected": ["informative", "longStanding", "inactive"],
+ *   "all": ["longStanding", "informative", "inactive"]
  * };
  *
  * const incident = {
@@ -269,47 +267,22 @@ export const getIncidentsTimeRanges = (timespan, maxEndTime = Date.now()) => {
  *     ["2024-09-01T00:00:00.000Z", "1"],
  *     ["2024-09-08T00:00:00.000Z", "1"]
  *   ],
- *   "x": 7
+ *   "x": 7,
+ *    informative: boolean,
+      longStanding: boolean,
+      inactive: boolean,
  * };
  *
  */
 export function filterIncident(filters, incident) {
-  const { selected } = filters;
+  const conditions = {
+    informative: 'informative',
+    longStanding: 'longStanding',
+    inactive: 'inactive',
+  };
 
-  // Check if "informative" is selected
-  if (selected.includes('informative') && incident.severity !== 'info') {
-    return false;
-  }
+  if (!filters.selected.length) return true;
 
-  // Check if "long-standing" is selected
-  if (selected.includes('long-standing')) {
-    const values = incident.values.map((v) => new Date(v[0]));
-    const firstDate = values[0];
-    const lastDate = values[values.length - 1];
-
-    // Calculate the difference in days between the first and last date
-    const dayDifference = (lastDate - firstDate) / (1000 * 60 * 60 * 24);
-    if (dayDifference < 7) {
-      return false;
-    }
-  }
-
-  // Check if "inactive" is selected
-  if (selected.includes('inactive')) {
-    const hasMatchingDayAndHour = incident.values.some((v) => {
-      const valueDate = new Date(v[0]);
-      return (
-        valueDate.getUTCDate() === currentDay &&
-        valueDate.getUTCMonth() === currentMonth &&
-        valueDate.getUTCFullYear() === currentYear &&
-        valueDate.getUTCHours() === currentHour
-      );
-    });
-
-    if (!hasMatchingDayAndHour) {
-      return false;
-    }
-  }
-
-  return true;
+  // Check if at least one filter passes
+  return filters.selected.some((key) => incident[conditions[key]] === true);
 }
