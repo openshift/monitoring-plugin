@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	portArg                   = flag.Int("port", 0, "server port to listen on (default: 9443)")
+	portArg                   = flag.Int("port", 0, "server port to listen on (default: 9443)\n9444 and 9445 reserved for other use")
 	certArg                   = flag.String("cert", "", "cert file path to enable TLS (disabled by default)")
 	keyArg                    = flag.String("key", "", "private key file path to enable TLS (disabled by default)")
 	featuresArg               = flag.String("features", "", "enabled features, comma separated")

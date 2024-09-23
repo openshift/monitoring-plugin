@@ -65,6 +65,10 @@ func Start(cfg *Config) {
 		log.Panic("alertmanager-location and thanos-querier-location must be set to use the 'acm' feature flag")
 	}
 
+	if cfg.Port == alertmanagerPort || cfg.Port == thanosQuerierPort {
+		log.Panic(fmt.Printf("Cannot set default port to reserved port %d", cfg.Port))
+	}
+
 	// Uncomment the following line for local development:
 	// k8sconfig, err := clientcmd.BuildConfigFromFlags("", "$HOME/.kube/config")
 
