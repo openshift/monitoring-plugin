@@ -23,16 +23,18 @@ import (
 var log = logrus.WithField("module", "server")
 
 type Config struct {
-	Port                  int
-	CertFile              string
-	PrivateKeyFile        string
-	Features              map[string]bool
-	StaticPath            string
-	ConfigPath            string
-	PluginConfigPath      string
-	LogLevel              string
-	ThanosQuerierLocation string
-	AlertmanagerLocation  string
+	Port                   int
+	CertFile               string
+	PrivateKeyFile         string
+	Features               map[string]bool
+	StaticPath             string
+	ConfigPath             string
+	PluginConfigPath       string
+	LogLevel               string
+	AlertmanagerName       string
+	AlertmanagerNamespace  string
+	ThanosQuerierName      string
+	ThanosQuerierNamespace string
 }
 
 type PluginConfig struct {
@@ -52,11 +54,12 @@ func (pluginConfig *PluginConfig) MarshalJSON() ([]byte, error) {
 
 func Start(cfg *Config) {
 	acmMode := cfg.Features["acm"]
+	acmLocationsLength := len(cfg.AlertmanagerName) + len(cfg.AlertmanagerNamespace) + len(cfg.ThanosQuerierName) + len(cfg.ThanosQuerierNamespace)
 
-	if (len(cfg.AlertmanagerLocation) > 0 || len(cfg.ThanosQuerierLocation) > 0) && !acmMode {
+	if acmLocationsLength > 0 && !acmMode {
 		log.Panic("alertmanager-location and thanos-querier-location cannot be set without the 'acm' feature flag")
 	}
-	if (len(cfg.AlertmanagerLocation) == 0 || len(cfg.ThanosQuerierLocation) == 0) && acmMode {
+	if acmLocationsLength == 0 && acmMode {
 		log.Panic("alertmanager-location and thanos-querier-location must be set to use the 'acm' feature flag")
 	}
 
@@ -150,7 +153,19 @@ func setupRoutes(cfg *Config, k8sclient *dynamic.DynamicClient, acmMode bool) (*
 
 	// uses the namespace and name to forward requests to a particular alert manager instance
 	if acmMode {
-		router.PathPrefix("/proxy/{kind}").Handler(proxy.NewProxyHandler(k8sclient, cfg.CertFile, cfg.AlertmanagerLocation, cfg.ThanosQuerierLocation))
+		router.PathPrefix("/proxy/{kind}").Handler(proxy.NewProxyHandler(
+			k8sclient,
+			cfg.CertFile,
+			proxy.K8sResource{
+				Kind:      proxy.AlertManagerKind,
+				Name:      cfg.AlertmanagerName,
+				Namespace: cfg.AlertmanagerNamespace,
+			},
+			proxy.K8sResource{
+				Kind:      proxy.ThanosQuerierKind,
+				Name:      cfg.ThanosQuerierName,
+				Namespace: cfg.ThanosQuerierNamespace,
+			}))
 	}
 
 	// TODO: needs to check for acm feature and adjust the plugin-manifest to be something appropriate

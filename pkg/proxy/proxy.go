@@ -12,7 +12,6 @@ import (
 	"net/url"
 	"os"
 	"slices"
-	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -38,13 +37,13 @@ const (
 
 type K8sResource struct {
 	Kind      KindType `json:"kind"`
-	Namespace string   `json:"namespace"`
 	Name      string   `json:"name"`
+	Namespace string   `json:"namespace"`
 }
 
-func NewProxyHandler(k8sclient *dynamic.DynamicClient, serviceCAfile string, alertManagerLocation string, thanosQuerierLocation string) *ProxyHandler {
+func NewProxyHandler(k8sclient *dynamic.DynamicClient, serviceCAfile string, alertmanager K8sResource, thanosQuerier K8sResource) *ProxyHandler {
 
-	proxies, err := getProxies(alertManagerLocation, thanosQuerierLocation, serviceCAfile)
+	proxies, err := getProxies(alertmanager, thanosQuerier, serviceCAfile)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -121,30 +120,17 @@ func createProxy(proxyUrl *url.URL, serviceCAfile string) (*httputil.ReverseProx
 	return reverseProxy, nil
 }
 
-func getProxies(alertManagerLocation string, thanosQuerierLocation string, serviceCAfile string) (map[KindType]*httputil.ReverseProxy, error) {
+func getProxies(alertmanager K8sResource, thanosQuerier K8sResource, serviceCAfile string) (map[KindType]*httputil.ReverseProxy, error) {
 	proxies := make(map[KindType]*httputil.ReverseProxy)
 	for _, allowedKind := range allowedKinds {
-		var location string
-		if allowedKind == AlertManagerKind {
-			location = alertManagerLocation
-		} else if allowedKind == ThanosQuerierKind {
-			location = thanosQuerierLocation
-		}
-
-		locationSplit := strings.Split(location, "/")
-		if len(locationSplit) != 2 {
-			return nil, errors.New(fmt.Sprintf("Invalid %s-location", allowedKind))
-		}
-		resource := K8sResource{Kind: KindType(allowedKind), Name: locationSplit[0], Namespace: locationSplit[1]}
-
 		var targetURL string
 		if allowedKind == AlertManagerKind {
-			service := DNSName(resource.Name)
-			targetURL = fmt.Sprintf("https://%s-%s.%s.svc:9094", resource.Kind, service, resource.Namespace)
+			service := DNSName(alertmanager.Name)
+			targetURL = fmt.Sprintf("https://%s-%s.%s.svc:9094", alertmanager.Kind, service, alertmanager.Namespace)
 		} else if allowedKind == ThanosQuerierKind {
 			// this is only for the rules endpoint, determine if we need more
-			service := DNSName(resource.Name)
-			targetURL = fmt.Sprintf("https://%s.%s.svc:9091", service, resource.Namespace)
+			service := DNSName(thanosQuerier.Name)
+			targetURL = fmt.Sprintf("https://%s.%s.svc:9091", service, thanosQuerier.Namespace)
 		}
 		// svc is only valid inside the cluster. May want to add a development version?
 
