@@ -21,6 +21,8 @@ import (
 )
 
 var log = logrus.WithField("module", "server")
+var alertmanagerPort = 9444
+var thanosQuerierPort = 9445
 
 type Config struct {
 	Port                   int
@@ -78,7 +80,7 @@ func Start(cfg *Config) {
 		panic(fmt.Errorf("error creating dynamicClient: %w", err))
 	}
 
-	router, pluginConfig := setupRoutes(cfg, k8sclient, acmMode)
+	router, pluginConfig := setupRoutes(cfg)
 	router.Use(corsHeaderMiddleware())
 
 	tlsConfig := &tls.Config{
@@ -134,39 +136,54 @@ func Start(cfg *Config) {
 	}
 
 	if tlsEnabled {
-		log.Infof("listening on https://:%d", cfg.Port)
+		log.Infof("listening on https. port: %d", cfg.Port)
+
+		if acmMode {
+			log.Infof("alertmanager proxy listening on https. port: %d", alertmanagerPort)
+			alertmanagerRouter := setupAcmRoutes(cfg, k8sclient, proxy.AlertManagerKind)
+			alertmanagerRouter.Use(corsHeaderMiddleware())
+			alertmanagerProxyServer := &http.Server{
+				Handler:      alertmanagerRouter,
+				Addr:         fmt.Sprintf(":%d", alertmanagerPort),
+				TLSConfig:    tlsConfig,
+				ReadTimeout:  timeout,
+				WriteTimeout: timeout,
+			}
+
+			log.Infof("thanos-querier proxy listening on https. port %d", thanosQuerierPort)
+			thanosQuerierRouter := setupAcmRoutes(cfg, k8sclient, proxy.ThanosQuerierKind)
+			thanosQuerierRouter.Use(corsHeaderMiddleware())
+			thanosQuerierProxyServer := &http.Server{
+				Handler:      thanosQuerierRouter,
+				Addr:         fmt.Sprintf(":%d", thanosQuerierPort),
+				TLSConfig:    tlsConfig,
+				ReadTimeout:  timeout,
+				WriteTimeout: timeout,
+			}
+
+			go func() {
+				panic(alertmanagerProxyServer.ListenAndServeTLS(cfg.CertFile, cfg.PrivateKeyFile))
+			}()
+			go func() {
+				panic(thanosQuerierProxyServer.ListenAndServeTLS(cfg.CertFile, cfg.PrivateKeyFile))
+			}()
+		}
+
 		logrus.SetLevel(logrusLevel)
 		panic(httpServer.ListenAndServeTLS(cfg.CertFile, cfg.PrivateKeyFile))
 	} else {
-		log.Infof("listening on http://:%d", cfg.Port)
+		log.Infof("listening on http. port: %d", cfg.Port)
 		logrus.SetLevel(logrusLevel)
 		panic(httpServer.ListenAndServe())
 	}
 }
 
-func setupRoutes(cfg *Config, k8sclient *dynamic.DynamicClient, acmMode bool) (*mux.Router, *PluginConfig) {
+func setupRoutes(cfg *Config) (*mux.Router, *PluginConfig) {
 	configHandlerFunc, pluginConfig := configHandler(cfg)
 
 	router := mux.NewRouter()
 
 	router.PathPrefix("/health").HandlerFunc(healthHandler())
-
-	// uses the namespace and name to forward requests to a particular alert manager instance
-	if acmMode {
-		router.PathPrefix("/proxy/{kind}").Handler(proxy.NewProxyHandler(
-			k8sclient,
-			cfg.CertFile,
-			proxy.K8sResource{
-				Kind:      proxy.AlertManagerKind,
-				Name:      cfg.AlertmanagerName,
-				Namespace: cfg.AlertmanagerNamespace,
-			},
-			proxy.K8sResource{
-				Kind:      proxy.ThanosQuerierKind,
-				Name:      cfg.ThanosQuerierName,
-				Namespace: cfg.ThanosQuerierNamespace,
-			}))
-	}
 
 	// TODO: needs to check for acm feature and adjust the plugin-manifest to be something appropriate
 	router.Path("/plugin-manifest.json").Handler(manifestHandler(cfg))
@@ -176,6 +193,33 @@ func setupRoutes(cfg *Config, k8sclient *dynamic.DynamicClient, acmMode bool) (*
 	router.PathPrefix("/").Handler(filesHandler(http.Dir(cfg.StaticPath)))
 
 	return router, pluginConfig
+}
+
+func setupAcmRoutes(cfg *Config, k8sclient *dynamic.DynamicClient, kind proxy.KindType) *mux.Router {
+	router := mux.NewRouter()
+	var resource proxy.K8sResource
+	if kind == proxy.AlertManagerKind {
+		resource = proxy.K8sResource{
+			Kind:      proxy.AlertManagerKind,
+			Name:      cfg.AlertmanagerName,
+			Namespace: cfg.AlertmanagerNamespace,
+		}
+	} else if kind == proxy.ThanosQuerierKind {
+		resource = proxy.K8sResource{
+			Kind:      proxy.ThanosQuerierKind,
+			Name:      cfg.ThanosQuerierName,
+			Namespace: cfg.ThanosQuerierNamespace,
+		}
+	}
+
+	// uses the namespace and name to forward requests to a particular alert manager instance
+	router.PathPrefix("/").Handler(proxy.NewProxyHandler(
+		k8sclient,
+		cfg.CertFile,
+		resource,
+	))
+
+	return router
 }
 
 func filesHandler(root http.FileSystem) http.Handler {

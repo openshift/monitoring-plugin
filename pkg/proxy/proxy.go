@@ -4,28 +4,23 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
-	"errors"
 	"fmt"
 	"net"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"os"
-	"slices"
 	"time"
 
-	"github.com/gorilla/mux"
 	oscrypto "github.com/openshift/library-go/pkg/crypto"
 	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/dynamic"
 )
 
 var log = logrus.WithField("module", "proxy")
-var allowedKinds = []KindType{"alertmanager", "thanos-querier"}
 
 type ProxyHandler struct {
-	alertManagerProxy  *httputil.ReverseProxy
-	thanosQuerierProxy *httputil.ReverseProxy
+	proxy *httputil.ReverseProxy
 }
 
 type KindType string
@@ -41,16 +36,15 @@ type K8sResource struct {
 	Namespace string   `json:"namespace"`
 }
 
-func NewProxyHandler(k8sclient *dynamic.DynamicClient, serviceCAfile string, alertmanager K8sResource, thanosQuerier K8sResource) *ProxyHandler {
+func NewProxyHandler(k8sclient *dynamic.DynamicClient, serviceCAfile string, resource K8sResource) *ProxyHandler {
 
-	proxies, err := getProxies(alertmanager, thanosQuerier, serviceCAfile)
+	proxy, err := getProxy(resource, serviceCAfile)
 	if err != nil {
 		log.Panic(err)
 	}
 
 	return &ProxyHandler{
-		alertManagerProxy:  proxies[AlertManagerKind],
-		thanosQuerierProxy: proxies[ThanosQuerierKind],
+		proxy: proxy,
 	}
 }
 
@@ -120,34 +114,30 @@ func createProxy(proxyUrl *url.URL, serviceCAfile string) (*httputil.ReverseProx
 	return reverseProxy, nil
 }
 
-func getProxies(alertmanager K8sResource, thanosQuerier K8sResource, serviceCAfile string) (map[KindType]*httputil.ReverseProxy, error) {
-	proxies := make(map[KindType]*httputil.ReverseProxy)
-	for _, allowedKind := range allowedKinds {
-		var targetURL string
-		if allowedKind == AlertManagerKind {
-			service := DNSName(alertmanager.Name)
-			targetURL = fmt.Sprintf("https://%s-%s.%s.svc:9094", alertmanager.Kind, service, alertmanager.Namespace)
-		} else if allowedKind == ThanosQuerierKind {
-			// this is only for the rules endpoint, determine if we need more
-			service := DNSName(thanosQuerier.Name)
-			targetURL = fmt.Sprintf("https://%s.%s.svc:9091", service, thanosQuerier.Namespace)
-		}
-		// svc is only valid inside the cluster. May want to add a development version?
-
-		log.Info(fmt.Sprintf("Proxy of Type: %s Points to Url: %s", allowedKind, targetURL))
-		proxyURL, err := url.Parse(targetURL)
-		if err != nil {
-			return nil, err
-		}
-
-		// proxy not found in cache, validate if a resource exists with this namespace/name
-		proxy, err := createProxy(proxyURL, serviceCAfile)
-		if err != nil {
-			return nil, err
-		}
-		proxies[allowedKind] = proxy
+func getProxy(resource K8sResource, serviceCAfile string) (*httputil.ReverseProxy, error) {
+	var targetURL string
+	if resource.Kind == AlertManagerKind {
+		service := DNSName(resource.Name)
+		targetURL = fmt.Sprintf("https://%s-%s.%s.svc:9094", resource.Kind, service, resource.Namespace)
+	} else if resource.Kind == ThanosQuerierKind {
+		// this is only for the rules endpoint, determine if we need more
+		service := DNSName(resource.Name)
+		targetURL = fmt.Sprintf("https://%s.%s.svc:9091", service, resource.Namespace)
 	}
-	return proxies, nil
+	// svc is only valid inside the cluster. May want to add a development version?
+
+	log.Info(fmt.Sprintf("Proxy of Type: %s Points to Url: %s", resource.Kind, targetURL))
+	proxyURL, err := url.Parse(targetURL)
+	if err != nil {
+		return nil, err
+	}
+
+	proxy, err := createProxy(proxyURL, serviceCAfile)
+	if err != nil {
+		return nil, err
+	}
+
+	return proxy, nil
 }
 
 func handleError(w http.ResponseWriter, code int, err error) {
@@ -156,25 +146,5 @@ func handleError(w http.ResponseWriter, code int, err error) {
 }
 
 func (h *ProxyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	// all path params are unescaped by gorilla/mux
-	kind := KindType(vars["kind"])
-
-	if len(kind) == 0 {
-		handleError(w, http.StatusBadRequest, errors.New("cannot proxy request, resource kind was not provided"))
-		return
-	}
-	if !slices.Contains(allowedKinds, KindType(kind)) {
-		handleError(w, http.StatusBadRequest, errors.New("cannot proxy request, invalid resource kind"))
-		return
-	}
-
-	var proxy *httputil.ReverseProxy
-	if kind == AlertManagerKind {
-		proxy = h.alertManagerProxy
-	} else if kind == ThanosQuerierKind {
-		proxy = h.thanosQuerierProxy
-	}
-
-	http.StripPrefix(fmt.Sprintf("/proxy/%s", url.PathEscape(string(kind))), proxy).ServeHTTP(w, r)
+	h.proxy.ServeHTTP(w, r)
 }

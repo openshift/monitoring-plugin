@@ -34,6 +34,8 @@ plugin:
     alertmanager:
       name: main
       namespace: openshift-monitoring
+      pluginPort: 9444
     thanos:
       name: thanos-querier
       namespace: openshift-monitoring
+      pluginPort: 9445
