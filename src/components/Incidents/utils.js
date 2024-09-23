@@ -3,6 +3,12 @@ import global_danger_color_100 from '@patternfly/react-tokens/dist/esm/global_da
 import global_info_color_100 from '@patternfly/react-tokens/dist/esm/global_info_color_100';
 import global_warning_color_100 from '@patternfly/react-tokens/dist/esm/global_warning_color_100';
 
+const currentDate = new Date(); // Get the current date and time in UTC
+const currentDay = currentDate.getUTCDate();
+const currentMonth = currentDate.getUTCMonth();
+const currentYear = currentDate.getUTCFullYear();
+const currentHour = currentDate.getUTCHours();
+
 /**
  * Groups and deduplicates an array of objects based on a specified key type.
  *
@@ -190,6 +196,21 @@ export function processIncidentTimestamps(data) {
       return [date, value[1]];
     });
 
+    // Calculate the difference in days between the first and last date for the long standing prop
+    const firstDate = incident.values[0];
+    const lastDate = incident.values[incident.values.length - 1];
+    const dayDifference = (lastDate - firstDate) / (1000 * 60 * 60 * 24);
+
+    const hasMatchingDayAndHour = incident.values.some((v) => {
+      const valueDate = new Date(v[0]);
+      return (
+        valueDate.getUTCDate() === currentDay &&
+        valueDate.getUTCMonth() === currentMonth &&
+        valueDate.getUTCFullYear() === currentYear &&
+        valueDate.getUTCHours() === currentHour
+      );
+    });
+
     return {
       component: incident.metric.component,
       group_id: incident.metric.group_id,
@@ -197,7 +218,9 @@ export function processIncidentTimestamps(data) {
       type: incident.metric.type,
       values: processedValues,
       x: incidents.length - index,
-      state: 'informative',
+      informative: incident.metric.src_severity === 'info' ? true : false,
+      'long-standing': dayDifference < 7 ? false : true,
+      inactive: !hasMatchingDayAndHour ? true : false,
     };
   });
 }
@@ -252,11 +275,6 @@ export const getIncidentsTimeRanges = (timespan, maxEndTime = Date.now()) => {
  */
 export function filterIncident(filters, incident) {
   const { selected } = filters;
-  const currentDate = new Date(); // Get the current date and time in UTC
-  const currentDay = currentDate.getUTCDate();
-  const currentMonth = currentDate.getUTCMonth();
-  const currentYear = currentDate.getUTCFullYear();
-  const currentHour = currentDate.getUTCHours();
 
   // Check if "informative" is selected
   if (selected.includes('informative') && incident.severity !== 'info') {

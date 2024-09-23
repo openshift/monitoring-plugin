@@ -26,7 +26,7 @@ import {
 } from '@patternfly/react-core';
 import { Helmet } from 'react-helmet';
 import { useBoolean } from '../hooks/useBoolean';
-import * as _ from 'lodash-es';
+import some from 'lodash-es/some';
 
 const IncidentsPage = ({ customDataSource, namespace }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
@@ -37,16 +37,16 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
   const [incidentsData, setIncidentsData] = React.useState([]);
   const [isOpen, setIsOpen, , setClosed] = useBoolean(false);
 
-  const incidentsMatcher = (incident) => _.some(incident, 'informative');
   const now = Date.now();
   const timeRanges = getIncidentsTimeRanges(span, now);
   const safeFetch = useSafeFetch();
   const title = t('Incidents');
+  const matcher = (incident, prop) => some([incident], prop);
 
   const incidentTypeFilter = (t) => ({
     filter: filterIncident,
     filterGroupName: t('Incident type'),
-    isMatch: incidentsMatcher,
+    isMatch: (incident, prop) => matcher(incident, prop),
     items: [
       { id: 'long-standing', title: t('Long standing') },
       { id: 'informative', title: t('Informative') },
