@@ -29,3 +29,11 @@ plugin:
     create: true
     annotations: {}
     name: ""
+  acm:
+    enabled: true
+    alertmanager:
+      name: main
+      namespace: openshift-monitoring
+    thanos:
+      name: thanos-querier
+      namespace: openshift-monitoring
