@@ -25,3 +25,19 @@ spec:
         namespace: {{ .Release.Namespace }}
         port: 9443
       type: Service
+  - alias: alertmanager-proxy
+    authorization: UserToken
+    endpoint:
+      service:
+        name: {{ template "openshift-console-plugin.name" . }}
+        namespace: {{ .Release.Namespace }}
+        port: 9444
+      type: Service
+  - alias: thanos-proxy
+    authorization: UserToken
+    endpoint:
+      service:
+        name: {{ template "openshift-console-plugin.name" . }}
+        namespace: {{ .Release.Namespace }}
+        port: 9445
+      type: Service

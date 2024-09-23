@@ -15,6 +15,16 @@ spec:
       protocol: TCP
       port: {{ .Values.plugin.port }}
       targetPort: {{ .Values.plugin.port }}
+    {{- if and (.Values.plugin.acm.enabled) }}
+    - name: alertmanager-proxy
+      protocol: TCP
+      port: {{ .Values.plugin.acm.alertmanager.pluginPort }}
+      targetPort: {{ .Values.plugin.acm.alertmanager.pluginPort }}
+    - name: thanos-proxy
+      protocol: TCP
+      port: {{ .Values.plugin.acm.thanos.pluginPort }}
+      targetPort: {{ .Values.plugin.acm.thanos.pluginPort }}
+    {{- end }}
   selector:
     {{- include "openshift-console-plugin.selectorLabels" . | nindent 4 }}
   type: ClusterIP
