@@ -13,6 +13,7 @@
     "cypress:run:ci": "NO_COLOR=1 npx cypress run --browser chrome",
     "i18n": "i18next \"src/components/**/*.{js,jsx,ts,tsx}\" [-oc] -c i18next-parser.config.js",
     "lint": "eslint ./src",
+    "lint:tsc": "tsc --noEmit",
     "lint-fix": "eslint ./src --fix",
     "pre-commit:check": "yarn lint",
     "prepare": "husky install",
@@ -93,7 +94,8 @@
     "webpack": "^5.76.0",
     "tough-cookie": "^4.1.3",
     "semver": "^6.3.1",
-    "sanitize-html": "^2.12.1"
+    "sanitize-html": "^2.12.1",
+    "path-to-regexp": "^1.9.0"
   },
   "consolePlugin": {
     "name": "monitoring-plugin",
