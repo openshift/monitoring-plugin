@@ -32,10 +32,8 @@ plugin:
   acm:
     enabled: true
     alertmanager:
-      name: main
-      namespace: openshift-monitoring
+      url: https://alertmanager-main.openshift-monitoring.svc:9094
       pluginPort: 9444
     thanos:
-      name: thanos-querier
-      namespace: openshift-monitoring
+      url: https://thanos-querier.openshift-monitoring.svc:9091
       pluginPort: 9445

@@ -25,18 +25,16 @@ var alertmanagerPort = 9444
 var thanosQuerierPort = 9445
 
 type Config struct {
-	Port                   int
-	CertFile               string
-	PrivateKeyFile         string
-	Features               map[string]bool
-	StaticPath             string
-	ConfigPath             string
-	PluginConfigPath       string
-	LogLevel               string
-	AlertmanagerName       string
-	AlertmanagerNamespace  string
-	ThanosQuerierName      string
-	ThanosQuerierNamespace string
+	Port             int
+	CertFile         string
+	PrivateKeyFile   string
+	Features         map[string]bool
+	StaticPath       string
+	ConfigPath       string
+	PluginConfigPath string
+	LogLevel         string
+	AlertmanagerUrl  string
+	ThanosQuerierUrl string
 }
 
 type PluginConfig struct {
@@ -55,14 +53,14 @@ func (pluginConfig *PluginConfig) MarshalJSON() ([]byte, error) {
 }
 
 func Start(cfg *Config) {
-	acmMode := cfg.Features["acm"]
-	acmLocationsLength := len(cfg.AlertmanagerName) + len(cfg.AlertmanagerNamespace) + len(cfg.ThanosQuerierName) + len(cfg.ThanosQuerierNamespace)
+	acmMode := cfg.Features["acm-alerting"]
+	acmLocationsLength := len(cfg.AlertmanagerUrl) + len(cfg.ThanosQuerierUrl)
 
 	if acmLocationsLength > 0 && !acmMode {
-		log.Panic("alertmanager-location and thanos-querier-location cannot be set without the 'acm' feature flag")
+		log.Panic("alertmanager and thanos-querier cannot be set without the 'acm-alerting' feature flag")
 	}
 	if acmLocationsLength == 0 && acmMode {
-		log.Panic("alertmanager-location and thanos-querier-location must be set to use the 'acm' feature flag")
+		log.Panic("alertmanager and thanos-querier must be set to use the 'acm-alerting' feature flag")
 	}
 
 	if cfg.Port == alertmanagerPort || cfg.Port == thanosQuerierPort {
@@ -201,26 +199,19 @@ func setupRoutes(cfg *Config) (*mux.Router, *PluginConfig) {
 
 func setupAcmRoutes(cfg *Config, k8sclient *dynamic.DynamicClient, kind proxy.KindType) *mux.Router {
 	router := mux.NewRouter()
-	var resource proxy.K8sResource
+	var proxyUrl string
 	if kind == proxy.AlertManagerKind {
-		resource = proxy.K8sResource{
-			Kind:      proxy.AlertManagerKind,
-			Name:      cfg.AlertmanagerName,
-			Namespace: cfg.AlertmanagerNamespace,
-		}
+		proxyUrl = cfg.AlertmanagerUrl
 	} else if kind == proxy.ThanosQuerierKind {
-		resource = proxy.K8sResource{
-			Kind:      proxy.ThanosQuerierKind,
-			Name:      cfg.ThanosQuerierName,
-			Namespace: cfg.ThanosQuerierNamespace,
-		}
+		proxyUrl = cfg.ThanosQuerierUrl
 	}
 
 	// uses the namespace and name to forward requests to a particular alert manager instance
 	router.PathPrefix("/").Handler(proxy.NewProxyHandler(
 		k8sclient,
 		cfg.CertFile,
-		resource,
+		kind,
+		proxyUrl,
 	))
 
 	return router

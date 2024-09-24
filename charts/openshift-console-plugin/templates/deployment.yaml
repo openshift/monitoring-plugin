@@ -39,11 +39,9 @@ spec:
             - '-key=/var/cert/tls.key'
             - '-log-level=info'
             {{- if and (.Values.plugin.acm.enabled) }}
-            - '-features=acm'
-            - '-alertmanager-name={{ .Values.plugin.acm.alertmanager.name }}'
-            - '-alertmanager-namespace={{ .Values.plugin.acm.alertmanager.namespace }}'
-            - '-thanos-querier-name={{ .Values.plugin.acm.thanos.name }}'
-            - '-thanos-querier-namespace={{ .Values.plugin.acm.thanos.namespace }}'
+            - '-features=acm-alerting'
+            - '-alertmanager={{ .Values.plugin.acm.alertmanager.url }}'
+            - '-thanos-querier={{ .Values.plugin.acm.thanos.url }}'
             {{- end }}
       volumes:
         - name: {{ template "openshift-console-plugin.certificateSecret" . }}
