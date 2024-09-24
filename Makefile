@@ -26,6 +26,12 @@ start-console:
 lint-frontend:
 	cd web && yarn lint
 
+.PHONY: lint-backend
+lint-backend:
+	go mod tidy
+	go fmt ./cmd/
+	go fmt ./pkg/
+
 .PHONY: install-backend
 install-backend:
 	go mod download
@@ -54,5 +60,6 @@ IMAGE=quay.io/${REGISTRY_ORG}/monitoring-plugin:${TAG}
 .PHONY: deploy
 deploy:
 	helm uninstall monitoring-plugin -n monitoring-plugin-ns || true
+	make lint-backend
 	PUSH=1 scripts/build-image.sh
 	helm install monitoring-plugin charts/openshift-console-plugin -n monitoring-plugin-ns --create-namespace --set plugin.image=$(IMAGE)

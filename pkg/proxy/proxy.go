@@ -36,9 +36,9 @@ type K8sResource struct {
 	Namespace string   `json:"namespace"`
 }
 
-func NewProxyHandler(k8sclient *dynamic.DynamicClient, serviceCAfile string, resource K8sResource) *ProxyHandler {
+func NewProxyHandler(k8sclient *dynamic.DynamicClient, serviceCAfile string, kind KindType, proxyUrl string) *ProxyHandler {
 
-	proxy, err := getProxy(resource, serviceCAfile)
+	proxy, err := getProxy(kind, proxyUrl, serviceCAfile)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -114,20 +114,9 @@ func createProxy(proxyUrl *url.URL, serviceCAfile string) (*httputil.ReverseProx
 	return reverseProxy, nil
 }
 
-func getProxy(resource K8sResource, serviceCAfile string) (*httputil.ReverseProxy, error) {
-	var targetURL string
-	if resource.Kind == AlertManagerKind {
-		service := DNSName(resource.Name)
-		targetURL = fmt.Sprintf("https://%s-%s.%s.svc:9094", resource.Kind, service, resource.Namespace)
-	} else if resource.Kind == ThanosQuerierKind {
-		// this is only for the rules endpoint, determine if we need more
-		service := DNSName(resource.Name)
-		targetURL = fmt.Sprintf("https://%s.%s.svc:9091", service, resource.Namespace)
-	}
-	// svc is only valid inside the cluster. May want to add a development version?
-
-	log.Info(fmt.Sprintf("Proxy of Type: %s Points to Url: %s", resource.Kind, targetURL))
-	proxyURL, err := url.Parse(targetURL)
+func getProxy(kind KindType, proxyUrlString string, serviceCAfile string) (*httputil.ReverseProxy, error) {
+	log.Info(fmt.Sprintf("Proxy of Type: %s Points to Url: %s", kind, proxyUrlString))
+	proxyURL, err := url.Parse(proxyUrlString)
 	if err != nil {
 		return nil, err
 	}
