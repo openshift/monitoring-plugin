@@ -10,22 +10,24 @@ import {
 import {
   ActionGroup,
   Button,
-  Dropdown,
-  DropdownItem,
-  DropdownPosition,
-  DropdownToggle,
   EmptyState,
   EmptyStateBody,
   EmptyStateIcon,
   EmptyStateVariant,
   Switch,
   Title,
-  Select,
-  SelectVariant,
-  SelectOption,
   Grid,
   GridItem,
 } from '@patternfly/react-core';
+import {
+  Select as SelectDeprecated,
+  SelectOption as SelectOptionDeprecated,
+  SelectVariant as SelectVariantDeprecated,
+  Dropdown as DropdownDeprecated,
+  DropdownItem as DropdownItemDeprecated,
+  DropdownPosition as DropdownPositionDeprecated,
+  DropdownToggle as DropdownToggleDeprecated,
+} from '@patternfly/react-core/deprecated';
 import {
   AngleDownIcon,
   AngleRightIcon,
@@ -253,11 +255,11 @@ export const PreDefinedQueriesDropdown = () => {
         <label htmlFor="predefined-query-select-label">{t('Queries')}</label>
       </GridItem>
       <GridItem component="li">
-        <Select
+        <SelectDeprecated
           id={selected}
-          variant={SelectVariant.typeahead}
+          variant={SelectVariantDeprecated.typeahead}
           typeAheadAriaLabel={t('Select query')}
-          onToggle={onToggle}
+          onToggle={(_e, isOpen) => onToggle(isOpen)}
           onSelect={onSelect}
           selections={selected}
           isOpen={isOpen}
@@ -266,11 +268,11 @@ export const PreDefinedQueriesDropdown = () => {
           width={400}
         >
           {predefinedQueries.map((option) => (
-            <SelectOption key={option.name} value={option.query}>
+            <SelectOptionDeprecated key={option.name} value={option.query}>
               {option.name}
-            </SelectOption>
+            </SelectOptionDeprecated>
           ))}
-        </Select>
+        </SelectDeprecated>
       </GridItem>
     </Grid>
   );
@@ -294,29 +296,29 @@ const MetricsActionsMenu: React.FC = () => {
   };
 
   const dropdownItems = [
-    <DropdownItem key="add-query" component="button" onClick={addQuery}>
+    <DropdownItemDeprecated key="add-query" component="button" onClick={addQuery}>
       {t('Add query')}
-    </DropdownItem>,
-    <DropdownItem
+    </DropdownItemDeprecated>,
+    <DropdownItemDeprecated
       key="collapse-all"
       component="button"
       onClick={() => dispatch(queryBrowserSetAllExpanded(!isAllExpanded))}
     >
       {isAllExpanded ? t('Collapse all query tables') : t('Expand all query tables')}
-    </DropdownItem>,
-    <DropdownItem key="delete-all" component="button" onClick={doDelete}>
+    </DropdownItemDeprecated>,
+    <DropdownItemDeprecated key="delete-all" component="button" onClick={doDelete}>
       {t('Delete all queries')}
-    </DropdownItem>,
+    </DropdownItemDeprecated>,
   ];
 
   return (
-    <Dropdown
+    <DropdownDeprecated
       className="co-actions-menu"
       dropdownItems={dropdownItems}
       isOpen={isOpen}
       onSelect={setClosed}
-      position={DropdownPosition.right}
-      toggle={<DropdownToggle onToggle={setIsOpen}>Actions</DropdownToggle>}
+      position={DropdownPositionDeprecated.right}
+      toggle={<DropdownToggleDeprecated onToggle={setIsOpen}>Actions</DropdownToggleDeprecated>}
     />
   );
 };
@@ -518,16 +520,16 @@ const QueryKebab: React.FC<{ index: number }> = ({ index }) => {
   };
 
   const exportDropdownItem = (
-    <DropdownItem key="export" component="button" onClick={doExportCsv}>
+    <DropdownItemDeprecated key="export" component="button" onClick={doExportCsv}>
       {t('Export as CSV')}
-    </DropdownItem>
+    </DropdownItemDeprecated>
   );
 
   const defaultDropdownItems = [
-    <DropdownItem key="toggle-query" component="button" onClick={toggleIsEnabled}>
+    <DropdownItemDeprecated key="toggle-query" component="button" onClick={toggleIsEnabled}>
       {isEnabled ? t('Disable query') : t('Enable query')}
-    </DropdownItem>,
-    <DropdownItem
+    </DropdownItemDeprecated>,
+    <DropdownItemDeprecated
       tooltip={!isEnabled ? t('Query must be enabled') : undefined}
       isDisabled={!isEnabled}
       key="toggle-all-series"
@@ -535,13 +537,13 @@ const QueryKebab: React.FC<{ index: number }> = ({ index }) => {
       onClick={toggleAllSeries}
     >
       {isDisabledSeriesEmpty ? t('Hide all series') : t('Show all series')}
-    </DropdownItem>,
-    <DropdownItem key="delete" component="button" onClick={doDelete}>
+    </DropdownItemDeprecated>,
+    <DropdownItemDeprecated key="delete" component="button" onClick={doDelete}>
       {t('Delete query')}
-    </DropdownItem>,
-    <DropdownItem key="duplicate" component="button" onClick={doClone}>
+    </DropdownItemDeprecated>,
+    <DropdownItemDeprecated key="duplicate" component="button" onClick={doClone}>
       {t('Duplicate query')}
-    </DropdownItem>,
+    </DropdownItemDeprecated>,
   ];
 
   const hasQueryTableData = () => {
@@ -867,7 +869,7 @@ const Query: React.FC<{ index: number; customDatasource?: CustomDataSource }> = 
           <QueryKebab index={index} />
         </div>
       </div>
-      {/* If namespace is defined getPrometheusURL() will use the 
+      {/* If namespace is defined getPrometheusURL() will use the
       PROMETHEUS_TENANCY_BASE_PATH for the developer view */}
       <QueryTable
         index={index}

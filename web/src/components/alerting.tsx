@@ -24,8 +24,6 @@ import {
   Checkbox,
   CodeBlock,
   CodeBlockCode,
-  DropdownItem,
-  DropdownToggle,
   Flex,
   FlexItem,
   Toolbar,
@@ -33,6 +31,10 @@ import {
   ToolbarGroup,
   ToolbarItem,
 } from '@patternfly/react-core';
+import {
+  DropdownItem as DropdownItemDeprecated,
+  DropdownToggle as DropdownToggleDeprecated,
+} from '@patternfly/react-core/deprecated';
 import { sortable } from '@patternfly/react-table';
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
@@ -197,13 +199,13 @@ const ActiveAlerts_: React.FC<ActiveAlertsProps> = ({ alerts, history, namespace
               <div className="dropdown-kebab-pf">
                 <KebabDropdown
                   dropdownItems={[
-                    <DropdownItem
+                    <DropdownItemDeprecated
                       component="button"
                       key="silence"
                       onClick={() => history.push(newSilenceAlertURL(a))}
                     >
                       {t('Silence alert')}
-                    </DropdownItem>,
+                    </DropdownItemDeprecated>,
                   ]}
                 />
               </div>
@@ -380,7 +382,7 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
                 <ToolbarItem variant="label">
                   <SectionHeading text={t('Active alerts')} />
                 </ToolbarItem>
-                <ToolbarGroup alignment={{ default: 'alignRight' }}>
+                <ToolbarGroup align={{ default: 'alignRight' }}>
                   <ToolbarItem>
                     <ToggleGraph />
                   </ToolbarItem>
@@ -420,9 +422,13 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
 export const AlertRulesDetailsPage = withFallback(AlertRulesDetailsPage_);
 
 const ActionsToggle: React.FC<{ onToggle: OnToggle }> = ({ onToggle, ...props }) => (
-  <DropdownToggle data-test="silence-actions-toggle" onToggle={onToggle} {...props}>
+  <DropdownToggleDeprecated
+    data-test="silence-actions-toggle"
+    onToggle={(event, isOpen) => onToggle(isOpen, event as MouseEvent)}
+    {...props}
+  >
     Actions
-  </DropdownToggle>
+  </DropdownToggleDeprecated>
 );
 
 const SilenceDropdownActions: React.FC<{ silence: Silence }> = ({ silence }) => (
@@ -461,9 +467,12 @@ const SilencedAlertsList_: React.FC<SilencedAlertsListProps> = ({ alerts, histor
             <div className="dropdown-kebab-pf">
               <KebabDropdown
                 dropdownItems={[
-                  <DropdownItem key="view-rule" onClick={() => history.push(ruleURL(a.rule))}>
+                  <DropdownItemDeprecated
+                    key="view-rule"
+                    onClick={() => history.push(ruleURL(a.rule))}
+                  >
                     {t('View alerting rule')}
-                  </DropdownItem>,
+                  </DropdownItemDeprecated>,
                 ]}
               />
             </div>
@@ -892,7 +901,7 @@ const SelectAllCheckbox: React.FC<{ silences: Silence[] }> = ({ silences }) => {
       id="select-all-silences-checkbox"
       isChecked={isAllSelected}
       isDisabled={activeSilences.length === 0}
-      onChange={onChange}
+      onChange={(_e, checked) => onChange(checked)}
     />
   );
 };

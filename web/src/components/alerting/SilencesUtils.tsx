@@ -13,15 +13,17 @@ import {
   Button,
   Checkbox,
   Label,
-  DropdownItem,
-  Dropdown,
-  DropdownPosition,
-  KebabToggle,
   ModalVariant,
   Modal,
   Flex,
   FlexItem,
 } from '@patternfly/react-core';
+import {
+  Dropdown as DropdownDeprecated,
+  DropdownItem as DropdownItemDeprecated,
+  DropdownPosition as DropdownPositionDeprecated,
+  KebabToggle as KebabToggleDeprecated,
+} from '@patternfly/react-core/deprecated';
 import {
   labelsToParams,
   refreshSilences,
@@ -81,7 +83,9 @@ export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheck
             id={id}
             isChecked={selectedSilences.has(id)}
             isDisabled={state === SilenceStates.Expired}
-            onChange={onCheckboxChange}
+            onChange={(_e, checked) => {
+              onCheckboxChange(checked);
+            }}
           />
         </td>
       )}
@@ -179,7 +183,17 @@ export const SilenceState = ({ silence }) => {
 };
 
 const SilenceDropdownKebab: React.FC<{ silence: Silence }> = ({ silence }) => (
-  <SilenceDropdown isPlain silence={silence} Toggle={KebabToggle} />
+  <SilenceDropdown
+    isPlain
+    silence={silence}
+    Toggle={({ onToggle, ...props }: { onToggle: OnToggle }) => (
+      <KebabToggleDeprecated
+        aria-label="Actions"
+        onToggle={(e, v) => onToggle(v, e as MouseEvent)}
+        {...props}
+      />
+    )}
+  />
 );
 
 const SilenceDropdown_: React.FC<SilenceDropdownProps> = ({
@@ -205,29 +219,29 @@ const SilenceDropdown_: React.FC<SilenceDropdownProps> = ({
   const dropdownItems =
     silenceState(silence) === SilenceStates.Expired
       ? [
-          <DropdownItem key="edit-silence" component="button" onClick={editSilence}>
+          <DropdownItemDeprecated key="edit-silence" component="button" onClick={editSilence}>
             {t('Recreate silence')}
-          </DropdownItem>,
+          </DropdownItemDeprecated>,
         ]
       : [
-          <DropdownItem key="edit-silence" component="button" onClick={editSilence}>
+          <DropdownItemDeprecated key="edit-silence" component="button" onClick={editSilence}>
             {t('Edit silence')}
-          </DropdownItem>,
-          <DropdownItem key="cancel-silence" component="button" onClick={setModalOpen}>
+          </DropdownItemDeprecated>,
+          <DropdownItemDeprecated key="cancel-silence" component="button" onClick={setModalOpen}>
             {t('Expire silence')}
-          </DropdownItem>,
+          </DropdownItemDeprecated>,
         ];
 
   return (
     <>
-      <Dropdown
+      <DropdownDeprecated
         className={className}
         data-test="silence-actions"
         dropdownItems={dropdownItems}
         isOpen={isOpen}
         isPlain={isPlain}
         onSelect={setClosed}
-        position={DropdownPosition.right}
+        position={DropdownPositionDeprecated.right}
         toggle={<Toggle onToggle={setIsOpen} />}
       />
       <ExpireSilenceModal isOpen={isModalOpen} setClosed={setModalClosed} silenceID={silence.id} />

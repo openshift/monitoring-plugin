@@ -4,9 +4,6 @@ import {
   Alert,
   ActionGroup,
   Button,
-  Dropdown,
-  DropdownItem,
-  DropdownToggle,
   HelperText,
   HelperTextItem,
   TextArea,
@@ -14,6 +11,11 @@ import {
   Title,
   Tooltip,
 } from '@patternfly/react-core';
+import {
+  Dropdown as DropdownDeprecated,
+  DropdownItem as DropdownItemDeprecated,
+  DropdownToggle as DropdownToggleDeprecated,
+} from '@patternfly/react-core/deprecated';
 import { MinusCircleIcon, PlusCircleIcon } from '@patternfly/react-icons';
 import * as React from 'react';
 import { Helmet } from 'react-helmet';
@@ -235,9 +237,9 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
   };
 
   const dropdownItems = _.map(durations, (displayText, key) => (
-    <DropdownItem key={key} onClick={() => setDuration(key)}>
+    <DropdownItemDeprecated key={key} onClick={() => setDuration(key)}>
       {displayText}
-    </DropdownItem>
+    </DropdownItemDeprecated>
   ));
 
   return (
@@ -277,16 +279,16 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
               </div>
               <div className="form-group col-sm-4 col-md-2">
                 <label>{t('For...')}</label>
-                <Dropdown
+                <DropdownDeprecated
                   className="dropdown--full-width"
                   data-test="silence-for"
                   dropdownItems={dropdownItems}
                   isOpen={isOpen}
                   onSelect={setClosed}
                   toggle={
-                    <DropdownToggle data-test="silence-for-toggle" onToggle={setIsOpen}>
+                    <DropdownToggleDeprecated data-test="silence-for-toggle" onToggle={setIsOpen}>
                       {duration}
-                    </DropdownToggle>
+                    </DropdownToggleDeprecated>
                   }
                 />
               </div>
@@ -345,7 +347,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
                   <TextInput
                     aria-label={t('Label name')}
                     isRequired
-                    onChange={(v: string) => setMatcherField(i, 'name', v)}
+                    onChange={(_e, v: string) => setMatcherField(i, 'name', v)}
                     placeholder={t('Name')}
                     value={matcher.name}
                   />
@@ -355,7 +357,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
                   <TextInput
                     aria-label={t('Label value')}
                     isRequired
-                    onChange={(v: string) => setMatcherField(i, 'value', v)}
+                    onChange={(_e, v: string) => setMatcherField(i, 'value', v)}
                     placeholder={t('Value')}
                     value={matcher.value}
                   />
@@ -415,7 +417,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
               <TextInput
                 aria-label={t('Creator')}
                 isRequired
-                onChange={(v: string) => setCreatedBy(v)}
+                onChange={(_e, v: string) => setCreatedBy(v)}
                 value={createdBy}
               />
             </div>
@@ -424,7 +426,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
               <TextArea
                 aria-label={t('Comment')}
                 isRequired
-                onChange={(v: string) => setComment(v)}
+                onChange={(_E, v: string) => setComment(v)}
                 data-test="silence-comment"
                 value={comment}
               />

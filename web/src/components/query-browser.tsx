@@ -22,10 +22,6 @@ import {
   Alert,
   Button,
   Checkbox,
-  Dropdown,
-  DropdownItem,
-  DropdownPosition,
-  DropdownToggle,
   EmptyState,
   EmptyStateBody,
   EmptyStateIcon,
@@ -34,6 +30,12 @@ import {
   TextInput,
   Title,
 } from '@patternfly/react-core';
+import {
+  Dropdown as DropdownDeprecated,
+  DropdownItem as DropdownItemDeprecated,
+  DropdownPosition as DropdownPositionDeprecated,
+  DropdownToggle as DropdownToggleDeprecated,
+} from '@patternfly/react-core/deprecated';
 import { ChartLineIcon } from '@patternfly/react-icons';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -134,13 +136,13 @@ const SpanControls: React.FC<SpanControlsProps> = React.memo(
     };
 
     const dropdownItems = spans.map((s) => (
-      <DropdownItem
+      <DropdownItemDeprecated
         className="query-browser__span-dropdown-item"
         key={s}
         onClick={() => setSpan(s, true)}
       >
         {s}
-      </DropdownItem>
+      </DropdownItemDeprecated>
     ));
 
     return (
@@ -150,16 +152,18 @@ const SpanControls: React.FC<SpanControlsProps> = React.memo(
             aria-label={t('graph timespan')}
             className="query-browser__span-text"
             validated={isValid ? 'default' : 'error'}
-            onChange={(v) => setSpan(v, true)}
+            onChange={(_e, v) => setSpan(v, true)}
             type="text"
             value={text}
           />
-          <Dropdown
+          <DropdownDeprecated
             dropdownItems={dropdownItems}
             isOpen={isOpen}
             onSelect={setClosed}
-            position={DropdownPosition.right}
-            toggle={<DropdownToggle aria-label={t('graph timespan')} onToggle={setIsOpen} />}
+            position={DropdownPositionDeprecated.right}
+            toggle={
+              <DropdownToggleDeprecated aria-label={t('graph timespan')} onToggle={setIsOpen} />
+            }
           />
         </InputGroup>
         <Button
@@ -993,7 +997,7 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
                 isChecked={isStacked}
                 data-checked-state={isStacked}
                 label={t('Stacked')}
-                onChange={(v) => setIsStacked(v)}
+                onChange={(_e, v) => setIsStacked(v)}
               />
             )}
           </div>

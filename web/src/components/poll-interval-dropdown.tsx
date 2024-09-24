@@ -1,7 +1,14 @@
 import * as _ from 'lodash';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Dropdown, DropdownToggle, DropdownItem } from '@patternfly/react-core';
+
+import {
+  Select,
+  SelectList,
+  SelectOption,
+  MenuToggle,
+  MenuToggleElement,
+} from '@patternfly/react-core';
 
 import { useBoolean } from './hooks/useBoolean';
 
@@ -17,10 +24,10 @@ type Props = {
 };
 
 const IntervalDropdown: React.FC<Props> = ({ id, interval, setInterval }) => {
-  const [isOpen, toggleIsOpen, , setClosed] = useBoolean(false);
+  const [isOpen, toggleIsOpen, setOpen, setClosed] = useBoolean(false);
   const { t } = useTranslation('plugin__monitoring-plugin');
 
-  const onChange = React.useCallback(
+  const onSelect = React.useCallback(
     (v: string) => setInterval(v === OFF_KEY ? null : parsePrometheusDuration(v)),
     [setInterval],
   );
@@ -40,26 +47,39 @@ const IntervalDropdown: React.FC<Props> = ({ id, interval, setInterval }) => {
 
   const selectedKey = interval === null ? OFF_KEY : formatPrometheusDuration(interval);
 
+  const toggle = (toggleRef: React.Ref<MenuToggleElement>) => (
+    <MenuToggle
+      id={`${id}-dropdown`}
+      onClick={toggleIsOpen}
+      isExpanded={isOpen}
+      ref={toggleRef}
+      className="monitoring-dashboards__dropdown-button"
+    >
+      {intervalOptions[selectedKey]}
+    </MenuToggle>
+  );
+
   return (
-    <Dropdown
-      dropdownItems={_.map(intervalOptions, (name, key) => (
-        <DropdownItem component="button" key={key} onClick={() => onChange(key)}>
-          {name}
-        </DropdownItem>
-      ))}
+    <Select
       isOpen={isOpen}
-      onSelect={setClosed}
-      toggle={
-        <DropdownToggle
-          className="monitoring-dashboards__dropdown-button"
-          id={`${id}-dropdown`}
-          onToggle={toggleIsOpen}
-        >
-          {intervalOptions[selectedKey]}
-        </DropdownToggle>
-      }
+      onSelect={(_event, value: string) => {
+        if (value) {
+          onSelect(value);
+        }
+        setClosed();
+      }}
+      toggle={toggle}
       className="monitoring-dashboards__variable-dropdown"
-    />
+      onOpenChange={(open) => (open ? setOpen() : setClosed())}
+    >
+      <SelectList>
+        {_.map(intervalOptions, (name, key) => (
+          <SelectOption key={key} value={key} isSelected={key === selectedKey}>
+            {name}
+          </SelectOption>
+        ))}
+      </SelectList>
+    </Select>
   );
 };
 
