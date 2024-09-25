@@ -10,6 +10,7 @@ import {
 import { parsePrometheusDuration } from '../console/utils/datetime';
 import { getPrometheusURL } from '../console/graphs/helpers';
 import {
+  collectSeverityAndAlertnames,
   filterIncident,
   getIncidentsTimeRanges,
   processAlertTimestamps,
@@ -38,6 +39,7 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
   const [span, setSpan] = React.useState(parsePrometheusDuration('7d'));
   const [alertsData, setAlertsData] = React.useState([]);
   const [incidentsData, setIncidentsData] = React.useState([]);
+  const [alertValuePairs, setalertValuePairs] = React.useState([]);
   const [isOpen, setIsOpen, , setClosed] = useBoolean(false);
 
   const now = Date.now();
@@ -110,6 +112,10 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
         });
     })();
   }, [span]);
+
+  React.useEffect(() => {
+    setalertValuePairs(collectSeverityAndAlertnames(incidentsData));
+  }, [incidentsAreLoading]);
 
   React.useEffect(() => {
     (async () => {
