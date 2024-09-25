@@ -21,8 +21,6 @@ import (
 )
 
 var log = logrus.WithField("module", "server")
-var alertmanagerPort = 9444
-var thanosQuerierPort = 9445
 
 type Config struct {
 	Port             int
@@ -63,7 +61,7 @@ func Start(cfg *Config) {
 		log.Panic("alertmanager and thanos-querier must be set to use the 'acm-alerting' feature flag")
 	}
 
-	if cfg.Port == alertmanagerPort || cfg.Port == thanosQuerierPort {
+	if cfg.Port == int(proxy.AlertmanagerPort) || cfg.Port == int(proxy.ThanosQuerierPort) {
 		log.Panic(fmt.Printf("Cannot set default port to reserved port %d", cfg.Port))
 	}
 
@@ -141,34 +139,8 @@ func Start(cfg *Config) {
 		log.Infof("listening on https. port: %d", cfg.Port)
 
 		if acmMode {
-			log.Infof("alertmanager proxy listening on https. port: %d", alertmanagerPort)
-			alertmanagerRouter := setupAcmRoutes(cfg, k8sclient, proxy.AlertManagerKind)
-			alertmanagerRouter.Use(corsHeaderMiddleware())
-			alertmanagerProxyServer := &http.Server{
-				Handler:      alertmanagerRouter,
-				Addr:         fmt.Sprintf(":%d", alertmanagerPort),
-				TLSConfig:    tlsConfig,
-				ReadTimeout:  timeout,
-				WriteTimeout: timeout,
-			}
-
-			log.Infof("thanos-querier proxy listening on https. port %d", thanosQuerierPort)
-			thanosQuerierRouter := setupAcmRoutes(cfg, k8sclient, proxy.ThanosQuerierKind)
-			thanosQuerierRouter.Use(corsHeaderMiddleware())
-			thanosQuerierProxyServer := &http.Server{
-				Handler:      thanosQuerierRouter,
-				Addr:         fmt.Sprintf(":%d", thanosQuerierPort),
-				TLSConfig:    tlsConfig,
-				ReadTimeout:  timeout,
-				WriteTimeout: timeout,
-			}
-
-			go func() {
-				panic(alertmanagerProxyServer.ListenAndServeTLS(cfg.CertFile, cfg.PrivateKeyFile))
-			}()
-			go func() {
-				panic(thanosQuerierProxyServer.ListenAndServeTLS(cfg.CertFile, cfg.PrivateKeyFile))
-			}()
+			startProxy(cfg, k8sclient, tlsConfig, timeout, proxy.AlertManagerKind, proxy.AlertmanagerPort)
+			startProxy(cfg, k8sclient, tlsConfig, timeout, proxy.ThanosQuerierKind, proxy.ThanosQuerierPort)
 		}
 
 		logrus.SetLevel(logrusLevel)
@@ -197,12 +169,13 @@ func setupRoutes(cfg *Config) (*mux.Router, *PluginConfig) {
 	return router, pluginConfig
 }
 
-func setupAcmRoutes(cfg *Config, k8sclient *dynamic.DynamicClient, kind proxy.KindType) *mux.Router {
+func setupProxyRoutes(cfg *Config, k8sclient *dynamic.DynamicClient, kind proxy.KindType) *mux.Router {
 	router := mux.NewRouter()
 	var proxyUrl string
-	if kind == proxy.AlertManagerKind {
+	switch kind {
+	case proxy.AlertManagerKind:
 		proxyUrl = cfg.AlertmanagerUrl
-	} else if kind == proxy.ThanosQuerierKind {
+	case proxy.ThanosQuerierKind:
 		proxyUrl = cfg.ThanosQuerierUrl
 	}
 
@@ -298,4 +271,21 @@ func configHandler(cfg *Config) (http.HandlerFunc, *PluginConfig) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(jsonPluginConfig)
 	}), &pluginConfig
+}
+
+func startProxy(cfg *Config, k8sclient *dynamic.DynamicClient, tlsConfig *tls.Config, timeout time.Duration, kind proxy.KindType, port proxy.ProxyPort) {
+	log.Infof("%s proxy listening on https. port %d", kind, port)
+	proxyRouter := setupProxyRoutes(cfg, k8sclient, kind)
+	proxyRouter.Use(corsHeaderMiddleware())
+	proxyServer := &http.Server{
+		Handler:      proxyRouter,
+		Addr:         fmt.Sprintf(":%d", port),
+		TLSConfig:    tlsConfig,
+		ReadTimeout:  timeout,
+		WriteTimeout: timeout,
+	}
+
+	go func() {
+		panic(proxyServer.ListenAndServeTLS(cfg.CertFile, cfg.PrivateKeyFile))
+	}()
 }
