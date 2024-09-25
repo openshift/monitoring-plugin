@@ -30,11 +30,12 @@ const (
 	ThanosQuerierKind KindType = "thanos-querier"
 )
 
-type K8sResource struct {
-	Kind      KindType `json:"kind"`
-	Name      string   `json:"name"`
-	Namespace string   `json:"namespace"`
-}
+type ProxyPort int
+
+const (
+	AlertmanagerPort  ProxyPort = 9444
+	ThanosQuerierPort ProxyPort = 9445
+)
 
 func NewProxyHandler(k8sclient *dynamic.DynamicClient, serviceCAfile string, kind KindType, proxyUrl string) *ProxyHandler {
 
