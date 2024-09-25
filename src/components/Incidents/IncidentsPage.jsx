@@ -5,6 +5,7 @@ import {
   ListPageFilter,
   PrometheusEndpoint,
   useListPageFilter,
+  VirtualizedTable,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { parsePrometheusDuration } from '../console/utils/datetime';
 import { getPrometheusURL } from '../console/graphs/helpers';
@@ -27,6 +28,8 @@ import {
 import { Helmet } from 'react-helmet';
 import { useBoolean } from '../hooks/useBoolean';
 import some from 'lodash-es/some';
+import IncidentsTableRow from './IncidentsTableRow';
+import { incidentsTableColumns } from './consts';
 
 const IncidentsPage = ({ customDataSource, namespace }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
@@ -177,6 +180,18 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
             incidentsData={filteredData}
             chartDays={timeRanges.length}
           />
+          <div className="row">
+            <div className="col-xs-12">
+              <VirtualizedTable
+                aria-label={t('Alerts')}
+                columns={incidentsTableColumns(t)}
+                data={filteredData ?? []}
+                loaded={true}
+                Row={IncidentsTableRow}
+                unfilteredData={incidentsData}
+              />
+            </div>
+          </div>
         </div>
       )}
     </>
