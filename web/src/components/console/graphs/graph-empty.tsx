@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 
 export const GraphEmpty: React.FC<GraphEmptyProps> = ({ height = 180, loading = false }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   return (
     <div
@@ -20,7 +20,7 @@ export const GraphEmpty: React.FC<GraphEmptyProps> = ({ height = 180, loading = 
         <div className="skeleton-chart" data-test="skeleton-chart" />
       ) : (
         <div className="text-secondary" data-test="datapoints-msg">
-          {t('public~No datapoints found.')}
+          {t('No datapoints found.')}
         </div>
       )}
     </div>

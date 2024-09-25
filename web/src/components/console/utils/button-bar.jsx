@@ -23,7 +23,7 @@ const ErrorMessage = ({ message }) => {
       isInline
       className="co-alert co-alert--scrollable"
       variant="danger"
-      title={t('public~An error occurred')}
+      title={t('An error occurred')}
     >
       <div className="co-pre-line">{message}</div>
     </Alert>
