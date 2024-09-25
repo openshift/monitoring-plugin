@@ -17,7 +17,7 @@ const injectDisabled = (children, disabled) => {
 };
 
 const ErrorMessage = ({ message }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('plugin__monitoring-plugin');
   return (
     <Alert
       isInline

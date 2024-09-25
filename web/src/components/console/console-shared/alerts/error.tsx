@@ -3,7 +3,7 @@ import { Alert } from '@patternfly/react-core';
 import { useTranslation } from 'react-i18next';
 
 const ErrorAlert: React.FC<Props> = ({ message, title }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   return (
     <Alert
