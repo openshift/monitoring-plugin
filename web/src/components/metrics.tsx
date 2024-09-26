@@ -104,7 +104,7 @@ export const PreDefinedQueriesDropdown = () => {
   let predefinedQueries: PredefinedQueryType[];
 
   const activeNamespace = useActiveNamespace();
-  const { isDev } = usePerspective();
+  const { perspective } = usePerspective();
 
   const { t } = useTranslation('plugin__monitoring-plugin');
 
@@ -199,9 +199,9 @@ export const PreDefinedQueriesDropdown = () => {
     },
   ];
 
-  if (isDev) {
+  if (perspective === 'dev') {
     predefinedQueries = predefinedQueriesDev;
-  } else {
+  } else if (perspective === 'admin') {
     predefinedQueries = predefinedQueriesAdmin;
   }
 
@@ -841,7 +841,7 @@ const Query: React.FC<{ index: number; customDatasource?: CustomDataSource }> = 
   const switchLabel = isEnabled ? t('Disable query') : t('Enable query');
 
   const activeNamespace = useActiveNamespace();
-  const { isDev } = usePerspective();
+  const { perspective } = usePerspective();
 
   return (
     <div
@@ -875,7 +875,7 @@ const Query: React.FC<{ index: number; customDatasource?: CustomDataSource }> = 
       <QueryTable
         index={index}
         customDatasource={customDatasource}
-        namespace={isDev ? activeNamespace : undefined}
+        namespace={perspective === 'dev' ? activeNamespace : undefined}
       />
     </div>
   );

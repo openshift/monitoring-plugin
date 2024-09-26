@@ -24,20 +24,21 @@ export const useRulesAlertsPoller = (
     getAlertingRules: (namespace?: string) => Promise<PrometheusRulesResponse>;
   }[],
 ) => {
-  const { perspective, rulesKey, alertsKey, isDev } = usePerspective();
+  const { perspective, rulesKey, alertsKey } = usePerspective();
   React.useEffect(() => {
     const { prometheusBaseURL } = window.SERVER_FLAGS;
 
     if (prometheusBaseURL) {
+      // TODO: wrong for ACM
       dispatch(alertingLoading(alertsKey, perspective));
       const url = getPrometheusURL({
         endpoint: PrometheusEndpoint.RULES,
-        namespace: isDev ? namespace : '',
+        namespace: perspective === 'dev' ? namespace : '',
       });
       const poller = (): void => {
         fetchAlerts(url, alertsSource, namespace)
           .then(({ data }) => {
-            const { alerts, rules } = getAlertsAndRules(data, isDev);
+            const { alerts, rules } = getAlertsAndRules(data, perspective);
             dispatch(alertingLoaded(alertsKey, alerts, perspective));
             dispatch(alertingSetRules(rulesKey, rules, perspective));
           })
@@ -54,10 +55,10 @@ export const useRulesAlertsPoller = (
       pollers[alertsKey] = poller;
       poller();
     } else {
-      dispatch(alertingErrored('alerts', new Error('prometheusBaseURL not set'), perspective));
+      dispatch(alertingErrored(alertsKey, new Error('prometheusBaseURL not set'), perspective));
     }
     return (): void => {
       _.each(pollerTimeouts, clearTimeout);
     };
-  }, [alertsSource, dispatch, perspective, rulesKey, alertsKey, namespace, isDev]);
+  }, [alertsSource, dispatch, perspective, rulesKey, alertsKey, namespace]);
 };

@@ -717,7 +717,7 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
   const canStack = _.sumBy(graphData, 'length') <= maxStacks;
 
   const activeNamespace = useActiveNamespace();
-  const { isDev } = usePerspective();
+  const { perspective } = usePerspective();
 
   // If provided, `timespan` overrides any existing span setting
   React.useEffect(() => {
@@ -766,7 +766,7 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
                 {
                   endpoint: PrometheusEndpoint.QUERY_RANGE,
                   endTime: timeRange.endTime,
-                  namespace: isDev ? activeNamespace : namespace,
+                  namespace: perspective === 'dev' ? activeNamespace : namespace,
                   query,
                   samples: Math.ceil(samples / timeRanges.length),
                   timeout: '60s',

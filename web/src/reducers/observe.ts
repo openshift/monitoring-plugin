@@ -139,6 +139,8 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
       return state.set(action.payload.key, action.payload.data);
 
     case ActionType.AlertingSetData: {
+      // need to be fixed for silence perspective.
+      // Can't really work until code is pulled out of the console
       const alertKey = action.payload.data.perspective === 'admin' ? 'alerts' : 'devAlerts';
       const alerts = action.payload.key === alertKey ? action.payload.data : state.get(alertKey);
       // notificationAlerts used by notification drawer and certain dashboards

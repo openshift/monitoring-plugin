@@ -72,9 +72,7 @@ import {
   alertDescription,
   alertingRuleStateOrder,
   alertSeverityOrder,
-  alertURL,
   fuzzyCaseInsensitive,
-  labelsToParams,
   refreshSilences,
   RuleResource,
   SilenceResource,
@@ -82,7 +80,14 @@ import {
 } from './utils';
 
 import './_monitoring.scss';
-import { usePerspective } from './hooks/usePerspective';
+import {
+  getAlertsUrl,
+  getAlertUrl,
+  getNewSilenceAlertUrl,
+  getRuleUrl,
+  getSilenceUrl,
+  usePerspective,
+} from './hooks/usePerspective';
 import {
   alertingRuleSource,
   AlertState,
@@ -94,7 +99,6 @@ import {
   MonitoringResourceIcon,
   PopoverField,
   queryBrowserURL,
-  ruleURL,
   Severity,
   SeverityBadge,
   SeverityCounts,
@@ -111,11 +115,11 @@ import {
   SilenceState,
   SilenceTableRow,
   tableSilenceClasses,
-  newSilenceAlertURL,
 } from './alerting/SilencesUtils';
 import { OnToggle } from './alerting/AlertUtils';
 import { useRulesAlertsPoller } from './hooks/useRulesAlertsPoller';
 import { useSilencesPoller } from './hooks/useSilencesPoller';
+import { useFeatures } from './hooks/useFeatures';
 
 const StateCounts: React.FC<{ alerts: PrometheusAlert[] }> = ({ alerts }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
@@ -163,6 +167,7 @@ type ActiveAlertsProps = RouteComponentProps & {
 
 const ActiveAlerts_: React.FC<ActiveAlertsProps> = ({ alerts, history, namespace, ruleID }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
+  const { perspective } = usePerspective();
 
   return (
     <div className="co-m-table-grid co-m-table-grid--bordered">
@@ -179,11 +184,7 @@ const ActiveAlerts_: React.FC<ActiveAlertsProps> = ({ alerts, history, namespace
               <Link
                 className="co-resource-item"
                 data-test="active-alerts"
-                to={
-                  namespace
-                    ? `/dev-monitoring/ns/${namespace}/alerts/${ruleID}?${labelsToParams(a.labels)}`
-                    : alertURL(a, ruleID)
-                }
+                to={getAlertUrl(perspective, a, ruleID, namespace)}
               >
                 {alertDescription(a)}
               </Link>
@@ -202,7 +203,7 @@ const ActiveAlerts_: React.FC<ActiveAlertsProps> = ({ alerts, history, namespace
                     <DropdownItemDeprecated
                       component="button"
                       key="silence"
-                      onClick={() => history.push(newSilenceAlertURL(a))}
+                      onClick={() => history.push(getNewSilenceAlertUrl(perspective, a))}
                     >
                       {t('Silence alert')}
                     </DropdownItemDeprecated>,
@@ -439,6 +440,7 @@ type SilencedAlertsListProps = RouteComponentProps & { alerts: Alert[] };
 
 const SilencedAlertsList_: React.FC<SilencedAlertsListProps> = ({ alerts, history }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
+  const { perspective } = usePerspective();
 
   return _.isEmpty(alerts) ? (
     <div className="pf-u-text-align-center">{t('None found')}</div>
@@ -455,7 +457,7 @@ const SilencedAlertsList_: React.FC<SilencedAlertsListProps> = ({ alerts, histor
               <Link
                 className="co-resource-item"
                 data-test="firing-alerts"
-                to={alertURL(a, a.rule.id)}
+                to={getAlertUrl(perspective, a, a.rule.id)}
               >
                 {a.labels.alertname}
               </Link>
@@ -469,7 +471,9 @@ const SilencedAlertsList_: React.FC<SilencedAlertsListProps> = ({ alerts, histor
                 dropdownItems={[
                   <DropdownItemDeprecated
                     key="view-rule"
-                    onClick={() => history.push(ruleURL(a.rule))}
+                   
+                    onClick={() => history.push(getRuleUrl(perspective, a.rule))}
+                  
                   >
                     {t('View alerting rule')}
                   </DropdownItemDeprecated>,
@@ -488,12 +492,12 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
   const { t } = useTranslation('plugin__monitoring-plugin');
 
   const namespace = useActiveNamespace();
-  const { isDev, alertsKey } = usePerspective();
+  const { alertsKey, perspective, silencesKey } = usePerspective();
   useSilencesPoller({ namespace });
 
   const alertsLoaded = useSelector(({ observe }: RootState) => observe.get(alertsKey)?.loaded);
 
-  const silences: Silences = useSelector(({ observe }: RootState) => observe.get('silences'));
+  const silences: Silences = useSelector(({ observe }: RootState) => observe.get(silencesKey));
   const silence = _.find(silences?.data, { id: _.get(match, 'params.id') });
 
   return (
@@ -510,11 +514,10 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
         <div className="pf-c-page__main-breadcrumb">
           <Breadcrumb className="monitoring-breadcrumbs">
             <BreadcrumbItem>
-              <Link
-                className="pf-c-breadcrumb__link"
-                to={isDev ? `/dev-monitoring/ns/${namespace}/alerts` : '/monitoring/silences'}
-              >
-                {isDev ? t('Alerts') : t('Silences')}
+              <Link className="pf-c-breadcrumb__link" to={getAlertsUrl(perspective, namespace)}>
+                {t('Alerts')}
+                {/* TODO: this setup is wrong, need to determine behavior for each perspective.*/}
+                {/* I think it should be linking to silences pages always, but unclear */}
               </Link>
             </BreadcrumbItem>
             <BreadcrumbItem isActive>{t('Silence details')}</BreadcrumbItem>
@@ -655,6 +658,7 @@ const tableRuleClasses = [
 
 const RuleTableRow: React.FC<RowProps<Rule>> = ({ obj }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
+  const { perspective } = usePerspective();
 
   const title: string = obj.annotations?.description || obj.annotations?.message;
 
@@ -663,7 +667,7 @@ const RuleTableRow: React.FC<RowProps<Rule>> = ({ obj }) => {
       <td className={tableRuleClasses[0]} title={title}>
         <div className="co-resource-item">
           <MonitoringResourceIcon resource={RuleResource} />
-          <Link to={ruleURL(obj)} className="co-resource-item__resource-name">
+          <Link to={getRuleUrl(perspective, obj)} className="co-resource-item__resource-name">
             {obj.name}
           </Link>
         </div>
@@ -683,13 +687,14 @@ const RuleTableRow: React.FC<RowProps<Rule>> = ({ obj }) => {
 
 const RulesPage_: React.FC = () => {
   const { t } = useTranslation('plugin__monitoring-plugin');
+  const { alertsKey, silencesKey, rulesKey } = usePerspective();
 
-  const data: Rule[] = useSelector(({ observe }: RootState) => observe.get('rules'));
+  const data: Rule[] = useSelector(({ observe }: RootState) => observe.get(rulesKey));
   const { loaded = false, loadError }: Alerts = useSelector(
-    ({ observe }: RootState) => observe.get('alerts') || {},
+    ({ observe }: RootState) => observe.get(alertsKey) || {},
   );
   const silencesLoadError = useSelector(
-    ({ observe }: RootState) => observe.get('silences')?.loadError,
+    ({ observe }: RootState) => observe.get(silencesKey)?.loadError,
   );
 
   const ruleAdditionalSources = React.useMemo(
@@ -821,7 +826,7 @@ type ExpireAllSilencesButtonProps = {
 const ExpireAllSilencesButton: React.FC<ExpireAllSilencesButtonProps> = ({ setErrorMessage }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
 
-  const { perspective } = usePerspective();
+  const { perspective, silencesKey } = usePerspective();
 
   const [isInProgress, , setInProgress, setNotInProgress] = useBoolean(false);
 
@@ -832,15 +837,15 @@ const ExpireAllSilencesButton: React.FC<ExpireAllSilencesButtonProps> = ({ setEr
   const onClick = () => {
     setInProgress();
     Promise.allSettled(
-      [...selectedSilences].map((silenceID) =>
+      [...selectedSilences].map((silenceID: string) =>
         consoleFetchJSON.delete(
-          `${window.SERVER_FLAGS.alertManagerBaseURL}/api/v2/silence/${silenceID}`,
+          getSilenceUrl(perspective, silenceID, window.SERVER_FLAGS.alertManagerBaseURL),
         ),
       ),
     ).then((values) => {
       setNotInProgress();
       setSelectedSilences(new Set());
-      refreshSilences(dispatch, perspective);
+      refreshSilences(dispatch, perspective, silencesKey);
       const errors = values
         .filter((v) => v.status === 'rejected')
         .map((v: PromiseRejectedResult) => v.reason);
@@ -908,6 +913,7 @@ const SelectAllCheckbox: React.FC<{ silences: Silence[] }> = ({ silences }) => {
 
 const SilencesPage_: React.FC = () => {
   const { t } = useTranslation('plugin__monitoring-plugin');
+  const { silencesKey } = usePerspective();
 
   const [selectedSilences, setSelectedSilences] = React.useState(new Set());
   const [errorMessage, setErrorMessage] = React.useState();
@@ -916,7 +922,7 @@ const SilencesPage_: React.FC = () => {
     data,
     loaded = false,
     loadError,
-  }: Silences = useSelector(({ observe }: RootState) => observe.get('silences') || {});
+  }: Silences = useSelector(({ observe }: RootState) => observe.get(silencesKey) || {});
 
   const rowFilters: RowFilter[] = [
     // TODO: The "name" filter doesn't really fit useListPageFilter's idea of a RowFilter, but
@@ -1109,7 +1115,8 @@ const AlertingPage: React.FC<RouteComponentProps<{ url: string }>> = ({ match })
 const PollerPages = () => {
   const dispatch = useDispatch();
 
-  const { isDev } = usePerspective();
+  const { alertingContextId, perspective } = usePerspective();
+  const { acmAlertingActive } = useFeatures();
   const namespace = useActiveNamespace();
 
   const [customExtensions] =
@@ -1118,18 +1125,29 @@ const PollerPages = () => {
   const alertsSource = React.useMemo(
     () =>
       customExtensions
-        .filter(
-          (extension) =>
-            extension.properties.contextId ===
-            (isDev ? 'dev-observe-alerting' : 'observe-alerting'),
-        )
+        .filter((extension) => extension.properties.contextId === alertingContextId)
         .map((extension) => extension.properties),
-    [customExtensions, isDev],
+    [customExtensions, alertingContextId],
   );
 
   useRulesAlertsPoller(namespace, dispatch, alertsSource);
 
-  if (isDev) {
+  if (acmAlertingActive) {
+    // TODO: should this just use the perspective?
+    <Switch>
+      <Route
+        path="/multicloud/monitoring/(alerts|alertrules|silences)"
+        exact
+        component={AlertingPage}
+      />
+      <Route path="multicloud//monitoring/alertrules/:id" exact component={AlertRulesDetailsPage} />
+      <Route path="/multicloud/monitoring/alerts/:ruleID" exact component={AlertsDetailsPage} />
+      <Route path="/multicloud/monitoring/silences/:id" exact component={SilencesDetailsPage} />
+      <Route path="/multicloud/monitoring/silences/:id/edit" exact component={EditSilence} />
+    </Switch>;
+  }
+
+  if (perspective === 'dev') {
     return (
       <Switch>
         <Route path="/dev-monitoring/ns/:ns/alerts" exact component={AlertsPage} />
@@ -1169,6 +1187,16 @@ const MonitoringUI = () => (
     <Route path="/monitoring/query-browser" exact component={QueryBrowserPage} />
     <Route path="/monitoring/silences/~new" exact component={CreateSilence} />
     <Route path="/monitoring/targets" component={TargetsUI} />
+    <Route component={PollerPages} />
+  </Switch>
+);
+
+export const AcmAlertingUI = () => (
+  <Switch>
+    {/* This redirect also handles the `/monitoring/#/alerts?...` link URLs generated by
+    Alertmanager (because the `#` is considered the end of the URL) */}
+    <Redirect from="/multicloud/monitoring" exact to="/monitoring/alerts" />
+    <Route path="/multicloud/monitoring/silences/~new" exact component={CreateSilence} />
     <Route component={PollerPages} />
   </Switch>
 );

@@ -16,7 +16,6 @@ import { AlertSource, MonitoringResource } from '../types';
 import * as _ from 'lodash-es';
 import { useTranslation } from 'react-i18next';
 import { Alert as PFAlert, Popover, Button } from '@patternfly/react-core';
-import { RuleResource } from '../utils';
 import classNames from 'classnames';
 import { BellIcon, BellSlashIcon, OutlinedBellIcon } from '@patternfly/react-icons';
 import { FormatSeriesTitle, QueryBrowser } from '../query-browser';
@@ -73,10 +72,6 @@ export const SilencesNotLoadedWarning: React.FC<{ silencesLoadError: any }> = ({
 
 type ActionWithHref = Omit<Action, 'cta'> & { cta: { href: string; external?: boolean } };
 export const isActionWithHref = (action: Action): action is ActionWithHref => 'href' in action.cta;
-
-export const ruleURL = (rule: Rule) => `${RuleResource.plural}/${_.get(rule, 'id')}`;
-export const devRuleURL = (rule: Rule, namespace: string) =>
-  `/dev-monitoring/ns/${namespace}/rules/${rule?.id}`;
 
 type ActionWithCallBack = Omit<Action, 'cta'> & { cta: () => void };
 export const isActionWithCallback = (action: Action): action is ActionWithCallBack =>

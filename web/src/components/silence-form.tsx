@@ -135,7 +135,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
 
   const dispatch = useDispatch();
 
-  const { perspective } = usePerspective();
+  const { perspective, silencesKey } = usePerspective();
 
   const [isOpen, setIsOpen, , setClosed] = useBoolean(false);
 
@@ -223,7 +223,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
       .post(`${alertManagerBaseURL}/api/v2/silences`, body)
       .then(({ silenceID }) => {
         setError(undefined);
-        refreshSilences(dispatch, perspective);
+        refreshSilences(dispatch, perspective, silencesKey);
         history.push(`${SilenceResource.plural}/${encodeURIComponent(silenceID)}`);
       })
       .catch((err) => {
@@ -463,8 +463,9 @@ const EditInfo = () => {
 
 export const EditSilence = ({ match }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
+  const { silencesKey } = usePerspective();
 
-  const silences: Silences = useSelector(({ observe }: RootState) => observe.get('silences'));
+  const silences: Silences = useSelector(({ observe }: RootState) => observe.get(silencesKey));
 
   const silence: Silence = _.find(silences?.data, { id: match.params.id });
   const isExpired = silenceState(silence) === SilenceStates.Expired;
