@@ -1,9 +1,9 @@
 export const ServiceMonitorModel = {
   kind: 'ServiceMonitor',
   label: 'ServiceMonitor',
-  labelKey: 'public~ServiceMonitor',
+  labelKey: 'ServiceMonitor',
   labelPlural: 'ServiceMonitors',
-  labelPluralKey: 'public~ServiceMonitors',
+  labelPluralKey: 'ServiceMonitors',
   apiGroup: 'monitoring.coreos.com',
   apiVersion: 'v1',
   abbr: 'SM',
@@ -16,9 +16,9 @@ export const ServiceMonitorModel = {
 export const PodMonitorModel = {
   kind: 'PodMonitor',
   label: 'PodMonitor',
-  labelKey: 'public~PodMonitor',
+  labelKey: 'PodMonitor',
   labelPlural: 'PodMonitors',
-  labelPluralKey: 'public~PodMonitors',
+  labelPluralKey: 'PodMonitors',
   apiGroup: 'monitoring.coreos.com',
   apiVersion: 'v1',
   abbr: 'PM',

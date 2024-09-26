@@ -2,7 +2,7 @@ import * as _ from 'lodash-es';
 import * as React from 'react';
 import classNames from 'classnames';
 import { Alert, Button } from '@patternfly/react-core';
-import { useTranslation, Trans } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 
 import { IncompleteDataError, TimeoutError } from './http-error';
 import * as restrictedSignImg from './restricted-sign.svg';
@@ -15,31 +15,29 @@ const Box: React.FC<BoxProps> = ({ children, className }) => (
 );
 
 const LoadError: React.FC<LoadErrorProps> = ({ label, className, message, canRetry = true }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('plugin__monitoring-plugin');
   return (
     <Box className={className}>
       <div className="pf-u-text-align-center cos-error-title">
         {_.isString(message)
-          ? t('public~Error Loading {{label}}: {{message}}', {
+          ? t('Error Loading {{label}}: {{message}}', {
               label,
               message,
             })
-          : t('public~Error Loading {{label}}', { label })}
+          : t('Error Loading {{label}}', { label })}
       </div>
       {canRetry && (
         <div className="pf-u-text-align-center">
-          <Trans ns="public">
-            Please{' '}
-            <Button
-              type="button"
-              onClick={window.location.reload.bind(window.location)}
-              variant="link"
-              isInline
-            >
-              try again
-            </Button>
-            .
-          </Trans>
+          {t('Please')}{' '}
+          <Button
+            type="button"
+            onClick={window.location.reload.bind(window.location)}
+            variant="link"
+            isInline
+          >
+            {t('try again')}
+          </Button>
+          .
         </div>
       )}
     </Box>
@@ -71,11 +69,11 @@ export const LoadingBox: React.FC<LoadingBoxProps> = ({ className, message }) =>
 LoadingBox.displayName = 'LoadingBox';
 
 export const EmptyBox: React.FC<EmptyBoxProps> = ({ label }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('plugin__monitoring-plugin');
   return (
     <Box>
       <div data-test="empty-message" className="pf-u-text-align-center">
-        {label ? t('public~No {{label}} found', { label }) : t('public~Not found')}
+        {label ? t('No {{label}} found', { label }) : t('Not found')}
       </div>
     </Box>
   );
@@ -99,18 +97,18 @@ const MsgBox: React.FC<MsgBoxProps> = ({ title, detail, className = '' }) => (
 MsgBox.displayName = 'MsgBox';
 
 const AccessDenied: React.FC<AccessDeniedProps> = ({ message }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('plugin__monitoring-plugin');
   return (
     <div>
       <Box className="pf-u-text-align-center">
         <img className="cos-status-box__access-denied-icon" src={restrictedSignImg} />
         <MsgBox
-          title={t('public~Restricted Access')}
-          detail={t("public~You don't have access to this section due to cluster policy.")}
+          title={t('Restricted Access')}
+          detail={t("You don't have access to this section due to cluster policy.")}
         />
       </Box>
       {_.isString(message) && (
-        <Alert isInline className="co-alert" variant="danger" title={t('public~Error details')}>
+        <Alert isInline className="co-alert" variant="danger" title={t('Error details')}>
           {message}
         </Alert>
       )}
@@ -133,16 +131,14 @@ Data.displayName = 'Data';
 
 export const StatusBox: React.FC<StatusBoxProps> = (props) => {
   const { loadError, loaded, skeleton, data, ...dataProps } = props;
-  const { t } = useTranslation();
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   if (loadError) {
     const status = _.get(loadError, 'response.status');
     if (status === 404) {
       return (
         <div className="co-m-pane__body">
-          <h1 className="co-m-pane__heading co-m-pane__heading--center">
-            {t('public~404: Not Found')}
-          </h1>
+          <h1 className="co-m-pane__heading co-m-pane__heading--center">{t('404: Not Found')}</h1>
         </div>
       );
     }
@@ -157,7 +153,7 @@ export const StatusBox: React.FC<StatusBoxProps> = (props) => {
             variant="info"
             isInline
             title={t(
-              'public~{{labels}} content is not available in the catalog at this time due to loading failures.',
+              '{{labels}} content is not available in the catalog at this time due to loading failures.',
               {
                 labels: new Intl.ListFormat(getLastLanguage() || 'en', {
                   style: 'long',
@@ -175,7 +171,7 @@ export const StatusBox: React.FC<StatusBoxProps> = (props) => {
       return (
         <Data data={data} {...dataProps}>
           <div className="co-m-timeout-error text-muted">
-            {t('public~Timed out fetching new data. The data below is stale.')}
+            {t('Timed out fetching new data. The data below is stale.')}
           </div>
           {props.children}
         </Data>
