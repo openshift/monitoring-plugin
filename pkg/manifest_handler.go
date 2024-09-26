@@ -13,6 +13,7 @@ import (
 var mlog = logrus.WithField("module", "manifest")
 
 func manifestHandler(cfg *Config) http.HandlerFunc {
+	// TODO: must update name to be monitoring-console-plugin if has features
 	baseManifestData, err := os.ReadFile(filepath.Join(cfg.ConfigPath, "plugin-manifest.json"))
 	if err != nil {
 		mlog.WithError(err).Error("cannot read base manifest file")
