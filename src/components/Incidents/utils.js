@@ -103,7 +103,9 @@ export const createAlertsChartBars = (alert) => {
       y0: new Date(alert.values[i].at(0)),
       y: new Date(alert.values[i + 1].at(0)),
       x: alert.x,
-      name: alert.severity[0].toUpperCase() + alert.severity.slice(1),
+      severity: alert.severity[0].toUpperCase() + alert.severity.slice(1),
+      name: alert.alertname,
+      namespace: alert.namespace,
       fill:
         alert.values[i].at(1) === '2'
           ? global_danger_color_100.var
@@ -332,4 +334,12 @@ export const collectSeverityAndAlertnames = (objects) => {
 
   // Return the values from the map, which will automatically be deduplicated
   return Array.from(groupedAlertsPairs.values());
+};
+
+export const createAlertsQuery = (groupedAlertsPairs) => {
+  // Map through the pairs to create individual alert strings for alerts query
+  const alertsQuery = groupedAlertsPairs
+    .map((pair) => `ALERTS{alertname="${pair.alertname}",severity="${pair.severity}"}`)
+    .join(' or ');
+  return alertsQuery;
 };

@@ -11,6 +11,7 @@ import { parsePrometheusDuration } from '../console/utils/datetime';
 import { getPrometheusURL } from '../console/graphs/helpers';
 import {
   collectSeverityAndAlertnames,
+  createAlertsQuery,
   filterIncident,
   getIncidentsTimeRanges,
   processAlertTimestamps,
@@ -91,7 +92,7 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
                 endpoint: PrometheusEndpoint.QUERY_RANGE,
                 endTime: range.endTime,
                 namespace,
-                query: 'ALERTS',
+                query: createAlertsQuery(alertValuePairs),
                 samples: 24,
                 timespan: range.duration - 1,
               },
@@ -111,7 +112,7 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
           console.log(err);
         });
     })();
-  }, [span]);
+  }, [alertValuePairs]);
 
   React.useEffect(() => {
     setalertValuePairs(collectSeverityAndAlertnames(incidentsData));
@@ -193,7 +194,7 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
                 columns={incidentsTableColumns(t)}
                 data={filteredData ?? []}
                 loaded={true}
-                Row={IncidentsTableRow}
+                Row={IncidentsTableRow(alertsData)}
                 unfilteredData={incidentsData}
               />
             </div>

@@ -36,7 +36,7 @@ const AlertsChart = ({ alertsData, chartDays }) => {
       ) : (
         <div
           style={{
-            height: '700px',
+            height: '450px',
             //TODO: WIDTH SHOULD BE AUTOMATICALLY ADJUSTED
             width: '100%',
           }}
@@ -44,19 +44,18 @@ const AlertsChart = ({ alertsData, chartDays }) => {
           <Chart
             containerComponent={
               <ChartVoronoiContainer
-                labelComponent={
-                  <ChartTooltip constrainToVisibleArea labelComponent={<ChartLabel />} />
-                }
-                //TODO: add dates based on the time range
+                labelComponent={<ChartTooltip labelComponent={<ChartLabel />} />}
                 labels={({ datum }) =>
-                  `Severity: ${datum.name}\nStart: ${formatDate(
-                    new Date(datum.y0),
-                    true,
-                  )}\nEnd: ${formatDate(new Date(datum.y), true)}`
+                  `Alert severity: ${datum.severity}\n
+                  Alert name: ${datum.name}\n
+                  Namespace: ${datum.namespace}\n
+                  Layer: \n
+                  Component: \n
+                  Start time: ${formatDate(new Date(datum.y0), true)}\n
+                  Stop time: ${formatDate(new Date(datum.y), true)}`
                 }
               />
             }
-            //TODO: domain ranges should be adjusted based on the amount of rows and day range
             domainPadding={{ x: [30, 25] }}
             legendData={[
               { name: 'Critical', symbol: { fill: global_danger_color_100.var } },
@@ -65,7 +64,7 @@ const AlertsChart = ({ alertsData, chartDays }) => {
             ]}
             legendPosition="bottom-left"
             //this should be always less than the container height
-            height={650}
+            height={350}
             padding={{
               bottom: 75, // Adjusted to accommodate legend
               left: 50,
