@@ -47,7 +47,6 @@ const IncidentsChart = ({ incidentsData, chartDays }) => {
                 labelComponent={
                   <ChartTooltip constrainToVisibleArea labelComponent={<ChartLabel />} />
                 }
-                //TODO: add dates based on the time range
                 labels={({ datum }) =>
                   `Severity: ${datum.name}\nComponent: ${datum.component}\nIncident ID: ${
                     datum.group_id
@@ -58,7 +57,6 @@ const IncidentsChart = ({ incidentsData, chartDays }) => {
                 }
               />
             }
-            //TODO: domain ranges should be adjusted based on the amount of rows and day range
             domainPadding={{ x: [30, 25] }}
             legendData={[
               { name: 'Critical', symbol: { fill: global_danger_color_100.var } },
@@ -74,7 +72,6 @@ const IncidentsChart = ({ incidentsData, chartDays }) => {
               right: 25, // Adjusted to accommodate tooltip
               top: 0,
             }}
-            themeColor={ChartThemeColor.multiOrdered}
             //TODO: WIDTH SHOULD BE AUTOMATICALLY ADJUSTED
             width={1570}
           >

@@ -4,8 +4,6 @@ import { AlertStateIcon } from '../alerting/AlertUtils';
 const IncidentsTableRow =
   (alertsData) =>
   ({ obj }) => {
-    /* console.log(obj);
-    console.log(alertsData) */
     return (
       <>
         <td>{obj.component}</td>

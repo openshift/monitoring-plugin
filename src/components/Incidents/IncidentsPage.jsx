@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import * as React from 'react';
 import { IncidentsHeader } from './IncidentsHeader/IncidentsHeader';
 import { useSafeFetch } from '../console/utils/safe-fetch-hook';
@@ -10,13 +11,12 @@ import {
 import { parsePrometheusDuration } from '../console/utils/datetime';
 import { getPrometheusURL } from '../console/graphs/helpers';
 import {
-  collectSeverityAndAlertnames,
-  createAlertsQuery,
   filterIncident,
   getIncidentsTimeRanges,
   processAlertTimestamps,
   processIncidents,
 } from './utils';
+import { collectSeverityAndAlertnames, createAlertsQuery } from './api';
 import { useTranslation } from 'react-i18next';
 import {
   Bullseye,
@@ -40,7 +40,7 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
   const [span, setSpan] = React.useState(parsePrometheusDuration('7d'));
   const [alertsData, setAlertsData] = React.useState([]);
   const [incidentsData, setIncidentsData] = React.useState([]);
-  const [alertValuePairs, setalertValuePairs] = React.useState([]);
+  const [alertValuePairs, setAlertValuePairs] = React.useState([]);
   const [isOpen, setIsOpen, , setClosed] = useBoolean(false);
 
   const now = Date.now();
@@ -115,7 +115,7 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
   }, [alertValuePairs]);
 
   React.useEffect(() => {
-    setalertValuePairs(collectSeverityAndAlertnames(incidentsData));
+    setAlertValuePairs(collectSeverityAndAlertnames(incidentsData));
   }, [incidentsAreLoading]);
 
   React.useEffect(() => {
@@ -129,7 +129,7 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
                 endTime: range.endTime,
                 namespace,
                 query:
-                  'max by(group_id,component,src_alertname,src_severity,type)(cluster:health:components:map{})',
+                  'max by(group_id,component,src_alertname,src_severity,src_namespace,src_name,layer)(cluster:health:components:map{})',
                 samples: 24,
                 timespan: range.duration - 1,
               },

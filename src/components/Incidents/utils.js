@@ -90,6 +90,9 @@ export function processAlertTimestamps(data) {
       alertname: alert.metric.alertname,
       namespace: alert.metric.namespace,
       severity: alert.metric.severity,
+      component: alert.metric.component,
+      layer: alert.metric.layer,
+      name: alert.metric.name,
       values: processedValues,
       x: firing.length - index,
     };
@@ -106,10 +109,12 @@ export const createAlertsChartBars = (alert) => {
       severity: alert.severity[0].toUpperCase() + alert.severity.slice(1),
       name: alert.alertname,
       namespace: alert.namespace,
+      layer: alert.layer,
+      component: alert.component,
       fill:
-        alert.values[i].at(1) === '2'
+        alert.severity === 'critical'
           ? global_danger_color_100.var
-          : alert.values[i].at(1) === '1'
+          : alert.severity === 'warning'
           ? global_warning_color_100.var
           : global_info_color_100.var,
     });
@@ -218,7 +223,9 @@ export function processIncidents(data) {
       group_id: incident.metric.group_id,
       severity: incident.metric.src_severity,
       alertname: incident.metric.src_alertname,
-      type: incident.metric.type,
+      namespace: incident.metric.src_namespace,
+      name: incident.metric.src_name,
+      layer: incident.metric.layer,
       values: processedValues,
       x: incidents.length - index,
       informative: incident.metric.src_severity === 'info' ? true : false,
@@ -289,57 +296,3 @@ export function filterIncident(filters, incident) {
   // Check if at least one filter passes
   return filters.selected.some((key) => incident[conditions[key]] === true);
 }
-
-/**
- * Collects and groups objects by unique combinations of `alertname` and `severity`,
- * removing any duplicates based on this combination.
- *
- * @param {Array<Object>} objects - An array of objects, where each object contains `alertname` and `severity` properties.
- * @param {string} objects[].alertname - The name of the alert.
- * @param {string} objects[].severity - The severity level of the alert.
- * @returns {Array<Object>} An array of unique objects, each containing a unique combination of `alertname` and `severity`.
- *
- * @example
- * const alerts = [
- *   { alertname: 'CPUUsage', severity: 'info' },
- *   { alertname: 'MemoryUsage', severity: 'warning' },
- *   { alertname: 'CPUUsage', severity: 'info' },  // duplicate
- *   { alertname: 'DiskSpace', severity: 'critical' }
- * ];
- * const result = collectSeverityAndAlertnames(alerts);
- * // result will be:
- * // [
- * //   { alertname: 'CPUUsage', severity: 'info' },
- * //   { alertname: 'MemoryUsage', severity: 'warning' },
- * //   { alertname: 'DiskSpace', severity: 'critical' }
- * // ]
- */
-
-export const collectSeverityAndAlertnames = (objects) => {
-  // Create a map to hold unique alertname+severity combinations
-  const groupedAlertsPairs = new Map();
-
-  for (const obj of objects) {
-    // Use the combination of alertname + severity as the key
-    const key = obj.alertname + obj.severity;
-
-    // If the key doesn't exist in the map, add the object
-    if (!groupedAlertsPairs.has(key)) {
-      groupedAlertsPairs.set(key, {
-        alertname: obj.alertname,
-        severity: obj.severity,
-      });
-    }
-  }
-
-  // Return the values from the map, which will automatically be deduplicated
-  return Array.from(groupedAlertsPairs.values());
-};
-
-export const createAlertsQuery = (groupedAlertsPairs) => {
-  // Map through the pairs to create individual alert strings for alerts query
-  const alertsQuery = groupedAlertsPairs
-    .map((pair) => `ALERTS{alertname="${pair.alertname}",severity="${pair.severity}"}`)
-    .join(' or ');
-  return alertsQuery;
-};
