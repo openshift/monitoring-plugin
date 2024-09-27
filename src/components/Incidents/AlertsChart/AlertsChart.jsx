@@ -44,15 +44,16 @@ const AlertsChart = ({ alertsData, chartDays }) => {
           <Chart
             containerComponent={
               <ChartVoronoiContainer
-                labelComponent={<ChartTooltip labelComponent={<ChartLabel />} />}
+                labelComponent={
+                  <ChartTooltip constrainToVisibleArea labelComponent={<ChartLabel />} />
+                }
                 labels={({ datum }) =>
-                  `Alert severity: ${datum.severity}\n
-                  Alert name: ${datum.name}\n
-                  Namespace: ${datum.namespace}\n
-                  Layer: \n
-                  Component: \n
-                  Start time: ${formatDate(new Date(datum.y0), true)}\n
-                  Stop time: ${formatDate(new Date(datum.y), true)}`
+                  `Alert severity: ${datum.severity}\nAlert name: ${datum.name}\nNamespace: ${
+                    datum.namespace
+                  }\nLayer: ${datum.layer}\nComponent: ${datum.component}\nStart time: ${formatDate(
+                    new Date(datum.y0),
+                    true,
+                  )}\nStop time: ${formatDate(new Date(datum.y), true)}`
                 }
               />
             }
@@ -71,7 +72,6 @@ const AlertsChart = ({ alertsData, chartDays }) => {
               right: 25, // Adjusted to accommodate tooltip
               top: 0,
             }}
-            themeColor={ChartThemeColor.multiOrdered}
             //TODO: WIDTH SHOULD BE AUTOMATICALLY ADJUSTED
             width={1570}
           >
