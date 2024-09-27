@@ -15,7 +15,7 @@
  *   { alertname: 'CPUUsage', severity: 'info' },  // duplicate
  *   { alertname: 'DiskSpace', severity: 'critical' }
  * ];
- * const result = collectSeverityAndAlertnames(alerts);
+ * const result = collectIncidentsDataForApiQuery(alerts);
  * // result will be:
  * // [
  * //   { alertname: 'CPUUsage', severity: 'info' },
@@ -24,13 +24,13 @@
  * // ]
  */
 
-export const collectSeverityAndAlertnames = (objects) => {
+export const collectIncidentsDataForApiQuery = (objects) => {
   // Create a map to hold unique alertname+severity combinations
   const groupedAlertsValues = new Map();
 
   for (const obj of objects) {
-    // Use the combination of alertname + severity as the key
-    const key = obj.alertname + obj.severity;
+    // WHAT IS THE CORRECT UNIQUE IDENTIFIER FOR REQUESTING AND GROUPING ALERTS
+    const key = obj.component;
 
     // If the key doesn't exist in the map, add the object
     groupedAlertsValues.set(key, {
@@ -92,13 +92,11 @@ export const createAlertsQuery = (groupedAlertsValues) => {
   // Map through the grouped alerts to create individual alert strings for the query
   const alertsQuery = groupedAlertsValues
     .map((query) => {
-      // Construct the ALERTS part of the query based on present fields
-      const alertParts = ['alertname', 'namespace', 'name', 'severity']
+      const alertParts = ['alertname', 'namespace', 'name', 'severity', 'alertstate']
         .filter((key) => query[key]) // Only include keys that are present in the query object
         .map((key) => `${key}="${query[key]}"`)
         .join(', ');
 
-      // Construct the query string using the guaranteed `layer` and `component` fields
       return `(ALERTS{${alertParts}} + on () group_left (component, layer) (absent(meta{layer="${query.layer}", component="${query.component}"})))`;
     })
     .join(' or ');

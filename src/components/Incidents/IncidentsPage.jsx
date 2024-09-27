@@ -13,10 +13,11 @@ import { getPrometheusURL } from '../console/graphs/helpers';
 import {
   filterIncident,
   getIncidentsTimeRanges,
+  groupAlertsForTable,
   processAlertTimestamps,
   processIncidents,
 } from './utils';
-import { collectSeverityAndAlertnames, createAlertsQuery } from './api';
+import { collectIncidentsDataForApiQuery, createAlertsQuery } from './api';
 import { useTranslation } from 'react-i18next';
 import {
   Bullseye,
@@ -31,7 +32,7 @@ import { Helmet } from 'react-helmet';
 import { useBoolean } from '../hooks/useBoolean';
 import some from 'lodash-es/some';
 import IncidentsTableRow from './IncidentsTableRow';
-import { incidentsTableColumns } from './consts';
+import { dropdownItems, incidentsTableColumns } from './consts';
 
 const IncidentsPage = ({ customDataSource, namespace }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
@@ -67,20 +68,6 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
   const changeDaysFilter = (days) => {
     setSpan(parsePrometheusDuration(days));
   };
-  const dropdownItems = [
-    <DropdownItem key="1-day-filter" component="button" onClick={() => changeDaysFilter('1d')}>
-      {t('1 day')}
-    </DropdownItem>,
-    <DropdownItem key="3-day-filter" component="button" onClick={() => changeDaysFilter('3d')}>
-      {t('3 days')}
-    </DropdownItem>,
-    <DropdownItem key="7-day-filter" component="button" onClick={() => changeDaysFilter('7d')}>
-      {t('7 days')}
-    </DropdownItem>,
-    <DropdownItem key="15-day-filter" component="button" onClick={() => changeDaysFilter('15d')}>
-      {t('15 days')}
-    </DropdownItem>,
-  ];
 
   React.useEffect(() => {
     (async () => {
@@ -115,7 +102,7 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
   }, [alertValuePairs]);
 
   React.useEffect(() => {
-    setAlertValuePairs(collectSeverityAndAlertnames(incidentsData));
+    setAlertValuePairs(collectIncidentsDataForApiQuery(incidentsData));
   }, [incidentsAreLoading]);
 
   React.useEffect(() => {
@@ -171,7 +158,7 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
               rowFilters={[incidentTypeFilter(t)]}
             />
             <Dropdown
-              dropdownItems={dropdownItems}
+              dropdownItems={dropdownItems(changeDaysFilter, t)}
               isOpen={isOpen}
               onSelect={setClosed}
               position={DropdownPosition.left}
@@ -192,9 +179,9 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
               <VirtualizedTable
                 aria-label={t('Alerts')}
                 columns={incidentsTableColumns(t)}
-                data={filteredData ?? []}
+                data={groupAlertsForTable(alertsData) ?? []}
                 loaded={true}
-                Row={IncidentsTableRow(alertsData)}
+                Row={IncidentsTableRow(groupAlertsForTable(alertsData))}
                 unfilteredData={incidentsData}
               />
             </div>

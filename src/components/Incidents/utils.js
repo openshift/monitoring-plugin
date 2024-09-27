@@ -93,7 +93,10 @@ export function processAlertTimestamps(data) {
       component: alert.metric.component,
       layer: alert.metric.layer,
       name: alert.metric.name,
+      alertstate: alert.metric.alertstate,
       values: processedValues,
+      alertsStartFiring: processedValues.at(0)[0],
+      alertsEndFiring: processedValues.at(-1)[0],
       x: firing.length - index,
     };
   });
@@ -296,3 +299,101 @@ export function filterIncident(filters, incident) {
   // Check if at least one filter passes
   return filters.selected.some((key) => incident[conditions[key]] === true);
 }
+
+/**
+ * Groups alerts by the "component" property and adds counts for different severity levels.
+ *
+ * Each object in the returned array contains a unique component, an array of alerts
+ * associated with that component, alertstate, and counts of alerts for each severity level:
+ * "warning", "info", and "critical".
+ *
+ * @param {Array<Object>} alerts - An array of alert objects to be grouped.
+ * @param {string} alerts[].alertname - The name of the alert.
+ * @param {string} alerts[].namespace - The namespace of the alert.
+ * @param {string} alerts[].severity - The severity level of the alert.
+ * @param {string} alerts[].component - The component associated with the alert.
+ * @param {string} alerts[].layer - The layer of the component.
+ * @param {string} alerts[].alertsEndFiring - The end firing time of the alert.
+ * @param {string} alerts[].alertsStartFiring - The start firing time of the alert.
+ * @param {Array<Array<string>>} alerts[].values - The timestamp and value pairs of the alert data.
+ * @param {number} alerts[].x - Additional metadata associated with the alert.
+ *
+ * @returns {Array<Object>} - An array of objects grouped by the "component" property,
+ * where each object contains a unique component, an array of alerts, and the counts
+ * of alerts with "warning", "info", and "critical" severities.
+ *
+ * @example
+ * const alerts = [
+ *   {
+ *     alertname: "AlertmanagerReceiversNotConfigured",
+ *     namespace: "openshift-monitoring",
+ *     severity: "warning",
+ *     component: "monitoring",
+ *     layer: "core",
+ *     alertstate: "firing",
+ *     alertsEndFiring: "2024-09-27T18:14:06.929Z",
+ *     alertsStartFiring: "2024-09-20T19:14:06.929Z",
+ *     values: [...],
+ *     x: 3
+ *   },
+ *   {
+ *     alertname: "ClusterNotUpgradeable",
+ *     namespace: "openshift-cluster-version",
+ *     severity: "info",
+ *     component: "version",
+ *     layer: "core",
+ *     alertstate: "firing",
+ *     alertsEndFiring: "2024-09-27T18:14:06.929Z",
+ *     alertsStartFiring: "2024-09-20T19:14:06.929Z",
+ *     values: [...],
+ *     x: 2
+ *   }
+ * ];
+ *
+ * const result = groupAlertsByComponent(alerts);
+ * console.log(result);
+ * // Output:
+ * // [
+ * //   {
+ * //     component: "monitoring",
+ * //     alertstate: "firing",
+ * //     alerts: [ {  data from AlertmanagerReceiversNotConfigured alert } ],
+ * //     warning: 1,
+ * //     info: 0,
+ * //     critical: 0
+ * //   },
+ * //   {
+ * //     component: "version",
+ * //     alertstate: "firing",
+ * //     alerts: [ { data from ClusterNotUpgradeable alert  } ],
+ * //     warning: 0,
+ * //     info: 1,
+ * //     critical: 0
+ * //   }
+ * // ]
+ */
+export const groupAlertsForTable = (alerts) => {
+  // group alerts by the component and coun
+  return alerts.reduce((acc, alert) => {
+    const { component, alertstate, severity } = alert;
+    const existingGroup = acc.find((group) => group.component === component);
+
+    if (existingGroup) {
+      existingGroup.alerts.push(alert);
+      if (severity === 'warning') existingGroup.warning += 1;
+      else if (severity === 'info') existingGroup.info += 1;
+      else if (severity === 'critical') existingGroup.critical += 1;
+    } else {
+      acc.push({
+        component,
+        alertstate,
+        warning: severity === 'warning' ? 1 : 0,
+        info: severity === 'info' ? 1 : 0,
+        critical: severity === 'critical' ? 1 : 0,
+        alerts: [alert],
+      });
+    }
+
+    return acc;
+  }, []);
+};
