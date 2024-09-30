@@ -29,10 +29,16 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 Selector labels
 */}}
 {{- define "openshift-console-plugin.selectorLabels" -}}
+{{- if and (.Values.plugin.acm.enabled) }}
+app: {{ .Values.plugin.acm.name }}
+app.kubernetes.io/name: {{ .Values.plugin.acm.name }}
+app.kubernetes.io/part-of: {{ .Values.plugin.acm.name }}
+{{- else }}
 app: {{ include "openshift-console-plugin.name" . }}
 app.kubernetes.io/name: {{ include "openshift-console-plugin.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
 app.kubernetes.io/part-of: {{ include "openshift-console-plugin.name" . }}
+{{- end }}
+app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*

@@ -1,7 +1,11 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  {{- if and (.Values.plugin.acm.enabled) }}
+  name: {{ .Values.plugin.acm.name }}
+  {{- else }}
   name: {{ template "openshift-console-plugin.name" . }}
+  {{- end }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "openshift-console-plugin.labels" . | nindent 4 }}
@@ -17,7 +21,11 @@ spec:
     spec:
       serviceAccountName: {{ include "openshift-console-plugin.serviceAccountName" . }}
       containers:
+        {{- if and (.Values.plugin.acm.enabled) }}
+        - name: {{ .Values.plugin.acm.name }}
+        {{- else }}
         - name: {{ template "openshift-console-plugin.name" . }}
+        {{- end }}
           image: {{ required "Plugin image must be specified!" .Values.plugin.image }}
           ports:
             - containerPort: {{ .Values.plugin.port }}

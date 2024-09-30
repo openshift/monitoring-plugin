@@ -40,9 +40,9 @@ func main() {
 
 	featuresList := strings.Fields(strings.Join(strings.Split(strings.ToLower(features), ","), " "))
 
-	featuresSet := make(map[string]bool)
+	featuresSet := make(map[server.Feature]bool)
 	for _, s := range featuresList {
-		featuresSet[s] = true
+		featuresSet[server.Feature(s)] = true
 	}
 
 	log.Infof("enabled features: %+q\n", featuresList)

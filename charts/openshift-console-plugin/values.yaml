@@ -30,6 +30,7 @@ plugin:
     annotations: {}
     name: ""
   acm:
+    name: monitoring-console-plugin
     enabled: true
     alertmanager:
       url: https://alertmanager-main.openshift-monitoring.svc:9094

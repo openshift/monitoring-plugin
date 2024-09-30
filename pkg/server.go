@@ -26,7 +26,7 @@ type Config struct {
 	Port             int
 	CertFile         string
 	PrivateKeyFile   string
-	Features         map[string]bool
+	Features         map[Feature]bool
 	StaticPath       string
 	ConfigPath       string
 	PluginConfigPath string
@@ -38,6 +38,12 @@ type Config struct {
 type PluginConfig struct {
 	Timeout time.Duration `json:"timeout,omitempty" yaml:"timeout,omitempty"`
 }
+
+type Feature string
+
+const (
+	AcmAlerting Feature = "acm-alerting"
+)
 
 func (pluginConfig *PluginConfig) MarshalJSON() ([]byte, error) {
 	type Alias PluginConfig
@@ -51,7 +57,8 @@ func (pluginConfig *PluginConfig) MarshalJSON() ([]byte, error) {
 }
 
 func Start(cfg *Config) {
-	acmMode := cfg.Features["acm-alerting"]
+	acmMode := cfg.Features[AcmAlerting]
+	log.Info("acmMode", acmMode)
 	acmLocationsLength := len(cfg.AlertmanagerUrl) + len(cfg.ThanosQuerierUrl)
 
 	if acmLocationsLength > 0 && !acmMode {
@@ -80,7 +87,7 @@ func Start(cfg *Config) {
 		panic(fmt.Errorf("error creating dynamicClient: %w", err))
 	}
 
-	router, pluginConfig := setupRoutes(cfg)
+	router, pluginConfig := setupRoutes(cfg, acmMode)
 	router.Use(corsHeaderMiddleware())
 
 	tlsConfig := &tls.Config{
@@ -152,7 +159,7 @@ func Start(cfg *Config) {
 	}
 }
 
-func setupRoutes(cfg *Config) (*mux.Router, *PluginConfig) {
+func setupRoutes(cfg *Config, acmMode bool) (*mux.Router, *PluginConfig) {
 	configHandlerFunc, pluginConfig := configHandler(cfg)
 
 	router := mux.NewRouter()
@@ -161,6 +168,9 @@ func setupRoutes(cfg *Config) (*mux.Router, *PluginConfig) {
 
 	// TODO: needs to check for acm feature and adjust the plugin-manifest to be something appropriate
 	router.Path("/plugin-manifest.json").Handler(manifestHandler(cfg))
+	if acmMode {
+		router.Path("/plugin-entry.js").Handler(entryHandler(cfg))
+	}
 	// needs to make sure that acm is an appropriate feature and can be served from here
 	router.PathPrefix("/features").HandlerFunc(featuresHandler(cfg))
 	router.PathPrefix("/config").HandlerFunc(configHandlerFunc)

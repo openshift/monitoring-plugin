@@ -5,7 +5,11 @@ metadata:
   annotations:
     service.alpha.openshift.io/serving-cert-secret-name: {{ template "openshift-console-plugin.certificateSecret" . }}
   {{- end }}
+  {{- if and (.Values.plugin.acm.enabled) }}
+  name: {{ .Values.plugin.acm.name }}
+  {{- else }}
   name: {{ template "openshift-console-plugin.name" . }}
+  {{- end }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "openshift-console-plugin.labels" . | nindent 4 }}
