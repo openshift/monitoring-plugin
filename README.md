@@ -74,3 +74,13 @@ The application will be running at [localhost:9000](http://localhost:9000/).
 ### Local Development Troubleshooting
 1. Disable cache. Select 'disable cache' in your browser's DevTools > Network > 'disable cache'. Or use private/incognito mode in your browser.
 2. Enable higher log verbosity by setting `-log-verbosity=1` when starting the plugin backend
+
+### MacOS  
+As a prerequisite the file `/web/dist` needs to exist before running `make build-image-mac` (run `make install && make build`). 
+
+```
+make install && make build
+make build-image-mac
+```
+
+The script `build-image-mac.sh` is used for development purposes. It deploys a work around for MacOS which removes the commands `RUN make install-frontend` and `RUN make build-frontend` from the process of building an image. Instead it copies `web/dist` from the local directory into the container and uses it to build the image. This workaround is used because the commands `RUN make install-frontend` and `RUN make build-frontend` can hang on MacOS. 

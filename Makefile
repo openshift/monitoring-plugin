@@ -45,3 +45,7 @@ build-image:
 .PHONY: install
 install:
 	make install-frontend && make install-backend
+
+.PHONY: build-image-mac
+build-image-mac:
+	./scripts/build-image-mac.sh

@@ -1,0 +1,37 @@
+FROM registry.redhat.io/ubi9/nodejs-20-minimal:1-51 AS web-builder
+
+WORKDIR /opt/app-root
+
+RUN npm install --global yarn
+
+ENV HUSKY=0
+
+COPY Makefile Makefile
+COPY web/ web/
+
+# Almost all images from Red Hat are still on go1.21, however I found one that the cne team has
+# created. Once official Red Hat images are available for local development and pulling this
+# should be updated
+FROM quay.io/redhat-cne/openshift-origin-release:rhel-9-golang-1.22-openshift-4.17 as go-builder
+
+WORKDIR /opt/app-root
+
+COPY Makefile Makefile
+COPY go.mod go.mod
+COPY go.sum go.sum
+
+RUN go mod download
+
+COPY cmd/ cmd/
+COPY pkg/ pkg/
+
+RUN go build -mod=mod -o plugin-backend cmd/plugin-backend.go
+
+FROM registry.access.redhat.com/ubi9/ubi-minimal
+
+USER 1001
+
+COPY --from=web-builder /opt/app-root/web/dist /opt/app-root/web/dist
+COPY --from=go-builder /opt/app-root/plugin-backend /opt/app-root
+
+ENTRYPOINT ["/opt/app-root/plugin-backend", "-static-path", "/opt/app-root/web/dist"]
