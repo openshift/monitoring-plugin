@@ -4,7 +4,11 @@ import { Perspective } from 'src/actions/observe';
 
 const PROMETHEUS_BASE_PATH = window.SERVER_FLAGS.prometheusBaseURL;
 const PROMETHEUS_TENANCY_BASE_PATH = window.SERVER_FLAGS.prometheusTenancyBaseURL;
-const PROMETHEUS_PROXY_PATH = '/api/proxy/plugin/acm-monitoring-plugin/thanos-proxy';
+const PROMETHEUS_PROXY_PATH = '/api/proxy/plugin/monitoring-console-plugin/thanos-proxy';
+
+export const ALERTMANAGER_BASE_PATH = window.SERVER_FLAGS.alertManagerBaseURL;
+export const ALERTMANAGER_TENANCY_BASE_PATH = '/api/alertmanager-tenancy'; // remove it once it get added to SERVER_FLAGS
+export const ALERTMANAGER_PROXY_PATH = '/api/proxy/plugin/monitoring-console-plugin/thanos-proxy';
 
 const DEFAULT_PROMETHEUS_SAMPLES = 60;
 const DEFAULT_PROMETHEUS_TIMESPAN = 60 * 60 * 1000;

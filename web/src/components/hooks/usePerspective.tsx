@@ -3,6 +3,11 @@ import { Perspective, rulesKey, alertKey, silencesKey } from 'src/actions/observ
 import { AlertSource } from '../types';
 import * as _ from 'lodash-es';
 import { AlertResource, labelsToParams, RuleResource, SilenceResource } from '../utils';
+import {
+  ALERTMANAGER_BASE_PATH,
+  ALERTMANAGER_PROXY_PATH,
+  ALERTMANAGER_TENANCY_BASE_PATH,
+} from '../console/graphs/helpers';
 
 type usePerspectiveReturn = {
   perspective: Perspective;
@@ -119,21 +124,16 @@ export const getEditSilenceAlertUrl = (
   }
 };
 
-export const getFetchSilenceAlertUrl = (
-  perspective: Perspective,
-  alertManagerBaseURL: string,
-  namespace: string,
-) => {
-  if (perspective === 'dev') {
-    return `api/alertmanager-tenancy/silences?namespace=${namespace}`;
+export const getFetchSilenceAlertUrl = (perspective: Perspective, namespace: string) => {
+  switch (perspective) {
+    case 'acm':
+      return `${ALERTMANAGER_PROXY_PATH}/api/v2/silences`;
+    case 'admin':
+      return `${ALERTMANAGER_BASE_PATH}/api/v2/silences`;
+    case 'dev':
+    default:
+      return `${ALERTMANAGER_TENANCY_BASE_PATH}/api/v2/silences?namespace=${namespace}`;
   }
-  if (alertManagerBaseURL) {
-    if (perspective === 'acm') {
-      return `/multicloud${alertManagerBaseURL}/api/v2/silences`;
-    }
-    return `${alertManagerBaseURL}/api/v2/silences`;
-  }
-  return '';
 };
 
 export const getAlertUrl = (
@@ -161,11 +161,11 @@ export const getSilenceUrl = (
 ) => {
   switch (perspective) {
     case 'acm':
-      return `/multicloud${alertManagerBaseURL}/api/v2/silence/${silenceID}`;
+      return `${ALERTMANAGER_PROXY_PATH}/api/v2/silence/${silenceID}`;
     case 'admin':
-      return `${alertManagerBaseURL}/api/v2/silence/${silenceID}`;
+      return `${ALERTMANAGER_BASE_PATH}/api/v2/silence/${silenceID}`;
     case 'dev':
     default:
-      return `api/alertmanager-tenancy/api/v2/silence/${silenceID}?namespace=${namespace}`;
+      return `${ALERTMANAGER_TENANCY_BASE_PATH}/api/v2/silence/${silenceID}?namespace=${namespace}`;
   }
 };

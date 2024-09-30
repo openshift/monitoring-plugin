@@ -11,8 +11,7 @@ const URL_POLL_DEFAULT_DELAY = 15000; // 15 seconds
 
 export const useSilencesPoller = ({ namespace }) => {
   const { perspective, silencesKey } = usePerspective();
-  const { alertManagerBaseURL } = window.SERVER_FLAGS; // TODO: wrong for ACM
-  const url = getFetchSilenceAlertUrl(perspective, alertManagerBaseURL, namespace);
+  const url = getFetchSilenceAlertUrl(perspective, namespace);
   const [response, loadError, loading] = useURLPoll<Silence[]>(
     url,
     URL_POLL_DEFAULT_DELAY,
