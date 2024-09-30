@@ -1,19 +1,17 @@
 package server
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
 
-	jsonpatch "github.com/evanphx/json-patch"
 	"github.com/sirupsen/logrus"
+	"github.com/tidwall/sjson"
 )
 
 var mlog = logrus.WithField("module", "manifest")
 
 func manifestHandler(cfg *Config) http.HandlerFunc {
-	// TODO: must update name to be monitoring-console-plugin if has features
 	baseManifestData, err := os.ReadFile(filepath.Join(cfg.ConfigPath, "plugin-manifest.json"))
 	if err != nil {
 		mlog.WithError(err).Error("cannot read base manifest file")
@@ -24,8 +22,10 @@ func manifestHandler(cfg *Config) http.HandlerFunc {
 
 	patchedManifest := baseManifestData
 
-	for k := range cfg.Features {
-		patchedManifest = patchManifest(patchedManifest, filepath.Join(cfg.ConfigPath, fmt.Sprintf("%s.patch.json", k)))
+	for feature := range cfg.Features {
+		if cfg.Features[feature] {
+			patchedManifest = patchManifest(feature, patchedManifest)
+		}
 	}
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -37,24 +37,14 @@ func manifestHandler(cfg *Config) http.HandlerFunc {
 	})
 }
 
-func patchManifest(originalData []byte, patchFilePath string) []byte {
-	patchData, err := os.ReadFile(patchFilePath)
-	if err != nil {
-		mlog.WithField("reason", err).Warnf("cannot read patch file %s", patchFilePath)
-		return originalData
+func patchManifest(feature string, originalData []byte) []byte {
+	stringData := string(originalData)
+	if feature == "acm" {
+		patchedData, err := sjson.Set(stringData, "name", "monitoring-console-plugin")
+		if err != nil {
+			return originalData
+		}
+		return []byte(patchedData)
 	}
-
-	patch, err := jsonpatch.DecodePatch(patchData)
-	if err != nil {
-		mlog.WithField("reason", err).Warnf("cannot decode patch data %s", patchData)
-		return originalData
-	}
-
-	patchedManifest, err := patch.ApplyIndent(originalData, " ")
-	if err != nil {
-		mlog.WithError(err).Error("cannot patch base manifest file")
-		return originalData
-	}
-
-	return patchedManifest
+	return []byte(stringData)
 }
