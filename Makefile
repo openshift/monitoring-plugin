@@ -59,7 +59,7 @@ IMAGE=quay.io/${REGISTRY_ORG}/monitoring-plugin:${TAG}
 
 .PHONY: deploy
 deploy:
-	helm uninstall monitoring-plugin -n monitoring-plugin-ns || true
+	helm uninstall monitoring-console-plugin -n monitoring-console-plugin-ns || true
 	make lint-backend
 	PUSH=1 scripts/build-image.sh
-	helm install monitoring-plugin charts/openshift-console-plugin -n monitoring-plugin-ns --create-namespace --set plugin.image=$(IMAGE)
+	helm install monitoring-console-plugin charts/openshift-console-plugin -n monitoring-console-plugin-ns --create-namespace --set plugin.image=$(IMAGE)
