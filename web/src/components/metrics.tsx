@@ -562,6 +562,7 @@ const QueryKebab: React.FC<{ index: number }> = ({ index }) => {
 
 export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, customDatasource }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
+  const { perspective } = usePerspective();
 
   const [data, setData] = React.useState<PrometheusData>();
   const [error, setError] = React.useState<PrometheusAPIError>();
@@ -611,6 +612,7 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, custom
       safeFetch(
         getPrometheusURL(
           { endpoint: PrometheusEndpoint.QUERY, namespace, query },
+          perspective,
           customDatasource?.basePath,
         ),
       )

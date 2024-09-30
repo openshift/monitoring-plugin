@@ -29,12 +29,14 @@ export const useRulesAlertsPoller = (
     const { prometheusBaseURL } = window.SERVER_FLAGS;
 
     if (prometheusBaseURL) {
-      // TODO: wrong for ACM
       dispatch(alertingLoading(alertsKey, perspective));
-      const url = getPrometheusURL({
-        endpoint: PrometheusEndpoint.RULES,
-        namespace: perspective === 'dev' ? namespace : '',
-      });
+      const url = getPrometheusURL(
+        {
+          endpoint: PrometheusEndpoint.RULES,
+          namespace: perspective === 'dev' ? namespace : '',
+        },
+        perspective,
+      );
       const poller = (): void => {
         fetchAlerts(url, alertsSource, namespace)
           .then(({ data }) => {

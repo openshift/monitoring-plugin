@@ -772,6 +772,7 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
                   timeout: '60s',
                   timespan: timeRange.duration - 1,
                 },
+                perspective,
                 customDataSource?.basePath,
               ),
             ),

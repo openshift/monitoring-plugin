@@ -241,7 +241,7 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({
     async (prometheusProps) => {
       try {
         if (!customDataSourceName) {
-          return getPrometheusURL(prometheusProps);
+          return getPrometheusURL(prometheusProps, perspective);
         } else if (extensionsResolved && hasExtensions) {
           const extension = extensions.find(
             (ext) => ext?.properties?.contextId === 'monitoring-dashboards',
@@ -253,7 +253,7 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({
             setIsError(true);
             return;
           }
-          return getPrometheusURL(prometheusProps, dataSource?.basePath);
+          return getPrometheusURL(prometheusProps, perspective, dataSource?.basePath);
         }
       } catch (error) {
         // eslint-disable-next-line no-console
@@ -261,7 +261,7 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({
         setIsError(true);
       }
     },
-    [customDataSourceName, extensions, extensionsResolved, hasExtensions],
+    [customDataSourceName, extensions, extensionsResolved, hasExtensions, perspective],
   );
 
   React.useEffect(() => {

@@ -1,8 +1,10 @@
 import * as _ from 'lodash-es';
 import { PrometheusEndpoint } from '@openshift-console/dynamic-plugin-sdk';
+import { Perspective } from 'src/actions/observe';
 
 const PROMETHEUS_BASE_PATH = window.SERVER_FLAGS.prometheusBaseURL;
 const PROMETHEUS_TENANCY_BASE_PATH = window.SERVER_FLAGS.prometheusTenancyBaseURL;
+const PROMETHEUS_PROXY_PATH = '/api/proxy/plugin/acm-monitoring-plugin/thanos-proxy';
 
 const DEFAULT_PROMETHEUS_SAMPLES = 60;
 const DEFAULT_PROMETHEUS_TIMESPAN = 60 * 60 * 1000;
@@ -37,8 +39,12 @@ const getSearchParams = ({
 
 export const getPrometheusURL = (
   props: PrometheusURLProps,
+  perspective: Perspective,
   basePath: string = props.namespace ? PROMETHEUS_TENANCY_BASE_PATH : PROMETHEUS_BASE_PATH,
 ): string => {
+  if (perspective === 'acm') {
+    basePath = PROMETHEUS_PROXY_PATH;
+  }
   if (props.endpoint !== PrometheusEndpoint.RULES && !props.query) {
     return '';
   }
