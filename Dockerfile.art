@@ -5,22 +5,13 @@ COPY $REMOTE_SOURCES $REMOTE_SOURCES_DIR
 COPY . /usr/src/app
 WORKDIR /usr/src/app
 
-# bootstrap yarn so we can install and run the other tools.
 USER 0
-ARG YARN_VERSION=v1.22.19
-RUN CACHED_YARN=./artifacts/yarn-${YARN_VERSION}.tar.gz; \
-    if [ -f ${CACHED_YARN} ]; then \
-      npm install -g ${CACHED_YARN}; \
-    else \
-      echo "need yarn at ${CACHED_YARN}"; \
-      exit 1; \
-    fi
 
 # use dependencies provided by Cachito
 ENV HUSKY=0
 RUN test -d ${REMOTE_SOURCES_DIR}/cachito-gomod-with-deps || exit 1; \
     cp -f $REMOTE_SOURCES_DIR/cachito-gomod-with-deps/app/registry-ca.pem . \
- && cp -f $REMOTE_SOURCES_DIR/cachito-gomod-with-deps/app/web/{.npmrc,.yarnrc,yarn.lock} web/ \
+ && cp -f $REMOTE_SOURCES_DIR/cachito-gomod-with-deps/app/web/{.npmrc,package-lock.json} web/ \
  && source ${REMOTE_SOURCES_DIR}/cachito-gomod-with-deps/cachito.env \
  && make install-frontend-ci \
  && make build-frontend

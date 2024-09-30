@@ -4,11 +4,9 @@ WORKDIR /opt/app-root
 
 USER 0
 
-RUN npm install --global yarn
-
 ENV HUSKY=0
 
-COPY web/package.json web/yarn.lock web/
+COPY web/package.json web/package-lock.json web/
 COPY Makefile Makefile
 RUN make install-frontend
 

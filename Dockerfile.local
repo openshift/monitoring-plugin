@@ -2,8 +2,6 @@ FROM registry.redhat.io/ubi9/nodejs-20-minimal:1-51 AS web-builder
 
 WORKDIR /opt/app-root
 
-RUN npm install --global yarn
-
 ENV HUSKY=0
 
 COPY Makefile Makefile
