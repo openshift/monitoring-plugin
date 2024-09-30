@@ -21,7 +21,7 @@ RUN INSTALL_PKGS="nodejs nodejs-nodemon npm findutils tar make" && \
 WORKDIR ${HOME}
 
 ENV HUSKY=0
-COPY web/package*.json ${HOME}/web/
+COPY web/package.json web/package-lock.json ${HOME}/web/
 COPY Makefile Makefile
 RUN make install-frontend-ci
 
@@ -38,7 +38,6 @@ COPY go.sum go.sum
 
 RUN make install-backend
 
-COPY config/ config/
 COPY cmd/ cmd/
 COPY pkg/ pkg/
 
