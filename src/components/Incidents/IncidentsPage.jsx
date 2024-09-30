@@ -41,6 +41,7 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
   const [span, setSpan] = React.useState(parsePrometheusDuration('7d'));
   const [alertsData, setAlertsData] = React.useState([]);
   const [incidentsData, setIncidentsData] = React.useState([]);
+  const [tableData, setTableData] = React.useState([]);
   const [alertValuePairs, setAlertValuePairs] = React.useState([]);
   const [isOpen, setIsOpen, , setClosed] = useBoolean(false);
 
@@ -104,6 +105,9 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
   React.useEffect(() => {
     setAlertValuePairs(collectIncidentsDataForApiQuery(incidentsData));
   }, [incidentsAreLoading]);
+  React.useEffect(() => {
+    setTableData(groupAlertsForTable(alertsData));
+  }, [alertsAreLoading]);
 
   React.useEffect(() => {
     (async () => {
@@ -179,9 +183,9 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
               <VirtualizedTable
                 aria-label={t('Alerts')}
                 columns={incidentsTableColumns(t)}
-                data={groupAlertsForTable(alertsData) ?? []}
-                loaded={true}
-                Row={IncidentsTableRow(groupAlertsForTable(alertsData))}
+                data={tableData ?? []}
+                loaded={!alertsAreLoading}
+                Row={IncidentsTableRow(tableData)}
                 unfilteredData={incidentsData}
               />
             </div>
