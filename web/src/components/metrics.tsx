@@ -762,6 +762,7 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, custom
             rows={tableRows}
             sortBy={sortBy}
             variant={TableVariant.compact}
+            className="query-browser__table"
           >
             <TableHeader />
             <TableBody />
