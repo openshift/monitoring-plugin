@@ -5,6 +5,7 @@ go 1.22.0
 require (
 	github.com/openshift/library-go v0.0.0-20240905123346-5bdbfe35a6f5
 	github.com/sirupsen/logrus v1.9.3
+	github.com/tidwall/gjson v1.17.3
 	github.com/tidwall/sjson v1.2.5
 	k8s.io/apiserver v0.30.3
 	k8s.io/client-go v0.31.1
@@ -34,7 +35,6 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
-	github.com/tidwall/gjson v1.17.3 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/x448/float16 v0.8.4 // indirect

@@ -1,0 +1,47 @@
+{
+  "extensions": [
+    {
+      "type": "console.navigation/section",
+      "properties": {
+        "perspective": "acm",
+        "id": "acm-observe",
+        "name": "Observe",
+        "insertAfter": "mce-infrastructure"
+      }
+    },
+    {
+      "type": "console.page/route",
+      "properties": {
+        "exact": true,
+        "path": "/multicloud/monitoring",
+        "component": { "$codeRef": "AcmAlertingUI" }
+      }
+    },
+    {
+      "type": "console.page/route",
+      "properties": {
+        "exact": false,
+        "path": [
+          "/multicloud/monitoring/alertrules",
+          "/multicloud/monitoring/alerts",
+          "/multicloud/monitoring/silences"
+        ],
+        "component": { "$codeRef": "AcmAlertingUI" }
+      }
+    },
+    {
+      "type": "console.navigation/href",
+      "properties": {
+        "id": "multicloud-alerting",
+        "name": "Alerting",
+        "href": "/multicloud/monitoring/alerts",
+        "perspective": "acm",
+        "section": "acm-observe",
+        "startsWith": [
+          "multicloud/monitoring/alertrules",
+          "multicloud/monitoring/silences"
+        ]
+      }
+    }
+  ]
+}

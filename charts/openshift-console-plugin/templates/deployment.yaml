@@ -41,7 +41,7 @@ spec:
               readOnly: true
               mountPath: /var/cert
           args:
-            - '-config-path=/opt/app-root/web/dist'
+            - '-config-path=/opt/app-root/config'
             - '-static-path=/opt/app-root/web/dist'
             - '-cert=/var/cert/tls.crt'
             - '-key=/var/cert/tls.key'
