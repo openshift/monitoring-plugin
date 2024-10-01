@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import * as React from 'react';
 import { IncidentsHeader } from './IncidentsHeader/IncidentsHeader';
 import { useSafeFetch } from '../console/utils/safe-fetch-hook';
@@ -5,15 +6,18 @@ import {
   ListPageFilter,
   PrometheusEndpoint,
   useListPageFilter,
+  VirtualizedTable,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { parsePrometheusDuration } from '../console/utils/datetime';
 import { getPrometheusURL } from '../console/graphs/helpers';
 import {
   filterIncident,
   getIncidentsTimeRanges,
+  groupAlertsForTable,
   processAlertTimestamps,
   processIncidents,
 } from './utils';
+import { collectIncidentsDataForApiQuery, createAlertsQuery } from './api';
 import { useTranslation } from 'react-i18next';
 import {
   Bullseye,
@@ -27,6 +31,8 @@ import {
 import { Helmet } from 'react-helmet';
 import { useBoolean } from '../hooks/useBoolean';
 import some from 'lodash-es/some';
+import IncidentsTableRow from './IncidentsTableRow';
+import { dropdownItems, incidentsTableColumns } from './consts';
 
 const IncidentsPage = ({ customDataSource, namespace }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
@@ -35,6 +41,8 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
   const [span, setSpan] = React.useState(parsePrometheusDuration('7d'));
   const [alertsData, setAlertsData] = React.useState([]);
   const [incidentsData, setIncidentsData] = React.useState([]);
+  const [tableData, setTableData] = React.useState([]);
+  const [alertValuePairs, setAlertValuePairs] = React.useState([]);
   const [isOpen, setIsOpen, , setClosed] = useBoolean(false);
 
   const now = Date.now();
@@ -61,20 +69,6 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
   const changeDaysFilter = (days) => {
     setSpan(parsePrometheusDuration(days));
   };
-  const dropdownItems = [
-    <DropdownItem key="1-day-filter" component="button" onClick={() => changeDaysFilter('1d')}>
-      {t('1 day')}
-    </DropdownItem>,
-    <DropdownItem key="3-day-filter" component="button" onClick={() => changeDaysFilter('3d')}>
-      {t('3 days')}
-    </DropdownItem>,
-    <DropdownItem key="7-day-filter" component="button" onClick={() => changeDaysFilter('7d')}>
-      {t('7 days')}
-    </DropdownItem>,
-    <DropdownItem key="15-day-filter" component="button" onClick={() => changeDaysFilter('15d')}>
-      {t('15 days')}
-    </DropdownItem>,
-  ];
 
   React.useEffect(() => {
     (async () => {
@@ -86,7 +80,7 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
                 endpoint: PrometheusEndpoint.QUERY_RANGE,
                 endTime: range.endTime,
                 namespace,
-                query: 'ALERTS',
+                query: createAlertsQuery(alertValuePairs),
                 samples: 24,
                 timespan: range.duration - 1,
               },
@@ -106,7 +100,14 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
           console.log(err);
         });
     })();
-  }, [span]);
+  }, [alertValuePairs]);
+
+  React.useEffect(() => {
+    setAlertValuePairs(collectIncidentsDataForApiQuery(incidentsData));
+  }, [incidentsAreLoading]);
+  React.useEffect(() => {
+    setTableData(groupAlertsForTable(alertsData));
+  }, [alertsAreLoading]);
 
   React.useEffect(() => {
     (async () => {
@@ -119,7 +120,7 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
                 endTime: range.endTime,
                 namespace,
                 query:
-                  'max by(group_id,component,src_alertname,src_severity,type)(cluster:health:components:map{})',
+                  'max by(group_id,component,src_alertname,src_severity,src_namespace,src_name,layer)(cluster:health:components:map{})',
                 samples: 24,
                 timespan: range.duration - 1,
               },
@@ -161,7 +162,7 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
               rowFilters={[incidentTypeFilter(t)]}
             />
             <Dropdown
-              dropdownItems={dropdownItems}
+              dropdownItems={dropdownItems(changeDaysFilter, t)}
               isOpen={isOpen}
               onSelect={setClosed}
               position={DropdownPosition.left}
@@ -177,6 +178,18 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
             incidentsData={filteredData}
             chartDays={timeRanges.length}
           />
+          <div className="row">
+            <div className="col-xs-12">
+              <VirtualizedTable
+                aria-label={t('Alerts')}
+                columns={incidentsTableColumns(t)}
+                data={tableData ?? []}
+                loaded={!alertsAreLoading}
+                Row={IncidentsTableRow(tableData)}
+                unfilteredData={incidentsData}
+              />
+            </div>
+          </div>
         </div>
       )}
     </>

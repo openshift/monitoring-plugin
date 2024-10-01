@@ -36,7 +36,7 @@ const AlertsChart = ({ alertsData, chartDays }) => {
       ) : (
         <div
           style={{
-            height: '700px',
+            height: '450px',
             //TODO: WIDTH SHOULD BE AUTOMATICALLY ADJUSTED
             width: '100%',
           }}
@@ -47,16 +47,16 @@ const AlertsChart = ({ alertsData, chartDays }) => {
                 labelComponent={
                   <ChartTooltip constrainToVisibleArea labelComponent={<ChartLabel />} />
                 }
-                //TODO: add dates based on the time range
                 labels={({ datum }) =>
-                  `Severity: ${datum.name}\nStart: ${formatDate(
+                  `Alert severity: ${datum.severity}\nAlert name: ${datum.name}\nNamespace: ${
+                    datum.namespace
+                  }\nLayer: ${datum.layer}\nComponent: ${datum.component}\nStart time: ${formatDate(
                     new Date(datum.y0),
                     true,
-                  )}\nEnd: ${formatDate(new Date(datum.y), true)}`
+                  )}\nStop time: ${formatDate(new Date(datum.y), true)}`
                 }
               />
             }
-            //TODO: domain ranges should be adjusted based on the amount of rows and day range
             domainPadding={{ x: [30, 25] }}
             legendData={[
               { name: 'Critical', symbol: { fill: global_danger_color_100.var } },
@@ -65,14 +65,13 @@ const AlertsChart = ({ alertsData, chartDays }) => {
             ]}
             legendPosition="bottom-left"
             //this should be always less than the container height
-            height={650}
+            height={350}
             padding={{
               bottom: 75, // Adjusted to accommodate legend
               left: 50,
               right: 25, // Adjusted to accommodate tooltip
               top: 0,
             }}
-            themeColor={ChartThemeColor.multiOrdered}
             //TODO: WIDTH SHOULD BE AUTOMATICALLY ADJUSTED
             width={1570}
           >
