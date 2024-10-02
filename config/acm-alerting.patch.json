@@ -20,7 +20,7 @@
       "properties": {
         "exact": true,
         "path": "/multicloud/monitoring",
-        "component": { "$codeRef": "AcmAlertingUI" }
+        "component": { "$codeRef": "MonitoringUI" }
       }
     }
   },
@@ -30,9 +30,15 @@
     "value": {
       "type": "console.page/route",
       "properties": {
-        "exact": true,
-        "path": "/multicloud/monitoring",
-        "component": { "$codeRef": "AcmAlertingUI" }
+        "exact": false,
+        "path": [
+          "/multicloud/monitoring/alertrules",
+          "/multicloud/monitoring/alerts",
+          "/multicloud/monitoring/silences"
+        ],
+        "component": {
+          "$codeRef": "MonitoringUI"
+        }
       }
     }
   },

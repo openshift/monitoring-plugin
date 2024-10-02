@@ -24,7 +24,6 @@ import {
   KebabToggle as KebabToggleDeprecated,
 } from '@patternfly/react-core/deprecated';
 import {
-  labelsToParams,
   refreshSilences,
   silenceMatcherEqualitySymbol,
   SilenceResource,
