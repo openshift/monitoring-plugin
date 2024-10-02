@@ -1,0 +1,12 @@
+[
+  {
+    "op": "replace",
+    "path": "/name",
+    "value": "monitoring-console-plugin"
+  },
+  {
+    "op": "replace",
+    "path": "/extensions",
+    "value": []
+  }
+]

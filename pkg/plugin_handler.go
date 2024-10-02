@@ -7,9 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	jsonpatch "github.com/evanphx/json-patch"
 	"github.com/sirupsen/logrus"
-	"github.com/tidwall/gjson"
-	"github.com/tidwall/sjson"
 )
 
 var mlog = logrus.WithField("module", "manifest")
@@ -65,45 +64,33 @@ func patchManifest(baseManifestData []byte, cfg *Config) []byte {
 		return baseManifestData
 	}
 
-	patchedManifest := string(baseManifestData)
-	mcpManifest := patchedManifest
-	mcpManifest, err := sjson.Set(mcpManifest, "name", "monitoring-console-plugin")
-	if err != nil {
-		log.Warn("Unable to modify extension name, defaulting to serving monitoring-plugin")
-		return baseManifestData
-	}
+	patchedManifest := performPatch(baseManifestData, filepath.Join(cfg.ConfigPath, "clear-extensions.patch.json"))
 
-	// Go is pretty strict about defining structs for how data is formatted
-	// when you read in json or other formats. However the extension structure
-	// is very large, and I don't think it make sense to bring the entire
-	// thing over into go, especially since it can be a moving target. This
-	// does some very simple string formatting to get around needing to bring
-	// over the entire structure
-	featureExtensionJson := "["
 	for feature := range cfg.Features {
-		featureExtensions := addFeatureManifest(feature, cfg)
-		featureExtensions.ForEach(func(_, value gjson.Result) bool {
-			featureExtensionJson = featureExtensionJson + value.Raw + ","
-			return true
-		})
-	}
-	featureExtensionJson = strings.TrimSuffix(featureExtensionJson, ",") + "\n]"
-
-	mcpManifest, err = sjson.SetRaw(mcpManifest, "extensions", featureExtensionJson)
-	if err != nil {
-		log.Warn("Unable to modify plugin extensions, defaulting to serting monitoring-plugin")
-		return baseManifestData
+		patchedManifest = performPatch(patchedManifest, filepath.Join(cfg.ConfigPath, fmt.Sprintf("%s.patch.json", feature)))
 	}
 
-	return []byte(mcpManifest)
+	return []byte(patchedManifest)
 }
 
-func addFeatureManifest(feature Feature, cfg *Config) gjson.Result {
-	acmAlertingFeatures, err := os.ReadFile(filepath.Join(cfg.ConfigPath, fmt.Sprintf("%s.json", feature)))
+func performPatch(originalData []byte, patchFilePath string) []byte {
+	patchData, err := os.ReadFile(patchFilePath)
 	if err != nil {
-		log.Warn(fmt.Sprintf("Unable to find feature file for feature %s. Features extensions won't be available", feature))
-		return gjson.Result{}
+		mlog.WithField("reason", err).Warnf("cannot read patch file %s", patchFilePath)
+		return originalData
 	}
 
-	return gjson.Get(string(acmAlertingFeatures), "extensions")
+	patch, err := jsonpatch.DecodePatch(patchData)
+	if err != nil {
+		mlog.WithField("reason", err).Warnf("cannot decode patch data %s", patchData)
+		return originalData
+	}
+
+	patchedManifest, err := patch.ApplyIndent(originalData, " ")
+	if err != nil {
+		mlog.WithError(err).Error("cannot patch base manifest file")
+		return originalData
+	}
+
+	return patchedManifest
 }

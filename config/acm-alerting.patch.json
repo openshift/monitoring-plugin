@@ -1,6 +1,8 @@
-{
-  "extensions": [
-    {
+[
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
       "type": "console.navigation/section",
       "properties": {
         "perspective": "acm",
@@ -8,28 +10,36 @@
         "name": "Observe",
         "insertAfter": "mce-infrastructure"
       }
-    },
-    {
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
       "type": "console.page/route",
       "properties": {
         "exact": true,
         "path": "/multicloud/monitoring",
         "component": { "$codeRef": "AcmAlertingUI" }
       }
-    },
-    {
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
       "type": "console.page/route",
       "properties": {
-        "exact": false,
-        "path": [
-          "/multicloud/monitoring/alertrules",
-          "/multicloud/monitoring/alerts",
-          "/multicloud/monitoring/silences"
-        ],
+        "exact": true,
+        "path": "/multicloud/monitoring",
         "component": { "$codeRef": "AcmAlertingUI" }
       }
-    },
-    {
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
       "type": "console.navigation/href",
       "properties": {
         "id": "multicloud-alerting",
@@ -43,5 +53,5 @@
         ]
       }
     }
-  ]
-}
+  }
+]
