@@ -38,6 +38,10 @@ plugin:
     thanos:
       url: https://thanos-querier.openshift-monitoring.svc:9091
       pluginPort: 9445
+  patcherServiceAccount:
+    create: true
+    annotations: {}
+    name: "monitoring-console-plugin-patcher"
   jobs:
     patchConsoles:
       enabled: true

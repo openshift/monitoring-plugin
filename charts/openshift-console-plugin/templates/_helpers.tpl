@@ -58,3 +58,21 @@ Create the name of the service account to use
 {{- default "default" .Values.plugin.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Create the name of the service account to use
+*/}}
+{{- define "openshift-console-plugin.patcherServiceAccountName" -}}
+{{- if .Values.plugin.patcherServiceAccount.create }}
+{{- default (printf "%s-patcher" (include "openshift-console-plugin.name" .)) .Values.plugin.patcherServiceAccount.name }}
+{{- else }}
+{{- default "default" .Values.plugin.patcherServiceAccount.name }}
+{{- end }}
+{{- end }}
+
+{{/*
+Create the name of the patcher
+*/}}
+{{- define "openshift-console-plugin.patcherName" -}}
+{{- printf "%s-patcher" (include "openshift-console-plugin.name" .) }}
+{{- end }}
