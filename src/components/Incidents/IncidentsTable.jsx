@@ -85,9 +85,8 @@ export const IncidentsTable = ({ loaded, data = [] }) => {
                   </Td>
                 </Tr>
                 {alert.alertsExpandedRowData && (
-                  <Tr isExpanded={isAlertExpanded(alert)} childIsFullWidth={true}>
-                    <Td />
-                    <Td width={100}>
+                  <Tr isExpanded={isAlertExpanded(alert)}>
+                    <Td width={100} colSpan={6}>
                       <ExpandableRowContent>
                         <IncidentsDetailsRowTable alerts={alert.alertsExpandedRowData} />
                       </ExpandableRowContent>
