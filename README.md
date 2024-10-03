@@ -73,4 +73,4 @@ The application will be running at [localhost:9000](http://localhost:9000/).
 
 ### Local Development Troubleshooting
 1. Disable cache. Select 'disable cache' in your browser's DevTools > Network > 'disable cache'. Or use private/incognito mode in your browser.
-2. Enable higher log verbosity by setting `-log-verbosity=1` when starting the plugin backend
+2. Enable higher log verbosity by setting `-log-level=trace` when starting the plugin backend. For more options to set log level see [logrus documentation](https://github.com/sirupsen/logrus?tab=readme-ov-file#level-logging).
