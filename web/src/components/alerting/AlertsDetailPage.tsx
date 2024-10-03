@@ -3,10 +3,11 @@ import { useTranslation } from 'react-i18next';
 import {
   getAlertsUrl,
   getNewSilenceAlertUrl,
+  getObserveState,
   getRuleUrl,
   usePerspective,
 } from '../hooks/usePerspective';
-import { Alerts, RootState } from '../types';
+import { Alerts } from '../types';
 import { useSelector, useDispatch } from 'react-redux';
 import * as _ from 'lodash-es';
 import { getAllQueryArguments } from '../console/utils/router';
@@ -75,6 +76,7 @@ import { Labels } from '../labels';
 import { SilenceTableRow, tableSilenceClasses } from './SilencesUtils';
 import { useRulesAlertsPoller } from '../hooks/useRulesAlertsPoller';
 import { useSilencesPoller } from '../hooks/useSilencesPoller';
+import { MonitoringState } from '../reducers/observe';
 
 const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
@@ -82,10 +84,14 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
   const { alertsKey, alertingContextId, silencesKey, perspective } = usePerspective();
 
   const namespace = match.params?.ns;
-  const hideGraphs = useSelector(({ observe }: RootState) => !!observe.get('hideGraphs'));
+  const hideGraphs = useSelector(
+    (state: MonitoringState) => !!getObserveState(perspective, state)?.get('hideGraphs'),
+  );
 
   const dispatch = useDispatch();
-  const alerts: Alerts = useSelector(({ observe }: RootState) => observe.get(alertsKey));
+  const alerts: Alerts = useSelector((state: MonitoringState) =>
+    getObserveState(perspective, state)?.get(alertsKey),
+  );
 
   const silencesLoaded = ({ observe }) => observe.get(silencesKey)?.loaded;
 

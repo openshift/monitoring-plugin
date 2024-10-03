@@ -35,9 +35,10 @@ import { getAllQueryArguments } from './console/utils/router';
 import { StatusBox } from './console/utils/status-box';
 
 import { useBoolean } from './hooks/useBoolean';
-import { RootState, Silences } from './types';
+import { Silences } from './types';
 import { refreshSilences, SilenceResource, silenceState } from './utils';
-import { usePerspective } from './hooks/usePerspective';
+import { getObserveState, usePerspective } from './hooks/usePerspective';
+import { MonitoringState } from '../reducers/observe';
 
 const pad = (i: number): string => (i < 10 ? `0${i}` : String(i));
 
@@ -463,9 +464,11 @@ const EditInfo = () => {
 
 export const EditSilence = ({ match }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
-  const { silencesKey } = usePerspective();
+  const { silencesKey, perspective } = usePerspective();
 
-  const silences: Silences = useSelector(({ observe }: RootState) => observe.get(silencesKey));
+  const silences: Silences = useSelector((state: MonitoringState) =>
+    getObserveState(perspective, state)?.get(silencesKey),
+  );
 
   const silence: Silence = _.find(silences?.data, { id: match.params.id });
   const isExpired = silenceState(silence) === SilenceStates.Expired;

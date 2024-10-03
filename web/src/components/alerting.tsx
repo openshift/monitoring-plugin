@@ -81,10 +81,13 @@ import {
 
 import './_monitoring.scss';
 import {
+  getAlertRulesUrl,
   getAlertsUrl,
   getAlertUrl,
   getNewSilenceAlertUrl,
+  getObserveState,
   getRuleUrl,
+  getSilencesUrl,
   getSilenceUrl,
   usePerspective,
 } from './hooks/usePerspective';
@@ -119,6 +122,7 @@ import {
 import { OnToggle } from './alerting/AlertUtils';
 import { useRulesAlertsPoller } from './hooks/useRulesAlertsPoller';
 import { useSilencesPoller } from './hooks/useSilencesPoller';
+import { MonitoringState } from '../reducers/observe';
 
 const StateCounts: React.FC<{ alerts: PrometheusAlert[] }> = ({ alerts }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
@@ -223,14 +227,16 @@ type AlertRulesDetailsPageProps = RouteComponentProps<{ id: string; ns?: string 
 const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
 
-  const { rulesKey, alertsKey } = usePerspective();
+  const { rulesKey, alertsKey, perspective } = usePerspective();
   const namespace = match.params?.ns;
 
-  const rules: Rule[] = useSelector(({ observe }: RootState) => observe.get(rulesKey));
+  const rules: Rule[] = useSelector((state: MonitoringState) =>
+    getObserveState(perspective, state)?.get(rulesKey),
+  );
   const rule = _.find(rules, { id: _.get(match, 'params.id') });
 
   const { loaded, loadError }: Alerts = useSelector(
-    ({ observe }: RootState) => observe.get(alertsKey) || {},
+    (state: MonitoringState) => getObserveState(perspective, state)?.get(alertsKey) || {},
   );
 
   const sourceId = rule?.sourceId;
@@ -492,9 +498,13 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
   const { alertsKey, perspective, silencesKey } = usePerspective();
   useSilencesPoller({ namespace });
 
-  const alertsLoaded = useSelector(({ observe }: RootState) => observe.get(alertsKey)?.loaded);
+  const alertsLoaded = useSelector(
+    (state: MonitoringState) => getObserveState(perspective, state)?.get(alertsKey)?.loaded,
+  );
 
-  const silences: Silences = useSelector(({ observe }: RootState) => observe.get(silencesKey));
+  const silences: Silences = useSelector((state: MonitoringState) =>
+    getObserveState(perspective, state)?.get(silencesKey),
+  );
   const silence = _.find(silences?.data, { id: _.get(match, 'params.id') });
 
   return (
@@ -684,14 +694,16 @@ const RuleTableRow: React.FC<RowProps<Rule>> = ({ obj }) => {
 
 const RulesPage_: React.FC = () => {
   const { t } = useTranslation('plugin__monitoring-plugin');
-  const { alertsKey, silencesKey, rulesKey } = usePerspective();
+  const { alertsKey, silencesKey, rulesKey, perspective } = usePerspective();
 
-  const data: Rule[] = useSelector(({ observe }: RootState) => observe.get(rulesKey));
+  const data: Rule[] = useSelector((state: MonitoringState) =>
+    getObserveState(perspective, state)?.get(rulesKey),
+  );
   const { loaded = false, loadError }: Alerts = useSelector(
-    ({ observe }: RootState) => observe.get(alertsKey) || {},
+    (state: MonitoringState) => getObserveState(perspective, state)?.get(alertsKey) || {},
   );
   const silencesLoadError = useSelector(
-    ({ observe }: RootState) => observe.get(silencesKey)?.loadError,
+    (state: MonitoringState) => getObserveState(perspective, state)?.get(silencesKey)?.loadError,
   );
 
   const ruleAdditionalSources = React.useMemo(
@@ -1071,10 +1083,11 @@ const Tab: React.FC<{ active: boolean; children: React.ReactNode }> = ({ active,
 
 const AlertingPage: React.FC<RouteComponentProps<{ url: string }>> = ({ match }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
+  const { perspective } = usePerspective();
 
-  const alertsPath = '/monitoring/alerts';
-  const rulesPath = '/monitoring/alertrules';
-  const silencesPath = '/monitoring/silences';
+  const alertsPath = getAlertsUrl(perspective);
+  const rulesPath = getAlertRulesUrl(perspective);
+  const silencesPath = getSilencesUrl(perspective);
 
   const { url } = match;
 
@@ -1129,17 +1142,23 @@ const PollerPages = () => {
   useRulesAlertsPoller(namespace, dispatch, alertsSource);
 
   if (perspective === 'acm') {
-    <Switch>
-      <Route
-        path="/multicloud/monitoring/(alerts|alertrules|silences)"
-        exact
-        component={AlertingPage}
-      />
-      <Route path="/multicloud/monitoring/alertrules/:id" exact component={AlertRulesDetailsPage} />
-      <Route path="/multicloud/monitoring/alerts/:ruleID" exact component={AlertsDetailsPage} />
-      <Route path="/multicloud/monitoring/silences/:id" exact component={SilencesDetailsPage} />
-      <Route path="/multicloud/monitoring/silences/:id/edit" exact component={EditSilence} />
-    </Switch>;
+    return (
+      <Switch>
+        <Route
+          path="/multicloud/monitoring/(alerts|alertrules|silences)"
+          exact
+          component={AlertingPage}
+        />
+        <Route
+          path="/multicloud/monitoring/alertrules/:id"
+          exact
+          component={AlertRulesDetailsPage}
+        />
+        <Route path="/multicloud/monitoring/alerts/:ruleID" exact component={AlertsDetailsPage} />
+        <Route path="/multicloud/monitoring/silences/:id" exact component={SilencesDetailsPage} />
+        <Route path="/multicloud/monitoring/silences/:id/edit" exact component={EditSilence} />
+      </Switch>
+    );
   }
 
   if (perspective === 'dev') {

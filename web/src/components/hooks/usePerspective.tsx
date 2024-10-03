@@ -8,6 +8,7 @@ import {
   ALERTMANAGER_PROXY_PATH,
   ALERTMANAGER_TENANCY_BASE_PATH,
 } from '../console/graphs/helpers';
+import { MonitoringState } from '../../reducers/observe';
 
 type usePerspectiveReturn = {
   perspective: Perspective;
@@ -51,6 +52,30 @@ export const usePerspective = (): usePerspectiveReturn => {
   };
 };
 
+export const getAlertsKey = (perspective: Perspective): alertKey => {
+  switch (perspective) {
+    case 'acm':
+      return 'acmAlerts';
+    case 'admin':
+      return 'alerts';
+    case 'dev':
+    default:
+      return 'devAlerts';
+  }
+};
+
+export const getSilencesKey = (perspective: Perspective): silencesKey => {
+  switch (perspective) {
+    case 'acm':
+      return 'acmSilences';
+    case 'admin':
+      return 'silences';
+    case 'dev':
+    default:
+      return 'devSilences';
+  }
+};
+
 /**
  * All alertmanager and thanos-querier URLs MUST be converted to point to the proxies
  * on the monitoring-plugin for the acm perspective
@@ -59,12 +84,35 @@ export const usePerspective = (): usePerspectiveReturn => {
 export const getAlertsUrl = (perspective: Perspective, namespace?: string) => {
   switch (perspective) {
     case 'acm':
-      return '/multicloud/monitoring/alerts';
+      return `/multicloud${AlertResource.plural}`;
     case 'admin':
-      return '/monitoring/alerts';
+      return AlertResource.plural;
     case 'dev':
     default:
       return `/dev-monitoring/ns/${namespace}/alerts`;
+  }
+};
+
+// There is no equivalent rules list page in the developer perspective
+export const getAlertRulesUrl = (perspective: Perspective) => {
+  switch (perspective) {
+    case 'acm':
+      return `/multicloud${RuleResource.plural}`;
+    default:
+    case 'admin':
+      return RuleResource.plural;
+  }
+};
+
+export const getSilencesUrl = (perspective: Perspective, namespace?: string) => {
+  switch (perspective) {
+    case 'acm':
+      return `/multicloud${SilenceResource.plural}`;
+    case 'admin':
+      return SilenceResource.plural;
+    case 'dev':
+    default:
+      return `/dev-monitoring/ns/${namespace}/silences`;
   }
 };
 
@@ -167,5 +215,16 @@ export const getSilenceUrl = (
     case 'dev':
     default:
       return `${ALERTMANAGER_TENANCY_BASE_PATH}/api/v2/silence/${silenceID}?namespace=${namespace}`;
+  }
+};
+
+export const getObserveState = (perspective: Perspective, state: MonitoringState) => {
+  switch (perspective) {
+    case 'acm':
+      return state.plugins?.monitoring;
+    case 'admin':
+    case 'dev':
+    default:
+      return state.observe;
   }
 };

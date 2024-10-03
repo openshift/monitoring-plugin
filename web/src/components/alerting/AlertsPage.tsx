@@ -4,10 +4,11 @@ import { useTranslation } from 'react-i18next';
 import {
   getAlertUrl,
   getNewSilenceAlertUrl,
+  getObserveState,
   getRuleUrl,
   usePerspective,
 } from '../hooks/usePerspective';
-import { Alerts, AlertSource, RootState } from '../types';
+import { Alerts, AlertSource } from '../types';
 import { useSelector } from 'react-redux';
 
 import * as _ from 'lodash-es';
@@ -43,6 +44,7 @@ import { RouteComponentProps, withRouter } from 'react-router';
 import { Link } from 'react-router-dom';
 import KebabDropdown from '../kebab-dropdown';
 import { EmptyBox } from '../console/utils/status-box';
+import { MonitoringState } from '../../reducers/observe';
 
 const tableAlertClasses = [
   'pf-u-w-50 pf-u-w-33-on-sm', // Name
@@ -60,9 +62,11 @@ const AlertsPage_: React.FC<AlertsPageProps> = () => {
     data,
     loaded = false,
     loadError,
-  }: Alerts = useSelector(({ observe }: RootState) => observe.get(alertsKey) || {});
+  }: Alerts = useSelector(
+    (state: MonitoringState) => getObserveState(perspective, state)?.get(alertsKey) || {},
+  );
   const silencesLoadError = useSelector(
-    ({ observe }: RootState) => observe.get(silencesKey)?.loadError,
+    (state: MonitoringState) => getObserveState(perspective, state)?.get(silencesKey)?.loadError,
   );
 
   const alertAdditionalSources = React.useMemo(

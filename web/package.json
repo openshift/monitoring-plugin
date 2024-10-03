@@ -106,7 +106,8 @@
     "displayName": "OpenShift console monitoring plugin",
     "description": "This plugin adds the monitoring UI to the OpenShift web console",
     "exposedModules": {
-      "MonitoringUI": "./components/alerting"
+      "MonitoringUI": "./components/alerting",
+      "MonitoringReducer": "./reducers/observe"
     },
     "dependencies": {
       "@console/pluginAPI": "*"
