@@ -1,16 +1,21 @@
 import * as React from 'react';
 import { AlertStateIcon } from '../alerting/AlertUtils';
-import { Label } from '@patternfly/react-core';
+import { Checkbox, Label } from '@patternfly/react-core';
 import InfoCircleIcon from '@patternfly/react-icons/dist/esm/icons/info-circle-icon';
+import { Td, Tr } from '@patternfly/react-table';
+import { TableData } from '@openshift-console/dynamic-plugin-sdk';
 
 const IncidentsTableRow =
   (alertsData) =>
   ({ obj }) => {
     //alerts is NEEDED it data will be used in expanded details
     return (
-      <>
-        <td>{obj.component}</td>
-        <td>
+      <Tr>
+        <Td>
+          <Checkbox />
+        </Td>
+        <Td>{obj.component}</Td>
+        <Td>
           {obj.critical > 0 ? (
             <Label color="red" icon={<InfoCircleIcon />}>
               {obj.critical}
@@ -32,11 +37,11 @@ const IncidentsTableRow =
           ) : (
             ''
           )}
-        </td>
-        <td>
+        </Td>
+        <Td>
           <AlertStateIcon state={obj.alertstate} />
-        </td>
-      </>
+        </Td>
+      </Tr>
     );
   };
 

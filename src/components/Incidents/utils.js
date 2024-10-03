@@ -377,9 +377,8 @@ export const groupAlertsForTable = (alerts) => {
   return alerts.reduce((acc, alert) => {
     const { component, alertstate, severity } = alert;
     const existingGroup = acc.find((group) => group.component === component);
-
     if (existingGroup) {
-      existingGroup.alerts.push(alert);
+      existingGroup.alertsExpandedRowData.push(alert);
       if (severity === 'warning') existingGroup.warning += 1;
       else if (severity === 'info') existingGroup.info += 1;
       else if (severity === 'critical') existingGroup.critical += 1;
@@ -390,7 +389,7 @@ export const groupAlertsForTable = (alerts) => {
         warning: severity === 'warning' ? 1 : 0,
         info: severity === 'info' ? 1 : 0,
         critical: severity === 'critical' ? 1 : 0,
-        alerts: [alert],
+        alertsExpandedRowData: [alert],
       });
     }
 
