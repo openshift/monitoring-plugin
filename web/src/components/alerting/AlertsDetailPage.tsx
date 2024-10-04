@@ -76,7 +76,7 @@ import { Labels } from '../labels';
 import { SilenceTableRow, tableSilenceClasses } from './SilencesUtils';
 import { useRulesAlertsPoller } from '../hooks/useRulesAlertsPoller';
 import { useSilencesPoller } from '../hooks/useSilencesPoller';
-import { MonitoringState } from '../reducers/observe';
+import { MonitoringState } from '../../reducers/observe';
 
 const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
