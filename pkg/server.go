@@ -87,7 +87,7 @@ func Start(cfg *Config) {
 		panic(fmt.Errorf("error creating dynamicClient: %w", err))
 	}
 
-	router, pluginConfig := setupRoutes(cfg, acmMode)
+	router, pluginConfig := setupRoutes(cfg)
 	router.Use(corsHeaderMiddleware())
 
 	tlsConfig := &tls.Config{
@@ -159,7 +159,7 @@ func Start(cfg *Config) {
 	}
 }
 
-func setupRoutes(cfg *Config, acmMode bool) (*mux.Router, *PluginConfig) {
+func setupRoutes(cfg *Config) (*mux.Router, *PluginConfig) {
 	configHandlerFunc, pluginConfig := configHandler(cfg)
 
 	router := mux.NewRouter()
@@ -168,9 +168,7 @@ func setupRoutes(cfg *Config, acmMode bool) (*mux.Router, *PluginConfig) {
 
 	// TODO: needs to check for acm feature and adjust the plugin-manifest to be something appropriate
 	router.Path("/plugin-manifest.json").Handler(manifestHandler(cfg))
-	if acmMode {
-		router.Path("/plugin-entry.js").Handler(entryHandler(cfg))
-	}
+
 	// needs to make sure that acm is an appropriate feature and can be served from here
 	router.PathPrefix("/features").HandlerFunc(featuresHandler(cfg))
 	router.PathPrefix("/config").HandlerFunc(configHandlerFunc)

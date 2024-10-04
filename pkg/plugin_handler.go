@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 
 	jsonpatch "github.com/evanphx/json-patch"
 	"github.com/sirupsen/logrus"
@@ -30,32 +29,6 @@ func manifestHandler(cfg *Config) http.HandlerFunc {
 		w.Header().Set("Expires", "0")
 
 		w.Write(patchedManifest)
-	})
-}
-
-// We can either update the plugin-entry at runtime (like this) or we can update the
-// it at compile time, but that would require building a separate image, which I believe is
-// undesired.
-func entryHandler(cfg *Config) http.HandlerFunc {
-	baseEntryData, err := os.ReadFile(filepath.Join(cfg.StaticPath, "plugin-entry.js"))
-	if err != nil {
-		mlog.WithError(err).Error("cannot read base entry file")
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		})
-	}
-
-	baseEntryString := string(baseEntryData)
-
-	patchedEntryString := strings.ReplaceAll(baseEntryString, "monitoring-plugin", "monitoring-console-plugin")
-	patchedEntryData := []byte(patchedEntryString)
-
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/javascript; charset=utf-8")
-		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-		w.Header().Set("Expires", "0")
-
-		w.Write(patchedEntryData)
 	})
 }
 

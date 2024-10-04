@@ -1,12 +1,15 @@
 [
   {
     "op": "replace",
-    "path": "/name",
-    "value": "monitoring-console-plugin"
-  },
-  {
-    "op": "replace",
     "path": "/extensions",
-    "value": []
+    "value": [
+      {
+        "type": "console.redux-reducer",
+        "properties": {
+          "scope": "monitoring",
+          "reducer": { "$codeRef": "MonitoringReducer" }
+        }
+      }
+    ]
   }
 ]
