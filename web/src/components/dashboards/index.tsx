@@ -57,7 +57,6 @@ import {
   queryBrowserDeleteAllQueries,
 } from '../../actions/observe';
 import IntervalDropdown from '../poll-interval-dropdown';
-import { RootState } from '../types';
 import BarChart from './bar-chart';
 import Graph from './graph';
 import SingleStat from './single-stat';
@@ -74,8 +73,9 @@ import { useIsVisible } from '../hooks/useIsVisible';
 import { useFetchDashboards } from './useFetchDashboards';
 import { DEFAULT_GRAPH_SAMPLES, getAllVariables } from './monitoring-dashboard-utils';
 import { getTimeRanges, isTimeoutError, QUERY_CHUNK_SIZE } from '../utils';
-import { usePerspective } from '../hooks/usePerspective';
+import { getObserveState, usePerspective } from '../hooks/usePerspective';
 import KebabDropdown from '../kebab-dropdown';
+import { MonitoringState } from '../../reducers/observe';
 
 const intervalVariableRegExps = ['__interval', '__rate_interval', '__auto_interval_[a-z]+'];
 
@@ -216,12 +216,12 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({
 }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
 
-  const timespan = useSelector(({ observe }: RootState) =>
-    observe.getIn(['dashboards', perspective, 'timespan']),
+  const timespan = useSelector((state: MonitoringState) =>
+    getObserveState(perspective, state)?.getIn(['dashboards', perspective, 'timespan']),
   );
 
-  const variables = useSelector(({ observe }: RootState) =>
-    observe.getIn(['dashboards', perspective, 'variables']),
+  const variables = useSelector((state: MonitoringState) =>
+    getObserveState(perspective, state)?.getIn(['dashboards', perspective, 'variables']),
   );
   const variable = variables.toJS()[name];
   const query = evaluateTemplate(variable.query, variables, timespan);
@@ -404,8 +404,8 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({
 
 const AllVariableDropdowns: React.FC<{ perspective: Perspective }> = ({ perspective }) => {
   const namespace = React.useContext(NamespaceContext);
-  const variables = useSelector(({ observe }: RootState) =>
-    observe.getIn(['dashboards', perspective, 'variables']),
+  const variables = useSelector((state: MonitoringState) =>
+    getObserveState(perspective, state)?.getIn(['dashboards', perspective, 'variables']),
   );
 
   return (
@@ -484,8 +484,8 @@ export const PollIntervalDropdown: React.FC = () => {
 
   const refreshIntervalFromParams = getQueryArgument('refreshInterval');
   const { perspective } = usePerspective();
-  const interval = useSelector(({ observe }: RootState) =>
-    observe.getIn(['dashboards', perspective, 'pollInterval']),
+  const interval = useSelector((state: MonitoringState) =>
+    getObserveState(perspective, state)?.getIn(['dashboards', perspective, 'pollInterval']),
   );
 
   const dispatch = useDispatch();
@@ -603,14 +603,14 @@ const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
 
   const namespace = React.useContext(NamespaceContext);
-  const pollInterval = useSelector(({ observe }: RootState) =>
-    observe.getIn(['dashboards', perspective, 'pollInterval']),
+  const pollInterval = useSelector((state: MonitoringState) =>
+    getObserveState(perspective, state)?.getIn(['dashboards', perspective, 'pollInterval']),
   );
-  const timespan = useSelector(({ observe }: RootState) =>
-    observe.getIn(['dashboards', perspective, 'timespan']),
+  const timespan = useSelector((state: MonitoringState) =>
+    getObserveState(perspective, state)?.getIn(['dashboards', perspective, 'timespan']),
   );
-  const variables = useSelector(({ observe }: RootState) =>
-    observe.getIn(['dashboards', perspective, 'variables']),
+  const variables = useSelector((state: MonitoringState) =>
+    getObserveState(perspective, state)?.getIn(['dashboards', perspective, 'variables']),
   );
 
   const ref = React.useRef();

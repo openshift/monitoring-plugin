@@ -1,5 +1,5 @@
 import { PrometheusAlert, Rule, useActivePerspective } from '@openshift-console/dynamic-plugin-sdk';
-import { Perspective, rulesKey, alertKey, silencesKey } from 'src/actions/observe';
+import { Perspective, rulesKey, alertKey, silencesKey } from '../../actions/observe';
 import { AlertSource } from '../types';
 import * as _ from 'lodash-es';
 import { AlertResource, labelsToParams, RuleResource, SilenceResource } from '../utils';

@@ -70,11 +70,12 @@ import { humanizeNumberSI } from './console/utils/units';
 import { formatNumber } from './format';
 import { useBoolean } from './hooks/useBoolean';
 import { queryBrowserTheme } from './query-browser-theme';
-import { PrometheusAPIError, RootState, TimeRange } from './types';
+import { PrometheusAPIError, TimeRange } from './types';
 import { getTimeRanges } from './utils';
 
-import { usePerspective } from './hooks/usePerspective';
+import { getObserveState, usePerspective } from './hooks/usePerspective';
 import { useActiveNamespace } from './console/console-shared/hooks/useActiveNamespace';
+import { MonitoringState } from '../reducers/observe';
 
 const spans = ['5m', '15m', '30m', '1h', '2h', '6h', '12h', '1d', '2d', '1w', '2w'];
 export const colors = queryBrowserTheme.line.colorScale;
@@ -679,13 +680,17 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
   onDataChange,
 }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
+  const { perspective } = usePerspective();
 
-  const hideGraphs = useSelector(({ observe }: RootState) => !!observe.get('hideGraphs'));
-  const tickInterval = useSelector(
-    ({ observe }: RootState) => pollInterval ?? observe.getIn(['queryBrowser', 'pollInterval']),
+  const hideGraphs = useSelector(
+    (state: MonitoringState) => !!getObserveState(perspective, state)?.get('hideGraphs'),
   );
-  const lastRequestTime = useSelector(({ observe }: RootState) =>
-    observe.getIn(['queryBrowser', 'lastRequestTime']),
+  const tickInterval = useSelector(
+    (state: MonitoringState) =>
+      pollInterval ?? getObserveState(perspective, state)?.getIn(['queryBrowser', 'pollInterval']),
+  );
+  const lastRequestTime = useSelector((state: MonitoringState) =>
+    getObserveState(perspective, state)?.getIn(['queryBrowser', 'lastRequestTime']),
   );
 
   const dispatch = useDispatch();
@@ -717,7 +722,6 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
   const canStack = _.sumBy(graphData, 'length') <= maxStacks;
 
   const activeNamespace = useActiveNamespace();
-  const { perspective } = usePerspective();
 
   // If provided, `timespan` overrides any existing span setting
   React.useEffect(() => {

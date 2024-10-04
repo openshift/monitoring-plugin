@@ -67,7 +67,7 @@ import { Labels } from './labels';
 import { QueryBrowserPage, ToggleGraph } from './metrics';
 import { CreateSilence, EditSilence } from './silence-form';
 import { TargetsUI } from './targets';
-import { Alerts, AlertSource, RootState, Silences } from './types';
+import { Alerts, AlertSource, Silences } from './types';
 import {
   alertDescription,
   alertingRuleStateOrder,
@@ -922,7 +922,7 @@ const SelectAllCheckbox: React.FC<{ silences: Silence[] }> = ({ silences }) => {
 
 const SilencesPage_: React.FC = () => {
   const { t } = useTranslation('plugin__monitoring-plugin');
-  const { silencesKey } = usePerspective();
+  const { silencesKey, perspective } = usePerspective();
 
   const [selectedSilences, setSelectedSilences] = React.useState(new Set());
   const [errorMessage, setErrorMessage] = React.useState();
@@ -931,7 +931,9 @@ const SilencesPage_: React.FC = () => {
     data,
     loaded = false,
     loadError,
-  }: Silences = useSelector(({ observe }: RootState) => observe.get(silencesKey) || {});
+  }: Silences = useSelector(
+    (state: MonitoringState) => getObserveState(perspective, state)?.get(silencesKey) || {},
+  );
 
   const rowFilters: RowFilter[] = [
     // TODO: The "name" filter doesn't really fit useListPageFilter's idea of a RowFilter, but

@@ -93,7 +93,9 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
     getObserveState(perspective, state)?.get(alertsKey),
   );
 
-  const silencesLoaded = ({ observe }) => observe.get(silencesKey)?.loaded;
+  const silencesLoaded = useSelector(
+    (state: MonitoringState) => getObserveState(perspective, state)?.get(silencesKey)?.loaded,
+  );
 
   const ruleAlerts = _.filter(alerts?.data, (a) => a.rule.id === match?.params?.ruleID);
   const rule = ruleAlerts?.[0]?.rule;
