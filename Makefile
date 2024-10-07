@@ -63,3 +63,7 @@ deploy:
 	make lint-backend
 	PUSH=1 scripts/build-image.sh
 	helm install monitoring-console-plugin charts/openshift-console-plugin -n monitoring-console-plugin-ns --create-namespace --set plugin.image=$(IMAGE)
+
+.PHONY: deploy-acm
+deploy-acm:
+	./scripts/deploy-acm.sh
