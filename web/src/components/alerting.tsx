@@ -720,7 +720,7 @@ const RulesPage_: React.FC = () => {
     alertStateFilter(t),
     severityRowFilter(t),
     {
-      defaultSelected: [AlertSource.Platform],
+      defaultSelected: [perspective === 'acm' ? AlertSource.User : AlertSource.Platform],
       filter: (filter, rule: Rule) =>
         filter.selected?.includes(alertingRuleSource(rule)) || _.isEmpty(filter.selected),
       filterGroupName: t('Source'),
