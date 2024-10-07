@@ -132,6 +132,18 @@ export const getNewSilenceAlertUrl = (
   }
 };
 
+export const getNewSilenceUrl = (perspective: Perspective, namespace?: string) => {
+  switch (perspective) {
+    case 'acm':
+      return `/multicloud${SilenceResource.plural}/~new`;
+    case 'admin':
+      return `${SilenceResource.plural}/~new`;
+    case 'dev':
+    default:
+      return `/dev-monitoring/ns/${namespace}/silences/~new`;
+  }
+};
+
 export const getRuleUrl = (perspective: Perspective, rule: Rule, namespace?: string) => {
   switch (perspective) {
     case 'acm':
@@ -226,12 +238,44 @@ export const getObserveState = (perspective: Perspective, state: MonitoringState
 
 export const getQueryBrowserUrl = (perspective: Perspective, query: string, namespace?: string) => {
   switch (perspective) {
-    case 'acm':
-      return '';
     case 'admin':
       return `/monitoring/query-browser?query0=${encodeURIComponent(query)}`;
     case 'dev':
-    default:
       return `/dev-monitoring/ns/${namespace}/metrics?query0=${encodeURIComponent(query)}`;
+    case 'acm':
+    default:
+      return '';
+  }
+};
+
+export const getMutlipleQueryBrowserUrl = (
+  perspective: Perspective,
+  params: URLSearchParams,
+  namespace?: string,
+) => {
+  switch (perspective) {
+    case 'admin':
+      return `/monitoring/query-browser?${params.toString()}`;
+    case 'dev':
+      return `/dev-monitoring/ns/${namespace}/metrics?${params.toString()}`;
+    case 'acm':
+    default:
+      return '';
+  }
+};
+
+export const getDeashboardsUrl = (
+  perspective: Perspective,
+  boardName: string,
+  namespace?: string,
+) => {
+  switch (perspective) {
+    case 'admin':
+      return `/monitoring/dashboards/${boardName}`;
+    case 'dev':
+      return `/dev-monitoring/ns/${namespace}?dashboard=${boardName}`;
+    case 'acm':
+    default:
+      return '';
   }
 };

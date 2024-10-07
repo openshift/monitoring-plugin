@@ -73,7 +73,12 @@ import { useIsVisible } from '../hooks/useIsVisible';
 import { useFetchDashboards } from './useFetchDashboards';
 import { DEFAULT_GRAPH_SAMPLES, getAllVariables } from './monitoring-dashboard-utils';
 import { getTimeRanges, isTimeoutError, QUERY_CHUNK_SIZE } from '../utils';
-import { getObserveState, usePerspective } from '../hooks/usePerspective';
+import {
+  getDeashboardsUrl,
+  getMutlipleQueryBrowserUrl,
+  getObserveState,
+  usePerspective,
+} from '../hooks/usePerspective';
 import KebabDropdown from '../kebab-dropdown';
 import { MonitoringState } from '../../reducers/observe';
 
@@ -545,6 +550,7 @@ const QueryBrowserLink = ({
   customDataSourceName: string;
 }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
+  const { perspective } = usePerspective();
 
   const params = new URLSearchParams();
   queries.forEach((q, i) => params.set(`query${i}`, q));
@@ -555,14 +561,7 @@ const QueryBrowserLink = ({
   }
 
   return (
-    <Link
-      aria-label={t('Inspect')}
-      to={
-        namespace
-          ? `/dev-monitoring/ns/${namespace}/metrics?${params.toString()}`
-          : `/monitoring/query-browser?${params.toString()}`
-      }
-    >
+    <Link aria-label={t('Inspect')} to={getMutlipleQueryBrowserUrl(perspective, params, namespace)}>
       {t('Inspect')}
     </Link>
   );
@@ -941,9 +940,7 @@ const MonitoringDashboardsPage_: React.FC<MonitoringDashboardsPageProps> = ({ hi
     (newBoard: string) => {
       let timeSpan: string;
       let endTime: string;
-      let url = namespace
-        ? `/dev-monitoring/ns/${namespace}?dashboard=${newBoard}`
-        : `/monitoring/dashboards/${newBoard}`;
+      let url = getDeashboardsUrl(perspective, newBoard, namespace);
 
       const refreshInterval = getQueryArgument('refreshInterval');
 

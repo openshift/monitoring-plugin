@@ -2,7 +2,12 @@ import * as React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 
 import { useTranslation } from 'react-i18next';
-import { getObserveState, getSilenceUrl, usePerspective } from '../hooks/usePerspective';
+import {
+  getNewSilenceUrl,
+  getObserveState,
+  getSilenceUrl,
+  usePerspective,
+} from '../hooks/usePerspective';
 import { Silences } from '../types';
 import { MonitoringState } from 'src/reducers/observe';
 import { RowFilter } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
@@ -27,6 +32,7 @@ import { EmptyBox } from '../console/utils/status-box';
 import { withFallback } from '../console/console-shared/error/error-boundary';
 import { useBoolean } from '../hooks/useBoolean';
 import { Link } from 'react-router-dom';
+import { useActiveNamespace } from '../console/console-shared/hooks/useActiveNamespace';
 
 const SilencesPage_: React.FC = () => {
   const { t } = useTranslation('plugin__monitoring-plugin');
@@ -275,9 +281,11 @@ const SilenceTableRowWithCheckbox: React.FC<RowProps<Silence>> = ({ obj }) => (
 
 const CreateSilenceButton: React.FC = React.memo(() => {
   const { t } = useTranslation('plugin__monitoring-plugin');
+  const { perspective } = usePerspective();
+  const namespace = useActiveNamespace();
 
   return (
-    <Link className="co-m-primary-action" to="/monitoring/silences/~new">
+    <Link className="co-m-primary-action" to={getNewSilenceUrl(perspective, namespace)}>
       <Button data-test="create-silence-btn" variant="primary">
         {t('Create silence')}
       </Button>

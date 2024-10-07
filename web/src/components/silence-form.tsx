@@ -37,7 +37,7 @@ import { StatusBox } from './console/utils/status-box';
 import { useBoolean } from './hooks/useBoolean';
 import { Silences } from './types';
 import { refreshSilences, SilenceResource, silenceState } from './utils';
-import { getObserveState, usePerspective } from './hooks/usePerspective';
+import { getObserveState, getSilenceAlertUrl, usePerspective } from './hooks/usePerspective';
 import { MonitoringState } from '../reducers/observe';
 
 const pad = (i: number): string => (i < 10 ? `0${i}` : String(i));
@@ -225,7 +225,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
       .then(({ silenceID }) => {
         setError(undefined);
         refreshSilences(dispatch, perspective, silencesKey);
-        history.push(`${SilenceResource.plural}/${encodeURIComponent(silenceID)}`);
+        history.push(getSilenceAlertUrl(perspective, silenceID));
       })
       .catch((err) => {
         const errorMessage =

@@ -240,11 +240,8 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
         <div className="pf-c-page__main-breadcrumb">
           <Breadcrumb className="monitoring-breadcrumbs">
             <BreadcrumbItem>
-              <Link
-                className="pf-c-breadcrumb__link"
-                to={namespace ? `/dev-monitoring/ns/${namespace}/alerts` : '/monitoring/alertrules'}
-              >
-                {namespace ? t('Alerts') : t('Alerting rules')}
+              <Link className="pf-c-breadcrumb__link" to={getAlertRulesUrl(perspective)}>
+                {t('Alerting rules')}
               </Link>
             </BreadcrumbItem>
             <BreadcrumbItem isActive>{t('Alerting rule details')}</BreadcrumbItem>
@@ -711,6 +708,7 @@ const PollerPages = () => {
 // use that if it exists. Otherwise, just go to the query browser page with no query.
 const PrometheusUIRedirect = () => {
   const params = getAllQueryArguments();
+  // leaving perspective redirect to future work
   return <Redirect to={`/monitoring/query-browser?query0=${params['g0.expr'] || ''}`} />;
 };
 
