@@ -166,7 +166,6 @@ func setupRoutes(cfg *Config) (*mux.Router, *PluginConfig) {
 
 	router.PathPrefix("/health").HandlerFunc(healthHandler())
 
-	// TODO: needs to check for acm feature and adjust the plugin-manifest to be something appropriate
 	router.Path("/plugin-manifest.json").Handler(manifestHandler(cfg))
 
 	// needs to make sure that acm is an appropriate feature and can be served from here

@@ -201,12 +201,7 @@ export const getAlertUrl = (
   }
 };
 
-export const getSilenceUrl = (
-  perspective: Perspective,
-  silenceID: string,
-  alertManagerBaseURL: string,
-  namespace?: string,
-) => {
+export const getSilenceUrl = (perspective: Perspective, silenceID: string, namespace?: string) => {
   switch (perspective) {
     case 'acm':
       return `${ALERTMANAGER_PROXY_PATH}/api/v2/silence/${silenceID}`;

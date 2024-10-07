@@ -47,14 +47,12 @@ export const getPrometheusURL = (
   perspective: Perspective,
   basePath: string = props.namespace ? PROMETHEUS_TENANCY_BASE_PATH : PROMETHEUS_BASE_PATH,
 ): string => {
-  if (perspective === 'acm') {
-    basePath = PROMETHEUS_PROXY_PATH;
-  }
   if (props.endpoint !== PrometheusEndpoint.RULES && !props.query) {
     return '';
   }
+  const path = perspective === 'acm' ? PROMETHEUS_PROXY_PATH : basePath;
   const params = getSearchParams(props);
-  return `${basePath}/${props.endpoint}?${params.toString()}`;
+  return `${path}/${props.endpoint}?${params.toString()}`;
 };
 
 type PrometheusURLProps = {

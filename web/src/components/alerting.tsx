@@ -496,7 +496,6 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
 
   const namespace = useActiveNamespace();
   const { alertsKey, perspective, silencesKey } = usePerspective();
-  useSilencesPoller({ namespace });
 
   const alertsLoaded = useSelector(
     (state: MonitoringState) => getObserveState(perspective, state)?.get(alertsKey)?.loaded,
@@ -521,10 +520,8 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
         <div className="pf-c-page__main-breadcrumb">
           <Breadcrumb className="monitoring-breadcrumbs">
             <BreadcrumbItem>
-              <Link className="pf-c-breadcrumb__link" to={getAlertsUrl(perspective, namespace)}>
-                {t('Alerts')}
-                {/* TODO: this setup is wrong, need to determine behavior for each perspective.*/}
-                {/* I think it should be linking to silences pages always, but unclear */}
+              <Link className="pf-c-breadcrumb__link" to={getSilencesUrl(perspective, namespace)}>
+                {t('Silences')}
               </Link>
             </BreadcrumbItem>
             <BreadcrumbItem isActive>{t('Silence details')}</BreadcrumbItem>
@@ -1142,6 +1139,7 @@ const PollerPages = () => {
   );
 
   useRulesAlertsPoller(namespace, dispatch, alertsSource);
+  useSilencesPoller({ namespace });
 
   if (perspective === 'acm') {
     return (

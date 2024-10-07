@@ -267,12 +267,7 @@ const ExpireSilenceModal: React.FC<ExpireSilenceModalProps> = ({
 
   const expireSilence = () => {
     setInProgress();
-    const url = getSilenceUrl(
-      perspective,
-      silenceID,
-      window.SERVER_FLAGS.alertManagerBaseURL,
-      namespace,
-    );
+    const url = getSilenceUrl(perspective, silenceID, namespace);
     consoleFetchJSON
       .delete(url)
       .then(() => {
