@@ -99,7 +99,7 @@ const AlertsPage_: React.FC<AlertsPageProps> = () => {
     },
     severityRowFilter(t),
     {
-      defaultSelected: [defaultAlertTenant],
+      defaultSelected: defaultAlertTenant,
       filter: (filter, alert: Alert) =>
         filter.selected?.includes(alertSource(alert)) || _.isEmpty(filter.selected),
       filterGroupName: t('Source'),

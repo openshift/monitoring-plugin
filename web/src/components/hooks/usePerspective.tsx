@@ -16,7 +16,7 @@ type usePerspectiveReturn = {
   alertsKey: alertKey;
   silencesKey: silencesKey;
   alertingContextId: 'dev-observe-alerting' | 'observe-alerting' | 'acm-observe-alerting';
-  defaultAlertTenant: AlertSource;
+  defaultAlertTenant: Array<AlertSource>;
 };
 
 export const usePerspective = (): usePerspectiveReturn => {
@@ -29,7 +29,7 @@ export const usePerspective = (): usePerspectiveReturn => {
       alertsKey: 'devAlerts',
       silencesKey: 'devSilences',
       alertingContextId: 'dev-observe-alerting',
-      defaultAlertTenant: AlertSource.User,
+      defaultAlertTenant: [AlertSource.User],
     };
   } else if (perspective === 'admin') {
     return {
@@ -38,7 +38,7 @@ export const usePerspective = (): usePerspectiveReturn => {
       alertsKey: 'alerts',
       silencesKey: 'silences',
       alertingContextId: 'observe-alerting',
-      defaultAlertTenant: AlertSource.Platform,
+      defaultAlertTenant: [AlertSource.Platform],
     };
   }
   // perspective === acm
@@ -48,7 +48,7 @@ export const usePerspective = (): usePerspectiveReturn => {
     alertsKey: 'acmAlerts',
     silencesKey: 'acmSilences',
     alertingContextId: 'acm-observe-alerting',
-    defaultAlertTenant: AlertSource.Platform, //wrong
+    defaultAlertTenant: [],
   };
 };
 

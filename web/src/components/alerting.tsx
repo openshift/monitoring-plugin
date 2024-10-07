@@ -469,7 +469,7 @@ const RuleTableRow: React.FC<RowProps<Rule>> = ({ obj }) => {
 
 const RulesPage_: React.FC = () => {
   const { t } = useTranslation('plugin__monitoring-plugin');
-  const { alertsKey, silencesKey, rulesKey, perspective } = usePerspective();
+  const { alertsKey, silencesKey, rulesKey, perspective, defaultAlertTenant } = usePerspective();
 
   const data: Rule[] = useSelector((state: MonitoringState) =>
     getObserveState(perspective, state)?.get(rulesKey),
@@ -498,7 +498,7 @@ const RulesPage_: React.FC = () => {
     alertStateFilter(t),
     severityRowFilter(t),
     {
-      defaultSelected: [perspective === 'acm' ? AlertSource.User : AlertSource.Platform],
+      defaultSelected: defaultAlertTenant,
       filter: (filter, rule: Rule) =>
         filter.selected?.includes(alertingRuleSource(rule)) || _.isEmpty(filter.selected),
       filterGroupName: t('Source'),
