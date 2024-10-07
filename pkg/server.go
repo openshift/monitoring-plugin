@@ -168,7 +168,6 @@ func setupRoutes(cfg *Config) (*mux.Router, *PluginConfig) {
 
 	router.Path("/plugin-manifest.json").Handler(manifestHandler(cfg))
 
-	// needs to make sure that acm is an appropriate feature and can be served from here
 	router.PathPrefix("/features").HandlerFunc(featuresHandler(cfg))
 	router.PathPrefix("/config").HandlerFunc(configHandlerFunc)
 	router.PathPrefix("/").Handler(filesHandler(http.Dir(cfg.StaticPath)))

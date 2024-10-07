@@ -41,7 +41,6 @@ export const usePerspective = (): usePerspectiveReturn => {
       defaultAlertTenant: [AlertSource.Platform],
     };
   }
-  // perspective === acm
   return {
     perspective: 'acm',
     rulesKey: 'acmRules',
@@ -75,11 +74,6 @@ export const getSilencesKey = (perspective: Perspective): silencesKey => {
       return 'devSilences';
   }
 };
-
-/**
- * All alertmanager and thanos-querier URLs MUST be converted to point to the proxies
- * on the monitoring-plugin for the acm perspective
- */
 
 export const getAlertsUrl = (perspective: Perspective, namespace?: string) => {
   switch (perspective) {
