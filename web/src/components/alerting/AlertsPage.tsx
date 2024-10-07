@@ -51,6 +51,7 @@ const tableAlertClasses = [
   'pf-m-hidden pf-m-visible-on-sm', // Severity
   '', // State
   'pf-m-hidden pf-m-visible-on-sm', // Source
+  'pf-m-hidden pf-m-visible-on-sm', // Cluster
   'dropdown-kebab-pf pf-c-table__action',
 ];
 
@@ -115,12 +116,20 @@ const AlertsPage_: React.FC<AlertsPageProps> = () => {
 
   if (perspective === 'dev') {
     rowFilters = rowFilters.filter((filter) => filter.type !== 'alert-source');
+  } else if (perspective === 'acm') {
+    rowFilters.splice(-1, 0, {
+      filter: (filter, alert: Alert) =>
+        fuzzyCaseInsensitive(filter.selected?.[0], alert.labels?.cluster),
+      filterGroupName: '',
+      items: [],
+      type: 'cluster',
+    } as RowFilter);
   }
 
   const [staticData, filteredData, onFilterChange] = useListPageFilter(data, rowFilters);
 
-  const columns = React.useMemo<TableColumn<Alert>[]>(
-    () => [
+  const columns = React.useMemo<TableColumn<Alert>[]>(() => {
+    const cols = [
       {
         id: 'name',
         props: { className: tableAlertClasses[0] },
@@ -154,21 +163,38 @@ const AlertsPage_: React.FC<AlertsPageProps> = () => {
       },
       {
         id: 'actions',
-        props: { className: tableAlertClasses[4] },
+        props: { className: tableAlertClasses[5] },
         title: '',
       },
-    ],
-    [t],
-  );
+    ];
+
+    if (perspective === 'acm') {
+      cols.splice(4, 0, {
+        id: 'cluster',
+        props: { className: tableAlertClasses[4] },
+        sort: 'labels.cluster',
+        title: t('Cluster'),
+        transforms: [sortable],
+      });
+    }
+    return cols;
+  }, [t, perspective]);
 
   const getTableData = () => {
     const csvColumns = ['Name', 'Severity', 'State'];
+    if (perspective === 'acm') {
+      csvColumns.push('Cluster');
+    }
     const getCsvRows = () => {
       return filteredData?.map((row) => {
         const name = row?.labels?.alertname ?? '';
         const severity = row?.labels?.severity ?? '';
         const state = row?.state ?? '';
-        return [name, severity, state];
+        const rowData = [name, severity, state];
+        if (perspective === 'acm') {
+          rowData.push(row?.labels?.clsuter ?? '');
+        }
+        return rowData;
       });
     };
     return [csvColumns, ...getCsvRows()];
