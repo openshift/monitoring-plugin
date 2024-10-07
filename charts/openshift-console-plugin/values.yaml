@@ -33,10 +33,10 @@ plugin:
     name: monitoring-console-plugin
     enabled: true
     alertmanager:
-      url: https://alertmanager-main.openshift-monitoring.svc:9094
+      url: https://alertmanager.open-cluster-management-observability.svc:9095
       pluginPort: 9444
     thanos:
-      url: https://thanos-querier.openshift-monitoring.svc:9091
+      url: https://rbac-query-proxy.open-cluster-management-observability.svc:8443
       pluginPort: 9445
   patcherServiceAccount:
     create: true
