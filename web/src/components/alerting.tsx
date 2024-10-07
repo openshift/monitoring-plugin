@@ -2,14 +2,11 @@ import {
   Alert,
   AlertSeverity,
   AlertStates,
-  consoleFetchJSON,
   ListPageFilter,
   PrometheusAlert,
   RowFilter,
   RowProps,
   Rule,
-  Silence,
-  SilenceStates,
   TableColumn,
   Timestamp,
   useListPageFilter,
@@ -17,24 +14,16 @@ import {
   VirtualizedTable,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
-  Alert as PFAlert,
   Breadcrumb,
   BreadcrumbItem,
-  Button,
-  Checkbox,
   CodeBlock,
   CodeBlockCode,
-  Flex,
-  FlexItem,
   Toolbar,
   ToolbarContent,
   ToolbarGroup,
   ToolbarItem,
 } from '@patternfly/react-core';
-import {
-  DropdownItem as DropdownItemDeprecated,
-  DropdownToggle as DropdownToggleDeprecated,
-} from '@patternfly/react-core/deprecated';
+import { DropdownItem as DropdownItemDeprecated } from '@patternfly/react-core/deprecated';
 import { sortable } from '@patternfly/react-table';
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
@@ -58,25 +47,21 @@ import {
 import { SectionHeading } from './console/utils/headings';
 import { ExternalLink } from './console/utils/link';
 import { getAllQueryArguments } from './console/utils/router';
-import { EmptyBox, LoadingInline, StatusBox } from './console/utils/status-box';
+import { EmptyBox, StatusBox } from './console/utils/status-box';
 
 import MonitoringDashboardsPage from './dashboards';
-import { useBoolean } from './hooks/useBoolean';
 import KebabDropdown from './kebab-dropdown';
 import { Labels } from './labels';
 import { QueryBrowserPage, ToggleGraph } from './metrics';
 import { CreateSilence, EditSilence } from './silence-form';
 import { TargetsUI } from './targets';
-import { Alerts, AlertSource, Silences } from './types';
+import { Alerts, AlertSource } from './types';
 import {
   alertDescription,
   alertingRuleStateOrder,
   alertSeverityOrder,
   fuzzyCaseInsensitive,
-  refreshSilences,
   RuleResource,
-  SilenceResource,
-  silenceState,
 } from './utils';
 
 import './_monitoring.scss';
@@ -88,7 +73,6 @@ import {
   getObserveState,
   getRuleUrl,
   getSilencesUrl,
-  getSilenceUrl,
   usePerspective,
 } from './hooks/usePerspective';
 import {
@@ -104,25 +88,17 @@ import {
   queryBrowserURL,
   Severity,
   SeverityBadge,
-  SeverityCounts,
   SeverityHelp,
   SilencesNotLoadedWarning,
   SourceHelp,
 } from './alerting/AlertUtils';
 import AlertsPage from './alerting/AlertsPage';
 import AlertsDetailsPage from './alerting/AlertsDetailPage';
-import {
-  SelectedSilencesContext,
-  SilenceDropdown,
-  SilenceMatchersList,
-  SilenceState,
-  SilenceTableRow,
-  tableSilenceClasses,
-} from './alerting/SilencesUtils';
-import { OnToggle } from './alerting/AlertUtils';
 import { useRulesAlertsPoller } from './hooks/useRulesAlertsPoller';
 import { useSilencesPoller } from './hooks/useSilencesPoller';
 import { MonitoringState } from '../reducers/observe';
+import SilencesPage from './alerting/SilencesPage';
+import SilencesDetailsPage from './alerting/SilencesDetailPage';
 
 const StateCounts: React.FC<{ alerts: PrometheusAlert[] }> = ({ alerts }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
@@ -142,10 +118,6 @@ const StateCounts: React.FC<{ alerts: PrometheusAlert[] }> = ({ alerts }) => {
     </>
   );
 };
-
-const SilenceTableRowWithCheckbox: React.FC<RowProps<Silence>> = ({ obj }) => (
-  <SilenceTableRow showCheckbox={true} obj={obj} />
-);
 
 // Renders Prometheus template text and highlights any {{ ... }} tags that it contains
 const PrometheusTemplate = ({ text }) => (
@@ -427,197 +399,6 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
 };
 export const AlertRulesDetailsPage = withFallback(AlertRulesDetailsPage_);
 
-const ActionsToggle: React.FC<{ onToggle: OnToggle }> = ({ onToggle, ...props }) => (
-  <DropdownToggleDeprecated
-    data-test="silence-actions-toggle"
-    onToggle={(event, isOpen) => onToggle(isOpen, event as MouseEvent)}
-    {...props}
-  >
-    Actions
-  </DropdownToggleDeprecated>
-);
-
-const SilenceDropdownActions: React.FC<{ silence: Silence }> = ({ silence }) => (
-  <SilenceDropdown className="co-actions-menu" silence={silence} Toggle={ActionsToggle} />
-);
-
-type SilencedAlertsListProps = RouteComponentProps & { alerts: Alert[] };
-
-const SilencedAlertsList_: React.FC<SilencedAlertsListProps> = ({ alerts, history }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
-  const { perspective } = usePerspective();
-
-  return _.isEmpty(alerts) ? (
-    <div className="pf-u-text-align-center">{t('None found')}</div>
-  ) : (
-    <div className="co-m-table-grid co-m-table-grid--bordered">
-      <div className="row co-m-table-grid__head">
-        <div className="col-xs-9">{t('Name')}</div>
-        <div className="col-xs-3">{t('Severity')}</div>
-      </div>
-      <div className="co-m-table-grid__body">
-        {_.sortBy<Alert>(alerts, alertDescription).map((a, i) => (
-          <div className="row co-resource-list__item" key={i}>
-            <div className="col-xs-9">
-              <Link
-                className="co-resource-item"
-                data-test="firing-alerts"
-                to={getAlertUrl(perspective, a, a.rule.id)}
-              >
-                {a.labels.alertname}
-              </Link>
-              <div className="monitoring-description">{alertDescription(a)}</div>
-            </div>
-            <div className="col-xs-3">
-              <Severity severity={a.labels.severity} />
-            </div>
-            <div className="dropdown-kebab-pf">
-              <KebabDropdown
-                dropdownItems={[
-                  <DropdownItemDeprecated
-                    key="view-rule"
-                    onClick={() => history.push(getRuleUrl(perspective, a.rule))}
-                  >
-                    {t('View alerting rule')}
-                  </DropdownItemDeprecated>,
-                ]}
-              />
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-const SilencedAlertsList = withRouter(SilencedAlertsList_);
-
-const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ match }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
-
-  const namespace = useActiveNamespace();
-  const { alertsKey, perspective, silencesKey } = usePerspective();
-
-  const alertsLoaded = useSelector(
-    (state: MonitoringState) => getObserveState(perspective, state)?.get(alertsKey)?.loaded,
-  );
-
-  const silences: Silences = useSelector((state: MonitoringState) =>
-    getObserveState(perspective, state)?.get(silencesKey),
-  );
-  const silence = _.find(silences?.data, { id: _.get(match, 'params.id') });
-
-  return (
-    <>
-      <Helmet>
-        <title>{t('{{name}} details', { name: silence?.name || SilenceResource.label })}</title>
-      </Helmet>
-      <StatusBox
-        data={silence}
-        label={SilenceResource.label}
-        loaded={silences?.loaded}
-        loadError={silences?.loadError}
-      >
-        <div className="pf-c-page__main-breadcrumb">
-          <Breadcrumb className="monitoring-breadcrumbs">
-            <BreadcrumbItem>
-              <Link className="pf-c-breadcrumb__link" to={getSilencesUrl(perspective, namespace)}>
-                {t('Silences')}
-              </Link>
-            </BreadcrumbItem>
-            <BreadcrumbItem isActive>{t('Silence details')}</BreadcrumbItem>
-          </Breadcrumb>
-        </div>
-        <div className="co-m-nav-title co-m-nav-title--detail co-m-nav-title--breadcrumbs">
-          <h1 className="co-m-pane__heading">
-            <div data-test="resource-title" className="co-resource-item">
-              <MonitoringResourceIcon
-                className="co-m-resource-icon--lg"
-                resource={SilenceResource}
-              />
-              {silence?.name}
-            </div>
-            <div className="co-actions" data-test-id="details-actions">
-              {silence && <SilenceDropdownActions silence={silence} />}
-            </div>
-          </h1>
-        </div>
-        <div className="co-m-pane__body">
-          <SectionHeading text={t('Silence details')} />
-          <div className="co-m-pane__body-group">
-            <div className="row">
-              <div className="col-sm-6">
-                <dl className="co-m-pane__details">
-                  {silence?.name && (
-                    <>
-                      <dt>{t('Name')}</dt>
-                      <dd>{silence?.name}</dd>
-                    </>
-                  )}
-                  <dt>{t('Matchers')}</dt>
-                  <dd data-test="label-list">
-                    {_.isEmpty(silence?.matchers) ? (
-                      <div className="text-muted">{t('No matchers')}</div>
-                    ) : (
-                      <SilenceMatchersList silence={silence} />
-                    )}
-                  </dd>
-                  <dt>{t('State')}</dt>
-                  <dd>
-                    <SilenceState silence={silence} />
-                  </dd>
-                  <dt>{t('Last updated at')}</dt>
-                  <dd>
-                    <Timestamp timestamp={silence?.updatedAt} />
-                  </dd>
-                </dl>
-              </div>
-              <div className="col-sm-6">
-                <dl className="co-m-pane__details">
-                  <dt>{t('Starts at')}</dt>
-                  <dd>
-                    <Timestamp timestamp={silence?.startsAt} />
-                  </dd>
-                  <dt>{t('Ends at')}</dt>
-                  <dd>
-                    <Timestamp timestamp={silence?.endsAt} />
-                  </dd>
-                  <dt>{t('Created by')}</dt>
-                  <dd>{silence?.createdBy || '-'}</dd>
-                  <dt>{t('Comment')}</dt>
-                  <dd>{silence?.comment || '-'}</dd>
-                  <dt>{t('Firing alerts')}</dt>
-                  <dd>
-                    {alertsLoaded ? (
-                      <SeverityCounts alerts={silence?.firingAlerts} />
-                    ) : (
-                      <LoadingInline />
-                    )}
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="co-m-pane__body">
-          <div className="co-m-pane__body-group">
-            <SectionHeading text={t('Firing alerts')} />
-            <div className="row">
-              <div className="col-xs-12">
-                {alertsLoaded ? (
-                  <SilencedAlertsList alerts={silence?.firingAlerts} />
-                ) : (
-                  <LoadingInline />
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </StatusBox>
-    </>
-  );
-};
-const SilencesDetailsPage = withFallback(SilencesDetailsPage_);
-
 export const severityRowFilter = (t): RowFilter => ({
   filter: (filter, alert: Alert) =>
     filter.selected?.includes(alert.labels?.severity) || _.isEmpty(filter.selected),
@@ -812,263 +593,6 @@ const RulesPage_: React.FC = () => {
   );
 };
 const RulesPage = withFallback(RulesPage_);
-
-const CreateSilenceButton: React.FC = React.memo(() => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
-
-  return (
-    <Link className="co-m-primary-action" to="/monitoring/silences/~new">
-      <Button data-test="create-silence-btn" variant="primary">
-        {t('Create silence')}
-      </Button>
-    </Link>
-  );
-});
-
-type ExpireAllSilencesButtonProps = {
-  setErrorMessage: (string) => void;
-};
-
-const ExpireAllSilencesButton: React.FC<ExpireAllSilencesButtonProps> = ({ setErrorMessage }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
-
-  const { perspective, silencesKey } = usePerspective();
-
-  const [isInProgress, , setInProgress, setNotInProgress] = useBoolean(false);
-
-  const dispatch = useDispatch();
-
-  const { selectedSilences, setSelectedSilences } = React.useContext(SelectedSilencesContext);
-
-  const onClick = () => {
-    setInProgress();
-    Promise.allSettled(
-      [...selectedSilences].map((silenceID: string) =>
-        consoleFetchJSON.delete(
-          getSilenceUrl(perspective, silenceID, window.SERVER_FLAGS.alertManagerBaseURL),
-        ),
-      ),
-    ).then((values) => {
-      setNotInProgress();
-      setSelectedSilences(new Set());
-      refreshSilences(dispatch, perspective, silencesKey);
-      const errors = values
-        .filter((v) => v.status === 'rejected')
-        .map((v: PromiseRejectedResult) => v.reason);
-      if (errors.length > 0) {
-        const messages = errors.map(
-          (err) => _.get(err, 'json.error') || err.message || 'Error expiring silence',
-        );
-        setErrorMessage(messages.join(', '));
-      }
-    });
-  };
-
-  return (
-    <Button
-      isDisabled={selectedSilences.size === 0}
-      isLoading={isInProgress}
-      onClick={onClick}
-      variant="secondary"
-    >
-      {t('Expire {{count}} silence', { count: selectedSilences.size })}
-    </Button>
-  );
-};
-
-const silenceFiringAlertsOrder = (silence: Silence) => {
-  const counts = _.countBy(silence.firingAlerts, 'labels.severity');
-  return [
-    Number.MAX_SAFE_INTEGER - (counts[AlertSeverity.Critical] ?? 0),
-    Number.MAX_SAFE_INTEGER - (counts[AlertSeverity.Warning] ?? 0),
-    silence.firingAlerts.length,
-  ];
-};
-
-const silenceStateOrder = (silence: Silence) => [
-  [SilenceStates.Active, SilenceStates.Pending, SilenceStates.Expired].indexOf(
-    silenceState(silence),
-  ),
-  _.get(silence, silenceState(silence) === SilenceStates.Pending ? 'startsAt' : 'endsAt'),
-];
-
-const SelectAllCheckbox: React.FC<{ silences: Silence[] }> = ({ silences }) => {
-  const { selectedSilences, setSelectedSilences } = React.useContext(SelectedSilencesContext);
-
-  const activeSilences = _.filter(silences, (s) => silenceState(s) !== SilenceStates.Expired);
-  const isAllSelected =
-    activeSilences.length > 0 && _.every(activeSilences, (s) => selectedSilences.has(s.id));
-
-  const onChange = React.useCallback(
-    (isChecked: boolean) => {
-      const ids = isChecked ? activeSilences.map((s) => s.id) : [];
-      setSelectedSilences(new Set(ids));
-    },
-    [activeSilences, setSelectedSilences],
-  );
-
-  return (
-    <Checkbox
-      id="select-all-silences-checkbox"
-      isChecked={isAllSelected}
-      isDisabled={activeSilences.length === 0}
-      onChange={(_e, checked) => (typeof _e === 'boolean' ? onChange(_e) : onChange(checked))}
-    />
-  );
-};
-
-const SilencesPage_: React.FC = () => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
-  const { silencesKey, perspective } = usePerspective();
-
-  const [selectedSilences, setSelectedSilences] = React.useState(new Set());
-  const [errorMessage, setErrorMessage] = React.useState();
-
-  const {
-    data,
-    loaded = false,
-    loadError,
-  }: Silences = useSelector(
-    (state: MonitoringState) => getObserveState(perspective, state)?.get(silencesKey) || {},
-  );
-
-  const rowFilters: RowFilter[] = [
-    // TODO: The "name" filter doesn't really fit useListPageFilter's idea of a RowFilter, but
-    //       useListPageFilter doesn't yet provide a better way to add a filter like this
-    {
-      filter: (filter, silence: Silence) =>
-        fuzzyCaseInsensitive(filter.selected?.[0], silence.name),
-      filterGroupName: '',
-      items: [],
-      type: 'name',
-    } as RowFilter,
-    {
-      defaultSelected: [SilenceStates.Active, SilenceStates.Pending],
-      filter: (filter, silence: Silence) =>
-        filter.selected?.includes(silenceState(silence)) || _.isEmpty(filter.selected),
-      filterGroupName: t('Silence State'),
-      items: [
-        { id: SilenceStates.Active, title: t('Active') },
-        { id: SilenceStates.Pending, title: t('Pending') },
-        { id: SilenceStates.Expired, title: t('Expired') },
-      ],
-      reducer: silenceState,
-      type: 'silence-state',
-    },
-  ];
-
-  const [staticData, filteredData, onFilterChange] = useListPageFilter(data, rowFilters);
-
-  const columns = React.useMemo<TableColumn<Silence>[]>(
-    () => [
-      {
-        id: 'checkbox',
-        props: { className: tableSilenceClasses[0] },
-        title: (<SelectAllCheckbox silences={filteredData} />) as any,
-      },
-      {
-        id: 'name',
-        props: { className: tableSilenceClasses[1] },
-        sort: 'name',
-        title: t('Name'),
-        transforms: [sortable],
-      },
-      {
-        id: 'firingAlerts',
-        props: { className: tableSilenceClasses[2] },
-        sort: (silences: Silence[], direction: 'asc' | 'desc') =>
-          _.orderBy(silences, silenceFiringAlertsOrder, [direction]),
-        title: t('Firing alerts'),
-        transforms: [sortable],
-      },
-      {
-        id: 'state',
-        props: { className: tableSilenceClasses[3] },
-        sort: (silences: Silence[], direction: 'asc' | 'desc') =>
-          _.orderBy(silences, silenceStateOrder, [direction]),
-        title: t('State'),
-        transforms: [sortable],
-      },
-      {
-        id: 'createdBy',
-        props: { className: tableSilenceClasses[4] },
-        sort: 'createdBy',
-        title: t('Creator'),
-        transforms: [sortable],
-      },
-      {
-        id: 'actions',
-        props: { className: tableSilenceClasses[5] },
-        title: '',
-      },
-    ],
-    [filteredData, t],
-  );
-
-  return (
-    <>
-      <Helmet>
-        <title>Alerting</title>
-      </Helmet>
-      <div className="co-m-pane__body">
-        <SelectedSilencesContext.Provider value={{ selectedSilences, setSelectedSilences }}>
-          <Flex>
-            <FlexItem>
-              <ListPageFilter
-                data={staticData}
-                hideLabelFilter
-                loaded={loaded}
-                onFilterChange={onFilterChange}
-                rowFilters={rowFilters}
-              />
-            </FlexItem>
-            <FlexItem>
-              <CreateSilenceButton />
-            </FlexItem>
-            <FlexItem>
-              <ExpireAllSilencesButton setErrorMessage={setErrorMessage} />
-            </FlexItem>
-          </Flex>
-          {loadError && (
-            <PFAlert
-              className="co-alert"
-              isInline
-              title={t(
-                'Error loading silences from Alertmanager. Alertmanager may be unavailable.',
-              )}
-              variant="danger"
-            >
-              {typeof loadError === 'string' ? loadError : loadError.message}
-            </PFAlert>
-          )}
-          {errorMessage && (
-            <PFAlert className="co-alert" isInline title={t('Error')} variant="danger">
-              {errorMessage}
-            </PFAlert>
-          )}
-          <div className="row">
-            <div className="col-xs-12">
-              <VirtualizedTable<Silence>
-                aria-label={t('Silences')}
-                label={t('Silences')}
-                columns={columns}
-                data={filteredData ?? []}
-                loaded={loaded}
-                loadError={loadError}
-                Row={SilenceTableRowWithCheckbox}
-                unfilteredData={data}
-                NoDataEmptyMsg={() => {
-                  return <EmptyBox label={t('Silences')} />;
-                }}
-              />
-            </div>
-          </div>
-        </SelectedSilencesContext.Provider>
-      </div>
-    </>
-  );
-};
-const SilencesPage = withFallback(SilencesPage_);
 
 const Tab: React.FC<{ active: boolean; children: React.ReactNode }> = ({ active, children }) => (
   <li
