@@ -21,6 +21,7 @@ import { BellIcon, BellSlashIcon, OutlinedBellIcon } from '@patternfly/react-ico
 import { FormatSeriesTitle, QueryBrowser } from '../query-browser';
 import { Link } from 'react-router-dom';
 import { TFunction } from 'i18next';
+import { getQueryBrowserUrl, usePerspective } from '../hooks/usePerspective';
 
 export const getAdditionalSources = <T extends Alert | Rule>(
   data: Array<T>,
@@ -223,13 +224,17 @@ export const Graph: React.FC<GraphProps> = ({
   ruleDuration,
 }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
+  const { perspective } = usePerspective();
 
   // 3 times the rule's duration, but not less than 30 minutes
   const timespan = Math.max(3 * ruleDuration, 30 * 60) * 1000;
 
   const GraphLink = () =>
     query ? (
-      <Link aria-label={t('View in Metrics')} to={queryBrowserURL(query, namespace)}>
+      <Link
+        aria-label={t('View in Metrics')}
+        to={getQueryBrowserUrl(perspective, query, namespace)}
+      >
         {t('View in Metrics')}
       </Link>
     ) : null;
@@ -255,11 +260,6 @@ type GraphProps = {
   ruleDuration: number;
   showLegend?: boolean;
 };
-
-export const queryBrowserURL = (query: string, namespace: string) =>
-  namespace
-    ? `/dev-monitoring/ns/${namespace}/metrics?query0=${encodeURIComponent(query)}`
-    : `/monitoring/query-browser?query0=${encodeURIComponent(query)}`;
 
 export const SeverityHelp: React.FC = () => {
   const { t } = useTranslation('plugin__monitoring-plugin');

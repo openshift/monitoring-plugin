@@ -71,6 +71,7 @@ import {
   getAlertUrl,
   getNewSilenceAlertUrl,
   getObserveState,
+  getQueryBrowserUrl,
   getRuleUrl,
   getSilencesUrl,
   usePerspective,
@@ -85,7 +86,6 @@ import {
   Graph,
   MonitoringResourceIcon,
   PopoverField,
-  queryBrowserURL,
   Severity,
   SeverityBadge,
   SeverityHelp,
@@ -325,7 +325,7 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
                   <dd>
                     {/* display a link only if its a metrics based alert */}
                     {!sourceId || sourceId === 'prometheus' ? (
-                      <Link to={queryBrowserURL(rule?.query, namespace)}>
+                      <Link to={getQueryBrowserUrl(perspective, rule?.query, namespace)}>
                         <CodeBlock>
                           <CodeBlockCode>{rule?.query}</CodeBlockCode>
                         </CodeBlock>

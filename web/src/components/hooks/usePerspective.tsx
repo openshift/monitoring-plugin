@@ -223,3 +223,15 @@ export const getObserveState = (perspective: Perspective, state: MonitoringState
       return state.observe;
   }
 };
+
+export const getQueryBrowserUrl = (perspective: Perspective, query: string, namespace?: string) => {
+  switch (perspective) {
+    case 'acm':
+      return '';
+    case 'admin':
+      return `/monitoring/query-browser?query0=${encodeURIComponent(query)}`;
+    case 'dev':
+    default:
+      return `/dev-monitoring/ns/${namespace}/metrics?query0=${encodeURIComponent(query)}`;
+  }
+};
