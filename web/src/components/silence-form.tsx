@@ -348,7 +348,11 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
                   <TextInput
                     aria-label={t('Label name')}
                     isRequired
-                    onChange={(_e, v: string) => setMatcherField(i, 'name', v)}
+                    onChange={(_e, v: string) =>
+                      typeof _e === 'string'
+                        ? setMatcherField(i, 'name', _e)
+                        : setMatcherField(i, 'name', v)
+                    }
                     placeholder={t('Name')}
                     value={matcher.name}
                   />
@@ -358,7 +362,11 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
                   <TextInput
                     aria-label={t('Label value')}
                     isRequired
-                    onChange={(_e, v: string) => setMatcherField(i, 'value', v)}
+                    onChange={(_e, v: string) =>
+                      typeof _e === 'string'
+                        ? setMatcherField(i, 'value', _e)
+                        : setMatcherField(i, 'value', v)
+                    }
                     placeholder={t('Value')}
                     value={matcher.value}
                   />
@@ -418,7 +426,9 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
               <TextInput
                 aria-label={t('Creator')}
                 isRequired
-                onChange={(_e, v: string) => setCreatedBy(v)}
+                onChange={(_e, v: string) =>
+                  typeof _e === 'string' ? setCreatedBy(_e) : setCreatedBy(v)
+                }
                 value={createdBy}
               />
             </div>
@@ -427,7 +437,9 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
               <TextArea
                 aria-label={t('Comment')}
                 isRequired
-                onChange={(_E, v: string) => setComment(v)}
+                onChange={(_e, v: string) =>
+                  typeof _e === 'string' ? setComment(_e) : setComment(v)
+                }
                 data-test="silence-comment"
                 value={comment}
               />

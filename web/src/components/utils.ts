@@ -42,6 +42,8 @@ export const RuleResource: MonitoringResource = {
   abbr: 'AR',
 };
 
+// I'm a little tempted to just get rid of these. Either that or integrate
+// them tigher? I don't really like how they are used. Especially the plural
 export const SilenceResource: MonitoringResource = {
   kind: 'Silence',
   label: 'Silence',

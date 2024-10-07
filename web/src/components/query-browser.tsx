@@ -153,7 +153,7 @@ const SpanControls: React.FC<SpanControlsProps> = React.memo(
             aria-label={t('graph timespan')}
             className="query-browser__span-text"
             validated={isValid ? 'default' : 'error'}
-            onChange={(_e, v) => setSpan(v, true)}
+            onChange={(_e, v) => (typeof _e === 'string' ? setSpan(_e, true) : setSpan(v, true))}
             type="text"
             value={text}
           />
@@ -1002,7 +1002,7 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
                 isChecked={isStacked}
                 data-checked-state={isStacked}
                 label={t('Stacked')}
-                onChange={(_e, v) => setIsStacked(v)}
+                onChange={(_e, v) => (typeof _e === 'boolean' ? setIsStacked(_e) : setIsStacked(v))}
               />
             )}
           </div>

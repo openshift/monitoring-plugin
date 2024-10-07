@@ -912,7 +912,7 @@ const SelectAllCheckbox: React.FC<{ silences: Silence[] }> = ({ silences }) => {
       id="select-all-silences-checkbox"
       isChecked={isAllSelected}
       isDisabled={activeSilences.length === 0}
-      onChange={(_e, checked) => onChange(checked)}
+      onChange={(_e, checked) => (typeof _e === 'boolean' ? onChange(_e) : onChange(checked))}
     />
   );
 };

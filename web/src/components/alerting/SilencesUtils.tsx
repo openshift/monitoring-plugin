@@ -87,7 +87,7 @@ export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheck
             isChecked={selectedSilences.has(id)}
             isDisabled={state === SilenceStates.Expired}
             onChange={(_e, checked) => {
-              onCheckboxChange(checked);
+              typeof _e === 'boolean' ? onCheckboxChange(checked) : onCheckboxChange(checked);
             }}
           />
         </td>
