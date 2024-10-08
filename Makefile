@@ -1,22 +1,22 @@
 .PHONY: install-frontend
 install-frontend:
-	cd web && yarn install
+	cd web && npm install
 
 .PHONY: install-frontend-ci
 install-frontend-ci:
-	cd web && yarn install --frozen-lockfile
+	cd web && npm ci --omit=optional --ignore-scripts
 
 .PHONY: install-frontend-ci-clean
 install-frontend-ci-clean: install-frontend-ci
-	cd web && yarn cache clean
+	cd web && npm cache clean
 
 .PHONY: build-frontend
 build-frontend:
-	cd web && yarn build
+	cd web && npm run build
 
 .PHONY: start-frontend
 start-frontend:
-	cd web && yarn start
+	cd web && npm run start
 
 .PHONY: start-console
 start-console:
@@ -24,7 +24,7 @@ start-console:
 
 .PHONY: lint-frontend
 lint-frontend:
-	cd web && yarn lint
+	cd web && npm run lint
 
 .PHONY: install-backend
 install-backend:
