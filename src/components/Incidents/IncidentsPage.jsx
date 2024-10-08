@@ -22,7 +22,6 @@ import { useTranslation } from 'react-i18next';
 import {
   Bullseye,
   Dropdown,
-  DropdownItem,
   DropdownPosition,
   DropdownToggle,
   Flex,
@@ -31,8 +30,8 @@ import {
 import { Helmet } from 'react-helmet';
 import { useBoolean } from '../hooks/useBoolean';
 import some from 'lodash-es/some';
-import IncidentsTableRow from './IncidentsTableRow';
-import { dropdownItems, incidentsTableColumns } from './consts';
+import { dropdownItems } from './consts';
+import { IncidentsTable } from './IncidentsTable';
 
 const IncidentsPage = ({ customDataSource, namespace }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
@@ -180,14 +179,7 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
           />
           <div className="row">
             <div className="col-xs-12">
-              <VirtualizedTable
-                aria-label={t('Alerts')}
-                columns={incidentsTableColumns(t)}
-                data={tableData ?? []}
-                loaded={!alertsAreLoading}
-                Row={IncidentsTableRow(tableData)}
-                unfilteredData={incidentsData}
-              />
+              <IncidentsTable loaded={!alertsAreLoading} data={tableData} />
             </div>
           </div>
         </div>

@@ -1,21 +1,6 @@
 import * as React from 'react';
 import { DropdownItem } from '@patternfly/react-core';
 
-export const incidentsTableColumns = (t) => [
-  {
-    id: 'component',
-    title: t('Component'),
-  },
-  {
-    id: 'severity',
-    title: t('Severity'),
-  },
-  {
-    id: 'state',
-    title: t('State'),
-  },
-];
-
 export const dropdownItems = (changeDaysFilter, t) => [
   <DropdownItem key="1-day-filter" component="button" onClick={() => changeDaysFilter('1d')}>
     {t('1 day')}
