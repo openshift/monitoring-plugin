@@ -6,123 +6,131 @@ import {
   ChartBar,
   ChartGroup,
   ChartLabel,
-  ChartThemeColor,
   ChartTooltip,
   ChartVoronoiContainer,
 } from '@patternfly/react-charts';
-import { VictoryZoomContainer } from 'victory-zoom-container';
 import { Bullseye, Card, CardTitle, Spinner } from '@patternfly/react-core';
 import global_danger_color_100 from '@patternfly/react-tokens/dist/esm/global_danger_color_100';
 import global_info_color_100 from '@patternfly/react-tokens/dist/esm/global_info_color_100';
 import global_warning_color_100 from '@patternfly/react-tokens/dist/esm/global_warning_color_100';
-import { createIncidentsChartBars, createDateArray, formatDate, generateDateArray } from '../utils';
-import { mergeProps } from '@patternfly/react-table/dist/esm/components/Table/base';
+import { createIncidentsChartBars, formatDate, generateDateArray } from '../utils';
+import { getResizeObserver } from '@patternfly/react-core';
 
 const IncidentsChart = ({ incidentsData, chartDays }) => {
   const [isLoading, setIsLoading] = React.useState(true);
   const [chartData, setChartData] = React.useState();
-  const dateValues = generateDateArray(chartDays);
+  const [width, setWidth] = React.useState(0);
+  const containerRef = React.useRef(null);
+  const [hiddenSeries, setHiddenSeries] = React.useState(null);
+  const handleResize = () => {
+    if (containerRef.current && containerRef.current.clientWidth) {
+      setWidth(containerRef.current.clientWidth);
+    }
+  };
+  React.useEffect(() => {
+    const observer = getResizeObserver(containerRef.current, handleResize);
+    handleResize();
+    return () => observer();
+  }, []);
   React.useEffect(() => {
     setIsLoading(false);
     setChartData(incidentsData.map((incident) => createIncidentsChartBars(incident)));
   }, [incidentsData]);
+  const dateValues = generateDateArray(chartDays);
+
+  const isHidden = (group_id) => hiddenSeries !== null && hiddenSeries !== group_id;
 
   return (
     <Card className="incidents-chart-card">
-      <CardTitle>Incidents Timeline</CardTitle>
-      {isLoading ? (
-        <Bullseye>
-          <Spinner aria-label="incidents-chart-spinner" />
-        </Bullseye>
-      ) : (
-        <div
-          style={{
-            height: '350px',
-            //TODO: WIDTH SHOULD BE AUTOMATICALLY ADJUSTED
-            width: '100%',
-          }}
-        >
-          <Chart
-            containerComponent={
-              <ChartVoronoiContainer
-                labelComponent={
-                  <ChartTooltip constrainToVisibleArea labelComponent={<ChartLabel />} />
-                }
-                labels={({ datum }) =>
-                  `Severity: ${datum.name}\nComponent: ${datum.component}\nIncident ID: ${
-                    datum.group_id
-                  }\nStart: ${formatDate(new Date(datum.y0), true)}\nEnd: ${formatDate(
-                    new Date(datum.y),
-                    true,
-                  )}`
-                }
-              />
-            }
-            domainPadding={{ x: [30, 25] }}
-            legendData={[
-              { name: 'Critical', symbol: { fill: global_danger_color_100.var } },
-              { name: 'Info', symbol: { fill: global_info_color_100.var } },
-              { name: 'Warning', symbol: { fill: global_warning_color_100.var } },
-            ]}
-            legendPosition="bottom-left"
-            //this should be always less than the container height
-            height={300}
-            padding={{
-              bottom: 75, // Adjusted to accommodate legend
-              left: 50,
-              right: 25, // Adjusted to accommodate tooltip
-              top: 0,
+      <div ref={containerRef}>
+        <CardTitle>Incidents Timeline</CardTitle>
+        {isLoading ? (
+          <Bullseye>
+            <Spinner aria-label="incidents-chart-spinner" />
+          </Bullseye>
+        ) : (
+          <div
+            style={{
+              height: '350px',
+              //TODO: WIDTH SHOULD BE AUTOMATICALLY ADJUSTED
+              width: '100%',
             }}
-            //TODO: WIDTH SHOULD BE AUTOMATICALLY ADJUSTED
-            width={1570}
           >
-            <ChartAxis
-              dependentAxis
-              showGrid
-              tickFormat={(t) =>
-                new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+            <Chart
+              containerComponent={
+                <ChartVoronoiContainer
+                  labelComponent={
+                    <ChartTooltip constrainToVisibleArea labelComponent={<ChartLabel />} />
+                  }
+                  labels={({ datum }) =>
+                    `Severity: ${datum.name}\nComponent: ${datum.component}\nIncident ID: ${
+                      datum.group_id
+                    }\nStart: ${formatDate(new Date(datum.y0), true)}\nEnd: ${formatDate(
+                      new Date(datum.y),
+                      true,
+                    )}`
+                  }
+                />
               }
-              tickValues={dateValues}
-            />
-            <ChartGroup horizontal>
-              {chartData.map((bar, index) => {
-                return (
-                  //we have several arrays and for each array we make a ChartBar
-                  <ChartBar
-                    name={bar.group_id}
-                    data={bar}
-                    key={index}
-                    style={{
-                      data: {
-                        fill: ({ datum }) => datum.fill,
-                        stroke: ({ datum }) => datum.fill,
-                      },
-                    }}
-                    events={[
-                      {
-                        target: 'data',
-                        eventHandlers: {
-                          onClick: () => {
-                            return [
-                              {
-                                target: 'data',
-                                mutation: (props) => {
-                                  const fill = props.style && props.style.fill;
-                                  return fill === 'black' ? null : { style: { fill: 'black' } };
-                                },
-                              },
-                            ];
+              domainPadding={{ x: [30, 25] }}
+              legendData={[
+                { name: 'Critical', symbol: { fill: global_danger_color_100.var } },
+                { name: 'Info', symbol: { fill: global_info_color_100.var } },
+                { name: 'Warning', symbol: { fill: global_warning_color_100.var } },
+              ]}
+              legendPosition="bottom-left"
+              //this should be always less than the container height
+              height={300}
+              padding={{
+                bottom: 75, // Adjusted to accommodate legend
+                left: 50,
+                right: 25, // Adjusted to accommodate tooltip
+                top: 0,
+              }}
+              //TODO: WIDTH SHOULD BE AUTOMATICALLY ADJUSTED
+              width={width}
+            >
+              <ChartAxis
+                dependentAxis
+                showGrid
+                tickFormat={(t) =>
+                  new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                }
+                tickValues={dateValues}
+              />
+              <ChartGroup horizontal>
+                {chartData.map((bar, index) => {
+                  return (
+                    //we have several arrays and for each array we make a ChartBar
+                    <ChartBar
+                      name={bar.group_id}
+                      data={bar}
+                      key={index}
+                      style={{
+                        data: {
+                          fill: ({ datum }) => (!isHidden(datum.group_id) ? datum.fill : '#D2D2D2'),
+                          stroke: ({ datum }) => datum.fill,
+                        },
+                      }}
+                      events={[
+                        {
+                          eventHandlers: {
+                            onClick: (props, datum) => {
+                              setHiddenSeries(
+                                datum.datum.group_id === hiddenSeries ? null : datum.datum.group_id,
+                              );
+                            },
                           },
                         },
-                      },
-                    ]}
-                  />
-                );
-              })}
-            </ChartGroup>
-          </Chart>
-        </div>
-      )}
+                      ]}
+                    />
+                  );
+                })}
+              </ChartGroup>
+            </Chart>
+          </div>
+        )}
+      </div>
     </Card>
   );
 };
