@@ -16,6 +16,7 @@ import global_danger_color_100 from '@patternfly/react-tokens/dist/esm/global_da
 import global_info_color_100 from '@patternfly/react-tokens/dist/esm/global_info_color_100';
 import global_warning_color_100 from '@patternfly/react-tokens/dist/esm/global_warning_color_100';
 import { createIncidentsChartBars, createDateArray, formatDate, generateDateArray } from '../utils';
+import { mergeProps } from '@patternfly/react-table/dist/esm/components/Table/base';
 
 const IncidentsChart = ({ incidentsData, chartDays }) => {
   const [isLoading, setIsLoading] = React.useState(true);
@@ -88,6 +89,7 @@ const IncidentsChart = ({ incidentsData, chartDays }) => {
                 return (
                   //we have several arrays and for each array we make a ChartBar
                   <ChartBar
+                    name={bar.group_id}
                     data={bar}
                     key={index}
                     style={{
@@ -96,6 +98,24 @@ const IncidentsChart = ({ incidentsData, chartDays }) => {
                         stroke: ({ datum }) => datum.fill,
                       },
                     }}
+                    events={[
+                      {
+                        target: 'data',
+                        eventHandlers: {
+                          onClick: () => {
+                            return [
+                              {
+                                target: 'data',
+                                mutation: (props) => {
+                                  const fill = props.style && props.style.fill;
+                                  return fill === 'black' ? null : { style: { fill: 'black' } };
+                                },
+                              },
+                            ];
+                          },
+                        },
+                      },
+                    ]}
                   />
                 );
               })}
