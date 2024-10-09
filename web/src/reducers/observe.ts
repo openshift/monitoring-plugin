@@ -164,7 +164,7 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
       const firingAlerts = _.filter(alerts?.data, isAlertFiring);
       silenceFiringAlerts(firingAlerts, silences);
       silenceFiringAlerts(_.filter(notificationAlerts?.data, isAlertFiring), silences);
-      notificationAlerts.data = _.reject(notificationAlerts.data, { state: AlertStates.Silenced });
+      notificationAlerts.data = _.reject(notificationAlerts?.data, { state: AlertStates.Silenced });
       state = state.set(alertsKey, alerts);
       state = state.set('notificationAlerts', notificationAlerts);
 
