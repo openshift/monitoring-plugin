@@ -82,7 +82,7 @@ const SilencesPage_: React.FC = () => {
           filter.selected?.[0],
           silence.matchers.find((label) => label.name === 'cluster').value,
         ),
-      filterGroupName: t('plugin__monitoring-console-plugin~Cluster'),
+      filterGroupName: t('Cluster'),
       items: [],
       type: 'cluster',
     } as RowFilter);
@@ -147,7 +147,7 @@ const SilencesPage_: React.FC = () => {
             ],
             [direction],
           ),
-        title: t('plugin__monitoring-console-plugin~Cluster'),
+        title: t('Cluster'),
         transforms: [sortable],
       });
     }

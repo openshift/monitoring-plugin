@@ -1,22 +1,51 @@
 #!/usr/bin/env bash
+# Terminal output colors
+YELLOW='\033[0;33m'
+ENDCOLOR='\033[0m' # No Color
+RED='\033[0;31m'
+
 
 if ! [ -x "$(command -v yq)" ]; then
-  echo "yq required to run script"
+    printf "${RED}yq required to run make deploy-acm ${ENDCOLOR}\n"
   exit 1
 fi
 
-# Assumes being run from project home directory
-export PLUGIN_NAME="monitoring-console-plugin"
-sed -i 's/"name": "monitoring-plugin",/"name": "monitoring-console-plugin",/g' web/package.json
-yq -i '.plugin.acm.enabled = true' charts/openshift-console-plugin/values.yaml
-make build-frontend
-make deploy
 
+
+if [[ "$OSTYPE" == "darwin"* ]]
+then
+    # due to mac limitation with installing packages inside of dockerfiles, builds of the frontend must be done outside the dockerfile.
+    printf "${YELLOW}Replacing in package.json and values.yaml${ENDCOLOR}\n"
+    sed -i 's/"name": "monitoring-plugin",/"name": "monitoring-console-plugin",/g' web/package.json
+    yq -i '.plugin.acm.enabled = true' charts/openshift-console-plugin/values.yaml
+    printf "${YELLOW}Regenerating i18n translations${ENDCOLOR}\n"
+    make i18n-frontend
+    printf "${YELLOW}Renaming translations to the correct plugin name${ENDCOLOR}\n"
+    cd web/locales/ && for dir in *; do if cd $dir; then  for filename in *; do mv plugin__monitoring-plugin.json plugin__monitoring-console-plugin.json; done; cd ..; fi; done && cd ../..
+    printf "${YELLOW}Replacing translations locations to the correct plugin name in the js files${ENDCOLOR}\n"
+    find web/ \( ! -regex '.*/\..*' \) -type f | xargs sed -i 's/plugin__monitoring-plugin/plugin__monitoring-console-plugin/g'
+    printf "${YELLOW}Building Frontend${ENDCOLOR}\n"
+    make build-frontend
+fi
+
+
+export DOCKER_FILE_NAME=Dockerfile.acm
+make deploy
 
 if [[ "$OSTYPE" == "darwin"* ]]
 then
     osascript -e 'display notification "Plugin Deployed" with title "Monitoring Plugin"'
 fi
 
-sed -i 's/"name": "monitoring-console-plugin",/"name": "monitoring-plugin",/g' web/package.json
-yq -i '.plugin.acm.enabled = false' charts/openshift-console-plugin/values.yaml
+
+if [[ "$OSTYPE" == "darwin"* ]]
+then
+    # rollback changes
+    printf "${YELLOW}Replacing in package.json and values.yaml${ENDCOLOR}\n"
+    sed -i 's/"name": "monitoring-console-plugin",/"name": "monitoring-plugin",/g' web/package.json
+    printf "${YELLOW}Renaming translations to the original plugin name${ENDCOLOR}\n"
+    yq -i '.plugin.acm.enabled = false' charts/openshift-console-plugin/values.yaml
+    find web/ \( ! -regex '.*/\..*' \) -type f | xargs sed -i 's/plugin__monitoring-console-plugin/plugin__monitoring-plugin/g'
+    printf "${YELLOW}Replacing translations locations to the original plugin name in the js files${ENDCOLOR}\n"
+    cd web/locales/ && for dir in *; do if cd $dir; then  for filename in *; do mv plugin__monitoring-console-plugin.json plugin__monitoring-plugin.json; done; cd ..; fi; done
+fi

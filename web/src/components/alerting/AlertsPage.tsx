@@ -121,7 +121,7 @@ const AlertsPage_: React.FC<AlertsPageProps> = () => {
     rowFilters.splice(-1, 0, {
       filter: (filter, alert: Alert) =>
         fuzzyCaseInsensitive(filter.selected?.[0], alert.labels?.cluster),
-      filterGroupName: t('plugin__monitoring-console-plugin~Cluster'),
+      filterGroupName: t('Cluster'),
       items: [],
       reducer: alertCluster,
     } as RowFilter);
@@ -174,7 +174,7 @@ const AlertsPage_: React.FC<AlertsPageProps> = () => {
         id: 'cluster',
         props: { className: tableAlertClasses[4] },
         sort: 'labels.cluster',
-        title: t('plugin__monitoring-console-plugin~Cluster'),
+        title: t('Cluster'),
         transforms: [sortable],
       });
     }

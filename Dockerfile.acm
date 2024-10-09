@@ -4,7 +4,6 @@ USER 0
 
 WORKDIR /opt/app-root
 
-RUN npm install --global yarn
 
 ENV HUSKY=0
 
@@ -12,6 +11,11 @@ COPY Makefile Makefile
 COPY web/ web/
 
 RUN sed -i 's/"name": "monitoring-plugin",/"name": "monitoring-console-plugin",/g' web/package.json
+# Translate all instances of plugin__monitoring-plugin to plugin__monitoring-console-plugin in the codebase
+RUN find . \( ! -regex '.*/\..*' \) -type f | xargs sed -i 's/plugin__monitoring-plugin/plugin__monitoring-console-plugin/g'
+# Rename the translation files to the correct plugin
+RUN cd web/locales/ && for dir in *; do if cd $dir; then  for filename in *; do mv plugin__monitoring-plugin.json plugin__monitoring-console-plugin.json; done; cd ..; fi; done
+
 
 RUN make install-frontend
 RUN make build-frontend

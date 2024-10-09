@@ -22,6 +22,10 @@ start-frontend:
 start-console:
 	./scripts/start-console.sh
 
+.PHONY: i18n-frontend
+i18n-frontend:
+	cd web && npm run i18n
+
 .PHONY: lint-frontend
 lint-frontend:
 	cd web && npm run lint
@@ -63,7 +67,7 @@ deploy:
 	make lint-backend
 	PUSH=1 scripts/build-image.sh
 	helm uninstall $(PLUGIN_NAME) -n $(PLUGIN_NAME)-ns || true
-	helm install $(PLUGIN_NAME) charts/openshift-console-plugin -n $(PLUGIN_NAME)-ns --create-namespace --set plugin.image=$(IMAGE)
+	helm install $(PLUGIN_NAME) charts/openshift-console-plugin -n monitoring-plugin-ns --create-namespace --set plugin.image=$(IMAGE)
 
 .PHONY: deploy-acm
 deploy-acm:

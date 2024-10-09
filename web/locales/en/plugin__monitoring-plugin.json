@@ -44,6 +44,7 @@
   "The alert is now silenced for a defined time period. Silences temporarily mute alerts based on a set of label selectors that you define. Notifications will not be sent for alerts that match all the listed values or regular expressions.": "The alert is now silenced for a defined time period. Silences temporarily mute alerts based on a set of label selectors that you define. Notifications will not be sent for alerts that match all the listed values or regular expressions.",
   "Firing alerts": "Firing alerts",
   "Creator": "Creator",
+  "Cluster": "Cluster",
   "View alerting rule": "View alerting rule",
   "Error loading silences from Alertmanager. Some of the alerts below may actually be silenced.": "Error loading silences from Alertmanager. Some of the alerts below may actually be silenced.",
   "Ends": "Ends",
