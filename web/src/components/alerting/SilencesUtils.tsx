@@ -50,6 +50,7 @@ export const tableSilenceClasses = [
   'pf-m-hidden pf-m-visible-on-sm', // Firing alerts
   '', // State
   'pf-m-hidden pf-m-visible-on-sm', // Creator
+  'pf-m-hidden pf-m-visible-on-sm', // Cluster
   'dropdown-kebab-pf pf-c-table__action',
 ];
 

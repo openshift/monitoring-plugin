@@ -36,6 +36,7 @@ import { useActiveNamespace } from '../console/console-shared/hooks/useActiveNam
 
 const SilencesPage_: React.FC = () => {
   const { t } = useTranslation('plugin__monitoring-plugin');
+
   const { silencesKey, perspective } = usePerspective();
 
   const [selectedSilences, setSelectedSilences] = React.useState(new Set());
@@ -74,10 +75,23 @@ const SilencesPage_: React.FC = () => {
     },
   ];
 
+  if (perspective === 'acm') {
+    rowFilters.splice(-1, 0, {
+      filter: (filter, silence: Silence) =>
+        fuzzyCaseInsensitive(
+          filter.selected?.[0],
+          silence.matchers.find((label) => label.name === 'cluster').value,
+        ),
+      filterGroupName: t('plugin__monitoring-console-plugin~Cluster'),
+      items: [],
+      type: 'cluster',
+    } as RowFilter);
+  }
+
   const [staticData, filteredData, onFilterChange] = useListPageFilter(data, rowFilters);
 
-  const columns = React.useMemo<TableColumn<Silence>[]>(
-    () => [
+  const columns = React.useMemo<TableColumn<Silence>[]>(() => {
+    const cols = [
       {
         id: 'checkbox',
         props: { className: tableSilenceClasses[0] },
@@ -115,12 +129,30 @@ const SilencesPage_: React.FC = () => {
       },
       {
         id: 'actions',
-        props: { className: tableSilenceClasses[5] },
+        props: { className: tableSilenceClasses[6] },
         title: '',
       },
-    ],
-    [filteredData, t],
-  );
+    ];
+
+    if (perspective === 'acm') {
+      cols.splice(4, 0, {
+        id: 'cluster',
+        props: { className: tableSilenceClasses[5] },
+        sort: (silences: Silence[], direction: 'asc' | 'desc') =>
+          _.orderBy(
+            silences,
+            [
+              (silence: Silence) =>
+                silence.matchers.find((label) => label.name === 'cluster')?.value,
+            ],
+            [direction],
+          ),
+        title: t('plugin__monitoring-console-plugin~Cluster'),
+        transforms: [sortable],
+      });
+    }
+    return cols;
+  }, [filteredData, t, perspective]);
 
   return (
     <>

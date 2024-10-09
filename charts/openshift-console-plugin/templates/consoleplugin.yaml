@@ -27,7 +27,7 @@ spec:
   displayName: {{ template "openshift-console-plugin.name" . }}
   {{- end }}
   i18n:
-    loadType: ''
+    loadType: Preload
   proxy:
   - alias: backend
     authorization: UserToken

@@ -51,6 +51,7 @@ export const alertingRuleSource = (rule: Rule): AlertSource | string => {
 };
 
 export const alertSource = (alert: Alert): AlertSource | string => alertingRuleSource(alert.rule);
+export const alertCluster = (alert: Alert): string => alert.labels?.cluster ?? '';
 
 export const SilencesNotLoadedWarning: React.FC<{ silencesLoadError: any }> = ({
   silencesLoadError,
