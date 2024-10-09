@@ -178,7 +178,7 @@ export const getEditSilenceAlertUrl = (
   }
 };
 
-export const getFetchSilenceAlertUrl = (perspective: Perspective, namespace: string) => {
+export const getFetchSilenceAlertUrl = (perspective: Perspective, namespace?: string) => {
   switch (perspective) {
     case 'acm':
       return `${ALERTMANAGER_PROXY_PATH}/api/v2/silences`;

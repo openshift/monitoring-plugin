@@ -24,8 +24,8 @@ import {
   silencesKey,
 } from '../actions/observe';
 import { AlertSource, MonitoringResource, Target, TimeRange } from './types';
+import { getFetchSilenceAlertUrl } from './hooks/usePerspective';
 
-export const PROMETHEUS_BASE_PATH = window.SERVER_FLAGS.prometheusBaseURL;
 export const QUERY_CHUNK_SIZE = 24 * 60 * 60 * 1000;
 
 export const AlertResource: MonitoringResource = {
@@ -125,7 +125,7 @@ export const refreshSilences = (
 
   dispatch(alertingLoading(silencesKey, perspective));
 
-  consoleFetchJSON(`${alertManagerBaseURL}/api/v2/silences`)
+  consoleFetchJSON(getFetchSilenceAlertUrl(perspective))
     .then((silences) => {
       // Set a name field on the Silence to make things easier
       _.each(silences, (s) => {

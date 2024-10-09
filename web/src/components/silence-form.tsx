@@ -37,7 +37,12 @@ import { StatusBox } from './console/utils/status-box';
 import { useBoolean } from './hooks/useBoolean';
 import { Silences } from './types';
 import { refreshSilences, SilenceResource, silenceState } from './utils';
-import { getObserveState, getSilenceAlertUrl, usePerspective } from './hooks/usePerspective';
+import {
+  getFetchSilenceAlertUrl,
+  getObserveState,
+  getSilenceAlertUrl,
+  usePerspective,
+} from './hooks/usePerspective';
 import { MonitoringState } from '../reducers/observe';
 
 const pad = (i: number): string => (i < 10 ? `0${i}` : String(i));
@@ -197,8 +202,8 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
       return;
     }
 
-    const { alertManagerBaseURL } = window.SERVER_FLAGS;
-    if (!alertManagerBaseURL) {
+    const url = getFetchSilenceAlertUrl(perspective);
+    if (!url) {
       setError('Alertmanager URL not set');
       return;
     }
@@ -221,7 +226,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
     };
 
     consoleFetchJSON
-      .post(`${alertManagerBaseURL}/api/v2/silences`, body)
+      .post(getFetchSilenceAlertUrl(perspective), body)
       .then(({ silenceID }) => {
         setError(undefined);
         refreshSilences(dispatch, perspective, silencesKey);

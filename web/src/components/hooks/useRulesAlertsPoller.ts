@@ -26,39 +26,34 @@ export const useRulesAlertsPoller = (
 ) => {
   const { perspective, rulesKey, alertsKey } = usePerspective();
   React.useEffect(() => {
-    const { prometheusBaseURL } = window.SERVER_FLAGS;
+    dispatch(alertingLoading(alertsKey, perspective));
+    const url = getPrometheusURL(
+      {
+        endpoint: PrometheusEndpoint.RULES,
+        namespace: perspective === 'dev' ? namespace : '',
+      },
+      perspective,
+    );
+    const poller = (): void => {
+      fetchAlerts(url, alertsSource, namespace)
+        .then(({ data }) => {
+          const { alerts, rules } = getAlertsAndRules(data, perspective);
+          dispatch(alertingLoaded(alertsKey, alerts, perspective));
+          dispatch(alertingSetRules(rulesKey, rules, perspective));
+        })
+        .catch((e) => {
+          dispatch(alertingErrored(alertsKey, e, perspective));
+        })
+        .then(() => {
+          if (pollerTimeouts[alertsKey]) {
+            clearTimeout(pollerTimeouts[alertsKey]);
+          }
+          pollerTimeouts[alertsKey] = setTimeout(poller, 15 * 1000);
+        });
+    };
+    pollers[alertsKey] = poller;
+    poller();
 
-    if (prometheusBaseURL) {
-      dispatch(alertingLoading(alertsKey, perspective));
-      const url = getPrometheusURL(
-        {
-          endpoint: PrometheusEndpoint.RULES,
-          namespace: perspective === 'dev' ? namespace : '',
-        },
-        perspective,
-      );
-      const poller = (): void => {
-        fetchAlerts(url, alertsSource, namespace)
-          .then(({ data }) => {
-            const { alerts, rules } = getAlertsAndRules(data, perspective);
-            dispatch(alertingLoaded(alertsKey, alerts, perspective));
-            dispatch(alertingSetRules(rulesKey, rules, perspective));
-          })
-          .catch((e) => {
-            dispatch(alertingErrored(alertsKey, e, perspective));
-          })
-          .then(() => {
-            if (pollerTimeouts[alertsKey]) {
-              clearTimeout(pollerTimeouts[alertsKey]);
-            }
-            pollerTimeouts[alertsKey] = setTimeout(poller, 15 * 1000);
-          });
-      };
-      pollers[alertsKey] = poller;
-      poller();
-    } else {
-      dispatch(alertingErrored(alertsKey, new Error('prometheusBaseURL not set'), perspective));
-    }
     return (): void => {
       _.each(pollerTimeouts, clearTimeout);
     };

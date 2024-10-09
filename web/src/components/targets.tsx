@@ -46,7 +46,8 @@ import { EmptyBox, LoadingInline, StatusBox } from './console/utils/status-box';
 import { useBoolean } from './hooks/useBoolean';
 import { Labels } from './labels';
 import { AlertSource, PrometheusAPIError, Target } from './types';
-import { fuzzyCaseInsensitive, PROMETHEUS_BASE_PATH, targetSource } from './utils';
+import { fuzzyCaseInsensitive, targetSource } from './utils';
+import { PROMETHEUS_BASE_PATH } from './console/graphs/helpers';
 
 enum MonitorType {
   ServiceMonitor = 'serviceMonitor',

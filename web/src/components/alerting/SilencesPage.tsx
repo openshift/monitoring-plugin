@@ -243,9 +243,7 @@ const ExpireAllSilencesButton: React.FC<ExpireAllSilencesButtonProps> = ({ setEr
     setInProgress();
     Promise.allSettled(
       [...selectedSilences].map((silenceID: string) =>
-        consoleFetchJSON.delete(
-          getSilenceUrl(perspective, silenceID, window.SERVER_FLAGS.alertManagerBaseURL),
-        ),
+        consoleFetchJSON.delete(getSilenceUrl(perspective, silenceID)),
       ),
     ).then((values) => {
       setNotInProgress();
