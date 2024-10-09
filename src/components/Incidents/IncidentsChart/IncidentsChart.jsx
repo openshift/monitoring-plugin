@@ -16,7 +16,7 @@ import global_warning_color_100 from '@patternfly/react-tokens/dist/esm/global_w
 import { createIncidentsChartBars, formatDate, generateDateArray } from '../utils';
 import { getResizeObserver } from '@patternfly/react-core';
 
-const IncidentsChart = ({ incidentsData, chartDays }) => {
+const IncidentsChart = ({ incidentsData, chartDays, chooseIncident, tableLoaded }) => {
   const [isLoading, setIsLoading] = React.useState(true);
   const [chartData, setChartData] = React.useState();
   const [width, setWidth] = React.useState(0);
@@ -39,6 +39,11 @@ const IncidentsChart = ({ incidentsData, chartDays }) => {
   const dateValues = generateDateArray(chartDays);
 
   const isHidden = (group_id) => hiddenSeries !== null && hiddenSeries !== group_id;
+  const clickHandler = (data, datum) => {
+    tableLoaded(true);
+    setHiddenSeries(datum.datum.group_id === hiddenSeries ? null : datum.datum.group_id);
+    chooseIncident(datum.datum.group_id);
+  };
 
   return (
     <Card className="incidents-chart-card">
@@ -51,7 +56,7 @@ const IncidentsChart = ({ incidentsData, chartDays }) => {
         ) : (
           <div
             style={{
-              height: '350px',
+              height: '550px',
               //TODO: WIDTH SHOULD BE AUTOMATICALLY ADJUSTED
               width: '100%',
             }}
@@ -80,7 +85,7 @@ const IncidentsChart = ({ incidentsData, chartDays }) => {
               ]}
               legendPosition="bottom-left"
               //this should be always less than the container height
-              height={300}
+              height={500}
               padding={{
                 bottom: 75, // Adjusted to accommodate legend
                 left: 50,
@@ -115,11 +120,7 @@ const IncidentsChart = ({ incidentsData, chartDays }) => {
                       events={[
                         {
                           eventHandlers: {
-                            onClick: (props, datum) => {
-                              setHiddenSeries(
-                                datum.datum.group_id === hiddenSeries ? null : datum.datum.group_id,
-                              );
-                            },
+                            onClick: (props, datum) => clickHandler(props, datum),
                           },
                         },
                       ]}
