@@ -1,5 +1,5 @@
 {
-  "name": "monitoring-console-plugin",
+  "name": "monitoring-plugin",
   "version": "1.0.0",
   "private": true,
   "repository": "git@github.com:openshift/monitoring-plugin.git",

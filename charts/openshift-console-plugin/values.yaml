@@ -31,7 +31,7 @@ plugin:
     name: ""
   acm:
     name: monitoring-console-plugin
-    enabled: true
+    enabled: false
     alertmanager:
       url: https://alertmanager.open-cluster-management-observability.svc:9095
       pluginPort: 9444

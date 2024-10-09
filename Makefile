@@ -55,14 +55,15 @@ install:
 
 export REGISTRY_ORG?=openshift-observability-ui
 export TAG?=latest
+export PLUGIN_NAME?=monitoring-plugin
 IMAGE=quay.io/${REGISTRY_ORG}/monitoring-plugin:${TAG}
 
 .PHONY: deploy
 deploy:
-	helm uninstall monitoring-console-plugin -n monitoring-console-plugin-ns || true
 	make lint-backend
 	PUSH=1 scripts/build-image.sh
-	helm install monitoring-console-plugin charts/openshift-console-plugin -n monitoring-console-plugin-ns --create-namespace --set plugin.image=$(IMAGE)
+	helm uninstall $(PLUGIN_NAME) -n $(PLUGIN_NAME)-ns || true
+	helm install $(PLUGIN_NAME) charts/openshift-console-plugin -n $(PLUGIN_NAME)-ns --create-namespace --set plugin.image=$(IMAGE)
 
 .PHONY: deploy-acm
 deploy-acm:
