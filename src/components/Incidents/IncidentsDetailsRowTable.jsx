@@ -7,6 +7,7 @@ import { Icon } from '@patternfly/react-core';
 import { Link } from 'react-router-dom';
 import { AlertResource } from '../utils';
 import { MonitoringResourceIcon } from '../alerting/AlertUtils';
+import { formatDateInExpandedDetails } from './utils';
 
 const IncidentsDetailsRowTable = ({ alerts }) => {
   return (
@@ -71,8 +72,12 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
                 </>
               )}
             </Td>
-            <Td dataLabel="expanded-details-firingstart">{Date(alertDetails.alertsStartFiring)}</Td>
-            <Td dataLabel="expanded-details-firingend">{Date(alertDetails.alertsEndFiring)}</Td>
+            <Td dataLabel="expanded-details-firingstart">
+              {formatDateInExpandedDetails(alertDetails.alertsStartFiring)}
+            </Td>
+            <Td dataLabel="expanded-details-firingend">
+              {formatDateInExpandedDetails(alertDetails.alertsEndFiring)}
+            </Td>
           </Tr>
         ))}
       </Tbody>
