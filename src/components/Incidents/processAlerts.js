@@ -162,7 +162,7 @@ export function processAlerts(data) {
 export const groupAlertsForTable = (alerts) => {
   // group alerts by the component and coun
   return alerts.reduce((acc, alert) => {
-    const { component, alertstate, severity } = alert;
+    const { component, alertstate, severity, layer } = alert;
     const existingGroup = acc.find((group) => group.component === component);
     if (existingGroup) {
       existingGroup.alertsExpandedRowData.push(alert);
@@ -173,6 +173,7 @@ export const groupAlertsForTable = (alerts) => {
       acc.push({
         component,
         alertstate,
+        layer,
         warning: severity === 'warning' ? 1 : 0,
         info: severity === 'info' ? 1 : 0,
         critical: severity === 'critical' ? 1 : 0,

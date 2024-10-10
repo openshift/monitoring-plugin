@@ -109,7 +109,7 @@ export const createAlertsQuery = (groupedAlertsValues) => {
       const componentLayerQueries = query.componentsList.map((component) => {
         return query.layerList
           .map((layer) => {
-            return `(ALERTS + on () group_left (component, group_id) (absent(meta{group_id="${query.group_id}", component="${component}", layer="${layer}"})))`;
+            return `(ALERTS + on () group_left (component, group_id, layer) (absent(meta{group_id="${query.group_id}", component="${component}", layer="${layer}"})))`;
           })
           .join(' or ');
       });
