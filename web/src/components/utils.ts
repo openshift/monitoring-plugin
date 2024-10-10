@@ -16,10 +16,16 @@ import {
   SilenceStates,
 } from '@openshift-console/dynamic-plugin-sdk';
 
-import { alertingErrored, alertingLoaded, alertingLoading, Perspective } from '../actions/observe';
+import {
+  alertingErrored,
+  alertingLoaded,
+  alertingLoading,
+  Perspective,
+  silencesKey,
+} from '../actions/observe';
 import { AlertSource, MonitoringResource, Target, TimeRange } from './types';
+import { getFetchSilenceAlertUrl } from './hooks/usePerspective';
 
-export const PROMETHEUS_BASE_PATH = window.SERVER_FLAGS.prometheusBaseURL;
 export const QUERY_CHUNK_SIZE = 24 * 60 * 60 * 1000;
 
 export const AlertResource: MonitoringResource = {
@@ -49,15 +55,9 @@ export const fuzzyCaseInsensitive = (a: string, b: string): boolean =>
 export const labelsToParams = (labels: PrometheusLabels) =>
   _.map(labels, (v, k) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join('&');
 
-export const alertURL = (alert: PrometheusAlert, ruleID: string) =>
-  `${AlertResource.plural}/${ruleID}?${labelsToParams(alert.labels)}`;
-
-export const devAlertURL = (alert: Alert, ruleID: string, namespace: string) =>
-  `/dev-monitoring/ns/${namespace}/alerts/${ruleID}?${labelsToParams(alert.labels)}`;
-
 export const getAlertsAndRules = (
   data: PrometheusRulesResponse['data'],
-  isAdminPerspective: boolean,
+  perspective: Perspective,
 ): { alerts: Alert[]; rules: Rule[] } => {
   // Flatten the rules data to make it easier to work with, discard non-alerting rules since those
   // are the only ones we will be using and add a unique ID to each rule.
@@ -80,7 +80,7 @@ export const getAlertsAndRules = (
 
   // The console codebase and developer perspective actions don't expect the external labels to be
   // included on the alerts
-  if (isAdminPerspective) {
+  if (perspective !== 'dev') {
     // Add external labels to all `rules[].alerts[].labels`
     rules.forEach((rule) => {
       rule.alerts.forEach((alert) => (alert.labels = { ...rule.labels, ...alert.labels }));
@@ -95,6 +95,8 @@ export const getAlertsAndRules = (
 
 export const alertState = (a: Alert): AlertStates => a?.state;
 export const silenceState = (s: Silence): SilenceStates => s?.status?.state;
+export const silenceCluster = (s: Silence): string =>
+  s?.matchers.find((label) => label.name === 'cluster').value;
 
 export const silenceMatcherEqualitySymbol = (isEqual: boolean, isRegex: boolean): string => {
   if (isRegex) {
@@ -113,24 +115,28 @@ export const getSilenceName = (silence: Silence) => {
         .join(', ');
 };
 
-export const refreshSilences = (dispatch: Dispatch, perspective: Perspective): void => {
+export const refreshSilences = (
+  dispatch: Dispatch,
+  perspective: Perspective,
+  silencesKey: silencesKey,
+): void => {
   const { alertManagerBaseURL } = window.SERVER_FLAGS;
   if (!alertManagerBaseURL) {
     return;
   }
 
-  dispatch(alertingLoading('silences', perspective));
+  dispatch(alertingLoading(silencesKey, perspective));
 
-  consoleFetchJSON(`${alertManagerBaseURL}/api/v2/silences`)
+  consoleFetchJSON(getFetchSilenceAlertUrl(perspective))
     .then((silences) => {
       // Set a name field on the Silence to make things easier
       _.each(silences, (s) => {
         s.name = getSilenceName(s);
       });
-      dispatch(alertingLoaded('silences', silences, perspective));
+      dispatch(alertingLoaded(silencesKey, silences, perspective));
     })
     .catch((e) => {
-      dispatch(alertingErrored('silences', e, perspective));
+      dispatch(alertingErrored(silencesKey, e, perspective));
     });
 };
 

@@ -13,8 +13,16 @@ import {
   MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY,
 } from '../components/dashboards/types';
 import { isSilenced } from '../components/utils';
+import { getAlertsKey, getSilencesKey } from '../components/hooks/usePerspective';
 
 export type ObserveState = ImmutableMap<string, any>;
+
+export type MonitoringState = {
+  observe: ObserveState;
+  plugins: {
+    monitoring: ObserveState;
+  };
+};
 
 const newQueryBrowserQuery = (): ImmutableMap<string, any> =>
   ImmutableMap({
@@ -139,34 +147,32 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
       return state.set(action.payload.key, action.payload.data);
 
     case ActionType.AlertingSetData: {
-      const alertKey = action.payload.data.perspective === 'admin' ? 'alerts' : 'devAlerts';
-      const alerts = action.payload.key === alertKey ? action.payload.data : state.get(alertKey);
+      const alertsKey = getAlertsKey(action.payload.data.perspective);
+      const alerts = action.payload.key === alertsKey ? action.payload.data : state.get(alertsKey);
       // notificationAlerts used by notification drawer and certain dashboards
       const notificationAlerts: NotificationAlerts =
         action.payload.key === 'notificationAlerts'
           ? action.payload.data
           : state.get('notificationAlerts');
+
+      const silencesKey = getSilencesKey(action.payload.data.perspective);
       const silences =
-        action.payload.key === 'silences' ? action.payload.data : state.get('silences');
+        action.payload.key === silencesKey ? action.payload.data : state.get(silencesKey);
 
       const isAlertFiring = (alert) =>
         alert?.state === AlertStates.Firing || alert?.state === AlertStates.Silenced;
       const firingAlerts = _.filter(alerts?.data, isAlertFiring);
       silenceFiringAlerts(firingAlerts, silences);
       silenceFiringAlerts(_.filter(notificationAlerts?.data, isAlertFiring), silences);
-      if (notificationAlerts) {
-        notificationAlerts.data = _.reject(notificationAlerts.data, {
-          state: AlertStates.Silenced,
-        });
-      }
-      state = state.set(alertKey, alerts);
+      notificationAlerts.data = _.reject(notificationAlerts?.data, { state: AlertStates.Silenced });
+      state = state.set(alertsKey, alerts);
       state = state.set('notificationAlerts', notificationAlerts);
 
       // For each Silence, store a list of the Alerts it is silencing
       _.each(_.get(silences, 'data'), (s) => {
         s.firingAlerts = _.filter(firingAlerts, (a) => isSilenced(a, s));
       });
-      return state.set('silences', silences);
+      return state.set(silencesKey, silences);
     }
 
     case ActionType.ToggleGraphs:

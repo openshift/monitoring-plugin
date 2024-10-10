@@ -4,16 +4,14 @@ import { useURLPoll } from './useURLPoll';
 import { Silence } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { useDispatch } from 'react-redux';
-import { usePerspective } from './usePerspective';
+import { getFetchSilenceAlertUrl, usePerspective } from './usePerspective';
 import { getSilenceName } from '../utils';
-import { fetchSilenceAlertURL } from '../alerting/SilencesUtils';
 
 const URL_POLL_DEFAULT_DELAY = 15000; // 15 seconds
 
 export const useSilencesPoller = ({ namespace }) => {
-  const { isDev } = usePerspective();
-  const { alertManagerBaseURL } = window.SERVER_FLAGS;
-  const url = fetchSilenceAlertURL(isDev, alertManagerBaseURL, namespace);
+  const { perspective, silencesKey } = usePerspective();
+  const url = getFetchSilenceAlertUrl(perspective, namespace);
   const [response, loadError, loading] = useURLPoll<Silence[]>(
     url,
     URL_POLL_DEFAULT_DELAY,
@@ -22,14 +20,14 @@ export const useSilencesPoller = ({ namespace }) => {
   const dispatch = useDispatch();
   React.useEffect(() => {
     if (loadError) {
-      dispatch(alertingErrored('devSilences', loadError, 'dev'));
+      dispatch(alertingErrored(silencesKey, loadError, perspective));
     } else if (loading) {
-      dispatch(alertingLoading('devSilences', 'dev'));
+      dispatch(alertingLoading(silencesKey, perspective));
     } else {
       _.each(response, (silence: Silence) => {
         silence.name = getSilenceName(silence);
       });
-      dispatch(alertingLoaded('devSilences', response, 'dev'));
+      dispatch(alertingLoaded(silencesKey, response, perspective));
     }
-  }, [dispatch, loadError, loading, response, isDev]);
+  }, [dispatch, loadError, loading, response, perspective, silencesKey]);
 };

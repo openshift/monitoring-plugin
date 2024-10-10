@@ -29,10 +29,16 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 Selector labels
 */}}
 {{- define "openshift-console-plugin.selectorLabels" -}}
+{{- if and (.Values.plugin.acm.enabled) }}
+app: {{ .Values.plugin.acm.name }}
+app.kubernetes.io/name: {{ .Values.plugin.acm.name }}
+app.kubernetes.io/part-of: {{ .Values.plugin.acm.name }}
+{{- else }}
 app: {{ include "openshift-console-plugin.name" . }}
 app.kubernetes.io/name: {{ include "openshift-console-plugin.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
 app.kubernetes.io/part-of: {{ include "openshift-console-plugin.name" . }}
+{{- end }}
+app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
@@ -51,4 +57,22 @@ Create the name of the service account to use
 {{- else }}
 {{- default "default" .Values.plugin.serviceAccount.name }}
 {{- end }}
+{{- end }}
+
+{{/*
+Create the name of the service account to use
+*/}}
+{{- define "openshift-console-plugin.patcherServiceAccountName" -}}
+{{- if .Values.plugin.patcherServiceAccount.create }}
+{{- default (printf "%s-patcher" (include "openshift-console-plugin.name" .)) .Values.plugin.patcherServiceAccount.name }}
+{{- else }}
+{{- default "default" .Values.plugin.patcherServiceAccount.name }}
+{{- end }}
+{{- end }}
+
+{{/*
+Create the name of the patcher
+*/}}
+{{- define "openshift-console-plugin.patcherName" -}}
+{{- printf "%s-patcher" (include "openshift-console-plugin.name" .) }}
 {{- end }}

@@ -23,7 +23,7 @@ i18n
         `Missing i18n key "${key}" in namespace "${ns}" and language "${lng}" from the monitoring-plugin.`,
       );
     },
-    ns: ['plugin__monitoring-plugin'],
+    ns: [process.env.NAMESPACE],
     nsSeparator: '~',
     react: {
       useSuspense: true,
