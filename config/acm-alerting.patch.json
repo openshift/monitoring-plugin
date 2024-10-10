@@ -7,7 +7,7 @@
       "properties": {
         "perspective": "acm",
         "id": "acm-observe",
-        "name": "Observe",
+        "name": "%plugin__monitoring-console-plugin~Observe%",
         "insertAfter": "mce-infrastructure"
       }
     }
@@ -49,7 +49,7 @@
       "type": "console.navigation/href",
       "properties": {
         "id": "multicloud-alerting",
-        "name": "Alerting",
+        "name": "%plugin__monitoring-console-plugin~Alerting%",
         "href": "/multicloud/monitoring/alerts",
         "perspective": "acm",
         "section": "acm-observe",

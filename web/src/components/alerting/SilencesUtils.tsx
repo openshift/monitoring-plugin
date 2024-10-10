@@ -36,7 +36,7 @@ import { useBoolean } from '../hooks/useBoolean';
 import {
   getEditSilenceAlertUrl,
   getSilenceAlertUrl,
-  getSilenceUrl,
+  getFetchSilenceUrl,
   usePerspective,
 } from '../hooks/usePerspective';
 import { useDispatch } from 'react-redux';
@@ -270,7 +270,7 @@ const ExpireSilenceModal: React.FC<ExpireSilenceModalProps> = ({
 
   const expireSilence = () => {
     setInProgress();
-    const url = getSilenceUrl(perspective, silenceID, namespace);
+    const url = getFetchSilenceUrl(perspective, silenceID, namespace);
     consoleFetchJSON
       .delete(url)
       .then(() => {

@@ -1,15 +1,16 @@
-FROM registry.redhat.io/ubi9/nodejs-20-minimal:1-51 AS web-builder
+FROM registry.redhat.io/ubi9/nodejs-20:1-59 AS web-builder
 
 WORKDIR /opt/app-root
 
-RUN npm install --global yarn
+USER 0
 
 ENV HUSKY=0
 
+COPY web/package.json web/package-lock.json web/
 COPY Makefile Makefile
-COPY web/ web/
+RUN make install-frontend-ci
 
-RUN make install-frontend
+COPY web/ web/
 RUN make build-frontend
 
 # Almost all images from Red Hat are still on go1.21, however I found one that the cne team has

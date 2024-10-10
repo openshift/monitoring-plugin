@@ -58,7 +58,6 @@ func (pluginConfig *PluginConfig) MarshalJSON() ([]byte, error) {
 
 func Start(cfg *Config) {
 	acmMode := cfg.Features[AcmAlerting]
-	log.Info("acmMode", acmMode)
 	acmLocationsLength := len(cfg.AlertmanagerUrl) + len(cfg.ThanosQuerierUrl)
 
 	if acmLocationsLength > 0 && !acmMode {
@@ -185,7 +184,6 @@ func setupProxyRoutes(cfg *Config, k8sclient *dynamic.DynamicClient, kind proxy.
 		proxyUrl = cfg.ThanosQuerierUrl
 	}
 
-	// uses the namespace and name to forward requests to a particular alert manager instance
 	router.PathPrefix("/").Handler(proxy.NewProxyHandler(
 		k8sclient,
 		cfg.CertFile,

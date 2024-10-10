@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import {
   getNewSilenceUrl,
   getObserveState,
-  getSilenceUrl,
+  getFetchSilenceUrl,
   usePerspective,
 } from '../hooks/usePerspective';
 import { Silences } from '../types';
@@ -272,7 +272,7 @@ const ExpireAllSilencesButton: React.FC<ExpireAllSilencesButtonProps> = ({ setEr
     setInProgress();
     Promise.allSettled(
       [...selectedSilences].map((silenceID: string) =>
-        consoleFetchJSON.delete(getSilenceUrl(perspective, silenceID)),
+        consoleFetchJSON.delete(getFetchSilenceUrl(perspective, silenceID)),
       ),
     ).then((values) => {
       setNotInProgress();
