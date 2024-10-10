@@ -79,7 +79,7 @@ import { useSilencesPoller } from '../hooks/useSilencesPoller';
 import { MonitoringState } from '../../reducers/observe';
 
 const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
 
   const { alertsKey, alertingContextId, silencesKey, perspective } = usePerspective();
 
@@ -438,7 +438,7 @@ const matchCount = (haystack: string, regExpString: string) =>
   _.size(haystack.match(new RegExp(regExpString, 'g')));
 
 const AlertStateHelp: React.FC = () => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
 
   return (
     <dl className="co-inline">
@@ -472,7 +472,7 @@ const AlertStateHelp: React.FC = () => {
 };
 
 const SilencedByList: React.FC<{ silences: Silence[] }> = ({ silences }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
 
   const columns = React.useMemo<TableColumn<Silence>[]>(
     () => [

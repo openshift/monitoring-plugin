@@ -101,7 +101,7 @@ import SilencesPage from './alerting/SilencesPage';
 import SilencesDetailsPage from './alerting/SilencesDetailPage';
 
 const StateCounts: React.FC<{ alerts: PrometheusAlert[] }> = ({ alerts }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
 
   const counts = _.countBy(alerts, 'state');
   const states = [AlertStates.Firing, AlertStates.Pending, AlertStates.Silenced].filter(
@@ -141,7 +141,7 @@ type ActiveAlertsProps = RouteComponentProps & {
 };
 
 const ActiveAlerts_: React.FC<ActiveAlertsProps> = ({ alerts, history, namespace, ruleID }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
   const { perspective } = usePerspective();
 
   return (
@@ -197,7 +197,7 @@ const ActiveAlerts = withRouter(ActiveAlerts_);
 type AlertRulesDetailsPageProps = RouteComponentProps<{ id: string; ns?: string }>;
 
 const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
 
   const { rulesKey, alertsKey, perspective } = usePerspective();
   const namespace = match.params?.ns;
@@ -439,7 +439,7 @@ const tableRuleClasses = [
 ];
 
 const RuleTableRow: React.FC<RowProps<Rule>> = ({ obj }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
   const { perspective } = usePerspective();
 
   const title: string = obj.annotations?.description || obj.annotations?.message;
@@ -468,7 +468,7 @@ const RuleTableRow: React.FC<RowProps<Rule>> = ({ obj }) => {
 };
 
 const RulesPage_: React.FC = () => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
   const { alertsKey, silencesKey, rulesKey, perspective, defaultAlertTenant } = usePerspective();
 
   const data: Rule[] = useSelector((state: MonitoringState) =>
@@ -602,7 +602,7 @@ const Tab: React.FC<{ active: boolean; children: React.ReactNode }> = ({ active,
 );
 
 const AlertingPage: React.FC<RouteComponentProps<{ url: string }>> = ({ match }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
   const { perspective } = usePerspective();
 
   const alertsPath = getAlertsUrl(perspective);

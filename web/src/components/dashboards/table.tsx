@@ -67,7 +67,7 @@ const perPageOptions: PerPageOptions[] = [5, 10, 20, 50, 100].map((n) => ({
 }));
 
 const Table: React.FC<Props> = ({ customDataSource, panel, pollInterval, queries, namespace }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
   const { perspective } = usePerspective();
 
   const [error, setError] = React.useState();

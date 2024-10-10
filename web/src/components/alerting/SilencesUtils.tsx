@@ -55,7 +55,7 @@ export const tableSilenceClasses = [
 ];
 
 export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheckbox }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
   const { perspective } = usePerspective();
   const namespace = useActiveNamespace();
 
@@ -161,7 +161,7 @@ export type ExpireSilenceModalProps = {
 };
 
 export const SilenceState = ({ silence }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
 
   const state = silenceState(silence);
   const icon = {
@@ -209,7 +209,7 @@ const SilenceDropdown_: React.FC<SilenceDropdownProps> = ({
   silence,
   Toggle,
 }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
   const { perspective } = usePerspective();
   const namespace = useActiveNamespace();
 
@@ -259,7 +259,7 @@ const ExpireSilenceModal: React.FC<ExpireSilenceModalProps> = ({
   setClosed,
   silenceID,
 }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
   const { perspective, silencesKey } = usePerspective();
   const namespace = useActiveNamespace();
 

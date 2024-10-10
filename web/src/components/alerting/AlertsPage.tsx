@@ -57,7 +57,7 @@ const tableAlertClasses = [
 ];
 
 const AlertsPage_: React.FC<AlertsPageProps> = () => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
   const { alertsKey, silencesKey, defaultAlertTenant, perspective } = usePerspective();
 
   const {
@@ -262,7 +262,7 @@ const alertStateOrder = (alert: Alert) => [
 ];
 
 const AlertTableRow_: React.FC<AlertTableRowProps> = ({ history, obj, match }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
   const { perspective } = usePerspective();
   const namespace = match.params.ns;
 

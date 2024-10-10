@@ -56,7 +56,7 @@ export const alertCluster = (alert: Alert): string => alert.labels?.cluster ?? '
 export const SilencesNotLoadedWarning: React.FC<{ silencesLoadError: any }> = ({
   silencesLoadError,
 }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
 
   return (
     <PFAlert
@@ -100,7 +100,7 @@ type MonitoringResourceIconProps = {
 };
 
 export const Severity: React.FC<{ severity: string }> = React.memo(({ severity }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
 
   const getSeverityKey = (severityData: string) => {
     switch (severityData) {
@@ -138,7 +138,7 @@ export const SeverityIcon: React.FC<{ severity: string }> = React.memo(({ severi
 });
 
 export const AlertState: React.FC<AlertStateProps> = React.memo(({ state }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
 
   const icon = <AlertStateIcon state={state} />;
 
@@ -180,7 +180,7 @@ export const getAlertStateKey = (state, t) => {
 };
 
 export const AlertStateDescription: React.FC<{ alert: Alert }> = ({ alert }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
 
   if (alert && !_.isEmpty(alert.silencedBy)) {
     return <StateTimestamp text={t('Ends')} timestamp={_.max(_.map(alert.silencedBy, 'endsAt'))} />;
@@ -224,7 +224,7 @@ export const Graph: React.FC<GraphProps> = ({
   query,
   ruleDuration,
 }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
   const { perspective } = usePerspective();
 
   // 3 times the rule's duration, but not less than 30 minutes
@@ -263,7 +263,7 @@ type GraphProps = {
 };
 
 export const SeverityHelp: React.FC = () => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
 
   return (
     <dl className="co-inline">
@@ -297,7 +297,7 @@ export const SeverityHelp: React.FC = () => {
 };
 
 export const SourceHelp: React.FC = () => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
 
   return (
     <dl className="co-inline">

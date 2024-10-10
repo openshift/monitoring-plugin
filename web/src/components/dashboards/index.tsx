@@ -141,7 +141,7 @@ const FilterSelect: React.FC<FilterSelectProps> = ({
   OptionComponent,
   selectedKey,
 }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
 
   const [isOpen, , open, close] = useBoolean(false);
   const [filterText, setFilterText] = React.useState<string>();
@@ -219,7 +219,7 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({
   namespace,
   perspective,
 }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
 
   const timespan = useSelector((state: MonitoringState) =>
     getObserveState(perspective, state)?.getIn(['dashboards', perspective, 'timespan']),
@@ -439,7 +439,7 @@ const Tag: React.FC<{ color: TagColor; text: string }> = React.memo(({ color, te
 
 const DashboardDropdown: React.FC<DashboardDropdownProps> = React.memo(
   ({ items, onChange, selectedKey }) => {
-    const { t } = useTranslation('plugin__monitoring-plugin');
+    const { t } = useTranslation(process.env.NAMESPACE);
 
     const allTags = _.flatMap(items, 'tags');
     const uniqueTags = _.uniq(allTags);
@@ -485,7 +485,7 @@ const DashboardDropdown: React.FC<DashboardDropdownProps> = React.memo(
 );
 
 export const PollIntervalDropdown: React.FC = () => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
 
   const refreshIntervalFromParams = getQueryArgument('refreshInterval');
   const { perspective } = usePerspective();
@@ -530,7 +530,7 @@ const TimeDropdowns: React.FC = React.memo(() => {
 });
 
 const HeaderTop: React.FC = React.memo(() => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
 
   return (
     <div className="monitoring-dashboards__header">
@@ -549,7 +549,7 @@ const QueryBrowserLink = ({
   queries: Array<string>;
   customDataSourceName: string;
 }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
   const { perspective } = usePerspective();
 
   const params = new URLSearchParams();
@@ -599,7 +599,7 @@ const getPanelClassModifier = (panel: Panel): string => {
 };
 
 const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
 
   const namespace = React.useContext(NamespaceContext);
   const pollInterval = useSelector((state: MonitoringState) =>
@@ -906,7 +906,7 @@ const Board: React.FC<BoardProps> = ({ rows, perspective }) => (
 type MonitoringDashboardsPageProps = RouteComponentProps<{ board: string; ns?: string }>;
 
 const MonitoringDashboardsPage_: React.FC<MonitoringDashboardsPageProps> = ({ history, match }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
 
   const dispatch = useDispatch();
   const namespace = match.params?.ns;

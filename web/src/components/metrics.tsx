@@ -107,7 +107,7 @@ export const PreDefinedQueriesDropdown = () => {
   const activeNamespace = useActiveNamespace();
   const { perspective } = usePerspective();
 
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
 
   const predefinedQueriesAdmin: PredefinedQueryType[] = [
     {
@@ -280,7 +280,7 @@ export const PreDefinedQueriesDropdown = () => {
 };
 
 const MetricsActionsMenu: React.FC = () => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
   const { perspective } = usePerspective();
 
   const [isOpen, setIsOpen, , setClosed] = useBoolean(false);
@@ -328,7 +328,7 @@ const MetricsActionsMenu: React.FC = () => {
 };
 
 export const ToggleGraph: React.FC = () => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
   const { perspective } = usePerspective();
 
   const hideGraphs = useSelector(
@@ -353,7 +353,7 @@ export const ToggleGraph: React.FC = () => {
 };
 
 const ExpandButton = ({ isExpanded, onClick }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
 
   const title = isExpanded ? t('Hide table') : t('Show table');
   return (
@@ -374,7 +374,7 @@ const ExpandButton = ({ isExpanded, onClick }) => {
 };
 
 const SeriesButton: React.FC<SeriesButtonProps> = ({ index, labels }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
   const { perspective } = usePerspective();
 
   const [colorIndex, isDisabled, isSeriesEmpty] = useSelector((state: MonitoringState) => {
@@ -427,7 +427,7 @@ const SeriesButton: React.FC<SeriesButtonProps> = ({ index, labels }) => {
 };
 
 const QueryKebab: React.FC<{ index: number }> = ({ index }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
   const { perspective } = usePerspective();
 
   const isDisabledSeriesEmpty = useSelector((state: MonitoringState) =>
@@ -581,7 +581,7 @@ const QueryKebab: React.FC<{ index: number }> = ({ index }) => {
 };
 
 export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, customDatasource }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
   const { perspective } = usePerspective();
 
   const [data, setData] = React.useState<PrometheusData>();
@@ -822,7 +822,7 @@ const Query: React.FC<{ index: number; customDatasource?: CustomDataSource }> = 
   index,
   customDatasource,
 }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
   const { perspective } = usePerspective();
 
   const id = useSelector((state: MonitoringState) =>
@@ -916,7 +916,7 @@ const QueryBrowserWrapper: React.FC<{
   customDataSource: CustomDataSource;
   customDatasourceError: boolean;
 }> = ({ customDataSourceName, customDataSource, customDatasourceError }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
   const { perspective } = usePerspective();
 
   const dispatch = useDispatch();
@@ -1028,7 +1028,7 @@ const QueryBrowserWrapper: React.FC<{
 };
 
 const AddQueryButton: React.FC = () => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
 
   const dispatch = useDispatch();
   const addQuery = React.useCallback(() => dispatch(queryBrowserAddQuery()), [dispatch]);
@@ -1046,7 +1046,7 @@ const AddQueryButton: React.FC = () => {
 };
 
 const RunQueriesButton: React.FC = () => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
 
   const dispatch = useDispatch();
   const runQueries = React.useCallback(() => dispatch(queryBrowserRunQueries()), [dispatch]);
@@ -1093,7 +1093,7 @@ const PollIntervalDropdown = () => {
 };
 
 const QueryBrowserPage_: React.FC = () => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
 
   const dispatch = useDispatch();
 

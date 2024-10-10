@@ -31,7 +31,7 @@ import {
 import KebabDropdown from '../kebab-dropdown';
 
 const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ match }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
 
   const namespace = useActiveNamespace();
   const { alertsKey, perspective, silencesKey } = usePerspective();
@@ -172,7 +172,7 @@ const ActionsToggle: React.FC<{ onToggle: OnToggle }> = ({ onToggle, ...props })
 );
 
 const SilencedAlertsList_: React.FC<SilencedAlertsListProps> = ({ alerts, history }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
   const { perspective } = usePerspective();
 
   return _.isEmpty(alerts) ? (

@@ -23,7 +23,7 @@ import { MonitoringState } from '../../reducers/observe';
 const CUSTOM_TIME_RANGE_KEY = 'CUSTOM_TIME_RANGE_KEY';
 
 const TimespanDropdown: React.FC = () => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
 
   const { perspective } = usePerspective();
 

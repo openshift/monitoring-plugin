@@ -35,7 +35,7 @@ import { Link } from 'react-router-dom';
 import { useActiveNamespace } from '../console/console-shared/hooks/useActiveNamespace';
 
 const SilencesPage_: React.FC = () => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
 
   const { silencesKey, perspective } = usePerspective();
 
@@ -258,7 +258,7 @@ const silenceClusterOrder = () => [
 ];
 
 const ExpireAllSilencesButton: React.FC<ExpireAllSilencesButtonProps> = ({ setErrorMessage }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
 
   const { perspective, silencesKey } = usePerspective();
 
@@ -307,7 +307,7 @@ const SilenceTableRowWithCheckbox: React.FC<RowProps<Silence>> = ({ obj }) => (
 );
 
 const CreateSilenceButton: React.FC = React.memo(() => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.NAMESPACE);
   const { perspective } = usePerspective();
   const namespace = useActiveNamespace();
 
