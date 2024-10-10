@@ -138,35 +138,33 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
   }, [span]);
 
   React.useEffect(() => {
-    (async () => {
-      Promise.all(
-        timeRanges.map(async (range) => {
-          const response = await safeFetch(
-            getPrometheusURL(
-              {
-                endpoint: PrometheusEndpoint.QUERY_RANGE,
-                endTime: range.endTime,
-                namespace,
-                query: `cluster:health:components:map{group_id='${chooseIncident}'}`,
-                samples: 24,
-                timespan: range.duration - 1,
-              },
-              customDataSource?.basePath,
-            ),
-          );
-          return response.data.result;
-        }),
-      )
-        .then((results) => {
-          const aggregatedData = results.reduce((acc, result) => acc.concat(result), []);
-          setFilteredIncidentsData(processIncidents(aggregatedData));
-          setIncidentsAreLoading(false);
-        })
-        .catch((err) => {
-          // eslint-disable-next-line no-console
-          console.log(err);
-        });
-    })();
+    Promise.all(
+      timeRanges.map(async (range) => {
+        const response = await safeFetch(
+          getPrometheusURL(
+            {
+              endpoint: PrometheusEndpoint.QUERY_RANGE,
+              endTime: range.endTime,
+              namespace,
+              query: `cluster:health:components:map{group_id='${chooseIncident}'}`,
+              samples: 24,
+              timespan: range.duration - 1,
+            },
+            customDataSource?.basePath,
+          ),
+        );
+        return response.data.result;
+      }),
+    )
+      .then((results) => {
+        const aggregatedData = results.reduce((acc, result) => acc.concat(result), []);
+        setFilteredIncidentsData(processIncidents(aggregatedData));
+        setIncidentsAreLoading(false);
+      })
+      .catch((err) => {
+        // eslint-disable-next-line no-console
+        console.log(err);
+      });
   }, [chooseIncident]);
 
   return (
