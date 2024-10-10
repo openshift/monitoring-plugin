@@ -1,4 +1,4 @@
-FROM cypress/included:12.3.0
+FROM cypress/included:13.15.0
 
 WORKDIR /usr/src/app
 
