@@ -1,51 +1,36 @@
 /* eslint-disable max-len */
 /**
- * Groups objects by the `component` field within the `metric` object and deduplicates their `values`.
- * For each unique component, it merges any additional values that may come from multiple objects
- * and ensures no duplicates exist in the resulting grouped data.
+ * Groups alert objects by their `alertname`, `namespace`, and `component` fields and merges their values
+ * while removing duplicates. Alerts with the same combination of `alertname`, `namespace`, and `component`
+ * are combined, with values being deduplicated.
  *
- * @param {Array} objects - An array of objects to be grouped by the `component` field.
- * @param {Object} objects[].metric - The metric object containing alert metadata.
- * @param {string} objects[].metric.component - The component field used as the key for grouping.
- * @param {Array} objects[].values - An array of values associated with the metric. Each value is deduplicated within its component group.
+ * @param {Array<Object>} objects - Array of alert objects to be grouped. Each object contains a `metric` field
+ * with properties such as `alertname`, `namespace`, `component`, and an array of `values`.
+ * @param {Object} objects[].metric - The metric information of the alert.
+ * @param {string} objects[].metric.alertname - The name of the alert.
+ * @param {string} objects[].metric.namespace - The namespace in which the alert is raised.
+ * @param {string} objects[].metric.component - The component associated with the alert.
+ * @param {Array<Array<Number | string>>} objects[].values - The array of values corresponding to the alert, where
+ * each value is a tuple containing a timestamp and a value (e.g., [timestamp, value]).
  *
- * @returns {Array} - An array of grouped objects, each with a unique `component` key and deduplicated `values`.
+ * @returns {Array<Object>} - An array of grouped alert objects. Each object contains a unique combination of
+ * `alertname`, `namespace`, and `component`, with deduplicated values.
+ * @returns {Object} return[].metric - The metric information of the grouped alert.
+ * @returns {Array<Array<Number | string>>} return[].values - The deduplicated array of values for the grouped alert.
  *
  * @example
- * const objects = [
- *   {
- *     metric: { component: "compute", alertname: "Alert1", severity: "warning" },
- *     values: [[1627897545.267, "2"], [1627897545.267, "3"]]
- *   },
- *   {
- *     metric: { component: "compute", alertname: "Alert2", severity: "critical" },
- *     values: [[1627897545.267, "2"], [1627897545.267, "4"]]
- *   },
- *   {
- *     metric: { component: "network", alertname: "Alert3", severity: "warning" },
- *     values: [[1627897545.267, "2"], [1627897545.267, "3"]]
- *   }
+ * const alerts = [
+ *   { metric: { alertname: "Alert1", namespace: "ns1", component: "comp1" }, values: [[12345, "2"], [12346, "2"]] },
+ *   { metric: { alertname: "Alert1", namespace: "ns1", component: "comp1" }, values: [[12346, "2"], [12347, "2"]] }
  * ];
- *
- * const result = groupByComponent(objects);
- * // Output:
- * // [
- * //   {
- * //     metric: { component: "compute", alertname: "Alert1", severity: "warning" },
- * //     values: [[1627897545.267, "2"], [1627897545.267, "3"], [1627897545.267, "4"]]
- * //   },
- * //   {
- * //     metric: { component: "network", alertname: "Alert3", severity: "warning" },
- * //     values: [[1627897545.267, "2"], [1627897545.267, "3"]]
- * //   }
- * // ]
+ * const groupedAlerts = groupAlerts(alerts);
+ * // Returns an array where the two alerts are grouped together with deduplicated values.
  */
-
-export function groupByComponent(objects) {
+export function groupAlerts(objects) {
   const groupedObjects = new Map();
-
+  // Group by 3 values to make sure were not losing data'component'
   for (const obj of objects) {
-    const key = obj.metric.component; // Group by 'component'
+    const key = obj.metric.alertname + obj.metric.namespace + obj.metric.component;
 
     // If the key already exists in the map, merge the values after deduplication
     if (groupedObjects.has(key)) {
@@ -147,7 +132,7 @@ export function groupByComponent(objects) {
  */
 
 export function processAlerts(data) {
-  const firing = groupByComponent(data).filter((alert) => alert.metric.alertname !== 'Watchdog');
+  const firing = groupAlerts(data).filter((alert) => alert.metric.alertname !== 'Watchdog');
   return firing.map((alert, index) => {
     // Process each value
     const processedValues = alert.values.map((value) => {
@@ -167,8 +152,8 @@ export function processAlerts(data) {
       name: alert.metric.name,
       alertstate: alert.metric.alertstate,
       values: processedValues,
-      alertsStartFiring: processedValues.at(0)[0],
-      alertsEndFiring: processedValues.at(-1)[0],
+      alertsStartFiring: processedValues[0][0],
+      alertsEndFiring: processedValues[processedValues.length - 1][0],
       x: firing.length - index,
     };
   });

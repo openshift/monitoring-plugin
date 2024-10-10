@@ -45,6 +45,21 @@ const IncidentsChart = ({ incidentsData, chartDays, chooseIncident, tableLoaded 
     chooseIncident(datum.datum.group_id);
   };
 
+  function getAdjustedFillColor(datum) {
+    if (isHidden(datum.group_id)) {
+      switch (datum.fill) {
+        case 'var(--pf-global--warning-color--100)':
+          return '#F8DFA7'; // Less transparent for warning
+        case 'var(--pf-global--info-color--100)':
+          return '#B2D1F0'; // Less transparent for info
+        case 'var(--pf-global--danger-color--100)':
+          return '#EFBAB6'; // Less transparent for danger
+      }
+    }
+
+    return datum.fill; // Original fill color if the bar is selected
+  }
+
   return (
     <Card className="incidents-chart-card">
       <div ref={containerRef}>
@@ -113,7 +128,7 @@ const IncidentsChart = ({ incidentsData, chartDays, chooseIncident, tableLoaded 
                       key={index}
                       style={{
                         data: {
-                          fill: ({ datum }) => (!isHidden(datum.group_id) ? datum.fill : '#D2D2D2'),
+                          fill: ({ datum }) => getAdjustedFillColor(datum),
                           stroke: ({ datum }) => datum.fill,
                         },
                       }}

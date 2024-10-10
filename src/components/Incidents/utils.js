@@ -144,3 +144,15 @@ export function filterIncident(filters, incident) {
   // Check if at least one filter passes
   return filters.selected.some((key) => incident[conditions[key]] === true);
 }
+
+export function formatDateInExpandedDetails(date) {
+  if (!date) return 'N/A'; // Handle null or undefined dates
+  return date.toLocaleString('en-US', {
+    month: 'short', // "Jun"
+    day: 'numeric', // "5"
+    year: 'numeric', // "2024"
+    hour: 'numeric', // "1"
+    minute: 'numeric', // "25"
+    hour12: true, // "AM/PM"
+  });
+}
