@@ -59,8 +59,9 @@ export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheck
   const { perspective } = usePerspective();
   const namespace = useActiveNamespace();
 
-  const { createdBy, endsAt, firingAlerts, id, name, startsAt } = obj;
+  const { createdBy, endsAt, firingAlerts, id, name, startsAt, matchers } = obj;
   const state = silenceState(obj);
+  const cluster = matchers.find((label) => label.name === 'cluster')?.value;
 
   const { selectedSilences, setSelectedSilences } = React.useContext(SelectedSilencesContext);
 
@@ -123,7 +124,8 @@ export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheck
         )}
       </td>
       <td className={tableSilenceClasses[4]}>{createdBy || '-'}</td>
-      <td className={tableSilenceClasses[5]}>
+      {perspective === 'acm' && <td className={tableSilenceClasses[5]}>{cluster}</td>}
+      <td className={tableSilenceClasses[6]}>
         <SilenceDropdownKebab silence={obj} />
       </td>
     </>

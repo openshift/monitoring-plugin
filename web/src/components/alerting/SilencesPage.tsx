@@ -23,7 +23,7 @@ import {
   VirtualizedTable,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { Helmet } from 'react-helmet';
-import { fuzzyCaseInsensitive, refreshSilences, silenceState } from '../utils';
+import { fuzzyCaseInsensitive, refreshSilences, silenceCluster, silenceState } from '../utils';
 import * as _ from 'lodash-es';
 import { sortable } from '@patternfly/react-table';
 import { SelectedSilencesContext, SilenceTableRow, tableSilenceClasses } from './SilencesUtils';
@@ -84,7 +84,7 @@ const SilencesPage_: React.FC = () => {
         ),
       filterGroupName: t('Cluster'),
       items: [],
-      type: 'cluster',
+      reducer: silenceCluster,
     } as RowFilter);
   }
 
@@ -135,18 +135,11 @@ const SilencesPage_: React.FC = () => {
     ];
 
     if (perspective === 'acm') {
-      cols.splice(4, 0, {
+      cols.splice(-1, 0, {
         id: 'cluster',
         props: { className: tableSilenceClasses[5] },
         sort: (silences: Silence[], direction: 'asc' | 'desc') =>
-          _.orderBy(
-            silences,
-            [
-              (silence: Silence) =>
-                silence.matchers.find((label) => label.name === 'cluster')?.value,
-            ],
-            [direction],
-          ),
+          _.orderBy(silences, silenceClusterOrder, [direction]),
         title: t('Cluster'),
         transforms: [sortable],
       });
@@ -258,6 +251,10 @@ const silenceStateOrder = (silence: Silence) => [
     silenceState(silence),
   ),
   _.get(silence, silenceState(silence) === SilenceStates.Pending ? 'startsAt' : 'endsAt'),
+];
+
+const silenceClusterOrder = () => [
+  (silence: Silence) => silence.matchers.find((label) => label.name === 'cluster')?.value,
 ];
 
 const ExpireAllSilencesButton: React.FC<ExpireAllSilencesButtonProps> = ({ setErrorMessage }) => {

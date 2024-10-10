@@ -170,7 +170,7 @@ const AlertsPage_: React.FC<AlertsPageProps> = () => {
     ];
 
     if (perspective === 'acm') {
-      cols.splice(4, 0, {
+      cols.splice(-1, 0, {
         id: 'cluster',
         props: { className: tableAlertClasses[4] },
         sort: 'labels.cluster',
@@ -336,7 +336,12 @@ const AlertTableRow_: React.FC<AlertTableRowProps> = ({ history, obj, match }) =
       <td className={tableAlertClasses[3]} title={title}>
         {alertSource(obj) === AlertSource.User ? t('User') : t('Platform')}
       </td>
-      <td className={tableAlertClasses[4]} title={title}>
+      {perspective === 'acm' && (
+        <td className={tableAlertClasses[4]} title={title}>
+          {labels?.cluster}
+        </td>
+      )}
+      <td className={tableAlertClasses[5]} title={title}>
         <ActionServiceProvider context={{ 'monitoring-alert-list-item': { alert: obj } }}>
           {({ actions, loaded }) => {
             if (loaded && actions.length > 0) {
