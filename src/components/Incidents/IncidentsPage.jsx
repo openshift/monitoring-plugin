@@ -204,8 +204,8 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
             alertsData={alertsData}
             incidentsData={filteredData}
             chartDays={timeRanges.length}
-            chooseIncident={setChooseIncident}
-            tableLoaded={setAlertsAreLoading}
+            onIncidentSelect={setChooseIncident}
+            tableIsLoading={setAlertsAreLoading}
           />
           <div className="row">
             <div className="col-xs-12">

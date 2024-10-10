@@ -16,7 +16,7 @@ import global_warning_color_100 from '@patternfly/react-tokens/dist/esm/global_w
 import { createIncidentsChartBars, formatDate, generateDateArray } from '../utils';
 import { getResizeObserver } from '@patternfly/react-core';
 
-const IncidentsChart = ({ incidentsData, chartDays, chooseIncident, tableLoaded }) => {
+const IncidentsChart = ({ incidentsData, chartDays, onIncidentSelect, tableIsLoading }) => {
   const [isLoading, setIsLoading] = React.useState(true);
   const [chartData, setChartData] = React.useState();
   const [width, setWidth] = React.useState(0);
@@ -40,9 +40,9 @@ const IncidentsChart = ({ incidentsData, chartDays, chooseIncident, tableLoaded 
 
   const isHidden = (group_id) => hiddenSeries !== null && hiddenSeries !== group_id;
   const clickHandler = (data, datum) => {
-    tableLoaded(true);
+    tableIsLoading(true);
     setHiddenSeries(datum.datum.group_id === hiddenSeries ? null : datum.datum.group_id);
-    chooseIncident(datum.datum.group_id);
+    onIncidentSelect(datum.datum.group_id);
   };
 
   function getAdjustedFillColor(datum) {
@@ -72,7 +72,6 @@ const IncidentsChart = ({ incidentsData, chartDays, chooseIncident, tableLoaded 
           <div
             style={{
               height: '550px',
-              //TODO: WIDTH SHOULD BE AUTOMATICALLY ADJUSTED
               width: '100%',
             }}
           >
@@ -107,7 +106,6 @@ const IncidentsChart = ({ incidentsData, chartDays, chooseIncident, tableLoaded 
                 right: 25, // Adjusted to accommodate tooltip
                 top: 0,
               }}
-              //TODO: WIDTH SHOULD BE AUTOMATICALLY ADJUSTED
               width={width}
             >
               <ChartAxis
@@ -119,13 +117,12 @@ const IncidentsChart = ({ incidentsData, chartDays, chooseIncident, tableLoaded 
                 tickValues={dateValues}
               />
               <ChartGroup horizontal>
-                {chartData.map((bar, index) => {
+                {chartData.map((bar) => {
                   return (
                     //we have several arrays and for each array we make a ChartBar
                     <ChartBar
-                      name={bar.group_id}
                       data={bar}
-                      key={index}
+                      key={bar.group_id}
                       style={{
                         data: {
                           fill: ({ datum }) => getAdjustedFillColor(datum),

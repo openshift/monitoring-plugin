@@ -6,16 +6,16 @@ export const IncidentsHeader = ({
   alertsData,
   incidentsData,
   chartDays,
-  chooseIncident,
-  tableLoaded,
+  onIncidentSelect,
+  tableIsLoading,
 }) => {
   return (
     <div className="incidents-chart-card-container">
       <IncidentsChart
         incidentsData={incidentsData}
         chartDays={chartDays}
-        chooseIncident={chooseIncident}
-        tableLoaded={tableLoaded}
+        onIncidentSelect={onIncidentSelect}
+        tableIsLoading={tableIsLoading}
       />
       <AlertsChart alertsData={alertsData} chartDays={chartDays} />
     </div>

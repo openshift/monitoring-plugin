@@ -49,7 +49,6 @@ const AlertsChart = ({ alertsData, chartDays }) => {
           <div
             style={{
               height: '450px',
-              //TODO: WIDTH SHOULD BE AUTOMATICALLY ADJUSTED
               width: '100%',
             }}
           >
@@ -86,7 +85,6 @@ const AlertsChart = ({ alertsData, chartDays }) => {
                 right: 25, // Adjusted to accommodate tooltip
                 top: 0,
               }}
-              //TODO: WIDTH SHOULD BE AUTOMATICALLY ADJUSTED
               width={width}
             >
               <ChartAxis
