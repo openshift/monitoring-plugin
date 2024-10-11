@@ -16,7 +16,7 @@ import global_warning_color_100 from '@patternfly/react-tokens/dist/esm/global_w
 import { createIncidentsChartBars, formatDate, generateDateArray } from '../utils';
 import { getResizeObserver } from '@patternfly/react-core';
 
-const IncidentsChart = ({ incidentsData, chartDays, onIncidentSelect, tableIsLoading }) => {
+const IncidentsChart = ({ incidentsData, chartDays, onIncidentSelect }) => {
   const [isLoading, setIsLoading] = React.useState(true);
   const [chartData, setChartData] = React.useState();
   const [width, setWidth] = React.useState(0);
@@ -40,7 +40,6 @@ const IncidentsChart = ({ incidentsData, chartDays, onIncidentSelect, tableIsLoa
 
   const isHidden = (group_id) => hiddenSeries !== null && hiddenSeries !== group_id;
   const clickHandler = (data, datum) => {
-    tableIsLoading(true);
     setHiddenSeries(datum.datum.group_id === hiddenSeries ? null : datum.datum.group_id);
     onIncidentSelect(datum.datum.group_id);
   };

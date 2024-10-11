@@ -154,6 +154,7 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
       .then((results) => {
         const aggregatedData = results.reduce((acc, result) => acc.concat(result), []);
         setFilteredIncidentsData(processIncidents(aggregatedData));
+        setAlertsAreLoading(true);
         setIncidentsAreLoading(false);
       })
       .catch((err) => {
@@ -198,7 +199,6 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
             incidentsData={filteredData}
             chartDays={timeRanges.length}
             onIncidentSelect={setChooseIncident}
-            tableIsLoading={setAlertsAreLoading}
           />
           <div className="row">
             <div className="col-xs-12">
