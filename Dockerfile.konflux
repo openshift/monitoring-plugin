@@ -1,0 +1,52 @@
+FROM registry.redhat.io/ubi9/nodejs-18:latest AS web-builder
+
+WORKDIR /opt/app-root
+
+USER 0
+
+ENV HUSKY=0
+COPY web/package*.json web/
+COPY Makefile Makefile
+RUN make install-frontend-ci
+
+COPY web/ web/
+RUN make build-frontend
+
+FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_9_1.22 as go-builder
+
+WORKDIR /opt/app-root
+
+COPY Makefile Makefile
+COPY go.mod go.mod
+COPY go.sum go.sum
+
+RUN make install-backend
+
+COPY cmd/ cmd/
+COPY pkg/ pkg/
+
+ENV GOEXPERIMENT=strictfipsruntime
+ENV CGO_ENABLED=1
+
+RUN make build-backend BUILD_OPTS="-tags strictfipsruntime"
+
+FROM registry.redhat.io/rhel9-2-els/rhel:9.2
+
+RUN mkdir /licenses
+COPY LICENSE /licenses/.
+
+USER 1001
+
+COPY --from=web-builder /opt/app-root/web/dist /opt/app-root/web/dist
+COPY --from=go-builder /opt/app-root/plugin-backend /opt/app-root
+
+ENTRYPOINT ["/opt/app-root/plugin-backend", "-static-path", "/opt/app-root/web/dist"]
+
+LABEL com.redhat.component="coo-monitoring-console-plugin" \
+      name="openshift/monitoring-console-plugin" \
+      version="v0.3.0" \
+      summary="OpenShift monitoring plugin to view and explore metrics and alerts" \
+      io.openshift.tags="openshift,observability-ui,metrics,alerts" \
+      io.k8s.display-name="OpenShift console monitoring plugin" \
+      maintainer="Observability UI Team <team-observability-ui@redhat.com>" \
+      description="OpenShift monitoring plugin to view and explore metrics and alerts"
