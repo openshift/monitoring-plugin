@@ -1,105 +1,59 @@
 /* eslint-disable max-len */
 /**
- * Collects and groups objects by unique combinations of `alertname` and `severity`,
- * removing any duplicates based on this combination.
+ * Creates a Prometheus alerts query string from grouped alert values.
+ * The function dynamically includes any properties in the input objects that have the "src_" prefix,
+ * but the prefix is removed from the keys in the final query string.
  *
- * @param {Array<Object>} objects - An array of objects, where each object contains `alertname` and `severity` properties.
- * @param {string} objects[].alertname - The name of the alert.
- * @param {string} objects[].severity - The severity level of the alert.
- * @returns {Array<Object>} An array of unique objects, each containing a unique combination of `alertname` and `severity`.
+ * @param {Object[]} groupedAlertsValues - Array of grouped alert objects.
+ * Each alert object should contain various properties, including "src_" prefixed properties,
+ * as well as "layer" and "component" for constructing the meta fields in the query.
+ *
+ * @param {string} groupedAlertsValues[].layer - The layer of the alert, used in the absent condition.
+ * @param {string} groupedAlertsValues[].component - The component of the alert, used in the absent condition.
+ * @returns {string} - A string representing the combined Prometheus alerts query.
+ * Each alert query is formatted as `(ALERTS{key="value", ...} + on () group_left (component, layer) (absent(meta{layer="value", component="value"})))`
+ * and multiple queries are joined by "or".
  *
  * @example
  * const alerts = [
- *   { alertname: 'CPUUsage', severity: 'info' },
- *   { alertname: 'MemoryUsage', severity: 'warning' },
- *   { alertname: 'CPUUsage', severity: 'info' },  // duplicate
- *   { alertname: 'DiskSpace', severity: 'critical' }
- * ];
- * const result = collectIncidentsDataForApiQuery(alerts);
- * // result will be:
- * // [
- * //   { alertname: 'CPUUsage', severity: 'info' },
- * //   { alertname: 'MemoryUsage', severity: 'warning' },
- * //   { alertname: 'DiskSpace', severity: 'critical' }
- * // ]
- */
-
-export const collectIncidentsDataForApiQuery = (objects) => {
-  // Create a map to hold unique alertname+severity combinations
-  const groupedAlertsValues = new Map();
-
-  for (const obj of objects) {
-    // WHAT IS THE CORRECT UNIQUE IDENTIFIER FOR REQUESTING AND GROUPING ALERTS
-    const key = obj.component;
-
-    // If the key doesn't exist in the map, add the object
-    groupedAlertsValues.set(key, {
-      alertname: obj.alertname,
-      severity: obj.severity,
-      component: obj.component,
-      layer: obj.layer,
-      namespace: obj.namespace,
-      name: obj.name,
-    });
-  }
-
-  // Return the values from the map, which will automatically be deduplicated
-  return Array.from(groupedAlertsValues.values());
-};
-
-/**
- * Creates a query string for alerts based on the provided grouped alert values.
- *
- * The function constructs individual alert strings by including only those fields
- * that are present in each alert object. The final query string is a combination
- * of these individual alert strings joined with `or`.
- *
- * @param {Array<Object>} groupedAlertsValues - An array of alert objects, where each object contains details such as `alertname`, `namespace`, `name`, `severity`, `component`, and `layer`.
- * @param {string} groupedAlertsValues[].alertname - The name of the alert.
- * @param {string} [groupedAlertsValues[].namespace] - The namespace of the alert. Optional.
- * @param {string} [groupedAlertsValues[].name] - The name associated with the alert. Optional.
- * @param {string} [groupedAlertsValues[].severity] - The severity level of the alert. Optional.
- * @param {string} groupedAlertsValues[].component - The component associated with the alert.
- * @param {string} groupedAlertsValues[].layer - The layer of the component.
- *
- * @returns {string} The constructed query string combining all provided alerts.
- *
- * @example
- * const groupedAlertsValues = [
  *   {
- *     alertname: "KubeNodeNotReady",
- *     severity: "warning",
- *     component: "compute",
- *     layer: "compute",
- *     namespace: "openshift-monitoring"
- *   },
- *   {
- *     alertname: "AlertmanagerReceiversNotConfigured",
- *     severity: "warning",
- *     component: "monitoring",
+ *     src_alertname: "AlertmanagerReceiversNotConfigured",
+ *     src_namespace: "openshift-monitoring",
+ *     src_severity: "warning",
  *     layer: "core",
- *     namespace: "openshift-monitoring"
+ *     component: "monitoring"
  *   },
+ *   {
+ *     src_alertname: "AnotherAlert",
+ *     src_namespace: "default",
+ *     src_severity: "critical",
+ *     layer: "app",
+ *     component: "frontend"
+ *   }
  * ];
  *
- * const query = createAlertsQuery(groupedAlertsValues);
- * console.log(query);
- * // Outputs:
- * // (ALERTS{alertname="KubeNodeNotReady", namespace="openshift-monitoring", severity="warning"} + on () group_left (component, layer) (absent(meta{layer="compute", component="compute"}))) or
- * // (ALERTS{alertname="AlertmanagerReceiversNotConfigured", namespace="openshift-monitoring", severity="warning"} + on () group_left (component, layer) (absent(meta{layer="core", component="monitoring"})))
+ * const query = createAlertsQuery(alerts);
+ * // Returns:
+ * // '(ALERTS{alertname="AlertmanagerReceiversNotConfigured", namespace="openshift-monitoring", severity="warning"} + on () group_left (component, layer) (absent(meta{layer="core", component="monitoring"}))) or
+ * //  (ALERTS{alertname="AnotherAlert", namespace="default", severity="critical"} + on () group_left (component, layer) (absent(meta{layer="app", component="frontend"})))'
  */
 export const createAlertsQuery = (groupedAlertsValues) => {
-  // Map through the grouped alerts to create individual alert strings for the query
   const alertsQuery = groupedAlertsValues
     .map((query) => {
-      const alertParts = ['alertname', 'namespace', 'name', 'severity', 'alertstate']
+      // Dynamically get all keys starting with "src_"
+      const srcKeys = Object.keys(query).filter((key) => key.startsWith('src_'));
+
+      // Create the alertParts array using the dynamically discovered src_ keys,
+      // but remove the "src_" prefix from the keys in the final query string.
+      const alertParts = srcKeys
         .filter((key) => query[key]) // Only include keys that are present in the query object
-        .map((key) => `${key}="${query[key]}"`)
+        .map((key) => `${key.replace('src_', '')}="${query[key]}"`) // Remove "src_" prefix from keys
         .join(', ');
 
+      // Construct the query string for each grouped alert
       return `(ALERTS{${alertParts}} + on () group_left (component, layer) (absent(meta{layer="${query.layer}", component="${query.component}"})))`;
     })
-    .join(' or ');
+    .join(' or '); // Join all individual alert queries with "or"
 
   return alertsQuery;
 };

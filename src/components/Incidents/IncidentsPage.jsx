@@ -6,18 +6,10 @@ import {
   ListPageFilter,
   PrometheusEndpoint,
   useListPageFilter,
-  VirtualizedTable,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { parsePrometheusDuration } from '../console/utils/datetime';
 import { getPrometheusURL } from '../console/graphs/helpers';
-import {
-  filterIncident,
-  getIncidentsTimeRanges,
-  groupAlertsForTable,
-  processAlertTimestamps,
-  processIncidents,
-} from './utils';
-import { collectIncidentsDataForApiQuery, createAlertsQuery } from './api';
+import { createAlertsQuery } from './api';
 import { useTranslation } from 'react-i18next';
 import {
   Bullseye,
@@ -32,6 +24,9 @@ import { useBoolean } from '../hooks/useBoolean';
 import some from 'lodash-es/some';
 import { dropdownItems } from './consts';
 import { IncidentsTable } from './IncidentsTable';
+import { getIncidentsTimeRanges, processIncidents } from './processIncidents';
+import { filterIncident } from './utils';
+import { groupAlertsForTable, processAlerts } from './processAlerts';
 
 const IncidentsPage = ({ customDataSource, namespace }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
@@ -41,8 +36,9 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
   const [alertsData, setAlertsData] = React.useState([]);
   const [incidentsData, setIncidentsData] = React.useState([]);
   const [tableData, setTableData] = React.useState([]);
-  const [alertValuePairs, setAlertValuePairs] = React.useState([]);
   const [isOpen, setIsOpen, , setClosed] = useBoolean(false);
+  const [chooseIncident, setChooseIncident] = React.useState('');
+  const [filteredIncidentsData, setFilteredIncidentsData] = React.useState([]);
 
   const now = Date.now();
   const timeRanges = getIncidentsTimeRanges(span, now);
@@ -79,7 +75,7 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
                 endpoint: PrometheusEndpoint.QUERY_RANGE,
                 endTime: range.endTime,
                 namespace,
-                query: createAlertsQuery(alertValuePairs),
+                query: createAlertsQuery(filteredIncidentsData),
                 samples: 24,
                 timespan: range.duration - 1,
               },
@@ -91,7 +87,7 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
       )
         .then((results) => {
           const aggregatedData = results.reduce((acc, result) => acc.concat(result), []);
-          setAlertsData(processAlertTimestamps(aggregatedData));
+          setAlertsData(processAlerts(aggregatedData));
           setAlertsAreLoading(false);
         })
         .catch((err) => {
@@ -99,11 +95,7 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
           console.log(err);
         });
     })();
-  }, [alertValuePairs]);
-
-  React.useEffect(() => {
-    setAlertValuePairs(collectIncidentsDataForApiQuery(incidentsData));
-  }, [incidentsAreLoading]);
+  }, [filteredIncidentsData]);
   React.useEffect(() => {
     setTableData(groupAlertsForTable(alertsData));
   }, [alertsAreLoading]);
@@ -118,8 +110,7 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
                 endpoint: PrometheusEndpoint.QUERY_RANGE,
                 endTime: range.endTime,
                 namespace,
-                query:
-                  'max by(group_id,component,src_alertname,src_severity,src_namespace,src_name,layer)(cluster:health:components:map{})',
+                query: 'cluster:health:components:map',
                 samples: 24,
                 timespan: range.duration - 1,
               },
@@ -140,6 +131,37 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
         });
     })();
   }, [span]);
+
+  React.useEffect(() => {
+    Promise.all(
+      timeRanges.map(async (range) => {
+        const response = await safeFetch(
+          getPrometheusURL(
+            {
+              endpoint: PrometheusEndpoint.QUERY_RANGE,
+              endTime: range.endTime,
+              namespace,
+              query: `cluster:health:components:map{group_id='${chooseIncident}'}`,
+              samples: 24,
+              timespan: range.duration - 1,
+            },
+            customDataSource?.basePath,
+          ),
+        );
+        return response.data.result;
+      }),
+    )
+      .then((results) => {
+        const aggregatedData = results.reduce((acc, result) => acc.concat(result), []);
+        setFilteredIncidentsData(processIncidents(aggregatedData));
+        setAlertsAreLoading(true);
+        setIncidentsAreLoading(false);
+      })
+      .catch((err) => {
+        // eslint-disable-next-line no-console
+        console.log(err);
+      });
+  }, [chooseIncident]);
 
   return (
     <>
@@ -176,6 +198,7 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
             alertsData={alertsData}
             incidentsData={filteredData}
             chartDays={timeRanges.length}
+            onIncidentSelect={setChooseIncident}
           />
           <div className="row">
             <div className="col-xs-12">
