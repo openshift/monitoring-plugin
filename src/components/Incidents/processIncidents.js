@@ -113,21 +113,25 @@ export function processIncidents(data) {
       );
     });
 
+    const getSrcProperties = (metric) => {
+      return Object.keys(metric)
+        .filter((key) => key.startsWith('src_'))
+        .reduce((acc, key) => {
+          acc[key] = metric[key];
+          return acc;
+        }, {});
+    };
+    const srcProperties = getSrcProperties(incident.metric);
     return {
       component: incident.metric.component,
       group_id: incident.metric.group_id,
-      severity: incident.metric.src_severity,
-      alertname: incident.metric.src_alertname,
-      namespace: incident.metric.src_namespace,
-      name: incident.metric.src_name,
       layer: incident.metric.layer,
-      componentsList: incident.componentsList,
-      layerList: incident.layerList,
       values: processedValues,
       x: incidents.length - index,
       informative: incident.metric.src_severity === 'info' ? true : false,
       longStanding: dayDifference < 7 ? true : false,
       inactive: !hasMatchingDayAndHour ? true : false,
+      ...srcProperties,
     };
   });
 }
@@ -151,8 +155,6 @@ export function processIncidents(data) {
  *
  * @returns {Array<Object>} - Array of grouped alert objects, each containing the following properties:
  * @returns {Object} return[].metric - The combined metric information of the grouped alert.
- * @returns {Array<string>} return[].componentsList - List of unique components associated with the grouped alert.
- * @returns {Array<string>} return[].layerList - List of unique layers associated with the grouped alert.
  * @returns {Array<Array<number | 0 | 1 | 2>>} return[].values - The deduplicated array of values for the grouped alert.
  *
  * @example
@@ -187,8 +189,6 @@ export function processIncidents(data) {
  * // [
  * //   {
  * //     metric: { group_id: "1234", component: "compute", layer: "application" },
- * //     componentsList: ["compute", "network"],
- * //     layerList: ["application", "infrastructure"],
  * //     values: [
  * //       [1627947755.428, 0],
  * //       [1627951355.428, 2],
@@ -217,15 +217,6 @@ export function groupById(objects) {
       // Concatenate non-duplicate values
       existingObj.values = existingObj.values.concat(newValues);
 
-      // Add the component to componentsList and layer to the layerList
-      //it is used to create an alerts query that combines all of them
-      if (!existingObj.componentsList.includes(component)) {
-        existingObj.componentsList.push(component);
-      }
-      if (!existingObj.layerList.includes(layer)) {
-        existingObj.layerList.push(layer);
-      }
-
       // Ensure metric uniqueness based on fields like alertname, severity, etc.
       const existingMetricsSet = new Set(JSON.stringify(existingObj.metric));
       if (!existingMetricsSet.has(JSON.stringify(obj.metric))) {
@@ -237,8 +228,6 @@ export function groupById(objects) {
     } else {
       groupedObjects.set(key, {
         metric: obj.metric,
-        componentsList: [component],
-        layerList: [layer],
         values: [...new Set(obj.values.map((v) => JSON.stringify(v)))].map((v) => JSON.parse(v)),
       });
     }

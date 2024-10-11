@@ -9,7 +9,7 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { parsePrometheusDuration } from '../console/utils/datetime';
 import { getPrometheusURL } from '../console/graphs/helpers';
-import { collectIncidentsDataForApiQuery, createAlertsQuery } from './api';
+import { createAlertsQuery } from './api';
 import { useTranslation } from 'react-i18next';
 import {
   Bullseye,
@@ -36,7 +36,6 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
   const [alertsData, setAlertsData] = React.useState([]);
   const [incidentsData, setIncidentsData] = React.useState([]);
   const [tableData, setTableData] = React.useState([]);
-  const [alertValuePairs, setAlertValuePairs] = React.useState([]);
   const [isOpen, setIsOpen, , setClosed] = useBoolean(false);
   const [chooseIncident, setChooseIncident] = React.useState('');
   const [filteredIncidentsData, setFilteredIncidentsData] = React.useState([]);
@@ -76,7 +75,7 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
                 endpoint: PrometheusEndpoint.QUERY_RANGE,
                 endTime: range.endTime,
                 namespace,
-                query: createAlertsQuery(alertValuePairs),
+                query: createAlertsQuery(filteredIncidentsData),
                 samples: 24,
                 timespan: range.duration - 1,
               },
@@ -96,10 +95,6 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
           console.log(err);
         });
     })();
-  }, [alertValuePairs]);
-
-  React.useEffect(() => {
-    setAlertValuePairs(collectIncidentsDataForApiQuery(filteredIncidentsData));
   }, [filteredIncidentsData]);
   React.useEffect(() => {
     setTableData(groupAlertsForTable(alertsData));

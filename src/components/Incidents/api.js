@@ -1,123 +1,59 @@
 /* eslint-disable max-len */
 /**
- * Collects incident data and groups it based on a unique key, which in this case is the `component`.
- * The function stores unique combinations of `alertname`, `severity`, and other relevant fields in a `Map`,
- * ensuring that each `component` is only included once. This is used for preparing incident data for API queries.
+ * Creates a Prometheus alerts query string from grouped alert values.
+ * The function dynamically includes any properties in the input objects that have the "src_" prefix,
+ * but the prefix is removed from the keys in the final query string.
  *
- * @param {Array} objects - An array of incident objects, each containing relevant alert information.
- * @param {string} objects[].alertname - The name of the alert.
- * @param {string} objects[].severity - The severity level of the alert (e.g., "warning", "critical").
- * @param {string} objects[].component - The component involved in the alert (used as the unique key).
- * @param {string} objects[].group_id - The group ID of the alert.
- * @param {string} objects[].layer - The layer to which the alert belongs.
- * @param {string} objects[].namespace - The namespace where the alert originated.
- * @param {Array<string>} objects[].componentsList - A list of related components.
- * @param {Array<string>} objects[].layerList - A list of related layers.
- * @param {string} [objects[].name] - The optional name of the alert object (if provided).
+ * @param {Object[]} groupedAlertsValues - Array of grouped alert objects.
+ * Each alert object should contain various properties, including "src_" prefixed properties,
+ * as well as "layer" and "component" for constructing the meta fields in the query.
  *
- * @returns {Array} - An array of deduplicated incident objects, grouped by the `component` key.
+ * @param {string} groupedAlertsValues[].layer - The layer of the alert, used in the absent condition.
+ * @param {string} groupedAlertsValues[].component - The component of the alert, used in the absent condition.
+ * @returns {string} - A string representing the combined Prometheus alerts query.
+ * Each alert query is formatted as `(ALERTS{key="value", ...} + on () group_left (component, layer) (absent(meta{layer="value", component="value"})))`
+ * and multiple queries are joined by "or".
  *
  * @example
- * const incidentObjects = [
+ * const alerts = [
  *   {
- *     alertname: "ClusterOperatorDegraded",
- *     severity: "warning",
- *     component: "machine-config",
- *     group_id: "639763dd-cf99-466d-be56-ae8b39f1351c",
- *     layer: "compute",
- *     namespace: "openshift-cluster-version",
- *     componentsList: ["machine-config", "monitoring"],
- *     layerList: ["compute", "network"],
- *     name: "machine-config"
+ *     src_alertname: "AlertmanagerReceiversNotConfigured",
+ *     src_namespace: "openshift-monitoring",
+ *     src_severity: "warning",
+ *     layer: "core",
+ *     component: "monitoring"
  *   },
  *   {
- *     alertname: "ClusterOperatorDegraded",
- *     severity: "critical",
- *     component: "monitoring",
- *     group_id: "639763dd-cf99-466d-be56-ae8b39f1351c",
- *     layer: "compute",
- *     namespace: "openshift-monitoring",
- *     componentsList: ["machine-config", "monitoring"],
- *     layerList: ["compute", "network"]
+ *     src_alertname: "AnotherAlert",
+ *     src_namespace: "default",
+ *     src_severity: "critical",
+ *     layer: "app",
+ *     component: "frontend"
  *   }
  * ];
  *
- * const result = collectIncidentsDataForApiQuery(incidentObjects);
- * // Output: Array with unique incidents grouped by component.
- */
-export const collectIncidentsDataForApiQuery = (objects) => {
-  // Create a map to hold unique alertname+severity combinations
-  const groupedAlertsValues = new Map();
-
-  for (const obj of objects) {
-    // WHAT IS THE CORRECT UNIQUE IDENTIFIER FOR REQUESTING AND GROUPING ALERTS
-    const key = obj.component;
-
-    // If the key doesn't exist in the map, add the object
-    groupedAlertsValues.set(key, {
-      alertname: obj.alertname,
-      severity: obj.severity,
-      component: obj.component,
-      group_id: obj.group_id,
-      layer: obj.layer,
-      namespace: obj.namespace,
-      componentsList: obj.componentsList,
-      layerList: obj.layerList,
-      name: obj.name,
-    });
-  }
-
-  // Return the values from the map, which will automatically be deduplicated
-  return Array.from(groupedAlertsValues.values());
-};
-
-/**
- * Generates a Prometheus query string for each combination of component and layer
- * from the provided `groupedAlertsValues`. The query checks for the absence of
- * specific metadata (`group_id`, `component`, `layer`) in the `meta` time series.
- *
- * @param {Array} groupedAlertsValues - An array of alert objects, where each object represents
- *                                      grouped alerts and contains fields like `group_id`,
- *                                      `componentsList`, and `layerList`.
- * @param {string} groupedAlertsValues[].group_id - The unique identifier for the alert group.
- * @param {Array<string>} groupedAlertsValues[].componentsList - An array of component names.
- * @param {Array<string>} groupedAlertsValues[].layerList - An array of layer names.
- *
- * @returns {string} A Prometheus query string that includes conditions for each
- *                   combination of `component` and `layer` in the `componentsList` and `layerList`.
- *                   The queries are joined by the logical `or` operator.
- *
- * @example
- * const groupedAlertsValues = [
- *   {
- *     group_id: "639763dd-cf99-466d-be56-ae8b39f1351c",
- *     componentsList: ["compute", "dns", "ingress"],
- *     layerList: ["compute", "dns"]
- *   }
- * ];
- *
- * const query = createAlertsQuery(groupedAlertsValues);
- * // Outputs:
- * // (ALERTS + on () group_left (component, group_id) (absent(meta{group_id="639763dd-cf99-466d-be56-ae8b39f1351c", component="compute", layer="compute"}))) or
- * // (ALERTS + on () group_left (component, group_id) (absent(meta{group_id="639763dd-cf99-466d-be56-ae8b39f1351c", component="compute", layer="dns"}))) or
- * // ...
+ * const query = createAlertsQuery(alerts);
+ * // Returns:
+ * // '(ALERTS{alertname="AlertmanagerReceiversNotConfigured", namespace="openshift-monitoring", severity="warning"} + on () group_left (component, layer) (absent(meta{layer="core", component="monitoring"}))) or
+ * //  (ALERTS{alertname="AnotherAlert", namespace="default", severity="critical"} + on () group_left (component, layer) (absent(meta{layer="app", component="frontend"})))'
  */
 export const createAlertsQuery = (groupedAlertsValues) => {
   const alertsQuery = groupedAlertsValues
     .map((query) => {
-      // Generate query for each combination of component and layer
-      const componentLayerQueries = query.componentsList.map((component) => {
-        return query.layerList
-          .map((layer) => {
-            return `(ALERTS + on () group_left (component, group_id, layer) (absent(meta{group_id="${query.group_id}", component="${component}", layer="${layer}"})))`;
-          })
-          .join(' or ');
-      });
+      // Dynamically get all keys starting with "src_"
+      const srcKeys = Object.keys(query).filter((key) => key.startsWith('src_'));
 
-      // Flatten and join all queries for the current group
-      return componentLayerQueries.join(' or ');
+      // Create the alertParts array using the dynamically discovered src_ keys,
+      // but remove the "src_" prefix from the keys in the final query string.
+      const alertParts = srcKeys
+        .filter((key) => query[key]) // Only include keys that are present in the query object
+        .map((key) => `${key.replace('src_', '')}="${query[key]}"`) // Remove "src_" prefix from keys
+        .join(', ');
+
+      // Construct the query string for each grouped alert
+      return `(ALERTS{${alertParts}} + on () group_left (component, layer) (absent(meta{layer="${query.layer}", component="${query.component}"})))`;
     })
-    .join(' or ');
+    .join(' or '); // Join all individual alert queries with "or"
 
   return alertsQuery;
 };

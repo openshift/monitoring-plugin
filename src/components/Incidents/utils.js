@@ -34,7 +34,7 @@ export const createIncidentsChartBars = (incident) => {
       y0: new Date(incident.values[i].at(0)),
       y: new Date(incident.values[i + 1].at(0)),
       x: incident.x,
-      name: incident.severity[0].toUpperCase() + incident.severity.slice(1),
+      name: incident.src_severity[0].toUpperCase() + incident.src_severity.slice(1),
       component: incident.component,
       group_id: incident.group_id,
       fill:
