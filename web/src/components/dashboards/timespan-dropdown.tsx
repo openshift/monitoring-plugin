@@ -16,25 +16,25 @@ import { getQueryArgument, removeQueryArgument, setQueryArgument } from '../cons
 
 import { dashboardsSetEndTime, dashboardsSetTimespan } from '../../actions/observe';
 import { useBoolean } from '../hooks/useBoolean';
-import { RootState } from '../types';
 import CustomTimeRangeModal from './custom-time-range-modal';
-import { usePerspective } from '../hooks/usePerspective';
+import { getObserveState, usePerspective } from '../hooks/usePerspective';
+import { MonitoringState } from '../../reducers/observe';
 
 const CUSTOM_TIME_RANGE_KEY = 'CUSTOM_TIME_RANGE_KEY';
 
 const TimespanDropdown: React.FC = () => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const { perspective } = usePerspective();
 
   const [isOpen, toggleIsOpen, setOpen, setClosed] = useBoolean(false);
   const [isModalOpen, , setModalOpen, setModalClosed] = useBoolean(false);
 
-  const timespan = useSelector(({ observe }: RootState) =>
-    observe.getIn(['dashboards', perspective, 'timespan']),
+  const timespan = useSelector((state: MonitoringState) =>
+    getObserveState(perspective, state)?.getIn(['dashboards', perspective, 'timespen']),
   );
-  const endTime = useSelector(({ observe }: RootState) =>
-    observe.getIn(['dashboards', perspective, 'endTime']),
+  const endTime = useSelector((state: MonitoringState) =>
+    getObserveState(perspective, state)?.getIn(['dashboards', perspective, 'endTime']),
   );
 
   const timeSpanFromParams = getQueryArgument('timeRange');

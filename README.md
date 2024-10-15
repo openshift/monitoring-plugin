@@ -78,3 +78,15 @@ The application will be running at [localhost:9000](http://localhost:9000/).
 
 1. Disable cache. Select 'disable cache' in your browser's DevTools > Network > 'disable cache'. Or use private/incognito mode in your browser.
 2. Enable higher log verbosity by setting `-log-level=trace` when starting the plugin backend. For more options to set log level see [logrus documentation](https://github.com/sirupsen/logrus?tab=readme-ov-file#level-logging).
+
+## ACM Development
+### Dependencies
+1. [Local Development Dependencies](README#Dependencies)
+2. [yq](https://github.com/mikefarah/yq)
+3. sed ([gnu-sed](https://formulae.brew.sh/formula/gnu-sed) for mac, with sed being aliased to that gnu-sed)
+
+Due to the extensive number of items which would need to be run to locally run the ACM perspective, the suggested development pattern is instead repeat installations with helm. A small number of scripts have been put together to help you deploy the monitoring-plugin in its `acm` configuration. REGISTRY_ORG and TAG variables are available to adjust the quay image generated and used for deployment. Certain build time changes to the codebase are created when running these scripts. On Mac's these changes are not only run with the Dockerfiles, so it is not suggested to cancel the exection of this scipt part way through
+
+```bash
+make deploy-acm
+```

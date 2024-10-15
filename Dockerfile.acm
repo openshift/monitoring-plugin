@@ -1,0 +1,48 @@
+FROM registry.redhat.io/ubi9/nodejs-18:latest AS web-builder
+
+USER 0
+
+WORKDIR /opt/app-root
+
+ENV HUSKY=0
+
+COPY Makefile Makefile
+COPY scripts/update-plugin-name.sh scripts/update-plugin-name.sh
+COPY web/ web/
+
+RUN make update-plugin-name
+
+ENV I18N_NAMESPACE="plugin__monitoring-console-plugin"
+
+RUN make install-frontend
+RUN make build-frontend
+
+# Almost all images from Red Hat are still on go1.21, however I found one that the cne team has
+# created. Once official Red Hat images are available for local development and pulling this
+# should be updated
+FROM quay.io/redhat-cne/openshift-origin-release:rhel-9-golang-1.22-openshift-4.17 as go-builder
+
+WORKDIR /opt/app-root
+
+COPY Makefile Makefile
+COPY go.mod go.mod
+COPY go.sum go.sum
+
+RUN go mod download
+
+COPY cmd/ cmd/
+COPY pkg/ pkg/
+
+RUN go build -mod=mod -o plugin-backend cmd/plugin-backend.go
+
+FROM registry.access.redhat.com/ubi9/ubi-minimal
+
+USER 1001
+
+COPY --from=web-builder /opt/app-root/web/dist /opt/app-root/web/dist
+COPY --from=web-builder /opt/app-root/web/package.json /opt/app-root/web/package.json
+COPY --from=go-builder /opt/app-root/plugin-backend /opt/app-root
+COPY config/ /opt/app-root/config
+
+
+ENTRYPOINT ["/opt/app-root/plugin-backend", "-static-path", "/opt/app-root/web/dist"]

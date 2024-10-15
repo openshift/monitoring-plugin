@@ -25,7 +25,7 @@ type Props = {
 
 const IntervalDropdown: React.FC<Props> = ({ id, interval, setInterval }) => {
   const [isOpen, toggleIsOpen, setOpen, setClosed] = useBoolean(false);
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const onSelect = React.useCallback(
     (v: string) => setInterval(v === OFF_KEY ? null : parsePrometheusDuration(v)),

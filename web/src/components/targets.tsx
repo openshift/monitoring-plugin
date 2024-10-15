@@ -46,7 +46,8 @@ import { EmptyBox, LoadingInline, StatusBox } from './console/utils/status-box';
 import { useBoolean } from './hooks/useBoolean';
 import { Labels } from './labels';
 import { AlertSource, PrometheusAPIError, Target } from './types';
-import { fuzzyCaseInsensitive, PROMETHEUS_BASE_PATH, targetSource } from './utils';
+import { fuzzyCaseInsensitive, targetSource } from './utils';
+import { PROMETHEUS_BASE_PATH } from './console/graphs/helpers';
 
 enum MonitorType {
   ServiceMonitor = 'serviceMonitor',
@@ -60,7 +61,7 @@ const PodMonitorsWatchContext = React.createContext([]);
 const PodsWatchContext = React.createContext([]);
 
 const PodMonitor: React.FC<{ target: Target }> = ({ target }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const [podMonitors, podMonitorsLoaded, podMonitorsLoadError] =
     React.useContext(PodMonitorsWatchContext);
@@ -111,7 +112,7 @@ const PodMonitor: React.FC<{ target: Target }> = ({ target }) => {
 };
 
 const ServiceMonitor: React.FC<{ target: Target }> = ({ target }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const [monitors, monitorsLoaded, monitorsLoadError] = React.useContext(
     ServiceMonitorsWatchContext,
@@ -163,7 +164,7 @@ const ServiceMonitor: React.FC<{ target: Target }> = ({ target }) => {
 };
 
 const Health: React.FC<{ health: 'up' | 'down' }> = React.memo(({ health }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return health === 'up' ? (
     <>
@@ -207,7 +208,7 @@ type DetailsProps = {
 };
 
 const Details: React.FC<DetailsProps> = ({ loaded, loadError, targets }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const match = useRouteMatch<{ scrapeUrl?: string }>();
 
@@ -380,7 +381,7 @@ type ListProps = {
 };
 
 const List: React.FC<ListProps> = ({ data, loaded, loadError, unfilteredData }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const columns = React.useMemo<TableColumn<Target>[]>(
     () => [
@@ -452,7 +453,7 @@ type ListPageProps = {
 };
 
 const ListPage: React.FC<ListPageProps> = ({ loaded, loadError, targets }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const [, , serviceMonitorsLoadError] = React.useContext(ServiceMonitorsWatchContext);
   const [, , podMonitorsLoadError] = React.useContext(PodMonitorsWatchContext);

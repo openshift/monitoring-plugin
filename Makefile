@@ -22,9 +22,19 @@ start-frontend:
 start-console:
 	./scripts/start-console.sh
 
+.PHONY: i18n-frontend
+i18n-frontend:
+	cd web && npm run i18n
+
 .PHONY: lint-frontend
 lint-frontend:
 	cd web && npm run lint
+
+.PHONY: lint-backend
+lint-backend:
+	go mod tidy
+	go fmt ./cmd/
+	go fmt ./pkg/
 
 .PHONY: install-backend
 install-backend:
@@ -45,3 +55,23 @@ build-image:
 .PHONY: install
 install:
 	make install-frontend && make install-backend
+
+.PHONY: update-plugin-name
+update-plugin-name:
+	./scripts/update-plugin-name.sh
+
+export REGISTRY_ORG?=openshift-observability-ui
+export TAG?=latest
+export PLUGIN_NAME?=monitoring-plugin
+IMAGE=quay.io/${REGISTRY_ORG}/monitoring-plugin:${TAG}
+
+.PHONY: deploy
+deploy:
+	make lint-backend
+	PUSH=1 scripts/build-image.sh
+	helm uninstall $(PLUGIN_NAME) -n $(PLUGIN_NAME)-ns || true
+	helm install $(PLUGIN_NAME) charts/openshift-console-plugin -n monitoring-plugin-ns --create-namespace --set plugin.image=$(IMAGE)
+
+.PHONY: deploy-acm
+deploy-acm:
+	./scripts/deploy-acm.sh
