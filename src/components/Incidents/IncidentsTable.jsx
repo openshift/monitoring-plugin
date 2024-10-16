@@ -1,9 +1,18 @@
 import React from 'react';
 import { Table, Thead, Tr, Th, Tbody, Td, ExpandableRowContent } from '@patternfly/react-table';
-import { Bullseye, Card, CardBody, Checkbox, Label, Spinner } from '@patternfly/react-core';
+import {
+  Bullseye,
+  Card,
+  CardBody,
+  EmptyState,
+  EmptyStateBody,
+  EmptyStateIcon,
+  Label,
+} from '@patternfly/react-core';
 import InfoCircleIcon from '@patternfly/react-icons/dist/esm/icons/info-circle-icon';
 import { AlertStateIcon } from '../alerting/AlertUtils';
 import IncidentsDetailsRowTable from './IncidentsDetailsRowTable';
+import { SearchIcon } from '@patternfly/react-icons';
 
 export const IncidentsTable = ({ loaded, data = [] }) => {
   const columnNames = {
@@ -33,9 +42,22 @@ export const IncidentsTable = ({ loaded, data = [] }) => {
             </Tr>
           </Thead>
           {!loaded ? (
-            <Bullseye>
-              <Spinner aria-label="incidents-chart-spinner" />
-            </Bullseye>
+            <Tr>
+              <Td colSpan={4}>
+                <EmptyState
+                  style={{
+                    height: '150px',
+                  }}
+                >
+                  <EmptyStateBody>
+                    <Bullseye>
+                      <EmptyStateIcon icon={SearchIcon} />
+                    </Bullseye>
+                    <Bullseye>No incidents selected.</Bullseye>
+                  </EmptyStateBody>
+                </EmptyState>
+              </Td>
+            </Tr>
           ) : (
             data.map((alert, rowIndex) => {
               return (
