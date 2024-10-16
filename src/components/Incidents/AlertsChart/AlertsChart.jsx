@@ -9,21 +9,20 @@ import {
   ChartTooltip,
   ChartVoronoiContainer,
 } from '@patternfly/react-charts';
-import { Bullseye, Card, CardTitle, Spinner } from '@patternfly/react-core';
+import { Card, CardTitle, EmptyState, EmptyStateBody } from '@patternfly/react-core';
 import global_danger_color_100 from '@patternfly/react-tokens/dist/esm/global_danger_color_100';
 import global_info_color_100 from '@patternfly/react-tokens/dist/esm/global_info_color_100';
 import global_warning_color_100 from '@patternfly/react-tokens/dist/esm/global_warning_color_100';
 import { createAlertsChartBars, formatDate, generateDateArray } from '../utils';
 import { getResizeObserver } from '@patternfly/react-core';
 
-const AlertsChart = ({ alertsData, chartDays }) => {
-  const [isLoading, setIsLoading] = React.useState(true);
-  const [chartData, setChartData] = React.useState();
+const AlertsChart = ({ alertsData = [], chartDays }) => {
+  const [chartData, setChartData] = React.useState([]);
   const dateValues = generateDateArray(chartDays);
   React.useEffect(() => {
-    setIsLoading(false);
     setChartData(alertsData.map((alert) => createAlertsChartBars(alert)));
   }, [alertsData]);
+  const isLoading = alertsData.length === 0 ? true : false;
   const [width, setWidth] = React.useState(0);
   const containerRef = React.useRef(null);
   const handleResize = () => {
@@ -42,9 +41,14 @@ const AlertsChart = ({ alertsData, chartDays }) => {
       <div ref={containerRef}>
         <CardTitle>Alerts Timeline</CardTitle>
         {isLoading ? (
-          <Bullseye>
-            <Spinner aria-label="alerts-chart-spinner" />
-          </Bullseye>
+          <EmptyState
+            variant="large"
+            style={{
+              height: '250px',
+            }}
+          >
+            <EmptyStateBody>Select an incident in the chart above to see alerts.</EmptyStateBody>
+          </EmptyState>
         ) : (
           <div
             style={{
