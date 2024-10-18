@@ -14,7 +14,7 @@ import { AlertStateIcon } from '../alerting/AlertUtils';
 import IncidentsDetailsRowTable from './IncidentsDetailsRowTable';
 import { SearchIcon } from '@patternfly/react-icons';
 
-export const IncidentsTable = ({ loaded, data = [] }) => {
+export const IncidentsTable = ({ loaded, data = [], namespace }) => {
   const columnNames = {
     checkbox: '',
     component: 'Component',
@@ -107,7 +107,10 @@ export const IncidentsTable = ({ loaded, data = [] }) => {
                     <Tr isExpanded={isAlertExpanded(alert)}>
                       <Td width={100} colSpan={6}>
                         <ExpandableRowContent>
-                          <IncidentsDetailsRowTable alerts={alert.alertsExpandedRowData} />
+                          <IncidentsDetailsRowTable
+                            alerts={alert.alertsExpandedRowData}
+                            namespace={namespace}
+                          />
                         </ExpandableRowContent>
                       </Td>
                     </Tr>
