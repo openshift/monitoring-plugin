@@ -70,11 +70,12 @@ import { humanizeNumberSI } from './console/utils/units';
 import { formatNumber } from './format';
 import { useBoolean } from './hooks/useBoolean';
 import { queryBrowserTheme } from './query-browser-theme';
-import { PrometheusAPIError, RootState, TimeRange } from './types';
+import { PrometheusAPIError, TimeRange } from './types';
 import { getTimeRanges } from './utils';
 
-import { usePerspective } from './hooks/usePerspective';
+import { getObserveState, usePerspective } from './hooks/usePerspective';
 import { useActiveNamespace } from './console/console-shared/hooks/useActiveNamespace';
+import { MonitoringState } from '../reducers/observe';
 
 const spans = ['5m', '15m', '30m', '1h', '2h', '6h', '12h', '1d', '2d', '1w', '2w'];
 export const colors = queryBrowserTheme.line.colorScale;
@@ -110,7 +111,7 @@ const GraphEmptyState: React.FC<GraphEmptyStateProps> = ({ children, title }) =>
 
 const SpanControls: React.FC<SpanControlsProps> = React.memo(
   ({ defaultSpanText, onChange, span, hasReducedResolution }) => {
-    const { t } = useTranslation('plugin__monitoring-plugin');
+    const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
     const [isValid, setIsValid] = React.useState(true);
     const [text, setText] = React.useState(formatPrometheusDuration(span));
@@ -152,7 +153,7 @@ const SpanControls: React.FC<SpanControlsProps> = React.memo(
             aria-label={t('graph timespan')}
             className="query-browser__span-text"
             validated={isValid ? 'default' : 'error'}
-            onChange={(_e, v) => setSpan(v, true)}
+            onChange={(_e, v) => (typeof _e === 'string' ? setSpan(_e, true) : setSpan(v, true))}
             type="text"
             value={text}
           />
@@ -356,7 +357,7 @@ const Graph: React.FC<GraphProps> = React.memo(
     units,
     width,
   }) => {
-    const { t } = useTranslation('plugin__monitoring-plugin');
+    const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
     const data: GraphSeries[] = [];
     const tooltipSeriesNames: string[] = [];
@@ -678,14 +679,18 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
   units,
   onDataChange,
 }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const { perspective } = usePerspective();
 
-  const hideGraphs = useSelector(({ observe }: RootState) => !!observe.get('hideGraphs'));
-  const tickInterval = useSelector(
-    ({ observe }: RootState) => pollInterval ?? observe.getIn(['queryBrowser', 'pollInterval']),
+  const hideGraphs = useSelector(
+    (state: MonitoringState) => !!getObserveState(perspective, state)?.get('hideGraphs'),
   );
-  const lastRequestTime = useSelector(({ observe }: RootState) =>
-    observe.getIn(['queryBrowser', 'lastRequestTime']),
+  const tickInterval = useSelector(
+    (state: MonitoringState) =>
+      pollInterval ?? getObserveState(perspective, state)?.getIn(['queryBrowser', 'pollInterval']),
+  );
+  const lastRequestTime = useSelector((state: MonitoringState) =>
+    getObserveState(perspective, state)?.getIn(['queryBrowser', 'lastRequestTime']),
   );
 
   const dispatch = useDispatch();
@@ -717,7 +722,6 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
   const canStack = _.sumBy(graphData, 'length') <= maxStacks;
 
   const activeNamespace = useActiveNamespace();
-  const { isDev } = usePerspective();
 
   // If provided, `timespan` overrides any existing span setting
   React.useEffect(() => {
@@ -766,12 +770,13 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
                 {
                   endpoint: PrometheusEndpoint.QUERY_RANGE,
                   endTime: timeRange.endTime,
-                  namespace: isDev ? activeNamespace : namespace,
+                  namespace: perspective === 'dev' ? activeNamespace : namespace,
                   query,
                   samples: Math.ceil(samples / timeRanges.length),
                   timeout: '60s',
                   timespan: timeRange.duration - 1,
                 },
+                perspective,
                 customDataSource?.basePath,
               ),
             ),
@@ -997,7 +1002,7 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
                 isChecked={isStacked}
                 data-checked-state={isStacked}
                 label={t('Stacked')}
-                onChange={(_e, v) => setIsStacked(v)}
+                onChange={(_e, v) => (typeof _e === 'boolean' ? setIsStacked(_e) : setIsStacked(v))}
               />
             )}
           </div>

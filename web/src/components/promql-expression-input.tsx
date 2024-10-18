@@ -43,8 +43,8 @@ import { useTranslation } from 'react-i18next';
 
 import { useSafeFetch } from './console/utils/safe-fetch-hook';
 
-import { PROMETHEUS_BASE_PATH } from './utils';
 import './_promql-expression-input.scss';
+import { PROMETHEUS_BASE_PATH } from './console/graphs/helpers';
 
 type InteractionTarget = {
   focus: () => void;
@@ -252,7 +252,7 @@ export const PromQLExpressionInput: React.FC<PromQLExpressionInputProps> = ({
   onValueChange,
   onSelectionChange,
 }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const containerRef = React.useRef<HTMLDivElement | null>(null);
   const viewRef = React.useRef<EditorView | null>(null);

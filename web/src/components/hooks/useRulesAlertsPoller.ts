@@ -24,40 +24,38 @@ export const useRulesAlertsPoller = (
     getAlertingRules: (namespace?: string) => Promise<PrometheusRulesResponse>;
   }[],
 ) => {
-  const { perspective, rulesKey, alertsKey, isDev } = usePerspective();
+  const { perspective, rulesKey, alertsKey } = usePerspective();
   React.useEffect(() => {
-    const { prometheusBaseURL } = window.SERVER_FLAGS;
-
-    if (prometheusBaseURL) {
-      dispatch(alertingLoading(alertsKey, perspective));
-      const url = getPrometheusURL({
+    dispatch(alertingLoading(alertsKey, perspective));
+    const url = getPrometheusURL(
+      {
         endpoint: PrometheusEndpoint.RULES,
-        namespace: isDev ? namespace : '',
-      });
-      const poller = (): void => {
-        fetchAlerts(url, alertsSource, namespace)
-          .then(({ data }) => {
-            const { alerts, rules } = getAlertsAndRules(data, isDev);
-            dispatch(alertingLoaded(alertsKey, alerts, perspective));
-            dispatch(alertingSetRules(rulesKey, rules, perspective));
-          })
-          .catch((e) => {
-            dispatch(alertingErrored(alertsKey, e, perspective));
-          })
-          .then(() => {
-            if (pollerTimeouts[alertsKey]) {
-              clearTimeout(pollerTimeouts[alertsKey]);
-            }
-            pollerTimeouts[alertsKey] = setTimeout(poller, 15 * 1000);
-          });
-      };
-      pollers[alertsKey] = poller;
-      poller();
-    } else {
-      dispatch(alertingErrored('alerts', new Error('prometheusBaseURL not set'), perspective));
-    }
+        namespace: perspective === 'dev' ? namespace : '',
+      },
+      perspective,
+    );
+    const poller = (): void => {
+      fetchAlerts(url, alertsSource, namespace)
+        .then(({ data }) => {
+          const { alerts, rules } = getAlertsAndRules(data, perspective);
+          dispatch(alertingLoaded(alertsKey, alerts, perspective));
+          dispatch(alertingSetRules(rulesKey, rules, perspective));
+        })
+        .catch((e) => {
+          dispatch(alertingErrored(alertsKey, e, perspective));
+        })
+        .then(() => {
+          if (pollerTimeouts[alertsKey]) {
+            clearTimeout(pollerTimeouts[alertsKey]);
+          }
+          pollerTimeouts[alertsKey] = setTimeout(poller, 15 * 1000);
+        });
+    };
+    pollers[alertsKey] = poller;
+    poller();
+
     return (): void => {
       _.each(pollerTimeouts, clearTimeout);
     };
-  }, [alertsSource, dispatch, perspective, rulesKey, alertsKey, namespace, isDev]);
+  }, [alertsSource, dispatch, perspective, rulesKey, alertsKey, namespace]);
 };

@@ -31,15 +31,12 @@ export enum ActionType {
   ToggleGraphs = 'toggleGraphs',
 }
 
-export type Perspective = 'admin' | 'dev';
-type AlertingKey =
-  | 'alerts'
-  | 'devAlerts'
-  | 'silences'
-  | 'devSilences'
-  | 'rules'
-  | 'devRules'
-  | 'notificationAlerts';
+export type Perspective = 'admin' | 'dev' | 'acm';
+export type alertKey = 'alerts' | 'devAlerts' | 'acmAlerts';
+export type silencesKey = 'silences' | 'devSilences' | 'acmSilences';
+export type rulesKey = 'rules' | 'devRules' | 'acmRules' | 'notificationAlerts';
+
+type AlertingKey = alertKey | silencesKey | rulesKey;
 
 export const dashboardsPatchVariable = (key: string, patch: any, perspective: Perspective) =>
   action(ActionType.DashboardsPatchVariable, { key, patch, perspective });
@@ -83,11 +80,8 @@ export const alertingErrored = (key: AlertingKey, loadError: Error, perspective:
     data: { loaded: true, loadError, data: null, perspective },
   });
 
-export const alertingSetRules = (
-  key: 'rules' | 'devRules',
-  rules: Rule[],
-  perspective: Perspective,
-) => action(ActionType.AlertingSetRules, { key, data: rules, perspective });
+export const alertingSetRules = (key: rulesKey, rules: Rule[], perspective: Perspective) =>
+  action(ActionType.AlertingSetRules, { key, data: rules, perspective });
 
 export const toggleGraphs = () => action(ActionType.ToggleGraphs);
 

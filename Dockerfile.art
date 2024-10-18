@@ -34,5 +34,6 @@ USER 1001
 
 COPY --from=web-builder /usr/src/app/web/dist /opt/app-root/web/dist
 COPY --from=go-builder $REMOTE_SOURCES_DIR/cachito-gomod-with-deps/app/plugin-backend /opt/app-root
+COPY config/ /opt/app-root/config
 
 ENTRYPOINT ["/opt/app-root/plugin-backend", "-static-path", "/opt/app-root/web/dist"]

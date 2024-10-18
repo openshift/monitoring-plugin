@@ -17,7 +17,7 @@ const injectDisabled = (children, disabled) => {
 };
 
 const ErrorMessage = ({ message }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   return (
     <Alert
       isInline
@@ -34,11 +34,7 @@ const ErrorMessage = ({ message }) => {
 // They don't support the disabled attribute, and therefore
 // can't be disabled during a pending promise/request.
 /** @type {React.SFC<{children: any, errorMessage?: React.ReactNode, inProgress?: boolean}}>} */
-export const ButtonBar = ({
-  children,
-  errorMessage,
-  inProgress,
-}) => {
+export const ButtonBar = ({ children, errorMessage, inProgress }) => {
   return (
     <div className="co-m-btn-bar">
       <AlertGroup
