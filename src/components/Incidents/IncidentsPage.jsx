@@ -28,7 +28,7 @@ import { getIncidentsTimeRanges, processIncidents } from './processIncidents';
 import { filterIncident } from './utils';
 import { groupAlertsForTable, processAlerts } from './processAlerts';
 
-const IncidentsPage = ({ customDataSource, namespace }) => {
+const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
   const [incidentsAreLoading, setIncidentsAreLoading] = React.useState(true);
   const [alertsAreLoading, setAlertsAreLoading] = React.useState(true);
@@ -202,7 +202,7 @@ const IncidentsPage = ({ customDataSource, namespace }) => {
           />
           <div className="row">
             <div className="col-xs-12">
-              <IncidentsTable loaded={!alertsAreLoading} data={tableData} />
+              <IncidentsTable loaded={!alertsAreLoading} data={tableData} namespace={namespace} />
             </div>
           </div>
         </div>
