@@ -1,39 +1,38 @@
-FROM registry.ci.openshift.org/ocp/builder:rhel-9-base-nodejs-openshift-4.17 AS builder
+FROM registry.ci.openshift.org/ocp/builder:rhel-9-base-nodejs-openshift-4.18 AS web-builder
 
 # Copy app sources
 COPY $REMOTE_SOURCES $REMOTE_SOURCES_DIR
 COPY . /usr/src/app
 WORKDIR /usr/src/app
 
-# bootstrap yarn so we can install and run the other tools.
 USER 0
-ARG YARN_VERSION=v1.22.19
-RUN CACHED_YARN=./artifacts/yarn-${YARN_VERSION}.tar.gz; \
-    if [ -f ${CACHED_YARN} ]; then \
-      npm install -g ${CACHED_YARN}; \
-    else \
-      echo "need yarn at ${CACHED_YARN}"; \
-      exit 1; \
-    fi
 
 # use dependencies provided by Cachito
 ENV HUSKY=0
 RUN test -d ${REMOTE_SOURCES_DIR}/cachito-gomod-with-deps || exit 1; \
-    cp -f $REMOTE_SOURCES_DIR/cachito-gomod-with-deps/app/{.npmrc,.yarnrc,yarn.lock,registry-ca.pem} . \
+    cp -f $REMOTE_SOURCES_DIR/cachito-gomod-with-deps/app/registry-ca.pem . \
+ && cp -f $REMOTE_SOURCES_DIR/cachito-gomod-with-deps/app/web/{.npmrc,package-lock.json} web/ \
  && source ${REMOTE_SOURCES_DIR}/cachito-gomod-with-deps/cachito.env \
- && yarn && yarn build
+ && make install-frontend-ci \
+ && make build-frontend
 
-FROM registry.ci.openshift.org/ocp/4.17:base-rhel9
 
-RUN INSTALL_PKGS="nginx" && \
-    dnf install -y --setopt=tsflags=nodocs $INSTALL_PKGS && \
-    rpm -V $INSTALL_PKGS && \
-    yum -y clean all --enablerepo='*' && \
-    chown -R 1001:0 /var/lib/nginx /var/log/nginx /run && \
-    chmod -R ug+rwX /var/lib/nginx /var/log/nginx /run
+FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.22-openshift-4.18 AS go-builder
+
+COPY $REMOTE_SOURCES $REMOTE_SOURCES_DIR
+WORKDIR $REMOTE_SOURCES_DIR/cachito-gomod-with-deps/app
+
+ENV GOEXPERIMENT=strictfipsruntime
+ENV CGO_ENABLED=1
+
+RUN source $REMOTE_SOURCES_DIR/cachito-gomod-with-deps/cachito.env \
+  && make build-backend BUILD_OPTS="-tags strictfipsruntime"
+
+FROM registry.ci.openshift.org/ocp/4.18:base-rhel9
 
 USER 1001
 
-COPY --from=builder /usr/src/app/dist /usr/share/nginx/html
+COPY --from=web-builder /usr/src/app/web/dist /opt/app-root/web/dist
+COPY --from=go-builder $REMOTE_SOURCES_DIR/cachito-gomod-with-deps/app/plugin-backend /opt/app-root
 
-ENTRYPOINT ["nginx", "-g", "daemon off;"]
+ENTRYPOINT ["/opt/app-root/plugin-backend", "-static-path", "/opt/app-root/web/dist"]

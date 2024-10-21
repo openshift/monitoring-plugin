@@ -44,30 +44,37 @@ Install the chart into a new namespace or an existing namespace as specified by 
 helm upgrade -i monitoring-plugin charts/openshift-console-plugin -n my-plugin-namespace --create-namespace --set plugin.image=my-plugin-image-location
 ```
 
-## Local Development 
+## Local Development
 
-### Dependencies 
-1. [yarn](https://yarnpkg.com/en/docs/install)
-2. [oc](https://mirror.openshift.com/pub/openshift-v4/clients/oc/4.4/) 
-3. [podman 3.2.0+](https://podman.io) or [Docker](https://www.docker.com) 
+### Dependencies
+
+1. [Node.js](https://nodejs.org/en/) and [npm](https://www.npmjs.com/) are required
+2. [oc](https://mirror.openshift.com/pub/openshift-v4/clients/oc/4.4/)
+3. [podman 3.2.0+](https://podman.io) or [Docker](https://www.docker.com)
 4. An OpenShift cluster
 
-### Running Locally 
+### Running Locally
+
 ```
-# Login to an OpenShift cluster 
+# Login to an OpenShift cluster
 $ oc login <clusterAddress> -u <username> -p <password>
 
-# Start podman (or Docker) 
-$ podman machine init 
-$ podman machine start 
+# Start podman (or Docker)
+$ podman machine init
+$ podman machine start
 
-# Run the application 
-$ yarn start
-# In a seperate terminal 
-$ yarn start-console
+# Install dependencies
+$ make install
+
+# Run the application
+$ make start-frontend
+# In a separate terminal
+$ make start-console
 ```
+
 The application will be running at [localhost:9000](http://localhost:9000/).
 
-### Local Development Troubleshooting 
-1. Disable cache. Select 'disable cache' in your browser's DevTools > Network > 'disable cache'. Or use private/incognito mode in your browser.
+### Local Development Troubleshooting
 
+1. Disable cache. Select 'disable cache' in your browser's DevTools > Network > 'disable cache'. Or use private/incognito mode in your browser.
+2. Enable higher log verbosity by setting `-log-level=trace` when starting the plugin backend. For more options to set log level see [logrus documentation](https://github.com/sirupsen/logrus?tab=readme-ov-file#level-logging).
