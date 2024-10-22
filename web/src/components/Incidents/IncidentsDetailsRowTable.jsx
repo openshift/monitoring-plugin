@@ -10,15 +10,20 @@ import ExclamationTriangleIcon from '@patternfly/react-icons/dist/esm/icons/excl
 import { Bullseye, Icon, Spinner } from '@patternfly/react-core';
 import { Link } from 'react-router-dom';
 import { AlertResource, alertURL, getAlertsAndRules, labelsToParams } from '../utils';
-import { MonitoringResourceIcon } from '../alerting/AlertUtils';
+import { MonitoringResourceIcon, ruleURL } from '../alerting/AlertUtils';
 import { formatDateInExpandedDetails } from './utils';
 import { isAlertingRulesSource } from '../console/extensions/alerts';
 import { getPrometheusURL } from '../console/graphs/helpers';
 import { fetchAlerts } from '../fetch-alerts';
+import KebabDropdown from '../kebab-dropdown';
+import { DropdownItem as DropdownItemDeprecated } from '@patternfly/react-core/deprecated';
+import { useTranslation } from 'react-i18next';
+import { newSilenceAlertURL } from '../alerting/SilencesUtils';
 
 const IncidentsDetailsRowTable = ({ alerts, namespace }) => {
   const [alertsWithMatchedData, setAlertsWithMatchedData] = React.useState([]);
   const [customExtensions] = useResolvedExtensions(isAlertingRulesSource);
+  const { t } = useTranslation('plugin__monitoring-plugin');
 
   const alertsSource = React.useMemo(
     () =>
@@ -35,7 +40,7 @@ const IncidentsDetailsRowTable = ({ alerts, namespace }) => {
         const match = rulesArray.find((rule) => alert.alertname === rule.name);
 
         if (match) {
-          return { ...alert, id: match.id, labels: match.labels };
+          return { ...alert, id: match.id, labels: match.labels, rule: match.rule };
         }
 
         return null; // No match, return null to filter it out later
@@ -134,6 +139,28 @@ const IncidentsDetailsRowTable = ({ alerts, namespace }) => {
                 </Td>
                 <Td dataLabel="expanded-details-firingend">
                   {formatDateInExpandedDetails(alertDetails.alertsEndFiring)}
+                </Td>
+                <Td>
+                  <KebabDropdown
+                    dropdownItems={[
+                      <DropdownItemDeprecated component="button" key="silence">
+                        <Link
+                          to={newSilenceAlertURL(alertDetails)}
+                          style={{ color: 'inherit', textDecoration: 'inherit' }}
+                        >
+                          {t('Silence alert')}
+                        </Link>
+                      </DropdownItemDeprecated>,
+                      <DropdownItemDeprecated key="view-rule">
+                        <Link
+                          to={ruleURL(alertDetails)}
+                          style={{ color: 'inherit', textDecoration: 'inherit' }}
+                        >
+                          {t('View alerting rule')}
+                        </Link>
+                      </DropdownItemDeprecated>,
+                    ]}
+                  />
                 </Td>
               </Tr>
             );
