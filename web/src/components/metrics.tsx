@@ -57,7 +57,6 @@ import {
   queryBrowserPatchQuery,
   queryBrowserRunQueries,
   queryBrowserSetAllExpanded,
-  queryBrowserSetPollInterval,
   queryBrowserToggleAllSeries,
   queryBrowserToggleIsEnabled,
   queryBrowserToggleSeries,
@@ -78,7 +77,6 @@ import { LoadingInline } from './console/utils/status-box';
 
 import { useBoolean } from './hooks/useBoolean';
 import KebabDropdown from './kebab-dropdown';
-import IntervalDropdown from './poll-interval-dropdown';
 import { colors, Error, QueryBrowser } from './query-browser';
 import TablePagination from './table-pagination';
 import { PrometheusAPIError, RootState } from './types';
@@ -89,6 +87,7 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
 import { usePerspective } from './hooks/usePerspective';
 import { useActiveNamespace } from './console/console-shared/hooks/useActiveNamespace';
+import { DropDownPollInterval } from './dropdown-poll-interval';
 
 // Stores information about the currently focused query input
 let focusedQuery;
@@ -1042,20 +1041,6 @@ const QueriesList: React.FC<{ customDatasource?: CustomDataSource }> = ({ custom
   );
 };
 
-const PollIntervalDropdown = () => {
-  const interval = useSelector(({ observe }: RootState) =>
-    observe.getIn(['queryBrowser', 'pollInterval']),
-  );
-
-  const dispatch = useDispatch();
-  const setInterval = React.useCallback(
-    (v: number) => dispatch(queryBrowserSetPollInterval(v)),
-    [dispatch],
-  );
-
-  return <IntervalDropdown interval={interval} setInterval={setInterval} />;
-};
-
 const QueryBrowserPage_: React.FC = () => {
   const { t } = useTranslation('plugin__monitoring-plugin');
 
@@ -1137,7 +1122,7 @@ const QueryBrowserPage_: React.FC = () => {
         <h1 className="co-m-pane__heading">
           <span>{t('Metrics')}</span>
           <div className="co-actions">
-            <PollIntervalDropdown />
+            <DropDownPollInterval />
             <MetricsActionsMenu />
           </div>
         </h1>
