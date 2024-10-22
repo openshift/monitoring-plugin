@@ -8,7 +8,7 @@ import { useBoolean } from '../hooks/useBoolean';
 import { Board } from './types';
 
 export const useFetchDashboards = (namespace: string): [Board[], boolean, string] => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const safeFetch = React.useCallback(useSafeFetch(), []);

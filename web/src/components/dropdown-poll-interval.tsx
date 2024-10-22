@@ -7,10 +7,11 @@ import { useTranslation } from 'react-i18next';
 
 export const DropDownPollInterval: React.FunctionComponent = () => {
   const OFF_KEY = 'OFF_KEY';
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const [selected, setSelected] = React.useState<string | undefined>(OFF_KEY);
 
   const dispatch = useDispatch();
+
   const setInterval = React.useCallback(
     (v: number) => dispatch(queryBrowserSetPollInterval(v)),
     [dispatch],

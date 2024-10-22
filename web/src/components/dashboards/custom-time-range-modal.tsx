@@ -13,9 +13,10 @@ import {
 } from '@patternfly/react-core';
 
 import { dashboardsSetEndTime, dashboardsSetTimespan, Perspective } from '../../actions/observe';
-import { RootState } from '../types';
 
 import { setQueryArguments } from '../console/utils/router';
+import { MonitoringState } from '../../reducers/observe';
+import { getObserveState } from '../hooks/usePerspective';
 
 const zeroPad = (number: number) => (number < 10 ? `0${number}` : number);
 
@@ -42,14 +43,14 @@ const CustomTimeRangeModal: React.FC<CustomTimeRangeModalProps> = ({
   isOpen,
   setClosed,
 }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const dispatch = useDispatch();
-  const endTime = useSelector(({ observe }: RootState) =>
-    observe.getIn(['dashboards', perspective, 'endTime']),
+  const endTime = useSelector((state: MonitoringState) =>
+    getObserveState(perspective, state)?.getIn(['dashboards', perspective, 'endTime']),
   );
-  const timespan = useSelector(({ observe }: RootState) =>
-    observe.getIn(['dashboards', perspective, 'timespan']),
+  const timespan = useSelector((state: MonitoringState) =>
+    getObserveState(perspective, state)?.getIn(['dashboards', perspective, 'timespan']),
   );
 
   // If a time is already set in Redux, default to that, otherwise default to a time range that

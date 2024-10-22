@@ -51,7 +51,8 @@ func TestServerRunning(t *testing.T) {
 
 	go func() {
 		Start(&Config{
-			Port: testPort,
+			Port:     testPort,
+			LogLevel: "error",
 		})
 	}()
 
@@ -126,6 +127,7 @@ func TestSecureServerRunning(t *testing.T) {
 		CertFile:       testServerCertFile,
 		PrivateKeyFile: testServerKeyFile,
 		Port:           testPort,
+		LogLevel:       "error",
 	}
 
 	serverURL := fmt.Sprintf("https://%s", testServerHostPort)

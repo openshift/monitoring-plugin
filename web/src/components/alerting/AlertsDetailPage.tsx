@@ -1,7 +1,13 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { usePerspective } from '../hooks/usePerspective';
-import { Alerts, RootState } from '../types';
+import {
+  getAlertsUrl,
+  getNewSilenceAlertUrl,
+  getObserveState,
+  getRuleUrl,
+  usePerspective,
+} from '../hooks/usePerspective';
+import { Alerts } from '../types';
 import { useSelector, useDispatch } from 'react-redux';
 import * as _ from 'lodash-es';
 import { getAllQueryArguments } from '../console/utils/router';
@@ -42,14 +48,12 @@ import {
   AlertState,
   AlertStateDescription,
   AlertStateIcon,
-  devRuleURL,
   getSourceKey,
   Graph,
   isActionWithCallback,
   isActionWithHref,
   MonitoringResourceIcon,
   PopoverField,
-  ruleURL,
   Severity,
   SeverityBadge,
   SeverityHelp,
@@ -69,27 +73,29 @@ import {
   StatefulSetModel,
 } from '../console/models';
 import { Labels } from '../labels';
-import {
-  SilenceTableRow,
-  tableSilenceClasses,
-  newDevSilenceAlertURL,
-  newSilenceAlertURL,
-} from './SilencesUtils';
+import { SilenceTableRow, tableSilenceClasses } from './SilencesUtils';
 import { useRulesAlertsPoller } from '../hooks/useRulesAlertsPoller';
 import { useSilencesPoller } from '../hooks/useSilencesPoller';
+import { MonitoringState } from '../../reducers/observe';
 
 const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
-  const { alertsKey, isDev } = usePerspective();
+  const { alertsKey, alertingContextId, silencesKey, perspective } = usePerspective();
 
   const namespace = match.params?.ns;
-  const hideGraphs = useSelector(({ observe }: RootState) => !!observe.get('hideGraphs'));
+  const hideGraphs = useSelector(
+    (state: MonitoringState) => !!getObserveState(perspective, state)?.get('hideGraphs'),
+  );
 
   const dispatch = useDispatch();
-  const alerts: Alerts = useSelector(({ observe }: RootState) => observe.get(alertsKey));
+  const alerts: Alerts = useSelector((state: MonitoringState) =>
+    getObserveState(perspective, state)?.get(alertsKey),
+  );
 
-  const silencesLoaded = ({ observe }) => observe.get('silences')?.loaded;
+  const silencesLoaded = useSelector(
+    (state: MonitoringState) => getObserveState(perspective, state)?.get(silencesKey)?.loaded,
+  );
 
   const ruleAlerts = _.filter(alerts?.data, (a) => a.rule.id === match?.params?.ruleID);
   const rule = ruleAlerts?.[0]?.rule;
@@ -126,13 +132,9 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
   const alertsSource = React.useMemo(
     () =>
       customExtensions
-        .filter(
-          (extension) =>
-            extension.properties.contextId ===
-            (isDev ? 'dev-observe-alerting' : 'observe-alerting'),
-        )
+        .filter((extension) => extension.properties.contextId === alertingContextId)
         .map((extension) => extension.properties),
-    [customExtensions, isDev],
+    [customExtensions, alertingContextId],
   );
 
   useRulesAlertsPoller(namespace, dispatch, alertsSource);
@@ -149,10 +151,7 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
         <div className="pf-c-page__main-breadcrumb">
           <Breadcrumb className="monitoring-breadcrumbs">
             <BreadcrumbItem>
-              <Link
-                className="pf-c-breadcrumb__link"
-                to={namespace ? `/dev-monitoring/ns/${namespace}/alerts` : '/monitoring/alerts'}
-              >
+              <Link className="pf-c-breadcrumb__link" to={getAlertsUrl(perspective, namespace)}>
                 {t('Alerts')}
               </Link>
             </BreadcrumbItem>
@@ -170,11 +169,7 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
               <div data-test-id="details-actions">
                 <Button
                   className="co-action-buttons__btn"
-                  onClick={() =>
-                    history.push(
-                      isDev ? newDevSilenceAlertURL(alert, namespace) : newSilenceAlertURL(alert),
-                    )
-                  }
+                  onClick={() => history.push(getNewSilenceAlertUrl(perspective, alert, namespace))}
                   variant="primary"
                 >
                   {t('Silence alert')}
@@ -331,7 +326,7 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
                     <div className="co-resource-item">
                       <MonitoringResourceIcon resource={RuleResource} />
                       <Link
-                        to={namespace ? devRuleURL(rule, namespace) : ruleURL(rule)}
+                        to={getRuleUrl(perspective, rule, namespace)}
                         data-test="alert-rules-detail-resource-link"
                         className="co-resource-item__resource-name"
                       >
@@ -443,7 +438,7 @@ const matchCount = (haystack: string, regExpString: string) =>
   _.size(haystack.match(new RegExp(regExpString, 'g')));
 
 const AlertStateHelp: React.FC = () => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
     <dl className="co-inline">
@@ -477,7 +472,7 @@ const AlertStateHelp: React.FC = () => {
 };
 
 const SilencedByList: React.FC<{ silences: Silence[] }> = ({ silences }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const columns = React.useMemo<TableColumn<Silence>[]>(
     () => [

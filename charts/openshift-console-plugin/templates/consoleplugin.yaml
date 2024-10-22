@@ -1,14 +1,67 @@
-apiVersion: console.openshift.io/v1alpha1
+apiVersion: console.openshift.io/v1
 kind: ConsolePlugin
 metadata:
+  {{- if and (.Values.plugin.acm.enabled) }}
+  name: {{ .Values.plugin.acm.name }}
+  {{- else }}
   name: {{ template "openshift-console-plugin.name" . }}
+  {{- end }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "openshift-console-plugin.labels" . | nindent 4 }}
 spec:
-  displayName: {{ default (printf "%s Plugin" (include "openshift-console-plugin.name" .)) .Values.plugin.description }}
-  service:
-    name: {{ template "openshift-console-plugin.name" . }}
-    namespace: {{ .Release.Namespace }}
-    port: {{ .Values.plugin.port }}
-    basePath: {{ .Values.plugin.basePath }}
+  backend:
+    service:
+      basePath: /
+      {{- if and (.Values.plugin.acm.enabled) }}
+      name: {{ .Values.plugin.acm.name }}
+      {{- else }}
+      name: {{ template "openshift-console-plugin.name" . }}
+      {{- end }}
+      namespace: {{ .Release.Namespace }}
+      port: 9443
+    type: Service
+  {{- if and (.Values.plugin.acm.enabled) }}
+  displayName: {{ .Values.plugin.acm.name }}
+  {{- else }}
+  displayName: {{ template "openshift-console-plugin.name" . }}
+  {{- end }}
+  i18n:
+    loadType: Preload
+  proxy:
+  - alias: backend
+    authorization: UserToken
+    endpoint:
+      service:
+        {{- if and (.Values.plugin.acm.enabled) }}
+        name: {{ .Values.plugin.acm.name }}
+        {{- else }}
+        name: {{ template "openshift-console-plugin.name" . }}
+        {{- end }}
+        namespace: {{ .Release.Namespace }}
+        port: 9443
+      type: Service
+  - alias: alertmanager-proxy
+    authorization: UserToken
+    endpoint:
+      service:
+        {{- if and (.Values.plugin.acm.enabled) }}
+        name: {{ .Values.plugin.acm.name }}
+        {{- else }}
+        name: {{ template "openshift-console-plugin.name" . }}
+        {{- end }}
+        namespace: {{ .Release.Namespace }}
+        port: 9444
+      type: Service
+  - alias: thanos-proxy
+    authorization: UserToken
+    endpoint:
+      service:
+        {{- if and (.Values.plugin.acm.enabled) }}
+        name: {{ .Values.plugin.acm.name }}
+        {{- else }}
+        name: {{ template "openshift-console-plugin.name" . }}
+        {{- end }}
+        namespace: {{ .Release.Namespace }}
+        port: 9445
+      type: Service
