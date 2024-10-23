@@ -57,30 +57,74 @@ export const createAlertsChartBars = (alert) => {
   return data;
 };
 
+/**
+ * Creates an array of incident data for chart bars, ensuring that when two severities have the same time range, the lower severity is removed.
+ *
+ * @param {Object} incident - The incident data containing values with timestamps and severity levels.
+ * @returns {Array} - An array of incident objects with `y0`, `y`, `x`, and `name` fields representing the bars for the chart.
+ */
 export const createIncidentsChartBars = (incident) => {
   const groupedData = groupTimestamps(incident.values);
 
   const data = [];
+
+  // Severity levels mapping for comparison
+  const severityRank = {
+    Critical: 2,
+    Warning: 1,
+    Info: 0,
+  };
+
+  // Helper function to get the severity name from a value
+  const getSeverityName = (value) => {
+    return value === '2' ? 'Critical' : value === '1' ? 'Warning' : 'Info';
+  };
+
   for (let i = 0; i < groupedData.length; i++) {
-    data.push({
-      y0: new Date(groupedData[i][0]),
-      y: new Date(groupedData[i][1]),
-      x: incident.x,
-      name:
-        groupedData[i][2] === '2'
-          ? 'Critical' // If value is '2', name is 'Critical'
-          : groupedData[i][2] === '1'
-          ? 'Warning' // If value is '1', name is 'Warning'
-          : 'Info',
-      component: incident.component,
-      group_id: incident.group_id,
-      fill:
-        groupedData[i][2] === '2'
-          ? global_danger_color_100.var
-          : groupedData[i][2] === '1'
-          ? global_warning_color_100.var
-          : global_info_color_100.var,
-    });
+    const severity = getSeverityName(groupedData[i][2]);
+
+    // Check if we have a previous entry and whether its time range matches the current one
+    if (
+      data.length > 0 &&
+      data[data.length - 1].y0.getTime() === new Date(groupedData[i][0]).getTime() &&
+      data[data.length - 1].y.getTime() === new Date(groupedData[i][1]).getTime()
+    ) {
+      // Compare severity, and keep the more severe entry
+      const previousSeverity = data[data.length - 1].name;
+      if (severityRank[severity] > severityRank[previousSeverity]) {
+        // Replace the previous entry with the current one (since it has higher severity)
+        data[data.length - 1] = {
+          y0: new Date(groupedData[i][0]),
+          y: new Date(groupedData[i][1]),
+          x: incident.x,
+          name: severity,
+          component: incident.component,
+          group_id: incident.group_id,
+          fill:
+            severity === 'Critical'
+              ? global_danger_color_100.var
+              : severity === 'Warning'
+              ? global_warning_color_100.var
+              : global_info_color_100.var,
+        };
+      }
+    } else {
+      // If no matching previous entry, just push the new one
+      data.push({
+        y0: new Date(groupedData[i][0]),
+        y: new Date(groupedData[i][1]),
+        x: incident.x,
+        name: severity,
+        component: incident.component,
+        group_id: incident.group_id,
+        fill:
+          severity === 'Critical'
+            ? global_danger_color_100.var
+            : severity === 'Warning'
+            ? global_warning_color_100.var
+            : global_info_color_100.var,
+      });
+    }
   }
 
   return data;
