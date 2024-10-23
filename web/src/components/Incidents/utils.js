@@ -2,6 +2,7 @@
 import global_danger_color_100 from '@patternfly/react-tokens/dist/esm/global_danger_color_100';
 import global_info_color_100 from '@patternfly/react-tokens/dist/esm/global_info_color_100';
 import global_warning_color_100 from '@patternfly/react-tokens/dist/esm/global_warning_color_100';
+import { parsePrometheusDuration } from '../console/utils/datetime';
 
 function groupTimestamps(data) {
   if (data.length === 0) return [];
@@ -49,8 +50,8 @@ export const createAlertsChartBars = (alert) => {
         alert.severity === 'critical'
           ? global_danger_color_100.var
           : alert.severity === 'warning'
-          ? global_warning_color_100.var
-          : global_info_color_100.var,
+            ? global_warning_color_100.var
+            : global_info_color_100.var,
     });
   }
 
@@ -70,16 +71,16 @@ export const createIncidentsChartBars = (incident) => {
         groupedData[i][2] === '2'
           ? 'Critical' // If value is '2', name is 'Critical'
           : groupedData[i][2] === '1'
-          ? 'Warning' // If value is '1', name is 'Warning'
-          : 'Info',
+            ? 'Warning' // If value is '1', name is 'Warning'
+            : 'Info',
       component: incident.component,
       group_id: incident.group_id,
       fill:
         groupedData[i][2] === '2'
           ? global_danger_color_100.var
           : groupedData[i][2] === '1'
-          ? global_warning_color_100.var
-          : global_info_color_100.var,
+            ? global_warning_color_100.var
+            : global_info_color_100.var,
     });
   }
 
@@ -176,10 +177,10 @@ export function filterIncident(filters, incident) {
     inactive: 'inactive',
   };
 
-  if (!filters.selected.length) return true;
+  if (!filters.incidentType.length) return true;
 
   // Check if at least one filter passes
-  return filters.selected.some((key) => incident[conditions[key]] === true);
+  return filters.incidentType.some((key) => incident[conditions[key]] === true);
 }
 
 export function formatDateInExpandedDetails(date) {
@@ -225,4 +226,8 @@ export const onDeleteGroupIncidentFilterChip = (type, filters, setFilters) => {
       days: '',
     });
   }
+};
+
+export const changeDaysFilter = (days, setSpan) => {
+  setSpan(parsePrometheusDuration(days));
 };

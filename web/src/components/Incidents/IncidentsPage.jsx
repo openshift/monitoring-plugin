@@ -43,38 +43,32 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
   const [incidentsAreLoading, setIncidentsAreLoading] = React.useState(true);
   const [alertsAreLoading, setAlertsAreLoading] = React.useState(true);
-  const [span, setSpan] = React.useState(parsePrometheusDuration('7d'));
   const [alertsData, setAlertsData] = React.useState([]);
   const [incidentsData, setIncidentsData] = React.useState([]);
   const [tableData, setTableData] = React.useState([]);
-  const [isOpen, setIsOpen, , setClosed] = useBoolean(false);
+  const [daysSpan, setDaysSpan] = React.useState();
   const [chooseIncident, setChooseIncident] = React.useState('');
+  const [filteredData, setFilteredData] = React.useState([]);
   const [filteredIncidentsData, setFilteredIncidentsData] = React.useState([]);
+  const [filters, setFilters] = React.useState({
+    days: ['7 days'],
+    incidentType: [],
+  });
 
   const now = Date.now();
-  const timeRanges = getIncidentsTimeRanges(span, now);
+  const timeRanges = getIncidentsTimeRanges(daysSpan, now);
   const safeFetch = useSafeFetch();
   const title = t('Incidents');
-  const matcher = (incident, prop) => some([incident], prop);
 
-  const incidentTypeFilter = (t) => ({
-    filter: filterIncident,
-    filterGroupName: t('Incident type'),
-    isMatch: (incident, prop) => matcher(incident, prop),
-    items: [
-      { id: 'longStanding', title: t('Long standing') },
-      { id: 'informative', title: t('Informative') },
-      { id: 'inactive', title: t('Inactive') },
-    ],
-    type: 'incident-type',
-  });
-  const [staticData, filteredData, onFilterChange] = useListPageFilter(incidentsData, [
-    incidentTypeFilter(t),
-  ]);
+  React.useEffect(() => {
+    setFilters({ days: ['7 days'], incidentType: filters.incidentType });
+  }, []);
 
-  const changeDaysFilter = (days) => {
-    setSpan(parsePrometheusDuration(days));
-  };
+  React.useEffect(() => {
+    setDaysSpan(
+      parsePrometheusDuration(filters.days.length > 0 ? filters.days[0].split(' ')[0] + 'd' : ''),
+    );
+  }, [filters.days]);
 
   React.useEffect(() => {
     (async () => {
@@ -141,7 +135,7 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
           console.log(err);
         });
     })();
-  }, [span]);
+  }, [daysSpan]);
 
   React.useEffect(() => {
     Promise.all(
@@ -174,10 +168,6 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
       });
   }, [chooseIncident]);
 
-  const [filters, setFilters] = React.useState({
-    days: '',
-    incidentType: [],
-  });
   const [incidentFilterIsExpanded, setIncidentIsExpanded] = React.useState(false);
   const [daysFilterIsExpanded, setDaysFilterIsExpanded] = React.useState(false);
 
@@ -207,6 +197,10 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
       };
     });
   };
+
+  React.useEffect(() => {
+    setFilteredData(filterIncident(filters, incidentsData));
+  }, [filters.incidentType]);
   return (
     <>
       <Helmet>
@@ -218,26 +212,6 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
         </Bullseye>
       ) : (
         <div className="co-m-pane__body">
-          <Flex>
-            <ListPageFilter
-              data={staticData}
-              hideNameLabelFilters={true}
-              loaded={true}
-              onFilterChange={onFilterChange}
-              rowFilters={[incidentTypeFilter(t)]}
-            />
-            <Dropdown
-              dropdownItems={dropdownItems(changeDaysFilter, t)}
-              isOpen={isOpen}
-              onSelect={setClosed}
-              position={DropdownPosition.left}
-              toggle={
-                <DropdownToggle id="incidents-page-days-filter-toggle" onToggle={setIsOpen}>
-                  Date range
-                </DropdownToggle>
-              }
-            />
-          </Flex>
           <Toolbar
             id="toolbar-with-filter"
             className="pf-m-toggle-group-container"
@@ -266,7 +240,7 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
                       isOpen={incidentFilterIsExpanded}
                       placeholderText="Incident type"
                     >
-                      {statusMenuItems}
+                      {statusMenuItems(filters)}
                     </Select>
                   </ToolbarFilter>
                   <ToolbarFilter
@@ -288,7 +262,7 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
                       isOpen={daysFilterIsExpanded}
                       placeholderText="Date range"
                     >
-                      {daysMenuItems}
+                      {daysMenuItems(filters)}
                     </Select>
                   </ToolbarFilter>
                 </ToolbarGroup>
@@ -297,7 +271,7 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
           </Toolbar>
           <IncidentsHeader
             alertsData={alertsData}
-            incidentsData={filteredData}
+            incidentsData={incidentsData} //should be filteredData
             chartDays={timeRanges.length}
             onIncidentSelect={setChooseIncident}
           />

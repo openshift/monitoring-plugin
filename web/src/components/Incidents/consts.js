@@ -16,15 +16,27 @@ export const dropdownItems = (changeDaysFilter, t) => [
   </DropdownItem>,
 ];
 
-export const statusMenuItems = [
-  <SelectOption key="longStanding" value="Long standing" />,
-  <SelectOption key="informative" value="Informative" />,
-  <SelectOption key="inactive" value="Inactive" />,
+export const statusMenuItems = (filters) => [
+  <SelectOption
+    key="longStanding"
+    value="Long standing"
+    isSelected={filters.incidentType.includes('Long standing')}
+  />,
+  <SelectOption
+    key="informative"
+    value="Informative"
+    isSelected={filters.incidentType.includes('Informative')}
+  />,
+  <SelectOption
+    key="inactive"
+    value="Inactive"
+    isSelected={filters.incidentType.includes('Inactive')}
+  />,
 ];
 
-export const daysMenuItems = [
-  <SelectOption key="1-day-filter" value="1 day" />,
-  <SelectOption key="3-day-filter" value="3 days" />,
-  <SelectOption key="7-day-filter" value="7 days" />,
-  <SelectOption key="15-day-filter" value="15 days" />,
+export const daysMenuItems = (filters) => [
+  <SelectOption key="1-day-filter" value="1 day" isSelected={filters.days.includes('1d')} />,
+  <SelectOption key="3-day-filter" value="3 days" isSelected={filters.days.includes('3d')} />,
+  <SelectOption key="7-day-filter" value="7 days" isSelected={filters.days.includes('7d')} />,
+  <SelectOption key="15-day-filter" value="15 days" isSelected={filters.days.includes('15d')} />,
 ];
