@@ -41,15 +41,25 @@ import { groupAlertsForTable, processAlerts } from './processAlerts';
 
 const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
+  // loading states
   const [incidentsAreLoading, setIncidentsAreLoading] = React.useState(true);
   const [alertsAreLoading, setAlertsAreLoading] = React.useState(true);
+  // alerts data that we fetch from the prom db
   const [alertsData, setAlertsData] = React.useState([]);
+  // all incidents data without filtering
   const [incidentsData, setIncidentsData] = React.useState([]);
+  // data that we serve to the table, formatted to our needs
   const [tableData, setTableData] = React.useState([]);
+  // days span is where we store the value for creating time ranges for
+  // fetch incidents/alerts based on the length of time ranges
+  // when days filter changes we set a new days span -> calculate new time range and fetch new data
   const [daysSpan, setDaysSpan] = React.useState();
+  // stores group id for the chosen incident. It trigger a fetch for alerts based on that incident
   const [chooseIncident, setChooseIncident] = React.useState('');
+  // data that is filtered by the incidentType filter
   const [filteredData, setFilteredData] = React.useState([]);
-  const [filteredIncidentsData, setFilteredIncidentsData] = React.useState([]);
+  // data that is used for processing to serve it to the alerts table and chart
+  const [incidentForAlertProcessing, setIncidentForAlertProcessing] = React.useState([]);
   const [filters, setFilters] = React.useState({
     days: ['7 days'],
     incidentType: [],
@@ -80,7 +90,7 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
                 endpoint: PrometheusEndpoint.QUERY_RANGE,
                 endTime: range.endTime,
                 namespace,
-                query: createAlertsQuery(filteredIncidentsData),
+                query: createAlertsQuery(incidentForAlertProcessing),
                 samples: 24,
                 timespan: range.duration - 1,
               },
@@ -100,7 +110,7 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
           console.log(err);
         });
     })();
-  }, [filteredIncidentsData]);
+  }, [incidentForAlertProcessing]);
   React.useEffect(() => {
     setTableData(groupAlertsForTable(alertsData));
   }, [alertsAreLoading]);
@@ -158,7 +168,7 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
     )
       .then((results) => {
         const aggregatedData = results.reduce((acc, result) => acc.concat(result), []);
-        setFilteredIncidentsData(processIncidents(aggregatedData));
+        setIncidentForAlertProcessing(processIncidents(aggregatedData));
         setAlertsAreLoading(true);
         setIncidentsAreLoading(false);
       })
