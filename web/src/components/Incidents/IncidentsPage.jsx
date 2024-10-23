@@ -17,15 +17,26 @@ import {
   DropdownPosition,
   DropdownToggle,
   Flex,
+  Select,
+  SelectOption,
   Spinner,
+  Toolbar,
+  ToolbarContent,
+  ToolbarFilter,
+  ToolbarGroup,
+  ToolbarItem,
 } from '@patternfly/react-core';
 import { Helmet } from 'react-helmet';
 import { useBoolean } from '../hooks/useBoolean';
 import some from 'lodash-es/some';
-import { dropdownItems } from './consts';
+import { daysMenuItems, dropdownItems, statusMenuItems } from './consts';
 import { IncidentsTable } from './IncidentsTable';
 import { getIncidentsTimeRanges, processIncidents } from './processIncidents';
-import { filterIncident } from './utils';
+import {
+  filterIncident,
+  onDeleteGroupIncidentFilterChip,
+  onDeleteIncidentFilterChip,
+} from './utils';
 import { groupAlertsForTable, processAlerts } from './processAlerts';
 
 const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
@@ -163,6 +174,39 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
       });
   }, [chooseIncident]);
 
+  const [filters, setFilters] = React.useState({
+    days: '',
+    incidentType: [],
+  });
+  const [incidentFilterIsExpanded, setIncidentIsExpanded] = React.useState(false);
+  const [daysFilterIsExpanded, setDaysFilterIsExpanded] = React.useState(false);
+
+  const onIncidentFilterToggle = (isExpanded) => {
+    setIncidentIsExpanded(isExpanded);
+  };
+  const onDaysFilterToggle = (isExpanded) => {
+    setDaysFilterIsExpanded(isExpanded);
+  };
+
+  const onIncidentTypeSelect = (event, selection) => {
+    onSelect('incidentType', event, selection);
+  };
+  const onDaysSelect = (event, selection) => {
+    onSelect('days', event, selection);
+  };
+
+  const onSelect = (type, event, selection) => {
+    const checked = event.target.checked;
+    setFilters((prev) => {
+      const prevSelections = prev[type];
+      return {
+        ...prev,
+        [type]: checked
+          ? [...prevSelections, selection]
+          : prevSelections.filter((value) => value !== selection),
+      };
+    });
+  };
   return (
     <>
       <Helmet>
@@ -174,7 +218,7 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
         </Bullseye>
       ) : (
         <div className="co-m-pane__body">
-          <Flex direction={{ default: 'row' }}>
+          <Flex>
             <ListPageFilter
               data={staticData}
               hideNameLabelFilters={true}
@@ -194,6 +238,63 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
               }
             />
           </Flex>
+          <Toolbar
+            id="toolbar-with-filter"
+            className="pf-m-toggle-group-container"
+            collapseListedFiltersBreakpoint="xl"
+            clearAllFilters={() => onDeleteIncidentFilterChip('', '', filters, setFilters)}
+          >
+            <ToolbarContent>
+              <ToolbarItem>
+                <ToolbarGroup variant="filter-group">
+                  <ToolbarFilter
+                    chips={filters.incidentType}
+                    deleteChip={(category, chip) =>
+                      onDeleteIncidentFilterChip(category, chip, filters, setFilters)
+                    }
+                    deleteChipGroup={(category) =>
+                      onDeleteGroupIncidentFilterChip(category, filters, setFilters)
+                    }
+                    categoryName="Incident type"
+                  >
+                    <Select
+                      variant={'checkbox'}
+                      aria-label="Incident type"
+                      onToggle={onIncidentFilterToggle}
+                      onSelect={onIncidentTypeSelect}
+                      selections={filters.incidentType}
+                      isOpen={incidentFilterIsExpanded}
+                      placeholderText="Incident type"
+                    >
+                      {statusMenuItems}
+                    </Select>
+                  </ToolbarFilter>
+                  <ToolbarFilter
+                    chips={filters.days}
+                    deleteChip={(category, chip) =>
+                      onDeleteIncidentFilterChip(category, chip, filters, setFilters)
+                    }
+                    deleteChipGroup={(category) =>
+                      onDeleteGroupIncidentFilterChip(category, filters, setFilters)
+                    }
+                    categoryName="Days"
+                  >
+                    <Select
+                      variant={'checkbox'}
+                      aria-label="Days"
+                      onToggle={onDaysFilterToggle}
+                      onSelect={onDaysSelect}
+                      selections={filters.days}
+                      isOpen={daysFilterIsExpanded}
+                      placeholderText="Date range"
+                    >
+                      {daysMenuItems}
+                    </Select>
+                  </ToolbarFilter>
+                </ToolbarGroup>
+              </ToolbarItem>
+            </ToolbarContent>
+          </Toolbar>
           <IncidentsHeader
             alertsData={alertsData}
             incidentsData={filteredData}

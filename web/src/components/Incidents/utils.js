@@ -193,3 +193,36 @@ export function formatDateInExpandedDetails(date) {
     hour12: true, // "AM/PM"
   });
 }
+
+export const onDeleteIncidentFilterChip = (type, id, filters, setFilters) => {
+  if (type === 'Incident type') {
+    setFilters({
+      incidentType: filters.incidentType.filter((fil) => fil !== id),
+      days: filters.days,
+    });
+  } else if (type === 'Days') {
+    setFilters({
+      incidentType: filters.incidentType,
+      days: filters.days.filter((fil) => fil !== id),
+    });
+  } else {
+    setFilters({
+      incidentType: [],
+      days: '',
+    });
+  }
+};
+
+export const onDeleteGroupIncidentFilterChip = (type, filters, setFilters) => {
+  if (type === 'Incident type') {
+    setFilters({
+      incidentType: [],
+      days: filters.days,
+    });
+  } else if (type === 'Days') {
+    setFilters({
+      incidentType: filters.incidentType,
+      days: '',
+    });
+  }
+};
