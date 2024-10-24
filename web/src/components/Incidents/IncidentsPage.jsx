@@ -2,68 +2,71 @@
 import * as React from 'react';
 import { IncidentsHeader } from './IncidentsHeader/IncidentsHeader';
 import { useSafeFetch } from '../console/utils/safe-fetch-hook';
-import {
-  ListPageFilter,
-  PrometheusEndpoint,
-  useListPageFilter,
-} from '@openshift-console/dynamic-plugin-sdk';
+import { PrometheusEndpoint } from '@openshift-console/dynamic-plugin-sdk';
 import { parsePrometheusDuration } from '../console/utils/datetime';
 import { getPrometheusURL } from '../console/graphs/helpers';
 import { createAlertsQuery } from './api';
 import { useTranslation } from 'react-i18next';
 import {
   Bullseye,
-  Dropdown,
-  DropdownPosition,
-  DropdownToggle,
-  Flex,
+  Select,
   Spinner,
+  Toolbar,
+  ToolbarContent,
+  ToolbarFilter,
+  ToolbarItem,
 } from '@patternfly/react-core';
 import { Helmet } from 'react-helmet';
-import { useBoolean } from '../hooks/useBoolean';
-import some from 'lodash-es/some';
-import { dropdownItems } from './consts';
+import { daysMenuItems, statusMenuItems } from './consts';
 import { IncidentsTable } from './IncidentsTable';
 import { getIncidentsTimeRanges, processIncidents } from './processIncidents';
-import { filterIncident } from './utils';
+import {
+  filterIncident,
+  onDeleteGroupIncidentFilterChip,
+  onDeleteIncidentFilterChip,
+} from './utils';
 import { groupAlertsForTable, processAlerts } from './processAlerts';
 
 const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
+  // loading states
   const [incidentsAreLoading, setIncidentsAreLoading] = React.useState(true);
   const [alertsAreLoading, setAlertsAreLoading] = React.useState(true);
-  const [span, setSpan] = React.useState(parsePrometheusDuration('7d'));
+  // alerts data that we fetch from the prom db
   const [alertsData, setAlertsData] = React.useState([]);
+  // all incidents data without filtering
   const [incidentsData, setIncidentsData] = React.useState([]);
+  // data that we serve to the table, formatted to our needs
   const [tableData, setTableData] = React.useState([]);
-  const [isOpen, setIsOpen, , setClosed] = useBoolean(false);
+  // days span is where we store the value for creating time ranges for
+  // fetch incidents/alerts based on the length of time ranges
+  // when days filter changes we set a new days span -> calculate new time range and fetch new data
+  const [daysSpan, setDaysSpan] = React.useState();
+  // stores group id for the chosen incident. It trigger a fetch for alerts based on that incident
   const [chooseIncident, setChooseIncident] = React.useState('');
-  const [filteredIncidentsData, setFilteredIncidentsData] = React.useState([]);
+  // data that is filtered by the incidentType filter
+  const [filteredData, setFilteredData] = React.useState([]);
+  // data that is used for processing to serve it to the alerts table and chart
+  const [incidentForAlertProcessing, setIncidentForAlertProcessing] = React.useState([]);
+  const [filters, setFilters] = React.useState({
+    days: ['7 days'],
+    incidentType: [],
+  });
 
   const now = Date.now();
-  const timeRanges = getIncidentsTimeRanges(span, now);
+  const timeRanges = getIncidentsTimeRanges(daysSpan, now);
   const safeFetch = useSafeFetch();
   const title = t('Incidents');
-  const matcher = (incident, prop) => some([incident], prop);
 
-  const incidentTypeFilter = (t) => ({
-    filter: filterIncident,
-    filterGroupName: t('Incident type'),
-    isMatch: (incident, prop) => matcher(incident, prop),
-    items: [
-      { id: 'longStanding', title: t('Long standing') },
-      { id: 'informative', title: t('Informative') },
-      { id: 'inactive', title: t('Inactive') },
-    ],
-    type: 'incident-type',
-  });
-  const [staticData, filteredData, onFilterChange] = useListPageFilter(incidentsData, [
-    incidentTypeFilter(t),
-  ]);
+  React.useEffect(() => {
+    setFilters({ days: ['7 days'], incidentType: filters.incidentType });
+  }, []);
 
-  const changeDaysFilter = (days) => {
-    setSpan(parsePrometheusDuration(days));
-  };
+  React.useEffect(() => {
+    setDaysSpan(
+      parsePrometheusDuration(filters.days.length > 0 ? filters.days[0].split(' ')[0] + 'd' : ''),
+    );
+  }, [filters.days]);
 
   React.useEffect(() => {
     (async () => {
@@ -75,7 +78,7 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
                 endpoint: PrometheusEndpoint.QUERY_RANGE,
                 endTime: range.endTime,
                 namespace,
-                query: createAlertsQuery(filteredIncidentsData),
+                query: createAlertsQuery(incidentForAlertProcessing),
                 samples: 24,
                 timespan: range.duration - 1,
               },
@@ -95,7 +98,7 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
           console.log(err);
         });
     })();
-  }, [filteredIncidentsData]);
+  }, [incidentForAlertProcessing]);
   React.useEffect(() => {
     setTableData(groupAlertsForTable(alertsData));
   }, [alertsAreLoading]);
@@ -123,6 +126,7 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
         .then((results) => {
           const aggregatedData = results.reduce((acc, result) => acc.concat(result), []);
           setIncidentsData(processIncidents(aggregatedData));
+          setFilteredData(filterIncident(filters, processIncidents(aggregatedData)));
           setIncidentsAreLoading(false);
         })
         .catch((err) => {
@@ -130,7 +134,7 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
           console.log(err);
         });
     })();
-  }, [span]);
+  }, [daysSpan]);
 
   React.useEffect(() => {
     Promise.all(
@@ -153,7 +157,7 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
     )
       .then((results) => {
         const aggregatedData = results.reduce((acc, result) => acc.concat(result), []);
-        setFilteredIncidentsData(processIncidents(aggregatedData));
+        setIncidentForAlertProcessing(processIncidents(aggregatedData));
         setAlertsAreLoading(true);
         setIncidentsAreLoading(false);
       })
@@ -162,6 +166,40 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
         console.log(err);
       });
   }, [chooseIncident]);
+
+  const [incidentFilterIsExpanded, setIncidentIsExpanded] = React.useState(false);
+  const [daysFilterIsExpanded, setDaysFilterIsExpanded] = React.useState(false);
+
+  const onIncidentFilterToggle = (isExpanded) => {
+    setIncidentIsExpanded(isExpanded);
+  };
+  const onDaysFilterToggle = (isExpanded) => {
+    setDaysFilterIsExpanded(isExpanded);
+  };
+
+  const onIncidentTypeSelect = (event, selection) => {
+    onSelect('incidentType', event, selection);
+  };
+  const onDaysSelect = (event, selection) => {
+    onSelect('days', event, selection);
+  };
+
+  const onSelect = (type, event, selection) => {
+    const checked = event.target.checked;
+    setFilters((prev) => {
+      const prevSelections = prev[type];
+      return {
+        ...prev,
+        [type]: checked
+          ? [...prevSelections, selection]
+          : prevSelections.filter((value) => value !== selection),
+      };
+    });
+  };
+
+  React.useEffect(() => {
+    setFilteredData(filterIncident(filters, incidentsData));
+  }, [filters.incidentType]);
 
   return (
     <>
@@ -174,26 +212,66 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
         </Bullseye>
       ) : (
         <div className="co-m-pane__body">
-          <Flex direction={{ default: 'row' }}>
-            <ListPageFilter
-              data={staticData}
-              hideNameLabelFilters={true}
-              loaded={true}
-              onFilterChange={onFilterChange}
-              rowFilters={[incidentTypeFilter(t)]}
-            />
-            <Dropdown
-              dropdownItems={dropdownItems(changeDaysFilter, t)}
-              isOpen={isOpen}
-              onSelect={setClosed}
-              position={DropdownPosition.left}
-              toggle={
-                <DropdownToggle id="incidents-page-days-filter-toggle" onToggle={setIsOpen}>
-                  Date range
-                </DropdownToggle>
-              }
-            />
-          </Flex>
+          <Toolbar
+            id="toolbar-with-filter"
+            className="pf-m-toggle-group-container"
+            collapseListedFiltersBreakpoint="xl"
+            clearAllFilters={() => onDeleteIncidentFilterChip('', '', filters, setFilters)}
+          >
+            <ToolbarContent>
+              <ToolbarItem>
+                <ToolbarFilter
+                  chips={filters.incidentType}
+                  deleteChip={(category, chip) =>
+                    onDeleteIncidentFilterChip(category, chip, filters, setFilters)
+                  }
+                  deleteChipGroup={(category) =>
+                    onDeleteGroupIncidentFilterChip(category, filters, setFilters)
+                  }
+                  categoryName="Incident type"
+                >
+                  <Select
+                    variant={'checkbox'}
+                    aria-label="Incident type"
+                    onToggle={onIncidentFilterToggle}
+                    onSelect={onIncidentTypeSelect}
+                    selections={filters.incidentType}
+                    isOpen={incidentFilterIsExpanded}
+                    placeholderText="Incident type"
+                    style={{
+                      width: '350px',
+                    }}
+                  >
+                    {statusMenuItems(filters)}
+                  </Select>
+                </ToolbarFilter>
+              </ToolbarItem>
+              <ToolbarItem>
+                <ToolbarFilter
+                  chips={filters.days}
+                  deleteChip={(category, chip) =>
+                    onDeleteIncidentFilterChip(category, chip, filters, setFilters)
+                  }
+                  deleteChipGroup={(category) =>
+                    onDeleteGroupIncidentFilterChip(category, filters, setFilters)
+                  }
+                  categoryName="Days"
+                >
+                  <Select
+                    variant={'checkbox'}
+                    aria-label="Days"
+                    onToggle={onDaysFilterToggle}
+                    onSelect={onDaysSelect}
+                    selections={filters.days}
+                    isOpen={daysFilterIsExpanded}
+                    placeholderText="Date range"
+                  >
+                    {daysMenuItems(filters)}
+                  </Select>
+                </ToolbarFilter>
+              </ToolbarItem>
+            </ToolbarContent>
+          </Toolbar>
           <IncidentsHeader
             alertsData={alertsData}
             incidentsData={filteredData}
