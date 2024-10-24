@@ -2,34 +2,22 @@
 import * as React from 'react';
 import { IncidentsHeader } from './IncidentsHeader/IncidentsHeader';
 import { useSafeFetch } from '../console/utils/safe-fetch-hook';
-import {
-  ListPageFilter,
-  PrometheusEndpoint,
-  useListPageFilter,
-} from '@openshift-console/dynamic-plugin-sdk';
+import { PrometheusEndpoint } from '@openshift-console/dynamic-plugin-sdk';
 import { parsePrometheusDuration } from '../console/utils/datetime';
 import { getPrometheusURL } from '../console/graphs/helpers';
 import { createAlertsQuery } from './api';
 import { useTranslation } from 'react-i18next';
 import {
   Bullseye,
-  Dropdown,
-  DropdownPosition,
-  DropdownToggle,
-  Flex,
   Select,
-  SelectOption,
   Spinner,
   Toolbar,
   ToolbarContent,
   ToolbarFilter,
-  ToolbarGroup,
   ToolbarItem,
 } from '@patternfly/react-core';
 import { Helmet } from 'react-helmet';
-import { useBoolean } from '../hooks/useBoolean';
-import some from 'lodash-es/some';
-import { daysMenuItems, dropdownItems, statusMenuItems } from './consts';
+import { daysMenuItems, statusMenuItems } from './consts';
 import { IncidentsTable } from './IncidentsTable';
 import { getIncidentsTimeRanges, processIncidents } from './processIncidents';
 import {
@@ -138,6 +126,7 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
         .then((results) => {
           const aggregatedData = results.reduce((acc, result) => acc.concat(result), []);
           setIncidentsData(processIncidents(aggregatedData));
+          setFilteredData(filterIncident(filters, processIncidents(aggregatedData)));
           setIncidentsAreLoading(false);
         })
         .catch((err) => {
@@ -211,6 +200,7 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
   React.useEffect(() => {
     setFilteredData(filterIncident(filters, incidentsData));
   }, [filters.incidentType]);
+
   return (
     <>
       <Helmet>
@@ -284,7 +274,7 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
           </Toolbar>
           <IncidentsHeader
             alertsData={alertsData}
-            incidentsData={incidentsData} //should be filteredData
+            incidentsData={filteredData}
             chartDays={timeRanges.length}
             onIncidentSelect={setChooseIncident}
           />

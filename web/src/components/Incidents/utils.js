@@ -133,54 +133,50 @@ export function generateDateArray(days) {
 }
 
 /**
- * Filters a single incident based on the selected filter criteria.
+ * Filters an array of incidents based on the provided filter conditions.
  *
- * @param {Object} incident - The incident object to check against the filters.
- * @param {Object} filters - An object containing all and selected filters.
- * @param {Array<string>} filters.all - An array of all available filters.
- * @param {Array<string>} filters.selected - An array of selected filters.
+ * @param {Object} filters - The filters object containing filter criteria.
+ * @param {Array<string>} filters.days - Array of day filters (currently unused in this function).
+ * @param {Array<string>} filters.incidentType - Array of incident types to filter by, e.g. ["Informative", "Long standing", "Inactive"].
  *
- * @returns {boolean} Returns true if the incident matches all the selected filters, otherwise false.
+ * @param {Array<Object>} incidents - Array of incident objects to be filtered. Each object represents an incident and includes properties like "informative", "longStanding", and "inactive".
  *
- * @description
- * The function checks the incident against the following filter criteria:
- * - if the informative filter is selected it checks the informative prop of the incident object
- * - If the "long-standing" filter is selected, it checks the longStanding property of the incident object
- * - If the "inactive" filter is selected, it checks it checks that the incident is active in the most recent hour
+ * @returns {Array<Object>} - The filtered array of incident objects. If no incidentType filters are provided, all incidents are returned.
  *
  * @example
  * const filters = {
- *   "selected": ["informative", "longStanding", "inactive"],
- *   "all": ["longStanding", "informative", "inactive"]
+ *   days: ['7 days'],
+ *   incidentType: ['Informative', 'Long standing'],
  * };
  *
- * const incident = {
- *   "component": "compute",
- *   "group_id": "73850a6a-e39e-4601-8910-3b4f60f4d53e",
- *   "severity": "info",
- *   "type": "alert",
- *   "values": [
- *     ["2024-09-01T00:00:00.000Z", "1"],
- *     ["2024-09-08T00:00:00.000Z", "1"]
- *   ],
- *   "x": 7,
- *    informative: boolean,
-      longStanding: boolean,
-      inactive: boolean,
- * };
+ * const incidents = [
+ *   { informative: true, longStanding: false, inactive: true },
+ *   { informative: false, longStanding: true, inactive: false },
+ * ];
  *
+ * const result = filterIncident(filters, incidents);
+ * console.log(result);
+ * // Output: [{ informative: true, longStanding: false, inactive: true }]
  */
-export function filterIncident(filters, incident) {
+export function filterIncident(filters, incidents) {
   const conditions = {
-    informative: 'informative',
-    longStanding: 'longStanding',
-    inactive: 'inactive',
+    Informative: 'informative',
+    'Long standing': 'longStanding',
+    Inactive: 'inactive',
   };
 
-  if (!filters.incidentType.length) return true;
+  return incidents.filter((incident) => {
+    // If there are no incidentType filters applied, return all incidents
+    if (!filters.incidentType.length) {
+      return true;
+    }
 
-  // Check if at least one filter passes
-  return filters.incidentType.some((key) => incident[conditions[key]] === true);
+    // Check if at least one filter passes for the incident
+    return filters.incidentType.some((key) => {
+      const conditionKey = conditions[key]; // Match the key exactly as in conditions
+      return incident[conditionKey] === true;
+    });
+  });
 }
 
 export function formatDateInExpandedDetails(date) {
