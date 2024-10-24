@@ -36,11 +36,11 @@ import {
   useListPageFilter,
   VirtualizedTable,
 } from '@openshift-console/dynamic-plugin-sdk';
+import { DropdownItem as DropdownItemDeprecated } from '@patternfly/react-core/deprecated';
 import { AlertResource, alertSeverityOrder, alertState, fuzzyCaseInsensitive } from '../utils';
 import { severityRowFilter } from '../alerting';
 import { sortable } from '@patternfly/react-table';
 import { Helmet } from 'react-helmet';
-import { DropdownItem } from '@patternfly/react-core';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { Link } from 'react-router-dom';
 import KebabDropdown from '../kebab-dropdown';
@@ -273,21 +273,21 @@ const AlertTableRow_: React.FC<AlertTableRowProps> = ({ history, obj, match }) =
   const title: string = obj.annotations?.description || obj.annotations?.message;
 
   const dropdownItems = [
-    <DropdownItem
+    <DropdownItemDeprecated
       key="view-rule"
       onClick={() => history.push(getRuleUrl(perspective, obj.rule, namespace))}
     >
       {t('View alerting rule')}
-    </DropdownItem>,
+    </DropdownItemDeprecated>,
   ];
   if (state !== AlertStates.Silenced) {
     dropdownItems.unshift(
-      <DropdownItem
+      <DropdownItemDeprecated
         key="silence-alert"
         onClick={() => history.push(getNewSilenceAlertUrl(perspective, obj, namespace))}
       >
         {t('Silence alert')}
-      </DropdownItem>,
+      </DropdownItemDeprecated>,
     );
   }
 
@@ -296,15 +296,15 @@ const AlertTableRow_: React.FC<AlertTableRowProps> = ({ history, obj, match }) =
     actions.forEach((action) => {
       if (isActionWithHref(action)) {
         extensionDropdownItems.push(
-          <DropdownItem key={action.id} href={action.cta.href}>
+          <DropdownItemDeprecated key={action.id} href={action.cta.href}>
             {action.label}
-          </DropdownItem>,
+          </DropdownItemDeprecated>,
         );
       } else if (isActionWithCallback(action)) {
         extensionDropdownItems.push(
-          <DropdownItem key={action.id} onClick={action.cta}>
+          <DropdownItemDeprecated key={action.id} onClick={action.cta}>
             {action.label}
-          </DropdownItem>,
+          </DropdownItemDeprecated>,
         );
       }
     });
