@@ -21,16 +21,19 @@ export const statusMenuItems = (filters) => [
     key="longStanding"
     value="Long standing"
     isSelected={filters.incidentType.includes('Long standing')}
+    description="The incident has been firing for at least 7 days."
   />,
   <SelectOption
     key="informative"
     value="Informative"
     isSelected={filters.incidentType.includes('Informative')}
+    description="The incident is not critical."
   />,
   <SelectOption
     key="inactive"
     value="Inactive"
     isSelected={filters.incidentType.includes('Inactive')}
+    description="The incident is not currently firing."
   />,
 ];
 

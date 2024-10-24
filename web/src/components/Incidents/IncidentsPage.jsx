@@ -230,52 +230,55 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
           >
             <ToolbarContent>
               <ToolbarItem>
-                <ToolbarGroup variant="filter-group">
-                  <ToolbarFilter
-                    chips={filters.incidentType}
-                    deleteChip={(category, chip) =>
-                      onDeleteIncidentFilterChip(category, chip, filters, setFilters)
-                    }
-                    deleteChipGroup={(category) =>
-                      onDeleteGroupIncidentFilterChip(category, filters, setFilters)
-                    }
-                    categoryName="Incident type"
+                <ToolbarFilter
+                  chips={filters.incidentType}
+                  deleteChip={(category, chip) =>
+                    onDeleteIncidentFilterChip(category, chip, filters, setFilters)
+                  }
+                  deleteChipGroup={(category) =>
+                    onDeleteGroupIncidentFilterChip(category, filters, setFilters)
+                  }
+                  categoryName="Incident type"
+                >
+                  <Select
+                    variant={'checkbox'}
+                    aria-label="Incident type"
+                    onToggle={onIncidentFilterToggle}
+                    onSelect={onIncidentTypeSelect}
+                    selections={filters.incidentType}
+                    isOpen={incidentFilterIsExpanded}
+                    placeholderText="Incident type"
+                    style={{
+                      width: '350px',
+                    }}
                   >
-                    <Select
-                      variant={'checkbox'}
-                      aria-label="Incident type"
-                      onToggle={onIncidentFilterToggle}
-                      onSelect={onIncidentTypeSelect}
-                      selections={filters.incidentType}
-                      isOpen={incidentFilterIsExpanded}
-                      placeholderText="Incident type"
-                    >
-                      {statusMenuItems(filters)}
-                    </Select>
-                  </ToolbarFilter>
-                  <ToolbarFilter
-                    chips={filters.days}
-                    deleteChip={(category, chip) =>
-                      onDeleteIncidentFilterChip(category, chip, filters, setFilters)
-                    }
-                    deleteChipGroup={(category) =>
-                      onDeleteGroupIncidentFilterChip(category, filters, setFilters)
-                    }
-                    categoryName="Days"
+                    {statusMenuItems(filters)}
+                  </Select>
+                </ToolbarFilter>
+              </ToolbarItem>
+              <ToolbarItem>
+                <ToolbarFilter
+                  chips={filters.days}
+                  deleteChip={(category, chip) =>
+                    onDeleteIncidentFilterChip(category, chip, filters, setFilters)
+                  }
+                  deleteChipGroup={(category) =>
+                    onDeleteGroupIncidentFilterChip(category, filters, setFilters)
+                  }
+                  categoryName="Days"
+                >
+                  <Select
+                    variant={'checkbox'}
+                    aria-label="Days"
+                    onToggle={onDaysFilterToggle}
+                    onSelect={onDaysSelect}
+                    selections={filters.days}
+                    isOpen={daysFilterIsExpanded}
+                    placeholderText="Date range"
                   >
-                    <Select
-                      variant={'checkbox'}
-                      aria-label="Days"
-                      onToggle={onDaysFilterToggle}
-                      onSelect={onDaysSelect}
-                      selections={filters.days}
-                      isOpen={daysFilterIsExpanded}
-                      placeholderText="Date range"
-                    >
-                      {daysMenuItems(filters)}
-                    </Select>
-                  </ToolbarFilter>
-                </ToolbarGroup>
+                    {daysMenuItems(filters)}
+                  </Select>
+                </ToolbarFilter>
               </ToolbarItem>
             </ToolbarContent>
           </Toolbar>
