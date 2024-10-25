@@ -29,7 +29,10 @@ import {
   onDeleteIncidentFilterChip,
 } from './utils';
 import { groupAlertsForTable, processAlerts } from './processAlerts';
-import { DropdownToggle, Dropdown } from '@patternfly/react-core/deprecated';
+import {
+  DropdownToggle as DropdownToggleDeprecated,
+  Dropdown as DropdownDeprecated,
+} from '@patternfly/react-core/deprecated';
 import { CompressArrowsAltIcon, CompressIcon } from '@patternfly/react-icons';
 
 const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
@@ -251,17 +254,17 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
                 </ToolbarFilter>
               </ToolbarItem>
               <ToolbarItem>
-                <Dropdown
+                <DropdownDeprecated
                   dropdownItems={dropdownItems(changeDaysFilter, t)}
                   isOpen={daysFilterIsExpanded}
                   onSelect={() => setDaysFilterIsExpanded(false)}
                   toggle={
-                    <DropdownToggle
+                    <DropdownToggleDeprecated
                       id="incidents-page-days-filter-toggle"
                       onToggle={setDaysFilterIsExpanded}
                     >
                       {filters.days[0]}
-                    </DropdownToggle>
+                    </DropdownToggleDeprecated>
                   }
                 />
               </ToolbarItem>
