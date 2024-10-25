@@ -9,6 +9,9 @@ import { createAlertsQuery } from './api';
 import { useTranslation } from 'react-i18next';
 import {
   Bullseye,
+  Button,
+  Flex,
+  FlexItem,
   Select,
   Spinner,
   Toolbar,
@@ -17,7 +20,7 @@ import {
   ToolbarItem,
 } from '@patternfly/react-core';
 import { Helmet } from 'react-helmet';
-import { daysMenuItems, statusMenuItems } from './consts';
+import { dropdownItems, incidentTypeMenuItems } from './consts';
 import { IncidentsTable } from './IncidentsTable';
 import { getIncidentsTimeRanges, processIncidents } from './processIncidents';
 import {
@@ -26,6 +29,8 @@ import {
   onDeleteIncidentFilterChip,
 } from './utils';
 import { groupAlertsForTable, processAlerts } from './processAlerts';
+import { DropdownToggle, Dropdown } from '@patternfly/react-core/deprecated';
+import { CompressArrowsAltIcon, CompressIcon } from '@patternfly/react-icons';
 
 const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
@@ -52,6 +57,39 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
     days: ['7 days'],
     incidentType: [],
   });
+  const [hideCharts, setHideCharts] = React.useState(false);
+
+  const [incidentFilterIsExpanded, setIncidentIsExpanded] = React.useState(false);
+  const [daysFilterIsExpanded, setDaysFilterIsExpanded] = React.useState(false);
+
+  const onIncidentFilterToggle = (isExpanded) => {
+    setIncidentIsExpanded(isExpanded);
+  };
+
+  const onIncidentTypeSelect = (event, selection) => {
+    onSelect('incidentType', event, selection);
+  };
+
+  const onSelect = (type, event, selection) => {
+    const checked = event.target.checked;
+    setFilters((prev) => {
+      const prevSelections = prev[type];
+      return {
+        ...prev,
+        [type]: checked
+          ? [...prevSelections, selection]
+          : prevSelections.filter((value) => value !== selection),
+      };
+    });
+  };
+
+  React.useEffect(() => {
+    setFilteredData(filterIncident(filters, incidentsData));
+  }, [filters.incidentType]);
+
+  const changeDaysFilter = (days) => {
+    setFilters({ days: [days], incidentType: filters.incidentType });
+  };
 
   const now = Date.now();
   const timeRanges = getIncidentsTimeRanges(daysSpan, now);
@@ -167,40 +205,6 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
       });
   }, [chooseIncident]);
 
-  const [incidentFilterIsExpanded, setIncidentIsExpanded] = React.useState(false);
-  const [daysFilterIsExpanded, setDaysFilterIsExpanded] = React.useState(false);
-
-  const onIncidentFilterToggle = (isExpanded) => {
-    setIncidentIsExpanded(isExpanded);
-  };
-  const onDaysFilterToggle = (isExpanded) => {
-    setDaysFilterIsExpanded(isExpanded);
-  };
-
-  const onIncidentTypeSelect = (event, selection) => {
-    onSelect('incidentType', event, selection);
-  };
-  const onDaysSelect = (event, selection) => {
-    onSelect('days', event, selection);
-  };
-
-  const onSelect = (type, event, selection) => {
-    const checked = event.target.checked;
-    setFilters((prev) => {
-      const prevSelections = prev[type];
-      return {
-        ...prev,
-        [type]: checked
-          ? [...prevSelections, selection]
-          : prevSelections.filter((value) => value !== selection),
-      };
-    });
-  };
-
-  React.useEffect(() => {
-    setFilteredData(filterIncident(filters, incidentsData));
-  }, [filters.incidentType]);
-
   return (
     <>
       <Helmet>
@@ -242,42 +246,46 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
                       width: '350px',
                     }}
                   >
-                    {statusMenuItems(filters)}
+                    {incidentTypeMenuItems(filters)}
                   </Select>
                 </ToolbarFilter>
               </ToolbarItem>
               <ToolbarItem>
-                <ToolbarFilter
-                  chips={filters.days}
-                  deleteChip={(category, chip) =>
-                    onDeleteIncidentFilterChip(category, chip, filters, setFilters)
+                <Dropdown
+                  dropdownItems={dropdownItems(changeDaysFilter, t)}
+                  isOpen={daysFilterIsExpanded}
+                  onSelect={() => setDaysFilterIsExpanded(false)}
+                  toggle={
+                    <DropdownToggle
+                      id="incidents-page-days-filter-toggle"
+                      onToggle={setDaysFilterIsExpanded}
+                    >
+                      {filters.days[0]}
+                    </DropdownToggle>
                   }
-                  deleteChipGroup={(category) =>
-                    onDeleteGroupIncidentFilterChip(category, filters, setFilters)
-                  }
-                  categoryName="Days"
+                />
+              </ToolbarItem>
+              <ToolbarItem className="pf-m-align-right">
+                <Button
+                  variant="link"
+                  icon={hideCharts ? <CompressArrowsAltIcon /> : <CompressIcon />}
+                  onClick={() => setHideCharts(!hideCharts)}
                 >
-                  <Select
-                    variant={'checkbox'}
-                    aria-label="Days"
-                    onToggle={onDaysFilterToggle}
-                    onSelect={onDaysSelect}
-                    selections={filters.days}
-                    isOpen={daysFilterIsExpanded}
-                    placeholderText="Date range"
-                  >
-                    {daysMenuItems(filters)}
-                  </Select>
-                </ToolbarFilter>
+                  <span>Hide graph</span>
+                </Button>
               </ToolbarItem>
             </ToolbarContent>
           </Toolbar>
-          <IncidentsHeader
-            alertsData={alertsData}
-            incidentsData={filteredData}
-            chartDays={timeRanges.length}
-            onIncidentSelect={setChooseIncident}
-          />
+          {hideCharts ? (
+            ''
+          ) : (
+            <IncidentsHeader
+              alertsData={alertsData}
+              incidentsData={filteredData}
+              chartDays={timeRanges.length}
+              onIncidentSelect={setChooseIncident}
+            />
+          )}
           <div className="row">
             <div className="col-xs-12">
               <IncidentsTable loaded={!alertsAreLoading} data={tableData} namespace={namespace} />

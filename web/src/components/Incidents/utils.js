@@ -205,7 +205,7 @@ export const onDeleteIncidentFilterChip = (type, id, filters, setFilters) => {
   } else {
     setFilters({
       incidentType: [],
-      days: '',
+      days: ['7 days'],
     });
   }
 };
@@ -219,11 +219,7 @@ export const onDeleteGroupIncidentFilterChip = (type, filters, setFilters) => {
   } else if (type === 'Days') {
     setFilters({
       incidentType: filters.incidentType,
-      days: '',
+      days: [],
     });
   }
-};
-
-export const changeDaysFilter = (days, setSpan) => {
-  setSpan(parsePrometheusDuration(days));
 };
