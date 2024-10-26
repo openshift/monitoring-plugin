@@ -2,16 +2,12 @@
 import * as React from 'react';
 import { IncidentsHeader } from './IncidentsHeader/IncidentsHeader';
 import { useSafeFetch } from '../console/utils/safe-fetch-hook';
-import { PrometheusEndpoint } from '@openshift-console/dynamic-plugin-sdk';
 import { parsePrometheusDuration } from '../console/utils/datetime';
-import { getPrometheusURL } from '../console/graphs/helpers';
-import { createAlertsQuery, fetchAlertsForChart, fetchDataForIncidentsAndAlerts } from './api';
+import { createAlertsQuery, fetchDataForIncidentsAndAlerts } from './api';
 import { useTranslation } from 'react-i18next';
 import {
   Bullseye,
   Button,
-  Flex,
-  FlexItem,
   Select,
   Spinner,
   Toolbar,
@@ -118,7 +114,7 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
             range,
             namespace,
             customDataSource,
-            createAlertsQuery(incidentForAlertProcessing)
+            createAlertsQuery(incidentForAlertProcessing),
           );
           return response.data.result;
         }),
