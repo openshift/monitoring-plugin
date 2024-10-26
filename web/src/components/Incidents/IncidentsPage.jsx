@@ -5,7 +5,7 @@ import { useSafeFetch } from '../console/utils/safe-fetch-hook';
 import { PrometheusEndpoint } from '@openshift-console/dynamic-plugin-sdk';
 import { parsePrometheusDuration } from '../console/utils/datetime';
 import { getPrometheusURL } from '../console/graphs/helpers';
-import { createAlertsQuery } from './api';
+import { createAlertsQuery, fetchAlertsForChart, fetchDataForIncidentsAndAlerts } from './api';
 import { useTranslation } from 'react-i18next';
 import {
   Bullseye,
@@ -113,18 +113,12 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
     (async () => {
       Promise.all(
         timeRanges.map(async (range) => {
-          const response = await safeFetch(
-            getPrometheusURL(
-              {
-                endpoint: PrometheusEndpoint.QUERY_RANGE,
-                endTime: range.endTime,
-                namespace,
-                query: createAlertsQuery(incidentForAlertProcessing),
-                samples: 24,
-                timespan: range.duration - 1,
-              },
-              customDataSource?.basePath,
-            ),
+          const response = await fetchDataForIncidentsAndAlerts(
+            safeFetch,
+            range,
+            namespace,
+            customDataSource,
+            createAlertsQuery(incidentForAlertProcessing)
           );
           return response.data.result;
         }),
@@ -148,18 +142,12 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
     (async () => {
       Promise.all(
         timeRanges.map(async (range) => {
-          const response = await safeFetch(
-            getPrometheusURL(
-              {
-                endpoint: PrometheusEndpoint.QUERY_RANGE,
-                endTime: range.endTime,
-                namespace,
-                query: 'cluster:health:components:map',
-                samples: 24,
-                timespan: range.duration - 1,
-              },
-              customDataSource?.basePath,
-            ),
+          const response = await fetchDataForIncidentsAndAlerts(
+            safeFetch,
+            range,
+            namespace,
+            customDataSource,
+            'cluster:health:components:map',
           );
           return response.data.result;
         }),
@@ -180,18 +168,12 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
   React.useEffect(() => {
     Promise.all(
       timeRanges.map(async (range) => {
-        const response = await safeFetch(
-          getPrometheusURL(
-            {
-              endpoint: PrometheusEndpoint.QUERY_RANGE,
-              endTime: range.endTime,
-              namespace,
-              query: `cluster:health:components:map{group_id='${chooseIncident}'}`,
-              samples: 24,
-              timespan: range.duration - 1,
-            },
-            customDataSource?.basePath,
-          ),
+        const response = await fetchDataForIncidentsAndAlerts(
+          safeFetch,
+          range,
+          namespace,
+          customDataSource,
+          `cluster:health:components:map{group_id='${chooseIncident}'}`,
         );
         return response.data.result;
       }),

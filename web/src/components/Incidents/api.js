@@ -1,4 +1,7 @@
 /* eslint-disable max-len */
+
+import { PrometheusEndpoint } from '@openshift-console/dynamic-plugin-sdk';
+import { getPrometheusURL } from '../console/graphs/helpers';
 /**
  * Creates a Prometheus alerts query string from grouped alert values.
  * The function dynamically includes any properties in the input objects that have the "src_" prefix,
@@ -56,4 +59,26 @@ export const createAlertsQuery = (groupedAlertsValues) => {
     .join(' or '); // Join all individual alert queries with "or"
 
   return alertsQuery;
+};
+
+export const fetchDataForIncidentsAndAlerts = (
+  fetch,
+  range,
+  namespace,
+  customDataSource,
+  customQuery,
+) => {
+  return fetch(
+    getPrometheusURL(
+      {
+        endpoint: PrometheusEndpoint.QUERY_RANGE,
+        endTime: range.endTime,
+        namespace,
+        query: customQuery,
+        samples: 24,
+        timespan: range.duration - 1,
+      },
+      customDataSource?.basePath,
+    ),
+  );
 };
