@@ -10,8 +10,6 @@ import { useTranslation } from 'react-i18next';
 import {
   Bullseye,
   Button,
-  Flex,
-  FlexItem,
   Select,
   Spinner,
   Toolbar,
@@ -34,6 +32,8 @@ import {
   Dropdown as DropdownDeprecated,
 } from '@patternfly/react-core/deprecated';
 import { CompressArrowsAltIcon, CompressIcon } from '@patternfly/react-icons';
+import { useDispatch, useSelector } from 'react-redux';
+import { setIncidentsNavFilters } from '../../actions/observe';
 
 const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
@@ -56,6 +56,7 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
   const [filteredData, setFilteredData] = React.useState([]);
   // data that is used for processing to serve it to the alerts table and chart
   const [incidentForAlertProcessing, setIncidentForAlertProcessing] = React.useState([]);
+  const filtersInRedux = useSelector(({ observe }) => observe.get('incidents'));
   const [filters, setFilters] = React.useState({
     days: ['7 days'],
     incidentType: [],
@@ -64,7 +65,7 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
 
   const [incidentFilterIsExpanded, setIncidentIsExpanded] = React.useState(false);
   const [daysFilterIsExpanded, setDaysFilterIsExpanded] = React.useState(false);
-
+  const dispatch = useDispatch();
   const onIncidentFilterToggle = (isExpanded) => {
     setIncidentIsExpanded(isExpanded);
   };
@@ -169,6 +170,7 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
           setIncidentsData(processIncidents(aggregatedData));
           setFilteredData(filterIncident(filters, processIncidents(aggregatedData)));
           setIncidentsAreLoading(false);
+          dispatch(setIncidentsNavFilters('incidents', filters));
         })
         .catch((err) => {
           // eslint-disable-next-line no-console

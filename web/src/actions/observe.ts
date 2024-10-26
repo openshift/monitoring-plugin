@@ -29,6 +29,7 @@ export enum ActionType {
   QueryBrowserToggleAllSeries = 'queryBrowserToggleAllSeries',
   SetAlertCount = 'SetAlertCount',
   ToggleGraphs = 'toggleGraphs',
+  SetIncidentsNavFilters = 'setIncidentsNavFilters',
 }
 
 export type Perspective = 'admin' | 'dev';
@@ -39,7 +40,8 @@ type AlertingKey =
   | 'devSilences'
   | 'rules'
   | 'devRules'
-  | 'notificationAlerts';
+  | 'notificationAlerts'
+  | 'incidents';
 
 export const dashboardsPatchVariable = (key: string, patch: any, perspective: Perspective) =>
   action(ActionType.DashboardsPatchVariable, { key, patch, perspective });
@@ -134,6 +136,12 @@ export const queryBrowserToggleSeries = (index: number, labels: { [key: string]:
 
 export const setAlertCount = (alertCount) => action(ActionType.SetAlertCount, { alertCount });
 
+export const setIncidentsNavFilters = (key: AlertingKey, incidents) =>
+  action(ActionType.SetIncidentsNavFilters, {
+    key,
+    incidents,
+  });
+
 const actions = {
   alertingErrored,
   alertingLoaded,
@@ -163,6 +171,7 @@ const actions = {
   queryBrowserToggleSeries,
   setAlertCount,
   toggleGraphs,
+  setIncidentsNavFilters,
 };
 
 export type ObserveAction = Action<typeof actions>;

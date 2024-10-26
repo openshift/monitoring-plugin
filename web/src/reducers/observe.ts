@@ -278,6 +278,9 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
     case ActionType.SetAlertCount:
       return state.set('alertCount', action.payload.alertCount);
 
+    case ActionType.SetIncidentsNavFilters:
+      return state.set('incidents', action.payload.incidents);
+
     default:
       break;
   }
