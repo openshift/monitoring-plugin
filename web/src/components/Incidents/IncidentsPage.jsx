@@ -170,7 +170,7 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
           setIncidentsData(processIncidents(aggregatedData));
           setFilteredData(filterIncident(filters, processIncidents(aggregatedData)));
           setIncidentsAreLoading(false);
-          dispatch(setIncidentsNavFilters('incidents', filters));
+          dispatch(setIncidentsNavFilters(filters));
         })
         .catch((err) => {
           // eslint-disable-next-line no-console

@@ -136,11 +136,8 @@ export const queryBrowserToggleSeries = (index: number, labels: { [key: string]:
 
 export const setAlertCount = (alertCount) => action(ActionType.SetAlertCount, { alertCount });
 
-export const setIncidentsNavFilters = (key: AlertingKey, incidents) =>
-  action(ActionType.SetIncidentsNavFilters, {
-    key,
-    incidents,
-  });
+export const setIncidentsNavFilters = (incidents) =>
+  action(ActionType.SetIncidentsNavFilters, { incidents });
 
 const actions = {
   alertingErrored,
