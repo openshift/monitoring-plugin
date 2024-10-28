@@ -41,6 +41,7 @@ export interface SimpleSelectProps extends Omit<SelectProps, 'toggle'> {
 }
 
 const SimpleSelectBase: React.FunctionComponent<SimpleSelectProps> = ({
+  id,
   innerRef,
   initialOptions,
   isDisabled,
@@ -87,6 +88,7 @@ const SimpleSelectBase: React.FunctionComponent<SimpleSelectProps> = ({
 
   const toggle = (toggleRef: React.Ref<MenuToggleElement>) => (
     <MenuToggle
+      id={`${id}-dropdown`}
       ref={toggleRef}
       onClick={onToggleClick}
       isExpanded={isOpen}
