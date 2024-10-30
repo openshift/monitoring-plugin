@@ -56,7 +56,6 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
   const [filteredData, setFilteredData] = React.useState([]);
   // data that is used for processing to serve it to the alerts table and chart
   const [incidentForAlertProcessing, setIncidentForAlertProcessing] = React.useState([]);
-  const filtersInRedux = useSelector(({ observe }) => observe.get('incidents'));
   const [filters, setFilters] = React.useState({
     days: ['7 days'],
     incidentType: [],
@@ -170,7 +169,6 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
           setIncidentsData(processIncidents(aggregatedData));
           setFilteredData(filterIncident(filters, processIncidents(aggregatedData)));
           setIncidentsAreLoading(false);
-          dispatch(setIncidentsNavFilters(filters));
         })
         .catch((err) => {
           // eslint-disable-next-line no-console
@@ -210,6 +208,10 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
       });
   }, [chooseIncident]);
 
+  const filtersInRedux = useSelector(({ observe }) => observe.get('incidentsData'));
+  const state = useSelector(({ observe }) => console.log(observe));
+  dispatch(setIncidentsNavFilters('7 days'));
+  console.log(filtersInRedux);
   return (
     <>
       <Helmet>
