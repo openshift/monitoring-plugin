@@ -1067,6 +1067,7 @@ const Tab: React.FC<{ active: boolean; children: React.ReactNode }> = ({ active,
   </li>
 );
 
+const incidentsPageWithFallback = withFallback(IncidentsPage);
 const AlertingPage: React.FC<RouteComponentProps<{ url: string }>> = ({ match }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
 
@@ -1106,7 +1107,7 @@ const AlertingPage: React.FC<RouteComponentProps<{ url: string }>> = ({ match })
         <Route path={alertsPath} exact component={AlertsPage} />
         <Route path={rulesPath} exact component={RulesPage} />
         <Route path={silencesPath} exact component={SilencesPage} />
-        <Route path={incidentsPath} exact component={IncidentsPage} />
+        <Route path={incidentsPath} exact component={incidentsPageWithFallback} />
       </Switch>
     </>
   );
