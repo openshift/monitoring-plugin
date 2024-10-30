@@ -9,7 +9,7 @@ import { BellIcon, ExclamationCircleIcon, InfoCircleIcon } from '@patternfly/rea
 import ExclamationTriangleIcon from '@patternfly/react-icons/dist/esm/icons/exclamation-triangle-icon';
 import { Bullseye, Icon, Spinner } from '@patternfly/react-core';
 import { Link } from 'react-router-dom';
-import { AlertResource, alertURL, getAlertsAndRules, labelsToParams } from '../utils';
+import { AlertResource, alertURL, getAlertsAndRules } from '../utils';
 import { MonitoringResourceIcon, ruleURL } from '../alerting/AlertUtils';
 import { formatDateInExpandedDetails } from './utils';
 import { isAlertingRulesSource } from '../console/extensions/alerts';
@@ -40,7 +40,7 @@ const IncidentsDetailsRowTable = ({ alerts, namespace }) => {
         const match = rulesArray.find((rule) => alert.alertname === rule.name);
 
         if (match) {
-          return { ...alert, id: match.id, labels: match.labels, rule: match.rule };
+          return { ...alert, rule: match };
         }
 
         return null; // No match, return null to filter it out later
@@ -88,11 +88,7 @@ const IncidentsDetailsRowTable = ({ alerts, namespace }) => {
               <Tr key={rowIndex}>
                 <Td dataLabel="expanded-details-alertname">
                   <MonitoringResourceIcon resource={AlertResource} />
-                  <Link
-                    to={`${AlertResource.plural}/${alertDetails.id}?${labelsToParams(
-                      alertDetails.labels,
-                    )}`}
-                  >
+                  <Link to={alertURL(alertDetails, alertDetails.rule.id)}>
                     {alertDetails.alertname}
                   </Link>
                 </Td>
@@ -153,7 +149,7 @@ const IncidentsDetailsRowTable = ({ alerts, namespace }) => {
                       </DropdownItemDeprecated>,
                       <DropdownItemDeprecated key="view-rule">
                         <Link
-                          to={ruleURL(alertDetails)}
+                          to={ruleURL(alertDetails.rule)}
                           style={{ color: 'inherit', textDecoration: 'inherit' }}
                         >
                           {t('View alerting rule')}
