@@ -1,21 +1,22 @@
 import React from 'react';
 import { SimpleSelect, SimpleSelectOption } from './SimpleSelect';
-import { useDispatch } from 'react-redux';
-import { queryBrowserSetPollInterval } from '../actions/observe';
 import { parsePrometheusDuration } from './console/utils/datetime';
 import { useTranslation } from 'react-i18next';
 
-export const DropDownPollInterval: React.FunctionComponent = () => {
+type DropDownPollIntervalProps = {
+  setInterval: (v: number) => void;
+  id?: string;
+};
+
+const DEFAULT_REFRESH_INTERVAL = '30s';
+
+export const DropDownPollInterval: React.FunctionComponent<DropDownPollIntervalProps> = ({
+  id,
+  setInterval,
+}) => {
   const OFF_KEY = 'OFF_KEY';
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const [selected, setSelected] = React.useState<string | undefined>(OFF_KEY);
-
-  const dispatch = useDispatch();
-
-  const setInterval = React.useCallback(
-    (v: number) => dispatch(queryBrowserSetPollInterval(v)),
-    [dispatch],
-  );
+  const [selected, setSelected] = React.useState<string | undefined>(DEFAULT_REFRESH_INTERVAL);
 
   const initialOptions = React.useMemo<SimpleSelectOption[]>(() => {
     const intervalOptions: SimpleSelectOption[] = [
@@ -38,9 +39,9 @@ export const DropDownPollInterval: React.FunctionComponent = () => {
 
   return (
     <SimpleSelect
+      id={id}
       initialOptions={initialOptions}
       onSelect={(_ev, selection) => onSelect(_ev, selection)}
-      placeholder={t('Refresh off')}
       className="monitoring-dashboards__variable-dropdown"
       toggleWidth="150px"
     />

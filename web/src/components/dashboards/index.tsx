@@ -56,7 +56,6 @@ import {
   Perspective,
   queryBrowserDeleteAllQueries,
 } from '../../actions/observe';
-import IntervalDropdown from '../poll-interval-dropdown';
 import BarChart from './bar-chart';
 import Graph from './graph';
 import SingleStat from './single-stat';
@@ -81,6 +80,7 @@ import {
 } from '../hooks/usePerspective';
 import KebabDropdown from '../kebab-dropdown';
 import { MonitoringState } from '../../reducers/observe';
+import { DropDownPollInterval } from '../dropdown-poll-interval';
 
 const intervalVariableRegExps = ['__interval', '__rate_interval', '__auto_interval_[a-z]+'];
 
@@ -486,12 +486,7 @@ const DashboardDropdown: React.FC<DashboardDropdownProps> = React.memo(
 
 export const PollIntervalDropdown: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-
-  const refreshIntervalFromParams = getQueryArgument('refreshInterval');
   const { perspective } = usePerspective();
-  const interval = useSelector((state: MonitoringState) =>
-    getObserveState(perspective, state)?.getIn(['dashboards', perspective, 'pollInterval']),
-  );
 
   const dispatch = useDispatch();
   const setInterval = React.useCallback(
@@ -511,11 +506,7 @@ export const PollIntervalDropdown: React.FC = () => {
       <label htmlFor="refresh-interval-dropdown" className="monitoring-dashboards__dropdown-title">
         {t('Refresh interval')}
       </label>
-      <IntervalDropdown
-        id="refresh-interval-dropdown"
-        interval={_.toNumber(refreshIntervalFromParams) || interval}
-        setInterval={setInterval}
-      />
+      <DropDownPollInterval id="refresh-interval-dropdown" setInterval={setInterval} />
     </div>
   );
 };
