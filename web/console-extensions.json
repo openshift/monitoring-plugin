@@ -111,6 +111,13 @@
     }
   },
   {
+    "type": "console.redux-reducer",
+    "properties": {
+      "scope": "monitoring",
+      "reducer": { "$codeRef": "MonitoringReducer" }
+    }
+  },
+  {
     "type": "console.tab",
     "properties": {
       "contextId": "dev-console-observe",

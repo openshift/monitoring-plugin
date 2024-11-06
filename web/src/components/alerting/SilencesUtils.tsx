@@ -2,7 +2,6 @@ import * as React from 'react';
 import {
   consoleFetchJSON,
   GreenCheckCircleIcon,
-  PrometheusAlert,
   Silence,
   SilenceStates,
 } from '@openshift-console/dynamic-plugin-sdk';
@@ -25,7 +24,6 @@ import {
   KebabToggle as KebabToggleDeprecated,
 } from '@patternfly/react-core/deprecated';
 import {
-  labelsToParams,
   refreshSilences,
   silenceMatcherEqualitySymbol,
   SilenceResource,
@@ -35,7 +33,12 @@ import classNames from 'classnames';
 import { BanIcon, HourglassHalfIcon } from '@patternfly/react-icons';
 import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
 import { useBoolean } from '../hooks/useBoolean';
-import { usePerspective } from '../hooks/usePerspective';
+import {
+  getEditSilenceAlertUrl,
+  getSilenceAlertUrl,
+  getFetchSilenceUrl,
+  usePerspective,
+} from '../hooks/usePerspective';
 import { useDispatch } from 'react-redux';
 import { LoadingInline } from '../console/utils/status-box';
 import { MonitoringResourceIcon, OnToggle, SeverityCounts, StateTimestamp } from './AlertUtils';
@@ -47,16 +50,18 @@ export const tableSilenceClasses = [
   'pf-m-hidden pf-m-visible-on-sm', // Firing alerts
   '', // State
   'pf-m-hidden pf-m-visible-on-sm', // Creator
+  'pf-m-hidden pf-m-visible-on-sm', // Cluster
   'dropdown-kebab-pf pf-c-table__action',
 ];
 
 export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheckbox }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
-  const { isDev } = usePerspective();
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const { perspective } = usePerspective();
   const namespace = useActiveNamespace();
 
-  const { createdBy, endsAt, firingAlerts, id, name, startsAt } = obj;
+  const { createdBy, endsAt, firingAlerts, id, name, startsAt, matchers } = obj;
   const state = silenceState(obj);
+  const cluster = matchers.find((label) => label.name === 'cluster')?.value;
 
   const { selectedSilences, setSelectedSilences } = React.useContext(SelectedSilencesContext);
 
@@ -84,7 +89,7 @@ export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheck
             isChecked={selectedSilences.has(id)}
             isDisabled={state === SilenceStates.Expired}
             onChange={(_e, checked) => {
-              onCheckboxChange(checked);
+              typeof _e === 'boolean' ? onCheckboxChange(checked) : onCheckboxChange(checked);
             }}
           />
         </td>
@@ -96,7 +101,7 @@ export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheck
             className="co-resource-item__resource-name"
             data-test-id="silence-resource-link"
             title={id}
-            to={isDev ? devSilenceAlertURL(id, namespace) : silenceAlertURL(id)}
+            to={getSilenceAlertUrl(perspective, id, namespace)}
           >
             {name}
           </Link>
@@ -119,7 +124,8 @@ export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheck
         )}
       </td>
       <td className={tableSilenceClasses[4]}>{createdBy || '-'}</td>
-      <td className={tableSilenceClasses[5]}>
+      {perspective === 'acm' && <td className={tableSilenceClasses[5]}>{cluster}</td>}
+      <td className={tableSilenceClasses[6]}>
         <SilenceDropdownKebab silence={obj} />
       </td>
     </>
@@ -155,7 +161,7 @@ export type ExpireSilenceModalProps = {
 };
 
 export const SilenceState = ({ silence }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const state = silenceState(silence);
   const icon = {
@@ -203,17 +209,15 @@ const SilenceDropdown_: React.FC<SilenceDropdownProps> = ({
   silence,
   Toggle,
 }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
-  const { isDev } = usePerspective();
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const { perspective } = usePerspective();
   const namespace = useActiveNamespace();
 
   const [isOpen, setIsOpen, , setClosed] = useBoolean(false);
   const [isModalOpen, , setModalOpen, setModalClosed] = useBoolean(false);
 
   const editSilence = () => {
-    history.push(
-      isDev ? editDevSilenceAlertURL(silence.id, namespace) : editSilenceAlertURL(silence.id),
-    );
+    history.push(getEditSilenceAlertUrl(perspective, silence.id, namespace));
   };
 
   const dropdownItems =
@@ -255,8 +259,8 @@ const ExpireSilenceModal: React.FC<ExpireSilenceModalProps> = ({
   setClosed,
   silenceID,
 }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
-  const { perspective, isDev } = usePerspective();
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const { perspective, silencesKey } = usePerspective();
   const namespace = useActiveNamespace();
 
   const dispatch = useDispatch();
@@ -266,13 +270,11 @@ const ExpireSilenceModal: React.FC<ExpireSilenceModalProps> = ({
 
   const expireSilence = () => {
     setInProgress();
-    const url = isDev
-      ? `api/alertmanager-tenancy/api/v2/silence/${silenceID}?namespace=${namespace}`
-      : `${window.SERVER_FLAGS.alertManagerBaseURL}/api/v2/silence/${silenceID}`;
+    const url = getFetchSilenceUrl(perspective, silenceID, namespace);
     consoleFetchJSON
       .delete(url)
       .then(() => {
-        refreshSilences(dispatch, perspective);
+        refreshSilences(dispatch, perspective, silencesKey);
         setClosed();
       })
       .catch((err) => {
@@ -329,34 +331,4 @@ type SilenceDropdownProps = RouteComponentProps & {
   isPlain?: boolean;
   silence: Silence;
   Toggle: React.FC<{ onToggle: OnToggle }>;
-};
-
-export const newSilenceAlertURL = (alert: PrometheusAlert) =>
-  `${SilenceResource.plural}/~new?${labelsToParams(alert.labels)}`;
-
-export const newDevSilenceAlertURL = (alert: PrometheusAlert, namespace: string) =>
-  `/dev-monitoring/ns/${namespace}/silences/~new?${labelsToParams(alert.labels)}`;
-
-export const silenceAlertURL = (id: string) => `${SilenceResource.plural}/${id}`;
-
-export const devSilenceAlertURL = (id: string, namespace: string) =>
-  `/dev-monitoring/ns/${namespace}/silences/${id}`;
-
-export const editSilenceAlertURL = (id: string) => `${SilenceResource.plural}/${id}/edit`;
-
-export const editDevSilenceAlertURL = (id: string, namespace: string) =>
-  `/dev-monitoring/ns/${namespace}/silences/${id}/edit`;
-
-export const fetchSilenceAlertURL = (
-  isDev: boolean,
-  alertManagerBaseURL: string,
-  namespace: string,
-) => {
-  if (isDev) {
-    return `api/alertmanager-tenancy/api/v2/silences?namespace=${namespace}`;
-  }
-  if (alertManagerBaseURL) {
-    return `${alertManagerBaseURL}/api/v2/silences`;
-  }
-  return '';
 };

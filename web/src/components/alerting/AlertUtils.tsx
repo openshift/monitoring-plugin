@@ -16,12 +16,12 @@ import { AlertSource, MonitoringResource } from '../types';
 import * as _ from 'lodash-es';
 import { useTranslation } from 'react-i18next';
 import { Alert as PFAlert, Popover, Button } from '@patternfly/react-core';
-import { RuleResource } from '../utils';
 import classNames from 'classnames';
 import { BellIcon, BellSlashIcon, OutlinedBellIcon } from '@patternfly/react-icons';
 import { FormatSeriesTitle, QueryBrowser } from '../query-browser';
 import { Link } from 'react-router-dom';
 import { TFunction } from 'i18next';
+import { getQueryBrowserUrl, usePerspective } from '../hooks/usePerspective';
 
 export const getAdditionalSources = <T extends Alert | Rule>(
   data: Array<T>,
@@ -51,11 +51,12 @@ export const alertingRuleSource = (rule: Rule): AlertSource | string => {
 };
 
 export const alertSource = (alert: Alert): AlertSource | string => alertingRuleSource(alert.rule);
+export const alertCluster = (alert: Alert): string => alert.labels?.cluster ?? '';
 
 export const SilencesNotLoadedWarning: React.FC<{ silencesLoadError: any }> = ({
   silencesLoadError,
 }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
     <PFAlert
@@ -73,10 +74,6 @@ export const SilencesNotLoadedWarning: React.FC<{ silencesLoadError: any }> = ({
 
 type ActionWithHref = Omit<Action, 'cta'> & { cta: { href: string; external?: boolean } };
 export const isActionWithHref = (action: Action): action is ActionWithHref => 'href' in action.cta;
-
-export const ruleURL = (rule: Rule) => `${RuleResource.plural}/${_.get(rule, 'id')}`;
-export const devRuleURL = (rule: Rule, namespace: string) =>
-  `/dev-monitoring/ns/${namespace}/rules/${rule?.id}`;
 
 type ActionWithCallBack = Omit<Action, 'cta'> & { cta: () => void };
 export const isActionWithCallback = (action: Action): action is ActionWithCallBack =>
@@ -103,7 +100,7 @@ type MonitoringResourceIconProps = {
 };
 
 export const Severity: React.FC<{ severity: string }> = React.memo(({ severity }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const getSeverityKey = (severityData: string) => {
     switch (severityData) {
@@ -141,7 +138,7 @@ export const SeverityIcon: React.FC<{ severity: string }> = React.memo(({ severi
 });
 
 export const AlertState: React.FC<AlertStateProps> = React.memo(({ state }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const icon = <AlertStateIcon state={state} />;
 
@@ -183,7 +180,7 @@ export const getAlertStateKey = (state, t) => {
 };
 
 export const AlertStateDescription: React.FC<{ alert: Alert }> = ({ alert }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   if (alert && !_.isEmpty(alert.silencedBy)) {
     return <StateTimestamp text={t('Ends')} timestamp={_.max(_.map(alert.silencedBy, 'endsAt'))} />;
@@ -227,14 +224,18 @@ export const Graph: React.FC<GraphProps> = ({
   query,
   ruleDuration,
 }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const { perspective } = usePerspective();
 
   // 3 times the rule's duration, but not less than 30 minutes
   const timespan = Math.max(3 * ruleDuration, 30 * 60) * 1000;
 
   const GraphLink = () =>
     query ? (
-      <Link aria-label={t('View in Metrics')} to={queryBrowserURL(query, namespace)}>
+      <Link
+        aria-label={t('View in Metrics')}
+        to={getQueryBrowserUrl(perspective, query, namespace)}
+      >
         {t('View in Metrics')}
       </Link>
     ) : null;
@@ -261,13 +262,8 @@ type GraphProps = {
   showLegend?: boolean;
 };
 
-export const queryBrowserURL = (query: string, namespace: string) =>
-  namespace
-    ? `/dev-monitoring/ns/${namespace}/metrics?query0=${encodeURIComponent(query)}`
-    : `/monitoring/query-browser?query0=${encodeURIComponent(query)}`;
-
 export const SeverityHelp: React.FC = () => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
     <dl className="co-inline">
@@ -301,7 +297,7 @@ export const SeverityHelp: React.FC = () => {
 };
 
 export const SourceHelp: React.FC = () => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
     <dl className="co-inline">

@@ -1,25 +1,29 @@
 import * as React from 'react';
 import { withFallback } from '../console/console-shared/error/error-boundary';
 import { useTranslation } from 'react-i18next';
-import { usePerspective } from '../hooks/usePerspective';
-import { Alerts, AlertSource, RootState } from '../types';
+import {
+  getAlertUrl,
+  getNewSilenceAlertUrl,
+  getObserveState,
+  getRuleUrl,
+  usePerspective,
+} from '../hooks/usePerspective';
+import { Alerts, AlertSource } from '../types';
 import { useSelector } from 'react-redux';
 
 import * as _ from 'lodash-es';
 import {
+  alertCluster,
   alertSource,
   AlertState,
   AlertStateDescription,
-  devRuleURL,
   getAdditionalSources,
   isActionWithCallback,
   isActionWithHref,
   MonitoringResourceIcon,
-  ruleURL,
   Severity,
   SilencesNotLoadedWarning,
 } from './AlertUtils';
-import { newSilenceAlertURL, newDevSilenceAlertURL } from './SilencesUtils';
 import {
   Action,
   Alert,
@@ -32,42 +36,39 @@ import {
   useListPageFilter,
   VirtualizedTable,
 } from '@openshift-console/dynamic-plugin-sdk';
-import {
-  AlertResource,
-  alertSeverityOrder,
-  alertState,
-  alertURL,
-  devAlertURL,
-  fuzzyCaseInsensitive,
-} from '../utils';
+import { DropdownItem as DropdownItemDeprecated } from '@patternfly/react-core/deprecated';
+import { AlertResource, alertSeverityOrder, alertState, fuzzyCaseInsensitive } from '../utils';
 import { severityRowFilter } from '../alerting';
 import { sortable } from '@patternfly/react-table';
 import { Helmet } from 'react-helmet';
-import { DropdownItem } from '@patternfly/react-core';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { Link } from 'react-router-dom';
 import KebabDropdown from '../kebab-dropdown';
 import { EmptyBox } from '../console/utils/status-box';
+import { MonitoringState } from '../../reducers/observe';
 
 const tableAlertClasses = [
   'pf-u-w-50 pf-u-w-33-on-sm', // Name
   'pf-m-hidden pf-m-visible-on-sm', // Severity
   '', // State
   'pf-m-hidden pf-m-visible-on-sm', // Source
+  'pf-m-hidden pf-m-visible-on-sm', // Cluster
   'dropdown-kebab-pf pf-c-table__action',
 ];
 
 const AlertsPage_: React.FC<AlertsPageProps> = () => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
-  const { isDev, alertsKey, defaultAlertTenant } = usePerspective();
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const { alertsKey, silencesKey, defaultAlertTenant, perspective } = usePerspective();
 
   const {
     data,
     loaded = false,
     loadError,
-  }: Alerts = useSelector(({ observe }: RootState) => observe.get(alertsKey) || {});
+  }: Alerts = useSelector(
+    (state: MonitoringState) => getObserveState(perspective, state)?.get(alertsKey) || {},
+  );
   const silencesLoadError = useSelector(
-    ({ observe }: RootState) => observe.get('silences')?.loadError,
+    (state: MonitoringState) => getObserveState(perspective, state)?.get(silencesKey)?.loadError,
   );
 
   const alertAdditionalSources = React.useMemo(
@@ -100,7 +101,7 @@ const AlertsPage_: React.FC<AlertsPageProps> = () => {
     },
     severityRowFilter(t),
     {
-      defaultSelected: [defaultAlertTenant],
+      defaultSelected: defaultAlertTenant,
       filter: (filter, alert: Alert) =>
         filter.selected?.includes(alertSource(alert)) || _.isEmpty(filter.selected),
       filterGroupName: t('Source'),
@@ -114,14 +115,22 @@ const AlertsPage_: React.FC<AlertsPageProps> = () => {
     },
   ];
 
-  if (isDev) {
+  if (perspective === 'dev') {
     rowFilters = rowFilters.filter((filter) => filter.type !== 'alert-source');
+  } else if (perspective === 'acm') {
+    rowFilters.splice(-1, 0, {
+      filter: (filter, alert: Alert) =>
+        fuzzyCaseInsensitive(filter.selected?.[0], alert.labels?.cluster),
+      filterGroupName: t('Cluster'),
+      items: [],
+      reducer: alertCluster,
+    } as RowFilter);
   }
 
   const [staticData, filteredData, onFilterChange] = useListPageFilter(data, rowFilters);
 
-  const columns = React.useMemo<TableColumn<Alert>[]>(
-    () => [
+  const columns = React.useMemo<TableColumn<Alert>[]>(() => {
+    const cols = [
       {
         id: 'name',
         props: { className: tableAlertClasses[0] },
@@ -155,21 +164,38 @@ const AlertsPage_: React.FC<AlertsPageProps> = () => {
       },
       {
         id: 'actions',
-        props: { className: tableAlertClasses[4] },
+        props: { className: tableAlertClasses[5] },
         title: '',
       },
-    ],
-    [t],
-  );
+    ];
+
+    if (perspective === 'acm') {
+      cols.splice(-1, 0, {
+        id: 'cluster',
+        props: { className: tableAlertClasses[4] },
+        sort: 'labels.cluster',
+        title: t('Cluster'),
+        transforms: [sortable],
+      });
+    }
+    return cols;
+  }, [t, perspective]);
 
   const getTableData = () => {
     const csvColumns = ['Name', 'Severity', 'State'];
+    if (perspective === 'acm') {
+      csvColumns.push('Cluster');
+    }
     const getCsvRows = () => {
       return filteredData?.map((row) => {
         const name = row?.labels?.alertname ?? '';
         const severity = row?.labels?.severity ?? '';
         const state = row?.state ?? '';
-        return [name, severity, state];
+        const rowData = [name, severity, state];
+        if (perspective === 'acm') {
+          rowData.push(row?.labels?.clsuter ?? '');
+        }
+        return rowData;
       });
     };
     return [csvColumns, ...getCsvRows()];
@@ -236,8 +262,8 @@ const alertStateOrder = (alert: Alert) => [
 ];
 
 const AlertTableRow_: React.FC<AlertTableRowProps> = ({ history, obj, match }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
-  const { isDev } = usePerspective();
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const { perspective } = usePerspective();
   const namespace = match.params.ns;
 
   const { annotations = {}, labels } = obj;
@@ -247,23 +273,21 @@ const AlertTableRow_: React.FC<AlertTableRowProps> = ({ history, obj, match }) =
   const title: string = obj.annotations?.description || obj.annotations?.message;
 
   const dropdownItems = [
-    <DropdownItem
+    <DropdownItemDeprecated
       key="view-rule"
-      onClick={() => history.push(isDev ? devRuleURL(obj.rule, namespace) : ruleURL(obj.rule))}
+      onClick={() => history.push(getRuleUrl(perspective, obj.rule, namespace))}
     >
       {t('View alerting rule')}
-    </DropdownItem>,
+    </DropdownItemDeprecated>,
   ];
   if (state !== AlertStates.Silenced) {
     dropdownItems.unshift(
-      <DropdownItem
+      <DropdownItemDeprecated
         key="silence-alert"
-        onClick={() =>
-          history.push(isDev ? newDevSilenceAlertURL(obj, namespace) : newSilenceAlertURL(obj))
-        }
+        onClick={() => history.push(getNewSilenceAlertUrl(perspective, obj, namespace))}
       >
         {t('Silence alert')}
-      </DropdownItem>,
+      </DropdownItemDeprecated>,
     );
   }
 
@@ -272,15 +296,15 @@ const AlertTableRow_: React.FC<AlertTableRowProps> = ({ history, obj, match }) =
     actions.forEach((action) => {
       if (isActionWithHref(action)) {
         extensionDropdownItems.push(
-          <DropdownItem key={action.id} href={action.cta.href}>
+          <DropdownItemDeprecated key={action.id} href={action.cta.href}>
             {action.label}
-          </DropdownItem>,
+          </DropdownItemDeprecated>,
         );
       } else if (isActionWithCallback(action)) {
         extensionDropdownItems.push(
-          <DropdownItem key={action.id} onClick={action.cta}>
+          <DropdownItemDeprecated key={action.id} onClick={action.cta}>
             {action.label}
-          </DropdownItem>,
+          </DropdownItemDeprecated>,
         );
       }
     });
@@ -293,7 +317,7 @@ const AlertTableRow_: React.FC<AlertTableRowProps> = ({ history, obj, match }) =
         <div className="co-resource-item">
           <MonitoringResourceIcon resource={AlertResource} />
           <Link
-            to={isDev ? devAlertURL(obj, obj.rule.id, namespace) : alertURL(obj, obj.rule.id)}
+            to={getAlertUrl(perspective, obj, obj.rule.id, namespace)}
             data-test-id="alert-resource-link"
             className="co-resource-item__resource-name"
           >
@@ -312,7 +336,12 @@ const AlertTableRow_: React.FC<AlertTableRowProps> = ({ history, obj, match }) =
       <td className={tableAlertClasses[3]} title={title}>
         {alertSource(obj) === AlertSource.User ? t('User') : t('Platform')}
       </td>
-      <td className={tableAlertClasses[4]} title={title}>
+      {perspective === 'acm' && (
+        <td className={tableAlertClasses[4]} title={title}>
+          {labels?.cluster}
+        </td>
+      )}
+      <td className={tableAlertClasses[5]} title={title}>
         <ActionServiceProvider context={{ 'monitoring-alert-list-item': { alert: obj } }}>
           {({ actions, loaded }) => {
             if (loaded && actions.length > 0) {
