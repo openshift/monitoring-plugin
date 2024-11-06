@@ -13,7 +13,7 @@ import (
 var mlog = logrus.WithField("module", "manifest")
 
 func manifestHandler(cfg *Config) http.HandlerFunc {
-	baseManifestData, err := os.ReadFile(filepath.Join(cfg.ConfigPath, "plugin-manifest.json"))
+	baseManifestData, err := os.ReadFile(filepath.Join(cfg.StaticPath, "plugin-manifest.json"))
 	if err != nil {
 		mlog.WithError(err).Error("cannot read base manifest file")
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -21,11 +21,7 @@ func manifestHandler(cfg *Config) http.HandlerFunc {
 		})
 	}
 
-	patchedManifest := baseManifestData
-
-	for k := range cfg.Features {
-		patchedManifest = patchManifest(patchedManifest, filepath.Join(cfg.ConfigPath, fmt.Sprintf("%s.patch.json", k)))
-	}
+	patchedManifest := patchManifest(baseManifestData, cfg)
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -36,7 +32,21 @@ func manifestHandler(cfg *Config) http.HandlerFunc {
 	})
 }
 
-func patchManifest(originalData []byte, patchFilePath string) []byte {
+func patchManifest(baseManifestData []byte, cfg *Config) []byte {
+	if len(cfg.Features) == 0 {
+		return baseManifestData
+	}
+
+	patchedManifest := performPatch(baseManifestData, filepath.Join(cfg.ConfigPath, "clear-extensions.patch.json"))
+
+	for feature := range cfg.Features {
+		patchedManifest = performPatch(patchedManifest, filepath.Join(cfg.ConfigPath, fmt.Sprintf("%s.patch.json", feature)))
+	}
+
+	return []byte(patchedManifest)
+}
+
+func performPatch(originalData []byte, patchFilePath string) []byte {
 	patchData, err := os.ReadFile(patchFilePath)
 	if err != nil {
 		mlog.WithField("reason", err).Warnf("cannot read patch file %s", patchFilePath)

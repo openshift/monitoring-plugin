@@ -1,8 +1,15 @@
 import * as _ from 'lodash-es';
 import { PrometheusEndpoint } from '@openshift-console/dynamic-plugin-sdk';
+import { Perspective } from '../../../actions/observe';
 
-const PROMETHEUS_BASE_PATH = window.SERVER_FLAGS.prometheusBaseURL;
+export const PROMETHEUS_BASE_PATH = window.SERVER_FLAGS.prometheusBaseURL;
 const PROMETHEUS_TENANCY_BASE_PATH = window.SERVER_FLAGS.prometheusTenancyBaseURL;
+const PROMETHEUS_PROXY_PATH = '/api/proxy/plugin/monitoring-console-plugin/thanos-proxy';
+
+export const ALERTMANAGER_BASE_PATH = window.SERVER_FLAGS.alertManagerBaseURL;
+export const ALERTMANAGER_TENANCY_BASE_PATH = '/api/alertmanager-tenancy'; // remove it once it get added to SERVER_FLAGS
+export const ALERTMANAGER_PROXY_PATH =
+  '/api/proxy/plugin/monitoring-console-plugin/alertmanager-proxy';
 
 const DEFAULT_PROMETHEUS_SAMPLES = 60;
 const DEFAULT_PROMETHEUS_TIMESPAN = 60 * 60 * 1000;
@@ -37,13 +44,15 @@ const getSearchParams = ({
 
 export const getPrometheusURL = (
   props: PrometheusURLProps,
+  perspective: Perspective,
   basePath: string = props.namespace ? PROMETHEUS_TENANCY_BASE_PATH : PROMETHEUS_BASE_PATH,
 ): string => {
   if (props.endpoint !== PrometheusEndpoint.RULES && !props.query) {
     return '';
   }
+  const path = perspective === 'acm' ? PROMETHEUS_PROXY_PATH : basePath;
   const params = getSearchParams(props);
-  return `${basePath}/${props.endpoint}?${params.toString()}`;
+  return `${path}/${props.endpoint}?${params.toString()}`;
 };
 
 type PrometheusURLProps = {

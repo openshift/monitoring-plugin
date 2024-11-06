@@ -12,9 +12,12 @@ import (
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/openshift/monitoring-plugin/pkg/proxy"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 	"k8s.io/apiserver/pkg/server/dynamiccertificates"
+	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/rest"
 )
 
 var log = logrus.WithField("module", "server")
@@ -23,16 +26,24 @@ type Config struct {
 	Port             int
 	CertFile         string
 	PrivateKeyFile   string
-	Features         map[string]bool
+	Features         map[Feature]bool
 	StaticPath       string
 	ConfigPath       string
 	PluginConfigPath string
 	LogLevel         string
+	AlertmanagerUrl  string
+	ThanosQuerierUrl string
 }
 
 type PluginConfig struct {
 	Timeout time.Duration `json:"timeout,omitempty" yaml:"timeout,omitempty"`
 }
+
+type Feature string
+
+const (
+	AcmAlerting Feature = "acm-alerting"
+)
 
 func (pluginConfig *PluginConfig) MarshalJSON() ([]byte, error) {
 	type Alias PluginConfig
@@ -46,6 +57,41 @@ func (pluginConfig *PluginConfig) MarshalJSON() ([]byte, error) {
 }
 
 func Start(cfg *Config) {
+	acmMode := cfg.Features[AcmAlerting]
+	acmLocationsLength := len(cfg.AlertmanagerUrl) + len(cfg.ThanosQuerierUrl)
+
+	if acmLocationsLength > 0 && !acmMode {
+		log.Panic("alertmanager and thanos-querier cannot be set without the 'acm-alerting' feature flag")
+	}
+	if acmLocationsLength == 0 && acmMode {
+		log.Panic("alertmanager and thanos-querier must be set to use the 'acm-alerting' feature flag")
+	}
+
+	if cfg.Port == int(proxy.AlertmanagerPort) || cfg.Port == int(proxy.ThanosQuerierPort) {
+		log.Panic(fmt.Printf("Cannot set default port to reserved port %d", cfg.Port))
+	}
+
+	// Uncomment the following line for local development:
+	// k8sconfig, err := clientcmd.BuildConfigFromFlags("", "$HOME/.kube/config")
+
+	// Comment the following line for local development:
+	var k8sclient *dynamic.DynamicClient
+	if acmMode {
+
+		k8sconfig, err := rest.InClusterConfig()
+
+		if err != nil {
+			panic(fmt.Errorf("cannot get in cluster config: %w", err))
+		}
+
+		k8sclient, err = dynamic.NewForConfig(k8sconfig)
+		if err != nil {
+			panic(fmt.Errorf("error creating dynamicClient: %w", err))
+		}
+	} else {
+		k8sclient = nil
+	}
+
 	router, pluginConfig := setupRoutes(cfg)
 	router.Use(corsHeaderMiddleware())
 
@@ -102,11 +148,17 @@ func Start(cfg *Config) {
 	}
 
 	if tlsEnabled {
-		log.Infof("listening on https://:%d", cfg.Port)
+		log.Infof("listening on https. port: %d", cfg.Port)
+
+		if acmMode {
+			startProxy(cfg, k8sclient, tlsConfig, timeout, proxy.AlertManagerKind, proxy.AlertmanagerPort)
+			startProxy(cfg, k8sclient, tlsConfig, timeout, proxy.ThanosQuerierKind, proxy.ThanosQuerierPort)
+		}
+
 		logrus.SetLevel(logrusLevel)
 		panic(httpServer.ListenAndServeTLS(cfg.CertFile, cfg.PrivateKeyFile))
 	} else {
-		log.Infof("listening on http://:%d", cfg.Port)
+		log.Infof("listening on http. port: %d", cfg.Port)
 		logrus.SetLevel(logrusLevel)
 		panic(httpServer.ListenAndServe())
 	}
@@ -118,12 +170,34 @@ func setupRoutes(cfg *Config) (*mux.Router, *PluginConfig) {
 	router := mux.NewRouter()
 
 	router.PathPrefix("/health").HandlerFunc(healthHandler())
+
 	router.Path("/plugin-manifest.json").Handler(manifestHandler(cfg))
+
 	router.PathPrefix("/features").HandlerFunc(featuresHandler(cfg))
 	router.PathPrefix("/config").HandlerFunc(configHandlerFunc)
 	router.PathPrefix("/").Handler(filesHandler(http.Dir(cfg.StaticPath)))
 
 	return router, pluginConfig
+}
+
+func setupProxyRoutes(cfg *Config, k8sclient *dynamic.DynamicClient, kind proxy.KindType) *mux.Router {
+	router := mux.NewRouter()
+	var proxyUrl string
+	switch kind {
+	case proxy.AlertManagerKind:
+		proxyUrl = cfg.AlertmanagerUrl
+	case proxy.ThanosQuerierKind:
+		proxyUrl = cfg.ThanosQuerierUrl
+	}
+
+	router.PathPrefix("/").Handler(proxy.NewProxyHandler(
+		k8sclient,
+		cfg.CertFile,
+		kind,
+		proxyUrl,
+	))
+
+	return router
 }
 
 func filesHandler(root http.FileSystem) http.Handler {
@@ -207,4 +281,21 @@ func configHandler(cfg *Config) (http.HandlerFunc, *PluginConfig) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(jsonPluginConfig)
 	}), &pluginConfig
+}
+
+func startProxy(cfg *Config, k8sclient *dynamic.DynamicClient, tlsConfig *tls.Config, timeout time.Duration, kind proxy.KindType, port proxy.ProxyPort) {
+	log.Infof("%s proxy listening on https. port %d", kind, port)
+	proxyRouter := setupProxyRoutes(cfg, k8sclient, kind)
+	proxyRouter.Use(corsHeaderMiddleware())
+	proxyServer := &http.Server{
+		Handler:      proxyRouter,
+		Addr:         fmt.Sprintf(":%d", port),
+		TLSConfig:    tlsConfig,
+		ReadTimeout:  timeout,
+		WriteTimeout: timeout,
+	}
+
+	go func() {
+		panic(proxyServer.ListenAndServeTLS(cfg.CertFile, cfg.PrivateKeyFile))
+	}()
 }

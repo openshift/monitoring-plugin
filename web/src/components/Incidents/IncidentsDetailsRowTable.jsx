@@ -9,8 +9,8 @@ import { BellIcon, ExclamationCircleIcon, InfoCircleIcon } from '@patternfly/rea
 import ExclamationTriangleIcon from '@patternfly/react-icons/dist/esm/icons/exclamation-triangle-icon';
 import { Bullseye, Icon, Spinner } from '@patternfly/react-core';
 import { Link } from 'react-router-dom';
-import { AlertResource, alertURL, getAlertsAndRules } from '../utils';
-import { MonitoringResourceIcon, ruleURL } from '../alerting/AlertUtils';
+import { AlertResource, getAlertsAndRules } from '../utils';
+import { MonitoringResourceIcon } from '../alerting/AlertUtils';
 import { formatDateInExpandedDetails } from './utils';
 import { isAlertingRulesSource } from '../console/extensions/alerts';
 import { getPrometheusURL } from '../console/graphs/helpers';
@@ -18,9 +18,15 @@ import { fetchAlerts } from '../fetch-alerts';
 import KebabDropdown from '../kebab-dropdown';
 import { DropdownItem as DropdownItemDeprecated } from '@patternfly/react-core/deprecated';
 import { useTranslation } from 'react-i18next';
-import { newSilenceAlertURL } from '../alerting/SilencesUtils';
+import {
+  getAlertUrl,
+  getNewSilenceAlertUrl,
+  getRuleUrl,
+  usePerspective,
+} from '../hooks/usePerspective';
 
 const IncidentsDetailsRowTable = ({ alerts, namespace }) => {
+  const { perspective } = usePerspective();
   const [alertsWithMatchedData, setAlertsWithMatchedData] = React.useState([]);
   const [customExtensions] = useResolvedExtensions(isAlertingRulesSource);
   const { t } = useTranslation('plugin__monitoring-plugin');
@@ -63,6 +69,7 @@ const IncidentsDetailsRowTable = ({ alerts, namespace }) => {
         });
     };
     poller();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [alerts]);
 
   return (
@@ -88,7 +95,7 @@ const IncidentsDetailsRowTable = ({ alerts, namespace }) => {
               <Tr key={rowIndex}>
                 <Td dataLabel="expanded-details-alertname">
                   <MonitoringResourceIcon resource={AlertResource} />
-                  <Link to={alertURL(alertDetails, alertDetails.rule.id)}>
+                  <Link to={getAlertUrl(perspective, alertDetails, alertDetails.rule.id)}>
                     {alertDetails.alertname}
                   </Link>
                 </Td>
@@ -141,7 +148,7 @@ const IncidentsDetailsRowTable = ({ alerts, namespace }) => {
                     dropdownItems={[
                       <DropdownItemDeprecated component="button" key="silence">
                         <Link
-                          to={newSilenceAlertURL(alertDetails)}
+                          to={getNewSilenceAlertUrl(perspective, alertDetails)}
                           style={{ color: 'inherit', textDecoration: 'inherit' }}
                         >
                           {t('Silence alert')}
@@ -149,7 +156,7 @@ const IncidentsDetailsRowTable = ({ alerts, namespace }) => {
                       </DropdownItemDeprecated>,
                       <DropdownItemDeprecated key="view-rule">
                         <Link
-                          to={ruleURL(alertDetails.rule)}
+                          to={getRuleUrl(perspective, alertDetails.rule)}
                           style={{ color: 'inherit', textDecoration: 'inherit' }}
                         >
                           {t('View alerting rule')}

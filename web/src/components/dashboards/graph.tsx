@@ -5,8 +5,9 @@ import { CustomDataSource } from '../console/extensions/dashboard-data-source';
 
 import { dashboardsSetEndTime, dashboardsSetTimespan, Perspective } from '../../actions/observe';
 import { FormatSeriesTitle, QueryBrowser } from '../query-browser';
-import { RootState } from '../types';
 import { DEFAULT_GRAPH_SAMPLES } from './monitoring-dashboard-utils';
+import { MonitoringState } from '../../reducers/observe';
+import { getObserveState } from '../hooks/usePerspective';
 
 type Props = {
   customDataSource?: CustomDataSource;
@@ -36,11 +37,11 @@ const Graph: React.FC<Props> = ({
   onDataChange,
 }) => {
   const dispatch = useDispatch();
-  const endTime = useSelector(({ observe }: RootState) =>
-    observe.getIn(['dashboards', perspective, 'endTime']),
+  const endTime = useSelector((state: MonitoringState) =>
+    getObserveState(perspective, state)?.getIn(['dashboards', perspective, 'endTime']),
   );
-  const timespan = useSelector(({ observe }: RootState) =>
-    observe.getIn(['dashboards', perspective, 'timespan']),
+  const timespan = useSelector((state: MonitoringState) =>
+    getObserveState(perspective, state)?.getIn(['dashboards', perspective, 'timespan']),
   );
 
   const onZoom = React.useCallback(

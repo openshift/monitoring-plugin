@@ -56,8 +56,6 @@ import {
   Perspective,
   queryBrowserDeleteAllQueries,
 } from '../../actions/observe';
-import IntervalDropdown from '../poll-interval-dropdown';
-import { RootState } from '../types';
 import BarChart from './bar-chart';
 import Graph from './graph';
 import SingleStat from './single-stat';
@@ -74,8 +72,15 @@ import { useIsVisible } from '../hooks/useIsVisible';
 import { useFetchDashboards } from './useFetchDashboards';
 import { DEFAULT_GRAPH_SAMPLES, getAllVariables } from './monitoring-dashboard-utils';
 import { getTimeRanges, isTimeoutError, QUERY_CHUNK_SIZE } from '../utils';
-import { usePerspective } from '../hooks/usePerspective';
+import {
+  getDeashboardsUrl,
+  getMutlipleQueryBrowserUrl,
+  getObserveState,
+  usePerspective,
+} from '../hooks/usePerspective';
 import KebabDropdown from '../kebab-dropdown';
+import { MonitoringState } from '../../reducers/observe';
+import { DropDownPollInterval } from '../dropdown-poll-interval';
 
 const intervalVariableRegExps = ['__interval', '__rate_interval', '__auto_interval_[a-z]+'];
 
@@ -136,7 +141,7 @@ const FilterSelect: React.FC<FilterSelectProps> = ({
   OptionComponent,
   selectedKey,
 }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const [isOpen, , open, close] = useBoolean(false);
   const [filterText, setFilterText] = React.useState<string>();
@@ -214,14 +219,14 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({
   namespace,
   perspective,
 }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
-  const timespan = useSelector(({ observe }: RootState) =>
-    observe.getIn(['dashboards', perspective, 'timespan']),
+  const timespan = useSelector((state: MonitoringState) =>
+    getObserveState(perspective, state)?.getIn(['dashboards', perspective, 'timespan']),
   );
 
-  const variables = useSelector(({ observe }: RootState) =>
-    observe.getIn(['dashboards', perspective, 'variables']),
+  const variables = useSelector((state: MonitoringState) =>
+    getObserveState(perspective, state)?.getIn(['dashboards', perspective, 'variables']),
   );
   const variable = variables.toJS()[name];
   const query = evaluateTemplate(variable.query, variables, timespan);
@@ -241,7 +246,7 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({
     async (prometheusProps) => {
       try {
         if (!customDataSourceName) {
-          return getPrometheusURL(prometheusProps);
+          return getPrometheusURL(prometheusProps, perspective);
         } else if (extensionsResolved && hasExtensions) {
           const extension = extensions.find(
             (ext) => ext?.properties?.contextId === 'monitoring-dashboards',
@@ -253,7 +258,7 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({
             setIsError(true);
             return;
           }
-          return getPrometheusURL(prometheusProps, dataSource?.basePath);
+          return getPrometheusURL(prometheusProps, perspective, dataSource?.basePath);
         }
       } catch (error) {
         // eslint-disable-next-line no-console
@@ -261,7 +266,7 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({
         setIsError(true);
       }
     },
-    [customDataSourceName, extensions, extensionsResolved, hasExtensions],
+    [customDataSourceName, extensions, extensionsResolved, hasExtensions, perspective],
   );
 
   React.useEffect(() => {
@@ -404,8 +409,8 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({
 
 const AllVariableDropdowns: React.FC<{ perspective: Perspective }> = ({ perspective }) => {
   const namespace = React.useContext(NamespaceContext);
-  const variables = useSelector(({ observe }: RootState) =>
-    observe.getIn(['dashboards', perspective, 'variables']),
+  const variables = useSelector((state: MonitoringState) =>
+    getObserveState(perspective, state)?.getIn(['dashboards', perspective, 'variables']),
   );
 
   return (
@@ -434,7 +439,7 @@ const Tag: React.FC<{ color: TagColor; text: string }> = React.memo(({ color, te
 
 const DashboardDropdown: React.FC<DashboardDropdownProps> = React.memo(
   ({ items, onChange, selectedKey }) => {
-    const { t } = useTranslation('plugin__monitoring-plugin');
+    const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
     const allTags = _.flatMap(items, 'tags');
     const uniqueTags = _.uniq(allTags);
@@ -480,13 +485,8 @@ const DashboardDropdown: React.FC<DashboardDropdownProps> = React.memo(
 );
 
 export const PollIntervalDropdown: React.FC = () => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
-
-  const refreshIntervalFromParams = getQueryArgument('refreshInterval');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
-  const interval = useSelector(({ observe }: RootState) =>
-    observe.getIn(['dashboards', perspective, 'pollInterval']),
-  );
 
   const dispatch = useDispatch();
   const setInterval = React.useCallback(
@@ -506,11 +506,7 @@ export const PollIntervalDropdown: React.FC = () => {
       <label htmlFor="refresh-interval-dropdown" className="monitoring-dashboards__dropdown-title">
         {t('Refresh interval')}
       </label>
-      <IntervalDropdown
-        id="refresh-interval-dropdown"
-        interval={_.toNumber(refreshIntervalFromParams) || interval}
-        setInterval={setInterval}
-      />
+      <DropDownPollInterval id="refresh-interval-dropdown" setInterval={setInterval} />
     </div>
   );
 };
@@ -525,7 +521,7 @@ const TimeDropdowns: React.FC = React.memo(() => {
 });
 
 const HeaderTop: React.FC = React.memo(() => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
     <div className="monitoring-dashboards__header">
@@ -544,7 +540,8 @@ const QueryBrowserLink = ({
   queries: Array<string>;
   customDataSourceName: string;
 }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const { perspective } = usePerspective();
 
   const params = new URLSearchParams();
   queries.forEach((q, i) => params.set(`query${i}`, q));
@@ -555,14 +552,7 @@ const QueryBrowserLink = ({
   }
 
   return (
-    <Link
-      aria-label={t('Inspect')}
-      to={
-        namespace
-          ? `/dev-monitoring/ns/${namespace}/metrics?${params.toString()}`
-          : `/monitoring/query-browser?${params.toString()}`
-      }
-    >
+    <Link aria-label={t('Inspect')} to={getMutlipleQueryBrowserUrl(perspective, params, namespace)}>
       {t('Inspect')}
     </Link>
   );
@@ -600,17 +590,17 @@ const getPanelClassModifier = (panel: Panel): string => {
 };
 
 const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const namespace = React.useContext(NamespaceContext);
-  const pollInterval = useSelector(({ observe }: RootState) =>
-    observe.getIn(['dashboards', perspective, 'pollInterval']),
+  const pollInterval = useSelector((state: MonitoringState) =>
+    getObserveState(perspective, state)?.getIn(['dashboards', perspective, 'pollInterval']),
   );
-  const timespan = useSelector(({ observe }: RootState) =>
-    observe.getIn(['dashboards', perspective, 'timespan']),
+  const timespan = useSelector((state: MonitoringState) =>
+    getObserveState(perspective, state)?.getIn(['dashboards', perspective, 'timespan']),
   );
-  const variables = useSelector(({ observe }: RootState) =>
-    observe.getIn(['dashboards', perspective, 'variables']),
+  const variables = useSelector((state: MonitoringState) =>
+    getObserveState(perspective, state)?.getIn(['dashboards', perspective, 'variables']),
   );
 
   const ref = React.useRef();
@@ -907,7 +897,7 @@ const Board: React.FC<BoardProps> = ({ rows, perspective }) => (
 type MonitoringDashboardsPageProps = RouteComponentProps<{ board: string; ns?: string }>;
 
 const MonitoringDashboardsPage_: React.FC<MonitoringDashboardsPageProps> = ({ history, match }) => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const dispatch = useDispatch();
   const namespace = match.params?.ns;
@@ -941,9 +931,7 @@ const MonitoringDashboardsPage_: React.FC<MonitoringDashboardsPageProps> = ({ hi
     (newBoard: string) => {
       let timeSpan: string;
       let endTime: string;
-      let url = namespace
-        ? `/dev-monitoring/ns/${namespace}?dashboard=${newBoard}`
-        : `/monitoring/dashboards/${newBoard}`;
+      let url = getDeashboardsUrl(perspective, newBoard, namespace);
 
       const refreshInterval = getQueryArgument('refreshInterval');
 

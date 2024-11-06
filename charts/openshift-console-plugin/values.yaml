@@ -29,3 +29,35 @@ plugin:
     create: true
     annotations: {}
     name: ""
+  acm:
+    name: monitoring-console-plugin
+    enabled: false
+    alertmanager:
+      url: https://alertmanager.open-cluster-management-observability.svc:9095
+      pluginPort: 9444
+    thanos:
+      url: https://rbac-query-proxy.open-cluster-management-observability.svc:8443
+      pluginPort: 9445
+  patcherServiceAccount:
+    create: true
+    annotations: {}
+    name: "monitoring-console-plugin-patcher"
+  jobs:
+    patchConsoles:
+      enabled: true
+      image: "registry.redhat.io/openshift4/ose-tools-rhel8@sha256:e44074f21e0cca6464e50cb6ff934747e0bd11162ea01d522433a1a1ae116103"
+      podSecurityContext:
+        enabled: true
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containerSecurityContext:
+        enabled: true
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+            - ALL
+      resources:
+        requests:
+          cpu: 10m
+          memory: 50Mi
