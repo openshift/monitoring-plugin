@@ -30,9 +30,12 @@ import {
   Dropdown as DropdownDeprecated,
 } from '@patternfly/react-core/deprecated';
 import { CompressArrowsAltIcon, CompressIcon } from '@patternfly/react-icons';
+import { useDispatch, useSelector } from 'react-redux';
+import { setIncidentsNavFilters } from '../../actions/observe';
 
 const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
+  const dispatch = useDispatch();
   // loading states
   const [incidentsAreLoading, setIncidentsAreLoading] = React.useState(true);
   const [alertsAreLoading, setAlertsAreLoading] = React.useState(true);
@@ -64,10 +67,22 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
   const onIncidentFilterToggle = (isExpanded) => {
     setIncidentIsExpanded(isExpanded);
   };
-
+/*   dispatch(
+    setIncidentsNavFilters({
+      incidentsFilters: {
+        days: ['7 days'],
+        incidentType: [],
+      },
+    }),
+  ); */
   const onIncidentTypeSelect = (event, selection) => {
     onSelect('incidentType', event, selection);
   };
+
+  const incidentsFiltersState = useSelector((state) =>
+    state.plugins.monitoring.getIn(['incidentsData', 'incidentsFilters']),
+  );
+  console.log(incidentsFiltersState, 'incidentsData');
 
   const onSelect = (type, event, selection) => {
     const checked = event.target.checked;
@@ -152,6 +167,7 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
           const aggregatedData = results.reduce((acc, result) => acc.concat(result), []);
           setIncidentsData(processIncidents(aggregatedData));
           setFilteredData(filterIncident(filters, processIncidents(aggregatedData)));
+
           setIncidentsAreLoading(false);
         })
         .catch((err) => {

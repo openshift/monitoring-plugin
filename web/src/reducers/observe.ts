@@ -81,6 +81,13 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
         queries: ImmutableList([newQueryBrowserQuery()]),
         timespan: MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
       }),
+      incidentsData: ImmutableMap({
+        incidents: [],
+        incidentsFilters: {
+          days: ['7 days'],
+          incidentType: [],
+        },
+      }),
     });
   }
 
@@ -283,6 +290,10 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
 
     case ActionType.SetAlertCount:
       return state.set('alertCount', action.payload.alertCount);
+
+    case ActionType.SetIncidentsNavFilters: {
+      return state.setIn(['incidentsData', 'incidentsFilters'], action.payload.incidentsFilters);
+    }
 
     default:
       break;
