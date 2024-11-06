@@ -18,7 +18,8 @@
         "/monitoring/graph",
         "/monitoring/query-browser",
         "/monitoring/silences",
-        "/monitoring/targets"
+        "/monitoring/targets",
+        "/monitoring/incidents"
       ],
       "component": { "$codeRef": "MonitoringUI" }
     }
@@ -34,7 +35,7 @@
       "href": "/monitoring/alerts",
       "perspective": "admin",
       "section": "observe",
-      "startsWith": ["monitoring/alertrules", "monitoring/silences"]
+      "startsWith": ["monitoring/alertrules", "monitoring/silences", "monitoring/incidents"]
     }
   },
   {
