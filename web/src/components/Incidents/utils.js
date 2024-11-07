@@ -2,7 +2,7 @@
 import global_danger_color_100 from '@patternfly/react-tokens/dist/esm/global_danger_color_100';
 import global_info_color_100 from '@patternfly/react-tokens/dist/esm/global_info_color_100';
 import global_warning_color_100 from '@patternfly/react-tokens/dist/esm/global_warning_color_100';
-import { setIncidentsNavFilters } from '../../actions/observe';
+import { setIncidentsActiveFilters } from '../../actions/observe';
 
 function groupTimestamps(data) {
   if (data.length === 0) return [];
@@ -238,23 +238,29 @@ export function formatDateInExpandedDetails(date) {
 export const onDeleteIncidentFilterChip = (type, id, filters, setFilters) => {
   if (type === 'Incident type') {
     setFilters(
-      setIncidentsNavFilters({
-        incidentType: filters.incidentType.filter((fil) => fil !== id),
-        days: filters.days,
+      setIncidentsActiveFilters({
+        incidentsActiveFilters: {
+          incidentType: filters.incidentType.filter((fil) => fil !== id),
+          days: filters.days,
+        },
       }),
     );
   } else if (type === 'Days') {
     setFilters(
-      setIncidentsNavFilters({
-        incidentType: filters.incidentType,
-        days: filters.days.filter((fil) => fil !== id),
+      setIncidentsActiveFilters({
+        incidentsActiveFilters: {
+          incidentType: filters.incidentType,
+          days: filters.days.filter((fil) => fil !== id),
+        },
       }),
     );
   } else {
     setFilters(
-      setIncidentsNavFilters({
-        incidentType: [],
-        days: ['7 days'],
+      setIncidentsActiveFilters({
+        incidentsActiveFilters: {
+          incidentType: [],
+          days: ['7 days'],
+        },
       }),
     );
   }
@@ -263,17 +269,78 @@ export const onDeleteIncidentFilterChip = (type, id, filters, setFilters) => {
 export const onDeleteGroupIncidentFilterChip = (type, filters, setFilters) => {
   if (type === 'Incident type') {
     setFilters(
-      setIncidentsNavFilters({
-        incidentType: [],
-        days: filters.days,
+      setIncidentsActiveFilters({
+        incidentsActiveFilters: {
+          incidentType: [],
+          days: filters.days,
+        },
       }),
     );
   } else if (type === 'Days') {
     setFilters(
-      setIncidentsNavFilters({
-        incidentType: filters.incidentType,
-        days: [],
+      setIncidentsActiveFilters({
+        incidentsActiveFilters: {
+          incidentType: filters.incidentType,
+          days: [],
+        },
       }),
     );
   }
+};
+
+export const makeIncidentUrlParams = (params) => {
+  const processedParams = Object.entries(params).reduce((acc, [key, value]) => {
+    if (Array.isArray(value)) {
+      if (value.length > 0) {
+        acc[key] = value.join(',');
+      }
+    } else {
+      acc[key] = value;
+    }
+    return acc;
+  }, {});
+
+  return new URLSearchParams(processedParams).toString();
+};
+
+export const updateBrowserUrl = (params) => {
+  const queryString = makeIncidentUrlParams(params);
+
+  // Construct the new URL with the query string
+  const newUrl = `${window.location.origin}${window.location.pathname}?${queryString}`;
+
+  window.history.replaceState(null, '', newUrl);
+};
+
+export const changeDaysFilter = (days, dispatch, filters) => {
+  dispatch(
+    setIncidentsActiveFilters({
+      incidentsActiveFilters: { days: [days], incidentType: filters.incidentType },
+    }),
+  );
+};
+
+export const onIncidentTypeSelect = (event, selection, dispatch, incidentsActiveFilters) => {
+  onSelect('incidentType', event, selection, dispatch, incidentsActiveFilters);
+};
+
+const onSelect = (type, event, selection, dispatch, incidentsActiveFilters) => {
+  const checked = event.target.checked;
+
+  dispatch((dispatch) => {
+    const prevSelections = incidentsActiveFilters[type] || [];
+
+    const updatedSelections = checked
+      ? [...prevSelections, selection]
+      : prevSelections.filter((value) => value !== selection);
+
+    dispatch(
+      setIncidentsActiveFilters({
+        incidentsActiveFilters: {
+          ...incidentsActiveFilters,
+          [type]: updatedSelections,
+        },
+      }),
+    );
+  });
 };

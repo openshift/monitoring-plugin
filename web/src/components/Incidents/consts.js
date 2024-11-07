@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { SelectOption } from '@patternfly/react-core';
 import { DropdownItem as DropdownItemDeprecated } from '@patternfly/react-core/deprecated';
+import { changeDaysFilter } from './utils';
 
 export const incidentTypeMenuItems = (filters) => [
   <SelectOption
@@ -30,32 +31,32 @@ export const daysMenuItems = (filters) => [
   <SelectOption key="15-day-filter" value="15 days" isSelected={filters.days.includes('15d')} />,
 ];
 
-export const dropdownItems = (changeDaysFilter, t) => [
+export const dropdownItems = (t, dispatch, incidentsActiveFilters) => [
   <DropdownItemDeprecated
     key="1-day-filter"
     component="button"
-    onClick={() => changeDaysFilter('1 day')}
+    onClick={() => changeDaysFilter('1 day', dispatch, incidentsActiveFilters)}
   >
     {t('1 day')}
   </DropdownItemDeprecated>,
   <DropdownItemDeprecated
     key="3-day-filter"
     component="button"
-    onClick={() => changeDaysFilter('3 days')}
+    onClick={() => changeDaysFilter('3 days', dispatch, incidentsActiveFilters)}
   >
     {t('3 days')}
   </DropdownItemDeprecated>,
   <DropdownItemDeprecated
     key="7-day-filter"
     component="button"
-    onClick={() => changeDaysFilter('7 days')}
+    onClick={() => changeDaysFilter('7 days', dispatch, incidentsActiveFilters)}
   >
     {t('7 days')}
   </DropdownItemDeprecated>,
   <DropdownItemDeprecated
     key="15-day-filter"
     component="button"
-    onClick={() => changeDaysFilter('15 days')}
+    onClick={() => changeDaysFilter('15 days', dispatch, incidentsActiveFilters)}
   >
     {t('15 days')}
   </DropdownItemDeprecated>,
