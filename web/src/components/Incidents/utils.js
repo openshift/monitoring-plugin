@@ -344,3 +344,19 @@ const onSelect = (type, event, selection, dispatch, incidentsActiveFilters) => {
     );
   });
 };
+
+export const parseUrlParams = (search) => {
+  const params = new URLSearchParams(search);
+  const result = {};
+  const arrayKeys = ['days', 'incidentType'];
+
+  params.forEach((value, key) => {
+    if (arrayKeys.includes(key)) {
+      result[key] = value.includes(',') ? value.split(',') : [value];
+    } else {
+      result[key] = value;
+    }
+  });
+
+  return result;
+};

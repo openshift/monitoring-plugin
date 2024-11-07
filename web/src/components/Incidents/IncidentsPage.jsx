@@ -20,11 +20,11 @@ import { dropdownItems, incidentTypeMenuItems } from './consts';
 import { IncidentsTable } from './IncidentsTable';
 import { getIncidentsTimeRanges, processIncidents } from './processIncidents';
 import {
-  changeDaysFilter,
   filterIncident,
   onDeleteGroupIncidentFilterChip,
   onDeleteIncidentFilterChip,
   onIncidentTypeSelect,
+  parseUrlParams,
   updateBrowserUrl,
 } from './utils';
 import { groupAlertsForTable, processAlerts } from './processAlerts';
@@ -35,11 +35,13 @@ import {
 import { CompressArrowsAltIcon, CompressIcon } from '@patternfly/react-icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { setIncidentsActiveFilters } from '../../actions/observe';
-import * as _ from 'lodash-es';
+import { useLocation } from 'react-router-dom';
 
 const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
   const dispatch = useDispatch();
+  const location = useLocation();
+  const urlParams = parseUrlParams(location.search);
   // loading states
   const [incidentsAreLoading, setIncidentsAreLoading] = React.useState(true);
   const [alertsAreLoading, setAlertsAreLoading] = React.useState(true);
@@ -77,15 +79,31 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
   );
 
   React.useEffect(() => {
-    updateBrowserUrl(incidentsInitialState);
-    dispatch(
-      setIncidentsActiveFilters({
-        incidentsActiveFilters: {
-          ...incidentsInitialState,
-        },
-      }),
-    );
+    const hasUrlParams = Object.keys(urlParams).length > 0;
+
+    if (hasUrlParams) {
+      // If URL parameters exist, update incidentsActiveFilters based on them
+      dispatch(
+        setIncidentsActiveFilters({
+          incidentsActiveFilters: {
+            ...incidentsInitialState,
+            ...urlParams,
+          },
+        }),
+      );
+    } else {
+      // If no URL parameters exist, set the URL based on incidentsInitialState
+      updateBrowserUrl(incidentsInitialState);
+      dispatch(
+        setIncidentsActiveFilters({
+          incidentsActiveFilters: {
+            ...incidentsInitialState,
+          },
+        }),
+      );
+    }
   }, []);
+
   React.useEffect(() => {
     updateBrowserUrl(incidentsActiveFilters);
   }, [incidentsActiveFilters]);
@@ -155,7 +173,12 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
         .then((results) => {
           const aggregatedData = results.reduce((acc, result) => acc.concat(result), []);
           setIncidentsData(processIncidents(aggregatedData));
-          setFilteredData(filterIncident(incidentsInitialState, processIncidents(aggregatedData)));
+          setFilteredData(
+            filterIncident(
+              urlParams ? incidentsActiveFilters : incidentsInitialState,
+              processIncidents(aggregatedData),
+            ),
+          );
 
           setIncidentsAreLoading(false);
         })
