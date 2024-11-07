@@ -30,9 +30,12 @@ import {
   Dropdown as DropdownDeprecated,
 } from '@patternfly/react-core/deprecated';
 import { CompressArrowsAltIcon, CompressIcon } from '@patternfly/react-icons';
+import { useDispatch, useSelector } from 'react-redux';
+import { setIncidentsNavFilters } from '../../actions/observe';
 
 const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
+  const dispatch = useDispatch();
   // loading states
   const [incidentsAreLoading, setIncidentsAreLoading] = React.useState(true);
   const [alertsAreLoading, setAlertsAreLoading] = React.useState(true);
@@ -52,10 +55,6 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
   const [filteredData, setFilteredData] = React.useState([]);
   // data that is used for processing to serve it to the alerts table and chart
   const [incidentForAlertProcessing, setIncidentForAlertProcessing] = React.useState([]);
-  const [filters, setFilters] = React.useState({
-    days: ['7 days'],
-    incidentType: [],
-  });
   const [hideCharts, setHideCharts] = React.useState(false);
 
   const [incidentFilterIsExpanded, setIncidentIsExpanded] = React.useState(false);
@@ -64,6 +63,9 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
   const onIncidentFilterToggle = (isExpanded) => {
     setIncidentIsExpanded(isExpanded);
   };
+  const incidentsFiltersState = useSelector((state) =>
+    state.plugins.monitoring.getIn(['incidentsData', 'incidentsFilters']),
+  );
 
   const onIncidentTypeSelect = (event, selection) => {
     onSelect('incidentType', event, selection);
@@ -71,23 +73,35 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
 
   const onSelect = (type, event, selection) => {
     const checked = event.target.checked;
-    setFilters((prev) => {
-      const prevSelections = prev[type];
-      return {
-        ...prev,
-        [type]: checked
-          ? [...prevSelections, selection]
-          : prevSelections.filter((value) => value !== selection),
-      };
+
+    dispatch((dispatch) => {
+      const prevSelections = incidentsFiltersState[type] || [];
+
+      const updatedSelections = checked
+        ? [...prevSelections, selection]
+        : prevSelections.filter((value) => value !== selection);
+
+      dispatch(
+        setIncidentsNavFilters({
+          incidentsFilters: {
+            ...incidentsFiltersState,
+            [type]: updatedSelections,
+          },
+        }),
+      );
     });
   };
 
   React.useEffect(() => {
-    setFilteredData(filterIncident(filters, incidentsData));
-  }, [filters.incidentType]);
+    setFilteredData(filterIncident(incidentsFiltersState, incidentsData));
+  }, [incidentsFiltersState.incidentType]);
 
   const changeDaysFilter = (days) => {
-    setFilters({ days: [days], incidentType: filters.incidentType });
+    dispatch(
+      setIncidentsNavFilters({
+        incidentsFilters: { days: [days], incidentType: incidentsFiltersState.incidentType },
+      }),
+    );
   };
 
   const now = Date.now();
@@ -96,14 +110,14 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
   const title = t('Incidents');
 
   React.useEffect(() => {
-    setFilters({ days: ['7 days'], incidentType: filters.incidentType });
-  }, []);
-
-  React.useEffect(() => {
     setDaysSpan(
-      parsePrometheusDuration(filters.days.length > 0 ? filters.days[0].split(' ')[0] + 'd' : ''),
+      parsePrometheusDuration(
+        incidentsFiltersState.days.length > 0
+          ? incidentsFiltersState.days[0].split(' ')[0] + 'd'
+          : '',
+      ),
     );
-  }, [filters.days]);
+  }, [incidentsFiltersState.days]);
 
   React.useEffect(() => {
     (async () => {
@@ -151,7 +165,8 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
         .then((results) => {
           const aggregatedData = results.reduce((acc, result) => acc.concat(result), []);
           setIncidentsData(processIncidents(aggregatedData));
-          setFilteredData(filterIncident(filters, processIncidents(aggregatedData)));
+          setFilteredData(filterIncident(incidentsFiltersState, processIncidents(aggregatedData)));
+
           setIncidentsAreLoading(false);
         })
         .catch((err) => {
@@ -201,17 +216,19 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
             id="toolbar-with-filter"
             className="pf-m-toggle-group-container"
             collapseListedFiltersBreakpoint="xl"
-            clearAllFilters={() => onDeleteIncidentFilterChip('', '', filters, setFilters)}
+            clearAllFilters={() =>
+              onDeleteIncidentFilterChip('', '', incidentsFiltersState, dispatch)
+            }
           >
             <ToolbarContent>
               <ToolbarItem>
                 <ToolbarFilter
-                  chips={filters.incidentType}
+                  chips={incidentsFiltersState.incidentType}
                   deleteChip={(category, chip) =>
-                    onDeleteIncidentFilterChip(category, chip, filters, setFilters)
+                    onDeleteIncidentFilterChip(category, chip, incidentsFiltersState, dispatch)
                   }
                   deleteChipGroup={(category) =>
-                    onDeleteGroupIncidentFilterChip(category, filters, setFilters)
+                    onDeleteGroupIncidentFilterChip(category, incidentsFiltersState, dispatch)
                   }
                   categoryName="Incident type"
                 >
@@ -220,14 +237,14 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
                     aria-label="Incident type"
                     onToggle={onIncidentFilterToggle}
                     onSelect={onIncidentTypeSelect}
-                    selections={filters.incidentType}
+                    selections={incidentsFiltersState.incidentType}
                     isOpen={incidentFilterIsExpanded}
                     placeholderText="Incident type"
                     style={{
                       width: '350px',
                     }}
                   >
-                    {incidentTypeMenuItems(filters)}
+                    {incidentTypeMenuItems(incidentsFiltersState)}
                   </Select>
                 </ToolbarFilter>
               </ToolbarItem>
@@ -241,7 +258,7 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
                       id="incidents-page-days-filter-toggle"
                       onToggle={setDaysFilterIsExpanded}
                     >
-                      {filters.days[0]}
+                      {incidentsFiltersState.days[0]}
                     </DropdownToggleDeprecated>
                   }
                 />

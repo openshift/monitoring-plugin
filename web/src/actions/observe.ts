@@ -29,6 +29,7 @@ export enum ActionType {
   QueryBrowserToggleAllSeries = 'queryBrowserToggleAllSeries',
   SetAlertCount = 'SetAlertCount',
   ToggleGraphs = 'toggleGraphs',
+  SetIncidentsNavFilters = 'setIncidentsNavFilters',
 }
 
 export type Perspective = 'admin' | 'dev' | 'acm';
@@ -128,6 +129,9 @@ export const queryBrowserToggleSeries = (index: number, labels: { [key: string]:
 
 export const setAlertCount = (alertCount) => action(ActionType.SetAlertCount, { alertCount });
 
+export const setIncidentsNavFilters = (incidentsFilters) =>
+  action(ActionType.SetIncidentsNavFilters, incidentsFilters);
+
 const actions = {
   alertingErrored,
   alertingLoaded,
@@ -157,6 +161,7 @@ const actions = {
   queryBrowserToggleSeries,
   setAlertCount,
   toggleGraphs,
+  setIncidentsNavFilters,
 };
 
 export type ObserveAction = Action<typeof actions>;

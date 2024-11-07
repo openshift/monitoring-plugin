@@ -2,7 +2,7 @@
 import global_danger_color_100 from '@patternfly/react-tokens/dist/esm/global_danger_color_100';
 import global_info_color_100 from '@patternfly/react-tokens/dist/esm/global_info_color_100';
 import global_warning_color_100 from '@patternfly/react-tokens/dist/esm/global_warning_color_100';
-import { parsePrometheusDuration } from '../console/utils/datetime';
+import { setIncidentsNavFilters } from '../../actions/observe';
 
 function groupTimestamps(data) {
   if (data.length === 0) return [];
@@ -237,33 +237,43 @@ export function formatDateInExpandedDetails(date) {
 
 export const onDeleteIncidentFilterChip = (type, id, filters, setFilters) => {
   if (type === 'Incident type') {
-    setFilters({
-      incidentType: filters.incidentType.filter((fil) => fil !== id),
-      days: filters.days,
-    });
+    setFilters(
+      setIncidentsNavFilters({
+        incidentType: filters.incidentType.filter((fil) => fil !== id),
+        days: filters.days,
+      }),
+    );
   } else if (type === 'Days') {
-    setFilters({
-      incidentType: filters.incidentType,
-      days: filters.days.filter((fil) => fil !== id),
-    });
+    setFilters(
+      setIncidentsNavFilters({
+        incidentType: filters.incidentType,
+        days: filters.days.filter((fil) => fil !== id),
+      }),
+    );
   } else {
-    setFilters({
-      incidentType: [],
-      days: ['7 days'],
-    });
+    setFilters(
+      setIncidentsNavFilters({
+        incidentType: [],
+        days: ['7 days'],
+      }),
+    );
   }
 };
 
 export const onDeleteGroupIncidentFilterChip = (type, filters, setFilters) => {
   if (type === 'Incident type') {
-    setFilters({
-      incidentType: [],
-      days: filters.days,
-    });
+    setFilters(
+      setIncidentsNavFilters({
+        incidentType: [],
+        days: filters.days,
+      }),
+    );
   } else if (type === 'Days') {
-    setFilters({
-      incidentType: filters.incidentType,
-      days: [],
-    });
+    setFilters(
+      setIncidentsNavFilters({
+        incidentType: filters.incidentType,
+        days: [],
+      }),
+    );
   }
 };
