@@ -83,8 +83,12 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
       }),
       incidentsData: ImmutableMap({
         incidents: [],
-        incidentsFilters: {
+        incidentsInitialState: {
           days: ['7 days'],
+          incidentType: [],
+        },
+        incidentsActiveFilters: {
+          days: [],
           incidentType: [],
         },
       }),
@@ -291,8 +295,11 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
     case ActionType.SetAlertCount:
       return state.set('alertCount', action.payload.alertCount);
 
-    case ActionType.SetIncidentsNavFilters: {
-      return state.setIn(['incidentsData', 'incidentsFilters'], action.payload.incidentsFilters);
+    case ActionType.SetIncidentsActiveFilters: {
+      return state.setIn(
+        ['incidentsData', 'incidentsActiveFilters'],
+        action.payload.incidentsActiveFilters,
+      );
     }
 
     default:
