@@ -55,8 +55,6 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
   // fetch incidents/alerts based on the length of time ranges
   // when days filter changes we set a new days span -> calculate new time range and fetch new data
   const [daysSpan, setDaysSpan] = React.useState();
-  // stores group id for the chosen incident. It trigger a fetch for alerts based on that incident
-  const [chooseIncident, setChooseIncident] = React.useState('');
   // data that is filtered by the incidentType filter
   const [filteredData, setFilteredData] = React.useState([]);
   // data that is used for processing to serve it to the alerts table and chart
@@ -76,6 +74,10 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
 
   const incidentsActiveFilters = useSelector((state) =>
     state.plugins.monitoring.getIn(['incidentsData', 'incidentsActiveFilters']),
+  );
+
+  const incidentGroupId = useSelector((state) =>
+    state.plugins.monitoring.getIn(['incidentsData', 'incidentGroupId']),
   );
 
   React.useEffect(() => {
@@ -197,7 +199,7 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
           range,
           namespace,
           customDataSource,
-          `cluster:health:components:map{group_id='${chooseIncident}'}`,
+          `cluster:health:components:map{group_id='${incidentGroupId}'}`,
         );
         return response.data.result;
       }),
@@ -212,7 +214,7 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
         // eslint-disable-next-line no-console
         console.log(err);
       });
-  }, [chooseIncident]);
+  }, [incidentGroupId]);
 
   return (
     <>
@@ -296,7 +298,6 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
               alertsData={alertsData}
               incidentsData={filteredData}
               chartDays={timeRanges.length}
-              onIncidentSelect={setChooseIncident}
             />
           )}
           <div className="row">

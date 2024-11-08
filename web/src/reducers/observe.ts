@@ -91,6 +91,7 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
           days: [],
           incidentType: [],
         },
+        incidentGroupId: '',
       }),
     });
   }
@@ -300,6 +301,10 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
         ['incidentsData', 'incidentsActiveFilters'],
         action.payload.incidentsActiveFilters,
       );
+    }
+
+    case ActionType.SetChooseIncident: {
+      return state.setIn(['incidentsData', 'incidentGroupId'], action.payload.incidentGroupId);
     }
 
     default:
