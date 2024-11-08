@@ -38,6 +38,7 @@ import {
   setAlertsAreLoading,
   setAlertsData,
   setAlertsTableData,
+  setIncidents,
   setIncidentsActiveFilters,
 } from '../../actions/observe';
 import { useLocation } from 'react-router-dom';
@@ -49,8 +50,6 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
   const urlParams = parseUrlParams(location.search);
   // loading states
   const [incidentsAreLoading, setIncidentsAreLoading] = React.useState(true);
-  // all incidents data without filtering
-  const [incidentsData, setIncidentsData] = React.useState([]);
   // days span is where we store the value for creating time ranges for
   // fetch incidents/alerts based on the length of time ranges
   // when days filter changes we set a new days span -> calculate new time range and fetch new data
@@ -70,6 +69,10 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
 
   const incidentsInitialState = useSelector((state) =>
     state.plugins.monitoring.getIn(['incidentsData', 'incidentsInitialState']),
+  );
+
+  const incidents = useSelector((state) =>
+    state.plugins.monitoring.getIn(['incidentsData', 'incidents']),
   );
 
   const incidentsActiveFilters = useSelector((state) =>
@@ -118,7 +121,7 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
   }, [incidentsActiveFilters]);
 
   React.useEffect(() => {
-    setFilteredData(filterIncident(incidentsActiveFilters, incidentsData));
+    setFilteredData(filterIncident(incidentsActiveFilters, incidents));
   }, [incidentsActiveFilters.incidentType]);
 
   const now = Date.now();
@@ -185,7 +188,11 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
       )
         .then((results) => {
           const aggregatedData = results.reduce((acc, result) => acc.concat(result), []);
-          setIncidentsData(processIncidents(aggregatedData));
+          dispatch(
+            setIncidents({
+              incidents: processIncidents(aggregatedData),
+            }),
+          );
           setFilteredData(
             filterIncident(
               urlParams ? incidentsActiveFilters : incidentsInitialState,
@@ -218,6 +225,7 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
       .then((results) => {
         const aggregatedData = results.reduce((acc, result) => acc.concat(result), []);
         setIncidentForAlertProcessing(processIncidents(aggregatedData));
+        dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
         setIncidentsAreLoading(false);
       })
       .catch((err) => {
@@ -312,7 +320,7 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
           )}
           <div className="row">
             <div className="col-xs-12">
-              <IncidentsTable loaded={!alertsAreLoading} namespace={namespace} />
+              <IncidentsTable namespace={namespace} />
             </div>
           </div>
         </div>

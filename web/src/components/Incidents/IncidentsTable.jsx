@@ -14,8 +14,9 @@ import { AlertStateIcon } from '../alerting/AlertUtils';
 import IncidentsDetailsRowTable from './IncidentsDetailsRowTable';
 import { SearchIcon } from '@patternfly/react-icons';
 import { useSelector } from 'react-redux';
+import * as _ from 'lodash-es';
 
-export const IncidentsTable = ({ loaded, namespace }) => {
+export const IncidentsTable = ({ namespace }) => {
   const columnNames = {
     checkbox: '',
     component: 'Component',
@@ -45,7 +46,7 @@ export const IncidentsTable = ({ loaded, namespace }) => {
               <Th width={25}>{columnNames.state}</Th>
             </Tr>
           </Thead>
-          {!loaded ? (
+          {_.isEmpty(alertsTableData) ? (
             <Tr>
               <Td colSpan={4}>
                 <EmptyState

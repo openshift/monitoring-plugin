@@ -299,6 +299,10 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
     case ActionType.SetAlertCount:
       return state.set('alertCount', action.payload.alertCount);
 
+    case ActionType.SetIncidents: {
+      return state.setIn(['incidentsData', 'incidents'], action.payload.incidents);
+    }
+
     case ActionType.SetIncidentsActiveFilters: {
       return state.setIn(
         ['incidentsData', 'incidentsActiveFilters'],

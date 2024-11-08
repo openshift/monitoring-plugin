@@ -29,6 +29,7 @@ export enum ActionType {
   QueryBrowserToggleAllSeries = 'queryBrowserToggleAllSeries',
   SetAlertCount = 'SetAlertCount',
   ToggleGraphs = 'toggleGraphs',
+  SetIncidents = 'setIncidents',
   SetIncidentsActiveFilters = 'setIncidentsActiveFilters',
   SetChooseIncident = 'setChooseIncident',
   SetAlertsData = 'setAlertsData',
@@ -133,6 +134,8 @@ export const queryBrowserToggleSeries = (index: number, labels: { [key: string]:
 
 export const setAlertCount = (alertCount) => action(ActionType.SetAlertCount, { alertCount });
 
+export const setIncidents = (incidents) => action(ActionType.SetIncidents, incidents);
+
 export const setIncidentsActiveFilters = (incidentsActiveFilters) =>
   action(ActionType.SetIncidentsActiveFilters, incidentsActiveFilters);
 
@@ -176,6 +179,7 @@ const actions = {
   queryBrowserToggleSeries,
   setAlertCount,
   toggleGraphs,
+  setIncidents,
   setIncidentsActiveFilters,
   setChooseIncident,
   setAlertsData,
