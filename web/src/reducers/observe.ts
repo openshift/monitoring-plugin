@@ -84,6 +84,8 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
       incidentsData: ImmutableMap({
         incidents: [],
         alertsData: [],
+        alertsTableData: [],
+        alertsAreLoading: true,
         incidentsInitialState: {
           days: ['7 days'],
           incidentType: [],
@@ -310,6 +312,14 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
 
     case ActionType.SetAlertsData: {
       return state.setIn(['incidentsData', 'alertsData'], action.payload.alertsData);
+    }
+
+    case ActionType.SetAlertsTableData: {
+      return state.setIn(['incidentsData', 'alertsTableData'], action.payload.alertsTableData);
+    }
+
+    case ActionType.SetAlertsAreLoading: {
+      return state.setIn(['incidentsData', 'alertsAreLoading'], action.payload.alertsAreLoading);
     }
 
     default:

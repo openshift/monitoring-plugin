@@ -34,7 +34,12 @@ import {
 } from '@patternfly/react-core/deprecated';
 import { CompressArrowsAltIcon, CompressIcon } from '@patternfly/react-icons';
 import { useDispatch, useSelector } from 'react-redux';
-import { setAlertsData, setIncidentsActiveFilters } from '../../actions/observe';
+import {
+  setAlertsAreLoading,
+  setAlertsData,
+  setAlertsTableData,
+  setIncidentsActiveFilters,
+} from '../../actions/observe';
 import { useLocation } from 'react-router-dom';
 
 const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
@@ -44,11 +49,8 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
   const urlParams = parseUrlParams(location.search);
   // loading states
   const [incidentsAreLoading, setIncidentsAreLoading] = React.useState(true);
-  const [alertsAreLoading, setAlertsAreLoading] = React.useState(true);
   // all incidents data without filtering
   const [incidentsData, setIncidentsData] = React.useState([]);
-  // data that we serve to the table, formatted to our needs
-  const [tableData, setTableData] = React.useState([]);
   // days span is where we store the value for creating time ranges for
   // fetch incidents/alerts based on the length of time ranges
   // when days filter changes we set a new days span -> calculate new time range and fetch new data
@@ -82,6 +84,9 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
     state.plugins.monitoring.getIn(['incidentsData', 'alertsData']),
   );
 
+  const alertsAreLoading = useSelector((state) =>
+    state.plugins.monitoring.getIn(['incidentsData', 'alertsAreLoading']),
+  );
   React.useEffect(() => {
     const hasUrlParams = Object.keys(urlParams).length > 0;
 
@@ -148,7 +153,7 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
         .then((results) => {
           const aggregatedData = results.reduce((acc, result) => acc.concat(result), []);
           dispatch(setAlertsData({ alertsData: processAlerts(aggregatedData) }));
-          setAlertsAreLoading(false);
+          dispatch(setAlertsAreLoading({ alertsAreLoading: false }));
         })
         .catch((err) => {
           // eslint-disable-next-line no-console
@@ -157,7 +162,11 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
     })();
   }, [incidentForAlertProcessing]);
   React.useEffect(() => {
-    setTableData(groupAlertsForTable(alertsData));
+    dispatch(
+      setAlertsTableData({
+        alertsTableData: groupAlertsForTable(alertsData),
+      }),
+    );
   }, [alertsAreLoading]);
 
   React.useEffect(() => {
@@ -209,7 +218,6 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
       .then((results) => {
         const aggregatedData = results.reduce((acc, result) => acc.concat(result), []);
         setIncidentForAlertProcessing(processIncidents(aggregatedData));
-        setAlertsAreLoading(true);
         setIncidentsAreLoading(false);
       })
       .catch((err) => {
@@ -304,7 +312,7 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
           )}
           <div className="row">
             <div className="col-xs-12">
-              <IncidentsTable loaded={!alertsAreLoading} data={tableData} namespace={namespace} />
+              <IncidentsTable loaded={!alertsAreLoading} namespace={namespace} />
             </div>
           </div>
         </div>
