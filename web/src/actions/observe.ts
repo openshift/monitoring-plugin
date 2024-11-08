@@ -35,6 +35,7 @@ export enum ActionType {
   SetAlertsData = 'setAlertsData',
   SetAlertsTableData = 'setAlertsTableData',
   SetAlertsAreLoading = 'setAlertsAreLoading',
+  SetIncidentsChartSelection = 'setIncidentsChartSelection',
 }
 
 export type Perspective = 'admin' | 'dev' | 'acm';
@@ -150,6 +151,9 @@ export const setAlertsTableData = (alertsTableData) =>
 export const setAlertsAreLoading = (alertsAreLoading) =>
   action(ActionType.SetAlertsAreLoading, alertsAreLoading);
 
+export const setIncidentsChartSelection = (incidentsChartSelectedId) =>
+  action(ActionType.SetIncidentsChartSelection, incidentsChartSelectedId);
+
 const actions = {
   alertingErrored,
   alertingLoaded,
@@ -185,6 +189,7 @@ const actions = {
   setAlertsData,
   setAlertsTableData,
   setAlertsAreLoading,
+  setIncidentsChartSelection,
 };
 
 export type ObserveAction = Action<typeof actions>;

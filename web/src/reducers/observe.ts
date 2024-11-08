@@ -86,6 +86,7 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
         alertsData: [],
         alertsTableData: [],
         alertsAreLoading: true,
+        incidentsChartSelectedId: '',
         incidentsInitialState: {
           days: ['7 days'],
           incidentType: [],
@@ -324,6 +325,13 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
 
     case ActionType.SetAlertsAreLoading: {
       return state.setIn(['incidentsData', 'alertsAreLoading'], action.payload.alertsAreLoading);
+    }
+
+    case ActionType.SetIncidentsChartSelection: {
+      return state.setIn(
+        ['incidentsData', 'incidentsChartSelectedId'],
+        action.payload.incidentsChartSelectedId,
+      );
     }
 
     default:

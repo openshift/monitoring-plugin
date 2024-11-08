@@ -15,7 +15,7 @@ import global_info_color_100 from '@patternfly/react-tokens/dist/esm/global_info
 import global_warning_color_100 from '@patternfly/react-tokens/dist/esm/global_warning_color_100';
 import { createIncidentsChartBars, formatDate, generateDateArray } from '../utils';
 import { getResizeObserver } from '@patternfly/react-core';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { setChooseIncident } from '../../../actions/observe';
 
 const IncidentsChart = ({ incidentsData, chartDays }) => {
@@ -24,7 +24,6 @@ const IncidentsChart = ({ incidentsData, chartDays }) => {
   const [chartData, setChartData] = React.useState();
   const [width, setWidth] = React.useState(0);
   const containerRef = React.useRef(null);
-  const [hiddenSeries, setHiddenSeries] = React.useState(null);
   const handleResize = () => {
     if (containerRef.current && containerRef.current.clientWidth) {
       setWidth(containerRef.current.clientWidth);
@@ -41,9 +40,12 @@ const IncidentsChart = ({ incidentsData, chartDays }) => {
   }, [incidentsData]);
   const dateValues = generateDateArray(chartDays);
 
-  const isHidden = (group_id) => hiddenSeries !== null && hiddenSeries !== group_id;
+  const selectedId = useSelector((state) =>
+    state.plugins.monitoring.getIn(['incidentsData', 'incidentGroupId']),
+  );
+
+  const isHidden = (group_id) => selectedId !== '' && selectedId !== group_id;
   const clickHandler = (data, datum) => {
-    setHiddenSeries(datum.datum.group_id === hiddenSeries ? null : datum.datum.group_id);
     dispatch(
       setChooseIncident({
         incidentGroupId: datum.datum.group_id,
