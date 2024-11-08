@@ -31,6 +31,7 @@ export enum ActionType {
   ToggleGraphs = 'toggleGraphs',
   SetIncidentsActiveFilters = 'setIncidentsActiveFilters',
   SetChooseIncident = 'setChooseIncident',
+  SetAlertsData = 'setAlertsData',
 }
 
 export type Perspective = 'admin' | 'dev' | 'acm';
@@ -136,6 +137,8 @@ export const setIncidentsActiveFilters = (incidentsActiveFilters) =>
 export const setChooseIncident = (incidentGroupId) =>
   action(ActionType.SetChooseIncident, incidentGroupId);
 
+export const setAlertsData = (alertsData) => action(ActionType.SetAlertsData, alertsData);
+
 const actions = {
   alertingErrored,
   alertingLoaded,
@@ -167,6 +170,7 @@ const actions = {
   toggleGraphs,
   setIncidentsActiveFilters,
   setChooseIncident,
+  setAlertsData,
 };
 
 export type ObserveAction = Action<typeof actions>;

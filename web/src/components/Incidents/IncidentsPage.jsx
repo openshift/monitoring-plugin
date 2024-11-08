@@ -34,7 +34,7 @@ import {
 } from '@patternfly/react-core/deprecated';
 import { CompressArrowsAltIcon, CompressIcon } from '@patternfly/react-icons';
 import { useDispatch, useSelector } from 'react-redux';
-import { setIncidentsActiveFilters } from '../../actions/observe';
+import { setAlertsData, setIncidentsActiveFilters } from '../../actions/observe';
 import { useLocation } from 'react-router-dom';
 
 const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
@@ -45,8 +45,6 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
   // loading states
   const [incidentsAreLoading, setIncidentsAreLoading] = React.useState(true);
   const [alertsAreLoading, setAlertsAreLoading] = React.useState(true);
-  // alerts data that we fetch from the prom db
-  const [alertsData, setAlertsData] = React.useState([]);
   // all incidents data without filtering
   const [incidentsData, setIncidentsData] = React.useState([]);
   // data that we serve to the table, formatted to our needs
@@ -78,6 +76,10 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
 
   const incidentGroupId = useSelector((state) =>
     state.plugins.monitoring.getIn(['incidentsData', 'incidentGroupId']),
+  );
+
+  const alertsData = useSelector((state) =>
+    state.plugins.monitoring.getIn(['incidentsData', 'alertsData']),
   );
 
   React.useEffect(() => {
@@ -145,7 +147,7 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
       )
         .then((results) => {
           const aggregatedData = results.reduce((acc, result) => acc.concat(result), []);
-          setAlertsData(processAlerts(aggregatedData));
+          dispatch(setAlertsData({ alertsData: processAlerts(aggregatedData) }));
           setAlertsAreLoading(false);
         })
         .catch((err) => {
