@@ -23,6 +23,9 @@ import {
   filterIncident,
   onDeleteGroupIncidentFilterChip,
   onDeleteIncidentFilterChip,
+  onIncidentTypeSelect,
+  parseUrlParams,
+  updateBrowserUrl,
 } from './utils';
 import { groupAlertsForTable, processAlerts } from './processAlerts';
 import {
@@ -31,11 +34,14 @@ import {
 } from '@patternfly/react-core/deprecated';
 import { CompressArrowsAltIcon, CompressIcon } from '@patternfly/react-icons';
 import { useDispatch, useSelector } from 'react-redux';
-import { setIncidentsNavFilters } from '../../actions/observe';
+import { setIncidentsActiveFilters } from '../../actions/observe';
+import { useLocation } from 'react-router-dom';
 
 const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
   const dispatch = useDispatch();
+  const location = useLocation();
+  const urlParams = parseUrlParams(location.search);
   // loading states
   const [incidentsAreLoading, setIncidentsAreLoading] = React.useState(true);
   const [alertsAreLoading, setAlertsAreLoading] = React.useState(true);
@@ -63,46 +69,48 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
   const onIncidentFilterToggle = (isExpanded) => {
     setIncidentIsExpanded(isExpanded);
   };
-  const incidentsFiltersState = useSelector((state) =>
-    state.plugins.monitoring.getIn(['incidentsData', 'incidentsFilters']),
+
+  const incidentsInitialState = useSelector((state) =>
+    state.plugins.monitoring.getIn(['incidentsData', 'incidentsInitialState']),
   );
 
-  const onIncidentTypeSelect = (event, selection) => {
-    onSelect('incidentType', event, selection);
-  };
+  const incidentsActiveFilters = useSelector((state) =>
+    state.plugins.monitoring.getIn(['incidentsData', 'incidentsActiveFilters']),
+  );
 
-  const onSelect = (type, event, selection) => {
-    const checked = event.target.checked;
+  React.useEffect(() => {
+    const hasUrlParams = Object.keys(urlParams).length > 0;
 
-    dispatch((dispatch) => {
-      const prevSelections = incidentsFiltersState[type] || [];
-
-      const updatedSelections = checked
-        ? [...prevSelections, selection]
-        : prevSelections.filter((value) => value !== selection);
-
+    if (hasUrlParams) {
+      // If URL parameters exist, update incidentsActiveFilters based on them
       dispatch(
-        setIncidentsNavFilters({
-          incidentsFilters: {
-            ...incidentsFiltersState,
-            [type]: updatedSelections,
+        setIncidentsActiveFilters({
+          incidentsActiveFilters: {
+            ...incidentsInitialState,
+            ...urlParams,
           },
         }),
       );
-    });
-  };
+    } else {
+      // If no URL parameters exist, set the URL based on incidentsInitialState
+      updateBrowserUrl(incidentsInitialState);
+      dispatch(
+        setIncidentsActiveFilters({
+          incidentsActiveFilters: {
+            ...incidentsInitialState,
+          },
+        }),
+      );
+    }
+  }, []);
 
   React.useEffect(() => {
-    setFilteredData(filterIncident(incidentsFiltersState, incidentsData));
-  }, [incidentsFiltersState.incidentType]);
+    updateBrowserUrl(incidentsActiveFilters);
+  }, [incidentsActiveFilters]);
 
-  const changeDaysFilter = (days) => {
-    dispatch(
-      setIncidentsNavFilters({
-        incidentsFilters: { days: [days], incidentType: incidentsFiltersState.incidentType },
-      }),
-    );
-  };
+  React.useEffect(() => {
+    setFilteredData(filterIncident(incidentsActiveFilters, incidentsData));
+  }, [incidentsActiveFilters.incidentType]);
 
   const now = Date.now();
   const timeRanges = getIncidentsTimeRanges(daysSpan, now);
@@ -112,12 +120,12 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
   React.useEffect(() => {
     setDaysSpan(
       parsePrometheusDuration(
-        incidentsFiltersState.days.length > 0
-          ? incidentsFiltersState.days[0].split(' ')[0] + 'd'
+        incidentsActiveFilters.days.length > 0
+          ? incidentsActiveFilters.days[0].split(' ')[0] + 'd'
           : '',
       ),
     );
-  }, [incidentsFiltersState.days]);
+  }, [incidentsActiveFilters.days]);
 
   React.useEffect(() => {
     (async () => {
@@ -165,7 +173,12 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
         .then((results) => {
           const aggregatedData = results.reduce((acc, result) => acc.concat(result), []);
           setIncidentsData(processIncidents(aggregatedData));
-          setFilteredData(filterIncident(incidentsFiltersState, processIncidents(aggregatedData)));
+          setFilteredData(
+            filterIncident(
+              urlParams ? incidentsActiveFilters : incidentsInitialState,
+              processIncidents(aggregatedData),
+            ),
+          );
 
           setIncidentsAreLoading(false);
         })
@@ -217,18 +230,18 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
             className="pf-m-toggle-group-container"
             collapseListedFiltersBreakpoint="xl"
             clearAllFilters={() =>
-              onDeleteIncidentFilterChip('', '', incidentsFiltersState, dispatch)
+              onDeleteIncidentFilterChip('', '', incidentsActiveFilters, dispatch)
             }
           >
             <ToolbarContent>
               <ToolbarItem>
                 <ToolbarFilter
-                  chips={incidentsFiltersState.incidentType}
+                  chips={incidentsActiveFilters.incidentType}
                   deleteChip={(category, chip) =>
-                    onDeleteIncidentFilterChip(category, chip, incidentsFiltersState, dispatch)
+                    onDeleteIncidentFilterChip(category, chip, incidentsActiveFilters, dispatch)
                   }
                   deleteChipGroup={(category) =>
-                    onDeleteGroupIncidentFilterChip(category, incidentsFiltersState, dispatch)
+                    onDeleteGroupIncidentFilterChip(category, incidentsActiveFilters, dispatch)
                   }
                   categoryName="Incident type"
                 >
@@ -236,21 +249,23 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
                     variant={'checkbox'}
                     aria-label="Incident type"
                     onToggle={onIncidentFilterToggle}
-                    onSelect={onIncidentTypeSelect}
-                    selections={incidentsFiltersState.incidentType}
+                    onSelect={(event, selection) =>
+                      onIncidentTypeSelect(event, selection, dispatch, incidentsActiveFilters)
+                    }
+                    selections={incidentsActiveFilters.incidentType}
                     isOpen={incidentFilterIsExpanded}
                     placeholderText="Incident type"
                     style={{
                       width: '350px',
                     }}
                   >
-                    {incidentTypeMenuItems(incidentsFiltersState)}
+                    {incidentTypeMenuItems(incidentsActiveFilters)}
                   </Select>
                 </ToolbarFilter>
               </ToolbarItem>
               <ToolbarItem>
                 <DropdownDeprecated
-                  dropdownItems={dropdownItems(changeDaysFilter, t)}
+                  dropdownItems={dropdownItems(t, dispatch, incidentsActiveFilters)}
                   isOpen={daysFilterIsExpanded}
                   onSelect={() => setDaysFilterIsExpanded(false)}
                   toggle={
@@ -258,7 +273,7 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
                       id="incidents-page-days-filter-toggle"
                       onToggle={setDaysFilterIsExpanded}
                     >
-                      {incidentsFiltersState.days[0]}
+                      {incidentsActiveFilters.days[0]}
                     </DropdownToggleDeprecated>
                   }
                 />
