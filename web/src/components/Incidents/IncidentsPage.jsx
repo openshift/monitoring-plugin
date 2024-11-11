@@ -34,7 +34,13 @@ import {
 } from '@patternfly/react-core/deprecated';
 import { CompressArrowsAltIcon, CompressIcon } from '@patternfly/react-icons';
 import { useDispatch, useSelector } from 'react-redux';
-import { setIncidentsActiveFilters } from '../../actions/observe';
+import {
+  setAlertsAreLoading,
+  setAlertsData,
+  setAlertsTableData,
+  setIncidents,
+  setIncidentsActiveFilters,
+} from '../../actions/observe';
 import { useLocation } from 'react-router-dom';
 
 const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
@@ -44,19 +50,10 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
   const urlParams = parseUrlParams(location.search);
   // loading states
   const [incidentsAreLoading, setIncidentsAreLoading] = React.useState(true);
-  const [alertsAreLoading, setAlertsAreLoading] = React.useState(true);
-  // alerts data that we fetch from the prom db
-  const [alertsData, setAlertsData] = React.useState([]);
-  // all incidents data without filtering
-  const [incidentsData, setIncidentsData] = React.useState([]);
-  // data that we serve to the table, formatted to our needs
-  const [tableData, setTableData] = React.useState([]);
   // days span is where we store the value for creating time ranges for
   // fetch incidents/alerts based on the length of time ranges
   // when days filter changes we set a new days span -> calculate new time range and fetch new data
   const [daysSpan, setDaysSpan] = React.useState();
-  // stores group id for the chosen incident. It trigger a fetch for alerts based on that incident
-  const [chooseIncident, setChooseIncident] = React.useState('');
   // data that is filtered by the incidentType filter
   const [filteredData, setFilteredData] = React.useState([]);
   // data that is used for processing to serve it to the alerts table and chart
@@ -74,10 +71,25 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
     state.plugins.monitoring.getIn(['incidentsData', 'incidentsInitialState']),
   );
 
+  const incidents = useSelector((state) =>
+    state.plugins.monitoring.getIn(['incidentsData', 'incidents']),
+  );
+
   const incidentsActiveFilters = useSelector((state) =>
     state.plugins.monitoring.getIn(['incidentsData', 'incidentsActiveFilters']),
   );
 
+  const incidentGroupId = useSelector((state) =>
+    state.plugins.monitoring.getIn(['incidentsData', 'incidentGroupId']),
+  );
+
+  const alertsData = useSelector((state) =>
+    state.plugins.monitoring.getIn(['incidentsData', 'alertsData']),
+  );
+
+  const alertsAreLoading = useSelector((state) =>
+    state.plugins.monitoring.getIn(['incidentsData', 'alertsAreLoading']),
+  );
   React.useEffect(() => {
     const hasUrlParams = Object.keys(urlParams).length > 0;
 
@@ -109,7 +121,7 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
   }, [incidentsActiveFilters]);
 
   React.useEffect(() => {
-    setFilteredData(filterIncident(incidentsActiveFilters, incidentsData));
+    setFilteredData(filterIncident(incidentsActiveFilters, incidents));
   }, [incidentsActiveFilters.incidentType]);
 
   const now = Date.now();
@@ -143,8 +155,8 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
       )
         .then((results) => {
           const aggregatedData = results.reduce((acc, result) => acc.concat(result), []);
-          setAlertsData(processAlerts(aggregatedData));
-          setAlertsAreLoading(false);
+          dispatch(setAlertsData({ alertsData: processAlerts(aggregatedData) }));
+          dispatch(setAlertsAreLoading({ alertsAreLoading: false }));
         })
         .catch((err) => {
           // eslint-disable-next-line no-console
@@ -153,7 +165,11 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
     })();
   }, [incidentForAlertProcessing]);
   React.useEffect(() => {
-    setTableData(groupAlertsForTable(alertsData));
+    dispatch(
+      setAlertsTableData({
+        alertsTableData: groupAlertsForTable(alertsData),
+      }),
+    );
   }, [alertsAreLoading]);
 
   React.useEffect(() => {
@@ -172,7 +188,11 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
       )
         .then((results) => {
           const aggregatedData = results.reduce((acc, result) => acc.concat(result), []);
-          setIncidentsData(processIncidents(aggregatedData));
+          dispatch(
+            setIncidents({
+              incidents: processIncidents(aggregatedData),
+            }),
+          );
           setFilteredData(
             filterIncident(
               urlParams ? incidentsActiveFilters : incidentsInitialState,
@@ -197,7 +217,7 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
           range,
           namespace,
           customDataSource,
-          `cluster:health:components:map{group_id='${chooseIncident}'}`,
+          `cluster:health:components:map{group_id='${incidentGroupId}'}`,
         );
         return response.data.result;
       }),
@@ -205,14 +225,14 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
       .then((results) => {
         const aggregatedData = results.reduce((acc, result) => acc.concat(result), []);
         setIncidentForAlertProcessing(processIncidents(aggregatedData));
-        setAlertsAreLoading(true);
+        dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
         setIncidentsAreLoading(false);
       })
       .catch((err) => {
         // eslint-disable-next-line no-console
         console.log(err);
       });
-  }, [chooseIncident]);
+  }, [incidentGroupId]);
 
   return (
     <>
@@ -296,12 +316,11 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
               alertsData={alertsData}
               incidentsData={filteredData}
               chartDays={timeRanges.length}
-              onIncidentSelect={setChooseIncident}
             />
           )}
           <div className="row">
             <div className="col-xs-12">
-              <IncidentsTable loaded={!alertsAreLoading} data={tableData} namespace={namespace} />
+              <IncidentsTable namespace={namespace} />
             </div>
           </div>
         </div>

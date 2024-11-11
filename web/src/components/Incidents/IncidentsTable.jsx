@@ -13,8 +13,10 @@ import InfoCircleIcon from '@patternfly/react-icons/dist/esm/icons/info-circle-i
 import { AlertStateIcon } from '../alerting/AlertUtils';
 import IncidentsDetailsRowTable from './IncidentsDetailsRowTable';
 import { SearchIcon } from '@patternfly/react-icons';
+import { useSelector } from 'react-redux';
+import * as _ from 'lodash-es';
 
-export const IncidentsTable = ({ loaded, data = [], namespace }) => {
+export const IncidentsTable = ({ namespace }) => {
   const columnNames = {
     checkbox: '',
     component: 'Component',
@@ -28,6 +30,9 @@ export const IncidentsTable = ({ loaded, data = [], namespace }) => {
       return isExpanding ? [...otherAlertExpanded, alert.component] : otherAlertExpanded;
     });
   const isAlertExpanded = (alert) => expandedAlerts.includes(alert.component);
+  const alertsTableData = useSelector((state) =>
+    state.plugins.monitoring.getIn(['incidentsData', 'alertsTableData']),
+  );
 
   return (
     <Card>
@@ -41,7 +46,7 @@ export const IncidentsTable = ({ loaded, data = [], namespace }) => {
               <Th width={25}>{columnNames.state}</Th>
             </Tr>
           </Thead>
-          {!loaded ? (
+          {_.isEmpty(alertsTableData) ? (
             <Tr>
               <Td colSpan={4}>
                 <EmptyState
@@ -59,7 +64,7 @@ export const IncidentsTable = ({ loaded, data = [], namespace }) => {
               </Td>
             </Tr>
           ) : (
-            data.map((alert, rowIndex) => {
+            alertsTableData.map((alert, rowIndex) => {
               return (
                 <Tbody key={rowIndex} isExpanded={isAlertExpanded(alert)}>
                   <Tr>
