@@ -149,9 +149,7 @@ const SilencesPage_: React.FC = () => {
 
   return (
     <>
-      <Helmet>
-        <title>Alerting</title>
-      </Helmet>
+      <Helmet>{perspective === 'dev' ? <title>Silences</title> : <title>Alerting</title>}</Helmet>
       <div className="co-m-pane__body">
         <SelectedSilencesContext.Provider value={{ selectedSilences, setSelectedSilences }}>
           <Flex>
