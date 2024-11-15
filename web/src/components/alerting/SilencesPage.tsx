@@ -19,6 +19,7 @@ import {
   Silence,
   SilenceStates,
   TableColumn,
+  useActiveNamespace,
   useListPageFilter,
   VirtualizedTable,
 } from '@openshift-console/dynamic-plugin-sdk';
@@ -32,7 +33,6 @@ import { EmptyBox } from '../console/utils/status-box';
 import { withFallback } from '../console/console-shared/error/error-boundary';
 import { useBoolean } from '../hooks/useBoolean';
 import { Link } from 'react-router-dom';
-import { useActiveNamespace } from '../console/console-shared/hooks/useActiveNamespace';
 
 const SilencesPage_: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -266,11 +266,15 @@ const ExpireAllSilencesButton: React.FC<ExpireAllSilencesButtonProps> = ({ setEr
 
   const { selectedSilences, setSelectedSilences } = React.useContext(SelectedSilencesContext);
 
+  const [namespace] = useActiveNamespace();
+
+  console.log('ExpireAllSilencesButton > namespace: ', { namespace });
+
   const onClick = () => {
     setInProgress();
     Promise.allSettled(
       [...selectedSilences].map((silenceID: string) =>
-        consoleFetchJSON.delete(getFetchSilenceUrl(perspective, silenceID)),
+        consoleFetchJSON.delete(getFetchSilenceUrl(perspective, silenceID, namespace)),
       ),
     ).then((values) => {
       setNotInProgress();
@@ -307,7 +311,7 @@ const SilenceTableRowWithCheckbox: React.FC<RowProps<Silence>> = ({ obj }) => (
 const CreateSilenceButton: React.FC = React.memo(() => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
-  const namespace = useActiveNamespace();
+  const [namespace] = useActiveNamespace();
 
   return (
     <Link className="co-m-primary-action" to={getNewSilenceUrl(perspective, namespace)}>
