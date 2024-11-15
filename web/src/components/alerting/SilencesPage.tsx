@@ -268,8 +268,6 @@ const ExpireAllSilencesButton: React.FC<ExpireAllSilencesButtonProps> = ({ setEr
 
   const [namespace] = useActiveNamespace();
 
-  console.log('ExpireAllSilencesButton > namespace: ', { namespace });
-
   const onClick = () => {
     setInProgress();
     Promise.allSettled(
