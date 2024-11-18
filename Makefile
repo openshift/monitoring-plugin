@@ -52,6 +52,7 @@ start-backend:
 build-image:
 	./scripts/build-image.sh
 
+
 .PHONY: install
 install:
 	make install-frontend && make install-backend
@@ -75,3 +76,7 @@ deploy:
 .PHONY: deploy-acm
 deploy-acm:
 	./scripts/deploy-acm.sh
+
+.PHONY: build-mcp-image
+build-mcp-image:
+	DOCKER_FILE_NAME="Dockerfile.mcp" scripts/build-image.sh
