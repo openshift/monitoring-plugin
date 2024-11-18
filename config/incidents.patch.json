@@ -1,0 +1,30 @@
+[{
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.page/route",
+      "properties": {
+        "exact": false,
+        "path": "/monitoring/incidents",
+        "component": { "$codeRef": "MonitoringUI" }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.navigation/href",
+      "flags": {
+      "required": ["PROMETHEUS", "MONITORING", "CAN_GET_NS"]
+    },
+      "properties": {
+        "id": "alerting",
+        "name": "%plugin__monitoring-plugin~Alerting%",
+        "href": "/monitoring/alerts",
+        "perspective": "admin",
+        "section": "observe",
+        "startsWith": ["monitoring/incidents"]
+      }
+    }
+  }]
