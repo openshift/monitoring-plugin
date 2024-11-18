@@ -23,6 +23,7 @@ import {
   Silence,
   TableColumn,
   VirtualizedTable,
+  useActiveNamespace,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
   AlertingRuleChartExtension,
@@ -83,7 +84,8 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
 
   const { alertsKey, alertingContextId, silencesKey, perspective } = usePerspective();
 
-  const namespace = match.params?.ns;
+  const [namespace] = useActiveNamespace();
+
   const hideGraphs = useSelector(
     (state: MonitoringState) => !!getObserveState(perspective, state)?.get('hideGraphs'),
   );

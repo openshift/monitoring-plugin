@@ -111,6 +111,33 @@
     }
   },
   {
+    "type": "console.tab",
+    "properties": {
+      "contextId": "dev-console-observe",
+      "name": "%plugin__monitoring-plugin~Silences%",
+      "href": "silences",
+      "component": {
+        "$codeRef": "MonitoringUI"
+      }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
+      "path": ["/dev-monitoring/ns/:ns/silences/:id"],
+      "component": { "$codeRef": "MonitoringUI" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
+      "path": ["/dev-monitoring/ns/:ns/silences/:id/:edit"],
+      "component": { "$codeRef": "MonitoringUI" }
+    }
+  },
+  {
     "type": "console.redux-reducer",
     "properties": {
       "scope": "monitoring",

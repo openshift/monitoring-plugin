@@ -9,6 +9,7 @@ import {
   Rule,
   TableColumn,
   Timestamp,
+  useActiveNamespace,
   useListPageFilter,
   useResolvedExtensions,
   VirtualizedTable,
@@ -35,7 +36,6 @@ import { Link, Redirect, Route, RouteComponentProps, Switch, withRouter } from '
 
 // TODO: These will be available in future versions of the plugin SDK
 import { formatPrometheusDuration } from './console/utils/datetime';
-import { useActiveNamespace } from './console/console-shared/hooks/useActiveNamespace';
 
 import { withFallback } from './console/console-shared/error/error-boundary';
 import {
@@ -654,7 +654,7 @@ const PollerPages = () => {
   const dispatch = useDispatch();
 
   const { alertingContextId, perspective } = usePerspective();
-  const namespace = useActiveNamespace();
+  const [namespace] = useActiveNamespace();
 
   const [customExtensions] =
     useResolvedExtensions<AlertingRulesSourceExtension>(isAlertingRulesSource);
@@ -696,6 +696,9 @@ const PollerPages = () => {
         <Route path="/dev-monitoring/ns/:ns/alerts" exact component={AlertsPage} />
         <Route path="/dev-monitoring/ns/:ns/alerts/:ruleID" component={AlertsDetailsPage} />
         <Route path="/dev-monitoring/ns/:ns/metrics" exact component={QueryBrowserPage} />
+        <Route path="/dev-monitoring/ns/:ns/silences" exact component={SilencesPage} />
+        <Route path="/dev-monitoring/ns/:ns/silences/:id" exact component={SilencesDetailsPage} />
+        <Route path="/dev-monitoring/ns/:ns/silences/:id/edit" exact component={EditSilence} />
       </Switch>
     );
   }
@@ -741,6 +744,7 @@ const MonitoringUI = () => {
       <Route path="/monitoring/graph" exact component={PrometheusUIRedirect} />
       <Route path="/monitoring/query-browser" exact component={QueryBrowserPage} />
       <Route path="/monitoring/silences/~new" exact component={CreateSilence} />
+      <Route path="/dev-monitoring/ns/:ns/silences/~new" exact component={CreateSilence} />
       <Route path="/monitoring/targets" component={TargetsUI} />
       <Route component={PollerPages} />
     </Switch>

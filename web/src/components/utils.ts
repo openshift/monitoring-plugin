@@ -119,15 +119,20 @@ export const refreshSilences = (
   dispatch: Dispatch,
   perspective: Perspective,
   silencesKey: silencesKey,
+  namespace?: string,
 ): void => {
   const { alertManagerBaseURL } = window.SERVER_FLAGS;
   if (!alertManagerBaseURL) {
     return;
   }
 
+  if (perspective === 'dev' && !namespace) {
+    return;
+  }
+
   dispatch(alertingLoading(silencesKey, perspective));
 
-  consoleFetchJSON(getFetchSilenceAlertUrl(perspective))
+  consoleFetchJSON(getFetchSilenceAlertUrl(perspective, namespace))
     .then((silences) => {
       // Set a name field on the Silence to make things easier
       _.each(silences, (s) => {
