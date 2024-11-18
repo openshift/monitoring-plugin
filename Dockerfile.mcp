@@ -1,3 +1,5 @@
+# mcp (monitoring-console-plugin)
+
 FROM registry.redhat.io/ubi9/nodejs-18:latest AS web-builder
 
 USER 0

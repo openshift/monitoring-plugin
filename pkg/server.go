@@ -43,6 +43,7 @@ type Feature string
 
 const (
 	AcmAlerting Feature = "acm-alerting"
+	Incidents   Feature = "incidents"
 )
 
 func (pluginConfig *PluginConfig) MarshalJSON() ([]byte, error) {

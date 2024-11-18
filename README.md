@@ -91,25 +91,40 @@ The application will be running at [localhost:9000](http://localhost:9000/).
 1. Disable cache. Select 'disable cache' in your browser's DevTools > Network > 'disable cache'. Or use private/incognito mode in your browser.
 2. Enable higher log verbosity by setting `-log-level=trace` when starting the plugin backend. For more options to set log level see [logrus documentation](https://github.com/sirupsen/logrus?tab=readme-ov-file#level-logging).
 
-## monitoring-console-plugin
+## monitoring-console-plugin (mcp)
 
 ### Dependencies
 1. [Local Development Dependencies](README#Dependencies)
-2. [yq](https://github.com/mikefarah/yq)
+2. [yq](https://github.com/mikefarah/yq) for acm deployment
 3. sed ([gnu-sed](https://formulae.brew.sh/formula/gnu-sed) for mac, with sed being aliased to that gnu-sed)
 
-Due to the extensive number of items which would need to be run to locally run the ACM perspective, the suggested development pattern is instead repeat installations with helm. A small number of scripts have been put together to help you deploy the monitoring-plugin in its `acm` configuration. REGISTRY_ORG and TAG variables are available to adjust the quay image generated and used for deployment. Certain build time changes to the codebase are created when running these scripts. On Mac's these changes are not only run with the Dockerfiles, so it is not suggested to cancel the exection of this scipt part way through
+
+### Building an image
+Images for the mcp can be built by running the following command. Due to the limitation of linux/amd64 image builds on Apple Silicon Macs's, some of the changes are run locally and not just in the Dockerfiles. If you are on a Mac, it is not suggested to cancel the exection of this scipt part way through
+
+```bash
+make build-mcp-image
+```
+
+### Feature Flags
+
+Feature flags are used by the mcp mode to dictate the specific features which are enabled when the server starts up. Feature flags should be added to the Feature enum [here](pkg/server.go) and to the useFeature hook [here](web/src/components/hooks/useFeatures.ts). When any feature flag is enabled the default extension points are overridden, including a new monitoring-console-plugin exclusive redux store and all extension points for the flags. These feature extension points are created through the use of [json-patches](https://datatracker.ietf.org/doc/html/rfc6902), such as the `acm-alerting` patch [here](config/acm-alerting.patch.json). The server looks for a patch in the format of `{feature-flag-name}.patch.json` to apply.
+
+| Feature      | OCP Version |
+|--------------|-------------|
+| acm-alerting | 4.14+       |
+| incidents    |             |
+
+#### ACM
+
+Due to the extensive number of items which would need to be run to locally run the ACM perspective, the suggested development pattern is instead repeat installations with helm. A small number of scripts have been put together to help you deploy the monitoring-plugin in its `acm-alerting` configuration. REGISTRY_ORG and TAG variables are available to adjust the quay image generated and used for deployment. Certain build time changes to the codebase are created when running these scripts.
 
 ```bash
 make deploy-acm
 ```
 
-### Feature Flags
-
-Feature flags are used by this mode to dictate the specific features which are created when the server starts up. Feature flags should be added to the Feature enum [here](pkg/server.go) and to the useFeature hook [here](web/src/components/hooks/useFeatures.ts). When any feature flag is enabled the default extension points are overridden, including a new monitoring-console-plugin exclusive redux store and all extension points for the flags. These feature extension points are created through the use of [json-patches](https://datatracker.ietf.org/doc/html/rfc6902), such as the `acm-alerting` patch [here](config/acm-alerting.patch.json). The server looks for a patch in the format of `{feature-flag-name}.patch.json` to apply.
-
 Once the code has been updated, make sure to update the helm chart and variables ([variable example](https://github.com/openshift/monitoring-plugin/blob/main/charts/openshift-console-plugin/values.yaml#L32), [chart example](https://github.com/openshift/monitoring-plugin/blob/main/charts/openshift-console-plugin/templates/deployment.yaml#L49)) for ease of deployment of your feature.
 
-#### Redux Store
+### Redux Store
 
 Since the store for the `monitoring-plugin` is stored in the `openshift/console` codebase and updates to the store that are aren't tied directly to the OCP are needed, when the default extension points are removed due to the presense of a feature flag a duplicate store is created at the `.state.plugins.monitoring` path. A combination of the `useFeatures` hook and the `getObserveState` (which is dependant on the perspective) can be used to retrieve the state from the redux store based on the mode the plugin was deployed in.
