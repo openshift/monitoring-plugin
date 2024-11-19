@@ -1,8 +1,8 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  {{- if and (.Values.plugin.acm.enabled) }}
-  name: {{ .Values.plugin.acm.name }}
+  {{- if or (.Values.plugin.features.acm.enabled) (.Values.plugin.features.incidents.enabled) }}
+  name: {{ .Values.plugin.features.name }}
   {{- else }}
   name: {{ template "openshift-console-plugin.name" . }}
   {{- end }}
@@ -21,8 +21,8 @@ spec:
     spec:
       serviceAccountName: {{ include "openshift-console-plugin.serviceAccountName" . }}
       containers:
-        {{- if and (.Values.plugin.acm.enabled) }}
-        - name: {{ .Values.plugin.acm.name }}
+        {{- if or (.Values.plugin.features.acm.enabled) (.Values.plugin.features.incidents.enabled) }}
+        - name: {{ .Values.plugin.features.name }}
         {{- else }}
         - name: {{ template "openshift-console-plugin.name" . }}
         {{- end }}
@@ -46,10 +46,12 @@ spec:
             - '-cert=/var/cert/tls.crt'
             - '-key=/var/cert/tls.key'
             - '-log-level=info'
-            {{- if and (.Values.plugin.acm.enabled) }}
-            - '-features=acm-alerting'
-            - '-alertmanager={{ .Values.plugin.acm.alertmanager.url }}'
-            - '-thanos-querier={{ .Values.plugin.acm.thanos.url }}'
+            {{- if or (.Values.plugin.features.acm.enabled) (.Values.plugin.features.incidents.enabled) }}
+            - '-features={{ template "openshift-console-plugin.features" . }}'
+            {{- end }}
+            {{- if and (.Values.plugin.features.acm.enabled) }}
+            - '-alertmanager={{ .Values.plugin.features.acm.alertmanager.url }}'
+            - '-thanos-querier={{ .Values.plugin.features.acm.thanos.url }}'
             {{- end }}
       volumes:
         - name: {{ template "openshift-console-plugin.certificateSecret" . }}

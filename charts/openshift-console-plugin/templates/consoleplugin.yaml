@@ -1,8 +1,8 @@
 apiVersion: console.openshift.io/v1
 kind: ConsolePlugin
 metadata:
-  {{- if and (.Values.plugin.acm.enabled) }}
-  name: {{ .Values.plugin.acm.name }}
+  {{- if or (.Values.plugin.features.acm.enabled) (.Values.plugin.features.incidents.enabled) }}
+  name: {{ .Values.plugin.features.name }}
   {{- else }}
   name: {{ template "openshift-console-plugin.name" . }}
   {{- end }}
@@ -13,16 +13,16 @@ spec:
   backend:
     service:
       basePath: /
-      {{- if and (.Values.plugin.acm.enabled) }}
-      name: {{ .Values.plugin.acm.name }}
+      {{- if or (.Values.plugin.features.acm.enabled) (.Values.plugin.features.incidents.enabled) }}
+      name: {{ .Values.plugin.features.name }}
       {{- else }}
       name: {{ template "openshift-console-plugin.name" . }}
       {{- end }}
       namespace: {{ .Release.Namespace }}
       port: 9443
     type: Service
-  {{- if and (.Values.plugin.acm.enabled) }}
-  displayName: {{ .Values.plugin.acm.name }}
+  {{- if or (.Values.plugin.features.acm.enabled) (.Values.plugin.features.incidents.enabled) }}
+  displayName: {{ .Values.plugin.features.name }}
   {{- else }}
   displayName: {{ template "openshift-console-plugin.name" . }}
   {{- end }}
@@ -33,23 +33,20 @@ spec:
     authorization: UserToken
     endpoint:
       service:
-        {{- if and (.Values.plugin.acm.enabled) }}
-        name: {{ .Values.plugin.acm.name }}
+        {{- if or (.Values.plugin.features.acm.enabled) (.Values.plugin.features.incidents.enabled) }}
+        name: {{ .Values.plugin.features.name }}
         {{- else }}
         name: {{ template "openshift-console-plugin.name" . }}
         {{- end }}
         namespace: {{ .Release.Namespace }}
         port: 9443
       type: Service
+  {{- if and (.Values.plugin.features.acm.enabled) }}
   - alias: alertmanager-proxy
     authorization: UserToken
     endpoint:
       service:
-        {{- if and (.Values.plugin.acm.enabled) }}
-        name: {{ .Values.plugin.acm.name }}
-        {{- else }}
-        name: {{ template "openshift-console-plugin.name" . }}
-        {{- end }}
+        name: {{ .Values.plugin.features.name }}
         namespace: {{ .Release.Namespace }}
         port: 9444
       type: Service
@@ -57,11 +54,8 @@ spec:
     authorization: UserToken
     endpoint:
       service:
-        {{- if and (.Values.plugin.acm.enabled) }}
-        name: {{ .Values.plugin.acm.name }}
-        {{- else }}
-        name: {{ template "openshift-console-plugin.name" . }}
-        {{- end }}
+        name: {{ .Values.plugin.features.name }}
         namespace: {{ .Release.Namespace }}
         port: 9445
       type: Service
+  {{- end }}
