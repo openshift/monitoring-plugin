@@ -42,6 +42,7 @@ import {
   setIncidentsActiveFilters,
 } from '../../actions/observe';
 import { useLocation } from 'react-router-dom';
+import { withFallback } from '../console/console-shared/error/error-boundary';
 
 const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
@@ -329,4 +330,6 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
   );
 };
 
-export default IncidentsPage;
+const incidentsPageWithFallback = withFallback(IncidentsPage);
+
+export default incidentsPageWithFallback;
