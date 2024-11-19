@@ -1,4 +1,5 @@
-[{
+[
+  {
     "op": "add",
     "path": "/extensions/0",
     "value": {
@@ -6,7 +7,7 @@
       "properties": {
         "exact": false,
         "path": "/monitoring/incidents",
-        "component": { "$codeRef": "MonitoringUI" }
+        "component": { "$codeRef": "IncidentsPage" }
       }
     }
   },
@@ -16,15 +17,16 @@
     "value": {
       "type": "console.navigation/href",
       "flags": {
-      "required": ["PROMETHEUS", "MONITORING", "CAN_GET_NS"]
-    },
+        "required": ["PROMETHEUS", "MONITORING", "CAN_GET_NS"]
+      },
       "properties": {
-        "id": "alerting",
-        "name": "%plugin__monitoring-plugin~Alerting%",
-        "href": "/monitoring/alerts",
+        "id": "incidents",
+        "name": "%plugin__monitoring-plugin~Incidents%",
+        "href": "/monitoring/incidents",
         "perspective": "admin",
         "section": "observe",
-        "startsWith": ["monitoring/incidents"]
+        "insertAfter": "targets"
       }
     }
-  }]
+  }
+]
