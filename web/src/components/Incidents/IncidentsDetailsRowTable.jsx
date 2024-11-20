@@ -25,7 +25,7 @@ import {
   usePerspective,
 } from '../hooks/usePerspective';
 
-const IncidentsDetailsRowTable = ({ alerts, namespace }) => {
+const IncidentsDetailsRowTable = ({ alerts }) => {
   const { perspective } = usePerspective();
   const [alertsWithMatchedData, setAlertsWithMatchedData] = React.useState([]);
   const [customExtensions] = useResolvedExtensions(isAlertingRulesSource);
@@ -55,9 +55,9 @@ const IncidentsDetailsRowTable = ({ alerts, namespace }) => {
   }
 
   React.useEffect(() => {
-    const url = getPrometheusURL({ endpoint: PrometheusEndpoint.RULES, namespace });
+    const url = getPrometheusURL({ endpoint: PrometheusEndpoint.RULES });
     const poller = () => {
-      fetchAlerts(url, alertsSource, namespace)
+      fetchAlerts(url, alertsSource)
         .then(({ data }) => {
           const { rules } = getAlertsAndRules(data);
           //match rules fetched with alerts passed to this component by alertname

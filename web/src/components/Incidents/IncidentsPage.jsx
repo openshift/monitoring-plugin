@@ -43,12 +43,14 @@ import {
 } from '../../actions/observe';
 import { useLocation } from 'react-router-dom';
 import { withFallback } from '../console/console-shared/error/error-boundary';
+import { usePerspective } from '../hooks/usePerspective';
 
-const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
+const IncidentsPage = () => {
   const { t } = useTranslation('plugin__monitoring-plugin');
   const dispatch = useDispatch();
   const location = useLocation();
   const urlParams = parseUrlParams(location.search);
+  const { perspective } = usePerspective();
   // loading states
   const [incidentsAreLoading, setIncidentsAreLoading] = React.useState(true);
   // days span is where we store the value for creating time ranges for
@@ -147,9 +149,8 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
           const response = await fetchDataForIncidentsAndAlerts(
             safeFetch,
             range,
-            namespace,
-            customDataSource,
             createAlertsQuery(incidentForAlertProcessing),
+            perspective,
           );
           return response.data.result;
         }),
@@ -180,9 +181,8 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
           const response = await fetchDataForIncidentsAndAlerts(
             safeFetch,
             range,
-            namespace,
-            customDataSource,
             'cluster:health:components:map',
+            perspective,
           );
           return response.data.result;
         }),
@@ -216,9 +216,8 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
         const response = await fetchDataForIncidentsAndAlerts(
           safeFetch,
           range,
-          namespace,
-          customDataSource,
           `cluster:health:components:map{group_id='${incidentGroupId}'}`,
+          perspective,
         );
         return response.data.result;
       }),
@@ -321,7 +320,7 @@ const IncidentsPage = ({ customDataSource, namespace = '#ALL_NS#' }) => {
           )}
           <div className="row">
             <div className="col-xs-12">
-              <IncidentsTable namespace={namespace} />
+              <IncidentsTable />
             </div>
           </div>
         </div>

@@ -61,24 +61,19 @@ export const createAlertsQuery = (groupedAlertsValues) => {
   return alertsQuery;
 };
 
-export const fetchDataForIncidentsAndAlerts = (
-  fetch,
-  range,
-  namespace,
-  customDataSource,
-  customQuery,
-) => {
+export const fetchDataForIncidentsAndAlerts = (fetch, range, customQuery, perspective) => {
   return fetch(
     getPrometheusURL(
       {
         endpoint: PrometheusEndpoint.QUERY_RANGE,
         endTime: range.endTime,
-        namespace,
+        namespace: '',
         query: customQuery,
         samples: 24,
         timespan: range.duration - 1,
       },
-      customDataSource?.basePath,
+      perspective,
+      '/api/prometheus',
     ),
   );
 };
