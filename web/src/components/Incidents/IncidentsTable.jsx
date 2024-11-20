@@ -16,7 +16,7 @@ import { SearchIcon } from '@patternfly/react-icons';
 import { useSelector } from 'react-redux';
 import * as _ from 'lodash-es';
 
-export const IncidentsTable = ({ namespace }) => {
+export const IncidentsTable = () => {
   const columnNames = {
     checkbox: '',
     component: 'Component',
@@ -112,10 +112,7 @@ export const IncidentsTable = ({ namespace }) => {
                     <Tr isExpanded={isAlertExpanded(alert)}>
                       <Td width={100} colSpan={6}>
                         <ExpandableRowContent>
-                          <IncidentsDetailsRowTable
-                            alerts={alert.alertsExpandedRowData}
-                            namespace={namespace}
-                          />
+                          <IncidentsDetailsRowTable alerts={alert.alertsExpandedRowData} />
                         </ExpandableRowContent>
                       </Td>
                     </Tr>
