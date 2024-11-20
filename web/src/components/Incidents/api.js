@@ -73,7 +73,6 @@ export const fetchDataForIncidentsAndAlerts = (fetch, range, customQuery, perspe
         timespan: range.duration - 1,
       },
       perspective,
-      '/api/prometheus',
     ),
   );
 };
