@@ -18,7 +18,11 @@ import {
 import { Helmet } from 'react-helmet';
 import { dropdownItems, incidentTypeMenuItems } from './consts';
 import { IncidentsTable } from './IncidentsTable';
-import { getIncidentsTimeRanges, processIncidents } from './processIncidents';
+import {
+  getIncidentsTimeRanges,
+  processIncidents,
+  processIncidentsForAlerts,
+} from './processIncidents';
 import {
   filterIncident,
   onDeleteGroupIncidentFilterChip,
@@ -224,7 +228,7 @@ const IncidentsPage = () => {
     )
       .then((results) => {
         const aggregatedData = results.reduce((acc, result) => acc.concat(result), []);
-        setIncidentForAlertProcessing(processIncidents(aggregatedData));
+        setIncidentForAlertProcessing(processIncidentsForAlerts(aggregatedData));
         dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
         setIncidentsAreLoading(false);
       })

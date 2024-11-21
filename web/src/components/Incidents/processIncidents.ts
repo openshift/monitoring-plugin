@@ -170,3 +170,21 @@ export const getIncidentsTimeRanges = (
 
   return timeRanges;
 };
+
+export const processIncidentsForAlerts = (incidents) => {
+  return incidents.map((incident, index) => {
+    // Process the values
+    const processedValues = incident.values.map((value): [Date, string] => {
+      const timestamp = value[0];
+      const date = new Date(timestamp * 1000);
+      return [date, value[1]];
+    });
+
+    // Return the processed incident
+    return {
+      ...incident.metric,
+      values: processedValues,
+      x: incidents.length - index,
+    };
+  });
+};
