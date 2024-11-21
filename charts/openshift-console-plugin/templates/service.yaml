@@ -5,8 +5,8 @@ metadata:
   annotations:
     service.alpha.openshift.io/serving-cert-secret-name: {{ template "openshift-console-plugin.certificateSecret" . }}
   {{- end }}
-  {{- if and (.Values.plugin.acm.enabled) }}
-  name: {{ .Values.plugin.acm.name }}
+  {{- if or (.Values.plugin.features.acm.enabled) (.Values.plugin.features.incidents.enabled) }}
+  name: {{ .Values.plugin.features.name }}
   {{- else }}
   name: {{ template "openshift-console-plugin.name" . }}
   {{- end }}
@@ -19,15 +19,15 @@ spec:
       protocol: TCP
       port: {{ .Values.plugin.port }}
       targetPort: {{ .Values.plugin.port }}
-    {{- if and (.Values.plugin.acm.enabled) }}
+    {{- if and (.Values.plugin.features.acm.enabled) }}
     - name: alertmanager-proxy
       protocol: TCP
-      port: {{ .Values.plugin.acm.alertmanager.pluginPort }}
-      targetPort: {{ .Values.plugin.acm.alertmanager.pluginPort }}
+      port: {{ .Values.plugin.features.acm.alertmanager.pluginPort }}
+      targetPort: {{ .Values.plugin.features.acm.alertmanager.pluginPort }}
     - name: thanos-proxy
       protocol: TCP
-      port: {{ .Values.plugin.acm.thanos.pluginPort }}
-      targetPort: {{ .Values.plugin.acm.thanos.pluginPort }}
+      port: {{ .Values.plugin.features.acm.thanos.pluginPort }}
+      targetPort: {{ .Values.plugin.features.acm.thanos.pluginPort }}
     {{- end }}
   selector:
     {{- include "openshift-console-plugin.selectorLabels" . | nindent 4 }}

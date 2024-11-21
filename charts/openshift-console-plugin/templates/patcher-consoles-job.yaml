@@ -1,4 +1,4 @@
-{{- if .Values.plugin.acm.enabled }}
+{{- if or (.Values.plugin.features.acm.enabled) (.Values.plugin.features.incidents.enabled) }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -36,7 +36,7 @@ spec:
             - -c
             - |
                 existingPlugins=$(oc get consoles.operator.openshift.io cluster -o json | jq -c '.spec.plugins // []')
-                mergedPlugins=$(jq --argjson existingPlugins "${existingPlugins}" --argjson consolePlugin '["{{ .Values.plugin.acm.name }}"]' -c  -n '$existingPlugins + $consolePlugin | unique')
+                mergedPlugins=$(jq --argjson existingPlugins "${existingPlugins}" --argjson consolePlugin '["{{ .Values.plugin.features.name }}"]' -c  -n '$existingPlugins + $consolePlugin | unique')
                 patchedPlugins=$(jq --argjson mergedPlugins $mergedPlugins -n -c  '{ "spec": { "plugins": $mergedPlugins } }')
                 oc patch consoles.operator.openshift.io cluster --patch $patchedPlugins  --type=merge
 {{- end }}

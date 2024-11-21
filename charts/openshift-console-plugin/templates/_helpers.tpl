@@ -29,16 +29,29 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 Selector labels
 */}}
 {{- define "openshift-console-plugin.selectorLabels" -}}
-{{- if and (.Values.plugin.acm.enabled) }}
-app: {{ .Values.plugin.acm.name }}
-app.kubernetes.io/name: {{ .Values.plugin.acm.name }}
-app.kubernetes.io/part-of: {{ .Values.plugin.acm.name }}
+{{- if or (.Values.plugin.features.acm.enabled) (.Values.plugin.features.incidents.enabled) }}
+app: {{ .Values.plugin.features.name }}
+app.kubernetes.io/name: {{ .Values.plugin.features.name }}
+app.kubernetes.io/part-of: {{ .Values.plugin.features.name }}
 {{- else }}
 app: {{ include "openshift-console-plugin.name" . }}
 app.kubernetes.io/name: {{ include "openshift-console-plugin.name" . }}
 app.kubernetes.io/part-of: {{ include "openshift-console-plugin.name" . }}
 {{- end }}
 app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{/*
+Create the list of the features
+*/}}
+{{- define "openshift-console-plugin.features" -}}
+{{- if and (.Values.plugin.features.acm.enabled) (.Values.plugin.features.incidents.enabled) }}
+{{- printf "%s" "acm-alerting,incidents" }}
+{{- else if .Values.plugin.features.acm.enabled }}
+{{- printf "%s" "acm-alerting" }}
+{{- else if .Values.plugin.features.incidents.enabled }}
+{{- printf "%s" "incidents" }}
+{{- end }}
 {{- end }}
 
 {{/*

@@ -14,7 +14,7 @@ if [[ "$OSTYPE" == "darwin"* ]]
 then
     # due to mac limitation with installing packages inside of dockerfiles, builds of the frontend must be done outside the dockerfile.
     printf "${YELLOW}Enabling ACM plugin-name ${ENDCOLOR}\n"
-    yq -i '.plugin.acm.enabled = true' charts/openshift-console-plugin/values.yaml
+    yq -i '.plugin.features.acm.enabled = true' charts/openshift-console-plugin/values.yaml
 fi
 
 export DOCKER_FILE_NAME=Dockerfile.mcp
@@ -24,6 +24,6 @@ if [[ "$OSTYPE" == "darwin"* ]]
 then
     # rollback changes
     printf "${YELLOW}Disabling ACM features${ENDCOLOR}\n"
-    yq -i '.plugin.acm.enabled = false' charts/openshift-console-plugin/values.yaml
+    yq -i '.plugin.features.acm.enabled = false' charts/openshift-console-plugin/values.yaml
     osascript -e 'display notification "Plugin Deployed" with title "Monitoring Plugin"'
 fi
