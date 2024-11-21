@@ -15,9 +15,12 @@ import (
 	"github.com/openshift/monitoring-plugin/pkg/proxy"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apiserver/pkg/server/dynamiccertificates"
 	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/record"
 )
 
 var log = logrus.WithField("module", "server")
@@ -30,7 +33,6 @@ type Config struct {
 	StaticPath       string
 	ConfigPath       string
 	PluginConfigPath string
-	LogLevel         string
 	AlertmanagerUrl  string
 	ThanosQuerierUrl string
 }
@@ -103,36 +105,44 @@ func Start(cfg *Config) {
 	if tlsEnabled {
 		// Build and run the controller which reloads the certificate and key
 		// files whenever they change.
+		ctx := context.Background()
+
 		certKeyPair, err := dynamiccertificates.NewDynamicServingContentFromFiles("serving-cert", cfg.CertFile, cfg.PrivateKeyFile)
 		if err != nil {
-			logrus.WithError(err).Fatal("unable to create TLS controller")
+			log.WithError(err).Fatal("unable to create TLS controller")
 		}
+
+		if err := certKeyPair.RunOnce(ctx); err != nil {
+			log.WithError(err).Fatal("failed to initialize cert/key content")
+		}
+
+		eventBroadcaster := record.NewBroadcaster()
+		eventBroadcaster.StartLogging(func(format string, args ...interface{}) {
+			log.Infof(format, args...)
+		})
+
 		ctrl := dynamiccertificates.NewDynamicServingCertificateController(
 			tlsConfig,
 			nil,
 			certKeyPair,
 			nil,
-			nil,
+			record.NewEventRecorderAdapter(
+				eventBroadcaster.NewRecorder(scheme.Scheme, v1.EventSource{Component: "monitoring-plugin"}),
+			),
 		)
+		// Configure the server to use the cert/key pair for all client connections.
+		tlsConfig.GetConfigForClient = ctrl.GetConfigForClient
 
-		// Check that the cert and key files are valid.
-		if err := ctrl.RunOnce(); err != nil {
-			logrus.WithError(err).Fatal("invalid certificate/key files")
-		}
+		// Notify cert/key file changes to the controller.
+		certKeyPair.AddListener(ctrl)
 
-		ctx := context.Background()
 		go ctrl.Run(1, ctx.Done())
+		go certKeyPair.Run(ctx, 1)
 	}
 
 	timeout := 30 * time.Second
 	if pluginConfig != nil {
 		timeout = pluginConfig.Timeout
-	}
-
-	logrusLevel, err := logrus.ParseLevel(cfg.LogLevel)
-	if err != nil {
-		logrus.WithError(err).Warn("Invalid log level. Defaulting to 'error'")
-		logrusLevel = logrus.ErrorLevel
 	}
 
 	httpServer := &http.Server{
@@ -143,24 +153,21 @@ func Start(cfg *Config) {
 		WriteTimeout: timeout,
 	}
 
-	if logrusLevel == logrus.TraceLevel {
+	if logrus.GetLevel() == logrus.TraceLevel {
 		loggedRouter := handlers.LoggingHandler(log.Logger.Out, router)
 		httpServer.Handler = loggedRouter
 	}
 
 	if tlsEnabled {
-		log.Infof("listening on https. port: %d", cfg.Port)
-
 		if acmMode {
 			startProxy(cfg, k8sclient, tlsConfig, timeout, proxy.AlertManagerKind, proxy.AlertmanagerPort)
 			startProxy(cfg, k8sclient, tlsConfig, timeout, proxy.ThanosQuerierKind, proxy.ThanosQuerierPort)
 		}
 
-		logrus.SetLevel(logrusLevel)
+		log.Infof("listening for https on %s", httpServer.Addr)
 		panic(httpServer.ListenAndServeTLS(cfg.CertFile, cfg.PrivateKeyFile))
 	} else {
-		log.Infof("listening on http. port: %d", cfg.Port)
-		logrus.SetLevel(logrusLevel)
+		log.Infof("listening for http on %s", httpServer.Addr)
 		panic(httpServer.ListenAndServe())
 	}
 }
@@ -285,7 +292,6 @@ func configHandler(cfg *Config) (http.HandlerFunc, *PluginConfig) {
 }
 
 func startProxy(cfg *Config, k8sclient *dynamic.DynamicClient, tlsConfig *tls.Config, timeout time.Duration, kind proxy.KindType, port proxy.ProxyPort) {
-	log.Infof("%s proxy listening on https. port %d", kind, port)
 	proxyRouter := setupProxyRoutes(cfg, k8sclient, kind)
 	proxyRouter.Use(corsHeaderMiddleware())
 	proxyServer := &http.Server{
@@ -295,6 +301,7 @@ func startProxy(cfg *Config, k8sclient *dynamic.DynamicClient, tlsConfig *tls.Co
 		ReadTimeout:  timeout,
 		WriteTimeout: timeout,
 	}
+	log.Infof("%s proxy listening for https on %s", kind, proxyServer.Addr)
 
 	go func() {
 		panic(proxyServer.ListenAndServeTLS(cfg.CertFile, cfg.PrivateKeyFile))
