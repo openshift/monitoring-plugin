@@ -21,7 +21,7 @@
       },
       "properties": {
         "id": "incidents",
-        "name": "%plugin__monitoring-plugin~Incidents%",
+        "name": "%plugin__monitoring-console-plugin~Incidents%",
         "href": "/monitoring/incidents",
         "perspective": "admin",
         "section": "observe",
