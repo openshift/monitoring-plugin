@@ -4,7 +4,7 @@
   "private": true,
   "repository": "git@github.com:openshift/monitoring-plugin.git",
   "scripts": {
-    "build": "npm run clean && NODE_ENV=production CONSOLE_PLUGIN_SKIP_EXT_VALIDATOR=true npm run ts-node node_modules/.bin/webpack",
+    "build": "npm run clean && NODE_ENV=production npm run ts-node node_modules/.bin/webpack",
     "build:dev": "npm run clean && npm run ts-node node_modules/.bin/webpack",
     "build:standalone": "npm run clean && npm run ts-node node_modules/.bin/webpack --config webpack.standalone.config.ts",
     "clean": "rm -rf dist",
