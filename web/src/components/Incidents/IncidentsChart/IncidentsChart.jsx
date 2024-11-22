@@ -23,6 +23,8 @@ const IncidentsChart = ({ incidentsData, chartDays }) => {
   const [isLoading, setIsLoading] = React.useState(true);
   const [chartData, setChartData] = React.useState();
   const [width, setWidth] = React.useState(0);
+  const [chartContainerHeight, setChartContainerHeight] = React.useState();
+  const [chartHeight, setChartHeight] = React.useState();
   const containerRef = React.useRef(null);
   const handleResize = () => {
     if (containerRef.current && containerRef.current.clientWidth) {
@@ -39,6 +41,11 @@ const IncidentsChart = ({ incidentsData, chartDays }) => {
     setChartData(incidentsData.map((incident) => createIncidentsChartBars(incident)));
   }, [incidentsData]);
   const dateValues = generateDateArray(chartDays);
+
+  React.useEffect(() => {
+    setChartContainerHeight(chartData?.length < 5 ? 250 : chartData?.length * 40);
+    setChartHeight(chartData?.length < 5 ? 200 : chartData?.length * 35);
+  }, [chartData]);
 
   const selectedId = useSelector((state) =>
     state.plugins.monitoring.getIn(['incidentsData', 'incidentGroupId']),
@@ -79,7 +86,7 @@ const IncidentsChart = ({ incidentsData, chartDays }) => {
         ) : (
           <div
             style={{
-              height: '550px',
+              height: { chartContainerHeight },
               width: '100%',
             }}
           >
@@ -107,7 +114,7 @@ const IncidentsChart = ({ incidentsData, chartDays }) => {
               ]}
               legendPosition="bottom-left"
               //this should be always less than the container height
-              height={500}
+              height={chartHeight}
               padding={{
                 bottom: 75, // Adjusted to accommodate legend
                 left: 50,

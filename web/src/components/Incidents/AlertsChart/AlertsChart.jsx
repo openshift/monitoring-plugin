@@ -18,6 +18,8 @@ import { getResizeObserver } from '@patternfly/react-core';
 
 const AlertsChart = ({ alertsData = [], chartDays }) => {
   const [chartData, setChartData] = React.useState([]);
+  const [chartContainerHeight, setChartContainerHeight] = React.useState();
+  const [chartHeight, setChartHeight] = React.useState();
   const dateValues = generateDateArray(chartDays);
   React.useEffect(() => {
     setChartData(alertsData.map((alert) => createAlertsChartBars(alert)));
@@ -36,6 +38,11 @@ const AlertsChart = ({ alertsData = [], chartDays }) => {
     return () => observer();
   }, []);
 
+  React.useEffect(() => {
+    setChartContainerHeight(chartData?.length < 5 ? 250 : chartData?.length * 40);
+    setChartHeight(chartData?.length < 5 ? 200 : chartData?.length * 35);
+  }, [chartData]);
+
   return (
     <Card className="alerts-chart-card">
       <div ref={containerRef}>
@@ -52,7 +59,7 @@ const AlertsChart = ({ alertsData = [], chartDays }) => {
         ) : (
           <div
             style={{
-              height: '450px',
+              height: { chartContainerHeight },
               width: '100%',
             }}
           >
@@ -82,7 +89,7 @@ const AlertsChart = ({ alertsData = [], chartDays }) => {
               ]}
               legendPosition="bottom-left"
               //this should be always less than the container height
-              height={350}
+              height={chartHeight}
               padding={{
                 bottom: 75, // Adjusted to accommodate legend
                 left: 50,
