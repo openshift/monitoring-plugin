@@ -146,5 +146,34 @@
         "$codeRef": "MonitoringUI"
       }
     }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
+      "path": "/monitoring/incidents",
+      "component": { "$codeRef": "IncidentsPage" }
+    }
+  },
+  {
+    "type": "console.navigation/href",
+    "flags": {
+      "required": ["PROMETHEUS", "MONITORING", "CAN_GET_NS"]
+    },
+    "properties": {
+      "id": "incidents",
+      "name": "%plugin__monitoring-plugin~Incidents%",
+      "href": "/monitoring/incidents",
+      "perspective": "admin",
+      "section": "observe",
+      "insertAfter": "targets"
+    }
+  },
+  {
+    "type": "console.redux-reducer",
+    "properties": {
+      "scope": "monitoring",
+      "reducer": { "$codeRef": "MonitoringReducer" }
+    }
   }
 ]
