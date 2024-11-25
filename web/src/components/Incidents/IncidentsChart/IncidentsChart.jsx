@@ -1,14 +1,6 @@
 import * as React from 'react';
 
-import {
-  Chart,
-  ChartAxis,
-  ChartBar,
-  ChartGroup,
-  ChartLabel,
-  ChartTooltip,
-  ChartVoronoiContainer,
-} from '@patternfly/react-charts';
+import { Chart, ChartAxis, ChartBar, ChartGroup, createContainer } from '@patternfly/react-charts';
 import { Bullseye, Card, CardTitle, Spinner } from '@patternfly/react-core';
 import global_danger_color_100 from '@patternfly/react-tokens/dist/esm/global_danger_color_100';
 import global_info_color_100 from '@patternfly/react-tokens/dist/esm/global_info_color_100';
@@ -22,6 +14,12 @@ const IncidentsChart = ({ incidentsData, chartDays }) => {
   const dispatch = useDispatch();
   const [isLoading, setIsLoading] = React.useState(true);
   const [chartData, setChartData] = React.useState();
+  const [chartContainerHeight, setChartContainerHeight] = React.useState();
+  const [chartHeight, setChartHeight] = React.useState();
+  React.useEffect(() => {
+    setChartContainerHeight(chartData?.length < 5 ? 250 : chartData?.length * 40);
+    setChartHeight(chartData?.length < 5 ? 200 : chartData?.length * 35);
+  }, [chartData]);
   const [width, setWidth] = React.useState(0);
   const containerRef = React.useRef(null);
   const handleResize = () => {
@@ -68,6 +66,7 @@ const IncidentsChart = ({ incidentsData, chartDays }) => {
     return datum.fill; // Original fill color if the bar is selected
   }
 
+  const CursorVoronoiContainer = createContainer('voronoi');
   return (
     <Card className="incidents-chart-card">
       <div ref={containerRef}>
@@ -79,16 +78,14 @@ const IncidentsChart = ({ incidentsData, chartDays }) => {
         ) : (
           <div
             style={{
-              height: '550px',
+              height: { chartContainerHeight },
               width: '100%',
             }}
           >
             <Chart
               containerComponent={
-                <ChartVoronoiContainer
-                  labelComponent={
-                    <ChartTooltip constrainToVisibleArea labelComponent={<ChartLabel />} />
-                  }
+                <CursorVoronoiContainer
+                  mouseFollowTooltips
                   labels={({ datum }) =>
                     `Severity: ${datum.name}\nComponent: ${datum.component}\nIncident ID: ${
                       datum.group_id
@@ -107,7 +104,7 @@ const IncidentsChart = ({ incidentsData, chartDays }) => {
               ]}
               legendPosition="bottom-left"
               //this should be always less than the container height
-              height={500}
+              height={chartHeight}
               padding={{
                 bottom: 75, // Adjusted to accommodate legend
                 left: 50,
