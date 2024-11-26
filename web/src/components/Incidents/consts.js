@@ -9,19 +9,28 @@ export const incidentTypeMenuItems = (filters) => [
     value="Long standing"
     isSelected={filters.incidentType.includes('Long standing')}
     description="The incident has been firing for at least 7 days."
-  />,
+    hasCheckbox
+  >
+    Long standing
+  </SelectOption>,
   <SelectOption
     key="informative"
     value="Informative"
     isSelected={filters.incidentType.includes('Informative')}
     description="The incident is not critical."
-  />,
+    hasCheckbox
+  >
+    Informative
+  </SelectOption>,
   <SelectOption
     key="inactive"
     value="Inactive"
     isSelected={filters.incidentType.includes('Inactive')}
     description="The incident is not currently firing."
-  />,
+    hasCheckbox
+  >
+    Inactive
+  </SelectOption>,
 ];
 
 export const daysMenuItems = (filters) => [

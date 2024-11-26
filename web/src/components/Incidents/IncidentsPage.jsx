@@ -14,6 +14,9 @@ import {
   ToolbarContent,
   ToolbarFilter,
   ToolbarItem,
+  MenuToggle,
+  Badge,
+  SelectList,
 } from '@patternfly/react-core';
 import { Helmet } from 'react-helmet';
 import { dropdownItems, incidentTypeMenuItems } from './consts';
@@ -70,8 +73,8 @@ const IncidentsPage = () => {
   const [incidentFilterIsExpanded, setIncidentIsExpanded] = React.useState(false);
   const [daysFilterIsExpanded, setDaysFilterIsExpanded] = React.useState(false);
 
-  const onIncidentFilterToggle = (isExpanded) => {
-    setIncidentIsExpanded(isExpanded);
+  const onIncidentFilterToggle = () => {
+    setIncidentIsExpanded(!incidentFilterIsExpanded);
   };
 
   const incidentsInitialState = useSelector((state) =>
@@ -270,20 +273,31 @@ const IncidentsPage = () => {
                   categoryName="Incident type"
                 >
                   <Select
-                    variant={'checkbox'}
+                    role="menu"
                     aria-label="Incident type"
-                    onToggle={onIncidentFilterToggle}
+                    toggle={(toggleRef) => (
+                      <MenuToggle
+                        ref={toggleRef}
+                        onClick={onIncidentFilterToggle}
+                        isExpanded={incidentFilterIsExpanded}
+                        style={{ width: '350px' }}
+                      >
+                        Incident type
+                        {Object.entries(incidentsActiveFilters.incidentType).length > 0 && (
+                          <Badge isRead>
+                            {Object.entries(incidentsActiveFilters.incidentType).length}
+                          </Badge>
+                        )}
+                      </MenuToggle>
+                    )}
                     onSelect={(event, selection) =>
                       onIncidentTypeSelect(event, selection, dispatch, incidentsActiveFilters)
                     }
-                    selections={incidentsActiveFilters.incidentType}
+                    onOpenChange={(isOpen) => setIncidentIsExpanded(isOpen)}
+                    selected={incidentsActiveFilters.incidentType}
                     isOpen={incidentFilterIsExpanded}
-                    placeholderText="Incident type"
-                    style={{
-                      width: '350px',
-                    }}
                   >
-                    {incidentTypeMenuItems(incidentsActiveFilters)}
+                    <SelectList>{incidentTypeMenuItems(incidentsActiveFilters)}</SelectList>
                   </Select>
                 </ToolbarFilter>
               </ToolbarItem>
