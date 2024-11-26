@@ -280,7 +280,7 @@ const IncidentsPage = () => {
                         ref={toggleRef}
                         onClick={onIncidentFilterToggle}
                         isExpanded={incidentFilterIsExpanded}
-                        style={{ width: '350px' }}
+                        style={{ width: '150px' }}
                       >
                         Incident type
                         {Object.entries(incidentsActiveFilters.incidentType).length > 0 && (
