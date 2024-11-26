@@ -46,7 +46,7 @@ build-backend:
 
 .PHONY: start-backend
 start-backend:
-	go run ./cmd/plugin-backend.go -port='9001' -config-path='./web/dist' -static-path='./web/dist' -plugin-config-path='ct.yaml'
+	go run ./cmd/plugin-backend.go -port='9001' -config-path='./config' -static-path='./web/dist'
 
 .PHONY: build-image
 build-image:
@@ -80,3 +80,12 @@ deploy-acm:
 .PHONY: build-mcp-image
 build-mcp-image:
 	DOCKER_FILE_NAME="Dockerfile.mcp" scripts/build-image.sh
+
+.PHONY: start-feature-console
+start-feature-console:
+	PLUGIN_PORT=9443 ./scripts/start-console.sh
+
+export FEATURES?=incidents,dev-config
+.PHONY: start-feature-backend
+start-feature-backend:
+	go run ./cmd/plugin-backend.go -port='9443' -config-path='./config' -static-path='./web/dist' -features='$(FEATURES)'

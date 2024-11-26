@@ -37,7 +37,12 @@ func patchManifest(baseManifestData []byte, cfg *Config) []byte {
 		return baseManifestData
 	}
 
-	patchedManifest := performPatch(baseManifestData, filepath.Join(cfg.ConfigPath, "clear-extensions.patch.json"))
+	patchedManifest := baseManifestData
+	if !cfg.Features[DevConfig] {
+		// Don't clear the extensions when running in dev mode, so only 1 instance of the monitoring-plugin
+		// can be run as a development environment
+		patchedManifest = performPatch(baseManifestData, filepath.Join(cfg.ConfigPath, "clear-extensions.patch.json"))
+	}
 
 	for feature := range cfg.Features {
 		patchedManifest = performPatch(patchedManifest, filepath.Join(cfg.ConfigPath, fmt.Sprintf("%s.patch.json", feature)))
