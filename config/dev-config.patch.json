@@ -1,0 +1,13 @@
+[
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.redux-reducer",
+      "properties": {
+        "scope": "monitoring",
+        "reducer": { "$codeRef": "MonitoringReducer" }
+      }
+    }
+  }
+]

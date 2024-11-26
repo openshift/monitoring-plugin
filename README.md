@@ -113,7 +113,8 @@ Feature flags are used by the mcp mode to dictate the specific features which ar
 | Feature      | OCP Version |
 |--------------|-------------|
 | acm-alerting | 4.14+       |
-| incidents    |             |
+| incidents    | 4.17+       |
+| dev-config   |             |
 
 #### ACM
 
@@ -128,3 +129,28 @@ Once the code has been updated, make sure to update the helm chart and variables
 ### Redux Store
 
 Since the store for the `monitoring-plugin` is stored in the `openshift/console` codebase and updates to the store that are aren't tied directly to the OCP are needed, when the default extension points are removed due to the presense of a feature flag a duplicate store is created at the `.state.plugins.monitoring` path. A combination of the `useFeatures` hook and the `getObserveState` (which is dependant on the perspective) can be used to retrieve the state from the redux store based on the mode the plugin was deployed in.
+
+### Local Development
+
+```
+# Login to an OpenShift cluster
+$ oc login <clusterAddress> -u <username> -p <password>
+
+# Start podman (or Docker)
+$ podman machine init
+$ podman machine start
+
+# Install dependencies
+$ make install
+
+# Run the application
+$ make start-frontend
+
+# In a separate terminal
+$ make start-feature-backend
+
+# In a separate terminal
+$ make start-feature-console
+```
+
+Features such as `acm-alerting` which take in extra parameters will need to run the `make start-feature-backend` command with the appropriate environment variables, such as `MONITORING_PLUGIN_ALERTMANAGER`.
