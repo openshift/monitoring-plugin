@@ -7,7 +7,7 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { BellIcon, ExclamationCircleIcon, InfoCircleIcon } from '@patternfly/react-icons';
 import ExclamationTriangleIcon from '@patternfly/react-icons/dist/esm/icons/exclamation-triangle-icon';
-import { Bullseye, Icon, Spinner } from '@patternfly/react-core';
+import { Bullseye, Icon, Spinner, Tooltip } from '@patternfly/react-core';
 import { Link } from 'react-router-dom';
 import { AlertResource, getAlertsAndRules } from '../utils';
 import { MonitoringResourceIcon } from '../alerting/AlertUtils';
@@ -24,6 +24,7 @@ import {
   getRuleUrl,
   usePerspective,
 } from '../hooks/usePerspective';
+import { OutlinedQuestionCircleIcon } from '@patternfly/react-icons';
 
 const IncidentsDetailsRowTable = ({ alerts }) => {
   const { perspective } = usePerspective();
@@ -41,17 +42,14 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
 
   function findMatchingAlertsWithId(alertsArray, rulesArray) {
     // Map over alerts and find matching rules
-    return alertsArray
-      .map((alert) => {
-        const match = rulesArray.find((rule) => alert.alertname === rule.name);
+    return alertsArray.map((alert) => {
+      const match = rulesArray.find((rule) => alert.alertname === rule.name);
 
-        if (match) {
-          return { ...alert, rule: match };
-        }
-
-        return null; // No match, return null to filter it out later
-      })
-      .filter((item) => item !== null); // Filter out non-matching (null) entries
+      if (match) {
+        return { ...alert, rule: match };
+      }
+      return alert;
+    });
   }
 
   React.useEffect(() => {
@@ -95,11 +93,27 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
               <Tr key={rowIndex}>
                 <Td dataLabel="expanded-details-alertname">
                   <MonitoringResourceIcon resource={AlertResource} />
-                  <Link to={getAlertUrl(perspective, alertDetails, alertDetails.rule.id)}>
+                  <Link
+                    to={
+                      alertDetails?.rule
+                        ? getAlertUrl(perspective, alertDetails, alertDetails.rule.id)
+                        : '#'
+                    }
+                    style={
+                      !alertDetails?.rule
+                        ? { pointerEvents: 'none', color: 'inherit', textDecoration: 'inherit' }
+                        : {}
+                    }
+                  >
                     {alertDetails.alertname}
                   </Link>
+                  {!alertDetails?.rule && (
+                    <Tooltip content={<div>No details can be shown for inactive alerts.</div>}>
+                      <OutlinedQuestionCircleIcon style={{ marginLeft: '2px' }} />
+                    </Tooltip>
+                  )}
                 </Td>
-                <Td dataLabel="expanded-details-namespace">{alertDetails.namespace}</Td>
+                <Td dataLabel="expanded-details-namespace">{alertDetails.namespace || 'N/A'}</Td>
                 <Td dataLabel="expanded-details-severity">
                   {alertDetails.severity === 'critical' ? (
                     <>
@@ -125,7 +139,7 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
                   )}
                 </Td>
                 <Td dataLabel="expanded-details-alertstate">
-                  {alertDetails.alertstate === 'firing' ? (
+                  {!alertDetails.resolved ? (
                     <>
                       <BellIcon />
                       Firing
@@ -148,16 +162,40 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
                     dropdownItems={[
                       <DropdownItemDeprecated component="button" key="silence">
                         <Link
-                          to={getNewSilenceAlertUrl(perspective, alertDetails)}
-                          style={{ color: 'inherit', textDecoration: 'inherit' }}
+                          to={
+                            alertDetails?.rule
+                              ? getNewSilenceAlertUrl(perspective, alertDetails)
+                              : '#'
+                          }
+                          style={
+                            alertDetails?.rule
+                              ? { color: 'inherit', textDecoration: 'inherit' }
+                              : {
+                                  color: 'inherit',
+                                  textDecoration: 'inherit',
+                                  pointerEvents: 'none',
+                                }
+                          }
                         >
                           {t('Silence alert')}
                         </Link>
                       </DropdownItemDeprecated>,
                       <DropdownItemDeprecated key="view-rule">
                         <Link
-                          to={getRuleUrl(perspective, alertDetails.rule)}
-                          style={{ color: 'inherit', textDecoration: 'inherit' }}
+                          to={alertDetails?.rule ? getRuleUrl(perspective, alertDetails.rule) : '#'}
+                          style={
+                            alertDetails?.rule
+                              ? {
+                                  color: 'inherit',
+                                  textDecoration: 'inherit',
+                                  pointerEvents: 'none',
+                                }
+                              : {
+                                  color: 'inherit',
+                                  textDecoration: 'inherit',
+                                  pointerEvents: 'none',
+                                }
+                          }
                         >
                           {t('View alerting rule')}
                         </Link>

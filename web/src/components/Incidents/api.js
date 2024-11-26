@@ -69,7 +69,7 @@ export const fetchDataForIncidentsAndAlerts = (fetch, range, customQuery, perspe
         endTime: range.endTime,
         namespace: '',
         query: customQuery,
-        samples: 24,
+        samples: 288,
         timespan: range.duration - 1,
       },
       perspective,

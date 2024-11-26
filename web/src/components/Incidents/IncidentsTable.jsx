@@ -10,13 +10,12 @@ import {
   Label,
 } from '@patternfly/react-core';
 import InfoCircleIcon from '@patternfly/react-icons/dist/esm/icons/info-circle-icon';
-import { AlertStateIcon } from '../alerting/AlertUtils';
 import IncidentsDetailsRowTable from './IncidentsDetailsRowTable';
-import { SearchIcon } from '@patternfly/react-icons';
+import { BellIcon, BellSlashIcon, SearchIcon } from '@patternfly/react-icons';
 import { useSelector } from 'react-redux';
 import * as _ from 'lodash-es';
 
-export const IncidentsTable = () => {
+export const IncidentsTable = ({ namespace }) => {
   const columnNames = {
     checkbox: '',
     component: 'Component',
@@ -105,14 +104,21 @@ export const IncidentsTable = () => {
                       )}
                     </Td>
                     <Td dataLabel={columnNames.state}>
-                      <AlertStateIcon state={alert.alertstate} />
+                      {alert.alertstate === 'resolved' ? (
+                        <BellSlashIcon className="text-muted" />
+                      ) : (
+                        <BellIcon />
+                      )}
                     </Td>
                   </Tr>
                   {alert.alertsExpandedRowData && (
                     <Tr isExpanded={isAlertExpanded(alert)}>
                       <Td width={100} colSpan={6}>
                         <ExpandableRowContent>
-                          <IncidentsDetailsRowTable alerts={alert.alertsExpandedRowData} />
+                          <IncidentsDetailsRowTable
+                            alerts={alert.alertsExpandedRowData}
+                            namespace={namespace}
+                          />
                         </ExpandableRowContent>
                       </Td>
                     </Tr>

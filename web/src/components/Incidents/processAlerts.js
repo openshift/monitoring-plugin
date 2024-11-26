@@ -143,6 +143,11 @@ export function processAlerts(data) {
       return [date, value[1]];
     });
 
+    // Calculate alertsEndFiring and resolved status
+    const alertsStartFiring = processedValues[0][0];
+    const alertsEndFiring = processedValues[processedValues.length - 1][0];
+    const resolved = new Date() - alertsEndFiring > 10 * 60 * 1000;
+
     return {
       alertname: alert.metric.alertname,
       namespace: alert.metric.namespace,
@@ -150,10 +155,11 @@ export function processAlerts(data) {
       component: alert.metric.component,
       layer: alert.metric.layer,
       name: alert.metric.name,
-      alertstate: alert.metric.alertstate,
+      alertstate: resolved ? 'resolved' : 'firing',
       values: processedValues,
-      alertsStartFiring: processedValues[0][0],
-      alertsEndFiring: processedValues[processedValues.length - 1][0],
+      alertsStartFiring,
+      alertsEndFiring,
+      resolved,
       x: firing.length - index,
     };
   });
@@ -161,7 +167,7 @@ export function processAlerts(data) {
 
 export const groupAlertsForTable = (alerts) => {
   // group alerts by the component and coun
-  return alerts.reduce((acc, alert) => {
+  const groupedAlerts = alerts.reduce((acc, alert) => {
     const { component, alertstate, severity, layer } = alert;
     const existingGroup = acc.find((group) => group.component === component);
     if (existingGroup) {
@@ -183,4 +189,19 @@ export const groupAlertsForTable = (alerts) => {
 
     return acc;
   }, []);
+  // Update alertstate for each grouped component
+  groupedAlerts.forEach((group) => {
+    const hasFiring = group.alertsExpandedRowData.some((alert) => alert.alertstate === 'firing');
+    const allResolved = group.alertsExpandedRowData.every(
+      (alert) => alert.alertstate === 'resolved',
+    );
+
+    if (hasFiring) {
+      group.alertstate = 'firing';
+    } else if (allResolved) {
+      group.alertstate = 'resolved';
+    }
+  });
+
+  return groupedAlerts;
 };
