@@ -27,8 +27,8 @@
  * // Returns an array where the two alerts are grouped together with deduplicated values.
  */
 export function groupAlerts(objects) {
-  // Step 1: Filter out objects with alertstate 'pending'
-  const filteredObjects = objects.filter((obj) => obj.metric.alertstate !== 'pending');
+  // Step 1: Filter out all non firing alerts
+  const filteredObjects = objects.filter((obj) => obj.metric.alertstate === 'firing');
   const groupedObjects = new Map();
   // Group by 3 values to make sure were not losing data'component'
   for (const obj of filteredObjects) {
