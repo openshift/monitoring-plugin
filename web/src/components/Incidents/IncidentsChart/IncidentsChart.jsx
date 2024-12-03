@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import * as React from 'react';
 
 import { Chart, ChartAxis, ChartBar, ChartGroup, createContainer } from '@patternfly/react-charts';
@@ -87,7 +88,7 @@ const IncidentsChart = ({ incidentsData, chartDays }) => {
                 <CursorVoronoiContainer
                   mouseFollowTooltips
                   labels={({ datum }) =>
-                    `Severity: ${datum.name}\nComponent: ${datum.component}\nIncident ID: ${
+                    `Severity: ${datum.name}\nComponent: ${datum.componentList?.join(", ")}\nIncident ID: ${
                       datum.group_id
                     }\nStart: ${formatDate(new Date(datum.y0), true)}\nEnd: ${formatDate(
                       new Date(datum.y),
