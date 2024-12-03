@@ -30,7 +30,8 @@ export function groupAlerts(objects) {
   const groupedObjects = new Map();
   // Group by 3 values to make sure were not losing data'component'
   for (const obj of objects) {
-    const key = obj.metric.alertname + obj.metric.namespace + obj.metric.component;
+    const key =
+      obj.metric.alertname + obj.metric.namespace + obj.metric.component + obj.metric.severity;
 
     // If the key already exists in the map, merge the values after deduplication
     if (groupedObjects.has(key)) {
