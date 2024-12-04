@@ -1,9 +1,4 @@
 /* eslint-disable max-len */
-const currentDate = new Date(); // Get the current date and time in UTC
-const currentDay = currentDate.getUTCDate();
-const currentMonth = currentDate.getUTCMonth();
-const currentYear = currentDate.getUTCFullYear();
-const currentHour = currentDate.getUTCHours();
 
 interface Metric {
   src_alertname: string;
@@ -62,17 +57,15 @@ export function processIncidents(data: Incident[]): ProcessedIncident[] {
 
     const firstDate = incident.values[0][0];
     const lastDate = incident.values[incident.values.length - 1][0];
-    const dayDifference = (lastDate - firstDate) / (1000 * 60 * 60 * 24);
+    const currentDate = new Date(); // Current timestamp in milliseconds
 
-    const hasMatchingDayAndHour = incident.values.some((v) => {
-      const valueDate = new Date(v[0] * 1000);
-      return (
-        valueDate.getUTCDate() === currentDay &&
-        valueDate.getUTCMonth() === currentMonth &&
-        valueDate.getUTCFullYear() === currentYear &&
-        valueDate.getUTCHours() === currentHour
-      );
-    });
+    // Calculate the time difference in milliseconds
+    const timeDifference = currentDate.valueOf() - lastDate * 1000;
+    const inactive = timeDifference < 10 * 60 * 1000;
+    const dayDifference = (lastDate - firstDate) / (60 * 60 * 24);
+
+    // Set longStanding to true if the difference is 7 or more days
+    const longStanding = dayDifference >= 7;
 
     const srcProperties = getSrcProperties(incident.metric);
     return {
@@ -82,8 +75,8 @@ export function processIncidents(data: Incident[]): ProcessedIncident[] {
       values: processedValues,
       x: incidents.length - index,
       informative: incident.metric.src_severity === 'info',
-      longStanding: dayDifference < 7,
-      inactive: !hasMatchingDayAndHour,
+      longStanding: longStanding,
+      inactive: inactive,
       ...srcProperties,
     } as ProcessedIncident;
   });
