@@ -22,20 +22,20 @@ import {
   Alert,
   Button,
   Checkbox,
+  Dropdown,
+  DropdownItem,
+  DropdownList,
   EmptyState,
   EmptyStateBody,
   EmptyStateIcon,
   EmptyStateVariant,
+  MenuToggle,
+  MenuToggleElement,
   InputGroup,
   TextInput,
   Title,
+  InputGroupItem,
 } from '@patternfly/react-core';
-import {
-  Dropdown as DropdownDeprecated,
-  DropdownItem as DropdownItemDeprecated,
-  DropdownPosition as DropdownPositionDeprecated,
-  DropdownToggle as DropdownToggleDeprecated,
-} from '@patternfly/react-core/deprecated';
 import { ChartLineIcon } from '@patternfly/react-icons';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -137,35 +137,45 @@ const SpanControls: React.FC<SpanControlsProps> = React.memo(
     };
 
     const dropdownItems = spans.map((s) => (
-      <DropdownItemDeprecated
+      <DropdownItem
         className="query-browser__span-dropdown-item"
         key={s}
         onClick={() => setSpan(s, true)}
       >
         {s}
-      </DropdownItemDeprecated>
+      </DropdownItem>
     ));
 
     return (
       <>
         <InputGroup className="query-browser__span">
-          <TextInput
-            aria-label={t('graph timespan')}
-            className="query-browser__span-text"
-            validated={isValid ? 'default' : 'error'}
-            onChange={(_e, v) => (typeof _e === 'string' ? setSpan(_e, true) : setSpan(v, true))}
-            type="text"
-            value={text}
-          />
-          <DropdownDeprecated
-            dropdownItems={dropdownItems}
-            isOpen={isOpen}
-            onSelect={setClosed}
-            position={DropdownPositionDeprecated.right}
-            toggle={
-              <DropdownToggleDeprecated aria-label={t('graph timespan')} onToggle={setIsOpen} />
-            }
-          />
+          <InputGroupItem isFill>
+            <TextInput
+              aria-label={t('graph timespan')}
+              className="query-browser__span-text"
+              validated={isValid ? 'default' : 'error'}
+              onChange={(_event, v) => setSpan(v, true)}
+              type="text"
+              value={text}
+            />
+          </InputGroupItem>
+          <InputGroupItem>
+            <Dropdown
+              isOpen={isOpen}
+              onSelect={setClosed}
+              toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+                <MenuToggle
+                  ref={toggleRef}
+                  onClick={setIsOpen}
+                  isExpanded={isOpen}
+                  aria-label={t('public~graph timespan')}
+                />
+              )}
+              popperProps={{ position: 'right' }}
+            >
+              <DropdownList>{dropdownItems}</DropdownList>
+            </Dropdown>
+          </InputGroupItem>
         </InputGroup>
         <Button
           className="query-browser__inline-control"
