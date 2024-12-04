@@ -29,19 +29,14 @@ interface ProcessedIncident {
   layerList?: string[];
   values: Array<[Date, string]>;
   x: number;
+  persistent: boolean;
+  recent: boolean;
   informative: boolean;
-  longStanding: boolean;
-  inactive: boolean;
+  critical: string;
+  warning: string;
+  resolved: boolean;
+  firing: boolean;
 }
-
-/**
- * Processes an array of incident data by filtering and transforming it into a structured format.
- * Removes "Watchdog" alerts, deduplicates entries by `group_id`, and calculates properties
- * such as `longStanding`, `informative`, and `inactive` based on the data.
- *
- * @param data - Array of incident objects to process, each containing metric details and values.
- * @returns Array of processed incident objects, each containing details and properties calculated from the data.
- */
 
 export function processIncidents(data: Incident[]): ProcessedIncident[] {
   const incidents = groupById(data).filter(
@@ -61,11 +56,13 @@ export function processIncidents(data: Incident[]): ProcessedIncident[] {
 
     // Calculate the time difference in milliseconds
     const timeDifference = currentDate.valueOf() - lastDate * 1000;
-    const inactive = timeDifference < 10 * 60 * 1000;
+    const resolved = timeDifference < 10 * 60 * 1000;
+    const firing = timeDifference > 10 * 60 * 1000;
     const dayDifference = (lastDate - firstDate) / (60 * 60 * 24);
 
-    // Set longStanding to true if the difference is 7 or more days
-    const longStanding = dayDifference >= 7;
+    // Set persistent to true if the difference is 7 or more days
+    const persistent = dayDifference >= 7;
+    const recent = dayDifference < 7;
 
     const srcProperties = getSrcProperties(incident.metric);
     return {
@@ -74,11 +71,15 @@ export function processIncidents(data: Incident[]): ProcessedIncident[] {
       layer: incident.metric.layer,
       values: processedValues,
       x: incidents.length - index,
+      critical: incident.metric.src_severity === 'critical',
+      warning: incident.metric.src_severity === 'warning',
       informative: incident.metric.src_severity === 'info',
-      longStanding: longStanding,
-      inactive: inactive,
+      persistent: persistent,
+      recent: recent,
+      resolved: resolved,
+      firing: firing,
       ...srcProperties,
-    } as ProcessedIncident;
+    } as unknown as ProcessedIncident;
   });
 }
 

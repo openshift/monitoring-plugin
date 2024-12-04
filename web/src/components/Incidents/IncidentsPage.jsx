@@ -19,7 +19,7 @@ import {
   SelectList,
 } from '@patternfly/react-core';
 import { Helmet } from 'react-helmet';
-import { dropdownItems, incidentTypeMenuItems } from './consts';
+import { dropdownItems, incidentFiltersMenuItems } from './consts';
 import { IncidentsTable } from './IncidentsTable';
 import {
   getIncidentsTimeRanges,
@@ -30,7 +30,7 @@ import {
   filterIncident,
   onDeleteGroupIncidentFilterChip,
   onDeleteIncidentFilterChip,
-  onIncidentTypeSelect,
+  onIncidentFiltersSelect,
   parseUrlParams,
   updateBrowserUrl,
 } from './utils';
@@ -39,7 +39,7 @@ import {
   DropdownToggle as DropdownToggleDeprecated,
   Dropdown as DropdownDeprecated,
 } from '@patternfly/react-core/deprecated';
-import { CompressArrowsAltIcon, CompressIcon } from '@patternfly/react-icons';
+import { CompressArrowsAltIcon, CompressIcon, FilterIcon } from '@patternfly/react-icons';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   setAlertsAreLoading,
@@ -64,7 +64,7 @@ const IncidentsPage = () => {
   // fetch incidents/alerts based on the length of time ranges
   // when days filter changes we set a new days span -> calculate new time range and fetch new data
   const [daysSpan, setDaysSpan] = React.useState();
-  // data that is filtered by the incidentType filter
+  // data that is filtered by the incidents filters
   const [filteredData, setFilteredData] = React.useState([]);
   // data that is used for processing to serve it to the alerts table and chart
   const [incidentForAlertProcessing, setIncidentForAlertProcessing] = React.useState([]);
@@ -100,6 +100,8 @@ const IncidentsPage = () => {
   const alertsAreLoading = useSelector((state) =>
     state.plugins.monitoring.getIn(['incidentsData', 'alertsAreLoading']),
   );
+
+  console.log(incidentsActiveFilters, 'incidentsActiveFilters')
   React.useEffect(() => {
     const hasUrlParams = Object.keys(urlParams).length > 0;
 
@@ -132,7 +134,7 @@ const IncidentsPage = () => {
 
   React.useEffect(() => {
     setFilteredData(filterIncident(incidentsActiveFilters, incidents));
-  }, [incidentsActiveFilters.incidentType]);
+  }, [incidentsActiveFilters.incidentFilters]);
 
   const now = Date.now();
   const timeRanges = getIncidentsTimeRanges(daysSpan, now);
@@ -263,41 +265,40 @@ const IncidentsPage = () => {
             <ToolbarContent>
               <ToolbarItem>
                 <ToolbarFilter
-                  chips={incidentsActiveFilters.incidentType}
+                  chips={incidentsActiveFilters.incidentFilters}
                   deleteChip={(category, chip) =>
                     onDeleteIncidentFilterChip(category, chip, incidentsActiveFilters, dispatch)
                   }
                   deleteChipGroup={(category) =>
                     onDeleteGroupIncidentFilterChip(category, incidentsActiveFilters, dispatch)
                   }
-                  categoryName="Incident type"
+                  categoryName="Filters"
                 >
                   <Select
                     role="menu"
-                    aria-label="Incident type"
+                    aria-label="Filters"
                     toggle={(toggleRef) => (
                       <MenuToggle
                         ref={toggleRef}
                         onClick={onIncidentFilterToggle}
                         isExpanded={incidentFilterIsExpanded}
-                        style={{ width: '150px' }}
                       >
-                        Incident type
-                        {Object.entries(incidentsActiveFilters.incidentType).length > 0 && (
+                        <FilterIcon /> Filters
+                        {Object.entries(incidentsActiveFilters.incidentFilters).length > 0 && (
                           <Badge isRead>
-                            {Object.entries(incidentsActiveFilters.incidentType).length}
+                            {Object.entries(incidentsActiveFilters.incidentFilters).length}
                           </Badge>
                         )}
                       </MenuToggle>
                     )}
                     onSelect={(event, selection) =>
-                      onIncidentTypeSelect(event, selection, dispatch, incidentsActiveFilters)
+                      onIncidentFiltersSelect(event, selection, dispatch, incidentsActiveFilters)
                     }
                     onOpenChange={(isOpen) => setIncidentIsExpanded(isOpen)}
-                    selected={incidentsActiveFilters.incidentType}
+                    selected={incidentsActiveFilters.incidentFilters}
                     isOpen={incidentFilterIsExpanded}
                   >
-                    <SelectList>{incidentTypeMenuItems(incidentsActiveFilters)}</SelectList>
+                    <SelectList>{incidentFiltersMenuItems(incidentsActiveFilters)}</SelectList>
                   </Select>
                 </ToolbarFilter>
               </ToolbarItem>
