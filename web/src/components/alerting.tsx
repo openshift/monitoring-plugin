@@ -19,12 +19,12 @@ import {
   BreadcrumbItem,
   CodeBlock,
   CodeBlockCode,
+  DropdownItem,
   Toolbar,
   ToolbarContent,
   ToolbarGroup,
   ToolbarItem,
 } from '@patternfly/react-core';
-import { DropdownItem as DropdownItemDeprecated } from '@patternfly/react-core/deprecated';
 import { sortable } from '@patternfly/react-table';
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
@@ -175,13 +175,13 @@ const ActiveAlerts_: React.FC<ActiveAlertsProps> = ({ alerts, history, namespace
               <div className="dropdown-kebab-pf">
                 <KebabDropdown
                   dropdownItems={[
-                    <DropdownItemDeprecated
+                    <DropdownItem
                       component="button"
                       key="silence"
                       onClick={() => history.push(getNewSilenceAlertUrl(perspective, a))}
                     >
                       {t('Silence alert')}
-                    </DropdownItemDeprecated>,
+                    </DropdownItem>,
                   ]}
                 />
               </div>

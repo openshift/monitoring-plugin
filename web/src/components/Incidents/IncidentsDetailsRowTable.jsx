@@ -7,7 +7,7 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { BellIcon, ExclamationCircleIcon, InfoCircleIcon } from '@patternfly/react-icons';
 import ExclamationTriangleIcon from '@patternfly/react-icons/dist/esm/icons/exclamation-triangle-icon';
-import { Bullseye, Icon, Spinner, Tooltip } from '@patternfly/react-core';
+import { Bullseye, DropdownItem, Icon, Spinner, Tooltip } from '@patternfly/react-core';
 import { Link } from 'react-router-dom';
 import { AlertResource, getAlertsAndRules } from '../utils';
 import { MonitoringResourceIcon } from '../alerting/AlertUtils';
@@ -16,7 +16,6 @@ import { isAlertingRulesSource } from '../console/extensions/alerts';
 import { getPrometheusURL } from '../console/graphs/helpers';
 import { fetchAlerts } from '../fetch-alerts';
 import KebabDropdown from '../kebab-dropdown';
-import { DropdownItem as DropdownItemDeprecated } from '@patternfly/react-core/deprecated';
 import { useTranslation } from 'react-i18next';
 import {
   getAlertUrl,
@@ -160,7 +159,7 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
                 <Td>
                   <KebabDropdown
                     dropdownItems={[
-                      <DropdownItemDeprecated component="button" key="silence">
+                      <DropdownItem component="button" key="silence">
                         <Link
                           to={
                             alertDetails?.rule
@@ -179,8 +178,8 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
                         >
                           {t('Silence alert')}
                         </Link>
-                      </DropdownItemDeprecated>,
-                      <DropdownItemDeprecated key="view-rule">
+                      </DropdownItem>,
+                      <DropdownItem key="view-rule">
                         <Link
                           to={alertDetails?.rule ? getRuleUrl(perspective, alertDetails.rule) : '#'}
                           style={
@@ -199,7 +198,7 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
                         >
                           {t('View alerting rule')}
                         </Link>
-                      </DropdownItemDeprecated>,
+                      </DropdownItem>,
                     ]}
                   />
                 </Td>
