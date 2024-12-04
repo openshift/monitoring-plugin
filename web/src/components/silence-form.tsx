@@ -6,21 +6,21 @@ import {
   useActiveNamespace,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
-  Alert,
   ActionGroup,
+  Alert,
   Button,
   HelperText,
   HelperTextItem,
+  MenuToggle,
+  MenuToggleElement,
+  Select,
+  SelectList,
+  SelectOption,
   TextArea,
   TextInput,
   Title,
   Tooltip,
 } from '@patternfly/react-core';
-import {
-  Dropdown as DropdownDeprecated,
-  DropdownItem as DropdownItemDeprecated,
-  DropdownToggle as DropdownToggleDeprecated,
-} from '@patternfly/react-core/deprecated';
 import { MinusCircleIcon, PlusCircleIcon } from '@patternfly/react-icons';
 import * as React from 'react';
 import { Helmet } from 'react-helmet';
@@ -247,10 +247,10 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
       });
   };
 
-  const dropdownItems = _.map(durations, (displayText, key) => (
-    <DropdownItemDeprecated key={key} onClick={() => setDuration(key)}>
+  const selectOptions = _.map(durations, (displayText, key) => (
+    <SelectOption key={key} value={key}>
       {displayText}
-    </DropdownItemDeprecated>
+    </SelectOption>
   ));
 
   return (
@@ -290,18 +290,28 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
               </div>
               <div className="form-group col-sm-4 col-md-2">
                 <label>{t('For...')}</label>
-                <DropdownDeprecated
-                  className="dropdown--full-width"
+                <Select
                   data-test="silence-for"
-                  dropdownItems={dropdownItems}
                   isOpen={isOpen}
-                  onSelect={setClosed}
-                  toggle={
-                    <DropdownToggleDeprecated data-test="silence-for-toggle" onToggle={setIsOpen}>
+                  onSelect={(event: React.MouseEvent | React.ChangeEvent, value: string) => {
+                    setDuration(value);
+                    setClosed();
+                  }}
+                  toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+                    <MenuToggle
+                      ref={toggleRef}
+                      onClick={setIsOpen}
+                      isExpanded={isOpen}
+                      isFullWidth
+                      data-test="silence-for-toggle"
+                    >
                       {duration}
-                    </DropdownToggleDeprecated>
-                  }
-                />
+                    </MenuToggle>
+                  )}
+                  onOpenChange={setIsOpen}
+                >
+                  <SelectList>{selectOptions}</SelectList>
+                </Select>
               </div>
               <div className="form-group col-sm-4 col-md-5">
                 <label>{t('Until...')}</label>
