@@ -115,7 +115,7 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
                     </Tooltip>
                   )}
                 </Td>
-                <Td dataLabel="expanded-details-namespace">{alertDetails.namespace || 'N/A'}</Td>
+                <Td dataLabel="expanded-details-namespace">{alertDetails.namespace || '---'}</Td>
                 <Td dataLabel="expanded-details-severity">
                   {alertDetails.severity === 'critical' ? (
                     <>
@@ -157,7 +157,9 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
                   {formatDateInExpandedDetails(alertDetails.alertsStartFiring)}
                 </Td>
                 <Td dataLabel="expanded-details-firingend">
-                  {formatDateInExpandedDetails(alertDetails.alertsEndFiring)}
+                  {!alertDetails.resolved
+                    ? '---'
+                    : formatDateInExpandedDetails(alertDetails.alertsEndFiring)}
                 </Td>
                 <Td>
                   <KebabDropdown
