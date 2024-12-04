@@ -25,8 +25,10 @@ import {
   usePerspective,
 } from '../hooks/usePerspective';
 import { OutlinedQuestionCircleIcon } from '@patternfly/react-icons';
+import { useActiveNamespace } from '../console/console-shared/hooks/useActiveNamespace';
 
 const IncidentsDetailsRowTable = ({ alerts }) => {
+  const namespace = useActiveNamespace();
   const { perspective } = usePerspective();
   const [alertsWithMatchedData, setAlertsWithMatchedData] = React.useState([]);
   const [customExtensions] = useResolvedExtensions(isAlertingRulesSource);
@@ -96,7 +98,7 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
                   <Link
                     to={
                       alertDetails?.rule
-                        ? getAlertUrl(perspective, alertDetails, alertDetails.rule.id)
+                        ? getAlertUrl(perspective, alertDetails, alertDetails.rule.id, namespace)
                         : '#'
                     }
                     style={
@@ -120,21 +122,21 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
                       <Icon status="danger">
                         <ExclamationCircleIcon />
                       </Icon>
-                      Critical
+                      <snap style={{ marginLeft: '2px' }}>Critical</snap>
                     </>
                   ) : alertDetails.severity === 'warning' ? (
                     <>
                       <Icon status="warning">
                         <ExclamationTriangleIcon />
                       </Icon>
-                      Warning
+                      <snap style={{ marginLeft: '2px' }}>Warning</snap>
                     </>
                   ) : (
                     <>
                       <Icon status="info">
                         <InfoCircleIcon />
                       </Icon>
-                      Info
+                      <snap style={{ marginLeft: '2px' }}>Info</snap>
                     </>
                   )}
                 </Td>
@@ -142,12 +144,12 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
                   {!alertDetails.resolved ? (
                     <>
                       <BellIcon />
-                      Firing
+                      <snap style={{ marginLeft: '2px' }}>Firing</snap>
                     </>
                   ) : (
                     <>
                       <GreenCheckCircleIcon />
-                      Resolved
+                      <snap style={{ marginLeft: '2px' }}>Resolved</snap>
                     </>
                   )}
                 </Td>
@@ -160,42 +162,22 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
                 <Td>
                   <KebabDropdown
                     dropdownItems={[
-                      <DropdownItemDeprecated component="button" key="silence">
+                      <DropdownItemDeprecated
+                        component="button"
+                        key="silence"
+                        isDisabled={!alertDetails?.rule}
+                      >
                         <Link
-                          to={
-                            alertDetails?.rule
-                              ? getNewSilenceAlertUrl(perspective, alertDetails)
-                              : '#'
-                          }
-                          style={
-                            alertDetails?.rule
-                              ? { color: 'inherit', textDecoration: 'inherit' }
-                              : {
-                                  color: 'inherit',
-                                  textDecoration: 'inherit',
-                                  pointerEvents: 'none',
-                                }
-                          }
+                          to={getNewSilenceAlertUrl(perspective, alertDetails)}
+                          style={{ color: 'inherit', textDecoration: 'inherit' }}
                         >
                           {t('Silence alert')}
                         </Link>
                       </DropdownItemDeprecated>,
-                      <DropdownItemDeprecated key="view-rule">
+                      <DropdownItemDeprecated key="view-rule" isDisabled={!alertDetails?.rule}>
                         <Link
-                          to={alertDetails?.rule ? getRuleUrl(perspective, alertDetails.rule) : '#'}
-                          style={
-                            alertDetails?.rule
-                              ? {
-                                  color: 'inherit',
-                                  textDecoration: 'inherit',
-                                  pointerEvents: 'none',
-                                }
-                              : {
-                                  color: 'inherit',
-                                  textDecoration: 'inherit',
-                                  pointerEvents: 'none',
-                                }
-                          }
+                          to={getRuleUrl(perspective, alertDetails.rule)}
+                          style={{ color: 'inherit', textDecoration: 'inherit' }}
                         >
                           {t('View alerting rule')}
                         </Link>
