@@ -177,30 +177,21 @@ export function generateDateArray(days) {
 }
 
 /**
- * Filters an array of incidents based on the provided filter conditions.
+ * Filters incidents based on the specified filters.
  *
- * @param {Object} filters - The filters object containing filter criteria.
- * @param {Array<string>} filters.days - Array of day filters (currently unused in this function).
- * @param {Array<string>} filters.incidentFilters - Array of incident types to filter by, e.g. ["Informative", "Long standing", "Inactive"].
+ * @param {Object} filters - An object containing filter criteria.
+ * @param {string[]} filters.incidentFilters - An array of strings representing filter conditions such as "Persistent", "Recent", "Critical", etc.
+ * @param {Array<Object>} incidents - An array of incidents to be filtered.
+ * @returns {Array<Object>} A filtered array of incidents that match at least one of the specified filters.
  *
- * @param {Array<Object>} incidents - Array of incident objects to be filtered. Each object represents an incident and includes properties like "informative", "longStanding", and "inactive".
+ * The `conditions` object maps filter keys to incident properties. If no filters are applied, all incidents are returned.
+ * Filters are case-sensitive and must match the keys defined in the `conditions` object.
  *
- * @returns {Array<Object>} - The filtered array of incident objects. If no incidentFilters filters are provided, all incidents are returned.
- *
- * @example
- * const filters = {
- *   days: ['7 days'],
- *   incidentFilters: ['Informative', 'Long standing'],
- * };
- *
- * const incidents = [
- *   { informative: true, longStanding: false, inactive: true },
- *   { informative: false, longStanding: true, inactive: false },
- * ];
- *
- * const result = filterIncident(filters, incidents);
- * console.log(result);
- * // Output: [{ informative: true, longStanding: false, inactive: true }]
+ * Example usage:
+ * ```javascript
+ * const filters = { incidentFilters: ["Critical", "Firing"] };
+ * const filteredIncidents = filterIncident(filters, incidents);
+ * ```
  */
 export function filterIncident(filters, incidents) {
   const conditions = {

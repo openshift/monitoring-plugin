@@ -101,7 +101,6 @@ const IncidentsPage = () => {
     state.plugins.monitoring.getIn(['incidentsData', 'alertsAreLoading']),
   );
 
-  console.log(incidentsActiveFilters, 'incidentsActiveFilters')
   React.useEffect(() => {
     const hasUrlParams = Object.keys(urlParams).length > 0;
 
