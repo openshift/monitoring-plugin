@@ -26,6 +26,7 @@ import {
 } from '../hooks/usePerspective';
 import { OutlinedQuestionCircleIcon } from '@patternfly/react-icons';
 import { useActiveNamespace } from '../console/console-shared/hooks/useActiveNamespace';
+import './incidents-styles.css';
 
 const IncidentsDetailsRowTable = ({ alerts }) => {
   const namespace = useActiveNamespace();
@@ -111,7 +112,7 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
                   </Link>
                   {!alertDetails?.rule && (
                     <Tooltip content={<div>No details can be shown for inactive alerts.</div>}>
-                      <OutlinedQuestionCircleIcon style={{ marginLeft: '2px' }} />
+                      <OutlinedQuestionCircleIcon className="expanded-details-text-margin" />
                     </Tooltip>
                   )}
                 </Td>
@@ -122,21 +123,21 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
                       <Icon status="danger">
                         <ExclamationCircleIcon />
                       </Icon>
-                      <snap style={{ marginLeft: '2px' }}>Critical</snap>
+                      <span className="expanded-details-text-margin">Critical</span>
                     </>
                   ) : alertDetails.severity === 'warning' ? (
                     <>
                       <Icon status="warning">
                         <ExclamationTriangleIcon />
                       </Icon>
-                      <snap style={{ marginLeft: '2px' }}>Warning</snap>
+                      <span className="expanded-details-text-margin">Warning</span>
                     </>
                   ) : (
                     <>
                       <Icon status="info">
                         <InfoCircleIcon />
                       </Icon>
-                      <snap style={{ marginLeft: '2px' }}>Info</snap>
+                      <span className="expanded-details-text-margin">Info</span>
                     </>
                   )}
                 </Td>
@@ -144,12 +145,12 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
                   {!alertDetails.resolved ? (
                     <>
                       <BellIcon />
-                      <snap style={{ marginLeft: '2px' }}>Firing</snap>
+                      <span className="expanded-details-text-margin">Firing</span>
                     </>
                   ) : (
                     <>
                       <GreenCheckCircleIcon />
-                      <snap style={{ marginLeft: '2px' }}>Resolved</snap>
+                      <span className="expanded-details-text-margin">Resolved</span>
                     </>
                   )}
                 </Td>
