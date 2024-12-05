@@ -50,21 +50,23 @@ export function processIncidents(data: Incident[]): ProcessedIncident[] {
       return [date, value[1]] as [Date, string];
     });
 
-    const firstDate = incident.values[0][0];
-    const lastDate = incident.values[incident.values.length - 1][0];
-    const currentDate = new Date(); // Current timestamp in milliseconds
+    const timestamps = incident.values.map((value) => value[0]); // Extract timestamps
+    const lastTimestamp = Math.max(...timestamps); // Last timestamp in seconds
+    const firstTimestamp = Math.min(...timestamps); // First timestamp in seconds
+    const currentDate = new Date();
+    const currentTimestamp = Math.floor(currentDate.valueOf() / 1000); // Current time in seconds
 
-    // Calculate the time difference in milliseconds
-    const timeDifference = currentDate.valueOf() - lastDate * 1000;
-    const resolved = timeDifference < 10 * 60 * 1000;
-    const firing = timeDifference > 10 * 60 * 1000;
-    const dayDifference = (lastDate - firstDate) / (60 * 60 * 24);
+    // Firing and resolved logic
+    const firing = currentTimestamp - lastTimestamp <= 10 * 60;
+    const resolved = !firing;
 
-    // Set persistent to true if the difference is 7 or more days
-    const persistent = dayDifference >= 7;
-    const recent = dayDifference < 7;
+    // Persistent and recent logic based on the first occurrence
+    const daysSinceFirstOccurrence = (currentTimestamp - firstTimestamp) / (60 * 60 * 24);
+    const persistent = daysSinceFirstOccurrence >= 7;
+    const recent = daysSinceFirstOccurrence < 7;
 
     const srcProperties = getSrcProperties(incident.metric);
+
     return {
       component: incident.metric.component,
       group_id: incident.metric.group_id,

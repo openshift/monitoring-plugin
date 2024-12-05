@@ -204,13 +204,13 @@ export function generateDateArray(days) {
  */
 export function filterIncident(filters, incidents) {
   const conditions = {
-    Persistent: 'persistent',
-    Recent: 'recent',
-    Critical: 'critical',
-    Warning: 'warning',
-    Informative: 'informative',
-    Firing: 'firing',
-    Resolved: 'resolved',
+    Persistent: 'Persistent',
+    Recent: 'Recent',
+    Critical: 'Critical',
+    Warning: 'Warning',
+    Informative: 'Informative',
+    Firing: 'Firing',
+    Resolved: 'Resolved',
   };
 
   return incidents.filter((incident) => {
@@ -222,7 +222,7 @@ export function filterIncident(filters, incidents) {
     // Check if at least one filter passes for the incident
     return filters.incidentFilters.some((key) => {
       const conditionKey = conditions[key]; // Match the key exactly as in conditions
-      return incident[conditionKey] === true;
+      return incident[conditionKey.toLowerCase()] === true;
     });
   });
 }
@@ -262,7 +262,7 @@ export const onDeleteIncidentFilterChip = (type, id, filters, setFilters) => {
     setFilters(
       setIncidentsActiveFilters({
         incidentsActiveFilters: {
-          incidentFilters: [],
+          incidentFilters: ['Recent', 'Critical', 'Warning', 'Firing'],
           days: ['7 days'],
         },
       }),
@@ -325,14 +325,10 @@ export const changeDaysFilter = (days, dispatch, filters) => {
 };
 
 export const onIncidentFiltersSelect = (event, selection, dispatch, incidentsActiveFilters) => {
-  console.log(event, 'event')
-  console.log(selection, 'selection')
   onSelect('incidentFilters', event, selection, dispatch, incidentsActiveFilters);
 };
 
 const onSelect = (type, event, selection, dispatch, incidentsActiveFilters) => {
-  console.log(type, 'type')
-  console.log(selection, 'selection')
   const checked = event.target.checked;
 
   dispatch((dispatch) => {
