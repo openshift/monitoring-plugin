@@ -99,6 +99,14 @@
     }
   },
   {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
+      "path": ["/dev-monitoring/ns/:ns/rules/:id"],
+      "component": { "$codeRef": "MonitoringUI" }
+    }
+  },
+  {
     "type": "console.tab",
     "properties": {
       "contextId": "dev-console-observe",
