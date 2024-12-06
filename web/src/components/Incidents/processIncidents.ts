@@ -24,19 +24,14 @@ interface ProcessedIncident {
   layer: string;
   values: Array<[Date, string]>;
   x: number;
+  persistent: boolean;
+  recent: boolean;
   informative: boolean;
-  longStanding: boolean;
-  inactive: boolean;
+  critical: string;
+  warning: string;
+  resolved: boolean;
+  firing: boolean;
 }
-
-/**
- * Processes an array of incident data by filtering and transforming it into a structured format.
- * Removes "Watchdog" alerts, deduplicates entries by `group_id`, and calculates properties
- * such as `longStanding`, `informative`, and `inactive` based on the data.
- *
- * @param data - Array of incident objects to process, each containing metric details and values.
- * @returns Array of processed incident objects, each containing details and properties calculated from the data.
- */
 
 export function processIncidents(data: Incident[]): ProcessedIncident[] {
   const incidents = groupById(data).filter(
@@ -50,19 +45,23 @@ export function processIncidents(data: Incident[]): ProcessedIncident[] {
       return [date, value[1]] as [Date, string];
     });
 
-    const firstDate = incident.values[0][0];
-    const lastDate = incident.values[incident.values.length - 1][0];
-    const currentDate = new Date(); // Current timestamp in milliseconds
+    const timestamps = incident.values.map((value) => value[0]); // Extract timestamps
+    const lastTimestamp = Math.max(...timestamps); // Last timestamp in seconds
+    const firstTimestamp = Math.min(...timestamps); // First timestamp in seconds
+    const currentDate = new Date();
+    const currentTimestamp = Math.floor(currentDate.valueOf() / 1000); // Current time in seconds
 
-    // Calculate the time difference in milliseconds
-    const timeDifference = currentDate.valueOf() - lastDate * 1000;
-    const inactive = timeDifference < 10 * 60 * 1000;
-    const dayDifference = (lastDate - firstDate) / (60 * 60 * 24);
+    // Firing and resolved logic
+    const firing = currentTimestamp - lastTimestamp <= 10 * 60;
+    const resolved = !firing;
 
-    // Set longStanding to true if the difference is 7 or more days
-    const longStanding = dayDifference >= 7;
+    // Persistent and recent logic based on the first occurrence
+    const daysSinceFirstOccurrence = (currentTimestamp - firstTimestamp) / (60 * 60 * 24);
+    const persistent = daysSinceFirstOccurrence >= 7;
+    const recent = daysSinceFirstOccurrence < 7;
 
     const srcProperties = getSrcProperties(incident.metric);
+
     return {
       component: incident.metric.component,
       componentList: incident.metric.componentList,
@@ -70,11 +69,15 @@ export function processIncidents(data: Incident[]): ProcessedIncident[] {
       layer: incident.metric.layer,
       values: processedValues,
       x: incidents.length - index,
+      critical: incident.metric.src_severity === 'critical',
+      warning: incident.metric.src_severity === 'warning',
       informative: incident.metric.src_severity === 'info',
-      longStanding: longStanding,
-      inactive: inactive,
+      persistent: persistent,
+      recent: recent,
+      resolved: resolved,
+      firing: firing,
       ...srcProperties,
-    } as ProcessedIncident;
+    } as unknown as ProcessedIncident;
   });
 }
 

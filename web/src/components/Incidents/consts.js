@@ -3,33 +3,69 @@ import { SelectOption } from '@patternfly/react-core';
 import { DropdownItem as DropdownItemDeprecated } from '@patternfly/react-core/deprecated';
 import { changeDaysFilter } from './utils';
 
-export const incidentTypeMenuItems = (filters) => [
+export const incidentFiltersMenuItems = (filters) => [
   <SelectOption
-    key="longStanding"
-    value="Long standing"
-    isSelected={filters.incidentType.includes('Long standing')}
+    key="persistent"
+    value="Persistent"
+    isSelected={filters.incidentFilters.includes('Persistent')}
     description="The incident has been firing for at least 7 days."
     hasCheckbox
   >
-    Long standing
+    Persistent
+  </SelectOption>,
+  <SelectOption
+    key="recent"
+    value="Recent"
+    isSelected={filters.incidentFilters.includes('Recent')}
+    description="The incident has been firing for less than 7 days."
+    hasCheckbox
+  >
+    Recent
+  </SelectOption>,
+  <SelectOption
+    key="critical"
+    value="Critical"
+    isSelected={filters.incidentFilters.includes('Critical')}
+    description="The incident is critical."
+    hasCheckbox
+  >
+    Critical
+  </SelectOption>,
+  <SelectOption
+    key="warning"
+    value="Warning"
+    isSelected={filters.incidentFilters.includes('Warning')}
+    description="The incident might lead to critical."
+    hasCheckbox
+  >
+    Warning
   </SelectOption>,
   <SelectOption
     key="informative"
     value="Informative"
-    isSelected={filters.incidentType.includes('Informative')}
+    isSelected={filters.incidentFilters.includes('Informative')}
     description="The incident is not critical."
     hasCheckbox
   >
     Informative
   </SelectOption>,
   <SelectOption
+    key="firing"
+    value="Firing"
+    isSelected={filters.incidentFilters.includes('Firing')}
+    description="The incident is currently firing."
+    hasCheckbox
+  >
+    Firing
+  </SelectOption>,
+  <SelectOption
     key="inactive"
-    value="Inactive"
-    isSelected={filters.incidentType.includes('Inactive')}
+    value="Resolved"
+    isSelected={filters.incidentFilters.includes('Resolved')}
     description="The incident is not currently firing."
     hasCheckbox
   >
-    Inactive
+    Resolved
   </SelectOption>,
 ];
 

@@ -89,11 +89,11 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
         incidentsChartSelectedId: '',
         incidentsInitialState: {
           days: ['7 days'],
-          incidentType: [],
+          incidentFilters: ['Recent', 'Critical', 'Warning', 'Firing'],
         },
         incidentsActiveFilters: {
           days: [],
-          incidentType: [],
+          incidentFilters: [],
         },
         incidentGroupId: '',
       }),

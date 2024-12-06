@@ -177,48 +177,43 @@ export function generateDateArray(days) {
 }
 
 /**
- * Filters an array of incidents based on the provided filter conditions.
+ * Filters incidents based on the specified filters.
  *
- * @param {Object} filters - The filters object containing filter criteria.
- * @param {Array<string>} filters.days - Array of day filters (currently unused in this function).
- * @param {Array<string>} filters.incidentType - Array of incident types to filter by, e.g. ["Informative", "Long standing", "Inactive"].
+ * @param {Object} filters - An object containing filter criteria.
+ * @param {string[]} filters.incidentFilters - An array of strings representing filter conditions such as "Persistent", "Recent", "Critical", etc.
+ * @param {Array<Object>} incidents - An array of incidents to be filtered.
+ * @returns {Array<Object>} A filtered array of incidents that match at least one of the specified filters.
  *
- * @param {Array<Object>} incidents - Array of incident objects to be filtered. Each object represents an incident and includes properties like "informative", "longStanding", and "inactive".
+ * The `conditions` object maps filter keys to incident properties. If no filters are applied, all incidents are returned.
+ * Filters are case-sensitive and must match the keys defined in the `conditions` object.
  *
- * @returns {Array<Object>} - The filtered array of incident objects. If no incidentType filters are provided, all incidents are returned.
- *
- * @example
- * const filters = {
- *   days: ['7 days'],
- *   incidentType: ['Informative', 'Long standing'],
- * };
- *
- * const incidents = [
- *   { informative: true, longStanding: false, inactive: true },
- *   { informative: false, longStanding: true, inactive: false },
- * ];
- *
- * const result = filterIncident(filters, incidents);
- * console.log(result);
- * // Output: [{ informative: true, longStanding: false, inactive: true }]
+ * Example usage:
+ * ```javascript
+ * const filters = { incidentFilters: ["Critical", "Firing"] };
+ * const filteredIncidents = filterIncident(filters, incidents);
+ * ```
  */
 export function filterIncident(filters, incidents) {
   const conditions = {
-    Informative: 'informative',
-    'Long standing': 'longStanding',
-    Inactive: 'inactive',
+    Persistent: 'Persistent',
+    Recent: 'Recent',
+    Critical: 'Critical',
+    Warning: 'Warning',
+    Informative: 'Informative',
+    Firing: 'Firing',
+    Resolved: 'Resolved',
   };
 
   return incidents.filter((incident) => {
-    // If there are no incidentType filters applied, return all incidents
-    if (!filters.incidentType.length) {
+    // If there are no incidentFilters filters applied, return all incidents
+    if (!filters.incidentFilters.length) {
       return true;
     }
 
     // Check if at least one filter passes for the incident
-    return filters.incidentType.some((key) => {
+    return filters.incidentFilters.some((key) => {
       const conditionKey = conditions[key]; // Match the key exactly as in conditions
-      return incident[conditionKey] === true;
+      return incident[conditionKey.toLowerCase()] === true;
     });
   });
 }
@@ -236,11 +231,11 @@ export function formatDateInExpandedDetails(date) {
 }
 
 export const onDeleteIncidentFilterChip = (type, id, filters, setFilters) => {
-  if (type === 'Incident type') {
+  if (type === 'Filters') {
     setFilters(
       setIncidentsActiveFilters({
         incidentsActiveFilters: {
-          incidentType: filters.incidentType.filter((fil) => fil !== id),
+          incidentFilters: filters.incidentFilters.filter((fil) => fil !== id),
           days: filters.days,
         },
       }),
@@ -249,7 +244,7 @@ export const onDeleteIncidentFilterChip = (type, id, filters, setFilters) => {
     setFilters(
       setIncidentsActiveFilters({
         incidentsActiveFilters: {
-          incidentType: filters.incidentType,
+          incidentFilters: filters.incidentFilters,
           days: filters.days.filter((fil) => fil !== id),
         },
       }),
@@ -258,7 +253,7 @@ export const onDeleteIncidentFilterChip = (type, id, filters, setFilters) => {
     setFilters(
       setIncidentsActiveFilters({
         incidentsActiveFilters: {
-          incidentType: [],
+          incidentFilters: ['Recent', 'Critical', 'Warning', 'Firing'],
           days: ['7 days'],
         },
       }),
@@ -267,11 +262,11 @@ export const onDeleteIncidentFilterChip = (type, id, filters, setFilters) => {
 };
 
 export const onDeleteGroupIncidentFilterChip = (type, filters, setFilters) => {
-  if (type === 'Incident type') {
+  if (type === 'Filters') {
     setFilters(
       setIncidentsActiveFilters({
         incidentsActiveFilters: {
-          incidentType: [],
+          incidentFilters: [],
           days: filters.days,
         },
       }),
@@ -280,7 +275,7 @@ export const onDeleteGroupIncidentFilterChip = (type, filters, setFilters) => {
     setFilters(
       setIncidentsActiveFilters({
         incidentsActiveFilters: {
-          incidentType: filters.incidentType,
+          incidentFilters: filters.incidentFilters,
           days: [],
         },
       }),
@@ -315,13 +310,13 @@ export const updateBrowserUrl = (params) => {
 export const changeDaysFilter = (days, dispatch, filters) => {
   dispatch(
     setIncidentsActiveFilters({
-      incidentsActiveFilters: { days: [days], incidentType: filters.incidentType },
+      incidentsActiveFilters: { days: [days], incidentFilters: filters.incidentFilters },
     }),
   );
 };
 
-export const onIncidentTypeSelect = (event, selection, dispatch, incidentsActiveFilters) => {
-  onSelect('incidentType', event, selection, dispatch, incidentsActiveFilters);
+export const onIncidentFiltersSelect = (event, selection, dispatch, incidentsActiveFilters) => {
+  onSelect('incidentFilters', event, selection, dispatch, incidentsActiveFilters);
 };
 
 const onSelect = (type, event, selection, dispatch, incidentsActiveFilters) => {
@@ -348,7 +343,7 @@ const onSelect = (type, event, selection, dispatch, incidentsActiveFilters) => {
 export const parseUrlParams = (search) => {
   const params = new URLSearchParams(search);
   const result = {};
-  const arrayKeys = ['days', 'incidentType'];
+  const arrayKeys = ['days', 'incidentFilters'];
 
   params.forEach((value, key) => {
     if (arrayKeys.includes(key)) {
