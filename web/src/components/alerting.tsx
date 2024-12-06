@@ -239,11 +239,20 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
       <StatusBox data={rule} label={RuleResource.label} loaded={loaded} loadError={loadError}>
         <div className="pf-c-page__main-breadcrumb">
           <Breadcrumb className="monitoring-breadcrumbs">
-            <BreadcrumbItem>
-              <Link className="pf-c-breadcrumb__link" to={getAlertRulesUrl(perspective)}>
-                {t('Alerting rules')}
-              </Link>
-            </BreadcrumbItem>
+            {perspective === 'dev' && (
+              <BreadcrumbItem>
+                <Link className="pf-c-breadcrumb__link" to={getAlertsUrl(perspective, namespace)}>
+                  {t('Alerts')}
+                </Link>
+              </BreadcrumbItem>
+            )}
+            {perspective !== 'dev' && (
+              <BreadcrumbItem>
+                <Link className="pf-c-breadcrumb__link" to={getAlertRulesUrl(perspective)}>
+                  {t('Alerting rules')}
+                </Link>
+              </BreadcrumbItem>
+            )}
             <BreadcrumbItem isActive>{t('Alerting rule details')}</BreadcrumbItem>
           </Breadcrumb>
         </div>
@@ -686,6 +695,7 @@ const PollerPages = () => {
     return (
       <Switch>
         <Route path="/dev-monitoring/ns/:ns/alerts" exact component={AlertsPage} />
+        <Route path="/dev-monitoring/ns/:ns/rules/:id" exact component={AlertRulesDetailsPage} />
         <Route path="/dev-monitoring/ns/:ns/alerts/:ruleID" component={AlertsDetailsPage} />
         <Route path="/dev-monitoring/ns/:ns/metrics" exact component={QueryBrowserPage} />
         <Route path="/dev-monitoring/ns/:ns/silences" exact component={SilencesPage} />
