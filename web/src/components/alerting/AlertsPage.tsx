@@ -36,7 +36,7 @@ import {
   useListPageFilter,
   VirtualizedTable,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { DropdownItem as DropdownItemDeprecated } from '@patternfly/react-core/deprecated';
+import { DropdownItem } from '@patternfly/react-core';
 import { AlertResource, alertSeverityOrder, alertState, fuzzyCaseInsensitive } from '../utils';
 import { severityRowFilter } from '../alerting';
 import { sortable } from '@patternfly/react-table';
@@ -273,21 +273,21 @@ const AlertTableRow_: React.FC<AlertTableRowProps> = ({ history, obj, match }) =
   const title: string = obj.annotations?.description || obj.annotations?.message;
 
   const dropdownItems = [
-    <DropdownItemDeprecated
+    <DropdownItem
       key="view-rule"
       onClick={() => history.push(getRuleUrl(perspective, obj.rule, namespace))}
     >
       {t('View alerting rule')}
-    </DropdownItemDeprecated>,
+    </DropdownItem>,
   ];
   if (state !== AlertStates.Silenced) {
     dropdownItems.unshift(
-      <DropdownItemDeprecated
+      <DropdownItem
         key="silence-alert"
         onClick={() => history.push(getNewSilenceAlertUrl(perspective, obj, namespace))}
       >
         {t('Silence alert')}
-      </DropdownItemDeprecated>,
+      </DropdownItem>,
     );
   }
 
@@ -296,15 +296,15 @@ const AlertTableRow_: React.FC<AlertTableRowProps> = ({ history, obj, match }) =
     actions.forEach((action) => {
       if (isActionWithHref(action)) {
         extensionDropdownItems.push(
-          <DropdownItemDeprecated key={action.id} href={action.cta.href}>
+          <DropdownItem key={action.id} href={action.cta.href}>
             {action.label}
-          </DropdownItemDeprecated>,
+          </DropdownItem>,
         );
       } else if (isActionWithCallback(action)) {
         extensionDropdownItems.push(
-          <DropdownItemDeprecated key={action.id} onClick={action.cta}>
+          <DropdownItem key={action.id} onClick={action.cta}>
             {action.label}
-          </DropdownItemDeprecated>,
+          </DropdownItem>,
         );
       }
     });

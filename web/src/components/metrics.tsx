@@ -10,12 +10,14 @@ import {
 import {
   ActionGroup,
   Button,
+  DropdownItem,
   EmptyState,
   EmptyStateBody,
   EmptyStateIcon,
   EmptyStateVariant,
   Switch,
   Title,
+  Tooltip,
   Grid,
   GridItem,
 } from '@patternfly/react-core';
@@ -540,30 +542,39 @@ const QueryKebab: React.FC<{ index: number }> = ({ index }) => {
   };
 
   const exportDropdownItem = (
-    <DropdownItemDeprecated key="export" component="button" onClick={doExportCsv}>
+    <DropdownItem key="export" component="button" onClick={doExportCsv}>
       {t('Export as CSV')}
-    </DropdownItemDeprecated>
+    </DropdownItem>
   );
 
   const defaultDropdownItems = [
-    <DropdownItemDeprecated key="toggle-query" component="button" onClick={toggleIsEnabled}>
+    <DropdownItem key="toggle-query" component="button" onClick={toggleIsEnabled}>
       {isEnabled ? t('Disable query') : t('Enable query')}
-    </DropdownItemDeprecated>,
-    <DropdownItemDeprecated
-      tooltip={!isEnabled ? t('Query must be enabled') : undefined}
-      isDisabled={!isEnabled}
-      key="toggle-all-series"
-      component="button"
-      onClick={toggleAllSeries}
-    >
-      {isDisabledSeriesEmpty ? t('Hide all series') : t('Show all series')}
-    </DropdownItemDeprecated>,
-    <DropdownItemDeprecated key="delete" component="button" onClick={doDelete}>
+    </DropdownItem>,
+    isEnabled ? (
+      <DropdownItem component="button" onClick={toggleAllSeries} key="toggle-all-series">
+        {isDisabledSeriesEmpty ? t('Hide all series') : t('Show all series')}
+      </DropdownItem>
+    ) : (
+      <Tooltip
+        key="toggle-all-series-disabled"
+        position="left"
+        content={t('Query must be enabled')}
+      >
+        <DropdownItem
+          isAriaDisabled={true} // need to receive focus for tooltip to work
+          component="button"
+        >
+          {isDisabledSeriesEmpty ? t('Hide all series') : t('Show all series')}
+        </DropdownItem>
+      </Tooltip>
+    ),
+    <DropdownItem key="delete" component="button" onClick={doDelete}>
       {t('Delete query')}
-    </DropdownItemDeprecated>,
-    <DropdownItemDeprecated key="duplicate" component="button" onClick={doClone}>
+    </DropdownItem>,
+    <DropdownItem key="duplicate" component="button" onClick={doClone}>
       {t('Duplicate query')}
-    </DropdownItemDeprecated>,
+    </DropdownItem>,
   ];
 
   const hasQueryTableData = () => {
@@ -573,11 +584,11 @@ const QueryKebab: React.FC<{ index: number }> = ({ index }) => {
     return true;
   };
 
-  const drodownItems = hasQueryTableData()
+  const dropdownItems = hasQueryTableData()
     ? [...defaultDropdownItems, exportDropdownItem]
     : defaultDropdownItems;
 
-  return <KebabDropdown dropdownItems={drodownItems} />;
+  return <KebabDropdown dropdownItems={dropdownItems} />;
 };
 
 export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, customDatasource }) => {

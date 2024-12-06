@@ -17,17 +17,14 @@ import { Silences } from '../types';
 import { Helmet } from 'react-helmet';
 import { alertDescription, SilenceResource } from '../utils';
 import { LoadingInline, StatusBox } from '../console/utils/status-box';
-import { Breadcrumb, BreadcrumbItem } from '@patternfly/react-core';
+import { Breadcrumb, BreadcrumbItem, DropdownItem } from '@patternfly/react-core';
 import { Link } from 'react-router-dom';
 import { MonitoringResourceIcon, OnToggle, Severity, SeverityCounts } from './AlertUtils';
 import { SectionHeading } from '../console/utils/headings';
 import { SilenceDropdown, SilenceMatchersList, SilenceState } from './SilencesUtils';
 import { Alert, Silence, Timestamp } from '@openshift-console/dynamic-plugin-sdk';
 import { withFallback } from '../console/console-shared/error/error-boundary';
-import {
-  DropdownItem as DropdownItemDeprecated,
-  DropdownToggle as DropdownToggleDeprecated,
-} from '@patternfly/react-core/deprecated';
+import { DropdownToggle as DropdownToggleDeprecated } from '@patternfly/react-core/deprecated';
 import KebabDropdown from '../kebab-dropdown';
 
 const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ match }) => {
@@ -202,12 +199,12 @@ const SilencedAlertsList_: React.FC<SilencedAlertsListProps> = ({ alerts, histor
             <div className="dropdown-kebab-pf">
               <KebabDropdown
                 dropdownItems={[
-                  <DropdownItemDeprecated
+                  <DropdownItem
                     key="view-rule"
                     onClick={() => history.push(getRuleUrl(perspective, a.rule))}
                   >
                     {t('View alerting rule')}
-                  </DropdownItemDeprecated>,
+                  </DropdownItem>,
                 ]}
               />
             </div>
