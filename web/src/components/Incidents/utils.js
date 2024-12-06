@@ -99,7 +99,7 @@ export const createIncidentsChartBars = (incident) => {
           y: new Date(groupedData[i][1]),
           x: incident.x,
           name: severity,
-          component: incident.component,
+          componentList: incident.componentList,
           group_id: incident.group_id,
           fill:
             severity === 'Critical'
@@ -116,7 +116,7 @@ export const createIncidentsChartBars = (incident) => {
         y: new Date(groupedData[i][1]),
         x: incident.x,
         name: severity,
-        component: incident.component,
+        componentList: incident.componentList,
         group_id: incident.group_id,
         fill:
           severity === 'Critical'

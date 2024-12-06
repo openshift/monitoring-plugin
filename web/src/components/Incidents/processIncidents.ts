@@ -1,32 +1,27 @@
 /* eslint-disable max-len */
 
+// Define the interface for Metric
 interface Metric {
-  src_alertname: string;
-  src_severity: string;
-  src_namespace: string;
-  src_name: string;
-  component: string;
-  layer: string;
-  group_id: string;
+  group_id: string; // The unique ID for grouping
+  component: string; // Component name
+  componentList?: string[]; // List of all unique components
+  [key: string]: any; // Allow other dynamic fields in Metric
 }
 
 interface Incident {
   metric: Metric;
   values: Array<[number, string]>;
-  componentsList?: string[];
-  layerList?: string[];
 }
 
 interface ProcessedIncident {
   component: string;
+  componentList?: string[];
   group_id: string;
   severity: string;
   alertname: string;
   namespace: string;
   name: string;
   layer: string;
-  componentsList?: string[];
-  layerList?: string[];
   values: Array<[Date, string]>;
   x: number;
   informative: boolean;
@@ -70,6 +65,7 @@ export function processIncidents(data: Incident[]): ProcessedIncident[] {
     const srcProperties = getSrcProperties(incident.metric);
     return {
       component: incident.metric.component,
+      componentList: incident.metric.componentList,
       group_id: incident.metric.group_id,
       layer: incident.metric.layer,
       values: processedValues,
@@ -120,16 +116,28 @@ export function groupById(objects: Incident[]): Incident[] {
 
       existingObj.values = existingObj.values.concat(newValues);
 
-      const existingMetricsSet = new Set([JSON.stringify(existingObj.metric)]);
-      if (!existingMetricsSet.has(JSON.stringify(obj.metric))) {
-        groupedObjects.set(key, {
-          ...existingObj,
-          values: existingObj.values,
-        });
+      // Add or update the componentList
+      if (!existingObj.metric.componentList) {
+        existingObj.metric.componentList = [existingObj.metric.component];
       }
+
+      if (
+        existingObj.metric.component !== obj.metric.component &&
+        !existingObj.metric.componentList.includes(obj.metric.component)
+      ) {
+        existingObj.metric.componentList.push(obj.metric.component);
+      }
+
+      groupedObjects.set(key, {
+        ...existingObj,
+        values: existingObj.values,
+      });
     } else {
       groupedObjects.set(key, {
-        metric: obj.metric,
+        metric: {
+          ...obj.metric,
+          componentList: [obj.metric.component], // Initialize componentList with the current component
+        },
         values: [...new Set(obj.values.map((v) => JSON.stringify(v)))].map((v) => JSON.parse(v)),
       });
     }
