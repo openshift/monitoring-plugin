@@ -770,7 +770,7 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
                 {
                   endpoint: PrometheusEndpoint.QUERY_RANGE,
                   endTime: timeRange.endTime,
-                  namespace: perspective === 'dev' ? activeNamespace : namespace,
+                  namespace: perspective === 'dev' ? activeNamespace : '',
                   query,
                   samples: Math.ceil(samples / timeRanges.length),
                   timeout: '60s',
