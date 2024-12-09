@@ -31,12 +31,24 @@ if [ -x "$(command -v podman)" ]; then
     if [ "$(uname -s)" = "Linux" ]; then
         # Use host networking on Linux since host.containers.internal is unreachable in some environments.
         BRIDGE_PLUGINS="${npm_package_consolePlugin_name}=http://localhost:${PLUGIN_PORT}"
-        podman run --pull always --platform $CONSOLE_IMAGE_PLATFORM --rm --network=host --env-file <(set | grep BRIDGE) $CONSOLE_IMAGE
+        podman run --pull always --platform $CONSOLE_IMAGE_PLATFORM \
+        --rm --network=host \
+        --env-file <(set | grep BRIDGE) \
+        --env BRIDGE_PLUGIN_PROXY='{"services": [{"consoleAPIPath": "/api/proxy/plugin/monitoring-console-plugin/perses/", "endpoint":"http://localhost:8080","authorize":true}]}' \
+        $CONSOLE_IMAGE
     else
         BRIDGE_PLUGINS="${npm_package_consolePlugin_name}=http://host.containers.internal:${PLUGIN_PORT}"
-        podman run --pull always --platform $CONSOLE_IMAGE_PLATFORM --rm -p "$CONSOLE_PORT":9000 --env-file <(set | grep BRIDGE) $CONSOLE_IMAGE
+        podman run --pull always --platform $CONSOLE_IMAGE_PLATFORM \
+        --rm -p "$CONSOLE_PORT":9000 \
+        --env-file <(set | grep BRIDGE) \
+        --env BRIDGE_PLUGIN_PROXY='{"services": [{"consoleAPIPath": "/api/proxy/plugin/monitoring-console-plugin/perses/", "endpoint":"http://host.containers.internal:8080","authorize":true}]}' \
+        $CONSOLE_IMAGE
     fi
 else
     BRIDGE_PLUGINS="${npm_package_consolePlugin_name}=http://host.docker.internal:${PLUGIN_PORT}"
-    docker run --pull always --platform $CONSOLE_IMAGE_PLATFORM --rm -p "$CONSOLE_PORT":9000 --env-file <(set | grep BRIDGE) $CONSOLE_IMAGE
+    docker run --pull always --platform $CONSOLE_IMAGE_PLATFORM \
+    --rm -p "$CONSOLE_PORT":9000 \
+    --env-file <(set | grep BRIDGE) \
+    --env BRIDGE_PLUGIN_PROXY='{"services": [{"consoleAPIPath": "/api/proxy/plugin/monitoring-console-plugin/perses/", "endpoint":"http://host.docker.internal:8080","authorize":true}]}' \
+    $CONSOLE_IMAGE
 fi
