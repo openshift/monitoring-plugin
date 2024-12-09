@@ -1,9 +1,6 @@
 import { PersesDashboardMetadata } from './perses-client';
-import { useCallback, useReducer, useRef } from 'react';
-import { fetchPersesDashboardsMetadata } from './perses-client';
-
-const isAbortError = (error: unknown): boolean =>
-  error instanceof Error && error.name === 'AbortError';
+import { useEffect, useReducer } from 'react';
+import { useURLPoll } from '@openshift-console/dynamic-plugin-sdk-internal';
 
 type State = {
   dashboardsData: PersesDashboardMetadata[];
@@ -50,9 +47,10 @@ const reducer = (state: State, action: Action): State => {
   }
 };
 
-export const usePerses = () => {
-  const dashboardsAbort = useRef<() => void | undefined>();
+const baseURL = '/api/proxy/plugin/monitoring-console-plugin/perses';
+const URL_POLL_DEFAULT_DELAY = 15000; // 15 seconds
 
+export const usePerses = () => {
   const initialState = {
     dashboardsData: undefined,
     isLoadingDashboardsData: false,
@@ -63,35 +61,31 @@ export const usePerses = () => {
 
   const { dashboardsData, isLoadingDashboardsData, dashboardsError } = state;
 
-  /**
-   * Lists perses dashboards meta data only (no dashboards specs)
-   */
-  const getPersesDashboards = useCallback(async () => {
-    try {
-      if (dashboardsAbort.current) {
-        dashboardsAbort.current();
+  const usePersesDashboardsPoller = () => {
+    const listDashboardsMetadata = '/api/v1/dashboards?metadata_only=true';
+    const persesURL = `${baseURL}${listDashboardsMetadata}`;
+
+    const [response, loadError, loading] = useURLPoll<PersesDashboardMetadata[]>(
+      persesURL,
+      URL_POLL_DEFAULT_DELAY,
+    );
+
+    useEffect(() => {
+      if (loadError) {
+        dispatch({ type: 'dashboardsError', payload: { error: loadError } });
+      } else if (loading) {
+        dispatch({ type: 'dashboardsRequest' });
+      } else {
+        dispatch({
+          type: 'dashboardsMetadataResponse',
+          payload: { dashboardsData: response },
+        });
       }
-
-      dispatch({ type: 'dashboardsRequest' });
-
-      const { request, abort } = fetchPersesDashboardsMetadata();
-      dashboardsAbort.current = abort;
-
-      const response = await request();
-
-      dispatch({
-        type: 'dashboardsMetadataResponse',
-        payload: { dashboardsData: response },
-      });
-    } catch (error) {
-      if (!isAbortError(error)) {
-        dispatch({ type: 'dashboardsError', payload: { error } });
-      }
-    }
-  }, []);
+    }, [loadError, loading, response]);
+  };
 
   return {
-    getPersesDashboards,
+    usePersesDashboardsPoller,
     dashboardsData,
     isLoadingDashboardsData,
     dashboardsError,
