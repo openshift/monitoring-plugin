@@ -335,7 +335,10 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({
               ref={toggleRef}
               className="monitoring-dashboards__dropdown-button"
               isDisabled={true}
-              onClick={(e) => e.preventDefault()}
+              onClick={(e) => {
+                e.preventDefault();
+                //
+              }}
             >
               <RedExclamationCircleIcon /> {t('Error loading options')}
             </MenuToggle>

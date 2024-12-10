@@ -20,6 +20,7 @@ import * as _ from 'lodash-es';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { TimesIcon } from '@patternfly/react-icons/dist/esm/icons/times-icon';
+import { POLL_DELAY, usePerses } from '../../dashboards/usePerses';
 
 export type SingleTypeaheadDropdownProps = {
   /** The items to display in the dropdown */
@@ -114,6 +115,8 @@ export const SingleTypeaheadDropdown: React.FC<SingleTypeaheadDropdownProps> = (
   const NO_RESULTS = 'typeahead-dropdown__no-results';
   const CREATE_NEW = 'typeahead-dropdown__create-new';
 
+  const { changePollDelay, pollDelay } = usePerses();
+
   React.useEffect(() => {
     setSelectOptions(items);
     // setSelectOptions([..._.differenceBy(items, selectOptions, 'value'), ...selectOptions]);
@@ -154,6 +157,17 @@ export const SingleTypeaheadDropdown: React.FC<SingleTypeaheadDropdownProps> = (
     setFilteredSelectOptions(newSelectOptions);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterValue]);
+
+  React.useEffect(() => {
+    // Only change the poll delay when isOpen changes
+    if (!isOpen) {
+      changePollDelay(POLL_DELAY.oneHour);
+    } else {
+      changePollDelay(POLL_DELAY.tenSeconds);
+    }
+  }, [isOpen, changePollDelay, pollDelay]); // Only depend on isOpen and changePollDelay
+
+  console.log({ pollDelay, isOpen });
 
   const createItemId = (value: any) => `${ID_PREFIX}-option-${String(value).replace(' ', '-')}`;
 

@@ -1,11 +1,17 @@
 import { PERSES_BASE_URL, PersesDashboardMetadata } from './perses-client';
-import { useEffect, useReducer } from 'react';
+import { useCallback, useEffect, useReducer } from 'react';
 import { useURLPoll } from '@openshift-console/dynamic-plugin-sdk-internal';
+
+export enum POLL_DELAY {
+  tenSeconds = 10000,
+  oneHour = 3600000,
+}
 
 type State = {
   dashboardsData: PersesDashboardMetadata[];
   isLoadingDashboardsData: boolean;
   dashboardsError: unknown;
+  pollDelay: POLL_DELAY;
 };
 
 type Action =
@@ -19,9 +25,14 @@ type Action =
   | {
       type: 'dashboardsError';
       payload: { error: unknown };
+    }
+  | {
+      type: 'updatePollDelay';
+      payload: { delay: POLL_DELAY };
     };
 
 const reducer = (state: State, action: Action): State => {
+  console.log({ action });
   switch (action.type) {
     case 'dashboardsMetadataResponse':
       return {
@@ -42,23 +53,43 @@ const reducer = (state: State, action: Action): State => {
         dashboardsData: undefined,
         dashboardsError: undefined,
       };
+    case 'updatePollDelay':
+      return {
+        ...state,
+        pollDelay: action.payload.delay,
+      };
     default:
       return state;
   }
 };
-
-const URL_POLL_DEFAULT_DELAY = 15000; // 15 seconds
 
 export const usePerses = () => {
   const initialState = {
     dashboardsData: undefined,
     isLoadingDashboardsData: false,
     dashboardsError: undefined,
+    pollDelay: POLL_DELAY.tenSeconds,
   };
 
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  const { dashboardsData, isLoadingDashboardsData, dashboardsError } = state;
+  const { dashboardsData, isLoadingDashboardsData, dashboardsError, pollDelay } = state;
+
+  // const changePollDelay = (delayTime: POLL_DELAY) => {
+  //   dispatch({ type: 'updatePollDelay', payload: { delay: delayTime } });
+
+  //   console.log('USEPERSESE > CHANGEPOLLDELAY', delayTime);
+  // };
+
+  const changePollDelay = useCallback(
+    (delayTime) => {
+      if (pollDelay !== delayTime) {
+        dispatch({ type: 'updatePollDelay', payload: { delay: delayTime } });
+        console.log('USEPERSPESE > CHANGEPOLLDELAY', delayTime);
+      }
+    },
+    [dispatch, pollDelay],
+  );
 
   const usePersesDashboardsPoller = () => {
     const listDashboardsMetadata = '/api/v1/dashboards?metadata_only=true';
@@ -66,8 +97,10 @@ export const usePerses = () => {
 
     const [response, loadError, loading] = useURLPoll<PersesDashboardMetadata[]>(
       persesURL,
-      URL_POLL_DEFAULT_DELAY,
+      pollDelay,
     );
+
+    console.log('POLLING', { pollDelay });
 
     useEffect(() => {
       if (loadError) {
@@ -88,5 +121,7 @@ export const usePerses = () => {
     dashboardsData,
     isLoadingDashboardsData,
     dashboardsError,
+    changePollDelay,
+    pollDelay,
   };
 };
