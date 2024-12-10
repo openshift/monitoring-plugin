@@ -1,14 +1,17 @@
-import { PersesDashboardMetadata } from './perses-client';
-import { useCallback, useReducer, useRef } from 'react';
-import { fetchPersesDashboardsMetadata } from './perses-client';
+import { PERSES_BASE_URL, PersesDashboardMetadata } from './perses-client';
+import { useCallback, useEffect, useReducer } from 'react';
+import { useURLPoll } from '@openshift-console/dynamic-plugin-sdk-internal';
 
-const isAbortError = (error: unknown): boolean =>
-  error instanceof Error && error.name === 'AbortError';
+export enum POLL_DELAY {
+  tenSeconds = 10000,
+  oneHour = 3600000,
+}
 
 type State = {
   dashboardsData: PersesDashboardMetadata[];
   isLoadingDashboardsData: boolean;
   dashboardsError: unknown;
+  pollDelay: POLL_DELAY;
 };
 
 type Action =
@@ -22,9 +25,14 @@ type Action =
   | {
       type: 'dashboardsError';
       payload: { error: unknown };
+    }
+  | {
+      type: 'updatePollDelay';
+      payload: { delay: POLL_DELAY };
     };
 
 const reducer = (state: State, action: Action): State => {
+  console.log({ action });
   switch (action.type) {
     case 'dashboardsMetadataResponse':
       return {
@@ -45,55 +53,75 @@ const reducer = (state: State, action: Action): State => {
         dashboardsData: undefined,
         dashboardsError: undefined,
       };
+    case 'updatePollDelay':
+      return {
+        ...state,
+        pollDelay: action.payload.delay,
+      };
     default:
       return state;
   }
 };
 
 export const usePerses = () => {
-  const dashboardsAbort = useRef<() => void | undefined>();
-
   const initialState = {
     dashboardsData: undefined,
     isLoadingDashboardsData: false,
     dashboardsError: undefined,
+    pollDelay: POLL_DELAY.tenSeconds,
   };
 
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  const { dashboardsData, isLoadingDashboardsData, dashboardsError } = state;
+  const { dashboardsData, isLoadingDashboardsData, dashboardsError, pollDelay } = state;
 
-  /**
-   * Lists perses dashboards meta data only (no dashboards specs)
-   */
-  const getPersesDashboards = useCallback(async () => {
-    try {
-      if (dashboardsAbort.current) {
-        dashboardsAbort.current();
+  // const changePollDelay = (delayTime: POLL_DELAY) => {
+  //   dispatch({ type: 'updatePollDelay', payload: { delay: delayTime } });
+
+  //   console.log('USEPERSESE > CHANGEPOLLDELAY', delayTime);
+  // };
+
+  const changePollDelay = useCallback(
+    (delayTime) => {
+      if (pollDelay !== delayTime) {
+        dispatch({ type: 'updatePollDelay', payload: { delay: delayTime } });
+        console.log('USEPERSPESE > CHANGEPOLLDELAY', delayTime);
       }
+    },
+    [dispatch, pollDelay],
+  );
 
-      dispatch({ type: 'dashboardsRequest' });
+  const usePersesDashboardsPoller = () => {
+    const listDashboardsMetadata = '/api/v1/dashboards?metadata_only=true';
+    const persesURL = `${PERSES_BASE_URL}${listDashboardsMetadata}`;
 
-      const { request, abort } = fetchPersesDashboardsMetadata();
-      dashboardsAbort.current = abort;
+    const [response, loadError, loading] = useURLPoll<PersesDashboardMetadata[]>(
+      persesURL,
+      pollDelay,
+    );
 
-      const response = await request();
+    console.log('POLLING', { pollDelay });
 
-      dispatch({
-        type: 'dashboardsMetadataResponse',
-        payload: { dashboardsData: response },
-      });
-    } catch (error) {
-      if (!isAbortError(error)) {
-        dispatch({ type: 'dashboardsError', payload: { error } });
+    useEffect(() => {
+      if (loadError) {
+        dispatch({ type: 'dashboardsError', payload: { error: loadError } });
+      } else if (loading) {
+        dispatch({ type: 'dashboardsRequest' });
+      } else {
+        dispatch({
+          type: 'dashboardsMetadataResponse',
+          payload: { dashboardsData: response },
+        });
       }
-    }
-  }, []);
+    }, [loadError, loading, response]);
+  };
 
   return {
-    getPersesDashboards,
+    usePersesDashboardsPoller,
     dashboardsData,
     isLoadingDashboardsData,
     dashboardsError,
+    changePollDelay,
+    pollDelay,
   };
 };

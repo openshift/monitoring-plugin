@@ -1,6 +1,4 @@
-import { cancellableFetch, CancellableFetch } from '../cancellable-fetch';
-
-const baseURL = '/api/proxy/plugin/monitoring-console-plugin/perses';
+export const PERSES_BASE_URL = '/api/proxy/plugin/monitoring-console-plugin/perses';
 
 export type PersesDashboardMetadata = {
   kind: string; // kind: Dashboards
@@ -11,11 +9,4 @@ export type PersesDashboardMetadata = {
     version: string;
     project: string; // name of project that holds the dashboard
   };
-};
-
-export const fetchPersesDashboardsMetadata = (): CancellableFetch<PersesDashboardMetadata[]> => {
-  const listDashboardsMetadata = '/api/v1/dashboards?metadata_only=true';
-  const persesURL = `${baseURL}${listDashboardsMetadata}`;
-
-  return cancellableFetch<PersesDashboardMetadata[]>(persesURL);
 };

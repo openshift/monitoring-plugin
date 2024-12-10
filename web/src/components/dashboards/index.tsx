@@ -335,7 +335,10 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({
               ref={toggleRef}
               className="monitoring-dashboards__dropdown-button"
               isDisabled={true}
-              onClick={(e) => e.preventDefault()}
+              onClick={(e) => {
+                e.preventDefault();
+                //
+              }}
             >
               <RedExclamationCircleIcon /> {t('Error loading options')}
             </MenuToggle>
@@ -859,12 +862,10 @@ const MonitoringDashboardsPage_: React.FC<MonitoringDashboardsPageProps> = ({ hi
   const { perspective } = usePerspective();
   const [board, setBoard] = React.useState<string>();
   const [boards, isLoading, error] = useFetchDashboards(namespace);
-  const { getPersesDashboards, dashboardsData: persesDashboards } = usePerses();
+  const { usePersesDashboardsPoller, dashboardsData: persesDashboards } = usePerses();
 
   // Called only once on mount
-  React.useEffect(() => {
-    getPersesDashboards();
-  }, [getPersesDashboards]);
+  usePersesDashboardsPoller();
 
   // Clear queries on unmount
   React.useEffect(() => () => dispatch(queryBrowserDeleteAllQueries()), [dispatch]);
