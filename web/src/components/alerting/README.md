@@ -8,11 +8,11 @@ src/components
 │   alerting.tsx (This file will be reserved for the routing of the alerting module)
 │
 └───alerting
-│   │   AlertsUtils DONE (Utility functions and components use across the alerting pages)
+│   │   AlertsUtils - DONE (Utility functions and components use across the alerting pages)
 │   │   AlertsPage - DONE (Lister view of alerts for both developer and admin perspectives)
 │   │   AlertsDetailPage - DONE (Detail page of alerts)
 │   │   AlertsRulePage (Lister view of alert rules)
-│   │   AlertsRuleDetailPage (Detail page of alert rules)
+│   │   AlertsRuleDetailPage - DONE (Detail page of alert rules)
 │   │   SilencesPage (Lister view of silences)
 │   │   SilencesDetailPage (Detail page of alert rules)
 │   │   SilencesUtils (Utility functions specific to silence functionality)
