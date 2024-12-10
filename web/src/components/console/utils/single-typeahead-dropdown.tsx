@@ -115,7 +115,8 @@ export const SingleTypeaheadDropdown: React.FC<SingleTypeaheadDropdownProps> = (
   const CREATE_NEW = 'typeahead-dropdown__create-new';
 
   React.useEffect(() => {
-    setSelectOptions([..._.differenceBy(items, selectOptions, 'value'), ...selectOptions]);
+    setSelectOptions(items);
+    // setSelectOptions([..._.differenceBy(items, selectOptions, 'value'), ...selectOptions]);
     // setFilteredSelectOptions(selectOptions);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items]);
