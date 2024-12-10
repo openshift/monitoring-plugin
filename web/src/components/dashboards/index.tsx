@@ -861,7 +861,7 @@ const MonitoringDashboardsPage_: React.FC<MonitoringDashboardsPageProps> = ({ hi
   const [boards, isLoading, error] = useFetchDashboards(namespace);
   const { usePersesDashboardsPoller, dashboardsData: persesDashboards } = usePerses();
 
-  // // Called only once on mount
+  // Called only once on mount
   usePersesDashboardsPoller();
 
   // Clear queries on unmount

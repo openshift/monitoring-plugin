@@ -1,4 +1,4 @@
-import { PersesDashboardMetadata } from './perses-client';
+import { PERSES_BASE_URL, PersesDashboardMetadata } from './perses-client';
 import { useEffect, useReducer } from 'react';
 import { useURLPoll } from '@openshift-console/dynamic-plugin-sdk-internal';
 
@@ -47,7 +47,6 @@ const reducer = (state: State, action: Action): State => {
   }
 };
 
-const baseURL = '/api/proxy/plugin/monitoring-console-plugin/perses';
 const URL_POLL_DEFAULT_DELAY = 15000; // 15 seconds
 
 export const usePerses = () => {
@@ -63,7 +62,7 @@ export const usePerses = () => {
 
   const usePersesDashboardsPoller = () => {
     const listDashboardsMetadata = '/api/v1/dashboards?metadata_only=true';
-    const persesURL = `${baseURL}${listDashboardsMetadata}`;
+    const persesURL = `${PERSES_BASE_URL}${listDashboardsMetadata}`;
 
     const [response, loadError, loading] = useURLPoll<PersesDashboardMetadata[]>(
       persesURL,
