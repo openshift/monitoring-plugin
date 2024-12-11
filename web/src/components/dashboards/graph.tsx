@@ -67,7 +67,6 @@ const Graph: React.FC<Props> = ({
       showLegend={showLegend}
       timespan={timespan}
       units={units}
-      namespace={namespace}
       onDataChange={onDataChange}
     />
   );
