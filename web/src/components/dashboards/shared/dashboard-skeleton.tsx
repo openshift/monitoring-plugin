@@ -1,53 +1,54 @@
 import * as _ from 'lodash-es';
-import { Overview, useActiveNamespace } from '@openshift-console/dynamic-plugin-sdk';
+import { useActiveNamespace } from '@openshift-console/dynamic-plugin-sdk';
 import * as React from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
-import { useDispatch } from 'react-redux';
-import { RouteComponentProps, withRouter } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { useHistory } from 'react-router-dom';
 
-import { withFallback } from '../../console/console-shared/error/error-boundary';
-import ErrorAlert from '../../console/console-shared/alerts/error';
 import { getQueryArgument } from '../../console/utils/router';
-import { LoadingInline } from '../../console/utils/status-box';
 
 import {
   DashboardsClearVariables,
   dashboardsPatchAllVariables,
   dashboardsSetEndTime,
+  dashboardsSetName,
   dashboardsSetPollInterval,
   dashboardsSetTimespan,
   queryBrowserDeleteAllQueries,
 } from '../../../actions/observe';
-import { MONITORING_DASHBOARDS_DEFAULT_TIMESPAN } from '../types';
-import { useFetchDashboards } from '../legacy/useFetchDashboards';
+import { Board, MONITORING_DASHBOARDS_DEFAULT_TIMESPAN } from '../types';
 import { getAllVariables } from '../monitoring-dashboard-utils';
-import { getDeashboardsUrl, usePerspective } from '../../hooks/usePerspective';
-import { usePerses } from '../perses/usePerses';
+import { getDeashboardsUrl, getObserveState, usePerspective } from '../../hooks/usePerspective';
 import {
   AllVariableDropdowns,
-  Board,
   DashboardDropdown,
   HeaderTop,
   TimeDropdowns,
 } from '../dashboard-stuff';
+import { MonitoringState } from 'src/reducers/observe';
 
-type MonitoringDashboardsPageProps = RouteComponentProps<{ board: string; ns?: string }>;
+type MonitoringDashboardsPageProps = React.PropsWithChildren<{
+  urlBoard: string;
+  boardItems: any;
+  boards: Board[];
+}>;
 
-const MonitoringDashboardsPage_: React.FC<MonitoringDashboardsPageProps> = ({ history, match }) => {
+const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = ({
+  children,
+  urlBoard,
+  boardItems,
+  boards,
+}) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const history = useHistory();
 
   const dispatch = useDispatch();
   const [namespace] = useActiveNamespace();
   const { perspective } = usePerspective();
-  const [board, setBoard] = React.useState<string>();
-  const [boards, isLoading, error] = useFetchDashboards(namespace);
-  const { getPersesDashboards, dashboardsData: persesDashboards } = usePerses();
-
-  // Called only once on mount
-  React.useEffect(() => {
-    getPersesDashboards();
-  }, [getPersesDashboards]);
+  const board = useSelector((state: MonitoringState) =>
+    getObserveState(perspective, state)?.getIn(['dashboards', perspective, 'name']),
+  );
 
   // Clear queries on unmount
   React.useEffect(() => () => dispatch(queryBrowserDeleteAllQueries()), [dispatch]);
@@ -61,25 +62,6 @@ const MonitoringDashboardsPage_: React.FC<MonitoringDashboardsPageProps> = ({ hi
     },
     [perspective, dispatch],
   );
-
-  const boardItems = React.useMemo(() => {
-    const ocpBoardItems = _.mapValues(_.mapKeys(boards, 'name'), (b, name) => ({
-      tags: b.data?.tags,
-      title: b.data?.title ?? name,
-    }));
-
-    if (persesDashboards) {
-      const persesKeys = _.mapKeys(persesDashboards, function (item) {
-        return item?.metadata?.name;
-      });
-      const persesBoardItems = _.mapValues(persesKeys, (b) => ({
-        tags: ['perses'],
-        title: `${b.metadata?.project} / ${b.metadata?.name}`,
-      }));
-      return { ...persesBoardItems, ...ocpBoardItems };
-    }
-    return ocpBoardItems;
-  }, [boards, persesDashboards]);
 
   const changeBoard = React.useCallback(
     (newBoard: string) => {
@@ -126,7 +108,7 @@ const MonitoringDashboardsPage_: React.FC<MonitoringDashboardsPageProps> = ({ hi
           ),
         );
 
-        setBoard(newBoard);
+        dispatch(dashboardsSetName(board, perspective));
       }
     },
     [perspective, board, boards, dispatch, history, namespace],
@@ -136,9 +118,9 @@ const MonitoringDashboardsPage_: React.FC<MonitoringDashboardsPageProps> = ({ hi
   React.useEffect(() => {
     if (!board && !_.isEmpty(boards)) {
       const boardName = getQueryArgument('dashboard');
-      changeBoard((namespace ? boardName : match.params.board) || boards?.[0]?.name);
+      changeBoard((namespace ? boardName : urlBoard) || boards?.[0]?.name);
     }
-  }, [board, boards, changeBoard, match.params.board, namespace]);
+  }, [board, boards, changeBoard, urlBoard, namespace]);
 
   React.useEffect(() => {
     // Dashboard query argument is only set in dev perspective, so skip for admin
@@ -150,32 +132,6 @@ const MonitoringDashboardsPage_: React.FC<MonitoringDashboardsPageProps> = ({ hi
     dispatch(dashboardsPatchAllVariables(allVariables, perspective));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [namespace]);
-
-  // If we don't find any rows, build the rows array based on what we have in `data.panels`
-  const rows = React.useMemo(() => {
-    const data = _.find(boards, { name: board })?.data;
-
-    return data?.rows?.length
-      ? data.rows
-      : data?.panels?.reduce((acc, panel) => {
-          if (panel.type === 'row') {
-            acc.push(_.cloneDeep(panel));
-          } else if (acc.length === 0) {
-            acc.push({ panels: [panel] });
-          } else {
-            const row = acc[acc.length - 1];
-            if (_.isNil(row.panels)) {
-              row.panels = [];
-            }
-            row.panels.push(panel);
-          }
-          return acc;
-        }, []);
-  }, [board, boards]);
-
-  if (error) {
-    return <ErrorAlert message={error} />;
-  }
 
   return (
     <>
@@ -196,16 +152,9 @@ const MonitoringDashboardsPage_: React.FC<MonitoringDashboardsPageProps> = ({ hi
           {perspective === 'dev' && <TimeDropdowns />}
         </div>
       </div>
-      <Overview>
-        {isLoading ? (
-          <LoadingInline />
-        ) : (
-          <Board key={board} rows={rows} perspective={perspective} />
-        )}
-      </Overview>
+      {children}
     </>
   );
 };
-const MonitoringDashboardsPage = withRouter(MonitoringDashboardsPage_);
 
-export default withFallback(MonitoringDashboardsPage);
+export default DashboardSkeleton;

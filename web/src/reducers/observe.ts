@@ -159,6 +159,10 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
       return state.mergeIn(['dashboards', perspective, 'variables', key], ImmutableMap(patch));
     }
 
+    case ActionType.DashboardsSetName: {
+      return state.setIn(['dashboards', action.payload.perspective, 'name'], action.payload.name);
+    }
+
     case ActionType.AlertingSetRules:
       return state.set(action.payload.key, action.payload.data);
 
