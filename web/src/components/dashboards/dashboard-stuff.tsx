@@ -1,7 +1,6 @@
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
 import {
-  Overview,
   PrometheusEndpoint,
   RedExclamationCircleIcon,
   useActiveNamespace,
@@ -23,20 +22,17 @@ import {
 } from '@patternfly/react-core';
 import { AngleDownIcon, AngleRightIcon } from '@patternfly/react-icons';
 import * as React from 'react';
-import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { Map as ImmutableMap } from 'immutable';
-import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
-import { withFallback } from '../console/console-shared/error/error-boundary';
 import {
   CustomDataSource,
   DataSource as DataSourceExtension,
   isDataSource,
 } from '../console/extensions/dashboard-data-source';
 import { SingleTypeaheadDropdown } from '../console/utils/single-typeahead-dropdown';
-import ErrorAlert from '../console/console-shared/alerts/error';
 import { getPrometheusURL } from '../console/graphs/helpers';
 import {
   getQueryArgument,
@@ -48,34 +44,22 @@ import { useSafeFetch } from '../console/utils/safe-fetch-hook';
 import { LoadingInline } from '../console/utils/status-box';
 
 import {
-  DashboardsClearVariables,
-  dashboardsPatchAllVariables,
   dashboardsPatchVariable,
-  dashboardsSetEndTime,
   dashboardsSetPollInterval,
-  dashboardsSetTimespan,
   dashboardsVariableOptionsLoaded,
   Perspective,
-  queryBrowserDeleteAllQueries,
 } from '../../actions/observe';
 import BarChart from './legacy/bar-chart';
 import Graph from './legacy/graph';
 import SingleStat from './legacy/single-stat';
 import Table from './legacy/table';
 import TimespanDropdown from './shared/timespan-dropdown';
-import {
-  MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
-  MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY,
-  Panel,
-  Row,
-} from './types';
+import { MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY, Panel, Row } from './types';
 import { useBoolean } from '../hooks/useBoolean';
 import { useIsVisible } from '../hooks/useIsVisible';
-import { useFetchDashboards } from './legacy/useFetchDashboards';
-import { DEFAULT_GRAPH_SAMPLES, getAllVariables } from './monitoring-dashboard-utils';
+import { DEFAULT_GRAPH_SAMPLES } from './monitoring-dashboard-utils';
 import { getTimeRanges, isTimeoutError, QUERY_CHUNK_SIZE } from '../utils';
 import {
-  getDeashboardsUrl,
   getMutlipleQueryBrowserUrl,
   getObserveState,
   usePerspective,
@@ -83,7 +67,6 @@ import {
 import KebabDropdown from '../kebab-dropdown';
 import { MonitoringState } from '../../reducers/observe';
 import { DropDownPollInterval } from '../dropdown-poll-interval';
-import { usePerses } from './perses/usePerses';
 
 const intervalVariableRegExps = ['__interval', '__rate_interval', '__auto_interval_[a-z]+'];
 
@@ -355,7 +338,7 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({
   );
 };
 
-const AllVariableDropdowns: React.FC = () => {
+export const AllVariableDropdowns: React.FC = () => {
   const [namespace] = useActiveNamespace();
   const { perspective } = usePerspective();
   const variables = useSelector((state: MonitoringState) =>
@@ -386,7 +369,7 @@ const Tag: React.FC<{ color: TagColor; text: string }> = React.memo(({ color, te
   </Label>
 ));
 
-const DashboardDropdown: React.FC<DashboardDropdownProps> = React.memo(
+export const DashboardDropdown: React.FC<DashboardDropdownProps> = React.memo(
   ({ items, onChange, selectedKey }) => {
     const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
@@ -466,7 +449,7 @@ export const PollIntervalDropdown: React.FC = () => {
   );
 };
 
-const TimeDropdowns: React.FC = React.memo(() => {
+export const TimeDropdowns: React.FC = React.memo(() => {
   return (
     <div className="monitoring-dashboards__options">
       <TimespanDropdown />
@@ -475,7 +458,7 @@ const TimeDropdowns: React.FC = React.memo(() => {
   );
 });
 
-const HeaderTop: React.FC = React.memo(() => {
+export const HeaderTop: React.FC = React.memo(() => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
@@ -841,189 +824,13 @@ const PanelsRow: React.FC<PanelsRowProps> = ({ row, perspective }) => {
   );
 };
 
-const Board: React.FC<BoardProps> = ({ rows, perspective }) => (
+export const Board: React.FC<BoardProps> = ({ rows, perspective }) => (
   <>
     {_.map(rows, (row) => (
       <PanelsRow key={_.map(row.panels, 'id').join()} row={row} perspective={perspective} />
     ))}
   </>
 );
-
-type MonitoringDashboardsPageProps = RouteComponentProps<{ board: string; ns?: string }>;
-
-const MonitoringDashboardsPage_: React.FC<MonitoringDashboardsPageProps> = ({ history, match }) => {
-  const { t } = useTranslation(process.env.I18N_NAMESPACE);
-
-  const dispatch = useDispatch();
-  const [namespace] = useActiveNamespace();
-  const { perspective } = usePerspective();
-  const [board, setBoard] = React.useState<string>();
-  const [boards, isLoading, error] = useFetchDashboards(namespace);
-  const { getPersesDashboards, dashboardsData: persesDashboards } = usePerses();
-
-  // Called only once on mount
-  React.useEffect(() => {
-    getPersesDashboards();
-  }, [getPersesDashboards]);
-
-  // Clear queries on unmount
-  React.useEffect(() => () => dispatch(queryBrowserDeleteAllQueries()), [dispatch]);
-
-  // Clear variables on unmount for dev perspective
-  React.useEffect(
-    () => () => {
-      if (perspective === 'dev') {
-        dispatch(DashboardsClearVariables(perspective));
-      }
-    },
-    [perspective, dispatch],
-  );
-
-  const boardItems = React.useMemo(() => {
-    const ocpBoardItems = _.mapValues(_.mapKeys(boards, 'name'), (b, name) => ({
-      tags: b.data?.tags,
-      title: b.data?.title ?? name,
-    }));
-
-    if (persesDashboards) {
-      const persesKeys = _.mapKeys(persesDashboards, function (item) {
-        return item?.metadata?.name;
-      });
-      const persesBoardItems = _.mapValues(persesKeys, (b) => ({
-        tags: ['perses'],
-        title: `${b.metadata?.project} / ${b.metadata?.name}`,
-      }));
-      return { ...persesBoardItems, ...ocpBoardItems };
-    }
-    return ocpBoardItems;
-  }, [boards, persesDashboards]);
-
-  const changeBoard = React.useCallback(
-    (newBoard: string) => {
-      let timeSpan: string;
-      let endTime: string;
-      let url = getDeashboardsUrl(perspective, newBoard, namespace);
-
-      const refreshInterval = getQueryArgument('refreshInterval');
-
-      if (board) {
-        timeSpan = null;
-        endTime = null;
-        // persist only the refresh Interval when dashboard is changed
-        if (refreshInterval) {
-          const params = new URLSearchParams({ refreshInterval });
-          url = `${url}?${params.toString()}`;
-        }
-      } else {
-        timeSpan = getQueryArgument('timeRange');
-        endTime = getQueryArgument('endTime');
-        // persist all query params on page reload
-        if (window.location.search) {
-          url = `${url}${window.location.search}`;
-        }
-      }
-      if (newBoard !== board) {
-        if (getQueryArgument('dashboard') !== newBoard) {
-          history.replace(url);
-        }
-
-        const allVariables = getAllVariables(boards, newBoard, namespace);
-        dispatch(dashboardsPatchAllVariables(allVariables, perspective));
-
-        // Set time range and poll interval options to their defaults or from the query params if
-        // available
-        if (refreshInterval) {
-          dispatch(dashboardsSetPollInterval(_.toNumber(refreshInterval), perspective));
-        }
-        dispatch(dashboardsSetEndTime(_.toNumber(endTime) || null, perspective));
-        dispatch(
-          dashboardsSetTimespan(
-            _.toNumber(timeSpan) || MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
-            perspective,
-          ),
-        );
-
-        setBoard(newBoard);
-      }
-    },
-    [perspective, board, boards, dispatch, history, namespace],
-  );
-
-  // Display dashboard present in the params or show the first board
-  React.useEffect(() => {
-    if (!board && !_.isEmpty(boards)) {
-      const boardName = getQueryArgument('dashboard');
-      changeBoard((namespace ? boardName : match.params.board) || boards?.[0]?.name);
-    }
-  }, [board, boards, changeBoard, match.params.board, namespace]);
-
-  React.useEffect(() => {
-    // Dashboard query argument is only set in dev perspective, so skip for admin
-    if (perspective === 'admin') {
-      return;
-    }
-    const newBoard = getQueryArgument('dashboard');
-    const allVariables = getAllVariables(boards, newBoard, namespace);
-    dispatch(dashboardsPatchAllVariables(allVariables, perspective));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [namespace]);
-
-  // If we don't find any rows, build the rows array based on what we have in `data.panels`
-  const rows = React.useMemo(() => {
-    const data = _.find(boards, { name: board })?.data;
-
-    return data?.rows?.length
-      ? data.rows
-      : data?.panels?.reduce((acc, panel) => {
-          if (panel.type === 'row') {
-            acc.push(_.cloneDeep(panel));
-          } else if (acc.length === 0) {
-            acc.push({ panels: [panel] });
-          } else {
-            const row = acc[acc.length - 1];
-            if (_.isNil(row.panels)) {
-              row.panels = [];
-            }
-            row.panels.push(panel);
-          }
-          return acc;
-        }, []);
-  }, [board, boards]);
-
-  if (error) {
-    return <ErrorAlert message={error} />;
-  }
-
-  return (
-    <>
-      {perspective !== 'dev' && (
-        <Helmet>
-          <title>{t('Metrics dashboards')}</title>
-        </Helmet>
-      )}
-      <div className="co-m-nav-title co-m-nav-title--detail">
-        {perspective !== 'dev' && <HeaderTop />}
-        <div className="monitoring-dashboards__variables">
-          <div className="monitoring-dashboards__dropdowns">
-            {!_.isEmpty(boardItems) && (
-              <DashboardDropdown items={boardItems} onChange={changeBoard} selectedKey={board} />
-            )}
-            <AllVariableDropdowns key={board} />
-          </div>
-          {perspective === 'dev' && <TimeDropdowns />}
-        </div>
-      </div>
-      <Overview>
-        {isLoading ? (
-          <LoadingInline />
-        ) : (
-          <Board key={board} rows={rows} perspective={perspective} />
-        )}
-      </Overview>
-    </>
-  );
-};
-const MonitoringDashboardsPage = withRouter(MonitoringDashboardsPage_);
 
 type Variable = {
   isHidden?: boolean;
@@ -1065,5 +872,3 @@ type PanelsRowProps = {
   row: Row;
   perspective: Perspective;
 };
-
-export default withFallback(MonitoringDashboardsPage);

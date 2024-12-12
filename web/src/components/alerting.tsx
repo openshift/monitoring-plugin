@@ -49,7 +49,7 @@ import { ExternalLink } from './console/utils/link';
 import { getAllQueryArguments } from './console/utils/router';
 import { EmptyBox, StatusBox } from './console/utils/status-box';
 
-import MonitoringDashboardsPage from './dashboards';
+import MonitoringDashboardsPage from './dashboards/shared/dashboard-page';
 import KebabDropdown from './kebab-dropdown';
 import { Labels } from './labels';
 import { QueryBrowserPage, ToggleGraph } from './metrics';
