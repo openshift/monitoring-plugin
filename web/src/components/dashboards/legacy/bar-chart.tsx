@@ -1,8 +1,8 @@
 import * as _ from 'lodash-es';
 import * as React from 'react';
 
-import { CustomDataSource } from '../console/extensions/dashboard-data-source';
-import { Bar, LabelComponentProps } from '../console/graphs/bar';
+import { CustomDataSource } from '../../console/extensions/dashboard-data-source';
+import { Bar, LabelComponentProps } from '../../console/graphs/bar';
 
 const Label: React.FC<LabelComponentProps> = ({ metric }) => <>{_.values(metric).join()}</>;
 

@@ -18,16 +18,16 @@ import {
   TableVariant,
 } from '@patternfly/react-table';
 
-import ErrorAlert from '../console/console-shared/alerts/error';
-import { getPrometheusURL } from '../console/graphs/helpers';
-import { CustomDataSource } from '../console/extensions/dashboard-data-source';
-import { usePoll } from '../console/utils/poll-hook';
-import { useSafeFetch } from '../console/utils/safe-fetch-hook';
+import ErrorAlert from '../../console/console-shared/alerts/error';
+import { getPrometheusURL } from '../../console/graphs/helpers';
+import { CustomDataSource } from '../../console/extensions/dashboard-data-source';
+import { usePoll } from '../../console/utils/poll-hook';
+import { useSafeFetch } from '../../console/utils/safe-fetch-hook';
 
-import { formatNumber } from '../format';
-import { ColumnStyle, Panel } from './types';
-import TablePagination from '../table-pagination';
-import { usePerspective } from '../hooks/usePerspective';
+import { formatNumber } from '../../format';
+import { ColumnStyle, Panel } from '../types';
+import TablePagination from '../../table-pagination';
+import { usePerspective } from '../../hooks/usePerspective';
 
 type AugmentedColumnStyle = ColumnStyle & {
   className?: string;

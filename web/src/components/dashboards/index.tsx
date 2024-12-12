@@ -4,6 +4,7 @@ import {
   Overview,
   PrometheusEndpoint,
   RedExclamationCircleIcon,
+  useActiveNamespace,
   useResolvedExtensions,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
@@ -57,11 +58,11 @@ import {
   Perspective,
   queryBrowserDeleteAllQueries,
 } from '../../actions/observe';
-import BarChart from './bar-chart';
-import Graph from './graph';
-import SingleStat from './single-stat';
-import Table from './table';
-import TimespanDropdown from './timespan-dropdown';
+import BarChart from './legacy/bar-chart';
+import Graph from './legacy/graph';
+import SingleStat from './legacy/single-stat';
+import Table from './legacy/table';
+import TimespanDropdown from './shared/timespan-dropdown';
 import {
   MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
   MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY,
@@ -70,7 +71,7 @@ import {
 } from './types';
 import { useBoolean } from '../hooks/useBoolean';
 import { useIsVisible } from '../hooks/useIsVisible';
-import { useFetchDashboards } from './useFetchDashboards';
+import { useFetchDashboards } from './legacy/useFetchDashboards';
 import { DEFAULT_GRAPH_SAMPLES, getAllVariables } from './monitoring-dashboard-utils';
 import { getTimeRanges, isTimeoutError, QUERY_CHUNK_SIZE } from '../utils';
 import {
@@ -82,7 +83,7 @@ import {
 import KebabDropdown from '../kebab-dropdown';
 import { MonitoringState } from '../../reducers/observe';
 import { DropDownPollInterval } from '../dropdown-poll-interval';
-import { usePerses } from './usePerses';
+import { usePerses } from './perses/usePerses';
 
 const intervalVariableRegExps = ['__interval', '__rate_interval', '__auto_interval_[a-z]+'];
 
@@ -134,8 +135,6 @@ const evaluateTemplate = (
 
   return result;
 };
-
-const NamespaceContext = React.createContext('');
 
 const VariableOption = ({ value, isSelected, ...rest }) =>
   isIntervalVariable(String(value)) ? (
@@ -356,8 +355,9 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({
   );
 };
 
-const AllVariableDropdowns: React.FC<{ perspective: Perspective }> = ({ perspective }) => {
-  const namespace = React.useContext(NamespaceContext);
+const AllVariableDropdowns: React.FC = () => {
+  const [namespace] = useActiveNamespace();
+  const { perspective } = usePerspective();
   const variables = useSelector((state: MonitoringState) =>
     getObserveState(perspective, state)?.getIn(['dashboards', perspective, 'variables']),
   );
@@ -500,7 +500,7 @@ const QueryBrowserLink = ({
 
   const params = new URLSearchParams();
   queries.forEach((q, i) => params.set(`query${i}`, q));
-  const namespace = React.useContext(NamespaceContext);
+  const [namespace] = useActiveNamespace();
 
   if (customDataSourceName) {
     params.set('datasource', customDataSourceName);
@@ -547,7 +547,7 @@ const getPanelClassModifier = (panel: Panel): string => {
 const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
-  const namespace = React.useContext(NamespaceContext);
+  const [namespace] = useActiveNamespace();
   const pollInterval = useSelector((state: MonitoringState) =>
     getObserveState(perspective, state)?.getIn(['dashboards', perspective, 'pollInterval']),
   );
@@ -855,7 +855,7 @@ const MonitoringDashboardsPage_: React.FC<MonitoringDashboardsPageProps> = ({ hi
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const dispatch = useDispatch();
-  const namespace = match.params?.ns;
+  const [namespace] = useActiveNamespace();
   const { perspective } = usePerspective();
   const [board, setBoard] = React.useState<string>();
   const [boards, isLoading, error] = useFetchDashboards(namespace);
@@ -889,9 +889,9 @@ const MonitoringDashboardsPage_: React.FC<MonitoringDashboardsPageProps> = ({ hi
       const persesKeys = _.mapKeys(persesDashboards, function (item) {
         return item?.metadata?.name;
       });
-      const persesBoardItems = _.mapValues(persesKeys, (b, name) => ({
+      const persesBoardItems = _.mapValues(persesKeys, (b) => ({
         tags: ['perses'],
-        title: `${b.metadata?.project} / ${b.metadata?.name}` ?? name,
+        title: `${b.metadata?.project} / ${b.metadata?.name}`,
       }));
       return { ...persesBoardItems, ...ocpBoardItems };
     }
@@ -996,32 +996,30 @@ const MonitoringDashboardsPage_: React.FC<MonitoringDashboardsPageProps> = ({ hi
 
   return (
     <>
-      {!namespace && (
+      {perspective !== 'dev' && (
         <Helmet>
           <title>{t('Metrics dashboards')}</title>
         </Helmet>
       )}
-      <NamespaceContext.Provider value={namespace}>
-        <div className="co-m-nav-title co-m-nav-title--detail">
-          {!namespace && <HeaderTop />}
-          <div className="monitoring-dashboards__variables">
-            <div className="monitoring-dashboards__dropdowns">
-              {!_.isEmpty(boardItems) && (
-                <DashboardDropdown items={boardItems} onChange={changeBoard} selectedKey={board} />
-              )}
-              <AllVariableDropdowns key={board} perspective={perspective} />
-            </div>
-            {namespace && <TimeDropdowns />}
+      <div className="co-m-nav-title co-m-nav-title--detail">
+        {perspective !== 'dev' && <HeaderTop />}
+        <div className="monitoring-dashboards__variables">
+          <div className="monitoring-dashboards__dropdowns">
+            {!_.isEmpty(boardItems) && (
+              <DashboardDropdown items={boardItems} onChange={changeBoard} selectedKey={board} />
+            )}
+            <AllVariableDropdowns key={board} />
           </div>
+          {perspective === 'dev' && <TimeDropdowns />}
         </div>
-        <Overview>
-          {isLoading ? (
-            <LoadingInline />
-          ) : (
-            <Board key={board} rows={rows} perspective={perspective} />
-          )}
-        </Overview>
-      </NamespaceContext.Provider>
+      </div>
+      <Overview>
+        {isLoading ? (
+          <LoadingInline />
+        ) : (
+          <Board key={board} rows={rows} perspective={perspective} />
+        )}
+      </Overview>
     </>
   );
 };

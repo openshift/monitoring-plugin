@@ -1,4 +1,4 @@
-import { cancellableFetch, CancellableFetch } from '../cancellable-fetch';
+import { cancellableFetch, CancellableFetch } from '../../cancellable-fetch';
 
 const baseURL = '/api/proxy/plugin/monitoring-console-plugin/perses';
 

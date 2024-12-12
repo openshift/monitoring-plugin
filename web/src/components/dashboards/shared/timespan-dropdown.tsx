@@ -1,16 +1,20 @@
 import * as _ from 'lodash';
 // TODO: These will be available in future versions of the plugin SDK
-import { formatPrometheusDuration, parsePrometheusDuration } from '../console/utils/datetime';
+import { formatPrometheusDuration, parsePrometheusDuration } from '../../console/utils/datetime';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { getQueryArgument, removeQueryArgument, setQueryArgument } from '../console/utils/router';
-import { dashboardsSetEndTime, dashboardsSetTimespan } from '../../actions/observe';
-import { useBoolean } from '../hooks/useBoolean';
-import CustomTimeRangeModal from './custom-time-range-modal';
-import { getObserveState, usePerspective } from '../hooks/usePerspective';
-import { SimpleSelect, SimpleSelectOption } from '../SimpleSelect';
-import { MonitoringState } from '../../reducers/observe';
+import {
+  getQueryArgument,
+  removeQueryArgument,
+  setQueryArgument,
+} from '../../console/utils/router';
+import { dashboardsSetEndTime, dashboardsSetTimespan } from '../../../actions/observe';
+import { useBoolean } from '../../hooks/useBoolean';
+import CustomTimeRangeModal from '../shared/custom-time-range-modal';
+import { getObserveState, usePerspective } from '../../hooks/usePerspective';
+import { SimpleSelect, SimpleSelectOption } from '../../SimpleSelect';
+import { MonitoringState } from '../../../reducers/observe';
 
 const CUSTOM_TIME_RANGE_KEY = 'CUSTOM_TIME_RANGE_KEY';
 const DEFAULT_TIMERANGE = '30m';
