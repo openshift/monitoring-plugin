@@ -97,7 +97,7 @@ const BarChart: React.FC<BarChartProps> = ({
                 theme={theme}
                 height={barWidth + padding.bottom}
                 width={width}
-                domain={{ y: [0, data[0].y] }}
+                domain={{ y: [0, data.reduce((max, datum) => Math.max(max, datum.y), 0)] }}
                 padding={padding}
               />
             </div>
