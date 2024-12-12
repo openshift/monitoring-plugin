@@ -465,7 +465,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
               />
             </div>
             <ButtonBar errorMessage={error} inProgress={inProgress}>
-              <ActionGroup className="pf-c-form">
+              <ActionGroup className="pf-v5-c-form">
                 <Button type="submit" variant="primary">
                   {t('Silence')}
                 </Button>
