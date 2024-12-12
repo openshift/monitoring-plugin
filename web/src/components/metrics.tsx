@@ -431,12 +431,14 @@ const QueryKebab: React.FC<{ index: number }> = ({ index }) => {
   const { perspective } = usePerspective();
 
   const isDisabledSeriesEmpty = useSelector((state: MonitoringState) =>
-    getObserveState(perspective, state)?.getIn([
-      'queryBrowser',
-      'queries',
-      index,
-      'disabledSeries',
-    ]),
+    _.isEmpty(
+      getObserveState(perspective, state)?.getIn([
+        'queryBrowser',
+        'queries',
+        index,
+        'disabledSeries',
+      ]),
+    ),
   );
   const isEnabled = useSelector((state: MonitoringState) =>
     getObserveState(perspective, state)?.getIn(['queryBrowser', 'queries', index, 'isEnabled']),
