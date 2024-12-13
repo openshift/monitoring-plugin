@@ -108,7 +108,7 @@ const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = ({
           ),
         );
 
-        dispatch(dashboardsSetName(board, perspective));
+        dispatch(dashboardsSetName(newBoard, perspective));
       }
     },
     [perspective, board, boards, dispatch, history, namespace],
