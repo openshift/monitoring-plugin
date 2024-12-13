@@ -679,7 +679,6 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
   GraphLink,
   hideControls,
   isStack = false,
-  namespace,
   onZoom,
   pollInterval,
   queries,
@@ -757,7 +756,7 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
   // Clear any existing series data when the namespace is changed
   React.useEffect(() => {
     dispatch(queryBrowserDeleteAllSeries());
-  }, [dispatch, namespace]);
+  }, [dispatch, activeNamespace]);
 
   const tick = () => {
     if (hideGraphs) {
@@ -908,14 +907,17 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
     delay,
     endTime,
     filterLabels,
-    namespace,
+    activeNamespace,
     queriesKey,
     samples,
     span,
     lastRequestTime,
   );
 
-  React.useLayoutEffect(() => setUpdating(true), [endTime, namespace, queriesKey, samples, span]);
+  React.useLayoutEffect(
+    () => setUpdating(true),
+    [endTime, activeNamespace, queriesKey, samples, span],
+  );
 
   const onSpanChange = React.useCallback(
     (newSpan: number) => {
@@ -1112,7 +1114,6 @@ export type QueryBrowserProps = {
   GraphLink?: React.ComponentType;
   hideControls?: boolean;
   isStack?: boolean;
-  namespace?: string;
   onZoom?: GraphOnZoom;
   pollInterval?: number;
   queries: string[];
