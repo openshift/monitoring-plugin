@@ -67,12 +67,14 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
           pollInterval: 30 * 1000,
           timespan: MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
           variables: ImmutableMap(),
+          name: '',
         }),
         admin: ImmutableMap({
           endTime: null,
           pollInterval: 30 * 1000,
           timespan: MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
           variables: ImmutableMap(),
+          name: '',
         }),
       }),
       queryBrowser: ImmutableMap({
@@ -163,8 +165,9 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
       return state.setIn(['dashboards', action.payload.perspective, 'name'], action.payload.name);
     }
 
-    case ActionType.AlertingSetRules:
+    case ActionType.AlertingSetRules: {
       return state.set(action.payload.key, action.payload.data);
+    }
 
     case ActionType.AlertingSetData: {
       const alertsKey = getAlertsKey(action.payload.data.perspective);

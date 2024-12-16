@@ -17,6 +17,7 @@ import { usePerses } from './perses/usePerses';
 import { useBoolean } from '../hooks/useBoolean';
 import { PersesBoard } from './perses/perses-dashboards';
 import { Button } from '@patternfly/react-core';
+import { NamespaceBar } from '../console/console-shared/namespace/NamespaceBar';
 
 type MonitoringDashboardsPageProps = RouteComponentProps<{ board: string; ns?: string }>;
 
@@ -83,6 +84,7 @@ const MonitoringDashboardsPage_: React.FC<MonitoringDashboardsPageProps> = ({ ma
 
   return (
     <>
+      <NamespaceBar />
       <DashboardSkeleton urlBoard={match.params.board} boards={boards} boardItems={boardItems}>
         <Button onClick={togglePerses}>TogglePerses</Button>
         <Overview>
