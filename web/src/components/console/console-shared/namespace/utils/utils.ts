@@ -1,6 +1,7 @@
 // Use a key for the "legacy dashboards" namespaces option that would be an
 // invalid namespace name to avoid a potential clash
-export const LEGACY_DASHBOARD_KEY = '#LEGACY_DASHBOARD#';
+export const LEGACY_DASHBOARDS_KEY = '#LEGACY_DASHBOARDS#';
+export const ALL_NAMESPACES_KEY = '#ALL_NS#';
 
 export const USERSETTINGS_PREFIX = 'console';
 

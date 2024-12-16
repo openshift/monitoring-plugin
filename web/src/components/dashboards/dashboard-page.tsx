@@ -16,13 +16,13 @@ import { MonitoringState } from 'src/reducers/observe';
 import { usePerses } from './perses/usePerses';
 import { PersesBoard } from './perses/perses-dashboards';
 import { NamespaceBar } from '../console/console-shared/namespace/NamespaceBar';
-import { LEGACY_DASHBOARD_KEY } from '../console/console-shared/namespace/utils/utils';
+import { LEGACY_DASHBOARDS_KEY } from '../console/console-shared/namespace/utils/utils';
 
 type MonitoringDashboardsPageProps = RouteComponentProps<{ board: string; ns?: string }>;
 
 const MonitoringDashboardsPage_: React.FC<MonitoringDashboardsPageProps> = ({ match }) => {
   const [namespace] = useActiveNamespace();
-  const isPerses = namespace !== LEGACY_DASHBOARD_KEY;
+  const isPerses = namespace !== LEGACY_DASHBOARDS_KEY;
   const { perspective } = usePerspective();
   const board = useSelector((state: MonitoringState) =>
     getObserveState(perspective, state)?.getIn(['dashboards', perspective, 'name']),

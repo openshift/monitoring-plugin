@@ -26,7 +26,7 @@ import { useFlag, useK8sWatchResource } from '@openshift-console/dynamic-plugin-
 import { K8sResourceKind } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
 import { ProjectModel } from '../../models';
 import {
-  LEGACY_DASHBOARD_KEY,
+  LEGACY_DASHBOARDS_KEY,
   alphanumericCompare,
   FLAGS,
   NAMESPACE_LOCAL_STORAGE_KEY,
@@ -157,9 +157,9 @@ const NamespaceMenu: React.FC<{
   setOpen: (isOpen: boolean) => void;
   onSelect: (event: React.MouseEvent, itemId: string) => void;
   selected?: string;
-  allNamespacesTitle: string;
+  legacyDashboardsTitle: string;
   menuRef: React.MutableRefObject<HTMLDivElement>;
-}> = ({ setOpen, onSelect, selected, allNamespacesTitle, menuRef }) => {
+}> = ({ setOpen, onSelect, selected, legacyDashboardsTitle, menuRef }) => {
   const filterRef = React.useRef(null);
 
   const [filterText, setFilterText] = React.useState('');
@@ -191,16 +191,16 @@ const NamespaceMenu: React.FC<{
       const { name } = item.metadata;
       return { title: name, key: name };
     });
-    if (!items.some((option) => option.title === selected) && selected !== LEGACY_DASHBOARD_KEY) {
+    if (!items.some((option) => option.title === selected) && selected !== LEGACY_DASHBOARDS_KEY) {
       items.push({ title: selected, key: selected }); // Add current namespace if it isn't included
     }
     items.sort((a, b) => alphanumericCompare(a.title, b.title));
 
     if (canList) {
-      items.unshift({ title: allNamespacesTitle, key: LEGACY_DASHBOARD_KEY });
+      items.unshift({ title: legacyDashboardsTitle, key: LEGACY_DASHBOARDS_KEY });
     }
     return items;
-  }, [allNamespacesTitle, canList, options, optionsLoaded, selected]);
+  }, [legacyDashboardsTitle, canList, options, optionsLoaded, selected]);
 
   const hasSystemNamespaces = React.useMemo(
     () => optionItems.some((option) => isSystemNamespace(option)),
@@ -315,15 +315,15 @@ const NamespaceDropdown: React.FC<NamespaceDropdownProps> = ({
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const menuRef = React.useRef(null);
   const [isOpen, setOpen] = React.useState(false);
-  const allNamespacesTitle = t('Legacy Dashboards');
+  const legacyDashboardsTitle = t('Legacy Dashboards');
 
-  const title = selected === LEGACY_DASHBOARD_KEY ? allNamespacesTitle : selected;
+  const title = selected === LEGACY_DASHBOARDS_KEY ? legacyDashboardsTitle : selected;
 
   const menuProps = {
     setOpen,
     onSelect,
     selected,
-    allNamespacesTitle,
+    legacyDashboardsTitle,
     menuRef,
     children: <></>,
   };
