@@ -38,6 +38,35 @@
     }
   },
   {
+    "flags": {
+      "required": ["PROMETHEUS", "MONITORING", "CAN_GET_NS"]
+    },
+    "properties": {
+      "dataAttributes": {
+        "data-quickstart-id": "qs-nav-monitoring"
+      },
+      "id": "observe-virt-perspective",
+      "insertBefore": ["compute-virt-perspective", "usermanagement-virt-perspective"],
+      "name": "%console-app~Observe%",
+      "perspective": "virtualization-perspective"
+    },
+    "type": "console.navigation/section"
+  },
+  {
+    "type": "console.navigation/href",
+    "flags": {
+      "required": ["PROMETHEUS", "MONITORING", "CAN_GET_NS"]
+    },
+    "properties": {
+      "id": "alerting-virt",
+      "name": "%plugin__monitoring-plugin~Alerting%",
+      "href": "/virt-monitoring/alerts",
+      "perspective": "virtualization-perspective",
+      "section": "observe-virt-perspective",
+      "startsWith": ["virt-monitoring/alertrules", "virt-monitoring/silences"]
+    }
+  },
+  {
     "type": "console.navigation/href",
     "flags": {
       "required": ["PROMETHEUS", "MONITORING", "CAN_GET_NS"]
@@ -48,6 +77,20 @@
       "href": "/monitoring/query-browser",
       "perspective": "admin",
       "section": "observe",
+      "insertAfter": "alerts"
+    }
+  },
+  {
+    "type": "console.navigation/href",
+    "flags": {
+      "required": ["PROMETHEUS", "MONITORING", "CAN_GET_NS"]
+    },
+    "properties": {
+      "id": "metrics-virt",
+      "name": "%plugin__monitoring-plugin~Metrics%",
+      "href": "/virt-monitoring/query-browser",
+      "perspective": "virtualization-perspective",
+      "section": "observe-virt-perspective",
       "insertAfter": "alerts"
     }
   },
@@ -71,12 +114,40 @@
       "required": ["PROMETHEUS", "MONITORING", "CAN_GET_NS"]
     },
     "properties": {
+      "id": "dashboards-virt",
+      "name": "%plugin__monitoring-plugin~Dashboards%",
+      "href": "/virt-monitoring/dashboards",
+      "perspective": "virtualization-perspective",
+      "section": "observe-virt-perspective",
+      "insertAfter": "metrics-virt"
+    }
+  },
+  {
+    "type": "console.navigation/href",
+    "flags": {
+      "required": ["PROMETHEUS", "MONITORING", "CAN_GET_NS"]
+    },
+    "properties": {
       "id": "targets",
       "name": "%plugin__monitoring-plugin~Targets%",
       "href": "/monitoring/targets",
       "perspective": "admin",
       "section": "observe",
       "insertAfter": "dashboards"
+    }
+  },
+  {
+    "type": "console.navigation/href",
+    "flags": {
+      "required": ["PROMETHEUS", "MONITORING", "CAN_GET_NS"]
+    },
+    "properties": {
+      "id": "targets-virt",
+      "name": "%plugin__monitoring-plugin~Targets%",
+      "href": "/virt-monitoring/targets",
+      "perspective": "virtualization-perspective",
+      "section": "observe-virt-perspective",
+      "insertAfter": "dashboards-virt"
     }
   },
   {
