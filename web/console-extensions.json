@@ -32,7 +32,6 @@
       "id": "alerting",
       "name": "%plugin__monitoring-plugin~Alerting%",
       "href": "/monitoring/alerts",
-      "perspective": "admin",
       "section": "observe",
       "startsWith": ["monitoring/alertrules", "monitoring/silences"]
     }
@@ -46,7 +45,6 @@
       "id": "metrics",
       "name": "%plugin__monitoring-plugin~Metrics%",
       "href": "/monitoring/query-browser",
-      "perspective": "admin",
       "section": "observe",
       "insertAfter": "alerts"
     }
@@ -60,7 +58,6 @@
       "id": "dashboards",
       "name": "%plugin__monitoring-plugin~Dashboards%",
       "href": "/monitoring/dashboards",
-      "perspective": "admin",
       "section": "observe",
       "insertAfter": "metrics"
     }
@@ -74,7 +71,6 @@
       "id": "targets",
       "name": "%plugin__monitoring-plugin~Targets%",
       "href": "/monitoring/targets",
-      "perspective": "admin",
       "section": "observe",
       "insertAfter": "dashboards"
     }

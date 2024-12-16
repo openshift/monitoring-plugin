@@ -31,7 +31,7 @@ export const usePerspective = (): usePerspectiveReturn => {
       alertingContextId: 'dev-observe-alerting',
       defaultAlertTenant: [AlertSource.User],
     };
-  } else if (perspective === 'admin') {
+  } else if (['admin', 'virtualization-perspective'].includes(perspective)) {
     return {
       perspective: 'admin',
       rulesKey: 'rules',
@@ -41,6 +41,7 @@ export const usePerspective = (): usePerspectiveReturn => {
       defaultAlertTenant: [AlertSource.Platform],
     };
   }
+
   return {
     perspective: 'acm',
     rulesKey: 'acmRules',
