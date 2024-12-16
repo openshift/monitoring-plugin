@@ -14,17 +14,16 @@ import { Board } from './dashboard-stuff';
 import DashboardSkeleton from './shared/dashboard-skeleton';
 import { MonitoringState } from 'src/reducers/observe';
 import { usePerses } from './perses/usePerses';
-import { useBoolean } from '../hooks/useBoolean';
 import { PersesBoard } from './perses/perses-dashboards';
-import { Button } from '@patternfly/react-core';
 import { NamespaceBar } from '../console/console-shared/namespace/NamespaceBar';
+import { ALL_NAMESPACES_KEY } from '../console/console-shared/namespace/utils/utils';
 
 type MonitoringDashboardsPageProps = RouteComponentProps<{ board: string; ns?: string }>;
 
 const MonitoringDashboardsPage_: React.FC<MonitoringDashboardsPageProps> = ({ match }) => {
   const [namespace] = useActiveNamespace();
+  const isPerses = namespace === ALL_NAMESPACES_KEY;
   const { perspective } = usePerspective();
-  const [isPerses, togglePerses] = useBoolean(true);
   const board = useSelector((state: MonitoringState) =>
     getObserveState(perspective, state)?.getIn(['dashboards', perspective, 'name']),
   );
@@ -86,7 +85,6 @@ const MonitoringDashboardsPage_: React.FC<MonitoringDashboardsPageProps> = ({ ma
     <>
       <NamespaceBar />
       <DashboardSkeleton urlBoard={match.params.board} boards={boards} boardItems={boardItems}>
-        <Button onClick={togglePerses}>TogglePerses</Button>
         <Overview>
           {isLoading ? (
             <LoadingInline />
