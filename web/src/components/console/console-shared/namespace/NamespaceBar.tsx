@@ -7,7 +7,7 @@ import {
   useActivePerspective,
   useFlag,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { ALL_NAMESPACES_KEY, FLAGS, KEYBOARD_SHORTCUTS } from './utils/utils';
+import { LEGACY_DASHBOARD_KEY, FLAGS, KEYBOARD_SHORTCUTS } from './utils/utils';
 import NamespaceDropdown from './NamespaceDropdown';
 import { setQueryArgument } from '../../utils/router';
 
@@ -29,7 +29,7 @@ export const NamespaceBarDropdowns: React.FC<NamespaceBarDropdownsProps> = ({
 
   /* Check if the activeNamespace is present in the cluster */
   React.useEffect(() => {
-    if (activePerspective === 'dev' && activeNamespace !== ALL_NAMESPACES_KEY) {
+    if (activePerspective === 'dev' && activeNamespace !== LEGACY_DASHBOARD_KEY) {
       k8sGet({ model: ProjectModel, ns: activeNamespace })
         .then(() => {
           setActiveNamespace(activeNamespace);
@@ -38,7 +38,7 @@ export const NamespaceBarDropdowns: React.FC<NamespaceBarDropdownsProps> = ({
         .catch((err) => {
           if (err?.response?.status === 404) {
             /* This would redirect to "/all-namespaces" to show the Project List */
-            setActiveNamespace(ALL_NAMESPACES_KEY);
+            setActiveNamespace(LEGACY_DASHBOARD_KEY);
             setActiveNamespaceError(true);
           }
         });
@@ -57,7 +57,7 @@ export const NamespaceBarDropdowns: React.FC<NamespaceBarDropdownsProps> = ({
           setActiveNamespace(newNamespace);
           setQueryArgument('namespace', newNamespace);
         }}
-        selected={!activeNamespaceError ? activeNamespace : ALL_NAMESPACES_KEY}
+        selected={!activeNamespaceError ? activeNamespace : LEGACY_DASHBOARD_KEY}
         disabled={isDisabled}
         shortCut={KEYBOARD_SHORTCUTS.focusNamespaceDropdown}
       />

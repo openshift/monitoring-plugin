@@ -26,7 +26,7 @@ import { useFlag, useK8sWatchResource } from '@openshift-console/dynamic-plugin-
 import { K8sResourceKind } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
 import { ProjectModel } from '../../models';
 import {
-  ALL_NAMESPACES_KEY,
+  LEGACY_DASHBOARD_KEY,
   alphanumericCompare,
   FLAGS,
   NAMESPACE_LOCAL_STORAGE_KEY,
@@ -36,16 +36,13 @@ import { useUserSettingsCompatibility } from './utils/useUserSettingsCompatibili
 export const NoResults: React.FC<{
   onClear: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
 }> = ({ onClear }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   return (
     <>
       <Divider />
       <EmptyState>
-        <EmptyStateHeader
-          titleText={<>{t('console-shared~No projects found')}</>}
-          headingLevel="h4"
-        />
-        <EmptyStateBody>{t('console-shared~No results match the filter criteria.')}</EmptyStateBody>
+        <EmptyStateHeader titleText={<>{t('No projects found')}</>} headingLevel="h4" />
+        <EmptyStateBody>{t('No results match the filter criteria.')}</EmptyStateBody>
         <EmptyStateFooter>
           <EmptyStateActions>
             <Button
@@ -53,7 +50,7 @@ export const NoResults: React.FC<{
               onClick={onClear}
               className="co-namespace-selector__clear-filters"
             >
-              {t('console-shared~Clear filters')}
+              {t('Clear filters')}
             </Button>
           </EmptyStateActions>
         </EmptyStateFooter>
@@ -69,7 +66,7 @@ export const Filter: React.FC<{
   onFilterChange: (filterText: string) => void;
   filterText: string;
 }> = ({ filterText, filterRef, onFilterChange }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   return (
     <MenuSearch>
       <MenuSearchInput>
@@ -77,9 +74,9 @@ export const Filter: React.FC<{
           data-test="dropdown-text-filter"
           autoFocus
           value={filterText}
-          aria-label={t('console-shared~Select project...')}
+          aria-label={t('Select project...')}
           type="search"
-          placeholder={t('console-shared~Select project...')}
+          placeholder={t('Select project...')}
           onChange={(_, value: string) => onFilterChange(value)}
           ref={filterRef}
         />
@@ -95,7 +92,7 @@ const SystemSwitch: React.FC<{
   isChecked: boolean;
   onChange: (isChecked: boolean) => void;
 }> = ({ hasSystemNamespaces, isChecked, onChange }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   return hasSystemNamespaces ? (
     <>
       <Divider />
@@ -104,7 +101,7 @@ const SystemSwitch: React.FC<{
           <Switch
             data-test="showSystemSwitch"
             data-checked-state={isChecked}
-            label={t('console-shared~Show default projects')}
+            label={t('Show default projects')}
             isChecked={isChecked}
             onChange={(_, value) => onChange(value)}
             className="pf-v5-c-select__menu-item pf-m-action co-namespace-dropdown__switch"
@@ -124,10 +121,10 @@ export const NamespaceGroup: React.FC<{
   favorites?: { [key: string]: boolean }[];
   canFavorite?: boolean;
 }> = ({ isFavorites, options, selectedKey, favorites, canFavorite = true }) => {
-  const { t } = useTranslation();
-  let label = t('console-shared~Projects');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  let label = t('Projects');
   if (isFavorites) {
-    label = t('console-shared~Favorites');
+    label = t('Favorites');
   }
 
   return options.length === 0 ? null : (
@@ -194,13 +191,13 @@ const NamespaceMenu: React.FC<{
       const { name } = item.metadata;
       return { title: name, key: name };
     });
-    if (!items.some((option) => option.title === selected) && selected !== ALL_NAMESPACES_KEY) {
+    if (!items.some((option) => option.title === selected) && selected !== LEGACY_DASHBOARD_KEY) {
       items.push({ title: selected, key: selected }); // Add current namespace if it isn't included
     }
     items.sort((a, b) => alphanumericCompare(a.title, b.title));
 
     if (canList) {
-      items.unshift({ title: allNamespacesTitle, key: ALL_NAMESPACES_KEY });
+      items.unshift({ title: allNamespacesTitle, key: LEGACY_DASHBOARD_KEY });
     }
     return items;
   }, [allNamespacesTitle, canList, options, optionsLoaded, selected]);
@@ -315,12 +312,12 @@ const NamespaceDropdown: React.FC<NamespaceDropdownProps> = ({
   selected,
   shortCut,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const menuRef = React.useRef(null);
   const [isOpen, setOpen] = React.useState(false);
-  const allNamespacesTitle = t('console-shared~All Projects');
+  const allNamespacesTitle = t('Legacy Dashboards');
 
-  const title = selected === ALL_NAMESPACES_KEY ? allNamespacesTitle : selected;
+  const title = selected === LEGACY_DASHBOARD_KEY ? allNamespacesTitle : selected;
 
   const menuProps = {
     setOpen,
@@ -338,7 +335,7 @@ const NamespaceDropdown: React.FC<NamespaceDropdownProps> = ({
         menu={<NamespaceMenu {...menuProps} />}
         menuRef={menuRef}
         isOpen={isOpen}
-        title={`${t('console-shared~Project')}: ${title}`}
+        title={`${t('Project')}: ${title}`}
         onToggle={(menuState) => {
           setOpen(menuState);
         }}
