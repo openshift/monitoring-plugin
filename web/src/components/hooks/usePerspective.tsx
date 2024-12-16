@@ -15,40 +15,55 @@ type usePerspectiveReturn = {
   rulesKey: rulesKey;
   alertsKey: alertKey;
   silencesKey: silencesKey;
-  alertingContextId: 'dev-observe-alerting' | 'observe-alerting' | 'acm-observe-alerting';
+  alertingContextId:
+    | 'dev-observe-alerting'
+    | 'observe-alerting'
+    | 'acm-observe-alerting'
+    | 'virt-observe-alerting';
   defaultAlertTenant: Array<AlertSource>;
 };
 
 export const usePerspective = (): usePerspectiveReturn => {
   const [perspective] = useActivePerspective();
 
-  if (perspective === 'dev') {
-    return {
-      perspective: 'dev',
-      rulesKey: 'devRules',
-      alertsKey: 'devAlerts',
-      silencesKey: 'devSilences',
-      alertingContextId: 'dev-observe-alerting',
-      defaultAlertTenant: [AlertSource.User],
-    };
-  } else if (perspective === 'admin') {
-    return {
-      perspective: 'admin',
-      rulesKey: 'rules',
-      alertsKey: 'alerts',
-      silencesKey: 'silences',
-      alertingContextId: 'observe-alerting',
-      defaultAlertTenant: [AlertSource.Platform],
-    };
+  switch (perspective) {
+    case 'dev':
+      return {
+        perspective: 'dev',
+        rulesKey: 'devRules',
+        alertsKey: 'devAlerts',
+        silencesKey: 'devSilences',
+        alertingContextId: 'dev-observe-alerting',
+        defaultAlertTenant: [AlertSource.User],
+      };
+    case 'admin':
+      return {
+        perspective: 'admin',
+        rulesKey: 'rules',
+        alertsKey: 'alerts',
+        silencesKey: 'silences',
+        alertingContextId: 'observe-alerting',
+        defaultAlertTenant: [AlertSource.Platform],
+      };
+    case 'virtualization-perspective':
+      return {
+        perspective: 'virtualization-perspective',
+        rulesKey: 'virtRules',
+        alertsKey: 'virtAlerts',
+        silencesKey: 'virtSilences',
+        alertingContextId: 'virt-observe-alerting',
+        defaultAlertTenant: [AlertSource.Platform],
+      };
+    default:
+      return {
+        perspective: 'acm',
+        rulesKey: 'acmRules',
+        alertsKey: 'acmAlerts',
+        silencesKey: 'acmSilences',
+        alertingContextId: 'acm-observe-alerting',
+        defaultAlertTenant: [],
+      };
   }
-  return {
-    perspective: 'acm',
-    rulesKey: 'acmRules',
-    alertsKey: 'acmAlerts',
-    silencesKey: 'acmSilences',
-    alertingContextId: 'acm-observe-alerting',
-    defaultAlertTenant: [],
-  };
 };
 
 export const getAlertsKey = (perspective: Perspective): alertKey => {
@@ -57,6 +72,8 @@ export const getAlertsKey = (perspective: Perspective): alertKey => {
       return 'acmAlerts';
     case 'admin':
       return 'alerts';
+    case 'virtualization-perspective':
+      return 'virtAlerts';
     case 'dev':
     default:
       return 'devAlerts';
@@ -69,6 +86,8 @@ export const getSilencesKey = (perspective: Perspective): silencesKey => {
       return 'acmSilences';
     case 'admin':
       return 'silences';
+    case 'virtualization-perspective':
+      return 'virtSilences';
     case 'dev':
     default:
       return 'devSilences';
@@ -81,6 +100,8 @@ export const getAlertsUrl = (perspective: Perspective, namespace?: string) => {
       return `/multicloud${AlertResource.plural}`;
     case 'admin':
       return AlertResource.plural;
+    case 'virtualization-perspective':
+      return `/virt-monitoring/alerts`;
     case 'dev':
     default:
       return `/dev-monitoring/ns/${namespace}/alerts`;
@@ -104,6 +125,8 @@ export const getSilencesUrl = (perspective: Perspective, namespace?: string) => 
       return `/multicloud${SilenceResource.plural}`;
     case 'admin':
       return SilenceResource.plural;
+    case 'virtualization-perspective':
+      return `/virt-monitoring/silences`;
     case 'dev':
     default:
       return `/dev-monitoring/ns/${namespace}/silences`;
@@ -120,6 +143,8 @@ export const getNewSilenceAlertUrl = (
       return `/multicloud${SilenceResource.plural}/~new?${labelsToParams(alert.labels)}`;
     case 'admin':
       return `${SilenceResource.plural}/~new?${labelsToParams(alert.labels)}`;
+    case 'virtualization-perspective':
+      return `/virt-monitoring/silences/~new?${labelsToParams(alert.labels)}`;
     case 'dev':
     default:
       return `/dev-monitoring/ns/${namespace}/silences/~new?${labelsToParams(alert.labels)}`;
@@ -130,6 +155,8 @@ export const getNewSilenceUrl = (perspective: Perspective, namespace?: string) =
   switch (perspective) {
     case 'acm':
       return `/multicloud${SilenceResource.plural}/~new`;
+    case 'virtualization-perspective':
+      return `/virt-monitoring/~new`;
     case 'admin':
       return `${SilenceResource.plural}/~new`;
     case 'dev':
@@ -142,6 +169,8 @@ export const getRuleUrl = (perspective: Perspective, rule: Rule, namespace?: str
   switch (perspective) {
     case 'acm':
       return `/multicloud${RuleResource.plural}/${_.get(rule, 'id')}`;
+    case 'virtualization-perspective':
+      return `/virt-monitoring/rules/${rule?.id}`;
     case 'admin':
       return `${RuleResource.plural}/${_.get(rule, 'id')}`;
     case 'dev':
@@ -154,6 +183,8 @@ export const getSilenceAlertUrl = (perspective: Perspective, id: string, namespa
   switch (perspective) {
     case 'acm':
       return `/multicloud${SilenceResource.plural}/${id}`;
+    case 'virtualization-perspective':
+      return `/virt-monitoring/silences/${id}`;
     case 'admin':
       return `${SilenceResource.plural}/${id}`;
     case 'dev':
@@ -172,6 +203,8 @@ export const getEditSilenceAlertUrl = (
       return `/multicloud${SilenceResource.plural}/${id}/edit`;
     case 'admin':
       return `${SilenceResource.plural}/${id}/edit`;
+    case 'virtualization-perspective':
+      return `/virt-monitoring/silences/${id}/edit`;
     case 'dev':
     default:
       return `/dev-monitoring/ns/${namespace}/silences/${id}/edit`;
@@ -183,6 +216,8 @@ export const getFetchSilenceAlertUrl = (perspective: Perspective, namespace?: st
     case 'acm':
       return `${ALERTMANAGER_PROXY_PATH}/api/v2/silences`;
     case 'admin':
+      return `${ALERTMANAGER_BASE_PATH}/api/v2/silences`;
+    case 'virtualization-perspective':
       return `${ALERTMANAGER_BASE_PATH}/api/v2/silences`;
     case 'dev':
     default:
@@ -199,6 +234,8 @@ export const getAlertUrl = (
   switch (perspective) {
     case 'acm':
       return `/multicloud${AlertResource.plural}/${ruleID}?${labelsToParams(alert.labels)}`;
+    case 'virtualization-perspective':
+      return `/virt-monitoring/alerts/${ruleID}?${labelsToParams(alert.labels)}`;
     case 'admin':
       return `${AlertResource.plural}/${ruleID}?${labelsToParams(alert.labels)}`;
     case 'dev':
@@ -216,6 +253,8 @@ export const getFetchSilenceUrl = (
     case 'acm':
       return `${ALERTMANAGER_PROXY_PATH}/api/v2/silence/${silenceID}`;
     case 'admin':
+      return `${ALERTMANAGER_BASE_PATH}/api/v2/silence/${silenceID}`;
+    case 'virtualization-perspective':
       return `${ALERTMANAGER_BASE_PATH}/api/v2/silence/${silenceID}`;
     case 'dev':
     default:
@@ -253,6 +292,8 @@ export const getQueryBrowserUrl = (perspective: Perspective, query: string, name
       return `/monitoring/query-browser?query0=${encodeURIComponent(query)}`;
     case 'dev':
       return `/dev-monitoring/ns/${namespace}/metrics?query0=${encodeURIComponent(query)}`;
+    case 'virtualization-perspective':
+      return `/virt-monitoring/query-browser?query0=${encodeURIComponent(query)}`;
     case 'acm':
     default:
       return '';
@@ -269,6 +310,8 @@ export const getMutlipleQueryBrowserUrl = (
       return `/monitoring/query-browser?${params.toString()}`;
     case 'dev':
       return `/dev-monitoring/ns/${namespace}/metrics?${params.toString()}`;
+    case 'virtualization-perspective':
+      return `/virt-monitoring/query-browser?${params.toString()}`;
     case 'acm':
     default:
       return '';
@@ -281,6 +324,8 @@ export const getDeashboardsUrl = (
   namespace?: string,
 ) => {
   switch (perspective) {
+    case 'virtualization-perspective':
+      return `/monitoring/dashboards/${boardName}`;
     case 'admin':
       return `/monitoring/dashboards/${boardName}`;
     case 'dev':

@@ -696,6 +696,20 @@ const PollerPages = () => {
     );
   }
 
+  if (perspective === 'virtualization-perspective') {
+    return (
+      <Switch>
+        <Route path="/virt-monitoring/alerts" exact component={AlertsPage} />
+        <Route path="/virt-monitoring/rules/:id" exact component={AlertRulesDetailsPage} />
+        <Route path="/virt-monitoring/alerts/:ruleID" component={AlertsDetailsPage} />
+        <Route path="/virt-monitoring/metrics" exact component={QueryBrowserPage} />
+        <Route path="/virt-monitoring/silences" exact component={SilencesPage} />
+        <Route path="/virt-monitoring/silences/:id" exact component={SilencesDetailsPage} />
+        <Route path="/virt-monitoring/silences/:id/edit" exact component={EditSilence} />
+      </Switch>
+    );
+  }
+
   return (
     <Switch>
       <Route
