@@ -23,7 +23,6 @@
         "id": "incidents",
         "name": "%plugin__monitoring-console-plugin~Incidents%",
         "href": "/monitoring/incidents",
-        "perspective": "admin",
         "section": "observe",
         "insertAfter": "targets"
       }
