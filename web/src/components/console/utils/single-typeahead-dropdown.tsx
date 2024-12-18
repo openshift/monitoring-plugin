@@ -159,15 +159,25 @@ export const SingleTypeaheadDropdown: React.FC<SingleTypeaheadDropdownProps> = (
   }, [filterValue]);
 
   React.useEffect(() => {
-    // Poll more frequently when dropdown is open
+    // Poll when dropdown is open
     if (!isOpen) {
-      changePollDelay(POLL_DELAY.oneHour);
+      changePollDelay(POLL_DELAY.none);
     } else {
       changePollDelay(POLL_DELAY.tenSeconds);
     }
   }, [changePollDelay, isOpen]);
 
-  const time = Date.now();
+  // JZ FOR TESTING ONLY --- TODO DELETE
+  const now = Date.now();
+  const time = new Date(now).toLocaleString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+    second: 'numeric',
+  });
   console.log({ pollDelay, isOpen, time });
 
   const createItemId = (value: any) => `${ID_PREFIX}-option-${String(value).replace(' ', '-')}`;

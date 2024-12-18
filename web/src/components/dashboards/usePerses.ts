@@ -1,10 +1,12 @@
 import { PERSES_BASE_URL, PersesDashboardMetadata } from './perses-client';
 import { useCallback, useEffect, useReducer } from 'react';
 import { useURLPoll } from '@openshift-console/dynamic-plugin-sdk-internal';
+import { useSafeFetch } from '../console/utils/safe-fetch-hook';
+import { usePoll } from '../console/utils/poll-hook';
 
 export enum POLL_DELAY {
   tenSeconds = 10000,
-  oneHour = 3600000,
+  none = null,
 }
 
 type State = {
@@ -20,7 +22,7 @@ type Action =
       payload: { dashboardsData: PersesDashboardMetadata[] };
     }
   | {
-      type: 'dashboardsRequest';
+      type: 'dashboardsLoading';
     }
   | {
       type: 'dashboardsError';
@@ -46,7 +48,7 @@ const reducer = (state: State, action: Action): State => {
         isLoadingDashboardsData: false,
         dashboardsError: action.payload.error,
       };
-    case 'dashboardsRequest':
+    case 'dashboardsLoading':
       return {
         ...state,
         isLoadingDashboardsData: true,
@@ -68,18 +70,13 @@ export const usePerses = () => {
     dashboardsData: undefined,
     isLoadingDashboardsData: false,
     dashboardsError: undefined,
-    pollDelay: POLL_DELAY.oneHour,
+    pollDelay: POLL_DELAY.none,
   };
+  const listDashboardsMetadataEndpoint = '/api/v1/dashboards?metadata_only=true';
+  const persesDashboardsUrl = `${PERSES_BASE_URL}${listDashboardsMetadataEndpoint}`;
 
   const [state, dispatch] = useReducer(reducer, initialState);
-
   const { dashboardsData, isLoadingDashboardsData, dashboardsError, pollDelay } = state;
-
-  // const changePollDelay = (delayTime: POLL_DELAY) => {
-  //   dispatch({ type: 'updatePollDelay', payload: { delay: delayTime } });
-
-  //   console.log('USEPERSESE > CHANGEPOLLDELAY', delayTime);
-  // };
 
   const changePollDelay = useCallback(
     (delayTime) => {
@@ -91,11 +88,8 @@ export const usePerses = () => {
   );
 
   const usePersesDashboardsPoller = () => {
-    const listDashboardsMetadata = '/api/v1/dashboards?metadata_only=true';
-    const persesURL = `${PERSES_BASE_URL}${listDashboardsMetadata}`;
-
     const [response, loadError, loading] = useURLPoll<PersesDashboardMetadata[]>(
-      persesURL,
+      persesDashboardsUrl,
       pollDelay,
     );
 
@@ -105,7 +99,7 @@ export const usePerses = () => {
       if (loadError) {
         dispatch({ type: 'dashboardsError', payload: { error: loadError } });
       } else if (loading) {
-        dispatch({ type: 'dashboardsRequest' });
+        dispatch({ type: 'dashboardsLoading' });
       } else {
         dispatch({
           type: 'dashboardsMetadataResponse',
@@ -114,8 +108,28 @@ export const usePerses = () => {
       }
     }, [loadError, loading, response]);
   };
-
   usePersesDashboardsPoller();
+
+  // // eslint-disable-next-line react-hooks/exhaustive-deps
+  // const safeFetch = useCallback(useSafeFetch(), []);
+  // const tick = () => {
+  //   safeFetch(persesDashboardsUrl)
+  //     .then((response) => {
+  //       dispatch({
+  //         type: 'dashboardsMetadataResponse',
+  //         payload: { dashboardsData: response },
+  //       });
+  //       dispatch({ type: 'dashboardsError', payload: { error: undefined } });
+  //     })
+  //     .catch((error) => {
+  //       dispatch({
+  //         type: 'dashboardsMetadataResponse',
+  //         payload: { dashboardsData: undefined },
+  //       });
+  //       dispatch({ type: 'dashboardsError', payload: { error } });
+  //     });
+  // };
+  // usePoll(tick, pollDelay);
 
   return {
     dashboardsData,
