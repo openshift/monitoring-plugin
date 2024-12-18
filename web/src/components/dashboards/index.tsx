@@ -862,10 +862,7 @@ const MonitoringDashboardsPage_: React.FC<MonitoringDashboardsPageProps> = ({ hi
   const { perspective } = usePerspective();
   const [board, setBoard] = React.useState<string>();
   const [boards, isLoading, error] = useFetchDashboards(namespace);
-  const { usePersesDashboardsPoller, dashboardsData: persesDashboards } = usePerses();
-
-  // Called only once on mount
-  usePersesDashboardsPoller();
+  const { dashboardsData: persesDashboards } = usePerses();
 
   // Clear queries on unmount
   React.useEffect(() => () => dispatch(queryBrowserDeleteAllQueries()), [dispatch]);

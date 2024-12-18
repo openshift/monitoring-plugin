@@ -68,7 +68,7 @@ export const usePerses = () => {
     dashboardsData: undefined,
     isLoadingDashboardsData: false,
     dashboardsError: undefined,
-    pollDelay: POLL_DELAY.tenSeconds,
+    pollDelay: POLL_DELAY.oneHour,
   };
 
   const [state, dispatch] = useReducer(reducer, initialState);
@@ -85,7 +85,6 @@ export const usePerses = () => {
     (delayTime) => {
       if (pollDelay !== delayTime) {
         dispatch({ type: 'updatePollDelay', payload: { delay: delayTime } });
-        console.log('USEPERSPESE > CHANGEPOLLDELAY', delayTime);
       }
     },
     [dispatch, pollDelay],
@@ -100,7 +99,7 @@ export const usePerses = () => {
       pollDelay,
     );
 
-    console.log('POLLING', { pollDelay });
+    console.log('1. usePersesDashboardsPoller: ', { response, pollDelay });
 
     useEffect(() => {
       if (loadError) {
@@ -116,8 +115,9 @@ export const usePerses = () => {
     }, [loadError, loading, response]);
   };
 
+  usePersesDashboardsPoller();
+
   return {
-    usePersesDashboardsPoller,
     dashboardsData,
     isLoadingDashboardsData,
     dashboardsError,
