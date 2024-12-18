@@ -6,7 +6,7 @@ import { usePoll } from '../console/utils/poll-hook';
 
 export enum POLL_DELAY {
   tenSeconds = 10000,
-  none = null,
+  none = 3600000,
 }
 
 type State = {
@@ -87,49 +87,46 @@ export const usePerses = () => {
     [dispatch, pollDelay],
   );
 
-  const usePersesDashboardsPoller = () => {
-    const [response, loadError, loading] = useURLPoll<PersesDashboardMetadata[]>(
-      persesDashboardsUrl,
-      pollDelay,
-    );
+  // const usePersesDashboardsPoller = () => {
+  //   const [response, loadError, loading] = useURLPoll<PersesDashboardMetadata[]>(
+  //     persesDashboardsUrl,
+  //     pollDelay,
+  //   );
 
-    console.log('1. usePersesDashboardsPoller: ', { response, pollDelay });
+  //   console.log('1. usePersesDashboardsPoller: ', { response, pollDelay });
 
-    useEffect(() => {
-      if (loadError) {
-        dispatch({ type: 'dashboardsError', payload: { error: loadError } });
-      } else if (loading) {
-        dispatch({ type: 'dashboardsLoading' });
-      } else {
-        dispatch({
-          type: 'dashboardsMetadataResponse',
-          payload: { dashboardsData: response },
-        });
-      }
-    }, [loadError, loading, response]);
-  };
-  usePersesDashboardsPoller();
-
-  // // eslint-disable-next-line react-hooks/exhaustive-deps
-  // const safeFetch = useCallback(useSafeFetch(), []);
-  // const tick = () => {
-  //   safeFetch(persesDashboardsUrl)
-  //     .then((response) => {
+  //   useEffect(() => {
+  //     if (loadError) {
+  //       dispatch({ type: 'dashboardsError', payload: { error: loadError } });
+  //     } else if (loading) {
+  //       dispatch({ type: 'dashboardsLoading' });
+  //     } else {
   //       dispatch({
   //         type: 'dashboardsMetadataResponse',
   //         payload: { dashboardsData: response },
   //       });
-  //       dispatch({ type: 'dashboardsError', payload: { error: undefined } });
-  //     })
-  //     .catch((error) => {
-  //       dispatch({
-  //         type: 'dashboardsMetadataResponse',
-  //         payload: { dashboardsData: undefined },
-  //       });
-  //       dispatch({ type: 'dashboardsError', payload: { error } });
-  //     });
+  //     }
+  //   }, [loadError, loading, response]);
   // };
-  // usePoll(tick, pollDelay);
+  // usePersesDashboardsPoller();
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const safeFetch = useCallback(useSafeFetch(), []);
+  const tick = () => {
+    safeFetch(persesDashboardsUrl)
+      .then((response) => {
+        dispatch({
+          type: 'dashboardsMetadataResponse',
+          payload: { dashboardsData: response },
+        });
+      })
+      .catch((error) => {
+        dispatch({ type: 'dashboardsError', payload: { error } });
+      });
+  };
+  usePoll(tick, pollDelay);
+
+  console.log({ dashboardsData });
 
   return {
     dashboardsData,
