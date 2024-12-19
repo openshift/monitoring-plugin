@@ -23,7 +23,7 @@ import './ProjectDropdown.scss';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sResourceKind } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
 import { ProjectModel } from '../../../console/models';
-import { LEGACY_DASHBOARDS_KEY, alphanumericCompare } from './utils/utils';
+import { LEGACY_DASHBOARDS_KEY, alphanumericCompare } from './utils';
 
 export const NoResults: React.FC<{
   onClear: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;

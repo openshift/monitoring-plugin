@@ -16,7 +16,7 @@ import { MonitoringState } from 'src/reducers/observe';
 import { usePerses } from './perses/usePerses';
 import { PersesBoard } from './perses/perses-dashboards';
 import { ProjectBar } from './perses/project/ProjectBar';
-import { LEGACY_DASHBOARDS_KEY } from './perses/project/utils/utils';
+import { LEGACY_DASHBOARDS_KEY } from './perses/project/utils';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const queryClient = new QueryClient({

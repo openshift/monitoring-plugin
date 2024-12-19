@@ -6,7 +6,7 @@ import {
   useActiveNamespace,
   useActivePerspective,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { KEYBOARD_SHORTCUTS, LEGACY_DASHBOARDS_KEY } from './utils/utils';
+import { KEYBOARD_SHORTCUTS, LEGACY_DASHBOARDS_KEY } from './utils';
 import ProjectDropdown from './ProjectDropdown';
 import { setQueryArgument } from '../../../console/utils/router';
 import { useQueryParams } from '../../../hooks/useQueryParams';
