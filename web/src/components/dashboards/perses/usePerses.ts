@@ -1,99 +1,52 @@
-import { PersesDashboardMetadata } from './perses-client';
-import { useCallback, useReducer, useRef } from 'react';
-import { fetchPersesDashboardsMetadata } from './perses-client';
+import { useBoolean } from 'src/components/hooks/useBoolean';
+import { fetchPersesProjects, fetchPersesDashboardsMetadata } from './perses-client';
+import { useQuery } from '@tanstack/react-query';
 
-const isAbortError = (error: unknown): boolean =>
-  error instanceof Error && error.name === 'AbortError';
+// const isAbortError = (error: unknown): boolean =>
+//   error instanceof Error && error.name === 'AbortError';
 
-type State = {
-  dashboardsData: PersesDashboardMetadata[];
-  isLoadingDashboardsData: boolean;
-  dashboardsError: unknown;
-};
-
-type Action =
-  | {
-      type: 'dashboardsMetadataResponse';
-      payload: { dashboardsData: PersesDashboardMetadata[] };
-    }
-  | {
-      type: 'dashboardsRequest';
-    }
-  | {
-      type: 'dashboardsError';
-      payload: { error: unknown };
-    };
-
-const reducer = (state: State, action: Action): State => {
-  switch (action.type) {
-    case 'dashboardsMetadataResponse':
-      return {
-        ...state,
-        isLoadingDashboardsData: false,
-        dashboardsData: action.payload.dashboardsData,
-      };
-    case 'dashboardsError':
-      return {
-        ...state,
-        isLoadingDashboardsData: false,
-        dashboardsError: action.payload.error,
-      };
-    case 'dashboardsRequest':
-      return {
-        ...state,
-        isLoadingDashboardsData: true,
-        dashboardsData: undefined,
-        dashboardsError: undefined,
-      };
-    default:
-      return state;
-  }
-};
+// type State = {
+//   dashboards: PersesDashboardMetadata[];
+//   isLoadingDashboards: boolean;
+//   dashboardsError: unknown;
+//   projects: PersesProject[];
+//   isLoadingProjects: boolean;
+//   projectsError: unknown;
+// };
 
 export const usePerses = () => {
-  const dashboardsAbort = useRef<() => void | undefined>();
+  // Start the queries off as disabled initially, then once triggered start polling
+  const [projectsEnabled, , getProjects] = useBoolean(false);
+  const [dashboardsEnabled, , getDashboards] = useBoolean(false);
 
-  const initialState = {
-    dashboardsData: undefined,
-    isLoadingDashboardsData: false,
-    dashboardsError: undefined,
-  };
+  const {
+    isLoading: projectsLoading,
+    error: projectsError,
+    data: projects,
+  } = useQuery({
+    queryKey: ['projects'],
+    queryFn: fetchPersesProjects,
+    enabled: projectsEnabled,
+  });
 
-  const [state, dispatch] = useReducer(reducer, initialState);
-
-  const { dashboardsData, isLoadingDashboardsData, dashboardsError } = state;
-
-  /**
-   * Lists perses dashboards meta data only (no dashboards specs)
-   */
-  const getPersesDashboards = useCallback(async () => {
-    try {
-      if (dashboardsAbort.current) {
-        dashboardsAbort.current();
-      }
-
-      dispatch({ type: 'dashboardsRequest' });
-
-      const { request, abort } = fetchPersesDashboardsMetadata();
-      dashboardsAbort.current = abort;
-
-      const response = await request();
-
-      dispatch({
-        type: 'dashboardsMetadataResponse',
-        payload: { dashboardsData: response },
-      });
-    } catch (error) {
-      if (!isAbortError(error)) {
-        dispatch({ type: 'dashboardsError', payload: { error } });
-      }
-    }
-  }, []);
+  const {
+    isLoading: dashboardsLoading,
+    error: dashboardsError,
+    data: dashboards,
+  } = useQuery({
+    queryKey: ['dashboards'],
+    queryFn: fetchPersesDashboardsMetadata,
+    enabled: dashboardsEnabled,
+  });
 
   return {
-    getPersesDashboards,
-    dashboardsData,
-    isLoadingDashboardsData,
+    dashboards,
+    projectsLoading,
     dashboardsError,
+    getDashboards,
+    projects,
+    dashboardsLoading,
+    projectsError,
+    getProjects,
   };
 };

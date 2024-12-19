@@ -9,17 +9,6 @@ export const alphanumericCompare = (a: string, b: string): number => {
   });
 };
 
-export const deseralizeData = (data: string | null) => {
-  if (typeof data !== 'string') {
-    return data;
-  }
-  try {
-    return JSON.parse(data);
-  } catch {
-    return data;
-  }
-};
-
 // Common shortcuts than span pages.
 export const KEYBOARD_SHORTCUTS = Object.freeze({
   focusNamespaceDropdown: 'n',
