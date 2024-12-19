@@ -1,5 +1,5 @@
 import * as _ from 'lodash-es';
-import { Overview, useActiveNamespace } from '@openshift-console/dynamic-plugin-sdk';
+import { Overview } from '@openshift-console/dynamic-plugin-sdk';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
@@ -33,10 +33,13 @@ const queryClient = new QueryClient({
 
 type MonitoringDashboardsPageProps = {
   urlBoard: string;
+  namespace?: string;
 };
 
-const MonitoringDashboardsPage_: React.FC<MonitoringDashboardsPageProps> = ({ urlBoard }) => {
-  const [namespace] = useActiveNamespace();
+const MonitoringDashboardsPage_: React.FC<MonitoringDashboardsPageProps> = ({
+  urlBoard,
+  namespace,
+}) => {
   const isPerses = namespace !== LEGACY_DASHBOARDS_KEY;
   const { perspective } = usePerspective();
   const board = useSelector((state: MonitoringState) =>
@@ -119,7 +122,7 @@ type MonitoringDashboardsWrapperProps = RouteComponentProps<{ board: string; ns?
 const MonitoringDashboardsPageWrapper: React.FC<MonitoringDashboardsWrapperProps> = ({ match }) => {
   return (
     <QueryClientProvider client={queryClient}>
-      <MonitoringDashboardsPage_ urlBoard={match.params.board} />
+      <MonitoringDashboardsPage_ urlBoard={match.params.board} namespace={match.params?.ns} />
     </QueryClientProvider>
   );
 };
