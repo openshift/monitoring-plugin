@@ -7,13 +7,11 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Button,
-  Label,
   Card as PFCard,
   CardBody,
   CardHeader,
   CardTitle,
   DropdownItem,
-  SelectOption,
 } from '@patternfly/react-core';
 import { AngleDownIcon, AngleRightIcon } from '@patternfly/react-icons';
 import * as React from 'react';
@@ -26,7 +24,6 @@ import {
   DataSource as DataSourceExtension,
   isDataSource,
 } from '../console/extensions/dashboard-data-source';
-import { SingleTypeaheadDropdown } from '../console/utils/single-typeahead-dropdown';
 import { setQueryArguments } from '../console/utils/router';
 import { LoadingInline } from '../console/utils/status-box';
 
@@ -46,68 +43,6 @@ import {
 import KebabDropdown from '../kebab-dropdown';
 import { MonitoringState } from '../../reducers/observe';
 import { evaluateVariableTemplate } from './shared/variable-dropdowns';
-
-type TagColor = 'red' | 'purple' | 'blue' | 'green' | 'cyan' | 'orange';
-const tagColors: TagColor[] = ['red', 'purple', 'blue', 'green', 'cyan', 'orange'];
-
-const Tag: React.FC<{ color: TagColor; text: string }> = React.memo(({ color, text }) => (
-  <Label className="monitoring-dashboards__dashboard_dropdown_tag" color={color}>
-    {text}
-  </Label>
-));
-
-export const DashboardDropdown: React.FC<DashboardDropdownProps> = React.memo(
-  ({ items, onChange, selectedKey }) => {
-    const { t } = useTranslation(process.env.I18N_NAMESPACE);
-
-    const allTags = _.flatMap(items, 'tags');
-    const uniqueTags = _.uniq(allTags);
-
-    const OptionComponent = ({ value, isSelected, ...rest }) => (
-      <SelectOption value={value} isSelected={isSelected || false} {...rest}>
-        <div className="monitoring-dashboards__dashboard_dropdown_item">
-          <span>{items[value]?.title}</span>
-          <div className="monitoring-dashboards__dashboard_dropdown_tags">
-            {items[value]?.tags?.map((tag, i) => (
-              <Tag
-                color={tagColors[_.indexOf(uniqueTags, tag) % tagColors.length]}
-                key={i}
-                text={tag}
-              />
-            ))}
-          </div>
-        </div>
-      </SelectOption>
-    );
-
-    const selectItems = _.map(items, (item, key) => ({
-      value: key,
-      children: item.title,
-    }));
-
-    return (
-      <div
-        className="form-group monitoring-dashboards__dropdown-wrap"
-        data-test="dashboard-dropdown"
-      >
-        <label
-          className="monitoring-dashboards__dropdown-title"
-          htmlFor="monitoring-board-dropdown"
-        >
-          {t('Dashboard')}
-        </label>
-        <SingleTypeaheadDropdown
-          items={selectItems}
-          onChange={onChange}
-          OptionComponent={OptionComponent}
-          selectedKey={selectedKey}
-          hideClearButton
-          resizeToFit
-        />
-      </div>
-    );
-  },
-);
 
 const QueryBrowserLink = ({
   queries,
@@ -469,17 +404,6 @@ export const Board: React.FC<BoardProps> = ({ rows, perspective }) => (
     ))}
   </>
 );
-
-type DashboardDropdownProps = {
-  items: {
-    [key: string]: {
-      tags: string[];
-      title: string;
-    };
-  };
-  onChange: (v: string) => void;
-  selectedKey: string;
-};
 
 type BoardProps = {
   rows: Row[];
