@@ -46,7 +46,6 @@ import {
 import KebabDropdown from '../kebab-dropdown';
 import { MonitoringState } from '../../reducers/observe';
 import { evaluateVariableTemplate } from './shared/variable-dropdowns';
-import { TimeDropdowns } from './shared/time-dropdowns';
 
 type TagColor = 'red' | 'purple' | 'blue' | 'green' | 'cyan' | 'orange';
 const tagColors: TagColor[] = ['red', 'purple', 'blue', 'green', 'cyan', 'orange'];
@@ -109,19 +108,6 @@ export const DashboardDropdown: React.FC<DashboardDropdownProps> = React.memo(
     );
   },
 );
-
-export const HeaderTop: React.FC = React.memo(() => {
-  const { t } = useTranslation(process.env.I18N_NAMESPACE);
-
-  return (
-    <div className="monitoring-dashboards__header">
-      <h1 className="co-m-pane__heading">
-        <span>{t('Dashboards')}</span>
-      </h1>
-      <TimeDropdowns />
-    </div>
-  );
-});
 
 const QueryBrowserLink = ({
   queries,

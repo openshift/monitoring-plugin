@@ -20,10 +20,23 @@ import {
 import { Board, MONITORING_DASHBOARDS_DEFAULT_TIMESPAN } from '../types';
 import { getAllVariables } from '../monitoring-dashboard-utils';
 import { getDeashboardsUrl, getObserveState, usePerspective } from '../../hooks/usePerspective';
-import { DashboardDropdown, HeaderTop } from '../dashboard-stuff';
+import { DashboardDropdown } from '../dashboard-stuff';
 import { MonitoringState } from 'src/reducers/observe';
 import { AllVariableDropdowns } from './variable-dropdowns';
 import { TimeDropdowns } from './time-dropdowns';
+
+const HeaderTop: React.FC = React.memo(() => {
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
+
+  return (
+    <div className="monitoring-dashboards__header">
+      <h1 className="co-m-pane__heading">
+        <span>{t('Dashboards')}</span>
+      </h1>
+      <TimeDropdowns />
+    </div>
+  );
+});
 
 type MonitoringDashboardsPageProps = React.PropsWithChildren<{
   urlBoard: string;
