@@ -1,68 +1,61 @@
 import * as React from 'react';
 import { default as classNames } from 'classnames';
-import { ProjectModel } from '../../models';
+import { ProjectModel } from '../../../console/models';
 import {
   k8sGet,
   useActiveNamespace,
   useActivePerspective,
-  useFlag,
 } from '@openshift-console/dynamic-plugin-sdk';
-import {
-  LEGACY_DASHBOARDS_KEY,
-  FLAGS,
-  KEYBOARD_SHORTCUTS,
-  ALL_NAMESPACES_KEY,
-} from './utils/utils';
-import NamespaceDropdown from './NamespaceDropdown';
-import { setQueryArgument } from '../../utils/router';
+import { KEYBOARD_SHORTCUTS, LEGACY_DASHBOARDS_KEY } from './utils/utils';
+import ProjectDropdown from './ProjectDropdown';
+import { setQueryArgument } from '../../../console/utils/router';
+import { useQueryParams } from '../../../hooks/useQueryParams';
 
-export type NamespaceBarDropdownsProps = {
+export type ProjectBarDropdownsProps = {
   children: React.ReactNode;
   isDisabled: boolean;
-  onNamespaceChange: (namespace: string) => void;
+  onProjectChange: (project: string) => void;
 };
 
-export const NamespaceBarDropdowns: React.FC<NamespaceBarDropdownsProps> = ({
+export const ProjectBarDropdowns: React.FC<ProjectBarDropdownsProps> = ({
   children,
   isDisabled,
-  onNamespaceChange,
+  onProjectChange,
 }) => {
   const [activeNamespace, setActiveNamespace] = useActiveNamespace();
   const activePerspective = useActivePerspective()[0];
   const [activeNamespaceError, setActiveNamespaceError] = React.useState(false);
-  const canListNS = useFlag(FLAGS.CAN_LIST_NS);
+  const queryParams = useQueryParams();
 
   /* Check if the activeNamespace is present in the cluster */
   React.useEffect(() => {
-    if (activeNamespace === ALL_NAMESPACES_KEY) {
-      setActiveNamespace(LEGACY_DASHBOARDS_KEY);
-      return;
-    }
     if (activeNamespace !== LEGACY_DASHBOARDS_KEY) {
       k8sGet({ model: ProjectModel })
         .then(() => {
           setActiveNamespace(activeNamespace);
+          setQueryArgument('namespace', activeNamespace);
           setActiveNamespaceError(false);
         })
         .catch((err) => {
           if (err?.response?.status === 404) {
             /* This would redirect to "/all-namespaces" to show the Project List */
             setActiveNamespace(LEGACY_DASHBOARDS_KEY);
+            setQueryArgument('namespace', LEGACY_DASHBOARDS_KEY);
             setActiveNamespaceError(true);
           }
         });
+    } else {
+      setActiveNamespace(LEGACY_DASHBOARDS_KEY);
+      setQueryArgument('namespace', LEGACY_DASHBOARDS_KEY);
+      setActiveNamespaceError(false);
     }
-  }, [activeNamespace, activePerspective, setActiveNamespace, activeNamespaceError]);
-
-  if (flagPending(canListNS)) {
-    return null;
-  }
+  }, [activeNamespace, activePerspective, setActiveNamespace, activeNamespaceError, queryParams]);
 
   return (
-    <div className="co-namespace-bar__items" data-test-id="namespace-bar-dropdown">
-      <NamespaceDropdown
+    <div className="co-project-bar__items" data-test-id="project-bar-dropdown">
+      <ProjectDropdown
         onSelect={(event, newNamespace) => {
-          onNamespaceChange?.(newNamespace);
+          onProjectChange?.(newNamespace);
           setActiveNamespace(newNamespace);
           setQueryArgument('namespace', newNamespace);
         }}
@@ -75,33 +68,33 @@ export const NamespaceBarDropdowns: React.FC<NamespaceBarDropdownsProps> = ({
   );
 };
 
-export const NamespaceBar: React.FC<NamespaceBarProps & { hideProjects?: boolean }> = ({
-  onNamespaceChange,
+export const ProjectBar: React.FC<ProjectBarProps & { hideProjects?: boolean }> = ({
+  onProjectChange,
   isDisabled,
   children,
   hideProjects = false,
 }) => {
   return (
     <div
-      className={classNames('co-namespace-bar', {
-        'co-namespace-bar--no-project': hideProjects,
+      className={classNames('co-project-bar', {
+        'co-project-bar--no-project': hideProjects,
       })}
     >
       {hideProjects ? (
-        <div className="co-namespace-bar__items" data-test-id="namespace-bar-dropdown">
+        <div className="co-project-bar__items" data-test-id="project-bar-dropdown">
           {children}
         </div>
       ) : (
-        <NamespaceBarDropdowns isDisabled={isDisabled} onNamespaceChange={onNamespaceChange}>
+        <ProjectBarDropdowns isDisabled={isDisabled} onProjectChange={onProjectChange}>
           {children}
-        </NamespaceBarDropdowns>
+        </ProjectBarDropdowns>
       )}
     </div>
   );
 };
 
-export type NamespaceBarProps = {
-  onNamespaceChange?: (namespace: string) => void;
+export type ProjectBarProps = {
+  onProjectChange?: (project: string) => void;
   isDisabled?: boolean;
   children?: React.ReactNode;
 };

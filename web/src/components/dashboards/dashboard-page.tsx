@@ -15,8 +15,8 @@ import DashboardSkeleton from './shared/dashboard-skeleton';
 import { MonitoringState } from 'src/reducers/observe';
 import { usePerses } from './perses/usePerses';
 import { PersesBoard } from './perses/perses-dashboards';
-import { NamespaceBar } from '../console/console-shared/namespace/NamespaceBar';
-import { LEGACY_DASHBOARDS_KEY } from '../console/console-shared/namespace/utils/utils';
+import { ProjectBar } from './perses/project/ProjectBar';
+import { LEGACY_DASHBOARDS_KEY } from './perses/project/utils/utils';
 
 type MonitoringDashboardsPageProps = RouteComponentProps<{ board: string; ns?: string }>;
 
@@ -83,7 +83,7 @@ const MonitoringDashboardsPage_: React.FC<MonitoringDashboardsPageProps> = ({ ma
 
   return (
     <>
-      <NamespaceBar />
+      <ProjectBar />
       <DashboardSkeleton urlBoard={match.params.board} boards={boards} boardItems={boardItems}>
         <Overview>
           {isLoading ? (

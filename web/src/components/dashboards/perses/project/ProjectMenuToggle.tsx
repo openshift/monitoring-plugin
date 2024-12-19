@@ -2,7 +2,7 @@ import * as React from 'react';
 import { MenuToggle, Popper } from '@patternfly/react-core';
 import { default as classNames } from 'classnames';
 
-const NamespaceMenuToggle = (props: {
+const ProjectMenuToggle = (props: {
   disabled: boolean;
   menu: React.ReactElement;
   menuRef: React.RefObject<HTMLElement>;
@@ -72,7 +72,7 @@ const NamespaceMenuToggle = (props: {
       onClick={() => onToggle(!isOpen)}
       isExpanded={isOpen}
       disabled={disabled}
-      className={classNames('co-namespace-dropdown__menu-toggle', className)}
+      className={classNames('co-project-dropdown__menu-toggle', className)}
     >
       {title}
     </MenuToggle>
@@ -93,4 +93,4 @@ const NamespaceMenuToggle = (props: {
   );
 };
 
-export default NamespaceMenuToggle;
+export default ProjectMenuToggle;
