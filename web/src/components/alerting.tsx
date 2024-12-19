@@ -69,6 +69,7 @@ import {
   getAlertRulesUrl,
   getAlertsUrl,
   getAlertUrl,
+  getIncidentsUrl,
   getNewSilenceAlertUrl,
   getObserveState,
   getQueryBrowserUrl,
@@ -99,6 +100,7 @@ import { useSilencesPoller } from './hooks/useSilencesPoller';
 import { MonitoringState } from '../reducers/observe';
 import SilencesPage from './alerting/SilencesPage';
 import SilencesDetailsPage from './alerting/SilencesDetailPage';
+import { useFeatures } from './hooks/useFeatures';
 
 const StateCounts: React.FC<{ alerts: PrometheusAlert[] }> = ({ alerts }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -613,10 +615,12 @@ const Tab: React.FC<{ active: boolean; children: React.ReactNode }> = ({ active,
 const AlertingPage: React.FC<RouteComponentProps<{ url: string }>> = ({ match }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
+  const { areIncidentsActive } = useFeatures();
 
   const alertsPath = getAlertsUrl(perspective);
   const rulesPath = getAlertRulesUrl(perspective);
   const silencesPath = getSilencesUrl(perspective);
+  const incidentsPath = getIncidentsUrl(perspective);
 
   const { url } = match;
 
@@ -641,6 +645,11 @@ const AlertingPage: React.FC<RouteComponentProps<{ url: string }>> = ({ match })
         <Tab active={url === rulesPath}>
           <Link to={rulesPath}>{t('Alerting rules')}</Link>
         </Tab>
+        {areIncidentsActive && (
+          <Tab active={url === incidentsPath}>
+            <Link to={incidentsPath}>Incidents</Link>
+          </Tab>
+        )}
       </ul>
       <Switch>
         <Route path={alertsPath} exact component={AlertsPage} />
