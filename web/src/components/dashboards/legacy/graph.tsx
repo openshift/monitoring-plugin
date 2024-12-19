@@ -5,9 +5,9 @@ import { CustomDataSource } from '../../console/extensions/dashboard-data-source
 
 import { dashboardsSetEndTime, dashboardsSetTimespan, Perspective } from '../../../actions/observe';
 import { FormatSeriesTitle, QueryBrowser } from '../../query-browser';
-import { DEFAULT_GRAPH_SAMPLES } from '../monitoring-dashboard-utils';
 import { MonitoringState } from '../../../reducers/observe';
 import { getObserveState } from '../../hooks/usePerspective';
+import { DEFAULT_GRAPH_SAMPLES } from '../shared/utils';
 
 type Props = {
   customDataSource?: CustomDataSource;
