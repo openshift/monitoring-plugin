@@ -31,11 +31,11 @@ import {
   dashboardsVariableOptionsLoaded,
   Perspective,
 } from '../../../actions/observe';
-import { MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY } from '../types';
 import { DEFAULT_GRAPH_SAMPLES } from '../monitoring-dashboard-utils';
 import { getTimeRanges, isTimeoutError, QUERY_CHUNK_SIZE } from '../../utils';
 import { getObserveState, usePerspective } from '../../hooks/usePerspective';
 import { MonitoringState } from '../../../reducers/observe';
+import { MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY } from './utils';
 
 const intervalVariableRegExps = ['__interval', '__rate_interval', '__auto_interval_[a-z]+'];
 

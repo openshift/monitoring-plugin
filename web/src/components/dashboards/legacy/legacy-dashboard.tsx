@@ -32,7 +32,6 @@ import BarChart from '../legacy/bar-chart';
 import Graph from '../legacy/graph';
 import SingleStat from '../legacy/single-stat';
 import Table from '../legacy/table';
-import { Panel, Row } from '../types';
 import { useBoolean } from '../../hooks/useBoolean';
 import { useIsVisible } from '../../hooks/useIsVisible';
 import {
@@ -43,6 +42,7 @@ import {
 import KebabDropdown from '../../kebab-dropdown';
 import { MonitoringState } from '../../../reducers/observe';
 import { evaluateVariableTemplate } from '../shared/variable-dropdowns';
+import { Panel, Row } from './types';
 
 const QueryBrowserLink = ({
   queries,

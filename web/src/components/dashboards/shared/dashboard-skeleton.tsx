@@ -17,13 +17,14 @@ import {
   dashboardsSetTimespan,
   queryBrowserDeleteAllQueries,
 } from '../../../actions/observe';
-import { Board, MONITORING_DASHBOARDS_DEFAULT_TIMESPAN } from '../types';
 import { getAllVariables } from '../monitoring-dashboard-utils';
 import { getDeashboardsUrl, getObserveState, usePerspective } from '../../hooks/usePerspective';
-import { DashboardDropdown } from '../dashboard-stuff';
+import { DashboardDropdown } from './dashboard-dropdown';
 import { MonitoringState } from 'src/reducers/observe';
 import { AllVariableDropdowns } from './variable-dropdowns';
 import { TimeDropdowns } from './time-dropdowns';
+import { Board } from '../legacy/types';
+import { MONITORING_DASHBOARDS_DEFAULT_TIMESPAN } from './utils';
 
 const HeaderTop: React.FC = React.memo(() => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);

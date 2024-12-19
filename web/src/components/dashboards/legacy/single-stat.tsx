@@ -11,8 +11,8 @@ import { useSafeFetch } from '../../console/utils/safe-fetch-hook';
 import { LoadingInline } from '../../console/utils/status-box';
 
 import { formatNumber } from '../../format';
-import { Panel } from '../types';
 import { usePerspective } from '../../hooks/usePerspective';
+import { Panel } from './types';
 
 const colorMap = {
   'super-light-blue': 'blue-100',

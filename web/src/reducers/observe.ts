@@ -8,12 +8,13 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 
 import { ActionType, ObserveAction } from '../actions/observe';
+
+import { isSilenced } from '../components/utils';
+import { getAlertsKey, getSilencesKey } from '../components/hooks/usePerspective';
 import {
   MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
   MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY,
-} from '../components/dashboards/types';
-import { isSilenced } from '../components/utils';
-import { getAlertsKey, getSilencesKey } from '../components/hooks/usePerspective';
+} from '../components/dashboards/shared/utils';
 
 export type ObserveState = ImmutableMap<string, any>;
 
