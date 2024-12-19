@@ -10,7 +10,7 @@ import { LoadingInline } from '../console/utils/status-box';
 
 import { useFetchDashboards } from './legacy/useFetchDashboards';
 import { getObserveState, usePerspective } from '../hooks/usePerspective';
-import { Board } from './dashboard-stuff';
+import { LegacyDashboard } from './legacy/legacy-dashboard';
 import DashboardSkeleton from './shared/dashboard-skeleton';
 import { MonitoringState } from 'src/reducers/observe';
 import { usePerses } from './perses/usePerses';
@@ -109,7 +109,7 @@ const MonitoringDashboardsPage_: React.FC<MonitoringDashboardsPageProps> = ({
           ) : isPerses ? (
             <PersesBoard board={board} perspective={perspective} />
           ) : (
-            <Board key={board} rows={rows} perspective={perspective} />
+            <LegacyDashboard key={board} rows={rows} perspective={perspective} />
           )}
         </Overview>
       </DashboardSkeleton>

@@ -23,26 +23,26 @@ import {
   CustomDataSource,
   DataSource as DataSourceExtension,
   isDataSource,
-} from '../console/extensions/dashboard-data-source';
-import { setQueryArguments } from '../console/utils/router';
-import { LoadingInline } from '../console/utils/status-box';
+} from '../../console/extensions/dashboard-data-source';
+import { setQueryArguments } from '../../console/utils/router';
+import { LoadingInline } from '../../console/utils/status-box';
 
-import { Perspective } from '../../actions/observe';
-import BarChart from './legacy/bar-chart';
-import Graph from './legacy/graph';
-import SingleStat from './legacy/single-stat';
-import Table from './legacy/table';
-import { Panel, Row } from './types';
-import { useBoolean } from '../hooks/useBoolean';
-import { useIsVisible } from '../hooks/useIsVisible';
+import { Perspective } from '../../../actions/observe';
+import BarChart from '../legacy/bar-chart';
+import Graph from '../legacy/graph';
+import SingleStat from '../legacy/single-stat';
+import Table from '../legacy/table';
+import { Panel, Row } from '../types';
+import { useBoolean } from '../../hooks/useBoolean';
+import { useIsVisible } from '../../hooks/useIsVisible';
 import {
   getMutlipleQueryBrowserUrl,
   getObserveState,
   usePerspective,
-} from '../hooks/usePerspective';
-import KebabDropdown from '../kebab-dropdown';
-import { MonitoringState } from '../../reducers/observe';
-import { evaluateVariableTemplate } from './shared/variable-dropdowns';
+} from '../../hooks/usePerspective';
+import KebabDropdown from '../../kebab-dropdown';
+import { MonitoringState } from '../../../reducers/observe';
+import { evaluateVariableTemplate } from '../shared/variable-dropdowns';
 
 const QueryBrowserLink = ({
   queries,
@@ -397,7 +397,7 @@ const PanelsRow: React.FC<PanelsRowProps> = ({ row, perspective }) => {
   );
 };
 
-export const Board: React.FC<BoardProps> = ({ rows, perspective }) => (
+export const LegacyDashboard: React.FC<BoardProps> = ({ rows, perspective }) => (
   <>
     {_.map(rows, (row) => (
       <PanelsRow key={_.map(row.panels, 'id').join()} row={row} perspective={perspective} />
