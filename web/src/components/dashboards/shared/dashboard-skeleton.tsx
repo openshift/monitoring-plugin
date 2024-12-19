@@ -20,9 +20,10 @@ import {
 import { Board, MONITORING_DASHBOARDS_DEFAULT_TIMESPAN } from '../types';
 import { getAllVariables } from '../monitoring-dashboard-utils';
 import { getDeashboardsUrl, getObserveState, usePerspective } from '../../hooks/usePerspective';
-import { DashboardDropdown, HeaderTop, TimeDropdowns } from '../dashboard-stuff';
+import { DashboardDropdown, HeaderTop } from '../dashboard-stuff';
 import { MonitoringState } from 'src/reducers/observe';
 import { AllVariableDropdowns } from './variable-dropdowns';
+import { TimeDropdowns } from './time-dropdowns';
 
 type MonitoringDashboardsPageProps = React.PropsWithChildren<{
   urlBoard: string;

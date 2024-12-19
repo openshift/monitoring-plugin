@@ -18,7 +18,7 @@ import {
 import { AngleDownIcon, AngleRightIcon } from '@patternfly/react-icons';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 
 import {
@@ -27,15 +27,14 @@ import {
   isDataSource,
 } from '../console/extensions/dashboard-data-source';
 import { SingleTypeaheadDropdown } from '../console/utils/single-typeahead-dropdown';
-import { removeQueryArgument, setQueryArgument, setQueryArguments } from '../console/utils/router';
+import { setQueryArguments } from '../console/utils/router';
 import { LoadingInline } from '../console/utils/status-box';
 
-import { dashboardsSetPollInterval, Perspective } from '../../actions/observe';
+import { Perspective } from '../../actions/observe';
 import BarChart from './legacy/bar-chart';
 import Graph from './legacy/graph';
 import SingleStat from './legacy/single-stat';
 import Table from './legacy/table';
-import TimespanDropdown from './shared/timespan-dropdown';
 import { Panel, Row } from './types';
 import { useBoolean } from '../hooks/useBoolean';
 import { useIsVisible } from '../hooks/useIsVisible';
@@ -46,8 +45,8 @@ import {
 } from '../hooks/usePerspective';
 import KebabDropdown from '../kebab-dropdown';
 import { MonitoringState } from '../../reducers/observe';
-import { DropDownPollInterval } from '../dropdown-poll-interval';
 import { evaluateVariableTemplate } from './shared/variable-dropdowns';
+import { TimeDropdowns } from './shared/time-dropdowns';
 
 type TagColor = 'red' | 'purple' | 'blue' | 'green' | 'cyan' | 'orange';
 const tagColors: TagColor[] = ['red', 'purple', 'blue', 'green', 'cyan', 'orange'];
@@ -110,42 +109,6 @@ export const DashboardDropdown: React.FC<DashboardDropdownProps> = React.memo(
     );
   },
 );
-
-export const PollIntervalDropdown: React.FC = () => {
-  const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { perspective } = usePerspective();
-
-  const dispatch = useDispatch();
-  const setInterval = React.useCallback(
-    (v: number) => {
-      if (v) {
-        setQueryArgument('refreshInterval', v.toString());
-      } else {
-        removeQueryArgument('refreshInterval');
-      }
-      dispatch(dashboardsSetPollInterval(v, perspective));
-    },
-    [dispatch, perspective],
-  );
-
-  return (
-    <div className="form-group monitoring-dashboards__dropdown-wrap">
-      <label htmlFor="refresh-interval-dropdown" className="monitoring-dashboards__dropdown-title">
-        {t('Refresh interval')}
-      </label>
-      <DropDownPollInterval id="refresh-interval-dropdown" setInterval={setInterval} />
-    </div>
-  );
-};
-
-export const TimeDropdowns: React.FC = React.memo(() => {
-  return (
-    <div className="monitoring-dashboards__options">
-      <TimespanDropdown />
-      <PollIntervalDropdown />
-    </div>
-  );
-});
 
 export const HeaderTop: React.FC = React.memo(() => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
