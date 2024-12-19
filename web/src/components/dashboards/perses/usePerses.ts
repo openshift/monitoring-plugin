@@ -1,4 +1,4 @@
-import { useBoolean } from 'src/components/hooks/useBoolean';
+import { useBoolean } from '../../hooks/useBoolean';
 import { fetchPersesProjects, fetchPersesDashboardsMetadata } from './perses-client';
 import { useQuery } from '@tanstack/react-query';
 
