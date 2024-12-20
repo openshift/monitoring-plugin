@@ -2,21 +2,8 @@ import { useBoolean } from '../../hooks/useBoolean';
 import { fetchPersesProjects, fetchPersesDashboardsMetadata } from './perses-client';
 import { useQuery } from '@tanstack/react-query';
 
-// const isAbortError = (error: unknown): boolean =>
-//   error instanceof Error && error.name === 'AbortError';
-
-// type State = {
-//   dashboards: PersesDashboardMetadata[];
-//   isLoadingDashboards: boolean;
-//   dashboardsError: unknown;
-//   projects: PersesProject[];
-//   isLoadingProjects: boolean;
-//   projectsError: unknown;
-// };
-
 export const usePerses = () => {
   // Start the queries off as disabled initially, then once triggered start polling
-  const [projectsEnabled, , getProjects] = useBoolean(false);
   const [dashboardsEnabled, , getDashboards] = useBoolean(false);
 
   const {
@@ -26,7 +13,7 @@ export const usePerses = () => {
   } = useQuery({
     queryKey: ['projects'],
     queryFn: fetchPersesProjects,
-    enabled: projectsEnabled,
+    enabled: true,
   });
 
   const {
@@ -47,6 +34,5 @@ export const usePerses = () => {
     projects,
     dashboardsLoading,
     projectsError,
-    getProjects,
   };
 };

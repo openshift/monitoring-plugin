@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { cancellableFetch } from '../cancellable-fetch';
+import { proxiedFetch } from '../proxied-fetch';
 
 type features = {
   'acm-alerting': boolean;
@@ -29,10 +29,8 @@ export const useFeatures = () => {
       if (dashboardsAbort.current) {
         dashboardsAbort.current();
       }
-      const { request, abort } = cancellableFetch<featuresResponse>(featuresEndpoint);
-      dashboardsAbort.current = abort;
 
-      const response = await request();
+      const response = await proxiedFetch<featuresResponse>(featuresEndpoint);
       setFeatures({ ...noFeatures, ...response });
     } catch (error) {
       setFeatures(noFeatures);

@@ -20,10 +20,8 @@ import fuzzysearch from 'fuzzysearch';
 import { useTranslation } from 'react-i18next';
 import ProjectMenuToggle from './ProjectMenuToggle';
 import './ProjectDropdown.scss';
-import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
-import { K8sResourceKind } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
-import { ProjectModel } from '../../../console/models';
 import { LEGACY_DASHBOARDS_KEY, alphanumericCompare } from './utils';
+import { usePerses } from '../usePerses';
 
 export const NoResults: React.FC<{
   onClear: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
@@ -117,28 +115,26 @@ const ProjectMenu: React.FC<{
 
   const [filterText, setFilterText] = React.useState('');
 
-  const [options, optionsLoaded] = useK8sWatchResource<K8sResourceKind[]>({
-    isList: true,
-    kind: ProjectModel.kind,
-    optional: true,
-  });
+  const { projectsLoading, projects } = usePerses();
 
   const optionItems = React.useMemo(() => {
-    if (!optionsLoaded) {
+    if (projectsLoading) {
       return [];
     }
-    const items = options.map((item) => {
+
+    const items = projects.map((item) => {
       const { name } = item.metadata;
-      return { title: name, key: name };
+      return { title: item?.spec?.display?.name ?? name, key: name };
     });
+
     if (!items.some((option) => option.title === selected) && selected !== LEGACY_DASHBOARDS_KEY) {
-      items.push({ title: selected, key: selected }); // Add current namespace if it isn't included
+      items.push({ title: selected, key: selected }); // Add current project if it isn't included
     }
     items.sort((a, b) => alphanumericCompare(a.title, b.title));
 
     items.unshift({ title: legacyDashboardsTitle, key: LEGACY_DASHBOARDS_KEY });
     return items;
-  }, [legacyDashboardsTitle, options, optionsLoaded, selected]);
+  }, [legacyDashboardsTitle, projects, projectsLoading, selected]);
 
   const isOptionShown = React.useCallback(
     (option) => {
