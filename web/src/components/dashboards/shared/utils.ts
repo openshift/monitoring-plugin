@@ -1,8 +1,12 @@
 import * as _ from 'lodash';
 import { Map as ImmutableMap } from 'immutable';
 
-import { Board, MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY } from './types';
-import { getQueryArgument } from '../console/utils/router';
+import { getQueryArgument } from '../../console/utils/router';
+import { Board } from '../legacy/types';
+
+export const MONITORING_DASHBOARDS_DEFAULT_TIMESPAN = 30 * 60 * 1000;
+
+export const MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY = 'ALL_OPTION_KEY';
 
 export const DEFAULT_GRAPH_SAMPLES = 60;
 

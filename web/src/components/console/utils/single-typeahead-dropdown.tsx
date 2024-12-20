@@ -91,7 +91,7 @@ export const SingleTypeaheadDropdown: React.FC<SingleTypeaheadDropdownProps> = (
   menuToggleProps = {},
   selectProps = {},
 }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const [isOpen, setIsOpen] = React.useState(false);
   const [selectOptions, setSelectOptions] = React.useState<
     (SelectOptionProps & {
