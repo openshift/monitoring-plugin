@@ -38,7 +38,6 @@ import { ToggleGraph } from '../metrics';
 import { Alerts } from '../types';
 import { alertDescription, RuleResource } from '../utils';
 
-import '../_monitoring.scss';
 import {
   getAlertRulesUrl,
   getAlertsUrl,
