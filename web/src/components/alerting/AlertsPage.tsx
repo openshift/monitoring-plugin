@@ -22,6 +22,7 @@ import {
   isActionWithHref,
   MonitoringResourceIcon,
   Severity,
+  severityRowFilter,
   SilencesNotLoadedWarning,
 } from './AlertUtils';
 import {
@@ -38,7 +39,6 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { DropdownItem } from '@patternfly/react-core';
 import { AlertResource, alertSeverityOrder, alertState, fuzzyCaseInsensitive } from '../utils';
-import { severityRowFilter } from '../alerting';
 import { sortable } from '@patternfly/react-table';
 import { Helmet } from 'react-helmet';
 import { RouteComponentProps, withRouter } from 'react-router';
