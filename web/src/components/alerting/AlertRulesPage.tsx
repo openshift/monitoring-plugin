@@ -27,7 +27,6 @@ import {
   RuleResource,
 } from '../utils';
 
-import '../_monitoring.scss';
 import { getObserveState, getRuleUrl, usePerspective } from '../hooks/usePerspective';
 import {
   alertingRuleSource,
