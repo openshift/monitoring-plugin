@@ -5,7 +5,7 @@ import { BrowserRouter, Link } from 'react-router-dom';
 import { combineReducers, createStore } from 'redux';
 
 import ObserveReducers, { ObserveState } from './reducers/observe';
-import MonitoringUI from './components/alerting';
+import MonitoringRouter from './components/router';
 import i18n from './i18n';
 
 import '@patternfly/patternfly/patternfly.css';
@@ -26,7 +26,7 @@ const App = () => (
         <Link to="/monitoring/dashboards">Dashboards</Link>
         <Link to="/monitoring/targets">Targets</Link>
       </div>
-      <MonitoringUI />
+      <MonitoringRouter />
     </BrowserRouter>
   </Provider>
 );
