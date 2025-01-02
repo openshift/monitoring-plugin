@@ -253,7 +253,7 @@ const IncidentsPage = () => {
         <div className="co-m-pane__body">
           <Toolbar
             id="toolbar-with-filter"
-            className="pf-m-toggle-group-container"
+            className="pf-v5-m-toggle-group-container"
             collapseListedFiltersBreakpoint="xl"
             clearFiltersButtonText="Reset all filters"
             clearAllFilters={() =>
@@ -315,7 +315,7 @@ const IncidentsPage = () => {
                   }
                 />
               </ToolbarItem>
-              <ToolbarItem className="pf-m-align-right">
+              <ToolbarItem className="pf-v5-m-align-right">
                 <Button
                   variant="link"
                   icon={hideCharts ? <CompressArrowsAltIcon /> : <CompressIcon />}

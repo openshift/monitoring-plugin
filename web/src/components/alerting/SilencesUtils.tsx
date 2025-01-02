@@ -45,13 +45,13 @@ import { MonitoringResourceIcon, OnToggle, SeverityCounts, StateTimestamp } from
 import { useActiveNamespace } from '../console/console-shared/hooks/useActiveNamespace';
 
 export const tableSilenceClasses = [
-  'pf-c-table__action', // Checkbox
-  'pf-u-w-50 pf-u-w-33-on-sm', // Name
-  'pf-m-hidden pf-m-visible-on-sm', // Firing alerts
+  'pf-v5-c-table__action', // Checkbox
+  'pf-v5-u-w-50 pf-v5-u-w-33-on-sm', // Name
+  'pf-v5-m-hidden pf-v5-m-visible-on-sm', // Firing alerts
   '', // State
-  'pf-m-hidden pf-m-visible-on-sm', // Creator
-  'pf-m-hidden pf-m-visible-on-sm', // Cluster
-  'dropdown-kebab-pf pf-c-table__action',
+  'pf-v5-m-hidden pf-v5-m-visible-on-sm', // Creator
+  'pf-v5-m-hidden pf-v5-m-visible-on-sm', // Cluster
+  'dropdown-kebab-pf pf-v5-c-table__action',
 ];
 
 export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheckbox }) => {

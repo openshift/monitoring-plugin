@@ -235,10 +235,10 @@ const Details: React.FC<DetailsProps> = ({ loaded, loadError, targets }) => {
       <Helmet>
         <title>{t('Target details')}</title>
       </Helmet>
-      <div className="pf-c-page__main-breadcrumb">
+      <div className="pf-v5-c-page__main-breadcrumb">
         <Breadcrumb className="co-breadcrumb">
           <BreadcrumbItem>
-            <Link className="pf-c-breadcrumb__link" to="/monitoring/targets">
+            <Link className="pf-v5-c-breadcrumb__link" to="/monitoring/targets">
               {t('Targets')}
             </Link>
           </BreadcrumbItem>
@@ -323,12 +323,12 @@ const Details: React.FC<DetailsProps> = ({ loaded, loadError, targets }) => {
 };
 
 const tableClasses = [
-  'pf-u-w-25-on-md', // Endpoint
-  'pf-u-w-16-on-md', // Monitor
+  'pf-v5-u-w-25-on-md', // Endpoint
+  'pf-v5-u-w-16-on-md', // Monitor
   '', // Status
-  'pf-u-w-16-on-md', // Namespace
-  'pf-m-hidden pf-m-visible-on-md', // Last Scrape
-  'pf-m-hidden pf-m-visible-on-md', // Scrape Duration
+  'pf-v5-u-w-16-on-md', // Namespace
+  'pf-v5-m-hidden pf-v5-m-visible-on-md', // Last Scrape
+  'pf-v5-m-hidden pf-v5-m-visible-on-md', // Scrape Duration
 ];
 
 const Row: React.FC<RowProps<Target>> = ({ obj }) => {

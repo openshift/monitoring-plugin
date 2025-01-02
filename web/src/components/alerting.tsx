@@ -237,18 +237,21 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
         <title>{t('{{name}} details', { name: rule?.name || RuleResource.label })}</title>
       </Helmet>
       <StatusBox data={rule} label={RuleResource.label} loaded={loaded} loadError={loadError}>
-        <div className="pf-c-page__main-breadcrumb">
+        <div className="pf-v5-c-page__main-breadcrumb">
           <Breadcrumb className="monitoring-breadcrumbs">
             {perspective === 'dev' && (
               <BreadcrumbItem>
-                <Link className="pf-c-breadcrumb__link" to={getAlertsUrl(perspective, namespace)}>
+                <Link
+                  className="pf-v5-c-breadcrumb__link"
+                  to={getAlertsUrl(perspective, namespace)}
+                >
                   {t('Alerts')}
                 </Link>
               </BreadcrumbItem>
             )}
             {perspective !== 'dev' && (
               <BreadcrumbItem>
-                <Link className="pf-c-breadcrumb__link" to={getAlertRulesUrl(perspective)}>
+                <Link className="pf-v5-c-breadcrumb__link" to={getAlertRulesUrl(perspective)}>
                   {t('Alerting rules')}
                 </Link>
               </BreadcrumbItem>
@@ -391,7 +394,7 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
             <div className="row">
               <div className="col-xs-12">
                 {_.isEmpty(rule?.alerts) ? (
-                  <div className="pf-u-text-align-center">{t('None found')}</div>
+                  <div className="pf-v5-u-text-align-center">{t('None found')}</div>
                 ) : (
                   <ActiveAlerts alerts={rule.alerts} ruleID={rule?.id} namespace={namespace} />
                 )}
@@ -441,10 +444,10 @@ export const alertStateFilter = (t): RowFilter => ({
 });
 
 const tableRuleClasses = [
-  'pf-u-w-50 pf-u-w-33-on-sm', // Name
-  'pf-m-hidden pf-m-visible-on-sm', // Severity
+  'pf-v5-u-w-50 pf-v5-u-w-33-on-sm', // Name
+  'pf-v5-m-hidden pf-v5-m-visible-on-sm', // Severity
   '', // Alert state
-  'pf-m-hidden pf-m-visible-on-sm', // Source
+  'pf-v5-m-hidden pf-v5-m-visible-on-sm', // Source
 ];
 
 const RuleTableRow: React.FC<RowProps<Rule>> = ({ obj }) => {
