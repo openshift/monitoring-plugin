@@ -40,7 +40,7 @@ const IncidentsChart = ({ incidentsData, chartDays }) => {
   const dateValues = generateDateArray(chartDays);
 
   const selectedId = useSelector((state) =>
-    state.plugins.monitoring.getIn(['incidentsData', 'incidentGroupId']),
+    state.plugins.mcp.getIn(['incidentsData', 'incidentGroupId']),
   );
 
   const isHidden = (group_id) => selectedId !== '' && selectedId !== group_id;
@@ -88,12 +88,12 @@ const IncidentsChart = ({ incidentsData, chartDays }) => {
                 <CursorVoronoiContainer
                   mouseFollowTooltips
                   labels={({ datum }) =>
-                    `Severity: ${datum.name}\nComponent: ${datum.componentList?.join(", ")}\nIncident ID: ${
-                      datum.group_id
-                    }\nStart: ${formatDate(new Date(datum.y0), true)}\nEnd: ${formatDate(
-                      new Date(datum.y),
+                    `Severity: ${datum.name}\nComponent: ${datum.componentList?.join(
+                      ', ',
+                    )}\nIncident ID: ${datum.group_id}\nStart: ${formatDate(
+                      new Date(datum.y0),
                       true,
-                    )}`
+                    )}\nEnd: ${formatDate(new Date(datum.y), true)}`
                   }
                 />
               }

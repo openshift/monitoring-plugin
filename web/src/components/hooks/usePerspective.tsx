@@ -226,7 +226,7 @@ export const getFetchSilenceUrl = (
 export const getObserveState = (perspective: Perspective, state: MonitoringState) => {
   switch (perspective) {
     case 'acm':
-      return state.plugins?.monitoring;
+      return state.plugins?.mcp;
     case 'admin':
     case 'dev':
     default:
