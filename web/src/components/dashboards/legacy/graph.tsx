@@ -1,13 +1,13 @@
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { CustomDataSource } from '../console/extensions/dashboard-data-source';
+import { CustomDataSource } from '../../console/extensions/dashboard-data-source';
 
-import { dashboardsSetEndTime, dashboardsSetTimespan, Perspective } from '../../actions/observe';
-import { FormatSeriesTitle, QueryBrowser } from '../query-browser';
-import { DEFAULT_GRAPH_SAMPLES } from './monitoring-dashboard-utils';
-import { MonitoringState } from '../../reducers/observe';
-import { getLegacyObserveState } from '../hooks/usePerspective';
+import { dashboardsSetEndTime, dashboardsSetTimespan, Perspective } from '../../../actions/observe';
+import { FormatSeriesTitle, QueryBrowser } from '../../query-browser';
+import { MonitoringState } from '../../../reducers/observe';
+import { getLegacyObserveState } from '../../hooks/usePerspective';
+import { DEFAULT_GRAPH_SAMPLES } from '../shared/utils';
 
 type Props = {
   customDataSource?: CustomDataSource;

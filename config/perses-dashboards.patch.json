@@ -1,0 +1,31 @@
+[
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.page/route",
+      "properties": {
+        "exact": false,
+        "path": ["/multicloud/monitoring/dashboards"],
+        "component": {
+          "$codeRef": "MonitoringUI"
+        }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.navigation/href",
+      "properties": {
+        "id": "multicloud-dashboards",
+        "name": "%plugin__monitoring-console-plugin~Dashboards%",
+        "href": "/multicloud/monitoring/dashboards",
+        "perspective": "acm",
+        "section": "acm-observe",
+        "insertAfter": "multicloud-alerting"
+      }
+    }
+  }
+]

@@ -34,7 +34,7 @@ if [ -x "$(command -v podman)" ]; then
         podman run --pull always --platform $CONSOLE_IMAGE_PLATFORM \
         --rm --network=host \
         --env-file <(set | grep BRIDGE) \
-        --env BRIDGE_PLUGIN_PROXY='{"services": [{"consoleAPIPath": "/api/proxy/plugin/monitoring-console-plugin/perses/", "endpoint":"http://localhost:8080","authorize":true}]}' \
+        --env BRIDGE_PLUGIN_PROXY="{\"services\": [{\"consoleAPIPath\": \"/api/proxy/plugin/monitoring-console-plugin/perses/\", \"endpoint\":\"http://localhost:8080\",\"authorize\":true}]}" \
         $CONSOLE_IMAGE
     else
         BRIDGE_PLUGINS="${npm_package_consolePlugin_name}=http://host.containers.internal:${PLUGIN_PORT}"

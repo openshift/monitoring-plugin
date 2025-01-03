@@ -43,6 +43,7 @@
     "@patternfly/react-icons": "^5.4.0",
     "@patternfly/react-table": "5.4.13",
     "@prometheus-io/codemirror-promql": "^0.37.0",
+    "@tanstack/react-query": "^4.36.1",
     "classnames": "2.x",
     "fuzzysearch": "1.0.x",
     "i18next": "^21.8.14",

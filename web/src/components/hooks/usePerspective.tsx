@@ -321,7 +321,7 @@ export const getMutlipleQueryBrowserUrl = (
   }
 };
 
-export const getDeashboardsUrl = (
+export const getDashboardsUrl = (
   perspective: Perspective,
   boardName: string,
   namespace?: string,

@@ -39,13 +39,7 @@ class FetchError extends Error {
 export const isFetchError = (error: unknown): error is FetchError =>
   !!(error as FetchError).name && (error as FetchError).name === 'Fetch Error';
 
-export const cancellableFetch = <T>(
-  url: string,
-  init?: RequestInitWithTimeout,
-): CancellableFetch<T> => {
-  const abortController = new AbortController();
-  const abort = () => abortController.abort();
-
+export const proxiedFetch = <T>(url: string, init?: RequestInitWithTimeout): Promise<T> => {
   const fetchPromise = fetch(url, {
     ...init,
     headers: {
@@ -53,8 +47,7 @@ export const cancellableFetch = <T>(
       Accept: 'application/json',
       ...(init?.method === 'POST' ? { 'X-CSRFToken': getCSRFToken() } : {}),
     },
-    signal: abortController.signal,
-  }).then(async (response) => {
+  }).then(async (response): Promise<T> => {
     if (!response.ok) {
       const text = await response.text();
       throw new FetchError(text, response.status);
@@ -65,14 +58,14 @@ export const cancellableFetch = <T>(
   const timeout = init?.timeout ?? 30 * 1000;
 
   if (timeout <= 0) {
-    return { request: () => fetchPromise, abort };
+    return fetchPromise;
   }
 
   const timeoutPromise = new Promise<T>((_resolve, reject) => {
     setTimeout(() => reject(new TimeoutError(url.toString(), timeout)), timeout);
   });
 
-  const request = () => Promise.race([fetchPromise, timeoutPromise]);
+  const request = Promise.race([fetchPromise, timeoutPromise]);
 
-  return { request, abort };
+  return request;
 };

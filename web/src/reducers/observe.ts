@@ -8,12 +8,13 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 
 import { ActionType, ObserveAction } from '../actions/observe';
+
+import { isSilenced } from '../components/utils';
+import { getAlertsKey, getSilencesKey } from '../components/hooks/usePerspective';
 import {
   MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
   MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY,
-} from '../components/dashboards/types';
-import { isSilenced } from '../components/utils';
-import { getAlertsKey, getSilencesKey } from '../components/hooks/usePerspective';
+} from '../components/dashboards/shared/utils';
 
 export type ObserveState = ImmutableMap<string, any>;
 
@@ -68,12 +69,14 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
           pollInterval: 30 * 1000,
           timespan: MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
           variables: ImmutableMap(),
+          name: '',
         }),
         admin: ImmutableMap({
           endTime: null,
           pollInterval: 30 * 1000,
           timespan: MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
           variables: ImmutableMap(),
+          name: '',
         }),
       }),
       queryBrowser: ImmutableMap({
@@ -160,8 +163,13 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
       return state.mergeIn(['dashboards', perspective, 'variables', key], ImmutableMap(patch));
     }
 
-    case ActionType.AlertingSetRules:
+    case ActionType.DashboardsSetName: {
+      return state.setIn(['dashboards', action.payload.perspective, 'name'], action.payload.name);
+    }
+
+    case ActionType.AlertingSetRules: {
       return state.set(action.payload.key, action.payload.data);
+    }
 
     case ActionType.AlertingSetData: {
       const alertsKey = getAlertsKey(action.payload.data.perspective);

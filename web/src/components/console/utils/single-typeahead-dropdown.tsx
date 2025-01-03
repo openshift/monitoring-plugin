@@ -51,6 +51,8 @@ export type SingleTypeaheadDropdownProps = {
   menuToggleProps?: Partial<MenuToggleProps>;
   /** Additional props to pass to Select */
   selectProps?: Partial<SelectProps>;
+  /** Clear the current items in the dropdown when new items are added */
+  clearOnNewItems?: boolean;
 };
 
 /**
@@ -90,8 +92,9 @@ export const SingleTypeaheadDropdown: React.FC<SingleTypeaheadDropdownProps> = (
   OptionComponent,
   menuToggleProps = {},
   selectProps = {},
+  clearOnNewItems = false,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const [isOpen, setIsOpen] = React.useState(false);
   const [selectOptions, setSelectOptions] = React.useState<
     (SelectOptionProps & {
@@ -115,7 +118,13 @@ export const SingleTypeaheadDropdown: React.FC<SingleTypeaheadDropdownProps> = (
   const CREATE_NEW = 'typeahead-dropdown__create-new';
 
   React.useEffect(() => {
-    setSelectOptions([..._.differenceBy(items, selectOptions, 'value'), ...selectOptions]);
+    let newSelectOptions = [];
+    if (clearOnNewItems) {
+      newSelectOptions = [...items];
+    } else {
+      newSelectOptions = [..._.differenceBy(items, selectOptions, 'value'), ...selectOptions];
+    }
+    setSelectOptions(newSelectOptions);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items]);
 

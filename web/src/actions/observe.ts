@@ -12,6 +12,7 @@ export enum ActionType {
   DashboardsSetPollInterval = 'dashboardsSetPollInterval',
   DashboardsSetTimespan = 'dashboardsSetTimespan',
   DashboardsVariableOptionsLoaded = 'dashboardsVariableOptionsLoaded',
+  DashboardsSetName = 'dashboardsSetName',
   QueryBrowserAddQuery = 'queryBrowserAddQuery',
   QueryBrowserDuplicateQuery = 'queryBrowserDuplicateQuery',
   QueryBrowserDeleteAllQueries = 'queryBrowserDeleteAllQueries',
@@ -68,6 +69,9 @@ export const dashboardsVariableOptionsLoaded = (
   newOptions: string[],
   perspective: Perspective,
 ) => action(ActionType.DashboardsVariableOptionsLoaded, { key, newOptions, perspective });
+
+export const dashboardsSetName = (name: string, perspective: Perspective) =>
+  action(ActionType.DashboardsSetName, { name, perspective });
 
 export const alertingLoading = (key: AlertingKey, perspective: Perspective) =>
   action(ActionType.AlertingSetData, {
@@ -166,6 +170,7 @@ const actions = {
   dashboardsSetPollInterval,
   dashboardsSetTimespan,
   dashboardsVariableOptionsLoaded,
+  dashboardsSetName,
   queryBrowserAddQuery,
   queryBrowserDuplicateQuery,
   queryBrowserDeleteAllQueries,

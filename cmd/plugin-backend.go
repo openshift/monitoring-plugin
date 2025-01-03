@@ -14,7 +14,7 @@ var (
 	portArg             = flag.Int("port", 0, "server port to listen on (default: 9443)\nports 9444 and 9445 reserved for other use")
 	certArg             = flag.String("cert", "", "cert file path to enable TLS (disabled by default)")
 	keyArg              = flag.String("key", "", "private key file path to enable TLS (disabled by default)")
-	featuresArg         = flag.String("features", "", "enabled features, comma separated.\noptions: ['acm-alerting', 'incidents', 'dev-config']")
+	featuresArg         = flag.String("features", "", "enabled features, comma separated.\noptions: ['acm-alerting', 'incidents', 'dev-config', 'perses-dashboards']")
 	staticPathArg       = flag.String("static-path", "", "static files path to serve frontend (default: './web/dist')")
 	configPathArg       = flag.String("config-path", "", "config files path (default: './config')")
 	pluginConfigArg     = flag.String("plugin-config-path", "", "plugin yaml configuration")

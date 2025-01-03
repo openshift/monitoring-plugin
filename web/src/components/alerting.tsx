@@ -49,7 +49,7 @@ import { ExternalLink } from './console/utils/link';
 import { getAllQueryArguments } from './console/utils/router';
 import { EmptyBox, StatusBox } from './console/utils/status-box';
 
-import MonitoringDashboardsPage from './dashboards';
+import MonitoringDashboardsPage from './dashboards/dashboard-page';
 import KebabDropdown from './kebab-dropdown';
 import { Labels } from './labels';
 import { QueryBrowserPage, ToggleGraph } from './metrics';
@@ -767,7 +767,11 @@ const MonitoringUI = () => {
     Alertmanager (because the `#` is considered the end of the URL) */}
       <Redirect from="/monitoring" exact to="/monitoring/alerts" />
       <Route path="/dev-monitoring/ns/:ns/" exact component={MonitoringDashboardsPage} />
-      <Route path="/monitoring/dashboards/:board?" exact component={MonitoringDashboardsPage} />
+      <Route
+        path="/monitoring/dashboards/:dashboardName?"
+        exact
+        component={MonitoringDashboardsPage}
+      />
       <Route path="/monitoring/graph" exact component={PrometheusUIRedirect} />
       <Route path="/monitoring/query-browser" exact component={QueryBrowserPage} />
       <Route path="/monitoring/silences/~new" exact component={CreateSilence} />

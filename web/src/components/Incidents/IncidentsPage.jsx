@@ -53,7 +53,7 @@ import { withFallback } from '../console/console-shared/error/error-boundary';
 import { usePerspective } from '../hooks/usePerspective';
 
 const IncidentsPage = () => {
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const dispatch = useDispatch();
   const location = useLocation();
   const urlParams = parseUrlParams(location.search);

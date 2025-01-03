@@ -1,7 +1,3 @@
-export const MONITORING_DASHBOARDS_DEFAULT_TIMESPAN = 30 * 60 * 1000;
-
-export const MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY = 'ALL_OPTION_KEY';
-
 export type ColumnStyle = {
   alias?: string;
   decimals?: number;
@@ -65,7 +61,14 @@ export type Panel = {
   yaxes: YAxis[];
 };
 
-export type TemplateVariable = {
+export type Row = {
+  collapse?: boolean;
+  panels: Panel[];
+  showTitle?: boolean;
+  title?: string;
+};
+
+type TemplateVariable = {
   datasource: DataSource;
   hide: number;
   includeAll: boolean;
@@ -75,13 +78,9 @@ export type TemplateVariable = {
   type: string;
 };
 
-export type Row = {
-  collapse?: boolean;
-  panels: Panel[];
-  showTitle?: boolean;
-  title?: string;
-};
-
+// TODO: Board is currently legacy dashboard shaped. As we bring in the perses
+// dashboards we will need to create a shared board type which can be used in
+// the dashboard dropdown for both legacy and perses dashboards
 export type Board = {
   data: {
     panels: Panel[];

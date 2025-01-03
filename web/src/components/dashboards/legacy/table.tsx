@@ -1,3 +1,6 @@
+import * as _ from 'lodash-es';
+import * as React from 'react';
+import { useTranslation } from 'react-i18next';
 import { PrometheusEndpoint, PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
 import {
   EmptyState,
@@ -7,29 +10,23 @@ import {
 } from '@patternfly/react-core';
 import {
   ISortBy,
-  Table as PFTable,
   sortable,
+  Table as PFTable,
+  TableBody,
   TableGridBreakpoint,
+  TableHeader,
   TableVariant,
-  Tbody,
-  Td,
-  Th,
-  Thead,
-  Tr,
 } from '@patternfly/react-table';
-import * as _ from 'lodash-es';
-import * as React from 'react';
-import { useTranslation } from 'react-i18next';
 
-import ErrorAlert from '../console/console-shared/alerts/error';
-import { CustomDataSource } from '../console/extensions/dashboard-data-source';
-import { getPrometheusURL } from '../console/graphs/helpers';
-import { usePoll } from '../console/utils/poll-hook';
-import { useSafeFetch } from '../console/utils/safe-fetch-hook';
+import ErrorAlert from '../../console/console-shared/alerts/error';
+import { getPrometheusURL } from '../../console/graphs/helpers';
+import { CustomDataSource } from '../../console/extensions/dashboard-data-source';
+import { usePoll } from '../../console/utils/poll-hook';
+import { useSafeFetch } from '../../console/utils/safe-fetch-hook';
 
-import { formatNumber } from '../format';
-import { usePerspective } from '../hooks/usePerspective';
-import TablePagination from '../table-pagination';
+import { formatNumber } from '../../format';
+import TablePagination from '../../table-pagination';
+import { usePerspective } from '../../hooks/usePerspective';
 import { ColumnStyle, Panel } from './types';
 
 type AugmentedColumnStyle = ColumnStyle & {
@@ -195,43 +192,16 @@ const Table: React.FC<Props> = ({ customDataSource, panel, pollInterval, queries
       <div className="monitoring-dashboards__table-container">
         <PFTable
           aria-label={t('query results table')}
+          cells={headers}
           className="monitoring-dashboards__table"
           gridBreakPoint={TableGridBreakpoint.none}
+          onSort={onSort}
+          rows={rows}
+          sortBy={sortBy}
           variant={TableVariant.compact}
-          rows={rows.length}
         >
-          <Thead>
-            <Tr>
-              {headers.map(({ title }, columnIndex) => {
-                const sortParams = {
-                  sort: {
-                    sortBy,
-                    onSort,
-                    columnIndex,
-                  },
-                };
-                return (
-                  <Th key={`title-${columnIndex}`} {...sortParams}>
-                    {title}
-                  </Th>
-                );
-              })}
-            </Tr>
-          </Thead>
-          <Tbody>
-            {rows.map((_, rowIndex) => (
-              <Tr key={`row-${rowIndex}`}>
-                {headers.map((_, columnIndex) => (
-                  <Td
-                    key={`cell-${rowIndex}-${columnIndex}`}
-                    dataLabel={rows?.[rowIndex]?.[columnIndex] ?? ''}
-                  >
-                    {rows?.[rowIndex]?.[columnIndex]}
-                  </Td>
-                ))}
-              </Tr>
-            ))}
-          </Tbody>
+          <TableHeader />
+          <TableBody />
         </PFTable>
       </div>
       <TablePagination
