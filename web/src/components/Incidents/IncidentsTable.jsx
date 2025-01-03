@@ -30,7 +30,7 @@ export const IncidentsTable = ({ namespace }) => {
     });
   const isAlertExpanded = (alert) => expandedAlerts.includes(alert.component);
   const alertsTableData = useSelector((state) =>
-    state.plugins.monitoring.getIn(['incidentsData', 'alertsTableData']),
+    state.plugins.mcp.getIn(['incidentsData', 'alertsTableData']),
   );
 
   return (

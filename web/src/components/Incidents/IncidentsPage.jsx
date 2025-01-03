@@ -78,27 +78,25 @@ const IncidentsPage = () => {
   };
 
   const incidentsInitialState = useSelector((state) =>
-    state.plugins.monitoring.getIn(['incidentsData', 'incidentsInitialState']),
+    state.plugins.mcp.getIn(['incidentsData', 'incidentsInitialState']),
   );
 
-  const incidents = useSelector((state) =>
-    state.plugins.monitoring.getIn(['incidentsData', 'incidents']),
-  );
+  const incidents = useSelector((state) => state.plugins.mcp.getIn(['incidentsData', 'incidents']));
 
   const incidentsActiveFilters = useSelector((state) =>
-    state.plugins.monitoring.getIn(['incidentsData', 'incidentsActiveFilters']),
+    state.plugins.mcp.getIn(['incidentsData', 'incidentsActiveFilters']),
   );
 
   const incidentGroupId = useSelector((state) =>
-    state.plugins.monitoring.getIn(['incidentsData', 'incidentGroupId']),
+    state.plugins.mcp.getIn(['incidentsData', 'incidentGroupId']),
   );
 
   const alertsData = useSelector((state) =>
-    state.plugins.monitoring.getIn(['incidentsData', 'alertsData']),
+    state.plugins.mcp.getIn(['incidentsData', 'alertsData']),
   );
 
   const alertsAreLoading = useSelector((state) =>
-    state.plugins.monitoring.getIn(['incidentsData', 'alertsAreLoading']),
+    state.plugins.mcp.getIn(['incidentsData', 'alertsAreLoading']),
   );
 
   React.useEffect(() => {
