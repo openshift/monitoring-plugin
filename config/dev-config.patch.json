@@ -5,7 +5,7 @@
     "value": {
       "type": "console.redux-reducer",
       "properties": {
-        "scope": "monitoring",
+        "scope": "mcp",
         "reducer": { "$codeRef": "MonitoringReducer" }
       }
     }
