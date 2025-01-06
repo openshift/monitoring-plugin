@@ -323,7 +323,7 @@ const IncidentsPage = () => {
                   icon={hideCharts ? <CompressArrowsAltIcon /> : <CompressIcon />}
                   onClick={() => setHideCharts(!hideCharts)}
                 >
-                  <span>Hide graph</span>
+                  <span>{hideCharts ? t('Show graph') : t('Hide graph')}</span>
                 </Button>
               </ToolbarItem>
             </ToolbarContent>
