@@ -12,7 +12,6 @@ import { Bullseye, DropdownItem, Icon, Spinner, Tooltip } from '@patternfly/reac
 import { Link } from 'react-router-dom';
 import { AlertResource, getAlertsAndRules } from '../utils';
 import { MonitoringResourceIcon } from '../alerting/AlertUtils';
-import { formatDateInExpandedDetails } from './utils';
 import { isAlertingRulesSource } from '../console/extensions/alerts';
 import { getPrometheusURL } from '../console/graphs/helpers';
 import { fetchAlerts } from '../fetch-alerts';

@@ -226,18 +226,6 @@ export function filterIncident(filters, incidents) {
   });
 }
 
-export function formatDateInExpandedDetails(date) {
-  if (!date) return 'N/A'; // Handle null or undefined dates
-  return date.toLocaleString('en-US', {
-    month: 'short', // "Jun"
-    day: 'numeric', // "5"
-    year: 'numeric', // "2024"
-    hour: 'numeric', // "1"
-    minute: 'numeric', // "25"
-    hour12: true, // "AM/PM"
-  });
-}
-
 export const onDeleteIncidentFilterChip = (type, id, filters, setFilters) => {
   if (type === 'Filters') {
     setFilters(
