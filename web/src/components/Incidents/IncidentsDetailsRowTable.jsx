@@ -3,6 +3,7 @@ import { Table, Thead, Tr, Th, Tbody, Td } from '@patternfly/react-table';
 import {
   GreenCheckCircleIcon,
   PrometheusEndpoint,
+  Timestamp,
   useResolvedExtensions,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { BellIcon, ExclamationCircleIcon, InfoCircleIcon } from '@patternfly/react-icons';
@@ -154,12 +155,14 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
                   )}
                 </Td>
                 <Td dataLabel="expanded-details-firingstart">
-                  {formatDateInExpandedDetails(alertDetails.alertsStartFiring)}
+                  <Timestamp simple={true} timestamp={alertDetails.alertsStartFiring} />
                 </Td>
                 <Td dataLabel="expanded-details-firingend">
-                  {!alertDetails.resolved
-                    ? '---'
-                    : formatDateInExpandedDetails(alertDetails.alertsEndFiring)}
+                  {!alertDetails.resolved ? (
+                    '---'
+                  ) : (
+                    <Timestamp simple={true} timestamp={alertDetails.alertsEndFiring} />
+                  )}
                 </Td>
                 <Td>
                   <KebabDropdown

@@ -132,9 +132,17 @@ export const createIncidentsChartBars = (incident) => {
 };
 
 export const formatDate = (date, isTime) => {
-  const dateString = date?.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  const timeString = date?.toLocaleTimeString('en-US', { hour12: false });
-  return isTime ? `${dateString} ${timeString}` : dateString;
+  const userLocale = navigator.language || 'en-US';
+  const dateString = date?.toLocaleDateString(userLocale, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+  const timeString = date?.toLocaleTimeString(userLocale, {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+  return isTime ? `${dateString}, ${timeString}` : dateString;
 };
 
 /**
