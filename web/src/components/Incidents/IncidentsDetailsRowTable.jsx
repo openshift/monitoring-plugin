@@ -3,6 +3,7 @@ import { Table, Thead, Tr, Th, Tbody, Td } from '@patternfly/react-table';
 import {
   GreenCheckCircleIcon,
   PrometheusEndpoint,
+  Timestamp,
   useResolvedExtensions,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { BellIcon, ExclamationCircleIcon, InfoCircleIcon } from '@patternfly/react-icons';
@@ -11,7 +12,6 @@ import { Bullseye, DropdownItem, Icon, Spinner, Tooltip } from '@patternfly/reac
 import { Link } from 'react-router-dom';
 import { AlertResource, getAlertsAndRules } from '../utils';
 import { MonitoringResourceIcon } from '../alerting/AlertUtils';
-import { formatDateInExpandedDetails } from './utils';
 import { isAlertingRulesSource } from '../console/extensions/alerts';
 import { getPrometheusURL } from '../console/graphs/helpers';
 import { fetchAlerts } from '../fetch-alerts';
@@ -154,12 +154,14 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
                   )}
                 </Td>
                 <Td dataLabel="expanded-details-firingstart">
-                  {formatDateInExpandedDetails(alertDetails.alertsStartFiring)}
+                  <Timestamp simple={true} timestamp={alertDetails.alertsStartFiring} />
                 </Td>
                 <Td dataLabel="expanded-details-firingend">
-                  {!alertDetails.resolved
-                    ? '---'
-                    : formatDateInExpandedDetails(alertDetails.alertsEndFiring)}
+                  {!alertDetails.resolved ? (
+                    '---'
+                  ) : (
+                    <Timestamp simple={true} timestamp={alertDetails.alertsEndFiring} />
+                  )}
                 </Td>
                 <Td>
                   <KebabDropdown

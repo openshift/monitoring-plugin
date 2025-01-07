@@ -132,9 +132,17 @@ export const createIncidentsChartBars = (incident) => {
 };
 
 export const formatDate = (date, isTime) => {
-  const dateString = date?.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  const timeString = date?.toLocaleTimeString('en-US', { hour12: false });
-  return isTime ? `${dateString} ${timeString}` : dateString;
+  const userLocale = navigator.language || 'en-US';
+  const dateString = date?.toLocaleDateString(userLocale, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+  const timeString = date?.toLocaleTimeString(userLocale, {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+  return isTime ? `${dateString}, ${timeString}` : dateString;
 };
 
 /**
@@ -215,18 +223,6 @@ export function filterIncident(filters, incidents) {
       const conditionKey = conditions[key]; // Match the key exactly as in conditions
       return incident[conditionKey.toLowerCase()] === true;
     });
-  });
-}
-
-export function formatDateInExpandedDetails(date) {
-  if (!date) return 'N/A'; // Handle null or undefined dates
-  return date.toLocaleString('en-US', {
-    month: 'short', // "Jun"
-    day: 'numeric', // "5"
-    year: 'numeric', // "2024"
-    hour: 'numeric', // "1"
-    minute: 'numeric', // "25"
-    hour12: true, // "AM/PM"
   });
 }
 
