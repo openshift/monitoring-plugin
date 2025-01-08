@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import {
   getAlertsUrl,
   getNewSilenceAlertUrl,
-  getObserveState,
+  getLegacyObserveState,
   getRuleUrl,
   usePerspective,
 } from '../hooks/usePerspective';
@@ -87,16 +87,16 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
   const [namespace] = useActiveNamespace();
 
   const hideGraphs = useSelector(
-    (state: MonitoringState) => !!getObserveState(perspective, state)?.get('hideGraphs'),
+    (state: MonitoringState) => !!getLegacyObserveState(perspective, state)?.get('hideGraphs'),
   );
 
   const dispatch = useDispatch();
   const alerts: Alerts = useSelector((state: MonitoringState) =>
-    getObserveState(perspective, state)?.get(alertsKey),
+    getLegacyObserveState(perspective, state)?.get(alertsKey),
   );
 
   const silencesLoaded = useSelector(
-    (state: MonitoringState) => getObserveState(perspective, state)?.get(silencesKey)?.loaded,
+    (state: MonitoringState) => getLegacyObserveState(perspective, state)?.get(silencesKey)?.loaded,
   );
 
   const ruleAlerts = _.filter(alerts?.data, (a) => a.rule.id === match?.params?.ruleID);

@@ -7,7 +7,7 @@ import { RouteComponentProps, withRouter } from 'react-router';
 import { useActiveNamespace } from '../console/console-shared/hooks/useActiveNamespace';
 import {
   getAlertUrl,
-  getObserveState,
+  getLegacyObserveState,
   getRuleUrl,
   getSilencesUrl,
   usePerspective,
@@ -34,11 +34,11 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
   const { alertsKey, perspective, silencesKey } = usePerspective();
 
   const alertsLoaded = useSelector(
-    (state: MonitoringState) => getObserveState(perspective, state)?.get(alertsKey)?.loaded,
+    (state: MonitoringState) => getLegacyObserveState(perspective, state)?.get(alertsKey)?.loaded,
   );
 
   const silences: Silences = useSelector((state: MonitoringState) =>
-    getObserveState(perspective, state)?.get(silencesKey),
+    getLegacyObserveState(perspective, state)?.get(silencesKey),
   );
   const silence = _.find(silences?.data, { id: _.get(match, 'params.id') });
 

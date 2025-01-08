@@ -235,7 +235,8 @@ export const getFetchSilenceUrl = (
   }
 };
 
-export const getObserveState = (perspective: Perspective, state: MonitoringState) => {
+// Redux state defined in the openshift/console repo
+export const getLegacyObserveState = (perspective: Perspective, state: MonitoringState) => {
   switch (perspective) {
     case 'acm':
       return state.plugins?.mcp;
@@ -243,6 +244,18 @@ export const getObserveState = (perspective: Perspective, state: MonitoringState
     case 'dev':
     default:
       return state.observe;
+  }
+};
+
+// Redux state defined in the openshift/monitoring-plugin repo
+export const getObserveState = (perspective: Perspective, state: MonitoringState) => {
+  switch (perspective) {
+    case 'acm':
+      return state.plugins?.mcp;
+    case 'admin':
+    case 'dev':
+    default:
+      return state.plugins?.mp;
   }
 };
 
