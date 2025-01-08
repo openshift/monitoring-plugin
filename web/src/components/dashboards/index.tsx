@@ -75,7 +75,7 @@ import { getTimeRanges, isTimeoutError, QUERY_CHUNK_SIZE } from '../utils';
 import {
   getDeashboardsUrl,
   getMutlipleQueryBrowserUrl,
-  getObserveState,
+  getLegacyObserveState,
   usePerspective,
 } from '../hooks/usePerspective';
 import KebabDropdown from '../kebab-dropdown';
@@ -222,11 +222,11 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const timespan = useSelector((state: MonitoringState) =>
-    getObserveState(perspective, state)?.getIn(['dashboards', perspective, 'timespan']),
+    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'timespan']),
   );
 
   const variables = useSelector((state: MonitoringState) =>
-    getObserveState(perspective, state)?.getIn(['dashboards', perspective, 'variables']),
+    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'variables']),
   );
   const variable = variables.toJS()[name];
   const query = evaluateTemplate(variable.query, variables, timespan);
@@ -410,7 +410,7 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({
 const AllVariableDropdowns: React.FC<{ perspective: Perspective }> = ({ perspective }) => {
   const namespace = React.useContext(NamespaceContext);
   const variables = useSelector((state: MonitoringState) =>
-    getObserveState(perspective, state)?.getIn(['dashboards', perspective, 'variables']),
+    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'variables']),
   );
 
   return (
@@ -594,13 +594,13 @@ const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
 
   const namespace = React.useContext(NamespaceContext);
   const pollInterval = useSelector((state: MonitoringState) =>
-    getObserveState(perspective, state)?.getIn(['dashboards', perspective, 'pollInterval']),
+    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'pollInterval']),
   );
   const timespan = useSelector((state: MonitoringState) =>
-    getObserveState(perspective, state)?.getIn(['dashboards', perspective, 'timespan']),
+    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'timespan']),
   );
   const variables = useSelector((state: MonitoringState) =>
-    getObserveState(perspective, state)?.getIn(['dashboards', perspective, 'variables']),
+    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'variables']),
   );
 
   const ref = React.useRef();

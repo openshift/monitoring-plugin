@@ -44,7 +44,7 @@ import { Silences } from './types';
 import { refreshSilences, SilenceResource, silenceState } from './utils';
 import {
   getFetchSilenceAlertUrl,
-  getObserveState,
+  getLegacyObserveState,
   getSilenceAlertUrl,
   usePerspective,
 } from './hooks/usePerspective';
@@ -489,7 +489,7 @@ export const EditSilence = ({ match }) => {
   const { silencesKey, perspective } = usePerspective();
 
   const silences: Silences = useSelector((state: MonitoringState) =>
-    getObserveState(perspective, state)?.get(silencesKey),
+    getLegacyObserveState(perspective, state)?.get(silencesKey),
   );
 
   const silence: Silence = _.find(silences?.data, { id: match.params.id });

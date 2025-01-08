@@ -20,7 +20,8 @@ export type ObserveState = ImmutableMap<string, any>;
 export type MonitoringState = {
   observe: ObserveState;
   plugins: {
-    mcp: ObserveState;
+    mcp?: ObserveState;
+    mp?: ObserveState;
   };
 };
 
