@@ -10,5 +10,23 @@
         "component": { "$codeRef": "IncidentsPage" }
       }
     }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.navigation/href",
+      "flags": {
+        "required": ["PROMETHEUS", "MONITORING", "CAN_GET_NS"]
+      },
+      "properties": {
+        "id": "incidents",
+        "name": "%plugin__monitoring-console-plugin~Incidents%",
+        "href": "/monitoring/incidents",
+        "perspective": "admin",
+        "section": "observe",
+        "insertAfter": "targets"
+      }
+    }
   }
 ]
