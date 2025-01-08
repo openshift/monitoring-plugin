@@ -98,18 +98,6 @@ export const getAlertRulesUrl = (perspective: Perspective) => {
   }
 };
 
-// There is no equivalent rules list page in the developer perspective
-export const getIncidentsUrl = (perspective: Perspective) => {
-  const baseURL = '/monitoring/incidents';
-  switch (perspective) {
-    case 'acm':
-      return `/multicloud${baseURL}`;
-    default:
-    case 'admin':
-      return baseURL;
-  }
-};
-
 export const getSilencesUrl = (perspective: Perspective, namespace?: string) => {
   switch (perspective) {
     case 'acm':

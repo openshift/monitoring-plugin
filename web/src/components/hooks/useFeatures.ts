@@ -1,5 +1,7 @@
 import * as React from 'react';
-import { cancellableFetch } from '../cancellable-fetch';
+import { useURLPoll } from './useURLPoll';
+
+const URL_POLL_DEFAULT_DELAY = 60000; // 60 seconds
 
 type features = {
   'acm-alerting': boolean;
@@ -15,38 +17,24 @@ const noFeatures: features = {
   incidents: false,
 };
 
-// monitoring-console-plugin proxy via. cluster observability operator
-// https://github.com/rhobs/observability-operator/blob/28ac1ba9e179d25cae60e8223bcf61816e23a311/pkg/controllers/uiplugin/monitoring.go#L44
-const MCP_PROXY_PATH = '/api/proxy/plugin/monitoring-console-plugin/backend';
-const featuresEndpoint = `${MCP_PROXY_PATH}/features`;
-
 export const useFeatures = () => {
   const [features, setFeatures] = React.useState<features>(noFeatures);
-  const dashboardsAbort = React.useRef<() => void | undefined>();
 
-  const getFeatures = React.useCallback(async () => {
-    try {
-      if (dashboardsAbort.current) {
-        dashboardsAbort.current();
-      }
-      const { request, abort } = cancellableFetch<featuresResponse>(featuresEndpoint);
-      dashboardsAbort.current = abort;
-
-      const response = await request();
-      setFeatures({ ...noFeatures, ...response });
-    } catch (error) {
-      setFeatures(noFeatures);
-    }
-  }, []);
-
-  // Use useEffect to call getFeatures only once after the component mounts
+  const [response, loadError, loading] = useURLPoll<featuresResponse>(
+    '/features',
+    URL_POLL_DEFAULT_DELAY,
+  );
   React.useEffect(() => {
-    getFeatures();
-  }, [getFeatures]);
+    if (loadError) {
+      setFeatures(noFeatures);
+    } else if (!loading) {
+      setFeatures({ ...noFeatures, ...response });
+    }
+  }, [loadError, loading, response, setFeatures]);
 
   return {
     features,
-    isAcmAlertingActive: features['acm-alerting'],
-    areIncidentsActive: features.incidents,
+    acmAlertingActive: features['acm-alerting'],
+    incidentsActive: features.incidents,
   };
 };
