@@ -154,5 +154,12 @@
         "$codeRef": "MonitoringUI"
       }
     }
+  },
+  {
+    "type": "console.redux-reducer",
+    "properties": {
+      "scope": "mp",
+      "reducer": { "$codeRef": "MonitoringReducer" }
+    }
   }
 ]

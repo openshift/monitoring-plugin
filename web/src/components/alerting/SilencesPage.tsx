@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import {
   getNewSilenceUrl,
-  getObserveState,
+  getLegacyObserveState,
   getFetchSilenceUrl,
   usePerspective,
 } from '../hooks/usePerspective';
@@ -47,7 +47,7 @@ const SilencesPage_: React.FC = () => {
     loaded = false,
     loadError,
   }: Silences = useSelector(
-    (state: MonitoringState) => getObserveState(perspective, state)?.get(silencesKey) || {},
+    (state: MonitoringState) => getLegacyObserveState(perspective, state)?.get(silencesKey) || {},
   );
 
   const rowFilters: RowFilter[] = [

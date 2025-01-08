@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import {
   getAlertUrl,
   getNewSilenceAlertUrl,
-  getObserveState,
+  getLegacyObserveState,
   getRuleUrl,
   usePerspective,
 } from '../hooks/usePerspective';
@@ -65,10 +65,11 @@ const AlertsPage_: React.FC<AlertsPageProps> = () => {
     loaded = false,
     loadError,
   }: Alerts = useSelector(
-    (state: MonitoringState) => getObserveState(perspective, state)?.get(alertsKey) || {},
+    (state: MonitoringState) => getLegacyObserveState(perspective, state)?.get(alertsKey) || {},
   );
   const silencesLoadError = useSelector(
-    (state: MonitoringState) => getObserveState(perspective, state)?.get(silencesKey)?.loadError,
+    (state: MonitoringState) =>
+      getLegacyObserveState(perspective, state)?.get(silencesKey)?.loadError,
   );
 
   const alertAdditionalSources = React.useMemo(
