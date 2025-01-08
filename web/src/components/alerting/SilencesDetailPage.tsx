@@ -4,7 +4,6 @@ import * as _ from 'lodash-es';
 
 import { useTranslation } from 'react-i18next';
 import { RouteComponentProps, withRouter } from 'react-router';
-import { useActiveNamespace } from '../console/console-shared/hooks/useActiveNamespace';
 import {
   getAlertUrl,
   getObserveState,
@@ -22,7 +21,12 @@ import { Link } from 'react-router-dom';
 import { MonitoringResourceIcon, OnToggle, Severity, SeverityCounts } from './AlertUtils';
 import { SectionHeading } from '../console/utils/headings';
 import { SilenceDropdown, SilenceMatchersList, SilenceState } from './SilencesUtils';
-import { Alert, Silence, Timestamp } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  Alert,
+  Silence,
+  Timestamp,
+  useActiveNamespace,
+} from '@openshift-console/dynamic-plugin-sdk';
 import { withFallback } from '../console/console-shared/error/error-boundary';
 import { DropdownToggle as DropdownToggleDeprecated } from '@patternfly/react-core/deprecated';
 import KebabDropdown from '../kebab-dropdown';
@@ -30,7 +34,7 @@ import KebabDropdown from '../kebab-dropdown';
 const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ match }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
-  const namespace = useActiveNamespace();
+  const [namespace] = useActiveNamespace();
   const { alertsKey, perspective, silencesKey } = usePerspective();
 
   const alertsLoaded = useSelector(
@@ -171,6 +175,7 @@ const ActionsToggle: React.FC<{ onToggle: OnToggle }> = ({ onToggle, ...props })
 const SilencedAlertsList_: React.FC<SilencedAlertsListProps> = ({ alerts, history }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
+  const [namespace] = useActiveNamespace();
 
   return _.isEmpty(alerts) ? (
     <div className="pf-u-text-align-center">{t('None found')}</div>
@@ -187,7 +192,7 @@ const SilencedAlertsList_: React.FC<SilencedAlertsListProps> = ({ alerts, histor
               <Link
                 className="co-resource-item"
                 data-test="firing-alerts"
-                to={getAlertUrl(perspective, a, a.rule.id)}
+                to={getAlertUrl(perspective, a, a.rule.id, namespace)}
               >
                 {a.labels.alertname}
               </Link>
@@ -201,7 +206,7 @@ const SilencedAlertsList_: React.FC<SilencedAlertsListProps> = ({ alerts, histor
                 dropdownItems={[
                   <DropdownItem
                     key="view-rule"
-                    onClick={() => history.push(getRuleUrl(perspective, a.rule))}
+                    onClick={() => history.push(getRuleUrl(perspective, a.rule, namespace))}
                   >
                     {t('View alerting rule')}
                   </DropdownItem>,
