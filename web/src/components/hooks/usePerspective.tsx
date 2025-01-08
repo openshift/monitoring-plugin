@@ -267,6 +267,8 @@ export const getLegacyObserveState = (perspective: Perspective, state: Monitorin
   switch (perspective) {
     case 'acm':
       return state.plugins?.mcp;
+    case 'virtualization-perspective':
+      return state.plugins?.mp;
     case 'admin':
     case 'dev':
     default:
@@ -279,6 +281,7 @@ export const getObserveState = (perspective: Perspective, state: MonitoringState
   switch (perspective) {
     case 'acm':
       return state.plugins?.mcp;
+    case 'virtualization-perspective':
     case 'admin':
     case 'dev':
     default:

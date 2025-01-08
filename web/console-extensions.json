@@ -10,6 +10,14 @@
   {
     "type": "console.page/route",
     "properties": {
+      "exact": true,
+      "path": "/virt-monitoring",
+      "component": { "$codeRef": "MonitoringUI" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
       "exact": false,
       "path": [
         "/monitoring/alertrules",
@@ -19,6 +27,22 @@
         "/monitoring/query-browser",
         "/monitoring/silences",
         "/monitoring/targets"
+      ],
+      "component": { "$codeRef": "MonitoringUI" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
+      "path": [
+        "/virt-monitoring/alertrules",
+        "/virt-monitoring/alerts",
+        "/virt-monitoring/dashboards",
+        "/virt-monitoring/graph",
+        "/virt-monitoring/query-browser",
+        "/virt-monitoring/silences",
+        "/virt-monitoring/targets"
       ],
       "component": { "$codeRef": "MonitoringUI" }
     }

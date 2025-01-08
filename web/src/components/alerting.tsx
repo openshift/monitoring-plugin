@@ -656,6 +656,7 @@ const PollerPages = () => {
   const dispatch = useDispatch();
 
   const { alertingContextId, perspective } = usePerspective();
+
   const [namespace] = useActiveNamespace();
 
   const [customExtensions] =
@@ -712,10 +713,16 @@ const PollerPages = () => {
         <Route path="/virt-monitoring/alerts" exact component={AlertsPage} />
         <Route path="/virt-monitoring/rules/:id" exact component={AlertRulesDetailsPage} />
         <Route path="/virt-monitoring/alerts/:ruleID" component={AlertsDetailsPage} />
-        <Route path="/virt-monitoring/metrics" exact component={QueryBrowserPage} />
+        <Route path="/virt-monitoring/query-browser" exact component={QueryBrowserPage} />
         <Route path="/virt-monitoring/silences" exact component={SilencesPage} />
         <Route path="/virt-monitoring/silences/:id" exact component={SilencesDetailsPage} />
         <Route path="/virt-monitoring/silences/:id/edit" exact component={EditSilence} />
+        <Route
+          path="/virt-monitoring/dashboards/:board?"
+          exact
+          component={MonitoringDashboardsPage}
+        />
+        <Route path="/virt-monitoring/targets" component={TargetsUI} />
       </Switch>
     );
   }
