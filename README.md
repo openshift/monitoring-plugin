@@ -127,4 +127,4 @@ Once the code has been updated, make sure to update the helm chart and variables
 
 ### Redux Store
 
-Since the store for the `monitoring-plugin` is stored in the `openshift/console` codebase and updates to the store that are aren't tied directly to the OCP are needed, when the default extension points are removed due to the presense of a feature flag a duplicate store is created at the `.state.plugins.mcp` path. A combination of the `useFeatures` hook and the `getLegacyObserveState` (which is dependant on the perspective) can be used to retrieve the state from the redux store based on the mode the plugin was deployed in.
+Since the store for the `monitoring-plugin` is stored in the `openshift/console` codebase and updates to the store that are aren't tied directly to the OCP are needed, when the default extension points are removed due to the presence of a feature flag a duplicate store is created at the `.state.plugins.mcp` path. A combination of the `useFeatures` hook and the `getLegacyObserveState` (which is dependent on the perspective) can be used to retrieve the state from the redux store based on the mode the plugin was deployed in.

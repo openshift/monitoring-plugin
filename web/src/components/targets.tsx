@@ -615,6 +615,12 @@ export const TargetsUI: React.FC = () => {
               <Route path="/monitoring/targets/:scrapeUrl?" exact>
                 <Details loaded={loaded} loadError={loadError} targets={targets} />
               </Route>
+              <Route path="/virt-monitoring/targets" exact>
+                <ListPage loaded={loaded} loadError={loadError} targets={targets} />
+              </Route>
+              <Route path="/virt-monitoring/targets/:scrapeUrl?" exact>
+                <Details loaded={loaded} loadError={loadError} targets={targets} />
+              </Route>
             </Switch>
           </PodsWatchContext.Provider>
         </PodMonitorsWatchContext.Provider>

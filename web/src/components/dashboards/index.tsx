@@ -348,7 +348,7 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({
     if (variable.value && variable.value !== getQueryArgument(name)) {
       if (perspective === 'dev' && name !== 'namespace') {
         setQueryArgument(name, variable.value);
-      } else if (perspective === 'admin') {
+      } else if (perspective === 'admin' || perspective === 'virtualization-perspective') {
         setQueryArgument(name, variable.value);
       }
     }
@@ -359,7 +359,7 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({
       if (v !== variable.value) {
         if (perspective === 'dev' && name !== 'namespace') {
           setQueryArgument(name, v);
-        } else if (perspective === 'admin') {
+        } else if (perspective === 'admin' || perspective === 'virtualization-perspective') {
           setQueryArgument(name, v);
         }
         dispatch(dashboardsPatchVariable(name, { value: v }, perspective));
@@ -412,6 +412,10 @@ const AllVariableDropdowns: React.FC<{ perspective: Perspective }> = ({ perspect
   const variables = useSelector((state: MonitoringState) =>
     getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'variables']),
   );
+
+  if (!variables) {
+    return null;
+  }
 
   return (
     <>
@@ -988,7 +992,7 @@ const MonitoringDashboardsPage_: React.FC<MonitoringDashboardsPageProps> = ({ hi
 
   React.useEffect(() => {
     // Dashboard query argument is only set in dev perspective, so skip for admin
-    if (perspective === 'admin') {
+    if (perspective !== 'dev') {
       return;
     }
     const newBoard = getQueryArgument('dashboard');

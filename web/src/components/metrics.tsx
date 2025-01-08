@@ -204,6 +204,8 @@ export const PreDefinedQueriesDropdown = () => {
     predefinedQueries = predefinedQueriesDev;
   } else if (perspective === 'admin') {
     predefinedQueries = predefinedQueriesAdmin;
+  } else if (perspective === 'virtualization-perspective') {
+    predefinedQueries = predefinedQueriesAdmin;
   } // Wrong queries for ACM, leaving for when metrics gets moved to ACM
 
   // Note this fires twice when <Select> is clicked.
