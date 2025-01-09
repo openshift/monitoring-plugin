@@ -7,7 +7,7 @@ import { setIncidentsActiveFilters } from '../../actions/observe';
 function consolidateAndMergeIntervals(data) {
   const severityRank = { 2: 2, 1: 1, 0: 0 };
 
-  //Eliminate overlapping timestamps with lower severities
+  // Eliminate overlapping timestamps with lower severities
   const highestSeverityValues = data.values.reduce((acc, [timestamp, severity]) => {
     if (!acc[timestamp] || severityRank[severity] > severityRank[acc[timestamp]]) {
       acc[timestamp] = severity;
@@ -15,15 +15,12 @@ function consolidateAndMergeIntervals(data) {
     return acc;
   }, {});
 
-  //Create an array of timestamps with their severities (retain order)
-  const filteredValues = data.values
-    .map(([timestamp]) => [timestamp, highestSeverityValues[timestamp]])
-    .filter(
-      (value, index, self) =>
-        index === self.findIndex((v) => v[0] === value[0] && v[1] === value[1]),
-    );
+  // Create an array of timestamps with their severities (retain order)
+  const filteredValues = Object.entries(highestSeverityValues)
+    .map(([timestamp, severity]) => [timestamp, severity])
+    .sort((a, b) => new Date(a[0]) - new Date(b[0])); // Ensure order by time
 
-  //Find intervals of constant severity
+  // Find intervals of constant severity
   const intervals = [];
   let currentStart = filteredValues[0][0];
   let currentSeverity = filteredValues[0][1];
