@@ -4,36 +4,81 @@ import global_info_color_100 from '@patternfly/react-tokens/dist/esm/global_info
 import global_warning_color_100 from '@patternfly/react-tokens/dist/esm/global_warning_color_100';
 import { setIncidentsActiveFilters } from '../../actions/observe';
 
-function groupTimestamps(data) {
-  if (data.length === 0) return [];
+function consolidateAndMergeIntervals(data) {
+  const severityRank = { 2: 2, 1: 1, 0: 0 };
 
-  let result = [];
-  let start_time = data[0][0];
-  let current_value = data[0][1];
+  //Eliminate overlapping timestamps with lower severities
+  const highestSeverityValues = data.values.reduce((acc, [timestamp, severity]) => {
+    if (!acc[timestamp] || severityRank[severity] > severityRank[acc[timestamp]]) {
+      acc[timestamp] = severity;
+    }
+    return acc;
+  }, {});
 
-  for (let i = 1; i < data.length; i++) {
-    let timestamp = data[i][0];
-    let value = data[i][1];
+  //Create an array of timestamps with their severities (retain order)
+  const filteredValues = data.values
+    .map(([timestamp]) => [timestamp, highestSeverityValues[timestamp]])
+    .filter(
+      (value, index, self) =>
+        index === self.findIndex((v) => v[0] === value[0] && v[1] === value[1]),
+    );
 
-    // If the second index value changes
-    if (value !== current_value) {
-      // Push the grouped data into the result
-      result.push([start_time, data[i - 1][0], current_value]);
+  //Find intervals of constant severity
+  const intervals = [];
+  let currentStart = filteredValues[0][0];
+  let currentSeverity = filteredValues[0][1];
 
-      // Start a new group
-      start_time = timestamp;
-      current_value = value;
+  for (let i = 1; i < filteredValues.length; i++) {
+    const [timestamp, severity] = filteredValues[i];
+    if (severity !== currentSeverity) {
+      intervals.push([currentStart, filteredValues[i - 1][0], currentSeverity]);
+      currentStart = timestamp;
+      currentSeverity = severity;
     }
   }
+  intervals.push([currentStart, filteredValues[filteredValues.length - 1][0], currentSeverity]);
 
-  // Push the last group
-  result.push([start_time, data[data.length - 1][0], current_value]);
-
-  return result;
+  return intervals;
 }
 
+/**
+ * Creates an array of incident data for chart bars, ensuring that when two severities have the same time range, the lower severity is removed.
+ *
+ * @param {Object} incident - The incident data containing values with timestamps and severity levels.
+ * @returns {Array} - An array of incident objects with `y0`, `y`, `x`, and `name` fields representing the bars for the chart.
+ */
+export const createIncidentsChartBars = (incident) => {
+  const groupedData = consolidateAndMergeIntervals(incident);
+
+  const data = [];
+  const getSeverityName = (value) => {
+    return value === '2' ? 'Critical' : value === '1' ? 'Warning' : 'Info';
+  };
+
+  for (let i = 0; i < groupedData.length; i++) {
+    const severity = getSeverityName(groupedData[i][2]);
+
+    data.push({
+      y0: new Date(groupedData[i][0]),
+      y: new Date(groupedData[i][1]),
+      x: incident.x,
+      name: severity,
+      componentList: incident.componentList || [],
+      group_id: incident.group_id,
+      fill:
+        severity === 'Critical'
+          ? global_danger_color_100.var
+          : severity === 'Warning'
+          ? global_warning_color_100.var
+          : global_info_color_100.var,
+    });
+  }
+
+  return data;
+};
+
 export const createAlertsChartBars = (alert) => {
-  const groupedData = groupTimestamps(alert.values);
+  const groupedData = consolidateAndMergeIntervals(alert);
 
   const data = [];
   for (let i = 0; i < groupedData.length; i++) {
@@ -53,79 +98,6 @@ export const createAlertsChartBars = (alert) => {
           ? global_warning_color_100.var
           : global_info_color_100.var,
     });
-  }
-
-  return data;
-};
-
-/**
- * Creates an array of incident data for chart bars, ensuring that when two severities have the same time range, the lower severity is removed.
- *
- * @param {Object} incident - The incident data containing values with timestamps and severity levels.
- * @returns {Array} - An array of incident objects with `y0`, `y`, `x`, and `name` fields representing the bars for the chart.
- */
-export const createIncidentsChartBars = (incident) => {
-  const groupedData = groupTimestamps(incident.values);
-
-  const data = [];
-
-  // Severity levels mapping for comparison
-  const severityRank = {
-    Critical: 2,
-    Warning: 1,
-    Info: 0,
-  };
-
-  // Helper function to get the severity name from a value
-  const getSeverityName = (value) => {
-    return value === '2' ? 'Critical' : value === '1' ? 'Warning' : 'Info';
-  };
-
-  for (let i = 0; i < groupedData.length; i++) {
-    const severity = getSeverityName(groupedData[i][2]);
-
-    // Check if we have a previous entry and whether its time range matches the current one
-    if (
-      data.length > 0 &&
-      data[data.length - 1].y0.getTime() === new Date(groupedData[i][0]).getTime() &&
-      data[data.length - 1].y.getTime() === new Date(groupedData[i][1]).getTime()
-    ) {
-      // Compare severity, and keep the more severe entry
-      const previousSeverity = data[data.length - 1].name;
-      if (severityRank[severity] > severityRank[previousSeverity]) {
-        // Replace the previous entry with the current one (since it has higher severity)
-        data[data.length - 1] = {
-          y0: new Date(groupedData[i][0]),
-          y: new Date(groupedData[i][1]),
-          x: incident.x,
-          name: severity,
-          componentList: incident.componentList,
-          group_id: incident.group_id,
-          fill:
-            severity === 'Critical'
-              ? global_danger_color_100.var
-              : severity === 'Warning'
-              ? global_warning_color_100.var
-              : global_info_color_100.var,
-        };
-      }
-    } else {
-      // If no matching previous entry, just push the new one
-      data.push({
-        y0: new Date(groupedData[i][0]),
-        y: new Date(groupedData[i][1]),
-        x: incident.x,
-        name: severity,
-        componentList: incident.componentList,
-        group_id: incident.group_id,
-        fill:
-          severity === 'Critical'
-            ? global_danger_color_100.var
-            : severity === 'Warning'
-            ? global_warning_color_100.var
-            : global_info_color_100.var,
-      });
-    }
   }
 
   return data;
