@@ -88,7 +88,7 @@ import {
   DataSource,
   isDataSource,
 } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
-import { getObserveState, usePerspective } from './hooks/usePerspective';
+import { getLegacyObserveState, usePerspective } from './hooks/usePerspective';
 import { useActiveNamespace } from './console/console-shared/hooks/useActiveNamespace';
 import { MonitoringState } from '../reducers/observe';
 import { DropDownPollInterval } from './dropdown-poll-interval';
@@ -206,6 +206,8 @@ export const PreDefinedQueriesDropdown = () => {
     predefinedQueries = predefinedQueriesDev;
   } else if (perspective === 'admin') {
     predefinedQueries = predefinedQueriesAdmin;
+  } else if (perspective === 'virtualization-perspective') {
+    predefinedQueries = predefinedQueriesAdmin;
   } // Wrong queries for ACM, leaving for when metrics gets moved to ACM
 
   // Note this fires twice when <Select> is clicked.
@@ -216,7 +218,7 @@ export const PreDefinedQueriesDropdown = () => {
   const dispatch = useDispatch();
 
   const queriesList = useSelector((state: MonitoringState) =>
-    getObserveState(perspective, state)?.getIn(['queryBrowser', 'queries']),
+    getLegacyObserveState(perspective, state)?.getIn(['queryBrowser', 'queries']),
   );
 
   const insertPredefinedQuery = (query: string) => {
@@ -288,7 +290,7 @@ const MetricsActionsMenu: React.FC = () => {
   const [isOpen, setIsOpen, , setClosed] = useBoolean(false);
 
   const isAllExpanded = useSelector((state: MonitoringState) =>
-    getObserveState(perspective, state)
+    getLegacyObserveState(perspective, state)
       ?.getIn(['queryBrowser', 'queries'])
       .every((q) => q.get('isExpanded')),
   );
@@ -334,7 +336,7 @@ export const ToggleGraph: React.FC = () => {
   const { perspective } = usePerspective();
 
   const hideGraphs = useSelector(
-    (state: MonitoringState) => !!getObserveState(perspective, state)?.get('hideGraphs'),
+    (state: MonitoringState) => !!getLegacyObserveState(perspective, state)?.get('hideGraphs'),
   );
 
   const dispatch = useDispatch();
@@ -380,7 +382,7 @@ const SeriesButton: React.FC<SeriesButtonProps> = ({ index, labels }) => {
   const { perspective } = usePerspective();
 
   const [colorIndex, isDisabled, isSeriesEmpty] = useSelector((state: MonitoringState) => {
-    const observe = getObserveState(perspective, state);
+    const observe = getLegacyObserveState(perspective, state);
     const disabledSeries = observe.getIn(['queryBrowser', 'queries', index, 'disabledSeries']);
     if (_.some(disabledSeries, (s) => _.isEqual(s, labels))) {
       return [null, true, false];
@@ -434,7 +436,7 @@ const QueryKebab: React.FC<{ index: number }> = ({ index }) => {
 
   const isDisabledSeriesEmpty = useSelector((state: MonitoringState) =>
     _.isEmpty(
-      getObserveState(perspective, state)?.getIn([
+      getLegacyObserveState(perspective, state)?.getIn([
         'queryBrowser',
         'queries',
         index,
@@ -443,15 +445,20 @@ const QueryKebab: React.FC<{ index: number }> = ({ index }) => {
     ),
   );
   const isEnabled = useSelector((state: MonitoringState) =>
-    getObserveState(perspective, state)?.getIn(['queryBrowser', 'queries', index, 'isEnabled']),
+    getLegacyObserveState(perspective, state)?.getIn([
+      'queryBrowser',
+      'queries',
+      index,
+      'isEnabled',
+    ]),
   );
 
   const query = useSelector((state: MonitoringState) =>
-    getObserveState(perspective, state)?.getIn(['queryBrowser', 'queries', index, 'query']),
+    getLegacyObserveState(perspective, state)?.getIn(['queryBrowser', 'queries', index, 'query']),
   );
 
   const queryTableData = useSelector((state: MonitoringState) =>
-    getObserveState(perspective, state)?.getIn([
+    getLegacyObserveState(perspective, state)?.getIn([
       'queryBrowser',
       'queries',
       index,
@@ -604,26 +611,36 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, custom
   const [sortBy, setSortBy] = React.useState<ISortBy>({});
 
   const isEnabled = useSelector((state: MonitoringState) =>
-    getObserveState(perspective, state)?.getIn(['queryBrowser', 'queries', index, 'isEnabled']),
+    getLegacyObserveState(perspective, state)?.getIn([
+      'queryBrowser',
+      'queries',
+      index,
+      'isEnabled',
+    ]),
   );
   const isExpanded = useSelector((state: MonitoringState) =>
-    getObserveState(perspective, state)?.getIn(['queryBrowser', 'queries', index, 'isExpanded']),
+    getLegacyObserveState(perspective, state)?.getIn([
+      'queryBrowser',
+      'queries',
+      index,
+      'isExpanded',
+    ]),
   );
   const pollInterval = useSelector((state: MonitoringState) =>
-    getObserveState(perspective, state)?.getIn(['queryBrowser', 'pollInterval'], 15 * 1000),
+    getLegacyObserveState(perspective, state)?.getIn(['queryBrowser', 'pollInterval'], 15 * 1000),
   );
   const query = useSelector((state: MonitoringState) =>
-    getObserveState(perspective, state)?.getIn(['queryBrowser', 'queries', index, 'query']),
+    getLegacyObserveState(perspective, state)?.getIn(['queryBrowser', 'queries', index, 'query']),
   );
   const series = useSelector((state: MonitoringState) =>
-    getObserveState(perspective, state)?.getIn(['queryBrowser', 'queries', index, 'series']),
+    getLegacyObserveState(perspective, state)?.getIn(['queryBrowser', 'queries', index, 'series']),
   );
   const span = useSelector((state: MonitoringState) =>
-    getObserveState(perspective, state)?.getIn(['queryBrowser', 'timespan']),
+    getLegacyObserveState(perspective, state)?.getIn(['queryBrowser', 'timespan']),
   );
 
   const lastRequestTime = useSelector((state: MonitoringState) =>
-    getObserveState(perspective, state)?.getIn(['queryBrowser', 'lastRequestTime']),
+    getLegacyObserveState(perspective, state)?.getIn(['queryBrowser', 'lastRequestTime']),
   );
 
   const dispatch = useDispatch();
@@ -635,7 +652,7 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, custom
 
   const isDisabledSeriesEmpty = useSelector((state: MonitoringState) =>
     _.isEmpty(
-      getObserveState(perspective, state)?.getIn([
+      getLegacyObserveState(perspective, state)?.getIn([
         'queryBrowser',
         'queries',
         index,
@@ -839,16 +856,29 @@ const Query: React.FC<{ index: number; customDatasource?: CustomDataSource }> = 
   const { perspective } = usePerspective();
 
   const id = useSelector((state: MonitoringState) =>
-    getObserveState(perspective, state)?.getIn(['queryBrowser', 'queries', index, 'id']),
+    getLegacyObserveState(perspective, state)?.getIn(['queryBrowser', 'queries', index, 'id']),
   );
   const isEnabled = useSelector((state: MonitoringState) =>
-    getObserveState(perspective, state)?.getIn(['queryBrowser', 'queries', index, 'isEnabled']),
+    getLegacyObserveState(perspective, state)?.getIn([
+      'queryBrowser',
+      'queries',
+      index,
+      'isEnabled',
+    ]),
   );
   const isExpanded = useSelector((state: MonitoringState) =>
-    getObserveState(perspective, state)?.getIn(['queryBrowser', 'queries', index, 'isExpanded']),
+    getLegacyObserveState(perspective, state)?.getIn([
+      'queryBrowser',
+      'queries',
+      index,
+      'isExpanded',
+    ]),
   );
   const text = useSelector((state: MonitoringState) =>
-    getObserveState(perspective, state)?.getIn(['queryBrowser', 'queries', index, 'text'], ''),
+    getLegacyObserveState(perspective, state)?.getIn(
+      ['queryBrowser', 'queries', index, 'text'],
+      '',
+    ),
   );
 
   const dispatch = useDispatch();
@@ -935,10 +965,10 @@ const QueryBrowserWrapper: React.FC<{
   const dispatch = useDispatch();
 
   const hideGraphs = useSelector(
-    (state: MonitoringState) => !!getObserveState(perspective, state)?.get('hideGraphs'),
+    (state: MonitoringState) => !!getLegacyObserveState(perspective, state)?.get('hideGraphs'),
   );
   const queriesList = useSelector((state: MonitoringState) =>
-    getObserveState(perspective, state)?.getIn(['queryBrowser', 'queries']),
+    getLegacyObserveState(perspective, state)?.getIn(['queryBrowser', 'queries']),
   );
 
   const queries = queriesList.toJS();
@@ -1075,7 +1105,7 @@ const QueriesList: React.FC<{ customDatasource?: CustomDataSource }> = ({ custom
   const { perspective } = usePerspective();
   const count = useSelector(
     (state: MonitoringState) =>
-      getObserveState(perspective, state)?.getIn(['queryBrowser', 'queries']).size,
+      getLegacyObserveState(perspective, state)?.getIn(['queryBrowser', 'queries']).size,
   );
 
   return (
