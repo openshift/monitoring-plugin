@@ -83,9 +83,36 @@ export const createIncidentsChartBars = (incident) => {
   return data;
 };
 
-export const createAlertsChartBars = (alert) => {
-  const groupedData = consolidateAndMergeIntervals(alert);
+function groupAlertTimestamps(data) {
+  if (data.length === 0) return [];
 
+  let result = [];
+  let start_time = data[0][0];
+  let current_value = data[0][1];
+
+  for (let i = 1; i < data.length; i++) {
+    let timestamp = data[i][0];
+    let value = data[i][1];
+
+    // If the second index value changes
+    if (value !== current_value) {
+      // Push the grouped data into the result
+      result.push([start_time, data[i - 1][0], current_value]);
+
+      // Start a new group
+      start_time = timestamp;
+      current_value = value;
+    }
+  }
+
+  // Push the last group
+  result.push([start_time, data[data.length - 1][0], current_value]);
+
+  return result;
+}
+
+export const createAlertsChartBars = (alert) => {
+  const groupedData = groupAlertTimestamps(alert.values);
   const data = [];
   for (let i = 0; i < groupedData.length; i++) {
     data.push({
