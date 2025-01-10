@@ -27,12 +27,21 @@ function consolidateAndMergeIntervals(data) {
 
   for (let i = 1; i < filteredValues.length; i++) {
     const [timestamp, severity] = filteredValues[i];
-    if (severity !== currentSeverity) {
-      intervals.push([currentStart, filteredValues[i - 1][0], currentSeverity]);
-      currentStart = timestamp;
+
+    // Adjust the end timestamp for seamless transition
+    let adjustedEnd;
+    if (currentSeverity !== severity) {
+      const endDate = new Date(timestamp);
+      endDate.setMilliseconds(endDate.getMilliseconds() - 1); // Subtract 1 ms
+      adjustedEnd = endDate.toISOString();
+
+      intervals.push([currentStart, adjustedEnd, currentSeverity]);
+      currentStart = timestamp; // Start the new interval
       currentSeverity = severity;
     }
   }
+
+  // Add the final interval
   intervals.push([currentStart, filteredValues[filteredValues.length - 1][0], currentSeverity]);
 
   return intervals;
