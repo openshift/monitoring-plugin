@@ -45,11 +45,20 @@ const IncidentsChart = ({ incidentsData, chartDays }) => {
 
   const isHidden = (group_id) => selectedId !== '' && selectedId !== group_id;
   const clickHandler = (data, datum) => {
-    dispatch(
-      setChooseIncident({
-        incidentGroupId: datum.datum.group_id,
-      }),
-    );
+    if(datum.datum.group_id === selectedId) {
+      dispatch(
+        setChooseIncident({
+          incidentGroupId: '',
+        }),
+      );
+    } else {
+      dispatch(
+        setChooseIncident({
+          incidentGroupId: datum.datum.group_id,
+        }),
+      );
+    }
+
   };
 
   function getAdjustedFillColor(datum) {
