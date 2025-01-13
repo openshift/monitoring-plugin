@@ -10,6 +10,14 @@
   {
     "type": "console.page/route",
     "properties": {
+      "exact": true,
+      "path": "/virt-monitoring",
+      "component": { "$codeRef": "MonitoringUI" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
       "exact": false,
       "path": [
         "/monitoring/alertrules",
@@ -19,6 +27,22 @@
         "/monitoring/query-browser",
         "/monitoring/silences",
         "/monitoring/targets"
+      ],
+      "component": { "$codeRef": "MonitoringUI" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
+      "path": [
+        "/virt-monitoring/alertrules",
+        "/virt-monitoring/alerts",
+        "/virt-monitoring/dashboards",
+        "/virt-monitoring/graph",
+        "/virt-monitoring/query-browser",
+        "/virt-monitoring/silences",
+        "/virt-monitoring/targets"
       ],
       "component": { "$codeRef": "MonitoringUI" }
     }
@@ -38,6 +62,35 @@
     }
   },
   {
+    "flags": {
+      "required": ["PROMETHEUS", "MONITORING", "CAN_GET_NS"]
+    },
+    "properties": {
+      "dataAttributes": {
+        "data-quickstart-id": "qs-nav-monitoring"
+      },
+      "id": "observe-virt-perspective",
+      "insertBefore": ["compute-virt-perspective", "usermanagement-virt-perspective"],
+      "name": "%console-app~Observe%",
+      "perspective": "virtualization-perspective"
+    },
+    "type": "console.navigation/section"
+  },
+  {
+    "type": "console.navigation/href",
+    "flags": {
+      "required": ["PROMETHEUS", "MONITORING", "CAN_GET_NS"]
+    },
+    "properties": {
+      "id": "alerting-virt",
+      "name": "%plugin__monitoring-plugin~Alerting%",
+      "href": "/virt-monitoring/alerts",
+      "perspective": "virtualization-perspective",
+      "section": "observe-virt-perspective",
+      "startsWith": ["virt-monitoring/alertrules", "virt-monitoring/silences"]
+    }
+  },
+  {
     "type": "console.navigation/href",
     "flags": {
       "required": ["PROMETHEUS", "MONITORING", "CAN_GET_NS"]
@@ -48,6 +101,20 @@
       "href": "/monitoring/query-browser",
       "perspective": "admin",
       "section": "observe",
+      "insertAfter": "alerts"
+    }
+  },
+  {
+    "type": "console.navigation/href",
+    "flags": {
+      "required": ["PROMETHEUS", "MONITORING", "CAN_GET_NS"]
+    },
+    "properties": {
+      "id": "metrics-virt",
+      "name": "%plugin__monitoring-plugin~Metrics%",
+      "href": "/virt-monitoring/query-browser",
+      "perspective": "virtualization-perspective",
+      "section": "observe-virt-perspective",
       "insertAfter": "alerts"
     }
   },
@@ -71,12 +138,40 @@
       "required": ["PROMETHEUS", "MONITORING", "CAN_GET_NS"]
     },
     "properties": {
+      "id": "dashboards-virt",
+      "name": "%plugin__monitoring-plugin~Dashboards%",
+      "href": "/virt-monitoring/dashboards",
+      "perspective": "virtualization-perspective",
+      "section": "observe-virt-perspective",
+      "insertAfter": "metrics-virt"
+    }
+  },
+  {
+    "type": "console.navigation/href",
+    "flags": {
+      "required": ["PROMETHEUS", "MONITORING", "CAN_GET_NS"]
+    },
+    "properties": {
       "id": "targets",
       "name": "%plugin__monitoring-plugin~Targets%",
       "href": "/monitoring/targets",
       "perspective": "admin",
       "section": "observe",
       "insertAfter": "dashboards"
+    }
+  },
+  {
+    "type": "console.navigation/href",
+    "flags": {
+      "required": ["PROMETHEUS", "MONITORING", "CAN_GET_NS"]
+    },
+    "properties": {
+      "id": "targets-virt",
+      "name": "%plugin__monitoring-plugin~Targets%",
+      "href": "/virt-monitoring/targets",
+      "perspective": "virtualization-perspective",
+      "section": "observe-virt-perspective",
+      "insertAfter": "dashboards-virt"
     }
   },
   {
@@ -145,6 +240,13 @@
       "component": {
         "$codeRef": "MonitoringUI"
       }
+    }
+  },
+  {
+    "type": "console.redux-reducer",
+    "properties": {
+      "scope": "mp",
+      "reducer": { "$codeRef": "MonitoringReducer" }
     }
   }
 ]

@@ -38,10 +38,10 @@ export enum ActionType {
   SetIncidentsChartSelection = 'setIncidentsChartSelection',
 }
 
-export type Perspective = 'admin' | 'dev' | 'acm';
-export type alertKey = 'alerts' | 'devAlerts' | 'acmAlerts';
-export type silencesKey = 'silences' | 'devSilences' | 'acmSilences';
-export type rulesKey = 'rules' | 'devRules' | 'acmRules' | 'notificationAlerts';
+export type Perspective = 'admin' | 'dev' | 'acm' | 'virtualization-perspective';
+export type alertKey = 'alerts' | 'devAlerts' | 'acmAlerts' | 'virtAlerts';
+export type silencesKey = 'silences' | 'devSilences' | 'acmSilences' | 'virtSilences';
+export type rulesKey = 'rules' | 'devRules' | 'acmRules' | 'notificationAlerts' | 'virtRules';
 
 type AlertingKey = alertKey | silencesKey | rulesKey;
 

@@ -8,7 +8,7 @@ import { getQueryArgument, removeQueryArgument, setQueryArgument } from '../cons
 import { dashboardsSetEndTime, dashboardsSetTimespan } from '../../actions/observe';
 import { useBoolean } from '../hooks/useBoolean';
 import CustomTimeRangeModal from './custom-time-range-modal';
-import { getObserveState, usePerspective } from '../hooks/usePerspective';
+import { getLegacyObserveState, usePerspective } from '../hooks/usePerspective';
 import { SimpleSelect, SimpleSelectOption } from '../SimpleSelect';
 import { MonitoringState } from '../../reducers/observe';
 
@@ -24,10 +24,10 @@ const TimespanDropdown: React.FC = () => {
   const [selected, setSelected] = React.useState<string | undefined>(DEFAULT_TIMERANGE);
 
   const timespan = useSelector((state: MonitoringState) =>
-    getObserveState(perspective, state)?.getIn(['dashboards', perspective, 'timespen']),
+    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'timespen']),
   );
   const endTime = useSelector((state: MonitoringState) =>
-    getObserveState(perspective, state)?.getIn(['dashboards', perspective, 'endTime']),
+    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'endTime']),
   );
 
   const timeSpanFromParams = getQueryArgument('timeRange');

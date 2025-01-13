@@ -73,7 +73,7 @@ import { queryBrowserTheme } from './query-browser-theme';
 import { PrometheusAPIError, TimeRange } from './types';
 import { getTimeRanges } from './utils';
 
-import { getObserveState, usePerspective } from './hooks/usePerspective';
+import { getLegacyObserveState, usePerspective } from './hooks/usePerspective';
 import { useActiveNamespace } from './console/console-shared/hooks/useActiveNamespace';
 import { MonitoringState } from '../reducers/observe';
 
@@ -683,14 +683,15 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
   const { perspective } = usePerspective();
 
   const hideGraphs = useSelector(
-    (state: MonitoringState) => !!getObserveState(perspective, state)?.get('hideGraphs'),
+    (state: MonitoringState) => !!getLegacyObserveState(perspective, state)?.get('hideGraphs'),
   );
   const tickInterval = useSelector(
     (state: MonitoringState) =>
-      pollInterval ?? getObserveState(perspective, state)?.getIn(['queryBrowser', 'pollInterval']),
+      pollInterval ??
+      getLegacyObserveState(perspective, state)?.getIn(['queryBrowser', 'pollInterval']),
   );
   const lastRequestTime = useSelector((state: MonitoringState) =>
-    getObserveState(perspective, state)?.getIn(['queryBrowser', 'lastRequestTime']),
+    getLegacyObserveState(perspective, state)?.getIn(['queryBrowser', 'lastRequestTime']),
   );
 
   const dispatch = useDispatch();
