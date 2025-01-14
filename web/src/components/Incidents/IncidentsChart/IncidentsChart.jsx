@@ -55,11 +55,11 @@ const IncidentsChart = ({ incidentsData, chartDays }) => {
   function getAdjustedFillColor(datum) {
     if (isHidden(datum.group_id)) {
       switch (datum.fill) {
-        case 'var(--pf-global--warning-color--100)':
+        case 'var(--pf-v5-global--warning-color--100)':
           return '#F8DFA7'; // Less transparent for warning
-        case 'var(--pf-global--info-color--100)':
+        case 'var(--pf-v5-global--info-color--100)':
           return '#B2D1F0'; // Less transparent for info
-        case 'var(--pf-global--danger-color--100)':
+        case 'var(--pf-v5-global--danger-color--100)':
           return '#EFBAB6'; // Less transparent for danger
       }
     }

@@ -1,5 +1,3 @@
-import classNames from 'classnames';
-import * as _ from 'lodash-es';
 import {
   PrometheusData,
   PrometheusEndpoint,
@@ -15,20 +13,20 @@ import {
   EmptyStateBody,
   EmptyStateIcon,
   EmptyStateVariant,
+  Grid,
+  GridItem,
   Switch,
   Title,
   Tooltip,
-  Grid,
-  GridItem,
 } from '@patternfly/react-core';
 import {
-  Select as SelectDeprecated,
-  SelectOption as SelectOptionDeprecated,
-  SelectVariant as SelectVariantDeprecated,
   Dropdown as DropdownDeprecated,
   DropdownItem as DropdownItemDeprecated,
   DropdownPosition as DropdownPositionDeprecated,
   DropdownToggle as DropdownToggleDeprecated,
+  Select as SelectDeprecated,
+  SelectOption as SelectOptionDeprecated,
+  SelectVariant as SelectVariantDeprecated,
 } from '@patternfly/react-core/deprecated';
 import {
   AngleDownIcon,
@@ -40,12 +38,17 @@ import {
   ISortBy,
   sortable,
   Table,
-  TableBody,
   TableGridBreakpoint,
-  TableHeader,
   TableVariant,
+  Tbody,
+  Td,
+  Th,
+  Thead,
+  Tr,
   wrappable,
 } from '@patternfly/react-table';
+import classNames from 'classnames';
+import * as _ from 'lodash-es';
 import * as React from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
@@ -53,17 +56,17 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import {
   queryBrowserAddQuery,
-  queryBrowserDuplicateQuery,
   queryBrowserDeleteAllQueries,
   queryBrowserDeleteQuery,
+  queryBrowserDuplicateQuery,
   queryBrowserPatchQuery,
   queryBrowserRunQueries,
   queryBrowserSetAllExpanded,
+  queryBrowserSetPollInterval,
   queryBrowserToggleAllSeries,
   queryBrowserToggleIsEnabled,
   queryBrowserToggleSeries,
   toggleGraphs,
-  queryBrowserSetPollInterval,
 } from '../actions/observe';
 
 import { withFallback } from './console/console-shared/error/error-boundary';
@@ -78,20 +81,20 @@ import {
 import { useSafeFetch } from './console/utils/safe-fetch-hook';
 import { LoadingInline } from './console/utils/status-box';
 
-import { useBoolean } from './hooks/useBoolean';
-import KebabDropdown from './kebab-dropdown';
-import { colors, Error, QueryBrowser } from './query-browser';
-import TablePagination from './table-pagination';
-import { PrometheusAPIError } from './types';
 import {
   CustomDataSource,
   DataSource,
   isDataSource,
 } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
-import { getLegacyObserveState, usePerspective } from './hooks/usePerspective';
-import { useActiveNamespace } from './console/console-shared/hooks/useActiveNamespace';
 import { MonitoringState } from '../reducers/observe';
+import { useActiveNamespace } from './console/console-shared/hooks/useActiveNamespace';
 import { DropDownPollInterval } from './dropdown-poll-interval';
+import { useBoolean } from './hooks/useBoolean';
+import { getLegacyObserveState, usePerspective } from './hooks/usePerspective';
+import KebabDropdown from './kebab-dropdown';
+import { colors, Error, QueryBrowser } from './query-browser';
+import TablePagination from './table-pagination';
+import { PrometheusAPIError } from './types';
 
 // Stores information about the currently focused query input
 let focusedQuery;
@@ -347,7 +350,7 @@ export const ToggleGraph: React.FC = () => {
   return (
     <Button
       type="button"
-      className="pf-m-link--align-right query-browser__toggle-graph"
+      className="pf-v5-m-link--align-right query-browser__toggle-graph"
       onClick={toggle}
       variant="link"
     >
@@ -817,16 +820,43 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, custom
           </Button>
           <Table
             aria-label={t('query results table')}
-            cells={columns}
             gridBreakPoint={TableGridBreakpoint.none}
-            onSort={onSort}
-            rows={tableRows}
-            sortBy={sortBy}
+            rows={tableRows.length}
             variant={TableVariant.compact}
             className="query-browser__table"
           >
-            <TableHeader />
-            <TableBody />
+            <Thead>
+              <Tr>
+                {columns.map((col, columnIndex) => {
+                  const sortParams =
+                    columnIndex !== 0
+                      ? {
+                          sort: {
+                            sortBy,
+                            onSort,
+                            columnIndex,
+                          },
+                        }
+                      : {};
+                  return (
+                    <Th key={`${col.title}-${columnIndex}`} {...sortParams}>
+                      {col.title}
+                    </Th>
+                  );
+                })}
+              </Tr>
+            </Thead>
+            <Tbody>
+              {tableRows.map((row, rowIndex) => (
+                <Tr key={`row-${rowIndex}`}>
+                  {row.cells?.map((cell, cellIndex) => (
+                    <Td key={`cell-${rowIndex}-${cellIndex}`}>
+                      {typeof cell === 'string' ? cell : cell?.title}
+                    </Td>
+                  ))}
+                </Tr>
+              ))}
+            </Tbody>
           </Table>
         </div>
       </div>
@@ -1192,7 +1222,7 @@ const QueryBrowserPage_: React.FC = () => {
       return (
         <div className="co-m-pane__body">
           <div className="row">
-            <div className="col-xs-12 pf-u-text-align-center">
+            <div className="col-xs-12 pf-v5-u-text-align-center">
               <LoadingInline />
             </div>
           </div>
@@ -1233,7 +1263,7 @@ const QueryBrowserPage_: React.FC = () => {
             <div className="query-browser__controls">
               <PreDefinedQueriesDropdown />
               <div className="query-browser__controls--right">
-                <ActionGroup className="pf-c-form pf-c-form__group--no-top-margin">
+                <ActionGroup className="pf-v5-c-form pf-v5-c-form__group--no-top-margin">
                   <AddQueryButton />
                   <RunQueriesButton />
                 </ActionGroup>

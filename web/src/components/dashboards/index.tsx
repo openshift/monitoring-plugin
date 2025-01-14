@@ -824,7 +824,7 @@ const PanelsRow: React.FC<PanelsRowProps> = ({ row, perspective }) => {
       {showButton && (
         <Button
           aria-label={title}
-          className="pf-m-link--align-left"
+          className="pf-v5-m-link--align-left"
           onClick={toggleIsExpanded}
           style={{ fontSize: 24 }}
           title={title}
@@ -895,7 +895,7 @@ const MonitoringDashboardsPage_: React.FC<MonitoringDashboardsPageProps> = ({ hi
       });
       const persesBoardItems = _.mapValues(persesKeys, (b, name) => ({
         tags: ['perses'],
-        title: `${b.metadata?.project} / ${b.metadata?.name}` ?? name,
+        title: b.metadata ? `${b.metadata?.project} / ${b.metadata?.name}` : name,
       }));
       return { ...persesBoardItems, ...ocpBoardItems };
     }

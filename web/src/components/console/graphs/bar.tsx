@@ -1,5 +1,3 @@
-import * as _ from 'lodash-es';
-import * as React from 'react';
 import {
   Humanize,
   PrometheusEndpoint,
@@ -10,23 +8,27 @@ import {
   ChartBar,
   ChartLabel,
   ChartThemeColor,
-  ChartThemeVariant,
+  ChartThemeDefinition,
   getCustomTheme,
 } from '@patternfly/react-charts';
+import * as _ from 'lodash-es';
+import * as React from 'react';
 
 import { CustomDataSource } from '../extensions/dashboard-data-source';
-import { humanizeNumber } from '../utils/units';
 import { useRefWidth } from '../utils/ref-width-hook';
+import { humanizeNumber } from '../utils/units';
 import { GraphEmpty } from './graph-empty';
 
 const DEFAULT_BAR_WIDTH = 10;
 const PADDING_RATIO = 1 / 3;
 
-const barTheme = {
+const barTextAnchor = 'end';
+
+const barTheme: ChartThemeDefinition = {
   bar: {
     style: {
       labels: {
-        textAnchor: 'end' as const,
+        textAnchor: barTextAnchor,
       },
     },
   },
@@ -46,13 +48,13 @@ const barTheme = {
         stroke: 'none',
       },
       tickLabels: {
-        textAnchor: 'start' as const,
+        textAnchor: 'start',
       },
     },
   },
 };
 
-const theme = getCustomTheme(ChartThemeColor.blue, ChartThemeVariant.light, barTheme);
+const theme = getCustomTheme(ChartThemeColor.blue, barTheme);
 
 const BarChart: React.FC<BarChartProps> = ({
   barSpacing = 15,
@@ -91,9 +93,7 @@ const BarChart: React.FC<BarChartProps> = ({
                 barWidth={barWidth}
                 data={[datum]}
                 horizontal
-                labelComponent={
-                  <ChartLabel x={width} textAnchor={barTheme.bar.style.labels.textAnchor} />
-                }
+                labelComponent={<ChartLabel x={width} textAnchor={barTextAnchor} />}
                 theme={theme}
                 height={barWidth + padding.bottom}
                 width={width}

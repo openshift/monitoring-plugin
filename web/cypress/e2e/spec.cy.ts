@@ -27,54 +27,56 @@ const SILENCE_COMMENT = 'test comment';
 
 describe('Monitoring: Alerts', () => {
   beforeEach(() => {
-    cy.intercept(
-      'GET',
-      '/api/prometheus/api/v1/rules?',
-      {
-        data: {
-          groups: [{
-            "file": "dummy-file",
-            "interval": 30,
-            "name": "general.rules",
-            "rules": [
+    cy.intercept('GET', '/api/prometheus/api/v1/rules?', {
+      data: {
+        groups: [
+          {
+            file: 'dummy-file',
+            interval: 30,
+            name: 'general.rules',
+            rules: [
               {
-                "state": "firing",
-                "name": "Watchdog",
-                "query": "vector(1)",
-                "duration": 0,
-                "labels": {
-                  "namespace": "openshift-monitoring",
-                  "prometheus": "openshift-monitoring/k8s",
-                  "severity": "none"
+                state: 'firing',
+                name: 'Watchdog',
+                query: 'vector(1)',
+                duration: 0,
+                labels: {
+                  namespace: 'openshift-monitoring',
+                  prometheus: 'openshift-monitoring/k8s',
+                  severity: 'none',
                 },
-                "annotations": {
-                  "description": "This is an alert meant to ensure that the entire alerting pipeline is functional.\nThis alert is always firing, therefore it should always be firing in Alertmanager\nand always fire against a receiver. There are integrations with various notification\nmechanisms that send a notification when this alert is not firing. For example the\n\"DeadMansSnitch\" integration in PagerDuty.\n",
-                  "summary": "An alert that should always be firing to certify that Alertmanager is working properly."
+                annotations: {
+                  description:
+                    'This is an alert meant to ensure that the entire alerting pipeline is functional.\nThis alert is always firing, therefore it should always be firing in Alertmanager\nand always fire against a receiver. There are integrations with various notification\nmechanisms that send a notification when this alert is not firing. For example the\n"DeadMansSnitch" integration in PagerDuty.\n',
+                  summary:
+                    'An alert that should always be firing to certify that Alertmanager is working properly.',
                 },
-                "alerts": [
+                alerts: [
                   {
-                    "labels": {
-                      "alertname": "Watchdog",
-                      "namespace": "openshift-monitoring",
-                      "severity": "none"
+                    labels: {
+                      alertname: 'Watchdog',
+                      namespace: 'openshift-monitoring',
+                      severity: 'none',
                     },
-                    "annotations": {
-                      "description": "This is an alert meant to ensure that the entire alerting pipeline is functional.\nThis alert is always firing, therefore it should always be firing in Alertmanager\nand always fire against a receiver. There are integrations with various notification\nmechanisms that send a notification when this alert is not firing. For example the\n\"DeadMansSnitch\" integration in PagerDuty.\n",
-                      "summary": "An alert that should always be firing to certify that Alertmanager is working properly."
+                    annotations: {
+                      description:
+                        'This is an alert meant to ensure that the entire alerting pipeline is functional.\nThis alert is always firing, therefore it should always be firing in Alertmanager\nand always fire against a receiver. There are integrations with various notification\nmechanisms that send a notification when this alert is not firing. For example the\n"DeadMansSnitch" integration in PagerDuty.\n',
+                      summary:
+                        'An alert that should always be firing to certify that Alertmanager is working properly.',
                     },
-                    "state": "firing",
-                    "activeAt": "2023-04-10T12:00:00.123456789Z",
-                    "value": "1e+00",
-                  }
+                    state: 'firing',
+                    activeAt: '2023-04-10T12:00:00.123456789Z',
+                    value: '1e+00',
+                  },
                 ],
-                "health": "ok",
-                "type": "alerting"
-              }
+                health: 'ok',
+                type: 'alerting',
+              },
             ],
-          }],
-        },
-      }
-    );
+          },
+        ],
+      },
+    });
 
     cy.visit('/');
   });
@@ -115,38 +117,39 @@ describe('Monitoring: Alerts', () => {
   });
 
   it('creates and expires a Silence', () => {
-    cy.intercept('GET', '/api/alertmanager/api/v2/silences', [{
+    cy.intercept('GET', '/api/alertmanager/api/v2/silences', [
+      {
         id: SILENCE_ID,
         status: {
-          state: "active",
+          state: 'active',
         },
-        updatedAt: "2023-04-10T12:00:00.123Z",
+        updatedAt: '2023-04-10T12:00:00.123Z',
         comment: SILENCE_COMMENT,
-        createdBy: "kube:admin",
-        endsAt: "2023-04-10T14:00:00.123Z",
+        createdBy: 'kube:admin',
+        endsAt: '2023-04-10T14:00:00.123Z',
         matchers: [
           {
             isEqual: true,
             isRegex: false,
-            name: "alertname",
-            value: "Watchdog"
+            name: 'alertname',
+            value: 'Watchdog',
           },
           {
             isEqual: true,
             isRegex: false,
-            name: "namespace",
-            value: "openshift-monitoring"
+            name: 'namespace',
+            value: 'openshift-monitoring',
           },
           {
             isEqual: true,
             isRegex: false,
-            name: "severity",
-            value: "none"
-          }
+            name: 'severity',
+            value: 'none',
+          },
         ],
-        startsAt: "2023-04-10T12:00:00.123Z",
-      }]
-    ).as('getSilences');
+        startsAt: '2023-04-10T12:00:00.123Z',
+      },
+    ]).as('getSilences');
 
     cy.intercept('POST', '/api/alertmanager/api/v2/silences', { silenceID: SILENCE_ID });
 
@@ -164,7 +167,9 @@ describe('Monitoring: Alerts', () => {
     // shouldBeWatchdogAlertDetailsPage();
 
     // detailsPage.clickPageActionButton('Silence alert');
-    cy.visit('/monitoring/silences/~new?alertname=Watchdog&namespace=openshift-monitoring&severity=none');
+    cy.visit(
+      '/monitoring/silences/~new?alertname=Watchdog&namespace=openshift-monitoring&severity=none',
+    );
 
     // Launches create silence form
     cy.log('silence Watchdog alert');
@@ -175,9 +180,7 @@ describe('Monitoring: Alerts', () => {
     // Change duration
     cy.byTestID('silence-for-toggle').click();
     cy.byTestID('silence-for').should('contain', '1h');
-    cy.byTestID('silence-for')
-      .contains(/^1h$/)
-      .click();
+    cy.byTestID('silence-for').contains(/^1h$/).click();
     cy.byTestID('silence-until').should('have.value', '1h from now');
     // Change to not start now
     cy.byTestID('silence-start-immediately').click();
@@ -204,14 +207,12 @@ describe('Monitoring: Alerts', () => {
     // Change duration back again
     cy.byTestID('silence-for-toggle').click();
     cy.byTestID('silence-for').should('contain', '2h');
-    cy.byTestID('silence-for')
-      .contains(/^2h$/)
-      .click();
+    cy.byTestID('silence-for').contains(/^2h$/).click();
     cy.byTestID('silence-until').should('have.value', '2h from now');
     // Add comment and submit
     cy.byTestID('silence-comment').type(SILENCE_COMMENT);
     cy.get('button[type=submit]').click();
-    cy.get('.pf-c-alert').should('not.exist');
+    cy.get('.pf-v5-c-alert').should('not.exist');
 
     // After creating the Silence, should be redirected to its details page
     shouldBeWatchdogSilencePage();
@@ -237,8 +238,8 @@ describe('Monitoring: Alerts', () => {
     //cy.byTestID('silence-actions')
     //  .contains('Expire silence')
     //  .click();
-    //cy.get('button.pf-m-primary').click();
-    //cy.get('.pf-c-alert').should('not.exist');
+    //cy.get('button.pf-v5-m-primary').click();
+    //cy.get('.pf-v5-c-alert').should('not.exist');
     // Wait for expired silence icon to exist
     //cy.byLegacyTestID('ban-icon').should('exist');
   });

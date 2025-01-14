@@ -428,7 +428,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
 
             <div className="form-group">
               <Button
-                className="pf-m-link--align-left"
+                className="pf-v5-m-link--align-left"
                 onClick={addMatcher}
                 type="button"
                 variant="link"

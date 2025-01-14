@@ -57,10 +57,13 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
         loaded={silences?.loaded}
         loadError={silences?.loadError}
       >
-        <div className="pf-c-page__main-breadcrumb">
+        <div className="pf-v5-c-page__main-breadcrumb">
           <Breadcrumb className="monitoring-breadcrumbs">
             <BreadcrumbItem>
-              <Link className="pf-c-breadcrumb__link" to={getSilencesUrl(perspective, namespace)}>
+              <Link
+                className="pf-v5-c-breadcrumb__link"
+                to={getSilencesUrl(perspective, namespace)}
+              >
                 {t('Silences')}
               </Link>
             </BreadcrumbItem>
@@ -178,7 +181,7 @@ const SilencedAlertsList_: React.FC<SilencedAlertsListProps> = ({ alerts, histor
   const [namespace] = useActiveNamespace();
 
   return _.isEmpty(alerts) ? (
-    <div className="pf-u-text-align-center">{t('None found')}</div>
+    <div className="pf-v5-u-text-align-center">{t('None found')}</div>
   ) : (
     <div className="co-m-table-grid co-m-table-grid--bordered">
       <div className="row co-m-table-grid__head">

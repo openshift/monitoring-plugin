@@ -150,10 +150,10 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
         loaded={alerts?.loaded}
         loadError={alerts?.loadError}
       >
-        <div className="pf-c-page__main-breadcrumb">
+        <div className="pf-v5-c-page__main-breadcrumb">
           <Breadcrumb className="monitoring-breadcrumbs">
             <BreadcrumbItem>
-              <Link className="pf-c-breadcrumb__link" to={getAlertsUrl(perspective, namespace)}>
+              <Link className="pf-v5-c-breadcrumb__link" to={getAlertsUrl(perspective, namespace)}>
                 {t('Alerts')}
               </Link>
             </BreadcrumbItem>
@@ -197,7 +197,7 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
                               <ToolbarItem
                                 key={action.id}
                                 spacer={{ default: 'spacerNone' }}
-                                className="pf-u-px-md"
+                                className="pf-v5-u-px-md"
                               >
                                 <Link to={action.cta.href}>{action.label}</Link>
                               </ToolbarItem>

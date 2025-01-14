@@ -32,7 +32,6 @@ const Graph: React.FC<Props> = ({
   showLegend,
   units,
   onZoomHandle,
-  namespace,
   perspective,
   onDataChange,
 }) => {

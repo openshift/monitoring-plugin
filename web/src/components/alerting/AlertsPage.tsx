@@ -48,12 +48,12 @@ import { EmptyBox } from '../console/utils/status-box';
 import { MonitoringState } from '../../reducers/observe';
 
 const tableAlertClasses = [
-  'pf-u-w-50 pf-u-w-33-on-sm', // Name
-  'pf-m-hidden pf-m-visible-on-sm', // Severity
+  'pf-v5-u-w-50 pf-v5-u-w-33-on-sm', // Name
+  'pf-v5-m-hidden pf-v5-m-visible-on-sm', // Severity
   '', // State
-  'pf-m-hidden pf-m-visible-on-sm', // Source
-  'pf-m-hidden pf-m-visible-on-sm', // Cluster
-  'dropdown-kebab-pf pf-c-table__action',
+  'pf-v5-m-hidden pf-v5-m-visible-on-sm', // Source
+  'pf-v5-m-hidden pf-v5-m-visible-on-sm', // Cluster
+  'dropdown-kebab-pf pf-v5-c-table__action',
 ];
 
 const AlertsPage_: React.FC<AlertsPageProps> = () => {
