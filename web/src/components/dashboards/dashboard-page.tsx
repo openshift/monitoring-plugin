@@ -21,8 +21,6 @@ const queryClient = new QueryClient({
     queries: {
       refetchOnWindowFocus: false,
       retry: false,
-      // TODO: Consider if it's possible to link this the refresh interval, which is down 2 layers
-      // in the timespan-dropdown. Or maybe its already in the store
       refetchInterval: 5 * 1000,
     },
   },

@@ -1,7 +1,15 @@
 import { fetchPersesProjects, fetchPersesDashboardsMetadata } from './perses-client';
 import { useQuery } from '@tanstack/react-query';
+import { useSelector } from 'react-redux';
+import { getLegacyObserveState, usePerspective } from '../../hooks/usePerspective';
+import { MonitoringState } from '../../../reducers/observe';
 
 export const usePerses = () => {
+  const { perspective } = usePerspective();
+  const pollInterval = useSelector((state: MonitoringState) =>
+    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'pollInterval']),
+  );
+
   const {
     isLoading: persesProjectsLoading,
     error: persesProjectsError,
@@ -10,6 +18,7 @@ export const usePerses = () => {
     queryKey: ['projects'],
     queryFn: fetchPersesProjects,
     enabled: true,
+    refetchInterval: pollInterval,
   });
 
   const {
@@ -20,6 +29,7 @@ export const usePerses = () => {
     queryKey: ['dashboards'],
     queryFn: fetchPersesDashboardsMetadata,
     enabled: true,
+    refetchInterval: pollInterval,
   });
 
   return {
