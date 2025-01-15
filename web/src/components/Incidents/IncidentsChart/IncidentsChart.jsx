@@ -3,13 +3,13 @@ import * as React from 'react';
 
 import { Chart, ChartAxis, ChartBar, ChartGroup, createContainer } from '@patternfly/react-charts';
 import { Bullseye, Card, CardTitle, Spinner } from '@patternfly/react-core';
-import global_danger_color_100 from '@patternfly/react-tokens/dist/esm/global_danger_color_100';
-import global_info_color_100 from '@patternfly/react-tokens/dist/esm/global_info_color_100';
-import global_warning_color_100 from '@patternfly/react-tokens/dist/esm/global_warning_color_100';
 import { createIncidentsChartBars, formatDate, generateDateArray } from '../utils';
 import { getResizeObserver } from '@patternfly/react-core';
 import { useDispatch, useSelector } from 'react-redux';
 import { setChooseIncident } from '../../../actions/observe';
+import global_danger_color_100 from '@patternfly/react-tokens/dist/esm/global_danger_color_100';
+import global_info_color_100 from '@patternfly/react-tokens/dist/esm/global_info_color_100';
+import global_warning_color_100 from '@patternfly/react-tokens/dist/esm/global_warning_color_100';
 
 const IncidentsChart = ({ incidentsData, chartDays }) => {
   const dispatch = useDispatch();

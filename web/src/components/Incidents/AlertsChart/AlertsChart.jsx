@@ -1,26 +1,33 @@
+/* eslint-disable prettier/prettier */
 import * as React from 'react';
 
 import { Chart, ChartAxis, ChartBar, ChartGroup, createContainer } from '@patternfly/react-charts';
 import { Card, CardTitle, EmptyState, EmptyStateBody } from '@patternfly/react-core';
-import global_danger_color_100 from '@patternfly/react-tokens/dist/esm/global_danger_color_100';
-import global_info_color_100 from '@patternfly/react-tokens/dist/esm/global_info_color_100';
-import global_warning_color_100 from '@patternfly/react-tokens/dist/esm/global_warning_color_100';
 import { createAlertsChartBars, formatDate, generateDateArray } from '../utils';
 import { getResizeObserver } from '@patternfly/react-core';
+import { useSelector } from 'react-redux';
 
-const AlertsChart = ({ alertsData = [], chartDays }) => {
+const AlertsChart = ({ chartDays }) => {
   const [chartData, setChartData] = React.useState([]);
   const [chartContainerHeight, setChartContainerHeight] = React.useState();
   const [chartHeight, setChartHeight] = React.useState();
+  const alertsData = useSelector((state) =>
+    state.plugins.mcp.getIn(['incidentsData', 'alertsData']),
+  );
+  const alertsAreLoading = useSelector((state) =>
+    state.plugins.mcp.getIn(['incidentsData', 'alertsAreLoading']),
+  );
+
   React.useEffect(() => {
     setChartContainerHeight(chartData?.length < 5 ? 250 : chartData?.length * 40);
     setChartHeight(chartData?.length < 5 ? 200 : chartData?.length * 35);
   }, [chartData]);
   const dateValues = generateDateArray(chartDays);
+
   React.useEffect(() => {
     setChartData(alertsData.map((alert) => createAlertsChartBars(alert)));
   }, [alertsData]);
-  const isLoading = alertsData.length === 0 ? true : false;
+
   const [width, setWidth] = React.useState(0);
   const containerRef = React.useRef(null);
   const handleResize = () => {
@@ -40,7 +47,7 @@ const AlertsChart = ({ alertsData = [], chartDays }) => {
     <Card className="alerts-chart-card">
       <div ref={containerRef}>
         <CardTitle>Alerts Timeline</CardTitle>
-        {isLoading ? (
+        {alertsAreLoading ? (
           <EmptyState
             variant="large"
             style={{
@@ -61,9 +68,9 @@ const AlertsChart = ({ alertsData = [], chartDays }) => {
                 <CursorVoronoiContainer
                   mouseFollowTooltips
                   labels={({ datum }) =>
-                    `Alert severity: ${datum.severity}\nAlert name: ${datum.name}\nNamespace: ${
-                      datum.namespace
-                    }\nLayer: ${datum.layer}\nComponent: ${
+                    `Alert severity: ${datum.severity}\nAlert name: ${datum.name ? datum.name : '---'}\nNamespace: ${
+                      datum.namespace ? datum.namespace : '---'
+                    }\nLayer: ${datum.layer ? datum.layer : '---'}\nComponent: ${
                       datum.component
                     }\nStart time: ${formatDate(new Date(datum.y0), true)}\nStop time: ${formatDate(
                       new Date(datum.y),
@@ -74,9 +81,9 @@ const AlertsChart = ({ alertsData = [], chartDays }) => {
               }
               domainPadding={{ x: [30, 25] }}
               legendData={[
-                { name: 'Critical', symbol: { fill: global_danger_color_100.var } },
-                { name: 'Info', symbol: { fill: global_info_color_100.var } },
-                { name: 'Warning', symbol: { fill: global_warning_color_100.var } },
+                { name: 'Critical', symbol: { fill: '#c9190b' } },
+                { name: 'Info', symbol: { fill: '#2b9af3' } },
+                { name: 'Warning', symbol: { fill: '#f0ab00' } },
               ]}
               legendPosition="bottom-left"
               //this should be always less than the container height

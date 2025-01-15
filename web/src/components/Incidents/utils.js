@@ -1,8 +1,8 @@
 /* eslint-disable max-len */
+import { setAlertsAreLoading, setIncidentsActiveFilters } from '../../actions/observe';
 import global_danger_color_100 from '@patternfly/react-tokens/dist/esm/global_danger_color_100';
 import global_info_color_100 from '@patternfly/react-tokens/dist/esm/global_info_color_100';
 import global_warning_color_100 from '@patternfly/react-tokens/dist/esm/global_warning_color_100';
-import { setIncidentsActiveFilters } from '../../actions/observe';
 
 function consolidateAndMergeIntervals(data) {
   const severityRank = { 2: 2, 1: 1, 0: 0 };
@@ -305,12 +305,14 @@ export const updateBrowserUrl = (params) => {
   window.history.replaceState(null, '', newUrl);
 };
 
-export const changeDaysFilter = (days, dispatch, filters) => {
+export const changeDaysFilter = (days, dispatch, filters, setIncidentsAreLoading) => {
   dispatch(
     setIncidentsActiveFilters({
       incidentsActiveFilters: { days: [days], incidentFilters: filters.incidentFilters },
     }),
   );
+  dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
+  setIncidentsAreLoading(true);
 };
 
 export const onIncidentFiltersSelect = (event, selection, dispatch, incidentsActiveFilters) => {
