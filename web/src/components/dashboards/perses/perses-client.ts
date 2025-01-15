@@ -12,6 +12,11 @@ export type PersesDashboardMetadata = {
     version: string;
     project: string; // name of project that holds the dashboard
   };
+  spec: {
+    display: {
+      name: string;
+    };
+  };
 };
 
 export type PersesProject = {
@@ -30,7 +35,7 @@ export type PersesProject = {
 };
 
 export const fetchPersesDashboardsMetadata = (): Promise<PersesDashboardMetadata[]> => {
-  const listDashboardsMetadata = '/api/v1/dashboards?metadata_only=true';
+  const listDashboardsMetadata = '/api/v1/dashboards';
   const persesURL = `${baseURL}${listDashboardsMetadata}`;
 
   return proxiedFetch<PersesDashboardMetadata[]>(persesURL);

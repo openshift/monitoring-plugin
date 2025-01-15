@@ -123,7 +123,7 @@ const ProjectMenu: React.FC<{
       return { title: item?.spec?.display?.name ?? name, key: name };
     });
 
-    if (!items.some((option) => option.title === selected) && selected !== LEGACY_DASHBOARDS_KEY) {
+    if (!items.some((option) => option.key === selected) && selected !== LEGACY_DASHBOARDS_KEY) {
       items.push({ title: selected, key: selected }); // Add current project if it isn't included
     }
     items.sort((a, b) => alphanumericCompare(a.title, b.title));
@@ -197,7 +197,7 @@ const ProjectDropdown: React.FC<ProjectDropdownProps> = ({
   const legacyDashboardsTitle = t('Legacy Dashboards');
   const { persesProjectsError, persesProjectsLoading, persesProjects } = usePerses();
 
-  const title = selected === LEGACY_DASHBOARDS_KEY ? legacyDashboardsTitle : selected;
+  // const title = selected === LEGACY_DASHBOARDS_KEY ? legacyDashboardsTitle : selected;
 
   const menuProps = {
     setOpen,
@@ -209,6 +209,16 @@ const ProjectDropdown: React.FC<ProjectDropdownProps> = ({
 
   if (persesProjectsLoading || persesProjectsError || persesProjects.length === 0) {
     return null;
+  }
+
+  let title: string;
+  if (selected === LEGACY_DASHBOARDS_KEY) {
+    title = legacyDashboardsTitle;
+  } else {
+    const selectedProject = persesProjects.find(
+      (persesProject) => persesProject.metadata.name === selected,
+    );
+    title = selectedProject.spec?.display?.name;
   }
 
   return (

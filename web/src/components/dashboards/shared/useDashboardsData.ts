@@ -100,15 +100,19 @@ export const useDashboardsData = (namespace: string, urlBoard: string) => {
       });
     } else {
       return persesDashboards.map((persesDashboard) => {
+        // Locate display name of project
+        const matchingProject = persesProjects.find(
+          (persesProject) => persesProject.metadata?.name === persesDashboard.metadata?.project,
+        );
         return {
           name: persesDashboard.metadata?.name,
           project: persesDashboard.metadata?.project,
           tags: ['perses'],
-          title: `${persesDashboard.metadata?.project} / ${persesDashboard.metadata?.name}`,
+          title: `${matchingProject.spec?.display?.name} / ${persesDashboard.spec.display.name}`,
         };
       });
     }
-  }, [legacyDashboards, persesDashboards, activeProject, combinedIntialLoad]);
+  }, [legacyDashboards, persesDashboards, persesProjects, activeProject, combinedIntialLoad]);
 
   // Retrieve dashboard metadata for the currently selected project
   const activeProjectDashboardsMetadata = React.useMemo<CombinedDashboardMetadata[]>(() => {
