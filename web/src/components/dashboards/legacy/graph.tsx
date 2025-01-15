@@ -18,7 +18,6 @@ type Props = {
   showLegend?: boolean;
   units: string;
   onZoomHandle?: (timeRange: number, endTime: number) => void;
-  namespace?: string;
   perspective: Perspective;
   onDataChange?: (data: any) => void;
 };

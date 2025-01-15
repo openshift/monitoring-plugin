@@ -329,7 +329,6 @@ const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
                       showLegend={panel.legend?.show}
                       units={panel.yaxes?.[0]?.format}
                       onZoomHandle={handleZoom}
-                      namespace={namespace}
                       customDataSource={customDataSource}
                       perspective={perspective}
                       onDataChange={(data) => setCsvData(data)}
