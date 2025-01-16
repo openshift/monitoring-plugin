@@ -2368,6 +2368,7 @@ const AlertingPage: React.FC<RouteComponentProps<{ url: string }>> = ({ match })
 
 const PollerPages = () => {
   const dispatch = useDispatch();
+  const [namespace] = useActiveNamespace();
 
   const [customExtensions] =
     useResolvedExtensions<AlertingRulesSourceExtension>(isAlertingRulesSource);
@@ -2389,7 +2390,7 @@ const PollerPages = () => {
       dispatch(alertingLoading(alertsKey));
       const url = getPrometheusURL({ endpoint: PrometheusEndpoint.RULES });
       const poller = (): void => {
-        fetchAlerts(url, alertsSource)
+        fetchAlerts(url, alertsSource, namespace as string)
           .then(({ data }) => {
             const { alerts, rules } = getAlertsAndRules(data);
             dispatch(alertingLoaded(alertsKey, alerts));
@@ -2411,7 +2412,7 @@ const PollerPages = () => {
       dispatch(alertingErrored('alerts', new Error('prometheusBaseURL not set')));
     }
     return () => _.each(pollerTimeouts, clearTimeout);
-  }, [alertsSource, dispatch]);
+  }, [alertsSource, dispatch, namespace]);
 
   return (
     <Switch>
