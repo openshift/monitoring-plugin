@@ -10,6 +10,7 @@ import { setChooseIncident } from '../../../actions/observe';
 import global_danger_color_100 from '@patternfly/react-tokens/dist/esm/global_danger_color_100';
 import global_info_color_100 from '@patternfly/react-tokens/dist/esm/global_info_color_100';
 import global_warning_color_100 from '@patternfly/react-tokens/dist/esm/global_warning_color_100';
+import { setAlertsAreLoading } from '../../../actions/observe';
 
 const IncidentsChart = ({ incidentsData, chartDays }) => {
   const dispatch = useDispatch();
@@ -50,7 +51,9 @@ const IncidentsChart = ({ incidentsData, chartDays }) => {
         setChooseIncident({
           incidentGroupId: '',
         }),
-      );
+
+      )
+      dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
     } else {
       dispatch(
         setChooseIncident({
