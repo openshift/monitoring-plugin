@@ -45,12 +45,20 @@ const getSearchParams = ({
 export const getPrometheusURL = (
   props: PrometheusURLProps,
   perspective: Perspective,
-  basePath: string = props.namespace ? PROMETHEUS_TENANCY_BASE_PATH : PROMETHEUS_BASE_PATH,
+  basePath?: string,
 ): string => {
   if (props.endpoint !== PrometheusEndpoint.RULES && !props.query) {
     return '';
   }
-  const path = perspective === 'acm' ? PROMETHEUS_PROXY_PATH : basePath;
+  let path = basePath;
+  if (perspective === 'acm') {
+    path = PROMETHEUS_PROXY_PATH;
+  } else if (!path && perspective === 'dev') {
+    path = PROMETHEUS_TENANCY_BASE_PATH;
+  } else if (!path) {
+    // admin or virt perspective
+    path = PROMETHEUS_BASE_PATH;
+  }
   const params = getSearchParams(props);
   return `${path}/${props.endpoint}?${params.toString()}`;
 };
