@@ -315,7 +315,7 @@ const IncidentsPage = () => {
                   }
                 />
               </ToolbarItem>
-              <ToolbarItem className="pf-m-align-right">
+              <ToolbarItem align={{ default: 'alignRight' }}>
                 <Button
                   variant="link"
                   icon={hideCharts ? <CompressArrowsAltIcon /> : <CompressIcon />}
