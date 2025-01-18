@@ -255,7 +255,6 @@ const IncidentsPage = () => {
             id="toolbar-with-filter"
             className="pf-v5-m-toggle-group-container"
             collapseListedFiltersBreakpoint="xl"
-            clearFiltersButtonText="Reset all filters"
             clearAllFilters={() =>
               onDeleteIncidentFilterChip('', '', incidentsActiveFilters, dispatch)
             }
