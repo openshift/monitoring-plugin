@@ -21,15 +21,15 @@ import * as _ from 'lodash-es';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 
-import ErrorAlert from '../console/console-shared/alerts/error';
-import { CustomDataSource } from '../console/extensions/dashboard-data-source';
-import { getPrometheusURL } from '../console/graphs/helpers';
-import { usePoll } from '../console/utils/poll-hook';
-import { useSafeFetch } from '../console/utils/safe-fetch-hook';
+import ErrorAlert from '../../console/console-shared/alerts/error';
+import { CustomDataSource } from '../../console/extensions/dashboard-data-source';
+import { getPrometheusURL } from '../../console/graphs/helpers';
+import { usePoll } from '../../console/utils/poll-hook';
+import { useSafeFetch } from '../../console/utils/safe-fetch-hook';
 
-import { formatNumber } from '../format';
-import { usePerspective } from '../hooks/usePerspective';
-import TablePagination from '../table-pagination';
+import { formatNumber } from '../../format';
+import { usePerspective } from '../../hooks/usePerspective';
+import TablePagination from '../../table-pagination';
 import { ColumnStyle, Panel } from './types';
 
 type AugmentedColumnStyle = ColumnStyle & {

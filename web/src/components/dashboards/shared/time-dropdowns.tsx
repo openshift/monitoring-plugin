@@ -1,16 +1,25 @@
 import * as _ from 'lodash';
 // TODO: These will be available in future versions of the plugin SDK
-import { formatPrometheusDuration, parsePrometheusDuration } from '../console/utils/datetime';
+import { formatPrometheusDuration, parsePrometheusDuration } from '../../console/utils/datetime';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { getQueryArgument, removeQueryArgument, setQueryArgument } from '../console/utils/router';
-import { dashboardsSetEndTime, dashboardsSetTimespan } from '../../actions/observe';
-import { useBoolean } from '../hooks/useBoolean';
-import CustomTimeRangeModal from './custom-time-range-modal';
-import { getLegacyObserveState, usePerspective } from '../hooks/usePerspective';
-import { SimpleSelect, SimpleSelectOption } from '../SimpleSelect';
-import { MonitoringState } from '../../reducers/observe';
+import {
+  getQueryArgument,
+  removeQueryArgument,
+  setQueryArgument,
+} from '../../console/utils/router';
+import {
+  dashboardsSetEndTime,
+  dashboardsSetPollInterval,
+  dashboardsSetTimespan,
+} from '../../../actions/observe';
+import { useBoolean } from '../../hooks/useBoolean';
+import CustomTimeRangeModal from '../shared/custom-time-range-modal';
+import { getLegacyObserveState, usePerspective } from '../../hooks/usePerspective';
+import { SimpleSelect, SimpleSelectOption } from '../../SimpleSelect';
+import { MonitoringState } from '../../../reducers/observe';
+import { DropDownPollInterval } from '../../../components/dropdown-poll-interval';
 
 const CUSTOM_TIME_RANGE_KEY = 'CUSTOM_TIME_RANGE_KEY';
 const DEFAULT_TIMERANGE = '30m';
@@ -108,4 +117,38 @@ const TimespanDropdown: React.FC = () => {
   );
 };
 
-export default TimespanDropdown;
+const PollIntervalDropdown: React.FC = () => {
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const { perspective } = usePerspective();
+
+  const dispatch = useDispatch();
+  const setInterval = React.useCallback(
+    (v: number) => {
+      if (v) {
+        setQueryArgument('refreshInterval', v.toString());
+      } else {
+        removeQueryArgument('refreshInterval');
+      }
+      dispatch(dashboardsSetPollInterval(v, perspective));
+    },
+    [dispatch, perspective],
+  );
+
+  return (
+    <div className="form-group monitoring-dashboards__dropdown-wrap">
+      <label htmlFor="refresh-interval-dropdown" className="monitoring-dashboards__dropdown-title">
+        {t('Refresh interval')}
+      </label>
+      <DropDownPollInterval id="refresh-interval-dropdown" setInterval={setInterval} />
+    </div>
+  );
+};
+
+export const TimeDropdowns: React.FC = React.memo(() => {
+  return (
+    <div className="monitoring-dashboards__options">
+      <TimespanDropdown />
+      <PollIntervalDropdown />
+    </div>
+  );
+});

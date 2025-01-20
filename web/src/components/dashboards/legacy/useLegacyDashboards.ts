@@ -2,12 +2,13 @@ import * as React from 'react';
 import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';
 
-import { useSafeFetch } from '../console/utils/safe-fetch-hook';
+import { useSafeFetch } from '../../console/utils/safe-fetch-hook';
 
-import { useBoolean } from '../hooks/useBoolean';
+import { useBoolean } from '../../hooks/useBoolean';
+
 import { Board } from './types';
 
-export const useFetchDashboards = (namespace: string): [Board[], boolean, string] => {
+export const useLegacyDashboards = (namespace: string): [Board[], boolean, string] => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -15,7 +16,6 @@ export const useFetchDashboards = (namespace: string): [Board[], boolean, string
   const [boards, setBoards] = React.useState<Board[]>([]);
   const [error, setError] = React.useState<string>();
   const [isLoading, , , setLoaded] = useBoolean(true);
-
   React.useEffect(() => {
     safeFetch('/api/console/monitoring-dashboard-config')
       .then((response) => {
@@ -28,7 +28,6 @@ export const useFetchDashboards = (namespace: string): [Board[], boolean, string
             (item) => item.metadata?.labels['console.openshift.io/odc-dashboard'] === 'true',
           );
         }
-
         const getBoardData = (item): Board => {
           try {
             return {
@@ -44,7 +43,6 @@ export const useFetchDashboards = (namespace: string): [Board[], boolean, string
             return { data: undefined, name: item?.metadata?.name };
           }
         };
-
         const newBoards = _.sortBy(_.map(items, getBoardData), (v) => _.toLower(v?.data?.title));
         setBoards(newBoards);
       })
@@ -55,6 +53,5 @@ export const useFetchDashboards = (namespace: string): [Board[], boolean, string
         }
       });
   }, [namespace, safeFetch, setLoaded, t]);
-
   return [boards, isLoading, error];
 };

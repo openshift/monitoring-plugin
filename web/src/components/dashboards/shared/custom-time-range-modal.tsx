@@ -12,11 +12,11 @@ import {
   TimePicker,
 } from '@patternfly/react-core';
 
-import { dashboardsSetEndTime, dashboardsSetTimespan, Perspective } from '../../actions/observe';
+import { dashboardsSetEndTime, dashboardsSetTimespan, Perspective } from '../../../actions/observe';
 
-import { setQueryArguments } from '../console/utils/router';
-import { MonitoringState } from '../../reducers/observe';
-import { getLegacyObserveState } from '../hooks/usePerspective';
+import { setQueryArguments } from '../../console/utils/router';
+import { MonitoringState } from '../../../reducers/observe';
+import { getLegacyObserveState } from '../../hooks/usePerspective';
 
 const zeroPad = (number: number) => (number < 10 ? `0${number}` : number);
 

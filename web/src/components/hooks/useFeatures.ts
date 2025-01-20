@@ -1,40 +1,53 @@
 import * as React from 'react';
-import { useURLPoll } from './useURLPoll';
-
-const URL_POLL_DEFAULT_DELAY = 60000; // 60 seconds
+import { proxiedFetch } from '../proxied-fetch';
 
 type features = {
   'acm-alerting': boolean;
+  'perses-dashboards': boolean;
   incidents: boolean;
 };
+
 type featuresResponse = {
   'acm-alerting'?: boolean;
+  'perses-dashboards'?: boolean;
   incidents?: boolean;
 };
 
 const noFeatures: features = {
   'acm-alerting': false,
+  'perses-dashboards': false,
   incidents: false,
 };
+// monitoring-console-plugin proxy via. cluster observability operator
+// https://github.com/rhobs/observability-operator/blob/28ac1ba9e179d25cae60e8223bcf61816e23a311/pkg/controllers/uiplugin/monitoring.go#L44
+const MCP_PROXY_PATH = '/api/proxy/plugin/monitoring-console-plugin/backend';
+const featuresEndpoint = `${MCP_PROXY_PATH}/features`;
 
 export const useFeatures = () => {
   const [features, setFeatures] = React.useState<features>(noFeatures);
+  const dashboardsAbort = React.useRef<() => void | undefined>();
+  const getFeatures = React.useCallback(async () => {
+    try {
+      if (dashboardsAbort.current) {
+        dashboardsAbort.current();
+      }
 
-  const [response, loadError, loading] = useURLPoll<featuresResponse>(
-    '/features',
-    URL_POLL_DEFAULT_DELAY,
-  );
-  React.useEffect(() => {
-    if (loadError) {
-      setFeatures(noFeatures);
-    } else if (!loading) {
+      const response = await proxiedFetch<featuresResponse>(featuresEndpoint);
       setFeatures({ ...noFeatures, ...response });
+    } catch (error) {
+      setFeatures(noFeatures);
     }
-  }, [loadError, loading, response, setFeatures]);
+  }, []);
+
+  // Use useEffect to call getFeatures only once after the component mounts
+  React.useEffect(() => {
+    getFeatures();
+  }, [getFeatures]);
 
   return {
     features,
-    acmAlertingActive: features['acm-alerting'],
-    incidentsActive: features.incidents,
+    isAcmAlertingActive: features['acm-alerting'],
+    arePersesDashboardsActive: features['perses-dashboards'],
+    areIncidentsActive: features.incidents,
   };
 };

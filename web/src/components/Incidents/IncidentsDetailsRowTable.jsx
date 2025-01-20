@@ -32,7 +32,7 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
   const { perspective } = usePerspective();
   const [alertsWithMatchedData, setAlertsWithMatchedData] = React.useState([]);
   const [customExtensions] = useResolvedExtensions(isAlertingRulesSource);
-  const { t } = useTranslation('plugin__monitoring-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const alertsSource = React.useMemo(
     () =>

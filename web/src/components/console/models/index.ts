@@ -1,3 +1,5 @@
+import { K8sModel } from '@openshift-console/dynamic-plugin-sdk';
+
 export const ServiceMonitorModel = {
   kind: 'ServiceMonitor',
   label: 'ServiceMonitor',
@@ -60,8 +62,33 @@ export const NodeModel = {
   kind: 'Node',
 };
 
-export const NamespaceModel = {
+export const NamespaceModel: K8sModel = {
+  apiVersion: 'v1',
+  label: 'Namespace',
+  // t('Namespace')
+  labelKey: 'public~Namespace',
+  plural: 'namespaces',
+  abbr: 'NS',
   kind: 'Namespace',
+  id: 'namespace',
+  labelPlural: 'Namespaces',
+  // t('Namespaces')
+  labelPluralKey: 'public~Namespaces',
+};
+
+export const ProjectModel: K8sModel = {
+  apiVersion: 'v1',
+  apiGroup: 'project.openshift.io',
+  label: 'Project',
+  // t('Project')
+  labelKey: 'public~Project',
+  plural: 'projects',
+  abbr: 'PR',
+  kind: 'Project',
+  id: 'project',
+  labelPlural: 'Projects',
+  // t('Projects')
+  labelPluralKey: 'public~Projects',
 };
 
 export const StatefulSetModel = {
