@@ -1,4 +1,7 @@
 /* eslint-disable max-len */
+
+import { sortObjectsByEarliestTimestamp } from './processIncidents';
+
 /**
  * Groups alert objects by their `alertname`, `namespace`, and `component` fields and merges their values
  * while removing duplicates. Alerts with the same combination of `alertname`, `namespace`, and `component`
@@ -136,7 +139,7 @@ export function groupAlerts(objects) {
 
 export function processAlerts(data) {
   const firing = groupAlerts(data).filter((alert) => alert.metric.alertname !== 'Watchdog');
-  return firing.map((alert, index) => {
+  return sortObjectsByEarliestTimestamp(firing).map((alert, index) => {
     // Process each value
     const processedValues = alert.values.map((value) => {
       const timestamp = value[0];

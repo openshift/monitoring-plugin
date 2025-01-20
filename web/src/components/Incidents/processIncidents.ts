@@ -33,12 +33,22 @@ interface ProcessedIncident {
   firing: boolean;
 }
 
+//this will be moved to the utils.js file when I convert them to the Typescript
+export function sortObjectsByEarliestTimestamp(incidents: Incident[]): Incident[] {
+  return incidents.sort((a, b) => {
+    const earliestA = Math.min(...a.values.map((value) => value[0]));
+    const earliestB = Math.min(...b.values.map((value) => value[0]));
+    return earliestA - earliestB;
+  });
+}
+
 export function processIncidents(data: Incident[]): ProcessedIncident[] {
   const incidents = groupById(data).filter(
     (incident) => incident.metric.src_alertname !== 'Watchdog',
   );
+  const sortedIncidents = sortObjectsByEarliestTimestamp(incidents);
 
-  return incidents.map((incident, index) => {
+  return sortedIncidents.map((incident, index) => {
     const processedValues = incident.values.map((value) => {
       const timestamp = value[0];
       const date = new Date(timestamp * 1000);
