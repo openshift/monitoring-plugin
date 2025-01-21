@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import * as React from 'react';
 
 import { Chart, ChartAxis, ChartBar, ChartGroup, createContainer } from '@patternfly/react-charts';
@@ -71,14 +70,13 @@ const AlertsChart = ({ chartDays }) => {
                 <CursorVoronoiContainer
                   mouseFollowTooltips
                   labels={({ datum }) =>
-                    `Alert severity: ${datum.severity}\nAlert name: ${datum.name ? datum.name : '---'}\nNamespace: ${
-                      datum.namespace ? datum.namespace : '---'
-                    }\nLayer: ${datum.layer ? datum.layer : '---'}\nComponent: ${
-                      datum.component
-                    }\nStart time: ${formatDate(new Date(datum.y0), true)}\nStop time: ${formatDate(
-                      new Date(datum.y),
-                      true,
-                    )}`
+                    `Alert severity: ${datum.severity}
+                    Alert name: ${datum.name ? datum.name : '---'}
+                    Namespace: ${datum.namespace ? datum.namespace : '---'}
+                    Layer: ${datum.layer ? datum.layer : '---'}
+                    Component: ${datum.component}
+                    Start time: ${formatDate(new Date(datum.y0), true)}
+                    Stop time: ${formatDate(new Date(datum.y), true)}`
                   }
                 />
               }

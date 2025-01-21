@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import * as React from 'react';
 
 import { Chart, ChartAxis, ChartBar, ChartGroup, createContainer } from '@patternfly/react-charts';
@@ -46,13 +45,12 @@ const IncidentsChart = ({ incidentsData, chartDays }) => {
 
   const isHidden = (group_id) => selectedId !== '' && selectedId !== group_id;
   const clickHandler = (data, datum) => {
-    if(datum.datum.group_id === selectedId) {
+    if (datum.datum.group_id === selectedId) {
       dispatch(
         setChooseIncident({
           incidentGroupId: '',
         }),
-
-      )
+      );
       dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
     } else {
       dispatch(
@@ -61,7 +59,6 @@ const IncidentsChart = ({ incidentsData, chartDays }) => {
         }),
       );
     }
-
   };
 
   function getAdjustedFillColor(datum) {
