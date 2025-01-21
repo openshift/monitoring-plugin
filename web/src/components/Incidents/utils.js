@@ -193,7 +193,7 @@ export function generateDateArray(days) {
  * Filters incidents based on the specified filters.
  *
  * @param {Object} filters - An object containing filter criteria.
- * @param {string[]} filters.incidentFilters - An array of strings representing filter conditions such as "Persistent", "Recent", "Critical", etc.
+ * @param {string[]} filters.incidentFilters - An array of strings representing filter conditions such as "Long standing", "Critical", etc.
  * @param {Array<Object>} incidents - An array of incidents to be filtered.
  * @returns {Array<Object>} A filtered array of incidents that match at least one of the specified filters.
  *
@@ -208,8 +208,7 @@ export function generateDateArray(days) {
  */
 export function filterIncident(filters, incidents) {
   const conditions = {
-    Persistent: 'Persistent',
-    Recent: 'Recent',
+    'Long standing': 'longStanding',
     Critical: 'Critical',
     Warning: 'Warning',
     Informative: 'Informative',
@@ -254,7 +253,7 @@ export const onDeleteIncidentFilterChip = (type, id, filters, setFilters) => {
     setFilters(
       setIncidentsActiveFilters({
         incidentsActiveFilters: {
-          incidentFilters: ['Recent', 'Critical', 'Warning', 'Firing'],
+          incidentFilters: ['Critical', 'Warning', 'Firing'],
           days: ['7 days'],
         },
       }),
