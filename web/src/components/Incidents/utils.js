@@ -253,7 +253,7 @@ export const onDeleteIncidentFilterChip = (type, id, filters, setFilters) => {
     setFilters(
       setIncidentsActiveFilters({
         incidentsActiveFilters: {
-          incidentFilters: ['Critical', 'Warning', 'Firing'],
+          incidentFilters: [],
           days: ['7 days'],
         },
       }),
