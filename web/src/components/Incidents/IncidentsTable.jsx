@@ -32,6 +32,9 @@ export const IncidentsTable = ({ namespace }) => {
   const alertsTableData = useSelector((state) =>
     state.plugins.mcp.getIn(['incidentsData', 'alertsTableData']),
   );
+  const alertsAreLoading = useSelector((state) =>
+    state.plugins.mcp.getIn(['incidentsData', 'alertsAreLoading']),
+  );
 
   return (
     <Card>
@@ -45,7 +48,7 @@ export const IncidentsTable = ({ namespace }) => {
               <Th width={25}>{columnNames.state}</Th>
             </Tr>
           </Thead>
-          {_.isEmpty(alertsTableData) ? (
+          {_.isEmpty(alertsTableData) || alertsAreLoading ? (
             <Tr>
               <Td colSpan={4}>
                 <EmptyState

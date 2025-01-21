@@ -76,32 +76,40 @@ export const daysMenuItems = (filters) => [
   <SelectOption key="15-day-filter" value="15 days" isSelected={filters.days.includes('15d')} />,
 ];
 
-export const dropdownItems = (t, dispatch, incidentsActiveFilters) => [
+export const dropdownItems = (t, dispatch, incidentsActiveFilters, setIncidentsAreLoading) => [
   <DropdownItemDeprecated
     key="1-day-filter"
     component="button"
-    onClick={() => changeDaysFilter('1 day', dispatch, incidentsActiveFilters)}
+    onClick={() =>
+      changeDaysFilter('1 day', dispatch, incidentsActiveFilters, setIncidentsAreLoading)
+    }
   >
     {t('1 day')}
   </DropdownItemDeprecated>,
   <DropdownItemDeprecated
     key="3-day-filter"
     component="button"
-    onClick={() => changeDaysFilter('3 days', dispatch, incidentsActiveFilters)}
+    onClick={() =>
+      changeDaysFilter('3 days', dispatch, incidentsActiveFilters, setIncidentsAreLoading)
+    }
   >
     {t('3 days')}
   </DropdownItemDeprecated>,
   <DropdownItemDeprecated
     key="7-day-filter"
     component="button"
-    onClick={() => changeDaysFilter('7 days', dispatch, incidentsActiveFilters)}
+    onClick={() =>
+      changeDaysFilter('7 days', dispatch, incidentsActiveFilters, setIncidentsAreLoading)
+    }
   >
     {t('7 days')}
   </DropdownItemDeprecated>,
   <DropdownItemDeprecated
     key="15-day-filter"
     component="button"
-    onClick={() => changeDaysFilter('15 days', dispatch, incidentsActiveFilters)}
+    onClick={() =>
+      changeDaysFilter('15 days', dispatch, incidentsActiveFilters, setIncidentsAreLoading)
+    }
   >
     {t('15 days')}
   </DropdownItemDeprecated>,
