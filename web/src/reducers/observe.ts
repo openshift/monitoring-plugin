@@ -89,6 +89,7 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
         incidents: [],
         alertsData: [],
         alertsTableData: [],
+        filteredIncidentsData: [],
         alertsAreLoading: true,
         incidentsChartSelectedId: '',
         incidentsInitialState: {
@@ -344,6 +345,13 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
       return state.setIn(
         ['incidentsData', 'incidentsChartSelectedId'],
         action.payload.incidentsChartSelectedId,
+      );
+    }
+
+    case ActionType.SetFilteredIncidentsData: {
+      return state.setIn(
+        ['incidentsData', 'filteredIncidentsData'],
+        action.payload.filteredIncidentsData,
       );
     }
 
