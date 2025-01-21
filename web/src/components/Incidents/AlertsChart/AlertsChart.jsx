@@ -6,6 +6,9 @@ import { Card, CardTitle, EmptyState, EmptyStateBody } from '@patternfly/react-c
 import { createAlertsChartBars, formatDate, generateDateArray } from '../utils';
 import { getResizeObserver } from '@patternfly/react-core';
 import { useSelector } from 'react-redux';
+import global_danger_color_100 from '@patternfly/react-tokens/dist/esm/global_danger_color_100';
+import global_info_color_100 from '@patternfly/react-tokens/dist/esm/global_info_color_100';
+import global_warning_color_100 from '@patternfly/react-tokens/dist/esm/global_warning_color_100';
 
 const AlertsChart = ({ chartDays }) => {
   const [chartData, setChartData] = React.useState([]);
@@ -81,9 +84,9 @@ const AlertsChart = ({ chartDays }) => {
               }
               domainPadding={{ x: [30, 25] }}
               legendData={[
-                { name: 'Critical', symbol: { fill: '#c9190b' } },
-                { name: 'Info', symbol: { fill: '#2b9af3' } },
-                { name: 'Warning', symbol: { fill: '#f0ab00' } },
+                { name: 'Critical', symbol: { fill: global_danger_color_100.var } },
+                { name: 'Info', symbol: { fill: global_info_color_100.var } },
+                { name: 'Warning', symbol: { fill: global_warning_color_100.var } },
               ]}
               legendPosition="bottom-left"
               //this should be always less than the container height

@@ -75,8 +75,6 @@ const IncidentsChart = ({ incidentsData, chartDays }) => {
           return '#EFBAB6'; // Less transparent for danger
       }
     }
-
-    return datum.fill; // Original fill color if the bar is selected
   }
 
   const CursorVoronoiContainer = createContainer('voronoi');

@@ -3,7 +3,6 @@ import { setAlertsAreLoading, setIncidentsActiveFilters } from '../../actions/ob
 import global_danger_color_100 from '@patternfly/react-tokens/dist/esm/global_danger_color_100';
 import global_info_color_100 from '@patternfly/react-tokens/dist/esm/global_info_color_100';
 import global_warning_color_100 from '@patternfly/react-tokens/dist/esm/global_warning_color_100';
-
 function consolidateAndMergeIntervals(data) {
   const severityRank = { 2: 2, 1: 1, 0: 0 };
 
