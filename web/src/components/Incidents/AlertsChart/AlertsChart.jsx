@@ -2,25 +2,34 @@ import * as React from 'react';
 
 import { Chart, ChartAxis, ChartBar, ChartGroup, createContainer } from '@patternfly/react-charts';
 import { Card, CardTitle, EmptyState, EmptyStateBody } from '@patternfly/react-core';
+import { createAlertsChartBars, formatDate, generateDateArray } from '../utils';
+import { getResizeObserver } from '@patternfly/react-core';
+import { useSelector } from 'react-redux';
 import global_danger_color_100 from '@patternfly/react-tokens/dist/esm/global_danger_color_100';
 import global_info_color_100 from '@patternfly/react-tokens/dist/esm/global_info_color_100';
 import global_warning_color_100 from '@patternfly/react-tokens/dist/esm/global_warning_color_100';
-import { createAlertsChartBars, formatDate, generateDateArray } from '../utils';
-import { getResizeObserver } from '@patternfly/react-core';
 
-const AlertsChart = ({ alertsData = [], chartDays }) => {
+const AlertsChart = ({ chartDays }) => {
   const [chartData, setChartData] = React.useState([]);
   const [chartContainerHeight, setChartContainerHeight] = React.useState();
   const [chartHeight, setChartHeight] = React.useState();
+  const alertsData = useSelector((state) =>
+    state.plugins.mcp.getIn(['incidentsData', 'alertsData']),
+  );
+  const alertsAreLoading = useSelector((state) =>
+    state.plugins.mcp.getIn(['incidentsData', 'alertsAreLoading']),
+  );
+
   React.useEffect(() => {
     setChartContainerHeight(chartData?.length < 5 ? 250 : chartData?.length * 40);
     setChartHeight(chartData?.length < 5 ? 200 : chartData?.length * 35);
   }, [chartData]);
   const dateValues = generateDateArray(chartDays);
+
   React.useEffect(() => {
     setChartData(alertsData.map((alert) => createAlertsChartBars(alert)));
   }, [alertsData]);
-  const isLoading = alertsData.length === 0 ? true : false;
+
   const [width, setWidth] = React.useState(0);
   const containerRef = React.useRef(null);
   const handleResize = () => {
@@ -40,7 +49,7 @@ const AlertsChart = ({ alertsData = [], chartDays }) => {
     <Card className="alerts-chart-card">
       <div ref={containerRef}>
         <CardTitle>Alerts Timeline</CardTitle>
-        {isLoading ? (
+        {alertsAreLoading ? (
           <EmptyState
             variant="large"
             style={{
@@ -61,14 +70,13 @@ const AlertsChart = ({ alertsData = [], chartDays }) => {
                 <CursorVoronoiContainer
                   mouseFollowTooltips
                   labels={({ datum }) =>
-                    `Alert severity: ${datum.severity}\nAlert name: ${datum.name}\nNamespace: ${
-                      datum.namespace
-                    }\nLayer: ${datum.layer}\nComponent: ${
-                      datum.component
-                    }\nStart time: ${formatDate(new Date(datum.y0), true)}\nStop time: ${formatDate(
-                      new Date(datum.y),
-                      true,
-                    )}`
+                    `Alert severity: ${datum.severity}
+                    Alert name: ${datum.name ? datum.name : '---'}
+                    Namespace: ${datum.namespace ? datum.namespace : '---'}
+                    Layer: ${datum.layer ? datum.layer : '---'}
+                    Component: ${datum.component}
+                    Start time: ${formatDate(new Date(datum.y0), true)}
+                    Stop time: ${formatDate(new Date(datum.y), true)}`
                   }
                 />
               }

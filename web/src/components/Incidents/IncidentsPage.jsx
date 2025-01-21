@@ -65,6 +65,7 @@ const IncidentsPage = () => {
   // fetch incidents/alerts based on the length of time ranges
   // when days filter changes we set a new days span -> calculate new time range and fetch new data
   const [daysSpan, setDaysSpan] = React.useState();
+  const [timeRanges, setTimeRanges] = React.useState([]);
   // data that is used for processing to serve it to the alerts table and chart
   const [incidentForAlertProcessing, setIncidentForAlertProcessing] = React.useState([]);
   const [hideCharts, setHideCharts] = React.useState(false);
@@ -101,7 +102,7 @@ const IncidentsPage = () => {
   const filteredData = useSelector((state) =>
     state.plugins.mcp.getIn(['incidentsData', 'filteredIncidentsData']),
   );
-React.useEffect(() => {
+  React.useEffect(() => {
     const hasUrlParams = Object.keys(urlParams).length > 0;
 
     if (hasUrlParams) {
@@ -140,9 +141,12 @@ React.useEffect(() => {
   }, [incidentsActiveFilters.incidentFilters]);
 
   const now = Date.now();
-  const timeRanges = getIncidentsTimeRanges(daysSpan, now);
   const safeFetch = useSafeFetch();
   const title = t('Incidents');
+
+  React.useEffect(() => {
+    setTimeRanges(getIncidentsTimeRanges(daysSpan, now));
+  }, [daysSpan]);
 
   React.useEffect(() => {
     setDaysSpan(
@@ -221,31 +225,33 @@ React.useEffect(() => {
           console.log(err);
         });
     })();
-  }, [daysSpan]);
+  }, [timeRanges]);
 
   React.useEffect(() => {
-    Promise.all(
-      timeRanges.map(async (range) => {
-        const response = await fetchDataForIncidentsAndAlerts(
-          safeFetch,
-          range,
-          `cluster:health:components:map{group_id='${incidentGroupId}'}`,
-          perspective,
-        );
-        return response.data.result;
-      }),
-    )
-      .then((results) => {
-        const aggregatedData = results.reduce((acc, result) => acc.concat(result), []);
-        setIncidentForAlertProcessing(processIncidentsForAlerts(aggregatedData));
-        dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
-        setIncidentsAreLoading(false);
-      })
-      .catch((err) => {
-        // eslint-disable-next-line no-console
-        console.log(err);
-      });
-  }, [incidentGroupId]);
+    if (incidentGroupId) {
+      Promise.all(
+        timeRanges.map(async (range) => {
+          const response = await fetchDataForIncidentsAndAlerts(
+            safeFetch,
+            range,
+            `cluster:health:components:map{group_id='${incidentGroupId}'}`,
+            perspective,
+          );
+          return response.data.result;
+        }),
+      )
+        .then((results) => {
+          const aggregatedData = results.reduce((acc, result) => acc.concat(result), []);
+          setIncidentForAlertProcessing(processIncidentsForAlerts(aggregatedData));
+          dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
+          setIncidentsAreLoading(false);
+        })
+        .catch((err) => {
+          // eslint-disable-next-line no-console
+          console.log(err);
+        });
+    }
+  }, [incidentGroupId, timeRanges]);
 
   return (
     <>
@@ -308,7 +314,12 @@ React.useEffect(() => {
               </ToolbarItem>
               <ToolbarItem>
                 <DropdownDeprecated
-                  dropdownItems={dropdownItems(t, dispatch, incidentsActiveFilters)}
+                  dropdownItems={dropdownItems(
+                    t,
+                    dispatch,
+                    incidentsActiveFilters,
+                    setIncidentsAreLoading,
+                  )}
                   isOpen={daysFilterIsExpanded}
                   onSelect={() => setDaysFilterIsExpanded(false)}
                   toggle={

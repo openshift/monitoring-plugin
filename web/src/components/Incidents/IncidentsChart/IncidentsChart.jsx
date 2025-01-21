@@ -1,15 +1,15 @@
-/* eslint-disable prettier/prettier */
 import * as React from 'react';
 
 import { Chart, ChartAxis, ChartBar, ChartGroup, createContainer } from '@patternfly/react-charts';
 import { Bullseye, Card, CardTitle, Spinner } from '@patternfly/react-core';
-import global_danger_color_100 from '@patternfly/react-tokens/dist/esm/global_danger_color_100';
-import global_info_color_100 from '@patternfly/react-tokens/dist/esm/global_info_color_100';
-import global_warning_color_100 from '@patternfly/react-tokens/dist/esm/global_warning_color_100';
 import { createIncidentsChartBars, formatDate, generateDateArray } from '../utils';
 import { getResizeObserver } from '@patternfly/react-core';
 import { useDispatch, useSelector } from 'react-redux';
 import { setChooseIncident } from '../../../actions/observe';
+import global_danger_color_100 from '@patternfly/react-tokens/dist/esm/global_danger_color_100';
+import global_info_color_100 from '@patternfly/react-tokens/dist/esm/global_info_color_100';
+import global_warning_color_100 from '@patternfly/react-tokens/dist/esm/global_warning_color_100';
+import { setAlertsAreLoading } from '../../../actions/observe';
 
 const IncidentsChart = ({ incidentsData, chartDays }) => {
   const dispatch = useDispatch();
@@ -45,11 +45,20 @@ const IncidentsChart = ({ incidentsData, chartDays }) => {
 
   const isHidden = (group_id) => selectedId !== '' && selectedId !== group_id;
   const clickHandler = (data, datum) => {
-    dispatch(
-      setChooseIncident({
-        incidentGroupId: datum.datum.group_id,
-      }),
-    );
+    if (datum.datum.group_id === selectedId) {
+      dispatch(
+        setChooseIncident({
+          incidentGroupId: '',
+        }),
+      );
+      dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
+    } else {
+      dispatch(
+        setChooseIncident({
+          incidentGroupId: datum.datum.group_id,
+        }),
+      );
+    }
   };
 
   function getAdjustedFillColor(datum) {
@@ -63,8 +72,6 @@ const IncidentsChart = ({ incidentsData, chartDays }) => {
           return '#EFBAB6'; // Less transparent for danger
       }
     }
-
-    return datum.fill; // Original fill color if the bar is selected
   }
 
   const CursorVoronoiContainer = createContainer('voronoi');
