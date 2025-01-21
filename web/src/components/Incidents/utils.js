@@ -83,37 +83,34 @@ export const createIncidentsChartBars = (incident) => {
   return data;
 };
 
-function groupAlertTimestamps(data) {
-  if (data.length === 0) return [];
+function consolidateAndMergeAlertIntervals(data) {
+  const intervals = [];
+  const sortedValues = data.values.sort((a, b) => new Date(a[0]) - new Date(b[0]));
 
-  let result = [];
-  let start_time = data[0][0];
-  let current_value = data[0][1];
+  let currentStart = sortedValues[0][0];
 
-  for (let i = 1; i < data.length; i++) {
-    let timestamp = data[i][0];
-    let value = data[i][1];
+  for (let i = 1; i < sortedValues.length; i++) {
+    const previousTimestamp = new Date(sortedValues[i - 1][0]);
+    const currentTimestamp = new Date(sortedValues[i][0]);
+    const timeDifference = (currentTimestamp - previousTimestamp) / 1000 / 60;
 
-    // If the second index value changes
-    if (value !== current_value) {
-      // Push the grouped data into the result
-      result.push([start_time, data[i - 1][0], current_value]);
-
-      // Start a new group
-      start_time = timestamp;
-      current_value = value;
+    // If the gap is larger than 5 minutes, close the current interval
+    if (timeDifference > 5) {
+      intervals.push([currentStart, sortedValues[i - 1][0]]);
+      currentStart = sortedValues[i][0]; // Start a new interval
     }
   }
+  intervals.push([currentStart, sortedValues[sortedValues.length - 1][0]]);
 
-  // Push the last group
-  result.push([start_time, data[data.length - 1][0], current_value]);
-
-  return result;
+  return intervals;
 }
 
 export const createAlertsChartBars = (alert) => {
-  const groupedData = groupAlertTimestamps(alert.values);
+  // Consolidate intervals
+  const groupedData = consolidateAndMergeAlertIntervals(alert);
+
   const data = [];
+
   for (let i = 0; i < groupedData.length; i++) {
     data.push({
       y0: new Date(groupedData[i][0]),
