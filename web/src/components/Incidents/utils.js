@@ -55,7 +55,6 @@ function consolidateAndMergeIntervals(data) {
  */
 export const createIncidentsChartBars = (incident) => {
   const groupedData = consolidateAndMergeIntervals(incident);
-
   const data = [];
   const getSeverityName = (value) => {
     return value === '2' ? 'Critical' : value === '1' ? 'Warning' : 'Info';
@@ -208,7 +207,7 @@ export function generateDateArray(days) {
  */
 export function filterIncident(filters, incidents) {
   const conditions = {
-    'Long standing': 'longStanding',
+    'Long standing': 'Long standing',
     Critical: 'Critical',
     Warning: 'Warning',
     Informative: 'Informative',
@@ -222,11 +221,31 @@ export function filterIncident(filters, incidents) {
       return true;
     }
 
-    // Check if at least one filter passes for the incident
-    return filters.incidentFilters.some((key) => {
-      const conditionKey = conditions[key]; // Match the key exactly as in conditions
-      return incident[conditionKey.toLowerCase()] === true;
-    });
+    // Separate filters into categories
+    const longStandingFilter = filters.incidentFilters.includes('Long standing');
+    const severityFilters = ['Critical', 'Warning', 'Informative'].filter((key) =>
+      filters.incidentFilters.includes(key),
+    );
+    const statusFilters = ['Firing', 'Resolved'].filter((key) =>
+      filters.incidentFilters.includes(key),
+    );
+
+    // Check for each category
+    const isLongStanding = longStandingFilter
+      ? incident[conditions['Long standing']] === true
+      : true;
+
+    const isSeverityMatch =
+      severityFilters.length > 0
+        ? severityFilters.some((key) => incident[conditions[key].toLowerCase()] === true)
+        : true;
+
+    const isStatusMatch =
+      statusFilters.length > 0
+        ? statusFilters.some((key) => incident[conditions[key].toLowerCase()] === true)
+        : true;
+
+    return isLongStanding && isSeverityMatch && isStatusMatch;
   });
 }
 

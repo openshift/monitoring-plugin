@@ -101,8 +101,7 @@ const IncidentsPage = () => {
   const filteredData = useSelector((state) =>
     state.plugins.mcp.getIn(['incidentsData', 'filteredIncidentsData']),
   );
-
-  React.useEffect(() => {
+React.useEffect(() => {
     const hasUrlParams = Object.keys(urlParams).length > 0;
 
     if (hasUrlParams) {
@@ -138,7 +137,6 @@ const IncidentsPage = () => {
         filteredIncidentsData: filterIncident(incidentsActiveFilters, incidents),
       }),
     );
-    /* setFilteredData(filterIncident(incidentsActiveFilters, incidents)); */
   }, [incidentsActiveFilters.incidentFilters]);
 
   const now = Date.now();
@@ -216,13 +214,6 @@ const IncidentsPage = () => {
               ),
             }),
           );
-          /* setFilteredData(
-            filterIncident(
-              urlParams ? incidentsActiveFilters : incidentsInitialState,
-              processIncidents(aggregatedData),
-            ),
-          ); */
-
           setIncidentsAreLoading(false);
         })
         .catch((err) => {

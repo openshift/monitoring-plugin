@@ -5,7 +5,7 @@ import { changeDaysFilter } from './utils';
 
 export const incidentFiltersMenuItems = (filters) => [
   <SelectOption
-    key="longStanding"
+    key="Long standing"
     value="Long standing"
     isSelected={filters.incidentFilters.includes('Long standing')}
     description="The incident has been firing for at least 7 days."

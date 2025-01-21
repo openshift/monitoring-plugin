@@ -80,7 +80,7 @@ export function processIncidents(data: Incident[]): ProcessedIncident[] {
       critical: incident.metric.src_severity === 'critical',
       warning: incident.metric.src_severity === 'warning',
       informative: incident.metric.src_severity === 'info',
-      longStanding,
+      'Long standing': longStanding,
       resolved: resolved,
       firing: firing,
       ...srcProperties,
