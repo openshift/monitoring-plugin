@@ -37,6 +37,7 @@ export enum ActionType {
   SetAlertsTableData = 'setAlertsTableData',
   SetAlertsAreLoading = 'setAlertsAreLoading',
   SetIncidentsChartSelection = 'setIncidentsChartSelection',
+  SetFilteredIncidentsData = 'setFilteredIncidentsData',
 }
 
 export type Perspective = 'admin' | 'dev' | 'acm' | 'virtualization-perspective';
@@ -158,6 +159,9 @@ export const setAlertsAreLoading = (alertsAreLoading) =>
 export const setIncidentsChartSelection = (incidentsChartSelectedId) =>
   action(ActionType.SetIncidentsChartSelection, incidentsChartSelectedId);
 
+export const setFilteredIncidentsData = (filteredIncidentsData) =>
+  action(ActionType.SetFilteredIncidentsData, filteredIncidentsData);
+
 const actions = {
   alertingErrored,
   alertingLoaded,
@@ -195,6 +199,7 @@ const actions = {
   setAlertsTableData,
   setAlertsAreLoading,
   setIncidentsChartSelection,
+  setFilteredIncidentsData,
 };
 
 export type ObserveAction = Action<typeof actions>;

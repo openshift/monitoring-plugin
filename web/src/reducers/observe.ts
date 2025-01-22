@@ -89,11 +89,12 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
         incidents: [],
         alertsData: [],
         alertsTableData: [],
+        filteredIncidentsData: [],
         alertsAreLoading: true,
         incidentsChartSelectedId: '',
         incidentsInitialState: {
           days: ['7 days'],
-          incidentFilters: ['Recent', 'Critical', 'Warning', 'Firing'],
+          incidentFilters: ['Critical', 'Warning', 'Firing'],
         },
         incidentsActiveFilters: {
           days: [],
@@ -344,6 +345,13 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
       return state.setIn(
         ['incidentsData', 'incidentsChartSelectedId'],
         action.payload.incidentsChartSelectedId,
+      );
+    }
+
+    case ActionType.SetFilteredIncidentsData: {
+      return state.setIn(
+        ['incidentsData', 'filteredIncidentsData'],
+        action.payload.filteredIncidentsData,
       );
     }
 

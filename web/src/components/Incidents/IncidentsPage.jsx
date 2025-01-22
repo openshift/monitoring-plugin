@@ -45,6 +45,7 @@ import {
   setAlertsAreLoading,
   setAlertsData,
   setAlertsTableData,
+  setFilteredIncidentsData,
   setIncidents,
   setIncidentsActiveFilters,
 } from '../../actions/observe';
@@ -65,8 +66,6 @@ const IncidentsPage = () => {
   // when days filter changes we set a new days span -> calculate new time range and fetch new data
   const [daysSpan, setDaysSpan] = React.useState();
   const [timeRanges, setTimeRanges] = React.useState([]);
-  // data that is filtered by the incidents filters
-  const [filteredData, setFilteredData] = React.useState([]);
   // data that is used for processing to serve it to the alerts table and chart
   const [incidentForAlertProcessing, setIncidentForAlertProcessing] = React.useState([]);
   const [hideCharts, setHideCharts] = React.useState(false);
@@ -100,6 +99,9 @@ const IncidentsPage = () => {
     state.plugins.mcp.getIn(['incidentsData', 'alertsAreLoading']),
   );
 
+  const filteredData = useSelector((state) =>
+    state.plugins.mcp.getIn(['incidentsData', 'filteredIncidentsData']),
+  );
   React.useEffect(() => {
     const hasUrlParams = Object.keys(urlParams).length > 0;
 
@@ -131,7 +133,11 @@ const IncidentsPage = () => {
   }, [incidentsActiveFilters]);
 
   React.useEffect(() => {
-    setFilteredData(filterIncident(incidentsActiveFilters, incidents));
+    dispatch(
+      setFilteredIncidentsData({
+        filteredIncidentsData: filterIncident(incidentsActiveFilters, incidents),
+      }),
+    );
   }, [incidentsActiveFilters.incidentFilters]);
 
   const now = Date.now();
@@ -204,13 +210,14 @@ const IncidentsPage = () => {
               incidents: processIncidents(aggregatedData),
             }),
           );
-          setFilteredData(
-            filterIncident(
-              urlParams ? incidentsActiveFilters : incidentsInitialState,
-              processIncidents(aggregatedData),
-            ),
+          dispatch(
+            setFilteredIncidentsData({
+              filteredIncidentsData: filterIncident(
+                urlParams ? incidentsActiveFilters : incidentsInitialState,
+                processIncidents(aggregatedData),
+              ),
+            }),
           );
-
           setIncidentsAreLoading(false);
         })
         .catch((err) => {

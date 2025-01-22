@@ -54,7 +54,6 @@ function consolidateAndMergeIntervals(data) {
  */
 export const createIncidentsChartBars = (incident) => {
   const groupedData = consolidateAndMergeIntervals(incident);
-
   const data = [];
   const getSeverityName = (value) => {
     return value === '2' ? 'Critical' : value === '1' ? 'Warning' : 'Info';
@@ -189,7 +188,7 @@ export function generateDateArray(days) {
  * Filters incidents based on the specified filters.
  *
  * @param {Object} filters - An object containing filter criteria.
- * @param {string[]} filters.incidentFilters - An array of strings representing filter conditions such as "Persistent", "Recent", "Critical", etc.
+ * @param {string[]} filters.incidentFilters - An array of strings representing filter conditions such as "Long standing", "Critical", etc.
  * @param {Array<Object>} incidents - An array of incidents to be filtered.
  * @returns {Array<Object>} A filtered array of incidents that match at least one of the specified filters.
  *
@@ -204,8 +203,7 @@ export function generateDateArray(days) {
  */
 export function filterIncident(filters, incidents) {
   const conditions = {
-    Persistent: 'Persistent',
-    Recent: 'Recent',
+    'Long standing': 'Long standing',
     Critical: 'Critical',
     Warning: 'Warning',
     Informative: 'Informative',
@@ -219,11 +217,31 @@ export function filterIncident(filters, incidents) {
       return true;
     }
 
-    // Check if at least one filter passes for the incident
-    return filters.incidentFilters.some((key) => {
-      const conditionKey = conditions[key]; // Match the key exactly as in conditions
-      return incident[conditionKey.toLowerCase()] === true;
-    });
+    // Separate filters into categories
+    const longStandingFilter = filters.incidentFilters.includes('Long standing');
+    const severityFilters = ['Critical', 'Warning', 'Informative'].filter((key) =>
+      filters.incidentFilters.includes(key),
+    );
+    const statusFilters = ['Firing', 'Resolved'].filter((key) =>
+      filters.incidentFilters.includes(key),
+    );
+
+    // Check for each category
+    const isLongStanding = longStandingFilter
+      ? incident[conditions['Long standing']] === true
+      : true;
+
+    const isSeverityMatch =
+      severityFilters.length > 0
+        ? severityFilters.some((key) => incident[conditions[key].toLowerCase()] === true)
+        : true;
+
+    const isStatusMatch =
+      statusFilters.length > 0
+        ? statusFilters.some((key) => incident[conditions[key].toLowerCase()] === true)
+        : true;
+
+    return isLongStanding && isSeverityMatch && isStatusMatch;
   });
 }
 
@@ -250,7 +268,7 @@ export const onDeleteIncidentFilterChip = (type, id, filters, setFilters) => {
     setFilters(
       setIncidentsActiveFilters({
         incidentsActiveFilters: {
-          incidentFilters: ['Recent', 'Critical', 'Warning', 'Firing'],
+          incidentFilters: [],
           days: ['7 days'],
         },
       }),
