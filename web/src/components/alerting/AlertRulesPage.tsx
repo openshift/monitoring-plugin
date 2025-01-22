@@ -27,7 +27,7 @@ import {
   RuleResource,
 } from '../utils';
 
-import { getObserveState, getRuleUrl, usePerspective } from '../hooks/usePerspective';
+import { getLegacyObserveState, getRuleUrl, usePerspective } from '../hooks/usePerspective';
 import {
   alertingRuleSource,
   AlertStateIcon,
@@ -121,13 +121,14 @@ const AlertRulesPage_: React.FC = () => {
   const { alertsKey, silencesKey, rulesKey, perspective, defaultAlertTenant } = usePerspective();
 
   const data: Rule[] = useSelector((state: MonitoringState) =>
-    getObserveState(perspective, state)?.get(rulesKey),
+    getLegacyObserveState(perspective, state)?.get(rulesKey),
   );
   const { loaded = false, loadError }: Alerts = useSelector(
-    (state: MonitoringState) => getObserveState(perspective, state)?.get(alertsKey) || {},
+    (state: MonitoringState) => getLegacyObserveState(perspective, state)?.get(alertsKey) || {},
   );
   const silencesLoadError = useSelector(
-    (state: MonitoringState) => getObserveState(perspective, state)?.get(silencesKey)?.loadError,
+    (state: MonitoringState) =>
+      getLegacyObserveState(perspective, state)?.get(silencesKey)?.loadError,
   );
 
   const ruleAdditionalSources = React.useMemo(

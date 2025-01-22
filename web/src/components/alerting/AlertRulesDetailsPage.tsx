@@ -43,7 +43,7 @@ import {
   getAlertsUrl,
   getAlertUrl,
   getNewSilenceAlertUrl,
-  getObserveState,
+  getLegacyObserveState,
   getQueryBrowserUrl,
   usePerspective,
 } from '../hooks/usePerspective';
@@ -145,12 +145,12 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
   const namespace = match.params?.ns;
 
   const rules: Rule[] = useSelector((state: MonitoringState) =>
-    getObserveState(perspective, state)?.get(rulesKey),
+    getLegacyObserveState(perspective, state)?.get(rulesKey),
   );
   const rule = _.find(rules, { id: _.get(match, 'params.id') });
 
   const { loaded, loadError }: Alerts = useSelector(
-    (state: MonitoringState) => getObserveState(perspective, state)?.get(alertsKey) || {},
+    (state: MonitoringState) => getLegacyObserveState(perspective, state)?.get(alertsKey) || {},
   );
 
   const sourceId = rule?.sourceId;
@@ -179,18 +179,21 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
         <title>{t('{{name}} details', { name: rule?.name || RuleResource.label })}</title>
       </Helmet>
       <StatusBox data={rule} label={RuleResource.label} loaded={loaded} loadError={loadError}>
-        <div className="pf-c-page__main-breadcrumb">
+        <div className="pf-v5-c-page__main-breadcrumb">
           <Breadcrumb className="monitoring-breadcrumbs">
             {perspective === 'dev' && (
               <BreadcrumbItem>
-                <Link className="pf-c-breadcrumb__link" to={getAlertsUrl(perspective, namespace)}>
+                <Link
+                  className="pf-v5-c-breadcrumb__link"
+                  to={getAlertsUrl(perspective, namespace)}
+                >
                   {t('Alerts')}
                 </Link>
               </BreadcrumbItem>
             )}
             {perspective !== 'dev' && (
               <BreadcrumbItem>
-                <Link className="pf-c-breadcrumb__link" to={getAlertRulesUrl(perspective)}>
+                <Link className="pf-v5-c-breadcrumb__link" to={getAlertRulesUrl(perspective)}>
                   {t('Alerting rules')}
                 </Link>
               </BreadcrumbItem>
@@ -333,7 +336,7 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
             <div className="row">
               <div className="col-xs-12">
                 {_.isEmpty(rule?.alerts) ? (
-                  <div className="pf-u-text-align-center">{t('None found')}</div>
+                  <div className="pf-v5-u-text-align-center">{t('None found')}</div>
                 ) : (
                   <ActiveAlerts alerts={rule.alerts} ruleID={rule?.id} namespace={namespace} />
                 )}

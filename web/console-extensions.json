@@ -12,7 +12,7 @@
     "properties": {
       "exact": true,
       "path": "/virt-monitoring",
-      "component": { "$codeRef": "MonitoringUI" }
+      "component": { "$codeRef": "MonitoringRouter" }
     }
   },
   {
@@ -44,7 +44,7 @@
         "/virt-monitoring/silences",
         "/virt-monitoring/targets"
       ],
-      "component": { "$codeRef": "MonitoringUI" }
+      "component": { "$codeRef": "MonitoringRouter" }
     }
   },
   {

@@ -7,13 +7,11 @@ import '../_monitoring.scss';
 import {
   getAlertRulesUrl,
   getAlertsUrl,
-  getIncidentsUrl,
   getSilencesUrl,
   usePerspective,
 } from '../hooks/usePerspective';
 import AlertsPage from '../alerting/AlertsPage';
 import SilencesPage from '../alerting/SilencesPage';
-import { useFeatures } from '../hooks/useFeatures';
 import AlertRulesPage from '../alerting/AlertRulesPage';
 
 const Tab: React.FC<{ active: boolean; children: React.ReactNode }> = ({ active, children }) => (
@@ -29,12 +27,10 @@ const Tab: React.FC<{ active: boolean; children: React.ReactNode }> = ({ active,
 const AlertingPage: React.FC<RouteComponentProps<{ url: string }>> = ({ match }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
-  const { areIncidentsActive } = useFeatures();
 
   const alertsPath = getAlertsUrl(perspective);
   const rulesPath = getAlertRulesUrl(perspective);
   const silencesPath = getSilencesUrl(perspective);
-  const incidentsPath = getIncidentsUrl(perspective);
 
   const { url } = match;
 
@@ -59,11 +55,6 @@ const AlertingPage: React.FC<RouteComponentProps<{ url: string }>> = ({ match })
         <Tab active={url === rulesPath}>
           <Link to={rulesPath}>{t('Alerting rules')}</Link>
         </Tab>
-        {areIncidentsActive && (
-          <Tab active={url === incidentsPath}>
-            <Link to={incidentsPath}>Incidents</Link>
-          </Tab>
-        )}
       </ul>
       <Switch>
         <Route path={alertsPath} exact component={AlertsPage} />

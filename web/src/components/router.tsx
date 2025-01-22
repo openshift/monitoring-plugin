@@ -6,7 +6,7 @@ import { Redirect, Route, Switch } from 'react-router-dom';
 import { AlertingRulesSourceExtension, isAlertingRulesSource } from './console/extensions/alerts';
 import { getAllQueryArguments } from './console/utils/router';
 
-import MonitoringDashboardsPage from './dashboards';
+import MonitoringDashboardsPage from './dashboards/dashboard-page';
 import { QueryBrowserPage } from './metrics';
 import { CreateSilence, EditSilence } from './silence-form';
 import { TargetsUI } from './targets';
@@ -26,6 +26,7 @@ const PollingPagesRouter = () => {
   const dispatch = useDispatch();
 
   const { alertingContextId, perspective } = usePerspective();
+
   const [namespace] = useActiveNamespace();
 
   const [customExtensions] =
@@ -72,6 +73,26 @@ const PollingPagesRouter = () => {
         <Route path="/dev-monitoring/ns/:ns/silences" exact component={SilencesPage} />
         <Route path="/dev-monitoring/ns/:ns/silences/:id" exact component={SilencesDetailsPage} />
         <Route path="/dev-monitoring/ns/:ns/silences/:id/edit" exact component={EditSilence} />
+      </Switch>
+    );
+  }
+
+  if (perspective === 'virtualization-perspective') {
+    return (
+      <Switch>
+        <Route path="/virt-monitoring/alerts" exact component={AlertsPage} />
+        <Route path="/virt-monitoring/rules/:id" exact component={AlertRulesDetailsPage} />
+        <Route path="/virt-monitoring/alerts/:ruleID" component={AlertsDetailsPage} />
+        <Route path="/virt-monitoring/query-browser" exact component={QueryBrowserPage} />
+        <Route path="/virt-monitoring/silences" exact component={SilencesPage} />
+        <Route path="/virt-monitoring/silences/:id" exact component={SilencesDetailsPage} />
+        <Route path="/virt-monitoring/silences/:id/edit" exact component={EditSilence} />
+        <Route
+          path="/virt-monitoring/dashboards/:board?"
+          exact
+          component={MonitoringDashboardsPage}
+        />
+        <Route path="/virt-monitoring/targets" component={TargetsUI} />
       </Switch>
     );
   }
@@ -123,7 +144,11 @@ const MonitoringRouter = () => {
     Alertmanager (because the `#` is considered the end of the URL) */}
       <Redirect from="/monitoring" exact to="/monitoring/alerts" />
       <Route path="/dev-monitoring/ns/:ns/" exact component={MonitoringDashboardsPage} />
-      <Route path="/monitoring/dashboards/:board?" exact component={MonitoringDashboardsPage} />
+      <Route
+        path="/monitoring/dashboards/:dashboardName?"
+        exact
+        component={MonitoringDashboardsPage}
+      />
       <Route path="/monitoring/graph" exact component={PrometheusRouterRedirect} />
       <Route path="/monitoring/query-browser" exact component={QueryBrowserPage} />
       <Route path="/monitoring/silences/~new" exact component={CreateSilence} />
