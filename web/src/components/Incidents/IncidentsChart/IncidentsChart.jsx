@@ -72,6 +72,7 @@ const IncidentsChart = ({ incidentsData, chartDays }) => {
           return '#EFBAB6'; // Less transparent for danger
       }
     }
+    return datum.fill;
   }
 
   const CursorVoronoiContainer = createContainer('voronoi');
