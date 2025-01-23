@@ -80,9 +80,13 @@ const PollingPagesRouter = () => {
   if (perspective === 'virtualization-perspective') {
     return (
       <Switch>
-        <Route path="/virt-monitoring/alerts" exact component={AlertsPage} />
-        <Route path="/virt-monitoring/rules/:id" exact component={AlertRulesDetailsPage} />
-        <Route path="/virt-monitoring/alerts/:ruleID" component={AlertsDetailsPage} />
+        <Route
+          path="/virt-monitoring/(alerts|alertrules|silences)"
+          exact
+          component={AlertingPage}
+        />
+        <Route path="/virt-monitoring/alertrules/:id" exact component={AlertRulesDetailsPage} />
+        <Route path="/virt-monitoring/alerts/:ruleID" exact component={AlertsDetailsPage} />
         <Route path="/virt-monitoring/query-browser" exact component={QueryBrowserPage} />
         <Route path="/virt-monitoring/silences" exact component={SilencesPage} />
         <Route path="/virt-monitoring/silences/:id" exact component={SilencesDetailsPage} />
