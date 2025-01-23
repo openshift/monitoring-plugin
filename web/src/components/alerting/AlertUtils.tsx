@@ -8,6 +8,7 @@ import {
   PrometheusLabels,
   RedExclamationCircleIcon,
   ResourceStatus,
+  RowFilter,
   Rule,
   Timestamp,
   YellowExclamationTriangleIcon,
@@ -358,3 +359,17 @@ export const SeverityCounts: React.FC<{ alerts: Alert[] }> = ({ alerts }) => {
   );
 };
 export type OnToggle = (value: boolean, e: MouseEvent) => void;
+
+export const severityRowFilter = (t): RowFilter => ({
+  filter: (filter, alert: Alert) =>
+    filter.selected?.includes(alert.labels?.severity) || _.isEmpty(filter.selected),
+  filterGroupName: t('Severity'),
+  items: [
+    { id: AlertSeverity.Critical, title: t('Critical') },
+    { id: AlertSeverity.Warning, title: t('Warning') },
+    { id: AlertSeverity.Info, title: t('Info') },
+    { id: AlertSeverity.None, title: t('None') },
+  ],
+  reducer: ({ labels }: Alert | Rule) => labels?.severity,
+  type: 'alert-severity',
+});

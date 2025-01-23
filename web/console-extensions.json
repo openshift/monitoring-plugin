@@ -4,7 +4,7 @@
     "properties": {
       "exact": true,
       "path": "/monitoring",
-      "component": { "$codeRef": "MonitoringUI" }
+      "component": { "$codeRef": "MonitoringRouter" }
     }
   },
   {
@@ -12,7 +12,7 @@
     "properties": {
       "exact": true,
       "path": "/virt-monitoring",
-      "component": { "$codeRef": "MonitoringUI" }
+      "component": { "$codeRef": "MonitoringRouter" }
     }
   },
   {
@@ -28,7 +28,7 @@
         "/monitoring/silences",
         "/monitoring/targets"
       ],
-      "component": { "$codeRef": "MonitoringUI" }
+      "component": { "$codeRef": "MonitoringRouter" }
     }
   },
   {
@@ -44,7 +44,7 @@
         "/virt-monitoring/silences",
         "/virt-monitoring/targets"
       ],
-      "component": { "$codeRef": "MonitoringUI" }
+      "component": { "$codeRef": "MonitoringRouter" }
     }
   },
   {
@@ -181,7 +181,7 @@
       "name": "%plugin__monitoring-plugin~Alerts%",
       "href": "alerts",
       "component": {
-        "$codeRef": "MonitoringUI"
+        "$codeRef": "MonitoringRouter"
       }
     }
   },
@@ -190,7 +190,7 @@
     "properties": {
       "exact": false,
       "path": ["/dev-monitoring/ns/:ns/alerts/:ruleID"],
-      "component": { "$codeRef": "MonitoringUI" }
+      "component": { "$codeRef": "MonitoringRouter" }
     }
   },
   {
@@ -198,7 +198,7 @@
     "properties": {
       "exact": false,
       "path": ["/dev-monitoring/ns/:ns/rules/:id"],
-      "component": { "$codeRef": "MonitoringUI" }
+      "component": { "$codeRef": "MonitoringRouter" }
     }
   },
   {
@@ -208,7 +208,7 @@
       "name": "%plugin__monitoring-plugin~Metrics%",
       "href": "metrics",
       "component": {
-        "$codeRef": "MonitoringUI"
+        "$codeRef": "MonitoringRouter"
       }
     }
   },
@@ -219,7 +219,7 @@
       "name": "%plugin__monitoring-plugin~Silences%",
       "href": "silences",
       "component": {
-        "$codeRef": "MonitoringUI"
+        "$codeRef": "MonitoringRouter"
       }
     }
   },
@@ -228,7 +228,7 @@
     "properties": {
       "exact": false,
       "path": ["/dev-monitoring/ns/:ns/silences/:id"],
-      "component": { "$codeRef": "MonitoringUI" }
+      "component": { "$codeRef": "MonitoringRouter" }
     }
   },
   {
@@ -236,7 +236,7 @@
     "properties": {
       "exact": false,
       "path": ["/dev-monitoring/ns/:ns/silences/:id/:edit"],
-      "component": { "$codeRef": "MonitoringUI" }
+      "component": { "$codeRef": "MonitoringRouter" }
     }
   },
   {
@@ -246,7 +246,7 @@
       "name": "%plugin__monitoring-plugin~Dashboards%",
       "href": "",
       "component": {
-        "$codeRef": "MonitoringUI"
+        "$codeRef": "MonitoringRouter"
       }
     }
   },

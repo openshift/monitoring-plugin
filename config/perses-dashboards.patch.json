@@ -8,7 +8,7 @@
         "exact": false,
         "path": ["/multicloud/monitoring/dashboards"],
         "component": {
-          "$codeRef": "MonitoringUI"
+          "$codeRef": "MonitoringRouter"
         }
       }
     }

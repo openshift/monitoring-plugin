@@ -20,7 +20,7 @@
       "properties": {
         "exact": true,
         "path": "/multicloud/monitoring",
-        "component": { "$codeRef": "MonitoringUI" }
+        "component": { "$codeRef": "MonitoringRouter" }
       }
     }
   },
@@ -37,7 +37,7 @@
           "/multicloud/monitoring/silences"
         ],
         "component": {
-          "$codeRef": "MonitoringUI"
+          "$codeRef": "MonitoringRouter"
         }
       }
     }
