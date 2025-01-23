@@ -19,7 +19,11 @@ import CustomTimeRangeModal from '../shared/custom-time-range-modal';
 import { getLegacyObserveState, usePerspective } from '../../hooks/usePerspective';
 import { SimpleSelect, SimpleSelectOption } from '../../SimpleSelect';
 import { MonitoringState } from '../../../reducers/observe';
-import { DropDownPollInterval } from '../../../components/dropdown-poll-interval';
+import {
+  DEFAULT_REFRESH_INTERVAL,
+  DropDownPollInterval,
+} from '../../../components/dropdown-poll-interval';
+import { useQueryParams } from '../../hooks/useQueryParams';
 
 const CUSTOM_TIME_RANGE_KEY = 'CUSTOM_TIME_RANGE_KEY';
 const DEFAULT_TIMERANGE = '30m';
@@ -30,10 +34,9 @@ const TimespanDropdown: React.FC = () => {
   const { perspective } = usePerspective();
 
   const [isModalOpen, , setModalOpen, setModalClosed] = useBoolean(false);
-  const [selected, setSelected] = React.useState<string | undefined>(DEFAULT_TIMERANGE);
 
   const timespan = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'timespen']),
+    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'timespan']),
   );
   const endTime = useSelector((state: MonitoringState) =>
     getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'endTime']),
@@ -57,7 +60,6 @@ const TimespanDropdown: React.FC = () => {
         removeQueryArgument('endTime');
         dispatch(dashboardsSetTimespan(parsePrometheusDuration(v), perspective));
         dispatch(dashboardsSetEndTime(null, perspective));
-        setSelected(v);
       }
     },
     [setModalOpen, dispatch, perspective],
@@ -81,10 +83,11 @@ const TimespanDropdown: React.FC = () => {
 
     // If selectedKey is empty, the dashboard has changed. Reset selected to default value.
     if (selectedKey === '') {
-      setSelected(DEFAULT_TIMERANGE);
+      setQueryArgument('timeRange', DEFAULT_TIMERANGE);
+      removeQueryArgument('endTime');
     }
-    return intervalOptions.map((o) => ({ ...o, selected: o.value === selected }));
-  }, [selected, selectedKey, t]);
+    return intervalOptions.map((o) => ({ ...o, selected: o.value === selectedKey }));
+  }, [selectedKey, t]);
 
   return (
     <>
@@ -120,8 +123,10 @@ const TimespanDropdown: React.FC = () => {
 const PollIntervalDropdown: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
+  const [selectedInterval, setSelectedInterval] = React.useState(null);
 
   const dispatch = useDispatch();
+  const queryParams = useQueryParams();
   const setInterval = React.useCallback(
     (v: number) => {
       if (v) {
@@ -134,12 +139,25 @@ const PollIntervalDropdown: React.FC = () => {
     [dispatch, perspective],
   );
 
+  React.useEffect(() => {
+    const refreshInterval = queryParams.get('refreshInterval');
+    if (refreshInterval) {
+      setSelectedInterval(refreshInterval);
+    } else {
+      setSelectedInterval(DEFAULT_REFRESH_INTERVAL);
+    }
+  }, [queryParams]);
+
   return (
     <div className="form-group monitoring-dashboards__dropdown-wrap">
       <label htmlFor="refresh-interval-dropdown" className="monitoring-dashboards__dropdown-title">
         {t('Refresh interval')}
       </label>
-      <DropDownPollInterval id="refresh-interval-dropdown" setInterval={setInterval} />
+      <DropDownPollInterval
+        id="refresh-interval-dropdown"
+        setInterval={setInterval}
+        selectedInterval={selectedInterval}
+      />
     </div>
   );
 };

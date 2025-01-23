@@ -6,10 +6,11 @@ import { useSelector } from 'react-redux';
 
 import { getObserveState, usePerspective } from '../../hooks/usePerspective';
 import { DashboardDropdown } from './dashboard-dropdown';
-import { MonitoringState } from 'src/reducers/observe';
-import { AllVariableDropdowns } from './variable-dropdowns';
+import { MonitoringState } from '../../../reducers/observe';
+import { LegacyDashboardsAllVariableDropdowns } from '../legacy/legacy-variable-dropdowns';
 import { TimeDropdowns } from './time-dropdowns';
-import { CombinedDashboardMetadata } from './useDashboardsData';
+import { CombinedDashboardMetadata } from '../perses/hooks/useDashboardsData';
+import { AllVariableDropdowns } from '../perses/variable-dropdowns';
 
 const HeaderTop: React.FC = React.memo(() => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -25,15 +26,16 @@ const HeaderTop: React.FC = React.memo(() => {
 });
 
 type MonitoringDashboardsPageProps = React.PropsWithChildren<{
-  urlBoard: string;
   boardItems: CombinedDashboardMetadata[];
   changeBoard: (dashboardName: string) => void;
+  isPerses: boolean; // leave default as truthy so removal doesn't change component default behavior
 }>;
 
 const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = ({
   children,
   boardItems,
   changeBoard,
+  isPerses,
 }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
@@ -60,7 +62,11 @@ const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = ({
                 selectedKey={dashboardName}
               />
             )}
-            <AllVariableDropdowns key={dashboardName} />
+            {isPerses ? (
+              <AllVariableDropdowns key={dashboardName} />
+            ) : (
+              <LegacyDashboardsAllVariableDropdowns key={dashboardName} />
+            )}
           </div>
           {perspective === 'dev' && <TimeDropdowns />}
         </div>
