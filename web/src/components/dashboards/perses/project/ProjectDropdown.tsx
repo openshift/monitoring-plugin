@@ -218,7 +218,7 @@ const ProjectDropdown: React.FC<ProjectDropdownProps> = ({
     const selectedProject = persesProjects.find(
       (persesProject) => persesProject.metadata.name === selected,
     );
-    title = selectedProject.spec?.display?.name;
+    title = selectedProject ? selectedProject.spec?.display?.name : legacyDashboardsTitle;
   }
 
   return (
