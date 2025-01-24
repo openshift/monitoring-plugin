@@ -113,8 +113,10 @@ export const getAlertRulesUrl = (perspective: Perspective) => {
   switch (perspective) {
     case 'acm':
       return `/multicloud${RuleResource.plural}`;
-    default:
+    case 'virtualization-perspective':
+      return `/virt-monitoring/alertrules`;
     case 'admin':
+    default:
       return RuleResource.plural;
   }
 };
@@ -170,7 +172,7 @@ export const getRuleUrl = (perspective: Perspective, rule: Rule, namespace?: str
     case 'acm':
       return `/multicloud${RuleResource.plural}/${_.get(rule, 'id')}`;
     case 'virtualization-perspective':
-      return `/virt-monitoring/rules/${rule?.id}`;
+      return `/virt-monitoring/alertrules/${rule?.id}`;
     case 'admin':
       return `${RuleResource.plural}/${_.get(rule, 'id')}`;
     case 'dev':
@@ -328,7 +330,7 @@ export const getDeashboardsUrl = (
 ) => {
   switch (perspective) {
     case 'virtualization-perspective':
-      return `/monitoring/dashboards/${boardName}`;
+      return `/virt-monitoring/dashboards/${boardName}`;
     case 'admin':
       return `/monitoring/dashboards/${boardName}`;
     case 'dev':
