@@ -9,7 +9,7 @@ import global_danger_color_100 from '@patternfly/react-tokens/dist/esm/global_da
 import global_info_color_100 from '@patternfly/react-tokens/dist/esm/global_info_color_100';
 import global_warning_color_100 from '@patternfly/react-tokens/dist/esm/global_warning_color_100';
 
-const AlertsChart = ({ chartDays }) => {
+const AlertsChart = ({ chartDays, theme }) => {
   const [chartData, setChartData] = React.useState([]);
   const [chartContainerHeight, setChartContainerHeight] = React.useState();
   const [chartHeight, setChartHeight] = React.useState();
@@ -82,9 +82,24 @@ const AlertsChart = ({ chartDays }) => {
               }
               domainPadding={{ x: [30, 25] }}
               legendData={[
-                { name: 'Critical', symbol: { fill: global_danger_color_100.var } },
-                { name: 'Info', symbol: { fill: global_info_color_100.var } },
-                { name: 'Warning', symbol: { fill: global_warning_color_100.var } },
+                {
+                  name: 'Critical',
+                  symbol: {
+                    fill: theme === 'light' ? global_danger_color_100.var : '#C9190B',
+                  },
+                },
+                {
+                  name: 'Info',
+                  symbol: {
+                    fill: theme === 'light' ? global_info_color_100.var : '#F0AB00',
+                  },
+                },
+                {
+                  name: 'Warning',
+                  symbol: {
+                    fill: theme === 'light' ? global_warning_color_100.var : '#06C',
+                  },
+                },
               ]}
               legendPosition="bottom-left"
               //this should be always less than the container height

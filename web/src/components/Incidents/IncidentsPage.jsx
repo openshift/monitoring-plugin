@@ -33,6 +33,7 @@ import {
   onIncidentFiltersSelect,
   parseUrlParams,
   updateBrowserUrl,
+  usePatternFlyTheme,
 } from './utils';
 import { groupAlertsForTable, processAlerts } from './processAlerts';
 import {
@@ -59,6 +60,7 @@ const IncidentsPage = () => {
   const location = useLocation();
   const urlParams = parseUrlParams(location.search);
   const { perspective } = usePerspective();
+  const { theme } = usePatternFlyTheme();
   // loading states
   const [incidentsAreLoading, setIncidentsAreLoading] = React.useState(true);
   // days span is where we store the value for creating time ranges for
@@ -350,11 +352,12 @@ const IncidentsPage = () => {
               alertsData={alertsData}
               incidentsData={filteredData}
               chartDays={timeRanges.length}
+              theme={theme}
             />
           )}
           <div className="row">
             <div className="col-xs-12">
-              <IncidentsTable />
+              <IncidentsTable theme={theme} />
             </div>
           </div>
         </div>
