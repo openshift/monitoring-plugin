@@ -53,11 +53,16 @@ function consolidateAndMergeIntervals(data) {
  * @param {Object} incident - The incident data containing values with timestamps and severity levels.
  * @returns {Array} - An array of incident objects with `y0`, `y`, `x`, and `name` fields representing the bars for the chart.
  */
-export const createIncidentsChartBars = (incident) => {
+export const createIncidentsChartBars = (incident, theme) => {
   const groupedData = consolidateAndMergeIntervals(incident);
   const data = [];
   const getSeverityName = (value) => {
     return value === '2' ? 'Critical' : value === '1' ? 'Warning' : 'Info';
+  };
+  const barChartColorScheme = {
+    critical: theme === 'light' ? global_danger_color_100.var : '#C9190B',
+    info: theme === 'light' ? global_info_color_100.var : '#06C',
+    warning: theme === 'light' ? global_warning_color_100.var : '#F0AB00',
   };
 
   for (let i = 0; i < groupedData.length; i++) {
@@ -72,10 +77,10 @@ export const createIncidentsChartBars = (incident) => {
       group_id: incident.group_id,
       fill:
         severity === 'Critical'
-          ? global_danger_color_100.var
+          ? barChartColorScheme.critical
           : severity === 'Warning'
-          ? global_warning_color_100.var
-          : global_info_color_100.var,
+          ? barChartColorScheme.warning
+          : barChartColorScheme.info,
     });
   }
 
@@ -104,9 +109,14 @@ function consolidateAndMergeAlertIntervals(data) {
   return intervals;
 }
 
-export const createAlertsChartBars = (alert) => {
+export const createAlertsChartBars = (alert, theme) => {
   // Consolidate intervals
   const groupedData = consolidateAndMergeAlertIntervals(alert);
+  const barChartColorScheme = {
+    critical: theme === 'light' ? global_danger_color_100.var : '#C9190B',
+    info: theme === 'light' ? global_info_color_100.var : '#06C',
+    warning: theme === 'light' ? global_warning_color_100.var : '#F0AB00',
+  };
 
   const data = [];
 
@@ -122,10 +132,10 @@ export const createAlertsChartBars = (alert) => {
       component: alert.component,
       fill:
         alert.severity === 'critical'
-          ? global_danger_color_100.var
+          ? barChartColorScheme.critical
           : alert.severity === 'warning'
-          ? global_warning_color_100.var
-          : global_info_color_100.var,
+          ? barChartColorScheme.warning
+          : barChartColorScheme.info,
     });
   }
 

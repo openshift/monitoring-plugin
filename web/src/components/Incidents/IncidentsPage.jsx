@@ -357,7 +357,7 @@ const IncidentsPage = () => {
           )}
           <div className="row">
             <div className="col-xs-12">
-              <IncidentsTable theme={theme} />
+              <IncidentsTable />
             </div>
           </div>
         </div>

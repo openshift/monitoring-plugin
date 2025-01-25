@@ -1,6 +1,15 @@
 import * as React from 'react';
 
-import { Chart, ChartAxis, ChartBar, ChartGroup, createContainer } from '@patternfly/react-charts';
+import {
+  Chart,
+  ChartAxis,
+  ChartBar,
+  ChartGroup,
+  ChartLabel,
+  ChartLegend,
+  ChartThemeColor,
+  createContainer,
+} from '@patternfly/react-charts';
 import { Bullseye, Card, CardTitle, Spinner } from '@patternfly/react-core';
 import { createIncidentsChartBars, formatDate, generateDateArray } from '../utils';
 import { getResizeObserver } from '@patternfly/react-core';
@@ -35,7 +44,7 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
   }, []);
   React.useEffect(() => {
     setIsLoading(false);
-    setChartData(incidentsData.map((incident) => createIncidentsChartBars(incident)));
+    setChartData(incidentsData.map((incident) => createIncidentsChartBars(incident, theme)));
   }, [incidentsData]);
   const dateValues = generateDateArray(chartDays);
 
@@ -61,18 +70,8 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
     }
   };
 
-  function getAdjustedFillColor(datum) {
-    if (isHidden(datum.group_id)) {
-      switch (datum.fill) {
-        case 'var(--pf-v5-global--warning-color--100)':
-          return '#F8DFA7'; // Less transparent for warning
-        case 'var(--pf-v5-global--info-color--100)':
-          return '#B2D1F0'; // Less transparent for info
-        case 'var(--pf-v5-global--danger-color--100)':
-          return '#EFBAB6'; // Less transparent for danger
-      }
-    }
-    return datum.fill;
+  function getOpacity(datum) {
+    return (datum.fillOpacity = isHidden(datum.group_id) ? '0.3' : '1');
   }
 
   const CursorVoronoiContainer = createContainer('voronoi');
@@ -116,16 +115,23 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
                 {
                   name: 'Info',
                   symbol: {
-                    fill: theme === 'light' ? global_info_color_100.var : '#F0AB00',
+                    fill: theme === 'light' ? global_info_color_100.var : '#06C',
                   },
                 },
                 {
                   name: 'Warning',
                   symbol: {
-                    fill: theme === 'light' ? global_warning_color_100.var : '#06C',
+                    fill: theme === 'light' ? global_warning_color_100.var : '#F0AB00',
                   },
                 },
               ]}
+              legendComponent={
+                <ChartLegend
+                  labelComponent={
+                    <ChartLabel style={{ fill: theme === 'light' ? '#1b1d21' : '#e0e0e0' }} />
+                  }
+                />
+              }
               legendPosition="bottom-left"
               //this should be always less than the container height
               height={chartHeight}
@@ -136,6 +142,7 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
                 top: 0,
               }}
               width={width}
+              themeColor={ChartThemeColor.purple}
             >
               <ChartAxis
                 dependentAxis
@@ -144,6 +151,9 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
                   new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
                 }
                 tickValues={dateValues}
+                tickLabelComponent={
+                  <ChartLabel style={{ fill: theme === 'light' ? '#1b1d21' : '#e0e0e0' }} />
+                }
               />
               <ChartGroup horizontal>
                 {chartData.map((bar) => {
@@ -154,8 +164,9 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
                       key={bar.group_id}
                       style={{
                         data: {
-                          fill: ({ datum }) => getAdjustedFillColor(datum),
+                          fill: ({ datum }) => datum.fill,
                           stroke: ({ datum }) => datum.fill,
+                          fillOpacity: ({ datum }) => getOpacity(datum),
                         },
                       }}
                       events={[

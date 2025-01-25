@@ -1,6 +1,14 @@
 import * as React from 'react';
 
-import { Chart, ChartAxis, ChartBar, ChartGroup, createContainer } from '@patternfly/react-charts';
+import {
+  Chart,
+  ChartAxis,
+  ChartBar,
+  ChartGroup,
+  ChartLabel,
+  ChartLegend,
+  createContainer,
+} from '@patternfly/react-charts';
 import { Card, CardTitle, EmptyState, EmptyStateBody } from '@patternfly/react-core';
 import { createAlertsChartBars, formatDate, generateDateArray } from '../utils';
 import { getResizeObserver } from '@patternfly/react-core';
@@ -27,7 +35,7 @@ const AlertsChart = ({ chartDays, theme }) => {
   const dateValues = generateDateArray(chartDays);
 
   React.useEffect(() => {
-    setChartData(alertsData.map((alert) => createAlertsChartBars(alert)));
+    setChartData(alertsData.map((alert) => createAlertsChartBars(alert, theme)));
   }, [alertsData]);
 
   const [width, setWidth] = React.useState(0);
@@ -91,16 +99,23 @@ const AlertsChart = ({ chartDays, theme }) => {
                 {
                   name: 'Info',
                   symbol: {
-                    fill: theme === 'light' ? global_info_color_100.var : '#F0AB00',
+                    fill: theme === 'light' ? global_info_color_100.var : '#06C',
                   },
                 },
                 {
                   name: 'Warning',
                   symbol: {
-                    fill: theme === 'light' ? global_warning_color_100.var : '#06C',
+                    fill: theme === 'light' ? global_warning_color_100.var : '#F0AB00',
                   },
                 },
               ]}
+              legendComponent={
+                <ChartLegend
+                  labelComponent={
+                    <ChartLabel style={{ fill: theme === 'light' ? '#1b1d21' : '#e0e0e0' }} />
+                  }
+                />
+              }
               legendPosition="bottom-left"
               //this should be always less than the container height
               height={chartHeight}
@@ -119,6 +134,9 @@ const AlertsChart = ({ chartDays, theme }) => {
                   new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
                 }
                 tickValues={dateValues}
+                tickLabelComponent={
+                  <ChartLabel style={{ fill: theme === 'light' ? '#1b1d21' : '#e0e0e0' }} />
+                }
               />
               <ChartGroup horizontal>
                 {chartData.map((bar, index) => {
