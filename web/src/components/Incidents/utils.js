@@ -328,7 +328,6 @@ export const changeDaysFilter = (days, dispatch, filters, setIncidentsAreLoading
       incidentsActiveFilters: { days: [days], incidentFilters: filters.incidentFilters },
     }),
   );
-  dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
   setIncidentsAreLoading(true);
 };
 
