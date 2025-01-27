@@ -12,12 +12,15 @@ import {
 import { Card, CardTitle, EmptyState, EmptyStateBody } from '@patternfly/react-core';
 import { createAlertsChartBars, formatDate, generateDateArray } from '../utils';
 import { getResizeObserver } from '@patternfly/react-core';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import global_danger_color_100 from '@patternfly/react-tokens/dist/esm/global_danger_color_100';
 import global_info_color_100 from '@patternfly/react-tokens/dist/esm/global_info_color_100';
 import global_warning_color_100 from '@patternfly/react-tokens/dist/esm/global_warning_color_100';
+import * as _ from 'lodash-es';
+import { setAlertsAreLoading } from '../../../actions/observe';
 
 const AlertsChart = ({ chartDays, theme }) => {
+  const dispatch = useDispatch();
   const [chartData, setChartData] = React.useState([]);
   const [chartContainerHeight, setChartContainerHeight] = React.useState();
   const [chartHeight, setChartHeight] = React.useState();
@@ -27,7 +30,12 @@ const AlertsChart = ({ chartDays, theme }) => {
   const alertsAreLoading = useSelector((state) =>
     state.plugins.mcp.getIn(['incidentsData', 'alertsAreLoading']),
   );
-
+  const filteredData = useSelector((state) =>
+    state.plugins.mcp.getIn(['incidentsData', 'filteredIncidentsData']),
+  );
+  const incidentGroupId = useSelector((state) =>
+    state.plugins.mcp.getIn(['incidentsData', 'incidentGroupId']),
+  );
   React.useEffect(() => {
     setChartContainerHeight(chartData?.length < 5 ? 250 : chartData?.length * 40);
     setChartHeight(chartData?.length < 5 ? 200 : chartData?.length * 35);
@@ -36,7 +44,22 @@ const AlertsChart = ({ chartDays, theme }) => {
 
   React.useEffect(() => {
     setChartData(alertsData.map((alert) => createAlertsChartBars(alert, theme)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [alertsData]);
+
+  React.useEffect(() => {
+    //state when chosen incident not passing filters or the is no data
+    if (
+      _.isEmpty(filteredData) ||
+      !filteredData.find((incident) => incident.group_id === incidentGroupId)
+    ) {
+      dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
+    } //state when chosen incident passing filters
+    else if (filteredData.find((incident) => incident.group_id === incidentGroupId)) {
+      dispatch(setAlertsAreLoading({ alertsAreLoading: false }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filteredData]);
 
   const [width, setWidth] = React.useState(0);
   const containerRef = React.useRef(null);

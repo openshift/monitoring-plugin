@@ -225,7 +225,7 @@ export function filterIncident(filters, incidents) {
   return incidents.filter((incident) => {
     // If there are no incidentFilters filters applied, return all incidents
     if (!filters.incidentFilters.length) {
-      return true;
+      return incident[conditions['Long standing']] !== true;
     }
 
     // Separate filters into categories
@@ -339,7 +339,6 @@ export const changeDaysFilter = (days, dispatch, filters, setIncidentsAreLoading
       incidentsActiveFilters: { days: [days], incidentFilters: filters.incidentFilters },
     }),
   );
-  dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
   setIncidentsAreLoading(true);
 };
 
