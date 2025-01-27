@@ -215,44 +215,28 @@ export function generateDateArray(days) {
 export function filterIncident(filters, incidents) {
   const conditions = {
     'Long standing': 'Long standing',
-    Critical: 'Critical',
-    Warning: 'Warning',
-    Informative: 'Informative',
-    Firing: 'Firing',
-    Resolved: 'Resolved',
+    Critical: 'critical',
+    Warning: 'warning',
+    Informative: 'informative',
+    Firing: 'firing',
+    Resolved: 'resolved',
   };
 
   return incidents.filter((incident) => {
-    // If there are no incidentFilters filters applied, return all incidents
+    // If no filters are applied, return all incidents except those marked 'Long standing'
     if (!filters.incidentFilters.length) {
       return incident[conditions['Long standing']] !== true;
     }
-
-    // Separate filters into categories
     const longStandingFilter = filters.incidentFilters.includes('Long standing');
-    const severityFilters = ['Critical', 'Warning', 'Informative'].filter((key) =>
-      filters.incidentFilters.includes(key),
-    );
-    const statusFilters = ['Firing', 'Resolved'].filter((key) =>
-      filters.incidentFilters.includes(key),
-    );
-
-    // Check for each category
-    const isLongStanding = longStandingFilter
+    const otherFilters = filters.incidentFilters.filter((key) => key !== 'Long standing');
+    const isLongStandingMatch = longStandingFilter
       ? incident[conditions['Long standing']] === true
-      : true;
-
-    const isSeverityMatch =
-      severityFilters.length > 0
-        ? severityFilters.some((key) => incident[conditions[key].toLowerCase()] === true)
-        : true;
-
-    const isStatusMatch =
-      statusFilters.length > 0
-        ? statusFilters.some((key) => incident[conditions[key].toLowerCase()] === true)
-        : true;
-
-    return isLongStanding && isSeverityMatch && isStatusMatch;
+      : false;
+    const isOtherFiltersMatch = otherFilters.some(
+      (filter) => conditions[filter] && incident[conditions[filter]] === true,
+    );
+    // Include the incident if it matches 'Long standing' OR any other filter
+    return isLongStandingMatch || isOtherFiltersMatch;
   });
 }
 
