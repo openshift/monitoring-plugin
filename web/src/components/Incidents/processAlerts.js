@@ -139,20 +139,18 @@ export function groupAlerts(objects) {
 
 export function processAlerts(data) {
   const firing = groupAlerts(data).filter((alert) => alert.metric.alertname !== 'Watchdog');
+
   return sortObjectsByEarliestTimestamp(firing).map((alert, index) => {
-    // Process each value
     const processedValues = alert.values.map((value) => {
       const timestamp = value[0];
-
-      // Convert timestamp to date
-      const date = new Date(timestamp * 1000);
+      const date = new Date(timestamp * 1000); // Convert timestamp to a Date object
       return [date, value[1]];
     });
+    const sortedValues = processedValues.sort((a, b) => a[0] - b[0]);
 
-    // Calculate alertsEndFiring and resolved status
-    const alertsStartFiring = processedValues[0][0];
-    const alertsEndFiring = processedValues[processedValues.length - 1][0];
-    const resolved = new Date() - alertsEndFiring > 10 * 60 * 1000;
+    const alertsStartFiring = sortedValues[0][0];
+    const alertsEndFiring = sortedValues[sortedValues.length - 1][0];
+    const resolved = new Date() - alertsEndFiring > 10 * 60 * 1000; // Check if resolved based on end time
 
     return {
       alertname: alert.metric.alertname,
@@ -162,7 +160,7 @@ export function processAlerts(data) {
       layer: alert.metric.layer,
       name: alert.metric.name,
       alertstate: resolved ? 'resolved' : 'firing',
-      values: processedValues,
+      values: sortedValues, // Use sorted values
       alertsStartFiring,
       alertsEndFiring,
       resolved,
