@@ -227,16 +227,36 @@ export function filterIncident(filters, incidents) {
     if (!filters.incidentFilters.length) {
       return incident[conditions['Long standing']] !== true;
     }
-    const longStandingFilter = filters.incidentFilters.includes('Long standing');
-    const otherFilters = filters.incidentFilters.filter((key) => key !== 'Long standing');
+
+    // Normalize user-provided filters to match keys in conditions
+    const normalizedFilters = filters.incidentFilters.map((filter) => filter.trim());
+
+    // Separate filters into categories
+    const longStandingFilter = normalizedFilters.includes('Long standing');
+    const severityFilters = ['Critical', 'Warning', 'Informative'].filter((key) =>
+      normalizedFilters.includes(key),
+    );
+    const statusFilters = ['Firing', 'Resolved'].filter((key) => normalizedFilters.includes(key));
+
+    // Match long-standing filter (OR behavior within the category)
     const isLongStandingMatch = longStandingFilter
       ? incident[conditions['Long standing']] === true
-      : false;
-    const isOtherFiltersMatch = otherFilters.some(
-      (filter) => conditions[filter] && incident[conditions[filter]] === true,
-    );
-    // Include the incident if it matches 'Long standing' OR any other filter
-    return isLongStandingMatch || isOtherFiltersMatch;
+      : true; // True if no 'Long standing' filter
+
+    // Match severity filters (OR behavior within the category)
+    const isSeverityMatch =
+      severityFilters.length > 0
+        ? severityFilters.some((filter) => incident[conditions[filter]] === true)
+        : true; // True if no severity filters
+
+    // Match status filters (OR behavior within the category)
+    const isStatusMatch =
+      statusFilters.length > 0
+        ? statusFilters.some((filter) => incident[conditions[filter]] === true)
+        : true; // True if no status filters
+
+    // Combine conditions with AND behavior between categories
+    return isLongStandingMatch && isSeverityMatch && isStatusMatch;
   });
 }
 
