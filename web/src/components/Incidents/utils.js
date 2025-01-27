@@ -1,4 +1,5 @@
 /* eslint-disable max-len */
+import { useEffect, useState } from 'react';
 import { setAlertsAreLoading, setIncidentsActiveFilters } from '../../actions/observe';
 import global_danger_color_100 from '@patternfly/react-tokens/dist/esm/global_danger_color_100';
 import global_info_color_100 from '@patternfly/react-tokens/dist/esm/global_info_color_100';
@@ -52,11 +53,16 @@ function consolidateAndMergeIntervals(data) {
  * @param {Object} incident - The incident data containing values with timestamps and severity levels.
  * @returns {Array} - An array of incident objects with `y0`, `y`, `x`, and `name` fields representing the bars for the chart.
  */
-export const createIncidentsChartBars = (incident) => {
+export const createIncidentsChartBars = (incident, theme) => {
   const groupedData = consolidateAndMergeIntervals(incident);
   const data = [];
   const getSeverityName = (value) => {
     return value === '2' ? 'Critical' : value === '1' ? 'Warning' : 'Info';
+  };
+  const barChartColorScheme = {
+    critical: theme === 'light' ? global_danger_color_100.var : '#C9190B',
+    info: theme === 'light' ? global_info_color_100.var : '#06C',
+    warning: theme === 'light' ? global_warning_color_100.var : '#F0AB00',
   };
 
   for (let i = 0; i < groupedData.length; i++) {
@@ -71,10 +77,10 @@ export const createIncidentsChartBars = (incident) => {
       group_id: incident.group_id,
       fill:
         severity === 'Critical'
-          ? global_danger_color_100.var
+          ? barChartColorScheme.critical
           : severity === 'Warning'
-          ? global_warning_color_100.var
-          : global_info_color_100.var,
+          ? barChartColorScheme.warning
+          : barChartColorScheme.info,
     });
   }
 
@@ -103,9 +109,14 @@ function consolidateAndMergeAlertIntervals(data) {
   return intervals;
 }
 
-export const createAlertsChartBars = (alert) => {
+export const createAlertsChartBars = (alert, theme) => {
   // Consolidate intervals
   const groupedData = consolidateAndMergeAlertIntervals(alert);
+  const barChartColorScheme = {
+    critical: theme === 'light' ? global_danger_color_100.var : '#C9190B',
+    info: theme === 'light' ? global_info_color_100.var : '#06C',
+    warning: theme === 'light' ? global_warning_color_100.var : '#F0AB00',
+  };
 
   const data = [];
 
@@ -121,10 +132,10 @@ export const createAlertsChartBars = (alert) => {
       component: alert.component,
       fill:
         alert.severity === 'critical'
-          ? global_danger_color_100.var
+          ? barChartColorScheme.critical
           : alert.severity === 'warning'
-          ? global_warning_color_100.var
-          : global_info_color_100.var,
+          ? barChartColorScheme.warning
+          : barChartColorScheme.info,
     });
   }
 
@@ -371,3 +382,30 @@ export const parseUrlParams = (search) => {
 
   return result;
 };
+
+const PF_THEME_DARK_CLASS = 'pf-v5-theme-dark';
+const PF_THEME_DARK_CLASS_LEGACY = 'pf-theme-dark'; // legacy class name needed to support PF4
+/**
+ * The @openshift-console/dynamic-plugin-sdk package does not expose the theme setting of the user preferences,
+ * therefore check if the root <html> element has the PatternFly css class set for the dark theme.
+ */
+function getTheme() {
+  const classList = document.documentElement.classList;
+  if (classList.contains(PF_THEME_DARK_CLASS) || classList.contains(PF_THEME_DARK_CLASS_LEGACY)) {
+    return 'dark';
+  }
+  return 'light';
+}
+/**
+ * In case the user sets "system default" theme in the user preferences, update the theme if the system theme changes.
+ */
+export function usePatternFlyTheme() {
+  const [theme, setTheme] = useState(getTheme());
+  useEffect(() => {
+    const reloadTheme = () => setTheme(getTheme());
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    mq.addEventListener('change', reloadTheme);
+    return () => mq.removeEventListener('change', reloadTheme);
+  }, [setTheme]);
+  return { theme };
+}

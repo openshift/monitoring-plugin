@@ -1,6 +1,14 @@
 import * as React from 'react';
 
-import { Chart, ChartAxis, ChartBar, ChartGroup, createContainer } from '@patternfly/react-charts';
+import {
+  Chart,
+  ChartAxis,
+  ChartBar,
+  ChartGroup,
+  ChartLabel,
+  ChartLegend,
+  createContainer,
+} from '@patternfly/react-charts';
 import { Card, CardTitle, EmptyState, EmptyStateBody } from '@patternfly/react-core';
 import { createAlertsChartBars, formatDate, generateDateArray } from '../utils';
 import { getResizeObserver } from '@patternfly/react-core';
@@ -11,7 +19,7 @@ import global_warning_color_100 from '@patternfly/react-tokens/dist/esm/global_w
 import * as _ from 'lodash-es';
 import { setAlertsAreLoading } from '../../../actions/observe';
 
-const AlertsChart = ({ chartDays }) => {
+const AlertsChart = ({ chartDays, theme }) => {
   const dispatch = useDispatch();
   const [chartData, setChartData] = React.useState([]);
   const [chartContainerHeight, setChartContainerHeight] = React.useState();
@@ -35,7 +43,8 @@ const AlertsChart = ({ chartDays }) => {
   const dateValues = generateDateArray(chartDays);
 
   React.useEffect(() => {
-    setChartData(alertsData.map((alert) => createAlertsChartBars(alert)));
+    setChartData(alertsData.map((alert) => createAlertsChartBars(alert, theme)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [alertsData]);
 
   React.useEffect(() => {
@@ -104,10 +113,32 @@ const AlertsChart = ({ chartDays }) => {
               }
               domainPadding={{ x: [30, 25] }}
               legendData={[
-                { name: 'Critical', symbol: { fill: global_danger_color_100.var } },
-                { name: 'Info', symbol: { fill: global_info_color_100.var } },
-                { name: 'Warning', symbol: { fill: global_warning_color_100.var } },
+                {
+                  name: 'Critical',
+                  symbol: {
+                    fill: theme === 'light' ? global_danger_color_100.var : '#C9190B',
+                  },
+                },
+                {
+                  name: 'Info',
+                  symbol: {
+                    fill: theme === 'light' ? global_info_color_100.var : '#06C',
+                  },
+                },
+                {
+                  name: 'Warning',
+                  symbol: {
+                    fill: theme === 'light' ? global_warning_color_100.var : '#F0AB00',
+                  },
+                },
               ]}
+              legendComponent={
+                <ChartLegend
+                  labelComponent={
+                    <ChartLabel style={{ fill: theme === 'light' ? '#1b1d21' : '#e0e0e0' }} />
+                  }
+                />
+              }
               legendPosition="bottom-left"
               //this should be always less than the container height
               height={chartHeight}
@@ -126,6 +157,9 @@ const AlertsChart = ({ chartDays }) => {
                   new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
                 }
                 tickValues={dateValues}
+                tickLabelComponent={
+                  <ChartLabel style={{ fill: theme === 'light' ? '#1b1d21' : '#e0e0e0' }} />
+                }
               />
               <ChartGroup horizontal>
                 {chartData.map((bar, index) => {
