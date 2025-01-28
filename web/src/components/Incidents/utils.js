@@ -1,12 +1,23 @@
 /* eslint-disable max-len */
 import { useEffect, useState } from 'react';
-import { setAlertsAreLoading, setIncidentsActiveFilters } from '../../actions/observe';
+import { setIncidentsActiveFilters } from '../../actions/observe';
 import global_danger_color_100 from '@patternfly/react-tokens/dist/esm/global_danger_color_100';
 import global_info_color_100 from '@patternfly/react-tokens/dist/esm/global_info_color_100';
 import global_warning_color_100 from '@patternfly/react-tokens/dist/esm/global_warning_color_100';
-function consolidateAndMergeIntervals(data) {
+
+function consolidateAndMergeIntervals(data, dateArray) {
   const severityRank = { 2: 2, 1: 1, 0: 0 };
 
+  // Process and filter the input data
+  const filteredValues = filterAndSortValues(data, severityRank);
+
+  // Generate the intervals, including nodata gaps
+  const intervals = generateIntervalsWithGaps(filteredValues, dateArray);
+
+  return intervals;
+}
+
+function filterAndSortValues(data, severityRank) {
   // Eliminate overlapping timestamps with lower severities
   const highestSeverityValues = data.values.reduce((acc, [timestamp, severity]) => {
     if (!acc[timestamp] || severityRank[severity] > severityRank[acc[timestamp]]) {
@@ -16,35 +27,92 @@ function consolidateAndMergeIntervals(data) {
   }, {});
 
   // Create an array of timestamps with their severities (retain order)
-  const filteredValues = Object.entries(highestSeverityValues)
+  return Object.entries(highestSeverityValues)
     .map(([timestamp, severity]) => [timestamp, severity])
     .sort((a, b) => new Date(a[0]) - new Date(b[0])); // Ensure order by time
+}
 
-  // Find intervals of constant severity
+function generateIntervalsWithGaps(filteredValues, dateArray) {
   const intervals = [];
-  let currentStart = filteredValues[0][0];
-  let currentSeverity = filteredValues[0][1];
+  const startBoundary = new Date(dateArray[0]);
+  const endBoundary = new Date(dateArray[dateArray.length - 1]);
 
-  for (let i = 1; i < filteredValues.length; i++) {
+  let currentStart = filteredValues[0] ? filteredValues[0][0] : startBoundary.toISOString();
+  let currentSeverity = filteredValues[0] ? filteredValues[0][1] : 'nodata';
+
+  if (!filteredValues.length) {
+    // If there are no values, fill the entire range with nodata
+    intervals.push([startBoundary.toISOString(), endBoundary.toISOString(), 'nodata']);
+    return intervals;
+  }
+
+  // Add nodata interval before the first timestamp if needed
+  const firstTimestamp = new Date(filteredValues[0][0]);
+  if (firstTimestamp > startBoundary) {
+    intervals.push([
+      startBoundary.toISOString(),
+      new Date(firstTimestamp - 1).toISOString(),
+      'nodata',
+    ]);
+  }
+
+  for (let i = 0; i < filteredValues.length; i++) {
     const [timestamp, severity] = filteredValues[i];
 
-    // Adjust the end timestamp for seamless transition
-    let adjustedEnd;
-    if (currentSeverity !== severity) {
-      const endDate = new Date(timestamp);
-      endDate.setMilliseconds(endDate.getMilliseconds() - 1); // Subtract 1 ms
-      adjustedEnd = endDate.toISOString();
+    if (i > 0) {
+      // Check for gaps between the current and previous timestamps
+      if (hasGap(filteredValues, i)) {
+        const gapInterval = createNodataInterval(filteredValues, i);
+        intervals.push(gapInterval);
+      }
+    }
 
-      intervals.push([currentStart, adjustedEnd, currentSeverity]);
-      currentStart = timestamp; // Start the new interval
+    // Handle transitions between severities
+    if (currentSeverity !== severity || i === 0) {
+      if (i > 0) {
+        const endDate = new Date(timestamp);
+        endDate.setMilliseconds(endDate.getMilliseconds() - 1);
+        intervals.push([currentStart, endDate.toISOString(), currentSeverity]);
+      }
+      currentStart = timestamp;
       currentSeverity = severity;
     }
   }
 
   // Add the final interval
-  intervals.push([currentStart, filteredValues[filteredValues.length - 1][0], currentSeverity]);
+  const lastEndDate = new Date(filteredValues[filteredValues.length - 1][0]);
+  intervals.push([currentStart, lastEndDate.toISOString(), currentSeverity]);
+
+  // Add nodata interval after the last timestamp if needed
+  if (lastEndDate < endBoundary) {
+    intervals.push([
+      new Date(lastEndDate.getTime() + 1).toISOString(),
+      endBoundary.toISOString(),
+      'nodata',
+    ]);
+  }
 
   return intervals;
+}
+
+function hasGap(filteredValues, index) {
+  const previousTimestamp = new Date(filteredValues[index - 1][0]);
+  const currentTimestamp = new Date(filteredValues[index][0]);
+  const timeDifference = (currentTimestamp - previousTimestamp) / 1000 / 60; // Convert to minutes
+  return timeDifference > 5;
+}
+
+function createNodataInterval(filteredValues, index) {
+  const previousTimestamp = new Date(filteredValues[index - 1][0]);
+  const currentTimestamp = new Date(filteredValues[index][0]);
+
+  const gapStart = new Date(previousTimestamp);
+  gapStart.setMilliseconds(gapStart.getMilliseconds() + 1); // Start after the last interval
+
+  const gapEnd = new Date(currentTimestamp);
+  gapEnd.setMilliseconds(gapEnd.getMilliseconds() - 1); // End just before the next interval
+
+  return [gapStart.toISOString(), gapEnd.toISOString(), 'nodata'];
 }
 
 /**
@@ -53,8 +121,8 @@ function consolidateAndMergeIntervals(data) {
  * @param {Object} incident - The incident data containing values with timestamps and severity levels.
  * @returns {Array} - An array of incident objects with `y0`, `y`, `x`, and `name` fields representing the bars for the chart.
  */
-export const createIncidentsChartBars = (incident, theme) => {
-  const groupedData = consolidateAndMergeIntervals(incident);
+export const createIncidentsChartBars = (incident, theme, dateArray) => {
+  const groupedData = consolidateAndMergeIntervals(incident, dateArray);
   const data = [];
   const getSeverityName = (value) => {
     return value === '2' ? 'Critical' : value === '1' ? 'Warning' : 'Info';
@@ -64,7 +132,6 @@ export const createIncidentsChartBars = (incident, theme) => {
     info: theme === 'light' ? global_info_color_100.var : '#06C',
     warning: theme === 'light' ? global_warning_color_100.var : '#F0AB00',
   };
-
   for (let i = 0; i < groupedData.length; i++) {
     const severity = getSeverityName(groupedData[i][2]);
 
@@ -75,6 +142,7 @@ export const createIncidentsChartBars = (incident, theme) => {
       name: severity,
       componentList: incident.componentList || [],
       group_id: incident.group_id,
+      nodata: groupedData[i][2] === 'nodata' ? true : false,
       fill:
         severity === 'Critical'
           ? barChartColorScheme.critical
