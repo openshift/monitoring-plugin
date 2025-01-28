@@ -44,7 +44,9 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
   }, []);
   React.useEffect(() => {
     setIsLoading(false);
-    setChartData(incidentsData.map((incident) => createIncidentsChartBars(incident, theme)));
+    setChartData(
+      incidentsData.map((incident) => createIncidentsChartBars(incident, theme, dateValues)),
+    );
   }, [incidentsData]);
   const dateValues = generateDateArray(chartDays);
 
@@ -94,14 +96,16 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
               containerComponent={
                 <CursorVoronoiContainer
                   mouseFollowTooltips
-                  labels={({ datum }) =>
-                    `Severity: ${datum.name}\nComponent: ${datum.componentList?.join(
-                      ', ',
-                    )}\nIncident ID: ${datum.group_id}\nStart: ${formatDate(
-                      new Date(datum.y0),
-                      true,
-                    )}\nEnd: ${formatDate(new Date(datum.y), true)}`
-                  }
+                  labels={({ datum }) => {
+                    if (datum.nodata) {
+                      return null;
+                    }
+                    return `Severity: ${datum.name}
+                    Component: ${datum.componentList?.join(', ')}
+                    Incident ID: ${datum.group_id}
+                    Start: ${formatDate(new Date(datum.y0), true)}
+                    End: ${formatDate(new Date(datum.y), true)}`;
+                  }}
                 />
               }
               domainPadding={{ x: [30, 25] }}
@@ -166,7 +170,7 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
                         data: {
                           fill: ({ datum }) => datum.fill,
                           stroke: ({ datum }) => datum.fill,
-                          fillOpacity: ({ datum }) => getOpacity(datum),
+                          fillOpacity: ({ datum }) => (datum.nodata ? 0 : getOpacity(datum)),
                         },
                       }}
                       events={[
