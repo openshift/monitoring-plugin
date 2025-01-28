@@ -78,6 +78,9 @@ const IncidentsPage = () => {
   const onIncidentFilterToggle = () => {
     setIncidentIsExpanded(!incidentFilterIsExpanded);
   };
+  const onToggleClick = () => {
+    setDaysFilterIsExpanded(!daysFilterIsExpanded);
+  };
 
   const incidentsInitialState = useSelector((state) =>
     state.plugins.mcp.getIn(['incidentsData', 'incidentsInitialState']),
@@ -327,7 +330,7 @@ const IncidentsPage = () => {
                   toggle={
                     <DropdownToggleDeprecated
                       id="incidents-page-days-filter-toggle"
-                      onToggle={setDaysFilterIsExpanded}
+                      onToggle={onToggleClick}
                     >
                       {incidentsActiveFilters.days[0]}
                     </DropdownToggleDeprecated>
