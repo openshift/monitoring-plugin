@@ -102,14 +102,14 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
                         : '#'
                     }
                     style={
-                      !alertDetails?.rule
+                      !alertDetails?.rule || alertDetails.resolved
                         ? { pointerEvents: 'none', color: 'inherit', textDecoration: 'inherit' }
                         : {}
                     }
                   >
                     {alertDetails.alertname}
                   </Link>
-                  {!alertDetails?.rule && (
+                  {(!alertDetails?.rule || alertDetails.resolved) && (
                     <Tooltip content={<div>No details can be shown for inactive alerts.</div>}>
                       <OutlinedQuestionCircleIcon className="expanded-details-text-margin" />
                     </Tooltip>
