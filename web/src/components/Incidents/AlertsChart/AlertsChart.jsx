@@ -107,7 +107,9 @@ const AlertsChart = ({ chartDays, theme }) => {
                     Layer: ${datum.layer ? datum.layer : '---'}
                     Component: ${datum.component}
                     Start time: ${formatDate(new Date(datum.y0), true)}
-                    Stop time: ${formatDate(new Date(datum.y), true)}`
+                    Stop time: ${
+                      datum.alertstate === 'firing' ? '---' : formatDate(new Date(datum.y), true)
+                    }`
                   }
                 />
               }
