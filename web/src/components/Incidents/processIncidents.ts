@@ -54,6 +54,18 @@ export function processIncidents(data: Incident[]): ProcessedIncident[] {
       return [date, value[1]] as [Date, string];
     });
 
+    // Determine severity flags based on values array
+    let critical = false;
+    let warning = false;
+    let informative = false;
+
+    incident.values.forEach((value) => {
+      const severity = value[1]; // Second index of the value array
+      if (severity === '2') critical = true;
+      if (severity === '1') warning = true;
+      if (severity === '0') informative = true;
+    });
+
     const timestamps = incident.values.map((value) => value[0]); // Extract timestamps
     const lastTimestamp = Math.max(...timestamps); // Last timestamp in seconds
     const firstTimestamp = Math.min(...timestamps); // First timestamp in seconds
@@ -77,9 +89,9 @@ export function processIncidents(data: Incident[]): ProcessedIncident[] {
       layer: incident.metric.layer,
       values: processedValues,
       x: incidents.length - index,
-      critical: incident.metric.src_severity === 'critical',
-      warning: incident.metric.src_severity === 'warning',
-      informative: incident.metric.src_severity === 'info',
+      critical, // Updated based on 'values' array
+      warning, // Updated based on 'values' array
+      informative, // Updated based on 'values' array
       'Long standing': longStanding,
       resolved: resolved,
       firing: firing,
