@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 import { useEffect, useState } from 'react';
-import { setAlertsAreLoading, setIncidentsActiveFilters } from '../../actions/observe';
+import { setIncidentsActiveFilters } from '../../actions/observe';
 import global_danger_color_100 from '@patternfly/react-tokens/dist/esm/global_danger_color_100';
 import global_info_color_100 from '@patternfly/react-tokens/dist/esm/global_info_color_100';
 import global_warning_color_100 from '@patternfly/react-tokens/dist/esm/global_warning_color_100';
@@ -130,6 +130,7 @@ export const createAlertsChartBars = (alert, theme) => {
       namespace: alert.namespace,
       layer: alert.layer,
       component: alert.component,
+      alertstate: alert.alertstate,
       fill:
         alert.severity === 'critical'
           ? barChartColorScheme.critical
