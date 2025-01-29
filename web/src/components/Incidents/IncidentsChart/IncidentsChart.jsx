@@ -28,8 +28,8 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
   const [chartContainerHeight, setChartContainerHeight] = React.useState();
   const [chartHeight, setChartHeight] = React.useState();
   React.useEffect(() => {
-    setChartContainerHeight(chartData?.length < 5 ? 300 : chartData?.length * 40);
-    setChartHeight(chartData?.length < 5 ? 250 : chartData?.length * 35);
+    setChartContainerHeight(chartData?.length < 5 ? 300 : chartData?.length * 60);
+    setChartHeight(chartData?.length < 5 ? 250 : chartData?.length * 55);
   }, [chartData]);
   const [width, setWidth] = React.useState(0);
   const containerRef = React.useRef(null);
