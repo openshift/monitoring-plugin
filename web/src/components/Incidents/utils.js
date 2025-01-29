@@ -337,13 +337,12 @@ export const updateBrowserUrl = (params) => {
   window.history.replaceState(null, '', newUrl);
 };
 
-export const changeDaysFilter = (days, dispatch, filters, setIncidentsAreLoading) => {
+export const changeDaysFilter = (days, dispatch, filters) => {
   dispatch(
     setIncidentsActiveFilters({
       incidentsActiveFilters: { days: [days], incidentFilters: filters.incidentFilters },
     }),
   );
-  setIncidentsAreLoading(true);
 };
 
 export const onIncidentFiltersSelect = (event, selection, dispatch, incidentsActiveFilters) => {

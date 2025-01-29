@@ -316,12 +316,7 @@ const IncidentsPage = () => {
               </ToolbarItem>
               <ToolbarItem>
                 <DropdownDeprecated
-                  dropdownItems={dropdownItems(
-                    t,
-                    dispatch,
-                    incidentsActiveFilters,
-                    setIncidentsAreLoading,
-                  )}
+                  dropdownItems={dropdownItems(t, dispatch, incidentsActiveFilters)}
                   isOpen={daysFilterIsExpanded}
                   onSelect={() => setDaysFilterIsExpanded(false)}
                   toggle={
