@@ -27,8 +27,8 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
   const [chartContainerHeight, setChartContainerHeight] = React.useState();
   const [chartHeight, setChartHeight] = React.useState();
   React.useEffect(() => {
-    setChartContainerHeight(chartData?.length < 5 ? 250 : chartData?.length * 40);
-    setChartHeight(chartData?.length < 5 ? 200 : chartData?.length * 35);
+    setChartContainerHeight(chartData?.length < 5 ? 300 : chartData?.length * 65);
+    setChartHeight(chartData?.length < 5 ? 250 : chartData?.length * 60);
   }, [chartData]);
   const [width, setWidth] = React.useState(0);
   const containerRef = React.useRef(null);
@@ -104,7 +104,7 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
                     Component: ${datum.componentList?.join(', ')}
                     Incident ID: ${datum.group_id}
                     Start: ${formatDate(new Date(datum.y0), true)}
-                    End: ${formatDate(new Date(datum.y), true)}`;
+                    End: ${datum.firing ? '---' : formatDate(new Date(datum.y), true)}`;
                   }}
                 />
               }

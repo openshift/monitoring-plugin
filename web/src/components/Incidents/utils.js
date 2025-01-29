@@ -140,6 +140,7 @@ export const createIncidentsChartBars = (incident, theme, dateArray) => {
       y: new Date(groupedData[i][1]),
       x: incident.x,
       name: severity,
+      firing: incident.firing,
       componentList: incident.componentList || [],
       group_id: incident.group_id,
       nodata: groupedData[i][2] === 'nodata' ? true : false,
