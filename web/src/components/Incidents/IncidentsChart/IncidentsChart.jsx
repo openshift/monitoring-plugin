@@ -8,7 +8,8 @@ import {
   ChartLabel,
   ChartLegend,
   ChartThemeColor,
-  createContainer,
+  ChartTooltip,
+  ChartVoronoiContainer,
 } from '@patternfly/react-charts';
 import { Bullseye, Card, CardTitle, Spinner } from '@patternfly/react-core';
 import { createIncidentsChartBars, formatDate, generateDateArray } from '../utils';
@@ -27,8 +28,8 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
   const [chartContainerHeight, setChartContainerHeight] = React.useState();
   const [chartHeight, setChartHeight] = React.useState();
   React.useEffect(() => {
-    setChartContainerHeight(chartData?.length < 5 ? 300 : chartData?.length * 65);
-    setChartHeight(chartData?.length < 5 ? 250 : chartData?.length * 60);
+    setChartContainerHeight(chartData?.length < 5 ? 300 : chartData?.length * 40);
+    setChartHeight(chartData?.length < 5 ? 250 : chartData?.length * 35);
   }, [chartData]);
   const [width, setWidth] = React.useState(0);
   const containerRef = React.useRef(null);
@@ -76,7 +77,6 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
     return (datum.fillOpacity = isHidden(datum.group_id) ? '0.3' : '1');
   }
 
-  const CursorVoronoiContainer = createContainer('voronoi');
   return (
     <Card className="incidents-chart-card">
       <div ref={containerRef}>
@@ -94,8 +94,14 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
           >
             <Chart
               containerComponent={
-                <CursorVoronoiContainer
-                  mouseFollowTooltips
+                <ChartVoronoiContainer
+                  labelComponent={
+                    <ChartTooltip
+                      orientation="top"
+                      constrainToVisibleArea
+                      labelComponent={<ChartLabel />}
+                    />
+                  }
                   labels={({ datum }) => {
                     if (datum.nodata) {
                       return null;
@@ -143,7 +149,7 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
                 bottom: 75, // Adjusted to accommodate legend
                 left: 50,
                 right: 25, // Adjusted to accommodate tooltip
-                top: 0,
+                top: 50,
               }}
               width={width}
               themeColor={ChartThemeColor.purple}
