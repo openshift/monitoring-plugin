@@ -156,7 +156,7 @@ export const createIncidentsChartBars = (incident, theme, dateArray) => {
   return data;
 };
 
-function consolidateAndMergeAlertIntervals(data) {
+/* function consolidateAndMergeAlertIntervals(data) {
   const intervals = [];
   const sortedValues = data.values.sort((a, b) => new Date(a[0]) - new Date(b[0]));
 
@@ -176,16 +176,66 @@ function consolidateAndMergeAlertIntervals(data) {
   intervals.push([currentStart, sortedValues[sortedValues.length - 1][0]]);
 
   return intervals;
+} */
+
+function consolidateAndMergeAlertIntervals(data, dateArray) {
+  const sortedValues = data.values.sort((a, b) => new Date(a[0]) - new Date(b[0]));
+  console.log(data, 'data')
+
+  const intervals = [];
+  let currentStart = sortedValues[0][0],
+    previousTimestamp = new Date(currentStart);
+
+  for (let i = 1; i < sortedValues.length; i++) {
+    const currentTimestamp = new Date(sortedValues[i][0]);
+    const timeDifference = (currentTimestamp - previousTimestamp) / 60000; // Convert to minutes
+
+    if (timeDifference > 5) {
+      intervals.push([currentStart, sortedValues[i - 1][0], 'data']);
+      intervals.push([
+        new Date(previousTimestamp.getTime() + 1).toISOString(),
+        new Date(currentTimestamp.getTime() - 1).toISOString(),
+        'nodata',
+      ]);
+      currentStart = sortedValues[i][0];
+    }
+    previousTimestamp = currentTimestamp;
+  }
+
+  intervals.push([currentStart, sortedValues[sortedValues.length - 1][0], 'data']);
+
+  // Handle gaps before and after the detected intervals
+  const startBoundary = new Date(dateArray[0]),
+    endBoundary = new Date(dateArray[dateArray.length - 1]);
+  const firstIntervalStart = new Date(intervals[0][0]),
+    lastIntervalEnd = new Date(intervals[intervals.length - 1][1]);
+
+  if (firstIntervalStart > startBoundary) {
+    intervals.unshift([
+      startBoundary.toISOString(),
+      new Date(firstIntervalStart.getTime() - 1).toISOString(),
+      'nodata',
+    ]);
+  }
+  if (lastIntervalEnd < endBoundary) {
+    intervals.push([
+      new Date(lastIntervalEnd.getTime() + 1).toISOString(),
+      endBoundary.toISOString(),
+      'nodata',
+    ]);
+  }
+
+  return intervals;
 }
 
-export const createAlertsChartBars = (alert, theme) => {
-  // Consolidate intervals
-  const groupedData = consolidateAndMergeAlertIntervals(alert);
+export const createAlertsChartBars = (alert, theme, dateValues) => {
+  const groupedData = consolidateAndMergeAlertIntervals(alert, dateValues);
   const barChartColorScheme = {
     critical: theme === 'light' ? global_danger_color_100.var : '#C9190B',
     info: theme === 'light' ? global_info_color_100.var : '#06C',
     warning: theme === 'light' ? global_warning_color_100.var : '#F0AB00',
   };
+  console.log(groupedData, 'groupedData')
 
   const data = [];
 
@@ -199,6 +249,7 @@ export const createAlertsChartBars = (alert, theme) => {
       namespace: alert.namespace,
       layer: alert.layer,
       component: alert.component,
+      nodata: groupedData[i][2] === 'nodata' ? true : false,
       alertstate: alert.alertstate,
       fill:
         alert.severity === 'critical'
