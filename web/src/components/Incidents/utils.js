@@ -5,20 +5,25 @@ import global_danger_color_100 from '@patternfly/react-tokens/dist/esm/global_da
 import global_info_color_100 from '@patternfly/react-tokens/dist/esm/global_info_color_100';
 import global_warning_color_100 from '@patternfly/react-tokens/dist/esm/global_warning_color_100';
 
+/**
+ * Consolidates and merges intervals based on severity rankings.
+ * @param {Object} data - The input data containing timestamps and severity levels.
+ * @param {string[]} dateArray - The array of date strings defining the boundary.
+ * @returns {Array} - The consolidated intervals.
+ */
 function consolidateAndMergeIntervals(data, dateArray) {
   const severityRank = { 2: 2, 1: 1, 0: 0 };
-
-  // Process and filter the input data
   const filteredValues = filterAndSortValues(data, severityRank);
-
-  // Generate the intervals, including nodata gaps
-  const intervals = generateIntervalsWithGaps(filteredValues, dateArray);
-
-  return intervals;
+  return generateIntervalsWithGaps(filteredValues, dateArray);
 }
 
+/**
+ * Filters and sorts values by severity, keeping only the highest severity for each timestamp.
+ * @param {Object} data - The input data containing timestamps and severities.
+ * @param {Object} severityRank - An object mapping severity levels to their ranking values.
+ * @returns {Array} - An array of sorted timestamps with their severities.
+ */
 function filterAndSortValues(data, severityRank) {
-  // Eliminate overlapping timestamps with lower severities
   const highestSeverityValues = data.values.reduce((acc, [timestamp, severity]) => {
     if (!acc[timestamp] || severityRank[severity] > severityRank[acc[timestamp]]) {
       acc[timestamp] = severity;
@@ -26,12 +31,17 @@ function filterAndSortValues(data, severityRank) {
     return acc;
   }, {});
 
-  // Create an array of timestamps with their severities (retain order)
   return Object.entries(highestSeverityValues)
     .map(([timestamp, severity]) => [timestamp, severity])
-    .sort((a, b) => new Date(a[0]) - new Date(b[0])); // Ensure order by time
+    .sort((a, b) => new Date(a[0]) - new Date(b[0]));
 }
 
+/**
+ * Generates intervals while handling gaps with "nodata".
+ * @param {Array} filteredValues - The sorted array of timestamps with severities.
+ * @param {string[]} dateArray - The array defining the start and end boundaries.
+ * @returns {Array} - The list of consolidated intervals.
+ */
 function generateIntervalsWithGaps(filteredValues, dateArray) {
   const intervals = [];
   const startBoundary = new Date(dateArray[0]);
@@ -41,12 +51,10 @@ function generateIntervalsWithGaps(filteredValues, dateArray) {
   let currentSeverity = filteredValues[0] ? filteredValues[0][1] : 'nodata';
 
   if (!filteredValues.length) {
-    // If there are no values, fill the entire range with nodata
     intervals.push([startBoundary.toISOString(), endBoundary.toISOString(), 'nodata']);
     return intervals;
   }
 
-  // Add nodata interval before the first timestamp if needed
   const firstTimestamp = new Date(filteredValues[0][0]);
   if (firstTimestamp > startBoundary) {
     intervals.push([
@@ -59,15 +67,10 @@ function generateIntervalsWithGaps(filteredValues, dateArray) {
   for (let i = 0; i < filteredValues.length; i++) {
     const [timestamp, severity] = filteredValues[i];
 
-    if (i > 0) {
-      // Check for gaps between the current and previous timestamps
-      if (hasGap(filteredValues, i)) {
-        const gapInterval = createNodataInterval(filteredValues, i);
-        intervals.push(gapInterval);
-      }
+    if (i > 0 && hasGap(filteredValues, i)) {
+      intervals.push(createNodataInterval(filteredValues, i));
     }
 
-    // Handle transitions between severities
     if (currentSeverity !== severity || i === 0) {
       if (i > 0) {
         const endDate = new Date(timestamp);
@@ -79,11 +82,9 @@ function generateIntervalsWithGaps(filteredValues, dateArray) {
     }
   }
 
-  // Add the final interval
   const lastEndDate = new Date(filteredValues[filteredValues.length - 1][0]);
   intervals.push([currentStart, lastEndDate.toISOString(), currentSeverity]);
 
-  // Add nodata interval after the last timestamp if needed
   if (lastEndDate < endBoundary) {
     intervals.push([
       new Date(lastEndDate.getTime() + 1).toISOString(),
@@ -95,22 +96,33 @@ function generateIntervalsWithGaps(filteredValues, dateArray) {
   return intervals;
 }
 
+/**
+ * Checks if there is a gap larger than 5 minutes between consecutive timestamps.
+ * @param {Array} filteredValues - The array of filtered timestamps and severities.
+ * @param {number} index - The current index in the array.
+ * @returns {boolean} - Whether a gap exists.
+ */
 function hasGap(filteredValues, index) {
   const previousTimestamp = new Date(filteredValues[index - 1][0]);
   const currentTimestamp = new Date(filteredValues[index][0]);
-  const timeDifference = (currentTimestamp - previousTimestamp) / 1000 / 60; // Convert to minutes
-  return timeDifference > 5;
+  return (currentTimestamp - previousTimestamp) / 1000 / 60 > 5;
 }
 
+/**
+ * Creates a "nodata" interval to fill gaps between timestamps.
+ * @param {Array} filteredValues - The array of filtered timestamps and severities.
+ * @param {number} index - The current index in the array.
+ * @returns {Array} - The "nodata" interval.
+ */
 function createNodataInterval(filteredValues, index) {
   const previousTimestamp = new Date(filteredValues[index - 1][0]);
   const currentTimestamp = new Date(filteredValues[index][0]);
 
   const gapStart = new Date(previousTimestamp);
-  gapStart.setMilliseconds(gapStart.getMilliseconds() + 1); // Start after the last interval
+  gapStart.setMilliseconds(gapStart.getMilliseconds() + 1);
 
   const gapEnd = new Date(currentTimestamp);
-  gapEnd.setMilliseconds(gapEnd.getMilliseconds() - 1); // End just before the next interval
+  gapEnd.setMilliseconds(gapEnd.getMilliseconds() - 1);
 
   return [gapStart.toISOString(), gapEnd.toISOString(), 'nodata'];
 }
@@ -156,31 +168,8 @@ export const createIncidentsChartBars = (incident, theme, dateArray) => {
   return data;
 };
 
-/* function consolidateAndMergeAlertIntervals(data) {
-  const intervals = [];
-  const sortedValues = data.values.sort((a, b) => new Date(a[0]) - new Date(b[0]));
-
-  let currentStart = sortedValues[0][0];
-
-  for (let i = 1; i < sortedValues.length; i++) {
-    const previousTimestamp = new Date(sortedValues[i - 1][0]);
-    const currentTimestamp = new Date(sortedValues[i][0]);
-    const timeDifference = (currentTimestamp - previousTimestamp) / 1000 / 60;
-
-    // If the gap is larger than 5 minutes, close the current interval
-    if (timeDifference > 5) {
-      intervals.push([currentStart, sortedValues[i - 1][0]]);
-      currentStart = sortedValues[i][0]; // Start a new interval
-    }
-  }
-  intervals.push([currentStart, sortedValues[sortedValues.length - 1][0]]);
-
-  return intervals;
-} */
-
 function consolidateAndMergeAlertIntervals(data, dateArray) {
   const sortedValues = data.values.sort((a, b) => new Date(a[0]) - new Date(b[0]));
-  console.log(data, 'data')
 
   const intervals = [];
   let currentStart = sortedValues[0][0],
@@ -235,7 +224,6 @@ export const createAlertsChartBars = (alert, theme, dateValues) => {
     info: theme === 'light' ? global_info_color_100.var : '#06C',
     warning: theme === 'light' ? global_warning_color_100.var : '#F0AB00',
   };
-  console.log(groupedData, 'groupedData')
 
   const data = [];
 
