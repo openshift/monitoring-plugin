@@ -105,13 +105,13 @@ const AlertsChart = ({ chartDays, theme }) => {
                     if (datum.nodata) {
                       return null;
                     }
-                    return `Alert severity: ${datum.severity}
-                    Alert name: ${datum.name ? datum.name : '---'}
+                    return `Alert Severity: ${datum.severity}
+                    Alert Name: ${datum.name ? datum.name : '---'}
                     Namespace: ${datum.namespace ? datum.namespace : '---'}
                     Layer: ${datum.layer ? datum.layer : '---'}
                     Component: ${datum.component}
-                    Start time: ${formatDate(new Date(datum.y0), true)}
-                    Stop time: ${
+                    Start: ${formatDate(new Date(datum.y0), true)}
+                    End: ${
                       datum.alertstate === 'firing' ? '---' : formatDate(new Date(datum.y), true)
                     }`;
                   }}
