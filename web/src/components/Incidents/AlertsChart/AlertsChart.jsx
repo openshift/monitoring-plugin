@@ -38,8 +38,8 @@ const AlertsChart = ({ chartDays, theme }) => {
     state.plugins.mcp.getIn(['incidentsData', 'incidentGroupId']),
   );
   React.useEffect(() => {
-    setChartContainerHeight(chartData?.length < 5 ? 250 : chartData?.length * 40);
-    setChartHeight(chartData?.length < 5 ? 200 : chartData?.length * 35);
+    setChartContainerHeight(chartData?.length < 5 ? 300 : chartData?.length * 60);
+    setChartHeight(chartData?.length < 5 ? 250 : chartData?.length * 55);
   }, [chartData]);
   const dateValues = generateDateArray(chartDays);
 
