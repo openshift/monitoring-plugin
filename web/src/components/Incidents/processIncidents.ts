@@ -24,7 +24,6 @@ interface ProcessedIncident {
   layer: string;
   values: Array<[Date, string]>;
   x: number;
-  long_standing: boolean;
   informative: boolean;
   critical: string;
   warning: string;
@@ -68,7 +67,6 @@ export function processIncidents(data: Incident[]): ProcessedIncident[] {
 
     const timestamps = incident.values.map((value) => value[0]); // Extract timestamps
     const lastTimestamp = Math.max(...timestamps); // Last timestamp in seconds
-    const firstTimestamp = Math.min(...timestamps); // First timestamp in seconds
     const currentDate = new Date();
     const currentTimestamp = Math.floor(currentDate.valueOf() / 1000); // Current time in seconds
 
@@ -77,8 +75,6 @@ export function processIncidents(data: Incident[]): ProcessedIncident[] {
     const resolved = !firing;
 
     // Persistent logic based on the first occurrence
-    const daysSinceFirstOccurrence = (currentTimestamp - firstTimestamp) / (60 * 60 * 24);
-    const longStanding = daysSinceFirstOccurrence >= 7;
 
     const srcProperties = getSrcProperties(incident.metric);
 
@@ -92,7 +88,6 @@ export function processIncidents(data: Incident[]): ProcessedIncident[] {
       critical, // Updated based on 'values' array
       warning, // Updated based on 'values' array
       informative, // Updated based on 'values' array
-      'Long standing': longStanding,
       resolved: resolved,
       firing: firing,
       ...srcProperties,

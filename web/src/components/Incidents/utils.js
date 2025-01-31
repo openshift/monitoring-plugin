@@ -200,7 +200,7 @@ export function generateDateArray(days) {
  * Filters incidents based on the specified filters.
  *
  * @param {Object} filters - An object containing filter criteria.
- * @param {string[]} filters.incidentFilters - An array of strings representing filter conditions such as "Long standing", "Critical", etc.
+ * @param {string[]} filters.incidentFilters - An array of strings representing filter conditions such as "Critical", etc.
  * @param {Array<Object>} incidents - An array of incidents to be filtered.
  * @returns {Array<Object>} A filtered array of incidents that match at least one of the specified filters.
  *
@@ -215,7 +215,6 @@ export function generateDateArray(days) {
  */
 export function filterIncident(filters, incidents) {
   const conditions = {
-    'Long standing': 'Long standing',
     Critical: 'critical',
     Warning: 'warning',
     Informative: 'informative',
@@ -224,25 +223,19 @@ export function filterIncident(filters, incidents) {
   };
 
   return incidents.filter((incident) => {
-    // If no filters are applied, return all incidents except those marked 'Long standing'
+    // If no filters are applied, return all incidents
     if (!filters.incidentFilters.length) {
-      return incident[conditions['Long standing']] !== true;
+      return incident;
     }
 
     // Normalize user-provided filters to match keys in conditions
     const normalizedFilters = filters.incidentFilters.map((filter) => filter.trim());
 
     // Separate filters into categories
-    const longStandingFilter = normalizedFilters.includes('Long standing');
     const severityFilters = ['Critical', 'Warning', 'Informative'].filter((key) =>
       normalizedFilters.includes(key),
     );
     const statusFilters = ['Firing', 'Resolved'].filter((key) => normalizedFilters.includes(key));
-
-    // Match long-standing filter (OR behavior within the category)
-    const isLongStandingMatch = longStandingFilter
-      ? incident[conditions['Long standing']] === true
-      : true; // True if no 'Long standing' filter
 
     // Match severity filters (OR behavior within the category)
     const isSeverityMatch =
@@ -257,7 +250,7 @@ export function filterIncident(filters, incidents) {
         : true; // True if no status filters
 
     // Combine conditions with AND behavior between categories
-    return isLongStandingMatch && isSeverityMatch && isStatusMatch;
+    return isSeverityMatch && isStatusMatch;
   });
 }
 
