@@ -7,7 +7,8 @@ import {
   ChartGroup,
   ChartLabel,
   ChartLegend,
-  createContainer,
+  ChartTooltip,
+  ChartVoronoiContainer,
 } from '@patternfly/react-charts';
 import { Card, CardTitle, EmptyState, EmptyStateBody } from '@patternfly/react-core';
 import { createAlertsChartBars, formatDate, generateDateArray } from '../utils';
@@ -37,13 +38,13 @@ const AlertsChart = ({ chartDays, theme }) => {
     state.plugins.mcp.getIn(['incidentsData', 'incidentGroupId']),
   );
   React.useEffect(() => {
-    setChartContainerHeight(chartData?.length < 5 ? 250 : chartData?.length * 40);
-    setChartHeight(chartData?.length < 5 ? 200 : chartData?.length * 35);
+    setChartContainerHeight(chartData?.length < 5 ? 300 : chartData?.length * 60);
+    setChartHeight(chartData?.length < 5 ? 250 : chartData?.length * 55);
   }, [chartData]);
   const dateValues = generateDateArray(chartDays);
 
   React.useEffect(() => {
-    setChartData(alertsData.map((alert) => createAlertsChartBars(alert, theme)));
+    setChartData(alertsData.map((alert) => createAlertsChartBars(alert, theme, dateValues)));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [alertsData]);
 
@@ -74,8 +75,6 @@ const AlertsChart = ({ chartDays, theme }) => {
     return () => observer();
   }, []);
 
-  const CursorVoronoiContainer = createContainer('voronoi');
-
   return (
     <Card className="alerts-chart-card">
       <div ref={containerRef}>
@@ -98,19 +97,24 @@ const AlertsChart = ({ chartDays, theme }) => {
           >
             <Chart
               containerComponent={
-                <CursorVoronoiContainer
-                  mouseFollowTooltips
-                  labels={({ datum }) =>
-                    `Alert severity: ${datum.severity}
-                    Alert name: ${datum.name ? datum.name : '---'}
+                <ChartVoronoiContainer
+                  labelComponent={
+                    <ChartTooltip constrainToVisibleArea labelComponent={<ChartLabel />} />
+                  }
+                  labels={({ datum }) => {
+                    if (datum.nodata) {
+                      return null;
+                    }
+                    return `Alert Severity: ${datum.severity}
+                    Alert Name: ${datum.name ? datum.name : '---'}
                     Namespace: ${datum.namespace ? datum.namespace : '---'}
                     Layer: ${datum.layer ? datum.layer : '---'}
                     Component: ${datum.component}
-                    Start time: ${formatDate(new Date(datum.y0), true)}
-                    Stop time: ${
+                    Start: ${formatDate(new Date(datum.y0), true)}
+                    End: ${
                       datum.alertstate === 'firing' ? '---' : formatDate(new Date(datum.y), true)
-                    }`
-                  }
+                    }`;
+                  }}
                 />
               }
               domainPadding={{ x: [30, 25] }}
@@ -148,7 +152,7 @@ const AlertsChart = ({ chartDays, theme }) => {
                 bottom: 75, // Adjusted to accommodate legend
                 left: 50,
                 right: 25, // Adjusted to accommodate tooltip
-                top: 0,
+                top: 50,
               }}
               width={width}
             >
@@ -174,6 +178,7 @@ const AlertsChart = ({ chartDays, theme }) => {
                         data: {
                           fill: ({ datum }) => datum.fill,
                           stroke: ({ datum }) => datum.fill,
+                          fillOpacity: ({ datum }) => (datum.nodata ? 0 : 1),
                         },
                       }}
                     />

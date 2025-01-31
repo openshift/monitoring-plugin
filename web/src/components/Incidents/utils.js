@@ -4,10 +4,26 @@ import { setIncidentsActiveFilters } from '../../actions/observe';
 import global_danger_color_100 from '@patternfly/react-tokens/dist/esm/global_danger_color_100';
 import global_info_color_100 from '@patternfly/react-tokens/dist/esm/global_info_color_100';
 import global_warning_color_100 from '@patternfly/react-tokens/dist/esm/global_warning_color_100';
-function consolidateAndMergeIntervals(data) {
-  const severityRank = { 2: 2, 1: 1, 0: 0 };
 
-  // Eliminate overlapping timestamps with lower severities
+/**
+ * Consolidates and merges intervals based on severity rankings.
+ * @param {Object} data - The input data containing timestamps and severity levels.
+ * @param {string[]} dateArray - The array of date strings defining the boundary.
+ * @returns {Array} - The consolidated intervals.
+ */
+function consolidateAndMergeIntervals(data, dateArray) {
+  const severityRank = { 2: 2, 1: 1, 0: 0 };
+  const filteredValues = filterAndSortValues(data, severityRank);
+  return generateIntervalsWithGaps(filteredValues, dateArray);
+}
+
+/**
+ * Filters and sorts values by severity, keeping only the highest severity for each timestamp.
+ * @param {Object} data - The input data containing timestamps and severities.
+ * @param {Object} severityRank - An object mapping severity levels to their ranking values.
+ * @returns {Array} - An array of sorted timestamps with their severities.
+ */
+function filterAndSortValues(data, severityRank) {
   const highestSeverityValues = data.values.reduce((acc, [timestamp, severity]) => {
     if (!acc[timestamp] || severityRank[severity] > severityRank[acc[timestamp]]) {
       acc[timestamp] = severity;
@@ -15,36 +31,100 @@ function consolidateAndMergeIntervals(data) {
     return acc;
   }, {});
 
-  // Create an array of timestamps with their severities (retain order)
-  const filteredValues = Object.entries(highestSeverityValues)
+  return Object.entries(highestSeverityValues)
     .map(([timestamp, severity]) => [timestamp, severity])
-    .sort((a, b) => new Date(a[0]) - new Date(b[0])); // Ensure order by time
+    .sort((a, b) => new Date(a[0]) - new Date(b[0]));
+}
 
-  // Find intervals of constant severity
+/**
+ * Generates intervals while handling gaps with "nodata".
+ * @param {Array} filteredValues - The sorted array of timestamps with severities.
+ * @param {string[]} dateArray - The array defining the start and end boundaries.
+ * @returns {Array} - The list of consolidated intervals.
+ */
+function generateIntervalsWithGaps(filteredValues, dateArray) {
   const intervals = [];
-  let currentStart = filteredValues[0][0];
-  let currentSeverity = filteredValues[0][1];
+  const startBoundary = new Date(dateArray[0]);
+  const endBoundary = new Date(dateArray[dateArray.length - 1]);
 
-  for (let i = 1; i < filteredValues.length; i++) {
+  let currentStart = filteredValues[0] ? filteredValues[0][0] : startBoundary.toISOString();
+  let currentSeverity = filteredValues[0] ? filteredValues[0][1] : 'nodata';
+
+  if (!filteredValues.length) {
+    intervals.push([startBoundary.toISOString(), endBoundary.toISOString(), 'nodata']);
+    return intervals;
+  }
+
+  const firstTimestamp = new Date(filteredValues[0][0]);
+  if (firstTimestamp > startBoundary) {
+    intervals.push([
+      startBoundary.toISOString(),
+      new Date(firstTimestamp - 1).toISOString(),
+      'nodata',
+    ]);
+  }
+
+  for (let i = 0; i < filteredValues.length; i++) {
     const [timestamp, severity] = filteredValues[i];
 
-    // Adjust the end timestamp for seamless transition
-    let adjustedEnd;
-    if (currentSeverity !== severity) {
-      const endDate = new Date(timestamp);
-      endDate.setMilliseconds(endDate.getMilliseconds() - 1); // Subtract 1 ms
-      adjustedEnd = endDate.toISOString();
+    if (i > 0 && hasGap(filteredValues, i)) {
+      intervals.push(createNodataInterval(filteredValues, i));
+    }
 
-      intervals.push([currentStart, adjustedEnd, currentSeverity]);
-      currentStart = timestamp; // Start the new interval
+    if (currentSeverity !== severity || i === 0) {
+      if (i > 0) {
+        const endDate = new Date(timestamp);
+        endDate.setMilliseconds(endDate.getMilliseconds() - 1);
+        intervals.push([currentStart, endDate.toISOString(), currentSeverity]);
+      }
+      currentStart = timestamp;
       currentSeverity = severity;
     }
   }
 
-  // Add the final interval
-  intervals.push([currentStart, filteredValues[filteredValues.length - 1][0], currentSeverity]);
+  const lastEndDate = new Date(filteredValues[filteredValues.length - 1][0]);
+  intervals.push([currentStart, lastEndDate.toISOString(), currentSeverity]);
+
+  if (lastEndDate < endBoundary) {
+    intervals.push([
+      new Date(lastEndDate.getTime() + 1).toISOString(),
+      endBoundary.toISOString(),
+      'nodata',
+    ]);
+  }
 
   return intervals;
+}
+
+/**
+ * Checks if there is a gap larger than 5 minutes between consecutive timestamps.
+ * @param {Array} filteredValues - The array of filtered timestamps and severities.
+ * @param {number} index - The current index in the array.
+ * @returns {boolean} - Whether a gap exists.
+ */
+function hasGap(filteredValues, index) {
+  const previousTimestamp = new Date(filteredValues[index - 1][0]);
+  const currentTimestamp = new Date(filteredValues[index][0]);
+  return (currentTimestamp - previousTimestamp) / 1000 / 60 > 5;
+}
+
+/**
+ * Creates a "nodata" interval to fill gaps between timestamps.
+ * @param {Array} filteredValues - The array of filtered timestamps and severities.
+ * @param {number} index - The current index in the array.
+ * @returns {Array} - The "nodata" interval.
+ */
+function createNodataInterval(filteredValues, index) {
+  const previousTimestamp = new Date(filteredValues[index - 1][0]);
+  const currentTimestamp = new Date(filteredValues[index][0]);
+
+  const gapStart = new Date(previousTimestamp);
+  gapStart.setMilliseconds(gapStart.getMilliseconds() + 1);
+
+  const gapEnd = new Date(currentTimestamp);
+  gapEnd.setMilliseconds(gapEnd.getMilliseconds() - 1);
+
+  return [gapStart.toISOString(), gapEnd.toISOString(), 'nodata'];
 }
 
 /**
@@ -53,8 +133,8 @@ function consolidateAndMergeIntervals(data) {
  * @param {Object} incident - The incident data containing values with timestamps and severity levels.
  * @returns {Array} - An array of incident objects with `y0`, `y`, `x`, and `name` fields representing the bars for the chart.
  */
-export const createIncidentsChartBars = (incident, theme) => {
-  const groupedData = consolidateAndMergeIntervals(incident);
+export const createIncidentsChartBars = (incident, theme, dateArray) => {
+  const groupedData = consolidateAndMergeIntervals(incident, dateArray);
   const data = [];
   const getSeverityName = (value) => {
     return value === '2' ? 'Critical' : value === '1' ? 'Warning' : 'Info';
@@ -64,7 +144,6 @@ export const createIncidentsChartBars = (incident, theme) => {
     info: theme === 'light' ? global_info_color_100.var : '#06C',
     warning: theme === 'light' ? global_warning_color_100.var : '#F0AB00',
   };
-
   for (let i = 0; i < groupedData.length; i++) {
     const severity = getSeverityName(groupedData[i][2]);
 
@@ -73,8 +152,10 @@ export const createIncidentsChartBars = (incident, theme) => {
       y: new Date(groupedData[i][1]),
       x: incident.x,
       name: severity,
+      firing: incident.firing,
       componentList: incident.componentList || [],
       group_id: incident.group_id,
+      nodata: groupedData[i][2] === 'nodata' ? true : false,
       fill:
         severity === 'Critical'
           ? barChartColorScheme.critical
@@ -87,31 +168,57 @@ export const createIncidentsChartBars = (incident, theme) => {
   return data;
 };
 
-function consolidateAndMergeAlertIntervals(data) {
-  const intervals = [];
+function consolidateAndMergeAlertIntervals(data, dateArray) {
   const sortedValues = data.values.sort((a, b) => new Date(a[0]) - new Date(b[0]));
 
-  let currentStart = sortedValues[0][0];
+  const intervals = [];
+  let currentStart = sortedValues[0][0],
+    previousTimestamp = new Date(currentStart);
 
   for (let i = 1; i < sortedValues.length; i++) {
-    const previousTimestamp = new Date(sortedValues[i - 1][0]);
     const currentTimestamp = new Date(sortedValues[i][0]);
-    const timeDifference = (currentTimestamp - previousTimestamp) / 1000 / 60;
+    const timeDifference = (currentTimestamp - previousTimestamp) / 60000; // Convert to minutes
 
-    // If the gap is larger than 5 minutes, close the current interval
     if (timeDifference > 5) {
-      intervals.push([currentStart, sortedValues[i - 1][0]]);
-      currentStart = sortedValues[i][0]; // Start a new interval
+      intervals.push([currentStart, sortedValues[i - 1][0], 'data']);
+      intervals.push([
+        new Date(previousTimestamp.getTime() + 1).toISOString(),
+        new Date(currentTimestamp.getTime() - 1).toISOString(),
+        'nodata',
+      ]);
+      currentStart = sortedValues[i][0];
     }
+    previousTimestamp = currentTimestamp;
   }
-  intervals.push([currentStart, sortedValues[sortedValues.length - 1][0]]);
+
+  intervals.push([currentStart, sortedValues[sortedValues.length - 1][0], 'data']);
+
+  // Handle gaps before and after the detected intervals
+  const startBoundary = new Date(dateArray[0]),
+    endBoundary = new Date(dateArray[dateArray.length - 1]);
+  const firstIntervalStart = new Date(intervals[0][0]),
+    lastIntervalEnd = new Date(intervals[intervals.length - 1][1]);
+
+  if (firstIntervalStart > startBoundary) {
+    intervals.unshift([
+      startBoundary.toISOString(),
+      new Date(firstIntervalStart.getTime() - 1).toISOString(),
+      'nodata',
+    ]);
+  }
+  if (lastIntervalEnd < endBoundary) {
+    intervals.push([
+      new Date(lastIntervalEnd.getTime() + 1).toISOString(),
+      endBoundary.toISOString(),
+      'nodata',
+    ]);
+  }
 
   return intervals;
 }
 
-export const createAlertsChartBars = (alert, theme) => {
-  // Consolidate intervals
-  const groupedData = consolidateAndMergeAlertIntervals(alert);
+export const createAlertsChartBars = (alert, theme, dateValues) => {
+  const groupedData = consolidateAndMergeAlertIntervals(alert, dateValues);
   const barChartColorScheme = {
     critical: theme === 'light' ? global_danger_color_100.var : '#C9190B',
     info: theme === 'light' ? global_info_color_100.var : '#06C',
@@ -130,6 +237,7 @@ export const createAlertsChartBars = (alert, theme) => {
       namespace: alert.namespace,
       layer: alert.layer,
       component: alert.component,
+      nodata: groupedData[i][2] === 'nodata' ? true : false,
       alertstate: alert.alertstate,
       fill:
         alert.severity === 'critical'

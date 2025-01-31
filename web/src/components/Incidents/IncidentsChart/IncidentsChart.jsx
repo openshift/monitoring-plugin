@@ -8,7 +8,8 @@ import {
   ChartLabel,
   ChartLegend,
   ChartThemeColor,
-  createContainer,
+  ChartTooltip,
+  ChartVoronoiContainer,
 } from '@patternfly/react-charts';
 import { Bullseye, Card, CardTitle, Spinner } from '@patternfly/react-core';
 import { createIncidentsChartBars, formatDate, generateDateArray } from '../utils';
@@ -27,8 +28,8 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
   const [chartContainerHeight, setChartContainerHeight] = React.useState();
   const [chartHeight, setChartHeight] = React.useState();
   React.useEffect(() => {
-    setChartContainerHeight(chartData?.length < 5 ? 250 : chartData?.length * 40);
-    setChartHeight(chartData?.length < 5 ? 200 : chartData?.length * 35);
+    setChartContainerHeight(chartData?.length < 5 ? 300 : chartData?.length * 60);
+    setChartHeight(chartData?.length < 5 ? 250 : chartData?.length * 55);
   }, [chartData]);
   const [width, setWidth] = React.useState(0);
   const containerRef = React.useRef(null);
@@ -44,7 +45,9 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
   }, []);
   React.useEffect(() => {
     setIsLoading(false);
-    setChartData(incidentsData.map((incident) => createIncidentsChartBars(incident, theme)));
+    setChartData(
+      incidentsData.map((incident) => createIncidentsChartBars(incident, theme, dateValues)),
+    );
   }, [incidentsData]);
   const dateValues = generateDateArray(chartDays);
 
@@ -74,7 +77,6 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
     return (datum.fillOpacity = isHidden(datum.group_id) ? '0.3' : '1');
   }
 
-  const CursorVoronoiContainer = createContainer('voronoi');
   return (
     <Card className="incidents-chart-card">
       <div ref={containerRef}>
@@ -92,16 +94,24 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
           >
             <Chart
               containerComponent={
-                <CursorVoronoiContainer
-                  mouseFollowTooltips
-                  labels={({ datum }) =>
-                    `Severity: ${datum.name}\nComponent: ${datum.componentList?.join(
-                      ', ',
-                    )}\nIncident ID: ${datum.group_id}\nStart: ${formatDate(
-                      new Date(datum.y0),
-                      true,
-                    )}\nEnd: ${formatDate(new Date(datum.y), true)}`
+                <ChartVoronoiContainer
+                  labelComponent={
+                    <ChartTooltip
+                      orientation="top"
+                      constrainToVisibleArea
+                      labelComponent={<ChartLabel />}
+                    />
                   }
+                  labels={({ datum }) => {
+                    if (datum.nodata) {
+                      return null;
+                    }
+                    return `Severity: ${datum.name}
+                    Component: ${datum.componentList?.join(', ')}
+                    Incident ID: ${datum.group_id}
+                    Start: ${formatDate(new Date(datum.y0), true)}
+                    End: ${datum.firing ? '---' : formatDate(new Date(datum.y), true)}`;
+                  }}
                 />
               }
               domainPadding={{ x: [30, 25] }}
@@ -139,7 +149,7 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
                 bottom: 75, // Adjusted to accommodate legend
                 left: 50,
                 right: 25, // Adjusted to accommodate tooltip
-                top: 0,
+                top: 50,
               }}
               width={width}
               themeColor={ChartThemeColor.purple}
@@ -166,7 +176,7 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
                         data: {
                           fill: ({ datum }) => datum.fill,
                           stroke: ({ datum }) => datum.fill,
-                          fillOpacity: ({ datum }) => getOpacity(datum),
+                          fillOpacity: ({ datum }) => (datum.nodata ? 0 : getOpacity(datum)),
                         },
                       }}
                       events={[

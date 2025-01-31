@@ -76,12 +76,12 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
     <Table borders={'compactBorderless'}>
       <Thead>
         <Tr>
-          <Th width={25}>Alert name</Th>
+          <Th width={25}>Alert Name</Th>
           <Th width={15}>Namespace</Th>
           <Th width={10}>Severity</Th>
           <Th width={10}>State</Th>
-          <Th width={20}>Firing started</Th>
-          <Th width={20}>Firing ended</Th>
+          <Th width={20}>Start</Th>
+          <Th width={20}>End</Th>
         </Tr>
       </Thead>
       <Tbody>
