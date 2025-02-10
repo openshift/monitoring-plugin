@@ -340,3 +340,15 @@ export const getDashboardsUrl = (
       return '';
   }
 };
+
+// There is no equivalent rules list page in the developer perspective
+export const getIncidentsUrl = (perspective: Perspective) => {
+  const baseURL = '/monitoring/incidents';
+  switch (perspective) {
+    case 'acm':
+      return `/multicloud${baseURL}`;
+    default:
+    case 'admin':
+      return baseURL;
+  }
+};
