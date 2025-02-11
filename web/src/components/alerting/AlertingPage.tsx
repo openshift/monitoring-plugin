@@ -16,8 +16,6 @@ import SilencesPage from '../alerting/SilencesPage';
 import AlertRulesPage from '../alerting/AlertRulesPage';
 import { useFeatures } from '../hooks/useFeatures';
 import incidentsPageWithFallback from '../Incidents/IncidentsPage';
-import { HelloWorld } from './HelloWorld';
-import { HorizontalNav } from '@openshift-console/dynamic-plugin-sdk';
 
 const Tab: React.FC<{ active: boolean; children: React.ReactNode }> = ({ active, children }) => (
   <li
