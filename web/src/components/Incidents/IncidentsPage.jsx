@@ -9,6 +9,7 @@ import {
   Bullseye,
   Button,
   Select,
+  SelectList,
   Spinner,
   Toolbar,
   ToolbarContent,
@@ -16,7 +17,10 @@ import {
   ToolbarItem,
   MenuToggle,
   Badge,
-  SelectList,
+  Popper,
+  Menu,
+  MenuContent,
+  MenuList,
 } from '@patternfly/react-core';
 import { Helmet } from 'react-helmet';
 import { dropdownItems, incidentFiltersMenuItems } from './consts';
@@ -36,10 +40,6 @@ import {
   usePatternFlyTheme,
 } from './utils';
 import { groupAlertsForTable, processAlerts } from './processAlerts';
-import {
-  DropdownToggle as DropdownToggleDeprecated,
-  Dropdown as DropdownDeprecated,
-} from '@patternfly/react-core/deprecated';
 import { CompressArrowsAltIcon, CompressIcon, FilterIcon } from '@patternfly/react-icons';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -53,6 +53,7 @@ import {
 import { useLocation } from 'react-router-dom';
 import { withFallback } from '../console/console-shared/error/error-boundary';
 import { usePerspective } from '../hooks/usePerspective';
+import { changeDaysFilter } from './utils';
 
 const IncidentsPage = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -75,10 +76,16 @@ const IncidentsPage = () => {
   const [incidentFilterIsExpanded, setIncidentIsExpanded] = React.useState(false);
   const [daysFilterIsExpanded, setDaysFilterIsExpanded] = React.useState(false);
 
-  const onIncidentFilterToggle = () => {
+  const toggleRef = React.useRef(null);
+  const menuRef = React.useRef(null);
+  const containerRef = React.useRef(null);
+
+  const onIncidentFilterToggle = (ev) => {
+    ev.stopPropagation();
     setIncidentIsExpanded(!incidentFilterIsExpanded);
   };
-  const onToggleClick = () => {
+  const onToggleClick = (ev) => {
+    ev.stopPropagation();
     setDaysFilterIsExpanded(!daysFilterIsExpanded);
   };
 
@@ -187,6 +194,7 @@ const IncidentsPage = () => {
         });
     })();
   }, [incidentForAlertProcessing]);
+
   React.useEffect(() => {
     dispatch(
       setAlertsTableData({
@@ -258,6 +266,58 @@ const IncidentsPage = () => {
     }
   }, [incidentGroupId, timeRanges]);
 
+  const handleClickOutside = (event) => {
+    if (incidentFilterIsExpanded && !menuRef.current?.contains(event.target)) {
+      setIncidentIsExpanded(false);
+    }
+  };
+
+  React.useEffect(() => {
+    window.addEventListener('click', handleClickOutside);
+    return () => {
+      window.removeEventListener('click', handleClickOutside);
+    };
+  }, [incidentFilterIsExpanded, menuRef]);
+
+  const toggle = (
+    <MenuToggle
+      ref={toggleRef}
+      onClick={onIncidentFilterToggle}
+      isExpanded={incidentFilterIsExpanded}
+      icon={<FilterIcon />}
+      badge={
+        Object.entries(incidentsActiveFilters.incidentFilters).length > 0 ? (
+          <Badge isRead>{Object.entries(incidentsActiveFilters.incidentFilters).length}</Badge>
+        ) : undefined
+      }
+    >
+      Filters
+    </MenuToggle>
+  );
+
+  const menu = (
+    <Menu
+      ref={menuRef}
+      id="checkbox-select-menu"
+      onSelect={(event, selection) =>
+        onIncidentFiltersSelect(event, selection, dispatch, incidentsActiveFilters)
+      }
+      selected={incidentsActiveFilters.incidentFilters}
+    >
+      <MenuContent>
+        <MenuList>{incidentFiltersMenuItems(incidentsActiveFilters)}</MenuList>
+      </MenuContent>
+    </Menu>
+  );
+
+  const onSelect = (_event, value) => {
+    if (value) {
+      changeDaysFilter(value, dispatch, incidentsActiveFilters);
+    }
+
+    setDaysFilterIsExpanded(false);
+  };
+
   return (
     <>
       <Helmet>
@@ -289,48 +349,38 @@ const IncidentsPage = () => {
                   }
                   categoryName="Filters"
                 >
-                  <Select
-                    role="menu"
-                    aria-label="Filters"
-                    toggle={(toggleRef) => (
-                      <MenuToggle
-                        ref={toggleRef}
-                        onClick={onIncidentFilterToggle}
-                        isExpanded={incidentFilterIsExpanded}
-                      >
-                        <FilterIcon /> Filters
-                        {Object.entries(incidentsActiveFilters.incidentFilters).length > 0 && (
-                          <Badge isRead>
-                            {Object.entries(incidentsActiveFilters.incidentFilters).length}
-                          </Badge>
-                        )}
-                      </MenuToggle>
-                    )}
-                    onSelect={(event, selection) =>
-                      onIncidentFiltersSelect(event, selection, dispatch, incidentsActiveFilters)
-                    }
-                    onOpenChange={(isOpen) => setIncidentIsExpanded(isOpen)}
-                    selected={incidentsActiveFilters.incidentFilters}
-                    isOpen={incidentFilterIsExpanded}
-                  >
-                    <SelectList>{incidentFiltersMenuItems(incidentsActiveFilters)}</SelectList>
-                  </Select>
+                  <div ref={containerRef}>
+                    <Popper
+                      trigger={toggle}
+                      triggerRef={toggleRef}
+                      popper={menu}
+                      popperRef={menuRef}
+                      appendTo={containerRef.current || undefined}
+                      isVisible={incidentFilterIsExpanded}
+                    />
+                  </div>
                 </ToolbarFilter>
               </ToolbarItem>
               <ToolbarItem>
-                <DropdownDeprecated
-                  dropdownItems={dropdownItems(t, dispatch, incidentsActiveFilters)}
+                <Select
+                  id="time-range-select"
                   isOpen={daysFilterIsExpanded}
-                  onSelect={() => setDaysFilterIsExpanded(false)}
-                  toggle={
-                    <DropdownToggleDeprecated
-                      id="incidents-page-days-filter-toggle"
-                      onToggle={onToggleClick}
+                  selected={incidentsActiveFilters.days[0]}
+                  onSelect={onSelect}
+                  onOpenChange={(isOpen) => setDaysFilterIsExpanded(isOpen)}
+                  toggle={(toggleRef) => (
+                    <MenuToggle
+                      ref={toggleRef}
+                      onClick={onToggleClick}
+                      isExpanded={daysFilterIsExpanded}
                     >
                       {incidentsActiveFilters.days[0]}
-                    </DropdownToggleDeprecated>
-                  }
-                />
+                    </MenuToggle>
+                  )}
+                  shouldFocusToggleOnSelect
+                >
+                  <SelectList>{dropdownItems(t)}</SelectList>
+                </Select>
               </ToolbarItem>
               <ToolbarItem align={{ default: 'alignRight' }}>
                 <Button
