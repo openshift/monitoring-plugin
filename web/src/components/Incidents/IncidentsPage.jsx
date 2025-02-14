@@ -10,6 +10,7 @@ import {
   Button,
   Select,
   SelectList,
+  SelectOption,
   Spinner,
   Toolbar,
   ToolbarContent,
@@ -17,13 +18,8 @@ import {
   ToolbarItem,
   MenuToggle,
   Badge,
-  Popper,
-  Menu,
-  MenuContent,
-  MenuList,
 } from '@patternfly/react-core';
 import { Helmet } from 'react-helmet';
-import { dropdownItems, incidentFiltersMenuItems } from './consts';
 import { IncidentsTable } from './IncidentsTable';
 import {
   getIncidentsTimeRanges,
@@ -75,10 +71,6 @@ const IncidentsPage = () => {
 
   const [incidentFilterIsExpanded, setIncidentIsExpanded] = React.useState(false);
   const [daysFilterIsExpanded, setDaysFilterIsExpanded] = React.useState(false);
-
-  const toggleRef = React.useRef(null);
-  const menuRef = React.useRef(null);
-  const containerRef = React.useRef(null);
 
   const onIncidentFilterToggle = (ev) => {
     ev.stopPropagation();
@@ -266,50 +258,6 @@ const IncidentsPage = () => {
     }
   }, [incidentGroupId, timeRanges]);
 
-  const handleClickOutside = (event) => {
-    if (incidentFilterIsExpanded && !menuRef.current?.contains(event.target)) {
-      setIncidentIsExpanded(false);
-    }
-  };
-
-  React.useEffect(() => {
-    window.addEventListener('click', handleClickOutside);
-    return () => {
-      window.removeEventListener('click', handleClickOutside);
-    };
-  }, [incidentFilterIsExpanded, menuRef]);
-
-  const toggle = (
-    <MenuToggle
-      ref={toggleRef}
-      onClick={onIncidentFilterToggle}
-      isExpanded={incidentFilterIsExpanded}
-      icon={<FilterIcon />}
-      badge={
-        Object.entries(incidentsActiveFilters.incidentFilters).length > 0 ? (
-          <Badge isRead>{Object.entries(incidentsActiveFilters.incidentFilters).length}</Badge>
-        ) : undefined
-      }
-    >
-      Filters
-    </MenuToggle>
-  );
-
-  const menu = (
-    <Menu
-      ref={menuRef}
-      id="checkbox-select-menu"
-      onSelect={(event, selection) =>
-        onIncidentFiltersSelect(event, selection, dispatch, incidentsActiveFilters)
-      }
-      selected={incidentsActiveFilters.incidentFilters}
-    >
-      <MenuContent>
-        <MenuList>{incidentFiltersMenuItems(incidentsActiveFilters)}</MenuList>
-      </MenuContent>
-    </Menu>
-  );
-
   const onSelect = (_event, value) => {
     if (value) {
       changeDaysFilter(value, dispatch, incidentsActiveFilters);
@@ -349,16 +297,78 @@ const IncidentsPage = () => {
                   }
                   categoryName="Filters"
                 >
-                  <div ref={containerRef}>
-                    <Popper
-                      trigger={toggle}
-                      triggerRef={toggleRef}
-                      popper={menu}
-                      popperRef={menuRef}
-                      appendTo={containerRef.current || undefined}
-                      isVisible={incidentFilterIsExpanded}
-                    />
-                  </div>
+                  <Select
+                    id="severity-select"
+                    role="menu"
+                    aria-label="Filters"
+                    isOpen={incidentFilterIsExpanded}
+                    selected={incidentsActiveFilters.incidentFilters}
+                    onSelect={(event, selection) =>
+                      onIncidentFiltersSelect(event, selection, dispatch, incidentsActiveFilters)
+                    }
+                    onOpenChange={(isOpen) => setIncidentIsExpanded(isOpen)}
+                    toggle={(toggleRef) => (
+                      <MenuToggle
+                        ref={toggleRef}
+                        onClick={onIncidentFilterToggle}
+                        isExpanded={incidentFilterIsExpanded}
+                        icon={<FilterIcon />}
+                        badge={
+                          Object.entries(incidentsActiveFilters.incidentFilters).length > 0 ? (
+                            <Badge isRead>
+                              {Object.entries(incidentsActiveFilters.incidentFilters).length}
+                            </Badge>
+                          ) : undefined
+                        }
+                      >
+                        Filters
+                      </MenuToggle>
+                    )}
+                    shouldFocusToggleOnSelect
+                  >
+                    <SelectList>
+                      <SelectOption
+                        value="Critical"
+                        isSelected={incidentsActiveFilters.incidentFilters.includes('Critical')}
+                        description="The incident is critical."
+                        hasCheckbox
+                      >
+                        Critical
+                      </SelectOption>
+                      <SelectOption
+                        value="Warning"
+                        isSelected={incidentsActiveFilters.incidentFilters.includes('Warning')}
+                        description="The incident might lead to critical."
+                        hasCheckbox
+                      >
+                        Warning
+                      </SelectOption>
+                      <SelectOption
+                        value="Informative"
+                        isSelected={incidentsActiveFilters.incidentFilters.includes('Informative')}
+                        description="The incident is not critical."
+                        hasCheckbox
+                      >
+                        Informative
+                      </SelectOption>
+                      <SelectOption
+                        value="Firing"
+                        isSelected={incidentsActiveFilters.incidentFilters.includes('Firing')}
+                        description="The incident is currently firing."
+                        hasCheckbox
+                      >
+                        Firing
+                      </SelectOption>
+                      <SelectOption
+                        value="Resolved"
+                        isSelected={incidentsActiveFilters.incidentFilters.includes('Resolved')}
+                        description="The incident is not currently firing."
+                        hasCheckbox
+                      >
+                        Resolved
+                      </SelectOption>
+                    </SelectList>
+                  </Select>
                 </ToolbarFilter>
               </ToolbarItem>
               <ToolbarItem>
@@ -379,7 +389,12 @@ const IncidentsPage = () => {
                   )}
                   shouldFocusToggleOnSelect
                 >
-                  <SelectList>{dropdownItems(t)}</SelectList>
+                  <SelectList>
+                    <SelectOption value="1 day">{t('1 day')}</SelectOption>
+                    <SelectOption value="3 days">{t('3 days')}</SelectOption>
+                    <SelectOption value="7 days">{t('7 days')}</SelectOption>
+                    <SelectOption value="15 days">{t('15 days')}</SelectOption>
+                  </SelectList>
                 </Select>
               </ToolbarItem>
               <ToolbarItem align={{ default: 'alignRight' }}>
