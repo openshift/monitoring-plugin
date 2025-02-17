@@ -178,7 +178,11 @@ const IncidentsPage = () => {
       )
         .then((results) => {
           const aggregatedData = results.reduce((acc, result) => acc.concat(result), []);
-          dispatch(setAlertsData({ alertsData: processAlerts(aggregatedData) }));
+          dispatch(
+            setAlertsData({
+              alertsData: processAlerts(aggregatedData, incidentForAlertProcessing),
+            }),
+          );
           dispatch(setAlertsAreLoading({ alertsAreLoading: false }));
         })
         .catch((err) => {
