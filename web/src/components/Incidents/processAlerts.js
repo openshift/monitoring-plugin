@@ -137,20 +137,31 @@ export function groupAlerts(objects) {
  * // ]
  */
 
-export function processAlerts(data) {
+export function processAlerts(data, selectedIncidents) {
   const firing = groupAlerts(data).filter((alert) => alert.metric.alertname !== 'Watchdog');
 
+  // Extract the first and last timestamps from selectedIncidents
+  const timestamps = selectedIncidents.flatMap((incident) =>
+    incident.values.map((value) => new Date(value[0])),
+  );
+
+  const firstTimestamp = new Date(Math.min(...timestamps));
+  const lastTimestamp = new Date(Math.max(...timestamps));
+
   return sortObjectsByEarliestTimestamp(firing).map((alert, index) => {
-    const processedValues = alert.values.map((value) => {
-      const timestamp = value[0];
-      const date = new Date(timestamp * 1000); // Convert timestamp to a Date object
-      return [date, value[1]];
-    });
+    // Filter values based on firstTimestamp and lastTimestamp keep only values within range
+    const processedValues = alert.values
+      .map((value) => {
+        const timestamp = new Date(value[0] * 1000);
+        return [timestamp, value[1]];
+      })
+      .filter(([date]) => date >= firstTimestamp && date <= lastTimestamp);
+
     const sortedValues = processedValues.sort((a, b) => a[0] - b[0]);
 
     const alertsStartFiring = sortedValues[0][0];
     const alertsEndFiring = sortedValues[sortedValues.length - 1][0];
-    const resolved = new Date() - alertsEndFiring > 10 * 60 * 1000; // Check if resolved based on end time
+    const resolved = new Date() - alertsEndFiring > 10 * 60 * 1000;
 
     return {
       alertname: alert.metric.alertname,
@@ -160,7 +171,7 @@ export function processAlerts(data) {
       layer: alert.metric.layer,
       name: alert.metric.name,
       alertstate: resolved ? 'resolved' : 'firing',
-      values: sortedValues, // Use sorted values
+      values: sortedValues,
       alertsStartFiring,
       alertsEndFiring,
       resolved,
