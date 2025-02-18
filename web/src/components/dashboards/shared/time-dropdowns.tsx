@@ -4,11 +4,7 @@ import { formatPrometheusDuration, parsePrometheusDuration } from '../../console
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  getQueryArgument,
-  removeQueryArgument,
-  setQueryArgument,
-} from '../../console/utils/router';
+import { removeQueryArgument, setQueryArgument } from '../../console/utils/router';
 import {
   dashboardsSetEndTime,
   dashboardsSetPollInterval,
@@ -23,8 +19,8 @@ import {
   DEFAULT_REFRESH_INTERVAL,
   DropDownPollInterval,
 } from '../../../components/dropdown-poll-interval';
-import { useQueryParams } from '../../hooks/useQueryParams';
 import { QueryParams } from '../../query-params';
+import { NumberParam, useQueryParam } from 'use-query-params';
 
 const CUSTOM_TIME_RANGE_KEY = 'CUSTOM_TIME_RANGE_KEY';
 const DEFAULT_TIMERANGE = '30m';
@@ -43,13 +39,13 @@ const TimespanDropdown: React.FC = () => {
     getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'endTime']),
   );
 
-  const timeSpanFromParams = getQueryArgument(QueryParams.TimeRange);
-  const endTimeFromParams = getQueryArgument(QueryParams.EndTime);
+  const [timeRangeFromParams, setTimeRange] = useQueryParam(QueryParams.TimeRange, NumberParam);
+  const [endTimeFromParams] = useQueryParam(QueryParams.EndTime, NumberParam);
 
   const selectedKey =
     endTime || endTimeFromParams
       ? CUSTOM_TIME_RANGE_KEY
-      : formatPrometheusDuration(_.toNumber(timeSpanFromParams) || timespan);
+      : formatPrometheusDuration(_.toNumber(timeRangeFromParams) || timespan);
 
   const dispatch = useDispatch();
   const onChange = React.useCallback(
@@ -57,13 +53,13 @@ const TimespanDropdown: React.FC = () => {
       if (v === CUSTOM_TIME_RANGE_KEY) {
         setModalOpen();
       } else {
-        setQueryArgument(QueryParams.TimeRange, parsePrometheusDuration(v).toString());
+        setTimeRange(parsePrometheusDuration(v));
         removeQueryArgument(QueryParams.EndTime);
         dispatch(dashboardsSetTimespan(parsePrometheusDuration(v), perspective));
         dispatch(dashboardsSetEndTime(null, perspective));
       }
     },
-    [setModalOpen, dispatch, perspective],
+    [setModalOpen, dispatch, perspective, setTimeRange],
   );
 
   const initialOptions = React.useMemo<SimpleSelectOption[]>(() => {
@@ -127,11 +123,14 @@ const PollIntervalDropdown: React.FC = () => {
   const [selectedInterval, setSelectedInterval] = React.useState(null);
 
   const dispatch = useDispatch();
-  const queryParams = useQueryParams();
+  const [refreshInterval, setRefreshInterval] = useQueryParam(
+    QueryParams.RefreshInterval,
+    NumberParam,
+  );
   const setInterval = React.useCallback(
     (v: number) => {
       if (v) {
-        setQueryArgument(QueryParams.RefreshInterval, v.toString());
+        setSelectedInterval(v);
       } else {
         removeQueryArgument(QueryParams.RefreshInterval);
       }
@@ -141,13 +140,10 @@ const PollIntervalDropdown: React.FC = () => {
   );
 
   React.useEffect(() => {
-    const refreshInterval = queryParams.get(QueryParams.RefreshInterval);
-    if (refreshInterval) {
-      setSelectedInterval(refreshInterval);
-    } else {
-      setSelectedInterval(DEFAULT_REFRESH_INTERVAL);
+    if (!refreshInterval) {
+      setRefreshInterval(DEFAULT_REFRESH_INTERVAL);
     }
-  }, [queryParams]);
+  }, [refreshInterval, setRefreshInterval]);
 
   return (
     <div className="form-group monitoring-dashboards__dropdown-wrap">

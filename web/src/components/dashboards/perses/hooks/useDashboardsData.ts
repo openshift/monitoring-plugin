@@ -14,11 +14,7 @@ import {
   dashboardsSetTimespan,
   queryBrowserDeleteAllQueries,
 } from '../../../../actions/observe';
-import {
-  getAllQueryArguments,
-  getQueryArgument,
-  setQueryArgument,
-} from '../../../console/utils/router';
+import { getAllQueryArguments } from '../../../console/utils/router';
 import { MONITORING_DASHBOARDS_DEFAULT_TIMESPAN } from '../../shared/utils';
 import { DashboardResource, VariableDefinition } from '@perses-dev/core';
 import { useHistory } from 'react-router';
@@ -103,19 +99,21 @@ export const useDashboardsData = (urlBoard: string) => {
         // If the board is being cleared then don't do anything
         return;
       }
-      const timeSpan = getQueryArgument(QueryParams.TimeRange) ?? '';
-      const endTime = getQueryArgument(QueryParams.EndTime) ?? '';
-      let url = getDashboardsUrl(perspective, newBoard);
-
-      const refreshInterval = getQueryArgument(QueryParams.RefreshInterval);
       const queryArguments = getAllQueryArguments();
+      const timeSpan = queryArguments[QueryParams.TimeRange] ?? '';
+      const endTime = queryArguments[QueryParams.EndTime] ?? '';
+      const refreshInterval = queryArguments[QueryParams.RefreshInterval] ?? '';
+      const dashboard = queryArguments[QueryParams.Dashboard] ?? '';
 
       const params = new URLSearchParams(queryArguments);
+      params.append(QueryParams.Project, activeProject);
+
+      let url = getDashboardsUrl(perspective, newBoard);
       url = `${url}?${params.toString()}`;
+
       if (newBoard !== dashboardName) {
-        if (getQueryArgument(QueryParams.Dashboard) !== newBoard) {
+        if (dashboard !== newBoard) {
           history.replace(url);
-          setQueryArgument(QueryParams.Project, activeProject);
         }
 
         const allVariables = getPersesVariables(persesDashboards, newBoard);
