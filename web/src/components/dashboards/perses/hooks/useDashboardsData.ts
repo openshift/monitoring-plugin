@@ -25,6 +25,7 @@ import { useHistory } from 'react-router';
 import { useActiveProject } from '../project/useActiveProject';
 import { useBoolean } from '../../../hooks/useBoolean';
 import { Map as ImmutableMap } from 'immutable';
+import { QueryParams } from '../../../query-params';
 
 // This hook syncs with mutliple external API's, redux, and URL state. Its a lot, but needs to all
 // be in a single location
@@ -102,19 +103,19 @@ export const useDashboardsData = (urlBoard: string) => {
         // If the board is being cleared then don't do anything
         return;
       }
-      const timeSpan = getQueryArgument('timeRange') ?? '';
-      const endTime = getQueryArgument('endTime') ?? '';
+      const timeSpan = getQueryArgument(QueryParams.TimeRange) ?? '';
+      const endTime = getQueryArgument(QueryParams.EndTime) ?? '';
       let url = getDashboardsUrl(perspective, newBoard);
 
-      const refreshInterval = getQueryArgument('refreshInterval');
+      const refreshInterval = getQueryArgument(QueryParams.RefreshInterval);
       const queryArguments = getAllQueryArguments();
 
       const params = new URLSearchParams(queryArguments);
       url = `${url}?${params.toString()}`;
       if (newBoard !== dashboardName) {
-        if (getQueryArgument('dashboard') !== newBoard) {
+        if (getQueryArgument(QueryParams.Dashboard) !== newBoard) {
           history.replace(url);
-          setQueryArgument('project', activeProject);
+          setQueryArgument(QueryParams.Project, activeProject);
         }
 
         const allVariables = getPersesVariables(persesDashboards, newBoard);

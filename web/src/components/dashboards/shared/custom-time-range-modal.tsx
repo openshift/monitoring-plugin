@@ -17,6 +17,7 @@ import { dashboardsSetEndTime, dashboardsSetTimespan, Perspective } from '../../
 import { setQueryArguments } from '../../console/utils/router';
 import { MonitoringState } from '../../../reducers/observe';
 import { getLegacyObserveState } from '../../hooks/usePerspective';
+import { QueryParams } from '../../query-params';
 
 const zeroPad = (number: number) => (number < 10 ? `0${number}` : number);
 
@@ -73,8 +74,8 @@ const CustomTimeRangeModal: React.FC<CustomTimeRangeModalProps> = ({
       dispatch(dashboardsSetEndTime(to, perspective));
       dispatch(dashboardsSetTimespan(to - from, perspective));
       setQueryArguments({
-        endTime: to.toString(),
-        timeRange: (to - from).toString(),
+        [QueryParams.EndTime]: to.toString(),
+        [QueryParams.TimeRange]: (to - from).toString(),
       });
       setClosed();
     }

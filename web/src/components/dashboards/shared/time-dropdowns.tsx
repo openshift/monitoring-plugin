@@ -24,6 +24,7 @@ import {
   DropDownPollInterval,
 } from '../../../components/dropdown-poll-interval';
 import { useQueryParams } from '../../hooks/useQueryParams';
+import { QueryParams } from '../../query-params';
 
 const CUSTOM_TIME_RANGE_KEY = 'CUSTOM_TIME_RANGE_KEY';
 const DEFAULT_TIMERANGE = '30m';
@@ -42,8 +43,8 @@ const TimespanDropdown: React.FC = () => {
     getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'endTime']),
   );
 
-  const timeSpanFromParams = getQueryArgument('timeRange');
-  const endTimeFromParams = getQueryArgument('endTime');
+  const timeSpanFromParams = getQueryArgument(QueryParams.TimeRange);
+  const endTimeFromParams = getQueryArgument(QueryParams.EndTime);
 
   const selectedKey =
     endTime || endTimeFromParams
@@ -56,8 +57,8 @@ const TimespanDropdown: React.FC = () => {
       if (v === CUSTOM_TIME_RANGE_KEY) {
         setModalOpen();
       } else {
-        setQueryArgument('timeRange', parsePrometheusDuration(v).toString());
-        removeQueryArgument('endTime');
+        setQueryArgument(QueryParams.TimeRange, parsePrometheusDuration(v).toString());
+        removeQueryArgument(QueryParams.EndTime);
         dispatch(dashboardsSetTimespan(parsePrometheusDuration(v), perspective));
         dispatch(dashboardsSetEndTime(null, perspective));
       }
@@ -83,8 +84,8 @@ const TimespanDropdown: React.FC = () => {
 
     // If selectedKey is empty, the dashboard has changed. Reset selected to default value.
     if (selectedKey === '') {
-      setQueryArgument('timeRange', DEFAULT_TIMERANGE);
-      removeQueryArgument('endTime');
+      setQueryArgument(QueryParams.TimeRange, DEFAULT_TIMERANGE);
+      removeQueryArgument(QueryParams.EndTime);
     }
     return intervalOptions.map((o) => ({ ...o, selected: o.value === selectedKey }));
   }, [selectedKey, t]);
@@ -130,9 +131,9 @@ const PollIntervalDropdown: React.FC = () => {
   const setInterval = React.useCallback(
     (v: number) => {
       if (v) {
-        setQueryArgument('refreshInterval', v.toString());
+        setQueryArgument(QueryParams.RefreshInterval, v.toString());
       } else {
-        removeQueryArgument('refreshInterval');
+        removeQueryArgument(QueryParams.RefreshInterval);
       }
       dispatch(dashboardsSetPollInterval(v, perspective));
     },
@@ -140,7 +141,7 @@ const PollIntervalDropdown: React.FC = () => {
   );
 
   React.useEffect(() => {
-    const refreshInterval = queryParams.get('refreshInterval');
+    const refreshInterval = queryParams.get(QueryParams.RefreshInterval);
     if (refreshInterval) {
       setSelectedInterval(refreshInterval);
     } else {

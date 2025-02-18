@@ -43,6 +43,7 @@ import KebabDropdown from '../../kebab-dropdown';
 import { MonitoringState } from '../../../reducers/observe';
 import { evaluateVariableTemplate } from './legacy-variable-dropdowns';
 import { Panel, Row } from './types';
+import { QueryParams } from '../../query-params';
 
 const QueryBrowserLink = ({
   queries,
@@ -232,8 +233,8 @@ const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
 
   const handleZoom = React.useCallback((timeRange: number, endTime: number) => {
     setQueryArguments({
-      endTime: endTime.toString(),
-      timeRange: timeRange.toString(),
+      [QueryParams.EndTime]: endTime.toString(),
+      [QueryParams.TimeRange]: timeRange.toString(),
     });
   }, []);
 

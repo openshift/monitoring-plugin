@@ -30,6 +30,7 @@ import {
 import { CombinedDashboardMetadata } from '../perses/hooks/useDashboardsData';
 import { useHistory } from 'react-router';
 import { Map as ImmutableMap } from 'immutable';
+import { QueryParams } from '../../query-params';
 
 export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
@@ -111,7 +112,7 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
     if (perspective !== 'dev') {
       return;
     }
-    const newBoard = getQueryArgument('dashboard');
+    const newBoard = getQueryArgument(QueryParams.Dashboard);
     const allVariables = getAllVariables(legacyDashboards, newBoard, namespace);
     dispatch(dashboardsPatchAllVariables(allVariables, perspective));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -142,7 +143,7 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
       let endTime: string;
       let url = getLegacyDashboardsUrl(perspective, newBoard, namespace);
 
-      const refreshInterval = getQueryArgument('refreshInterval');
+      const refreshInterval = getQueryArgument(QueryParams.RefreshInterval);
 
       if (dashboardName) {
         timeSpan = null;
@@ -153,11 +154,11 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
           url = `${url}?${params.toString()}`;
         }
       } else {
-        timeSpan = getQueryArgument('timeRange');
-        endTime = getQueryArgument('endTime');
+        timeSpan = getQueryArgument(QueryParams.TimeRange);
+        endTime = getQueryArgument(QueryParams.EndTime);
       }
       if (newBoard !== dashboardName) {
-        if (getQueryArgument('dashboard') !== newBoard) {
+        if (getQueryArgument(QueryParams.Dashboard) !== newBoard) {
           history.replace(url);
         }
 
@@ -189,7 +190,7 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
         !legacyDashboards.some((legacyDashboard) => legacyDashboard.name === dashboardName)) &&
       !_.isEmpty(legacyDashboards)
     ) {
-      const boardName = getQueryArgument('dashboard');
+      const boardName = getQueryArgument(QueryParams.Dashboard);
       changeLegacyDashboard((namespace ? boardName : urlBoard) || legacyDashboards?.[0]?.name);
     }
   }, [dashboardName, legacyDashboards, changeLegacyDashboard, urlBoard, namespace]);

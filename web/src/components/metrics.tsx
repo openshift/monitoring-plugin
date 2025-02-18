@@ -95,6 +95,7 @@ import KebabDropdown from './kebab-dropdown';
 import { colors, Error, QueryBrowser } from './query-browser';
 import TablePagination from './table-pagination';
 import { PrometheusAPIError } from './types';
+import { QueryParams } from './query-params';
 
 // Stores information about the currently focused query input
 let focusedQuery;
@@ -1178,7 +1179,7 @@ const QueryBrowserPage_: React.FC = () => {
   const [customDataSource, setCustomDataSource] = React.useState<CustomDataSource>(undefined);
   const [customDataSourceIsResolved, setCustomDataSourceIsResolved] =
     React.useState<boolean>(false);
-  const customDataSourceName = getQueryArgument('datasource');
+  const customDataSourceName = getQueryArgument(QueryParams.Datasource);
   const [extensions, extensionsResolved] = useResolvedExtensions<DataSource>(isDataSource);
   const hasExtensions = !_.isEmpty(extensions);
   const [customDatasourceError, setCustomDataSourceError] = React.useState(false);

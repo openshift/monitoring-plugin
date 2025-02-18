@@ -9,6 +9,7 @@ import { ProjectModel } from '../../../console/models';
 import { setQueryArgument } from '../../../console/utils/router';
 import { usePerspective } from '../../../hooks/usePerspective';
 import { usePerses } from '../hooks/usePerses';
+import { QueryParams } from '../../../query-params';
 
 export const useActiveProject = () => {
   const [activeProject, setActiveProject] = React.useState('');
@@ -41,7 +42,7 @@ export const useActiveProject = () => {
     }
     if (perspective !== 'dev') {
       // If the url and the data is out of sync, follow the data
-      setQueryArgument('project', activeProject);
+      setQueryArgument(QueryParams.Project, activeProject);
       // Don't set project in dev perspective since perses dashboards
       // aren't supported there yet
     }
