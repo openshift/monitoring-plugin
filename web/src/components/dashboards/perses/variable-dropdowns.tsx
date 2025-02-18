@@ -79,16 +79,16 @@ function ListVariable({ name, id }: VariableDropdownProps) {
     }
   }, [setVariableOptions, name, options]);
 
-  const onChangeFunction = (value: string): void => {
-    if ((value === null || (Array.isArray(value) && value.length === 0)) && allowAllValue) {
-      setVariableValue(name, DEFAULT_ALL_VALUE);
-    } else {
-      setVariableValue(name, value);
-    }
-  };
-
-  // TODO: determine if this is still necessary
-  // const prometheusQuery = query.replace(/label_values\((.*), (.*)\)/, 'count($1) by ($2)');
+  const onChangeFunction = React.useCallback(
+    (value: string): void => {
+      if ((value === null || (Array.isArray(value) && value.length === 0)) && allowAllValue) {
+        setVariableValue(name, DEFAULT_ALL_VALUE);
+      } else {
+        setVariableValue(name, value);
+      }
+    },
+    [setVariableValue, allowAllValue, name],
+  );
 
   if (_.isEmpty(viewOptions)) {
     return null;
@@ -101,12 +101,10 @@ function ListVariable({ name, id }: VariableDropdownProps) {
   const items: {
     value: string;
     children: string;
-  }[] = (allowAllValue ? [{ value: DEFAULT_ALL_VALUE, children: 'All' }] : []).concat(
-    _.map<VariableOption>(viewOptions, (option: VariableOption) => ({
-      value: option.label,
-      children: option.label,
-    })),
-  );
+  }[] = _.map<VariableOption>(viewOptions, (option: VariableOption) => ({
+    value: option.label,
+    children: option.label,
+  }));
 
   const title = definition?.spec.display?.name ?? name;
 
@@ -122,7 +120,7 @@ function ListVariable({ name, id }: VariableDropdownProps) {
         items={items}
         onChange={onChangeFunction}
         OptionComponent={VariableOptionComponent}
-        selectedKey={singleSelectedItem.value}
+        selectedKey={singleSelectedItem.label}
         hideClearButton
         resizeToFit
         placeholder={t('Select a dashboard from the dropdown')}
