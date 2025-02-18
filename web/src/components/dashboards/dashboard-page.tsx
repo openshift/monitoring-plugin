@@ -1,4 +1,3 @@
-import * as _ from 'lodash-es';
 import { Overview } from '@openshift-console/dynamic-plugin-sdk';
 import * as React from 'react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
