@@ -23,6 +23,7 @@ import { FormatSeriesTitle, QueryBrowser } from '../query-browser';
 import { Link } from 'react-router-dom';
 import { TFunction } from 'i18next';
 import { getQueryBrowserUrl, usePerspective } from '../hooks/usePerspective';
+import { NamespaceModel } from '../console/models';
 
 export const getAdditionalSources = <T extends Alert | Rule>(
   data: Array<T>,
@@ -373,3 +374,9 @@ export const severityRowFilter = (t): RowFilter => ({
   reducer: ({ labels }: Alert | Rule) => labels?.severity,
   type: 'alert-severity',
 });
+
+export const NamespaceGroupVersionKind = {
+  group: 'core',
+  kind: NamespaceModel.kind,
+  version: null,
+};
