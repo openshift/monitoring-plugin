@@ -7,7 +7,7 @@
       "properties": {
         "exact": false,
         "path": "/monitoring/incidents",
-        "component": { "$codeRef": "IncidentsPage" }
+        "component": { "$codeRef": "MonitoringRouter" }
       }
     }
   },

@@ -21,6 +21,7 @@ import SilencesPage from './alerting/SilencesPage';
 import SilencesDetailsPage from './alerting/SilencesDetailPage';
 import AlertRulesDetailsPage from './alerting/AlertRulesDetailsPage';
 import AlertingPage from './alerting/AlertingPage';
+import incidentsPageWithFallback from './Incidents/IncidentsPage';
 
 const PollingPagesRouter = () => {
   const dispatch = useDispatch();
@@ -112,6 +113,8 @@ const PollingPagesRouter = () => {
       <Route path="/monitoring/alerts/:ruleID" exact component={AlertsDetailsPage} />
       <Route path="/monitoring/silences/:id" exact component={SilencesDetailsPage} />
       <Route path="/monitoring/silences/:id/edit" exact component={EditSilence} />
+      <Route path="/monitoring/silences/:id/edit" exact component={EditSilence} />
+      <Route path="/monitoring/incidents" exact component={incidentsPageWithFallback} />
     </Switch>
   );
 };
@@ -158,6 +161,7 @@ const MonitoringRouter = () => {
       <Route path="/monitoring/silences/~new" exact component={CreateSilence} />
       <Route path="/dev-monitoring/ns/:ns/silences/~new" exact component={CreateSilence} />
       <Route path="/monitoring/targets" component={TargetsUI} />
+      <Route path="/monitoring/incidents" exact component={incidentsPageWithFallback} />
       <Route component={PollingPagesRouter} />
     </Switch>
   );
