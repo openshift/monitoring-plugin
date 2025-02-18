@@ -1,8 +1,8 @@
-import { fetchPersesProjects, fetchPersesDashboardsMetadata } from './perses-client';
+import { fetchPersesProjects, fetchPersesDashboardsMetadata } from '../perses-client';
 import { useQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
-import { getLegacyObserveState, usePerspective } from '../../hooks/usePerspective';
-import { MonitoringState } from '../../../reducers/observe';
+import { getLegacyObserveState, usePerspective } from '../../../hooks/usePerspective';
+import { MonitoringState } from '../../../../reducers/observe';
 
 export const usePerses = () => {
   const { perspective } = usePerspective();
@@ -33,11 +33,11 @@ export const usePerses = () => {
   });
 
   return {
-    persesDashboards,
+    persesDashboards: persesDashboards ?? [],
     persesDashboardsError,
     persesDashboardsLoading,
     persesProjectsLoading,
-    persesProjects,
+    persesProjects: persesProjects ?? [],
     persesProjectsError,
   };
 };

@@ -41,7 +41,7 @@ import {
 } from '../../hooks/usePerspective';
 import KebabDropdown from '../../kebab-dropdown';
 import { MonitoringState } from '../../../reducers/observe';
-import { evaluateVariableTemplate } from '../shared/variable-dropdowns';
+import { evaluateVariableTemplate } from './legacy-variable-dropdowns';
 import { Panel, Row } from './types';
 
 const QueryBrowserLink = ({

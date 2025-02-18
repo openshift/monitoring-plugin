@@ -11,7 +11,7 @@ class TimeoutError extends Error {
   }
 }
 
-const getCSRFToken = () => {
+export const getCSRFToken = () => {
   const cookiePrefix = 'csrf-token=';
   return (
     document &&

@@ -42,14 +42,7 @@ const getSearchParams = ({
   return searchParams;
 };
 
-export const getPrometheusURL = (
-  props: PrometheusURLProps,
-  perspective: Perspective,
-  basePath?: string,
-): string => {
-  if (props.endpoint !== PrometheusEndpoint.RULES && !props.query) {
-    return '';
-  }
+export const getPrometheusBaseURL = (perspective: Perspective, basePath?: string): string => {
   let path = basePath;
   if (perspective === 'acm') {
     path = PROMETHEUS_PROXY_PATH;
@@ -59,6 +52,19 @@ export const getPrometheusURL = (
     // admin or virt perspective
     path = PROMETHEUS_BASE_PATH;
   }
+  return path;
+};
+
+export const getPrometheusURL = (
+  props: PrometheusURLProps,
+  perspective: Perspective,
+  basePath?: string,
+): string => {
+  if (props.endpoint !== PrometheusEndpoint.RULES && !props.query) {
+    return '';
+  }
+
+  const path = getPrometheusBaseURL(perspective, basePath);
   const params = getSearchParams(props);
   return `${path}/${props.endpoint}?${params.toString()}`;
 };

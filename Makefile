@@ -85,7 +85,7 @@ build-mcp-image:
 start-feature-console:
 	PLUGIN_PORT=9443 ./scripts/start-console.sh
 
-export FEATURES?=incidents,dev-config
+export FEATURES?=incidents,perses-dashboards,dev-config
 .PHONY: start-feature-backend
 start-feature-backend:
 	go run ./cmd/plugin-backend.go -port='9443' -config-path='./config' -static-path='./web/dist' -features='$(FEATURES)'

@@ -673,7 +673,11 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, custom
     if (isEnabled && isExpanded && query) {
       safeFetch(
         getPrometheusURL(
-          { endpoint: PrometheusEndpoint.QUERY, namespace, query },
+          {
+            endpoint: PrometheusEndpoint.QUERY,
+            namespace: perspective === 'dev' ? namespace : '',
+            query,
+          },
           perspective,
           customDatasource?.basePath,
         ),
@@ -1151,12 +1155,16 @@ const QueriesList: React.FC<{ customDatasource?: CustomDataSource }> = ({ custom
 };
 
 const IntervalDropdown = () => {
+  const { perspective } = usePerspective();
   const dispatch = useDispatch();
   const setInterval = React.useCallback(
     (v: number) => dispatch(queryBrowserSetPollInterval(v)),
     [dispatch],
   );
-  return <DropDownPollInterval setInterval={setInterval} />;
+  const pollInterval = useSelector((state: MonitoringState) =>
+    getLegacyObserveState(perspective, state)?.getIn(['queryBrowser', 'pollInterval'], 15 * 1000),
+  );
+  return <DropDownPollInterval setInterval={setInterval} selectedInterval={pollInterval} />;
 };
 
 const QueryBrowserPage_: React.FC = () => {

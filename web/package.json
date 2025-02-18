@@ -32,6 +32,9 @@
     "@codemirror/search": "^6.0.0",
     "@codemirror/state": "^6.1.0",
     "@codemirror/view": "^6.0.3",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@hookform/resolvers": "^3.10.0",
     "@lezer/common": "^1.0.0",
     "@lezer/highlight": "^1.0.0",
     "@lezer/lr": "^1.0.0",
@@ -42,6 +45,11 @@
     "@patternfly/react-core": "5.4.0",
     "@patternfly/react-icons": "^5.4.0",
     "@patternfly/react-table": "5.4.13",
+    "@perses-dev/components": "^0.50.0",
+    "@perses-dev/dashboards": "^0.50.0",
+    "@perses-dev/panels-plugin": "^0.50.0",
+    "@perses-dev/plugin-system": "^0.50.0",
+    "@perses-dev/prometheus-plugin": "^0.50.0",
     "@prometheus-io/codemirror-promql": "^0.37.0",
     "@tanstack/react-query": "^4.36.1",
     "classnames": "2.x",
@@ -60,7 +68,8 @@
     "react-redux": "7.2.2",
     "react-router": "5.3.x",
     "react-router-dom": "5.3.x",
-    "redux": "4.0.1"
+    "redux": "4.0.1",
+    "use-query-params": "^2.2.1"
   },
   "devDependencies": {
     "@types/node": "^17.0.21",

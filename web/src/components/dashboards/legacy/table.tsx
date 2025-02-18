@@ -90,7 +90,11 @@ const Table: React.FC<Props> = ({ customDataSource, panel, pollInterval, queries
         ? Promise.resolve()
         : safeFetch(
             getPrometheusURL(
-              { endpoint: PrometheusEndpoint.QUERY, query, namespace },
+              {
+                endpoint: PrometheusEndpoint.QUERY,
+                query,
+                namespace: perspective === 'dev' ? namespace : '',
+              },
               perspective,
               customDataSource?.basePath,
             ),
@@ -137,10 +141,14 @@ const Table: React.FC<Props> = ({ customDataSource, panel, pollInterval, queries
     return <div className="loading-skeleton--table" />;
   }
   if (error) {
-    return <ErrorAlert message={error} />;
+    return <ErrorAlert error={{ message: error, name: t('An error occurred') }} />;
   }
   if (_.isEmpty(panel.styles)) {
-    return <ErrorAlert message={t('panel.styles attribute not found')} />;
+    return (
+      <ErrorAlert
+        error={{ message: t('panel.styles attribute not found'), name: t('An error occurred') }}
+      />
+    );
   }
   if (_.isEmpty(data)) {
     return (

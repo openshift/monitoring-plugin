@@ -34,7 +34,10 @@ import {
 import { getTimeRanges, isTimeoutError, QUERY_CHUNK_SIZE } from '../../utils';
 import { getLegacyObserveState, usePerspective } from '../../hooks/usePerspective';
 import { MonitoringState } from '../../../reducers/observe';
-import { DEFAULT_GRAPH_SAMPLES, MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY } from './utils';
+import {
+  DEFAULT_GRAPH_SAMPLES,
+  MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY,
+} from '../shared/utils';
 
 const intervalVariableRegExps = ['__interval', '__rate_interval', '__auto_interval_[a-z]+'];
 
@@ -87,7 +90,7 @@ export const evaluateVariableTemplate = (
   return result;
 };
 
-const VariableOption = ({ value, isSelected, ...rest }) =>
+const LegacyDashboardsVariableOption = ({ value, isSelected, ...rest }) =>
   isIntervalVariable(String(value)) ? (
     <Tooltip content={value}>
       <SelectOption value={value} isSelected={isSelected || false}>
@@ -100,7 +103,7 @@ const VariableOption = ({ value, isSelected, ...rest }) =>
     </SelectOption>
   );
 
-const VariableDropdown: React.FC<VariableDropdownProps> = ({
+const LegacyDashboardsVariableDropdown: React.FC<VariableDropdownProps> = ({
   id,
   name,
   namespace,
@@ -177,7 +180,7 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({
           samples: Math.ceil(DEFAULT_GRAPH_SAMPLES / timeRanges.length),
           timeout: '60s',
           timespan: timeRange.duration,
-          namespace,
+          namespace: perspective === 'dev' ? namespace : '',
           endTime: timeRange.endTime,
         };
         return getURL(prometheusProps).then((url) =>
@@ -295,7 +298,7 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({
         <SingleTypeaheadDropdown
           items={items}
           onChange={onChange}
-          OptionComponent={VariableOption}
+          OptionComponent={LegacyDashboardsVariableOption}
           selectedKey={variable.value}
           hideClearButton
           resizeToFit
@@ -306,7 +309,7 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({
   );
 };
 
-export const AllVariableDropdowns: React.FC = () => {
+export const LegacyDashboardsAllVariableDropdowns: React.FC = () => {
   const [namespace] = useActiveNamespace();
   const { perspective } = usePerspective();
   const variables = useSelector((state: MonitoringState) =>
@@ -320,7 +323,7 @@ export const AllVariableDropdowns: React.FC = () => {
   return (
     <>
       {variables.keySeq().map((name: string) => (
-        <VariableDropdown
+        <LegacyDashboardsVariableDropdown
           key={name}
           id={name}
           name={name}

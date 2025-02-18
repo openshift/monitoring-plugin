@@ -20,8 +20,8 @@ import fuzzysearch from 'fuzzysearch';
 import { useTranslation } from 'react-i18next';
 import ProjectMenuToggle from './ProjectMenuToggle';
 import './ProjectDropdown.scss';
-import { LEGACY_DASHBOARDS_KEY, alphanumericCompare } from './utils';
-import { usePerses } from '../usePerses';
+import { alphanumericCompare } from './utils';
+import { usePerses } from '../hooks/usePerses';
 
 export const NoResults: React.FC<{
   onClear: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
@@ -108,9 +108,8 @@ const ProjectMenu: React.FC<{
   setOpen: (isOpen: boolean) => void;
   onSelect: (event: React.MouseEvent, itemId: string) => void;
   selected?: string;
-  legacyDashboardsTitle: string;
   menuRef: React.MutableRefObject<HTMLDivElement>;
-}> = ({ setOpen, onSelect, selected, legacyDashboardsTitle, menuRef }) => {
+}> = ({ setOpen, onSelect, selected, menuRef }) => {
   const filterRef = React.useRef(null);
 
   const [filterText, setFilterText] = React.useState('');
@@ -123,14 +122,13 @@ const ProjectMenu: React.FC<{
       return { title: item?.spec?.display?.name ?? name, key: name };
     });
 
-    if (!items.some((option) => option.key === selected) && selected !== LEGACY_DASHBOARDS_KEY) {
+    if (!items.some((option) => option.key === selected)) {
       items.push({ title: selected, key: selected }); // Add current project if it isn't included
     }
     items.sort((a, b) => alphanumericCompare(a.title, b.title));
 
-    items.unshift({ title: legacyDashboardsTitle, key: LEGACY_DASHBOARDS_KEY });
     return items;
-  }, [legacyDashboardsTitle, persesProjects, selected]);
+  }, [persesProjects, selected]);
 
   const isOptionShown = React.useCallback(
     (option) => {
@@ -194,7 +192,6 @@ const ProjectDropdown: React.FC<ProjectDropdownProps> = ({
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const menuRef = React.useRef(null);
   const [isOpen, setOpen] = React.useState(false);
-  const legacyDashboardsTitle = t('Legacy Dashboards');
   const { persesProjectsError, persesProjectsLoading, persesProjects } = usePerses();
 
   // const title = selected === LEGACY_DASHBOARDS_KEY ? legacyDashboardsTitle : selected;
@@ -203,7 +200,6 @@ const ProjectDropdown: React.FC<ProjectDropdownProps> = ({
     setOpen,
     onSelect,
     selected,
-    legacyDashboardsTitle,
     menuRef,
   };
 
@@ -211,15 +207,10 @@ const ProjectDropdown: React.FC<ProjectDropdownProps> = ({
     return null;
   }
 
-  let title: string;
-  if (selected === LEGACY_DASHBOARDS_KEY) {
-    title = legacyDashboardsTitle;
-  } else {
-    const selectedProject = persesProjects.find(
-      (persesProject) => persesProject.metadata.name === selected,
-    );
-    title = selectedProject ? selectedProject.spec?.display?.name : legacyDashboardsTitle;
-  }
+  const selectedProject = persesProjects.find(
+    (persesProject) => persesProject.metadata.name === selected,
+  );
+  const title = selectedProject?.spec?.display?.name ?? t('Dashboards');
 
   return (
     <div className="co-project-dropdown">
