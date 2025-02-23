@@ -50,9 +50,39 @@
       },
       "properties": {
         "id": "perses-dashboards",
-        "name": "%plugin__monitoring-plugin~Perses Dashboards%",
+        "name": "%plugin__monitoring-console-plugin~Dashboards (Perses)%",
         "href": "/monitoring/v2/dashboards",
         "perspective": "admin",
+        "section": "observe",
+        "insertAfter": "dashboards"
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/1",
+    "value": {
+      "type": "console.page/route",
+      "properties": {
+        "exact": false,
+        "path": ["/virt-monitoring/v2/dashboards"],
+        "component": { "$codeRef": "MonitoringRouter" }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/1",
+    "value": {
+      "type": "console.navigation/href",
+      "flags": {
+        "required": ["PROMETHEUS", "MONITORING", "CAN_GET_NS"]
+      },
+      "properties": {
+        "id": "perses-dashboards",
+        "name": "%plugin__monitoring-console-plugin~Dashboards (Perses)%",
+        "href": "/virt-monitoring/v2/dashboards",
+        "perspective": "virtualization-perspective",
         "section": "observe",
         "insertAfter": "dashboards"
       }
