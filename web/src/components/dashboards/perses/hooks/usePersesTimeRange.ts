@@ -1,4 +1,4 @@
-import { DurationString, TimeRangeValue } from '@perses-dev/core';
+import { DEFAULT_DASHBOARD_DURATION, DurationString, TimeRangeValue } from '@perses-dev/core';
 import { NumberParam, useQueryParam } from 'use-query-params';
 import { QueryParams } from '../../../query-params';
 
@@ -8,7 +8,7 @@ export const usePersesTimeRange = (): TimeRangeValue => {
 
   if (!timeRange) {
     return {
-      pastDuration: '' as DurationString,
+      pastDuration: DEFAULT_DASHBOARD_DURATION,
     };
   }
 

@@ -4,7 +4,6 @@ import { formatPrometheusDuration, parsePrometheusDuration } from '../../console
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { removeQueryArgument, setQueryArgument } from '../../console/utils/router';
 import {
   dashboardsSetEndTime,
   dashboardsSetPollInterval,
@@ -42,7 +41,7 @@ const TimespanDropdown: React.FC = () => {
   );
 
   const [timeRangeFromParams, setTimeRange] = useQueryParam(QueryParams.TimeRange, NumberParam);
-  const [endTimeFromParams] = useQueryParam(QueryParams.EndTime, NumberParam);
+  const [endTimeFromParams, setEndTime] = useQueryParam(QueryParams.EndTime, NumberParam);
 
   const selectedKey =
     endTime || endTimeFromParams
@@ -56,14 +55,14 @@ const TimespanDropdown: React.FC = () => {
         setModalOpen();
       } else {
         setTimeRange(parsePrometheusDuration(v));
-        removeQueryArgument(QueryParams.EndTime);
+        setEndTime(undefined);
         if (!isPerses) {
           dispatch(dashboardsSetTimespan(parsePrometheusDuration(v), perspective));
           dispatch(dashboardsSetEndTime(null, perspective));
         }
       }
     },
-    [setModalOpen, dispatch, perspective, setTimeRange, isPerses],
+    [setModalOpen, dispatch, perspective, setTimeRange, setEndTime, isPerses],
   );
 
   const initialOptions = React.useMemo<SimpleSelectOption[]>(() => {
@@ -84,11 +83,11 @@ const TimespanDropdown: React.FC = () => {
 
     // If selectedKey is empty, the dashboard has changed. Reset selected to default value.
     if (selectedKey === '' || (selectedKey === DEFAULT_TIMERANGE && !timeRangeFromParams)) {
-      setQueryArgument(QueryParams.TimeRange, DEFAULT_TIMERANGE);
-      removeQueryArgument(QueryParams.EndTime);
+      setTimeRange(parsePrometheusDuration(DEFAULT_TIMERANGE));
+      setEndTime(undefined);
     }
     return intervalOptions.map((o) => ({ ...o, selected: o.value === selectedKey }));
-  }, [selectedKey, t, timeRangeFromParams]);
+  }, [selectedKey, t, timeRangeFromParams, setTimeRange, setEndTime]);
 
   const defaultTimerange = (isPerses ? timeRangeFromParams : timespan) ?? undefined;
   const defaultEndTime = (isPerses ? endTimeFromParams : endTime) ?? undefined;
@@ -143,13 +142,13 @@ const PollIntervalDropdown: React.FC = () => {
       if (v) {
         setSelectedInterval(v);
       } else {
-        removeQueryArgument(QueryParams.RefreshInterval);
+        setRefreshInterval(undefined);
       }
       if (!isPerses) {
         dispatch(dashboardsSetPollInterval(v, perspective));
       }
     },
-    [dispatch, perspective, isPerses],
+    [dispatch, perspective, isPerses, setRefreshInterval],
   );
 
   React.useEffect(() => {

@@ -5,7 +5,6 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as React from 'react';
 import { ProjectModel } from '../../../console/models';
-import { setQueryArgument } from '../../../console/utils/router';
 import { usePerspective } from '../../../hooks/usePerspective';
 import { usePerses } from '../hooks/usePerses';
 import { QueryParams } from '../../../query-params';
@@ -16,7 +15,7 @@ export const useActiveProject = () => {
   const [activeNamespace, setActiveNamespace] = useActiveNamespace();
   const { perspective } = usePerspective();
   const { persesProjects, persesProjectsLoading } = usePerses();
-  const [projectFromUrl] = useQueryParam(QueryParams.Project, StringParam);
+  const [projectFromUrl, setProject] = useQueryParam(QueryParams.Project, StringParam);
   const [namespaces, namespacesLoaded] = useK8sWatchResource<K8sResourceKind[]>({
     isList: true,
     kind: ProjectModel.kind,
@@ -41,11 +40,18 @@ export const useActiveProject = () => {
     }
     if (perspective !== 'dev') {
       // If the url and the data is out of sync, follow the data
-      setQueryArgument(QueryParams.Project, activeProject);
+      setProject(activeProject);
       // Don't set project in dev perspective since perses dashboards
       // aren't supported there yet
     }
-  }, [projectFromUrl, activeProject, perspective, persesProjects, persesProjectsLoading]);
+  }, [
+    projectFromUrl,
+    activeProject,
+    perspective,
+    persesProjects,
+    persesProjectsLoading,
+    setProject,
+  ]);
 
   // Sync the activeProject and activeNamespace changes
   React.useEffect(() => {

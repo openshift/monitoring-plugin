@@ -14,9 +14,9 @@ import {
 
 import { dashboardsSetEndTime, dashboardsSetTimespan, Perspective } from '../../../actions/observe';
 
-import { setQueryArguments } from '../../console/utils/router';
 import { QueryParams } from '../../query-params';
 import { useIsPerses } from './useIsPerses';
+import { NumberParam, useQueryParam } from 'use-query-params';
 
 const zeroPad = (number: number) => (number < 10 ? `0${number}` : number);
 
@@ -49,6 +49,8 @@ const CustomTimeRangeModal: React.FC<CustomTimeRangeModalProps> = ({
 }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const isPerses = useIsPerses();
+  const [, setEndTime] = useQueryParam(QueryParams.EndTime, NumberParam);
+  const [, setTimeRange] = useQueryParam(QueryParams.TimeRange, NumberParam);
 
   const dispatch = useDispatch();
 
@@ -73,10 +75,8 @@ const CustomTimeRangeModal: React.FC<CustomTimeRangeModalProps> = ({
         dispatch(dashboardsSetEndTime(to, perspective));
         dispatch(dashboardsSetTimespan(to - from, perspective));
       }
-      setQueryArguments({
-        [QueryParams.EndTime]: to.toString(),
-        [QueryParams.TimeRange]: (to - from).toString(),
-      });
+      setEndTime(Number(to.toString()));
+      setTimeRange(Number((to - from).toString()));
       setClosed();
     }
   };
