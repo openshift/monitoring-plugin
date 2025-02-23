@@ -1,7 +1,7 @@
 import * as _ from 'lodash-es';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import {
   Button,
   DatePicker,
@@ -15,9 +15,8 @@ import {
 import { dashboardsSetEndTime, dashboardsSetTimespan, Perspective } from '../../../actions/observe';
 
 import { setQueryArguments } from '../../console/utils/router';
-import { MonitoringState } from '../../../reducers/observe';
-import { getLegacyObserveState } from '../../hooks/usePerspective';
 import { QueryParams } from '../../query-params';
+import { useIsPerses } from './useIsPerses';
 
 const zeroPad = (number: number) => (number < 10 ? `0${number}` : number);
 
@@ -37,22 +36,21 @@ type CustomTimeRangeModalProps = {
   perspective: Perspective;
   isOpen: boolean;
   setClosed: () => void;
+  timespan?: number;
+  endTime?: number;
 };
 
 const CustomTimeRangeModal: React.FC<CustomTimeRangeModalProps> = ({
   perspective,
   isOpen,
   setClosed,
+  timespan,
+  endTime,
 }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const isPerses = useIsPerses();
 
   const dispatch = useDispatch();
-  const endTime = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'endTime']),
-  );
-  const timespan = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'timespan']),
-  );
 
   // If a time is already set in Redux, default to that, otherwise default to a time range that
   // covers all of today
@@ -71,8 +69,10 @@ const CustomTimeRangeModal: React.FC<CustomTimeRangeModalProps> = ({
     const from = Date.parse(`${fromDate} ${fromTime}`);
     const to = Date.parse(`${toDate} ${toTime}`);
     if (_.isInteger(from) && _.isInteger(to)) {
-      dispatch(dashboardsSetEndTime(to, perspective));
-      dispatch(dashboardsSetTimespan(to - from, perspective));
+      if (!isPerses) {
+        dispatch(dashboardsSetEndTime(to, perspective));
+        dispatch(dashboardsSetTimespan(to - from, perspective));
+      }
       setQueryArguments({
         [QueryParams.EndTime]: to.toString(),
         [QueryParams.TimeRange]: (to - from).toString(),

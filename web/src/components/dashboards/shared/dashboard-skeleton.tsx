@@ -2,15 +2,14 @@ import * as _ from 'lodash-es';
 import * as React from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
 
-import { getObserveState, usePerspective } from '../../hooks/usePerspective';
+import { usePerspective } from '../../hooks/usePerspective';
 import { DashboardDropdown } from './dashboard-dropdown';
-import { MonitoringState } from '../../../reducers/observe';
 import { LegacyDashboardsAllVariableDropdowns } from '../legacy/legacy-variable-dropdowns';
 import { TimeDropdowns } from './time-dropdowns';
 import { CombinedDashboardMetadata } from '../perses/hooks/useDashboardsData';
 import { AllVariableDropdowns } from '../perses/variable-dropdowns';
+import { useIsPerses } from './useIsPerses';
 
 const HeaderTop: React.FC = React.memo(() => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -28,21 +27,19 @@ const HeaderTop: React.FC = React.memo(() => {
 type MonitoringDashboardsPageProps = React.PropsWithChildren<{
   boardItems: CombinedDashboardMetadata[];
   changeBoard: (dashboardName: string) => void;
-  isPerses: boolean; // leave default as truthy so removal doesn't change component default behavior
+  dashboardName: string;
 }>;
 
 const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = ({
   children,
   boardItems,
   changeBoard,
-  isPerses,
+  dashboardName,
 }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const isPerses = useIsPerses();
 
   const { perspective } = usePerspective();
-  const dashboardName = useSelector((state: MonitoringState) =>
-    getObserveState(perspective, state)?.getIn(['dashboards', perspective, 'name']),
-  );
 
   return (
     <>

@@ -1,32 +1,17 @@
 import * as React from 'react';
-import * as _ from 'lodash-es';
 
 import { usePerses } from './usePerses';
-import { MonitoringState } from '../../../../reducers/observe';
-import { getDashboardsUrl, getObserveState, usePerspective } from '../../../hooks/usePerspective';
-import { useSelector, useDispatch } from 'react-redux';
-import {
-  DashboardsClearVariables,
-  dashboardsPatchAllVariables,
-  dashboardsSetEndTime,
-  dashboardsSetName,
-  dashboardsSetPollInterval,
-  dashboardsSetTimespan,
-  queryBrowserDeleteAllQueries,
-} from '../../../../actions/observe';
+import { getDashboardsUrl, usePerspective } from '../../../hooks/usePerspective';
 import { getAllQueryArguments } from '../../../console/utils/router';
-import { MONITORING_DASHBOARDS_DEFAULT_TIMESPAN } from '../../shared/utils';
-import { DashboardResource, VariableDefinition } from '@perses-dev/core';
 import { useHistory } from 'react-router';
 import { useActiveProject } from '../project/useActiveProject';
 import { useBoolean } from '../../../hooks/useBoolean';
-import { Map as ImmutableMap } from 'immutable';
 import { QueryParams } from '../../../query-params';
+import { StringParam, useQueryParam } from 'use-query-params';
 
 // This hook syncs with mutliple external API's, redux, and URL state. Its a lot, but needs to all
 // be in a single location
-export const useDashboardsData = (urlBoard: string) => {
-  const dispatch = useDispatch();
+export const useDashboardsData = () => {
   const history = useHistory();
   const { perspective } = usePerspective();
   const { activeProject, setActiveProject } = useActiveProject();
@@ -39,11 +24,7 @@ export const useDashboardsData = (urlBoard: string) => {
   const { persesProjects, persesProjectsLoading, persesDashboards, persesDashboardsLoading } =
     usePerses();
   const persesAvailable = !persesProjectsLoading && persesProjects;
-
-  // Retrieve selected dashboard name in store to sync with
-  const dashboardName = useSelector((state: MonitoringState) =>
-    getObserveState(perspective, state)?.getIn(['dashboards', perspective, 'name']),
-  );
+  const [dashboardName] = useQueryParam(QueryParams.Dashboard, StringParam);
 
   // Determine when to stop having the full page loader be used
   const combinedIntialLoad = React.useMemo(() => {
@@ -56,15 +37,6 @@ export const useDashboardsData = (urlBoard: string) => {
     }
     return true;
   }, [persesProjectsLoading, persesDashboardsLoading, initialPageLoad, setInitialPageLoadFalse]);
-
-  // Clear queries on unmount
-  React.useEffect(() => () => dispatch(queryBrowserDeleteAllQueries()), [dispatch]);
-
-  // Clear variables on unmount
-  React.useEffect(
-    () => () => dispatch(DashboardsClearVariables(perspective)),
-    [perspective, dispatch],
-  );
 
   // Homogenize data needed for dashboards dropdown between legacy and perses dashboards
   // to enable both to use the same component
@@ -100,42 +72,19 @@ export const useDashboardsData = (urlBoard: string) => {
         return;
       }
       const queryArguments = getAllQueryArguments();
-      const timeSpan = queryArguments[QueryParams.TimeRange] ?? '';
-      const endTime = queryArguments[QueryParams.EndTime] ?? '';
-      const refreshInterval = queryArguments[QueryParams.RefreshInterval] ?? '';
-      const dashboard = queryArguments[QueryParams.Dashboard] ?? '';
 
       const params = new URLSearchParams(queryArguments);
-      params.append(QueryParams.Project, activeProject);
+      params.set(QueryParams.Project, activeProject);
+      params.set(QueryParams.Dashboard, newBoard);
 
-      let url = getDashboardsUrl(perspective, newBoard);
+      let url = getDashboardsUrl(perspective);
       url = `${url}?${params.toString()}`;
 
       if (newBoard !== dashboardName) {
-        if (dashboard !== newBoard) {
-          history.replace(url);
-        }
-
-        const allVariables = getPersesVariables(persesDashboards, newBoard);
-        dispatch(dashboardsPatchAllVariables(allVariables, perspective));
-
-        // Set time range and poll interval options to their defaults or from the query params if
-        // available
-        if (refreshInterval) {
-          dispatch(dashboardsSetPollInterval(_.toNumber(refreshInterval), perspective));
-        }
-        dispatch(dashboardsSetEndTime(_.toNumber(endTime) || null, perspective));
-        dispatch(
-          dashboardsSetTimespan(
-            _.toNumber(timeSpan) || MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
-            perspective,
-          ),
-        );
-
-        dispatch(dashboardsSetName(newBoard, perspective));
+        history.replace(url);
       }
     },
-    [perspective, dashboardName, dispatch, history, activeProject, persesDashboards],
+    [perspective, dashboardName, history, activeProject],
   );
 
   // If a dashboard hasn't been selected yet, or if the current project doesn't have a
@@ -151,7 +100,7 @@ export const useDashboardsData = (urlBoard: string) => {
     if (!dashboardName || !metadataMatch) {
       changeBoard(activeProjectDashboardsMetadata?.[0]?.name);
     }
-  }, [dashboardName, changeBoard, urlBoard, activeProject, activeProjectDashboardsMetadata]);
+  }, [dashboardName, changeBoard, activeProject, activeProjectDashboardsMetadata]);
 
   return {
     persesAvailable,
@@ -164,20 +113,6 @@ export const useDashboardsData = (urlBoard: string) => {
     setActiveProject,
     activeProject,
   };
-};
-
-const getPersesVariables = (boards: DashboardResource[], newDashboardName: string) => {
-  const newDashboard = _.find(boards, { spec: { name: newDashboardName } });
-
-  const allVariables = ImmutableMap<VariableDefinition>({});
-  _.each(newDashboard?.spec?.variables, (variable) => {
-    // if (variable.kind === 'ListVariable') {
-    //   variable.spec.
-    // }
-    allVariables.set(variable.spec.name, variable);
-  });
-
-  return allVariables;
 };
 
 export type CombinedDashboardMetadata = {

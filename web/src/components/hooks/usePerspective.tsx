@@ -10,6 +10,15 @@ import {
 } from '../console/graphs/helpers';
 import { MonitoringState } from '../../reducers/observe';
 
+export type UrlRoot = 'monitoring' | 'dev-monitoring' | 'multicloud/monitoring' | 'virt-monitoring';
+
+const enum UrlRecord {
+  admin = 'monitoring',
+  dev = 'dev-monitoring',
+  'virtualization-perspective' = 'virt-monitoring',
+  acm = 'multicloud/monitoring',
+}
+
 type usePerspectiveReturn = {
   perspective: Perspective;
   rulesKey: rulesKey;
@@ -20,6 +29,7 @@ type usePerspectiveReturn = {
     | 'observe-alerting'
     | 'acm-observe-alerting'
     | 'virt-observe-alerting';
+  urlRoot: UrlRoot;
   defaultAlertTenant: Array<AlertSource>;
 };
 
@@ -34,6 +44,7 @@ export const usePerspective = (): usePerspectiveReturn => {
         alertsKey: 'devAlerts',
         silencesKey: 'devSilences',
         alertingContextId: 'dev-observe-alerting',
+        urlRoot: UrlRecord.dev,
         defaultAlertTenant: [AlertSource.User],
       };
     case 'admin':
@@ -43,6 +54,7 @@ export const usePerspective = (): usePerspectiveReturn => {
         alertsKey: 'alerts',
         silencesKey: 'silences',
         alertingContextId: 'observe-alerting',
+        urlRoot: UrlRecord.admin,
         defaultAlertTenant: [AlertSource.Platform],
       };
     case 'virtualization-perspective':
@@ -52,6 +64,7 @@ export const usePerspective = (): usePerspectiveReturn => {
         alertsKey: 'virtAlerts',
         silencesKey: 'virtSilences',
         alertingContextId: 'virt-observe-alerting',
+        urlRoot: UrlRecord['virtualization-perspective'],
         defaultAlertTenant: [AlertSource.Platform],
       };
     default:
@@ -61,6 +74,7 @@ export const usePerspective = (): usePerspectiveReturn => {
         alertsKey: 'acmAlerts',
         silencesKey: 'acmSilences',
         alertingContextId: 'acm-observe-alerting',
+        urlRoot: UrlRecord.acm,
         defaultAlertTenant: [],
       };
   }
@@ -341,14 +355,14 @@ export const getLegacyDashboardsUrl = (
   }
 };
 
-export const getDashboardsUrl = (perspective: Perspective, boardName: string) => {
+export const getDashboardsUrl = (perspective: Perspective) => {
   switch (perspective) {
     case 'virtualization-perspective':
-      return `/virt-monitoring/perses-dashboards/${boardName}`;
+      return `/virt-monitoring/v2/dashboards`;
     case 'admin':
-      return `/monitoring/perses-dashboards/${boardName}`;
+      return `/monitoring/v2/dashboards`;
     case 'acm':
-      return `/multicloud/monitoring/perses-dashboards/${boardName}`;
+      return `/multicloud/monitoring/v2/dashboards`;
     default:
       return '';
   }

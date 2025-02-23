@@ -1,19 +1,14 @@
 import * as React from 'react';
 import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';
-import { useSelector, useDispatch } from 'react-redux';
+import { useDispatch } from 'react-redux';
 
 import { useSafeFetch } from '../../console/utils/safe-fetch-hook';
 
 import { useBoolean } from '../../hooks/useBoolean';
 import { Board } from './types';
 
-import { MonitoringState } from '../../../reducers/observe';
-import {
-  getLegacyDashboardsUrl,
-  getObserveState,
-  usePerspective,
-} from '../../hooks/usePerspective';
+import { getLegacyDashboardsUrl, usePerspective } from '../../hooks/usePerspective';
 import { getQueryArgument } from '../../console/utils/router';
 import {
   MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
@@ -23,7 +18,6 @@ import {
   DashboardsClearVariables,
   dashboardsPatchAllVariables,
   dashboardsSetEndTime,
-  dashboardsSetName,
   dashboardsSetPollInterval,
   dashboardsSetTimespan,
 } from '../../../actions/observe';
@@ -43,10 +37,6 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
   const [legacyDashboardsLoading, , , setLegacyDashboardsLoaded] = useBoolean(true);
   const dispatch = useDispatch();
   const history = useHistory();
-  // Retrieve selected dashboard name in store to sync with
-  const dashboardName = useSelector((state: MonitoringState) =>
-    getObserveState(perspective, state)?.getIn(['dashboards', perspective, 'name']),
-  );
 
   React.useEffect(() => {
     safeFetch('/api/console/monitoring-dashboard-config')
@@ -87,7 +77,7 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
   }, [namespace, safeFetch, setLegacyDashboardsLoaded, t]);
 
   const legacyRows = React.useMemo(() => {
-    const data = _.find(legacyDashboards, { name: dashboardName })?.data;
+    const data = _.find(legacyDashboards, { name: urlBoard })?.data;
 
     return data?.rows?.length
       ? data.rows
@@ -105,7 +95,7 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
           }
           return acc;
         }, []);
-  }, [dashboardName, legacyDashboards]);
+  }, [urlBoard, legacyDashboards]);
 
   React.useEffect(() => {
     // Dashboard query argument is only set in dev perspective, so skip for admin
@@ -145,7 +135,7 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
 
       const refreshInterval = getQueryArgument(QueryParams.RefreshInterval);
 
-      if (dashboardName) {
+      if (urlBoard) {
         timeSpan = null;
         endTime = null;
         // persist only the refresh Interval when dashboard is changed
@@ -157,7 +147,7 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
         timeSpan = getQueryArgument(QueryParams.TimeRange);
         endTime = getQueryArgument(QueryParams.EndTime);
       }
-      if (newBoard !== dashboardName) {
+      if (newBoard !== urlBoard) {
         if (getQueryArgument(QueryParams.Dashboard) !== newBoard) {
           history.replace(url);
         }
@@ -177,23 +167,21 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
             perspective,
           ),
         );
-
-        dispatch(dashboardsSetName(newBoard, perspective));
       }
     },
-    [perspective, dashboardName, dispatch, history, namespace, legacyDashboards],
+    [perspective, urlBoard, dispatch, history, namespace, legacyDashboards],
   );
 
   React.useEffect(() => {
     if (
-      (!dashboardName ||
-        !legacyDashboards.some((legacyDashboard) => legacyDashboard.name === dashboardName)) &&
+      (!urlBoard ||
+        !legacyDashboards.some((legacyDashboard) => legacyDashboard.name === urlBoard)) &&
       !_.isEmpty(legacyDashboards)
     ) {
       const boardName = getQueryArgument(QueryParams.Dashboard);
       changeLegacyDashboard((namespace ? boardName : urlBoard) || legacyDashboards?.[0]?.name);
     }
-  }, [dashboardName, legacyDashboards, changeLegacyDashboard, urlBoard, namespace]);
+  }, [urlBoard, legacyDashboards, changeLegacyDashboard, namespace]);
 
   // Clear variables on unmount
   React.useEffect(
@@ -207,7 +195,6 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
     legacyDashboardsError,
     legacyRows,
     legacyDashboardsMetadata,
-    dashboardName,
     changeLegacyDashboard,
   };
 };

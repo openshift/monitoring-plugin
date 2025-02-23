@@ -6,7 +6,7 @@
       "type": "console.page/route",
       "properties": {
         "exact": false,
-        "path": ["/multicloud/monitoring/perses-dashboards"],
+        "path": ["/multicloud/monitoring/v2/dashboards"],
         "component": {
           "$codeRef": "MonitoringRouter"
         }
@@ -21,7 +21,7 @@
       "properties": {
         "id": "multicloud-dashboards",
         "name": "%plugin__monitoring-console-plugin~Dashboards%",
-        "href": "/multicloud/monitoring/perses-dashboards",
+        "href": "/multicloud/monitoring/v2/dashboards",
         "perspective": "acm",
         "section": "acm-observe",
         "insertAfter": "multicloud-alerting"
@@ -35,7 +35,7 @@
       "type": "console.page/route",
       "properties": {
         "exact": false,
-        "path": ["/monitoring/perses-dashboards"],
+        "path": ["/monitoring/v2/dashboards"],
         "component": { "$codeRef": "MonitoringRouter" }
       }
     }
@@ -51,7 +51,7 @@
       "properties": {
         "id": "perses-dashboards",
         "name": "%plugin__monitoring-plugin~Perses Dashboards%",
-        "href": "/monitoring/perses-dashboards",
+        "href": "/monitoring/v2/dashboards",
         "perspective": "admin",
         "section": "observe",
         "insertAfter": "dashboards"

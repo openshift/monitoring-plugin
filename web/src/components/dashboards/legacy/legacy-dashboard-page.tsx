@@ -11,6 +11,7 @@ import DashboardSkeleton from '../shared/dashboard-skeleton';
 import { usePerspective } from '../../hooks/usePerspective';
 import { useTranslation } from 'react-i18next';
 import { useLegacyDashboards } from './useLegacyDashboards';
+import { PersesContext } from '../../router';
 
 type MonitoringLegacyDashboardsPageProps = {
   urlBoard: string;
@@ -25,7 +26,6 @@ const MonitoringLegacyDashboardsPage_: React.FC<MonitoringLegacyDashboardsPagePr
     legacyDashboardsError,
     legacyRows,
     legacyDashboardsLoading,
-    dashboardName,
     legacyDashboardsMetadata,
     changeLegacyDashboard,
   } = useLegacyDashboards(namespace, urlBoard);
@@ -37,7 +37,7 @@ const MonitoringLegacyDashboardsPage_: React.FC<MonitoringLegacyDashboardsPagePr
       <DashboardSkeleton
         boardItems={legacyDashboardsMetadata}
         changeBoard={changeLegacyDashboard}
-        isPerses={false}
+        dashboardName={urlBoard}
       >
         <Overview>
           {legacyDashboardsLoading ? (
@@ -47,7 +47,7 @@ const MonitoringLegacyDashboardsPage_: React.FC<MonitoringLegacyDashboardsPagePr
               error={{ message: legacyDashboardsError, name: t('Error Loading Dashboards') }}
             />
           ) : (
-            <LegacyDashboard key={dashboardName} rows={legacyRows} perspective={perspective} />
+            <LegacyDashboard rows={legacyRows} perspective={perspective} />
           )}
         </Overview>
       </DashboardSkeleton>
@@ -64,10 +64,12 @@ const MonitoringLegacyDashboardsPageWrapper: React.FC<MonitoringLegacyDashboards
   match,
 }) => {
   return (
-    <MonitoringLegacyDashboardsPage_
-      urlBoard={match.params.dashboardName}
-      namespace={match.params?.ns}
-    />
+    <PersesContext.Provider value={false}>
+      <MonitoringLegacyDashboardsPage_
+        urlBoard={match.params.dashboardName}
+        namespace={match.params?.ns}
+      />
+    </PersesContext.Provider>
   );
 };
 
