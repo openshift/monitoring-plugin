@@ -22,7 +22,7 @@ export function ProjectEmptyState(): ReactElement {
           {t('No Perses Project Available')}
         </Title>
         <EmptyStateBody>
-          {t('To explore data, create a Preses Project')}
+          {t('To explore data, create a Perses Project')}
           <ExternalLink href={'https://github.com/perses/perses-operator'} />
         </EmptyStateBody>
       </EmptyState>
