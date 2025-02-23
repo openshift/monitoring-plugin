@@ -5,21 +5,21 @@ import { useTranslation } from 'react-i18next';
 
 type DropDownPollIntervalProps = {
   setInterval: (v: number) => void;
-  selectedInterval: string | undefined;
+  selectedInterval: number;
   id?: string;
 };
 
 export const DEFAULT_REFRESH_INTERVAL = parsePrometheusDuration('30s');
+const OFF_KEY = 'OFF_KEY';
 
 export const DropDownPollInterval: React.FunctionComponent<DropDownPollIntervalProps> = ({
   id,
   setInterval,
   selectedInterval,
 }) => {
-  const OFF_KEY = 'OFF_KEY';
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
-  const selectedKey = formatPrometheusDuration(Number(selectedInterval));
+  const selectedKey = selectedInterval ? formatPrometheusDuration(selectedInterval) : OFF_KEY;
 
   const initialOptions = React.useMemo<SimpleSelectOption[]>(() => {
     const intervalOptions: SimpleSelectOption[] = [
@@ -38,12 +38,6 @@ export const DropDownPollInterval: React.FunctionComponent<DropDownPollIntervalP
   const onSelect = (_ev, selection) => {
     setInterval(parsePrometheusDuration(String(selection)));
   };
-
-  React.useEffect(() => {
-    if (!selectedInterval) {
-      setInterval(DEFAULT_REFRESH_INTERVAL);
-    }
-  }, [selectedInterval, setInterval]);
 
   return (
     <SimpleSelect

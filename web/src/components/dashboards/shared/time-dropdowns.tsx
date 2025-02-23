@@ -129,33 +129,23 @@ const PollIntervalDropdown: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
   const isPerses = useIsPerses();
-  const [selectedInterval, setSelectedInterval] = React.useState(null);
+  const [selectedInterval, setSelectedInterval] = React.useState(
+    isPerses ? 0 : DEFAULT_REFRESH_INTERVAL,
+  );
 
   const dispatch = useDispatch();
-  const [refreshInterval, setRefreshInterval] = useQueryParam(
-    QueryParams.RefreshInterval,
-    NumberParam,
-  );
+  const [, setRefreshInterval] = useQueryParam(QueryParams.RefreshInterval, NumberParam);
 
   const setInterval = React.useCallback(
     (v: number) => {
-      if (v) {
-        setSelectedInterval(v);
-      } else {
-        setRefreshInterval(undefined);
-      }
+      setSelectedInterval(v);
+      setRefreshInterval(v);
       if (!isPerses) {
         dispatch(dashboardsSetPollInterval(v, perspective));
       }
     },
     [dispatch, perspective, isPerses, setRefreshInterval],
   );
-
-  React.useEffect(() => {
-    if (!refreshInterval) {
-      setRefreshInterval(DEFAULT_REFRESH_INTERVAL);
-    }
-  }, [refreshInterval, setRefreshInterval]);
 
   return (
     <div className="form-group monitoring-dashboards__dropdown-wrap">
