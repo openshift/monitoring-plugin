@@ -275,6 +275,11 @@ const IncidentsPage = () => {
       <Helmet>
         <title>{title}</title>
       </Helmet>
+      <div className="co-m-nav-title">
+        <h1 className="co-m-pane__heading">
+          <span>{t('Incidents')}</span>
+        </h1>
+      </div>
       {alertsAreLoading && incidentsAreLoading ? (
         <Bullseye>
           <Spinner aria-label="incidents-chart-spinner" />
