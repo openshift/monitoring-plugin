@@ -1,6 +1,6 @@
 import * as React from 'react';
+import { useDispatch } from 'react-redux';
 import { PrometheusEndpoint, PrometheusRulesResponse } from '@openshift-console/dynamic-plugin-sdk';
-import { Dispatch } from 'redux';
 import { getPrometheusURL } from '../console/graphs/helpers';
 import {
   alertingErrored,
@@ -18,13 +18,14 @@ const pollers = {};
 
 export const useRulesAlertsPoller = (
   namespace: string,
-  dispatch: Dispatch,
   alertsSource: {
     id: string;
     getAlertingRules: (namespace?: string) => Promise<PrometheusRulesResponse>;
   }[],
 ) => {
   const { perspective, rulesKey, alertsKey } = usePerspective();
+  const dispatch = useDispatch();
+
   React.useEffect(() => {
     dispatch(alertingLoading(alertsKey, perspective));
     const url = getPrometheusURL(
