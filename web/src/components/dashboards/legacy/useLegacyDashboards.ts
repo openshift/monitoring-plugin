@@ -35,6 +35,7 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
   const [legacyDashboards, setLegacyDashboards] = React.useState<Board[]>([]);
   const [legacyDashboardsError, setLegacyDashboardsError] = React.useState<string>();
   const [legacyDashboardsLoading, , , setLegacyDashboardsLoaded] = useBoolean(true);
+  const [initialLoad, , , setInitialLoaded] = useBoolean(true);
   const dispatch = useDispatch();
   const history = useHistory();
 
@@ -147,7 +148,7 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
         timeSpan = getQueryArgument(QueryParams.TimeRange);
         endTime = getQueryArgument(QueryParams.EndTime);
       }
-      if (newBoard !== urlBoard) {
+      if (newBoard !== urlBoard || initialLoad) {
         if (getQueryArgument(QueryParams.Dashboard) !== newBoard) {
           history.replace(url);
         }
@@ -169,19 +170,21 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
         );
       }
     },
-    [perspective, urlBoard, dispatch, history, namespace, legacyDashboards],
+    [perspective, urlBoard, dispatch, history, namespace, legacyDashboards, initialLoad],
   );
 
   React.useEffect(() => {
     if (
       (!urlBoard ||
-        !legacyDashboards.some((legacyDashboard) => legacyDashboard.name === urlBoard)) &&
+        !legacyDashboards.some((legacyDashboard) => legacyDashboard.name === urlBoard) ||
+        initialLoad) &&
       !_.isEmpty(legacyDashboards)
     ) {
       const boardName = getQueryArgument(QueryParams.Dashboard);
       changeLegacyDashboard((namespace ? boardName : urlBoard) || legacyDashboards?.[0]?.name);
+      setInitialLoaded();
     }
-  }, [urlBoard, legacyDashboards, changeLegacyDashboard, namespace]);
+  }, [urlBoard, legacyDashboards, changeLegacyDashboard, namespace, initialLoad, setInitialLoaded]);
 
   // Clear variables on unmount
   React.useEffect(
