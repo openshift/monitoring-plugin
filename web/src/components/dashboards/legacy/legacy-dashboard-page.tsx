@@ -28,6 +28,7 @@ const MonitoringLegacyDashboardsPage_: React.FC<MonitoringLegacyDashboardsPagePr
     legacyDashboardsLoading,
     legacyDashboardsMetadata,
     changeLegacyDashboard,
+    legacyDashboard,
   } = useLegacyDashboards(namespace, urlBoard);
   const { perspective } = usePerspective();
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -37,7 +38,7 @@ const MonitoringLegacyDashboardsPage_: React.FC<MonitoringLegacyDashboardsPagePr
       <DashboardSkeleton
         boardItems={legacyDashboardsMetadata}
         changeBoard={changeLegacyDashboard}
-        dashboardName={urlBoard}
+        dashboardName={legacyDashboard}
       >
         <Overview>
           {legacyDashboardsLoading ? (
