@@ -110,11 +110,12 @@ make build-mcp-image
 
 Feature flags are used by the mcp mode to dictate the specific features which are enabled when the server starts up. Feature flags should be added to the Feature enum [here](pkg/server.go) and to the useFeature hook [here](web/src/components/hooks/useFeatures.ts). When any feature flag is enabled the default extension points are overridden, including a new monitoring-console-plugin exclusive redux store and all extension points for the flags. These feature extension points are created through the use of [json-patches](https://datatracker.ietf.org/doc/html/rfc6902), such as the `acm-alerting` patch [here](config/acm-alerting.patch.json). The server looks for a patch in the format of `{feature-flag-name}.patch.json` to apply.
 
-| Feature      | OCP Version |
-|--------------|-------------|
-| acm-alerting | 4.14+       |
-| incidents    | 4.17+       |
-| dev-config   |             |
+| Feature           | OCP Version |
+|-------------------|-------------|
+| acm-alerting      | 4.14+       |
+| perses-dashboards | 4.14+       |
+| incidents         | 4.17+       |
+| dev-config        |             |
 
 #### ACM
 
@@ -153,4 +154,4 @@ $ make start-feature-backend
 $ make start-feature-console
 ```
 
-Features such as `acm-alerting` which take in extra parameters will need to run the `make start-feature-backend` command with the appropriate environment variables, such as `MONITORING_PLUGIN_ALERTMANAGER`.
+`make start-feature-backend` will inject the `perses-dashboards`, `incidents`, and `dev-config` features by default. Features such as `acm-alerting` which take in extra parameters will need to run the `make start-feature-backend` command with the appropriate environment variables, such as `MONITORING_PLUGIN_ALERTMANAGER`.

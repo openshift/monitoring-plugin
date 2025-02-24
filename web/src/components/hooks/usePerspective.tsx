@@ -323,7 +323,7 @@ export const getMutlipleQueryBrowserUrl = (
   }
 };
 
-export const getDashboardsUrl = (
+export const getLegacyDashboardsUrl = (
   perspective: Perspective,
   boardName: string,
   namespace?: string,
@@ -336,6 +336,19 @@ export const getDashboardsUrl = (
     case 'dev':
       return `/dev-monitoring/ns/${namespace}?dashboard=${boardName}`;
     case 'acm':
+    default:
+      return '';
+  }
+};
+
+export const getDashboardsUrl = (perspective: Perspective, boardName: string) => {
+  switch (perspective) {
+    case 'virtualization-perspective':
+      return `/virt-monitoring/perses-dashboards/${boardName}`;
+    case 'admin':
+      return `/monitoring/perses-dashboards/${boardName}`;
+    case 'acm':
+      return `/multicloud/monitoring/perses-dashboards/${boardName}`;
     default:
       return '';
   }

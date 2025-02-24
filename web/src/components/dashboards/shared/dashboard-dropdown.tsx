@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { SingleTypeaheadDropdown } from '../../console/utils/single-typeahead-dropdown';
-import { CombinedDashboardMetadata } from './useDashboardsData';
+import { CombinedDashboardMetadata } from '../perses/hooks/useDashboardsData';
 
 type TagColor = 'red' | 'purple' | 'blue' | 'green' | 'cyan' | 'orange';
 const tagColors: TagColor[] = ['red', 'purple', 'blue', 'green', 'cyan', 'orange'];
