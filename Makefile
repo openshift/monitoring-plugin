@@ -89,3 +89,10 @@ export FEATURES?=incidents,perses-dashboards,dev-config
 .PHONY: start-feature-backend
 start-feature-backend:
 	go run ./cmd/plugin-backend.go -port='9443' -config-path='./config' -static-path='./web/dist' -features='$(FEATURES)'
+
+export PLATFORMS ?= linux/arm64,linux/amd64
+.PHONY: mcp-podman-cross-build
+mcp-podman-cross-build:
+	podman manifest create ${IMAGE}
+	podman build --platform $(PLATFORMS) --manifest ${IMAGE} -f Dockerfile.mcp
+	podman manifest push ${IMAGE}
