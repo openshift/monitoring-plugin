@@ -1,5 +1,4 @@
 import React, { useMemo } from 'react';
-import { useSelector } from 'react-redux';
 import {
   ChartsProvider,
   ErrorBoundary,
@@ -39,11 +38,11 @@ import { LoadingInline } from '../../console/utils/status-box';
 import { usePatternFlyTheme } from './hooks/usePatternflyTheme';
 import { CachedDatasourceAPI } from './perses/datasource-api';
 import { OcpDatasourceApi } from './datasource-api';
-import { MonitoringState } from '../../../reducers/observe';
-import { getObserveState, usePerspective } from '../../hooks/usePerspective';
 import { useFetchPersesDashboard } from './perses-client';
 import { usePersesTimeRange } from './hooks/usePersesTimeRange';
 import { usePersesRefreshInterval } from './hooks/usePersesRefreshInterval';
+import { QueryParams } from '../../query-params';
+import { StringParam, useQueryParam } from 'use-query-params';
 
 // Override eChart defaults with PatternFly colors.
 const patternflyBlue300 = '#2b9af3';
@@ -82,10 +81,7 @@ interface PersesWrapperProps {
 
 export function PersesWrapper({ children, project }: PersesWrapperProps) {
   const { theme } = usePatternFlyTheme();
-  const { perspective } = usePerspective();
-  const dashboardName = useSelector((state: MonitoringState) =>
-    getObserveState(perspective, state)?.getIn(['dashboards', perspective, 'name']),
-  );
+  const [dashboardName] = useQueryParam(QueryParams.Dashboard, StringParam);
 
   const muiTheme = getTheme(theme, {
     typography: {

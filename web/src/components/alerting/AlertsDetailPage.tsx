@@ -8,7 +8,7 @@ import {
   usePerspective,
 } from '../hooks/usePerspective';
 import { Alerts } from '../types';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import * as _ from 'lodash-es';
 import { getAllQueryArguments } from '../console/utils/router';
 import { AlertResource, alertState, RuleResource } from '../utils';
@@ -25,12 +25,7 @@ import {
   VirtualizedTable,
   useActiveNamespace,
 } from '@openshift-console/dynamic-plugin-sdk';
-import {
-  AlertingRuleChartExtension,
-  AlertingRulesSourceExtension,
-  isAlertingRuleChart,
-  isAlertingRulesSource,
-} from '../console/extensions/alerts';
+import { AlertingRuleChartExtension, isAlertingRuleChart } from '../console/extensions/alerts';
 import { StatusBox } from '../console/utils/status-box';
 import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
 import { ExternalLink, LinkifyExternal } from '../console/utils/link';
@@ -75,14 +70,12 @@ import {
 } from '../console/models';
 import { Labels } from '../labels';
 import { SilenceTableRow, tableSilenceClasses } from './SilencesUtils';
-import { useRulesAlertsPoller } from '../hooks/useRulesAlertsPoller';
-import { useSilencesPoller } from '../hooks/useSilencesPoller';
 import { MonitoringState } from '../../reducers/observe';
 
 const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
-  const { alertsKey, alertingContextId, silencesKey, perspective } = usePerspective();
+  const { alertsKey, silencesKey, perspective } = usePerspective();
 
   const [namespace] = useActiveNamespace();
 
@@ -90,7 +83,6 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
     (state: MonitoringState) => !!getLegacyObserveState(perspective, state)?.get('hideGraphs'),
   );
 
-  const dispatch = useDispatch();
   const alerts: Alerts = useSelector((state: MonitoringState) =>
     getLegacyObserveState(perspective, state)?.get(alertsKey),
   );
@@ -127,20 +119,6 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
     .map((extension) => extension.properties.chart);
 
   const AlertsChart = alertsChart?.[0];
-
-  const [customExtensions] =
-    useResolvedExtensions<AlertingRulesSourceExtension>(isAlertingRulesSource);
-
-  const alertsSource = React.useMemo(
-    () =>
-      customExtensions
-        .filter((extension) => extension.properties.contextId === alertingContextId)
-        .map((extension) => extension.properties),
-    [customExtensions, alertingContextId],
-  );
-
-  useRulesAlertsPoller(namespace, dispatch, alertsSource);
-  useSilencesPoller({ namespace });
 
   return (
     <>

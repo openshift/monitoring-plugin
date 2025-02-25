@@ -14,6 +14,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useDashboardsData } from './hooks/useDashboardsData';
 import { ProjectEmptyState } from './emptystates/ProjectEmptyState';
 import { DashboardEmptyState } from './emptystates/DashboardEmptyState';
+import { PersesContext } from '../../router';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -24,18 +25,15 @@ const queryClient = new QueryClient({
   },
 });
 
-type MonitoringDashboardsPageProps = {
-  urlBoard: string;
-};
-
-const MonitoringDashboardsPage_: React.FC<MonitoringDashboardsPageProps> = ({ urlBoard }) => {
+const MonitoringDashboardsPage_: React.FC = () => {
   const {
     changeBoard,
     activeProjectDashboardsMetadata,
     combinedIntialLoad,
     activeProject,
     setActiveProject,
-  } = useDashboardsData(urlBoard);
+    dashboardName,
+  } = useDashboardsData();
 
   if (combinedIntialLoad) {
     return <LoadingInline />;
@@ -55,7 +53,7 @@ const MonitoringDashboardsPage_: React.FC<MonitoringDashboardsPageProps> = ({ ur
         <DashboardSkeleton
           boardItems={activeProjectDashboardsMetadata}
           changeBoard={changeBoard}
-          isPerses={true}
+          dashboardName={dashboardName}
         >
           <Overview>
             <PersesBoard />
@@ -66,12 +64,12 @@ const MonitoringDashboardsPage_: React.FC<MonitoringDashboardsPageProps> = ({ ur
   );
 };
 
-type MonitoringDashboardsWrapperProps = RouteComponentProps<{ dashboardName: string; ns?: string }>;
-
-const MonitoringDashboardsPageWrapper: React.FC<MonitoringDashboardsWrapperProps> = ({ match }) => {
+const MonitoringDashboardsPageWrapper: React.FC<RouteComponentProps> = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <MonitoringDashboardsPage_ urlBoard={match?.params?.dashboardName} />
+      <PersesContext.Provider value={true}>
+        <MonitoringDashboardsPage_ />
+      </PersesContext.Provider>
     </QueryClientProvider>
   );
 };

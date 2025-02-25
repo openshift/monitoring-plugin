@@ -1,13 +1,9 @@
-import { useSelector } from 'react-redux';
-import { getLegacyObserveState, usePerspective } from '../../../hooks/usePerspective';
-import { MonitoringState } from '../../../../reducers/observe';
 import { DurationString } from '@perses-dev/core';
+import { NumberParam, useQueryParam } from 'use-query-params';
+import { QueryParams } from '../../../query-params';
 
 export const usePersesRefreshInterval = (): DurationString | undefined => {
-  const { perspective } = usePerspective();
-  const pollInterval = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'pollInterval']),
-  );
+  const [refreshInterval] = useQueryParam(QueryParams.RefreshInterval, NumberParam);
 
-  return pollInterval ? (`${String(pollInterval)}ms` as DurationString) : undefined;
+  return refreshInterval ? (`${String(refreshInterval)}ms` as DurationString) : undefined;
 };

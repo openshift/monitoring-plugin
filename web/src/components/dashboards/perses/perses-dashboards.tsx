@@ -2,6 +2,7 @@ import React from 'react';
 import { combineSx } from '@perses-dev/components';
 import { Box } from '@mui/material';
 import { Dashboard } from '@perses-dev/dashboards';
+import { useTranslation } from 'react-i18next';
 
 /**
  * This component is what we use to integrate perses into the openshift console
@@ -13,6 +14,8 @@ import { Dashboard } from '@perses-dev/dashboards';
  */
 
 function PersesBoard() {
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
+
   return (
     <Box
       sx={combineSx(
@@ -27,7 +30,12 @@ function PersesBoard() {
       )}
     >
       <Box sx={{ paddingTop: 2, paddingX: 2, height: '100%', width: '100%' }}>
-        <Dashboard />
+        <Dashboard
+          emptyDashboardProps={{
+            title: t('Empty Dashboard'),
+            description: t('To get started add something to your dashboard'),
+          }}
+        />
       </Box>
     </Box>
   );

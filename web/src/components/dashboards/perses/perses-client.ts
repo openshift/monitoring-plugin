@@ -1,9 +1,8 @@
-import { useSelector } from 'react-redux';
 import { useQuery } from '@tanstack/react-query';
 import { getCSRFToken } from '../../proxied-fetch';
 import { DashboardResource, ProjectResource, fetchJson } from '@perses-dev/core';
-import { getLegacyObserveState, usePerspective } from '../../hooks/usePerspective';
-import { MonitoringState } from '../../../reducers/observe';
+import { NumberParam, useQueryParam } from 'use-query-params';
+import { QueryParams } from '../../query-params';
 
 const baseURL = '/api/proxy/plugin/monitoring-console-plugin/perses';
 
@@ -41,10 +40,7 @@ export const fetchPersesDashboard = async (
 };
 
 export const useFetchPersesDashboard = (project: string, dashboardName: string) => {
-  const { perspective } = usePerspective();
-  const pollInterval = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'pollInterval']),
-  );
+  const [refreshInterval] = useQueryParam(QueryParams.RefreshInterval, NumberParam);
 
   const {
     isLoading: persesDashboardLoading,
@@ -54,7 +50,7 @@ export const useFetchPersesDashboard = (project: string, dashboardName: string) 
     queryKey: ['dashboards', project, dashboardName],
     queryFn: () => fetchPersesDashboard(project, dashboardName),
     enabled: true,
-    refetchInterval: pollInterval,
+    refetchInterval: refreshInterval,
   });
 
   return {
