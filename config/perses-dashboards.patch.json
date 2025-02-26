@@ -79,12 +79,12 @@
         "required": ["PROMETHEUS", "MONITORING", "CAN_GET_NS"]
       },
       "properties": {
-        "id": "perses-dashboards",
+        "id": "virt-perses-dashboards",
         "name": "%plugin__monitoring-console-plugin~Dashboards (Perses)%",
         "href": "/virt-monitoring/v2/dashboards",
         "perspective": "virtualization-perspective",
-        "section": "observe",
-        "insertAfter": "dashboards"
+        "section": "observe-virt-perspective",
+        "insertAfter": "dashboards-virt"
       }
     }
   }
