@@ -160,7 +160,7 @@ export const isSilenced = (alert: Alert, silence: Silence): boolean =>
     return m.isEqual === false && alertValue ? !isMatch : isMatch;
   });
 
-type ListOrder = (number | string)[];
+export type ListOrder = (number | string)[];
 
 // Severity sort order is "critical" > "warning" > (anything else in A-Z order) > "none"
 export const alertSeverityOrder = (alert: Alert | Rule): ListOrder => {
