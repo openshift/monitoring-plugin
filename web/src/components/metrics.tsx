@@ -8,26 +8,24 @@ import {
 import {
   ActionGroup,
   Button,
+  Dropdown,
   DropdownItem,
+  DropdownList,
   EmptyState,
   EmptyStateBody,
   EmptyStateIcon,
   EmptyStateVariant,
   Grid,
   GridItem,
+  MenuToggle,
+  MenuToggleElement,
+  SelectOptionProps,
+  Split,
+  SplitItem,
   Switch,
   Title,
   Tooltip,
 } from '@patternfly/react-core';
-import {
-  Dropdown as DropdownDeprecated,
-  DropdownItem as DropdownItemDeprecated,
-  DropdownPosition as DropdownPositionDeprecated,
-  DropdownToggle as DropdownToggleDeprecated,
-  Select as SelectDeprecated,
-  SelectOption as SelectOptionDeprecated,
-  SelectVariant as SelectVariantDeprecated,
-} from '@patternfly/react-core/deprecated';
 import {
   AngleDownIcon,
   AngleRightIcon,
@@ -93,131 +91,124 @@ import { useBoolean } from './hooks/useBoolean';
 import { getLegacyObserveState, usePerspective } from './hooks/usePerspective';
 import KebabDropdown from './kebab-dropdown';
 import { colors, Error, QueryBrowser } from './query-browser';
+import { QueryParams } from './query-params';
 import TablePagination from './table-pagination';
 import { PrometheusAPIError } from './types';
-import { QueryParams } from './query-params';
+import { TypeaheadSelect } from './TypeaheadSelect';
 
 // Stores information about the currently focused query input
 let focusedQuery;
 
-type PredefinedQueryType = {
-  name: string;
-  query: string;
+const predefinedQueriesAdmin: SelectOptionProps[] = [
+  {
+    name: 'CPU Usage',
+    // eslint-disable-next-line max-len
+    value: `sum(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate) by (pod)`,
+  },
+  {
+    name: 'Memory Usage',
+    // eslint-disable-next-line max-len
+    value: `sum(container_memory_working_set_bytes{container!=""}) by (pod)`,
+  },
+  {
+    name: 'Filesystem Usage',
+    // eslint-disable-next-line max-len
+    value: `topk(25, sort_desc(sum(pod:container_fs_usage_bytes:sum{container="",pod!=""}) BY (pod, namespace)))`,
+  },
+  {
+    name: 'Recieve bandwidth',
+    value: `sum(irate(container_network_receive_bytes_total[2h])) by (pod)`,
+  },
+  {
+    name: 'Transmit bandwidth',
+    value: `sum(irate(container_network_transmit_bytes_total[2h])) by (pod)`,
+  },
+  {
+    name: 'Rate of received packets',
+    value: `sum(irate(container_network_receive_packets_total[2h])) by (pod)`,
+  },
+  {
+    name: 'Rate of transmitted packets',
+    value: `sum(irate(container_network_transmit_packets_total[2h])) by (pod)`,
+  },
+  {
+    name: 'Rate of received packets dropped',
+    value: `sum(irate(container_network_receive_packets_dropped_total[2h])) by (pod)`,
+  },
+  {
+    name: 'Rate of transmitted packets dropped',
+    value: `sum(irate(container_network_transmit_packets_dropped_total[2h])) by (pod)`,
+  },
+];
+
+const devQueries = (activeNamespace: string) => {
+  return [
+    {
+      name: 'CPU Usage',
+      // eslint-disable-next-line max-len
+      value: `sum(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{namespace='${activeNamespace}'}) by (pod)`,
+    },
+    {
+      name: 'Memory Usage',
+      // eslint-disable-next-line max-len
+      value: `sum(container_memory_working_set_bytes{container!="", namespace='${activeNamespace}'}) by (pod)`,
+    },
+    {
+      name: 'Filesystem Usage',
+      // eslint-disable-next-line max-len
+      value: `topk(25, sort_desc(sum(pod:container_fs_usage_bytes:sum{container="",pod!="",namespace='${activeNamespace}'}) BY (pod, namespace)))`,
+    },
+    {
+      name: 'Recieve bandwidth',
+      // eslint-disable-next-line max-len
+      value: `sum(irate(container_network_receive_bytes_total{namespace='${activeNamespace}'}[2h])) by (pod)`,
+    },
+    {
+      name: 'Transmit bandwidth',
+      // eslint-disable-next-line max-len
+      value: `sum(irate(container_network_transmit_bytes_total{namespace='${activeNamespace}'}[2h])) by (pod)`,
+    },
+    {
+      name: 'Rate of received packets',
+      // eslint-disable-next-line max-len
+      value: `sum(irate(container_network_receive_packets_total{namespace='${activeNamespace}'}[2h])) by (pod)`,
+    },
+    {
+      name: 'Rate of transmitted packets',
+      // eslint-disable-next-line max-len
+      value: `sum(irate(container_network_transmit_packets_total{namespace='${activeNamespace}'}[2h])) by (pod)`,
+    },
+    {
+      name: 'Rate of received packets dropped',
+      // eslint-disable-next-line max-len
+      value: `sum(irate(container_network_receive_packets_dropped_total{namespace='${activeNamespace}'}[2h])) by (pod)`,
+    },
+    {
+      name: 'Rate of transmitted packets dropped',
+      // eslint-disable-next-line max-len
+      value: `sum(irate(container_network_transmit_packets_dropped_total{namespace='${activeNamespace}'}[2h])) by (pod)`,
+    },
+  ];
 };
 
 export const PreDefinedQueriesDropdown = () => {
-  const [isOpen, setIsOpen] = React.useState(false);
-  const [selected, setSelected] = React.useState('');
-  let predefinedQueries: PredefinedQueryType[];
-
   const activeNamespace = useActiveNamespace();
   const { perspective } = usePerspective();
 
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
-  const predefinedQueriesAdmin: PredefinedQueryType[] = [
-    {
-      name: 'CPU Usage',
-      // eslint-disable-next-line max-len
-      query: `sum(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate) by (pod)`,
-    },
-    {
-      name: 'Memory Usage',
-      // eslint-disable-next-line max-len
-      query: `sum(container_memory_working_set_bytes{container!=""}) by (pod)`,
-    },
-    {
-      name: 'Filesystem Usage',
-      // eslint-disable-next-line max-len
-      query: `topk(25, sort_desc(sum(pod:container_fs_usage_bytes:sum{container="",pod!=""}) BY (pod, namespace)))`,
-    },
-    {
-      name: 'Recieve bandwidth',
-      query: `sum(irate(container_network_receive_bytes_total[2h])) by (pod)`,
-    },
-    {
-      name: 'Transmit bandwidth',
-      query: `sum(irate(container_network_transmit_bytes_total[2h])) by (pod)`,
-    },
-    {
-      name: 'Rate of received packets',
-      query: `sum(irate(container_network_receive_packets_total[2h])) by (pod)`,
-    },
-    {
-      name: 'Rate of transmitted packets',
-      query: `sum(irate(container_network_transmit_packets_total[2h])) by (pod)`,
-    },
-    {
-      name: 'Rate of received packets dropped',
-      query: `sum(irate(container_network_receive_packets_dropped_total[2h])) by (pod)`,
-    },
-    {
-      name: 'Rate of transmitted packets dropped',
-      query: `sum(irate(container_network_transmit_packets_dropped_total[2h])) by (pod)`,
-    },
-  ];
-
-  // The developer view queries by namespace.
-  const predefinedQueriesDev: PredefinedQueryType[] = [
-    {
-      name: 'CPU Usage',
-      // eslint-disable-next-line max-len
-      query: `sum(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{namespace='${activeNamespace}'}) by (pod)`,
-    },
-    {
-      name: 'Memory Usage',
-      // eslint-disable-next-line max-len
-      query: `sum(container_memory_working_set_bytes{container!="", namespace='${activeNamespace}'}) by (pod)`,
-    },
-    {
-      name: 'Filesystem Usage',
-      // eslint-disable-next-line max-len
-      query: `topk(25, sort_desc(sum(pod:container_fs_usage_bytes:sum{container="",pod!="",namespace='${activeNamespace}'}) BY (pod, namespace)))`,
-    },
-    {
-      name: 'Recieve bandwidth',
-      // eslint-disable-next-line max-len
-      query: `sum(irate(container_network_receive_bytes_total{namespace='${activeNamespace}'}[2h])) by (pod)`,
-    },
-    {
-      name: 'Transmit bandwidth',
-      // eslint-disable-next-line max-len
-      query: `sum(irate(container_network_transmit_bytes_total{namespace='${activeNamespace}'}[2h])) by (pod)`,
-    },
-    {
-      name: 'Rate of received packets',
-      // eslint-disable-next-line max-len
-      query: `sum(irate(container_network_receive_packets_total{namespace='${activeNamespace}'}[2h])) by (pod)`,
-    },
-    {
-      name: 'Rate of transmitted packets',
-      // eslint-disable-next-line max-len
-      query: `sum(irate(container_network_transmit_packets_total{namespace='${activeNamespace}'}[2h])) by (pod)`,
-    },
-    {
-      name: 'Rate of received packets dropped',
-      // eslint-disable-next-line max-len
-      query: `sum(irate(container_network_receive_packets_dropped_total{namespace='${activeNamespace}'}[2h])) by (pod)`,
-    },
-    {
-      name: 'Rate of transmitted packets dropped',
-      // eslint-disable-next-line max-len
-      query: `sum(irate(container_network_transmit_packets_dropped_total{namespace='${activeNamespace}'}[2h])) by (pod)`,
-    },
-  ];
-
-  if (perspective === 'dev') {
-    predefinedQueries = predefinedQueriesDev;
-  } else if (perspective === 'admin') {
-    predefinedQueries = predefinedQueriesAdmin;
-  } else if (perspective === 'virtualization-perspective') {
-    predefinedQueries = predefinedQueriesAdmin;
-  } // Wrong queries for ACM, leaving for when metrics gets moved to ACM
-
-  // Note this fires twice when <Select> is clicked.
-  const onToggle = (isExpanded: boolean) => {
-    setIsOpen(isExpanded);
-  };
+  const queries: SelectOptionProps[] = React.useMemo(() => {
+    switch (perspective) {
+      case 'dev':
+        return devQueries(activeNamespace);
+      case 'admin':
+      case 'virtualization-perspective':
+        return predefinedQueriesAdmin;
+      // TODO: Add ACM queries
+      default:
+        return [];
+    }
+  }, [activeNamespace, perspective]);
 
   const dispatch = useDispatch();
 
@@ -244,44 +235,17 @@ export const PreDefinedQueriesDropdown = () => {
     dispatch(queryBrowserPatchQuery(index, { isEnabled: true, query, text: query }));
   };
 
-  const onSelect = (
-    _event: React.MouseEvent<Element, MouseEvent> | undefined,
-    value: string | undefined,
-  ) => {
-    if (!value) {
-      setSelected(undefined);
-      setIsOpen(false);
-      return;
-    }
-    setSelected(value);
-    setIsOpen(false);
-    insertPredefinedQuery(value);
-  };
-
   return (
-    <Grid component="ul" className="predefined-query-select--padding">
-      <GridItem component="li">
+    <Grid className="predefined-query-select--padding">
+      <GridItem>
         <label htmlFor="predefined-query-select-label">{t('Queries')}</label>
       </GridItem>
-      <GridItem component="li">
-        <SelectDeprecated
-          id={selected}
-          variant={SelectVariantDeprecated.typeahead}
-          typeAheadAriaLabel={t('Select query')}
-          onToggle={(_e, isOpen) => onToggle(isOpen)}
-          onSelect={onSelect}
-          selections={selected}
-          isOpen={isOpen}
-          aria-labelledby="predefined-query-select"
-          placeholderText={t('Select query')}
-          width={400}
-        >
-          {predefinedQueries.map((option) => (
-            <SelectOptionDeprecated key={option.name} value={option.query}>
-              {option.name}
-            </SelectOptionDeprecated>
-          ))}
-        </SelectDeprecated>
+      <GridItem>
+        <TypeaheadSelect
+          placeholder={t('Select query')}
+          onSelect={insertPredefinedQuery}
+          options={queries}
+        />
       </GridItem>
     </Grid>
   );
@@ -307,31 +271,35 @@ const MetricsActionsMenu: React.FC = () => {
     focusedQuery = undefined;
   };
 
-  const dropdownItems = [
-    <DropdownItemDeprecated key="add-query" component="button" onClick={addQuery}>
-      {t('Add query')}
-    </DropdownItemDeprecated>,
-    <DropdownItemDeprecated
-      key="collapse-all"
-      component="button"
-      onClick={() => dispatch(queryBrowserSetAllExpanded(!isAllExpanded))}
-    >
-      {isAllExpanded ? t('Collapse all query tables') : t('Expand all query tables')}
-    </DropdownItemDeprecated>,
-    <DropdownItemDeprecated key="delete-all" component="button" onClick={doDelete}>
-      {t('Delete all queries')}
-    </DropdownItemDeprecated>,
-  ];
-
   return (
-    <DropdownDeprecated
-      className="co-actions-menu"
-      dropdownItems={dropdownItems}
+    <Dropdown
       isOpen={isOpen}
       onSelect={setClosed}
-      position={DropdownPositionDeprecated.right}
-      toggle={<DropdownToggleDeprecated onToggle={setIsOpen}>Actions</DropdownToggleDeprecated>}
-    />
+      onOpenChange={(open: boolean) => (open ? setIsOpen() : setClosed())}
+      toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+        <MenuToggle ref={toggleRef} onClick={setIsOpen} isExpanded={isOpen}>
+          Actions
+        </MenuToggle>
+      )}
+      popperProps={{ position: 'right' }}
+      shouldFocusToggleOnSelect
+    >
+      <DropdownList>
+        <DropdownItem value={0} key="add-query" onClick={addQuery}>
+          {t('Add query')}
+        </DropdownItem>
+        <DropdownItem
+          value={1}
+          key="expand-collapse-all"
+          onClick={() => dispatch(queryBrowserSetAllExpanded(!isAllExpanded))}
+        >
+          {isAllExpanded ? t('Collapse all query tables') : t('Expand all query tables')}
+        </DropdownItem>
+        <DropdownItem value={2} key="delete-all-queries" onClick={doDelete}>
+          {t('Delete all queries')}
+        </DropdownItem>
+      </DropdownList>
+    </Dropdown>
   );
 };
 
@@ -1248,10 +1216,14 @@ const QueryBrowserPage_: React.FC = () => {
       <div className="co-m-nav-title">
         <h1 className="co-m-pane__heading">
           <span>{t('Metrics')}</span>
-          <div className="co-actions">
-            <IntervalDropdown />
-            <MetricsActionsMenu />
-          </div>
+          <Split hasGutter>
+            <SplitItem>
+              <IntervalDropdown />
+            </SplitItem>
+            <SplitItem>
+              <MetricsActionsMenu />
+            </SplitItem>
+          </Split>
         </h1>
       </div>
       <div className="co-m-pane__body">

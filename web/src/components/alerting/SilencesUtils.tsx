@@ -1,48 +1,47 @@
-import * as React from 'react';
 import {
   consoleFetchJSON,
   GreenCheckCircleIcon,
   Silence,
   SilenceStates,
 } from '@openshift-console/dynamic-plugin-sdk';
-import * as _ from 'lodash-es';
-import { useTranslation } from 'react-i18next';
 import {
-  Alert as PFAlert,
   Button,
   Checkbox,
-  Label,
-  ModalVariant,
-  Modal,
+  Dropdown,
+  DropdownItem,
+  DropdownList,
   Flex,
   FlexItem,
+  Label,
+  MenuToggle,
+  MenuToggleElement,
+  Modal,
+  ModalVariant,
+  Alert as PFAlert,
 } from '@patternfly/react-core';
+import { BanIcon, EllipsisVIcon, HourglassHalfIcon } from '@patternfly/react-icons';
+import classNames from 'classnames';
+import * as _ from 'lodash-es';
+import * as React from 'react';
+import { useTranslation } from 'react-i18next';
+import { useDispatch } from 'react-redux';
+import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
+import { useActiveNamespace } from '../console/console-shared/hooks/useActiveNamespace';
+import { LoadingInline } from '../console/utils/status-box';
+import { useBoolean } from '../hooks/useBoolean';
 import {
-  Dropdown as DropdownDeprecated,
-  DropdownItem as DropdownItemDeprecated,
-  DropdownPosition as DropdownPositionDeprecated,
-  KebabToggle as KebabToggleDeprecated,
-} from '@patternfly/react-core/deprecated';
+  getEditSilenceAlertUrl,
+  getFetchSilenceUrl,
+  getSilenceAlertUrl,
+  usePerspective,
+} from '../hooks/usePerspective';
 import {
   refreshSilences,
   silenceMatcherEqualitySymbol,
   SilenceResource,
   silenceState,
 } from '../utils';
-import classNames from 'classnames';
-import { BanIcon, HourglassHalfIcon } from '@patternfly/react-icons';
-import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
-import { useBoolean } from '../hooks/useBoolean';
-import {
-  getEditSilenceAlertUrl,
-  getSilenceAlertUrl,
-  getFetchSilenceUrl,
-  usePerspective,
-} from '../hooks/usePerspective';
-import { useDispatch } from 'react-redux';
-import { LoadingInline } from '../console/utils/status-box';
-import { MonitoringResourceIcon, OnToggle, SeverityCounts, StateTimestamp } from './AlertUtils';
-import { useActiveNamespace } from '../console/console-shared/hooks/useActiveNamespace';
+import { MonitoringResourceIcon, SeverityCounts, StateTimestamp } from './AlertUtils';
 
 export const tableSilenceClasses = [
   'pf-v5-c-table__action', // Checkbox
@@ -126,7 +125,7 @@ export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheck
       <td className={tableSilenceClasses[4]}>{createdBy || '-'}</td>
       {perspective === 'acm' && <td className={tableSilenceClasses[5]}>{cluster}</td>}
       <td className={tableSilenceClasses[6]}>
-        <SilenceDropdownKebab silence={obj} />
+        <SilenceDropdown silence={obj} />
       </td>
     </>
   );
@@ -188,27 +187,7 @@ export const SilenceState = ({ silence }) => {
   ) : null;
 };
 
-const SilenceDropdownKebab: React.FC<{ silence: Silence }> = ({ silence }) => (
-  <SilenceDropdown
-    isPlain
-    silence={silence}
-    Toggle={({ onToggle, ...props }: { onToggle: OnToggle }) => (
-      <KebabToggleDeprecated
-        aria-label="Actions"
-        onToggle={(e, v) => onToggle(v, e as MouseEvent)}
-        {...props}
-      />
-    )}
-  />
-);
-
-const SilenceDropdown_: React.FC<SilenceDropdownProps> = ({
-  className,
-  history,
-  isPlain,
-  silence,
-  Toggle,
-}) => {
+const SilenceDropdown_: React.FC<SilenceDropdownProps> = ({ history, silence, toggleText }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
   const namespace = useActiveNamespace();
@@ -223,31 +202,41 @@ const SilenceDropdown_: React.FC<SilenceDropdownProps> = ({
   const dropdownItems =
     silenceState(silence) === SilenceStates.Expired
       ? [
-          <DropdownItemDeprecated key="edit-silence" component="button" onClick={editSilence}>
+          <DropdownItem value={0} key="recreate-silence" onClick={editSilence}>
             {t('Recreate silence')}
-          </DropdownItemDeprecated>,
+          </DropdownItem>,
         ]
       : [
-          <DropdownItemDeprecated key="edit-silence" component="button" onClick={editSilence}>
+          <DropdownItem value={0} key="edit-silence" onClick={editSilence}>
             {t('Edit silence')}
-          </DropdownItemDeprecated>,
-          <DropdownItemDeprecated key="cancel-silence" component="button" onClick={setModalOpen}>
+          </DropdownItem>,
+          <DropdownItem value={1} key="cancel-silence" onClick={setModalOpen}>
             {t('Expire silence')}
-          </DropdownItemDeprecated>,
+          </DropdownItem>,
         ];
 
   return (
     <>
-      <DropdownDeprecated
-        className={className}
-        data-test="silence-actions"
-        dropdownItems={dropdownItems}
+      <Dropdown
         isOpen={isOpen}
-        isPlain={isPlain}
         onSelect={setClosed}
-        position={DropdownPositionDeprecated.right}
-        toggle={<Toggle onToggle={setIsOpen} />}
-      />
+        data-test="silence-actions"
+        popperProps={{ position: 'right' }}
+        onOpenChange={(isOpen: boolean) => (isOpen ? setIsOpen() : setClosed())}
+        toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+          <MenuToggle
+            ref={toggleRef}
+            aria-label="kebab dropdown toggle"
+            variant={toggleText ? 'default' : 'plain'}
+            onClick={setIsOpen}
+            isExpanded={isOpen}
+          >
+            {toggleText || <EllipsisVIcon />}
+          </MenuToggle>
+        )}
+      >
+        <DropdownList>{dropdownItems}</DropdownList>
+      </Dropdown>
       <ExpireSilenceModal isOpen={isModalOpen} setClosed={setModalClosed} silenceID={silence.id} />
     </>
   );
@@ -327,8 +316,6 @@ const ExpireSilenceModal: React.FC<ExpireSilenceModalProps> = ({
 };
 
 type SilenceDropdownProps = RouteComponentProps & {
-  className?: string;
-  isPlain?: boolean;
   silence: Silence;
-  Toggle: React.FC<{ onToggle: OnToggle }>;
+  toggleText?: string;
 };
