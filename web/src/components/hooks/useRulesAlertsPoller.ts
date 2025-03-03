@@ -37,7 +37,7 @@ export const useRulesAlertsPoller = (
       const poller = (): void => {
         fetchAlerts(url, alertsSource, namespace)
           .then(({ data }) => {
-            const { alerts, rules } = getAlertsAndRules(data, isDev);
+            const { alerts, rules } = getAlertsAndRules(data, perspective === 'admin');
             dispatch(alertingLoaded(alertsKey, alerts, perspective));
             dispatch(alertingSetRules(rulesKey, rules, perspective));
           })
