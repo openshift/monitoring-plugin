@@ -116,7 +116,7 @@ const predefinedQueriesAdmin: SelectOptionProps[] = [
     value: `topk(25, sort_desc(sum(pod:container_fs_usage_bytes:sum{container="",pod!=""}) BY (pod, namespace)))`,
   },
   {
-    name: 'Recieve bandwidth',
+    name: 'Receive bandwidth',
     value: `sum(irate(container_network_receive_bytes_total[2h])) by (pod)`,
   },
   {
@@ -159,7 +159,7 @@ const devQueries = (activeNamespace: string) => {
       value: `topk(25, sort_desc(sum(pod:container_fs_usage_bytes:sum{container="",pod!="",namespace='${activeNamespace}'}) BY (pod, namespace)))`,
     },
     {
-      name: 'Recieve bandwidth',
+      name: 'Receive bandwidth',
       // eslint-disable-next-line max-len
       value: `sum(irate(container_network_receive_bytes_total{namespace='${activeNamespace}'}[2h])) by (pod)`,
     },
