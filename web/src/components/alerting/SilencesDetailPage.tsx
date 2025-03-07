@@ -1,9 +1,17 @@
+import * as _ from 'lodash-es';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
-import * as _ from 'lodash-es';
 
+import { Alert, Timestamp, useActiveNamespace } from '@openshift-console/dynamic-plugin-sdk';
+import { Breadcrumb, BreadcrumbItem, DropdownItem } from '@patternfly/react-core';
+import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import { RouteComponentProps, withRouter } from 'react-router';
+import { Link } from 'react-router-dom';
+import { MonitoringState } from 'src/reducers/observe';
+import { withFallback } from '../console/console-shared/error/error-boundary';
+import { SectionHeading } from '../console/utils/headings';
+import { LoadingInline, StatusBox } from '../console/utils/status-box';
 import {
   getAlertUrl,
   getLegacyObserveState,
@@ -11,25 +19,11 @@ import {
   getSilencesUrl,
   usePerspective,
 } from '../hooks/usePerspective';
-import { MonitoringState } from 'src/reducers/observe';
-import { Silences } from '../types';
-import { Helmet } from 'react-helmet';
-import { alertDescription, SilenceResource } from '../utils';
-import { LoadingInline, StatusBox } from '../console/utils/status-box';
-import { Breadcrumb, BreadcrumbItem, DropdownItem } from '@patternfly/react-core';
-import { Link } from 'react-router-dom';
-import { MonitoringResourceIcon, OnToggle, Severity, SeverityCounts } from './AlertUtils';
-import { SectionHeading } from '../console/utils/headings';
-import { SilenceDropdown, SilenceMatchersList, SilenceState } from './SilencesUtils';
-import {
-  Alert,
-  Silence,
-  Timestamp,
-  useActiveNamespace,
-} from '@openshift-console/dynamic-plugin-sdk';
-import { withFallback } from '../console/console-shared/error/error-boundary';
-import { DropdownToggle as DropdownToggleDeprecated } from '@patternfly/react-core/deprecated';
 import KebabDropdown from '../kebab-dropdown';
+import { Silences } from '../types';
+import { alertDescription, SilenceResource } from '../utils';
+import { MonitoringResourceIcon, Severity, SeverityCounts } from './AlertUtils';
+import { SilenceDropdown, SilenceMatchersList, SilenceState } from './SilencesUtils';
 
 const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ match }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -80,7 +74,7 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
               {silence?.name}
             </div>
             <div className="co-actions" data-test-id="details-actions">
-              {silence && <SilenceDropdownActions silence={silence} />}
+              {silence && <SilenceDropdown silence={silence} toggleText="Actions" />}
             </div>
           </h1>
         </div>
@@ -160,20 +154,6 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
   );
 };
 const SilencesDetailsPage = withFallback(SilencesDetailsPage_);
-
-const SilenceDropdownActions: React.FC<{ silence: Silence }> = ({ silence }) => (
-  <SilenceDropdown className="co-actions-menu" silence={silence} Toggle={ActionsToggle} />
-);
-
-const ActionsToggle: React.FC<{ onToggle: OnToggle }> = ({ onToggle, ...props }) => (
-  <DropdownToggleDeprecated
-    data-test="silence-actions-toggle"
-    onToggle={(event, isOpen) => onToggle(isOpen, event as MouseEvent)}
-    {...props}
-  >
-    Actions
-  </DropdownToggleDeprecated>
-);
 
 const SilencedAlertsList_: React.FC<SilencedAlertsListProps> = ({ alerts, history }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
