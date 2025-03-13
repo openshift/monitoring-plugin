@@ -32,7 +32,6 @@ import { RouteComponentProps, withRouter } from 'react-router-dom';
 const getUser = (state) => state.sdkCore?.user;
 
 import { ButtonBar } from './console/utils/button-bar';
-import { SectionHeading } from './console/utils/headings';
 import { ExternalLink } from './console/utils/link';
 import { getAllQueryArguments } from './console/utils/router';
 
@@ -276,7 +275,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
         {Info && <Info />}
         <form onSubmit={onSubmit} className="monitoring-silence-alert">
           <div className="co-m-pane__body-group">
-            <SectionHeading text={t('Duration')} />
+            <Title headingLevel="h2">{t('Duration')}</Title>
             <div className="row">
               <div className="form-group col-sm-4 col-md-5">
                 <label>{t('Silence alert from...')}</label>
@@ -352,7 +351,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
           </div>
 
           <div className="co-m-pane__body-group">
-            <SectionHeading text={t('Alert labels')} />
+            <Title headingLevel="h2">{t('Alert labels')}</Title>
             <p className="co-help-text monitoring-silence-alert__paragraph">
               <Trans t={t}>
                 Alerts with labels that match these selectors will be silenced instead of firing.
@@ -443,7 +442,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
           </div>
 
           <div className="co-m-pane__body-group">
-            <SectionHeading text={t('Info')} />
+            <Title headingLevel="h2">{t('Info')}</Title>
             <div className="form-group">
               <label className="co-required">{t('Creator')}</label>
               <TextInput
