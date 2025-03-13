@@ -37,7 +37,6 @@ import { ButtonBar } from './console/utils/button-bar';
 import { SectionHeading } from './console/utils/headings';
 import { ExternalLink } from './console/utils/link';
 import { getAllQueryArguments } from './console/utils/router';
-import { StatusBox } from './console/utils/status-box';
 
 import { useBoolean } from './hooks/useBoolean';
 import { Silences } from './types';
@@ -49,6 +48,7 @@ import {
   usePerspective,
 } from './hooks/usePerspective';
 import { MonitoringState } from '../reducers/observe';
+import { StatusBox } from './console/console-shared/src/components/status/StatusBox';
 
 const pad = (i: number): string => (i < 10 ? `0${i}` : String(i));
 

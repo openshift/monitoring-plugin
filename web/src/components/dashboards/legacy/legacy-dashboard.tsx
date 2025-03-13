@@ -25,7 +25,6 @@ import {
   isDataSource,
 } from '../../console/extensions/dashboard-data-source';
 import { setQueryArguments } from '../../console/utils/router';
-import { LoadingInline } from '../../console/utils/status-box';
 
 import { Perspective } from '../../../actions/observe';
 import BarChart from '../legacy/bar-chart';
@@ -44,6 +43,7 @@ import { MonitoringState } from '../../../reducers/observe';
 import { evaluateVariableTemplate } from './legacy-variable-dropdowns';
 import { Panel, Row } from './types';
 import { QueryParams } from '../../query-params';
+import { LoadingInline } from '../../console/console-shared/src/components/loading/LoadingInline';
 
 const QueryBrowserLink = ({
   queries,

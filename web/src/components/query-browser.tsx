@@ -64,7 +64,6 @@ import {
 import { usePoll } from './console/utils/poll-hook';
 import { useRefWidth } from './console/utils/ref-width-hook';
 import { useSafeFetch } from './console/utils/safe-fetch-hook';
-import { LoadingInline } from './console/utils/status-box';
 import { humanizeNumberSI } from './console/utils/units';
 
 import { formatNumber } from './format';
@@ -76,6 +75,7 @@ import { getTimeRanges } from './utils';
 import { getLegacyObserveState, usePerspective } from './hooks/usePerspective';
 import { useActiveNamespace } from './console/console-shared/hooks/useActiveNamespace';
 import { MonitoringState } from '../reducers/observe';
+import { LoadingInline } from './console/console-shared/src/components/loading/LoadingInline';
 
 const spans = ['5m', '15m', '30m', '1h', '2h', '6h', '12h', '1d', '2d', '1w', '2w'];
 export const colors = queryBrowserTheme.line.colorScale;

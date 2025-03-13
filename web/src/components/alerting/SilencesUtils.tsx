@@ -27,7 +27,6 @@ import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
 import { useActiveNamespace } from '../console/console-shared/hooks/useActiveNamespace';
-import { LoadingInline } from '../console/utils/status-box';
 import { useBoolean } from '../hooks/useBoolean';
 import {
   getEditSilenceAlertUrl,
@@ -42,6 +41,7 @@ import {
   silenceState,
 } from '../utils';
 import { MonitoringResourceIcon, SeverityCounts, StateTimestamp } from './AlertUtils';
+import { LoadingInline } from '../console/console-shared/src/components/loading/LoadingInline';
 
 export const tableSilenceClasses = [
   'pf-v5-c-table__action', // Checkbox

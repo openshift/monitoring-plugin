@@ -11,7 +11,6 @@ import { Link } from 'react-router-dom';
 import { MonitoringState } from 'src/reducers/observe';
 import { withFallback } from '../console/console-shared/error/error-boundary';
 import { SectionHeading } from '../console/utils/headings';
-import { LoadingInline, StatusBox } from '../console/utils/status-box';
 import {
   getAlertUrl,
   getLegacyObserveState,
@@ -24,6 +23,8 @@ import { Silences } from '../types';
 import { alertDescription, SilenceResource } from '../utils';
 import { MonitoringResourceIcon, Severity, SeverityCounts } from './AlertUtils';
 import { SilenceDropdown, SilenceMatchersList, SilenceState } from './SilencesUtils';
+import { StatusBox } from '../console/console-shared/src/components/status/StatusBox';
+import { LoadingInline } from '../console/console-shared/src/components/loading/LoadingInline';
 
 const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ match }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);

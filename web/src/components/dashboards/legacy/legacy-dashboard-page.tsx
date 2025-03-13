@@ -4,7 +4,6 @@ import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import { withFallback } from '../../console/console-shared/error/error-boundary';
 import ErrorAlert from '../../console/console-shared/alerts/error';
-import { LoadingInline } from '../../console/utils/status-box';
 
 import { LegacyDashboard } from '../legacy/legacy-dashboard';
 import DashboardSkeleton from '../shared/dashboard-skeleton';
@@ -12,6 +11,7 @@ import { usePerspective } from '../../hooks/usePerspective';
 import { useTranslation } from 'react-i18next';
 import { useLegacyDashboards } from './useLegacyDashboards';
 import { PersesContext } from '../../router';
+import { LoadingInline } from '../../../components/console/console-shared/src/components/loading/LoadingInline';
 
 type MonitoringLegacyDashboardsPageProps = {
   urlBoard: string;
