@@ -23,7 +23,6 @@ import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
 
-import { withFallback } from '../console/console-shared/error/error-boundary';
 import { AlertingRuleChartExtension, isAlertingRuleChart } from '../console/extensions/alerts';
 import { SectionHeading } from '../console/utils/headings';
 import { ExternalLink } from '../console/utils/link';
@@ -58,6 +57,7 @@ import {
 import { MonitoringState } from '../../reducers/observe';
 import { StatusBox } from '../console/console-shared/src/components/status/StatusBox';
 import { formatPrometheusDuration } from '../console/console-shared/src/datetime/prometheus';
+import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 
 // Renders Prometheus template text and highlights any {{ ... }} tags that it contains
 const PrometheusTemplate = ({ text }) => (

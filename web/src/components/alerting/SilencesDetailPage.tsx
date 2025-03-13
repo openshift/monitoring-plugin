@@ -9,7 +9,6 @@ import { useTranslation } from 'react-i18next';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { Link } from 'react-router-dom';
 import { MonitoringState } from 'src/reducers/observe';
-import { withFallback } from '../console/console-shared/error/error-boundary';
 import { SectionHeading } from '../console/utils/headings';
 import {
   getAlertUrl,
@@ -25,6 +24,7 @@ import { MonitoringResourceIcon, Severity, SeverityCounts } from './AlertUtils';
 import { SilenceDropdown, SilenceMatchersList, SilenceState } from './SilencesUtils';
 import { StatusBox } from '../console/console-shared/src/components/status/StatusBox';
 import { LoadingInline } from '../console/console-shared/src/components/loading/LoadingInline';
+import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 
 const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ match }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);

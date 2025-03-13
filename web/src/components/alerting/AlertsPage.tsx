@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { withFallback } from '../console/console-shared/error/error-boundary';
 import { useTranslation } from 'react-i18next';
 import { getLegacyObserveState, usePerspective } from '../hooks/usePerspective';
 import { Alerts, AlertSource } from '../types';
@@ -25,6 +24,7 @@ import { Table, TableGridBreakpoint, Th, Thead, Tr } from '@patternfly/react-tab
 import { Helmet } from 'react-helmet';
 import { MonitoringState } from '../../reducers/observe';
 import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
+import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 import { LoadingBox } from '../console/console-shared/src/components/loading/LoadingBox';
 import { AggregatedAlert, getAggregateAlertsLists } from './AlertsAggregates';
 

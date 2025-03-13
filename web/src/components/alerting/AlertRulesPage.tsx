@@ -17,7 +17,6 @@ import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 
-import { withFallback } from '../console/console-shared/error/error-boundary';
 import { Alerts, AlertSource } from '../types';
 import {
   alertingRuleStateOrder,
@@ -39,6 +38,7 @@ import {
 import { MonitoringState } from '../../reducers/observe';
 import { severityRowFilter } from './AlertUtils';
 import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
+import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 
 const StateCounts: React.FC<{ alerts: PrometheusAlert[] }> = ({ alerts }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);

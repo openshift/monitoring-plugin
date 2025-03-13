@@ -54,7 +54,6 @@ import {
   SeverityHelp,
   SourceHelp,
 } from './AlertUtils';
-import { withFallback } from '../console/console-shared/error/error-boundary';
 import { SectionHeading } from '../console/utils/headings';
 import { ToggleGraph } from '../metrics';
 import {
@@ -71,6 +70,7 @@ import { Labels } from '../labels';
 import { SilenceTableRow, tableSilenceClasses } from './SilencesUtils';
 import { MonitoringState } from '../../reducers/observe';
 import { StatusBox } from '../console/console-shared/src/components/status/StatusBox';
+import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 
 const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);

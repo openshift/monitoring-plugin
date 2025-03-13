@@ -33,7 +33,7 @@ import {
   VariableProviderWithQueryParams,
 } from '@perses-dev/dashboards';
 import { ChartThemeColor, getThemeColors } from '@patternfly/react-charts';
-import ErrorAlert from '../../console/console-shared/alerts/error';
+import ErrorAlert from '../shared/error';
 import { usePatternFlyTheme } from './hooks/usePatternflyTheme';
 import { CachedDatasourceAPI } from './perses/datasource-api';
 import { OcpDatasourceApi } from './datasource-api';
