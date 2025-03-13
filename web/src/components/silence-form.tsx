@@ -31,7 +31,6 @@ import { RouteComponentProps, withRouter } from 'react-router-dom';
 // TODO: These will be available in future versions of the plugin SDK
 const getUser = (state) => state.sdkCore?.user;
 
-import { withFallback } from './console/console-shared/error/error-boundary';
 import { ButtonBar } from './console/utils/button-bar';
 import { SectionHeading } from './console/utils/headings';
 import { ExternalLink } from './console/utils/link';
@@ -52,6 +51,7 @@ import {
   formatPrometheusDuration,
   parsePrometheusDuration,
 } from './console/console-shared/src/datetime/prometheus';
+import withFallback from './console/console-shared/error/fallbacks/withFallback';
 
 const pad = (i: number): string => (i < 10 ? `0${i}` : String(i));
 

@@ -68,7 +68,6 @@ import {
   toggleGraphs,
 } from '../actions/observe';
 
-import { withFallback } from './console/console-shared/error/error-boundary';
 import { getPrometheusURL } from './console/graphs/helpers';
 import { AsyncComponent } from './console/utils/async';
 import { usePoll } from './console/utils/poll-hook';
@@ -95,6 +94,7 @@ import TablePagination from './table-pagination';
 import { PrometheusAPIError } from './types';
 import { TypeaheadSelect } from './TypeaheadSelect';
 import { LoadingInline } from './console/console-shared/src/components/loading/LoadingInline';
+import withFallback from './console/console-shared/error/fallbacks/withFallback';
 
 // Stores information about the currently focused query input
 let focusedQuery;
@@ -918,7 +918,7 @@ const Query: React.FC<{ index: number; customDatasource?: CustomDataSource }> = 
   const switchKey = `${id}-${isEnabled}`;
   const switchLabel = isEnabled ? t('Disable query') : t('Enable query');
 
-  const activeNamespace = useActiveNamespace();
+  const [activeNamespace] = useActiveNamespace();
   return (
     <div
       className={classNames('query-browser__table', {
