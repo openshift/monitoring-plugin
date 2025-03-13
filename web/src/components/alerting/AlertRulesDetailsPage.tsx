@@ -30,7 +30,6 @@ import { withFallback } from '../console/console-shared/error/error-boundary';
 import { AlertingRuleChartExtension, isAlertingRuleChart } from '../console/extensions/alerts';
 import { SectionHeading } from '../console/utils/headings';
 import { ExternalLink } from '../console/utils/link';
-import { StatusBox } from '../console/utils/status-box';
 
 import KebabDropdown from '../kebab-dropdown';
 import { Labels } from '../labels';
@@ -60,6 +59,7 @@ import {
   SourceHelp,
 } from '../alerting/AlertUtils';
 import { MonitoringState } from '../../reducers/observe';
+import { StatusBox } from '../console/console-shared/src/components/status/StatusBox';
 
 // Renders Prometheus template text and highlights any {{ ... }} tags that it contains
 const PrometheusTemplate = ({ text }) => (

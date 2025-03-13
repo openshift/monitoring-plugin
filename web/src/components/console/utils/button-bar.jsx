@@ -3,8 +3,7 @@ import * as React from 'react';
 import * as PropTypes from 'prop-types';
 import { Alert, AlertGroup } from '@patternfly/react-core';
 import { useTranslation } from 'react-i18next';
-
-import { LoadingInline } from './status-box';
+import { LoadingInline } from '../console-shared/src/components/loading/LoadingInline';
 
 const injectDisabled = (children, disabled) => {
   return React.Children.map(children, (c) => {

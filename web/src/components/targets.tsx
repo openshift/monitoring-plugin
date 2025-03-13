@@ -41,13 +41,15 @@ import { K8sResourceKind } from './console/module/k8s/types';
 import { SectionHeading } from './console/utils/headings';
 import { usePoll } from './console/utils/poll-hook';
 import { useSafeFetch } from './console/utils/safe-fetch-hook';
-import { EmptyBox, LoadingInline, StatusBox } from './console/utils/status-box';
 
 import { useBoolean } from './hooks/useBoolean';
 import { Labels } from './labels';
 import { AlertSource, PrometheusAPIError, Target } from './types';
 import { fuzzyCaseInsensitive, targetSource } from './utils';
 import { PROMETHEUS_BASE_PATH } from './console/graphs/helpers';
+import { LoadingInline } from './console/console-shared/src/components/loading/LoadingInline';
+import { StatusBox } from './console/console-shared/src/components/status/StatusBox';
+import { EmptyBox } from './console/console-shared/src/components/empty-state/EmptyBox';
 
 enum MonitorType {
   ServiceMonitor = 'serviceMonitor',
