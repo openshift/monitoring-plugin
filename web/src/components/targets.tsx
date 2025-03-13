@@ -1,5 +1,7 @@
 import {
   GreenCheckCircleIcon,
+  K8sModel,
+  K8sResourceKind,
   ListPageBody,
   ListPageFilter,
   ListPageHeader,
@@ -35,9 +37,6 @@ import {
   ServiceModel,
   ServiceMonitorModel,
 } from './console/models';
-import { LabelSelector } from './console/module/k8s/label-selector';
-import { referenceForModel } from './console/module/k8s/k8s-ref';
-import { K8sResourceKind } from './console/module/k8s/types';
 import { SectionHeading } from './console/utils/headings';
 import { usePoll } from './console/utils/poll-hook';
 import { useSafeFetch } from './console/utils/safe-fetch-hook';
@@ -50,6 +49,7 @@ import { PROMETHEUS_BASE_PATH } from './console/graphs/helpers';
 import { LoadingInline } from './console/console-shared/src/components/loading/LoadingInline';
 import { StatusBox } from './console/console-shared/src/components/status/StatusBox';
 import { EmptyBox } from './console/console-shared/src/components/empty-state/EmptyBox';
+import { LabelSelector } from './console/module/k8s/label-selector';
 
 enum MonitorType {
   ServiceMonitor = 'serviceMonitor',
@@ -61,6 +61,11 @@ const ServicesWatchContext = React.createContext([]);
 
 const PodMonitorsWatchContext = React.createContext([]);
 const PodsWatchContext = React.createContext([]);
+
+const getReference = ({ group, version, kind }) => [group || 'core', version, kind].join('~');
+
+export const getReferenceForModel = (model: K8sModel) =>
+  getReference({ group: model.apiGroup, version: model.apiVersion, kind: model.kind });
 
 const PodMonitor: React.FC<{ target: Target }> = ({ target }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -106,7 +111,7 @@ const PodMonitor: React.FC<{ target: Target }> = ({ target }) => {
 
   return (
     <ResourceLink
-      kind={referenceForModel(PodMonitorModel)}
+      kind={getReferenceForModel(PodMonitorModel)}
       name={podMonitor.metadata.name}
       namespace={podMonitor.metadata.namespace}
     />
@@ -158,7 +163,7 @@ const ServiceMonitor: React.FC<{ target: Target }> = ({ target }) => {
 
   return (
     <ResourceLink
-      kind={referenceForModel(ServiceMonitorModel)}
+      kind={getReferenceForModel(ServiceMonitorModel)}
       name={monitor.metadata.name}
       namespace={monitor.metadata.namespace}
     />
@@ -571,7 +576,7 @@ export const TargetsUI: React.FC = () => {
 
   const monitorsWatch = useK8sWatchResource<K8sResourceKind[]>({
     isList: true,
-    kind: referenceForModel(ServiceMonitorModel),
+    kind: getReferenceForModel(ServiceMonitorModel),
   });
 
   const podsWatch = useK8sWatchResource<K8sResourceKind[]>({
@@ -581,7 +586,7 @@ export const TargetsUI: React.FC = () => {
 
   const podMonitorsWatch = useK8sWatchResource<K8sResourceKind[]>({
     isList: true,
-    kind: referenceForModel(PodMonitorModel),
+    kind: getReferenceForModel(PodMonitorModel),
   });
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
