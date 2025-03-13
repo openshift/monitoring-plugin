@@ -38,7 +38,6 @@ import {
   ServiceModel,
   ServiceMonitorModel,
 } from './console/models';
-import { SectionHeading } from './console/utils/headings';
 import { usePoll } from './console/utils/poll-hook';
 import { useSafeFetch } from './console/utils/safe-fetch-hook';
 
@@ -260,7 +259,7 @@ const Details: React.FC<DetailsProps> = ({ loaded, loadError, targets }) => {
       </div>
       <StatusBox data={target} label="target" loaded={loaded} loadError={loadError}>
         <div className="co-m-pane__body">
-          <SectionHeading text={t('Target details')} />
+          <Title headingLevel="h2">{t('Target details')}</Title>
           {isServiceMonitor && serviceMonitorsLoadError && (
             <WatchErrorAlert
               loadError={serviceMonitorsLoadError}

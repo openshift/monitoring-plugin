@@ -56,7 +56,6 @@ import {
   SeverityHelp,
   SourceHelp,
 } from './AlertUtils';
-import { SectionHeading } from '../console/utils/headings';
 import { ToggleGraph } from '../metrics';
 import {
   ContainerModel,
@@ -165,7 +164,7 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
           <Toolbar className="monitoring-alert-detail-toolbar">
             <ToolbarContent>
               <ToolbarItem variant="label">
-                <SectionHeading text={t('Alert details')} />
+                <Title headingLevel="h2">{t('Alert details')}</Title>
               </ToolbarItem>
               <ToolbarGroup align={{ default: 'alignRight' }}>
                 <ActionServiceProvider context={{ 'alert-detail-toolbar-actions': { alert } }}>
@@ -324,7 +323,7 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
         {silencesLoaded && !_.isEmpty(alert?.silencedBy) && (
           <div className="co-m-pane__body">
             <div className="co-m-pane__body-group">
-              <SectionHeading text={t('Silenced by')} />
+              <Title headingLevel="h2">{t('Silenced by')}</Title>
               <div className="row">
                 <div className="col-xs-12">
                   <SilencedByList silences={alert?.silencedBy} />

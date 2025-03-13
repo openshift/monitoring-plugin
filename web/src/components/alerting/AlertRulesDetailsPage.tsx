@@ -26,7 +26,6 @@ import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
 
-import { SectionHeading } from '../console/utils/headings';
 import { ExternalLink } from '../console/utils/link';
 
 import KebabDropdown from '../kebab-dropdown';
@@ -212,7 +211,7 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
         </div>
         <div className="co-m-pane__body">
           <div className="monitoring-heading">
-            <SectionHeading text={t('Alerting rule details')} />
+            <Title headingLevel="h2">{t('Alerting rule details')}</Title>
           </div>
           <div className="co-m-pane__body-group">
             <div className="row">
@@ -309,7 +308,7 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
             <Toolbar className="monitoring-alert-detail-toolbar">
               <ToolbarContent>
                 <ToolbarItem variant="label">
-                  <SectionHeading text={t('Active alerts')} />
+                  <Title headingLevel="h2">{t('Active alerts')}</Title>
                 </ToolbarItem>
                 <ToolbarGroup align={{ default: 'alignRight' }}>
                   <ToolbarItem>
