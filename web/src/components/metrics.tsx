@@ -2,6 +2,7 @@ import {
   PrometheusData,
   PrometheusEndpoint,
   PrometheusLabels,
+  useActiveNamespace,
   useResolvedExtensions,
   YellowExclamationTriangleIcon,
 } from '@openshift-console/dynamic-plugin-sdk';
@@ -84,7 +85,6 @@ import {
   isDataSource,
 } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
 import { MonitoringState } from '../reducers/observe';
-import { useActiveNamespace } from './console/console-shared/hooks/useActiveNamespace';
 import { DropDownPollInterval } from './dropdown-poll-interval';
 import { useBoolean } from './hooks/useBoolean';
 import { getLegacyObserveState, usePerspective } from './hooks/usePerspective';
@@ -192,7 +192,7 @@ const devQueries = (activeNamespace: string) => {
 };
 
 export const PreDefinedQueriesDropdown = () => {
-  const activeNamespace = useActiveNamespace();
+  const [activeNamespace] = useActiveNamespace();
   const { perspective } = usePerspective();
 
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
