@@ -22,7 +22,6 @@ import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 
 import ErrorAlert from '../shared/error';
-import { CustomDataSource } from '../../console/extensions/dashboard-data-source';
 import { getPrometheusURL } from '../../console/graphs/helpers';
 import { usePoll } from '../../console/utils/poll-hook';
 import { useSafeFetch } from '../../console/utils/safe-fetch-hook';
@@ -31,6 +30,7 @@ import { formatNumber } from '../../format';
 import { usePerspective } from '../../hooks/usePerspective';
 import TablePagination from '../../table-pagination';
 import { ColumnStyle, Panel } from './types';
+import { CustomDataSource } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
 
 type AugmentedColumnStyle = ColumnStyle & {
   className?: string;
