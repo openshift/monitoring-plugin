@@ -56,10 +56,6 @@ import {
   dateTimeFormatterWithSeconds,
   timeFormatter,
   timeFormatterWithSeconds,
-
-  // TODO: These will be available in future versions of the plugin SDK
-  formatPrometheusDuration,
-  parsePrometheusDuration,
 } from './console/utils/datetime';
 import { usePoll } from './console/utils/poll-hook';
 import { useRefWidth } from './console/utils/ref-width-hook';
@@ -76,6 +72,10 @@ import { getLegacyObserveState, usePerspective } from './hooks/usePerspective';
 import { useActiveNamespace } from './console/console-shared/hooks/useActiveNamespace';
 import { MonitoringState } from '../reducers/observe';
 import { LoadingInline } from './console/console-shared/src/components/loading/LoadingInline';
+import {
+  formatPrometheusDuration,
+  parsePrometheusDuration,
+} from './console/console-shared/src/datetime/prometheus';
 
 const spans = ['5m', '15m', '30m', '1h', '2h', '6h', '12h', '1d', '2d', '1w', '2w'];
 export const colors = queryBrowserTheme.line.colorScale;
