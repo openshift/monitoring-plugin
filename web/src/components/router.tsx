@@ -1,8 +1,12 @@
-import { useActiveNamespace, useResolvedExtensions } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  AlertingRulesSourceExtension,
+  isAlertingRulesSource,
+  useActiveNamespace,
+  useResolvedExtensions,
+} from '@openshift-console/dynamic-plugin-sdk';
 import * as React from 'react';
 import { Redirect, Route, Switch } from 'react-router-dom';
 
-import { AlertingRulesSourceExtension, isAlertingRulesSource } from './console/extensions/alerts';
 import { getAllQueryArguments } from './console/utils/router';
 
 import MonitoringDashboardsPage from './dashboards/perses/dashboard-page';

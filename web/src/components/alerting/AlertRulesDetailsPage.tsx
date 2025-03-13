@@ -1,5 +1,7 @@
 import {
+  AlertingRuleChartExtension,
   AlertStates,
+  isAlertingRuleChart,
   PrometheusAlert,
   Rule,
   Timestamp,
@@ -23,7 +25,6 @@ import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
 
-import { AlertingRuleChartExtension, isAlertingRuleChart } from '../console/extensions/alerts';
 import { SectionHeading } from '../console/utils/headings';
 import { ExternalLink } from '../console/utils/link';
 
