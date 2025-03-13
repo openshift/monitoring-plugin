@@ -4,6 +4,7 @@ import {
   GreenCheckCircleIcon,
   PrometheusEndpoint,
   Timestamp,
+  useActiveNamespace,
   useResolvedExtensions,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { BellIcon, ExclamationCircleIcon, InfoCircleIcon } from '@patternfly/react-icons';
@@ -24,11 +25,10 @@ import {
   usePerspective,
 } from '../hooks/usePerspective';
 import { OutlinedQuestionCircleIcon } from '@patternfly/react-icons';
-import { useActiveNamespace } from '../console/console-shared/hooks/useActiveNamespace';
 import './incidents-styles.css';
 
 const IncidentsDetailsRowTable = ({ alerts }) => {
-  const namespace = useActiveNamespace();
+  const [namespace] = useActiveNamespace();
   const { perspective } = usePerspective();
   const [alertsWithMatchedData, setAlertsWithMatchedData] = React.useState([]);
   const [customExtensions] = useResolvedExtensions(isAlertingRulesSource);
