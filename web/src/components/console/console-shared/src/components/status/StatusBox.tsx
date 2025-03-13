@@ -10,9 +10,7 @@ import { EmptyBox } from '../empty-state/EmptyBox';
 import { AccessDenied } from '../empty-state/AccessDenied';
 import { LoadingBox } from '../loading/LoadingBox';
 import { LoadError } from '../loading/LoadError';
-
-const LAST_LANGUAGE_LOCAL_STORAGE_KEY = 'bridge/last-language';
-const getLastLanguage = (): string => localStorage.getItem(LAST_LANGUAGE_LOCAL_STORAGE_KEY);
+import { getLastLanguage } from '../../../../utils/getLastLanguage';
 
 const Data: React.FC<DataProps> = ({
   NoDataEmptyMsg,
