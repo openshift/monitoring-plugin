@@ -13,6 +13,7 @@ import {
   CodeBlock,
   CodeBlockCode,
   DropdownItem,
+  Title,
   Toolbar,
   ToolbarContent,
   ToolbarGroup,
@@ -201,13 +202,13 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
           </Breadcrumb>
         </div>
         <div className="co-m-nav-title co-m-nav-title--detail co-m-nav-title--breadcrumbs">
-          <h1 className="co-m-pane__heading">
+          <Title headingLevel="h1">
             <div data-test="resource-title" className="co-resource-item">
               <MonitoringResourceIcon className="co-m-resource-icon--lg" resource={RuleResource} />
               {rule?.name}
               <SeverityBadge severity={rule?.labels?.severity} />
             </div>
-          </h1>
+          </Title>
         </div>
         <div className="co-m-pane__body">
           <div className="monitoring-heading">
