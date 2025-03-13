@@ -13,6 +13,7 @@ import {
 import AlertsPage from '../alerting/AlertsPage';
 import SilencesPage from '../alerting/SilencesPage';
 import AlertRulesPage from '../alerting/AlertRulesPage';
+import { Title } from '@patternfly/react-core';
 
 const Tab: React.FC<{ active: boolean; children: React.ReactNode }> = ({ active, children }) => (
   <li
@@ -37,13 +38,13 @@ const AlertingPage: React.FC<RouteComponentProps<{ url: string }>> = ({ match })
   return (
     <>
       <div className="co-m-nav-title co-m-nav-title--detail">
-        <h1 className="co-m-pane__heading">
+        <Title headingLevel="h1">
           <div className="co-m-pane__name co-resource-item">
             <span className="co-resource-item__resource-name" data-test-id="resource-title">
               {t('Alerting')}
             </span>
           </div>
-        </h1>
+        </Title>
       </div>
       <ul className="co-m-horizontal-nav__menu">
         <Tab active={url === alertsPath}>

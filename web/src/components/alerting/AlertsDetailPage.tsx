@@ -34,6 +34,7 @@ import {
   Breadcrumb,
   BreadcrumbItem,
   Button,
+  Title,
   Toolbar,
   ToolbarContent,
   ToolbarGroup,
@@ -140,7 +141,7 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
           </Breadcrumb>
         </div>
         <div className="co-m-nav-title co-m-nav-title--detail co-m-nav-title--breadcrumbs">
-          <h1 className="co-m-pane__heading">
+          <Title headingLevel="h1">
             <div data-test="resource-title" className="co-resource-item">
               <MonitoringResourceIcon className="co-m-resource-icon--lg" resource={AlertResource} />
               {labels?.alertname}
@@ -157,7 +158,7 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
                 </Button>
               </div>
             )}
-          </h1>
+          </Title>
           <HeaderAlertMessage alert={alert} rule={rule} />
         </div>
         <div className="co-m-pane__body">

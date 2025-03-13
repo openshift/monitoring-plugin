@@ -3,7 +3,7 @@ import * as React from 'react';
 import { useSelector } from 'react-redux';
 
 import { Alert, Timestamp, useActiveNamespace } from '@openshift-console/dynamic-plugin-sdk';
-import { Breadcrumb, BreadcrumbItem, DropdownItem } from '@patternfly/react-core';
+import { Breadcrumb, BreadcrumbItem, DropdownItem, Title } from '@patternfly/react-core';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import { RouteComponentProps, withRouter } from 'react-router';
@@ -66,7 +66,7 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
           </Breadcrumb>
         </div>
         <div className="co-m-nav-title co-m-nav-title--detail co-m-nav-title--breadcrumbs">
-          <h1 className="co-m-pane__heading">
+          <Title headingLevel="h1">
             <div data-test="resource-title" className="co-resource-item">
               <MonitoringResourceIcon
                 className="co-m-resource-icon--lg"
@@ -77,7 +77,7 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
             <div className="co-actions" data-test-id="details-actions">
               {silence && <SilenceDropdown silence={silence} toggleText="Actions" />}
             </div>
-          </h1>
+          </Title>
         </div>
         <div className="co-m-pane__body">
           <SectionHeading text={t('Silence details')} />

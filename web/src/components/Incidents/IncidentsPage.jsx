@@ -17,6 +17,7 @@ import {
   ToolbarItem,
   MenuToggle,
   Badge,
+  Title,
 } from '@patternfly/react-core';
 import { Helmet } from 'react-helmet';
 import { IncidentsTable } from './IncidentsTable';
@@ -276,9 +277,7 @@ const IncidentsPage = () => {
         <title>{title}</title>
       </Helmet>
       <div className="co-m-nav-title">
-        <h1 className="co-m-pane__heading">
-          <span>{t('Incidents')}</span>
-        </h1>
+        <Title headingLevel="h1">{t('Incidents')}</Title>
       </div>
       {alertsAreLoading && incidentsAreLoading ? (
         <Bullseye>
