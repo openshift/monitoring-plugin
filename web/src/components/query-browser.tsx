@@ -7,6 +7,7 @@ import {
   PrometheusResponse,
   PrometheusResult,
   PrometheusValue,
+  useActiveNamespace,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Chart,
@@ -69,7 +70,6 @@ import { PrometheusAPIError, TimeRange } from './types';
 import { getTimeRanges } from './utils';
 
 import { getLegacyObserveState, usePerspective } from './hooks/usePerspective';
-import { useActiveNamespace } from './console/console-shared/hooks/useActiveNamespace';
 import { MonitoringState } from '../reducers/observe';
 import { LoadingInline } from './console/console-shared/src/components/loading/LoadingInline';
 import {
@@ -731,7 +731,7 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
 
   const canStack = _.sumBy(graphData, 'length') <= maxStacks;
 
-  const activeNamespace = useActiveNamespace();
+  const [activeNamespace] = useActiveNamespace();
 
   // If provided, `timespan` overrides any existing span setting
   React.useEffect(() => {
