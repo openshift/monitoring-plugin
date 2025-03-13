@@ -21,6 +21,7 @@ import {
   AlertActionCloseButton,
   Breadcrumb,
   BreadcrumbItem,
+  Title,
   Tooltip,
 } from '@patternfly/react-core';
 import { sortable } from '@patternfly/react-table';
@@ -253,9 +254,9 @@ const Details: React.FC<DetailsProps> = ({ loaded, loadError, targets }) => {
         </Breadcrumb>
       </div>
       <div className="co-m-nav-title co-m-nav-title--detail co-m-nav-title--breadcrumbs">
-        <h1 className="co-m-pane__heading">
+        <Title headingLevel="h1">
           <div className="co-resource-item">{scrapeUrl}</div>
-        </h1>
+        </Title>
       </div>
       <StatusBox data={target} label="target" loaded={loaded} loadError={loadError}>
         <div className="co-m-pane__body">

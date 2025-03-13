@@ -1214,7 +1214,7 @@ const QueryBrowserPage_: React.FC = () => {
         <title>{t('Metrics')}</title>
       </Helmet>
       <div className="co-m-nav-title">
-        <h1 className="co-m-pane__heading">
+        <Title headingLevel="h1">
           <span>{t('Metrics')}</span>
           <Split hasGutter>
             <SplitItem>
@@ -1224,7 +1224,7 @@ const QueryBrowserPage_: React.FC = () => {
               <MetricsActionsMenu />
             </SplitItem>
           </Split>
-        </h1>
+        </Title>
       </div>
       <div className="co-m-pane__body">
         <div className="row">

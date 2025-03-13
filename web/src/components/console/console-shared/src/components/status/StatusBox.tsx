@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Alert } from '@patternfly/react-core';
+import { Alert, Flex, FlexItem, Title } from '@patternfly/react-core';
 import _ from 'lodash';
 import { useTranslation } from 'react-i18next';
 import {
@@ -48,7 +48,11 @@ export const StatusBox: React.FC<StatusBoxProps> = (props) => {
     if (status === 404) {
       return (
         <div className="co-m-pane__body">
-          <h1 className="co-m-pane__heading co-m-pane__heading--center">{t('404: Not Found')}</h1>
+          <Flex justifyContent={{ default: 'justifyContentCenter' }}>
+            <FlexItem>
+              <Title headingLevel="h1">{t('404: Not Found')}</Title>
+            </FlexItem>
+          </Flex>
         </div>
       );
     }

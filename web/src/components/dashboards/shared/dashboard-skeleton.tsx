@@ -10,15 +10,14 @@ import { TimeDropdowns } from './time-dropdowns';
 import { CombinedDashboardMetadata } from '../perses/hooks/useDashboardsData';
 import { AllVariableDropdowns } from '../perses/variable-dropdowns';
 import { useIsPerses } from './useIsPerses';
+import { Title } from '@patternfly/react-core';
 
 const HeaderTop: React.FC = React.memo(() => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
     <div className="monitoring-dashboards__header">
-      <h1 className="co-m-pane__heading">
-        <span>{t('Dashboards')}</span>
-      </h1>
+      <Title headingLevel="h1">{t('Dashboards')}</Title>
       <TimeDropdowns />
     </div>
   );
