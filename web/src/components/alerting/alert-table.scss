@@ -1,0 +1,22 @@
+.aggregatedalert-row .pf-v5-c-table__expandable-row {
+  background-color: var(--pf-v5-global--BackgroundColor--200);
+
+  .aggregatedalert-row__alert-table-head {
+    position: sticky;
+    top: 0;
+    background-color: var(--pf-v5-global--BackgroundColor--200);
+    z-index: 100;
+  }
+
+  & .pf-v5-c-table__expandable-row-content {
+    padding: 0 0 0 40px;
+  }
+
+  & table {
+    background-color: var(--pf-v5-global--BackgroundColor--200);
+  }
+
+  & tr {
+    border: none;
+  }
+}
