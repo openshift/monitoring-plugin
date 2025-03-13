@@ -43,7 +43,7 @@ const barTheme = {
   },
 };
 
-export const BarChart: React.FC<BarChartProps> = ({
+const BarChart: React.FC<BarChartProps> = ({
   barSpacing = 15,
   barWidth = DEFAULT_BAR_WIDTH,
   data = [],
@@ -69,7 +69,11 @@ export const BarChart: React.FC<BarChartProps> = ({
   };
 
   return (
-    <PrometheusGraph ref={containerRef} title={title} className={titleClassName}>
+    <PrometheusGraph
+      ref={containerRef}
+      title={title}
+      className={titleClassName || 'graph-wrapper graph-wrapper__horizontal-bar'}
+    >
       <PrometheusGraphLink query={noLink ? undefined : query}>
         {data.length ? (
           data.map((datum, index) => (
@@ -144,7 +148,7 @@ export const Bar: React.FC<BarProps> = ({
   );
 };
 
-type LabelComponentProps = {
+export type LabelComponentProps = {
   title: Date | string | number;
   metric?: { [key: string]: string };
 };
@@ -168,12 +172,12 @@ type BarProps = {
   delay?: number;
   humanize?: Humanize;
   LabelComponent?: React.ComponentType<LabelComponentProps>;
-  metric: string;
+  metric?: string;
   namespace?: string;
   noLink?: boolean;
   query: string;
   theme?: any; // TODO figure out the best way to import VictoryThemeDefinition
   title?: string;
-  titleClassName: string;
+  titleClassName?: string;
   customDataSource?: CustomDataSource;
 };
