@@ -23,8 +23,9 @@ import {
 import { fuzzyCaseInsensitive } from '../utils';
 import { Table, TableGridBreakpoint, Th, Thead, Tr } from '@patternfly/react-table';
 import { Helmet } from 'react-helmet';
-import { EmptyBox, LoadingBox } from '../console/utils/status-box';
 import { MonitoringState } from '../../reducers/observe';
+import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
+import { LoadingBox } from '../console/console-shared/src/components/loading/LoadingBox';
 import { AggregatedAlert, getAggregateAlertsLists } from './AlertsAggregates';
 
 import './alert-table.scss';

@@ -18,7 +18,6 @@ import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 
 import { withFallback } from '../console/console-shared/error/error-boundary';
-import { EmptyBox } from '../console/utils/status-box';
 import { Alerts, AlertSource } from '../types';
 import {
   alertingRuleStateOrder,
@@ -39,6 +38,7 @@ import {
 } from '../alerting/AlertUtils';
 import { MonitoringState } from '../../reducers/observe';
 import { severityRowFilter } from './AlertUtils';
+import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
 
 const StateCounts: React.FC<{ alerts: PrometheusAlert[] }> = ({ alerts }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);

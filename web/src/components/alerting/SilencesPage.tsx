@@ -29,10 +29,10 @@ import * as _ from 'lodash-es';
 import { sortable } from '@patternfly/react-table';
 import { SelectedSilencesContext, SilenceTableRow, tableSilenceClasses } from './SilencesUtils';
 import { Button, Checkbox, Flex, FlexItem, Alert as PFAlert } from '@patternfly/react-core';
-import { EmptyBox } from '../console/utils/status-box';
 import { withFallback } from '../console/console-shared/error/error-boundary';
 import { useBoolean } from '../hooks/useBoolean';
 import { Link } from 'react-router-dom';
+import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
 
 const SilencesPage_: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);

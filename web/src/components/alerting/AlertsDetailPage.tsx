@@ -26,7 +26,6 @@ import {
   useActiveNamespace,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { AlertingRuleChartExtension, isAlertingRuleChart } from '../console/extensions/alerts';
-import { StatusBox } from '../console/utils/status-box';
 import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
 import { ExternalLink, LinkifyExternal } from '../console/utils/link';
 
@@ -71,6 +70,7 @@ import {
 import { Labels } from '../labels';
 import { SilenceTableRow, tableSilenceClasses } from './SilencesUtils';
 import { MonitoringState } from '../../reducers/observe';
+import { StatusBox } from '../console/console-shared/src/components/status/StatusBox';
 
 const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);

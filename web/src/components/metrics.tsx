@@ -77,7 +77,6 @@ import {
   setAllQueryArguments,
 } from './console/utils/router';
 import { useSafeFetch } from './console/utils/safe-fetch-hook';
-import { LoadingInline } from './console/utils/status-box';
 
 import {
   CustomDataSource,
@@ -95,6 +94,7 @@ import { QueryParams } from './query-params';
 import TablePagination from './table-pagination';
 import { PrometheusAPIError } from './types';
 import { TypeaheadSelect } from './TypeaheadSelect';
+import { LoadingInline } from './console/console-shared/src/components/loading/LoadingInline';
 
 // Stores information about the currently focused query input
 let focusedQuery;
