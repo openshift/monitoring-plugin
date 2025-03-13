@@ -19,11 +19,6 @@ import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 
-import {
-  CustomDataSource,
-  DataSource as DataSourceExtension,
-  isDataSource,
-} from '../../console/extensions/dashboard-data-source';
 import { setQueryArguments } from '../../console/utils/router';
 
 import { Perspective } from '../../../actions/observe';
@@ -44,6 +39,11 @@ import { evaluateVariableTemplate } from './legacy-variable-dropdowns';
 import { Panel, Row } from './types';
 import { QueryParams } from '../../query-params';
 import { LoadingInline } from '../../console/console-shared/src/components/loading/LoadingInline';
+import { CustomDataSource } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/dashboard-data-source';
+import {
+  DataSource,
+  isDataSource,
+} from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
 
 const QueryBrowserLink = ({
   queries,
@@ -122,7 +122,7 @@ const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
   const [dataSourceInfoLoading, setDataSourceInfoLoading] = React.useState<boolean>(true);
   const [customDataSource, setCustomDataSource] = React.useState<CustomDataSource>(undefined);
   const customDataSourceName = panel.datasource?.name;
-  const [extensions, extensionsResolved] = useResolvedExtensions<DataSourceExtension>(isDataSource);
+  const [extensions, extensionsResolved] = useResolvedExtensions<DataSource>(isDataSource);
   const hasExtensions = !_.isEmpty(extensions);
 
   const formatSeriesTitle = React.useCallback(

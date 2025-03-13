@@ -48,7 +48,6 @@ import {
   queryBrowserSetTimespan,
 } from '../actions/observe';
 
-import { CustomDataSource } from './console/extensions/dashboard-data-source';
 import { GraphEmpty } from './console/graphs/graph-empty';
 import { getPrometheusURL } from './console/graphs/helpers';
 import {
@@ -76,6 +75,7 @@ import {
   parsePrometheusDuration,
 } from './console/console-shared/src/datetime/prometheus';
 import withFallback from './console/console-shared/error/fallbacks/withFallback';
+import { CustomDataSource } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
 
 const spans = ['5m', '15m', '30m', '1h', '2h', '6h', '12h', '1d', '2d', '1w', '2w'];
 export const colors = queryBrowserTheme.line.colorScale;

@@ -1,13 +1,12 @@
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { CustomDataSource } from '../../console/extensions/dashboard-data-source';
-
 import { dashboardsSetEndTime, dashboardsSetTimespan, Perspective } from '../../../actions/observe';
 import { FormatSeriesTitle, QueryBrowser } from '../../query-browser';
 import { MonitoringState } from '../../../reducers/observe';
 import { getLegacyObserveState } from '../../hooks/usePerspective';
 import { DEFAULT_GRAPH_SAMPLES } from '../shared/utils';
+import { CustomDataSource } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
 
 type Props = {
   customDataSource?: CustomDataSource;

@@ -14,10 +14,10 @@ import {
 import * as _ from 'lodash-es';
 import * as React from 'react';
 
-import { CustomDataSource } from '../extensions/dashboard-data-source';
 import { useRefWidth } from '../utils/ref-width-hook';
 import { humanizeNumber } from '../utils/units';
 import { GraphEmpty } from './graph-empty';
+import { CustomDataSource } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
 
 const DEFAULT_BAR_WIDTH = 10;
 const PADDING_RATIO = 1 / 3;

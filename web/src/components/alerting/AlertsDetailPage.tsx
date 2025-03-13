@@ -24,8 +24,9 @@ import {
   TableColumn,
   VirtualizedTable,
   useActiveNamespace,
+  AlertingRuleChartExtension,
+  isAlertingRuleChart,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { AlertingRuleChartExtension, isAlertingRuleChart } from '../console/extensions/alerts';
 import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
 import { ExternalLink, LinkifyExternal } from '../console/utils/link';
 

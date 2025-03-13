@@ -17,10 +17,6 @@ import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { Map as ImmutableMap } from 'immutable';
 
-import {
-  DataSource as DataSourceExtension,
-  isDataSource,
-} from '../../console/extensions/dashboard-data-source';
 import { SingleTypeaheadDropdown } from '../../console/utils/single-typeahead-dropdown';
 import { getPrometheusURL } from '../../console/graphs/helpers';
 import { getQueryArgument, setQueryArgument } from '../../console/utils/router';
@@ -38,6 +34,10 @@ import {
   DEFAULT_GRAPH_SAMPLES,
   MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY,
 } from '../shared/utils';
+import {
+  DataSource,
+  isDataSource,
+} from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
 
 const intervalVariableRegExps = ['__interval', '__rate_interval', '__auto_interval_[a-z]+'];
 
@@ -129,7 +129,7 @@ const LegacyDashboardsVariableDropdown: React.FC<VariableDropdownProps> = ({
   const [isError, setIsError] = React.useState(false);
 
   const customDataSourceName = variable?.datasource?.name;
-  const [extensions, extensionsResolved] = useResolvedExtensions<DataSourceExtension>(isDataSource);
+  const [extensions, extensionsResolved] = useResolvedExtensions<DataSource>(isDataSource);
   const hasExtensions = !_.isEmpty(extensions);
 
   const getURL = React.useCallback(
