@@ -46,10 +46,10 @@ import {
   setIncidentsActiveFilters,
 } from '../../actions/observe';
 import { useLocation } from 'react-router-dom';
-import { withFallback } from '../console/console-shared/error/error-boundary';
 import { usePerspective } from '../hooks/usePerspective';
 import { changeDaysFilter } from './utils';
 import { parsePrometheusDuration } from '../console/console-shared/src/datetime/prometheus';
+import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 
 const IncidentsPage = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);

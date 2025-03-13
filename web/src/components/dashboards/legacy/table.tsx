@@ -21,7 +21,7 @@ import * as _ from 'lodash-es';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 
-import ErrorAlert from '../../console/console-shared/alerts/error';
+import ErrorAlert from '../shared/error';
 import { CustomDataSource } from '../../console/extensions/dashboard-data-source';
 import { getPrometheusURL } from '../../console/graphs/helpers';
 import { usePoll } from '../../console/utils/poll-hook';
