@@ -30,7 +30,6 @@ import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 // TODO: These will be available in future versions of the plugin SDK
 const getUser = (state) => state.sdkCore?.user;
-import { formatPrometheusDuration, parsePrometheusDuration } from './console/utils/datetime';
 
 import { withFallback } from './console/console-shared/error/error-boundary';
 import { ButtonBar } from './console/utils/button-bar';
@@ -49,6 +48,10 @@ import {
 } from './hooks/usePerspective';
 import { MonitoringState } from '../reducers/observe';
 import { StatusBox } from './console/console-shared/src/components/status/StatusBox';
+import {
+  formatPrometheusDuration,
+  parsePrometheusDuration,
+} from './console/console-shared/src/datetime/prometheus';
 
 const pad = (i: number): string => (i < 10 ? `0${i}` : String(i));
 

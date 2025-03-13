@@ -23,9 +23,6 @@ import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
 
-// TODO: These will be available in future versions of the plugin SDK
-import { formatPrometheusDuration } from '../console/utils/datetime';
-
 import { withFallback } from '../console/console-shared/error/error-boundary';
 import { AlertingRuleChartExtension, isAlertingRuleChart } from '../console/extensions/alerts';
 import { SectionHeading } from '../console/utils/headings';
@@ -60,6 +57,7 @@ import {
 } from '../alerting/AlertUtils';
 import { MonitoringState } from '../../reducers/observe';
 import { StatusBox } from '../console/console-shared/src/components/status/StatusBox';
+import { formatPrometheusDuration } from '../console/console-shared/src/datetime/prometheus';
 
 // Renders Prometheus template text and highlights any {{ ... }} tags that it contains
 const PrometheusTemplate = ({ text }) => (

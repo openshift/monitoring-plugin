@@ -2,7 +2,6 @@
 import * as React from 'react';
 import { IncidentsHeader } from './IncidentsHeader/IncidentsHeader';
 import { useSafeFetch } from '../console/utils/safe-fetch-hook';
-import { parsePrometheusDuration } from '../console/utils/datetime';
 import { createAlertsQuery, fetchDataForIncidentsAndAlerts } from './api';
 import { useTranslation } from 'react-i18next';
 import {
@@ -50,6 +49,7 @@ import { useLocation } from 'react-router-dom';
 import { withFallback } from '../console/console-shared/error/error-boundary';
 import { usePerspective } from '../hooks/usePerspective';
 import { changeDaysFilter } from './utils';
+import { parsePrometheusDuration } from '../console/console-shared/src/datetime/prometheus';
 
 const IncidentsPage = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
