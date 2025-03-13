@@ -9,7 +9,6 @@ import { useTranslation } from 'react-i18next';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { Link } from 'react-router-dom';
 import { MonitoringState } from 'src/reducers/observe';
-import { SectionHeading } from '../console/utils/headings';
 import {
   getAlertUrl,
   getLegacyObserveState,
@@ -80,7 +79,7 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
           </Title>
         </div>
         <div className="co-m-pane__body">
-          <SectionHeading text={t('Silence details')} />
+          <Title headingLevel="h2">{t('Silence details')}</Title>
           <div className="co-m-pane__body-group">
             <div className="row">
               <div className="col-sm-6">
@@ -138,7 +137,7 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
         </div>
         <div className="co-m-pane__body">
           <div className="co-m-pane__body-group">
-            <SectionHeading text={t('Firing alerts')} />
+            <Title headingLevel="h2">{t('Firing alerts')}</Title>
             <div className="row">
               <div className="col-xs-12">
                 {alertsLoaded ? (
