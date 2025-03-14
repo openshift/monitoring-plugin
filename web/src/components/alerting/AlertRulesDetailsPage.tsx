@@ -102,11 +102,7 @@ const ActiveAlerts_: React.FC<ActiveAlertsProps> = ({ alerts, history, namespace
         {_.sortBy<PrometheusAlert>(alerts, alertDescription).map((a, i) => (
           <div className="row co-resource-list__item" key={i}>
             <div className="col-xs-6">
-              <Link
-                className="co-resource-item"
-                data-test="active-alerts"
-                to={getAlertUrl(perspective, a, ruleID, namespace)}
-              >
+              <Link data-test="active-alerts" to={getAlertUrl(perspective, a, ruleID, namespace)}>
                 {alertDescription(a)}
               </Link>
             </div>
@@ -208,14 +204,9 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
           </PageBreadcrumb>
           <PageSection variant={PageSectionVariants.light}>
             <Title headingLevel="h1">
-              <div data-test="resource-title" className="co-resource-item">
-                <MonitoringResourceIcon
-                  className="co-m-resource-icon--lg"
-                  resource={RuleResource}
-                />
-                {rule?.name}
-                <SeverityBadge severity={rule?.labels?.severity} />
-              </div>
+              <MonitoringResourceIcon className="co-m-resource-icon--lg" resource={RuleResource} />
+              {rule?.name}
+              <SeverityBadge severity={rule?.labels?.severity} />
             </Title>
           </PageSection>
         </PageGroup>

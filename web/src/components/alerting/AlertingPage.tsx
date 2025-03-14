@@ -39,11 +39,7 @@ const AlertingPage: React.FC<RouteComponentProps<{ url: string }>> = ({ match })
     <>
       <PageSection variant={PageSectionVariants.light}>
         <Title headingLevel="h1">
-          <div className="co-m-pane__name co-resource-item">
-            <span className="co-resource-item__resource-name" data-test-id="resource-title">
-              {t('Alerting')}
-            </span>
-          </div>
+          <div className="co-m-pane__name">{t('Alerting')}</div>
         </Title>
       </PageSection>
       <Divider />

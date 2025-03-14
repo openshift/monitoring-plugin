@@ -35,6 +35,8 @@ import {
   BreadcrumbItem,
   Button,
   Divider,
+  Flex,
+  FlexItem,
   PageBreadcrumb,
   PageGroup,
   PageSection,
@@ -324,16 +326,22 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
                 <dl className="co-m-pane__details">
                   <dt>{t('Alerting rule')}</dt>
                   <dd>
-                    <div className="co-resource-item">
-                      <MonitoringResourceIcon resource={RuleResource} />
-                      <Link
-                        to={getRuleUrl(perspective, rule, namespace)}
-                        data-test="alert-rules-detail-resource-link"
-                        className="co-resource-item__resource-name"
-                      >
-                        {_.get(rule, 'name')}
-                      </Link>
-                    </div>
+                    <Flex
+                      spaceItems={{ default: 'spaceItemsNone' }}
+                      flexWrap={{ default: 'nowrap' }}
+                    >
+                      <FlexItem>
+                        <MonitoringResourceIcon resource={RuleResource} />
+                      </FlexItem>
+                      <FlexItem>
+                        <Link
+                          to={getRuleUrl(perspective, rule, namespace)}
+                          data-test="alert-rules-detail-resource-link"
+                        >
+                          {_.get(rule, 'name')}
+                        </Link>
+                      </FlexItem>
+                    </Flex>
                   </dd>
                 </dl>
               </div>

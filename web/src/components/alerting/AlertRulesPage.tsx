@@ -39,7 +39,7 @@ import { MonitoringState } from '../../reducers/observe';
 import { severityRowFilter } from './AlertUtils';
 import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
-import { PageSection, PageSectionVariants } from '@patternfly/react-core';
+import { Flex, FlexItem, PageSection, PageSectionVariants } from '@patternfly/react-core';
 
 const StateCounts: React.FC<{ alerts: PrometheusAlert[] }> = ({ alerts }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -97,12 +97,16 @@ const RuleTableRow: React.FC<RowProps<Rule>> = ({ obj }) => {
   return (
     <>
       <td className={tableRuleClasses[0]} title={title}>
-        <div className="co-resource-item">
-          <MonitoringResourceIcon resource={RuleResource} />
-          <Link to={getRuleUrl(perspective, obj)} className="co-resource-item__resource-name">
-            {obj.name}
-          </Link>
-        </div>
+        <Flex spaceItems={{ default: 'spaceItemsNone' }} flexWrap={{ default: 'nowrap' }}>
+          <FlexItem>
+            <MonitoringResourceIcon resource={RuleResource} />
+          </FlexItem>
+          <FlexItem>
+            <Link to={getRuleUrl(perspective, obj)} className="pf-v5-u-text-break-word">
+              {obj.name}
+            </Link>
+          </FlexItem>
+        </Flex>
       </td>
       <td className={tableRuleClasses[1]} title={title}>
         <Severity severity={obj.labels?.severity} />
