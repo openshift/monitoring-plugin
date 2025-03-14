@@ -301,7 +301,7 @@ const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
         >
           <CardTitle>{panel.title}</CardTitle>
         </CardHeader>
-        <CardBody className="co-dashboard-card__body--dashboard">
+        <CardBody className="monitoring-dashboards__card--dashboard">
           {isError ? (
             <>
               <RedExclamationCircleIcon /> {t('Error loading card')}
