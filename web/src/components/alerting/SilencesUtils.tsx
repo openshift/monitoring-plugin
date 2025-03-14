@@ -118,7 +118,7 @@ export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheck
       <td className={tableSilenceClasses[2]}>
         <SeverityCounts alerts={firingAlerts} />
       </td>
-      <td className={classNames(tableSilenceClasses[3], 'co-break-word')}>
+      <td className={classNames(tableSilenceClasses[3], 'pf-v5-u-text-break-word')}>
         <SilenceState silence={obj} />
         {state === SilenceStates.Pending && (
           <StateTimestamp text={t('Starts')} timestamp={startsAt} />
