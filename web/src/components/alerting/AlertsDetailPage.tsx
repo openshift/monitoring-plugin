@@ -181,50 +181,49 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
           </PageSection>
         </PageGroup>
         <Divider />
-        <div className="co-m-pane__body">
-          <Toolbar className="monitoring-alert-detail-toolbar">
-            <ToolbarContent>
-              <ToolbarItem variant="label">
-                <Title headingLevel="h2">{t('Alert details')}</Title>
-              </ToolbarItem>
-              <ToolbarGroup align={{ default: 'alignRight' }}>
-                <ActionServiceProvider context={{ 'alert-detail-toolbar-actions': { alert } }}>
-                  {({ actions, loaded }) =>
-                    loaded
-                      ? actions.map((action) => {
-                          if (isActionWithHref(action)) {
-                            return (
-                              <ToolbarItem
-                                key={action.id}
-                                spacer={{ default: 'spacerNone' }}
-                                className="pf-v5-u-px-md"
-                              >
-                                <Link to={action.cta.href}>{action.label}</Link>
-                              </ToolbarItem>
-                            );
-                          } else if (isActionWithCallback(action)) {
-                            return (
-                              <ToolbarItem key={action.id} spacer={{ default: 'spacerNone' }}>
-                                <Button variant="link" onClick={action.cta}>
-                                  {action.label}
-                                </Button>
-                              </ToolbarItem>
-                            );
-                          }
-
-                          return null;
-                        })
-                      : null
-                  }
-                </ActionServiceProvider>
-                <ToolbarItem>
-                  <ToggleGraph />
+        <PageGroup>
+          <PageSection variant={PageSectionVariants.light}>
+            <Toolbar className="monitoring-alert-detail-toolbar">
+              <ToolbarContent>
+                <ToolbarItem variant="label">
+                  <Title headingLevel="h2">{t('Alert details')}</Title>
                 </ToolbarItem>
-              </ToolbarGroup>
-            </ToolbarContent>
-          </Toolbar>
+                <ToolbarGroup align={{ default: 'alignRight' }}>
+                  <ActionServiceProvider context={{ 'alert-detail-toolbar-actions': { alert } }}>
+                    {({ actions, loaded }) =>
+                      loaded
+                        ? actions.map((action) => {
+                            if (isActionWithHref(action)) {
+                              return (
+                                <ToolbarItem
+                                  key={action.id}
+                                  spacer={{ default: 'spacerNone' }}
+                                  className="pf-v5-u-px-md"
+                                >
+                                  <Link to={action.cta.href}>{action.label}</Link>
+                                </ToolbarItem>
+                              );
+                            } else if (isActionWithCallback(action)) {
+                              return (
+                                <ToolbarItem key={action.id} spacer={{ default: 'spacerNone' }}>
+                                  <Button variant="link" onClick={action.cta}>
+                                    {action.label}
+                                  </Button>
+                                </ToolbarItem>
+                              );
+                            }
 
-          <div className="co-m-pane__body-group">
+                            return null;
+                          })
+                        : null
+                    }
+                  </ActionServiceProvider>
+                  <ToolbarItem>
+                    <ToggleGraph />
+                  </ToolbarItem>
+                </ToolbarGroup>
+              </ToolbarContent>
+            </Toolbar>
             <div className="row">
               <div className="col-sm-12">
                 {!sourceId || sourceId === 'prometheus' ? (
@@ -306,8 +305,8 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
                 </dl>
               </div>
             </div>
-          </div>
-          <div className="co-m-pane__body-group">
+          </PageSection>
+          <PageSection variant={PageSectionVariants.light}>
             <div className="row">
               <div className="col-xs-12">
                 <dl className="co-m-pane__details" data-test="label-list">
@@ -318,8 +317,8 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
                 </dl>
               </div>
             </div>
-          </div>
-          <div className="co-m-pane__body-group">
+          </PageSection>
+          <PageSection variant={PageSectionVariants.light}>
             <div className="row">
               <div className="col-xs-12">
                 <dl className="co-m-pane__details">
@@ -339,19 +338,20 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
                 </dl>
               </div>
             </div>
-          </div>
-        </div>
+          </PageSection>
+        </PageGroup>
         {silencesLoaded && !_.isEmpty(alert?.silencedBy) && (
-          <div className="co-m-pane__body">
-            <div className="co-m-pane__body-group">
+          <>
+            <Divider />
+            <PageSection variant={PageSectionVariants.light}>
               <Title headingLevel="h2">{t('Silenced by')}</Title>
               <div className="row">
                 <div className="col-xs-12">
                   <SilencedByList silences={alert?.silencedBy} />
                 </div>
               </div>
-            </div>
-          </div>
+            </PageSection>
+          </>
         )}
       </StatusBox>
     </>

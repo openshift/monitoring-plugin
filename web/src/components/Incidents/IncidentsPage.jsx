@@ -286,7 +286,7 @@ const IncidentsPage = () => {
           <Spinner aria-label="incidents-chart-spinner" />
         </Bullseye>
       ) : (
-        <div className="co-m-pane__body">
+        <PageSection variant={PageSectionVariants.light}>
           <Toolbar
             id="toolbar-with-filter"
             className="pf-v5-m-toggle-group-container"
@@ -433,7 +433,7 @@ const IncidentsPage = () => {
               <IncidentsTable />
             </div>
           </div>
-        </div>
+        </PageSection>
       )}
     </>
   );

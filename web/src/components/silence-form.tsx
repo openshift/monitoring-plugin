@@ -14,6 +14,7 @@ import {
   HelperTextItem,
   MenuToggle,
   MenuToggleElement,
+  PageGroup,
   PageSection,
   PageSectionVariants,
   Select,
@@ -275,10 +276,10 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
       </PageSection>
       <Divider />
 
-      <div className="co-m-pane__body">
+      <PageGroup>
         {Info && <Info />}
         <form onSubmit={onSubmit} className="monitoring-silence-alert">
-          <div className="co-m-pane__body-group">
+          <PageSection variant={PageSectionVariants.light}>
             <Title headingLevel="h2">{t('Duration')}</Title>
             <div className="row">
               <div className="form-group col-sm-4 col-md-5">
@@ -352,9 +353,9 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
                 &nbsp; {t('Start immediately')}
               </label>
             </div>
-          </div>
+          </PageSection>
 
-          <div className="co-m-pane__body-group">
+          <PageSection variant={PageSectionVariants.light}>
             <Title headingLevel="h2">{t('Alert labels')}</Title>
             <p className="co-help-text monitoring-silence-alert__paragraph">
               <Trans t={t}>
@@ -443,9 +444,9 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
                 {t('Add label')}
               </Button>
             </div>
-          </div>
+          </PageSection>
 
-          <div className="co-m-pane__body-group">
+          <PageSection variant={PageSectionVariants.light}>
             <Title headingLevel="h2">{t('Info')}</Title>
             <div className="form-group">
               <label className="co-required">{t('Creator')}</label>
@@ -480,9 +481,9 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
                 </Button>
               </ActionGroup>
             </ButtonBar>
-          </div>
+          </PageSection>
         </form>
-      </div>
+      </PageGroup>
     </>
   );
 };

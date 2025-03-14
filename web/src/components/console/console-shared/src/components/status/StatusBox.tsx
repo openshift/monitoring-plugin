@@ -1,5 +1,12 @@
 import * as React from 'react';
-import { Alert, Flex, FlexItem, Title } from '@patternfly/react-core';
+import {
+  Alert,
+  Flex,
+  FlexItem,
+  PageSection,
+  PageSectionVariants,
+  Title,
+} from '@patternfly/react-core';
 import _ from 'lodash';
 import { useTranslation } from 'react-i18next';
 import {
@@ -47,13 +54,13 @@ export const StatusBox: React.FC<StatusBoxProps> = (props) => {
     const status = _.get(loadError, 'response.status');
     if (status === 404) {
       return (
-        <div className="co-m-pane__body">
+        <PageSection variant={PageSectionVariants.light}>
           <Flex justifyContent={{ default: 'justifyContentCenter' }}>
             <FlexItem>
               <Title headingLevel="h1">{t('404: Not Found')}</Title>
             </FlexItem>
           </Flex>
-        </div>
+        </PageSection>
       );
     }
     if (status === 403) {
