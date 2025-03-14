@@ -12,7 +12,12 @@ import {
   BreadcrumbItem,
   CodeBlock,
   CodeBlockCode,
+  Divider,
   DropdownItem,
+  PageBreadcrumb,
+  PageGroup,
+  PageSection,
+  PageSectionVariants,
   Title,
   Toolbar,
   ToolbarContent,
@@ -178,38 +183,44 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
         <title>{t('{{name}} details', { name: rule?.name || RuleResource.label })}</title>
       </Helmet>
       <StatusBox data={rule} label={RuleResource.label} loaded={loaded} loadError={loadError}>
-        <div className="pf-v5-c-page__main-breadcrumb">
-          <Breadcrumb className="monitoring-breadcrumbs">
-            {perspective === 'dev' && (
-              <BreadcrumbItem>
-                <Link
-                  className="pf-v5-c-breadcrumb__link"
-                  to={getAlertsUrl(perspective, namespace)}
-                >
-                  {t('Alerts')}
-                </Link>
-              </BreadcrumbItem>
-            )}
-            {perspective !== 'dev' && (
-              <BreadcrumbItem>
-                <Link className="pf-v5-c-breadcrumb__link" to={getAlertRulesUrl(perspective)}>
-                  {t('Alerting rules')}
-                </Link>
-              </BreadcrumbItem>
-            )}
-            <BreadcrumbItem isActive>{t('Alerting rule details')}</BreadcrumbItem>
-          </Breadcrumb>
-        </div>
-        <div className="co-m-nav-title co-m-nav-title--detail co-m-nav-title--breadcrumbs">
-          <Title headingLevel="h1">
-            <div data-test="resource-title" className="co-resource-item">
-              <MonitoringResourceIcon className="co-m-resource-icon--lg" resource={RuleResource} />
-              {rule?.name}
-              <SeverityBadge severity={rule?.labels?.severity} />
-            </div>
-          </Title>
-        </div>
-        <div className="co-m-pane__body">
+        <PageGroup>
+          <PageBreadcrumb>
+            <Breadcrumb className="monitoring-breadcrumbs">
+              {perspective === 'dev' && (
+                <BreadcrumbItem>
+                  <Link
+                    className="pf-v5-c-breadcrumb__link"
+                    to={getAlertsUrl(perspective, namespace)}
+                  >
+                    {t('Alerts')}
+                  </Link>
+                </BreadcrumbItem>
+              )}
+              {perspective !== 'dev' && (
+                <BreadcrumbItem>
+                  <Link className="pf-v5-c-breadcrumb__link" to={getAlertRulesUrl(perspective)}>
+                    {t('Alerting rules')}
+                  </Link>
+                </BreadcrumbItem>
+              )}
+              <BreadcrumbItem isActive>{t('Alerting rule details')}</BreadcrumbItem>
+            </Breadcrumb>
+          </PageBreadcrumb>
+          <PageSection variant={PageSectionVariants.light}>
+            <Title headingLevel="h1">
+              <div data-test="resource-title" className="co-resource-item">
+                <MonitoringResourceIcon
+                  className="co-m-resource-icon--lg"
+                  resource={RuleResource}
+                />
+                {rule?.name}
+                <SeverityBadge severity={rule?.labels?.severity} />
+              </div>
+            </Title>
+          </PageSection>
+        </PageGroup>
+        <Divider />
+        <PageSection variant={PageSectionVariants.light}>
           <div className="monitoring-heading">
             <Title headingLevel="h2">{t('Alerting rule details')}</Title>
           </div>
@@ -302,7 +313,7 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
               </div>
             </div>
           </div>
-        </div>
+        </PageSection>
         <div className="co-m-pane__body">
           <div className="co-m-pane__body-group">
             <Toolbar className="monitoring-alert-detail-toolbar">

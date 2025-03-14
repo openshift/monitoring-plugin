@@ -34,6 +34,13 @@ import {
   Breadcrumb,
   BreadcrumbItem,
   Button,
+  Divider,
+  PageBreadcrumb,
+  PageGroup,
+  PageSection,
+  PageSectionVariants,
+  Split,
+  SplitItem,
   Title,
   Toolbar,
   ToolbarContent,
@@ -129,37 +136,51 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
         loaded={alerts?.loaded}
         loadError={alerts?.loadError}
       >
-        <div className="pf-v5-c-page__main-breadcrumb">
-          <Breadcrumb className="monitoring-breadcrumbs">
-            <BreadcrumbItem>
-              <Link className="pf-v5-c-breadcrumb__link" to={getAlertsUrl(perspective, namespace)}>
-                {t('Alerts')}
-              </Link>
-            </BreadcrumbItem>
-            <BreadcrumbItem isActive>{t('Alert details')}</BreadcrumbItem>
-          </Breadcrumb>
-        </div>
-        <div className="co-m-nav-title co-m-nav-title--detail co-m-nav-title--breadcrumbs">
-          <Title headingLevel="h1">
-            <div data-test="resource-title" className="co-resource-item">
-              <MonitoringResourceIcon className="co-m-resource-icon--lg" resource={AlertResource} />
-              {labels?.alertname}
-              <SeverityBadge severity={labels?.severity} />
-            </div>
-            {state !== AlertStates.Silenced && (
-              <div data-test-id="details-actions">
-                <Button
-                  className="co-action-buttons__btn"
-                  onClick={() => history.push(getNewSilenceAlertUrl(perspective, alert, namespace))}
-                  variant="primary"
+        <PageGroup>
+          <PageBreadcrumb>
+            <Breadcrumb className="monitoring-breadcrumbs">
+              <BreadcrumbItem>
+                <Link
+                  className="pf-v5-c-breadcrumb__link"
+                  to={getAlertsUrl(perspective, namespace)}
                 >
-                  {t('Silence alert')}
-                </Button>
-              </div>
-            )}
-          </Title>
-          <HeaderAlertMessage alert={alert} rule={rule} />
-        </div>
+                  {t('Alerts')}
+                </Link>
+              </BreadcrumbItem>
+              <BreadcrumbItem isActive>{t('Alert details')}</BreadcrumbItem>
+            </Breadcrumb>
+          </PageBreadcrumb>
+          <PageSection variant={PageSectionVariants.light}>
+            <Split>
+              <SplitItem>
+                <Title headingLevel="h1">
+                  <MonitoringResourceIcon
+                    className="co-m-resource-icon--lg"
+                    resource={AlertResource}
+                  />
+                  {labels?.alertname}
+                  <SeverityBadge severity={labels?.severity} />
+                </Title>
+              </SplitItem>
+              <SplitItem isFilled />
+              {state !== AlertStates.Silenced && (
+                <SplitItem>
+                  <Button
+                    className="co-action-buttons__btn"
+                    onClick={() =>
+                      history.push(getNewSilenceAlertUrl(perspective, alert, namespace))
+                    }
+                    variant="primary"
+                  >
+                    {t('Silence alert')}
+                  </Button>
+                </SplitItem>
+              )}
+            </Split>
+            <HeaderAlertMessage alert={alert} rule={rule} />
+          </PageSection>
+        </PageGroup>
+        <Divider />
         <div className="co-m-pane__body">
           <Toolbar className="monitoring-alert-detail-toolbar">
             <ToolbarContent>
