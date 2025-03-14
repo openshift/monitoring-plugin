@@ -117,7 +117,7 @@ function generateIntervalsWithGaps(filteredValues: Array<Timestamps>, dateArray:
   if (firstTimestamp > startBoundary) {
     intervals.push([
       startBoundary.toISOString(),
-      new Date(firstTimestamp.valueOf() - 1).toISOString(),
+      new Date(firstTimestamp.getTime() - 1).toISOString(),
       'nodata',
     ]);
   }
@@ -163,7 +163,7 @@ function generateIntervalsWithGaps(filteredValues: Array<Timestamps>, dateArray:
 function hasGap(filteredValues: Array<Timestamps>, index: number) {
   const previousTimestamp = new Date(filteredValues[index - 1][0]);
   const currentTimestamp = new Date(filteredValues[index][0]);
-  return (currentTimestamp.valueOf() - previousTimestamp.valueOf()) / 1000 / 60 > 5;
+  return (currentTimestamp.getTime() - previousTimestamp.getTime()) / 1000 / 60 > 5;
 }
 
 /**
@@ -232,7 +232,7 @@ export const createIncidentsChartBars = (
 
 function consolidateAndMergeAlertIntervals(data: Alert, dateArray: SpanDates) {
   const sortedValues = data.values.sort(
-    (a, b) => new Date(a[0]).valueOf() - new Date(b[0]).valueOf(),
+    (a, b) => new Date(a[0]).getTime() - new Date(b[0]).getTime(),
   );
 
   const intervals: Array<AlertsIntervalsArray> = [];
@@ -241,7 +241,7 @@ function consolidateAndMergeAlertIntervals(data: Alert, dateArray: SpanDates) {
 
   for (let i = 1; i < sortedValues.length; i++) {
     const currentTimestamp = new Date(sortedValues[i][0]);
-    const timeDifference = (currentTimestamp.valueOf() - previousTimestamp.valueOf()) / 60000; // Convert to minutes
+    const timeDifference = (currentTimestamp.getTime() - previousTimestamp.getTime()) / 60000; // Convert to minutes
 
     if (timeDifference > 5) {
       intervals.push([currentStart, sortedValues[i - 1][0], 'data']);
@@ -445,11 +445,7 @@ export const onDeleteIncidentFilterChip = (
   }
 };
 
-export const onDeleteGroupIncidentFilterChip = (
-  type: string,
-  filters: IncidentFiltersCombined,
-  setFilters,
-) => {
+export const onDeleteGroupIncidentFilterChip = (filters: IncidentFiltersCombined, setFilters) => {
   setFilters(
     setIncidentsActiveFilters({
       incidentsActiveFilters: {
