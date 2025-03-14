@@ -415,11 +415,9 @@ const AlertMessage: React.FC<AlertMessageProps> = ({ alertText, labels, template
   });
 
   return (
-    <div className="co-alert-manager">
-      <p>
-        <LinkifyExternal>{messageParts}</LinkifyExternal>
-      </p>
-    </div>
+    <p>
+      <LinkifyExternal>{messageParts}</LinkifyExternal>
+    </p>
   );
 };
 
