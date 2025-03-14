@@ -88,21 +88,10 @@ $screen-lg-min: 1200px;
   height: calc(100% - 20px);
   margin: 0 0 20px 0;
 
-  .co-dashboard-card__body--dashboard {
+  .monitoring-dashboards__card--dashboard {
     // Add extra padding to the right. X-axis times with AM/PM at certain screen widths can overflow
     // the card otherwise.
     padding: 10px 15px 10px 10px;
-  }
-
-  &.co-dashboard-card--gradient {
-    .pf-v5-c-card__body {
-      max-height: 350px;
-      overflow: scroll;
-    }
-
-    &:after {
-      width: calc(100% - 10px);
-    }
   }
 
   .query-browser__wrapper {
