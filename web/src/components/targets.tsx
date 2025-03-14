@@ -203,7 +203,6 @@ const WatchErrorAlert: React.FC<WatchErrorAlertProps> = ({ loadError, title }) =
 
   return (
     <Alert
-      className="co-alert"
       title={title}
       variant="danger"
       actionClose={<AlertActionCloseButton onClose={hideError} />}
@@ -298,7 +297,7 @@ const Details: React.FC<DetailsProps> = ({ loaded, loadError, targets }) => {
                   <Timestamp timestamp={target?.lastScrape} />
                 </dd>
                 {target?.lastError && (
-                  <Alert className="co-alert" title={t('Scrape failed')} variant="danger">
+                  <Alert title={t('Scrape failed')} variant="danger">
                     {target?.lastError}
                   </Alert>
                 )}
@@ -521,11 +520,7 @@ const ListPage: React.FC<ListPageProps> = ({ loaded, loadError, targets }) => {
       // @ts-ignore TODO */}
       <ListPageBody>
         {loadError && (
-          <Alert
-            className="co-alert"
-            title={t('Error loading latest targets data')}
-            variant="danger"
-          >
+          <Alert title={t('Error loading latest targets data')} variant="danger">
             {loadError}
           </Alert>
         )}

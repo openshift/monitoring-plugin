@@ -2,7 +2,7 @@ import * as _ from 'lodash-es';
 import * as React from 'react';
 import classNames from 'classnames';
 import * as PropTypes from 'prop-types';
-import { Alert, AlertGroup } from '@patternfly/react-core';
+import { Alert, AlertGroup, Panel, PanelMain, PanelMainBody } from '@patternfly/react-core';
 import { useTranslation } from 'react-i18next';
 import { LoadingInline } from '../console-shared/src/components/loading/LoadingInline';
 
@@ -21,27 +21,24 @@ const ErrorMessage = ({ message }) => {
   return (
     <Alert
       isInline
-      className="co-alert co-alert--scrollable"
       variant="danger"
       title={t('public~An error occurred')}
       data-test="alert-error"
     >
-      <div className="co-pre-line">{message}</div>
+      <Panel isScrollable>
+        <PanelMain maxHeight="100px">
+          <PanelMainBody className="pf-v5-u-text-break-word monitoring__pre-line">
+            {message}
+          </PanelMainBody>
+        </PanelMain>
+      </Panel>
     </Alert>
   );
 };
 const InfoMessage = ({ message }) => (
-  <Alert
-    isInline
-    className="co-alert"
-    variant="info"
-    title={message}
-    data-test="button-bar-info-message"
-  />
+  <Alert isInline variant="info" title={message} data-test="button-bar-info-message" />
 );
-const SuccessMessage = ({ message }) => (
-  <Alert isInline className="co-alert" variant="success" title={message} />
-);
+const SuccessMessage = ({ message }) => <Alert isInline variant="success" title={message} />;
 
 // NOTE: DO NOT use <a> elements within a ButtonBar.
 // They don't support the disabled attribute, and therefore

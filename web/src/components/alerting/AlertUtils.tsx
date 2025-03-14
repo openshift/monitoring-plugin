@@ -62,7 +62,6 @@ export const SilencesNotLoadedWarning: React.FC<{ silencesLoadError: any }> = ({
 
   return (
     <PFAlert
-      className="co-alert"
       isInline
       title={t(
         'Error loading silences from Alertmanager. Some of the alerts below may actually be silenced.',

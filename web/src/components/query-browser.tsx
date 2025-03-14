@@ -92,7 +92,7 @@ const valueFormatter = (units: string): ((v: number) => string) =>
     : formatValue;
 
 export const Error: React.FC<ErrorProps> = ({ error, title = 'An error occurred' }) => (
-  <Alert isInline className="co-alert" title={title} variant="danger">
+  <Alert isInline title={title} variant="danger">
     {_.get(error, 'json.error', error.message)}
   </Alert>
 );
