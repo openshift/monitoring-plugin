@@ -11,7 +11,7 @@ import { RuleResource } from '../../../components/utils';
 import { Link } from 'react-router-dom';
 import { SelectedFilters } from '../useSelectedFilters';
 import { filterAlerts } from './hooks/utils';
-import { Badge } from '@patternfly/react-core';
+import { Badge, Flex, FlexItem } from '@patternfly/react-core';
 
 type AggregateAlertTableRowProps = React.FC<{
   aggregatedAlert: AggregatedAlert;
@@ -84,18 +84,23 @@ const AggregateAlertTableRow: AggregateAlertTableRowProps = ({
           }}
         />
         <td className={tableAggregatedAlertClasses[0]} title={title}>
-          <MonitoringResourceIcon resource={RuleResource} />
-          <Link
-            to={getRuleUrl(
-              perspective,
-              firstAlert?.rule,
-              firstAlert?.labels?.namespace || namespace,
-            )}
-            data-test-id="alert-resource-link"
-            className="co-resource-item__resource-name"
-          >
-            {aggregatedAlert.name}
-          </Link>
+          <Flex spaceItems={{ default: 'spaceItemsNone' }} flexWrap={{ default: 'nowrap' }}>
+            <FlexItem>
+              <MonitoringResourceIcon resource={RuleResource} />
+            </FlexItem>
+            <FlexItem>
+              <Link
+                to={getRuleUrl(
+                  perspective,
+                  firstAlert?.rule,
+                  firstAlert?.labels?.namespace || namespace,
+                )}
+                data-test-id="alert-resource-link"
+              >
+                {aggregatedAlert.name}
+              </Link>
+            </FlexItem>
+          </Flex>
         </td>
         <td className={tableAggregatedAlertClasses[1]} title={title}>
           <Severity severity={aggregatedAlert.severity} />

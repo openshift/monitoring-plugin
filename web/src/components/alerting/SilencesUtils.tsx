@@ -97,17 +97,20 @@ export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheck
         </td>
       )}
       <td className={tableSilenceClasses[1]}>
-        <div className="co-resource-item">
-          <MonitoringResourceIcon resource={SilenceResource} />
-          <Link
-            className="co-resource-item__resource-name"
-            data-test-id="silence-resource-link"
-            title={id}
-            to={getSilenceAlertUrl(perspective, id, namespace)}
-          >
-            {name}
-          </Link>
-        </div>
+        <Flex spaceItems={{ default: 'spaceItemsNone' }} flexWrap={{ default: 'nowrap' }}>
+          <FlexItem>
+            <MonitoringResourceIcon resource={SilenceResource} />
+          </FlexItem>
+          <FlexItem>
+            <Link
+              data-test-id="silence-resource-link"
+              title={id}
+              to={getSilenceAlertUrl(perspective, id, namespace)}
+            >
+              {name}
+            </Link>
+          </FlexItem>
+        </Flex>
         <div className="monitoring-label-list">
           <SilenceMatchersList silence={obj} />
         </div>

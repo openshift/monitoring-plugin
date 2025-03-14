@@ -188,7 +188,7 @@ const SilencedAlertsList_: React.FC<SilencedAlertsListProps> = ({ alerts, histor
           <div className="row co-resource-list__item" key={i}>
             <div className="col-xs-9">
               <Link
-                className="co-resource-item"
+                className="pf-v5-u-text-break-word"
                 data-test="firing-alerts"
                 to={getAlertUrl(perspective, a, a.rule.id, namespace)}
               >
