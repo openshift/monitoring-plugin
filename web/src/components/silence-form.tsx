@@ -9,10 +9,13 @@ import {
   ActionGroup,
   Alert,
   Button,
+  Divider,
   HelperText,
   HelperTextItem,
   MenuToggle,
   MenuToggleElement,
+  PageSection,
+  PageSectionVariants,
   Select,
   SelectList,
   SelectOption,
@@ -260,7 +263,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
       <Helmet>
         <title>{title}</title>
       </Helmet>
-      <div className="co-m-nav-title co-m-nav-title--detail">
+      <PageSection variant={PageSectionVariants.light}>
         <Title headingLevel="h1">{title}</Title>
         <HelperText>
           <HelperTextItem className="monitoring__title-help-text">
@@ -269,7 +272,8 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
             )}
           </HelperTextItem>
         </HelperText>
-      </div>
+      </PageSection>
+      <Divider />
 
       <div className="co-m-pane__body">
         {Info && <Info />}

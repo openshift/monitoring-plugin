@@ -18,6 +18,8 @@ import {
   MenuToggle,
   Badge,
   Title,
+  PageSection,
+  PageSectionVariants,
 } from '@patternfly/react-core';
 import { Helmet } from 'react-helmet';
 import { IncidentsTable } from './IncidentsTable';
@@ -276,9 +278,9 @@ const IncidentsPage = () => {
       <Helmet>
         <title>{title}</title>
       </Helmet>
-      <div className="co-m-nav-title">
+      <PageSection variant={PageSectionVariants.light}>
         <Title headingLevel="h1">{t('Incidents')}</Title>
-      </div>
+      </PageSection>
       {alertsAreLoading && incidentsAreLoading ? (
         <Bullseye>
           <Spinner aria-label="incidents-chart-spinner" />

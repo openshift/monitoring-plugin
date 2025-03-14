@@ -3,7 +3,19 @@ import * as React from 'react';
 import { useSelector } from 'react-redux';
 
 import { Alert, Timestamp, useActiveNamespace } from '@openshift-console/dynamic-plugin-sdk';
-import { Breadcrumb, BreadcrumbItem, DropdownItem, Title } from '@patternfly/react-core';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  Divider,
+  DropdownItem,
+  PageBreadcrumb,
+  PageGroup,
+  PageSection,
+  PageSectionVariants,
+  Split,
+  SplitItem,
+  Title,
+} from '@patternfly/react-core';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import { RouteComponentProps, withRouter } from 'react-router';
@@ -51,33 +63,39 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
         loaded={silences?.loaded}
         loadError={silences?.loadError}
       >
-        <div className="pf-v5-c-page__main-breadcrumb">
-          <Breadcrumb className="monitoring-breadcrumbs">
-            <BreadcrumbItem>
-              <Link
-                className="pf-v5-c-breadcrumb__link"
-                to={getSilencesUrl(perspective, namespace)}
-              >
-                {t('Silences')}
-              </Link>
-            </BreadcrumbItem>
-            <BreadcrumbItem isActive>{t('Silence details')}</BreadcrumbItem>
-          </Breadcrumb>
-        </div>
-        <div className="co-m-nav-title co-m-nav-title--detail co-m-nav-title--breadcrumbs">
-          <Title headingLevel="h1">
-            <div data-test="resource-title" className="co-resource-item">
-              <MonitoringResourceIcon
-                className="co-m-resource-icon--lg"
-                resource={SilenceResource}
-              />
-              {silence?.name}
-            </div>
-            <div className="co-actions" data-test-id="details-actions">
-              {silence && <SilenceDropdown silence={silence} toggleText="Actions" />}
-            </div>
-          </Title>
-        </div>
+        <PageGroup>
+          <PageBreadcrumb>
+            <Breadcrumb className="monitoring-breadcrumbs">
+              <BreadcrumbItem>
+                <Link
+                  className="pf-v5-c-breadcrumb__link"
+                  to={getSilencesUrl(perspective, namespace)}
+                >
+                  {t('Silences')}
+                </Link>
+              </BreadcrumbItem>
+              <BreadcrumbItem isActive>{t('Silence details')}</BreadcrumbItem>
+            </Breadcrumb>
+          </PageBreadcrumb>
+          <PageSection variant={PageSectionVariants.light}>
+            <Split>
+              <SplitItem>
+                <Title headingLevel="h1">
+                  <MonitoringResourceIcon
+                    className="co-m-resource-icon--lg"
+                    resource={SilenceResource}
+                  />
+                  {silence?.name}
+                </Title>
+              </SplitItem>
+              <SplitItem isFilled />
+              <SplitItem>
+                {silence && <SilenceDropdown silence={silence} toggleText="Actions" />}
+              </SplitItem>
+            </Split>
+          </PageSection>
+        </PageGroup>
+        <Divider />
         <div className="co-m-pane__body">
           <Title headingLevel="h2">{t('Silence details')}</Title>
           <div className="co-m-pane__body-group">
