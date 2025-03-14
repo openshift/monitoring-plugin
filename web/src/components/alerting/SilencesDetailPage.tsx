@@ -6,6 +6,10 @@ import { Alert, Timestamp, useActiveNamespace } from '@openshift-console/dynamic
 import {
   Breadcrumb,
   BreadcrumbItem,
+  DescriptionList,
+  DescriptionListDescription,
+  DescriptionListGroup,
+  DescriptionListTerm,
   Divider,
   DropdownItem,
   PageBreadcrumb,
@@ -101,54 +105,72 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
           <Title headingLevel="h2">{t('Silence details')}</Title>
           <div className="row">
             <div className="col-sm-6">
-              <dl className="co-m-pane__details">
+              <DescriptionList>
                 {silence?.name && (
-                  <>
-                    <dt>{t('Name')}</dt>
-                    <dd>{silence?.name}</dd>
-                  </>
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>{t('Name')}</DescriptionListTerm>
+                    <DescriptionListDescription>{silence?.name}</DescriptionListDescription>
+                  </DescriptionListGroup>
                 )}
-                <dt>{t('Matchers')}</dt>
-                <dd data-test="label-list">
-                  {_.isEmpty(silence?.matchers) ? (
-                    <div className="text-muted">{t('No matchers')}</div>
-                  ) : (
-                    <SilenceMatchersList silence={silence} />
-                  )}
-                </dd>
-                <dt>{t('State')}</dt>
-                <dd>
-                  <SilenceState silence={silence} />
-                </dd>
-                <dt>{t('Last updated at')}</dt>
-                <dd>
-                  <Timestamp timestamp={silence?.updatedAt} />
-                </dd>
-              </dl>
+                <DescriptionListGroup>
+                  <DescriptionListTerm>{t('Matchers')}</DescriptionListTerm>
+                  <DescriptionListDescription data-test="label-list">
+                    {_.isEmpty(silence?.matchers) ? (
+                      <div className="text-muted">{t('No matchers')}</div>
+                    ) : (
+                      <SilenceMatchersList silence={silence} />
+                    )}
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
+                <DescriptionListGroup>
+                  <DescriptionListTerm>{t('State')}</DescriptionListTerm>
+                  <DescriptionListDescription>
+                    <SilenceState silence={silence} />
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
+                <DescriptionListGroup>
+                  <DescriptionListTerm>{t('Last updated at')}</DescriptionListTerm>
+                  <DescriptionListDescription>
+                    <Timestamp timestamp={silence?.updatedAt} />
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
+              </DescriptionList>
             </div>
             <div className="col-sm-6">
-              <dl className="co-m-pane__details">
-                <dt>{t('Starts at')}</dt>
-                <dd>
-                  <Timestamp timestamp={silence?.startsAt} />
-                </dd>
-                <dt>{t('Ends at')}</dt>
-                <dd>
-                  <Timestamp timestamp={silence?.endsAt} />
-                </dd>
-                <dt>{t('Created by')}</dt>
-                <dd>{silence?.createdBy || '-'}</dd>
-                <dt>{t('Comment')}</dt>
-                <dd>{silence?.comment || '-'}</dd>
-                <dt>{t('Firing alerts')}</dt>
-                <dd>
-                  {alertsLoaded ? (
-                    <SeverityCounts alerts={silence?.firingAlerts} />
-                  ) : (
-                    <LoadingInline />
-                  )}
-                </dd>
-              </dl>
+              <DescriptionList>
+                <DescriptionListGroup>
+                  <DescriptionListTerm>{t('Starts at')}</DescriptionListTerm>
+                  <DescriptionListDescription>
+                    <Timestamp timestamp={silence?.startsAt} />
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
+                <DescriptionListGroup>
+                  <DescriptionListTerm>{t('Ends at')}</DescriptionListTerm>
+                  <DescriptionListDescription>
+                    <Timestamp timestamp={silence?.endsAt} />
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
+                <DescriptionListGroup>
+                  <DescriptionListTerm>{t('Created by')}</DescriptionListTerm>
+                  <DescriptionListDescription>
+                    {silence?.createdBy || '-'}
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
+                <DescriptionListGroup>
+                  <DescriptionListTerm>{t('Comment')}</DescriptionListTerm>
+                  <DescriptionListDescription>{silence?.comment || '-'}</DescriptionListDescription>
+                </DescriptionListGroup>
+                <DescriptionListGroup>
+                  <DescriptionListTerm>{t('Firing alerts')}</DescriptionListTerm>
+                  <DescriptionListDescription>
+                    {alertsLoaded ? (
+                      <SeverityCounts alerts={silence?.firingAlerts} />
+                    ) : (
+                      <LoadingInline />
+                    )}
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
+              </DescriptionList>
             </div>
           </div>
         </PageSection>

@@ -34,6 +34,12 @@ import {
   Breadcrumb,
   BreadcrumbItem,
   Button,
+  DescriptionList,
+  DescriptionListDescription,
+  DescriptionListGroup,
+  DescriptionListTerm,
+  DescriptionListTermHelpText,
+  DescriptionListTermHelpTextButton,
   Divider,
   Flex,
   FlexItem,
@@ -41,6 +47,7 @@ import {
   PageGroup,
   PageSection,
   PageSectionVariants,
+  Popover,
   Split,
   SplitItem,
   Title,
@@ -59,7 +66,6 @@ import {
   isActionWithCallback,
   isActionWithHref,
   MonitoringResourceIcon,
-  PopoverField,
   Severity,
   SeverityBadge,
   SeverityHelp,
@@ -242,108 +248,148 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
             </div>
             <div className="row">
               <div className="col-sm-6">
-                <dl className="co-m-pane__details">
-                  <dt>{t('Name')}</dt>
-                  <dd>{labels?.alertname}</dd>
-                  <dt>
-                    <PopoverField bodyContent={<SeverityHelp />} label={t('Severity')} />
-                  </dt>
-                  <dd>
-                    <Severity severity={labels?.severity} />
-                  </dd>
+                <DescriptionList>
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>{t('Name')}</DescriptionListTerm>
+                    <DescriptionListDescription>{labels?.alertname}</DescriptionListDescription>
+                  </DescriptionListGroup>
+                  <DescriptionListGroup>
+                    <DescriptionListTermHelpText>
+                      <Popover
+                        headerContent={<div>{t('Severity')}</div>}
+                        bodyContent={<SeverityHelp />}
+                      >
+                        <DescriptionListTermHelpTextButton>
+                          {' '}
+                          {t('Severity')}
+                        </DescriptionListTermHelpTextButton>
+                      </Popover>
+                    </DescriptionListTermHelpText>
+                    <DescriptionListDescription>
+                      <Severity severity={labels?.severity} />
+                    </DescriptionListDescription>
+                  </DescriptionListGroup>
                   {alert?.annotations?.description && (
-                    <>
-                      <dt>{t('Description')}</dt>
-                      <dd>
+                    <DescriptionListGroup>
+                      <DescriptionListTerm>{t('Description')}</DescriptionListTerm>
+                      <DescriptionListDescription>
                         <AlertMessage
                           alertText={alert.annotations.description}
                           labels={labels}
                           template={rule?.annotations?.description}
                         />
-                      </dd>
-                    </>
+                      </DescriptionListDescription>
+                    </DescriptionListGroup>
                   )}
                   {alert?.annotations?.summary && (
-                    <>
-                      <dt>{t('Summary')}</dt>
-                      <dd>{alert.annotations.summary}</dd>
-                    </>
+                    <DescriptionListGroup>
+                      <DescriptionListTerm>{t('Summary')}</DescriptionListTerm>
+                      <DescriptionListDescription>
+                        {alert.annotations.summary}
+                      </DescriptionListDescription>
+                    </DescriptionListGroup>
                   )}
                   {alert?.annotations?.message && (
-                    <>
-                      <dt>{t('Message')}</dt>
-                      <dd>
+                    <DescriptionListGroup>
+                      <DescriptionListTerm>{t('Message')}</DescriptionListTerm>
+                      <DescriptionListDescription>
                         <AlertMessage
                           alertText={alert.annotations.message}
                           labels={labels}
                           template={rule?.annotations?.message}
                         />
-                      </dd>
-                    </>
+                      </DescriptionListDescription>
+                    </DescriptionListGroup>
                   )}
                   {runbookURL && (
-                    <>
-                      <dt>{t('Runbook')}</dt>
-                      <dd>
+                    <DescriptionListGroup>
+                      <DescriptionListTerm>{t('Runbook')}</DescriptionListTerm>
+                      <DescriptionListDescription>
                         <ExternalLink href={runbookURL} text={runbookURL} />
-                      </dd>
-                    </>
+                      </DescriptionListDescription>
+                    </DescriptionListGroup>
                   )}
-                </dl>
+                </DescriptionList>
               </div>
               <div className="col-sm-6">
-                <dl className="co-m-pane__details">
-                  <dt>
-                    <PopoverField bodyContent={<SourceHelp />} label={t('Source')} />
-                  </dt>
-                  <dd>{alert && getSourceKey(_.startCase(alertSource(alert)), t)}</dd>
-                  <dt>
-                    <PopoverField bodyContent={<AlertStateHelp />} label={t('State')} />
-                  </dt>
-                  <dd>
-                    <AlertState state={state} />
-                    <AlertStateDescription alert={alert} />
-                  </dd>
-                </dl>
+                <DescriptionList>
+                  <DescriptionListGroup>
+                    <DescriptionListTermHelpText>
+                      <Popover
+                        headerContent={<div>{t('Source')}</div>}
+                        bodyContent={<SourceHelp />}
+                      >
+                        <DescriptionListTermHelpTextButton>
+                          {' '}
+                          {t('Source')}
+                        </DescriptionListTermHelpTextButton>
+                      </Popover>
+                    </DescriptionListTermHelpText>
+                    <DescriptionListDescription>
+                      {alert && getSourceKey(_.startCase(alertSource(alert)), t)}
+                    </DescriptionListDescription>
+                  </DescriptionListGroup>
+                  <DescriptionListGroup>
+                    <DescriptionListTermHelpText>
+                      <Popover
+                        headerContent={<div>{t('State')}</div>}
+                        bodyContent={<AlertStateHelp />}
+                      >
+                        <DescriptionListTermHelpTextButton>
+                          {' '}
+                          {t('State')}
+                        </DescriptionListTermHelpTextButton>
+                      </Popover>
+                    </DescriptionListTermHelpText>
+                    <DescriptionListDescription>
+                      <AlertState state={state} />
+                      <AlertStateDescription alert={alert} />
+                    </DescriptionListDescription>
+                  </DescriptionListGroup>
+                </DescriptionList>
               </div>
             </div>
           </PageSection>
           <PageSection variant={PageSectionVariants.light}>
             <div className="row">
               <div className="col-xs-12">
-                <dl className="co-m-pane__details" data-test="label-list">
-                  <dt>{t('Labels')}</dt>
-                  <dd>
-                    <Labels kind="alert" labels={labels} />
-                  </dd>
-                </dl>
+                <DescriptionList>
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>{t('Labels')}</DescriptionListTerm>
+                    <DescriptionListDescription>
+                      <Labels kind="alert" labels={labels} />
+                    </DescriptionListDescription>
+                  </DescriptionListGroup>
+                </DescriptionList>
               </div>
             </div>
           </PageSection>
           <PageSection variant={PageSectionVariants.light}>
             <div className="row">
               <div className="col-xs-12">
-                <dl className="co-m-pane__details">
-                  <dt>{t('Alerting rule')}</dt>
-                  <dd>
-                    <Flex
-                      spaceItems={{ default: 'spaceItemsNone' }}
-                      flexWrap={{ default: 'nowrap' }}
-                    >
-                      <FlexItem>
-                        <MonitoringResourceIcon resource={RuleResource} />
-                      </FlexItem>
-                      <FlexItem>
-                        <Link
-                          to={getRuleUrl(perspective, rule, namespace)}
-                          data-test="alert-rules-detail-resource-link"
-                        >
-                          {_.get(rule, 'name')}
-                        </Link>
-                      </FlexItem>
-                    </Flex>
-                  </dd>
-                </dl>
+                <DescriptionList>
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>{t('Alerting rule')}</DescriptionListTerm>
+                    <DescriptionListDescription>
+                      <Flex
+                        spaceItems={{ default: 'spaceItemsNone' }}
+                        flexWrap={{ default: 'nowrap' }}
+                      >
+                        <FlexItem>
+                          <MonitoringResourceIcon resource={RuleResource} />
+                        </FlexItem>
+                        <FlexItem>
+                          <Link
+                            to={getRuleUrl(perspective, rule, namespace)}
+                            data-test="alert-rules-detail-resource-link"
+                          >
+                            {_.get(rule, 'name')}
+                          </Link>
+                        </FlexItem>
+                      </Flex>
+                    </DescriptionListDescription>
+                  </DescriptionListGroup>
+                </DescriptionList>
               </div>
             </div>
           </PageSection>
@@ -449,33 +495,38 @@ const AlertStateHelp: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
-    <dl className="co-inline">
-      <dt>
-        <AlertStateIcon state={AlertStates.Pending} /> <strong>{t('Pending: ')}</strong>
-      </dt>
-      <dd>
-        {t(
-          'The alert is active but is waiting for the duration that is specified in the alerting rule before it fires.',
-        )}
-      </dd>
-      <dt>
-        <AlertStateIcon state={AlertStates.Firing} /> <strong>{t('Firing: ')}</strong>
-      </dt>
-      <dd>
-        {t(
-          'The alert is firing because the alert condition is true and the optional `for` duration has passed. The alert will continue to fire as long as the condition remains true.',
-        )}
-      </dd>
-      <dt>
-        <AlertStateIcon state={AlertStates.Silenced} /> <strong>{t('Silenced: ')}</strong>
-      </dt>
-      <dt></dt>
-      <dd>
-        {t(
-          'The alert is now silenced for a defined time period. Silences temporarily mute alerts based on a set of label selectors that you define. Notifications will not be sent for alerts that match all the listed values or regular expressions.',
-        )}
-      </dd>
-    </dl>
+    <DescriptionList isCompact>
+      <DescriptionListGroup>
+        <DescriptionListTerm>
+          <AlertStateIcon state={AlertStates.Pending} /> <strong>{t('Pending: ')}</strong>
+        </DescriptionListTerm>
+        <DescriptionListDescription>
+          {t(
+            'The alert is active but is waiting for the duration that is specified in the alerting rule before it fires.',
+          )}
+        </DescriptionListDescription>
+      </DescriptionListGroup>
+      <DescriptionListGroup>
+        <DescriptionListTerm>
+          <AlertStateIcon state={AlertStates.Firing} /> <strong>{t('Firing: ')}</strong>
+        </DescriptionListTerm>
+        <DescriptionListDescription>
+          {t(
+            'The alert is firing because the alert condition is true and the optional `for` duration has passed. The alert will continue to fire as long as the condition remains true.',
+          )}
+        </DescriptionListDescription>
+      </DescriptionListGroup>
+      <DescriptionListGroup>
+        <DescriptionListTerm>
+          <AlertStateIcon state={AlertStates.Silenced} /> <strong>{t('Silenced: ')}</strong>
+        </DescriptionListTerm>
+        <DescriptionListDescription>
+          {t(
+            'The alert is now silenced for a defined time period. Silences temporarily mute alerts based on a set of label selectors that you define. Notifications will not be sent for alerts that match all the listed values or regular expressions.',
+          )}
+        </DescriptionListDescription>
+      </DescriptionListGroup>
+    </DescriptionList>
   );
 };
 
