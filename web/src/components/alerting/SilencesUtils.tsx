@@ -18,6 +18,9 @@ import {
   MenuToggleElement,
   Modal,
   ModalVariant,
+  Panel,
+  PanelMain,
+  PanelMainBody,
   Alert as PFAlert,
 } from '@patternfly/react-core';
 import { BanIcon, EllipsisVIcon, HourglassHalfIcon } from '@patternfly/react-icons';
@@ -286,13 +289,14 @@ const ExpireSilenceModal: React.FC<ExpireSilenceModalProps> = ({
         <Flex direction={{ default: 'column' }}>
           <FlexItem>
             {errorMessage && (
-              <PFAlert
-                className="co-alert co-alert--scrollable"
-                isInline
-                title={t('An error occurred')}
-                variant="danger"
-              >
-                <div className="co-pre-line">{errorMessage}</div>
+              <PFAlert isInline title={t('An error occurred')} variant="danger">
+                <Panel isScrollable>
+                  <PanelMain maxHeight="100px">
+                    <PanelMainBody className="pf-v5-u-text-break-word monitoring__pre-line">
+                      {errorMessage}
+                    </PanelMainBody>
+                  </PanelMain>
+                </Panel>
               </PFAlert>
             )}
           </FlexItem>
