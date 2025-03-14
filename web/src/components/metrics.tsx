@@ -20,6 +20,8 @@ import {
   GridItem,
   MenuToggle,
   MenuToggleElement,
+  PageSection,
+  PageSectionVariants,
   SelectOptionProps,
   Split,
   SplitItem,
@@ -1213,19 +1215,20 @@ const QueryBrowserPage_: React.FC = () => {
       <Helmet>
         <title>{t('Metrics')}</title>
       </Helmet>
-      <div className="co-m-nav-title">
-        <Title headingLevel="h1">
-          <span>{t('Metrics')}</span>
-          <Split hasGutter>
-            <SplitItem>
-              <IntervalDropdown />
-            </SplitItem>
-            <SplitItem>
-              <MetricsActionsMenu />
-            </SplitItem>
-          </Split>
-        </Title>
-      </div>
+      <PageSection variant={PageSectionVariants.light}>
+        <Split hasGutter>
+          <SplitItem>
+            <Title headingLevel="h1">{t('Metrics')}</Title>
+          </SplitItem>
+          <SplitItem isFilled />
+          <SplitItem>
+            <IntervalDropdown />
+          </SplitItem>
+          <SplitItem>
+            <MetricsActionsMenu />
+          </SplitItem>
+        </Split>
+      </PageSection>
       <div className="co-m-pane__body">
         <div className="row">
           <div className="col-xs-12">

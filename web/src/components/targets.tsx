@@ -21,6 +21,11 @@ import {
   AlertActionCloseButton,
   Breadcrumb,
   BreadcrumbItem,
+  Divider,
+  PageBreadcrumb,
+  PageGroup,
+  PageSection,
+  PageSectionVariants,
   Title,
   Tooltip,
 } from '@patternfly/react-core';
@@ -242,21 +247,24 @@ const Details: React.FC<DetailsProps> = ({ loaded, loadError, targets }) => {
       <Helmet>
         <title>{t('Target details')}</title>
       </Helmet>
-      <div className="pf-v5-c-page__main-breadcrumb">
-        <Breadcrumb className="co-breadcrumb">
-          <BreadcrumbItem>
-            <Link className="pf-v5-c-breadcrumb__link" to="/monitoring/targets">
-              {t('Targets')}
-            </Link>
-          </BreadcrumbItem>
-          <BreadcrumbItem isActive>{t('Target details')}</BreadcrumbItem>
-        </Breadcrumb>
-      </div>
-      <div className="co-m-nav-title co-m-nav-title--detail co-m-nav-title--breadcrumbs">
-        <Title headingLevel="h1">
-          <div className="co-resource-item">{scrapeUrl}</div>
-        </Title>
-      </div>
+      <PageGroup>
+        <PageBreadcrumb>
+          <Breadcrumb>
+            <BreadcrumbItem>
+              <Link className="pf-v5-c-breadcrumb__link" to="/monitoring/targets">
+                {t('Targets')}
+              </Link>
+            </BreadcrumbItem>
+            <BreadcrumbItem isActive>{t('Target details')}</BreadcrumbItem>
+          </Breadcrumb>
+        </PageBreadcrumb>
+        <PageSection variant={PageSectionVariants.light}>
+          <Title headingLevel="h1">
+            <div className="co-resource-item">{scrapeUrl}</div>
+          </Title>
+        </PageSection>
+      </PageGroup>
+      <Divider />
       <StatusBox data={target} label="target" loaded={loaded} loadError={loadError}>
         <div className="co-m-pane__body">
           <Title headingLevel="h2">{t('Target details')}</Title>
