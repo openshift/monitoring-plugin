@@ -66,6 +66,7 @@ import { MonitoringState } from '../../reducers/observe';
 import { StatusBox } from '../console/console-shared/src/components/status/StatusBox';
 import { formatPrometheusDuration } from '../console/console-shared/src/datetime/prometheus';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
+import { Table, TableVariant, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
 
 // Renders Prometheus template text and highlights any {{ ... }} tags that it contains
 const PrometheusTemplate = ({ text }) => (
@@ -94,28 +95,32 @@ const ActiveAlerts_: React.FC<ActiveAlertsProps> = ({ alerts, history, namespace
   const { perspective } = usePerspective();
 
   return (
-    <div className="co-m-table-grid co-m-table-grid--bordered">
-      <div className="row co-m-table-grid__head">
-        <div className="col-xs-6">{t('Description')}</div>
-        <div className="col-sm-2 hidden-xs">{t('Active since')}</div>
-        <div className="col-sm-2 col-xs-3">{t('State')}</div>
-        <div className="col-sm-2 col-xs-3">{t('Value')}</div>
-      </div>
-      <div className="co-m-table-grid__body">
+    <Table variant={TableVariant.compact}>
+      <Thead>
+        <Tr>
+          <Th width={60}>{t('Description')}</Th>
+          <Th width={15} visibility={['hiddenOnSm', 'visibleOnMd']}>
+            {t('Active since')}
+          </Th>
+          <Th width={10}>{t('State')}</Th>
+          <Th width={15}>{t('Value')}</Th>
+        </Tr>
+      </Thead>
+      <Tbody>
         {_.sortBy<PrometheusAlert>(alerts, alertDescription).map((a, i) => (
-          <div className="row co-resource-list__item" key={i}>
-            <div className="col-xs-6">
+          <Tr key={i}>
+            <Td>
               <Link data-test="active-alerts" to={getAlertUrl(perspective, a, ruleID, namespace)}>
                 {alertDescription(a)}
               </Link>
-            </div>
-            <div className="col-sm-2 hidden-xs">
+            </Td>
+            <Td>
               <Timestamp timestamp={a.activeAt} />
-            </div>
-            <div className="col-sm-2 col-xs-3">
+            </Td>
+            <Td>
               <AlertState state={a.state} />
-            </div>
-            <div className="col-sm-2 col-xs-3 co-truncate">{a.value}</div>
+            </Td>
+            <Td modifier="truncate">{a.value}</Td>
             {a.state !== AlertStates.Silenced && (
               <div className="dropdown-kebab-pf">
                 <KebabDropdown
@@ -131,10 +136,10 @@ const ActiveAlerts_: React.FC<ActiveAlertsProps> = ({ alerts, history, namespace
                 />
               </div>
             )}
-          </div>
+          </Tr>
         ))}
-      </div>
-    </div>
+      </Tbody>
+    </Table>
   );
 };
 const ActiveAlerts = withRouter(ActiveAlerts_);
