@@ -28,7 +28,15 @@ import { fuzzyCaseInsensitive, refreshSilences, silenceCluster, silenceState } f
 import * as _ from 'lodash-es';
 import { sortable } from '@patternfly/react-table';
 import { SelectedSilencesContext, SilenceTableRow, tableSilenceClasses } from './SilencesUtils';
-import { Button, Checkbox, Flex, FlexItem, Alert as PFAlert } from '@patternfly/react-core';
+import {
+  Button,
+  Checkbox,
+  Flex,
+  FlexItem,
+  PageSection,
+  PageSectionVariants,
+  Alert as PFAlert,
+} from '@patternfly/react-core';
 import { useBoolean } from '../hooks/useBoolean';
 import { Link } from 'react-router-dom';
 import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
@@ -150,7 +158,7 @@ const SilencesPage_: React.FC = () => {
   return (
     <>
       <Helmet>{perspective === 'dev' ? <title>Silences</title> : <title>Alerting</title>}</Helmet>
-      <div className="co-m-pane__body">
+      <PageSection variant={PageSectionVariants.light}>
         <SelectedSilencesContext.Provider value={{ selectedSilences, setSelectedSilences }}>
           <Flex>
             <FlexItem>
@@ -204,7 +212,7 @@ const SilencesPage_: React.FC = () => {
             </div>
           </div>
         </SelectedSilencesContext.Provider>
-      </div>
+      </PageSection>
     </>
   );
 };

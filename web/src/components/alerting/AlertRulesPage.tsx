@@ -39,6 +39,7 @@ import { MonitoringState } from '../../reducers/observe';
 import { severityRowFilter } from './AlertUtils';
 import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
+import { PageSection, PageSectionVariants } from '@patternfly/react-core';
 
 const StateCounts: React.FC<{ alerts: PrometheusAlert[] }> = ({ alerts }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -206,7 +207,7 @@ const AlertRulesPage_: React.FC = () => {
       <Helmet>
         <title>Alerting</title>
       </Helmet>
-      <div className="co-m-pane__body">
+      <PageSection variant={PageSectionVariants.light}>
         <ListPageFilter
           data={staticData}
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -235,7 +236,7 @@ const AlertRulesPage_: React.FC = () => {
             />
           </div>
         </div>
-      </div>
+      </PageSection>
     </>
   );
 };
