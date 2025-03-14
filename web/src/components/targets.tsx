@@ -259,7 +259,7 @@ const Details: React.FC<DetailsProps> = ({ loaded, loadError, targets }) => {
         </PageBreadcrumb>
         <PageSection variant={PageSectionVariants.light}>
           <Title headingLevel="h1">
-            <div className="co-resource-item">{scrapeUrl}</div>
+            <div className="pf-v5-u-text-break-word">{scrapeUrl}</div>
           </Title>
         </PageSection>
       </PageGroup>
