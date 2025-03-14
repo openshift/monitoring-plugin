@@ -39,6 +39,8 @@ import { ToggleGraph } from '../metrics';
 import { Alerts } from '../types';
 import { alertDescription, RuleResource } from '../utils';
 
+import './alert-rules-details-page.scss';
+
 import {
   getAlertRulesUrl,
   getAlertsUrl,
@@ -70,7 +72,8 @@ const PrometheusTemplate = ({ text }) => (
   <>
     {text?.split(/(\{\{[^{}]*\}\})/)?.map((part: string, i: number) =>
       part.match(/^\{\{[^{}]*\}\}$/) ? (
-        <code className="co-code prometheus-template-tag" key={i}>
+        // <code className="monitoring__code monitoring__prometheus-template-tag" key={i}>
+        <code className="monitoring__code" key={i}>
           {part}
         </code>
       ) : (
