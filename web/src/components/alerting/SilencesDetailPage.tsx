@@ -36,6 +36,7 @@ import { SilenceDropdown, SilenceMatchersList, SilenceState } from './SilencesUt
 import { StatusBox } from '../console/console-shared/src/components/status/StatusBox';
 import { LoadingInline } from '../console/console-shared/src/components/loading/LoadingInline';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
+import { Table, TableVariant, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
 
 const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ match }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -178,15 +179,17 @@ const SilencedAlertsList_: React.FC<SilencedAlertsListProps> = ({ alerts, histor
   return _.isEmpty(alerts) ? (
     <div className="pf-v5-u-text-align-center">{t('None found')}</div>
   ) : (
-    <div className="co-m-table-grid co-m-table-grid--bordered">
-      <div className="row co-m-table-grid__head">
-        <div className="col-xs-9">{t('Name')}</div>
-        <div className="col-xs-3">{t('Severity')}</div>
-      </div>
-      <div className="co-m-table-grid__body">
+    <Table variant={TableVariant.compact}>
+      <Thead>
+        <Tr>
+          <Th width={80}>{t('Name')}</Th>
+          <Th width={20}>{t('Severity')}</Th>
+        </Tr>
+      </Thead>
+      <Tbody>
         {_.sortBy<Alert>(alerts, alertDescription).map((a, i) => (
-          <div className="row co-resource-list__item" key={i}>
-            <div className="col-xs-9">
+          <Tr key={i}>
+            <Td>
               <Link
                 className="pf-v5-u-text-break-word"
                 data-test="firing-alerts"
@@ -195,10 +198,10 @@ const SilencedAlertsList_: React.FC<SilencedAlertsListProps> = ({ alerts, histor
                 {a.labels.alertname}
               </Link>
               <div className="monitoring-description">{alertDescription(a)}</div>
-            </div>
-            <div className="col-xs-3">
+            </Td>
+            <Td>
               <Severity severity={a.labels.severity} />
-            </div>
+            </Td>
             <div className="dropdown-kebab-pf">
               <KebabDropdown
                 dropdownItems={[
@@ -211,10 +214,10 @@ const SilencedAlertsList_: React.FC<SilencedAlertsListProps> = ({ alerts, histor
                 ]}
               />
             </div>
-          </div>
+          </Tr>
         ))}
-      </div>
-    </div>
+      </Tbody>
+    </Table>
   );
 };
 const SilencedAlertsList = withRouter(SilencedAlertsList_);
