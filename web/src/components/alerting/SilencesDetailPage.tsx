@@ -96,77 +96,74 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
           </PageSection>
         </PageGroup>
         <Divider />
-        <div className="co-m-pane__body">
+        <PageSection variant={PageSectionVariants.light}>
           <Title headingLevel="h2">{t('Silence details')}</Title>
-          <div className="co-m-pane__body-group">
-            <div className="row">
-              <div className="col-sm-6">
-                <dl className="co-m-pane__details">
-                  {silence?.name && (
-                    <>
-                      <dt>{t('Name')}</dt>
-                      <dd>{silence?.name}</dd>
-                    </>
-                  )}
-                  <dt>{t('Matchers')}</dt>
-                  <dd data-test="label-list">
-                    {_.isEmpty(silence?.matchers) ? (
-                      <div className="text-muted">{t('No matchers')}</div>
-                    ) : (
-                      <SilenceMatchersList silence={silence} />
-                    )}
-                  </dd>
-                  <dt>{t('State')}</dt>
-                  <dd>
-                    <SilenceState silence={silence} />
-                  </dd>
-                  <dt>{t('Last updated at')}</dt>
-                  <dd>
-                    <Timestamp timestamp={silence?.updatedAt} />
-                  </dd>
-                </dl>
-              </div>
-              <div className="col-sm-6">
-                <dl className="co-m-pane__details">
-                  <dt>{t('Starts at')}</dt>
-                  <dd>
-                    <Timestamp timestamp={silence?.startsAt} />
-                  </dd>
-                  <dt>{t('Ends at')}</dt>
-                  <dd>
-                    <Timestamp timestamp={silence?.endsAt} />
-                  </dd>
-                  <dt>{t('Created by')}</dt>
-                  <dd>{silence?.createdBy || '-'}</dd>
-                  <dt>{t('Comment')}</dt>
-                  <dd>{silence?.comment || '-'}</dd>
-                  <dt>{t('Firing alerts')}</dt>
-                  <dd>
-                    {alertsLoaded ? (
-                      <SeverityCounts alerts={silence?.firingAlerts} />
-                    ) : (
-                      <LoadingInline />
-                    )}
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="co-m-pane__body">
-          <div className="co-m-pane__body-group">
-            <Title headingLevel="h2">{t('Firing alerts')}</Title>
-            <div className="row">
-              <div className="col-xs-12">
-                {alertsLoaded ? (
-                  <SilencedAlertsList alerts={silence?.firingAlerts} />
-                ) : (
-                  <LoadingInline />
+          <div className="row">
+            <div className="col-sm-6">
+              <dl className="co-m-pane__details">
+                {silence?.name && (
+                  <>
+                    <dt>{t('Name')}</dt>
+                    <dd>{silence?.name}</dd>
+                  </>
                 )}
-              </div>
+                <dt>{t('Matchers')}</dt>
+                <dd data-test="label-list">
+                  {_.isEmpty(silence?.matchers) ? (
+                    <div className="text-muted">{t('No matchers')}</div>
+                  ) : (
+                    <SilenceMatchersList silence={silence} />
+                  )}
+                </dd>
+                <dt>{t('State')}</dt>
+                <dd>
+                  <SilenceState silence={silence} />
+                </dd>
+                <dt>{t('Last updated at')}</dt>
+                <dd>
+                  <Timestamp timestamp={silence?.updatedAt} />
+                </dd>
+              </dl>
+            </div>
+            <div className="col-sm-6">
+              <dl className="co-m-pane__details">
+                <dt>{t('Starts at')}</dt>
+                <dd>
+                  <Timestamp timestamp={silence?.startsAt} />
+                </dd>
+                <dt>{t('Ends at')}</dt>
+                <dd>
+                  <Timestamp timestamp={silence?.endsAt} />
+                </dd>
+                <dt>{t('Created by')}</dt>
+                <dd>{silence?.createdBy || '-'}</dd>
+                <dt>{t('Comment')}</dt>
+                <dd>{silence?.comment || '-'}</dd>
+                <dt>{t('Firing alerts')}</dt>
+                <dd>
+                  {alertsLoaded ? (
+                    <SeverityCounts alerts={silence?.firingAlerts} />
+                  ) : (
+                    <LoadingInline />
+                  )}
+                </dd>
+              </dl>
             </div>
           </div>
-        </div>
+        </PageSection>
+        <Divider />
+        <PageSection variant={PageSectionVariants.light}>
+          <Title headingLevel="h2">{t('Firing alerts')}</Title>
+          <div className="row">
+            <div className="col-xs-12">
+              {alertsLoaded ? (
+                <SilencedAlertsList alerts={silence?.firingAlerts} />
+              ) : (
+                <LoadingInline />
+              )}
+            </div>
+          </div>
+        </PageSection>
       </StatusBox>
     </>
   );

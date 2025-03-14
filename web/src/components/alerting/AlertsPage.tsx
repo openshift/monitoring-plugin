@@ -35,6 +35,7 @@ import useAggregateAlertColumns from './AlertList/hooks/useAggregateAlertColumns
 import useSelectedFilters from './useSelectedFilters';
 
 import './alert-table.scss';
+import { PageSection, PageSectionVariants } from '@patternfly/react-core';
 
 const AlertsPage_: React.FC<AlertsPageProps> = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -143,7 +144,7 @@ const AlertsPage_: React.FC<AlertsPageProps> = () => {
       <Helmet>
         <title>Alerting</title>
       </Helmet>
-      <div className="co-m-pane__body">
+      <PageSection variant={PageSectionVariants.light}>
         <ListPageFilter
           data={staticData}
           labelFilter="alerts"
@@ -178,7 +179,7 @@ const AlertsPage_: React.FC<AlertsPageProps> = () => {
         {loadError && <Error error={loadError} />}
         {loaded && filteredData?.length === 0 && !loadError && <EmptyBox label={t('Alerts')} />}
         {!loaded && <LoadingBox />}
-      </div>
+      </PageSection>
     </>
   );
 };

@@ -220,11 +220,13 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
           </PageSection>
         </PageGroup>
         <Divider />
-        <PageSection variant={PageSectionVariants.light}>
-          <div className="monitoring-heading">
-            <Title headingLevel="h2">{t('Alerting rule details')}</Title>
-          </div>
-          <div className="co-m-pane__body-group">
+        <PageGroup>
+          <PageSection variant={PageSectionVariants.light}>
+            <div className="monitoring-heading">
+              <Title headingLevel="h2">{t('Alerting rule details')}</Title>
+            </div>
+          </PageSection>
+          <PageSection variant={PageSectionVariants.light}>
             <div className="row">
               <div className="col-sm-6">
                 <dl className="co-m-pane__details">
@@ -300,8 +302,8 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
                 </dl>
               </div>
             </div>
-          </div>
-          <div className="co-m-pane__body-group">
+          </PageSection>
+          <PageSection variant={PageSectionVariants.light}>
             <div className="row">
               <div className="col-xs-12">
                 <dl className="co-m-pane__details">
@@ -312,48 +314,47 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
                 </dl>
               </div>
             </div>
+          </PageSection>
+        </PageGroup>
+        <Divider />
+        <PageSection variant={PageSectionVariants.light}>
+          <Toolbar className="monitoring-alert-detail-toolbar">
+            <ToolbarContent>
+              <ToolbarItem variant="label">
+                <Title headingLevel="h2">{t('Active alerts')}</Title>
+              </ToolbarItem>
+              <ToolbarGroup align={{ default: 'alignRight' }}>
+                <ToolbarItem>
+                  <ToggleGraph />
+                </ToolbarItem>
+              </ToolbarGroup>
+            </ToolbarContent>
+          </Toolbar>
+          <div className="row">
+            <div className="col-sm-12">
+              {!sourceId || sourceId === 'prometheus' ? (
+                <Graph
+                  formatSeriesTitle={formatSeriesTitle}
+                  namespace={namespace}
+                  query={rule?.query}
+                  ruleDuration={rule?.duration}
+                  showLegend
+                />
+              ) : AlertChart ? (
+                <AlertChart rule={rule} />
+              ) : null}
+            </div>
+          </div>
+          <div className="row">
+            <div className="col-xs-12">
+              {_.isEmpty(rule?.alerts) ? (
+                <div className="pf-v5-u-text-align-center">{t('None found')}</div>
+              ) : (
+                <ActiveAlerts alerts={rule.alerts} ruleID={rule?.id} namespace={namespace} />
+              )}
+            </div>
           </div>
         </PageSection>
-        <div className="co-m-pane__body">
-          <div className="co-m-pane__body-group">
-            <Toolbar className="monitoring-alert-detail-toolbar">
-              <ToolbarContent>
-                <ToolbarItem variant="label">
-                  <Title headingLevel="h2">{t('Active alerts')}</Title>
-                </ToolbarItem>
-                <ToolbarGroup align={{ default: 'alignRight' }}>
-                  <ToolbarItem>
-                    <ToggleGraph />
-                  </ToolbarItem>
-                </ToolbarGroup>
-              </ToolbarContent>
-            </Toolbar>
-            <div className="row">
-              <div className="col-sm-12">
-                {!sourceId || sourceId === 'prometheus' ? (
-                  <Graph
-                    formatSeriesTitle={formatSeriesTitle}
-                    namespace={namespace}
-                    query={rule?.query}
-                    ruleDuration={rule?.duration}
-                    showLegend
-                  />
-                ) : AlertChart ? (
-                  <AlertChart rule={rule} />
-                ) : null}
-              </div>
-            </div>
-            <div className="row">
-              <div className="col-xs-12">
-                {_.isEmpty(rule?.alerts) ? (
-                  <div className="pf-v5-u-text-align-center">{t('None found')}</div>
-                ) : (
-                  <ActiveAlerts alerts={rule.alerts} ruleID={rule?.id} namespace={namespace} />
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
       </StatusBox>
     </>
   );

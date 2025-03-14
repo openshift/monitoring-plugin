@@ -266,7 +266,7 @@ const Details: React.FC<DetailsProps> = ({ loaded, loadError, targets }) => {
       </PageGroup>
       <Divider />
       <StatusBox data={target} label="target" loaded={loaded} loadError={loadError}>
-        <div className="co-m-pane__body">
+        <PageSection variant={PageSectionVariants.light}>
           <Title headingLevel="h2">{t('Target details')}</Title>
           {isServiceMonitor && serviceMonitorsLoadError && (
             <WatchErrorAlert
@@ -280,58 +280,56 @@ const Details: React.FC<DetailsProps> = ({ loaded, loadError, targets }) => {
               title={t('Error loading pod monitor data')}
             />
           )}
-          <div className="co-m-pane__body-group">
-            <div className="row">
-              <div className="col-sm-6">
-                <dl className="co-m-pane__details">
-                  <dt>{t('Endpoint')}</dt>
-                  <dd>{scrapeUrl}</dd>
-                  <dt>{t('Namespace')}</dt>
+          <div className="row">
+            <div className="col-sm-6">
+              <dl className="co-m-pane__details">
+                <dt>{t('Endpoint')}</dt>
+                <dd>{scrapeUrl}</dd>
+                <dt>{t('Namespace')}</dt>
+                <dd>
+                  <ResourceLink kind="Namespace" name={target?.labels?.namespace} />
+                </dd>
+                <dt>{t('Labels')}</dt>
+                <dd>
+                  <Labels kind="metricstarget" labels={target?.labels} />
+                </dd>
+                <dt>{t('Last scrape')}</dt>
+                <dd>
+                  <Timestamp timestamp={target?.lastScrape} />
+                </dd>
+                {target?.lastError && (
+                  <Alert className="co-alert" title={t('Scrape failed')} variant="danger">
+                    {target?.lastError}
+                  </Alert>
+                )}
+              </dl>
+            </div>
+            <div className="col-sm-6">
+              <dl className="co-m-pane__details">
+                <dt>{t('Status')}</dt>
+                <dd>
+                  <Health health={target?.health} />
+                </dd>
+                <dt>{t('Monitor')}</dt>
+                {isServiceMonitor && (
                   <dd>
-                    <ResourceLink kind="Namespace" name={target?.labels?.namespace} />
+                    <ServiceMonitor target={target} />
                   </dd>
-                  <dt>{t('Labels')}</dt>
+                )}
+                {isPodMonitor && (
                   <dd>
-                    <Labels kind="metricstarget" labels={target?.labels} />
+                    <PodMonitor target={target} />
                   </dd>
-                  <dt>{t('Last scrape')}</dt>
+                )}
+                {!isServiceMonitor && !isPodMonitor && (
                   <dd>
-                    <Timestamp timestamp={target?.lastScrape} />
+                    <>-</>
                   </dd>
-                  {target?.lastError && (
-                    <Alert className="co-alert" title={t('Scrape failed')} variant="danger">
-                      {target?.lastError}
-                    </Alert>
-                  )}
-                </dl>
-              </div>
-              <div className="col-sm-6">
-                <dl className="co-m-pane__details">
-                  <dt>{t('Status')}</dt>
-                  <dd>
-                    <Health health={target?.health} />
-                  </dd>
-                  <dt>{t('Monitor')}</dt>
-                  {isServiceMonitor && (
-                    <dd>
-                      <ServiceMonitor target={target} />
-                    </dd>
-                  )}
-                  {isPodMonitor && (
-                    <dd>
-                      <PodMonitor target={target} />
-                    </dd>
-                  )}
-                  {!isServiceMonitor && !isPodMonitor && (
-                    <dd>
-                      <>-</>
-                    </dd>
-                  )}
-                </dl>
-              </div>
+                )}
+              </dl>
             </div>
           </div>
-        </div>
+        </PageSection>
       </StatusBox>
     </>
   );

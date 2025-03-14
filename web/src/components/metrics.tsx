@@ -1199,13 +1199,13 @@ const QueryBrowserPage_: React.FC = () => {
   if (customDataSourceName) {
     if (!extensionsResolved || (!customDataSourceIsResolved && !customDatasourceError)) {
       return (
-        <div className="co-m-pane__body">
+        <PageSection variant={PageSectionVariants.light}>
           <div className="row">
             <div className="col-xs-12 pf-v5-u-text-align-center">
               <LoadingInline />
             </div>
           </div>
-        </div>
+        </PageSection>
       );
     }
   }
@@ -1229,7 +1229,7 @@ const QueryBrowserPage_: React.FC = () => {
           </SplitItem>
         </Split>
       </PageSection>
-      <div className="co-m-pane__body">
+      <PageSection variant={PageSectionVariants.light}>
         <div className="row">
           <div className="col-xs-12">
             <div className="query-browser__toggle-graph-container">
@@ -1256,7 +1256,7 @@ const QueryBrowserPage_: React.FC = () => {
             <QueriesList customDatasource={customDataSource} />
           </div>
         </div>
-      </div>
+      </PageSection>
     </>
   );
 };
