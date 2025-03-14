@@ -391,7 +391,7 @@ const AlertMessage: React.FC<AlertMessageProps> = ({ alertText, labels, template
       if (tagCount > 0 && tagCount === resourceNameCount) {
         const link = (
           <ResourceLink
-            className="co-resource-item--monitoring-alert"
+            className="monitoring__resource-item--monitoring-alert"
             inline
             key={model.kind}
             kind={model.kind}
