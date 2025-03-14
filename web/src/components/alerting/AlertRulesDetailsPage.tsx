@@ -12,12 +12,19 @@ import {
   BreadcrumbItem,
   CodeBlock,
   CodeBlockCode,
+  DescriptionList,
+  DescriptionListDescription,
+  DescriptionListGroup,
+  DescriptionListTerm,
+  DescriptionListTermHelpText,
+  DescriptionListTermHelpTextButton,
   Divider,
   DropdownItem,
   PageBreadcrumb,
   PageGroup,
   PageSection,
   PageSectionVariants,
+  Popover,
   Title,
   Toolbar,
   ToolbarContent,
@@ -56,7 +63,6 @@ import {
   getSourceKey,
   Graph,
   MonitoringResourceIcon,
-  PopoverField,
   Severity,
   SeverityBadge,
   SeverityHelp,
@@ -228,89 +234,119 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
           <PageSection variant={PageSectionVariants.light}>
             <div className="row">
               <div className="col-sm-6">
-                <dl className="co-m-pane__details">
-                  <dt>{t('Name')}</dt>
-                  <dd>{rule?.name}</dd>
-                  <dt>
-                    <PopoverField bodyContent={<SeverityHelp />} label={t('Severity')} />
-                  </dt>
-                  <dd>
-                    <Severity severity={rule?.labels?.severity} />
-                  </dd>
+                <DescriptionList>
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>{t('Name')}</DescriptionListTerm>
+                    <DescriptionListDescription>{rule?.name}</DescriptionListDescription>
+                  </DescriptionListGroup>
+                  <DescriptionListGroup>
+                    <DescriptionListTermHelpText>
+                      <Popover
+                        headerContent={<div>{t('Severity')}</div>}
+                        bodyContent={<SeverityHelp />}
+                      >
+                        <DescriptionListTermHelpTextButton>
+                          {' '}
+                          {t('Severity')}
+                        </DescriptionListTermHelpTextButton>
+                      </Popover>
+                    </DescriptionListTermHelpText>
+                    <DescriptionListDescription>
+                      <Severity severity={rule?.labels?.severity} />
+                    </DescriptionListDescription>
+                  </DescriptionListGroup>
                   {rule?.annotations?.description && (
-                    <>
-                      <dt>{t('Description')}</dt>
-                      <dd>
+                    <DescriptionListGroup>
+                      <DescriptionListTerm>{t('Description')}</DescriptionListTerm>
+                      <DescriptionListDescription>
                         <PrometheusTemplate text={rule.annotations.description} />
-                      </dd>
-                    </>
+                      </DescriptionListDescription>
+                    </DescriptionListGroup>
                   )}
                   {rule?.annotations?.summary && (
-                    <>
-                      <dt>{t('Summary')}</dt>
-                      <dd>{rule.annotations.summary}</dd>
-                    </>
+                    <DescriptionListGroup>
+                      <DescriptionListTerm>{t('Summary')}</DescriptionListTerm>
+                      <DescriptionListDescription>
+                        {rule.annotations.summary}
+                      </DescriptionListDescription>
+                    </DescriptionListGroup>
                   )}
                   {rule?.annotations?.message && (
-                    <>
-                      <dt>{t('Message')}</dt>
-                      <dd>
+                    <DescriptionListGroup>
+                      <DescriptionListTerm>{t('Message')}</DescriptionListTerm>
+                      <DescriptionListDescription>
                         <PrometheusTemplate text={rule.annotations.message} />
-                      </dd>
-                    </>
+                      </DescriptionListDescription>
+                    </DescriptionListGroup>
                   )}
                   {runbookURL && (
-                    <>
-                      <dt>{t('Runbook')}</dt>
-                      <dd>
+                    <DescriptionListGroup>
+                      <DescriptionListTerm>{t('Runbook')}</DescriptionListTerm>
+                      <DescriptionListDescription>
                         <ExternalLink href={runbookURL} text={runbookURL} />
-                      </dd>
-                    </>
+                      </DescriptionListDescription>
+                    </DescriptionListGroup>
                   )}
-                </dl>
+                </DescriptionList>
               </div>
               <div className="col-sm-6">
-                <dl className="co-m-pane__details">
-                  <dt>
-                    <PopoverField bodyContent={<SourceHelp />} label={t('Source')} />
-                  </dt>
-                  <dd>{rule && getSourceKey(_.startCase(alertingRuleSource(rule)), t)}</dd>
+                <DescriptionList>
+                  <DescriptionListGroup>
+                    <DescriptionListTermHelpText>
+                      <Popover
+                        headerContent={<div>{t('Source')}</div>}
+                        bodyContent={<SourceHelp />}
+                      >
+                        <DescriptionListTermHelpTextButton>
+                          {' '}
+                          {t('Source')}
+                        </DescriptionListTermHelpTextButton>
+                      </Popover>
+                    </DescriptionListTermHelpText>
+                    <DescriptionListDescription>
+                      {rule && getSourceKey(_.startCase(alertingRuleSource(rule)), t)}
+                    </DescriptionListDescription>
+                  </DescriptionListGroup>
                   {_.isInteger(rule?.duration) && (
-                    <>
-                      <dt>{t('For')}</dt>
-                      <dd>
+                    <DescriptionListGroup>
+                      <DescriptionListTerm>{t('For')}</DescriptionListTerm>
+                      <DescriptionListDescription>
                         {rule.duration === 0 ? '-' : formatPrometheusDuration(rule.duration * 1000)}
-                      </dd>
-                    </>
+                      </DescriptionListDescription>
+                    </DescriptionListGroup>
                   )}
-                  <dt>{t('Expression')}</dt>
-                  <dd>
-                    {/* display a link only if its a metrics based alert */}
-                    {(!sourceId || sourceId === 'prometheus') && perspective !== 'acm' ? (
-                      <Link to={getQueryBrowserUrl(perspective, rule?.query, namespace)}>
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>{t('Expression')}</DescriptionListTerm>
+                    <DescriptionListDescription>
+                      {/* display a link only if its a metrics based alert */}
+                      {(!sourceId || sourceId === 'prometheus') && perspective !== 'acm' ? (
+                        <Link to={getQueryBrowserUrl(perspective, rule?.query, namespace)}>
+                          <CodeBlock>
+                            <CodeBlockCode>{rule?.query}</CodeBlockCode>
+                          </CodeBlock>
+                        </Link>
+                      ) : (
                         <CodeBlock>
                           <CodeBlockCode>{rule?.query}</CodeBlockCode>
                         </CodeBlock>
-                      </Link>
-                    ) : (
-                      <CodeBlock>
-                        <CodeBlockCode>{rule?.query}</CodeBlockCode>
-                      </CodeBlock>
-                    )}
-                  </dd>
-                </dl>
+                      )}
+                    </DescriptionListDescription>
+                  </DescriptionListGroup>
+                </DescriptionList>
               </div>
             </div>
           </PageSection>
           <PageSection variant={PageSectionVariants.light}>
             <div className="row">
               <div className="col-xs-12">
-                <dl className="co-m-pane__details">
-                  <dt>{t('Labels')}</dt>
-                  <dd>
-                    <Labels kind="alertrule" labels={rule?.labels} />
-                  </dd>
-                </dl>
+                <DescriptionList>
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>{t('Labels')}</DescriptionListTerm>
+                    <DescriptionListDescription>
+                      <Labels kind="alertrule" labels={rule?.labels} />
+                    </DescriptionListDescription>
+                  </DescriptionListGroup>
+                </DescriptionList>
               </div>
             </div>
           </PageSection>

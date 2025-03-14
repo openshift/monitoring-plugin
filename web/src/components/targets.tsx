@@ -21,6 +21,10 @@ import {
   AlertActionCloseButton,
   Breadcrumb,
   BreadcrumbItem,
+  DescriptionList,
+  DescriptionListDescription,
+  DescriptionListGroup,
+  DescriptionListTerm,
   Divider,
   PageBreadcrumb,
   PageGroup,
@@ -281,51 +285,63 @@ const Details: React.FC<DetailsProps> = ({ loaded, loadError, targets }) => {
           )}
           <div className="row">
             <div className="col-sm-6">
-              <dl className="co-m-pane__details">
-                <dt>{t('Endpoint')}</dt>
-                <dd>{scrapeUrl}</dd>
-                <dt>{t('Namespace')}</dt>
-                <dd>
-                  <ResourceLink kind="Namespace" name={target?.labels?.namespace} />
-                </dd>
-                <dt>{t('Labels')}</dt>
-                <dd>
-                  <Labels kind="metricstarget" labels={target?.labels} />
-                </dd>
-                <dt>{t('Last scrape')}</dt>
-                <dd>
-                  <Timestamp timestamp={target?.lastScrape} />
-                </dd>
+              <DescriptionList>
+                <DescriptionListGroup>
+                  <DescriptionListTerm>{t('Endpoint')}</DescriptionListTerm>
+                  <DescriptionListDescription>{scrapeUrl}</DescriptionListDescription>
+                </DescriptionListGroup>
+                <DescriptionListGroup>
+                  <DescriptionListTerm>{t('Namespace')}</DescriptionListTerm>
+                  <DescriptionListDescription>
+                    <ResourceLink kind="Namespace" name={target?.labels?.namespace} />
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
+                <DescriptionListGroup>
+                  <DescriptionListTerm>{t('Labels')}</DescriptionListTerm>
+                  <DescriptionListDescription>
+                    <Labels kind="metricstarget" labels={target?.labels} />
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
+                <DescriptionListGroup>
+                  <DescriptionListTerm>{t('Last scrape')}</DescriptionListTerm>
+                  <DescriptionListDescription>
+                    <Timestamp timestamp={target?.lastScrape} />
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
                 {target?.lastError && (
                   <Alert title={t('Scrape failed')} variant="danger">
                     {target?.lastError}
                   </Alert>
                 )}
-              </dl>
+              </DescriptionList>
             </div>
             <div className="col-sm-6">
-              <dl className="co-m-pane__details">
-                <dt>{t('Status')}</dt>
-                <dd>
-                  <Health health={target?.health} />
-                </dd>
-                <dt>{t('Monitor')}</dt>
-                {isServiceMonitor && (
-                  <dd>
-                    <ServiceMonitor target={target} />
-                  </dd>
-                )}
-                {isPodMonitor && (
-                  <dd>
-                    <PodMonitor target={target} />
-                  </dd>
-                )}
-                {!isServiceMonitor && !isPodMonitor && (
-                  <dd>
-                    <>-</>
-                  </dd>
-                )}
-              </dl>
+              <DescriptionList>
+                <DescriptionListGroup>
+                  <DescriptionListTerm>{t('Status')}</DescriptionListTerm>
+                  <DescriptionListDescription>
+                    <Health health={target?.health} />
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
+                <DescriptionListGroup>
+                  <DescriptionListTerm>{t('Monitor')}</DescriptionListTerm>
+                  {isServiceMonitor && (
+                    <DescriptionListDescription>
+                      <ServiceMonitor target={target} />
+                    </DescriptionListDescription>
+                  )}
+                  {isPodMonitor && (
+                    <DescriptionListDescription>
+                      <PodMonitor target={target} />
+                    </DescriptionListDescription>
+                  )}
+                  {!isServiceMonitor && !isPodMonitor && (
+                    <DescriptionListDescription>
+                      <>-</>
+                    </DescriptionListDescription>
+                  )}
+                </DescriptionListGroup>
+              </DescriptionList>
             </div>
           </div>
         </PageSection>

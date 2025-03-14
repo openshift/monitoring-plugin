@@ -9,6 +9,8 @@ import {
   ActionGroup,
   Alert,
   Button,
+  DescriptionList,
+  DescriptionListDescription,
   Divider,
   HelperText,
   HelperTextItem,
@@ -96,16 +98,16 @@ const NegativeMatcherHelp = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
-    <dl>
-      <dd>
+    <DescriptionList>
+      <DescriptionListDescription className="pf-v5-u-text-align-center">
         {t('Select the negative matcher option to update the label value to a not equals matcher.')}
-      </dd>
-      <dd>
+      </DescriptionListDescription>
+      <DescriptionListDescription className="pf-v5-u-text-align-center">
         {t(
           'If both the RegEx and negative matcher options are selected, the label value must not match the regular expression.',
         )}
-      </dd>
-    </dl>
+      </DescriptionListDescription>
+    </DescriptionList>
   );
 };
 
