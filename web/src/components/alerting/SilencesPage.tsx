@@ -179,7 +179,6 @@ const SilencesPage_: React.FC = () => {
           </Flex>
           {loadError && (
             <PFAlert
-              className="co-alert"
               isInline
               title={t(
                 'Error loading silences from Alertmanager. Alertmanager may be unavailable.',
@@ -190,7 +189,7 @@ const SilencesPage_: React.FC = () => {
             </PFAlert>
           )}
           {errorMessage && (
-            <PFAlert className="co-alert" isInline title={t('Error')} variant="danger">
+            <PFAlert isInline title={t('Error')} variant="danger">
               {errorMessage}
             </PFAlert>
           )}
