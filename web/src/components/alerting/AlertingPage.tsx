@@ -61,9 +61,7 @@ const AlertingPage: React.FC<RouteComponentProps<{ url: string }>> = ({ match })
   return (
     <>
       <PageSection variant={PageSectionVariants.light}>
-        <Title headingLevel="h1">
-          <div className="co-m-pane__name">{t('Alerting')}</div>
-        </Title>
+        <Title headingLevel="h1">{t('Alerting')}</Title>
       </PageSection>
       <Divider />
       {/* Without Page Section, the tabs get eaten by the components being switched to */}
