@@ -37,7 +37,7 @@ import useSelectedFilters from './useSelectedFilters';
 import './alert-table.scss';
 import { PageSection, PageSectionVariants } from '@patternfly/react-core';
 
-const AlertsPage_: React.FC<AlertsPageProps> = () => {
+const AlertsPage_: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { alertsKey, silencesKey, defaultAlertTenant, perspective } = usePerspective();
 
@@ -186,7 +186,3 @@ const AlertsPage_: React.FC<AlertsPageProps> = () => {
 const AlertsPage = withFallback(AlertsPage_);
 
 export default AlertsPage;
-
-type AlertsPageProps = {
-  ns: string | undefined;
-};
