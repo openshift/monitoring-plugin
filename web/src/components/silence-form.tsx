@@ -9,10 +9,16 @@ import {
   ActionGroup,
   Alert,
   Button,
+  DescriptionList,
+  DescriptionListDescription,
+  Divider,
   HelperText,
   HelperTextItem,
   MenuToggle,
   MenuToggleElement,
+  PageGroup,
+  PageSection,
+  PageSectionVariants,
   Select,
   SelectList,
   SelectOption,
@@ -30,14 +36,10 @@ import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 // TODO: These will be available in future versions of the plugin SDK
 const getUser = (state) => state.sdkCore?.user;
-import { formatPrometheusDuration, parsePrometheusDuration } from './console/utils/datetime';
 
-import { withFallback } from './console/console-shared/error/error-boundary';
 import { ButtonBar } from './console/utils/button-bar';
-import { SectionHeading } from './console/utils/headings';
 import { ExternalLink } from './console/utils/link';
 import { getAllQueryArguments } from './console/utils/router';
-import { StatusBox } from './console/utils/status-box';
 
 import { useBoolean } from './hooks/useBoolean';
 import { Silences } from './types';
@@ -49,6 +51,12 @@ import {
   usePerspective,
 } from './hooks/usePerspective';
 import { MonitoringState } from '../reducers/observe';
+import { StatusBox } from './console/console-shared/src/components/status/StatusBox';
+import {
+  formatPrometheusDuration,
+  parsePrometheusDuration,
+} from './console/console-shared/src/datetime/prometheus';
+import withFallback from './console/console-shared/error/fallbacks/withFallback';
 
 const pad = (i: number): string => (i < 10 ? `0${i}` : String(i));
 
@@ -90,16 +98,16 @@ const NegativeMatcherHelp = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
-    <dl>
-      <dd>
+    <DescriptionList>
+      <DescriptionListDescription className="pf-v5-u-text-align-center">
         {t('Select the negative matcher option to update the label value to a not equals matcher.')}
-      </dd>
-      <dd>
+      </DescriptionListDescription>
+      <DescriptionListDescription className="pf-v5-u-text-align-center">
         {t(
           'If both the RegEx and negative matcher options are selected, the label value must not match the regular expression.',
         )}
-      </dd>
-    </dl>
+      </DescriptionListDescription>
+    </DescriptionList>
   );
 };
 
@@ -258,7 +266,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
       <Helmet>
         <title>{title}</title>
       </Helmet>
-      <div className="co-m-nav-title co-m-nav-title--detail">
+      <PageSection variant={PageSectionVariants.light}>
         <Title headingLevel="h1">{title}</Title>
         <HelperText>
           <HelperTextItem className="monitoring__title-help-text">
@@ -267,13 +275,14 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
             )}
           </HelperTextItem>
         </HelperText>
-      </div>
+      </PageSection>
+      <Divider />
 
-      <div className="co-m-pane__body">
+      <PageGroup>
         {Info && <Info />}
         <form onSubmit={onSubmit} className="monitoring-silence-alert">
-          <div className="co-m-pane__body-group">
-            <SectionHeading text={t('Duration')} />
+          <PageSection variant={PageSectionVariants.light}>
+            <Title headingLevel="h2">{t('Duration')}</Title>
             <div className="row">
               <div className="form-group col-sm-4 col-md-5">
                 <label>{t('Silence alert from...')}</label>
@@ -346,10 +355,10 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
                 &nbsp; {t('Start immediately')}
               </label>
             </div>
-          </div>
+          </PageSection>
 
-          <div className="co-m-pane__body-group">
-            <SectionHeading text={t('Alert labels')} />
+          <PageSection variant={PageSectionVariants.light}>
+            <Title headingLevel="h2">{t('Alert labels')}</Title>
             <p className="co-help-text monitoring-silence-alert__paragraph">
               <Trans t={t}>
                 Alerts with labels that match these selectors will be silenced instead of firing.
@@ -437,10 +446,10 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
                 {t('Add label')}
               </Button>
             </div>
-          </div>
+          </PageSection>
 
-          <div className="co-m-pane__body-group">
-            <SectionHeading text={t('Info')} />
+          <PageSection variant={PageSectionVariants.light}>
+            <Title headingLevel="h2">{t('Info')}</Title>
             <div className="form-group">
               <label className="co-required">{t('Creator')}</label>
               <TextInput
@@ -474,9 +483,9 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
                 </Button>
               </ActionGroup>
             </ButtonBar>
-          </div>
+          </PageSection>
         </form>
-      </div>
+      </PageGroup>
     </>
   );
 };
@@ -486,7 +495,7 @@ const EditInfo = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
-    <Alert className="co-alert" isInline title={t('Overwriting current silence')} variant="info">
+    <Alert isInline title={t('Overwriting current silence')} variant="info">
       {t(
         'When changes are saved, the currently existing silence will be expired and a new silence with the new configuration will take its place.',
       )}

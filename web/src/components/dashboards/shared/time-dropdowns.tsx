@@ -1,6 +1,4 @@
 import * as _ from 'lodash';
-// TODO: These will be available in future versions of the plugin SDK
-import { formatPrometheusDuration, parsePrometheusDuration } from '../../console/utils/datetime';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -21,6 +19,10 @@ import {
 import { QueryParams } from '../../query-params';
 import { NumberParam, useQueryParam } from 'use-query-params';
 import { useIsPerses } from './useIsPerses';
+import {
+  formatPrometheusDuration,
+  parsePrometheusDuration,
+} from '../../console/console-shared/src/datetime/prometheus';
 
 const CUSTOM_TIME_RANGE_KEY = 'CUSTOM_TIME_RANGE_KEY';
 const DEFAULT_TIMERANGE = '30m';

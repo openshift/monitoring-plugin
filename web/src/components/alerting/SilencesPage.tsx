@@ -28,11 +28,19 @@ import { fuzzyCaseInsensitive, refreshSilences, silenceCluster, silenceState } f
 import * as _ from 'lodash-es';
 import { sortable } from '@patternfly/react-table';
 import { SelectedSilencesContext, SilenceTableRow, tableSilenceClasses } from './SilencesUtils';
-import { Button, Checkbox, Flex, FlexItem, Alert as PFAlert } from '@patternfly/react-core';
-import { EmptyBox } from '../console/utils/status-box';
-import { withFallback } from '../console/console-shared/error/error-boundary';
+import {
+  Button,
+  Checkbox,
+  Flex,
+  FlexItem,
+  PageSection,
+  PageSectionVariants,
+  Alert as PFAlert,
+} from '@patternfly/react-core';
 import { useBoolean } from '../hooks/useBoolean';
 import { Link } from 'react-router-dom';
+import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
+import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 
 const SilencesPage_: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -150,7 +158,7 @@ const SilencesPage_: React.FC = () => {
   return (
     <>
       <Helmet>{perspective === 'dev' ? <title>Silences</title> : <title>Alerting</title>}</Helmet>
-      <div className="co-m-pane__body">
+      <PageSection variant={PageSectionVariants.light}>
         <SelectedSilencesContext.Provider value={{ selectedSilences, setSelectedSilences }}>
           <Flex>
             <FlexItem>
@@ -171,7 +179,6 @@ const SilencesPage_: React.FC = () => {
           </Flex>
           {loadError && (
             <PFAlert
-              className="co-alert"
               isInline
               title={t(
                 'Error loading silences from Alertmanager. Alertmanager may be unavailable.',
@@ -182,7 +189,7 @@ const SilencesPage_: React.FC = () => {
             </PFAlert>
           )}
           {errorMessage && (
-            <PFAlert className="co-alert" isInline title={t('Error')} variant="danger">
+            <PFAlert isInline title={t('Error')} variant="danger">
               {errorMessage}
             </PFAlert>
           )}
@@ -204,7 +211,7 @@ const SilencesPage_: React.FC = () => {
             </div>
           </div>
         </SelectedSilencesContext.Provider>
-      </div>
+      </PageSection>
     </>
   );
 };

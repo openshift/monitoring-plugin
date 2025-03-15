@@ -17,8 +17,6 @@ import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 
-import { withFallback } from '../console/console-shared/error/error-boundary';
-import { EmptyBox } from '../console/utils/status-box';
 import { Alerts, AlertSource } from '../types';
 import {
   alertingRuleStateOrder,
@@ -39,6 +37,9 @@ import {
 } from '../alerting/AlertUtils';
 import { MonitoringState } from '../../reducers/observe';
 import { severityRowFilter } from './AlertUtils';
+import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
+import withFallback from '../console/console-shared/error/fallbacks/withFallback';
+import { Flex, FlexItem, PageSection, PageSectionVariants } from '@patternfly/react-core';
 
 const StateCounts: React.FC<{ alerts: PrometheusAlert[] }> = ({ alerts }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -96,12 +97,16 @@ const RuleTableRow: React.FC<RowProps<Rule>> = ({ obj }) => {
   return (
     <>
       <td className={tableRuleClasses[0]} title={title}>
-        <div className="co-resource-item">
-          <MonitoringResourceIcon resource={RuleResource} />
-          <Link to={getRuleUrl(perspective, obj)} className="co-resource-item__resource-name">
-            {obj.name}
-          </Link>
-        </div>
+        <Flex spaceItems={{ default: 'spaceItemsNone' }} flexWrap={{ default: 'nowrap' }}>
+          <FlexItem>
+            <MonitoringResourceIcon resource={RuleResource} />
+          </FlexItem>
+          <FlexItem>
+            <Link to={getRuleUrl(perspective, obj)} className="pf-v5-u-text-break-word">
+              {obj.name}
+            </Link>
+          </FlexItem>
+        </Flex>
       </td>
       <td className={tableRuleClasses[1]} title={title}>
         <Severity severity={obj.labels?.severity} />
@@ -206,7 +211,7 @@ const AlertRulesPage_: React.FC = () => {
       <Helmet>
         <title>Alerting</title>
       </Helmet>
-      <div className="co-m-pane__body">
+      <PageSection variant={PageSectionVariants.light}>
         <ListPageFilter
           data={staticData}
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -235,7 +240,7 @@ const AlertRulesPage_: React.FC = () => {
             />
           </div>
         </div>
-      </div>
+      </PageSection>
     </>
   );
 };

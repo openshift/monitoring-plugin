@@ -1,5 +1,7 @@
 import {
   GreenCheckCircleIcon,
+  K8sModel,
+  K8sResourceKind,
   ListPageBody,
   ListPageFilter,
   ListPageHeader,
@@ -19,6 +21,16 @@ import {
   AlertActionCloseButton,
   Breadcrumb,
   BreadcrumbItem,
+  DescriptionList,
+  DescriptionListDescription,
+  DescriptionListGroup,
+  DescriptionListTerm,
+  Divider,
+  PageBreadcrumb,
+  PageGroup,
+  PageSection,
+  PageSectionVariants,
+  Title,
   Tooltip,
 } from '@patternfly/react-core';
 import { sortable } from '@patternfly/react-table';
@@ -35,19 +47,18 @@ import {
   ServiceModel,
   ServiceMonitorModel,
 } from './console/models';
-import { LabelSelector } from './console/module/k8s/label-selector';
-import { referenceForModel } from './console/module/k8s/k8s-ref';
-import { K8sResourceKind } from './console/module/k8s/types';
-import { SectionHeading } from './console/utils/headings';
 import { usePoll } from './console/utils/poll-hook';
 import { useSafeFetch } from './console/utils/safe-fetch-hook';
-import { EmptyBox, LoadingInline, StatusBox } from './console/utils/status-box';
 
 import { useBoolean } from './hooks/useBoolean';
 import { Labels } from './labels';
 import { AlertSource, PrometheusAPIError, Target } from './types';
 import { fuzzyCaseInsensitive, targetSource } from './utils';
 import { PROMETHEUS_BASE_PATH } from './console/graphs/helpers';
+import { LoadingInline } from './console/console-shared/src/components/loading/LoadingInline';
+import { StatusBox } from './console/console-shared/src/components/status/StatusBox';
+import { EmptyBox } from './console/console-shared/src/components/empty-state/EmptyBox';
+import { LabelSelector } from './console/module/k8s/label-selector';
 
 enum MonitorType {
   ServiceMonitor = 'serviceMonitor',
@@ -59,6 +70,11 @@ const ServicesWatchContext = React.createContext([]);
 
 const PodMonitorsWatchContext = React.createContext([]);
 const PodsWatchContext = React.createContext([]);
+
+const getReference = ({ group, version, kind }) => [group || 'core', version, kind].join('~');
+
+export const getReferenceForModel = (model: K8sModel) =>
+  getReference({ group: model.apiGroup, version: model.apiVersion, kind: model.kind });
 
 const PodMonitor: React.FC<{ target: Target }> = ({ target }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -104,7 +120,7 @@ const PodMonitor: React.FC<{ target: Target }> = ({ target }) => {
 
   return (
     <ResourceLink
-      kind={referenceForModel(PodMonitorModel)}
+      kind={getReferenceForModel(PodMonitorModel)}
       name={podMonitor.metadata.name}
       namespace={podMonitor.metadata.namespace}
     />
@@ -156,7 +172,7 @@ const ServiceMonitor: React.FC<{ target: Target }> = ({ target }) => {
 
   return (
     <ResourceLink
-      kind={referenceForModel(ServiceMonitorModel)}
+      kind={getReferenceForModel(ServiceMonitorModel)}
       name={monitor.metadata.name}
       namespace={monitor.metadata.namespace}
     />
@@ -191,7 +207,6 @@ const WatchErrorAlert: React.FC<WatchErrorAlertProps> = ({ loadError, title }) =
 
   return (
     <Alert
-      className="co-alert"
       title={title}
       variant="danger"
       actionClose={<AlertActionCloseButton onClose={hideError} />}
@@ -235,24 +250,27 @@ const Details: React.FC<DetailsProps> = ({ loaded, loadError, targets }) => {
       <Helmet>
         <title>{t('Target details')}</title>
       </Helmet>
-      <div className="pf-v5-c-page__main-breadcrumb">
-        <Breadcrumb className="co-breadcrumb">
-          <BreadcrumbItem>
-            <Link className="pf-v5-c-breadcrumb__link" to="/monitoring/targets">
-              {t('Targets')}
-            </Link>
-          </BreadcrumbItem>
-          <BreadcrumbItem isActive>{t('Target details')}</BreadcrumbItem>
-        </Breadcrumb>
-      </div>
-      <div className="co-m-nav-title co-m-nav-title--detail co-m-nav-title--breadcrumbs">
-        <h1 className="co-m-pane__heading">
-          <div className="co-resource-item">{scrapeUrl}</div>
-        </h1>
-      </div>
+      <PageGroup>
+        <PageBreadcrumb>
+          <Breadcrumb>
+            <BreadcrumbItem>
+              <Link className="pf-v5-c-breadcrumb__link" to="/monitoring/targets">
+                {t('Targets')}
+              </Link>
+            </BreadcrumbItem>
+            <BreadcrumbItem isActive>{t('Target details')}</BreadcrumbItem>
+          </Breadcrumb>
+        </PageBreadcrumb>
+        <PageSection variant={PageSectionVariants.light}>
+          <Title headingLevel="h1">
+            <div className="pf-v5-u-text-break-word">{scrapeUrl}</div>
+          </Title>
+        </PageSection>
+      </PageGroup>
+      <Divider />
       <StatusBox data={target} label="target" loaded={loaded} loadError={loadError}>
-        <div className="co-m-pane__body">
-          <SectionHeading text={t('Target details')} />
+        <PageSection variant={PageSectionVariants.light}>
+          <Title headingLevel="h2">{t('Target details')}</Title>
           {isServiceMonitor && serviceMonitorsLoadError && (
             <WatchErrorAlert
               loadError={serviceMonitorsLoadError}
@@ -265,58 +283,68 @@ const Details: React.FC<DetailsProps> = ({ loaded, loadError, targets }) => {
               title={t('Error loading pod monitor data')}
             />
           )}
-          <div className="co-m-pane__body-group">
-            <div className="row">
-              <div className="col-sm-6">
-                <dl className="co-m-pane__details">
-                  <dt>{t('Endpoint')}</dt>
-                  <dd>{scrapeUrl}</dd>
-                  <dt>{t('Namespace')}</dt>
-                  <dd>
+          <div className="row">
+            <div className="col-sm-6">
+              <DescriptionList>
+                <DescriptionListGroup>
+                  <DescriptionListTerm>{t('Endpoint')}</DescriptionListTerm>
+                  <DescriptionListDescription>{scrapeUrl}</DescriptionListDescription>
+                </DescriptionListGroup>
+                <DescriptionListGroup>
+                  <DescriptionListTerm>{t('Namespace')}</DescriptionListTerm>
+                  <DescriptionListDescription>
                     <ResourceLink kind="Namespace" name={target?.labels?.namespace} />
-                  </dd>
-                  <dt>{t('Labels')}</dt>
-                  <dd>
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
+                <DescriptionListGroup>
+                  <DescriptionListTerm>{t('Labels')}</DescriptionListTerm>
+                  <DescriptionListDescription>
                     <Labels kind="metricstarget" labels={target?.labels} />
-                  </dd>
-                  <dt>{t('Last scrape')}</dt>
-                  <dd>
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
+                <DescriptionListGroup>
+                  <DescriptionListTerm>{t('Last scrape')}</DescriptionListTerm>
+                  <DescriptionListDescription>
                     <Timestamp timestamp={target?.lastScrape} />
-                  </dd>
-                  {target?.lastError && (
-                    <Alert className="co-alert" title={t('Scrape failed')} variant="danger">
-                      {target?.lastError}
-                    </Alert>
-                  )}
-                </dl>
-              </div>
-              <div className="col-sm-6">
-                <dl className="co-m-pane__details">
-                  <dt>{t('Status')}</dt>
-                  <dd>
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
+                {target?.lastError && (
+                  <Alert title={t('Scrape failed')} variant="danger">
+                    {target?.lastError}
+                  </Alert>
+                )}
+              </DescriptionList>
+            </div>
+            <div className="col-sm-6">
+              <DescriptionList>
+                <DescriptionListGroup>
+                  <DescriptionListTerm>{t('Status')}</DescriptionListTerm>
+                  <DescriptionListDescription>
                     <Health health={target?.health} />
-                  </dd>
-                  <dt>{t('Monitor')}</dt>
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
+                <DescriptionListGroup>
+                  <DescriptionListTerm>{t('Monitor')}</DescriptionListTerm>
                   {isServiceMonitor && (
-                    <dd>
+                    <DescriptionListDescription>
                       <ServiceMonitor target={target} />
-                    </dd>
+                    </DescriptionListDescription>
                   )}
                   {isPodMonitor && (
-                    <dd>
+                    <DescriptionListDescription>
                       <PodMonitor target={target} />
-                    </dd>
+                    </DescriptionListDescription>
                   )}
                   {!isServiceMonitor && !isPodMonitor && (
-                    <dd>
+                    <DescriptionListDescription>
                       <>-</>
-                    </dd>
+                    </DescriptionListDescription>
                   )}
-                </dl>
-              </div>
+                </DescriptionListGroup>
+              </DescriptionList>
             </div>
           </div>
-        </div>
+        </PageSection>
       </StatusBox>
     </>
   );
@@ -508,11 +536,7 @@ const ListPage: React.FC<ListPageProps> = ({ loaded, loadError, targets }) => {
       // @ts-ignore TODO */}
       <ListPageBody>
         {loadError && (
-          <Alert
-            className="co-alert"
-            title={t('Error loading latest targets data')}
-            variant="danger"
-          >
+          <Alert title={t('Error loading latest targets data')} variant="danger">
             {loadError}
           </Alert>
         )}
@@ -569,7 +593,7 @@ export const TargetsUI: React.FC = () => {
 
   const monitorsWatch = useK8sWatchResource<K8sResourceKind[]>({
     isList: true,
-    kind: referenceForModel(ServiceMonitorModel),
+    kind: getReferenceForModel(ServiceMonitorModel),
   });
 
   const podsWatch = useK8sWatchResource<K8sResourceKind[]>({
@@ -579,7 +603,7 @@ export const TargetsUI: React.FC = () => {
 
   const podMonitorsWatch = useK8sWatchResource<K8sResourceKind[]>({
     isList: true,
-    kind: referenceForModel(PodMonitorModel),
+    kind: getReferenceForModel(PodMonitorModel),
   });
 
   // eslint-disable-next-line react-hooks/exhaustive-deps

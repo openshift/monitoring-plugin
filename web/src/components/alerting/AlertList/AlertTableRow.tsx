@@ -17,7 +17,7 @@ import {
 } from '../AlertUtils';
 import { AlertSource } from '../../../components/types';
 import { Tr } from '@patternfly/react-table';
-import { DropdownItem } from '@patternfly/react-core';
+import { DropdownItem, Flex, FlexItem } from '@patternfly/react-core';
 import KebabDropdown from '../../../components/kebab-dropdown';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -88,31 +88,34 @@ const AlertTableRow: React.FC<{ alert: Alert }> = ({ alert }) => {
   return (
     <Tr className="alert-row">
       <td className={tableAlertClasses[0]} title={title}>
-        <Link
-          to={getAlertUrl(
-            perspective,
-            alert,
-            alert?.rule?.id,
-            alert?.labels?.namespace || namespace,
-          )}
-          data-test-id="alert-resource-link"
-          className="co-resource-item__resource-name"
-        >
-          <MonitoringResourceIcon resource={AlertResource} />
-          {alert?.labels?.alertname}
-        </Link>
+        <Flex spaceItems={{ default: 'spaceItemsNone' }} flexWrap={{ default: 'nowrap' }}>
+          <FlexItem>
+            <MonitoringResourceIcon resource={AlertResource} />
+          </FlexItem>
+          <FlexItem>
+            <Link
+              to={getAlertUrl(
+                perspective,
+                alert,
+                alert?.rule?.id,
+                alert?.labels?.namespace || namespace,
+              )}
+              data-test-id="alert-resource-link"
+            >
+              {alert?.labels?.alertname}
+            </Link>
+          </FlexItem>
+        </Flex>
       </td>
       <td className={tableAlertClasses[1]} title={title}>
         <Severity severity={alert.labels?.severity} />
       </td>
       <td className={tableAlertClasses[2]} title={title}>
         {alert.labels?.namespace ? (
-          <div className="co-resource-item">
-            <ResourceLink
-              groupVersionKind={NamespaceGroupVersionKind}
-              name={alert.labels?.namespace}
-            />
-          </div>
+          <ResourceLink
+            groupVersionKind={NamespaceGroupVersionKind}
+            name={alert.labels?.namespace}
+          />
         ) : (
           '-'
         )}
