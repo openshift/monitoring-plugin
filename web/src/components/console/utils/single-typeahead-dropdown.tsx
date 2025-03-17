@@ -146,7 +146,7 @@ export const SingleTypeaheadDropdown: React.FC<SingleTypeaheadDropdownProps> = (
         newSelectOptions = [
           ...newSelectOptions,
           {
-            children: t('public~Create new option "{{option}}"', { option: inputValue }),
+            children: t('Create new option "{{option}}"', { option: inputValue }),
             value: CREATE_NEW,
           },
         ];
@@ -343,7 +343,7 @@ export const SingleTypeaheadDropdown: React.FC<SingleTypeaheadDropdownProps> = (
           id={`${ID_PREFIX}-input`}
           autoComplete="off"
           innerRef={textInputRef}
-          placeholder={placeholder ?? t('public~Filter options')}
+          placeholder={placeholder ?? t('Filter options')}
           {...(activeItemId && { 'aria-activedescendant': activeItemId })}
           role="combobox"
           isExpanded={isOpen}
@@ -363,7 +363,7 @@ export const SingleTypeaheadDropdown: React.FC<SingleTypeaheadDropdownProps> = (
             <Button
               variant="plain"
               onClick={onClearButtonClick}
-              aria-label={t('public~Clear input value')}
+              aria-label={t('Clear input value')}
             >
               <TimesIcon aria-hidden />
             </Button>
@@ -406,7 +406,7 @@ export const SingleTypeaheadDropdown: React.FC<SingleTypeaheadDropdownProps> = (
         })}
         {_.isEmpty(filteredSelectOptions) && filterValue && !enableCreateNew && (
           <SelectOption isDisabled={true} isAriaDisabled={true} value={NO_RESULTS}>
-            {t(`public~No results found`)}
+            {t(`No results found`)}
           </SelectOption>
         )}
       </SelectList>
