@@ -1,10 +1,11 @@
 import { DatasourceResource, DatasourceSelector, GlobalDatasourceResource } from '@perses-dev/core';
 import { DatasourceApi } from '@perses-dev/dashboards';
-import { getCSRFToken } from '../../proxied-fetch';
 import { fetchDatasourceList } from './perses/datasource-client';
 import { fetchGlobalDatasourceList } from './perses/global-datasource-client';
+import { TFunction } from 'i18next';
 
 export class OcpDatasourceApi implements DatasourceApi {
+  constructor(public csrfToken: string, public t: TFunction) {}
   /**
    * Helper function for getting a proxy URL from separate input parameters.
    * Give the following output according to the definition or not of the input.
@@ -49,14 +50,16 @@ export class OcpDatasourceApi implements DatasourceApi {
       selector.name ? undefined : true,
       selector.name,
     ).then((list) => {
-      // hopefully it should return at most one element
+      if (!Array.isArray(list) || list.length === 0) {
+        throw new Error(this.t('No matching datasource found'));
+      }
       const datasource = list[0];
       datasource.spec.plugin.spec = {
         ...datasource.spec.plugin.spec,
         proxy: {
           spec: {
             headers: {
-              'X-CSRFToken': getCSRFToken(),
+              'X-CSRFToken': this.csrfToken,
               'Sec-Fetch-Site': 'same-origin',
             },
           },
@@ -72,13 +75,16 @@ export class OcpDatasourceApi implements DatasourceApi {
       selector.name ? undefined : true,
       selector.name,
     ).then((list) => {
+      if (!Array.isArray(list) || list.length === 0) {
+        throw new Error(this.t('No matching datasource found'));
+      }
       const datasource = list[0];
       datasource.spec.plugin.spec = {
         ...datasource.spec.plugin.spec,
         proxy: {
           spec: {
             headers: {
-              'X-CSRFToken': getCSRFToken(),
+              'X-CSRFToken': this.csrfToken,
               'Sec-Fetch-Site': 'same-origin',
             },
           },
