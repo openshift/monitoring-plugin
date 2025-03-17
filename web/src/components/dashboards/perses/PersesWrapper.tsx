@@ -43,6 +43,8 @@ import { usePersesTimeRange } from './hooks/usePersesTimeRange';
 import { usePersesRefreshInterval } from './hooks/usePersesRefreshInterval';
 import { QueryParams } from '../../query-params';
 import { StringParam, useQueryParam } from 'use-query-params';
+import { useCookieWatcher } from './hooks/useCookieWatcher';
+import { useTranslation } from 'react-i18next';
 
 // Override eChart defaults with PatternFly colors.
 const patternflyBlue300 = '#2b9af3';
@@ -226,7 +228,11 @@ export function PersesPrometheusDatasourceWrapper({
   children,
   dashboardResource,
 }: PersesPrometheusDatasourceWrapperProps) {
-  const [datasourceApi] = React.useState(() => new CachedDatasourceAPI(new OcpDatasourceApi()));
+  const csrfToken = useCookieWatcher('csrf-token', { valueOnly: true });
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const datasourceApi = React.useMemo(() => {
+    return new CachedDatasourceAPI(new OcpDatasourceApi(csrfToken, t));
+  }, [csrfToken, t]);
 
   return (
     <DatasourceStoreProvider dashboardResource={dashboardResource} datasourceApi={datasourceApi}>
