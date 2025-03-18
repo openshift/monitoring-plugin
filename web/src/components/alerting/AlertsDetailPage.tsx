@@ -162,6 +162,7 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
             <Split>
               <SplitItem>
                 <Title headingLevel="h1">
+                  {/* Leave to keep compatibility with console looks */}
                   <MonitoringResourceIcon
                     className="co-m-resource-icon--lg"
                     resource={AlertResource}

@@ -86,6 +86,7 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
             <Split>
               <SplitItem>
                 <Title headingLevel="h1">
+                  {/* Leave to keep compatibility with console looks */}
                   <MonitoringResourceIcon
                     className="co-m-resource-icon--lg"
                     resource={SilenceResource}
