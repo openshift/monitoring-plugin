@@ -36,6 +36,7 @@ import {
   TextInput,
   Title,
   InputGroupItem,
+  Truncate,
 } from '@patternfly/react-core';
 import { ChartLineIcon } from '@patternfly/react-icons';
 import { useTranslation } from 'react-i18next';
@@ -307,7 +308,7 @@ const Tooltip_: React.FC<TooltipProps> = ({ activePoints, center, height, style,
               {allSeries.map((s, i) => (
                 <div className="query-browser__tooltip-series" key={i}>
                   <div className="query-browser__series-btn" style={{ backgroundColor: s.color }} />
-                  <div className="co-nowrap co-truncate">{getSeriesName(s)}</div>
+                  <Truncate content={getSeriesName(s)} />
                   <div className="query-browser__tooltip-value">{s.value}</div>
                 </div>
               ))}
