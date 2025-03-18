@@ -16,7 +16,7 @@ import {
   Severity,
 } from '../AlertUtils';
 import { AlertSource } from '../../../components/types';
-import { Tr } from '@patternfly/react-table';
+import { Td, Tr } from '@patternfly/react-table';
 import { DropdownItem, Flex, FlexItem } from '@patternfly/react-core';
 import KebabDropdown from '../../../components/kebab-dropdown';
 import React from 'react';
@@ -87,7 +87,7 @@ const AlertTableRow: React.FC<{ alert: Alert }> = ({ alert }) => {
 
   return (
     <Tr className="alert-row">
-      <td className={tableAlertClasses[0]} title={title}>
+      <Td className={tableAlertClasses[0]} title={title}>
         <Flex spaceItems={{ default: 'spaceItemsNone' }} flexWrap={{ default: 'nowrap' }}>
           <FlexItem>
             <MonitoringResourceIcon resource={AlertResource} />
@@ -106,11 +106,11 @@ const AlertTableRow: React.FC<{ alert: Alert }> = ({ alert }) => {
             </Link>
           </FlexItem>
         </Flex>
-      </td>
-      <td className={tableAlertClasses[1]} title={title}>
+      </Td>
+      <Td className={tableAlertClasses[1]} title={title}>
         <Severity severity={alert.labels?.severity} />
-      </td>
-      <td className={tableAlertClasses[2]} title={title}>
+      </Td>
+      <Td className={tableAlertClasses[2]} title={title}>
         {alert.labels?.namespace ? (
           <ResourceLink
             groupVersionKind={NamespaceGroupVersionKind}
@@ -119,20 +119,20 @@ const AlertTableRow: React.FC<{ alert: Alert }> = ({ alert }) => {
         ) : (
           '-'
         )}
-      </td>
-      <td className={tableAlertClasses[3]} title={title}>
+      </Td>
+      <Td className={tableAlertClasses[3]} title={title}>
         <AlertState state={state} />
         <AlertStateDescription alert={alert} />
-      </td>
-      <td className={tableAlertClasses[4]} title={title}>
+      </Td>
+      <Td className={tableAlertClasses[4]} title={title}>
         {alertSource(alert) === AlertSource.User ? t('User') : t('Platform')}
-      </td>
+      </Td>
       {perspective === 'acm' && (
-        <td className={tableAlertClasses[5]} title={title}>
+        <Td className={tableAlertClasses[5]} title={title}>
           {alert.labels?.cluster}
-        </td>
+        </Td>
       )}
-      <td className={tableAlertClasses[6]} title={title}>
+      <Td className={tableAlertClasses[6]} title={title}>
         <ActionServiceProvider context={{ 'monitoring-alert-list-item': { alert: alert } }}>
           {({ actions, loaded }) => {
             if (loaded && actions.length > 0) {
@@ -144,7 +144,7 @@ const AlertTableRow: React.FC<{ alert: Alert }> = ({ alert }) => {
             }
           }}
         </ActionServiceProvider>
-      </td>
+      </Td>
     </Tr>
   );
 };
