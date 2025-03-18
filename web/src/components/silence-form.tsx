@@ -24,6 +24,7 @@ import {
   SelectOption,
   TextArea,
   TextInput,
+  Timestamp,
   Title,
   Tooltip,
 } from '@patternfly/react-core';
@@ -75,11 +76,11 @@ const DatetimeTextInput = (props) => {
   return (
     <div>
       <Tooltip
-        content={[
-          <span className="co-nowrap" key="co-timestamp">
+        content={
+          <Timestamp date={new Date(props.value)}>
             {isValid ? new Date(props.value).toISOString() : t('Invalid date / time')}
-          </span>,
-        ]}
+          </Timestamp>
+        }
       >
         <TextInput
           {...props}
