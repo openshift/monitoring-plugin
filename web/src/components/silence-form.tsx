@@ -14,6 +14,7 @@ import {
   Divider,
   HelperText,
   HelperTextItem,
+  Icon,
   MenuToggle,
   MenuToggleElement,
   PageGroup,
@@ -447,8 +448,11 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
                 onClick={addMatcher}
                 type="button"
                 variant="link"
+                isInline
               >
-                <PlusCircleIcon className="co-icon-space-r" />
+                <Icon isInline size="lg" iconSize="md">
+                  <PlusCircleIcon />
+                </Icon>
                 {t('Add label')}
               </Button>
             </div>
