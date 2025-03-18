@@ -304,20 +304,6 @@ $monitoring-line-height: 18px;
   }
 }
 
-.monitoring-silence-alert {
-  max-width: 950px;
-
-  &__label-options {
-    align-items: baseline;
-    display: flex;
-    justify-content: space-between;
-
-    @media (min-width: var(--global--breakpoint--md)) {
-      padding-top: 26px;
-    }
-  }
-}
-
 .monitoring-state-icon--pending {
   color: var(--pf-v5-global--palette--black-700);
 }

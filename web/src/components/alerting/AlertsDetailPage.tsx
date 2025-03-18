@@ -175,7 +175,6 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
               {state !== AlertStates.Silenced && (
                 <SplitItem>
                   <Button
-                    className="co-action-buttons__btn"
                     onClick={() =>
                       history.push(getNewSilenceAlertUrl(perspective, alert, namespace))
                     }

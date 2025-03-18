@@ -1,4 +1,3 @@
-import classNames from 'classnames';
 import * as _ from 'lodash-es';
 import {
   RedExclamationCircleIcon,
@@ -276,9 +275,7 @@ const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
       className={`monitoring-dashboards__panel monitoring-dashboards__panel--${panelClassModifier}`}
     >
       <PFCard
-        className={classNames('monitoring-dashboards__card', {
-          'co-overview-card--gradient': panel.type === 'grafana-piechart-panel',
-        })}
+        className={'monitoring-dashboards__card'}
         data-test={`${panel.title.toLowerCase().replace(/\s+/g, '-')}-chart`}
         data-test-id={panel.id ? `chart-${panel.id}` : undefined}
       >
@@ -295,7 +292,6 @@ const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
               </>
             ),
             hasNoOffset: false,
-            className: 'co-overview-card__actions',
           }}
           className="monitoring-dashboards__card-header"
         >

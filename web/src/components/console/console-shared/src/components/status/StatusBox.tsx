@@ -88,17 +88,6 @@ export const StatusBox: React.FC<StatusBoxProps> = (props) => {
       );
     }
 
-    if (loaded && loadError instanceof TimeoutError) {
-      return (
-        <Data data={data} {...dataProps}>
-          <div className="co-m-timeout-error text-muted">
-            {t('Timed out fetching new data. The data below is stale.')}
-          </div>
-          {props.children}
-        </Data>
-      );
-    }
-
     return <LoadError label={props.label}>{loadError.message}</LoadError>;
   }
 
