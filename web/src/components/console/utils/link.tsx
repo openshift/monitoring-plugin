@@ -1,6 +1,7 @@
 import * as React from 'react';
 import Linkify from 'react-linkify';
-import classNames from 'classnames';
+import { Button, Icon } from '@patternfly/react-core';
+import { ExternalLinkAltIcon } from '@patternfly/react-icons';
 
 export const ExternalLink: React.FC<ExternalLinkProps> = ({
   children,
@@ -10,16 +11,25 @@ export const ExternalLink: React.FC<ExternalLinkProps> = ({
   dataTestID,
   stopPropagation,
 }) => (
-  <a
-    className={classNames('co-external-link', additionalClassName)}
+  <Button
+    variant="link"
+    component="a"
+    icon={
+      <Icon size="sm">
+        <ExternalLinkAltIcon />
+      </Icon>
+    }
+    className={additionalClassName}
     href={href}
     target="_blank"
+    iconPosition="end"
     rel="noopener noreferrer"
     data-test-id={dataTestID}
     {...(stopPropagation ? { onClick: (e) => e.stopPropagation() } : {})}
+    isInline
   >
     {children || text}
-  </a>
+  </Button>
 );
 
 // Open links in a new window and set noopener/noreferrer.
