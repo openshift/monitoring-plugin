@@ -35,7 +35,11 @@ export const NoResults: React.FC<{
         <EmptyStateBody>{t('No results match the filter criteria.')}</EmptyStateBody>
         <EmptyStateFooter>
           <EmptyStateActions>
-            <Button variant="link" onClick={onClear} className="co-project-selector__clear-filters">
+            <Button
+              variant="link"
+              onClick={onClear}
+              className="monitoring__project-selector__clear-filters"
+            >
               {t('Clear filters')}
             </Button>
           </EmptyStateActions>
@@ -153,7 +157,7 @@ const ProjectMenu: React.FC<{
 
   return (
     <Menu
-      className="co-project-dropdown__menu"
+      className="monitoring__project-dropdown__menu"
       ref={menuRef}
       onSelect={(event: React.MouseEvent, itemId: string) => {
         setOpen(false);
@@ -213,7 +217,7 @@ const ProjectDropdown: React.FC<ProjectDropdownProps> = ({
   const title = selectedProject?.spec?.display?.name ?? t('Dashboards');
 
   return (
-    <div className="co-project-dropdown">
+    <div className="monitoring__project-dropdown">
       <ProjectMenuToggle
         disabled={disabled}
         menu={<ProjectMenu {...menuProps} />}
