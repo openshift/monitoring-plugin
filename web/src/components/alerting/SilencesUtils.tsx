@@ -148,12 +148,12 @@ export const SelectedSilencesContext = React.createContext({
 });
 
 export const SilenceMatchersList = ({ silence }) => (
-  <div className={`co-text-${SilenceResource.kind.toLowerCase()}`}>
+  <div>
     {_.map(silence.matchers, ({ name, isEqual, isRegex, value }, i) => (
-      <Label className="co-label" key={i}>
-        <span className="co-label__key">{name}</span>
-        <span className="co-label__eq">{silenceMatcherEqualitySymbol(isEqual, isRegex)}</span>
-        <span className="co-label__value">{value}</span>
+      <Label key={i}>
+        <span>{name}</span>
+        <span>{silenceMatcherEqualitySymbol(isEqual, isRegex)}</span>
+        <span>{value}</span>
       </Label>
     ))}
   </div>

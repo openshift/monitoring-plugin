@@ -319,7 +319,7 @@ const CreateSilenceButton: React.FC = React.memo(() => {
   const [namespace] = useActiveNamespace();
 
   return (
-    <Link className="co-m-primary-action" to={getNewSilenceUrl(perspective, namespace)}>
+    <Link to={getNewSilenceUrl(perspective, namespace)}>
       <Button data-test="create-silence-btn" variant="primary">
         {t('Create silence')}
       </Button>

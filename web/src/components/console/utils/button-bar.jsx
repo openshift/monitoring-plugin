@@ -1,6 +1,5 @@
 import * as _ from 'lodash-es';
 import * as React from 'react';
-import classNames from 'classnames';
 import * as PropTypes from 'prop-types';
 import { Alert, AlertGroup, Panel, PanelMain, PanelMainBody } from '@patternfly/react-core';
 import { useTranslation } from 'react-i18next';
@@ -35,10 +34,6 @@ const InfoMessage = ({ message }) => (
 );
 const SuccessMessage = ({ message }) => <Alert isInline variant="success" title={message} />;
 
-// NOTE: DO NOT use <a> elements within a ButtonBar.
-// They don't support the disabled attribute, and therefore
-// can't be disabled during a pending promise/request.
-/** @type {React.SFC<{children: any, className?: string, errorMessage?: React.ReactNode, infoMessage?: string, successMessage?: string, inProgress?: boolean}}>} */
 export const ButtonBar = ({
   children,
   className,
@@ -48,7 +43,7 @@ export const ButtonBar = ({
   inProgress,
 }) => {
   return (
-    <div className={classNames(className, 'co-m-btn-bar')}>
+    <div className={className}>
       <AlertGroup
         isLiveRegion
         aria-live="polite"
