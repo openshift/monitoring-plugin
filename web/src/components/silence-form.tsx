@@ -22,8 +22,11 @@ import {
   Select,
   SelectList,
   SelectOption,
+  Text,
   TextArea,
+  TextContent,
   TextInput,
+  TextVariants,
   Timestamp,
   Title,
   Tooltip,
@@ -360,16 +363,18 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
 
           <PageSection variant={PageSectionVariants.light}>
             <Title headingLevel="h2">{t('Alert labels')}</Title>
-            <p className="co-help-text monitoring-silence-alert__paragraph">
-              <Trans t={t}>
-                Alerts with labels that match these selectors will be silenced instead of firing.
-                Label values can be matched exactly or with a{' '}
-                <ExternalLink
-                  href="https://github.com/google/re2/wiki/Syntax"
-                  text={t('regular expression')}
-                />
-              </Trans>
-            </p>
+            <TextContent>
+              <Text component={TextVariants.small}>
+                <Trans t={t}>
+                  Alerts with labels that match these selectors will be silenced instead of firing.
+                  Label values can be matched exactly or with a{' '}
+                  <ExternalLink
+                    href="https://github.com/google/re2/wiki/Syntax"
+                    text={t('regular expression')}
+                  />
+                </Trans>
+              </Text>
+            </TextContent>
 
             {_.map(matchers, (matcher, i: number) => (
               <div className="row" key={i}>
