@@ -94,6 +94,7 @@ export const MonitoringResourceIcon: React.FC<MonitoringResourceIconProps> = ({
 }) => (
   <span
     className={classNames(
+      // Leave to keep compatibility with console looks
       `co-m-resource-icon co-m-resource-${resource.kind.toLowerCase()}`,
       className,
     )}

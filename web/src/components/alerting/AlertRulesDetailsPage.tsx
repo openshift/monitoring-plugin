@@ -218,6 +218,7 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
           </PageBreadcrumb>
           <PageSection variant={PageSectionVariants.light}>
             <Title headingLevel="h1">
+              {/* Leave to keep compatibility with console looks */}
               <MonitoringResourceIcon className="co-m-resource-icon--lg" resource={RuleResource} />
               {rule?.name}
               <SeverityBadge severity={rule?.labels?.severity} />
