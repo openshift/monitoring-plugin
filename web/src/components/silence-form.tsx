@@ -9,28 +9,29 @@ import {
   ActionGroup,
   Alert,
   Button,
+  Checkbox,
   DescriptionList,
   DescriptionListDescription,
   Divider,
+  Form,
+  FormGroup,
+  FormHelperText,
   HelperText,
   HelperTextItem,
   Icon,
   MenuToggle,
   MenuToggleElement,
-  PageGroup,
   PageSection,
   PageSectionVariants,
   Select,
   SelectList,
   SelectOption,
-  Text,
   TextArea,
-  TextContent,
   TextInput,
-  TextVariants,
   Timestamp,
   Title,
   Tooltip,
+  ValidatedOptions,
 } from '@patternfly/react-core';
 import { MinusCircleIcon, PlusCircleIcon } from '@patternfly/react-icons';
 import * as React from 'react';
@@ -42,7 +43,6 @@ import { RouteComponentProps, withRouter } from 'react-router-dom';
 // TODO: These will be available in future versions of the plugin SDK
 const getUser = (state) => state.sdkCore?.user;
 
-import { ButtonBar } from './console/utils/button-bar';
 import { ExternalLink } from './console/utils/link';
 import { getAllQueryArguments } from './console/utils/router';
 
@@ -283,89 +283,82 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
       </PageSection>
       <Divider />
 
-      <PageGroup>
-        {Info && <Info />}
-        <form onSubmit={onSubmit} className="monitoring-silence-alert">
-          <PageSection variant={PageSectionVariants.light}>
-            <Title headingLevel="h2">{t('Duration')}</Title>
-            <div className="row">
-              <div className="form-group col-sm-4 col-md-5">
-                <label>{t('Silence alert from...')}</label>
-                {isStartNow ? (
-                  <DatetimeTextInput isDisabled data-test="silence-from" value={t('Now')} />
-                ) : (
-                  <DatetimeTextInput
-                    data-test="silence-from"
-                    isRequired
-                    onChange={(_event, value: string) => setStartsAt(value)}
-                    value={startsAt}
-                  />
-                )}
-              </div>
-              <div className="form-group col-sm-4 col-md-2">
-                <label>{t('For...')}</label>
-                <Select
-                  data-test="silence-for"
-                  isOpen={isOpen}
-                  onSelect={(event: React.MouseEvent | React.ChangeEvent, value: string) => {
-                    setDuration(value);
-                    setClosed();
-                  }}
-                  toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
-                    <MenuToggle
-                      ref={toggleRef}
-                      onClick={setIsOpen}
-                      isExpanded={isOpen}
-                      isFullWidth
-                      data-test="silence-for-toggle"
-                    >
-                      {duration}
-                    </MenuToggle>
-                  )}
-                  onOpenChange={setIsOpen}
-                >
-                  <SelectList>{selectOptions}</SelectList>
-                </Select>
-              </div>
-              <div className="form-group col-sm-4 col-md-5">
-                <label>{t('Until...')}</label>
-                {duration === durationOff ? (
-                  <DatetimeTextInput
-                    data-test="silence-until"
-                    isRequired
-                    onChange={(_event, value: string) => setEndsAt(value)}
-                    value={endsAt}
-                  />
-                ) : (
-                  <DatetimeTextInput
-                    data-test="silence-until"
-                    isDisabled
-                    value={
-                      isStartNow
-                        ? t('{{duration}} from now', { duration: durations[duration] })
-                        : getEndsAtValue()
-                    }
-                  />
-                )}
-              </div>
-            </div>
-            <div className="form-group">
-              <label>
-                <input
-                  data-test="silence-start-immediately"
-                  checked={isStartNow}
-                  onChange={(e) => setIsStartNow(e.currentTarget.checked)}
-                  type="checkbox"
+      <PageSection variant={PageSectionVariants.light}>
+        <Form onSubmit={onSubmit} maxWidth="950px">
+          {Info && <Info />}
+          {error && <Alert variant="danger" isInline title={error} />}
+          <Title headingLevel="h2">{t('Duration')}</Title>
+          <div className="row">
+            <FormGroup className="col-sm-4 col-md-5" label={t('Silence alert from...')}>
+              {isStartNow ? (
+                <DatetimeTextInput isDisabled data-test="silence-from" value={t('Now')} />
+              ) : (
+                <DatetimeTextInput
+                  data-test="silence-from"
+                  isRequired
+                  onChange={(_event, value: string) => setStartsAt(value)}
+                  value={startsAt}
                 />
-                &nbsp; {t('Start immediately')}
-              </label>
-            </div>
-          </PageSection>
+              )}
+            </FormGroup>
+            <FormGroup className="col-sm-4 col-md-2" label={t('For...')}>
+              <Select
+                data-test="silence-for"
+                isOpen={isOpen}
+                onSelect={(event: React.MouseEvent | React.ChangeEvent, value: string) => {
+                  setDuration(value);
+                  setClosed();
+                }}
+                toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+                  <MenuToggle
+                    ref={toggleRef}
+                    onClick={setIsOpen}
+                    isExpanded={isOpen}
+                    isFullWidth
+                    data-test="silence-for-toggle"
+                  >
+                    {duration}
+                  </MenuToggle>
+                )}
+                onOpenChange={setIsOpen}
+              >
+                <SelectList>{selectOptions}</SelectList>
+              </Select>
+            </FormGroup>
+            <FormGroup className="col-sm-4 col-md-5" label={t('Until...')}>
+              {duration === durationOff ? (
+                <DatetimeTextInput
+                  data-test="silence-until"
+                  isRequired
+                  onChange={(_event, value: string) => setEndsAt(value)}
+                  value={endsAt}
+                />
+              ) : (
+                <DatetimeTextInput
+                  data-test="silence-until"
+                  isDisabled
+                  value={
+                    isStartNow
+                      ? t('{{duration}} from now', { duration: durations[duration] })
+                      : getEndsAtValue()
+                  }
+                />
+              )}
+            </FormGroup>
+          </div>
+          <FormGroup role="group">
+            <Checkbox
+              id="start-immediately"
+              label={<>&nbsp; {t('Start immediately')}</>}
+              isChecked={isStartNow}
+              onChange={(e) => setIsStartNow(e.currentTarget.checked)}
+            />
+          </FormGroup>
 
-          <PageSection variant={PageSectionVariants.light}>
-            <Title headingLevel="h2">{t('Alert labels')}</Title>
-            <TextContent>
-              <Text component={TextVariants.small}>
+          <Title headingLevel="h2">{t('Alert labels')}</Title>
+          <FormHelperText>
+            <HelperText>
+              <HelperTextItem variant="indeterminate">
                 <Trans t={t}>
                   Alerts with labels that match these selectors will be silenced instead of firing.
                   Label values can be matched exactly or with a{' '}
@@ -374,128 +367,119 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
                     text={t('regular expression')}
                   />
                 </Trans>
-              </Text>
-            </TextContent>
+              </HelperTextItem>
+            </HelperText>
+          </FormHelperText>
 
-            {_.map(matchers, (matcher, i: number) => (
-              <div className="row" key={i}>
-                <div className="form-group col-sm-4">
-                  <label>{t('Label name')}</label>
-                  <TextInput
-                    aria-label={t('Label name')}
-                    isRequired
-                    onChange={(_e, v: string) =>
-                      typeof _e === 'string'
-                        ? setMatcherField(i, 'name', _e)
-                        : setMatcherField(i, 'name', v)
-                    }
-                    placeholder={t('Name')}
-                    value={matcher.name}
-                  />
-                </div>
-                <div className="form-group col-sm-4">
-                  <label>{t('Label value')}</label>
-                  <TextInput
-                    aria-label={t('Label value')}
-                    isRequired
-                    onChange={(_e, v: string) =>
-                      typeof _e === 'string'
-                        ? setMatcherField(i, 'value', _e)
-                        : setMatcherField(i, 'value', v)
-                    }
-                    placeholder={t('Value')}
-                    value={matcher.value}
-                  />
-                </div>
-                <div className="form-group col-sm-4">
-                  <div className="monitoring-silence-alert__label-options">
-                    <label>
-                      <input
-                        checked={matcher.isRegex}
-                        onChange={(e) => setMatcherField(i, 'isRegex', e.currentTarget.checked)}
-                        type="checkbox"
-                      />
-                      &nbsp; {t('RegEx')}
-                    </label>
+          {_.map(matchers, (matcher, i: number) => (
+            <div className="row" key={i}>
+              <FormGroup className="col-sm-4" label={t('Label name')}>
+                <TextInput
+                  aria-label={t('Label name')}
+                  isRequired
+                  onChange={(_e, v: string) =>
+                    typeof _e === 'string'
+                      ? setMatcherField(i, 'name', _e)
+                      : setMatcherField(i, 'name', v)
+                  }
+                  placeholder={t('Name')}
+                  value={matcher.name}
+                />
+              </FormGroup>
+              <FormGroup className="col-sm-4" label={t('Label value')}>
+                <TextInput
+                  aria-label={t('Label value')}
+                  isRequired
+                  onChange={(_e, v: string) =>
+                    typeof _e === 'string'
+                      ? setMatcherField(i, 'value', _e)
+                      : setMatcherField(i, 'value', v)
+                  }
+                  placeholder={t('Value')}
+                  value={matcher.value}
+                />
+              </FormGroup>
+              <FormGroup className="col-sm-4">
+                <div className="monitoring-silence-alert__label-options">
+                  <FormGroup role="group" isInline>
+                    <Checkbox
+                      id="regex"
+                      label={<>&nbsp; {t('RegEx')}</>}
+                      isChecked={matcher.isRegex}
+                      onChange={(e) => setMatcherField(i, 'isRegex', e.currentTarget.checked)}
+                    />
                     <Tooltip content={<NegativeMatcherHelp />}>
-                      <label>
-                        <input
-                          checked={matcher.isEqual === false}
-                          onChange={(e) => setMatcherField(i, 'isEqual', !e.currentTarget.checked)}
-                          type="checkbox"
-                        />
-                        &nbsp; {t('Negative matcher')}
-                      </label>
+                      <Checkbox
+                        id="negative-matcher"
+                        label={<>&nbsp; {t('Negative matcher')}</>}
+                        isChecked={matcher.isEqual === false}
+                        onChange={(e) => setMatcherField(i, 'isEqual', !e.currentTarget.checked)}
+                      />
                     </Tooltip>
-                    <Tooltip content={t('Remove')}>
-                      <Button
-                        type="button"
-                        onClick={() => removeMatcher(i)}
-                        aria-label={t('Remove')}
-                        variant="plain"
-                      >
-                        <MinusCircleIcon />
-                      </Button>
-                    </Tooltip>
-                  </div>
+                  </FormGroup>
+                  <Tooltip content={t('Remove')}>
+                    <Button
+                      type="button"
+                      onClick={() => removeMatcher(i)}
+                      aria-label={t('Remove')}
+                      variant="plain"
+                    >
+                      <MinusCircleIcon />
+                    </Button>
+                  </Tooltip>
                 </div>
-              </div>
-            ))}
+              </FormGroup>
+            </div>
+          ))}
 
-            <div className="form-group">
-              <Button
-                className="pf-v5-m-link--align-left"
-                onClick={addMatcher}
-                type="button"
-                variant="link"
-                isInline
-              >
-                <Icon isInline size="lg" iconSize="md">
-                  <PlusCircleIcon />
-                </Icon>
-                {t('Add label')}
-              </Button>
-            </div>
-          </PageSection>
+          <FormGroup>
+            <Button
+              className="pf-v5-m-link--align-left"
+              onClick={addMatcher}
+              type="button"
+              variant="link"
+              isInline
+            >
+              <Icon isInline size="lg" iconSize="md">
+                <PlusCircleIcon />
+              </Icon>
+              {t('Add label')}
+            </Button>
+          </FormGroup>
 
-          <PageSection variant={PageSectionVariants.light}>
-            <Title headingLevel="h2">{t('Info')}</Title>
-            <div className="form-group">
-              <label className="co-required">{t('Creator')}</label>
-              <TextInput
-                aria-label={t('Creator')}
-                isRequired
-                onChange={(_e, v: string) =>
-                  typeof _e === 'string' ? setCreatedBy(_e) : setCreatedBy(v)
-                }
-                value={createdBy}
-              />
-            </div>
-            <div className="form-group">
-              <label className="co-required">{t('Comment')}</label>
-              <TextArea
-                aria-label={t('Comment')}
-                isRequired
-                onChange={(_e, v: string) =>
-                  typeof _e === 'string' ? setComment(_e) : setComment(v)
-                }
-                data-test="silence-comment"
-                value={comment}
-              />
-            </div>
-            <ButtonBar errorMessage={error} inProgress={inProgress}>
-              <ActionGroup className="pf-v5-c-form">
-                <Button type="submit" variant="primary">
-                  {t('Silence')}
-                </Button>
-                <Button onClick={history.goBack} variant="secondary">
-                  {t('Cancel')}
-                </Button>
-              </ActionGroup>
-            </ButtonBar>
-          </PageSection>
-        </form>
-      </PageGroup>
+          <Title headingLevel="h2">{t('Info')}</Title>
+          <FormGroup label={t('Creator')} isRequired>
+            <TextInput
+              aria-label={t('Creator')}
+              isRequired
+              onChange={(_e, v: string) =>
+                typeof _e === 'string' ? setCreatedBy(_e) : setCreatedBy(v)
+              }
+              value={createdBy}
+            />
+          </FormGroup>
+          <FormGroup label={t('Comment')} isRequired>
+            <TextArea
+              aria-label={t('Comment')}
+              isRequired
+              onChange={(_e, v: string) =>
+                typeof _e === 'string' ? setComment(_e) : setComment(v)
+              }
+              data-test="silence-comment"
+              value={comment}
+              validated={error ? ValidatedOptions.error : ValidatedOptions.default}
+            />
+          </FormGroup>
+          <ActionGroup>
+            <Button type="submit" variant="primary" isDisabled={inProgress}>
+              {t('Silence')}
+            </Button>
+            <Button onClick={history.goBack} variant="secondary" isDisabled={inProgress}>
+              {t('Cancel')}
+            </Button>
+          </ActionGroup>
+        </Form>
+      </PageSection>
     </>
   );
 };
