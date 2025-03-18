@@ -83,7 +83,7 @@ const AggregateAlertTableRow: AggregateAlertTableRowProps = ({
             expandId: 'expand-interfaces-list',
           }}
         />
-        <td className={tableAggregatedAlertClasses[0]} title={title}>
+        <Td className={tableAggregatedAlertClasses[0]} title={title}>
           <Flex spaceItems={{ default: 'spaceItemsNone' }} flexWrap={{ default: 'nowrap' }}>
             <FlexItem>
               <MonitoringResourceIcon resource={RuleResource} />
@@ -101,20 +101,20 @@ const AggregateAlertTableRow: AggregateAlertTableRowProps = ({
               </Link>
             </FlexItem>
           </Flex>
-        </td>
-        <td className={tableAggregatedAlertClasses[1]} title={title}>
+        </Td>
+        <Td className={tableAggregatedAlertClasses[1]} title={title}>
           <Severity severity={aggregatedAlert.severity} />
-        </td>
-        <td className={tableAggregatedAlertClasses[2]} title={title}>
+        </Td>
+        <Td className={tableAggregatedAlertClasses[2]} title={title}>
           <Badge key={1} isRead>
             {filteredAlerts.length}
           </Badge>
-        </td>
-        <td className={tableAggregatedAlertClasses[3]} title={title}>
+        </Td>
+        <Td className={tableAggregatedAlertClasses[3]} title={title}>
           {Array.from(aggregatedAlert.states).map((state) => (
             <AlertState state={state} key={state} />
           ))}
-        </td>
+        </Td>
       </Tr>
       <Tr isExpanded={isExpanded} className={`aggregatedalert-row__expanded-${isExpanded}`}>
         <Td colSpan={isACMPerspective ? 6 : 5}>

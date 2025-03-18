@@ -33,7 +33,7 @@ import {
   Title,
   Tooltip,
 } from '@patternfly/react-core';
-import { sortable } from '@patternfly/react-table';
+import { sortable, Td } from '@patternfly/react-table';
 import { find, includes, isEmpty } from 'lodash-es';
 import * as React from 'react';
 import { Helmet } from 'react-helmet';
@@ -367,15 +367,15 @@ const Row: React.FC<RowProps<Target>> = ({ obj }) => {
 
   return (
     <>
-      <td className={tableClasses[0]}>
+      <Td className={tableClasses[0]}>
         <Link to={`./targets/${btoa(scrapeUrl)}`}>{scrapeUrl}</Link>
-      </td>
-      <td className={tableClasses[1]}>
+      </Td>
+      <Td className={tableClasses[1]}>
         {isServiceMonitor && <ServiceMonitor target={obj} />}
         {isPodMonitor && <PodMonitor target={obj} />}
         {!isServiceMonitor && !isPodMonitor && <>-</>}
-      </td>
-      <td className={tableClasses[2]}>
+      </Td>
+      <Td className={tableClasses[2]}>
         {health === 'up' ? (
           <Health health="up" />
         ) : (
@@ -385,18 +385,18 @@ const Row: React.FC<RowProps<Target>> = ({ obj }) => {
             </span>
           </Tooltip>
         )}
-      </td>
-      <td className={tableClasses[3]}>
+      </Td>
+      <Td className={tableClasses[3]}>
         {labels?.namespace && (
           <ResourceLink inline kind={NamespaceModel.kind} name={labels?.namespace} />
         )}
-      </td>
-      <td className={tableClasses[4]}>
+      </Td>
+      <Td className={tableClasses[4]}>
         <Timestamp timestamp={lastScrape} />
-      </td>
-      <td className={tableClasses[5]}>
+      </Td>
+      <Td className={tableClasses[5]}>
         {lastScrapeDuration ? `${(1000 * lastScrapeDuration).toFixed(1)} ms` : '-'}
-      </td>
+      </Td>
     </>
   );
 };

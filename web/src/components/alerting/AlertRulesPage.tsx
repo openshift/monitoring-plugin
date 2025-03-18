@@ -9,7 +9,7 @@ import {
   useListPageFilter,
   VirtualizedTable,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { sortable } from '@patternfly/react-table';
+import { sortable, Td } from '@patternfly/react-table';
 import * as _ from 'lodash-es';
 import * as React from 'react';
 import { Helmet } from 'react-helmet';
@@ -96,7 +96,7 @@ const RuleTableRow: React.FC<RowProps<Rule>> = ({ obj }) => {
 
   return (
     <>
-      <td className={tableRuleClasses[0]} title={title}>
+      <Td className={tableRuleClasses[0]} title={title}>
         <Flex spaceItems={{ default: 'spaceItemsNone' }} flexWrap={{ default: 'nowrap' }}>
           <FlexItem>
             <MonitoringResourceIcon resource={RuleResource} />
@@ -107,16 +107,16 @@ const RuleTableRow: React.FC<RowProps<Rule>> = ({ obj }) => {
             </Link>
           </FlexItem>
         </Flex>
-      </td>
-      <td className={tableRuleClasses[1]} title={title}>
+      </Td>
+      <Td className={tableRuleClasses[1]} title={title}>
         <Severity severity={obj.labels?.severity} />
-      </td>
-      <td className={tableRuleClasses[2]} title={title}>
+      </Td>
+      <Td className={tableRuleClasses[2]} title={title}>
         {_.isEmpty(obj.alerts) ? '-' : <StateCounts alerts={obj.alerts} />}
-      </td>
-      <td className={tableRuleClasses[3]} title={title}>
+      </Td>
+      <Td className={tableRuleClasses[3]} title={title}>
         {alertingRuleSource(obj) === AlertSource.User ? t('User') : t('Platform')}
-      </td>
+      </Td>
     </>
   );
 };

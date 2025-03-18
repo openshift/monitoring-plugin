@@ -45,6 +45,7 @@ import {
 } from '../utils';
 import { MonitoringResourceIcon, SeverityCounts, StateTimestamp } from './AlertUtils';
 import { LoadingInline } from '../console/console-shared/src/components/loading/LoadingInline';
+import { Td } from '@patternfly/react-table';
 
 export const tableSilenceClasses = [
   'pf-v5-c-table__action', // Checkbox
@@ -85,7 +86,7 @@ export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheck
   return (
     <>
       {showCheckbox && (
-        <td className={tableSilenceClasses[0]}>
+        <Td className={tableSilenceClasses[0]}>
           <Checkbox
             id={id}
             isChecked={selectedSilences.has(id)}
@@ -94,9 +95,9 @@ export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheck
               typeof _e === 'boolean' ? onCheckboxChange(checked) : onCheckboxChange(checked);
             }}
           />
-        </td>
+        </Td>
       )}
-      <td className={tableSilenceClasses[1]}>
+      <Td className={tableSilenceClasses[1]}>
         <Flex spaceItems={{ default: 'spaceItemsNone' }} flexWrap={{ default: 'nowrap' }}>
           <FlexItem>
             <MonitoringResourceIcon resource={SilenceResource} />
@@ -114,11 +115,11 @@ export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheck
         <div className="monitoring-label-list">
           <SilenceMatchersList silence={obj} />
         </div>
-      </td>
-      <td className={tableSilenceClasses[2]}>
+      </Td>
+      <Td className={tableSilenceClasses[2]}>
         <SeverityCounts alerts={firingAlerts} />
-      </td>
-      <td className={classNames(tableSilenceClasses[3], 'pf-v5-u-text-break-word')}>
+      </Td>
+      <Td className={classNames(tableSilenceClasses[3], 'pf-v5-u-text-break-word')}>
         <SilenceState silence={obj} />
         {state === SilenceStates.Pending && (
           <StateTimestamp text={t('Starts')} timestamp={startsAt} />
@@ -127,12 +128,12 @@ export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheck
         {state === SilenceStates.Expired && (
           <StateTimestamp text={t('Expired')} timestamp={endsAt} />
         )}
-      </td>
-      <td className={tableSilenceClasses[4]}>{createdBy || '-'}</td>
-      {perspective === 'acm' && <td className={tableSilenceClasses[5]}>{cluster}</td>}
-      <td className={tableSilenceClasses[6]}>
+      </Td>
+      <Td className={tableSilenceClasses[4]}>{createdBy || '-'}</Td>
+      {perspective === 'acm' && <Td className={tableSilenceClasses[5]}>{cluster}</Td>}
+      <Td className={tableSilenceClasses[6]}>
         <SilenceDropdown silence={obj} />
-      </td>
+      </Td>
     </>
   );
 };
