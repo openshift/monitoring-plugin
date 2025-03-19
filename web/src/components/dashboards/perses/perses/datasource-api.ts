@@ -112,7 +112,7 @@ export class CachedDatasourceAPI implements DatasourceApi {
   constructor(client: DatasourceApi) {
     this.client = client;
     this.cache = new Cache();
-    this.buildProxyUrl = this.client.buildProxyUrl;
+    this.buildProxyUrl = this.client.buildProxyUrl?.bind(this.client);
   }
 
   getDatasource(
