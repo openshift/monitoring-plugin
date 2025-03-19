@@ -82,10 +82,10 @@ const alertStateFilter = (t): RowFilter => ({
 });
 
 const tableRuleClasses = [
-  'pf-v5-u-w-50 pf-v5-u-w-33-on-sm', // Name
-  'pf-v5-m-hidden pf-v5-m-visible-on-sm', // Severity
+  'pf-v5-u-w-50 pf-u-w-33-on-sm', // Name
+  'pf-m-hidden pf-m-visible-on-sm', // Severity
   '', // Alert state
-  'pf-v5-m-hidden pf-v5-m-visible-on-sm', // Source
+  'pf-m-hidden pf-m-visible-on-sm', // Source
 ];
 
 const RuleTableRow: React.FC<RowProps<Rule>> = ({ obj }) => {
