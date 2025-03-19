@@ -38,7 +38,7 @@ import { LoadingInline } from '../../console/utils/status-box';
 import { usePatternFlyTheme } from './hooks/usePatternflyTheme';
 import { CachedDatasourceAPI } from './perses/datasource-api';
 import { OcpDatasourceApi } from './datasource-api';
-import { useFetchPersesDashboard } from './perses-client';
+import { PERSES_PROXY_BASE_PATH, useFetchPersesDashboard } from './perses-client';
 import { usePersesTimeRange } from './hooks/usePersesTimeRange';
 import { usePersesRefreshInterval } from './hooks/usePersesRefreshInterval';
 import { QueryParams } from '../../query-params';
@@ -231,7 +231,7 @@ export function PersesPrometheusDatasourceWrapper({
   const csrfToken = useCookieWatcher('csrf-token', { valueOnly: true });
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const datasourceApi = React.useMemo(() => {
-    return new CachedDatasourceAPI(new OcpDatasourceApi(csrfToken, t));
+    return new CachedDatasourceAPI(new OcpDatasourceApi(csrfToken, t, PERSES_PROXY_BASE_PATH));
   }, [csrfToken, t]);
 
   return (
