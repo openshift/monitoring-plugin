@@ -49,11 +49,11 @@ import { Td } from '@patternfly/react-table';
 
 export const tableSilenceClasses = [
   'pf-v5-c-table__action', // Checkbox
-  'pf-v5-u-w-50 pf-v5-u-w-33-on-sm', // Name
-  'pf-v5-m-hidden pf-v5-m-visible-on-sm', // Firing alerts
+  'pf-u-w-50 pf-u-w-33-on-sm', // Name
+  'pf-m-hidden pf-m-visible-on-sm', // Firing alerts
   '', // State
-  'pf-v5-m-hidden pf-v5-m-visible-on-sm', // Creator
-  'pf-v5-m-hidden pf-v5-m-visible-on-sm', // Cluster
+  'pf-m-hidden pf-m-visible-on-sm', // Creator
+  'pf-m-hidden pf-m-visible-on-sm', // Cluster
   'dropdown-kebab-pf pf-v5-c-table__action',
 ];
 

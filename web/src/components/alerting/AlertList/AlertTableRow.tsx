@@ -31,12 +31,12 @@ import {
 import { Link } from 'react-router-dom';
 
 const tableAlertClasses = [
-  'pf-v5-u-w-50 pf-v5-u-w-33-on-sm', // Name
-  'pf-v5-m-hidden pf-v5-m-visible-on-sm', // Severity
+  'pf-v5-u-w-50 pf-u-w-33-on-sm', // Name
+  'pf-m-hidden pf-m-visible-on-sm', // Severity
   '', // Namespace
   '', // State
-  'pf-v5-m-hidden pf-v5-m-visible-on-sm', // Source
-  'pf-v5-m-hidden pf-v5-m-visible-on-sm', // Cluster
+  'pf-m-hidden pf-m-visible-on-sm', // Source
+  'pf-m-hidden pf-m-visible-on-sm', // Cluster
   'dropdown-kebab-pf pf-v5-c-table__action',
 ];
 
@@ -86,7 +86,7 @@ const AlertTableRow: React.FC<{ alert: Alert }> = ({ alert }) => {
   };
 
   return (
-    <Tr className="alert-row">
+    <Tr>
       <Td className={tableAlertClasses[0]} title={title}>
         <Flex spaceItems={{ default: 'spaceItemsNone' }} flexWrap={{ default: 'nowrap' }}>
           <FlexItem>
