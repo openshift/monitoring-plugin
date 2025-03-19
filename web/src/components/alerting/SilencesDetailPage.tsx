@@ -12,6 +12,8 @@ import {
   DescriptionListTerm,
   Divider,
   DropdownItem,
+  Grid,
+  GridItem,
   PageBreadcrumb,
   PageGroup,
   PageSection,
@@ -104,8 +106,8 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
         <Divider />
         <PageSection variant={PageSectionVariants.light}>
           <Title headingLevel="h2">{t('Silence details')}</Title>
-          <div className="row">
-            <div className="col-sm-6">
+          <Grid sm={12} md={6}>
+            <GridItem>
               <DescriptionList>
                 {silence?.name && (
                   <DescriptionListGroup>
@@ -136,8 +138,8 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
                   </DescriptionListDescription>
                 </DescriptionListGroup>
               </DescriptionList>
-            </div>
-            <div className="col-sm-6">
+            </GridItem>
+            <GridItem>
               <DescriptionList>
                 <DescriptionListGroup>
                   <DescriptionListTerm>{t('Starts at')}</DescriptionListTerm>
@@ -172,21 +174,13 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
                   </DescriptionListDescription>
                 </DescriptionListGroup>
               </DescriptionList>
-            </div>
-          </div>
+            </GridItem>
+          </Grid>
         </PageSection>
         <Divider />
         <PageSection variant={PageSectionVariants.light}>
           <Title headingLevel="h2">{t('Firing alerts')}</Title>
-          <div className="row">
-            <div className="col-xs-12">
-              {alertsLoaded ? (
-                <SilencedAlertsList alerts={silence?.firingAlerts} />
-              ) : (
-                <LoadingInline />
-              )}
-            </div>
-          </div>
+          {alertsLoaded ? <SilencedAlertsList alerts={silence?.firingAlerts} /> : <LoadingInline />}
         </PageSection>
       </StatusBox>
     </>

@@ -193,23 +193,19 @@ const SilencesPage_: React.FC = () => {
               {errorMessage}
             </PFAlert>
           )}
-          <div className="row">
-            <div className="col-xs-12">
-              <VirtualizedTable<Silence>
-                aria-label={t('Silences')}
-                label={t('Silences')}
-                columns={columns}
-                data={filteredData ?? []}
-                loaded={loaded}
-                loadError={loadError}
-                Row={SilenceTableRowWithCheckbox}
-                unfilteredData={data}
-                NoDataEmptyMsg={() => {
-                  return <EmptyBox label={t('Silences')} />;
-                }}
-              />
-            </div>
-          </div>
+          <VirtualizedTable<Silence>
+            aria-label={t('Silences')}
+            label={t('Silences')}
+            columns={columns}
+            data={filteredData ?? []}
+            loaded={loaded}
+            loadError={loadError}
+            Row={SilenceTableRowWithCheckbox}
+            unfilteredData={data}
+            NoDataEmptyMsg={() => {
+              return <EmptyBox label={t('Silences')} />;
+            }}
+          />
         </SelectedSilencesContext.Provider>
       </PageSection>
     </>

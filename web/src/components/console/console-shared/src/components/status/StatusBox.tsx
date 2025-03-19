@@ -9,10 +9,7 @@ import {
 } from '@patternfly/react-core';
 import _ from 'lodash';
 import { useTranslation } from 'react-i18next';
-import {
-  IncompleteDataError,
-  TimeoutError,
-} from '@openshift-console/dynamic-plugin-sdk/lib/utils/error/http-error';
+import { IncompleteDataError } from '@openshift-console/dynamic-plugin-sdk/lib/utils/error/http-error';
 import { EmptyBox } from '../empty-state/EmptyBox';
 import { AccessDenied } from '../empty-state/AccessDenied';
 import { LoadingBox } from '../loading/LoadingBox';

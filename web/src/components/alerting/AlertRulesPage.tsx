@@ -223,23 +223,19 @@ const AlertRulesPage_: React.FC = () => {
           rowFilters={rowFilters}
         />
         {silencesLoadError && <SilencesNotLoadedWarning silencesLoadError={silencesLoadError} />}
-        <div className="row">
-          <div className="col-xs-12">
-            <VirtualizedTable<Rule>
-              aria-label={t('Alerting rules')}
-              label={t('Alerting rules')}
-              columns={columns}
-              data={filteredData ?? []}
-              loaded={loaded}
-              loadError={loadError}
-              Row={RuleTableRow}
-              unfilteredData={data}
-              NoDataEmptyMsg={() => {
-                return <EmptyBox label={t('Alerting rules')} />;
-              }}
-            />
-          </div>
-        </div>
+        <VirtualizedTable<Rule>
+          aria-label={t('Alerting rules')}
+          label={t('Alerting rules')}
+          columns={columns}
+          data={filteredData ?? []}
+          loaded={loaded}
+          loadError={loadError}
+          Row={RuleTableRow}
+          unfilteredData={data}
+          NoDataEmptyMsg={() => {
+            return <EmptyBox label={t('Alerting rules')} />;
+          }}
+        />
       </PageSection>
     </>
   );

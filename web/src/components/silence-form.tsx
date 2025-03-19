@@ -16,6 +16,8 @@ import {
   Form,
   FormGroup,
   FormHelperText,
+  Grid,
+  GridItem,
   HelperText,
   HelperTextItem,
   Icon,
@@ -288,68 +290,74 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
           {Info && <Info />}
           {error && <Alert variant="danger" isInline title={error} />}
           <Title headingLevel="h2">{t('Duration')}</Title>
-          <div className="row">
-            <FormGroup className="col-sm-4 col-md-5" label={t('Silence alert from...')}>
-              {isStartNow ? (
-                <DatetimeTextInput isDisabled data-test="silence-from" value={t('Now')} />
-              ) : (
-                <DatetimeTextInput
-                  data-test="silence-from"
-                  isRequired
-                  onChange={(_event, value: string) => setStartsAt(value)}
-                  value={startsAt}
-                />
-              )}
-            </FormGroup>
-            <FormGroup className="col-sm-4 col-md-2" label={t('For...')}>
-              <Select
-                data-test="silence-for"
-                isOpen={isOpen}
-                onSelect={(event: React.MouseEvent | React.ChangeEvent, value: string) => {
-                  setDuration(value);
-                  setClosed();
-                }}
-                toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
-                  <MenuToggle
-                    ref={toggleRef}
-                    onClick={setIsOpen}
-                    isExpanded={isOpen}
-                    isFullWidth
-                    data-test="silence-for-toggle"
-                  >
-                    {duration}
-                  </MenuToggle>
+          <Grid hasGutter>
+            <GridItem sm={4} md={5}>
+              <FormGroup label={t('Silence alert from...')}>
+                {isStartNow ? (
+                  <DatetimeTextInput isDisabled data-test="silence-from" value={t('Now')} />
+                ) : (
+                  <DatetimeTextInput
+                    data-test="silence-from"
+                    isRequired
+                    onChange={(_event, value: string) => setStartsAt(value)}
+                    value={startsAt}
+                  />
                 )}
-                onOpenChange={setIsOpen}
-              >
-                <SelectList>{selectOptions}</SelectList>
-              </Select>
-            </FormGroup>
-            <FormGroup className="col-sm-4 col-md-5" label={t('Until...')}>
-              {duration === durationOff ? (
-                <DatetimeTextInput
-                  data-test="silence-until"
-                  isRequired
-                  onChange={(_event, value: string) => setEndsAt(value)}
-                  value={endsAt}
-                />
-              ) : (
-                <DatetimeTextInput
-                  data-test="silence-until"
-                  isDisabled
-                  value={
-                    isStartNow
-                      ? t('{{duration}} from now', { duration: durations[duration] })
-                      : getEndsAtValue()
-                  }
-                />
-              )}
-            </FormGroup>
-          </div>
+              </FormGroup>
+            </GridItem>
+            <GridItem sm={4} md={2}>
+              <FormGroup label={t('For...')}>
+                <Select
+                  data-test="silence-for"
+                  isOpen={isOpen}
+                  onSelect={(event: React.MouseEvent | React.ChangeEvent, value: string) => {
+                    setDuration(value);
+                    setClosed();
+                  }}
+                  toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+                    <MenuToggle
+                      ref={toggleRef}
+                      onClick={setIsOpen}
+                      isExpanded={isOpen}
+                      isFullWidth
+                      data-test="silence-for-toggle"
+                    >
+                      {duration}
+                    </MenuToggle>
+                  )}
+                  onOpenChange={setIsOpen}
+                >
+                  <SelectList>{selectOptions}</SelectList>
+                </Select>
+              </FormGroup>
+            </GridItem>
+            <GridItem sm={4} md={5}>
+              <FormGroup label={t('Until...')}>
+                {duration === durationOff ? (
+                  <DatetimeTextInput
+                    data-test="silence-until"
+                    isRequired
+                    onChange={(_event, value: string) => setEndsAt(value)}
+                    value={endsAt}
+                  />
+                ) : (
+                  <DatetimeTextInput
+                    data-test="silence-until"
+                    isDisabled
+                    value={
+                      isStartNow
+                        ? t('{{duration}} from now', { duration: durations[duration] })
+                        : getEndsAtValue()
+                    }
+                  />
+                )}
+              </FormGroup>
+            </GridItem>
+          </Grid>
           <FormGroup role="group">
             <Checkbox
               id="start-immediately"
-              label={<>&nbsp; {t('Start immediately')}</>}
+              label={t('Start immediately')}
               isChecked={isStartNow}
               onChange={(e) => setIsStartNow(e.currentTarget.checked)}
             />
@@ -372,64 +380,70 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
           </FormHelperText>
 
           {_.map(matchers, (matcher, i: number) => (
-            <div className="row" key={i}>
-              <FormGroup className="col-sm-4" label={t('Label name')}>
-                <TextInput
-                  aria-label={t('Label name')}
-                  isRequired
-                  onChange={(_e, v: string) =>
-                    typeof _e === 'string'
-                      ? setMatcherField(i, 'name', _e)
-                      : setMatcherField(i, 'name', v)
-                  }
-                  placeholder={t('Name')}
-                  value={matcher.name}
-                />
-              </FormGroup>
-              <FormGroup className="col-sm-4" label={t('Label value')}>
-                <TextInput
-                  aria-label={t('Label value')}
-                  isRequired
-                  onChange={(_e, v: string) =>
-                    typeof _e === 'string'
-                      ? setMatcherField(i, 'value', _e)
-                      : setMatcherField(i, 'value', v)
-                  }
-                  placeholder={t('Value')}
-                  value={matcher.value}
-                />
-              </FormGroup>
-              <FormGroup className="col-sm-4">
-                <div className="monitoring-silence-alert__label-options">
-                  <FormGroup role="group" isInline>
-                    <Checkbox
-                      id="regex"
-                      label={<>&nbsp; {t('RegEx')}</>}
-                      isChecked={matcher.isRegex}
-                      onChange={(e) => setMatcherField(i, 'isRegex', e.currentTarget.checked)}
-                    />
-                    <Tooltip content={<NegativeMatcherHelp />}>
+            <Grid key={i} sm={12} md={4} hasGutter>
+              <GridItem>
+                <FormGroup label={t('Label name')}>
+                  <TextInput
+                    aria-label={t('Label name')}
+                    isRequired
+                    onChange={(_e, v: string) =>
+                      typeof _e === 'string'
+                        ? setMatcherField(i, 'name', _e)
+                        : setMatcherField(i, 'name', v)
+                    }
+                    placeholder={t('Name')}
+                    value={matcher.name}
+                  />
+                </FormGroup>
+              </GridItem>
+              <GridItem>
+                <FormGroup label={t('Label value')}>
+                  <TextInput
+                    aria-label={t('Label value')}
+                    isRequired
+                    onChange={(_e, v: string) =>
+                      typeof _e === 'string'
+                        ? setMatcherField(i, 'value', _e)
+                        : setMatcherField(i, 'value', v)
+                    }
+                    placeholder={t('Value')}
+                    value={matcher.value}
+                  />
+                </FormGroup>
+              </GridItem>
+              <GridItem>
+                <FormGroup>
+                  <div className="monitoring-silence-alert__label-options">
+                    <FormGroup role="group" isInline>
                       <Checkbox
-                        id="negative-matcher"
-                        label={<>&nbsp; {t('Negative matcher')}</>}
-                        isChecked={matcher.isEqual === false}
-                        onChange={(e) => setMatcherField(i, 'isEqual', !e.currentTarget.checked)}
+                        id="regex"
+                        label={t('RegEx')}
+                        isChecked={matcher.isRegex}
+                        onChange={(e) => setMatcherField(i, 'isRegex', e.currentTarget.checked)}
                       />
+                      <Tooltip content={<NegativeMatcherHelp />}>
+                        <Checkbox
+                          id="negative-matcher"
+                          label={t('Negative matcher')}
+                          isChecked={matcher.isEqual === false}
+                          onChange={(e) => setMatcherField(i, 'isEqual', !e.currentTarget.checked)}
+                        />
+                      </Tooltip>
+                    </FormGroup>
+                    <Tooltip content={t('Remove')}>
+                      <Button
+                        type="button"
+                        onClick={() => removeMatcher(i)}
+                        aria-label={t('Remove')}
+                        variant="plain"
+                      >
+                        <MinusCircleIcon />
+                      </Button>
                     </Tooltip>
-                  </FormGroup>
-                  <Tooltip content={t('Remove')}>
-                    <Button
-                      type="button"
-                      onClick={() => removeMatcher(i)}
-                      aria-label={t('Remove')}
-                      variant="plain"
-                    >
-                      <MinusCircleIcon />
-                    </Button>
-                  </Tooltip>
-                </div>
-              </FormGroup>
-            </div>
+                  </div>
+                </FormGroup>
+              </GridItem>
+            </Grid>
           ))}
 
           <FormGroup>

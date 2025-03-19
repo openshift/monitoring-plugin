@@ -43,6 +43,8 @@ import {
   Divider,
   Flex,
   FlexItem,
+  Grid,
+  GridItem,
   PageBreadcrumb,
   PageGroup,
   PageSection,
@@ -189,221 +191,202 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
           </PageSection>
         </PageGroup>
         <Divider />
-        <PageGroup>
-          <PageSection variant={PageSectionVariants.light}>
-            <Toolbar className="monitoring-alert-detail-toolbar">
-              <ToolbarContent>
-                <ToolbarItem variant="label">
-                  <Title headingLevel="h2">{t('Alert details')}</Title>
-                </ToolbarItem>
-                <ToolbarGroup align={{ default: 'alignRight' }}>
-                  <ActionServiceProvider context={{ 'alert-detail-toolbar-actions': { alert } }}>
-                    {({ actions, loaded }) =>
-                      loaded
-                        ? actions.map((action) => {
-                            if (isActionWithHref(action)) {
-                              return (
-                                <ToolbarItem
-                                  key={action.id}
-                                  spacer={{ default: 'spacerNone' }}
-                                  className="pf-v5-u-px-md"
-                                >
-                                  <Link to={action.cta.href}>{action.label}</Link>
-                                </ToolbarItem>
-                              );
-                            } else if (isActionWithCallback(action)) {
-                              return (
-                                <ToolbarItem key={action.id} spacer={{ default: 'spacerNone' }}>
-                                  <Button variant="link" onClick={action.cta}>
-                                    {action.label}
-                                  </Button>
-                                </ToolbarItem>
-                              );
-                            }
+        <PageSection variant={PageSectionVariants.light}>
+          <Toolbar className="monitoring-alert-detail-toolbar">
+            <ToolbarContent>
+              <ToolbarItem variant="label">
+                <Title headingLevel="h2">{t('Alert details')}</Title>
+              </ToolbarItem>
+              <ToolbarGroup align={{ default: 'alignRight' }}>
+                <ActionServiceProvider context={{ 'alert-detail-toolbar-actions': { alert } }}>
+                  {({ actions, loaded }) =>
+                    loaded
+                      ? actions.map((action) => {
+                          if (isActionWithHref(action)) {
+                            return (
+                              <ToolbarItem
+                                key={action.id}
+                                spacer={{ default: 'spacerNone' }}
+                                className="pf-v5-u-px-md"
+                              >
+                                <Link to={action.cta.href}>{action.label}</Link>
+                              </ToolbarItem>
+                            );
+                          } else if (isActionWithCallback(action)) {
+                            return (
+                              <ToolbarItem key={action.id} spacer={{ default: 'spacerNone' }}>
+                                <Button variant="link" onClick={action.cta}>
+                                  {action.label}
+                                </Button>
+                              </ToolbarItem>
+                            );
+                          }
 
-                            return null;
-                          })
-                        : null
-                    }
-                  </ActionServiceProvider>
-                  <ToolbarItem>
-                    <ToggleGraph />
-                  </ToolbarItem>
-                </ToolbarGroup>
-              </ToolbarContent>
-            </Toolbar>
-            <div className="row">
-              <div className="col-sm-12">
-                {!sourceId || sourceId === 'prometheus' ? (
-                  <Graph
-                    filterLabels={labels}
-                    namespace={namespace}
-                    query={rule?.query}
-                    ruleDuration={rule?.duration}
-                  />
-                ) : AlertsChart && !hideGraphs ? (
-                  <AlertsChart rule={rule} />
-                ) : null}
-              </div>
-            </div>
-            <div className="row">
-              <div className="col-sm-6">
-                <DescriptionList>
+                          return null;
+                        })
+                      : null
+                  }
+                </ActionServiceProvider>
+                <ToolbarItem>
+                  <ToggleGraph />
+                </ToolbarItem>
+              </ToolbarGroup>
+            </ToolbarContent>
+          </Toolbar>
+          <Grid sm={12} md={6} hasGutter>
+            <GridItem span={12}>
+              {!sourceId || sourceId === 'prometheus' ? (
+                <Graph
+                  filterLabels={labels}
+                  namespace={namespace}
+                  query={rule?.query}
+                  ruleDuration={rule?.duration}
+                />
+              ) : AlertsChart && !hideGraphs ? (
+                <AlertsChart rule={rule} />
+              ) : null}
+            </GridItem>
+            <GridItem>
+              <DescriptionList>
+                <DescriptionListGroup>
+                  <DescriptionListTerm>{t('Name')}</DescriptionListTerm>
+                  <DescriptionListDescription>{labels?.alertname}</DescriptionListDescription>
+                </DescriptionListGroup>
+                <DescriptionListGroup>
+                  <DescriptionListTermHelpText>
+                    <Popover
+                      headerContent={<div>{t('Severity')}</div>}
+                      bodyContent={<SeverityHelp />}
+                    >
+                      <DescriptionListTermHelpTextButton>
+                        {' '}
+                        {t('Severity')}
+                      </DescriptionListTermHelpTextButton>
+                    </Popover>
+                  </DescriptionListTermHelpText>
+                  <DescriptionListDescription>
+                    <Severity severity={labels?.severity} />
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
+                {alert?.annotations?.description && (
                   <DescriptionListGroup>
-                    <DescriptionListTerm>{t('Name')}</DescriptionListTerm>
-                    <DescriptionListDescription>{labels?.alertname}</DescriptionListDescription>
-                  </DescriptionListGroup>
-                  <DescriptionListGroup>
-                    <DescriptionListTermHelpText>
-                      <Popover
-                        headerContent={<div>{t('Severity')}</div>}
-                        bodyContent={<SeverityHelp />}
-                      >
-                        <DescriptionListTermHelpTextButton>
-                          {' '}
-                          {t('Severity')}
-                        </DescriptionListTermHelpTextButton>
-                      </Popover>
-                    </DescriptionListTermHelpText>
+                    <DescriptionListTerm>{t('Description')}</DescriptionListTerm>
                     <DescriptionListDescription>
-                      <Severity severity={labels?.severity} />
+                      <AlertMessage
+                        alertText={alert.annotations.description}
+                        labels={labels}
+                        template={rule?.annotations?.description}
+                      />
                     </DescriptionListDescription>
                   </DescriptionListGroup>
-                  {alert?.annotations?.description && (
-                    <DescriptionListGroup>
-                      <DescriptionListTerm>{t('Description')}</DescriptionListTerm>
-                      <DescriptionListDescription>
-                        <AlertMessage
-                          alertText={alert.annotations.description}
-                          labels={labels}
-                          template={rule?.annotations?.description}
-                        />
-                      </DescriptionListDescription>
-                    </DescriptionListGroup>
-                  )}
-                  {alert?.annotations?.summary && (
-                    <DescriptionListGroup>
-                      <DescriptionListTerm>{t('Summary')}</DescriptionListTerm>
-                      <DescriptionListDescription>
-                        {alert.annotations.summary}
-                      </DescriptionListDescription>
-                    </DescriptionListGroup>
-                  )}
-                  {alert?.annotations?.message && (
-                    <DescriptionListGroup>
-                      <DescriptionListTerm>{t('Message')}</DescriptionListTerm>
-                      <DescriptionListDescription>
-                        <AlertMessage
-                          alertText={alert.annotations.message}
-                          labels={labels}
-                          template={rule?.annotations?.message}
-                        />
-                      </DescriptionListDescription>
-                    </DescriptionListGroup>
-                  )}
-                  {runbookURL && (
-                    <DescriptionListGroup>
-                      <DescriptionListTerm>{t('Runbook')}</DescriptionListTerm>
-                      <DescriptionListDescription>
-                        <ExternalLink href={runbookURL} text={runbookURL} />
-                      </DescriptionListDescription>
-                    </DescriptionListGroup>
-                  )}
-                </DescriptionList>
-              </div>
-              <div className="col-sm-6">
-                <DescriptionList>
+                )}
+                {alert?.annotations?.summary && (
                   <DescriptionListGroup>
-                    <DescriptionListTermHelpText>
-                      <Popover
-                        headerContent={<div>{t('Source')}</div>}
-                        bodyContent={<SourceHelp />}
-                      >
-                        <DescriptionListTermHelpTextButton>
-                          {' '}
-                          {t('Source')}
-                        </DescriptionListTermHelpTextButton>
-                      </Popover>
-                    </DescriptionListTermHelpText>
+                    <DescriptionListTerm>{t('Summary')}</DescriptionListTerm>
                     <DescriptionListDescription>
-                      {alert && getSourceKey(_.startCase(alertSource(alert)), t)}
+                      {alert.annotations.summary}
                     </DescriptionListDescription>
                   </DescriptionListGroup>
+                )}
+                {alert?.annotations?.message && (
                   <DescriptionListGroup>
-                    <DescriptionListTermHelpText>
-                      <Popover
-                        headerContent={<div>{t('State')}</div>}
-                        bodyContent={<AlertStateHelp />}
-                      >
-                        <DescriptionListTermHelpTextButton>
-                          {' '}
-                          {t('State')}
-                        </DescriptionListTermHelpTextButton>
-                      </Popover>
-                    </DescriptionListTermHelpText>
+                    <DescriptionListTerm>{t('Message')}</DescriptionListTerm>
                     <DescriptionListDescription>
-                      <AlertState state={state} />
-                      <AlertStateDescription alert={alert} />
+                      <AlertMessage
+                        alertText={alert.annotations.message}
+                        labels={labels}
+                        template={rule?.annotations?.message}
+                      />
                     </DescriptionListDescription>
                   </DescriptionListGroup>
-                </DescriptionList>
-              </div>
-            </div>
-          </PageSection>
-          <PageSection variant={PageSectionVariants.light}>
-            <div className="row">
-              <div className="col-xs-12">
-                <DescriptionList>
+                )}
+                {runbookURL && (
                   <DescriptionListGroup>
-                    <DescriptionListTerm>{t('Labels')}</DescriptionListTerm>
+                    <DescriptionListTerm>{t('Runbook')}</DescriptionListTerm>
                     <DescriptionListDescription>
-                      <Labels kind="alert" labels={labels} />
+                      <ExternalLink href={runbookURL} text={runbookURL} />
                     </DescriptionListDescription>
                   </DescriptionListGroup>
-                </DescriptionList>
-              </div>
-            </div>
-          </PageSection>
-          <PageSection variant={PageSectionVariants.light}>
-            <div className="row">
-              <div className="col-xs-12">
-                <DescriptionList>
-                  <DescriptionListGroup>
-                    <DescriptionListTerm>{t('Alerting rule')}</DescriptionListTerm>
-                    <DescriptionListDescription>
-                      <Flex
-                        spaceItems={{ default: 'spaceItemsNone' }}
-                        flexWrap={{ default: 'nowrap' }}
-                      >
-                        <FlexItem>
-                          <MonitoringResourceIcon resource={RuleResource} />
-                        </FlexItem>
-                        <FlexItem>
-                          <Link
-                            to={getRuleUrl(perspective, rule, namespace)}
-                            data-test="alert-rules-detail-resource-link"
-                          >
-                            {_.get(rule, 'name')}
-                          </Link>
-                        </FlexItem>
-                      </Flex>
-                    </DescriptionListDescription>
-                  </DescriptionListGroup>
-                </DescriptionList>
-              </div>
-            </div>
-          </PageSection>
-        </PageGroup>
+                )}
+              </DescriptionList>
+            </GridItem>
+            <GridItem>
+              <DescriptionList>
+                <DescriptionListGroup>
+                  <DescriptionListTermHelpText>
+                    <Popover headerContent={<div>{t('Source')}</div>} bodyContent={<SourceHelp />}>
+                      <DescriptionListTermHelpTextButton>
+                        {' '}
+                        {t('Source')}
+                      </DescriptionListTermHelpTextButton>
+                    </Popover>
+                  </DescriptionListTermHelpText>
+                  <DescriptionListDescription>
+                    {alert && getSourceKey(_.startCase(alertSource(alert)), t)}
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
+                <DescriptionListGroup>
+                  <DescriptionListTermHelpText>
+                    <Popover
+                      headerContent={<div>{t('State')}</div>}
+                      bodyContent={<AlertStateHelp />}
+                    >
+                      <DescriptionListTermHelpTextButton>
+                        {' '}
+                        {t('State')}
+                      </DescriptionListTermHelpTextButton>
+                    </Popover>
+                  </DescriptionListTermHelpText>
+                  <DescriptionListDescription>
+                    <AlertState state={state} />
+                    <AlertStateDescription alert={alert} />
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
+              </DescriptionList>
+            </GridItem>
+            <GridItem span={12}>
+              <DescriptionList>
+                <DescriptionListGroup>
+                  <DescriptionListTerm>{t('Labels')}</DescriptionListTerm>
+                  <DescriptionListDescription>
+                    <Labels kind="alert" labels={labels} />
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
+              </DescriptionList>
+            </GridItem>
+            <GridItem span={12}>
+              <DescriptionList>
+                <DescriptionListGroup>
+                  <DescriptionListTerm>{t('Alerting rule')}</DescriptionListTerm>
+                  <DescriptionListDescription>
+                    <Flex
+                      spaceItems={{ default: 'spaceItemsNone' }}
+                      flexWrap={{ default: 'nowrap' }}
+                    >
+                      <FlexItem>
+                        <MonitoringResourceIcon resource={RuleResource} />
+                      </FlexItem>
+                      <FlexItem>
+                        <Link
+                          to={getRuleUrl(perspective, rule, namespace)}
+                          data-test="alert-rules-detail-resource-link"
+                        >
+                          {_.get(rule, 'name')}
+                        </Link>
+                      </FlexItem>
+                    </Flex>
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
+              </DescriptionList>
+            </GridItem>
+          </Grid>
+        </PageSection>
         {silencesLoaded && !_.isEmpty(alert?.silencedBy) && (
           <>
             <Divider />
             <PageSection variant={PageSectionVariants.light}>
               <Title headingLevel="h2">{t('Silenced by')}</Title>
-              <div className="row">
-                <div className="col-xs-12">
-                  <SilencedByList silences={alert?.silencedBy} />
-                </div>
-              </div>
+              <SilencedByList silences={alert?.silencedBy} />
             </PageSection>
           </>
         )}
