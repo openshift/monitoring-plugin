@@ -20,6 +20,8 @@ import {
   DescriptionListTermHelpTextButton,
   Divider,
   DropdownItem,
+  Grid,
+  GridItem,
   PageBreadcrumb,
   PageGroup,
   PageSection,
@@ -233,8 +235,8 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
             </div>
           </PageSection>
           <PageSection variant={PageSectionVariants.light}>
-            <div className="row">
-              <div className="col-sm-6">
+            <Grid sm={12} md={6} hasGutter>
+              <GridItem>
                 <DescriptionList>
                   <DescriptionListGroup>
                     <DescriptionListTerm>{t('Name')}</DescriptionListTerm>
@@ -289,8 +291,8 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
                     </DescriptionListGroup>
                   )}
                 </DescriptionList>
-              </div>
-              <div className="col-sm-6">
+              </GridItem>
+              <GridItem>
                 <DescriptionList>
                   <DescriptionListGroup>
                     <DescriptionListTermHelpText>
@@ -334,12 +336,8 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
                     </DescriptionListDescription>
                   </DescriptionListGroup>
                 </DescriptionList>
-              </div>
-            </div>
-          </PageSection>
-          <PageSection variant={PageSectionVariants.light}>
-            <div className="row">
-              <div className="col-xs-12">
+              </GridItem>
+              <GridItem span={12}>
                 <DescriptionList>
                   <DescriptionListGroup>
                     <DescriptionListTerm>{t('Labels')}</DescriptionListTerm>
@@ -348,8 +346,8 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
                     </DescriptionListDescription>
                   </DescriptionListGroup>
                 </DescriptionList>
-              </div>
-            </div>
+              </GridItem>
+            </Grid>
           </PageSection>
         </PageGroup>
         <Divider />
@@ -366,30 +364,22 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
               </ToolbarGroup>
             </ToolbarContent>
           </Toolbar>
-          <div className="row">
-            <div className="col-sm-12">
-              {!sourceId || sourceId === 'prometheus' ? (
-                <Graph
-                  formatSeriesTitle={formatSeriesTitle}
-                  namespace={namespace}
-                  query={rule?.query}
-                  ruleDuration={rule?.duration}
-                  showLegend
-                />
-              ) : AlertChart ? (
-                <AlertChart rule={rule} />
-              ) : null}
-            </div>
-          </div>
-          <div className="row">
-            <div className="col-xs-12">
-              {_.isEmpty(rule?.alerts) ? (
-                <div className="pf-v5-u-text-align-center">{t('None found')}</div>
-              ) : (
-                <ActiveAlerts alerts={rule.alerts} ruleID={rule?.id} namespace={namespace} />
-              )}
-            </div>
-          </div>
+          {!sourceId || sourceId === 'prometheus' ? (
+            <Graph
+              formatSeriesTitle={formatSeriesTitle}
+              namespace={namespace}
+              query={rule?.query}
+              ruleDuration={rule?.duration}
+              showLegend
+            />
+          ) : AlertChart ? (
+            <AlertChart rule={rule} />
+          ) : null}
+          {_.isEmpty(rule?.alerts) ? (
+            <div className="pf-v5-u-text-align-center">{t('None found')}</div>
+          ) : (
+            <ActiveAlerts alerts={rule.alerts} ruleID={rule?.id} namespace={namespace} />
+          )}
         </PageSection>
       </StatusBox>
     </>

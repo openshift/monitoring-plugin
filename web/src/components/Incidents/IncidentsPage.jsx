@@ -428,11 +428,7 @@ const IncidentsPage = () => {
               theme={theme}
             />
           )}
-          <div className="row">
-            <div className="col-xs-12">
-              <IncidentsTable />
-            </div>
-          </div>
+          <IncidentsTable />
         </PageSection>
       )}
     </>

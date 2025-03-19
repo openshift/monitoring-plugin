@@ -26,6 +26,8 @@ import {
   DescriptionListGroup,
   DescriptionListTerm,
   Divider,
+  Grid,
+  GridItem,
   PageBreadcrumb,
   PageGroup,
   PageSection,
@@ -283,8 +285,8 @@ const Details: React.FC<DetailsProps> = ({ loaded, loadError, targets }) => {
               title={t('Error loading pod monitor data')}
             />
           )}
-          <div className="row">
-            <div className="col-sm-6">
+          <Grid sm={12} md={6}>
+            <GridItem>
               <DescriptionList>
                 <DescriptionListGroup>
                   <DescriptionListTerm>{t('Endpoint')}</DescriptionListTerm>
@@ -314,8 +316,8 @@ const Details: React.FC<DetailsProps> = ({ loaded, loadError, targets }) => {
                   </Alert>
                 )}
               </DescriptionList>
-            </div>
-            <div className="col-sm-6">
+            </GridItem>
+            <GridItem>
               <DescriptionList>
                 <DescriptionListGroup>
                   <DescriptionListTerm>{t('Status')}</DescriptionListTerm>
@@ -342,8 +344,8 @@ const Details: React.FC<DetailsProps> = ({ loaded, loadError, targets }) => {
                   )}
                 </DescriptionListGroup>
               </DescriptionList>
-            </div>
-          </div>
+            </GridItem>
+          </Grid>
         </PageSection>
       </StatusBox>
     </>
@@ -564,16 +566,12 @@ const ListPage: React.FC<ListPageProps> = ({ loaded, loadError, targets }) => {
           onFilterChange={onFilterChange}
           rowFilters={rowFilters}
         />
-        <div className="row">
-          <div className="col-xs-12">
-            <List
-              data={filteredData ?? []}
-              loaded={loaded}
-              loadError={loadError}
-              unfilteredData={targets}
-            />
-          </div>
-        </div>
+        <List
+          data={filteredData ?? []}
+          loaded={loaded}
+          loadError={loadError}
+          unfilteredData={targets}
+        />
       </ListPageBody>
     </>
   );
