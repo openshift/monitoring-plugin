@@ -11,7 +11,7 @@ import { RuleResource } from '../../../components/utils';
 import { Link } from 'react-router-dom';
 import { SelectedFilters } from '../useSelectedFilters';
 import { filterAlerts } from './hooks/utils';
-import { Badge } from '@patternfly/react-core';
+import { Badge, Flex, FlexItem } from '@patternfly/react-core';
 
 type AggregateAlertTableRowProps = React.FC<{
   aggregatedAlert: AggregatedAlert;
@@ -83,33 +83,38 @@ const AggregateAlertTableRow: AggregateAlertTableRowProps = ({
             expandId: 'expand-interfaces-list',
           }}
         />
-        <td className={tableAggregatedAlertClasses[0]} title={title}>
-          <MonitoringResourceIcon resource={RuleResource} />
-          <Link
-            to={getRuleUrl(
-              perspective,
-              firstAlert?.rule,
-              firstAlert?.labels?.namespace || namespace,
-            )}
-            data-test-id="alert-resource-link"
-            className="co-resource-item__resource-name"
-          >
-            {aggregatedAlert.name}
-          </Link>
-        </td>
-        <td className={tableAggregatedAlertClasses[1]} title={title}>
+        <Td className={tableAggregatedAlertClasses[0]} title={title}>
+          <Flex spaceItems={{ default: 'spaceItemsNone' }} flexWrap={{ default: 'nowrap' }}>
+            <FlexItem>
+              <MonitoringResourceIcon resource={RuleResource} />
+            </FlexItem>
+            <FlexItem>
+              <Link
+                to={getRuleUrl(
+                  perspective,
+                  firstAlert?.rule,
+                  firstAlert?.labels?.namespace || namespace,
+                )}
+                data-test-id="alert-resource-link"
+              >
+                {aggregatedAlert.name}
+              </Link>
+            </FlexItem>
+          </Flex>
+        </Td>
+        <Td className={tableAggregatedAlertClasses[1]} title={title}>
           <Severity severity={aggregatedAlert.severity} />
-        </td>
-        <td className={tableAggregatedAlertClasses[2]} title={title}>
+        </Td>
+        <Td className={tableAggregatedAlertClasses[2]} title={title}>
           <Badge key={1} isRead>
             {filteredAlerts.length}
           </Badge>
-        </td>
-        <td className={tableAggregatedAlertClasses[3]} title={title}>
+        </Td>
+        <Td className={tableAggregatedAlertClasses[3]} title={title}>
           {Array.from(aggregatedAlert.states).map((state) => (
             <AlertState state={state} key={state} />
           ))}
-        </td>
+        </Td>
       </Tr>
       <Tr isExpanded={isExpanded} className={`aggregatedalert-row__expanded-${isExpanded}`}>
         <Td colSpan={isACMPerspective ? 6 : 5}>

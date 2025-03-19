@@ -1,10 +1,9 @@
 import * as _ from 'lodash-es';
 import * as React from 'react';
 import * as PropTypes from 'prop-types';
-import { Alert, AlertGroup } from '@patternfly/react-core';
+import { Alert, AlertGroup, Panel, PanelMain, PanelMainBody } from '@patternfly/react-core';
 import { useTranslation } from 'react-i18next';
-
-import { LoadingInline } from './status-box';
+import { LoadingInline } from '../console-shared/src/components/loading/LoadingInline';
 
 const injectDisabled = (children, disabled) => {
   return React.Children.map(children, (c) => {
@@ -19,33 +18,43 @@ const injectDisabled = (children, disabled) => {
 const ErrorMessage = ({ message }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   return (
-    <Alert
-      isInline
-      className="co-alert co-alert--scrollable"
-      variant="danger"
-      title={t('An error occurred')}
-    >
-      <div className="co-pre-line">{message}</div>
+    <Alert isInline variant="danger" title={t('public~An error occurred')} data-test="alert-error">
+      <Panel isScrollable>
+        <PanelMain maxHeight="100px">
+          <PanelMainBody className="pf-v5-u-text-break-word monitoring__pre-line">
+            {message}
+          </PanelMainBody>
+        </PanelMain>
+      </Panel>
     </Alert>
   );
 };
+const InfoMessage = ({ message }) => (
+  <Alert isInline variant="info" title={message} data-test="button-bar-info-message" />
+);
+const SuccessMessage = ({ message }) => <Alert isInline variant="success" title={message} />;
 
-// NOTE: DO NOT use <a> elements within a ButtonBar.
-// They don't support the disabled attribute, and therefore
-// can't be disabled during a pending promise/request.
-/** @type {React.SFC<{children: any, errorMessage?: React.ReactNode, inProgress?: boolean}}>} */
-export const ButtonBar = ({ children, errorMessage, inProgress }) => {
+export const ButtonBar = ({
+  children,
+  className,
+  errorMessage,
+  infoMessage,
+  successMessage,
+  inProgress,
+}) => {
   return (
-    <div className="co-m-btn-bar">
+    <div className={className}>
       <AlertGroup
         isLiveRegion
         aria-live="polite"
         aria-atomic="false"
         aria-relevant="additions text"
       >
+        {successMessage && <SuccessMessage message={successMessage} />}
         {errorMessage && <ErrorMessage message={errorMessage} />}
         {injectDisabled(children, inProgress)}
         {inProgress && <LoadingInline />}
+        {infoMessage && <InfoMessage message={infoMessage} />}
       </AlertGroup>
     </div>
   );
@@ -53,6 +62,9 @@ export const ButtonBar = ({ children, errorMessage, inProgress }) => {
 
 ButtonBar.propTypes = {
   children: PropTypes.node.isRequired,
+  successMessage: PropTypes.string,
   errorMessage: PropTypes.node,
+  infoMessage: PropTypes.string,
   inProgress: PropTypes.bool,
+  className: PropTypes.string,
 };

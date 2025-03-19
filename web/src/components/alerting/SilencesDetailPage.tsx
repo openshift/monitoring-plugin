@@ -3,15 +3,30 @@ import * as React from 'react';
 import { useSelector } from 'react-redux';
 
 import { Alert, Timestamp, useActiveNamespace } from '@openshift-console/dynamic-plugin-sdk';
-import { Breadcrumb, BreadcrumbItem, DropdownItem } from '@patternfly/react-core';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  DescriptionList,
+  DescriptionListDescription,
+  DescriptionListGroup,
+  DescriptionListTerm,
+  Divider,
+  DropdownItem,
+  Grid,
+  GridItem,
+  PageBreadcrumb,
+  PageGroup,
+  PageSection,
+  PageSectionVariants,
+  Split,
+  SplitItem,
+  Title,
+} from '@patternfly/react-core';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { Link } from 'react-router-dom';
 import { MonitoringState } from 'src/reducers/observe';
-import { withFallback } from '../console/console-shared/error/error-boundary';
-import { SectionHeading } from '../console/utils/headings';
-import { LoadingInline, StatusBox } from '../console/utils/status-box';
 import {
   getAlertUrl,
   getLegacyObserveState,
@@ -24,6 +39,10 @@ import { Silences } from '../types';
 import { alertDescription, SilenceResource } from '../utils';
 import { MonitoringResourceIcon, Severity, SeverityCounts } from './AlertUtils';
 import { SilenceDropdown, SilenceMatchersList, SilenceState } from './SilencesUtils';
+import { StatusBox } from '../console/console-shared/src/components/status/StatusBox';
+import { LoadingInline } from '../console/console-shared/src/components/loading/LoadingInline';
+import withFallback from '../console/console-shared/error/fallbacks/withFallback';
+import { Table, TableVariant, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
 
 const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ match }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -51,104 +70,118 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
         loaded={silences?.loaded}
         loadError={silences?.loadError}
       >
-        <div className="pf-v5-c-page__main-breadcrumb">
-          <Breadcrumb className="monitoring-breadcrumbs">
-            <BreadcrumbItem>
-              <Link
-                className="pf-v5-c-breadcrumb__link"
-                to={getSilencesUrl(perspective, namespace)}
-              >
-                {t('Silences')}
-              </Link>
-            </BreadcrumbItem>
-            <BreadcrumbItem isActive>{t('Silence details')}</BreadcrumbItem>
-          </Breadcrumb>
-        </div>
-        <div className="co-m-nav-title co-m-nav-title--detail co-m-nav-title--breadcrumbs">
-          <h1 className="co-m-pane__heading">
-            <div data-test="resource-title" className="co-resource-item">
-              <MonitoringResourceIcon
-                className="co-m-resource-icon--lg"
-                resource={SilenceResource}
-              />
-              {silence?.name}
-            </div>
-            <div className="co-actions" data-test-id="details-actions">
-              {silence && <SilenceDropdown silence={silence} toggleText="Actions" />}
-            </div>
-          </h1>
-        </div>
-        <div className="co-m-pane__body">
-          <SectionHeading text={t('Silence details')} />
-          <div className="co-m-pane__body-group">
-            <div className="row">
-              <div className="col-sm-6">
-                <dl className="co-m-pane__details">
-                  {silence?.name && (
-                    <>
-                      <dt>{t('Name')}</dt>
-                      <dd>{silence?.name}</dd>
-                    </>
-                  )}
-                  <dt>{t('Matchers')}</dt>
-                  <dd data-test="label-list">
+        <PageGroup>
+          <PageBreadcrumb>
+            <Breadcrumb className="monitoring-breadcrumbs">
+              <BreadcrumbItem>
+                <Link
+                  className="pf-v5-c-breadcrumb__link"
+                  to={getSilencesUrl(perspective, namespace)}
+                >
+                  {t('Silences')}
+                </Link>
+              </BreadcrumbItem>
+              <BreadcrumbItem isActive>{t('Silence details')}</BreadcrumbItem>
+            </Breadcrumb>
+          </PageBreadcrumb>
+          <PageSection variant={PageSectionVariants.light}>
+            <Split>
+              <SplitItem>
+                <Title headingLevel="h1">
+                  {/* Leave to keep compatibility with console looks */}
+                  <MonitoringResourceIcon
+                    className="co-m-resource-icon--lg"
+                    resource={SilenceResource}
+                  />
+                  {silence?.name}
+                </Title>
+              </SplitItem>
+              <SplitItem isFilled />
+              <SplitItem>
+                {silence && <SilenceDropdown silence={silence} toggleText="Actions" />}
+              </SplitItem>
+            </Split>
+          </PageSection>
+        </PageGroup>
+        <Divider />
+        <PageSection variant={PageSectionVariants.light}>
+          <Title headingLevel="h2">{t('Silence details')}</Title>
+          <Grid sm={12} md={6}>
+            <GridItem>
+              <DescriptionList>
+                {silence?.name && (
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>{t('Name')}</DescriptionListTerm>
+                    <DescriptionListDescription>{silence?.name}</DescriptionListDescription>
+                  </DescriptionListGroup>
+                )}
+                <DescriptionListGroup>
+                  <DescriptionListTerm>{t('Matchers')}</DescriptionListTerm>
+                  <DescriptionListDescription data-test="label-list">
                     {_.isEmpty(silence?.matchers) ? (
                       <div className="text-muted">{t('No matchers')}</div>
                     ) : (
                       <SilenceMatchersList silence={silence} />
                     )}
-                  </dd>
-                  <dt>{t('State')}</dt>
-                  <dd>
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
+                <DescriptionListGroup>
+                  <DescriptionListTerm>{t('State')}</DescriptionListTerm>
+                  <DescriptionListDescription>
                     <SilenceState silence={silence} />
-                  </dd>
-                  <dt>{t('Last updated at')}</dt>
-                  <dd>
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
+                <DescriptionListGroup>
+                  <DescriptionListTerm>{t('Last updated at')}</DescriptionListTerm>
+                  <DescriptionListDescription>
                     <Timestamp timestamp={silence?.updatedAt} />
-                  </dd>
-                </dl>
-              </div>
-              <div className="col-sm-6">
-                <dl className="co-m-pane__details">
-                  <dt>{t('Starts at')}</dt>
-                  <dd>
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
+              </DescriptionList>
+            </GridItem>
+            <GridItem>
+              <DescriptionList>
+                <DescriptionListGroup>
+                  <DescriptionListTerm>{t('Starts at')}</DescriptionListTerm>
+                  <DescriptionListDescription>
                     <Timestamp timestamp={silence?.startsAt} />
-                  </dd>
-                  <dt>{t('Ends at')}</dt>
-                  <dd>
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
+                <DescriptionListGroup>
+                  <DescriptionListTerm>{t('Ends at')}</DescriptionListTerm>
+                  <DescriptionListDescription>
                     <Timestamp timestamp={silence?.endsAt} />
-                  </dd>
-                  <dt>{t('Created by')}</dt>
-                  <dd>{silence?.createdBy || '-'}</dd>
-                  <dt>{t('Comment')}</dt>
-                  <dd>{silence?.comment || '-'}</dd>
-                  <dt>{t('Firing alerts')}</dt>
-                  <dd>
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
+                <DescriptionListGroup>
+                  <DescriptionListTerm>{t('Created by')}</DescriptionListTerm>
+                  <DescriptionListDescription>
+                    {silence?.createdBy || '-'}
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
+                <DescriptionListGroup>
+                  <DescriptionListTerm>{t('Comment')}</DescriptionListTerm>
+                  <DescriptionListDescription>{silence?.comment || '-'}</DescriptionListDescription>
+                </DescriptionListGroup>
+                <DescriptionListGroup>
+                  <DescriptionListTerm>{t('Firing alerts')}</DescriptionListTerm>
+                  <DescriptionListDescription>
                     {alertsLoaded ? (
                       <SeverityCounts alerts={silence?.firingAlerts} />
                     ) : (
                       <LoadingInline />
                     )}
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="co-m-pane__body">
-          <div className="co-m-pane__body-group">
-            <SectionHeading text={t('Firing alerts')} />
-            <div className="row">
-              <div className="col-xs-12">
-                {alertsLoaded ? (
-                  <SilencedAlertsList alerts={silence?.firingAlerts} />
-                ) : (
-                  <LoadingInline />
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
+              </DescriptionList>
+            </GridItem>
+          </Grid>
+        </PageSection>
+        <Divider />
+        <PageSection variant={PageSectionVariants.light}>
+          <Title headingLevel="h2">{t('Firing alerts')}</Title>
+          {alertsLoaded ? <SilencedAlertsList alerts={silence?.firingAlerts} /> : <LoadingInline />}
+        </PageSection>
       </StatusBox>
     </>
   );
@@ -163,27 +196,29 @@ const SilencedAlertsList_: React.FC<SilencedAlertsListProps> = ({ alerts, histor
   return _.isEmpty(alerts) ? (
     <div className="pf-v5-u-text-align-center">{t('None found')}</div>
   ) : (
-    <div className="co-m-table-grid co-m-table-grid--bordered">
-      <div className="row co-m-table-grid__head">
-        <div className="col-xs-9">{t('Name')}</div>
-        <div className="col-xs-3">{t('Severity')}</div>
-      </div>
-      <div className="co-m-table-grid__body">
+    <Table variant={TableVariant.compact}>
+      <Thead>
+        <Tr>
+          <Th width={80}>{t('Name')}</Th>
+          <Th width={20}>{t('Severity')}</Th>
+        </Tr>
+      </Thead>
+      <Tbody>
         {_.sortBy<Alert>(alerts, alertDescription).map((a, i) => (
-          <div className="row co-resource-list__item" key={i}>
-            <div className="col-xs-9">
+          <Tr key={i}>
+            <Td>
               <Link
-                className="co-resource-item"
+                className="pf-v5-u-text-break-word"
                 data-test="firing-alerts"
                 to={getAlertUrl(perspective, a, a.rule.id, namespace)}
               >
                 {a.labels.alertname}
               </Link>
               <div className="monitoring-description">{alertDescription(a)}</div>
-            </div>
-            <div className="col-xs-3">
+            </Td>
+            <Td>
               <Severity severity={a.labels.severity} />
-            </div>
+            </Td>
             <div className="dropdown-kebab-pf">
               <KebabDropdown
                 dropdownItems={[
@@ -196,10 +231,10 @@ const SilencedAlertsList_: React.FC<SilencedAlertsListProps> = ({ alerts, histor
                 ]}
               />
             </div>
-          </div>
+          </Tr>
         ))}
-      </div>
-    </div>
+      </Tbody>
+    </Table>
   );
 };
 const SilencedAlertsList = withRouter(SilencedAlertsList_);

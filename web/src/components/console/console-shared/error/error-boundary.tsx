@@ -1,21 +1,49 @@
 import * as React from 'react';
+import { history } from '../../utils/router';
+
+type ErrorBoundaryProps = {
+  FallbackComponent?: React.ComponentType<ErrorBoundaryFallbackProps>;
+};
+
+/** Needed for tests -- should not be imported by application logic */
+export type ErrorBoundaryState = {
+  hasError: boolean;
+  error: { message: string; stack: string; name: string };
+  errorInfo: { componentStack: string };
+};
 
 const DefaultFallback: React.FC = () => <div />;
 
 class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  // eslint-disable-next-line
+  unlisten: () => void = () => {};
+
+  readonly defaultState: ErrorBoundaryState = {
+    hasError: false,
+    error: {
+      message: '',
+      stack: '',
+      name: '',
+    },
+    errorInfo: {
+      componentStack: '',
+    },
+  };
+
   constructor(props) {
     super(props);
-    this.state = {
-      hasError: false,
-      error: {
-        message: '',
-        stack: '',
-        name: '',
-      },
-      errorInfo: {
-        componentStack: '',
-      },
-    };
+    this.state = this.defaultState;
+  }
+
+  componentDidMount() {
+    this.unlisten = history.listen(() => {
+      // reset state to default when location changes
+      this.setState(this.defaultState);
+    });
+  }
+
+  componentWillUnmount() {
+    this.unlisten();
   }
 
   componentDidCatch(error, errorInfo) {
@@ -26,7 +54,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
     });
     // Log the error so something shows up in the JS console when `DefaultFallback` is used.
     // eslint-disable-next-line no-console
-    console.error('Catched error in a child component:', error, errorInfo);
+    console.error('Caught error in a child component:', error, errorInfo);
   }
 
   render() {
@@ -45,36 +73,11 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
   }
 }
 
-export const withFallback: WithFallback = (WrappedComponent, FallbackComponent) => {
-  const Component = (props) => (
-    <ErrorBoundary FallbackComponent={FallbackComponent}>
-      <WrappedComponent {...props} />
-    </ErrorBoundary>
-  );
-  Component.displayName = `withFallback(${WrappedComponent.displayName || WrappedComponent.name})`;
-  return Component;
-};
-
-// eslint-disable-next-line @typescript-eslint/ban-types
-type WithFallback = <P = {}>(
-  Component: React.ComponentType<P>,
-  FallbackComponent?: React.ComponentType<any>,
-) => React.ComponentType<P>;
+export default ErrorBoundary;
 
 type ErrorBoundaryFallbackProps = {
   errorMessage: string;
   componentStack: string;
   stack: string;
   title: string;
-};
-
-type ErrorBoundaryProps = {
-  children: React.ReactNode;
-  FallbackComponent?: React.ComponentType<ErrorBoundaryFallbackProps>;
-};
-
-type ErrorBoundaryState = {
-  hasError: boolean;
-  error: { message: string; stack: string; name: string };
-  errorInfo: { componentStack: string };
 };

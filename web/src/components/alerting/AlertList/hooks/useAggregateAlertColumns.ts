@@ -32,8 +32,8 @@ const alertStateOrder = (alert: Alert) => [
 
 export const tableAggregatedAlertClasses = [
   'pf-v5-u-w-50 pf-u-w-33-on-sm', // Name
-  'pf-v5-m-hidden pf-m-visible-on-sm', // Severity
-  'pf-v5-m-hidden pf-m-visible-on-sm', // Total
+  'pf-m-hidden pf-m-visible-on-sm', // Severity
+  'pf-m-hidden pf-m-visible-on-sm', // Total
   '', // State
 ];
 

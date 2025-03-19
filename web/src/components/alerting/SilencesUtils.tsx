@@ -3,6 +3,7 @@ import {
   GreenCheckCircleIcon,
   Silence,
   SilenceStates,
+  useActiveNamespace,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Button,
@@ -17,6 +18,9 @@ import {
   MenuToggleElement,
   Modal,
   ModalVariant,
+  Panel,
+  PanelMain,
+  PanelMainBody,
   Alert as PFAlert,
 } from '@patternfly/react-core';
 import { BanIcon, EllipsisVIcon, HourglassHalfIcon } from '@patternfly/react-icons';
@@ -26,8 +30,6 @@ import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
-import { useActiveNamespace } from '../console/console-shared/hooks/useActiveNamespace';
-import { LoadingInline } from '../console/utils/status-box';
 import { useBoolean } from '../hooks/useBoolean';
 import {
   getEditSilenceAlertUrl,
@@ -42,21 +44,23 @@ import {
   silenceState,
 } from '../utils';
 import { MonitoringResourceIcon, SeverityCounts, StateTimestamp } from './AlertUtils';
+import { LoadingInline } from '../console/console-shared/src/components/loading/LoadingInline';
+import { Td } from '@patternfly/react-table';
 
 export const tableSilenceClasses = [
   'pf-v5-c-table__action', // Checkbox
-  'pf-v5-u-w-50 pf-v5-u-w-33-on-sm', // Name
-  'pf-v5-m-hidden pf-v5-m-visible-on-sm', // Firing alerts
+  'pf-u-w-50 pf-u-w-33-on-sm', // Name
+  'pf-m-hidden pf-m-visible-on-sm', // Firing alerts
   '', // State
-  'pf-v5-m-hidden pf-v5-m-visible-on-sm', // Creator
-  'pf-v5-m-hidden pf-v5-m-visible-on-sm', // Cluster
+  'pf-m-hidden pf-m-visible-on-sm', // Creator
+  'pf-m-hidden pf-m-visible-on-sm', // Cluster
   'dropdown-kebab-pf pf-v5-c-table__action',
 ];
 
 export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheckbox }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
-  const namespace = useActiveNamespace();
+  const [namespace] = useActiveNamespace();
 
   const { createdBy, endsAt, firingAlerts, id, name, startsAt, matchers } = obj;
   const state = silenceState(obj);
@@ -82,7 +86,7 @@ export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheck
   return (
     <>
       {showCheckbox && (
-        <td className={tableSilenceClasses[0]}>
+        <Td className={tableSilenceClasses[0]}>
           <Checkbox
             id={id}
             isChecked={selectedSilences.has(id)}
@@ -91,28 +95,31 @@ export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheck
               typeof _e === 'boolean' ? onCheckboxChange(checked) : onCheckboxChange(checked);
             }}
           />
-        </td>
+        </Td>
       )}
-      <td className={tableSilenceClasses[1]}>
-        <div className="co-resource-item">
-          <MonitoringResourceIcon resource={SilenceResource} />
-          <Link
-            className="co-resource-item__resource-name"
-            data-test-id="silence-resource-link"
-            title={id}
-            to={getSilenceAlertUrl(perspective, id, namespace)}
-          >
-            {name}
-          </Link>
-        </div>
+      <Td className={tableSilenceClasses[1]}>
+        <Flex spaceItems={{ default: 'spaceItemsNone' }} flexWrap={{ default: 'nowrap' }}>
+          <FlexItem>
+            <MonitoringResourceIcon resource={SilenceResource} />
+          </FlexItem>
+          <FlexItem>
+            <Link
+              data-test-id="silence-resource-link"
+              title={id}
+              to={getSilenceAlertUrl(perspective, id, namespace)}
+            >
+              {name}
+            </Link>
+          </FlexItem>
+        </Flex>
         <div className="monitoring-label-list">
           <SilenceMatchersList silence={obj} />
         </div>
-      </td>
-      <td className={tableSilenceClasses[2]}>
+      </Td>
+      <Td className={tableSilenceClasses[2]}>
         <SeverityCounts alerts={firingAlerts} />
-      </td>
-      <td className={classNames(tableSilenceClasses[3], 'co-break-word')}>
+      </Td>
+      <Td className={classNames(tableSilenceClasses[3], 'pf-v5-u-text-break-word')}>
         <SilenceState silence={obj} />
         {state === SilenceStates.Pending && (
           <StateTimestamp text={t('Starts')} timestamp={startsAt} />
@@ -121,12 +128,12 @@ export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheck
         {state === SilenceStates.Expired && (
           <StateTimestamp text={t('Expired')} timestamp={endsAt} />
         )}
-      </td>
-      <td className={tableSilenceClasses[4]}>{createdBy || '-'}</td>
-      {perspective === 'acm' && <td className={tableSilenceClasses[5]}>{cluster}</td>}
-      <td className={tableSilenceClasses[6]}>
+      </Td>
+      <Td className={tableSilenceClasses[4]}>{createdBy || '-'}</Td>
+      {perspective === 'acm' && <Td className={tableSilenceClasses[5]}>{cluster}</Td>}
+      <Td className={tableSilenceClasses[6]}>
         <SilenceDropdown silence={obj} />
-      </td>
+      </Td>
     </>
   );
 };
@@ -142,12 +149,12 @@ export const SelectedSilencesContext = React.createContext({
 });
 
 export const SilenceMatchersList = ({ silence }) => (
-  <div className={`co-text-${SilenceResource.kind.toLowerCase()}`}>
+  <div>
     {_.map(silence.matchers, ({ name, isEqual, isRegex, value }, i) => (
-      <Label className="co-label" key={i}>
-        <span className="co-label__key">{name}</span>
-        <span className="co-label__eq">{silenceMatcherEqualitySymbol(isEqual, isRegex)}</span>
-        <span className="co-label__value">{value}</span>
+      <Label key={i}>
+        <span>{name}</span>
+        <span>{silenceMatcherEqualitySymbol(isEqual, isRegex)}</span>
+        <span>{value}</span>
       </Label>
     ))}
   </div>
@@ -190,7 +197,7 @@ export const SilenceState = ({ silence }) => {
 const SilenceDropdown_: React.FC<SilenceDropdownProps> = ({ history, silence, toggleText }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
-  const namespace = useActiveNamespace();
+  const [namespace] = useActiveNamespace();
 
   const [isOpen, setIsOpen, , setClosed] = useBoolean(false);
   const [isModalOpen, , setModalOpen, setModalClosed] = useBoolean(false);
@@ -250,7 +257,7 @@ const ExpireSilenceModal: React.FC<ExpireSilenceModalProps> = ({
 }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective, silencesKey } = usePerspective();
-  const namespace = useActiveNamespace();
+  const [namespace] = useActiveNamespace();
 
   const dispatch = useDispatch();
 
@@ -286,13 +293,14 @@ const ExpireSilenceModal: React.FC<ExpireSilenceModalProps> = ({
         <Flex direction={{ default: 'column' }}>
           <FlexItem>
             {errorMessage && (
-              <PFAlert
-                className="co-alert co-alert--scrollable"
-                isInline
-                title={t('An error occurred')}
-                variant="danger"
-              >
-                <div className="co-pre-line">{errorMessage}</div>
+              <PFAlert isInline title={t('An error occurred')} variant="danger">
+                <Panel isScrollable>
+                  <PanelMain maxHeight="100px">
+                    <PanelMainBody className="pf-v5-u-text-break-word monitoring__pre-line">
+                      {errorMessage}
+                    </PanelMainBody>
+                  </PanelMain>
+                </Panel>
               </PFAlert>
             )}
           </FlexItem>

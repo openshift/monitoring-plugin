@@ -7,6 +7,7 @@ import {
   PrometheusResponse,
   PrometheusResult,
   PrometheusValue,
+  useActiveNamespace,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Chart,
@@ -35,6 +36,7 @@ import {
   TextInput,
   Title,
   InputGroupItem,
+  Truncate,
 } from '@patternfly/react-core';
 import { ChartLineIcon } from '@patternfly/react-icons';
 import { useTranslation } from 'react-i18next';
@@ -47,8 +49,6 @@ import {
   queryBrowserSetTimespan,
 } from '../actions/observe';
 
-import { withFallback } from './console/console-shared/error/error-boundary';
-import { CustomDataSource } from './console/extensions/dashboard-data-source';
 import { GraphEmpty } from './console/graphs/graph-empty';
 import { getPrometheusURL } from './console/graphs/helpers';
 import {
@@ -56,15 +56,10 @@ import {
   dateTimeFormatterWithSeconds,
   timeFormatter,
   timeFormatterWithSeconds,
-
-  // TODO: These will be available in future versions of the plugin SDK
-  formatPrometheusDuration,
-  parsePrometheusDuration,
 } from './console/utils/datetime';
 import { usePoll } from './console/utils/poll-hook';
 import { useRefWidth } from './console/utils/ref-width-hook';
 import { useSafeFetch } from './console/utils/safe-fetch-hook';
-import { LoadingInline } from './console/utils/status-box';
 import { humanizeNumberSI } from './console/utils/units';
 
 import { formatNumber } from './format';
@@ -74,8 +69,14 @@ import { PrometheusAPIError, TimeRange } from './types';
 import { getTimeRanges } from './utils';
 
 import { getLegacyObserveState, usePerspective } from './hooks/usePerspective';
-import { useActiveNamespace } from './console/console-shared/hooks/useActiveNamespace';
 import { MonitoringState } from '../reducers/observe';
+import { LoadingInline } from './console/console-shared/src/components/loading/LoadingInline';
+import {
+  formatPrometheusDuration,
+  parsePrometheusDuration,
+} from './console/console-shared/src/datetime/prometheus';
+import withFallback from './console/console-shared/error/fallbacks/withFallback';
+import { CustomDataSource } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
 
 const spans = ['5m', '15m', '30m', '1h', '2h', '6h', '12h', '1d', '2d', '1w', '2w'];
 export const colors = queryBrowserTheme.line.colorScale;
@@ -92,7 +93,7 @@ const valueFormatter = (units: string): ((v: number) => string) =>
     : formatValue;
 
 export const Error: React.FC<ErrorProps> = ({ error, title = 'An error occurred' }) => (
-  <Alert isInline className="co-alert" title={title} variant="danger">
+  <Alert isInline title={title} variant="danger">
     {_.get(error, 'json.error', error.message)}
   </Alert>
 );
@@ -307,7 +308,7 @@ const Tooltip_: React.FC<TooltipProps> = ({ activePoints, center, height, style,
               {allSeries.map((s, i) => (
                 <div className="query-browser__tooltip-series" key={i}>
                   <div className="query-browser__series-btn" style={{ backgroundColor: s.color }} />
-                  <div className="co-nowrap co-truncate">{getSeriesName(s)}</div>
+                  <Truncate content={getSeriesName(s)} />
                   <div className="query-browser__tooltip-value">{s.value}</div>
                 </div>
               ))}
@@ -731,7 +732,7 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
 
   const canStack = _.sumBy(graphData, 'length') <= maxStacks;
 
-  const activeNamespace = useActiveNamespace();
+  const [activeNamespace] = useActiveNamespace();
 
   // If provided, `timespan` overrides any existing span setting
   React.useEffect(() => {

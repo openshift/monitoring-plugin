@@ -1,6 +1,10 @@
 import * as _ from 'lodash-es';
 import { PrometheusEndpoint } from '@openshift-console/dynamic-plugin-sdk';
 import { Perspective } from '../../../actions/observe';
+import {
+  Humanize,
+  PrometheusResponse,
+} from '@openshift-console/dynamic-plugin-sdk/lib/extensions/console-types';
 
 export const PROMETHEUS_BASE_PATH = window.SERVER_FLAGS.prometheusBaseURL;
 const PROMETHEUS_TENANCY_BASE_PATH = window.SERVER_FLAGS.prometheusTenancyBaseURL;
@@ -69,6 +73,19 @@ export const getPrometheusURL = (
   return `${path}/${props.endpoint}?${params.toString()}`;
 };
 
+export const getInstantVectorStats: GetInstantStats = (response, metric, humanize) => {
+  const results = _.get(response, 'data.result', []);
+  return results.map((r) => {
+    const y = parseFloat(_.get(r, 'value[1]'));
+    return {
+      label: humanize ? humanize(y).string : null,
+      x: _.get(r, ['metric', metric], ''),
+      y,
+      metric: r.metric,
+    };
+  });
+};
+
 type PrometheusURLProps = {
   endpoint: PrometheusEndpoint;
   endTime?: number;
@@ -77,4 +94,22 @@ type PrometheusURLProps = {
   samples?: number;
   timeout?: string;
   timespan?: number;
+};
+
+type GetInstantStats = (
+  response: PrometheusResponse,
+  metric?: string,
+  humanize?: Humanize,
+) => DataPoint<number>[];
+
+export type DataPoint<X = Date | number | string> = {
+  x?: X;
+  y?: number;
+  label?: string;
+  metric?: { [key: string]: string };
+  description?: string;
+  symbol?: {
+    type?: string;
+    fill?: string;
+  };
 };

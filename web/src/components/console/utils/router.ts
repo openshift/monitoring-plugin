@@ -1,7 +1,7 @@
 import * as _ from 'lodash-es';
 import { createBrowserHistory, History } from 'history';
 
-const history: History = createBrowserHistory();
+export const history: History = createBrowserHistory();
 
 export const getQueryArgument = (arg: string) =>
   new URLSearchParams(window.location.search).get(arg);

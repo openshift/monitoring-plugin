@@ -1,6 +1,6 @@
 import { K8sModel } from '@openshift-console/dynamic-plugin-sdk';
 
-export const ServiceMonitorModel = {
+export const ServiceMonitorModel: K8sModel = {
   kind: 'ServiceMonitor',
   label: 'ServiceMonitor',
   labelKey: 'ServiceMonitor',
@@ -15,7 +15,7 @@ export const ServiceMonitorModel = {
   propagationPolicy: 'Foreground',
 };
 
-export const PodMonitorModel = {
+export const PodMonitorModel: K8sModel = {
   kind: 'PodMonitor',
   label: 'PodMonitor',
   labelKey: 'PodMonitor',

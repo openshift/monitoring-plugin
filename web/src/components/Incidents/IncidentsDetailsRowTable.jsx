@@ -2,8 +2,10 @@ import React from 'react';
 import { Table, Thead, Tr, Th, Tbody, Td } from '@patternfly/react-table';
 import {
   GreenCheckCircleIcon,
+  isAlertingRulesSource,
   PrometheusEndpoint,
   Timestamp,
+  useActiveNamespace,
   useResolvedExtensions,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { BellIcon, ExclamationCircleIcon, InfoCircleIcon } from '@patternfly/react-icons';
@@ -12,7 +14,6 @@ import { Bullseye, DropdownItem, Icon, Spinner, Tooltip } from '@patternfly/reac
 import { Link } from 'react-router-dom';
 import { AlertResource, getAlertsAndRules } from '../utils';
 import { MonitoringResourceIcon } from '../alerting/AlertUtils';
-import { isAlertingRulesSource } from '../console/extensions/alerts';
 import { getPrometheusURL } from '../console/graphs/helpers';
 import { fetchAlerts } from '../fetch-alerts';
 import KebabDropdown from '../kebab-dropdown';
@@ -24,11 +25,10 @@ import {
   usePerspective,
 } from '../hooks/usePerspective';
 import { OutlinedQuestionCircleIcon } from '@patternfly/react-icons';
-import { useActiveNamespace } from '../console/console-shared/hooks/useActiveNamespace';
 import './incidents-styles.css';
 
 const IncidentsDetailsRowTable = ({ alerts }) => {
-  const namespace = useActiveNamespace();
+  const [namespace] = useActiveNamespace();
   const { perspective } = usePerspective();
   const [alertsWithMatchedData, setAlertsWithMatchedData] = React.useState([]);
   const [customExtensions] = useResolvedExtensions(isAlertingRulesSource);

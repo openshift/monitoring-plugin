@@ -3,17 +3,17 @@ import * as React from 'react';
 import { PrometheusEndpoint, PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
 import { Bullseye } from '@patternfly/react-core';
 
-import ErrorAlert from '../../console/console-shared/alerts/error';
-import { CustomDataSource } from '../../console/extensions/dashboard-data-source';
+import ErrorAlert from '../shared/error';
 import { getPrometheusURL } from '../../console/graphs/helpers';
 import { usePoll } from '../../console/utils/poll-hook';
 import { useSafeFetch } from '../../console/utils/safe-fetch-hook';
-import { LoadingInline } from '../../console/utils/status-box';
 
 import { formatNumber } from '../../format';
 import { usePerspective } from '../../hooks/usePerspective';
 import { Panel } from './types';
 import { useTranslation } from 'react-i18next';
+import { LoadingInline } from '../../console/console-shared/src/components/loading/LoadingInline';
+import { CustomDataSource } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
 
 const colorMap = {
   'super-light-blue': 'blue-100',
