@@ -77,27 +77,25 @@ const DatetimeTextInput = (props) => {
 
   const pattern =
     '\\d{4}/(0?[1-9]|1[012])/(0?[1-9]|[12]\\d|3[01]) (0?\\d|1\\d|2[0-3]):[0-5]\\d(:[0-5]\\d)?';
-  const isValid = new RegExp(`^${pattern}$`).test(props.value);
+  const isValid = new RegExp(`^${pattern}$`).test(props.value) || props.value === 'Now';
+
+  const date = props.value === 'Now' ? new Date() : new Date(props.value);
 
   return (
-    <div>
-      <Tooltip
-        content={
-          <Timestamp date={new Date(props.value)}>
-            {isValid ? new Date(props.value).toISOString() : t('Invalid date / time')}
-          </Timestamp>
-        }
-      >
-        <TextInput
-          {...props}
-          aria-label={t('Datetime')}
-          data-test-id="silence-datetime"
-          validated={isValid || !!props.isDisabled ? 'default' : 'error'}
-          pattern={pattern}
-          placeholder="YYYY/MM/DD hh:mm:ss"
-        />
-      </Tooltip>
-    </div>
+    <Tooltip
+      content={
+        <Timestamp date={date}>{isValid ? date.toISOString() : t('Invalid date / time')}</Timestamp>
+      }
+    >
+      <TextInput
+        {...props}
+        aria-label={t('Datetime')}
+        data-test-id="silence-datetime"
+        validated={isValid || !!props.isDisabled ? 'default' : 'error'}
+        pattern={pattern}
+        placeholder="YYYY/MM/DD hh:mm:ss"
+      />
+    </Tooltip>
   );
 };
 
