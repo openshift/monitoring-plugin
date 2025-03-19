@@ -161,7 +161,7 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
             </Breadcrumb>
           </PageBreadcrumb>
           <PageSection variant={PageSectionVariants.light}>
-            <Split>
+            <Split hasGutter>
               <SplitItem>
                 <Title headingLevel="h1">
                   {/* Leave to keep compatibility with console looks */}
@@ -172,6 +172,7 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
                   {labels?.alertname}
                   <SeverityBadge severity={labels?.severity} />
                 </Title>
+                <HeaderAlertMessage alert={alert} rule={rule} />
               </SplitItem>
               <SplitItem isFilled />
               {state !== AlertStates.Silenced && (
@@ -187,7 +188,6 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
                 </SplitItem>
               )}
             </Split>
-            <HeaderAlertMessage alert={alert} rule={rule} />
           </PageSection>
         </PageGroup>
         <Divider />
