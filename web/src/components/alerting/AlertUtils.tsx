@@ -232,7 +232,7 @@ export const Graph: React.FC<GraphProps> = ({
   const timespan = Math.max(3 * ruleDuration, 30 * 60) * 1000;
 
   const GraphLink = () =>
-    query ? (
+    query && perspective !== 'acm' ? (
       <Link
         aria-label={t('View in Metrics')}
         to={getQueryBrowserUrl(perspective, query, namespace)}
