@@ -71,7 +71,8 @@ export const theme = EditorView.theme({
     outline: 'none',
   },
   '.cm-tooltip.cm-completionInfo': {
-    backgroundColor: "var(--pf-t--temp--dev--tbd)"/* CODEMODS: original v5 color was --pf-v5-global--BackgroundColor--200 */,
+    backgroundColor:
+      'var(--pf-t--temp--dev--tbd)' /* CODEMODS: original v5 color was --pf-v5-global--BackgroundColor--200 */,
     border: 'none',
     marginTop: '-11px',
     padding: '10px',
@@ -86,7 +87,8 @@ export const theme = EditorView.theme({
       borderWidth: '10px',
       borderStyle: 'solid',
       borderColor: 'transparent',
-      borderRightColor: "var(--pf-t--temp--dev--tbd)"/* CODEMODS: original v5 color was --pf-v5-global--BackgroundColor--200 */,
+      borderRightColor:
+        'var(--pf-t--temp--dev--tbd)' /* CODEMODS: original v5 color was --pf-v5-global--BackgroundColor--200 */,
     },
     marginLeft: '12px',
   },
@@ -100,7 +102,8 @@ export const theme = EditorView.theme({
       borderWidth: '10px',
       borderStyle: 'solid',
       borderColor: 'transparent',
-      borderLeftColor: "var(--pf-t--temp--dev--tbd)"/* CODEMODS: original v5 color was --pf-v5-global--BackgroundColor--200 */,
+      borderLeftColor:
+        'var(--pf-t--temp--dev--tbd)' /* CODEMODS: original v5 color was --pf-v5-global--BackgroundColor--200 */,
     },
     marginRight: '12px',
   },
@@ -110,24 +113,29 @@ export const theme = EditorView.theme({
     verticalAlign: 'middle',
   },
   '.cm-selectionMatch': {
-    backgroundColor: "var(--pf-t--temp--dev--tbd)"/* CODEMODS: original v5 color was --pf-v5-global--BackgroundColor--100 */,
+    backgroundColor:
+      'var(--pf-t--temp--dev--tbd)' /* CODEMODS: original v5 color was --pf-v5-global--BackgroundColor--100 */,
   },
   '.cm-completionDetail': {
     float: 'right',
-    color: "var(--pf-t--temp--dev--tbd)"/* CODEMODS: original v5 color was --pf-v5-global--palette--black-500 */,
+    color:
+      'var(--pf-t--temp--dev--tbd)' /* CODEMODS: original v5 color was --pf-v5-global--palette--black-500 */,
   },
   '.cm-tooltip': {
-    backgroundColor: "var(--pf-t--temp--dev--tbd)"/* CODEMODS: original v5 color was --pf-v5-global--BackgroundColor--100 */,
-    borderColor: "var(--pf-t--temp--dev--tbd)"/* CODEMODS: original v5 color was --pf-v5-global--BorderColor--100 */,
+    backgroundColor:
+      'var(--pf-t--temp--dev--tbd)' /* CODEMODS: original v5 color was --pf-v5-global--BackgroundColor--100 */,
+    borderColor:
+      'var(--pf-t--temp--dev--tbd)' /* CODEMODS: original v5 color was --pf-v5-global--BorderColor--100 */,
   },
   '.cm-tooltip.cm-tooltip-autocomplete': {
-    boxShadow: "var(--pf-t--global--box-shadow--sm)",
+    boxShadow: 'var(--pf-t--global--box-shadow--sm)',
     '& > ul': {
       fontFamily: 'var(--pf-v5-c-code-block__pre--FontFamily), monospace',
-      fontSize: "var(--pf-t--global--font--size--sm)",
+      fontSize: 'var(--pf-t--global--font--size--sm)',
     },
     '& > ul > li[aria-selected]': {
-      backgroundColor: "var(--pf-t--temp--dev--tbd)"/* CODEMODS: original v5 color was --pf-v5-global--BackgroundColor--200 */,
+      backgroundColor:
+        'var(--pf-t--temp--dev--tbd)' /* CODEMODS: original v5 color was --pf-v5-global--BackgroundColor--200 */,
       color: 'unset',
     },
     '& > ul > li': {
@@ -137,11 +145,13 @@ export const theme = EditorView.theme({
   '.cm-completionMatchedText': {
     textDecoration: 'none',
     fontWeight: 'bold',
-    color: "var(--pf-t--temp--dev--tbd)"/* CODEMODS: original v5 color was --pf-v5-global--palette--blue-400 */,
+    color:
+      'var(--pf-t--temp--dev--tbd)' /* CODEMODS: original v5 color was --pf-v5-global--palette--blue-400 */,
   },
   '.cm-completionIcon-function, .cm-completionIcon-method': {
     '&:after': { content: "'\\ea8c'" },
-    color: "var(--pf-t--temp--dev--tbd)"/* CODEMODS: original v5 color was --pf-v5-global--palette--purple-500 */,
+    color:
+      'var(--pf-t--temp--dev--tbd)' /* CODEMODS: original v5 color was --pf-v5-global--palette--purple-500 */,
   },
   '.cm-completionIcon-class': {
     '&:after': { content: "'○'" },
@@ -154,7 +164,8 @@ export const theme = EditorView.theme({
   },
   '.cm-completionIcon-constant': {
     '&:after': { content: "'\\eb5f'" },
-    color: "var(--pf-t--temp--dev--tbd)"/* CODEMODS: original v5 color was --pf-v5-global--primary-color--100 */,
+    color:
+      'var(--pf-t--temp--dev--tbd)' /* CODEMODS: original v5 color was --pf-v5-global--primary-color--100 */,
   },
   '.cm-completionIcon-type': {
     '&:after': { content: "'𝑡'" },
@@ -167,14 +178,16 @@ export const theme = EditorView.theme({
   },
   '.cm-completionIcon-keyword': {
     '&:after': { content: "'\\eb62'" },
-    color: "var(--pf-t--temp--dev--tbd)"/* CODEMODS: original v5 color was --pf-v5-global--palette--black-600 */,
+    color:
+      'var(--pf-t--temp--dev--tbd)' /* CODEMODS: original v5 color was --pf-v5-global--palette--black-600 */,
   },
   '.cm-completionIcon-namespace': {
     '&:after': { content: "'▢'" },
   },
   '.cm-completionIcon-text': {
     '&:after': { content: "'\\ea95'" },
-    color: "var(--pf-t--temp--dev--tbd)"/* CODEMODS: original v5 color was --pf-v5-global--palette--gold-400 */,
+    color:
+      'var(--pf-t--temp--dev--tbd)' /* CODEMODS: original v5 color was --pf-v5-global--palette--gold-400 */,
   },
 });
 
@@ -228,17 +241,40 @@ export const selectAutocompleteOnHoverPlugin = ViewPlugin.fromClass(
 
 export const promqlHighlighter = HighlightStyle.define([
   { tag: tags.name, color: '#000' },
-  { tag: tags.number, color: "var(--pf-t--temp--dev--tbd)"/* CODEMODS: original v5 color was --pf-v5-global--success-color--100 */ },
-  { tag: tags.string, color: "var(--pf-t--temp--dev--tbd)"/* CODEMODS: original v5 color was --pf-v5-global--danger-color--200 */ },
-  { tag: tags.keyword, color: "var(--pf-t--temp--dev--tbd)"/* CODEMODS: original v5 color was --pf-v5-global--custom-color--200 */, fontWeight: 'bold' },
   {
-    tag: tags.function(tags.variableName),
-    color: "var(--pf-t--temp--dev--tbd)"/* CODEMODS: original v5 color was --pf-v5-global--custom-color--200 */,
+    tag: tags.number,
+    color:
+      'var(--pf-t--temp--dev--tbd)' /* CODEMODS: original v5 color was --pf-v5-global--success-color--100 */,
+  },
+  {
+    tag: tags.string,
+    color:
+      'var(--pf-t--temp--dev--tbd)' /* CODEMODS: original v5 color was --pf-v5-global--danger-color--200 */,
+  },
+  {
+    tag: tags.keyword,
+    color:
+      'var(--pf-t--temp--dev--tbd)' /* CODEMODS: original v5 color was --pf-v5-global--custom-color--200 */,
     fontWeight: 'bold',
   },
-  { tag: tags.labelName, color: "var(--pf-t--temp--dev--tbd)"/* CODEMODS: original v5 color was --pf-v5-global--warning-color--200 */ },
+  {
+    tag: tags.function(tags.variableName),
+    color:
+      'var(--pf-t--temp--dev--tbd)' /* CODEMODS: original v5 color was --pf-v5-global--custom-color--200 */,
+    fontWeight: 'bold',
+  },
+  {
+    tag: tags.labelName,
+    color:
+      'var(--pf-t--temp--dev--tbd)' /* CODEMODS: original v5 color was --pf-v5-global--warning-color--200 */,
+  },
   { tag: tags.operator },
-  { tag: tags.modifier, color: "var(--pf-t--temp--dev--tbd)"/* CODEMODS: original v5 color was --pf-v5-global--custom-color--200 */, fontWeight: 'bold' },
+  {
+    tag: tags.modifier,
+    color:
+      'var(--pf-t--temp--dev--tbd)' /* CODEMODS: original v5 color was --pf-v5-global--custom-color--200 */,
+    fontWeight: 'bold',
+  },
   { tag: tags.paren },
   { tag: tags.squareBracket },
   { tag: tags.brace },
@@ -423,12 +459,13 @@ export const PromQLExpressionInput: React.FC<PromQLExpressionInputProps> = ({
           </div>
         </div>
       )}
-      <Button icon={<CloseIcon />}
+      <Button
+        icon={<CloseIcon />}
         aria-label={t('Clear query')}
         className="query-browser__clear-icon"
         onClick={onClear}
         variant="plain"
-       />
+      />
     </div>
   );
 };

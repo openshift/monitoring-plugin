@@ -19,7 +19,7 @@ import {
   Badge,
   Title,
   PageSection,
-  } from '@patternfly/react-core';
+} from '@patternfly/react-core';
 import { Helmet } from 'react-helmet';
 import { IncidentsTable } from './IncidentsTable';
 import {
@@ -277,7 +277,7 @@ const IncidentsPage = () => {
       <Helmet>
         <title>{title}</title>
       </Helmet>
-      <PageSection hasBodyWrapper={false} >
+      <PageSection hasBodyWrapper={false}>
         <Title headingLevel="h1">{t('Incidents')}</Title>
       </PageSection>
       {alertsAreLoading && incidentsAreLoading ? (
@@ -285,7 +285,7 @@ const IncidentsPage = () => {
           <Spinner aria-label="incidents-chart-spinner" />
         </Bullseye>
       ) : (
-        <PageSection hasBodyWrapper={false} >
+        <PageSection hasBodyWrapper={false}>
           <Toolbar
             id="toolbar-with-filter"
             className="pf-v5-m-toggle-group-container"
@@ -406,7 +406,7 @@ const IncidentsPage = () => {
                   </SelectList>
                 </Select>
               </ToolbarItem>
-              <ToolbarItem align={{ default: "alignEnd" }}>
+              <ToolbarItem align={{ default: 'alignEnd' }}>
                 <Button
                   variant="link"
                   icon={hideCharts ? <CompressArrowsAltIcon /> : <CompressIcon />}

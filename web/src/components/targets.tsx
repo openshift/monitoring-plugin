@@ -262,7 +262,7 @@ const Details: React.FC<DetailsProps> = ({ loaded, loadError, targets }) => {
             <BreadcrumbItem isActive>{t('Target details')}</BreadcrumbItem>
           </Breadcrumb>
         </PageBreadcrumb>
-        <PageSection hasBodyWrapper={false} >
+        <PageSection hasBodyWrapper={false}>
           <Title headingLevel="h1">
             <div className="pf-v5-u-text-break-word">{scrapeUrl}</div>
           </Title>
@@ -270,7 +270,7 @@ const Details: React.FC<DetailsProps> = ({ loaded, loadError, targets }) => {
       </PageGroup>
       <Divider />
       <StatusBox data={target} label="target" loaded={loaded} loadError={loadError}>
-        <PageSection hasBodyWrapper={false} >
+        <PageSection hasBodyWrapper={false}>
           <Title headingLevel="h2">{t('Target details')}</Title>
           {isServiceMonitor && serviceMonitorsLoadError && (
             <WatchErrorAlert

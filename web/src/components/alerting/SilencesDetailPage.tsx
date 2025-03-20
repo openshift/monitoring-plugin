@@ -83,7 +83,7 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
               <BreadcrumbItem isActive>{t('Silence details')}</BreadcrumbItem>
             </Breadcrumb>
           </PageBreadcrumb>
-          <PageSection hasBodyWrapper={false} >
+          <PageSection hasBodyWrapper={false}>
             <Split>
               <SplitItem>
                 <Title headingLevel="h1">
@@ -103,7 +103,7 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
           </PageSection>
         </PageGroup>
         <Divider />
-        <PageSection hasBodyWrapper={false} >
+        <PageSection hasBodyWrapper={false}>
           <Title headingLevel="h2">{t('Silence details')}</Title>
           <Grid sm={12} md={6}>
             <GridItem>
@@ -177,7 +177,7 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
           </Grid>
         </PageSection>
         <Divider />
-        <PageSection hasBodyWrapper={false} >
+        <PageSection hasBodyWrapper={false}>
           <Title headingLevel="h2">{t('Firing alerts')}</Title>
           {alertsLoaded ? <SilencedAlertsList alerts={silence?.firingAlerts} /> : <LoadingInline />}
         </PageSection>

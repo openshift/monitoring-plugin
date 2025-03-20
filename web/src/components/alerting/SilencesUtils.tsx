@@ -6,25 +6,22 @@ import {
   useActiveNamespace,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
-	Button,
-	Checkbox,
-	Dropdown,
-	DropdownItem,
-	DropdownList,
-	Flex,
-	FlexItem,
-	Label,
-	MenuToggle,
-	MenuToggleElement,
-	Panel,
-	PanelMain,
-	PanelMainBody,
-	Alert as PFAlert
+  Button,
+  Checkbox,
+  Dropdown,
+  DropdownItem,
+  DropdownList,
+  Flex,
+  FlexItem,
+  Label,
+  MenuToggle,
+  MenuToggleElement,
+  Panel,
+  PanelMain,
+  PanelMainBody,
+  Alert as PFAlert,
 } from '@patternfly/react-core';
-import {
-	Modal,
-	ModalVariant
-} from '@patternfly/react-core/deprecated';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import { BanIcon, EllipsisVIcon, HourglassHalfIcon } from '@patternfly/react-icons';
 import classNames from 'classnames';
 import * as _ from 'lodash-es';

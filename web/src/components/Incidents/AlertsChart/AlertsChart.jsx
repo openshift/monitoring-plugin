@@ -1,22 +1,22 @@
 import * as React from 'react';
 
 import {
-	Chart,
-	ChartAxis,
-	ChartBar,
-	ChartGroup,
-	ChartLabel,
-	ChartLegend,
-	ChartTooltip,
-	ChartVoronoiContainer
+  Chart,
+  ChartAxis,
+  ChartBar,
+  ChartGroup,
+  ChartLabel,
+  ChartLegend,
+  ChartTooltip,
+  ChartVoronoiContainer,
 } from '@patternfly/react-charts/victory';
 import { Card, CardTitle, EmptyState, EmptyStateBody } from '@patternfly/react-core';
 import { createAlertsChartBars, formatDate, generateDateArray } from '../utils';
 import { getResizeObserver } from '@patternfly/react-core';
 import { useDispatch, useSelector } from 'react-redux';
-import global_danger_color_100/* CODEMODS: you should update this color token */ from "@patternfly/react-tokens/dist/esm/t_temp_dev_tbd";
-import global_info_color_100/* CODEMODS: you should update this color token */ from "@patternfly/react-tokens/dist/esm/t_temp_dev_tbd";
-import global_warning_color_100/* CODEMODS: you should update this color token */ from "@patternfly/react-tokens/dist/esm/t_temp_dev_tbd";
+import global_danger_color_100 /* CODEMODS: you should update this color token */ from '@patternfly/react-tokens/dist/esm/t_temp_dev_tbd';
+import global_info_color_100 /* CODEMODS: you should update this color token */ from '@patternfly/react-tokens/dist/esm/t_temp_dev_tbd';
+import global_warning_color_100 /* CODEMODS: you should update this color token */ from '@patternfly/react-tokens/dist/esm/t_temp_dev_tbd';
 import * as _ from 'lodash-es';
 import { setAlertsAreLoading } from '../../../actions/observe';
 

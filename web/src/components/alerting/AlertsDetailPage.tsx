@@ -159,7 +159,7 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
               <BreadcrumbItem isActive>{t('Alert details')}</BreadcrumbItem>
             </Breadcrumb>
           </PageBreadcrumb>
-          <PageSection hasBodyWrapper={false} >
+          <PageSection hasBodyWrapper={false}>
             <Split hasGutter>
               <SplitItem>
                 <Title headingLevel="h1">
@@ -190,13 +190,13 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
           </PageSection>
         </PageGroup>
         <Divider />
-        <PageSection hasBodyWrapper={false} >
+        <PageSection hasBodyWrapper={false}>
           <Toolbar className="monitoring-alert-detail-toolbar">
             <ToolbarContent>
               <ToolbarItem variant="label">
                 <Title headingLevel="h2">{t('Alert details')}</Title>
               </ToolbarItem>
-              <ToolbarGroup align={{ default: "alignEnd" }}>
+              <ToolbarGroup align={{ default: 'alignEnd' }}>
                 <ActionServiceProvider context={{ 'alert-detail-toolbar-actions': { alert } }}>
                   {({ actions, loaded }) =>
                     loaded
@@ -205,7 +205,7 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
                             return (
                               <ToolbarItem
                                 key={action.id}
-                                gap={{ default: "gapNone" }}
+                                gap={{ default: 'gapNone' }}
                                 className="pf-v5-u-px-md"
                               >
                                 <Link to={action.cta.href}>{action.label}</Link>
@@ -213,7 +213,7 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
                             );
                           } else if (isActionWithCallback(action)) {
                             return (
-                              <ToolbarItem key={action.id} gap={{ default: "gapNone" }}>
+                              <ToolbarItem key={action.id} gap={{ default: 'gapNone' }}>
                                 <Button variant="link" onClick={action.cta}>
                                   {action.label}
                                 </Button>
@@ -383,7 +383,7 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
         {silencesLoaded && !_.isEmpty(alert?.silencedBy) && (
           <>
             <Divider />
-            <PageSection hasBodyWrapper={false} >
+            <PageSection hasBodyWrapper={false}>
               <Title headingLevel="h2">{t('Silenced by')}</Title>
               <SilencedByList silences={alert?.silencedBy} />
             </PageSection>

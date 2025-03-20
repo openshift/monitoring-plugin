@@ -1,11 +1,5 @@
 import * as React from 'react';
-import {
-  Alert,
-  Flex,
-  FlexItem,
-  PageSection,
-  Title,
-} from '@patternfly/react-core';
+import { Alert, Flex, FlexItem, PageSection, Title } from '@patternfly/react-core';
 import _ from 'lodash';
 import { useTranslation } from 'react-i18next';
 import { IncompleteDataError } from '@openshift-console/dynamic-plugin-sdk/lib/utils/error/http-error';
@@ -50,7 +44,7 @@ export const StatusBox: React.FC<StatusBoxProps> = (props) => {
     const status = _.get(loadError, 'response.status');
     if (status === 404) {
       return (
-        <PageSection hasBodyWrapper={false} >
+        <PageSection hasBodyWrapper={false}>
           <Flex justifyContent={{ default: 'justifyContentCenter' }}>
             <FlexItem>
               <Title headingLevel="h1">{t('404: Not Found')}</Title>

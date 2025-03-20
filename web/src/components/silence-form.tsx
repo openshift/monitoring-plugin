@@ -270,7 +270,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
       <Helmet>
         <title>{title}</title>
       </Helmet>
-      <PageSection hasBodyWrapper={false} >
+      <PageSection hasBodyWrapper={false}>
         <Title headingLevel="h1">{title}</Title>
         <HelperText>
           <HelperTextItem className="monitoring__title-help-text">
@@ -282,7 +282,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
       </PageSection>
       <Divider />
 
-      <PageSection hasBodyWrapper={false} >
+      <PageSection hasBodyWrapper={false}>
         <Form onSubmit={onSubmit} maxWidth="950px">
           {Info && <Info />}
           {error && <Alert variant="danger" isInline title={error} />}
@@ -428,12 +428,13 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
                       </Tooltip>
                     </FormGroup>
                     <Tooltip content={t('Remove')}>
-                      <Button icon={<MinusCircleIcon />}
+                      <Button
+                        icon={<MinusCircleIcon />}
                         type="button"
                         onClick={() => removeMatcher(i)}
                         aria-label={t('Remove')}
                         variant="plain"
-                       />
+                      />
                     </Tooltip>
                   </div>
                 </FormGroup>
@@ -442,16 +443,18 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
           ))}
 
           <FormGroup>
-            <Button icon={<Icon isInline size="lg" iconSize="md">
-                <PlusCircleIcon />
-              </Icon>}
+            <Button
+              icon={
+                <Icon isInline size="lg" iconSize="md">
+                  <PlusCircleIcon />
+                </Icon>
+              }
               className="pf-v5-m-link--align-left"
               onClick={addMatcher}
               type="button"
               variant="link"
               isInline
             >
-              
               {t('Add label')}
             </Button>
           </FormGroup>
