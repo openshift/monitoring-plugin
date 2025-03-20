@@ -275,7 +275,7 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
                   <dt>{t('Expression')}</dt>
                   <dd>
                     {/* display a link only if its a metrics based alert */}
-                    {!sourceId || sourceId === 'prometheus' ? (
+                    {(!sourceId || sourceId === 'prometheus') && perspective !== 'acm' ? (
                       <Link to={getQueryBrowserUrl(perspective, rule?.query, namespace)}>
                         <CodeBlock>
                           <CodeBlockCode>{rule?.query}</CodeBlockCode>
