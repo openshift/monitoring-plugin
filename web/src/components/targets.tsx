@@ -31,7 +31,6 @@ import {
   PageBreadcrumb,
   PageGroup,
   PageSection,
-  PageSectionVariants,
   Title,
   Tooltip,
 } from '@patternfly/react-core';
@@ -253,7 +252,7 @@ const Details: React.FC<DetailsProps> = ({ loaded, loadError, targets }) => {
         <title>{t('Target details')}</title>
       </Helmet>
       <PageGroup>
-        <PageBreadcrumb>
+        <PageBreadcrumb hasBodyWrapper={false}>
           <Breadcrumb>
             <BreadcrumbItem>
               <Link className="pf-v5-c-breadcrumb__link" to="/monitoring/targets">
@@ -263,7 +262,7 @@ const Details: React.FC<DetailsProps> = ({ loaded, loadError, targets }) => {
             <BreadcrumbItem isActive>{t('Target details')}</BreadcrumbItem>
           </Breadcrumb>
         </PageBreadcrumb>
-        <PageSection variant={PageSectionVariants.light}>
+        <PageSection hasBodyWrapper={false} >
           <Title headingLevel="h1">
             <div className="pf-v5-u-text-break-word">{scrapeUrl}</div>
           </Title>
@@ -271,7 +270,7 @@ const Details: React.FC<DetailsProps> = ({ loaded, loadError, targets }) => {
       </PageGroup>
       <Divider />
       <StatusBox data={target} label="target" loaded={loaded} loadError={loadError}>
-        <PageSection variant={PageSectionVariants.light}>
+        <PageSection hasBodyWrapper={false} >
           <Title headingLevel="h2">{t('Target details')}</Title>
           {isServiceMonitor && serviceMonitorsLoadError && (
             <WatchErrorAlert

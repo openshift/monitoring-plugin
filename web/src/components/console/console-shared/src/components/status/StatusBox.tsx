@@ -4,7 +4,6 @@ import {
   Flex,
   FlexItem,
   PageSection,
-  PageSectionVariants,
   Title,
 } from '@patternfly/react-core';
 import _ from 'lodash';
@@ -51,7 +50,7 @@ export const StatusBox: React.FC<StatusBoxProps> = (props) => {
     const status = _.get(loadError, 'response.status');
     if (status === 404) {
       return (
-        <PageSection variant={PageSectionVariants.light}>
+        <PageSection hasBodyWrapper={false} >
           <Flex justifyContent={{ default: 'justifyContentCenter' }}>
             <FlexItem>
               <Title headingLevel="h1">{t('404: Not Found')}</Title>

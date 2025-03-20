@@ -10,15 +10,15 @@ import {
   ChartThemeColor,
   ChartTooltip,
   ChartVoronoiContainer,
-} from '@patternfly/react-charts';
+} from '@patternfly/react-charts/victory';
 import { Bullseye, Card, CardTitle, Spinner } from '@patternfly/react-core';
 import { createIncidentsChartBars, formatDate, generateDateArray } from '../utils';
 import { getResizeObserver } from '@patternfly/react-core';
 import { useDispatch, useSelector } from 'react-redux';
 import { setChooseIncident } from '../../../actions/observe';
-import global_danger_color_100 from '@patternfly/react-tokens/dist/esm/global_danger_color_100';
-import global_info_color_100 from '@patternfly/react-tokens/dist/esm/global_info_color_100';
-import global_warning_color_100 from '@patternfly/react-tokens/dist/esm/global_warning_color_100';
+import global_danger_color_100 /* CODEMODS: you should update this color token */ from '@patternfly/react-tokens/dist/esm/t_temp_dev_tbd';
+import global_info_color_100 /* CODEMODS: you should update this color token */ from '@patternfly/react-tokens/dist/esm/t_temp_dev_tbd';
+import global_warning_color_100 /* CODEMODS: you should update this color token */ from '@patternfly/react-tokens/dist/esm/t_temp_dev_tbd';
 import { setAlertsAreLoading } from '../../../actions/observe';
 
 const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
@@ -48,7 +48,7 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
     setChartData(
       incidentsData.map((incident) => createIncidentsChartBars(incident, theme, dateValues)),
     );
-  }, [incidentsData]);
+  }, [incidentsData, theme, dateValues]);
   const dateValues = generateDateArray(chartDays);
 
   const selectedId = useSelector((state) =>

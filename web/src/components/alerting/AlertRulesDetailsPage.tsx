@@ -25,7 +25,6 @@ import {
   PageBreadcrumb,
   PageGroup,
   PageSection,
-  PageSectionVariants,
   Popover,
   Title,
   Toolbar,
@@ -196,7 +195,7 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
       </Helmet>
       <StatusBox data={rule} label={RuleResource.label} loaded={loaded} loadError={loadError}>
         <PageGroup>
-          <PageBreadcrumb>
+          <PageBreadcrumb hasBodyWrapper={false}>
             <Breadcrumb className="monitoring-breadcrumbs">
               {perspective === 'dev' && (
                 <BreadcrumbItem>
@@ -218,7 +217,7 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
               <BreadcrumbItem isActive>{t('Alerting rule details')}</BreadcrumbItem>
             </Breadcrumb>
           </PageBreadcrumb>
-          <PageSection variant={PageSectionVariants.light}>
+          <PageSection hasBodyWrapper={false} >
             <Title headingLevel="h1">
               {/* Leave to keep compatibility with console looks */}
               <MonitoringResourceIcon className="co-m-resource-icon--lg" resource={RuleResource} />
@@ -229,12 +228,12 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
         </PageGroup>
         <Divider />
         <PageGroup>
-          <PageSection variant={PageSectionVariants.light}>
+          <PageSection hasBodyWrapper={false} >
             <div className="monitoring-heading">
               <Title headingLevel="h2">{t('Alerting rule details')}</Title>
             </div>
           </PageSection>
-          <PageSection variant={PageSectionVariants.light}>
+          <PageSection hasBodyWrapper={false} >
             <Grid sm={12} md={6} hasGutter>
               <GridItem>
                 <DescriptionList>
@@ -351,13 +350,13 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
           </PageSection>
         </PageGroup>
         <Divider />
-        <PageSection variant={PageSectionVariants.light}>
+        <PageSection hasBodyWrapper={false} >
           <Toolbar className="monitoring-alert-detail-toolbar">
             <ToolbarContent>
               <ToolbarItem variant="label">
                 <Title headingLevel="h2">{t('Active alerts')}</Title>
               </ToolbarItem>
-              <ToolbarGroup align={{ default: 'alignRight' }}>
+              <ToolbarGroup align={{ default: "alignEnd" }}>
                 <ToolbarItem>
                   <ToggleGraph />
                 </ToolbarItem>

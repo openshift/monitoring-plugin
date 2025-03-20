@@ -19,8 +19,7 @@ import {
   Badge,
   Title,
   PageSection,
-  PageSectionVariants,
-} from '@patternfly/react-core';
+  } from '@patternfly/react-core';
 import { Helmet } from 'react-helmet';
 import { IncidentsTable } from './IncidentsTable';
 import {
@@ -278,7 +277,7 @@ const IncidentsPage = () => {
       <Helmet>
         <title>{title}</title>
       </Helmet>
-      <PageSection variant={PageSectionVariants.light}>
+      <PageSection hasBodyWrapper={false} >
         <Title headingLevel="h1">{t('Incidents')}</Title>
       </PageSection>
       {alertsAreLoading && incidentsAreLoading ? (
@@ -286,7 +285,7 @@ const IncidentsPage = () => {
           <Spinner aria-label="incidents-chart-spinner" />
         </Bullseye>
       ) : (
-        <PageSection variant={PageSectionVariants.light}>
+        <PageSection hasBodyWrapper={false} >
           <Toolbar
             id="toolbar-with-filter"
             className="pf-v5-m-toggle-group-container"
@@ -298,11 +297,11 @@ const IncidentsPage = () => {
             <ToolbarContent>
               <ToolbarItem>
                 <ToolbarFilter
-                  chips={incidentsActiveFilters.incidentFilters}
-                  deleteChip={(category, chip) =>
+                  labels={incidentsActiveFilters.incidentFilters}
+                  deleteLabel={(category, chip) =>
                     onDeleteIncidentFilterChip(category, chip, incidentsActiveFilters, dispatch)
                   }
-                  deleteChipGroup={(category) =>
+                  deleteLabelGroup={(category) =>
                     onDeleteGroupIncidentFilterChip(category, incidentsActiveFilters, dispatch)
                   }
                   categoryName="Filters"
@@ -407,7 +406,7 @@ const IncidentsPage = () => {
                   </SelectList>
                 </Select>
               </ToolbarItem>
-              <ToolbarItem align={{ default: 'alignRight' }}>
+              <ToolbarItem align={{ default: "alignEnd" }}>
                 <Button
                   variant="link"
                   icon={hideCharts ? <CompressArrowsAltIcon /> : <CompressIcon />}

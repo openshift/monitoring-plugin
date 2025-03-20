@@ -370,17 +370,17 @@ const PanelsRow: React.FC<PanelsRowProps> = ({ row, perspective }) => {
   return (
     <div data-test-id={`panel-${_.kebabCase(row?.title)}`}>
       {showButton && (
-        <Button
+        <Button icon={<>
+          <Icon />
+          &nbsp;{row.title}
+        </>}
           aria-label={title}
           className="pf-v5-m-link--align-left"
           onClick={toggleIsExpanded}
           style={{ fontSize: 24 }}
           title={title}
           variant="plain"
-        >
-          <Icon />
-          &nbsp;{row.title}
-        </Button>
+         />
       )}
       {isExpanded && (
         <div className="monitoring-dashboards__row">

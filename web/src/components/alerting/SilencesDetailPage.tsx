@@ -17,7 +17,6 @@ import {
   PageBreadcrumb,
   PageGroup,
   PageSection,
-  PageSectionVariants,
   Split,
   SplitItem,
   Title,
@@ -71,7 +70,7 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
         loadError={silences?.loadError}
       >
         <PageGroup>
-          <PageBreadcrumb>
+          <PageBreadcrumb hasBodyWrapper={false}>
             <Breadcrumb className="monitoring-breadcrumbs">
               <BreadcrumbItem>
                 <Link
@@ -84,7 +83,7 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
               <BreadcrumbItem isActive>{t('Silence details')}</BreadcrumbItem>
             </Breadcrumb>
           </PageBreadcrumb>
-          <PageSection variant={PageSectionVariants.light}>
+          <PageSection hasBodyWrapper={false} >
             <Split>
               <SplitItem>
                 <Title headingLevel="h1">
@@ -104,7 +103,7 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
           </PageSection>
         </PageGroup>
         <Divider />
-        <PageSection variant={PageSectionVariants.light}>
+        <PageSection hasBodyWrapper={false} >
           <Title headingLevel="h2">{t('Silence details')}</Title>
           <Grid sm={12} md={6}>
             <GridItem>
@@ -178,7 +177,7 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
           </Grid>
         </PageSection>
         <Divider />
-        <PageSection variant={PageSectionVariants.light}>
+        <PageSection hasBodyWrapper={false} >
           <Title headingLevel="h2">{t('Firing alerts')}</Title>
           {alertsLoaded ? <SilencedAlertsList alerts={silence?.firingAlerts} /> : <LoadingInline />}
         </PageSection>

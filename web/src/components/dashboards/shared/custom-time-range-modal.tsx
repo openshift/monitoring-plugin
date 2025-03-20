@@ -3,14 +3,16 @@ import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 import {
-  Button,
-  DatePicker,
-  Flex,
-  FlexItem,
-  Modal,
-  ModalVariant,
-  TimePicker,
+	Button,
+	DatePicker,
+	Flex,
+	FlexItem,
+	TimePicker
 } from '@patternfly/react-core';
+import {
+	Modal,
+	ModalVariant
+} from '@patternfly/react-core/deprecated';
 
 import { dashboardsSetEndTime, dashboardsSetTimespan, Perspective } from '../../../actions/observe';
 

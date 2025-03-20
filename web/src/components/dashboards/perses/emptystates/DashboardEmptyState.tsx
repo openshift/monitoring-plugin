@@ -3,7 +3,6 @@ import {
   Title,
   EmptyState,
   EmptyStateBody,
-  EmptyStateIcon,
   Bullseye,
 } from '@patternfly/react-core';
 import { ListIcon } from '@patternfly/react-icons';
@@ -16,11 +15,9 @@ export function DashboardEmptyState(): ReactElement {
 
   return (
     <Bullseye>
-      <EmptyState>
-        <EmptyStateIcon icon={ListIcon} />
-        <Title headingLevel="h2" size="lg">
+      <EmptyState titleText={<Title headingLevel="h2" size="lg">
           {t('No Dashboard Available in Selected Project')}
-        </Title>
+        </Title>} icon={ListIcon}>
         <EmptyStateBody>
           {t('To explore data, create a dashboard for this project')}
           <ExternalLink href={'https://github.com/perses/perses-operator'} />

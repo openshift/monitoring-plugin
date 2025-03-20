@@ -15,14 +15,12 @@ import {
   DropdownList,
   EmptyState,
   EmptyStateBody,
-  EmptyStateIcon,
   EmptyStateVariant,
   Grid,
   GridItem,
   MenuToggle,
   MenuToggleElement,
   PageSection,
-  PageSectionVariants,
   SelectOptionProps,
   Split,
   SplitItem,
@@ -337,18 +335,19 @@ const ExpandButton = ({ isExpanded, onClick }) => {
   const title = isExpanded ? t('Hide table') : t('Show table');
   return (
     <Button
+      icon={
+        isExpanded ? (
+          <AngleDownIcon className="query-browser__expand-icon" />
+        ) : (
+          <AngleRightIcon className="query-browser__expand-icon" />
+        )
+      }
       aria-label={title}
       className="query-browser__expand-button"
       onClick={onClick}
       title={title}
       variant="plain"
-    >
-      {isExpanded ? (
-        <AngleDownIcon className="query-browser__expand-icon" />
-      ) : (
-        <AngleRightIcon className="query-browser__expand-icon" />
-      )}
-    </Button>
+    />
   );
 };
 
@@ -391,6 +390,7 @@ const SeriesButton: React.FC<SeriesButtonProps> = ({ index, labels }) => {
   return (
     <div className="query-browser__series-btn-wrap">
       <Button
+        icon=""
         aria-label={title}
         className={classNames('query-browser__series-btn', {
           'query-browser__series-btn--disabled': isDisabled,
@@ -1033,11 +1033,15 @@ const QueryBrowserWrapper: React.FC<{
   if (customDataSourceName && customDatasourceError) {
     return (
       <div className="query-browser__wrapper graph-empty-state">
-        <EmptyState variant={EmptyStateVariant.full}>
-          <EmptyStateIcon icon={ChartLineIcon} />
-          <Title headingLevel="h2" size="md">
-            {t('Error loading custom data source')}
-          </Title>
+        <EmptyState
+          titleText={
+            <Title headingLevel="h2" size="md">
+              {t('Error loading custom data source')}
+            </Title>
+          }
+          icon={ChartLineIcon}
+          variant={EmptyStateVariant.full}
+        >
           <EmptyStateBody>
             {t('An error occurred while loading the custom data source.')}
           </EmptyStateBody>
@@ -1049,11 +1053,15 @@ const QueryBrowserWrapper: React.FC<{
   if (queryStrings.join('') === '') {
     return (
       <div className="query-browser__wrapper graph-empty-state">
-        <EmptyState variant={EmptyStateVariant.full}>
-          <EmptyStateIcon icon={ChartLineIcon} />
-          <Title headingLevel="h2" size="md">
-            {t('No query entered')}
-          </Title>
+        <EmptyState
+          titleText={
+            <Title headingLevel="h2" size="md">
+              {t('No query entered')}
+            </Title>
+          }
+          icon={ChartLineIcon}
+          variant={EmptyStateVariant.full}
+        >
           <EmptyStateBody>
             {t('Enter a query in the box below to explore metrics for this cluster.')}
           </EmptyStateBody>
@@ -1200,7 +1208,7 @@ const QueryBrowserPage_: React.FC = () => {
   if (customDataSourceName) {
     if (!extensionsResolved || (!customDataSourceIsResolved && !customDatasourceError)) {
       return (
-        <PageSection variant={PageSectionVariants.light}>
+        <PageSection hasBodyWrapper={false}>
           <Bullseye>
             <LoadingInline />
           </Bullseye>
@@ -1214,7 +1222,7 @@ const QueryBrowserPage_: React.FC = () => {
       <Helmet>
         <title>{t('Metrics')}</title>
       </Helmet>
-      <PageSection variant={PageSectionVariants.light}>
+      <PageSection hasBodyWrapper={false}>
         <Split hasGutter>
           <SplitItem>
             <Title headingLevel="h1">{t('Metrics')}</Title>
@@ -1228,7 +1236,7 @@ const QueryBrowserPage_: React.FC = () => {
           </SplitItem>
         </Split>
       </PageSection>
-      <PageSection variant={PageSectionVariants.light}>
+      <PageSection hasBodyWrapper={false}>
         <Grid>
           <GridItem className="query-browser__toggle-graph-container">
             <ToggleGraph />

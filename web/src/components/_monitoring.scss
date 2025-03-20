@@ -456,12 +456,11 @@ $monitoring-line-height: 18px;
 .query-browser__table {
   border-left: 3px solid transparent;
   margin-bottom: 25px;
+  font-size: var(--pf-v5-global--FontSize--sm);
 
   &--expanded {
     border-left-color: var(--pf-v5-global--active-color--100);
   }
-
-  font-size: var(--pf-v5-global--FontSize--sm);
 
   tr > :first-child {
     padding-top: 0;

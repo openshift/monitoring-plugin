@@ -6,7 +6,6 @@ import {
   CardBody,
   EmptyState,
   EmptyStateBody,
-  EmptyStateIcon,
   Label,
 } from '@patternfly/react-core';
 import InfoCircleIcon from '@patternfly/react-icons/dist/esm/icons/info-circle-icon';
@@ -55,11 +54,9 @@ export const IncidentsTable = ({ namespace }) => {
                   style={{
                     height: '150px',
                   }}
+                  icon={SearchIcon}
                 >
                   <EmptyStateBody>
-                    <Bullseye>
-                      <EmptyStateIcon icon={SearchIcon} />
-                    </Bullseye>
                     <Bullseye>No incidents selected.</Bullseye>
                   </EmptyStateBody>
                 </EmptyState>
@@ -92,7 +89,7 @@ export const IncidentsTable = ({ namespace }) => {
                         ''
                       )}
                       {alert.warning > 0 ? (
-                        <Label color="gold" icon={<InfoCircleIcon />}>
+                        <Label color="yellow" icon={<InfoCircleIcon />}>
                           {alert.warning}
                         </Label>
                       ) : (

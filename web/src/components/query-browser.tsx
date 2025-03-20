@@ -18,7 +18,7 @@ import {
   ChartLine,
   ChartStack,
   ChartVoronoiContainer,
-} from '@patternfly/react-charts';
+} from '@patternfly/react-charts/victory';
 import {
   Alert,
   Button,
@@ -28,7 +28,6 @@ import {
   DropdownList,
   EmptyState,
   EmptyStateBody,
-  EmptyStateIcon,
   EmptyStateVariant,
   MenuToggle,
   MenuToggleElement,
@@ -100,11 +99,15 @@ export const Error: React.FC<ErrorProps> = ({ error, title = 'An error occurred'
 
 const GraphEmptyState: React.FC<GraphEmptyStateProps> = ({ children, title }) => (
   <div className="query-browser__wrapper graph-empty-state">
-    <EmptyState variant={EmptyStateVariant.full}>
-      <EmptyStateIcon icon={ChartLineIcon} />
-      <Title headingLevel="h2" size="md">
-        {title}
-      </Title>
+    <EmptyState
+      titleText={
+        <Title headingLevel="h2" size="md">
+          {title}
+        </Title>
+      }
+      icon={ChartLineIcon}
+      variant={EmptyStateVariant.full}
+    >
       <EmptyStateBody>{children}</EmptyStateBody>
     </EmptyState>
   </div>
@@ -505,7 +508,10 @@ const Graph: React.FC<GraphProps> = React.memo(
             itemsPerRow={4}
             orientation="vertical"
             style={{
-              labels: { fontSize: 11, fill: 'var(--pf-v5-global--Color--100)' },
+              labels: {
+                fontSize: 11,
+                fill: 'var(--pf-t--temp--dev--tbd)' /* CODEMODS: original v5 color was --pf-v5-global--Color--100 */,
+              },
             }}
             symbolSpacer={4}
           />

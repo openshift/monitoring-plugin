@@ -6,8 +6,8 @@ import { useTranslation } from 'react-i18next';
 import { SingleTypeaheadDropdown } from '../../console/utils/single-typeahead-dropdown';
 import { CombinedDashboardMetadata } from '../perses/hooks/useDashboardsData';
 
-type TagColor = 'red' | 'purple' | 'blue' | 'green' | 'cyan' | 'orange';
-const tagColors: TagColor[] = ['red', 'purple', 'blue', 'green', 'cyan', 'orange'];
+type TagColor = 'red' | 'purple' | 'blue' | 'green' | 'teal' | 'orange';
+const tagColors: TagColor[] = ['red', 'purple', 'blue', 'green', 'teal', 'orange'];
 
 const Tag: React.FC<{ color: TagColor; text: string }> = React.memo(({ color, text }) => (
   <Label className="monitoring-dashboards__dashboard_dropdown_tag" color={color}>

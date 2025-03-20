@@ -221,9 +221,7 @@ export const PopoverField: React.FC<{ bodyContent: React.ReactNode; label: strin
   label,
 }) => (
   <Popover headerContent={label} bodyContent={bodyContent}>
-    <Button variant="plain" className="details-item__popover-button">
-      {label}
-    </Button>
+    <Button icon={label} variant="plain" className="details-item__popover-button" />
   </Popover>
 );
 
