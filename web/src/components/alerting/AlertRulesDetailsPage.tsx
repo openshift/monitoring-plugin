@@ -47,8 +47,6 @@ import { ToggleGraph } from '../metrics';
 import { Alerts } from '../types';
 import { alertDescription, RuleResource } from '../utils';
 
-import './alert-rules-details-page.scss';
-
 import {
   getAlertRulesUrl,
   getAlertsUrl,
@@ -78,16 +76,11 @@ import { Table, TableVariant, Tbody, Td, Th, Thead, Tr } from '@patternfly/react
 // Renders Prometheus template text and highlights any {{ ... }} tags that it contains
 const PrometheusTemplate = ({ text }) => (
   <>
-    {text?.split(/(\{\{[^{}]*\}\})/)?.map((part: string, i: number) =>
-      part.match(/^\{\{[^{}]*\}\}$/) ? (
-        // <code className="monitoring__code monitoring__prometheus-template-tag" key={i}>
-        <code className="monitoring__code" key={i}>
-          {part}
-        </code>
-      ) : (
-        part
-      ),
-    )}
+    {text
+      ?.split(/(\{\{[^{}]*\}\})/)
+      ?.map((part: string, i: number) =>
+        part.match(/^\{\{[^{}]*\}\}$/) ? <code key={i}>{part}</code> : part,
+      )}
   </>
 );
 
@@ -129,19 +122,17 @@ const ActiveAlerts_: React.FC<ActiveAlertsProps> = ({ alerts, history, namespace
             </Td>
             <Td modifier="truncate">{a.value}</Td>
             {a.state !== AlertStates.Silenced && (
-              <div className="dropdown-kebab-pf">
-                <KebabDropdown
-                  dropdownItems={[
-                    <DropdownItem
-                      component="button"
-                      key="silence"
-                      onClick={() => history.push(getNewSilenceAlertUrl(perspective, a))}
-                    >
-                      {t('Silence alert')}
-                    </DropdownItem>,
-                  ]}
-                />
-              </div>
+              <KebabDropdown
+                dropdownItems={[
+                  <DropdownItem
+                    component="button"
+                    key="silence"
+                    onClick={() => history.push(getNewSilenceAlertUrl(perspective, a))}
+                  >
+                    {t('Silence alert')}
+                  </DropdownItem>,
+                ]}
+              />
             )}
           </Tr>
         ))}
@@ -196,22 +187,15 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
       <StatusBox data={rule} label={RuleResource.label} loaded={loaded} loadError={loadError}>
         <PageGroup>
           <PageBreadcrumb hasBodyWrapper={false}>
-            <Breadcrumb className="monitoring-breadcrumbs">
+            <Breadcrumb>
               {perspective === 'dev' && (
                 <BreadcrumbItem>
-                  <Link
-                    className="pf-v5-c-breadcrumb__link"
-                    to={getAlertsUrl(perspective, namespace)}
-                  >
-                    {t('Alerts')}
-                  </Link>
+                  <Link to={getAlertsUrl(perspective, namespace)}>{t('Alerts')}</Link>
                 </BreadcrumbItem>
               )}
               {perspective !== 'dev' && (
                 <BreadcrumbItem>
-                  <Link className="pf-v5-c-breadcrumb__link" to={getAlertRulesUrl(perspective)}>
-                    {t('Alerting rules')}
-                  </Link>
+                  <Link to={getAlertRulesUrl(perspective)}>{t('Alerting rules')}</Link>
                 </BreadcrumbItem>
               )}
               <BreadcrumbItem isActive>{t('Alerting rule details')}</BreadcrumbItem>
@@ -220,7 +204,7 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
           <PageSection hasBodyWrapper={false}>
             <Title headingLevel="h1">
               {/* Leave to keep compatibility with console looks */}
-              <MonitoringResourceIcon className="co-m-resource-icon--lg" resource={RuleResource} />
+              <MonitoringResourceIcon resource={RuleResource} />
               {rule?.name}
               <SeverityBadge severity={rule?.labels?.severity} />
             </Title>
@@ -229,7 +213,7 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
         <Divider />
         <PageGroup>
           <PageSection hasBodyWrapper={false}>
-            <div className="monitoring-heading">
+            <div>
               <Title headingLevel="h2">{t('Alerting rule details')}</Title>
             </div>
           </PageSection>
@@ -351,7 +335,7 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
         </PageGroup>
         <Divider />
         <PageSection hasBodyWrapper={false}>
-          <Toolbar className="monitoring-alert-detail-toolbar">
+          <Toolbar>
             <ToolbarContent>
               <ToolbarItem variant="label">
                 <Title headingLevel="h2">{t('Active alerts')}</Title>
@@ -375,7 +359,7 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
             <AlertChart rule={rule} />
           ) : null}
           {_.isEmpty(rule?.alerts) ? (
-            <div className="pf-v5-u-text-align-center">{t('None found')}</div>
+            <div>{t('None found')}</div>
           ) : (
             <ActiveAlerts alerts={rule.alerts} ruleID={rule?.id} namespace={namespace} />
           )}

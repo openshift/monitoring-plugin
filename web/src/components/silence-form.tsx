@@ -103,10 +103,10 @@ const NegativeMatcherHelp = () => {
 
   return (
     <DescriptionList>
-      <DescriptionListDescription className="pf-v5-u-text-align-center">
+      <DescriptionListDescription>
         {t('Select the negative matcher option to update the label value to a not equals matcher.')}
       </DescriptionListDescription>
-      <DescriptionListDescription className="pf-v5-u-text-align-center">
+      <DescriptionListDescription>
         {t(
           'If both the RegEx and negative matcher options are selected, the label value must not match the regular expression.',
         )}
@@ -273,7 +273,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
       <PageSection hasBodyWrapper={false}>
         <Title headingLevel="h1">{title}</Title>
         <HelperText>
-          <HelperTextItem className="monitoring__title-help-text">
+          <HelperTextItem>
             {t(
               'Silences temporarily mute alerts based on a set of label selectors that you define. Notifications will not be sent for alerts that match all the listed values or regular expressions.',
             )}
@@ -410,7 +410,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
               </GridItem>
               <GridItem>
                 <FormGroup>
-                  <div className="monitoring-silence-alert__label-options">
+                  <div>
                     <FormGroup role="group" isInline>
                       <Checkbox
                         id="regex"
@@ -449,7 +449,6 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
                   <PlusCircleIcon />
                 </Icon>
               }
-              className="pf-v5-m-link--align-left"
               onClick={addMatcher}
               type="button"
               variant="link"

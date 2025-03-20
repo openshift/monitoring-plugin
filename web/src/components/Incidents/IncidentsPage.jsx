@@ -288,7 +288,6 @@ const IncidentsPage = () => {
         <PageSection hasBodyWrapper={false}>
           <Toolbar
             id="toolbar-with-filter"
-            className="pf-v5-m-toggle-group-container"
             collapseListedFiltersBreakpoint="xl"
             clearAllFilters={() =>
               onDeleteIncidentFilterChip('', '', incidentsActiveFilters, dispatch)

@@ -2,17 +2,8 @@ import * as _ from 'lodash-es';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
-import {
-	Button,
-	DatePicker,
-	Flex,
-	FlexItem,
-	TimePicker
-} from '@patternfly/react-core';
-import {
-	Modal,
-	ModalVariant
-} from '@patternfly/react-core/deprecated';
+import { Button, DatePicker, Flex, FlexItem, TimePicker } from '@patternfly/react-core';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 
 import { dashboardsSetEndTime, dashboardsSetTimespan, Perspective } from '../../../actions/observe';
 
@@ -92,7 +83,7 @@ const CustomTimeRangeModal: React.FC<CustomTimeRangeModalProps> = ({
       title={t('Custom time range')}
       variant={ModalVariant.small}
     >
-      <Flex className="custom-time-range-modal" direction={{ default: 'column' }}>
+      <Flex direction={{ default: 'column' }}>
         <FlexItem spacer={{ default: 'spacerNone' }}>
           <label>{t('From')}</label>
         </FlexItem>
@@ -115,7 +106,7 @@ const CustomTimeRangeModal: React.FC<CustomTimeRangeModalProps> = ({
             <TimePicker is24Hour onChange={(event, text) => setToTime(text)} time={toTime} />
           </FlexItem>
         </Flex>
-        <Flex className="custom-time-range-modal-footer">
+        <Flex>
           <FlexItem align={{ default: 'alignRight' }}>
             <Button variant="secondary" onClick={setClosed}>
               {t('Cancel')}

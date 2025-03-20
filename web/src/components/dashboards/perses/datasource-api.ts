@@ -40,10 +40,10 @@ export class OcpDatasourceApi implements DatasourceApi {
     return `${this.basePath}/proxy/${url}`;
   }
 
-  getDatasource(
+  getDatasource = async (
     project: string,
     selector: DatasourceSelector,
-  ): Promise<DatasourceResource | undefined> {
+  ): Promise<DatasourceResource | undefined> => {
     return fetchDatasourceList(
       project,
       selector.kind,
@@ -67,9 +67,11 @@ export class OcpDatasourceApi implements DatasourceApi {
       };
       return datasource;
     });
-  }
+  };
 
-  getGlobalDatasource(selector: DatasourceSelector): Promise<GlobalDatasourceResource | undefined> {
+  getGlobalDatasource = async (
+    selector: DatasourceSelector,
+  ): Promise<GlobalDatasourceResource | undefined> => {
     return fetchGlobalDatasourceList(
       selector.kind,
       selector.name ? undefined : true,
@@ -92,7 +94,7 @@ export class OcpDatasourceApi implements DatasourceApi {
       };
       return datasource;
     });
-  }
+  };
 
   listDatasources(project: string, pluginKind?: string): Promise<DatasourceResource[]> {
     return fetchDatasourceList(project, pluginKind);

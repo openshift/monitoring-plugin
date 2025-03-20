@@ -78,7 +78,7 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
   }
 
   return (
-    <Card className="incidents-chart-card">
+    <Card>
       <div ref={containerRef}>
         <CardTitle>Incidents Timeline</CardTitle>
         {isLoading ? (
@@ -86,12 +86,7 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
             <Spinner aria-label="incidents-chart-spinner" />
           </Bullseye>
         ) : (
-          <div
-            style={{
-              height: { chartContainerHeight },
-              width: '100%',
-            }}
-          >
+          <div>
             <Chart
               containerComponent={
                 <ChartVoronoiContainer
@@ -135,13 +130,7 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
                   },
                 },
               ]}
-              legendComponent={
-                <ChartLegend
-                  labelComponent={
-                    <ChartLabel style={{ fill: theme === 'light' ? '#1b1d21' : '#e0e0e0' }} />
-                  }
-                />
-              }
+              legendComponent={<ChartLegend labelComponent={<ChartLabel />} />}
               legendPosition="bottom-left"
               //this should be always less than the container height
               height={chartHeight}
@@ -161,9 +150,7 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
                   new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
                 }
                 tickValues={dateValues}
-                tickLabelComponent={
-                  <ChartLabel style={{ fill: theme === 'light' ? '#1b1d21' : '#e0e0e0' }} />
-                }
+                tickLabelComponent={<ChartLabel />}
               />
               <ChartGroup horizontal>
                 {chartData.map((bar) => {
@@ -172,13 +159,6 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
                     <ChartBar
                       data={bar}
                       key={bar.group_id}
-                      style={{
-                        data: {
-                          fill: ({ datum }) => datum.fill,
-                          stroke: ({ datum }) => datum.fill,
-                          fillOpacity: ({ datum }) => (datum.nodata ? 0 : getOpacity(datum)),
-                        },
-                      }}
                       events={[
                         {
                           eventHandlers: {

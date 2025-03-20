@@ -30,16 +30,6 @@ import {
 } from '../../../components/hooks/usePerspective';
 import { Link } from 'react-router-dom';
 
-const tableAlertClasses = [
-  'pf-v5-u-w-50 pf-u-w-33-on-sm', // Name
-  'pf-m-hidden pf-m-visible-on-sm', // Severity
-  '', // Namespace
-  '', // State
-  'pf-m-hidden pf-m-visible-on-sm', // Source
-  'pf-m-hidden pf-m-visible-on-sm', // Cluster
-  'dropdown-kebab-pf pf-v5-c-table__action',
-];
-
 const AlertTableRow: React.FC<{ alert: Alert }> = ({ alert }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
@@ -87,7 +77,7 @@ const AlertTableRow: React.FC<{ alert: Alert }> = ({ alert }) => {
 
   return (
     <Tr>
-      <Td className={tableAlertClasses[0]} title={title}>
+      <Td title={title}>
         <Flex spaceItems={{ default: 'spaceItemsNone' }} flexWrap={{ default: 'nowrap' }}>
           <FlexItem>
             <MonitoringResourceIcon resource={AlertResource} />
@@ -107,10 +97,10 @@ const AlertTableRow: React.FC<{ alert: Alert }> = ({ alert }) => {
           </FlexItem>
         </Flex>
       </Td>
-      <Td className={tableAlertClasses[1]} title={title}>
+      <Td title={title}>
         <Severity severity={alert.labels?.severity} />
       </Td>
-      <Td className={tableAlertClasses[2]} title={title}>
+      <Td title={title}>
         {alert.labels?.namespace ? (
           <ResourceLink
             groupVersionKind={NamespaceGroupVersionKind}
@@ -120,19 +110,13 @@ const AlertTableRow: React.FC<{ alert: Alert }> = ({ alert }) => {
           '-'
         )}
       </Td>
-      <Td className={tableAlertClasses[3]} title={title}>
+      <Td title={title}>
         <AlertState state={state} />
         <AlertStateDescription alert={alert} />
       </Td>
-      <Td className={tableAlertClasses[4]} title={title}>
-        {alertSource(alert) === AlertSource.User ? t('User') : t('Platform')}
-      </Td>
-      {perspective === 'acm' && (
-        <Td className={tableAlertClasses[5]} title={title}>
-          {alert.labels?.cluster}
-        </Td>
-      )}
-      <Td className={tableAlertClasses[6]} title={title}>
+      <Td title={title}>{alertSource(alert) === AlertSource.User ? t('User') : t('Platform')}</Td>
+      {perspective === 'acm' && <Td title={title}>{alert.labels?.cluster}</Td>}
+      <Td title={title}>
         <ActionServiceProvider context={{ 'monitoring-alert-list-item': { alert: alert } }}>
           {({ actions, loaded }) => {
             if (loaded && actions.length > 0) {

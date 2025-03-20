@@ -46,16 +46,6 @@ import { MonitoringResourceIcon, SeverityCounts, StateTimestamp } from './AlertU
 import { LoadingInline } from '../console/console-shared/src/components/loading/LoadingInline';
 import { Td } from '@patternfly/react-table';
 
-export const tableSilenceClasses = [
-  'pf-v5-c-table__action', // Checkbox
-  'pf-u-w-50 pf-u-w-33-on-sm', // Name
-  'pf-m-hidden pf-m-visible-on-sm', // Firing alerts
-  '', // State
-  'pf-m-hidden pf-m-visible-on-sm', // Creator
-  'pf-m-hidden pf-m-visible-on-sm', // Cluster
-  'dropdown-kebab-pf pf-v5-c-table__action',
-];
-
 export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheckbox }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
@@ -85,7 +75,7 @@ export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheck
   return (
     <>
       {showCheckbox && (
-        <Td className={tableSilenceClasses[0]}>
+        <Td>
           <Checkbox
             id={id}
             isChecked={selectedSilences.has(id)}
@@ -96,7 +86,7 @@ export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheck
           />
         </Td>
       )}
-      <Td className={tableSilenceClasses[1]}>
+      <Td>
         <Flex spaceItems={{ default: 'spaceItemsNone' }} flexWrap={{ default: 'nowrap' }}>
           <FlexItem>
             <MonitoringResourceIcon resource={SilenceResource} />
@@ -111,14 +101,14 @@ export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheck
             </Link>
           </FlexItem>
         </Flex>
-        <div className="monitoring-label-list">
+        <div>
           <SilenceMatchersList silence={obj} />
         </div>
       </Td>
-      <Td className={tableSilenceClasses[2]}>
+      <Td>
         <SeverityCounts alerts={firingAlerts} />
       </Td>
-      <Td className={classNames(tableSilenceClasses[3], 'pf-v5-u-text-break-word')}>
+      <Td>
         <SilenceState silence={obj} />
         {state === SilenceStates.Pending && (
           <StateTimestamp text={t('Starts')} timestamp={startsAt} />
@@ -128,9 +118,9 @@ export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheck
           <StateTimestamp text={t('Expired')} timestamp={endsAt} />
         )}
       </Td>
-      <Td className={tableSilenceClasses[4]}>{createdBy || '-'}</Td>
-      {perspective === 'acm' && <Td className={tableSilenceClasses[5]}>{cluster}</Td>}
-      <Td className={tableSilenceClasses[6]}>
+      <Td>{createdBy || '-'}</Td>
+      {perspective === 'acm' && <Td>{cluster}</Td>}
+      <Td>
         <SilenceDropdown silence={obj} />
       </Td>
     </>
@@ -171,8 +161,8 @@ export const SilenceState = ({ silence }) => {
   const state = silenceState(silence);
   const icon = {
     [SilenceStates.Active]: <GreenCheckCircleIcon />,
-    [SilenceStates.Pending]: <HourglassHalfIcon className="monitoring-state-icon--pending" />,
-    [SilenceStates.Expired]: <BanIcon className="text-muted" data-test-id="ban-icon" />,
+    [SilenceStates.Pending]: <HourglassHalfIcon />,
+    [SilenceStates.Expired]: <BanIcon data-test-id="ban-icon" />,
   }[state];
 
   const getStateKey = (stateData) => {
@@ -295,9 +285,7 @@ const ExpireSilenceModal: React.FC<ExpireSilenceModalProps> = ({
               <PFAlert isInline title={t('An error occurred')} variant="danger">
                 <Panel isScrollable>
                   <PanelMain maxHeight="100px">
-                    <PanelMainBody className="pf-v5-u-text-break-word monitoring__pre-line">
-                      {errorMessage}
-                    </PanelMainBody>
+                    <PanelMainBody>{errorMessage}</PanelMainBody>
                   </PanelMain>
                 </Panel>
               </PFAlert>

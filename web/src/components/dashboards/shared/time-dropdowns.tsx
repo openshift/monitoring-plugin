@@ -103,17 +103,11 @@ const TimespanDropdown: React.FC = () => {
         timespan={defaultTimerange}
         endTime={defaultEndTime}
       />
-      <div className="form-group monitoring-dashboards__dropdown-wrap">
-        <label
-          className="monitoring-dashboards__dropdown-title"
-          htmlFor="monitoring-time-range-dropdown"
-        >
-          {t('Time range')}
-        </label>
+      <div>
+        <label htmlFor="monitoring-time-range-dropdown">{t('Time range')}</label>
         <SimpleSelect
           id="monitoring-time-range-dropdown"
           initialOptions={initialOptions}
-          className="monitoring-dashboards__variable-dropdown"
           onSelect={(_event, selection) => {
             if (selection) {
               onChange(String(selection));
@@ -150,10 +144,8 @@ const PollIntervalDropdown: React.FC = () => {
   );
 
   return (
-    <div className="form-group monitoring-dashboards__dropdown-wrap">
-      <label htmlFor="refresh-interval-dropdown" className="monitoring-dashboards__dropdown-title">
-        {t('Refresh interval')}
-      </label>
+    <div>
+      <label htmlFor="refresh-interval-dropdown">{t('Refresh interval')}</label>
       <DropDownPollInterval
         id="refresh-interval-dropdown"
         setInterval={setInterval}
@@ -165,7 +157,7 @@ const PollIntervalDropdown: React.FC = () => {
 
 export const TimeDropdowns: React.FC = React.memo(() => {
   return (
-    <div className="monitoring-dashboards__options">
+    <div>
       <TimespanDropdown />
       <PollIntervalDropdown />
     </div>

@@ -71,14 +71,9 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
       >
         <PageGroup>
           <PageBreadcrumb hasBodyWrapper={false}>
-            <Breadcrumb className="monitoring-breadcrumbs">
+            <Breadcrumb>
               <BreadcrumbItem>
-                <Link
-                  className="pf-v5-c-breadcrumb__link"
-                  to={getSilencesUrl(perspective, namespace)}
-                >
-                  {t('Silences')}
-                </Link>
+                <Link to={getSilencesUrl(perspective, namespace)}>{t('Silences')}</Link>
               </BreadcrumbItem>
               <BreadcrumbItem isActive>{t('Silence details')}</BreadcrumbItem>
             </Breadcrumb>
@@ -87,11 +82,7 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
             <Split>
               <SplitItem>
                 <Title headingLevel="h1">
-                  {/* Leave to keep compatibility with console looks */}
-                  <MonitoringResourceIcon
-                    className="co-m-resource-icon--lg"
-                    resource={SilenceResource}
-                  />
+                  <MonitoringResourceIcon resource={SilenceResource} />
                   {silence?.name}
                 </Title>
               </SplitItem>
@@ -118,7 +109,7 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
                   <DescriptionListTerm>{t('Matchers')}</DescriptionListTerm>
                   <DescriptionListDescription data-test="label-list">
                     {_.isEmpty(silence?.matchers) ? (
-                      <div className="text-muted">{t('No matchers')}</div>
+                      <div>{t('No matchers')}</div>
                     ) : (
                       <SilenceMatchersList silence={silence} />
                     )}
@@ -193,7 +184,7 @@ const SilencedAlertsList_: React.FC<SilencedAlertsListProps> = ({ alerts, histor
   const [namespace] = useActiveNamespace();
 
   return _.isEmpty(alerts) ? (
-    <div className="pf-v5-u-text-align-center">{t('None found')}</div>
+    <div>{t('None found')}</div>
   ) : (
     <Table variant={TableVariant.compact}>
       <Thead>
@@ -207,18 +198,17 @@ const SilencedAlertsList_: React.FC<SilencedAlertsListProps> = ({ alerts, histor
           <Tr key={i}>
             <Td>
               <Link
-                className="pf-v5-u-text-break-word"
                 data-test="firing-alerts"
                 to={getAlertUrl(perspective, a, a.rule.id, namespace)}
               >
                 {a.labels.alertname}
               </Link>
-              <div className="monitoring-description">{alertDescription(a)}</div>
+              <div>{alertDescription(a)}</div>
             </Td>
             <Td>
               <Severity severity={a.labels.severity} />
             </Td>
-            <div className="dropdown-kebab-pf">
+            <div>
               <KebabDropdown
                 dropdownItems={[
                   <DropdownItem

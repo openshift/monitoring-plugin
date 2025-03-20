@@ -50,12 +50,7 @@ export const IncidentsTable = ({ namespace }) => {
           {_.isEmpty(alertsTableData) || alertsAreLoading ? (
             <Tr>
               <Td colSpan={4}>
-                <EmptyState
-                  style={{
-                    height: '150px',
-                  }}
-                  icon={SearchIcon}
-                >
+                <EmptyState icon={SearchIcon}>
                   <EmptyStateBody>
                     <Bullseye>No incidents selected.</Bullseye>
                   </EmptyStateBody>
@@ -104,11 +99,7 @@ export const IncidentsTable = ({ namespace }) => {
                       )}
                     </Td>
                     <Td dataLabel={columnNames.state}>
-                      {alert.alertstate === 'resolved' ? (
-                        <BellSlashIcon className="text-muted" />
-                      ) : (
-                        <BellIcon />
-                      )}
+                      {alert.alertstate === 'resolved' ? <BellSlashIcon /> : <BellIcon />}
                     </Td>
                   </Tr>
                   {alert.alertsExpandedRowData && (

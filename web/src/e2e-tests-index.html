@@ -1,24 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Monitoring Plugin</title>
+  </head>
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>Monitoring Plugin</title>
-</head>
-
-<body>
-  <noscript>You need to enable JavaScript to run this app.</noscript>
-  <script>
-    window.SERVER_FLAGS = {
-      alertManagerBaseURL: '/api/alertmanager',
-      basePath: '/',
-      prometheusBaseURL: '/api/prometheus',
-    };
-  </script>
-  <div id="app" style="height:100%"></div>
-  <div></div>
-</body>
-
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <script>
+      window.SERVER_FLAGS = {
+        alertManagerBaseURL: '/api/alertmanager',
+        basePath: '/',
+        prometheusBaseURL: '/api/prometheus',
+      };
+    </script>
+    <div id="app"></div>
+    <div></div>
+  </body>
 </html>

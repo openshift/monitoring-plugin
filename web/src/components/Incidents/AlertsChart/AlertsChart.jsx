@@ -76,25 +76,15 @@ const AlertsChart = ({ chartDays, theme }) => {
   }, []);
 
   return (
-    <Card className="alerts-chart-card">
+    <Card>
       <div ref={containerRef}>
         <CardTitle>Alerts Timeline</CardTitle>
         {alertsAreLoading ? (
-          <EmptyState
-            variant="large"
-            style={{
-              height: '250px',
-            }}
-          >
+          <EmptyState variant="large">
             <EmptyStateBody>Select an incident in the chart above to see alerts.</EmptyStateBody>
           </EmptyState>
         ) : (
-          <div
-            style={{
-              height: { chartContainerHeight },
-              width: '100%',
-            }}
-          >
+          <div>
             <Chart
               containerComponent={
                 <ChartVoronoiContainer
@@ -138,13 +128,7 @@ const AlertsChart = ({ chartDays, theme }) => {
                   },
                 },
               ]}
-              legendComponent={
-                <ChartLegend
-                  labelComponent={
-                    <ChartLabel style={{ fill: theme === 'light' ? '#1b1d21' : '#e0e0e0' }} />
-                  }
-                />
-              }
+              legendComponent={<ChartLegend labelComponent={<ChartLabel />} />}
               legendPosition="bottom-left"
               //this should be always less than the container height
               height={chartHeight}
@@ -163,25 +147,13 @@ const AlertsChart = ({ chartDays, theme }) => {
                   new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
                 }
                 tickValues={dateValues}
-                tickLabelComponent={
-                  <ChartLabel style={{ fill: theme === 'light' ? '#1b1d21' : '#e0e0e0' }} />
-                }
+                tickLabelComponent={<ChartLabel />}
               />
               <ChartGroup horizontal>
                 {chartData.map((bar, index) => {
                   return (
                     //we have several arrays and for each array we make a ChartBar
-                    <ChartBar
-                      data={bar}
-                      key={index}
-                      style={{
-                        data: {
-                          fill: ({ datum }) => datum.fill,
-                          stroke: ({ datum }) => datum.fill,
-                          fillOpacity: ({ datum }) => (datum.nodata ? 0 : 1),
-                        },
-                      }}
-                    />
+                    <ChartBar data={bar} key={index} />
                   );
                 })}
               </ChartGroup>

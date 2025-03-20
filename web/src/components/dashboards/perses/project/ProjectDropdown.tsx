@@ -18,7 +18,7 @@ import {
 import fuzzysearch from 'fuzzysearch';
 import { useTranslation } from 'react-i18next';
 import ProjectMenuToggle from './ProjectMenuToggle';
-import './ProjectDropdown.scss';
+// import './ProjectDropdown.scss';
 import { alphanumericCompare } from './utils';
 import { usePerses } from '../hooks/usePerses';
 
@@ -29,15 +29,11 @@ export const NoResults: React.FC<{
   return (
     <>
       <Divider />
-      <EmptyState  headingLevel="h4"   titleText={<>{t('No projects found')}</>}>
+      <EmptyState headingLevel="h4" titleText={<>{t('No projects found')}</>}>
         <EmptyStateBody>{t('No results match the filter criteria.')}</EmptyStateBody>
         <EmptyStateFooter>
           <EmptyStateActions>
-            <Button
-              variant="link"
-              onClick={onClear}
-              className="monitoring__project-selector__clear-filters"
-            >
+            <Button variant="link" onClick={onClear}>
               {t('Clear filters')}
             </Button>
           </EmptyStateActions>
@@ -155,7 +151,6 @@ const ProjectMenu: React.FC<{
 
   return (
     <Menu
-      className="monitoring__project-dropdown__menu"
       ref={menuRef}
       onSelect={(event: React.MouseEvent, itemId: string) => {
         setOpen(false);
@@ -215,7 +210,7 @@ const ProjectDropdown: React.FC<ProjectDropdownProps> = ({
   const title = selectedProject?.spec?.display?.name ?? t('Dashboards');
 
   return (
-    <div className="monitoring__project-dropdown">
+    <div>
       <ProjectMenuToggle
         disabled={disabled}
         menu={<ProjectMenu {...menuProps} />}

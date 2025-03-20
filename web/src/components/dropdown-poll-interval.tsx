@@ -47,7 +47,6 @@ export const DropDownPollInterval: React.FunctionComponent<DropDownPollIntervalP
       id={id}
       initialOptions={initialOptions}
       onSelect={(_ev, selection) => onSelect(_ev, selection)}
-      className="monitoring-dashboards__variable-dropdown"
       toggleWidth="150px"
     />
   );

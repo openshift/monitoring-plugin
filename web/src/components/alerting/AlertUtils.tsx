@@ -92,14 +92,7 @@ export const MonitoringResourceIcon: React.FC<MonitoringResourceIconProps> = ({
   className,
   resource,
 }) => (
-  <span
-    className={classNames(
-      // Leave to keep compatibility with console looks
-      `co-m-resource-icon co-m-resource-${resource.kind.toLowerCase()}`,
-      className,
-    )}
-    title={resource.label}
-  >
+  <span className={className} title={resource.label}>
     {resource.abbr}
   </span>
 );
@@ -170,7 +163,7 @@ export const AlertStateIcon: React.FC<{ state: string }> = React.memo(({ state }
     case AlertStates.Pending:
       return <OutlinedBellIcon />;
     case AlertStates.Silenced:
-      return <BellSlashIcon className="text-muted" />;
+      return <BellSlashIcon />;
     default:
       return null;
   }
@@ -202,7 +195,7 @@ export const AlertStateDescription: React.FC<{ alert: Alert }> = ({ alert }) => 
 };
 
 export const StateTimestamp = ({ text, timestamp }) => (
-  <div className="text-muted monitoring-timestamp">
+  <div>
     {text}&nbsp;
     <Timestamp timestamp={timestamp} />
   </div>
@@ -221,7 +214,7 @@ export const PopoverField: React.FC<{ bodyContent: React.ReactNode; label: strin
   label,
 }) => (
   <Popover headerContent={label} bodyContent={bodyContent}>
-    <Button icon={label} variant="plain" className="details-item__popover-button" />
+    <Button icon={label} variant="plain" />
   </Popover>
 );
 
@@ -378,7 +371,7 @@ export const SeverityCounts: React.FC<{ alerts: Alert[] }> = ({ alerts }) => {
   return (
     <>
       {severities.map((s) => (
-        <span className="monitoring-icon-wrap" key={s}>
+        <span key={s}>
           <SeverityIcon severity={s} /> {counts[s]}
         </span>
       ))}

@@ -98,7 +98,7 @@ export const Error: React.FC<ErrorProps> = ({ error, title = 'An error occurred'
 );
 
 const GraphEmptyState: React.FC<GraphEmptyStateProps> = ({ children, title }) => (
-  <div className="query-browser__wrapper graph-empty-state">
+  <div>
     <EmptyState
       titleText={
         <Title headingLevel="h2" size="md">
@@ -141,22 +141,17 @@ const SpanControls: React.FC<SpanControlsProps> = React.memo(
     };
 
     const dropdownItems = spans.map((s) => (
-      <DropdownItem
-        className="query-browser__span-dropdown-item"
-        key={s}
-        onClick={() => setSpan(s, true)}
-      >
+      <DropdownItem key={s} onClick={() => setSpan(s, true)}>
         {s}
       </DropdownItem>
     ));
 
     return (
       <>
-        <InputGroup className="query-browser__span">
+        <InputGroup>
           <InputGroupItem isFill>
             <TextInput
               aria-label={t('graph timespan')}
-              className="query-browser__span-text"
               validated={isValid ? 'default' : 'error'}
               onChange={(_event, v) => setSpan(v, true)}
               type="text"
@@ -181,19 +176,13 @@ const SpanControls: React.FC<SpanControlsProps> = React.memo(
             </Dropdown>
           </InputGroupItem>
         </InputGroup>
-        <Button
-          className="query-browser__inline-control"
-          onClick={() => setSpan(defaultSpanText)}
-          type="button"
-          variant="tertiary"
-        >
+        <Button onClick={() => setSpan(defaultSpanText)} type="button" variant="tertiary">
           {t('Reset zoom')}
         </Button>
         {hasReducedResolution && (
           <Alert
             isInline
             isPlain
-            className="query-browser__reduced-resolution"
             title={t('Displaying with reduced resolution due to large dataset.')}
             variant="info"
             truncateTitle={1}
@@ -298,28 +287,21 @@ const Tooltip_: React.FC<TooltipProps> = ({ activePoints, center, height, style,
           x={isOnLeft ? x - tooltipMaxWidth : x}
           y={center.y - TOOLTIP_MAX_HEIGHT / 2}
         >
-          <div
-            className={classNames('query-browser__tooltip-wrap', {
-              'query-browser__tooltip-wrap--left': isOnLeft,
-            })}
-          >
-            <div className="query-browser__tooltip-arrow" />
-            <div className="query-browser__tooltip">
-              <div className="query-browser__tooltip-time">
-                {dateTimeFormatterWithSeconds.format(time)}
-              </div>
+          <div>
+            <div>
+              <div>{dateTimeFormatterWithSeconds.format(time)}</div>
               {allSeries.map((s, i) => (
-                <div className="query-browser__tooltip-series" key={i}>
-                  <div className="query-browser__series-btn" style={{ backgroundColor: s.color }} />
+                <div key={i}>
+                  <div />
                   <Truncate content={getSeriesName(s)} />
-                  <div className="query-browser__tooltip-value">{s.value}</div>
+                  <div>{s.value}</div>
                 </div>
               ))}
             </div>
           </div>
         </foreignObject>
       </VictoryPortal>
-      <line className="query-browser__tooltip-line" x1={x} x2={x} y1="0" y2={height} />
+      <line x1={x} x2={x} y1="0" y2={height} />
     </>
   );
 };
@@ -343,7 +325,7 @@ const LegendContainer = ({ children }: { children?: React.ReactNode }) => {
   const width = children?.[0]?.[0]?.props?.width ?? '100%';
   return (
     <foreignObject height={75} width="100%" y={245}>
-      <div className="monitoring-dashboards__legend-wrap horizontal-scroll">
+      <div>
         <svg width={width}>{children}</svg>
       </div>
     </foreignObject>
@@ -490,13 +472,7 @@ const Graph: React.FC<GraphProps> = React.memo(
             return (
               // We need to use the `name` prop to prevent an error in VictorySharedEvents when
               // dynamically removing and then adding back data series
-              <ChartComponent
-                data={values}
-                groupComponent={<g />}
-                key={i}
-                name={`series-${i}`}
-                style={style}
-              />
+              <ChartComponent data={values} groupComponent={<g />} key={i} name={`series-${i}`} />
             );
           })}
         </GroupComponent>
@@ -507,12 +483,6 @@ const Graph: React.FC<GraphProps> = React.memo(
             gutter={30}
             itemsPerRow={4}
             orientation="vertical"
-            style={{
-              labels: {
-                fontSize: 11,
-                fill: 'var(--pf-t--temp--dev--tbd)' /* CODEMODS: original v5 color was --pf-v5-global--Color--100 */,
-              },
-            }}
             symbolSpacer={4}
           />
         )}
@@ -643,13 +613,8 @@ const ZoomableGraph: React.FC<ZoomableGraphProps> = ({
     : { onMouseDown };
 
   return (
-    <div className="query-browser__zoom" {...handlers}>
-      {isZooming && (
-        <div
-          className="query-browser__zoom-overlay"
-          style={{ left: Math.min(x1, x2), width: Math.abs(x1 - x2) }}
-        />
-      )}
+    <div {...handlers}>
+      {isZooming && <div />}
       <Graph
         allSeries={allSeries}
         disabledSeries={disabledSeries}
@@ -666,7 +631,7 @@ const ZoomableGraph: React.FC<ZoomableGraphProps> = ({
 };
 
 const Loading = () => (
-  <div className="query-browser__loading">
+  <div>
     <LoadingInline />
   </div>
 );
@@ -948,9 +913,9 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
     return (
       <>
         {error && !isRangeVector && <Error error={error} />}
-        <div className="query-browser__wrapper query-browser__wrapper--hidden">
-          <div className="graph-wrapper graph-wrapper--query-browser">
-            <div ref={containerRef} style={{ width: '100%' }}></div>
+        <div>
+          <div>
+            <div ref={containerRef}></div>
           </div>
         </div>
       </>
@@ -995,17 +960,12 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
   const hasReducedResolution = !isGraphDataEmpty && samples < maxSamplesForSpan && !updating;
 
   return (
-    <div
-      className={classNames('query-browser__wrapper', {
-        'graph-empty-state': isGraphDataEmpty,
-        'graph-empty-state__loaded': isGraphDataEmpty && !updating,
-      })}
-    >
+    <div>
       {hideControls ? (
         <>{updating && <Loading />}</>
       ) : (
-        <div className="query-browser__controls">
-          <div className="query-browser__controls--left">
+        <div>
+          <div>
             <SpanControls
               defaultSpanText={defaultSpanText}
               onChange={onSpanChange}
@@ -1014,7 +974,7 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
             />
             {updating && <Loading />}
           </div>
-          <div className="query-browser__controls--right">
+          <div>
             {GraphLink && <GraphLink />}
             {canStack && showStackedControl && (
               <Checkbox
@@ -1028,12 +988,8 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
           </div>
         </div>
       )}
-      <div
-        className={classNames('graph-wrapper graph-wrapper--query-browser', {
-          'graph-wrapper--query-browser--with-legend': showLegend && !!formatSeriesTitle,
-        })}
-      >
-        <div ref={containerRef} style={{ width: '100%' }}>
+      <div>
+        <div ref={containerRef}>
           {error && <Error error={error} />}
           {isGraphDataEmpty && !updating && <GraphEmpty />}
           {!isGraphDataEmpty && width > 0 && (

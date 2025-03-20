@@ -45,7 +45,6 @@ import { StringParam, useQueryParam } from 'use-query-params';
 import { useCookieWatcher } from './hooks/useCookieWatcher';
 import { useTranslation } from 'react-i18next';
 import { LoadingInline } from '../../console/console-shared/src/components/loading/LoadingInline';
-// import { ColorScalePropType } from 'victory';
 
 // Override eChart defaults with PatternFly colors.
 const patternflyBlue300 = '#2b9af3';

@@ -23,9 +23,7 @@ const Error: FC<ErrorProps> = ({ error }) => {
       <Panel>
         <PanelMain>
           <PanelMainBody>
-            <Title className="pf-v5-u-text-align-center" headingLevel="h2">
-              {t('404: Not Found')}
-            </Title>
+            <Title headingLevel="h2">{t('404: Not Found')}</Title>
           </PanelMainBody>
         </PanelMain>
       </Panel>

@@ -69,37 +69,6 @@ const QueryBrowserLink = ({
   );
 };
 
-// Determine how many columns a panel should span. If panel specifies a `span`, use that. Otherwise
-// look for a `breakpoint` percentage. If neither are specified, default to 12 (full width).
-const getPanelSpan = (panel: Panel): number => {
-  if (panel.span) {
-    return panel.span;
-  }
-  const breakpoint = _.toInteger(_.trimEnd(panel.breakpoint, '%'));
-  if (breakpoint > 0) {
-    return Math.round(12 * (breakpoint / 100));
-  }
-  return 12;
-};
-
-const getPanelClassModifier = (panel: Panel): string => {
-  const span: number = getPanelSpan(panel);
-  switch (span) {
-    case 6:
-      return 'max-2';
-    case 2:
-    // fallthrough
-    case 4:
-    // fallthrough
-    case 5:
-      return 'max-3';
-    case 3:
-      return 'max-4';
-    default:
-      return 'max-1';
-  }
-};
-
 const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
@@ -259,8 +228,6 @@ const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
   const isLoading =
     (_.some(queries, _.isUndefined) && dataSourceInfoLoading) || customDataSource === undefined;
 
-  const panelClassModifier = getPanelClassModifier(panel);
-
   const isThereCsvData = () => {
     if (csvData.length > 0) {
       if (csvData[0].length > 0) {
@@ -271,11 +238,8 @@ const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
   };
 
   return (
-    <div
-      className={`monitoring-dashboards__panel monitoring-dashboards__panel--${panelClassModifier}`}
-    >
+    <div>
       <PFCard
-        className={'monitoring-dashboards__card'}
         data-test={`${panel.title.toLowerCase().replace(/\s+/g, '-')}-chart`}
         data-test-id={panel.id ? `chart-${panel.id}` : undefined}
       >
@@ -293,21 +257,18 @@ const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
             ),
             hasNoOffset: false,
           }}
-          className="monitoring-dashboards__card-header"
         >
           <CardTitle>{panel.title}</CardTitle>
         </CardHeader>
-        <CardBody className="monitoring-dashboards__card--dashboard">
+        <CardBody>
           {isError ? (
             <>
               <RedExclamationCircleIcon /> {t('Error loading card')}
             </>
           ) : (
-            <div className="monitoring-dashboards__card-body-content" ref={ref}>
+            <div ref={ref}>
               {isLoading || !wasEverVisible ? (
-                <div className={panel.type === 'graph' ? 'query-browser__wrapper' : ''}>
-                  <LoadingInline />
-                </div>
+                <LoadingInline />
               ) : (
                 <>
                   {panel.type === 'grafana-piechart-panel' && (
@@ -378,15 +339,13 @@ const PanelsRow: React.FC<PanelsRowProps> = ({ row, perspective }) => {
             </>
           }
           aria-label={title}
-          className="pf-v5-m-link--align-left"
           onClick={toggleIsExpanded}
-          style={{ fontSize: 24 }}
           title={title}
           variant="plain"
         />
       )}
       {isExpanded && (
-        <div className="monitoring-dashboards__row">
+        <div>
           {_.map(row.panels, (panel) => (
             <Card key={panel.id} panel={panel} perspective={perspective} />
           ))}

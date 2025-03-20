@@ -25,7 +25,6 @@ import {
   usePerspective,
 } from '../hooks/usePerspective';
 import { OutlinedQuestionCircleIcon } from '@patternfly/react-icons';
-import './incidents-styles.css';
 
 const IncidentsDetailsRowTable = ({ alerts }) => {
   const [namespace] = useActiveNamespace();
@@ -101,17 +100,12 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
                         ? getAlertUrl(perspective, alertDetails, alertDetails.rule.id, namespace)
                         : '#'
                     }
-                    style={
-                      !alertDetails?.rule || alertDetails.resolved
-                        ? { pointerEvents: 'none', color: 'inherit', textDecoration: 'inherit' }
-                        : {}
-                    }
                   >
                     {alertDetails.alertname}
                   </Link>
                   {(!alertDetails?.rule || alertDetails.resolved) && (
                     <Tooltip content={<div>No details can be shown for inactive alerts.</div>}>
-                      <OutlinedQuestionCircleIcon className="expanded-details-text-margin" />
+                      <OutlinedQuestionCircleIcon />
                     </Tooltip>
                   )}
                 </Td>
@@ -122,21 +116,21 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
                       <Icon status="danger">
                         <ExclamationCircleIcon />
                       </Icon>
-                      <span className="expanded-details-text-margin">Critical</span>
+                      <span>Critical</span>
                     </>
                   ) : alertDetails.severity === 'warning' ? (
                     <>
                       <Icon status="warning">
                         <ExclamationTriangleIcon />
                       </Icon>
-                      <span className="expanded-details-text-margin">Warning</span>
+                      <span>Warning</span>
                     </>
                   ) : (
                     <>
                       <Icon status="info">
                         <InfoCircleIcon />
                       </Icon>
-                      <span className="expanded-details-text-margin">Info</span>
+                      <span>Info</span>
                     </>
                   )}
                 </Td>
@@ -144,12 +138,12 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
                   {!alertDetails.resolved ? (
                     <>
                       <BellIcon />
-                      <span className="expanded-details-text-margin">Firing</span>
+                      <span>Firing</span>
                     </>
                   ) : (
                     <>
                       <GreenCheckCircleIcon />
-                      <span className="expanded-details-text-margin">Resolved</span>
+                      <span>Resolved</span>
                     </>
                   )}
                 </Td>
@@ -171,18 +165,12 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
                         key="silence"
                         isDisabled={!alertDetails?.rule}
                       >
-                        <Link
-                          to={getNewSilenceAlertUrl(perspective, alertDetails)}
-                          style={{ color: 'inherit', textDecoration: 'inherit' }}
-                        >
+                        <Link to={getNewSilenceAlertUrl(perspective, alertDetails)}>
                           {t('Silence alert')}
                         </Link>
                       </DropdownItem>,
                       <DropdownItem key="view-rule" isDisabled={!alertDetails?.rule}>
-                        <Link
-                          to={getRuleUrl(perspective, alertDetails.rule)}
-                          style={{ color: 'inherit', textDecoration: 'inherit' }}
-                        >
+                        <Link to={getRuleUrl(perspective, alertDetails.rule)}>
                           {t('View alerting rule')}
                         </Link>
                       </DropdownItem>,

@@ -2,7 +2,6 @@ import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Route, RouteComponentProps, Switch, useHistory } from 'react-router-dom';
 
-import '../_monitoring.scss';
 import {
   getAlertRulesUrl,
   getAlertsUrl,

@@ -43,7 +43,7 @@ import { useTranslation } from 'react-i18next';
 
 import { useSafeFetch } from './console/utils/safe-fetch-hook';
 
-import './_promql-expression-input.scss';
+// import './_promql-expression-input.scss';
 import { PROMETHEUS_BASE_PATH } from './console/graphs/helpers';
 
 type InteractionTarget = {
@@ -60,136 +60,7 @@ interface PromQLExpressionInputProps {
 
 const promqlExtension = new PromQLExtension();
 
-export const theme = EditorView.theme({
-  '.cm-scroller': {
-    fontFamily: 'inherit',
-  },
-  '.cm-content': {
-    caretColor: 'auto',
-  },
-  '&.cm-focused.cm-editor': {
-    outline: 'none',
-  },
-  '.cm-tooltip.cm-completionInfo': {
-    backgroundColor:
-      'var(--pf-t--temp--dev--tbd)' /* CODEMODS: original v5 color was --pf-v5-global--BackgroundColor--200 */,
-    border: 'none',
-    marginTop: '-11px',
-    padding: '10px',
-  },
-  '.cm-completionInfo.cm-completionInfo-right': {
-    '&:before': {
-      content: "' '",
-      height: '0',
-      position: 'absolute',
-      width: '0',
-      left: '-20px',
-      borderWidth: '10px',
-      borderStyle: 'solid',
-      borderColor: 'transparent',
-      borderRightColor:
-        'var(--pf-t--temp--dev--tbd)' /* CODEMODS: original v5 color was --pf-v5-global--BackgroundColor--200 */,
-    },
-    marginLeft: '12px',
-  },
-  '.cm-completionInfo.cm-completionInfo-left': {
-    '&:before': {
-      content: "' '",
-      height: '0',
-      position: 'absolute',
-      width: '0',
-      right: '-20px',
-      borderWidth: '10px',
-      borderStyle: 'solid',
-      borderColor: 'transparent',
-      borderLeftColor:
-        'var(--pf-t--temp--dev--tbd)' /* CODEMODS: original v5 color was --pf-v5-global--BackgroundColor--200 */,
-    },
-    marginRight: '12px',
-  },
-  '.cm-completionIcon': {
-    fontFamily: 'codicon',
-    width: '1.5em',
-    verticalAlign: 'middle',
-  },
-  '.cm-selectionMatch': {
-    backgroundColor:
-      'var(--pf-t--temp--dev--tbd)' /* CODEMODS: original v5 color was --pf-v5-global--BackgroundColor--100 */,
-  },
-  '.cm-completionDetail': {
-    float: 'right',
-    color:
-      'var(--pf-t--temp--dev--tbd)' /* CODEMODS: original v5 color was --pf-v5-global--palette--black-500 */,
-  },
-  '.cm-tooltip': {
-    backgroundColor:
-      'var(--pf-t--temp--dev--tbd)' /* CODEMODS: original v5 color was --pf-v5-global--BackgroundColor--100 */,
-    borderColor:
-      'var(--pf-t--temp--dev--tbd)' /* CODEMODS: original v5 color was --pf-v5-global--BorderColor--100 */,
-  },
-  '.cm-tooltip.cm-tooltip-autocomplete': {
-    boxShadow: 'var(--pf-t--global--box-shadow--sm)',
-    '& > ul': {
-      fontFamily: 'var(--pf-v5-c-code-block__pre--FontFamily), monospace',
-      fontSize: 'var(--pf-t--global--font--size--sm)',
-    },
-    '& > ul > li[aria-selected]': {
-      backgroundColor:
-        'var(--pf-t--temp--dev--tbd)' /* CODEMODS: original v5 color was --pf-v5-global--BackgroundColor--200 */,
-      color: 'unset',
-    },
-    '& > ul > li': {
-      padding: '2px 1em 2px 3px',
-    },
-  },
-  '.cm-completionMatchedText': {
-    textDecoration: 'none',
-    fontWeight: 'bold',
-    color:
-      'var(--pf-t--temp--dev--tbd)' /* CODEMODS: original v5 color was --pf-v5-global--palette--blue-400 */,
-  },
-  '.cm-completionIcon-function, .cm-completionIcon-method': {
-    '&:after': { content: "'\\ea8c'" },
-    color:
-      'var(--pf-t--temp--dev--tbd)' /* CODEMODS: original v5 color was --pf-v5-global--palette--purple-500 */,
-  },
-  '.cm-completionIcon-class': {
-    '&:after': { content: "'○'" },
-  },
-  '.cm-completionIcon-interface': {
-    '&:after': { content: "'◌'" },
-  },
-  '.cm-completionIcon-variable': {
-    '&:after': { content: "'𝑥'" },
-  },
-  '.cm-completionIcon-constant': {
-    '&:after': { content: "'\\eb5f'" },
-    color:
-      'var(--pf-t--temp--dev--tbd)' /* CODEMODS: original v5 color was --pf-v5-global--primary-color--100 */,
-  },
-  '.cm-completionIcon-type': {
-    '&:after': { content: "'𝑡'" },
-  },
-  '.cm-completionIcon-enum': {
-    '&:after': { content: "'∪'" },
-  },
-  '.cm-completionIcon-property': {
-    '&:after': { content: "'□'" },
-  },
-  '.cm-completionIcon-keyword': {
-    '&:after': { content: "'\\eb62'" },
-    color:
-      'var(--pf-t--temp--dev--tbd)' /* CODEMODS: original v5 color was --pf-v5-global--palette--black-600 */,
-  },
-  '.cm-completionIcon-namespace': {
-    '&:after': { content: "'▢'" },
-  },
-  '.cm-completionIcon-text': {
-    '&:after': { content: "'\\ea95'" },
-    color:
-      'var(--pf-t--temp--dev--tbd)' /* CODEMODS: original v5 color was --pf-v5-global--palette--gold-400 */,
-  },
-});
+export const theme = EditorView.theme({});
 
 // Codemirror plugin to select an autosuggest option using the mouse
 export const selectAutocompleteOnHoverPlugin = ViewPlugin.fromClass(
@@ -439,22 +310,14 @@ export const PromQLExpressionInput: React.FC<PromQLExpressionInputProps> = ({
   };
 
   return (
-    <div className="query-browser__query pf-v5-c-dropdown">
-      <div
-        ref={containerRef}
-        onBlur={handleBlur}
-        className="pf-v5-c-form-control query-browser__query-input"
-      ></div>
+    <div>
+      <div ref={containerRef} onBlur={handleBlur}></div>
       {errorMessage && (
-        <div
-          className="pf-v5-c-form__helper-text"
-          id="helper-text-promql-expression-input"
-          aria-live="polite"
-        >
-          <div className="pf-v5-c-helper-text">
-            <div className="pf-v5-c-helper-text__item pf-v5-m-warning">
-              <YellowExclamationTriangleIcon className="pf-v5-c-helper-text__item-icon" />
-              <span className="pf-v5-c-helper-text__item-text">{errorMessage}</span>
+        <div id="helper-text-promql-expression-input" aria-live="polite">
+          <div>
+            <div>
+              <YellowExclamationTriangleIcon />
+              <span>{errorMessage}</span>
             </div>
           </div>
         </div>
@@ -462,7 +325,6 @@ export const PromQLExpressionInput: React.FC<PromQLExpressionInputProps> = ({
       <Button
         icon={<CloseIcon />}
         aria-label={t('Clear query')}
-        className="query-browser__clear-icon"
         onClick={onClear}
         variant="plain"
       />

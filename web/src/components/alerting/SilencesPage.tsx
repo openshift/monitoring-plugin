@@ -27,7 +27,7 @@ import { Helmet } from 'react-helmet';
 import { fuzzyCaseInsensitive, refreshSilences, silenceCluster, silenceState } from '../utils';
 import * as _ from 'lodash-es';
 import { sortable } from '@patternfly/react-table';
-import { SelectedSilencesContext, SilenceTableRow, tableSilenceClasses } from './SilencesUtils';
+import { SelectedSilencesContext, SilenceTableRow } from './SilencesUtils';
 import {
   Button,
   Checkbox,
@@ -123,19 +123,16 @@ const SilencesPage_: React.FC = () => {
     const cols = [
       {
         id: 'checkbox',
-        props: { className: tableSilenceClasses[0] },
         title: (<SelectAllCheckbox silences={filteredData} />) as any,
       },
       {
         id: 'name',
-        props: { className: tableSilenceClasses[1] },
         sort: 'name',
         title: t('Name'),
         transforms: [sortable],
       },
       {
         id: 'firingAlerts',
-        props: { className: tableSilenceClasses[2] },
         sort: (silences: Silence[], direction: 'asc' | 'desc') =>
           _.orderBy(silences, silenceFiringAlertsOrder, [direction]),
         title: t('Firing alerts'),
@@ -143,7 +140,6 @@ const SilencesPage_: React.FC = () => {
       },
       {
         id: 'state',
-        props: { className: tableSilenceClasses[3] },
         sort: (silences: Silence[], direction: 'asc' | 'desc') =>
           _.orderBy(silences, silenceStateOrder, [direction]),
         title: t('State'),
@@ -151,14 +147,12 @@ const SilencesPage_: React.FC = () => {
       },
       {
         id: 'createdBy',
-        props: { className: tableSilenceClasses[4] },
         sort: 'createdBy',
         title: t('Creator'),
         transforms: [sortable],
       },
       {
         id: 'actions',
-        props: { className: tableSilenceClasses[6] },
         title: '',
       },
     ];
@@ -166,7 +160,6 @@ const SilencesPage_: React.FC = () => {
     if (perspective === 'acm') {
       cols.splice(-1, 0, {
         id: 'cluster',
-        props: { className: tableSilenceClasses[5] },
         sort: (silences: Silence[], direction: 'asc' | 'desc') =>
           _.orderBy(silences, silenceClusterOrder(clusters), [direction]),
         title: t('Cluster'),

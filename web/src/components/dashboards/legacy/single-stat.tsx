@@ -57,7 +57,7 @@ const getColorCSS = (colorName: string): string =>
   colorMap[colorName] ? `var(--pf-v5-chart-color-${colorMap[colorName]})` : undefined;
 
 const Body: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <Bullseye className="monitoring-dashboards__single-stat">{children}</Bullseye>
+  <Bullseye>{children}</Bullseye>
 );
 
 const SingleStat: React.FC<Props> = ({
@@ -142,11 +142,9 @@ const SingleStat: React.FC<Props> = ({
 
   return (
     <Body>
-      {prefix && <span style={{ color, fontSize: prefixFontSize }}>{prefix}</span>}
-      <span style={{ color, fontSize: valueFontSize }}>
-        {valueMap ? valueMap.text : formatNumber(value, decimals, format)}
-      </span>
-      {postfix && <span style={{ color, fontSize: postfixFontSize }}>{postfix}</span>}
+      {prefix && <span>{prefix}</span>}
+      <span>{valueMap ? valueMap.text : formatNumber(value, decimals, format)}</span>
+      {postfix && <span>{postfix}</span>}
     </Body>
   );
 };

@@ -15,7 +15,6 @@ import { QueryBrowserPage } from './metrics';
 import { CreateSilence, EditSilence } from './silence-form';
 import { TargetsUI } from './targets';
 
-import './_monitoring.scss';
 import { UrlRoot, usePerspective } from './hooks/usePerspective';
 import AlertsPage from './alerting/AlertsPage';
 import AlertsDetailsPage from './alerting/AlertsDetailPage';

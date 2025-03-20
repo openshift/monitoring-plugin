@@ -84,7 +84,7 @@ import {
   StatefulSetModel,
 } from '../console/models';
 import { Labels } from '../labels';
-import { SilenceTableRow, tableSilenceClasses } from './SilencesUtils';
+import { SilenceTableRow } from './SilencesUtils';
 import { MonitoringState } from '../../reducers/observe';
 import { StatusBox } from '../console/console-shared/src/components/status/StatusBox';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
@@ -147,14 +147,9 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
       >
         <PageGroup>
           <PageBreadcrumb hasBodyWrapper={false}>
-            <Breadcrumb className="monitoring-breadcrumbs">
+            <Breadcrumb>
               <BreadcrumbItem>
-                <Link
-                  className="pf-v5-c-breadcrumb__link"
-                  to={getAlertsUrl(perspective, namespace)}
-                >
-                  {t('Alerts')}
-                </Link>
+                <Link to={getAlertsUrl(perspective, namespace)}>{t('Alerts')}</Link>
               </BreadcrumbItem>
               <BreadcrumbItem isActive>{t('Alert details')}</BreadcrumbItem>
             </Breadcrumb>
@@ -164,10 +159,7 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
               <SplitItem>
                 <Title headingLevel="h1">
                   {/* Leave to keep compatibility with console looks */}
-                  <MonitoringResourceIcon
-                    className="co-m-resource-icon--lg"
-                    resource={AlertResource}
-                  />
+                  <MonitoringResourceIcon resource={AlertResource} />
                   {labels?.alertname}
                   <SeverityBadge severity={labels?.severity} />
                 </Title>
@@ -191,7 +183,7 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
         </PageGroup>
         <Divider />
         <PageSection hasBodyWrapper={false}>
-          <Toolbar className="monitoring-alert-detail-toolbar">
+          <Toolbar>
             <ToolbarContent>
               <ToolbarItem variant="label">
                 <Title headingLevel="h2">{t('Alert details')}</Title>
@@ -203,11 +195,7 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
                       ? actions.map((action) => {
                           if (isActionWithHref(action)) {
                             return (
-                              <ToolbarItem
-                                key={action.id}
-                                gap={{ default: 'gapNone' }}
-                                className="pf-v5-u-px-md"
-                              >
+                              <ToolbarItem key={action.id} gap={{ default: 'gapNone' }}>
                                 <Link to={action.cta.href}>{action.label}</Link>
                               </ToolbarItem>
                             );
@@ -258,7 +246,6 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
                       bodyContent={<SeverityHelp />}
                     >
                       <DescriptionListTermHelpTextButton>
-                        {' '}
                         {t('Severity')}
                       </DescriptionListTermHelpTextButton>
                     </Popover>
@@ -313,9 +300,8 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
               <DescriptionList>
                 <DescriptionListGroup>
                   <DescriptionListTermHelpText>
-                    <Popover headerContent={<div>{t('Source')}</div>} bodyContent={<SourceHelp />}>
+                    <Popover headerContent={t('Source')} bodyContent={<SourceHelp />}>
                       <DescriptionListTermHelpTextButton>
-                        {' '}
                         {t('Source')}
                       </DescriptionListTermHelpTextButton>
                     </Popover>
@@ -326,12 +312,8 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
                 </DescriptionListGroup>
                 <DescriptionListGroup>
                   <DescriptionListTermHelpText>
-                    <Popover
-                      headerContent={<div>{t('State')}</div>}
-                      bodyContent={<AlertStateHelp />}
-                    >
+                    <Popover headerContent={t('State')} bodyContent={<AlertStateHelp />}>
                       <DescriptionListTermHelpTextButton>
-                        {' '}
                         {t('State')}
                       </DescriptionListTermHelpTextButton>
                     </Popover>
@@ -427,7 +409,6 @@ const AlertMessage: React.FC<AlertMessageProps> = ({ alertText, labels, template
       if (tagCount > 0 && tagCount === resourceNameCount) {
         const link = (
           <ResourceLink
-            className="monitoring__resource-item--monitoring-alert"
             inline
             key={model.kind}
             kind={model.kind}
@@ -519,27 +500,22 @@ const SilencedByList: React.FC<{ silences: Silence[] }> = ({ silences }) => {
     () => [
       {
         id: 'name',
-        props: { className: tableSilenceClasses[1] },
         title: t('Name'),
       },
       {
         id: 'firingAlerts',
-        props: { className: tableSilenceClasses[2] },
         title: t('Firing alerts'),
       },
       {
         id: 'state',
-        props: { className: tableSilenceClasses[3] },
         title: t('State'),
       },
       {
         id: 'createdBy',
-        props: { className: tableSilenceClasses[4] },
         title: t('Creator'),
       },
       {
         id: 'actions',
-        props: { className: tableSilenceClasses[5] },
         title: '',
       },
     ],

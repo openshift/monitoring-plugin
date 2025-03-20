@@ -55,7 +55,6 @@ const getColumns = (styles: ColumnStyle[]): AugmentedColumnStyle[] => {
     } else {
       labelColumns.push({
         ...col,
-        className: 'monitoring-dashboards__label-column-header',
       });
     }
   });
@@ -138,7 +137,7 @@ const Table: React.FC<Props> = ({ customDataSource, panel, pollInterval, queries
 
   usePoll(tick, pollInterval, queries);
   if (isLoading) {
-    return <div className="loading-skeleton--table" />;
+    return <div />;
   }
   if (error) {
     return <ErrorAlert error={{ message: error, name: t('An error occurred') }} />;
@@ -200,10 +199,9 @@ const Table: React.FC<Props> = ({ customDataSource, panel, pollInterval, queries
 
   return (
     <>
-      <div className="monitoring-dashboards__table-container">
+      <div>
         <PFTable
           aria-label={t('query results table')}
-          className="monitoring-dashboards__table"
           gridBreakPoint={TableGridBreakpoint.none}
           variant={TableVariant.compact}
           rows={rows.length}

@@ -255,17 +255,13 @@ const Details: React.FC<DetailsProps> = ({ loaded, loadError, targets }) => {
         <PageBreadcrumb hasBodyWrapper={false}>
           <Breadcrumb>
             <BreadcrumbItem>
-              <Link className="pf-v5-c-breadcrumb__link" to="/monitoring/targets">
-                {t('Targets')}
-              </Link>
+              <Link to="/monitoring/targets">{t('Targets')}</Link>
             </BreadcrumbItem>
             <BreadcrumbItem isActive>{t('Target details')}</BreadcrumbItem>
           </Breadcrumb>
         </PageBreadcrumb>
         <PageSection hasBodyWrapper={false}>
-          <Title headingLevel="h1">
-            <div className="pf-v5-u-text-break-word">{scrapeUrl}</div>
-          </Title>
+          <Title headingLevel="h1">{scrapeUrl}</Title>
         </PageSection>
       </PageGroup>
       <Divider />
@@ -351,15 +347,6 @@ const Details: React.FC<DetailsProps> = ({ loaded, loadError, targets }) => {
   );
 };
 
-const tableClasses = [
-  'pf-u-w-25-on-md', // Endpoint
-  'pf-u-w-16-on-md', // Monitor
-  '', // Status
-  'pf-u-w-16-on-md', // Namespace
-  'pf-m-hidden pf-m-visible-on-md', // Last Scrape
-  'pf-m-hidden pf-m-visible-on-md', // Scrape Duration
-];
-
 const Row: React.FC<RowProps<Target>> = ({ obj }) => {
   const { health, labels, lastError, lastScrape, lastScrapeDuration, scrapePool, scrapeUrl } = obj;
 
@@ -368,15 +355,15 @@ const Row: React.FC<RowProps<Target>> = ({ obj }) => {
 
   return (
     <>
-      <Td className={tableClasses[0]}>
+      <Td>
         <Link to={`./targets/${btoa(scrapeUrl)}`}>{scrapeUrl}</Link>
       </Td>
-      <Td className={tableClasses[1]}>
+      <Td>
         {isServiceMonitor && <ServiceMonitor target={obj} />}
         {isPodMonitor && <PodMonitor target={obj} />}
         {!isServiceMonitor && !isPodMonitor && <>-</>}
       </Td>
-      <Td className={tableClasses[2]}>
+      <Td>
         {health === 'up' ? (
           <Health health="up" />
         ) : (
@@ -387,17 +374,15 @@ const Row: React.FC<RowProps<Target>> = ({ obj }) => {
           </Tooltip>
         )}
       </Td>
-      <Td className={tableClasses[3]}>
+      <Td>
         {labels?.namespace && (
           <ResourceLink inline kind={NamespaceModel.kind} name={labels?.namespace} />
         )}
       </Td>
-      <Td className={tableClasses[4]}>
+      <Td>
         <Timestamp timestamp={lastScrape} />
       </Td>
-      <Td className={tableClasses[5]}>
-        {lastScrapeDuration ? `${(1000 * lastScrapeDuration).toFixed(1)} ms` : '-'}
-      </Td>
+      <Td>{lastScrapeDuration ? `${(1000 * lastScrapeDuration).toFixed(1)} ms` : '-'}</Td>
     </>
   );
 };
@@ -419,40 +404,34 @@ const List: React.FC<ListProps> = ({ data, loaded, loadError, unfilteredData }) 
         title: t('Endpoint'),
         sort: 'scrapeUrl',
         transforms: [sortable],
-        props: { className: tableClasses[0] },
       },
       {
         id: 'monitor',
         title: t('Monitor'),
-        props: { className: tableClasses[1] },
       },
       {
         id: 'health',
         title: t('Status'),
         sort: 'health',
         transforms: [sortable],
-        props: { className: tableClasses[2] },
       },
       {
         id: 'namespace',
         title: t('Namespace'),
         sort: 'labels.namespace',
         transforms: [sortable],
-        props: { className: tableClasses[3] },
       },
       {
         id: 'lastScrape',
         title: t('Last Scrape'),
         sort: 'lastScrape',
         transforms: [sortable],
-        props: { className: tableClasses[4] },
       },
       {
         id: 'lastScrapeDuration',
         title: t('Scrape Duration'),
         sort: 'lastScrapeDuration',
         transforms: [sortable],
-        props: { className: tableClasses[5] },
       },
     ],
     [t],
@@ -532,9 +511,6 @@ const ListPage: React.FC<ListPageProps> = ({ loaded, loadError, targets }) => {
         <title>{title}</title>
       </Helmet>
       <ListPageHeader title={title} />
-      {/*
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore TODO */}
       <ListPageBody>
         {loadError && (
           <Alert title={t('Error loading latest targets data')} variant="danger">
@@ -555,8 +531,6 @@ const ListPage: React.FC<ListPageProps> = ({ loaded, loadError, targets }) => {
         )}
         <ListPageFilter
           data={staticData}
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore TODO
           labelFilter="observe-target-labels"
           labelPath="labels"
           loaded={loaded}

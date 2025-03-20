@@ -10,9 +10,7 @@ type TagColor = 'red' | 'purple' | 'blue' | 'green' | 'teal' | 'orange';
 const tagColors: TagColor[] = ['red', 'purple', 'blue', 'green', 'teal', 'orange'];
 
 const Tag: React.FC<{ color: TagColor; text: string }> = React.memo(({ color, text }) => (
-  <Label className="monitoring-dashboards__dashboard_dropdown_tag" color={color}>
-    {text}
-  </Label>
+  <Label color={color}>{text}</Label>
 ));
 
 export const DashboardDropdown: React.FC<DashboardDropdownProps> = ({
@@ -31,9 +29,9 @@ export const DashboardDropdown: React.FC<DashboardDropdownProps> = ({
     });
     return (
       <SelectOption value={value} isSelected={isSelected || false} {...rest}>
-        <div className="monitoring-dashboards__dashboard_dropdown_item">
+        <div>
           <span>{matchedValue?.title}</span>
-          <div className="monitoring-dashboards__dashboard_dropdown_tags">
+          <div>
             {matchedValue?.tags?.map((tag, i) => (
               <Tag
                 color={tagColors[_.indexOf(uniqueTags, tag) % tagColors.length]}
@@ -53,10 +51,8 @@ export const DashboardDropdown: React.FC<DashboardDropdownProps> = ({
   }));
 
   return (
-    <div className="form-group monitoring-dashboards__dropdown-wrap" data-test="dashboard-dropdown">
-      <label className="monitoring-dashboards__dropdown-title" htmlFor="monitoring-board-dropdown">
-        {t('Dashboard')}
-      </label>
+    <div data-test="dashboard-dropdown">
+      <label htmlFor="monitoring-board-dropdown">{t('Dashboard')}</label>
       <SingleTypeaheadDropdown
         items={selectItems}
         onChange={onChange}
