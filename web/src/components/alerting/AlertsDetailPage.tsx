@@ -26,6 +26,7 @@ import {
   useActiveNamespace,
   AlertingRuleChartExtension,
   isAlertingRuleChart,
+  ResourceIcon,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
 import { ExternalLink, LinkifyExternal } from '../console/utils/link';
@@ -66,7 +67,6 @@ import {
   Graph,
   isActionWithCallback,
   isActionWithHref,
-  MonitoringResourceIcon,
   Severity,
   SeverityBadge,
   SeverityHelp,
@@ -158,8 +158,7 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
             <Split hasGutter>
               <SplitItem>
                 <Title headingLevel="h1">
-                  {/* Leave to keep compatibility with console looks */}
-                  <MonitoringResourceIcon resource={AlertResource} />
+                  <ResourceIcon kind={AlertResource.kind} />
                   {labels?.alertname}
                   <SeverityBadge severity={labels?.severity} />
                 </Title>
@@ -345,7 +344,7 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
                       flexWrap={{ default: 'nowrap' }}
                     >
                       <FlexItem>
-                        <MonitoringResourceIcon resource={RuleResource} />
+                        <ResourceIcon kind={RuleResource.kind} />
                       </FlexItem>
                       <FlexItem>
                         <Link

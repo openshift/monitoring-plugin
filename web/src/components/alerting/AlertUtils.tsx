@@ -88,20 +88,6 @@ type ActionWithCallBack = Omit<Action, 'cta'> & { cta: () => void };
 export const isActionWithCallback = (action: Action): action is ActionWithCallBack =>
   typeof action.cta === 'function';
 
-export const MonitoringResourceIcon: React.FC<MonitoringResourceIconProps> = ({
-  className,
-  resource,
-}) => (
-  <span className={className} title={resource.label}>
-    {resource.abbr}
-  </span>
-);
-
-type MonitoringResourceIconProps = {
-  className?: string;
-  resource: MonitoringResource;
-};
-
 export const Severity: React.FC<{ severity: string }> = React.memo(({ severity }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 

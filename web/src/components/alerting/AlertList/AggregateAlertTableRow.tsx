@@ -1,10 +1,15 @@
-import { Alert, TableColumn, useActiveNamespace } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  Alert,
+  ResourceIcon,
+  TableColumn,
+  useActiveNamespace,
+} from '@openshift-console/dynamic-plugin-sdk';
 import { ExpandableRowContent, Table, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
 import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getRuleUrl, usePerspective } from '../../../components/hooks/usePerspective';
 import { AggregatedAlert } from '../AlertsAggregates';
-import { AlertState, MonitoringResourceIcon, Severity } from '../AlertUtils';
+import { AlertState, Severity } from '../AlertUtils';
 import AlertTableRow from './AlertTableRow';
 import { RuleResource } from '../../../components/utils';
 import { Link } from 'react-router-dom';
@@ -84,7 +89,7 @@ const AggregateAlertTableRow: AggregateAlertTableRowProps = ({
         <Td title={title}>
           <Flex spaceItems={{ default: 'spaceItemsNone' }} flexWrap={{ default: 'nowrap' }}>
             <FlexItem>
-              <MonitoringResourceIcon resource={RuleResource} />
+              <ResourceIcon kind={RuleResource.kind} />
             </FlexItem>
             <FlexItem>
               <Link

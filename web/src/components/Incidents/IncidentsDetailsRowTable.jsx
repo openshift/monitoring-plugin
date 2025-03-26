@@ -4,6 +4,7 @@ import {
   GreenCheckCircleIcon,
   isAlertingRulesSource,
   PrometheusEndpoint,
+  ResourceIcon,
   Timestamp,
   useActiveNamespace,
   useResolvedExtensions,
@@ -13,7 +14,6 @@ import ExclamationTriangleIcon from '@patternfly/react-icons/dist/esm/icons/excl
 import { Bullseye, DropdownItem, Icon, Spinner, Tooltip } from '@patternfly/react-core';
 import { Link } from 'react-router-dom';
 import { AlertResource, getAlertsAndRules } from '../utils';
-import { MonitoringResourceIcon } from '../alerting/AlertUtils';
 import { getPrometheusURL } from '../console/graphs/helpers';
 import { fetchAlerts } from '../fetch-alerts';
 import KebabDropdown from '../kebab-dropdown';
@@ -93,7 +93,7 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
             return (
               <Tr key={rowIndex}>
                 <Td dataLabel="expanded-details-alertname">
-                  <MonitoringResourceIcon resource={AlertResource} />
+                  <ResourceIcon kind={AlertResource.kind} />
                   <Link
                     to={
                       alertDetails?.rule

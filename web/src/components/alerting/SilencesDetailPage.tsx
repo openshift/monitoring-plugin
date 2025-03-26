@@ -2,7 +2,12 @@ import * as _ from 'lodash-es';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
 
-import { Alert, Timestamp, useActiveNamespace } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  Alert,
+  ResourceIcon,
+  Timestamp,
+  useActiveNamespace,
+} from '@openshift-console/dynamic-plugin-sdk';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -36,7 +41,7 @@ import {
 import KebabDropdown from '../kebab-dropdown';
 import { Silences } from '../types';
 import { alertDescription, SilenceResource } from '../utils';
-import { MonitoringResourceIcon, Severity, SeverityCounts } from './AlertUtils';
+import { Severity, SeverityCounts } from './AlertUtils';
 import { SilenceDropdown, SilenceMatchersList, SilenceState } from './SilencesUtils';
 import { StatusBox } from '../console/console-shared/src/components/status/StatusBox';
 import { LoadingInline } from '../console/console-shared/src/components/loading/LoadingInline';
@@ -82,7 +87,7 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
             <Split>
               <SplitItem>
                 <Title headingLevel="h1">
-                  <MonitoringResourceIcon resource={SilenceResource} />
+                  <ResourceIcon kind={SilenceResource.kind} />
                   {silence?.name}
                 </Title>
               </SplitItem>

@@ -3,6 +3,7 @@ import {
   AlertStates,
   isAlertingRuleChart,
   PrometheusAlert,
+  ResourceIcon,
   Rule,
   Timestamp,
   useResolvedExtensions,
@@ -61,7 +62,6 @@ import {
   AlertState,
   getSourceKey,
   Graph,
-  MonitoringResourceIcon,
   Severity,
   SeverityBadge,
   SeverityHelp,
@@ -203,8 +203,7 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
           </PageBreadcrumb>
           <PageSection hasBodyWrapper={false}>
             <Title headingLevel="h1">
-              {/* Leave to keep compatibility with console looks */}
-              <MonitoringResourceIcon resource={RuleResource} />
+              <ResourceIcon kind={RuleResource.kind} />
               {rule?.name}
               <SeverityBadge severity={rule?.labels?.severity} />
             </Title>

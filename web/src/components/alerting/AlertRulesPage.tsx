@@ -2,6 +2,7 @@ import {
   AlertStates,
   ListPageFilter,
   PrometheusAlert,
+  ResourceIcon,
   RowFilter,
   RowProps,
   Rule,
@@ -31,7 +32,6 @@ import {
   AlertStateIcon,
   getAdditionalSources,
   getAlertStateKey,
-  MonitoringResourceIcon,
   Severity,
   SilencesNotLoadedWarning,
 } from '../alerting/AlertUtils';
@@ -92,7 +92,7 @@ const RuleTableRow: React.FC<RowProps<Rule>> = ({ obj }) => {
       <Td title={title}>
         <Flex spaceItems={{ default: 'spaceItemsNone' }} flexWrap={{ default: 'nowrap' }}>
           <FlexItem>
-            <MonitoringResourceIcon resource={RuleResource} />
+            <ResourceIcon kind={RuleResource.kind} />
           </FlexItem>
           <FlexItem>
             <Link to={getRuleUrl(perspective, obj)}>{obj.name}</Link>

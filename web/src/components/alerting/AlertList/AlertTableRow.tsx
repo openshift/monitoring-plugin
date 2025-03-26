@@ -3,6 +3,7 @@ import {
   ActionServiceProvider,
   Alert,
   AlertStates,
+  ResourceIcon,
   ResourceLink,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
@@ -11,7 +12,6 @@ import {
   AlertStateDescription,
   isActionWithCallback,
   isActionWithHref,
-  MonitoringResourceIcon,
   NamespaceGroupVersionKind,
   Severity,
 } from '../AlertUtils';
@@ -80,7 +80,7 @@ const AlertTableRow: React.FC<{ alert: Alert }> = ({ alert }) => {
       <Td title={title}>
         <Flex spaceItems={{ default: 'spaceItemsNone' }} flexWrap={{ default: 'nowrap' }}>
           <FlexItem>
-            <MonitoringResourceIcon resource={AlertResource} />
+            <ResourceIcon kind={AlertResource.kind} />
           </FlexItem>
           <FlexItem>
             <Link

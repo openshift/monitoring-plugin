@@ -1,6 +1,7 @@
 import {
   consoleFetchJSON,
   GreenCheckCircleIcon,
+  ResourceIcon,
   Silence,
   SilenceStates,
   useActiveNamespace,
@@ -23,7 +24,6 @@ import {
 } from '@patternfly/react-core';
 import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import { BanIcon, EllipsisVIcon, HourglassHalfIcon } from '@patternfly/react-icons';
-import classNames from 'classnames';
 import * as _ from 'lodash-es';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -42,7 +42,7 @@ import {
   SilenceResource,
   silenceState,
 } from '../utils';
-import { MonitoringResourceIcon, SeverityCounts, StateTimestamp } from './AlertUtils';
+import { SeverityCounts, StateTimestamp } from './AlertUtils';
 import { LoadingInline } from '../console/console-shared/src/components/loading/LoadingInline';
 import { Td } from '@patternfly/react-table';
 
@@ -89,7 +89,7 @@ export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheck
       <Td>
         <Flex spaceItems={{ default: 'spaceItemsNone' }} flexWrap={{ default: 'nowrap' }}>
           <FlexItem>
-            <MonitoringResourceIcon resource={SilenceResource} />
+            <ResourceIcon kind={SilenceResource.kind} />
           </FlexItem>
           <FlexItem>
             <Link
