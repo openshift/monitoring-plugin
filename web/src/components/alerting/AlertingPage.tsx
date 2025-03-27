@@ -53,10 +53,6 @@ const AlertingPage: React.FC<RouteComponentProps<{ url: string }>> = ({ match })
     <>
       <PageSection hasBodyWrapper={false}>
         <Title headingLevel="h1">{t('Alerting')}</Title>
-      </PageSection>
-      <Divider />
-      {/* Without Page Section, the tabs get eaten by the components being switched to */}
-      <PageSection hasBodyWrapper={false} padding={{ default: 'noPadding' }}>
         <Tabs activeKey={activeTabKey} onSelect={handleTabClick}>
           {/* Add href to tab so that when hovering you see the link in the bottom left */}
           <Tab eventKey={0} href={alertsPath} title={<TabTitleText>{t('Alerts')}</TabTitleText>} />

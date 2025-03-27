@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { MenuToggle, Popper } from '@patternfly/react-core';
-import { default as classNames } from 'classnames';
 
 const ProjectMenuToggle = (props: {
   disabled: boolean;
