@@ -1,23 +1,30 @@
 import { ChartThemeDefinition } from '@patternfly/react-charts/victory';
 import { ChartThemeColor, getCustomTheme } from '@patternfly/react-charts/victory';
 import {
-  t_temp_dev_tbd as globalBlack300 /* CODEMODS: you should update this color token, original v5 token was global_palette_black_300 */,
-} from '@patternfly/react-tokens/dist/esm/t_temp_dev_tbd';
+  chart_axis_grid_stroke_Color,
+  chart_axis_tick_Size,
+  chart_axis_tick_stroke_Color,
+  chart_axis_tick_Width,
+  chart_global_FontFamily,
+  chart_axis_tick_label_Fill,
+  chart_global_letter_spacing,
+  chart_line_data_Opacity,
+} from '@patternfly/react-tokens';
 
 const pfDependentAxisTickLabels: Record<string, string | number> = {
-  padding: 5,
-  fontFamily: 'var(--pf-v5-chart-global--FontFamily)',
-  letterSpacing: 'var(--pf-v5-chart-global--letter-spacing)',
-  fill: 'var(--pf-t--temp--dev--tbd)' /* CODEMODS: original v5 color was --pf-v5-global--Color--200 */,
+  padding: 4, // --pf-t-global--spacer-xs
+  fontFamily: chart_global_FontFamily.var,
+  letterSpacing: chart_global_letter_spacing.var,
+  fill: chart_axis_tick_label_Fill.var,
 };
 
 const theme: ChartThemeDefinition = {
   chart: {
     padding: {
-      bottom: 0,
-      left: 0,
-      right: 0,
-      top: 0,
+      bottom: 24, // --pf-t--global--spacer--lg
+      left: 64, //--pf-t--global--spacer--3xl
+      right: 16, //--pf-t--global--spacer--md
+      top: 4, //--pf-t--global--spacer--xs
     },
   },
   dependentAxis: {
@@ -26,7 +33,7 @@ const theme: ChartThemeDefinition = {
         stroke: 'none',
       },
       grid: {
-        stroke: '#EDEDED',
+        stroke: chart_axis_grid_stroke_Color.var,
       },
       tickLabels: pfDependentAxisTickLabels,
     },
@@ -34,11 +41,11 @@ const theme: ChartThemeDefinition = {
   independentAxis: {
     style: {
       ticks: {
-        size: 5,
-        strokeWidth: '1',
-        stroke: globalBlack300.value,
+        size: chart_axis_tick_Size.value,
+        strokeWidth: chart_axis_tick_Width.value,
+        stroke: chart_axis_tick_stroke_Color.value,
       },
-      tickLabels: Object.assign({}, pfDependentAxisTickLabels, { padding: 2 }),
+      tickLabels: pfDependentAxisTickLabels,
       grid: {
         stroke: 'none',
       },
@@ -47,7 +54,7 @@ const theme: ChartThemeDefinition = {
   line: {
     style: {
       data: {
-        opacity: 0.75,
+        opacity: chart_line_data_Opacity.value,
       },
     },
   },

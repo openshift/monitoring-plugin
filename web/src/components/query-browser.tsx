@@ -1,4 +1,3 @@
-import classNames from 'classnames';
 import * as _ from 'lodash-es';
 import * as React from 'react';
 import {
@@ -35,12 +34,17 @@ import {
   TextInput,
   Title,
   InputGroupItem,
-  Truncate,
+  Card,
+  CardHeader,
+  Split,
+  SplitItem,
+  Level,
+  LevelItem,
+  CardBody,
 } from '@patternfly/react-core';
 import { ChartLineIcon } from '@patternfly/react-icons';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { VictoryPortal } from 'victory-core';
 
 import {
   queryBrowserDeleteAllSeries,
@@ -52,16 +56,13 @@ import { GraphEmpty } from './console/graphs/graph-empty';
 import { getPrometheusURL } from './console/graphs/helpers';
 import {
   dateFormatterNoYear,
-  dateTimeFormatterWithSeconds,
   timeFormatter,
   timeFormatterWithSeconds,
 } from './console/utils/datetime';
 import { usePoll } from './console/utils/poll-hook';
 import { useRefWidth } from './console/utils/ref-width-hook';
 import { useSafeFetch } from './console/utils/safe-fetch-hook';
-import { humanizeNumberSI } from './console/utils/units';
 
-import { formatNumber } from './format';
 import { useBoolean } from './hooks/useBoolean';
 import { queryBrowserTheme } from './query-browser-theme';
 import { PrometheusAPIError, TimeRange } from './types';
@@ -76,20 +77,18 @@ import {
 } from './console/console-shared/src/datetime/prometheus';
 import withFallback from './console/console-shared/error/fallbacks/withFallback';
 import { CustomDataSource } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
+import {
+  QueryBrowserTooltip,
+  valueFormatter,
+} from './console/console-shared/src/components/query-browser/QueryBrowserTooltip';
+import {
+  chart_area_Opacity,
+  chart_axis_tick_Size,
+  t_global_background_color_100,
+} from '@patternfly/react-tokens';
 
 const spans = ['5m', '15m', '30m', '1h', '2h', '6h', '12h', '1d', '2d', '1w', '2w'];
 export const colors = queryBrowserTheme.line.colorScale;
-
-// Use exponential notation for small or very large numbers to avoid labels with too many characters
-const formatPositiveValue = (v: number): string =>
-  v === 0 || (0.001 <= v && v < 1e23) ? humanizeNumberSI(v).string : v.toExponential(1);
-
-const formatValue = (v: number): string => (v < 0 ? '-' : '') + formatPositiveValue(Math.abs(v));
-
-const valueFormatter = (units: string): ((v: number) => string) =>
-  ['ms', 's', 'bytes', 'Bps', 'pps'].includes(units)
-    ? (v: number) => formatNumber(String(v), undefined, units)
-    : formatValue;
 
 export const Error: React.FC<ErrorProps> = ({ error, title = 'An error occurred' }) => (
   <Alert isInline title={title} variant="danger">
@@ -147,177 +146,56 @@ const SpanControls: React.FC<SpanControlsProps> = React.memo(
     ));
 
     return (
-      <>
-        <InputGroup>
-          <InputGroupItem isFill>
-            <TextInput
-              aria-label={t('graph timespan')}
-              validated={isValid ? 'default' : 'error'}
-              onChange={(_event, v) => setSpan(v, true)}
-              type="text"
-              value={text}
+      <Level hasGutter>
+        <LevelItem>
+          <InputGroup>
+            <InputGroupItem isFill>
+              <TextInput
+                aria-label={t('graph timespan')}
+                validated={isValid ? 'default' : 'error'}
+                onChange={(_event, v) => setSpan(v, true)}
+                type="text"
+                value={text}
+              />
+            </InputGroupItem>
+            <InputGroupItem>
+              <Dropdown
+                isOpen={isOpen}
+                onSelect={setClosed}
+                toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+                  <MenuToggle
+                    ref={toggleRef}
+                    onClick={setIsOpen}
+                    isExpanded={isOpen}
+                    aria-label={t('graph timespan')}
+                  />
+                )}
+                popperProps={{ position: 'right' }}
+              >
+                <DropdownList>{dropdownItems}</DropdownList>
+              </Dropdown>
+            </InputGroupItem>
+          </InputGroup>
+        </LevelItem>
+        <LevelItem>
+          <Button onClick={() => setSpan(defaultSpanText)} type="button" variant="tertiary">
+            {t('Reset zoom')}
+          </Button>
+        </LevelItem>
+        <LevelItem>
+          {hasReducedResolution && (
+            <Alert
+              isInline
+              isPlain
+              title={t('Displaying with reduced resolution due to large dataset.')}
+              variant="info"
+              truncateTitle={1}
             />
-          </InputGroupItem>
-          <InputGroupItem>
-            <Dropdown
-              isOpen={isOpen}
-              onSelect={setClosed}
-              toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
-                <MenuToggle
-                  ref={toggleRef}
-                  onClick={setIsOpen}
-                  isExpanded={isOpen}
-                  aria-label={t('graph timespan')}
-                />
-              )}
-              popperProps={{ position: 'right' }}
-            >
-              <DropdownList>{dropdownItems}</DropdownList>
-            </Dropdown>
-          </InputGroupItem>
-        </InputGroup>
-        <Button onClick={() => setSpan(defaultSpanText)} type="button" variant="tertiary">
-          {t('Reset zoom')}
-        </Button>
-        {hasReducedResolution && (
-          <Alert
-            isInline
-            isPlain
-            title={t('Displaying with reduced resolution due to large dataset.')}
-            variant="info"
-            truncateTitle={1}
-          />
-        )}
-      </>
+          )}
+        </LevelItem>
+      </Level>
     );
   },
-);
-
-const TOOLTIP_MAX_ENTRIES = 20;
-const TOOLTIP_MAX_WIDTH = 400;
-const TOOLTIP_MAX_HEIGHT = 400;
-const TOOLTIP_MAX_LEFT_JUT_OUT = 85;
-const TOOLTIP_MAX_RIGHT_JUT_OUT = 45;
-
-type TooltipSeries = {
-  color: string;
-  labels: PrometheusLabels;
-  name: string;
-  total: number;
-  value: string;
-};
-
-// For performance, use this instead of PatternFly's ChartTooltip or Victory VictoryTooltip
-const Tooltip_: React.FC<TooltipProps> = ({ activePoints, center, height, style, width, x }) => {
-  const time = activePoints?.[0]?.x;
-
-  if (!_.isDate(time) || !_.isFinite(x)) {
-    return null;
-  }
-
-  // Don't show the tooltip if the cursor is too far from the active points (can happen when the
-  // graph's timespan includes a range with no data)
-  if (Math.abs(x - center.x) > width / 15) {
-    return null;
-  }
-
-  // Pick tooltip width and location (left or right of the cursor) to maximize its available space
-  const spaceOnLeft = x + TOOLTIP_MAX_LEFT_JUT_OUT;
-  const spaceOnRight = width - x + TOOLTIP_MAX_RIGHT_JUT_OUT;
-  const isOnLeft = spaceOnLeft > spaceOnRight;
-  const tooltipMaxWidth = Math.min(isOnLeft ? spaceOnLeft : spaceOnRight, TOOLTIP_MAX_WIDTH);
-
-  // Sort the entries in the tooltip from largest to smallest (to match the position of points in
-  // the graph) and limit to the maximum number we can display. There could be a large number of
-  // points, so we use a slightly less succinct approach to avoid sorting the whole list of points
-  // and to avoid processing points that won't fit in the tooltip.
-  const largestPoints: TooltipSeries[] = [];
-  activePoints.forEach(({ _y1, y }, i) => {
-    const total = _y1 ?? y;
-    if (
-      largestPoints.length < TOOLTIP_MAX_ENTRIES ||
-      largestPoints[TOOLTIP_MAX_ENTRIES - 1].total < total
-    ) {
-      const point = {
-        color: style[i]?.fill,
-        labels: style[i]?.labels,
-        name: style[i]?.name,
-        total,
-        value: valueFormatter(style[i]?.units)(y),
-      };
-      largestPoints.splice(
-        _.sortedIndexBy(largestPoints, point, (p) => -p.total),
-        0,
-        point,
-      );
-    }
-  });
-  const allSeries: TooltipSeries[] = largestPoints.slice(0, TOOLTIP_MAX_ENTRIES);
-
-  // For each series we are displaying in the tooltip, create a name based on its labels. We have
-  // limited space, so sort the labels to try to show the most useful first since later labels will
-  // likely be cut off. Sort first by the number of unique values for the label (prefer to show
-  // labels with more values because they are more helpful in identifying the series), then by the
-  // length of the label (prefer to show sorter labels because space is limited).
-  const allSeriesSorted: string[] = _.sortBy(
-    _.without(
-      _.uniq(_.flatMap(allSeries, (s) => (s.labels ? Object.keys(s.labels) : []))),
-      '__name__',
-    ),
-    [(k) => -_.uniq(allSeries.map((s) => s.labels[k])).length, (k) => k.length],
-  );
-  const getSeriesName = (series: TooltipSeries): string => {
-    if (_.isString(series.name)) {
-      return series.name;
-    }
-    if (_.isEmpty(series.labels)) {
-      return '{}';
-    }
-    const name = series.labels.__name__ ?? '';
-    const otherLabels = _.intersection(allSeriesSorted, Object.keys(series.labels));
-    return `${name}{${otherLabels.map((l) => `${l}=${series.labels[l]}`).join(',')}}`;
-  };
-
-  return (
-    <>
-      <VictoryPortal>
-        <foreignObject
-          height={TOOLTIP_MAX_HEIGHT}
-          width={tooltipMaxWidth}
-          x={isOnLeft ? x - tooltipMaxWidth : x}
-          y={center.y - TOOLTIP_MAX_HEIGHT / 2}
-        >
-          <div>
-            <div>
-              <div>{dateTimeFormatterWithSeconds.format(time)}</div>
-              {allSeries.map((s, i) => (
-                <div key={i}>
-                  <div />
-                  <Truncate content={getSeriesName(s)} />
-                  <div>{s.value}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </foreignObject>
-      </VictoryPortal>
-      <line x1={x} x2={x} y1="0" y2={height} />
-    </>
-  );
-};
-const Tooltip = withFallback(Tooltip_);
-
-const graphContainer = (
-  // Set activateData to false to work around VictoryVoronoiContainer crash (see
-  // https://github.com/FormidableLabs/victory/issues/1314)
-  <ChartVoronoiContainer
-    activateData={false}
-    labelComponent={<Tooltip />}
-    labels={() => ' '}
-    mouseFollowTooltips={true}
-    voronoiDimension="x"
-    voronoiPadding={0}
-  />
 );
 
 const LegendContainer = ({ children }: { children?: React.ReactNode }) => {
@@ -437,7 +315,15 @@ const Graph: React.FC<GraphProps> = React.memo(
 
     return (
       <Chart
-        containerComponent={graphContainer}
+        containerComponent={
+          <ChartVoronoiContainer
+            labelComponent={<QueryBrowserTooltip />}
+            labels={() => ' '}
+            mouseFollowTooltips={true}
+            voronoiDimension="x"
+            voronoiPadding={0}
+          />
+        }
         ariaTitle={t('query browser chart')}
         domain={domain}
         domainPadding={{ y: 1 }}
@@ -472,7 +358,13 @@ const Graph: React.FC<GraphProps> = React.memo(
             return (
               // We need to use the `name` prop to prevent an error in VictorySharedEvents when
               // dynamically removing and then adding back data series
-              <ChartComponent data={values} groupComponent={<g />} key={i} name={`series-${i}`} />
+              <ChartComponent
+                data={values}
+                groupComponent={<g />}
+                key={i}
+                name={`series-${i}`}
+                style={style}
+              />
             );
           })}
         </GroupComponent>
@@ -613,8 +505,20 @@ const ZoomableGraph: React.FC<ZoomableGraphProps> = ({
     : { onMouseDown };
 
   return (
-    <div {...handlers}>
-      {isZooming && <div />}
+    <div style={{ cursor: 'ew-resize' }} {...handlers}>
+      {isZooming && (
+        <div
+          style={{
+            left: Math.min(x1, x2),
+            width: Math.abs(x1 - x2),
+            bottom: 24 /* --pf-t--global--spacer--lg */ + chart_axis_tick_Size.value,
+            top: 4, // --pf-t--global--spacer-xs
+            position: 'absolute',
+            opacity: chart_area_Opacity.value,
+            backgroundColor: t_global_background_color_100.value,
+          }}
+        />
+      )}
       <Graph
         allSeries={allSeries}
         disabledSeries={disabledSeries}
@@ -960,71 +864,78 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
   const hasReducedResolution = !isGraphDataEmpty && samples < maxSamplesForSpan && !updating;
 
   return (
-    <div>
-      {hideControls ? (
-        <>{updating && <Loading />}</>
-      ) : (
-        <div>
-          <div>
-            <SpanControls
-              defaultSpanText={defaultSpanText}
-              onChange={onSpanChange}
-              span={span}
-              hasReducedResolution={hasReducedResolution}
-            />
-            {updating && <Loading />}
-          </div>
-          <div>
-            {GraphLink && <GraphLink />}
-            {canStack && showStackedControl && (
-              <Checkbox
-                id="stacked"
-                isChecked={isStacked}
-                data-checked-state={isStacked}
-                label={t('Stacked')}
-                onChange={(_e, v) => (typeof _e === 'boolean' ? setIsStacked(_e) : setIsStacked(v))}
-              />
+    <>
+      <Card isCompact>
+        {hideControls ? (
+          <>{updating && <Loading />}</>
+        ) : (
+          <CardHeader>
+            <Split>
+              <SplitItem>
+                <SpanControls
+                  defaultSpanText={defaultSpanText}
+                  onChange={onSpanChange}
+                  span={span}
+                  hasReducedResolution={hasReducedResolution}
+                />
+                {updating && <Loading />}
+              </SplitItem>
+              <SplitItem isFilled />
+              <SplitItem>
+                {GraphLink && <GraphLink />}
+                {canStack && showStackedControl && (
+                  <Checkbox
+                    id="stacked"
+                    isChecked={isStacked}
+                    data-checked-state={isStacked}
+                    label={t('Stacked')}
+                    onChange={(_e, v) =>
+                      typeof _e === 'boolean' ? setIsStacked(_e) : setIsStacked(v)
+                    }
+                  />
+                )}
+              </SplitItem>
+            </Split>
+          </CardHeader>
+        )}
+        <CardBody>
+          <div ref={containerRef} style={{ position: 'relative' }}>
+            {error && <Error error={error} />}
+            {isGraphDataEmpty && !updating && <GraphEmpty />}
+            {!isGraphDataEmpty && width > 0 && (
+              <>
+                {disableZoom ? (
+                  <Graph
+                    allSeries={graphData}
+                    disabledSeries={disabledSeries}
+                    fixedXDomain={xDomain}
+                    formatSeriesTitle={formatSeriesTitle}
+                    isStack={canStack && isStacked}
+                    showLegend={showLegend}
+                    span={span}
+                    units={units}
+                    width={width}
+                  />
+                ) : (
+                  <ZoomableGraph
+                    allSeries={graphData}
+                    disabledSeries={disabledSeries}
+                    fixedXDomain={xDomain}
+                    formatSeriesTitle={formatSeriesTitle}
+                    isStack={canStack && isStacked}
+                    onZoom={zoomableGraphOnZoom}
+                    showLegend={showLegend}
+                    span={span}
+                    units={units}
+                    width={width}
+                  />
+                )}
+              </>
             )}
           </div>
-        </div>
-      )}
-      <div>
-        <div ref={containerRef}>
-          {error && <Error error={error} />}
-          {isGraphDataEmpty && !updating && <GraphEmpty />}
-          {!isGraphDataEmpty && width > 0 && (
-            <>
-              {disableZoom ? (
-                <Graph
-                  allSeries={graphData}
-                  disabledSeries={disabledSeries}
-                  fixedXDomain={xDomain}
-                  formatSeriesTitle={formatSeriesTitle}
-                  isStack={canStack && isStacked}
-                  showLegend={showLegend}
-                  span={span}
-                  units={units}
-                  width={width}
-                />
-              ) : (
-                <ZoomableGraph
-                  allSeries={graphData}
-                  disabledSeries={disabledSeries}
-                  fixedXDomain={xDomain}
-                  formatSeriesTitle={formatSeriesTitle}
-                  isStack={canStack && isStacked}
-                  onZoom={zoomableGraphOnZoom}
-                  showLegend={showLegend}
-                  span={span}
-                  units={units}
-                  width={width}
-                />
-              )}
-            </>
-          )}
-        </div>
-      </div>
-    </div>
+        </CardBody>
+      </Card>
+    </>
   );
 };
 export const QueryBrowser = withFallback(QueryBrowser_);
@@ -1093,13 +1004,4 @@ type SpanControlsProps = {
   onChange: (span: number) => void;
   span: number;
   hasReducedResolution: boolean;
-};
-
-type TooltipProps = {
-  activePoints?: { x: number; y: number; _y1?: number }[];
-  center?: { x: number; y: number };
-  height?: number;
-  style?: { fill: string; labels: PrometheusLabels; name: string; units: string };
-  width?: number;
-  x?: number;
 };
