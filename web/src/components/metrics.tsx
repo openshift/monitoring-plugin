@@ -459,7 +459,16 @@ const QueryKebab: React.FC<{ index: number }> = ({ index }) => {
     dispatch(queryBrowserDuplicateQuery(index));
   }, [dispatch, index]);
 
-  const isSpan = (item) => item?.title?.props?.children;
+  type Item = {
+    title?: {
+      props?: {
+        children?: any;
+      };
+    };
+  };
+  const isSpan = (item: any): item is Item => {
+    return !!item?.title?.props?.children;
+  };
   const getSpanText = (item) => item.title.props.children;
 
   // Takes data from QueryTable and removes/replaces all html objects from columns and rows
