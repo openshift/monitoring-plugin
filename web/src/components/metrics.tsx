@@ -95,9 +95,22 @@ import { QueryParams } from './query-params';
 import TablePagination from './table-pagination';
 import { PrometheusAPIError } from './types';
 import { TypeaheadSelect } from './TypeaheadSelect';
+import { ReactNode } from 'react';
 
 // Stores information about the currently focused query input
 let focusedQuery;
+
+type TitleColumn = {
+  title: ReactNode; // <span> {Title} </span>
+  transforms: (typeof sortable | typeof wrappable)[];
+  csvTitle: string; // string of Title
+};
+
+type ValueColumn = {
+  title: string;
+  transforms: (typeof sortable | typeof wrappable)[];
+  csvTitle: string;
+};
 
 const predefinedQueriesAdmin: SelectOptionProps[] = [
   {
@@ -474,17 +487,15 @@ const QueryKebab: React.FC<{ index: number }> = ({ index }) => {
   // Takes data from QueryTable and removes/replaces all html objects from columns and rows
   const convertQueryTable = () => {
     const getColumns = () => {
-      const columns = queryTableData.columns;
-      const csvColumnHeaders = columns.slice(1).map((columnHeader) => {
-        if (typeof columnHeader?.title === 'string') {
-          return columnHeader.title;
-        } else if (isSpan(columnHeader)) {
-          return getSpanText(columnHeader);
+      const columnNames = queryTableData.columns.slice(1);
+      const csvColumnNames = columnNames.map((columnName) => {
+        if (columnName?.csvTitle) {
+          return columnName.csvTitle;
         } else {
           return '';
         }
       });
-      return csvColumnHeaders;
+      return csvColumnNames;
     };
     const getRows = () => {
       const rows = queryTableData.rows;
@@ -732,14 +743,15 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, custom
   } else {
     const allLabelKeys = _.uniq(_.flatMap(result, ({ metric }) => Object.keys(metric))).sort();
 
-    columns = [
-      '',
-      ...allLabelKeys.map((k) => ({
-        title: <span>{k === '__name__' ? t('Name') : k}</span>,
-        transforms,
-      })),
-      { title: t('Value'), transforms },
-    ];
+    const btnColumnPlaceholder = '';
+    const titleColumn: TitleColumn[] = allLabelKeys.map((k) => ({
+      title: <span>{k === '__name__' ? t('Name') : k}</span>,
+      transforms,
+      csvTitle: k === '__name__' ? t('Name') : k,
+    }));
+    const valueColumn: ValueColumn = { title: t('Value'), transforms, csvTitle: t('Value') };
+
+    columns = [btnColumnPlaceholder, ...titleColumn, valueColumn];
 
     let rowMapper;
     if (data.resultType === 'matrix') {
