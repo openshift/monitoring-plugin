@@ -60,6 +60,19 @@ const AlertsPage_: React.FC = () => {
     [data],
   );
 
+  const clusters = React.useMemo(() => {
+    const clusterSet = new Set<string>();
+    data?.forEach((alert) => {
+      const clusterName = alert.labels?.cluster;
+      if (clusterName) {
+        clusterSet.add(clusterName);
+      }
+    });
+
+    const clusterArray = Array.from(clusterSet);
+    return clusterArray.sort();
+  }, [data]);
+
   let rowFilters: RowFilter[] = [
     // TODO: The "name" filter doesn't really fit useListPageFilter's idea of a RowFilter, but
     //       useListPageFilter doesn't yet provide a better way to add a filter like this
@@ -123,10 +136,16 @@ const AlertsPage_: React.FC = () => {
       type: 'alert-cluster',
       filter: (filter, aggregatedAlert: AggregatedAlert) =>
         aggregatedAlert.alerts.some((alert) =>
-          fuzzyCaseInsensitive(filter.selected?.[0], alert.labels?.cluster),
+          filter.selected.some((selectedFilter) =>
+            fuzzyCaseInsensitive(selectedFilter, alert.labels?.cluster),
+          ),
         ),
       filterGroupName: t('Cluster'),
-      items: [],
+      items: clusters.map((clusterName) => ({ id: clusterName, title: clusterName })),
+      isMatch: (aggregatedAlert: AggregatedAlert, clusterName: string) =>
+        aggregatedAlert.alerts.some((alert) =>
+          fuzzyCaseInsensitive(clusterName, alert.labels?.cluster),
+        ),
       reducer: alertCluster,
     } as RowFilter);
   }

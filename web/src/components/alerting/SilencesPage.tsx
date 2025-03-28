@@ -58,6 +58,19 @@ const SilencesPage_: React.FC = () => {
     (state: MonitoringState) => getLegacyObserveState(perspective, state)?.get(silencesKey) || {},
   );
 
+  const clusters = React.useMemo(() => {
+    const clusterSet = new Set<string>();
+    data?.forEach((silence) => {
+      const clusterName = silenceCluster(silence);
+      if (clusterName) {
+        clusterSet.add(clusterName);
+      }
+    });
+
+    const clusterArray = Array.from(clusterSet);
+    return clusterArray.sort();
+  }, [data]);
+
   const rowFilters: RowFilter[] = [
     // TODO: The "name" filter doesn't really fit useListPageFilter's idea of a RowFilter, but
     //       useListPageFilter doesn't yet provide a better way to add a filter like this
@@ -86,12 +99,14 @@ const SilencesPage_: React.FC = () => {
   if (perspective === 'acm') {
     rowFilters.splice(-1, 0, {
       filter: (filter, silence: Silence) =>
-        fuzzyCaseInsensitive(
-          filter.selected?.[0],
-          silence.matchers.find((label) => label.name === 'cluster').value,
+        filter.selected.some((selectedFilter) =>
+          fuzzyCaseInsensitive(
+            selectedFilter,
+            silence.matchers.find((label) => label.name === 'cluster').value,
+          ),
         ),
       filterGroupName: t('Cluster'),
-      items: [],
+      items: clusters.map((clusterName) => ({ id: clusterName, title: clusterName })),
       reducer: silenceCluster,
     } as RowFilter);
   }
@@ -147,13 +162,13 @@ const SilencesPage_: React.FC = () => {
         id: 'cluster',
         props: { className: tableSilenceClasses[5] },
         sort: (silences: Silence[], direction: 'asc' | 'desc') =>
-          _.orderBy(silences, silenceClusterOrder, [direction]),
+          _.orderBy(silences, silenceClusterOrder(clusters), [direction]),
         title: t('Cluster'),
         transforms: [sortable],
       });
     }
     return cols;
-  }, [filteredData, t, perspective]);
+  }, [filteredData, t, perspective, clusters]);
 
   return (
     <>
@@ -254,9 +269,12 @@ const silenceStateOrder = (silence: Silence) => [
   _.get(silence, silenceState(silence) === SilenceStates.Pending ? 'startsAt' : 'endsAt'),
 ];
 
-const silenceClusterOrder = () => [
-  (silence: Silence) => silence.matchers.find((label) => label.name === 'cluster')?.value,
-];
+const silenceClusterOrder = (clusters: Array<string>) => {
+  clusters.sort();
+  return (silence: Silence) => [
+    clusters.indexOf(silence.matchers.find((label) => label.name === 'cluster')?.value),
+  ];
+};
 
 const ExpireAllSilencesButton: React.FC<ExpireAllSilencesButtonProps> = ({ setErrorMessage }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
