@@ -96,7 +96,7 @@ export const getAlertsAndRules = (
 export const alertState = (a: Alert): AlertStates => a?.state;
 export const silenceState = (s: Silence): SilenceStates => s?.status?.state;
 export const silenceCluster = (s: Silence): string =>
-  s?.matchers.find((label) => label.name === 'cluster').value;
+  s?.matchers.find((label) => label.name === 'cluster')?.value ?? '';
 
 export const silenceMatcherEqualitySymbol = (isEqual: boolean, isRegex: boolean): string => {
   if (isRegex) {

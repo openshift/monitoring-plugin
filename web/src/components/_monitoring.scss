@@ -7,11 +7,8 @@ $screen-lg-min: 1200px;
   }
 }
 
-.co-alert-manager {
-  margin-bottom: var(--pf-v5-global--spacer--md);
-}
-
-.co-resource-item.co-resource-item--monitoring-alert {
+// Leave for making adjustments to a deeply nested component
+.co-resource-item.monitoring__resource-item--monitoring-alert {
   margin: 0 5px;
 }
 
@@ -66,16 +63,20 @@ $screen-lg-min: 1200px;
   }
 
   &:before {
-    background: linear-gradient(to right,
-        var(--pf-v5-global--BackgroundColor--100),
-        rgba(255, 255, 255, 0));
+    background: linear-gradient(
+      to right,
+      var(--pf-v5-global--BackgroundColor--100),
+      rgba(255, 255, 255, 0)
+    );
     left: 0;
   }
 
   &:after {
-    background: linear-gradient(to left,
-        var(--pf-v5-global--BackgroundColor--100),
-        rgba(255, 255, 255, 0));
+    background: linear-gradient(
+      to left,
+      var(--pf-v5-global--BackgroundColor--100),
+      rgba(255, 255, 255, 0)
+    );
     right: 0;
   }
 }
@@ -88,21 +89,10 @@ $screen-lg-min: 1200px;
   height: calc(100% - 20px);
   margin: 0 0 20px 0;
 
-  .co-dashboard-card__body--dashboard {
+  .monitoring-dashboards__card--dashboard {
     // Add extra padding to the right. X-axis times with AM/PM at certain screen widths can overflow
     // the card otherwise.
     padding: 10px 15px 10px 10px;
-  }
-
-  &.co-dashboard-card--gradient {
-    .pf-v5-c-card__body {
-      max-height: 350px;
-      overflow: scroll;
-    }
-
-    &:after {
-      width: calc(100% - 10px);
-    }
   }
 
   .query-browser__wrapper {
@@ -197,7 +187,6 @@ $screen-lg-min: 1200px;
 $screen-phone-landscape-min-width: 567px;
 
 @media (max-width: $screen-phone-landscape-min-width) {
-
   .monitoring-dashboards__panel--max-2,
   .monitoring-dashboards__panel--max-3,
   .monitoring-dashboards__panel--max-4 {
@@ -260,7 +249,6 @@ $max-width-lg: $screen-lg-min - 1;
 }
 
 .monitoring-dashboards__variable-dropdown {
-
   .pf-v5-c-dropdown__menu,
   .pf-v5-c-select__menu {
     max-height: 60vh;
@@ -314,28 +302,6 @@ $monitoring-line-height: 18px;
   .pf-v5-c-toolbar__content {
     padding: 0;
   }
-
-  .co-section-heading {
-    margin: 0;
-  }
-}
-
-.monitoring-silence-alert {
-  max-width: 950px;
-
-  &__label-options {
-    align-items: baseline;
-    display: flex;
-    justify-content: space-between;
-
-    @media (min-width: var(--global--breakpoint--md)) {
-      padding-top: 26px;
-    }
-  }
-
-  &__paragraph {
-    margin-bottom: var(--pf-v5-c-content--MarginBottom);
-  }
 }
 
 .monitoring-state-icon--pending {
@@ -344,10 +310,6 @@ $monitoring-line-height: 18px;
 
 .monitoring-timestamp {
   font-size: var(--pf-v5-global--FontSize--sm);
-}
-
-.prometheus-template-tag {
-  margin: 0 2px;
 }
 
 .query-browser__autocomplete-match {
@@ -441,8 +403,9 @@ $monitoring-line-height: 18px;
   padding: 10px 0;
 }
 
-.query-browser__query>.query-browser__query-input {
-  padding: var(--pf-v5-c-form-control--PaddingTop) var(--pf-v5-c-form-control--PaddingRight) var(--pf-v5-c-form-control--PaddingBottom) var(--pf-v5-c-form-control--PaddingLeft);
+.query-browser__query > .query-browser__query-input {
+  padding: var(--pf-v5-c-form-control--PaddingTop) var(--pf-v5-c-form-control--PaddingRight)
+    var(--pf-v5-c-form-control--PaddingBottom) var(--pf-v5-c-form-control--PaddingLeft);
   padding-right: 28px !important;
   resize: vertical;
   font-family: var(--pf-v5-c-code-block__pre--FontFamily), monospace;
@@ -500,14 +463,14 @@ $monitoring-line-height: 18px;
 
   font-size: var(--pf-v5-global--FontSize--sm);
 
-  tr> :first-child {
+  tr > :first-child {
     padding-top: 0;
     padding-bottom: 0;
     padding-left: 0;
     vertical-align: middle;
   }
 
-  .pf-v5-c-table__button-content{
+  .pf-v5-c-table__button-content {
     grid-template-columns: min-content max-content;
   }
 }
@@ -641,4 +604,8 @@ $monitoring-line-height: 18px;
   font-size: var(--pf-v5-global--FontSize--md);
   margin-bottom: 1.5rem;
   margin-top: 5px;
+}
+
+.monitoring__pre-line {
+  white-space: pre-line;
 }

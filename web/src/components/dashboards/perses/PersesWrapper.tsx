@@ -33,8 +33,7 @@ import {
   VariableProviderWithQueryParams,
 } from '@perses-dev/dashboards';
 import { ChartThemeColor, getThemeColors } from '@patternfly/react-charts';
-import ErrorAlert from '../../console/console-shared/alerts/error';
-import { LoadingInline } from '../../console/utils/status-box';
+import ErrorAlert from '../shared/error';
 import { usePatternFlyTheme } from './hooks/usePatternflyTheme';
 import { CachedDatasourceAPI } from './perses/datasource-api';
 import { OcpDatasourceApi } from './datasource-api';
@@ -45,6 +44,7 @@ import { QueryParams } from '../../query-params';
 import { StringParam, useQueryParam } from 'use-query-params';
 import { useCookieWatcher } from './hooks/useCookieWatcher';
 import { useTranslation } from 'react-i18next';
+import { LoadingInline } from '../../console/console-shared/src/components/loading/LoadingInline';
 
 // Override eChart defaults with PatternFly colors.
 const patternflyBlue300 = '#2b9af3';

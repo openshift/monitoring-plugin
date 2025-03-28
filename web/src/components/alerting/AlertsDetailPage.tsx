@@ -24,9 +24,9 @@ import {
   TableColumn,
   VirtualizedTable,
   useActiveNamespace,
+  AlertingRuleChartExtension,
+  isAlertingRuleChart,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { AlertingRuleChartExtension, isAlertingRuleChart } from '../console/extensions/alerts';
-import { StatusBox } from '../console/utils/status-box';
 import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
 import { ExternalLink, LinkifyExternal } from '../console/utils/link';
 
@@ -34,6 +34,25 @@ import {
   Breadcrumb,
   BreadcrumbItem,
   Button,
+  DescriptionList,
+  DescriptionListDescription,
+  DescriptionListGroup,
+  DescriptionListTerm,
+  DescriptionListTermHelpText,
+  DescriptionListTermHelpTextButton,
+  Divider,
+  Flex,
+  FlexItem,
+  Grid,
+  GridItem,
+  PageBreadcrumb,
+  PageGroup,
+  PageSection,
+  PageSectionVariants,
+  Popover,
+  Split,
+  SplitItem,
+  Title,
   Toolbar,
   ToolbarContent,
   ToolbarGroup,
@@ -49,14 +68,11 @@ import {
   isActionWithCallback,
   isActionWithHref,
   MonitoringResourceIcon,
-  PopoverField,
   Severity,
   SeverityBadge,
   SeverityHelp,
   SourceHelp,
 } from './AlertUtils';
-import { withFallback } from '../console/console-shared/error/error-boundary';
-import { SectionHeading } from '../console/utils/headings';
 import { ToggleGraph } from '../metrics';
 import {
   ContainerModel,
@@ -71,6 +87,8 @@ import {
 import { Labels } from '../labels';
 import { SilenceTableRow, tableSilenceClasses } from './SilencesUtils';
 import { MonitoringState } from '../../reducers/observe';
+import { StatusBox } from '../console/console-shared/src/components/status/StatusBox';
+import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 
 const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -128,42 +146,56 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
         loaded={alerts?.loaded}
         loadError={alerts?.loadError}
       >
-        <div className="pf-v5-c-page__main-breadcrumb">
-          <Breadcrumb className="monitoring-breadcrumbs">
-            <BreadcrumbItem>
-              <Link className="pf-v5-c-breadcrumb__link" to={getAlertsUrl(perspective, namespace)}>
-                {t('Alerts')}
-              </Link>
-            </BreadcrumbItem>
-            <BreadcrumbItem isActive>{t('Alert details')}</BreadcrumbItem>
-          </Breadcrumb>
-        </div>
-        <div className="co-m-nav-title co-m-nav-title--detail co-m-nav-title--breadcrumbs">
-          <h1 className="co-m-pane__heading">
-            <div data-test="resource-title" className="co-resource-item">
-              <MonitoringResourceIcon className="co-m-resource-icon--lg" resource={AlertResource} />
-              {labels?.alertname}
-              <SeverityBadge severity={labels?.severity} />
-            </div>
-            {state !== AlertStates.Silenced && (
-              <div data-test-id="details-actions">
-                <Button
-                  className="co-action-buttons__btn"
-                  onClick={() => history.push(getNewSilenceAlertUrl(perspective, alert, namespace))}
-                  variant="primary"
+        <PageGroup>
+          <PageBreadcrumb>
+            <Breadcrumb className="monitoring-breadcrumbs">
+              <BreadcrumbItem>
+                <Link
+                  className="pf-v5-c-breadcrumb__link"
+                  to={getAlertsUrl(perspective, namespace)}
                 >
-                  {t('Silence alert')}
-                </Button>
-              </div>
-            )}
-          </h1>
-          <HeaderAlertMessage alert={alert} rule={rule} />
-        </div>
-        <div className="co-m-pane__body">
+                  {t('Alerts')}
+                </Link>
+              </BreadcrumbItem>
+              <BreadcrumbItem isActive>{t('Alert details')}</BreadcrumbItem>
+            </Breadcrumb>
+          </PageBreadcrumb>
+          <PageSection variant={PageSectionVariants.light}>
+            <Split hasGutter>
+              <SplitItem>
+                <Title headingLevel="h1">
+                  {/* Leave to keep compatibility with console looks */}
+                  <MonitoringResourceIcon
+                    className="co-m-resource-icon--lg"
+                    resource={AlertResource}
+                  />
+                  {labels?.alertname}
+                  <SeverityBadge severity={labels?.severity} />
+                </Title>
+                <HeaderAlertMessage alert={alert} rule={rule} />
+              </SplitItem>
+              <SplitItem isFilled />
+              {state !== AlertStates.Silenced && (
+                <SplitItem>
+                  <Button
+                    onClick={() =>
+                      history.push(getNewSilenceAlertUrl(perspective, alert, namespace))
+                    }
+                    variant="primary"
+                  >
+                    {t('Silence alert')}
+                  </Button>
+                </SplitItem>
+              )}
+            </Split>
+          </PageSection>
+        </PageGroup>
+        <Divider />
+        <PageSection variant={PageSectionVariants.light}>
           <Toolbar className="monitoring-alert-detail-toolbar">
             <ToolbarContent>
               <ToolbarItem variant="label">
-                <SectionHeading text={t('Alert details')} />
+                <Title headingLevel="h2">{t('Alert details')}</Title>
               </ToolbarItem>
               <ToolbarGroup align={{ default: 'alignRight' }}>
                 <ActionServiceProvider context={{ 'alert-detail-toolbar-actions': { alert } }}>
@@ -201,135 +233,162 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
               </ToolbarGroup>
             </ToolbarContent>
           </Toolbar>
-
-          <div className="co-m-pane__body-group">
-            <div className="row">
-              <div className="col-sm-12">
-                {!sourceId || sourceId === 'prometheus' ? (
-                  <Graph
-                    filterLabels={labels}
-                    namespace={namespace}
-                    query={rule?.query}
-                    ruleDuration={rule?.duration}
-                  />
-                ) : AlertsChart && !hideGraphs ? (
-                  <AlertsChart rule={rule} />
-                ) : null}
-              </div>
-            </div>
-            <div className="row">
-              <div className="col-sm-6">
-                <dl className="co-m-pane__details">
-                  <dt>{t('Name')}</dt>
-                  <dd>{labels?.alertname}</dd>
-                  <dt>
-                    <PopoverField bodyContent={<SeverityHelp />} label={t('Severity')} />
-                  </dt>
-                  <dd>
+          <Grid sm={12} md={6} hasGutter>
+            <GridItem span={12}>
+              {!sourceId || sourceId === 'prometheus' ? (
+                <Graph
+                  filterLabels={labels}
+                  namespace={namespace}
+                  query={rule?.query}
+                  ruleDuration={rule?.duration}
+                />
+              ) : AlertsChart && !hideGraphs ? (
+                <AlertsChart rule={rule} />
+              ) : null}
+            </GridItem>
+            <GridItem>
+              <DescriptionList>
+                <DescriptionListGroup>
+                  <DescriptionListTerm>{t('Name')}</DescriptionListTerm>
+                  <DescriptionListDescription>{labels?.alertname}</DescriptionListDescription>
+                </DescriptionListGroup>
+                <DescriptionListGroup>
+                  <DescriptionListTermHelpText>
+                    <Popover
+                      headerContent={<div>{t('Severity')}</div>}
+                      bodyContent={<SeverityHelp />}
+                    >
+                      <DescriptionListTermHelpTextButton>
+                        {' '}
+                        {t('Severity')}
+                      </DescriptionListTermHelpTextButton>
+                    </Popover>
+                  </DescriptionListTermHelpText>
+                  <DescriptionListDescription>
                     <Severity severity={labels?.severity} />
-                  </dd>
-                  {alert?.annotations?.description && (
-                    <>
-                      <dt>{t('Description')}</dt>
-                      <dd>
-                        <AlertMessage
-                          alertText={alert.annotations.description}
-                          labels={labels}
-                          template={rule?.annotations?.description}
-                        />
-                      </dd>
-                    </>
-                  )}
-                  {alert?.annotations?.summary && (
-                    <>
-                      <dt>{t('Summary')}</dt>
-                      <dd>{alert.annotations.summary}</dd>
-                    </>
-                  )}
-                  {alert?.annotations?.message && (
-                    <>
-                      <dt>{t('Message')}</dt>
-                      <dd>
-                        <AlertMessage
-                          alertText={alert.annotations.message}
-                          labels={labels}
-                          template={rule?.annotations?.message}
-                        />
-                      </dd>
-                    </>
-                  )}
-                  {runbookURL && (
-                    <>
-                      <dt>{t('Runbook')}</dt>
-                      <dd>
-                        <ExternalLink href={runbookURL} text={runbookURL} />
-                      </dd>
-                    </>
-                  )}
-                </dl>
-              </div>
-              <div className="col-sm-6">
-                <dl className="co-m-pane__details">
-                  <dt>
-                    <PopoverField bodyContent={<SourceHelp />} label={t('Source')} />
-                  </dt>
-                  <dd>{alert && getSourceKey(_.startCase(alertSource(alert)), t)}</dd>
-                  <dt>
-                    <PopoverField bodyContent={<AlertStateHelp />} label={t('State')} />
-                  </dt>
-                  <dd>
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
+                {alert?.annotations?.description && (
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>{t('Description')}</DescriptionListTerm>
+                    <DescriptionListDescription>
+                      <AlertMessage
+                        alertText={alert.annotations.description}
+                        labels={labels}
+                        template={rule?.annotations?.description}
+                      />
+                    </DescriptionListDescription>
+                  </DescriptionListGroup>
+                )}
+                {alert?.annotations?.summary && (
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>{t('Summary')}</DescriptionListTerm>
+                    <DescriptionListDescription>
+                      {alert.annotations.summary}
+                    </DescriptionListDescription>
+                  </DescriptionListGroup>
+                )}
+                {alert?.annotations?.message && (
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>{t('Message')}</DescriptionListTerm>
+                    <DescriptionListDescription>
+                      <AlertMessage
+                        alertText={alert.annotations.message}
+                        labels={labels}
+                        template={rule?.annotations?.message}
+                      />
+                    </DescriptionListDescription>
+                  </DescriptionListGroup>
+                )}
+                {runbookURL && (
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>{t('Runbook')}</DescriptionListTerm>
+                    <DescriptionListDescription>
+                      <ExternalLink href={runbookURL} text={runbookURL} />
+                    </DescriptionListDescription>
+                  </DescriptionListGroup>
+                )}
+              </DescriptionList>
+            </GridItem>
+            <GridItem>
+              <DescriptionList>
+                <DescriptionListGroup>
+                  <DescriptionListTermHelpText>
+                    <Popover headerContent={<div>{t('Source')}</div>} bodyContent={<SourceHelp />}>
+                      <DescriptionListTermHelpTextButton>
+                        {' '}
+                        {t('Source')}
+                      </DescriptionListTermHelpTextButton>
+                    </Popover>
+                  </DescriptionListTermHelpText>
+                  <DescriptionListDescription>
+                    {alert && getSourceKey(_.startCase(alertSource(alert)), t)}
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
+                <DescriptionListGroup>
+                  <DescriptionListTermHelpText>
+                    <Popover
+                      headerContent={<div>{t('State')}</div>}
+                      bodyContent={<AlertStateHelp />}
+                    >
+                      <DescriptionListTermHelpTextButton>
+                        {' '}
+                        {t('State')}
+                      </DescriptionListTermHelpTextButton>
+                    </Popover>
+                  </DescriptionListTermHelpText>
+                  <DescriptionListDescription>
                     <AlertState state={state} />
                     <AlertStateDescription alert={alert} />
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-          <div className="co-m-pane__body-group">
-            <div className="row">
-              <div className="col-xs-12">
-                <dl className="co-m-pane__details" data-test="label-list">
-                  <dt>{t('Labels')}</dt>
-                  <dd>
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
+              </DescriptionList>
+            </GridItem>
+            <GridItem span={12}>
+              <DescriptionList>
+                <DescriptionListGroup>
+                  <DescriptionListTerm>{t('Labels')}</DescriptionListTerm>
+                  <DescriptionListDescription>
                     <Labels kind="alert" labels={labels} />
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-          <div className="co-m-pane__body-group">
-            <div className="row">
-              <div className="col-xs-12">
-                <dl className="co-m-pane__details">
-                  <dt>{t('Alerting rule')}</dt>
-                  <dd>
-                    <div className="co-resource-item">
-                      <MonitoringResourceIcon resource={RuleResource} />
-                      <Link
-                        to={getRuleUrl(perspective, rule, namespace)}
-                        data-test="alert-rules-detail-resource-link"
-                        className="co-resource-item__resource-name"
-                      >
-                        {_.get(rule, 'name')}
-                      </Link>
-                    </div>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
+              </DescriptionList>
+            </GridItem>
+            <GridItem span={12}>
+              <DescriptionList>
+                <DescriptionListGroup>
+                  <DescriptionListTerm>{t('Alerting rule')}</DescriptionListTerm>
+                  <DescriptionListDescription>
+                    <Flex
+                      spaceItems={{ default: 'spaceItemsNone' }}
+                      flexWrap={{ default: 'nowrap' }}
+                    >
+                      <FlexItem>
+                        <MonitoringResourceIcon resource={RuleResource} />
+                      </FlexItem>
+                      <FlexItem>
+                        <Link
+                          to={getRuleUrl(perspective, rule, namespace)}
+                          data-test="alert-rules-detail-resource-link"
+                        >
+                          {_.get(rule, 'name')}
+                        </Link>
+                      </FlexItem>
+                    </Flex>
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
+              </DescriptionList>
+            </GridItem>
+          </Grid>
+        </PageSection>
         {silencesLoaded && !_.isEmpty(alert?.silencedBy) && (
-          <div className="co-m-pane__body">
-            <div className="co-m-pane__body-group">
-              <SectionHeading text={t('Silenced by')} />
-              <div className="row">
-                <div className="col-xs-12">
-                  <SilencedByList silences={alert?.silencedBy} />
-                </div>
-              </div>
-            </div>
-          </div>
+          <>
+            <Divider />
+            <PageSection variant={PageSectionVariants.light}>
+              <Title headingLevel="h2">{t('Silenced by')}</Title>
+              <SilencedByList silences={alert?.silencedBy} />
+            </PageSection>
+          </>
         )}
       </StatusBox>
     </>
@@ -369,7 +428,7 @@ const AlertMessage: React.FC<AlertMessageProps> = ({ alertText, labels, template
       if (tagCount > 0 && tagCount === resourceNameCount) {
         const link = (
           <ResourceLink
-            className="co-resource-item--monitoring-alert"
+            className="monitoring__resource-item--monitoring-alert"
             inline
             key={model.kind}
             kind={model.kind}
@@ -393,11 +452,9 @@ const AlertMessage: React.FC<AlertMessageProps> = ({ alertText, labels, template
   });
 
   return (
-    <div className="co-alert-manager">
-      <p>
-        <LinkifyExternal>{messageParts}</LinkifyExternal>
-      </p>
-    </div>
+    <p>
+      <LinkifyExternal>{messageParts}</LinkifyExternal>
+    </p>
   );
 };
 
@@ -421,33 +478,38 @@ const AlertStateHelp: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
-    <dl className="co-inline">
-      <dt>
-        <AlertStateIcon state={AlertStates.Pending} /> <strong>{t('Pending: ')}</strong>
-      </dt>
-      <dd>
-        {t(
-          'The alert is active but is waiting for the duration that is specified in the alerting rule before it fires.',
-        )}
-      </dd>
-      <dt>
-        <AlertStateIcon state={AlertStates.Firing} /> <strong>{t('Firing: ')}</strong>
-      </dt>
-      <dd>
-        {t(
-          'The alert is firing because the alert condition is true and the optional `for` duration has passed. The alert will continue to fire as long as the condition remains true.',
-        )}
-      </dd>
-      <dt>
-        <AlertStateIcon state={AlertStates.Silenced} /> <strong>{t('Silenced: ')}</strong>
-      </dt>
-      <dt></dt>
-      <dd>
-        {t(
-          'The alert is now silenced for a defined time period. Silences temporarily mute alerts based on a set of label selectors that you define. Notifications will not be sent for alerts that match all the listed values or regular expressions.',
-        )}
-      </dd>
-    </dl>
+    <DescriptionList isCompact>
+      <DescriptionListGroup>
+        <DescriptionListTerm>
+          <AlertStateIcon state={AlertStates.Pending} /> <strong>{t('Pending: ')}</strong>
+        </DescriptionListTerm>
+        <DescriptionListDescription>
+          {t(
+            'The alert is active but is waiting for the duration that is specified in the alerting rule before it fires.',
+          )}
+        </DescriptionListDescription>
+      </DescriptionListGroup>
+      <DescriptionListGroup>
+        <DescriptionListTerm>
+          <AlertStateIcon state={AlertStates.Firing} /> <strong>{t('Firing: ')}</strong>
+        </DescriptionListTerm>
+        <DescriptionListDescription>
+          {t(
+            'The alert is firing because the alert condition is true and the optional `for` duration has passed. The alert will continue to fire as long as the condition remains true.',
+          )}
+        </DescriptionListDescription>
+      </DescriptionListGroup>
+      <DescriptionListGroup>
+        <DescriptionListTerm>
+          <AlertStateIcon state={AlertStates.Silenced} /> <strong>{t('Silenced: ')}</strong>
+        </DescriptionListTerm>
+        <DescriptionListDescription>
+          {t(
+            'The alert is now silenced for a defined time period. Silences temporarily mute alerts based on a set of label selectors that you define. Notifications will not be sent for alerts that match all the listed values or regular expressions.',
+          )}
+        </DescriptionListDescription>
+      </DescriptionListGroup>
+    </DescriptionList>
   );
 };
 

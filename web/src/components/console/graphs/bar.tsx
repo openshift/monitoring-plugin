@@ -1,34 +1,23 @@
-import {
-  Humanize,
-  PrometheusEndpoint,
-  PrometheusResponse,
-  usePrometheusPoll,
-} from '@openshift-console/dynamic-plugin-sdk';
-import {
-  ChartBar,
-  ChartLabel,
-  ChartThemeColor,
-  ChartThemeDefinition,
-  getCustomTheme,
-} from '@patternfly/react-charts';
-import * as _ from 'lodash-es';
 import * as React from 'react';
+import { ChartBar, ChartLabel, ChartThemeColor, getCustomTheme } from '@patternfly/react-charts';
 
-import { CustomDataSource } from '../extensions/dashboard-data-source';
 import { useRefWidth } from '../utils/ref-width-hook';
-import { humanizeNumber } from '../utils/units';
+import { DataPoint, getInstantVectorStats } from './helpers';
 import { GraphEmpty } from './graph-empty';
+import { CustomDataSource } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
+import { humanizeNumber } from '../utils/units';
+import { Humanize, usePrometheusPoll } from '@openshift-console/dynamic-plugin-sdk';
+import { PrometheusEndpoint } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
+import { PrometheusGraph, PrometheusGraphLink } from './promethues-graph';
 
 const DEFAULT_BAR_WIDTH = 10;
 const PADDING_RATIO = 1 / 3;
 
-const barTextAnchor = 'end';
-
-const barTheme: ChartThemeDefinition = {
+const barTheme = {
   bar: {
     style: {
       labels: {
-        textAnchor: barTextAnchor,
+        textAnchor: 'end' as const,
       },
     },
   },
@@ -48,13 +37,11 @@ const barTheme: ChartThemeDefinition = {
         stroke: 'none',
       },
       tickLabels: {
-        textAnchor: 'start',
+        textAnchor: 'start' as const,
       },
     },
   },
 };
-
-const theme = getCustomTheme(ChartThemeColor.blue, barTheme);
 
 const BarChart: React.FC<BarChartProps> = ({
   barSpacing = 15,
@@ -62,11 +49,16 @@ const BarChart: React.FC<BarChartProps> = ({
   data = [],
   LabelComponent,
   loading = false,
+  noLink = false,
+  query,
+  theme = getCustomTheme(ChartThemeColor.blue, barTheme),
+  title,
+  titleClassName,
 }) => {
   const [containerRef, width] = useRefWidth();
 
-  // Max space that horizontal padding should take up. By default, 2/3 of the horizontal space is
-  // always available for the actual bar graph.
+  // Max space that horizontal padding should take up.
+  // By default, 2/3 of the horizontal space is always available for the actual bar graph.
   const maxHorizontalPadding = PADDING_RATIO * width;
 
   const padding = {
@@ -77,80 +69,67 @@ const BarChart: React.FC<BarChartProps> = ({
   };
 
   return (
-    <div ref={containerRef} className="graph-wrapper graph-wrapper__horizontal-bar">
-      {data.length ? (
-        data.map((datum, index) => (
-          <React.Fragment key={index}>
-            <div className="graph-bar__label">
-              {LabelComponent ? (
-                <LabelComponent title={datum.x} metric={datum.metric} />
-              ) : (
-                String(datum.x)
-              )}
-            </div>
-            <div className="graph-bar__chart">
-              <ChartBar
-                barWidth={barWidth}
-                data={[datum]}
-                horizontal
-                labelComponent={<ChartLabel x={width} textAnchor={barTextAnchor} />}
-                theme={theme}
-                height={barWidth + padding.bottom}
-                width={width}
-                domain={{ y: [0, data.reduce((max, datum) => Math.max(max, datum.y), 0)] }}
-                padding={padding}
-              />
-            </div>
-          </React.Fragment>
-        ))
-      ) : (
-        <GraphEmpty loading={loading} />
-      )}
-    </div>
+    <PrometheusGraph
+      ref={containerRef}
+      title={title}
+      className={titleClassName || 'graph-wrapper graph-wrapper__horizontal-bar'}
+    >
+      <PrometheusGraphLink query={noLink ? undefined : query}>
+        {data.length ? (
+          data.map((datum, index) => (
+            <React.Fragment key={index}>
+              <div className="graph-bar__label">
+                {LabelComponent ? (
+                  <LabelComponent title={datum.x} metric={datum.metric} />
+                ) : (
+                  datum.x
+                )}
+              </div>
+              <div className="graph-bar__chart">
+                <ChartBar
+                  barWidth={barWidth}
+                  data={[datum]}
+                  horizontal
+                  labelComponent={
+                    <ChartLabel x={width} textAnchor={theme.bar?.style?.labels?.textAnchor} />
+                  }
+                  theme={theme}
+                  height={barWidth + padding.bottom}
+                  width={width}
+                  domain={{ y: [0, data[0].y] }}
+                  padding={padding}
+                />
+              </div>
+            </React.Fragment>
+          ))
+        ) : (
+          <GraphEmpty loading={loading} />
+        )}
+      </PrometheusGraphLink>
+    </PrometheusGraph>
   );
 };
-
-const getInstantVectorStats: GetInstantStats = (response, metric, humanize) => {
-  const results = _.get(response, 'data.result', []);
-  return results.map((r) => {
-    const y = parseFloat(_.get(r, 'value[1]'));
-    return {
-      label: humanize ? humanize(y).string : null,
-      x: _.get(r, ['metric', metric], ''),
-      y,
-      metric: r.metric,
-    };
-  });
-};
-
-type DataPoint = {
-  x?: number;
-  y?: number;
-  label?: string;
-  metric?: { [key: string]: string };
-};
-
-type GetInstantStats = (
-  response: PrometheusResponse,
-  metric?: string,
-  humanize?: Humanize,
-) => DataPoint[];
 
 export const Bar: React.FC<BarProps> = ({
   barSpacing,
   barWidth,
-  customDataSource,
   delay = undefined,
   humanize = humanizeNumber,
   LabelComponent,
   metric,
+  namespace,
+  noLink = false,
   query,
+  theme,
+  title,
+  customDataSource,
 }) => {
-  const [response, , loading] = usePrometheusPoll({
-    customDataSource,
+  const [response, completed] = usePrometheusPoll({
     delay,
     endpoint: PrometheusEndpoint.QUERY,
+    namespace,
     query,
+    customDataSource,
   });
   const data = getInstantVectorStats(response, metric, humanize);
 
@@ -160,8 +139,11 @@ export const Bar: React.FC<BarProps> = ({
       barWidth={barWidth}
       data={data}
       LabelComponent={LabelComponent}
-      loading={loading as boolean}
+      loading={!completed}
+      noLink={noLink}
       query={query}
+      theme={theme}
+      title={title}
     />
   );
 };
@@ -174,19 +156,28 @@ export type LabelComponentProps = {
 type BarChartProps = {
   barSpacing?: number;
   barWidth?: number;
-  data: DataPoint[];
-  LabelComponent: React.ComponentType<LabelComponentProps>;
-  loading: boolean;
-  query: string;
+  data?: DataPoint[];
+  LabelComponent?: React.ComponentType<LabelComponentProps>;
+  loading?: boolean;
+  noLink?: boolean;
+  query?: string;
+  theme?: any; // TODO figure out the best way to import VictoryThemeDefinition
+  title?: string;
+  titleClassName?: string;
 };
 
 type BarProps = {
   barSpacing?: number;
   barWidth?: number;
-  customDataSource?: CustomDataSource;
   delay?: number;
   humanize?: Humanize;
   LabelComponent?: React.ComponentType<LabelComponentProps>;
   metric?: string;
+  namespace?: string;
+  noLink?: boolean;
   query: string;
+  theme?: any; // TODO figure out the best way to import VictoryThemeDefinition
+  title?: string;
+  titleClassName?: string;
+  customDataSource?: CustomDataSource;
 };

@@ -4,10 +4,10 @@ import { useTranslation } from 'react-i18next';
 import { Label as PfLabel, LabelGroup as PfLabelGroup } from '@patternfly/react-core';
 
 const Label = ({ k, v }) => (
-  <PfLabel className="co-label" key={k}>
-    <span className="co-label__key">{k}</span>
-    <span className="co-label__eq">=</span>
-    <span className="co-label__value">{v}</span>
+  <PfLabel key={k}>
+    <span>{k}</span>
+    <span>=</span>
+    <span>{v}</span>
   </PfLabel>
 );
 

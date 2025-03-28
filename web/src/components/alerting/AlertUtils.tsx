@@ -16,7 +16,15 @@ import {
 import { AlertSource, MonitoringResource } from '../types';
 import * as _ from 'lodash-es';
 import { useTranslation } from 'react-i18next';
-import { Alert as PFAlert, Popover, Button } from '@patternfly/react-core';
+import {
+  Alert as PFAlert,
+  Popover,
+  Button,
+  DescriptionList,
+  DescriptionListGroup,
+  DescriptionListTerm,
+  DescriptionListDescription,
+} from '@patternfly/react-core';
 import classNames from 'classnames';
 import { BellIcon, BellSlashIcon, OutlinedBellIcon } from '@patternfly/react-icons';
 import { FormatSeriesTitle, QueryBrowser } from '../query-browser';
@@ -62,7 +70,6 @@ export const SilencesNotLoadedWarning: React.FC<{ silencesLoadError: any }> = ({
 
   return (
     <PFAlert
-      className="co-alert"
       isInline
       title={t(
         'Error loading silences from Alertmanager. Some of the alerts below may actually be silenced.',
@@ -87,6 +94,7 @@ export const MonitoringResourceIcon: React.FC<MonitoringResourceIconProps> = ({
 }) => (
   <span
     className={classNames(
+      // Leave to keep compatibility with console looks
       `co-m-resource-icon co-m-resource-${resource.kind.toLowerCase()}`,
       className,
     )}
@@ -267,33 +275,49 @@ export const SeverityHelp: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
-    <dl className="co-inline">
-      <dt>
-        <SeverityIcon severity={AlertSeverity.Critical} /> <strong>{t('Critical: ')}</strong>
-      </dt>
-      <dd>
-        {t(
-          'The condition that triggered the alert could have a critical impact. The alert requires immediate attention when fired and is typically paged to an individual or to a critical response team.',
-        )}
-      </dd>
-      <dt>
-        <SeverityIcon severity={AlertSeverity.Warning} /> <strong>{t('Warning: ')}</strong>
-      </dt>
-      <dd>
-        {t(
-          'The alert provides a warning notification about something that might require attention in order to prevent a problem from occurring. Warnings are typically routed to a ticketing system for non-immediate review.',
-        )}
-      </dd>
-      <dt>
-        <SeverityIcon severity={AlertSeverity.Info} /> <strong>{t('Info: ')}</strong>
-      </dt>
-      <dd>{t('The alert is provided for informational purposes only.')}</dd>
-      <dt>
-        <SeverityIcon severity={AlertSeverity.None} /> <strong>{t('None: ')}</strong>
-      </dt>
-      <dd>{t('The alert has no defined severity.')}</dd>
-      <dd>{t('You can also create custom severity definitions for user workload alerts.')}</dd>
-    </dl>
+    <DescriptionList isCompact>
+      <DescriptionListGroup>
+        <DescriptionListTerm>
+          <SeverityIcon severity={AlertSeverity.Critical} /> <strong>{t('Critical: ')}</strong>
+        </DescriptionListTerm>
+        <DescriptionListDescription>
+          {t(
+            'The condition that triggered the alert could have a critical impact. The alert requires immediate attention when fired and is typically paged to an individual or to a critical response team.',
+          )}
+        </DescriptionListDescription>
+      </DescriptionListGroup>
+      <DescriptionListGroup>
+        <DescriptionListTerm>
+          <SeverityIcon severity={AlertSeverity.Warning} /> <strong>{t('Warning: ')}</strong>
+        </DescriptionListTerm>
+        <DescriptionListDescription>
+          {t(
+            'The alert provides a warning notification about something that might require attention in order to prevent a problem from occurring. Warnings are typically routed to a ticketing system for non-immediate review.',
+          )}
+        </DescriptionListDescription>
+      </DescriptionListGroup>
+      <DescriptionListGroup>
+        <DescriptionListTerm>
+          <SeverityIcon severity={AlertSeverity.Info} /> <strong>{t('Info: ')}</strong>
+        </DescriptionListTerm>
+        <DescriptionListDescription>
+          {t('The alert is provided for informational purposes only.')}
+        </DescriptionListDescription>
+      </DescriptionListGroup>
+      <DescriptionListGroup>
+        <DescriptionListTerm>
+          <SeverityIcon severity={AlertSeverity.None} /> <strong>{t('None: ')}</strong>
+        </DescriptionListTerm>
+        <DescriptionListDescription>
+          {t('The alert has no defined severity.')}
+        </DescriptionListDescription>
+      </DescriptionListGroup>
+      <DescriptionListGroup>
+        <DescriptionListDescription>
+          {t('You can also create custom severity definitions for user workload alerts.')}
+        </DescriptionListDescription>
+      </DescriptionListGroup>
+    </DescriptionList>
   );
 };
 
@@ -301,24 +325,28 @@ export const SourceHelp: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
-    <dl className="co-inline">
-      <dt>
-        <strong>{t('Platform: ')}</strong>
-      </dt>
-      <dd>
-        {t(
-          'Platform-level alerts relate only to OpenShift namespaces. OpenShift namespaces provide core OpenShift functionality.',
-        )}
-      </dd>
-      <dt>
-        <strong>{t('User: ')}</strong>
-      </dt>
-      <dd>
-        {t(
-          'User workload alerts relate to user-defined namespaces. These alerts are user-created and are customizable. User workload monitoring can be enabled post-installation to provide observability into your own services.',
-        )}
-      </dd>
-    </dl>
+    <DescriptionList isCompact>
+      <DescriptionListGroup>
+        <DescriptionListTerm>
+          <strong>{t('Platform: ')}</strong>
+        </DescriptionListTerm>
+        <DescriptionListDescription>
+          {t(
+            'Platform-level alerts relate only to OpenShift namespaces. OpenShift namespaces provide core OpenShift functionality.',
+          )}
+        </DescriptionListDescription>
+      </DescriptionListGroup>
+      <DescriptionListGroup>
+        <DescriptionListTerm>
+          <strong>{t('User: ')}</strong>
+        </DescriptionListTerm>
+        <DescriptionListDescription>
+          {t(
+            'User workload alerts relate to user-defined namespaces. These alerts are user-created and are customizable. User workload monitoring can be enabled post-installation to provide observability into your own services.',
+          )}
+        </DescriptionListDescription>
+      </DescriptionListGroup>
+    </DescriptionList>
   );
 };
 

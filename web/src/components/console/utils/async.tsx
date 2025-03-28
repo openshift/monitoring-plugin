@@ -1,7 +1,6 @@
 import * as React from 'react';
 import * as _ from 'lodash-es';
-
-import { LoadingBox } from './status-box';
+import { LoadingBox } from '../console-shared/src/components/loading/LoadingBox';
 
 /**
  * FIXME: Comparing two functions is not the *best* solution, but we can handle false negatives.

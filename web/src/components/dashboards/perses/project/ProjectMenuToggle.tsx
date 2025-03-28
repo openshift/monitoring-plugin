@@ -72,7 +72,7 @@ const ProjectMenuToggle = (props: {
       onClick={() => onToggle(!isOpen)}
       isExpanded={isOpen}
       disabled={disabled}
-      className={classNames('co-project-dropdown__menu-toggle', className)}
+      className={classNames('monitoring__project-dropdown__menu-toggle', className)}
     >
       {title}
     </MenuToggle>
