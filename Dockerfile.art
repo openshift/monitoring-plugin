@@ -7,14 +7,19 @@ WORKDIR /usr/src/app
 
 USER 0
 
-# use dependencies provided by Cachito
+# use dependencies provided by Cachito or cachi2.
+# cachi2 is more transparent than Cachito -- it is not
+# necessary to source any file.
 ENV HUSKY=0
-RUN test -d ${REMOTE_SOURCES_DIR}/cachito-gomod-with-deps || exit 1; \
-    cp -f $REMOTE_SOURCES_DIR/cachito-gomod-with-deps/app/registry-ca.pem . \
- && cp -f $REMOTE_SOURCES_DIR/cachito-gomod-with-deps/app/web/{.npmrc,package-lock.json} web/ \
- && source ${REMOTE_SOURCES_DIR}/cachito-gomod-with-deps/cachito.env \
- && make install-frontend-ci \
- && make build-frontend
+RUN set -e; \
+    if [[ "${OPENSHIFT_BUILD_MODE_DEPS:-}" == "cachito" ]]; then \
+        test -d ${REMOTE_SOURCES_DIR}/cachito-gomod-with-deps ; \
+        cp -f $REMOTE_SOURCES_DIR/cachito-gomod-with-deps/app/registry-ca.pem . ; \
+        cp -f $REMOTE_SOURCES_DIR/cachito-gomod-with-deps/app/web/{.npmrc,package-lock.json} web/ ; \
+        source ${REMOTE_SOURCES_DIR}/cachito-gomod-with-deps/cachito.env ; \
+    fi \
+    && make install-frontend-ci \
+    && make build-frontend
 
 
 FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.23-openshift-4.19 AS go-builder
