@@ -98,6 +98,7 @@ const SilencesPage_: React.FC = () => {
 
   if (perspective === 'acm') {
     rowFilters.splice(-1, 0, {
+      type: 'silence-cluster',
       filter: (filter, silence: Silence) =>
         filter.selected.length === 0 ||
         filter.selected.some((selectedFilter) =>
@@ -109,6 +110,11 @@ const SilencesPage_: React.FC = () => {
       filterGroupName: t('Cluster'),
       items: clusters.map((clusterName) => ({ id: clusterName, title: clusterName })),
       reducer: silenceCluster,
+      isMatch: (silence: Silence, clusterName: string) =>
+        fuzzyCaseInsensitive(
+          clusterName,
+          silence.matchers.find((label) => label.name === 'cluster').value,
+        ),
     } as RowFilter);
   }
 
