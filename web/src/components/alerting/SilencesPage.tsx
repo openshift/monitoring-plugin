@@ -99,6 +99,7 @@ const SilencesPage_: React.FC = () => {
   if (perspective === 'acm') {
     rowFilters.splice(-1, 0, {
       filter: (filter, silence: Silence) =>
+        filter.selected.length === 0 ||
         filter.selected.some((selectedFilter) =>
           fuzzyCaseInsensitive(
             selectedFilter,

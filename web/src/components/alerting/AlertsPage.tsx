@@ -135,10 +135,12 @@ const AlertsPage_: React.FC = () => {
     rowFilters.splice(-1, 0, {
       type: 'alert-cluster',
       filter: (filter, aggregatedAlert: AggregatedAlert) =>
-        aggregatedAlert.alerts.some((alert) =>
-          filter.selected.some((selectedFilter) =>
-            fuzzyCaseInsensitive(selectedFilter, alert.labels?.cluster),
-          ),
+        aggregatedAlert.alerts.some(
+          (alert) =>
+            filter.selected.length === 0 ||
+            filter.selected.some((selectedFilter) =>
+              fuzzyCaseInsensitive(selectedFilter, alert.labels?.cluster),
+            ),
         ),
       filterGroupName: t('Cluster'),
       items: clusters.map((clusterName) => ({ id: clusterName, title: clusterName })),
