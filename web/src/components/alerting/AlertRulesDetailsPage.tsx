@@ -208,9 +208,7 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
               <SeverityBadge severity={rule?.labels?.severity} />
             </Title>
           </PageSection>
-        </PageGroup>
-        <Divider />
-        <PageGroup>
+          <Divider />
           <PageSection hasBodyWrapper={false}>
             <div>
               <Title headingLevel="h2">{t('Alerting rule details')}</Title>
@@ -331,38 +329,38 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
               </GridItem>
             </Grid>
           </PageSection>
-        </PageGroup>
-        <Divider />
-        <PageSection hasBodyWrapper={false}>
-          <Toolbar>
-            <ToolbarContent>
-              <ToolbarItem variant="label">
-                <Title headingLevel="h2">{t('Active alerts')}</Title>
-              </ToolbarItem>
-              <ToolbarGroup align={{ default: 'alignEnd' }}>
-                <ToolbarItem>
-                  <ToggleGraph />
+          <Divider />
+          <PageSection hasBodyWrapper={false}>
+            <Toolbar>
+              <ToolbarContent>
+                <ToolbarItem variant="label">
+                  <Title headingLevel="h2">{t('Active alerts')}</Title>
                 </ToolbarItem>
-              </ToolbarGroup>
-            </ToolbarContent>
-          </Toolbar>
-          {!sourceId || sourceId === 'prometheus' ? (
-            <Graph
-              formatSeriesTitle={formatSeriesTitle}
-              namespace={namespace}
-              query={rule?.query}
-              ruleDuration={rule?.duration}
-              showLegend
-            />
-          ) : AlertChart ? (
-            <AlertChart rule={rule} />
-          ) : null}
-          {_.isEmpty(rule?.alerts) ? (
-            <div>{t('None found')}</div>
-          ) : (
-            <ActiveAlerts alerts={rule.alerts} ruleID={rule?.id} namespace={namespace} />
-          )}
-        </PageSection>
+                <ToolbarGroup align={{ default: 'alignEnd' }}>
+                  <ToolbarItem>
+                    <ToggleGraph />
+                  </ToolbarItem>
+                </ToolbarGroup>
+              </ToolbarContent>
+            </Toolbar>
+            {!sourceId || sourceId === 'prometheus' ? (
+              <Graph
+                formatSeriesTitle={formatSeriesTitle}
+                namespace={namespace}
+                query={rule?.query}
+                ruleDuration={rule?.duration}
+                showLegend
+              />
+            ) : AlertChart ? (
+              <AlertChart rule={rule} />
+            ) : null}
+            {_.isEmpty(rule?.alerts) ? (
+              <div>{t('None found')}</div>
+            ) : (
+              <ActiveAlerts alerts={rule.alerts} ruleID={rule?.id} namespace={namespace} />
+            )}
+          </PageSection>
+        </PageGroup>
       </StatusBox>
     </>
   );

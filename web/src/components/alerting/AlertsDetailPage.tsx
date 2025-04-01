@@ -88,6 +88,7 @@ import { SilenceTableRow } from './SilencesUtils';
 import { MonitoringState } from '../../reducers/observe';
 import { StatusBox } from '../console/console-shared/src/components/status/StatusBox';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
+import { Helmet } from 'react-helmet';
 
 const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -182,197 +183,197 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
               )}
             </Split>
           </PageSection>
-        </PageGroup>
-        <Divider />
-        <PageSection hasBodyWrapper={false}>
-          <Toolbar>
-            <ToolbarContent>
-              <ToolbarItem variant="label">
-                <Title headingLevel="h2">{t('Alert details')}</Title>
-              </ToolbarItem>
-              <ToolbarGroup align={{ default: 'alignEnd' }}>
-                <ActionServiceProvider context={{ 'alert-detail-toolbar-actions': { alert } }}>
-                  {({ actions, loaded }) =>
-                    loaded
-                      ? actions.map((action) => {
-                          if (isActionWithHref(action)) {
-                            return (
-                              <ToolbarItem key={action.id} gap={{ default: 'gapNone' }}>
-                                <Link to={action.cta.href}>{action.label}</Link>
-                              </ToolbarItem>
-                            );
-                          } else if (isActionWithCallback(action)) {
-                            return (
-                              <ToolbarItem key={action.id} gap={{ default: 'gapNone' }}>
-                                <Button variant="link" onClick={action.cta}>
-                                  {action.label}
-                                </Button>
-                              </ToolbarItem>
-                            );
-                          }
-
-                          return null;
-                        })
-                      : null
-                  }
-                </ActionServiceProvider>
-                <ToolbarItem>
-                  <ToggleGraph />
+          <Divider />
+          <PageSection hasBodyWrapper={false}>
+            <Toolbar>
+              <ToolbarContent>
+                <ToolbarItem variant="label">
+                  <Title headingLevel="h2">{t('Alert details')}</Title>
                 </ToolbarItem>
-              </ToolbarGroup>
-            </ToolbarContent>
-          </Toolbar>
-          <Grid sm={12} md={6} hasGutter>
-            <GridItem span={12}>
-              {!sourceId || sourceId === 'prometheus' ? (
-                <Graph
-                  filterLabels={labels}
-                  namespace={namespace}
-                  query={rule?.query}
-                  ruleDuration={rule?.duration}
-                />
-              ) : AlertsChart && !hideGraphs ? (
-                <AlertsChart rule={rule} />
-              ) : null}
-            </GridItem>
-            <GridItem>
-              <DescriptionList>
-                <DescriptionListGroup>
-                  <DescriptionListTerm>{t('Name')}</DescriptionListTerm>
-                  <DescriptionListDescription>{labels?.alertname}</DescriptionListDescription>
-                </DescriptionListGroup>
-                <DescriptionListGroup>
-                  <DescriptionListTermHelpText>
-                    <Popover
-                      headerContent={<div>{t('Severity')}</div>}
-                      bodyContent={<SeverityHelp />}
-                    >
-                      <DescriptionListTermHelpTextButton>
-                        {t('Severity')}
-                      </DescriptionListTermHelpTextButton>
-                    </Popover>
-                  </DescriptionListTermHelpText>
-                  <DescriptionListDescription>
-                    <Severity severity={labels?.severity} />
-                  </DescriptionListDescription>
-                </DescriptionListGroup>
-                {alert?.annotations?.description && (
+                <ToolbarGroup align={{ default: 'alignEnd' }}>
+                  <ActionServiceProvider context={{ 'alert-detail-toolbar-actions': { alert } }}>
+                    {({ actions, loaded }) =>
+                      loaded
+                        ? actions.map((action) => {
+                            if (isActionWithHref(action)) {
+                              return (
+                                <ToolbarItem key={action.id} gap={{ default: 'gapNone' }}>
+                                  <Link to={action.cta.href}>{action.label}</Link>
+                                </ToolbarItem>
+                              );
+                            } else if (isActionWithCallback(action)) {
+                              return (
+                                <ToolbarItem key={action.id} gap={{ default: 'gapNone' }}>
+                                  <Button variant="link" onClick={action.cta}>
+                                    {action.label}
+                                  </Button>
+                                </ToolbarItem>
+                              );
+                            }
+
+                            return null;
+                          })
+                        : null
+                    }
+                  </ActionServiceProvider>
+                  <ToolbarItem>
+                    <ToggleGraph />
+                  </ToolbarItem>
+                </ToolbarGroup>
+              </ToolbarContent>
+            </Toolbar>
+            <Grid sm={12} md={6} hasGutter>
+              <GridItem span={12}>
+                {!sourceId || sourceId === 'prometheus' ? (
+                  <Graph
+                    filterLabels={labels}
+                    namespace={namespace}
+                    query={rule?.query}
+                    ruleDuration={rule?.duration}
+                  />
+                ) : AlertsChart && !hideGraphs ? (
+                  <AlertsChart rule={rule} />
+                ) : null}
+              </GridItem>
+              <GridItem>
+                <DescriptionList>
                   <DescriptionListGroup>
-                    <DescriptionListTerm>{t('Description')}</DescriptionListTerm>
+                    <DescriptionListTerm>{t('Name')}</DescriptionListTerm>
+                    <DescriptionListDescription>{labels?.alertname}</DescriptionListDescription>
+                  </DescriptionListGroup>
+                  <DescriptionListGroup>
+                    <DescriptionListTermHelpText>
+                      <Popover
+                        headerContent={<div>{t('Severity')}</div>}
+                        bodyContent={<SeverityHelp />}
+                      >
+                        <DescriptionListTermHelpTextButton>
+                          {t('Severity')}
+                        </DescriptionListTermHelpTextButton>
+                      </Popover>
+                    </DescriptionListTermHelpText>
                     <DescriptionListDescription>
-                      <AlertMessage
-                        alertText={alert.annotations.description}
-                        labels={labels}
-                        template={rule?.annotations?.description}
-                      />
+                      <Severity severity={labels?.severity} />
                     </DescriptionListDescription>
                   </DescriptionListGroup>
-                )}
-                {alert?.annotations?.summary && (
+                  {alert?.annotations?.description && (
+                    <DescriptionListGroup>
+                      <DescriptionListTerm>{t('Description')}</DescriptionListTerm>
+                      <DescriptionListDescription>
+                        <AlertMessage
+                          alertText={alert.annotations.description}
+                          labels={labels}
+                          template={rule?.annotations?.description}
+                        />
+                      </DescriptionListDescription>
+                    </DescriptionListGroup>
+                  )}
+                  {alert?.annotations?.summary && (
+                    <DescriptionListGroup>
+                      <DescriptionListTerm>{t('Summary')}</DescriptionListTerm>
+                      <DescriptionListDescription>
+                        {alert.annotations.summary}
+                      </DescriptionListDescription>
+                    </DescriptionListGroup>
+                  )}
+                  {alert?.annotations?.message && (
+                    <DescriptionListGroup>
+                      <DescriptionListTerm>{t('Message')}</DescriptionListTerm>
+                      <DescriptionListDescription>
+                        <AlertMessage
+                          alertText={alert.annotations.message}
+                          labels={labels}
+                          template={rule?.annotations?.message}
+                        />
+                      </DescriptionListDescription>
+                    </DescriptionListGroup>
+                  )}
+                  {runbookURL && (
+                    <DescriptionListGroup>
+                      <DescriptionListTerm>{t('Runbook')}</DescriptionListTerm>
+                      <DescriptionListDescription>
+                        <ExternalLink href={runbookURL} text={runbookURL} />
+                      </DescriptionListDescription>
+                    </DescriptionListGroup>
+                  )}
+                </DescriptionList>
+              </GridItem>
+              <GridItem>
+                <DescriptionList>
                   <DescriptionListGroup>
-                    <DescriptionListTerm>{t('Summary')}</DescriptionListTerm>
+                    <DescriptionListTermHelpText>
+                      <Popover headerContent={t('Source')} bodyContent={<SourceHelp />}>
+                        <DescriptionListTermHelpTextButton>
+                          {t('Source')}
+                        </DescriptionListTermHelpTextButton>
+                      </Popover>
+                    </DescriptionListTermHelpText>
                     <DescriptionListDescription>
-                      {alert.annotations.summary}
+                      {alert && getSourceKey(_.startCase(alertSource(alert)), t)}
                     </DescriptionListDescription>
                   </DescriptionListGroup>
-                )}
-                {alert?.annotations?.message && (
                   <DescriptionListGroup>
-                    <DescriptionListTerm>{t('Message')}</DescriptionListTerm>
+                    <DescriptionListTermHelpText>
+                      <Popover headerContent={t('State')} bodyContent={<AlertStateHelp />}>
+                        <DescriptionListTermHelpTextButton>
+                          {t('State')}
+                        </DescriptionListTermHelpTextButton>
+                      </Popover>
+                    </DescriptionListTermHelpText>
                     <DescriptionListDescription>
-                      <AlertMessage
-                        alertText={alert.annotations.message}
-                        labels={labels}
-                        template={rule?.annotations?.message}
-                      />
+                      <AlertState state={state} />
+                      <AlertStateDescription alert={alert} />
                     </DescriptionListDescription>
                   </DescriptionListGroup>
-                )}
-                {runbookURL && (
+                </DescriptionList>
+              </GridItem>
+              <GridItem span={12}>
+                <DescriptionList>
                   <DescriptionListGroup>
-                    <DescriptionListTerm>{t('Runbook')}</DescriptionListTerm>
+                    <DescriptionListTerm>{t('Labels')}</DescriptionListTerm>
                     <DescriptionListDescription>
-                      <ExternalLink href={runbookURL} text={runbookURL} />
+                      <Labels kind="alert" labels={labels} />
                     </DescriptionListDescription>
                   </DescriptionListGroup>
-                )}
-              </DescriptionList>
-            </GridItem>
-            <GridItem>
-              <DescriptionList>
-                <DescriptionListGroup>
-                  <DescriptionListTermHelpText>
-                    <Popover headerContent={t('Source')} bodyContent={<SourceHelp />}>
-                      <DescriptionListTermHelpTextButton>
-                        {t('Source')}
-                      </DescriptionListTermHelpTextButton>
-                    </Popover>
-                  </DescriptionListTermHelpText>
-                  <DescriptionListDescription>
-                    {alert && getSourceKey(_.startCase(alertSource(alert)), t)}
-                  </DescriptionListDescription>
-                </DescriptionListGroup>
-                <DescriptionListGroup>
-                  <DescriptionListTermHelpText>
-                    <Popover headerContent={t('State')} bodyContent={<AlertStateHelp />}>
-                      <DescriptionListTermHelpTextButton>
-                        {t('State')}
-                      </DescriptionListTermHelpTextButton>
-                    </Popover>
-                  </DescriptionListTermHelpText>
-                  <DescriptionListDescription>
-                    <AlertState state={state} />
-                    <AlertStateDescription alert={alert} />
-                  </DescriptionListDescription>
-                </DescriptionListGroup>
-              </DescriptionList>
-            </GridItem>
-            <GridItem span={12}>
-              <DescriptionList>
-                <DescriptionListGroup>
-                  <DescriptionListTerm>{t('Labels')}</DescriptionListTerm>
-                  <DescriptionListDescription>
-                    <Labels kind="alert" labels={labels} />
-                  </DescriptionListDescription>
-                </DescriptionListGroup>
-              </DescriptionList>
-            </GridItem>
-            <GridItem span={12}>
-              <DescriptionList>
-                <DescriptionListGroup>
-                  <DescriptionListTerm>{t('Alerting rule')}</DescriptionListTerm>
-                  <DescriptionListDescription>
-                    <Flex
-                      spaceItems={{ default: 'spaceItemsNone' }}
-                      flexWrap={{ default: 'nowrap' }}
-                    >
-                      <FlexItem>
-                        <ResourceIcon kind={RuleResource.kind} />
-                      </FlexItem>
-                      <FlexItem>
-                        <Link
-                          to={getRuleUrl(perspective, rule, namespace)}
-                          data-test="alert-rules-detail-resource-link"
-                        >
-                          {_.get(rule, 'name')}
-                        </Link>
-                      </FlexItem>
-                    </Flex>
-                  </DescriptionListDescription>
-                </DescriptionListGroup>
-              </DescriptionList>
-            </GridItem>
-          </Grid>
-        </PageSection>
-        {silencesLoaded && !_.isEmpty(alert?.silencedBy) && (
-          <>
-            <Divider />
-            <PageSection hasBodyWrapper={false}>
-              <Title headingLevel="h2">{t('Silenced by')}</Title>
-              <SilencedByList silences={alert?.silencedBy} />
-            </PageSection>
-          </>
-        )}
+                </DescriptionList>
+              </GridItem>
+              <GridItem span={12}>
+                <DescriptionList>
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>{t('Alerting rule')}</DescriptionListTerm>
+                    <DescriptionListDescription>
+                      <Flex
+                        spaceItems={{ default: 'spaceItemsNone' }}
+                        flexWrap={{ default: 'nowrap' }}
+                      >
+                        <FlexItem>
+                          <ResourceIcon kind={RuleResource.kind} />
+                        </FlexItem>
+                        <FlexItem>
+                          <Link
+                            to={getRuleUrl(perspective, rule, namespace)}
+                            data-test="alert-rules-detail-resource-link"
+                          >
+                            {_.get(rule, 'name')}
+                          </Link>
+                        </FlexItem>
+                      </Flex>
+                    </DescriptionListDescription>
+                  </DescriptionListGroup>
+                </DescriptionList>
+              </GridItem>
+            </Grid>
+          </PageSection>
+          {silencesLoaded && !_.isEmpty(alert?.silencedBy) && (
+            <>
+              <Divider />
+              <PageSection hasBodyWrapper={false}>
+                <Title headingLevel="h2">{t('Silenced by')}</Title>
+                <SilencedByList silences={alert?.silencedBy} />
+              </PageSection>
+            </>
+          )}
+        </PageGroup>
       </StatusBox>
     </>
   );

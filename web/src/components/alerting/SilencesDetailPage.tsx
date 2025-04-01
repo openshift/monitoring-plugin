@@ -97,86 +97,92 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
               </SplitItem>
             </Split>
           </PageSection>
-        </PageGroup>
-        <Divider />
-        <PageSection hasBodyWrapper={false}>
-          <Title headingLevel="h2">{t('Silence details')}</Title>
-          <Grid sm={12} md={6}>
-            <GridItem>
-              <DescriptionList>
-                {silence?.name && (
+          <Divider />
+          <PageSection hasBodyWrapper={false}>
+            <Title headingLevel="h2">{t('Silence details')}</Title>
+            <Grid sm={12} md={6}>
+              <GridItem>
+                <DescriptionList>
+                  {silence?.name && (
+                    <DescriptionListGroup>
+                      <DescriptionListTerm>{t('Name')}</DescriptionListTerm>
+                      <DescriptionListDescription>{silence?.name}</DescriptionListDescription>
+                    </DescriptionListGroup>
+                  )}
                   <DescriptionListGroup>
-                    <DescriptionListTerm>{t('Name')}</DescriptionListTerm>
-                    <DescriptionListDescription>{silence?.name}</DescriptionListDescription>
+                    <DescriptionListTerm>{t('Matchers')}</DescriptionListTerm>
+                    <DescriptionListDescription data-test="label-list">
+                      {_.isEmpty(silence?.matchers) ? (
+                        <div>{t('No matchers')}</div>
+                      ) : (
+                        <SilenceMatchersList silence={silence} />
+                      )}
+                    </DescriptionListDescription>
                   </DescriptionListGroup>
-                )}
-                <DescriptionListGroup>
-                  <DescriptionListTerm>{t('Matchers')}</DescriptionListTerm>
-                  <DescriptionListDescription data-test="label-list">
-                    {_.isEmpty(silence?.matchers) ? (
-                      <div>{t('No matchers')}</div>
-                    ) : (
-                      <SilenceMatchersList silence={silence} />
-                    )}
-                  </DescriptionListDescription>
-                </DescriptionListGroup>
-                <DescriptionListGroup>
-                  <DescriptionListTerm>{t('State')}</DescriptionListTerm>
-                  <DescriptionListDescription>
-                    <SilenceState silence={silence} />
-                  </DescriptionListDescription>
-                </DescriptionListGroup>
-                <DescriptionListGroup>
-                  <DescriptionListTerm>{t('Last updated at')}</DescriptionListTerm>
-                  <DescriptionListDescription>
-                    <Timestamp timestamp={silence?.updatedAt} />
-                  </DescriptionListDescription>
-                </DescriptionListGroup>
-              </DescriptionList>
-            </GridItem>
-            <GridItem>
-              <DescriptionList>
-                <DescriptionListGroup>
-                  <DescriptionListTerm>{t('Starts at')}</DescriptionListTerm>
-                  <DescriptionListDescription>
-                    <Timestamp timestamp={silence?.startsAt} />
-                  </DescriptionListDescription>
-                </DescriptionListGroup>
-                <DescriptionListGroup>
-                  <DescriptionListTerm>{t('Ends at')}</DescriptionListTerm>
-                  <DescriptionListDescription>
-                    <Timestamp timestamp={silence?.endsAt} />
-                  </DescriptionListDescription>
-                </DescriptionListGroup>
-                <DescriptionListGroup>
-                  <DescriptionListTerm>{t('Created by')}</DescriptionListTerm>
-                  <DescriptionListDescription>
-                    {silence?.createdBy || '-'}
-                  </DescriptionListDescription>
-                </DescriptionListGroup>
-                <DescriptionListGroup>
-                  <DescriptionListTerm>{t('Comment')}</DescriptionListTerm>
-                  <DescriptionListDescription>{silence?.comment || '-'}</DescriptionListDescription>
-                </DescriptionListGroup>
-                <DescriptionListGroup>
-                  <DescriptionListTerm>{t('Firing alerts')}</DescriptionListTerm>
-                  <DescriptionListDescription>
-                    {alertsLoaded ? (
-                      <SeverityCounts alerts={silence?.firingAlerts} />
-                    ) : (
-                      <LoadingInline />
-                    )}
-                  </DescriptionListDescription>
-                </DescriptionListGroup>
-              </DescriptionList>
-            </GridItem>
-          </Grid>
-        </PageSection>
-        <Divider />
-        <PageSection hasBodyWrapper={false}>
-          <Title headingLevel="h2">{t('Firing alerts')}</Title>
-          {alertsLoaded ? <SilencedAlertsList alerts={silence?.firingAlerts} /> : <LoadingInline />}
-        </PageSection>
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>{t('State')}</DescriptionListTerm>
+                    <DescriptionListDescription>
+                      <SilenceState silence={silence} />
+                    </DescriptionListDescription>
+                  </DescriptionListGroup>
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>{t('Last updated at')}</DescriptionListTerm>
+                    <DescriptionListDescription>
+                      <Timestamp timestamp={silence?.updatedAt} />
+                    </DescriptionListDescription>
+                  </DescriptionListGroup>
+                </DescriptionList>
+              </GridItem>
+              <GridItem>
+                <DescriptionList>
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>{t('Starts at')}</DescriptionListTerm>
+                    <DescriptionListDescription>
+                      <Timestamp timestamp={silence?.startsAt} />
+                    </DescriptionListDescription>
+                  </DescriptionListGroup>
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>{t('Ends at')}</DescriptionListTerm>
+                    <DescriptionListDescription>
+                      <Timestamp timestamp={silence?.endsAt} />
+                    </DescriptionListDescription>
+                  </DescriptionListGroup>
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>{t('Created by')}</DescriptionListTerm>
+                    <DescriptionListDescription>
+                      {silence?.createdBy || '-'}
+                    </DescriptionListDescription>
+                  </DescriptionListGroup>
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>{t('Comment')}</DescriptionListTerm>
+                    <DescriptionListDescription>
+                      {silence?.comment || '-'}
+                    </DescriptionListDescription>
+                  </DescriptionListGroup>
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>{t('Firing alerts')}</DescriptionListTerm>
+                    <DescriptionListDescription>
+                      {alertsLoaded ? (
+                        <SeverityCounts alerts={silence?.firingAlerts} />
+                      ) : (
+                        <LoadingInline />
+                      )}
+                    </DescriptionListDescription>
+                  </DescriptionListGroup>
+                </DescriptionList>
+              </GridItem>
+            </Grid>
+          </PageSection>
+          <Divider />
+          <PageSection hasBodyWrapper={false}>
+            <Title headingLevel="h2">{t('Firing alerts')}</Title>
+            {alertsLoaded ? (
+              <SilencedAlertsList alerts={silence?.firingAlerts} />
+            ) : (
+              <LoadingInline />
+            )}
+          </PageSection>
+        </PageGroup>
       </StatusBox>
     </>
   );
