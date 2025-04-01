@@ -139,6 +139,9 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
 
   return (
     <>
+      <Helmet>
+        <title>{t('{{name}} details', { name: labels?.alertname || AlertResource.label })}</title>
+      </Helmet>
       <StatusBox
         data={alert}
         label={AlertResource.label}
