@@ -34,7 +34,7 @@ import {
 } from '@perses-dev/dashboards';
 import { ChartThemeColor, getThemeColors } from '@patternfly/react-charts/victory';
 import ErrorAlert from '../shared/error';
-import { usePatternFlyTheme } from './hooks/usePatternflyTheme';
+import { usePatternFlyTheme } from '../../hooks/usePatternflyTheme';
 import { CachedDatasourceAPI } from './perses/datasource-api';
 import { OcpDatasourceApi } from './datasource-api';
 import { PERSES_PROXY_BASE_PATH, useFetchPersesDashboard } from './perses-client';
