@@ -376,7 +376,12 @@ const Row: React.FC<RowProps<Target>> = ({ obj }) => {
       </Td>
       <Td>
         {labels?.namespace && (
-          <ResourceLink inline kind={NamespaceModel.kind} name={labels?.namespace} />
+          <ResourceLink
+            inline
+            kind={NamespaceModel.kind}
+            name={labels?.namespace}
+            className="pf-v6-u-mx-xs"
+          />
         )}
       </Td>
       <Td>

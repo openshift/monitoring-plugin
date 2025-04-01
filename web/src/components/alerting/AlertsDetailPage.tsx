@@ -413,6 +413,7 @@ const AlertMessage: React.FC<AlertMessageProps> = ({ alertText, labels, template
             kind={model.kind}
             name={labelValue}
             namespace={model.namespaced ? labels.namespace : undefined}
+            className="pf-v6-u-mx-xs"
           />
         );
         messageParts = _.flatMap(messageParts, (part) => {
