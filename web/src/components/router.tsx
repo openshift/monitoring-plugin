@@ -12,7 +12,7 @@ import { getAllQueryArguments } from './console/utils/router';
 import MonitoringDashboardsPage from './dashboards/perses/dashboard-page';
 import MonitoringLegacyDashboardsPage from './dashboards/legacy/legacy-dashboard-page';
 import { QueryBrowserPage } from './metrics';
-import { CreateSilence, EditSilence } from './silence-form';
+import { CreateSilence, EditSilence } from './alerting/SilenceForm';
 import { TargetsUI } from './targets';
 
 import { UrlRoot, usePerspective } from './hooks/usePerspective';

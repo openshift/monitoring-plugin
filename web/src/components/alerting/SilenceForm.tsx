@@ -44,25 +44,25 @@ import { RouteComponentProps, withRouter } from 'react-router-dom';
 // TODO: These will be available in future versions of the plugin SDK
 const getUser = (state) => state.sdkCore?.user;
 
-import { ExternalLink } from './console/utils/link';
-import { getAllQueryArguments } from './console/utils/router';
+import { ExternalLink } from '../console/utils/link';
+import { getAllQueryArguments } from '../console/utils/router';
 
-import { useBoolean } from './hooks/useBoolean';
-import { Silences } from './types';
-import { refreshSilences, SilenceResource, silenceState } from './utils';
+import { useBoolean } from '../hooks/useBoolean';
+import { Silences } from '../types';
+import { refreshSilences, SilenceResource, silenceState } from '../utils';
 import {
   getFetchSilenceAlertUrl,
   getLegacyObserveState,
   getSilenceAlertUrl,
   usePerspective,
-} from './hooks/usePerspective';
-import { MonitoringState } from '../reducers/observe';
-import { StatusBox } from './console/console-shared/src/components/status/StatusBox';
+} from '../hooks/usePerspective';
+import { MonitoringState } from '../../reducers/observe';
+import { StatusBox } from '../console/console-shared/src/components/status/StatusBox';
 import {
   formatPrometheusDuration,
   parsePrometheusDuration,
-} from './console/console-shared/src/datetime/prometheus';
-import withFallback from './console/console-shared/error/fallbacks/withFallback';
+} from '../console/console-shared/src/datetime/prometheus';
+import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 
 const pad = (i: number): string => (i < 10 ? `0${i}` : String(i));
 
