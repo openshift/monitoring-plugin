@@ -461,8 +461,11 @@ const EditInfo = () => {
 
 export const EditSilence = ({ match }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
+  const { isDev } = usePerspective();
 
-  const silences: Silences = useSelector(({ observe }: RootState) => observe.get('silences'));
+  const silences: Silences = useSelector(({ observe }: RootState) =>
+    observe.get(isDev ? 'devSilences' : 'silences'),
+  );
 
   const silence: Silence = _.find(silences?.data, { id: match.params.id });
   const isExpired = silenceState(silence) === SilenceStates.Expired;

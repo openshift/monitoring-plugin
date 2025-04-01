@@ -480,11 +480,12 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
 
   const namespace = useActiveNamespace();
   const { isDev, alertsKey } = usePerspective();
-  useSilencesPoller({ namespace });
 
   const alertsLoaded = useSelector(({ observe }: RootState) => observe.get(alertsKey)?.loaded);
 
-  const silences: Silences = useSelector(({ observe }: RootState) => observe.get('silences'));
+  const silences: Silences = useSelector(({ observe }: RootState) =>
+    observe.get(isDev ? 'devSilences' : 'silences'),
+  );
   const silence = _.find(silences?.data, { id: _.get(match, 'params.id') });
 
   return (
@@ -674,13 +675,15 @@ const RuleTableRow: React.FC<RowProps<Rule>> = ({ obj }) => {
 
 const RulesPage_: React.FC = () => {
   const { t } = useTranslation('plugin__monitoring-plugin');
+  const { isDev } = usePerspective();
 
   const data: Rule[] = useSelector(({ observe }: RootState) => observe.get('rules'));
   const { loaded = false, loadError }: Alerts = useSelector(
     ({ observe }: RootState) => observe.get('alerts') || {},
   );
+
   const silencesLoadError = useSelector(
-    ({ observe }: RootState) => observe.get('silences')?.loadError,
+    ({ observe }: RootState) => observe.get(isDev ? 'devSilences' : 'silences')?.loadError,
   );
 
   const ruleAdditionalSources = React.useMemo(
@@ -895,6 +898,7 @@ const SelectAllCheckbox: React.FC<{ silences: Silence[] }> = ({ silences }) => {
 
 const SilencesPage_: React.FC = () => {
   const { t } = useTranslation('plugin__monitoring-plugin');
+  const { isDev } = usePerspective();
 
   const [selectedSilences, setSelectedSilences] = React.useState(new Set());
   const [errorMessage, setErrorMessage] = React.useState();
@@ -903,7 +907,9 @@ const SilencesPage_: React.FC = () => {
     data,
     loaded = false,
     loadError,
-  }: Silences = useSelector(({ observe }: RootState) => observe.get('silences') || {});
+  }: Silences = useSelector(
+    ({ observe }: RootState) => observe.get(isDev ? 'devSilences' : 'silences') || {},
+  );
 
   const rowFilters: RowFilter[] = [
     // TODO: The "name" filter doesn't really fit useListPageFilter's idea of a RowFilter, but
@@ -1111,6 +1117,7 @@ const PollerPages = () => {
   );
 
   useRulesAlertsPoller(namespace, dispatch, alertsSource);
+  useSilencesPoller({ namespace });
 
   if (isDev) {
     return (

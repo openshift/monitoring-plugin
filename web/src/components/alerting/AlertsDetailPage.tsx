@@ -76,7 +76,6 @@ import {
   newSilenceAlertURL,
 } from './SilencesUtils';
 import { useRulesAlertsPoller } from '../hooks/useRulesAlertsPoller';
-import { useSilencesPoller } from '../hooks/useSilencesPoller';
 
 const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
@@ -89,7 +88,7 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
   const dispatch = useDispatch();
   const alerts: Alerts = useSelector(({ observe }: RootState) => observe.get(alertsKey));
 
-  const silencesLoaded = ({ observe }) => observe.get('silences')?.loaded;
+  const silencesLoaded = ({ observe }) => observe.get(isDev ? 'devSilences' : 'silences')?.loaded;
 
   const ruleAlerts = _.filter(alerts?.data, (a) => a.rule.id === match?.params?.ruleID);
   const rule = ruleAlerts?.[0]?.rule;
@@ -136,7 +135,6 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
   );
 
   useRulesAlertsPoller(namespace, dispatch, alertsSource);
-  useSilencesPoller({ namespace });
 
   return (
     <>
