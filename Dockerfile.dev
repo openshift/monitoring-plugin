@@ -16,7 +16,7 @@ RUN make build-frontend
 # Almost all images from Red Hat are still on go1.21, however I found one that the cne team has
 # created. Once official Red Hat images are available for local development and pulling this
 # should be updated
-FROM quay.io/redhat-cne/openshift-origin-release:rhel-9-golang-1.22-openshift-4.17 as go-builder
+FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_9_golang_1.23 as go-builder
 
 WORKDIR /opt/app-root
 

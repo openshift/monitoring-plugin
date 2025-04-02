@@ -13,7 +13,7 @@ RUN make install-frontend
 COPY web/ web/
 RUN make build-frontend
 
-FROM quay.io/redhat-cne/openshift-origin-release:rhel-9-golang-1.22-openshift-4.17 as go-builder
+FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.22-openshift-4.18 as go-builder
 
 WORKDIR /opt/app-root
 
@@ -31,7 +31,7 @@ ENV CGO_ENABLED=1
 
 RUN make build-backend BUILD_OPTS="-tags strictfipsruntime"
 
-FROM quay.io/redhat-cne/openshift-origin-release:rhel-9-golang-1.22-openshift-4.17
+FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.22-openshift-4.18
 
 USER 1001
 
