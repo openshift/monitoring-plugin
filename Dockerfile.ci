@@ -28,7 +28,7 @@ RUN make install-frontend-ci
 COPY web/ ${HOME}/web
 RUN make build-frontend
 
-FROM quay.io/redhat-cne/openshift-origin-release:rhel-9-golang-1.22-openshift-4.17 as go-builder
+FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.22-openshift-4.17 as go-builder
 
 WORKDIR /opt/app-root
 
