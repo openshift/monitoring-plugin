@@ -1,4 +1,3 @@
-import classNames from 'classnames';
 import * as _ from 'lodash-es';
 import {
   RedExclamationCircleIcon,
@@ -19,13 +18,7 @@ import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 
-import {
-  CustomDataSource,
-  DataSource as DataSourceExtension,
-  isDataSource,
-} from '../../console/extensions/dashboard-data-source';
 import { setQueryArguments } from '../../console/utils/router';
-import { LoadingInline } from '../../console/utils/status-box';
 
 import { Perspective } from '../../../actions/observe';
 import BarChart from '../legacy/bar-chart';
@@ -44,6 +37,12 @@ import { MonitoringState } from '../../../reducers/observe';
 import { evaluateVariableTemplate } from './legacy-variable-dropdowns';
 import { Panel, Row } from './types';
 import { QueryParams } from '../../query-params';
+import { LoadingInline } from '../../console/console-shared/src/components/loading/LoadingInline';
+import { CustomDataSource } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/dashboard-data-source';
+import {
+  DataSource,
+  isDataSource,
+} from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
 
 const QueryBrowserLink = ({
   queries,
@@ -122,7 +121,7 @@ const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
   const [dataSourceInfoLoading, setDataSourceInfoLoading] = React.useState<boolean>(true);
   const [customDataSource, setCustomDataSource] = React.useState<CustomDataSource>(undefined);
   const customDataSourceName = panel.datasource?.name;
-  const [extensions, extensionsResolved] = useResolvedExtensions<DataSourceExtension>(isDataSource);
+  const [extensions, extensionsResolved] = useResolvedExtensions<DataSource>(isDataSource);
   const hasExtensions = !_.isEmpty(extensions);
 
   const formatSeriesTitle = React.useCallback(
@@ -276,9 +275,7 @@ const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
       className={`monitoring-dashboards__panel monitoring-dashboards__panel--${panelClassModifier}`}
     >
       <PFCard
-        className={classNames('monitoring-dashboards__card', {
-          'co-overview-card--gradient': panel.type === 'grafana-piechart-panel',
-        })}
+        className={'monitoring-dashboards__card'}
         data-test={`${panel.title.toLowerCase().replace(/\s+/g, '-')}-chart`}
         data-test-id={panel.id ? `chart-${panel.id}` : undefined}
       >
@@ -295,13 +292,12 @@ const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
               </>
             ),
             hasNoOffset: false,
-            className: 'co-overview-card__actions',
           }}
           className="monitoring-dashboards__card-header"
         >
           <CardTitle>{panel.title}</CardTitle>
         </CardHeader>
-        <CardBody className="co-dashboard-card__body--dashboard">
+        <CardBody className="monitoring-dashboards__card--dashboard">
           {isError ? (
             <>
               <RedExclamationCircleIcon /> {t('Error loading card')}

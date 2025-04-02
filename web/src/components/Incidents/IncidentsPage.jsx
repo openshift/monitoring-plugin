@@ -2,7 +2,6 @@
 import * as React from 'react';
 import { IncidentsHeader } from './IncidentsHeader/IncidentsHeader';
 import { useSafeFetch } from '../console/utils/safe-fetch-hook';
-import { parsePrometheusDuration } from '../console/utils/datetime';
 import { createAlertsQuery, fetchDataForIncidentsAndAlerts } from './api';
 import { useTranslation } from 'react-i18next';
 import {
@@ -18,6 +17,9 @@ import {
   ToolbarItem,
   MenuToggle,
   Badge,
+  Title,
+  PageSection,
+  PageSectionVariants,
 } from '@patternfly/react-core';
 import { Helmet } from 'react-helmet';
 import { IncidentsTable } from './IncidentsTable';
@@ -47,9 +49,10 @@ import {
   setIncidentsActiveFilters,
 } from '../../actions/observe';
 import { useLocation } from 'react-router-dom';
-import { withFallback } from '../console/console-shared/error/error-boundary';
 import { usePerspective } from '../hooks/usePerspective';
 import { changeDaysFilter } from './utils';
+import { parsePrometheusDuration } from '../console/console-shared/src/datetime/prometheus';
+import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 
 const IncidentsPage = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -275,17 +278,15 @@ const IncidentsPage = () => {
       <Helmet>
         <title>{title}</title>
       </Helmet>
-      <div className="co-m-nav-title">
-        <h1 className="co-m-pane__heading">
-          <span>{t('Incidents')}</span>
-        </h1>
-      </div>
+      <PageSection variant={PageSectionVariants.light}>
+        <Title headingLevel="h1">{t('Incidents')}</Title>
+      </PageSection>
       {alertsAreLoading && incidentsAreLoading ? (
         <Bullseye>
           <Spinner aria-label="incidents-chart-spinner" />
         </Bullseye>
       ) : (
-        <div className="co-m-pane__body">
+        <PageSection variant={PageSectionVariants.light}>
           <Toolbar
             id="toolbar-with-filter"
             className="pf-v5-m-toggle-group-container"
@@ -427,12 +428,8 @@ const IncidentsPage = () => {
               theme={theme}
             />
           )}
-          <div className="row">
-            <div className="col-xs-12">
-              <IncidentsTable />
-            </div>
-          </div>
-        </div>
+          <IncidentsTable />
+        </PageSection>
       )}
     </>
   );

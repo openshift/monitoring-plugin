@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { withFallback } from '../console/console-shared/error/error-boundary';
 import { useTranslation } from 'react-i18next';
 import { getLegacyObserveState, usePerspective } from '../hooks/usePerspective';
 import { Alerts, AlertSource } from '../types';
@@ -23,8 +22,10 @@ import {
 import { fuzzyCaseInsensitive } from '../utils';
 import { Table, TableGridBreakpoint, Th, Thead, Tr } from '@patternfly/react-table';
 import { Helmet } from 'react-helmet';
-import { EmptyBox, LoadingBox } from '../console/utils/status-box';
 import { MonitoringState } from '../../reducers/observe';
+import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
+import withFallback from '../console/console-shared/error/fallbacks/withFallback';
+import { LoadingBox } from '../console/console-shared/src/components/loading/LoadingBox';
 import { AggregatedAlert, getAggregateAlertsLists } from './AlertsAggregates';
 
 import './alert-table.scss';
@@ -34,8 +35,9 @@ import useAggregateAlertColumns from './AlertList/hooks/useAggregateAlertColumns
 import useSelectedFilters from './useSelectedFilters';
 
 import './alert-table.scss';
+import { PageSection, PageSectionVariants } from '@patternfly/react-core';
 
-const AlertsPage_: React.FC<AlertsPageProps> = () => {
+const AlertsPage_: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { alertsKey, silencesKey, defaultAlertTenant, perspective } = usePerspective();
 
@@ -57,6 +59,19 @@ const AlertsPage_: React.FC<AlertsPageProps> = () => {
     () => getAdditionalSources(data, alertSource),
     [data],
   );
+
+  const clusters = React.useMemo(() => {
+    const clusterSet = new Set<string>();
+    data?.forEach((alert) => {
+      const clusterName = alert.labels?.cluster;
+      if (clusterName) {
+        clusterSet.add(clusterName);
+      }
+    });
+
+    const clusterArray = Array.from(clusterSet);
+    return clusterArray.sort();
+  }, [data]);
 
   let rowFilters: RowFilter[] = [
     // TODO: The "name" filter doesn't really fit useListPageFilter's idea of a RowFilter, but
@@ -120,11 +135,19 @@ const AlertsPage_: React.FC<AlertsPageProps> = () => {
     rowFilters.splice(-1, 0, {
       type: 'alert-cluster',
       filter: (filter, aggregatedAlert: AggregatedAlert) =>
-        aggregatedAlert.alerts.some((alert) =>
-          fuzzyCaseInsensitive(filter.selected?.[0], alert.labels?.cluster),
+        aggregatedAlert.alerts.some(
+          (alert) =>
+            filter.selected.length === 0 ||
+            filter.selected.some((selectedFilter) =>
+              fuzzyCaseInsensitive(selectedFilter, alert.labels?.cluster),
+            ),
         ),
       filterGroupName: t('Cluster'),
-      items: [],
+      items: clusters.map((clusterName) => ({ id: clusterName, title: clusterName })),
+      isMatch: (aggregatedAlert: AggregatedAlert, clusterName: string) =>
+        aggregatedAlert.alerts.some((alert) =>
+          fuzzyCaseInsensitive(clusterName, alert.labels?.cluster),
+        ),
       reducer: alertCluster,
     } as RowFilter);
   }
@@ -142,7 +165,7 @@ const AlertsPage_: React.FC<AlertsPageProps> = () => {
       <Helmet>
         <title>Alerting</title>
       </Helmet>
-      <div className="co-m-pane__body">
+      <PageSection variant={PageSectionVariants.light}>
         <ListPageFilter
           data={staticData}
           labelFilter="alerts"
@@ -177,14 +200,10 @@ const AlertsPage_: React.FC<AlertsPageProps> = () => {
         {loadError && <Error error={loadError} />}
         {loaded && filteredData?.length === 0 && !loadError && <EmptyBox label={t('Alerts')} />}
         {!loaded && <LoadingBox />}
-      </div>
+      </PageSection>
     </>
   );
 };
 const AlertsPage = withFallback(AlertsPage_);
 
 export default AlertsPage;
-
-type AlertsPageProps = {
-  ns: string | undefined;
-};

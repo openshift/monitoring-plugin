@@ -10,15 +10,14 @@ import { TimeDropdowns } from './time-dropdowns';
 import { CombinedDashboardMetadata } from '../perses/hooks/useDashboardsData';
 import { AllVariableDropdowns } from '../perses/variable-dropdowns';
 import { useIsPerses } from './useIsPerses';
+import { Divider, PageSection, PageSectionVariants, Title } from '@patternfly/react-core';
 
 const HeaderTop: React.FC = React.memo(() => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
     <div className="monitoring-dashboards__header">
-      <h1 className="co-m-pane__heading">
-        <span>{t('Dashboards')}</span>
-      </h1>
+      <Title headingLevel="h1">{t('Dashboards')}</Title>
       <TimeDropdowns />
     </div>
   );
@@ -48,7 +47,7 @@ const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = ({
           <title>{t('Metrics dashboards')}</title>
         </Helmet>
       )}
-      <div className="co-m-nav-title co-m-nav-title--detail">
+      <PageSection variant={PageSectionVariants.light}>
         {perspective !== 'dev' && <HeaderTop />}
         <div className="monitoring-dashboards__variables">
           <div className="monitoring-dashboards__dropdowns">
@@ -67,7 +66,8 @@ const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = ({
           </div>
           {perspective === 'dev' && <TimeDropdowns />}
         </div>
-      </div>
+      </PageSection>
+      <Divider />
       {children}
     </>
   );

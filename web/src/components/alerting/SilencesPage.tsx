@@ -28,11 +28,19 @@ import { fuzzyCaseInsensitive, refreshSilences, silenceCluster, silenceState } f
 import * as _ from 'lodash-es';
 import { sortable } from '@patternfly/react-table';
 import { SelectedSilencesContext, SilenceTableRow, tableSilenceClasses } from './SilencesUtils';
-import { Button, Checkbox, Flex, FlexItem, Alert as PFAlert } from '@patternfly/react-core';
-import { EmptyBox } from '../console/utils/status-box';
-import { withFallback } from '../console/console-shared/error/error-boundary';
+import {
+  Button,
+  Checkbox,
+  Flex,
+  FlexItem,
+  PageSection,
+  PageSectionVariants,
+  Alert as PFAlert,
+} from '@patternfly/react-core';
 import { useBoolean } from '../hooks/useBoolean';
 import { Link } from 'react-router-dom';
+import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
+import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 
 const SilencesPage_: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -49,6 +57,19 @@ const SilencesPage_: React.FC = () => {
   }: Silences = useSelector(
     (state: MonitoringState) => getLegacyObserveState(perspective, state)?.get(silencesKey) || {},
   );
+
+  const clusters = React.useMemo(() => {
+    const clusterSet = new Set<string>();
+    data?.forEach((silence) => {
+      const clusterName = silenceCluster(silence);
+      if (clusterName) {
+        clusterSet.add(clusterName);
+      }
+    });
+
+    const clusterArray = Array.from(clusterSet);
+    return clusterArray.sort();
+  }, [data]);
 
   const rowFilters: RowFilter[] = [
     // TODO: The "name" filter doesn't really fit useListPageFilter's idea of a RowFilter, but
@@ -77,14 +98,23 @@ const SilencesPage_: React.FC = () => {
 
   if (perspective === 'acm') {
     rowFilters.splice(-1, 0, {
+      type: 'silence-cluster',
       filter: (filter, silence: Silence) =>
-        fuzzyCaseInsensitive(
-          filter.selected?.[0],
-          silence.matchers.find((label) => label.name === 'cluster').value,
+        filter.selected.length === 0 ||
+        filter.selected.some((selectedFilter) =>
+          fuzzyCaseInsensitive(
+            selectedFilter,
+            silence.matchers.find((label) => label.name === 'cluster').value,
+          ),
         ),
       filterGroupName: t('Cluster'),
-      items: [],
+      items: clusters.map((clusterName) => ({ id: clusterName, title: clusterName })),
       reducer: silenceCluster,
+      isMatch: (silence: Silence, clusterName: string) =>
+        fuzzyCaseInsensitive(
+          clusterName,
+          silence.matchers.find((label) => label.name === 'cluster').value,
+        ),
     } as RowFilter);
   }
 
@@ -139,18 +169,18 @@ const SilencesPage_: React.FC = () => {
         id: 'cluster',
         props: { className: tableSilenceClasses[5] },
         sort: (silences: Silence[], direction: 'asc' | 'desc') =>
-          _.orderBy(silences, silenceClusterOrder, [direction]),
+          _.orderBy(silences, silenceClusterOrder(clusters), [direction]),
         title: t('Cluster'),
         transforms: [sortable],
       });
     }
     return cols;
-  }, [filteredData, t, perspective]);
+  }, [filteredData, t, perspective, clusters]);
 
   return (
     <>
       <Helmet>{perspective === 'dev' ? <title>Silences</title> : <title>Alerting</title>}</Helmet>
-      <div className="co-m-pane__body">
+      <PageSection variant={PageSectionVariants.light}>
         <SelectedSilencesContext.Provider value={{ selectedSilences, setSelectedSilences }}>
           <Flex>
             <FlexItem>
@@ -171,7 +201,6 @@ const SilencesPage_: React.FC = () => {
           </Flex>
           {loadError && (
             <PFAlert
-              className="co-alert"
               isInline
               title={t(
                 'Error loading silences from Alertmanager. Alertmanager may be unavailable.',
@@ -182,29 +211,25 @@ const SilencesPage_: React.FC = () => {
             </PFAlert>
           )}
           {errorMessage && (
-            <PFAlert className="co-alert" isInline title={t('Error')} variant="danger">
+            <PFAlert isInline title={t('Error')} variant="danger">
               {errorMessage}
             </PFAlert>
           )}
-          <div className="row">
-            <div className="col-xs-12">
-              <VirtualizedTable<Silence>
-                aria-label={t('Silences')}
-                label={t('Silences')}
-                columns={columns}
-                data={filteredData ?? []}
-                loaded={loaded}
-                loadError={loadError}
-                Row={SilenceTableRowWithCheckbox}
-                unfilteredData={data}
-                NoDataEmptyMsg={() => {
-                  return <EmptyBox label={t('Silences')} />;
-                }}
-              />
-            </div>
-          </div>
+          <VirtualizedTable<Silence>
+            aria-label={t('Silences')}
+            label={t('Silences')}
+            columns={columns}
+            data={filteredData ?? []}
+            loaded={loaded}
+            loadError={loadError}
+            Row={SilenceTableRowWithCheckbox}
+            unfilteredData={data}
+            NoDataEmptyMsg={() => {
+              return <EmptyBox label={t('Silences')} />;
+            }}
+          />
         </SelectedSilencesContext.Provider>
-      </div>
+      </PageSection>
     </>
   );
 };
@@ -251,9 +276,12 @@ const silenceStateOrder = (silence: Silence) => [
   _.get(silence, silenceState(silence) === SilenceStates.Pending ? 'startsAt' : 'endsAt'),
 ];
 
-const silenceClusterOrder = () => [
-  (silence: Silence) => silence.matchers.find((label) => label.name === 'cluster')?.value,
-];
+const silenceClusterOrder = (clusters: Array<string>) => {
+  clusters.sort();
+  return (silence: Silence) => [
+    clusters.indexOf(silence.matchers.find((label) => label.name === 'cluster')?.value),
+  ];
+};
 
 const ExpireAllSilencesButton: React.FC<ExpireAllSilencesButtonProps> = ({ setErrorMessage }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -312,7 +340,7 @@ const CreateSilenceButton: React.FC = React.memo(() => {
   const [namespace] = useActiveNamespace();
 
   return (
-    <Link className="co-m-primary-action" to={getNewSilenceUrl(perspective, namespace)}>
+    <Link to={getNewSilenceUrl(perspective, namespace)}>
       <Button data-test="create-silence-btn" variant="primary">
         {t('Create silence')}
       </Button>

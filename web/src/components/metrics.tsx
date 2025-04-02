@@ -2,11 +2,13 @@ import {
   PrometheusData,
   PrometheusEndpoint,
   PrometheusLabels,
+  useActiveNamespace,
   useResolvedExtensions,
   YellowExclamationTriangleIcon,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
   ActionGroup,
+  Bullseye,
   Button,
   Dropdown,
   DropdownItem,
@@ -19,6 +21,8 @@ import {
   GridItem,
   MenuToggle,
   MenuToggleElement,
+  PageSection,
+  PageSectionVariants,
   SelectOptionProps,
   Split,
   SplitItem,
@@ -67,7 +71,6 @@ import {
   toggleGraphs,
 } from '../actions/observe';
 
-import { withFallback } from './console/console-shared/error/error-boundary';
 import { getPrometheusURL } from './console/graphs/helpers';
 import { AsyncComponent } from './console/utils/async';
 import { usePoll } from './console/utils/poll-hook';
@@ -77,7 +80,6 @@ import {
   setAllQueryArguments,
 } from './console/utils/router';
 import { useSafeFetch } from './console/utils/safe-fetch-hook';
-import { LoadingInline } from './console/utils/status-box';
 
 import {
   CustomDataSource,
@@ -85,7 +87,6 @@ import {
   isDataSource,
 } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
 import { MonitoringState } from '../reducers/observe';
-import { useActiveNamespace } from './console/console-shared/hooks/useActiveNamespace';
 import { DropDownPollInterval } from './dropdown-poll-interval';
 import { useBoolean } from './hooks/useBoolean';
 import { getLegacyObserveState, usePerspective } from './hooks/usePerspective';
@@ -95,6 +96,8 @@ import { QueryParams } from './query-params';
 import TablePagination from './table-pagination';
 import { PrometheusAPIError } from './types';
 import { TypeaheadSelect } from './TypeaheadSelect';
+import { LoadingInline } from './console/console-shared/src/components/loading/LoadingInline';
+import withFallback from './console/console-shared/error/fallbacks/withFallback';
 
 // Stores information about the currently focused query input
 let focusedQuery;
@@ -192,7 +195,7 @@ const devQueries = (activeNamespace: string) => {
 };
 
 export const PreDefinedQueriesDropdown = () => {
-  const activeNamespace = useActiveNamespace();
+  const [activeNamespace] = useActiveNamespace();
   const { perspective } = usePerspective();
 
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -918,7 +921,7 @@ const Query: React.FC<{ index: number; customDatasource?: CustomDataSource }> = 
   const switchKey = `${id}-${isEnabled}`;
   const switchLabel = isEnabled ? t('Disable query') : t('Enable query');
 
-  const activeNamespace = useActiveNamespace();
+  const [activeNamespace] = useActiveNamespace();
   return (
     <div
       className={classNames('query-browser__table', {
@@ -1197,13 +1200,11 @@ const QueryBrowserPage_: React.FC = () => {
   if (customDataSourceName) {
     if (!extensionsResolved || (!customDataSourceIsResolved && !customDatasourceError)) {
       return (
-        <div className="co-m-pane__body">
-          <div className="row">
-            <div className="col-xs-12 pf-v5-u-text-align-center">
-              <LoadingInline />
-            </div>
-          </div>
-        </div>
+        <PageSection variant={PageSectionVariants.light}>
+          <Bullseye>
+            <LoadingInline />
+          </Bullseye>
+        </PageSection>
       );
     }
   }
@@ -1213,47 +1214,47 @@ const QueryBrowserPage_: React.FC = () => {
       <Helmet>
         <title>{t('Metrics')}</title>
       </Helmet>
-      <div className="co-m-nav-title">
-        <h1 className="co-m-pane__heading">
-          <span>{t('Metrics')}</span>
-          <Split hasGutter>
-            <SplitItem>
-              <IntervalDropdown />
-            </SplitItem>
-            <SplitItem>
-              <MetricsActionsMenu />
-            </SplitItem>
-          </Split>
-        </h1>
-      </div>
-      <div className="co-m-pane__body">
-        <div className="row">
-          <div className="col-xs-12">
-            <div className="query-browser__toggle-graph-container">
-              <ToggleGraph />
-            </div>
-          </div>
-        </div>
-        <div className="row">
-          <div className="col-xs-12">
+      <PageSection variant={PageSectionVariants.light}>
+        <Split hasGutter>
+          <SplitItem>
+            <Title headingLevel="h1">{t('Metrics')}</Title>
+          </SplitItem>
+          <SplitItem isFilled />
+          <SplitItem>
+            <IntervalDropdown />
+          </SplitItem>
+          <SplitItem>
+            <MetricsActionsMenu />
+          </SplitItem>
+        </Split>
+      </PageSection>
+      <PageSection variant={PageSectionVariants.light}>
+        <Grid>
+          <GridItem className="query-browser__toggle-graph-container">
+            <ToggleGraph />
+          </GridItem>
+          <GridItem>
             <QueryBrowserWrapper
               customDataSource={customDataSource}
               customDataSourceName={customDataSourceName}
               customDatasourceError={customDatasourceError}
             />
-            <div className="query-browser__controls">
-              <PreDefinedQueriesDropdown />
-              <div className="query-browser__controls--right">
-                <ActionGroup className="pf-v5-c-form pf-v5-c-form__group--no-top-margin">
+            <Split>
+              <SplitItem>
+                <PreDefinedQueriesDropdown />
+              </SplitItem>
+              <SplitItem isFilled />
+              <SplitItem>
+                <ActionGroup>
                   <AddQueryButton />
                   <RunQueriesButton />
                 </ActionGroup>
-              </div>
-            </div>
+              </SplitItem>
+            </Split>
             <QueriesList customDatasource={customDataSource} />
-          </div>
-        </div>
-      </div>
+          </GridItem>
+        </Grid>
+      </PageSection>
     </>
   );
 };

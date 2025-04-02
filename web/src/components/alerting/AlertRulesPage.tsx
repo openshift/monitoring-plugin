@@ -9,7 +9,7 @@ import {
   useListPageFilter,
   VirtualizedTable,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { sortable } from '@patternfly/react-table';
+import { sortable, Td } from '@patternfly/react-table';
 import * as _ from 'lodash-es';
 import * as React from 'react';
 import { Helmet } from 'react-helmet';
@@ -17,8 +17,6 @@ import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 
-import { withFallback } from '../console/console-shared/error/error-boundary';
-import { EmptyBox } from '../console/utils/status-box';
 import { Alerts, AlertSource } from '../types';
 import {
   alertingRuleStateOrder,
@@ -39,6 +37,9 @@ import {
 } from '../alerting/AlertUtils';
 import { MonitoringState } from '../../reducers/observe';
 import { severityRowFilter } from './AlertUtils';
+import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
+import withFallback from '../console/console-shared/error/fallbacks/withFallback';
+import { Flex, FlexItem, PageSection, PageSectionVariants } from '@patternfly/react-core';
 
 const StateCounts: React.FC<{ alerts: PrometheusAlert[] }> = ({ alerts }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -81,10 +82,10 @@ const alertStateFilter = (t): RowFilter => ({
 });
 
 const tableRuleClasses = [
-  'pf-v5-u-w-50 pf-v5-u-w-33-on-sm', // Name
-  'pf-v5-m-hidden pf-v5-m-visible-on-sm', // Severity
+  'pf-v5-u-w-50 pf-u-w-33-on-sm', // Name
+  'pf-m-hidden pf-m-visible-on-sm', // Severity
   '', // Alert state
-  'pf-v5-m-hidden pf-v5-m-visible-on-sm', // Source
+  'pf-m-hidden pf-m-visible-on-sm', // Source
 ];
 
 const RuleTableRow: React.FC<RowProps<Rule>> = ({ obj }) => {
@@ -95,23 +96,27 @@ const RuleTableRow: React.FC<RowProps<Rule>> = ({ obj }) => {
 
   return (
     <>
-      <td className={tableRuleClasses[0]} title={title}>
-        <div className="co-resource-item">
-          <MonitoringResourceIcon resource={RuleResource} />
-          <Link to={getRuleUrl(perspective, obj)} className="co-resource-item__resource-name">
-            {obj.name}
-          </Link>
-        </div>
-      </td>
-      <td className={tableRuleClasses[1]} title={title}>
+      <Td className={tableRuleClasses[0]} title={title}>
+        <Flex spaceItems={{ default: 'spaceItemsNone' }} flexWrap={{ default: 'nowrap' }}>
+          <FlexItem>
+            <MonitoringResourceIcon resource={RuleResource} />
+          </FlexItem>
+          <FlexItem>
+            <Link to={getRuleUrl(perspective, obj)} className="pf-v5-u-text-break-word">
+              {obj.name}
+            </Link>
+          </FlexItem>
+        </Flex>
+      </Td>
+      <Td className={tableRuleClasses[1]} title={title}>
         <Severity severity={obj.labels?.severity} />
-      </td>
-      <td className={tableRuleClasses[2]} title={title}>
+      </Td>
+      <Td className={tableRuleClasses[2]} title={title}>
         {_.isEmpty(obj.alerts) ? '-' : <StateCounts alerts={obj.alerts} />}
-      </td>
-      <td className={tableRuleClasses[3]} title={title}>
+      </Td>
+      <Td className={tableRuleClasses[3]} title={title}>
         {alertingRuleSource(obj) === AlertSource.User ? t('User') : t('Platform')}
-      </td>
+      </Td>
     </>
   );
 };
@@ -206,7 +211,7 @@ const AlertRulesPage_: React.FC = () => {
       <Helmet>
         <title>Alerting</title>
       </Helmet>
-      <div className="co-m-pane__body">
+      <PageSection variant={PageSectionVariants.light}>
         <ListPageFilter
           data={staticData}
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -218,24 +223,20 @@ const AlertRulesPage_: React.FC = () => {
           rowFilters={rowFilters}
         />
         {silencesLoadError && <SilencesNotLoadedWarning silencesLoadError={silencesLoadError} />}
-        <div className="row">
-          <div className="col-xs-12">
-            <VirtualizedTable<Rule>
-              aria-label={t('Alerting rules')}
-              label={t('Alerting rules')}
-              columns={columns}
-              data={filteredData ?? []}
-              loaded={loaded}
-              loadError={loadError}
-              Row={RuleTableRow}
-              unfilteredData={data}
-              NoDataEmptyMsg={() => {
-                return <EmptyBox label={t('Alerting rules')} />;
-              }}
-            />
-          </div>
-        </div>
-      </div>
+        <VirtualizedTable<Rule>
+          aria-label={t('Alerting rules')}
+          label={t('Alerting rules')}
+          columns={columns}
+          data={filteredData ?? []}
+          loaded={loaded}
+          loadError={loadError}
+          Row={RuleTableRow}
+          unfilteredData={data}
+          NoDataEmptyMsg={() => {
+            return <EmptyBox label={t('Alerting rules')} />;
+          }}
+        />
+      </PageSection>
     </>
   );
 };

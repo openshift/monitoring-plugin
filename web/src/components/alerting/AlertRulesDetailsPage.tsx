@@ -1,5 +1,7 @@
 import {
+  AlertingRuleChartExtension,
   AlertStates,
+  isAlertingRuleChart,
   PrometheusAlert,
   Rule,
   Timestamp,
@@ -10,7 +12,22 @@ import {
   BreadcrumbItem,
   CodeBlock,
   CodeBlockCode,
+  DescriptionList,
+  DescriptionListDescription,
+  DescriptionListGroup,
+  DescriptionListTerm,
+  DescriptionListTermHelpText,
+  DescriptionListTermHelpTextButton,
+  Divider,
   DropdownItem,
+  Grid,
+  GridItem,
+  PageBreadcrumb,
+  PageGroup,
+  PageSection,
+  PageSectionVariants,
+  Popover,
+  Title,
   Toolbar,
   ToolbarContent,
   ToolbarGroup,
@@ -23,20 +40,15 @@ import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
 
-// TODO: These will be available in future versions of the plugin SDK
-import { formatPrometheusDuration } from '../console/utils/datetime';
-
-import { withFallback } from '../console/console-shared/error/error-boundary';
-import { AlertingRuleChartExtension, isAlertingRuleChart } from '../console/extensions/alerts';
-import { SectionHeading } from '../console/utils/headings';
 import { ExternalLink } from '../console/utils/link';
-import { StatusBox } from '../console/utils/status-box';
 
 import KebabDropdown from '../kebab-dropdown';
 import { Labels } from '../labels';
 import { ToggleGraph } from '../metrics';
 import { Alerts } from '../types';
 import { alertDescription, RuleResource } from '../utils';
+
+import './alert-rules-details-page.scss';
 
 import {
   getAlertRulesUrl,
@@ -53,20 +65,24 @@ import {
   getSourceKey,
   Graph,
   MonitoringResourceIcon,
-  PopoverField,
   Severity,
   SeverityBadge,
   SeverityHelp,
   SourceHelp,
 } from '../alerting/AlertUtils';
 import { MonitoringState } from '../../reducers/observe';
+import { StatusBox } from '../console/console-shared/src/components/status/StatusBox';
+import { formatPrometheusDuration } from '../console/console-shared/src/datetime/prometheus';
+import withFallback from '../console/console-shared/error/fallbacks/withFallback';
+import { Table, TableVariant, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
 
 // Renders Prometheus template text and highlights any {{ ... }} tags that it contains
 const PrometheusTemplate = ({ text }) => (
   <>
     {text?.split(/(\{\{[^{}]*\}\})/)?.map((part: string, i: number) =>
       part.match(/^\{\{[^{}]*\}\}$/) ? (
-        <code className="co-code prometheus-template-tag" key={i}>
+        // <code className="monitoring__code monitoring__prometheus-template-tag" key={i}>
+        <code className="monitoring__code" key={i}>
           {part}
         </code>
       ) : (
@@ -87,32 +103,32 @@ const ActiveAlerts_: React.FC<ActiveAlertsProps> = ({ alerts, history, namespace
   const { perspective } = usePerspective();
 
   return (
-    <div className="co-m-table-grid co-m-table-grid--bordered">
-      <div className="row co-m-table-grid__head">
-        <div className="col-xs-6">{t('Description')}</div>
-        <div className="col-sm-2 hidden-xs">{t('Active since')}</div>
-        <div className="col-sm-2 col-xs-3">{t('State')}</div>
-        <div className="col-sm-2 col-xs-3">{t('Value')}</div>
-      </div>
-      <div className="co-m-table-grid__body">
+    <Table variant={TableVariant.compact}>
+      <Thead>
+        <Tr>
+          <Th width={60}>{t('Description')}</Th>
+          <Th width={15} visibility={['hiddenOnSm', 'visibleOnMd']}>
+            {t('Active since')}
+          </Th>
+          <Th width={10}>{t('State')}</Th>
+          <Th width={15}>{t('Value')}</Th>
+        </Tr>
+      </Thead>
+      <Tbody>
         {_.sortBy<PrometheusAlert>(alerts, alertDescription).map((a, i) => (
-          <div className="row co-resource-list__item" key={i}>
-            <div className="col-xs-6">
-              <Link
-                className="co-resource-item"
-                data-test="active-alerts"
-                to={getAlertUrl(perspective, a, ruleID, namespace)}
-              >
+          <Tr key={i}>
+            <Td>
+              <Link data-test="active-alerts" to={getAlertUrl(perspective, a, ruleID, namespace)}>
                 {alertDescription(a)}
               </Link>
-            </div>
-            <div className="col-sm-2 hidden-xs">
+            </Td>
+            <Td>
               <Timestamp timestamp={a.activeAt} />
-            </div>
-            <div className="col-sm-2 col-xs-3">
+            </Td>
+            <Td>
               <AlertState state={a.state} />
-            </div>
-            <div className="col-sm-2 col-xs-3 co-truncate">{a.value}</div>
+            </Td>
+            <Td modifier="truncate">{a.value}</Td>
             {a.state !== AlertStates.Silenced && (
               <div className="dropdown-kebab-pf">
                 <KebabDropdown
@@ -128,10 +144,10 @@ const ActiveAlerts_: React.FC<ActiveAlertsProps> = ({ alerts, history, namespace
                 />
               </div>
             )}
-          </div>
+          </Tr>
         ))}
-      </div>
-    </div>
+      </Tbody>
+    </Table>
   );
 };
 const ActiveAlerts = withRouter(ActiveAlerts_);
@@ -179,171 +195,192 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
         <title>{t('{{name}} details', { name: rule?.name || RuleResource.label })}</title>
       </Helmet>
       <StatusBox data={rule} label={RuleResource.label} loaded={loaded} loadError={loadError}>
-        <div className="pf-v5-c-page__main-breadcrumb">
-          <Breadcrumb className="monitoring-breadcrumbs">
-            {perspective === 'dev' && (
-              <BreadcrumbItem>
-                <Link
-                  className="pf-v5-c-breadcrumb__link"
-                  to={getAlertsUrl(perspective, namespace)}
-                >
-                  {t('Alerts')}
-                </Link>
-              </BreadcrumbItem>
-            )}
-            {perspective !== 'dev' && (
-              <BreadcrumbItem>
-                <Link className="pf-v5-c-breadcrumb__link" to={getAlertRulesUrl(perspective)}>
-                  {t('Alerting rules')}
-                </Link>
-              </BreadcrumbItem>
-            )}
-            <BreadcrumbItem isActive>{t('Alerting rule details')}</BreadcrumbItem>
-          </Breadcrumb>
-        </div>
-        <div className="co-m-nav-title co-m-nav-title--detail co-m-nav-title--breadcrumbs">
-          <h1 className="co-m-pane__heading">
-            <div data-test="resource-title" className="co-resource-item">
+        <PageGroup>
+          <PageBreadcrumb>
+            <Breadcrumb className="monitoring-breadcrumbs">
+              {perspective === 'dev' && (
+                <BreadcrumbItem>
+                  <Link
+                    className="pf-v5-c-breadcrumb__link"
+                    to={getAlertsUrl(perspective, namespace)}
+                  >
+                    {t('Alerts')}
+                  </Link>
+                </BreadcrumbItem>
+              )}
+              {perspective !== 'dev' && (
+                <BreadcrumbItem>
+                  <Link className="pf-v5-c-breadcrumb__link" to={getAlertRulesUrl(perspective)}>
+                    {t('Alerting rules')}
+                  </Link>
+                </BreadcrumbItem>
+              )}
+              <BreadcrumbItem isActive>{t('Alerting rule details')}</BreadcrumbItem>
+            </Breadcrumb>
+          </PageBreadcrumb>
+          <PageSection variant={PageSectionVariants.light}>
+            <Title headingLevel="h1">
+              {/* Leave to keep compatibility with console looks */}
               <MonitoringResourceIcon className="co-m-resource-icon--lg" resource={RuleResource} />
               {rule?.name}
               <SeverityBadge severity={rule?.labels?.severity} />
+            </Title>
+          </PageSection>
+        </PageGroup>
+        <Divider />
+        <PageGroup>
+          <PageSection variant={PageSectionVariants.light}>
+            <div className="monitoring-heading">
+              <Title headingLevel="h2">{t('Alerting rule details')}</Title>
             </div>
-          </h1>
-        </div>
-        <div className="co-m-pane__body">
-          <div className="monitoring-heading">
-            <SectionHeading text={t('Alerting rule details')} />
-          </div>
-          <div className="co-m-pane__body-group">
-            <div className="row">
-              <div className="col-sm-6">
-                <dl className="co-m-pane__details">
-                  <dt>{t('Name')}</dt>
-                  <dd>{rule?.name}</dd>
-                  <dt>
-                    <PopoverField bodyContent={<SeverityHelp />} label={t('Severity')} />
-                  </dt>
-                  <dd>
-                    <Severity severity={rule?.labels?.severity} />
-                  </dd>
+          </PageSection>
+          <PageSection variant={PageSectionVariants.light}>
+            <Grid sm={12} md={6} hasGutter>
+              <GridItem>
+                <DescriptionList>
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>{t('Name')}</DescriptionListTerm>
+                    <DescriptionListDescription>{rule?.name}</DescriptionListDescription>
+                  </DescriptionListGroup>
+                  <DescriptionListGroup>
+                    <DescriptionListTermHelpText>
+                      <Popover
+                        headerContent={<div>{t('Severity')}</div>}
+                        bodyContent={<SeverityHelp />}
+                      >
+                        <DescriptionListTermHelpTextButton>
+                          {' '}
+                          {t('Severity')}
+                        </DescriptionListTermHelpTextButton>
+                      </Popover>
+                    </DescriptionListTermHelpText>
+                    <DescriptionListDescription>
+                      <Severity severity={rule?.labels?.severity} />
+                    </DescriptionListDescription>
+                  </DescriptionListGroup>
                   {rule?.annotations?.description && (
-                    <>
-                      <dt>{t('Description')}</dt>
-                      <dd>
+                    <DescriptionListGroup>
+                      <DescriptionListTerm>{t('Description')}</DescriptionListTerm>
+                      <DescriptionListDescription>
                         <PrometheusTemplate text={rule.annotations.description} />
-                      </dd>
-                    </>
+                      </DescriptionListDescription>
+                    </DescriptionListGroup>
                   )}
                   {rule?.annotations?.summary && (
-                    <>
-                      <dt>{t('Summary')}</dt>
-                      <dd>{rule.annotations.summary}</dd>
-                    </>
+                    <DescriptionListGroup>
+                      <DescriptionListTerm>{t('Summary')}</DescriptionListTerm>
+                      <DescriptionListDescription>
+                        {rule.annotations.summary}
+                      </DescriptionListDescription>
+                    </DescriptionListGroup>
                   )}
                   {rule?.annotations?.message && (
-                    <>
-                      <dt>{t('Message')}</dt>
-                      <dd>
+                    <DescriptionListGroup>
+                      <DescriptionListTerm>{t('Message')}</DescriptionListTerm>
+                      <DescriptionListDescription>
                         <PrometheusTemplate text={rule.annotations.message} />
-                      </dd>
-                    </>
+                      </DescriptionListDescription>
+                    </DescriptionListGroup>
                   )}
                   {runbookURL && (
-                    <>
-                      <dt>{t('Runbook')}</dt>
-                      <dd>
+                    <DescriptionListGroup>
+                      <DescriptionListTerm>{t('Runbook')}</DescriptionListTerm>
+                      <DescriptionListDescription>
                         <ExternalLink href={runbookURL} text={runbookURL} />
-                      </dd>
-                    </>
+                      </DescriptionListDescription>
+                    </DescriptionListGroup>
                   )}
-                </dl>
-              </div>
-              <div className="col-sm-6">
-                <dl className="co-m-pane__details">
-                  <dt>
-                    <PopoverField bodyContent={<SourceHelp />} label={t('Source')} />
-                  </dt>
-                  <dd>{rule && getSourceKey(_.startCase(alertingRuleSource(rule)), t)}</dd>
+                </DescriptionList>
+              </GridItem>
+              <GridItem>
+                <DescriptionList>
+                  <DescriptionListGroup>
+                    <DescriptionListTermHelpText>
+                      <Popover
+                        headerContent={<div>{t('Source')}</div>}
+                        bodyContent={<SourceHelp />}
+                      >
+                        <DescriptionListTermHelpTextButton>
+                          {' '}
+                          {t('Source')}
+                        </DescriptionListTermHelpTextButton>
+                      </Popover>
+                    </DescriptionListTermHelpText>
+                    <DescriptionListDescription>
+                      {rule && getSourceKey(_.startCase(alertingRuleSource(rule)), t)}
+                    </DescriptionListDescription>
+                  </DescriptionListGroup>
                   {_.isInteger(rule?.duration) && (
-                    <>
-                      <dt>{t('For')}</dt>
-                      <dd>
+                    <DescriptionListGroup>
+                      <DescriptionListTerm>{t('For')}</DescriptionListTerm>
+                      <DescriptionListDescription>
                         {rule.duration === 0 ? '-' : formatPrometheusDuration(rule.duration * 1000)}
-                      </dd>
-                    </>
+                      </DescriptionListDescription>
+                    </DescriptionListGroup>
                   )}
-                  <dt>{t('Expression')}</dt>
-                  <dd>
-                    {/* display a link only if its a metrics based alert */}
-                    {(!sourceId || sourceId === 'prometheus') && perspective !== 'acm' ? (
-                      <Link to={getQueryBrowserUrl(perspective, rule?.query, namespace)}>
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>{t('Expression')}</DescriptionListTerm>
+                    <DescriptionListDescription>
+                      {/* display a link only if its a metrics based alert */}
+                      {(!sourceId || sourceId === 'prometheus') && perspective !== 'acm' ? (
+                        <Link to={getQueryBrowserUrl(perspective, rule?.query, namespace)}>
+                          <CodeBlock>
+                            <CodeBlockCode>{rule?.query}</CodeBlockCode>
+                          </CodeBlock>
+                        </Link>
+                      ) : (
                         <CodeBlock>
                           <CodeBlockCode>{rule?.query}</CodeBlockCode>
                         </CodeBlock>
-                      </Link>
-                    ) : (
-                      <CodeBlock>
-                        <CodeBlockCode>{rule?.query}</CodeBlockCode>
-                      </CodeBlock>
-                    )}
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-          <div className="co-m-pane__body-group">
-            <div className="row">
-              <div className="col-xs-12">
-                <dl className="co-m-pane__details">
-                  <dt>{t('Labels')}</dt>
-                  <dd>
-                    <Labels kind="alertrule" labels={rule?.labels} />
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="co-m-pane__body">
-          <div className="co-m-pane__body-group">
-            <Toolbar className="monitoring-alert-detail-toolbar">
-              <ToolbarContent>
-                <ToolbarItem variant="label">
-                  <SectionHeading text={t('Active alerts')} />
+                      )}
+                    </DescriptionListDescription>
+                  </DescriptionListGroup>
+                </DescriptionList>
+              </GridItem>
+              <GridItem span={12}>
+                <DescriptionList>
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>{t('Labels')}</DescriptionListTerm>
+                    <DescriptionListDescription>
+                      <Labels kind="alertrule" labels={rule?.labels} />
+                    </DescriptionListDescription>
+                  </DescriptionListGroup>
+                </DescriptionList>
+              </GridItem>
+            </Grid>
+          </PageSection>
+        </PageGroup>
+        <Divider />
+        <PageSection variant={PageSectionVariants.light}>
+          <Toolbar className="monitoring-alert-detail-toolbar">
+            <ToolbarContent>
+              <ToolbarItem variant="label">
+                <Title headingLevel="h2">{t('Active alerts')}</Title>
+              </ToolbarItem>
+              <ToolbarGroup align={{ default: 'alignRight' }}>
+                <ToolbarItem>
+                  <ToggleGraph />
                 </ToolbarItem>
-                <ToolbarGroup align={{ default: 'alignRight' }}>
-                  <ToolbarItem>
-                    <ToggleGraph />
-                  </ToolbarItem>
-                </ToolbarGroup>
-              </ToolbarContent>
-            </Toolbar>
-            <div className="row">
-              <div className="col-sm-12">
-                {!sourceId || sourceId === 'prometheus' ? (
-                  <Graph
-                    formatSeriesTitle={formatSeriesTitle}
-                    namespace={namespace}
-                    query={rule?.query}
-                    ruleDuration={rule?.duration}
-                    showLegend
-                  />
-                ) : AlertChart ? (
-                  <AlertChart rule={rule} />
-                ) : null}
-              </div>
-            </div>
-            <div className="row">
-              <div className="col-xs-12">
-                {_.isEmpty(rule?.alerts) ? (
-                  <div className="pf-v5-u-text-align-center">{t('None found')}</div>
-                ) : (
-                  <ActiveAlerts alerts={rule.alerts} ruleID={rule?.id} namespace={namespace} />
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+              </ToolbarGroup>
+            </ToolbarContent>
+          </Toolbar>
+          {!sourceId || sourceId === 'prometheus' ? (
+            <Graph
+              formatSeriesTitle={formatSeriesTitle}
+              namespace={namespace}
+              query={rule?.query}
+              ruleDuration={rule?.duration}
+              showLegend
+            />
+          ) : AlertChart ? (
+            <AlertChart rule={rule} />
+          ) : null}
+          {_.isEmpty(rule?.alerts) ? (
+            <div className="pf-v5-u-text-align-center">{t('None found')}</div>
+          ) : (
+            <ActiveAlerts alerts={rule.alerts} ruleID={rule?.id} namespace={namespace} />
+          )}
+        </PageSection>
       </StatusBox>
     </>
   );

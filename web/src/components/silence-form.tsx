@@ -9,17 +9,31 @@ import {
   ActionGroup,
   Alert,
   Button,
+  Checkbox,
+  DescriptionList,
+  DescriptionListDescription,
+  Divider,
+  Form,
+  FormGroup,
+  FormHelperText,
+  Grid,
+  GridItem,
   HelperText,
   HelperTextItem,
+  Icon,
   MenuToggle,
   MenuToggleElement,
+  PageSection,
+  PageSectionVariants,
   Select,
   SelectList,
   SelectOption,
   TextArea,
   TextInput,
+  Timestamp,
   Title,
   Tooltip,
+  ValidatedOptions,
 } from '@patternfly/react-core';
 import { MinusCircleIcon, PlusCircleIcon } from '@patternfly/react-icons';
 import * as React from 'react';
@@ -30,14 +44,9 @@ import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 // TODO: These will be available in future versions of the plugin SDK
 const getUser = (state) => state.sdkCore?.user;
-import { formatPrometheusDuration, parsePrometheusDuration } from './console/utils/datetime';
 
-import { withFallback } from './console/console-shared/error/error-boundary';
-import { ButtonBar } from './console/utils/button-bar';
-import { SectionHeading } from './console/utils/headings';
 import { ExternalLink } from './console/utils/link';
 import { getAllQueryArguments } from './console/utils/router';
-import { StatusBox } from './console/utils/status-box';
 
 import { useBoolean } from './hooks/useBoolean';
 import { Silences } from './types';
@@ -49,6 +58,12 @@ import {
   usePerspective,
 } from './hooks/usePerspective';
 import { MonitoringState } from '../reducers/observe';
+import { StatusBox } from './console/console-shared/src/components/status/StatusBox';
+import {
+  formatPrometheusDuration,
+  parsePrometheusDuration,
+} from './console/console-shared/src/datetime/prometheus';
+import withFallback from './console/console-shared/error/fallbacks/withFallback';
 
 const pad = (i: number): string => (i < 10 ? `0${i}` : String(i));
 
@@ -62,27 +77,25 @@ const DatetimeTextInput = (props) => {
 
   const pattern =
     '\\d{4}/(0?[1-9]|1[012])/(0?[1-9]|[12]\\d|3[01]) (0?\\d|1\\d|2[0-3]):[0-5]\\d(:[0-5]\\d)?';
-  const isValid = new RegExp(`^${pattern}$`).test(props.value);
+  const isValid = new RegExp(`^${pattern}$`).test(props.value) || props.value === 'Now';
+
+  const date = props.value === 'Now' ? new Date() : new Date(props.value);
 
   return (
-    <div>
-      <Tooltip
-        content={[
-          <span className="co-nowrap" key="co-timestamp">
-            {isValid ? new Date(props.value).toISOString() : t('Invalid date / time')}
-          </span>,
-        ]}
-      >
-        <TextInput
-          {...props}
-          aria-label={t('Datetime')}
-          data-test-id="silence-datetime"
-          validated={isValid || !!props.isDisabled ? 'default' : 'error'}
-          pattern={pattern}
-          placeholder="YYYY/MM/DD hh:mm:ss"
-        />
-      </Tooltip>
-    </div>
+    <Tooltip
+      content={
+        <Timestamp date={date}>{isValid ? date.toISOString() : t('Invalid date / time')}</Timestamp>
+      }
+    >
+      <TextInput
+        {...props}
+        aria-label={t('Datetime')}
+        data-test-id="silence-datetime"
+        validated={isValid || !!props.isDisabled ? 'default' : 'error'}
+        pattern={pattern}
+        placeholder="YYYY/MM/DD hh:mm:ss"
+      />
+    </Tooltip>
   );
 };
 
@@ -90,16 +103,16 @@ const NegativeMatcherHelp = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
-    <dl>
-      <dd>
+    <DescriptionList>
+      <DescriptionListDescription className="pf-v5-u-text-align-center">
         {t('Select the negative matcher option to update the label value to a not equals matcher.')}
-      </dd>
-      <dd>
+      </DescriptionListDescription>
+      <DescriptionListDescription className="pf-v5-u-text-align-center">
         {t(
           'If both the RegEx and negative matcher options are selected, the label value must not match the regular expression.',
         )}
-      </dd>
-    </dl>
+      </DescriptionListDescription>
+    </DescriptionList>
   );
 };
 
@@ -258,7 +271,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
       <Helmet>
         <title>{title}</title>
       </Helmet>
-      <div className="co-m-nav-title co-m-nav-title--detail">
+      <PageSection variant={PageSectionVariants.light}>
         <Title headingLevel="h1">{title}</Title>
         <HelperText>
           <HelperTextItem className="monitoring__title-help-text">
@@ -267,16 +280,17 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
             )}
           </HelperTextItem>
         </HelperText>
-      </div>
+      </PageSection>
+      <Divider />
 
-      <div className="co-m-pane__body">
-        {Info && <Info />}
-        <form onSubmit={onSubmit} className="monitoring-silence-alert">
-          <div className="co-m-pane__body-group">
-            <SectionHeading text={t('Duration')} />
-            <div className="row">
-              <div className="form-group col-sm-4 col-md-5">
-                <label>{t('Silence alert from...')}</label>
+      <PageSection variant={PageSectionVariants.light}>
+        <Form onSubmit={onSubmit} maxWidth="950px">
+          {Info && <Info />}
+          {error && <Alert variant="danger" isInline title={error} />}
+          <Title headingLevel="h2">{t('Duration')}</Title>
+          <Grid hasGutter>
+            <GridItem sm={4} md={5}>
+              <FormGroup label={t('Silence alert from...')}>
                 {isStartNow ? (
                   <DatetimeTextInput isDisabled data-test="silence-from" value={t('Now')} />
                 ) : (
@@ -287,9 +301,10 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
                     value={startsAt}
                   />
                 )}
-              </div>
-              <div className="form-group col-sm-4 col-md-2">
-                <label>{t('For...')}</label>
+              </FormGroup>
+            </GridItem>
+            <GridItem sm={4} md={2}>
+              <FormGroup label={t('For...')}>
                 <Select
                   data-test="silence-for"
                   isOpen={isOpen}
@@ -312,9 +327,10 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
                 >
                   <SelectList>{selectOptions}</SelectList>
                 </Select>
-              </div>
-              <div className="form-group col-sm-4 col-md-5">
-                <label>{t('Until...')}</label>
+              </FormGroup>
+            </GridItem>
+            <GridItem sm={4} md={5}>
+              <FormGroup label={t('Until...')}>
                 {duration === durationOff ? (
                   <DatetimeTextInput
                     data-test="silence-until"
@@ -333,38 +349,38 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
                     }
                   />
                 )}
-              </div>
-            </div>
-            <div className="form-group">
-              <label>
-                <input
-                  data-test="silence-start-immediately"
-                  checked={isStartNow}
-                  onChange={(e) => setIsStartNow(e.currentTarget.checked)}
-                  type="checkbox"
-                />
-                &nbsp; {t('Start immediately')}
-              </label>
-            </div>
-          </div>
+              </FormGroup>
+            </GridItem>
+          </Grid>
+          <FormGroup role="group">
+            <Checkbox
+              id="start-immediately"
+              label={t('Start immediately')}
+              isChecked={isStartNow}
+              onChange={(e) => setIsStartNow(e.currentTarget.checked)}
+            />
+          </FormGroup>
 
-          <div className="co-m-pane__body-group">
-            <SectionHeading text={t('Alert labels')} />
-            <p className="co-help-text monitoring-silence-alert__paragraph">
-              <Trans t={t}>
-                Alerts with labels that match these selectors will be silenced instead of firing.
-                Label values can be matched exactly or with a{' '}
-                <ExternalLink
-                  href="https://github.com/google/re2/wiki/Syntax"
-                  text={t('regular expression')}
-                />
-              </Trans>
-            </p>
+          <Title headingLevel="h2">{t('Alert labels')}</Title>
+          <FormHelperText>
+            <HelperText>
+              <HelperTextItem variant="indeterminate">
+                <Trans t={t}>
+                  Alerts with labels that match these selectors will be silenced instead of firing.
+                  Label values can be matched exactly or with a{' '}
+                  <ExternalLink
+                    href="https://github.com/google/re2/wiki/Syntax"
+                    text={t('regular expression')}
+                  />
+                </Trans>
+              </HelperTextItem>
+            </HelperText>
+          </FormHelperText>
 
-            {_.map(matchers, (matcher, i: number) => (
-              <div className="row" key={i}>
-                <div className="form-group col-sm-4">
-                  <label>{t('Label name')}</label>
+          {_.map(matchers, (matcher, i: number) => (
+            <Grid key={i} sm={12} md={4} hasGutter>
+              <GridItem>
+                <FormGroup label={t('Label name')}>
                   <TextInput
                     aria-label={t('Label name')}
                     isRequired
@@ -376,9 +392,10 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
                     placeholder={t('Name')}
                     value={matcher.name}
                   />
-                </div>
-                <div className="form-group col-sm-4">
-                  <label>{t('Label value')}</label>
+                </FormGroup>
+              </GridItem>
+              <GridItem>
+                <FormGroup label={t('Label value')}>
                   <TextInput
                     aria-label={t('Label value')}
                     isRequired
@@ -390,27 +407,27 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
                     placeholder={t('Value')}
                     value={matcher.value}
                   />
-                </div>
-                <div className="form-group col-sm-4">
+                </FormGroup>
+              </GridItem>
+              <GridItem>
+                <FormGroup>
                   <div className="monitoring-silence-alert__label-options">
-                    <label>
-                      <input
-                        checked={matcher.isRegex}
+                    <FormGroup role="group" isInline>
+                      <Checkbox
+                        id="regex"
+                        label={t('RegEx')}
+                        isChecked={matcher.isRegex}
                         onChange={(e) => setMatcherField(i, 'isRegex', e.currentTarget.checked)}
-                        type="checkbox"
                       />
-                      &nbsp; {t('RegEx')}
-                    </label>
-                    <Tooltip content={<NegativeMatcherHelp />}>
-                      <label>
-                        <input
-                          checked={matcher.isEqual === false}
+                      <Tooltip content={<NegativeMatcherHelp />}>
+                        <Checkbox
+                          id="negative-matcher"
+                          label={t('Negative matcher')}
+                          isChecked={matcher.isEqual === false}
                           onChange={(e) => setMatcherField(i, 'isEqual', !e.currentTarget.checked)}
-                          type="checkbox"
                         />
-                        &nbsp; {t('Negative matcher')}
-                      </label>
-                    </Tooltip>
+                      </Tooltip>
+                    </FormGroup>
                     <Tooltip content={t('Remove')}>
                       <Button
                         type="button"
@@ -422,61 +439,59 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
                       </Button>
                     </Tooltip>
                   </div>
-                </div>
-              </div>
-            ))}
+                </FormGroup>
+              </GridItem>
+            </Grid>
+          ))}
 
-            <div className="form-group">
-              <Button
-                className="pf-v5-m-link--align-left"
-                onClick={addMatcher}
-                type="button"
-                variant="link"
-              >
-                <PlusCircleIcon className="co-icon-space-r" />
-                {t('Add label')}
-              </Button>
-            </div>
-          </div>
+          <FormGroup>
+            <Button
+              className="pf-v5-m-link--align-left"
+              onClick={addMatcher}
+              type="button"
+              variant="link"
+              isInline
+            >
+              <Icon isInline size="lg" iconSize="md">
+                <PlusCircleIcon />
+              </Icon>
+              {t('Add label')}
+            </Button>
+          </FormGroup>
 
-          <div className="co-m-pane__body-group">
-            <SectionHeading text={t('Info')} />
-            <div className="form-group">
-              <label className="co-required">{t('Creator')}</label>
-              <TextInput
-                aria-label={t('Creator')}
-                isRequired
-                onChange={(_e, v: string) =>
-                  typeof _e === 'string' ? setCreatedBy(_e) : setCreatedBy(v)
-                }
-                value={createdBy}
-              />
-            </div>
-            <div className="form-group">
-              <label className="co-required">{t('Comment')}</label>
-              <TextArea
-                aria-label={t('Comment')}
-                isRequired
-                onChange={(_e, v: string) =>
-                  typeof _e === 'string' ? setComment(_e) : setComment(v)
-                }
-                data-test="silence-comment"
-                value={comment}
-              />
-            </div>
-            <ButtonBar errorMessage={error} inProgress={inProgress}>
-              <ActionGroup className="pf-v5-c-form">
-                <Button type="submit" variant="primary">
-                  {t('Silence')}
-                </Button>
-                <Button onClick={history.goBack} variant="secondary">
-                  {t('Cancel')}
-                </Button>
-              </ActionGroup>
-            </ButtonBar>
-          </div>
-        </form>
-      </div>
+          <Title headingLevel="h2">{t('Info')}</Title>
+          <FormGroup label={t('Creator')} isRequired>
+            <TextInput
+              aria-label={t('Creator')}
+              isRequired
+              onChange={(_e, v: string) =>
+                typeof _e === 'string' ? setCreatedBy(_e) : setCreatedBy(v)
+              }
+              value={createdBy}
+            />
+          </FormGroup>
+          <FormGroup label={t('Comment')} isRequired>
+            <TextArea
+              aria-label={t('Comment')}
+              isRequired
+              onChange={(_e, v: string) =>
+                typeof _e === 'string' ? setComment(_e) : setComment(v)
+              }
+              data-test="silence-comment"
+              value={comment}
+              validated={error ? ValidatedOptions.error : ValidatedOptions.default}
+            />
+          </FormGroup>
+          <ActionGroup>
+            <Button type="submit" variant="primary" isDisabled={inProgress}>
+              {t('Silence')}
+            </Button>
+            <Button onClick={history.goBack} variant="secondary" isDisabled={inProgress}>
+              {t('Cancel')}
+            </Button>
+          </ActionGroup>
+        </Form>
+      </PageSection>
     </>
   );
 };
@@ -486,7 +501,7 @@ const EditInfo = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
-    <Alert className="co-alert" isInline title={t('Overwriting current silence')} variant="info">
+    <Alert isInline title={t('Overwriting current silence')} variant="info">
       {t(
         'When changes are saved, the currently existing silence will be expired and a new silence with the new configuration will take its place.',
       )}

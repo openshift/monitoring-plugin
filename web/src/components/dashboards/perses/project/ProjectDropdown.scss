@@ -1,11 +1,11 @@
 $font-size-base: 14px !default;
 
-.co-project-dropdown {
+.monitoring__project-dropdown {
   margin-right: 20px;
   max-width: 60%;
 }
 
-.pf-v5-c-menu.co-project-dropdown__menu {
+.pf-v5-c-menu.monitoring__project-dropdown__menu {
   // Position is to ensure that the dropdown doesn't push content down when opened
   // Especially on the /topology/ns/[project]?view=graph page
   position: absolute;
@@ -18,15 +18,15 @@ $font-size-base: 14px !default;
   }
 }
 
-// The .co-project-dropdown__menu-toggle styles are enabled to make the PatternFly
+// The .monitoring__project-dropdown__menu-toggle styles are enabled to make the PatternFly
 // more closely match the custom DropDown based drop down.
 // These are displayed side by site in the Developer view > Topology view.active.
 // Once the custom DropDown component changes to the PatternFly component, these styles can be removed.
-.pf-v5-c-menu-toggle.co-project-dropdown__menu-toggle {
+.pf-v5-c-menu-toggle.monitoring__project-dropdown__menu-toggle {
   background-color: var(
-    --co-project-dropdown__menu-toggle--BackgroundColor,
+    --monitoring__project-dropdown__menu-toggle--BackgroundColor,
     inherit
-  ); // Button should inherit the same backgound as the co-project-bar
+  ); // Button should inherit the same backgound as the monitoring__project-bar
   font-size: ($font-size-base + 1) !important;
   padding: 2px 0 !important;
   width: 100%;
@@ -58,7 +58,7 @@ $font-size-base: 14px !default;
 // normal PatternFly display.
 // Tracked in https://github.com/patternfly/patternfly-react/issues/6059
 
-.co-project-dropdown__switch {
+.monitoring__project-dropdown__switch {
   .pf-v5-c-switch__label {
     padding-right: 60px; // Ensure switch doesn't land on top of text
   }
@@ -69,7 +69,7 @@ $font-size-base: 14px !default;
   }
 }
 
-.co-project-bar {
+.monitoring__project-bar {
   border-bottom: var(--pf-v5-global--BorderWidth--sm) solid var(--pf-v5-global--BorderColor--100);
   padding: 0 var(--pf-v5-global--gutter);
   white-space: nowrap;
@@ -94,7 +94,7 @@ $font-size-base: 14px !default;
   }
 }
 
-.co-project-bar--no-project {
+.monitoring__project-bar--no-project {
   padding-left: var(--pf-v5-global--spacer--sm);
   @media screen and (max-width: var(--pf-v5-global--breakpoint--xl)) {
     margin-left: -0.5rem;
