@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Alert, Flex, FlexItem, PageSection, Title } from '@patternfly/react-core';
-import _ from 'lodash';
+import * as _ from 'lodash-es';
 import { useTranslation } from 'react-i18next';
 import { IncompleteDataError } from '@openshift-console/dynamic-plugin-sdk/lib/utils/error/http-error';
 import { EmptyBox } from '../empty-state/EmptyBox';
