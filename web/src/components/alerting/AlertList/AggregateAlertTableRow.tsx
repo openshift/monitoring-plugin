@@ -38,10 +38,11 @@ const AggregateAlertTableRow: AggregateAlertTableRowProps = ({
     [aggregatedAlert.alerts, selectedFilters],
   );
 
-  const columns: TableColumn<Alert>[] = [
+  const columns: Array<TableColumn<Alert>> = [
     {
       title: t('Name'),
       id: 'alert-name',
+      props: { width: 40 },
     },
     {
       title: t('Severity'),

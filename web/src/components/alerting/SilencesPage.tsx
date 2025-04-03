@@ -8,7 +8,7 @@ import {
   getFetchSilenceUrl,
   usePerspective,
 } from '../hooks/usePerspective';
-import { Silences } from '../types';
+import { Silences, VirtualizedTableColumn } from '../types';
 import { MonitoringState } from 'src/reducers/observe';
 import { RowFilter } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
 import {
@@ -119,17 +119,19 @@ const SilencesPage_: React.FC = () => {
 
   const [staticData, filteredData, onFilterChange] = useListPageFilter(data, rowFilters);
 
-  const columns = React.useMemo<TableColumn<Silence>[]>(() => {
-    const cols = [
+  const columns = React.useMemo<Array<TableColumn<Silence>>>(() => {
+    const cols: Array<TableColumn<Silence>> = [
       {
         id: 'checkbox',
         title: (<SelectAllCheckbox silences={filteredData} />) as any,
+        props: { width: 10 },
       },
       {
         id: 'name',
         sort: 'name',
         title: t('Name'),
         transforms: [sortable],
+        props: { width: 40 },
       },
       {
         id: 'firingAlerts',
@@ -137,6 +139,7 @@ const SilencesPage_: React.FC = () => {
           _.orderBy(silences, silenceFiringAlertsOrder, [direction]),
         title: t('Firing alerts'),
         transforms: [sortable],
+        props: { width: 15 },
       },
       {
         id: 'state',
@@ -144,16 +147,19 @@ const SilencesPage_: React.FC = () => {
           _.orderBy(silences, silenceStateOrder, [direction]),
         title: t('State'),
         transforms: [sortable],
+        props: { width: 20 },
       },
       {
         id: 'createdBy',
         sort: 'createdBy',
         title: t('Creator'),
         transforms: [sortable],
+        props: { width: 15 },
       },
       {
         id: 'actions',
         title: '',
+        props: { width: 10 },
       },
     ];
 

@@ -21,12 +21,12 @@ import {
   useResolvedExtensions,
   ResourceLink,
   Silence,
-  TableColumn,
   VirtualizedTable,
   useActiveNamespace,
   AlertingRuleChartExtension,
   isAlertingRuleChart,
   ResourceIcon,
+  TableColumn,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
 import { ExternalLink, LinkifyExternal } from '../console/utils/link';
@@ -500,27 +500,32 @@ const AlertStateHelp: React.FC = () => {
 const SilencedByList: React.FC<{ silences: Silence[] }> = ({ silences }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
-  const columns = React.useMemo<TableColumn<Silence>[]>(
+  const columns = React.useMemo<Array<TableColumn<Silence>>>(
     () => [
       {
         id: 'name',
         title: t('Name'),
+        props: { width: 40 },
       },
       {
         id: 'firingAlerts',
         title: t('Firing alerts'),
+        props: { width: 15 },
       },
       {
         id: 'state',
         title: t('State'),
+        props: { width: 20 },
       },
       {
         id: 'createdBy',
         title: t('Creator'),
+        props: { width: 15 },
       },
       {
         id: 'actions',
         title: '',
+        props: { width: 10 },
       },
     ],
     [t],

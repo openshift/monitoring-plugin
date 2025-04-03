@@ -13,7 +13,7 @@ import {
   Timestamp,
   YellowExclamationTriangleIcon,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { AlertSource, MonitoringResource } from '../types';
+import { AlertSource } from '../types';
 import * as _ from 'lodash-es';
 import { useTranslation } from 'react-i18next';
 import {
@@ -24,8 +24,9 @@ import {
   DescriptionListGroup,
   DescriptionListTerm,
   DescriptionListDescription,
+  Level,
+  LevelItem,
 } from '@patternfly/react-core';
-import classNames from 'classnames';
 import { BellIcon, BellSlashIcon, OutlinedBellIcon } from '@patternfly/react-icons';
 import { FormatSeriesTitle, QueryBrowser } from '../query-browser';
 import { Link } from 'react-router-dom';
@@ -181,10 +182,12 @@ export const AlertStateDescription: React.FC<{ alert: Alert }> = ({ alert }) => 
 };
 
 export const StateTimestamp = ({ text, timestamp }) => (
-  <div>
-    {text}&nbsp;
-    <Timestamp timestamp={timestamp} />
-  </div>
+  <Level>
+    <LevelItem>{text}&nbsp;</LevelItem>
+    <LevelItem>
+      <Timestamp timestamp={timestamp} />
+    </LevelItem>
+  </Level>
 );
 
 export const SeverityBadge: React.FC<{ severity: string }> = React.memo(({ severity }) =>

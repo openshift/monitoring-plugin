@@ -21,6 +21,8 @@ import {
   PanelMain,
   PanelMainBody,
   Alert as PFAlert,
+  Stack,
+  StackItem,
 } from '@patternfly/react-core';
 import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import { BanIcon, EllipsisVIcon, HourglassHalfIcon } from '@patternfly/react-icons';
@@ -75,7 +77,7 @@ export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheck
   return (
     <>
       {showCheckbox && (
-        <Td>
+        <Td width={10}>
           <Checkbox
             id={id}
             isChecked={selectedSilences.has(id)}
@@ -86,7 +88,7 @@ export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheck
           />
         </Td>
       )}
-      <Td>
+      <Td width={40}>
         <Flex spaceItems={{ default: 'spaceItemsNone' }} flexWrap={{ default: 'nowrap' }}>
           <FlexItem>
             <ResourceIcon kind={SilenceResource.kind} />
@@ -101,26 +103,32 @@ export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheck
             </Link>
           </FlexItem>
         </Flex>
-        <div>
-          <SilenceMatchersList silence={obj} />
-        </div>
+        <SilenceMatchersList silence={obj} />
       </Td>
-      <Td>
+      <Td width={15}>
         <SeverityCounts alerts={firingAlerts} />
       </Td>
-      <Td>
-        <SilenceState silence={obj} />
-        {state === SilenceStates.Pending && (
-          <StateTimestamp text={t('Starts')} timestamp={startsAt} />
-        )}
-        {state === SilenceStates.Active && <StateTimestamp text={t('Ends')} timestamp={endsAt} />}
-        {state === SilenceStates.Expired && (
-          <StateTimestamp text={t('Expired')} timestamp={endsAt} />
-        )}
+      <Td width={20}>
+        <Stack>
+          <StackItem>
+            <SilenceState silence={obj} />
+          </StackItem>
+          <StackItem>
+            {state === SilenceStates.Pending && (
+              <StateTimestamp text={t('Starts')} timestamp={startsAt} />
+            )}
+            {state === SilenceStates.Active && (
+              <StateTimestamp text={t('Ends')} timestamp={endsAt} />
+            )}
+            {state === SilenceStates.Expired && (
+              <StateTimestamp text={t('Expired')} timestamp={endsAt} />
+            )}
+          </StackItem>
+        </Stack>
       </Td>
-      <Td>{createdBy || '-'}</Td>
+      <Td width={15}>{createdBy || '-'}</Td>
       {perspective === 'acm' && <Td>{cluster}</Td>}
-      <Td>
+      <Td width={10}>
         <SilenceDropdown silence={obj} />
       </Td>
     </>
