@@ -66,7 +66,7 @@ const AlertsPage_: React.FC<AlertsPageProps> = () => {
     loadError,
   }: Alerts = useSelector(({ observe }: RootState) => observe.get(alertsKey) || {});
   const silencesLoadError = useSelector(
-    ({ observe }: RootState) => observe.get('silences')?.loadError,
+    ({ observe }: RootState) => observe.get(isDev ? 'devSilences' : 'silences')?.loadError,
   );
 
   const alertAdditionalSources = React.useMemo(

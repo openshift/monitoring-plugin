@@ -21,7 +21,9 @@ export const useSilencesPoller = ({ namespace }) => {
   );
   const dispatch = useDispatch();
   React.useEffect(() => {
-    if (loadError) {
+    if (!isDev) {
+      return;
+    } else if (loadError) {
       dispatch(alertingErrored('devSilences', loadError, 'dev'));
     } else if (loading) {
       dispatch(alertingLoading('devSilences', 'dev'));
