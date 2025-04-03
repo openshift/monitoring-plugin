@@ -20,6 +20,7 @@ import {
   GridItem,
   HelperText,
   HelperTextItem,
+  HelperTextItemVariant,
   Icon,
   MenuToggle,
   MenuToggleElement,
@@ -29,17 +30,18 @@ import {
   SelectOption,
   TextArea,
   TextInput,
-  Timestamp,
+  TextInputProps,
   Title,
   Tooltip,
   ValidatedOptions,
 } from '@patternfly/react-core';
-import { MinusCircleIcon, PlusCircleIcon } from '@patternfly/react-icons';
+import { ExclamationCircleIcon, MinusCircleIcon, PlusCircleIcon } from '@patternfly/react-icons';
 import * as React from 'react';
 import { Helmet } from 'react-helmet';
 import { Trans, useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
+import { t_global_spacer_sm } from '@patternfly/react-tokens';
 
 // TODO: These will be available in future versions of the plugin SDK
 const getUser = (state) => state.sdkCore?.user;
@@ -71,19 +73,25 @@ const formatDate = (d: Date): string =>
     d.getMinutes(),
   )}:${pad(d.getSeconds())}`;
 
-const DatetimeTextInput = (props) => {
+type DatetimeTextInputProps = TextInputProps & {
+  tooltip?: string;
+};
+
+const DatetimeTextInput = (props: DatetimeTextInputProps) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const pattern =
     '\\d{4}/(0?[1-9]|1[012])/(0?[1-9]|[12]\\d|3[01]) (0?\\d|1\\d|2[0-3]):[0-5]\\d(:[0-5]\\d)?';
-  const isValid = new RegExp(`^${pattern}$`).test(props.value) || props.value === 'Now';
-
-  const date = props.value === 'Now' ? new Date() : new Date(props.value);
+  const isValid = new RegExp(`^${pattern}$`).test(String(props.value));
 
   return (
     <Tooltip
       content={
-        <Timestamp date={date}>{isValid ? date.toISOString() : t('Invalid date / time')}</Timestamp>
+        props.tooltip
+          ? props.tooltip
+          : isValid
+          ? formatDate(new Date(props.value))
+          : t('Invalid date / time')
       }
     >
       <TextInput
@@ -171,8 +179,8 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
   const [error, setError] = React.useState<string>();
   const [inProgress, setInProgress] = React.useState(false);
   const [isStartNow, setIsStartNow] = React.useState(defaultIsStartNow);
-  const [matchers, setMatchers] = React.useState(
-    defaults.matchers ?? [{ isRegex: false, name: '', value: '' }],
+  const [matchers, setMatchers] = React.useState<Array<Matcher>>(
+    defaults.matchers ?? [{ isRegex: false, isEqual: false, name: '', value: '' }],
   );
   const [startsAt, setStartsAt] = React.useState(defaults.startsAt ?? formatDate(now));
   const user = useSelector(getUser);
@@ -192,14 +200,14 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
       : '-';
   };
 
-  const setMatcherField = (i: number, field: string, v: any): void => {
+  const setMatcherField = (i: number, field: string, v: string | boolean): void => {
     const newMatchers = _.clone(matchers);
     _.set(newMatchers, [i, field], v);
     setMatchers(newMatchers);
   };
 
   const addMatcher = (): void => {
-    setMatchers([...matchers, { isRegex: false, name: '', value: '' }]);
+    setMatchers([...matchers, { isRegex: false, isEqual: false, name: '', value: '' }]);
   };
 
   const removeMatcher = (i: number): void => {
@@ -207,7 +215,11 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
     newMatchers.splice(i, 1);
 
     // If all matchers have been removed, add back a single blank matcher
-    setMatchers(_.isEmpty(newMatchers) ? [{ isRegex: false, name: '', value: '' }] : newMatchers);
+    setMatchers(
+      _.isEmpty(newMatchers)
+        ? [{ isRegex: false, isEqual: false, name: '', value: '' }]
+        : newMatchers,
+    );
   };
 
   const onSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
@@ -291,7 +303,12 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
             <GridItem sm={4} md={5}>
               <FormGroup label={t('Silence alert from...')}>
                 {isStartNow ? (
-                  <DatetimeTextInput isDisabled data-test="silence-from" value={t('Now')} />
+                  <DatetimeTextInput
+                    isDisabled
+                    data-test="silence-from"
+                    value={t('Now')}
+                    tooltip={formatDate(new Date())}
+                  />
                 ) : (
                   <DatetimeTextInput
                     data-test="silence-from"
@@ -346,6 +363,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
                         ? t('{{duration}} from now', { duration: durations[duration] })
                         : getEndsAtValue()
                     }
+                    tooltip={isStartNow ? getEndsAtValue() : undefined}
                   />
                 )}
               </FormGroup>
@@ -409,34 +427,33 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
                 </FormGroup>
               </GridItem>
               <GridItem>
-                <FormGroup>
-                  <div>
-                    <FormGroup role="group" isInline>
+                <FormGroup isInline label={t('Select all that apply:')}>
+                  <FormGroup role="group" isInline style={{ marginTop: t_global_spacer_sm.var }}>
+                    <Checkbox
+                      id={`regex-${i}`}
+                      label={t('RegEx')}
+                      isChecked={matcher.isRegex}
+                      onChange={(e) => setMatcherField(i, 'isRegex', e.currentTarget.checked)}
+                    />
+                    <Tooltip content={<NegativeMatcherHelp />}>
                       <Checkbox
-                        id="regex"
-                        label={t('RegEx')}
-                        isChecked={matcher.isRegex}
-                        onChange={(e) => setMatcherField(i, 'isRegex', e.currentTarget.checked)}
-                      />
-                      <Tooltip content={<NegativeMatcherHelp />}>
-                        <Checkbox
-                          id="negative-matcher"
-                          label={t('Negative matcher')}
-                          isChecked={matcher.isEqual === false}
-                          onChange={(e) => setMatcherField(i, 'isEqual', !e.currentTarget.checked)}
-                        />
-                      </Tooltip>
-                    </FormGroup>
-                    <Tooltip content={t('Remove')}>
-                      <Button
-                        icon={<MinusCircleIcon />}
-                        type="button"
-                        onClick={() => removeMatcher(i)}
-                        aria-label={t('Remove')}
-                        variant="plain"
+                        id={`negative-matcher-${i}`}
+                        label={t('Negative matcher')}
+                        isChecked={matcher.isEqual === false}
+                        onChange={(e) => setMatcherField(i, 'isEqual', !e.currentTarget.checked)}
                       />
                     </Tooltip>
-                  </div>
+                  </FormGroup>
+                  <Tooltip content={t('Remove')}>
+                    <Button
+                      icon={<MinusCircleIcon />}
+                      type="button"
+                      onClick={() => removeMatcher(i)}
+                      aria-label={t('Remove')}
+                      variant="plain"
+                      isInline
+                    />
+                  </Tooltip>
                 </FormGroup>
               </GridItem>
             </Grid>
@@ -467,7 +484,20 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
                 typeof _e === 'string' ? setCreatedBy(_e) : setCreatedBy(v)
               }
               value={createdBy}
+              validated={error && !createdBy ? ValidatedOptions.error : ValidatedOptions.default}
             />
+            {error && !createdBy && (
+              <FormHelperText>
+                <HelperText>
+                  <HelperTextItem
+                    icon={<ExclamationCircleIcon />}
+                    variant={HelperTextItemVariant.error}
+                  >
+                    {t('Required')}
+                  </HelperTextItem>
+                </HelperText>
+              </FormHelperText>
+            )}
           </FormGroup>
           <FormGroup label={t('Comment')} isRequired>
             <TextArea
@@ -478,8 +508,20 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
               }
               data-test="silence-comment"
               value={comment}
-              validated={error ? ValidatedOptions.error : ValidatedOptions.default}
+              validated={error && !comment ? ValidatedOptions.error : ValidatedOptions.default}
             />
+            {error && !comment && (
+              <FormHelperText>
+                <HelperText>
+                  <HelperTextItem
+                    icon={<ExclamationCircleIcon />}
+                    variant={HelperTextItemVariant.error}
+                  >
+                    {t('Required')}
+                  </HelperTextItem>
+                </HelperText>
+              </FormHelperText>
+            )}
           </FormGroup>
           <ActionGroup>
             <Button type="submit" variant="primary" isDisabled={inProgress}>
@@ -559,4 +601,11 @@ export const CreateSilence = () => {
   ) : (
     <SilenceForm defaults={{ matchers }} title={t('Silence alert')} />
   );
+};
+
+type Matcher = {
+  isRegex: boolean;
+  isEqual: boolean;
+  name: string;
+  value: string;
 };
