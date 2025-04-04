@@ -1,13 +1,14 @@
 /* eslint-disable max-len */
-import { useEffect, useState } from 'react';
 import { setIncidentsActiveFilters } from '../../actions/observe';
-import global_danger_color_100 /* CODEMODS: you should update this color token */ from '@patternfly/react-tokens/dist/esm/t_temp_dev_tbd';
-import global_info_color_100 /* CODEMODS: you should update this color token */ from '@patternfly/react-tokens/dist/esm/t_temp_dev_tbd';
-import global_warning_color_100 /* CODEMODS: you should update this color token */ from '@patternfly/react-tokens/dist/esm/t_temp_dev_tbd';
+import {
+  t_global_color_status_warning_100,
+  t_global_color_status_info_100,
+  t_global_color_status_danger_100,
+} from '@patternfly/react-tokens';
 
 type Timestamps = [Date, string];
 
-type SpanDates = [Date];
+type SpanDates = Array<Date>;
 
 type Theme = 'dark' | 'light';
 
@@ -202,9 +203,9 @@ export const createIncidentsChartBars = (
     return value === '2' ? 'Critical' : value === '1' ? 'Warning' : 'Info';
   };
   const barChartColorScheme = {
-    critical: theme === 'light' ? global_danger_color_100.var : '#C9190B',
-    info: theme === 'light' ? global_info_color_100.var : '#06C',
-    warning: theme === 'light' ? global_warning_color_100.var : '#F0AB00',
+    critical: t_global_color_status_danger_100.var,
+    info: t_global_color_status_info_100.var,
+    warning: t_global_color_status_warning_100.var,
   };
   for (let i = 0; i < groupedData.length; i++) {
     const severity = getSeverityName(groupedData[i][2]);
@@ -276,9 +277,9 @@ function consolidateAndMergeAlertIntervals(data: Alert, dateArray: SpanDates) {
 export const createAlertsChartBars = (alert: Alert, theme: Theme, dateValues: SpanDates) => {
   const groupedData = consolidateAndMergeAlertIntervals(alert, dateValues);
   const barChartColorScheme = {
-    critical: theme === 'light' ? global_danger_color_100.var : '#C9190B',
-    info: theme === 'light' ? global_info_color_100.var : '#06C',
-    warning: theme === 'light' ? global_warning_color_100.var : '#F0AB00',
+    critical: t_global_color_status_danger_100.var,
+    info: t_global_color_status_info_100.var,
+    warning: t_global_color_status_warning_100.var,
   };
 
   const data = [];
