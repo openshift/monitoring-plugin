@@ -28,14 +28,11 @@ import withFallback from '../console/console-shared/error/fallbacks/withFallback
 import { LoadingBox } from '../console/console-shared/src/components/loading/LoadingBox';
 import { AggregatedAlert, getAggregateAlertsLists } from './AlertsAggregates';
 
-import './alert-table.scss';
 import Error from './Error';
 import AggregateAlertTableRow from './AlertList/AggregateAlertTableRow';
 import useAggregateAlertColumns from './AlertList/hooks/useAggregateAlertColumns';
 import useSelectedFilters from './useSelectedFilters';
-
-import './alert-table.scss';
-import { PageSection, PageSectionVariants } from '@patternfly/react-core';
+import { PageSection } from '@patternfly/react-core';
 
 const AlertsPage_: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -165,7 +162,7 @@ const AlertsPage_: React.FC = () => {
       <Helmet>
         <title>Alerting</title>
       </Helmet>
-      <PageSection variant={PageSectionVariants.light}>
+      <PageSection hasBodyWrapper={false}>
         <ListPageFilter
           data={staticData}
           labelFilter="alerts"

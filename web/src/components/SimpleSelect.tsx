@@ -93,11 +93,6 @@ const SimpleSelectBase: React.FunctionComponent<SimpleSelectProps> = ({
       onClick={onToggleClick}
       isExpanded={isOpen}
       isDisabled={isDisabled}
-      style={
-        {
-          width: toggleWidth,
-        } as React.CSSProperties
-      }
       {...toggleProps}
     >
       {toggleContent ? toggleContent : selected?.content || placeholder}

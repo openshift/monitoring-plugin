@@ -30,13 +30,6 @@ const alertStateOrder = (alert: Alert) => [
     : _.get(alert, 'activeAt'),
 ];
 
-export const tableAggregatedAlertClasses = [
-  'pf-v5-u-w-50 pf-u-w-33-on-sm', // Name
-  'pf-m-hidden pf-m-visible-on-sm', // Severity
-  'pf-m-hidden pf-m-visible-on-sm', // Total
-  '', // State
-];
-
 const useAggregateAlertColumns = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
@@ -45,18 +38,15 @@ const useAggregateAlertColumns = () => {
       {
         title: '',
         id: '',
-        props: { className: 'pf-m-width-10' },
       },
       {
         id: 'name',
-        props: { className: tableAggregatedAlertClasses[0] },
         sort: 'name',
         title: t('Name'),
         transforms: [sortable],
       },
       {
         id: 'severity',
-        props: { className: tableAggregatedAlertClasses[1] },
         sort: (alerts: AggregatedAlert[], direction: 'asc' | 'desc') =>
           _.orderBy(alerts, alertSeverityOrder, [direction]),
         title: t('Severity'),
@@ -64,14 +54,12 @@ const useAggregateAlertColumns = () => {
       },
       {
         id: 'total',
-        props: { className: tableAggregatedAlertClasses[1] },
         sort: 'alerts.length',
         title: t('Total'),
         transforms: [sortable],
       },
       {
         id: 'state',
-        props: { className: tableAggregatedAlertClasses[2] },
         sort: (alerts: AggregatedAlert[], direction: 'asc' | 'desc') =>
           _.orderBy(alerts, alertStateOrder, [direction]),
         title: t('State'),

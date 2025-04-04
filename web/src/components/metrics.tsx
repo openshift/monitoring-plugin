@@ -15,14 +15,12 @@ import {
   DropdownList,
   EmptyState,
   EmptyStateBody,
-  EmptyStateIcon,
   EmptyStateVariant,
   Grid,
   GridItem,
   MenuToggle,
   MenuToggleElement,
   PageSection,
-  PageSectionVariants,
   SelectOptionProps,
   Split,
   SplitItem,
@@ -239,7 +237,7 @@ export const PreDefinedQueriesDropdown = () => {
   };
 
   return (
-    <Grid className="predefined-query-select--padding">
+    <Grid>
       <GridItem>
         <label htmlFor="predefined-query-select-label">{t('Queries')}</label>
       </GridItem>
@@ -320,12 +318,7 @@ export const ToggleGraph: React.FC = () => {
   const icon = hideGraphs ? <ChartLineIcon /> : <CompressIcon />;
 
   return (
-    <Button
-      type="button"
-      className="pf-v5-m-link--align-right query-browser__toggle-graph"
-      onClick={toggle}
-      variant="link"
-    >
+    <Button type="button" onClick={toggle} variant="link">
       {icon} {hideGraphs ? t('Show graph') : t('Hide graph')}
     </Button>
   );
@@ -337,18 +330,12 @@ const ExpandButton = ({ isExpanded, onClick }) => {
   const title = isExpanded ? t('Hide table') : t('Show table');
   return (
     <Button
+      icon={isExpanded ? <AngleDownIcon /> : <AngleRightIcon />}
       aria-label={title}
-      className="query-browser__expand-button"
       onClick={onClick}
       title={title}
       variant="plain"
-    >
-      {isExpanded ? (
-        <AngleDownIcon className="query-browser__expand-icon" />
-      ) : (
-        <AngleRightIcon className="query-browser__expand-icon" />
-      )}
-    </Button>
+    />
   );
 };
 
@@ -384,19 +371,16 @@ const SeriesButton: React.FC<SeriesButtonProps> = ({ index, labels }) => {
   );
 
   if (isSeriesEmpty) {
-    return <div className="query-browser__series-btn-wrap"></div>;
+    return null;
   }
   const title = isDisabled ? t('Show series') : t('Hide series');
 
   return (
-    <div className="query-browser__series-btn-wrap">
+    <div>
       <Button
+        icon=""
         aria-label={title}
-        className={classNames('query-browser__series-btn', {
-          'query-browser__series-btn--disabled': isDisabled,
-        })}
         onClick={toggleSeries}
-        style={colorIndex === null ? undefined : { backgroundColor: colors[colorIndex] }}
         title={title}
         type="button"
         variant="plain"
@@ -682,7 +666,7 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, custom
 
   if (error) {
     return (
-      <div className="query-browser__table-message">
+      <div>
         <Error error={error} title={t('Error loading values')} />
       </div>
     );
@@ -690,7 +674,7 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, custom
 
   if (!data) {
     return (
-      <div className="query-browser__table-message">
+      <div>
         <LoadingInline />
       </div>
     );
@@ -706,7 +690,7 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, custom
 
   if (!result || result.length === 0) {
     return (
-      <div className="query-browser__table-message">
+      <div>
         <YellowExclamationTriangleIcon /> {t('No datapoints found.')}
       </div>
     );
@@ -756,7 +740,7 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, custom
       rowMapper = ({ metric, value }) => [
         buttonCell(metric),
         ..._.map(allLabelKeys, (k) => metric[k]),
-        _.get(value, '[1]', { title: <span className="text-muted">{t('None')}</span> }),
+        _.get(value, '[1]', { title: <span>{t('None')}</span> }),
       ];
     }
 
@@ -784,14 +768,9 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, custom
 
   return (
     <>
-      <div className="query-browser__table-wrapper">
-        <div className="horizontal-scroll">
-          <Button
-            variant="link"
-            isInline
-            onClick={toggleAllSeries}
-            className="query-browser__series-select-all-btn"
-          >
+      <div>
+        <div>
+          <Button variant="link" isInline onClick={toggleAllSeries}>
             {isDisabledSeriesEmpty ? t('Unselect all') : t('Select all')}
           </Button>
           <Table
@@ -799,7 +778,6 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, custom
             gridBreakPoint={TableGridBreakpoint.none}
             rows={tableRows.length}
             variant={TableVariant.compact}
-            className="query-browser__table"
           >
             <Thead>
               <Tr>
@@ -923,12 +901,8 @@ const Query: React.FC<{ index: number; customDatasource?: CustomDataSource }> = 
 
   const [activeNamespace] = useActiveNamespace();
   return (
-    <div
-      className={classNames('query-browser__table', {
-        'query-browser__table--expanded': isExpanded,
-      })}
-    >
-      <div className="query-browser__query-controls">
+    <div>
+      <div>
         <ExpandButton isExpanded={isExpanded} onClick={toggleIsExpanded} />
         <PromQLExpressionInput
           value={text}
@@ -945,7 +919,7 @@ const Query: React.FC<{ index: number; customDatasource?: CustomDataSource }> = 
             onChange={toggleIsEnabled}
           />
         </div>
-        <div className="dropdown-kebab-pf">
+        <div>
           <QueryKebab index={index} />
         </div>
       </div>
@@ -1032,12 +1006,16 @@ const QueryBrowserWrapper: React.FC<{
 
   if (customDataSourceName && customDatasourceError) {
     return (
-      <div className="query-browser__wrapper graph-empty-state">
-        <EmptyState variant={EmptyStateVariant.full}>
-          <EmptyStateIcon icon={ChartLineIcon} />
-          <Title headingLevel="h2" size="md">
-            {t('Error loading custom data source')}
-          </Title>
+      <div>
+        <EmptyState
+          titleText={
+            <Title headingLevel="h2" size="md">
+              {t('Error loading custom data source')}
+            </Title>
+          }
+          icon={ChartLineIcon}
+          variant={EmptyStateVariant.full}
+        >
           <EmptyStateBody>
             {t('An error occurred while loading the custom data source.')}
           </EmptyStateBody>
@@ -1048,12 +1026,16 @@ const QueryBrowserWrapper: React.FC<{
 
   if (queryStrings.join('') === '') {
     return (
-      <div className="query-browser__wrapper graph-empty-state">
-        <EmptyState variant={EmptyStateVariant.full}>
-          <EmptyStateIcon icon={ChartLineIcon} />
-          <Title headingLevel="h2" size="md">
-            {t('No query entered')}
-          </Title>
+      <div>
+        <EmptyState
+          titleText={
+            <Title headingLevel="h2" size="md">
+              {t('No query entered')}
+            </Title>
+          }
+          icon={ChartLineIcon}
+          variant={EmptyStateVariant.full}
+        >
           <EmptyStateBody>
             {t('Enter a query in the box below to explore metrics for this cluster.')}
           </EmptyStateBody>
@@ -1083,12 +1065,7 @@ const AddQueryButton: React.FC = () => {
   const addQuery = React.useCallback(() => dispatch(queryBrowserAddQuery()), [dispatch]);
 
   return (
-    <Button
-      className="query-browser__inline-control"
-      onClick={addQuery}
-      type="button"
-      variant="secondary"
-    >
+    <Button onClick={addQuery} type="button" variant="secondary">
       {t('Add query')}
     </Button>
   );
@@ -1200,7 +1177,7 @@ const QueryBrowserPage_: React.FC = () => {
   if (customDataSourceName) {
     if (!extensionsResolved || (!customDataSourceIsResolved && !customDatasourceError)) {
       return (
-        <PageSection variant={PageSectionVariants.light}>
+        <PageSection hasBodyWrapper={false}>
           <Bullseye>
             <LoadingInline />
           </Bullseye>
@@ -1214,7 +1191,7 @@ const QueryBrowserPage_: React.FC = () => {
       <Helmet>
         <title>{t('Metrics')}</title>
       </Helmet>
-      <PageSection variant={PageSectionVariants.light}>
+      <PageSection hasBodyWrapper={false}>
         <Split hasGutter>
           <SplitItem>
             <Title headingLevel="h1">{t('Metrics')}</Title>
@@ -1228,9 +1205,9 @@ const QueryBrowserPage_: React.FC = () => {
           </SplitItem>
         </Split>
       </PageSection>
-      <PageSection variant={PageSectionVariants.light}>
+      <PageSection hasBodyWrapper={false}>
         <Grid>
-          <GridItem className="query-browser__toggle-graph-container">
+          <GridItem>
             <ToggleGraph />
           </GridItem>
           <GridItem>

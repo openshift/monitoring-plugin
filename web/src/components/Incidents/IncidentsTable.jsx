@@ -6,7 +6,6 @@ import {
   CardBody,
   EmptyState,
   EmptyStateBody,
-  EmptyStateIcon,
   Label,
 } from '@patternfly/react-core';
 import InfoCircleIcon from '@patternfly/react-icons/dist/esm/icons/info-circle-icon';
@@ -51,15 +50,8 @@ export const IncidentsTable = ({ namespace }) => {
           {_.isEmpty(alertsTableData) || alertsAreLoading ? (
             <Tr>
               <Td colSpan={4}>
-                <EmptyState
-                  style={{
-                    height: '150px',
-                  }}
-                >
+                <EmptyState icon={SearchIcon}>
                   <EmptyStateBody>
-                    <Bullseye>
-                      <EmptyStateIcon icon={SearchIcon} />
-                    </Bullseye>
                     <Bullseye>No incidents selected.</Bullseye>
                   </EmptyStateBody>
                 </EmptyState>
@@ -92,7 +84,7 @@ export const IncidentsTable = ({ namespace }) => {
                         ''
                       )}
                       {alert.warning > 0 ? (
-                        <Label color="gold" icon={<InfoCircleIcon />}>
+                        <Label color="yellow" icon={<InfoCircleIcon />}>
                           {alert.warning}
                         </Label>
                       ) : (
@@ -107,11 +99,7 @@ export const IncidentsTable = ({ namespace }) => {
                       )}
                     </Td>
                     <Td dataLabel={columnNames.state}>
-                      {alert.alertstate === 'resolved' ? (
-                        <BellSlashIcon className="text-muted" />
-                      ) : (
-                        <BellIcon />
-                      )}
+                      {alert.alertstate === 'resolved' ? <BellSlashIcon /> : <BellIcon />}
                     </Td>
                   </Tr>
                   {alert.alertsExpandedRowData && (

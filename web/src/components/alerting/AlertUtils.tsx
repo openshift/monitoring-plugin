@@ -13,7 +13,7 @@ import {
   Timestamp,
   YellowExclamationTriangleIcon,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { AlertSource, MonitoringResource } from '../types';
+import { AlertSource } from '../types';
 import * as _ from 'lodash-es';
 import { useTranslation } from 'react-i18next';
 import {
@@ -24,8 +24,9 @@ import {
   DescriptionListGroup,
   DescriptionListTerm,
   DescriptionListDescription,
+  Level,
+  LevelItem,
 } from '@patternfly/react-core';
-import classNames from 'classnames';
 import { BellIcon, BellSlashIcon, OutlinedBellIcon } from '@patternfly/react-icons';
 import { FormatSeriesTitle, QueryBrowser } from '../query-browser';
 import { Link } from 'react-router-dom';
@@ -88,27 +89,6 @@ type ActionWithCallBack = Omit<Action, 'cta'> & { cta: () => void };
 export const isActionWithCallback = (action: Action): action is ActionWithCallBack =>
   typeof action.cta === 'function';
 
-export const MonitoringResourceIcon: React.FC<MonitoringResourceIconProps> = ({
-  className,
-  resource,
-}) => (
-  <span
-    className={classNames(
-      // Leave to keep compatibility with console looks
-      `co-m-resource-icon co-m-resource-${resource.kind.toLowerCase()}`,
-      className,
-    )}
-    title={resource.label}
-  >
-    {resource.abbr}
-  </span>
-);
-
-type MonitoringResourceIconProps = {
-  className?: string;
-  resource: MonitoringResource;
-};
-
 export const Severity: React.FC<{ severity: string }> = React.memo(({ severity }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
@@ -170,7 +150,7 @@ export const AlertStateIcon: React.FC<{ state: string }> = React.memo(({ state }
     case AlertStates.Pending:
       return <OutlinedBellIcon />;
     case AlertStates.Silenced:
-      return <BellSlashIcon className="text-muted" />;
+      return <BellSlashIcon />;
     default:
       return null;
   }
@@ -202,10 +182,12 @@ export const AlertStateDescription: React.FC<{ alert: Alert }> = ({ alert }) => 
 };
 
 export const StateTimestamp = ({ text, timestamp }) => (
-  <div className="text-muted monitoring-timestamp">
-    {text}&nbsp;
-    <Timestamp timestamp={timestamp} />
-  </div>
+  <Level>
+    <LevelItem>{text}&nbsp;</LevelItem>
+    <LevelItem>
+      <Timestamp timestamp={timestamp} />
+    </LevelItem>
+  </Level>
 );
 
 export const SeverityBadge: React.FC<{ severity: string }> = React.memo(({ severity }) =>
@@ -221,9 +203,7 @@ export const PopoverField: React.FC<{ bodyContent: React.ReactNode; label: strin
   label,
 }) => (
   <Popover headerContent={label} bodyContent={bodyContent}>
-    <Button variant="plain" className="details-item__popover-button">
-      {label}
-    </Button>
+    <Button icon={label} variant="plain" />
   </Popover>
 );
 
@@ -380,7 +360,7 @@ export const SeverityCounts: React.FC<{ alerts: Alert[] }> = ({ alerts }) => {
   return (
     <>
       {severities.map((s) => (
-        <span className="monitoring-icon-wrap" key={s}>
+        <span key={s}>
           <SeverityIcon severity={s} /> {counts[s]}
         </span>
       ))}

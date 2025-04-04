@@ -1,6 +1,7 @@
 import {
   consoleFetchJSON,
   GreenCheckCircleIcon,
+  ResourceIcon,
   Silence,
   SilenceStates,
   useActiveNamespace,
@@ -16,15 +17,15 @@ import {
   Label,
   MenuToggle,
   MenuToggleElement,
-  Modal,
-  ModalVariant,
   Panel,
   PanelMain,
   PanelMainBody,
   Alert as PFAlert,
+  Stack,
+  StackItem,
 } from '@patternfly/react-core';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import { BanIcon, EllipsisVIcon, HourglassHalfIcon } from '@patternfly/react-icons';
-import classNames from 'classnames';
 import * as _ from 'lodash-es';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -43,19 +44,9 @@ import {
   SilenceResource,
   silenceState,
 } from '../utils';
-import { MonitoringResourceIcon, SeverityCounts, StateTimestamp } from './AlertUtils';
+import { SeverityCounts, StateTimestamp } from './AlertUtils';
 import { LoadingInline } from '../console/console-shared/src/components/loading/LoadingInline';
 import { Td } from '@patternfly/react-table';
-
-export const tableSilenceClasses = [
-  'pf-v5-c-table__action', // Checkbox
-  'pf-u-w-50 pf-u-w-33-on-sm', // Name
-  'pf-m-hidden pf-m-visible-on-sm', // Firing alerts
-  '', // State
-  'pf-m-hidden pf-m-visible-on-sm', // Creator
-  'pf-m-hidden pf-m-visible-on-sm', // Cluster
-  'dropdown-kebab-pf pf-v5-c-table__action',
-];
 
 export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheckbox }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -86,7 +77,7 @@ export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheck
   return (
     <>
       {showCheckbox && (
-        <Td className={tableSilenceClasses[0]}>
+        <Td width={10}>
           <Checkbox
             id={id}
             isChecked={selectedSilences.has(id)}
@@ -97,10 +88,10 @@ export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheck
           />
         </Td>
       )}
-      <Td className={tableSilenceClasses[1]}>
+      <Td width={40}>
         <Flex spaceItems={{ default: 'spaceItemsNone' }} flexWrap={{ default: 'nowrap' }}>
           <FlexItem>
-            <MonitoringResourceIcon resource={SilenceResource} />
+            <ResourceIcon kind={SilenceResource.kind} />
           </FlexItem>
           <FlexItem>
             <Link
@@ -112,26 +103,32 @@ export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheck
             </Link>
           </FlexItem>
         </Flex>
-        <div className="monitoring-label-list">
-          <SilenceMatchersList silence={obj} />
-        </div>
+        <SilenceMatchersList silence={obj} />
       </Td>
-      <Td className={tableSilenceClasses[2]}>
+      <Td width={15}>
         <SeverityCounts alerts={firingAlerts} />
       </Td>
-      <Td className={classNames(tableSilenceClasses[3], 'pf-v5-u-text-break-word')}>
-        <SilenceState silence={obj} />
-        {state === SilenceStates.Pending && (
-          <StateTimestamp text={t('Starts')} timestamp={startsAt} />
-        )}
-        {state === SilenceStates.Active && <StateTimestamp text={t('Ends')} timestamp={endsAt} />}
-        {state === SilenceStates.Expired && (
-          <StateTimestamp text={t('Expired')} timestamp={endsAt} />
-        )}
+      <Td width={20}>
+        <Stack>
+          <StackItem>
+            <SilenceState silence={obj} />
+          </StackItem>
+          <StackItem>
+            {state === SilenceStates.Pending && (
+              <StateTimestamp text={t('Starts')} timestamp={startsAt} />
+            )}
+            {state === SilenceStates.Active && (
+              <StateTimestamp text={t('Ends')} timestamp={endsAt} />
+            )}
+            {state === SilenceStates.Expired && (
+              <StateTimestamp text={t('Expired')} timestamp={endsAt} />
+            )}
+          </StackItem>
+        </Stack>
       </Td>
-      <Td className={tableSilenceClasses[4]}>{createdBy || '-'}</Td>
-      {perspective === 'acm' && <Td className={tableSilenceClasses[5]}>{cluster}</Td>}
-      <Td className={tableSilenceClasses[6]}>
+      <Td width={15}>{createdBy || '-'}</Td>
+      {perspective === 'acm' && <Td>{cluster}</Td>}
+      <Td width={10}>
         <SilenceDropdown silence={obj} />
       </Td>
     </>
@@ -172,8 +169,8 @@ export const SilenceState = ({ silence }) => {
   const state = silenceState(silence);
   const icon = {
     [SilenceStates.Active]: <GreenCheckCircleIcon />,
-    [SilenceStates.Pending]: <HourglassHalfIcon className="monitoring-state-icon--pending" />,
-    [SilenceStates.Expired]: <BanIcon className="text-muted" data-test-id="ban-icon" />,
+    [SilenceStates.Pending]: <HourglassHalfIcon />,
+    [SilenceStates.Expired]: <BanIcon data-test-id="ban-icon" />,
   }[state];
 
   const getStateKey = (stateData) => {
@@ -296,9 +293,7 @@ const ExpireSilenceModal: React.FC<ExpireSilenceModalProps> = ({
               <PFAlert isInline title={t('An error occurred')} variant="danger">
                 <Panel isScrollable>
                   <PanelMain maxHeight="100px">
-                    <PanelMainBody className="pf-v5-u-text-break-word monitoring__pre-line">
-                      {errorMessage}
-                    </PanelMainBody>
+                    <PanelMainBody>{errorMessage}</PanelMainBody>
                   </PanelMain>
                 </Panel>
               </PFAlert>

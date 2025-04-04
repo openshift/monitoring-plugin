@@ -1,13 +1,6 @@
 import * as React from 'react';
-import {
-  Alert,
-  Flex,
-  FlexItem,
-  PageSection,
-  PageSectionVariants,
-  Title,
-} from '@patternfly/react-core';
-import _ from 'lodash';
+import { Alert, Flex, FlexItem, PageSection, Title } from '@patternfly/react-core';
+import * as _ from 'lodash-es';
 import { useTranslation } from 'react-i18next';
 import { IncompleteDataError } from '@openshift-console/dynamic-plugin-sdk/lib/utils/error/http-error';
 import { EmptyBox } from '../empty-state/EmptyBox';
@@ -51,7 +44,7 @@ export const StatusBox: React.FC<StatusBoxProps> = (props) => {
     const status = _.get(loadError, 'response.status');
     if (status === 404) {
       return (
-        <PageSection variant={PageSectionVariants.light}>
+        <PageSection hasBodyWrapper={false}>
           <Flex justifyContent={{ default: 'justifyContentCenter' }}>
             <FlexItem>
               <Title headingLevel="h1">{t('404: Not Found')}</Title>

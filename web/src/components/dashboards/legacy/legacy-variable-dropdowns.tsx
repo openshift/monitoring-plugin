@@ -274,22 +274,12 @@ const LegacyDashboardsVariableDropdown: React.FC<VariableDropdownProps> = ({
   );
 
   return (
-    <div
-      className="form-group monitoring-dashboards__dropdown-wrap"
-      data-test={`${name.toLowerCase()}-dropdown`}
-    >
-      <label htmlFor={`${id}-dropdown`} className="monitoring-dashboards__dropdown-title">
-        {name}
-      </label>
+    <div data-test={`${name.toLowerCase()}-dropdown`}>
+      <label htmlFor={`${id}-dropdown`}>{name}</label>
       {isError ? (
         <Select
           toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
-            <MenuToggle
-              ref={toggleRef}
-              className="monitoring-dashboards__dropdown-button"
-              isDisabled={true}
-              onClick={(e) => e.preventDefault()}
-            >
+            <MenuToggle ref={toggleRef} isDisabled={true} onClick={(e) => e.preventDefault()}>
               <RedExclamationCircleIcon /> {t('Error loading options')}
             </MenuToggle>
           )}

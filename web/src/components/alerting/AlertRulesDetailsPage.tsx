@@ -3,6 +3,7 @@ import {
   AlertStates,
   isAlertingRuleChart,
   PrometheusAlert,
+  ResourceIcon,
   Rule,
   Timestamp,
   useResolvedExtensions,
@@ -25,7 +26,6 @@ import {
   PageBreadcrumb,
   PageGroup,
   PageSection,
-  PageSectionVariants,
   Popover,
   Title,
   Toolbar,
@@ -48,8 +48,6 @@ import { ToggleGraph } from '../metrics';
 import { Alerts } from '../types';
 import { alertDescription, RuleResource } from '../utils';
 
-import './alert-rules-details-page.scss';
-
 import {
   getAlertRulesUrl,
   getAlertsUrl,
@@ -64,7 +62,6 @@ import {
   AlertState,
   getSourceKey,
   Graph,
-  MonitoringResourceIcon,
   Severity,
   SeverityBadge,
   SeverityHelp,
@@ -79,16 +76,11 @@ import { Table, TableVariant, Tbody, Td, Th, Thead, Tr } from '@patternfly/react
 // Renders Prometheus template text and highlights any {{ ... }} tags that it contains
 const PrometheusTemplate = ({ text }) => (
   <>
-    {text?.split(/(\{\{[^{}]*\}\})/)?.map((part: string, i: number) =>
-      part.match(/^\{\{[^{}]*\}\}$/) ? (
-        // <code className="monitoring__code monitoring__prometheus-template-tag" key={i}>
-        <code className="monitoring__code" key={i}>
-          {part}
-        </code>
-      ) : (
-        part
-      ),
-    )}
+    {text
+      ?.split(/(\{\{[^{}]*\}\})/)
+      ?.map((part: string, i: number) =>
+        part.match(/^\{\{[^{}]*\}\}$/) ? <code key={i}>{part}</code> : part,
+      )}
   </>
 );
 
@@ -130,19 +122,17 @@ const ActiveAlerts_: React.FC<ActiveAlertsProps> = ({ alerts, history, namespace
             </Td>
             <Td modifier="truncate">{a.value}</Td>
             {a.state !== AlertStates.Silenced && (
-              <div className="dropdown-kebab-pf">
-                <KebabDropdown
-                  dropdownItems={[
-                    <DropdownItem
-                      component="button"
-                      key="silence"
-                      onClick={() => history.push(getNewSilenceAlertUrl(perspective, a))}
-                    >
-                      {t('Silence alert')}
-                    </DropdownItem>,
-                  ]}
-                />
-              </div>
+              <KebabDropdown
+                dropdownItems={[
+                  <DropdownItem
+                    component="button"
+                    key="silence"
+                    onClick={() => history.push(getNewSilenceAlertUrl(perspective, a))}
+                  >
+                    {t('Silence alert')}
+                  </DropdownItem>,
+                ]}
+              />
             )}
           </Tr>
         ))}
@@ -196,45 +186,35 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
       </Helmet>
       <StatusBox data={rule} label={RuleResource.label} loaded={loaded} loadError={loadError}>
         <PageGroup>
-          <PageBreadcrumb>
-            <Breadcrumb className="monitoring-breadcrumbs">
+          <PageBreadcrumb hasBodyWrapper={false}>
+            <Breadcrumb>
               {perspective === 'dev' && (
                 <BreadcrumbItem>
-                  <Link
-                    className="pf-v5-c-breadcrumb__link"
-                    to={getAlertsUrl(perspective, namespace)}
-                  >
-                    {t('Alerts')}
-                  </Link>
+                  <Link to={getAlertsUrl(perspective, namespace)}>{t('Alerts')}</Link>
                 </BreadcrumbItem>
               )}
               {perspective !== 'dev' && (
                 <BreadcrumbItem>
-                  <Link className="pf-v5-c-breadcrumb__link" to={getAlertRulesUrl(perspective)}>
-                    {t('Alerting rules')}
-                  </Link>
+                  <Link to={getAlertRulesUrl(perspective)}>{t('Alerting rules')}</Link>
                 </BreadcrumbItem>
               )}
               <BreadcrumbItem isActive>{t('Alerting rule details')}</BreadcrumbItem>
             </Breadcrumb>
           </PageBreadcrumb>
-          <PageSection variant={PageSectionVariants.light}>
+          <PageSection hasBodyWrapper={false}>
             <Title headingLevel="h1">
-              {/* Leave to keep compatibility with console looks */}
-              <MonitoringResourceIcon className="co-m-resource-icon--lg" resource={RuleResource} />
+              <ResourceIcon kind={RuleResource.kind} />
               {rule?.name}
               <SeverityBadge severity={rule?.labels?.severity} />
             </Title>
           </PageSection>
-        </PageGroup>
-        <Divider />
-        <PageGroup>
-          <PageSection variant={PageSectionVariants.light}>
-            <div className="monitoring-heading">
+          <Divider />
+          <PageSection hasBodyWrapper={false}>
+            <div>
               <Title headingLevel="h2">{t('Alerting rule details')}</Title>
             </div>
           </PageSection>
-          <PageSection variant={PageSectionVariants.light}>
+          <PageSection hasBodyWrapper={false}>
             <Grid sm={12} md={6} hasGutter>
               <GridItem>
                 <DescriptionList>
@@ -349,38 +329,38 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
               </GridItem>
             </Grid>
           </PageSection>
-        </PageGroup>
-        <Divider />
-        <PageSection variant={PageSectionVariants.light}>
-          <Toolbar className="monitoring-alert-detail-toolbar">
-            <ToolbarContent>
-              <ToolbarItem variant="label">
-                <Title headingLevel="h2">{t('Active alerts')}</Title>
-              </ToolbarItem>
-              <ToolbarGroup align={{ default: 'alignRight' }}>
-                <ToolbarItem>
-                  <ToggleGraph />
+          <Divider />
+          <PageSection hasBodyWrapper={false}>
+            <Toolbar>
+              <ToolbarContent>
+                <ToolbarItem variant="label">
+                  <Title headingLevel="h2">{t('Active alerts')}</Title>
                 </ToolbarItem>
-              </ToolbarGroup>
-            </ToolbarContent>
-          </Toolbar>
-          {!sourceId || sourceId === 'prometheus' ? (
-            <Graph
-              formatSeriesTitle={formatSeriesTitle}
-              namespace={namespace}
-              query={rule?.query}
-              ruleDuration={rule?.duration}
-              showLegend
-            />
-          ) : AlertChart ? (
-            <AlertChart rule={rule} />
-          ) : null}
-          {_.isEmpty(rule?.alerts) ? (
-            <div className="pf-v5-u-text-align-center">{t('None found')}</div>
-          ) : (
-            <ActiveAlerts alerts={rule.alerts} ruleID={rule?.id} namespace={namespace} />
-          )}
-        </PageSection>
+                <ToolbarGroup align={{ default: 'alignEnd' }}>
+                  <ToolbarItem>
+                    <ToggleGraph />
+                  </ToolbarItem>
+                </ToolbarGroup>
+              </ToolbarContent>
+            </Toolbar>
+            {!sourceId || sourceId === 'prometheus' ? (
+              <Graph
+                formatSeriesTitle={formatSeriesTitle}
+                namespace={namespace}
+                query={rule?.query}
+                ruleDuration={rule?.duration}
+                showLegend
+              />
+            ) : AlertChart ? (
+              <AlertChart rule={rule} />
+            ) : null}
+            {_.isEmpty(rule?.alerts) ? (
+              <div>{t('None found')}</div>
+            ) : (
+              <ActiveAlerts alerts={rule.alerts} ruleID={rule?.id} namespace={namespace} />
+            )}
+          </PageSection>
+        </PageGroup>
       </StatusBox>
     </>
   );

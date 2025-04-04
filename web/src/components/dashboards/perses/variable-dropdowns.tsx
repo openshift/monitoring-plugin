@@ -109,13 +109,8 @@ function ListVariable({ name, id }: VariableDropdownProps) {
   const title = definition?.spec.display?.name ?? name;
 
   return (
-    <div
-      className="form-group monitoring-dashboards__dropdown-wrap"
-      data-test={`${name.toLowerCase()}-dropdown`}
-    >
-      <label htmlFor={`${id}-dropdown`} className="monitoring-dashboards__dropdown-title">
-        {title}
-      </label>
+    <div data-test={`${name.toLowerCase()}-dropdown`}>
+      <label htmlFor={`${id}-dropdown`}>{title}</label>
       <SingleTypeaheadDropdown
         items={items}
         onChange={onChangeFunction}
