@@ -23,6 +23,7 @@ import {
   parsePrometheusDuration,
 } from '../../console/console-shared/src/datetime/prometheus';
 import { SimpleSelect, SimpleSelectOption } from '@patternfly/react-templates';
+import { Stack, StackItem } from '@patternfly/react-core';
 
 const CUSTOM_TIME_RANGE_KEY = 'CUSTOM_TIME_RANGE_KEY';
 const DEFAULT_TIMERANGE = '30m';
@@ -103,20 +104,24 @@ export const TimespanDropdown: React.FC = () => {
         timespan={defaultTimerange}
         endTime={defaultEndTime}
       />
-      <div>
-        <label htmlFor="monitoring-time-range-dropdown">{t('Time range')}</label>
-        <SimpleSelect
-          id="monitoring-time-range-dropdown"
-          initialOptions={initialOptions}
-          onSelect={(_event, selection) => {
-            if (selection) {
-              onChange(String(selection));
-            }
-          }}
-          toggleWidth="150px"
-          placeholder={t('Last {{count}} minute', { count: 30 })}
-        />
-      </div>
+      <Stack>
+        <StackItem>
+          <label htmlFor="monitoring-time-range-dropdown">{t('Time range')}</label>
+        </StackItem>
+        <StackItem>
+          <SimpleSelect
+            id="monitoring-time-range-dropdown"
+            initialOptions={initialOptions}
+            onSelect={(_event, selection) => {
+              if (selection) {
+                onChange(String(selection));
+              }
+            }}
+            toggleWidth="150px"
+            placeholder={t('Last {{count}} minute', { count: 30 })}
+          />
+        </StackItem>
+      </Stack>
     </>
   );
 };
@@ -144,13 +149,17 @@ export const PollIntervalDropdown: React.FC = () => {
   );
 
   return (
-    <div>
-      <label htmlFor="refresh-interval-dropdown">{t('Refresh interval')}</label>
-      <DropDownPollInterval
-        id="refresh-interval-dropdown"
-        setInterval={setInterval}
-        selectedInterval={selectedInterval}
-      />
-    </div>
+    <Stack>
+      <StackItem>
+        <label htmlFor="refresh-interval-dropdown">{t('Refresh interval')}</label>
+      </StackItem>
+      <StackItem>
+        <DropDownPollInterval
+          id="refresh-interval-dropdown"
+          setInterval={setInterval}
+          selectedInterval={selectedInterval}
+        />
+      </StackItem>
+    </Stack>
   );
 };

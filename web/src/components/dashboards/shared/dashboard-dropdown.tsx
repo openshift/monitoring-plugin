@@ -1,5 +1,5 @@
 import * as _ from 'lodash-es';
-import { Label, SelectOption } from '@patternfly/react-core';
+import { Label, SelectOption, Stack, StackItem } from '@patternfly/react-core';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -51,18 +51,22 @@ export const DashboardDropdown: React.FC<DashboardDropdownProps> = ({
   }));
 
   return (
-    <div data-test="dashboard-dropdown">
-      <label htmlFor="monitoring-board-dropdown">{t('Dashboard')}</label>
-      <SingleTypeaheadDropdown
-        items={selectItems}
-        onChange={onChange}
-        OptionComponent={OptionComponent}
-        selectedKey={selectedKey}
-        hideClearButton
-        resizeToFit
-        clearOnNewItems
-      />
-    </div>
+    <Stack data-test="dashboard-dropdown">
+      <StackItem>
+        <label htmlFor="monitoring-board-dropdown">{t('Dashboard')}</label>
+      </StackItem>
+      <StackItem>
+        <SingleTypeaheadDropdown
+          items={selectItems}
+          onChange={onChange}
+          OptionComponent={OptionComponent}
+          selectedKey={selectedKey}
+          hideClearButton
+          resizeToFit
+          clearOnNewItems
+        />
+      </StackItem>
+    </Stack>
   );
 };
 
