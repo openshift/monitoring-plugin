@@ -9,7 +9,7 @@ import { useBoolean } from '../../hooks/useBoolean';
 import { Board } from './types';
 
 import { getLegacyDashboardsUrl, usePerspective } from '../../hooks/usePerspective';
-import { getQueryArgument } from '../../console/utils/router';
+import { getAllQueryArguments, getQueryArgument } from '../../console/utils/router';
 import {
   MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
   MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY,
@@ -137,43 +137,38 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
         // If the board is being cleared then don't do anything
         return;
       }
-      let timeSpan: string;
-      let endTime: string;
+
+      const allVariables = getAllVariables(legacyDashboards, newBoard, namespace);
+
+      const queryArguments = getAllQueryArguments();
+      const params = new URLSearchParams(queryArguments);
+
       let url = getLegacyDashboardsUrl(perspective, newBoard, namespace);
+      url = `${url}${perspective === 'dev' ? '&' : '?'}${params.toString()}`;
 
-      const refreshInterval = getQueryArgument(QueryParams.RefreshInterval);
-
-      if (legacyDashboard) {
-        timeSpan = null;
-        endTime = null;
-        // persist only the refresh Interval when dashboard is changed
-        if (refreshInterval) {
-          const params = new URLSearchParams({ refreshInterval });
-          // dev perspective will have the dashboard set in the query parameters
-          // so use '&' not '?'
-          url = `${url}${perspective === 'dev' ? '&' : '?'}${params.toString()}`;
-        }
-      } else {
-        timeSpan = getQueryArgument(QueryParams.TimeRange);
-        endTime = getQueryArgument(QueryParams.EndTime);
-      }
       if (newBoard !== legacyDashboard || initialLoad) {
-        if (getQueryArgument(QueryParams.Dashboard) !== newBoard) {
+        if (params.get(QueryParams.Dashboard) !== newBoard) {
           history.replace(url);
         }
 
-        const allVariables = getAllVariables(legacyDashboards, newBoard, namespace);
         dispatch(dashboardsPatchAllVariables(allVariables, perspective));
 
         // Set time range and poll interval options to their defaults or from the query params if
         // available
-        if (refreshInterval) {
-          dispatch(dashboardsSetPollInterval(_.toNumber(refreshInterval), perspective));
+        if (params.get(QueryParams.RefreshInterval)) {
+          dispatch(
+            dashboardsSetPollInterval(
+              _.toNumber(params.get(QueryParams.RefreshInterval)),
+              perspective,
+            ),
+          );
         }
-        dispatch(dashboardsSetEndTime(_.toNumber(endTime) || null, perspective));
+        dispatch(
+          dashboardsSetEndTime(_.toNumber(params.get(QueryParams.EndTime)) || null, perspective),
+        );
         dispatch(
           dashboardsSetTimespan(
-            _.toNumber(timeSpan) || MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
+            _.toNumber(params.get(QueryParams.TimeRange)) || MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
             perspective,
           ),
         );
