@@ -73,7 +73,8 @@ const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = ({
           )}
           {perspective === 'dev' ? (
             <>
-              <SplitItem isFilled>
+              <SplitItem isFilled />
+              <SplitItem>
                 <TimespanDropdown />
               </SplitItem>
               <SplitItem>

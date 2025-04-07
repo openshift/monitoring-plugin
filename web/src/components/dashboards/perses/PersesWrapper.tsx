@@ -96,7 +96,6 @@ export function PersesWrapper({ children, project }: PersesWrapperProps) {
     },
   });
 
-  // console.debug('palette', patternflyChartsMultiUnorderedPalette);
   const chartsTheme: PersesChartsTheme = generateChartsTheme(muiTheme, {
     echartsTheme: {
       color: patternflyChartsMultiUnorderedPalette,
