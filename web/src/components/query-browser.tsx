@@ -331,6 +331,7 @@ const Graph: React.FC<GraphProps> = React.memo(
         scale={{ x: 'time', y: 'linear' }}
         theme={queryBrowserTheme}
         width={width}
+        legendData={legendData}
       >
         <ChartAxis tickCount={xAxisTickCount} tickFormat={xAxisTickFormat} />
         <ChartAxis
@@ -534,12 +535,6 @@ const ZoomableGraph: React.FC<ZoomableGraphProps> = ({
   );
 };
 
-const Loading = () => (
-  <div>
-    <LoadingInline />
-  </div>
-);
-
 const getMaxSamplesForSpan = (span: number) =>
   _.clamp(Math.round(span / minStep), minSamples, maxSamples);
 
@@ -563,6 +558,7 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
   timespan,
   units,
   onDataChange,
+  isPlain = false,
 }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
@@ -865,9 +861,9 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
 
   return (
     <>
-      <Card isCompact>
+      <Card isCompact isPlain={isPlain}>
         {hideControls ? (
-          <>{updating && <Loading />}</>
+          <>{updating && <LoadingInline />}</>
         ) : (
           <CardHeader>
             <Split>
@@ -878,7 +874,7 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
                   span={span}
                   hasReducedResolution={hasReducedResolution}
                 />
-                {updating && <Loading />}
+                {updating && <LoadingInline />}
               </SplitItem>
               <SplitItem isFilled />
               <SplitItem>
@@ -997,6 +993,7 @@ export type QueryBrowserProps = {
   timespan?: number;
   units?: string;
   onDataChange?: (data: any) => void;
+  isPlain?: boolean;
 };
 
 type SpanControlsProps = {
