@@ -6,20 +6,27 @@ import { useTranslation } from 'react-i18next';
 import { usePerspective } from '../../hooks/usePerspective';
 import { DashboardDropdown } from './dashboard-dropdown';
 import { LegacyDashboardsAllVariableDropdowns } from '../legacy/legacy-variable-dropdowns';
-import { TimeDropdowns } from './time-dropdowns';
+import { PollIntervalDropdown, TimespanDropdown } from './time-dropdowns';
 import { CombinedDashboardMetadata } from '../perses/hooks/useDashboardsData';
 import { AllVariableDropdowns } from '../perses/variable-dropdowns';
 import { useIsPerses } from './useIsPerses';
-import { Divider, PageSection, Title } from '@patternfly/react-core';
+import { Divider, Level, PageSection, Split, SplitItem, Title } from '@patternfly/react-core';
 
 const HeaderTop: React.FC = React.memo(() => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
-    <div>
-      <Title headingLevel="h1">{t('Dashboards')}</Title>
-      <TimeDropdowns />
-    </div>
+    <Level>
+      <SplitItem isFilled>
+        <Title headingLevel="h1">{t('Dashboards')}</Title>
+      </SplitItem>
+      <SplitItem>
+        <TimespanDropdown />
+      </SplitItem>
+      <SplitItem>
+        <PollIntervalDropdown />
+      </SplitItem>
+    </Level>
   );
 });
 
@@ -49,8 +56,8 @@ const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = ({
       )}
       <PageSection hasBodyWrapper={false}>
         {perspective !== 'dev' && <HeaderTop />}
-        <div>
-          <div>
+        <Split>
+          <SplitItem isFilled>
             {!_.isEmpty(boardItems) && (
               <DashboardDropdown
                 items={boardItems}
@@ -63,9 +70,18 @@ const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = ({
             ) : (
               <LegacyDashboardsAllVariableDropdowns key={dashboardName} />
             )}
-          </div>
-          {perspective === 'dev' && <TimeDropdowns />}
-        </div>
+          </SplitItem>
+          {perspective === 'dev' && (
+            <>
+              <SplitItem>
+                <TimespanDropdown />
+              </SplitItem>
+              <SplitItem>
+                <PollIntervalDropdown />
+              </SplitItem>
+            </>
+          )}
+        </Split>
       </PageSection>
       <Divider />
       {children}

@@ -27,7 +27,7 @@ import {
 const CUSTOM_TIME_RANGE_KEY = 'CUSTOM_TIME_RANGE_KEY';
 const DEFAULT_TIMERANGE = '30m';
 
-const TimespanDropdown: React.FC = () => {
+export const TimespanDropdown: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const { perspective } = usePerspective();
@@ -121,7 +121,7 @@ const TimespanDropdown: React.FC = () => {
   );
 };
 
-const PollIntervalDropdown: React.FC = () => {
+export const PollIntervalDropdown: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
   const isPerses = useIsPerses();
@@ -154,12 +154,3 @@ const PollIntervalDropdown: React.FC = () => {
     </div>
   );
 };
-
-export const TimeDropdowns: React.FC = React.memo(() => {
-  return (
-    <div>
-      <TimespanDropdown />
-      <PollIntervalDropdown />
-    </div>
-  );
-});
