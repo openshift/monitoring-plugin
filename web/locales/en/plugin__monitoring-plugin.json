@@ -50,7 +50,6 @@
   "Error loading silences from Alertmanager. Some of the alerts below may actually be silenced.": "Error loading silences from Alertmanager. Some of the alerts below may actually be silenced.",
   "Ends": "Ends",
   "Since": "Since",
-  "View in Metrics": "View in Metrics",
   "Critical: ": "Critical: ",
   "The condition that triggered the alert could have a critical impact. The alert requires immediate attention when fired and is typically paged to an individual or to a critical response team.": "The condition that triggered the alert could have a critical impact. The alert requires immediate attention when fired and is typically paged to an individual or to a critical response team.",
   "Warning: ": "Warning: ",

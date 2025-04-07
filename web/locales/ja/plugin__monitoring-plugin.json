@@ -30,7 +30,6 @@
   "Platform-level alerts relate only to OpenShift namespaces. OpenShift namespaces provide core OpenShift functionality.": "プラットフォームレベルのアラートは OpenShift namespace にのみ関連します。OpenShift namespace は OpenShift のコア機能を提供します。",
   "User: ": "ユーザー: ",
   "User workload alerts relate to user-defined namespaces. These alerts are user-created and are customizable. User workload monitoring can be enabled post-installation to provide observability into your own services.": "ユーザーワークロードアラートはユーザー定義の namespace に関連します。これらのアラートはユーザーによって作成され、カスタマイズ可能です。ユーザーワークロードのモニタリングはインストール後に有効にし、独自のサービスに対する可観測性を実現できます。",
-  "View in Metrics": "メトリクスでの表示",
   "Starts": "開始",
   "Platform": "プラットフォーム",
   "User": "User",
