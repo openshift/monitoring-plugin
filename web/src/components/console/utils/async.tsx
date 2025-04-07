@@ -74,6 +74,8 @@ export class AsyncComponent extends React.Component<AsyncComponentProps, AsyncCo
     const { Component } = this.state;
     const { LoadingComponent = LoadingBox, forwardRef } = this.props;
     const rest = _.omit(this.props, 'loader');
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     return Component != null ? <Component ref={forwardRef} {...rest} /> : <LoadingComponent />;
   }
 }

@@ -8,7 +8,7 @@ import {
   getFetchSilenceUrl,
   usePerspective,
 } from '../hooks/usePerspective';
-import { Silences, VirtualizedTableColumn } from '../types';
+import { Silences } from '../types';
 import { MonitoringState } from 'src/reducers/observe';
 import { RowFilter } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
 import {

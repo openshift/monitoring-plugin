@@ -11,7 +11,7 @@ import {
 import AlertsPage from '../alerting/AlertsPage';
 import SilencesPage from '../alerting/SilencesPage';
 import AlertRulesPage from '../alerting/AlertRulesPage';
-import { Divider, PageSection, Tab, Tabs, TabTitleText, Title } from '@patternfly/react-core';
+import { PageSection, Tab, Tabs, TabTitleText, Title } from '@patternfly/react-core';
 
 const AlertingPage: React.FC<RouteComponentProps<{ url: string }>> = ({ match }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
