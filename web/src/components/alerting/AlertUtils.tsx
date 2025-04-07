@@ -4,14 +4,11 @@ import {
   Alert,
   AlertSeverity,
   AlertStates,
-  BlueInfoCircleIcon,
   PrometheusLabels,
-  RedExclamationCircleIcon,
   ResourceStatus,
   RowFilter,
   Rule,
   Timestamp,
-  YellowExclamationTriangleIcon,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { AlertSource } from '../types';
 import * as _ from 'lodash-es';
@@ -27,12 +24,30 @@ import {
   Level,
   LevelItem,
 } from '@patternfly/react-core';
-import { BellIcon, BellSlashIcon, OutlinedBellIcon } from '@patternfly/react-icons';
+import {
+  BellIcon,
+  BellSlashIcon,
+  OutlinedBellIcon,
+  SeverityCriticalIcon,
+  SeverityImportantIcon,
+  SeverityMinorIcon,
+  SeverityModerateIcon,
+  SeverityNoneIcon,
+  SeverityUndefinedIcon,
+} from '@patternfly/react-icons';
 import { FormatSeriesTitle, QueryBrowser } from '../query-browser';
 import { Link } from 'react-router-dom';
 import { TFunction } from 'i18next';
 import { getQueryBrowserUrl, usePerspective } from '../hooks/usePerspective';
 import { NamespaceModel } from '../console/models';
+import {
+  t_global_icon_color_severity_critical_default,
+  t_global_color_severity_moderate_100,
+  t_global_color_severity_minor_100,
+  t_global_color_severity_none_100,
+  t_global_color_severity_undefined_100,
+  t_global_icon_color_severity_important_default,
+} from '@patternfly/react-tokens';
 
 export const getAdditionalSources = <T extends Alert | Rule>(
   data: Array<T>,
@@ -117,14 +132,20 @@ export const Severity: React.FC<{ severity: string }> = React.memo(({ severity }
 });
 
 export const SeverityIcon: React.FC<{ severity: string }> = React.memo(({ severity }) => {
-  const Icon =
-    {
-      [AlertSeverity.Critical]: RedExclamationCircleIcon,
-      [AlertSeverity.Info]: BlueInfoCircleIcon,
-      [AlertSeverity.None]: BlueInfoCircleIcon,
-      [AlertSeverity.Warning]: YellowExclamationTriangleIcon,
-    }[severity] || YellowExclamationTriangleIcon;
-  return <Icon />;
+  switch (severity) {
+    case AlertSeverity.Critical:
+      return <SeverityCriticalIcon color={t_global_icon_color_severity_critical_default.var} />;
+    case AlertSeverity.Error:
+      return <SeverityImportantIcon color={t_global_icon_color_severity_important_default.var} />;
+    case AlertSeverity.Warning:
+      return <SeverityModerateIcon color={t_global_color_severity_moderate_100.var} />;
+    case AlertSeverity.Info:
+      return <SeverityMinorIcon color={t_global_color_severity_minor_100.var} />;
+    case AlertSeverity.None:
+      return <SeverityNoneIcon color={t_global_color_severity_none_100.var} />;
+    default:
+      return <SeverityUndefinedIcon color={t_global_color_severity_undefined_100.var} />;
+  }
 });
 
 export const AlertState: React.FC<AlertStateProps> = React.memo(({ state }) => {
