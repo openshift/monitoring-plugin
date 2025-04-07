@@ -231,6 +231,7 @@ const Table: React.FC<Props> = ({ customDataSource, panel, pollInterval, queries
                   <Td
                     key={`cell-${rowIndex}-${columnIndex}`}
                     dataLabel={rows?.[rowIndex]?.[columnIndex] ?? ''}
+                    className="pf-v6-u-font-family-monospace"
                   >
                     {rows?.[rowIndex]?.[columnIndex]}
                   </Td>
