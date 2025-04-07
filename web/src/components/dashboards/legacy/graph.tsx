@@ -65,6 +65,7 @@ const Graph: React.FC<Props> = ({
       timespan={timespan}
       units={units}
       onDataChange={onDataChange}
+      isPlain
     />
   );
 };

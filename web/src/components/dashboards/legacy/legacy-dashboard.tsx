@@ -11,6 +11,9 @@ import {
   CardHeader,
   CardTitle,
   DropdownItem,
+  Grid,
+  GridItem,
+  gridSpans,
 } from '@patternfly/react-core';
 import { AngleDownIcon, AngleRightIcon } from '@patternfly/react-icons';
 import * as React from 'react';
@@ -67,6 +70,19 @@ const QueryBrowserLink = ({
       {t('Inspect')}
     </Link>
   );
+};
+
+// Determine how many columns a panel should span. If panel specifies a `span`, use that. Otherwise
+// look for a `breakpoint` percentage. If neither are specified, default to 12 (full width).
+const getPanelSpan = (panel: Panel): gridSpans => {
+  if (panel.span) {
+    return panel.span as gridSpans;
+  }
+  const breakpoint = _.toInteger(_.trimEnd(panel.breakpoint, '%'));
+  if (breakpoint > 0) {
+    return Math.round(12 * (breakpoint / 100)) as gridSpans;
+  }
+  return 12;
 };
 
 const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
@@ -237,8 +253,9 @@ const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
     return false;
   };
 
+  const panelSpan = Math.max(getPanelSpan(panel), 4) as gridSpans;
   return (
-    <div>
+    <GridItem span={panelSpan}>
       <PFCard
         data-test={`${panel.title.toLowerCase().replace(/\s+/g, '-')}-chart`}
         data-test-id={panel.id ? `chart-${panel.id}` : undefined}
@@ -316,7 +333,7 @@ const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
           )}
         </CardBody>
       </PFCard>
-    </div>
+    </GridItem>
   );
 });
 
@@ -345,11 +362,11 @@ const PanelsRow: React.FC<PanelsRowProps> = ({ row, perspective }) => {
         />
       )}
       {isExpanded && (
-        <div>
+        <Grid hasGutter>
           {_.map(row.panels, (panel) => (
             <Card key={panel.id} panel={panel} perspective={perspective} />
           ))}
-        </div>
+        </Grid>
       )}
     </div>
   );
