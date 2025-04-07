@@ -1,10 +1,10 @@
 import React from 'react';
-import { SimpleSelect, SimpleSelectOption } from './SimpleSelect';
 import { useTranslation } from 'react-i18next';
 import {
   formatPrometheusDuration,
   parsePrometheusDuration,
 } from './console/console-shared/src/datetime/prometheus';
+import { SimpleSelect, SimpleSelectOption } from '@patternfly/react-templates';
 
 type DropDownPollIntervalProps = {
   setInterval: (v: number) => void;

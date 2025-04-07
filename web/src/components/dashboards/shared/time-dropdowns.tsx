@@ -10,7 +10,6 @@ import {
 import { useBoolean } from '../../hooks/useBoolean';
 import CustomTimeRangeModal from '../shared/custom-time-range-modal';
 import { getLegacyObserveState, usePerspective } from '../../hooks/usePerspective';
-import { SimpleSelect, SimpleSelectOption } from '../../SimpleSelect';
 import { MonitoringState } from '../../../reducers/observe';
 import {
   DEFAULT_REFRESH_INTERVAL,
@@ -23,6 +22,7 @@ import {
   formatPrometheusDuration,
   parsePrometheusDuration,
 } from '../../console/console-shared/src/datetime/prometheus';
+import { SimpleSelect, SimpleSelectOption } from '@patternfly/react-templates';
 
 const CUSTOM_TIME_RANGE_KEY = 'CUSTOM_TIME_RANGE_KEY';
 const DEFAULT_TIMERANGE = '30m';
