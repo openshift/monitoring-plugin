@@ -222,6 +222,16 @@ const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
     });
   }, []);
 
+  const panelBreakpoints = React.useMemo(() => {
+    const panelSpan = getPanelSpan(panel);
+    return {
+      sm: 12 as gridSpans,
+      md: Math.max(panelSpan, 6) as gridSpans,
+      lg: Math.max(panelSpan, 4) as gridSpans,
+      xl: Math.max(panelSpan, 3) as gridSpans,
+    };
+  }, [panel]);
+
   if (panel.type === 'row') {
     return (
       <>
@@ -253,9 +263,13 @@ const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
     return false;
   };
 
-  const panelSpan = Math.max(getPanelSpan(panel), 4) as gridSpans;
   return (
-    <GridItem span={panelSpan}>
+    <GridItem
+      span={panelBreakpoints.sm}
+      md={panelBreakpoints.md}
+      lg={panelBreakpoints.lg}
+      xl={panelBreakpoints.xl}
+    >
       <PFCard
         data-test={`${panel.title.toLowerCase().replace(/\s+/g, '-')}-chart`}
         data-test-id={panel.id ? `chart-${panel.id}` : undefined}
