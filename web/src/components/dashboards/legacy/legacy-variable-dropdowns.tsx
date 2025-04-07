@@ -11,6 +11,9 @@ import {
   SelectOption,
   MenuToggle,
   MenuToggleElement,
+  Stack,
+  StackItem,
+  SplitItem,
 } from '@patternfly/react-core';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -274,31 +277,36 @@ const LegacyDashboardsVariableDropdown: React.FC<VariableDropdownProps> = ({
   );
 
   return (
-    <div data-test={`${name.toLowerCase()}-dropdown`}>
-      <label htmlFor={`${id}-dropdown`}>{name}</label>
-      {isError ? (
-        <Select
-          toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
-            <MenuToggle ref={toggleRef} isDisabled={true} onClick={(e) => e.preventDefault()}>
-              <RedExclamationCircleIcon /> {t('Error loading options')}
-            </MenuToggle>
-          )}
-        />
-      ) : (
-        <SingleTypeaheadDropdown
-          items={items}
-          onChange={onChange}
-          OptionComponent={LegacyDashboardsVariableOption}
-          selectedKey={variable.value}
-          hideClearButton
-          resizeToFit
-          placeholder={t('Select a dashboard from the dropdown')}
-        />
-      )}
-    </div>
+    <Stack data-test={`${name.toLowerCase()}-dropdown`}>
+      <StackItem>
+        <label htmlFor={`${id}-dropdown`}>{name}</label>
+      </StackItem>
+      <StackItem>
+        {isError ? (
+          <Select
+            toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+              <MenuToggle ref={toggleRef} isDisabled={true} onClick={(e) => e.preventDefault()}>
+                <RedExclamationCircleIcon /> {t('Error loading options')}
+              </MenuToggle>
+            )}
+          />
+        ) : (
+          <SingleTypeaheadDropdown
+            items={items}
+            onChange={onChange}
+            OptionComponent={LegacyDashboardsVariableOption}
+            selectedKey={variable.value}
+            hideClearButton
+            resizeToFit
+            placeholder={t('Select a dashboard from the dropdown')}
+          />
+        )}
+      </StackItem>
+    </Stack>
   );
 };
 
+// Expects to be inside of a Patternfly Split Component
 export const LegacyDashboardsAllVariableDropdowns: React.FC = () => {
   const [namespace] = useActiveNamespace();
   const { perspective } = usePerspective();
@@ -313,13 +321,14 @@ export const LegacyDashboardsAllVariableDropdowns: React.FC = () => {
   return (
     <>
       {variables.keySeq().map((name: string) => (
-        <LegacyDashboardsVariableDropdown
-          key={name}
-          id={name}
-          name={name}
-          namespace={namespace}
-          perspective={perspective}
-        />
+        <SplitItem key={name}>
+          <LegacyDashboardsVariableDropdown
+            id={name}
+            name={name}
+            namespace={namespace}
+            perspective={perspective}
+          />
+        </SplitItem>
       ))}
     </>
   );

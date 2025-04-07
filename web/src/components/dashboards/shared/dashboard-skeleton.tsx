@@ -57,29 +57,31 @@ const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = ({
       <PageSection hasBodyWrapper={false}>
         {perspective !== 'dev' && <HeaderTop />}
         <Split hasGutter>
-          <SplitItem isFilled>
-            {!_.isEmpty(boardItems) && (
+          {!_.isEmpty(boardItems) && (
+            <SplitItem>
               <DashboardDropdown
                 items={boardItems}
                 onChange={changeBoard}
                 selectedKey={dashboardName}
               />
-            )}
-            {isPerses ? (
-              <AllVariableDropdowns key={dashboardName} />
-            ) : (
-              <LegacyDashboardsAllVariableDropdowns key={dashboardName} />
-            )}
-          </SplitItem>
-          {perspective === 'dev' && (
+            </SplitItem>
+          )}
+          {isPerses ? (
+            <AllVariableDropdowns key={dashboardName} />
+          ) : (
+            <LegacyDashboardsAllVariableDropdowns key={dashboardName} />
+          )}
+          {perspective === 'dev' ? (
             <>
-              <SplitItem>
+              <SplitItem isFilled>
                 <TimespanDropdown />
               </SplitItem>
               <SplitItem>
                 <PollIntervalDropdown />
               </SplitItem>
             </>
+          ) : (
+            <SplitItem isFilled />
           )}
         </Split>
       </PageSection>

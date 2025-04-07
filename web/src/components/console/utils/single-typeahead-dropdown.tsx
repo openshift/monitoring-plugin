@@ -360,11 +360,12 @@ export const SingleTypeaheadDropdown: React.FC<SingleTypeaheadDropdownProps> = (
         />
         {!hideClearButton && (
           <TextInputGroupUtilities {...(!inputValue ? { style: { display: 'none' } } : {})}>
-            <Button icon={<TimesIcon aria-hidden />}
+            <Button
+              icon={<TimesIcon aria-hidden />}
               variant="plain"
               onClick={onClearButtonClick}
               aria-label={t('Clear input value')}
-             />
+            />
           </TextInputGroupUtilities>
         )}
       </TextInputGroup>
