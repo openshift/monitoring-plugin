@@ -10,7 +10,7 @@ import { PollIntervalDropdown, TimespanDropdown } from './time-dropdowns';
 import { CombinedDashboardMetadata } from '../perses/hooks/useDashboardsData';
 import { AllVariableDropdowns } from '../perses/variable-dropdowns';
 import { useIsPerses } from './useIsPerses';
-import { Divider, Level, PageSection, Split, SplitItem, Title } from '@patternfly/react-core';
+import { Divider, PageSection, Split, SplitItem, Title } from '@patternfly/react-core';
 
 const HeaderTop: React.FC = React.memo(() => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
