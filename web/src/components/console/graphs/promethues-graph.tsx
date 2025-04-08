@@ -5,8 +5,8 @@ import { connect } from 'react-redux';
 import { Link } from 'react-router-dom-v5-compat';
 import { Title } from '@patternfly/react-core';
 
-import { useActivePerspective } from '@openshift-console/dynamic-plugin-sdk';
 import { RootState } from '../../../components/types';
+import { getMutlipleQueryBrowserUrl, usePerspective } from '../../hooks/usePerspective';
 
 const getActiveNamespace = ({ UI }: RootState): string => UI.get('activeNamespace');
 
@@ -18,13 +18,12 @@ const mapStateToProps = (state: RootState) => ({
 });
 
 const PrometheusGraphLink_: React.FC<PrometheusGraphLinkProps> = ({
-  canAccessMonitoring,
   children,
   query,
   namespace,
   ariaChartLinkLabel,
 }) => {
-  const [perspective] = useActivePerspective();
+  const { perspective } = usePerspective();
   const queries = _.compact(_.castArray(query));
   if (!queries.length) {
     return <>{children}</>;
@@ -32,11 +31,7 @@ const PrometheusGraphLink_: React.FC<PrometheusGraphLinkProps> = ({
 
   const params = new URLSearchParams();
   queries.forEach((q, index) => params.set(`query${index}`, q));
-
-  const url =
-    canAccessMonitoring && perspective === 'admin'
-      ? `/monitoring/query-browser?${params.toString()}`
-      : `/dev-monitoring/ns/${namespace}/metrics?${params.toString()}`;
+  const url = getMutlipleQueryBrowserUrl(perspective, params, namespace);
 
   return (
     <Link
