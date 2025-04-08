@@ -10,7 +10,7 @@ i18n
       loadPath: '/locales/{{lng}}/{{ns}}.json',
     },
     contextSeparator: '~',
-    debug: process.env.NODE_ENV === 'development',
+    debug: false,
     defaultNS: 'public',
     fallbackLng: 'en',
     keySeparator: false,
