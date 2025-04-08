@@ -2,6 +2,7 @@ import {
   PrometheusData,
   PrometheusEndpoint,
   PrometheusLabels,
+  PrometheusResponse,
   useActiveNamespace,
   useResolvedExtensions,
   YellowExclamationTriangleIcon,
@@ -626,7 +627,7 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, custom
   // the PROMETHEUS_TENANCY_BASE_PATH for requests in the developer view
   const tick = () => {
     if (isEnabled && isExpanded && query) {
-      safeFetch(
+      safeFetch<PrometheusResponse>(
         getPrometheusURL(
           {
             endpoint: PrometheusEndpoint.QUERY,

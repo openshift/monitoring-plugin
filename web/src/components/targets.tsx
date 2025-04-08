@@ -586,7 +586,9 @@ export const TargetsUI: React.FC = () => {
   const safeFetch = React.useCallback(useSafeFetch(), []);
 
   const tick = () =>
-    safeFetch(`${PROMETHEUS_BASE_PATH}/${PrometheusEndpoint.TARGETS}?state=active`)
+    safeFetch<PrometheusTargetsResponse>(
+      `${PROMETHEUS_BASE_PATH}/${PrometheusEndpoint.TARGETS}?state=active`,
+    )
       .then((response) => {
         setError(undefined);
         setLoaded(true);
@@ -627,4 +629,12 @@ export const TargetsUI: React.FC = () => {
       </ServicesWatchContext.Provider>
     </ServiceMonitorsWatchContext.Provider>
   );
+};
+
+type PrometheusTargetsResponse = {
+  status: string;
+  data: {
+    activeTargets: Array<Target>;
+    droppedTargets: Array<Target>;
+  };
 };

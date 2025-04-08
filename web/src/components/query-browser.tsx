@@ -647,7 +647,7 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
         const promiseMap: Promise<PrometheusResponse>[] = _.map(
           timeRanges,
           (timeRange: TimeRange) =>
-            safeFetch(
+            safeFetch<PrometheusResponse>(
               getPrometheusURL(
                 {
                   endpoint: PrometheusEndpoint.QUERY_RANGE,

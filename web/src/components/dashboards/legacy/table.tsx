@@ -87,7 +87,7 @@ const Table: React.FC<Props> = ({ customDataSource, panel, pollInterval, queries
     const allPromises = _.map(queries, (query) =>
       _.isEmpty(query)
         ? Promise.resolve()
-        : safeFetch(
+        : safeFetch<PrometheusResponse>(
             getPrometheusURL(
               {
                 endpoint: PrometheusEndpoint.QUERY,
@@ -101,7 +101,7 @@ const Table: React.FC<Props> = ({ customDataSource, panel, pollInterval, queries
     );
 
     Promise.all(allPromises)
-      .then((responses: PrometheusResponse[]) => {
+      .then((responses) => {
         setError(undefined);
         setLoading(false);
         // Note: This makes the following assumptions about the data:

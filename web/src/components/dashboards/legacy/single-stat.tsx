@@ -135,8 +135,8 @@ const SingleStat: React.FC<Props> = ({
     if (!url) {
       return;
     }
-    safeFetch(url)
-      .then((response: PrometheusResponse) => {
+    safeFetch<PrometheusResponse>(url)
+      .then((response) => {
         setError(undefined);
         setIsLoading(false);
         setValue(_.get(response, 'data.result[0].value[1]'));

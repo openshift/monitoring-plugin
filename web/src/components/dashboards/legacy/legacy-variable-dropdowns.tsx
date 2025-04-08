@@ -1,6 +1,7 @@
 import * as _ from 'lodash-es';
 import {
   PrometheusEndpoint,
+  PrometheusResponse,
   RedExclamationCircleIcon,
   useActiveNamespace,
   useResolvedExtensions,
@@ -187,7 +188,7 @@ const LegacyDashboardsVariableDropdown: React.FC<VariableDropdownProps> = ({
           endTime: timeRange.endTime,
         };
         return getURL(prometheusProps).then((url) =>
-          safeFetch(url)
+          safeFetch<PrometheusResponse>(url)
             .then(({ data }) => {
               const responseOptions = _.flatMap(data?.result, ({ metric }) => _.values(metric));
               responseOptions.forEach(newOptions.add, newOptions);
