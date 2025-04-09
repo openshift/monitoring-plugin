@@ -1,3 +1,4 @@
+import { EmptyState, EmptyStateBody, EmptyStateVariant } from '@patternfly/react-core';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -19,9 +20,9 @@ export const GraphEmpty: React.FC<GraphEmptyProps> = ({ height = 180, loading = 
       {loading ? (
         <div className="skeleton-chart" data-test="skeleton-chart" />
       ) : (
-        <div className="text-secondary" data-test="datapoints-msg">
-          {t('No datapoints found.')}
-        </div>
+        <EmptyState variant={EmptyStateVariant.xs}>
+          <EmptyStateBody>{t('No data found')}</EmptyStateBody>
+        </EmptyState>
       )}
     </div>
   );

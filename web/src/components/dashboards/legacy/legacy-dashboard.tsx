@@ -15,7 +15,7 @@ import {
   gridSpans,
   Flex,
   FlexItem,
-  ExpandableSection,
+  ExpandableSectionToggle,
 } from '@patternfly/react-core';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -359,27 +359,24 @@ const PanelsRow: React.FC<PanelsRowProps> = ({ row, perspective }) => {
   const [isExpanded, toggleIsExpanded] = useBoolean(showButton ? !row.collapse : true);
 
   return (
-    <div data-test-id={`panel-${_.kebabCase(row?.title)}`}>
-      {showButton ? (
-        <ExpandableSection
-          toggleText={row.title}
-          isExpanded={isExpanded}
-          onClick={toggleIsExpanded}
-        >
+    <Flex direction={{ default: 'column' }} data-test-id={`panel-${_.kebabCase(row?.title)}`}>
+      {showButton && (
+        <FlexItem>
+          <ExpandableSectionToggle isExpanded={isExpanded} onClick={toggleIsExpanded}>
+            {row.title}
+          </ExpandableSectionToggle>
+        </FlexItem>
+      )}
+      {isExpanded && (
+        <FlexItem>
           <Grid hasGutter>
             {_.map(row.panels, (panel) => (
               <Card key={panel.id} panel={panel} perspective={perspective} />
             ))}
           </Grid>
-        </ExpandableSection>
-      ) : (
-        <Grid hasGutter>
-          {_.map(row.panels, (panel) => (
-            <Card key={panel.id} panel={panel} perspective={perspective} />
-          ))}
-        </Grid>
+        </FlexItem>
       )}
-    </div>
+    </Flex>
   );
 };
 
