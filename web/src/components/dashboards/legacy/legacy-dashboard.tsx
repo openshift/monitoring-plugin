@@ -178,8 +178,22 @@ const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
     link.click();
   };
 
+  const isThereCsvData = () => {
+    if (csvData.length > 0) {
+      if (csvData[0].length > 0) {
+        return true;
+      }
+    }
+    return false;
+  };
+
   const dropdownItems = [
-    <DropdownItem key="action" component="button" onClick={csvExportHandler}>
+    <DropdownItem
+      key="action"
+      component="button"
+      onClick={csvExportHandler}
+      isDisabled={!isThereCsvData()}
+    >
       {t('Export as CSV')}
     </DropdownItem>,
   ];
@@ -256,15 +270,6 @@ const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
   const isLoading =
     (_.some(queries, _.isUndefined) && dataSourceInfoLoading) || customDataSource === undefined;
 
-  const isThereCsvData = () => {
-    if (csvData.length > 0) {
-      if (csvData[0].length > 0) {
-        return true;
-      }
-    }
-    return false;
-  };
-
   return (
     <GridItem
       span={panelBreakpoints.sm}
@@ -284,9 +289,7 @@ const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
                 {!isLoading && (
                   <QueryBrowserLink queries={queries} customDataSourceName={customDataSourceName} />
                 )}
-                {panel.type === 'graph' && isThereCsvData() && (
-                  <KebabDropdown dropdownItems={dropdownItems} />
-                )}
+                {panel.type === 'graph' && <KebabDropdown dropdownItems={dropdownItems} />}
               </>
             ),
             hasNoOffset: false,
