@@ -34,25 +34,23 @@ const MonitoringLegacyDashboardsPage_: React.FC<MonitoringLegacyDashboardsPagePr
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
-    <>
-      <DashboardSkeleton
-        boardItems={legacyDashboardsMetadata}
-        changeBoard={changeLegacyDashboard}
-        dashboardName={legacyDashboard}
-      >
-        <Overview>
-          {legacyDashboardsLoading ? (
-            <LoadingInline />
-          ) : legacyDashboardsError ? (
-            <ErrorAlert
-              error={{ message: legacyDashboardsError, name: t('Error Loading Dashboards') }}
-            />
-          ) : (
-            <LegacyDashboard rows={legacyRows} perspective={perspective} />
-          )}
-        </Overview>
-      </DashboardSkeleton>
-    </>
+    <DashboardSkeleton
+      boardItems={legacyDashboardsMetadata}
+      changeBoard={changeLegacyDashboard}
+      dashboardName={legacyDashboard}
+    >
+      <Overview>
+        {legacyDashboardsLoading ? (
+          <LoadingInline />
+        ) : legacyDashboardsError ? (
+          <ErrorAlert
+            error={{ message: legacyDashboardsError, name: t('Error Loading Dashboards') }}
+          />
+        ) : (
+          <LegacyDashboard rows={legacyRows} perspective={perspective} />
+        )}
+      </Overview>
+    </DashboardSkeleton>
   );
 };
 

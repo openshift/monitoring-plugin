@@ -5,7 +5,6 @@ import {
   useResolvedExtensions,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
-  Button,
   Card as PFCard,
   CardBody,
   CardHeader,
@@ -14,8 +13,10 @@ import {
   Grid,
   GridItem,
   gridSpans,
+  Flex,
+  FlexItem,
+  ExpandableSection,
 } from '@patternfly/react-core';
-import { AngleDownIcon, AngleRightIcon } from '@patternfly/react-icons';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
@@ -357,26 +358,21 @@ const PanelsRow: React.FC<PanelsRowProps> = ({ row, perspective }) => {
 
   const [isExpanded, toggleIsExpanded] = useBoolean(showButton ? !row.collapse : true);
 
-  const Icon = isExpanded ? AngleDownIcon : AngleRightIcon;
-  const title = isExpanded ? 'Hide' : 'Show';
-
   return (
     <div data-test-id={`panel-${_.kebabCase(row?.title)}`}>
-      {showButton && (
-        <Button
-          icon={
-            <>
-              <Icon />
-              &nbsp;{row.title}
-            </>
-          }
-          aria-label={title}
+      {showButton ? (
+        <ExpandableSection
+          toggleText={row.title}
+          isExpanded={isExpanded}
           onClick={toggleIsExpanded}
-          title={title}
-          variant="plain"
-        />
-      )}
-      {isExpanded && (
+        >
+          <Grid hasGutter>
+            {_.map(row.panels, (panel) => (
+              <Card key={panel.id} panel={panel} perspective={perspective} />
+            ))}
+          </Grid>
+        </ExpandableSection>
+      ) : (
         <Grid hasGutter>
           {_.map(row.panels, (panel) => (
             <Card key={panel.id} panel={panel} perspective={perspective} />
@@ -388,11 +384,13 @@ const PanelsRow: React.FC<PanelsRowProps> = ({ row, perspective }) => {
 };
 
 export const LegacyDashboard: React.FC<BoardProps> = ({ rows, perspective }) => (
-  <>
+  <Flex direction={{ default: 'column' }}>
     {_.map(rows, (row) => (
-      <PanelsRow key={_.map(row.panels, 'id').join()} row={row} perspective={perspective} />
+      <FlexItem>
+        <PanelsRow key={_.map(row.panels, 'id').join()} row={row} perspective={perspective} />
+      </FlexItem>
     ))}
-  </>
+  </Flex>
 );
 
 type BoardProps = {
