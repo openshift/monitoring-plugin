@@ -21,7 +21,7 @@ const ErrorMessage = ({ message }) => {
     <Alert isInline variant="danger" title={t('public~An error occurred')} data-test="alert-error">
       <Panel isScrollable>
         <PanelMain maxHeight="100px">
-          <PanelMainBody className="pf-v5-u-text-break-word monitoring__pre-line">
+          <PanelMainBody className="pf-v6-u-text-break-word monitoring__pre-line">
             {message}
           </PanelMainBody>
         </PanelMain>
