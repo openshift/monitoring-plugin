@@ -44,6 +44,7 @@
     "@openshift-console/dynamic-plugin-sdk-webpack": "^4.19.0-prerelease.1",
     "@patternfly/react-charts": "^8.2.0-prerelease.28",
     "@patternfly/react-core": "^6.2.0-prerelease.36",
+    "@patternfly/react-data-view": "6.1",
     "@patternfly/react-icons": "^6.2.0-prerelease.13",
     "@patternfly/react-table": "^6.2.0-prerelease.37",
     "@patternfly/react-templates": "^6.2.0-prerelease.37",

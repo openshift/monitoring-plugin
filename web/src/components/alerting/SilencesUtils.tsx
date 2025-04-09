@@ -247,7 +247,7 @@ const SilenceDropdown_: React.FC<SilenceDropdownProps> = ({ history, silence, to
 };
 export const SilenceDropdown = withRouter(SilenceDropdown_);
 
-const ExpireSilenceModal: React.FC<ExpireSilenceModalProps> = ({
+export const ExpireSilenceModal: React.FC<ExpireSilenceModalProps> = ({
   isOpen,
   setClosed,
   silenceID,
