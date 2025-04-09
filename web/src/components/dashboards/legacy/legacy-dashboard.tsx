@@ -47,6 +47,7 @@ import {
   DataSource,
   isDataSource,
 } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
+import { t_global_font_size_heading_h2 } from '@patternfly/react-tokens';
 
 const QueryBrowserLink = ({
   queries,
@@ -363,7 +364,7 @@ const PanelsRow: React.FC<PanelsRowProps> = ({ row, perspective }) => {
       {showButton && (
         <FlexItem>
           <ExpandableSectionToggle isExpanded={isExpanded} onClick={toggleIsExpanded}>
-            {row.title}
+            <span style={{ fontSize: t_global_font_size_heading_h2.var }}>{row.title}</span>
           </ExpandableSectionToggle>
         </FlexItem>
       )}
