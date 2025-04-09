@@ -39,7 +39,7 @@ import { MonitoringState } from '../../reducers/observe';
 import { severityRowFilter } from './AlertUtils';
 import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
-import { Flex, FlexItem, PageSection } from '@patternfly/react-core';
+import { Flex, FlexItem, PageSection, Truncate } from '@patternfly/react-core';
 
 const StateCounts: React.FC<{ alerts: PrometheusAlert[] }> = ({ alerts }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -89,21 +89,25 @@ const RuleTableRow: React.FC<RowProps<Rule>> = ({ obj }) => {
 
   return (
     <>
-      <Td title={title}>
+      <Td title={title} width={50}>
         <Flex spaceItems={{ default: 'spaceItemsNone' }} flexWrap={{ default: 'nowrap' }}>
           <FlexItem>
             <ResourceIcon kind={RuleResource.kind} />
           </FlexItem>
           <FlexItem>
-            <Link to={getRuleUrl(perspective, obj)}>{obj.name}</Link>
+            <Link to={getRuleUrl(perspective, obj)}>
+              <Truncate content={obj.name} />
+            </Link>
           </FlexItem>
         </Flex>
       </Td>
-      <Td title={title}>
+      <Td title={title} width={20}>
         <Severity severity={obj.labels?.severity} />
       </Td>
-      <Td title={title}>{_.isEmpty(obj.alerts) ? '-' : <StateCounts alerts={obj.alerts} />}</Td>
-      <Td title={title}>
+      <Td title={title} width={15}>
+        {_.isEmpty(obj.alerts) ? '-' : <StateCounts alerts={obj.alerts} />}
+      </Td>
+      <Td title={title} width={15}>
         {alertingRuleSource(obj) === AlertSource.User ? t('User') : t('Platform')}
       </Td>
     </>
@@ -165,6 +169,7 @@ const AlertRulesPage_: React.FC = () => {
         sort: 'name',
         title: t('Name'),
         transforms: [sortable],
+        props: { width: 50 },
       },
       {
         id: 'severity',
@@ -172,6 +177,7 @@ const AlertRulesPage_: React.FC = () => {
           _.orderBy(rules, alertSeverityOrder, [direction]) as Rule[],
         title: t('Severity'),
         transforms: [sortable],
+        props: { width: 20 },
       },
       {
         id: 'state',
@@ -179,6 +185,7 @@ const AlertRulesPage_: React.FC = () => {
           _.orderBy(rules, alertingRuleStateOrder, [direction]),
         title: t('Alert state'),
         transforms: [sortable],
+        props: { width: 15 },
       },
       {
         id: 'source',
@@ -186,6 +193,7 @@ const AlertRulesPage_: React.FC = () => {
           _.orderBy(rules, alertingRuleSource, [direction]),
         title: t('Source'),
         transforms: [sortable],
+        props: { width: 15 },
       },
     ],
     [t],
