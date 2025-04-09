@@ -20,6 +20,7 @@ import * as _ from 'lodash-es';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { TimesIcon } from '@patternfly/react-icons/dist/esm/icons/times-icon';
+import { t_global_spacer_control_horizontal_default } from '@patternfly/react-tokens';
 
 export type SingleTypeaheadDropdownProps = {
   /** The items to display in the dropdown */
@@ -353,7 +354,7 @@ export const SingleTypeaheadDropdown: React.FC<SingleTypeaheadDropdownProps> = (
             resizeToFit
               ? {
                   // eslint-disable-next-line max-len
-                  width: `max(calc(${selectedItemWidth}px + var(--pf-v5-c-text-input-group__text-input--PaddingLeft) + var(--pf-v5-c-text-input-group__text-input--PaddingRight)), var(--pf-v5-c-text-input-group__text-input--MinWidth))`,
+                  width: `max(calc(${selectedItemWidth}px + ${t_global_spacer_control_horizontal_default.var} * 2), 12ch)`,
                 }
               : {}
           }
