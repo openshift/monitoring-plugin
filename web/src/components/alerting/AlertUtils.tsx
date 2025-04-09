@@ -21,8 +21,6 @@ import {
   DescriptionListGroup,
   DescriptionListTerm,
   DescriptionListDescription,
-  Level,
-  LevelItem,
 } from '@patternfly/react-core';
 import {
   BellIcon,
@@ -45,6 +43,7 @@ import {
   t_global_color_severity_minor_100,
   t_global_color_severity_none_100,
   t_global_color_severity_undefined_100,
+  t_global_text_color_subtle,
 } from '@patternfly/react-tokens';
 
 export const getAdditionalSources = <T extends Alert | Rule>(
@@ -199,12 +198,10 @@ export const AlertStateDescription: React.FC<{ alert: Alert }> = ({ alert }) => 
 };
 
 export const StateTimestamp = ({ text, timestamp }) => (
-  <Level>
-    <LevelItem>{text}&nbsp;</LevelItem>
-    <LevelItem>
-      <Timestamp timestamp={timestamp} />
-    </LevelItem>
-  </Level>
+  <div style={{ color: t_global_text_color_subtle.var }}>
+    {text}&nbsp;
+    <Timestamp timestamp={timestamp} className="pf-v6-u-display-inline" />
+  </div>
 );
 
 export const SeverityBadge: React.FC<{ severity: string }> = React.memo(({ severity }) =>
