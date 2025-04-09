@@ -278,32 +278,34 @@ const LegacyDashboardsVariableDropdown: React.FC<VariableDropdownProps> = ({
   );
 
   return (
-    <Stack data-test={`${name.toLowerCase()}-dropdown`}>
-      <StackItem>
-        <label htmlFor={`${id}-dropdown`}>{name}</label>
-      </StackItem>
-      <StackItem>
-        {isError ? (
-          <Select
-            toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
-              <MenuToggle ref={toggleRef} isDisabled={true} onClick={(e) => e.preventDefault()}>
-                <RedExclamationCircleIcon /> {t('Error loading options')}
-              </MenuToggle>
-            )}
-          />
-        ) : (
-          <SingleTypeaheadDropdown
-            items={items}
-            onChange={onChange}
-            OptionComponent={LegacyDashboardsVariableOption}
-            selectedKey={variable.value}
-            hideClearButton
-            resizeToFit
-            placeholder={t('Select a dashboard from the dropdown')}
-          />
-        )}
-      </StackItem>
-    </Stack>
+    <SplitItem>
+      <Stack data-test={`${name.toLowerCase()}-dropdown`}>
+        <StackItem>
+          <label htmlFor={`${id}-dropdown`}>{name}</label>
+        </StackItem>
+        <StackItem>
+          {isError ? (
+            <Select
+              toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+                <MenuToggle ref={toggleRef} isDisabled={true} onClick={(e) => e.preventDefault()}>
+                  <RedExclamationCircleIcon /> {t('Error loading options')}
+                </MenuToggle>
+              )}
+            />
+          ) : (
+            <SingleTypeaheadDropdown
+              items={items}
+              onChange={onChange}
+              OptionComponent={LegacyDashboardsVariableOption}
+              selectedKey={variable.value}
+              hideClearButton
+              resizeToFit
+              placeholder={t('Select a dashboard from the dropdown')}
+            />
+          )}
+        </StackItem>
+      </Stack>
+    </SplitItem>
   );
 };
 
@@ -322,14 +324,13 @@ export const LegacyDashboardsAllVariableDropdowns: React.FC = () => {
   return (
     <>
       {variables.keySeq().map((name: string) => (
-        <SplitItem key={name}>
-          <LegacyDashboardsVariableDropdown
-            id={name}
-            name={name}
-            namespace={namespace}
-            perspective={perspective}
-          />
-        </SplitItem>
+        <LegacyDashboardsVariableDropdown
+          id={name}
+          key={name}
+          name={name}
+          namespace={namespace}
+          perspective={perspective}
+        />
       ))}
     </>
   );
