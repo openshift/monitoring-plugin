@@ -84,7 +84,7 @@ import {
 import {
   chart_area_Opacity,
   chart_axis_tick_Size,
-  t_global_background_color_100,
+  t_chart_global_fill_color_200,
 } from '@patternfly/react-tokens';
 
 const spans = ['5m', '15m', '30m', '1h', '2h', '6h', '12h', '1d', '2d', '1w', '2w'];
@@ -516,7 +516,7 @@ const ZoomableGraph: React.FC<ZoomableGraphProps> = ({
             top: 4, // --pf-t--global--spacer-xs
             position: 'absolute',
             opacity: chart_area_Opacity.value,
-            backgroundColor: t_global_background_color_100.value,
+            backgroundColor: t_chart_global_fill_color_200.value,
           }}
         />
       )}
