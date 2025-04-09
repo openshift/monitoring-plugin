@@ -29,7 +29,6 @@ import {
   BellSlashIcon,
   OutlinedBellIcon,
   SeverityCriticalIcon,
-  SeverityImportantIcon,
   SeverityMinorIcon,
   SeverityModerateIcon,
   SeverityNoneIcon,
@@ -46,7 +45,6 @@ import {
   t_global_color_severity_minor_100,
   t_global_color_severity_none_100,
   t_global_color_severity_undefined_100,
-  t_global_icon_color_severity_important_default,
 } from '@patternfly/react-tokens';
 
 export const getAdditionalSources = <T extends Alert | Rule>(
@@ -135,8 +133,6 @@ export const SeverityIcon: React.FC<{ severity: string }> = React.memo(({ severi
   switch (severity) {
     case AlertSeverity.Critical:
       return <SeverityCriticalIcon color={t_global_icon_color_severity_critical_default.var} />;
-    case AlertSeverity.Error:
-      return <SeverityImportantIcon color={t_global_icon_color_severity_important_default.var} />;
     case AlertSeverity.Warning:
       return <SeverityModerateIcon color={t_global_color_severity_moderate_100.var} />;
     case AlertSeverity.Info:
