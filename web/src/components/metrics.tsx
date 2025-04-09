@@ -343,7 +343,7 @@ const SeriesButton: React.FC<SeriesButtonProps> = ({ index, labels }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
 
-  const [colorIndex, isDisabled, isSeriesEmpty] = useSelector((state: MonitoringState) => {
+  const [_, isDisabled, isSeriesEmpty] = useSelector((state: MonitoringState) => {
     const observe = getLegacyObserveState(perspective, state);
     const disabledSeries = observe.getIn(['queryBrowser', 'queries', index, 'disabledSeries']);
     if (_.some(disabledSeries, (s) => _.isEqual(s, labels))) {
