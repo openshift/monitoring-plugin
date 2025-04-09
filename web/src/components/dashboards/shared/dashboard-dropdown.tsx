@@ -1,5 +1,13 @@
 import * as _ from 'lodash-es';
-import { Label, SelectOption, Stack, StackItem } from '@patternfly/react-core';
+import {
+  Label,
+  LabelGroup,
+  Level,
+  LevelItem,
+  SelectOption,
+  Stack,
+  StackItem,
+} from '@patternfly/react-core';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -10,7 +18,9 @@ type TagColor = 'red' | 'purple' | 'blue' | 'green' | 'teal' | 'orange';
 const tagColors: TagColor[] = ['red', 'purple', 'blue', 'green', 'teal', 'orange'];
 
 const Tag: React.FC<{ color: TagColor; text: string }> = React.memo(({ color, text }) => (
-  <Label color={color}>{text}</Label>
+  <Label isCompact color={color}>
+    {text}
+  </Label>
 ));
 
 export const DashboardDropdown: React.FC<DashboardDropdownProps> = ({
@@ -29,18 +39,22 @@ export const DashboardDropdown: React.FC<DashboardDropdownProps> = ({
     });
     return (
       <SelectOption value={value} isSelected={isSelected || false} {...rest}>
-        <div>
-          <span>{matchedValue?.title}</span>
-          <div>
-            {matchedValue?.tags?.map((tag, i) => (
-              <Tag
-                color={tagColors[_.indexOf(uniqueTags, tag) % tagColors.length]}
-                key={i}
-                text={tag}
-              />
-            ))}
-          </div>
-        </div>
+        <Level hasGutter>
+          <LevelItem>
+            <span>{matchedValue?.title}</span>
+          </LevelItem>
+          <LevelItem>
+            <LabelGroup>
+              {matchedValue?.tags?.map((tag, i) => (
+                <Tag
+                  key={i}
+                  color={tagColors[_.indexOf(uniqueTags, tag) % tagColors.length]}
+                  text={tag}
+                />
+              ))}
+            </LabelGroup>
+          </LevelItem>
+        </Level>
       </SelectOption>
     );
   };
