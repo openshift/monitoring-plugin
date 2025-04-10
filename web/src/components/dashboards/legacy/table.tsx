@@ -26,8 +26,6 @@ import { usePerspective } from '../../hooks/usePerspective';
 import TablePagination from '../../table-pagination';
 import { ColumnStyle, Panel } from './types';
 import { CustomDataSource } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
-
-import './table.scss';
 import { GraphEmpty } from '../../../components/console/graphs/graph-empty';
 
 type AugmentedColumnStyle = ColumnStyle & {
@@ -193,7 +191,7 @@ const Table: React.FC<Props> = ({ customDataSource, panel, pollInterval, queries
 
   return (
     <>
-      <div className="monitoring-plugin-dashboards__table-container">
+      <div style={{ overflowX: 'auto' }}>
         <PFTable
           aria-label={t('query results table')}
           gridBreakPoint={TableGridBreakpoint.none}
