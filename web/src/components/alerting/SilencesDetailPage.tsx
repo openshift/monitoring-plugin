@@ -17,6 +17,8 @@ import {
   DescriptionListTerm,
   Divider,
   DropdownItem,
+  Flex,
+  FlexItem,
   Grid,
   GridItem,
   PageBreadcrumb,
@@ -86,10 +88,17 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
           <PageSection hasBodyWrapper={false}>
             <Split>
               <SplitItem>
-                <Title headingLevel="h1">
-                  <ResourceIcon kind={SilenceResource.kind} />
-                  {silence?.name}
-                </Title>
+                <Flex>
+                  <FlexItem
+                    alignSelf={{ default: 'alignSelfCenter' }}
+                    spacer={{ default: 'spacerNone' }}
+                  >
+                    <ResourceIcon kind={SilenceResource.kind} />
+                  </FlexItem>
+                  <FlexItem>
+                    <Title headingLevel="h1">{silence?.name}</Title>
+                  </FlexItem>
+                </Flex>
               </SplitItem>
               <SplitItem isFilled />
               <SplitItem>

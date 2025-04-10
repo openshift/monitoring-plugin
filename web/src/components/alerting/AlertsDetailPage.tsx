@@ -157,11 +157,20 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
           <PageSection hasBodyWrapper={false}>
             <Split hasGutter>
               <SplitItem>
-                <Title headingLevel="h1">
-                  <ResourceIcon kind={AlertResource.kind} />
-                  {labels?.alertname}
-                  <SeverityBadge severity={labels?.severity} />
-                </Title>
+                <Flex>
+                  <FlexItem
+                    alignSelf={{ default: 'alignSelfCenter' }}
+                    spacer={{ default: 'spacerNone' }}
+                  >
+                    <ResourceIcon kind={AlertResource.kind} />
+                  </FlexItem>
+                  <FlexItem>
+                    <Title headingLevel="h1">{rule?.name}</Title>
+                  </FlexItem>
+                  <FlexItem alignSelf={{ default: 'alignSelfCenter' }}>
+                    <SeverityBadge severity={rule?.labels?.severity} />
+                  </FlexItem>
+                </Flex>
                 <HeaderAlertMessage alert={alert} rule={rule} />
               </SplitItem>
               <SplitItem isFilled />

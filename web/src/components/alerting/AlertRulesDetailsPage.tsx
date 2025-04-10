@@ -21,6 +21,8 @@ import {
   DescriptionListTermHelpTextButton,
   Divider,
   DropdownItem,
+  Flex,
+  FlexItem,
   Grid,
   GridItem,
   PageBreadcrumb,
@@ -201,11 +203,20 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
             </Breadcrumb>
           </PageBreadcrumb>
           <PageSection hasBodyWrapper={false}>
-            <Title headingLevel="h1">
-              <ResourceIcon kind={RuleResource.kind} />
-              {rule?.name}
-              <SeverityBadge severity={rule?.labels?.severity} />
-            </Title>
+            <Flex>
+              <FlexItem
+                alignSelf={{ default: 'alignSelfCenter' }}
+                spacer={{ default: 'spacerNone' }}
+              >
+                <ResourceIcon kind={RuleResource.kind} />
+              </FlexItem>
+              <FlexItem>
+                <Title headingLevel="h1">{rule?.name}</Title>
+              </FlexItem>
+              <FlexItem alignSelf={{ default: 'alignSelfCenter' }}>
+                <SeverityBadge severity={rule?.labels?.severity} />
+              </FlexItem>
+            </Flex>
           </PageSection>
           <Divider />
           <PageSection hasBodyWrapper={false}>
