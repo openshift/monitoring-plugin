@@ -281,7 +281,9 @@ const LegacyDashboardsVariableDropdown: React.FC<VariableDropdownProps> = ({
     <SplitItem>
       <Stack data-test={`${name.toLowerCase()}-dropdown`}>
         <StackItem>
-          <label htmlFor={`${id}-dropdown`}>{name}</label>
+          <label htmlFor={`${id}-dropdown`} style={{ textTransform: 'capitalize' }}>
+            {name}
+          </label>
         </StackItem>
         <StackItem>
           {isError ? (
