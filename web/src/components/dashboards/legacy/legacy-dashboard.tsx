@@ -41,13 +41,13 @@ import { MonitoringState } from '../../../reducers/observe';
 import { evaluateVariableTemplate } from './legacy-variable-dropdowns';
 import { Panel, Row } from './types';
 import { QueryParams } from '../../query-params';
-import { LoadingInline } from '../../console/console-shared/src/components/loading/LoadingInline';
 import { CustomDataSource } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/dashboard-data-source';
 import {
   DataSource,
   isDataSource,
 } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
 import { t_global_font_size_heading_h2 } from '@patternfly/react-tokens';
+import { GraphEmpty } from '../../../components/console/graphs/graph-empty';
 
 const QueryBrowserLink = ({
   queries,
@@ -303,9 +303,9 @@ const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
               <RedExclamationCircleIcon /> {t('Error loading card')}
             </>
           ) : (
-            <div ref={ref}>
+            <div ref={ref} style={{ height: '100%' }}>
               {isLoading || !wasEverVisible ? (
-                <LoadingInline />
+                <GraphEmpty loading />
               ) : (
                 <>
                   {panel.type === 'grafana-piechart-panel' && (

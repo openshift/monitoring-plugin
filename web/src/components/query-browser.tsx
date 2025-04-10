@@ -349,13 +349,18 @@ const Graph: React.FC<GraphProps> = React.memo(
           top: 5,
         }}
       >
-        <ChartAxis tickCount={xAxisTickCount} tickFormat={xAxisTickFormat} />
+        <ChartAxis
+          tickCount={xAxisTickCount}
+          tickFormat={xAxisTickFormat}
+          style={{ tickLabels: { fontSize: 12 }, axisLabel: { fontSize: 12 } }}
+        />
         <ChartAxis
           crossAxis={false}
           dependentAxis
           tickComponent={nullComponent}
           tickCount={6}
           tickFormat={yTickFormat}
+          style={{ tickLabels: { fontSize: 12 }, axisLabel: { fontSize: 12 } }}
         />
         <GroupComponent>
           {data.map((values, i) => {
@@ -394,7 +399,7 @@ const Graph: React.FC<GraphProps> = React.memo(
             orientation="vertical"
             symbolSpacer={4}
             style={{
-              labels: { fontSize: 11 },
+              labels: { fontSize: 12 },
             }}
             padding={{
               top: BOTTOM_SERIES_HEIGHT,
