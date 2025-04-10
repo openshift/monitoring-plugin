@@ -1,4 +1,5 @@
 import * as _ from 'lodash-es';
+import classNames from 'classnames';
 import * as React from 'react';
 import {
   PrometheusEndpoint,
@@ -86,6 +87,7 @@ import {
   chart_axis_tick_Size,
   t_chart_global_fill_color_200,
 } from '@patternfly/react-tokens';
+import './query-browser.scss';
 
 const spans = ['5m', '15m', '30m', '1h', '2h', '6h', '12h', '1d', '2d', '1w', '2w'];
 export const colors = queryBrowserTheme.line.colorScale;
@@ -95,6 +97,10 @@ export const Error: React.FC<ErrorProps> = ({ error, title = 'An error occurred'
     {_.get(error, 'json.error', error.message)}
   </Alert>
 );
+
+const BOTTOM_SERIES_HEIGHT = 34;
+const LEGEND_HEIGHT = 75;
+const CHART_HEIGHT = 200;
 
 const GraphEmptyState: React.FC<GraphEmptyStateProps> = ({ children, title }) => (
   <div>
@@ -200,10 +206,12 @@ const SpanControls: React.FC<SpanControlsProps> = React.memo(
 
 const LegendContainer = ({ children }: { children?: React.ReactNode }) => {
   // The first child should be a <rect> with a `width` prop giving the legend's content width
-  const width = children?.[0]?.[0]?.props?.width ?? '100%';
+  const width = children?.[0]?.props?.width ?? '100%';
+  const height = children?.[0]?.props?.height ?? LEGEND_HEIGHT;
+
   return (
-    <foreignObject height={75} width="100%" y={245}>
-      <div>
+    <foreignObject height={height} width="100%" y={CHART_HEIGHT}>
+      <div className="monitoring-plugin-dashboards__legend-wrap monitoring-plugin-horizontal-scroll">
         <svg width={width}>{children}</svg>
       </div>
     </foreignObject>
@@ -313,10 +321,13 @@ const Graph: React.FC<GraphProps> = React.memo(
     const GroupComponent = isStack ? ChartStack : ChartGroup;
     const ChartComponent = isStack ? ChartArea : ChartLine;
 
+    const hasLegend = showLegend && !_.isEmpty(legendData);
+
     return (
       <Chart
         containerComponent={
           <ChartVoronoiContainer
+            activateData={false}
             labelComponent={<QueryBrowserTooltip />}
             labels={() => ' '}
             mouseFollowTooltips={true}
@@ -327,11 +338,16 @@ const Graph: React.FC<GraphProps> = React.memo(
         ariaTitle={t('query browser chart')}
         domain={domain}
         domainPadding={{ y: 1 }}
-        height={200}
+        height={hasLegend ? CHART_HEIGHT + LEGEND_HEIGHT : CHART_HEIGHT}
         scale={{ x: 'time', y: 'linear' }}
         theme={queryBrowserTheme}
         width={width}
-        legendData={legendData}
+        padding={{
+          bottom: hasLegend ? BOTTOM_SERIES_HEIGHT + LEGEND_HEIGHT : BOTTOM_SERIES_HEIGHT,
+          left: 65,
+          right: 15,
+          top: 5,
+        }}
       >
         <ChartAxis tickCount={xAxisTickCount} tickFormat={xAxisTickFormat} />
         <ChartAxis
@@ -369,7 +385,7 @@ const Graph: React.FC<GraphProps> = React.memo(
             );
           })}
         </GroupComponent>
-        {showLegend && !_.isEmpty(legendData) && (
+        {hasLegend && (
           <ChartLegend
             data={legendData}
             groupComponent={<LegendContainer />}
@@ -377,6 +393,12 @@ const Graph: React.FC<GraphProps> = React.memo(
             itemsPerRow={4}
             orientation="vertical"
             symbolSpacer={4}
+            style={{
+              labels: { fontSize: 11 },
+            }}
+            padding={{
+              top: BOTTOM_SERIES_HEIGHT,
+            }}
           />
         )}
       </Chart>
@@ -894,10 +916,18 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
             </Split>
           </CardHeader>
         )}
-        <CardBody>
+        <CardBody
+          className={classNames(
+            'monitoring-plugin-graph-wrapper monitoring-plugin-graph-wrapper--query-browser',
+            {
+              'monitoring-plugin-graph-wrapper--query-browser--with-legend':
+                showLegend && !!formatSeriesTitle,
+            },
+          )}
+        >
           <div ref={containerRef} style={{ position: 'relative' }}>
             {error && <Error error={error} />}
-            {isGraphDataEmpty && !updating && <GraphEmpty />}
+            {isGraphDataEmpty && <GraphEmpty loading={updating} />}
             {!isGraphDataEmpty && width > 0 && (
               <>
                 {disableZoom ? (

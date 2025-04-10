@@ -1,10 +1,5 @@
 import { PrometheusEndpoint, PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
-import {
-  EmptyState,
-  EmptyStateBody,
-  EmptyStateVariant,
-  PerPageOptions,
-} from '@patternfly/react-core';
+import { PerPageOptions } from '@patternfly/react-core';
 import {
   ISortBy,
   Table as PFTable,
@@ -31,6 +26,9 @@ import { usePerspective } from '../../hooks/usePerspective';
 import TablePagination from '../../table-pagination';
 import { ColumnStyle, Panel } from './types';
 import { CustomDataSource } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
+
+import './table.scss';
+import { GraphEmpty } from '../../../components/console/graphs/graph-empty';
 
 type AugmentedColumnStyle = ColumnStyle & {
   className?: string;
@@ -137,7 +135,7 @@ const Table: React.FC<Props> = ({ customDataSource, panel, pollInterval, queries
 
   usePoll(tick, pollInterval, queries);
   if (isLoading) {
-    return <div />;
+    return <GraphEmpty loading />;
   }
   if (error) {
     return <ErrorAlert error={{ message: error, name: t('An error occurred') }} />;
@@ -150,11 +148,7 @@ const Table: React.FC<Props> = ({ customDataSource, panel, pollInterval, queries
     );
   }
   if (_.isEmpty(data)) {
-    return (
-      <EmptyState variant={EmptyStateVariant.xs}>
-        <EmptyStateBody>{t('No data found')}</EmptyStateBody>
-      </EmptyState>
-    );
+    return <GraphEmpty />;
   }
 
   const columns: AugmentedColumnStyle[] = getColumns(panel.styles);
@@ -199,7 +193,7 @@ const Table: React.FC<Props> = ({ customDataSource, panel, pollInterval, queries
 
   return (
     <>
-      <div>
+      <div className="monitoring-plugin-dashboards__table-container">
         <PFTable
           aria-label={t('query results table')}
           gridBreakPoint={TableGridBreakpoint.none}

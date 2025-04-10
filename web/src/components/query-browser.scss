@@ -1,0 +1,54 @@
+.monitoring-plugin-dashboards__legend-wrap {
+  $legend-content-height: 65px;
+  height: 100%;
+  padding-top: 1px;
+
+  svg {
+    max-height: $legend-content-height; // Required for Chrome to prevent vertical scrolling
+  }
+}
+
+.monitoring-plugin-graph-wrapper.monitoring-plugin-graph-wrapper--query-browser {
+  padding: 0;
+  overflow-y: hidden;
+  
+  &--with-legend {
+    min-height: 275px;
+  }
+}
+
+.monitoring-plugin-horizontal-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-left: var(--pf-t--global--spacer--md);
+  padding-right: var(--pf-t--global--spacer--md);
+
+  &:before,
+  &:after {
+    bottom: 0;
+    content: '';
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    width: var(--pf-t--global--spacer--md);
+    z-index: 1;
+  }
+
+  &:before {
+    background: linear-gradient(
+      to right,
+      var(--pf-t--global--background--color--100),
+      rgba(255, 255, 255, 0)
+    );
+    left: 0;
+  }
+
+  &:after {
+    background: linear-gradient(
+      to left,
+      var(--pf-t--global--background--color--100),
+      rgba(255, 255, 255, 0)
+    );
+    right: 0;
+  }
+}

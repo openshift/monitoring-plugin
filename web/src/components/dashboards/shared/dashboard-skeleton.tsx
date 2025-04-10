@@ -16,15 +16,19 @@ const HeaderTop: React.FC = React.memo(() => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
-    <Split hasGutter>
+    <Split hasGutter isWrappable>
       <SplitItem isFilled>
         <Title headingLevel="h1">{t('Dashboards')}</Title>
       </SplitItem>
       <SplitItem>
-        <TimespanDropdown />
-      </SplitItem>
-      <SplitItem>
-        <PollIntervalDropdown />
+        <Split hasGutter isWrappable>
+          <SplitItem>
+            <TimespanDropdown />
+          </SplitItem>
+          <SplitItem>
+            <PollIntervalDropdown />
+          </SplitItem>
+        </Split>
       </SplitItem>
     </Split>
   );
@@ -56,7 +60,7 @@ const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = ({
       )}
       <PageSection hasBodyWrapper={false}>
         {perspective !== 'dev' && <HeaderTop />}
-        <Split hasGutter>
+        <Split hasGutter isWrappable>
           {!_.isEmpty(boardItems) && (
             <SplitItem>
               <DashboardDropdown
