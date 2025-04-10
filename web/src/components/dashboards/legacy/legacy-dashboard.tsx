@@ -280,6 +280,7 @@ const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
       <PFCard
         data-test={`${panel.title.toLowerCase().replace(/\s+/g, '-')}-chart`}
         data-test-id={panel.id ? `chart-${panel.id}` : undefined}
+        style={{ overflow: 'visible' }}
         isFullHeight
       >
         <CardHeader

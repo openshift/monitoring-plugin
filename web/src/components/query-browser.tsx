@@ -327,7 +327,7 @@ const Graph: React.FC<GraphProps> = React.memo(
         containerComponent={
           <ChartVoronoiContainer
             activateData={false}
-            labelComponent={<QueryBrowserTooltip />}
+            labelComponent={<QueryBrowserTooltip height={CHART_HEIGHT - BOTTOM_SERIES_HEIGHT} />}
             labels={() => ' '}
             mouseFollowTooltips={true}
             voronoiDimension="x"
@@ -887,7 +887,7 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
 
   return (
     <>
-      <Card isCompact isPlain={isPlain}>
+      <Card isCompact isPlain={isPlain} style={{ overflow: 'visible' }}>
         {hideControls ? (
           <>{updating && <LoadingInline />}</>
         ) : (

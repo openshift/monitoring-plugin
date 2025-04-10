@@ -10,7 +10,7 @@
 
 .monitoring-plugin-graph-wrapper.monitoring-plugin-graph-wrapper--query-browser {
   padding: 0;
-  overflow-y: hidden;
+  overflow: visible;
   
   &--with-legend {
     min-height: 275px;
