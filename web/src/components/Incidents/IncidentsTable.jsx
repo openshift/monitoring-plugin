@@ -13,6 +13,8 @@ import IncidentsDetailsRowTable from './IncidentsDetailsRowTable';
 import { BellIcon, BellSlashIcon, SearchIcon } from '@patternfly/react-icons';
 import { useSelector } from 'react-redux';
 import * as _ from 'lodash-es';
+import { AlertState, AlertStateIcon, SeverityBadge } from '../alerting/AlertUtils';
+import { AlertSeverity, AlertStates } from '@openshift-console/dynamic-plugin-sdk';
 
 export const IncidentsTable = ({ namespace }) => {
   const columnNames = {
@@ -35,6 +37,25 @@ export const IncidentsTable = ({ namespace }) => {
     state.plugins.mcp.getIn(['incidentsData', 'alertsAreLoading']),
   );
 
+  if (_.isEmpty(alertsTableData) || alertsAreLoading) {
+    return (
+      <Card>
+        <CardBody>
+          <EmptyState
+            style={{
+              height: '150px',
+            }}
+            icon={SearchIcon}
+          >
+            <EmptyStateBody>
+              <Bullseye>No incidents selected.</Bullseye>
+            </EmptyStateBody>
+          </EmptyState>
+        </CardBody>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardBody>
@@ -47,77 +68,57 @@ export const IncidentsTable = ({ namespace }) => {
               <Th width={25}>{columnNames.state}</Th>
             </Tr>
           </Thead>
-          {_.isEmpty(alertsTableData) || alertsAreLoading ? (
-            <Tr>
-              <Td colSpan={4}>
-                <EmptyState icon={SearchIcon}>
-                  <EmptyStateBody>
-                    <Bullseye>No incidents selected.</Bullseye>
-                  </EmptyStateBody>
-                </EmptyState>
-              </Td>
-            </Tr>
-          ) : (
-            alertsTableData.map((alert, rowIndex) => {
-              return (
-                <Tbody key={rowIndex} isExpanded={isAlertExpanded(alert)}>
-                  <Tr>
-                    <Td
-                      expand={
-                        alert.alertsExpandedRowData
-                          ? {
-                              rowIndex,
-                              isExpanded: isAlertExpanded(alert),
-                              onToggle: () => setAlertExpanded(alert, !isAlertExpanded(alert)),
-                              expandId: 'alert-expandable',
-                            }
-                          : undefined
+          {alertsTableData.map((alert, rowIndex) => {
+            return (
+              <Tbody key={rowIndex} isExpanded={isAlertExpanded(alert)}>
+                <Tr>
+                  <Td
+                    expand={
+                      alert.alertsExpandedRowData
+                        ? {
+                            rowIndex,
+                            isExpanded: isAlertExpanded(alert),
+                            onToggle: () => setAlertExpanded(alert, !isAlertExpanded(alert)),
+                            expandId: 'alert-expandable',
+                          }
+                        : undefined
+                    }
+                  />
+                  <Td dataLabel={columnNames.component}>{alert.component}</Td>
+                  <Td>
+                    {alert.critical > 0 && (
+                      <SeverityBadge severity={AlertSeverity.Critical} count={alert.critical} />
+                    )}
+                    {alert.warning > 0 && (
+                      <SeverityBadge severity={AlertSeverity.Warning} count={alert.warning} />
+                    )}
+                    {alert.info > 0 && (
+                      <SeverityBadge severity={AlertSeverity.Info} count={alert.info} />
+                    )}
+                  </Td>
+                  <Td dataLabel={columnNames.state}>
+                    <AlertStateIcon
+                      state={
+                        alert.alertstate === 'resolved' ? AlertStates.Silenced : AlertStates.Firing
                       }
                     />
-                    <Td dataLabel={columnNames.component}>{alert.component}</Td>
-                    <Td>
-                      {alert.critical > 0 ? (
-                        <Label color="red" icon={<InfoCircleIcon />}>
-                          {alert.critical}
-                        </Label>
-                      ) : (
-                        ''
-                      )}
-                      {alert.warning > 0 ? (
-                        <Label color="yellow" icon={<InfoCircleIcon />}>
-                          {alert.warning}
-                        </Label>
-                      ) : (
-                        ''
-                      )}
-                      {alert.info > 0 ? (
-                        <Label color="blue" icon={<InfoCircleIcon />}>
-                          {alert.info}
-                        </Label>
-                      ) : (
-                        ''
-                      )}
-                    </Td>
-                    <Td dataLabel={columnNames.state}>
-                      {alert.alertstate === 'resolved' ? <BellSlashIcon /> : <BellIcon />}
+                  </Td>
+                </Tr>
+                {alert.alertsExpandedRowData && (
+                  <Tr isExpanded={isAlertExpanded(alert)}>
+                    <Td width={100} colSpan={6}>
+                      <ExpandableRowContent>
+                        <IncidentsDetailsRowTable
+                          alerts={alert.alertsExpandedRowData}
+                          namespace={namespace}
+                        />
+                      </ExpandableRowContent>
                     </Td>
                   </Tr>
-                  {alert.alertsExpandedRowData && (
-                    <Tr isExpanded={isAlertExpanded(alert)}>
-                      <Td width={100} colSpan={6}>
-                        <ExpandableRowContent>
-                          <IncidentsDetailsRowTable
-                            alerts={alert.alertsExpandedRowData}
-                            namespace={namespace}
-                          />
-                        </ExpandableRowContent>
-                      </Td>
-                    </Tr>
-                  )}
-                </Tbody>
-              );
-            })
-          )}
+                )}
+              </Tbody>
+            );
+          })}
         </Table>
       </CardBody>
     </Card>

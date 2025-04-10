@@ -1,6 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import * as React from 'react';
-import { IncidentsHeader } from './IncidentsHeader/IncidentsHeader';
 import { useSafeFetch } from '../console/utils/safe-fetch-hook';
 import { createAlertsQuery, fetchDataForIncidentsAndAlerts } from './api';
 import { useTranslation } from 'react-i18next';
@@ -19,6 +18,8 @@ import {
   Badge,
   Title,
   PageSection,
+  Stack,
+  StackItem,
 } from '@patternfly/react-core';
 import { Helmet } from 'react-helmet';
 import { IncidentsTable } from './IncidentsTable';
@@ -34,6 +35,7 @@ import {
   onIncidentFiltersSelect,
   parseUrlParams,
   updateBrowserUrl,
+  usePatternFlyTheme,
 } from './utils';
 import { groupAlertsForTable, processAlerts } from './processAlerts';
 import { CompressArrowsAltIcon, CompressIcon, FilterIcon } from '@patternfly/react-icons';
@@ -51,7 +53,8 @@ import { usePerspective } from '../hooks/usePerspective';
 import { changeDaysFilter } from './utils';
 import { parsePrometheusDuration } from '../console/console-shared/src/datetime/prometheus';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
-import { usePatternFlyTheme } from '../hooks/usePatternflyTheme';
+import IncidentsChart from './IncidentsChart/IncidentsChart';
+import AlertsChart from './AlertsChart/AlertsChart';
 
 const IncidentsPage = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -148,6 +151,7 @@ const IncidentsPage = () => {
 
   const now = Date.now();
   const safeFetch = useSafeFetch();
+  const title = t('Incidents');
 
   React.useEffect(() => {
     setTimeRanges(getIncidentsTimeRanges(daysSpan, now));
@@ -271,176 +275,172 @@ const IncidentsPage = () => {
     setDaysFilterIsExpanded(false);
   };
 
-  if (alertsAreLoading && incidentsAreLoading) {
-    return (
-      <>
-        <IncidentsPageHeader />
+  return (
+    <>
+      <Helmet>
+        <title>{title}</title>
+      </Helmet>
+      <PageSection hasBodyWrapper={false}>
+        <Title headingLevel="h1">{t('Incidents')}</Title>
+      </PageSection>
+      {alertsAreLoading && incidentsAreLoading ? (
         <Bullseye>
           <Spinner aria-label="incidents-chart-spinner" />
         </Bullseye>
-      </>
-    );
-  }
-
-  return (
-    <>
-      <IncidentsPageHeader />
-      <PageSection hasBodyWrapper={false}>
-        <Toolbar
-          id="toolbar-with-filter"
-          collapseListedFiltersBreakpoint="xl"
-          clearAllFilters={() =>
-            onDeleteIncidentFilterChip('', '', incidentsActiveFilters, dispatch)
-          }
-        >
-          <ToolbarContent>
-            <ToolbarItem>
-              <ToolbarFilter
-                labels={incidentsActiveFilters.incidentFilters}
-                deleteLabel={(category, chip) =>
-                  onDeleteIncidentFilterChip(category, chip, incidentsActiveFilters, dispatch)
-                }
-                deleteLabelGroup={(category) =>
-                  onDeleteGroupIncidentFilterChip(category, incidentsActiveFilters, dispatch)
-                }
-                categoryName="Filters"
-              >
-                <Select
-                  id="severity-select"
-                  role="menu"
-                  aria-label="Filters"
-                  isOpen={incidentFilterIsExpanded}
-                  selected={incidentsActiveFilters.incidentFilters}
-                  onSelect={(event, selection) =>
-                    onIncidentFiltersSelect(event, selection, dispatch, incidentsActiveFilters)
+      ) : (
+        <PageSection hasBodyWrapper={false}>
+          <Toolbar
+            id="toolbar-with-filter"
+            className="pf-v5-m-toggle-group-container"
+            collapseListedFiltersBreakpoint="xl"
+            clearAllFilters={() =>
+              onDeleteIncidentFilterChip('', '', incidentsActiveFilters, dispatch)
+            }
+          >
+            <ToolbarContent>
+              <ToolbarItem>
+                <ToolbarFilter
+                  labels={incidentsActiveFilters.incidentFilters}
+                  deleteLabel={(category, chip) =>
+                    onDeleteIncidentFilterChip(category, chip, incidentsActiveFilters, dispatch)
                   }
-                  onOpenChange={(isOpen) => setIncidentIsExpanded(isOpen)}
+                  deleteLabelGroup={(category) =>
+                    onDeleteGroupIncidentFilterChip(category, incidentsActiveFilters, dispatch)
+                  }
+                  categoryName="Filters"
+                >
+                  <Select
+                    id="severity-select"
+                    role="menu"
+                    aria-label="Filters"
+                    isOpen={incidentFilterIsExpanded}
+                    selected={incidentsActiveFilters.incidentFilters}
+                    onSelect={(event, selection) =>
+                      onIncidentFiltersSelect(event, selection, dispatch, incidentsActiveFilters)
+                    }
+                    onOpenChange={(isOpen) => setIncidentIsExpanded(isOpen)}
+                    toggle={(toggleRef) => (
+                      <MenuToggle
+                        ref={toggleRef}
+                        onClick={onIncidentFilterToggle}
+                        isExpanded={incidentFilterIsExpanded}
+                        icon={<FilterIcon />}
+                        badge={
+                          Object.entries(incidentsActiveFilters.incidentFilters).length > 0 ? (
+                            <Badge isRead>
+                              {Object.entries(incidentsActiveFilters.incidentFilters).length}
+                            </Badge>
+                          ) : undefined
+                        }
+                      >
+                        Filters
+                      </MenuToggle>
+                    )}
+                    shouldFocusToggleOnSelect
+                  >
+                    <SelectList>
+                      <SelectOption
+                        value="Critical"
+                        isSelected={incidentsActiveFilters.incidentFilters.includes('Critical')}
+                        description="The incident is critical."
+                        hasCheckbox
+                      >
+                        Critical
+                      </SelectOption>
+                      <SelectOption
+                        value="Warning"
+                        isSelected={incidentsActiveFilters.incidentFilters.includes('Warning')}
+                        description="The incident might lead to critical."
+                        hasCheckbox
+                      >
+                        Warning
+                      </SelectOption>
+                      <SelectOption
+                        value="Informative"
+                        isSelected={incidentsActiveFilters.incidentFilters.includes('Informative')}
+                        description="The incident is not critical."
+                        hasCheckbox
+                      >
+                        Informative
+                      </SelectOption>
+                      <SelectOption
+                        value="Firing"
+                        isSelected={incidentsActiveFilters.incidentFilters.includes('Firing')}
+                        description="The incident is currently firing."
+                        hasCheckbox
+                      >
+                        Firing
+                      </SelectOption>
+                      <SelectOption
+                        value="Resolved"
+                        isSelected={incidentsActiveFilters.incidentFilters.includes('Resolved')}
+                        description="The incident is not currently firing."
+                        hasCheckbox
+                      >
+                        Resolved
+                      </SelectOption>
+                    </SelectList>
+                  </Select>
+                </ToolbarFilter>
+              </ToolbarItem>
+              <ToolbarItem>
+                <Select
+                  id="time-range-select"
+                  isOpen={daysFilterIsExpanded}
+                  selected={incidentsActiveFilters.days[0]}
+                  onSelect={onSelect}
+                  onOpenChange={(isOpen) => setDaysFilterIsExpanded(isOpen)}
                   toggle={(toggleRef) => (
                     <MenuToggle
                       ref={toggleRef}
-                      onClick={onIncidentFilterToggle}
-                      isExpanded={incidentFilterIsExpanded}
-                      icon={<FilterIcon />}
-                      badge={
-                        Object.entries(incidentsActiveFilters.incidentFilters).length > 0 ? (
-                          <Badge isRead>
-                            {Object.entries(incidentsActiveFilters.incidentFilters).length}
-                          </Badge>
-                        ) : undefined
-                      }
+                      onClick={onToggleClick}
+                      isExpanded={daysFilterIsExpanded}
                     >
-                      Filters
+                      {incidentsActiveFilters.days[0]}
                     </MenuToggle>
                   )}
                   shouldFocusToggleOnSelect
                 >
                   <SelectList>
-                    <SelectOption
-                      value="Critical"
-                      isSelected={incidentsActiveFilters.incidentFilters.includes('Critical')}
-                      description="The incident is critical."
-                      hasCheckbox
-                    >
-                      Critical
-                    </SelectOption>
-                    <SelectOption
-                      value="Warning"
-                      isSelected={incidentsActiveFilters.incidentFilters.includes('Warning')}
-                      description="The incident might lead to critical."
-                      hasCheckbox
-                    >
-                      Warning
-                    </SelectOption>
-                    <SelectOption
-                      value="Informative"
-                      isSelected={incidentsActiveFilters.incidentFilters.includes('Informative')}
-                      description="The incident is not critical."
-                      hasCheckbox
-                    >
-                      Informative
-                    </SelectOption>
-                    <SelectOption
-                      value="Firing"
-                      isSelected={incidentsActiveFilters.incidentFilters.includes('Firing')}
-                      description="The incident is currently firing."
-                      hasCheckbox
-                    >
-                      Firing
-                    </SelectOption>
-                    <SelectOption
-                      value="Resolved"
-                      isSelected={incidentsActiveFilters.incidentFilters.includes('Resolved')}
-                      description="The incident is not currently firing."
-                      hasCheckbox
-                    >
-                      Resolved
-                    </SelectOption>
+                    <SelectOption value="1 day">{t('1 day')}</SelectOption>
+                    <SelectOption value="3 days">{t('3 days')}</SelectOption>
+                    <SelectOption value="7 days">{t('7 days')}</SelectOption>
+                    <SelectOption value="15 days">{t('15 days')}</SelectOption>
                   </SelectList>
                 </Select>
-              </ToolbarFilter>
-            </ToolbarItem>
-            <ToolbarItem>
-              <Select
-                id="time-range-select"
-                isOpen={daysFilterIsExpanded}
-                selected={incidentsActiveFilters.days[0]}
-                onSelect={onSelect}
-                onOpenChange={(isOpen) => setDaysFilterIsExpanded(isOpen)}
-                toggle={(toggleRef) => (
-                  <MenuToggle
-                    ref={toggleRef}
-                    onClick={onToggleClick}
-                    isExpanded={daysFilterIsExpanded}
-                  >
-                    {incidentsActiveFilters.days[0]}
-                  </MenuToggle>
-                )}
-                shouldFocusToggleOnSelect
-              >
-                <SelectList>
-                  <SelectOption value="1 day">{t('1 day')}</SelectOption>
-                  <SelectOption value="3 days">{t('3 days')}</SelectOption>
-                  <SelectOption value="7 days">{t('7 days')}</SelectOption>
-                  <SelectOption value="15 days">{t('15 days')}</SelectOption>
-                </SelectList>
-              </Select>
-            </ToolbarItem>
-            <ToolbarItem align={{ default: 'alignEnd' }}>
-              <Button
-                variant="link"
-                icon={hideCharts ? <CompressArrowsAltIcon /> : <CompressIcon />}
-                onClick={() => setHideCharts(!hideCharts)}
-              >
-                <span>{hideCharts ? t('Show graph') : t('Hide graph')}</span>
-              </Button>
-            </ToolbarItem>
-          </ToolbarContent>
-        </Toolbar>
-        {!hideCharts && (
-          <IncidentsHeader
-            alertsData={alertsData}
-            incidentsData={filteredData}
-            chartDays={timeRanges.length}
-            theme={theme}
-          />
-        )}
-        <IncidentsTable />
-      </PageSection>
-    </>
-  );
-};
-
-const IncidentsPageHeader = () => {
-  const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  return (
-    <>
-      {' '}
-      <Helmet>
-        <title>{t('Incidents')}</title>
-      </Helmet>
-      <PageSection hasBodyWrapper={false}>
-        <Title headingLevel="h1">{t('Incidents')}</Title>
-      </PageSection>
+              </ToolbarItem>
+              <ToolbarItem align={{ default: 'alignEnd' }}>
+                <Button
+                  variant="link"
+                  icon={hideCharts ? <CompressArrowsAltIcon /> : <CompressIcon />}
+                  onClick={() => setHideCharts(!hideCharts)}
+                >
+                  <span>{hideCharts ? t('Show graph') : t('Hide graph')}</span>
+                </Button>
+              </ToolbarItem>
+            </ToolbarContent>
+          </Toolbar>
+          <Stack hasGutter>
+            {!hideCharts && (
+              <>
+                <StackItem>
+                  <IncidentsChart
+                    incidentsData={filteredData}
+                    chartDays={timeRanges.length}
+                    theme={theme}
+                  />
+                </StackItem>
+                <StackItem>
+                  <AlertsChart chartDays={timeRanges.length} theme={theme} />
+                </StackItem>
+              </>
+            )}
+            <StackItem>
+              <IncidentsTable />
+            </StackItem>
+          </Stack>
+        </PageSection>
+      )}
     </>
   );
 };

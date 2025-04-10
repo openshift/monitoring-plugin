@@ -25,6 +25,8 @@ import {
   usePerspective,
 } from '../hooks/usePerspective';
 import { OutlinedQuestionCircleIcon } from '@patternfly/react-icons';
+import './incidents-styles.css';
+import { SeverityBadge } from '../alerting/AlertUtils';
 
 const IncidentsDetailsRowTable = ({ alerts }) => {
   const [namespace] = useActiveNamespace();
@@ -68,8 +70,7 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
         });
     };
     poller();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [alerts]);
+  }, [alerts, alertsSource]);
 
   return (
     <Table borders={'compactBorderless'}>
@@ -100,50 +101,34 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
                         ? getAlertUrl(perspective, alertDetails, alertDetails.rule.id, namespace)
                         : '#'
                     }
+                    style={
+                      !alertDetails?.rule || alertDetails.resolved
+                        ? { pointerEvents: 'none', color: 'inherit', textDecoration: 'inherit' }
+                        : {}
+                    }
                   >
                     {alertDetails.alertname}
                   </Link>
                   {(!alertDetails?.rule || alertDetails.resolved) && (
                     <Tooltip content={<div>No details can be shown for inactive alerts.</div>}>
-                      <OutlinedQuestionCircleIcon />
+                      <OutlinedQuestionCircleIcon className="expanded-details-text-margin" />
                     </Tooltip>
                   )}
                 </Td>
                 <Td dataLabel="expanded-details-namespace">{alertDetails.namespace || '---'}</Td>
                 <Td dataLabel="expanded-details-severity">
-                  {alertDetails.severity === 'critical' ? (
-                    <>
-                      <Icon status="danger">
-                        <ExclamationCircleIcon />
-                      </Icon>
-                      <span>Critical</span>
-                    </>
-                  ) : alertDetails.severity === 'warning' ? (
-                    <>
-                      <Icon status="warning">
-                        <ExclamationTriangleIcon />
-                      </Icon>
-                      <span>Warning</span>
-                    </>
-                  ) : (
-                    <>
-                      <Icon status="info">
-                        <InfoCircleIcon />
-                      </Icon>
-                      <span>Info</span>
-                    </>
-                  )}
+                  <SeverityBadge severity={alertDetails.severity} />
                 </Td>
                 <Td dataLabel="expanded-details-alertstate">
                   {!alertDetails.resolved ? (
                     <>
                       <BellIcon />
-                      <span>Firing</span>
+                      <span className="expanded-details-text-margin">Firing</span>
                     </>
                   ) : (
                     <>
                       <GreenCheckCircleIcon />
-                      <span>Resolved</span>
+                      <span className="expanded-details-text-margin">Resolved</span>
                     </>
                   )}
                 </Td>
@@ -165,12 +150,18 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
                         key="silence"
                         isDisabled={!alertDetails?.rule}
                       >
-                        <Link to={getNewSilenceAlertUrl(perspective, alertDetails)}>
+                        <Link
+                          to={getNewSilenceAlertUrl(perspective, alertDetails)}
+                          style={{ color: 'inherit', textDecoration: 'inherit' }}
+                        >
                           {t('Silence alert')}
                         </Link>
                       </DropdownItem>,
                       <DropdownItem key="view-rule" isDisabled={!alertDetails?.rule}>
-                        <Link to={getRuleUrl(perspective, alertDetails.rule)}>
+                        <Link
+                          to={getRuleUrl(perspective, alertDetails.rule)}
+                          style={{ color: 'inherit', textDecoration: 'inherit' }}
+                        >
                           {t('View alerting rule')}
                         </Link>
                       </DropdownItem>,
