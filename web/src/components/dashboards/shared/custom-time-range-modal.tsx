@@ -2,7 +2,17 @@ import * as _ from 'lodash-es';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
-import { Button, DatePicker, Flex, FlexItem, TimePicker } from '@patternfly/react-core';
+import {
+  Button,
+  DatePicker,
+  Form,
+  FormGroup,
+  InputGroup,
+  InputGroupItem,
+  ModalBody,
+  ModalFooter,
+  TimePicker,
+} from '@patternfly/react-core';
 import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 
 import { dashboardsSetEndTime, dashboardsSetTimespan, Perspective } from '../../../actions/observe';
@@ -19,11 +29,9 @@ const toISODateString = (date: Date): string =>
 
 // Get HH:MM time string for a date object
 const toISOTimeString = (date: Date): string =>
-  new Intl.DateTimeFormat(
-    'en',
-    // TODO: TypeScript 3 doesn't allow the `hourCycle` attribute so use "as any" until we upgrade
-    { hour: 'numeric', minute: 'numeric', hourCycle: 'h23' } as any,
-  ).format(date);
+  new Intl.DateTimeFormat('en', { hour: 'numeric', minute: 'numeric', hourCycle: 'h23' }).format(
+    date,
+  );
 
 type CustomTimeRangeModalProps = {
   perspective: Perspective;
@@ -79,46 +87,61 @@ const CustomTimeRangeModal: React.FC<CustomTimeRangeModalProps> = ({
       hasNoBodyWrapper
       isOpen={isOpen}
       position="top"
-      showClose={false}
       title={t('Custom time range')}
+      onClose={setClosed}
       variant={ModalVariant.small}
     >
-      <Flex direction={{ default: 'column' }}>
-        <FlexItem spacer={{ default: 'spacerNone' }}>
-          <label>{t('From')}</label>
-        </FlexItem>
-        <Flex>
-          <FlexItem>
-            <DatePicker onChange={(event, str) => setFromDate(str)} value={fromDate} />
-          </FlexItem>
-          <FlexItem>
-            <TimePicker is24Hour onChange={(event, text) => setFromTime(text)} time={fromTime} />
-          </FlexItem>
-        </Flex>
-        <FlexItem spacer={{ default: 'spacerNone' }}>
-          <label>{t('To')}</label>
-        </FlexItem>
-        <Flex>
-          <FlexItem>
-            <DatePicker onChange={(event, str) => setToDate(str)} value={toDate} />
-          </FlexItem>
-          <FlexItem>
-            <TimePicker is24Hour onChange={(event, text) => setToTime(text)} time={toTime} />
-          </FlexItem>
-        </Flex>
-        <Flex>
-          <FlexItem align={{ default: 'alignRight' }}>
-            <Button variant="secondary" onClick={setClosed}>
-              {t('Cancel')}
-            </Button>
-          </FlexItem>
-          <FlexItem>
-            <Button variant="primary" onClick={submit}>
-              {t('Save')}
-            </Button>
-          </FlexItem>
-        </Flex>
-      </Flex>
+      <ModalBody tabIndex={0}>
+        <Form>
+          <FormGroup label={t('From')} isRequired fieldId="custom-time-range-from">
+            <InputGroup>
+              <InputGroupItem>
+                <DatePicker
+                  onChange={(event, str) => setFromDate(str)}
+                  value={fromDate}
+                  appendTo={() => document.body}
+                />
+              </InputGroupItem>
+              <InputGroupItem>
+                <TimePicker
+                  is24Hour
+                  onChange={(event, text) => setFromTime(text)}
+                  time={fromTime}
+                  menuAppendTo={() => document.body}
+                />
+              </InputGroupItem>
+            </InputGroup>
+          </FormGroup>
+
+          <FormGroup label={t('To')} isRequired fieldId="custom-time-range-to">
+            <InputGroup>
+              <InputGroupItem>
+                <DatePicker
+                  onChange={(event, str) => setToDate(str)}
+                  value={toDate}
+                  appendTo={() => document.body}
+                />
+              </InputGroupItem>
+              <InputGroupItem>
+                <TimePicker
+                  is24Hour
+                  onChange={(event, text) => setToTime(text)}
+                  time={toTime}
+                  menuAppendTo={() => document.body}
+                />
+              </InputGroupItem>
+            </InputGroup>
+          </FormGroup>
+        </Form>
+      </ModalBody>
+      <ModalFooter>
+        <Button variant="secondary" onClick={setClosed}>
+          {t('Cancel')}
+        </Button>
+        <Button variant="primary" onClick={submit}>
+          {t('Save')}
+        </Button>
+      </ModalFooter>
     </Modal>
   );
 };
