@@ -62,7 +62,6 @@ import {
   AlertState,
   getSourceKey,
   Graph,
-  Severity,
   SeverityBadge,
   SeverityHelp,
   SourceHelp,
@@ -235,7 +234,7 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
                       </Popover>
                     </DescriptionListTermHelpText>
                     <DescriptionListDescription>
-                      <Severity severity={rule?.labels?.severity} />
+                      <SeverityBadge severity={rule?.labels?.severity} />
                     </DescriptionListDescription>
                   </DescriptionListGroup>
                   {rule?.annotations?.description && (

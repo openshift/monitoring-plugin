@@ -9,7 +9,7 @@ import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getRuleUrl, usePerspective } from '../../../components/hooks/usePerspective';
 import { AggregatedAlert } from '../AlertsAggregates';
-import { AlertState, Severity } from '../AlertUtils';
+import { AlertState, SeverityBadge } from '../AlertUtils';
 import AlertTableRow from './AlertTableRow';
 import { RuleResource } from '../../../components/utils';
 import { Link } from 'react-router-dom';
@@ -107,7 +107,7 @@ const AggregateAlertTableRow: AggregateAlertTableRowProps = ({
           </Flex>
         </Td>
         <Td title={title}>
-          <Severity severity={aggregatedAlert.severity} />
+          <SeverityBadge severity={aggregatedAlert.severity} />
         </Td>
         <Td title={title}>
           <Badge key={1} isRead>

@@ -32,7 +32,7 @@ import {
   AlertStateIcon,
   getAdditionalSources,
   getAlertStateKey,
-  Severity,
+  SeverityBadge,
   SilencesNotLoadedWarning,
 } from '../alerting/AlertUtils';
 import { MonitoringState } from '../../reducers/observe';
@@ -102,7 +102,7 @@ const RuleTableRow: React.FC<RowProps<Rule>> = ({ obj }) => {
         </Flex>
       </Td>
       <Td title={title} width={20}>
-        <Severity severity={obj.labels?.severity} />
+        <SeverityBadge severity={obj.labels?.severity} />
       </Td>
       <Td title={title} width={15}>
         {_.isEmpty(obj.alerts) ? '-' : <StateCounts alerts={obj.alerts} />}

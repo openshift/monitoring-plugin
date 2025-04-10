@@ -64,7 +64,6 @@ import {
   Graph,
   isActionWithCallback,
   isActionWithHref,
-  Severity,
   SeverityBadge,
   SeverityHelp,
   SourceHelp,
@@ -250,7 +249,7 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
                       </Popover>
                     </DescriptionListTermHelpText>
                     <DescriptionListDescription>
-                      <Severity severity={labels?.severity} />
+                      <SeverityBadge severity={labels?.severity} />
                     </DescriptionListDescription>
                   </DescriptionListGroup>
                   {alert?.annotations?.description && (

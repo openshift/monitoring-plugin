@@ -41,7 +41,7 @@ import {
 import KebabDropdown from '../kebab-dropdown';
 import { Silences } from '../types';
 import { alertDescription, SilenceResource } from '../utils';
-import { Severity, SeverityCounts } from './AlertUtils';
+import { SeverityBadge, SeverityCounts } from './AlertUtils';
 import { SilenceDropdown, SilenceMatchersList, SilenceState } from './SilencesUtils';
 import { StatusBox } from '../console/console-shared/src/components/status/StatusBox';
 import { LoadingInline } from '../console/console-shared/src/components/loading/LoadingInline';
@@ -217,7 +217,7 @@ const SilencedAlertsList_: React.FC<SilencedAlertsListProps> = ({ alerts, histor
               <div>{alertDescription(a)}</div>
             </Td>
             <Td>
-              <Severity severity={a.labels.severity} />
+              <SeverityBadge severity={a.labels.severity} />
             </Td>
             <div>
               <KebabDropdown

@@ -13,7 +13,7 @@ import {
   isActionWithCallback,
   isActionWithHref,
   NamespaceGroupVersionKind,
-  Severity,
+  SeverityBadge,
 } from '../AlertUtils';
 import { AlertSource } from '../../../components/types';
 import { Td, Tr } from '@patternfly/react-table';
@@ -98,7 +98,7 @@ const AlertTableRow: React.FC<{ alert: Alert }> = ({ alert }) => {
         </Flex>
       </Td>
       <Td title={title}>
-        <Severity severity={alert.labels?.severity} />
+        <SeverityBadge severity={alert.labels?.severity} />
       </Td>
       <Td title={title}>
         {alert.labels?.namespace ? (
