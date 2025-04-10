@@ -292,7 +292,7 @@ const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
                 {panel.type === 'graph' && <KebabDropdown dropdownItems={dropdownItems} />}
               </>
             ),
-            hasNoOffset: false,
+            hasNoOffset: true,
           }}
         >
           <CardTitle>{panel.title}</CardTitle>
