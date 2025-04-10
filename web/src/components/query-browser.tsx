@@ -794,6 +794,8 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
   let delay: number;
   if (endTime || hideGraphs || tickInterval === null) {
     delay = null;
+  } else if (tickInterval == 0) {
+    delay = 0;
   } else if (tickInterval > 0) {
     delay = tickInterval;
   } else {

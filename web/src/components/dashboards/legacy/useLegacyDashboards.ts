@@ -26,7 +26,7 @@ import { useHistory } from 'react-router';
 import { Map as ImmutableMap } from 'immutable';
 import { QueryParams } from '../../query-params';
 import { mockUseFetchDashboards } from './test-data';
-import { StringParam, useQueryParam } from 'use-query-params';
+import { NumberParam, StringParam, useQueryParam } from 'use-query-params';
 
 export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
@@ -37,6 +37,7 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
   const [legacyDashboards, setLegacyDashboards] = React.useState<Board[]>([]);
   const [legacyDashboardsError, setLegacyDashboardsError] = React.useState<string>();
   const [dashboardParam] = useQueryParam(QueryParams.Dashboard, StringParam);
+  const [refreshInterval] = useQueryParam(QueryParams.RefreshInterval, NumberParam);
   const [legacyDashboardsLoading, , , setLegacyDashboardsLoaded] = useBoolean(true);
   const [initialLoad, , , setInitialLoaded] = useBoolean(true);
   const dispatch = useDispatch();
@@ -163,13 +164,8 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
 
         // Set time range and poll interval options to their defaults or from the query params if
         // available
-        if (params.get(QueryParams.RefreshInterval)) {
-          dispatch(
-            dashboardsSetPollInterval(
-              _.toNumber(params.get(QueryParams.RefreshInterval)),
-              perspective,
-            ),
-          );
+        if (refreshInterval !== undefined) {
+          dispatch(dashboardsSetPollInterval(_.toNumber(refreshInterval), perspective));
         }
         dispatch(
           dashboardsSetEndTime(_.toNumber(params.get(QueryParams.EndTime)) || null, perspective),
@@ -182,7 +178,16 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
         );
       }
     },
-    [perspective, legacyDashboard, dispatch, history, namespace, legacyDashboards, initialLoad],
+    [
+      perspective,
+      legacyDashboard,
+      dispatch,
+      history,
+      namespace,
+      legacyDashboards,
+      initialLoad,
+      refreshInterval,
+    ],
   );
 
   React.useEffect(() => {
