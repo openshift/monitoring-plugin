@@ -207,10 +207,9 @@ const SpanControls: React.FC<SpanControlsProps> = React.memo(
 const LegendContainer = ({ children }: { children?: React.ReactNode }) => {
   // The first child should be a <rect> with a `width` prop giving the legend's content width
   const width = children?.[0]?.props?.width ?? '100%';
-  const height = children?.[0]?.props?.height ?? LEGEND_HEIGHT;
 
   return (
-    <foreignObject height={height} width="100%" y={CHART_HEIGHT}>
+    <foreignObject height={LEGEND_HEIGHT} width="100%" y={CHART_HEIGHT}>
       <div className="monitoring-plugin-dashboards__legend-wrap monitoring-plugin-horizontal-scroll">
         <svg width={width}>{children}</svg>
       </div>
