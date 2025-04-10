@@ -9,8 +9,8 @@ export type ProjectBarProps = {
 
 export const ProjectBar: React.FC<ProjectBarProps> = ({ setActiveProject, activeProject }) => {
   return (
-    <div>
-      <div data-test-id="project-bar-dropdown">
+    <div className="co-namespace-bar">
+      <div className="co-namespace-bar__items">
         <ProjectDropdown
           onSelect={(event, newProject) => {
             setActiveProject(newProject);

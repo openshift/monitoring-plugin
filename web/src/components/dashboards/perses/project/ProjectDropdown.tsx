@@ -152,6 +152,7 @@ const ProjectMenu: React.FC<{
   return (
     <Menu
       ref={menuRef}
+      className="co-namespace-dropdown__menu"
       onSelect={(event: React.MouseEvent, itemId: string) => {
         setOpen(false);
         onSelect(event, itemId);
@@ -160,7 +161,7 @@ const ProjectMenu: React.FC<{
       data-test="project-dropdown-menu"
       isScrollable
     >
-      <MenuContent maxMenuHeight="60vh">
+      <MenuContent maxMenuHeight="60vh" className="co-namespace-dropdown__menu-content">
         <Filter filterRef={filterRef} onFilterChange={setFilterText} filterText={filterText} />
         {filteredOptions.length === 0 ? (
           <NoResults
@@ -210,7 +211,7 @@ const ProjectDropdown: React.FC<ProjectDropdownProps> = ({
   const title = selectedProject?.spec?.display?.name ?? t('Dashboards');
 
   return (
-    <div>
+    <div className="co-namespace-dropdown">
       <ProjectMenuToggle
         disabled={disabled}
         menu={<ProjectMenu {...menuProps} />}
