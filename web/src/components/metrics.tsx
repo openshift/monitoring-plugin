@@ -1213,11 +1213,13 @@ const QueryBrowserPage_: React.FC = () => {
             <ToggleGraph />
           </GridItem>
           <GridItem>
-            <QueryBrowserWrapper
-              customDataSource={customDataSource}
-              customDataSourceName={customDataSourceName}
-              customDatasourceError={customDatasourceError}
-            />
+            <div className="pf-v6-u-mb-lg">
+              <QueryBrowserWrapper
+                customDataSource={customDataSource}
+                customDataSourceName={customDataSourceName}
+                customDatasourceError={customDatasourceError}
+              />
+            </div>
             <Split>
               <SplitItem>
                 <PreDefinedQueriesDropdown />
@@ -1225,7 +1227,9 @@ const QueryBrowserPage_: React.FC = () => {
               <SplitItem isFilled />
               <SplitItem>
                 <ActionGroup>
-                  <AddQueryButton />
+                  <div className="pf-v6-u-mr-xs">
+                    <AddQueryButton />
+                  </div>
                   <RunQueriesButton />
                 </ActionGroup>
               </SplitItem>
