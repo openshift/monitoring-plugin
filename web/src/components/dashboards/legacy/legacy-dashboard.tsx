@@ -366,7 +366,7 @@ const PanelsRow: React.FC<PanelsRowProps> = ({ row, perspective }) => {
     <Flex direction={{ default: 'column' }} data-test-id={`panel-${_.kebabCase(row?.title)}`}>
       {showButton && (
         <FlexItem>
-          <ExpandableSectionToggle isExpanded={isExpanded} onClick={toggleIsExpanded}>
+          <ExpandableSectionToggle isExpanded={isExpanded} onToggle={toggleIsExpanded}>
             <span style={{ fontSize: t_global_font_size_heading_h2.var }}>{row.title}</span>
           </ExpandableSectionToggle>
         </FlexItem>
