@@ -117,7 +117,6 @@ export const TimespanDropdown: React.FC = () => {
                 onChange(String(selection));
               }
             }}
-            toggleWidth="150px"
             placeholder={t('Last {{count}} minute', { count: 30 })}
           />
         </StackItem>
