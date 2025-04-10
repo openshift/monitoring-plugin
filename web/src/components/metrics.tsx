@@ -318,9 +318,11 @@ export const ToggleGraph: React.FC = () => {
   const icon = hideGraphs ? <ChartLineIcon /> : <CompressIcon />;
 
   return (
-    <Button type="button" onClick={toggle} variant="link">
-      {icon} {hideGraphs ? t('Show graph') : t('Hide graph')}
-    </Button>
+    <div className="pf-v6-u-display-flex pf-v6-u-flex-direction-row-reverse">
+      <Button type="button" onClick={toggle} variant="link">
+        {icon} {hideGraphs ? t('Show graph') : t('Hide graph')}
+      </Button>
+    </div>
   );
 };
 
@@ -343,7 +345,7 @@ const SeriesButton: React.FC<SeriesButtonProps> = ({ index, labels }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
 
-  const [_, isDisabled, isSeriesEmpty] = useSelector((state: MonitoringState) => {
+  const [_placeholder, isDisabled, isSeriesEmpty] = useSelector((state: MonitoringState) => {
     const observe = getLegacyObserveState(perspective, state);
     const disabledSeries = observe.getIn(['queryBrowser', 'queries', index, 'disabledSeries']);
     if (_.some(disabledSeries, (s) => _.isEqual(s, labels))) {
