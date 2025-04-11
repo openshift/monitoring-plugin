@@ -17,6 +17,11 @@ import {
   Label,
   MenuToggle,
   MenuToggleElement,
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+  ModalVariant,
   Panel,
   PanelMain,
   PanelMainBody,
@@ -24,8 +29,12 @@ import {
   Stack,
   StackItem,
 } from '@patternfly/react-core';
-import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
-import { BanIcon, EllipsisVIcon, HourglassHalfIcon } from '@patternfly/react-icons';
+import {
+  BanIcon,
+  CheckCircleIcon,
+  EllipsisVIcon,
+  HourglassHalfIcon,
+} from '@patternfly/react-icons';
 import * as _ from 'lodash-es';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -45,7 +54,6 @@ import {
   silenceState,
 } from '../utils';
 import { SeverityCounts, StateTimestamp } from './AlertUtils';
-import { LoadingInline } from '../console/console-shared/src/components/loading/LoadingInline';
 import { Td } from '@patternfly/react-table';
 
 export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheckbox }) => {
@@ -259,6 +267,7 @@ export const ExpireSilenceModal: React.FC<ExpireSilenceModalProps> = ({
   const dispatch = useDispatch();
 
   const [isInProgress, , setInProgress, setNotInProgress] = useBoolean(false);
+  const [success, , setSuccess] = useBoolean(false);
   const [errorMessage, setErrorMessage] = React.useState();
 
   const expireSilence = () => {
@@ -267,53 +276,47 @@ export const ExpireSilenceModal: React.FC<ExpireSilenceModalProps> = ({
     consoleFetchJSON
       .delete(url)
       .then(() => {
-        refreshSilences(dispatch, perspective, silencesKey);
-        setClosed();
+        setNotInProgress();
+        setSuccess();
+        setTimeout(() => {
+          refreshSilences(dispatch, perspective, silencesKey);
+          setClosed();
+        }, 1000);
       })
       .catch((err) => {
         setErrorMessage(_.get(err, 'json.error') || err.message || 'Error expiring silence');
         setNotInProgress();
-      })
-      .then(setNotInProgress);
+      });
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      position="top"
-      showClose={false}
-      title={t('Expire silence')}
-      variant={ModalVariant.small}
-    >
-      <Flex direction={{ default: 'column' }}>
-        <FlexItem>{t('Are you sure you want to expire this silence?')}</FlexItem>
-        <Flex direction={{ default: 'column' }}>
-          <FlexItem>
-            {errorMessage && (
-              <PFAlert isInline title={t('An error occurred')} variant="danger">
-                <Panel isScrollable>
-                  <PanelMain maxHeight="100px">
-                    <PanelMainBody>{errorMessage}</PanelMainBody>
-                  </PanelMain>
-                </Panel>
-              </PFAlert>
-            )}
-          </FlexItem>
-          <Flex>
-            <FlexItem>{isInProgress && <LoadingInline />}</FlexItem>
-            <FlexItem align={{ default: 'alignRight' }}>
-              <Button variant="secondary" onClick={setClosed}>
-                {t('Cancel')}
-              </Button>
-            </FlexItem>
-            <FlexItem>
-              <Button variant="primary" onClick={expireSilence}>
-                {t('Expire silence')}
-              </Button>
-            </FlexItem>
-          </Flex>
-        </Flex>
-      </Flex>
+    <Modal isOpen={isOpen} position="top" title={t('Expire silence')} variant={ModalVariant.small}>
+      <ModalHeader title={t('Expire Silence')} />
+      <ModalBody>
+        {t('Are you sure you want to expire this silence?')}
+        {errorMessage && (
+          <PFAlert isInline title={t('An error occurred')} variant="danger">
+            <Panel isScrollable>
+              <PanelMain maxHeight="100px">
+                <PanelMainBody>{errorMessage}</PanelMainBody>
+              </PanelMain>
+            </Panel>
+          </PFAlert>
+        )}
+      </ModalBody>
+      <ModalFooter>
+        <Button
+          variant="primary"
+          onClick={expireSilence}
+          isLoading={isInProgress}
+          icon={success ? <CheckCircleIcon /> : null}
+        >
+          {success ? t('Expired') : t('Expire silence')}
+        </Button>
+        <Button variant="secondary" onClick={setClosed}>
+          {t('Cancel')}
+        </Button>
+      </ModalFooter>
     </Modal>
   );
 };
