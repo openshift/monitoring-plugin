@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 
 const PF_THEME_DARK_CLASS_V6 = 'pf-v6-theme-dark';
 const PF_THEME_DARK_CLASS_V5 = 'pf-v5-theme-dark';
-const PF_THEME_DARK_CLASS_V4 = 'pf-theme-dark'; // legacy class name needed to support PF4
+const PF_THEME_DARK_CLASS_V4 = 'pf-theme-dark';
 
 /**
  * The @openshift-console/dynamic-plugin-sdk package does not expose the
@@ -26,7 +26,6 @@ function getTheme(): 'light' | 'dark' {
  * update the theme if the system theme changes.
  */
 export function usePatternFlyTheme() {
-  //
   const [theme, setTheme] = useState(getTheme());
 
   useEffect(() => {
