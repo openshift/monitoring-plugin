@@ -9,11 +9,14 @@ import {
   FormGroup,
   InputGroup,
   InputGroupItem,
+  Modal,
   ModalBody,
   ModalFooter,
+  ModalHeader,
+  ModalVariant,
   TimePicker,
+  Title,
 } from '@patternfly/react-core';
-import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 
 import { dashboardsSetEndTime, dashboardsSetTimespan, Perspective } from '../../../actions/observe';
 
@@ -84,14 +87,14 @@ const CustomTimeRangeModal: React.FC<CustomTimeRangeModalProps> = ({
 
   return (
     <Modal
-      hasNoBodyWrapper
       isOpen={isOpen}
       position="top"
       title={t('Custom time range')}
       onClose={setClosed}
       variant={ModalVariant.small}
     >
-      <ModalBody tabIndex={0}>
+      <ModalHeader title={t('Custom time range')} />
+      <ModalBody>
         <Form>
           <FormGroup label={t('From')} isRequired fieldId="custom-time-range-from">
             <InputGroup>
@@ -135,11 +138,11 @@ const CustomTimeRangeModal: React.FC<CustomTimeRangeModalProps> = ({
         </Form>
       </ModalBody>
       <ModalFooter>
-        <Button variant="secondary" onClick={setClosed}>
-          {t('Cancel')}
-        </Button>
         <Button variant="primary" onClick={submit}>
           {t('Save')}
+        </Button>
+        <Button variant="secondary" onClick={setClosed}>
+          {t('Cancel')}
         </Button>
       </ModalFooter>
     </Modal>
