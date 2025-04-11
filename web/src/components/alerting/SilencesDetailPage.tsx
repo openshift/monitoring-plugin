@@ -204,7 +204,7 @@ const SilencedAlertsList_: React.FC<SilencedAlertsListProps> = ({ alerts, histor
   const [namespace] = useActiveNamespace();
 
   return _.isEmpty(alerts) ? (
-    <div>{t('None found')}</div>
+    <div>{t('No Alerts found')}</div>
   ) : (
     <Table variant={TableVariant.compact}>
       <Thead>
