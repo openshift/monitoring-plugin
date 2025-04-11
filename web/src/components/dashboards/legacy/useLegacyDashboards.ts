@@ -9,7 +9,7 @@ import { useBoolean } from '../../hooks/useBoolean';
 import { Board } from './types';
 
 import { getLegacyDashboardsUrl, usePerspective } from '../../hooks/usePerspective';
-import { getQueryArgument } from '../../console/utils/router';
+import { getAllQueryArguments, getQueryArgument } from '../../console/utils/router';
 import {
   MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
   MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY,
@@ -25,7 +25,7 @@ import { CombinedDashboardMetadata } from '../perses/hooks/useDashboardsData';
 import { useHistory } from 'react-router';
 import { Map as ImmutableMap } from 'immutable';
 import { QueryParams } from '../../query-params';
-import { StringParam, useQueryParam } from 'use-query-params';
+import { NumberParam, StringParam, useQueryParam } from 'use-query-params';
 
 export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
@@ -36,6 +36,7 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
   const [legacyDashboards, setLegacyDashboards] = React.useState<Board[]>([]);
   const [legacyDashboardsError, setLegacyDashboardsError] = React.useState<string>();
   const [dashboardParam] = useQueryParam(QueryParams.Dashboard, StringParam);
+  const [refreshInterval] = useQueryParam(QueryParams.RefreshInterval, NumberParam);
   const [legacyDashboardsLoading, , , setLegacyDashboardsLoaded] = useBoolean(true);
   const [initialLoad, , , setInitialLoaded] = useBoolean(true);
   const dispatch = useDispatch();
@@ -137,49 +138,48 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
         // If the board is being cleared then don't do anything
         return;
       }
-      let timeSpan: string;
-      let endTime: string;
+
+      const allVariables = getAllVariables(legacyDashboards, newBoard, namespace);
+
+      const queryArguments = getAllQueryArguments();
+      const params = new URLSearchParams(queryArguments);
+
       let url = getLegacyDashboardsUrl(perspective, newBoard, namespace);
+      url = `${url}${perspective === 'dev' ? '&' : '?'}${params.toString()}`;
 
-      const refreshInterval = getQueryArgument(QueryParams.RefreshInterval);
-
-      if (legacyDashboard) {
-        timeSpan = null;
-        endTime = null;
-        // persist only the refresh Interval when dashboard is changed
-        if (refreshInterval) {
-          const params = new URLSearchParams({ refreshInterval });
-          // dev perspective will have the dashboard set in the query parameters
-          // so use '&' not '?'
-          url = `${url}${perspective === 'dev' ? '&' : '?'}${params.toString()}`;
-        }
-      } else {
-        timeSpan = getQueryArgument(QueryParams.TimeRange);
-        endTime = getQueryArgument(QueryParams.EndTime);
-      }
       if (newBoard !== legacyDashboard || initialLoad) {
         if (getQueryArgument(QueryParams.Dashboard) !== newBoard) {
           history.replace(url);
         }
 
-        const allVariables = getAllVariables(legacyDashboards, newBoard, namespace);
         dispatch(dashboardsPatchAllVariables(allVariables, perspective));
 
         // Set time range and poll interval options to their defaults or from the query params if
         // available
-        if (refreshInterval) {
+        if (refreshInterval !== undefined) {
           dispatch(dashboardsSetPollInterval(_.toNumber(refreshInterval), perspective));
         }
-        dispatch(dashboardsSetEndTime(_.toNumber(endTime) || null, perspective));
+        dispatch(
+          dashboardsSetEndTime(_.toNumber(params.get(QueryParams.EndTime)) || null, perspective),
+        );
         dispatch(
           dashboardsSetTimespan(
-            _.toNumber(timeSpan) || MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
+            _.toNumber(params.get(QueryParams.TimeRange)) || MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
             perspective,
           ),
         );
       }
     },
-    [perspective, legacyDashboard, dispatch, history, namespace, legacyDashboards, initialLoad],
+    [
+      perspective,
+      legacyDashboard,
+      dispatch,
+      history,
+      namespace,
+      legacyDashboards,
+      initialLoad,
+      refreshInterval,
+    ],
   );
 
   React.useEffect(() => {

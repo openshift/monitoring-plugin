@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 // https://overreacted.io/making-setinterval-declarative-with-react-hooks/
 export const usePoll = (callback, delay, ...dependencies) => {
   const savedCallback = useRef(null);
+  const intervalId = useRef(null);
 
   // Remember the latest callback.
   useEffect(() => {
@@ -18,8 +19,13 @@ export const usePoll = (callback, delay, ...dependencies) => {
 
     if (delay) {
       // Only start interval if a delay is provided.
-      const id = setInterval(tick, delay);
-      return () => clearInterval(id);
+      intervalId.current = setInterval(tick, delay);
+      return () => clearInterval(intervalId.current);
+    }
+
+    // If delay is 0, clear the interval.
+    if (delay === 0 && intervalId.current) {
+      clearInterval(intervalId.current);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [delay, ...dependencies]);
