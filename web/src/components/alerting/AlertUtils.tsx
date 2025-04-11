@@ -203,23 +203,25 @@ export const SeverityBadge: React.FC<{ severity: string; count?: number }> = Rea
     const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
     if (_.isNil(severity)) return null;
+
+    const labelText = count ? count : getSeverityKey(severity, t);
     switch (severity) {
       case AlertSeverity.Critical:
-        return <Label status="danger">{count ? count : getSeverityKey(severity, t)}</Label>;
+        return <Label status="danger">{labelText}</Label>;
       case AlertSeverity.Warning:
-        return <Label status="warning">{count ? count : getSeverityKey(severity, t)}</Label>;
+        return <Label status="warning">{labelText}</Label>;
       case AlertSeverity.Info:
-        return <Label status="info">{count ? count : getSeverityKey(severity, t)}</Label>;
+        return <Label status="info">{labelText}</Label>;
       case AlertSeverity.None:
         return (
           <Label variant="outline">
             <SeverityUndefinedIcon color={t_global_icon_color_severity_undefined_default.var} />
             &nbsp;
-            {count ? count : getSeverityKey(severity, t)}
+            {labelText}
           </Label>
         );
       default:
-        return <Label status="custom">{count ? count : getSeverityKey(severity, t)}</Label>;
+        return <Label status="custom">{labelText}</Label>;
     }
   },
 );
