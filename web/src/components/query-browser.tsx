@@ -899,6 +899,8 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
     delay = null;
   } else if (tickInterval > 0) {
     delay = tickInterval;
+  } else if (tickInterval == 0) {
+    delay = 0;
   } else {
     delay = Math.max(span / 120, minPollInterval);
   }
