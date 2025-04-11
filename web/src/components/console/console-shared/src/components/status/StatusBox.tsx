@@ -38,7 +38,7 @@ Data.displayName = 'Data';
 
 export const StatusBox: React.FC<StatusBoxProps> = (props) => {
   const { loadError, loaded, skeleton, data, ...dataProps } = props;
-  const { t } = useTranslation('console-shared');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   if (loadError) {
     const status = _.get(loadError, 'response.status');

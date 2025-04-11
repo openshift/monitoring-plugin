@@ -5,12 +5,14 @@ import { ConsoleEmptyState } from './ConsoleEmptyState';
 import * as restrictedSignImg from '../../../../imgs/restricted-sign.svg';
 
 const RestrictedSignIcon = () => {
-  const { t } = useTranslation('console-shared');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
+
   return <img src={restrictedSignImg} alt={t('Restricted access')} />;
 };
 
 export const AccessDenied: React.FC = ({ children }) => {
-  const { t } = useTranslation('console-shared');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
+
   return (
     <ConsoleEmptyState
       data-test="access-denied"

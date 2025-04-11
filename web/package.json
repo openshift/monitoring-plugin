@@ -96,7 +96,7 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "html-webpack-plugin": "^5.5.0",
     "husky": "^8.0.0",
-    "i18next-parser": "^8.11.0",
+    "i18next-parser": "^9.0.2",
     "pluralize": "^8.0.0",
     "prettier": "^2.6.0",
     "sass": "^1.42.1",
