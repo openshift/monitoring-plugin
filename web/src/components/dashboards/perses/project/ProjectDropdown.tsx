@@ -18,7 +18,6 @@ import {
 import fuzzysearch from 'fuzzysearch';
 import { useTranslation } from 'react-i18next';
 import ProjectMenuToggle from './ProjectMenuToggle';
-// import './ProjectDropdown.scss';
 import { alphanumericCompare } from './utils';
 import { usePerses } from '../hooks/usePerses';
 
