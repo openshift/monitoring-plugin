@@ -15,7 +15,6 @@ import {
   ModalHeader,
   ModalVariant,
   TimePicker,
-  Title,
 } from '@patternfly/react-core';
 
 import { dashboardsSetEndTime, dashboardsSetTimespan, Perspective } from '../../../actions/observe';
