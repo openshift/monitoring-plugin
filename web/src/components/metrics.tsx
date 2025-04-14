@@ -853,14 +853,6 @@ const Query: React.FC<{ index: number; customDatasource?: CustomDataSource }> = 
       'isEnabled',
     ]),
   );
-  const isExpanded = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn([
-      'queryBrowser',
-      'queries',
-      index,
-      'isExpanded',
-    ]),
-  );
   const text = useSelector((state: MonitoringState) =>
     getLegacyObserveState(perspective, state)?.getIn(
       ['queryBrowser', 'queries', index, 'text'],
