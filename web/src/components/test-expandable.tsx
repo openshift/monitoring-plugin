@@ -10,7 +10,6 @@ import {
   DataListContent,
   DataListItemCells,
 } from '@patternfly/react-core';
-import CodeBranchIcon from '@patternfly/react-icons/dist/esm/icons/code-branch-icon';
 
 interface DataListProps {
   promQlexpressionInput: React.ReactNode;
@@ -20,7 +19,7 @@ interface DataListProps {
   queryTable: React.ReactNode;
 }
 
-export const DataListExpandable: React.FunctionComponent<DataListProps> = ({
+export const QueryRow: React.FunctionComponent<DataListProps> = ({
   queryKebab,
   querySwitch,
   promQlexpressionInput,

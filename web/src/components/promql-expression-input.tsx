@@ -423,27 +423,36 @@ export const PromQLExpressionInput: React.FC<PromQLExpressionInputProps> = ({
   };
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-      <div style={{ display: 'flex', alignItems: 'center', flexGrow: 1, gap: '0.5rem' }}>
-        <div ref={containerRef} onBlur={handleBlur}></div>
-
-        {errorMessage && (
-          <div id="helper-text-promql-expression-input" aria-live="polite">
-            <div>
-              <div>
-                <YellowExclamationTriangleIcon />
-                <span>{errorMessage}</span>
+    <div style={{ alignItems: 'center', justifyContent: 'space-between' }}>
+      <form className="pf-v6-c-form" noValidate>
+        <div className="pf-v6-c-form__group">
+          <div className="pf-v6-c-form__group-control">
+            <span className="pf-v6-c-form-control pf-m-required">
+              <div style={{ display: 'flex', alignItems: 'center', flexGrow: 1, gap: '0.5rem' }}>
+                <div ref={containerRef} onBlur={handleBlur}></div>
+                {errorMessage && (
+                  <div id="helper-text-promql-expression-input" aria-live="polite">
+                    <div>
+                      <div>
+                        <YellowExclamationTriangleIcon />
+                        <span>{errorMessage}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <Button
+                  icon={<CloseIcon />}
+                  aria-label={t('Clear query')}
+                  onClick={onClear}
+                  variant="plain"
+                />
+              </div>
+            </span>
           </div>
-        )}
-        <Button
-          icon={<CloseIcon />}
-          aria-label={t('Clear query')}
-          onClick={onClear}
-          variant="plain"
-        />
-      </div>
+        </div>
+      </form>
     </div>
   );
 };

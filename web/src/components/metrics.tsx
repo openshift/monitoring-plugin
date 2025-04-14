@@ -96,7 +96,7 @@ import { PrometheusAPIError } from './types';
 import { TypeaheadSelect } from './TypeaheadSelect';
 import { LoadingInline } from './console/console-shared/src/components/loading/LoadingInline';
 import withFallback from './console/console-shared/error/fallbacks/withFallback';
-import { DataListExpandable } from './test-expandable';
+import { QueryRow } from './test-expandable';
 
 // Stores information about the currently focused query input
 let focusedQuery;
@@ -937,13 +937,13 @@ const Query: React.FC<{ index: number; customDatasource?: CustomDataSource }> = 
   );
 
   return (
-      <DataListExpandable
-        queryKebab={queryKebab}
-        querySwitch={querySwitch}
-        promQlexpressionInput={promQLExpressionInput}
-        queryId={queryId}
-        queryTable={queryTable}
-      />
+    <QueryRow
+      queryKebab={queryKebab}
+      querySwitch={querySwitch}
+      promQlexpressionInput={promQLExpressionInput}
+      queryId={queryId}
+      queryTable={queryTable}
+    />
   );
 };
 
