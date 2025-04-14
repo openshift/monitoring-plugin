@@ -61,7 +61,123 @@ interface PromQLExpressionInputProps {
 
 const promqlExtension = new PromQLExtension();
 
-export const theme = EditorView.theme({});
+export const theme = EditorView.theme({
+  '.cm-scroller': {
+    fontFamily: 'inherit',
+  },
+  '.cm-content': {
+    caretColor: 'auto',
+  },
+  '&.cm-focused.cm-editor': {
+    outline: 'none',
+  },
+  '.cm-tooltip.cm-completionInfo': {
+    backgroundColor: 'var(--pf-v5-global--BackgroundColor--200)',
+    border: 'none',
+    marginTop: '-11px',
+    padding: '10px',
+  },
+  '.cm-completionInfo.cm-completionInfo-right': {
+    '&:before': {
+      content: "' '",
+      height: '0',
+      position: 'absolute',
+      width: '0',
+      left: '-20px',
+      borderWidth: '10px',
+      borderStyle: 'solid',
+      borderColor: 'transparent',
+      borderRightColor: 'var(--pf-v5-global--BackgroundColor--200)',
+    },
+    marginLeft: '12px',
+  },
+  '.cm-completionInfo.cm-completionInfo-left': {
+    '&:before': {
+      content: "' '",
+      height: '0',
+      position: 'absolute',
+      width: '0',
+      right: '-20px',
+      borderWidth: '10px',
+      borderStyle: 'solid',
+      borderColor: 'transparent',
+      borderLeftColor: 'var(--pf-v5-global--BackgroundColor--200)',
+    },
+    marginRight: '12px',
+  },
+  '.cm-completionIcon': {
+    fontFamily: 'codicon',
+    width: '1.5em',
+    verticalAlign: 'middle',
+  },
+  '.cm-selectionMatch': {
+    backgroundColor: 'var(--pf-v5-global--BackgroundColor--100)',
+  },
+  '.cm-completionDetail': {
+    float: 'right',
+    color: 'var(--pf-v5-global--palette--black-500)',
+  },
+  '.cm-tooltip': {
+    backgroundColor: 'var(--pf-v5-global--BackgroundColor--100)',
+    borderColor: 'var(--pf-v5-global--BorderColor--100)',
+  },
+  '.cm-tooltip.cm-tooltip-autocomplete': {
+    boxShadow: 'var(--pf-v5-global--BoxShadow--sm)',
+    '& > ul': {
+      fontFamily: 'var(--pf-v5-c-code-block__pre--FontFamily), monospace',
+      fontSize: 'var(--pf-v5-global--FontSize--sm)',
+    },
+    '& > ul > li[aria-selected]': {
+      backgroundColor: 'var(--pf-v5-global--BackgroundColor--200)',
+      color: 'unset',
+    },
+    '& > ul > li': {
+      padding: '2px 1em 2px 3px',
+    },
+  },
+  '.cm-completionMatchedText': {
+    textDecoration: 'none',
+    fontWeight: 'bold',
+    color: 'var(--pf-v5-global--palette--blue-400)',
+  },
+  '.cm-completionIcon-function, .cm-completionIcon-method': {
+    '&:after': { content: "'\\ea8c'" },
+    color: 'var(--pf-v5-global--palette--purple-500)',
+  },
+  '.cm-completionIcon-class': {
+    '&:after': { content: "'○'" },
+  },
+  '.cm-completionIcon-interface': {
+    '&:after': { content: "'◌'" },
+  },
+  '.cm-completionIcon-variable': {
+    '&:after': { content: "'𝑥'" },
+  },
+  '.cm-completionIcon-constant': {
+    '&:after': { content: "'\\eb5f'" },
+    color: 'var(--pf-v5-global--primary-color--100)',
+  },
+  '.cm-completionIcon-type': {
+    '&:after': { content: "'𝑡'" },
+  },
+  '.cm-completionIcon-enum': {
+    '&:after': { content: "'∪'" },
+  },
+  '.cm-completionIcon-property': {
+    '&:after': { content: "'□'" },
+  },
+  '.cm-completionIcon-keyword': {
+    '&:after': { content: "'\\eb62'" },
+    color: 'var(--pf-v5-global--palette--black-600)',
+  },
+  '.cm-completionIcon-namespace': {
+    '&:after': { content: "'▢'" },
+  },
+  '.cm-completionIcon-text': {
+    '&:after': { content: "'\\ea95'" },
+    color: 'var(--pf-v5-global--palette--gold-400)',
+  },
+});
 
 // Codemirror plugin to select an autosuggest option using the mouse
 export const selectAutocompleteOnHoverPlugin = ViewPlugin.fromClass(
@@ -115,36 +231,30 @@ export const promqlHighlighter = HighlightStyle.define([
   { tag: tags.name, color: '#000' },
   {
     tag: tags.number,
-    color:
-      'var(--pf-t--temp--dev--tbd)' /* CODEMODS: original v5 color was --pf-v5-global--success-color--100 */,
+    color: 'var(--pf-t--global--text--color--status--success--default)',
   },
   {
     tag: tags.string,
-    color:
-      'var(--pf-t--temp--dev--tbd)' /* CODEMODS: original v5 color was --pf-v5-global--danger-color--200 */,
+    color: 'var(--pf-t--global--text--color--status--danger--default)',
   },
   {
     tag: tags.keyword,
-    color:
-      'var(--pf-t--temp--dev--tbd)' /* CODEMODS: original v5 color was --pf-v5-global--custom-color--200 */,
+    color: 'var(--pf-t--global--border--color--status--custom--default)',
     fontWeight: 'bold',
   },
   {
     tag: tags.function(tags.variableName),
-    color:
-      'var(--pf-t--temp--dev--tbd)' /* CODEMODS: original v5 color was --pf-v5-global--custom-color--200 */,
+    color: 'var(--pf-t--global--border--color--status--custom--default)',
     fontWeight: 'bold',
   },
   {
     tag: tags.labelName,
-    color:
-      'var(--pf-t--temp--dev--tbd)' /* CODEMODS: original v5 color was --pf-v5-global--warning-color--200 */,
+    color: 'var(--pf-t--global--text--color--status--warning--default)',
   },
   { tag: tags.operator },
   {
     tag: tags.modifier,
-    color:
-      'var(--pf-t--temp--dev--tbd)' /* CODEMODS: original v5 color was --pf-v5-global--custom-color--200 */,
+    color: 'var(--pf-t--global--border--color--status--custom--default)',
     fontWeight: 'bold',
   },
   { tag: tags.paren },
@@ -313,24 +423,27 @@ export const PromQLExpressionInput: React.FC<PromQLExpressionInputProps> = ({
   };
 
   return (
-    <div>
-      <div ref={containerRef} onBlur={handleBlur}></div>
-      {errorMessage && (
-        <div id="helper-text-promql-expression-input" aria-live="polite">
-          <div>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ display: 'flex', alignItems: 'center', flexGrow: 1, gap: '0.5rem' }}>
+        <div ref={containerRef} onBlur={handleBlur}></div>
+
+        {errorMessage && (
+          <div id="helper-text-promql-expression-input" aria-live="polite">
             <div>
-              <YellowExclamationTriangleIcon />
-              <span>{errorMessage}</span>
+              <div>
+                <YellowExclamationTriangleIcon />
+                <span>{errorMessage}</span>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-      <Button
-        icon={<CloseIcon />}
-        aria-label={t('Clear query')}
-        onClick={onClear}
-        variant="plain"
-      />
+        )}
+        <Button
+          icon={<CloseIcon />}
+          aria-label={t('Clear query')}
+          onClick={onClear}
+          variant="plain"
+        />
+      </div>
     </div>
   );
 };

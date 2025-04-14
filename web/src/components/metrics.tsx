@@ -96,6 +96,7 @@ import { PrometheusAPIError } from './types';
 import { TypeaheadSelect } from './TypeaheadSelect';
 import { LoadingInline } from './console/console-shared/src/components/loading/LoadingInline';
 import withFallback from './console/console-shared/error/fallbacks/withFallback';
+import { DataListExpandable } from './test-expandable';
 
 // Stores information about the currently focused query input
 let focusedQuery;
@@ -902,37 +903,47 @@ const Query: React.FC<{ index: number; customDatasource?: CustomDataSource }> = 
   const switchLabel = isEnabled ? t('Disable query') : t('Enable query');
 
   const [activeNamespace] = useActiveNamespace();
-  return (
-    <div>
-      <div>
-        <ExpandButton isExpanded={isExpanded} onClick={toggleIsExpanded} />
-        <PromQLExpressionInput
-          value={text}
-          onValueChange={handleTextChange}
-          onExecuteQuery={handleExecuteQueries}
-          onSelectionChange={handleSelectionChange}
-        />
-        <div title={switchLabel}>
-          <Switch
-            aria-label={switchLabel}
-            id={switchKey}
-            isChecked={isEnabled}
-            key={switchKey}
-            onChange={toggleIsEnabled}
-          />
-        </div>
-        <div>
-          <QueryKebab index={index} />
-        </div>
-      </div>
-      {/* If namespace is defined getPrometheusURL() will use the
-      PROMETHEUS_TENANCY_BASE_PATH for the developer view */}
-      <QueryTable
-        index={index}
-        customDatasource={customDatasource}
-        namespace={perspective === 'dev' ? activeNamespace : undefined}
+
+  const queryKebab = <QueryKebab index={index} />;
+  const querySwitch = (
+    <div className="pf-v6-u-mt-sm" title={switchLabel}>
+      <Switch
+        aria-label={switchLabel}
+        id={switchKey}
+        isChecked={isEnabled}
+        key={switchKey}
+        onChange={toggleIsEnabled}
       />
     </div>
+  );
+  const promQLExpressionInput = (
+    <PromQLExpressionInput
+      value={text}
+      onValueChange={handleTextChange}
+      onExecuteQuery={handleExecuteQueries}
+      onSelectionChange={handleSelectionChange}
+    />
+  );
+  const queryId = `metrics-query-${index}`;
+
+  // If namespace is defined getPrometheusURL() will use the
+  //     PROMETHEUS_TENANCY_BASE_PATH for the developer view
+  const queryTable = (
+    <QueryTable
+      index={index}
+      customDatasource={customDatasource}
+      namespace={perspective === 'dev' ? activeNamespace : undefined}
+    />
+  );
+
+  return (
+      <DataListExpandable
+        queryKebab={queryKebab}
+        querySwitch={querySwitch}
+        promQlexpressionInput={promQLExpressionInput}
+        queryId={queryId}
+        queryTable={queryTable}
+      />
   );
 };
 
@@ -1220,13 +1231,13 @@ const QueryBrowserPage_: React.FC = () => {
                 customDatasourceError={customDatasourceError}
               />
             </div>
-            <Split>
-              <SplitItem>
+            <Split hasGutter>
+              <SplitItem isFilled className="pf-v6-u-mr-xl">
                 <PreDefinedQueriesDropdown />
               </SplitItem>
-              <SplitItem isFilled />
-              <SplitItem>
-                <ActionGroup>
+              {/* <SplitItem isFilled /> */}
+              <SplitItem className="pf-v6-u-mr-xs">
+                <ActionGroup className="pf-v6-u-mt-lg">
                   <div className="pf-v6-u-mr-xs">
                     <AddQueryButton />
                   </div>
