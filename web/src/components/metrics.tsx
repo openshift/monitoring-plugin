@@ -96,7 +96,7 @@ import { PrometheusAPIError } from './types';
 import { TypeaheadSelect } from './TypeaheadSelect';
 import { LoadingInline } from './console/console-shared/src/components/loading/LoadingInline';
 import withFallback from './console/console-shared/error/fallbacks/withFallback';
-import { QueryRow } from './test-expandable';
+import { QueryRow } from './query-row';
 
 // Stores information about the currently focused query input
 let focusedQuery;
@@ -875,11 +875,6 @@ const Query: React.FC<{ index: number; customDatasource?: CustomDataSource }> = 
     [dispatch, index],
   );
 
-  const toggleIsExpanded = React.useCallback(
-    () => dispatch(queryBrowserPatchQuery(index, { isExpanded: !isExpanded })),
-    [dispatch, index, isExpanded],
-  );
-
   const handleTextChange = React.useCallback(
     (value: string) => {
       dispatch(queryBrowserPatchQuery(index, { text: value }));
@@ -1235,7 +1230,6 @@ const QueryBrowserPage_: React.FC = () => {
               <SplitItem isFilled className="pf-v6-u-mr-xl">
                 <PreDefinedQueriesDropdown />
               </SplitItem>
-              {/* <SplitItem isFilled /> */}
               <SplitItem className="pf-v6-u-mr-xs">
                 <ActionGroup className="pf-v6-u-mt-lg">
                   <div className="pf-v6-u-mr-xs">
@@ -1245,7 +1239,9 @@ const QueryBrowserPage_: React.FC = () => {
                 </ActionGroup>
               </SplitItem>
             </Split>
-            <QueriesList customDatasource={customDataSource} />
+            <div className="pf-v6-u-mt-md">
+              <QueriesList customDatasource={customDataSource} />
+            </div>
           </GridItem>
         </Grid>
       </PageSection>

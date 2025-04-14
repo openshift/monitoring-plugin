@@ -429,7 +429,7 @@ export const PromQLExpressionInput: React.FC<PromQLExpressionInputProps> = ({
           <div className="pf-v6-c-form__group-control">
             <span className="pf-v6-c-form-control pf-m-required">
               <div style={{ display: 'flex', alignItems: 'center', flexGrow: 1, gap: '0.5rem' }}>
-                <div ref={containerRef} onBlur={handleBlur}></div>
+                <div ref={containerRef} onBlur={handleBlur} className="pf-v6-u-mt-xs"></div>
                 {errorMessage && (
                   <div id="helper-text-promql-expression-input" aria-live="polite">
                     <div>
