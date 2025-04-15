@@ -60,7 +60,15 @@ import {
   t_global_font_weight_body_bold,
   t_global_text_color_disabled,
   t_global_text_color_regular,
+  t_global_spacer_xs,
+  t_global_text_color_subtle,
+  t_global_font_family_mono,
+  t_global_font_size_sm,
+  t_global_color_brand_default,
+  t_global_color_nonstatus_yellow_default,
+  t_global_color_nonstatus_purple_default,
 } from '@patternfly/react-tokens';
+import { usePatternFlyTheme } from '../hooks/usePatternflyTheme';
 
 type InteractionTarget = {
   focus: () => void;
@@ -76,123 +84,142 @@ interface PromQLExpressionInputProps {
 
 const promqlExtension = new PromQLExtension();
 
-export const theme = EditorView.theme({
-  '.cm-scroller': {
-    fontFamily: 'inherit',
-  },
-  '.cm-content': {
-    caretColor: 'auto',
-  },
-  '&.cm-focused.cm-editor': {
-    outline: 'none',
-  },
-  '.cm-tooltip.cm-completionInfo': {
-    backgroundColor: 'var(--pf-v5-global--BackgroundColor--200)',
-    border: 'none',
-    marginTop: '-11px',
-    padding: '10px',
-  },
-  '.cm-completionInfo.cm-completionInfo-right': {
-    '&:before': {
-      content: "' '",
-      height: '0',
-      position: 'absolute',
-      width: '0',
-      left: '-20px',
-      borderWidth: '10px',
-      borderStyle: 'solid',
-      borderColor: 'transparent',
-      borderRightColor: 'var(--pf-v5-global--BackgroundColor--200)',
+const theme = (darkTheme: boolean) =>
+  EditorView.theme(
+    {
+      '.cm-scroller': {
+        fontFamily: 'inherit',
+      },
+      '.cm-content': {
+        caretColor: 'auto',
+      },
+      '&.cm-focused.cm-editor': {
+        outline: 'none',
+      },
+      '.cm-tooltip.cm-completionInfo': {
+        backgroundColor: 'var(--pf-t--global--background--color--floating--default)',
+        marginTop: '-11px',
+        padding: '10px',
+      },
+      '.cm-completionInfo-right': {
+        '&:before': {
+          content: "' '",
+          height: '0',
+          position: 'absolute',
+          width: '0',
+          left: '-20px',
+          borderWidth: '10px',
+          borderStyle: 'solid',
+          borderColor: 'transparent',
+          borderRightColor: 'var(--pf-t--global--background--color--floating--default)',
+        },
+        marginLeft: '12px',
+      },
+      '.cm-completionInfo-left': {
+        '&:before': {
+          content: "' '",
+          height: '0',
+          position: 'absolute',
+          width: '0',
+          right: '-20px',
+          borderWidth: '10px',
+          borderStyle: 'solid',
+          borderColor: 'transparent',
+          borderLeftColor: 'var(--pf-t--global--background--color--floating--default)',
+        },
+        marginRight: '12px',
+      },
+      '.cm-completionIcon': {
+        fontFamily: 'codicon',
+        width: '1.5em',
+        verticalAlign: 'middle',
+      },
+      '.cm-selectionMatch': {
+        backgroundColor: 'var(--pf-t--global--background--color--floating--hover)',
+      },
+      '.cm-completionDetail': {
+        float: 'right',
+        color: t_global_text_color_subtle.var,
+      },
+      '.cm-tooltip': {
+        backgroundColor: 'var(--pf-t--global--background--color--floating--default)',
+        borderRadius: 'var(--pf-t--global--border--radius--small)',
+        borderStyle: 'solid',
+        borderWidth: '0px',
+        borderColor: 'transparent',
+      },
+      '.cm-tooltip.cm-tooltip-autocomplete': {
+        '& > ul': {
+          fontFamily: t_global_font_family_mono.var,
+          fontSize: t_global_font_size_sm.var,
+        },
+        '& > ul > li[aria-selected]': {
+          backgroundColor: 'var(--pf-t--global--background--color--floating--hover)',
+          color: 'unset',
+          '&:first-child': {
+            borderTopLeftRadius: 'var(--pf-t--global--border--radius--small)',
+            borderTopRightRadius: 'var(--pf-t--global--border--radius--small)',
+            borderStyle: 'solid',
+            borderWidth: '1px',
+            borderColor: 'transparent',
+          },
+          '&:last-child': {
+            borderBottomLeftRadius: 'var(--pf-t--global--border--radius--small)',
+            borderBottomRightRadius: 'var(--pf-t--global--border--radius--small)',
+            borderStyle: 'solid',
+            borderWidth: '1px',
+            borderColor: 'transparent',
+          },
+        },
+        '& > ul > li': {
+          padding: '2px 1em 2px 3px',
+        },
+      },
+      '.cm-completionMatchedText': {
+        textDecoration: 'none',
+        fontWeight: 'bold',
+        color: t_global_color_brand_default.var,
+      },
+      '.cm-completionIcon-function, .cm-completionIcon-method': {
+        '&:after': { content: "'\\ea8c'" },
+        color: t_global_color_nonstatus_purple_default.var,
+      },
+      '.cm-completionIcon-class': {
+        '&:after': { content: "'○'" },
+      },
+      '.cm-completionIcon-interface': {
+        '&:after': { content: "'◌'" },
+      },
+      '.cm-completionIcon-variable': {
+        '&:after': { content: "'𝑥'" },
+      },
+      '.cm-completionIcon-constant': {
+        '&:after': { content: "'\\eb5f'" },
+        color: t_global_color_brand_default.var,
+      },
+      '.cm-completionIcon-type': {
+        '&:after': { content: "'𝑡'" },
+      },
+      '.cm-completionIcon-enum': {
+        '&:after': { content: "'∪'" },
+      },
+      '.cm-completionIcon-property': {
+        '&:after': { content: "'□'" },
+      },
+      '.cm-completionIcon-keyword': {
+        '&:after': { content: "'\\eb62'" },
+        color: t_global_text_color_regular.var,
+      },
+      '.cm-completionIcon-namespace': {
+        '&:after': { content: "'▢'" },
+      },
+      '.cm-completionIcon-text': {
+        '&:after': { content: "'\\ea95'" },
+        color: t_global_color_nonstatus_yellow_default.var,
+      },
     },
-    marginLeft: '12px',
-  },
-  '.cm-completionInfo.cm-completionInfo-left': {
-    '&:before': {
-      content: "' '",
-      height: '0',
-      position: 'absolute',
-      width: '0',
-      right: '-20px',
-      borderWidth: '10px',
-      borderStyle: 'solid',
-      borderColor: 'transparent',
-      borderLeftColor: 'var(--pf-v5-global--BackgroundColor--200)',
-    },
-    marginRight: '12px',
-  },
-  '.cm-completionIcon': {
-    fontFamily: 'codicon',
-    width: '1.5em',
-    verticalAlign: 'middle',
-  },
-  '.cm-selectionMatch': {
-    backgroundColor: 'var(--pf-v5-global--BackgroundColor--100)',
-  },
-  '.cm-completionDetail': {
-    float: 'right',
-    color: 'var(--pf-v5-global--palette--black-500)',
-  },
-  '.cm-tooltip': {
-    backgroundColor: 'var(--pf-v5-global--BackgroundColor--100)',
-    borderColor: 'var(--pf-v5-global--BorderColor--100)',
-  },
-  '.cm-tooltip.cm-tooltip-autocomplete': {
-    boxShadow: 'var(--pf-v5-global--BoxShadow--sm)',
-    '& > ul': {
-      fontFamily: 'var(--pf-v5-c-code-block__pre--FontFamily), monospace',
-      fontSize: 'var(--pf-v5-global--FontSize--sm)',
-    },
-    '& > ul > li[aria-selected]': {
-      backgroundColor: 'var(--pf-v5-global--BackgroundColor--200)',
-      color: 'unset',
-    },
-    '& > ul > li': {
-      padding: '2px 1em 2px 3px',
-    },
-  },
-  '.cm-completionMatchedText': {
-    textDecoration: 'none',
-    fontWeight: 'bold',
-    color: 'var(--pf-v5-global--palette--blue-400)',
-  },
-  '.cm-completionIcon-function, .cm-completionIcon-method': {
-    '&:after': { content: "'\\ea8c'" },
-    color: 'var(--pf-v5-global--palette--purple-500)',
-  },
-  '.cm-completionIcon-class': {
-    '&:after': { content: "'○'" },
-  },
-  '.cm-completionIcon-interface': {
-    '&:after': { content: "'◌'" },
-  },
-  '.cm-completionIcon-variable': {
-    '&:after': { content: "'𝑥'" },
-  },
-  '.cm-completionIcon-constant': {
-    '&:after': { content: "'\\eb5f'" },
-    color: 'var(--pf-v5-global--primary-color--100)',
-  },
-  '.cm-completionIcon-type': {
-    '&:after': { content: "'𝑡'" },
-  },
-  '.cm-completionIcon-enum': {
-    '&:after': { content: "'∪'" },
-  },
-  '.cm-completionIcon-property': {
-    '&:after': { content: "'□'" },
-  },
-  '.cm-completionIcon-keyword': {
-    '&:after': { content: "'\\eb62'" },
-    color: 'var(--pf-v5-global--palette--black-600)',
-  },
-  '.cm-completionIcon-namespace': {
-    '&:after': { content: "'▢'" },
-  },
-  '.cm-completionIcon-text': {
-    '&:after': { content: "'\\ea95'" },
-    color: 'var(--pf-v5-global--palette--gold-400)',
-  },
-});
+    { dark: darkTheme },
+  );
 
 // Codemirror plugin to select an autosuggest option using the mouse
 export const selectAutocompleteOnHoverPlugin = ViewPlugin.fromClass(
@@ -286,6 +313,7 @@ export const PromQLExpressionInput: React.FC<PromQLExpressionInputProps> = ({
   onSelectionChange,
 }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const { theme: pfTheme } = usePatternFlyTheme();
 
   const containerRef = React.useRef<HTMLDivElement | null>(null);
   const viewRef = React.useRef<EditorView | null>(null);
@@ -364,7 +392,7 @@ export const PromQLExpressionInput: React.FC<PromQLExpressionInputProps> = ({
       const startState = EditorState.create({
         doc: value,
         extensions: [
-          theme,
+          theme(pfTheme === 'dark'),
           highlightSpecialChars(),
           history(),
           EditorState.allowMultipleSelections.of(true),
@@ -429,7 +457,16 @@ export const PromQLExpressionInput: React.FC<PromQLExpressionInputProps> = ({
 
       view.focus();
     }
-  }, [metricNames, onValueChange, onExecuteQuery, placeholder, value, onSelectionChange, target]);
+  }, [
+    metricNames,
+    onValueChange,
+    onExecuteQuery,
+    placeholder,
+    value,
+    onSelectionChange,
+    target,
+    pfTheme,
+  ]);
 
   const handleBlur = () => {
     if (viewRef.current !== null) {
@@ -445,9 +482,8 @@ export const PromQLExpressionInput: React.FC<PromQLExpressionInputProps> = ({
             <div
               ref={containerRef}
               onBlur={handleBlur}
-              className="pf-v6-u-mt-xs"
-              style={{ width: '100%' }}
-            ></div>
+              style={{ width: '100%', marginTop: t_global_spacer_xs.var }}
+            />
           </div>
           <TextInputGroupUtilities>
             <Button
