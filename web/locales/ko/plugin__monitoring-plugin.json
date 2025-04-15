@@ -96,7 +96,6 @@
   "Error loading card": "카드 로드 중 오류 발생",
   "Metrics dashboards": "통계 대시 보드",
   "panel.styles attribute not found": "panel.styles 속성을 찾을 수 없습니다",
-  "No data found": "데이터를 찾을 수 없음",
   "query results table": "쿼리 결과 테이블",
   "Last {{count}} minute_one": "마지막 {{count}} 분",
   "Last {{count}} minute_other": "마지막 {{count}} 분",

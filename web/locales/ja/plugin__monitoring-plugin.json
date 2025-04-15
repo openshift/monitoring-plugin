@@ -96,7 +96,6 @@
   "Error loading card": "カードの読み込みエラー",
   "Metrics dashboards": "メトリクスダッシュボード",
   "panel.styles attribute not found": "panel.styles 属性が見つかりません",
-  "No data found": "データが見つかりません",
   "query results table": "クエリー結果テーブル",
   "Last {{count}} minute_one": "最後の {{count}} 分",
   "Last {{count}} minute_other": "最後の {{count}} 分",

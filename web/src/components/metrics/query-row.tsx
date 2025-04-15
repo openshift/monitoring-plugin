@@ -10,6 +10,7 @@ import {
   DataListContent,
   DataListItemCells,
 } from '@patternfly/react-core';
+import { t_global_spacer_md } from '@patternfly/react-tokens';
 
 interface DataListProps {
   promQlexpressionInput: React.ReactNode;
@@ -43,31 +44,34 @@ export const QueryRow: React.FunctionComponent<DataListProps> = ({
         isExpanded={expanded.includes(`toggle-${queryId}`)}
       >
         <DataListItemRow>
-          <div className="pf-v6-u-mt-sm">
-            <DataListToggle
-              onClick={() => toggle(`toggle-${queryId}`)}
-              isExpanded={expanded.includes(`toggle-${queryId}`)}
-              id={`toggle-${queryId}`}
-              aria-controls={`query-expand-${queryId}`}
-            />
-          </div>
+          <DataListToggle
+            onClick={() => toggle(`toggle-${queryId}`)}
+            isExpanded={expanded.includes(`toggle-${queryId}`)}
+            buttonProps={{ isInline: true }}
+            id={`toggle-${queryId}`}
+            aria-controls={`query-expand-${queryId}`}
+          />
           <DataListItemCells
             dataListCells={[
-              <DataListCell width={5} key="width 5">
+              <DataListCell
+                width={5}
+                key="width 5"
+                style={{ paddingTop: t_global_spacer_md.var, paddingBottom: 0 }}
+              >
+                {/* <DataListCell width={5} key="width 5" className="pf-v6-u-pt-md"> */}
                 {promQlexpressionInput}
               </DataListCell>,
             ]}
+            style={{ paddingBottom: 0 }}
           />
-          <div className="pf-v6-u-mt-sm">
-            <DataListAction
-              aria-labelledby={`query-item-${queryId} query-action-${queryId}`}
-              id={`action-${queryId}`}
-              aria-label="Actions"
-            >
-              {querySwitch}
-              {queryKebab}
-            </DataListAction>
-          </div>
+          <DataListAction
+            aria-labelledby={`query-item-${queryId} query-action-${queryId}`}
+            id={`action-${queryId}`}
+            aria-label="Actions"
+          >
+            {querySwitch}
+            {queryKebab}
+          </DataListAction>
         </DataListItemRow>
         <DataListContent
           aria-label="Expandable content details"

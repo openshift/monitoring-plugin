@@ -96,7 +96,6 @@
   "Error loading card": "错误加载卡",
   "Metrics dashboards": "指标仪表板",
   "panel.styles attribute not found": "未找到 panel.styles 属性",
-  "No data found": "没有找到数据",
   "query results table": "查询结果表",
   "Last {{count}} minute_one": "最后 {{count}} 分钟",
   "Last {{count}} minute_other": "最后 {{count}} 分钟",

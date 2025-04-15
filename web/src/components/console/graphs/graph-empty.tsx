@@ -10,7 +10,7 @@ export const GraphEmpty: React.FC<GraphEmptyProps> = ({ minHeight = 180, loading
       variant={EmptyStateVariant.xs}
       style={{ minHeight }}
       headingLevel="h3"
-      titleText={loading ? undefined : t('No data found')}
+      titleText={loading ? undefined : t('No datapoints found.')}
       icon={loading ? Spinner : undefined}
       isFullHeight
     />

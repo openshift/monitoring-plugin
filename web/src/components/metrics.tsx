@@ -8,7 +8,6 @@ import {
   YellowExclamationTriangleIcon,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
-  ActionGroup,
   Bullseye,
   Button,
   Dropdown,
@@ -17,6 +16,8 @@ import {
   EmptyState,
   EmptyStateBody,
   EmptyStateVariant,
+  Flex,
+  FlexItem,
   Grid,
   GridItem,
   MenuToggle,
@@ -25,6 +26,8 @@ import {
   SelectOptionProps,
   Split,
   SplitItem,
+  Stack,
+  StackItem,
   Switch,
   Title,
   Tooltip,
@@ -91,7 +94,8 @@ import { PrometheusAPIError } from './types';
 import { TypeaheadSelect } from './TypeaheadSelect';
 import { LoadingInline } from './console/console-shared/src/components/loading/LoadingInline';
 import withFallback from './console/console-shared/error/fallbacks/withFallback';
-import { QueryRow } from './query-row';
+import { QueryRow } from './metrics/query-row';
+import { t_global_spacer_sm } from '@patternfly/react-tokens';
 
 // Stores information about the currently focused query input
 let focusedQuery;
@@ -314,11 +318,13 @@ export const ToggleGraph: React.FC = () => {
   const icon = hideGraphs ? <ChartLineIcon /> : <CompressIcon />;
 
   return (
-    <div className="pf-v6-u-display-flex pf-v6-u-flex-direction-row-reverse">
-      <Button type="button" onClick={toggle} variant="link">
-        {icon} {hideGraphs ? t('Show graph') : t('Hide graph')}
-      </Button>
-    </div>
+    <Flex justifyContent={{ default: 'justifyContentFlexEnd' }}>
+      <FlexItem>
+        <Button type="button" onClick={toggle} variant="link">
+          {icon} {hideGraphs ? t('Show graph') : t('Hide graph')}
+        </Button>
+      </FlexItem>
+    </Flex>
   );
 };
 
@@ -649,19 +655,11 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, custom
   }
 
   if (error) {
-    return (
-      <div>
-        <Error error={error} title={t('Error loading values')} />
-      </div>
-    );
+    return <Error error={error} title={t('Error loading values')} />;
   }
 
   if (!data) {
-    return (
-      <div>
-        <LoadingInline />
-      </div>
-    );
+    return <LoadingInline />;
   }
 
   // Add any data series from `series` (those displayed in the graph) that are not in `data.result`.
@@ -752,52 +750,48 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, custom
 
   return (
     <>
-      <div>
-        <div>
-          <Button variant="link" isInline onClick={toggleAllSeries}>
-            {isDisabledSeriesEmpty ? t('Unselect all') : t('Select all')}
-          </Button>
-          <Table
-            aria-label={t('query results table')}
-            gridBreakPoint={TableGridBreakpoint.none}
-            rows={tableRows.length}
-            variant={TableVariant.compact}
-          >
-            <Thead>
-              <Tr>
-                {columns.map((col, columnIndex) => {
-                  const sortParams =
-                    columnIndex !== 0
-                      ? {
-                          sort: {
-                            sortBy,
-                            onSort,
-                            columnIndex,
-                          },
-                        }
-                      : {};
-                  return (
-                    <Th key={`${col.title}-${columnIndex}`} {...sortParams}>
-                      {col.title}
-                    </Th>
-                  );
-                })}
-              </Tr>
-            </Thead>
-            <Tbody>
-              {tableRows.map((row, rowIndex) => (
-                <Tr key={`row-${rowIndex}`}>
-                  {row.cells?.map((cell, cellIndex) => (
-                    <Td key={`cell-${rowIndex}-${cellIndex}`}>
-                      {typeof cell === 'string' ? cell : cell?.title}
-                    </Td>
-                  ))}
-                </Tr>
+      <Button variant="link" isInline onClick={toggleAllSeries}>
+        {isDisabledSeriesEmpty ? t('Unselect all') : t('Select all')}
+      </Button>
+      <Table
+        aria-label={t('query results table')}
+        gridBreakPoint={TableGridBreakpoint.none}
+        rows={tableRows.length}
+        variant={TableVariant.compact}
+      >
+        <Thead>
+          <Tr>
+            {columns.map((col, columnIndex) => {
+              const sortParams =
+                columnIndex !== 0
+                  ? {
+                      sort: {
+                        sortBy,
+                        onSort,
+                        columnIndex,
+                      },
+                    }
+                  : {};
+              return (
+                <Th key={`${col.title}-${columnIndex}`} {...sortParams}>
+                  {col.title}
+                </Th>
+              );
+            })}
+          </Tr>
+        </Thead>
+        <Tbody>
+          {tableRows.map((row, rowIndex) => (
+            <Tr key={`row-${rowIndex}`}>
+              {row.cells?.map((cell, cellIndex) => (
+                <Td key={`cell-${rowIndex}-${cellIndex}`}>
+                  {typeof cell === 'string' ? cell : cell?.title}
+                </Td>
               ))}
-            </Tbody>
-          </Table>
-        </div>
-      </div>
+            </Tr>
+          ))}
+        </Tbody>
+      </Table>
       <TablePagination
         itemCount={rows.length}
         page={page}
@@ -811,7 +805,7 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, custom
 
 const PromQLExpressionInput = (props) => (
   <AsyncComponent
-    loader={() => import('./promql-expression-input').then((c) => c.PromQLExpressionInput)}
+    loader={() => import('./metrics/promql-expression-input').then((c) => c.PromQLExpressionInput)}
     {...props}
   />
 );
@@ -874,7 +868,7 @@ const Query: React.FC<{ index: number; customDatasource?: CustomDataSource }> = 
 
   const queryKebab = <QueryKebab index={index} />;
   const querySwitch = (
-    <div className="pf-v6-u-mt-sm" title={switchLabel}>
+    <div title={switchLabel} style={{ marginTop: t_global_spacer_sm.var }}>
       <Switch
         aria-label={switchLabel}
         id={switchKey}
@@ -987,44 +981,40 @@ const QueryBrowserWrapper: React.FC<{
 
   if (customDataSourceName && customDatasourceError) {
     return (
-      <div>
-        <EmptyState
-          titleText={
-            <Title headingLevel="h2" size="md">
-              {t('Error loading custom data source')}
-            </Title>
-          }
-          icon={ChartLineIcon}
-          variant={EmptyStateVariant.full}
-        >
-          <EmptyStateBody>
-            {t('An error occurred while loading the custom data source.')}
-          </EmptyStateBody>
-        </EmptyState>
-      </div>
+      <EmptyState
+        titleText={
+          <Title headingLevel="h2" size="md">
+            {t('Error loading custom data source')}
+          </Title>
+        }
+        icon={ChartLineIcon}
+        variant={EmptyStateVariant.full}
+      >
+        <EmptyStateBody>
+          {t('An error occurred while loading the custom data source.')}
+        </EmptyStateBody>
+      </EmptyState>
     );
   }
 
   if (queryStrings.join('') === '') {
     return (
-      <div>
-        <EmptyState
-          titleText={
-            <Title headingLevel="h2" size="md">
-              {t('No query entered')}
-            </Title>
-          }
-          icon={ChartLineIcon}
-          variant={EmptyStateVariant.full}
-        >
-          <EmptyStateBody>
-            {t('Enter a query in the box below to explore metrics for this cluster.')}
-          </EmptyStateBody>
-          <Button onClick={insertExampleQuery} variant="primary">
-            {t('Insert example query')}
-          </Button>
-        </EmptyState>
-      </div>
+      <EmptyState
+        titleText={
+          <Title headingLevel="h2" size="md">
+            {t('No query entered')}
+          </Title>
+        }
+        icon={ChartLineIcon}
+        variant={EmptyStateVariant.full}
+      >
+        <EmptyStateBody>
+          {t('Enter a query in the box below to explore metrics for this cluster.')}
+        </EmptyStateBody>
+        <Button onClick={insertExampleQuery} variant="primary">
+          {t('Insert example query')}
+        </Button>
+      </EmptyState>
     );
   }
 
@@ -1187,36 +1177,35 @@ const QueryBrowserPage_: React.FC = () => {
         </Split>
       </PageSection>
       <PageSection hasBodyWrapper={false}>
-        <Grid>
-          <GridItem>
+        <Stack hasGutter>
+          <StackItem>
             <ToggleGraph />
-          </GridItem>
-          <GridItem>
-            <div className="pf-v6-u-mb-lg">
-              <QueryBrowserWrapper
-                customDataSource={customDataSource}
-                customDataSourceName={customDataSourceName}
-                customDatasourceError={customDatasourceError}
-              />
-            </div>
-            <Split hasGutter>
-              <SplitItem isFilled className="pf-v6-u-mr-xl">
+          </StackItem>
+          <StackItem>
+            <QueryBrowserWrapper
+              customDataSource={customDataSource}
+              customDataSourceName={customDataSourceName}
+              customDatasourceError={customDatasourceError}
+            />
+          </StackItem>
+          <StackItem>
+            <Flex alignItems={{ default: 'alignItemsFlexEnd' }}>
+              <FlexItem>
                 <PreDefinedQueriesDropdown />
-              </SplitItem>
-              <SplitItem className="pf-v6-u-mr-xs">
-                <ActionGroup className="pf-v6-u-mt-lg">
-                  <div className="pf-v6-u-mr-sm">
-                    <AddQueryButton />
-                  </div>
-                  <RunQueriesButton />
-                </ActionGroup>
-              </SplitItem>
-            </Split>
-            <div className="pf-v6-u-mt-md">
-              <QueriesList customDatasource={customDataSource} />
-            </div>
-          </GridItem>
-        </Grid>
+              </FlexItem>
+              <FlexItem grow={{ default: 'grow' }} />
+              <FlexItem>
+                <AddQueryButton />
+              </FlexItem>
+              <FlexItem>
+                <RunQueriesButton />
+              </FlexItem>
+            </Flex>
+          </StackItem>
+          <StackItem>
+            <QueriesList customDatasource={customDataSource} />
+          </StackItem>
+        </Stack>
       </PageSection>
     </>
   );
