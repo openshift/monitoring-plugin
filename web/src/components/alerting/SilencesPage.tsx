@@ -37,7 +37,7 @@ import {
   Alert as PFAlert,
 } from '@patternfly/react-core';
 import { useBoolean } from '../hooks/useBoolean';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom-v5-compat';
 import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 

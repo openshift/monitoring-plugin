@@ -22,7 +22,7 @@ import { ActionsColumn, IAction } from '@patternfly/react-table';
 import { ExpireSilenceModal, SilenceMatchersList, SilenceState } from '../SilencesUtils';
 import { useBoolean } from '../../hooks/useBoolean';
 import { SilenceResource } from '../../utils';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom-v5-compat';
 import { SeverityCounts, StateTimestamp } from '../AlertUtils';
 
 export const SilencedByList: React.FC<{ silences: Silence[] }> = ({ silences }) => {
