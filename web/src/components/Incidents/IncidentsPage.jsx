@@ -47,7 +47,7 @@ import {
   setIncidents,
   setIncidentsActiveFilters,
 } from '../../actions/observe';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom-v5-compat';
 import { usePerspective } from '../hooks/usePerspective';
 import { changeDaysFilter } from './utils';
 import { parsePrometheusDuration } from '../console/console-shared/src/datetime/prometheus';
