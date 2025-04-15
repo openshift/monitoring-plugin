@@ -100,6 +100,8 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
                   labelComponent={
                     <ChartTooltip
                       orientation="top"
+                      dx={({ x, x0 }) => -(x - x0) / 2}
+                      dy={-5} // Position tooltip so pointer appears above bar
                       constrainToVisibleArea
                       labelComponent={<ChartLabel />}
                     />
@@ -179,6 +181,7 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
                           fill: ({ datum }) => datum.fill,
                           stroke: ({ datum }) => datum.fill,
                           fillOpacity: ({ datum }) => (datum.nodata ? 0 : getOpacity(datum)),
+                          cursor: 'pointer',
                         },
                       }}
                       events={[

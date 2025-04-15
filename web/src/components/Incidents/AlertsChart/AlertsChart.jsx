@@ -101,7 +101,13 @@ const AlertsChart = ({ chartDays, theme }) => {
               containerComponent={
                 <ChartVoronoiContainer
                   labelComponent={
-                    <ChartTooltip constrainToVisibleArea labelComponent={<ChartLabel />} />
+                    <ChartTooltip
+                      orientation="top"
+                      dx={({ x, x0 }) => -(x - x0) / 2}
+                      dy={-5} // Position tooltip so pointer appears above bar
+                      constrainToVisibleArea
+                      labelComponent={<ChartLabel />}
+                    />
                   }
                   labels={({ datum }) => {
                     if (datum.nodata) {
@@ -181,6 +187,7 @@ const AlertsChart = ({ chartDays, theme }) => {
                           fill: ({ datum }) => datum.fill,
                           stroke: ({ datum }) => datum.fill,
                           fillOpacity: ({ datum }) => (datum.nodata ? 0 : 1),
+                          cursor: 'pointer',
                         },
                       }}
                     />
