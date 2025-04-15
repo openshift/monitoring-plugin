@@ -1205,7 +1205,7 @@ const QueryBrowserPage_: React.FC = () => {
               </SplitItem>
               <SplitItem className="pf-v6-u-mr-xs">
                 <ActionGroup className="pf-v6-u-mt-lg">
-                  <div className="pf-v6-u-mr-xs">
+                  <div className="pf-v6-u-mr-sm">
                     <AddQueryButton />
                   </div>
                   <RunQueriesButton />

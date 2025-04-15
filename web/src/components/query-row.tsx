@@ -37,18 +37,20 @@ export const QueryRow: React.FunctionComponent<DataListProps> = ({
   };
 
   return (
-    <DataList aria-label="query-row">
+    <DataList aria-label={`query-row-${queryId}`}>
       <DataListItem
-        aria-labelledby="query-item-${queryId}"
+        aria-labelledby={`query-item-${queryId}`}
         isExpanded={expanded.includes(`toggle-${queryId}`)}
       >
         <DataListItemRow>
-          <DataListToggle
-            onClick={() => toggle(`toggle-${queryId}`)}
-            isExpanded={expanded.includes(`toggle-${queryId}`)}
-            id={`toggle-${queryId}`}
-            aria-controls="query-expand-${queryId}"
-          />
+          <div className="pf-v6-u-mt-sm">
+            <DataListToggle
+              onClick={() => toggle(`toggle-${queryId}`)}
+              isExpanded={expanded.includes(`toggle-${queryId}`)}
+              id={`toggle-${queryId}`}
+              aria-controls={`query-expand-${queryId}`}
+            />
+          </div>
           <DataListItemCells
             dataListCells={[
               <DataListCell width={5} key="width 5">
@@ -58,7 +60,7 @@ export const QueryRow: React.FunctionComponent<DataListProps> = ({
           />
           <div className="pf-v6-u-mt-sm">
             <DataListAction
-              aria-labelledby="query-item-${queryId} query-action-${queryId}"
+              aria-labelledby={`query-item-${queryId} query-action-${queryId}`}
               id={`action-${queryId}`}
               aria-label="Actions"
             >
@@ -68,8 +70,8 @@ export const QueryRow: React.FunctionComponent<DataListProps> = ({
           </div>
         </DataListItemRow>
         <DataListContent
-          aria-label="First expandable content details"
-          id="query-expand-${queryId}"
+          aria-label="Expandable content details"
+          id={`query-expand-${queryId}`}
           isHidden={!expanded.includes(`toggle-${queryId}`)}
         >
           {queryTable}
