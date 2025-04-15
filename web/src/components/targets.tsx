@@ -295,7 +295,7 @@ const Details: React.FC<DetailsProps> = ({ loaded, loadError, targets }) => {
                   <DescriptionListGroup>
                     <DescriptionListTerm>{t('Labels')}</DescriptionListTerm>
                     <DescriptionListDescription>
-                      <Labels kind="metricstarget" labels={target?.labels} />
+                      <Labels labels={target?.labels} />
                     </DescriptionListDescription>
                   </DescriptionListGroup>
                   <DescriptionListGroup>

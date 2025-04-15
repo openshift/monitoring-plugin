@@ -337,7 +337,7 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
                   <DescriptionListGroup>
                     <DescriptionListTerm>{t('Labels')}</DescriptionListTerm>
                     <DescriptionListDescription>
-                      <Labels kind="alert" labels={labels} />
+                      <Labels labels={labels} />
                     </DescriptionListDescription>
                   </DescriptionListGroup>
                 </DescriptionList>

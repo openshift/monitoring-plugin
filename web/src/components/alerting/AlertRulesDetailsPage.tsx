@@ -332,7 +332,7 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
                   <DescriptionListGroup>
                     <DescriptionListTerm>{t('Labels')}</DescriptionListTerm>
                     <DescriptionListDescription>
-                      <Labels kind="alertrule" labels={rule?.labels} />
+                      <Labels labels={rule?.labels} />
                     </DescriptionListDescription>
                   </DescriptionListGroup>
                 </DescriptionList>

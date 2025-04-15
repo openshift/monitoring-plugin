@@ -11,7 +11,7 @@ const Label = ({ k, v }) => (
   </PfLabel>
 );
 
-export const Labels = ({ kind, labels }) => {
+export const Labels = ({ labels }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return _.isEmpty(labels) ? (
