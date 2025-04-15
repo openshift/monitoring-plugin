@@ -31,21 +31,36 @@ import {
   ViewPlugin,
   ViewUpdate,
 } from '@codemirror/view';
+import { PrometheusEndpoint } from '@openshift-console/dynamic-plugin-sdk';
 import {
-  PrometheusEndpoint,
-  YellowExclamationTriangleIcon,
-} from '@openshift-console/dynamic-plugin-sdk';
-import { Button } from '@patternfly/react-core';
-import { CloseIcon } from '@patternfly/react-icons';
+  Button,
+  Form,
+  FormGroup,
+  FormHelperText,
+  HelperText,
+  HelperTextItem,
+  TextInputGroup,
+  TextInputGroupUtilities,
+  ValidatedOptions,
+} from '@patternfly/react-core';
+import { CloseIcon, ExclamationCircleIcon } from '@patternfly/react-icons';
 import { PromQLExtension } from '@prometheus-io/codemirror-promql';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useSafeFetch } from '../console/utils/safe-fetch-hook';
 
-// import './_promql-expression-input.scss';
 import { PROMETHEUS_BASE_PATH } from '../console/graphs/helpers';
 import { LabelNamesResponse } from '@perses-dev/prometheus-plugin';
+import {
+  t_global_color_status_custom_default,
+  t_global_color_status_danger_default,
+  t_global_color_status_success_default,
+  t_global_color_status_warning_default,
+  t_global_font_weight_body_bold,
+  t_global_text_color_disabled,
+  t_global_text_color_regular,
+} from '@patternfly/react-tokens';
 
 type InteractionTarget = {
   focus: () => void;
@@ -228,40 +243,40 @@ export const selectAutocompleteOnHoverPlugin = ViewPlugin.fromClass(
 );
 
 export const promqlHighlighter = HighlightStyle.define([
-  { tag: tags.name, color: '#000' },
+  { tag: tags.name, color: t_global_text_color_regular.var },
   {
     tag: tags.number,
-    color: 'var(--pf-t--global--text--color--status--success--default)',
+    color: t_global_color_status_success_default.var,
   },
   {
     tag: tags.string,
-    color: 'var(--pf-t--global--text--color--status--danger--default)',
+    color: t_global_color_status_danger_default.var,
   },
   {
     tag: tags.keyword,
-    color: 'var(--pf-t--global--border--color--status--custom--default)',
-    fontWeight: 'bold',
+    color: t_global_color_status_custom_default.var,
+    fontWeight: t_global_font_weight_body_bold.var,
   },
   {
     tag: tags.function(tags.variableName),
-    color: 'var(--pf-t--global--border--color--status--custom--default)',
-    fontWeight: 'bold',
+    color: t_global_color_status_custom_default.var,
+    fontWeight: t_global_font_weight_body_bold.var,
   },
   {
     tag: tags.labelName,
-    color: 'var(--pf-t--global--text--color--status--warning--default)',
+    color: t_global_color_status_warning_default.var,
   },
   { tag: tags.operator },
   {
     tag: tags.modifier,
-    color: 'var(--pf-t--global--border--color--status--custom--default)',
-    fontWeight: 'bold',
+    color: t_global_color_status_custom_default.var,
+    fontWeight: t_global_font_weight_body_bold.var,
   },
   { tag: tags.paren },
   { tag: tags.squareBracket },
   { tag: tags.brace },
-  { tag: tags.invalid, color: 'red' },
-  { tag: tags.comment, color: '#888', fontStyle: 'italic' },
+  { tag: tags.invalid, color: t_global_color_status_danger_default.var },
+  { tag: tags.comment, color: t_global_text_color_disabled.var, fontStyle: 'italic' },
 ]);
 
 export const PromQLExpressionInput: React.FC<PromQLExpressionInputProps> = ({
@@ -423,36 +438,36 @@ export const PromQLExpressionInput: React.FC<PromQLExpressionInputProps> = ({
   };
 
   return (
-    <div style={{ alignItems: 'center', justifyContent: 'space-between' }}>
-      <form className="pf-v6-c-form" noValidate>
-        <div className="pf-v6-c-form__group">
-          <div className="pf-v6-c-form__group-control">
-            <span className="pf-v6-c-form-control pf-m-required">
-              <div style={{ display: 'flex', alignItems: 'center', flexGrow: 1, gap: '0.5rem' }}>
-                <div ref={containerRef} onBlur={handleBlur} className="pf-v6-u-mt-xs"></div>
-                {errorMessage && (
-                  <div id="helper-text-promql-expression-input" aria-live="polite">
-                    <div>
-                      <div>
-                        <YellowExclamationTriangleIcon />
-                        <span>{errorMessage}</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <Button
-                  icon={<CloseIcon />}
-                  aria-label={t('Clear query')}
-                  onClick={onClear}
-                  variant="plain"
-                />
-              </div>
-            </span>
+    <Form>
+      <FormGroup>
+        <TextInputGroup validated={errorMessage ? ValidatedOptions.error : undefined}>
+          <div style={{ display: 'flex', alignItems: 'center', flexGrow: 1, gap: '0.5rem' }}>
+            <div
+              ref={containerRef}
+              onBlur={handleBlur}
+              className="pf-v6-u-mt-xs"
+              style={{ width: '100%' }}
+            ></div>
           </div>
-        </div>
-      </form>
-    </div>
+          <TextInputGroupUtilities>
+            <Button
+              variant="plain"
+              onClick={onClear}
+              aria-label={t('Clear query')}
+              icon={<CloseIcon />}
+            />
+          </TextInputGroupUtilities>
+        </TextInputGroup>
+        {errorMessage && (
+          <FormHelperText>
+            <HelperText>
+              <HelperTextItem icon={<ExclamationCircleIcon />} variant={ValidatedOptions.error}>
+                {errorMessage}
+              </HelperTextItem>
+            </HelperText>
+          </FormHelperText>
+        )}
+      </FormGroup>
+    </Form>
   );
 };
