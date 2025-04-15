@@ -10,6 +10,14 @@ import {
 import {
   Bullseye,
   Button,
+  DataList,
+  DataListAction,
+  DataListCell,
+  DataListContent,
+  DataListItem,
+  DataListItemCells,
+  DataListItemRow,
+  DataListToggle,
   Dropdown,
   DropdownItem,
   DropdownList,
@@ -94,8 +102,7 @@ import { PrometheusAPIError } from './types';
 import { TypeaheadSelect } from './TypeaheadSelect';
 import { LoadingInline } from './console/console-shared/src/components/loading/LoadingInline';
 import withFallback from './console/console-shared/error/fallbacks/withFallback';
-import { QueryRow } from './metrics/query-row';
-import { t_global_spacer_sm } from '@patternfly/react-tokens';
+import { t_global_spacer_md, t_global_spacer_sm } from '@patternfly/react-tokens';
 
 // Stores information about the currently focused query input
 let focusedQuery;
@@ -828,6 +835,14 @@ const Query: React.FC<{ index: number; customDatasource?: CustomDataSource }> = 
       'isEnabled',
     ]),
   );
+  const isExpanded = useSelector((state: MonitoringState) =>
+    getLegacyObserveState(perspective, state)?.getIn([
+      'queryBrowser',
+      'queries',
+      index,
+      'isExpanded',
+    ]),
+  );
   const text = useSelector((state: MonitoringState) =>
     getLegacyObserveState(perspective, state)?.getIn(
       ['queryBrowser', 'queries', index, 'text'],
@@ -899,13 +914,44 @@ const Query: React.FC<{ index: number; customDatasource?: CustomDataSource }> = 
   );
 
   return (
-    <QueryRow
-      queryKebab={queryKebab}
-      querySwitch={querySwitch}
-      promQlexpressionInput={promQLExpressionInput}
-      queryId={queryId}
-      queryTable={queryTable}
-    />
+    <DataListItem aria-labelledby={`query-item-${queryId}`} isExpanded={isExpanded}>
+      <DataListItemRow>
+        <DataListToggle
+          onClick={toggleIsEnabled}
+          isExpanded={isExpanded}
+          buttonProps={{ isInline: true }}
+          id={`toggle-${queryId}`}
+          aria-controls={`query-expand-${queryId}`}
+        />
+        <DataListItemCells
+          dataListCells={[
+            <DataListCell
+              width={5}
+              key="width 5"
+              style={{ paddingTop: t_global_spacer_md.var, paddingBottom: 0 }}
+            >
+              {promQLExpressionInput}
+            </DataListCell>,
+          ]}
+          style={{ paddingBottom: 0 }}
+        />
+        <DataListAction
+          aria-labelledby={`query-item-${queryId} query-action-${queryId}`}
+          id={`action-${queryId}`}
+          aria-label="Actions"
+        >
+          {querySwitch}
+          {queryKebab}
+        </DataListAction>
+      </DataListItemRow>
+      <DataListContent
+        aria-label="Expandable content details"
+        id={`query-expand-${queryId}`}
+        isHidden={!isExpanded}
+      >
+        {queryTable}
+      </DataListContent>
+    </DataListItem>
   );
 };
 
@@ -1063,14 +1109,14 @@ const QueriesList: React.FC<{ customDatasource?: CustomDataSource }> = ({ custom
   );
 
   return (
-    <>
+    <DataList aria-label={`queries`}>
       {_.range(count).map((index) => {
         const reversedIndex = count - index - 1;
         return (
           <Query index={reversedIndex} key={reversedIndex} customDatasource={customDatasource} />
         );
       })}
-    </>
+    </DataList>
   );
 };
 
