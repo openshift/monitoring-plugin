@@ -35,7 +35,6 @@ import {
   onIncidentFiltersSelect,
   parseUrlParams,
   updateBrowserUrl,
-  usePatternFlyTheme,
 } from './utils';
 import { groupAlertsForTable, processAlerts } from './processAlerts';
 import { CompressArrowsAltIcon, CompressIcon, FilterIcon } from '@patternfly/react-icons';
@@ -55,6 +54,7 @@ import { parsePrometheusDuration } from '../console/console-shared/src/datetime/
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 import IncidentsChart from './IncidentsChart/IncidentsChart';
 import AlertsChart from './AlertsChart/AlertsChart';
+import { usePatternFlyTheme } from '../hooks/usePatternflyTheme';
 
 const IncidentsPage = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
