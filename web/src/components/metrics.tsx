@@ -372,17 +372,15 @@ const SeriesButton: React.FC<SeriesButtonProps> = ({ index, labels }) => {
   const title = isDisabled ? t('Show series') : t('Hide series');
 
   return (
-    <div>
-      <Button
-        icon=""
-        aria-label={title}
-        onClick={toggleSeries}
-        style={colorIndex === null ? undefined : { backgroundColor: colors[colorIndex] }}
-        title={title}
-        type="button"
-        variant="plain"
-      />
-    </div>
+    <Button
+      icon=""
+      aria-label={title}
+      onClick={toggleSeries}
+      style={colorIndex === null ? undefined : { backgroundColor: colors[colorIndex] }}
+      title={title}
+      type="button"
+      variant="control"
+    />
   );
 };
 
