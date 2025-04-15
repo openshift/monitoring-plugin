@@ -29,12 +29,7 @@ import {
   Title,
   Tooltip,
 } from '@patternfly/react-core';
-import {
-  AngleDownIcon,
-  AngleRightIcon,
-  ChartLineIcon,
-  CompressIcon,
-} from '@patternfly/react-icons';
+import { ChartLineIcon, CompressIcon } from '@patternfly/react-icons';
 import {
   ISortBy,
   sortable,
@@ -327,26 +322,11 @@ export const ToggleGraph: React.FC = () => {
   );
 };
 
-const ExpandButton = ({ isExpanded, onClick }) => {
-  const { t } = useTranslation(process.env.I18N_NAMESPACE);
-
-  const title = isExpanded ? t('Hide table') : t('Show table');
-  return (
-    <Button
-      icon={isExpanded ? <AngleDownIcon /> : <AngleRightIcon />}
-      aria-label={title}
-      onClick={onClick}
-      title={title}
-      variant="plain"
-    />
-  );
-};
-
 const SeriesButton: React.FC<SeriesButtonProps> = ({ index, labels }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
 
-  const [_placeholder, isDisabled, isSeriesEmpty] = useSelector((state: MonitoringState) => {
+  const [colorIndex, isDisabled, isSeriesEmpty] = useSelector((state: MonitoringState) => {
     const observe = getLegacyObserveState(perspective, state);
     const disabledSeries = observe.getIn(['queryBrowser', 'queries', index, 'disabledSeries']);
     if (_.some(disabledSeries, (s) => _.isEqual(s, labels))) {
@@ -384,6 +364,7 @@ const SeriesButton: React.FC<SeriesButtonProps> = ({ index, labels }) => {
         icon=""
         aria-label={title}
         onClick={toggleSeries}
+        style={colorIndex === null ? undefined : { backgroundColor: colors[colorIndex] }}
         title={title}
         type="button"
         variant="plain"
