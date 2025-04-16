@@ -31,7 +31,6 @@ import {
   PageBreadcrumb,
   PageGroup,
   PageSection,
-  PageSectionVariants,
   Title,
   Tooltip,
 } from '@patternfly/react-core';
@@ -252,114 +251,101 @@ const Details: React.FC<DetailsProps> = ({ loaded, loadError, targets }) => {
       <Helmet>
         <title>{t('Target details')}</title>
       </Helmet>
-      <PageGroup>
-        <PageBreadcrumb>
-          <Breadcrumb>
-            <BreadcrumbItem>
-              <Link className="pf-v5-c-breadcrumb__link" to="/monitoring/targets">
-                {t('Targets')}
-              </Link>
-            </BreadcrumbItem>
-            <BreadcrumbItem isActive>{t('Target details')}</BreadcrumbItem>
-          </Breadcrumb>
-        </PageBreadcrumb>
-        <PageSection variant={PageSectionVariants.light}>
-          <Title headingLevel="h1">
-            <div className="pf-v5-u-text-break-word">{scrapeUrl}</div>
-          </Title>
-        </PageSection>
-      </PageGroup>
-      <Divider />
       <StatusBox data={target} label="target" loaded={loaded} loadError={loadError}>
-        <PageSection variant={PageSectionVariants.light}>
-          <Title headingLevel="h2">{t('Target details')}</Title>
-          {isServiceMonitor && serviceMonitorsLoadError && (
-            <WatchErrorAlert
-              loadError={serviceMonitorsLoadError}
-              title={t('Error loading service monitor data')}
-            />
-          )}
-          {isPodMonitor && podMonitorsLoadError && (
-            <WatchErrorAlert
-              loadError={podMonitorsLoadError}
-              title={t('Error loading pod monitor data')}
-            />
-          )}
-          <Grid sm={12} md={6}>
-            <GridItem>
-              <DescriptionList>
-                <DescriptionListGroup>
-                  <DescriptionListTerm>{t('Endpoint')}</DescriptionListTerm>
-                  <DescriptionListDescription>{scrapeUrl}</DescriptionListDescription>
-                </DescriptionListGroup>
-                <DescriptionListGroup>
-                  <DescriptionListTerm>{t('Namespace')}</DescriptionListTerm>
-                  <DescriptionListDescription>
-                    <ResourceLink kind="Namespace" name={target?.labels?.namespace} />
-                  </DescriptionListDescription>
-                </DescriptionListGroup>
-                <DescriptionListGroup>
-                  <DescriptionListTerm>{t('Labels')}</DescriptionListTerm>
-                  <DescriptionListDescription>
-                    <Labels kind="metricstarget" labels={target?.labels} />
-                  </DescriptionListDescription>
-                </DescriptionListGroup>
-                <DescriptionListGroup>
-                  <DescriptionListTerm>{t('Last scrape')}</DescriptionListTerm>
-                  <DescriptionListDescription>
-                    <Timestamp timestamp={target?.lastScrape} />
-                  </DescriptionListDescription>
-                </DescriptionListGroup>
-                {target?.lastError && (
-                  <Alert title={t('Scrape failed')} variant="danger">
-                    {target?.lastError}
-                  </Alert>
-                )}
-              </DescriptionList>
-            </GridItem>
-            <GridItem>
-              <DescriptionList>
-                <DescriptionListGroup>
-                  <DescriptionListTerm>{t('Status')}</DescriptionListTerm>
-                  <DescriptionListDescription>
-                    <Health health={target?.health} />
-                  </DescriptionListDescription>
-                </DescriptionListGroup>
-                <DescriptionListGroup>
-                  <DescriptionListTerm>{t('Monitor')}</DescriptionListTerm>
-                  {isServiceMonitor && (
+        <PageGroup>
+          <PageBreadcrumb hasBodyWrapper={false}>
+            <Breadcrumb>
+              <BreadcrumbItem>
+                <Link to="/monitoring/targets">{t('Targets')}</Link>
+              </BreadcrumbItem>
+              <BreadcrumbItem isActive>{t('Target details')}</BreadcrumbItem>
+            </Breadcrumb>
+          </PageBreadcrumb>
+          <PageSection hasBodyWrapper={false}>
+            <Title headingLevel="h1">{scrapeUrl}</Title>
+          </PageSection>
+          <Divider />
+          <PageSection hasBodyWrapper={false}>
+            <Title headingLevel="h2">{t('Target details')}</Title>
+            {isServiceMonitor && serviceMonitorsLoadError && (
+              <WatchErrorAlert
+                loadError={serviceMonitorsLoadError}
+                title={t('Error loading service monitor data')}
+              />
+            )}
+            {isPodMonitor && podMonitorsLoadError && (
+              <WatchErrorAlert
+                loadError={podMonitorsLoadError}
+                title={t('Error loading pod monitor data')}
+              />
+            )}
+            <Grid sm={12} md={6}>
+              <GridItem>
+                <DescriptionList>
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>{t('Endpoint')}</DescriptionListTerm>
+                    <DescriptionListDescription>{scrapeUrl}</DescriptionListDescription>
+                  </DescriptionListGroup>
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>{t('Namespace')}</DescriptionListTerm>
                     <DescriptionListDescription>
-                      <ServiceMonitor target={target} />
+                      <ResourceLink kind="Namespace" name={target?.labels?.namespace} />
                     </DescriptionListDescription>
-                  )}
-                  {isPodMonitor && (
+                  </DescriptionListGroup>
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>{t('Labels')}</DescriptionListTerm>
                     <DescriptionListDescription>
-                      <PodMonitor target={target} />
+                      <Labels labels={target?.labels} />
                     </DescriptionListDescription>
-                  )}
-                  {!isServiceMonitor && !isPodMonitor && (
+                  </DescriptionListGroup>
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>{t('Last scrape')}</DescriptionListTerm>
                     <DescriptionListDescription>
-                      <>-</>
+                      <Timestamp timestamp={target?.lastScrape} />
                     </DescriptionListDescription>
+                  </DescriptionListGroup>
+                  {target?.lastError && (
+                    <Alert title={t('Scrape failed')} variant="danger">
+                      {target?.lastError}
+                    </Alert>
                   )}
-                </DescriptionListGroup>
-              </DescriptionList>
-            </GridItem>
-          </Grid>
-        </PageSection>
+                </DescriptionList>
+              </GridItem>
+              <GridItem>
+                <DescriptionList>
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>{t('Status')}</DescriptionListTerm>
+                    <DescriptionListDescription>
+                      <Health health={target?.health} />
+                    </DescriptionListDescription>
+                  </DescriptionListGroup>
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>{t('Monitor')}</DescriptionListTerm>
+                    {isServiceMonitor && (
+                      <DescriptionListDescription>
+                        <ServiceMonitor target={target} />
+                      </DescriptionListDescription>
+                    )}
+                    {isPodMonitor && (
+                      <DescriptionListDescription>
+                        <PodMonitor target={target} />
+                      </DescriptionListDescription>
+                    )}
+                    {!isServiceMonitor && !isPodMonitor && (
+                      <DescriptionListDescription>
+                        <>-</>
+                      </DescriptionListDescription>
+                    )}
+                  </DescriptionListGroup>
+                </DescriptionList>
+              </GridItem>
+            </Grid>
+          </PageSection>
+        </PageGroup>
       </StatusBox>
     </>
   );
 };
-
-const tableClasses = [
-  'pf-u-w-25-on-md', // Endpoint
-  'pf-u-w-16-on-md', // Monitor
-  '', // Status
-  'pf-u-w-16-on-md', // Namespace
-  'pf-m-hidden pf-m-visible-on-md', // Last Scrape
-  'pf-m-hidden pf-m-visible-on-md', // Scrape Duration
-];
 
 const Row: React.FC<RowProps<Target>> = ({ obj }) => {
   const { health, labels, lastError, lastScrape, lastScrapeDuration, scrapePool, scrapeUrl } = obj;
@@ -369,15 +355,15 @@ const Row: React.FC<RowProps<Target>> = ({ obj }) => {
 
   return (
     <>
-      <Td className={tableClasses[0]}>
+      <Td>
         <Link to={`./targets/${btoa(scrapeUrl)}`}>{scrapeUrl}</Link>
       </Td>
-      <Td className={tableClasses[1]}>
+      <Td>
         {isServiceMonitor && <ServiceMonitor target={obj} />}
         {isPodMonitor && <PodMonitor target={obj} />}
         {!isServiceMonitor && !isPodMonitor && <>-</>}
       </Td>
-      <Td className={tableClasses[2]}>
+      <Td>
         {health === 'up' ? (
           <Health health="up" />
         ) : (
@@ -388,17 +374,20 @@ const Row: React.FC<RowProps<Target>> = ({ obj }) => {
           </Tooltip>
         )}
       </Td>
-      <Td className={tableClasses[3]}>
+      <Td>
         {labels?.namespace && (
-          <ResourceLink inline kind={NamespaceModel.kind} name={labels?.namespace} />
+          <ResourceLink
+            inline
+            kind={NamespaceModel.kind}
+            name={labels?.namespace}
+            className="pf-v6-u-mx-xs"
+          />
         )}
       </Td>
-      <Td className={tableClasses[4]}>
+      <Td>
         <Timestamp timestamp={lastScrape} />
       </Td>
-      <Td className={tableClasses[5]}>
-        {lastScrapeDuration ? `${(1000 * lastScrapeDuration).toFixed(1)} ms` : '-'}
-      </Td>
+      <Td>{lastScrapeDuration ? `${(1000 * lastScrapeDuration).toFixed(1)} ms` : '-'}</Td>
     </>
   );
 };
@@ -420,40 +409,34 @@ const List: React.FC<ListProps> = ({ data, loaded, loadError, unfilteredData }) 
         title: t('Endpoint'),
         sort: 'scrapeUrl',
         transforms: [sortable],
-        props: { className: tableClasses[0] },
       },
       {
         id: 'monitor',
         title: t('Monitor'),
-        props: { className: tableClasses[1] },
       },
       {
         id: 'health',
         title: t('Status'),
         sort: 'health',
         transforms: [sortable],
-        props: { className: tableClasses[2] },
       },
       {
         id: 'namespace',
         title: t('Namespace'),
         sort: 'labels.namespace',
         transforms: [sortable],
-        props: { className: tableClasses[3] },
       },
       {
         id: 'lastScrape',
         title: t('Last Scrape'),
         sort: 'lastScrape',
         transforms: [sortable],
-        props: { className: tableClasses[4] },
       },
       {
         id: 'lastScrapeDuration',
         title: t('Scrape Duration'),
         sort: 'lastScrapeDuration',
         transforms: [sortable],
-        props: { className: tableClasses[5] },
       },
     ],
     [t],
@@ -533,9 +516,6 @@ const ListPage: React.FC<ListPageProps> = ({ loaded, loadError, targets }) => {
         <title>{title}</title>
       </Helmet>
       <ListPageHeader title={title} />
-      {/*
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore TODO */}
       <ListPageBody>
         {loadError && (
           <Alert title={t('Error loading latest targets data')} variant="danger">
@@ -556,8 +536,6 @@ const ListPage: React.FC<ListPageProps> = ({ loaded, loadError, targets }) => {
         )}
         <ListPageFilter
           data={staticData}
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore TODO
           labelFilter="observe-target-labels"
           labelPath="labels"
           loaded={loaded}
@@ -608,7 +586,9 @@ export const TargetsUI: React.FC = () => {
   const safeFetch = React.useCallback(useSafeFetch(), []);
 
   const tick = () =>
-    safeFetch(`${PROMETHEUS_BASE_PATH}/${PrometheusEndpoint.TARGETS}?state=active`)
+    safeFetch<PrometheusTargetsResponse>(
+      `${PROMETHEUS_BASE_PATH}/${PrometheusEndpoint.TARGETS}?state=active`,
+    )
       .then((response) => {
         setError(undefined);
         setLoaded(true);
@@ -649,4 +629,12 @@ export const TargetsUI: React.FC = () => {
       </ServicesWatchContext.Provider>
     </ServiceMonitorsWatchContext.Provider>
   );
+};
+
+type PrometheusTargetsResponse = {
+  status: string;
+  data: {
+    activeTargets: Array<Target>;
+    droppedTargets: Array<Target>;
+  };
 };

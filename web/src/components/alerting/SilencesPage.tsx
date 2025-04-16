@@ -27,14 +27,13 @@ import { Helmet } from 'react-helmet';
 import { fuzzyCaseInsensitive, refreshSilences, silenceCluster, silenceState } from '../utils';
 import * as _ from 'lodash-es';
 import { sortable } from '@patternfly/react-table';
-import { SelectedSilencesContext, SilenceTableRow, tableSilenceClasses } from './SilencesUtils';
+import { SelectedSilencesContext, SilenceTableRow } from './SilencesUtils';
 import {
   Button,
   Checkbox,
   Flex,
   FlexItem,
   PageSection,
-  PageSectionVariants,
   Alert as PFAlert,
 } from '@patternfly/react-core';
 import { useBoolean } from '../hooks/useBoolean';
@@ -120,54 +119,53 @@ const SilencesPage_: React.FC = () => {
 
   const [staticData, filteredData, onFilterChange] = useListPageFilter(data, rowFilters);
 
-  const columns = React.useMemo<TableColumn<Silence>[]>(() => {
-    const cols = [
+  const columns = React.useMemo<Array<TableColumn<Silence>>>(() => {
+    const cols: Array<TableColumn<Silence>> = [
       {
         id: 'checkbox',
-        props: { className: tableSilenceClasses[0] },
         title: (<SelectAllCheckbox silences={filteredData} />) as any,
+        props: { width: 10 },
       },
       {
         id: 'name',
-        props: { className: tableSilenceClasses[1] },
         sort: 'name',
         title: t('Name'),
         transforms: [sortable],
+        props: { width: 40 },
       },
       {
         id: 'firingAlerts',
-        props: { className: tableSilenceClasses[2] },
         sort: (silences: Silence[], direction: 'asc' | 'desc') =>
           _.orderBy(silences, silenceFiringAlertsOrder, [direction]),
         title: t('Firing alerts'),
         transforms: [sortable],
+        props: { width: 15 },
       },
       {
         id: 'state',
-        props: { className: tableSilenceClasses[3] },
         sort: (silences: Silence[], direction: 'asc' | 'desc') =>
           _.orderBy(silences, silenceStateOrder, [direction]),
         title: t('State'),
         transforms: [sortable],
+        props: { width: 20 },
       },
       {
         id: 'createdBy',
-        props: { className: tableSilenceClasses[4] },
         sort: 'createdBy',
         title: t('Creator'),
         transforms: [sortable],
+        props: { width: 15 },
       },
       {
         id: 'actions',
-        props: { className: tableSilenceClasses[6] },
         title: '',
+        props: { width: 10 },
       },
     ];
 
     if (perspective === 'acm') {
       cols.splice(-1, 0, {
         id: 'cluster',
-        props: { className: tableSilenceClasses[5] },
         sort: (silences: Silence[], direction: 'asc' | 'desc') =>
           _.orderBy(silences, silenceClusterOrder(clusters), [direction]),
         title: t('Cluster'),
@@ -180,7 +178,7 @@ const SilencesPage_: React.FC = () => {
   return (
     <>
       <Helmet>{perspective === 'dev' ? <title>Silences</title> : <title>Alerting</title>}</Helmet>
-      <PageSection variant={PageSectionVariants.light}>
+      <PageSection hasBodyWrapper={false}>
         <SelectedSilencesContext.Provider value={{ selectedSilences, setSelectedSilences }}>
           <Flex>
             <FlexItem>

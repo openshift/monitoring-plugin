@@ -6,20 +6,31 @@ import { useTranslation } from 'react-i18next';
 import { usePerspective } from '../../hooks/usePerspective';
 import { DashboardDropdown } from './dashboard-dropdown';
 import { LegacyDashboardsAllVariableDropdowns } from '../legacy/legacy-variable-dropdowns';
-import { TimeDropdowns } from './time-dropdowns';
+import { PollIntervalDropdown, TimespanDropdown } from './time-dropdowns';
 import { CombinedDashboardMetadata } from '../perses/hooks/useDashboardsData';
 import { AllVariableDropdowns } from '../perses/variable-dropdowns';
 import { useIsPerses } from './useIsPerses';
-import { Divider, PageSection, PageSectionVariants, Title } from '@patternfly/react-core';
+import { Divider, PageSection, Split, SplitItem, Title } from '@patternfly/react-core';
 
 const HeaderTop: React.FC = React.memo(() => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
-    <div className="monitoring-dashboards__header">
-      <Title headingLevel="h1">{t('Dashboards')}</Title>
-      <TimeDropdowns />
-    </div>
+    <Split hasGutter isWrappable>
+      <SplitItem isFilled>
+        <Title headingLevel="h1">{t('Dashboards')}</Title>
+      </SplitItem>
+      <SplitItem>
+        <Split hasGutter isWrappable>
+          <SplitItem>
+            <TimespanDropdown />
+          </SplitItem>
+          <SplitItem>
+            <PollIntervalDropdown />
+          </SplitItem>
+        </Split>
+      </SplitItem>
+    </Split>
   );
 });
 
@@ -47,25 +58,37 @@ const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = ({
           <title>{t('Metrics dashboards')}</title>
         </Helmet>
       )}
-      <PageSection variant={PageSectionVariants.light}>
+      <PageSection hasBodyWrapper={false}>
         {perspective !== 'dev' && <HeaderTop />}
-        <div className="monitoring-dashboards__variables">
-          <div className="monitoring-dashboards__dropdowns">
-            {!_.isEmpty(boardItems) && (
+        <Split hasGutter isWrappable>
+          {!_.isEmpty(boardItems) && (
+            <SplitItem>
               <DashboardDropdown
                 items={boardItems}
                 onChange={changeBoard}
                 selectedKey={dashboardName}
               />
-            )}
-            {isPerses ? (
-              <AllVariableDropdowns key={dashboardName} />
-            ) : (
-              <LegacyDashboardsAllVariableDropdowns key={dashboardName} />
-            )}
-          </div>
-          {perspective === 'dev' && <TimeDropdowns />}
-        </div>
+            </SplitItem>
+          )}
+          {isPerses ? (
+            <AllVariableDropdowns key={dashboardName} />
+          ) : (
+            <LegacyDashboardsAllVariableDropdowns key={dashboardName} />
+          )}
+          {perspective === 'dev' ? (
+            <>
+              <SplitItem isFilled />
+              <SplitItem>
+                <TimespanDropdown />
+              </SplitItem>
+              <SplitItem>
+                <PollIntervalDropdown />
+              </SplitItem>
+            </>
+          ) : (
+            <SplitItem isFilled />
+          )}
+        </Split>
       </PageSection>
       <Divider />
       {children}

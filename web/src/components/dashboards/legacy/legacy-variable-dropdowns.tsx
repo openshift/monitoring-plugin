@@ -1,6 +1,7 @@
 import * as _ from 'lodash-es';
 import {
   PrometheusEndpoint,
+  PrometheusResponse,
   RedExclamationCircleIcon,
   useActiveNamespace,
   useResolvedExtensions,
@@ -11,6 +12,9 @@ import {
   SelectOption,
   MenuToggle,
   MenuToggleElement,
+  Stack,
+  StackItem,
+  SplitItem,
 } from '@patternfly/react-core';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -184,7 +188,7 @@ const LegacyDashboardsVariableDropdown: React.FC<VariableDropdownProps> = ({
           endTime: timeRange.endTime,
         };
         return getURL(prometheusProps).then((url) =>
-          safeFetch(url)
+          safeFetch<PrometheusResponse>(url)
             .then(({ data }) => {
               const responseOptions = _.flatMap(data?.result, ({ metric }) => _.values(metric));
               responseOptions.forEach(newOptions.add, newOptions);
@@ -274,41 +278,40 @@ const LegacyDashboardsVariableDropdown: React.FC<VariableDropdownProps> = ({
   );
 
   return (
-    <div
-      className="form-group monitoring-dashboards__dropdown-wrap"
-      data-test={`${name.toLowerCase()}-dropdown`}
-    >
-      <label htmlFor={`${id}-dropdown`} className="monitoring-dashboards__dropdown-title">
-        {name}
-      </label>
-      {isError ? (
-        <Select
-          toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
-            <MenuToggle
-              ref={toggleRef}
-              className="monitoring-dashboards__dropdown-button"
-              isDisabled={true}
-              onClick={(e) => e.preventDefault()}
-            >
-              <RedExclamationCircleIcon /> {t('Error loading options')}
-            </MenuToggle>
+    <SplitItem>
+      <Stack data-test={`${name.toLowerCase()}-dropdown`}>
+        <StackItem>
+          <label htmlFor={`${id}-dropdown`} style={{ textTransform: 'capitalize' }}>
+            {name}
+          </label>
+        </StackItem>
+        <StackItem>
+          {isError ? (
+            <Select
+              toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+                <MenuToggle ref={toggleRef} isDisabled={true} onClick={(e) => e.preventDefault()}>
+                  <RedExclamationCircleIcon /> {t('Error loading options')}
+                </MenuToggle>
+              )}
+            />
+          ) : (
+            <SingleTypeaheadDropdown
+              items={items}
+              onChange={onChange}
+              OptionComponent={LegacyDashboardsVariableOption}
+              selectedKey={variable.value}
+              hideClearButton
+              resizeToFit
+              placeholder={t('Select a dashboard from the dropdown')}
+            />
           )}
-        />
-      ) : (
-        <SingleTypeaheadDropdown
-          items={items}
-          onChange={onChange}
-          OptionComponent={LegacyDashboardsVariableOption}
-          selectedKey={variable.value}
-          hideClearButton
-          resizeToFit
-          placeholder={t('Select a dashboard from the dropdown')}
-        />
-      )}
-    </div>
+        </StackItem>
+      </Stack>
+    </SplitItem>
   );
 };
 
+// Expects to be inside of a Patternfly Split Component
 export const LegacyDashboardsAllVariableDropdowns: React.FC = () => {
   const [namespace] = useActiveNamespace();
   const { perspective } = usePerspective();
@@ -324,8 +327,8 @@ export const LegacyDashboardsAllVariableDropdowns: React.FC = () => {
     <>
       {variables.keySeq().map((name: string) => (
         <LegacyDashboardsVariableDropdown
-          key={name}
           id={name}
+          key={name}
           name={name}
           namespace={namespace}
           perspective={perspective}

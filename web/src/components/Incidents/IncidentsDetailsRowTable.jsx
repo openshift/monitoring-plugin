@@ -4,6 +4,7 @@ import {
   GreenCheckCircleIcon,
   isAlertingRulesSource,
   PrometheusEndpoint,
+  ResourceIcon,
   Timestamp,
   useActiveNamespace,
   useResolvedExtensions,
@@ -13,7 +14,6 @@ import ExclamationTriangleIcon from '@patternfly/react-icons/dist/esm/icons/excl
 import { Bullseye, DropdownItem, Icon, Spinner, Tooltip } from '@patternfly/react-core';
 import { Link } from 'react-router-dom';
 import { AlertResource, getAlertsAndRules } from '../utils';
-import { MonitoringResourceIcon } from '../alerting/AlertUtils';
 import { getPrometheusURL } from '../console/graphs/helpers';
 import { fetchAlerts } from '../fetch-alerts';
 import KebabDropdown from '../kebab-dropdown';
@@ -26,6 +26,7 @@ import {
 } from '../hooks/usePerspective';
 import { OutlinedQuestionCircleIcon } from '@patternfly/react-icons';
 import './incidents-styles.css';
+import { SeverityBadge } from '../alerting/AlertUtils';
 
 const IncidentsDetailsRowTable = ({ alerts }) => {
   const [namespace] = useActiveNamespace();
@@ -69,8 +70,7 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
         });
     };
     poller();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [alerts]);
+  }, [alerts, alertsSource]);
 
   return (
     <Table borders={'compactBorderless'}>
@@ -94,7 +94,7 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
             return (
               <Tr key={rowIndex}>
                 <Td dataLabel="expanded-details-alertname">
-                  <MonitoringResourceIcon resource={AlertResource} />
+                  <ResourceIcon kind={AlertResource.kind} />
                   <Link
                     to={
                       alertDetails?.rule
@@ -117,28 +117,7 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
                 </Td>
                 <Td dataLabel="expanded-details-namespace">{alertDetails.namespace || '---'}</Td>
                 <Td dataLabel="expanded-details-severity">
-                  {alertDetails.severity === 'critical' ? (
-                    <>
-                      <Icon status="danger">
-                        <ExclamationCircleIcon />
-                      </Icon>
-                      <span className="expanded-details-text-margin">Critical</span>
-                    </>
-                  ) : alertDetails.severity === 'warning' ? (
-                    <>
-                      <Icon status="warning">
-                        <ExclamationTriangleIcon />
-                      </Icon>
-                      <span className="expanded-details-text-margin">Warning</span>
-                    </>
-                  ) : (
-                    <>
-                      <Icon status="info">
-                        <InfoCircleIcon />
-                      </Icon>
-                      <span className="expanded-details-text-margin">Info</span>
-                    </>
-                  )}
+                  <SeverityBadge severity={alertDetails.severity} />
                 </Td>
                 <Td dataLabel="expanded-details-alertstate">
                   {!alertDetails.resolved ? (

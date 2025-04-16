@@ -58,3 +58,9 @@ export type TimeRange = {
   endTime: number;
   duration: number;
 };
+
+export type PatternflyToken = {
+  name: string;
+  value: string;
+  var: string;
+};

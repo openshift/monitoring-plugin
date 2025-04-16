@@ -1,6 +1,7 @@
 import {
   consoleFetchJSON,
   GreenCheckCircleIcon,
+  ResourceIcon,
   Silence,
   SilenceStates,
   useActiveNamespace,
@@ -17,14 +18,23 @@ import {
   MenuToggle,
   MenuToggleElement,
   Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
   ModalVariant,
   Panel,
   PanelMain,
   PanelMainBody,
   Alert as PFAlert,
+  Stack,
+  StackItem,
 } from '@patternfly/react-core';
-import { BanIcon, EllipsisVIcon, HourglassHalfIcon } from '@patternfly/react-icons';
-import classNames from 'classnames';
+import {
+  BanIcon,
+  CheckCircleIcon,
+  EllipsisVIcon,
+  HourglassHalfIcon,
+} from '@patternfly/react-icons';
 import * as _ from 'lodash-es';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -43,19 +53,8 @@ import {
   SilenceResource,
   silenceState,
 } from '../utils';
-import { MonitoringResourceIcon, SeverityCounts, StateTimestamp } from './AlertUtils';
-import { LoadingInline } from '../console/console-shared/src/components/loading/LoadingInline';
+import { SeverityCounts, StateTimestamp } from './AlertUtils';
 import { Td } from '@patternfly/react-table';
-
-export const tableSilenceClasses = [
-  'pf-v5-c-table__action', // Checkbox
-  'pf-u-w-50 pf-u-w-33-on-sm', // Name
-  'pf-m-hidden pf-m-visible-on-sm', // Firing alerts
-  '', // State
-  'pf-m-hidden pf-m-visible-on-sm', // Creator
-  'pf-m-hidden pf-m-visible-on-sm', // Cluster
-  'dropdown-kebab-pf pf-v5-c-table__action',
-];
 
 export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheckbox }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -86,7 +85,7 @@ export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheck
   return (
     <>
       {showCheckbox && (
-        <Td className={tableSilenceClasses[0]}>
+        <Td width={10}>
           <Checkbox
             id={id}
             isChecked={selectedSilences.has(id)}
@@ -97,10 +96,10 @@ export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheck
           />
         </Td>
       )}
-      <Td className={tableSilenceClasses[1]}>
+      <Td width={40}>
         <Flex spaceItems={{ default: 'spaceItemsNone' }} flexWrap={{ default: 'nowrap' }}>
           <FlexItem>
-            <MonitoringResourceIcon resource={SilenceResource} />
+            <ResourceIcon kind={SilenceResource.kind} />
           </FlexItem>
           <FlexItem>
             <Link
@@ -112,26 +111,32 @@ export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheck
             </Link>
           </FlexItem>
         </Flex>
-        <div className="monitoring-label-list">
-          <SilenceMatchersList silence={obj} />
-        </div>
+        <SilenceMatchersList silence={obj} />
       </Td>
-      <Td className={tableSilenceClasses[2]}>
+      <Td width={15}>
         <SeverityCounts alerts={firingAlerts} />
       </Td>
-      <Td className={classNames(tableSilenceClasses[3], 'pf-v5-u-text-break-word')}>
-        <SilenceState silence={obj} />
-        {state === SilenceStates.Pending && (
-          <StateTimestamp text={t('Starts')} timestamp={startsAt} />
-        )}
-        {state === SilenceStates.Active && <StateTimestamp text={t('Ends')} timestamp={endsAt} />}
-        {state === SilenceStates.Expired && (
-          <StateTimestamp text={t('Expired')} timestamp={endsAt} />
-        )}
+      <Td width={20}>
+        <Stack>
+          <StackItem>
+            <SilenceState silence={obj} />
+          </StackItem>
+          <StackItem>
+            {state === SilenceStates.Pending && (
+              <StateTimestamp text={t('Starts')} timestamp={startsAt} />
+            )}
+            {state === SilenceStates.Active && (
+              <StateTimestamp text={t('Ends')} timestamp={endsAt} />
+            )}
+            {state === SilenceStates.Expired && (
+              <StateTimestamp text={t('Expired')} timestamp={endsAt} />
+            )}
+          </StackItem>
+        </Stack>
       </Td>
-      <Td className={tableSilenceClasses[4]}>{createdBy || '-'}</Td>
-      {perspective === 'acm' && <Td className={tableSilenceClasses[5]}>{cluster}</Td>}
-      <Td className={tableSilenceClasses[6]}>
+      <Td width={15}>{createdBy || '-'}</Td>
+      {perspective === 'acm' && <Td>{cluster}</Td>}
+      <Td width={10}>
         <SilenceDropdown silence={obj} />
       </Td>
     </>
@@ -172,8 +177,8 @@ export const SilenceState = ({ silence }) => {
   const state = silenceState(silence);
   const icon = {
     [SilenceStates.Active]: <GreenCheckCircleIcon />,
-    [SilenceStates.Pending]: <HourglassHalfIcon className="monitoring-state-icon--pending" />,
-    [SilenceStates.Expired]: <BanIcon className="text-muted" data-test-id="ban-icon" />,
+    [SilenceStates.Pending]: <HourglassHalfIcon />,
+    [SilenceStates.Expired]: <BanIcon data-test-id="ban-icon" />,
   }[state];
 
   const getStateKey = (stateData) => {
@@ -250,7 +255,7 @@ const SilenceDropdown_: React.FC<SilenceDropdownProps> = ({ history, silence, to
 };
 export const SilenceDropdown = withRouter(SilenceDropdown_);
 
-const ExpireSilenceModal: React.FC<ExpireSilenceModalProps> = ({
+export const ExpireSilenceModal: React.FC<ExpireSilenceModalProps> = ({
   isOpen,
   setClosed,
   silenceID,
@@ -262,6 +267,7 @@ const ExpireSilenceModal: React.FC<ExpireSilenceModalProps> = ({
   const dispatch = useDispatch();
 
   const [isInProgress, , setInProgress, setNotInProgress] = useBoolean(false);
+  const [success, , setSuccess] = useBoolean(false);
   const [errorMessage, setErrorMessage] = React.useState();
 
   const expireSilence = () => {
@@ -270,55 +276,47 @@ const ExpireSilenceModal: React.FC<ExpireSilenceModalProps> = ({
     consoleFetchJSON
       .delete(url)
       .then(() => {
-        refreshSilences(dispatch, perspective, silencesKey);
-        setClosed();
+        setNotInProgress();
+        setSuccess();
+        setTimeout(() => {
+          refreshSilences(dispatch, perspective, silencesKey);
+          setClosed();
+        }, 1000);
       })
       .catch((err) => {
         setErrorMessage(_.get(err, 'json.error') || err.message || 'Error expiring silence');
         setNotInProgress();
-      })
-      .then(setNotInProgress);
+      });
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      position="top"
-      showClose={false}
-      title={t('Expire silence')}
-      variant={ModalVariant.small}
-    >
-      <Flex direction={{ default: 'column' }}>
-        <FlexItem>{t('Are you sure you want to expire this silence?')}</FlexItem>
-        <Flex direction={{ default: 'column' }}>
-          <FlexItem>
-            {errorMessage && (
-              <PFAlert isInline title={t('An error occurred')} variant="danger">
-                <Panel isScrollable>
-                  <PanelMain maxHeight="100px">
-                    <PanelMainBody className="pf-v5-u-text-break-word monitoring__pre-line">
-                      {errorMessage}
-                    </PanelMainBody>
-                  </PanelMain>
-                </Panel>
-              </PFAlert>
-            )}
-          </FlexItem>
-          <Flex>
-            <FlexItem>{isInProgress && <LoadingInline />}</FlexItem>
-            <FlexItem align={{ default: 'alignRight' }}>
-              <Button variant="secondary" onClick={setClosed}>
-                {t('Cancel')}
-              </Button>
-            </FlexItem>
-            <FlexItem>
-              <Button variant="primary" onClick={expireSilence}>
-                {t('Expire silence')}
-              </Button>
-            </FlexItem>
-          </Flex>
-        </Flex>
-      </Flex>
+    <Modal isOpen={isOpen} position="top" title={t('Expire silence')} variant={ModalVariant.small}>
+      <ModalHeader title={t('Expire Silence')} />
+      <ModalBody>
+        {t('Are you sure you want to expire this silence?')}
+        {errorMessage && (
+          <PFAlert isInline title={t('An error occurred')} variant="danger">
+            <Panel isScrollable>
+              <PanelMain maxHeight="100px">
+                <PanelMainBody>{errorMessage}</PanelMainBody>
+              </PanelMain>
+            </Panel>
+          </PFAlert>
+        )}
+      </ModalBody>
+      <ModalFooter>
+        <Button
+          variant="primary"
+          onClick={expireSilence}
+          isLoading={isInProgress}
+          icon={success ? <CheckCircleIcon /> : null}
+        >
+          {success ? t('Expired') : t('Expire silence')}
+        </Button>
+        <Button variant="secondary" onClick={setClosed}>
+          {t('Cancel')}
+        </Button>
+      </ModalFooter>
     </Modal>
   );
 };

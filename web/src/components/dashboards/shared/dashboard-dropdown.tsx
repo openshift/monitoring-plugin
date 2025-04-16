@@ -1,16 +1,24 @@
 import * as _ from 'lodash-es';
-import { Label, SelectOption } from '@patternfly/react-core';
+import {
+  Label,
+  LabelGroup,
+  Level,
+  LevelItem,
+  SelectOption,
+  Stack,
+  StackItem,
+} from '@patternfly/react-core';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { SingleTypeaheadDropdown } from '../../console/utils/single-typeahead-dropdown';
 import { CombinedDashboardMetadata } from '../perses/hooks/useDashboardsData';
 
-type TagColor = 'red' | 'purple' | 'blue' | 'green' | 'cyan' | 'orange';
-const tagColors: TagColor[] = ['red', 'purple', 'blue', 'green', 'cyan', 'orange'];
+type TagColor = 'red' | 'purple' | 'blue' | 'green' | 'teal' | 'orange';
+const tagColors: TagColor[] = ['red', 'purple', 'blue', 'green', 'teal', 'orange'];
 
 const Tag: React.FC<{ color: TagColor; text: string }> = React.memo(({ color, text }) => (
-  <Label className="monitoring-dashboards__dashboard_dropdown_tag" color={color}>
+  <Label isCompact color={color}>
     {text}
   </Label>
 ));
@@ -31,18 +39,22 @@ export const DashboardDropdown: React.FC<DashboardDropdownProps> = ({
     });
     return (
       <SelectOption value={value} isSelected={isSelected || false} {...rest}>
-        <div className="monitoring-dashboards__dashboard_dropdown_item">
-          <span>{matchedValue?.title}</span>
-          <div className="monitoring-dashboards__dashboard_dropdown_tags">
-            {matchedValue?.tags?.map((tag, i) => (
-              <Tag
-                color={tagColors[_.indexOf(uniqueTags, tag) % tagColors.length]}
-                key={i}
-                text={tag}
-              />
-            ))}
-          </div>
-        </div>
+        <Level hasGutter>
+          <LevelItem>
+            <span>{matchedValue?.title}</span>
+          </LevelItem>
+          <LevelItem>
+            <LabelGroup>
+              {matchedValue?.tags?.map((tag, i) => (
+                <Tag
+                  key={i}
+                  color={tagColors[_.indexOf(uniqueTags, tag) % tagColors.length]}
+                  text={tag}
+                />
+              ))}
+            </LabelGroup>
+          </LevelItem>
+        </Level>
       </SelectOption>
     );
   };
@@ -53,20 +65,22 @@ export const DashboardDropdown: React.FC<DashboardDropdownProps> = ({
   }));
 
   return (
-    <div className="form-group monitoring-dashboards__dropdown-wrap" data-test="dashboard-dropdown">
-      <label className="monitoring-dashboards__dropdown-title" htmlFor="monitoring-board-dropdown">
-        {t('Dashboard')}
-      </label>
-      <SingleTypeaheadDropdown
-        items={selectItems}
-        onChange={onChange}
-        OptionComponent={OptionComponent}
-        selectedKey={selectedKey}
-        hideClearButton
-        resizeToFit
-        clearOnNewItems
-      />
-    </div>
+    <Stack data-test="dashboard-dropdown">
+      <StackItem>
+        <label htmlFor="monitoring-board-dropdown">{t('Dashboard')}</label>
+      </StackItem>
+      <StackItem>
+        <SingleTypeaheadDropdown
+          items={selectItems}
+          onChange={onChange}
+          OptionComponent={OptionComponent}
+          selectedKey={selectedKey}
+          hideClearButton
+          resizeToFit
+          clearOnNewItems
+        />
+      </StackItem>
+    </Stack>
   );
 };
 

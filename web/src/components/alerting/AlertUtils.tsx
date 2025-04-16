@@ -4,16 +4,12 @@ import {
   Alert,
   AlertSeverity,
   AlertStates,
-  BlueInfoCircleIcon,
   PrometheusLabels,
-  RedExclamationCircleIcon,
-  ResourceStatus,
   RowFilter,
   Rule,
   Timestamp,
-  YellowExclamationTriangleIcon,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { AlertSource, MonitoringResource } from '../types';
+import { AlertSource } from '../types';
 import * as _ from 'lodash-es';
 import { useTranslation } from 'react-i18next';
 import {
@@ -24,14 +20,33 @@ import {
   DescriptionListGroup,
   DescriptionListTerm,
   DescriptionListDescription,
+  Label,
+  Tooltip,
 } from '@patternfly/react-core';
-import classNames from 'classnames';
-import { BellIcon, BellSlashIcon, OutlinedBellIcon } from '@patternfly/react-icons';
+import {
+  BellIcon,
+  BellSlashIcon,
+  ExclamationCircleIcon,
+  ExclamationTriangleIcon,
+  InfoCircleIcon,
+  OutlinedBellIcon,
+  SeverityUndefinedIcon,
+} from '@patternfly/react-icons';
 import { FormatSeriesTitle, QueryBrowser } from '../query-browser';
 import { Link } from 'react-router-dom';
 import { TFunction } from 'i18next';
 import { getQueryBrowserUrl, usePerspective } from '../hooks/usePerspective';
 import { NamespaceModel } from '../console/models';
+import {
+  t_global_border_color_status_info_default,
+  t_global_color_status_danger_default,
+  t_global_color_status_info_default,
+  t_global_color_status_warning_default,
+  t_global_icon_color_disabled,
+  t_global_icon_color_severity_undefined_default,
+  t_global_text_color_disabled,
+  t_global_text_color_subtle,
+} from '@patternfly/react-tokens';
 
 export const getAdditionalSources = <T extends Alert | Rule>(
   data: Array<T>,
@@ -88,63 +103,34 @@ type ActionWithCallBack = Omit<Action, 'cta'> & { cta: () => void };
 export const isActionWithCallback = (action: Action): action is ActionWithCallBack =>
   typeof action.cta === 'function';
 
-export const MonitoringResourceIcon: React.FC<MonitoringResourceIconProps> = ({
-  className,
-  resource,
-}) => (
-  <span
-    className={classNames(
-      // Leave to keep compatibility with console looks
-      `co-m-resource-icon co-m-resource-${resource.kind.toLowerCase()}`,
-      className,
-    )}
-    title={resource.label}
-  >
-    {resource.abbr}
-  </span>
-);
-
-type MonitoringResourceIconProps = {
-  className?: string;
-  resource: MonitoringResource;
+const getSeverityKey = (severity: string, t) => {
+  switch (severity) {
+    case AlertSeverity.Critical:
+      return t('Critical');
+    case AlertSeverity.Info:
+      return t('Info');
+    case AlertSeverity.Warning:
+      return t('Warning');
+    case AlertSeverity.None:
+      return t('None');
+    default:
+      return severity;
+  }
 };
 
-export const Severity: React.FC<{ severity: string }> = React.memo(({ severity }) => {
-  const { t } = useTranslation(process.env.I18N_NAMESPACE);
-
-  const getSeverityKey = (severityData: string) => {
-    switch (severityData) {
-      case AlertSeverity.Critical:
-        return t('Critical');
-      case AlertSeverity.Info:
-        return t('Info');
-      case AlertSeverity.Warning:
-        return t('Warning');
-      case AlertSeverity.None:
-        return t('None');
-      default:
-        return severityData;
-    }
-  };
-
-  return _.isNil(severity) ? (
-    <>-</>
-  ) : (
-    <>
-      <SeverityIcon severity={severity} /> {getSeverityKey(severity)}
-    </>
-  );
-});
-
 export const SeverityIcon: React.FC<{ severity: string }> = React.memo(({ severity }) => {
-  const Icon =
-    {
-      [AlertSeverity.Critical]: RedExclamationCircleIcon,
-      [AlertSeverity.Info]: BlueInfoCircleIcon,
-      [AlertSeverity.None]: BlueInfoCircleIcon,
-      [AlertSeverity.Warning]: YellowExclamationTriangleIcon,
-    }[severity] || YellowExclamationTriangleIcon;
-  return <Icon />;
+  switch (severity) {
+    case AlertSeverity.Critical:
+      return <ExclamationCircleIcon color={t_global_color_status_danger_default.var} />;
+    case AlertSeverity.Warning:
+      return <ExclamationTriangleIcon color={t_global_color_status_warning_default.var} />;
+    case AlertSeverity.Info:
+      return <InfoCircleIcon color={t_global_color_status_info_default.var} />;
+    case AlertSeverity.None:
+      return <SeverityUndefinedIcon color={t_global_icon_color_severity_undefined_default.var} />;
+    default:
+      return <BellIcon color={t_global_border_color_status_info_default.var} />;
+  }
 });
 
 export const AlertState: React.FC<AlertStateProps> = React.memo(({ state }) => {
@@ -153,9 +139,13 @@ export const AlertState: React.FC<AlertStateProps> = React.memo(({ state }) => {
   const icon = <AlertStateIcon state={state} />;
 
   return icon ? (
-    <>
+    <span
+      style={{
+        color: state === AlertStates.Silenced ? t_global_text_color_disabled.var : undefined,
+      }}
+    >
       {icon} {getAlertStateKey(state, t)}
-    </>
+    </span>
   ) : null;
 });
 
@@ -170,7 +160,7 @@ export const AlertStateIcon: React.FC<{ state: string }> = React.memo(({ state }
     case AlertStates.Pending:
       return <OutlinedBellIcon />;
     case AlertStates.Silenced:
-      return <BellSlashIcon className="text-muted" />;
+      return <BellSlashIcon color={t_global_icon_color_disabled.var} />;
     default:
       return null;
   }
@@ -202,18 +192,38 @@ export const AlertStateDescription: React.FC<{ alert: Alert }> = ({ alert }) => 
 };
 
 export const StateTimestamp = ({ text, timestamp }) => (
-  <div className="text-muted monitoring-timestamp">
+  <div style={{ color: t_global_text_color_subtle.var }}>
     {text}&nbsp;
-    <Timestamp timestamp={timestamp} />
+    <Timestamp timestamp={timestamp} className="pf-v6-u-display-inline" />
   </div>
 );
 
-export const SeverityBadge: React.FC<{ severity: string }> = React.memo(({ severity }) =>
-  _.isNil(severity) || severity === 'none' ? null : (
-    <ResourceStatus>
-      <Severity severity={severity} />
-    </ResourceStatus>
-  ),
+export const SeverityBadge: React.FC<{ severity: string; count?: number }> = React.memo(
+  ({ severity, count }) => {
+    const { t } = useTranslation(process.env.I18N_NAMESPACE);
+
+    if (_.isNil(severity)) return null;
+
+    const labelText = count ? count : getSeverityKey(severity, t);
+    switch (severity) {
+      case AlertSeverity.Critical:
+        return <Label status="danger">{labelText}</Label>;
+      case AlertSeverity.Warning:
+        return <Label status="warning">{labelText}</Label>;
+      case AlertSeverity.Info:
+        return <Label status="info">{labelText}</Label>;
+      case AlertSeverity.None:
+        return (
+          <Label variant="outline">
+            <SeverityUndefinedIcon color={t_global_icon_color_severity_undefined_default.var} />
+            &nbsp;
+            {labelText}
+          </Label>
+        );
+      default:
+        return <Label status="custom">{labelText}</Label>;
+    }
+  },
 );
 
 export const PopoverField: React.FC<{ bodyContent: React.ReactNode; label: string }> = ({
@@ -221,9 +231,7 @@ export const PopoverField: React.FC<{ bodyContent: React.ReactNode; label: strin
   label,
 }) => (
   <Popover headerContent={label} bodyContent={bodyContent}>
-    <Button variant="plain" className="details-item__popover-button">
-      {label}
-    </Button>
+    <Button icon={label} variant="plain" />
   </Popover>
 );
 
@@ -242,11 +250,8 @@ export const Graph: React.FC<GraphProps> = ({
 
   const GraphLink = () =>
     query && perspective !== 'acm' ? (
-      <Link
-        aria-label={t('View in Metrics')}
-        to={getQueryBrowserUrl(perspective, query, namespace)}
-      >
-        {t('View in Metrics')}
+      <Link aria-label={t('Inspect')} to={getQueryBrowserUrl(perspective, query, namespace)}>
+        {t('Inspect')}
       </Link>
     ) : null;
 
@@ -278,7 +283,7 @@ export const SeverityHelp: React.FC = () => {
     <DescriptionList isCompact>
       <DescriptionListGroup>
         <DescriptionListTerm>
-          <SeverityIcon severity={AlertSeverity.Critical} /> <strong>{t('Critical: ')}</strong>
+          <SeverityBadge severity={AlertSeverity.Critical} />
         </DescriptionListTerm>
         <DescriptionListDescription>
           {t(
@@ -288,7 +293,7 @@ export const SeverityHelp: React.FC = () => {
       </DescriptionListGroup>
       <DescriptionListGroup>
         <DescriptionListTerm>
-          <SeverityIcon severity={AlertSeverity.Warning} /> <strong>{t('Warning: ')}</strong>
+          <SeverityBadge severity={AlertSeverity.Warning} />
         </DescriptionListTerm>
         <DescriptionListDescription>
           {t(
@@ -298,7 +303,7 @@ export const SeverityHelp: React.FC = () => {
       </DescriptionListGroup>
       <DescriptionListGroup>
         <DescriptionListTerm>
-          <SeverityIcon severity={AlertSeverity.Info} /> <strong>{t('Info: ')}</strong>
+          <SeverityBadge severity={AlertSeverity.Info} />
         </DescriptionListTerm>
         <DescriptionListDescription>
           {t('The alert is provided for informational purposes only.')}
@@ -306,13 +311,16 @@ export const SeverityHelp: React.FC = () => {
       </DescriptionListGroup>
       <DescriptionListGroup>
         <DescriptionListTerm>
-          <SeverityIcon severity={AlertSeverity.None} /> <strong>{t('None: ')}</strong>
+          <SeverityBadge severity={AlertSeverity.None} />
         </DescriptionListTerm>
         <DescriptionListDescription>
           {t('The alert has no defined severity.')}
         </DescriptionListDescription>
       </DescriptionListGroup>
       <DescriptionListGroup>
+        <DescriptionListTerm>
+          <SeverityBadge severity="Custom" />
+        </DescriptionListTerm>
         <DescriptionListDescription>
           {t('You can also create custom severity definitions for user workload alerts.')}
         </DescriptionListDescription>
@@ -380,9 +388,12 @@ export const SeverityCounts: React.FC<{ alerts: Alert[] }> = ({ alerts }) => {
   return (
     <>
       {severities.map((s) => (
-        <span className="monitoring-icon-wrap" key={s}>
-          <SeverityIcon severity={s} /> {counts[s]}
-        </span>
+        <Tooltip
+          key={s}
+          content={`${counts[s]} ${s ? s[0].toUpperCase() + s.slice(1) : 'Unknown'} Alerts`}
+        >
+          <SeverityBadge severity={s} count={counts[s]} />
+        </Tooltip>
       ))}
     </>
   );

@@ -9,16 +9,18 @@ import {
   ChartLegend,
   ChartTooltip,
   ChartVoronoiContainer,
-} from '@patternfly/react-charts';
-import { Card, CardTitle, EmptyState, EmptyStateBody } from '@patternfly/react-core';
+} from '@patternfly/react-charts/victory';
+import { Card, CardBody, CardTitle, EmptyState, EmptyStateBody } from '@patternfly/react-core';
 import { createAlertsChartBars, formatDate, generateDateArray } from '../utils';
 import { getResizeObserver } from '@patternfly/react-core';
 import { useDispatch, useSelector } from 'react-redux';
-import global_danger_color_100 from '@patternfly/react-tokens/dist/esm/global_danger_color_100';
-import global_info_color_100 from '@patternfly/react-tokens/dist/esm/global_info_color_100';
-import global_warning_color_100 from '@patternfly/react-tokens/dist/esm/global_warning_color_100';
 import * as _ from 'lodash-es';
 import { setAlertsAreLoading } from '../../../actions/observe';
+import {
+  t_global_color_status_danger_default,
+  t_global_color_status_info_default,
+  t_global_color_status_warning_default,
+} from '@patternfly/react-tokens';
 
 const AlertsChart = ({ chartDays, theme }) => {
   const dispatch = useDispatch();
@@ -89,7 +91,7 @@ const AlertsChart = ({ chartDays, theme }) => {
             <EmptyStateBody>Select an incident in the chart above to see alerts.</EmptyStateBody>
           </EmptyState>
         ) : (
-          <div
+          <CardBody
             style={{
               height: { chartContainerHeight },
               width: '100%',
@@ -99,7 +101,13 @@ const AlertsChart = ({ chartDays, theme }) => {
               containerComponent={
                 <ChartVoronoiContainer
                   labelComponent={
-                    <ChartTooltip constrainToVisibleArea labelComponent={<ChartLabel />} />
+                    <ChartTooltip
+                      orientation="top"
+                      dx={({ x, x0 }) => -(x - x0) / 2}
+                      dy={-5} // Position tooltip so pointer appears above bar
+                      constrainToVisibleArea
+                      labelComponent={<ChartLabel />}
+                    />
                   }
                   labels={({ datum }) => {
                     if (datum.nodata) {
@@ -122,19 +130,19 @@ const AlertsChart = ({ chartDays, theme }) => {
                 {
                   name: 'Critical',
                   symbol: {
-                    fill: theme === 'light' ? global_danger_color_100.var : '#C9190B',
+                    fill: t_global_color_status_danger_default.var,
                   },
                 },
                 {
                   name: 'Info',
                   symbol: {
-                    fill: theme === 'light' ? global_info_color_100.var : '#06C',
+                    fill: t_global_color_status_info_default.var,
                   },
                 },
                 {
                   name: 'Warning',
                   symbol: {
-                    fill: theme === 'light' ? global_warning_color_100.var : '#F0AB00',
+                    fill: t_global_color_status_warning_default.var,
                   },
                 },
               ]}
@@ -179,6 +187,7 @@ const AlertsChart = ({ chartDays, theme }) => {
                           fill: ({ datum }) => datum.fill,
                           stroke: ({ datum }) => datum.fill,
                           fillOpacity: ({ datum }) => (datum.nodata ? 0 : 1),
+                          cursor: 'pointer',
                         },
                       }}
                     />
@@ -186,7 +195,7 @@ const AlertsChart = ({ chartDays, theme }) => {
                 })}
               </ChartGroup>
             </Chart>
-          </div>
+          </CardBody>
         )}
       </div>
     </Card>

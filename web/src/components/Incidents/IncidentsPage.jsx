@@ -1,6 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import * as React from 'react';
-import { IncidentsHeader } from './IncidentsHeader/IncidentsHeader';
 import { useSafeFetch } from '../console/utils/safe-fetch-hook';
 import { createAlertsQuery, fetchDataForIncidentsAndAlerts } from './api';
 import { useTranslation } from 'react-i18next';
@@ -19,7 +18,8 @@ import {
   Badge,
   Title,
   PageSection,
-  PageSectionVariants,
+  Stack,
+  StackItem,
 } from '@patternfly/react-core';
 import { Helmet } from 'react-helmet';
 import { IncidentsTable } from './IncidentsTable';
@@ -35,7 +35,6 @@ import {
   onIncidentFiltersSelect,
   parseUrlParams,
   updateBrowserUrl,
-  usePatternFlyTheme,
 } from './utils';
 import { groupAlertsForTable, processAlerts } from './processAlerts';
 import { CompressArrowsAltIcon, CompressIcon, FilterIcon } from '@patternfly/react-icons';
@@ -53,6 +52,9 @@ import { usePerspective } from '../hooks/usePerspective';
 import { changeDaysFilter } from './utils';
 import { parsePrometheusDuration } from '../console/console-shared/src/datetime/prometheus';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
+import IncidentsChart from './IncidentsChart/IncidentsChart';
+import AlertsChart from './AlertsChart/AlertsChart';
+import { usePatternFlyTheme } from '../hooks/usePatternflyTheme';
 
 const IncidentsPage = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -278,7 +280,7 @@ const IncidentsPage = () => {
       <Helmet>
         <title>{title}</title>
       </Helmet>
-      <PageSection variant={PageSectionVariants.light}>
+      <PageSection hasBodyWrapper={false}>
         <Title headingLevel="h1">{t('Incidents')}</Title>
       </PageSection>
       {alertsAreLoading && incidentsAreLoading ? (
@@ -286,10 +288,9 @@ const IncidentsPage = () => {
           <Spinner aria-label="incidents-chart-spinner" />
         </Bullseye>
       ) : (
-        <PageSection variant={PageSectionVariants.light}>
+        <PageSection hasBodyWrapper={false}>
           <Toolbar
             id="toolbar-with-filter"
-            className="pf-v5-m-toggle-group-container"
             collapseListedFiltersBreakpoint="xl"
             clearAllFilters={() =>
               onDeleteIncidentFilterChip('', '', incidentsActiveFilters, dispatch)
@@ -298,11 +299,11 @@ const IncidentsPage = () => {
             <ToolbarContent>
               <ToolbarItem>
                 <ToolbarFilter
-                  chips={incidentsActiveFilters.incidentFilters}
-                  deleteChip={(category, chip) =>
+                  labels={incidentsActiveFilters.incidentFilters}
+                  deleteLabel={(category, chip) =>
                     onDeleteIncidentFilterChip(category, chip, incidentsActiveFilters, dispatch)
                   }
-                  deleteChipGroup={(category) =>
+                  deleteLabelGroup={(category) =>
                     onDeleteGroupIncidentFilterChip(category, incidentsActiveFilters, dispatch)
                   }
                   categoryName="Filters"
@@ -407,7 +408,7 @@ const IncidentsPage = () => {
                   </SelectList>
                 </Select>
               </ToolbarItem>
-              <ToolbarItem align={{ default: 'alignRight' }}>
+              <ToolbarItem align={{ default: 'alignEnd' }}>
                 <Button
                   variant="link"
                   icon={hideCharts ? <CompressArrowsAltIcon /> : <CompressIcon />}
@@ -418,17 +419,25 @@ const IncidentsPage = () => {
               </ToolbarItem>
             </ToolbarContent>
           </Toolbar>
-          {hideCharts ? (
-            ''
-          ) : (
-            <IncidentsHeader
-              alertsData={alertsData}
-              incidentsData={filteredData}
-              chartDays={timeRanges.length}
-              theme={theme}
-            />
-          )}
-          <IncidentsTable />
+          <Stack hasGutter>
+            {!hideCharts && (
+              <>
+                <StackItem>
+                  <IncidentsChart
+                    incidentsData={filteredData}
+                    chartDays={timeRanges.length}
+                    theme={theme}
+                  />
+                </StackItem>
+                <StackItem>
+                  <AlertsChart chartDays={timeRanges.length} theme={theme} />
+                </StackItem>
+              </>
+            )}
+            <StackItem>
+              <IncidentsTable />
+            </StackItem>
+          </Stack>
         </PageSection>
       )}
     </>

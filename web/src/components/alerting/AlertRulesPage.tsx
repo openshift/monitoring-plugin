@@ -2,6 +2,7 @@ import {
   AlertStates,
   ListPageFilter,
   PrometheusAlert,
+  ResourceIcon,
   RowFilter,
   RowProps,
   Rule,
@@ -31,15 +32,14 @@ import {
   AlertStateIcon,
   getAdditionalSources,
   getAlertStateKey,
-  MonitoringResourceIcon,
-  Severity,
+  SeverityBadge,
   SilencesNotLoadedWarning,
 } from '../alerting/AlertUtils';
 import { MonitoringState } from '../../reducers/observe';
 import { severityRowFilter } from './AlertUtils';
 import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
-import { Flex, FlexItem, PageSection, PageSectionVariants } from '@patternfly/react-core';
+import { Flex, FlexItem, PageSection, Truncate } from '@patternfly/react-core';
 
 const StateCounts: React.FC<{ alerts: PrometheusAlert[] }> = ({ alerts }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -52,7 +52,7 @@ const StateCounts: React.FC<{ alerts: PrometheusAlert[] }> = ({ alerts }) => {
   return (
     <>
       {states.map((s) => (
-        <div className="monitoring-icon-wrap" key={s}>
+        <div key={s}>
           <AlertStateIcon state={s} /> {counts[s]} {getAlertStateKey(s, t)}
         </div>
       ))}
@@ -81,13 +81,6 @@ const alertStateFilter = (t): RowFilter => ({
   type: 'alerting-rule-has-alert-state',
 });
 
-const tableRuleClasses = [
-  'pf-v5-u-w-50 pf-u-w-33-on-sm', // Name
-  'pf-m-hidden pf-m-visible-on-sm', // Severity
-  '', // Alert state
-  'pf-m-hidden pf-m-visible-on-sm', // Source
-];
-
 const RuleTableRow: React.FC<RowProps<Rule>> = ({ obj }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
@@ -96,25 +89,25 @@ const RuleTableRow: React.FC<RowProps<Rule>> = ({ obj }) => {
 
   return (
     <>
-      <Td className={tableRuleClasses[0]} title={title}>
+      <Td title={title} width={50}>
         <Flex spaceItems={{ default: 'spaceItemsNone' }} flexWrap={{ default: 'nowrap' }}>
           <FlexItem>
-            <MonitoringResourceIcon resource={RuleResource} />
+            <ResourceIcon kind={RuleResource.kind} />
           </FlexItem>
           <FlexItem>
-            <Link to={getRuleUrl(perspective, obj)} className="pf-v5-u-text-break-word">
-              {obj.name}
+            <Link to={getRuleUrl(perspective, obj)}>
+              <Truncate content={obj.name} />
             </Link>
           </FlexItem>
         </Flex>
       </Td>
-      <Td className={tableRuleClasses[1]} title={title}>
-        <Severity severity={obj.labels?.severity} />
+      <Td title={title} width={20}>
+        <SeverityBadge severity={obj.labels?.severity} />
       </Td>
-      <Td className={tableRuleClasses[2]} title={title}>
+      <Td title={title} width={15}>
         {_.isEmpty(obj.alerts) ? '-' : <StateCounts alerts={obj.alerts} />}
       </Td>
-      <Td className={tableRuleClasses[3]} title={title}>
+      <Td title={title} width={15}>
         {alertingRuleSource(obj) === AlertSource.User ? t('User') : t('Platform')}
       </Td>
     </>
@@ -173,34 +166,34 @@ const AlertRulesPage_: React.FC = () => {
     () => [
       {
         id: 'name',
-        props: { className: tableRuleClasses[0] },
         sort: 'name',
         title: t('Name'),
         transforms: [sortable],
+        props: { width: 50 },
       },
       {
         id: 'severity',
-        props: { className: tableRuleClasses[1] },
         sort: (rules: Rule[], direction: 'asc' | 'desc') =>
           _.orderBy(rules, alertSeverityOrder, [direction]) as Rule[],
         title: t('Severity'),
         transforms: [sortable],
+        props: { width: 20 },
       },
       {
         id: 'state',
-        props: { className: tableRuleClasses[2] },
         sort: (rules: Rule[], direction: 'asc' | 'desc') =>
           _.orderBy(rules, alertingRuleStateOrder, [direction]),
         title: t('Alert state'),
         transforms: [sortable],
+        props: { width: 15 },
       },
       {
         id: 'source',
-        props: { className: tableRuleClasses[3] },
         sort: (rules: Rule[], direction: 'asc' | 'desc') =>
           _.orderBy(rules, alertingRuleSource, [direction]),
         title: t('Source'),
         transforms: [sortable],
+        props: { width: 15 },
       },
     ],
     [t],
@@ -211,7 +204,7 @@ const AlertRulesPage_: React.FC = () => {
       <Helmet>
         <title>Alerting</title>
       </Helmet>
-      <PageSection variant={PageSectionVariants.light}>
+      <PageSection hasBodyWrapper={false}>
         <ListPageFilter
           data={staticData}
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment

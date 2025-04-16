@@ -13,13 +13,11 @@ import {
   MenuList,
   TextInput,
   EmptyStateActions,
-  EmptyStateHeader,
   EmptyStateFooter,
 } from '@patternfly/react-core';
 import fuzzysearch from 'fuzzysearch';
 import { useTranslation } from 'react-i18next';
 import ProjectMenuToggle from './ProjectMenuToggle';
-import './ProjectDropdown.scss';
 import { alphanumericCompare } from './utils';
 import { usePerses } from '../hooks/usePerses';
 
@@ -30,16 +28,11 @@ export const NoResults: React.FC<{
   return (
     <>
       <Divider />
-      <EmptyState>
-        <EmptyStateHeader titleText={<>{t('No projects found')}</>} headingLevel="h4" />
+      <EmptyState headingLevel="h4" titleText={<>{t('No projects found')}</>}>
         <EmptyStateBody>{t('No results match the filter criteria.')}</EmptyStateBody>
         <EmptyStateFooter>
           <EmptyStateActions>
-            <Button
-              variant="link"
-              onClick={onClear}
-              className="monitoring__project-selector__clear-filters"
-            >
+            <Button variant="link" onClick={onClear}>
               {t('Clear filters')}
             </Button>
           </EmptyStateActions>
@@ -157,8 +150,8 @@ const ProjectMenu: React.FC<{
 
   return (
     <Menu
-      className="monitoring__project-dropdown__menu"
       ref={menuRef}
+      className="co-namespace-dropdown__menu"
       onSelect={(event: React.MouseEvent, itemId: string) => {
         setOpen(false);
         onSelect(event, itemId);
@@ -167,7 +160,7 @@ const ProjectMenu: React.FC<{
       data-test="project-dropdown-menu"
       isScrollable
     >
-      <MenuContent maxMenuHeight="60vh">
+      <MenuContent maxMenuHeight="60vh" className="co-namespace-dropdown__menu-content">
         <Filter filterRef={filterRef} onFilterChange={setFilterText} filterText={filterText} />
         {filteredOptions.length === 0 ? (
           <NoResults
@@ -217,7 +210,7 @@ const ProjectDropdown: React.FC<ProjectDropdownProps> = ({
   const title = selectedProject?.spec?.display?.name ?? t('Dashboards');
 
   return (
-    <div className="monitoring__project-dropdown">
+    <div className="co-namespace-dropdown">
       <ProjectMenuToggle
         disabled={disabled}
         menu={<ProjectMenu {...menuProps} />}

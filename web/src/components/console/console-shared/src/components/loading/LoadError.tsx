@@ -4,7 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { ConsoleEmptyState } from '../empty-state/ConsoleEmptyState';
 
 export const LoadError: React.FC<LoadErrorProps> = ({ label, children, canRetry = true }) => {
-  const { t } = useTranslation('console-shared');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
+
   const actions = canRetry
     ? [
         <Button

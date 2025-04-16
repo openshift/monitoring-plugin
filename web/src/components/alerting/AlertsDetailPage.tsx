@@ -20,12 +20,10 @@ import {
   Rule,
   useResolvedExtensions,
   ResourceLink,
-  Silence,
-  TableColumn,
-  VirtualizedTable,
   useActiveNamespace,
   AlertingRuleChartExtension,
   isAlertingRuleChart,
+  ResourceIcon,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
 import { ExternalLink, LinkifyExternal } from '../console/utils/link';
@@ -48,7 +46,6 @@ import {
   PageBreadcrumb,
   PageGroup,
   PageSection,
-  PageSectionVariants,
   Popover,
   Split,
   SplitItem,
@@ -67,8 +64,6 @@ import {
   Graph,
   isActionWithCallback,
   isActionWithHref,
-  MonitoringResourceIcon,
-  Severity,
   SeverityBadge,
   SeverityHelp,
   SourceHelp,
@@ -85,10 +80,11 @@ import {
   StatefulSetModel,
 } from '../console/models';
 import { Labels } from '../labels';
-import { SilenceTableRow, tableSilenceClasses } from './SilencesUtils';
 import { MonitoringState } from '../../reducers/observe';
 import { StatusBox } from '../console/console-shared/src/components/status/StatusBox';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
+import { Helmet } from 'react-helmet';
+import { SilencedByList } from './AlertDetail/SilencedByTable';
 
 const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -140,6 +136,9 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
 
   return (
     <>
+      <Helmet>
+        <title>{t('{{name}} details', { name: labels?.alertname || AlertResource.label })}</title>
+      </Helmet>
       <StatusBox
         data={alert}
         label={AlertResource.label}
@@ -147,31 +146,31 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
         loadError={alerts?.loadError}
       >
         <PageGroup>
-          <PageBreadcrumb>
-            <Breadcrumb className="monitoring-breadcrumbs">
+          <PageBreadcrumb hasBodyWrapper={false}>
+            <Breadcrumb>
               <BreadcrumbItem>
-                <Link
-                  className="pf-v5-c-breadcrumb__link"
-                  to={getAlertsUrl(perspective, namespace)}
-                >
-                  {t('Alerts')}
-                </Link>
+                <Link to={getAlertsUrl(perspective, namespace)}>{t('Alerts')}</Link>
               </BreadcrumbItem>
               <BreadcrumbItem isActive>{t('Alert details')}</BreadcrumbItem>
             </Breadcrumb>
           </PageBreadcrumb>
-          <PageSection variant={PageSectionVariants.light}>
+          <PageSection hasBodyWrapper={false}>
             <Split hasGutter>
               <SplitItem>
-                <Title headingLevel="h1">
-                  {/* Leave to keep compatibility with console looks */}
-                  <MonitoringResourceIcon
-                    className="co-m-resource-icon--lg"
-                    resource={AlertResource}
-                  />
-                  {labels?.alertname}
-                  <SeverityBadge severity={labels?.severity} />
-                </Title>
+                <Flex>
+                  <FlexItem
+                    alignSelf={{ default: 'alignSelfCenter' }}
+                    spacer={{ default: 'spacerNone' }}
+                  >
+                    <ResourceIcon kind={AlertResource.kind} />
+                  </FlexItem>
+                  <FlexItem>
+                    <Title headingLevel="h1">{rule?.name}</Title>
+                  </FlexItem>
+                  <FlexItem alignSelf={{ default: 'alignSelfCenter' }}>
+                    <SeverityBadge severity={rule?.labels?.severity} />
+                  </FlexItem>
+                </Flex>
                 <HeaderAlertMessage alert={alert} rule={rule} />
               </SplitItem>
               <SplitItem isFilled />
@@ -189,207 +188,197 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
               )}
             </Split>
           </PageSection>
-        </PageGroup>
-        <Divider />
-        <PageSection variant={PageSectionVariants.light}>
-          <Toolbar className="monitoring-alert-detail-toolbar">
-            <ToolbarContent>
-              <ToolbarItem variant="label">
-                <Title headingLevel="h2">{t('Alert details')}</Title>
-              </ToolbarItem>
-              <ToolbarGroup align={{ default: 'alignRight' }}>
-                <ActionServiceProvider context={{ 'alert-detail-toolbar-actions': { alert } }}>
-                  {({ actions, loaded }) =>
-                    loaded
-                      ? actions.map((action) => {
-                          if (isActionWithHref(action)) {
-                            return (
-                              <ToolbarItem
-                                key={action.id}
-                                spacer={{ default: 'spacerNone' }}
-                                className="pf-v5-u-px-md"
-                              >
-                                <Link to={action.cta.href}>{action.label}</Link>
-                              </ToolbarItem>
-                            );
-                          } else if (isActionWithCallback(action)) {
-                            return (
-                              <ToolbarItem key={action.id} spacer={{ default: 'spacerNone' }}>
-                                <Button variant="link" onClick={action.cta}>
-                                  {action.label}
-                                </Button>
-                              </ToolbarItem>
-                            );
-                          }
-
-                          return null;
-                        })
-                      : null
-                  }
-                </ActionServiceProvider>
-                <ToolbarItem>
-                  <ToggleGraph />
+          <Divider />
+          <PageSection hasBodyWrapper={false}>
+            <Toolbar>
+              <ToolbarContent>
+                <ToolbarItem variant="label">
+                  <Title headingLevel="h2">{t('Alert details')}</Title>
                 </ToolbarItem>
-              </ToolbarGroup>
-            </ToolbarContent>
-          </Toolbar>
-          <Grid sm={12} md={6} hasGutter>
-            <GridItem span={12}>
-              {!sourceId || sourceId === 'prometheus' ? (
-                <Graph
-                  filterLabels={labels}
-                  namespace={namespace}
-                  query={rule?.query}
-                  ruleDuration={rule?.duration}
-                />
-              ) : AlertsChart && !hideGraphs ? (
-                <AlertsChart rule={rule} />
-              ) : null}
-            </GridItem>
-            <GridItem>
-              <DescriptionList>
-                <DescriptionListGroup>
-                  <DescriptionListTerm>{t('Name')}</DescriptionListTerm>
-                  <DescriptionListDescription>{labels?.alertname}</DescriptionListDescription>
-                </DescriptionListGroup>
-                <DescriptionListGroup>
-                  <DescriptionListTermHelpText>
-                    <Popover
-                      headerContent={<div>{t('Severity')}</div>}
-                      bodyContent={<SeverityHelp />}
-                    >
-                      <DescriptionListTermHelpTextButton>
-                        {' '}
-                        {t('Severity')}
-                      </DescriptionListTermHelpTextButton>
-                    </Popover>
-                  </DescriptionListTermHelpText>
-                  <DescriptionListDescription>
-                    <Severity severity={labels?.severity} />
-                  </DescriptionListDescription>
-                </DescriptionListGroup>
-                {alert?.annotations?.description && (
+                <ToolbarGroup align={{ default: 'alignEnd' }}>
+                  <ActionServiceProvider context={{ 'alert-detail-toolbar-actions': { alert } }}>
+                    {({ actions, loaded }) =>
+                      loaded
+                        ? actions.map((action) => {
+                            if (isActionWithHref(action)) {
+                              return (
+                                <ToolbarItem key={action.id} gap={{ default: 'gapNone' }}>
+                                  <Link to={action.cta.href}>{action.label}</Link>
+                                </ToolbarItem>
+                              );
+                            } else if (isActionWithCallback(action)) {
+                              return (
+                                <ToolbarItem key={action.id} gap={{ default: 'gapNone' }}>
+                                  <Button variant="link" onClick={action.cta}>
+                                    {action.label}
+                                  </Button>
+                                </ToolbarItem>
+                              );
+                            }
+
+                            return null;
+                          })
+                        : null
+                    }
+                  </ActionServiceProvider>
+                  <ToolbarItem>
+                    <ToggleGraph />
+                  </ToolbarItem>
+                </ToolbarGroup>
+              </ToolbarContent>
+            </Toolbar>
+            <Grid sm={12} md={6} hasGutter>
+              <GridItem span={12}>
+                {!sourceId || sourceId === 'prometheus' ? (
+                  <Graph
+                    filterLabels={labels}
+                    namespace={namespace}
+                    query={rule?.query}
+                    ruleDuration={rule?.duration}
+                  />
+                ) : AlertsChart && !hideGraphs ? (
+                  <AlertsChart rule={rule} />
+                ) : null}
+              </GridItem>
+              <GridItem>
+                <DescriptionList>
                   <DescriptionListGroup>
-                    <DescriptionListTerm>{t('Description')}</DescriptionListTerm>
+                    <DescriptionListTerm>{t('Name')}</DescriptionListTerm>
+                    <DescriptionListDescription>{labels?.alertname}</DescriptionListDescription>
+                  </DescriptionListGroup>
+                  <DescriptionListGroup>
+                    <DescriptionListTermHelpText>
+                      <Popover
+                        headerContent={<div>{t('Severity')}</div>}
+                        bodyContent={<SeverityHelp />}
+                      >
+                        <DescriptionListTermHelpTextButton>
+                          {t('Severity')}
+                        </DescriptionListTermHelpTextButton>
+                      </Popover>
+                    </DescriptionListTermHelpText>
                     <DescriptionListDescription>
-                      <AlertMessage
-                        alertText={alert.annotations.description}
-                        labels={labels}
-                        template={rule?.annotations?.description}
-                      />
+                      <SeverityBadge severity={labels?.severity} />
                     </DescriptionListDescription>
                   </DescriptionListGroup>
-                )}
-                {alert?.annotations?.summary && (
+                  {alert?.annotations?.description && (
+                    <DescriptionListGroup>
+                      <DescriptionListTerm>{t('Description')}</DescriptionListTerm>
+                      <DescriptionListDescription>
+                        <AlertMessage
+                          alertText={alert.annotations.description}
+                          labels={labels}
+                          template={rule?.annotations?.description}
+                        />
+                      </DescriptionListDescription>
+                    </DescriptionListGroup>
+                  )}
+                  {alert?.annotations?.summary && (
+                    <DescriptionListGroup>
+                      <DescriptionListTerm>{t('Summary')}</DescriptionListTerm>
+                      <DescriptionListDescription>
+                        {alert.annotations.summary}
+                      </DescriptionListDescription>
+                    </DescriptionListGroup>
+                  )}
+                  {alert?.annotations?.message && (
+                    <DescriptionListGroup>
+                      <DescriptionListTerm>{t('Message')}</DescriptionListTerm>
+                      <DescriptionListDescription>
+                        <AlertMessage
+                          alertText={alert.annotations.message}
+                          labels={labels}
+                          template={rule?.annotations?.message}
+                        />
+                      </DescriptionListDescription>
+                    </DescriptionListGroup>
+                  )}
+                  {runbookURL && (
+                    <DescriptionListGroup>
+                      <DescriptionListTerm>{t('Runbook')}</DescriptionListTerm>
+                      <DescriptionListDescription>
+                        <ExternalLink href={runbookURL} text={runbookURL} />
+                      </DescriptionListDescription>
+                    </DescriptionListGroup>
+                  )}
+                </DescriptionList>
+              </GridItem>
+              <GridItem>
+                <DescriptionList>
                   <DescriptionListGroup>
-                    <DescriptionListTerm>{t('Summary')}</DescriptionListTerm>
+                    <DescriptionListTermHelpText>
+                      <Popover headerContent={t('Source')} bodyContent={<SourceHelp />}>
+                        <DescriptionListTermHelpTextButton>
+                          {t('Source')}
+                        </DescriptionListTermHelpTextButton>
+                      </Popover>
+                    </DescriptionListTermHelpText>
                     <DescriptionListDescription>
-                      {alert.annotations.summary}
+                      {alert && getSourceKey(_.startCase(alertSource(alert)), t)}
                     </DescriptionListDescription>
                   </DescriptionListGroup>
-                )}
-                {alert?.annotations?.message && (
                   <DescriptionListGroup>
-                    <DescriptionListTerm>{t('Message')}</DescriptionListTerm>
+                    <DescriptionListTermHelpText>
+                      <Popover headerContent={t('State')} bodyContent={<AlertStateHelp />}>
+                        <DescriptionListTermHelpTextButton>
+                          {t('State')}
+                        </DescriptionListTermHelpTextButton>
+                      </Popover>
+                    </DescriptionListTermHelpText>
                     <DescriptionListDescription>
-                      <AlertMessage
-                        alertText={alert.annotations.message}
-                        labels={labels}
-                        template={rule?.annotations?.message}
-                      />
+                      <AlertState state={state} />
+                      <AlertStateDescription alert={alert} />
                     </DescriptionListDescription>
                   </DescriptionListGroup>
-                )}
-                {runbookURL && (
+                </DescriptionList>
+              </GridItem>
+              <GridItem span={12}>
+                <DescriptionList>
                   <DescriptionListGroup>
-                    <DescriptionListTerm>{t('Runbook')}</DescriptionListTerm>
+                    <DescriptionListTerm>{t('Labels')}</DescriptionListTerm>
                     <DescriptionListDescription>
-                      <ExternalLink href={runbookURL} text={runbookURL} />
+                      <Labels labels={labels} />
                     </DescriptionListDescription>
                   </DescriptionListGroup>
-                )}
-              </DescriptionList>
-            </GridItem>
-            <GridItem>
-              <DescriptionList>
-                <DescriptionListGroup>
-                  <DescriptionListTermHelpText>
-                    <Popover headerContent={<div>{t('Source')}</div>} bodyContent={<SourceHelp />}>
-                      <DescriptionListTermHelpTextButton>
-                        {' '}
-                        {t('Source')}
-                      </DescriptionListTermHelpTextButton>
-                    </Popover>
-                  </DescriptionListTermHelpText>
-                  <DescriptionListDescription>
-                    {alert && getSourceKey(_.startCase(alertSource(alert)), t)}
-                  </DescriptionListDescription>
-                </DescriptionListGroup>
-                <DescriptionListGroup>
-                  <DescriptionListTermHelpText>
-                    <Popover
-                      headerContent={<div>{t('State')}</div>}
-                      bodyContent={<AlertStateHelp />}
-                    >
-                      <DescriptionListTermHelpTextButton>
-                        {' '}
-                        {t('State')}
-                      </DescriptionListTermHelpTextButton>
-                    </Popover>
-                  </DescriptionListTermHelpText>
-                  <DescriptionListDescription>
-                    <AlertState state={state} />
-                    <AlertStateDescription alert={alert} />
-                  </DescriptionListDescription>
-                </DescriptionListGroup>
-              </DescriptionList>
-            </GridItem>
-            <GridItem span={12}>
-              <DescriptionList>
-                <DescriptionListGroup>
-                  <DescriptionListTerm>{t('Labels')}</DescriptionListTerm>
-                  <DescriptionListDescription>
-                    <Labels kind="alert" labels={labels} />
-                  </DescriptionListDescription>
-                </DescriptionListGroup>
-              </DescriptionList>
-            </GridItem>
-            <GridItem span={12}>
-              <DescriptionList>
-                <DescriptionListGroup>
-                  <DescriptionListTerm>{t('Alerting rule')}</DescriptionListTerm>
-                  <DescriptionListDescription>
-                    <Flex
-                      spaceItems={{ default: 'spaceItemsNone' }}
-                      flexWrap={{ default: 'nowrap' }}
-                    >
-                      <FlexItem>
-                        <MonitoringResourceIcon resource={RuleResource} />
-                      </FlexItem>
-                      <FlexItem>
-                        <Link
-                          to={getRuleUrl(perspective, rule, namespace)}
-                          data-test="alert-rules-detail-resource-link"
-                        >
-                          {_.get(rule, 'name')}
-                        </Link>
-                      </FlexItem>
-                    </Flex>
-                  </DescriptionListDescription>
-                </DescriptionListGroup>
-              </DescriptionList>
-            </GridItem>
-          </Grid>
-        </PageSection>
-        {silencesLoaded && !_.isEmpty(alert?.silencedBy) && (
-          <>
-            <Divider />
-            <PageSection variant={PageSectionVariants.light}>
-              <Title headingLevel="h2">{t('Silenced by')}</Title>
-              <SilencedByList silences={alert?.silencedBy} />
-            </PageSection>
-          </>
-        )}
+                </DescriptionList>
+              </GridItem>
+              <GridItem span={12}>
+                <DescriptionList>
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>{t('Alerting rule')}</DescriptionListTerm>
+                    <DescriptionListDescription>
+                      <Flex
+                        spaceItems={{ default: 'spaceItemsNone' }}
+                        flexWrap={{ default: 'nowrap' }}
+                      >
+                        <FlexItem>
+                          <ResourceIcon kind={RuleResource.kind} />
+                        </FlexItem>
+                        <FlexItem>
+                          <Link
+                            to={getRuleUrl(perspective, rule, namespace)}
+                            data-test="alert-rules-detail-resource-link"
+                          >
+                            {_.get(rule, 'name')}
+                          </Link>
+                        </FlexItem>
+                      </Flex>
+                    </DescriptionListDescription>
+                  </DescriptionListGroup>
+                </DescriptionList>
+              </GridItem>
+            </Grid>
+          </PageSection>
+          {silencesLoaded && !_.isEmpty(alert?.silencedBy) && (
+            <>
+              <Divider />
+              <PageSection hasBodyWrapper={false}>
+                <Title headingLevel="h2">{t('Silenced by')}</Title>
+                <SilencedByList silences={alert?.silencedBy} />
+              </PageSection>
+            </>
+          )}
+        </PageGroup>
       </StatusBox>
     </>
   );
@@ -428,12 +417,12 @@ const AlertMessage: React.FC<AlertMessageProps> = ({ alertText, labels, template
       if (tagCount > 0 && tagCount === resourceNameCount) {
         const link = (
           <ResourceLink
-            className="monitoring__resource-item--monitoring-alert"
             inline
             key={model.kind}
             kind={model.kind}
             name={labelValue}
             namespace={model.namespaced ? labels.namespace : undefined}
+            className="pf-v6-u-mx-xs"
           />
         );
         messageParts = _.flatMap(messageParts, (part) => {
@@ -510,53 +499,6 @@ const AlertStateHelp: React.FC = () => {
         </DescriptionListDescription>
       </DescriptionListGroup>
     </DescriptionList>
-  );
-};
-
-const SilencedByList: React.FC<{ silences: Silence[] }> = ({ silences }) => {
-  const { t } = useTranslation(process.env.I18N_NAMESPACE);
-
-  const columns = React.useMemo<TableColumn<Silence>[]>(
-    () => [
-      {
-        id: 'name',
-        props: { className: tableSilenceClasses[1] },
-        title: t('Name'),
-      },
-      {
-        id: 'firingAlerts',
-        props: { className: tableSilenceClasses[2] },
-        title: t('Firing alerts'),
-      },
-      {
-        id: 'state',
-        props: { className: tableSilenceClasses[3] },
-        title: t('State'),
-      },
-      {
-        id: 'createdBy',
-        props: { className: tableSilenceClasses[4] },
-        title: t('Creator'),
-      },
-      {
-        id: 'actions',
-        props: { className: tableSilenceClasses[5] },
-        title: '',
-      },
-    ],
-    [t],
-  );
-
-  return (
-    <VirtualizedTable<Silence>
-      aria-label={t('Silenced by')}
-      columns={columns}
-      data={silences}
-      loaded={true}
-      loadError={undefined}
-      Row={SilenceTableRow}
-      unfilteredData={silences}
-    />
   );
 };
 

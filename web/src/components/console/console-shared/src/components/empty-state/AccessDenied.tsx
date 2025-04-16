@@ -5,12 +5,14 @@ import { ConsoleEmptyState } from './ConsoleEmptyState';
 import * as restrictedSignImg from '../../../../imgs/restricted-sign.svg';
 
 const RestrictedSignIcon = () => {
-  const { t } = useTranslation('console-shared');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
+
   return <img src={restrictedSignImg} alt={t('Restricted access')} />;
 };
 
 export const AccessDenied: React.FC = ({ children }) => {
-  const { t } = useTranslation('console-shared');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
+
   return (
     <ConsoleEmptyState
       data-test="access-denied"
@@ -21,7 +23,7 @@ export const AccessDenied: React.FC = ({ children }) => {
         <FlexItem>{t("You don't have access to this section due to cluster policy")}</FlexItem>
         {children && (
           <FlexItem>
-            <Alert variant="danger" className="pf-v5-u-text-align-left" title={t('Error details')}>
+            <Alert variant="danger" title={t('Error details')}>
               {children}
             </Alert>
           </FlexItem>

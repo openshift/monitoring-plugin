@@ -1,5 +1,5 @@
-import classNames from 'classnames';
 import * as _ from 'lodash-es';
+import classNames from 'classnames';
 import * as React from 'react';
 import {
   PrometheusEndpoint,
@@ -18,7 +18,7 @@ import {
   ChartLine,
   ChartStack,
   ChartVoronoiContainer,
-} from '@patternfly/react-charts';
+} from '@patternfly/react-charts/victory';
 import {
   Alert,
   Button,
@@ -28,7 +28,6 @@ import {
   DropdownList,
   EmptyState,
   EmptyStateBody,
-  EmptyStateIcon,
   EmptyStateVariant,
   MenuToggle,
   MenuToggleElement,
@@ -36,12 +35,17 @@ import {
   TextInput,
   Title,
   InputGroupItem,
-  Truncate,
+  Card,
+  CardHeader,
+  Split,
+  SplitItem,
+  Level,
+  LevelItem,
+  CardBody,
 } from '@patternfly/react-core';
 import { ChartLineIcon } from '@patternfly/react-icons';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { VictoryPortal } from 'victory-core';
 
 import {
   queryBrowserDeleteAllSeries,
@@ -53,16 +57,13 @@ import { GraphEmpty } from './console/graphs/graph-empty';
 import { getPrometheusURL } from './console/graphs/helpers';
 import {
   dateFormatterNoYear,
-  dateTimeFormatterWithSeconds,
   timeFormatter,
   timeFormatterWithSeconds,
 } from './console/utils/datetime';
 import { usePoll } from './console/utils/poll-hook';
 import { useRefWidth } from './console/utils/ref-width-hook';
 import { useSafeFetch } from './console/utils/safe-fetch-hook';
-import { humanizeNumberSI } from './console/utils/units';
 
-import { formatNumber } from './format';
 import { useBoolean } from './hooks/useBoolean';
 import { queryBrowserTheme } from './query-browser-theme';
 import { PrometheusAPIError, TimeRange } from './types';
@@ -77,20 +78,19 @@ import {
 } from './console/console-shared/src/datetime/prometheus';
 import withFallback from './console/console-shared/error/fallbacks/withFallback';
 import { CustomDataSource } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
+import {
+  QueryBrowserTooltip,
+  valueFormatter,
+} from './console/console-shared/src/components/query-browser/QueryBrowserTooltip';
+import {
+  chart_area_Opacity,
+  chart_axis_tick_Size,
+  t_chart_global_fill_color_200,
+} from '@patternfly/react-tokens';
+import './query-browser.scss';
 
 const spans = ['5m', '15m', '30m', '1h', '2h', '6h', '12h', '1d', '2d', '1w', '2w'];
 export const colors = queryBrowserTheme.line.colorScale;
-
-// Use exponential notation for small or very large numbers to avoid labels with too many characters
-const formatPositiveValue = (v: number): string =>
-  v === 0 || (0.001 <= v && v < 1e23) ? humanizeNumberSI(v).string : v.toExponential(1);
-
-const formatValue = (v: number): string => (v < 0 ? '-' : '') + formatPositiveValue(Math.abs(v));
-
-const valueFormatter = (units: string): ((v: number) => string) =>
-  ['ms', 's', 'bytes', 'Bps', 'pps'].includes(units)
-    ? (v: number) => formatNumber(String(v), undefined, units)
-    : formatValue;
 
 export const Error: React.FC<ErrorProps> = ({ error, title = 'An error occurred' }) => (
   <Alert isInline title={title} variant="danger">
@@ -98,13 +98,21 @@ export const Error: React.FC<ErrorProps> = ({ error, title = 'An error occurred'
   </Alert>
 );
 
+const BOTTOM_SERIES_HEIGHT = 34;
+const LEGEND_HEIGHT = 75;
+const CHART_HEIGHT = 200;
+
 const GraphEmptyState: React.FC<GraphEmptyStateProps> = ({ children, title }) => (
-  <div className="query-browser__wrapper graph-empty-state">
-    <EmptyState variant={EmptyStateVariant.full}>
-      <EmptyStateIcon icon={ChartLineIcon} />
-      <Title headingLevel="h2" size="md">
-        {title}
-      </Title>
+  <div>
+    <EmptyState
+      titleText={
+        <Title headingLevel="h2" size="md">
+          {title}
+        </Title>
+      }
+      icon={ChartLineIcon}
+      variant={EmptyStateVariant.full}
+    >
       <EmptyStateBody>{children}</EmptyStateBody>
     </EmptyState>
   </div>
@@ -138,209 +146,71 @@ const SpanControls: React.FC<SpanControlsProps> = React.memo(
     };
 
     const dropdownItems = spans.map((s) => (
-      <DropdownItem
-        className="query-browser__span-dropdown-item"
-        key={s}
-        onClick={() => setSpan(s, true)}
-      >
+      <DropdownItem key={s} onClick={() => setSpan(s, true)}>
         {s}
       </DropdownItem>
     ));
 
     return (
-      <>
-        <InputGroup className="query-browser__span">
-          <InputGroupItem isFill>
-            <TextInput
-              aria-label={t('graph timespan')}
-              className="query-browser__span-text"
-              validated={isValid ? 'default' : 'error'}
-              onChange={(_event, v) => setSpan(v, true)}
-              type="text"
-              value={text}
+      <Level hasGutter>
+        <LevelItem>
+          <InputGroup>
+            <InputGroupItem isFill>
+              <TextInput
+                aria-label={t('graph timespan')}
+                validated={isValid ? 'default' : 'error'}
+                onChange={(_event, v) => setSpan(v, true)}
+                type="text"
+                value={text}
+              />
+            </InputGroupItem>
+            <InputGroupItem>
+              <Dropdown
+                isOpen={isOpen}
+                onSelect={setClosed}
+                toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+                  <MenuToggle
+                    ref={toggleRef}
+                    onClick={setIsOpen}
+                    isExpanded={isOpen}
+                    aria-label={t('graph timespan')}
+                  />
+                )}
+                popperProps={{ position: 'right' }}
+              >
+                <DropdownList>{dropdownItems}</DropdownList>
+              </Dropdown>
+            </InputGroupItem>
+          </InputGroup>
+        </LevelItem>
+        <LevelItem>
+          <Button onClick={() => setSpan(defaultSpanText)} type="button" variant="tertiary">
+            {t('Reset zoom')}
+          </Button>
+        </LevelItem>
+        <LevelItem>
+          {hasReducedResolution && (
+            <Alert
+              isInline
+              isPlain
+              title={t('Displaying with reduced resolution due to large dataset.')}
+              variant="info"
+              truncateTitle={1}
             />
-          </InputGroupItem>
-          <InputGroupItem>
-            <Dropdown
-              isOpen={isOpen}
-              onSelect={setClosed}
-              toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
-                <MenuToggle
-                  ref={toggleRef}
-                  onClick={setIsOpen}
-                  isExpanded={isOpen}
-                  aria-label={t('graph timespan')}
-                />
-              )}
-              popperProps={{ position: 'right' }}
-            >
-              <DropdownList>{dropdownItems}</DropdownList>
-            </Dropdown>
-          </InputGroupItem>
-        </InputGroup>
-        <Button
-          className="query-browser__inline-control"
-          onClick={() => setSpan(defaultSpanText)}
-          type="button"
-          variant="tertiary"
-        >
-          {t('Reset zoom')}
-        </Button>
-        {hasReducedResolution && (
-          <Alert
-            isInline
-            isPlain
-            className="query-browser__reduced-resolution"
-            title={t('Displaying with reduced resolution due to large dataset.')}
-            variant="info"
-            truncateTitle={1}
-          />
-        )}
-      </>
+          )}
+        </LevelItem>
+      </Level>
     );
   },
 );
 
-const TOOLTIP_MAX_ENTRIES = 20;
-const TOOLTIP_MAX_WIDTH = 400;
-const TOOLTIP_MAX_HEIGHT = 400;
-const TOOLTIP_MAX_LEFT_JUT_OUT = 85;
-const TOOLTIP_MAX_RIGHT_JUT_OUT = 45;
-
-type TooltipSeries = {
-  color: string;
-  labels: PrometheusLabels;
-  name: string;
-  total: number;
-  value: string;
-};
-
-// For performance, use this instead of PatternFly's ChartTooltip or Victory VictoryTooltip
-const Tooltip_: React.FC<TooltipProps> = ({ activePoints, center, height, style, width, x }) => {
-  const time = activePoints?.[0]?.x;
-
-  if (!_.isDate(time) || !_.isFinite(x)) {
-    return null;
-  }
-
-  // Don't show the tooltip if the cursor is too far from the active points (can happen when the
-  // graph's timespan includes a range with no data)
-  if (Math.abs(x - center.x) > width / 15) {
-    return null;
-  }
-
-  // Pick tooltip width and location (left or right of the cursor) to maximize its available space
-  const spaceOnLeft = x + TOOLTIP_MAX_LEFT_JUT_OUT;
-  const spaceOnRight = width - x + TOOLTIP_MAX_RIGHT_JUT_OUT;
-  const isOnLeft = spaceOnLeft > spaceOnRight;
-  const tooltipMaxWidth = Math.min(isOnLeft ? spaceOnLeft : spaceOnRight, TOOLTIP_MAX_WIDTH);
-
-  // Sort the entries in the tooltip from largest to smallest (to match the position of points in
-  // the graph) and limit to the maximum number we can display. There could be a large number of
-  // points, so we use a slightly less succinct approach to avoid sorting the whole list of points
-  // and to avoid processing points that won't fit in the tooltip.
-  const largestPoints: TooltipSeries[] = [];
-  activePoints.forEach(({ _y1, y }, i) => {
-    const total = _y1 ?? y;
-    if (
-      largestPoints.length < TOOLTIP_MAX_ENTRIES ||
-      largestPoints[TOOLTIP_MAX_ENTRIES - 1].total < total
-    ) {
-      const point = {
-        color: style[i]?.fill,
-        labels: style[i]?.labels,
-        name: style[i]?.name,
-        total,
-        value: valueFormatter(style[i]?.units)(y),
-      };
-      largestPoints.splice(
-        _.sortedIndexBy(largestPoints, point, (p) => -p.total),
-        0,
-        point,
-      );
-    }
-  });
-  const allSeries: TooltipSeries[] = largestPoints.slice(0, TOOLTIP_MAX_ENTRIES);
-
-  // For each series we are displaying in the tooltip, create a name based on its labels. We have
-  // limited space, so sort the labels to try to show the most useful first since later labels will
-  // likely be cut off. Sort first by the number of unique values for the label (prefer to show
-  // labels with more values because they are more helpful in identifying the series), then by the
-  // length of the label (prefer to show sorter labels because space is limited).
-  const allSeriesSorted: string[] = _.sortBy(
-    _.without(
-      _.uniq(_.flatMap(allSeries, (s) => (s.labels ? Object.keys(s.labels) : []))),
-      '__name__',
-    ),
-    [(k) => -_.uniq(allSeries.map((s) => s.labels[k])).length, (k) => k.length],
-  );
-  const getSeriesName = (series: TooltipSeries): string => {
-    if (_.isString(series.name)) {
-      return series.name;
-    }
-    if (_.isEmpty(series.labels)) {
-      return '{}';
-    }
-    const name = series.labels.__name__ ?? '';
-    const otherLabels = _.intersection(allSeriesSorted, Object.keys(series.labels));
-    return `${name}{${otherLabels.map((l) => `${l}=${series.labels[l]}`).join(',')}}`;
-  };
-
-  return (
-    <>
-      <VictoryPortal>
-        <foreignObject
-          height={TOOLTIP_MAX_HEIGHT}
-          width={tooltipMaxWidth}
-          x={isOnLeft ? x - tooltipMaxWidth : x}
-          y={center.y - TOOLTIP_MAX_HEIGHT / 2}
-        >
-          <div
-            className={classNames('query-browser__tooltip-wrap', {
-              'query-browser__tooltip-wrap--left': isOnLeft,
-            })}
-          >
-            <div className="query-browser__tooltip-arrow" />
-            <div className="query-browser__tooltip">
-              <div className="query-browser__tooltip-time">
-                {dateTimeFormatterWithSeconds.format(time)}
-              </div>
-              {allSeries.map((s, i) => (
-                <div className="query-browser__tooltip-series" key={i}>
-                  <div className="query-browser__series-btn" style={{ backgroundColor: s.color }} />
-                  <Truncate content={getSeriesName(s)} />
-                  <div className="query-browser__tooltip-value">{s.value}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </foreignObject>
-      </VictoryPortal>
-      <line className="query-browser__tooltip-line" x1={x} x2={x} y1="0" y2={height} />
-    </>
-  );
-};
-const Tooltip = withFallback(Tooltip_);
-
-const graphContainer = (
-  // Set activateData to false to work around VictoryVoronoiContainer crash (see
-  // https://github.com/FormidableLabs/victory/issues/1314)
-  <ChartVoronoiContainer
-    activateData={false}
-    labelComponent={<Tooltip />}
-    labels={() => ' '}
-    mouseFollowTooltips={true}
-    voronoiDimension="x"
-    voronoiPadding={0}
-  />
-);
-
 const LegendContainer = ({ children }: { children?: React.ReactNode }) => {
   // The first child should be a <rect> with a `width` prop giving the legend's content width
-  const width = children?.[0]?.[0]?.props?.width ?? '100%';
+  const width = children?.[0]?.props?.width ?? '100%';
+
   return (
-    <foreignObject height={75} width="100%" y={245}>
-      <div className="monitoring-dashboards__legend-wrap horizontal-scroll">
+    <foreignObject height={LEGEND_HEIGHT} width="100%" y={CHART_HEIGHT}>
+      <div className="monitoring-plugin-dashboards__legend-wrap monitoring-plugin-horizontal-scroll">
         <svg width={width}>{children}</svg>
       </div>
     </foreignObject>
@@ -450,24 +320,46 @@ const Graph: React.FC<GraphProps> = React.memo(
     const GroupComponent = isStack ? ChartStack : ChartGroup;
     const ChartComponent = isStack ? ChartArea : ChartLine;
 
+    const hasLegend = showLegend && !_.isEmpty(legendData);
+
     return (
       <Chart
-        containerComponent={graphContainer}
+        containerComponent={
+          <ChartVoronoiContainer
+            activateData={false}
+            labelComponent={<QueryBrowserTooltip height={CHART_HEIGHT - BOTTOM_SERIES_HEIGHT} />}
+            labels={() => ' '}
+            mouseFollowTooltips={true}
+            voronoiDimension="x"
+            voronoiPadding={0}
+          />
+        }
         ariaTitle={t('query browser chart')}
         domain={domain}
         domainPadding={{ y: 1 }}
-        height={200}
+        height={hasLegend ? CHART_HEIGHT + LEGEND_HEIGHT : CHART_HEIGHT}
         scale={{ x: 'time', y: 'linear' }}
         theme={queryBrowserTheme}
         width={width}
+        padding={{
+          bottom: hasLegend ? BOTTOM_SERIES_HEIGHT + LEGEND_HEIGHT : BOTTOM_SERIES_HEIGHT,
+          left: 65,
+          right: 15,
+          top: 5,
+        }}
       >
-        <ChartAxis tickCount={xAxisTickCount} tickFormat={xAxisTickFormat} />
+        <ChartAxis
+          tickCount={xAxisTickCount}
+          tickFormat={xAxisTickFormat}
+          style={{ tickLabels: { fontSize: 12 }, axisLabel: { fontSize: 12 } }}
+        />
         <ChartAxis
           crossAxis={false}
           dependentAxis
           tickComponent={nullComponent}
           tickCount={6}
           tickFormat={yTickFormat}
+          style={{ tickLabels: { fontSize: 12 }, axisLabel: { fontSize: 12 } }}
         />
         <GroupComponent>
           {data.map((values, i) => {
@@ -497,17 +389,20 @@ const Graph: React.FC<GraphProps> = React.memo(
             );
           })}
         </GroupComponent>
-        {showLegend && !_.isEmpty(legendData) && (
+        {hasLegend && (
           <ChartLegend
             data={legendData}
             groupComponent={<LegendContainer />}
             gutter={30}
             itemsPerRow={4}
             orientation="vertical"
-            style={{
-              labels: { fontSize: 11, fill: 'var(--pf-v5-global--Color--100)' },
-            }}
             symbolSpacer={4}
+            style={{
+              labels: { fontSize: 12 },
+            }}
+            padding={{
+              top: BOTTOM_SERIES_HEIGHT,
+            }}
           />
         )}
       </Chart>
@@ -637,11 +532,18 @@ const ZoomableGraph: React.FC<ZoomableGraphProps> = ({
     : { onMouseDown };
 
   return (
-    <div className="query-browser__zoom" {...handlers}>
+    <div style={{ cursor: 'ew-resize' }} {...handlers}>
       {isZooming && (
         <div
-          className="query-browser__zoom-overlay"
-          style={{ left: Math.min(x1, x2), width: Math.abs(x1 - x2) }}
+          style={{
+            left: Math.min(x1, x2),
+            width: Math.abs(x1 - x2),
+            bottom: 24 /* --pf-t--global--spacer--lg */ + chart_axis_tick_Size.value,
+            top: 4, // --pf-t--global--spacer-xs
+            position: 'absolute',
+            opacity: chart_area_Opacity.value,
+            backgroundColor: t_chart_global_fill_color_200.value,
+          }}
         />
       )}
       <Graph
@@ -658,12 +560,6 @@ const ZoomableGraph: React.FC<ZoomableGraphProps> = ({
     </div>
   );
 };
-
-const Loading = () => (
-  <div className="query-browser__loading">
-    <LoadingInline />
-  </div>
-);
 
 const getMaxSamplesForSpan = (span: number) =>
   _.clamp(Math.round(span / minStep), minSamples, maxSamples);
@@ -688,6 +584,7 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
   timespan,
   units,
   onDataChange,
+  isPlain = false,
 }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
@@ -776,7 +673,7 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
         const promiseMap: Promise<PrometheusResponse>[] = _.map(
           timeRanges,
           (timeRange: TimeRange) =>
-            safeFetch(
+            safeFetch<PrometheusResponse>(
               getPrometheusURL(
                 {
                   endpoint: PrometheusEndpoint.QUERY_RANGE,
@@ -897,6 +794,8 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
   let delay: number;
   if (endTime || hideGraphs || tickInterval === null) {
     delay = null;
+  } else if (tickInterval === 0) {
+    delay = 0;
   } else if (tickInterval > 0) {
     delay = tickInterval;
   } else if (tickInterval == 0) {
@@ -944,9 +843,9 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
     return (
       <>
         {error && !isRangeVector && <Error error={error} />}
-        <div className="query-browser__wrapper query-browser__wrapper--hidden">
-          <div className="graph-wrapper graph-wrapper--query-browser">
-            <div ref={containerRef} style={{ width: '100%' }}></div>
+        <div>
+          <div>
+            <div ref={containerRef}></div>
           </div>
         </div>
       </>
@@ -991,80 +890,86 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
   const hasReducedResolution = !isGraphDataEmpty && samples < maxSamplesForSpan && !updating;
 
   return (
-    <div
-      className={classNames('query-browser__wrapper', {
-        'graph-empty-state': isGraphDataEmpty,
-        'graph-empty-state__loaded': isGraphDataEmpty && !updating,
-      })}
-    >
-      {hideControls ? (
-        <>{updating && <Loading />}</>
-      ) : (
-        <div className="query-browser__controls">
-          <div className="query-browser__controls--left">
-            <SpanControls
-              defaultSpanText={defaultSpanText}
-              onChange={onSpanChange}
-              span={span}
-              hasReducedResolution={hasReducedResolution}
-            />
-            {updating && <Loading />}
-          </div>
-          <div className="query-browser__controls--right">
-            {GraphLink && <GraphLink />}
-            {canStack && showStackedControl && (
-              <Checkbox
-                id="stacked"
-                isChecked={isStacked}
-                data-checked-state={isStacked}
-                label={t('Stacked')}
-                onChange={(_e, v) => (typeof _e === 'boolean' ? setIsStacked(_e) : setIsStacked(v))}
-              />
+    <>
+      <Card isCompact isPlain={isPlain} style={{ overflow: 'visible' }}>
+        {hideControls ? (
+          <>{updating && <LoadingInline />}</>
+        ) : (
+          <CardHeader>
+            <Split>
+              <SplitItem>
+                <SpanControls
+                  defaultSpanText={defaultSpanText}
+                  onChange={onSpanChange}
+                  span={span}
+                  hasReducedResolution={hasReducedResolution}
+                />
+                {updating && <LoadingInline />}
+              </SplitItem>
+              <SplitItem isFilled />
+              <SplitItem>
+                {GraphLink && <GraphLink />}
+                {canStack && showStackedControl && (
+                  <Checkbox
+                    id="stacked"
+                    isChecked={isStacked}
+                    data-checked-state={isStacked}
+                    label={t('Stacked')}
+                    onChange={(_e, v) =>
+                      typeof _e === 'boolean' ? setIsStacked(_e) : setIsStacked(v)
+                    }
+                  />
+                )}
+              </SplitItem>
+            </Split>
+          </CardHeader>
+        )}
+        <CardBody
+          className={classNames(
+            'monitoring-plugin-graph-wrapper monitoring-plugin-graph-wrapper--query-browser',
+            {
+              'monitoring-plugin-graph-wrapper--query-browser--with-legend':
+                showLegend && !!formatSeriesTitle,
+            },
+          )}
+        >
+          <div ref={containerRef} style={{ position: 'relative' }}>
+            {error && <Error error={error} />}
+            {isGraphDataEmpty && <GraphEmpty loading={updating} />}
+            {!isGraphDataEmpty && width > 0 && (
+              <>
+                {disableZoom ? (
+                  <Graph
+                    allSeries={graphData}
+                    disabledSeries={disabledSeries}
+                    fixedXDomain={xDomain}
+                    formatSeriesTitle={formatSeriesTitle}
+                    isStack={canStack && isStacked}
+                    showLegend={showLegend}
+                    span={span}
+                    units={units}
+                    width={width}
+                  />
+                ) : (
+                  <ZoomableGraph
+                    allSeries={graphData}
+                    disabledSeries={disabledSeries}
+                    fixedXDomain={xDomain}
+                    formatSeriesTitle={formatSeriesTitle}
+                    isStack={canStack && isStacked}
+                    onZoom={zoomableGraphOnZoom}
+                    showLegend={showLegend}
+                    span={span}
+                    units={units}
+                    width={width}
+                  />
+                )}
+              </>
             )}
           </div>
-        </div>
-      )}
-      <div
-        className={classNames('graph-wrapper graph-wrapper--query-browser', {
-          'graph-wrapper--query-browser--with-legend': showLegend && !!formatSeriesTitle,
-        })}
-      >
-        <div ref={containerRef} style={{ width: '100%' }}>
-          {error && <Error error={error} />}
-          {isGraphDataEmpty && !updating && <GraphEmpty />}
-          {!isGraphDataEmpty && width > 0 && (
-            <>
-              {disableZoom ? (
-                <Graph
-                  allSeries={graphData}
-                  disabledSeries={disabledSeries}
-                  fixedXDomain={xDomain}
-                  formatSeriesTitle={formatSeriesTitle}
-                  isStack={canStack && isStacked}
-                  showLegend={showLegend}
-                  span={span}
-                  units={units}
-                  width={width}
-                />
-              ) : (
-                <ZoomableGraph
-                  allSeries={graphData}
-                  disabledSeries={disabledSeries}
-                  fixedXDomain={xDomain}
-                  formatSeriesTitle={formatSeriesTitle}
-                  isStack={canStack && isStacked}
-                  onZoom={zoomableGraphOnZoom}
-                  showLegend={showLegend}
-                  span={span}
-                  units={units}
-                  width={width}
-                />
-              )}
-            </>
-          )}
-        </div>
-      </div>
-    </div>
+        </CardBody>
+      </Card>
+    </>
   );
 };
 export const QueryBrowser = withFallback(QueryBrowser_);
@@ -1126,6 +1031,7 @@ export type QueryBrowserProps = {
   timespan?: number;
   units?: string;
   onDataChange?: (data: any) => void;
+  isPlain?: boolean;
 };
 
 type SpanControlsProps = {
@@ -1133,13 +1039,4 @@ type SpanControlsProps = {
   onChange: (span: number) => void;
   span: number;
   hasReducedResolution: boolean;
-};
-
-type TooltipProps = {
-  activePoints?: { x: number; y: number; _y1?: number }[];
-  center?: { x: number; y: number };
-  height?: number;
-  style?: { fill: string; labels: PrometheusLabels; name: string; units: string };
-  width?: number;
-  x?: number;
 };

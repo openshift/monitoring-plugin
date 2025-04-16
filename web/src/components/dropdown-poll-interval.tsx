@@ -1,10 +1,10 @@
 import React from 'react';
-import { SimpleSelect, SimpleSelectOption } from './SimpleSelect';
 import { useTranslation } from 'react-i18next';
 import {
   formatPrometheusDuration,
   parsePrometheusDuration,
 } from './console/console-shared/src/datetime/prometheus';
+import { SimpleSelect, SimpleSelectOption } from '@patternfly/react-templates';
 
 type DropDownPollIntervalProps = {
   setInterval: (v: number) => void;
@@ -47,7 +47,6 @@ export const DropDownPollInterval: React.FunctionComponent<DropDownPollIntervalP
       id={id}
       initialOptions={initialOptions}
       onSelect={(_ev, selection) => onSelect(_ev, selection)}
-      className="monitoring-dashboards__variable-dropdown"
       toggleWidth="150px"
     />
   );

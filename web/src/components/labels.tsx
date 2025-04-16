@@ -11,14 +11,14 @@ const Label = ({ k, v }) => (
   </PfLabel>
 );
 
-export const Labels = ({ kind, labels }) => {
+export const Labels = ({ labels }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return _.isEmpty(labels) ? (
-    <div className="text-muted">{t('No labels')}</div>
+    <div>{t('No labels')}</div>
   ) : (
-    <div className={`co-text-${kind}`}>
-      <PfLabelGroup className="co-label-group" numLabels={20}>
+    <div>
+      <PfLabelGroup numLabels={20}>
         {_.map(labels, (v, k) => (
           <Label key={k} k={k} v={v} />
         ))}

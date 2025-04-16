@@ -1,5 +1,5 @@
 import * as React from 'react';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 
@@ -49,7 +49,7 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
   }, [perspective, dashboardParam, urlBoard]);
 
   React.useEffect(() => {
-    safeFetch('/api/console/monitoring-dashboard-config')
+    safeFetch<any>('/api/console/monitoring-dashboard-config')
       .then((response) => {
         setLegacyDashboardsLoaded();
         setLegacyDashboardsError(undefined);
@@ -148,7 +148,7 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
       url = `${url}${perspective === 'dev' ? '&' : '?'}${params.toString()}`;
 
       if (newBoard !== legacyDashboard || initialLoad) {
-        if (getQueryArgument(QueryParams.Dashboard) !== newBoard) {
+        if (params.get(QueryParams.Dashboard) !== newBoard) {
           history.replace(url);
         }
 

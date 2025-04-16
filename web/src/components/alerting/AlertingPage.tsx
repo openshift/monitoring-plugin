@@ -2,7 +2,6 @@ import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Route, RouteComponentProps, Switch, useHistory } from 'react-router-dom';
 
-import '../_monitoring.scss';
 import {
   getAlertRulesUrl,
   getAlertsUrl,
@@ -12,15 +11,7 @@ import {
 import AlertsPage from '../alerting/AlertsPage';
 import SilencesPage from '../alerting/SilencesPage';
 import AlertRulesPage from '../alerting/AlertRulesPage';
-import {
-  Divider,
-  PageSection,
-  PageSectionVariants,
-  Tab,
-  Tabs,
-  TabTitleText,
-  Title,
-} from '@patternfly/react-core';
+import { PageSection, Tab, Tabs, TabTitleText, Title } from '@patternfly/react-core';
 
 const AlertingPage: React.FC<RouteComponentProps<{ url: string }>> = ({ match }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -60,12 +51,8 @@ const AlertingPage: React.FC<RouteComponentProps<{ url: string }>> = ({ match })
 
   return (
     <>
-      <PageSection variant={PageSectionVariants.light}>
+      <PageSection hasBodyWrapper={false}>
         <Title headingLevel="h1">{t('Alerting')}</Title>
-      </PageSection>
-      <Divider />
-      {/* Without Page Section, the tabs get eaten by the components being switched to */}
-      <PageSection variant={PageSectionVariants.light} padding={{ default: 'noPadding' }}>
         <Tabs activeKey={activeTabKey} onSelect={handleTabClick}>
           {/* Add href to tab so that when hovering you see the link in the bottom left */}
           <Tab eventKey={0} href={alertsPath} title={<TabTitleText>{t('Alerts')}</TabTitleText>} />

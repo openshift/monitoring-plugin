@@ -10,15 +10,17 @@ import {
   ChartThemeColor,
   ChartTooltip,
   ChartVoronoiContainer,
-} from '@patternfly/react-charts';
-import { Bullseye, Card, CardTitle, Spinner } from '@patternfly/react-core';
+} from '@patternfly/react-charts/victory';
+import { Bullseye, Card, CardBody, CardTitle, Spinner } from '@patternfly/react-core';
 import { createIncidentsChartBars, formatDate, generateDateArray } from '../utils';
 import { getResizeObserver } from '@patternfly/react-core';
 import { useDispatch, useSelector } from 'react-redux';
 import { setChooseIncident } from '../../../actions/observe';
-import global_danger_color_100 from '@patternfly/react-tokens/dist/esm/global_danger_color_100';
-import global_info_color_100 from '@patternfly/react-tokens/dist/esm/global_info_color_100';
-import global_warning_color_100 from '@patternfly/react-tokens/dist/esm/global_warning_color_100';
+import {
+  t_global_color_status_danger_default,
+  t_global_color_status_info_default,
+  t_global_color_status_warning_default,
+} from '@patternfly/react-tokens';
 import { setAlertsAreLoading } from '../../../actions/observe';
 
 const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
@@ -33,6 +35,7 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
   }, [chartData]);
   const [width, setWidth] = React.useState(0);
   const containerRef = React.useRef(null);
+  const dateValues = generateDateArray(chartDays);
   const handleResize = () => {
     if (containerRef.current && containerRef.current.clientWidth) {
       setWidth(containerRef.current.clientWidth);
@@ -48,8 +51,7 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
     setChartData(
       incidentsData.map((incident) => createIncidentsChartBars(incident, theme, dateValues)),
     );
-  }, [incidentsData]);
-  const dateValues = generateDateArray(chartDays);
+  }, [incidentsData, theme, dateValues]);
 
   const selectedId = useSelector((state) =>
     state.plugins.mcp.getIn(['incidentsData', 'incidentGroupId']),
@@ -86,7 +88,7 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
             <Spinner aria-label="incidents-chart-spinner" />
           </Bullseye>
         ) : (
-          <div
+          <CardBody
             style={{
               height: { chartContainerHeight },
               width: '100%',
@@ -98,6 +100,8 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
                   labelComponent={
                     <ChartTooltip
                       orientation="top"
+                      dx={({ x, x0 }) => -(x - x0) / 2}
+                      dy={-5} // Position tooltip so pointer appears above bar
                       constrainToVisibleArea
                       labelComponent={<ChartLabel />}
                     />
@@ -119,19 +123,19 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
                 {
                   name: 'Critical',
                   symbol: {
-                    fill: theme === 'light' ? global_danger_color_100.var : '#C9190B',
+                    fill: t_global_color_status_danger_default.var,
                   },
                 },
                 {
                   name: 'Info',
                   symbol: {
-                    fill: theme === 'light' ? global_info_color_100.var : '#06C',
+                    fill: t_global_color_status_info_default.var,
                   },
                 },
                 {
                   name: 'Warning',
                   symbol: {
-                    fill: theme === 'light' ? global_warning_color_100.var : '#F0AB00',
+                    fill: t_global_color_status_warning_default.var,
                   },
                 },
               ]}
@@ -177,6 +181,7 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
                           fill: ({ datum }) => datum.fill,
                           stroke: ({ datum }) => datum.fill,
                           fillOpacity: ({ datum }) => (datum.nodata ? 0 : getOpacity(datum)),
+                          cursor: 'pointer',
                         },
                       }}
                       events={[
@@ -191,7 +196,7 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
                 })}
               </ChartGroup>
             </Chart>
-          </div>
+          </CardBody>
         )}
       </div>
     </Card>

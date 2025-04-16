@@ -32,9 +32,9 @@ import {
   DatasourceStoreProvider,
   VariableProviderWithQueryParams,
 } from '@perses-dev/dashboards';
-import { ChartThemeColor, getThemeColors } from '@patternfly/react-charts';
+import { ChartThemeColor, getThemeColors } from '@patternfly/react-charts/victory';
 import ErrorAlert from '../shared/error';
-import { usePatternFlyTheme } from './hooks/usePatternflyTheme';
+import { usePatternFlyTheme } from '../../hooks/usePatternflyTheme';
 import { CachedDatasourceAPI } from './perses/datasource-api';
 import { OcpDatasourceApi } from './datasource-api';
 import { PERSES_PROXY_BASE_PATH, useFetchPersesDashboard } from './perses-client';
@@ -53,14 +53,15 @@ const patternflyBlue500 = '#004080';
 const patternflyBlue600 = '#002952';
 const defaultPaletteColors = [patternflyBlue400, patternflyBlue500, patternflyBlue600];
 
-const patternflyChartsMultiUnorderedPalette = getThemeColors(
-  ChartThemeColor.multiUnordered,
-).chart.colorScale.flatMap((cssColor) => {
-  // colors are stored as 'var(--pf-chart-theme--multi-color-unordered--ColorScale--3400, #73c5c5)'
-  // need to extract the hex value, because fillStyle() of <canvas> does not support CSS vars
-  const match = cssColor.match(/#[a-fA-F0-9]+/);
-  return match ? [match[0]] : [];
-});
+const chartColorScale = getThemeColors(ChartThemeColor.multiUnordered).chart.colorScale;
+const patternflyChartsMultiUnorderedPalette = Array.isArray(chartColorScale)
+  ? chartColorScale.flatMap((cssColor) => {
+      // colors stored as 'var(--pf-chart-theme--multi-color-unordered--ColorScale--3400, #73c5c5)'
+      // need to extract the hex value, because fillStyle() of <canvas> does not support CSS vars
+      const match = cssColor.match(/#[a-fA-F0-9]+/);
+      return match ? [match[0]] : [];
+    })
+  : [];
 
 // PluginRegistry configuration to allow access to
 // visualization panels/charts (@perses-dev/panels-plugin)
@@ -88,7 +89,7 @@ export function PersesWrapper({ children, project }: PersesWrapperProps) {
   const muiTheme = getTheme(theme, {
     typography: {
       ...typography,
-      fontFamily: 'var(--pf-v5-global--FontFamily--text)',
+      fontFamily: 'var(--pf-t--global--font--family--body)',
     },
     shape: {
       borderRadius: 0,

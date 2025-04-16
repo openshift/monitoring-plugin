@@ -2,7 +2,12 @@ import * as _ from 'lodash-es';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
 
-import { Alert, Timestamp, useActiveNamespace } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  Alert,
+  ResourceIcon,
+  Timestamp,
+  useActiveNamespace,
+} from '@openshift-console/dynamic-plugin-sdk';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -12,12 +17,13 @@ import {
   DescriptionListTerm,
   Divider,
   DropdownItem,
+  Flex,
+  FlexItem,
   Grid,
   GridItem,
   PageBreadcrumb,
   PageGroup,
   PageSection,
-  PageSectionVariants,
   Split,
   SplitItem,
   Title,
@@ -37,7 +43,7 @@ import {
 import KebabDropdown from '../kebab-dropdown';
 import { Silences } from '../types';
 import { alertDescription, SilenceResource } from '../utils';
-import { MonitoringResourceIcon, Severity, SeverityCounts } from './AlertUtils';
+import { SeverityBadge, SeverityCounts } from './AlertUtils';
 import { SilenceDropdown, SilenceMatchersList, SilenceState } from './SilencesUtils';
 import { StatusBox } from '../console/console-shared/src/components/status/StatusBox';
 import { LoadingInline } from '../console/console-shared/src/components/loading/LoadingInline';
@@ -71,30 +77,28 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
         loadError={silences?.loadError}
       >
         <PageGroup>
-          <PageBreadcrumb>
-            <Breadcrumb className="monitoring-breadcrumbs">
+          <PageBreadcrumb hasBodyWrapper={false}>
+            <Breadcrumb>
               <BreadcrumbItem>
-                <Link
-                  className="pf-v5-c-breadcrumb__link"
-                  to={getSilencesUrl(perspective, namespace)}
-                >
-                  {t('Silences')}
-                </Link>
+                <Link to={getSilencesUrl(perspective, namespace)}>{t('Silences')}</Link>
               </BreadcrumbItem>
               <BreadcrumbItem isActive>{t('Silence details')}</BreadcrumbItem>
             </Breadcrumb>
           </PageBreadcrumb>
-          <PageSection variant={PageSectionVariants.light}>
+          <PageSection hasBodyWrapper={false}>
             <Split>
               <SplitItem>
-                <Title headingLevel="h1">
-                  {/* Leave to keep compatibility with console looks */}
-                  <MonitoringResourceIcon
-                    className="co-m-resource-icon--lg"
-                    resource={SilenceResource}
-                  />
-                  {silence?.name}
-                </Title>
+                <Flex>
+                  <FlexItem
+                    alignSelf={{ default: 'alignSelfCenter' }}
+                    spacer={{ default: 'spacerNone' }}
+                  >
+                    <ResourceIcon kind={SilenceResource.kind} />
+                  </FlexItem>
+                  <FlexItem>
+                    <Title headingLevel="h1">{silence?.name}</Title>
+                  </FlexItem>
+                </Flex>
               </SplitItem>
               <SplitItem isFilled />
               <SplitItem>
@@ -102,86 +106,92 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
               </SplitItem>
             </Split>
           </PageSection>
-        </PageGroup>
-        <Divider />
-        <PageSection variant={PageSectionVariants.light}>
-          <Title headingLevel="h2">{t('Silence details')}</Title>
-          <Grid sm={12} md={6}>
-            <GridItem>
-              <DescriptionList>
-                {silence?.name && (
+          <Divider />
+          <PageSection hasBodyWrapper={false}>
+            <Title headingLevel="h2">{t('Silence details')}</Title>
+            <Grid sm={12} md={6}>
+              <GridItem>
+                <DescriptionList>
+                  {silence?.name && (
+                    <DescriptionListGroup>
+                      <DescriptionListTerm>{t('Name')}</DescriptionListTerm>
+                      <DescriptionListDescription>{silence?.name}</DescriptionListDescription>
+                    </DescriptionListGroup>
+                  )}
                   <DescriptionListGroup>
-                    <DescriptionListTerm>{t('Name')}</DescriptionListTerm>
-                    <DescriptionListDescription>{silence?.name}</DescriptionListDescription>
+                    <DescriptionListTerm>{t('Matchers')}</DescriptionListTerm>
+                    <DescriptionListDescription data-test="label-list">
+                      {_.isEmpty(silence?.matchers) ? (
+                        <div>{t('No matchers')}</div>
+                      ) : (
+                        <SilenceMatchersList silence={silence} />
+                      )}
+                    </DescriptionListDescription>
                   </DescriptionListGroup>
-                )}
-                <DescriptionListGroup>
-                  <DescriptionListTerm>{t('Matchers')}</DescriptionListTerm>
-                  <DescriptionListDescription data-test="label-list">
-                    {_.isEmpty(silence?.matchers) ? (
-                      <div className="text-muted">{t('No matchers')}</div>
-                    ) : (
-                      <SilenceMatchersList silence={silence} />
-                    )}
-                  </DescriptionListDescription>
-                </DescriptionListGroup>
-                <DescriptionListGroup>
-                  <DescriptionListTerm>{t('State')}</DescriptionListTerm>
-                  <DescriptionListDescription>
-                    <SilenceState silence={silence} />
-                  </DescriptionListDescription>
-                </DescriptionListGroup>
-                <DescriptionListGroup>
-                  <DescriptionListTerm>{t('Last updated at')}</DescriptionListTerm>
-                  <DescriptionListDescription>
-                    <Timestamp timestamp={silence?.updatedAt} />
-                  </DescriptionListDescription>
-                </DescriptionListGroup>
-              </DescriptionList>
-            </GridItem>
-            <GridItem>
-              <DescriptionList>
-                <DescriptionListGroup>
-                  <DescriptionListTerm>{t('Starts at')}</DescriptionListTerm>
-                  <DescriptionListDescription>
-                    <Timestamp timestamp={silence?.startsAt} />
-                  </DescriptionListDescription>
-                </DescriptionListGroup>
-                <DescriptionListGroup>
-                  <DescriptionListTerm>{t('Ends at')}</DescriptionListTerm>
-                  <DescriptionListDescription>
-                    <Timestamp timestamp={silence?.endsAt} />
-                  </DescriptionListDescription>
-                </DescriptionListGroup>
-                <DescriptionListGroup>
-                  <DescriptionListTerm>{t('Created by')}</DescriptionListTerm>
-                  <DescriptionListDescription>
-                    {silence?.createdBy || '-'}
-                  </DescriptionListDescription>
-                </DescriptionListGroup>
-                <DescriptionListGroup>
-                  <DescriptionListTerm>{t('Comment')}</DescriptionListTerm>
-                  <DescriptionListDescription>{silence?.comment || '-'}</DescriptionListDescription>
-                </DescriptionListGroup>
-                <DescriptionListGroup>
-                  <DescriptionListTerm>{t('Firing alerts')}</DescriptionListTerm>
-                  <DescriptionListDescription>
-                    {alertsLoaded ? (
-                      <SeverityCounts alerts={silence?.firingAlerts} />
-                    ) : (
-                      <LoadingInline />
-                    )}
-                  </DescriptionListDescription>
-                </DescriptionListGroup>
-              </DescriptionList>
-            </GridItem>
-          </Grid>
-        </PageSection>
-        <Divider />
-        <PageSection variant={PageSectionVariants.light}>
-          <Title headingLevel="h2">{t('Firing alerts')}</Title>
-          {alertsLoaded ? <SilencedAlertsList alerts={silence?.firingAlerts} /> : <LoadingInline />}
-        </PageSection>
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>{t('State')}</DescriptionListTerm>
+                    <DescriptionListDescription>
+                      <SilenceState silence={silence} />
+                    </DescriptionListDescription>
+                  </DescriptionListGroup>
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>{t('Last updated at')}</DescriptionListTerm>
+                    <DescriptionListDescription>
+                      <Timestamp timestamp={silence?.updatedAt} />
+                    </DescriptionListDescription>
+                  </DescriptionListGroup>
+                </DescriptionList>
+              </GridItem>
+              <GridItem>
+                <DescriptionList>
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>{t('Starts at')}</DescriptionListTerm>
+                    <DescriptionListDescription>
+                      <Timestamp timestamp={silence?.startsAt} />
+                    </DescriptionListDescription>
+                  </DescriptionListGroup>
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>{t('Ends at')}</DescriptionListTerm>
+                    <DescriptionListDescription>
+                      <Timestamp timestamp={silence?.endsAt} />
+                    </DescriptionListDescription>
+                  </DescriptionListGroup>
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>{t('Created by')}</DescriptionListTerm>
+                    <DescriptionListDescription>
+                      {silence?.createdBy || '-'}
+                    </DescriptionListDescription>
+                  </DescriptionListGroup>
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>{t('Comment')}</DescriptionListTerm>
+                    <DescriptionListDescription>
+                      {silence?.comment || '-'}
+                    </DescriptionListDescription>
+                  </DescriptionListGroup>
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>{t('Firing alerts')}</DescriptionListTerm>
+                    <DescriptionListDescription>
+                      {alertsLoaded ? (
+                        <SeverityCounts alerts={silence?.firingAlerts} />
+                      ) : (
+                        <LoadingInline />
+                      )}
+                    </DescriptionListDescription>
+                  </DescriptionListGroup>
+                </DescriptionList>
+              </GridItem>
+            </Grid>
+          </PageSection>
+          <Divider />
+          <PageSection hasBodyWrapper={false}>
+            <Title headingLevel="h2">{t('Firing alerts')}</Title>
+            {alertsLoaded ? (
+              <SilencedAlertsList alerts={silence?.firingAlerts} />
+            ) : (
+              <LoadingInline />
+            )}
+          </PageSection>
+        </PageGroup>
       </StatusBox>
     </>
   );
@@ -194,7 +204,7 @@ const SilencedAlertsList_: React.FC<SilencedAlertsListProps> = ({ alerts, histor
   const [namespace] = useActiveNamespace();
 
   return _.isEmpty(alerts) ? (
-    <div className="pf-v5-u-text-align-center">{t('None found')}</div>
+    <div>{t('No Alerts found')}</div>
   ) : (
     <Table variant={TableVariant.compact}>
       <Thead>
@@ -208,18 +218,17 @@ const SilencedAlertsList_: React.FC<SilencedAlertsListProps> = ({ alerts, histor
           <Tr key={i}>
             <Td>
               <Link
-                className="pf-v5-u-text-break-word"
                 data-test="firing-alerts"
                 to={getAlertUrl(perspective, a, a.rule.id, namespace)}
               >
                 {a.labels.alertname}
               </Link>
-              <div className="monitoring-description">{alertDescription(a)}</div>
+              <div>{alertDescription(a)}</div>
             </Td>
             <Td>
-              <Severity severity={a.labels.severity} />
+              <SeverityBadge severity={a.labels.severity} />
             </Td>
-            <div className="dropdown-kebab-pf">
+            <div>
               <KebabDropdown
                 dropdownItems={[
                   <DropdownItem

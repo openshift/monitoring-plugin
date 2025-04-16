@@ -1,12 +1,16 @@
-import { Alert, TableColumn, useActiveNamespace } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  Alert,
+  ResourceIcon,
+  TableColumn,
+  useActiveNamespace,
+} from '@openshift-console/dynamic-plugin-sdk';
 import { ExpandableRowContent, Table, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
 import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getRuleUrl, usePerspective } from '../../../components/hooks/usePerspective';
 import { AggregatedAlert } from '../AlertsAggregates';
-import { AlertState, MonitoringResourceIcon, Severity } from '../AlertUtils';
+import { AlertState, SeverityBadge } from '../AlertUtils';
 import AlertTableRow from './AlertTableRow';
-import { tableAggregatedAlertClasses } from './hooks/useAggregateAlertColumns';
 import { RuleResource } from '../../../components/utils';
 import { Link } from 'react-router-dom';
 import { SelectedFilters } from '../useSelectedFilters';
@@ -34,10 +38,11 @@ const AggregateAlertTableRow: AggregateAlertTableRowProps = ({
     [aggregatedAlert.alerts, selectedFilters],
   );
 
-  const columns: TableColumn<Alert>[] = [
+  const columns: Array<TableColumn<Alert>> = [
     {
       title: t('Name'),
       id: 'alert-name',
+      props: { width: 40 },
     },
     {
       title: t('Severity'),
@@ -46,7 +51,6 @@ const AggregateAlertTableRow: AggregateAlertTableRowProps = ({
     {
       title: t('Namespace'),
       id: 'alert-namespace',
-      props: { className: 'pf-m-width-30' },
     },
     {
       title: t('State'),
@@ -73,7 +77,7 @@ const AggregateAlertTableRow: AggregateAlertTableRowProps = ({
   const firstAlert = aggregatedAlert?.alerts?.[0];
 
   return (
-    <Tbody key={title} isExpanded={isExpanded} role="rowgroup" className="aggregatedalert-row">
+    <Tbody key={title} isExpanded={isExpanded} role="rowgroup">
       <Tr>
         <Td
           expand={{
@@ -83,10 +87,10 @@ const AggregateAlertTableRow: AggregateAlertTableRowProps = ({
             expandId: 'expand-interfaces-list',
           }}
         />
-        <Td className={tableAggregatedAlertClasses[0]} title={title}>
+        <Td title={title}>
           <Flex spaceItems={{ default: 'spaceItemsNone' }} flexWrap={{ default: 'nowrap' }}>
             <FlexItem>
-              <MonitoringResourceIcon resource={RuleResource} />
+              <ResourceIcon kind={RuleResource.kind} />
             </FlexItem>
             <FlexItem>
               <Link
@@ -102,25 +106,25 @@ const AggregateAlertTableRow: AggregateAlertTableRowProps = ({
             </FlexItem>
           </Flex>
         </Td>
-        <Td className={tableAggregatedAlertClasses[1]} title={title}>
-          <Severity severity={aggregatedAlert.severity} />
+        <Td title={title}>
+          <SeverityBadge severity={aggregatedAlert.severity} />
         </Td>
-        <Td className={tableAggregatedAlertClasses[2]} title={title}>
+        <Td title={title}>
           <Badge key={1} isRead>
             {filteredAlerts.length}
           </Badge>
         </Td>
-        <Td className={tableAggregatedAlertClasses[3]} title={title}>
+        <Td title={title}>
           {Array.from(aggregatedAlert.states).map((state) => (
             <AlertState state={state} key={state} />
           ))}
         </Td>
       </Tr>
-      <Tr isExpanded={isExpanded} className={`aggregatedalert-row__expanded-${isExpanded}`}>
+      <Tr isExpanded={isExpanded}>
         <Td colSpan={isACMPerspective ? 6 : 5}>
           <ExpandableRowContent>
             <Table>
-              <Thead className="aggregatedalert-row__alert-table-head">
+              <Thead>
                 <Tr>
                   {columns.map((column) => (
                     <Th key={column.id} {...column?.props}>

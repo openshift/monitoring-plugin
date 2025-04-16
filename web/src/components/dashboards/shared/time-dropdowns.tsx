@@ -1,4 +1,4 @@
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -10,7 +10,6 @@ import {
 import { useBoolean } from '../../hooks/useBoolean';
 import CustomTimeRangeModal from '../shared/custom-time-range-modal';
 import { getLegacyObserveState, usePerspective } from '../../hooks/usePerspective';
-import { SimpleSelect, SimpleSelectOption } from '../../SimpleSelect';
 import { MonitoringState } from '../../../reducers/observe';
 import {
   DEFAULT_REFRESH_INTERVAL,
@@ -23,11 +22,13 @@ import {
   formatPrometheusDuration,
   parsePrometheusDuration,
 } from '../../console/console-shared/src/datetime/prometheus';
+import { SimpleSelect, SimpleSelectOption } from '@patternfly/react-templates';
+import { Stack, StackItem } from '@patternfly/react-core';
 
 const CUSTOM_TIME_RANGE_KEY = 'CUSTOM_TIME_RANGE_KEY';
 const DEFAULT_TIMERANGE = '30m';
 
-const TimespanDropdown: React.FC = () => {
+export const TimespanDropdown: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const { perspective } = usePerspective();
@@ -103,31 +104,28 @@ const TimespanDropdown: React.FC = () => {
         timespan={defaultTimerange}
         endTime={defaultEndTime}
       />
-      <div className="form-group monitoring-dashboards__dropdown-wrap">
-        <label
-          className="monitoring-dashboards__dropdown-title"
-          htmlFor="monitoring-time-range-dropdown"
-        >
-          {t('Time range')}
-        </label>
-        <SimpleSelect
-          id="monitoring-time-range-dropdown"
-          initialOptions={initialOptions}
-          className="monitoring-dashboards__variable-dropdown"
-          onSelect={(_event, selection) => {
-            if (selection) {
-              onChange(String(selection));
-            }
-          }}
-          toggleWidth="150px"
-          placeholder={t('Last {{count}} minute', { count: 30 })}
-        />
-      </div>
+      <Stack>
+        <StackItem>
+          <label htmlFor="monitoring-time-range-dropdown">{t('Time range')}</label>
+        </StackItem>
+        <StackItem>
+          <SimpleSelect
+            id="monitoring-time-range-dropdown"
+            initialOptions={initialOptions}
+            onSelect={(_event, selection) => {
+              if (selection) {
+                onChange(String(selection));
+              }
+            }}
+            placeholder={t('Last {{count}} minute', { count: 30 })}
+          />
+        </StackItem>
+      </Stack>
     </>
   );
 };
 
-const PollIntervalDropdown: React.FC = () => {
+export const PollIntervalDropdown: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
   const isPerses = useIsPerses();
@@ -150,24 +148,17 @@ const PollIntervalDropdown: React.FC = () => {
   );
 
   return (
-    <div className="form-group monitoring-dashboards__dropdown-wrap">
-      <label htmlFor="refresh-interval-dropdown" className="monitoring-dashboards__dropdown-title">
-        {t('Refresh interval')}
-      </label>
-      <DropDownPollInterval
-        id="refresh-interval-dropdown"
-        setInterval={setInterval}
-        selectedInterval={selectedInterval}
-      />
-    </div>
+    <Stack>
+      <StackItem>
+        <label htmlFor="refresh-interval-dropdown">{t('Refresh interval')}</label>
+      </StackItem>
+      <StackItem>
+        <DropDownPollInterval
+          id="refresh-interval-dropdown"
+          setInterval={setInterval}
+          selectedInterval={selectedInterval}
+        />
+      </StackItem>
+    </Stack>
   );
 };
-
-export const TimeDropdowns: React.FC = React.memo(() => {
-  return (
-    <div className="monitoring-dashboards__options">
-      <TimespanDropdown />
-      <PollIntervalDropdown />
-    </div>
-  );
-});

@@ -1,10 +1,5 @@
 import { PrometheusEndpoint, PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
-import {
-  EmptyState,
-  EmptyStateBody,
-  EmptyStateVariant,
-  PerPageOptions,
-} from '@patternfly/react-core';
+import { PerPageOptions } from '@patternfly/react-core';
 import {
   ISortBy,
   Table as PFTable,
@@ -31,6 +26,7 @@ import { usePerspective } from '../../hooks/usePerspective';
 import TablePagination from '../../table-pagination';
 import { ColumnStyle, Panel } from './types';
 import { CustomDataSource } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
+import { GraphEmpty } from '../../../components/console/graphs/graph-empty';
 
 type AugmentedColumnStyle = ColumnStyle & {
   className?: string;
@@ -55,7 +51,6 @@ const getColumns = (styles: ColumnStyle[]): AugmentedColumnStyle[] => {
     } else {
       labelColumns.push({
         ...col,
-        className: 'monitoring-dashboards__label-column-header',
       });
     }
   });
@@ -88,7 +83,7 @@ const Table: React.FC<Props> = ({ customDataSource, panel, pollInterval, queries
     const allPromises = _.map(queries, (query) =>
       _.isEmpty(query)
         ? Promise.resolve()
-        : safeFetch(
+        : safeFetch<PrometheusResponse>(
             getPrometheusURL(
               {
                 endpoint: PrometheusEndpoint.QUERY,
@@ -102,7 +97,7 @@ const Table: React.FC<Props> = ({ customDataSource, panel, pollInterval, queries
     );
 
     Promise.all(allPromises)
-      .then((responses: PrometheusResponse[]) => {
+      .then((responses) => {
         setError(undefined);
         setLoading(false);
         // Note: This makes the following assumptions about the data:
@@ -138,7 +133,7 @@ const Table: React.FC<Props> = ({ customDataSource, panel, pollInterval, queries
 
   usePoll(tick, pollInterval, queries);
   if (isLoading) {
-    return <div className="loading-skeleton--table" />;
+    return <GraphEmpty loading />;
   }
   if (error) {
     return <ErrorAlert error={{ message: error, name: t('An error occurred') }} />;
@@ -151,11 +146,7 @@ const Table: React.FC<Props> = ({ customDataSource, panel, pollInterval, queries
     );
   }
   if (_.isEmpty(data)) {
-    return (
-      <EmptyState variant={EmptyStateVariant.xs}>
-        <EmptyStateBody>{t('No data found')}</EmptyStateBody>
-      </EmptyState>
-    );
+    return <GraphEmpty />;
   }
 
   const columns: AugmentedColumnStyle[] = getColumns(panel.styles);
@@ -200,10 +191,9 @@ const Table: React.FC<Props> = ({ customDataSource, panel, pollInterval, queries
 
   return (
     <>
-      <div className="monitoring-dashboards__table-container">
+      <div style={{ overflowX: 'auto' }}>
         <PFTable
           aria-label={t('query results table')}
-          className="monitoring-dashboards__table"
           gridBreakPoint={TableGridBreakpoint.none}
           variant={TableVariant.compact}
           rows={rows.length}
@@ -233,6 +223,7 @@ const Table: React.FC<Props> = ({ customDataSource, panel, pollInterval, queries
                   <Td
                     key={`cell-${rowIndex}-${columnIndex}`}
                     dataLabel={rows?.[rowIndex]?.[columnIndex] ?? ''}
+                    className="pf-v6-u-font-family-monospace"
                   >
                     {rows?.[rowIndex]?.[columnIndex]}
                   </Td>

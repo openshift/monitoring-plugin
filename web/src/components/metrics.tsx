@@ -2,40 +2,45 @@ import {
   PrometheusData,
   PrometheusEndpoint,
   PrometheusLabels,
+  PrometheusResponse,
   useActiveNamespace,
   useResolvedExtensions,
   YellowExclamationTriangleIcon,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
-  ActionGroup,
   Bullseye,
   Button,
+  DataList,
+  DataListAction,
+  DataListCell,
+  DataListContent,
+  DataListItem,
+  DataListItemCells,
+  DataListItemRow,
+  DataListToggle,
   Dropdown,
   DropdownItem,
   DropdownList,
   EmptyState,
   EmptyStateBody,
-  EmptyStateIcon,
   EmptyStateVariant,
+  Flex,
+  FlexItem,
   Grid,
   GridItem,
   MenuToggle,
   MenuToggleElement,
   PageSection,
-  PageSectionVariants,
   SelectOptionProps,
   Split,
   SplitItem,
+  Stack,
+  StackItem,
   Switch,
   Title,
   Tooltip,
 } from '@patternfly/react-core';
-import {
-  AngleDownIcon,
-  AngleRightIcon,
-  ChartLineIcon,
-  CompressIcon,
-} from '@patternfly/react-icons';
+import { ChartLineIcon, CompressIcon } from '@patternfly/react-icons';
 import {
   ISortBy,
   sortable,
@@ -49,7 +54,6 @@ import {
   Tr,
   wrappable,
 } from '@patternfly/react-table';
-import classNames from 'classnames';
 import * as _ from 'lodash-es';
 import * as React from 'react';
 import { Helmet } from 'react-helmet';
@@ -98,6 +102,7 @@ import { PrometheusAPIError } from './types';
 import { TypeaheadSelect } from './TypeaheadSelect';
 import { LoadingInline } from './console/console-shared/src/components/loading/LoadingInline';
 import withFallback from './console/console-shared/error/fallbacks/withFallback';
+import { t_global_spacer_md, t_global_spacer_sm } from '@patternfly/react-tokens';
 
 // Stores information about the currently focused query input
 let focusedQuery;
@@ -239,7 +244,7 @@ export const PreDefinedQueriesDropdown = () => {
   };
 
   return (
-    <Grid className="predefined-query-select--padding">
+    <Grid>
       <GridItem>
         <label htmlFor="predefined-query-select-label">{t('Queries')}</label>
       </GridItem>
@@ -320,35 +325,13 @@ export const ToggleGraph: React.FC = () => {
   const icon = hideGraphs ? <ChartLineIcon /> : <CompressIcon />;
 
   return (
-    <Button
-      type="button"
-      className="pf-v5-m-link--align-right query-browser__toggle-graph"
-      onClick={toggle}
-      variant="link"
-    >
-      {icon} {hideGraphs ? t('Show graph') : t('Hide graph')}
-    </Button>
-  );
-};
-
-const ExpandButton = ({ isExpanded, onClick }) => {
-  const { t } = useTranslation(process.env.I18N_NAMESPACE);
-
-  const title = isExpanded ? t('Hide table') : t('Show table');
-  return (
-    <Button
-      aria-label={title}
-      className="query-browser__expand-button"
-      onClick={onClick}
-      title={title}
-      variant="plain"
-    >
-      {isExpanded ? (
-        <AngleDownIcon className="query-browser__expand-icon" />
-      ) : (
-        <AngleRightIcon className="query-browser__expand-icon" />
-      )}
-    </Button>
+    <Flex justifyContent={{ default: 'justifyContentFlexEnd' }}>
+      <FlexItem>
+        <Button type="button" onClick={toggle} variant="link">
+          {icon} {hideGraphs ? t('Show graph') : t('Hide graph')}
+        </Button>
+      </FlexItem>
+    </Flex>
   );
 };
 
@@ -384,24 +367,20 @@ const SeriesButton: React.FC<SeriesButtonProps> = ({ index, labels }) => {
   );
 
   if (isSeriesEmpty) {
-    return <div className="query-browser__series-btn-wrap"></div>;
+    return null;
   }
   const title = isDisabled ? t('Show series') : t('Hide series');
 
   return (
-    <div className="query-browser__series-btn-wrap">
-      <Button
-        aria-label={title}
-        className={classNames('query-browser__series-btn', {
-          'query-browser__series-btn--disabled': isDisabled,
-        })}
-        onClick={toggleSeries}
-        style={colorIndex === null ? undefined : { backgroundColor: colors[colorIndex] }}
-        title={title}
-        type="button"
-        variant="plain"
-      />
-    </div>
+    <Button
+      icon=""
+      aria-label={title}
+      onClick={toggleSeries}
+      style={colorIndex === null ? undefined : { backgroundColor: colors[colorIndex] }}
+      title={title}
+      type="button"
+      variant="control"
+    />
   );
 };
 
@@ -643,7 +622,7 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, custom
   // the PROMETHEUS_TENANCY_BASE_PATH for requests in the developer view
   const tick = () => {
     if (isEnabled && isExpanded && query) {
-      safeFetch(
+      safeFetch<PrometheusResponse>(
         getPrometheusURL(
           {
             endpoint: PrometheusEndpoint.QUERY,
@@ -681,19 +660,11 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, custom
   }
 
   if (error) {
-    return (
-      <div className="query-browser__table-message">
-        <Error error={error} title={t('Error loading values')} />
-      </div>
-    );
+    return <Error error={error} title={t('Error loading values')} />;
   }
 
   if (!data) {
-    return (
-      <div className="query-browser__table-message">
-        <LoadingInline />
-      </div>
-    );
+    return <LoadingInline />;
   }
 
   // Add any data series from `series` (those displayed in the graph) that are not in `data.result`.
@@ -706,7 +677,7 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, custom
 
   if (!result || result.length === 0) {
     return (
-      <div className="query-browser__table-message">
+      <div>
         <YellowExclamationTriangleIcon /> {t('No datapoints found.')}
       </div>
     );
@@ -756,7 +727,7 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, custom
       rowMapper = ({ metric, value }) => [
         buttonCell(metric),
         ..._.map(allLabelKeys, (k) => metric[k]),
-        _.get(value, '[1]', { title: <span className="text-muted">{t('None')}</span> }),
+        _.get(value, '[1]', { title: <span>{t('None')}</span> }),
       ];
     }
 
@@ -784,58 +755,48 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, custom
 
   return (
     <>
-      <div className="query-browser__table-wrapper">
-        <div className="horizontal-scroll">
-          <Button
-            variant="link"
-            isInline
-            onClick={toggleAllSeries}
-            className="query-browser__series-select-all-btn"
-          >
-            {isDisabledSeriesEmpty ? t('Unselect all') : t('Select all')}
-          </Button>
-          <Table
-            aria-label={t('query results table')}
-            gridBreakPoint={TableGridBreakpoint.none}
-            rows={tableRows.length}
-            variant={TableVariant.compact}
-            className="query-browser__table"
-          >
-            <Thead>
-              <Tr>
-                {columns.map((col, columnIndex) => {
-                  const sortParams =
-                    columnIndex !== 0
-                      ? {
-                          sort: {
-                            sortBy,
-                            onSort,
-                            columnIndex,
-                          },
-                        }
-                      : {};
-                  return (
-                    <Th key={`${col.title}-${columnIndex}`} {...sortParams}>
-                      {col.title}
-                    </Th>
-                  );
-                })}
-              </Tr>
-            </Thead>
-            <Tbody>
-              {tableRows.map((row, rowIndex) => (
-                <Tr key={`row-${rowIndex}`}>
-                  {row.cells?.map((cell, cellIndex) => (
-                    <Td key={`cell-${rowIndex}-${cellIndex}`}>
-                      {typeof cell === 'string' ? cell : cell?.title}
-                    </Td>
-                  ))}
-                </Tr>
+      <Button variant="link" isInline onClick={toggleAllSeries}>
+        {isDisabledSeriesEmpty ? t('Unselect all') : t('Select all')}
+      </Button>
+      <Table
+        aria-label={t('query results table')}
+        gridBreakPoint={TableGridBreakpoint.none}
+        rows={tableRows.length}
+        variant={TableVariant.compact}
+      >
+        <Thead>
+          <Tr>
+            {columns.map((col, columnIndex) => {
+              const sortParams =
+                columnIndex !== 0
+                  ? {
+                      sort: {
+                        sortBy,
+                        onSort,
+                        columnIndex,
+                      },
+                    }
+                  : {};
+              return (
+                <Th key={`${col.title}-${columnIndex}`} {...sortParams}>
+                  {col.title}
+                </Th>
+              );
+            })}
+          </Tr>
+        </Thead>
+        <Tbody>
+          {tableRows.map((row, rowIndex) => (
+            <Tr key={`row-${rowIndex}`}>
+              {row.cells?.map((cell, cellIndex) => (
+                <Td key={`cell-${rowIndex}-${cellIndex}`}>
+                  {typeof cell === 'string' ? cell : cell?.title}
+                </Td>
               ))}
-            </Tbody>
-          </Table>
-        </div>
-      </div>
+            </Tr>
+          ))}
+        </Tbody>
+      </Table>
       <TablePagination
         itemCount={rows.length}
         page={page}
@@ -849,7 +810,7 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, custom
 
 const PromQLExpressionInput = (props) => (
   <AsyncComponent
-    loader={() => import('./promql-expression-input').then((c) => c.PromQLExpressionInput)}
+    loader={() => import('./metrics/promql-expression-input').then((c) => c.PromQLExpressionInput)}
     {...props}
   />
 );
@@ -894,11 +855,6 @@ const Query: React.FC<{ index: number; customDatasource?: CustomDataSource }> = 
     [dispatch, index],
   );
 
-  const toggleIsExpanded = React.useCallback(
-    () => dispatch(queryBrowserPatchQuery(index, { isExpanded: !isExpanded })),
-    [dispatch, index, isExpanded],
-  );
-
   const handleTextChange = React.useCallback(
     (value: string) => {
       dispatch(queryBrowserPatchQuery(index, { text: value }));
@@ -922,41 +878,78 @@ const Query: React.FC<{ index: number; customDatasource?: CustomDataSource }> = 
   const switchLabel = isEnabled ? t('Disable query') : t('Enable query');
 
   const [activeNamespace] = useActiveNamespace();
-  return (
-    <div
-      className={classNames('query-browser__table', {
-        'query-browser__table--expanded': isExpanded,
-      })}
-    >
-      <div className="query-browser__query-controls">
-        <ExpandButton isExpanded={isExpanded} onClick={toggleIsExpanded} />
-        <PromQLExpressionInput
-          value={text}
-          onValueChange={handleTextChange}
-          onExecuteQuery={handleExecuteQueries}
-          onSelectionChange={handleSelectionChange}
-        />
-        <div title={switchLabel}>
-          <Switch
-            aria-label={switchLabel}
-            id={switchKey}
-            isChecked={isEnabled}
-            key={switchKey}
-            onChange={toggleIsEnabled}
-          />
-        </div>
-        <div className="dropdown-kebab-pf">
-          <QueryKebab index={index} />
-        </div>
-      </div>
-      {/* If namespace is defined getPrometheusURL() will use the
-      PROMETHEUS_TENANCY_BASE_PATH for the developer view */}
-      <QueryTable
-        index={index}
-        customDatasource={customDatasource}
-        namespace={perspective === 'dev' ? activeNamespace : undefined}
+
+  const queryKebab = <QueryKebab index={index} />;
+  const querySwitch = (
+    <div title={switchLabel} style={{ marginTop: t_global_spacer_sm.var }}>
+      <Switch
+        aria-label={switchLabel}
+        id={switchKey}
+        isChecked={isEnabled}
+        key={switchKey}
+        onChange={toggleIsEnabled}
       />
     </div>
+  );
+  const promQLExpressionInput = (
+    <PromQLExpressionInput
+      value={text}
+      onValueChange={handleTextChange}
+      onExecuteQuery={handleExecuteQueries}
+      onSelectionChange={handleSelectionChange}
+    />
+  );
+  const queryId = `metrics-query-${index}`;
+
+  // If namespace is defined getPrometheusURL() will use the
+  //     PROMETHEUS_TENANCY_BASE_PATH for the developer view
+  const queryTable = (
+    <QueryTable
+      index={index}
+      customDatasource={customDatasource}
+      namespace={perspective === 'dev' ? activeNamespace : undefined}
+    />
+  );
+
+  return (
+    <DataListItem aria-labelledby={`query-item-${queryId}`} isExpanded={isExpanded}>
+      <DataListItemRow>
+        <DataListToggle
+          onClick={toggleIsEnabled}
+          isExpanded={isExpanded}
+          buttonProps={{ isInline: true }}
+          id={`toggle-${queryId}`}
+          aria-controls={`query-expand-${queryId}`}
+        />
+        <DataListItemCells
+          dataListCells={[
+            <DataListCell
+              width={5}
+              key="width 5"
+              style={{ paddingTop: t_global_spacer_md.var, paddingBottom: 0 }}
+            >
+              {promQLExpressionInput}
+            </DataListCell>,
+          ]}
+          style={{ paddingBottom: 0 }}
+        />
+        <DataListAction
+          aria-labelledby={`query-item-${queryId} query-action-${queryId}`}
+          id={`action-${queryId}`}
+          aria-label="Actions"
+        >
+          {querySwitch}
+          {queryKebab}
+        </DataListAction>
+      </DataListItemRow>
+      <DataListContent
+        aria-label="Expandable content details"
+        id={`query-expand-${queryId}`}
+        isHidden={!isExpanded}
+      >
+        {queryTable}
+      </DataListContent>
+    </DataListItem>
   );
 };
 
@@ -1032,36 +1025,40 @@ const QueryBrowserWrapper: React.FC<{
 
   if (customDataSourceName && customDatasourceError) {
     return (
-      <div className="query-browser__wrapper graph-empty-state">
-        <EmptyState variant={EmptyStateVariant.full}>
-          <EmptyStateIcon icon={ChartLineIcon} />
+      <EmptyState
+        titleText={
           <Title headingLevel="h2" size="md">
             {t('Error loading custom data source')}
           </Title>
-          <EmptyStateBody>
-            {t('An error occurred while loading the custom data source.')}
-          </EmptyStateBody>
-        </EmptyState>
-      </div>
+        }
+        icon={ChartLineIcon}
+        variant={EmptyStateVariant.full}
+      >
+        <EmptyStateBody>
+          {t('An error occurred while loading the custom data source.')}
+        </EmptyStateBody>
+      </EmptyState>
     );
   }
 
   if (queryStrings.join('') === '') {
     return (
-      <div className="query-browser__wrapper graph-empty-state">
-        <EmptyState variant={EmptyStateVariant.full}>
-          <EmptyStateIcon icon={ChartLineIcon} />
+      <EmptyState
+        titleText={
           <Title headingLevel="h2" size="md">
             {t('No query entered')}
           </Title>
-          <EmptyStateBody>
-            {t('Enter a query in the box below to explore metrics for this cluster.')}
-          </EmptyStateBody>
-          <Button onClick={insertExampleQuery} variant="primary">
-            {t('Insert example query')}
-          </Button>
-        </EmptyState>
-      </div>
+        }
+        icon={ChartLineIcon}
+        variant={EmptyStateVariant.full}
+      >
+        <EmptyStateBody>
+          {t('Enter a query in the box below to explore metrics for this cluster.')}
+        </EmptyStateBody>
+        <Button onClick={insertExampleQuery} variant="primary">
+          {t('Insert example query')}
+        </Button>
+      </EmptyState>
     );
   }
 
@@ -1083,12 +1080,7 @@ const AddQueryButton: React.FC = () => {
   const addQuery = React.useCallback(() => dispatch(queryBrowserAddQuery()), [dispatch]);
 
   return (
-    <Button
-      className="query-browser__inline-control"
-      onClick={addQuery}
-      type="button"
-      variant="secondary"
-    >
+    <Button onClick={addQuery} type="button" variant="secondary">
       {t('Add query')}
     </Button>
   );
@@ -1115,14 +1107,14 @@ const QueriesList: React.FC<{ customDatasource?: CustomDataSource }> = ({ custom
   );
 
   return (
-    <>
+    <DataList aria-label={`queries`}>
       {_.range(count).map((index) => {
         const reversedIndex = count - index - 1;
         return (
           <Query index={reversedIndex} key={reversedIndex} customDatasource={customDatasource} />
         );
       })}
-    </>
+    </DataList>
   );
 };
 
@@ -1200,7 +1192,7 @@ const QueryBrowserPage_: React.FC = () => {
   if (customDataSourceName) {
     if (!extensionsResolved || (!customDataSourceIsResolved && !customDatasourceError)) {
       return (
-        <PageSection variant={PageSectionVariants.light}>
+        <PageSection hasBodyWrapper={false}>
           <Bullseye>
             <LoadingInline />
           </Bullseye>
@@ -1214,7 +1206,7 @@ const QueryBrowserPage_: React.FC = () => {
       <Helmet>
         <title>{t('Metrics')}</title>
       </Helmet>
-      <PageSection variant={PageSectionVariants.light}>
+      <PageSection hasBodyWrapper={false}>
         <Split hasGutter>
           <SplitItem>
             <Title headingLevel="h1">{t('Metrics')}</Title>
@@ -1228,32 +1220,36 @@ const QueryBrowserPage_: React.FC = () => {
           </SplitItem>
         </Split>
       </PageSection>
-      <PageSection variant={PageSectionVariants.light}>
-        <Grid>
-          <GridItem className="query-browser__toggle-graph-container">
+      <PageSection hasBodyWrapper={false}>
+        <Stack hasGutter>
+          <StackItem>
             <ToggleGraph />
-          </GridItem>
-          <GridItem>
+          </StackItem>
+          <StackItem>
             <QueryBrowserWrapper
               customDataSource={customDataSource}
               customDataSourceName={customDataSourceName}
               customDatasourceError={customDatasourceError}
             />
-            <Split>
-              <SplitItem>
+          </StackItem>
+          <StackItem>
+            <Flex alignItems={{ default: 'alignItemsFlexEnd' }}>
+              <FlexItem>
                 <PreDefinedQueriesDropdown />
-              </SplitItem>
-              <SplitItem isFilled />
-              <SplitItem>
-                <ActionGroup>
-                  <AddQueryButton />
-                  <RunQueriesButton />
-                </ActionGroup>
-              </SplitItem>
-            </Split>
+              </FlexItem>
+              <FlexItem grow={{ default: 'grow' }} />
+              <FlexItem>
+                <AddQueryButton />
+              </FlexItem>
+              <FlexItem>
+                <RunQueriesButton />
+              </FlexItem>
+            </Flex>
+          </StackItem>
+          <StackItem>
             <QueriesList customDatasource={customDataSource} />
-          </GridItem>
-        </Grid>
+          </StackItem>
+        </Stack>
       </PageSection>
     </>
   );

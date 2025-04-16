@@ -18,10 +18,10 @@ const injectDisabled = (children, disabled) => {
 const ErrorMessage = ({ message }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   return (
-    <Alert isInline variant="danger" title={t('public~An error occurred')} data-test="alert-error">
+    <Alert isInline variant="danger" title={t('An error occurred')} data-test="alert-error">
       <Panel isScrollable>
         <PanelMain maxHeight="100px">
-          <PanelMainBody className="pf-v5-u-text-break-word monitoring__pre-line">
+          <PanelMainBody className="pf-v6-u-text-break-word monitoring__pre-line">
             {message}
           </PanelMainBody>
         </PanelMain>

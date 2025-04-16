@@ -5,14 +5,18 @@ import {
   useResolvedExtensions,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
-  Button,
   Card as PFCard,
   CardBody,
   CardHeader,
   CardTitle,
   DropdownItem,
+  Grid,
+  GridItem,
+  gridSpans,
+  Flex,
+  FlexItem,
+  ExpandableSectionToggle,
 } from '@patternfly/react-core';
-import { AngleDownIcon, AngleRightIcon } from '@patternfly/react-icons';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
@@ -37,12 +41,13 @@ import { MonitoringState } from '../../../reducers/observe';
 import { evaluateVariableTemplate } from './legacy-variable-dropdowns';
 import { Panel, Row } from './types';
 import { QueryParams } from '../../query-params';
-import { LoadingInline } from '../../console/console-shared/src/components/loading/LoadingInline';
 import { CustomDataSource } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/dashboard-data-source';
 import {
   DataSource,
   isDataSource,
 } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
+import { t_global_font_size_heading_h2 } from '@patternfly/react-tokens';
+import { GraphEmpty } from '../../../components/console/graphs/graph-empty';
 
 const QueryBrowserLink = ({
   queries,
@@ -71,33 +76,15 @@ const QueryBrowserLink = ({
 
 // Determine how many columns a panel should span. If panel specifies a `span`, use that. Otherwise
 // look for a `breakpoint` percentage. If neither are specified, default to 12 (full width).
-const getPanelSpan = (panel: Panel): number => {
+const getPanelSpan = (panel: Panel): gridSpans => {
   if (panel.span) {
-    return panel.span;
+    return panel.span as gridSpans;
   }
   const breakpoint = _.toInteger(_.trimEnd(panel.breakpoint, '%'));
   if (breakpoint > 0) {
-    return Math.round(12 * (breakpoint / 100));
+    return Math.round(12 * (breakpoint / 100)) as gridSpans;
   }
   return 12;
-};
-
-const getPanelClassModifier = (panel: Panel): string => {
-  const span: number = getPanelSpan(panel);
-  switch (span) {
-    case 6:
-      return 'max-2';
-    case 2:
-    // fallthrough
-    case 4:
-    // fallthrough
-    case 5:
-      return 'max-3';
-    case 3:
-      return 'max-4';
-    default:
-      return 'max-1';
-  }
 };
 
 const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
@@ -191,8 +178,22 @@ const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
     link.click();
   };
 
+  const isThereCsvData = () => {
+    if (csvData.length > 0) {
+      if (csvData[0].length > 0) {
+        return true;
+      }
+    }
+    return false;
+  };
+
   const dropdownItems = [
-    <DropdownItem key="action" component="button" onClick={csvExportHandler}>
+    <DropdownItem
+      key="action"
+      component="button"
+      onClick={csvExportHandler}
+      isDisabled={!isThereCsvData()}
+    >
       {t('Export as CSV')}
     </DropdownItem>,
   ];
@@ -237,6 +238,16 @@ const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
     });
   }, []);
 
+  const panelBreakpoints = React.useMemo(() => {
+    const panelSpan = getPanelSpan(panel);
+    return {
+      sm: 12 as gridSpans,
+      md: Math.max(panelSpan, 6) as gridSpans,
+      lg: Math.max(panelSpan, 4) as gridSpans,
+      xl: Math.max(panelSpan, 3) as gridSpans,
+    };
+  }, [panel]);
+
   if (panel.type === 'row') {
     return (
       <>
@@ -259,25 +270,18 @@ const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
   const isLoading =
     (_.some(queries, _.isUndefined) && dataSourceInfoLoading) || customDataSource === undefined;
 
-  const panelClassModifier = getPanelClassModifier(panel);
-
-  const isThereCsvData = () => {
-    if (csvData.length > 0) {
-      if (csvData[0].length > 0) {
-        return true;
-      }
-    }
-    return false;
-  };
-
   return (
-    <div
-      className={`monitoring-dashboards__panel monitoring-dashboards__panel--${panelClassModifier}`}
+    <GridItem
+      span={panelBreakpoints.sm}
+      md={panelBreakpoints.md}
+      lg={panelBreakpoints.lg}
+      xl={panelBreakpoints.xl}
     >
       <PFCard
-        className={'monitoring-dashboards__card'}
         data-test={`${panel.title.toLowerCase().replace(/\s+/g, '-')}-chart`}
         data-test-id={panel.id ? `chart-${panel.id}` : undefined}
+        style={{ overflow: 'visible' }}
+        isFullHeight
       >
         <CardHeader
           actions={{
@@ -286,28 +290,23 @@ const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
                 {!isLoading && (
                   <QueryBrowserLink queries={queries} customDataSourceName={customDataSourceName} />
                 )}
-                {panel.type === 'graph' && isThereCsvData() && (
-                  <KebabDropdown dropdownItems={dropdownItems} />
-                )}
+                {panel.type === 'graph' && <KebabDropdown dropdownItems={dropdownItems} />}
               </>
             ),
-            hasNoOffset: false,
+            hasNoOffset: true,
           }}
-          className="monitoring-dashboards__card-header"
         >
           <CardTitle>{panel.title}</CardTitle>
         </CardHeader>
-        <CardBody className="monitoring-dashboards__card--dashboard">
+        <CardBody>
           {isError ? (
             <>
               <RedExclamationCircleIcon /> {t('Error loading card')}
             </>
           ) : (
-            <div className="monitoring-dashboards__card-body-content" ref={ref}>
+            <div ref={ref} style={{ height: '100%' }}>
               {isLoading || !wasEverVisible ? (
-                <div className={panel.type === 'graph' ? 'query-browser__wrapper' : ''}>
-                  <LoadingInline />
-                </div>
+                <GraphEmpty loading />
               ) : (
                 <>
                   {panel.type === 'grafana-piechart-panel' && (
@@ -355,7 +354,7 @@ const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
           )}
         </CardBody>
       </PFCard>
-    </div>
+    </GridItem>
   );
 });
 
@@ -364,41 +363,36 @@ const PanelsRow: React.FC<PanelsRowProps> = ({ row, perspective }) => {
 
   const [isExpanded, toggleIsExpanded] = useBoolean(showButton ? !row.collapse : true);
 
-  const Icon = isExpanded ? AngleDownIcon : AngleRightIcon;
-  const title = isExpanded ? 'Hide' : 'Show';
-
   return (
-    <div data-test-id={`panel-${_.kebabCase(row?.title)}`}>
+    <Flex direction={{ default: 'column' }} data-test-id={`panel-${_.kebabCase(row?.title)}`}>
       {showButton && (
-        <Button
-          aria-label={title}
-          className="pf-v5-m-link--align-left"
-          onClick={toggleIsExpanded}
-          style={{ fontSize: 24 }}
-          title={title}
-          variant="plain"
-        >
-          <Icon />
-          &nbsp;{row.title}
-        </Button>
+        <FlexItem>
+          <ExpandableSectionToggle isExpanded={isExpanded} onToggle={toggleIsExpanded}>
+            <span style={{ fontSize: t_global_font_size_heading_h2.var }}>{row.title}</span>
+          </ExpandableSectionToggle>
+        </FlexItem>
       )}
       {isExpanded && (
-        <div className="monitoring-dashboards__row">
-          {_.map(row.panels, (panel) => (
-            <Card key={panel.id} panel={panel} perspective={perspective} />
-          ))}
-        </div>
+        <FlexItem>
+          <Grid hasGutter>
+            {_.map(row.panels, (panel) => (
+              <Card key={panel.id} panel={panel} perspective={perspective} />
+            ))}
+          </Grid>
+        </FlexItem>
       )}
-    </div>
+    </Flex>
   );
 };
 
 export const LegacyDashboard: React.FC<BoardProps> = ({ rows, perspective }) => (
-  <>
+  <Flex direction={{ default: 'column' }}>
     {_.map(rows, (row) => (
-      <PanelsRow key={_.map(row.panels, 'id').join()} row={row} perspective={perspective} />
+      <FlexItem>
+        <PanelsRow key={_.map(row.panels, 'id').join()} row={row} perspective={perspective} />
+      </FlexItem>
     ))}
-  </>
+  </Flex>
 );
 
 type BoardProps = {
