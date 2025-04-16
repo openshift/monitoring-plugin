@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Route, RouteComponentProps, Switch, useHistory } from 'react-router-dom';
+import { Route, Routes, useNavigate, useMatch, useLocation } from 'react-router-dom-v5-compat';
 
 import {
   getAlertRulesUrl,
@@ -13,17 +13,21 @@ import SilencesPage from '../alerting/SilencesPage';
 import AlertRulesPage from '../alerting/AlertRulesPage';
 import { PageSection, Tab, Tabs, TabTitleText, Title } from '@patternfly/react-core';
 
-const AlertingPage: React.FC<RouteComponentProps<{ url: string }>> = ({ match }) => {
+const AlertingPage: React.FC = () => {
+  console.debug('AlertingPage');
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const alertsPath = getAlertsUrl(perspective);
   const silencesPath = getSilencesUrl(perspective);
   const rulesPath = getAlertRulesUrl(perspective);
   const paths = [alertsPath, silencesPath, rulesPath];
 
-  const { url } = match;
+  const location = useLocation();
+
+  const url = location.pathname;
+  console.debug('url', url);
   let activeTabKey = -1;
   switch (url) {
     case alertsPath:
@@ -44,7 +48,7 @@ const AlertingPage: React.FC<RouteComponentProps<{ url: string }>> = ({ match })
     event.preventDefault();
     const tabNumber = Number(tabIndex);
     if (tabNumber > -1 && tabNumber < paths.length) {
-      history.push(paths[tabNumber]);
+      navigate(paths[tabNumber]);
       return;
     }
   };
@@ -68,11 +72,11 @@ const AlertingPage: React.FC<RouteComponentProps<{ url: string }>> = ({ match })
           />
         </Tabs>
       </PageSection>
-      <Switch>
-        <Route path={alertsPath} exact component={AlertsPage} />
-        <Route path={silencesPath} exact component={SilencesPage} />
-        <Route path={rulesPath} exact component={AlertRulesPage} />
-      </Switch>
+      <Routes>
+        <Route path={alertsPath.slice(1)} Component={AlertsPage} />
+        <Route path={silencesPath.slice(1)} Component={SilencesPage} />
+        <Route path={rulesPath.slice(1)} Component={AlertRulesPage} />
+      </Routes>
     </>
   );
 };

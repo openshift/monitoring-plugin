@@ -39,7 +39,8 @@ import { find, includes, isEmpty } from 'lodash-es';
 import * as React from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
-import { Link, Route, Switch, useRouteMatch } from 'react-router-dom';
+import { useRouteMatch } from 'react-router-dom';
+import { Link, Route, Routes } from 'react-router-dom-v5-compat';
 
 import {
   NamespaceModel,
@@ -558,6 +559,8 @@ const ListPage: React.FC<ListPageProps> = ({ loaded, loadError, targets }) => {
 const POLL_INTERVAL = 15 * 1000;
 
 export const TargetsUI: React.FC = () => {
+  console.debug('?????');
+
   const [error, setError] = React.useState<PrometheusAPIError>();
   const [loaded, setLoaded] = React.useState(false);
   const [targets, setTargets] = React.useState<Target[]>();
@@ -610,20 +613,20 @@ export const TargetsUI: React.FC = () => {
       <ServicesWatchContext.Provider value={servicesWatch}>
         <PodMonitorsWatchContext.Provider value={podMonitorsWatch}>
           <PodsWatchContext.Provider value={podsWatch}>
-            <Switch>
-              <Route path="/monitoring/targets" exact>
+            <Routes>
+              <Route path="/monitoring/targets">
                 <ListPage loaded={loaded} loadError={loadError} targets={targets} />
               </Route>
-              <Route path="/monitoring/targets/:scrapeUrl?" exact>
+              <Route path="/monitoring/targets/:scrapeUrl?">
                 <Details loaded={loaded} loadError={loadError} targets={targets} />
               </Route>
-              <Route path="/virt-monitoring/targets" exact>
+              <Route path="/virt-monitoring/targets">
                 <ListPage loaded={loaded} loadError={loadError} targets={targets} />
               </Route>
-              <Route path="/virt-monitoring/targets/:scrapeUrl?" exact>
+              <Route path="/virt-monitoring/targets/:scrapeUrl?">
                 <Details loaded={loaded} loadError={loadError} targets={targets} />
               </Route>
-            </Switch>
+            </Routes>
           </PodsWatchContext.Provider>
         </PodMonitorsWatchContext.Provider>
       </ServicesWatchContext.Provider>

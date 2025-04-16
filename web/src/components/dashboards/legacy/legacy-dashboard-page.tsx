@@ -62,6 +62,8 @@ type MonitoringLegacyDashboardsWrapperProps = RouteComponentProps<{
 const MonitoringLegacyDashboardsPageWrapper: React.FC<MonitoringLegacyDashboardsWrapperProps> = ({
   match,
 }) => {
+  console.debug('???');
+
   return (
     <PersesContext.Provider value={false}>
       <MonitoringLegacyDashboardsPage_

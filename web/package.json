@@ -39,9 +39,6 @@
     "@lezer/highlight": "^1.0.0",
     "@lezer/lr": "^1.0.0",
     "@mui/material": "^6.1.10",
-    "@openshift-console/dynamic-plugin-sdk": "^4.19.0-prerelease.1",
-    "@openshift-console/dynamic-plugin-sdk-internal": "^4.19.0-prerelease.1",
-    "@openshift-console/dynamic-plugin-sdk-webpack": "^4.19.0-prerelease.1",
     "@patternfly/react-charts": "^8.2.0",
     "@patternfly/react-core": "^6.2.0",
     "@patternfly/react-data-view": "^6.1.0",
@@ -57,21 +54,14 @@
     "@tanstack/react-query": "^4.36.1",
     "classnames": "2.x",
     "fuzzysearch": "1.0.x",
-    "i18next": "^21.8.14",
     "i18next-http-backend": "^2.2.0",
     "immutable": "3.x",
     "lodash-es": "^4.17.21",
     "murmurhash-js": "1.0.x",
-    "react": "^17.0.1",
-    "react-dom": "^17.0.1",
     "react-helmet": "^6.1.0",
-    "react-i18next": "^11.8.11",
     "react-linkify": "^0.2.2",
     "react-modal": "^3.12.1",
     "react-redux": "7.2.2",
-    "react-router": "5.3.x",
-    "react-router-dom": "5.3.x",
-    "react-router-dom-v5-compat": "^6.30.0",
     "redux": "4.0.1",
     "use-query-params": "^2.2.1",
     "victory": "^37.3.6"
@@ -82,7 +72,6 @@
     "@types/node": "^17.0.21",
     "@types/react": "17.0.83",
     "@types/react-helmet": "^6.1.11",
-    "@types/react-router-dom": "^5.3.2",
     "@types/webpack-dev-server": "^4.7.2",
     "@typescript-eslint/eslint-plugin": "^5.15.0",
     "@typescript-eslint/parser": "^5.15.0",
@@ -120,6 +109,16 @@
   "resolutions": {
     "@types/react": "17.0.83"
   },
+  "peerDependencies": {
+    "@openshift-console/dynamic-plugin-sdk": "^4.19.0-prerelease.1",
+    "@openshift-console/dynamic-plugin-sdk-internal": "^4.19.0-prerelease.1",
+    "@openshift-console/dynamic-plugin-sdk-webpack": "^4.19.0-prerelease.1",
+    "i18next": "^24.2.2",
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1",
+    "react-i18next": "^11.11.4",
+    "react-router-dom-v5-compat": "^6.28.2"
+  },
   "consolePlugin": {
     "name": "monitoring-plugin",
     "version": "1.0.0",
@@ -127,8 +126,7 @@
     "description": "This plugin adds the monitoring UI to the OpenShift web console",
     "exposedModules": {
       "MonitoringRouter": "./components/router",
-      "MonitoringReducer": "./reducers/observe",
-      "IncidentsPage": "./components/Incidents/IncidentsPage"
+      "MonitoringReducer": "./reducers/observe"
     },
     "dependencies": {
       "@console/pluginAPI": "*"

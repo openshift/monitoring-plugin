@@ -40,7 +40,7 @@ import * as React from 'react';
 import { Helmet } from 'react-helmet';
 import { Trans, useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { RouteComponentProps, withRouter } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom-v5-compat';
 import { t_global_spacer_sm } from '@patternfly/react-tokens';
 
 // TODO: These will be available in future versions of the plugin SDK
@@ -123,14 +123,15 @@ const NegativeMatcherHelp = () => {
   );
 };
 
-type SilenceFormProps = RouteComponentProps & {
+type SilenceFormProps = {
   defaults: any;
   Info?: React.ComponentType;
   title: string;
 };
 
-const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, title }) => {
+const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const navigate = useNavigate();
 
   const durationOff = '-';
   const durations = {
@@ -259,7 +260,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
       .then(({ silenceID }) => {
         setError(undefined);
         refreshSilences(dispatch, perspective, silencesKey, namespace);
-        history.push(getSilenceAlertUrl(perspective, silenceID, namespace));
+        navigate(getSilenceAlertUrl(perspective, silenceID, namespace));
       })
       .catch((err) => {
         const errorMessage =
@@ -527,7 +528,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
             <Button type="submit" variant="primary" isDisabled={inProgress}>
               {t('Silence')}
             </Button>
-            <Button onClick={history.goBack} variant="secondary" isDisabled={inProgress}>
+            <Button onClick={() => navigate(-1)} variant="secondary" isDisabled={inProgress}>
               {t('Cancel')}
             </Button>
           </ActionGroup>
@@ -536,7 +537,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
     </>
   );
 };
-const SilenceForm = withFallback(withRouter(SilenceForm_));
+const SilenceForm = withFallback(SilenceForm_);
 
 const EditInfo = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -588,6 +589,7 @@ export const EditSilence = ({ match }) => {
 };
 
 export const CreateSilence = () => {
+  console.debug('?');
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const matchers = _.map(getAllQueryArguments(), (value, name) => ({
