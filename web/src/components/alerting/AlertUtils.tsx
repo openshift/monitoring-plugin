@@ -34,7 +34,7 @@ import {
 } from '@patternfly/react-icons';
 import { FormatSeriesTitle, QueryBrowser } from '../query-browser';
 import { Link } from 'react-router-dom-v5-compat';
-import { TFunction } from 'i18next';
+// import { TFunction } from 'i18next';
 import { getQueryBrowserUrl, usePerspective } from '../hooks/usePerspective';
 import { NamespaceModel } from '../console/models';
 import {
@@ -358,7 +358,7 @@ export const SourceHelp: React.FC = () => {
   );
 };
 
-export const getSourceKey = (source, t: TFunction) => {
+export const getSourceKey = (source, t) => {
   switch (source) {
     case 'Platform':
       return t('Platform');

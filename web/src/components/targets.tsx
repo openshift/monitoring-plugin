@@ -40,7 +40,7 @@ import * as React from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import { useRouteMatch } from 'react-router-dom';
-import { Link, Route, Routes } from 'react-router-dom-v5-compat';
+import { Link, Outlet, Route, Routes, useLocation, useParams } from 'react-router-dom-v5-compat';
 
 import {
   NamespaceModel,
@@ -240,6 +240,9 @@ const Details: React.FC<DetailsProps> = ({ loaded, loadError, targets }) => {
     }
   }
 
+  console.log('5. JZ DETAILS > target ', { target });
+  console.log('5. JZ DETAILS > scrapeUrl ', { scrapeUrl });
+
   const isServiceMonitor: boolean =
     target && target.scrapePool.includes(MonitorType.ServiceMonitor);
   const isPodMonitor: boolean = target && target.scrapePool.includes(MonitorType.PodMonitor);
@@ -357,7 +360,7 @@ const Row: React.FC<RowProps<Target>> = ({ obj }) => {
   return (
     <>
       <Td>
-        <Link to={`./targets/${btoa(scrapeUrl)}`}>{scrapeUrl}</Link>
+        <Link to={`./${btoa(scrapeUrl)}`}>{scrapeUrl}</Link>
       </Td>
       <Td>
         {isServiceMonitor && <ServiceMonitor target={obj} />}
@@ -467,6 +470,7 @@ type ListPageProps = {
 };
 
 const ListPage: React.FC<ListPageProps> = ({ loaded, loadError, targets }) => {
+  console.log('4. JZ ListPage ');
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const [, , serviceMonitorsLoadError] = React.useContext(ServiceMonitorsWatchContext);
@@ -559,7 +563,7 @@ const ListPage: React.FC<ListPageProps> = ({ loaded, loadError, targets }) => {
 const POLL_INTERVAL = 15 * 1000;
 
 export const TargetsUI: React.FC = () => {
-  console.debug('?????');
+  console.debug('2. JZ TargetsUI');
 
   const [error, setError] = React.useState<PrometheusAPIError>();
   const [loaded, setLoaded] = React.useState(false);
@@ -608,24 +612,36 @@ export const TargetsUI: React.FC = () => {
 
   const loadError = error?.json?.error || error?.message;
 
+  console.log('3. JZ Targets > targets: ', targets);
+
+  const location = useLocation();
+  console.log('Current route:', location.pathname);
+  const param = useParams();
+  console.log('Current param:', param);
+
   return (
     <ServiceMonitorsWatchContext.Provider value={monitorsWatch}>
       <ServicesWatchContext.Provider value={servicesWatch}>
         <PodMonitorsWatchContext.Provider value={podMonitorsWatch}>
           <PodsWatchContext.Provider value={podsWatch}>
             <Routes>
-              <Route path="/monitoring/targets">
-                <ListPage loaded={loaded} loadError={loadError} targets={targets} />
-              </Route>
-              <Route path="/monitoring/targets/:scrapeUrl?">
-                <Details loaded={loaded} loadError={loadError} targets={targets} />
-              </Route>
-              <Route path="/virt-monitoring/targets">
-                <ListPage loaded={loaded} loadError={loadError} targets={targets} />
-              </Route>
-              <Route path="/virt-monitoring/targets/:scrapeUrl?">
-                <Details loaded={loaded} loadError={loadError} targets={targets} />
-              </Route>
+              <Route
+                path=":scrapeUrl"
+                element={<Details loaded={loaded} loadError={loadError} targets={targets} />}
+              ></Route>
+              <Route
+                path="*"
+                element={<ListPage loaded={loaded} loadError={loadError} targets={targets} />}
+              ></Route>
+
+              {/* <Route
+                path="/virt-monitoring/targets"
+                element={<ListPage loaded={loaded} loadError={loadError} targets={targets} />}
+              ></Route> */}
+              {/* <Route
+                path="/virt-monitoring/targets/:scrapeUrl?"
+                element={<Details loaded={loaded} loadError={loadError} targets={targets} />}
+              ></Route> */}
             </Routes>
           </PodsWatchContext.Provider>
         </PodMonitorsWatchContext.Provider>
