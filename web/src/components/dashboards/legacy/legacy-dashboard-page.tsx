@@ -12,6 +12,7 @@ import { useLegacyDashboards } from './useLegacyDashboards';
 import { PersesContext } from '../../router';
 import { LoadingInline } from '../../../components/console/console-shared/src/components/loading/LoadingInline';
 import withFallback from '../../console/console-shared/error/fallbacks/withFallback';
+import { useParams } from 'react-router-dom-v5-compat';
 
 type MonitoringLegacyDashboardsPageProps = {
   urlBoard: string;
@@ -32,6 +33,9 @@ const MonitoringLegacyDashboardsPage_: React.FC<MonitoringLegacyDashboardsPagePr
   } = useLegacyDashboards(namespace, urlBoard);
   const { perspective } = usePerspective();
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+
+  console.log('3. MonitoringLegacyDashboardsPage_');
+  console.log('3. MonitoringLegacyDashboardsPage_ > legacyRows', legacyRows);
 
   return (
     <DashboardSkeleton
@@ -62,14 +66,15 @@ type MonitoringLegacyDashboardsWrapperProps = RouteComponentProps<{
 const MonitoringLegacyDashboardsPageWrapper: React.FC<MonitoringLegacyDashboardsWrapperProps> = ({
   match,
 }) => {
-  console.debug('???');
+  console.log('2. JZ MonitoringLegacyDashboardsPageWrapper ');
+
+  const params = useParams();
+
+  console.log('2. JZ MonitoringLegacyDashboardsPageWrapper  > params', { params });
 
   return (
     <PersesContext.Provider value={false}>
-      <MonitoringLegacyDashboardsPage_
-        urlBoard={match.params.dashboardName}
-        namespace={match.params?.ns}
-      />
+      <MonitoringLegacyDashboardsPage_ urlBoard={params.dashboardName} namespace={params?.ns} />
     </PersesContext.Provider>
   );
 };

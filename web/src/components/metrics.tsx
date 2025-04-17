@@ -1132,8 +1132,6 @@ const IntervalDropdown = () => {
 };
 
 const QueryBrowserPage_: React.FC = () => {
-  console.debug('????');
-
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const dispatch = useDispatch();
