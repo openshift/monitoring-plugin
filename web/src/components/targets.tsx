@@ -39,8 +39,7 @@ import { find, includes, isEmpty } from 'lodash-es';
 import * as React from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
-import { useRouteMatch } from 'react-router-dom';
-import { Link, Outlet, Route, Routes, useLocation, useParams } from 'react-router-dom-v5-compat';
+import { Link, Outlet, useOutletContext, useParams } from 'react-router-dom-v5-compat';
 
 import {
   NamespaceModel,
@@ -218,30 +217,22 @@ const WatchErrorAlert: React.FC<WatchErrorAlertProps> = ({ loadError, title }) =
   );
 };
 
-type DetailsProps = {
-  loaded: boolean;
-  loadError: string;
-  targets: Target[];
-};
-
-const Details: React.FC<DetailsProps> = ({ loaded, loadError, targets }) => {
+export const Details: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
-  const match = useRouteMatch<{ scrapeUrl?: string }>();
+  const { loaded, loadError, targets } = useTargetOutletContext();
+  const { scrapeUrl } = useParams();
 
-  let scrapeUrl = '';
+  let globalUrl = '';
   let target: Target | undefined;
-  if (match?.params?.scrapeUrl) {
+  if (scrapeUrl) {
     try {
-      scrapeUrl = atob(match?.params?.scrapeUrl);
-      target = find(targets, { scrapeUrl });
+      globalUrl = atob(scrapeUrl);
+      target = targets.find((target) => target.globalUrl === globalUrl);
     } catch {
       // Leave scrapeUrl and target unset
     }
   }
-
-  console.log('5. JZ DETAILS > target ', { target });
-  console.log('5. JZ DETAILS > scrapeUrl ', { scrapeUrl });
 
   const isServiceMonitor: boolean =
     target && target.scrapePool.includes(MonitorType.ServiceMonitor);
@@ -266,7 +257,7 @@ const Details: React.FC<DetailsProps> = ({ loaded, loadError, targets }) => {
             </Breadcrumb>
           </PageBreadcrumb>
           <PageSection hasBodyWrapper={false}>
-            <Title headingLevel="h1">{scrapeUrl}</Title>
+            <Title headingLevel="h1">{globalUrl}</Title>
           </PageSection>
           <Divider />
           <PageSection hasBodyWrapper={false}>
@@ -288,7 +279,7 @@ const Details: React.FC<DetailsProps> = ({ loaded, loadError, targets }) => {
                 <DescriptionList>
                   <DescriptionListGroup>
                     <DescriptionListTerm>{t('Endpoint')}</DescriptionListTerm>
-                    <DescriptionListDescription>{scrapeUrl}</DescriptionListDescription>
+                    <DescriptionListDescription>{globalUrl}</DescriptionListDescription>
                   </DescriptionListGroup>
                   <DescriptionListGroup>
                     <DescriptionListTerm>{t('Namespace')}</DescriptionListTerm>
@@ -463,14 +454,9 @@ const List: React.FC<ListProps> = ({ data, loaded, loadError, unfilteredData }) 
   );
 };
 
-type ListPageProps = {
-  loaded: boolean;
-  loadError: string;
-  targets: Target[];
-};
+export const ListPage: React.FC = () => {
+  const { loaded, loadError, targets } = useTargetOutletContext();
 
-const ListPage: React.FC<ListPageProps> = ({ loaded, loadError, targets }) => {
-  console.log('4. JZ ListPage ');
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const [, , serviceMonitorsLoadError] = React.useContext(ServiceMonitorsWatchContext);
@@ -563,8 +549,6 @@ const ListPage: React.FC<ListPageProps> = ({ loaded, loadError, targets }) => {
 const POLL_INTERVAL = 15 * 1000;
 
 export const TargetsUI: React.FC = () => {
-  console.debug('2. JZ TargetsUI');
-
   const [error, setError] = React.useState<PrometheusAPIError>();
   const [loaded, setLoaded] = React.useState(false);
   const [targets, setTargets] = React.useState<Target[]>();
@@ -612,37 +596,12 @@ export const TargetsUI: React.FC = () => {
 
   const loadError = error?.json?.error || error?.message;
 
-  console.log('3. JZ Targets > targets: ', targets);
-
-  const location = useLocation();
-  console.log('Current route:', location.pathname);
-  const param = useParams();
-  console.log('Current param:', param);
-
   return (
     <ServiceMonitorsWatchContext.Provider value={monitorsWatch}>
       <ServicesWatchContext.Provider value={servicesWatch}>
         <PodMonitorsWatchContext.Provider value={podMonitorsWatch}>
           <PodsWatchContext.Provider value={podsWatch}>
-            <Routes>
-              <Route
-                path=":scrapeUrl"
-                element={<Details loaded={loaded} loadError={loadError} targets={targets} />}
-              ></Route>
-              <Route
-                path="*"
-                element={<ListPage loaded={loaded} loadError={loadError} targets={targets} />}
-              ></Route>
-
-              {/* <Route
-                path="/virt-monitoring/targets"
-                element={<ListPage loaded={loaded} loadError={loadError} targets={targets} />}
-              ></Route> */}
-              {/* <Route
-                path="/virt-monitoring/targets/:scrapeUrl?"
-                element={<Details loaded={loaded} loadError={loadError} targets={targets} />}
-              ></Route> */}
-            </Routes>
+            <Outlet context={{ loaded, loadError, targets } satisfies TargetOutletContext} />
           </PodsWatchContext.Provider>
         </PodMonitorsWatchContext.Provider>
       </ServicesWatchContext.Provider>
@@ -656,4 +615,14 @@ type PrometheusTargetsResponse = {
     activeTargets: Array<Target>;
     droppedTargets: Array<Target>;
   };
+};
+
+type TargetOutletContext = {
+  loaded: boolean;
+  loadError: string;
+  targets: Target[];
+};
+
+const useTargetOutletContext = () => {
+  return useOutletContext<TargetOutletContext>();
 };

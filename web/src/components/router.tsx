@@ -11,7 +11,7 @@ import MonitoringDashboardsPage from './dashboards/perses/dashboard-page';
 import MonitoringLegacyDashboardsPage from './dashboards/legacy/legacy-dashboard-page';
 import { QueryBrowserPage } from './metrics';
 import { CreateSilence } from './alerting/SilenceForm';
-import { TargetsUI } from './targets';
+import { Details, ListPage, TargetsUI } from './targets';
 
 import { usePerspective } from './hooks/usePerspective';
 import AlertsPage from './alerting/AlertsPage';
@@ -101,7 +101,10 @@ const NonPollingRouter = () => {
       <Route path={`v2/dashboards`} element={<MonitoringDashboardsPage />} />
       <Route path={`dashboards/:dashboardName?`} element={<MonitoringLegacyDashboardsPage />} />
       <Route path={`query-browser`} element={<QueryBrowserPage />} />
-      <Route path={`targets`} element={<TargetsUI />} />
+      <Route path={`targets`} element={<TargetsUI />}>
+        <Route index element={<ListPage />} />
+        <Route path=":scrapeUrl" element={<Details />} />
+      </Route>
       <Route path="*" element={<PollingPagesRouter />} />
     </Routes>
   );
