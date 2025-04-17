@@ -9,10 +9,9 @@ import {
   useActiveNamespace,
   useResolvedExtensions,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { BellIcon, ExclamationCircleIcon, InfoCircleIcon } from '@patternfly/react-icons';
-import ExclamationTriangleIcon from '@patternfly/react-icons/dist/esm/icons/exclamation-triangle-icon';
-import { Bullseye, DropdownItem, Icon, Spinner, Tooltip } from '@patternfly/react-core';
-import { Link } from 'react-router-dom';
+import { BellIcon } from '@patternfly/react-icons';
+import { Bullseye, DropdownItem, Spinner, Tooltip } from '@patternfly/react-core';
+import { Link, useHistory } from 'react-router-dom';
 import { AlertResource, getAlertsAndRules } from '../utils';
 import { getPrometheusURL } from '../console/graphs/helpers';
 import { fetchAlerts } from '../fetch-alerts';
@@ -29,6 +28,7 @@ import './incidents-styles.css';
 import { SeverityBadge } from '../alerting/AlertUtils';
 
 const IncidentsDetailsRowTable = ({ alerts }) => {
+  const history = useHistory();
   const [namespace] = useActiveNamespace();
   const { perspective } = usePerspective();
   const [alertsWithMatchedData, setAlertsWithMatchedData] = React.useState([]);
@@ -147,15 +147,15 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
                     dropdownItems={[
                       <DropdownItem
                         component="button"
-                        key="silence"
+                        key="silence alert"
                         isDisabled={!alertDetails?.rule}
+                        onClick={() =>
+                          history.push(
+                            getNewSilenceAlertUrl(perspective, alertDetails.rule, namespace),
+                          )
+                        }
                       >
-                        <Link
-                          to={getNewSilenceAlertUrl(perspective, alertDetails)}
-                          style={{ color: 'inherit', textDecoration: 'inherit' }}
-                        >
-                          {t('Silence alert')}
-                        </Link>
+                        {t('Silence alert')}
                       </DropdownItem>,
                       <DropdownItem key="view-rule" isDisabled={!alertDetails?.rule}>
                         <Link
