@@ -115,11 +115,10 @@ const DevelopmentRouter = () => {
 
   return (
     <Routes>
-      <Route path="dev-monitoring/ns/:ns/" element={<MonitoringLegacyDashboardsPage />} />
+      <Route path="*" element={<PollingPagesRouter />} />
+      <Route index element={<MonitoringLegacyDashboardsPage />} />
       <Route path={`silences/~new`} element={<CreateSilence />} />
       <Route path={`metrics`} element={<QueryBrowserPage />} />
-
-      <Route path="*" element={<PollingPagesRouter />} />
     </Routes>
   );
 };
@@ -138,6 +137,8 @@ const AcmRouter = () => (
 
 const MonitoringRouter = () => {
   const { perspective } = usePerspective();
+
+  console.log('0. JZ perspective: ', { perspective });
 
   return (
     <QueryParamProvider adapter={ReactRouter5Adapter}>

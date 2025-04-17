@@ -2,7 +2,14 @@
   {
     "type": "console.page/route",
     "properties": {
-      "path": ["/monitoring", "/dev-monitoring/ns/:ns"],
+      "path": ["/monitoring"],
+      "component": { "$codeRef": "MonitoringRouter" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": ["/dev-monitoring/ns/:ns"],
       "component": { "$codeRef": "MonitoringRouter" }
     }
   },
