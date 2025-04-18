@@ -40,7 +40,7 @@ import * as React from 'react';
 import { Helmet } from 'react-helmet';
 import { Trans, useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { useNavigate, useParams } from 'react-router-dom-v5-compat';
 import { t_global_spacer_sm } from '@patternfly/react-tokens';
 
 // TODO: These will be available in future versions of the plugin SDK
@@ -551,15 +551,16 @@ const EditInfo = () => {
   );
 };
 
-export const EditSilence = ({ match }) => {
+export const EditSilence = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { silencesKey, perspective } = usePerspective();
+  const params = useParams();
 
   const silences: Silences = useSelector((state: MonitoringState) =>
     getLegacyObserveState(perspective, state)?.get(silencesKey),
   );
 
-  const silence: Silence = _.find(silences?.data, { id: match.params.id });
+  const silence: Silence = _.find(silences?.data, { id: params?.id });
   const isExpired = silenceState(silence) === SilenceStates.Expired;
   const defaults = _.pick(silence, [
     'comment',
@@ -589,7 +590,6 @@ export const EditSilence = ({ match }) => {
 };
 
 export const CreateSilence = () => {
-  console.debug('?');
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const matchers = _.map(getAllQueryArguments(), (value, name) => ({

@@ -10,7 +10,7 @@ import { Route, Routes, useLocation, useParams } from 'react-router-dom-v5-compa
 import MonitoringDashboardsPage from './dashboards/perses/dashboard-page';
 import MonitoringLegacyDashboardsPage from './dashboards/legacy/legacy-dashboard-page';
 import { QueryBrowserPage } from './metrics';
-import { CreateSilence } from './alerting/SilenceForm';
+import { CreateSilence, EditSilence } from './alerting/SilenceForm';
 import { Details, ListPage, TargetsUI } from './targets';
 
 import { usePerspective } from './hooks/usePerspective';
@@ -51,7 +51,7 @@ const PollingPagesRouter = () => {
 
   if (perspective === 'dev') {
     console.log('1. JZ POLLING PAGES ROUTER DEV PERSPECTIVE');
-    return <AlertingRouter />;
+    return <DevelopmentAlertingRouter />;
   }
 
   return <AlertingRouter />;
@@ -60,11 +60,13 @@ const PollingPagesRouter = () => {
 const AlertingRouter: React.FC = () => {
   console.log('1. AlertingRouter');
   // path root = /monitoring/...
+  // path root = /virt-monitoring/...
   return (
     <Routes>
       <Route path="alerts/:ruleID" element={<AlertsDetailsPage />} />
       <Route path="alertrules/:id" element={<AlertRulesDetailsPage />} />
       <Route path="silences/:id" element={<SilencesDetailsPage />} />
+      <Route path="silences/:id/edit" element={<EditSilence />} />
       <Route element={<AlertingPage />}>
         <Route path="alerts" element={<AlertsPage />} />
         <Route path="alertrules" element={<AlertRulesPage />} />

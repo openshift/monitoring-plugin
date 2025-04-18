@@ -2,6 +2,7 @@ Admin
 1. [] Alerting  
     [] Can navigate to Alerts, Silences, Alerting Rules Pages
     [] Can navigate to 'Create Silences' page 
+    [] Can navigate to 'Edit Silences' Page 
 2. [] Metrics 
     [] Can navigate to Metrics Page 
 3. [] Dashboards
@@ -12,6 +13,10 @@ Admin
 5. [x] Incidents 
 6. [] Dashboards (Perses)
     [] Need to check this on a cluster because of issues running Perses locally 
+Virt-monitoring 
+1. ^ same as admin 
+
+
 
 
 
