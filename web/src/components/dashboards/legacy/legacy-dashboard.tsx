@@ -359,8 +359,6 @@ const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
 });
 
 const PanelsRow: React.FC<PanelsRowProps> = ({ row, perspective }) => {
-  console.log('JZ 5. PanelsRow ');
-
   const showButton = row.showTitle && !_.isEmpty(row.title);
 
   const [isExpanded, toggleIsExpanded] = useBoolean(showButton ? !row.collapse : true);
@@ -388,8 +386,6 @@ const PanelsRow: React.FC<PanelsRowProps> = ({ row, perspective }) => {
 };
 
 export const LegacyDashboard: React.FC<BoardProps> = ({ rows, perspective }) => {
-  console.log('JZ 5. LegacyDashboard ');
-  console.log('JZ 5. LegacyDashboard > rows ', rows);
   return (
     <Flex direction={{ default: 'column' }}>
       {_.map(rows, (row) => (

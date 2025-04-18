@@ -35,7 +35,7 @@
       "type": "console.page/route",
       "properties": {
         "exact": false,
-        "path": ["/monitoring/v2/dashboards"],
+        "path": ["/monitoring/"],
         "component": { "$codeRef": "MonitoringRouter" }
       }
     }

@@ -34,9 +34,6 @@ const MonitoringLegacyDashboardsPage_: React.FC<MonitoringLegacyDashboardsPagePr
   const { perspective } = usePerspective();
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
-  console.log('3. MonitoringLegacyDashboardsPage_');
-  console.log('3. MonitoringLegacyDashboardsPage_ > legacyRows', legacyRows);
-
   return (
     <DashboardSkeleton
       boardItems={legacyDashboardsMetadata}
@@ -63,14 +60,10 @@ type MonitoringLegacyDashboardsWrapperProps = RouteComponentProps<{
   ns?: string;
 }>;
 
-const MonitoringLegacyDashboardsPageWrapper: React.FC<MonitoringLegacyDashboardsWrapperProps> = ({
-  match,
-}) => {
-  console.log('2. JZ MonitoringLegacyDashboardsPageWrapper ');
-
+const MonitoringLegacyDashboardsPageWrapper: React.FC<
+  MonitoringLegacyDashboardsWrapperProps
+> = () => {
   const params = useParams();
-
-  console.log('2. JZ MonitoringLegacyDashboardsPageWrapper  > params', { params });
 
   return (
     <PersesContext.Provider value={false}>

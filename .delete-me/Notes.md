@@ -11,8 +11,7 @@ Admin
     [] Can click on 'Endpoints' link 
 5. [x] Incidents 
 6. [] Dashboards (Perses)
-
-
+    [] Need to check this on a cluster because of issues running Perses locally 
 
 
 

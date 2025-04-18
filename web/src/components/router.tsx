@@ -50,7 +50,7 @@ const PollingPagesRouter = () => {
   useSilencesPoller({ namespace });
 
   if (perspective === 'dev') {
-    console.log('JZ POLLING PAGES ROUTER DEV PERSPECTIVE');
+    console.log('1. JZ POLLING PAGES ROUTER DEV PERSPECTIVE');
     return <AlertingRouter />;
   }
 
@@ -87,11 +87,11 @@ const DevelopmentAlertingRouter = () => {
 };
 
 const NonPollingRouter = () => {
-  console.log('1. JZ NonPollingRouter');
+  console.log('1. JZ NonPollingRouter!!');
   const location = useLocation();
-  console.log('1. NonPollingRouter route:', location.pathname);
+  console.log('1. JZ NonPollingRouter route:', location.pathname);
   const param = useParams();
-  console.log('1. NonPollingRouter param:', param);
+  console.log('1. JZ NonPollingRouter param:', param);
 
   return (
     <Routes>
@@ -100,6 +100,7 @@ const NonPollingRouter = () => {
       <Route path={`silences/~new`} element={<CreateSilence />} />
       <Route path={`v2/dashboards`} element={<MonitoringDashboardsPage />} />
       <Route path={`dashboards/:dashboardName?`} element={<MonitoringLegacyDashboardsPage />} />
+      {/* <Route path={`/${root}/graph`} exact component={PrometheusRouterRedirect} /> */}
       <Route path={`query-browser`} element={<QueryBrowserPage />} />
       <Route path={`targets`} element={<TargetsUI />}>
         <Route index element={<ListPage />} />
@@ -111,7 +112,7 @@ const NonPollingRouter = () => {
 };
 
 const DevelopmentRouter = () => {
-  console.log('JZ DevelopmentRouter');
+  console.log('1. JZ DevelopmentRouter');
 
   return (
     <Routes>
@@ -156,4 +157,14 @@ const MonitoringRouter = () => {
     </QueryParamProvider>
   );
 };
+
+// // Handles links that have the Prometheus UI's URL format (expected for links in alerts sent by
+// // Alertmanager). The Prometheus UI specifies the PromQL query with the GET param `g0.expr`, so we
+// // use that if it exists. Otherwise, just go to the query browser page with no query.
+// const PrometheusRouterRedirect = () => {
+//   const params = getAllQueryArguments();
+//   // leaving perspective redirect to future work
+//   return <Redirect to={`/monitoring/query-browser?query0=${params['g0.expr'] || ''}`} />;
+// };
+
 export default MonitoringRouter;

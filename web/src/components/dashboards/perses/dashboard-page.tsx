@@ -64,8 +64,6 @@ const MonitoringDashboardsPage_: React.FC = () => {
 };
 
 const MonitoringDashboardsPageWrapper: React.FC<RouteComponentProps> = () => {
-  console.debug('??');
-
   return (
     <QueryClientProvider client={queryClient}>
       <PersesContext.Provider value={true}>
