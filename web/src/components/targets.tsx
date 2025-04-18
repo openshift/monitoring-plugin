@@ -39,7 +39,7 @@ import { find, includes, isEmpty } from 'lodash-es';
 import * as React from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
-import { Link, Route, Switch, useRouteMatch } from 'react-router-dom';
+import { Link, Outlet, useOutletContext, useParams } from 'react-router-dom-v5-compat';
 
 import {
   NamespaceModel,
@@ -217,23 +217,18 @@ const WatchErrorAlert: React.FC<WatchErrorAlertProps> = ({ loadError, title }) =
   );
 };
 
-type DetailsProps = {
-  loaded: boolean;
-  loadError: string;
-  targets: Target[];
-};
-
-const Details: React.FC<DetailsProps> = ({ loaded, loadError, targets }) => {
+export const Details: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
-  const match = useRouteMatch<{ scrapeUrl?: string }>();
+  const { loaded, loadError, targets } = useTargetOutletContext();
+  const { scrapeUrl } = useParams();
 
-  let scrapeUrl = '';
+  let globalUrl = '';
   let target: Target | undefined;
-  if (match?.params?.scrapeUrl) {
+  if (scrapeUrl) {
     try {
-      scrapeUrl = atob(match?.params?.scrapeUrl);
-      target = find(targets, { scrapeUrl });
+      globalUrl = atob(scrapeUrl);
+      target = targets.find((target) => target.globalUrl === globalUrl);
     } catch {
       // Leave scrapeUrl and target unset
     }
@@ -262,7 +257,7 @@ const Details: React.FC<DetailsProps> = ({ loaded, loadError, targets }) => {
             </Breadcrumb>
           </PageBreadcrumb>
           <PageSection hasBodyWrapper={false}>
-            <Title headingLevel="h1">{scrapeUrl}</Title>
+            <Title headingLevel="h1">{globalUrl}</Title>
           </PageSection>
           <Divider />
           <PageSection hasBodyWrapper={false}>
@@ -284,7 +279,7 @@ const Details: React.FC<DetailsProps> = ({ loaded, loadError, targets }) => {
                 <DescriptionList>
                   <DescriptionListGroup>
                     <DescriptionListTerm>{t('Endpoint')}</DescriptionListTerm>
-                    <DescriptionListDescription>{scrapeUrl}</DescriptionListDescription>
+                    <DescriptionListDescription>{globalUrl}</DescriptionListDescription>
                   </DescriptionListGroup>
                   <DescriptionListGroup>
                     <DescriptionListTerm>{t('Namespace')}</DescriptionListTerm>
@@ -356,7 +351,7 @@ const Row: React.FC<RowProps<Target>> = ({ obj }) => {
   return (
     <>
       <Td>
-        <Link to={`./targets/${btoa(scrapeUrl)}`}>{scrapeUrl}</Link>
+        <Link to={`./${btoa(scrapeUrl)}`}>{scrapeUrl}</Link>
       </Td>
       <Td>
         {isServiceMonitor && <ServiceMonitor target={obj} />}
@@ -459,13 +454,9 @@ const List: React.FC<ListProps> = ({ data, loaded, loadError, unfilteredData }) 
   );
 };
 
-type ListPageProps = {
-  loaded: boolean;
-  loadError: string;
-  targets: Target[];
-};
+export const ListPage: React.FC = () => {
+  const { loaded, loadError, targets } = useTargetOutletContext();
 
-const ListPage: React.FC<ListPageProps> = ({ loaded, loadError, targets }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const [, , serviceMonitorsLoadError] = React.useContext(ServiceMonitorsWatchContext);
@@ -610,20 +601,7 @@ export const TargetsUI: React.FC = () => {
       <ServicesWatchContext.Provider value={servicesWatch}>
         <PodMonitorsWatchContext.Provider value={podMonitorsWatch}>
           <PodsWatchContext.Provider value={podsWatch}>
-            <Switch>
-              <Route path="/monitoring/targets" exact>
-                <ListPage loaded={loaded} loadError={loadError} targets={targets} />
-              </Route>
-              <Route path="/monitoring/targets/:scrapeUrl?" exact>
-                <Details loaded={loaded} loadError={loadError} targets={targets} />
-              </Route>
-              <Route path="/virt-monitoring/targets" exact>
-                <ListPage loaded={loaded} loadError={loadError} targets={targets} />
-              </Route>
-              <Route path="/virt-monitoring/targets/:scrapeUrl?" exact>
-                <Details loaded={loaded} loadError={loadError} targets={targets} />
-              </Route>
-            </Switch>
+            <Outlet context={{ loaded, loadError, targets } satisfies TargetOutletContext} />
           </PodsWatchContext.Provider>
         </PodMonitorsWatchContext.Provider>
       </ServicesWatchContext.Provider>
@@ -637,4 +615,14 @@ type PrometheusTargetsResponse = {
     activeTargets: Array<Target>;
     droppedTargets: Array<Target>;
   };
+};
+
+type TargetOutletContext = {
+  loaded: boolean;
+  loadError: string;
+  targets: Target[];
+};
+
+const useTargetOutletContext = () => {
+  return useOutletContext<TargetOutletContext>();
 };

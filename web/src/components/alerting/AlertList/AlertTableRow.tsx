@@ -28,7 +28,7 @@ import {
   getNewSilenceAlertUrl,
   usePerspective,
 } from '../../../components/hooks/usePerspective';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom-v5-compat';
 
 const AlertTableRow: React.FC<{ alert: Alert }> = ({ alert }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -92,7 +92,7 @@ const AlertTableRow: React.FC<{ alert: Alert }> = ({ alert }) => {
               )}
               data-test-id="alert-resource-link"
             >
-              {alert?.labels?.alertname}
+              {alert?.labels?.alertname} TACOS
             </Link>
           </FlexItem>
         </Flex>

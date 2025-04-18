@@ -20,7 +20,7 @@ import {
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom-v5-compat';
 
 import { setQueryArguments } from '../../console/utils/router';
 
@@ -385,15 +385,17 @@ const PanelsRow: React.FC<PanelsRowProps> = ({ row, perspective }) => {
   );
 };
 
-export const LegacyDashboard: React.FC<BoardProps> = ({ rows, perspective }) => (
-  <Flex direction={{ default: 'column' }}>
-    {_.map(rows, (row) => (
-      <FlexItem>
-        <PanelsRow key={_.map(row.panels, 'id').join()} row={row} perspective={perspective} />
-      </FlexItem>
-    ))}
-  </Flex>
-);
+export const LegacyDashboard: React.FC<BoardProps> = ({ rows, perspective }) => {
+  return (
+    <Flex direction={{ default: 'column' }}>
+      {_.map(rows, (row) => (
+        <FlexItem>
+          <PanelsRow key={_.map(row.panels, 'id').join()} row={row} perspective={perspective} />
+        </FlexItem>
+      ))}
+    </Flex>
+  );
+};
 
 type BoardProps = {
   rows: Row[];

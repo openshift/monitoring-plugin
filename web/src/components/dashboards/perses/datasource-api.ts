@@ -2,10 +2,10 @@ import { DatasourceResource, DatasourceSelector, GlobalDatasourceResource } from
 import { DatasourceApi } from '@perses-dev/dashboards';
 import { fetchDatasourceList } from './perses/datasource-client';
 import { fetchGlobalDatasourceList } from './perses/global-datasource-client';
-import { TFunction } from 'i18next';
+// import { TFunction } from 'i18next';
 
 export class OcpDatasourceApi implements DatasourceApi {
-  constructor(public csrfToken: string, public t: TFunction, public basePath: string) {}
+  constructor(public csrfToken: string, public t, public basePath: string) {}
   /**
    * Helper function for getting a proxy URL from separate input parameters.
    * Give the following output according to the definition or not of the input.

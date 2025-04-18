@@ -73,6 +73,7 @@ import { StatusBox } from '../console/console-shared/src/components/status/Statu
 import { formatPrometheusDuration } from '../console/console-shared/src/datetime/prometheus';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 import { Table, TableVariant, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
+import { useNavigate, useParams } from 'react-router-dom-v5-compat';
 
 // Renders Prometheus template text and highlights any {{ ... }} tags that it contains
 const PrometheusTemplate = ({ text }) => (
@@ -91,9 +92,10 @@ type ActiveAlertsProps = RouteComponentProps & {
   ruleID: string;
 };
 
-const ActiveAlerts_: React.FC<ActiveAlertsProps> = ({ alerts, history, namespace, ruleID }) => {
+const ActiveAlerts_: React.FC<ActiveAlertsProps> = ({ alerts, namespace, ruleID }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
+  const navigate = useNavigate();
 
   return (
     <Table variant={TableVariant.compact}>
@@ -128,7 +130,7 @@ const ActiveAlerts_: React.FC<ActiveAlertsProps> = ({ alerts, history, namespace
                   <DropdownItem
                     component="button"
                     key="silence"
-                    onClick={() => history.push(getNewSilenceAlertUrl(perspective, a))}
+                    onClick={() => navigate(getNewSilenceAlertUrl(perspective, a))}
                   >
                     {t('Silence alert')}
                   </DropdownItem>,
@@ -143,18 +145,18 @@ const ActiveAlerts_: React.FC<ActiveAlertsProps> = ({ alerts, history, namespace
 };
 const ActiveAlerts = withRouter(ActiveAlerts_);
 
-type AlertRulesDetailsPageProps = RouteComponentProps<{ id: string; ns?: string }>;
-
-const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match }) => {
+const AlertRulesDetailsPage_: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const { rulesKey, alertsKey, perspective } = usePerspective();
-  const namespace = match.params?.ns;
+
+  const params = useParams();
+  const namespace = params?.ns; // namespace only defined in dev perspective
 
   const rules: Rule[] = useSelector((state: MonitoringState) =>
     getLegacyObserveState(perspective, state)?.get(rulesKey),
   );
-  const rule = _.find(rules, { id: _.get(match, 'params.id') });
+  const rule = _.find(rules, { id: params?.id });
 
   const { loaded, loadError }: Alerts = useSelector(
     (state: MonitoringState) => getLegacyObserveState(perspective, state)?.get(alertsKey) || {},

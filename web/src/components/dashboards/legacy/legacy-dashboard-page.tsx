@@ -12,6 +12,7 @@ import { useLegacyDashboards } from './useLegacyDashboards';
 import { PersesContext } from '../../router';
 import { LoadingInline } from '../../../components/console/console-shared/src/components/loading/LoadingInline';
 import withFallback from '../../console/console-shared/error/fallbacks/withFallback';
+import { useParams } from 'react-router-dom-v5-compat';
 
 type MonitoringLegacyDashboardsPageProps = {
   urlBoard: string;
@@ -59,15 +60,14 @@ type MonitoringLegacyDashboardsWrapperProps = RouteComponentProps<{
   ns?: string;
 }>;
 
-const MonitoringLegacyDashboardsPageWrapper: React.FC<MonitoringLegacyDashboardsWrapperProps> = ({
-  match,
-}) => {
+const MonitoringLegacyDashboardsPageWrapper: React.FC<
+  MonitoringLegacyDashboardsWrapperProps
+> = () => {
+  const params = useParams();
+
   return (
     <PersesContext.Provider value={false}>
-      <MonitoringLegacyDashboardsPage_
-        urlBoard={match.params.dashboardName}
-        namespace={match.params?.ns}
-      />
+      <MonitoringLegacyDashboardsPage_ urlBoard={params.dashboardName} namespace={params?.ns} />
     </PersesContext.Provider>
   );
 };

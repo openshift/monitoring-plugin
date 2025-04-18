@@ -3,16 +3,16 @@ import * as React from 'react';
 import { usePerses } from './usePerses';
 import { getDashboardsUrl, usePerspective } from '../../../hooks/usePerspective';
 import { getAllQueryArguments } from '../../../console/utils/router';
-import { useHistory } from 'react-router';
 import { useActiveProject } from '../project/useActiveProject';
 import { useBoolean } from '../../../hooks/useBoolean';
 import { QueryParams } from '../../../query-params';
 import { StringParam, useQueryParam } from 'use-query-params';
+import { useNavigate } from 'react-router-dom-v5-compat';
 
 // This hook syncs with mutliple external API's, redux, and URL state. Its a lot, but needs to all
 // be in a single location
 export const useDashboardsData = () => {
-  const history = useHistory();
+  const navigate = useNavigate();
   const { perspective } = usePerspective();
   const { activeProject, setActiveProject } = useActiveProject();
 
@@ -80,11 +80,13 @@ export const useDashboardsData = () => {
       let url = getDashboardsUrl(perspective);
       url = `${url}?${params.toString()}`;
 
+      console.log('URL FROM USEDASHBAORDDART: ', { url });
+
       if (newBoard !== dashboardName) {
-        history.replace(url);
+        navigate(url, { replace: true });
       }
     },
-    [perspective, dashboardName, history, activeProject],
+    [activeProject, perspective, dashboardName, navigate],
   );
 
   // If a dashboard hasn't been selected yet, or if the current project doesn't have a
