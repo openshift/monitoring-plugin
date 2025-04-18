@@ -35,7 +35,7 @@
       "type": "console.page/route",
       "properties": {
         "exact": false,
-        "path": ["/monitoring/"],
+        "path": ["/monitoring"],
         "component": { "$codeRef": "MonitoringRouter" }
       }
     }
@@ -65,7 +65,7 @@
       "type": "console.page/route",
       "properties": {
         "exact": false,
-        "path": ["/virt-monitoring/v2/dashboards"],
+        "path": ["/virt-monitoring"],
         "component": { "$codeRef": "MonitoringRouter" }
       }
     }
