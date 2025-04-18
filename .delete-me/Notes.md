@@ -17,7 +17,8 @@ Admin
 
 
 Components that are replaced 
-1. {match}  >> const params = useParams(); 
+1. replace { match }  >> const params = useParams(); 
+2. replace `history` >>  const params = useParams();
 
 
 
