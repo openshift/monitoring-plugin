@@ -1,15 +1,16 @@
 Admin 
-1. [] Alerting  
+1. [] Alerting Page 
     [] Can navigate to Alerts, Silences, Alerting Rules Pages
-    [] Silences
+    [] Can use filters to change URL on Alerts, Silences, Alerting Rules Pages
+    [] Alerts Page 
+        [] Expand a row in the AggregatedTableRow > Under name column click the Alert > should go to Alert Details Page
+        [] Link to 'Silence alerts' should go to the New Silences Page 
+    [] Silences Page 
         [] Can navigate to Silence Detail Page 
         [] Can navigate to 'Create Silences' page 
         [] Can navigate to 'Edit Silences' Page
         [] Can navigate to Silences > Silence Detail > Firing Alerts > Click on Alert > Silenced By > Options Kebab > Edit Silence Page  
-    [] AlertingDetailsPage 
-        [] Expand a row in the AggregatedTableRow > Under name column click the Alert > should go to Alert Details Page
-        [] Link to 'Silence alerts' should go to the New Silences Page 
-    [] AlertRulesPage 
+    [] Alert Rules Page 
         [] Clicking on an alert > should navigate to AlertRulesDetailPage 
 2. [] Metrics 
     [] Can navigate to Metrics Page 
