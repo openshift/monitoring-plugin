@@ -5,7 +5,7 @@ import {
   useResolvedExtensions,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as React from 'react';
-import { Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom-v5-compat';
+import { Navigate, Route, Routes } from 'react-router-dom-v5-compat';
 
 import MonitoringDashboardsPage from './dashboards/perses/dashboard-page';
 import MonitoringLegacyDashboardsPage from './dashboards/legacy/legacy-dashboard-page';
