@@ -22,11 +22,11 @@ import {
   dashboardsSetTimespan,
 } from '../../../actions/observe';
 import { CombinedDashboardMetadata } from '../perses/hooks/useDashboardsData';
-import { useHistory } from 'react-router';
 import { Map as ImmutableMap } from 'immutable';
 import { QueryParams } from '../../query-params';
 import { NumberParam, StringParam, useQueryParam } from 'use-query-params';
 import { mockUseFetchDashboards } from './dev-mock-dashboard-config';
+import { useNavigate } from 'react-router-dom-v5-compat';
 
 export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
@@ -41,7 +41,8 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
   const [legacyDashboardsLoading, , , setLegacyDashboardsLoaded] = useBoolean(true);
   const [initialLoad, , , setInitialLoaded] = useBoolean(true);
   const dispatch = useDispatch();
-  const history = useHistory();
+  // const history = useHistory();
+  const navigate = useNavigate();
   const legacyDashboard = React.useMemo(() => {
     if (perspective === 'dev') {
       return dashboardParam;
@@ -154,7 +155,7 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
 
       if (newBoard !== legacyDashboard || initialLoad) {
         if (params.get(QueryParams.Dashboard) !== newBoard) {
-          history.replace(url);
+          navigate(url, { replace: true });
         }
 
         dispatch(dashboardsPatchAllVariables(allVariables, perspective));
@@ -176,14 +177,14 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
       }
     },
     [
+      legacyDashboards,
+      namespace,
       perspective,
       legacyDashboard,
-      dispatch,
-      history,
-      namespace,
-      legacyDashboards,
       initialLoad,
+      dispatch,
       refreshInterval,
+      navigate,
     ],
   );
 

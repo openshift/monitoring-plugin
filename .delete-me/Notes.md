@@ -16,6 +16,7 @@ Admin
     [] Can navigate to Metrics Page 
 3. [] Dashboards
     [] Can navigate to Metrics Page 
+    [] Chaning dashboards from 'Dashboard' dropdown will update the URL
 4. [] Targets
     [] Can navigate to /targets 
     [] Can click on 'Endpoints' link 
