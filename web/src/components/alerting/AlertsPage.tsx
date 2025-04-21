@@ -30,9 +30,10 @@ import { AggregatedAlert, getAggregateAlertsLists } from './AlertsAggregates';
 
 import Error from './Error';
 import AggregateAlertTableRow from './AlertList/AggregateAlertTableRow';
+import DownloadCSVButton from './AlertList/DownloadCSVButton';
 import useAggregateAlertColumns from './AlertList/hooks/useAggregateAlertColumns';
 import useSelectedFilters from './useSelectedFilters';
-import { PageSection } from '@patternfly/react-core';
+import { Flex, PageSection } from '@patternfly/react-core';
 
 const AlertsPage_: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -163,14 +164,18 @@ const AlertsPage_: React.FC = () => {
         <title>Alerting</title>
       </Helmet>
       <PageSection hasBodyWrapper={false}>
-        <ListPageFilter
-          data={staticData}
-          labelFilter="alerts"
-          labelPath="labels"
-          loaded={loaded}
-          onFilterChange={onFilterChange}
-          rowFilters={rowFilters}
-        />
+        <Flex>
+          <ListPageFilter
+            data={staticData}
+            labelFilter="alerts"
+            labelPath="labels"
+            loaded={loaded}
+            onFilterChange={onFilterChange}
+            rowFilters={rowFilters}
+          />
+
+          <DownloadCSVButton loaded={loaded} filteredData={filteredData} />
+        </Flex>
         {silencesLoadError && <SilencesNotLoadedWarning silencesLoadError={silencesLoadError} />}
 
         {filteredData?.length > 0 && loaded && (
