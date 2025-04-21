@@ -23,7 +23,9 @@ Virt-monitoring
 
 Components that are replaced 
 1. replace { match }  >> const params = useParams(); 
-2. replace `history` >>  const params = useParams();
+2. replace { history } >>  const params = useNavigate();
+3. replace { location } >> const location = useLocation(); 
+4. remove `RouterComponentProps` and `withRouter` >> no longer needed to wrap components in withRouter because of the replacement of implicit props: match, history, and location 
 
 
 

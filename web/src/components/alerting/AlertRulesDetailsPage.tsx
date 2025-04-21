@@ -40,7 +40,7 @@ import * as React from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
-import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
+import { Link } from 'react-router-dom-v5-compat';
 
 import { ExternalLink } from '../console/utils/link';
 
@@ -86,13 +86,13 @@ const PrometheusTemplate = ({ text }) => (
   </>
 );
 
-type ActiveAlertsProps = RouteComponentProps & {
+type ActiveAlertsProps = {
   alerts: PrometheusAlert[];
   namespace: string;
   ruleID: string;
 };
 
-const ActiveAlerts_: React.FC<ActiveAlertsProps> = ({ alerts, namespace, ruleID }) => {
+const ActiveAlerts: React.FC<ActiveAlertsProps> = ({ alerts, namespace, ruleID }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
   const navigate = useNavigate();
@@ -143,7 +143,6 @@ const ActiveAlerts_: React.FC<ActiveAlertsProps> = ({ alerts, namespace, ruleID 
     </Table>
   );
 };
-const ActiveAlerts = withRouter(ActiveAlerts_);
 
 const AlertRulesDetailsPage_: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);

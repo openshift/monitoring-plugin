@@ -92,7 +92,7 @@ const AlertTableRow: React.FC<{ alert: Alert }> = ({ alert }) => {
               )}
               data-test-id="alert-resource-link"
             >
-              {alert?.labels?.alertname} TACOS
+              {alert?.labels?.alertname}
             </Link>
           </FlexItem>
         </Flex>

@@ -25,7 +25,7 @@ import {
   isAlertingRuleChart,
   ResourceIcon,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom-v5-compat';
 import { ExternalLink, LinkifyExternal } from '../console/utils/link';
 
 import {
@@ -86,8 +86,10 @@ import withFallback from '../console/console-shared/error/fallbacks/withFallback
 import { Helmet } from 'react-helmet';
 import { SilencedByList } from './AlertDetail/SilencedByTable';
 
-const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }) => {
+const AlertsDetailsPage_: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const navigate = useNavigate();
+  const params = useParams();
 
   const { alertsKey, silencesKey, perspective } = usePerspective();
 
@@ -105,7 +107,7 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
     (state: MonitoringState) => getLegacyObserveState(perspective, state)?.get(silencesKey)?.loaded,
   );
 
-  const ruleAlerts = _.filter(alerts?.data, (a) => a.rule.id === match?.params?.ruleID);
+  const ruleAlerts = _.filter(alerts?.data, (a) => a.rule.id === params?.ruleID);
   const rule = ruleAlerts?.[0]?.rule;
 
   // Search for an alert that matches all of the labels in the URL parameters. We expect there to be
@@ -177,9 +179,7 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
               {state !== AlertStates.Silenced && (
                 <SplitItem>
                   <Button
-                    onClick={() =>
-                      history.push(getNewSilenceAlertUrl(perspective, alert, namespace))
-                    }
+                    onClick={() => navigate(getNewSilenceAlertUrl(perspective, alert, namespace))}
                     variant="primary"
                   >
                     {t('Silence alert')}
@@ -383,7 +383,7 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
     </>
   );
 };
-const AlertsDetailsPage = withFallback(withRouter(AlertsDetailsPage_));
+const AlertsDetailsPage = withFallback(AlertsDetailsPage_);
 
 const HeaderAlertMessage: React.FC<{ alert: Alert; rule: Rule }> = ({ alert, rule }) => {
   const annotation = alert.annotations.description ? 'description' : 'message';
@@ -503,8 +503,6 @@ const AlertStateHelp: React.FC = () => {
 };
 
 export default AlertsDetailsPage;
-
-type AlertsDetailsPageProps = RouteComponentProps<{ ns?: string; ruleID: string }>;
 
 type AlertMessageProps = {
   alertText: string;
