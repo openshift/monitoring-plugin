@@ -4,7 +4,8 @@ Admin
     [] Silences
         [] Can navigate to Silence Detail Page 
         [] Can navigate to 'Create Silences' page 
-        [] Can navigate to 'Edit Silences' Page 
+        [] Can navigate to 'Edit Silences' Page
+        [] Can navigate to Silences > Silence Detail > Firing Alerts > Click on Alert > Silenced By > Options Kebab > Edit Silence Page  
     [] AlertingDetailsPage 
         [] Expand a row in the AggregatedTableRow > Under name column click the Alert > should go to Alert Details Page
         [] Link to 'Silence alerts' should go to the New Silences Page 
