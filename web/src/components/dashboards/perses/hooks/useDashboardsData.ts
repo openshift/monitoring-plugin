@@ -80,8 +80,6 @@ export const useDashboardsData = () => {
       let url = getDashboardsUrl(perspective);
       url = `${url}?${params.toString()}`;
 
-      console.log('URL FROM USEDASHBAORDDART: ', { url });
-
       if (newBoard !== dashboardName) {
         navigate(url, { replace: true });
       }
