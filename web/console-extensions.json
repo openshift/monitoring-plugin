@@ -2,14 +2,7 @@
   {
     "type": "console.page/route",
     "properties": {
-      "path": ["/monitoring"],
-      "component": { "$codeRef": "MonitoringRouter" }
-    }
-  },
-  {
-    "type": "console.page/route",
-    "properties": {
-      "path": ["/dev-monitoring/ns/:ns"],
+      "path": ["/monitoring", "/dev-monitoring/ns/:ns"],
       "component": { "$codeRef": "MonitoringRouter" }
     }
   },
@@ -138,6 +131,50 @@
       "perspective": "virtualization-perspective",
       "section": "observe-virt-perspective",
       "insertAfter": "dashboards-virt"
+    }
+  },
+    {
+    "type": "console.tab",
+    "properties": {
+      "contextId": "dev-console-observe",
+      "name": "%plugin__monitoring-plugin~Alerts%",
+      "href": "alerts",
+      "component": {
+        "$codeRef": "MonitoringRouter"
+      }
+    }
+  },
+  {
+    "type": "console.tab",
+    "properties": {
+      "contextId": "dev-console-observe",
+      "name": "%plugin__monitoring-plugin~Metrics%",
+      "href": "metrics",
+      "component": {
+        "$codeRef": "MonitoringRouter"
+      }
+    }
+  },
+  {
+    "type": "console.tab",
+    "properties": {
+      "contextId": "dev-console-observe",
+      "name": "%plugin__monitoring-plugin~Silences%",
+      "href": "silences",
+      "component": {
+        "$codeRef": "MonitoringRouter"
+      }
+    }
+  },
+  {
+    "type": "console.tab",
+    "properties": {
+      "contextId": "dev-console-observe",
+      "name": "%plugin__monitoring-plugin~Dashboards%",
+      "href": "",
+      "component": {
+        "$codeRef": "MonitoringRouter"
+      }
     }
   },
   {
