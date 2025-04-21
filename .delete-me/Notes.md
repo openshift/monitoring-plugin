@@ -1,8 +1,14 @@
 Admin 
 1. [] Alerting  
     [] Can navigate to Alerts, Silences, Alerting Rules Pages
-    [] Can navigate to 'Create Silences' page 
-    [] Can navigate to 'Edit Silences' Page 
+    [] Alerting > Silences
+        [] Can navigate to 'Create Silences' page 
+        [] Can navigate to 'Edit Silences' Page 
+    [] AlertingDetailsPage 
+        [] Expand a row in the AggregatedTableRow > Under name column click the Alert > should go to Alert Details Page
+        [] Link to 'Silence alerts' should go to the New Silences Page 
+    [] AlertRulesPage 
+        [] Clicking on an alert > should navigate to AlertRulesDetailPage 
 2. [] Metrics 
     [] Can navigate to Metrics Page 
 3. [] Dashboards

@@ -30,7 +30,6 @@ import {
 } from '@patternfly/react-core';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
-import { RouteComponentProps, withRouter } from 'react-router';
 import { Link, useNavigate, useParams } from 'react-router-dom-v5-compat';
 import { MonitoringState } from 'src/reducers/observe';
 import {
@@ -199,7 +198,7 @@ const SilencesDetailsPage_: React.FC = () => {
 };
 const SilencesDetailsPage = withFallback(SilencesDetailsPage_);
 
-const SilencedAlertsList_: React.FC<SilencedAlertsListProps> = ({ alerts }) => {
+const SilencedAlertsList: React.FC<SilencedAlertsListProps> = ({ alerts }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const navigate = useNavigate();
   const { perspective } = usePerspective();
@@ -248,8 +247,7 @@ const SilencedAlertsList_: React.FC<SilencedAlertsListProps> = ({ alerts }) => {
     </Table>
   );
 };
-const SilencedAlertsList = withRouter(SilencedAlertsList_);
 
 export default SilencesDetailsPage;
 
-type SilencedAlertsListProps = RouteComponentProps & { alerts: Alert[] };
+type SilencedAlertsListProps = { alerts: Alert[] };
