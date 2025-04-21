@@ -1,7 +1,8 @@
 Admin 
 1. [] Alerting  
     [] Can navigate to Alerts, Silences, Alerting Rules Pages
-    [] Alerting > Silences
+    [] Silences
+        [] Can navigate to Silence Detail Page 
         [] Can navigate to 'Create Silences' page 
         [] Can navigate to 'Edit Silences' Page 
     [] AlertingDetailsPage 
