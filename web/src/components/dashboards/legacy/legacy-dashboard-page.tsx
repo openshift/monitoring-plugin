@@ -1,6 +1,5 @@
 import { Overview } from '@openshift-console/dynamic-plugin-sdk';
 import * as React from 'react';
-import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import ErrorAlert from '../shared/error';
 
@@ -55,15 +54,13 @@ const MonitoringLegacyDashboardsPage_: React.FC<MonitoringLegacyDashboardsPagePr
   );
 };
 
-type MonitoringLegacyDashboardsWrapperProps = RouteComponentProps<{
-  dashboardName: string;
+type RouteParams = {
   ns?: string;
-}>;
+  dashboardName: string;
+};
 
-const MonitoringLegacyDashboardsPageWrapper: React.FC<
-  MonitoringLegacyDashboardsWrapperProps
-> = () => {
-  const params = useParams();
+const MonitoringLegacyDashboardsPage: React.FC = () => {
+  const params = useParams<RouteParams>();
 
   return (
     <PersesContext.Provider value={false}>
@@ -71,7 +68,5 @@ const MonitoringLegacyDashboardsPageWrapper: React.FC<
     </PersesContext.Provider>
   );
 };
-
-const MonitoringLegacyDashboardsPage = withRouter(MonitoringLegacyDashboardsPageWrapper);
 
 export default withFallback(MonitoringLegacyDashboardsPage);
