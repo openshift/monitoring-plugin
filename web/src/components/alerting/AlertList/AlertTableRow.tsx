@@ -77,7 +77,6 @@ const AlertTableRow: React.FC<{ alert: Alert }> = ({ alert }) => {
   return (
     <Tr>
       <Td title={title}>
-        <h1> JELLY BEAN </h1>
         <Flex spaceItems={{ default: 'spaceItemsNone' }} flexWrap={{ default: 'nowrap' }}>
           <FlexItem>
             <ResourceIcon kind={AlertResource.kind} />

@@ -1,6 +1,5 @@
 import { Overview } from '@openshift-console/dynamic-plugin-sdk';
 import * as React from 'react';
-import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import DashboardSkeleton from '../shared/dashboard-skeleton';
 import { PersesWrapper } from './PersesWrapper';
@@ -63,7 +62,7 @@ const MonitoringDashboardsPage_: React.FC = () => {
   );
 };
 
-const MonitoringDashboardsPageWrapper: React.FC<RouteComponentProps> = () => {
+const MonitoringDashboardsPage: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <PersesContext.Provider value={true}>
@@ -72,7 +71,5 @@ const MonitoringDashboardsPageWrapper: React.FC<RouteComponentProps> = () => {
     </QueryClientProvider>
   );
 };
-
-const MonitoringDashboardsPage = withRouter(MonitoringDashboardsPageWrapper);
 
 export default withFallback(MonitoringDashboardsPage);

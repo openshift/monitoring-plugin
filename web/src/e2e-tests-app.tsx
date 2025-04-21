@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
-import { BrowserRouter, Link } from 'react-router-dom';
+import { BrowserRouter, Link } from 'react-router-dom-v5-compat';
 import { combineReducers, createStore } from 'redux';
 
 import ObserveReducers, { ObserveState } from './reducers/observe';
@@ -21,10 +21,10 @@ const App = () => (
     <BrowserRouter>
       <div id="page-sidebar">
         Observe
-        <Link to="/monitoring/alerts">Alerting</Link>
-        <Link to="/monitoring/query-browser">Metrics</Link>
-        <Link to="/monitoring/dashboards">Dashboards</Link>
-        <Link to="/monitoring/targets">Targets</Link>
+        <Link to="alerts">Alerting</Link>
+        <Link to="query-browser">Metrics</Link>
+        <Link to="dashboards">Dashboards</Link>
+        <Link to="targets">Targets</Link>
       </div>
       <MonitoringRouter />
     </BrowserRouter>
