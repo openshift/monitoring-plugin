@@ -38,6 +38,8 @@ const AggregateAlertTableRow: AggregateAlertTableRowProps = ({
     [aggregatedAlert.alerts, selectedFilters],
   );
 
+  const filteredStates = Array.from(new Set(filteredAlerts.map((alert) => alert.state)));
+
   const columns: Array<TableColumn<Alert>> = [
     {
       title: t('Name'),
@@ -115,7 +117,7 @@ const AggregateAlertTableRow: AggregateAlertTableRowProps = ({
           </Badge>
         </Td>
         <Td title={title}>
-          {Array.from(aggregatedAlert.states).map((state) => (
+          {filteredStates.map((state) => (
             <AlertState state={state} key={state} />
           ))}
         </Td>

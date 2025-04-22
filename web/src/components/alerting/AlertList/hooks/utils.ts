@@ -18,16 +18,16 @@ export const alertFilters: Record<string, (selectedInput: string[], alert: Alert
 } as const;
 
 export const filterAlerts = (alerts: Alert[], selectedFilters: SelectedFilters) => {
-  if (!Object.keys(selectedFilters).length) return alerts;
+  if (!Object.keys(selectedFilters)?.length) return alerts;
 
-  return alerts.filter((iface) =>
+  return (alerts || []).filter((alert) =>
     Object.keys(selectedFilters).every((filterType) => {
       const selectedValues = selectedFilters[filterType];
       const filter = alertFilters[filterType];
 
       if (!filter) return true;
 
-      return filter(selectedValues, iface);
+      return filter(selectedValues, alert);
     }),
   );
 };
