@@ -117,7 +117,10 @@ const AlertsPage_: React.FC = () => {
           fuzzyCaseInsensitive(selectedFilter, alert.labels?.cluster),
         ),
       filterGroupName: t('Cluster'),
-      items: clusters.map((clusterName) => ({ id: clusterName, title: clusterName })),
+      items: clusters.map((clusterName) => ({
+        id: clusterName,
+        title: clusterName.length > 50 ? clusterName.slice(0, 50) + '...' : clusterName,
+      })),
       reducer: alertCluster,
     } as RowFilter);
   }
