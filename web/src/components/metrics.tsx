@@ -974,8 +974,9 @@ const QueryBrowserWrapper: React.FC<{
 
   // Initialize queries from URL parameters
   React.useEffect(() => {
+    dispatch(queryBrowserDeleteAllQueries());
     const searchParams = getAllQueryArguments();
-    for (let i = 0; _.has(searchParams, `query${i}`); ++i) {
+    for (let i = 0; _.has(searchParams, `query${i}`); i++) {
       const query = searchParams[`query${i}`];
       dispatch(
         queryBrowserPatchQuery(i, {
