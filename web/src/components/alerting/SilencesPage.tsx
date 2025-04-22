@@ -170,6 +170,7 @@ const SilencesPage_: React.FC = () => {
           _.orderBy(silences, silenceClusterOrder(clusters), [direction]),
         title: t('Cluster'),
         transforms: [sortable],
+        props: { width: 15 },
       });
     }
     return cols;
