@@ -102,7 +102,11 @@ import { PrometheusAPIError } from './types';
 import { TypeaheadSelect } from './TypeaheadSelect';
 import { LoadingInline } from './console/console-shared/src/components/loading/LoadingInline';
 import withFallback from './console/console-shared/error/fallbacks/withFallback';
-import { t_global_spacer_md, t_global_spacer_sm } from '@patternfly/react-tokens';
+import {
+  t_global_spacer_md,
+  t_global_spacer_sm,
+  t_global_font_family_mono,
+} from '@patternfly/react-tokens';
 
 // Stores information about the currently focused query input
 let focusedQuery;
@@ -789,7 +793,10 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, custom
           {tableRows.map((row, rowIndex) => (
             <Tr key={`row-${rowIndex}`}>
               {row.cells?.map((cell, cellIndex) => (
-                <Td key={`cell-${rowIndex}-${cellIndex}`}>
+                <Td
+                  style={{ fontFamily: t_global_font_family_mono.var }}
+                  key={`cell-${rowIndex}-${cellIndex}`}
+                >
                   {typeof cell === 'string' ? cell : cell?.title}
                 </Td>
               ))}
