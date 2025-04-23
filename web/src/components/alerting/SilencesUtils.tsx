@@ -135,7 +135,7 @@ export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheck
         </Stack>
       </Td>
       <Td width={15}>{createdBy || '-'}</Td>
-      {perspective === 'acm' && <Td>{cluster}</Td>}
+      {perspective === 'acm' && <Td width={15}>{cluster}</Td>}
       <Td width={10}>
         <SilenceDropdown silence={obj} />
       </Td>
