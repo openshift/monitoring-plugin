@@ -70,6 +70,14 @@ import {
 } from '@patternfly/react-tokens';
 import { usePatternFlyTheme } from '../hooks/usePatternflyTheme';
 
+const box_shadow = `
+    var(--pf-t--global--box-shadow--X--md--default)
+    var(--pf-t--global--box-shadow--Y--md--default)
+    var(--pf-t--global--box-shadow--blur--md)
+    var(--pf-t--global--box-shadow--spread--md--default)
+    var(--pf-t--global--box-shadow--color--md--default)
+`;
+
 type InteractionTarget = {
   focus: () => void;
   setSelectionRange: (from: number, to: number) => void;
@@ -98,6 +106,7 @@ const theme = (darkTheme: boolean) =>
       },
       '.cm-tooltip.cm-completionInfo': {
         backgroundColor: 'var(--pf-t--global--background--color--floating--default)',
+        boxShadow: box_shadow,
         marginTop: '-11px',
         padding: '10px',
       },
@@ -147,6 +156,8 @@ const theme = (darkTheme: boolean) =>
         borderStyle: 'solid',
         borderWidth: '0px',
         borderColor: 'transparent',
+        boxShadow: box_shadow,
+        color: t_global_text_color_regular.var,
       },
       '.cm-tooltip.cm-tooltip-autocomplete': {
         '& > ul': {
@@ -157,15 +168,11 @@ const theme = (darkTheme: boolean) =>
           backgroundColor: 'var(--pf-t--global--background--color--floating--hover)',
           color: 'unset',
           '&:first-child': {
-            borderTopLeftRadius: 'var(--pf-t--global--border--radius--small)',
-            borderTopRightRadius: 'var(--pf-t--global--border--radius--small)',
             borderStyle: 'solid',
             borderWidth: '1px',
             borderColor: 'transparent',
           },
           '&:last-child': {
-            borderBottomLeftRadius: 'var(--pf-t--global--border--radius--small)',
-            borderBottomRightRadius: 'var(--pf-t--global--border--radius--small)',
             borderStyle: 'solid',
             borderWidth: '1px',
             borderColor: 'transparent',
@@ -173,6 +180,12 @@ const theme = (darkTheme: boolean) =>
         },
         '& > ul > li': {
           padding: '2px 1em 2px 3px',
+          '&:first-child': {
+            marginTop: t_global_spacer_xs.var,
+          },
+          '&:last-child': {
+            marginBottom: t_global_spacer_xs.var,
+          },
         },
       },
       '.cm-completionMatchedText': {
