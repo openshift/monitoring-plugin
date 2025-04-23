@@ -119,6 +119,11 @@ export const SingleTypeaheadDropdown: React.FC<SingleTypeaheadDropdownProps> = (
   const CREATE_NEW = 'typeahead-dropdown__create-new';
 
   React.useEffect(() => {
+    // check if the incoming items are the same as those currently held in the selectOptions
+    // If they are, don't setSelectOptions to prevent losing current filter
+    if (_.isEmpty(_.xorWith(items, selectOptions, _.isEqual))) {
+      return;
+    }
     let newSelectOptions = [];
     if (clearOnNewItems) {
       newSelectOptions = [...items];
