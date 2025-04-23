@@ -15,6 +15,7 @@ import {
   Flex,
   FlexItem,
   Label,
+  LabelGroup,
   MenuToggle,
   MenuToggleElement,
   Modal,
@@ -55,6 +56,7 @@ import {
 } from '../utils';
 import { SeverityCounts, StateTimestamp } from './AlertUtils';
 import { Td } from '@patternfly/react-table';
+import { t_global_spacer_xs } from '@patternfly/react-tokens';
 
 export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheckbox }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -97,7 +99,11 @@ export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheck
         </Td>
       )}
       <Td width={40}>
-        <Flex spaceItems={{ default: 'spaceItemsNone' }} flexWrap={{ default: 'nowrap' }}>
+        <Flex
+          spaceItems={{ default: 'spaceItemsNone' }}
+          flexWrap={{ default: 'nowrap' }}
+          style={{ paddingBottom: t_global_spacer_xs.var }}
+        >
           <FlexItem>
             <ResourceIcon kind={SilenceResource.kind} />
           </FlexItem>
@@ -154,7 +160,7 @@ export const SelectedSilencesContext = React.createContext({
 });
 
 export const SilenceMatchersList = ({ silence }) => (
-  <div>
+  <LabelGroup numLabels={20}>
     {_.map(silence.matchers, ({ name, isEqual, isRegex, value }, i) => (
       <Label key={i}>
         <span>{name}</span>
@@ -162,7 +168,7 @@ export const SilenceMatchersList = ({ silence }) => (
         <span>{value}</span>
       </Label>
     ))}
-  </div>
+  </LabelGroup>
 );
 
 export type ExpireSilenceModalProps = {

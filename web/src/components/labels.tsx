@@ -17,12 +17,10 @@ export const Labels = ({ labels }) => {
   return _.isEmpty(labels) ? (
     <div>{t('No labels')}</div>
   ) : (
-    <div>
-      <PfLabelGroup numLabels={20}>
-        {_.map(labels, (v, k) => (
-          <Label key={k} k={k} v={v} />
-        ))}
-      </PfLabelGroup>
-    </div>
+    <PfLabelGroup numLabels={20}>
+      {_.map(labels, (v, k) => (
+        <Label key={k} k={k} v={v} />
+      ))}
+    </PfLabelGroup>
   );
 };

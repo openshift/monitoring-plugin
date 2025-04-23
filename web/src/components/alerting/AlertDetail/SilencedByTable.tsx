@@ -24,6 +24,7 @@ import { useBoolean } from '../../hooks/useBoolean';
 import { SilenceResource } from '../../utils';
 import { Link } from 'react-router-dom';
 import { SeverityCounts, StateTimestamp } from '../AlertUtils';
+import { t_global_spacer_xs } from '@patternfly/react-tokens';
 
 export const SilencedByList: React.FC<{ silences: Silence[] }> = ({ silences }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -65,7 +66,11 @@ export const SilencedByList: React.FC<{ silences: Silence[] }> = ({ silences }) 
     {
       cell: (
         <>
-          <Flex spaceItems={{ default: 'spaceItemsNone' }} flexWrap={{ default: 'nowrap' }}>
+          <Flex
+            spaceItems={{ default: 'spaceItemsNone' }}
+            flexWrap={{ default: 'nowrap' }}
+            style={{ paddingBottom: t_global_spacer_xs.var }}
+          >
             <FlexItem>
               <ResourceIcon kind={SilenceResource.kind} />
             </FlexItem>
