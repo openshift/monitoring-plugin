@@ -782,7 +782,7 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, custom
                     }
                   : {};
               return (
-                <Th key={`${col.title}-${columnIndex}`} {...sortParams}>
+                <Th modifier="fitContent" key={`${col.title}-${columnIndex}`} {...sortParams}>
                   {col.title}
                 </Th>
               );
