@@ -85,8 +85,9 @@ const AlertsPage_: React.FC = () => {
     } as RowFilter,
     {
       defaultSelected: [AlertStates.Firing],
-      filter: (filter, aggregatedAlert: AggregatedAlert) =>
-        Array.from(aggregatedAlert.states).some((state) => filter.selected?.includes(state)) ||
+      filter: (filter, alert: Alert) =>
+        filter.selected.length === 0 ||
+        filter.selected?.includes(alertState(alert)) ||
         _.isEmpty(filter.selected),
       filterGroupName: t('Alert State'),
       items: [
@@ -114,8 +115,9 @@ const AlertsPage_: React.FC = () => {
     },
     {
       defaultSelected: defaultAlertTenant,
-      filter: (filter, aggregatedAlert: AggregatedAlert) =>
-        aggregatedAlert.alerts.some((alert) => filter.selected?.includes(alertSource(alert))) ||
+      filter: (filter, alert: Alert) =>
+        filter.selected.length === 0 ||
+        filter.selected?.includes(alertSource(alert)) ||
         _.isEmpty(filter.selected),
       filterGroupName: t('Source'),
       items: [
@@ -133,21 +135,23 @@ const AlertsPage_: React.FC = () => {
     rowFilters = rowFilters.filter((filter) => filter.type !== 'alert-source');
   } else if (perspective === 'acm') {
     rowFilters.splice(-1, 0, {
-      type: 'alert-cluster',
-      filter: (filter, aggregatedAlert: AggregatedAlert) =>
-        aggregatedAlert.alerts.some(
-          (alert) =>
-            filter.selected.length === 0 ||
-            filter.selected.some((selectedFilter) =>
-              fuzzyCaseInsensitive(selectedFilter, alert.labels?.cluster),
-            ),
-        ),
+      filter: (filter, alert: Alert) => {
+        return (
+          filter.selected.length === 0 ||
+          filter.selected.some((selectedFilter) =>
+            fuzzyCaseInsensitive(selectedFilter, alert.labels?.cluster),
+          )
+        );
+      },
       filterGroupName: t('Cluster'),
       items: clusters.map((clusterName) => ({
         id: clusterName,
         title: clusterName?.length > 50 ? clusterName.slice(0, 50) + '...' : clusterName,
       })),
       reducer: alertCluster,
+      isMatch: (alert: Alert, clusterName: string) =>
+        fuzzyCaseInsensitive(clusterName, alert.labels?.cluster),
+      type: 'alert-cluster',
     } as RowFilter);
   }
 
