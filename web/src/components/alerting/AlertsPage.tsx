@@ -127,7 +127,7 @@ const AlertsPage_: React.FC = () => {
       filterGroupName: t('Cluster'),
       items: clusters.map((clusterName) => ({
         id: clusterName,
-        title: clusterName.length > 50 ? clusterName.slice(0, 50) + '...' : clusterName,
+        title: clusterName?.length > 50 ? clusterName.slice(0, 50) + '...' : clusterName,
       })),
       reducer: alertCluster,
       isMatch: (alert: Alert, clusterName: string) =>
