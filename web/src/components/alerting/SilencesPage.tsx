@@ -103,19 +103,19 @@ const SilencesPage_: React.FC = () => {
         filter.selected.some((selectedFilter) =>
           fuzzyCaseInsensitive(
             selectedFilter,
-            silence.matchers.find((label) => label.name === 'cluster').value,
+            silence.matchers.find((label) => label.name === 'cluster')?.value,
           ),
         ),
       filterGroupName: t('Cluster'),
       items: clusters.map((clusterName) => ({
         id: clusterName,
-        title: clusterName.length > 50 ? clusterName.slice(0, 50) + '...' : clusterName,
+        title: clusterName?.length > 50 ? clusterName.slice(0, 50) + '...' : clusterName,
       })),
       reducer: silenceCluster,
       isMatch: (silence: Silence, clusterName: string) =>
         fuzzyCaseInsensitive(
           clusterName,
-          silence.matchers.find((label) => label.name === 'cluster').value,
+          silence.matchers.find((label) => label.name === 'cluster')?.value,
         ),
     } as RowFilter);
   }
