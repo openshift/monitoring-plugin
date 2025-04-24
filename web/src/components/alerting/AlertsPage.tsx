@@ -143,11 +143,10 @@ const AlertsPage_: React.FC = () => {
             ),
         ),
       filterGroupName: t('Cluster'),
-      items: clusters.map((clusterName) => ({ id: clusterName, title: clusterName })),
-      isMatch: (aggregatedAlert: AggregatedAlert, clusterName: string) =>
-        aggregatedAlert.alerts.some((alert) =>
-          fuzzyCaseInsensitive(clusterName, alert.labels?.cluster),
-        ),
+      items: clusters.map((clusterName) => ({
+        id: clusterName,
+        title: clusterName?.length > 50 ? clusterName.slice(0, 50) + '...' : clusterName,
+      })),
       reducer: alertCluster,
     } as RowFilter);
   }
