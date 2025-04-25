@@ -1,19 +1,18 @@
 import { Overview } from '@openshift-console/dynamic-plugin-sdk';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as React from 'react';
-import { RouteComponentProps, withRouter } from 'react-router-dom';
-
+import withFallback from '../../console/console-shared/error/fallbacks/withFallback';
+import { LoadingInline } from '../../console/console-shared/src/components/loading/LoadingInline';
+import { PersesContext } from '../../router';
 import DashboardSkeleton from '../shared/dashboard-skeleton';
 import { PersesWrapper } from './PersesWrapper';
-
+import { DashboardEmptyState } from './emptystates/DashboardEmptyState';
+import { ProjectEmptyState } from './emptystates/ProjectEmptyState';
+import { useDashboardsData } from './hooks/useDashboardsData';
 import PersesBoard from './perses-dashboards';
 import { ProjectBar } from './project/ProjectBar';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useDashboardsData } from './hooks/useDashboardsData';
-import { ProjectEmptyState } from './emptystates/ProjectEmptyState';
-import { DashboardEmptyState } from './emptystates/DashboardEmptyState';
-import { PersesContext } from '../../router';
-import { LoadingInline } from '../../console/console-shared/src/components/loading/LoadingInline';
-import withFallback from '../../console/console-shared/error/fallbacks/withFallback';
+import { QueryParamProvider } from 'use-query-params';
+import { ReactRouter5Adapter } from 'use-query-params/adapters/react-router-5';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -63,16 +62,16 @@ const MonitoringDashboardsPage_: React.FC = () => {
   );
 };
 
-const MonitoringDashboardsPageWrapper: React.FC<RouteComponentProps> = () => {
+const MonitoringDashboardsPageWrapper: React.FC = () => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <PersesContext.Provider value={true}>
-        <MonitoringDashboardsPage_ />
-      </PersesContext.Provider>
-    </QueryClientProvider>
+    <QueryParamProvider adapter={ReactRouter5Adapter}>
+      <QueryClientProvider client={queryClient}>
+        <PersesContext.Provider value={true}>
+          <MonitoringDashboardsPage_ />
+        </PersesContext.Provider>
+      </QueryClientProvider>
+    </QueryParamProvider>
   );
 };
 
-const MonitoringDashboardsPage = withRouter(MonitoringDashboardsPageWrapper);
-
-export default withFallback(MonitoringDashboardsPage);
+export default withFallback(MonitoringDashboardsPageWrapper);

@@ -1,40 +1,38 @@
+import { PageSection, Tab, Tabs, TabTitleText, Title } from '@patternfly/react-core';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Route, RouteComponentProps, Switch, useHistory } from 'react-router-dom';
-
+import { Outlet, useLocation, useNavigate } from 'react-router-dom-v5-compat';
 import {
   getAlertRulesUrl,
   getAlertsUrl,
   getSilencesUrl,
   usePerspective,
 } from '../hooks/usePerspective';
-import AlertsPage from '../alerting/AlertsPage';
-import SilencesPage from '../alerting/SilencesPage';
-import AlertRulesPage from '../alerting/AlertRulesPage';
-import { PageSection, Tab, Tabs, TabTitleText, Title } from '@patternfly/react-core';
 
-const AlertingPage: React.FC<RouteComponentProps<{ url: string }>> = ({ match }) => {
+const AlertingPage: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
-  const history = useHistory();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const alertsPath = getAlertsUrl(perspective);
   const silencesPath = getSilencesUrl(perspective);
   const rulesPath = getAlertRulesUrl(perspective);
   const paths = [alertsPath, silencesPath, rulesPath];
 
-  const { url } = match;
-  let activeTabKey = -1;
-  switch (url) {
-    case alertsPath:
-      activeTabKey = 0;
-      break;
-    case silencesPath:
-      activeTabKey = 1;
-      break;
-    case rulesPath:
-      activeTabKey = 2;
-  }
+  const activeTabKey = React.useMemo(() => {
+    const path = location.pathname;
+    if (path === alertsPath) {
+      return 0;
+    }
+    if (path === silencesPath) {
+      return 1;
+    }
+    if (path === rulesPath) {
+      return 2;
+    }
+    return -1;
+  }, [location.pathname, alertsPath, silencesPath, rulesPath]);
 
   const handleTabClick = (
     event: React.MouseEvent<any> | React.KeyboardEvent | MouseEvent,
@@ -44,7 +42,7 @@ const AlertingPage: React.FC<RouteComponentProps<{ url: string }>> = ({ match })
     event.preventDefault();
     const tabNumber = Number(tabIndex);
     if (tabNumber > -1 && tabNumber < paths.length) {
-      history.push(paths[tabNumber]);
+      navigate(paths[tabNumber]);
       return;
     }
   };
@@ -55,24 +53,13 @@ const AlertingPage: React.FC<RouteComponentProps<{ url: string }>> = ({ match })
         <Title headingLevel="h1">{t('Alerting')}</Title>
         <Tabs activeKey={activeTabKey} onSelect={handleTabClick}>
           {/* Add href to tab so that when hovering you see the link in the bottom left */}
-          <Tab eventKey={0} href={alertsPath} title={<TabTitleText>{t('Alerts')}</TabTitleText>} />
-          <Tab
-            eventKey={1}
-            href={silencesPath}
-            title={<TabTitleText>{t('Silences')}</TabTitleText>}
-          />
-          <Tab
-            eventKey={2}
-            href={rulesPath}
-            title={<TabTitleText>{t('Alerting rules')}</TabTitleText>}
-          />
+          <Tab eventKey={0} title={<TabTitleText>{t('Alerts')}</TabTitleText>} />
+          <Tab eventKey={1} title={<TabTitleText>{t('Silences')}</TabTitleText>} />
+          <Tab eventKey={2} title={<TabTitleText>{t('Alerting rules')}</TabTitleText>} />
         </Tabs>
       </PageSection>
-      <Switch>
-        <Route path={alertsPath} exact component={AlertsPage} />
-        <Route path={silencesPath} exact component={SilencesPage} />
-        <Route path={rulesPath} exact component={AlertRulesPage} />
-      </Switch>
+
+      <Outlet />
     </>
   );
 };
