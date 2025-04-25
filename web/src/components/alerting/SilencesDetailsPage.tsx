@@ -30,8 +30,6 @@ import {
 } from '@patternfly/react-core';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
-import { RouteComponentProps, withRouter } from 'react-router';
-import { Link } from 'react-router-dom';
 import { MonitoringState } from 'src/reducers/observe';
 import {
   getAlertUrl,
@@ -49,9 +47,16 @@ import { StatusBox } from '../console/console-shared/src/components/status/Statu
 import { LoadingInline } from '../console/console-shared/src/components/loading/LoadingInline';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 import { Table, TableVariant, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
+import { useNavigate, useParams, Link } from 'react-router-dom-v5-compat';
+import { useAlertsPoller } from '../hooks/useAlertsPoller';
 
-const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ match }) => {
+const SilencesDetailsPage_: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const params = useParams<{ id: string }>();
+
+  const id = params.id;
+
+  useAlertsPoller();
 
   const [namespace] = useActiveNamespace();
   const { alertsKey, perspective, silencesKey } = usePerspective();
@@ -63,7 +68,7 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
   const silences: Silences = useSelector((state: MonitoringState) =>
     getLegacyObserveState(perspective, state)?.get(silencesKey),
   );
-  const silence = _.find(silences?.data, { id: _.get(match, 'params.id') });
+  const silence = _.find(silences?.data, { id });
 
   return (
     <>
@@ -198,8 +203,9 @@ const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ m
 };
 const SilencesDetailsPage = withFallback(SilencesDetailsPage_);
 
-const SilencedAlertsList_: React.FC<SilencedAlertsListProps> = ({ alerts, history }) => {
+const SilencedAlertsList: React.FC<SilencedAlertsListProps> = ({ alerts }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const navigate = useNavigate();
   const { perspective } = usePerspective();
   const [namespace] = useActiveNamespace();
 
@@ -233,7 +239,7 @@ const SilencedAlertsList_: React.FC<SilencedAlertsListProps> = ({ alerts, histor
                 dropdownItems={[
                   <DropdownItem
                     key="view-rule"
-                    onClick={() => history.push(getRuleUrl(perspective, a.rule, namespace))}
+                    onClick={() => navigate(getRuleUrl(perspective, a.rule, namespace))}
                   >
                     {t('View alerting rule')}
                   </DropdownItem>,
@@ -246,8 +252,7 @@ const SilencedAlertsList_: React.FC<SilencedAlertsListProps> = ({ alerts, histor
     </Table>
   );
 };
-const SilencedAlertsList = withRouter(SilencedAlertsList_);
 
 export default SilencesDetailsPage;
 
-type SilencedAlertsListProps = RouteComponentProps & { alerts: Alert[] };
+type SilencedAlertsListProps = { alerts: Alert[] };

@@ -1,16 +1,3 @@
-import * as React from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-
-import { useTranslation } from 'react-i18next';
-import {
-  getNewSilenceUrl,
-  getLegacyObserveState,
-  getFetchSilenceUrl,
-  usePerspective,
-} from '../hooks/usePerspective';
-import { Silences } from '../types';
-import { MonitoringState } from 'src/reducers/observe';
-import { RowFilter } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
 import {
   AlertSeverity,
   consoleFetchJSON,
@@ -23,11 +10,7 @@ import {
   useListPageFilter,
   VirtualizedTable,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { Helmet } from 'react-helmet';
-import { fuzzyCaseInsensitive, refreshSilences, silenceCluster, silenceState } from '../utils';
-import * as _ from 'lodash-es';
-import { sortable } from '@patternfly/react-table';
-import { SelectedSilencesContext, SilenceTableRow } from './SilencesUtils';
+import { RowFilter } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
 import {
   Button,
   Checkbox,
@@ -36,10 +19,27 @@ import {
   PageSection,
   Alert as PFAlert,
 } from '@patternfly/react-core';
-import { useBoolean } from '../hooks/useBoolean';
-import { Link } from 'react-router-dom';
-import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
+import { sortable } from '@patternfly/react-table';
+import * as _ from 'lodash-es';
+import * as React from 'react';
+import { Helmet } from 'react-helmet';
+import { useTranslation } from 'react-i18next';
+import { useDispatch, useSelector } from 'react-redux';
+import { Link } from 'react-router-dom-v5-compat';
+import { MonitoringState } from 'src/reducers/observe';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
+import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
+import { useAlertsPoller } from '../hooks/useAlertsPoller';
+import { useBoolean } from '../hooks/useBoolean';
+import {
+  getFetchSilenceUrl,
+  getLegacyObserveState,
+  getNewSilenceUrl,
+  usePerspective,
+} from '../hooks/usePerspective';
+import { Silences } from '../types';
+import { fuzzyCaseInsensitive, refreshSilences, silenceCluster, silenceState } from '../utils';
+import { SelectedSilencesContext, SilenceTableRow } from './SilencesUtils';
 
 const SilencesPage_: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -48,6 +48,8 @@ const SilencesPage_: React.FC = () => {
 
   const [selectedSilences, setSelectedSilences] = React.useState(new Set());
   const [errorMessage, setErrorMessage] = React.useState();
+
+  useAlertsPoller();
 
   const {
     data,

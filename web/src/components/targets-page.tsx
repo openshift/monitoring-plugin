@@ -39,8 +39,11 @@ import { find, includes, isEmpty } from 'lodash-es';
 import * as React from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
-import { Link, Route, Switch, useRouteMatch } from 'react-router-dom';
-
+import { Link, useParams } from 'react-router-dom-v5-compat';
+import { EmptyBox } from './console/console-shared/src/components/empty-state/EmptyBox';
+import { LoadingInline } from './console/console-shared/src/components/loading/LoadingInline';
+import { StatusBox } from './console/console-shared/src/components/status/StatusBox';
+import { PROMETHEUS_BASE_PATH } from './console/graphs/helpers';
 import {
   NamespaceModel,
   PodModel,
@@ -48,23 +51,26 @@ import {
   ServiceModel,
   ServiceMonitorModel,
 } from './console/models';
+import { LabelSelector } from './console/module/k8s/label-selector';
 import { usePoll } from './console/utils/poll-hook';
 import { useSafeFetch } from './console/utils/safe-fetch-hook';
-
 import { useBoolean } from './hooks/useBoolean';
 import { Labels } from './labels';
 import { AlertSource, PrometheusAPIError, Target } from './types';
 import { fuzzyCaseInsensitive, targetSource } from './utils';
-import { PROMETHEUS_BASE_PATH } from './console/graphs/helpers';
-import { LoadingInline } from './console/console-shared/src/components/loading/LoadingInline';
-import { StatusBox } from './console/console-shared/src/components/status/StatusBox';
-import { EmptyBox } from './console/console-shared/src/components/empty-state/EmptyBox';
-import { LabelSelector } from './console/module/k8s/label-selector';
 
 enum MonitorType {
   ServiceMonitor = 'serviceMonitor',
   PodMonitor = 'podMonitor',
 }
+
+type PrometheusTargetsResponse = {
+  status: string;
+  data: {
+    activeTargets: Array<Target>;
+    droppedTargets: Array<Target>;
+  };
+};
 
 const ServiceMonitorsWatchContext = React.createContext([]);
 const ServicesWatchContext = React.createContext([]);
@@ -226,13 +232,13 @@ type DetailsProps = {
 const Details: React.FC<DetailsProps> = ({ loaded, loadError, targets }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
-  const match = useRouteMatch<{ scrapeUrl?: string }>();
+  const params = useParams<{ scrapeUrl?: string }>();
 
   let scrapeUrl = '';
   let target: Target | undefined;
-  if (match?.params?.scrapeUrl) {
+  if (params?.scrapeUrl) {
     try {
-      scrapeUrl = atob(match?.params?.scrapeUrl);
+      scrapeUrl = atob(params?.scrapeUrl);
       target = find(targets, { scrapeUrl });
     } catch {
       // Leave scrapeUrl and target unset
@@ -356,7 +362,7 @@ const Row: React.FC<RowProps<Target>> = ({ obj }) => {
   return (
     <>
       <Td>
-        <Link to={`./targets/${btoa(scrapeUrl)}`}>{scrapeUrl}</Link>
+        <Link to={`${btoa(scrapeUrl)}`}>{scrapeUrl}</Link>
       </Td>
       <Td>
         {isServiceMonitor && <ServiceMonitor target={obj} />}
@@ -557,10 +563,11 @@ const ListPage: React.FC<ListPageProps> = ({ loaded, loadError, targets }) => {
 
 const POLL_INTERVAL = 15 * 1000;
 
-export const TargetsUI: React.FC = () => {
+export const TargetsPage: React.FC = () => {
   const [error, setError] = React.useState<PrometheusAPIError>();
   const [loaded, setLoaded] = React.useState(false);
   const [targets, setTargets] = React.useState<Target[]>();
+  const { scrapeUrl } = useParams<{ scrapeUrl?: string }>();
 
   const servicesWatch = useK8sWatchResource<K8sResourceKind[]>({
     isList: true,
@@ -610,31 +617,14 @@ export const TargetsUI: React.FC = () => {
       <ServicesWatchContext.Provider value={servicesWatch}>
         <PodMonitorsWatchContext.Provider value={podMonitorsWatch}>
           <PodsWatchContext.Provider value={podsWatch}>
-            <Switch>
-              <Route path="/monitoring/targets" exact>
-                <ListPage loaded={loaded} loadError={loadError} targets={targets} />
-              </Route>
-              <Route path="/monitoring/targets/:scrapeUrl?" exact>
-                <Details loaded={loaded} loadError={loadError} targets={targets} />
-              </Route>
-              <Route path="/virt-monitoring/targets" exact>
-                <ListPage loaded={loaded} loadError={loadError} targets={targets} />
-              </Route>
-              <Route path="/virt-monitoring/targets/:scrapeUrl?" exact>
-                <Details loaded={loaded} loadError={loadError} targets={targets} />
-              </Route>
-            </Switch>
+            {scrapeUrl ? (
+              <Details loaded={loaded} loadError={loadError} targets={targets} />
+            ) : (
+              <ListPage loaded={loaded} loadError={loadError} targets={targets} />
+            )}
           </PodsWatchContext.Provider>
         </PodMonitorsWatchContext.Provider>
       </ServicesWatchContext.Provider>
     </ServiceMonitorsWatchContext.Provider>
   );
-};
-
-type PrometheusTargetsResponse = {
-  status: string;
-  data: {
-    activeTargets: Array<Target>;
-    droppedTargets: Array<Target>;
-  };
 };

@@ -1,17 +1,3 @@
-import * as React from 'react';
-import { useTranslation } from 'react-i18next';
-import { getLegacyObserveState, usePerspective } from '../hooks/usePerspective';
-import { Alerts, AlertSource } from '../types';
-import { useSelector } from 'react-redux';
-
-import * as _ from 'lodash-es';
-import {
-  alertCluster,
-  alertSource,
-  getAdditionalSources,
-  severityRowFilter,
-  SilencesNotLoadedWarning,
-} from './AlertUtils';
 import {
   Alert,
   AlertStates,
@@ -19,25 +5,40 @@ import {
   RowFilter,
   useListPageFilter,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { alertState, fuzzyCaseInsensitive } from '../utils';
+import { Flex, PageSection } from '@patternfly/react-core';
 import { Table, TableGridBreakpoint, Th, Thead, Tr } from '@patternfly/react-table';
+import * as _ from 'lodash-es';
+import * as React from 'react';
 import { Helmet } from 'react-helmet';
+import { useTranslation } from 'react-i18next';
+import { useSelector } from 'react-redux';
 import { MonitoringState } from '../../reducers/observe';
-import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
+import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
 import { LoadingBox } from '../console/console-shared/src/components/loading/LoadingBox';
-import { getAggregateAlertsLists } from './AlertsAggregates';
-
-import Error from './Error';
+import { useAlertsPoller } from '../hooks/useAlertsPoller';
+import { getLegacyObserveState, usePerspective } from '../hooks/usePerspective';
+import { Alerts, AlertSource } from '../types';
+import { alertState, fuzzyCaseInsensitive } from '../utils';
 import AggregateAlertTableRow from './AlertList/AggregateAlertTableRow';
 import DownloadCSVButton from './AlertList/DownloadCSVButton';
 import useAggregateAlertColumns from './AlertList/hooks/useAggregateAlertColumns';
+import { getAggregateAlertsLists } from './AlertsAggregates';
+import {
+  alertCluster,
+  alertSource,
+  getAdditionalSources,
+  severityRowFilter,
+  SilencesNotLoadedWarning,
+} from './AlertUtils';
+import Error from './Error';
 import useSelectedFilters from './useSelectedFilters';
-import { Flex, PageSection } from '@patternfly/react-core';
 
 const AlertsPage_: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { alertsKey, silencesKey, defaultAlertTenant, perspective } = usePerspective();
+
+  useAlertsPoller();
 
   const {
     data,
@@ -148,7 +149,7 @@ const AlertsPage_: React.FC = () => {
       <Helmet>
         <title>Alerting</title>
       </Helmet>
-      <PageSection hasBodyWrapper={false}>
+      <PageSection hasBodyWrapper={false} type="subnav">
         <Flex>
           <ListPageFilter
             data={staticData}
@@ -159,7 +160,9 @@ const AlertsPage_: React.FC = () => {
             rowFilters={rowFilters}
           />
 
-          <DownloadCSVButton loaded={loaded} filteredData={filteredAggregatedAlerts} />
+          {loaded && filteredAggregatedAlerts?.length > 0 && (
+            <DownloadCSVButton loaded={loaded} filteredData={filteredAggregatedAlerts} />
+          )}
         </Flex>
         {silencesLoadError && <SilencesNotLoadedWarning silencesLoadError={silencesLoadError} />}
 
