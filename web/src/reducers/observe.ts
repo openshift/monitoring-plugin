@@ -98,7 +98,7 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
           days: [],
           incidentFilters: [],
         },
-        incidentGroupId: '',
+        groupId: '',
       }),
     });
   }
@@ -320,7 +320,7 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
     }
 
     case ActionType.SetChooseIncident: {
-      return state.setIn(['incidentsData', 'incidentGroupId'], action.payload.incidentGroupId);
+      return state.setIn(['incidentsData', 'groupId'], action.payload.groupId);
     }
 
     case ActionType.SetAlertsData: {

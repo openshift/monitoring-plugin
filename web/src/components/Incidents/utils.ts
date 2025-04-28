@@ -457,7 +457,10 @@ export const onDeleteGroupIncidentFilterChip = (filters: IncidentFiltersCombined
   );
 };
 
-export const makeIncidentUrlParams = (params: IncidentFiltersCombined) => {
+export const makeIncidentUrlParams = (
+  params: IncidentFiltersCombined,
+  incidentGroupId?: string,
+) => {
   const processedParams = Object.entries(params).reduce((acc, [key, value]) => {
     if (Array.isArray(value)) {
       if (value.length > 0) {
@@ -467,15 +470,18 @@ export const makeIncidentUrlParams = (params: IncidentFiltersCombined) => {
       acc[key] = value;
     }
     return acc;
-  }, {});
+  }, {} as Record<string, string>);
+
+  if (incidentGroupId) {
+    processedParams['groupId'] = incidentGroupId;
+  }
 
   return new URLSearchParams(processedParams).toString();
 };
 
-export const updateBrowserUrl = (params: IncidentFiltersCombined) => {
-  const queryString = makeIncidentUrlParams(params);
+export const updateBrowserUrl = (params: IncidentFiltersCombined, incidentGroupId: string) => {
+  const queryString = makeIncidentUrlParams(params, incidentGroupId);
 
-  // Construct the new URL with the query string
   const newUrl = `${window.location.origin}${window.location.pathname}?${queryString}`;
 
   window.history.replaceState(null, '', newUrl);
@@ -527,7 +533,7 @@ const onSelect = (
 export const parseUrlParams = (search) => {
   const params = new URLSearchParams(search);
   const result = {};
-  const arrayKeys = ['days', 'incidentFilters'];
+  const arrayKeys = ['days', 'incidentFilters', 'groupId'];
 
   params.forEach((value, key) => {
     if (arrayKeys.includes(key)) {
