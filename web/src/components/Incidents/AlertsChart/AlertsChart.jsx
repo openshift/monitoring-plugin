@@ -36,7 +36,7 @@ const AlertsChart = ({ chartDays, theme }) => {
     state.plugins.mcp.getIn(['incidentsData', 'filteredIncidentsData']),
   );
   const incidentGroupId = useSelector((state) =>
-    state.plugins.mcp.getIn(['incidentsData', 'incidentGroupId']),
+    state.plugins.mcp.getIn(['incidentsData', 'groupId']),
   );
 
   const dateValues = React.useMemo(() => generateDateArray(chartDays), [chartDays]);

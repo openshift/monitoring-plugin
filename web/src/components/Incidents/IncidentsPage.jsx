@@ -43,6 +43,7 @@ import {
   setAlertsAreLoading,
   setAlertsData,
   setAlertsTableData,
+  setChooseIncident,
   setFilteredIncidentsData,
   setIncidents,
   setIncidentsActiveFilters,
@@ -95,15 +96,12 @@ const IncidentsPage = () => {
   const incidentsActiveFilters = useSelector((state) =>
     state.plugins.mcp.getIn(['incidentsData', 'incidentsActiveFilters']),
   );
-
   const incidentGroupId = useSelector((state) =>
-    state.plugins.mcp.getIn(['incidentsData', 'incidentGroupId']),
+    state.plugins.mcp.getIn(['incidentsData', 'groupId']),
   );
-
   const alertsData = useSelector((state) =>
     state.plugins.mcp.getIn(['incidentsData', 'alertsData']),
   );
-
   const alertsAreLoading = useSelector((state) =>
     state.plugins.mcp.getIn(['incidentsData', 'alertsAreLoading']),
   );
@@ -113,17 +111,23 @@ const IncidentsPage = () => {
   );
   React.useEffect(() => {
     const hasUrlParams = Object.keys(urlParams).length > 0;
-
     if (hasUrlParams) {
       // If URL parameters exist, update incidentsActiveFilters based on them
       dispatch(
         setIncidentsActiveFilters({
           incidentsActiveFilters: {
-            ...incidentsInitialState,
-            ...urlParams,
+            days: urlParams.days,
+            incidentFilters: urlParams.incidentFilters ? urlParams.incidentFilters : [],
           },
         }),
       );
+      if (urlParams?.groupId?.length > 0) {
+        dispatch(
+          setChooseIncident({
+            groupId: urlParams?.groupId?.at(0),
+          }),
+        );
+      }
     } else {
       // If no URL parameters exist, set the URL based on incidentsInitialState
       updateBrowserUrl(incidentsInitialState);
@@ -138,7 +142,7 @@ const IncidentsPage = () => {
   }, []);
 
   React.useEffect(() => {
-    updateBrowserUrl(incidentsActiveFilters);
+    updateBrowserUrl(incidentsActiveFilters, incidentGroupId);
   }, [incidentsActiveFilters]);
 
   React.useEffect(() => {
@@ -202,7 +206,7 @@ const IncidentsPage = () => {
         alertsTableData: groupAlertsForTable(alertsData),
       }),
     );
-  }, [alertsAreLoading]);
+  }, [alertsData]);
 
   React.useEffect(() => {
     (async () => {
@@ -303,8 +307,8 @@ const IncidentsPage = () => {
                   deleteLabel={(category, chip) =>
                     onDeleteIncidentFilterChip(category, chip, incidentsActiveFilters, dispatch)
                   }
-                  deleteLabelGroup={(category) =>
-                    onDeleteGroupIncidentFilterChip(category, incidentsActiveFilters, dispatch)
+                  deleteLabelGroup={() =>
+                    onDeleteGroupIncidentFilterChip(incidentsActiveFilters, dispatch)
                   }
                   categoryName="Filters"
                 >
@@ -340,7 +344,7 @@ const IncidentsPage = () => {
                     <SelectList>
                       <SelectOption
                         value="Critical"
-                        isSelected={incidentsActiveFilters.incidentFilters.includes('Critical')}
+                        isSelected={incidentsActiveFilters?.incidentFilters.includes('Critical')}
                         description="The incident is critical."
                         hasCheckbox
                       >
@@ -348,7 +352,7 @@ const IncidentsPage = () => {
                       </SelectOption>
                       <SelectOption
                         value="Warning"
-                        isSelected={incidentsActiveFilters.incidentFilters.includes('Warning')}
+                        isSelected={incidentsActiveFilters?.incidentFilters.includes('Warning')}
                         description="The incident might lead to critical."
                         hasCheckbox
                       >
