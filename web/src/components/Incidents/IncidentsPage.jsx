@@ -60,7 +60,7 @@ const IncidentsPage = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const dispatch = useDispatch();
   const location = useLocation();
-  const urlParams = parseUrlParams(location.search);
+  const urlParams = React.useMemo(() => parseUrlParams(location.search), [location.search]);
   const { perspective } = usePerspective();
   const { theme } = usePatternFlyTheme();
   // loading states
