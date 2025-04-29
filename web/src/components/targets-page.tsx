@@ -628,3 +628,5 @@ export const TargetsPage: React.FC = () => {
     </ServiceMonitorsWatchContext.Provider>
   );
 };
+
+export default TargetsPage;

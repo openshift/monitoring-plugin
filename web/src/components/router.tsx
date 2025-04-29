@@ -2,20 +2,46 @@ import * as React from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom-v5-compat';
 import { QueryParamProvider } from 'use-query-params';
 import { ReactRouter5Adapter } from 'use-query-params/adapters/react-router-5';
-import AlertingPage from './alerting/AlertingPage';
-import AlertRulesDetailsPage from './alerting/AlertRulesDetailsPage';
-import AlertRulesPage from './alerting/AlertRulesPage';
-import AlertsDetailsPage from './alerting/AlertsDetailsPage';
-import AlertsPage from './alerting/AlertsPage';
-import SilenceCreatePage from './alerting/SilenceCreatePage';
-import SilenceEditPage from './alerting/SilenceEditPage';
-import SilencesDetailsPage from './alerting/SilencesDetailsPage';
-import SilencesPage from './alerting/SilencesPage';
 import { getAllQueryArguments } from './console/utils/router';
-import LegacyDashboardsPage from './dashboards/legacy/legacy-dashboard-page';
 import { UrlRoot, usePerspective } from './hooks/usePerspective';
-import { MetricsPage } from './MetricsPage';
-import { TargetsPage } from './targets-page';
+
+const MetricsPage = React.lazy(() => import(/* webpackChunkName: "MetricsPage" */ './MetricsPage'));
+const TargetsPage = React.lazy(
+  () => import(/* webpackChunkName: "TargetsPage" */ './targets-page'),
+);
+const LegacyDashboardsPage = React.lazy(
+  () =>
+    import(
+      /* webpackChunkName: "LegacyDashboardsPage" */ './dashboards/legacy/legacy-dashboard-page'
+    ),
+);
+const AlertingPage = React.lazy(
+  () => import(/* webpackChunkName: "AlertingPage" */ './alerting/AlertingPage'),
+);
+const AlertRulesDetailsPage = React.lazy(
+  () => import(/* webpackChunkName: "AlertRulesDetailsPage" */ './alerting/AlertRulesDetailsPage'),
+);
+const AlertRulesPage = React.lazy(
+  () => import(/* webpackChunkName: "AlertRulesPage" */ './alerting/AlertRulesPage'),
+);
+const AlertsDetailsPage = React.lazy(
+  () => import(/* webpackChunkName: "AlertsDetailsPage" */ './alerting/AlertsDetailsPage'),
+);
+const AlertsPage = React.lazy(
+  () => import(/* webpackChunkName: "AlertsPage" */ './alerting/AlertsPage'),
+);
+const SilenceCreatePage = React.lazy(
+  () => import(/* webpackChunkName: "SilenceCreatePage" */ './alerting/SilenceCreatePage'),
+);
+const SilenceEditPage = React.lazy(
+  () => import(/* webpackChunkName: "SilenceEditPage" */ './alerting/SilenceEditPage'),
+);
+const SilencesDetailsPage = React.lazy(
+  () => import(/* webpackChunkName: "SilencesDetailsPage" */ './alerting/SilencesDetailsPage'),
+);
+const SilencesPage = React.lazy(
+  () => import(/* webpackChunkName: "SilencesPage" */ './alerting/SilencesPage'),
+);
 
 export const PersesContext = React.createContext(false);
 
