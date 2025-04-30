@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
 import {
   ChartsProvider,
-  ErrorBoundary,
   generateChartsTheme,
   getTheme,
   PersesChartsTheme,
@@ -15,7 +14,6 @@ import {
   PluginModuleResource,
   PluginRegistry,
   TimeRangeProvider,
-  useDataQueries,
   usePluginBuiltinVariableDefinitions,
 } from '@perses-dev/plugin-system';
 import {
@@ -33,7 +31,6 @@ import {
   VariableProviderWithQueryParams,
 } from '@perses-dev/dashboards';
 import { ChartThemeColor, getThemeColors } from '@patternfly/react-charts/victory';
-import ErrorAlert from '../shared/error';
 import { usePatternFlyTheme } from '../../hooks/usePatternflyTheme';
 import { CachedDatasourceAPI } from './perses/datasource-api';
 import { OcpDatasourceApi } from './datasource-api';
@@ -44,7 +41,6 @@ import { QueryParams } from '../../query-params';
 import { StringParam, useQueryParam } from 'use-query-params';
 import { useCookieWatcher } from './hooks/useCookieWatcher';
 import { useTranslation } from 'react-i18next';
-import { LoadingInline } from '../../console/console-shared/src/components/loading/LoadingInline';
 
 // Override eChart defaults with PatternFly colors.
 const patternflyBlue300 = '#2b9af3';
@@ -239,42 +235,5 @@ export function PersesPrometheusDatasourceWrapper({
     <DatasourceStoreProvider dashboardResource={dashboardResource} datasourceApi={datasourceApi}>
       <DataQueriesProvider definitions={queries}>{children}</DataQueriesProvider>
     </DatasourceStoreProvider>
-  );
-}
-
-interface TimeSeriesPanelWrapperProps {
-  noResults?: React.ReactNode;
-  children?: React.ReactNode;
-}
-
-/**
- * PrometheusQueryPanelWrapper intercepts the promql query status and displays PatternFly
- * native empty and loading states
- * instead of the Material UI empty and loading states used by Perses.
- */
-export function TimeseriesQueryPanelWrapper({ noResults, children }: TimeSeriesPanelWrapperProps) {
-  const { isFetching, isLoading, queryResults } = useDataQueries('TimeSeriesQuery');
-
-  if (isLoading || isFetching) {
-    return <LoadingInline />;
-  }
-
-  const queryError = queryResults.find((d) => d.error);
-  if (queryError) {
-    return <ErrorAlert error={queryError.error as Error} />;
-  }
-
-  const dataFound = queryResults.some(
-    (timeSeriesData) =>
-      (timeSeriesData.data?.series ?? []).length > 0 || timeSeriesData.data?.series,
-  );
-  if (!dataFound && noResults) {
-    return <>{noResults}</>;
-  }
-
-  return (
-    <ErrorBoundary FallbackComponent={ErrorAlert} resetKeys={[]}>
-      {children}
-    </ErrorBoundary>
   );
 }
