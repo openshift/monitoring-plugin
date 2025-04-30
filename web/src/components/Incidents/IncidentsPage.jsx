@@ -116,7 +116,7 @@ const IncidentsPage = () => {
       dispatch(
         setIncidentsActiveFilters({
           incidentsActiveFilters: {
-            days: urlParams.days,
+            days: urlParams.days ? urlParams.days : ['7 days'],
             incidentFilters: urlParams.incidentFilters ? urlParams.incidentFilters : [],
           },
         }),
