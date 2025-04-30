@@ -42,7 +42,6 @@ import { OcpDatasourceApi } from './datasource-api';
 import { PERSES_PROXY_BASE_PATH, useFetchPersesDashboard } from './perses-client';
 import { QueryParams } from '../../query-params';
 import { StringParam, useQueryParam } from 'use-query-params';
-import { useCookieWatcher } from './hooks/useCookieWatcher';
 import { useTranslation } from 'react-i18next';
 import { LoadingInline } from '../../console/console-shared/src/components/loading/LoadingInline';
 
@@ -235,11 +234,10 @@ export function PersesPrometheusDatasourceWrapper({
   children,
   dashboardResource,
 }: PersesPrometheusDatasourceWrapperProps) {
-  const csrfToken = useCookieWatcher('csrf-token', { valueOnly: true });
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const datasourceApi = React.useMemo(() => {
-    return new CachedDatasourceAPI(new OcpDatasourceApi(csrfToken, t, PERSES_PROXY_BASE_PATH));
-  }, [csrfToken, t]);
+    return new CachedDatasourceAPI(new OcpDatasourceApi(t, PERSES_PROXY_BASE_PATH));
+  }, [t]);
 
   return (
     <DatasourceStoreProvider dashboardResource={dashboardResource} datasourceApi={datasourceApi}>
