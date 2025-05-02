@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
-import { getCSRFToken } from '../../proxied-fetch';
 import { DashboardResource, ProjectResource, fetchJson } from '@perses-dev/core';
 import { NumberParam, useQueryParam } from 'use-query-params';
 import { QueryParams } from '../../query-params';
+import { getCSRFToken } from '@openshift-console/dynamic-plugin-sdk/lib/utils/fetch/console-fetch-utils';
 
 export const PERSES_PROXY_BASE_PATH = '/api/proxy/plugin/monitoring-console-plugin/perses';
 

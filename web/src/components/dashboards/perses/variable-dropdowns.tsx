@@ -124,7 +124,7 @@ function ListVariable({ name, id }: VariableDropdownProps) {
           items={items}
           onChange={onChangeFunction}
           OptionComponent={VariableOptionComponent}
-          selectedKey={singleSelectedItem.label}
+          selectedKey={singleSelectedItem?.label}
           hideClearButton
           resizeToFit
           placeholder={t('Select a dashboard from the dropdown')}
