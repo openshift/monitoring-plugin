@@ -12,7 +12,12 @@ import {
   ChartVoronoiContainer,
 } from '@patternfly/react-charts/victory';
 import { Bullseye, Card, CardBody, CardTitle, Spinner } from '@patternfly/react-core';
-import { createIncidentsChartBars, formatDate, generateDateArray } from '../utils';
+import {
+  createIncidentsChartBars,
+  formatDate,
+  generateDateArray,
+  updateBrowserUrl,
+} from '../utils';
 import { getResizeObserver } from '@patternfly/react-core';
 import { useDispatch, useSelector } from 'react-redux';
 import { setChooseIncident } from '../../../actions/observe';
@@ -58,8 +63,9 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
     return () => observer();
   }, []);
 
-  const selectedId = useSelector((state) =>
-    state.plugins.mcp.getIn(['incidentsData', 'incidentGroupId']),
+  const selectedId = useSelector((state) => state.plugins.mcp.getIn(['incidentsData', 'groupId']));
+  const incidentsActiveFilters = useSelector((state) =>
+    state.plugins.mcp.getIn(['incidentsData', 'incidentsActiveFilters']),
   );
 
   const isHidden = React.useCallback(
@@ -70,16 +76,18 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
     if (datum.datum.group_id === selectedId) {
       dispatch(
         setChooseIncident({
-          incidentGroupId: '',
+          groupId: '',
         }),
       );
+      updateBrowserUrl(incidentsActiveFilters, '');
       dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
     } else {
       dispatch(
         setChooseIncident({
-          incidentGroupId: datum.datum.group_id,
+          groupId: datum.datum.group_id,
         }),
       );
+      updateBrowserUrl(incidentsActiveFilters, datum.datum.group_id);
     }
   };
 

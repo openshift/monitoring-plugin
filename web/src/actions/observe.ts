@@ -141,8 +141,7 @@ export const setIncidents = (incidents) => action(ActionType.SetIncidents, incid
 export const setIncidentsActiveFilters = (incidentsActiveFilters) =>
   action(ActionType.SetIncidentsActiveFilters, incidentsActiveFilters);
 
-export const setChooseIncident = (incidentGroupId) =>
-  action(ActionType.SetChooseIncident, incidentGroupId);
+export const setChooseIncident = (groupId) => action(ActionType.SetChooseIncident, groupId);
 
 export const setAlertsData = (alertsData) => action(ActionType.SetAlertsData, alertsData);
 
