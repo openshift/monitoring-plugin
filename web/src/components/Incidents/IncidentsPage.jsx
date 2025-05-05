@@ -303,8 +303,8 @@ const IncidentsPage = () => {
                   deleteLabel={(category, chip) =>
                     onDeleteIncidentFilterChip(category, chip, incidentsActiveFilters, dispatch)
                   }
-                  deleteLabelGroup={(category) =>
-                    onDeleteGroupIncidentFilterChip(category, incidentsActiveFilters, dispatch)
+                  deleteLabelGroup={() =>
+                    onDeleteGroupIncidentFilterChip(incidentsActiveFilters, dispatch)
                   }
                   categoryName="Filters"
                 >
