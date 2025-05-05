@@ -36,11 +36,13 @@ import {
   EllipsisVIcon,
   HourglassHalfIcon,
 } from '@patternfly/react-icons';
+import { Td } from '@patternfly/react-table';
+import { t_global_spacer_xs } from '@patternfly/react-tokens';
 import * as _ from 'lodash-es';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
-import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom-v5-compat';
 import { useBoolean } from '../hooks/useBoolean';
 import {
   getEditSilenceAlertUrl,
@@ -55,8 +57,6 @@ import {
   silenceState,
 } from '../utils';
 import { SeverityCounts, StateTimestamp } from './AlertUtils';
-import { Td } from '@patternfly/react-table';
-import { t_global_spacer_xs } from '@patternfly/react-tokens';
 
 export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheckbox }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -205,16 +205,17 @@ export const SilenceState = ({ silence }) => {
   ) : null;
 };
 
-const SilenceDropdown_: React.FC<SilenceDropdownProps> = ({ history, silence, toggleText }) => {
+export const SilenceDropdown: React.FC<SilenceDropdownProps> = ({ silence, toggleText }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
   const [namespace] = useActiveNamespace();
+  const navigate = useNavigate();
 
   const [isOpen, setIsOpen, , setClosed] = useBoolean(false);
   const [isModalOpen, , setModalOpen, setModalClosed] = useBoolean(false);
 
   const editSilence = () => {
-    history.push(getEditSilenceAlertUrl(perspective, silence.id, namespace));
+    navigate(getEditSilenceAlertUrl(perspective, silence.id, namespace));
   };
 
   const dropdownItems =
@@ -259,7 +260,6 @@ const SilenceDropdown_: React.FC<SilenceDropdownProps> = ({ history, silence, to
     </>
   );
 };
-export const SilenceDropdown = withRouter(SilenceDropdown_);
 
 export const ExpireSilenceModal: React.FC<ExpireSilenceModalProps> = ({
   isOpen,
@@ -327,7 +327,7 @@ export const ExpireSilenceModal: React.FC<ExpireSilenceModalProps> = ({
   );
 };
 
-type SilenceDropdownProps = RouteComponentProps & {
+type SilenceDropdownProps = {
   silence: Silence;
   toggleText?: string;
 };

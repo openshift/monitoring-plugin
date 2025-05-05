@@ -1139,10 +1139,11 @@ const IntervalDropdown = () => {
   return <DropDownPollInterval setInterval={setInterval} selectedInterval={pollInterval} />;
 };
 
-const QueryBrowserPage_: React.FC = () => {
+const MetricsPage_: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const dispatch = useDispatch();
+  const { perspective } = usePerspective();
 
   // Clear queries on unmount
   React.useEffect(() => () => dispatch(queryBrowserDeleteAllQueries()), [dispatch]);
@@ -1216,9 +1217,11 @@ const QueryBrowserPage_: React.FC = () => {
       </Helmet>
       <PageSection hasBodyWrapper={false}>
         <Split hasGutter>
-          <SplitItem>
-            <Title headingLevel="h1">{t('Metrics')}</Title>
-          </SplitItem>
+          {perspective !== 'dev' && (
+            <SplitItem>
+              <Title headingLevel="h1">{t('Metrics')}</Title>
+            </SplitItem>
+          )}
           <SplitItem isFilled />
           <SplitItem>
             <IntervalDropdown />
@@ -1262,7 +1265,7 @@ const QueryBrowserPage_: React.FC = () => {
     </>
   );
 };
-export const QueryBrowserPage = withFallback(QueryBrowserPage_);
+export const MetricsPage = withFallback(MetricsPage_);
 
 type QueryTableProps = {
   index: number;
@@ -1274,3 +1277,5 @@ type SeriesButtonProps = {
   index: number;
   labels: PrometheusLabels;
 };
+
+export default MetricsPage;

@@ -18,27 +18,9 @@
     "value": {
       "type": "console.page/route",
       "properties": {
-        "exact": true,
+        "exact": false,
         "path": "/multicloud/monitoring",
         "component": { "$codeRef": "MonitoringRouter" }
-      }
-    }
-  },
-  {
-    "op": "add",
-    "path": "/extensions/1",
-    "value": {
-      "type": "console.page/route",
-      "properties": {
-        "exact": false,
-        "path": [
-          "/multicloud/monitoring/alertrules",
-          "/multicloud/monitoring/alerts",
-          "/multicloud/monitoring/silences"
-        ],
-        "component": {
-          "$codeRef": "MonitoringRouter"
-        }
       }
     }
   },

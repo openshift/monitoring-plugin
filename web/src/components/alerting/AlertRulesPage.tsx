@@ -16,7 +16,7 @@ import * as React from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom-v5-compat';
 
 import { Alerts, AlertSource } from '../types';
 import {
@@ -40,6 +40,7 @@ import { severityRowFilter } from './AlertUtils';
 import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 import { Flex, FlexItem, PageSection, Truncate } from '@patternfly/react-core';
+import { useAlertsPoller } from '../hooks/useAlertsPoller';
 
 const StateCounts: React.FC<{ alerts: PrometheusAlert[] }> = ({ alerts }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -117,6 +118,8 @@ const RuleTableRow: React.FC<RowProps<Rule>> = ({ obj }) => {
 const AlertRulesPage_: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { alertsKey, silencesKey, rulesKey, perspective, defaultAlertTenant } = usePerspective();
+
+  useAlertsPoller();
 
   const data: Rule[] = useSelector((state: MonitoringState) =>
     getLegacyObserveState(perspective, state)?.get(rulesKey),

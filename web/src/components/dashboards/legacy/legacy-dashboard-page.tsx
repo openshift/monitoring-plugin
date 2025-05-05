@@ -1,24 +1,24 @@
 import { Overview } from '@openshift-console/dynamic-plugin-sdk';
 import * as React from 'react';
-import { RouteComponentProps, withRouter } from 'react-router-dom';
-
-import ErrorAlert from '../shared/error';
-
-import { LegacyDashboard } from '../legacy/legacy-dashboard';
-import DashboardSkeleton from '../shared/dashboard-skeleton';
-import { usePerspective } from '../../hooks/usePerspective';
 import { useTranslation } from 'react-i18next';
-import { useLegacyDashboards } from './useLegacyDashboards';
-import { PersesContext } from '../../router';
+import { useParams } from 'react-router-dom-v5-compat';
+import { QueryParamProvider } from 'use-query-params';
+import { ReactRouter5Adapter } from 'use-query-params/adapters/react-router-5';
 import { LoadingInline } from '../../../components/console/console-shared/src/components/loading/LoadingInline';
 import withFallback from '../../console/console-shared/error/fallbacks/withFallback';
+import { usePerspective } from '../../hooks/usePerspective';
+import { PersesContext } from '../../router';
+import { LegacyDashboard } from '../legacy/legacy-dashboard';
+import DashboardSkeleton from '../shared/dashboard-skeleton';
+import ErrorAlert from '../shared/error';
+import { useLegacyDashboards } from './useLegacyDashboards';
 
-type MonitoringLegacyDashboardsPageProps = {
+type LegacyDashboardsPageProps = {
   urlBoard: string;
   namespace?: string;
 };
 
-const MonitoringLegacyDashboardsPage_: React.FC<MonitoringLegacyDashboardsPageProps> = ({
+const LegacyDashboardsPage_: React.FC<LegacyDashboardsPageProps> = ({
   urlBoard,
   namespace, // only used in developer perspective
 }) => {
@@ -54,24 +54,16 @@ const MonitoringLegacyDashboardsPage_: React.FC<MonitoringLegacyDashboardsPagePr
   );
 };
 
-type MonitoringLegacyDashboardsWrapperProps = RouteComponentProps<{
-  dashboardName: string;
-  ns?: string;
-}>;
+const LegacyDashboardsPage: React.FC = () => {
+  const params = useParams<{ ns?: string; dashboardName: string }>();
 
-const MonitoringLegacyDashboardsPageWrapper: React.FC<MonitoringLegacyDashboardsWrapperProps> = ({
-  match,
-}) => {
   return (
-    <PersesContext.Provider value={false}>
-      <MonitoringLegacyDashboardsPage_
-        urlBoard={match.params.dashboardName}
-        namespace={match.params?.ns}
-      />
-    </PersesContext.Provider>
+    <QueryParamProvider adapter={ReactRouter5Adapter}>
+      <PersesContext.Provider value={false}>
+        <LegacyDashboardsPage_ urlBoard={params?.dashboardName} namespace={params?.ns} />
+      </PersesContext.Provider>
+    </QueryParamProvider>
   );
 };
 
-const MonitoringLegacyDashboardsPage = withRouter(MonitoringLegacyDashboardsPageWrapper);
-
-export default withFallback(MonitoringLegacyDashboardsPage);
+export default withFallback(LegacyDashboardsPage);

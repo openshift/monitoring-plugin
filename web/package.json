@@ -69,8 +69,7 @@
     "react-linkify": "^0.2.2",
     "react-modal": "^3.12.1",
     "react-redux": "7.2.2",
-    "react-router": "5.3.x",
-    "react-router-dom": "5.3.x",
+    "react-router-dom-v5-compat": "^6.30.0",
     "redux": "4.0.1",
     "use-query-params": "^2.2.1",
     "victory": "^37.3.6"
@@ -126,6 +125,16 @@
     "description": "This plugin adds the monitoring UI to the OpenShift web console",
     "exposedModules": {
       "MonitoringRouter": "./components/router",
+      "DashboardsPage": "./components/dashboards/perses/dashboard-page",
+      "LegacyDashboardsPage": "./components/dashboards/legacy/legacy-dashboard-page",
+      "SilencesPage": "./components/alerting/SilencesPage",
+      "SilencesDetailsPage": "./components/alerting/SilencesDetailsPage",
+      "SilenceCreatePage": "./components/alerting/SilenceCreatePage",
+      "SilenceEditPage": "./components/alerting/SilenceEditPage",
+      "MetricsPage": "./components/MetricsPage",
+      "AlertsPage": "./components/alerting/AlertsPage",
+      "AlertsDetailsPage": "./components/alerting/AlertsDetailsPage",
+      "AlertRulesDetailsPage": "./components/alerting/AlertRulesDetailsPage",
       "MonitoringReducer": "./reducers/observe",
       "IncidentsPage": "./components/Incidents/IncidentsPage"
     },

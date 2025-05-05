@@ -1,10 +1,4 @@
-import * as _ from 'lodash-es';
-import {
-  consoleFetchJSON,
-  Silence,
-  SilenceStates,
-  useActiveNamespace,
-} from '@openshift-console/dynamic-plugin-sdk';
+import { consoleFetchJSON, useActiveNamespace } from '@openshift-console/dynamic-plugin-sdk';
 import {
   ActionGroup,
   Alert,
@@ -36,35 +30,42 @@ import {
   ValidatedOptions,
 } from '@patternfly/react-core';
 import { ExclamationCircleIcon, MinusCircleIcon, PlusCircleIcon } from '@patternfly/react-icons';
+import { t_global_spacer_sm } from '@patternfly/react-tokens';
+import * as _ from 'lodash-es';
 import * as React from 'react';
 import { Helmet } from 'react-helmet';
 import { Trans, useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { RouteComponentProps, withRouter } from 'react-router-dom';
-import { t_global_spacer_sm } from '@patternfly/react-tokens';
-
-// TODO: These will be available in future versions of the plugin SDK
-const getUser = (state) => state.sdkCore?.user;
-
-import { ExternalLink } from '../console/utils/link';
-import { getAllQueryArguments } from '../console/utils/router';
-
-import { useBoolean } from '../hooks/useBoolean';
-import { Silences } from '../types';
-import { refreshSilences, SilenceResource, silenceState } from '../utils';
-import {
-  getFetchSilenceAlertUrl,
-  getLegacyObserveState,
-  getSilenceAlertUrl,
-  usePerspective,
-} from '../hooks/usePerspective';
-import { MonitoringState } from '../../reducers/observe';
-import { StatusBox } from '../console/console-shared/src/components/status/StatusBox';
+import { useNavigate } from 'react-router-dom-v5-compat';
+import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 import {
   formatPrometheusDuration,
   parsePrometheusDuration,
 } from '../console/console-shared/src/datetime/prometheus';
-import withFallback from '../console/console-shared/error/fallbacks/withFallback';
+import { ExternalLink } from '../console/utils/link';
+import { useBoolean } from '../hooks/useBoolean';
+import {
+  getFetchSilenceAlertUrl,
+  getSilenceAlertUrl,
+  usePerspective,
+} from '../hooks/usePerspective';
+import { refreshSilences } from '../utils';
+
+type Matcher = {
+  isRegex: boolean;
+  isEqual: boolean;
+  name: string;
+  value: string;
+};
+
+type SilenceFormProps = {
+  defaults: any;
+  Info?: React.ComponentType;
+  title: string;
+};
+
+// TODO: These will be available in future versions of the plugin SDK
+const getUser = (state) => state.sdkCore?.user;
 
 const pad = (i: number): string => (i < 10 ? `0${i}` : String(i));
 
@@ -123,14 +124,9 @@ const NegativeMatcherHelp = () => {
   );
 };
 
-type SilenceFormProps = RouteComponentProps & {
-  defaults: any;
-  Info?: React.ComponentType;
-  title: string;
-};
-
-const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, title }) => {
+const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const navigate = useNavigate();
 
   const durationOff = '-';
   const durations = {
@@ -259,7 +255,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
       .then(({ silenceID }) => {
         setError(undefined);
         refreshSilences(dispatch, perspective, silencesKey, namespace);
-        history.push(getSilenceAlertUrl(perspective, silenceID, namespace));
+        navigate(getSilenceAlertUrl(perspective, silenceID, namespace));
       })
       .catch((err) => {
         const errorMessage =
@@ -527,7 +523,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
             <Button type="submit" variant="primary" isDisabled={inProgress}>
               {t('Silence')}
             </Button>
-            <Button onClick={history.goBack} variant="secondary" isDisabled={inProgress}>
+            <Button onClick={() => navigate(-1)} variant="secondary" isDisabled={inProgress}>
               {t('Cancel')}
             </Button>
           </ActionGroup>
@@ -536,76 +532,5 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, history, Info, tit
     </>
   );
 };
-const SilenceForm = withFallback(withRouter(SilenceForm_));
 
-const EditInfo = () => {
-  const { t } = useTranslation(process.env.I18N_NAMESPACE);
-
-  return (
-    <Alert isInline title={t('Overwriting current silence')} variant="info">
-      {t(
-        'When changes are saved, the currently existing silence will be expired and a new silence with the new configuration will take its place.',
-      )}
-    </Alert>
-  );
-};
-
-export const EditSilence = ({ match }) => {
-  const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { silencesKey, perspective } = usePerspective();
-
-  const silences: Silences = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.get(silencesKey),
-  );
-
-  const silence: Silence = _.find(silences?.data, { id: match.params.id });
-  const isExpired = silenceState(silence) === SilenceStates.Expired;
-  const defaults = _.pick(silence, [
-    'comment',
-    'createdBy',
-    'endsAt',
-    'id',
-    'matchers',
-    'startsAt',
-  ]);
-  defaults.startsAt = isExpired ? undefined : formatDate(new Date(defaults.startsAt));
-  defaults.endsAt = isExpired ? undefined : formatDate(new Date(defaults.endsAt));
-
-  return (
-    <StatusBox
-      data={silence}
-      label={SilenceResource.label}
-      loaded={silences?.loaded}
-      loadError={silences?.loadError}
-    >
-      <SilenceForm
-        defaults={defaults}
-        Info={isExpired ? undefined : EditInfo}
-        title={isExpired ? t('Recreate silence') : t('Edit silence')}
-      />
-    </StatusBox>
-  );
-};
-
-export const CreateSilence = () => {
-  const { t } = useTranslation(process.env.I18N_NAMESPACE);
-
-  const matchers = _.map(getAllQueryArguments(), (value, name) => ({
-    name,
-    value,
-    isRegex: false,
-  }));
-
-  return _.isEmpty(matchers) ? (
-    <SilenceForm defaults={{}} title={t('Create silence')} />
-  ) : (
-    <SilenceForm defaults={{ matchers }} title={t('Silence alert')} />
-  );
-};
-
-type Matcher = {
-  isRegex: boolean;
-  isEqual: boolean;
-  name: string;
-  value: string;
-};
+export const SilenceForm = withFallback(SilenceForm_);

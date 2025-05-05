@@ -1,32 +1,32 @@
+import {
+  ActionServiceProvider,
+  Alert,
+  AlertingRuleChartExtension,
+  AlertStates,
+  isAlertingRuleChart,
+  PrometheusLabels,
+  ResourceIcon,
+  ResourceLink,
+  Rule,
+  useActiveNamespace,
+  useResolvedExtensions,
+} from '@openshift-console/dynamic-plugin-sdk';
+import * as _ from 'lodash-es';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSelector } from 'react-redux';
+import { Link, useNavigate, useParams } from 'react-router-dom-v5-compat';
+import { ExternalLink, LinkifyExternal } from '../console/utils/link';
+import { getAllQueryArguments } from '../console/utils/router';
 import {
   getAlertsUrl,
-  getNewSilenceAlertUrl,
   getLegacyObserveState,
+  getNewSilenceAlertUrl,
   getRuleUrl,
   usePerspective,
 } from '../hooks/usePerspective';
 import { Alerts } from '../types';
-import { useSelector } from 'react-redux';
-import * as _ from 'lodash-es';
-import { getAllQueryArguments } from '../console/utils/router';
 import { AlertResource, alertState, RuleResource } from '../utils';
-import {
-  Alert,
-  AlertStates,
-  ActionServiceProvider,
-  PrometheusLabels,
-  Rule,
-  useResolvedExtensions,
-  ResourceLink,
-  useActiveNamespace,
-  AlertingRuleChartExtension,
-  isAlertingRuleChart,
-  ResourceIcon,
-} from '@openshift-console/dynamic-plugin-sdk';
-import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
-import { ExternalLink, LinkifyExternal } from '../console/utils/link';
 
 import {
   Breadcrumb,
@@ -55,6 +55,24 @@ import {
   ToolbarGroup,
   ToolbarItem,
 } from '@patternfly/react-core';
+import { Helmet } from 'react-helmet';
+import { MonitoringState } from '../../reducers/observe';
+import withFallback from '../console/console-shared/error/fallbacks/withFallback';
+import { StatusBox } from '../console/console-shared/src/components/status/StatusBox';
+import {
+  ContainerModel,
+  DaemonSetModel,
+  DeploymentModel,
+  JobModel,
+  NamespaceModel,
+  NodeModel,
+  PodModel,
+  StatefulSetModel,
+} from '../console/models';
+import { useAlertsPoller } from '../hooks/useAlertsPoller';
+import { Labels } from '../labels';
+import { ToggleGraph } from '../MetricsPage';
+import { SilencedByList } from './AlertDetail/SilencedByTable';
 import {
   alertSource,
   AlertState,
@@ -68,28 +86,15 @@ import {
   SeverityHelp,
   SourceHelp,
 } from './AlertUtils';
-import { ToggleGraph } from '../metrics';
-import {
-  ContainerModel,
-  DaemonSetModel,
-  DeploymentModel,
-  JobModel,
-  NamespaceModel,
-  NodeModel,
-  PodModel,
-  StatefulSetModel,
-} from '../console/models';
-import { Labels } from '../labels';
-import { MonitoringState } from '../../reducers/observe';
-import { StatusBox } from '../console/console-shared/src/components/status/StatusBox';
-import withFallback from '../console/console-shared/error/fallbacks/withFallback';
-import { Helmet } from 'react-helmet';
-import { SilencedByList } from './AlertDetail/SilencedByTable';
 
-const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }) => {
+const AlertsDetailsPage_: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const params = useParams<{ ruleID: string }>();
+  const navigate = useNavigate();
 
   const { alertsKey, silencesKey, perspective } = usePerspective();
+
+  useAlertsPoller();
 
   const [namespace] = useActiveNamespace();
 
@@ -105,7 +110,7 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
     (state: MonitoringState) => getLegacyObserveState(perspective, state)?.get(silencesKey)?.loaded,
   );
 
-  const ruleAlerts = _.filter(alerts?.data, (a) => a.rule.id === match?.params?.ruleID);
+  const ruleAlerts = _.filter(alerts?.data, (a) => a.rule.id === params?.ruleID);
   const rule = ruleAlerts?.[0]?.rule;
 
   // Search for an alert that matches all of the labels in the URL parameters. We expect there to be
@@ -177,9 +182,7 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
               {state !== AlertStates.Silenced && (
                 <SplitItem>
                   <Button
-                    onClick={() =>
-                      history.push(getNewSilenceAlertUrl(perspective, alert, namespace))
-                    }
+                    onClick={() => navigate(getNewSilenceAlertUrl(perspective, alert, namespace))}
                     variant="primary"
                   >
                     {t('Silence alert')}
@@ -383,7 +386,7 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
     </>
   );
 };
-const AlertsDetailsPage = withFallback(withRouter(AlertsDetailsPage_));
+const AlertsDetailsPage = withFallback(AlertsDetailsPage_);
 
 const HeaderAlertMessage: React.FC<{ alert: Alert; rule: Rule }> = ({ alert, rule }) => {
   const annotation = alert.annotations.description ? 'description' : 'message';
@@ -503,8 +506,6 @@ const AlertStateHelp: React.FC = () => {
 };
 
 export default AlertsDetailsPage;
-
-type AlertsDetailsPageProps = RouteComponentProps<{ ns?: string; ruleID: string }>;
 
 type AlertMessageProps = {
   alertText: string;
