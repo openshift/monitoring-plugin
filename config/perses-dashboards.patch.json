@@ -8,7 +8,7 @@
         "exact": false,
         "path": ["/multicloud/monitoring/v2/dashboards"],
         "component": {
-          "$codeRef": "MonitoringRouter"
+          "$codeRef": "DashboardsPage"
         }
       }
     }
@@ -36,7 +36,7 @@
       "properties": {
         "exact": false,
         "path": ["/monitoring/v2/dashboards"],
-        "component": { "$codeRef": "MonitoringRouter" }
+        "component": { "$codeRef": "DashboardsPage" }
       }
     }
   },
@@ -66,7 +66,7 @@
       "properties": {
         "exact": false,
         "path": ["/virt-monitoring/v2/dashboards"],
-        "component": { "$codeRef": "MonitoringRouter" }
+        "component": { "$codeRef": "DashboardsPage" }
       }
     }
   },

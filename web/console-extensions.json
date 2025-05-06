@@ -1,53 +1,5 @@
 [
   {
-    "type": "console.page/route",
-    "properties": {
-      "exact": true,
-      "path": "/monitoring",
-      "component": { "$codeRef": "MonitoringRouter" }
-    }
-  },
-  {
-    "type": "console.page/route",
-    "properties": {
-      "exact": true,
-      "path": "/virt-monitoring",
-      "component": { "$codeRef": "MonitoringRouter" }
-    }
-  },
-  {
-    "type": "console.page/route",
-    "properties": {
-      "exact": false,
-      "path": [
-        "/monitoring/alertrules",
-        "/monitoring/alerts",
-        "/monitoring/dashboards",
-        "/monitoring/graph",
-        "/monitoring/query-browser",
-        "/monitoring/silences",
-        "/monitoring/targets"
-      ],
-      "component": { "$codeRef": "MonitoringRouter" }
-    }
-  },
-  {
-    "type": "console.page/route",
-    "properties": {
-      "exact": false,
-      "path": [
-        "/virt-monitoring/alertrules",
-        "/virt-monitoring/alerts",
-        "/virt-monitoring/dashboards",
-        "/virt-monitoring/graph",
-        "/virt-monitoring/query-browser",
-        "/virt-monitoring/silences",
-        "/virt-monitoring/targets"
-      ],
-      "component": { "$codeRef": "MonitoringRouter" }
-    }
-  },
-  {
     "type": "console.navigation/href",
     "flags": {
       "required": ["PROMETHEUS", "MONITORING", "CAN_GET_NS"]
@@ -181,24 +133,8 @@
       "name": "%plugin__monitoring-plugin~Alerts%",
       "href": "alerts",
       "component": {
-        "$codeRef": "MonitoringRouter"
+        "$codeRef": "AlertsPage"
       }
-    }
-  },
-  {
-    "type": "console.page/route",
-    "properties": {
-      "exact": false,
-      "path": ["/dev-monitoring/ns/:ns/alerts/:ruleID"],
-      "component": { "$codeRef": "MonitoringRouter" }
-    }
-  },
-  {
-    "type": "console.page/route",
-    "properties": {
-      "exact": false,
-      "path": ["/dev-monitoring/ns/:ns/rules/:id"],
-      "component": { "$codeRef": "MonitoringRouter" }
     }
   },
   {
@@ -208,7 +144,7 @@
       "name": "%plugin__monitoring-plugin~Metrics%",
       "href": "metrics",
       "component": {
-        "$codeRef": "MonitoringRouter"
+        "$codeRef": "MetricsPage"
       }
     }
   },
@@ -219,24 +155,8 @@
       "name": "%plugin__monitoring-plugin~Silences%",
       "href": "silences",
       "component": {
-        "$codeRef": "MonitoringRouter"
+        "$codeRef": "SilencesPage"
       }
-    }
-  },
-  {
-    "type": "console.page/route",
-    "properties": {
-      "exact": false,
-      "path": ["/dev-monitoring/ns/:ns/silences/:id"],
-      "component": { "$codeRef": "MonitoringRouter" }
-    }
-  },
-  {
-    "type": "console.page/route",
-    "properties": {
-      "exact": false,
-      "path": ["/dev-monitoring/ns/:ns/silences/:id/:edit"],
-      "component": { "$codeRef": "MonitoringRouter" }
     }
   },
   {
@@ -246,7 +166,7 @@
       "name": "%plugin__monitoring-plugin~Dashboards%",
       "href": "",
       "component": {
-        "$codeRef": "MonitoringRouter"
+        "$codeRef": "LegacyDashboardsPage"
       }
     }
   },
@@ -255,6 +175,62 @@
     "properties": {
       "scope": "mp",
       "reducer": { "$codeRef": "MonitoringReducer" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
+      "path": ["/monitoring"],
+      "component": { "$codeRef": "MonitoringRouter" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
+      "path": ["/virt-monitoring"],
+      "component": { "$codeRef": "MonitoringRouter" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
+      "path": "/dev-monitoring/ns/:ns/alerts/:ruleID",
+      "component": { "$codeRef": "AlertsDetailsPage" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
+      "path": "/dev-monitoring/ns/:ns/rules/:id",
+      "component": { "$codeRef": "AlertRulesDetailsPage" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
+      "path": "/dev-monitoring/ns/:ns/silences/:id",
+      "component": { "$codeRef": "SilencesDetailsPage" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
+      "path": "/dev-monitoring/ns/:ns/silences/:id/edit",
+      "component": { "$codeRef": "SilenceEditPage" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
+      "path": "/dev-monitoring/ns/:ns/silences/~new",
+      "component": { "$codeRef": "SilenceCreatePage" }
     }
   }
 ]

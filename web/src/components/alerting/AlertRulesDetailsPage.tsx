@@ -35,30 +35,14 @@ import {
   ToolbarGroup,
   ToolbarItem,
 } from '@patternfly/react-core';
+import { Table, TableVariant, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
 import * as _ from 'lodash-es';
 import * as React from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
-import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
-
-import { ExternalLink } from '../console/utils/link';
-
-import KebabDropdown from '../kebab-dropdown';
-import { Labels } from '../labels';
-import { ToggleGraph } from '../metrics';
-import { Alerts } from '../types';
-import { alertDescription, RuleResource } from '../utils';
-
-import {
-  getAlertRulesUrl,
-  getAlertsUrl,
-  getAlertUrl,
-  getNewSilenceAlertUrl,
-  getLegacyObserveState,
-  getQueryBrowserUrl,
-  usePerspective,
-} from '../hooks/usePerspective';
+import { Link, useNavigate, useParams } from 'react-router-dom-v5-compat';
+import { MonitoringState } from '../../reducers/observe';
 import {
   alertingRuleSource,
   AlertState,
@@ -68,11 +52,25 @@ import {
   SeverityHelp,
   SourceHelp,
 } from '../alerting/AlertUtils';
-import { MonitoringState } from '../../reducers/observe';
+import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 import { StatusBox } from '../console/console-shared/src/components/status/StatusBox';
 import { formatPrometheusDuration } from '../console/console-shared/src/datetime/prometheus';
-import withFallback from '../console/console-shared/error/fallbacks/withFallback';
-import { Table, TableVariant, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
+import { ExternalLink } from '../console/utils/link';
+import {
+  getAlertRulesUrl,
+  getAlertsUrl,
+  getAlertUrl,
+  getLegacyObserveState,
+  getNewSilenceAlertUrl,
+  getQueryBrowserUrl,
+  usePerspective,
+} from '../hooks/usePerspective';
+import KebabDropdown from '../kebab-dropdown';
+import { Labels } from '../labels';
+import { ToggleGraph } from '../MetricsPage';
+import { Alerts } from '../types';
+import { alertDescription, RuleResource } from '../utils';
+import { useAlertsPoller } from '../hooks/useAlertsPoller';
 
 // Renders Prometheus template text and highlights any {{ ... }} tags that it contains
 const PrometheusTemplate = ({ text }) => (
@@ -85,15 +83,16 @@ const PrometheusTemplate = ({ text }) => (
   </>
 );
 
-type ActiveAlertsProps = RouteComponentProps & {
+type ActiveAlertsProps = {
   alerts: PrometheusAlert[];
   namespace: string;
   ruleID: string;
 };
 
-const ActiveAlerts_: React.FC<ActiveAlertsProps> = ({ alerts, history, namespace, ruleID }) => {
+export const ActiveAlerts: React.FC<ActiveAlertsProps> = ({ alerts, namespace, ruleID }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
+  const navigate = useNavigate();
 
   return (
     <Table variant={TableVariant.compact}>
@@ -128,7 +127,7 @@ const ActiveAlerts_: React.FC<ActiveAlertsProps> = ({ alerts, history, namespace
                   <DropdownItem
                     component="button"
                     key="silence"
-                    onClick={() => history.push(getNewSilenceAlertUrl(perspective, a))}
+                    onClick={() => navigate(getNewSilenceAlertUrl(perspective, a))}
                   >
                     {t('Silence alert')}
                   </DropdownItem>,
@@ -141,20 +140,19 @@ const ActiveAlerts_: React.FC<ActiveAlertsProps> = ({ alerts, history, namespace
     </Table>
   );
 };
-const ActiveAlerts = withRouter(ActiveAlerts_);
-
-type AlertRulesDetailsPageProps = RouteComponentProps<{ id: string; ns?: string }>;
-
-const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match }) => {
+const AlertRulesDetailsPage_: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const params = useParams<{ ns?: string; id: string }>();
+
+  useAlertsPoller();
 
   const { rulesKey, alertsKey, perspective } = usePerspective();
-  const namespace = match.params?.ns;
+  const namespace = params?.ns;
 
   const rules: Rule[] = useSelector((state: MonitoringState) =>
     getLegacyObserveState(perspective, state)?.get(rulesKey),
   );
-  const rule = _.find(rules, { id: _.get(match, 'params.id') });
+  const rule = _.find(rules, { id: params.id });
 
   const { loaded, loadError }: Alerts = useSelector(
     (state: MonitoringState) => getLegacyObserveState(perspective, state)?.get(alertsKey) || {},

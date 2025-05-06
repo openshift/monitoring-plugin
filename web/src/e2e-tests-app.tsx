@@ -1,12 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
-import { BrowserRouter, Link } from 'react-router-dom';
+import { BrowserRouter, Link } from 'react-router-dom-v5-compat';
 import { combineReducers, createStore } from 'redux';
-
-import ObserveReducers, { ObserveState } from './reducers/observe';
 import MonitoringRouter from './components/router';
 import i18n from './i18n';
+import ObserveReducers, { ObserveState } from './reducers/observe';
 
 import '@patternfly/patternfly/patternfly.css';
 
