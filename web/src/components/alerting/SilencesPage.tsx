@@ -219,19 +219,22 @@ const SilencesPage_: React.FC = () => {
               {errorMessage}
             </PFAlert>
           )}
-          <VirtualizedTable<Silence>
-            aria-label={t('Silences')}
-            label={t('Silences')}
-            columns={columns}
-            data={filteredData ?? []}
-            loaded={loaded}
-            loadError={loadError}
-            Row={SilenceTableRowWithCheckbox}
-            unfilteredData={data}
-            NoDataEmptyMsg={() => {
-              return <EmptyBox label={t('Silences')} />;
-            }}
-          />
+          <div id="silences-table-scroll">
+            <VirtualizedTable<Silence>
+              aria-label={t('Silences')}
+              label={t('Silences')}
+              columns={columns}
+              data={filteredData ?? []}
+              loaded={loaded}
+              loadError={loadError}
+              Row={SilenceTableRowWithCheckbox}
+              unfilteredData={data}
+              NoDataEmptyMsg={() => {
+                return <EmptyBox label={t('Silences')} />;
+              }}
+              scrollNode={() => document.getElementById('silences-table-scroll')}
+            />
+          </div>
         </SelectedSilencesContext.Provider>
       </PageSection>
     </>

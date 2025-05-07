@@ -1,18 +1,18 @@
 import { Overview } from '@openshift-console/dynamic-plugin-sdk';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as React from 'react';
+import { QueryParamProvider } from 'use-query-params';
+import { ReactRouter5Adapter } from 'use-query-params/adapters/react-router-5';
 import withFallback from '../../console/console-shared/error/fallbacks/withFallback';
 import { LoadingInline } from '../../console/console-shared/src/components/loading/LoadingInline';
-import { PersesContext } from '../../router';
 import DashboardSkeleton from '../shared/dashboard-skeleton';
+import { PersesContext } from '../shared/useIsPerses';
 import { PersesWrapper } from './PersesWrapper';
 import { DashboardEmptyState } from './emptystates/DashboardEmptyState';
 import { ProjectEmptyState } from './emptystates/ProjectEmptyState';
 import { useDashboardsData } from './hooks/useDashboardsData';
 import PersesBoard from './perses-dashboards';
 import { ProjectBar } from './project/ProjectBar';
-import { QueryParamProvider } from 'use-query-params';
-import { ReactRouter5Adapter } from 'use-query-params/adapters/react-router-5';
 
 const queryClient = new QueryClient({
   defaultOptions: {

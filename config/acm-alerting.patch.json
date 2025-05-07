@@ -19,8 +19,88 @@
       "type": "console.page/route",
       "properties": {
         "exact": false,
-        "path": "/multicloud/monitoring",
-        "component": { "$codeRef": "MonitoringRouter" }
+        "path": [
+          "/multicloud/monitoring/alerts",
+          "/multicloud/monitoring/silences",
+          "/multicloud/monitoring/alertrules"
+        ],
+        "component": { "$codeRef": "AlertingPage" }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/1",
+    "value": {
+      "type": "console.page/route",
+      "properties": {
+        "exact": false,
+        "path": "/multicloud/monitoring/silences/~new",
+        "component": { "$codeRef": "SilenceCreatePage" }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/1",
+    "value": {
+      "type": "console.page/route",
+      "properties": {
+        "exact": false,
+        "path": "/multicloud/monitoring/silences/:id/edit",
+        "component": { "$codeRef": "SilenceEditPage" }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/1",
+    "value": {
+      "type": "console.page/route",
+      "properties": {
+        "exact": false,
+        "path": "/multicloud/monitoring/silences/:id",
+        "component": { "$codeRef": "SilencesDetailsPage" }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/1",
+    "value": {
+      "type": "console.page/route",
+      "properties": {
+        "exact": false,
+        "path": ["/multicloud/monitoring/alertrules/:id"],
+        "component": { "$codeRef": "AlertRulesDetailsPage" }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/1",
+    "value": {
+      "type": "console.page/route",
+      "properties": {
+        "exact": false,
+        "path": ["/multicloud/monitoring/alerts/:ruleID"],
+        "component": { "$codeRef": "AlertsDetailsPage" }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/1",
+    "value": {
+      "type": "console.page/route",
+      "properties": {
+        "exact": false,
+        "path": [
+          "/multicloud/monitoring/alerts",
+          "/multicloud/monitoring/silences",
+          "/multicloud/monitoring/alertrules"
+        ],
+        "component": { "$codeRef": "AlertingPage" }
       }
     }
   },
