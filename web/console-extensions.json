@@ -181,16 +181,164 @@
     "type": "console.page/route",
     "properties": {
       "exact": false,
-      "path": ["/monitoring"],
-      "component": { "$codeRef": "MonitoringRouter" }
+      "path": ["/monitoring/alerts", "/monitoring/silences", "/monitoring/alertrules"],
+      "component": { "$codeRef": "AlertingPage" }
     }
   },
   {
     "type": "console.page/route",
     "properties": {
       "exact": false,
-      "path": ["/virt-monitoring"],
-      "component": { "$codeRef": "MonitoringRouter" }
+      "path": "/monitoring/silences/~new",
+      "component": { "$codeRef": "SilenceCreatePage" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
+      "path": "/monitoring/silences/:id",
+      "component": { "$codeRef": "SilencesDetailsPage" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
+      "path": "/monitoring/silences/:id/edit",
+      "component": { "$codeRef": "SilenceEditPage" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
+      "path": ["/monitoring/targets", "/monitoring/targets/:scrapeUrl"],
+      "component": { "$codeRef": "TargetsPage" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
+      "path": ["/monitoring/query-browser"],
+      "component": { "$codeRef": "MetricsPage" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
+      "path": ["/monitoring/graph"],
+      "component": { "$codeRef": "PrometheusRedirectPage" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
+      "path": ["/monitoring/dashboards", "/monitoring/dashboards/:dashboardName"],
+      "component": { "$codeRef": "LegacyDashboardsPage" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
+      "path": ["/monitoring/alertrules/:id"],
+      "component": { "$codeRef": "AlertRulesDetailsPage" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
+      "path": ["/monitoring/alerts/:ruleID"],
+      "component": { "$codeRef": "AlertsDetailsPage" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
+      "path": [
+        "/virt-monitoring/alerts",
+        "/virt-monitoring/silences",
+        "/virt-monitoring/alertrules"
+      ],
+      "component": { "$codeRef": "AlertingPage" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
+      "path": "/virt-monitoring/silences/~new",
+      "component": { "$codeRef": "SilenceCreatePage" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
+      "path": "/virt-monitoring/silences/:id",
+      "component": { "$codeRef": "SilencesDetailsPage" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
+      "path": "/virt-monitoring/silences/:id/edit",
+      "component": { "$codeRef": "SilenceEditPage" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
+      "path": ["/virt-monitoring/targets", "/virt-monitoring/targets/:scrapeUrl"],
+      "component": { "$codeRef": "TargetsPage" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
+      "path": ["/virt-monitoring/query-browser"],
+      "component": { "$codeRef": "MetricsPage" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
+      "path": ["/virt-monitoring/graph"],
+      "component": { "$codeRef": "PrometheusRedirectPage" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
+      "path": ["/virt-monitoring/dashboards", "/virt-monitoring/dashboards/:dashboardName"],
+      "component": { "$codeRef": "LegacyDashboardsPage" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
+      "path": ["/virt-monitoring/alertrules/:id"],
+      "component": { "$codeRef": "AlertRulesDetailsPage" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
+      "path": ["/virt-monitoring/alerts/:ruleID"],
+      "component": { "$codeRef": "AlertsDetailsPage" }
     }
   },
   {
