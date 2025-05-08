@@ -124,7 +124,6 @@
     "displayName": "OpenShift console monitoring plugin",
     "description": "This plugin adds the monitoring UI to the OpenShift web console",
     "exposedModules": {
-      "MonitoringRouter": "./components/router",
       "DashboardsPage": "./components/dashboards/perses/dashboard-page",
       "LegacyDashboardsPage": "./components/dashboards/legacy/legacy-dashboard-page",
       "SilencesPage": "./components/alerting/SilencesPage",
@@ -133,10 +132,14 @@
       "SilenceEditPage": "./components/alerting/SilenceEditPage",
       "MetricsPage": "./components/MetricsPage",
       "AlertsPage": "./components/alerting/AlertsPage",
+      "AlertingPage": "./components/alerting/AlertingPage",
       "AlertsDetailsPage": "./components/alerting/AlertsDetailsPage",
+      "AlertRulesPage": "./components/alerting/AlertRulesPage",
       "AlertRulesDetailsPage": "./components/alerting/AlertRulesDetailsPage",
       "MonitoringReducer": "./reducers/observe",
-      "IncidentsPage": "./components/Incidents/IncidentsPage"
+      "IncidentsPage": "./components/Incidents/IncidentsPage",
+      "TargetsPage": "./components/targets-page",
+      "PrometheusRedirectPage": "./components/prometheus-redirect-page"
     },
     "dependencies": {
       "@console/pluginAPI": "*"

@@ -1,13 +1,31 @@
-import { PageSection, Tab, Tabs, TabTitleText, Title } from '@patternfly/react-core';
+import {
+  PageSection,
+  Tab,
+  TabContent,
+  TabContentBody,
+  Tabs,
+  TabTitleText,
+  Title,
+} from '@patternfly/react-core';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom-v5-compat';
+import { useLocation, useNavigate } from 'react-router-dom-v5-compat';
 import {
   getAlertRulesUrl,
   getAlertsUrl,
   getSilencesUrl,
   usePerspective,
 } from '../hooks/usePerspective';
+
+const AlertsPage = React.lazy(
+  () => import(/* webpackChunkName: "AlertsPage" */ '../alerting/AlertsPage'),
+);
+const SilencesPage = React.lazy(
+  () => import(/* webpackChunkName: "SilencesPage" */ '../alerting/SilencesPage'),
+);
+const AlertRulesPage = React.lazy(
+  () => import(/* webpackChunkName: "AlertRulesPage" */ '../alerting/AlertRulesPage'),
+);
 
 const AlertingPage: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -59,7 +77,41 @@ const AlertingPage: React.FC = () => {
         </Tabs>
       </PageSection>
 
-      <Outlet />
+      <TabContent
+        key={0}
+        eventKey={0}
+        id="alerts-tab-content"
+        activeKey={activeTabKey}
+        hidden={0 !== activeTabKey}
+      >
+        <TabContentBody>
+          <AlertsPage />
+        </TabContentBody>
+      </TabContent>
+
+      <TabContent
+        key={1}
+        eventKey={1}
+        id="silences-content"
+        activeKey={activeTabKey}
+        hidden={1 !== activeTabKey}
+      >
+        <TabContentBody>
+          <SilencesPage />
+        </TabContentBody>
+      </TabContent>
+
+      <TabContent
+        key={2}
+        eventKey={2}
+        id="alerting-rules-content"
+        activeKey={activeTabKey}
+        hidden={2 !== activeTabKey}
+      >
+        <TabContentBody>
+          <AlertRulesPage />
+        </TabContentBody>
+      </TabContent>
     </>
   );
 };

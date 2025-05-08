@@ -7,10 +7,10 @@ import { ReactRouter5Adapter } from 'use-query-params/adapters/react-router-5';
 import { LoadingInline } from '../../../components/console/console-shared/src/components/loading/LoadingInline';
 import withFallback from '../../console/console-shared/error/fallbacks/withFallback';
 import { usePerspective } from '../../hooks/usePerspective';
-import { PersesContext } from '../../router';
 import { LegacyDashboard } from '../legacy/legacy-dashboard';
 import DashboardSkeleton from '../shared/dashboard-skeleton';
 import ErrorAlert from '../shared/error';
+import { PersesContext } from '../shared/useIsPerses';
 import { useLegacyDashboards } from './useLegacyDashboards';
 
 type LegacyDashboardsPageProps = {
