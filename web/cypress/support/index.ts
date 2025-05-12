@@ -1,5 +1,6 @@
 import './nav';
 import './selectors';
+import './login';
 
 export const checkErrors = () =>
   cy.window().then((win) => {
