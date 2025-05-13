@@ -44,11 +44,15 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
   );
 
   function findMatchingAlertsWithId(alertsArray, rulesArray) {
-    // Map over alerts and find matching rules
     return alertsArray.map((alert) => {
       const match = rulesArray.find((rule) => alert.alertname === rule.name);
-
       if (match) {
+        // Add alertname to rule.labels if not already present
+        if (match.labels) {
+          match.labels.alertname = alert.alertname;
+        } else {
+          match.labels = { alertname: alert.alertname };
+        }
         return { ...alert, rule: match };
       }
       return alert;
