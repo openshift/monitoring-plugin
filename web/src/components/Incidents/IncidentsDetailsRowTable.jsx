@@ -2,23 +2,19 @@ import React from 'react';
 import { Table, Thead, Tr, Th, Tbody, Td } from '@patternfly/react-table';
 import {
   GreenCheckCircleIcon,
-  isAlertingRulesSource,
-  PrometheusEndpoint,
   ResourceIcon,
   Timestamp,
   useActiveNamespace,
-  useResolvedExtensions,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { BellIcon } from '@patternfly/react-icons';
 import { Bullseye, DropdownItem, Spinner, Tooltip } from '@patternfly/react-core';
 import { Link, useHistory } from 'react-router-dom';
-import { AlertResource, getAlertsAndRules } from '../utils';
-import { getPrometheusURL } from '../console/graphs/helpers';
-import { fetchAlerts } from '../fetch-alerts';
+import { AlertResource } from '../utils';
 import KebabDropdown from '../kebab-dropdown';
 import { useTranslation } from 'react-i18next';
 import {
   getAlertUrl,
+  getLegacyObserveState,
   getNewSilenceAlertUrl,
   getRuleUrl,
   usePerspective,
@@ -26,55 +22,49 @@ import {
 import { OutlinedQuestionCircleIcon } from '@patternfly/react-icons';
 import './incidents-styles.css';
 import { SeverityBadge } from '../alerting/AlertUtils';
+import { useAlertsPoller } from '../hooks/useAlertsPoller';
+import { useSelector } from 'react-redux';
+import isEqual from 'lodash/isEqual';
+
+function useDeepCompareMemoize(value) {
+  const ref = React.useRef();
+
+  if (!isEqual(value, ref.current)) {
+    ref.current = value;
+  }
+
+  return ref.current;
+}
 
 const IncidentsDetailsRowTable = ({ alerts }) => {
   const history = useHistory();
   const [namespace] = useActiveNamespace();
-  const { perspective } = usePerspective();
+  useAlertsPoller();
+  const { perspective, alertsKey } = usePerspective();
   const [alertsWithMatchedData, setAlertsWithMatchedData] = React.useState([]);
-  const [customExtensions] = useResolvedExtensions(isAlertingRulesSource);
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
-  const alertsSource = React.useMemo(
-    () =>
-      customExtensions
-        .filter((extension) => extension.properties.contextId === 'observe-alerting')
-        .map((extension) => extension.properties),
-    [customExtensions],
+  const alertsWithLabels = useSelector((state) =>
+    getLegacyObserveState(perspective, state)?.get(alertsKey),
   );
 
   function findMatchingAlertsWithId(alertsArray, rulesArray) {
     return alertsArray.map((alert) => {
-      const match = rulesArray.find((rule) => alert.alertname === rule.name);
+      if (!Array.isArray(rulesArray?.data)) {
+        return alert;
+      }
+      const match = rulesArray.data.find((rule) => alert.alertname === rule.labels.alertname);
       if (match) {
-        // Add alertname to rule.labels if not already present
-        if (match.labels) {
-          match.labels.alertname = alert.alertname;
-        } else {
-          match.labels = { alertname: alert.alertname };
-        }
         return { ...alert, rule: match };
       }
       return alert;
     });
   }
+  const memoizedAlerts = useDeepCompareMemoize(alerts);
 
   React.useEffect(() => {
-    const url = getPrometheusURL({ endpoint: PrometheusEndpoint.RULES });
-    const poller = () => {
-      fetchAlerts(url, alertsSource)
-        .then(({ data }) => {
-          const { rules } = getAlertsAndRules(data);
-          //match rules fetched with alerts passed to this component by alertname
-          setAlertsWithMatchedData(findMatchingAlertsWithId(alerts, rules));
-        })
-        .catch((e) => {
-          // eslint-disable-next-line no-console
-          console.log(e);
-        });
-    };
-    poller();
-  }, [alerts, alertsSource]);
+    setAlertsWithMatchedData(findMatchingAlertsWithId(memoizedAlerts, alertsWithLabels));
+  }, [memoizedAlerts, alertsWithLabels]);
 
   return (
     <Table borders={'compactBorderless'}>
