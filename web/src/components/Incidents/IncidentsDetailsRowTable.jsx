@@ -92,7 +92,12 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
                   <Link
                     to={
                       alertDetails?.rule
-                        ? getAlertUrl(perspective, alertDetails, alertDetails.rule.id, namespace)
+                        ? getAlertUrl(
+                            perspective,
+                            alertDetails,
+                            alertDetails?.rule?.rule.id,
+                            namespace,
+                          )
                         : '#'
                     }
                     style={
@@ -151,9 +156,12 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
                       >
                         {t('Silence alert')}
                       </DropdownItem>,
-                      <DropdownItem key="view-rule" isDisabled={!alertDetails?.rule}>
+                      <DropdownItem
+                        key="view-rule"
+                        isDisabled={alertDetails?.alertstate === 'resolved' ? true : false}
+                      >
                         <Link
-                          to={getRuleUrl(perspective, alertDetails.rule)}
+                          to={getRuleUrl(perspective, alertDetails?.rule?.rule)}
                           style={{ color: 'inherit', textDecoration: 'inherit' }}
                         >
                           {t('View alerting rule')}
