@@ -48,7 +48,7 @@ export const detailsPage = {
    cy.log('detailsPage.clickOnSilencedBy');
     cy.byLegacyTestID('silence-resource-link')
      .first()
-     .should('have.text', 'Watchdog')
+     .should('have.text', alertname)
      .click();
 
   }

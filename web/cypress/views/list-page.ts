@@ -1,4 +1,8 @@
 export const listPage = {
+
+  tableShoulBeLoaded: () => {
+    cy.get('[id="silences-table-scroll"]').should('be.visible');
+  },
  
   tabShouldHaveText: (tab: string) =>{
     cy.log('listPage.tabShouldHaveText');
@@ -17,7 +21,9 @@ export const listPage = {
     byName: (tab: string, name: string) => {
       cy.log('listPage.filter.byName');
       cy.get(`[id="${tab}-content"]`).find('[data-test="name-filter-input"]')
-        .should('be.visible')
+        .should('be.visible');
+      cy.get(`[id="${tab}-content"]`).find('[data-test="name-filter-input"]')
+        .click()
         .type(name);
     },
     byLabel: (tab: string, label: string) => {
@@ -26,15 +32,15 @@ export const listPage = {
       cy.byTestID('dropdown-menu').contains('Label').click();
       cy.get(`[id="${tab}-content"]`).find('[data-test="name-filter-input"]')
       .should('be.visible')
-      .type(tab);
+      .type(label);
     },
-  clearAllFilters: (pos: number) => {
-    cy.log('listPage.clearAllFilters');
-      cy
-        .byClass('pf-v6-c-button__text')
-        .eq(pos)
-        .contains('Clear all filters')
-        .click();
+    clearAllFilters: (pos: number) => {
+      cy.log('listPage.clearAllFilters');
+        cy
+          .byClass('pf-v6-c-button__text')
+          .eq(pos)
+          .contains('Clear all filters')
+          .click();
     }
   },
   ARRows: {

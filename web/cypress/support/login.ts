@@ -16,7 +16,7 @@ function login(username: string, password: string) {
   // Login to your AAD tenant.
   cy.origin(
 
-   '<oauth ocp url>',
+   'https://oauth-openshift.apps.emurasak-419a.qe.devcluster.openshift.com',
     {
       args: {
         username,

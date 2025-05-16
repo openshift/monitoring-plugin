@@ -5,11 +5,25 @@ import { listPage } from '../views/list-page';
 import { silenceAlertPage } from '../views/silence-alert-page';
 import { nav } from '../views/nav';
 import { silenceDetailsPage } from '../views/silence-details-page';
+import { silencesListPage } from '../views/silences-list-page';
 
+//
+import { operatorHubPage } from '../views/operator-hub-page';
+import { Pages } from '../views/pages';
+// Set constants for the operators that need to be installed for tests.
+const MP = {
+  namespace: 'openshift-cluster-observability-operator',
+  packageName: 'cluster-observability-operator',
+  operatorName: 'Cluster Observability Operator',
+  config: {
+    kind: 'UIPlugin',
+    name: 'monitoring',
+  },
+};
 
 const ALERTNAME = 'Watchdog';
 const NAMESPACE = 'openshift-monitoring';
-const SEVERITY = ' Critical';
+const SEVERITY = 'None';
 const ALERT_DESC = 'This is an alert meant to ensure that the entire alerting pipeline is functional. This alert is always firing, therefore it should always be firing in Alertmanager and always fire against a receiver. There are integrations with various notification mechanisms that send a notification when this alert is not firing. For example the "DeadMansSnitch" integration in PagerDuty.'
 const ALERT_SUMMARY = 'An alert that should always be firing to certify that Alertmanager is working properly.'
 
@@ -50,6 +64,36 @@ function getTextFromElement(selector: string) {
 };
 
 describe('Monitoring: Alerts', () => {
+  // before(() => {
+  //   cy.adminCLI(
+  //     `oc adm policy add-cluster-role-to-user cluster-admin ${Cypress.env('LOGIN_USERNAME')}`,
+  //   );
+  //   // Getting the oauth url for hypershift cluster login
+  //   cy.exec(
+  //     `oc get oauthclient openshift-browser-client -o go-template --template="{{index .redirectURIs 0}}" --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+  //   ).then((result) => {
+  //     if (expect(result.stderr).to.be.empty) {
+  //       const oauth = result.stdout;
+  //       // Trimming the origin part of the url
+  //       const oauthurl = new URL(oauth);
+  //       const oauthorigin = oauthurl.origin;
+  //       cy.log(oauthorigin);
+  //       cy.wrap(oauthorigin).as('oauthorigin');
+  //     } else {
+  //       throw new Error(`Execution of oc get oauthclient failed
+  //         Exit code: ${result.code}
+  //         Stdout:\n${result.stdout}
+  //         Stderr:\n${result.stderr}`);
+  //     }
+  //   });
+  //   cy.get('@oauthorigin').then((oauthorigin) => {
+  //     cy.login(
+  //       Cypress.env('LOGIN_IDP'),
+  //       Cypress.env('LOGIN_USERNAME'),
+  //       Cypress.env('LOGIN_PASSWORD'),
+  //       oauthorigin,
+  //     );
+  //   });
   beforeEach(() => {
     cy.intercept('GET', '/api/prometheus/api/v1/rules?', {
       data: {
@@ -102,7 +146,35 @@ describe('Monitoring: Alerts', () => {
       },
     });
 
-    cy.login('kubeadmin','<password>');
+    cy.adminCLI(
+          `oc adm policy add-cluster-role-to-user cluster-admin ${Cypress.env('LOGIN_USERNAME')}`,
+        );
+        // Getting the oauth url for hypershift cluster login
+        cy.exec(
+          `oc get oauthclient openshift-browser-client -o go-template --template="{{index .redirectURIs 0}}" --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+        ).then((result) => {
+          if (expect(result.stderr).to.be.empty) {
+            const oauth = result.stdout;
+            // Trimming the origin part of the url
+            const oauthurl = new URL(oauth);
+            const oauthorigin = oauthurl.origin;
+            cy.log(oauthorigin);
+            cy.wrap(oauthorigin).as('oauthorigin');
+          } else {
+            throw new Error(`Execution of oc get oauthclient failed
+              Exit code: ${result.code}
+              Stdout:\n${result.stdout}
+              Stderr:\n${result.stderr}`);
+          }
+        });
+        cy.get('@oauthorigin').then((oauthorigin) => {
+          cy.login(
+            Cypress.env('LOGIN_IDP'),
+            Cypress.env('LOGIN_USERNAME'),
+            Cypress.env('LOGIN_PASSWORD'),
+            oauthorigin,
+          );
+        });
 
   });
 
@@ -111,7 +183,7 @@ describe('Monitoring: Alerts', () => {
   // });
 
   it('1. Admin perspective - Observe Menu', () => {
-    cy.visit('/');
+    // cy.visit('/');
     cy.log('Admin perspective - Observe Menu and verify all submenus');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
       commonPages.titleShouldHaveText('Alerting');
@@ -168,7 +240,7 @@ describe('Monitoring: Alerts', () => {
     const timeIntervalValue = getValFromElement(`[data-ouia-component-id^="OUIA-Generated-TextInputBase"]`);
     timeIntervalValue.then((value) => {
         expect(value).to.not.be.empty;
-      })
+      });
 
     cy.log('2.4. click on Alert Rule link');
     detailsPage.clickAlertRule(`${ALERTNAME}`);
@@ -178,7 +250,7 @@ describe('Monitoring: Alerts', () => {
     cy.get(`[class="pf-v6-c-code-block__content"]`).invoke('text').then((expText) => {
       cy.log(`${expText}`);
       cy.wrap(expText).as('alertExpression');
-    })
+    });
 
     cy.log('2.5. click on Alert Details Page');
     detailsPage.clickAlertDesc(`${ALERT_DESC}`);
@@ -245,7 +317,7 @@ describe('Monitoring: Alerts', () => {
     listPage.ARRows.shouldBeLoaded();
 
     cy.log('3.2 filter to Watchdog alert');
-    listPage.filter.byName('alerts-tab','Watchdog');
+    listPage.filter.byName('alerts-tab',`${ALERTNAME}`);
     listPage.ARRows.countShouldBe(1);
 
     cy.log('3.3 silence alert');
@@ -260,7 +332,7 @@ describe('Monitoring: Alerts', () => {
     silenceAlertPage.durationSectionDefault();
     silenceAlertPage.alertLabelsSectionDefault();
     silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('alertname', `${ALERTNAME}`, false, false);
-    silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('severity', `${SEVERITY}`, false, false);
+    silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('severity', `${SEVERITY}`.toLowerCase(), false, false);
     silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('namespace', `${NAMESPACE}`, false, false);
     silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('prometheus', 'openshift-monitoring/k8s', false, false);
 
@@ -281,28 +353,39 @@ describe('Monitoring: Alerts', () => {
 
     // After creating the Silence, should be redirected to its details page
     cy.log('3.5 Assert Silence details page');
-    silenceDetailsPage.assertSilenceDetailsPage('Watchdog','Silence details','alertname=Watchdog');
+    silenceDetailsPage.assertSilenceDetailsPage(`${ALERTNAME}`,'Silence details','alertname=Watchdog');
     
     cy.log('3.6 Click on Firing alerts');
-    silenceDetailsPage.clickOnFiringAlerts('Watchdog');
-    commonPages.titleShouldHaveText('Watchdog');
+    silenceDetailsPage.clickOnFiringAlerts(`${ALERTNAME}`);
+    commonPages.titleShouldHaveText(`${ALERTNAME}`);
     detailsPage.sectionHeaderShouldExist('Alert details');
-    cy.scrollIntoView();
     detailsPage.labelShouldExist('alertname=Watchdog');
 
     cy.log('3.7 Click on Silenced by');
-    detailsPage.clickOnSilencedBy('Watchdog');
-    commonPages.titleShouldHaveText('Watchdog');
+    detailsPage.clickOnSilencedBy(`${ALERTNAME}`);
+    commonPages.titleShouldHaveText(`${ALERTNAME}`);
     detailsPage.sectionHeaderShouldExist('Silence details');
     detailsPage.labelShouldExist('alertname=Watchdog');
 
-    cy.log('shows the silenced Alert in the Silenced Alerts list');
+    cy.log('3.8 shows the silenced Alert in the Silenced Alerts list');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    nav.tabs.switchTab('Silences');
+    listPage.tableShoulBeLoaded();
+    listPage.filter.byName('silences', `${ALERTNAME}`);
+    silencesListPage.rows.SShouldBe(`${ALERTNAME}`, 'Active');
+
+    cy.log('3.9 expires the Silence');
+    silencesListPage.rows.expireSilence(true);
+    
+    // cy.log('3.9 shows the silenced Alert in the Alerts list');
+    // nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    // listPage.filter.clearAllFilters(0);
+    // listPage.filter.byName('alerts-tab',`${ALERTNAME}` );
+    // listPage.ARRows.ARShouldBe(`${ALERTNAME}`,`${SEVERITY}`,1, 'Silenced');
+
     
 
-    cy.log('shows the newly created Silence in the Silenced By list');
 
-    cy.log('expires the Silence');
     //cy.byTestID('silence-actions-toggle').click();
     //cy.byTestID('silence-actions').should('contain', 'Expire silence');
     //cy.byTestID('silence-actions')

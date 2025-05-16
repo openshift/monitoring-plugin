@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="Mocha Tests" time="131.7180" tests="3" failures="0">
+  <testsuite name="Root Suite" timestamp="2025-05-16T21:15:29" tests="0" file="cypress/e2e/bvt.cy.ts" time="0.0000" failures="0">
+  </testsuite>
+  <testsuite name="Monitoring: Alerts" timestamp="2025-05-16T21:15:29" tests="3" time="131.7180" failures="0">
+    <testcase name="Monitoring: Alerts 1. Admin perspective - Observe Menu" time="71.0010" classname="1. Admin perspective - Observe Menu">
+    </testcase>
+    <testcase name="Monitoring: Alerts 2. Admin perspective - Alerting &gt; Alerting Details page &gt; Alerting Rule &gt; Metrics" time="22.8150" classname="2. Admin perspective - Alerting &gt; Alerting Details page &gt; Alerting Rule &gt; Metrics">
+    </testcase>
+    <testcase name="Monitoring: Alerts 3. Admin perspective - Creates and expires a Silence" time="37.9020" classname="3. Admin perspective - Creates and expires a Silence">
+    </testcase>
+  </testsuite>
+</testsuites>
