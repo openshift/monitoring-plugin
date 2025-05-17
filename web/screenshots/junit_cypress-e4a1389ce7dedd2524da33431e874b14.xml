@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="Mocha Tests" time="61.2420" tests="3" failures="2">
+  <testsuite name="Root Suite" timestamp="2025-05-16T20:29:41" tests="0" file="cypress/e2e/bvt.cy.ts" time="0.0000" failures="0">
+  </testsuite>
+  <testsuite name="Monitoring: Alerts" timestamp="2025-05-16T20:29:41" tests="3" time="61.2420" failures="2">
+    <testcase name="Monitoring: Alerts 1. Admin perspective - Observe Menu" time="61.2420" classname="1. Admin perspective - Observe Menu">
+    </testcase>
+    <testcase name="Monitoring: Alerts 2. Admin perspective - Alerting &gt; Alerting Details page &gt; Alerting Rule &gt; Metrics" time="0.0000" classname="2. Admin perspective - Alerting &gt; Alerting Details page &gt; Alerting Rule &gt; Metrics">
+      <failure message="Timed out retrying after 60000ms: Expected to find element: `[class=&quot;pf-v6-c-table__tbody&quot;]`, but never found it." type="AssertionError"><![CDATA[AssertionError: Timed out retrying after 60000ms: Expected to find element: `[class="pf-v6-c-table__tbody"]`, but never found it.
+    at Object.countShouldBe (webpack://monitoring-plugin/./cypress/views/list-page.ts:53:41)
+    at Context.eval (webpack://monitoring-plugin/./cypress/e2e/bvt.cy.ts:229:20)]]></failure>
+    </testcase>
+    <testcase name="Monitoring: Alerts 3. Admin perspective - Creates and expires a Silence" time="0.0000" classname="3. Admin perspective - Creates and expires a Silence">
+      <failure message="Timed out retrying after 60000ms: Expected to find element: `[class=&quot;pf-v6-c-table__tbody&quot;]`, but never found it." type="AssertionError"><![CDATA[AssertionError: Timed out retrying after 60000ms: Expected to find element: `[class="pf-v6-c-table__tbody"]`, but never found it.
+    at Object.countShouldBe (webpack://monitoring-plugin/./cypress/views/list-page.ts:53:41)
+    at Context.eval (webpack://monitoring-plugin/./cypress/e2e/bvt.cy.ts:321:20)]]></failure>
+    </testcase>
+  </testsuite>
+</testsuites>

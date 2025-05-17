@@ -14,11 +14,16 @@ declare global {
       ): Chainable<Element>;
       byLegacyTestID(selector: string): Chainable<Element>;
       byDataID(selector: string): Chainable<Element>;
+      byOUIAID(selector: string): Chainable<Element>;
+      byClass(selector: string): Chainable<Element>;
     }
   }
 }
 
 // any command added below, must be added to global Cypress interface above
+Cypress.Commands.add('byOUIAID', (selector: string) => cy.get(`[data-ouia-component-id^="${selector}"]`));
+
+Cypress.Commands.add('byClass', (selector: string) => cy.get(`[class="${selector}"]`));
 
 Cypress.Commands.add(
   'byTestID',
@@ -33,4 +38,6 @@ Cypress.Commands.add('byLegacyTestID', (selector: string) =>
 );
 
 Cypress.Commands.add('byDataID', (selector: string) => cy.get(`[data-id="${selector}"]`));
+
+
 
