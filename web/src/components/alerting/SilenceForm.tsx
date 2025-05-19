@@ -176,7 +176,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => 
   const [inProgress, setInProgress] = React.useState(false);
   const [isStartNow, setIsStartNow] = React.useState(defaultIsStartNow);
   const [matchers, setMatchers] = React.useState<Array<Matcher>>(
-    defaults.matchers ?? [{ isRegex: false, isEqual: false, name: '', value: '' }],
+    defaults.matchers ?? [{ isRegex: false, isEqual: true, name: '', value: '' }],
   );
   const [startsAt, setStartsAt] = React.useState(defaults.startsAt ?? formatDate(now));
   const user = useSelector(getUser);
