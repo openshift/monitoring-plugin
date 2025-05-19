@@ -20,12 +20,15 @@ export const listPage = {
      */
     byName: (tab: string, name: string) => {
       cy.log('listPage.filter.byName');
-      cy.get(`[id="${tab}-content"]`).find('[data-test="name-filter-input"]')
-        .should('be.visible');
-      cy.wait(100);
-      cy.get(`[id="${tab}-content"]`).find('[data-test="name-filter-input"]')
-        .click()
-        .type(name);
+      try {
+        cy.get(`[id="${tab}-content"]`).find('input[data-test="name-filter-input"]')
+        .as('input').should('be.visible');
+        cy.get('@input', { timeout: 10000 }).type(name + '{enter}').should('have.attr', 'value', name);
+      }
+      catch (error) {
+        cy.log(`${error.message}`);
+        throw error; 
+      }
     },
     /**
      * 
@@ -45,20 +48,44 @@ export const listPage = {
      * @param tab alerts-tab, silences, alerting-rules 
      */
     clearAllFilters: (tab: string,) => {
-      cy.log('listPage.clearAllFilters');
+      cy.log('listPage.filter.clearAllFilters');
       cy.get(`[id="${tab}-content"]`).find('[class="pf-v6-c-button__text"]')
         .contains('Clear all filters')
         .should('be.visible');
-
+      try {
         cy.get(`[id="${tab}-content"]`).find('[class="pf-v6-c-button__text"]')
-        .contains('Clear all filters')
-        .click();
-        // cy
-        //   .byClass('pf-v6-c-button__text')
-        //   .eq(pos)
-        //   .contains('Clear all filters')
-        //   .click();
-    }
+          .contains('Clear all filters')
+          .click();
+      } catch (error) {
+        cy.log(`${error.message}`);
+        throw error; 
+      }
+    },
+    clickFilter:(toOpen: boolean)=>{
+      cy.log('listPage.filter.clickFilter');
+      if (toOpen){
+        cy.byClass('pf-v6-c-menu-toggle').eq(0).click().should('have.class', 'pf-v6-c-menu-toggle pf-m-expanded');
+      }else{
+        cy.byClass('pf-v6-c-menu-toggle').eq(0).click().should('not.have.class', 'pf-m-expanded');
+      }
+    },
+    /**
+     * 
+     * @param open true = open, false = nothing
+     * @param option 
+     * @returns 
+     */
+    selectFilterOption:(open: boolean, option: string, close: boolean)=> {
+      cy.log('listPage.filter.selectFilterOption');
+      if (open){
+        listPage.filter.clickFilter(open);
+      };
+      cy.byClass('co-filter-dropdown-item__name').contains(option).click();
+      if (close){
+        listPage.filter.clickFilter(false);
+      };
+    },
+      
   },
   ARRows: {
     shouldBeLoaded: () => {
@@ -89,43 +116,90 @@ export const listPage = {
     },
     expandRow:() => {
       cy.log('listPage.ARRows.expandRow');
-      cy.get('body').then( ($provider) => {
-        if ($provider.find('button[class="pf-v6-c-button pf-m-plain pf-m-expanded"]').length > 0) {
-            cy.log('Already expanded');
-        } else{
-            cy.get('button[class="pf-v6-c-button pf-m-plain"]').eq(2).click();
-        }
-      })
+      try {
+          cy.get('body').then( ($provider) => {
+          if ($provider.find('button[class="pf-v6-c-button pf-m-plain pf-m-expanded"]').length > 0) {
+              cy.log('Already expanded');
+          } else{
+              cy.get('button[class="pf-v6-c-button pf-m-plain"]', { timeout: 10000 })
+              .eq(2)
+              .click()
+              .should('have.class', 'pf-m-expanded');
+          }
+        })
+      } catch (error) {
+        cy.log(`${error.message}`);
+        throw error; 
+      }
     },
     clickAlertingRule: () => {
       cy.log('listPage.ARRows.clickAlertingRule');
-      cy.byClass('co-m-resource-icon co-m-resource-alertrule').contains('AR').parent().next().click();
+      try {
+          cy.byClass('co-m-resource-icon co-m-resource-alertrule')
+            .contains('AR')
+            .parent()
+            .next()
+            .should('be.visible')
+            .click();
+      } catch (error) {
+        cy.log(`${error.message}`);
+        throw error; 
+      }
+     
     },
     clickAlert: () => {
       cy.log('listPage.ARRows.clickAlert');
-      cy.get('[class="co-m-resource-icon co-m-resource-alert"]').parent().next('div').click();
+      try {
+      cy.get('[class="co-m-resource-icon co-m-resource-alert"]')
+        .parent()
+        .next('div')
+        .click();
+      } catch (error) {
+        cy.log(`${error.message}`);
+        throw error; 
+      }
+      
     },
     clickAlertKebab: () => {
       cy.log('listPage.ARRows.clickAlertKebab');
-      cy.byLegacyTestID('kebab-button').should('be.visible').click();
+      try {
+        cy.byLegacyTestID('kebab-button').should('be.visible').click();
+      }catch (error) {
+        cy.log(`${error.message}`);
+        throw error; 
+      }
     },
     silenceAlert:() => {
       cy.log('listPage.ARRows.silentAlert');
-      listPage.ARRows.clickAlertKebab();
-      cy.byClass('pf-v6-c-menu__item-text').contains('Silence alert').should('be.visible').click();
+      try {
+        listPage.ARRows.clickAlertKebab();
+        cy.byClass('pf-v6-c-menu__item-text').contains('Silence alert').should('be.visible').click();
+      } catch (error) {
+        cy.log(`${error.message}`);
+        throw error; 
+      }
+      
 
     },
     editAlert:() => {
       cy.log('listPage.ARRows.silentAlert');
-      listPage.ARRows.clickAlertKebab();
-      cy.byClass('pf-v6-c-menu__item-text').contains('Edit alert').should('be.visible').click();
-
+      try {
+        listPage.ARRows.clickAlertKebab();
+        cy.byClass('pf-v6-c-menu__item-text').contains('Edit alert').should('be.visible').click();
+      }catch (error) {
+        cy.log(`${error.message}`);
+        throw error; 
+      }
     },
     expireAlert:() => {
       cy.log('listPage.ARRows.silentAlert');
-      listPage.ARRows.clickAlertKebab();
-      cy.byClass('pf-v6-c-menu__item-text').contains('Expire alert').should('be.visible').click();
-
+      try {
+        listPage.ARRows.clickAlertKebab();
+        cy.byClass('pf-v6-c-menu__item-text').contains('Expire alert').should('be.visible').click();
+      }catch (error) {
+        cy.log(`${error.message}`);
+        throw error; 
+      }
     }
   },
 };

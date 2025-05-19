@@ -69,7 +69,6 @@ export const commonPages = {
     administration_clusterSettings: () => {
       cy.log('commonPages.detailsPage.administration_clusterSettings');
       cy.byLegacyTestID('horizontal-link-Configuration').click();
-      cy.wait(90000);
       cy.byLegacyTestID('item-filter').should('be.visible').type('Alertmanager')
       cy.byLegacyTestID('Alertmanager').should('be.visible').click();
       cy.byLegacyTestID('create-receiver').should('be.visible');

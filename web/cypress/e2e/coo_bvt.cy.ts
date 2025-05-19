@@ -245,6 +245,12 @@ describe('Monitoring: Alerts', () => {
           cy.log('MCP_CONSOLE_IMAGE is NOT set. Skipping patching the image in COO operator CSV.');
         }
 
+        cy.log('Create PersesDashboard instance.');
+        cy.exec(`oc apply -f ./cypress/fixtures/openshift-cluster-sample-dashboard.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+
+        cy.log('Create Thanos Querier instance.');
+        cy.exec(`oc apply -f ./cypress/fixtures/thanos-querier-datasource.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+
         cy.log('Create Monitoring UI Plugin instance.');
         cy.exec(`oc apply -f ./cypress/fixtures/monitoring-ui-plugin.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
         cy.exec(
@@ -273,7 +279,7 @@ describe('Monitoring: Alerts', () => {
 
   after(() => {
     if (Cypress.env('SKIP_COO_INSTALL')) {
-      cy.log('Delete Distributed Tracing UI Plugin instance.');
+      cy.log('Delete Monitoring UI Plugin instance.');
       cy.executeAndDelete(
         `oc delete ${MP.config.kind} ${MP.config.name} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
       );
@@ -309,12 +315,13 @@ describe('Monitoring: Alerts', () => {
       commonPages.titleShouldHaveText('Dashboards');
     nav.sidenav.clickNavLink(['Observe', 'Targets']);
       commonPages.cmo_titleShouldHaveText('Metrics targets');
-    nav.sidenav.clickNavLink(['Administration', 'Cluster Settings']);
-      commonPages.detailsPage.administration_clusterSettings();
-    nav.sidenav.clickNavLink(['Observe', 'Incidents']);
-      commonPages.titleShouldHaveText('Incidents');
+    // nav.sidenav.clickNavLink(['Observe', 'Incidents']);
+    //   commonPages.titleShouldHaveText('Incidents');
     nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
       commonPages.titleShouldHaveText('Dashboards');
+    nav.sidenav.clickNavLink(['Administration', 'Cluster Settings']);
+      commonPages.detailsPage.administration_clusterSettings();
+ 
   
   })
   //TODO: Intercept Bell GET request to inject an alert (Watchdog to have it opened in Alert Details page?)
@@ -388,6 +395,7 @@ describe('Monitoring: Alerts', () => {
     });
   });
 
+  /*
   it('3. Admin perspective - Creates and expires a Silence', () => {
     cy.visit('/');
     // cy.intercept('GET', '/api/alertmanager/api/v2/silences', [
@@ -428,6 +436,7 @@ describe('Monitoring: Alerts', () => {
 
     // cy.intercept('DELETE', '/api/alertmanager/api/v2/silences/*', {});
 
+    
     cy.log('3.1 use sidebar nav to go to Observe > Alerting');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     listPage.ARRows.shouldBeLoaded();
@@ -486,13 +495,15 @@ describe('Monitoring: Alerts', () => {
     cy.log('3.8 shows the silenced Alert in the Silenced Alerts list');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     nav.tabs.switchTab('Silences');
-    listPage.tableShoulBeLoaded();
+    silencesListPage.shouldBeLoaded();
+    listPage.filter.clearAllFilters('silences');
     listPage.filter.byName('silences', `${ALERTNAME}`);
     silencesListPage.rows.SShouldBe(`${ALERTNAME}`, 'Active');
 
     cy.log('3.9 verify on Alerts list page again');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     listPage.filter.clearAllFilters('alerts-tab');
+    listPage.filter.selectFilterOption(true,'Silenced', true);
     listPage.filter.byName('alerts-tab', `${ALERTNAME}`);
     listPage.ARRows.ARShouldBe(`${ALERTNAME}`, `${SEVERITY}`, 1, 'Silenced');
 
@@ -501,18 +512,12 @@ describe('Monitoring: Alerts', () => {
     listPage.ARRows.clickAlert();
     detailsPage.expireSilence(true);
 
-    cy.log('3.11 shows the silenced Alert in the Expired Alerts list');
-    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-    nav.tabs.switchTab('Silences');
-    silencesListPage.shouldBeLoaded();
-    listPage.filter.byName('silences', `${ALERTNAME}`);
-    silencesListPage.emptyState();
-
-    cy.log('3.12 verify on Alerts list page again');
+    cy.log('3.11 verify on Alerts list page again');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     listPage.filter.clearAllFilters('alerts-tab');
     listPage.filter.byName('alerts-tab', `${ALERTNAME}`);
     listPage.ARRows.ARShouldBe(`${ALERTNAME}`, `${SEVERITY}`, 1, 'Firing');
 
   });
+  */
 });

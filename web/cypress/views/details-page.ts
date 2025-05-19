@@ -25,50 +25,71 @@ export const detailsPage = {
   clickAlertRule: (alert: string) => {
     cy.log('detailsPage.clickAlertRule');
     cy.byTestID('alert-rules-detail-resource-link').scrollIntoView();
-    cy.byTestID('alert-rules-detail-resource-link').contains(alert).should('be.visible').click();
-    commonPages.detailsPage.alertRule;
+    try{
+      cy.byTestID('alert-rules-detail-resource-link').contains(alert).should('be.visible').click();
+      commonPages.detailsPage.alertRule;
+    } catch (error) {
+      cy.log(`${error.message}`);
+      throw error; 
+    }
     
   },
   clickAlertDesc: (desc: string) => {
     cy.log('detailsPage.clickAlertDesc');
     cy.byTestID('active-alerts').scrollIntoView();
-    cy.byTestID('active-alerts').contains(desc).should('be.visible').click();
+    try {
+      cy.byTestID('active-alerts').contains(desc).should('be.visible').click();
+    } catch (error) {
+      cy.log(`${error.message}`);
+      throw error; 
+    }
   },
 
   clickInspectAlertPage: () =>{
     cy.log('detailsPage.clickInspectAlertPage');
-    cy.get(`[aria-label="Inspect"]`).contains('Inspect').should('be.visible').click();
-
-  },
-
-  assertExpressionInMetrics: () => {
-    cy.log('detailsPage.assertExpressionInMetrics');
-    cy.byClass('cm-line').should('be.visible');
-    cy.byClass('cm-line').invoke('text').then((fullText) => {
-    });
+    try {
+      cy.get(`a[aria-label="Inspect"]` , { timeout: 10000 }).click();
+    } catch (error) {
+      cy.log(`${error.message}`);
+      throw error; 
+    }
   },
 
   clickOnSilencedBy: (alertname: string) => {
    cy.log('detailsPage.clickOnSilencedBy');
+   try {
     cy.byLegacyTestID('silence-resource-link')
-     .first()
-     .should('have.text', alertname)
-     .click();
-
+      .first()
+      .should('have.text', alertname)
+      .click();
+   } catch (error) {
+      cy.log(`${error.message}`);
+      throw error; 
+    }
+  
   },
   
   clickOnSilenceByKebab: () => {
     cy.log('detailsPage.clickOnSilenceByKebab');
-    cy.get('[aria-label="Kebab toggle"]').scrollIntoView();
-    cy.get('[aria-label="Kebab toggle"]').should('be.visible').click();
-
+    try {
+      cy.get('[aria-label="Kebab toggle"]').scrollIntoView();
+      cy.get('[aria-label="Kebab toggle"]').should('be.visible').click();
+    } catch (error) {
+      cy.log(`${error.message}`);
+      throw error; 
+    }
+  
   },
   
   editSilence:() => {
     cy.log('detailsPage.editSilence');
-    detailsPage.clickOnSilenceByKebab();
-    cy.byClass('pf-v6-c-menu__item-text').contains('Edit silence').should('be.visible').click();
-
+    try {
+      detailsPage.clickOnSilenceByKebab();
+      cy.byClass('pf-v6-c-menu__item-text').contains('Edit silence').should('be.visible').click();
+    } catch (error) {
+      cy.log(`${error.message}`);
+      throw error; 
+    }
   },
   /**
    * 
@@ -76,14 +97,19 @@ export const detailsPage = {
    */
   expireSilence:(yes: boolean) => {
     cy.log('detailsPage.expireSilence');
-    detailsPage.clickOnSilenceByKebab();
-    cy.byClass('pf-v6-c-menu__item-text').contains('Expire silence').should('be.visible').click();
-    if (yes) {
-      cy.byClass('pf-v6-c-button pf-m-primary pf-m-progress').should('be.visible').click();
-    } else {
-      cy.byClass('pf-v6-c-button pf-m-secondary').should('be.visible').click();
-    };
+    try {
+      detailsPage.clickOnSilenceByKebab();
+      cy.byClass('pf-v6-c-menu__item-text').contains('Expire silence').should('be.visible').click();
+      if (yes) {
+        cy.byClass('pf-v6-c-button pf-m-primary pf-m-progress').should('be.visible').click();
+      } else {
+        cy.byClass('pf-v6-c-button pf-m-secondary').should('be.visible').click();
+      };
+    } catch (error) {
+      cy.log(`${error.message}`);
+      throw error; 
+    }
+    
   }
-
 
 };

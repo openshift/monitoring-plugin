@@ -12,6 +12,31 @@ export const silencesListPage = {
       .should('be.visible');
   },
 
+  clickFilter:(toOpen: boolean)=>{
+      cy.log('silencesListPage.clickFilter');
+      if (toOpen){
+        cy.get('[class="pf-v6-c-menu-toggle"]', { timeout: 10000 }).eq(2).click().should('have.class', 'pf-v6-c-menu-toggle pf-m-expanded');
+      }else{
+        cy.get('[class="pf-v6-c-menu-toggle"]', { timeout: 10000 }).eq(2).click().should('not.have.class', 'pf-m-expanded');
+      }
+    },
+    /**
+     * 
+     * @param open true = open, false = nothing
+     * @param option 
+     * @returns 
+     */
+    selectFilterOption:(open: boolean, option: string, close: boolean)=> {
+      cy.log('silencesListPage.selectFilterOption');
+      if (open){
+        silencesListPage.clickFilter(open);
+      };
+      cy.byClass('co-filter-dropdown-item__name').contains(option).click();
+      if (close){
+        silencesListPage.clickFilter(false);
+      };
+    },
+
   rows: {
     shouldBeLoaded: () => {
       cy.log('silencesListPage.rows.shouldBeLoaded');

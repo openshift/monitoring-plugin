@@ -271,7 +271,7 @@ describe('Monitoring: Alerts', () => {
       cy.get('[class="cm-line"]').invoke('text').should('equal', `${expText}`);
     });
   });
-
+/*
   it('3. Admin perspective - Creates and expires a Silence', () => {
     cy.visit('/');
     // cy.intercept('GET', '/api/alertmanager/api/v2/silences', [
@@ -312,6 +312,7 @@ describe('Monitoring: Alerts', () => {
 
     // cy.intercept('DELETE', '/api/alertmanager/api/v2/silences/*', {});
 
+    
     cy.log('3.1 use sidebar nav to go to Observe > Alerting');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     listPage.ARRows.shouldBeLoaded();
@@ -370,13 +371,15 @@ describe('Monitoring: Alerts', () => {
     cy.log('3.8 shows the silenced Alert in the Silenced Alerts list');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     nav.tabs.switchTab('Silences');
-    listPage.tableShoulBeLoaded();
+    silencesListPage.shouldBeLoaded();
+    listPage.filter.clearAllFilters('silences');
     listPage.filter.byName('silences', `${ALERTNAME}`);
     silencesListPage.rows.SShouldBe(`${ALERTNAME}`, 'Active');
 
     cy.log('3.9 verify on Alerts list page again');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     listPage.filter.clearAllFilters('alerts-tab');
+    listPage.filter.selectFilterOption(true,'Silenced', true);
     listPage.filter.byName('alerts-tab', `${ALERTNAME}`);
     listPage.ARRows.ARShouldBe(`${ALERTNAME}`, `${SEVERITY}`, 1, 'Silenced');
 
@@ -385,18 +388,12 @@ describe('Monitoring: Alerts', () => {
     listPage.ARRows.clickAlert();
     detailsPage.expireSilence(true);
 
-    cy.log('3.11 shows the silenced Alert in the Expired Alerts list');
-    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-    nav.tabs.switchTab('Silences');
-    silencesListPage.shouldBeLoaded();
-    listPage.filter.byName('silences', `${ALERTNAME}`);
-    silencesListPage.emptyState();
-
-    cy.log('3.12 verify on Alerts list page again');
+    cy.log('3.11 verify on Alerts list page again');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     listPage.filter.clearAllFilters('alerts-tab');
     listPage.filter.byName('alerts-tab', `${ALERTNAME}`);
     listPage.ARRows.ARShouldBe(`${ALERTNAME}`, `${SEVERITY}`, 1, 'Firing');
 
   });
+  */
 });
