@@ -22,10 +22,16 @@ export const listPage = {
       cy.log('listPage.filter.byName');
       cy.get(`[id="${tab}-content"]`).find('[data-test="name-filter-input"]')
         .should('be.visible');
+      cy.wait(100);
       cy.get(`[id="${tab}-content"]`).find('[data-test="name-filter-input"]')
         .click()
         .type(name);
     },
+    /**
+     * 
+     * @param tab alerts-tab, silences, alerting-rules 
+     * @param label 
+     */
     byLabel: (tab: string, label: string) => {
       cy.log('listPage.filter.byLabel');
       cy.byTestID('dropdown-button').click();
@@ -34,13 +40,24 @@ export const listPage = {
       .should('be.visible')
       .type(label);
     },
-    clearAllFilters: (pos: number) => {
+    /**
+     * 
+     * @param tab alerts-tab, silences, alerting-rules 
+     */
+    clearAllFilters: (tab: string,) => {
       cy.log('listPage.clearAllFilters');
-        cy
-          .byClass('pf-v6-c-button__text')
-          .eq(pos)
-          .contains('Clear all filters')
-          .click();
+      cy.get(`[id="${tab}-content"]`).find('[class="pf-v6-c-button__text"]')
+        .contains('Clear all filters')
+        .should('be.visible');
+
+        cy.get(`[id="${tab}-content"]`).find('[class="pf-v6-c-button__text"]')
+        .contains('Clear all filters')
+        .click();
+        // cy
+        //   .byClass('pf-v6-c-button__text')
+        //   .eq(pos)
+        //   .contains('Clear all filters')
+        //   .click();
     }
   },
   ARRows: {
@@ -96,6 +113,18 @@ export const listPage = {
       cy.log('listPage.ARRows.silentAlert');
       listPage.ARRows.clickAlertKebab();
       cy.byClass('pf-v6-c-menu__item-text').contains('Silence alert').should('be.visible').click();
+
+    },
+    editAlert:() => {
+      cy.log('listPage.ARRows.silentAlert');
+      listPage.ARRows.clickAlertKebab();
+      cy.byClass('pf-v6-c-menu__item-text').contains('Edit alert').should('be.visible').click();
+
+    },
+    expireAlert:() => {
+      cy.log('listPage.ARRows.silentAlert');
+      listPage.ARRows.clickAlertKebab();
+      cy.byClass('pf-v6-c-menu__item-text').contains('Expire alert').should('be.visible').click();
 
     }
   },

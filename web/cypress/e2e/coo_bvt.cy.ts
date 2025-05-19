@@ -10,6 +10,7 @@ import { silencesListPage } from '../views/silences-list-page';
 //
 import { operatorHubPage } from '../views/operator-hub-page';
 import { Pages } from '../views/pages';
+
 // Set constants for the operators that need to be installed for tests.
 const MP = {
   namespace: 'openshift-cluster-observability-operator',
@@ -94,7 +95,7 @@ describe('Monitoring: Alerts', () => {
   //       oauthorigin,
   //     );
   //   });
-  beforeEach(() => {
+  before(() => {
     cy.intercept('GET', '/api/prometheus/api/v1/rules?', {
       data: {
         groups: [
@@ -176,11 +177,126 @@ describe('Monitoring: Alerts', () => {
           );
         });
 
+        if (Cypress.env('SKIP_COO_INSTALL')) {
+          cy.log('SKIP_COO_INSTALL is set. Skipping Cluster Observability Operator installation.');
+        } else if (Cypress.env('COO_UI_INSTALL')) {
+          cy.log('COO_UI_INSTALL is set. COO will be installed from redhat-operators catalog source');
+          cy.log('Install Cluster Observability Operator');
+          operatorHubPage.installOperator(MP.packageName, 'redhat-operators');
+          cy.get('.co-clusterserviceversion-install__heading', { timeout: 5 * 60 * 1000 }).should(
+            'include.text',
+            'ready for use',
+          );
+        } else if (Cypress.env('KONFLUX_COO_BUNDLE_IMAGE')) {
+          cy.log('KONFLUX_COO_BUNDLE_IMAGE is set. COO operator will be installed from Konflux bundle.');
+          cy.log('Install Cluster Observability Operator');
+          cy.exec(
+            `oc --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} apply -f ./cypress/fixtures/coo-imagecontentsourcepolicy.yaml` ,
+          );
+          cy.exec(
+            `oc create namespace ${MP.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+          );
+          cy.exec(
+            `oc label namespaces ${MP.namespace} openshift.io/cluster-monitoring=true --overwrite=true --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+          );
+          cy.exec(
+            `operator-sdk run bundle --timeout=10m --namespace ${MP.namespace} ${Cypress.env('KONFLUX_COO_BUNDLE_IMAGE')} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} --verbose `,
+            { timeout: 6 * 60 * 1000 },
+          );
+        } else if (Cypress.env('CUSTOM_COO_BUNDLE_IMAGE')) {
+          cy.log('CUSTOM_COO_BUNDLE_IMAGE is set. COO operator will be installed from custom built bundle.');
+          cy.log('Install Cluster Observability Operator');
+          cy.exec(
+            `oc --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} apply -f ./cypress/fixtures/coo-imagecontentsourcepolicy.yaml` ,
+          );
+          cy.exec(
+            `oc create namespace ${MP.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+          );
+          cy.exec(
+            `oc label namespaces ${MP.namespace} openshift.io/cluster-monitoring=true --overwrite=true --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+          );
+          cy.exec(
+            `operator-sdk run bundle --timeout=10m --namespace ${MP.namespace} ${Cypress.env('CUSTOM_COO_BUNDLE_IMAGE')} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} --verbose `,
+            { timeout: 6 * 60 * 1000 },
+          );
+        } else {
+          throw new Error('No CYPRESS env set for operator installation, check the README for more details.');
+        }
+
+        cy.log('Set Monitoring Console Plugin image in operator CSV');
+        if (Cypress.env('MCP_CONSOLE_IMAGE')) {
+          cy.log('MCP_CONSOLE_IMAGE is set. the image will be patched in COO operator CSV');
+          cy.exec(
+            './cypress/fixtures/update-plugin-image.sh',
+            {
+              env: {
+                MCP_CONSOLE_IMAGE: Cypress.env('MCP_CONSOLE_IMAGE'),
+                KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
+                MP_NAMESPACE: `${MP.namespace}`
+              },
+              timeout: 120000,
+              failOnNonZeroExit: true
+            }
+          ) .then((result) => {
+            expect(result.code).to.eq(0);
+            cy.log(`COO CSV updated successfully with Monitoring Console Plugin image: ${result.stdout}`);
+          });
+        } else {
+          cy.log('MCP_CONSOLE_IMAGE is NOT set. Skipping patching the image in COO operator CSV.');
+        }
+
+        cy.log('Create Monitoring UI Plugin instance.');
+        cy.exec(`oc apply -f ./cypress/fixtures/monitoring-ui-plugin.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+        cy.exec(
+          `sleep 15 && oc wait --for=condition=Ready pods --selector=app.kubernetes.io/instance=monitoring -n ${MP.namespace} --timeout=60s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+          {
+            timeout: 80000,
+            failOnNonZeroExit: true
+          }
+        ).then((result) => {
+          expect(result.code).to.eq(0);
+          cy.log(`Monitoring plugin pod is now running in namespace: ${MP.namespace}`);
+        });    
+        cy.get('.pf-v5-c-alert, .pf-v6-c-alert', { timeout: 120000 })
+        .contains('Web console update is available')
+        .then(($alert) => {
+          // If the alert is found, assert that it exists
+          expect($alert).to.exist;
+        }, () => {
+          // If the alert is not found within the timeout, visit and assert the /monitoring/v2/dashboards page
+          cy.visit('/monitoring/v2/dashboards');
+          cy.url().should('include', '/monitoring/v2/dashboards');
+        });
+
+
   });
 
-  // afterEach(() => {
-  //   checkErrors();
-  // });
+  after(() => {
+    if (Cypress.env('SKIP_COO_INSTALL')) {
+      cy.log('Delete Distributed Tracing UI Plugin instance.');
+      cy.executeAndDelete(
+        `oc delete ${MP.config.kind} ${MP.config.name} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+      );
+
+      cy.log('Remove cluster-admin role from user.');
+      cy.executeAndDelete(
+        `oc adm policy remove-cluster-role-from-user cluster-admin ${Cypress.env('LOGIN_USERNAME')} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+      );
+    } else {
+      cy.log('Delete Monitoring UI Plugin instance.');
+      cy.executeAndDelete(
+        `oc delete ${MP.config.kind} ${MP.config.name} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+      );
+
+      cy.log('Remove Cluster Observability Operator');
+      cy.executeAndDelete(`oc delete namespace ${MP.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+
+      cy.log('Remove cluster-admin role from user.');
+      cy.executeAndDelete(
+        `oc adm policy remove-cluster-role-from-user cluster-admin ${Cypress.env('LOGIN_USERNAME')} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+      );
+    }
+  });
 
   it('1. Admin perspective - Observe Menu', () => {
     cy.visit('/');
@@ -195,10 +311,10 @@ describe('Monitoring: Alerts', () => {
       commonPages.cmo_titleShouldHaveText('Metrics targets');
     nav.sidenav.clickNavLink(['Administration', 'Cluster Settings']);
       commonPages.detailsPage.administration_clusterSettings();
-    // nav.sidenav.clickNavLink(['Observe', 'Incidents']);
-    //   commonPages.titleShouldHaveText('Incidents');
-    // nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
-    //   commonPages.titleShouldHaveText('Dashboards');
+    nav.sidenav.clickNavLink(['Observe', 'Incidents']);
+      commonPages.titleShouldHaveText('Incidents');
+    nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
+      commonPages.titleShouldHaveText('Dashboards');
   
   })
   //TODO: Intercept Bell GET request to inject an alert (Watchdog to have it opened in Alert Details page?)

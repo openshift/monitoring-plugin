@@ -10,7 +10,11 @@ export const detailsPage = {
     cy.log('detailsPage.labelShouldExist');
     cy.byClass('pf-v6-c-label__text').contains(labelName);
   },
-    
+  
+  /**
+   * 
+   * @param action Silence alert, Reset button
+   */
   clickPageActionButton: (action: string) => {
     cy.log('detailsPage.clickPageActionButton');
     cy.byLegacyTestID('details-actions')
@@ -51,6 +55,34 @@ export const detailsPage = {
      .should('have.text', alertname)
      .click();
 
+  },
+  
+  clickOnSilenceByKebab: () => {
+    cy.log('detailsPage.clickOnSilenceByKebab');
+    cy.get('[aria-label="Kebab toggle"]').scrollIntoView();
+    cy.get('[aria-label="Kebab toggle"]').should('be.visible').click();
+
+  },
+  
+  editSilence:() => {
+    cy.log('detailsPage.editSilence');
+    detailsPage.clickOnSilenceByKebab();
+    cy.byClass('pf-v6-c-menu__item-text').contains('Edit silence').should('be.visible').click();
+
+  },
+  /**
+   * 
+   * @param yes boolean: true to expire and false to cancel
+   */
+  expireSilence:(yes: boolean) => {
+    cy.log('detailsPage.expireSilence');
+    detailsPage.clickOnSilenceByKebab();
+    cy.byClass('pf-v6-c-menu__item-text').contains('Expire silence').should('be.visible').click();
+    if (yes) {
+      cy.byClass('pf-v6-c-button pf-m-primary pf-m-progress').should('be.visible').click();
+    } else {
+      cy.byClass('pf-v6-c-button pf-m-secondary').should('be.visible').click();
+    };
   }
 
 

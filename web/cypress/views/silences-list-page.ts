@@ -1,5 +1,17 @@
 export const silencesListPage = {
 
+  shouldBeLoaded: () => {
+    cy.log('silencesListPage.shouldBeLoaded');
+    cy.byTestID('create-silence-btn')
+      .should('be.visible');
+
+  },
+  emptyState:() => {
+    cy.byTestID('empty-box-body')
+      .contains('No Silences found')
+      .should('be.visible');
+  },
+
   rows: {
     shouldBeLoaded: () => {
       cy.log('silencesListPage.rows.shouldBeLoaded');
@@ -38,6 +50,9 @@ export const silencesListPage = {
       cy.byClass('pf-v6-c-menu__item-text').contains('Edit silence').should('be.visible').click();
 
     },
+    /**
+     * * @param yes boolean: true to expire and false to cancel
+     */
     expireSilence:(yes: boolean) => {
       cy.log('silencesListPage.rows.expireSilence');
       silencesListPage.rows.clickAlertKebab();
