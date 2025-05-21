@@ -94,58 +94,8 @@ describe('Monitoring: Alerts', () => {
   //       Cypress.env('LOGIN_PASSWORD'),
   //       oauthorigin,
   //     );
-  //   });
+  //   });});
   before(() => {
-    cy.intercept('GET', '/api/prometheus/api/v1/rules?', {
-      data: {
-        groups: [
-          {
-            file: 'dummy-file',
-            interval: 30,
-            name: 'general.rules',
-            rules: [
-              {
-                state: 'firing',
-                name: `${ALERTNAME}`,
-                query: 'vector(1)',
-                duration: 0,
-                labels: {
-                  namespace: `${NAMESPACE}`,
-                  prometheus: 'openshift-monitoring/k8s',
-                  severity: `${SEVERITY}`,
-                },
-                annotations: {
-                  description:
-                    `${ALERT_DESC}`,
-                  summary:
-                    `${ALERT_SUMMARY}`,
-                },
-                alerts: [
-                  {
-                    labels: {
-                      alertname: `${ALERTNAME}`,
-                      namespace: `${NAMESPACE}`,
-                      severity: `${SEVERITY}`,
-                    },
-                    annotations: {
-                      description:
-                        `${ALERT_DESC}`,
-                      summary:
-                        `${ALERT_SUMMARY}`,
-                    },
-                    state: 'firing',
-                    activeAt: '2023-04-10T12:00:00.123456789Z',
-                    value: '1e+00',
-                  },
-                ],
-                health: 'ok',
-                type: 'alerting',
-              },
-            ],
-          },
-        ],
-      },
-    });
 
     cy.adminCLI(
           `oc adm policy add-cluster-role-to-user cluster-admin ${Cypress.env('LOGIN_USERNAME')}`,
@@ -274,6 +224,57 @@ describe('Monitoring: Alerts', () => {
           cy.url().should('include', '/monitoring/v2/dashboards');
         });
 
+         cy.intercept('GET', '/api/prometheus/api/v1/rules?', {
+      data: {
+        groups: [
+          {
+            file: 'dummy-file',
+            interval: 30,
+            name: 'general.rules',
+            rules: [
+              {
+                state: 'firing',
+                name: `${ALERTNAME}`,
+                query: 'vector(1)',
+                duration: 0,
+                labels: {
+                  namespace: `${NAMESPACE}`,
+                  prometheus: 'openshift-monitoring/k8s',
+                  severity: `${SEVERITY}`,
+                },
+                annotations: {
+                  description:
+                    `${ALERT_DESC}`,
+                  summary:
+                    `${ALERT_SUMMARY}`,
+                },
+                alerts: [
+                  {
+                    labels: {
+                      alertname: `${ALERTNAME}`,
+                      namespace: `${NAMESPACE}`,
+                      severity: `${SEVERITY}`,
+                    },
+                    annotations: {
+                      description:
+                        `${ALERT_DESC}`,
+                      summary:
+                        `${ALERT_SUMMARY}`,
+                    },
+                    state: 'firing',
+                    activeAt: '2023-04-10T12:00:00.123456789Z',
+                    value: '1e+00',
+                  },
+                ],
+                health: 'ok',
+                type: 'alerting',
+              },
+            ],
+          },
+        ],
+      },
+    });
+
 
   });
 
@@ -323,7 +324,7 @@ describe('Monitoring: Alerts', () => {
       commonPages.detailsPage.administration_clusterSettings();
  
   
-  })
+  });
   //TODO: Intercept Bell GET request to inject an alert (Watchdog to have it opened in Alert Details page?)
   // it('Admin perspective - Bell > Alert details > Alerting rule details > Metrics flow', () => {
   //   cy.visit('/');
@@ -395,7 +396,7 @@ describe('Monitoring: Alerts', () => {
     });
   });
 
-  /*
+  
   it('3. Admin perspective - Creates and expires a Silence', () => {
     cy.visit('/');
     // cy.intercept('GET', '/api/alertmanager/api/v2/silences', [
@@ -519,5 +520,5 @@ describe('Monitoring: Alerts', () => {
     listPage.ARRows.ARShouldBe(`${ALERTNAME}`, `${SEVERITY}`, 1, 'Firing');
 
   });
-  */
+  
 });

@@ -271,7 +271,7 @@ describe('Monitoring: Alerts', () => {
       cy.get('[class="cm-line"]').invoke('text').should('equal', `${expText}`);
     });
   });
-/*
+
   it('3. Admin perspective - Creates and expires a Silence', () => {
     cy.visit('/');
     // cy.intercept('GET', '/api/alertmanager/api/v2/silences', [
@@ -395,5 +395,5 @@ describe('Monitoring: Alerts', () => {
     listPage.ARRows.ARShouldBe(`${ALERTNAME}`, `${SEVERITY}`, 1, 'Firing');
 
   });
-  */
+  
 });
