@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="Mocha Tests" time="92.9620" tests="3" failures="1">
+  <testsuite name="Root Suite" timestamp="2025-05-16T21:00:37" tests="0" file="cypress/e2e/bvt.cy.ts" time="0.0000" failures="0">
+  </testsuite>
+  <testsuite name="Monitoring: Alerts" timestamp="2025-05-16T21:00:37" tests="3" time="92.9620" failures="1">
+    <testcase name="Monitoring: Alerts 1. Admin perspective - Observe Menu" time="72.4170" classname="1. Admin perspective - Observe Menu">
+    </testcase>
+    <testcase name="Monitoring: Alerts 2. Admin perspective - Alerting &gt; Alerting Details page &gt; Alerting Rule &gt; Metrics" time="20.5450" classname="2. Admin perspective - Alerting &gt; Alerting Details page &gt; Alerting Rule &gt; Metrics">
+    </testcase>
+    <testcase name="Monitoring: Alerts 3. Admin perspective - Creates and expires a Silence" time="0.0000" classname="3. Admin perspective - Creates and expires a Silence">
+      <failure message="Timed out retrying after 60000ms: Expected to find element: `[data-test-id=&quot;kebab-button&quot;]`, but never found it." type="AssertionError"><![CDATA[AssertionError: Timed out retrying after 60000ms: Expected to find element: `[data-test-id="kebab-button"]`, but never found it.
+    at Object.clickAlertKebab (webpack://monitoring-plugin/./cypress/views/silences-list-page.ts:33:40)
+    at Object.expireSilence (webpack://monitoring-plugin/./cypress/views/silences-list-page.ts:43:28)
+    at Context.eval (webpack://monitoring-plugin/./cypress/e2e/bvt.cy.ts:378:26)]]></failure>
+    </testcase>
+  </testsuite>
+</testsuites>

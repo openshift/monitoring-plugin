@@ -1,0 +1,150 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 3,
+    "passes": 2,
+    "pending": 0,
+    "failures": 1,
+    "start": "2025-05-16T21:00:37.912Z",
+    "end": "2025-05-16T21:03:49.402Z",
+    "duration": 191490,
+    "testsRegistered": 3,
+    "passPercent": 66.66666666666666,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "2aa85f66-1754-468d-b748-5bd5d5a5d3ca",
+      "title": "",
+      "fullFile": "cypress/e2e/bvt.cy.ts",
+      "file": "cypress/e2e/bvt.cy.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "2dfbb1ad-c59c-46c7-b479-c10b246804cc",
+          "title": "Monitoring: Alerts",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "1. Admin perspective - Observe Menu",
+              "fullTitle": "Monitoring: Alerts 1. Admin perspective - Observe Menu",
+              "timedOut": null,
+              "duration": 72417,
+              "state": "passed",
+              "speed": "slow",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// cy.visit('/');\ncy.log('Admin perspective - Observe Menu and verify all submenus');\nnav_1.nav.sidenav.clickNavLink(['Observe', 'Alerting']);\ncommon_1.commonPages.titleShouldHaveText('Alerting');\nnav_1.nav.sidenav.clickNavLink(['Observe', 'Metrics']);\ncommon_1.commonPages.titleShouldHaveText('Metrics');\nnav_1.nav.sidenav.clickNavLink(['Observe', 'Dashboards']);\ncommon_1.commonPages.titleShouldHaveText('Dashboards');\nnav_1.nav.sidenav.clickNavLink(['Observe', 'Targets']);\ncommon_1.commonPages.cmo_titleShouldHaveText('Metrics targets');\nnav_1.nav.sidenav.clickNavLink(['Administration', 'Cluster Settings']);\ncommon_1.commonPages.detailsPage.administration_clusterSettings();\n// nav.sidenav.clickNavLink(['Observe', 'Incidents']);\n//   commonPages.titleShouldHaveText('Incidents');\n// nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);\n//   commonPages.titleShouldHaveText('Dashboards');",
+              "err": {},
+              "uuid": "ecd2cb4c-db67-42a6-b67a-8d5024157748",
+              "parentUUID": "2dfbb1ad-c59c-46c7-b479-c10b246804cc",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "2. Admin perspective - Alerting > Alerting Details page > Alerting Rule > Metrics",
+              "fullTitle": "Monitoring: Alerts 2. Admin perspective - Alerting > Alerting Details page > Alerting Rule > Metrics",
+              "timedOut": null,
+              "duration": 20545,
+              "state": "passed",
+              "speed": "slow",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.visit('/');\ncy.log('2.1. use sidebar nav to go to Observe > Alerting');\nnav_1.nav.sidenav.clickNavLink(['Observe', 'Alerting']);\ncommon_1.commonPages.titleShouldHaveText('Alerting');\ncommon_1.commonPages.projectDropdownShouldNotExist();\nlist_page_1.listPage.tabShouldHaveText('Alerts');\nlist_page_1.listPage.tabShouldHaveText('Silences');\nlist_page_1.listPage.tabShouldHaveText('Alerting rules');\ncommon_1.commonPages.linkShouldExist('Export as CSV');\ncommon_1.commonPages.linkShouldExist('Clear all filters');\nlist_page_1.listPage.ARRows.shouldBeLoaded();\ncy.log('2.2. filter Alerts and click on Alert');\nlist_page_1.listPage.filter.byName('alerts-tab', \"\".concat(ALERTNAME));\nlist_page_1.listPage.ARRows.countShouldBe(1);\nlist_page_1.listPage.ARRows.ARShouldBe(\"\".concat(ALERTNAME), \"\".concat(SEVERITY), 1, 'Firing');\nlist_page_1.listPage.ARRows.expandRow();\nlist_page_1.listPage.ARRows.AShouldBe(\"\".concat(ALERTNAME), \"\".concat(SEVERITY), \"\".concat(NAMESPACE));\nlist_page_1.listPage.ARRows.clickAlert();\ncy.log('2.3. click on Alert Details Page');\ncommon_1.commonPages.titleShouldHaveText(\"\".concat(ALERTNAME));\ncommon_1.commonPages.detailsPage.common(\"\".concat(ALERTNAME), \"\".concat(SEVERITY));\ncommon_1.commonPages.detailsPage.alert(\"\".concat(ALERTNAME));\nvar timeIntervalValue = getValFromElement(\"[data-ouia-component-id^=\\\"OUIA-Generated-TextInputBase\\\"]\");\ntimeIntervalValue.then(function (value) {\n    expect(value).to.not.be.empty;\n});\ncy.log('2.4. click on Alert Rule link');\ndetails_page_1.detailsPage.clickAlertRule(\"\".concat(ALERTNAME));\ncommon_1.commonPages.titleShouldHaveText(\"\".concat(ALERTNAME));\ncommon_1.commonPages.detailsPage.alertRule;\ncommon_1.commonPages.detailsPage.common(\"\".concat(ALERTNAME), \"\".concat(SEVERITY));\ncy.get(\"[class=\\\"pf-v6-c-code-block__content\\\"]\").invoke('text').then(function (expText) {\n    cy.log(\"\".concat(expText));\n    cy.wrap(expText).as('alertExpression');\n});\ncy.log('2.5. click on Alert Details Page');\ndetails_page_1.detailsPage.clickAlertDesc(\"\".concat(ALERT_DESC));\ncommon_1.commonPages.titleShouldHaveText(\"\".concat(ALERTNAME));\ncommon_1.commonPages.detailsPage.common(\"\".concat(ALERTNAME), \"\".concat(SEVERITY));\ncommon_1.commonPages.detailsPage.alert(\"\".concat(ALERTNAME));\ncy.log('2.6. click on Inspect on Alert Details Page');\ndetails_page_1.detailsPage.clickInspectAlertPage();\ncy.log('2.7. Metrics page is loaded');\ncommon_1.commonPages.titleShouldHaveText('Metrics');\ncy.log('2.8. Assert Expression');\ncy.get('[class=\"cm-line\"]').should('be.visible');\ncy.get(\"@alertExpression\").then(function (expText) {\n    cy.log(\"\".concat(expText));\n    cy.get('[class=\"cm-line\"]').invoke('text').should('equal', \"\".concat(expText));\n});",
+              "err": {},
+              "uuid": "2a2b0824-bc7f-47b3-b376-42436f73014e",
+              "parentUUID": "2dfbb1ad-c59c-46c7-b479-c10b246804cc",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "3. Admin perspective - Creates and expires a Silence",
+              "fullTitle": "Monitoring: Alerts 3. Admin perspective - Creates and expires a Silence",
+              "timedOut": null,
+              "duration": 97934,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.visit('/');\n// cy.intercept('GET', '/api/alertmanager/api/v2/silences', [\n//   {\n//     id: SILENCE_ID,\n//     status: {\n//       state: 'active',\n//     },\n//     updatedAt: '2023-04-10T12:00:00.123Z',\n//     comment: SILENCE_COMMENT,\n//     createdBy: 'kube:admin',\n//     endsAt: '2023-04-10T14:00:00.123Z',\n//     matchers: [\n//       {\n//         isEqual: true,\n//         isRegex: false,\n//         name: 'alertname',\n//         value: `${ALERTNAME}`,\n//       },\n//       {\n//         isEqual: true,\n//         isRegex: false,\n//         name: 'namespace',\n//         value: `${NAMESPACE}`,\n//       },\n//       {\n//         isEqual: true,\n//         isRegex: false,\n//         name: 'severity',\n//         value: `${SEVERITY}`,\n//       },\n//     ],\n//     startsAt: '2023-04-10T12:00:00.123Z',\n//   },\n// ]).as('getSilences');\n// cy.intercept('POST', '/api/alertmanager/api/v2/silences', { silenceID: SILENCE_ID });\n// cy.intercept('DELETE', '/api/alertmanager/api/v2/silences/*', {});\ncy.log('3.1 use sidebar nav to go to Observe > Alerting');\nnav_1.nav.sidenav.clickNavLink(['Observe', 'Alerting']);\nlist_page_1.listPage.ARRows.shouldBeLoaded();\ncy.log('3.2 filter to Watchdog alert');\nlist_page_1.listPage.filter.byName('alerts-tab', \"\".concat(ALERTNAME));\nlist_page_1.listPage.ARRows.countShouldBe(1);\ncy.log('3.3 silence alert');\nlist_page_1.listPage.ARRows.expandRow();\nlist_page_1.listPage.ARRows.silenceAlert();\ncy.log('3.4 silence alert page');\ncommon_1.commonPages.titleShouldHaveText('Silence alert');\n// Launches create silence form\nsilence_alert_page_1.silenceAlertPage.alertLabelsSectionDefault();\nsilence_alert_page_1.silenceAlertPage.durationSectionDefault();\nsilence_alert_page_1.silenceAlertPage.alertLabelsSectionDefault();\nsilence_alert_page_1.silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('alertname', \"\".concat(ALERTNAME), false, false);\nsilence_alert_page_1.silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('severity', \"\".concat(SEVERITY).toLowerCase(), false, false);\nsilence_alert_page_1.silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('namespace', \"\".concat(NAMESPACE), false, false);\nsilence_alert_page_1.silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('prometheus', 'openshift-monitoring/k8s', false, false);\n// Change duration\nsilence_alert_page_1.silenceAlertPage.setForAndStartImmediately('1h', true);\n// Change to not start now\nsilence_alert_page_1.silenceAlertPage.setForAndStartImmediately('2h', false);\n// Invalid start time\nsilence_alert_page_1.silenceAlertPage.setSilenceFrom('abc');\ncy.byTestID('silence-until').should('have.value', '-');\n// Change to back to start now\nsilence_alert_page_1.silenceAlertPage.setForAndStartImmediately('1h', true);\n// Change duration back again\nsilence_alert_page_1.silenceAlertPage.setForAndStartImmediately('2h', true);\n// Add comment and submit\nsilence_alert_page_1.silenceAlertPage.addComment(SILENCE_COMMENT);\nsilence_alert_page_1.silenceAlertPage.clickSubmit();\n// After creating the Silence, should be redirected to its details page\ncy.log('3.5 Assert Silence details page');\nsilence_details_page_1.silenceDetailsPage.assertSilenceDetailsPage(\"\".concat(ALERTNAME), 'Silence details', 'alertname=Watchdog');\ncy.log('3.6 Click on Firing alerts');\nsilence_details_page_1.silenceDetailsPage.clickOnFiringAlerts(\"\".concat(ALERTNAME));\ncommon_1.commonPages.titleShouldHaveText(\"\".concat(ALERTNAME));\ndetails_page_1.detailsPage.sectionHeaderShouldExist('Alert details');\ndetails_page_1.detailsPage.labelShouldExist('alertname=Watchdog');\ncy.log('3.7 Click on Silenced by');\ndetails_page_1.detailsPage.clickOnSilencedBy(\"\".concat(ALERTNAME));\ncommon_1.commonPages.titleShouldHaveText(\"\".concat(ALERTNAME));\ndetails_page_1.detailsPage.sectionHeaderShouldExist('Silence details');\ndetails_page_1.detailsPage.labelShouldExist('alertname=Watchdog');\ncy.log('3.8 shows the silenced Alert in the Silenced Alerts list');\nnav_1.nav.sidenav.clickNavLink(['Observe', 'Alerting']);\nnav_1.nav.tabs.switchTab('Silences');\nlist_page_1.listPage.tableShoulBeLoaded();\nlist_page_1.listPage.filter.byName('silences', \"\".concat(ALERTNAME));\nsilences_list_page_1.silencesListPage.rows.SShouldBe(\"\".concat(ALERTNAME), 'Active');\ncy.log('3.9 expires the Silence');\nsilences_list_page_1.silencesListPage.rows.expireSilence(true);\n// cy.log('3.9 shows the silenced Alert in the Alerts list');\n// nav.sidenav.clickNavLink(['Observe', 'Alerting']);\n// listPage.filter.clearAllFilters(0);\n// listPage.filter.byName('alerts-tab',`${ALERTNAME}` );\n// listPage.ARRows.ARShouldBe(`${ALERTNAME}`,`${SEVERITY}`,1, 'Silenced');\n//cy.byTestID('silence-actions-toggle').click();\n//cy.byTestID('silence-actions').should('contain', 'Expire silence');\n//cy.byTestID('silence-actions')\n//  .contains('Expire silence')\n//  .click();\n//cy.get('button.pf-v5-m-primary').click();\n//cy.get('.pf-v5-c-alert').should('not.exist');\n// Wait for expired silence icon to exist\n//cy.byLegacyTestID('ban-icon').should('exist');",
+              "err": {
+                "message": "AssertionError: Timed out retrying after 60000ms: Expected to find element: `[data-test-id=\"kebab-button\"]`, but never found it.",
+                "estack": "AssertionError: Timed out retrying after 60000ms: Expected to find element: `[data-test-id=\"kebab-button\"]`, but never found it.\n    at Object.clickAlertKebab (webpack://monitoring-plugin/./cypress/views/silences-list-page.ts:33:40)\n    at Object.expireSilence (webpack://monitoring-plugin/./cypress/views/silences-list-page.ts:43:28)\n    at Context.eval (webpack://monitoring-plugin/./cypress/e2e/bvt.cy.ts:378:26)",
+                "diff": null
+              },
+              "uuid": "4451ea7f-8634-46e5-a440-21b6cfe8a77c",
+              "parentUUID": "2dfbb1ad-c59c-46c7-b479-c10b246804cc",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [
+            "ecd2cb4c-db67-42a6-b67a-8d5024157748",
+            "2a2b0824-bc7f-47b3-b376-42436f73014e"
+          ],
+          "failures": [
+            "4451ea7f-8634-46e5-a440-21b6cfe8a77c"
+          ],
+          "pending": [],
+          "skipped": [],
+          "duration": 190896,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "cypress_report",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "./screenshots/",
+        "reportFilename": "cypress_report",
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}
