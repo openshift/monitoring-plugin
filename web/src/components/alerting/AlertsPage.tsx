@@ -13,13 +13,14 @@ import {
   SilencesNotLoadedWarning,
 } from './AlertUtils';
 import {
+  Alert,
   AlertSeverity,
   AlertStates,
   ListPageFilter,
   RowFilter,
   useListPageFilter,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { fuzzyCaseInsensitive } from '../utils';
+import { alertState, fuzzyCaseInsensitive } from '../utils';
 import { Table, TableGridBreakpoint, Th, Thead, Tr } from '@patternfly/react-table';
 import { Helmet } from 'react-helmet';
 import { MonitoringState } from '../../reducers/observe';
@@ -35,7 +36,7 @@ import useAggregateAlertColumns from './AlertList/hooks/useAggregateAlertColumns
 import useSelectedFilters from './useSelectedFilters';
 
 import './alert-table.scss';
-import { PageSection, PageSectionVariants } from '@patternfly/react-core';
+import { PageSection, PageSectionVariants } from '@patternfly/react-core/dist/esm';
 
 const AlertsPage_: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
