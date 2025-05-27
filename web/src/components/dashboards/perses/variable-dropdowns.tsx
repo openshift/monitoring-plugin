@@ -19,6 +19,7 @@ import {
   useVariableDefinitions,
 } from '@perses-dev/dashboards';
 import { useListVariablePluginValues, VariableOption } from '@perses-dev/plugin-system';
+import ErrorBoundary from '../../console/console-shared/error/error-boundary';
 
 /**
  * This file is approximately the equal of `perses/ui/dashboards/src/components/Variables/Variable`
@@ -101,9 +102,15 @@ function ListVariable({ name, id }: VariableDropdownProps) {
   const items: {
     value: string;
     children: string;
-  }[] = _.map<VariableOption>(viewOptions, (option: VariableOption) => ({
-    value: option.label,
-    children: option.label,
+  }[] = _.map<
+    VariableOption,
+    {
+      value: string;
+      children: string;
+    }
+  >(viewOptions, (option: VariableOption) => ({
+    value: option?.label,
+    children: option?.label,
   }));
 
   const title = definition?.spec.display?.name ?? name;
@@ -147,12 +154,19 @@ export const AllVariableDropdowns: React.FC = () => {
 export function VariableComponent({ name }: VariableProps) {
   const ctx = useVariableDefinitionAndState(name);
   const kind = ctx.definition?.kind;
+
+  let variableComponent = null;
+
   switch (kind) {
     // Openshift doesn't support this, so ignore for now
     // case 'TextVariable':
     // return <TextVariable name={name} source={source} />;
     case 'ListVariable':
-      return <ListVariable id={name} name={name} />;
+      variableComponent = <ListVariable id={name} name={name} />;
+  }
+
+  if (variableComponent) {
+    return <ErrorBoundary>{variableComponent}</ErrorBoundary>;
   }
 
   return <div>Unsupported Variable Kind: ${kind}</div>;
