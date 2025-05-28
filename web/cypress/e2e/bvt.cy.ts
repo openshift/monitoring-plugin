@@ -10,6 +10,9 @@ import { silencesListPage } from '../views/silences-list-page';
 //
 import { operatorHubPage } from '../views/operator-hub-page';
 import { Pages } from '../views/pages';
+import { overviewPage } from '../views/overview-page';
+import common = require('mocha/lib/interfaces/common');
+import { topology } from '../views/topology';
 // Set constants for the operators that need to be installed for tests.
 const MP = {
   namespace: 'openshift-cluster-observability-operator',
@@ -394,6 +397,27 @@ describe('Monitoring: Alerts', () => {
     listPage.filter.byName('alerts-tab', `${ALERTNAME}`);
     listPage.ARRows.ARShouldBe(`${ALERTNAME}`, `${SEVERITY}`, 1, 'Firing');
 
+  });
+
+  it('4. Admin perspective - Overview Page > Status - View alerts', () => {
+    cy.visit('/');
+    nav.sidenav.clickNavLink(['Home', 'Overview']);
+    overviewPage.clickStatusViewAlerts();
+    commonPages.titleShouldHaveText('Alerting');
+  });
+
+  it('5. Admin perspective - Overview Page > Status - View details', () => {
+    cy.visit('/');
+    nav.sidenav.clickNavLink(['Home', 'Overview']);
+    overviewPage.clickStatusViewDetails(0);
+    detailsPage.sectionHeaderShouldExist('Alert details');
+  });
+
+  it('6. Admin perspective - Cluster Utilization - Metrics', () => {
+    cy.visit('/');
+    nav.sidenav.clickNavLink(['Home', 'Overview']);
+    overviewPage.clickClusterUtilizationViewCPU();
+    commonPages.titleShouldHaveText('Metrics');
   });
   
 });
