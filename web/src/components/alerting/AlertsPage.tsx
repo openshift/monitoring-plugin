@@ -1,42 +1,37 @@
-import * as React from 'react';
-import { useTranslation } from 'react-i18next';
-import { getLegacyObserveState, usePerspective } from '../hooks/usePerspective';
-import { Alerts, AlertSource } from '../types';
-import { useSelector } from 'react-redux';
-
-import * as _ from 'lodash-es';
-import {
-  alertCluster,
-  alertingRuleSource,
-  alertSource,
-  getAdditionalSources,
-  SilencesNotLoadedWarning,
-} from './AlertUtils';
 import {
   Alert,
-  AlertSeverity,
   AlertStates,
   ListPageFilter,
   RowFilter,
   useListPageFilter,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { alertState, fuzzyCaseInsensitive } from '../utils';
 import { Table, TableGridBreakpoint, Th, Thead, Tr } from '@patternfly/react-table';
+import * as _ from 'lodash-es';
+import * as React from 'react';
 import { Helmet } from 'react-helmet';
+import { useTranslation } from 'react-i18next';
+import { useSelector } from 'react-redux';
 import { MonitoringState } from '../../reducers/observe';
-import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
+import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
 import { LoadingBox } from '../console/console-shared/src/components/loading/LoadingBox';
-import { AggregatedAlert, getAggregateAlertsLists } from './AlertsAggregates';
-
-import './alert-table.scss';
-import Error from './Error';
+import { getLegacyObserveState, usePerspective } from '../hooks/usePerspective';
+import { Alerts, AlertSource } from '../types';
+import { alertState, fuzzyCaseInsensitive } from '../utils';
 import AggregateAlertTableRow from './AlertList/AggregateAlertTableRow';
 import useAggregateAlertColumns from './AlertList/hooks/useAggregateAlertColumns';
+import { getAggregateAlertsLists } from './AlertsAggregates';
+import {
+  alertCluster,
+  alertSource,
+  getAdditionalSources,
+  severityRowFilter,
+  SilencesNotLoadedWarning,
+} from './AlertUtils';
+import Error from './Error';
 import useSelectedFilters from './useSelectedFilters';
-
-import './alert-table.scss';
 import { PageSection, PageSectionVariants } from '@patternfly/react-core/dist/esm';
+import DownloadCSVButton from './AlertList/DownloadCSVButton';
 
 const AlertsPage_: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -53,8 +48,6 @@ const AlertsPage_: React.FC = () => {
     (state: MonitoringState) =>
       getLegacyObserveState(perspective, state)?.get(silencesKey)?.loadError,
   );
-
-  const aggregatedAlertsList = getAggregateAlertsLists(data);
 
   const alertAdditionalSources = React.useMemo(
     () => getAdditionalSources(data, alertSource),
@@ -78,8 +71,8 @@ const AlertsPage_: React.FC = () => {
     // TODO: The "name" filter doesn't really fit useListPageFilter's idea of a RowFilter, but
     //       useListPageFilter doesn't yet provide a better way to add a filter like this
     {
-      filter: (filter, alert: AggregatedAlert) =>
-        fuzzyCaseInsensitive(filter.selected?.[0], alert.name),
+      filter: (filter, alert: Alert) =>
+        fuzzyCaseInsensitive(filter.selected?.[0], alert.labels?.alertname),
       filterGroupName: '',
       items: [],
       type: 'name',
@@ -96,24 +89,10 @@ const AlertsPage_: React.FC = () => {
         { id: AlertStates.Pending, title: t('Pending') },
         { id: AlertStates.Silenced, title: t('Silenced') },
       ],
-      isMatch: (aggregatedAlert: AggregatedAlert, id: AlertStates) =>
-        aggregatedAlert.states.has(id),
+      reducer: alertState,
       type: 'alert-state',
     },
-    {
-      defaultSelected: [AlertStates.Firing],
-      filter: (filter, aggregatedAlert: AggregatedAlert) =>
-        _.isEmpty(filter.selected) || filter.selected?.includes(aggregatedAlert?.severity),
-      filterGroupName: t('Severity'),
-      items: [
-        { id: AlertSeverity.Critical, title: t('Critical') },
-        { id: AlertSeverity.Warning, title: t('Warning') },
-        { id: AlertSeverity.Info, title: t('Info') },
-        { id: AlertSeverity.None, title: t('None') },
-      ],
-      reducer: (aggregatedAlert: AggregatedAlert) => aggregatedAlert.severity,
-      type: 'alert-severity',
-    },
+    severityRowFilter(t),
     {
       defaultSelected: defaultAlertTenant,
       filter: (filter, alert: Alert) =>
@@ -126,8 +105,7 @@ const AlertsPage_: React.FC = () => {
         { id: AlertSource.User, title: t('User') },
         ...alertAdditionalSources,
       ],
-      isMatch: (aggregatedAlert: AggregatedAlert, id: AlertSource) =>
-        aggregatedAlert.alerts.some((alert) => id === alertingRuleSource(alert.rule)),
+      reducer: alertSource,
       type: 'alert-source',
     },
   ];
@@ -156,13 +134,12 @@ const AlertsPage_: React.FC = () => {
     } as RowFilter);
   }
 
-  const [staticData, filteredData, onFilterChange] = useListPageFilter(
-    aggregatedAlertsList,
-    rowFilters,
-  );
+  const [staticData, filteredData, onFilterChange] = useListPageFilter(data, rowFilters);
 
   const columns = useAggregateAlertColumns();
   const selectedFilters = useSelectedFilters();
+
+  const filteredAggregatedAlerts = getAggregateAlertsLists(filteredData);
 
   return (
     <>
@@ -178,9 +155,12 @@ const AlertsPage_: React.FC = () => {
           onFilterChange={onFilterChange}
           rowFilters={rowFilters}
         />
+        {loaded && filteredAggregatedAlerts?.length > 0 && (
+          <DownloadCSVButton loaded={loaded} filteredData={filteredAggregatedAlerts} />
+        )}
         {silencesLoadError && <SilencesNotLoadedWarning silencesLoadError={silencesLoadError} />}
 
-        {filteredData?.length > 0 && loaded && (
+        {filteredAggregatedAlerts?.length > 0 && loaded && (
           <Table gridBreakPoint={TableGridBreakpoint.none} role="presentation">
             <Thead>
               <Tr>
@@ -191,7 +171,7 @@ const AlertsPage_: React.FC = () => {
                 ))}
               </Tr>
             </Thead>
-            {filteredData.map((aggregatedAlert, index) => (
+            {filteredAggregatedAlerts.map((aggregatedAlert, index) => (
               <AggregateAlertTableRow
                 key={aggregatedAlert.name}
                 aggregatedAlert={aggregatedAlert}
@@ -202,7 +182,9 @@ const AlertsPage_: React.FC = () => {
         )}
 
         {loadError && <Error error={loadError} />}
-        {loaded && filteredData?.length === 0 && !loadError && <EmptyBox label={t('Alerts')} />}
+        {loaded && filteredAggregatedAlerts?.length === 0 && !loadError && (
+          <EmptyBox label={t('Alerts')} />
+        )}
         {!loaded && <LoadingBox />}
       </PageSection>
     </>
