@@ -12,7 +12,6 @@ import { operatorHubPage } from '../views/operator-hub-page';
 import { Pages } from '../views/pages';
 import { overviewPage } from '../views/overview-page';
 import common = require('mocha/lib/interfaces/common');
-import { topology } from '../views/topology';
 // Set constants for the operators that need to be installed for tests.
 const MP = {
   namespace: 'openshift-monitoring',
@@ -116,7 +115,7 @@ describe('Monitoring: Alerts', () => {
     });
   } else {
     cy.log('MP_IMAGE is NOT set. Skipping patching the image in CMO operator CSV.');
-  }});
+  }
 
   cy.intercept('GET', '/api/prometheus/api/v1/rules?', {
       data: {
@@ -167,6 +166,7 @@ describe('Monitoring: Alerts', () => {
           },
         ],
       },
+    });
     });
   
   
