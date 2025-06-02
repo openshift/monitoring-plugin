@@ -12,7 +12,7 @@ import { operatorHubPage } from '../views/operator-hub-page';
 import { Pages } from '../views/pages';
 
 // Set constants for the operators that need to be installed for tests.
-const MP = {
+const MCP = {
   namespace: 'openshift-cluster-observability-operator',
   packageName: 'cluster-observability-operator',
   operatorName: 'Cluster Observability Operator',
@@ -132,7 +132,7 @@ describe('Monitoring: Alerts', () => {
         } else if (Cypress.env('COO_UI_INSTALL')) {
           cy.log('COO_UI_INSTALL is set. COO will be installed from redhat-operators catalog source');
           cy.log('Install Cluster Observability Operator');
-          operatorHubPage.installOperator(MP.packageName, 'redhat-operators');
+          operatorHubPage.installOperator(MCP.packageName, 'redhat-operators');
           cy.get('.co-clusterserviceversion-install__heading', { timeout: 5 * 60 * 1000 }).should(
             'include.text',
             'ready for use',
@@ -141,48 +141,70 @@ describe('Monitoring: Alerts', () => {
           cy.log('KONFLUX_COO_BUNDLE_IMAGE is set. COO operator will be installed from Konflux bundle.');
           cy.log('Install Cluster Observability Operator');
           cy.exec(
-            `oc --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} apply -f ./cypress/fixtures/coo-imagecontentsourcepolicy.yaml` ,
+            `oc --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} apply -f ./cypress/fixtures/coo/coo-imagecontentsourcepolicy.yaml` ,
           );
           cy.exec(
-            `oc create namespace ${MP.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+            `oc create namespace ${MCP.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
           );
           cy.exec(
-            `oc label namespaces ${MP.namespace} openshift.io/cluster-monitoring=true --overwrite=true --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+            `oc label namespaces ${MCP.namespace} openshift.io/cluster-monitoring=true --overwrite=true --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
           );
           cy.exec(
-            `operator-sdk run bundle --timeout=10m --namespace ${MP.namespace} ${Cypress.env('KONFLUX_COO_BUNDLE_IMAGE')} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} --verbose `,
+            `operator-sdk run bundle --timeout=10m --namespace ${MCP.namespace} ${Cypress.env('KONFLUX_COO_BUNDLE_IMAGE')} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} --verbose `,
             { timeout: 6 * 60 * 1000 },
           );
         } else if (Cypress.env('CUSTOM_COO_BUNDLE_IMAGE')) {
           cy.log('CUSTOM_COO_BUNDLE_IMAGE is set. COO operator will be installed from custom built bundle.');
           cy.log('Install Cluster Observability Operator');
           cy.exec(
-            `oc --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} apply -f ./cypress/fixtures/coo-imagecontentsourcepolicy.yaml` ,
+            `oc --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} apply -f ./cypress/fixtures/coo/coo-imagecontentsourcepolicy.yaml` ,
           );
           cy.exec(
-            `oc create namespace ${MP.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+            `oc create namespace ${MCP.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
           );
           cy.exec(
-            `oc label namespaces ${MP.namespace} openshift.io/cluster-monitoring=true --overwrite=true --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+            `oc label namespaces ${MCP.namespace} openshift.io/cluster-monitoring=true --overwrite=true --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
           );
           cy.exec(
-            `operator-sdk run bundle --timeout=10m --namespace ${MP.namespace} ${Cypress.env('CUSTOM_COO_BUNDLE_IMAGE')} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} --verbose `,
+            `operator-sdk run bundle --timeout=10m --namespace ${MCP.namespace} ${Cypress.env('CUSTOM_COO_BUNDLE_IMAGE')} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} --verbose `,
             { timeout: 6 * 60 * 1000 },
           );
+         } else if (Cypress.env('FBC_STAGE_COO_IMAGE')) {
+          cy.log('FBC_COO_IMAGE is set. COO operator will be installed from FBC image.');
+          cy.log('Install Cluster Observability Operator');
+          cy.exec(
+            `oc --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} apply -f ./cypress/fixtures/coo/coo-imagecontentsourcepolicy.yaml` ,
+          );
+           cy.exec(
+            './cypress/fixtures/coo/coo_stage.sh',
+            {
+              env: {
+                FBC_STAGE_COO_IMAGE: Cypress.env('FBC_STAGE_COO_IMAGE'),
+                KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
+              },
+              timeout: 6 * 60 * 1000
+            }
+          );
+  
         } else {
           throw new Error('No CYPRESS env set for operator installation, check the README for more details.');
         }
+
+        cy.log('Check Cluster Observability Operator status');
+        nav.sidenav.clickNavLink(['Operators', 'Installed Operators']);
+        cy.byTestID('name-filter-input').should('be.visible').type('Cluster Observability{enter}');
+        cy.get('[data-test="status-text"]', { timeout: 100000 }).eq(0).should('contain.text', 'Succeeded');
 
         cy.log('Set Monitoring Console Plugin image in operator CSV');
         if (Cypress.env('MCP_CONSOLE_IMAGE')) {
           cy.log('MCP_CONSOLE_IMAGE is set. the image will be patched in COO operator CSV');
           cy.exec(
-            './cypress/fixtures/update-plugin-image.sh',
+            './cypress/fixtures/coo/update-mcp-image.sh',
             {
               env: {
                 MCP_CONSOLE_IMAGE: Cypress.env('MCP_CONSOLE_IMAGE'),
                 KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
-                MP_NAMESPACE: `${MP.namespace}`
+                MCP_NAMESPACE: `${MCP.namespace}`
               },
               timeout: 120000,
               failOnNonZeroExit: true
@@ -196,22 +218,22 @@ describe('Monitoring: Alerts', () => {
         }
 
         cy.log('Create PersesDashboard instance.');
-        cy.exec(`oc apply -f ./cypress/fixtures/openshift-cluster-sample-dashboard.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+        cy.exec(`oc apply -f ./cypress/fixtures/coo/openshift-cluster-sample-dashboard.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
         cy.log('Create Thanos Querier instance.');
-        cy.exec(`oc apply -f ./cypress/fixtures/thanos-querier-datasource.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+        cy.exec(`oc apply -f ./cypress/fixtures/coo/thanos-querier-datasource.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
         cy.log('Create Monitoring UI Plugin instance.');
-        cy.exec(`oc apply -f ./cypress/fixtures/monitoring-ui-plugin.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+        cy.exec(`oc apply -f ./cypress/fixtures/coo/monitoring-ui-plugin.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
         cy.exec(
-          `sleep 15 && oc wait --for=condition=Ready pods --selector=app.kubernetes.io/instance=monitoring -n ${MP.namespace} --timeout=60s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+          `sleep 15 && oc wait --for=condition=Ready pods --selector=app.kubernetes.io/instance=monitoring -n ${MCP.namespace} --timeout=60s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
           {
             timeout: 80000,
             failOnNonZeroExit: true
           }
         ).then((result) => {
           expect(result.code).to.eq(0);
-          cy.log(`Monitoring plugin pod is now running in namespace: ${MP.namespace}`);
+          cy.log(`Monitoring plugin pod is now running in namespace: ${MCP.namespace}`);
         });    
         cy.get('.pf-v5-c-alert, .pf-v6-c-alert', { timeout: 120000 })
         .contains('Web console update is available')
@@ -282,7 +304,7 @@ describe('Monitoring: Alerts', () => {
     if (Cypress.env('SKIP_COO_INSTALL')) {
       cy.log('Delete Monitoring UI Plugin instance.');
       cy.executeAndDelete(
-        `oc delete ${MP.config.kind} ${MP.config.name} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+        `oc delete ${MCP.config.kind} ${MCP.config.name} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
       );
 
       cy.log('Remove cluster-admin role from user.');
@@ -292,16 +314,27 @@ describe('Monitoring: Alerts', () => {
     } else {
       cy.log('Delete Monitoring UI Plugin instance.');
       cy.executeAndDelete(
-        `oc delete ${MP.config.kind} ${MP.config.name} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+        `oc delete ${MCP.config.kind} ${MCP.config.name} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
       );
 
       cy.log('Remove Cluster Observability Operator');
-      cy.executeAndDelete(`oc delete namespace ${MP.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+      cy.executeAndDelete(`oc delete namespace ${MCP.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
       cy.log('Remove cluster-admin role from user.');
       cy.executeAndDelete(
         `oc adm policy remove-cluster-role-from-user cluster-admin ${Cypress.env('LOGIN_USERNAME')} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
       );
+
+       cy.get('.pf-v5-c-alert, .pf-v6-c-alert', { timeout: 120000 })
+        .contains('Web console update is available')
+        .then(($alert) => {
+          // If the alert is found, assert that it exists
+          expect($alert).to.exist;
+        }, () => {
+          // If the alert is not found within the timeout, visit and assert the /monitoring/v2/dashboards page
+          cy.visit('/monitoring/v2/dashboards');
+          cy.url().should('not.include', '/monitoring/v2/dashboards');
+        });
     }
   });
 
@@ -317,7 +350,7 @@ describe('Monitoring: Alerts', () => {
     nav.sidenav.clickNavLink(['Observe', 'Targets']);
       commonPages.cmo_titleShouldHaveText('Metrics targets');
     // nav.sidenav.clickNavLink(['Observe', 'Incidents']);
-    //   commonPages.titleShouldHaveText('Incidents');
+    // commonPages.titleShouldHaveText('Incidents');
     nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
       commonPages.titleShouldHaveText('Dashboards');
     nav.sidenav.clickNavLink(['Administration', 'Cluster Settings']);
