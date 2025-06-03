@@ -24,7 +24,6 @@ import {
 
 const AlertsChart = ({ chartDays, theme }) => {
   const dispatch = useDispatch();
-  const [chartData, setChartData] = React.useState([]);
   const [chartContainerHeight, setChartContainerHeight] = React.useState();
   const [chartHeight, setChartHeight] = React.useState();
   const alertsData = useSelector((state) =>
@@ -37,45 +36,41 @@ const AlertsChart = ({ chartDays, theme }) => {
     state.plugins.mcp.getIn(['incidentsData', 'filteredIncidentsData']),
   );
   const incidentGroupId = useSelector((state) =>
-    state.plugins.mcp.getIn(['incidentsData', 'incidentGroupId']),
+    state.plugins.mcp.getIn(['incidentsData', 'groupId']),
   );
+
+  const dateValues = React.useMemo(() => generateDateArray(chartDays), [chartDays]);
+
+  const chartData = React.useMemo(() => {
+    if (!Array.isArray(alertsData) || alertsData.length === 0) return [];
+    return alertsData.map((alert) => createAlertsChartBars(alert, theme, dateValues));
+  }, [alertsData, theme, dateValues]);
+
   React.useEffect(() => {
     setChartContainerHeight(chartData?.length < 5 ? 300 : chartData?.length * 60);
     setChartHeight(chartData?.length < 5 ? 250 : chartData?.length * 55);
   }, [chartData]);
-  const dateValues = generateDateArray(chartDays);
+
+  const selectedIncidentIsVisible = React.useMemo(() => {
+    return filteredData.some((incident) => incident.group_id === incidentGroupId);
+  }, [filteredData, incidentGroupId]);
 
   React.useEffect(() => {
-    setChartData(alertsData.map((alert) => createAlertsChartBars(alert, theme, dateValues)));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [alertsData]);
-
-  React.useEffect(() => {
-    //state when chosen incident not passing filters or the is no data
-    if (
-      _.isEmpty(filteredData) ||
-      !filteredData.find((incident) => incident.group_id === incidentGroupId)
-    ) {
-      dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
-    } //state when chosen incident passing filters
-    else if (filteredData.find((incident) => incident.group_id === incidentGroupId)) {
-      dispatch(setAlertsAreLoading({ alertsAreLoading: false }));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filteredData]);
+    dispatch(setAlertsAreLoading({ alertsAreLoading: !selectedIncidentIsVisible }));
+  }, [dispatch, selectedIncidentIsVisible]);
 
   const [width, setWidth] = React.useState(0);
   const containerRef = React.useRef(null);
-  const handleResize = () => {
+  const handleResize = React.useCallback(() => {
     if (containerRef.current && containerRef.current.clientWidth) {
       setWidth(containerRef.current.clientWidth);
     }
-  };
+  }, []);
   React.useEffect(() => {
     const observer = getResizeObserver(containerRef.current, handleResize);
     handleResize();
     return () => observer();
-  }, []);
+  }, [handleResize]);
 
   return (
     <Card className="alerts-chart-card">

@@ -42,6 +42,7 @@ import {
 } from '@patternfly/react-core';
 import { ChartLineIcon, CompressIcon } from '@patternfly/react-icons';
 import {
+  InnerScrollContainer,
   ISortBy,
   sortable,
   Table,
@@ -102,7 +103,11 @@ import { PrometheusAPIError } from './types';
 import { TypeaheadSelect } from './TypeaheadSelect';
 import { LoadingInline } from './console/console-shared/src/components/loading/LoadingInline';
 import withFallback from './console/console-shared/error/fallbacks/withFallback';
-import { t_global_spacer_md, t_global_spacer_sm } from '@patternfly/react-tokens';
+import {
+  t_global_spacer_md,
+  t_global_spacer_sm,
+  t_global_font_family_mono,
+} from '@patternfly/react-tokens';
 
 // Stores information about the currently focused query input
 let focusedQuery;
@@ -758,45 +763,50 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, custom
       <Button variant="link" isInline onClick={toggleAllSeries}>
         {isDisabledSeriesEmpty ? t('Unselect all') : t('Select all')}
       </Button>
-      <Table
-        aria-label={t('query results table')}
-        gridBreakPoint={TableGridBreakpoint.none}
-        rows={tableRows.length}
-        variant={TableVariant.compact}
-      >
-        <Thead>
-          <Tr>
-            {columns.map((col, columnIndex) => {
-              const sortParams =
-                columnIndex !== 0
-                  ? {
-                      sort: {
-                        sortBy,
-                        onSort,
-                        columnIndex,
-                      },
-                    }
-                  : {};
-              return (
-                <Th key={`${col.title}-${columnIndex}`} {...sortParams}>
-                  {col.title}
-                </Th>
-              );
-            })}
-          </Tr>
-        </Thead>
-        <Tbody>
-          {tableRows.map((row, rowIndex) => (
-            <Tr key={`row-${rowIndex}`}>
-              {row.cells?.map((cell, cellIndex) => (
-                <Td key={`cell-${rowIndex}-${cellIndex}`}>
-                  {typeof cell === 'string' ? cell : cell?.title}
-                </Td>
-              ))}
+      <InnerScrollContainer>
+        <Table
+          aria-label={t('query results table')}
+          gridBreakPoint={TableGridBreakpoint.none}
+          rows={tableRows.length}
+          variant={TableVariant.compact}
+        >
+          <Thead>
+            <Tr>
+              {columns.map((col, columnIndex) => {
+                const sortParams =
+                  columnIndex !== 0
+                    ? {
+                        sort: {
+                          sortBy,
+                          onSort,
+                          columnIndex,
+                        },
+                      }
+                    : {};
+                return (
+                  <Th modifier="nowrap" key={`${col.title}-${columnIndex}`} {...sortParams}>
+                    {col.title}
+                  </Th>
+                );
+              })}
             </Tr>
-          ))}
-        </Tbody>
-      </Table>
+          </Thead>
+          <Tbody>
+            {tableRows.map((row, rowIndex) => (
+              <Tr key={`row-${rowIndex}`}>
+                {row.cells?.map((cell, cellIndex) => (
+                  <Td
+                    style={{ fontFamily: t_global_font_family_mono.var }}
+                    key={`cell-${rowIndex}-${cellIndex}`}
+                  >
+                    {typeof cell === 'string' ? cell : cell?.title}
+                  </Td>
+                ))}
+              </Tr>
+            ))}
+          </Tbody>
+        </Table>
+      </InnerScrollContainer>
       <TablePagination
         itemCount={rows.length}
         page={page}
@@ -1132,10 +1142,11 @@ const IntervalDropdown = () => {
   return <DropDownPollInterval setInterval={setInterval} selectedInterval={pollInterval} />;
 };
 
-const QueryBrowserPage_: React.FC = () => {
+const MetricsPage_: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const dispatch = useDispatch();
+  const { perspective } = usePerspective();
 
   // Clear queries on unmount
   React.useEffect(() => () => dispatch(queryBrowserDeleteAllQueries()), [dispatch]);
@@ -1209,9 +1220,11 @@ const QueryBrowserPage_: React.FC = () => {
       </Helmet>
       <PageSection hasBodyWrapper={false}>
         <Split hasGutter>
-          <SplitItem>
-            <Title headingLevel="h1">{t('Metrics')}</Title>
-          </SplitItem>
+          {perspective !== 'dev' && (
+            <SplitItem>
+              <Title headingLevel="h1">{t('Metrics')}</Title>
+            </SplitItem>
+          )}
           <SplitItem isFilled />
           <SplitItem>
             <IntervalDropdown />
@@ -1255,7 +1268,7 @@ const QueryBrowserPage_: React.FC = () => {
     </>
   );
 };
-export const QueryBrowserPage = withFallback(QueryBrowserPage_);
+export const MetricsPage = withFallback(MetricsPage_);
 
 type QueryTableProps = {
   index: number;
@@ -1267,3 +1280,5 @@ type SeriesButtonProps = {
   index: number;
   labels: PrometheusLabels;
 };
+
+export default MetricsPage;

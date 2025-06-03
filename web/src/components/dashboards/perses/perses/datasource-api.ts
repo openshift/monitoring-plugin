@@ -11,6 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { getCSRFToken } from '@openshift-console/dynamic-plugin-sdk/lib/utils/fetch/console-fetch-utils';
 import { DatasourceResource, DatasourceSelector, GlobalDatasourceResource } from '@perses-dev/core';
 import { BuildDatasourceProxyUrlFunc, DatasourceApi } from '@perses-dev/dashboards';
 import LRUCache from 'lru-cache';
@@ -121,7 +122,7 @@ export class CachedDatasourceAPI implements DatasourceApi {
   ): Promise<DatasourceResource | undefined> {
     const { resource, keyExist } = this.cache.getDatasource(project, selector);
     if (resource) {
-      return Promise.resolve(resource);
+      return Promise.resolve(addCsrfToken(resource));
     }
     if (keyExist) {
       // in case the keyExist, then it means we already did the query,
@@ -140,14 +141,14 @@ export class CachedDatasourceAPI implements DatasourceApi {
       } else {
         this.cache.setDatasource(result);
       }
-      return result;
+      return addCsrfToken(result);
     });
   }
 
   getGlobalDatasource(selector: DatasourceSelector): Promise<GlobalDatasourceResource | undefined> {
     const { resource, keyExist } = this.cache.getGlobalDatasource(selector);
     if (resource) {
-      return Promise.resolve(resource);
+      return Promise.resolve(addCsrfToken(resource));
     }
     if (keyExist) {
       return Promise.resolve(undefined);
@@ -158,7 +159,7 @@ export class CachedDatasourceAPI implements DatasourceApi {
       } else {
         this.cache.setGlobalDatasource(result);
       }
-      return result;
+      return addCsrfToken(result);
     });
   }
 
@@ -178,3 +179,18 @@ export class CachedDatasourceAPI implements DatasourceApi {
       });
   }
 }
+
+const addCsrfToken = (datasource) => {
+  datasource.spec.plugin.spec = {
+    ...datasource.spec.plugin.spec,
+    proxy: {
+      spec: {
+        headers: {
+          'X-CSRFToken': getCSRFToken(),
+          'Sec-Fetch-Site': 'same-origin',
+        },
+      },
+    },
+  };
+  return datasource;
+};

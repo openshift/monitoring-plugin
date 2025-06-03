@@ -77,7 +77,6 @@ export const DashboardDropdown: React.FC<DashboardDropdownProps> = ({
           selectedKey={selectedKey}
           hideClearButton
           resizeToFit
-          clearOnNewItems
         />
       </StackItem>
     </Stack>

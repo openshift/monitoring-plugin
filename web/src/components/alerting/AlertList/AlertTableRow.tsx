@@ -21,22 +21,22 @@ import { DropdownItem, Flex, FlexItem } from '@patternfly/react-core';
 import KebabDropdown from '../../../components/kebab-dropdown';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useHistory, useRouteMatch } from 'react-router';
+import { useNavigate, useParams } from 'react-router-dom-v5-compat';
 import { AlertResource, alertState } from '../../../components/utils';
 import {
   getAlertUrl,
   getNewSilenceAlertUrl,
   usePerspective,
 } from '../../../components/hooks/usePerspective';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom-v5-compat';
 
 const AlertTableRow: React.FC<{ alert: Alert }> = ({ alert }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
-  const history = useHistory();
-  const match = useRouteMatch<{ ns: string }>();
+  const navigate = useNavigate();
+  const params = useParams<{ ns: string }>();
 
-  const namespace = match.params.ns;
+  const namespace = params.ns;
 
   const state = alertState(alert);
 
@@ -48,7 +48,7 @@ const AlertTableRow: React.FC<{ alert: Alert }> = ({ alert }) => {
     dropdownItems.unshift(
       <DropdownItem
         key="silence-alert"
-        onClick={() => history.push(getNewSilenceAlertUrl(perspective, alert, namespace))}
+        onClick={() => navigate(getNewSilenceAlertUrl(perspective, alert, namespace))}
       >
         {t('Silence alert')}
       </DropdownItem>,

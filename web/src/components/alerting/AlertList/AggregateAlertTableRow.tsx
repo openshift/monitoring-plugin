@@ -12,7 +12,7 @@ import { AggregatedAlert } from '../AlertsAggregates';
 import { AlertState, SeverityBadge } from '../AlertUtils';
 import AlertTableRow from './AlertTableRow';
 import { RuleResource } from '../../../components/utils';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom-v5-compat';
 import { SelectedFilters } from '../useSelectedFilters';
 import { filterAlerts } from './hooks/utils';
 import { Badge, Flex, FlexItem } from '@patternfly/react-core';
@@ -37,6 +37,8 @@ const AggregateAlertTableRow: AggregateAlertTableRowProps = ({
     () => filterAlerts(aggregatedAlert.alerts, selectedFilters),
     [aggregatedAlert.alerts, selectedFilters],
   );
+
+  const filteredStates = Array.from(new Set(filteredAlerts.map((alert) => alert.state)));
 
   const columns: Array<TableColumn<Alert>> = [
     {
@@ -115,7 +117,7 @@ const AggregateAlertTableRow: AggregateAlertTableRowProps = ({
           </Badge>
         </Td>
         <Td title={title}>
-          {Array.from(aggregatedAlert.states).map((state) => (
+          {filteredStates.map((state) => (
             <AlertState state={state} key={state} />
           ))}
         </Td>

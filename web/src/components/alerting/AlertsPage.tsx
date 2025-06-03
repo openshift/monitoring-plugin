@@ -1,43 +1,44 @@
-import * as React from 'react';
-import { useTranslation } from 'react-i18next';
-import { getLegacyObserveState, usePerspective } from '../hooks/usePerspective';
-import { Alerts, AlertSource } from '../types';
-import { useSelector } from 'react-redux';
-
-import * as _ from 'lodash-es';
 import {
-  alertCluster,
-  alertingRuleSource,
-  alertSource,
-  getAdditionalSources,
-  SilencesNotLoadedWarning,
-} from './AlertUtils';
-import {
-  AlertSeverity,
+  Alert,
   AlertStates,
   ListPageFilter,
   RowFilter,
   useListPageFilter,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { fuzzyCaseInsensitive } from '../utils';
+import { Flex, PageSection } from '@patternfly/react-core';
 import { Table, TableGridBreakpoint, Th, Thead, Tr } from '@patternfly/react-table';
+import * as _ from 'lodash-es';
+import * as React from 'react';
 import { Helmet } from 'react-helmet';
+import { useTranslation } from 'react-i18next';
+import { useSelector } from 'react-redux';
 import { MonitoringState } from '../../reducers/observe';
-import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
+import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
 import { LoadingBox } from '../console/console-shared/src/components/loading/LoadingBox';
-import { AggregatedAlert, getAggregateAlertsLists } from './AlertsAggregates';
-
-import Error from './Error';
+import { useAlertsPoller } from '../hooks/useAlertsPoller';
+import { getLegacyObserveState, usePerspective } from '../hooks/usePerspective';
+import { Alerts, AlertSource } from '../types';
+import { alertState, fuzzyCaseInsensitive } from '../utils';
 import AggregateAlertTableRow from './AlertList/AggregateAlertTableRow';
 import DownloadCSVButton from './AlertList/DownloadCSVButton';
 import useAggregateAlertColumns from './AlertList/hooks/useAggregateAlertColumns';
+import { getAggregateAlertsLists } from './AlertsAggregates';
+import {
+  alertCluster,
+  alertSource,
+  getAdditionalSources,
+  severityRowFilter,
+  SilencesNotLoadedWarning,
+} from './AlertUtils';
+import Error from './Error';
 import useSelectedFilters from './useSelectedFilters';
-import { Flex, PageSection } from '@patternfly/react-core';
 
 const AlertsPage_: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { alertsKey, silencesKey, defaultAlertTenant, perspective } = usePerspective();
+
+  useAlertsPoller();
 
   const {
     data,
@@ -50,8 +51,6 @@ const AlertsPage_: React.FC = () => {
     (state: MonitoringState) =>
       getLegacyObserveState(perspective, state)?.get(silencesKey)?.loadError,
   );
-
-  const aggregatedAlertsList = getAggregateAlertsLists(data);
 
   const alertAdditionalSources = React.useMemo(
     () => getAdditionalSources(data, alertSource),
@@ -75,16 +74,17 @@ const AlertsPage_: React.FC = () => {
     // TODO: The "name" filter doesn't really fit useListPageFilter's idea of a RowFilter, but
     //       useListPageFilter doesn't yet provide a better way to add a filter like this
     {
-      filter: (filter, alert: AggregatedAlert) =>
-        fuzzyCaseInsensitive(filter.selected?.[0], alert.name),
+      filter: (filter, alert: Alert) =>
+        fuzzyCaseInsensitive(filter.selected?.[0], alert.labels?.alertname),
       filterGroupName: '',
       items: [],
       type: 'name',
     } as RowFilter,
     {
       defaultSelected: [AlertStates.Firing],
-      filter: (filter, aggregatedAlert: AggregatedAlert) =>
-        Array.from(aggregatedAlert.states).some((state) => filter.selected?.includes(state)) ||
+      filter: (filter, alert: Alert) =>
+        filter.selected.length === 0 ||
+        filter.selected?.includes(alertState(alert)) ||
         _.isEmpty(filter.selected),
       filterGroupName: t('Alert State'),
       items: [
@@ -92,28 +92,15 @@ const AlertsPage_: React.FC = () => {
         { id: AlertStates.Pending, title: t('Pending') },
         { id: AlertStates.Silenced, title: t('Silenced') },
       ],
-      isMatch: (aggregatedAlert: AggregatedAlert, id: AlertStates) =>
-        aggregatedAlert.states.has(id),
+      reducer: alertState,
       type: 'alert-state',
     },
-    {
-      defaultSelected: [AlertStates.Firing],
-      filter: (filter, aggregatedAlert: AggregatedAlert) =>
-        _.isEmpty(filter.selected) || filter.selected?.includes(aggregatedAlert?.severity),
-      filterGroupName: t('Severity'),
-      items: [
-        { id: AlertSeverity.Critical, title: t('Critical') },
-        { id: AlertSeverity.Warning, title: t('Warning') },
-        { id: AlertSeverity.Info, title: t('Info') },
-        { id: AlertSeverity.None, title: t('None') },
-      ],
-      reducer: (aggregatedAlert: AggregatedAlert) => aggregatedAlert.severity,
-      type: 'alert-severity',
-    },
+    severityRowFilter(t),
     {
       defaultSelected: defaultAlertTenant,
-      filter: (filter, aggregatedAlert: AggregatedAlert) =>
-        aggregatedAlert.alerts.some((alert) => filter.selected?.includes(alertSource(alert))) ||
+      filter: (filter, alert: Alert) =>
+        filter.selected.length === 0 ||
+        filter.selected?.includes(alertSource(alert)) ||
         _.isEmpty(filter.selected),
       filterGroupName: t('Source'),
       items: [
@@ -121,8 +108,7 @@ const AlertsPage_: React.FC = () => {
         { id: AlertSource.User, title: t('User') },
         ...alertAdditionalSources,
       ],
-      isMatch: (aggregatedAlert: AggregatedAlert, id: AlertSource) =>
-        aggregatedAlert.alerts.some((alert) => id === alertingRuleSource(alert.rule)),
+      reducer: alertSource,
       type: 'alert-source',
     },
   ];
@@ -131,39 +117,39 @@ const AlertsPage_: React.FC = () => {
     rowFilters = rowFilters.filter((filter) => filter.type !== 'alert-source');
   } else if (perspective === 'acm') {
     rowFilters.splice(-1, 0, {
-      type: 'alert-cluster',
-      filter: (filter, aggregatedAlert: AggregatedAlert) =>
-        aggregatedAlert.alerts.some(
-          (alert) =>
-            filter.selected.length === 0 ||
-            filter.selected.some((selectedFilter) =>
-              fuzzyCaseInsensitive(selectedFilter, alert.labels?.cluster),
-            ),
-        ),
+      filter: (filter, alert: Alert) => {
+        return (
+          filter.selected.length === 0 ||
+          filter.selected.some((selectedFilter) =>
+            fuzzyCaseInsensitive(selectedFilter, alert.labels?.cluster),
+          )
+        );
+      },
       filterGroupName: t('Cluster'),
-      items: clusters.map((clusterName) => ({ id: clusterName, title: clusterName })),
-      isMatch: (aggregatedAlert: AggregatedAlert, clusterName: string) =>
-        aggregatedAlert.alerts.some((alert) =>
-          fuzzyCaseInsensitive(clusterName, alert.labels?.cluster),
-        ),
+      items: clusters.map((clusterName) => ({
+        id: clusterName,
+        title: clusterName?.length > 50 ? clusterName.slice(0, 50) + '...' : clusterName,
+      })),
       reducer: alertCluster,
+      isMatch: (alert: Alert, clusterName: string) =>
+        fuzzyCaseInsensitive(clusterName, alert.labels?.cluster),
+      type: 'alert-cluster',
     } as RowFilter);
   }
 
-  const [staticData, filteredData, onFilterChange] = useListPageFilter(
-    aggregatedAlertsList,
-    rowFilters,
-  );
+  const [staticData, filteredData, onFilterChange] = useListPageFilter(data, rowFilters);
 
   const columns = useAggregateAlertColumns();
   const selectedFilters = useSelectedFilters();
+
+  const filteredAggregatedAlerts = getAggregateAlertsLists(filteredData);
 
   return (
     <>
       <Helmet>
         <title>Alerting</title>
       </Helmet>
-      <PageSection hasBodyWrapper={false}>
+      <PageSection hasBodyWrapper={false} type="subnav">
         <Flex>
           <ListPageFilter
             data={staticData}
@@ -174,11 +160,13 @@ const AlertsPage_: React.FC = () => {
             rowFilters={rowFilters}
           />
 
-          <DownloadCSVButton loaded={loaded} filteredData={filteredData} />
+          {loaded && filteredAggregatedAlerts?.length > 0 && (
+            <DownloadCSVButton loaded={loaded} filteredData={filteredAggregatedAlerts} />
+          )}
         </Flex>
         {silencesLoadError && <SilencesNotLoadedWarning silencesLoadError={silencesLoadError} />}
 
-        {filteredData?.length > 0 && loaded && (
+        {filteredAggregatedAlerts?.length > 0 && loaded && (
           <Table gridBreakPoint={TableGridBreakpoint.none} role="presentation">
             <Thead>
               <Tr>
@@ -189,7 +177,7 @@ const AlertsPage_: React.FC = () => {
                 ))}
               </Tr>
             </Thead>
-            {filteredData.map((aggregatedAlert, index) => (
+            {filteredAggregatedAlerts.map((aggregatedAlert, index) => (
               <AggregateAlertTableRow
                 key={aggregatedAlert.name}
                 aggregatedAlert={aggregatedAlert}
@@ -200,7 +188,9 @@ const AlertsPage_: React.FC = () => {
         )}
 
         {loadError && <Error error={loadError} />}
-        {loaded && filteredData?.length === 0 && !loadError && <EmptyBox label={t('Alerts')} />}
+        {loaded && filteredAggregatedAlerts?.length === 0 && !loadError && (
+          <EmptyBox label={t('Alerts')} />
+        )}
         {!loaded && <LoadingBox />}
       </PageSection>
     </>

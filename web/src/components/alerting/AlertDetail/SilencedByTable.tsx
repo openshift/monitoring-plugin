@@ -6,7 +6,7 @@ import {
   useActiveNamespace,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { useTranslation } from 'react-i18next';
-import { useHistory } from 'react-router';
+import { useNavigate } from 'react-router-dom-v5-compat';
 import {
   getEditSilenceAlertUrl,
   getSilenceAlertUrl,
@@ -22,19 +22,20 @@ import { ActionsColumn, IAction } from '@patternfly/react-table';
 import { ExpireSilenceModal, SilenceMatchersList, SilenceState } from '../SilencesUtils';
 import { useBoolean } from '../../hooks/useBoolean';
 import { SilenceResource } from '../../utils';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom-v5-compat';
 import { SeverityCounts, StateTimestamp } from '../AlertUtils';
+import { t_global_spacer_xs } from '@patternfly/react-tokens';
 
 export const SilencedByList: React.FC<{ silences: Silence[] }> = ({ silences }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
   const [namespace] = useActiveNamespace();
-  const history = useHistory();
+  const navigate = useNavigate();
   const [isModalOpen, , setModalOpen, setModalClosed] = useBoolean(false);
   const [silence, setSilence] = React.useState<Silence | null>(null);
 
   const editSilence = (event: React.MouseEvent, rowIndex: number) => {
-    history.push(getEditSilenceAlertUrl(perspective, silences.at(rowIndex)?.id, namespace));
+    navigate(getEditSilenceAlertUrl(perspective, silences.at(rowIndex)?.id, namespace));
   };
 
   const rowActions = (silence: Silence): IAction[] => {
@@ -65,7 +66,11 @@ export const SilencedByList: React.FC<{ silences: Silence[] }> = ({ silences }) 
     {
       cell: (
         <>
-          <Flex spaceItems={{ default: 'spaceItemsNone' }} flexWrap={{ default: 'nowrap' }}>
+          <Flex
+            spaceItems={{ default: 'spaceItemsNone' }}
+            flexWrap={{ default: 'nowrap' }}
+            style={{ paddingBottom: t_global_spacer_xs.var }}
+          >
             <FlexItem>
               <ResourceIcon kind={SilenceResource.kind} />
             </FlexItem>

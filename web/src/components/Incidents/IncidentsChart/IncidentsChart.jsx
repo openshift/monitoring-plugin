@@ -12,7 +12,12 @@ import {
   ChartVoronoiContainer,
 } from '@patternfly/react-charts/victory';
 import { Bullseye, Card, CardBody, CardTitle, Spinner } from '@patternfly/react-core';
-import { createIncidentsChartBars, formatDate, generateDateArray } from '../utils';
+import {
+  createIncidentsChartBars,
+  formatDate,
+  generateDateArray,
+  updateBrowserUrl,
+} from '../utils';
 import { getResizeObserver } from '@patternfly/react-core';
 import { useDispatch, useSelector } from 'react-redux';
 import { setChooseIncident } from '../../../actions/observe';
@@ -26,16 +31,27 @@ import { setAlertsAreLoading } from '../../../actions/observe';
 const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
   const dispatch = useDispatch();
   const [isLoading, setIsLoading] = React.useState(true);
-  const [chartData, setChartData] = React.useState();
   const [chartContainerHeight, setChartContainerHeight] = React.useState();
   const [chartHeight, setChartHeight] = React.useState();
+  const dateValues = React.useMemo(() => generateDateArray(chartDays), [chartDays]);
+
+  const chartData = React.useMemo(() => {
+    if (!Array.isArray(incidentsData) || incidentsData.length === 0) return [];
+    return incidentsData.map((incident) => createIncidentsChartBars(incident, theme, dateValues));
+  }, [incidentsData, theme, dateValues]);
+
+  React.useEffect(() => {
+    setIsLoading(false);
+  }, [incidentsData]);
+
   React.useEffect(() => {
     setChartContainerHeight(chartData?.length < 5 ? 300 : chartData?.length * 60);
     setChartHeight(chartData?.length < 5 ? 250 : chartData?.length * 55);
   }, [chartData]);
+
   const [width, setWidth] = React.useState(0);
   const containerRef = React.useRef(null);
-  const dateValues = generateDateArray(chartDays);
+
   const handleResize = () => {
     if (containerRef.current && containerRef.current.clientWidth) {
       setWidth(containerRef.current.clientWidth);
@@ -46,38 +62,39 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
     handleResize();
     return () => observer();
   }, []);
-  React.useEffect(() => {
-    setIsLoading(false);
-    setChartData(
-      incidentsData.map((incident) => createIncidentsChartBars(incident, theme, dateValues)),
-    );
-  }, [incidentsData, theme, dateValues]);
 
-  const selectedId = useSelector((state) =>
-    state.plugins.mcp.getIn(['incidentsData', 'incidentGroupId']),
+  const selectedId = useSelector((state) => state.plugins.mcp.getIn(['incidentsData', 'groupId']));
+  const incidentsActiveFilters = useSelector((state) =>
+    state.plugins.mcp.getIn(['incidentsData', 'incidentsActiveFilters']),
   );
 
-  const isHidden = (group_id) => selectedId !== '' && selectedId !== group_id;
+  const isHidden = React.useCallback(
+    (group_id) => selectedId !== '' && selectedId !== group_id,
+    [selectedId],
+  );
   const clickHandler = (data, datum) => {
     if (datum.datum.group_id === selectedId) {
       dispatch(
         setChooseIncident({
-          incidentGroupId: '',
+          groupId: '',
         }),
       );
+      updateBrowserUrl(incidentsActiveFilters, '');
       dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
     } else {
       dispatch(
         setChooseIncident({
-          incidentGroupId: datum.datum.group_id,
+          groupId: datum.datum.group_id,
         }),
       );
+      updateBrowserUrl(incidentsActiveFilters, datum.datum.group_id);
     }
   };
 
-  function getOpacity(datum) {
-    return (datum.fillOpacity = isHidden(datum.group_id) ? '0.3' : '1');
-  }
+  const getOpacity = React.useCallback(
+    (datum) => (datum.fillOpacity = isHidden(datum.group_id) ? '0.3' : '1'),
+    [isHidden],
+  );
 
   return (
     <Card className="incidents-chart-card">

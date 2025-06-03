@@ -16,7 +16,7 @@ import * as React from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom-v5-compat';
 
 import { Alerts, AlertSource } from '../types';
 import {
@@ -26,7 +26,8 @@ import {
   RuleResource,
 } from '../utils';
 
-import { getLegacyObserveState, getRuleUrl, usePerspective } from '../hooks/usePerspective';
+import { Flex, FlexItem, PageSection, Truncate } from '@patternfly/react-core';
+import { MonitoringState } from '../../reducers/observe';
 import {
   alertingRuleSource,
   AlertStateIcon,
@@ -35,11 +36,11 @@ import {
   SeverityBadge,
   SilencesNotLoadedWarning,
 } from '../alerting/AlertUtils';
-import { MonitoringState } from '../../reducers/observe';
-import { severityRowFilter } from './AlertUtils';
-import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
-import { Flex, FlexItem, PageSection, Truncate } from '@patternfly/react-core';
+import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
+import { useAlertsPoller } from '../hooks/useAlertsPoller';
+import { getLegacyObserveState, getRuleUrl, usePerspective } from '../hooks/usePerspective';
+import { severityRowFilter } from './AlertUtils';
 
 const StateCounts: React.FC<{ alerts: PrometheusAlert[] }> = ({ alerts }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -117,6 +118,8 @@ const RuleTableRow: React.FC<RowProps<Rule>> = ({ obj }) => {
 const AlertRulesPage_: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { alertsKey, silencesKey, rulesKey, perspective, defaultAlertTenant } = usePerspective();
+
+  useAlertsPoller();
 
   const data: Rule[] = useSelector((state: MonitoringState) =>
     getLegacyObserveState(perspective, state)?.get(rulesKey),
@@ -216,19 +219,22 @@ const AlertRulesPage_: React.FC = () => {
           rowFilters={rowFilters}
         />
         {silencesLoadError && <SilencesNotLoadedWarning silencesLoadError={silencesLoadError} />}
-        <VirtualizedTable<Rule>
-          aria-label={t('Alerting rules')}
-          label={t('Alerting rules')}
-          columns={columns}
-          data={filteredData ?? []}
-          loaded={loaded}
-          loadError={loadError}
-          Row={RuleTableRow}
-          unfilteredData={data}
-          NoDataEmptyMsg={() => {
-            return <EmptyBox label={t('Alerting rules')} />;
-          }}
-        />
+        <div id="alert-rules-table-scroll">
+          <VirtualizedTable<Rule>
+            aria-label={t('Alerting rules')}
+            label={t('Alerting rules')}
+            columns={columns}
+            data={filteredData ?? []}
+            loaded={loaded}
+            loadError={loadError}
+            Row={RuleTableRow}
+            unfilteredData={data}
+            scrollNode={() => document.getElementById('alert-rules-table-scroll')}
+            NoDataEmptyMsg={() => {
+              return <EmptyBox label={t('Alerting rules')} />;
+            }}
+          />
+        </div>
       </PageSection>
     </>
   );

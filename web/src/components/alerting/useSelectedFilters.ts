@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-import { useLocation } from 'react-router';
+import { useLocation } from 'react-router-dom-v5-compat';
 
 export const FILTER_TYPES = {
   NAME: 'name',
