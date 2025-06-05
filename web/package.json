@@ -23,6 +23,8 @@
     "start:standalone": "npm run ts-node node_modules/.bin/webpack serve --stats-error-details --config webpack.standalone.config.ts",
     "start-console": "../scripts/start-console.sh",
     "test": "npm run cypress:run:ci",
+    "test-cypress-console": "./node_modules/.bin/cypress open --browser chrome",
+    "test-cypress-console-headless": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless",
     "ts-node": "ts-node -O '{\"module\":\"commonjs\"}'"
   },
   "dependencies": {
