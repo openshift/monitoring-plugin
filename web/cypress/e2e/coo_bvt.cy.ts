@@ -65,38 +65,9 @@ function getTextFromElement(selector: string) {
 };
 
 describe('Monitoring: Alerts', () => {
-  // before(() => {
-  //   cy.adminCLI(
-  //     `oc adm policy add-cluster-role-to-user cluster-admin ${Cypress.env('LOGIN_USERNAME')}`,
-  //   );
-  //   // Getting the oauth url for hypershift cluster login
-  //   cy.exec(
-  //     `oc get oauthclient openshift-browser-client -o go-template --template="{{index .redirectURIs 0}}" --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
-  //   ).then((result) => {
-  //     if (expect(result.stderr).to.be.empty) {
-  //       const oauth = result.stdout;
-  //       // Trimming the origin part of the url
-  //       const oauthurl = new URL(oauth);
-  //       const oauthorigin = oauthurl.origin;
-  //       cy.log(oauthorigin);
-  //       cy.wrap(oauthorigin).as('oauthorigin');
-  //     } else {
-  //       throw new Error(`Execution of oc get oauthclient failed
-  //         Exit code: ${result.code}
-  //         Stdout:\n${result.stdout}
-  //         Stderr:\n${result.stderr}`);
-  //     }
-  //   });
-  //   cy.get('@oauthorigin').then((oauthorigin) => {
-  //     cy.login(
-  //       Cypress.env('LOGIN_IDP'),
-  //       Cypress.env('LOGIN_USERNAME'),
-  //       Cypress.env('LOGIN_PASSWORD'),
-  //       oauthorigin,
-  //     );
-  //   });});
-  before(() => {
 
+  before(() => {
+    cy.log('Before all');
     cy.adminCLI(
           `oc adm policy add-cluster-role-to-user cluster-admin ${Cypress.env('LOGIN_USERNAME')}`,
         );

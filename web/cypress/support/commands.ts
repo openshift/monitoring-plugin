@@ -118,6 +118,7 @@ Cypress.Commands.add(
       [provider, username],
       () => {
         cy.visit(Cypress.config('baseUrl'));
+        cy.log('Session - after visiting');
         cy.window().then(
           (
             win: any, // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -192,6 +193,7 @@ Cypress.Commands.add('switchPerspective', (perspective: string) => {
 
 // To avoid influence from upstream login change
 Cypress.Commands.add('uiLogin', (provider: string, username: string, password: string) => {
+  cy.log('Commands uiLogin');
   cy.clearCookie('openshift-session-token');
   cy.visit('/');
   cy.window().then(

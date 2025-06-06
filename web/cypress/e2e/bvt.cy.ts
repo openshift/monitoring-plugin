@@ -65,6 +65,7 @@ function getTextFromElement(selector: string) {
 };
 
 describe('Monitoring: Alerts', () => {
+  
   before(() => {
     cy.adminCLI(
       `oc adm policy add-cluster-role-to-user cluster-admin ${Cypress.env('LOGIN_USERNAME')}`,
@@ -95,187 +96,103 @@ describe('Monitoring: Alerts', () => {
         oauthorigin,
       );
     });
-  cy.log('Set Monitoring Plugin image in operator CSV');
-  if (Cypress.env('MP_IMAGE')) {
-    cy.log('MP_IMAGE is set. the image will be patched in CMO operator CSV');
-    cy.exec(
-      './cypress/fixtures/cmo/update-monitoring-plugin-image.sh',
-      {
-        env: {
-          MP_IMAGE: Cypress.env('MP_IMAGE'),
-          KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
-          MP_NAMESPACE: `${MP.namespace}`
-        },
-        timeout: 120000,
-        failOnNonZeroExit: true
-      }
-    ) .then((result) => {
-      expect(result.code).to.eq(0);
-      cy.log(`CMO CSV updated successfully with Monitoring Plugin image: ${result.stdout}`);
-    });
-  } else {
-    cy.log('MP_IMAGE is NOT set. Skipping patching the image in CMO operator CSV.');
-  }
-
-  cy.intercept('GET', '/api/prometheus/api/v1/rules?', {
-      data: {
-        groups: [
-          {
-            file: 'dummy-file',
-            interval: 30,
-            name: 'general.rules',
-            rules: [
-              {
-                state: 'firing',
-                name: `${ALERTNAME}`,
-                query: 'vector(1)',
-                duration: 0,
-                labels: {
-                  namespace: `${NAMESPACE}`,
-                  prometheus: 'openshift-monitoring/k8s',
-                  severity: `${SEVERITY}`,
-                },
-                annotations: {
-                  description:
-                  `${ALERT_DESC}`,
-                  summary:
-                  `${ALERT_SUMMARY}`,
-                },
-                alerts: [
-                  {
-                    labels: {
-                      alertname: `${ALERTNAME}`,
-                      namespace: `${NAMESPACE}`,
-                      severity: `${SEVERITY}`,
-                    },
-                    annotations: {
-                      description:
-                      `${ALERT_DESC}`,
-                      summary:
-                      `${ALERT_SUMMARY}`,
-                    },
-                    state: 'firing',
-                    activeAt: '2023-04-10T12:00:00.123456789Z',
-                    value: '1e+00',
-                  },
-                ],
-                health: 'ok',
-                type: 'alerting',
-              },
-            ],
+    cy.log('Set Monitoring Plugin image in operator CSV');
+    if (Cypress.env('MP_IMAGE')) {
+      cy.log('MP_IMAGE is set. the image will be patched in CMO operator CSV');
+      cy.exec(
+        './cypress/fixtures/cmo/update-monitoring-plugin-image.sh',
+        {
+          env: {
+            MP_IMAGE: Cypress.env('MP_IMAGE'),
+            KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
+            MP_NAMESPACE: `${MP.namespace}`
           },
-        ],
-      },
+          timeout: 120000,
+          failOnNonZeroExit: true
+        }
+      ) .then((result) => {
+        expect(result.code).to.eq(0);
+        cy.log(`CMO CSV updated successfully with Monitoring Plugin image: ${result.stdout}`);
+      });
+    } else {
+      cy.log('MP_IMAGE is NOT set. Skipping patching the image in CMO operator CSV.');
+    }
+
+    cy.intercept('GET', '/api/prometheus/api/v1/rules?', {
+        data: {
+          groups: [
+            {
+              file: 'dummy-file',
+              interval: 30,
+              name: 'general.rules',
+              rules: [
+                {
+                  state: 'firing',
+                  name: `${ALERTNAME}`,
+                  query: 'vector(1)',
+                  duration: 0,
+                  labels: {
+                    namespace: `${NAMESPACE}`,
+                    prometheus: 'openshift-monitoring/k8s',
+                    severity: `${SEVERITY}`,
+                  },
+                  annotations: {
+                    description:
+                    `${ALERT_DESC}`,
+                    summary:
+                    `${ALERT_SUMMARY}`,
+                  },
+                  alerts: [
+                    {
+                      labels: {
+                        alertname: `${ALERTNAME}`,
+                        namespace: `${NAMESPACE}`,
+                        severity: `${SEVERITY}`,
+                      },
+                      annotations: {
+                        description:
+                        `${ALERT_DESC}`,
+                        summary:
+                        `${ALERT_SUMMARY}`,
+                      },
+                      state: 'firing',
+                      activeAt: '2023-04-10T12:00:00.123456789Z',
+                      value: '1e+00',
+                    },
+                  ],
+                  health: 'ok',
+                  type: 'alerting',
+                },
+              ],
+            },
+          ],
+        },
+      });
     });
-    });
-  
-  
-  // beforeEach(() => {
-  //   cy.intercept('GET', '/api/prometheus/api/v1/rules?', {
-  //     data: {
-  //       groups: [
-  //         {
-  //           file: 'dummy-file',
-  //           interval: 30,
-  //           name: 'general.rules',
-  //           rules: [
-  //             {
-  //               state: 'firing',
-  //               name: `${ALERTNAME}`,
-  //               query: 'vector(1)',
-  //               duration: 0,
-  //               labels: {
-  //                 namespace: `${NAMESPACE}`,
-  //                 prometheus: 'openshift-monitoring/k8s',
-  //                 severity: `${SEVERITY}`,
-  //               },
-  //               annotations: {
-  //                 description:
-  //                 `${ALERT_DESC}`,
-  //                 summary:
-  //                 `${ALERT_SUMMARY}`,
-  //               },
-  //               alerts: [
-  //                 {
-  //                   labels: {
-  //                     alertname: `${ALERTNAME}`,
-  //                     namespace: `${NAMESPACE}`,
-  //                     severity: `${SEVERITY}`,
-  //                   },
-  //                   annotations: {
-  //                     description:
-  //                     `${ALERT_DESC}`,
-  //                     summary:
-  //                     `${ALERT_SUMMARY}`,
-  //                   },
-  //                   state: 'firing',
-  //                   activeAt: '2023-04-10T12:00:00.123456789Z',
-  //                   value: '1e+00',
-  //                 },
-  //               ],
-  //               health: 'ok',
-  //               type: 'alerting',
-  //             },
-  //           ],
-  //         },
-  //       ],
-  //     },
-  //   });
     
-  //   cy.adminCLI(
-  //     `oc adm policy add-cluster-role-to-user cluster-admin ${Cypress.env('LOGIN_USERNAME')}`,
-  //   );
-  //   // Getting the oauth url for hypershift cluster login
-  //   cy.exec(
-  //     `oc get oauthclient openshift-browser-client -o go-template --template="{{index .redirectURIs 0}}" --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
-  //   ).then((result) => {
-  //     if (expect(result.stderr).to.be.empty) {
-  //       const oauth = result.stdout;
-  //       // Trimming the origin part of the url
-  //       const oauthurl = new URL(oauth);
-  //       const oauthorigin = oauthurl.origin;
-  //       cy.log(oauthorigin);
-  //       cy.wrap(oauthorigin).as('oauthorigin');
-  //     } else {
-  //       throw new Error(`Execution of oc get oauthclient failed
-  //             Exit code: ${result.code}
-  //             Stdout:\n${result.stdout}
-  //             Stderr:\n${result.stderr}`);
-  //       }
-  //     });
-  //     cy.get('@oauthorigin').then((oauthorigin) => {
-  //       cy.login(
-  //         Cypress.env('LOGIN_IDP'),
-  //         Cypress.env('LOGIN_USERNAME'),
-  //         Cypress.env('LOGIN_PASSWORD'),
-  //         oauthorigin,
-  //       );
-  //     });
-      
-  //   });
     
    after(() => {
-   if (Cypress.env('MP_IMAGE')) {
-    cy.log('MP_IMAGE is set. Lets revert CMO operator CSV');
-    cy.exec(
-      './cypress/fixtures/cmo/reenable-monitoring.sh',
-      {
-        env: {
-          MP_IMAGE: Cypress.env('MP_IMAGE'),
-          KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
-          MP_NAMESPACE: `${MP.namespace}`
-        },
-        timeout: 120000,
-        failOnNonZeroExit: true
-      }
-    ) .then((result) => {
-      expect(result.code).to.eq(0);
-      cy.log(`CMO CSV reverted successfully with Monitoring Plugin image: ${result.stdout}`);
-    });
-  } else {
-    cy.log('MP_IMAGE is NOT set. Skipping reverting the image in CMO operator CSV.');
-  }});
-  });
+    if (Cypress.env('MP_IMAGE')) {
+      cy.log('MP_IMAGE is set. Lets revert CMO operator CSV');
+      cy.exec(
+        './cypress/fixtures/cmo/reenable-monitoring.sh',
+        {
+          env: {
+            MP_IMAGE: Cypress.env('MP_IMAGE'),
+            KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
+            MP_NAMESPACE: `${MP.namespace}`
+          },
+          timeout: 120000,
+          failOnNonZeroExit: true
+        }
+      ) .then((result) => {
+        expect(result.code).to.eq(0);
+        cy.log(`CMO CSV reverted successfully with Monitoring Plugin image: ${result.stdout}`);
+      });
+    } else {
+      cy.log('MP_IMAGE is NOT set. Skipping reverting the image in CMO operator CSV.');
+    }});
+    
     
     it('1. Admin perspective - Observe Menu', () => {
       cy.visit('/');
@@ -512,4 +429,5 @@ describe('Monitoring: Alerts', () => {
       commonPages.titleShouldHaveText('Metrics');
     });
     
+});
   
