@@ -20,6 +20,9 @@ if [[ "$OSTYPE" == "darwin"* ]] && [[ "$DOCKER_FILE_NAME" == "Dockerfile.mcp" ]]
     make update-plugin-name
     export I18N_NAMESPACE='plugin__monitoring-console-plugin'
 
+    printf "${YELLOW}Installing Frontend${ENDCOLOR}\n"
+    make install-frontend
+
     printf "${YELLOW}Building Frontend${ENDCOLOR}\n"
     make build-frontend
 fi
