@@ -117,8 +117,80 @@ describe('Monitoring: Alerts', () => {
     } else {
       cy.log('MP_IMAGE is NOT set. Skipping patching the image in CMO operator CSV.');
     }
+    });
+    
+    
+   after(() => {
+    if (Cypress.env('MP_IMAGE')) {
+      cy.log('MP_IMAGE is set. Lets revert CMO operator CSV');
+      cy.exec(
+        './cypress/fixtures/cmo/reenable-monitoring.sh',
+        {
+          env: {
+            MP_IMAGE: Cypress.env('MP_IMAGE'),
+            KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
+            MP_NAMESPACE: `${MP.namespace}`
+          },
+          timeout: 120000,
+          failOnNonZeroExit: true
+        }
+      ) .then((result) => {
+        expect(result.code).to.eq(0);
+        cy.log(`CMO CSV reverted successfully with Monitoring Plugin image: ${result.stdout}`);
+      });
+    } else {
+      cy.log('MP_IMAGE is NOT set. Skipping reverting the image in CMO operator CSV.');
+    }});
+    
+    
+    it('1. Admin perspective - Observe Menu', () => {
+      cy.log('Admin perspective - Observe Menu and verify all submenus');
+      nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+      commonPages.titleShouldHaveText('Alerting');
+      nav.sidenav.clickNavLink(['Observe', 'Metrics']);
+      commonPages.titleShouldHaveText('Metrics');
+      nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
+      commonPages.titleShouldHaveText('Dashboards');
+      nav.sidenav.clickNavLink(['Observe', 'Targets']);
+      commonPages.cmo_titleShouldHaveText('Metrics targets');
+      nav.sidenav.clickNavLink(['Administration', 'Cluster Settings']);
+      commonPages.detailsPage.administration_clusterSettings();
+      // nav.sidenav.clickNavLink(['Observe', 'Incidents']);
+      //   commonPages.titleShouldHaveText('Incidents');
+      // nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
+      //   commonPages.titleShouldHaveText('Dashboards');
+      
+    })
+    //TODO: Intercept Bell GET request to inject an alert (Watchdog to have it opened in Alert Details page?)
+    // it('Admin perspective - Bell > Alert details > Alerting rule details > Metrics flow', () => {
+    //   cy.visit('/');
+    //   commonPages.clickBellIcon();
+    //   commonPages.bellIconClickAlert('TargetDown');
+    //   commonPages.titleShouldHaveText('TatgetDown')
+    
+    // })
 
-    cy.intercept('GET', '/api/prometheus/api/v1/rules?', {
+    it('2. Admin perspective - Overview Page > Status - View alerts', () => {
+      nav.sidenav.clickNavLink(['Home', 'Overview']);
+      overviewPage.clickStatusViewAlerts();
+      commonPages.titleShouldHaveText('Alerting');
+    });
+    
+    it('3. Admin perspective - Overview Page > Status - View details', () => {
+      nav.sidenav.clickNavLink(['Home', 'Overview']);
+      overviewPage.clickStatusViewDetails(0);
+      detailsPage.sectionHeaderShouldExist('Alert details');
+    });
+    
+    it('4. Admin perspective - Cluster Utilization - Metrics', () => {
+      nav.sidenav.clickNavLink(['Home', 'Overview']);
+      overviewPage.clickClusterUtilizationViewCPU();
+      commonPages.titleShouldHaveText('Metrics');
+    });
+    
+    
+    it('5. Admin perspective - Alerting > Alerting Details page > Alerting Rule > Metrics', () => {
+      cy.intercept('GET', '/api/prometheus/api/v1/rules?', {
         data: {
           groups: [
             {
@@ -168,63 +240,7 @@ describe('Monitoring: Alerts', () => {
           ],
         },
       });
-    });
-    
-    
-   after(() => {
-    if (Cypress.env('MP_IMAGE')) {
-      cy.log('MP_IMAGE is set. Lets revert CMO operator CSV');
-      cy.exec(
-        './cypress/fixtures/cmo/reenable-monitoring.sh',
-        {
-          env: {
-            MP_IMAGE: Cypress.env('MP_IMAGE'),
-            KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
-            MP_NAMESPACE: `${MP.namespace}`
-          },
-          timeout: 120000,
-          failOnNonZeroExit: true
-        }
-      ) .then((result) => {
-        expect(result.code).to.eq(0);
-        cy.log(`CMO CSV reverted successfully with Monitoring Plugin image: ${result.stdout}`);
-      });
-    } else {
-      cy.log('MP_IMAGE is NOT set. Skipping reverting the image in CMO operator CSV.');
-    }});
-    
-    
-    it('1. Admin perspective - Observe Menu', () => {
-      cy.visit('/');
-      cy.log('Admin perspective - Observe Menu and verify all submenus');
-      nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-      commonPages.titleShouldHaveText('Alerting');
-      nav.sidenav.clickNavLink(['Observe', 'Metrics']);
-      commonPages.titleShouldHaveText('Metrics');
-      nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
-      commonPages.titleShouldHaveText('Dashboards');
-      nav.sidenav.clickNavLink(['Observe', 'Targets']);
-      commonPages.cmo_titleShouldHaveText('Metrics targets');
-      nav.sidenav.clickNavLink(['Administration', 'Cluster Settings']);
-      commonPages.detailsPage.administration_clusterSettings();
-      // nav.sidenav.clickNavLink(['Observe', 'Incidents']);
-      //   commonPages.titleShouldHaveText('Incidents');
-      // nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
-      //   commonPages.titleShouldHaveText('Dashboards');
       
-    })
-    //TODO: Intercept Bell GET request to inject an alert (Watchdog to have it opened in Alert Details page?)
-    // it('Admin perspective - Bell > Alert details > Alerting rule details > Metrics flow', () => {
-    //   cy.visit('/');
-    //   commonPages.clickBellIcon();
-    //   commonPages.bellIconClickAlert('TargetDown');
-    //   commonPages.titleShouldHaveText('TatgetDown')
-    
-    // })
-    
-    
-    it('2. Admin perspective - Alerting > Alerting Details page > Alerting Rule > Metrics', () => {
-      cy.visit('/');
       cy.log('2.1. use sidebar nav to go to Observe > Alerting');
       nav.sidenav.clickNavLink(['Observe', 'Alerting']);
       commonPages.titleShouldHaveText('Alerting');
@@ -284,8 +300,7 @@ describe('Monitoring: Alerts', () => {
       });
     });
     
-    it('3. Admin perspective - Creates and expires a Silence', () => {
-      cy.visit('/');
+    it('6. Admin perspective - Creates and expires a Silence', () => {
       // cy.intercept('GET', '/api/alertmanager/api/v2/silences', [
       //   {
       //     id: SILENCE_ID,
@@ -408,26 +423,7 @@ describe('Monitoring: Alerts', () => {
       
     });
     
-    it('4. Admin perspective - Overview Page > Status - View alerts', () => {
-      cy.visit('/');
-      nav.sidenav.clickNavLink(['Home', 'Overview']);
-      overviewPage.clickStatusViewAlerts();
-      commonPages.titleShouldHaveText('Alerting');
-    });
-    
-    it('5. Admin perspective - Overview Page > Status - View details', () => {
-      cy.visit('/');
-      nav.sidenav.clickNavLink(['Home', 'Overview']);
-      overviewPage.clickStatusViewDetails(0);
-      detailsPage.sectionHeaderShouldExist('Alert details');
-    });
-    
-    it('6. Admin perspective - Cluster Utilization - Metrics', () => {
-      cy.visit('/');
-      nav.sidenav.clickNavLink(['Home', 'Overview']);
-      overviewPage.clickClusterUtilizationViewCPU();
-      commonPages.titleShouldHaveText('Metrics');
-    });
+ 
     
 });
   

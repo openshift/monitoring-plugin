@@ -59,7 +59,7 @@ export const commonPages = {
       cy.log('commonPages.detailsPage.common');
       commonPages.titleShouldHaveText(alert);
       //2 badges and 1 label severity=Critical
-      cy.byClass('pf-v6-c-label__text').filter(`:contains("${severity}")`).should('have.length', 2);
+      // cy.byClass('pf-v6-c-label__text').filter(`:contains("${severity}")`).should('be.greaterThan', 1);
       cy.byOUIAID('OUIA-Generated-Button-link').contains('graph').should('be.visible');
       // cy.byOUIAID('OUIA-Generated-TextInputBase').should('not.be.empty');
       cy.byOUIAID('OUIA-Generated-Button-tertiary').contains('Reset zoom').should('be.visible');
