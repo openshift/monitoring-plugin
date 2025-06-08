@@ -117,80 +117,8 @@ describe('Monitoring: Alerts', () => {
     } else {
       cy.log('MP_IMAGE is NOT set. Skipping patching the image in CMO operator CSV.');
     }
-    });
-    
-    
-   after(() => {
-    if (Cypress.env('MP_IMAGE')) {
-      cy.log('MP_IMAGE is set. Lets revert CMO operator CSV');
-      cy.exec(
-        './cypress/fixtures/cmo/reenable-monitoring.sh',
-        {
-          env: {
-            MP_IMAGE: Cypress.env('MP_IMAGE'),
-            KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
-            MP_NAMESPACE: `${MP.namespace}`
-          },
-          timeout: 120000,
-          failOnNonZeroExit: true
-        }
-      ) .then((result) => {
-        expect(result.code).to.eq(0);
-        cy.log(`CMO CSV reverted successfully with Monitoring Plugin image: ${result.stdout}`);
-      });
-    } else {
-      cy.log('MP_IMAGE is NOT set. Skipping reverting the image in CMO operator CSV.');
-    }});
-    
-    
-    it('1. Admin perspective - Observe Menu', () => {
-      cy.log('Admin perspective - Observe Menu and verify all submenus');
-      nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-      commonPages.titleShouldHaveText('Alerting');
-      nav.sidenav.clickNavLink(['Observe', 'Metrics']);
-      commonPages.titleShouldHaveText('Metrics');
-      nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
-      commonPages.titleShouldHaveText('Dashboards');
-      nav.sidenav.clickNavLink(['Observe', 'Targets']);
-      commonPages.cmo_titleShouldHaveText('Metrics targets');
-      nav.sidenav.clickNavLink(['Administration', 'Cluster Settings']);
-      commonPages.detailsPage.administration_clusterSettings();
-      // nav.sidenav.clickNavLink(['Observe', 'Incidents']);
-      //   commonPages.titleShouldHaveText('Incidents');
-      // nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
-      //   commonPages.titleShouldHaveText('Dashboards');
-      
-    })
-    //TODO: Intercept Bell GET request to inject an alert (Watchdog to have it opened in Alert Details page?)
-    // it('Admin perspective - Bell > Alert details > Alerting rule details > Metrics flow', () => {
-    //   cy.visit('/');
-    //   commonPages.clickBellIcon();
-    //   commonPages.bellIconClickAlert('TargetDown');
-    //   commonPages.titleShouldHaveText('TatgetDown')
-    
-    // })
 
-    it('2. Admin perspective - Overview Page > Status - View alerts', () => {
-      nav.sidenav.clickNavLink(['Home', 'Overview']);
-      overviewPage.clickStatusViewAlerts();
-      commonPages.titleShouldHaveText('Alerting');
-    });
-    
-    it('3. Admin perspective - Overview Page > Status - View details', () => {
-      nav.sidenav.clickNavLink(['Home', 'Overview']);
-      overviewPage.clickStatusViewDetails(0);
-      detailsPage.sectionHeaderShouldExist('Alert details');
-    });
-    
-    it('4. Admin perspective - Cluster Utilization - Metrics', () => {
-      nav.sidenav.clickNavLink(['Home', 'Overview']);
-      overviewPage.clickClusterUtilizationViewCPU();
-      commonPages.titleShouldHaveText('Metrics');
-    });
-    
-    
-    it('5. Admin perspective - Alerting > Alerting Details page > Alerting Rule > Metrics', () => {
-      cy.intercept('GET', '/api/prometheus/api/v1/rules?', {
+     cy.intercept('GET', '/api/prometheus/api/v1/rules?', {
         data: {
           groups: [
             {
@@ -240,9 +168,88 @@ describe('Monitoring: Alerts', () => {
           ],
         },
       });
-      
-      cy.log('2.1. use sidebar nav to go to Observe > Alerting');
+
+    });
+    
+    
+   after(() => {
+    if (Cypress.env('MP_IMAGE')) {
+      cy.log('MP_IMAGE is set. Lets revert CMO operator CSV');
+      cy.exec(
+        './cypress/fixtures/cmo/reenable-monitoring.sh',
+        {
+          env: {
+            MP_IMAGE: Cypress.env('MP_IMAGE'),
+            KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
+            MP_NAMESPACE: `${MP.namespace}`
+          },
+          timeout: 120000,
+          failOnNonZeroExit: true
+        }
+      ) .then((result) => {
+        expect(result.code).to.eq(0);
+        cy.log(`CMO CSV reverted successfully with Monitoring Plugin image: ${result.stdout}`);
+      });
+    } else {
+      cy.log('MP_IMAGE is NOT set. Skipping reverting the image in CMO operator CSV.');
+    }});
+    
+    
+    it('1. Admin perspective - Observe Menu', () => {
+      cy.visit('/');
+      cy.log('Admin perspective - Observe Menu and verify all submenus');
       nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+      commonPages.titleShouldHaveText('Alerting');
+      nav.sidenav.clickNavLink(['Observe', 'Metrics']);
+      commonPages.titleShouldHaveText('Metrics');
+      nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
+      commonPages.titleShouldHaveText('Dashboards');
+      nav.sidenav.clickNavLink(['Observe', 'Targets']);
+      commonPages.cmo_titleShouldHaveText('Metrics targets');
+      nav.sidenav.clickNavLink(['Administration', 'Cluster Settings']);
+      commonPages.detailsPage.administration_clusterSettings();
+      // nav.sidenav.clickNavLink(['Observe', 'Incidents']);
+      //   commonPages.titleShouldHaveText('Incidents');
+      // nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
+      //   commonPages.titleShouldHaveText('Dashboards');
+      
+    })
+    // TODO: Intercept Bell GET request to inject an alert (Watchdog to have it opened in Alert Details page?)
+    // it('Admin perspective - Bell > Alert details > Alerting rule details > Metrics flow', () => {
+    //   cy.visit('/');
+    //   commonPages.clickBellIcon();
+    //   commonPages.bellIconClickAlert('TargetDown');
+    //   commonPages.titleShouldHaveText('TatgetDown')
+    
+    // })
+
+    it('2. Admin perspective - Overview Page > Status - View alerts', () => {
+      cy.visit('/');
+      nav.sidenav.clickNavLink(['Home', 'Overview']);
+      overviewPage.clickStatusViewAlerts();
+      commonPages.titleShouldHaveText('Alerting');
+    });
+    
+    it('3. Admin perspective - Overview Page > Status - View details', () => {
+      cy.visit('/');
+      nav.sidenav.clickNavLink(['Home', 'Overview']);
+      overviewPage.clickStatusViewDetails(0);
+      detailsPage.sectionHeaderShouldExist('Alert details');
+    });
+    
+    it('4. Admin perspective - Cluster Utilization - Metrics', () => {
+      cy.visit('/');
+      nav.sidenav.clickNavLink(['Home', 'Overview']);
+      overviewPage.clickClusterUtilizationViewCPU();
+      commonPages.titleShouldHaveText('Metrics');
+    });
+    
+    
+    it('5. Admin perspective - Alerting > Alerting Details page > Alerting Rule > Metrics', () => {
+      cy.visit('/');
+      cy.log('5.1. use sidebar nav to go to Observe > Alerting');
+      nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+
       commonPages.titleShouldHaveText('Alerting');
       commonPages.projectDropdownShouldNotExist();
       listPage.tabShouldHaveText('Alerts');
@@ -252,7 +259,7 @@ describe('Monitoring: Alerts', () => {
       commonPages.linkShouldExist('Clear all filters');
       listPage.ARRows.shouldBeLoaded();
       
-      cy.log('2.2. filter Alerts and click on Alert');
+      cy.log('5.2. filter Alerts and click on Alert');
       listPage.filter.byName('alerts-tab', `${ALERTNAME}`);
       listPage.ARRows.countShouldBe(1);
       listPage.ARRows.ARShouldBe(`${ALERTNAME}`, `${SEVERITY}`, 1, 'Firing');
@@ -260,7 +267,7 @@ describe('Monitoring: Alerts', () => {
       listPage.ARRows.AShouldBe(`${ALERTNAME}`, `${SEVERITY}`, `${NAMESPACE}`);
       listPage.ARRows.clickAlert();
       
-      cy.log('2.3. click on Alert Details Page');
+      cy.log('5.3. click on Alert Details Page');
       commonPages.titleShouldHaveText(`${ALERTNAME}`);
       commonPages.detailsPage.common(`${ALERTNAME}`, `${SEVERITY}`);
       commonPages.detailsPage.alert(`${ALERTNAME}`);
@@ -270,7 +277,7 @@ describe('Monitoring: Alerts', () => {
         expect(value).to.not.be.empty;
       });
       
-      cy.log('2.4. click on Alert Rule link');
+      cy.log('5.4. click on Alert Rule link');
       detailsPage.clickAlertRule(`${ALERTNAME}`);
       commonPages.titleShouldHaveText(`${ALERTNAME}`);
       commonPages.detailsPage.alertRule;
@@ -280,19 +287,19 @@ describe('Monitoring: Alerts', () => {
         cy.wrap(expText).as('alertExpression');
       });
       
-      cy.log('2.5. click on Alert Details Page');
+      cy.log('5.5. click on Alert Details Page');
       detailsPage.clickAlertDesc(`${ALERT_DESC}`);
       commonPages.titleShouldHaveText(`${ALERTNAME}`);
       commonPages.detailsPage.common(`${ALERTNAME}`, `${SEVERITY}`);
       commonPages.detailsPage.alert(`${ALERTNAME}`);
       
-      cy.log('2.6. click on Inspect on Alert Details Page');
+      cy.log('5.6. click on Inspect on Alert Details Page');
       detailsPage.clickInspectAlertPage();
       
-      cy.log('2.7. Metrics page is loaded');
+      cy.log('5.7. Metrics page is loaded');
       commonPages.titleShouldHaveText('Metrics');
       
-      cy.log('2.8. Assert Expression');
+      cy.log('5.8. Assert Expression');
       cy.get('[class="cm-line"]').should('be.visible');
       cy.get(`@alertExpression`).then((expText) => {
         cy.log(`${expText}`);
@@ -301,6 +308,7 @@ describe('Monitoring: Alerts', () => {
     });
     
     it('6. Admin perspective - Creates and expires a Silence', () => {
+      cy.visit('/');
       // cy.intercept('GET', '/api/alertmanager/api/v2/silences', [
       //   {
       //     id: SILENCE_ID,
@@ -340,19 +348,19 @@ describe('Monitoring: Alerts', () => {
       // cy.intercept('DELETE', '/api/alertmanager/api/v2/silences/*', {});
       
       
-      cy.log('3.1 use sidebar nav to go to Observe > Alerting');
+      cy.log('6.1 use sidebar nav to go to Observe > Alerting');
       nav.sidenav.clickNavLink(['Observe', 'Alerting']);
       listPage.ARRows.shouldBeLoaded();
       
-      cy.log('3.2 filter to Watchdog alert');
+      cy.log('6.2 filter to Watchdog alert');
       listPage.filter.byName('alerts-tab',`${ALERTNAME}`);
       listPage.ARRows.countShouldBe(1);
       
-      cy.log('3.3 silence alert');
+      cy.log('6.3 silence alert');
       listPage.ARRows.expandRow();
       listPage.ARRows.silenceAlert();
       
-      cy.log('3.4 silence alert page');
+      cy.log('6.4 silence alert page');
       commonPages.titleShouldHaveText('Silence alert');
       
       // Launches create silence form
@@ -380,22 +388,22 @@ describe('Monitoring: Alerts', () => {
       silenceAlertPage.clickSubmit();
       
       // After creating the Silence, should be redirected to its details page
-      cy.log('3.5 Assert Silence details page');
+      cy.log('6.5 Assert Silence details page');
       silenceDetailsPage.assertSilenceDetailsPage(`${ALERTNAME}`,'Silence details','alertname=Watchdog');
       
-      cy.log('3.6 Click on Firing alerts');
+      cy.log('6.6 Click on Firing alerts');
       silenceDetailsPage.clickOnFiringAlerts(`${ALERTNAME}`);
       commonPages.titleShouldHaveText(`${ALERTNAME}`);
       detailsPage.sectionHeaderShouldExist('Alert details');
       detailsPage.labelShouldExist('alertname=Watchdog');
       
-      cy.log('3.7 Click on Silenced by');
+      cy.log('6.7 Click on Silenced by');
       detailsPage.clickOnSilencedBy(`${ALERTNAME}`);
       commonPages.titleShouldHaveText(`${ALERTNAME}`);
       detailsPage.sectionHeaderShouldExist('Silence details');
       detailsPage.labelShouldExist('alertname=Watchdog');
       
-      cy.log('3.8 shows the silenced Alert in the Silenced Alerts list');
+      cy.log('6.8 shows the silenced Alert in the Silenced Alerts list');
       nav.sidenav.clickNavLink(['Observe', 'Alerting']);
       nav.tabs.switchTab('Silences');
       silencesListPage.shouldBeLoaded();
@@ -403,19 +411,19 @@ describe('Monitoring: Alerts', () => {
       listPage.filter.byName('silences', `${ALERTNAME}`);
       silencesListPage.rows.SShouldBe(`${ALERTNAME}`, 'Active');
       
-      cy.log('3.9 verify on Alerts list page again');
+      cy.log('6.9 verify on Alerts list page again');
       nav.sidenav.clickNavLink(['Observe', 'Alerting']);
       listPage.filter.clearAllFilters('alerts-tab');
       listPage.filter.selectFilterOption(true,'Silenced', true);
       listPage.filter.byName('alerts-tab', `${ALERTNAME}`);
       listPage.ARRows.ARShouldBe(`${ALERTNAME}`, `${SEVERITY}`, 1, 'Silenced');
       
-      cy.log('3.10 expires the Silence');
+      cy.log('6.10 expires the Silence');
       listPage.ARRows.expandRow();
       listPage.ARRows.clickAlert();
       detailsPage.expireSilence(true);
       
-      cy.log('3.11 verify on Alerts list page again');
+      cy.log('6.11 verify on Alerts list page again');
       nav.sidenav.clickNavLink(['Observe', 'Alerting']);
       listPage.filter.clearAllFilters('alerts-tab');
       listPage.filter.byName('alerts-tab', `${ALERTNAME}`);

@@ -138,7 +138,7 @@ describe('Monitoring: Alerts', () => {
           );
           cy.exec(
             `operator-sdk run bundle --timeout=10m --namespace ${MCP.namespace} ${Cypress.env('CUSTOM_COO_BUNDLE_IMAGE')} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} --verbose `,
-            { timeout: 6 * 60 * 1000 },
+            { timeout: 6 * 60 * 10000 },
           );
          } else if (Cypress.env('FBC_STAGE_COO_IMAGE')) {
           cy.log('FBC_COO_IMAGE is set. COO operator will be installed from FBC image.');
