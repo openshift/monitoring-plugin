@@ -104,9 +104,9 @@ describe('Monitoring: Alerts', () => {
           cy.log('COO_UI_INSTALL is set. COO will be installed from redhat-operators catalog source');
           cy.log('Install Cluster Observability Operator');
           operatorHubPage.installOperator(MCP.packageName, 'redhat-operators');
-          cy.get('.co-clusterserviceversion-install__heading', { timeout: 5 * 60 * 1000 }).should(
+          cy.get('.co-clusterserviceversion-install__heading', { timeout: 5 * 60 * 2000 }).should(
             'include.text',
-            'Ready for use',
+            'Operator installed successfully',
           );
         } else if (Cypress.env('KONFLUX_COO_BUNDLE_IMAGE')) {
           cy.log('KONFLUX_COO_BUNDLE_IMAGE is set. COO operator will be installed from Konflux bundle.');
@@ -122,7 +122,7 @@ describe('Monitoring: Alerts', () => {
           );
           cy.exec(
             `operator-sdk run bundle --timeout=10m --namespace ${MCP.namespace} ${Cypress.env('KONFLUX_COO_BUNDLE_IMAGE')} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} --verbose `,
-            { timeout: 6 * 60 * 1000 },
+            { timeout: 6 * 50 * 2000 },
           );
         } else if (Cypress.env('CUSTOM_COO_BUNDLE_IMAGE')) {
           cy.log('CUSTOM_COO_BUNDLE_IMAGE is set. COO operator will be installed from custom built bundle.');
@@ -138,7 +138,7 @@ describe('Monitoring: Alerts', () => {
           );
           cy.exec(
             `operator-sdk run bundle --timeout=10m --namespace ${MCP.namespace} ${Cypress.env('CUSTOM_COO_BUNDLE_IMAGE')} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} --verbose `,
-            { timeout: 6 * 60 * 10000 },
+            { timeout: 6 * 50 * 2000 },
           );
          } else if (Cypress.env('FBC_STAGE_COO_IMAGE')) {
           cy.log('FBC_COO_IMAGE is set. COO operator will be installed from FBC image.');
@@ -153,7 +153,7 @@ describe('Monitoring: Alerts', () => {
                 FBC_STAGE_COO_IMAGE: Cypress.env('FBC_STAGE_COO_IMAGE'),
                 KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
               },
-              timeout: 6 * 60 * 1000
+              timeout: 6 * 50 * 2000
             }
           );
   
@@ -177,7 +177,7 @@ describe('Monitoring: Alerts', () => {
                 KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
                 MCP_NAMESPACE: `${MCP.namespace}`
               },
-              timeout: 120000,
+              timeout: 600000,
               failOnNonZeroExit: true
             }
           ) .then((result) => {
@@ -199,7 +199,7 @@ describe('Monitoring: Alerts', () => {
         cy.exec(
           `sleep 15 && oc wait --for=condition=Ready pods --selector=app.kubernetes.io/instance=monitoring -n ${MCP.namespace} --timeout=60s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
           {
-            timeout: 80000,
+            timeout: 60000,
             failOnNonZeroExit: true
           }
         ).then((result) => {

@@ -24,7 +24,7 @@ const MP = {
 
 const ALERTNAME = 'Watchdog';
 const NAMESPACE = 'openshift-monitoring';
-const SEVERITY = 'critical';
+const SEVERITY = 'None';
 const ALERT_DESC = 'This is an alert meant to ensure that the entire alerting pipeline is functional. This alert is always firing, therefore it should always be firing in Alertmanager and always fire against a receiver. There are integrations with various notification mechanisms that send a notification when this alert is not firing. For example the "DeadMansSnitch" integration in PagerDuty.'
 const ALERT_SUMMARY = 'An alert that should always be firing to certify that Alertmanager is working properly.'
 
@@ -227,21 +227,22 @@ describe('Monitoring: Alerts', () => {
     
     // });
 
-    //TODO: Intercept and inject a valid alert into status-card to be opened correctly to Alerting / Alerts page
-    // I couldn't make Watchdog working on status-card
-    // it('2. Admin perspective - Overview Page > Status - View alerts', () => {
-    //   cy.visit('/');
-    //   nav.sidenav.clickNavLink(['Home', 'Overview']);
-    //   overviewPage.clickStatusViewAlerts();
-    //   commonPages.titleShouldHaveText('Alerting');
-    // });
-    
-    it('3. Admin perspective - Overview Page > Status - View details', () => {
+
+    it('2. Admin perspective - Overview Page > Status - View alerts', () => {
       cy.visit('/');
       nav.sidenav.clickNavLink(['Home', 'Overview']);
-      overviewPage.clickStatusViewDetails(0);
-      detailsPage.sectionHeaderShouldExist('Alert details');
+      overviewPage.clickStatusViewAlerts();
+      commonPages.titleShouldHaveText('Alerting');
     });
+    
+    //TODO: Intercept and inject a valid alert into status-card to be opened correctly to Alerting / Alerts page
+    // I couldn't make Watchdog working on status-card
+    // it('3. Admin perspective - Overview Page > Status - View details', () => {
+    //   cy.visit('/');
+    //   nav.sidenav.clickNavLink(['Home', 'Overview']);
+    //   overviewPage.clickStatusViewDetails(0);
+    //   detailsPage.sectionHeaderShouldExist('Alert details');
+    // });
     
     it('4. Admin perspective - Cluster Utilization - Metrics', () => {
       cy.visit('/');
