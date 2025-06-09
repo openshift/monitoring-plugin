@@ -15,7 +15,7 @@ export const overviewPage = {
 
   clickStatusViewDetails: (position: number) => {
     cy.log('overviewPage.clickStatusViewAlerts');
-    cy.byClass('co-status-card__alert-item-more').eq(position).should('be.visible').click();
+    cy.byClass('co-status-card__alert-item-more').contains('View details').eq(position).should('be.visible').click();
   },
 
   clickClusterUtilizationViewCPU: () => {
