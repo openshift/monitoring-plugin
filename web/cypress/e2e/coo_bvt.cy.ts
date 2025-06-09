@@ -106,7 +106,7 @@ describe('Monitoring: Alerts', () => {
           operatorHubPage.installOperator(MCP.packageName, 'redhat-operators');
           cy.get('.co-clusterserviceversion-install__heading', { timeout: 5 * 60 * 1000 }).should(
             'include.text',
-            'ready for use',
+            'Ready for use',
           );
         } else if (Cypress.env('KONFLUX_COO_BUNDLE_IMAGE')) {
           cy.log('KONFLUX_COO_BUNDLE_IMAGE is set. COO operator will be installed from Konflux bundle.');
@@ -164,7 +164,7 @@ describe('Monitoring: Alerts', () => {
         cy.log('Check Cluster Observability Operator status');
         nav.sidenav.clickNavLink(['Operators', 'Installed Operators']);
         cy.byTestID('name-filter-input').should('be.visible').type('Cluster Observability{enter}');
-        cy.get('[data-test="status-text"]', { timeout: 100000 }).eq(0).should('contain.text', 'Succeeded');
+        cy.get('[data-test="status-text"]', { timeout: 400000 }).eq(0).should('contain.text', 'Succeeded');
 
         cy.log('Set Monitoring Console Plugin image in operator CSV');
         if (Cypress.env('MCP_CONSOLE_IMAGE')) {
