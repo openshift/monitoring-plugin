@@ -3,7 +3,7 @@
 # Generate a random filename
 RANDOM_FILE="/tmp/coo_monitoring_csv_$(date +%s%N).yaml"
 
-COO_CSV_NAME=$(oc get csv --kubeconfig "${KUBECONFIG}" --namespace="${MXP_NAMESPACE}" | grep "cluster-observability-operator" | awk '{print $1}')
+COO_CSV_NAME=$(oc get csv --kubeconfig "${KUBECONFIG}" --namespace="${MCP_NAMESPACE}" | grep "cluster-observability-operator" | awk '{print $1}')
 
 oc get csv "${COO_CSV_NAME}" -n "${MCP_NAMESPACE}" -o yaml > "${RANDOM_FILE}" --kubeconfig "${KUBECONFIG}"
 
