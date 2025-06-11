@@ -196,7 +196,7 @@ describe('Monitoring: Alerts', () => {
                 KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
                 MCP_NAMESPACE: `${MCP.namespace}`
               },
-              timeout: installTimeout,
+              timeout: readyTimeout,
               failOnNonZeroExit: true
             }
           ) .then((result) => {
@@ -247,7 +247,7 @@ describe('Monitoring: Alerts', () => {
                 KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
                 MP_NAMESPACE: `${MP.namespace}`
               },
-              timeout: 120000,
+              timeout: readyTimeout,
               failOnNonZeroExit: true
             }
           ) .then((result) => {

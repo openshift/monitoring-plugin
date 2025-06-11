@@ -18,6 +18,8 @@ const MP = {
   operatorName: 'Cluster Monitoring Operator',
 };
 
+const readyTimeout = 120000;
+
 const ALERTNAME = 'Watchdog';
 const NAMESPACE = 'openshift-monitoring';
 const SEVERITY = 'None';
@@ -104,7 +106,7 @@ describe('Monitoring: Alerts', () => {
             KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
             MP_NAMESPACE: `${MP.namespace}`
           },
-          timeout: 120000,
+          timeout: readyTimeout,
           failOnNonZeroExit: true
         }
       ) .then((result) => {
@@ -127,7 +129,7 @@ describe('Monitoring: Alerts', () => {
             KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
             MP_NAMESPACE: `${MP.namespace}`
           },
-          timeout: 120000,
+          timeout: readyTimeout,
           failOnNonZeroExit: true
         }
       ) .then((result) => {
