@@ -16,10 +16,6 @@ import common = require('mocha/lib/interfaces/common');
 const MP = {
   namespace: 'openshift-monitoring',
   operatorName: 'Cluster Monitoring Operator',
-  config: {
-    kind: 'UIPlugin',
-    name: 'monitoring',
-  },
 };
 
 const ALERTNAME = 'Watchdog';
@@ -66,59 +62,7 @@ function getTextFromElement(selector: string) {
 
 describe('Monitoring: Alerts', () => {
   
-  before(() => {
-    cy.intercept('GET', '/api/prometheus/api/v1/rules?', {
-        data: {
-          groups: [
-            {
-              file: 'dummy-file',
-              interval: 30,
-              name: 'general.rules',
-              rules: [
-                {
-                  state: 'firing',
-                  name: `${ALERTNAME}`,
-                  query: 'vector(1)',
-                  duration: 0,
-                  labels: {
-                    // namespace: `${NAMESPACE}`,
-                    prometheus: 'openshift-monitoring/k8s',
-                    severity: `${SEVERITY}`,
-                  },
-                  annotations: {
-                    description:
-                    `${ALERT_DESC}`,
-                    summary:
-                    `${ALERT_SUMMARY}`,
-                  },
-                  alerts: [
-                    {
-                      labels: {
-                        alertname: `${ALERTNAME}`,
-                        namespace: `${NAMESPACE}`,
-                        severity: `${SEVERITY}`,
-                      },
-                      annotations: {
-                        description:
-                        `${ALERT_DESC}`,
-                        summary:
-                        `${ALERT_SUMMARY}`,
-                      },
-                      state: 'firing',
-                      activeAt: '2023-04-10T12:00:00.123456789Z',
-                      value: '1e+00',
-                      'partialResponseStrategy': 'WARN',
-                    },
-                  ],
-                  health: 'ok',
-                  type: 'alerting',
-                },
-              ],
-            },
-          ],
-        },
-      });
-      
+  before(() => {      
     cy.adminCLI(
       `oc adm policy add-cluster-role-to-user cluster-admin ${Cypress.env('LOGIN_USERNAME')}`,
     );
@@ -149,8 +93,6 @@ describe('Monitoring: Alerts', () => {
       );
     });
 
-     
-
     cy.log('Set Monitoring Plugin image in operator CSV');
     if (Cypress.env('MP_IMAGE')) {
       cy.log('MP_IMAGE is set. the image will be patched in CMO operator CSV');
@@ -172,9 +114,7 @@ describe('Monitoring: Alerts', () => {
     } else {
       cy.log('MP_IMAGE is NOT set. Skipping patching the image in CMO operator CSV.');
     }
-
-    });
-    
+  }); 
     
    after(() => {
     if (Cypress.env('MP_IMAGE')) {
@@ -198,7 +138,6 @@ describe('Monitoring: Alerts', () => {
       cy.log('MP_IMAGE is NOT set. Skipping reverting the image in CMO operator CSV.');
     }});
     
-    
     it('1. Admin perspective - Observe Menu', () => {
       cy.visit('/');
       cy.log('Admin perspective - Observe Menu and verify all submenus');
@@ -212,10 +151,6 @@ describe('Monitoring: Alerts', () => {
       commonPages.cmo_titleShouldHaveText('Metrics targets');
       nav.sidenav.clickNavLink(['Administration', 'Cluster Settings']);
       commonPages.detailsPage.administration_clusterSettings();
-      // nav.sidenav.clickNavLink(['Observe', 'Incidents']);
-      //   commonPages.titleShouldHaveText('Incidents');
-      // nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
-      //   commonPages.titleShouldHaveText('Dashboards');
       
     });
     // TODO: Intercept Bell GET request to inject an alert (Watchdog to have it opened in Alert Details page?)
@@ -256,7 +191,6 @@ describe('Monitoring: Alerts', () => {
       cy.visit('/');
       cy.log('5.1. use sidebar nav to go to Observe > Alerting');
       nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-
       commonPages.titleShouldHaveText('Alerting');
       commonPages.projectDropdownShouldNotExist();
       listPage.tabShouldHaveText('Alerts');
@@ -357,6 +291,59 @@ describe('Monitoring: Alerts', () => {
       
       cy.log('6.1 use sidebar nav to go to Observe > Alerting');
       nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+
+      cy.intercept('GET', '/api/prometheus/api/v1/rules?', {
+        data: {
+          groups: [
+            {
+              file: 'dummy-file',
+              interval: 30,
+              name: 'general.rules',
+              rules: [
+                {
+                  state: 'firing',
+                  name: `${ALERTNAME}`,
+                  query: 'vector(1)',
+                  duration: 0,
+                  labels: {
+                    // namespace: `${NAMESPACE}`,
+                    prometheus: 'openshift-monitoring/k8s',
+                    severity: `${SEVERITY}`,
+                  },
+                  annotations: {
+                    description:
+                    `${ALERT_DESC}`,
+                    summary:
+                    `${ALERT_SUMMARY}`,
+                  },
+                  alerts: [
+                    {
+                      labels: {
+                        alertname: `${ALERTNAME}`,
+                        namespace: `${NAMESPACE}`,
+                        severity: `${SEVERITY}`,
+                      },
+                      annotations: {
+                        description:
+                        `${ALERT_DESC}`,
+                        summary:
+                        `${ALERT_SUMMARY}`,
+                      },
+                      state: 'firing',
+                      activeAt: '2023-04-10T12:00:00.123456789Z',
+                      value: '1e+00',
+                      'partialResponseStrategy': 'WARN',
+                    },
+                  ],
+                  health: 'ok',
+                  type: 'alerting',
+                },
+              ],
+            },
+          ],
+        },
+      });
+
       listPage.ARRows.shouldBeLoaded();
       
       cy.log('6.2 filter to Watchdog alert');

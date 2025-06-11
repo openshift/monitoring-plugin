@@ -22,12 +22,19 @@ const MCP = {
   },
 };
 
+const MP = {
+  namespace: 'openshift-monitoring',
+  operatorName: 'Cluster Monitoring Operator',
+};
+
 const ALERTNAME = 'Watchdog';
 const NAMESPACE = 'openshift-monitoring';
 const SEVERITY = 'None';
 const ALERT_DESC = 'This is an alert meant to ensure that the entire alerting pipeline is functional. This alert is always firing, therefore it should always be firing in Alertmanager and always fire against a receiver. There are integrations with various notification mechanisms that send a notification when this alert is not firing. For example the "DeadMansSnitch" integration in PagerDuty.'
 const ALERT_SUMMARY = 'An alert that should always be firing to certify that Alertmanager is working properly.'
 
+const installTimeout = 600000; //10min
+const readyTimeout = 300000; //3min
 
 const shouldBeWatchdogAlertDetailsPage = () => {
   cy.byTestID('resource-title').contains('Watchdog');
@@ -65,8 +72,9 @@ function getTextFromElement(selector: string) {
 };
 
 describe('Monitoring: Alerts', () => {
-
+  
   before(() => {
+      
     cy.log('Before all');
     cy.adminCLI(
           `oc adm policy add-cluster-role-to-user cluster-admin ${Cypress.env('LOGIN_USERNAME')}`,
@@ -104,7 +112,7 @@ describe('Monitoring: Alerts', () => {
           cy.log('COO_UI_INSTALL is set. COO will be installed from redhat-operators catalog source');
           cy.log('Install Cluster Observability Operator');
           operatorHubPage.installOperator(MCP.packageName, 'redhat-operators');
-          cy.get('.co-clusterserviceversion-install__heading', { timeout: 5 * 60 * 2000 }).should(
+          cy.get('.co-clusterserviceversion-install__heading', { timeout: installTimeout }).should(
             'include.text',
             'Operator installed successfully',
           );
@@ -122,7 +130,7 @@ describe('Monitoring: Alerts', () => {
           );
           cy.exec(
             `operator-sdk run bundle --timeout=10m --namespace ${MCP.namespace} ${Cypress.env('KONFLUX_COO_BUNDLE_IMAGE')} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} --verbose `,
-            { timeout: 6 * 50 * 2000 },
+            { timeout: installTimeout },
           );
         } else if (Cypress.env('CUSTOM_COO_BUNDLE_IMAGE')) {
           cy.log('CUSTOM_COO_BUNDLE_IMAGE is set. COO operator will be installed from custom built bundle.');
@@ -138,7 +146,7 @@ describe('Monitoring: Alerts', () => {
           );
           cy.exec(
             `operator-sdk run bundle --timeout=10m --namespace ${MCP.namespace} ${Cypress.env('CUSTOM_COO_BUNDLE_IMAGE')} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} --verbose `,
-            { timeout: 6 * 50 * 2000 },
+            { timeout: installTimeout },
           );
          } else if (Cypress.env('FBC_STAGE_COO_IMAGE')) {
           cy.log('FBC_COO_IMAGE is set. COO operator will be installed from FBC image.');
@@ -153,7 +161,7 @@ describe('Monitoring: Alerts', () => {
                 FBC_STAGE_COO_IMAGE: Cypress.env('FBC_STAGE_COO_IMAGE'),
                 KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
               },
-              timeout: 6 * 50 * 2000
+              timeout: installTimeout
             }
           );
   
@@ -162,9 +170,20 @@ describe('Monitoring: Alerts', () => {
         }
 
         cy.log('Check Cluster Observability Operator status');
+        cy.exec(
+          `sleep 15 && oc wait --for=condition=Ready pods --selector=app.kubernetes.io/name=observability-operator -n ${MCP.namespace} --timeout=60s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+          {
+            timeout: readyTimeout,
+            failOnNonZeroExit: true
+          }
+        ).then((result) => {
+          expect(result.code).to.eq(0);
+          cy.log(`Observability-operator pod is now running in namespace: ${MCP.namespace}`);
+        });    
+
         nav.sidenav.clickNavLink(['Operators', 'Installed Operators']);
         cy.byTestID('name-filter-input').should('be.visible').type('Cluster Observability{enter}');
-        cy.get('[data-test="status-text"]', { timeout: 400000 }).eq(0).should('contain.text', 'Succeeded');
+        cy.get('[data-test="status-text"]', {timeout: installTimeout}).eq(0).should('contain.text', 'Succeeded', {timeout: installTimeout});
 
         cy.log('Set Monitoring Console Plugin image in operator CSV');
         if (Cypress.env('MCP_CONSOLE_IMAGE')) {
@@ -177,7 +196,7 @@ describe('Monitoring: Alerts', () => {
                 KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
                 MCP_NAMESPACE: `${MCP.namespace}`
               },
-              timeout: 600000,
+              timeout: installTimeout,
               failOnNonZeroExit: true
             }
           ) .then((result) => {
@@ -199,14 +218,14 @@ describe('Monitoring: Alerts', () => {
         cy.exec(
           `sleep 15 && oc wait --for=condition=Ready pods --selector=app.kubernetes.io/instance=monitoring -n ${MCP.namespace} --timeout=60s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
           {
-            timeout: 60000,
+            timeout: readyTimeout,
             failOnNonZeroExit: true
           }
         ).then((result) => {
           expect(result.code).to.eq(0);
           cy.log(`Monitoring plugin pod is now running in namespace: ${MCP.namespace}`);
         });    
-        cy.get('.pf-v5-c-alert, .pf-v6-c-alert', { timeout: 120000 })
+        cy.get('.pf-v5-c-alert, .pf-v6-c-alert', { timeout: readyTimeout })
         .contains('Web console update is available')
         .then(($alert) => {
           // If the alert is found, assert that it exists
@@ -217,59 +236,30 @@ describe('Monitoring: Alerts', () => {
           cy.url().should('include', '/monitoring/v2/dashboards');
         });
 
-         cy.intercept('GET', '/api/prometheus/api/v1/rules?', {
-      data: {
-        groups: [
-          {
-            file: 'dummy-file',
-            interval: 30,
-            name: 'general.rules',
-            rules: [
-              {
-                state: 'firing',
-                name: `${ALERTNAME}`,
-                query: 'vector(1)',
-                duration: 0,
-                labels: {
-                  namespace: `${NAMESPACE}`,
-                  prometheus: 'openshift-monitoring/k8s',
-                  severity: `${SEVERITY}`,
-                },
-                annotations: {
-                  description:
-                    `${ALERT_DESC}`,
-                  summary:
-                    `${ALERT_SUMMARY}`,
-                },
-                alerts: [
-                  {
-                    labels: {
-                      alertname: `${ALERTNAME}`,
-                      namespace: `${NAMESPACE}`,
-                      severity: `${SEVERITY}`,
-                    },
-                    annotations: {
-                      description:
-                        `${ALERT_DESC}`,
-                      summary:
-                        `${ALERT_SUMMARY}`,
-                    },
-                    state: 'firing',
-                    activeAt: '2023-04-10T12:00:00.123456789Z',
-                    value: '1e+00',
-                  },
-                ],
-                health: 'ok',
-                type: 'alerting',
+        cy.log('Set Monitoring Plugin image in operator CSV');
+        if (Cypress.env('MP_IMAGE')) {
+          cy.log('MP_IMAGE is set. the image will be patched in CMO operator CSV');
+          cy.exec(
+            './cypress/fixtures/cmo/update-monitoring-plugin-image.sh',
+            {
+              env: {
+                MP_IMAGE: Cypress.env('MP_IMAGE'),
+                KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
+                MP_NAMESPACE: `${MP.namespace}`
               },
-            ],
-          },
-        ],
-      },
-    });
+              timeout: 120000,
+              failOnNonZeroExit: true
+            }
+          ) .then((result) => {
+            expect(result.code).to.eq(0);
+            cy.log(`CMO CSV updated successfully with Monitoring Plugin image: ${result.stdout}`);
+          });
+        } else {
+          cy.log('MP_IMAGE is NOT set. Skipping patching the image in CMO operator CSV.');
+        }
+        
+    });   
 
-
-  });
 
   after(() => {
     if (Cypress.env('SKIP_COO_INSTALL')) {
@@ -310,6 +300,7 @@ describe('Monitoring: Alerts', () => {
   });
 
   it('1. Admin perspective - Observe Menu', () => {
+
     cy.visit('/');
     cy.log('Admin perspective - Observe Menu and verify all submenus');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
@@ -402,7 +393,6 @@ describe('Monitoring: Alerts', () => {
 
   
   it('3. Admin perspective - Creates and expires a Silence', () => {
-    cy.visit('/');
     // cy.intercept('GET', '/api/alertmanager/api/v2/silences', [
     //   {
     //     id: SILENCE_ID,
@@ -440,10 +430,62 @@ describe('Monitoring: Alerts', () => {
     // cy.intercept('POST', '/api/alertmanager/api/v2/silences', { silenceID: SILENCE_ID });
 
     // cy.intercept('DELETE', '/api/alertmanager/api/v2/silences/*', {});
-
-    
+    cy.visit('/');
     cy.log('3.1 use sidebar nav to go to Observe > Alerting');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+
+    cy.intercept('GET', '/api/prometheus/api/v1/rules?', {
+        data: {
+          groups: [
+            {
+              file: 'dummy-file',
+              interval: 30,
+              name: 'general.rules',
+              rules: [
+                {
+                  state: 'firing',
+                  name: `${ALERTNAME}`,
+                  query: 'vector(1)',
+                  duration: 0,
+                  labels: {
+                    // namespace: `${NAMESPACE}`,
+                    prometheus: 'openshift-monitoring/k8s',
+                    severity: `${SEVERITY}`,
+                  },
+                  annotations: {
+                    description:
+                    `${ALERT_DESC}`,
+                    summary:
+                    `${ALERT_SUMMARY}`,
+                  },
+                  alerts: [
+                    {
+                      labels: {
+                        alertname: `${ALERTNAME}`,
+                        namespace: `${NAMESPACE}`,
+                        severity: `${SEVERITY}`,
+                      },
+                      annotations: {
+                        description:
+                        `${ALERT_DESC}`,
+                        summary:
+                        `${ALERT_SUMMARY}`,
+                      },
+                      state: 'firing',
+                      activeAt: '2023-04-10T12:00:00.123456789Z',
+                      value: '1e+00',
+                      'partialResponseStrategy': 'WARN',
+                    },
+                  ],
+                  health: 'ok',
+                  type: 'alerting',
+                },
+              ],
+            },
+          ],
+        },
+      });
+
     listPage.ARRows.shouldBeLoaded();
 
     cy.log('3.2 filter to Watchdog alert');
