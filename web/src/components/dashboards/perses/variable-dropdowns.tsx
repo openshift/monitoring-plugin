@@ -1,5 +1,5 @@
 import * as _ from 'lodash-es';
-import { Tooltip, SelectOption, Stack, StackItem } from '@patternfly/react-core';
+import { Tooltip, SelectOption, Stack, StackItem, SplitItem, Split } from '@patternfly/react-core';
 import {
   DEFAULT_ALL_VALUE,
   ListVariableDefinition,
@@ -144,11 +144,13 @@ export const AllVariableDropdowns: React.FC = () => {
   }
 
   return (
-    <>
+    <Split hasGutter isWrappable>
       {variableDefinitions.map((v) => (
-        <VariableComponent key={v.spec.name} name={v.spec.name} />
+        <SplitItem key={v.spec.name + '-split-item'}>
+          <VariableComponent key={v.spec.name} name={v.spec.name} />
+        </SplitItem>
       ))}
-    </>
+    </Split>
   );
 };
 
