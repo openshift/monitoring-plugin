@@ -10,7 +10,16 @@ import { PollIntervalDropdown, TimespanDropdown } from './time-dropdowns';
 import { CombinedDashboardMetadata } from '../perses/hooks/useDashboardsData';
 import { AllVariableDropdowns } from '../perses/variable-dropdowns';
 import { useIsPerses } from './useIsPerses';
-import { Divider, PageSection, Split, SplitItem, Title } from '@patternfly/react-core';
+import {
+  Divider,
+  PageSection,
+  Split,
+  SplitItem,
+  Stack,
+  StackItem,
+  Title,
+} from '@patternfly/react-core';
+import { TimeRangeControls } from '@perses-dev/plugin-system';
 
 const HeaderTop: React.FC = React.memo(() => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -23,10 +32,8 @@ const HeaderTop: React.FC = React.memo(() => {
       <SplitItem>
         <Split hasGutter isWrappable>
           <SplitItem>
-            <TimespanDropdown />
-          </SplitItem>
-          <SplitItem>
-            <PollIntervalDropdown />
+            <b> Time Range Controls </b>
+            <TimeRangeControls />
           </SplitItem>
         </Split>
       </SplitItem>
@@ -60,35 +67,45 @@ const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = ({
       )}
       <PageSection hasBodyWrapper={false}>
         {perspective !== 'dev' && <HeaderTop />}
-        <Split hasGutter isWrappable>
+        <Stack hasGutter>
           {!_.isEmpty(boardItems) && (
-            <SplitItem>
+            <StackItem>
               <DashboardDropdown
                 items={boardItems}
                 onChange={changeBoard}
                 selectedKey={dashboardName}
               />
-            </SplitItem>
+            </StackItem>
           )}
           {isPerses ? (
-            <AllVariableDropdowns key={dashboardName} />
+            <StackItem>
+              <AllVariableDropdowns key={dashboardName} />
+            </StackItem>
           ) : (
-            <LegacyDashboardsAllVariableDropdowns key={dashboardName} />
+            <StackItem>
+              <LegacyDashboardsAllVariableDropdowns key={dashboardName} />
+            </StackItem>
           )}
           {perspective === 'dev' ? (
-            <>
-              <SplitItem isFilled />
-              <SplitItem>
-                <TimespanDropdown />
-              </SplitItem>
-              <SplitItem>
-                <PollIntervalDropdown />
-              </SplitItem>
-            </>
+            <StackItem>
+              <Split hasGutter>
+                <SplitItem isFilled />
+                <SplitItem>
+                  <TimespanDropdown />
+                </SplitItem>
+                <SplitItem>
+                  <PollIntervalDropdown />
+                </SplitItem>
+              </Split>
+            </StackItem>
           ) : (
-            <SplitItem isFilled />
+            <StackItem>
+              <Split>
+                <SplitItem isFilled />
+              </Split>
+            </StackItem>
           )}
-        </Split>
+        </Stack>
       </PageSection>
       <Divider />
       {children}
