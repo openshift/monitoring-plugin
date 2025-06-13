@@ -1,10 +1,10 @@
 import { Overview } from '@openshift-console/dynamic-plugin-sdk';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as React from 'react';
+import { LoadingBox } from '../../console/console-shared/src/components/loading/LoadingBox';
 import { QueryParamProvider } from 'use-query-params';
 import { ReactRouter5Adapter } from 'use-query-params/adapters/react-router-5';
 import withFallback from '../../console/console-shared/error/fallbacks/withFallback';
-import { LoadingInline } from '../../console/console-shared/src/components/loading/LoadingInline';
 import DashboardSkeleton from '../shared/dashboard-skeleton';
 import { PersesContext } from '../shared/useIsPerses';
 import { PersesWrapper } from './PersesWrapper';
@@ -34,7 +34,7 @@ const MonitoringDashboardsPage_: React.FC = () => {
   } = useDashboardsData();
 
   if (combinedIntialLoad) {
-    return <LoadingInline />;
+    return <LoadingBox />;
   }
 
   if (!activeProject) {
@@ -43,22 +43,24 @@ const MonitoringDashboardsPage_: React.FC = () => {
   }
 
   return (
-    <PersesWrapper project={activeProject}>
+    <>
       <ProjectBar activeProject={activeProject} setActiveProject={setActiveProject} />
-      {activeProjectDashboardsMetadata.length === 0 ? (
-        <DashboardEmptyState />
-      ) : (
-        <DashboardSkeleton
-          boardItems={activeProjectDashboardsMetadata}
-          changeBoard={changeBoard}
-          dashboardName={dashboardName}
-        >
-          <Overview>
-            <PersesBoard />
-          </Overview>
-        </DashboardSkeleton>
-      )}
-    </PersesWrapper>
+      <PersesWrapper project={activeProject}>
+        {activeProjectDashboardsMetadata.length === 0 ? (
+          <DashboardEmptyState />
+        ) : (
+          <DashboardSkeleton
+            boardItems={activeProjectDashboardsMetadata}
+            changeBoard={changeBoard}
+            dashboardName={dashboardName}
+          >
+            <Overview>
+              <PersesBoard />
+            </Overview>
+          </DashboardSkeleton>
+        )}
+      </PersesWrapper>
+    </>
   );
 };
 
