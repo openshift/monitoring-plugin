@@ -50,7 +50,7 @@ export const useDashboardsData = () => {
       const displayName = persesDashboard?.spec?.display?.name || name;
 
       return {
-        name: persesDashboard?.metadata?.name,
+        name,
         project: persesDashboard?.metadata?.project,
         tags: ['perses'],
         title: displayName,
