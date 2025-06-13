@@ -1,4 +1,5 @@
-import React, { useMemo } from 'react';
+import { ThemeOptions, ThemeProvider } from '@mui/material';
+import { ChartThemeColor, getThemeColors } from '@patternfly/react-charts/victory';
 import {
   ChartsProvider,
   generateChartsTheme,
@@ -7,7 +8,19 @@ import {
   SnackbarProvider,
   typography,
 } from '@perses-dev/components';
-import { ThemeProvider } from '@mui/material';
+import {
+  BuiltinVariableDefinition,
+  DashboardResource,
+  Definition,
+  DurationString,
+  UnknownSpec,
+} from '@perses-dev/core';
+import {
+  DashboardProvider,
+  DatasourceStoreProvider,
+  VariableProviderWithQueryParams,
+} from '@perses-dev/dashboards';
+import panelsResource from '@perses-dev/panels-plugin/plugin.json';
 import {
   DataQueriesProvider,
   dynamicImportPluginLoader,
@@ -16,30 +29,19 @@ import {
   TimeRangeProvider,
   usePluginBuiltinVariableDefinitions,
 } from '@perses-dev/plugin-system';
-import {
-  BuiltinVariableDefinition,
-  Definition,
-  DurationString,
-  DashboardResource,
-  UnknownSpec,
-} from '@perses-dev/core';
-import panelsResource from '@perses-dev/panels-plugin/plugin.json';
 import prometheusResource from '@perses-dev/prometheus-plugin/plugin.json';
-import {
-  DashboardProvider,
-  DatasourceStoreProvider,
-  VariableProviderWithQueryParams,
-} from '@perses-dev/dashboards';
-import { ChartThemeColor, getThemeColors } from '@patternfly/react-charts/victory';
-import { usePatternFlyTheme } from '../../hooks/usePatternflyTheme';
-import { CachedDatasourceAPI } from './perses/datasource-api';
-import { OcpDatasourceApi } from './datasource-api';
-import { PERSES_PROXY_BASE_PATH, useFetchPersesDashboard } from './perses-client';
-import { usePersesTimeRange } from './hooks/usePersesTimeRange';
-import { usePersesRefreshInterval } from './hooks/usePersesRefreshInterval';
-import { QueryParams } from '../../query-params';
-import { StringParam, useQueryParam } from 'use-query-params';
+import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { StringParam, useQueryParam } from 'use-query-params';
+import { usePatternFlyTheme } from '../../hooks/usePatternflyTheme';
+import { QueryParams } from '../../query-params';
+import { OcpDatasourceApi } from './datasource-api';
+import { usePersesRefreshInterval } from './hooks/usePersesRefreshInterval';
+import { usePersesTimeRange } from './hooks/usePersesTimeRange';
+import { PERSES_PROXY_BASE_PATH, useFetchPersesDashboard } from './perses-client';
+import { CachedDatasourceAPI } from './perses/datasource-api';
+
+import { t_color_gray_95, t_color_white } from '@patternfly/react-tokens';
 
 // Override eChart defaults with PatternFly colors.
 const patternflyBlue300 = '#2b9af3';
@@ -77,18 +79,56 @@ interface PersesWrapperProps {
   project: string;
 }
 
+const mapPatterflyThemeToMUI = (theme: 'light' | 'dark'): ThemeOptions => {
+  return {
+    typography: {
+      fontFamily: 'var(--pf-t--global--font--family--body)',
+      ...typography,
+    },
+    components: {
+      MuiIconButton: {
+        styleOverrides: {
+          root: {
+            color: theme === 'dark' ? t_color_white.value : t_color_gray_95.value,
+          },
+        },
+      },
+    },
+    palette: {
+      primary: {
+        main: theme === 'dark' ? t_color_white.value : t_color_gray_95.value,
+      },
+      background: {
+        navigation: 'var(--pf-t--global--background--color--primary--default)',
+        default: 'var(--pf-t--global--background--color--primary--default)',
+        paper: 'var(--pf-t--global--background--color--primary--default)',
+        code: 'var(--pf-t--global--background--color--primary--default)',
+        tooltip: 'var(--pf-t--global--background--color--primary--default)',
+        lighter: 'var(--pf-t--global--background--color--primary--default)',
+        border: 'var(--pf-t--global--background--color--primary--default)',
+      },
+      text: {
+        navigation: theme === 'dark' ? t_color_white.value : t_color_gray_95.value,
+        accent: theme === 'dark' ? t_color_white.value : t_color_gray_95.value,
+        primary: theme === 'dark' ? t_color_white.value : t_color_gray_95.value,
+        secondary: theme === 'dark' ? t_color_white.value : t_color_gray_95.value,
+        disabled: theme === 'dark' ? t_color_white.value : t_color_gray_95.value,
+        link: theme === 'dark' ? t_color_white.value : t_color_gray_95.value,
+        linkHover: theme === 'dark' ? t_color_white.value : t_color_gray_95.value,
+      },
+    },
+  };
+};
+
 export function PersesWrapper({ children, project }: PersesWrapperProps) {
   const { theme } = usePatternFlyTheme();
   const [dashboardName] = useQueryParam(QueryParams.Dashboard, StringParam);
 
   const muiTheme = getTheme(theme, {
-    typography: {
-      ...typography,
-      fontFamily: 'var(--pf-t--global--font--family--body)',
-    },
     shape: {
-      borderRadius: 0,
+      borderRadius: 6,
     },
+    ...mapPatterflyThemeToMUI(theme),
   });
 
   const chartsTheme: PersesChartsTheme = generateChartsTheme(muiTheme, {
