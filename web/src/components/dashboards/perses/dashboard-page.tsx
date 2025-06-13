@@ -3,7 +3,10 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as React from 'react';
 import { QueryParamProvider } from 'use-query-params';
 import { ReactRouter5Adapter } from 'use-query-params/adapters/react-router-5';
+<<<<<<< HEAD
 import withFallback from '../../console/console-shared/error/fallbacks/withFallback';
+=======
+>>>>>>> df228cd (rebase and)
 import { LoadingInline } from '../../console/console-shared/src/components/loading/LoadingInline';
 import DashboardSkeleton from '../shared/dashboard-skeleton';
 import { PersesContext } from '../shared/useIsPerses';
@@ -27,13 +30,17 @@ const MonitoringDashboardsPage_: React.FC = () => {
   const {
     changeBoard,
     activeProjectDashboardsMetadata,
-    combinedIntialLoad,
+    combinedInitialLoad,
     activeProject,
     setActiveProject,
     dashboardName,
   } = useDashboardsData();
 
+<<<<<<< HEAD
   if (combinedIntialLoad) {
+=======
+  if (combinedInitialLoad) {
+>>>>>>> df228cd (rebase and)
     return <LoadingInline />;
   }
 
@@ -74,4 +81,4 @@ const MonitoringDashboardsPageWrapper: React.FC = () => {
   );
 };
 
-export default withFallback(MonitoringDashboardsPageWrapper);
+export default MonitoringDashboardsPageWrapper;
