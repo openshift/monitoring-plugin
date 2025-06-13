@@ -40,6 +40,7 @@ import { PERSES_PROXY_BASE_PATH, useFetchPersesDashboard } from './perses-client
 import { QueryParams } from '../../query-params';
 import { StringParam, useQueryParam } from 'use-query-params';
 import { useTranslation } from 'react-i18next';
+import { LoadingBox } from '../../../components/console/console-shared/src/components/loading/LoadingBox';
 
 // Override eChart defaults with PatternFly colors.
 const patternflyBlue300 = '#2b9af3';
@@ -173,7 +174,7 @@ function InnerWrapper({ children, project, dashboardName }) {
   }, [data, project, dashboardName]);
 
   if (persesDashboardLoading) {
-    return null;
+    return <LoadingBox />;
   }
 
   let clearedDashboardResource: DashboardResource | undefined;
