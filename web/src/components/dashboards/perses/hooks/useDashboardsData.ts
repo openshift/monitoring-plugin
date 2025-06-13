@@ -49,11 +49,15 @@ export const useDashboardsData = () => {
       const matchingProject = persesProjects.find(
         (persesProject) => persesProject?.metadata?.name === persesDashboard?.metadata?.project,
       );
+
+      const name = persesDashboard?.metadata?.name;
+      const displayName = persesDashboard?.spec?.display?.name || name;
+
       return {
-        name: persesDashboard?.metadata?.name,
+        name,
         project: persesDashboard?.metadata?.project,
         tags: ['perses'],
-        title: `${matchingProject.spec?.display?.name} / ${persesDashboard?.spec?.display?.name}`,
+        title: `${matchingProject.spec?.display?.name} / ${displayName}`,
       };
     });
   }, [persesDashboards, persesProjects, combinedIntialLoad]);
