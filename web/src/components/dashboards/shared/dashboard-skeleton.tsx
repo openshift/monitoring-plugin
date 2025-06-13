@@ -47,71 +47,80 @@ type MonitoringDashboardsPageProps = React.PropsWithChildren<{
   dashboardName: string;
 }>;
 
-const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = ({
-  children,
-  boardItems,
-  changeBoard,
-  dashboardName,
-}) => {
-  const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const isPerses = useIsPerses();
+const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = React.memo(
+  ({ children, boardItems, changeBoard, dashboardName }) => {
+    const { t } = useTranslation(process.env.I18N_NAMESPACE);
+    const isPerses = useIsPerses();
 
-  const { perspective } = usePerspective();
+    const { perspective } = usePerspective();
+    const { setDashboard } = useDashboardActions();
 
-  return (
-    <>
-      {perspective !== 'dev' && (
-        <Helmet>
-          <title>{t('Metrics dashboards')}</title>
-        </Helmet>
-      )}
-      <PageSection hasBodyWrapper={false}>
-        {perspective !== 'dev' && <HeaderTop />}
-        <Stack hasGutter>
-          {!_.isEmpty(boardItems) && (
-            <StackItem>
-              <DashboardDropdown
-                items={boardItems}
-                onChange={changeBoard}
-                selectedKey={dashboardName}
-              />
-            </StackItem>
-          )}
-          {isPerses ? (
-            <StackItem>
-              <b> {t('Dashboard Variables')} </b>
-              <DashboardStickyToolbar initialVariableIsSticky={false} />
-            </StackItem>
-          ) : (
-            <StackItem>
-              <LegacyDashboardsAllVariableDropdowns key={dashboardName} />
-            </StackItem>
-          )}
-          {perspective === 'dev' ? (
-            <StackItem>
-              <Split hasGutter>
-                <SplitItem isFilled />
-                <SplitItem>
-                  <TimespanDropdown />
-                </SplitItem>
-                <SplitItem>
-                  <PollIntervalDropdown />
-                </SplitItem>
-              </Split>
-            </StackItem>
-          ) : (
-            <StackItem>
-              <Split>
-                <SplitItem isFilled />
-              </Split>
-            </StackItem>
-          )}
-        </Stack>
-      </PageSection>
-      <Divider />
-      {children}
-    </>
-  );
-};
+    const onChangeBoard = (selectedDashboard: string) => {
+      changeBoard(selectedDashboard);
+
+      if (isPerses) {
+        const selectedBoard = boardItems.find((item) => item.name === selectedDashboard);
+        if (selectedBoard) {
+          setDashboard(selectedBoard.persesDashboard);
+        }
+      }
+    };
+
+    return (
+      <>
+        {perspective !== 'dev' && (
+          <Helmet>
+            <title>{t('Metrics dashboards')}</title>
+          </Helmet>
+        )}
+        <PageSection hasBodyWrapper={false}>
+          {perspective !== 'dev' && <HeaderTop />}
+          <Stack hasGutter>
+            {!_.isEmpty(boardItems) && (
+              <StackItem>
+                <DashboardDropdown
+                  items={boardItems}
+                  onChange={onChangeBoard}
+                  selectedKey={dashboardName}
+                />
+              </StackItem>
+            )}
+            {isPerses ? (
+              <StackItem>
+                <b> {t('Dashboard Variables')} </b>
+                <DashboardStickyToolbar initialVariableIsSticky={false} />
+              </StackItem>
+            ) : (
+              <StackItem>
+                <LegacyDashboardsAllVariableDropdowns key={dashboardName} />
+              </StackItem>
+            )}
+            {perspective === 'dev' ? (
+              <StackItem>
+                <Split hasGutter>
+                  <SplitItem isFilled />
+                  <SplitItem>
+                    <TimespanDropdown />
+                  </SplitItem>
+                  <SplitItem>
+                    <PollIntervalDropdown />
+                  </SplitItem>
+                </Split>
+              </StackItem>
+            ) : (
+              <StackItem>
+                <Split>
+                  <SplitItem isFilled />
+                </Split>
+              </StackItem>
+            )}
+          </Stack>
+        </PageSection>
+        <Divider />
+        {children}
+      </>
+    );
+  },
+);
 
 export default DashboardSkeleton;
