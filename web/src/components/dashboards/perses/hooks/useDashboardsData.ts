@@ -7,6 +7,7 @@ import { useHistory } from 'react-router';
 import { useActiveProject } from '../project/useActiveProject';
 import { useBoolean } from '../../../hooks/useBoolean';
 import { QueryParams } from '../../../query-params';
+import { DashboardResource } from '@perses-dev/core';
 import { StringParam, useQueryParam } from 'use-query-params';
 
 // This hook syncs with mutliple external API's, redux, and URL state. Its a lot, but needs to all
@@ -27,7 +28,7 @@ export const useDashboardsData = () => {
   const [dashboardName] = useQueryParam(QueryParams.Dashboard, StringParam);
 
   // Determine when to stop having the full page loader be used
-  const combinedIntialLoad = React.useMemo(() => {
+  const combinedInitialLoad = React.useMemo(() => {
     if (!initialPageLoad) {
       return false;
     }
@@ -41,22 +42,22 @@ export const useDashboardsData = () => {
   // Homogenize data needed for dashboards dropdown between legacy and perses dashboards
   // to enable both to use the same component
   const combinedDashboardsMetadata = React.useMemo<CombinedDashboardMetadata[]>(() => {
-    if (combinedIntialLoad) {
+    if (combinedInitialLoad) {
       return [];
     }
     return persesDashboards.map((persesDashboard) => {
-      // Locate display name of project
-      const matchingProject = persesProjects.find(
-        (persesProject) => persesProject?.metadata?.name === persesDashboard?.metadata?.project,
-      );
+      const name = persesDashboard?.metadata?.name;
+      const displayName = persesDashboard?.spec?.display?.name || name;
+
       return {
         name: persesDashboard?.metadata?.name,
         project: persesDashboard?.metadata?.project,
         tags: ['perses'],
-        title: `${matchingProject.spec?.display?.name} / ${persesDashboard?.spec?.display?.name}`,
+        title: displayName,
+        persesDashboard,
       };
     });
-  }, [persesDashboards, persesProjects, combinedIntialLoad]);
+  }, [persesDashboards, combinedInitialLoad]);
 
   // Retrieve dashboard metadata for the currently selected project
   const activeProjectDashboardsMetadata = React.useMemo<CombinedDashboardMetadata[]>(() => {
@@ -109,7 +110,7 @@ export const useDashboardsData = () => {
     dashboardName,
     changeBoard,
     activeProjectDashboardsMetadata,
-    combinedIntialLoad,
+    combinedInitialLoad,
     setActiveProject,
     activeProject,
   };
@@ -120,4 +121,5 @@ export type CombinedDashboardMetadata = {
   project?: string;
   tags: string[];
   title: string;
+  persesDashboard?: DashboardResource;
 };
