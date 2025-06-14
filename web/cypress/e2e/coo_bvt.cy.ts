@@ -311,12 +311,13 @@ describe('Monitoring: Alerts', () => {
       commonPages.titleShouldHaveText('Dashboards');
     nav.sidenav.clickNavLink(['Observe', 'Targets']);
       commonPages.cmo_titleShouldHaveText('Metrics targets');
+    nav.sidenav.clickNavLink(['Administration', 'Cluster Settings']);
+      commonPages.detailsPage.administration_clusterSettings();
     // nav.sidenav.clickNavLink(['Observe', 'Incidents']);
     // commonPages.titleShouldHaveText('Incidents');
     nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
       commonPages.titleShouldHaveText('Dashboards');
-    nav.sidenav.clickNavLink(['Administration', 'Cluster Settings']);
-      commonPages.detailsPage.administration_clusterSettings();
+
  
   
   });

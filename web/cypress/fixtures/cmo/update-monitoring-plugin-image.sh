@@ -31,6 +31,8 @@ oc scale --replicas=1 -n "${MP_NAMESPACE}" deployment/cluster-monitoring-operato
 oc scale --replicas=1 -n "${MP_NAMESPACE}" deployment/monitoring-plugin
 
 # Wait for the operator to reconcile the change and make sure all the pods are running.
-sleep 5
-oc wait --for=condition=Ready pods --selector=app.kubernetes.io/part-of=monitoring-plugin -n "${MP_NAMESPACE}" --timeout=60s
-oc wait --for=condition=ready pods -l app.kubernetes.io/name=cluster-monitoring-operator -n "${MP_NAMESPACE}" --timeout=60s --kubeconfig "${KUBECONFIG}"
+sleep 25
+OUTPUT=`oc wait --for=condition=Ready pods --selector=app.kubernetes.io/part-of=monitoring-plugin -n "${MP_NAMESPACE}" --timeout=60s`
+echo "${OUTPUT}"
+OUTPUT=`oc wait --for=condition=ready pods -l app.kubernetes.io/name=cluster-monitoring-operator -n "${MP_NAMESPACE}" --timeout=60s --kubeconfig "${KUBECONFIG}"`
+echo "${OUTPUT}"
