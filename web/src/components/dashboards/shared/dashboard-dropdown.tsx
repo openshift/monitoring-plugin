@@ -69,7 +69,7 @@ export const DashboardDropdown: React.FC<DashboardDropdownProps> = ({
       <StackItem>
         <label htmlFor="monitoring-board-dropdown">{t('Dashboard')}</label>
       </StackItem>
-      <StackItem>
+      <StackItem isFilled>
         <SingleTypeaheadDropdown
           items={selectItems}
           onChange={onChange}
