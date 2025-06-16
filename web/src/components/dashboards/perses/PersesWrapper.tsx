@@ -87,7 +87,7 @@ export function PersesWrapper({ children, project }: PersesWrapperProps) {
       fontFamily: 'var(--pf-v5-global--FontFamily--text)',
     },
     shape: {
-      borderRadius: 0,
+      borderRadius: 6,
     },
   });
 
@@ -126,12 +126,10 @@ export function PersesWrapper({ children, project }: PersesWrapperProps) {
 
 function InnerWrapper({ children, project, dashboardName }) {
   const { data } = usePluginBuiltinVariableDefinitions();
-
   const { persesDashboard, persesDashboardLoading } = useFetchPersesDashboard(
     project,
     dashboardName,
   );
-
   const DEFAULT_DASHBOARD_DURATION = '30m';
   const DEFAULT_REFRESH_INTERVAL = '0s';
 

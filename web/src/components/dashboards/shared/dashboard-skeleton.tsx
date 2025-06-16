@@ -13,24 +13,32 @@ import {
   Divider,
   PageSection,
   PageSectionVariants,
+  Split,
+  SplitItem,
   Stack,
   StackItem,
   Title,
 } from '@patternfly/react-core';
-import {
-  DashboardStickyToolbar,
-  useExternalVariableDefinitions,
-  useVariableDefinitions,
-} from '@perses-dev/dashboards';
+import { TimeRangeControls } from '@perses-dev/plugin-system';
+import { DashboardStickyToolbar } from '@perses-dev/dashboards';
 
 const HeaderTop: React.FC = React.memo(() => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
-    <div className="monitoring-dashboards__header">
-      <Title headingLevel="h1">{t('Dashboards')}</Title>
-      <TimeDropdowns />
-    </div>
+    <Split hasGutter isWrappable>
+      <SplitItem isFilled>
+        <Title headingLevel="h1">{t('Dashboards')}</Title>
+      </SplitItem>
+      <SplitItem>
+        <Split hasGutter isWrappable>
+          <SplitItem>
+            <b> {t('Time Range Controls')} </b>
+            <TimeRangeControls />
+          </SplitItem>
+        </Split>
+      </SplitItem>
+    </Split>
   );
 });
 
@@ -51,16 +59,6 @@ const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = ({
 
   const { perspective } = usePerspective();
 
-  // Check Dashboard Variables are present
-  const [hasVariables, setHasVariables] = React.useState(false);
-  const variableDefinitions = useVariableDefinitions();
-  const externalVariableDefinitions = useExternalVariableDefinitions();
-  React.useEffect(() => {
-    const areVariablesPresent =
-      variableDefinitions?.length > 0 || externalVariableDefinitions?.length > 0;
-    setHasVariables(areVariablesPresent);
-  }, [variableDefinitions, externalVariableDefinitions]);
-
   return (
     <>
       {perspective !== 'dev' && (
@@ -72,7 +70,7 @@ const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = ({
         {perspective !== 'dev' && <HeaderTop />}
         <Stack hasGutter>
           {!_.isEmpty(boardItems) && (
-            <StackItem araia-label="Dashboard Dropdown">
+            <StackItem>
               <DashboardDropdown
                 items={boardItems}
                 onChange={changeBoard}
@@ -80,13 +78,13 @@ const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = ({
               />
             </StackItem>
           )}
-          {isPerses && hasVariables ? (
-            <StackItem aria-label="Perses Dashboard Variables">
+          {isPerses ? (
+            <StackItem>
               <b> {t('Dashboard Variables')} </b>
               <DashboardStickyToolbar initialVariableIsSticky={false} />
             </StackItem>
           ) : (
-            <StackItem aria-label="Legacy Dashboard Variables">
+            <StackItem>
               <LegacyDashboardsAllVariableDropdowns key={dashboardName} />
             </StackItem>
           )}
