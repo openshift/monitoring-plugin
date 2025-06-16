@@ -17,6 +17,8 @@ sed -i "s#^\([[:space:]]*- image:\).*monitoring-console-plugin.*#\1 ${MCP_CONSOL
 oc replace -f "${RANDOM_FILE}" --kubeconfig "${KUBECONFIG}"
 
 # Wait for the operator to reconcile the change and make sure all the pods are running.
-sleep 5
-oc wait --for=condition=Ready pods --selector=app.kubernetes.io/part-of=observability-operator -n "${MCP_NAMESPACE}" --timeout=60s
-oc wait --for=condition=ready pods -l app.kubernetes.io/name=observability-operator -n "${MCP_NAMESPACE}" --timeout=60s --kubeconfig "${KUBECONFIG}"
+sleep 25
+OUTPUT=`oc wait --for=condition=Ready pods --selector=app.kubernetes.io/part-of=observability-operator -n "${MCP_NAMESPACE}" --timeout=60s`
+echo "${OUTPUT}"
+OUTPUT=`oc wait --for=condition=ready pods -l app.kubernetes.io/name=observability-operator -n "${MCP_NAMESPACE}" --timeout=60s --kubeconfig "${KUBECONFIG}"`
+echo "${OUTPUT}"
