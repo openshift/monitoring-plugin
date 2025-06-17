@@ -103,7 +103,7 @@ The application will be running at [localhost:9000](http://localhost:9000/).
 Images for the mcp can be built by running the following command. Due to the limitation of linux/amd64 image builds on Apple Silicon Macs's, some of the changes are run locally and not just in the Dockerfiles. If you are on a Mac, it is not suggested to cancel the exection of this scipt part way through
 
 ```bash
-make build-mcp-image
+make build-dev-mcp-image
 ```
 
 ### Feature Flags
