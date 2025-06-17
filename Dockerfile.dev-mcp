@@ -19,7 +19,7 @@ ENV I18N_NAMESPACE="plugin__monitoring-console-plugin"
 RUN make install-frontend
 RUN make build-frontend
 
-FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.23-openshift-4.19 as go-builder
+FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_9_golang_1.23 as go-builder
 
 WORKDIR /opt/app-root
 

@@ -81,6 +81,10 @@ deploy-acm:
 build-mcp-image:
 	DOCKER_FILE_NAME="Dockerfile.mcp" scripts/build-image.sh
 
+.PHONY: build-dev-mcp-image
+build-mcp-image:
+	DOCKER_FILE_NAME="Dockerfile.dev-mcp" scripts/build-image.sh
+
 .PHONY: start-feature-console
 start-feature-console:
 	PLUGIN_PORT=9443 ./scripts/start-console.sh
