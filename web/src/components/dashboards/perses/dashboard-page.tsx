@@ -1,10 +1,9 @@
 import { Overview } from '@openshift-console/dynamic-plugin-sdk';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as React from 'react';
-import { LoadingBox } from '../../console/console-shared/src/components/loading/LoadingBox';
 import { QueryParamProvider } from 'use-query-params';
 import { ReactRouter5Adapter } from 'use-query-params/adapters/react-router-5';
-import withFallback from '../../console/console-shared/error/fallbacks/withFallback';
+import { LoadingInline } from '../../console/console-shared/src/components/loading/LoadingInline';
 import DashboardSkeleton from '../shared/dashboard-skeleton';
 import { PersesContext } from '../shared/useIsPerses';
 import { PersesWrapper } from './PersesWrapper';
@@ -27,14 +26,14 @@ const MonitoringDashboardsPage_: React.FC = () => {
   const {
     changeBoard,
     activeProjectDashboardsMetadata,
-    combinedIntialLoad,
+    combinedInitialLoad,
     activeProject,
     setActiveProject,
     dashboardName,
   } = useDashboardsData();
 
-  if (combinedIntialLoad) {
-    return <LoadingBox />;
+  if (combinedInitialLoad) {
+    return <LoadingInline />;
   }
 
   if (!activeProject) {
@@ -76,4 +75,4 @@ const MonitoringDashboardsPageWrapper: React.FC = () => {
   );
 };
 
-export default withFallback(MonitoringDashboardsPageWrapper);
+export default MonitoringDashboardsPageWrapper;
