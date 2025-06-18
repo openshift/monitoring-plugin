@@ -19,7 +19,7 @@ import {
   Title,
 } from '@patternfly/react-core';
 import { TimeRangeControls } from '@perses-dev/plugin-system';
-import { DashboardStickyToolbar } from '@perses-dev/dashboards';
+import { DashboardStickyToolbar, useDashboardActions } from '@perses-dev/dashboards';
 
 const HeaderTop: React.FC = React.memo(() => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
