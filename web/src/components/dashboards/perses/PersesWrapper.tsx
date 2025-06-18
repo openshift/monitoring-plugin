@@ -13,7 +13,9 @@ import {
   dynamicImportPluginLoader,
   PluginModuleResource,
   PluginRegistry,
-  TimeRangeProvider,
+  TimeRangeProviderWithQueryParams,
+  useInitialRefreshInterval,
+  useInitialTimeRange,
   usePluginBuiltinVariableDefinitions,
 } from '@perses-dev/plugin-system';
 import {
@@ -35,8 +37,7 @@ import { usePatternFlyTheme } from '../../hooks/usePatternflyTheme';
 import { CachedDatasourceAPI } from './perses/datasource-api';
 import { OcpDatasourceApi } from './datasource-api';
 import { PERSES_PROXY_BASE_PATH, useFetchPersesDashboard } from './perses-client';
-import { usePersesTimeRange } from './hooks/usePersesTimeRange';
-import { usePersesRefreshInterval } from './hooks/usePersesRefreshInterval';
+
 import { QueryParams } from '../../query-params';
 import { StringParam, useQueryParam } from 'use-query-params';
 import { useTranslation } from 'react-i18next';
@@ -87,7 +88,7 @@ export function PersesWrapper({ children, project }: PersesWrapperProps) {
       fontFamily: 'var(--pf-t--global--font--family--body)',
     },
     shape: {
-      borderRadius: 0,
+      borderRadius: 6,
     },
   });
 
@@ -126,13 +127,15 @@ export function PersesWrapper({ children, project }: PersesWrapperProps) {
 
 function InnerWrapper({ children, project, dashboardName }) {
   const { data } = usePluginBuiltinVariableDefinitions();
-
   const { persesDashboard, persesDashboardLoading } = useFetchPersesDashboard(
     project,
     dashboardName,
   );
-  const persesTimeRange = usePersesTimeRange();
-  const persesRefrshInterval = usePersesRefreshInterval();
+  const DEFAULT_DASHBOARD_DURATION = '30m';
+  const DEFAULT_REFRESH_INTERVAL = '0s';
+
+  const initialTimeRange = useInitialTimeRange(DEFAULT_DASHBOARD_DURATION);
+  const initialRefreshInterval = useInitialRefreshInterval(DEFAULT_REFRESH_INTERVAL);
 
   const builtinVariables = useMemo(() => {
     const result = [
@@ -185,7 +188,10 @@ function InnerWrapper({ children, project, dashboardName }) {
   }
 
   return (
-    <TimeRangeProvider refreshInterval={persesRefrshInterval} timeRange={persesTimeRange}>
+    <TimeRangeProviderWithQueryParams
+      initialTimeRange={initialTimeRange}
+      initialRefreshInterval={initialRefreshInterval}
+    >
       <VariableProviderWithQueryParams
         builtinVariableDefinitions={builtinVariables}
         initialVariableDefinitions={persesDashboard?.spec?.variables}
@@ -208,7 +214,7 @@ function InnerWrapper({ children, project, dashboardName }) {
           )}
         </PersesPrometheusDatasourceWrapper>
       </VariableProviderWithQueryParams>
-    </TimeRangeProvider>
+    </TimeRangeProviderWithQueryParams>
   );
 }
 
