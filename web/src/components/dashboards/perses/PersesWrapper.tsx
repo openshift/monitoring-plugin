@@ -14,8 +14,10 @@ import {
   dynamicImportPluginLoader,
   PluginModuleResource,
   PluginRegistry,
-  TimeRangeProvider,
+  TimeRangeProviderWithQueryParams,
   useDataQueries,
+  useInitialRefreshInterval,
+  useInitialTimeRange,
   usePluginBuiltinVariableDefinitions,
 } from '@perses-dev/plugin-system';
 import {
@@ -38,8 +40,6 @@ import { usePatternFlyTheme } from './hooks/usePatternflyTheme';
 import { CachedDatasourceAPI } from './perses/datasource-api';
 import { OcpDatasourceApi } from './datasource-api';
 import { PERSES_PROXY_BASE_PATH, useFetchPersesDashboard } from './perses-client';
-import { usePersesTimeRange } from './hooks/usePersesTimeRange';
-import { usePersesRefreshInterval } from './hooks/usePersesRefreshInterval';
 import { QueryParams } from '../../query-params';
 import { StringParam, useQueryParam } from 'use-query-params';
 import { useCookieWatcher } from './hooks/useCookieWatcher';
@@ -135,8 +135,12 @@ function InnerWrapper({ children, project, dashboardName }) {
     project,
     dashboardName,
   );
-  const persesTimeRange = usePersesTimeRange();
-  const persesRefrshInterval = usePersesRefreshInterval();
+
+  const DEFAULT_DASHBOARD_DURATION = '30m';
+  const DEFAULT_REFRESH_INTERVAL = '0s';
+
+  const initialTimeRange = useInitialTimeRange(DEFAULT_DASHBOARD_DURATION);
+  const initialRefreshInterval = useInitialRefreshInterval(DEFAULT_REFRESH_INTERVAL);
 
   const builtinVariables = useMemo(() => {
     const result = [
@@ -189,7 +193,10 @@ function InnerWrapper({ children, project, dashboardName }) {
   }
 
   return (
-    <TimeRangeProvider refreshInterval={persesRefrshInterval} timeRange={persesTimeRange}>
+    <TimeRangeProviderWithQueryParams
+      initialTimeRange={initialTimeRange}
+      initialRefreshInterval={initialRefreshInterval}
+    >
       <VariableProviderWithQueryParams
         builtinVariableDefinitions={builtinVariables}
         initialVariableDefinitions={persesDashboard?.spec?.variables}
@@ -212,7 +219,7 @@ function InnerWrapper({ children, project, dashboardName }) {
           )}
         </PersesPrometheusDatasourceWrapper>
       </VariableProviderWithQueryParams>
-    </TimeRangeProvider>
+    </TimeRangeProviderWithQueryParams>
   );
 }
 
