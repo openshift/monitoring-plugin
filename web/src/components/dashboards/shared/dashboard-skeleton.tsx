@@ -8,9 +8,20 @@ import { DashboardDropdown } from './dashboard-dropdown';
 import { LegacyDashboardsAllVariableDropdowns } from '../legacy/legacy-variable-dropdowns';
 import { TimeDropdowns } from './time-dropdowns';
 import { CombinedDashboardMetadata } from '../perses/hooks/useDashboardsData';
-import { AllVariableDropdowns } from '../perses/variable-dropdowns';
 import { useIsPerses } from './useIsPerses';
-import { Divider, PageSection, PageSectionVariants, Title } from '@patternfly/react-core';
+import {
+  Divider,
+  PageSection,
+  PageSectionVariants,
+  Stack,
+  StackItem,
+  Title,
+} from '@patternfly/react-core';
+import {
+  DashboardStickyToolbar,
+  useExternalVariableDefinitions,
+  useVariableDefinitions,
+} from '@perses-dev/dashboards';
 
 const HeaderTop: React.FC = React.memo(() => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -40,6 +51,16 @@ const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = ({
 
   const { perspective } = usePerspective();
 
+  // Check Dashboard Variables are present
+  const [hasVariables, setHasVariables] = React.useState(false);
+  const variableDefinitions = useVariableDefinitions();
+  const externalVariableDefinitions = useExternalVariableDefinitions();
+  React.useEffect(() => {
+    const areVariablesPresent =
+      variableDefinitions?.length > 0 || externalVariableDefinitions?.length > 0;
+    setHasVariables(areVariablesPresent);
+  }, [variableDefinitions, externalVariableDefinitions]);
+
   return (
     <>
       {perspective !== 'dev' && (
@@ -49,23 +70,28 @@ const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = ({
       )}
       <PageSection variant={PageSectionVariants.light}>
         {perspective !== 'dev' && <HeaderTop />}
-        <div className="monitoring-dashboards__variables">
-          <div className="monitoring-dashboards__dropdowns">
-            {!_.isEmpty(boardItems) && (
+        <Stack hasGutter>
+          {!_.isEmpty(boardItems) && (
+            <StackItem araia-label="Dashboard Dropdown">
               <DashboardDropdown
                 items={boardItems}
                 onChange={changeBoard}
                 selectedKey={dashboardName}
               />
-            )}
-            {isPerses ? (
-              <AllVariableDropdowns key={dashboardName} />
-            ) : (
+            </StackItem>
+          )}
+          {isPerses && hasVariables ? (
+            <StackItem aria-label="Perses Dashboard Variables">
+              <b> {t('Dashboard Variables')} </b>
+              <DashboardStickyToolbar initialVariableIsSticky={false} />
+            </StackItem>
+          ) : (
+            <StackItem aria-label="Legacy Dashboard Variables">
               <LegacyDashboardsAllVariableDropdowns key={dashboardName} />
-            )}
-          </div>
+            </StackItem>
+          )}
           {perspective === 'dev' && <TimeDropdowns />}
-        </div>
+        </Stack>
       </PageSection>
       <Divider />
       {children}
