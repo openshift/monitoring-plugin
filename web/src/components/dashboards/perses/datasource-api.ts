@@ -5,7 +5,7 @@ import { fetchGlobalDatasourceList } from './perses/global-datasource-client';
 import { TFunction } from 'i18next';
 
 export class OcpDatasourceApi implements DatasourceApi {
-  constructor(public csrfToken: string, public t: TFunction, public basePath: string) {}
+  constructor(public t: TFunction, public basePath: string) {}
   /**
    * Helper function for getting a proxy URL from separate input parameters.
    * Give the following output according to the definition or not of the input.
@@ -54,17 +54,6 @@ export class OcpDatasourceApi implements DatasourceApi {
         throw new Error(this.t('No matching datasource found'));
       }
       const datasource = list[0];
-      datasource.spec.plugin.spec = {
-        ...datasource.spec.plugin.spec,
-        proxy: {
-          spec: {
-            headers: {
-              'X-CSRFToken': this.csrfToken,
-              'Sec-Fetch-Site': 'same-origin',
-            },
-          },
-        },
-      };
       return datasource;
     });
   }
@@ -79,17 +68,6 @@ export class OcpDatasourceApi implements DatasourceApi {
         throw new Error(this.t('No matching datasource found'));
       }
       const datasource = list[0];
-      datasource.spec.plugin.spec = {
-        ...datasource.spec.plugin.spec,
-        proxy: {
-          spec: {
-            headers: {
-              'X-CSRFToken': this.csrfToken,
-              'Sec-Fetch-Site': 'same-origin',
-            },
-          },
-        },
-      };
       return datasource;
     });
   }

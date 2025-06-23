@@ -1,5 +1,5 @@
 import * as _ from 'lodash-es';
-import { Tooltip, SelectOption } from '@patternfly/react-core';
+import { Tooltip, SelectOption, Stack, StackItem } from '@patternfly/react-core';
 import {
   DEFAULT_ALL_VALUE,
   ListVariableDefinition,
@@ -109,23 +109,22 @@ function ListVariable({ name, id }: VariableDropdownProps) {
   const title = definition?.spec.display?.name ?? name;
 
   return (
-    <div
-      className="form-group monitoring-dashboards__dropdown-wrap"
-      data-test={`${name.toLowerCase()}-dropdown`}
-    >
-      <label htmlFor={`${id}-dropdown`} className="monitoring-dashboards__dropdown-title">
-        {title}
-      </label>
-      <SingleTypeaheadDropdown
-        items={items}
-        onChange={onChangeFunction}
-        OptionComponent={VariableOptionComponent}
-        selectedKey={singleSelectedItem.label}
-        hideClearButton
-        resizeToFit
-        placeholder={t('Select a dashboard from the dropdown')}
-      />
-    </div>
+    <Stack>
+      <StackItem>
+        <label htmlFor={`${id}-dropdown`}>{title}</label>
+      </StackItem>
+      <StackItem>
+        <SingleTypeaheadDropdown
+          items={items}
+          onChange={onChangeFunction}
+          OptionComponent={VariableOptionComponent}
+          selectedKey={singleSelectedItem?.label}
+          hideClearButton
+          resizeToFit
+          placeholder={t('Select a dashboard from the dropdown')}
+        />
+      </StackItem>
+    </Stack>
   );
 }
 
