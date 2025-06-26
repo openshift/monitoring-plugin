@@ -165,10 +165,10 @@ $ git clone https://github.com/perses/perses.git
 $ cd perses
 
 # Follow the instructions in ui/README.md
-$ ./scripts/api_backend_dev.sh
 $ cd ui 
 $ npm install 
-$ npm run start 
+$ npm run build
+$ ./scripts/api_backend_dev.sh
 
 # Lastly navigate to http://localhost:3000/ to see Perses app running 
 ```
