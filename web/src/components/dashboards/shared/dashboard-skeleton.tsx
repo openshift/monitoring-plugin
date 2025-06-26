@@ -13,24 +13,32 @@ import {
   Divider,
   PageSection,
   PageSectionVariants,
+  Split,
+  SplitItem,
   Stack,
   StackItem,
   Title,
 } from '@patternfly/react-core';
-import {
-  DashboardStickyToolbar,
-  useExternalVariableDefinitions,
-  useVariableDefinitions,
-} from '@perses-dev/dashboards';
+import { TimeRangeControls } from '@perses-dev/plugin-system';
+import { DashboardStickyToolbar, useDashboardActions } from '@perses-dev/dashboards';
 
 const HeaderTop: React.FC = React.memo(() => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
-    <div className="monitoring-dashboards__header">
-      <Title headingLevel="h1">{t('Dashboards')}</Title>
-      <TimeDropdowns />
-    </div>
+    <Split hasGutter isWrappable>
+      <SplitItem isFilled>
+        <Title headingLevel="h1">{t('Dashboards')}</Title>
+      </SplitItem>
+      <SplitItem>
+        <Split hasGutter isWrappable>
+          <SplitItem>
+            <b> {t('Time Range Controls')} </b>
+            <TimeRangeControls />
+          </SplitItem>
+        </Split>
+      </SplitItem>
+    </Split>
   );
 });
 
@@ -40,63 +48,62 @@ type MonitoringDashboardsPageProps = React.PropsWithChildren<{
   dashboardName: string;
 }>;
 
-const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = ({
-  children,
-  boardItems,
-  changeBoard,
-  dashboardName,
-}) => {
-  const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const isPerses = useIsPerses();
+const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = React.memo(
+  ({ children, boardItems, changeBoard, dashboardName }) => {
+    const { t } = useTranslation(process.env.I18N_NAMESPACE);
+    const isPerses = useIsPerses();
 
-  const { perspective } = usePerspective();
+    const { perspective } = usePerspective();
+    const { setDashboard } = useDashboardActions();
 
-  // Check Dashboard Variables are present
-  const [hasVariables, setHasVariables] = React.useState(false);
-  const variableDefinitions = useVariableDefinitions();
-  const externalVariableDefinitions = useExternalVariableDefinitions();
-  React.useEffect(() => {
-    const areVariablesPresent =
-      variableDefinitions?.length > 0 || externalVariableDefinitions?.length > 0;
-    setHasVariables(areVariablesPresent);
-  }, [variableDefinitions, externalVariableDefinitions]);
+    const onChangeBoard = (selectedDashboard: string) => {
+      changeBoard(selectedDashboard);
 
-  return (
-    <>
-      {perspective !== 'dev' && (
-        <Helmet>
-          <title>{t('Metrics dashboards')}</title>
-        </Helmet>
-      )}
-      <PageSection variant={PageSectionVariants.light}>
-        {perspective !== 'dev' && <HeaderTop />}
-        <Stack hasGutter>
-          {!_.isEmpty(boardItems) && (
-            <StackItem araia-label="Dashboard Dropdown">
-              <DashboardDropdown
-                items={boardItems}
-                onChange={changeBoard}
-                selectedKey={dashboardName}
-              />
-            </StackItem>
-          )}
-          {isPerses && hasVariables ? (
-            <StackItem aria-label="Perses Dashboard Variables">
-              <b> {t('Dashboard Variables')} </b>
-              <DashboardStickyToolbar initialVariableIsSticky={false} />
-            </StackItem>
-          ) : (
-            <StackItem aria-label="Legacy Dashboard Variables">
-              <LegacyDashboardsAllVariableDropdowns key={dashboardName} />
-            </StackItem>
-          )}
-          {perspective === 'dev' && <TimeDropdowns />}
-        </Stack>
-      </PageSection>
-      <Divider />
-      {children}
-    </>
-  );
-};
+      if (isPerses) {
+        const selectedBoard = boardItems.find((item) => item.name === selectedDashboard);
+        if (selectedBoard) {
+          setDashboard(selectedBoard.persesDashboard);
+        }
+      }
+    };
+
+    return (
+      <>
+        {perspective !== 'dev' && (
+          <Helmet>
+            <title>{t('Metrics dashboards')}</title>
+          </Helmet>
+        )}
+        <PageSection variant={PageSectionVariants.light}>
+          {perspective !== 'dev' && <HeaderTop />}
+          <Stack hasGutter>
+            {!_.isEmpty(boardItems) && (
+              <StackItem>
+                <DashboardDropdown
+                  items={boardItems}
+                  onChange={onChangeBoard}
+                  selectedKey={dashboardName}
+                />
+              </StackItem>
+            )}
+            {isPerses ? (
+              <StackItem>
+                <b> {t('Dashboard Variables')} </b>
+                <DashboardStickyToolbar initialVariableIsSticky={false} />
+              </StackItem>
+            ) : (
+              <StackItem>
+                <LegacyDashboardsAllVariableDropdowns key={dashboardName} />
+              </StackItem>
+            )}
+            {perspective === 'dev' && <TimeDropdowns />}
+          </Stack>
+        </PageSection>
+        <Divider />
+        {children}
+      </>
+    );
+  },
+);
 
 export default DashboardSkeleton;
