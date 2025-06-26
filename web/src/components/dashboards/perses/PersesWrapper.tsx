@@ -87,7 +87,7 @@ export function PersesWrapper({ children, project }: PersesWrapperProps) {
       fontFamily: 'var(--pf-v5-global--FontFamily--text)',
     },
     shape: {
-      borderRadius: 6,
+      borderRadius: 0,
     },
   });
 
