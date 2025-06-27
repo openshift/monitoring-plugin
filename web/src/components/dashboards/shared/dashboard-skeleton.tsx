@@ -12,8 +12,12 @@ import {
   StackItem,
   Title,
 } from '@patternfly/react-core';
-import { DashboardStickyToolbar, useDashboardActions } from '@perses-dev/dashboards';
-import { usePerspective } from '../../hooks/usePerspective';
+import {
+  DashboardStickyToolbar,
+  useDashboardActions,
+  useVariableDefinitions,
+} from '@perses-dev/dashboards';
+import { usePerspective } from 'src/components/hooks/usePerspective';
 import { LegacyDashboardsAllVariableDropdowns } from '../legacy/legacy-variable-dropdowns';
 import { CombinedDashboardMetadata } from '../perses/hooks/useDashboardsData';
 import { DashboardDropdown } from './dashboard-dropdown';
@@ -55,12 +59,16 @@ const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = React.memo(
 
     const { perspective } = usePerspective();
     const { setDashboard } = useDashboardActions();
+    const variables = useVariableDefinitions();
 
     const onChangeBoard = (selectedDashboard: string) => {
       changeBoard(selectedDashboard);
 
       if (isPerses) {
-        const selectedBoard = boardItems.find((item) => item.name === selectedDashboard);
+        const selectedBoard = boardItems.find(
+          (item) => item.name.toLowerCase() === selectedDashboard.toLowerCase(),
+        );
+
         if (selectedBoard) {
           setDashboard(selectedBoard.persesDashboard);
         }
@@ -87,10 +95,12 @@ const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = React.memo(
               </StackItem>
             )}
             {isPerses ? (
-              <StackItem>
-                <b> {t('Dashboard Variables')} </b>
-                <DashboardStickyToolbar initialVariableIsSticky={false} />
-              </StackItem>
+              variables.length > 0 ? (
+                <StackItem>
+                  <b> {t('Dashboard Variables')} </b>
+                  <DashboardStickyToolbar initialVariableIsSticky={false} key={dashboardName} />
+                </StackItem>
+              ) : null
             ) : (
               <StackItem>
                 <LegacyDashboardsAllVariableDropdowns key={dashboardName} />

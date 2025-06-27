@@ -193,7 +193,8 @@ function InnerWrapper({ children, project, dashboardName }) {
     <TimeRangeProvider refreshInterval={persesRefrshInterval} timeRange={persesTimeRange}>
       <VariableProviderWithQueryParams
         builtinVariableDefinitions={builtinVariables}
-        initialVariableDefinitions={persesDashboard?.spec?.variables}
+        initialVariableDefinitions={clearedDashboardResource?.spec?.variables}
+        key={clearedDashboardResource?.metadata.name}
       >
         <PersesPrometheusDatasourceWrapper
           queries={[]}
