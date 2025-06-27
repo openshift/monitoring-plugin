@@ -195,7 +195,8 @@ function InnerWrapper({ children, project, dashboardName }) {
     >
       <VariableProviderWithQueryParams
         builtinVariableDefinitions={builtinVariables}
-        initialVariableDefinitions={persesDashboard?.spec?.variables}
+        initialVariableDefinitions={clearedDashboardResource?.spec?.variables}
+        key={clearedDashboardResource?.metadata.name}
       >
         <PersesPrometheusDatasourceWrapper
           queries={[]}
