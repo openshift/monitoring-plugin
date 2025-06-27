@@ -20,7 +20,11 @@ import {
   Title,
 } from '@patternfly/react-core';
 import { TimeRangeControls } from '@perses-dev/plugin-system';
-import { DashboardStickyToolbar, useDashboardActions } from '@perses-dev/dashboards';
+import {
+  DashboardStickyToolbar,
+  useDashboardActions,
+  useVariableDefinitions,
+} from '@perses-dev/dashboards';
 
 const HeaderTop: React.FC = React.memo(() => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -55,12 +59,16 @@ const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = React.memo(
 
     const { perspective } = usePerspective();
     const { setDashboard } = useDashboardActions();
+    const variables = useVariableDefinitions();
 
     const onChangeBoard = (selectedDashboard: string) => {
       changeBoard(selectedDashboard);
 
       if (isPerses) {
-        const selectedBoard = boardItems.find((item) => item.name === selectedDashboard);
+        const selectedBoard = boardItems.find(
+          (item) => item.name.toLowerCase() === selectedDashboard.toLowerCase(),
+        );
+
         if (selectedBoard) {
           setDashboard(selectedBoard.persesDashboard);
         }
@@ -87,10 +95,12 @@ const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = React.memo(
               </StackItem>
             )}
             {isPerses ? (
-              <StackItem>
-                <b> {t('Dashboard Variables')} </b>
-                <DashboardStickyToolbar initialVariableIsSticky={false} />
-              </StackItem>
+              variables.length > 0 ? (
+                <StackItem>
+                  <b> {t('Dashboard Variables')} </b>
+                  <DashboardStickyToolbar initialVariableIsSticky={false} key={dashboardName} />
+                </StackItem>
+              ) : null
             ) : (
               <StackItem>
                 <LegacyDashboardsAllVariableDropdowns key={dashboardName} />
