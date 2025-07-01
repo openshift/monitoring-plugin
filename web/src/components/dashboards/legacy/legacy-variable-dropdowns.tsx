@@ -1,4 +1,3 @@
-import * as _ from 'lodash-es';
 import {
   PrometheusEndpoint,
   RedExclamationCircleIcon,
@@ -6,38 +5,37 @@ import {
   useResolvedExtensions,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
-  Tooltip,
-  Select,
-  SelectOption,
   MenuToggle,
   MenuToggleElement,
+  Select,
+  SelectOption,
+  Split,
+  Tooltip,
 } from '@patternfly/react-core';
+import { Map as ImmutableMap } from 'immutable';
+import * as _ from 'lodash-es';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { Map as ImmutableMap } from 'immutable';
 
-import { SingleTypeaheadDropdown } from '../../console/utils/single-typeahead-dropdown';
 import { getPrometheusURL } from '../../console/graphs/helpers';
 import { getQueryArgument, setQueryArgument } from '../../console/utils/router';
 import { useSafeFetch } from '../../console/utils/safe-fetch-hook';
+import { SingleTypeaheadDropdown } from '../../console/utils/single-typeahead-dropdown';
 
+import {
+  DataSource,
+  isDataSource,
+} from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
 import {
   dashboardsPatchVariable,
   dashboardsVariableOptionsLoaded,
   Perspective,
 } from '../../../actions/observe';
-import { getTimeRanges, isTimeoutError, QUERY_CHUNK_SIZE } from '../../utils';
-import { getLegacyObserveState, usePerspective } from '../../hooks/usePerspective';
 import { MonitoringState } from '../../../reducers/observe';
-import {
-  DEFAULT_GRAPH_SAMPLES,
-  MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY,
-} from '../shared/utils';
-import {
-  DataSource,
-  isDataSource,
-} from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
+import { getLegacyObserveState, usePerspective } from '../../hooks/usePerspective';
+import { getTimeRanges, isTimeoutError, QUERY_CHUNK_SIZE } from '../../utils';
+import { DEFAULT_GRAPH_SAMPLES, MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY } from './utils';
 
 const intervalVariableRegExps = ['__interval', '__rate_interval', '__auto_interval_[a-z]+'];
 
@@ -321,7 +319,7 @@ export const LegacyDashboardsAllVariableDropdowns: React.FC = () => {
   }
 
   return (
-    <>
+    <Split hasGutter isWrappable>
       {variables.keySeq().map((name: string) => (
         <LegacyDashboardsVariableDropdown
           key={name}
@@ -331,7 +329,7 @@ export const LegacyDashboardsAllVariableDropdowns: React.FC = () => {
           perspective={perspective}
         />
       ))}
-    </>
+    </Split>
   );
 };
 
