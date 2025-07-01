@@ -3,12 +3,6 @@ import * as React from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 
-import { usePerspective } from '../../hooks/usePerspective';
-import { DashboardDropdown } from './dashboard-dropdown';
-import { LegacyDashboardsAllVariableDropdowns } from '../legacy/legacy-variable-dropdowns';
-import { TimeDropdowns } from './time-dropdowns';
-import { CombinedDashboardMetadata } from '../perses/hooks/useDashboardsData';
-import { useIsPerses } from './useIsPerses';
 import {
   Divider,
   PageSection,
@@ -19,12 +13,15 @@ import {
   StackItem,
   Title,
 } from '@patternfly/react-core';
-import { TimeRangeControls } from '@perses-dev/plugin-system';
 import {
   DashboardStickyToolbar,
   useDashboardActions,
   useVariableDefinitions,
 } from '@perses-dev/dashboards';
+import { TimeRangeControls } from '@perses-dev/plugin-system';
+import { usePerspective } from '../../hooks/usePerspective';
+import { DashboardDropdown } from '../shared/dashboard-dropdown';
+import { CombinedDashboardMetadata } from './hooks/useDashboardsData';
 
 const HeaderTop: React.FC = React.memo(() => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -37,7 +34,6 @@ const HeaderTop: React.FC = React.memo(() => {
       <SplitItem>
         <Split hasGutter isWrappable>
           <SplitItem>
-            <b> {t('Time Range Controls')} </b>
             <TimeRangeControls />
           </SplitItem>
         </Split>
@@ -50,30 +46,36 @@ type MonitoringDashboardsPageProps = React.PropsWithChildren<{
   boardItems: CombinedDashboardMetadata[];
   changeBoard: (dashboardName: string) => void;
   dashboardName: string;
+  activeProject?: string;
 }>;
 
-const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = React.memo(
-  ({ children, boardItems, changeBoard, dashboardName }) => {
+export const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = React.memo(
+  ({ children, boardItems, changeBoard, dashboardName, activeProject }) => {
     const { t } = useTranslation(process.env.I18N_NAMESPACE);
-    const isPerses = useIsPerses();
-
     const { perspective } = usePerspective();
     const { setDashboard } = useDashboardActions();
     const variables = useVariableDefinitions();
 
-    const onChangeBoard = (selectedDashboard: string) => {
-      changeBoard(selectedDashboard);
+    const onChangeBoard = React.useCallback(
+      (selectedDashboard: string) => {
+        changeBoard(selectedDashboard);
 
-      if (isPerses) {
         const selectedBoard = boardItems.find(
-          (item) => item.name.toLowerCase() === selectedDashboard.toLowerCase(),
+          (item) =>
+            item.name.toLowerCase() === selectedDashboard.toLowerCase() &&
+            item.project?.toLowerCase() === activeProject?.toLowerCase(),
         );
 
         if (selectedBoard) {
           setDashboard(selectedBoard.persesDashboard);
         }
-      }
-    };
+      },
+      [changeBoard, boardItems, activeProject, setDashboard],
+    );
+
+    React.useEffect(() => {
+      onChangeBoard(dashboardName);
+    }, [dashboardName, onChangeBoard]);
 
     return (
       <>
@@ -94,19 +96,27 @@ const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = React.memo(
                 />
               </StackItem>
             )}
-            {isPerses ? (
-              variables.length > 0 ? (
-                <StackItem>
-                  <b> {t('Dashboard Variables')} </b>
-                  <DashboardStickyToolbar initialVariableIsSticky={false} key={dashboardName} />
-                </StackItem>
-              ) : null
+            {variables.length > 0 ? (
+              <StackItem>
+                <b> {t('Dashboard Variables')} </b>
+                <DashboardStickyToolbar initialVariableIsSticky={false} key={dashboardName} />
+              </StackItem>
+            ) : null}
+            {perspective === 'dev' ? (
+              <StackItem>
+                <Split hasGutter isWrappable>
+                  <SplitItem>
+                    <TimeRangeControls />
+                  </SplitItem>
+                </Split>
+              </StackItem>
             ) : (
               <StackItem>
-                <LegacyDashboardsAllVariableDropdowns key={dashboardName} />
+                <Split>
+                  <SplitItem isFilled />
+                </Split>
               </StackItem>
             )}
-            {perspective === 'dev' && <TimeDropdowns />}
           </Stack>
         </PageSection>
         <Divider />
@@ -115,5 +125,3 @@ const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = React.memo(
     );
   },
 );
-
-export default DashboardSkeleton;

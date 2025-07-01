@@ -13,7 +13,7 @@ import { getQueryArgument } from '../../console/utils/router';
 import {
   MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
   MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY,
-} from '../shared/utils';
+} from './utils';
 import {
   DashboardsClearVariables,
   dashboardsPatchAllVariables,

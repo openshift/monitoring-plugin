@@ -1,7 +1,5 @@
-import React from 'react';
-import { combineSx } from '@perses-dev/components';
-import { Box } from '@mui/material';
 import { Dashboard } from '@perses-dev/dashboards';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 
 /**
@@ -17,27 +15,12 @@ function PersesBoard() {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
-    <Box
-      sx={combineSx(
-        {
-          display: 'flex',
-          width: '100%',
-          height: '100%',
-          position: 'relative',
-          overflow: 'hidden',
-        },
-        {},
-      )}
-    >
-      <Box sx={{ paddingTop: 2, paddingX: 2, height: '100%', width: '100%' }}>
-        <Dashboard
-          emptyDashboardProps={{
-            title: t('Empty Dashboard'),
-            description: t('To get started add something to your dashboard'),
-          }}
-        />
-      </Box>
-    </Box>
+    <Dashboard
+      emptyDashboardProps={{
+        title: t('Empty Dashboard'),
+        description: t('To get started add something to your dashboard'),
+      }}
+    />
   );
 }
 
