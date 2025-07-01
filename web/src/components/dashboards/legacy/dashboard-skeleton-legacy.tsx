@@ -6,17 +6,18 @@ import { useTranslation } from 'react-i18next';
 import {
   Divider,
   PageSection,
+  PageSectionVariants,
   Split,
   SplitItem,
   Stack,
   StackItem,
   Title,
 } from '@patternfly/react-core';
-import { usePerspective } from '../../hooks/usePerspective';
+import { usePerspective } from '../../../components/hooks/usePerspective';
 import { CombinedDashboardMetadata } from '../perses/hooks/useDashboardsData';
 import { DashboardDropdown } from '../shared/dashboard-dropdown';
-import { PollIntervalDropdown, TimespanDropdown } from './time-dropdowns';
 import { LegacyDashboardsAllVariableDropdowns } from './legacy-variable-dropdowns';
+import { PollIntervalDropdown, TimespanDropdown } from './time-dropdowns';
 
 const HeaderTop: React.FC = React.memo(() => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -66,7 +67,7 @@ export const DashboardSkeletonLegacy: React.FC<MonitoringDashboardsLegacyPagePro
             <title>{t('Metrics dashboards')}</title>
           </Helmet>
         )}
-        <PageSection hasBodyWrapper={false}>
+        <PageSection variant={PageSectionVariants.light}>
           {perspective !== 'dev' && <HeaderTop />}
           <Stack hasGutter>
             {!_.isEmpty(boardItems) && (

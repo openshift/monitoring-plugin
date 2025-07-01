@@ -2,7 +2,7 @@ import { Overview } from '@openshift-console/dynamic-plugin-sdk';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
-import { usePerspective } from 'src/components/hooks/usePerspective';
+import { usePerspective } from '../../../components/hooks/usePerspective';
 import { LoadingInline } from '../../../components/console/console-shared/src/components/loading/LoadingInline';
 import withFallback from '../../console/console-shared/error/fallbacks/withFallback';
 import { LegacyDashboard } from '../legacy/legacy-dashboard';
