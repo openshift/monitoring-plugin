@@ -4,9 +4,8 @@ import * as React from 'react';
 import { QueryParamProvider } from 'use-query-params';
 import { ReactRouter5Adapter } from 'use-query-params/adapters/react-router-5';
 import { LoadingInline } from '../../console/console-shared/src/components/loading/LoadingInline';
-import DashboardSkeleton from '../shared/dashboard-skeleton';
-import { PersesContext } from '../shared/useIsPerses';
 import { PersesWrapper } from './PersesWrapper';
+import { DashboardSkeleton } from './dashboard-skeleton';
 import { DashboardEmptyState } from './emptystates/DashboardEmptyState';
 import { ProjectEmptyState } from './emptystates/ProjectEmptyState';
 import { useDashboardsData } from './hooks/useDashboardsData';
@@ -52,6 +51,7 @@ const MonitoringDashboardsPage_: React.FC = () => {
             boardItems={activeProjectDashboardsMetadata}
             changeBoard={changeBoard}
             dashboardName={dashboardName}
+            activeProject={activeProject}
           >
             <Overview>
               <PersesBoard />
@@ -67,9 +67,7 @@ const MonitoringDashboardsPageWrapper: React.FC = () => {
   return (
     <QueryParamProvider adapter={ReactRouter5Adapter}>
       <QueryClientProvider client={queryClient}>
-        <PersesContext.Provider value={true}>
-          <MonitoringDashboardsPage_ />
-        </PersesContext.Provider>
+        <MonitoringDashboardsPage_ />
       </QueryClientProvider>
     </QueryParamProvider>
   );

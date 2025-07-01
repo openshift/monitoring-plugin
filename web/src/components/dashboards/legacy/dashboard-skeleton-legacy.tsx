@@ -3,12 +3,6 @@ import * as React from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 
-import { usePerspective } from '../../hooks/usePerspective';
-import { DashboardDropdown } from './dashboard-dropdown';
-import { LegacyDashboardsAllVariableDropdowns } from '../legacy/legacy-variable-dropdowns';
-import { PollIntervalDropdown, TimespanDropdown } from './time-dropdowns';
-import { CombinedDashboardMetadata } from '../perses/hooks/useDashboardsData';
-import { useIsPerses } from './useIsPerses';
 import {
   Divider,
   PageSection,
@@ -18,12 +12,11 @@ import {
   StackItem,
   Title,
 } from '@patternfly/react-core';
-import { TimeRangeControls } from '@perses-dev/plugin-system';
-import {
-  DashboardStickyToolbar,
-  useDashboardActions,
-  useVariableDefinitions,
-} from '@perses-dev/dashboards';
+import { usePerspective } from '../../hooks/usePerspective';
+import { CombinedDashboardMetadata } from '../perses/hooks/useDashboardsData';
+import { DashboardDropdown } from '../shared/dashboard-dropdown';
+import { PollIntervalDropdown, TimespanDropdown } from './time-dropdowns';
+import { LegacyDashboardsAllVariableDropdowns } from './legacy-variable-dropdowns';
 
 const HeaderTop: React.FC = React.memo(() => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -36,8 +29,10 @@ const HeaderTop: React.FC = React.memo(() => {
       <SplitItem>
         <Split hasGutter isWrappable>
           <SplitItem>
-            <b> {t('Time Range Controls')} </b>
-            <TimeRangeControls />
+            <TimespanDropdown />
+          </SplitItem>
+          <SplitItem>
+            <PollIntervalDropdown />
           </SplitItem>
         </Split>
       </SplitItem>
@@ -45,34 +40,24 @@ const HeaderTop: React.FC = React.memo(() => {
   );
 });
 
-type MonitoringDashboardsPageProps = React.PropsWithChildren<{
+type MonitoringDashboardsLegacyPageProps = React.PropsWithChildren<{
   boardItems: CombinedDashboardMetadata[];
   changeBoard: (dashboardName: string) => void;
   dashboardName: string;
 }>;
 
-const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = React.memo(
+export const DashboardSkeletonLegacy: React.FC<MonitoringDashboardsLegacyPageProps> = React.memo(
   ({ children, boardItems, changeBoard, dashboardName }) => {
     const { t } = useTranslation(process.env.I18N_NAMESPACE);
-    const isPerses = useIsPerses();
 
     const { perspective } = usePerspective();
-    const { setDashboard } = useDashboardActions();
-    const variables = useVariableDefinitions();
 
-    const onChangeBoard = (selectedDashboard: string) => {
-      changeBoard(selectedDashboard);
-
-      if (isPerses) {
-        const selectedBoard = boardItems.find(
-          (item) => item.name.toLowerCase() === selectedDashboard.toLowerCase(),
-        );
-
-        if (selectedBoard) {
-          setDashboard(selectedBoard.persesDashboard);
-        }
-      }
-    };
+    const onChangeBoard = React.useCallback(
+      (selectedDashboard: string) => {
+        changeBoard(selectedDashboard);
+      },
+      [changeBoard],
+    );
 
     return (
       <>
@@ -93,18 +78,10 @@ const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = React.memo(
                 />
               </StackItem>
             )}
-            {isPerses ? (
-              variables.length > 0 ? (
-                <StackItem>
-                  <b> {t('Dashboard Variables')} </b>
-                  <DashboardStickyToolbar initialVariableIsSticky={false} key={dashboardName} />
-                </StackItem>
-              ) : null
-            ) : (
-              <StackItem>
-                <LegacyDashboardsAllVariableDropdowns key={dashboardName} />
-              </StackItem>
-            )}
+
+            <StackItem>
+              <LegacyDashboardsAllVariableDropdowns key={dashboardName} />
+            </StackItem>
             {perspective === 'dev' ? (
               <StackItem>
                 <Split hasGutter>
@@ -132,5 +109,3 @@ const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = React.memo(
     );
   },
 );
-
-export default DashboardSkeleton;

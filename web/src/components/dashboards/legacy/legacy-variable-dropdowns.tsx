@@ -15,6 +15,7 @@ import {
   Stack,
   StackItem,
   SplitItem,
+  Split,
 } from '@patternfly/react-core';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -34,10 +35,7 @@ import {
 import { getTimeRanges, isTimeoutError, QUERY_CHUNK_SIZE } from '../../utils';
 import { getLegacyObserveState, usePerspective } from '../../hooks/usePerspective';
 import { MonitoringState } from '../../../reducers/observe';
-import {
-  DEFAULT_GRAPH_SAMPLES,
-  MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY,
-} from '../shared/utils';
+import { DEFAULT_GRAPH_SAMPLES, MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY } from './utils';
 import {
   DataSource,
   isDataSource,
@@ -324,7 +322,7 @@ export const LegacyDashboardsAllVariableDropdowns: React.FC = () => {
   }
 
   return (
-    <>
+    <Split hasGutter isWrappable>
       {variables.keySeq().map((name: string) => (
         <LegacyDashboardsVariableDropdown
           id={name}
@@ -334,7 +332,7 @@ export const LegacyDashboardsAllVariableDropdowns: React.FC = () => {
           perspective={perspective}
         />
       ))}
-    </>
+    </Split>
   );
 };
 

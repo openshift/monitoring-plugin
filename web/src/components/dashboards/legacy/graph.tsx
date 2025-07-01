@@ -5,7 +5,7 @@ import { dashboardsSetEndTime, dashboardsSetTimespan, Perspective } from '../../
 import { FormatSeriesTitle, QueryBrowser } from '../../query-browser';
 import { MonitoringState } from '../../../reducers/observe';
 import { getLegacyObserveState } from '../../hooks/usePerspective';
-import { DEFAULT_GRAPH_SAMPLES } from '../shared/utils';
+import { DEFAULT_GRAPH_SAMPLES } from './utils';
 import { CustomDataSource } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
 
 type Props = {

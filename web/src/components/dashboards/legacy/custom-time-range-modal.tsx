@@ -1,7 +1,3 @@
-import * as _ from 'lodash-es';
-import * as React from 'react';
-import { useTranslation } from 'react-i18next';
-import { useDispatch } from 'react-redux';
 import {
   Button,
   DatePicker,
@@ -16,12 +12,15 @@ import {
   ModalVariant,
   TimePicker,
 } from '@patternfly/react-core';
+import * as _ from 'lodash-es';
+import * as React from 'react';
+import { useTranslation } from 'react-i18next';
+import { useDispatch } from 'react-redux';
 
 import { dashboardsSetEndTime, dashboardsSetTimespan, Perspective } from '../../../actions/observe';
 
-import { QueryParams } from '../../query-params';
-import { useIsPerses } from './useIsPerses';
 import { NumberParam, useQueryParam } from 'use-query-params';
+import { QueryParams } from '../../query-params';
 
 const zeroPad = (number: number) => (number < 10 ? `0${number}` : number);
 
@@ -51,7 +50,6 @@ const CustomTimeRangeModal: React.FC<CustomTimeRangeModalProps> = ({
   endTime,
 }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const isPerses = useIsPerses();
   const [, setEndTime] = useQueryParam(QueryParams.EndTime, NumberParam);
   const [, setTimeRange] = useQueryParam(QueryParams.TimeRange, NumberParam);
 
@@ -74,10 +72,8 @@ const CustomTimeRangeModal: React.FC<CustomTimeRangeModalProps> = ({
     const from = Date.parse(`${fromDate} ${fromTime}`);
     const to = Date.parse(`${toDate} ${toTime}`);
     if (_.isInteger(from) && _.isInteger(to)) {
-      if (!isPerses) {
-        dispatch(dashboardsSetEndTime(to, perspective));
-        dispatch(dashboardsSetTimespan(to - from, perspective));
-      }
+      dispatch(dashboardsSetEndTime(to, perspective));
+      dispatch(dashboardsSetTimespan(to - from, perspective));
       setEndTime(Number(to.toString()));
       setTimeRange(Number((to - from).toString()));
       setClosed();
