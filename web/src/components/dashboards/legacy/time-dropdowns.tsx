@@ -1,29 +1,25 @@
+import { Stack, StackItem } from '@patternfly/react-core';
+import { SimpleSelect, SimpleSelectOption } from '@patternfly/react-templates';
 import * as _ from 'lodash-es';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
+import { NumberParam, useQueryParam } from 'use-query-params';
 import {
   dashboardsSetEndTime,
   dashboardsSetPollInterval,
   dashboardsSetTimespan,
 } from '../../../actions/observe';
-import { useBoolean } from '../../hooks/useBoolean';
-import CustomTimeRangeModal from '../shared/custom-time-range-modal';
-import { getLegacyObserveState, usePerspective } from '../../hooks/usePerspective';
 import { MonitoringState } from '../../../reducers/observe';
-import {
-  DEFAULT_REFRESH_INTERVAL,
-  DropDownPollInterval,
-} from '../../../components/dropdown-poll-interval';
-import { QueryParams } from '../../query-params';
-import { NumberParam, useQueryParam } from 'use-query-params';
-import { useIsPerses } from './useIsPerses';
 import {
   formatPrometheusDuration,
   parsePrometheusDuration,
 } from '../../console/console-shared/src/datetime/prometheus';
-import { SimpleSelect, SimpleSelectOption } from '@patternfly/react-templates';
-import { Stack, StackItem } from '@patternfly/react-core';
+import { DEFAULT_REFRESH_INTERVAL, DropDownPollInterval } from '../../dropdown-poll-interval';
+import { useBoolean } from '../../hooks/useBoolean';
+import { getLegacyObserveState, usePerspective } from '../../hooks/usePerspective';
+import { QueryParams } from '../../query-params';
+import CustomTimeRangeModal from './custom-time-range-modal';
 
 const CUSTOM_TIME_RANGE_KEY = 'CUSTOM_TIME_RANGE_KEY';
 const DEFAULT_TIMERANGE = '30m';
@@ -32,7 +28,6 @@ export const TimespanDropdown: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const { perspective } = usePerspective();
-  const isPerses = useIsPerses();
 
   const [isModalOpen, , setModalOpen, setModalClosed] = useBoolean(false);
 
@@ -59,13 +54,11 @@ export const TimespanDropdown: React.FC = () => {
       } else {
         setTimeRange(parsePrometheusDuration(v));
         setEndTime(undefined);
-        if (!isPerses) {
-          dispatch(dashboardsSetTimespan(parsePrometheusDuration(v), perspective));
-          dispatch(dashboardsSetEndTime(null, perspective));
-        }
+        dispatch(dashboardsSetTimespan(parsePrometheusDuration(v), perspective));
+        dispatch(dashboardsSetEndTime(null, perspective));
       }
     },
-    [setModalOpen, dispatch, perspective, setTimeRange, setEndTime, isPerses],
+    [setModalOpen, dispatch, perspective, setTimeRange, setEndTime],
   );
 
   const initialOptions = React.useMemo<SimpleSelectOption[]>(() => {
@@ -92,8 +85,8 @@ export const TimespanDropdown: React.FC = () => {
     return intervalOptions.map((o) => ({ ...o, selected: o.value === selectedKey }));
   }, [selectedKey, t, timeRangeFromParams, setTimeRange, setEndTime]);
 
-  const defaultTimerange = (isPerses ? timeRangeFromParams : timespan) ?? undefined;
-  const defaultEndTime = (isPerses ? endTimeFromParams : endTime) ?? undefined;
+  const defaultTimerange = timespan ?? undefined;
+  const defaultEndTime = endTime ?? undefined;
 
   return (
     <>
@@ -128,10 +121,7 @@ export const TimespanDropdown: React.FC = () => {
 export const PollIntervalDropdown: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
-  const isPerses = useIsPerses();
-  const [selectedInterval, setSelectedInterval] = React.useState(
-    isPerses ? 0 : DEFAULT_REFRESH_INTERVAL,
-  );
+  const [selectedInterval, setSelectedInterval] = React.useState(DEFAULT_REFRESH_INTERVAL);
 
   const dispatch = useDispatch();
   const [, setRefreshInterval] = useQueryParam(QueryParams.RefreshInterval, NumberParam);
@@ -140,11 +130,9 @@ export const PollIntervalDropdown: React.FC = () => {
     (v: number) => {
       setSelectedInterval(v);
       setRefreshInterval(v);
-      if (!isPerses) {
-        dispatch(dashboardsSetPollInterval(v, perspective));
-      }
+      dispatch(dashboardsSetPollInterval(v, perspective));
     },
-    [dispatch, perspective, isPerses, setRefreshInterval],
+    [dispatch, perspective, setRefreshInterval],
   );
 
   return (
