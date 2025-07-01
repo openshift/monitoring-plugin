@@ -12,17 +12,11 @@ import {
   StackItem,
   Title,
 } from '@patternfly/react-core';
-import {
-  DashboardStickyToolbar,
-  useDashboardActions,
-  useVariableDefinitions,
-} from '@perses-dev/dashboards';
-import { usePerspective } from 'src/components/hooks/usePerspective';
-import { LegacyDashboardsAllVariableDropdowns } from '../legacy/legacy-variable-dropdowns';
+import { usePerspective } from '../../hooks/usePerspective';
 import { CombinedDashboardMetadata } from '../perses/hooks/useDashboardsData';
-import { DashboardDropdown } from './dashboard-dropdown';
+import { DashboardDropdown } from '../shared/dashboard-dropdown';
 import { PollIntervalDropdown, TimespanDropdown } from './time-dropdowns';
-import { useIsPerses } from './useIsPerses';
+import { LegacyDashboardsAllVariableDropdowns } from './legacy-variable-dropdowns';
 
 const HeaderTop: React.FC = React.memo(() => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -46,46 +40,24 @@ const HeaderTop: React.FC = React.memo(() => {
   );
 });
 
-type MonitoringDashboardsPageProps = React.PropsWithChildren<{
+type MonitoringDashboardsLegacyPageProps = React.PropsWithChildren<{
   boardItems: CombinedDashboardMetadata[];
   changeBoard: (dashboardName: string) => void;
   dashboardName: string;
-  activeProject?: string;
 }>;
 
-const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = React.memo(
-  ({ children, boardItems, changeBoard, dashboardName, activeProject }) => {
+export const DashboardSkeletonLegacy: React.FC<MonitoringDashboardsLegacyPageProps> = React.memo(
+  ({ children, boardItems, changeBoard, dashboardName }) => {
     const { t } = useTranslation(process.env.I18N_NAMESPACE);
-    const isPerses = useIsPerses();
 
     const { perspective } = usePerspective();
-    const { setDashboard } = useDashboardActions();
-    const variables = useVariableDefinitions();
 
     const onChangeBoard = React.useCallback(
       (selectedDashboard: string) => {
         changeBoard(selectedDashboard);
-
-        if (isPerses) {
-          const selectedBoard = boardItems.find(
-            (item) =>
-              item.name.toLowerCase() === selectedDashboard.toLowerCase() &&
-              item.project?.toLowerCase() === activeProject?.toLowerCase(),
-          );
-
-          if (selectedBoard) {
-            setDashboard(selectedBoard.persesDashboard);
-          }
-        }
       },
-      [changeBoard, boardItems, activeProject, isPerses, setDashboard],
+      [changeBoard],
     );
-
-    React.useEffect(() => {
-      if (isPerses) {
-        onChangeBoard(dashboardName);
-      }
-    }, [dashboardName, isPerses, onChangeBoard]);
 
     return (
       <>
@@ -106,18 +78,10 @@ const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = React.memo(
                 />
               </StackItem>
             )}
-            {isPerses ? (
-              variables.length > 0 ? (
-                <StackItem>
-                  <b> {t('Dashboard Variables')} </b>
-                  <DashboardStickyToolbar initialVariableIsSticky={false} key={dashboardName} />
-                </StackItem>
-              ) : null
-            ) : (
-              <StackItem>
-                <LegacyDashboardsAllVariableDropdowns key={dashboardName} />
-              </StackItem>
-            )}
+
+            <StackItem>
+              <LegacyDashboardsAllVariableDropdowns key={dashboardName} />
+            </StackItem>
             {perspective === 'dev' ? (
               <StackItem>
                 <Split hasGutter>
@@ -145,5 +109,3 @@ const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = React.memo(
     );
   },
 );
-
-export default DashboardSkeleton;
