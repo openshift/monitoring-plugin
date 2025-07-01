@@ -52,6 +52,7 @@ const MonitoringDashboardsPage_: React.FC = () => {
             boardItems={activeProjectDashboardsMetadata}
             changeBoard={changeBoard}
             dashboardName={dashboardName}
+            activeProject={activeProject}
           >
             <Overview>
               <PersesBoard />
