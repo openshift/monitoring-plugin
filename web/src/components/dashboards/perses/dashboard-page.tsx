@@ -42,22 +42,25 @@ const MonitoringDashboardsPage_: React.FC = () => {
   }
 
   return (
-    <PersesWrapper project={activeProject}>
+    <>
       <ProjectBar activeProject={activeProject} setActiveProject={setActiveProject} />
-      {activeProjectDashboardsMetadata.length === 0 ? (
-        <DashboardEmptyState />
-      ) : (
-        <DashboardSkeleton
-          boardItems={activeProjectDashboardsMetadata}
-          changeBoard={changeBoard}
-          dashboardName={dashboardName}
-        >
-          <Overview>
-            <PersesBoard />
-          </Overview>
-        </DashboardSkeleton>
-      )}
-    </PersesWrapper>
+      <PersesWrapper project={activeProject}>
+        {activeProjectDashboardsMetadata.length === 0 ? (
+          <DashboardEmptyState />
+        ) : (
+          <DashboardSkeleton
+            boardItems={activeProjectDashboardsMetadata}
+            changeBoard={changeBoard}
+            dashboardName={dashboardName}
+            activeProject={activeProject}
+          >
+            <Overview>
+              <PersesBoard />
+            </Overview>
+          </DashboardSkeleton>
+        )}
+      </PersesWrapper>
+    </>
   );
 };
 

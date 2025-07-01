@@ -50,10 +50,11 @@ type MonitoringDashboardsPageProps = React.PropsWithChildren<{
   boardItems: CombinedDashboardMetadata[];
   changeBoard: (dashboardName: string) => void;
   dashboardName: string;
+  activeProject?: string;
 }>;
 
 const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = React.memo(
-  ({ children, boardItems, changeBoard, dashboardName }) => {
+  ({ children, boardItems, changeBoard, dashboardName, activeProject }) => {
     const { t } = useTranslation(process.env.I18N_NAMESPACE);
     const isPerses = useIsPerses();
 
@@ -61,19 +62,30 @@ const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = React.memo(
     const { setDashboard } = useDashboardActions();
     const variables = useVariableDefinitions();
 
-    const onChangeBoard = (selectedDashboard: string) => {
-      changeBoard(selectedDashboard);
+    const onChangeBoard = React.useCallback(
+      (selectedDashboard: string) => {
+        changeBoard(selectedDashboard);
 
-      if (isPerses) {
-        const selectedBoard = boardItems.find(
-          (item) => item.name.toLowerCase() === selectedDashboard.toLowerCase(),
-        );
+        if (isPerses) {
+          const selectedBoard = boardItems.find(
+            (item) =>
+              item.name.toLowerCase() === selectedDashboard.toLowerCase() &&
+              item.project?.toLowerCase() === activeProject?.toLowerCase(),
+          );
 
-        if (selectedBoard) {
-          setDashboard(selectedBoard.persesDashboard);
+          if (selectedBoard) {
+            setDashboard(selectedBoard.persesDashboard);
+          }
         }
+      },
+      [changeBoard, boardItems, activeProject, isPerses, setDashboard],
+    );
+
+    React.useEffect(() => {
+      if (isPerses) {
+        onChangeBoard(dashboardName);
       }
-    };
+    }, [dashboardName, isPerses, onChangeBoard]);
 
     return (
       <>
