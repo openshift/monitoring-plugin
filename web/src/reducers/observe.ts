@@ -14,7 +14,7 @@ import { getAlertsKey, getSilencesKey } from '../components/hooks/usePerspective
 import {
   MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
   MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY,
-} from '../components/dashboards/shared/utils';
+} from '../components/dashboards/legacy/utils';
 
 export type ObserveState = ImmutableMap<string, any>;
 
