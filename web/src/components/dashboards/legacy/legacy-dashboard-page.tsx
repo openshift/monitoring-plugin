@@ -8,9 +8,8 @@ import { LoadingInline } from '../../../components/console/console-shared/src/co
 import withFallback from '../../console/console-shared/error/fallbacks/withFallback';
 import { usePerspective } from '../../hooks/usePerspective';
 import { LegacyDashboard } from '../legacy/legacy-dashboard';
-import DashboardSkeleton from '../shared/dashboard-skeleton';
 import ErrorAlert from '../shared/error';
-import { PersesContext } from '../shared/useIsPerses';
+import { DashboardSkeletonLegacy } from './dashboard-skeleton-legacy';
 import { useLegacyDashboards } from './useLegacyDashboards';
 
 type LegacyDashboardsPageProps = {
@@ -34,7 +33,7 @@ const LegacyDashboardsPage_: React.FC<LegacyDashboardsPageProps> = ({
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
-    <DashboardSkeleton
+    <DashboardSkeletonLegacy
       boardItems={legacyDashboardsMetadata}
       changeBoard={changeLegacyDashboard}
       dashboardName={legacyDashboard}
@@ -50,7 +49,7 @@ const LegacyDashboardsPage_: React.FC<LegacyDashboardsPageProps> = ({
           <LegacyDashboard rows={legacyRows} perspective={perspective} />
         )}
       </Overview>
-    </DashboardSkeleton>
+    </DashboardSkeletonLegacy>
   );
 };
 
@@ -59,9 +58,7 @@ const LegacyDashboardsPage: React.FC = () => {
 
   return (
     <QueryParamProvider adapter={ReactRouter5Adapter}>
-      <PersesContext.Provider value={false}>
-        <LegacyDashboardsPage_ urlBoard={params?.dashboardName} namespace={params?.ns} />
-      </PersesContext.Provider>
+      <LegacyDashboardsPage_ urlBoard={params?.dashboardName} namespace={params?.ns} />
     </QueryParamProvider>
   );
 };

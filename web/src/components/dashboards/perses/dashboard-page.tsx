@@ -3,11 +3,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as React from 'react';
 import { QueryParamProvider } from 'use-query-params';
 import { ReactRouter5Adapter } from 'use-query-params/adapters/react-router-5';
-import withFallback from '../../console/console-shared/error/fallbacks/withFallback';
 import { LoadingInline } from '../../console/console-shared/src/components/loading/LoadingInline';
-import DashboardSkeleton from '../shared/dashboard-skeleton';
-import { PersesContext } from '../shared/useIsPerses';
 import { PersesWrapper } from './PersesWrapper';
+import { DashboardSkeleton } from './dashboard-skeleton';
 import { DashboardEmptyState } from './emptystates/DashboardEmptyState';
 import { ProjectEmptyState } from './emptystates/ProjectEmptyState';
 import { useDashboardsData } from './hooks/useDashboardsData';
@@ -27,13 +25,13 @@ const MonitoringDashboardsPage_: React.FC = () => {
   const {
     changeBoard,
     activeProjectDashboardsMetadata,
-    combinedIntialLoad,
+    combinedInitialLoad,
     activeProject,
     setActiveProject,
     dashboardName,
   } = useDashboardsData();
 
-  if (combinedIntialLoad) {
+  if (combinedInitialLoad) {
     return <LoadingInline />;
   }
 
@@ -43,22 +41,25 @@ const MonitoringDashboardsPage_: React.FC = () => {
   }
 
   return (
-    <PersesWrapper project={activeProject}>
+    <>
       <ProjectBar activeProject={activeProject} setActiveProject={setActiveProject} />
-      {activeProjectDashboardsMetadata.length === 0 ? (
-        <DashboardEmptyState />
-      ) : (
-        <DashboardSkeleton
-          boardItems={activeProjectDashboardsMetadata}
-          changeBoard={changeBoard}
-          dashboardName={dashboardName}
-        >
-          <Overview>
-            <PersesBoard />
-          </Overview>
-        </DashboardSkeleton>
-      )}
-    </PersesWrapper>
+      <PersesWrapper project={activeProject}>
+        {activeProjectDashboardsMetadata.length === 0 ? (
+          <DashboardEmptyState />
+        ) : (
+          <DashboardSkeleton
+            boardItems={activeProjectDashboardsMetadata}
+            changeBoard={changeBoard}
+            dashboardName={dashboardName}
+            activeProject={activeProject}
+          >
+            <Overview>
+              <PersesBoard />
+            </Overview>
+          </DashboardSkeleton>
+        )}
+      </PersesWrapper>
+    </>
   );
 };
 
@@ -66,12 +67,10 @@ const MonitoringDashboardsPageWrapper: React.FC = () => {
   return (
     <QueryParamProvider adapter={ReactRouter5Adapter}>
       <QueryClientProvider client={queryClient}>
-        <PersesContext.Provider value={true}>
-          <MonitoringDashboardsPage_ />
-        </PersesContext.Provider>
+        <MonitoringDashboardsPage_ />
       </QueryClientProvider>
     </QueryParamProvider>
   );
 };
 
-export default withFallback(MonitoringDashboardsPageWrapper);
+export default MonitoringDashboardsPageWrapper;
