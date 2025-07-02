@@ -3,7 +3,7 @@ import * as React from 'react';
 import { PrometheusEndpoint, PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
 import { Bullseye, Title } from '@patternfly/react-core';
 
-import ErrorAlert from './error';
+import ErrorAlert from '../shared/error';
 import { getPrometheusURL } from '../../console/graphs/helpers';
 import { usePoll } from '../../console/utils/poll-hook';
 import { useSafeFetch } from '../../console/utils/safe-fetch-hook';

@@ -8,7 +8,7 @@ import { LoadingInline } from '../../../components/console/console-shared/src/co
 import withFallback from '../../console/console-shared/error/fallbacks/withFallback';
 import { usePerspective } from '../../hooks/usePerspective';
 import { LegacyDashboard } from '../legacy/legacy-dashboard';
-import ErrorAlert from './error';
+import ErrorAlert from '../shared/error';
 import { DashboardSkeletonLegacy } from './dashboard-skeleton-legacy';
 import { useLegacyDashboards } from './useLegacyDashboards';
 
