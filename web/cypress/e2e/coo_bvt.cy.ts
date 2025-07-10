@@ -71,10 +71,10 @@ function getTextFromElement(selector: string) {
   return elementText; 
 };
 
-describe('Monitoring: Alerts', () => {
+describe('COO: BVT', () => {
   
   before(() => {
-      
+    
     cy.log('Before all');
     cy.adminCLI(
           `oc adm policy add-cluster-role-to-user cluster-admin ${Cypress.env('LOGIN_USERNAME')}`,
@@ -171,9 +171,9 @@ describe('Monitoring: Alerts', () => {
 
         cy.log('Check Cluster Observability Operator status');
         cy.exec(
-          `sleep 15 && oc wait --for=condition=Ready pods --selector=app.kubernetes.io/name=observability-operator -n ${MCP.namespace} --timeout=60s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+          `sleep 30 && oc wait --for=condition=Ready pods --selector=app.kubernetes.io/name=observability-operator -n ${MCP.namespace} --timeout=60s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
           {
-            timeout: readyTimeout,
+            timeout: installTimeout,
             failOnNonZeroExit: true
           }
         ).then((result) => {
@@ -224,17 +224,14 @@ describe('Monitoring: Alerts', () => {
         ).then((result) => {
           expect(result.code).to.eq(0);
           cy.log(`Monitoring plugin pod is now running in namespace: ${MCP.namespace}`);
-        });    
-        cy.get('.pf-v5-c-alert, .pf-v6-c-alert', { timeout: readyTimeout })
-        .contains('Web console update is available')
-        .then(($alert) => {
-          // If the alert is found, assert that it exists
-          expect($alert).to.exist;
-        }, () => {
-          // If the alert is not found within the timeout, visit and assert the /monitoring/v2/dashboards page
-          cy.visit('/monitoring/v2/dashboards');
-          cy.url().should('include', '/monitoring/v2/dashboards');
         });
+
+        //way to wait for the refresh to happen once warning browser refresh won't be displayed anymore
+        cy.url().should('include', '/auth/callback');
+        cy.url().should('include', '/operators.coreos.com');
+
+        cy.visit('/monitoring/v2/dashboards');
+        cy.url().should('include', '/monitoring/v2/dashboards');
 
         cy.log('Set Monitoring Plugin image in operator CSV');
         if (Cypress.env('MP_IMAGE')) {
@@ -285,17 +282,7 @@ describe('Monitoring: Alerts', () => {
       cy.executeAndDelete(
         `oc adm policy remove-cluster-role-from-user cluster-admin ${Cypress.env('LOGIN_USERNAME')} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
       );
-
-       cy.get('.pf-v5-c-alert, .pf-v6-c-alert', { timeout: 120000 })
-        .contains('Web console update is available')
-        .then(($alert) => {
-          // If the alert is found, assert that it exists
-          expect($alert).to.exist;
-        }, () => {
-          // If the alert is not found within the timeout, visit and assert the /monitoring/v2/dashboards page
-          cy.visit('/monitoring/v2/dashboards');
-          cy.url().should('not.include', '/monitoring/v2/dashboards');
-        });
+      
     }
   });
 
