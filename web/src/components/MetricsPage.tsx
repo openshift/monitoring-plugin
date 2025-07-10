@@ -326,6 +326,17 @@ export const ToggleGraph: React.FC = () => {
 
   const dispatch = useDispatch();
   const toggle = React.useCallback(() => dispatch(toggleGraphs()), [dispatch]);
+  // Use an empty useEffect to get access to the cleanup function so that if graphs are
+  // currently hidden then we toggle one more time as we unmount
+  React.useEffect(
+    () => () => {
+      if (hideGraphs) {
+        toggle();
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [hideGraphs],
+  );
 
   const icon = hideGraphs ? <ChartLineIcon /> : <CompressIcon />;
 
