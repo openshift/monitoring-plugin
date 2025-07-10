@@ -69,7 +69,7 @@ import { queryBrowserTheme } from './query-browser-theme';
 import { PrometheusAPIError, TimeRange } from './types';
 import { getTimeRanges } from './utils';
 
-import { getLegacyObserveState, usePerspective } from './hooks/usePerspective';
+import { getLegacyObserveState, getObserveState, usePerspective } from './hooks/usePerspective';
 import { MonitoringState } from '../reducers/observe';
 import { LoadingInline } from './console/console-shared/src/components/loading/LoadingInline';
 import {
@@ -590,7 +590,7 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
   const { perspective } = usePerspective();
 
   const hideGraphs = useSelector(
-    (state: MonitoringState) => !!getLegacyObserveState(perspective, state)?.get('hideGraphs'),
+    (state: MonitoringState) => !!getObserveState(perspective, state)?.get('hideGraphs'),
   );
   const tickInterval = useSelector(
     (state: MonitoringState) =>
