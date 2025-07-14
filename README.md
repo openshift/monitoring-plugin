@@ -170,5 +170,5 @@ $ npm install
 $ npm run build
 $ ./scripts/api_backend_dev.sh
 
-# Lastly navigate to http://localhost:3000/ to see Perses app running 
+# Lastly navigate to http://localhost:8080/ to see Perses app running 
 ```
