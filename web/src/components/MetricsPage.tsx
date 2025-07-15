@@ -2,6 +2,7 @@ import {
   PrometheusData,
   PrometheusEndpoint,
   PrometheusLabels,
+  PrometheusResponse,
   useActiveNamespace,
   useResolvedExtensions,
   YellowExclamationTriangleIcon,
@@ -17,6 +18,8 @@ import {
   EmptyStateBody,
   EmptyStateIcon,
   EmptyStateVariant,
+  Flex,
+  FlexItem,
   Grid,
   GridItem,
   MenuToggle,
@@ -239,7 +242,7 @@ export const PreDefinedQueriesDropdown = () => {
   };
 
   return (
-    <Grid className="predefined-query-select--padding">
+    <Grid>
       <GridItem>
         <label htmlFor="predefined-query-select-label">{t('Queries')}</label>
       </GridItem>
@@ -320,14 +323,13 @@ export const ToggleGraph: React.FC = () => {
   const icon = hideGraphs ? <ChartLineIcon /> : <CompressIcon />;
 
   return (
-    <Button
-      type="button"
-      className="pf-v5-m-link--align-right query-browser__toggle-graph"
-      onClick={toggle}
-      variant="link"
-    >
-      {icon} {hideGraphs ? t('Show graph') : t('Hide graph')}
-    </Button>
+    <Flex justifyContent={{ default: 'justifyContentFlexEnd' }}>
+      <FlexItem>
+        <Button type="button" onClick={toggle} variant="link">
+          {icon} {hideGraphs ? t('Show graph') : t('Hide graph')}
+        </Button>
+      </FlexItem>
+    </Flex>
   );
 };
 
@@ -384,24 +386,19 @@ const SeriesButton: React.FC<SeriesButtonProps> = ({ index, labels }) => {
   );
 
   if (isSeriesEmpty) {
-    return <div className="query-browser__series-btn-wrap"></div>;
+    return null;
   }
   const title = isDisabled ? t('Show series') : t('Hide series');
 
   return (
-    <div className="query-browser__series-btn-wrap">
-      <Button
-        aria-label={title}
-        className={classNames('query-browser__series-btn', {
-          'query-browser__series-btn--disabled': isDisabled,
-        })}
-        onClick={toggleSeries}
-        style={colorIndex === null ? undefined : { backgroundColor: colors[colorIndex] }}
-        title={title}
-        type="button"
-        variant="plain"
-      />
-    </div>
+    <Button
+      aria-label={title}
+      onClick={toggleSeries}
+      style={colorIndex === null ? undefined : { backgroundColor: colors[colorIndex] }}
+      title={title}
+      type="button"
+      variant="control"
+    />
   );
 };
 
@@ -643,7 +640,7 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, custom
   // the PROMETHEUS_TENANCY_BASE_PATH for requests in the developer view
   const tick = () => {
     if (isEnabled && isExpanded && query) {
-      safeFetch(
+      safeFetch<PrometheusResponse>(
         getPrometheusURL(
           {
             endpoint: PrometheusEndpoint.QUERY,

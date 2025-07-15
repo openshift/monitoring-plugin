@@ -11,7 +11,7 @@ import { getAllQueryArguments } from './console/utils/router';
 
 import MonitoringDashboardsPage from './dashboards/perses/dashboard-page';
 import MonitoringLegacyDashboardsPage from './dashboards/legacy/legacy-dashboard-page';
-import { QueryBrowserPage } from './metrics';
+import { QueryBrowserPage } from './MetricsPage';
 import { CreateSilence, EditSilence } from './silence-form';
 import { TargetsUI } from './targets';
 

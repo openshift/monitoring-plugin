@@ -73,7 +73,7 @@ import {
   SeverityHelp,
   SourceHelp,
 } from './AlertUtils';
-import { ToggleGraph } from '../metrics';
+import { ToggleGraph } from '../MetricsPage';
 import {
   ContainerModel,
   DaemonSetModel,
