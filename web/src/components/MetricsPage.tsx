@@ -8,7 +8,6 @@ import {
   YellowExclamationTriangleIcon,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
-  ActionGroup,
   Bullseye,
   Button,
   Dropdown,
@@ -29,6 +28,8 @@ import {
   SelectOptionProps,
   Split,
   SplitItem,
+  Stack,
+  StackItem,
   Switch,
   Title,
   Tooltip,
@@ -90,6 +91,9 @@ import {
   isDataSource,
 } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
 import { MonitoringState } from '../reducers/observe';
+import { TypeaheadSelect } from './TypeaheadSelect';
+import withFallback from './console/console-shared/error/fallbacks/withFallback';
+import { LoadingInline } from './console/console-shared/src/components/loading/LoadingInline';
 import { DropDownPollInterval } from './dropdown-poll-interval';
 import { useBoolean } from './hooks/useBoolean';
 import { getLegacyObserveState, usePerspective } from './hooks/usePerspective';
@@ -98,9 +102,6 @@ import { colors, Error, QueryBrowser } from './query-browser';
 import { QueryParams } from './query-params';
 import TablePagination from './table-pagination';
 import { PrometheusAPIError } from './types';
-import { TypeaheadSelect } from './TypeaheadSelect';
-import { LoadingInline } from './console/console-shared/src/components/loading/LoadingInline';
-import withFallback from './console/console-shared/error/fallbacks/withFallback';
 
 // Stores information about the currently focused query input
 let focusedQuery;
@@ -1226,31 +1227,33 @@ const QueryBrowserPage_: React.FC = () => {
         </Split>
       </PageSection>
       <PageSection variant={PageSectionVariants.light}>
-        <Grid>
-          <GridItem className="query-browser__toggle-graph-container">
+        <Stack hasGutter>
+          <StackItem>
             <ToggleGraph />
-          </GridItem>
-          <GridItem>
+          </StackItem>
+          <StackItem>
             <QueryBrowserWrapper
               customDataSource={customDataSource}
               customDataSourceName={customDataSourceName}
               customDatasourceError={customDatasourceError}
             />
-            <Split>
-              <SplitItem>
+          </StackItem>
+          <StackItem>
+            <Flex alignItems={{ default: 'alignItemsFlexEnd' }}>
+              <FlexItem>
                 <PreDefinedQueriesDropdown />
-              </SplitItem>
-              <SplitItem isFilled />
-              <SplitItem>
-                <ActionGroup>
-                  <AddQueryButton />
-                  <RunQueriesButton />
-                </ActionGroup>
-              </SplitItem>
-            </Split>
+              </FlexItem>
+              <FlexItem grow={{ default: 'grow' }} />
+              <FlexItem>
+                <AddQueryButton />
+                <RunQueriesButton />
+              </FlexItem>
+            </Flex>
+          </StackItem>
+          <StackItem>
             <QueriesList customDatasource={customDataSource} />
-          </GridItem>
-        </Grid>
+          </StackItem>
+        </Stack>
       </PageSection>
     </>
   );
