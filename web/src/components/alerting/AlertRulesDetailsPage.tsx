@@ -44,7 +44,7 @@ import { ExternalLink } from '../console/utils/link';
 
 import KebabDropdown from '../kebab-dropdown';
 import { Labels } from '../labels';
-import { ToggleGraph } from '../metrics';
+import { ToggleGraph } from '../MetricsPage';
 import { Alerts } from '../types';
 import { alertDescription, RuleResource } from '../utils';
 

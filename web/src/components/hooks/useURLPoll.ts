@@ -17,7 +17,7 @@ export const useURLPoll: UseURLPoll = <R>(
   const safeFetch = useSafeFetch();
   const tick = useCallback(() => {
     if (url) {
-      safeFetch(url)
+      safeFetch<R>(url)
         .then((data) => {
           setResponse(data);
           setError(null);

@@ -2,12 +2,12 @@ import {
   PrometheusData,
   PrometheusEndpoint,
   PrometheusLabels,
+  PrometheusResponse,
   useActiveNamespace,
   useResolvedExtensions,
   YellowExclamationTriangleIcon,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
-  ActionGroup,
   Bullseye,
   Button,
   Dropdown,
@@ -17,6 +17,8 @@ import {
   EmptyStateBody,
   EmptyStateIcon,
   EmptyStateVariant,
+  Flex,
+  FlexItem,
   Grid,
   GridItem,
   MenuToggle,
@@ -26,6 +28,8 @@ import {
   SelectOptionProps,
   Split,
   SplitItem,
+  Stack,
+  StackItem,
   Switch,
   Title,
   Tooltip,
@@ -87,6 +91,9 @@ import {
   isDataSource,
 } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
 import { MonitoringState } from '../reducers/observe';
+import { TypeaheadSelect } from './TypeaheadSelect';
+import withFallback from './console/console-shared/error/fallbacks/withFallback';
+import { LoadingInline } from './console/console-shared/src/components/loading/LoadingInline';
 import { DropDownPollInterval } from './dropdown-poll-interval';
 import { useBoolean } from './hooks/useBoolean';
 import { getLegacyObserveState, usePerspective } from './hooks/usePerspective';
@@ -95,9 +102,6 @@ import { colors, Error, QueryBrowser } from './query-browser';
 import { QueryParams } from './query-params';
 import TablePagination from './table-pagination';
 import { PrometheusAPIError } from './types';
-import { TypeaheadSelect } from './TypeaheadSelect';
-import { LoadingInline } from './console/console-shared/src/components/loading/LoadingInline';
-import withFallback from './console/console-shared/error/fallbacks/withFallback';
 
 // Stores information about the currently focused query input
 let focusedQuery;
@@ -239,7 +243,7 @@ export const PreDefinedQueriesDropdown = () => {
   };
 
   return (
-    <Grid className="predefined-query-select--padding">
+    <Grid>
       <GridItem>
         <label htmlFor="predefined-query-select-label">{t('Queries')}</label>
       </GridItem>
@@ -320,14 +324,13 @@ export const ToggleGraph: React.FC = () => {
   const icon = hideGraphs ? <ChartLineIcon /> : <CompressIcon />;
 
   return (
-    <Button
-      type="button"
-      className="pf-v5-m-link--align-right query-browser__toggle-graph"
-      onClick={toggle}
-      variant="link"
-    >
-      {icon} {hideGraphs ? t('Show graph') : t('Hide graph')}
-    </Button>
+    <Flex justifyContent={{ default: 'justifyContentFlexEnd' }}>
+      <FlexItem>
+        <Button type="button" onClick={toggle} variant="link">
+          {icon} {hideGraphs ? t('Show graph') : t('Hide graph')}
+        </Button>
+      </FlexItem>
+    </Flex>
   );
 };
 
@@ -384,24 +387,19 @@ const SeriesButton: React.FC<SeriesButtonProps> = ({ index, labels }) => {
   );
 
   if (isSeriesEmpty) {
-    return <div className="query-browser__series-btn-wrap"></div>;
+    return null;
   }
   const title = isDisabled ? t('Show series') : t('Hide series');
 
   return (
-    <div className="query-browser__series-btn-wrap">
-      <Button
-        aria-label={title}
-        className={classNames('query-browser__series-btn', {
-          'query-browser__series-btn--disabled': isDisabled,
-        })}
-        onClick={toggleSeries}
-        style={colorIndex === null ? undefined : { backgroundColor: colors[colorIndex] }}
-        title={title}
-        type="button"
-        variant="plain"
-      />
-    </div>
+    <Button
+      aria-label={title}
+      onClick={toggleSeries}
+      style={colorIndex === null ? undefined : { backgroundColor: colors[colorIndex] }}
+      title={title}
+      type="button"
+      variant="control"
+    />
   );
 };
 
@@ -643,7 +641,7 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, custom
   // the PROMETHEUS_TENANCY_BASE_PATH for requests in the developer view
   const tick = () => {
     if (isEnabled && isExpanded && query) {
-      safeFetch(
+      safeFetch<PrometheusResponse>(
         getPrometheusURL(
           {
             endpoint: PrometheusEndpoint.QUERY,
@@ -849,7 +847,7 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, custom
 
 const PromQLExpressionInput = (props) => (
   <AsyncComponent
-    loader={() => import('./promql-expression-input').then((c) => c.PromQLExpressionInput)}
+    loader={() => import('./metrics/promql-expression-input').then((c) => c.PromQLExpressionInput)}
     {...props}
   />
 );
@@ -1229,31 +1227,33 @@ const QueryBrowserPage_: React.FC = () => {
         </Split>
       </PageSection>
       <PageSection variant={PageSectionVariants.light}>
-        <Grid>
-          <GridItem className="query-browser__toggle-graph-container">
+        <Stack hasGutter>
+          <StackItem>
             <ToggleGraph />
-          </GridItem>
-          <GridItem>
+          </StackItem>
+          <StackItem>
             <QueryBrowserWrapper
               customDataSource={customDataSource}
               customDataSourceName={customDataSourceName}
               customDatasourceError={customDatasourceError}
             />
-            <Split>
-              <SplitItem>
+          </StackItem>
+          <StackItem>
+            <Flex alignItems={{ default: 'alignItemsFlexEnd' }}>
+              <FlexItem>
                 <PreDefinedQueriesDropdown />
-              </SplitItem>
-              <SplitItem isFilled />
-              <SplitItem>
-                <ActionGroup>
-                  <AddQueryButton />
-                  <RunQueriesButton />
-                </ActionGroup>
-              </SplitItem>
-            </Split>
+              </FlexItem>
+              <FlexItem grow={{ default: 'grow' }} />
+              <FlexItem>
+                <AddQueryButton />
+                <RunQueriesButton />
+              </FlexItem>
+            </Flex>
+          </StackItem>
+          <StackItem>
             <QueriesList customDatasource={customDataSource} />
-          </GridItem>
-        </Grid>
+          </StackItem>
+        </Stack>
       </PageSection>
     </>
   );

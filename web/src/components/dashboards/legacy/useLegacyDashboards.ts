@@ -48,7 +48,7 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
   }, [perspective, dashboardParam, urlBoard]);
 
   React.useEffect(() => {
-    safeFetch('/api/console/monitoring-dashboard-config')
+    safeFetch<any>('/api/console/monitoring-dashboard-config')
       .then((response) => {
         setLegacyDashboardsLoaded();
         setLegacyDashboardsError(undefined);

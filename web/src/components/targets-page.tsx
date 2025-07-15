@@ -608,7 +608,7 @@ export const TargetsUI: React.FC = () => {
   const safeFetch = React.useCallback(useSafeFetch(), []);
 
   const tick = () =>
-    safeFetch(`${PROMETHEUS_BASE_PATH}/${PrometheusEndpoint.TARGETS}?state=active`)
+    safeFetch<any>(`${PROMETHEUS_BASE_PATH}/${PrometheusEndpoint.TARGETS}?state=active`)
       .then((response) => {
         setError(undefined);
         setLoaded(true);

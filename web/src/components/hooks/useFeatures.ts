@@ -4,19 +4,16 @@ import { proxiedFetch } from '../proxied-fetch';
 type features = {
   'acm-alerting': boolean;
   'perses-dashboards': boolean;
-  incidents: boolean;
 };
 
 type featuresResponse = {
   'acm-alerting'?: boolean;
   'perses-dashboards'?: boolean;
-  incidents?: boolean;
 };
 
 const noFeatures: features = {
   'acm-alerting': false,
   'perses-dashboards': false,
-  incidents: false,
 };
 // monitoring-console-plugin proxy via. cluster observability operator
 // https://github.com/rhobs/observability-operator/blob/28ac1ba9e179d25cae60e8223bcf61816e23a311/pkg/controllers/uiplugin/monitoring.go#L44
@@ -48,6 +45,5 @@ export const useFeatures = () => {
     features,
     isAcmAlertingActive: features['acm-alerting'],
     arePersesDashboardsActive: features['perses-dashboards'],
-    areIncidentsActive: features.incidents,
   };
 };
