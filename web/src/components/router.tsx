@@ -13,7 +13,7 @@ import MonitoringDashboardsPage from './dashboards/perses/dashboard-page';
 import MonitoringLegacyDashboardsPage from './dashboards/legacy/legacy-dashboard-page';
 import { QueryBrowserPage } from './MetricsPage';
 import { CreateSilence, EditSilence } from './silence-form';
-import { TargetsUI } from './targets';
+import { TargetsUI } from './targets-page';
 
 import './_monitoring.scss';
 import { UrlRoot, usePerspective } from './hooks/usePerspective';
