@@ -29,14 +29,6 @@ export enum ActionType {
   QueryBrowserToggleAllSeries = 'queryBrowserToggleAllSeries',
   SetAlertCount = 'SetAlertCount',
   ToggleGraphs = 'toggleGraphs',
-  SetIncidents = 'setIncidents',
-  SetIncidentsActiveFilters = 'setIncidentsActiveFilters',
-  SetChooseIncident = 'setChooseIncident',
-  SetAlertsData = 'setAlertsData',
-  SetAlertsTableData = 'setAlertsTableData',
-  SetAlertsAreLoading = 'setAlertsAreLoading',
-  SetIncidentsChartSelection = 'setIncidentsChartSelection',
-  SetFilteredIncidentsData = 'setFilteredIncidentsData',
 }
 
 export type Perspective = 'admin' | 'dev' | 'acm' | 'virtualization-perspective';
@@ -136,28 +128,6 @@ export const queryBrowserToggleSeries = (index: number, labels: { [key: string]:
 
 export const setAlertCount = (alertCount) => action(ActionType.SetAlertCount, { alertCount });
 
-export const setIncidents = (incidents) => action(ActionType.SetIncidents, incidents);
-
-export const setIncidentsActiveFilters = (incidentsActiveFilters) =>
-  action(ActionType.SetIncidentsActiveFilters, incidentsActiveFilters);
-
-export const setChooseIncident = (incidentGroupId) =>
-  action(ActionType.SetChooseIncident, incidentGroupId);
-
-export const setAlertsData = (alertsData) => action(ActionType.SetAlertsData, alertsData);
-
-export const setAlertsTableData = (alertsTableData) =>
-  action(ActionType.SetAlertsTableData, alertsTableData);
-
-export const setAlertsAreLoading = (alertsAreLoading) =>
-  action(ActionType.SetAlertsAreLoading, alertsAreLoading);
-
-export const setIncidentsChartSelection = (incidentsChartSelectedId) =>
-  action(ActionType.SetIncidentsChartSelection, incidentsChartSelectedId);
-
-export const setFilteredIncidentsData = (filteredIncidentsData) =>
-  action(ActionType.SetFilteredIncidentsData, filteredIncidentsData);
-
 const actions = {
   alertingErrored,
   alertingLoaded,
@@ -187,14 +157,6 @@ const actions = {
   queryBrowserToggleSeries,
   setAlertCount,
   toggleGraphs,
-  setIncidents,
-  setIncidentsActiveFilters,
-  setChooseIncident,
-  setAlertsData,
-  setAlertsTableData,
-  setAlertsAreLoading,
-  setIncidentsChartSelection,
-  setFilteredIncidentsData,
 };
 
 export type ObserveAction = Action<typeof actions>;

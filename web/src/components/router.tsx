@@ -58,11 +58,7 @@ const PollingPagesRouter = () => {
 
 const AlertingRouter: React.FC<{ root: UrlRoot }> = ({ root }) => (
   <Switch>
-    <Route
-      path={`/${root}/(alerts|alertrules|silences|incidents)`}
-      exact
-      component={AlertingPage}
-    />
+    <Route path={`/${root}/(alerts|alertrules|silences)`} exact component={AlertingPage} />
     <Route path={`/${root}/alertrules/:id`} exact component={AlertRulesDetailsPage} />
     <Route path={`/${root}/alerts/:ruleID`} exact component={AlertsDetailsPage} />
     <Route path={`/${root}/silences/:id`} exact component={SilencesDetailsPage} />

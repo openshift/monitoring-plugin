@@ -114,7 +114,7 @@ Feature flags are used by the mcp mode to dictate the specific features which ar
 |-------------------|-------------|
 | acm-alerting      | 4.14+       |
 | perses-dashboards | 4.14+       |
-| incidents         | 4.17+       |
+| incidents         | 4.19+       |
 | dev-config        |             |
 
 #### ACM

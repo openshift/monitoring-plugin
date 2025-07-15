@@ -45,7 +45,6 @@ type Feature string
 
 const (
 	AcmAlerting      Feature = "acm-alerting"
-	Incidents        Feature = "incidents"
 	DevConfig        Feature = "dev-config"
 	PersesDashboards Feature = "perses-dashboards"
 )
