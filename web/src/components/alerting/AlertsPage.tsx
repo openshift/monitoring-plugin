@@ -30,7 +30,7 @@ import {
 } from './AlertUtils';
 import Error from './Error';
 import useSelectedFilters from './useSelectedFilters';
-import { PageSection, PageSectionVariants } from '@patternfly/react-core/dist/esm';
+import { PageSection, PageSectionVariants } from '@patternfly/react-core';
 import DownloadCSVButton from './AlertList/DownloadCSVButton';
 
 const AlertsPage_: React.FC = () => {
