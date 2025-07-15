@@ -846,7 +846,7 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, custom
 
 const PromQLExpressionInput = (props) => (
   <AsyncComponent
-    loader={() => import('./promql-expression-input').then((c) => c.PromQLExpressionInput)}
+    loader={() => import('./metrics/promql-expression-input').then((c) => c.PromQLExpressionInput)}
     {...props}
   />
 );

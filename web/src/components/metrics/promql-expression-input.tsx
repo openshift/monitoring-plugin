@@ -41,10 +41,10 @@ import { PromQLExtension } from '@prometheus-io/codemirror-promql';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { useSafeFetch } from './console/utils/safe-fetch-hook';
+import { useSafeFetch } from '../console/utils/safe-fetch-hook';
 
 import './_promql-expression-input.scss';
-import { PROMETHEUS_BASE_PATH } from './console/graphs/helpers';
+import { PROMETHEUS_BASE_PATH } from '../console/graphs/helpers';
 import { LabelNamesResponse } from '@perses-dev/prometheus-plugin';
 
 type InteractionTarget = {
