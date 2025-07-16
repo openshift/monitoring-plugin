@@ -56,6 +56,7 @@ import withFallback from '../console/console-shared/error/fallbacks/withFallback
 import IncidentsChart from './IncidentsChart/IncidentsChart';
 import AlertsChart from './AlertsChart/AlertsChart';
 import { usePatternFlyTheme } from '../hooks/usePatternflyTheme';
+import { DaysFilters, IncidentFilters } from './models';
 
 const IncidentsPage = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -69,7 +70,7 @@ const IncidentsPage = () => {
   // days span is where we store the value for creating time ranges for
   // fetch incidents/alerts based on the length of time ranges
   // when days filter changes we set a new days span -> calculate new time range and fetch new data
-  const [daysSpan, setDaysSpan] = React.useState();
+  const [daysSpan, setDaysSpan] = React.useState<number>(7);
   const [timeRanges, setTimeRanges] = React.useState([]);
   // data that is used for processing to serve it to the alerts table and chart
   const [incidentForAlertProcessing, setIncidentForAlertProcessing] = React.useState([]);
@@ -271,9 +272,9 @@ const IncidentsPage = () => {
     }
   }, [incidentGroupId, timeRanges]);
 
-  const onSelect = (_event, value) => {
+  const onSelect = (_event: React.MouseEvent, value?: string) => {
     if (value) {
-      changeDaysFilter(value, dispatch, incidentsActiveFilters);
+      changeDaysFilter(value as DaysFilters, dispatch, incidentsActiveFilters);
     }
 
     setDaysFilterIsExpanded(false);
@@ -297,7 +298,7 @@ const IncidentsPage = () => {
             id="toolbar-with-filter"
             collapseListedFiltersBreakpoint="xl"
             clearAllFilters={() =>
-              onDeleteIncidentFilterChip('', '', incidentsActiveFilters, dispatch)
+              onDeleteIncidentFilterChip('', undefined, incidentsActiveFilters, dispatch)
             }
           >
             <ToolbarContent>
@@ -305,7 +306,12 @@ const IncidentsPage = () => {
                 <ToolbarFilter
                   labels={incidentsActiveFilters.incidentFilters}
                   deleteLabel={(category, chip) =>
-                    onDeleteIncidentFilterChip(category, chip, incidentsActiveFilters, dispatch)
+                    onDeleteIncidentFilterChip(
+                      category as string,
+                      chip as IncidentFilters,
+                      incidentsActiveFilters,
+                      dispatch,
+                    )
                   }
                   deleteLabelGroup={() =>
                     onDeleteGroupIncidentFilterChip(incidentsActiveFilters, dispatch)
@@ -319,7 +325,12 @@ const IncidentsPage = () => {
                     isOpen={incidentFilterIsExpanded}
                     selected={incidentsActiveFilters.incidentFilters}
                     onSelect={(event, selection) =>
-                      onIncidentFiltersSelect(event, selection, dispatch, incidentsActiveFilters)
+                      onIncidentFiltersSelect(
+                        event,
+                        selection as IncidentFilters,
+                        dispatch,
+                        incidentsActiveFilters,
+                      )
                     }
                     onOpenChange={(isOpen) => setIncidentIsExpanded(isOpen)}
                     toggle={(toggleRef) => (

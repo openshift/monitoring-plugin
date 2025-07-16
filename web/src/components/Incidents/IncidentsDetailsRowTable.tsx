@@ -67,7 +67,7 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
   }, [memoizedAlerts, alertsWithLabels]);
 
   return (
-    <Table borders={'compactBorderless'}>
+    <Table borders={false} variant="compact">
       <Thead>
         <Tr>
           <Th width={25}>{t('Alert Name')}</Th>
