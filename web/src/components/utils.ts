@@ -1,7 +1,7 @@
 import fuzzy from 'fuzzysearch';
 import * as _ from 'lodash-es';
 import { murmur3 } from 'murmurhash-js';
-import { Dispatch } from 'react-redux';
+import { Dispatch } from 'redux';
 import {
   Alert,
   AlertSeverity,

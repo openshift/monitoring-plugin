@@ -7,25 +7,22 @@
       "properties": {
         "exact": false,
         "path": "/monitoring/incidents",
-        "component": { "$codeRef": "IncidentsPage" }
+        "component": { "$codeRef": "AlertingPage" }
       }
     }
   },
   {
     "op": "add",
-    "path": "/extensions/1",
+    "path": "/extensions/0",
     "value": {
-      "type": "console.navigation/href",
-      "flags": {
-        "required": ["PROMETHEUS", "MONITORING", "CAN_GET_NS"]
-      },
+      "type": "console.tab",
       "properties": {
-        "id": "incidents",
-        "name": "%plugin__monitoring-console-plugin~Incidents%",
+        "contextId": "admin-console-observe",
+        "name": "%plugin__monitoring-plugin~Incidents%",
         "href": "/monitoring/incidents",
-        "perspective": "admin",
-        "section": "observe",
-        "insertAfter": "targets"
+        "component": {
+          "$codeRef": "IncidentsPage"
+        }
       }
     }
   }
