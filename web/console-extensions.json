@@ -181,7 +181,7 @@
     "type": "console.page/route",
     "properties": {
       "exact": false,
-      "path": ["/monitoring/alerts", "/monitoring/silences", "/monitoring/alertrules"],
+      "path": "/monitoring",
       "component": { "$codeRef": "AlertingPage" }
     }
   },
