@@ -14,28 +14,28 @@ import { Card, CardBody, CardTitle, EmptyState, EmptyStateBody } from '@patternf
 import { createAlertsChartBars, formatDate, generateDateArray } from '../utils';
 import { getResizeObserver } from '@patternfly/react-core';
 import { useDispatch, useSelector } from 'react-redux';
-import * as _ from 'lodash-es';
 import { setAlertsAreLoading } from '../../../actions/observe';
 import {
   t_global_color_status_danger_default,
   t_global_color_status_info_default,
   t_global_color_status_warning_default,
 } from '@patternfly/react-tokens';
+import { MonitoringState } from '../../../reducers/observe';
 
 const AlertsChart = ({ chartDays, theme }) => {
   const dispatch = useDispatch();
-  const [chartContainerHeight, setChartContainerHeight] = React.useState();
-  const [chartHeight, setChartHeight] = React.useState();
-  const alertsData = useSelector((state) =>
+  const [chartContainerHeight, setChartContainerHeight] = React.useState<number>(0);
+  const [chartHeight, setChartHeight] = React.useState<number>();
+  const alertsData = useSelector((state: MonitoringState) =>
     state.plugins.mcp.getIn(['incidentsData', 'alertsData']),
   );
-  const alertsAreLoading = useSelector((state) =>
+  const alertsAreLoading = useSelector((state: MonitoringState) =>
     state.plugins.mcp.getIn(['incidentsData', 'alertsAreLoading']),
   );
-  const filteredData = useSelector((state) =>
+  const filteredData = useSelector((state: MonitoringState) =>
     state.plugins.mcp.getIn(['incidentsData', 'filteredIncidentsData']),
   );
-  const incidentGroupId = useSelector((state) =>
+  const incidentGroupId = useSelector((state: MonitoringState) =>
     state.plugins.mcp.getIn(['incidentsData', 'groupId']),
   );
 
@@ -43,12 +43,12 @@ const AlertsChart = ({ chartDays, theme }) => {
 
   const chartData = React.useMemo(() => {
     if (!Array.isArray(alertsData) || alertsData.length === 0) return [];
-    return alertsData.map((alert) => createAlertsChartBars(alert, theme, dateValues));
-  }, [alertsData, theme, dateValues]);
+    return alertsData.map((alert) => createAlertsChartBars(alert, dateValues));
+  }, [alertsData, dateValues]);
 
   React.useEffect(() => {
-    setChartContainerHeight(chartData?.length < 5 ? 300 : chartData?.length * 60);
-    setChartHeight(chartData?.length < 5 ? 250 : chartData?.length * 55);
+    setChartContainerHeight(chartData ? (chartData?.length < 5 ? 300 : chartData?.length * 60) : 0);
+    setChartHeight(chartData ? (chartData?.length < 5 ? 250 : chartData?.length * 55) : 0);
   }, [chartData]);
 
   const selectedIncidentIsVisible = React.useMemo(() => {
@@ -78,7 +78,7 @@ const AlertsChart = ({ chartDays, theme }) => {
         <CardTitle>Alerts Timeline</CardTitle>
         {alertsAreLoading ? (
           <EmptyState
-            variant="large"
+            variant="lg"
             style={{
               height: '250px',
             }}
@@ -88,7 +88,7 @@ const AlertsChart = ({ chartDays, theme }) => {
         ) : (
           <CardBody
             style={{
-              height: { chartContainerHeight },
+              height: chartContainerHeight,
               width: '100%',
             }}
           >
@@ -98,7 +98,7 @@ const AlertsChart = ({ chartDays, theme }) => {
                   labelComponent={
                     <ChartTooltip
                       orientation="top"
-                      dx={({ x, x0 }) => -(x - x0) / 2}
+                      dx={({ x, datum }) => -Math.abs(x - datum.x) / 2}
                       dy={-5} // Position tooltip so pointer appears above bar
                       constrainToVisibleArea
                       labelComponent={<ChartLabel />}

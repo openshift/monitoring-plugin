@@ -16,7 +16,6 @@ import {
   ToolbarItem,
   MenuToggle,
   Badge,
-  Title,
   PageSection,
   Stack,
   StackItem,
@@ -56,6 +55,8 @@ import withFallback from '../console/console-shared/error/fallbacks/withFallback
 import IncidentsChart from './IncidentsChart/IncidentsChart';
 import AlertsChart from './AlertsChart/AlertsChart';
 import { usePatternFlyTheme } from '../hooks/usePatternflyTheme';
+import { DaysFilters, IncidentFilters } from './models';
+import { MonitoringState } from '../../reducers/observe';
 
 const IncidentsPage = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -69,7 +70,7 @@ const IncidentsPage = () => {
   // days span is where we store the value for creating time ranges for
   // fetch incidents/alerts based on the length of time ranges
   // when days filter changes we set a new days span -> calculate new time range and fetch new data
-  const [daysSpan, setDaysSpan] = React.useState();
+  const [daysSpan, setDaysSpan] = React.useState<number>(7);
   const [timeRanges, setTimeRanges] = React.useState([]);
   // data that is used for processing to serve it to the alerts table and chart
   const [incidentForAlertProcessing, setIncidentForAlertProcessing] = React.useState([]);
@@ -87,26 +88,28 @@ const IncidentsPage = () => {
     setDaysFilterIsExpanded(!daysFilterIsExpanded);
   };
 
-  const incidentsInitialState = useSelector((state) =>
+  const incidentsInitialState = useSelector((state: MonitoringState) =>
     state.plugins.mcp.getIn(['incidentsData', 'incidentsInitialState']),
   );
 
-  const incidents = useSelector((state) => state.plugins.mcp.getIn(['incidentsData', 'incidents']));
+  const incidents = useSelector((state: MonitoringState) =>
+    state.plugins.mcp.getIn(['incidentsData', 'incidents']),
+  );
 
-  const incidentsActiveFilters = useSelector((state) =>
+  const incidentsActiveFilters = useSelector((state: MonitoringState) =>
     state.plugins.mcp.getIn(['incidentsData', 'incidentsActiveFilters']),
   );
-  const incidentGroupId = useSelector((state) =>
+  const incidentGroupId = useSelector((state: MonitoringState) =>
     state.plugins.mcp.getIn(['incidentsData', 'groupId']),
   );
-  const alertsData = useSelector((state) =>
+  const alertsData = useSelector((state: MonitoringState) =>
     state.plugins.mcp.getIn(['incidentsData', 'alertsData']),
   );
-  const alertsAreLoading = useSelector((state) =>
+  const alertsAreLoading = useSelector((state: MonitoringState) =>
     state.plugins.mcp.getIn(['incidentsData', 'alertsAreLoading']),
   );
 
-  const filteredData = useSelector((state) =>
+  const filteredData = useSelector((state: MonitoringState) =>
     state.plugins.mcp.getIn(['incidentsData', 'filteredIncidentsData']),
   );
   React.useEffect(() => {
@@ -271,9 +274,9 @@ const IncidentsPage = () => {
     }
   }, [incidentGroupId, timeRanges]);
 
-  const onSelect = (_event, value) => {
+  const onSelect = (_event: React.MouseEvent, value?: string) => {
     if (value) {
-      changeDaysFilter(value, dispatch, incidentsActiveFilters);
+      changeDaysFilter(value as DaysFilters, dispatch, incidentsActiveFilters);
     }
 
     setDaysFilterIsExpanded(false);
@@ -295,7 +298,7 @@ const IncidentsPage = () => {
               id="toolbar-with-filter"
               collapseListedFiltersBreakpoint="xl"
               clearAllFilters={() =>
-                onDeleteIncidentFilterChip('', '', incidentsActiveFilters, dispatch)
+                onDeleteIncidentFilterChip('', undefined, incidentsActiveFilters, dispatch)
               }
             >
               <ToolbarContent>
@@ -303,7 +306,12 @@ const IncidentsPage = () => {
                   <ToolbarFilter
                     labels={incidentsActiveFilters.incidentFilters}
                     deleteLabel={(category, chip) =>
-                      onDeleteIncidentFilterChip(category, chip, incidentsActiveFilters, dispatch)
+                      onDeleteIncidentFilterChip(
+                        category as string,
+                        chip as IncidentFilters,
+                        incidentsActiveFilters,
+                        dispatch,
+                      )
                     }
                     deleteLabelGroup={() =>
                       onDeleteGroupIncidentFilterChip(incidentsActiveFilters, dispatch)
@@ -317,7 +325,12 @@ const IncidentsPage = () => {
                       isOpen={incidentFilterIsExpanded}
                       selected={incidentsActiveFilters.incidentFilters}
                       onSelect={(event, selection) =>
-                        onIncidentFiltersSelect(event, selection, dispatch, incidentsActiveFilters)
+                        onIncidentFiltersSelect(
+                          event,
+                          selection as IncidentFilters,
+                          dispatch,
+                          incidentsActiveFilters,
+                        )
                       }
                       onOpenChange={(isOpen) => setIncidentIsExpanded(isOpen)}
                       toggle={(toggleRef) => (
@@ -358,7 +371,9 @@ const IncidentsPage = () => {
                         </SelectOption>
                         <SelectOption
                           value="Informative"
-                          isSelected={incidentsActiveFilters.incidentFilters.includes('Informative')}
+                          isSelected={incidentsActiveFilters.incidentFilters.includes(
+                            'Informative',
+                          )}
                           description="The incident is not critical."
                           hasCheckbox
                         >
