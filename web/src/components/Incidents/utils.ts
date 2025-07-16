@@ -5,64 +5,26 @@ import {
   t_global_color_status_info_default,
   t_global_color_status_warning_default,
 } from '@patternfly/react-tokens';
-
-type Timestamps = [Date, string];
-
-type SpanDates = [Date];
-
-type Theme = 'dark' | 'light';
-
-type AlertsIntervalsArray = [Date, Date, 'data' | 'nodata'];
-
-type Incident = {
-  component: string;
-  componentList: Array<string>;
-  critical: boolean;
-  informative: boolean;
-  warning: boolean;
-  resolved: boolean;
-  layer: string;
-  firing: boolean;
-  group_id: string;
-  src_severity: string;
-  src_alertname: string;
-  src_namespace: string;
-  x: number;
-  values: Array<Timestamps>;
-};
-
-type Alert = {
-  alertname: string;
-  alertsStartFiring: Date;
-  alertsEndFiring: Date;
-  alertstate: string;
-  component: string;
-  layer: string;
-  name: string;
-  namespace: string;
-  resolved: boolean;
-  severity: 'critical' | 'warning' | 'info';
-  x: number;
-  values: Array<Timestamps>;
-};
-
-type DaysFilters = '1 day' | '3 days' | '7 days' | '15 days';
-
-type IncidentFilters = 'Critical' | 'Warning' | 'Firing' | 'Informative' | 'Resolved';
-
-type IncidentFiltersCombined = {
-  days: Array<DaysFilters>;
-  incidentFilters: Array<IncidentFilters>;
-};
+import {
+  Alert,
+  AlertsIntervalsArray,
+  DaysFilters,
+  Incident,
+  IncidentFilters,
+  IncidentFiltersCombined,
+  ProcessedIncident,
+  SpanDates,
+  Timestamps,
+} from './models';
 
 /**
  * Consolidates and merges intervals based on severity rankings.
- * @param {Object} data - The input data containing timestamps and severity levels.
- * @param {string[]} dateArray - The array of date strings defining the boundary.
- * @returns {Array} - The consolidated intervals.
  */
 
-function consolidateAndMergeIntervals(data: Incident, dateArray: SpanDates) {
+function consolidateAndMergeIntervals(
+  data: Incident,
+  dateArray: SpanDates,
+): Array<[string, string, string]> {
   const severityRank = { 2: 2, 1: 1, 0: 0 };
   const filteredValues = filterAndSortValues(data, severityRank);
   return generateIntervalsWithGaps(filteredValues, dateArray);
@@ -70,9 +32,6 @@ function consolidateAndMergeIntervals(data: Incident, dateArray: SpanDates) {
 
 /**
  * Filters and sorts values by severity, keeping only the highest severity for each timestamp.
- * @param {Object} data - The input data containing timestamps and severities.
- * @param {Object} severityRank - An object mapping severity levels to their ranking values.
- * @returns {Array} - An array of sorted timestamps with their severities.
  */
 function filterAndSortValues(
   data: Incident,
@@ -101,7 +60,10 @@ function filterAndSortValues(
  * @param {string[]} dateArray - The array defining the start and end boundaries.
  * @returns {Array} - The list of consolidated intervals.
  */
-function generateIntervalsWithGaps(filteredValues: Array<Timestamps>, dateArray: SpanDates) {
+function generateIntervalsWithGaps(
+  filteredValues: Array<Timestamps>,
+  dateArray: SpanDates,
+): Array<[string, string, string]> {
   const intervals = [];
   const startBoundary = new Date(dateArray[0]);
   const endBoundary = new Date(dateArray[dateArray.length - 1]);
@@ -157,11 +119,8 @@ function generateIntervalsWithGaps(filteredValues: Array<Timestamps>, dateArray:
 
 /**
  * Checks if there is a gap larger than 5 minutes between consecutive timestamps.
- * @param {Array} filteredValues - The array of filtered timestamps and severities.
- * @param {number} index - The current index in the array.
- * @returns {boolean} - Whether a gap exists.
  */
-function hasGap(filteredValues: Array<Timestamps>, index: number) {
+function hasGap(filteredValues: Array<Timestamps>, index: number): boolean {
   const previousTimestamp = new Date(filteredValues[index - 1][0]);
   const currentTimestamp = new Date(filteredValues[index][0]);
   return (currentTimestamp.getTime() - previousTimestamp.getTime()) / 1000 / 60 > 5;
@@ -169,11 +128,11 @@ function hasGap(filteredValues: Array<Timestamps>, index: number) {
 
 /**
  * Creates a "nodata" interval to fill gaps between timestamps.
- * @param {Array} filteredValues - The array of filtered timestamps and severities.
- * @param {number} index - The current index in the array.
- * @returns {Array} - The "nodata" interval.
  */
-function createNodataInterval(filteredValues: Array<Timestamps>, index: number) {
+function createNodataInterval(
+  filteredValues: Array<Timestamps>,
+  index: number,
+): Array<string | string | string> {
   const previousTimestamp = new Date(filteredValues[index - 1][0]);
   const currentTimestamp = new Date(filteredValues[index][0]);
 
@@ -186,20 +145,24 @@ function createNodataInterval(filteredValues: Array<Timestamps>, index: number) 
   return [gapStart.toISOString(), gapEnd.toISOString(), 'nodata'];
 }
 
+type IncidentBar = Pick<Incident, 'componentList' | 'group_id' | 'x' | 'firing'> & {
+  y0: Date;
+  y: Date;
+  fill: string;
+  nodata: boolean;
+  name: string;
+};
+
 /**
  * Creates an array of incident data for chart bars, ensuring that when two severities have the same time range, the lower severity is removed.
- *
- * @param {Object} incident - The incident data containing values with timestamps and severity levels.
- * @returns {Array} - An array of incident objects with `y0`, `y`, `x`, and `name` fields representing the bars for the chart.
  */
 export const createIncidentsChartBars = (
   incident: Incident,
-  theme: Theme,
   dateArray: SpanDates,
-) => {
+): Array<IncidentBar> => {
   const groupedData = consolidateAndMergeIntervals(incident, dateArray);
-  const data = [];
-  const getSeverityName = (value) => {
+  const data: Array<IncidentBar> = [];
+  const getSeverityName = (value: string) => {
     return value === '2' ? 'Critical' : value === '1' ? 'Warning' : 'Info';
   };
   const barChartColorScheme = {
@@ -274,7 +237,7 @@ function consolidateAndMergeAlertIntervals(data: Alert, dateArray: SpanDates) {
   return intervals;
 }
 
-export const createAlertsChartBars = (alert: Alert, theme: Theme, dateValues: SpanDates) => {
+export const createAlertsChartBars = (alert: Alert, dateValues: SpanDates) => {
   const groupedData = consolidateAndMergeAlertIntervals(alert, dateValues);
   const barChartColorScheme = {
     critical: t_global_color_status_danger_default.var,
@@ -325,9 +288,6 @@ export const formatDate = (date: Date, isTime: boolean) => {
 /**
  * Generates an array of dates, each representing midnight (00:00:00) of the past `days` number of days, starting from today.
  *
- * @param {number} days - The number of days for which to generate the date array. The array will contain dates starting from `days` ago up to today.
- * @returns {Array<Date>} An array of `Date` objects, each set to midnight (00:00:00) in UTC, for the past `days` number of days.
- *
  * @description
  * This function creates an array of `Date` objects, starting from `days` ago up to the current day. Each date in the array is set to midnight (00:00:00) to represent the start of the day.
  *
@@ -347,7 +307,7 @@ export const formatDate = (date: Date, isTime: boolean) => {
  * //   2024-09-12T00:00:00.000Z
  * // ]
  */
-export function generateDateArray(days: number) {
+export function generateDateArray(days: number): Array<Date> {
   const currentDate = new Date();
 
   const dateArray = [];
@@ -364,11 +324,6 @@ export function generateDateArray(days: number) {
 /**
  * Filters incidents based on the specified filters.
  *
- * @param {Object} filters - An object containing filter criteria.
- * @param {string[]} filters.incidentFilters - An array of strings representing filter conditions such as "Critical", etc.
- * @param {Array<Object>} incidents - An array of incidents to be filtered.
- * @returns {Array<Object>} A filtered array of incidents that match at least one of the specified filters.
- *
  * The `conditions` object maps filter keys to incident properties. If no filters are applied, all incidents are returned.
  * Filters are case-sensitive and must match the keys defined in the `conditions` object.
  *
@@ -378,7 +333,10 @@ export function generateDateArray(days: number) {
  * const filteredIncidents = filterIncident(filters, incidents);
  * ```
  */
-export function filterIncident(filters: IncidentFiltersCombined, incidents: Array<Incident>) {
+export function filterIncident(
+  filters: IncidentFiltersCombined,
+  incidents: Array<ProcessedIncident>,
+): Array<ProcessedIncident> {
   const conditions = {
     Critical: 'critical',
     Warning: 'warning',
@@ -420,8 +378,8 @@ export function filterIncident(filters: IncidentFiltersCombined, incidents: Arra
 }
 
 export const onDeleteIncidentFilterChip = (
-  type: 'Filters' | '',
-  id: IncidentFilters,
+  type: string,
+  id: IncidentFilters | undefined,
   filters: IncidentFiltersCombined,
   setFilters,
 ) => {
@@ -479,7 +437,7 @@ export const makeIncidentUrlParams = (
   return new URLSearchParams(processedParams).toString();
 };
 
-export const updateBrowserUrl = (params: IncidentFiltersCombined, incidentGroupId: string) => {
+export const updateBrowserUrl = (params: IncidentFiltersCombined, incidentGroupId?: string) => {
   const queryString = makeIncidentUrlParams(params, incidentGroupId);
 
   const newUrl = `${window.location.origin}${window.location.pathname}?${queryString}`;
@@ -530,7 +488,7 @@ const onSelect = (
   });
 };
 
-export const parseUrlParams = (search) => {
+export const parseUrlParams = (search: string): Partial<IncidentFiltersCombined> => {
   const params = new URLSearchParams(search);
   const result = {};
   const arrayKeys = ['days', 'incidentFilters', 'groupId'];
@@ -545,3 +503,11 @@ export const parseUrlParams = (search) => {
 
   return result;
 };
+
+export function sortObjectsByEarliestTimestamp(incidents: Incident[]): Incident[] {
+  return incidents.sort((a, b) => {
+    const earliestA = Math.min(...a.values.map((value) => value[0].getTime()));
+    const earliestB = Math.min(...b.values.map((value) => value[0].getTime()));
+    return earliestA - earliestB;
+  });
+}

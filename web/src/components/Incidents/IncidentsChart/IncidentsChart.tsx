@@ -31,22 +31,22 @@ import { setAlertsAreLoading } from '../../../actions/observe';
 const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
   const dispatch = useDispatch();
   const [isLoading, setIsLoading] = React.useState(true);
-  const [chartContainerHeight, setChartContainerHeight] = React.useState();
-  const [chartHeight, setChartHeight] = React.useState();
+  const [chartContainerHeight, setChartContainerHeight] = React.useState<number>(0);
+  const [chartHeight, setChartHeight] = React.useState<number>();
   const dateValues = React.useMemo(() => generateDateArray(chartDays), [chartDays]);
 
   const chartData = React.useMemo(() => {
     if (!Array.isArray(incidentsData) || incidentsData.length === 0) return [];
-    return incidentsData.map((incident) => createIncidentsChartBars(incident, theme, dateValues));
-  }, [incidentsData, theme, dateValues]);
+    return incidentsData.map((incident) => createIncidentsChartBars(incident, dateValues));
+  }, [incidentsData, dateValues]);
 
   React.useEffect(() => {
     setIsLoading(false);
   }, [incidentsData]);
 
   React.useEffect(() => {
-    setChartContainerHeight(chartData?.length < 5 ? 300 : chartData?.length * 60);
-    setChartHeight(chartData?.length < 5 ? 250 : chartData?.length * 55);
+    setChartContainerHeight(chartData ? (chartData?.length < 5 ? 300 : chartData?.length * 60) : 0);
+    setChartHeight(chartData ? (chartData?.length < 5 ? 250 : chartData?.length * 55) : 0);
   }, [chartData]);
 
   const [width, setWidth] = React.useState(0);
@@ -107,7 +107,7 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
         ) : (
           <CardBody
             style={{
-              height: { chartContainerHeight },
+              height: chartContainerHeight,
               width: '100%',
             }}
           >
@@ -117,7 +117,7 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
                   labelComponent={
                     <ChartTooltip
                       orientation="top"
-                      dx={({ x, x0 }) => -(x - x0) / 2}
+                      dx={({ x, datum }) => -Math.abs(x - datum.x) / 2}
                       dy={-5} // Position tooltip so pointer appears above bar
                       constrainToVisibleArea
                       labelComponent={<ChartLabel />}
@@ -192,7 +192,7 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
                     //we have several arrays and for each array we make a ChartBar
                     <ChartBar
                       data={bar}
-                      key={bar.group_id}
+                      key={bar[0].group_id}
                       style={{
                         data: {
                           fill: ({ datum }) => datum.fill,
@@ -203,6 +203,7 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
                       }}
                       events={[
                         {
+                          target: 'data',
                           eventHandlers: {
                             onClick: (props, datum) => clickHandler(props, datum),
                           },

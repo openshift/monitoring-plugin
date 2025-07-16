@@ -1,44 +1,7 @@
 /* eslint-disable max-len */
 
-// Define the interface for Metric
-interface Metric {
-  group_id: string; // The unique ID for grouping
-  component: string; // Component name
-  componentList?: string[]; // List of all unique components
-  [key: string]: any; // Allow other dynamic fields in Metric
-}
-
-interface Incident {
-  metric: Metric;
-  values: Array<[number, string]>;
-}
-
-interface ProcessedIncident {
-  component: string;
-  componentList?: string[];
-  group_id: string;
-  severity: string;
-  alertname: string;
-  namespace: string;
-  name: string;
-  layer: string;
-  values: Array<[Date, string]>;
-  x: number;
-  informative: boolean;
-  critical: string;
-  warning: string;
-  resolved: boolean;
-  firing: boolean;
-}
-
-//this will be moved to the utils.js file when I convert them to the Typescript
-export function sortObjectsByEarliestTimestamp(incidents: Incident[]): Incident[] {
-  return incidents.sort((a, b) => {
-    const earliestA = Math.min(...a.values.map((value) => value[0]));
-    const earliestB = Math.min(...b.values.map((value) => value[0]));
-    return earliestA - earliestB;
-  });
-}
+import { Incident, Metric, ProcessedIncident } from './models';
+import { sortObjectsByEarliestTimestamp } from './utils';
 
 export function processIncidents(data: Incident[]): ProcessedIncident[] {
   const incidents = groupById(data).filter(
@@ -48,7 +11,7 @@ export function processIncidents(data: Incident[]): ProcessedIncident[] {
 
   return sortedIncidents.map((incident, index) => {
     const processedValues = incident.values.map((value) => {
-      const timestamp = value[0];
+      const timestamp = value[0].getTime();
       const date = new Date(timestamp * 1000);
       return [date, value[1]] as [Date, string];
     });
@@ -65,7 +28,7 @@ export function processIncidents(data: Incident[]): ProcessedIncident[] {
       if (severity === '0') informative = true;
     });
 
-    const timestamps = incident.values.map((value) => value[0]); // Extract timestamps
+    const timestamps = incident.values.map((value) => value[0].getTime()); // Extract timestamps
     const lastTimestamp = Math.max(...timestamps); // Last timestamp in seconds
     const currentDate = new Date();
     const currentTimestamp = Math.floor(currentDate.valueOf() / 1000); // Current time in seconds
@@ -91,7 +54,7 @@ export function processIncidents(data: Incident[]): ProcessedIncident[] {
       resolved: resolved,
       firing: firing,
       ...srcProperties,
-    } as unknown as ProcessedIncident;
+    } as ProcessedIncident;
   });
 }
 
@@ -102,21 +65,22 @@ export function processIncidents(data: Incident[]): ProcessedIncident[] {
  * @returns An object containing only the properties from metric that start with 'src_'.
  */
 
-function getSrcProperties(metric: Metric): Partial<Metric> {
+function getSrcProperties(metric: Metric): {
+  src_severity?: string;
+  src_alertname?: string;
+  src_namespace?: string;
+} {
   return Object.keys(metric)
     .filter((key) => key.startsWith('src_'))
     .reduce((acc, key) => {
-      acc[key] = metric[key as keyof Metric];
+      acc[key] = metric[key];
       return acc;
-    }, {} as Partial<Metric>);
+    }, {});
 }
 
 /**
  * Groups a list of alert objects by their `group_id` field, merges their values, and deduplicates.
  * Creates a combined object with deduplicated values and lists of components and layers for each unique `group_id`.
- *
- * @param objects - Array of alert objects to group by `group_id`.
- * @returns Array of grouped alert objects with deduplicated values and combined properties.
  */
 
 export function groupById(objects: Incident[]): Incident[] {
@@ -156,7 +120,7 @@ export function groupById(objects: Incident[]): Incident[] {
           componentList: [obj.metric.component], // Initialize componentList with the current component
         },
         values: [...new Set(obj.values.map((v) => JSON.stringify(v)))].map((v) => JSON.parse(v)),
-      });
+      } as Incident);
     }
   }
 

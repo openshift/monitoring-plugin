@@ -1,7 +1,5 @@
 import * as _ from 'lodash-es';
 
-const units = {};
-
 const TYPES = {
   numeric: {
     units: ['', 'k', 'm', 'b'],
@@ -35,7 +33,7 @@ const TYPES = {
   },
 };
 
-const getType = (name) => {
+const getType = (name: string) => {
   const type = TYPES[name];
   if (!_.isPlainObject(type)) {
     return {
@@ -47,7 +45,13 @@ const getType = (name) => {
   return type;
 };
 
-const convertBaseValueToUnits = (value, unitArray, divisor, initialUnit, preferredUnit) => {
+const convertBaseValueToUnits = (
+  value: number,
+  unitArray: Array<string>,
+  divisor: number,
+  initialUnit: string,
+  preferredUnit: string,
+) => {
   const sliceIndex = initialUnit ? unitArray.indexOf(initialUnit) : 0;
   const units_ = unitArray.slice(sliceIndex);
 
@@ -69,7 +73,7 @@ const convertBaseValueToUnits = (value, unitArray, divisor, initialUnit, preferr
   return { value, unit };
 };
 
-const getDefaultFractionDigits = (value) => {
+const getDefaultFractionDigits = (value: number) => {
   if (value < 1) {
     return 3;
   }
@@ -79,33 +83,32 @@ const getDefaultFractionDigits = (value) => {
   return 1;
 };
 
-const formatValue = (value, options) => {
+const formatValue = (value: number) => {
   const fractionDigits = getDefaultFractionDigits(value);
-  const { locales, ...rest } = _.defaults(options, {
-    maximumFractionDigits: fractionDigits,
-  });
 
   // 2nd check converts -0 to 0.
   if (!isFinite(value) || value === 0) {
     value = 0;
   }
-  return Intl.NumberFormat(locales, rest).format(value);
+  return Intl.NumberFormat(undefined, {
+    maximumFractionDigits: fractionDigits,
+  }).format(value);
 };
 
-const round = (units.round = (value, fractionDigits) => {
+const round = (value: number, fractionDigits?: number) => {
   if (!isFinite(value)) {
     return 0;
   }
   const multiplier = Math.pow(10, fractionDigits || getDefaultFractionDigits(value));
   return Math.round(value * multiplier) / multiplier;
-});
+};
 
-const humanize = (units.humanize = (
-  value,
-  typeName,
+const humanize = (
+  value: number,
+  typeName: string,
   useRound = false,
-  initialUnit,
-  preferredUnit,
+  initialUnit: string,
+  preferredUnit: string,
 ) => {
   const type = getType(typeName);
 
@@ -139,17 +142,20 @@ const humanize = (units.humanize = (
     unit: converted.unit,
     value: converted.value,
   };
-});
+};
 
-export const humanizeBinaryBytes = (v, initialUnit, preferredUnit) =>
+export const humanizeBinaryBytes = (v: number, initialUnit?: string, preferredUnit?: string) =>
   humanize(v, 'binaryBytes', true, initialUnit, preferredUnit);
-export const humanizeDecimalBytesPerSec = (v, initialUnit, preferredUnit) =>
-  humanize(v, 'decimalBytesPerSec', true, initialUnit, preferredUnit);
-export const humanizePacketsPerSec = (v, initialUnit, preferredUnit) =>
+export const humanizeDecimalBytesPerSec = (
+  v: number,
+  initialUnit?: string,
+  preferredUnit?: string,
+) => humanize(v, 'decimalBytesPerSec', true, initialUnit, preferredUnit);
+export const humanizePacketsPerSec = (v: number, initialUnit?: string, preferredUnit?: string) =>
   humanize(v, 'packetsPerSec', true, initialUnit, preferredUnit);
-export const humanizeNumber = (v, initialUnit, preferredUnit) =>
+export const humanizeNumber = (v: number, initialUnit?: string, preferredUnit?: string) =>
   humanize(v, 'numeric', true, initialUnit, preferredUnit);
-export const humanizeNumberSI = (v, initialUnit, preferredUnit) =>
+export const humanizeNumberSI = (v: number, initialUnit?: string, preferredUnit?: string) =>
   humanize(v, 'SI', true, initialUnit, preferredUnit);
-export const humanizeSeconds = (v, initialUnit, preferredUnit) =>
+export const humanizeSeconds = (v: number, initialUnit?: string, preferredUnit?: string) =>
   humanize(v, 'seconds', true, initialUnit, preferredUnit);
