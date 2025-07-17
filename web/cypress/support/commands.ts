@@ -3,6 +3,7 @@ import Loggable = Cypress.Loggable;
 import Timeoutable = Cypress.Timeoutable;
 import Withinable = Cypress.Withinable;
 import Shadow = Cypress.Shadow;
+import 'cypress-wait-until';
 import { guidedTour } from '../views/tour';
 import './nav';
 
