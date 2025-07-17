@@ -20,18 +20,21 @@ const AlertingPage: React.FC = () => {
   const pages = [
     {
       href: 'alerts',
+      // t('Alerts')
       nameKey: 'Alerts',
       component: AlertsPage,
       name: 'Alerts',
     },
     {
       href: 'silences',
+      // t('Silences')
       nameKey: 'Silences',
       component: SilencesPage,
       name: 'Silences',
     },
     {
       href: 'alertrules',
+      // t('Alerting rules')
       nameKey: 'Alerting rules',
       component: AlertRulesPage,
       name: 'Alerting rules',
