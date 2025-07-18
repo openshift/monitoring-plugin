@@ -5,7 +5,22 @@
     "value": {
       "type": "console.tab",
       "properties": {
-        "contextId": "admin-console-observe",
+        "contextId": "admin-alerts-nav",
+        "name": "%plugin__monitoring-console-plugin~Incidents%",
+        "href": "incidents",
+        "component": {
+          "$codeRef": "IncidentsPage"
+        }
+      }
+    }
+  }, 
+  {
+    "op": "add",
+    "path": "/extensions/1",
+    "value": {
+      "type": "console.tab",
+      "properties": {
+        "contextId": "virtualization-perspective-alerts-nav",
         "name": "%plugin__monitoring-console-plugin~Incidents%",
         "href": "incidents",
         "component": {
