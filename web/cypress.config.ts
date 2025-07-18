@@ -1,6 +1,7 @@
 import { defineConfig } from 'cypress';
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 import * as console from 'console';
+import * as path from 'path';
 
 export default defineConfig({
   screenshotsFolder: './cypress/screenshots',
@@ -81,6 +82,40 @@ export default defineConfig({
           }
           return null;
         },
+         clearDownloads(folder: string = config.downloadsFolder): null {
+          // You must return a value or a promise from a task.
+          // Returning null is a common practice for tasks that don't need to yield a value.
+          console.log(`Clearing downloads folder: ${folder}`);
+          fs.emptyDirSync(folder);
+          return null;
+        },
+        /**
+         * Checks if a file exists in the specified folder (defaults to downloads folder).
+         * @param args Object containing fileName and optional folder.
+         * @returns True if the file exists, false otherwise.
+         */
+        doesFileExist({ fileName, folder = config.downloadsFolder }: { fileName: string; folder?: string }): boolean {
+          const filePath = path.join(folder, fileName);
+          const exists = fs.existsSync(filePath);
+          console.log(`Checking if file "${fileName}" exists at "${filePath}": ${exists}`);
+          return exists;
+        },
+
+        /**
+         * Gets a list of file names in the specified folder (defaults to downloads folder).
+         * @param folder The folder to list files from.
+         * @returns An array of file names.
+         */
+        getFilesInFolder(folder: string = config.downloadsFolder): string[] {
+          if (!fs.existsSync(folder)) {
+            console.log(`Folder does not exist: ${folder}`);
+            return [];
+          }
+          const files = fs.readdirSync(folder);
+          console.log(`Files in "${folder}": ${files.join(', ')}`);
+          return files;
+        },
+
       });
       on('after:spec', (spec: Cypress.Spec, results: CypressCommandLine.RunResult) => {
         if (results && results.video) {
@@ -98,6 +133,7 @@ export default defineConfig({
     },
     supportFile: './cypress/support/index.ts',
     specPattern: './cypress/e2e/**/*.cy.{js,jsx,ts,tsx}',
+    downloadsFolder: './cypress/downloads',
     numTestsKeptInMemory: 1,
     testIsolation: false,
     experimentalModifyObstructiveThirdPartyCode: true,
