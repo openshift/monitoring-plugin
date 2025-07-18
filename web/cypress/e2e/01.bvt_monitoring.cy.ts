@@ -123,8 +123,8 @@ describe('BVT: Monitoring', () => {
     cy.log('Admin perspective - Observe Menu and verify all submenus');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     commonPages.titleShouldHaveText('Alerting');
-    // nav.tabs.switchTab('Silences');
-    // silencesListPage.firstTimeEmptyState();
+    nav.tabs.switchTab('Silences');
+    silencesListPage.firstTimeEmptyState();
     nav.sidenav.clickNavLink(['Observe', 'Metrics']);
     commonPages.titleShouldHaveText('Metrics');
     nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
