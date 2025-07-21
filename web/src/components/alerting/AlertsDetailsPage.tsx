@@ -22,6 +22,7 @@ import {
   getAlertsUrl,
   getLegacyObserveState,
   getNewSilenceAlertUrl,
+  getObserveState,
   getRuleUrl,
   usePerspective,
 } from '../hooks/usePerspective';
@@ -99,7 +100,7 @@ const AlertsDetailsPage_: React.FC = () => {
   const [namespace] = useActiveNamespace();
 
   const hideGraphs = useSelector(
-    (state: MonitoringState) => !!getLegacyObserveState(perspective, state)?.get('hideGraphs'),
+    (state: MonitoringState) => !!getObserveState(perspective, state)?.get('hideGraphs'),
   );
 
   const alerts: Alerts = useSelector((state: MonitoringState) =>

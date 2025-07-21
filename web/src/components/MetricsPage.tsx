@@ -73,6 +73,7 @@ import {
   queryBrowserToggleAllSeries,
   queryBrowserToggleIsEnabled,
   queryBrowserToggleSeries,
+  showGraphs,
   toggleGraphs,
 } from '../actions/observe';
 
@@ -94,7 +95,7 @@ import {
 import { MonitoringState } from '../reducers/observe';
 import { DropDownPollInterval } from './dropdown-poll-interval';
 import { useBoolean } from './hooks/useBoolean';
-import { getLegacyObserveState, usePerspective } from './hooks/usePerspective';
+import { getLegacyObserveState, getObserveState, usePerspective } from './hooks/usePerspective';
 import KebabDropdown from './kebab-dropdown';
 import { colors, Error, QueryBrowser } from './query-browser';
 import { QueryParams } from './query-params';
@@ -321,22 +322,19 @@ export const ToggleGraph: React.FC = () => {
   const { perspective } = usePerspective();
 
   const hideGraphs = useSelector(
-    (state: MonitoringState) => !!getLegacyObserveState(perspective, state)?.get('hideGraphs'),
+    (state: MonitoringState) => !!getObserveState(perspective, state)?.get('hideGraphs'),
   );
 
   const dispatch = useDispatch();
   const toggle = React.useCallback(() => dispatch(toggleGraphs()), [dispatch]);
+
   // Use an empty useEffect to get access to the cleanup function so that if graphs are
-  // currently hidden then we toggle one more time as we unmount
-  React.useEffect(
-    () => () => {
-      if (hideGraphs) {
-        toggle();
-      }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [hideGraphs],
-  );
+  // currently hidden then we show the graphs as we unmount
+  React.useEffect(() => {
+    return () => {
+      dispatch(showGraphs());
+    };
+  }, [dispatch]);
 
   const icon = hideGraphs ? <ChartLineIcon /> : <CompressIcon />;
 
@@ -985,7 +983,7 @@ const QueryBrowserWrapper: React.FC<{
   const dispatch = useDispatch();
 
   const hideGraphs = useSelector(
-    (state: MonitoringState) => !!getLegacyObserveState(perspective, state)?.get('hideGraphs'),
+    (state: MonitoringState) => !!getObserveState(perspective, state)?.get('hideGraphs'),
   );
   const queriesList = useSelector((state: MonitoringState) =>
     getLegacyObserveState(perspective, state)?.getIn(['queryBrowser', 'queries']),
