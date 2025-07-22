@@ -29,6 +29,7 @@ export enum ActionType {
   QueryBrowserToggleAllSeries = 'queryBrowserToggleAllSeries',
   SetAlertCount = 'SetAlertCount',
   ToggleGraphs = 'toggleGraphs',
+  ShowGraphs = 'showGraphs',
   SetIncidents = 'setIncidents',
   SetIncidentsActiveFilters = 'setIncidentsActiveFilters',
   SetChooseIncident = 'setChooseIncident',
@@ -92,6 +93,8 @@ export const alertingSetRules = (key: rulesKey, rules: Rule[], perspective: Pers
   action(ActionType.AlertingSetRules, { key, data: rules, perspective });
 
 export const toggleGraphs = () => action(ActionType.ToggleGraphs);
+
+export const showGraphs = () => action(ActionType.ShowGraphs);
 
 export const queryBrowserAddQuery = () => action(ActionType.QueryBrowserAddQuery);
 
@@ -186,6 +189,7 @@ const actions = {
   queryBrowserToggleSeries,
   setAlertCount,
   toggleGraphs,
+  showGraphs,
   setIncidents,
   setIncidentsActiveFilters,
   setChooseIncident,
