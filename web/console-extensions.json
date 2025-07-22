@@ -262,9 +262,7 @@
     "properties": {
       "exact": false,
       "path": [
-        "/virt-monitoring/alerts",
-        "/virt-monitoring/silences",
-        "/virt-monitoring/alertrules"
+        "/virt-monitoring"
       ],
       "component": { "$codeRef": "AlertingPage" }
     }
