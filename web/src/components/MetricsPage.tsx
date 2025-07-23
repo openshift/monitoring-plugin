@@ -1091,6 +1091,7 @@ const QueryBrowserWrapper: React.FC<{
       disabledSeries={disabledSeries}
       queries={queryStrings}
       showStackedControl
+      showDisconnectedControl
     />
   );
 };
