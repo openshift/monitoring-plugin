@@ -353,26 +353,28 @@ const SeriesButton: React.FC<SeriesButtonProps> = ({ index, labels }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
 
-  const [colorIndex, isDisabled, isSeriesEmpty] = useSelector((state: MonitoringState) => {
-    const observe = getLegacyObserveState(perspective, state);
-    const disabledSeries = observe.getIn(['queryBrowser', 'queries', index, 'disabledSeries']);
-    if (_.some(disabledSeries, (s) => _.isEqual(s, labels))) {
-      return [null, true, false];
-    }
+  const [colorIndex, isDisabled, isSeriesEmpty]: [number | null, boolean, boolean] = useSelector(
+    (state: MonitoringState) => {
+      const observe = getLegacyObserveState(perspective, state);
+      const disabledSeries = observe.getIn(['queryBrowser', 'queries', index, 'disabledSeries']);
+      if (_.some(disabledSeries, (s) => _.isEqual(s, labels))) {
+        return [null, true, false];
+      }
 
-    const series = observe.getIn(['queryBrowser', 'queries', index, 'series']);
-    if (_.isEmpty(series)) {
-      return [null, false, true];
-    }
+      const series = observe.getIn(['queryBrowser', 'queries', index, 'series']);
+      if (_.isEmpty(series)) {
+        return [null, false, true];
+      }
 
-    const colorOffset = observe
-      .getIn(['queryBrowser', 'queries'])
-      .take(index)
-      .filter((q) => q.get('isEnabled'))
-      .reduce((sum, q) => sum + _.size(q.get('series')), 0);
-    const seriesIndex = _.findIndex(series, (s) => _.isEqual(s, labels));
-    return [(colorOffset + seriesIndex) % colors.length, false, false];
-  });
+      const colorOffset = observe
+        .getIn(['queryBrowser', 'queries'])
+        .take(index)
+        .filter((q) => q.get('isEnabled'))
+        .reduce((sum, q) => sum + _.size(q.get('series')), 0);
+      const seriesIndex = _.findIndex(series, (s) => _.isEqual(s, labels));
+      return [(colorOffset + seriesIndex) % colors.length, false, false];
+    },
+  );
 
   const dispatch = useDispatch();
   const toggleSeries = React.useCallback(
@@ -1158,8 +1160,11 @@ const MetricsPage_: React.FC = () => {
   const { perspective } = usePerspective();
 
   // Clear queries on unmount
-  React.useEffect(() => () => dispatch(queryBrowserDeleteAllQueries()), [dispatch]);
-
+  React.useEffect(() => {
+    return () => {
+      dispatch(queryBrowserDeleteAllQueries());
+    };
+  }, [dispatch]);
   const [customDataSource, setCustomDataSource] = React.useState<CustomDataSource>(undefined);
   const [customDataSourceIsResolved, setCustomDataSourceIsResolved] =
     React.useState<boolean>(false);
