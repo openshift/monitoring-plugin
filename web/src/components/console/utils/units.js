@@ -13,10 +13,20 @@ const TYPES = {
     space: true,
     divisor: 1024,
   },
+  decimalBytes: {
+    units: ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB'],
+    space: true,
+    divisor: 1000,
+  },
   SI: {
     units: ['', 'k', 'M', 'G', 'T', 'P', 'E'],
     space: false,
     divisor: 1000,
+  },
+  binaryBytesPerSec: {
+    units: ['Bps', 'KiBps', 'MiBps', 'GiBps', 'TiBps', 'PiBps'],
+    space: true,
+    divisor: 1024,
   },
   decimalBytesPerSec: {
     units: ['Bps', 'KBps', 'MBps', 'GBps', 'TBps', 'PBps', 'EBps'],
@@ -143,6 +153,10 @@ const humanize = (units.humanize = (
 
 export const humanizeBinaryBytes = (v, initialUnit, preferredUnit) =>
   humanize(v, 'binaryBytes', true, initialUnit, preferredUnit);
+export const humanizeDecimalBytes = (v, initialUnit, preferredUnit) =>
+  humanize(v, 'decimalBytes', true, initialUnit, preferredUnit);
+export const humanizeBinaryBytesPerSec = (v, initialUnit, preferredUnit) =>
+  humanize(v, 'binaryBytesPerSec', true, initialUnit, preferredUnit);
 export const humanizeDecimalBytesPerSec = (v, initialUnit, preferredUnit) =>
   humanize(v, 'decimalBytesPerSec', true, initialUnit, preferredUnit);
 export const humanizePacketsPerSec = (v, initialUnit, preferredUnit) =>

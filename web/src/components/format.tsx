@@ -2,6 +2,8 @@ import * as _ from 'lodash-es';
 
 import {
   humanizeBinaryBytes,
+  humanizeBinaryBytesPerSec,
+  humanizeDecimalBytes,
   humanizeDecimalBytesPerSec,
   humanizeNumber,
   humanizePacketsPerSec,
@@ -23,6 +25,10 @@ export const formatNumber = (s: string, decimals = 2, format = 'short'): string 
       }).format(value);
     case 'bytes':
       return humanizeBinaryBytes(value).string;
+    case 'Bytes':
+      return humanizeDecimalBytes(value).string;
+    case 'bps':
+      return humanizeBinaryBytesPerSec(value).string;
     case 'Bps':
       return humanizeDecimalBytesPerSec(value).string;
     case 'pps':

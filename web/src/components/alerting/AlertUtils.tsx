@@ -250,7 +250,7 @@ export const Graph: React.FC<GraphProps> = ({
 
   const GraphLink = () =>
     query && perspective !== 'acm' ? (
-      <Link aria-label={t('Inspect')} to={getQueryBrowserUrl(perspective, query, namespace)}>
+      <Link aria-label={t('Inspect')} to={getQueryBrowserUrl({ perspective, query, namespace })}>
         {t('Inspect')}
       </Link>
     ) : null;
