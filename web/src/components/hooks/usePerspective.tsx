@@ -172,7 +172,7 @@ export const getNewSilenceUrl = (perspective: Perspective, namespace?: string) =
     case 'acm':
       return `/multicloud${SilenceResource.plural}/~new`;
     case 'virtualization-perspective':
-      return `/virt-monitoring/~new`;
+      return `/virt-monitoring/silences/~new`;
     case 'admin':
       return `${SilenceResource.plural}/~new`;
     case 'dev':
