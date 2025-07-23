@@ -195,10 +195,11 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
   }, [legacyDashboards, changeLegacyDashboard, initialLoad, setInitialLoaded, legacyDashboard]);
 
   // Clear variables on unmount
-  React.useEffect(
-    () => () => dispatch(DashboardsClearVariables(perspective)),
-    [perspective, dispatch],
-  );
+  React.useEffect(() => {
+    return () => {
+      dispatch(DashboardsClearVariables(perspective));
+    };
+  }, [perspective, dispatch]);
 
   return {
     legacyDashboards,
