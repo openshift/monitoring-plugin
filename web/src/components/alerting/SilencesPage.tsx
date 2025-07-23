@@ -26,7 +26,7 @@ import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom-v5-compat';
-import { MonitoringState } from 'src/reducers/observe';
+import { MonitoringState } from '../../reducers/observe';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
 import { useAlertsPoller } from '../hooks/useAlertsPoller';

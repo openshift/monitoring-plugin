@@ -30,7 +30,7 @@ import {
 } from '@patternfly/react-core';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
-import { MonitoringState } from 'src/reducers/observe';
+import { MonitoringState } from '../../reducers/observe';
 import {
   getAlertUrl,
   getLegacyObserveState,

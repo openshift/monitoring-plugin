@@ -1,25 +1,12 @@
 /* eslint-disable max-len */
 
-import { sortObjectsByEarliestTimestamp } from './processIncidents';
+import { Incident } from './models';
+import { sortObjectsByEarliestTimestamp } from './utils';
 
 /**
  * Groups alert objects by their `alertname`, `namespace`, and `component` fields and merges their values
  * while removing duplicates. Alerts with the same combination of `alertname`, `namespace`, and `component`
  * are combined, with values being deduplicated.
- *
- * @param {Array<Object>} objects - Array of alert objects to be grouped. Each object contains a `metric` field
- * with properties such as `alertname`, `namespace`, `component`, and an array of `values`.
- * @param {Object} objects[].metric - The metric information of the alert.
- * @param {string} objects[].metric.alertname - The name of the alert.
- * @param {string} objects[].metric.namespace - The namespace in which the alert is raised.
- * @param {string} objects[].metric.component - The component associated with the alert.
- * @param {Array<Array<Number | string>>} objects[].values - The array of values corresponding to the alert, where
- * each value is a tuple containing a timestamp and a value (e.g., [timestamp, value]).
- *
- * @returns {Array<Object>} - An array of grouped alert objects. Each object contains a unique combination of
- * `alertname`, `namespace`, and `component`, with deduplicated values.
- * @returns {Object} return[].metric - The metric information of the grouped alert.
- * @returns {Array<Array<Number | string>>} return[].values - The deduplicated array of values for the grouped alert.
  *
  * @example
  * const alerts = [
@@ -29,7 +16,7 @@ import { sortObjectsByEarliestTimestamp } from './processIncidents';
  * const groupedAlerts = groupAlerts(alerts);
  * // Returns an array where the two alerts are grouped together with deduplicated values.
  */
-export function groupAlerts(objects) {
+export function groupAlerts(objects: Array<Incident>) {
   // Step 1: Filter out all non firing alerts
   const filteredObjects = objects.filter((obj) => obj.metric.alertstate === 'firing');
   const groupedObjects = new Map();
@@ -137,7 +124,7 @@ export function groupAlerts(objects) {
  * // ]
  */
 
-export function processAlerts(data, selectedIncidents) {
+export function processAlerts(data: Array<Incident>, selectedIncidents) {
   const firing = groupAlerts(data).filter((alert) => alert.metric.alertname !== 'Watchdog');
 
   // Extract the first and last timestamps from selectedIncidents
@@ -152,16 +139,16 @@ export function processAlerts(data, selectedIncidents) {
     // Filter values based on firstTimestamp and lastTimestamp keep only values within range
     const processedValues = alert.values
       .map((value) => {
-        const timestamp = new Date(value[0] * 1000);
+        const timestamp = new Date(value[0].getTime() * 1000);
         return [timestamp, value[1]];
       })
-      .filter(([date]) => date >= firstTimestamp && date <= lastTimestamp);
+      .filter(([date]) => date >= firstTimestamp && date <= lastTimestamp) as Array<[Date, string]>;
 
-    const sortedValues = processedValues.sort((a, b) => a[0] - b[0]);
+    const sortedValues = processedValues.sort((a, b) => a[0].getTime() - b[0].getTime());
 
     const alertsStartFiring = sortedValues[0][0];
     const alertsEndFiring = sortedValues[sortedValues.length - 1][0];
-    const resolved = new Date() - alertsEndFiring > 10 * 60 * 1000;
+    const resolved = Date.now() - alertsEndFiring.getTime() > 10 * 60 * 1000;
 
     return {
       alertname: alert.metric.alertname,
