@@ -88,6 +88,7 @@ import {
   t_chart_global_fill_color_200,
 } from '@patternfly/react-tokens';
 import './query-browser.scss';
+import { GraphUnits } from './metrics/units';
 
 const spans = ['5m', '15m', '30m', '1h', '2h', '6h', '12h', '1d', '2d', '1w', '2w'];
 export const colors = queryBrowserTheme.line.colorScale;
@@ -1003,7 +1004,7 @@ type GraphProps = {
   isStack?: boolean;
   showLegend?: boolean;
   span: number;
-  units: string;
+  units: GraphUnits;
   width: number;
 };
 
@@ -1029,7 +1030,7 @@ export type QueryBrowserProps = {
   showLegend?: boolean;
   showStackedControl?: boolean;
   timespan?: number;
-  units?: string;
+  units?: GraphUnits;
   onDataChange?: (data: any) => void;
   isPlain?: boolean;
 };

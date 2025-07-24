@@ -7,6 +7,7 @@ import { MonitoringState } from '../../../reducers/observe';
 import { getLegacyObserveState } from '../../hooks/usePerspective';
 import { DEFAULT_GRAPH_SAMPLES } from './utils';
 import { CustomDataSource } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
+import { GraphUnits } from 'src/components/metrics/units';
 
 type Props = {
   customDataSource?: CustomDataSource;
@@ -63,7 +64,7 @@ const Graph: React.FC<Props> = ({
       queries={queries}
       showLegend={showLegend}
       timespan={timespan}
-      units={units}
+      units={units as GraphUnits}
       onDataChange={onDataChange}
       isPlain
     />

@@ -9,6 +9,8 @@ import {
   ALERTMANAGER_TENANCY_BASE_PATH,
 } from '../console/graphs/helpers';
 import { MonitoringState } from '../../reducers/observe';
+import { GraphUnits } from '../metrics/units';
+import { QueryParams } from '../query-params';
 
 export type UrlRoot = 'monitoring' | 'dev-monitoring' | 'multicloud/monitoring' | 'virt-monitoring';
 
@@ -305,14 +307,27 @@ export const getObserveState = (perspective: Perspective, state: MonitoringState
   }
 };
 
-export const getQueryBrowserUrl = (perspective: Perspective, query: string, namespace?: string) => {
+export const getQueryBrowserUrl = ({
+  perspective,
+  query,
+  namespace,
+  units,
+}: {
+  perspective: Perspective;
+  query: string;
+  namespace?: string;
+  units?: GraphUnits;
+}) => {
+  const unitsQueryParam = units ? `&${QueryParams.Units}=${units}` : '';
   switch (perspective) {
     case 'admin':
-      return `/monitoring/query-browser?query0=${encodeURIComponent(query)}`;
+      return `/monitoring/query-browser?query0=${encodeURIComponent(query)}${unitsQueryParam}`;
     case 'dev':
-      return `/dev-monitoring/ns/${namespace}/metrics?query0=${encodeURIComponent(query)}`;
+      return `/dev-monitoring/ns/${namespace}/metrics?query0=${encodeURIComponent(
+        query,
+      )}${unitsQueryParam}`;
     case 'virtualization-perspective':
-      return `/virt-monitoring/query-browser?query0=${encodeURIComponent(query)}`;
+      return `/virt-monitoring/query-browser?query0=${encodeURIComponent(query)}${unitsQueryParam}`;
     case 'acm':
     default:
       return '';

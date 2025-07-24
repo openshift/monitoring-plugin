@@ -42,8 +42,10 @@ import {
 } from '@patternfly/react-core';
 import { ChartLineIcon, CompressIcon } from '@patternfly/react-icons';
 import {
+  IFormatterValueType,
   InnerScrollContainer,
   ISortBy,
+  ITransform,
   sortable,
   Table,
   TableGridBreakpoint,
@@ -109,6 +111,11 @@ import {
   t_global_spacer_sm,
   t_global_font_family_mono,
 } from '@patternfly/react-tokens';
+import { QueryParamProvider, StringParam, useQueryParam } from 'use-query-params';
+import { ReactRouter5Adapter } from 'use-query-params/adapters/react-router-5';
+import { GraphUnits, isGraphUnit } from './metrics/units';
+import { SimpleSelect, SimpleSelectOption } from '@patternfly/react-templates';
+import { valueFormatter } from './console/console-shared/src/components/query-browser/QueryBrowserTooltip';
 
 // Stores information about the currently focused query input
 let focusedQuery;
@@ -205,7 +212,7 @@ const devQueries = (activeNamespace: string) => {
   ];
 };
 
-export const PreDefinedQueriesDropdown = () => {
+const PreDefinedQueriesDropdown = () => {
   const [activeNamespace] = useActiveNamespace();
   const { perspective } = usePerspective();
 
@@ -570,7 +577,12 @@ const QueryKebab: React.FC<{ index: number }> = ({ index }) => {
   return <KebabDropdown dropdownItems={dropdownItems} />;
 };
 
-export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, customDatasource }) => {
+export const QueryTable: React.FC<QueryTableProps> = ({
+  index,
+  namespace,
+  customDatasource,
+  units,
+}) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
 
@@ -579,6 +591,7 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, custom
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(50);
   const [sortBy, setSortBy] = React.useState<ISortBy>({});
+  const valueFormat = valueFormatter(units);
 
   const isEnabled = useSelector((state: MonitoringState) =>
     getLegacyObserveState(perspective, state)?.getIn([
@@ -699,16 +712,39 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, custom
     );
   }
 
-  const transforms = [sortable, wrappable];
+  const transforms: ITransform[] = [sortable, wrappable];
 
   const buttonCell = (labels) => ({ title: <SeriesButton index={index} labels={labels} /> });
 
   let columns, rows;
   if (data.resultType === 'scalar') {
-    columns = ['', { title: t('Value'), transforms }];
+    columns = [
+      '',
+      {
+        title: t('Value'),
+        transforms,
+        cellTransforms: [
+          (data: IFormatterValueType) => {
+            const val = data?.title ? data.title : data;
+            return !Number.isNaN(Number(val)) ? valueFormat(Number(val)) : val;
+          },
+        ],
+      },
+    ];
     rows = [[buttonCell({}), _.get(result, '[1]')]];
   } else if (data.resultType === 'string') {
-    columns = [{ title: t('Value'), transforms }];
+    columns = [
+      {
+        title: t('Value'),
+        transforms,
+        cellTransforms: [
+          (data: IFormatterValueType) => {
+            const val = data?.title ? data.title : data;
+            return !Number.isNaN(Number(val)) ? valueFormat(Number(val)) : val;
+          },
+        ],
+      },
+    ];
     rows = [[result?.[1]]];
   } else {
     const allLabelKeys = _.uniq(_.flatMap(result, ({ metric }) => Object.keys(metric))).sort();
@@ -719,7 +755,16 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, custom
         title: <span>{k === '__name__' ? t('Name') : k}</span>,
         transforms,
       })),
-      { title: t('Value'), transforms },
+      {
+        title: t('Value'),
+        transforms,
+        cellTransforms: [
+          (data: IFormatterValueType) => {
+            const val = data?.title ? data.title : data;
+            return !Number.isNaN(Number(val)) ? valueFormat(Number(val)) : val;
+          },
+        ],
+      },
     ];
 
     let rowMapper;
@@ -810,7 +855,13 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, custom
                     style={{ fontFamily: t_global_font_family_mono.var }}
                     key={`cell-${rowIndex}-${cellIndex}`}
                   >
-                    {typeof cell === 'string' ? cell : cell?.title}
+                    {columns[cellIndex].cellTransforms
+                      ? columns[cellIndex].cellTransforms[0](
+                          typeof cell === 'string' ? cell : cell?.title,
+                        )
+                      : typeof cell === 'string'
+                      ? cell
+                      : cell?.title}
                   </Td>
                 ))}
               </Tr>
@@ -836,10 +887,11 @@ const PromQLExpressionInput = (props) => (
   />
 );
 
-const Query: React.FC<{ index: number; customDatasource?: CustomDataSource }> = ({
-  index,
-  customDatasource,
-}) => {
+const Query: React.FC<{
+  index: number;
+  customDatasource?: CustomDataSource;
+  units: GraphUnits;
+}> = ({ index, customDatasource, units }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
 
@@ -924,13 +976,6 @@ const Query: React.FC<{ index: number; customDatasource?: CustomDataSource }> = 
 
   // If namespace is defined getPrometheusURL() will use the
   //     PROMETHEUS_TENANCY_BASE_PATH for the developer view
-  const queryTable = (
-    <QueryTable
-      index={index}
-      customDatasource={customDatasource}
-      namespace={perspective === 'dev' ? activeNamespace : undefined}
-    />
-  );
 
   return (
     <DataListItem aria-labelledby={`query-item-${queryId}`} isExpanded={isExpanded}>
@@ -968,7 +1013,12 @@ const Query: React.FC<{ index: number; customDatasource?: CustomDataSource }> = 
         id={`query-expand-${queryId}`}
         isHidden={!isExpanded}
       >
-        {queryTable}
+        <QueryTable
+          index={index}
+          customDatasource={customDatasource}
+          namespace={perspective === 'dev' ? activeNamespace : undefined}
+          units={units}
+        />
       </DataListContent>
     </DataListItem>
   );
@@ -978,7 +1028,8 @@ const QueryBrowserWrapper: React.FC<{
   customDataSourceName: string;
   customDataSource: CustomDataSource;
   customDatasourceError: boolean;
-}> = ({ customDataSourceName, customDataSource, customDatasourceError }) => {
+  units: GraphUnits;
+}> = ({ customDataSourceName, customDataSource, customDatasourceError, units }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
 
@@ -1090,6 +1141,7 @@ const QueryBrowserWrapper: React.FC<{
       defaultTimespan={30 * 60 * 1000}
       disabledSeries={disabledSeries}
       queries={queryStrings}
+      units={units}
       showStackedControl
     />
   );
@@ -1121,7 +1173,10 @@ const RunQueriesButton: React.FC = () => {
   );
 };
 
-const QueriesList: React.FC<{ customDatasource?: CustomDataSource }> = ({ customDatasource }) => {
+const QueriesList: React.FC<{ customDatasource?: CustomDataSource; units: GraphUnits }> = ({
+  customDatasource,
+  units,
+}) => {
   const { perspective } = usePerspective();
   const count = useSelector(
     (state: MonitoringState) =>
@@ -1133,7 +1188,12 @@ const QueriesList: React.FC<{ customDatasource?: CustomDataSource }> = ({ custom
       {_.range(count).map((index) => {
         const reversedIndex = count - index - 1;
         return (
-          <Query index={reversedIndex} key={reversedIndex} customDatasource={customDatasource} />
+          <Query
+            index={reversedIndex}
+            key={reversedIndex}
+            customDatasource={customDatasource}
+            units={units}
+          />
         );
       })}
     </DataList>
@@ -1153,11 +1213,50 @@ const IntervalDropdown = () => {
   return <DropDownPollInterval setInterval={setInterval} selectedInterval={pollInterval} />;
 };
 
+const GraphUnitsDropDown: React.FC = () => {
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const [selectedUnits, setUnits] = useQueryParam(QueryParams.Units, StringParam);
+
+  const initialOptions = React.useMemo<SimpleSelectOption[]>(() => {
+    const intervalOptions: SimpleSelectOption[] = [
+      { content: t('Bytes Binary (KiB, MiB)'), value: 'bytes' },
+      { content: t('Bytes Decimal (kb, MB)'), value: 'Bytes' },
+      { content: t('Bytes Binary Per Second (KiB/s, MiB/s)'), value: 'bps' },
+      { content: t('Bytes Decimal Per Second (kB/s, MB/s)'), value: 'Bps' },
+      { content: t('Packets Per Second'), value: 'pps' },
+      { content: t('Miliseconds'), value: 'ms' },
+      { content: t('Seconds'), value: 's' },
+      { content: t('Percentage'), value: 'percentunit' },
+      { content: t('No Units'), value: 'short' },
+    ];
+    return intervalOptions.map((o) => ({ ...o, selected: o.value === selectedUnits }));
+  }, [selectedUnits, t]);
+
+  const onSelect = (_ev, selection: string) => {
+    setUnits(selection);
+  };
+
+  return (
+    <SimpleSelect
+      initialOptions={initialOptions}
+      onSelect={(_ev, selection: string) => onSelect(_ev, selection)}
+      toggleWidth="300px"
+    />
+  );
+};
+
 const MetricsPage_: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const [units, setUnits] = useQueryParam(QueryParams.Units, StringParam);
 
   const dispatch = useDispatch();
   const { perspective } = usePerspective();
+
+  React.useEffect(() => {
+    if (!isGraphUnit(units)) {
+      setUnits('short');
+    }
+  }, [units, setUnits]);
 
   // Clear queries on unmount
   React.useEffect(() => {
@@ -1241,6 +1340,11 @@ const MetricsPage_: React.FC = () => {
           )}
           <SplitItem isFilled />
           <SplitItem>
+            <Tooltip content={<>{t('This dropdown only formats results.')}</>}>
+              <GraphUnitsDropDown />
+            </Tooltip>
+          </SplitItem>
+          <SplitItem>
             <IntervalDropdown />
           </SplitItem>
           <SplitItem>
@@ -1258,6 +1362,7 @@ const MetricsPage_: React.FC = () => {
               customDataSource={customDataSource}
               customDataSourceName={customDataSourceName}
               customDatasourceError={customDatasourceError}
+              units={units as GraphUnits}
             />
           </StackItem>
           <StackItem>
@@ -1275,19 +1380,27 @@ const MetricsPage_: React.FC = () => {
             </Flex>
           </StackItem>
           <StackItem>
-            <QueriesList customDatasource={customDataSource} />
+            <QueriesList customDatasource={customDataSource} units={units as GraphUnits} />
           </StackItem>
         </Stack>
       </PageSection>
     </>
   );
 };
-export const MetricsPage = withFallback(MetricsPage_);
+
+const MetricsPage = withFallback(MetricsPage_);
+
+const MetricsPageWrapper_: React.FC = () => (
+  <QueryParamProvider adapter={ReactRouter5Adapter}>
+    <MetricsPage />
+  </QueryParamProvider>
+);
 
 type QueryTableProps = {
   index: number;
   namespace?: string;
   customDatasource?: CustomDataSource;
+  units: GraphUnits;
 };
 
 type SeriesButtonProps = {
@@ -1295,4 +1408,4 @@ type SeriesButtonProps = {
   labels: PrometheusLabels;
 };
 
-export default MetricsPage;
+export default MetricsPageWrapper_;

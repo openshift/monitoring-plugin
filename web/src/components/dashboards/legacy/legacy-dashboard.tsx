@@ -48,19 +48,25 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
 import { t_global_font_size_heading_h2 } from '@patternfly/react-tokens';
 import { GraphEmpty } from '../../../components/console/graphs/graph-empty';
+import { GraphUnits } from '../../../components/metrics/units';
 
 const QueryBrowserLink = ({
   queries,
   customDataSourceName,
+  units,
 }: {
   queries: Array<string>;
   customDataSourceName: string;
+  units?: GraphUnits;
 }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
 
   const params = new URLSearchParams();
   queries.forEach((q, i) => params.set(`query${i}`, q));
+  if (units) {
+    params.set(QueryParams.Units, units);
+  }
   const [namespace] = useActiveNamespace();
 
   if (customDataSourceName) {
@@ -288,7 +294,11 @@ const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
             actions: (
               <>
                 {!isLoading && (
-                  <QueryBrowserLink queries={queries} customDataSourceName={customDataSourceName} />
+                  <QueryBrowserLink
+                    queries={queries}
+                    customDataSourceName={customDataSourceName}
+                    units={panel?.yaxes?.[0]?.format as GraphUnits}
+                  />
                 )}
                 {panel.type === 'graph' && <KebabDropdown dropdownItems={dropdownItems} />}
               </>
