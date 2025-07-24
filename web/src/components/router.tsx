@@ -11,9 +11,9 @@ import { getAllQueryArguments } from './console/utils/router';
 
 import MonitoringDashboardsPage from './dashboards/perses/dashboard-page';
 import MonitoringLegacyDashboardsPage from './dashboards/legacy/legacy-dashboard-page';
-import { QueryBrowserPage } from './metrics';
+import { QueryBrowserPage } from './MetricsPage';
 import { CreateSilence, EditSilence } from './silence-form';
-import { TargetsUI } from './targets';
+import { TargetsUI } from './targets-page';
 
 import './_monitoring.scss';
 import { UrlRoot, usePerspective } from './hooks/usePerspective';
@@ -58,11 +58,7 @@ const PollingPagesRouter = () => {
 
 const AlertingRouter: React.FC<{ root: UrlRoot }> = ({ root }) => (
   <Switch>
-    <Route
-      path={`/${root}/(alerts|alertrules|silences|incidents)`}
-      exact
-      component={AlertingPage}
-    />
+    <Route path={`/${root}/(alerts|alertrules|silences)`} exact component={AlertingPage} />
     <Route path={`/${root}/alertrules/:id`} exact component={AlertRulesDetailsPage} />
     <Route path={`/${root}/alerts/:ruleID`} exact component={AlertsDetailsPage} />
     <Route path={`/${root}/silences/:id`} exact component={SilencesDetailsPage} />

@@ -83,23 +83,6 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
         queries: ImmutableList([newQueryBrowserQuery()]),
         timespan: MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
       }),
-      incidentsData: ImmutableMap({
-        incidents: [],
-        alertsData: [],
-        alertsTableData: [],
-        filteredIncidentsData: [],
-        alertsAreLoading: true,
-        incidentsChartSelectedId: '',
-        incidentsInitialState: {
-          days: ['7 days'],
-          incidentFilters: ['Critical', 'Warning', 'Firing'],
-        },
-        incidentsActiveFilters: {
-          days: [],
-          incidentFilters: [],
-        },
-        incidentGroupId: '',
-      }),
     });
   }
 
@@ -307,47 +290,6 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
 
     case ActionType.SetAlertCount:
       return state.set('alertCount', action.payload.alertCount);
-
-    case ActionType.SetIncidents: {
-      return state.setIn(['incidentsData', 'incidents'], action.payload.incidents);
-    }
-
-    case ActionType.SetIncidentsActiveFilters: {
-      return state.setIn(
-        ['incidentsData', 'incidentsActiveFilters'],
-        action.payload.incidentsActiveFilters,
-      );
-    }
-
-    case ActionType.SetChooseIncident: {
-      return state.setIn(['incidentsData', 'incidentGroupId'], action.payload.incidentGroupId);
-    }
-
-    case ActionType.SetAlertsData: {
-      return state.setIn(['incidentsData', 'alertsData'], action.payload.alertsData);
-    }
-
-    case ActionType.SetAlertsTableData: {
-      return state.setIn(['incidentsData', 'alertsTableData'], action.payload.alertsTableData);
-    }
-
-    case ActionType.SetAlertsAreLoading: {
-      return state.setIn(['incidentsData', 'alertsAreLoading'], action.payload.alertsAreLoading);
-    }
-
-    case ActionType.SetIncidentsChartSelection: {
-      return state.setIn(
-        ['incidentsData', 'incidentsChartSelectedId'],
-        action.payload.incidentsChartSelectedId,
-      );
-    }
-
-    case ActionType.SetFilteredIncidentsData: {
-      return state.setIn(
-        ['incidentsData', 'filteredIncidentsData'],
-        action.payload.filteredIncidentsData,
-      );
-    }
 
     default:
       break;
