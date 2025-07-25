@@ -20,9 +20,7 @@
       "properties": {
         "exact": false,
         "path": [
-          "/multicloud/monitoring/alerts",
-          "/multicloud/monitoring/silences",
-          "/multicloud/monitoring/alertrules"
+          "/multicloud/monitoring"
         ],
         "component": { "$codeRef": "AlertingPage" }
       }
@@ -85,22 +83,6 @@
         "exact": false,
         "path": ["/multicloud/monitoring/alerts/:ruleID"],
         "component": { "$codeRef": "AlertsDetailsPage" }
-      }
-    }
-  },
-  {
-    "op": "add",
-    "path": "/extensions/1",
-    "value": {
-      "type": "console.page/route",
-      "properties": {
-        "exact": false,
-        "path": [
-          "/multicloud/monitoring/alerts",
-          "/multicloud/monitoring/silences",
-          "/multicloud/monitoring/alertrules"
-        ],
-        "component": { "$codeRef": "AlertingPage" }
       }
     }
   },
