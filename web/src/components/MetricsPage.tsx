@@ -1143,6 +1143,7 @@ const QueryBrowserWrapper: React.FC<{
       queries={queryStrings}
       units={units}
       showStackedControl
+      showDisconnectedControl
     />
   );
 };

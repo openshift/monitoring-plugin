@@ -1,6 +1,3 @@
-import * as _ from 'lodash-es';
-import classNames from 'classnames';
-import * as React from 'react';
 import {
   PrometheusEndpoint,
   PrometheusLabels,
@@ -22,6 +19,9 @@ import {
 import {
   Alert,
   Button,
+  Card,
+  CardBody,
+  CardHeader,
   Checkbox,
   Dropdown,
   DropdownItem,
@@ -29,21 +29,22 @@ import {
   EmptyState,
   EmptyStateBody,
   EmptyStateVariant,
-  MenuToggle,
-  MenuToggleElement,
   InputGroup,
-  TextInput,
-  Title,
   InputGroupItem,
-  Card,
-  CardHeader,
-  Split,
-  SplitItem,
   Level,
   LevelItem,
-  CardBody,
+  MenuToggle,
+  MenuToggleElement,
+  Split,
+  SplitItem,
+  TextInput,
+  Title,
+  Tooltip,
 } from '@patternfly/react-core';
 import { ChartLineIcon } from '@patternfly/react-icons';
+import classNames from 'classnames';
+import * as _ from 'lodash-es';
+import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -69,24 +70,24 @@ import { queryBrowserTheme } from './query-browser-theme';
 import { PrometheusAPIError, TimeRange } from './types';
 import { getTimeRanges } from './utils';
 
-import { getLegacyObserveState, getObserveState, usePerspective } from './hooks/usePerspective';
-import { MonitoringState } from '../reducers/observe';
-import { LoadingInline } from './console/console-shared/src/components/loading/LoadingInline';
-import {
-  formatPrometheusDuration,
-  parsePrometheusDuration,
-} from './console/console-shared/src/datetime/prometheus';
-import withFallback from './console/console-shared/error/fallbacks/withFallback';
 import { CustomDataSource } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
-import {
-  QueryBrowserTooltip,
-  valueFormatter,
-} from './console/console-shared/src/components/query-browser/QueryBrowserTooltip';
 import {
   chart_area_Opacity,
   chart_axis_tick_Size,
   t_chart_global_fill_color_200,
 } from '@patternfly/react-tokens';
+import { MonitoringState } from '../reducers/observe';
+import withFallback from './console/console-shared/error/fallbacks/withFallback';
+import { LoadingInline } from './console/console-shared/src/components/loading/LoadingInline';
+import {
+  QueryBrowserTooltip,
+  valueFormatter,
+} from './console/console-shared/src/components/query-browser/QueryBrowserTooltip';
+import {
+  formatPrometheusDuration,
+  parsePrometheusDuration,
+} from './console/console-shared/src/datetime/prometheus';
+import { getLegacyObserveState, getObserveState, usePerspective } from './hooks/usePerspective';
 import './query-browser.scss';
 import { GraphUnits } from './metrics/units';
 
@@ -416,7 +417,9 @@ const formatSeriesValues = (
   samples: number,
   span: number,
   defaultEmptyValue: 0 | null,
-): GraphDataPoint[] => {
+  createGaps: boolean,
+): { points: GraphDataPoint[]; hasDisconnectedValues: boolean } => {
+  let hasDisconnectedValues = false;
   const newValues = _.map(values, (v) => {
     const y = Number(v[1]);
     return {
@@ -425,7 +428,8 @@ const formatSeriesValues = (
     };
   });
 
-  // The data may have missing values, so we fill those gaps with nulls so that the graph correctly
+  // The data may have missing values, if disconnected is enabled,
+  // we fill those gaps with nulls so that the graph correctly
   // shows the missing values as gaps in the line
   const start = Number(_.get(newValues, '[0].x'));
   const end = Number(_.get(_.last(newValues), 'x'));
@@ -433,11 +437,14 @@ const formatSeriesValues = (
   _.range(start, end, step).forEach((t, i) => {
     const x = new Date(t);
     if (_.get(newValues, [i, 'x']) > x) {
-      newValues.splice(i, 0, { x, y: null });
+      hasDisconnectedValues = true;
+      if (createGaps) {
+        newValues.splice(i, 0, { x, y: null });
+      }
     }
   });
 
-  return newValues;
+  return { points: newValues, hasDisconnectedValues };
 };
 
 // Try to limit the graph to this number of data points
@@ -582,6 +589,7 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
   queries,
   showLegend,
   showStackedControl = false,
+  showDisconnectedControl = true,
   timespan,
   units,
   onDataChange,
@@ -627,6 +635,8 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
   const safeFetch = useSafeFetch();
 
   const [isStacked, setIsStacked] = React.useState(isStack);
+  const [showDisconnectedValues, setIsShowDisconnectedValues] = React.useState(false);
+  const [isDisconnectedEnabled, setIsDisconnectedEnabled] = React.useState(true);
 
   const canStack = _.sumBy(graphData, 'length') <= maxStacks;
 
@@ -738,6 +748,8 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
           maxSamplesForSpan,
         );
 
+        let dataIsDisconnected = false;
+
         // Change `samples` if either
         //   - It will change by a proportion greater than `samplesLeeway`
         //   - It will change to the upper or lower limit of its allowed range
@@ -765,13 +777,25 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
                     );
                     defaultEmptyValue = 0;
                   }
-                  return [metric, formatSeriesValues(values, samples, span, defaultEmptyValue)];
+                  const { points, hasDisconnectedValues } = formatSeriesValues(
+                    values,
+                    samples,
+                    span,
+                    defaultEmptyValue,
+                    showDisconnectedValues,
+                  );
+
+                  dataIsDisconnected = hasDisconnectedValues;
+
+                  return [metric, points];
                 }
               });
             },
           );
           setGraphData(newGraphData);
           onDataChange?.(newGraphData);
+
+          setIsDisconnectedEnabled(dataIsDisconnected);
 
           _.each(newResults, (r, i) =>
             dispatch(queryBrowserPatchQuery(i, { series: r ? _.map(r, 'metric') : undefined })),
@@ -816,6 +840,7 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
     samples,
     span,
     lastRequestTime,
+    showDisconnectedValues,
   );
 
   React.useLayoutEffect(
@@ -909,18 +934,52 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
               </SplitItem>
               <SplitItem isFilled />
               <SplitItem>
-                {GraphLink && <GraphLink />}
-                {canStack && showStackedControl && (
-                  <Checkbox
-                    id="stacked"
-                    isChecked={isStacked}
-                    data-checked-state={isStacked}
-                    label={t('Stacked')}
-                    onChange={(_e, v) =>
-                      typeof _e === 'boolean' ? setIsStacked(_e) : setIsStacked(v)
-                    }
-                  />
-                )}
+                <Split hasGutter>
+                  {GraphLink && (
+                    <SplitItem>
+                      <GraphLink />
+                    </SplitItem>
+                  )}
+                  {canStack && showStackedControl && (
+                    <SplitItem>
+                      <Checkbox
+                        id="stacked"
+                        isChecked={isStacked}
+                        data-checked-state={isStacked}
+                        label={t('Stacked')}
+                        onChange={(_e, v) =>
+                          typeof _e === 'boolean' ? setIsStacked(_e) : setIsStacked(v)
+                        }
+                      />
+                    </SplitItem>
+                  )}
+                  {showDisconnectedControl && (
+                    <SplitItem>
+                      <Tooltip
+                        content={
+                          <div>
+                            {isDisconnectedEnabled
+                              ? t('Check to show gaps for missing data')
+                              : t('No gaps found in the data')}
+                          </div>
+                        }
+                      >
+                        <Checkbox
+                          id="disconnected"
+                          isChecked={isDisconnectedEnabled && showDisconnectedValues}
+                          data-checked-state={isDisconnectedEnabled && showDisconnectedValues}
+                          label={t('Disconnected')}
+                          onChange={(_e, v) =>
+                            typeof _e === 'boolean'
+                              ? setIsShowDisconnectedValues(_e)
+                              : setIsShowDisconnectedValues(v)
+                          }
+                          isDisabled={!isDisconnectedEnabled}
+                        />
+                      </Tooltip>
+                    </SplitItem>
+                  )}
+                </Split>
               </SplitItem>
             </Split>
           </CardHeader>
@@ -1029,6 +1088,7 @@ export type QueryBrowserProps = {
   queries: string[];
   showLegend?: boolean;
   showStackedControl?: boolean;
+  showDisconnectedControl?: boolean;
   timespan?: number;
   units?: GraphUnits;
   onDataChange?: (data: any) => void;
