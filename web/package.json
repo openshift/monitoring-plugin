@@ -152,7 +152,8 @@
       "MonitoringReducer": "./reducers/observe",
       "IncidentsPage": "./components/Incidents/IncidentsPage",
       "TargetsPage": "./components/targets-page",
-      "PrometheusRedirectPage": "./components/prometheus-redirect-page"
+      "PrometheusRedirectPage": "./components/prometheus-redirect-page",
+      "AlertManagerRedirectPage": "./components/alertmanager-redirect-page"
     },
     "dependencies": {
       "@console/pluginAPI": "*"
