@@ -189,6 +189,14 @@
     "type": "console.page/route",
     "properties": {
       "exact": false,
+      "path": ["/monitoring/alertmanagerconfig", "/monitoring/alertmanageryaml"],
+      "component": { "$codeRef": "AlertingManagerRedirect" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
       "path": "/monitoring/silences/~new",
       "component": { "$codeRef": "SilenceCreatePage" }
     }
@@ -261,9 +269,7 @@
     "type": "console.page/route",
     "properties": {
       "exact": false,
-      "path": [
-        "/virt-monitoring"
-      ],
+      "path": ["/virt-monitoring"],
       "component": { "$codeRef": "AlertingPage" }
     }
   },
