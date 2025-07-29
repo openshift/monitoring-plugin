@@ -87,7 +87,7 @@ import {
   formatPrometheusDuration,
   parsePrometheusDuration,
 } from './console/console-shared/src/datetime/prometheus';
-import { getLegacyObserveState, usePerspective } from './hooks/usePerspective';
+import { getLegacyObserveState, getObserveState, usePerspective } from './hooks/usePerspective';
 import './query-browser.scss';
 
 const spans = ['5m', '15m', '30m', '1h', '2h', '6h', '12h', '1d', '2d', '1w', '2w'];
@@ -598,7 +598,7 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
   const { perspective } = usePerspective();
 
   const hideGraphs = useSelector(
-    (state: MonitoringState) => !!getLegacyObserveState(perspective, state)?.get('hideGraphs'),
+    (state: MonitoringState) => !!getObserveState(perspective, state)?.get('hideGraphs'),
   );
   const tickInterval = useSelector(
     (state: MonitoringState) =>
