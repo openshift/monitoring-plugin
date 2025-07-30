@@ -17,7 +17,7 @@ import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 
 import ErrorAlert from './error';
-import { getPrometheusURL } from '../../console/graphs/helpers';
+import { getPrometheusBasePath, buildPrometheusUrl } from '../../console/graphs/helpers';
 import { usePoll } from '../../console/utils/poll-hook';
 import { useSafeFetch } from '../../console/utils/safe-fetch-hook';
 
@@ -84,15 +84,18 @@ const Table: React.FC<Props> = ({ customDataSource, panel, pollInterval, queries
       _.isEmpty(query)
         ? Promise.resolve()
         : safeFetch<PrometheusResponse>(
-            getPrometheusURL(
-              {
+            buildPrometheusUrl({
+              prometheusUrlProps: {
                 endpoint: PrometheusEndpoint.QUERY,
                 query,
                 namespace: perspective === 'dev' ? namespace : '',
               },
-              perspective,
-              customDataSource?.basePath,
-            ),
+              basePath: getPrometheusBasePath({
+                prometheus: 'cmo',
+                namespace,
+                basePathOverride: customDataSource?.basePath,
+              }),
+            }),
           ),
     );
 

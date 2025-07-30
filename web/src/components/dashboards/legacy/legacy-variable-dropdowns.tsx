@@ -23,7 +23,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Map as ImmutableMap } from 'immutable';
 
 import { SingleTypeaheadDropdown } from '../../console/utils/single-typeahead-dropdown';
-import { getPrometheusURL } from '../../console/graphs/helpers';
+import { getPrometheusBasePath, buildPrometheusUrl } from '../../console/graphs/helpers';
 import { getQueryArgument, setQueryArgument } from '../../console/utils/router';
 import { useSafeFetch } from '../../console/utils/safe-fetch-hook';
 
@@ -138,7 +138,10 @@ const LegacyDashboardsVariableDropdown: React.FC<VariableDropdownProps> = ({
     async (prometheusProps) => {
       try {
         if (!customDataSourceName) {
-          return getPrometheusURL(prometheusProps, perspective);
+          return buildPrometheusUrl({
+            prometheusUrlProps: prometheusProps,
+            basePath: getPrometheusBasePath({ prometheus: 'cmo' }),
+          });
         } else if (extensionsResolved && hasExtensions) {
           const extension = extensions.find(
             (ext) => ext?.properties?.contextId === 'monitoring-dashboards',
@@ -150,7 +153,14 @@ const LegacyDashboardsVariableDropdown: React.FC<VariableDropdownProps> = ({
             setIsError(true);
             return;
           }
-          return getPrometheusURL(prometheusProps, perspective, dataSource?.basePath);
+          return buildPrometheusUrl({
+            prometheusUrlProps: prometheusProps,
+            basePath: getPrometheusBasePath({
+              prometheus: 'cmo',
+              namespace,
+              basePathOverride: dataSource?.basePath,
+            }),
+          });
         }
       } catch (error) {
         // eslint-disable-next-line no-console
@@ -158,7 +168,7 @@ const LegacyDashboardsVariableDropdown: React.FC<VariableDropdownProps> = ({
         setIsError(true);
       }
     },
-    [customDataSourceName, extensions, extensionsResolved, hasExtensions, perspective],
+    [customDataSourceName, extensions, extensionsResolved, hasExtensions, namespace],
   );
 
   React.useEffect(() => {

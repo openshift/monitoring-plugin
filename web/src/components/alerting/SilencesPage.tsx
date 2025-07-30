@@ -38,10 +38,16 @@ import {
   usePerspective,
 } from '../hooks/usePerspective';
 import { Silences } from '../types';
-import { fuzzyCaseInsensitive, refreshSilences, silenceCluster, silenceState } from '../utils';
+import {
+  fuzzyCaseInsensitive,
+  MonitoringPlugins,
+  refreshSilences,
+  silenceCluster,
+  silenceState,
+} from '../utils';
 import { SelectedSilencesContext, SilenceTableRow } from './SilencesUtils';
 
-const SilencesPage_: React.FC = () => {
+const SilencesPage_: React.FC<{ plugin: MonitoringPlugins }> = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const { silencesKey, perspective } = usePerspective();

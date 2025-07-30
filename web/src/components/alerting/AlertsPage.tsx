@@ -17,9 +17,9 @@ import withFallback from '../console/console-shared/error/fallbacks/withFallback
 import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
 import { LoadingBox } from '../console/console-shared/src/components/loading/LoadingBox';
 import { useAlertsPoller } from '../hooks/useAlertsPoller';
-import { getLegacyObserveState, usePerspective } from '../hooks/usePerspective';
+import { getObserveStateByPlugin, usePerspective } from '../hooks/usePerspective';
 import { Alerts, AlertSource } from '../types';
-import { alertState, fuzzyCaseInsensitive } from '../utils';
+import { alertState, fuzzyCaseInsensitive, MonitoringPlugins } from '../utils';
 import AggregateAlertTableRow from './AlertList/AggregateAlertTableRow';
 import DownloadCSVButton from './AlertList/DownloadCSVButton';
 import useAggregateAlertColumns from './AlertList/hooks/useAggregateAlertColumns';
@@ -34,7 +34,7 @@ import {
 import Error from './Error';
 import useSelectedFilters from './useSelectedFilters';
 
-const AlertsPage_: React.FC = () => {
+const AlertsPage_: React.FC<{ plugin: MonitoringPlugins }> = ({ plugin }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { alertsKey, silencesKey, defaultAlertTenant, perspective } = usePerspective();
 
@@ -45,11 +45,10 @@ const AlertsPage_: React.FC = () => {
     loaded = false,
     loadError,
   }: Alerts = useSelector(
-    (state: MonitoringState) => getLegacyObserveState(perspective, state)?.get(alertsKey) || {},
+    (state: MonitoringState) => getObserveStateByPlugin(plugin, state)?.get(alertsKey) || {},
   );
   const silencesLoadError = useSelector(
-    (state: MonitoringState) =>
-      getLegacyObserveState(perspective, state)?.get(silencesKey)?.loadError,
+    (state: MonitoringState) => getObserveStateByPlugin(plugin, state)?.get(silencesKey)?.loadError,
   );
 
   const alertAdditionalSources = React.useMemo(
