@@ -221,13 +221,10 @@ const PreDefinedQueriesDropdown = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const queries: SelectOptionProps[] = React.useMemo(() => {
-    switch (activeNamespace) {
-      case ALL_NAMESPACES_KEY:
-        return predefinedQueriesAdmin;
-      case 'dev':
-      default:
-        return devQueries(activeNamespace);
+    if (activeNamespace === ALL_NAMESPACES_KEY) {
+      return predefinedQueriesAdmin;
     }
+    return devQueries(activeNamespace);
   }, [activeNamespace]);
 
   const dispatch = useDispatch();
