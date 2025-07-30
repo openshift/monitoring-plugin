@@ -1,5 +1,6 @@
 import * as _ from 'lodash-es';
 import type { FC } from 'react';
+import { useContext } from 'react';
 import { useSelector } from 'react-redux';
 
 import {
@@ -30,10 +31,10 @@ import {
 } from '@patternfly/react-core';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
-import { MonitoringState } from 'src/reducers/observe';
+import { MonitoringState } from '../../store/store';
 import {
   getAlertUrl,
-  getLegacyObserveState,
+  getObserveState,
   getRuleUrl,
   getSilencesUrl,
   usePerspective,
@@ -48,26 +49,29 @@ import { LoadingInline } from '../console/console-shared/src/components/loading/
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 import { Table, TableVariant, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
 import { useNavigate, useParams, Link } from 'react-router-dom-v5-compat';
-import { useAlertsPoller } from '../hooks/useAlertsPoller';
+import { MonitoringContext, MonitoringProvider } from '../../contexts/MonitoringContext';
 import { DataTestIDs } from '../data-test';
+import { useAlerts } from '../../hooks/useAlerts';
 
 const SilencesDetailsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const { plugin } = useContext(MonitoringContext);
+
   const params = useParams<{ id: string }>();
 
   const id = params.id;
 
-  useAlertsPoller();
+  useAlerts();
 
   const [namespace] = useActiveNamespace();
-  const { alertsKey, perspective, silencesKey } = usePerspective();
+  const { perspective } = usePerspective();
 
-  const alertsLoaded = useSelector(
-    (state: MonitoringState) => getLegacyObserveState(perspective, state)?.get(alertsKey)?.loaded,
+  const alertsLoaded = useSelector((state: MonitoringState) =>
+    getObserveState(plugin, state)?.get('alerting').get(namespace).get('loaded'),
   );
 
   const silences: Silences = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.get(silencesKey),
+    getObserveState(plugin, state)?.get('alerting').get(namespace).get('silences'),
   );
   const silence = _.find(silences?.data, { id });
 
@@ -208,7 +212,25 @@ const SilencesDetailsPage_: FC = () => {
     </>
   );
 };
-const SilencesDetailsPage = withFallback(SilencesDetailsPage_);
+const SilencesDetailsPageWithFallback = withFallback(SilencesDetailsPage_);
+
+export const MpCmoSilencesDetailsPage = () => {
+  return (
+    <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
+      <SilencesDetailsPageWithFallback />
+    </MonitoringProvider>
+  );
+};
+
+export const McpAcmSilencesDetailsPage = () => {
+  return (
+    <MonitoringProvider
+      monitoringContext={{ plugin: 'monitoring-console-plugin', prometheus: 'acm' }}
+    >
+      <SilencesDetailsPageWithFallback />
+    </MonitoringProvider>
+  );
+};
 
 const SilencedAlertsList: FC<SilencedAlertsListProps> = ({ alerts }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -259,7 +281,5 @@ const SilencedAlertsList: FC<SilencedAlertsListProps> = ({ alerts }) => {
     </Table>
   );
 };
-
-export default SilencesDetailsPage;
 
 type SilencedAlertsListProps = { alerts: Alert[] };

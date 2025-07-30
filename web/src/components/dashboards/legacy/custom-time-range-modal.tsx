@@ -18,7 +18,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 
-import { dashboardsSetEndTime, dashboardsSetTimespan, Perspective } from '../../../actions/observe';
+import { dashboardsSetEndTime, dashboardsSetTimespan, Perspective } from '../../../store/actions';
 
 import { NumberParam, useQueryParam } from 'use-query-params';
 import { QueryParams } from '../../query-params';

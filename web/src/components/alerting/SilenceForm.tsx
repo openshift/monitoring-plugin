@@ -33,10 +33,10 @@ import { ExclamationCircleIcon, MinusCircleIcon, PlusCircleIcon } from '@pattern
 import { t_global_spacer_sm } from '@patternfly/react-tokens';
 import * as _ from 'lodash-es';
 import type { ComponentType, FC, FormEventHandler, MouseEvent, ChangeEvent, Ref } from 'react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { Helmet } from 'react-helmet';
 import { Trans, useTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom-v5-compat';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 import {
@@ -45,13 +45,11 @@ import {
 } from '../console/console-shared/src/datetime/prometheus';
 import { ExternalLink } from '../console/utils/link';
 import { useBoolean } from '../hooks/useBoolean';
-import {
-  getFetchSilenceAlertUrl,
-  getSilenceAlertUrl,
-  usePerspective,
-} from '../hooks/usePerspective';
-import { refreshSilences } from '../utils';
+import { getSilenceAlertUrl, usePerspective } from '../hooks/usePerspective';
 import { DataTestIDs } from '../data-test';
+import { MonitoringContext } from '../../contexts/MonitoringContext';
+import { getAlertmanagerSilencesUrl } from '../utils';
+import { useAlerts } from '../../hooks/useAlerts';
 
 type Matcher = {
   isRegex: boolean;
@@ -162,9 +160,8 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title }) => {
     }
   }
 
-  const dispatch = useDispatch();
-
-  const { perspective, silencesKey } = usePerspective();
+  const { perspective } = usePerspective();
+  const { prometheus } = useContext(MonitoringContext);
 
   const [isOpen, setIsOpen, , setClosed] = useBoolean(false);
 
@@ -183,6 +180,7 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title }) => {
   const [startsAt, setStartsAt] = useState(defaults.startsAt ?? formatDate(now));
   const user = useSelector(getUser);
   const [namespace] = useActiveNamespace();
+  const { trigger: refetchSilences } = useAlerts();
 
   useEffect(() => {
     if (!createdBy && user) {
@@ -229,7 +227,7 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title }) => {
       return;
     }
 
-    const url = getFetchSilenceAlertUrl(perspective, namespace);
+    const url = getAlertmanagerSilencesUrl({ prometheus, namespace });
     if (!url) {
       setError('Alertmanager URL not set');
       return;
@@ -253,10 +251,10 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title }) => {
     };
 
     consoleFetchJSON
-      .post(getFetchSilenceAlertUrl(perspective, namespace), body)
+      .post(getAlertmanagerSilencesUrl({ prometheus, namespace }), body)
       .then(({ silenceID }) => {
         setError(undefined);
-        refreshSilences(dispatch, perspective, silencesKey, namespace);
+        refetchSilences();
         navigate(getSilenceAlertUrl(perspective, silenceID, namespace));
       })
       .catch((err) => {

@@ -14,13 +14,13 @@ import {
 import { sortable, Td } from '@patternfly/react-table';
 import * as _ from 'lodash-es';
 import type { FC } from 'react';
-import { useMemo } from 'react';
+import { useMemo, useContext } from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom-v5-compat';
 
-import { Alerts, AlertSource } from '../types';
+import { AlertSource } from '../types';
 import {
   alertingRuleStateOrder,
   alertSeverityOrder,
@@ -29,7 +29,7 @@ import {
 } from '../utils';
 
 import { Flex, FlexItem, PageSection, Truncate } from '@patternfly/react-core';
-import { MonitoringState } from '../../reducers/observe';
+import { MonitoringState } from '../../store/store';
 import {
   alertingRuleSource,
   AlertStateIcon,
@@ -40,10 +40,11 @@ import {
 } from '../alerting/AlertUtils';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
-import { useAlertsPoller } from '../hooks/useAlertsPoller';
-import { getLegacyObserveState, getRuleUrl, usePerspective } from '../hooks/usePerspective';
+import { getObserveState, getRuleUrl, usePerspective } from '../hooks/usePerspective';
 import { severityRowFilter } from './AlertUtils';
+import { MonitoringContext, MonitoringProvider } from '../../contexts/MonitoringContext';
 import { DataTestIDs } from '../data-test';
+import { useAlerts } from '../../hooks/useAlerts';
 
 const StateCounts: FC<{ alerts: PrometheusAlert[] }> = ({ alerts }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -123,34 +124,28 @@ const RuleTableRow: FC<RowProps<Rule>> = ({ obj }) => {
 
 const AlertRulesPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { alertsKey, silencesKey, rulesKey, perspective, defaultAlertTenant } = usePerspective();
+  const { plugin } = useContext(MonitoringContext);
   const [namespace] = useActiveNamespace();
 
-  useAlertsPoller();
+  const { defaultAlertTenant } = usePerspective();
+
+  useAlerts();
 
   const data: Rule[] = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.get(rulesKey),
+    getObserveState(plugin, state)?.get('alerting').get(namespace).get('rules'),
   );
-  const { loaded = false, loadError }: Alerts = useSelector(
-    (state: MonitoringState) => getLegacyObserveState(perspective, state)?.get(alertsKey) || {},
+  const { loaded = false, loadError } = useSelector((state: MonitoringState) =>
+    getObserveState(plugin, state)?.get('alerting').get(namespace)?.toJS(),
   );
   const silencesLoadError = useSelector(
     (state: MonitoringState) =>
-      getLegacyObserveState(perspective, state)?.get(silencesKey)?.loadError,
+      getObserveState(plugin, state)?.get('alerting').get(namespace).get('silences')?.loadError,
   );
 
   const ruleAdditionalSources = useMemo(
     () => getAdditionalSources(data, alertingRuleSource),
     [data],
   );
-
-  const namespacedData = useMemo(() => {
-    if (perspective === 'dev') {
-      return data?.filter((rule) => rule.labels?.namespace === namespace);
-    }
-
-    return data;
-  }, [data, perspective, namespace]);
 
   const rowFilters: RowFilter[] = [
     // TODO: The "name" filter doesn't really fit useListPageFilter's idea of a RowFilter, but
@@ -178,7 +173,7 @@ const AlertRulesPage_: FC = () => {
     },
   ];
 
-  const [staticData, filteredData, onFilterChange] = useListPageFilter(namespacedData, rowFilters);
+  const [staticData, filteredData, onFilterChange] = useListPageFilter(data, rowFilters);
 
   const columns = useMemo<TableColumn<Rule>[]>(
     () => [
@@ -225,8 +220,6 @@ const AlertRulesPage_: FC = () => {
       <PageSection hasBodyWrapper={false}>
         <ListPageFilter
           data={staticData}
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore TODO
           labelFilter="observe-rules"
           labelPath="labels"
           loaded={loaded}
@@ -254,6 +247,22 @@ const AlertRulesPage_: FC = () => {
     </>
   );
 };
-const AlertRulesPage = withFallback(AlertRulesPage_);
+const AlertRulesPageWithFallback = withFallback(AlertRulesPage_);
 
-export default AlertRulesPage;
+export const MpCmoAlertRulesPage = () => {
+  return (
+    <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
+      <AlertRulesPageWithFallback />
+    </MonitoringProvider>
+  );
+};
+
+export const McpAcmAlertRulesPage = () => {
+  return (
+    <MonitoringProvider
+      monitoringContext={{ plugin: 'monitoring-console-plugin', prometheus: 'acm' }}
+    >
+      <AlertRulesPageWithFallback />
+    </MonitoringProvider>
+  );
+};

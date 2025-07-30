@@ -3,24 +3,24 @@ import {
   AlertStates,
   ListPageFilter,
   RowFilter,
+  useActiveNamespace,
   useListPageFilter,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { Flex, PageSection } from '@patternfly/react-core';
 import { Table, TableGridBreakpoint, Th, Thead, Tr } from '@patternfly/react-table';
 import * as _ from 'lodash-es';
 import type { FC } from 'react';
-import { useMemo } from 'react';
+import { useMemo, useContext } from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
-import { MonitoringState } from '../../reducers/observe';
+import { MonitoringState } from '../../store/store';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
 import { LoadingBox } from '../console/console-shared/src/components/loading/LoadingBox';
-import { useAlertsPoller } from '../hooks/useAlertsPoller';
-import { getLegacyObserveState, usePerspective } from '../hooks/usePerspective';
-import { Alerts, AlertSource } from '../types';
-import { alertState, fuzzyCaseInsensitive } from '../utils';
+import { getObserveState, usePerspective } from '../hooks/usePerspective';
+import { AlertSource } from '../types';
+import { alertState, ALL_NAMESPACES_KEY, fuzzyCaseInsensitive } from '../utils';
 import AggregateAlertTableRow from './AlertList/AggregateAlertTableRow';
 import DownloadCSVButton from './AlertList/DownloadCSVButton';
 import useAggregateAlertColumns from './AlertList/hooks/useAggregateAlertColumns';
@@ -34,30 +34,33 @@ import {
 } from './AlertUtils';
 import Error from './Error';
 import useSelectedFilters from './useSelectedFilters';
+import { MonitoringContext, MonitoringProvider } from '../../contexts/MonitoringContext';
+import { useAlerts } from '../../hooks/useAlerts';
 
 const AlertsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { alertsKey, silencesKey, defaultAlertTenant, perspective } = usePerspective();
+  const [namespace] = useActiveNamespace();
+  const { defaultAlertTenant, perspective } = usePerspective();
+  const { plugin } = useContext(MonitoringContext);
 
-  useAlertsPoller();
+  useAlerts();
 
-  const {
-    data,
-    loaded = false,
-    loadError,
-  }: Alerts = useSelector(
-    (state: MonitoringState) => getLegacyObserveState(perspective, state)?.get(alertsKey) || {},
+  const { loaded, loadError } = useSelector((state: MonitoringState) =>
+    getObserveState(plugin, state)?.get('alerting').get(namespace).toJS(),
+  );
+  const alerts = useSelector((state: MonitoringState) =>
+    getObserveState(plugin, state)?.get('alerting').get(namespace).get('alerts'),
   );
   const silencesLoadError = useSelector(
     (state: MonitoringState) =>
-      getLegacyObserveState(perspective, state)?.get(silencesKey)?.loadError,
+      getObserveState(plugin, state)?.get('alerting').get(namespace).get('silences')?.loadError,
   );
 
-  const alertAdditionalSources = useMemo(() => getAdditionalSources(data, alertSource), [data]);
+  const alertAdditionalSources = useMemo(() => getAdditionalSources(alerts, alertSource), [alerts]);
 
   const clusters = useMemo(() => {
     const clusterSet = new Set<string>();
-    data?.forEach((alert) => {
+    alerts?.forEach((alert) => {
       const clusterName = alert.labels?.cluster;
       if (clusterName) {
         clusterSet.add(clusterName);
@@ -66,7 +69,7 @@ const AlertsPage_: FC = () => {
 
     const clusterArray = Array.from(clusterSet);
     return clusterArray.sort();
-  }, [data]);
+  }, [alerts]);
 
   let rowFilters: RowFilter[] = [
     // TODO: The "name" filter doesn't really fit useListPageFilter's idea of a RowFilter, but
@@ -111,9 +114,7 @@ const AlertsPage_: FC = () => {
     },
   ];
 
-  if (perspective === 'dev') {
-    rowFilters = rowFilters.filter((filter) => filter.type !== 'alert-source');
-  } else if (perspective === 'acm') {
+  if (perspective === 'acm') {
     rowFilters.splice(-1, 0, {
       filter: (filter, alert: Alert) => {
         return (
@@ -133,9 +134,11 @@ const AlertsPage_: FC = () => {
         fuzzyCaseInsensitive(clusterName, alert.labels?.cluster),
       type: 'alert-cluster',
     } as RowFilter);
+  } else if (namespace && namespace !== ALL_NAMESPACES_KEY) {
+    rowFilters = rowFilters.filter((filter) => filter.type !== 'alert-source');
   }
 
-  const [staticData, filteredData, onFilterChange] = useListPageFilter(data, rowFilters);
+  const [staticData, filteredData, onFilterChange] = useListPageFilter(alerts, rowFilters);
 
   const columns = useAggregateAlertColumns();
   const selectedFilters = useSelectedFilters();
@@ -194,6 +197,22 @@ const AlertsPage_: FC = () => {
     </>
   );
 };
-const AlertsPage = withFallback(AlertsPage_);
+const AlertsPageWithFallback = withFallback(AlertsPage_);
 
-export default AlertsPage;
+export const MpCmoAlertsPage = () => {
+  return (
+    <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
+      <AlertsPageWithFallback />
+    </MonitoringProvider>
+  );
+};
+
+export const McpAcmAlertsPage = () => {
+  return (
+    <MonitoringProvider
+      monitoringContext={{ plugin: 'monitoring-console-plugin', prometheus: 'acm' }}
+    >
+      <AlertsPageWithFallback />
+    </MonitoringProvider>
+  );
+};

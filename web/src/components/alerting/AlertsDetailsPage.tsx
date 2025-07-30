@@ -13,7 +13,7 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import type { FC, ReactNode } from 'react';
-import { useMemo } from 'react';
+import { useMemo, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { Link, useNavigate, useParams } from 'react-router-dom-v5-compat';
@@ -21,14 +21,13 @@ import { ExternalLink, LinkifyExternal } from '../console/utils/link';
 import { getAllQueryArguments } from '../console/utils/router';
 import {
   getAlertsUrl,
-  getLegacyObserveState,
-  getNewSilenceAlertUrl,
   getObserveState,
+  getNewSilenceAlertUrl,
   getRuleUrl,
   usePerspective,
 } from '../hooks/usePerspective';
-import { Alerts } from '../types';
 import { AlertResource, alertState, RuleResource } from '../utils';
+import { MonitoringContext, MonitoringProvider } from '../../contexts/MonitoringContext';
 
 import {
   Breadcrumb,
@@ -58,7 +57,7 @@ import {
   ToolbarItem,
 } from '@patternfly/react-core';
 import { Helmet } from 'react-helmet';
-import { MonitoringState } from '../../reducers/observe';
+import { MonitoringState } from '../../store/store';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 import { StatusBox } from '../console/console-shared/src/components/status/StatusBox';
 import {
@@ -71,7 +70,6 @@ import {
   PodModel,
   StatefulSetModel,
 } from '../console/models';
-import { useAlertsPoller } from '../hooks/useAlertsPoller';
 import { Labels } from '../labels';
 import { ToggleGraph } from '../MetricsPage';
 import { SilencedByList } from './AlertDetail/SilencedByTable';
@@ -90,31 +88,38 @@ import {
 } from './AlertUtils';
 
 import { DataTestIDs } from '../data-test';
+import { useAlerts } from '../../hooks/useAlerts';
 
 const AlertsDetailsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const params = useParams<{ ruleID: string }>();
   const navigate = useNavigate();
+  const { plugin } = useContext(MonitoringContext);
 
-  const { alertsKey, silencesKey, perspective } = usePerspective();
+  const { perspective } = usePerspective();
 
-  useAlertsPoller();
+  useAlerts();
 
   const [namespace] = useActiveNamespace();
 
   const hideGraphs = useSelector(
-    (state: MonitoringState) => !!getObserveState(perspective, state)?.get('hideGraphs'),
+    (state: MonitoringState) => !!getObserveState(plugin, state)?.get('hideGraphs'),
   );
 
-  const alerts: Alerts = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.get(alertsKey),
+  const { loaded, loadError } = useSelector((state: MonitoringState) =>
+    getObserveState(plugin, state)?.get('alerting').get(namespace).toJS(),
+  );
+
+  const alerts = useSelector((state: MonitoringState) =>
+    getObserveState(plugin, state)?.get('alerting').get(namespace).get('alerts'),
   );
 
   const silencesLoaded = useSelector(
-    (state: MonitoringState) => getLegacyObserveState(perspective, state)?.get(silencesKey)?.loaded,
+    (state: MonitoringState) =>
+      getObserveState(plugin, state)?.get('alerting').get(namespace).get('silences')?.loaded,
   );
 
-  const ruleAlerts = _.filter(alerts?.data, (a) => a.rule.id === params?.ruleID);
+  const ruleAlerts = _.filter(alerts, (a) => a.rule.id === params?.ruleID);
   const rule = ruleAlerts?.[0]?.rule;
 
   // Search for an alert that matches all of the labels in the URL parameters. We expect there to be
@@ -156,12 +161,7 @@ const AlertsDetailsPage_: FC = () => {
       <Helmet>
         <title>{t('{{name}} details', { name: labels?.alertname || AlertResource.label })}</title>
       </Helmet>
-      <StatusBox
-        data={alert}
-        label={AlertResource.label}
-        loaded={alerts?.loaded}
-        loadError={alerts?.loadError}
-      >
+      <StatusBox data={alert} label={AlertResource.label} loaded={loaded} loadError={loadError}>
         <PageGroup>
           <PageBreadcrumb hasBodyWrapper={false}>
             <Breadcrumb>
@@ -404,7 +404,25 @@ const AlertsDetailsPage_: FC = () => {
     </>
   );
 };
-const AlertsDetailsPage = withFallback(AlertsDetailsPage_);
+const AlertsDetailsPageWithFallback = withFallback(AlertsDetailsPage_);
+
+export const MpCmoAlertsDetailsPage = () => {
+  return (
+    <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
+      <AlertsDetailsPageWithFallback />
+    </MonitoringProvider>
+  );
+};
+
+export const McpAcmAlertsDetailsPage = () => {
+  return (
+    <MonitoringProvider
+      monitoringContext={{ plugin: 'monitoring-console-plugin', prometheus: 'acm' }}
+    >
+      <AlertsDetailsPageWithFallback />
+    </MonitoringProvider>
+  );
+};
 
 const HeaderAlertMessage: FC<{ alert: Alert; rule: Rule }> = ({ alert, rule }) => {
   const annotation = alert.annotations.description ? 'description' : 'message';
@@ -522,8 +540,6 @@ const AlertStateHelp: FC = () => {
     </DescriptionList>
   );
 };
-
-export default AlertsDetailsPage;
 
 type AlertMessageProps = {
   alertText: string;

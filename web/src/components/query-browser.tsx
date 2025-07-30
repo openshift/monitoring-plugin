@@ -45,7 +45,7 @@ import { ChartLineIcon } from '@patternfly/react-icons';
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
 import type { FC, Ref, ReactNode, KeyboardEvent, MouseEvent, ComponentType } from 'react';
-import { memo, useState, useEffect, useCallback, useLayoutEffect } from 'react';
+import { memo, useState, useEffect, useCallback, useLayoutEffect, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -53,10 +53,10 @@ import {
   queryBrowserDeleteAllSeries,
   queryBrowserPatchQuery,
   queryBrowserSetTimespan,
-} from '../actions/observe';
+} from '../store/actions';
 
 import { GraphEmpty } from './console/graphs/graph-empty';
-import { getPrometheusURL } from './console/graphs/helpers';
+import { getPrometheusBasePath, buildPrometheusUrl } from './utils';
 import {
   dateFormatterNoYear,
   timeFormatter,
@@ -77,7 +77,7 @@ import {
   chart_axis_tick_Size,
   t_chart_global_fill_color_200,
 } from '@patternfly/react-tokens';
-import { MonitoringState } from '../reducers/observe';
+import { MonitoringState } from '../store/store';
 import withFallback from './console/console-shared/error/fallbacks/withFallback';
 import { LoadingInline } from './console/console-shared/src/components/loading/LoadingInline';
 import {
@@ -88,7 +88,8 @@ import {
   formatPrometheusDuration,
   parsePrometheusDuration,
 } from './console/console-shared/src/datetime/prometheus';
-import { getLegacyObserveState, getObserveState, usePerspective } from './hooks/usePerspective';
+import { getObserveState } from './hooks/usePerspective';
+import { MonitoringContext } from '../contexts/MonitoringContext';
 import './query-browser.scss';
 import { GraphUnits } from './metrics/units';
 import { DataTestIDs } from './data-test';
@@ -604,18 +605,17 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
   isPlain = false,
 }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { perspective } = usePerspective();
+  const { plugin } = useContext(MonitoringContext);
 
   const hideGraphs = useSelector(
-    (state: MonitoringState) => !!getObserveState(perspective, state)?.get('hideGraphs'),
+    (state: MonitoringState) => !!getObserveState(plugin, state)?.get('hideGraphs'),
   );
   const tickInterval = useSelector(
     (state: MonitoringState) =>
-      pollInterval ??
-      getLegacyObserveState(perspective, state)?.getIn(['queryBrowser', 'pollInterval']),
+      pollInterval ?? getObserveState(plugin, state)?.getIn(['queryBrowser', 'pollInterval']),
   );
   const lastRequestTime = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['queryBrowser', 'lastRequestTime']),
+    getObserveState(plugin, state)?.getIn(['queryBrowser', 'lastRequestTime']),
   );
 
   const dispatch = useDispatch();
@@ -693,19 +693,22 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
           timeRanges,
           (timeRange: TimeRange) =>
             safeFetch<PrometheusResponse>(
-              getPrometheusURL(
-                {
+              buildPrometheusUrl({
+                prometheusUrlProps: {
                   endpoint: PrometheusEndpoint.QUERY_RANGE,
                   endTime: timeRange.endTime,
-                  namespace: perspective === 'dev' ? activeNamespace : '',
+                  namespace: activeNamespace,
                   query,
                   samples: Math.ceil(samples / timeRanges.length),
                   timeout: '60s',
                   timespan: timeRange.duration - 1,
                 },
-                perspective,
-                customDataSource?.basePath,
-              ),
+                basePath: getPrometheusBasePath({
+                  prometheus: 'cmo',
+                  namespace: activeNamespace,
+                  basePathOverride: customDataSource?.basePath,
+                }),
+              }),
             ),
         );
         return Promise.all(promiseMap).then((responses) => {

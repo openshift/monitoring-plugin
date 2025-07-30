@@ -18,14 +18,14 @@ import {
   ExpandableSectionToggle,
 } from '@patternfly/react-core';
 import type { FC } from 'react';
-import { memo, useRef, useState, useCallback, useEffect, useMemo } from 'react';
+import { memo, useRef, useState, useCallback, useEffect, useMemo, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom-v5-compat';
 
 import { setQueryArguments } from '../../console/utils/router';
 
-import { Perspective } from '../../../actions/observe';
+import { Perspective } from '../../../store/actions';
 import BarChart from '../legacy/bar-chart';
 import Graph from '../legacy/graph';
 import SingleStat from '../legacy/single-stat';
@@ -34,11 +34,11 @@ import { useBoolean } from '../../hooks/useBoolean';
 import { useIsVisible } from '../../hooks/useIsVisible';
 import {
   getMutlipleQueryBrowserUrl,
-  getLegacyObserveState,
+  getObserveState,
   usePerspective,
 } from '../../hooks/usePerspective';
 import KebabDropdown from '../../kebab-dropdown';
-import { MonitoringState } from '../../../reducers/observe';
+import { MonitoringState } from '../../../store/store';
 import { evaluateVariableTemplate } from './legacy-variable-dropdowns';
 import { Panel, Row } from './types';
 import { QueryParams } from '../../query-params';
@@ -50,6 +50,7 @@ import {
 import { t_global_font_size_heading_h2 } from '@patternfly/react-tokens';
 import { GraphEmpty } from '../../../components/console/graphs/graph-empty';
 import { GraphUnits } from '../../../components/metrics/units';
+import { MonitoringContext } from '../../../contexts/MonitoringContext';
 import { LegacyDashboardPageTestIDs } from '../../../components/data-test';
 
 const QueryBrowserLink = ({
@@ -101,16 +102,17 @@ const getPanelSpan = (panel: Panel): gridSpans => {
 
 const Card: FC<CardProps> = memo(({ panel, perspective }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const { plugin } = useContext(MonitoringContext);
 
   const [namespace] = useActiveNamespace();
   const pollInterval = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'pollInterval']),
+    getObserveState(plugin, state)?.getIn(['dashboards', perspective, 'pollInterval']),
   );
   const timespan = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'timespan']),
+    getObserveState(plugin, state)?.getIn(['dashboards', perspective, 'timespan']),
   );
   const variables = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'variables']),
+    getObserveState(plugin, state)?.getIn(['dashboards', perspective, 'variables']),
   );
 
   const ref = useRef();

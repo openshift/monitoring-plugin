@@ -18,13 +18,13 @@ import {
   Split,
 } from '@patternfly/react-core';
 import type { FC, Ref } from 'react';
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useState, useEffect, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { Map as ImmutableMap } from 'immutable';
 
 import { SingleTypeaheadDropdown } from '../../console/utils/single-typeahead-dropdown';
-import { getPrometheusURL } from '../../console/graphs/helpers';
+import { getPrometheusBasePath, buildPrometheusUrl } from '../../utils';
 import { getQueryArgument, setQueryArgument } from '../../console/utils/router';
 import { useSafeFetch } from '../../console/utils/safe-fetch-hook';
 
@@ -32,15 +32,16 @@ import {
   dashboardsPatchVariable,
   dashboardsVariableOptionsLoaded,
   Perspective,
-} from '../../../actions/observe';
+} from '../../../store/actions';
 import { getTimeRanges, isTimeoutError, QUERY_CHUNK_SIZE } from '../../utils';
-import { getLegacyObserveState, usePerspective } from '../../hooks/usePerspective';
-import { MonitoringState } from '../../../reducers/observe';
+import { getObserveState, usePerspective } from '../../hooks/usePerspective';
+import { MonitoringState } from '../../../store/store';
 import { DEFAULT_GRAPH_SAMPLES, MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY } from './utils';
 import {
   DataSource,
   isDataSource,
 } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
+import { MonitoringContext } from '../../../contexts/MonitoringContext';
 
 const intervalVariableRegExps = ['__interval', '__rate_interval', '__auto_interval_[a-z]+'];
 
@@ -113,13 +114,14 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({
   perspective,
 }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const { plugin } = useContext(MonitoringContext);
 
   const timespan = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'timespan']),
+    getObserveState(plugin, state)?.getIn(['dashboards', perspective, 'timespan']),
   );
 
   const variables = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'variables']),
+    getObserveState(plugin, state)?.get('dashboards').get(perspective).get('variables'),
   );
   const variable = variables.toJS()[name];
   const query = evaluateVariableTemplate(variable.query, variables, timespan);
@@ -139,7 +141,10 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({
     async (prometheusProps) => {
       try {
         if (!customDataSourceName) {
-          return getPrometheusURL(prometheusProps, perspective);
+          return buildPrometheusUrl({
+            prometheusUrlProps: prometheusProps,
+            basePath: getPrometheusBasePath({ prometheus: 'cmo', namespace }),
+          });
         } else if (extensionsResolved && hasExtensions) {
           const extension = extensions.find(
             (ext) => ext?.properties?.contextId === 'monitoring-dashboards',
@@ -151,7 +156,14 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({
             setIsError(true);
             return;
           }
-          return getPrometheusURL(prometheusProps, perspective, dataSource?.basePath);
+          return buildPrometheusUrl({
+            prometheusUrlProps: prometheusProps,
+            basePath: getPrometheusBasePath({
+              prometheus: 'cmo',
+              namespace,
+              basePathOverride: dataSource?.basePath,
+            }),
+          });
         }
       } catch (error) {
         // eslint-disable-next-line no-console
@@ -159,7 +171,7 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({
         setIsError(true);
       }
     },
-    [customDataSourceName, extensions, extensionsResolved, hasExtensions, perspective],
+    [customDataSourceName, extensions, extensionsResolved, hasExtensions, namespace],
   );
 
   useEffect(() => {
@@ -183,7 +195,7 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({
           samples: Math.ceil(DEFAULT_GRAPH_SAMPLES / timeRanges.length),
           timeout: '60s',
           timespan: timeRange.duration,
-          namespace: perspective === 'dev' ? namespace : '',
+          namespace,
           endTime: timeRange.endTime,
         };
         return getURL(prometheusProps).then((url) =>
@@ -239,22 +251,14 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({
 
   useEffect(() => {
     if (variable.value && variable.value !== getQueryArgument(name)) {
-      if (perspective === 'dev' && name !== 'namespace') {
-        setQueryArgument(name, variable.value);
-      } else if (perspective === 'admin' || perspective === 'virtualization-perspective') {
-        setQueryArgument(name, variable.value);
-      }
+      setQueryArgument(name, variable.value);
     }
   }, [perspective, name, variable.value]);
 
   const onChange = useCallback(
     (v: string) => {
       if (v !== variable.value) {
-        if (perspective === 'dev' && name !== 'namespace') {
-          setQueryArgument(name, v);
-        } else if (perspective === 'admin' || perspective === 'virtualization-perspective') {
-          setQueryArgument(name, v);
-        }
+        setQueryArgument(name, v);
         dispatch(dashboardsPatchVariable(name, { value: v }, perspective));
       }
     },
@@ -314,8 +318,10 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({
 export const LegacyDashboardsAllVariableDropdowns: FC = () => {
   const [namespace] = useActiveNamespace();
   const { perspective } = usePerspective();
+  const { plugin } = useContext(MonitoringContext);
+
   const variables = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'variables']),
+    getObserveState(plugin, state)?.get('dashboards').get(perspective).get('variables'),
   );
 
   if (!variables) {

@@ -5,7 +5,7 @@ import { ExpandableRowContent, Table, Tbody, Td, Th, Thead, Tr } from '@patternf
 import * as _ from 'lodash-es';
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
-import { MonitoringState } from 'src/reducers/observe';
+import { MonitoringState } from '../../store/store';
 import { AlertStateIcon, SeverityBadge } from '../alerting/AlertUtils';
 import IncidentsDetailsRowTable from './IncidentsDetailsRowTable';
 import { Alert } from './model';
@@ -25,7 +25,7 @@ export const IncidentsTable = () => {
     });
   const isAlertExpanded = (alert: Alert) => expandedAlerts.includes(alert.component);
   const alertsTableData = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.getIn(['incidentsData', 'alertsTableData']),
+    state.plugins.mcp.get('incidentsData').get('alertsTableData'),
   );
   const alertsAreLoading = useSelector((state: MonitoringState) =>
     state.plugins.mcp.getIn(['incidentsData', 'alertsAreLoading']),
