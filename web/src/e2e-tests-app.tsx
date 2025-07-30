@@ -6,7 +6,7 @@ import { BrowserRouter, Link, Route, Routes } from 'react-router-dom-v5-compat';
 import { combineReducers, createStore } from 'redux';
 import { QueryParamProvider } from 'use-query-params';
 import { ReactRouter5Adapter } from 'use-query-params/adapters/react-router-5';
-import AlertingPage from './components/alerting/AlertingPage';
+import { MonitoringPluginAlertingPage } from './components/alerting/AlertingPage';
 import AlertRulesDetailsPage from './components/alerting/AlertRulesDetailsPage';
 import AlertRulesPage from './components/alerting/AlertRulesPage';
 import AlertsDetailsPage from './components/alerting/AlertsDetailsPage';
@@ -56,10 +56,10 @@ const App = () => (
           <Route path="silences/:id" element={<SilencesDetailsPage />} />
           <Route path="silences/:id/edit" element={<SilenceEditPage />} />
 
-          <Route element={<AlertingPage />}>
-            <Route path="alerts" element={<AlertsPage />} />
-            <Route path="alertrules" element={<AlertRulesPage />} />
-            <Route path="silences" element={<SilencesPage />} />
+          <Route element={<MonitoringPluginAlertingPage />}>
+            <Route path="alerts" element={<AlertsPage plugin="monitoring-plugin" />} />
+            <Route path="alertrules" element={<AlertRulesPage plugin="monitoring-plugin" />} />
+            <Route path="silences" element={<SilencesPage plugin="monitoring-plugin" />} />
           </Route>
         </Routes>
       </QueryParamProvider>
