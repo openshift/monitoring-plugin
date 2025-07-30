@@ -9,7 +9,7 @@ import {
   alertingSetRules,
 } from '../../actions/observe';
 import { fetchAlerts } from '../fetch-alerts';
-import { ALL_NAMESPACES_KEY, getAlertsAndRules } from '../utils';
+import { getAlertsAndRules } from '../utils';
 import * as _ from 'lodash-es';
 import { usePerspective } from './usePerspective';
 
@@ -31,14 +31,14 @@ export const useRulesAlertsPoller = (
     const url = buildPrometheusUrl({
       prometheusUrlProps: {
         endpoint: PrometheusEndpoint.RULES,
-        namespace: namespace !== ALL_NAMESPACES_KEY ? namespace : '',
+        namespace,
       },
       basePath: getPrometheusBasePath({ prometheus: 'cmo' }),
     });
     const poller = (): void => {
       fetchAlerts(url, alertsSource, namespace)
         .then(({ data }) => {
-          const { alerts, rules } = getAlertsAndRules(data, perspective);
+          const { alerts, rules } = getAlertsAndRules(data);
           dispatch(alertingLoaded(alertsKey, alerts, perspective));
           dispatch(alertingSetRules(rulesKey, rules, perspective));
         })

@@ -3,6 +3,7 @@ import {
   AlertStates,
   ListPageFilter,
   RowFilter,
+  useActiveNamespace,
   useListPageFilter,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { Flex, PageSection } from '@patternfly/react-core';
@@ -19,7 +20,7 @@ import { LoadingBox } from '../console/console-shared/src/components/loading/Loa
 import { useAlertsPoller } from '../hooks/useAlertsPoller';
 import { getObserveStateByPlugin, usePerspective } from '../hooks/usePerspective';
 import { Alerts, AlertSource } from '../types';
-import { alertState, fuzzyCaseInsensitive, MonitoringPlugins } from '../utils';
+import { alertState, ALL_NAMESPACES_KEY, fuzzyCaseInsensitive, MonitoringPlugins } from '../utils';
 import AggregateAlertTableRow from './AlertList/AggregateAlertTableRow';
 import DownloadCSVButton from './AlertList/DownloadCSVButton';
 import useAggregateAlertColumns from './AlertList/hooks/useAggregateAlertColumns';
@@ -36,6 +37,7 @@ import useSelectedFilters from './useSelectedFilters';
 
 const AlertsPage_: React.FC<{ plugin: MonitoringPlugins }> = ({ plugin }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const [namespace] = useActiveNamespace();
   const { alertsKey, silencesKey, defaultAlertTenant, perspective } = usePerspective();
 
   useAlertsPoller();
@@ -112,9 +114,7 @@ const AlertsPage_: React.FC<{ plugin: MonitoringPlugins }> = ({ plugin }) => {
     },
   ];
 
-  if (perspective === 'dev') {
-    rowFilters = rowFilters.filter((filter) => filter.type !== 'alert-source');
-  } else if (perspective === 'acm') {
+  if (perspective === 'acm') {
     rowFilters.splice(-1, 0, {
       filter: (filter, alert: Alert) => {
         return (
@@ -134,6 +134,8 @@ const AlertsPage_: React.FC<{ plugin: MonitoringPlugins }> = ({ plugin }) => {
         fuzzyCaseInsensitive(clusterName, alert.labels?.cluster),
       type: 'alert-cluster',
     } as RowFilter);
+  } else if (namespace && namespace !== ALL_NAMESPACES_KEY) {
+    rowFilters = rowFilters.filter((filter) => filter.type !== 'alert-source');
   }
 
   const [staticData, filteredData, onFilterChange] = useListPageFilter(data, rowFilters);

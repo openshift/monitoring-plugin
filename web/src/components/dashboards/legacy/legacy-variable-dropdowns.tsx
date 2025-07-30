@@ -140,7 +140,7 @@ const LegacyDashboardsVariableDropdown: React.FC<VariableDropdownProps> = ({
         if (!customDataSourceName) {
           return buildPrometheusUrl({
             prometheusUrlProps: prometheusProps,
-            basePath: getPrometheusBasePath({ prometheus: 'cmo' }),
+            basePath: getPrometheusBasePath({ prometheus: 'cmo', namespace }),
           });
         } else if (extensionsResolved && hasExtensions) {
           const extension = extensions.find(
@@ -192,7 +192,7 @@ const LegacyDashboardsVariableDropdown: React.FC<VariableDropdownProps> = ({
           samples: Math.ceil(DEFAULT_GRAPH_SAMPLES / timeRanges.length),
           timeout: '60s',
           timespan: timeRange.duration,
-          namespace: perspective === 'dev' ? namespace : '',
+          namespace,
           endTime: timeRange.endTime,
         };
         return getURL(prometheusProps).then((url) =>
@@ -248,22 +248,14 @@ const LegacyDashboardsVariableDropdown: React.FC<VariableDropdownProps> = ({
 
   React.useEffect(() => {
     if (variable.value && variable.value !== getQueryArgument(name)) {
-      if (perspective === 'dev' && name !== 'namespace') {
-        setQueryArgument(name, variable.value);
-      } else if (perspective === 'admin' || perspective === 'virtualization-perspective') {
-        setQueryArgument(name, variable.value);
-      }
+      setQueryArgument(name, variable.value);
     }
   }, [perspective, name, variable.value]);
 
   const onChange = React.useCallback(
     (v: string) => {
       if (v !== variable.value) {
-        if (perspective === 'dev' && name !== 'namespace') {
-          setQueryArgument(name, v);
-        } else if (perspective === 'admin' || perspective === 'virtualization-perspective') {
-          setQueryArgument(name, v);
-        }
+        setQueryArgument(name, v);
         dispatch(dashboardsPatchVariable(name, { value: v }, perspective));
       }
     },

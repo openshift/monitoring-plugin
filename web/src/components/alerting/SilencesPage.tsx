@@ -189,7 +189,9 @@ const SilencesPage_: React.FC<{ plugin: MonitoringPlugins }> = () => {
 
   return (
     <>
-      <Helmet>{perspective === 'dev' ? <title>Silences</title> : <title>Alerting</title>}</Helmet>
+      <Helmet>
+        <title>Alerting</title>
+      </Helmet>
       <PageSection hasBodyWrapper={false}>
         <SelectedSilencesContext.Provider value={{ selectedSilences, setSelectedSilences }}>
           <Flex>

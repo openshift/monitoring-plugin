@@ -57,7 +57,6 @@ export const labelsToParams = (labels: PrometheusLabels) =>
 
 export const getAlertsAndRules = (
   data: PrometheusRulesResponse['data'],
-  perspective: Perspective,
 ): { alerts: Alert[]; rules: Rule[] } => {
   // Flatten the rules data to make it easier to work with, discard non-alerting rules since those
   // are the only ones we will be using and add a unique ID to each rule.
@@ -80,12 +79,10 @@ export const getAlertsAndRules = (
 
   // The console codebase and developer perspective actions don't expect the external labels to be
   // included on the alerts
-  if (perspective !== 'dev') {
-    // Add external labels to all `rules[].alerts[].labels`
-    rules.forEach((rule) => {
-      rule.alerts.forEach((alert) => (alert.labels = { ...rule.labels, ...alert.labels }));
-    });
-  }
+  // Add external labels to all `rules[].alerts[].labels`
+  rules.forEach((rule) => {
+    rule.alerts.forEach((alert) => (alert.labels = { ...rule.labels, ...alert.labels }));
+  });
 
   // Add `rule` object to each alert
   const alerts = _.flatMap(rules, (rule) => rule.alerts.map((a) => ({ rule, ...a })));
@@ -123,10 +120,6 @@ export const refreshSilences = (
 ): void => {
   const { alertManagerBaseURL } = window.SERVER_FLAGS;
   if (!alertManagerBaseURL) {
-    return;
-  }
-
-  if (perspective === 'dev' && !namespace) {
     return;
   }
 
