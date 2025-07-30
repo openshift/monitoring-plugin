@@ -55,7 +55,7 @@ import {
 } from '../actions/observe';
 
 import { GraphEmpty } from './console/graphs/graph-empty';
-import { getPrometheusURL } from './console/graphs/helpers';
+import { getPrometheusBasePath, buildPrometheusUrl } from './console/graphs/helpers';
 import {
   dateFormatterNoYear,
   timeFormatter,
@@ -692,19 +692,22 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
           timeRanges,
           (timeRange: TimeRange) =>
             safeFetch<PrometheusResponse>(
-              getPrometheusURL(
-                {
+              buildPrometheusUrl({
+                prometheusUrlProps: {
                   endpoint: PrometheusEndpoint.QUERY_RANGE,
                   endTime: timeRange.endTime,
-                  namespace: perspective === 'dev' ? activeNamespace : '',
+                  namespace: activeNamespace,
                   query,
                   samples: Math.ceil(samples / timeRanges.length),
                   timeout: '60s',
                   timespan: timeRange.duration - 1,
                 },
-                perspective,
-                customDataSource?.basePath,
-              ),
+                basePath: getPrometheusBasePath({
+                  prometheus: 'cmo',
+                  namespace: activeNamespace,
+                  basePathOverride: customDataSource?.basePath,
+                }),
+              }),
             ),
         );
         return Promise.all(promiseMap).then((responses) => {

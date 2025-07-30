@@ -22,7 +22,7 @@
         "path": [
           "/multicloud/monitoring"
         ],
-        "component": { "$codeRef": "AlertingPage" }
+        "component": { "$codeRef": "MonitoringConsolePluginAlertingPage" }
       }
     }
   },

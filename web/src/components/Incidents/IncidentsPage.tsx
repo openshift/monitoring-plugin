@@ -49,7 +49,6 @@ import {
   setIncidentsActiveFilters,
 } from '../../actions/observe';
 import { useLocation } from 'react-router-dom';
-import { usePerspective } from '../hooks/usePerspective';
 import { changeDaysFilter } from './utils';
 import { parsePrometheusDuration } from '../console/console-shared/src/datetime/prometheus';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
@@ -64,7 +63,6 @@ const IncidentsPage = () => {
   const dispatch = useDispatch();
   const location = useLocation();
   const urlParams = React.useMemo(() => parseUrlParams(location.search), [location.search]);
-  const { perspective } = usePerspective();
   const { theme } = usePatternFlyTheme();
   // loading states
   const [incidentsAreLoading, setIncidentsAreLoading] = React.useState(true);
@@ -185,7 +183,6 @@ const IncidentsPage = () => {
             safeFetch,
             range,
             createAlertsQuery(incidentForAlertProcessing),
-            perspective,
           );
           return response.data.result;
         }),
@@ -222,7 +219,6 @@ const IncidentsPage = () => {
             safeFetch,
             range,
             'cluster:health:components:map',
-            perspective,
           );
           return response.data.result;
         }),
@@ -259,7 +255,6 @@ const IncidentsPage = () => {
             safeFetch,
             range,
             `cluster:health:components:map{group_id='${incidentGroupId}'}`,
-            perspective,
           );
           return response.data.result;
         }),

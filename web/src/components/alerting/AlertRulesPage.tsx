@@ -24,6 +24,7 @@ import {
   alertingRuleStateOrder,
   alertSeverityOrder,
   fuzzyCaseInsensitive,
+  MonitoringPlugins,
   RuleResource,
 } from '../utils';
 
@@ -120,7 +121,7 @@ const RuleTableRow: React.FC<RowProps<Rule>> = ({ obj }) => {
   );
 };
 
-const AlertRulesPage_: React.FC = () => {
+const AlertRulesPage_: React.FC<{ plugin: MonitoringPlugins }> = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { alertsKey, silencesKey, rulesKey, perspective, defaultAlertTenant } = usePerspective();
   const [namespace] = useActiveNamespace();

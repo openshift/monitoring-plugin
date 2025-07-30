@@ -211,3 +211,7 @@ export const getTimeRanges = (
   }
   return timeRanges;
 };
+
+export type MonitoringPlugins = 'monitoring-plugin' | 'monitoring-console-plugin';
+
+export const ALL_NAMESPACES_KEY = '#ALL_NS#';
