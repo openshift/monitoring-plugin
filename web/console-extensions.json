@@ -193,7 +193,7 @@
     "properties": {
       "exact": false,
       "path": "/monitoring",
-      "component": { "$codeRef": "AlertingPage" }
+      "component": { "$codeRef": "AlertingPage.MonitoringPluginAlertingPage" }
     }
   },
   {
@@ -273,7 +273,7 @@
     "properties": {
       "exact": false,
       "path": ["/virt-monitoring"],
-      "component": { "$codeRef": "AlertingPage" }
+      "component": { "$codeRef": "AlertingPage.MonitoringPluginAlertingPage" }
     }
   },
   {

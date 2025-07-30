@@ -148,7 +148,7 @@
       "SilenceEditPage": "./components/alerting/SilenceEditPage",
       "MetricsPage": "./components/MetricsPage",
       "AlertsPage": "./components/alerting/AlertsPage",
-      "AlertingPage": "./components/alerting/AlertingPage/MonitoringPluginAlertingPage",
+      "AlertingPage": "./components/alerting/AlertingPage",
       "AlertsDetailsPage": "./components/alerting/AlertsDetailsPage",
       "AlertRulesPage": "./components/alerting/AlertRulesPage",
       "AlertRulesDetailsPage": "./components/alerting/AlertRulesDetailsPage",
