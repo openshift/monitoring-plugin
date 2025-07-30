@@ -19,10 +19,10 @@
       "type": "console.page/route",
       "properties": {
         "exact": false,
-        "path": [
-          "/multicloud/monitoring"
-        ],
-        "component": { "$codeRef": "MonitoringConsolePluginAlertingPage" }
+        "path": ["/multicloud/monitoring"],
+        "component": {
+          "$codeRef": "AlertingPage.MonitoringConsolePluginAlertingPage"
+        }
       }
     }
   },

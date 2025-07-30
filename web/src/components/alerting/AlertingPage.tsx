@@ -6,14 +6,14 @@ import {
   NamespaceBar,
   useActivePerspective,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { MonitoringPlugins } from '../../utils';
+import { MonitoringPlugins } from '../utils';
 
-const AlertsPage = React.lazy(() => import(/* webpackChunkName: "AlertsPage" */ '../AlertsPage'));
+const AlertsPage = React.lazy(() => import(/* webpackChunkName: "AlertsPage" */ './AlertsPage'));
 const SilencesPage = React.lazy(
-  () => import(/* webpackChunkName: "SilencesPage" */ '../SilencesPage'),
+  () => import(/* webpackChunkName: "SilencesPage" */ './SilencesPage'),
 );
 const AlertRulesPage = React.lazy(
-  () => import(/* webpackChunkName: "AlertRulesPage" */ '../AlertRulesPage'),
+  () => import(/* webpackChunkName: "AlertRulesPage" */ './AlertRulesPage'),
 );
 
 const AlertingPage: React.FC<{ plugin: MonitoringPlugins }> = ({ plugin }) => {
@@ -60,4 +60,10 @@ const AlertingPage: React.FC<{ plugin: MonitoringPlugins }> = ({ plugin }) => {
   );
 };
 
-export default AlertingPage;
+export const MonitoringConsolePluginAlertingPage: React.FC = () => (
+  <AlertingPage plugin="monitoring-console-plugin" />
+);
+
+export const MonitoringPluginAlertingPage: React.FC = () => (
+  <AlertingPage plugin="monitoring-plugin" />
+);
