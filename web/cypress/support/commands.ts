@@ -9,7 +9,7 @@ import './nav';
 
 export {};
 declare global {
-  interface Chainable {
+    interface Chainable {
     byTestID(
       selector: string,
       options?: Partial<Loggable & Timeoutable & Withinable & Shadow>,
@@ -34,6 +34,9 @@ declare global {
     byTestOperandLink(selector: string): Chainable<JQuery<HTMLElement>>;
     byOUIAID(selector: string): Chainable<Element>;
     byClass(selector: string): Chainable<Element>;
+    bySemanticElement(element: string, text?: string): Chainable<JQuery<HTMLElement>>;
+    byAriaLabel(label: string, options?: Partial<Loggable & Timeoutable & Withinable & Shadow>): Chainable<JQuery<HTMLElement>>;
+    byPFRole(role: string, options?: Partial<Loggable & Timeoutable & Withinable & Shadow>): Chainable<JQuery<HTMLElement>>;
   }
 }
 
@@ -105,6 +108,27 @@ Cypress.Commands.add('byTestOperandLink', (selector: string) => {
 Cypress.Commands.add('byOUIAID', (selector: string) => cy.get(`[data-ouia-component-id^="${selector}"]`));
 
 Cypress.Commands.add('byClass', (selector: string) => cy.get(`[class="${selector}"]`));
+
+Cypress.Commands.add('bySemanticElement', (element: string, text?: string) => {
+  if (text) {
+    return cy.get(element).contains(text);
+  }
+  return cy.get(element);
+});
+
+Cypress.Commands.add(
+  'byAriaLabel',
+  (label: string, options?: Partial<Loggable & Timeoutable & Withinable & Shadow>) => {
+    return cy.get(`[aria-label="${label}"]`, options);
+  }
+);
+
+Cypress.Commands.add(
+  'byPFRole',
+  (role: string, options?: Partial<Loggable & Timeoutable & Withinable & Shadow>) => {
+    return cy.get(`[role="${role}"]`, options);
+  }
+);
 
 Cypress.Commands.add(
   'login',

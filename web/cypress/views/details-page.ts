@@ -3,12 +3,12 @@ import { commonPages } from "./common";
 export const detailsPage = {
   sectionHeaderShouldExist: (sectionHeading: string) => {
     cy.log('detailsPage.sectionHeaderShouldExist');
-    cy.byClass('pf-v6-c-title pf-m-h2').contains(sectionHeading).should('be.visible');
+    cy.get('.pf-v6-c-title.pf-m-h2, .co-section-heading').contains(sectionHeading).should('be.visible');
   },
     
   labelShouldExist: (labelName: string) => {
     cy.log('detailsPage.labelShouldExist');
-    cy.byClass('pf-v6-c-label__text').contains(labelName);
+    cy.get('.pf-v6-c-label__text, .pf-v5-c-label__text').contains(labelName);
   },
 
   clickAlertRule: (alert: string) => {
@@ -37,7 +37,8 @@ export const detailsPage = {
   clickInspectAlertPage: () =>{
     cy.log('detailsPage.clickInspectAlertPage');
     try {
-      cy.get(`a[aria-label="Inspect"]` , { timeout: 10000 }).click();
+      cy.byAriaLabel('Inspect').should('be.visible').click(); //pf-5 cy.byAriaLabel('View in Metrics').should('be.visible').click(); 
+      // cy.get(`a[aria-label="Inspect"]` , { timeout: 10000 }).click();
     } catch (error) {
       cy.log(`${error.message}`);
       throw error; 
@@ -61,11 +62,11 @@ export const detailsPage = {
   assertSilencedAlert: () => {
     cy.log('detailsPage.assertSilencedAlert');
     try {
-      cy.byClass('pf-v6-c-button__text').contains('Silence alert').should('not.exist');
-      cy.get('[aria-label="Kebab toggle"]').scrollIntoView();
-      cy.get('[aria-label="Kebab toggle"]').should('be.visible').click();
-      cy.byClass('pf-v6-c-menu__item-text').contains('Edit silence').should('be.visible');
-      cy.byClass('pf-v6-c-menu__item-text').contains('Expire silence').should('be.visible');
+      cy.bySemanticElement('button').contains('Silence alert').should('not.exist');
+      detailsPage.clickOnSilenceByKebab();
+      cy.byPFRole('menuitem').contains('Edit silence').should('be.visible');
+      cy.byPFRole('menuitem').contains('Expire silence').should('be.visible');
+      
 
     } catch (error) {
       cy.log(`${error.message}`);
@@ -77,8 +78,8 @@ export const detailsPage = {
   clickOnSilenceByKebab: () => {
     cy.log('detailsPage.clickOnSilenceByKebab');
     try {
-      cy.get('[aria-label="Kebab toggle"]').scrollIntoView();
-      cy.get('[aria-label="Kebab toggle"]').should('be.visible').click();
+      cy.byLegacyTestID('silence-resource-link').scrollIntoView();
+      cy.get('table').find('.pf-v6-c-menu-toggle.pf-m-plain, .pf-v5-c-dropdown__toggle.pf-m-plain').should('be.visible').click();
     } catch (error) {
       cy.log(`${error.message}`);
       throw error; 
@@ -90,7 +91,7 @@ export const detailsPage = {
     cy.log('detailsPage.editSilence');
     try {
       detailsPage.clickOnSilenceByKebab();
-      cy.byClass('pf-v6-c-menu__item-text').contains('Edit silence').should('be.visible').click();
+      cy.byPFRole('menuitem').contains('Edit silence').should('be.visible').click();
     } catch (error) {
       cy.log(`${error.message}`);
       throw error; 
@@ -104,7 +105,7 @@ export const detailsPage = {
     cy.log('detailsPage.expireSilence');
     try {
       detailsPage.clickOnSilenceByKebab();
-      cy.byClass('pf-v6-c-menu__item-text').contains('Expire silence').should('be.visible').click();
+      cy.byPFRole('menuitem').contains('Expire silence').should('be.visible').click();
       commonPages.confirmExpireAlert(yes);
     } catch (error) {
       cy.log(`${error.message}`);
@@ -114,24 +115,24 @@ export const detailsPage = {
   },
   clickSilenceAlertButton:()=>{
     cy.log('detailsPage.clickSilenceAlertButton');
-    cy.byClass('pf-v6-c-button__text').contains('Silence alert').should('be.visible').click();
+    cy.bySemanticElement('button').contains('Silence alert').should('be.visible').click();
   },
 
   clickResetZoomButton:()=>{
     cy.log('detailsPage.clickResetZoomButton');
-    cy.byClass('pf-v6-c-button__text').contains('Reset zoom').should('be.visible').click();
+    cy.bySemanticElement('button').contains('Reset zoom').should('be.visible').click();
   },
 
   clickHideGraphButton:()=>{
     cy.log('detailsPage.clickHideGraphButton');
-    cy.byClass('pf-v6-c-button__text').contains('Hide graph').should('be.visible').click();
-    cy.byClass('pf-v6-c-card pf-m-compact').should('not.exist');
+    cy.bySemanticElement('button').contains('Hide graph').should('be.visible').click();
+    cy.get('.pf-v6-c-card.pf-m-compact, .query-browser__controls').should('not.exist');
   },
 
   clickShowGraphButton:()=>{
     cy.log('detailsPage.clickShowGraphButton');
-    cy.byClass('pf-v6-c-button__text').contains('Show graph').should('be.visible').click();
-    cy.byClass('pf-v6-c-card pf-m-compact').should('be.visible');
+    cy.bySemanticElement('button').contains('Show graph').should('be.visible').click();
+    cy.get('pf-v6-c-card pf-m-compact, .query-browser__controls').should('be.visible');
   }
 
 };

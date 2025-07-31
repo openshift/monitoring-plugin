@@ -21,27 +21,27 @@ export const silenceDetailsPage = {
   clickActions: (toOpen: boolean) => {
     cy.log('silenceDetailsPage.clickActions');
     if (toOpen) {
-      cy.byClass('pf-v6-c-menu-toggle').eq(0).click();
+      cy.get('.pf-v6-c-menu-toggle, .pf-v5-c-dropdown__toggle').contains('Actions').click();
     }
   },
 
   assertActionsExpiredAlert: () => {
     cy.log('silenceDetailsPage.assertActionsExpiredAlert');
     silenceDetailsPage.clickActions(true);
-    cy.byClass('pf-v6-c-menu__item-text').contains('Recreate silence').should('be.visible');
+    cy.byPFRole('menuitem').contains('Recreate silence').should('be.visible');
   },
 
   assertActionsSilencedAlert: () => {
     cy.log('silenceDetailsPage.assertActionsExpiredAlert');
     silenceDetailsPage.clickActions(true);
-    cy.byClass('pf-v6-c-menu__item-text').contains('Edit silence').should('be.visible');
-    cy.byClass('pf-v6-c-menu__item-text').contains('Expire silence').should('be.visible');
+    cy.byPFRole('menuitem').contains('Edit silence').should('be.visible');
+    cy.byPFRole('menuitem').contains('Expire silence').should('be.visible');
   },
 
   editSilence: (toOpen: boolean) => {
     cy.log('silenceDetailsPage.editSilence');
     silenceDetailsPage.clickActions(toOpen);
-    cy.byClass('pf-v6-c-menu__item-text').contains('Edit silence').should('be.visible').click();
+    cy.byPFRole('menuitem').contains('Edit silence').should('be.visible').click();
   },
 
   /**
@@ -52,20 +52,20 @@ export const silenceDetailsPage = {
   expireSilence: (toOpen: boolean, yes: boolean) => {
     cy.log('silenceDetailsPage.expireSilence');
     silenceDetailsPage.clickActions(toOpen);
-    cy.byClass('pf-v6-c-menu__item-text').contains('Expire silence').should('be.visible').click();
+    cy.byPFRole('menuitem').contains('Expire silence').should('be.visible').click();
     commonPages.confirmExpireAlert(yes);
   },
 
   recreateSilence: (toOpen: boolean) => {
     cy.log('silenceDetailsPage.recreateSilence');
     silenceDetailsPage.clickActions(toOpen);
-    cy.byClass('pf-v6-c-menu__item-text').contains('Recreate silence').should('be.visible').click();
+    cy.byPFRole('menuitem').contains('Recreate silence').should('be.visible').click();
   },
 
   clickSilencesBreadcrumb:() => {
     cy.log('silenceDetailsPage.clickSilencesBreadcrumb');
      try {
-       cy.get('pf-v6-c-breadcrumb__item').contains('Silences').should('be.visible').click();
+       cy.get('.pf-v6-c-breadcrumb__item, .pf-v5-c-breadcrumb__item').contains('Silences').should('be.visible').click();
       } catch (error) {
         cy.log(`${error.message}`);
         throw error; 
