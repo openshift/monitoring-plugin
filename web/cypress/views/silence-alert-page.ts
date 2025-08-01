@@ -1,5 +1,3 @@
-import { commonPages } from "./common";
-import { detailsPage } from "./details-page";
 
 const silenceText = 'Silences temporarily mute alerts based on a set of label selectors that you define. Notifications will not be sent for alerts that match all the listed values or regular expressions.'
 const alertText = 'Alerts with labels that match these selectors will be silenced instead of firing. Label values can be matched exactly or with a regular expression'
@@ -11,13 +9,13 @@ export const silenceAlertPage = {
   
   silenceAlertSectionDefault: () => {
     cy.log('silenceAlertPage.silenceAlertSectionDefault');
-    cy.byClass('pf-v6-c-helper-text__item-text').eq(0).contains(silenceText).should('be.visible');
+    cy.get('.pf-v6-c-helper-text__item-text, .pf-v5-c-helper-text__item-text').eq(0).contains(silenceText).should('be.visible');
   },
 
   editAlertWarning: () => {
     cy.log('silenceAlertPage.editAlertWarning');
-    cy.byClass('pf-v6-c-alert__title').contains(editWarningTitle).should('be.visible');
-    cy.byClass('pf-v6-c-alert__description').contains(editMessage).should('be.visible');
+    cy.get('.pf-v6-c-alert__title, .pf-v5-c-alert__title').contains(editWarningTitle).should('be.visible');
+    cy.get('.pf-v6-c-alert__description, .pf-v5-c-alert__description').contains(editMessage).should('be.visible');
   },
 
   durationSectionDefault: () => {
@@ -30,7 +28,7 @@ export const silenceAlertPage = {
 
   editDurationSectionDefault: () => {
     cy.log('silenceAlertPage.durationSectionDefault');
-    cy.get('[id="start-immediately"]').should('be.checked');
+    cy.get('[id="start-immediately"]').should('be.checked'); //pf-5 cy.byTestID('[id="silence-start-immediately"]').should('be.checked'); 
     cy.byTestID('silence-from').should('have.value', 'Now');
     cy.byTestID('silence-for-toggle').should('contain', '-');
     cy.byTestID('silence-until').should('not.have.value', '2h from now');
@@ -38,25 +36,25 @@ export const silenceAlertPage = {
 
   alertLabelsSectionDefault: () => {
     cy.log('silenceAlertPage.alertLabelsSectionDefault');
-    cy.byClass('pf-v6-c-helper-text__item-text').eq(1).contains(alertText).should('be.visible');
+    cy.get('.pf-v6-c-helper-text__item-text').eq(1).contains(alertText).should('be.visible'); //pf-5 cy.byClass('.co-help-text.monitoring-silence-alert__paragraph').contains(alertText).should('be.visible');
   },
 
   assertLabelNameLabelValueRegExNegMatcher: (labelName: string, labelValue: string, regEx: boolean, negMatcher: boolean) => {
     cy.log('silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher');
-    cy.byClass('pf-v6-l-grid pf-m-all-12-col-on-sm pf-m-all-4-col-on-md pf-m-gutter').each(($row, rowIndex) => {
+    cy.byClass('pf-v6-l-grid pf-m-all-12-col-on-sm pf-m-all-4-col-on-md pf-m-gutter').each(($row, rowIndex) => { //pf-5 cy.get('.row').each(($row, rowIndex) => {
       cy.wrap($row).find('[aria-label="Label name"]').invoke('val').then((cellText) => {
         if (cellText === labelName){
           cy.wrap($row).find('[aria-label="Label name"]').invoke('val').should('equal', labelName);
           cy.wrap($row).find('[aria-label="Label value"]').invoke('val').should('equal', labelValue);
           if (regEx){
-            cy.wrap($row).find('.pf-v6-c-check__input').first().should('be.checked');
+            cy.wrap($row).find('[type="checkbox"]').first().should('be.checked'); 
           } else{
-            cy.wrap($row).find('.pf-v6-c-check__input').first().should('not.be.checked');
+            cy.wrap($row).find('[type="checkbox"]').first().should('not.be.checked');
           }
           if (negMatcher){
-            cy.wrap($row).find('.pf-v6-c-check__input').last().should('be.checked');
+            cy.wrap($row).find('[type="checkbox"]').last().should('be.checked');
           } else{
-            cy.wrap($row).find('.pf-v6-c-check__input').last().should('not.be.checked');
+            cy.wrap($row).find('[type="checkbox"]').last().should('not.be.checked');
           }
           cy.wrap($row).find('[aria-label="Remove"]').should('be.visible');
         } else {
@@ -68,25 +66,23 @@ export const silenceAlertPage = {
 
   infoSectionDefault: () => {
     cy.log('silenceAlertPage.infoSectionDefault');
-    cy.get('[aria-label="Creator"]').invoke('val')
+    cy.byAriaLabel('Creator').invoke('val')
       .should('not.be.empty')
       .should('have.attr', 'required');
-    cy.get('[aria-label="Comment"').invoke('text')
+    cy.byAriaLabel('Comment').invoke('text')
       .should('be.empty')
       .should('have.attr', 'required');
   },
 
   buttonDefault: () => {
     cy.log('silenceAlertPage.buttonDefault');
-    cy.byOUIAID('OUIA-Generated-Button-primary')
-      .should('be.visible');
-    cy.byOUIAID('OUIA-Generated-Button-secondary')
-      .should('be.visible');
+    cy.bySemanticElement('button').contains('Silence').should('be.visible');
+    cy.bySemanticElement('button').contains('Cancel').should('be.visible');
   },
   
   clickCancelButton: () => {
     cy.log('silenceAlertPage.clickCancelButton');
-    cy.byOUIAID('OUIA-Generated-Button-secondary').scrollIntoView().should('be.visible').click();
+    cy.bySemanticElement('button').contains('Cancel').scrollIntoView().should('be.visible').click();
   },
   /**
    * changeDuration only changing For (time dropdown) and Start immediately checkbox
@@ -99,17 +95,17 @@ export const silenceAlertPage = {
     cy.byTestID('silence-for').should('contain', time);  
     cy.byTestID('silence-for').contains(time).click();  
 
-    cy.get('[id="start-immediately"]').then((checkbox) => {
+    cy.get('[id="start-immediately"]').then((checkbox) => { //pf-5 cy.byTestID('[id="silence-start-immediately"]')
       if (startImmediately){
         if (!checkbox.prop('checked') ){
-          cy.get('[id="start-immediately"]').click();
+          cy.get('[id="start-immediately"]').click(); //pf-5 cy.byTestID('[id="silence-start-immediately"]').click(); 
         }
         cy.byTestID('silence-from').should('have.value', 'Now');
         cy.byTestID('silence-until').should('have.value', time +' from now');
 
       } else {
         if (checkbox.prop('checked')){
-          cy.get('[id="start-immediately"]').click();
+          cy.get('[id="start-immediately"]').click(); //pf-5 cy.byTestID('[id="silence-start-immediately"]').click(); 
         }
         cy.byTestID('silence-from').should('have.not.value', 'Now');
         cy.byTestID('silence-from').then(($fromElement) => {
@@ -161,9 +157,9 @@ export const silenceAlertPage = {
   addCreator: (creator: string) => {
     cy.log('silenceAlertPage.addCreator');
     if (!creator){
-      cy.get('[aria-label="Creator"]').clear();
+      cy.byAriaLabel('Creator').clear();
     } else{
-      cy.get('[aria-label="Creator"]').clear().type(creator);
+      cy.byAriaLabel('Creator').clear().type(creator);
     }
     
   },
@@ -175,14 +171,19 @@ export const silenceAlertPage = {
   },
   clickSubmit: () =>{
     cy.log('silenceAlertPage.clickSubmit');
-    cy.get('button[type=submit]').scrollIntoView().should('be.visible').click();
+    cy.bySemanticElement('button').contains('Silence').scrollIntoView().should('be.visible').click();
   },
-
+  /**
+   * pf-6 only
+   */
   assertCommentNoError: () => {
     cy.log('silenceAlertPage.assertCommentNoError');
     cy.byClass('pf-v6-c-form-control pf-m-textarea pf-m-resize-both').should('not.have.class', 'pf-m-error');
   },
 
+  /**
+   * pf-6 only
+   */
   assertCommentWithError: () => {
     cy.log('silenceAlertPage.assertCommentWithError');
     cy.byClass('pf-v6-c-form-control pf-m-textarea pf-m-resize-both pf-m-error').should('be.visible');
@@ -221,6 +222,5 @@ export const silenceAlertPage = {
     cy.log('silenceAlertPage.assertLabelValueError');
     cy.byClass('pf-v6-c-alert__title').should('contain.text', 'invalid silence: at least one matcher must not match the empty string');
   },
-
 
 };

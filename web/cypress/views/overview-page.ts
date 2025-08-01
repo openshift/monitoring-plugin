@@ -20,7 +20,7 @@ export const overviewPage = {
 
   clickClusterUtilizationViewCPU: () => {
     cy.log('overviewPage.clickClusterUtilizationViewCPU');
-    cy.get('[aria-label="View CPU metrics in query browser"]').scrollIntoView().should('be.visible').click();
+    cy.byAriaLabel('View CPU metrics in query browser').scrollIntoView().should('be.visible').click();
   }
  
 }

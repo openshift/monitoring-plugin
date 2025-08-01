@@ -24,6 +24,8 @@ export default defineConfig({
   },
   fixturesFolder: 'fixtures',
   defaultCommandTimeout: 80000, //due to performance loading issue on console
+  readyTimeoutMilliseconds: 120000,
+  installTimeoutMilliseconds: 600000,
   retries: {
     runMode: 0,
     openMode: 0,

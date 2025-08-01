@@ -175,18 +175,18 @@ describe('Regression: Monitoring - Alerts', () => {
     listPage.filter.selectFilterOption(false, 'Info', false);
     listPage.filter.selectFilterOption(false, 'None', false);
     listPage.filter.selectFilterOption(false, 'User', true);
-    listPage.filter.removeMainTag('alerts-tab', 'Source');
-    listPage.filter.removeIndividualTag('alerts-tab', 'Firing');
-    listPage.filter.removeIndividualTag('alerts-tab', 'Pending');
-    listPage.filter.removeIndividualTag('alerts-tab', 'Silenced');
-    listPage.filter.clearAllFilters('alerts-tab');
+    listPage.filter.removeMainTag('Source');
+    listPage.filter.removeIndividualTag('Firing');
+    listPage.filter.removeIndividualTag( 'Pending');
+    listPage.filter.removeIndividualTag('Silenced');
+    listPage.filter.clearAllFilters();
 
     listPage.exportAsCSV(true, /openshift.csv/, `${ALERTNAME}`, `${SEVERITY}`, 'firing', 1);
 
-    listPage.filter.byLabel('alerts-tab', 'alertname=Watchdog');
-    listPage.filter.removeMainTag('alerts-tab', 'Label');
-    listPage.filter.byLabel('alerts-tab', 'alertname=Watchdog');
-    listPage.filter.removeIndividualTag('alerts-tab', 'alertname=Watchdog');
+    listPage.filter.byLabel('alertname=Watchdog');
+    listPage.filter.removeMainTag('Label');
+    listPage.filter.byLabel('alertname=Watchdog');
+    listPage.filter.removeIndividualTag('alertname=Watchdog');
 
   });
 
@@ -213,6 +213,7 @@ describe('Regression: Monitoring - Alerts', () => {
   });
 
   it('3. Admin perspective - Alerting > Alerts / Silences > Kebab icon on List and Details', () => {
+    cy.visit('/');
     cy.log('3.1 use sidebar nav to go to Observe > Alerting');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     cy.intercept('GET', '/api/prometheus/api/v1/rules?', {
@@ -270,7 +271,7 @@ describe('Regression: Monitoring - Alerts', () => {
     listPage.ARRows.shouldBeLoaded();
 
     cy.log('3.2 filter to Watchdog alert');
-    listPage.filter.byName('alerts-tab', `${ALERTNAME}`);
+    listPage.filter.byName(`${ALERTNAME}`);
     listPage.ARRows.countShouldBe(1);
 
 
@@ -284,7 +285,7 @@ describe('Regression: Monitoring - Alerts', () => {
     cy.log('3.4 Assert Kebab on Alert Details page');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     commonPages.titleShouldHaveText('Alerting');
-    listPage.filter.clearAllFilters('alerts-tab');
+    listPage.filter.clearAllFilters();
     listPage.ARRows.expandRow();
     listPage.ARRows.assertNoKebab();
     listPage.ARRows.clickAlert();
@@ -295,11 +296,11 @@ describe('Regression: Monitoring - Alerts', () => {
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     nav.tabs.switchTab('Silences');
     silencesListPage.shouldBeLoaded();
-    listPage.filter.removeIndividualTag('silences', 'Active');
-    listPage.filter.removeIndividualTag('silences', 'Pending');
-    listPage.filter.byName('silences', `${ALERTNAME}`);
-    silencesListPage.clickFilter(true,false);
-    silencesListPage.selectFilterOption(false, 'Active', true);
+    listPage.filter.removeIndividualTag('Active');
+    listPage.filter.removeIndividualTag( 'Pending');
+    silencesListPage.filter.byName(`${ALERTNAME}`);
+    listPage.filter.clickFilter(true,false);
+    listPage.filter.selectFilterOption(false, 'Active', true);
     silencesListPage.rows.assertSilencedAlertKebab();
 
     cy.log('3.6 Click on Silenced alert and Assert Actions button');
@@ -315,12 +316,12 @@ describe('Regression: Monitoring - Alerts', () => {
 
     cy.log('3.8 Assert Kebab on Silence List page for Expired alert');
     silencesListPage.emptyState();
-    listPage.filter.removeMainTag('silences', 'Silence State');
-    listPage.filter.removeMainTag('silences', 'Silence State');
-    silencesListPage.selectFilterOption(true, 'Expired', false);
-    silencesListPage.selectFilterOption(false, 'Active', false);
-    silencesListPage.selectFilterOption(false, 'Pending', true);
-    listPage.filter.byName('silences', `${ALERTNAME}`);
+    listPage.filter.removeMainTag('Silence State');
+    listPage.filter.removeMainTag('Silence State');
+    listPage.filter.selectFilterOption(true, 'Expired', false);
+    listPage.filter.selectFilterOption(false, 'Active', false);
+    listPage.filter.selectFilterOption(false, 'Pending', true);
+    silencesListPage.filter.byName(`${ALERTNAME}`);
     silencesListPage.rows.assertExpiredAlertKebab('0');
 
     cy.log('3.9 Click on Expired alert and Assert Actions button');
@@ -345,8 +346,8 @@ describe('Regression: Monitoring - Alerts', () => {
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     nav.tabs.switchTab('Silences');
     silencesListPage.shouldBeLoaded();
-    listPage.filter.removeIndividualTag('silences', 'Pending');
-    listPage.filter.byName('silences', `${ALERTNAME}`);
+    listPage.filter.removeIndividualTag('Pending');
+    silencesListPage.filter.byName( `${ALERTNAME}`);
     silencesListPage.rows.editSilence();
     commonPages.titleShouldHaveText('Edit silence');
     silenceAlertPage.silenceAlertSectionDefault();
@@ -364,16 +365,16 @@ describe('Regression: Monitoring - Alerts', () => {
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     nav.tabs.switchTab('Silences');
     silencesListPage.shouldBeLoaded(); silencesListPage.shouldBeLoaded();
-    listPage.filter.removeIndividualTag('silences', 'Active');
-    listPage.filter.removeIndividualTag('silences', 'Pending');
-    listPage.filter.byName('silences', `${ALERTNAME}`);
-    silencesListPage.clickFilter(true,false);
-    silencesListPage.selectFilterOption(false, 'Active', true);
+    listPage.filter.removeIndividualTag('Active');
+    listPage.filter.removeIndividualTag('Pending');
+    silencesListPage.filter.byName(`${ALERTNAME}`);
+    listPage.filter.clickFilter(true,false);
+    listPage.filter.selectFilterOption(false, 'Active', true);
     silencesListPage.rows.expireSilence(true);
 
     cy.log('3.13 Alert Details > Silence alert button > Cancel');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-    listPage.filter.byName('alerts-tab', `${ALERTNAME}`);
+    listPage.filter.byName(`${ALERTNAME}`);
     listPage.ARRows.countShouldBe(1);
     listPage.ARRows.expandRow();
     listPage.ARRows.clickAlert();
@@ -394,44 +395,44 @@ describe('Regression: Monitoring - Alerts', () => {
 
     cy.log('4.2 clear all filters, verify filters and tags');
     // listPage.filter.clearAllFilters('alerting-rules');
-    alertingRuleListPage.filter.selectFilterOption(true, 'Firing', false);
-    alertingRuleListPage.filter.selectFilterOption(false, 'Pending', false);
-    alertingRuleListPage.filter.selectFilterOption(false, 'Silenced', false);
-    alertingRuleListPage.filter.selectFilterOption(false, 'Not Firing', false);
-    alertingRuleListPage.filter.selectFilterOption(false, 'Critical', false);
-    alertingRuleListPage.filter.selectFilterOption(false, 'Warning', false);
-    alertingRuleListPage.filter.selectFilterOption(false, 'Info', false);
-    alertingRuleListPage.filter.selectFilterOption(false, 'None', false);
-    alertingRuleListPage.filter.selectFilterOption(false, 'Platform', false);
-    alertingRuleListPage.filter.selectFilterOption(false, 'User', true);
+    listPage.filter.selectFilterOption(true, 'Firing', false);
+    listPage.filter.selectFilterOption(false, 'Pending', false);
+    listPage.filter.selectFilterOption(false, 'Silenced', false);
+    listPage.filter.selectFilterOption(false, 'Not Firing', false);
+    listPage.filter.selectFilterOption(false, 'Critical', false);
+    listPage.filter.selectFilterOption(false, 'Warning', false);
+    listPage.filter.selectFilterOption(false, 'Info', false);
+    listPage.filter.selectFilterOption(false, 'None', false);
+    listPage.filter.selectFilterOption(false, 'Platform', false);
+    listPage.filter.selectFilterOption(false, 'User', true);
 
-    listPage.filter.clickOn1more('alerting-rules', 'Alert State');
-    listPage.filter.clickOn1more('alerting-rules', 'Severity');
+    listPage.filter.clickOn1more('Alert State');
+    listPage.filter.clickOn1more('Severity');
 
-    listPage.filter.clickOnShowLess('alerting-rules', 'Alert State');
-    listPage.filter.clickOnShowLess('alerting-rules', 'Severity');
+    listPage.filter.clickOnShowLess('Alert State');
+    listPage.filter.clickOnShowLess('Severity');
 
-    listPage.filter.removeIndividualTag('alerting-rules', 'Firing');
-    listPage.filter.removeIndividualTag('alerting-rules', 'Pending');
-    listPage.filter.removeIndividualTag('alerting-rules', 'Silenced');
-    listPage.filter.removeIndividualTag('alerting-rules', 'Not Firing');
+    listPage.filter.removeIndividualTag('Firing');
+    listPage.filter.removeIndividualTag('Pending');
+    listPage.filter.removeIndividualTag('Silenced');
+    listPage.filter.removeIndividualTag('Not Firing');
 
-    listPage.filter.removeMainTag('alerting-rules', 'Severity');
-    listPage.filter.removeMainTag('alerting-rules', 'Source');
+    listPage.filter.removeMainTag('Severity');
+    listPage.filter.removeMainTag('Source');
 
     alertingRuleListPage.filter.assertNoClearAllFilters();
 
     cy.log('4.3 Search by Name');
-    listPage.filter.byName('alerting-rules', `${ALERTNAME}`);
+    listPage.filter.byName(`${ALERTNAME}`);
     alertingRuleListPage.countShouldBe(1);
-    listPage.filter.clearAllFilters('alerting-rules');
+    listPage.filter.clearAllFilters();
 
     cy.log('4.4 Search by Label');
-    listPage.filter.byLabel('alerting-rules', `namespace=${NAMESPACE}`);
-    listPage.filter.clearAllFilters('alerting-rules');
+    listPage.filter.byLabel(`namespace=${NAMESPACE}`);
+    listPage.filter.clearAllFilters();
 
     cy.log('4.5 Search by Name and see details');
-    listPage.filter.byName('alerting-rules', `${ALERTNAME}`);
+    listPage.filter.byName(`${ALERTNAME}`);
     alertingRuleListPage.countShouldBe(1);
     alertingRuleListPage.clickAlertingRule(`${ALERTNAME}`);
     alertingRuleDetailsPage.assertAlertingRuleDetailsPage(`${ALERTNAME}`);
@@ -445,8 +446,8 @@ describe('Regression: Monitoring - Alerts', () => {
     cy.log('4.7 Alerting rule details > Assert Kebab');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     nav.tabs.switchTab('Alerting rules');
-    listPage.filter.clearAllFilters('alerting-rules');
-    listPage.filter.byName('alerting-rules', `${ALERTNAME}`);
+    listPage.filter.clearAllFilters();
+    listPage.filter.byName(`${ALERTNAME}`);
     alertingRuleListPage.clickAlertingRule(`${ALERTNAME}`);
     alertingRuleDetailsPage.assertNoKebab();
 
@@ -454,11 +455,11 @@ describe('Regression: Monitoring - Alerts', () => {
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     nav.tabs.switchTab('Silences');
     silencesListPage.shouldBeLoaded();
-    listPage.filter.removeIndividualTag('silences', 'Active');
-    listPage.filter.removeIndividualTag('silences', 'Pending');
-    listPage.filter.byName('silences', `${ALERTNAME}`);
-    silencesListPage.clickFilter(true,false);
-    silencesListPage.selectFilterOption(false, 'Active', true);
+    listPage.filter.removeIndividualTag('Active');
+    listPage.filter.removeIndividualTag('Pending');
+    silencesListPage.filter.byName(`${ALERTNAME}`);
+    listPage.filter.clickFilter(true,false);
+    listPage.filter.selectFilterOption(false, 'Active', true);
     silencesListPage.rows.expireSilence(true);
 
   });

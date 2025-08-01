@@ -1,11 +1,12 @@
 import { commonPages } from "./common";
+import { getPFVersion } from "./utils";
 
 export const listPage = {
-  tableShoulBeLoaded: () => {
-    cy.log('listPage.tableShoulBeLoaded');
-    cy.get('[id="silences-table-scroll"]').should('be.visible');
-  },
 
+  /**
+   * 
+   * @param tab
+   */
   tabShouldHaveText: (tab: string) => {
     cy.log('listPage.tabShouldHaveText');
     cy
@@ -14,6 +15,15 @@ export const listPage = {
       .should('exist');
   },
 
+  /**
+   * 
+   * @param clearFolder true = clear folder, false = do not clear folder
+   * @param fileNameExp i.e openshift.csv
+   * @param alertName 
+   * @param severity 
+   * @param state 
+   * @param total 
+   */
   exportAsCSV: (clearFolder: boolean, fileNameExp: RegExp, alertName: string, severity: string, state: string, total: number) => {
     cy.log('listPage.exportAsCSV');
     let downloadedFileName: string | null = null;
@@ -22,16 +32,16 @@ export const listPage = {
     if (clearFolder) {
       cy.task('clearDownloads');
     }
-    cy.byClass('pf-v6-c-button pf-m-link co-virtualized-table--export-csv-button').should('be.visible').click();
+    cy.bySemanticElement('button', 'Export as CSV').should('be.visible').click();
 
     cy.waitUntil(() => {
       return cy.task('getFilesInFolder', downloadsFolder).then((currentFiles: string[]) => {
         const matchingFile = currentFiles.find(file => expectedFileNamePattern.test(file));
         if (matchingFile) {
           downloadedFileName = matchingFile;
-          return true; // Resolve the promise with true
+          return true;
         }
-        return false; // Resolve the promise with false
+        return false;
       });
     }, {
       timeout: 20000,
@@ -49,27 +59,17 @@ export const listPage = {
 
   filter: {
     /**
-     * 
-     * @param tab alerts-tab, silences, alerting-rules 
      * @param name 
      */
-    byName: (tab: string, name: string) => {
+    byName: (name: string) => {
       cy.log('listPage.filter.byName');
       try {
-        if (tab == 'silences') {
-          cy.get(`[id="${tab}-content"]`).find('input[data-test="name-filter-input"]')
-            .as('input').should('be.visible');
-          cy.get('@input', { timeout: 10000 }).type(name + '{enter}');
-          cy.get('@input', { timeout: 10000 }).should('have.attr', 'value', name);
-
-        }else {
-          cy.get(`[id="${tab}-content"]`).find('button[data-test-id="dropdown-button"]').scrollIntoView().click();
+          cy.byLegacyTestID('dropdown-button').scrollIntoView().click();
           cy.byLegacyTestID('dropdown-menu').contains('Name').click();
-          cy.get(`[id="${tab}-content"]`).find('input[data-test="name-filter-input"]').scrollIntoView()
-            .as('input').should('be.visible');
+          cy.byTestID('name-filter-input').scrollIntoView().as('input').should('be.visible');
           cy.get('@input', { timeout: 10000 }).scrollIntoView().type(name + '{enter}');
           cy.get('@input', { timeout: 10000 }).scrollIntoView().should('have.attr', 'value', name);
-        }
+        
       }
       catch (error) {
         cy.log(`${error.message}`);
@@ -77,104 +77,97 @@ export const listPage = {
       }
     },
     /**
-     * 
-     * @param tab alerts-tab, silences, alerting-rules 
      * @param label 
      */
-    byLabel: (tab: string, label: string) => {
+    byLabel: (label: string) => {
       cy.log('listPage.filter.byLabel');
-      cy.get(`[id="${tab}-content"]`).find('button[data-test-id="dropdown-button"]').scrollIntoView().click();
-      // cy.byLegacyTestID('dropdown-button').click();
+      cy.byLegacyTestID('dropdown-button').scrollIntoView().click();
       cy.byLegacyTestID('dropdown-menu').contains('Label').click();
-      cy.get(`[id="${tab}-content"]`).find('input[data-test-id="item-filter"]').scrollIntoView()
+      cy.byLegacyTestID('item-filter').scrollIntoView()
         .as('input').should('be.visible');
       cy.get('@input', { timeout: 10000 }).scrollIntoView().type(label + '{enter}').should('have.attr', 'value', label);
-      cy.byClass('pf-v6-c-label__content pf-m-clickable').scrollIntoView().contains(label).click();
+      cy.byTestID('suggestion-line').contains(label).click();
     },
-    /**
-     * This clearAllFilters does not work as expected for Silences tab.
-     * Please, refer to removeIndividualTag for Silences tab, once removeMainTag is not working as expected as well for Silences tab.
-     * @param tab alerts-tab, silences, alerting-rules 
-     */
-    clearAllFilters: (tab: string,) => {
+    
+    clearAllFilters: () => {
       cy.log('listPage.filter.clearAllFilters');
       try {
-        cy.get(`[id="${tab}-content"]`).find('[class="pf-v6-c-button__text"]')
-          .contains('Clear all filters').should('be.visible').click();
+        cy.bySemanticElement('button', 'Clear all filters').click();
       } catch (error) {
         cy.log(`${error.message}`);
         throw error;
       }
     },
 
+    /**
+     * 
+     * @param toOpen true = open, false = nothing
+     * @param toClose true = close, false = nothing
+     */
     clickFilter: (toOpen: boolean, toClose: boolean) => {
       cy.log('listPage.filter.clickFilter');
       if (toOpen) {
-        cy.byClass('pf-v6-c-menu-toggle').eq(0).should('be.visible').click();
+        cy.get('.pf-v6-c-menu-toggle, .pf-v5-c-menu-toggle').contains('Filter').scrollIntoView().should('be.visible').click();
       }
       if (toClose) {
-        cy.byClass('pf-v6-c-menu-toggle pf-m-expanded').eq(0).should('be.visible').click();
+        cy.get('.pf-v6-c-menu-toggle.pf-m-expanded, .pf-v5-c-menu-toggle.pf-m-expanded').contains('Filter').should('be.visible').click();
       }
     },
+
     /**
      * 
      * @param open true = open, false = nothing
-     * @param option 
-     * @returns 
+     * @param option i.e. Firing
+     * @param close true = close, false = nothing
      */
     selectFilterOption: (open: boolean, option: string, close: boolean) => {
       cy.log('listPage.filter.selectFilterOption');
       if (open) {
         listPage.filter.clickFilter(open, false);
       };
-      cy.byClass('co-filter-dropdown-item__name').contains(option).should('be.visible').click();
+      cy.byPFRole('menuitem').contains(option).should('be.visible').click();
       if (close) {
         listPage.filter.clickFilter(false, close);
       };
     },
 
     /**
-     * This removeMainTag does not work as expected for Silences tab.
-     * Please, refer to removeIndividualTag for Silences tab.
-     * @param tabName alerts-tab, silences, alerting-rules 
-     * @param groupTagName alerts-tab (Alert State, Severity, Source), Silence State, alerting-rules (Alert State, Severity, Source)
+     *  Click on the X for the whole tag group
+     * @param groupTagName 
      */
-    removeMainTag: (tabName: string, groupTagName: string) => {
+    removeMainTag: (groupTagName: string) => {
       cy.log('listPage.filter.removeMainTag');
-      cy.get(`[id="${tabName}-content"]`).find('[class="pf-v6-c-label-group__label"]').contains(groupTagName).parent().next('div').children('button').click();
+      cy.get(".pf-v6-c-label-group__label, .pf-v5-c-chip-group__label").contains(groupTagName).parent().next('div').children('button').click();
     },
 
     /**
      * 
-     * @param tabName alerts-tab, silences, alerting-rules 
      * @param tagName alerts-tab: Firing, Pending, Silenced, Critical, Warning, Info, None, Platform, User
      *                silences: Active, Pending, Expired
      *                alerting-rules: Firing, Pending, Silenced, Not Firing, Critical, Warning, Info, None, Platform, User
      */
-    removeIndividualTag: (tabName: string, tagName: string) => {
+    removeIndividualTag: (tagName: string) => {
       cy.log('listPage.filter.removeIndividualTag');
-      cy.get(`[id="${tabName}-content"]`).find('[class="pf-v6-c-label__text"]').contains(tagName).parent().next('span').children('button').click();
+      cy.get('.pf-v6-c-label__text, .pf-v5-c-chip__text').contains(tagName).parent().next('span').children('button').click();
     },
 
     /**
      * 
-     * @param tabName alerts-tab, silences, alerting-rules 
      * @param groupTagName alerts-tab (Alert State, Severity, Source), Silence State, alerting-rules (Alert State, Severity, Source)
      */
-    clickOn1more: (tabName: string, groupTagName: string) => {
+    clickOn1more: (groupTagName: string) => {
       cy.log('listPage.filter.clickOn1more');
-      cy.get(`[id="${tabName}-content"]`).find('[class="pf-v6-c-label-group__label"]').contains(groupTagName).siblings('ul').children('li').contains('1 more').click();
+      cy.get('.pf-v6-c-label-group__label, .pf-v5-c-chip-group__label').contains(groupTagName).siblings('ul').children('li').contains('1 more').click();
 
     },
 
     /**
      * 
-     * @param tabName alerts-tab, silences, alerting-rules 
      * @param groupTagName alerts-tab (Alert State, Severity, Source), Silence State, alerting-rules (Alert State, Severity, Source)
      */
-    clickOnShowLess: (tabName: string, groupTagName: string) => {
+    clickOnShowLess: (groupTagName: string) => {
       cy.log('listPage.filter.clickOnShowLess');
-      cy.get(`[id="${tabName}-content"]`).find('[class="pf-v6-c-label-group__label"]').contains(groupTagName).siblings('ul').children('li').contains('Show less').click();
+      cy.get('.pf-v6-c-label-group__label, .pf-v5-c-chip-group__label').contains(groupTagName).siblings('ul').children('li').contains('Show less').click();
 
     },
 
@@ -187,25 +180,31 @@ export const listPage = {
     },
     countShouldBe: (count: number) => {
       cy.log('listPage.ARRows.countShouldBe');
-      cy.byClass('pf-v6-c-table__tbody').should('have.length', count);
-      // cy.get(`[data-test-rows="resource-row"`).should('have.length', count);
+      cy.get('.co-m-resource-icon.co-m-resource-alertrule').should('have.length', count);
     },
+    
+    //pf-6 only
     ARShouldBe: (alert: string, severity: string, total: number, state: string) => {
       cy.log('listPage.ARRows.ARShouldBe');
-      cy.byOUIAID('OUIA-Generated-Button-plain').should('exist');
-      cy.byClass('co-m-resource-icon co-m-resource-alertrule').contains('AR');
-      cy.byClass('pf-v6-c-table__td').contains(alert).should('exist');
-      cy.byClass('pf-v6-c-label__text').contains(severity).should('exist');
-      cy.byClass('pf-v6-c-badge pf-m-read').contains(total).should('exist');
-      cy.byClass('pf-v6-c-table__td').contains(state).should('exist');
+      if (getPFVersion() === 'v6') {
+        cy.byOUIAID('OUIA-Generated-Button-plain').should('exist');
+        cy.byClass('co-m-resource-icon co-m-resource-alertrule').contains('AR');
+        cy.byClass('pf-v6-c-table__td').contains(alert).should('exist');
+        cy.byClass('pf-v6-c-label__text').contains(severity).should('exist');
+        cy.byClass('pf-v6-c-badge pf-m-read').contains(total).should('exist');
+        cy.byClass('pf-v6-c-table__td').contains(state).should('exist');
+      }
+    
     },
     AShouldBe: (alert: string, severity: string, namespace: string) => {
       cy.log('listPage.ARRows.AShouldBe');
       cy.byClass('co-m-resource-icon co-m-resource-alert').should('exist');
-      cy.byClass('pf-v6-l-flex pf-m-space-items-none pf-m-nowrap').contains(alert).should('exist');
-      cy.byClass('pf-v6-c-label__text').contains(severity).should('exist');
-      cy.byClass('co-resource-item__resource-name').contains(namespace).should('exist');
+      cy.byLegacyTestID('alert-resource-link').contains(alert).should('exist');
+      cy.get('.pf-v6-c-label__text, .pf-m-hidden.pf-m-visible-on-sm').contains(severity).should('exist');
+      cy.byClass('co-resource-item__resource-name').contains(namespace).should('exist'); //pf-6 only
+      
     },
+    //pf-6 only
     expandRow: () => {
       cy.log('listPage.ARRows.expandRow');
       try {
@@ -223,13 +222,11 @@ export const listPage = {
         throw error;
       }
     },
+    //pf-6 only
     clickAlertingRule: () => {
       cy.log('listPage.ARRows.clickAlertingRule');
       try {
-        cy.byClass('co-m-resource-icon co-m-resource-alertrule')
-          .contains('AR')
-          .parent()
-          .next()
+        cy.byLegacyTestID('alert-resource-link').eq(0)
           .should('be.visible')
           .click();
       } catch (error) {
@@ -241,9 +238,8 @@ export const listPage = {
     clickAlert: () => {
       cy.log('listPage.ARRows.clickAlert');
       try {
-        cy.get('[class="co-m-resource-icon co-m-resource-alert"]')
-          .parent()
-          .next('div')
+        cy.byLegacyTestID('alert-resource-link').eq(1)
+          .should('be.visible')
           .click();
       } catch (error) {
         cy.log(`${error.message}`);
@@ -254,7 +250,7 @@ export const listPage = {
     assertNoKebab: () => {
       cy.log('listPage.ARRows.assertNoKebab');
       try {
-        cy.byLegacyTestID('kebab-button').should('not.exist');
+        cy.byAriaLabel('toggle menu').should('not.exist');
       } catch (error) {
         cy.log(`${error.message}`);
         throw error;
@@ -263,7 +259,7 @@ export const listPage = {
     clickAlertKebab: () => {
       cy.log('listPage.ARRows.clickAlertKebab');
       try {
-        cy.byLegacyTestID('kebab-button').should('be.visible').click();
+        cy.byAriaLabel('toggle menu').should('be.visible').click();
       } catch (error) {
         cy.log(`${error.message}`);
         throw error;
@@ -273,7 +269,7 @@ export const listPage = {
       cy.log('listPage.ARRows.silentAlert');
       try {
         listPage.ARRows.clickAlertKebab();
-        cy.byClass('pf-v6-c-menu__item-text').contains('Silence alert').should('be.visible').click();
+        cy.byPFRole('menuitem').contains('Silence alert').should('be.visible').click();
       } catch (error) {
         cy.log(`${error.message}`);
         throw error;
@@ -285,7 +281,7 @@ export const listPage = {
       cy.log('listPage.ARRows.editAlert');
       try {
         listPage.ARRows.clickAlertKebab();
-        cy.byClass('pf-v6-c-menu__item-text').contains('Edit alert').should('be.visible').click();
+        cy.byPFRole('menuitem').contains('Edit alert').should('be.visible').click();
       } catch (error) {
         cy.log(`${error.message}`);
         throw error;
@@ -295,7 +291,7 @@ export const listPage = {
       cy.log('listPage.ARRows.expireAlert');
       try {
         listPage.ARRows.clickAlertKebab();
-        cy.byClass('pf-v6-c-menu__item-text').contains('Expire alert').should('be.visible').click();
+        cy.byPFRole('menuitem').contains('Expire alert').should('be.visible').click();
         commonPages.confirmExpireAlert(yes);
       } catch (error) {
         cy.log(`${error.message}`);

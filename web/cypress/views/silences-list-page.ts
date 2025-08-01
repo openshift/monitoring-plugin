@@ -4,78 +4,72 @@ export const silencesListPage = {
 
   shouldBeLoaded: () => {
     cy.log('silencesListPage.shouldBeLoaded');
-    cy.byTestID('create-silence-btn').should('be.visible');
+    cy.bySemanticElement('button','Create silence').should('be.visible');
     cy.byClass('co-m-resource-icon co-m-resource-silence').contains('S');
-    cy.byClass('pf-v6-c-table__button').contains('Name').should('be.visible');
-    cy.byClass('pf-v6-c-table__button').contains('Firing alerts').should('be.visible');
-    cy.byClass('pf-v6-c-table__button').contains('State').should('be.visible');
-    cy.byClass('pf-v6-c-table__button').contains('Creator').should('be.visible');
+    cy.bySemanticElement('button', 'Name').should('be.visible');
+    cy.bySemanticElement('button', 'Firing alerts').should('be.visible');
+    cy.bySemanticElement('button', 'State').should('be.visible');
+    cy.bySemanticElement('button', 'Creator').should('be.visible');
 
   },
   firstTimeEmptyState: () => {
     cy.log('silencesListPage.firstTimeEmptyState');
     cy.byTestID('empty-box-body').contains('No Silences found').should('be.visible');
-    cy.get(`[id="silences-content"]`).find('[class="pf-v6-c-button__text"]').contains('Clear all filters').should('not.exist');
+    cy.bySemanticElement('button', 'Clear all filters').should('not.exist');
   },
 
   emptyState: () => {
     cy.log('silencesListPage.emptyState');
     cy.byTestID('empty-box-body').contains('No Silences found').should('be.visible');
-    cy.get(`[id="silences-content"]`).find('[class="pf-v6-c-button__text"]').contains('Clear all filters').should('be.visible');
-    cy.get('[class="pf-v6-c-label-group__label"]').contains('Silence State').parent().next('div').children('button').should('be.visible');
-    cy.get('[class="pf-v6-c-label__text"]').contains('Active').parent().next('span').children('button').should('be.visible');
-    cy.get('[class="pf-v6-c-label__text"]').contains('Pending').parent().next('span').children('button').should('be.visible');
+    cy.bySemanticElement('button', 'Clear all filters').should('be.visible');
+    cy.get('.pf-v6-c-label-group__label, .pf-v5-c-chip-group__label').contains('Silence State').parent().next('div').children('button').should('be.visible');
+    cy.get('.pf-v6-c-label__text, .pf-v5-c-chip__text').contains('Active').parent().next('span').children('button').should('be.visible');
+    cy.get('.pf-v6-c-label__text, .pf-v5-c-chip__text').contains('Pending').parent().next('span').children('button').should('be.visible'); 
 
   },
 
   createSilence: () => {
-    cy.byTestID('create-silence-btn').should('be.visible').click();
+    cy.log('silencesListPage.createSilence');
+    cy.bySemanticElement('button').contains('Create silence').should('be.visible').click();
   },
 
-  clickFilter: (toOpen: boolean, toClose: boolean) => {
-    cy.log('silencesListPage.clickFilter');
-    if (toOpen) {
-      cy.byClass('pf-v6-c-menu-toggle').eq(2).should('be.visible').click();
-      // cy.get(`[id="silences-content"]`).find('button[class="pf-v6-c-menu-toggle"]').as('filter').click();
-    }
-    if (toClose) {
-      cy.byClass('pf-v6-c-menu-toggle pf-m-expanded').should('be.visible').click();
-      // cy.get(`[id="silences-content"]`).find('button[class="pf-v6-c-menu-toggle pf-m-expanded"]').click();
-    }
-  },
-  /**
-   * 
-   * @param open 
-   * @param option 
-   * @param close 
-   */
-  selectFilterOption: (open: boolean, option: string, close: boolean) => {
-    cy.log('silencesListPage.selectFilterOption');
-    if (open) {
-      silencesListPage.clickFilter(open, false);
-    };
-    cy.byClass('co-filter-dropdown-item__name').contains(option).should('be.visible').click();
-    if (close) {
-      silencesListPage.clickFilter(false, close);
-    };
+  
+
+  filter: {
+    /**
+     * @param name 
+     */
+    byName: (name: string) => {
+      cy.log('silencesListPage.filter.byName');
+      try {
+          cy.byTestID('name-filter-input').scrollIntoView().as('input').should('be.visible');
+          cy.get('@input', { timeout: 10000 }).scrollIntoView().type(name + '{enter}');
+          cy.get('@input', { timeout: 10000 }).scrollIntoView().should('have.attr', 'value', name);
+        
+      }
+      catch (error) {
+        cy.log(`${error.message}`);
+        throw error;
+      }
+    },
   },
 
   rows: {
     shouldBeLoaded: () => {
       cy.log('silencesListPage.rows.shouldBeLoaded');
-      cy.byClass('loading-box loading-box__loaded').should('be.visible');
+      cy.get('.loading-box.loading-box__loaded').should('be.visible');
     },
     countShouldBe: (count: number) => {
       cy.log('silencesListPage.rows.countShouldBe');
-      cy.byClass('pf-v6-c-table__tbody').should('have.length', count);
+      cy.get('.ReactVirtualized__VirtualGrid__innerScrollContainer.pf-v6-c-table__tbody, .ReactVirtualized__VirtualGrid__innerScrollContainer.pf-v5-c-table__tbody').should('have.length', count);
       // cy.get(`[data-test-rows="resource-row"`).should('have.length', count);
     },
     SShouldBe: (alert: string, state: string) => {
       cy.log('silencesListPage.rows.SShouldBe');
-      cy.byClass('pf-v6-c-check pf-m-standalone').should('be.visible');
+      cy.get('.pf-v6-c-check.pf-m-standalone, .pf-v5-c-check.pf-m-standalone').should('be.visible');
       cy.byClass('co-m-resource-icon co-m-resource-silence').contains('S');
       cy.byLegacyTestID('silence-resource-link').contains(alert).should('be.visible');
-      cy.byClass('pf-v6-l-stack__item').eq(0).contains(state).should('be.visible');
+      cy.get('.pf-v6-l-stack__item, .co-break-word').eq(0).contains(state).should('be.visible');
     },
 
     clickSilencedAlert: (alert: string) => {
@@ -85,33 +79,30 @@ export const silencesListPage = {
 
     assertSilencedAlertKebab: () => {
       cy.log('silencesListPage.rows.assertSilencedAlertKebab');
-      cy.get('[aria-label="kebab dropdown toggle"]').should('be.visible').click();
-      cy.byClass('pf-v6-c-menu__item-text').contains('Edit silence').should('be.visible');
-      cy.byClass('pf-v6-c-menu__item-text').contains('Expire silence').should('be.visible');
-
+      cy.get('table').find('.pf-v6-c-menu-toggle.pf-m-plain, .pf-v5-c-dropdown__toggle.pf-m-plain').should('be.visible').click();
+      cy.byPFRole('menuitem').contains('Edit silence').should('be.visible');
+      cy.byPFRole('menuitem').contains('Expire silence').should('be.visible');
     },
 
     assertExpiredAlertKebab: (index: string) => {
       cy.log('silencesListPage.rows.assertExpiredAlertKebab');
       if (!index) {
-        cy.get('[aria-label="kebab dropdown toggle"]').should('be.visible').click();
+        cy.get('table').find('.pf-v6-c-menu-toggle.pf-m-plain, .pf-v5-c-dropdown__toggle.pf-m-plain').should('be.visible').click();
       } else {
-        cy.get('[aria-label="kebab dropdown toggle"]').eq(Number(index)).should('be.visible').click();
+        cy.get('table').find('.pf-v6-c-menu-toggle.pf-m-plain, .pf-v5-c-dropdown__toggle.pf-m-plain').eq(Number(index)).should('be.visible').click();
       }
-
-      cy.byClass('pf-v6-c-menu__item-text').contains('Recreate silence').should('be.visible');
-
+      cy.byPFRole('menuitem').contains('Recreate silence').should('be.visible');
     },
 
     clickAlertKebab: () => {
       cy.log('silencesListPage.rows.clickAlertKebab');
-      cy.get('[aria-label="kebab dropdown toggle"]').should('be.visible').click();
+      cy.get('table').find('.pf-v6-c-menu-toggle.pf-m-plain, .pf-v5-c-dropdown__toggle.pf-m-plain').should('be.visible').click();
     },
 
     editSilence: () => {
       cy.log('silencesListPage.rows.editSilence');
       silencesListPage.rows.clickAlertKebab();
-      cy.byClass('pf-v6-c-menu__item-text').contains('Edit silence').should('be.visible').click();
+      cy.byPFRole('menuitem').contains('Edit silence').should('be.visible').click();
 
     },
     /**
@@ -120,7 +111,7 @@ export const silencesListPage = {
     expireSilence: (yes: boolean) => {
       cy.log('silencesListPage.rows.expireSilence');
       silencesListPage.rows.clickAlertKebab();
-      cy.byClass('pf-v6-c-menu__item-text').contains('Expire silence').should('be.visible').click();
+      cy.byPFRole('menuitem').contains('Expire silence').should('be.visible').click();
       commonPages.confirmExpireAlert(yes);
     }
   },

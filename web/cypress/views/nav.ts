@@ -6,8 +6,12 @@ export const nav = {
     }
   },
   tabs: {
+    /**
+     * Switch to a tab by name
+     * @param tabname - The name of the tab to switch to
+     */
     switchTab: (tabname: string) => {
-      cy.byClass('pf-v6-c-tabs__item-text').contains(tabname).should('be.visible').click();
+      cy.get('.pf-v6-c-tabs__item, .co-m-horizontal-nav__menu-item').contains(tabname).should('be.visible').click();
   }
 }
 };
