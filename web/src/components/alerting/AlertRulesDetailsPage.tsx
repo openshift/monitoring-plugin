@@ -58,7 +58,6 @@ import { formatPrometheusDuration } from '../console/console-shared/src/datetime
 import { ExternalLink } from '../console/utils/link';
 import {
   getAlertRulesUrl,
-  getAlertsUrl,
   getAlertUrl,
   getLegacyObserveState,
   getNewSilenceAlertUrl,
@@ -187,16 +186,9 @@ const AlertRulesDetailsPage_: React.FC = () => {
         <PageGroup>
           <PageBreadcrumb hasBodyWrapper={false}>
             <Breadcrumb>
-              {perspective === 'dev' && (
-                <BreadcrumbItem>
-                  <Link to={getAlertsUrl(perspective, namespace)}>{t('Alerts')}</Link>
-                </BreadcrumbItem>
-              )}
-              {perspective !== 'dev' && (
-                <BreadcrumbItem>
-                  <Link to={getAlertRulesUrl(perspective)}>{t('Alerting rules')}</Link>
-                </BreadcrumbItem>
-              )}
+              <BreadcrumbItem>
+                <Link to={getAlertRulesUrl(perspective, namespace)}>{t('Alerting rules')}</Link>
+              </BreadcrumbItem>
               <BreadcrumbItem isActive>{t('Alerting rule details')}</BreadcrumbItem>
             </Breadcrumb>
           </PageBreadcrumb>
