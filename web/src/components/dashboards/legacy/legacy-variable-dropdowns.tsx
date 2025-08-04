@@ -23,7 +23,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Map as ImmutableMap } from 'immutable';
 
 import { SingleTypeaheadDropdown } from '../../console/utils/single-typeahead-dropdown';
-import { getPrometheusURL } from '../../console/graphs/helpers';
+import { getPrometheusBasePath, buildPrometheusUrl } from '../../console/graphs/helpers';
 import { getQueryArgument, setQueryArgument } from '../../console/utils/router';
 import { useSafeFetch } from '../../console/utils/safe-fetch-hook';
 
@@ -138,7 +138,10 @@ const LegacyDashboardsVariableDropdown: React.FC<VariableDropdownProps> = ({
     async (prometheusProps) => {
       try {
         if (!customDataSourceName) {
-          return getPrometheusURL(prometheusProps, perspective);
+          return buildPrometheusUrl({
+            prometheusUrlProps: prometheusProps,
+            basePath: getPrometheusBasePath({ prometheus: 'cmo', namespace }),
+          });
         } else if (extensionsResolved && hasExtensions) {
           const extension = extensions.find(
             (ext) => ext?.properties?.contextId === 'monitoring-dashboards',
@@ -150,7 +153,14 @@ const LegacyDashboardsVariableDropdown: React.FC<VariableDropdownProps> = ({
             setIsError(true);
             return;
           }
-          return getPrometheusURL(prometheusProps, perspective, dataSource?.basePath);
+          return buildPrometheusUrl({
+            prometheusUrlProps: prometheusProps,
+            basePath: getPrometheusBasePath({
+              prometheus: 'cmo',
+              namespace,
+              basePathOverride: dataSource?.basePath,
+            }),
+          });
         }
       } catch (error) {
         // eslint-disable-next-line no-console
@@ -158,7 +168,7 @@ const LegacyDashboardsVariableDropdown: React.FC<VariableDropdownProps> = ({
         setIsError(true);
       }
     },
-    [customDataSourceName, extensions, extensionsResolved, hasExtensions, perspective],
+    [customDataSourceName, extensions, extensionsResolved, hasExtensions, namespace],
   );
 
   React.useEffect(() => {
@@ -182,7 +192,7 @@ const LegacyDashboardsVariableDropdown: React.FC<VariableDropdownProps> = ({
           samples: Math.ceil(DEFAULT_GRAPH_SAMPLES / timeRanges.length),
           timeout: '60s',
           timespan: timeRange.duration,
-          namespace: perspective === 'dev' ? namespace : '',
+          namespace,
           endTime: timeRange.endTime,
         };
         return getURL(prometheusProps).then((url) =>
@@ -238,22 +248,14 @@ const LegacyDashboardsVariableDropdown: React.FC<VariableDropdownProps> = ({
 
   React.useEffect(() => {
     if (variable.value && variable.value !== getQueryArgument(name)) {
-      if (perspective === 'dev' && name !== 'namespace') {
-        setQueryArgument(name, variable.value);
-      } else if (perspective === 'admin' || perspective === 'virtualization-perspective') {
-        setQueryArgument(name, variable.value);
-      }
+      setQueryArgument(name, variable.value);
     }
   }, [perspective, name, variable.value]);
 
   const onChange = React.useCallback(
     (v: string) => {
       if (v !== variable.value) {
-        if (perspective === 'dev' && name !== 'namespace') {
-          setQueryArgument(name, v);
-        } else if (perspective === 'admin' || perspective === 'virtualization-perspective') {
-          setQueryArgument(name, v);
-        }
+        setQueryArgument(name, v);
         dispatch(dashboardsPatchVariable(name, { value: v }, perspective));
       }
     },

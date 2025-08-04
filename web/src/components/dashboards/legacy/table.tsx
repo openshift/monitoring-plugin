@@ -17,12 +17,11 @@ import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 
 import ErrorAlert from './error';
-import { getPrometheusURL } from '../../console/graphs/helpers';
+import { getPrometheusBasePath, buildPrometheusUrl } from '../../console/graphs/helpers';
 import { usePoll } from '../../console/utils/poll-hook';
 import { useSafeFetch } from '../../console/utils/safe-fetch-hook';
 
 import { formatNumber } from '../../format';
-import { usePerspective } from '../../hooks/usePerspective';
 import TablePagination from '../../table-pagination';
 import { ColumnStyle, Panel } from './types';
 import { CustomDataSource } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
@@ -66,7 +65,6 @@ const perPageOptions: PerPageOptions[] = [5, 10, 20, 50, 100].map((n) => ({
 
 const Table: React.FC<Props> = ({ customDataSource, panel, pollInterval, queries, namespace }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { perspective } = usePerspective();
 
   const [error, setError] = React.useState();
   const [isLoading, setLoading] = React.useState(true);
@@ -84,15 +82,18 @@ const Table: React.FC<Props> = ({ customDataSource, panel, pollInterval, queries
       _.isEmpty(query)
         ? Promise.resolve()
         : safeFetch<PrometheusResponse>(
-            getPrometheusURL(
-              {
+            buildPrometheusUrl({
+              prometheusUrlProps: {
                 endpoint: PrometheusEndpoint.QUERY,
                 query,
-                namespace: perspective === 'dev' ? namespace : '',
+                namespace,
               },
-              perspective,
-              customDataSource?.basePath,
-            ),
+              basePath: getPrometheusBasePath({
+                prometheus: 'cmo',
+                namespace,
+                basePathOverride: customDataSource?.basePath,
+              }),
+            }),
           ),
     );
 

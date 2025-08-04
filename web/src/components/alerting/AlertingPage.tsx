@@ -1,19 +1,22 @@
 import { PageSection, Title } from '@patternfly/react-core';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { HorizontalNav, useActivePerspective } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  HorizontalNav,
+  NamespaceBar,
+  useActivePerspective,
+} from '@openshift-console/dynamic-plugin-sdk';
+import { MonitoringPlugins } from '../utils';
 
-const AlertsPage = React.lazy(
-  () => import(/* webpackChunkName: "AlertsPage" */ '../alerting/AlertsPage'),
-);
+const AlertsPage = React.lazy(() => import(/* webpackChunkName: "AlertsPage" */ './AlertsPage'));
 const SilencesPage = React.lazy(
-  () => import(/* webpackChunkName: "SilencesPage" */ '../alerting/SilencesPage'),
+  () => import(/* webpackChunkName: "SilencesPage" */ './SilencesPage'),
 );
 const AlertRulesPage = React.lazy(
-  () => import(/* webpackChunkName: "AlertRulesPage" */ '../alerting/AlertRulesPage'),
+  () => import(/* webpackChunkName: "AlertRulesPage" */ './AlertRulesPage'),
 );
 
-const AlertingPage: React.FC = () => {
+const AlertingPage: React.FC<{ plugin: MonitoringPlugins }> = ({ plugin }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const [perspective] = useActivePerspective();
@@ -27,27 +30,28 @@ const AlertingPage: React.FC = () => {
       href: 'alerts',
       // t('Alerts')
       nameKey: 'Alerts',
-      component: AlertsPage,
+      component: () => <AlertsPage plugin={plugin} />,
       name: 'Alerts',
     },
     {
       href: 'silences',
       // t('Silences')
       nameKey: 'Silences',
-      component: SilencesPage,
+      component: () => <SilencesPage plugin={plugin} />,
       name: 'Silences',
     },
     {
       href: 'alertrules',
       // t('Alerting rules')
       nameKey: 'Alerting rules',
-      component: AlertRulesPage,
+      component: () => <AlertRulesPage plugin={plugin} />,
       name: 'Alerting rules',
     },
   ];
 
   return (
     <>
+      <NamespaceBar />
       <PageSection hasBodyWrapper={false}>
         <Title headingLevel="h1">{t('Alerting')}</Title>
         <HorizontalNav contextId={contextId} pages={pages} />
@@ -56,4 +60,10 @@ const AlertingPage: React.FC = () => {
   );
 };
 
-export default AlertingPage;
+export const MonitoringConsolePluginAlertingPage: React.FC = () => (
+  <AlertingPage plugin="monitoring-console-plugin" />
+);
+
+export const MonitoringPluginAlertingPage: React.FC = () => (
+  <AlertingPage plugin="monitoring-plugin" />
+);
