@@ -37,8 +37,8 @@ export const detailsPage = {
   clickInspectAlertPage: () =>{
     cy.log('detailsPage.clickInspectAlertPage');
     try {
-      cy.byAriaLabel('Inspect').should('be.visible').click(); //pf-5 cy.byAriaLabel('View in Metrics').should('be.visible').click(); 
-      // cy.get(`a[aria-label="Inspect"]` , { timeout: 10000 }).click();
+      cy.byAriaLabel('Inspect').should('be.visible');
+      cy.get(`a[aria-label="Inspect"]` , { timeout: 10000 }).click();
     } catch (error) {
       cy.log(`${error.message}`);
       throw error; 

@@ -297,7 +297,7 @@ describe('Regression: Monitoring - Alerts', () => {
     nav.tabs.switchTab('Silences');
     silencesListPage.shouldBeLoaded();
     listPage.filter.removeIndividualTag('Active');
-    listPage.filter.removeIndividualTag( 'Pending');
+    listPage.filter.removeIndividualTag('Pending');
     silencesListPage.filter.byName(`${ALERTNAME}`);
     listPage.filter.clickFilter(true,false);
     listPage.filter.selectFilterOption(false, 'Active', true);
@@ -316,7 +316,6 @@ describe('Regression: Monitoring - Alerts', () => {
 
     cy.log('3.8 Assert Kebab on Silence List page for Expired alert');
     silencesListPage.emptyState();
-    listPage.filter.removeMainTag('Silence State');
     listPage.filter.removeMainTag('Silence State');
     listPage.filter.selectFilterOption(true, 'Expired', false);
     listPage.filter.selectFilterOption(false, 'Active', false);
