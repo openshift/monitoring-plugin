@@ -33,13 +33,14 @@ import {
   Perspective,
 } from '../../../actions/observe';
 import { getTimeRanges, isTimeoutError, QUERY_CHUNK_SIZE } from '../../utils';
-import { getLegacyObserveState, usePerspective } from '../../hooks/usePerspective';
+import { getObserveState, usePerspective } from '../../hooks/usePerspective';
 import { MonitoringState } from '../../../reducers/observe';
 import { DEFAULT_GRAPH_SAMPLES, MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY } from './utils';
 import {
   DataSource,
   isDataSource,
 } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
+import { MonitoringContext } from '../../../contexts/MonitoringContext';
 
 const intervalVariableRegExps = ['__interval', '__rate_interval', '__auto_interval_[a-z]+'];
 
@@ -112,13 +113,14 @@ const LegacyDashboardsVariableDropdown: React.FC<VariableDropdownProps> = ({
   perspective,
 }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const { plugin } = React.useContext(MonitoringContext);
 
   const timespan = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'timespan']),
+    getObserveState(plugin, state)?.getIn(['dashboards', perspective, 'timespan']),
   );
 
   const variables = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'variables']),
+    getObserveState(plugin, state)?.getIn(['dashboards', perspective, 'variables']),
   );
   const variable = variables.toJS()[name];
   const query = evaluateVariableTemplate(variable.query, variables, timespan);
@@ -315,8 +317,10 @@ const LegacyDashboardsVariableDropdown: React.FC<VariableDropdownProps> = ({
 export const LegacyDashboardsAllVariableDropdowns: React.FC = () => {
   const [namespace] = useActiveNamespace();
   const { perspective } = usePerspective();
+  const { plugin } = React.useContext(MonitoringContext);
+
   const variables = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'variables']),
+    getObserveState(plugin, state)?.getIn(['dashboards', perspective, 'variables']),
   );
 
   if (!variables) {

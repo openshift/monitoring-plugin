@@ -33,7 +33,7 @@ import { useBoolean } from '../../hooks/useBoolean';
 import { useIsVisible } from '../../hooks/useIsVisible';
 import {
   getMutlipleQueryBrowserUrl,
-  getLegacyObserveState,
+  getObserveState,
   usePerspective,
 } from '../../hooks/usePerspective';
 import KebabDropdown from '../../kebab-dropdown';
@@ -49,6 +49,7 @@ import {
 import { t_global_font_size_heading_h2 } from '@patternfly/react-tokens';
 import { GraphEmpty } from '../../../components/console/graphs/graph-empty';
 import { GraphUnits } from '../../../components/metrics/units';
+import { MonitoringContext } from '../../../contexts/MonitoringContext';
 
 const QueryBrowserLink = ({
   queries,
@@ -95,16 +96,17 @@ const getPanelSpan = (panel: Panel): gridSpans => {
 
 const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const { plugin } = React.useContext(MonitoringContext);
 
   const [namespace] = useActiveNamespace();
   const pollInterval = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'pollInterval']),
+    getObserveState(plugin, state)?.getIn(['dashboards', perspective, 'pollInterval']),
   );
   const timespan = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'timespan']),
+    getObserveState(plugin, state)?.getIn(['dashboards', perspective, 'timespan']),
   );
   const variables = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'variables']),
+    getObserveState(plugin, state)?.getIn(['dashboards', perspective, 'variables']),
   );
 
   const ref = React.useRef();

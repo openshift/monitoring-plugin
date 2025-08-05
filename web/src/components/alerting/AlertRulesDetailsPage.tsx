@@ -59,7 +59,7 @@ import { ExternalLink } from '../console/utils/link';
 import {
   getAlertRulesUrl,
   getAlertUrl,
-  getLegacyObserveState,
+  getObserveState,
   getNewSilenceAlertUrl,
   getQueryBrowserUrl,
   usePerspective,
@@ -69,7 +69,7 @@ import { Labels } from '../labels';
 import { ToggleGraph } from '../MetricsPage';
 import { Alerts } from '../types';
 import { alertDescription, RuleResource } from '../utils';
-import { MonitoringProvider } from '../../contexts/MonitoringContext';
+import { MonitoringContext, MonitoringProvider } from '../../contexts/MonitoringContext';
 import { useAlertsPoller } from '../hooks/useAlertsPoller';
 
 // Renders Prometheus template text and highlights any {{ ... }} tags that it contains
@@ -143,6 +143,7 @@ export const ActiveAlerts: React.FC<ActiveAlertsProps> = ({ alerts, namespace, r
 const AlertRulesDetailsPage_: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const params = useParams<{ ns?: string; id: string }>();
+  const { plugin } = React.useContext(MonitoringContext);
 
   useAlertsPoller();
 
@@ -150,12 +151,12 @@ const AlertRulesDetailsPage_: React.FC = () => {
   const namespace = params?.ns;
 
   const rules: Rule[] = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.get(rulesKey),
+    getObserveState(plugin, state)?.get(rulesKey),
   );
   const rule = _.find(rules, { id: params.id });
 
   const { loaded, loadError }: Alerts = useSelector(
-    (state: MonitoringState) => getLegacyObserveState(perspective, state)?.get(alertsKey) || {},
+    (state: MonitoringState) => getObserveState(plugin, state)?.get(alertsKey) || {},
   );
 
   const sourceId = rule?.sourceId;

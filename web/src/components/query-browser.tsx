@@ -87,7 +87,8 @@ import {
   formatPrometheusDuration,
   parsePrometheusDuration,
 } from './console/console-shared/src/datetime/prometheus';
-import { getLegacyObserveState, getObserveState, usePerspective } from './hooks/usePerspective';
+import { getObserveState } from './hooks/usePerspective';
+import { MonitoringContext } from '../contexts/MonitoringContext';
 import './query-browser.scss';
 import { GraphUnits } from './metrics/units';
 
@@ -596,18 +597,17 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
   isPlain = false,
 }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { perspective } = usePerspective();
+  const { plugin } = React.useContext(MonitoringContext);
 
   const hideGraphs = useSelector(
-    (state: MonitoringState) => !!getObserveState(perspective, state)?.get('hideGraphs'),
+    (state: MonitoringState) => !!getObserveState(plugin, state)?.get('hideGraphs'),
   );
   const tickInterval = useSelector(
     (state: MonitoringState) =>
-      pollInterval ??
-      getLegacyObserveState(perspective, state)?.getIn(['queryBrowser', 'pollInterval']),
+      pollInterval ?? getObserveState(plugin, state)?.getIn(['queryBrowser', 'pollInterval']),
   );
   const lastRequestTime = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['queryBrowser', 'lastRequestTime']),
+    getObserveState(plugin, state)?.getIn(['queryBrowser', 'lastRequestTime']),
   );
 
   const dispatch = useDispatch();

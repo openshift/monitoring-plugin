@@ -14,8 +14,8 @@ import KebabDropdown from '../kebab-dropdown';
 import { useTranslation } from 'react-i18next';
 import {
   getAlertUrl,
-  getLegacyObserveState,
   getNewSilenceAlertUrl,
+  getObserveState,
   getRuleUrl,
   usePerspective,
 } from '../hooks/usePerspective';
@@ -25,6 +25,7 @@ import { SeverityBadge } from '../alerting/AlertUtils';
 import { useAlertsPoller } from '../hooks/useAlertsPoller';
 import { useSelector } from 'react-redux';
 import isEqual from 'lodash/isEqual';
+import { MonitoringContext } from '../../contexts/MonitoringContext';
 
 function useDeepCompareMemoize(value) {
   const ref = React.useRef();
@@ -43,10 +44,9 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
   const { perspective, alertsKey } = usePerspective();
   const [alertsWithMatchedData, setAlertsWithMatchedData] = React.useState([]);
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const { plugin } = React.useContext(MonitoringContext);
 
-  const alertsWithLabels = useSelector((state) =>
-    getLegacyObserveState(perspective, state)?.get(alertsKey),
-  );
+  const alertsWithLabels = useSelector((state) => getObserveState(plugin, state)?.get(alertsKey));
 
   function findMatchingAlertsWithId(alertsArray, rulesArray) {
     return alertsArray.map((alert) => {
