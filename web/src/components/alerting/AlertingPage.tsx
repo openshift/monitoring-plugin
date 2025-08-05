@@ -44,7 +44,7 @@ const AlertingPage: React.FC = () => {
 
   const [perspective] = useActivePerspective();
 
-  const monitoringContext = React.useContext(MonitoringContext);
+  const { plugin } = React.useContext(MonitoringContext);
 
   // contextId allow console.tab extensions to be injected
   // https://github.com/openshift/console/blob/main/frontend/packages/console-dynamic-plugin-sdk/docs/console-extensions.md#consoletab
@@ -56,11 +56,7 @@ const AlertingPage: React.FC = () => {
       // t('Alerts')
       nameKey: 'Alerts',
       component: () =>
-        monitoringContext.plugin === 'monitoring-plugin' ? (
-          <MpCmoAlertsPage />
-        ) : (
-          <McpAcmAlertsPage />
-        ),
+        plugin === 'monitoring-plugin' ? <MpCmoAlertsPage /> : <McpAcmAlertsPage />,
       name: 'Alerts',
     },
     {
@@ -68,11 +64,7 @@ const AlertingPage: React.FC = () => {
       // t('Silences')
       nameKey: 'Silences',
       component: () =>
-        monitoringContext.plugin === 'monitoring-plugin' ? (
-          <MpCmoSilencesPage />
-        ) : (
-          <McpAcmSilencesPage />
-        ),
+        plugin === 'monitoring-plugin' ? <MpCmoSilencesPage /> : <McpAcmSilencesPage />,
       name: 'Silences',
     },
     {
@@ -81,11 +73,7 @@ const AlertingPage: React.FC = () => {
       // t('Alerting rules')
       nameKey: 'Alerting rules',
       component: () =>
-        monitoringContext.plugin === 'monitoring-plugin' ? (
-          <MpCmoAlertRulesPage />
-        ) : (
-          <McpAcmAlertRulesPage />
-        ),
+        plugin === 'monitoring-plugin' ? <MpCmoAlertRulesPage /> : <McpAcmAlertRulesPage />,
       name: 'Alerting rules',
     },
   ];

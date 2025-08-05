@@ -40,7 +40,7 @@ const AlertsPage_: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const [namespace] = useActiveNamespace();
   const { alertsKey, silencesKey, defaultAlertTenant, perspective } = usePerspective();
-  const monitoringContext = React.useContext(MonitoringContext);
+  const { plugin } = React.useContext(MonitoringContext);
 
   useAlertsPoller();
 
@@ -49,12 +49,10 @@ const AlertsPage_: React.FC = () => {
     loaded = false,
     loadError,
   }: Alerts = useSelector(
-    (state: MonitoringState) =>
-      getObserveState(monitoringContext.plugin, state)?.get(alertsKey) || {},
+    (state: MonitoringState) => getObserveState(plugin, state)?.get(alertsKey) || {},
   );
   const silencesLoadError = useSelector(
-    (state: MonitoringState) =>
-      getObserveState(monitoringContext.plugin, state)?.get(silencesKey)?.loadError,
+    (state: MonitoringState) => getObserveState(plugin, state)?.get(silencesKey)?.loadError,
   );
 
   const alertAdditionalSources = React.useMemo(

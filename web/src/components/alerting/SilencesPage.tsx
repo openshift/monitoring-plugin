@@ -45,7 +45,7 @@ import { DataTestIDs } from '../data-test';
 
 const SilencesPage_: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const monitoringContext = React.useContext(MonitoringContext);
+  const { plugin } = React.useContext(MonitoringContext);
 
   const { silencesKey, perspective } = usePerspective();
 
@@ -59,8 +59,7 @@ const SilencesPage_: React.FC = () => {
     loaded = false,
     loadError,
   }: Silences = useSelector(
-    (state: MonitoringState) =>
-      getObserveState(monitoringContext.plugin, state)?.get(silencesKey) || {},
+    (state: MonitoringState) => getObserveState(plugin, state)?.get(silencesKey) || {},
   );
 
   const clusters = React.useMemo(() => {
