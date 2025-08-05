@@ -16,7 +16,6 @@ import {
   ToolbarItem,
   MenuToggle,
   Badge,
-  Title,
   PageSection,
   Stack,
   StackItem,
@@ -30,6 +29,7 @@ import {
 } from './processIncidents';
 import {
   filterIncident,
+  isIncidentFilter,
   onDeleteGroupIncidentFilterChip,
   onDeleteIncidentFilterChip,
   onIncidentFiltersSelect,
@@ -56,6 +56,8 @@ import withFallback from '../console/console-shared/error/fallbacks/withFallback
 import IncidentsChart from './IncidentsChart/IncidentsChart';
 import AlertsChart from './AlertsChart/AlertsChart';
 import { usePatternFlyTheme } from '../hooks/usePatternflyTheme';
+import { MonitoringState } from 'src/reducers/observe';
+import { Incident } from './model';
 
 const IncidentsPage = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -69,10 +71,12 @@ const IncidentsPage = () => {
   // days span is where we store the value for creating time ranges for
   // fetch incidents/alerts based on the length of time ranges
   // when days filter changes we set a new days span -> calculate new time range and fetch new data
-  const [daysSpan, setDaysSpan] = React.useState();
+  const [daysSpan, setDaysSpan] = React.useState<number>();
   const [timeRanges, setTimeRanges] = React.useState([]);
   // data that is used for processing to serve it to the alerts table and chart
-  const [incidentForAlertProcessing, setIncidentForAlertProcessing] = React.useState([]);
+  const [incidentForAlertProcessing, setIncidentForAlertProcessing] = React.useState<
+    Array<Partial<Incident>>
+  >([]);
   const [hideCharts, setHideCharts] = React.useState(false);
 
   const [incidentFilterIsExpanded, setIncidentIsExpanded] = React.useState(false);
@@ -87,26 +91,28 @@ const IncidentsPage = () => {
     setDaysFilterIsExpanded(!daysFilterIsExpanded);
   };
 
-  const incidentsInitialState = useSelector((state) =>
+  const incidentsInitialState = useSelector((state: MonitoringState) =>
     state.plugins.mcp.getIn(['incidentsData', 'incidentsInitialState']),
   );
 
-  const incidents = useSelector((state) => state.plugins.mcp.getIn(['incidentsData', 'incidents']));
+  const incidents = useSelector((state: MonitoringState) =>
+    state.plugins.mcp.getIn(['incidentsData', 'incidents']),
+  );
 
-  const incidentsActiveFilters = useSelector((state) =>
+  const incidentsActiveFilters = useSelector((state: MonitoringState) =>
     state.plugins.mcp.getIn(['incidentsData', 'incidentsActiveFilters']),
   );
-  const incidentGroupId = useSelector((state) =>
+  const incidentGroupId = useSelector((state: MonitoringState) =>
     state.plugins.mcp.getIn(['incidentsData', 'groupId']),
   );
-  const alertsData = useSelector((state) =>
+  const alertsData = useSelector((state: MonitoringState) =>
     state.plugins.mcp.getIn(['incidentsData', 'alertsData']),
   );
-  const alertsAreLoading = useSelector((state) =>
+  const alertsAreLoading = useSelector((state: MonitoringState) =>
     state.plugins.mcp.getIn(['incidentsData', 'alertsAreLoading']),
   );
 
-  const filteredData = useSelector((state) =>
+  const filteredData = useSelector((state: MonitoringState) =>
     state.plugins.mcp.getIn(['incidentsData', 'filteredIncidentsData']),
   );
   React.useEffect(() => {
@@ -185,7 +191,7 @@ const IncidentsPage = () => {
         }),
       )
         .then((results) => {
-          const aggregatedData = results.reduce((acc, result) => acc.concat(result), []);
+          const aggregatedData = results.flat();
           dispatch(
             setAlertsData({
               alertsData: processAlerts(aggregatedData, incidentForAlertProcessing),
@@ -222,7 +228,7 @@ const IncidentsPage = () => {
         }),
       )
         .then((results) => {
-          const aggregatedData = results.reduce((acc, result) => acc.concat(result), []);
+          const aggregatedData = results.flat();
           dispatch(
             setIncidents({
               incidents: processIncidents(aggregatedData),
@@ -259,7 +265,7 @@ const IncidentsPage = () => {
         }),
       )
         .then((results) => {
-          const aggregatedData = results.reduce((acc, result) => acc.concat(result), []);
+          const aggregatedData = results.flat();
           setIncidentForAlertProcessing(processIncidentsForAlerts(aggregatedData));
           dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
           setIncidentsAreLoading(false);
@@ -295,16 +301,23 @@ const IncidentsPage = () => {
               id="toolbar-with-filter"
               collapseListedFiltersBreakpoint="xl"
               clearAllFilters={() =>
-                onDeleteIncidentFilterChip('', '', incidentsActiveFilters, dispatch)
+                onDeleteIncidentFilterChip('', undefined, incidentsActiveFilters, dispatch)
               }
             >
               <ToolbarContent>
                 <ToolbarItem>
                   <ToolbarFilter
                     labels={incidentsActiveFilters.incidentFilters}
-                    deleteLabel={(category, chip) =>
-                      onDeleteIncidentFilterChip(category, chip, incidentsActiveFilters, dispatch)
-                    }
+                    deleteLabel={(category, chip) => {
+                      if (isIncidentFilter(chip) && typeof category === 'string') {
+                        onDeleteIncidentFilterChip(
+                          category,
+                          chip,
+                          incidentsActiveFilters,
+                          dispatch,
+                        );
+                      }
+                    }}
                     deleteLabelGroup={() =>
                       onDeleteGroupIncidentFilterChip(incidentsActiveFilters, dispatch)
                     }
@@ -316,9 +329,16 @@ const IncidentsPage = () => {
                       aria-label="Filters"
                       isOpen={incidentFilterIsExpanded}
                       selected={incidentsActiveFilters.incidentFilters}
-                      onSelect={(event, selection) =>
-                        onIncidentFiltersSelect(event, selection, dispatch, incidentsActiveFilters)
-                      }
+                      onSelect={(event, selection) => {
+                        if (isIncidentFilter(selection)) {
+                          onIncidentFiltersSelect(
+                            event,
+                            selection,
+                            dispatch,
+                            incidentsActiveFilters,
+                          );
+                        }
+                      }}
                       onOpenChange={(isOpen) => setIncidentIsExpanded(isOpen)}
                       toggle={(toggleRef) => (
                         <MenuToggle
@@ -358,7 +378,9 @@ const IncidentsPage = () => {
                         </SelectOption>
                         <SelectOption
                           value="Informative"
-                          isSelected={incidentsActiveFilters.incidentFilters.includes('Informative')}
+                          isSelected={incidentsActiveFilters.incidentFilters.includes(
+                            'Informative',
+                          )}
                           description="The incident is not critical."
                           hasCheckbox
                         >

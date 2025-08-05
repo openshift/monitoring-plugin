@@ -1,22 +1,16 @@
-import React from 'react';
-import { Table, Thead, Tr, Th, Tbody, Td, ExpandableRowContent } from '@patternfly/react-table';
-import {
-  Bullseye,
-  Card,
-  CardBody,
-  EmptyState,
-  EmptyStateBody,
-  Label,
-} from '@patternfly/react-core';
-import InfoCircleIcon from '@patternfly/react-icons/dist/esm/icons/info-circle-icon';
-import IncidentsDetailsRowTable from './IncidentsDetailsRowTable';
-import { BellIcon, BellSlashIcon, SearchIcon } from '@patternfly/react-icons';
-import { useSelector } from 'react-redux';
-import * as _ from 'lodash-es';
-import { AlertState, AlertStateIcon, SeverityBadge } from '../alerting/AlertUtils';
 import { AlertSeverity, AlertStates } from '@openshift-console/dynamic-plugin-sdk';
+import { Bullseye, Card, CardBody, EmptyState, EmptyStateBody } from '@patternfly/react-core';
+import { SearchIcon } from '@patternfly/react-icons';
+import { ExpandableRowContent, Table, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
+import * as _ from 'lodash-es';
+import React from 'react';
+import { useSelector } from 'react-redux';
+import { MonitoringState } from 'src/reducers/observe';
+import { AlertStateIcon, SeverityBadge } from '../alerting/AlertUtils';
+import IncidentsDetailsRowTable from './IncidentsDetailsRowTable';
+import { Alert } from './model';
 
-export const IncidentsTable = ({ namespace }) => {
+export const IncidentsTable = () => {
   const columnNames = {
     checkbox: '',
     component: 'Component',
@@ -24,16 +18,16 @@ export const IncidentsTable = ({ namespace }) => {
     state: 'State',
   };
   const [expandedAlerts, setExpandedAlerts] = React.useState([]);
-  const setAlertExpanded = (alert, isExpanding = true) =>
+  const setAlertExpanded = (alert: Alert, isExpanding = true) =>
     setExpandedAlerts((prevExpanded) => {
       const otherAlertExpanded = prevExpanded.filter((r) => r !== alert.component);
       return isExpanding ? [...otherAlertExpanded, alert.component] : otherAlertExpanded;
     });
-  const isAlertExpanded = (alert) => expandedAlerts.includes(alert.component);
-  const alertsTableData = useSelector((state) =>
+  const isAlertExpanded = (alert: Alert) => expandedAlerts.includes(alert.component);
+  const alertsTableData = useSelector((state: MonitoringState) =>
     state.plugins.mcp.getIn(['incidentsData', 'alertsTableData']),
   );
-  const alertsAreLoading = useSelector((state) =>
+  const alertsAreLoading = useSelector((state: MonitoringState) =>
     state.plugins.mcp.getIn(['incidentsData', 'alertsAreLoading']),
   );
 
@@ -108,10 +102,7 @@ export const IncidentsTable = ({ namespace }) => {
                   <Tr isExpanded={isAlertExpanded(alert)}>
                     <Td width={100} colSpan={6}>
                       <ExpandableRowContent>
-                        <IncidentsDetailsRowTable
-                          alerts={alert.alertsExpandedRowData}
-                          namespace={namespace}
-                        />
+                        <IncidentsDetailsRowTable alerts={alert.alertsExpandedRowData} />
                       </ExpandableRowContent>
                     </Td>
                   </Tr>

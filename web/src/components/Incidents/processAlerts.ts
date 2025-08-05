@@ -1,5 +1,7 @@
 /* eslint-disable max-len */
 
+import { PrometheusResult } from '@openshift-console/dynamic-plugin-sdk';
+import { Alert, Incident, Severity } from './model';
 import { sortObjectsByEarliestTimestamp } from './processIncidents';
 
 /**
@@ -29,7 +31,7 @@ import { sortObjectsByEarliestTimestamp } from './processIncidents';
  * const groupedAlerts = groupAlerts(alerts);
  * // Returns an array where the two alerts are grouped together with deduplicated values.
  */
-export function groupAlerts(objects) {
+export function groupAlerts(objects: Array<PrometheusResult>): Array<PrometheusResult> {
   // Step 1: Filter out all non firing alerts
   const filteredObjects = objects.filter((obj) => obj.metric.alertstate === 'firing');
   const groupedObjects = new Map();
@@ -137,52 +139,58 @@ export function groupAlerts(objects) {
  * // ]
  */
 
-export function processAlerts(data, selectedIncidents) {
+export function processAlerts(
+  data: Array<PrometheusResult>,
+  selectedIncidents: Array<Partial<Incident>>,
+): Array<Alert> {
   const firing = groupAlerts(data).filter((alert) => alert.metric.alertname !== 'Watchdog');
 
   // Extract the first and last timestamps from selectedIncidents
-  const timestamps = selectedIncidents.flatMap((incident) =>
-    incident.values.map((value) => new Date(value[0])),
+  const timestamps = selectedIncidents.flatMap(
+    (incident) => incident.values?.map((value) => value[0]) ?? [],
   );
 
-  const firstTimestamp = new Date(Math.min(...timestamps));
-  const lastTimestamp = new Date(Math.max(...timestamps));
+  const firstTimestamp = Math.min(...timestamps);
+  const lastTimestamp = Math.max(...timestamps);
 
-  return sortObjectsByEarliestTimestamp(firing).map((alert, index) => {
-    // Filter values based on firstTimestamp and lastTimestamp keep only values within range
-    const processedValues = alert.values
-      .map((value) => {
-        const timestamp = new Date(value[0] * 1000);
-        return [timestamp, value[1]];
-      })
-      .filter(([date]) => date >= firstTimestamp && date <= lastTimestamp);
+  return sortObjectsByEarliestTimestamp(firing)
+    .map((alert, index) => {
+      // Filter values based on firstTimestamp and lastTimestamp keep only values within range
+      const processedValues: Array<[number, string]> = alert.values.filter(
+        ([date]) => date >= firstTimestamp && date <= lastTimestamp,
+      );
 
-    const sortedValues = processedValues.sort((a, b) => a[0] - b[0]);
+      const sortedValues = processedValues.sort((a, b) => a[0] - b[0]);
 
-    const alertsStartFiring = sortedValues[0][0];
-    const alertsEndFiring = sortedValues[sortedValues.length - 1][0];
-    const resolved = new Date() - alertsEndFiring > 10 * 60 * 1000;
+      if (sortedValues.length === 0) {
+        return null;
+      }
 
-    return {
-      alertname: alert.metric.alertname,
-      namespace: alert.metric.namespace,
-      severity: alert.metric.severity,
-      component: alert.metric.component,
-      layer: alert.metric.layer,
-      name: alert.metric.name,
-      alertstate: resolved ? 'resolved' : 'firing',
-      values: sortedValues,
-      alertsStartFiring,
-      alertsEndFiring,
-      resolved,
-      x: firing.length - index,
-    };
-  });
+      const alertsStartFiring = sortedValues[0][0] * 1000;
+      const alertsEndFiring = sortedValues[sortedValues.length - 1][0] * 1000;
+      const resolved = Date.now() - alertsEndFiring > 10 * 60 * 1000;
+
+      return {
+        alertname: alert.metric.alertname,
+        namespace: alert.metric.namespace,
+        severity: alert.metric.severity as Severity,
+        component: alert.metric.component,
+        layer: alert.metric.layer,
+        name: alert.metric.name,
+        alertstate: resolved ? 'resolved' : 'firing',
+        values: sortedValues,
+        alertsStartFiring,
+        alertsEndFiring,
+        resolved,
+        x: firing.length - index,
+      };
+    })
+    .filter((alert) => alert !== null);
 }
 
-export const groupAlertsForTable = (alerts) => {
+export const groupAlertsForTable = (alerts: Array<Alert>): Array<Alert> => {
   // group alerts by the component and coun
-  const groupedAlerts = alerts.reduce((acc, alert) => {
+  const groupedAlerts: Array<Alert> = alerts.reduce((acc, alert) => {
     const { component, alertstate, severity, layer } = alert;
     const existingGroup = acc.find((group) => group.component === component);
     if (existingGroup) {

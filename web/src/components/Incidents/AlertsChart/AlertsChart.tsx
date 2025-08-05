@@ -7,107 +7,89 @@ import {
   ChartGroup,
   ChartLabel,
   ChartLegend,
-  ChartThemeColor,
   ChartTooltip,
   ChartVoronoiContainer,
 } from '@patternfly/react-charts/victory';
-import { Bullseye, Card, CardBody, CardTitle, Spinner } from '@patternfly/react-core';
-import {
-  createIncidentsChartBars,
-  formatDate,
-  generateDateArray,
-  updateBrowserUrl,
-} from '../utils';
+import { Card, CardBody, CardTitle, EmptyState, EmptyStateBody } from '@patternfly/react-core';
+import { createAlertsChartBars, formatDate, generateDateArray } from '../utils';
 import { getResizeObserver } from '@patternfly/react-core';
 import { useDispatch, useSelector } from 'react-redux';
-import { setChooseIncident } from '../../../actions/observe';
+import { setAlertsAreLoading } from '../../../actions/observe';
 import {
   t_global_color_status_danger_default,
   t_global_color_status_info_default,
   t_global_color_status_warning_default,
 } from '@patternfly/react-tokens';
-import { setAlertsAreLoading } from '../../../actions/observe';
+import { MonitoringState } from '../../../reducers/observe';
+import { VictoryPortal } from 'victory';
 
-const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
+const AlertsChart = ({ chartDays, theme }: { chartDays: number; theme: 'light' | 'dark' }) => {
   const dispatch = useDispatch();
-  const [isLoading, setIsLoading] = React.useState(true);
-  const [chartContainerHeight, setChartContainerHeight] = React.useState();
-  const [chartHeight, setChartHeight] = React.useState();
+  const [chartContainerHeight, setChartContainerHeight] = React.useState<number>();
+  const [chartHeight, setChartHeight] = React.useState<number>();
+  const alertsData = useSelector((state: MonitoringState) =>
+    state.plugins.mcp.getIn(['incidentsData', 'alertsData']),
+  );
+  const alertsAreLoading = useSelector((state: MonitoringState) =>
+    state.plugins.mcp.getIn(['incidentsData', 'alertsAreLoading']),
+  );
+  const filteredData = useSelector((state: MonitoringState) =>
+    state.plugins.mcp.getIn(['incidentsData', 'filteredIncidentsData']),
+  );
+  const incidentGroupId = useSelector((state: MonitoringState) =>
+    state.plugins.mcp.getIn(['incidentsData', 'groupId']),
+  );
+
   const dateValues = React.useMemo(() => generateDateArray(chartDays), [chartDays]);
 
   const chartData = React.useMemo(() => {
-    if (!Array.isArray(incidentsData) || incidentsData.length === 0) return [];
-    return incidentsData.map((incident) => createIncidentsChartBars(incident, theme, dateValues));
-  }, [incidentsData, theme, dateValues]);
-
-  React.useEffect(() => {
-    setIsLoading(false);
-  }, [incidentsData]);
+    if (!Array.isArray(alertsData) || alertsData.length === 0) return [];
+    return alertsData.map((alert) => createAlertsChartBars(alert, dateValues));
+  }, [alertsData, dateValues]);
 
   React.useEffect(() => {
     setChartContainerHeight(chartData?.length < 5 ? 300 : chartData?.length * 60);
     setChartHeight(chartData?.length < 5 ? 250 : chartData?.length * 55);
   }, [chartData]);
 
+  const selectedIncidentIsVisible = React.useMemo(() => {
+    return filteredData.some((incident) => incident.group_id === incidentGroupId);
+  }, [filteredData, incidentGroupId]);
+
+  React.useEffect(() => {
+    dispatch(setAlertsAreLoading({ alertsAreLoading: !selectedIncidentIsVisible }));
+  }, [dispatch, selectedIncidentIsVisible]);
+
   const [width, setWidth] = React.useState(0);
   const containerRef = React.useRef(null);
-
-  const handleResize = () => {
+  const handleResize = React.useCallback(() => {
     if (containerRef.current && containerRef.current.clientWidth) {
       setWidth(containerRef.current.clientWidth);
     }
-  };
+  }, []);
   React.useEffect(() => {
     const observer = getResizeObserver(containerRef.current, handleResize);
     handleResize();
     return () => observer();
-  }, []);
-
-  const selectedId = useSelector((state) => state.plugins.mcp.getIn(['incidentsData', 'groupId']));
-  const incidentsActiveFilters = useSelector((state) =>
-    state.plugins.mcp.getIn(['incidentsData', 'incidentsActiveFilters']),
-  );
-
-  const isHidden = React.useCallback(
-    (group_id) => selectedId !== '' && selectedId !== group_id,
-    [selectedId],
-  );
-  const clickHandler = (data, datum) => {
-    if (datum.datum.group_id === selectedId) {
-      dispatch(
-        setChooseIncident({
-          groupId: '',
-        }),
-      );
-      updateBrowserUrl(incidentsActiveFilters, '');
-      dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
-    } else {
-      dispatch(
-        setChooseIncident({
-          groupId: datum.datum.group_id,
-        }),
-      );
-      updateBrowserUrl(incidentsActiveFilters, datum.datum.group_id);
-    }
-  };
-
-  const getOpacity = React.useCallback(
-    (datum) => (datum.fillOpacity = isHidden(datum.group_id) ? '0.3' : '1'),
-    [isHidden],
-  );
+  }, [handleResize]);
 
   return (
-    <Card className="incidents-chart-card">
+    <Card className="alerts-chart-card" style={{ overflow: 'visible' }}>
       <div ref={containerRef}>
-        <CardTitle>Incidents Timeline</CardTitle>
-        {isLoading ? (
-          <Bullseye>
-            <Spinner aria-label="incidents-chart-spinner" />
-          </Bullseye>
+        <CardTitle>Alerts Timeline</CardTitle>
+        {alertsAreLoading ? (
+          <EmptyState
+            variant="lg"
+            style={{
+              height: '250px',
+            }}
+          >
+            <EmptyStateBody>Select an incident in the chart above to see alerts.</EmptyStateBody>
+          </EmptyState>
         ) : (
           <CardBody
             style={{
-              height: { chartContainerHeight },
+              height: chartContainerHeight,
               width: '100%',
             }}
           >
@@ -115,23 +97,28 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
               containerComponent={
                 <ChartVoronoiContainer
                   labelComponent={
-                    <ChartTooltip
-                      orientation="top"
-                      dx={({ x, x0 }) => -(x - x0) / 2}
-                      dy={-5} // Position tooltip so pointer appears above bar
-                      constrainToVisibleArea
-                      labelComponent={<ChartLabel />}
-                    />
+                    <VictoryPortal>
+                      <ChartTooltip
+                        orientation="top"
+                        dx={({ x, x0 }: any) => -(x - x0) / 2}
+                        dy={-5} // Position tooltip so pointer appears above bar
+                        labelComponent={<ChartLabel />}
+                      />
+                    </VictoryPortal>
                   }
                   labels={({ datum }) => {
                     if (datum.nodata) {
                       return null;
                     }
-                    return `Severity: ${datum.name}
-                    Component: ${datum.componentList?.join(', ')}
-                    Incident ID: ${datum.group_id}
+                    return `Alert Severity: ${datum.severity}
+                    Alert Name: ${datum.name ? datum.name : '---'}
+                    Namespace: ${datum.namespace ? datum.namespace : '---'}
+                    Layer: ${datum.layer ? datum.layer : '---'}
+                    Component: ${datum.component}
                     Start: ${formatDate(new Date(datum.y0), true)}
-                    End: ${datum.firing ? '---' : formatDate(new Date(datum.y), true)}`;
+                    End: ${
+                      datum.alertstate === 'firing' ? '---' : formatDate(new Date(datum.y), true)
+                    }`;
                   }}
                 />
               }
@@ -173,7 +160,6 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
                 top: 50,
               }}
               width={width}
-              themeColor={ChartThemeColor.purple}
             >
               <ChartAxis
                 dependentAxis
@@ -181,33 +167,26 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
                 tickFormat={(t) =>
                   new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
                 }
-                tickValues={dateValues}
+                tickValues={dateValues.map((ts) => new Date(ts * 1000))}
                 tickLabelComponent={
                   <ChartLabel style={{ fill: theme === 'light' ? '#1b1d21' : '#e0e0e0' }} />
                 }
               />
               <ChartGroup horizontal>
-                {chartData.map((bar) => {
+                {chartData.map((bar, index) => {
                   return (
                     //we have several arrays and for each array we make a ChartBar
                     <ChartBar
                       data={bar}
-                      key={bar.group_id}
+                      key={index}
                       style={{
                         data: {
                           fill: ({ datum }) => datum.fill,
                           stroke: ({ datum }) => datum.fill,
-                          fillOpacity: ({ datum }) => (datum.nodata ? 0 : getOpacity(datum)),
+                          fillOpacity: ({ datum }) => (datum.nodata ? 0 : 1),
                           cursor: 'pointer',
                         },
                       }}
-                      events={[
-                        {
-                          eventHandlers: {
-                            onClick: (props, datum) => clickHandler(props, datum),
-                          },
-                        },
-                      ]}
                     />
                   );
                 })}
@@ -220,4 +199,4 @@ const IncidentsChart = ({ incidentsData, chartDays, theme }) => {
   );
 };
 
-export default IncidentsChart;
+export default AlertsChart;
