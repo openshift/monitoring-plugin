@@ -17,9 +17,10 @@ import {
 } from '../../console/console-shared/src/datetime/prometheus';
 import { DEFAULT_REFRESH_INTERVAL, DropDownPollInterval } from '../../dropdown-poll-interval';
 import { useBoolean } from '../../hooks/useBoolean';
-import { getLegacyObserveState, usePerspective } from '../../hooks/usePerspective';
+import { getObserveState, usePerspective } from '../../hooks/usePerspective';
 import { QueryParams } from '../../query-params';
 import CustomTimeRangeModal from './custom-time-range-modal';
+import { MonitoringContext } from '../../../contexts/MonitoringContext';
 import { LegacyDashboardPageTestIDs } from '../../data-test';
 
 const CUSTOM_TIME_RANGE_KEY = 'CUSTOM_TIME_RANGE_KEY';
@@ -29,14 +30,15 @@ export const TimespanDropdown: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const { perspective } = usePerspective();
+  const { plugin } = React.useContext(MonitoringContext);
 
   const [isModalOpen, , setModalOpen, setModalClosed] = useBoolean(false);
 
   const timespan = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'timespan']),
+    getObserveState(plugin, state)?.getIn(['dashboards', perspective, 'timespan']),
   );
   const endTime = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'endTime']),
+    getObserveState(plugin, state)?.getIn(['dashboards', perspective, 'endTime']),
   );
 
   const [timeRangeFromParams, setTimeRange] = useQueryParam(QueryParams.TimeRange, NumberParam);

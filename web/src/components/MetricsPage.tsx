@@ -98,7 +98,7 @@ import {
 import { MonitoringState } from '../reducers/observe';
 import { DropDownPollInterval } from './dropdown-poll-interval';
 import { useBoolean } from './hooks/useBoolean';
-import { getObserveStateByPlugin } from './hooks/usePerspective';
+import { getObserveState } from './hooks/usePerspective';
 import KebabDropdown from './kebab-dropdown';
 import { colors, Error, QueryBrowser } from './query-browser';
 import { QueryParams } from './query-params';
@@ -118,7 +118,7 @@ import { GraphUnits, isGraphUnit } from './metrics/units';
 import { SimpleSelect, SimpleSelectOption } from '@patternfly/react-templates';
 import { valueFormatter } from './console/console-shared/src/components/query-browser/QueryBrowserTooltip';
 import { ALL_NAMESPACES_KEY } from './utils';
-import { MonitoringProvider } from '../contexts/MonitoringContext';
+import { MonitoringContext, MonitoringProvider } from '../contexts/MonitoringContext';
 import { DataTestIDs } from './data-test';
 
 // Stores information about the currently focused query input
@@ -218,6 +218,7 @@ const devQueries = (activeNamespace: string) => {
 
 const PreDefinedQueriesDropdown = () => {
   const [activeNamespace] = useActiveNamespace();
+  const { plugin } = React.useContext(MonitoringContext);
 
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
@@ -232,7 +233,7 @@ const PreDefinedQueriesDropdown = () => {
 
   const queriesList = useSelector((state: MonitoringState) =>
     // mcp does not support the metrics page in any perspective
-    getObserveStateByPlugin('monitoring-plugin', state)?.getIn(['queryBrowser', 'queries']),
+    getObserveState(plugin, state)?.getIn(['queryBrowser', 'queries']),
   );
 
   const insertPredefinedQuery = (query: string) => {
@@ -272,11 +273,12 @@ const PreDefinedQueriesDropdown = () => {
 
 const MetricsActionsMenu: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const { plugin } = React.useContext(MonitoringContext);
 
   const [isOpen, setIsOpen, , setClosed] = useBoolean(false);
 
   const isAllExpanded = useSelector((state: MonitoringState) =>
-    getObserveStateByPlugin('monitoring-plugin', state)
+    getObserveState(plugin, state)
       ?.getIn(['queryBrowser', 'queries'])
       .every((q) => q.get('isExpanded')),
   );
@@ -339,10 +341,10 @@ const MetricsActionsMenu: React.FC = () => {
 
 export const ToggleGraph: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const { plugin } = React.useContext(MonitoringContext);
 
   const hideGraphs = useSelector(
-    (state: MonitoringState) =>
-      !!getObserveStateByPlugin('monitoring-plugin', state)?.get('hideGraphs'),
+    (state: MonitoringState) => !!getObserveState(plugin, state)?.get('hideGraphs'),
   );
 
   const dispatch = useDispatch();
@@ -376,10 +378,11 @@ export const ToggleGraph: React.FC = () => {
 
 const SeriesButton: React.FC<SeriesButtonProps> = ({ index, labels }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const { plugin } = React.useContext(MonitoringContext);
 
   const [colorIndex, isDisabled, isSeriesEmpty]: [number | null, boolean, boolean] = useSelector(
     (state: MonitoringState) => {
-      const observe = getObserveStateByPlugin('monitoring-plugin', state);
+      const observe = getObserveState(plugin, state);
       const disabledSeries = observe.getIn(['queryBrowser', 'queries', index, 'disabledSeries']);
       if (_.some(disabledSeries, (s) => _.isEqual(s, labels))) {
         return [null, true, false];
@@ -427,42 +430,23 @@ const SeriesButton: React.FC<SeriesButtonProps> = ({ index, labels }) => {
 
 const QueryKebab: React.FC<{ index: number }> = ({ index }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const { plugin } = React.useContext(MonitoringContext);
 
   const isDisabledSeriesEmpty = useSelector((state: MonitoringState) =>
     _.isEmpty(
-      getObserveStateByPlugin('monitoring-plugin', state)?.getIn([
-        'queryBrowser',
-        'queries',
-        index,
-        'disabledSeries',
-      ]),
+      getObserveState(plugin, state)?.getIn(['queryBrowser', 'queries', index, 'disabledSeries']),
     ),
   );
   const isEnabled = useSelector((state: MonitoringState) =>
-    getObserveStateByPlugin('monitoring-plugin', state)?.getIn([
-      'queryBrowser',
-      'queries',
-      index,
-      'isEnabled',
-    ]),
+    getObserveState(plugin, state)?.getIn(['queryBrowser', 'queries', index, 'isEnabled']),
   );
 
   const query = useSelector((state: MonitoringState) =>
-    getObserveStateByPlugin('monitoring-plugin', state)?.getIn([
-      'queryBrowser',
-      'queries',
-      index,
-      'query',
-    ]),
+    getObserveState(plugin, state)?.getIn(['queryBrowser', 'queries', index, 'query']),
   );
 
   const queryTableData = useSelector((state: MonitoringState) =>
-    getObserveStateByPlugin('monitoring-plugin', state)?.getIn([
-      'queryBrowser',
-      'queries',
-      index,
-      'queryTableData',
-    ]),
+    getObserveState(plugin, state)?.getIn(['queryBrowser', 'queries', index, 'queryTableData']),
   );
 
   const dispatch = useDispatch();
@@ -631,6 +615,7 @@ export const QueryTable: React.FC<QueryTableProps> = ({
   units,
 }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const { plugin } = React.useContext(MonitoringContext);
 
   const [data, setData] = React.useState<PrometheusData>();
   const [error, setError] = React.useState<PrometheusAPIError>();
@@ -640,49 +625,26 @@ export const QueryTable: React.FC<QueryTableProps> = ({
   const valueFormat = valueFormatter(units);
 
   const isEnabled = useSelector((state: MonitoringState) =>
-    getObserveStateByPlugin('monitoring-plugin', state)?.getIn([
-      'queryBrowser',
-      'queries',
-      index,
-      'isEnabled',
-    ]),
+    getObserveState(plugin, state)?.getIn(['queryBrowser', 'queries', index, 'isEnabled']),
   );
   const isExpanded = useSelector((state: MonitoringState) =>
-    getObserveStateByPlugin('monitoring-plugin', state)?.getIn([
-      'queryBrowser',
-      'queries',
-      index,
-      'isExpanded',
-    ]),
+    getObserveState(plugin, state)?.getIn(['queryBrowser', 'queries', index, 'isExpanded']),
   );
   const pollInterval = useSelector((state: MonitoringState) =>
-    getObserveStateByPlugin('monitoring-plugin', state)?.getIn(
-      ['queryBrowser', 'pollInterval'],
-      15 * 1000,
-    ),
+    getObserveState(plugin, state)?.getIn(['queryBrowser', 'pollInterval'], 15 * 1000),
   );
   const query = useSelector((state: MonitoringState) =>
-    getObserveStateByPlugin('monitoring-plugin', state)?.getIn([
-      'queryBrowser',
-      'queries',
-      index,
-      'query',
-    ]),
+    getObserveState(plugin, state)?.getIn(['queryBrowser', 'queries', index, 'query']),
   );
   const series = useSelector((state: MonitoringState) =>
-    getObserveStateByPlugin('monitoring-plugin', state)?.getIn([
-      'queryBrowser',
-      'queries',
-      index,
-      'series',
-    ]),
+    getObserveState(plugin, state)?.getIn(['queryBrowser', 'queries', index, 'series']),
   );
   const span = useSelector((state: MonitoringState) =>
-    getObserveStateByPlugin('monitoring-plugin', state)?.getIn(['queryBrowser', 'timespan']),
+    getObserveState(plugin, state)?.getIn(['queryBrowser', 'timespan']),
   );
 
   const lastRequestTime = useSelector((state: MonitoringState) =>
-    getObserveStateByPlugin('monitoring-plugin', state)?.getIn(['queryBrowser', 'lastRequestTime']),
+    getObserveState(plugin, state)?.getIn(['queryBrowser', 'lastRequestTime']),
   );
 
   const dispatch = useDispatch();
@@ -694,12 +656,7 @@ export const QueryTable: React.FC<QueryTableProps> = ({
 
   const isDisabledSeriesEmpty = useSelector((state: MonitoringState) =>
     _.isEmpty(
-      getObserveStateByPlugin('monitoring-plugin', state)?.getIn([
-        'queryBrowser',
-        'queries',
-        index,
-        'disabledSeries',
-      ]),
+      getObserveState(plugin, state)?.getIn(['queryBrowser', 'queries', index, 'disabledSeries']),
     ),
   );
 
@@ -961,36 +918,19 @@ const Query: React.FC<{
   units: GraphUnits;
 }> = ({ index, customDatasource, units }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const { plugin } = React.useContext(MonitoringContext);
 
   const id = useSelector((state: MonitoringState) =>
-    getObserveStateByPlugin('monitoring-plugin', state)?.getIn([
-      'queryBrowser',
-      'queries',
-      index,
-      'id',
-    ]),
+    getObserveState(plugin, state)?.getIn(['queryBrowser', 'queries', index, 'id']),
   );
   const isEnabled = useSelector((state: MonitoringState) =>
-    getObserveStateByPlugin('monitoring-plugin', state)?.getIn([
-      'queryBrowser',
-      'queries',
-      index,
-      'isEnabled',
-    ]),
+    getObserveState(plugin, state)?.getIn(['queryBrowser', 'queries', index, 'isEnabled']),
   );
   const isExpanded = useSelector((state: MonitoringState) =>
-    getObserveStateByPlugin('monitoring-plugin', state)?.getIn([
-      'queryBrowser',
-      'queries',
-      index,
-      'isExpanded',
-    ]),
+    getObserveState(plugin, state)?.getIn(['queryBrowser', 'queries', index, 'isExpanded']),
   );
   const text = useSelector((state: MonitoringState) =>
-    getObserveStateByPlugin('monitoring-plugin', state)?.getIn(
-      ['queryBrowser', 'queries', index, 'text'],
-      '',
-    ),
+    getObserveState(plugin, state)?.getIn(['queryBrowser', 'queries', index, 'text'], ''),
   );
 
   const dispatch = useDispatch();
@@ -1105,15 +1045,15 @@ const QueryBrowserWrapper: React.FC<{
   units: GraphUnits;
 }> = ({ customDataSourceName, customDataSource, customDatasourceError, units }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const { plugin } = React.useContext(MonitoringContext);
 
   const dispatch = useDispatch();
 
   const hideGraphs = useSelector(
-    (state: MonitoringState) =>
-      !!getObserveStateByPlugin('monitoring-plugin', state)?.get('hideGraphs'),
+    (state: MonitoringState) => !!getObserveState(plugin, state)?.get('hideGraphs'),
   );
   const queriesList = useSelector((state: MonitoringState) =>
-    getObserveStateByPlugin('monitoring-plugin', state)?.getIn(['queryBrowser', 'queries']),
+    getObserveState(plugin, state)?.getIn(['queryBrowser', 'queries']),
   );
 
   const queries = queriesList.toJS();
@@ -1266,9 +1206,10 @@ const QueriesList: React.FC<{ customDatasource?: CustomDataSource; units: GraphU
   customDatasource,
   units,
 }) => {
+  const { plugin } = React.useContext(MonitoringContext);
   const count = useSelector(
     (state: MonitoringState) =>
-      getObserveStateByPlugin('monitoring-plugin', state)?.getIn(['queryBrowser', 'queries']).size,
+      getObserveState(plugin, state)?.getIn(['queryBrowser', 'queries']).size,
   );
 
   return (
@@ -1289,16 +1230,14 @@ const QueriesList: React.FC<{ customDatasource?: CustomDataSource; units: GraphU
 };
 
 const IntervalDropdown = () => {
+  const { plugin } = React.useContext(MonitoringContext);
   const dispatch = useDispatch();
   const setInterval = React.useCallback(
     (v: number) => dispatch(queryBrowserSetPollInterval(v)),
     [dispatch],
   );
   const pollInterval = useSelector((state: MonitoringState) =>
-    getObserveStateByPlugin('monitoring-plugin', state)?.getIn(
-      ['queryBrowser', 'pollInterval'],
-      15 * 1000,
-    ),
+    getObserveState(plugin, state)?.getIn(['queryBrowser', 'pollInterval'], 15 * 1000),
   );
   return <DropDownPollInterval setInterval={setInterval} selectedInterval={pollInterval} />;
 };

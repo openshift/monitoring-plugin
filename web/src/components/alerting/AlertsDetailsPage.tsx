@@ -20,15 +20,14 @@ import { ExternalLink, LinkifyExternal } from '../console/utils/link';
 import { getAllQueryArguments } from '../console/utils/router';
 import {
   getAlertsUrl,
-  getLegacyObserveState,
-  getNewSilenceAlertUrl,
   getObserveState,
+  getNewSilenceAlertUrl,
   getRuleUrl,
   usePerspective,
 } from '../hooks/usePerspective';
 import { Alerts } from '../types';
 import { AlertResource, alertState, RuleResource } from '../utils';
-import { MonitoringProvider } from '../../contexts/MonitoringContext';
+import { MonitoringContext, MonitoringProvider } from '../../contexts/MonitoringContext';
 
 import {
   Breadcrumb,
@@ -95,6 +94,7 @@ const AlertsDetailsPage_: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const params = useParams<{ ruleID: string }>();
   const navigate = useNavigate();
+  const { plugin } = React.useContext(MonitoringContext);
 
   const { alertsKey, silencesKey, perspective } = usePerspective();
 
@@ -103,15 +103,15 @@ const AlertsDetailsPage_: React.FC = () => {
   const [namespace] = useActiveNamespace();
 
   const hideGraphs = useSelector(
-    (state: MonitoringState) => !!getObserveState(perspective, state)?.get('hideGraphs'),
+    (state: MonitoringState) => !!getObserveState(plugin, state)?.get('hideGraphs'),
   );
 
   const alerts: Alerts = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.get(alertsKey),
+    getObserveState(plugin, state)?.get(alertsKey),
   );
 
   const silencesLoaded = useSelector(
-    (state: MonitoringState) => getLegacyObserveState(perspective, state)?.get(silencesKey)?.loaded,
+    (state: MonitoringState) => getObserveState(plugin, state)?.get(silencesKey)?.loaded,
   );
 
   const ruleAlerts = _.filter(alerts?.data, (a) => a.rule.id === params?.ruleID);

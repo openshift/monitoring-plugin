@@ -34,7 +34,7 @@ import { useBoolean } from '../hooks/useBoolean';
 import {
   getFetchSilenceUrl,
   getNewSilenceUrl,
-  getObserveStateByPlugin,
+  getObserveState,
   usePerspective,
 } from '../hooks/usePerspective';
 import { Silences } from '../types';
@@ -60,7 +60,7 @@ const SilencesPage_: React.FC = () => {
     loadError,
   }: Silences = useSelector(
     (state: MonitoringState) =>
-      getObserveStateByPlugin(monitoringContext.plugin, state)?.get(silencesKey) || {},
+      getObserveState(monitoringContext.plugin, state)?.get(silencesKey) || {},
   );
 
   const clusters = React.useMemo(() => {

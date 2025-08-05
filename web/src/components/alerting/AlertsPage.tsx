@@ -18,7 +18,7 @@ import withFallback from '../console/console-shared/error/fallbacks/withFallback
 import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
 import { LoadingBox } from '../console/console-shared/src/components/loading/LoadingBox';
 import { useAlertsPoller } from '../hooks/useAlertsPoller';
-import { getObserveStateByPlugin, usePerspective } from '../hooks/usePerspective';
+import { getObserveState, usePerspective } from '../hooks/usePerspective';
 import { Alerts, AlertSource } from '../types';
 import { alertState, ALL_NAMESPACES_KEY, fuzzyCaseInsensitive } from '../utils';
 import AggregateAlertTableRow from './AlertList/AggregateAlertTableRow';
@@ -50,11 +50,11 @@ const AlertsPage_: React.FC = () => {
     loadError,
   }: Alerts = useSelector(
     (state: MonitoringState) =>
-      getObserveStateByPlugin(monitoringContext.plugin, state)?.get(alertsKey) || {},
+      getObserveState(monitoringContext.plugin, state)?.get(alertsKey) || {},
   );
   const silencesLoadError = useSelector(
     (state: MonitoringState) =>
-      getObserveStateByPlugin(monitoringContext.plugin, state)?.get(silencesKey)?.loadError,
+      getObserveState(monitoringContext.plugin, state)?.get(silencesKey)?.loadError,
   );
 
   const alertAdditionalSources = React.useMemo(

@@ -40,7 +40,7 @@ import {
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
 import { useAlertsPoller } from '../hooks/useAlertsPoller';
-import { getObserveStateByPlugin, getRuleUrl, usePerspective } from '../hooks/usePerspective';
+import { getObserveState, getRuleUrl, usePerspective } from '../hooks/usePerspective';
 import { severityRowFilter } from './AlertUtils';
 import { MonitoringContext, MonitoringProvider } from '../../contexts/MonitoringContext';
 import { DataTestIDs } from '../data-test';
@@ -129,15 +129,15 @@ const AlertRulesPage_: React.FC = () => {
   useAlertsPoller();
 
   const data: Rule[] = useSelector((state: MonitoringState) =>
-    getObserveStateByPlugin(monitoringContext.plugin, state)?.get(rulesKey),
+    getObserveState(monitoringContext.plugin, state)?.get(rulesKey),
   );
   const { loaded = false, loadError }: Alerts = useSelector(
     (state: MonitoringState) =>
-      getObserveStateByPlugin(monitoringContext.plugin, state)?.get(alertsKey) || {},
+      getObserveState(monitoringContext.plugin, state)?.get(alertsKey) || {},
   );
   const silencesLoadError = useSelector(
     (state: MonitoringState) =>
-      getObserveStateByPlugin(monitoringContext.plugin, state)?.get(silencesKey)?.loadError,
+      getObserveState(monitoringContext.plugin, state)?.get(silencesKey)?.loadError,
   );
 
   const ruleAdditionalSources = React.useMemo(

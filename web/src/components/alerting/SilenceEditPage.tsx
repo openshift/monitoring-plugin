@@ -8,11 +8,11 @@ import { useParams } from 'react-router-dom-v5-compat';
 import { MonitoringState } from '../../reducers/observe';
 import { StatusBox } from '../console/console-shared/src/components/status/StatusBox';
 import { useAlertsPoller } from '../hooks/useAlertsPoller';
-import { getLegacyObserveState, usePerspective } from '../hooks/usePerspective';
+import { getObserveState, usePerspective } from '../hooks/usePerspective';
 import { Silences } from '../types';
 import { SilenceResource, silenceState } from '../utils';
 import { SilenceForm } from './SilenceForm';
-import { MonitoringProvider } from '../../contexts/MonitoringContext';
+import { MonitoringContext, MonitoringProvider } from '../../contexts/MonitoringContext';
 
 const pad = (i: number): string => (i < 10 ? `0${i}` : String(i));
 
@@ -35,13 +35,14 @@ const EditInfo = () => {
 
 const SilenceEditPage = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { silencesKey, perspective } = usePerspective();
+  const { silencesKey } = usePerspective();
+  const { plugin } = React.useContext(MonitoringContext);
   const params = useParams();
 
   useAlertsPoller();
 
   const silences: Silences = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.get(silencesKey),
+    getObserveState(plugin, state)?.get(silencesKey),
   );
 
   const silence: Silence = _.find(silences?.data, { id: params.id });
