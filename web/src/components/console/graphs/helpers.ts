@@ -18,6 +18,8 @@ export const ALERTMANAGER_PROXY_PATH =
 const DEFAULT_PROMETHEUS_SAMPLES = 60;
 const DEFAULT_PROMETHEUS_TIMESPAN = 60 * 60 * 1000;
 
+export type Prometheus = 'acm' | 'cmo';
+
 // Range vector queries require end, start, and step search params
 const getRangeVectorSearchParams = (
   endTime: number = Date.now(),
@@ -51,7 +53,7 @@ export const getPrometheusBasePath = ({
   namespace,
   basePathOverride,
 }: {
-  prometheus?: 'acm' | 'cmo';
+  prometheus?: Prometheus;
   namespace?: string;
   basePathOverride?: string;
 }) => {

@@ -12,6 +12,7 @@ import { getLegacyObserveState, usePerspective } from '../hooks/usePerspective';
 import { Silences } from '../types';
 import { SilenceResource, silenceState } from '../utils';
 import { SilenceForm } from './SilenceForm';
+import { MonitoringProvider } from '../../contexts/MonitoringContext';
 
 const pad = (i: number): string => (i < 10 ? `0${i}` : String(i));
 
@@ -32,7 +33,7 @@ const EditInfo = () => {
   );
 };
 
-export const SilenceEditPage = () => {
+const SilenceEditPage = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { silencesKey, perspective } = usePerspective();
   const params = useParams();
@@ -72,4 +73,20 @@ export const SilenceEditPage = () => {
   );
 };
 
-export default SilenceEditPage;
+export const MpCmoSilenceEditPage = () => {
+  return (
+    <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
+      <SilenceEditPage />
+    </MonitoringProvider>
+  );
+};
+
+export const McpAcmSilenceEditPage = () => {
+  return (
+    <MonitoringProvider
+      monitoringContext={{ plugin: 'monitoring-console-plugin', prometheus: 'acm' }}
+    >
+      <SilenceEditPage />
+    </MonitoringProvider>
+  );
+};

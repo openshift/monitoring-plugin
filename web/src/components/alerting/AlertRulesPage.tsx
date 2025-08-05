@@ -24,7 +24,6 @@ import {
   alertingRuleStateOrder,
   alertSeverityOrder,
   fuzzyCaseInsensitive,
-  MonitoringPlugins,
   RuleResource,
 } from '../utils';
 
@@ -41,8 +40,9 @@ import {
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
 import { useAlertsPoller } from '../hooks/useAlertsPoller';
-import { getLegacyObserveState, getRuleUrl, usePerspective } from '../hooks/usePerspective';
+import { getObserveStateByPlugin, getRuleUrl, usePerspective } from '../hooks/usePerspective';
 import { severityRowFilter } from './AlertUtils';
+import { MonitoringContext, MonitoringProvider } from '../../contexts/MonitoringContext';
 import { DataTestIDs } from '../data-test';
 
 const StateCounts: React.FC<{ alerts: PrometheusAlert[] }> = ({ alerts }) => {
@@ -121,22 +121,23 @@ const RuleTableRow: React.FC<RowProps<Rule>> = ({ obj }) => {
   );
 };
 
-const AlertRulesPage_: React.FC<{ plugin: MonitoringPlugins }> = () => {
+const AlertRulesPage_: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { alertsKey, silencesKey, rulesKey, perspective, defaultAlertTenant } = usePerspective();
-  const [namespace] = useActiveNamespace();
+  const monitoringContext = React.useContext(MonitoringContext);
+  const { alertsKey, silencesKey, rulesKey, defaultAlertTenant } = usePerspective();
 
   useAlertsPoller();
 
   const data: Rule[] = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.get(rulesKey),
+    getObserveStateByPlugin(monitoringContext.plugin, state)?.get(rulesKey),
   );
   const { loaded = false, loadError }: Alerts = useSelector(
-    (state: MonitoringState) => getLegacyObserveState(perspective, state)?.get(alertsKey) || {},
+    (state: MonitoringState) =>
+      getObserveStateByPlugin(monitoringContext.plugin, state)?.get(alertsKey) || {},
   );
   const silencesLoadError = useSelector(
     (state: MonitoringState) =>
-      getLegacyObserveState(perspective, state)?.get(silencesKey)?.loadError,
+      getObserveStateByPlugin(monitoringContext.plugin, state)?.get(silencesKey)?.loadError,
   );
 
   const ruleAdditionalSources = React.useMemo(
@@ -254,6 +255,22 @@ const AlertRulesPage_: React.FC<{ plugin: MonitoringPlugins }> = () => {
     </>
   );
 };
-const AlertRulesPage = withFallback(AlertRulesPage_);
+const AlertRulesPageWithFallback = withFallback(AlertRulesPage_);
 
-export default AlertRulesPage;
+export const MpCmoAlertRulesPage = () => {
+  return (
+    <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
+      <AlertRulesPageWithFallback />
+    </MonitoringProvider>
+  );
+};
+
+export const McpAcmAlertRulesPage = () => {
+  return (
+    <MonitoringProvider
+      monitoringContext={{ plugin: 'monitoring-console-plugin', prometheus: 'acm' }}
+    >
+      <AlertRulesPageWithFallback />
+    </MonitoringProvider>
+  );
+};
