@@ -118,21 +118,20 @@ const RuleTableRow: React.FC<RowProps<Rule>> = ({ obj }) => {
 
 const AlertRulesPage_: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const monitoringContext = React.useContext(MonitoringContext);
+  const { plugin } = React.useContext(MonitoringContext);
+
   const { alertsKey, silencesKey, rulesKey, defaultAlertTenant } = usePerspective();
 
   useAlertsPoller();
 
   const data: Rule[] = useSelector((state: MonitoringState) =>
-    getObserveState(monitoringContext.plugin, state)?.get(rulesKey),
+    getObserveState(plugin, state)?.get(rulesKey),
   );
   const { loaded = false, loadError }: Alerts = useSelector(
-    (state: MonitoringState) =>
-      getObserveState(monitoringContext.plugin, state)?.get(alertsKey) || {},
+    (state: MonitoringState) => getObserveState(plugin, state)?.get(alertsKey) || {},
   );
   const silencesLoadError = useSelector(
-    (state: MonitoringState) =>
-      getObserveState(monitoringContext.plugin, state)?.get(silencesKey)?.loadError,
+    (state: MonitoringState) => getObserveState(plugin, state)?.get(silencesKey)?.loadError,
   );
 
   const ruleAdditionalSources = React.useMemo(
