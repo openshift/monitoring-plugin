@@ -20,7 +20,7 @@ import { LoadingBox } from '../console/console-shared/src/components/loading/Loa
 import { useAlertsPoller } from '../hooks/useAlertsPoller';
 import { getObserveStateByPlugin, usePerspective } from '../hooks/usePerspective';
 import { Alerts, AlertSource } from '../types';
-import { alertState, ALL_NAMESPACES_KEY, fuzzyCaseInsensitive, MonitoringPlugins } from '../utils';
+import { alertState, ALL_NAMESPACES_KEY, fuzzyCaseInsensitive } from '../utils';
 import AggregateAlertTableRow from './AlertList/AggregateAlertTableRow';
 import DownloadCSVButton from './AlertList/DownloadCSVButton';
 import useAggregateAlertColumns from './AlertList/hooks/useAggregateAlertColumns';
@@ -34,11 +34,13 @@ import {
 } from './AlertUtils';
 import Error from './Error';
 import useSelectedFilters from './useSelectedFilters';
+import { MonitoringContext, MonitoringProvider } from '../../contexts/MonitoringContext';
 
-const AlertsPage_: React.FC<{ plugin: MonitoringPlugins }> = ({ plugin }) => {
+const AlertsPage_: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const [namespace] = useActiveNamespace();
   const { alertsKey, silencesKey, defaultAlertTenant, perspective } = usePerspective();
+  const monitoringContext = React.useContext(MonitoringContext);
 
   useAlertsPoller();
 
@@ -47,10 +49,12 @@ const AlertsPage_: React.FC<{ plugin: MonitoringPlugins }> = ({ plugin }) => {
     loaded = false,
     loadError,
   }: Alerts = useSelector(
-    (state: MonitoringState) => getObserveStateByPlugin(plugin, state)?.get(alertsKey) || {},
+    (state: MonitoringState) =>
+      getObserveStateByPlugin(monitoringContext.plugin, state)?.get(alertsKey) || {},
   );
   const silencesLoadError = useSelector(
-    (state: MonitoringState) => getObserveStateByPlugin(plugin, state)?.get(silencesKey)?.loadError,
+    (state: MonitoringState) =>
+      getObserveStateByPlugin(monitoringContext.plugin, state)?.get(silencesKey)?.loadError,
   );
 
   const alertAdditionalSources = React.useMemo(
@@ -197,6 +201,22 @@ const AlertsPage_: React.FC<{ plugin: MonitoringPlugins }> = ({ plugin }) => {
     </>
   );
 };
-const AlertsPage = withFallback(AlertsPage_);
+const AlertsPageWithFallback = withFallback(AlertsPage_);
 
-export default AlertsPage;
+export const MpCmoAlertsPage = () => {
+  return (
+    <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
+      <AlertsPageWithFallback />
+    </MonitoringProvider>
+  );
+};
+
+export const McpAcmAlertsPage = () => {
+  return (
+    <MonitoringProvider
+      monitoringContext={{ plugin: 'monitoring-console-plugin', prometheus: 'acm' }}
+    >
+      <AlertsPageWithFallback />
+    </MonitoringProvider>
+  );
+};

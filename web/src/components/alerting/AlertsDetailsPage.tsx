@@ -28,6 +28,7 @@ import {
 } from '../hooks/usePerspective';
 import { Alerts } from '../types';
 import { AlertResource, alertState, RuleResource } from '../utils';
+import { MonitoringProvider } from '../../contexts/MonitoringContext';
 
 import {
   Breadcrumb,
@@ -394,7 +395,25 @@ const AlertsDetailsPage_: React.FC = () => {
     </>
   );
 };
-const AlertsDetailsPage = withFallback(AlertsDetailsPage_);
+const AlertsDetailsPageWithFallback = withFallback(AlertsDetailsPage_);
+
+export const MpCmoAlertsDetailsPage = () => {
+  return (
+    <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
+      <AlertsDetailsPageWithFallback />
+    </MonitoringProvider>
+  );
+};
+
+export const McpAcmAlertsDetailsPage = () => {
+  return (
+    <MonitoringProvider
+      monitoringContext={{ plugin: 'monitoring-console-plugin', prometheus: 'acm' }}
+    >
+      <AlertsDetailsPageWithFallback />
+    </MonitoringProvider>
+  );
+};
 
 const HeaderAlertMessage: React.FC<{ alert: Alert; rule: Rule }> = ({ alert, rule }) => {
   const annotation = alert.annotations.description ? 'description' : 'message';
@@ -512,8 +531,6 @@ const AlertStateHelp: React.FC = () => {
     </DescriptionList>
   );
 };
-
-export default AlertsDetailsPage;
 
 type AlertMessageProps = {
   alertText: string;

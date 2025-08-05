@@ -48,6 +48,7 @@ import { LoadingInline } from '../console/console-shared/src/components/loading/
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 import { Table, TableVariant, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
 import { useNavigate, useParams, Link } from 'react-router-dom-v5-compat';
+import { MonitoringProvider } from '../../contexts/MonitoringContext';
 import { useAlertsPoller } from '../hooks/useAlertsPoller';
 
 const SilencesDetailsPage_: React.FC = () => {
@@ -201,7 +202,25 @@ const SilencesDetailsPage_: React.FC = () => {
     </>
   );
 };
-const SilencesDetailsPage = withFallback(SilencesDetailsPage_);
+const SilencesDetailsPageWithFallback = withFallback(SilencesDetailsPage_);
+
+export const MpCmoSilencesDetailsPage = () => {
+  return (
+    <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
+      <SilencesDetailsPageWithFallback />
+    </MonitoringProvider>
+  );
+};
+
+export const McpAcmSilencesDetailsPage = () => {
+  return (
+    <MonitoringProvider
+      monitoringContext={{ plugin: 'monitoring-console-plugin', prometheus: 'acm' }}
+    >
+      <SilencesDetailsPageWithFallback />
+    </MonitoringProvider>
+  );
+};
 
 const SilencedAlertsList: React.FC<SilencedAlertsListProps> = ({ alerts }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -252,7 +271,5 @@ const SilencedAlertsList: React.FC<SilencedAlertsListProps> = ({ alerts }) => {
     </Table>
   );
 };
-
-export default SilencesDetailsPage;
 
 type SilencedAlertsListProps = { alerts: Alert[] };

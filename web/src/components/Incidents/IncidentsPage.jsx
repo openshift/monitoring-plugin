@@ -54,6 +54,7 @@ import withFallback from '../console/console-shared/error/fallbacks/withFallback
 import IncidentsChart from './IncidentsChart/IncidentsChart';
 import AlertsChart from './AlertsChart/AlertsChart';
 import { usePatternFlyTheme } from '../hooks/usePatternflyTheme';
+import { MonitoringProvider } from '../../contexts/MonitoringContext';
 
 const IncidentsPage = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -443,6 +444,14 @@ const IncidentsPage = () => {
   );
 };
 
-const incidentsPageWithFallback = withFallback(IncidentsPage);
+const IncidentsPageWithFallback = withFallback(IncidentsPage);
 
-export default incidentsPageWithFallback;
+export const McpCmoAlertingPage = () => {
+  return (
+    <MonitoringProvider
+      monitoringContext={{ plugin: 'monitoring-console-plugin', prometheus: 'cmo' }}
+    >
+      <IncidentsPageWithFallback />
+    </MonitoringProvider>
+  );
+};

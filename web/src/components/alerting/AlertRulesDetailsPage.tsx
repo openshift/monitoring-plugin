@@ -69,6 +69,7 @@ import { Labels } from '../labels';
 import { ToggleGraph } from '../MetricsPage';
 import { Alerts } from '../types';
 import { alertDescription, RuleResource } from '../utils';
+import { MonitoringProvider } from '../../contexts/MonitoringContext';
 import { useAlertsPoller } from '../hooks/useAlertsPoller';
 
 // Renders Prometheus template text and highlights any {{ ... }} tags that it contains
@@ -371,6 +372,22 @@ const AlertRulesDetailsPage_: React.FC = () => {
     </>
   );
 };
-const AlertRulesDetailsPage = withFallback(AlertRulesDetailsPage_);
+const AlertRulesDetailsPageWithFallback = withFallback(AlertRulesDetailsPage_);
 
-export default AlertRulesDetailsPage;
+export const MpCmoAlertRulesDetailsPage = () => {
+  return (
+    <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
+      <AlertRulesDetailsPageWithFallback />
+    </MonitoringProvider>
+  );
+};
+
+export const McpAcmAlertRulesDetailsPage = () => {
+  return (
+    <MonitoringProvider
+      monitoringContext={{ plugin: 'monitoring-console-plugin', prometheus: 'acm' }}
+    >
+      <AlertRulesDetailsPageWithFallback />
+    </MonitoringProvider>
+  );
+};

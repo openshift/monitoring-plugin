@@ -118,6 +118,7 @@ import { GraphUnits, isGraphUnit } from './metrics/units';
 import { SimpleSelect, SimpleSelectOption } from '@patternfly/react-templates';
 import { valueFormatter } from './console/console-shared/src/components/query-browser/QueryBrowserTooltip';
 import { ALL_NAMESPACES_KEY } from './utils';
+import { MonitoringProvider } from '../contexts/MonitoringContext';
 
 // Stores information about the currently focused query input
 let focusedQuery;
@@ -1408,11 +1409,15 @@ const MetricsPage_: React.FC = () => {
 
 const MetricsPage = withFallback(MetricsPage_);
 
-const MetricsPageWrapper_: React.FC = () => (
-  <QueryParamProvider adapter={ReactRouter5Adapter}>
-    <MetricsPage />
-  </QueryParamProvider>
-);
+export const MpCmoMetricsPage: React.FC = () => {
+  return (
+    <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
+      <QueryParamProvider adapter={ReactRouter5Adapter}>
+        <MetricsPage />
+      </QueryParamProvider>
+    </MonitoringProvider>
+  );
+};
 
 type QueryTableProps = {
   index: number;
@@ -1425,5 +1430,3 @@ type SeriesButtonProps = {
   index: number;
   labels: PrometheusLabels;
 };
-
-export default MetricsPageWrapper_;
