@@ -49,6 +49,7 @@ import withFallback from '../console/console-shared/error/fallbacks/withFallback
 import { Table, TableVariant, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
 import { useNavigate, useParams, Link } from 'react-router-dom-v5-compat';
 import { useAlertsPoller } from '../hooks/useAlertsPoller';
+import { DataTestIDs } from '../data-test';
 
 const SilencesDetailsPage_: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -85,7 +86,12 @@ const SilencesDetailsPage_: React.FC = () => {
           <PageBreadcrumb hasBodyWrapper={false}>
             <Breadcrumb>
               <BreadcrumbItem>
-                <Link to={getSilencesUrl(perspective, namespace)}>{t('Silences')}</Link>
+                <Link
+                  to={getSilencesUrl(perspective, namespace)}
+                  data-test={DataTestIDs.Breadcrumb}
+                >
+                  {t('Silences')}
+                </Link>
               </BreadcrumbItem>
               <BreadcrumbItem isActive>{t('Silence details')}</BreadcrumbItem>
             </Breadcrumb>
@@ -97,6 +103,7 @@ const SilencesDetailsPage_: React.FC = () => {
                   <FlexItem
                     alignSelf={{ default: 'alignSelfCenter' }}
                     spacer={{ default: 'spacerNone' }}
+                    data-test={DataTestIDs.SilenceResourceIcon}
                   >
                     <ResourceIcon kind={SilenceResource.kind} />
                   </FlexItem>
@@ -224,7 +231,7 @@ const SilencedAlertsList: React.FC<SilencedAlertsListProps> = ({ alerts }) => {
           <Tr key={i}>
             <Td>
               <Link
-                data-test="firing-alerts"
+                data-test={DataTestIDs.AlertResourceLink}
                 to={getAlertUrl(perspective, a, a.rule.id, namespace)}
               >
                 {a.labels.alertname}

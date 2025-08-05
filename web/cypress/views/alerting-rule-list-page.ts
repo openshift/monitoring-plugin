@@ -1,19 +1,18 @@
+import { DataTestIDs, Classes } from "../../src/components/data-test";
 import { listPage } from "./list-page";
 
 export const alertingRuleListPage = {
   shouldBeLoaded: () => {
     cy.log('alertingRuleListPage.shouldBeLoaded');
     listPage.filter.removeMainTag('Source');
-    cy.get('.co-m-resource-icon.co-m-resource-alertrule').contains('AR');
-    cy.get('.pf-v6-c-table__button, .pf-c-table__button').contains('Name').should('be.visible');
-    cy.get('.pf-v6-c-table__button, .pf-c-table__button').contains('Severity').should('be.visible');
-    cy.get('.pf-v6-c-table__button, .pf-c-table__button').contains('Alert state').should('be.visible');
-    cy.get('.pf-v6-c-table__button, .pf-c-table__button').contains('Source').should('be.visible');
-
+    cy.byTestID(DataTestIDs.AlertingRuleResourceIcon).contains('AR');
+    cy.get(Classes.TableHeaderColumn).contains('Name').should('be.visible');
+    cy.get(Classes.TableHeaderColumn).contains('Severity').should('be.visible');
+    cy.get(Classes.TableHeaderColumn).contains('Alert state').should('be.visible');
+    cy.get(Classes.TableHeaderColumn).contains('Source').should('be.visible');
   },
 
   filter: {
-
     /**
     * 
     * @param tab alerts-tab, silences, alerting-rules 
@@ -33,7 +32,7 @@ export const alertingRuleListPage = {
   clickAlertingRule: (alertRule: string) => {
     cy.log('alertingRuleListPage.clickAlertingRule');
     try {
-      cy.bySemanticElement('a').contains(alertRule).should('be.visible').click();
+      cy.byTestID(DataTestIDs.AlertingRuleResourceLink).contains(alertRule).should('be.visible').click();
     } catch (error) {
       cy.log(`${error.message}`);
       throw error;
@@ -42,7 +41,7 @@ export const alertingRuleListPage = {
 
   countShouldBe: (count: number) => {
     cy.log('alertingRuleListPage.countShouldBe');
-    cy.byPFRole('grid').eq(1).find('.pf-v6-c-table__tr, .pf-v5-c-table__tr').should('have.length', count);
+    cy.byTestID(DataTestIDs.AlertingRuleResourceLink).should('have.length', count);
   },
 
 };

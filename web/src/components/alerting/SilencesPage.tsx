@@ -40,6 +40,7 @@ import {
 import { Silences } from '../types';
 import { fuzzyCaseInsensitive, refreshSilences, silenceCluster, silenceState } from '../utils';
 import { SelectedSilencesContext, SilenceTableRow } from './SilencesUtils';
+import { DataTestIDs } from '../data-test';
 
 const SilencesPage_: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -331,6 +332,7 @@ const ExpireAllSilencesButton: React.FC<ExpireAllSilencesButtonProps> = ({ setEr
       isLoading={isInProgress}
       onClick={onClick}
       variant="secondary"
+      data-test={DataTestIDs.ExpireXSilencesButton}
     >
       {t('Expire {{count}} silence', { count: selectedSilences.size })}
     </Button>
@@ -348,7 +350,7 @@ const CreateSilenceButton: React.FC = React.memo(() => {
 
   return (
     <Link to={getNewSilenceUrl(perspective, namespace)}>
-      <Button data-test="create-silence-btn" variant="primary">
+      <Button data-test={DataTestIDs.SilenceButton} variant="primary">
         {t('Create silence')}
       </Button>
     </Link>

@@ -25,6 +25,9 @@
     "test": "npm run cypress:run:ci",
     "test-cypress-console": "./node_modules/.bin/cypress open --browser chrome",
     "test-cypress-console-headless": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless",
+    "test-cypress-monitoring-regression": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --spec cypress/e2e/monitoring/regression/*cy.ts",
+    "test-cypress-monitoring-bvt": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --spec cypress/e2e/monitoring/01.bvt_monitoring.cy.ts",
+    "test-cypress-coo-bvt": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --spec cypress/e2e/coo/01.coo_bvt.cy.ts",
     "ts-node": "ts-node -O '{\"module\":\"commonjs\"}'"
   },
   "dependencies": {

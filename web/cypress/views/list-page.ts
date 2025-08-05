@@ -1,5 +1,6 @@
 import { commonPages } from "./common";
 import { getPFVersion } from "./utils";
+import { DataTestIDs, Classes, LegacyTestIDs } from "../../src/components/data-test";
 
 export const listPage = {
 
@@ -9,10 +10,7 @@ export const listPage = {
    */
   tabShouldHaveText: (tab: string) => {
     cy.log('listPage.tabShouldHaveText');
-    cy
-      .byClass('pf-v6-c-tabs__item-text')
-      .contains(tab)
-      .should('exist');
+    cy.get(Classes.HorizontalNav).contains(tab).should('exist');
   },
 
   /**
@@ -32,7 +30,7 @@ export const listPage = {
     if (clearFolder) {
       cy.task('clearDownloads');
     }
-    cy.bySemanticElement('button', 'Export as CSV').should('be.visible').click();
+    cy.byTestID(DataTestIDs.DownloadCSVButton).should('be.visible').click();
 
     cy.waitUntil(() => {
       return cy.task('getFilesInFolder', downloadsFolder).then((currentFiles: string[]) => {
@@ -64,9 +62,9 @@ export const listPage = {
     byName: (name: string) => {
       cy.log('listPage.filter.byName');
       try {
-          cy.byLegacyTestID('dropdown-button').scrollIntoView().click();
-          cy.byLegacyTestID('dropdown-menu').contains('Name').click();
-          cy.byTestID('name-filter-input').scrollIntoView().as('input').should('be.visible');
+          cy.byTestID(DataTestIDs.NameLabelDropdown).scrollIntoView().click();
+          cy.byTestID(DataTestIDs.NameLabelDropdownOptions).contains('Name').click();
+          cy.byTestID(DataTestIDs.NameInput).scrollIntoView().as('input').should('be.visible');
           cy.get('@input', { timeout: 10000 }).scrollIntoView().type(name + '{enter}');
           cy.get('@input', { timeout: 10000 }).scrollIntoView().should('have.attr', 'value', name);
         
@@ -81,12 +79,12 @@ export const listPage = {
      */
     byLabel: (label: string) => {
       cy.log('listPage.filter.byLabel');
-      cy.byLegacyTestID('dropdown-button').scrollIntoView().click();
-      cy.byLegacyTestID('dropdown-menu').contains('Label').click();
-      cy.byLegacyTestID('item-filter').scrollIntoView()
+      cy.byTestID(DataTestIDs.NameLabelDropdown).scrollIntoView().click();
+      cy.byTestID(DataTestIDs.NameLabelDropdownOptions).contains('Label').click();
+      cy.byLegacyTestID(LegacyTestIDs.ItemFilter).scrollIntoView()
         .as('input').should('be.visible');
       cy.get('@input', { timeout: 10000 }).scrollIntoView().type(label + '{enter}').should('have.attr', 'value', label);
-      cy.byTestID('suggestion-line').contains(label).click();
+      cy.get(Classes.LabelSuggestion).contains(label).click();
     },
     
     clearAllFilters: () => {
@@ -107,10 +105,10 @@ export const listPage = {
     clickFilter: (toOpen: boolean, toClose: boolean) => {
       cy.log('listPage.filter.clickFilter');
       if (toOpen) {
-        cy.get('.pf-v6-c-menu-toggle, .pf-v5-c-menu-toggle').contains('Filter').scrollIntoView().should('be.visible').click();
+        cy.get(Classes.FilterDropdown).contains('Filter').scrollIntoView().should('be.visible').click();
       }
       if (toClose) {
-        cy.get('.pf-v6-c-menu-toggle.pf-m-expanded, .pf-v5-c-menu-toggle.pf-m-expanded').contains('Filter').should('be.visible').click();
+        cy.get(Classes.FilterDropdownExpanded).contains('Filter').should('be.visible').click();
       }
     },
 
@@ -125,7 +123,7 @@ export const listPage = {
       if (open) {
         listPage.filter.clickFilter(open, false);
       };
-      cy.byPFRole('menuitem').contains(option).should('be.visible').click();
+      cy.get(Classes.FilterDropdownOption).contains(option).should('be.visible').click();
       if (close) {
         listPage.filter.clickFilter(false, close);
       };
@@ -137,7 +135,7 @@ export const listPage = {
      */
     removeMainTag: (groupTagName: string) => {
       cy.log('listPage.filter.removeMainTag');
-      cy.get(".pf-v6-c-label-group__label, .pf-v5-c-chip-group__label").contains(groupTagName).parent().next('div').children('button').click();
+      cy.get(Classes.MainTag).contains(groupTagName).parent().next('div').children('button').click();
     },
 
     /**
@@ -148,7 +146,7 @@ export const listPage = {
      */
     removeIndividualTag: (tagName: string) => {
       cy.log('listPage.filter.removeIndividualTag');
-      cy.get('.pf-v6-c-label__text, .pf-v5-c-chip__text').contains(tagName).parent().next('span').children('button').click();
+      cy.get(Classes.IndividualTag).contains(tagName).parent().next('span').children('button').click();
     },
 
     /**
@@ -157,7 +155,7 @@ export const listPage = {
      */
     clickOn1more: (groupTagName: string) => {
       cy.log('listPage.filter.clickOn1more');
-      cy.get('.pf-v6-c-label-group__label, .pf-v5-c-chip-group__label').contains(groupTagName).siblings('ul').children('li').contains('1 more').click();
+      cy.get(Classes.MoreLessTag).contains(groupTagName).siblings('ul').children('li').contains('1 more').click();
 
     },
 
@@ -167,7 +165,7 @@ export const listPage = {
      */
     clickOnShowLess: (groupTagName: string) => {
       cy.log('listPage.filter.clickOnShowLess');
-      cy.get('.pf-v6-c-label-group__label, .pf-v5-c-chip-group__label').contains(groupTagName).siblings('ul').children('li').contains('Show less').click();
+      cy.get(Classes.MoreLessTag).contains(groupTagName).siblings('ul').children('li').contains('Show less').click();
 
     },
 
@@ -175,12 +173,12 @@ export const listPage = {
   ARRows: {
     shouldBeLoaded: () => {
       cy.log('listPage.ARRows.shouldBeLoaded');
-      cy.byOUIAID('OUIA-Generated-Table').should('be.visible');
+      cy.byOUIAID(DataTestIDs.Table).should('be.visible');
       // cy.get(`[data-test-rows="resource-row"`).should('be.visible');
     },
     countShouldBe: (count: number) => {
       cy.log('listPage.ARRows.countShouldBe');
-      cy.get('.co-m-resource-icon.co-m-resource-alertrule').should('have.length', count);
+      cy.byTestID(DataTestIDs.AlertingRuleResourceIcon).should('have.length', count);
     },
     
     //pf-6 only
@@ -188,20 +186,20 @@ export const listPage = {
       cy.log('listPage.ARRows.ARShouldBe');
       if (getPFVersion() === 'v6') {
         cy.byOUIAID('OUIA-Generated-Button-plain').should('exist');
-        cy.byClass('co-m-resource-icon co-m-resource-alertrule').contains('AR');
-        cy.byClass('pf-v6-c-table__td').contains(alert).should('exist');
-        cy.byClass('pf-v6-c-label__text').contains(severity).should('exist');
-        cy.byClass('pf-v6-c-badge pf-m-read').contains(total).should('exist');
-        cy.byClass('pf-v6-c-table__td').contains(state).should('exist');
+        cy.byTestID(DataTestIDs.AlertingRuleResourceIcon).contains('AR');
+        cy.byTestID(DataTestIDs.AlertingRuleResourceLink).contains(alert).should('exist');
+        cy.byTestID(DataTestIDs.AlertingRuleSeverityBadge).contains(severity).should('exist');
+        cy.byTestID(DataTestIDs.AlertingRuleTotalAlertsBadge).contains(total).should('exist');
+        cy.byTestID(DataTestIDs.AlertingRuleStateBadge).contains(state).should('exist');
       }
     
     },
     AShouldBe: (alert: string, severity: string, namespace: string) => {
       cy.log('listPage.ARRows.AShouldBe');
-      cy.byClass('co-m-resource-icon co-m-resource-alert').should('exist');
-      cy.byLegacyTestID('alert-resource-link').contains(alert).should('exist');
-      cy.get('.pf-v6-c-label__text, .pf-m-hidden.pf-m-visible-on-sm').contains(severity).should('exist');
-      cy.byClass('co-resource-item__resource-name').contains(namespace).should('exist'); //pf-6 only
+      cy.byTestID(DataTestIDs.AlertResourceIcon).should('exist');
+      cy.byTestID(DataTestIDs.AlertResourceLink).contains(alert).should('exist');
+      cy.byTestID(DataTestIDs.SeverityBadge).contains(severity).should('exist');
+      cy.byTestID(DataTestIDs.AlertNamespace).contains(namespace).should('exist'); //pf-6 only
       
     },
     //pf-6 only
@@ -209,10 +207,10 @@ export const listPage = {
       cy.log('listPage.ARRows.expandRow');
       try {
         cy.get('body').then(($provider) => {
-          if ($provider.find('button[class="pf-v6-c-button pf-m-plain pf-m-expanded"]').length > 0) {
+          if ($provider.find(Classes.ExpandedRow).length > 0) {
             cy.log('Already expanded');
           } else {
-            cy.get('button[class="pf-v6-c-button pf-m-plain"]', { timeout: 10000 })
+            cy.get(Classes.ToExpandRow, { timeout: 10000 })
               .eq(2)
               .click();
           }
@@ -226,26 +224,24 @@ export const listPage = {
     clickAlertingRule: () => {
       cy.log('listPage.ARRows.clickAlertingRule');
       try {
-        cy.byLegacyTestID('alert-resource-link').eq(0)
+        cy.byTestID(DataTestIDs.AlertingRuleResourceLink)
           .should('be.visible')
           .click();
       } catch (error) {
         cy.log(`${error.message}`);
         throw error;
       }
-
     },
     clickAlert: () => {
       cy.log('listPage.ARRows.clickAlert');
       try {
-        cy.byLegacyTestID('alert-resource-link').eq(1)
+        cy.byTestID(DataTestIDs.AlertResourceLink)
           .should('be.visible')
           .click();
       } catch (error) {
         cy.log(`${error.message}`);
         throw error;
       }
-
     },
     assertNoKebab: () => {
       cy.log('listPage.ARRows.assertNoKebab');
@@ -259,7 +255,7 @@ export const listPage = {
     clickAlertKebab: () => {
       cy.log('listPage.ARRows.clickAlertKebab');
       try {
-        cy.byAriaLabel('toggle menu').should('be.visible').click();
+        cy.byTestID(DataTestIDs.KebabDropdownButton).should('be.visible').click();
       } catch (error) {
         cy.log(`${error.message}`);
         throw error;
@@ -269,30 +265,7 @@ export const listPage = {
       cy.log('listPage.ARRows.silentAlert');
       try {
         listPage.ARRows.clickAlertKebab();
-        cy.byPFRole('menuitem').contains('Silence alert').should('be.visible').click();
-      } catch (error) {
-        cy.log(`${error.message}`);
-        throw error;
-      }
-
-
-    },
-    editAlert: () => {
-      cy.log('listPage.ARRows.editAlert');
-      try {
-        listPage.ARRows.clickAlertKebab();
-        cy.byPFRole('menuitem').contains('Edit alert').should('be.visible').click();
-      } catch (error) {
-        cy.log(`${error.message}`);
-        throw error;
-      }
-    },
-    expireAlert: (yes: boolean) => {
-      cy.log('listPage.ARRows.expireAlert');
-      try {
-        listPage.ARRows.clickAlertKebab();
-        cy.byPFRole('menuitem').contains('Expire alert').should('be.visible').click();
-        commonPages.confirmExpireAlert(yes);
+        cy.byTestID(DataTestIDs.SilenceAlertDropdownItem).should('be.visible').click();
       } catch (error) {
         cy.log(`${error.message}`);
         throw error;
