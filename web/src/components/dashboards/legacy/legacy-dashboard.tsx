@@ -49,6 +49,7 @@ import {
 import { t_global_font_size_heading_h2 } from '@patternfly/react-tokens';
 import { GraphEmpty } from '../../../components/console/graphs/graph-empty';
 import { GraphUnits } from '../../../components/metrics/units';
+import { LegacyDashboardPage as dataTest } from '../../../components/data-test';
 
 const QueryBrowserLink = ({
   queries,
@@ -74,7 +75,11 @@ const QueryBrowserLink = ({
   }
 
   return (
-    <Link aria-label={t('Inspect')} to={getMutlipleQueryBrowserUrl(perspective, params, namespace)}>
+    <Link
+      aria-label={t('Inspect')}
+      to={getMutlipleQueryBrowserUrl(perspective, params, namespace)}
+      data-test={dataTest.Inspect}
+    >
       {t('Inspect')}
     </Link>
   );
@@ -199,6 +204,7 @@ const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
       component="button"
       onClick={csvExportHandler}
       isDisabled={!isThereCsvData()}
+      data-test={dataTest.ExportAsCsv}
     >
       {t('Export as CSV')}
     </DropdownItem>,

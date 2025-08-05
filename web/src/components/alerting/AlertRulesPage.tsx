@@ -41,6 +41,7 @@ import { EmptyBox } from '../console/console-shared/src/components/empty-state/E
 import { useAlertsPoller } from '../hooks/useAlertsPoller';
 import { getLegacyObserveState, getRuleUrl, usePerspective } from '../hooks/usePerspective';
 import { severityRowFilter } from './AlertUtils';
+import { AlertingRulesPage as dataTest } from '../data-test';
 
 const StateCounts: React.FC<{ alerts: PrometheusAlert[] }> = ({ alerts }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -92,23 +93,26 @@ const RuleTableRow: React.FC<RowProps<Rule>> = ({ obj }) => {
     <>
       <Td title={title} width={50}>
         <Flex spaceItems={{ default: 'spaceItemsNone' }} flexWrap={{ default: 'nowrap' }}>
-          <FlexItem>
+          <FlexItem data-test={dataTest.AlertingRuleRow.AlertingRuleResourceIcon}>
             <ResourceIcon kind={RuleResource.kind} />
           </FlexItem>
           <FlexItem>
-            <Link to={getRuleUrl(perspective, obj)}>
+            <Link
+              to={getRuleUrl(perspective, obj)}
+              data-test={dataTest.AlertingRuleRow.AlertingRuleResourceLink}
+            >
               <Truncate content={obj.name} />
             </Link>
           </FlexItem>
         </Flex>
       </Td>
-      <Td title={title} width={20}>
+      <Td title={title} width={20} data-test={dataTest.AlertingRuleRow.AlertingRuleSeverityBadge}>
         <SeverityBadge severity={obj.labels?.severity} />
       </Td>
-      <Td title={title} width={15}>
+      <Td title={title} width={15} data-test={dataTest.AlertingRuleRow.AlertingRuleStateBadge}>
         {_.isEmpty(obj.alerts) ? '-' : <StateCounts alerts={obj.alerts} />}
       </Td>
-      <Td title={title} width={15}>
+      <Td title={title} width={15} data-test={dataTest.AlertingRuleRow.AlertingRuleSource}>
         {alertingRuleSource(obj) === AlertSource.User ? t('User') : t('Platform')}
       </Td>
     </>

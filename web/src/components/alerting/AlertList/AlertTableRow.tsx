@@ -29,6 +29,7 @@ import {
   usePerspective,
 } from '../../../components/hooks/usePerspective';
 import { Link } from 'react-router-dom-v5-compat';
+import { AlertsPage as dataTest } from '../../data-test';
 
 const AlertTableRow: React.FC<{ alert: Alert }> = ({ alert }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -49,6 +50,7 @@ const AlertTableRow: React.FC<{ alert: Alert }> = ({ alert }) => {
       <DropdownItem
         key="silence-alert"
         onClick={() => navigate(getNewSilenceAlertUrl(perspective, alert, namespace))}
+        data-test={dataTest.AlertRow.SilenceAlertDropdownItem}
       >
         {t('Silence alert')}
       </DropdownItem>,
@@ -79,7 +81,7 @@ const AlertTableRow: React.FC<{ alert: Alert }> = ({ alert }) => {
     <Tr>
       <Td title={title}>
         <Flex spaceItems={{ default: 'spaceItemsNone' }} flexWrap={{ default: 'nowrap' }}>
-          <FlexItem>
+          <FlexItem data-test={dataTest.AlertRow.AlertResourceIcon}>
             <ResourceIcon kind={AlertResource.kind} />
           </FlexItem>
           <FlexItem>
@@ -91,16 +93,17 @@ const AlertTableRow: React.FC<{ alert: Alert }> = ({ alert }) => {
                 alert?.labels?.namespace || namespace,
               )}
               data-test-id="alert-resource-link"
+              data-test={dataTest.AlertRow.AlertResourceLink}
             >
               {alert?.labels?.alertname}
             </Link>
           </FlexItem>
         </Flex>
       </Td>
-      <Td title={title}>
+      <Td title={title} data-test={dataTest.AlertRow.AlertSeverityBadge}>
         <SeverityBadge severity={alert.labels?.severity} />
       </Td>
-      <Td title={title}>
+      <Td title={title} data-test={dataTest.AlertRow.AlertNamespace}>
         {alert.labels?.namespace ? (
           <ResourceLink
             groupVersionKind={NamespaceGroupVersionKind}
@@ -110,12 +113,18 @@ const AlertTableRow: React.FC<{ alert: Alert }> = ({ alert }) => {
           '-'
         )}
       </Td>
-      <Td title={title}>
+      <Td title={title} data-test={dataTest.AlertRow.AlertState}>
         <AlertState state={state} />
         <AlertStateDescription alert={alert} />
       </Td>
-      <Td title={title}>{alertSource(alert) === AlertSource.User ? t('User') : t('Platform')}</Td>
-      {perspective === 'acm' && <Td title={title}>{alert.labels?.cluster}</Td>}
+      <Td title={title} data-test={dataTest.AlertRow.AlertSource}>
+        {alertSource(alert) === AlertSource.User ? t('User') : t('Platform')}
+      </Td>
+      {perspective === 'acm' && (
+        <Td title={title} data-test={dataTest.AlertRow.AlertCluster}>
+          {alert.labels?.cluster}
+        </Td>
+      )}
       <Td title={title}>
         <ActionServiceProvider context={{ 'monitoring-alert-list-item': { alert: alert } }}>
           {({ actions, loaded }) => {

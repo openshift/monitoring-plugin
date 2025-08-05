@@ -49,6 +49,7 @@ import withFallback from '../console/console-shared/error/fallbacks/withFallback
 import { Table, TableVariant, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
 import { useNavigate, useParams, Link } from 'react-router-dom-v5-compat';
 import { useAlertsPoller } from '../hooks/useAlertsPoller';
+import { SilenceDetailsPage as dataTest } from '../data-test';
 
 const SilencesDetailsPage_: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -85,7 +86,12 @@ const SilencesDetailsPage_: React.FC = () => {
           <PageBreadcrumb hasBodyWrapper={false}>
             <Breadcrumb>
               <BreadcrumbItem>
-                <Link to={getSilencesUrl(perspective, namespace)}>{t('Silences')}</Link>
+                <Link
+                  to={getSilencesUrl(perspective, namespace)}
+                  data-test={dataTest.Header.SilencesBreadcrumb}
+                >
+                  {t('Silences')}
+                </Link>
               </BreadcrumbItem>
               <BreadcrumbItem isActive>{t('Silence details')}</BreadcrumbItem>
             </Breadcrumb>
@@ -97,6 +103,7 @@ const SilencesDetailsPage_: React.FC = () => {
                   <FlexItem
                     alignSelf={{ default: 'alignSelfCenter' }}
                     spacer={{ default: 'spacerNone' }}
+                    data-test={dataTest.Header.SilenceResourceIcon}
                   >
                     <ResourceIcon kind={SilenceResource.kind} />
                   </FlexItem>
@@ -120,7 +127,9 @@ const SilencesDetailsPage_: React.FC = () => {
                   {silence?.name && (
                     <DescriptionListGroup>
                       <DescriptionListTerm>{t('Name')}</DescriptionListTerm>
-                      <DescriptionListDescription>{silence?.name}</DescriptionListDescription>
+                      <DescriptionListDescription data-test={dataTest.Details.SilenceName}>
+                        {silence?.name}
+                      </DescriptionListDescription>
                     </DescriptionListGroup>
                   )}
                   <DescriptionListGroup>
@@ -135,13 +144,13 @@ const SilencesDetailsPage_: React.FC = () => {
                   </DescriptionListGroup>
                   <DescriptionListGroup>
                     <DescriptionListTerm>{t('State')}</DescriptionListTerm>
-                    <DescriptionListDescription>
+                    <DescriptionListDescription data-test={dataTest.Details.SilenceState}>
                       <SilenceState silence={silence} />
                     </DescriptionListDescription>
                   </DescriptionListGroup>
                   <DescriptionListGroup>
                     <DescriptionListTerm>{t('Last updated at')}</DescriptionListTerm>
-                    <DescriptionListDescription>
+                    <DescriptionListDescription data-test={dataTest.Details.SilenceUpdatedAt}>
                       <Timestamp timestamp={silence?.updatedAt} />
                     </DescriptionListDescription>
                   </DescriptionListGroup>
@@ -151,31 +160,33 @@ const SilencesDetailsPage_: React.FC = () => {
                 <DescriptionList>
                   <DescriptionListGroup>
                     <DescriptionListTerm>{t('Starts at')}</DescriptionListTerm>
-                    <DescriptionListDescription>
+                    <DescriptionListDescription data-test={dataTest.Details.SilenceStartsAt}>
                       <Timestamp timestamp={silence?.startsAt} />
                     </DescriptionListDescription>
                   </DescriptionListGroup>
                   <DescriptionListGroup>
                     <DescriptionListTerm>{t('Ends at')}</DescriptionListTerm>
-                    <DescriptionListDescription>
+                    <DescriptionListDescription data-test={dataTest.Details.SilenceEndsAt}>
                       <Timestamp timestamp={silence?.endsAt} />
                     </DescriptionListDescription>
                   </DescriptionListGroup>
                   <DescriptionListGroup>
                     <DescriptionListTerm>{t('Created by')}</DescriptionListTerm>
-                    <DescriptionListDescription>
+                    <DescriptionListDescription data-test={dataTest.Details.SilenceCreatedBy}>
                       {silence?.createdBy || '-'}
                     </DescriptionListDescription>
                   </DescriptionListGroup>
                   <DescriptionListGroup>
                     <DescriptionListTerm>{t('Comment')}</DescriptionListTerm>
-                    <DescriptionListDescription>
+                    <DescriptionListDescription data-test={dataTest.Details.SilenceComment}>
                       {silence?.comment || '-'}
                     </DescriptionListDescription>
                   </DescriptionListGroup>
                   <DescriptionListGroup>
                     <DescriptionListTerm>{t('Firing alerts')}</DescriptionListTerm>
-                    <DescriptionListDescription>
+                    <DescriptionListDescription
+                      data-test={dataTest.Details.SilenceFiringAlertsBadge}
+                    >
                       {alertsLoaded ? (
                         <SeverityCounts alerts={silence?.firingAlerts} />
                       ) : (
@@ -224,14 +235,14 @@ const SilencedAlertsList: React.FC<SilencedAlertsListProps> = ({ alerts }) => {
           <Tr key={i}>
             <Td>
               <Link
-                data-test="firing-alerts"
+                data-test={dataTest.Details.SilenceFiringAlert}
                 to={getAlertUrl(perspective, a, a.rule.id, namespace)}
               >
                 {a.labels.alertname}
               </Link>
               <div>{alertDescription(a)}</div>
             </Td>
-            <Td>
+            <Td data-test={dataTest.Details.SilenceFiringAlertSeverity}>
               <SeverityBadge severity={a.labels.severity} />
             </Td>
             <div>

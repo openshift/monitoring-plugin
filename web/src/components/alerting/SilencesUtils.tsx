@@ -57,6 +57,7 @@ import {
   silenceState,
 } from '../utils';
 import { SeverityCounts, StateTimestamp } from './AlertUtils';
+import { SilencesPage as dataTest } from '../data-test';
 
 export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheckbox }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -95,6 +96,7 @@ export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheck
             onChange={(_e, checked) => {
               typeof _e === 'boolean' ? onCheckboxChange(checked) : onCheckboxChange(checked);
             }}
+            data-test={dataTest.SilencesTable.SelectCheckbox}
           />
         </Td>
       )}
@@ -104,7 +106,7 @@ export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheck
           flexWrap={{ default: 'nowrap' }}
           style={{ paddingBottom: t_global_spacer_xs.var }}
         >
-          <FlexItem>
+          <FlexItem data-test={dataTest.SilencesTable.SilenceResourceIcon}>
             <ResourceIcon kind={SilenceResource.kind} />
           </FlexItem>
           <FlexItem>
@@ -112,6 +114,7 @@ export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheck
               data-test-id="silence-resource-link"
               title={id}
               to={getSilenceAlertUrl(perspective, id, namespace)}
+              data-test={dataTest.SilencesTable.SilenceResourceLink}
             >
               {name}
             </Link>
@@ -119,10 +122,10 @@ export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheck
         </Flex>
         <SilenceMatchersList silence={obj} />
       </Td>
-      <Td width={15}>
+      <Td width={15} data-test={dataTest.SilencesTable.SilenceCount}>
         <SeverityCounts alerts={firingAlerts} />
       </Td>
-      <Td width={20}>
+      <Td width={20} data-test={dataTest.SilencesTable.SilenceState}>
         <Stack>
           <StackItem>
             <SilenceState silence={obj} />
@@ -140,7 +143,9 @@ export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheck
           </StackItem>
         </Stack>
       </Td>
-      <Td width={15}>{createdBy || '-'}</Td>
+      <Td width={15} data-test={dataTest.SilencesTable.SilenceCreatedBy}>
+        {createdBy || '-'}
+      </Td>
       {perspective === 'acm' && <Td width={15}>{cluster}</Td>}
       <Td width={10}>
         <SilenceDropdown silence={obj} />
@@ -160,7 +165,7 @@ export const SelectedSilencesContext = React.createContext({
 });
 
 export const SilenceMatchersList = ({ silence }) => (
-  <LabelGroup numLabels={20}>
+  <LabelGroup numLabels={20} data-test={dataTest.SilencesTable.SilenceMatchersList}>
     {_.map(silence.matchers, ({ name, isEqual, isRegex, value }, i) => (
       <Label key={i}>
         <span>{name}</span>
@@ -221,15 +226,30 @@ export const SilenceDropdown: React.FC<SilenceDropdownProps> = ({ silence, toggl
   const dropdownItems =
     silenceState(silence) === SilenceStates.Expired
       ? [
-          <DropdownItem value={0} key="recreate-silence" onClick={editSilence}>
+          <DropdownItem
+            data-test={dataTest.SilencesTable.SilenceRecreateDropdownItem}
+            value={0}
+            key="recreate-silence"
+            onClick={editSilence}
+          >
             {t('Recreate silence')}
           </DropdownItem>,
         ]
       : [
-          <DropdownItem value={0} key="edit-silence" onClick={editSilence}>
+          <DropdownItem
+            data-test={dataTest.SilencesTable.SilenceEditDropdownItem}
+            value={0}
+            key="edit-silence"
+            onClick={editSilence}
+          >
             {t('Edit silence')}
           </DropdownItem>,
-          <DropdownItem value={1} key="cancel-silence" onClick={setModalOpen}>
+          <DropdownItem
+            data-test={dataTest.SilencesTable.SilenceExpireDropdownItem}
+            value={1}
+            key="cancel-silence"
+            onClick={setModalOpen}
+          >
             {t('Expire silence')}
           </DropdownItem>,
         ];
@@ -249,6 +269,7 @@ export const SilenceDropdown: React.FC<SilenceDropdownProps> = ({ silence, toggl
             variant={toggleText ? 'default' : 'plain'}
             onClick={setIsOpen}
             isExpanded={isOpen}
+            data-test={dataTest.SilencesTable.SilenceKebabDropdown}
           >
             {toggleText || <EllipsisVIcon />}
           </MenuToggle>
@@ -316,10 +337,15 @@ export const ExpireSilenceModal: React.FC<ExpireSilenceModalProps> = ({
           onClick={expireSilence}
           isLoading={isInProgress}
           icon={success ? <CheckCircleIcon /> : null}
+          data-test={dataTest.ExpireSilenceModal.ExpireSilenceButton}
         >
           {success ? t('Expired') : t('Expire silence')}
         </Button>
-        <Button variant="secondary" onClick={setClosed}>
+        <Button
+          variant="secondary"
+          onClick={setClosed}
+          data-test={dataTest.ExpireSilenceModal.CancelButton}
+        >
           {t('Cancel')}
         </Button>
       </ModalFooter>

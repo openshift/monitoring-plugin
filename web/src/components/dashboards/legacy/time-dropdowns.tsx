@@ -20,6 +20,7 @@ import { useBoolean } from '../../hooks/useBoolean';
 import { getLegacyObserveState, usePerspective } from '../../hooks/usePerspective';
 import { QueryParams } from '../../query-params';
 import CustomTimeRangeModal from './custom-time-range-modal';
+import { LegacyDashboardPage as dataTest } from '../../../components/data-test';
 
 const CUSTOM_TIME_RANGE_KEY = 'CUSTOM_TIME_RANGE_KEY';
 const DEFAULT_TIMERANGE = '30m';
@@ -101,7 +102,7 @@ export const TimespanDropdown: React.FC = () => {
         <StackItem>
           <label htmlFor="monitoring-time-range-dropdown">{t('Time range')}</label>
         </StackItem>
-        <StackItem>
+        <StackItem data-test={dataTest.TimeRangeDropdown}>
           <SimpleSelect
             id="monitoring-time-range-dropdown"
             initialOptions={initialOptions}
@@ -111,6 +112,7 @@ export const TimespanDropdown: React.FC = () => {
               }
             }}
             placeholder={t('Last {{count}} minute', { count: 30 })}
+            data-test={dataTest.TimeRangeDropdownOptions}
           />
         </StackItem>
       </Stack>
@@ -140,11 +142,12 @@ export const PollIntervalDropdown: React.FC = () => {
       <StackItem>
         <label htmlFor="refresh-interval-dropdown">{t('Refresh interval')}</label>
       </StackItem>
-      <StackItem>
+      <StackItem data-test={dataTest.PollIntervalDropdown}>
         <DropDownPollInterval
           id="refresh-interval-dropdown"
           setInterval={setInterval}
           selectedInterval={selectedInterval}
+          data-test={dataTest.PollIntervalDropdownOptions}
         />
       </StackItem>
     </Stack>

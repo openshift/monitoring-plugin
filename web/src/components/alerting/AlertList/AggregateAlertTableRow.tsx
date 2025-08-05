@@ -16,6 +16,7 @@ import { Link } from 'react-router-dom-v5-compat';
 import { SelectedFilters } from '../useSelectedFilters';
 import { filterAlerts } from './hooks/utils';
 import { Badge, Flex, FlexItem } from '@patternfly/react-core';
+import { AlertsPage as dataTest } from '../../data-test';
 
 type AggregateAlertTableRowProps = React.FC<{
   aggregatedAlert: AggregatedAlert;
@@ -88,10 +89,11 @@ const AggregateAlertTableRow: AggregateAlertTableRowProps = ({
             onToggle: (event, rowIndex, isOpen) => setIsExpanded(isOpen),
             expandId: 'expand-interfaces-list',
           }}
+          data-test={dataTest.AlertingRuleRow.AlertingRuleArrow}
         />
         <Td title={title}>
           <Flex spaceItems={{ default: 'spaceItemsNone' }} flexWrap={{ default: 'nowrap' }}>
-            <FlexItem>
+            <FlexItem data-test={dataTest.AlertingRuleRow.AlertingRuleResourceIcon}>
               <ResourceIcon kind={RuleResource.kind} />
             </FlexItem>
             <FlexItem>
@@ -102,21 +104,22 @@ const AggregateAlertTableRow: AggregateAlertTableRowProps = ({
                   firstAlert?.labels?.namespace || namespace,
                 )}
                 data-test-id="alert-resource-link"
+                data-test={dataTest.AlertingRuleRow.AlertingRuleResourceLink}
               >
                 {aggregatedAlert.name}
               </Link>
             </FlexItem>
           </Flex>
         </Td>
-        <Td title={title}>
+        <Td title={title} data-test={dataTest.AlertingRuleRow.AlertingRuleSeverityBadge}>
           <SeverityBadge severity={aggregatedAlert.severity} />
         </Td>
-        <Td title={title}>
+        <Td title={title} data-test={dataTest.AlertingRuleRow.AlertingRuleTotalAlertsBadge}>
           <Badge key={1} isRead>
             {filteredAlerts.length}
           </Badge>
         </Td>
-        <Td title={title}>
+        <Td title={title} data-test={dataTest.AlertingRuleRow.AlertingRuleStateBadge}>
           {filteredStates.map((state) => (
             <AlertState state={state} key={state} />
           ))}
