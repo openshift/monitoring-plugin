@@ -109,12 +109,14 @@ export const getAlertsUrl = (perspective: Perspective, namespace?: string) => {
 };
 
 // There is no equivalent rules list page in the developer perspective
-export const getAlertRulesUrl = (perspective: Perspective) => {
+export const getAlertRulesUrl = (perspective: Perspective, namespace?: string) => {
   switch (perspective) {
     case 'acm':
       return `/multicloud${RuleResource.plural}`;
     case 'virtualization-perspective':
       return `/virt-monitoring/alertrules`;
+    case 'dev':
+      return `/dev-monitoring/ns/${namespace}/alertrules`;
     case 'admin':
     default:
       return RuleResource.plural;

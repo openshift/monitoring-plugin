@@ -243,6 +243,17 @@
     }
   },
   {
+    "type": "console.tab",
+    "properties": {
+      "contextId": "dev-console-observe",
+      "name": "%plugin__monitoring-plugin~Alerting Rules%",
+      "href": "alertrules",
+      "component": {
+        "$codeRef": "MonitoringUI"
+      }
+    }
+  },
+  {
     "type": "console.redux-reducer",
     "properties": {
       "scope": "mp",
