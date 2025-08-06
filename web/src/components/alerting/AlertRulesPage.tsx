@@ -109,7 +109,7 @@ const RuleTableRow: React.FC<RowProps<Rule>> = ({ obj }) => {
       </Td>
       <Td
         title={title}
-        width={20} 
+        width={20}
         data-test={AlertingRulesPageTestIDs.AlertingRuleRow.AlertingRuleSeverityBadge}
       >
         <SeverityBadge severity={obj.labels?.severity} />

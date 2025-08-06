@@ -90,7 +90,7 @@ import {
 import { getLegacyObserveState, getObserveState, usePerspective } from './hooks/usePerspective';
 import './query-browser.scss';
 import { GraphUnits } from './metrics/units';
-import { Components as dataTest } from './data-test';
+import { ComponentsTestIDs } from './data-test';
 
 const spans = ['5m', '15m', '30m', '1h', '2h', '6h', '12h', '1d', '2d', '1w', '2w'];
 export const colors = queryBrowserTheme.line.colorScale;
@@ -167,7 +167,7 @@ const SpanControls: React.FC<SpanControlsProps> = React.memo(
                 value={text}
               />
             </InputGroupItem>
-            <InputGroupItem data-test={dataTest.GraphTimespanInput}>
+            <InputGroupItem data-test={ComponentsTestIDs.GraphTimespanInput}>
               <Dropdown
                 isOpen={isOpen}
                 onSelect={setClosed}
@@ -177,7 +177,7 @@ const SpanControls: React.FC<SpanControlsProps> = React.memo(
                     onClick={setIsOpen}
                     isExpanded={isOpen}
                     aria-label={t('graph timespan')}
-                    data-test={dataTest.GraphTimespanDropdown}
+                    data-test={ComponentsTestIDs.GraphTimespanDropdown}
                   />
                 )}
                 popperProps={{ position: 'right' }}
@@ -192,7 +192,7 @@ const SpanControls: React.FC<SpanControlsProps> = React.memo(
             onClick={() => setSpan(defaultSpanText)}
             type="button"
             variant="tertiary"
-            data-test={dataTest.ResetZoomButton}
+            data-test={ComponentsTestIDs.ResetZoomButton}
           >
             {t('Reset zoom')}
           </Button>
@@ -957,7 +957,7 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
                         onChange={(_e, v) =>
                           typeof _e === 'boolean' ? setIsStacked(_e) : setIsStacked(v)
                         }
-                        data-test={dataTest.StackedCheckbox}
+                        data-test={ComponentsTestIDs.StackedCheckbox}
                       />
                     </SplitItem>
                   )}
@@ -983,7 +983,7 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
                               : setIsShowDisconnectedValues(v)
                           }
                           isDisabled={!isDisconnectedEnabled}
-                          data-test={dataTest.DisconnectedCheckbox}
+                          data-test={ComponentsTestIDs.DisconnectedCheckbox}
                         />
                       </Tooltip>
                     </SplitItem>

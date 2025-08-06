@@ -12,7 +12,7 @@ import {
 } from '@patternfly/react-core';
 import { TimesIcon } from '@patternfly/react-icons';
 import React from 'react';
-import { Components as dataTest } from './data-test';
+import { ComponentsTestIDs } from './data-test';
 
 const NO_RESULTS = 'no results';
 
@@ -232,7 +232,7 @@ export const TypeaheadSelect: React.FC<TypeaheadSelectProps> = ({
           role="combobox"
           isExpanded={isOpen}
           aria-controls="select-typeahead-listbox"
-          data-test={dataTest.TypeaheadSelect.PredefinedQueriesDropdown}
+          data-test={ComponentsTestIDs.TypeaheadSelect.PredefinedQueriesDropdown}
         />
 
         <TextInputGroupUtilities {...(!inputValue ? { style: { display: 'none' } } : {})}>

@@ -3,7 +3,7 @@ import React, { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePerspective } from '../../hooks/usePerspective';
 import { AggregatedAlert } from '../AlertsAggregates';
-import { AlertsPage as dataTest } from '../../data-test';
+import { AlertsPageTestIDs } from '../../data-test';
 
 type DownloadCSVButtonProps = {
   loaded: boolean;
@@ -66,7 +66,7 @@ const DownloadCSVButton: FC<DownloadCSVButtonProps> = ({ loaded, filteredData })
       className="co-virtualized-table--export-csv-button"
       onClick={downloadCsv}
       variant={ButtonVariant.link}
-      data-test={dataTest.DownloadCSVButton}
+      data-test={AlertsPageTestIDs.DownloadCSVButton}
     >
       {t('Export as CSV')}
     </Button>

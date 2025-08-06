@@ -20,7 +20,7 @@ import { useBoolean } from '../../hooks/useBoolean';
 import { getLegacyObserveState, usePerspective } from '../../hooks/usePerspective';
 import { QueryParams } from '../../query-params';
 import CustomTimeRangeModal from './custom-time-range-modal';
-import { LegacyDashboardPage as dataTest } from '../../../components/data-test';
+import { LegacyDashboardPageTestIDs } from '../../../components/data-test';
 
 const CUSTOM_TIME_RANGE_KEY = 'CUSTOM_TIME_RANGE_KEY';
 const DEFAULT_TIMERANGE = '30m';
@@ -102,7 +102,7 @@ export const TimespanDropdown: React.FC = () => {
         <StackItem>
           <label htmlFor="monitoring-time-range-dropdown">{t('Time range')}</label>
         </StackItem>
-        <StackItem data-test={dataTest.TimeRangeDropdown}>
+        <StackItem data-test={LegacyDashboardPageTestIDs.TimeRangeDropdown}>
           <SimpleSelect
             id="monitoring-time-range-dropdown"
             initialOptions={initialOptions}
@@ -112,7 +112,7 @@ export const TimespanDropdown: React.FC = () => {
               }
             }}
             placeholder={t('Last {{count}} minute', { count: 30 })}
-            data-test={dataTest.TimeRangeDropdownOptions}
+            data-test={LegacyDashboardPageTestIDs.TimeRangeDropdownOptions}
           />
         </StackItem>
       </Stack>

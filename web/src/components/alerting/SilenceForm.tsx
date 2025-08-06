@@ -50,7 +50,7 @@ import {
   usePerspective,
 } from '../hooks/usePerspective';
 import { refreshSilences } from '../utils';
-import { CreateSilencesPage as dataTest } from '../data-test';
+import { CreateSilencesPageTestIDs } from '../data-test';
 
 type Matcher = {
   isRegex: boolean;
@@ -282,7 +282,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => 
       <PageSection hasBodyWrapper={false}>
         <Title headingLevel="h1">{title}</Title>
         <HelperText>
-          <HelperTextItem data-test={dataTest.Description}>
+          <HelperTextItem data-test={CreateSilencesPageTestIDs.Description}>
             {t(
               'Silences temporarily mute alerts based on a set of label selectors that you define. Notifications will not be sent for alerts that match all the listed values or regular expressions.',
             )}
@@ -302,13 +302,13 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => 
                 {isStartNow ? (
                   <DatetimeTextInput
                     isDisabled
-                    data-test={dataTest.SilenceFrom}
+                    data-test={CreateSilencesPageTestIDs.SilenceFrom}
                     value={t('Now')}
                     tooltip={formatDate(new Date())}
                   />
                 ) : (
                   <DatetimeTextInput
-                    data-test={dataTest.SilenceFrom}
+                    data-test={CreateSilencesPageTestIDs.SilenceFrom}
                     isRequired
                     onChange={(_event, value: string) => setStartsAt(value)}
                     value={startsAt}
@@ -319,7 +319,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => 
             <GridItem sm={4} md={2}>
               <FormGroup label={t('For...')}>
                 <Select
-                  data-test={dataTest.SilenceFor}
+                  data-test={CreateSilencesPageTestIDs.SilenceFor}
                   isOpen={isOpen}
                   onSelect={(event: React.MouseEvent | React.ChangeEvent, value: string) => {
                     setDuration(value);
@@ -331,7 +331,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => 
                       onClick={setIsOpen}
                       isExpanded={isOpen}
                       isFullWidth
-                      data-test={dataTest.SilenceForToggle}
+                      data-test={CreateSilencesPageTestIDs.SilenceForToggle}
                     >
                       {duration}
                     </MenuToggle>
@@ -346,14 +346,14 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => 
               <FormGroup label={t('Until...')}>
                 {duration === durationOff ? (
                   <DatetimeTextInput
-                    data-test={dataTest.SilenceUntil}
+                    data-test={CreateSilencesPageTestIDs.SilenceUntil}
                     isRequired
                     onChange={(_event, value: string) => setEndsAt(value)}
                     value={endsAt}
                   />
                 ) : (
                   <DatetimeTextInput
-                    data-test={dataTest.SilenceUntil}
+                    data-test={CreateSilencesPageTestIDs.SilenceUntil}
                     isDisabled
                     value={
                       isStartNow
@@ -372,14 +372,17 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => 
               label={t('Start immediately')}
               isChecked={isStartNow}
               onChange={(e) => setIsStartNow(e.currentTarget.checked)}
-              data-test={dataTest.StartImmediately}
+              data-test={CreateSilencesPageTestIDs.StartImmediately}
             />
           </FormGroup>
 
           <Title headingLevel="h2">{t('Alert labels')}</Title>
           <FormHelperText>
             <HelperText>
-              <HelperTextItem variant="indeterminate" data-test={dataTest.AlertLabelsDescription}>
+              <HelperTextItem
+                variant="indeterminate"
+                data-test={CreateSilencesPageTestIDs.AlertLabelsDescription}
+              >
                 <Trans t={t}>
                   Alerts with labels that match these selectors will be silenced instead of firing.
                   Label values can be matched exactly or with a{' '}
@@ -406,7 +409,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => 
                     }
                     placeholder={t('Name')}
                     value={matcher.name}
-                    data-test={dataTest.LabelName}
+                    data-test={CreateSilencesPageTestIDs.LabelName}
                   />
                 </FormGroup>
               </GridItem>
@@ -422,7 +425,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => 
                     }
                     placeholder={t('Value')}
                     value={matcher.value}
-                    data-test={dataTest.LabelValue}
+                    data-test={CreateSilencesPageTestIDs.LabelValue}
                   />
                 </FormGroup>
               </GridItem>
@@ -434,7 +437,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => 
                       label={t('RegEx')}
                       isChecked={matcher.isRegex}
                       onChange={(e) => setMatcherField(i, 'isRegex', e.currentTarget.checked)}
-                      data-test={dataTest.Regex}
+                      data-test={CreateSilencesPageTestIDs.Regex}
                     />
                     <Tooltip content={<NegativeMatcherHelp />}>
                       <Checkbox
@@ -442,7 +445,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => 
                         label={t('Negative matcher')}
                         isChecked={matcher.isEqual === false}
                         onChange={(e) => setMatcherField(i, 'isEqual', !e.currentTarget.checked)}
-                        data-test={dataTest.NegativeMatcherCheckbox}
+                        data-test={CreateSilencesPageTestIDs.NegativeMatcherCheckbox}
                       />
                     </Tooltip>
                   </FormGroup>
@@ -454,7 +457,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => 
                       aria-label={t('Remove')}
                       variant="plain"
                       isInline
-                      data-test={dataTest.RemoveLabel}
+                      data-test={CreateSilencesPageTestIDs.RemoveLabel}
                     />
                   </Tooltip>
                 </FormGroup>
@@ -473,7 +476,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => 
               type="button"
               variant="link"
               isInline
-              data-test={dataTest.AddLabel}
+              data-test={CreateSilencesPageTestIDs.AddLabel}
             >
               {t('Add label')}
             </Button>
@@ -489,7 +492,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => 
               }
               value={createdBy}
               validated={error && !createdBy ? ValidatedOptions.error : ValidatedOptions.default}
-              data-test={dataTest.Creator}
+              data-test={CreateSilencesPageTestIDs.Creator}
             />
             {error && !createdBy && (
               <FormHelperText>
@@ -511,7 +514,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => 
               onChange={(_e, v: string) =>
                 typeof _e === 'string' ? setComment(_e) : setComment(v)
               }
-              data-test={dataTest.Comment}
+              data-test={CreateSilencesPageTestIDs.Comment}
               value={comment}
               validated={error && !comment ? ValidatedOptions.error : ValidatedOptions.default}
             />
@@ -533,7 +536,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => 
               type="submit"
               variant="primary"
               isDisabled={inProgress}
-              data-test={dataTest.SilenceButton}
+              data-test={CreateSilencesPageTestIDs.SilenceButton}
             >
               {t('Silence')}
             </Button>
@@ -541,7 +544,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => 
               onClick={() => navigate(-1)}
               variant="secondary"
               isDisabled={inProgress}
-              data-test={dataTest.CancelButton}
+              data-test={CreateSilencesPageTestIDs.CancelButton}
             >
               {t('Cancel')}
             </Button>

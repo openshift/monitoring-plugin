@@ -3,7 +3,7 @@ import { Dropdown, DropdownList, MenuToggle, MenuToggleElement } from '@patternf
 import EllipsisVIcon from '@patternfly/react-icons/dist/esm/icons/ellipsis-v-icon';
 
 import { useBoolean } from './hooks/useBoolean';
-import { Components as dataTest } from './data-test';
+import { ComponentsTestIDs } from './data-test';
 
 const KebabDropdown: React.FC<{ dropdownItems: any[] }> = ({ dropdownItems }) => {
   const [isOpen, setIsOpen, setOpen, setClosed] = useBoolean(false);
@@ -19,7 +19,7 @@ const KebabDropdown: React.FC<{ dropdownItems: any[] }> = ({ dropdownItems }) =>
           ref={toggleRef}
           aria-label="toggle menu"
           data-test-id="kebab-button"
-          data-test={dataTest.KebabDropdownButton}
+          data-test={ComponentsTestIDs.KebabDropdownButton}
           variant="plain"
           onClick={setIsOpen}
           isExpanded={isOpen}

@@ -21,7 +21,7 @@ import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { TimesIcon } from '@patternfly/react-icons/dist/esm/icons/times-icon';
 import { t_global_spacer_control_horizontal_default } from '@patternfly/react-tokens';
-import { Components as dataTest } from '../../data-test';
+import { ComponentsTestIDs } from '../../data-test';
 
 export type SingleTypeaheadDropdownProps = {
   /** The items to display in the dropdown */
@@ -337,11 +337,11 @@ export const SingleTypeaheadDropdown: React.FC<SingleTypeaheadDropdownProps> = (
       onClick={onToggleClick}
       isExpanded={isOpen}
       {...menuToggleProps}
-      data-test={dataTest.SingleTypeaheadMenuToggle}
+      data-test={ComponentsTestIDs.SingleTypeaheadMenuToggle}
     >
       <TextInputGroup isPlain>
         <TextInputGroupMain
-          data-test={dataTest.SingleTypeaheadTextInput}
+          data-test={ComponentsTestIDs.SingleTypeaheadTextInput}
           value={inputValue}
           onClick={onInputClick}
           onChange={onTextInputChange}
@@ -394,7 +394,10 @@ export const SingleTypeaheadDropdown: React.FC<SingleTypeaheadDropdownProps> = (
       shouldFocusFirstItemOnOpen={false}
       {...selectProps}
     >
-      <SelectList id={`${ID_PREFIX}-listbox`} data-test={dataTest.SingleTypeaheadSelectListBox}>
+      <SelectList
+        id={`${ID_PREFIX}-listbox`}
+        data-test={ComponentsTestIDs.SingleTypeaheadSelectListBox}
+      >
         {filteredSelectOptions.map((v, k) => {
           const SelectOptionComponent =
             v.value === CREATE_NEW ? SelectOption : OptionComponent ?? SelectOption;

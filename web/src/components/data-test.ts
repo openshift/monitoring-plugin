@@ -1,4 +1,4 @@
-export const AlertsPage = {
+export const AlertsPageTestIDs = {
   DownloadCSVButton: 'download-csv-button',
   AlertingRuleRow: {
     AlertingRuleArrow: 'alerting-rule-arrow',
@@ -18,9 +18,14 @@ export const AlertsPage = {
     AlertCluster: 'alert-cluster',
     SilenceAlertDropdownItem: 'silence-alert-dropdown-item',
   },
+  //these ID was not added manually in the component and are used only in cypress test files
+  CypressView: {
+    FilterNameLabelDropdown: 'console-select-menu-toggle',
+    FilterNameLabelDropdownOptions: 'console-select-menu-list',
+  },
 };
 
-export const AlertingRulesPage = {
+export const AlertingRulesPageTestIDs = {
   AlertingRuleRow: {
     AlertingRuleResourceIcon: 'alerting-rule-resource-icon',
     AlertingRuleResourceLink: 'alerting-rule-resource-link',
@@ -30,7 +35,7 @@ export const AlertingRulesPage = {
   },
 };
 
-export const AlertRulesDetailsPage = {
+export const AlertRulesDetailsPageTestIDs = {
   Header: {
     AlertResourceIcon: 'alert-resource-icon',
     SeverityBadgeHeader: 'severity-badge-header',
@@ -51,7 +56,7 @@ export const AlertRulesDetailsPage = {
   },
 };
 
-export const AlertingDetailsPage = {
+export const AlertingDetailsPageTestIDs = {
   Header: {
     AlertResourceIcon: 'alert-resource-icon',
     SeverityBadgeHeader: 'severity-badge-header',
@@ -71,7 +76,7 @@ export const AlertingDetailsPage = {
   },
 };
 
-export const SilencesPage = {
+export const SilencesPageTestIDs = {
   CreateSilenceButton: 'create-silence-btn',
   ExpireXSilencesButton: 'expire-x-silences-button',
   SilencesTable: {
@@ -99,7 +104,7 @@ export const SilencesPage = {
   },
 };
 
-export const CreateSilencesPage = {
+export const CreateSilencesPageTestIDs = {
   Description: 'description-header',
   SilenceFrom: 'silence-from',
   SilenceFor: 'silence-for',
@@ -119,7 +124,7 @@ export const CreateSilencesPage = {
   CancelButton: 'cancel-button',
 };
 
-export const SilenceDetailsPage = {
+export const SilenceDetailsPageTestIDs = {
   Header: {
     SilencesBreadcrumb: 'silences-breadcrumb',
     SilenceResourceIcon: 'silence-resource-icon',
@@ -139,7 +144,7 @@ export const SilenceDetailsPage = {
   },
 };
 
-export const LegacyDashboardPage = {
+export const LegacyDashboardPageTestIDs = {
   TimeRangeDropdown: 'time-range-dropdown',
   TimeRangeDropdownOptions: 'time-range-dropdown-options',
   PollIntervalDropdown: 'poll-interval-dropdown',
@@ -148,11 +153,11 @@ export const LegacyDashboardPage = {
   ExportAsCsv: 'export-as-csv',
 };
 
-export const PersesDashboardPage = {
+export const PersesDashboardPageTestIDs = {
   ProjectMenuToggle: 'project-menu-toggle',
 };
 
-export const Components = {
+export const ComponentsTestIDs = {
   KebabDropdownButton: 'kebab-dropdown-button',
   DropdownPollInterval: 'dropdown-poll-interval',
   GraphUnitsDropDown: 'graph-units-dropdown',
