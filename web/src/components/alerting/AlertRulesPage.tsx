@@ -7,6 +7,7 @@ import {
   RowProps,
   Rule,
   TableColumn,
+  useActiveNamespace,
   useListPageFilter,
   VirtualizedTable,
 } from '@openshift-console/dynamic-plugin-sdk';
@@ -98,7 +99,7 @@ const RuleTableRow: React.FC<RowProps<Rule>> = ({ obj }) => {
           </FlexItem>
           <FlexItem>
             <Link
-              to={getRuleUrl(perspective, obj)}
+              to={getRuleUrl(perspective, obj, obj.labels.namespace)}
               data-test={dataTest.AlertingRuleRow.AlertingRuleResourceLink}
             >
               <Truncate content={obj.name} />
@@ -122,6 +123,7 @@ const RuleTableRow: React.FC<RowProps<Rule>> = ({ obj }) => {
 const AlertRulesPage_: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { alertsKey, silencesKey, rulesKey, perspective, defaultAlertTenant } = usePerspective();
+  const [namespace] = useActiveNamespace();
 
   useAlertsPoller();
 
@@ -140,6 +142,14 @@ const AlertRulesPage_: React.FC = () => {
     () => getAdditionalSources(data, alertingRuleSource),
     [data],
   );
+
+  const namespacedData = React.useMemo(() => {
+    if (perspective === 'dev') {
+      return data?.filter((rule) => rule.labels?.namespace === namespace);
+    }
+
+    return data;
+  }, [data, perspective, namespace]);
 
   const rowFilters: RowFilter[] = [
     // TODO: The "name" filter doesn't really fit useListPageFilter's idea of a RowFilter, but
@@ -167,7 +177,7 @@ const AlertRulesPage_: React.FC = () => {
     },
   ];
 
-  const [staticData, filteredData, onFilterChange] = useListPageFilter(data, rowFilters);
+  const [staticData, filteredData, onFilterChange] = useListPageFilter(namespacedData, rowFilters);
 
   const columns = React.useMemo<TableColumn<Rule>[]>(
     () => [

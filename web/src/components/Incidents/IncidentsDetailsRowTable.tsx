@@ -25,6 +25,7 @@ import { SeverityBadge } from '../alerting/AlertUtils';
 import { useAlertsPoller } from '../hooks/useAlertsPoller';
 import { useSelector } from 'react-redux';
 import isEqual from 'lodash/isEqual';
+import { MonitoringState } from 'src/reducers/observe';
 
 function useDeepCompareMemoize(value) {
   const ref = React.useRef();
@@ -44,7 +45,7 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
   const [alertsWithMatchedData, setAlertsWithMatchedData] = React.useState([]);
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
-  const alertsWithLabels = useSelector((state) =>
+  const alertsWithLabels = useSelector((state: MonitoringState) =>
     getLegacyObserveState(perspective, state)?.get(alertsKey),
   );
 
@@ -67,7 +68,7 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
   }, [memoizedAlerts, alertsWithLabels]);
 
   return (
-    <Table borders={'compactBorderless'}>
+    <Table borders={false} variant="compact">
       <Thead>
         <Tr>
           <Th width={25}>{t('Alert Name')}</Th>

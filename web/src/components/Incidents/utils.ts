@@ -1,66 +1,28 @@
 /* eslint-disable max-len */
-import { setIncidentsActiveFilters } from '../../actions/observe';
 import {
   t_global_color_status_danger_default,
   t_global_color_status_info_default,
   t_global_color_status_warning_default,
 } from '@patternfly/react-tokens';
+import { Dispatch } from 'redux';
+import { setIncidentsActiveFilters } from '../../actions/observe';
+import {
+  Alert,
+  AlertsIntervalsArray,
+  DaysFilters,
+  Incident,
+  IncidentFilters,
+  IncidentFiltersCombined,
+  SpanDates,
+  Timestamps,
+} from './model';
 
-type Timestamps = [Date, string];
-
-type SpanDates = [Date];
-
-type Theme = 'dark' | 'light';
-
-type AlertsIntervalsArray = [Date, Date, 'data' | 'nodata'];
-
-type Incident = {
-  component: string;
-  componentList: Array<string>;
-  critical: boolean;
-  informative: boolean;
-  warning: boolean;
-  resolved: boolean;
-  layer: string;
-  firing: boolean;
-  group_id: string;
-  src_severity: string;
-  src_alertname: string;
-  src_namespace: string;
-  x: number;
-  values: Array<Timestamps>;
+export const isIncidentFilter = (filter: unknown): filter is IncidentFilters => {
+  return (
+    typeof filter === 'string' &&
+    ['Critical', 'Warning', 'Firing', 'Informative', 'Resolved'].includes(filter)
+  );
 };
-
-type Alert = {
-  alertname: string;
-  alertsStartFiring: Date;
-  alertsEndFiring: Date;
-  alertstate: string;
-  component: string;
-  layer: string;
-  name: string;
-  namespace: string;
-  resolved: boolean;
-  severity: 'critical' | 'warning' | 'info';
-  x: number;
-  values: Array<Timestamps>;
-};
-
-type DaysFilters = '1 day' | '3 days' | '7 days' | '15 days';
-
-type IncidentFilters = 'Critical' | 'Warning' | 'Firing' | 'Informative' | 'Resolved';
-
-type IncidentFiltersCombined = {
-  days: Array<DaysFilters>;
-  incidentFilters: Array<IncidentFilters>;
-};
-
-/**
- * Consolidates and merges intervals based on severity rankings.
- * @param {Object} data - The input data containing timestamps and severity levels.
- * @param {string[]} dateArray - The array of date strings defining the boundary.
- * @returns {Array} - The consolidated intervals.
- */
 
 function consolidateAndMergeIntervals(data: Incident, dateArray: SpanDates) {
   const severityRank = { 2: 2, 1: 1, 0: 0 };
@@ -77,10 +39,10 @@ function consolidateAndMergeIntervals(data: Incident, dateArray: SpanDates) {
 function filterAndSortValues(
   data: Incident,
   severityRank: Record<string, number>,
-): Array<[Date, string]> {
+): Array<[number, string]> {
   const highestSeverityValues: Record<string, string> = data.values.reduce(
     (acc: Record<string, string>, [timestamp, severity]) => {
-      const timestampStr = timestamp.toISOString();
+      const timestampStr = new Date(timestamp * 1000).toISOString();
 
       if (!acc[timestampStr] || severityRank[severity] > severityRank[acc[timestampStr]]) {
         acc[timestampStr] = severity;
@@ -91,8 +53,11 @@ function filterAndSortValues(
   );
 
   return Object.entries(highestSeverityValues)
-    .map(([timestamp, severity]) => [new Date(timestamp), severity] as [Date, string])
-    .sort((a, b) => a[0].getTime() - b[0].getTime());
+    .map(
+      ([timestamp, severity]) =>
+        [new Date(timestamp).getTime() / 1000, severity] as [number, string],
+    )
+    .sort((a, b) => a[0] - b[0]);
 }
 
 /**
@@ -103,24 +68,20 @@ function filterAndSortValues(
  */
 function generateIntervalsWithGaps(filteredValues: Array<Timestamps>, dateArray: SpanDates) {
   const intervals = [];
-  const startBoundary = new Date(dateArray[0]);
-  const endBoundary = new Date(dateArray[dateArray.length - 1]);
+  const startBoundary = dateArray[0];
+  const endBoundary = dateArray[dateArray.length - 1];
 
-  let currentStart = filteredValues[0] ? filteredValues[0][0] : startBoundary.toISOString();
+  let currentStart = filteredValues[0] ? filteredValues[0][0] : startBoundary;
   let currentSeverity = filteredValues[0] ? filteredValues[0][1] : 'nodata';
 
-  if (!filteredValues.length) {
-    intervals.push([startBoundary.toISOString(), endBoundary.toISOString(), 'nodata']);
+  if (filteredValues.length === 0) {
+    intervals.push([startBoundary, endBoundary, 'nodata']);
     return intervals;
   }
 
-  const firstTimestamp = new Date(filteredValues[0][0]);
+  const firstTimestamp = filteredValues[0][0];
   if (firstTimestamp > startBoundary) {
-    intervals.push([
-      startBoundary.toISOString(),
-      new Date(firstTimestamp.getTime() - 1).toISOString(),
-      'nodata',
-    ]);
+    intervals.push([startBoundary, firstTimestamp - 1, 'nodata']);
   }
 
   for (let i = 0; i < filteredValues.length; i++) {
@@ -132,24 +93,19 @@ function generateIntervalsWithGaps(filteredValues: Array<Timestamps>, dateArray:
 
     if (currentSeverity !== severity || i === 0) {
       if (i > 0) {
-        const endDate = new Date(timestamp);
-        endDate.setMilliseconds(endDate.getMilliseconds() - 1);
-        intervals.push([currentStart, endDate.toISOString(), currentSeverity]);
+        const endDate = timestamp - 1;
+        intervals.push([currentStart, endDate, currentSeverity]);
       }
       currentStart = timestamp;
       currentSeverity = severity;
     }
   }
 
-  const lastEndDate = new Date(filteredValues[filteredValues.length - 1][0]);
-  intervals.push([currentStart, lastEndDate.toISOString(), currentSeverity]);
+  const lastEndDate = filteredValues[filteredValues.length - 1][0];
+  intervals.push([currentStart, lastEndDate, currentSeverity]);
 
   if (lastEndDate < endBoundary) {
-    intervals.push([
-      new Date(lastEndDate.getTime() + 1).toISOString(),
-      endBoundary.toISOString(),
-      'nodata',
-    ]);
+    intervals.push([lastEndDate + 1, endBoundary, 'nodata']);
   }
 
   return intervals;
@@ -162,9 +118,9 @@ function generateIntervalsWithGaps(filteredValues: Array<Timestamps>, dateArray:
  * @returns {boolean} - Whether a gap exists.
  */
 function hasGap(filteredValues: Array<Timestamps>, index: number) {
-  const previousTimestamp = new Date(filteredValues[index - 1][0]);
-  const currentTimestamp = new Date(filteredValues[index][0]);
-  return (currentTimestamp.getTime() - previousTimestamp.getTime()) / 1000 / 60 > 5;
+  const previousTimestamp = filteredValues[index - 1][0];
+  const currentTimestamp = filteredValues[index][0];
+  return (currentTimestamp - previousTimestamp) / 60 > 5;
 }
 
 /**
@@ -174,16 +130,10 @@ function hasGap(filteredValues: Array<Timestamps>, index: number) {
  * @returns {Array} - The "nodata" interval.
  */
 function createNodataInterval(filteredValues: Array<Timestamps>, index: number) {
-  const previousTimestamp = new Date(filteredValues[index - 1][0]);
-  const currentTimestamp = new Date(filteredValues[index][0]);
+  const previousTimestamp = filteredValues[index - 1][0];
+  const currentTimestamp = filteredValues[index][0];
 
-  const gapStart = new Date(previousTimestamp);
-  gapStart.setMilliseconds(gapStart.getMilliseconds() + 1);
-
-  const gapEnd = new Date(currentTimestamp);
-  gapEnd.setMilliseconds(gapEnd.getMilliseconds() - 1);
-
-  return [gapStart.toISOString(), gapEnd.toISOString(), 'nodata'];
+  return [previousTimestamp + 1, currentTimestamp - 1, 'nodata'];
 }
 
 /**
@@ -192,11 +142,7 @@ function createNodataInterval(filteredValues: Array<Timestamps>, index: number) 
  * @param {Object} incident - The incident data containing values with timestamps and severity levels.
  * @returns {Array} - An array of incident objects with `y0`, `y`, `x`, and `name` fields representing the bars for the chart.
  */
-export const createIncidentsChartBars = (
-  incident: Incident,
-  theme: Theme,
-  dateArray: SpanDates,
-) => {
+export const createIncidentsChartBars = (incident: Incident, dateArray: SpanDates) => {
   const groupedData = consolidateAndMergeIntervals(incident, dateArray);
   const data = [];
   const getSeverityName = (value) => {
@@ -207,12 +153,13 @@ export const createIncidentsChartBars = (
     info: t_global_color_status_info_default.var,
     warning: t_global_color_status_warning_default.var,
   };
+
   for (let i = 0; i < groupedData.length; i++) {
     const severity = getSeverityName(groupedData[i][2]);
 
     data.push({
-      y0: new Date(groupedData[i][0]),
-      y: new Date(groupedData[i][1]),
+      y0: new Date(groupedData[i][0] * 1000),
+      y: new Date(groupedData[i][1] * 1000),
       x: incident.x,
       name: severity,
       firing: incident.firing,
@@ -232,25 +179,22 @@ export const createIncidentsChartBars = (
 };
 
 function consolidateAndMergeAlertIntervals(data: Alert, dateArray: SpanDates) {
-  const sortedValues = data.values.sort(
-    (a, b) => new Date(a[0]).getTime() - new Date(b[0]).getTime(),
-  );
+  if (!data.values || data.values.length === 0) {
+    return [];
+  }
+  const sortedValues = data.values.sort((a, b) => a[0] - b[0]);
 
   const intervals: Array<AlertsIntervalsArray> = [];
-  let currentStart = sortedValues[0][0],
-    previousTimestamp = new Date(currentStart);
+  let currentStart = sortedValues[0][0];
+  let previousTimestamp = currentStart;
 
   for (let i = 1; i < sortedValues.length; i++) {
-    const currentTimestamp = new Date(sortedValues[i][0]);
-    const timeDifference = (currentTimestamp.getTime() - previousTimestamp.getTime()) / 60000; // Convert to minutes
+    const currentTimestamp = sortedValues[i][0];
+    const timeDifference = (currentTimestamp - previousTimestamp) / 60; // Convert to minutes
 
     if (timeDifference > 5) {
       intervals.push([currentStart, sortedValues[i - 1][0], 'data']);
-      intervals.push([
-        new Date(previousTimestamp.getTime() + 1),
-        new Date(currentTimestamp.getTime() - 1),
-        'nodata',
-      ]);
+      intervals.push([previousTimestamp + 1, currentTimestamp - 1, 'nodata']);
       currentStart = sortedValues[i][0];
     }
     previousTimestamp = currentTimestamp;
@@ -259,22 +203,22 @@ function consolidateAndMergeAlertIntervals(data: Alert, dateArray: SpanDates) {
   intervals.push([currentStart, sortedValues[sortedValues.length - 1][0], 'data']);
 
   // Handle gaps before and after the detected intervals
-  const startBoundary = new Date(dateArray[0]),
-    endBoundary = new Date(dateArray[dateArray.length - 1]);
-  const firstIntervalStart = new Date(intervals[0][0]),
-    lastIntervalEnd = new Date(intervals[intervals.length - 1][1]);
+  const startBoundary = dateArray[0],
+    endBoundary = dateArray[dateArray.length - 1];
+  const firstIntervalStart = intervals[0][0],
+    lastIntervalEnd = intervals[intervals.length - 1][1];
 
   if (firstIntervalStart > startBoundary) {
-    intervals.unshift([startBoundary, new Date(firstIntervalStart.getTime() - 1), 'nodata']);
+    intervals.unshift([startBoundary, firstIntervalStart - 1, 'nodata']);
   }
   if (lastIntervalEnd < endBoundary) {
-    intervals.push([new Date(lastIntervalEnd.getTime() + 1), endBoundary, 'nodata']);
+    intervals.push([lastIntervalEnd + 1, endBoundary, 'nodata']);
   }
 
   return intervals;
 }
 
-export const createAlertsChartBars = (alert: Alert, theme: Theme, dateValues: SpanDates) => {
+export const createAlertsChartBars = (alert: Alert, dateValues: SpanDates) => {
   const groupedData = consolidateAndMergeAlertIntervals(alert, dateValues);
   const barChartColorScheme = {
     critical: t_global_color_status_danger_default.var,
@@ -286,8 +230,8 @@ export const createAlertsChartBars = (alert: Alert, theme: Theme, dateValues: Sp
 
   for (let i = 0; i < groupedData.length; i++) {
     data.push({
-      y0: new Date(groupedData[i][0]),
-      y: new Date(groupedData[i][1]),
+      y0: new Date(groupedData[i][0] * 1000),
+      y: new Date(groupedData[i][1] * 1000),
       x: alert.x,
       severity: alert.severity[0].toUpperCase() + alert.severity.slice(1),
       name: alert.alertname,
@@ -326,10 +270,10 @@ export const formatDate = (date: Date, isTime: boolean) => {
  * Generates an array of dates, each representing midnight (00:00:00) of the past `days` number of days, starting from today.
  *
  * @param {number} days - The number of days for which to generate the date array. The array will contain dates starting from `days` ago up to today.
- * @returns {Array<Date>} An array of `Date` objects, each set to midnight (00:00:00) in UTC, for the past `days` number of days.
+ * @returns {Array<number>} An array of timestamps (in seconds) representing midnight (00:00:00) in UTC, for the past `days` number of days.
  *
  * @description
- * This function creates an array of `Date` objects, starting from `days` ago up to the current day. Each date in the array is set to midnight (00:00:00) to represent the start of the day.
+ * This function creates an array of timestamps, starting from `days` ago up to the current day. Each timestamp in the array is set to midnight (00:00:00) to represent the start of the day.
  *
  * The function works by subtracting days from the current date and setting the time to 00:00:00 for each day.
  *
@@ -338,24 +282,24 @@ export const formatDate = (date: Date, isTime: boolean) => {
  * const dateArray = generateDateArray(7);
  * // Output example:
  * // [
- * //   2024-09-06T00:00:00.000Z,
- * //   2024-09-07T00:00:00.000Z,
- * //   2024-09-08T00:00:00.000Z,
- * //   2024-09-09T00:00:00.000Z,
- * //   2024-09-10T00:00:00.000Z,
- * //   2024-09-11T00:00:00.000Z,
- * //   2024-09-12T00:00:00.000Z
+ * //   1754381643,
+ * //   1754468043,
+ * //   1754554443,
+ * //   1754640843,
+ * //   1754727243,
+ * //   1754813643,
+ * //   1754900043
  * // ]
  */
-export function generateDateArray(days: number) {
+export function generateDateArray(days: number): Array<number> {
   const currentDate = new Date();
 
-  const dateArray = [];
+  const dateArray: Array<number> = [];
   for (let i = 0; i < days; i++) {
     const newDate = new Date(currentDate);
     newDate.setDate(currentDate.getDate() - (days - 1 - i));
     newDate.setHours(0, 0, 0, 0);
-    dateArray.push(newDate);
+    dateArray.push(newDate.getTime() / 1000);
   }
 
   return dateArray;
@@ -364,9 +308,8 @@ export function generateDateArray(days: number) {
 /**
  * Filters incidents based on the specified filters.
  *
- * @param {Object} filters - An object containing filter criteria.
- * @param {string[]} filters.incidentFilters - An array of strings representing filter conditions such as "Critical", etc.
- * @param {Array<Object>} incidents - An array of incidents to be filtered.
+ * @param {IncidentFiltersCombined} filters - An object containing filter criteria.
+ * @param {Array<Incident>} incidents - An array of incidents to be filtered.
  * @returns {Array<Object>} A filtered array of incidents that match at least one of the specified filters.
  *
  * The `conditions` object maps filter keys to incident properties. If no filters are applied, all incidents are returned.
@@ -420,8 +363,8 @@ export function filterIncident(filters: IncidentFiltersCombined, incidents: Arra
 }
 
 export const onDeleteIncidentFilterChip = (
-  type: 'Filters' | '',
-  id: IncidentFilters,
+  type: string,
+  id: IncidentFilters | undefined,
   filters: IncidentFiltersCombined,
   setFilters,
 ) => {
@@ -479,7 +422,7 @@ export const makeIncidentUrlParams = (
   return new URLSearchParams(processedParams).toString();
 };
 
-export const updateBrowserUrl = (params: IncidentFiltersCombined, incidentGroupId: string) => {
+export const updateBrowserUrl = (params: IncidentFiltersCombined, incidentGroupId?: string) => {
   const queryString = makeIncidentUrlParams(params, incidentGroupId);
 
   const newUrl = `${window.location.origin}${window.location.pathname}?${queryString}`;
@@ -487,7 +430,11 @@ export const updateBrowserUrl = (params: IncidentFiltersCombined, incidentGroupI
   window.history.replaceState(null, '', newUrl);
 };
 
-export const changeDaysFilter = (days: DaysFilters, dispatch, filters: IncidentFiltersCombined) => {
+export const changeDaysFilter = (
+  days: DaysFilters,
+  dispatch: Dispatch<any>,
+  filters: IncidentFiltersCombined,
+) => {
   dispatch(
     setIncidentsActiveFilters({
       incidentsActiveFilters: { days: [days], incidentFilters: filters.incidentFilters },
@@ -532,7 +479,7 @@ const onSelect = (
 
 export const parseUrlParams = (search) => {
   const params = new URLSearchParams(search);
-  const result = {};
+  const result: { [key: string]: any } = {};
   const arrayKeys = ['days', 'incidentFilters', 'groupId'];
 
   params.forEach((value, key) => {

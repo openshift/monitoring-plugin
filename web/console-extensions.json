@@ -171,6 +171,17 @@
     }
   },
   {
+    "type": "console.tab",
+    "properties": {
+      "contextId": "dev-console-observe",
+      "name": "%plugin__monitoring-plugin~Alerting Rules%",
+      "href": "alertrules",
+      "component": {
+        "$codeRef": "AlertRulesPage"
+      }
+    }
+  },
+  {
     "type": "console.redux-reducer",
     "properties": {
       "scope": "mp",
@@ -261,9 +272,7 @@
     "type": "console.page/route",
     "properties": {
       "exact": false,
-      "path": [
-        "/virt-monitoring"
-      ],
+      "path": ["/virt-monitoring"],
       "component": { "$codeRef": "AlertingPage" }
     }
   },
