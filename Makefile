@@ -100,3 +100,7 @@ mcp-podman-cross-build:
 	podman manifest create ${IMAGE}
 	podman build --platform $(PLATFORMS) --manifest ${IMAGE} -f Dockerfile.mcp
 	podman manifest push ${IMAGE}
+
+.PHONY: test-translations
+test-translations:
+	./scripts/test-translations.sh
