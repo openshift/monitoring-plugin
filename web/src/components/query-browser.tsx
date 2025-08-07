@@ -101,7 +101,7 @@ export const Error: React.FC<ErrorProps> = ({ error, title = 'An error occurred'
 );
 
 const BOTTOM_SERIES_HEIGHT = 34;
-const LEGEND_HEIGHT = 75;
+const LEGEND_HEIGHT = 90;
 const CHART_HEIGHT = 200;
 
 const GraphEmptyState: React.FC<GraphEmptyStateProps> = ({ children, title }) => (
