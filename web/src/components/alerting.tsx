@@ -449,7 +449,10 @@ const RuleTableRow: React.FC<RowProps<Rule>> = ({ obj }) => {
       <td className={tableRuleClasses[0]} title={title}>
         <div className="co-resource-item">
           <MonitoringResourceIcon resource={RuleResource} />
-          <Link to={getRuleUrl(perspective, obj)} className="co-resource-item__resource-name">
+          <Link
+            to={getRuleUrl(perspective, obj, obj.labels.namespace)}
+            className="co-resource-item__resource-name"
+          >
             {obj.name}
           </Link>
         </div>
@@ -470,6 +473,7 @@ const RuleTableRow: React.FC<RowProps<Rule>> = ({ obj }) => {
 const RulesPage_: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { alertsKey, silencesKey, rulesKey, perspective, defaultAlertTenant } = usePerspective();
+  const [namespace] = useActiveNamespace();
 
   const data: Rule[] = useSelector((state: MonitoringState) =>
     getLegacyObserveState(perspective, state)?.get(rulesKey),
@@ -486,6 +490,14 @@ const RulesPage_: React.FC = () => {
     () => getAdditionalSources(data, alertingRuleSource),
     [data],
   );
+
+  const namespacedData = React.useMemo(() => {
+    if (perspective === 'dev') {
+      return data?.filter((rule) => rule.labels?.namespace === namespace);
+    }
+
+    return data;
+  }, [data, perspective, namespace]);
 
   const rowFilters: RowFilter[] = [
     // TODO: The "name" filter doesn't really fit useListPageFilter's idea of a RowFilter, but
@@ -513,7 +525,7 @@ const RulesPage_: React.FC = () => {
     },
   ];
 
-  const [staticData, filteredData, onFilterChange] = useListPageFilter(data, rowFilters);
+  const [staticData, filteredData, onFilterChange] = useListPageFilter(namespacedData, rowFilters);
 
   const columns = React.useMemo<TableColumn<Rule>[]>(
     () => [
@@ -693,6 +705,13 @@ const PollerPages = () => {
         <Route path="/dev-monitoring/ns/:ns/silences" exact component={SilencesPage} />
         <Route path="/dev-monitoring/ns/:ns/silences/:id" exact component={SilencesDetailsPage} />
         <Route path="/dev-monitoring/ns/:ns/silences/:id/edit" exact component={EditSilence} />
+        <Route path="/dev-monitoring/ns/:ns/silences/:id" exact component={SilencesDetailsPage} />
+        <Route path="/dev-monitoring/ns/:ns/alertrules" exact component={RulesPage} />
+        <Route
+          path="/dev-monitoring/ns/:ns/alertrules/:id"
+          exact
+          component={AlertRulesDetailsPage}
+        />
       </Switch>
     );
   }
