@@ -39,6 +39,7 @@ const AlertingPage: React.FC = () => {
     },
     {
       href: 'alertrules',
+      // t('Alerting Rules') -- for console.tab extension
       // t('Alerting rules')
       nameKey: 'Alerting rules',
       component: AlertRulesPage,
