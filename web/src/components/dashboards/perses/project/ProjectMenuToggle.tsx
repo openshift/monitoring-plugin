@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { MenuToggle, Popper } from '@patternfly/react-core';
 import classNames from 'classnames';
+import { PersesDashboardPageTestIDs } from '../../../../components/data-test';
 
 const ProjectMenuToggle = (props: {
   disabled: boolean;
@@ -73,6 +74,7 @@ const ProjectMenuToggle = (props: {
       isExpanded={isOpen}
       disabled={disabled}
       className={classNames('co-namespace-dropdown__menu-toggle', className)}
+      data-test={PersesDashboardPageTestIDs.ProjectMenuToggle}
     >
       {title}
     </MenuToggle>
