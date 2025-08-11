@@ -11,7 +11,7 @@ parser: '@typescript-eslint/parser'
 parserOptions:
   ecmaFeatures:
     jsx: true
-  ecmaVersion: 2018
+  ecmaVersion: 2021
   sourceType: module
 plugins:
   - prettier
@@ -29,6 +29,8 @@ rules:
   react/display-name: off
   react/prop-types: off
   "@typescript-eslint/no-explicit-any": off
+  "@typescript-eslint/no-unused-vars": off  
+  "@typescript-eslint/no-unused-expressions": off
 settings:
   react:
     version: detect
