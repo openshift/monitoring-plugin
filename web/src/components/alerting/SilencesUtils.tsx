@@ -57,6 +57,7 @@ import {
   silenceState,
 } from '../utils';
 import { SeverityCounts, StateTimestamp } from './AlertUtils';
+import { DataTestIDs } from '../data-test';
 
 export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheckbox }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -104,7 +105,7 @@ export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheck
           flexWrap={{ default: 'nowrap' }}
           style={{ paddingBottom: t_global_spacer_xs.var }}
         >
-          <FlexItem>
+          <FlexItem data-test={DataTestIDs.SilenceResourceIcon}>
             <ResourceIcon kind={SilenceResource.kind} />
           </FlexItem>
           <FlexItem>
@@ -112,6 +113,7 @@ export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheck
               data-test-id="silence-resource-link"
               title={id}
               to={getSilenceAlertUrl(perspective, id, namespace)}
+              data-test={DataTestIDs.SilenceResourceLink}
             >
               {name}
             </Link>
@@ -221,15 +223,30 @@ export const SilenceDropdown: React.FC<SilenceDropdownProps> = ({ silence, toggl
   const dropdownItems =
     silenceState(silence) === SilenceStates.Expired
       ? [
-          <DropdownItem value={0} key="recreate-silence" onClick={editSilence}>
+          <DropdownItem
+            data-test={DataTestIDs.SilenceRecreateDropdownItem}
+            value={0}
+            key="recreate-silence"
+            onClick={editSilence}
+          >
             {t('Recreate silence')}
           </DropdownItem>,
         ]
       : [
-          <DropdownItem value={0} key="edit-silence" onClick={editSilence}>
+          <DropdownItem
+            data-test={DataTestIDs.SilenceEditDropdownItem}
+            value={0}
+            key="edit-silence"
+            onClick={editSilence}
+          >
             {t('Edit silence')}
           </DropdownItem>,
-          <DropdownItem value={1} key="cancel-silence" onClick={setModalOpen}>
+          <DropdownItem
+            data-test={DataTestIDs.SilenceExpireDropdownItem}
+            value={1}
+            key="cancel-silence"
+            onClick={setModalOpen}
+          >
             {t('Expire silence')}
           </DropdownItem>,
         ];
@@ -249,6 +266,7 @@ export const SilenceDropdown: React.FC<SilenceDropdownProps> = ({ silence, toggl
             variant={toggleText ? 'default' : 'plain'}
             onClick={setIsOpen}
             isExpanded={isOpen}
+            data-test={DataTestIDs.KebabDropdownButton}
           >
             {toggleText || <EllipsisVIcon />}
           </MenuToggle>
@@ -316,10 +334,11 @@ export const ExpireSilenceModal: React.FC<ExpireSilenceModalProps> = ({
           onClick={expireSilence}
           isLoading={isInProgress}
           icon={success ? <CheckCircleIcon /> : null}
+          data-test={DataTestIDs.ExpireSilenceButton}
         >
           {success ? t('Expired') : t('Expire silence')}
         </Button>
-        <Button variant="secondary" onClick={setClosed}>
+        <Button variant="secondary" onClick={setClosed} data-test={DataTestIDs.CancelButton}>
           {t('Cancel')}
         </Button>
       </ModalFooter>

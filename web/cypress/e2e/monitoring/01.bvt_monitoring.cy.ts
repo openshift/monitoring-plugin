@@ -1,21 +1,19 @@
-import { commonPages } from '../views/common';
-import { detailsPage } from '../views/details-page';
-import { listPage } from '../views/list-page';
-import { silenceAlertPage } from '../views/silence-alert-page';
-import { nav } from '../views/nav';
-import { silenceDetailsPage } from '../views/silence-details-page';
-import { silencesListPage } from '../views/silences-list-page';
-import { getValFromElement } from '../views/utils';
+import { commonPages } from '../../views/common';
+import { detailsPage } from '../../views/details-page';
+import { listPage } from '../../views/list-page';
+import { silenceAlertPage } from '../../views/silence-alert-page';
+import { nav } from '../../views/nav';
+import { silenceDetailsPage } from '../../views/silence-details-page';
+import { silencesListPage } from '../../views/silences-list-page';
+import { getValFromElement } from '../../views/utils';
 
-import { overviewPage } from '../views/overview-page';
+import { overviewPage } from '../../views/overview-page';
 import common = require('mocha/lib/interfaces/common');
 // Set constants for the operators that need to be installed for tests.
 const MP = {
   namespace: 'openshift-monitoring',
   operatorName: 'Cluster Monitoring Operator',
 };
-
-const readyTimeoutMilliseconds = Cypress.config('readyTimeoutMilliseconds') as number;
 
 const ALERTNAME = 'Watchdog';
 const NAMESPACE = 'openshift-monitoring';
@@ -30,80 +28,11 @@ const SILENCE_COMMENT = 'test comment';
 describe('BVT: Monitoring', () => {
 
   before(() => {
-    cy.adminCLI(
-      `oc adm policy add-cluster-role-to-user cluster-admin ${Cypress.env('LOGIN_USERNAME')}`,
-    );
-    // Getting the oauth url for hypershift cluster login
-    cy.exec(
-      `oc get oauthclient openshift-browser-client -o go-template --template="{{index .redirectURIs 0}}" --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
-    ).then((result) => {
-      if (expect(result.stderr).to.be.empty) {
-        const oauth = result.stdout;
-        // Trimming the origin part of the url
-        const oauthurl = new URL(oauth);
-        const oauthorigin = oauthurl.origin;
-        cy.log(oauthorigin);
-        cy.wrap(oauthorigin).as('oauthorigin');
-      } else {
-        throw new Error(`Execution of oc get oauthclient failed
-          Exit code: ${result.code}
-          Stdout:\n${result.stdout}
-          Stderr:\n${result.stderr}`);
-      }
-    });
-    cy.get('@oauthorigin').then((oauthorigin) => {
-      cy.login(
-        Cypress.env('LOGIN_IDP'),
-        Cypress.env('LOGIN_USERNAME'),
-        Cypress.env('LOGIN_PASSWORD'),
-        oauthorigin,
-      );
-    });
-
-    cy.log('Set Monitoring Plugin image in operator CSV');
-    if (Cypress.env('MP_IMAGE')) {
-      cy.log('MP_IMAGE is set. the image will be patched in CMO operator CSV');
-      cy.exec(
-        './cypress/fixtures/cmo/update-monitoring-plugin-image.sh',
-        {
-          env: {
-            MP_IMAGE: Cypress.env('MP_IMAGE'),
-            KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
-            MP_NAMESPACE: `${MP.namespace}`
-          },
-          timeout: readyTimeoutMilliseconds,
-          failOnNonZeroExit: true
-        }
-      ).then((result) => {
-        expect(result.code).to.eq(0);
-        cy.log(`CMO CSV updated successfully with Monitoring Plugin image: ${result.stdout}`);
-      });
-    } else {
-      cy.log('MP_IMAGE is NOT set. Skipping patching the image in CMO operator CSV.');
-    }
+    cy.beforeBlock(MP);
   });
 
   after(() => {
-    if (Cypress.env('MP_IMAGE')) {
-      cy.log('MP_IMAGE is set. Lets revert CMO operator CSV');
-      cy.exec(
-        './cypress/fixtures/cmo/reenable-monitoring.sh',
-        {
-          env: {
-            MP_IMAGE: Cypress.env('MP_IMAGE'),
-            KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
-            MP_NAMESPACE: `${MP.namespace}`
-          },
-          timeout: readyTimeoutMilliseconds,
-          failOnNonZeroExit: true
-        }
-      ).then((result) => {
-        expect(result.code).to.eq(0);
-        cy.log(`CMO CSV reverted successfully with Monitoring Plugin image: ${result.stdout}`);
-      });
-    } else {
-      cy.log('MP_IMAGE is NOT set. Skipping reverting the image in CMO operator CSV.');
-    }
+    cy.afterBlock(MP);
   });
 
   it('1. Admin perspective - Observe Menu', () => {
@@ -338,7 +267,7 @@ describe('BVT: Monitoring', () => {
     silencesListPage.filter.byName(`${ALERTNAME}`);
     listPage.filter.clickFilter(true, false);
     listPage.filter.selectFilterOption(false, 'Active', true);
-    silencesListPage.rows.SShouldBe(`${ALERTNAME}`, 'Active');
+    silencesListPage.rows.shouldBe(`${ALERTNAME}`, 'Active');
 
     cy.log('6.10 verify on Alerts list page again');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);

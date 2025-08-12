@@ -1,5 +1,6 @@
 import { detailsPage } from "./details-page";
 import { nav } from "./nav";
+import { DataTestIDs, Classes } from "../../src/components/data-test";
 
 export const commonPages = {
   projectDropdownShouldNotExist: () => cy.byLegacyTestID('namespace-bar-dropdown').should('not.exist'),
@@ -33,37 +34,37 @@ export const commonPages = {
     cy.byPFRole('dialog').should('be.visible');
 
     if (yes) {
-      cy.byPFRole('dialog').find('button').contains('Expire silence').should('be.visible').click();
+      cy.byTestID(DataTestIDs.ExpireSilenceButton).should('be.visible').click();
     } else {
-      cy.byPFRole('dialog').find('button').contains('Cancel').should('be.visible').click();
+      cy.byTestID(DataTestIDs.CancelButton).should('be.visible').click();
     };
-    cy.byPFRole('dialog').find('button').contains('Expire silence').should('not.exist');
+    cy.byTestID(DataTestIDs.ExpireSilenceButton).should('not.exist');
   },
 
   detailsPage: {
     alert: (alert: string) => {
       cy.log('commonPages.detailsPage.alert');
-      cy.get('.co-m-resource-icon.co-m-resource-alert, .co-m-resource-icon.co-m-resource-alert.co-m-resource-icon--lg').contains('A').should('be.visible');
-      cy.byOUIAID('OUIA-Generated-Button-primary').contains('Silence alert').should('be.visible');
+      cy.byTestID(DataTestIDs.AlertResourceIcon).contains('A');
+      cy.byTestID(DataTestIDs.SilenceButton).should('be.visible');
       detailsPage.sectionHeaderShouldExist('Alert details');
-      cy.byTestID('alert-rules-detail-resource-link').scrollIntoView();
-      cy.byClass('co-m-resource-icon co-m-resource-alertrule').contains('AR').should('be.visible');
-      cy.byTestID('alert-rules-detail-resource-link').contains(alert).should('be.visible');
+      cy.byTestID(DataTestIDs.AlertingRuleResourceLink).scrollIntoView();
+      cy.byTestID(DataTestIDs.AlertingRuleResourceIcon).contains('AR').should('be.visible');
+      cy.byTestID(DataTestIDs.AlertingRuleResourceLink).contains(alert).should('be.visible');
 
     },
     alertRule: () => {
       cy.log('commonPages.detailsPage.alertRule');
-      cy.byClass('co-m-resource-icon co-m-resource-alertrule').contains('AR').should('be.visible');
-      cy.get('.pf-v6-c-code-block__content, .pf-v5-c-code-block__content').should('be.visible');
-      cy.byTestID('active-alerts').scrollIntoView();
-      cy.byTestID('active-alerts').should('have.length.at.least', 1);
+      cy.byTestID(DataTestIDs.AlertingRuleResourceIcon).contains('AR').should('be.visible');
+      cy.byTestID(DataTestIDs.Expression).should('be.visible');
+      cy.byTestID(DataTestIDs.AlertResourceLink).scrollIntoView();
+      cy.byTestID(DataTestIDs.AlertResourceLink).should('have.length.at.least', 1);
     },
     common: (alert: string, severity: string) => {
       cy.log('commonPages.detailsPage.common');
       commonPages.titleShouldHaveText(alert);
-      cy.bySemanticElement('button').contains('Hide graph').should('be.visible');
-      cy.get('.pf-v6-c-card.pf-m-compact, .query-browser__controls').should('be.visible');
-      cy.bySemanticElement('button').contains('Reset zoom').should('be.visible');
+      cy.byTestID(DataTestIDs.MetricHideShowGraphButton).contains('Hide graph').should('be.visible');
+      cy.get(Classes.GraphCard).should('be.visible');
+      cy.byTestID(DataTestIDs.MetricResetZoomButton).should('be.visible');
       cy.byAriaLabel('Inspect').should('be.visible'); //pf-5 cy.byAriaLabel('View in Metrics').should('be.visible').click(); 
     },
     administration_clusterSettings: () => {

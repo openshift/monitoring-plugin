@@ -1,4 +1,4 @@
-
+import { DataTestIDs, Classes } from '../../src/components/data-test';
 const silenceText = 'Silences temporarily mute alerts based on a set of label selectors that you define. Notifications will not be sent for alerts that match all the listed values or regular expressions.'
 const alertText = 'Alerts with labels that match these selectors will be silenced instead of firing. Label values can be matched exactly or with a regular expression'
 const editWarningTitle = 'Overwriting current silence'
@@ -9,54 +9,54 @@ export const silenceAlertPage = {
   
   silenceAlertSectionDefault: () => {
     cy.log('silenceAlertPage.silenceAlertSectionDefault');
-    cy.get('.pf-v6-c-helper-text__item-text, .pf-v5-c-helper-text__item-text').eq(0).contains(silenceText).should('be.visible');
+    cy.get(Classes.SilenceHelpText).eq(0).contains(silenceText).should('be.visible');
   },
 
   editAlertWarning: () => {
     cy.log('silenceAlertPage.editAlertWarning');
-    cy.get('.pf-v6-c-alert__title, .pf-v5-c-alert__title').contains(editWarningTitle).should('be.visible');
-    cy.get('.pf-v6-c-alert__description, .pf-v5-c-alert__description').contains(editMessage).should('be.visible');
+    cy.get(Classes.SilenceAlertTitle).contains(editWarningTitle).should('be.visible');
+    cy.get(Classes.SilenceAlertDescription).contains(editMessage).should('be.visible');
   },
 
   durationSectionDefault: () => {
     cy.log('silenceAlertPage.durationSectionDefault');
-    cy.get('[id="start-immediately"]').should('be.checked');
-    cy.byTestID('silence-from').should('have.value', 'Now');
-    cy.byTestID('silence-for-toggle').should('contain', '2h');
-    cy.byTestID('silence-until').should('have.value', '2h from now');
+    cy.byTestID(DataTestIDs.SilencesPageFormTestIDs.StartImmediately).should('be.checked');
+    cy.byTestID(DataTestIDs.SilencesPageFormTestIDs.SilenceFrom).should('have.value', 'Now');
+    cy.byTestID(DataTestIDs.SilencesPageFormTestIDs.SilenceForToggle).should('contain', '2h');
+    cy.byTestID(DataTestIDs.SilencesPageFormTestIDs.SilenceUntil).should('have.value', '2h from now');
   },
 
   editDurationSectionDefault: () => {
     cy.log('silenceAlertPage.durationSectionDefault');
-    cy.get('[id="start-immediately"]').should('be.checked'); //pf-5 cy.byTestID('[id="silence-start-immediately"]').should('be.checked'); 
-    cy.byTestID('silence-from').should('have.value', 'Now');
-    cy.byTestID('silence-for-toggle').should('contain', '-');
-    cy.byTestID('silence-until').should('not.have.value', '2h from now');
+    cy.byTestID(DataTestIDs.SilencesPageFormTestIDs.StartImmediately).should('be.checked'); //pf-5 cy.byTestID('[id="silence-start-immediately"]').should('be.checked'); 
+    cy.byTestID(DataTestIDs.SilencesPageFormTestIDs.SilenceFrom).should('have.value', 'Now');
+    cy.byTestID(DataTestIDs.SilencesPageFormTestIDs.SilenceForToggle).should('contain', '-');
+    cy.byTestID(DataTestIDs.SilencesPageFormTestIDs.SilenceUntil).should('not.have.value', '2h from now');
   },
 
   alertLabelsSectionDefault: () => {
     cy.log('silenceAlertPage.alertLabelsSectionDefault');
-    cy.get('.pf-v6-c-helper-text__item-text').eq(1).contains(alertText).should('be.visible'); //pf-5 cy.byClass('.co-help-text.monitoring-silence-alert__paragraph').contains(alertText).should('be.visible');
+    cy.get(Classes.SilenceHelpText).eq(1).contains(alertText).should('be.visible'); //pf-5 cy.byClass('.co-help-text.monitoring-silence-alert__paragraph').contains(alertText).should('be.visible');
   },
 
   assertLabelNameLabelValueRegExNegMatcher: (labelName: string, labelValue: string, regEx: boolean, negMatcher: boolean) => {
     cy.log('silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher');
     cy.byClass('pf-v6-l-grid pf-m-all-12-col-on-sm pf-m-all-4-col-on-md pf-m-gutter').each(($row, rowIndex) => { //pf-5 cy.get('.row').each(($row, rowIndex) => {
-      cy.wrap($row).find('[aria-label="Label name"]').invoke('val').then((cellText) => {
+      cy.wrap($row).find('[data-test="'+DataTestIDs.SilencesPageFormTestIDs.LabelName+'"]').invoke('val').then((cellText) => {
         if (cellText === labelName){
-          cy.wrap($row).find('[aria-label="Label name"]').invoke('val').should('equal', labelName);
-          cy.wrap($row).find('[aria-label="Label value"]').invoke('val').should('equal', labelValue);
+          cy.wrap($row).find('[data-test="'+DataTestIDs.SilencesPageFormTestIDs.LabelName+'"]').invoke('val').should('equal', labelName);
+          cy.wrap($row).find('[data-test="'+DataTestIDs.SilencesPageFormTestIDs.LabelValue+'"]').invoke('val').should('equal', labelValue);
           if (regEx){
-            cy.wrap($row).find('[type="checkbox"]').first().should('be.checked'); 
+            cy.wrap($row).find('[data-test="'+DataTestIDs.SilencesPageFormTestIDs.Regex+'"]').should('be.checked'); 
           } else{
-            cy.wrap($row).find('[type="checkbox"]').first().should('not.be.checked');
+            cy.wrap($row).find('[data-test="'+DataTestIDs.SilencesPageFormTestIDs.Regex+'"]').should('not.be.checked');
           }
           if (negMatcher){
-            cy.wrap($row).find('[type="checkbox"]').last().should('be.checked');
+            cy.wrap($row).find('[data-test="'+DataTestIDs.SilencesPageFormTestIDs.NegativeMatcherCheckbox+'"]').should('be.checked');
           } else{
-            cy.wrap($row).find('[type="checkbox"]').last().should('not.be.checked');
+            cy.wrap($row).find('[data-test="'+DataTestIDs.SilencesPageFormTestIDs.NegativeMatcherCheckbox+'"]').should('not.be.checked');
           }
-          cy.wrap($row).find('[aria-label="Remove"]').should('be.visible');
+          cy.wrap($row).find('[data-test="'+DataTestIDs.SilencesPageFormTestIDs.RemoveLabel+'"]').should('be.visible');
         } else {
           return;
         }
@@ -66,23 +66,23 @@ export const silenceAlertPage = {
 
   infoSectionDefault: () => {
     cy.log('silenceAlertPage.infoSectionDefault');
-    cy.byAriaLabel('Creator').invoke('val')
+    cy.byTestID(DataTestIDs.SilencesPageFormTestIDs.Creator).invoke('val')
       .should('not.be.empty')
       .should('have.attr', 'required');
-    cy.byAriaLabel('Comment').invoke('text')
+    cy.byTestID(DataTestIDs.SilencesPageFormTestIDs.Comment).invoke('text')
       .should('be.empty')
       .should('have.attr', 'required');
   },
 
   buttonDefault: () => {
     cy.log('silenceAlertPage.buttonDefault');
-    cy.bySemanticElement('button').contains('Silence').should('be.visible');
-    cy.bySemanticElement('button').contains('Cancel').should('be.visible');
+    cy.byTestID(DataTestIDs.SilenceButton).should('be.visible');
+    cy.byTestID(DataTestIDs.CancelButton).should('be.visible');
   },
   
   clickCancelButton: () => {
     cy.log('silenceAlertPage.clickCancelButton');
-    cy.bySemanticElement('button').contains('Cancel').scrollIntoView().should('be.visible').click();
+    cy.byTestID(DataTestIDs.CancelButton).scrollIntoView().should('be.visible').click();
   },
   /**
    * changeDuration only changing For (time dropdown) and Start immediately checkbox
@@ -91,28 +91,28 @@ export const silenceAlertPage = {
    */
   setForAndStartImmediately: (time: string, startImmediately: boolean) => {
     cy.log('silenceAlertPage.setForAndStartImmediately');
-    cy.byTestID('silence-for-toggle').click();
-    cy.byTestID('silence-for').should('contain', time);  
-    cy.byTestID('silence-for').contains(time).click();  
+    cy.byTestID(DataTestIDs.SilencesPageFormTestIDs.SilenceForToggle).click();
+    cy.byTestID(DataTestIDs.SilencesPageFormTestIDs.SilenceFor).should('contain', time);  
+    cy.byTestID(DataTestIDs.SilencesPageFormTestIDs.SilenceFor).contains(time).click();  
 
-    cy.get('[id="start-immediately"]').then((checkbox) => { //pf-5 cy.byTestID('[id="silence-start-immediately"]')
+    cy.get('[data-test="'+DataTestIDs.SilencesPageFormTestIDs.StartImmediately+'"]').then((checkbox) => { //pf-5 cy.byTestID('[id="silence-start-immediately"]')
       if (startImmediately){
         if (!checkbox.prop('checked') ){
-          cy.get('[id="start-immediately"]').click(); //pf-5 cy.byTestID('[id="silence-start-immediately"]').click(); 
+          cy.get('[data-test="'+DataTestIDs.SilencesPageFormTestIDs.StartImmediately+'"]').click(); //pf-5 cy.byTestID('[id="silence-start-immediately"]').click(); 
         }
-        cy.byTestID('silence-from').should('have.value', 'Now');
-        cy.byTestID('silence-until').should('have.value', time +' from now');
+        cy.byTestID(DataTestIDs.SilencesPageFormTestIDs.SilenceFrom).should('have.value', 'Now');
+        cy.byTestID(DataTestIDs.SilencesPageFormTestIDs.SilenceUntil).should('have.value', time +' from now');
 
       } else {
         if (checkbox.prop('checked')){
-          cy.get('[id="start-immediately"]').click(); //pf-5 cy.byTestID('[id="silence-start-immediately"]').click(); 
+          cy.byTestID(DataTestIDs.SilencesPageFormTestIDs.StartImmediately).click(); //pf-5 cy.byTestID('[id="silence-start-immediately"]').click(); 
         }
-        cy.byTestID('silence-from').should('have.not.value', 'Now');
-        cy.byTestID('silence-from').then(($fromElement) => {
+        cy.byTestID(DataTestIDs.SilencesPageFormTestIDs.SilenceFrom).should('have.not.value', 'Now');
+        cy.byTestID(DataTestIDs.SilencesPageFormTestIDs.SilenceFrom).then(($fromElement) => {
           const fromText = $fromElement[0].getAttribute('value');
           expect(Date.parse(fromText) - Date.now()).to.be.lessThan(10000);
           // eslint-disable-next-line promise/no-nesting
-          cy.byTestID('silence-until').then(($untilElement) => {
+          cy.byTestID(DataTestIDs.SilencesPageFormTestIDs.SilenceUntil).then(($untilElement) => {
             const unit = time.slice(-1);
             const value = parseInt(time.slice(0,-1), 10);
             let silenceUntilDate = new Date(fromText);
@@ -151,34 +151,34 @@ export const silenceAlertPage = {
 
   setSilenceFrom: (fromTimestamp: string) => {
     cy.log('silenceAlertPage.setSilenceFrom');
-    cy.byTestID('silence-from').clear().type(fromTimestamp);
+    cy.byTestID(DataTestIDs.SilencesPageFormTestIDs.SilenceFrom).clear().type(fromTimestamp);
   },
 
   addCreator: (creator: string) => {
     cy.log('silenceAlertPage.addCreator');
     if (!creator){
-      cy.byAriaLabel('Creator').clear();
+      cy.byTestID(DataTestIDs.SilencesPageFormTestIDs.Creator).clear();
     } else{
-      cy.byAriaLabel('Creator').clear().type(creator);
+      cy.byTestID(DataTestIDs.SilencesPageFormTestIDs.Creator).clear().type(creator);
     }
     
   },
 
   addComment: (comment: string) => {
     cy.log('silenceAlertPage.addComment');
-    cy.byTestID('silence-comment').type(comment);
+    cy.byTestID(DataTestIDs.SilencesPageFormTestIDs.Comment).type(comment);
     
   },
   clickSubmit: () =>{
     cy.log('silenceAlertPage.clickSubmit');
-    cy.bySemanticElement('button').contains('Silence').scrollIntoView().should('be.visible').click();
+    cy.byTestID(DataTestIDs.SilenceButton).scrollIntoView().should('be.visible').click();
   },
   /**
    * pf-6 only
    */
   assertCommentNoError: () => {
     cy.log('silenceAlertPage.assertCommentNoError');
-    cy.byClass('pf-v6-c-form-control pf-m-textarea pf-m-resize-both').should('not.have.class', 'pf-m-error');
+    cy.get(Classes.SilenceCommentWithoutError).should('not.have.class', 'pf-m-error');
   },
 
   /**
@@ -186,28 +186,31 @@ export const silenceAlertPage = {
    */
   assertCommentWithError: () => {
     cy.log('silenceAlertPage.assertCommentWithError');
-    cy.byClass('pf-v6-c-form-control pf-m-textarea pf-m-resize-both pf-m-error').should('be.visible');
-    cy.byClass('pf-v6-c-alert__title').should('contain.text', 'Comment is required');
+    cy.get(Classes.SilenceCommentWithError).should('be.visible');
+    cy.get(Classes.SilenceAlertTitle).should('contain.text', 'Comment is required');
   },
 
+  /**
+   * pf-6 only
+   */
   assertCreatorWithError:() => {
     cy.log('silenceAlertPage.assertCreatorWithError');
-    cy.byClass('pf-v6-c-form-control pf-m-error').should('be.visible');
+    cy.get(Classes.SilenceCreatorWithError).should('be.visible');
   },
 
   fillLabeNameLabelValue: (labelName: string, labelValue: string) => {
     cy.log('silenceAlertPage.fillLabeNameLabelValue');
-    cy.byClass('pf-v6-l-grid pf-m-all-12-col-on-sm pf-m-all-4-col-on-md pf-m-gutter').each(($row, rowIndex) => {
-      cy.wrap($row).find('[aria-label="Label name"]').invoke('val').then((cellText) => {
+    cy.get(Classes.SilenceLabelRow).each(($row, rowIndex) => {
+      cy.wrap($row).find('[data-test="'+DataTestIDs.SilencesPageFormTestIDs.LabelName+'"]').invoke('val').then((cellText) => {
         if (!labelName){
-          cy.wrap($row).find('[aria-label="Label name"]').clear();
+          cy.wrap($row).find('[data-test="'+DataTestIDs.SilencesPageFormTestIDs.LabelName+'"]').clear();
         } else {
-          cy.wrap($row).find('[aria-label="Label name"]').clear().type(labelName);
+          cy.wrap($row).find('[data-test="'+DataTestIDs.SilencesPageFormTestIDs.LabelName+'"]').clear().type(labelName);
         }
          if (!labelValue){
-          cy.wrap($row).find('[aria-label="Label value"]').clear();
+          cy.wrap($row).find('[data-test="'+DataTestIDs.SilencesPageFormTestIDs.LabelValue+'"]').clear();
         } else {
-          cy.wrap($row).find('[aria-label="Label value"]').clear().type(labelValue);
+          cy.wrap($row).find('[data-test="'+DataTestIDs.SilencesPageFormTestIDs.LabelValue+'"]').clear().type(labelValue);
         }
       })
     });     
@@ -215,12 +218,12 @@ export const silenceAlertPage = {
 
   assertLabelNameError: () => {
     cy.log('silenceAlertPage.assertLabelNameError');
-    cy.byClass('pf-v6-c-alert__title').should('contain.text', 'invalid label name ""');
+    cy.get(Classes.SilenceAlertTitle).should('contain.text', 'invalid label name ""');
   },
 
   assertLabelValueError: () => {
     cy.log('silenceAlertPage.assertLabelValueError');
-    cy.byClass('pf-v6-c-alert__title').should('contain.text', 'invalid silence: at least one matcher must not match the empty string');
+    cy.get(Classes.SilenceAlertTitle).should('contain.text', 'invalid silence: at least one matcher must not match the empty string');
   },
 
 };

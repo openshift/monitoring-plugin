@@ -71,6 +71,8 @@ import { Alerts } from '../types';
 import { alertDescription, RuleResource } from '../utils';
 import { useAlertsPoller } from '../hooks/useAlertsPoller';
 
+import { DataTestIDs } from '../data-test';
+
 // Renders Prometheus template text and highlights any {{ ... }} tags that it contains
 const PrometheusTemplate = ({ text }) => (
   <>
@@ -109,7 +111,10 @@ export const ActiveAlerts: React.FC<ActiveAlertsProps> = ({ alerts, namespace, r
         {_.sortBy<PrometheusAlert>(alerts, alertDescription).map((a, i) => (
           <Tr key={i}>
             <Td>
-              <Link data-test="active-alerts" to={getAlertUrl(perspective, a, ruleID, namespace)}>
+              <Link
+                data-test={DataTestIDs.AlertResourceLink}
+                to={getAlertUrl(perspective, a, ruleID, namespace)}
+              >
                 {alertDescription(a)}
               </Link>
             </Td>
@@ -187,7 +192,12 @@ const AlertRulesDetailsPage_: React.FC = () => {
           <PageBreadcrumb hasBodyWrapper={false}>
             <Breadcrumb>
               <BreadcrumbItem>
-                <Link to={getAlertRulesUrl(perspective, namespace)}>{t('Alerting rules')}</Link>
+                <Link
+                  to={getAlertRulesUrl(perspective, namespace)}
+                  data-test={DataTestIDs.Breadcrumb}
+                >
+                  {t('Alerting rules')}
+                </Link>
               </BreadcrumbItem>
               <BreadcrumbItem isActive>{t('Alerting rule details')}</BreadcrumbItem>
             </Breadcrumb>
@@ -197,13 +207,17 @@ const AlertRulesDetailsPage_: React.FC = () => {
               <FlexItem
                 alignSelf={{ default: 'alignSelfCenter' }}
                 spacer={{ default: 'spacerNone' }}
+                data-test={DataTestIDs.AlertingRuleResourceIcon}
               >
                 <ResourceIcon kind={RuleResource.kind} />
               </FlexItem>
               <FlexItem>
                 <Title headingLevel="h1">{rule?.name}</Title>
               </FlexItem>
-              <FlexItem alignSelf={{ default: 'alignSelfCenter' }}>
+              <FlexItem
+                alignSelf={{ default: 'alignSelfCenter' }}
+                data-test={DataTestIDs.SeverityBadgeHeader}
+              >
                 <SeverityBadge severity={rule?.labels?.severity} />
               </FlexItem>
             </Flex>
@@ -300,7 +314,7 @@ const AlertRulesDetailsPage_: React.FC = () => {
                   )}
                   <DescriptionListGroup>
                     <DescriptionListTerm>{t('Expression')}</DescriptionListTerm>
-                    <DescriptionListDescription>
+                    <DescriptionListDescription data-test={DataTestIDs.Expression}>
                       {/* display a link only if its a metrics based alert */}
                       {(!sourceId || sourceId === 'prometheus') && perspective !== 'acm' ? (
                         <Link

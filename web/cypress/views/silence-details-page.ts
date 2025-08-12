@@ -1,5 +1,6 @@
 import { commonPages } from "./common";
 import { detailsPage } from "./details-page";
+import { DataTestIDs } from "../../src/components/data-test";
 
 export const silenceDetailsPage = {
 
@@ -12,7 +13,7 @@ export const silenceDetailsPage = {
 
   clickOnFiringAlerts: (alertname: string) => {
     cy.log('silenceDetailsPage.clickOnFiringAlerts');
-    cy.byTestID('firing-alerts')
+    cy.byTestID(DataTestIDs.AlertResourceLink)
       .first()
       .should('have.text', alertname)
       .click();
@@ -21,27 +22,27 @@ export const silenceDetailsPage = {
   clickActions: (toOpen: boolean) => {
     cy.log('silenceDetailsPage.clickActions');
     if (toOpen) {
-      cy.get('.pf-v6-c-menu-toggle, .pf-v5-c-dropdown__toggle').contains('Actions').click();
+      cy.byTestID(DataTestIDs.KebabDropdownButton).contains('Actions').click();
     }
   },
 
   assertActionsExpiredAlert: () => {
     cy.log('silenceDetailsPage.assertActionsExpiredAlert');
     silenceDetailsPage.clickActions(true);
-    cy.byPFRole('menuitem').contains('Recreate silence').should('be.visible');
+    cy.byTestID(DataTestIDs.SilenceRecreateDropdownItem).should('be.visible');
   },
 
   assertActionsSilencedAlert: () => {
     cy.log('silenceDetailsPage.assertActionsExpiredAlert');
     silenceDetailsPage.clickActions(true);
-    cy.byPFRole('menuitem').contains('Edit silence').should('be.visible');
-    cy.byPFRole('menuitem').contains('Expire silence').should('be.visible');
+    cy.byTestID(DataTestIDs.SilenceEditDropdownItem).should('be.visible');
+    cy.byTestID(DataTestIDs.SilenceExpireDropdownItem).should('be.visible');
   },
 
   editSilence: (toOpen: boolean) => {
     cy.log('silenceDetailsPage.editSilence');
     silenceDetailsPage.clickActions(toOpen);
-    cy.byPFRole('menuitem').contains('Edit silence').should('be.visible').click();
+    cy.byTestID(DataTestIDs.SilenceEditDropdownItem).should('be.visible').click();
   },
 
   /**
@@ -52,20 +53,20 @@ export const silenceDetailsPage = {
   expireSilence: (toOpen: boolean, yes: boolean) => {
     cy.log('silenceDetailsPage.expireSilence');
     silenceDetailsPage.clickActions(toOpen);
-    cy.byPFRole('menuitem').contains('Expire silence').should('be.visible').click();
+    cy.byTestID(DataTestIDs.SilenceExpireDropdownItem).should('be.visible').click();
     commonPages.confirmExpireAlert(yes);
   },
 
   recreateSilence: (toOpen: boolean) => {
     cy.log('silenceDetailsPage.recreateSilence');
     silenceDetailsPage.clickActions(toOpen);
-    cy.byPFRole('menuitem').contains('Recreate silence').should('be.visible').click();
+    cy.byTestID(DataTestIDs.SilenceRecreateDropdownItem).should('be.visible').click();
   },
 
   clickSilencesBreadcrumb:() => {
     cy.log('silenceDetailsPage.clickSilencesBreadcrumb');
      try {
-       cy.get('.pf-v6-c-breadcrumb__item, .pf-v5-c-breadcrumb__item').contains('Silences').should('be.visible').click();
+       cy.byTestID(DataTestIDs.Breadcrumb).contains('Silences').should('be.visible').click();
       } catch (error) {
         cy.log(`${error.message}`);
         throw error; 

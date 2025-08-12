@@ -1,33 +1,34 @@
 import { commonPages } from "./common";
+import { DataTestIDs, Classes } from '../../src/components/data-test';
 
 export const detailsPage = {
   sectionHeaderShouldExist: (sectionHeading: string) => {
     cy.log('detailsPage.sectionHeaderShouldExist');
-    cy.get('.pf-v6-c-title.pf-m-h2, .co-section-heading').contains(sectionHeading).should('be.visible');
+    cy.get(Classes.SectionHeader).contains(sectionHeading).should('be.visible');
   },
     
   labelShouldExist: (labelName: string) => {
     cy.log('detailsPage.labelShouldExist');
-    cy.get('.pf-v6-c-label__text, .pf-v5-c-label__text').contains(labelName);
+    cy.get(Classes.LabelTag).contains(labelName);
   },
 
   clickAlertRule: (alert: string) => {
     cy.log('detailsPage.clickAlertRule');
-    cy.byTestID('alert-rules-detail-resource-link').scrollIntoView();
+    cy.byTestID(DataTestIDs.AlertingRuleResourceLink).scrollIntoView();
     try{
-      cy.byTestID('alert-rules-detail-resource-link').contains(alert).should('be.visible').click();
+      cy.byTestID(DataTestIDs.AlertingRuleResourceLink).contains(alert).should('be.visible').click();
       commonPages.detailsPage.alertRule;
     } catch (error) {
       cy.log(`${error.message}`);
       throw error; 
     }
-    
   },
+
   clickAlertDesc: (desc: string) => {
     cy.log('detailsPage.clickAlertDesc');
-    cy.byTestID('active-alerts').scrollIntoView();
+    cy.byTestID(DataTestIDs.AlertResourceLink).scrollIntoView();
     try {
-      cy.byTestID('active-alerts').contains(desc).should('be.visible').click();
+      cy.byTestID(DataTestIDs.AlertResourceLink).contains(desc).should('be.visible').click();
     } catch (error) {
       cy.log(`${error.message}`);
       throw error; 
@@ -48,7 +49,7 @@ export const detailsPage = {
   clickOnSilencedBy: (alertname: string) => {
    cy.log('detailsPage.clickOnSilencedBy');
    try {
-    cy.byLegacyTestID('silence-resource-link')
+    cy.byLegacyTestID(DataTestIDs.SilenceResourceLink)
       .first()
       .should('have.text', alertname)
       .click();
@@ -56,35 +57,31 @@ export const detailsPage = {
       cy.log(`${error.message}`);
       throw error; 
     }
-  
   },
   
   assertSilencedAlert: () => {
     cy.log('detailsPage.assertSilencedAlert');
     try {
-      cy.bySemanticElement('button').contains('Silence alert').should('not.exist');
+      cy.byTestID(DataTestIDs.SilenceButton).should('not.exist');
       detailsPage.clickOnSilenceByKebab();
       cy.byPFRole('menuitem').contains('Edit silence').should('be.visible');
       cy.byPFRole('menuitem').contains('Expire silence').should('be.visible');
-      
 
     } catch (error) {
       cy.log(`${error.message}`);
       throw error; 
     }
-
   },
 
   clickOnSilenceByKebab: () => {
     cy.log('detailsPage.clickOnSilenceByKebab');
     try {
-      cy.byLegacyTestID('silence-resource-link').scrollIntoView();
-      cy.get('table').find('.pf-v6-c-menu-toggle.pf-m-plain, .pf-v5-c-dropdown__toggle.pf-m-plain').should('be.visible').click();
+      cy.byLegacyTestID(DataTestIDs.SilenceResourceLink).scrollIntoView();
+      cy.get('table').find(Classes.SilenceKebabDropdown).should('be.visible').click();
     } catch (error) {
       cy.log(`${error.message}`);
       throw error; 
     }
-
   },
   
   editSilence:() => {
@@ -115,24 +112,24 @@ export const detailsPage = {
   },
   clickSilenceAlertButton:()=>{
     cy.log('detailsPage.clickSilenceAlertButton');
-    cy.bySemanticElement('button').contains('Silence alert').should('be.visible').click();
+    cy.byTestID(DataTestIDs.SilenceButton).should('be.visible').click();
   },
 
   clickResetZoomButton:()=>{
     cy.log('detailsPage.clickResetZoomButton');
-    cy.bySemanticElement('button').contains('Reset zoom').should('be.visible').click();
+    cy.byTestID(DataTestIDs.MetricResetZoomButton).should('be.visible').click();
   },
 
   clickHideGraphButton:()=>{
     cy.log('detailsPage.clickHideGraphButton');
-    cy.bySemanticElement('button').contains('Hide graph').should('be.visible').click();
-    cy.get('.pf-v6-c-card.pf-m-compact, .query-browser__controls').should('not.exist');
+    cy.byTestID(DataTestIDs.MetricHideShowGraphButton).should('be.visible').click();
+    cy.get(Classes.GraphCard).should('not.exist');
   },
 
   clickShowGraphButton:()=>{
     cy.log('detailsPage.clickShowGraphButton');
-    cy.bySemanticElement('button').contains('Show graph').should('be.visible').click();
-    cy.get('pf-v6-c-card pf-m-compact, .query-browser__controls').should('be.visible');
-  }
+    cy.byTestID(DataTestIDs.MetricHideShowGraphButton).should('be.visible').click();
+    cy.get(Classes.GraphCard).should('be.visible');
+  },
 
 };

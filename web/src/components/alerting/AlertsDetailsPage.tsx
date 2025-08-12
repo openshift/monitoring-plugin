@@ -88,6 +88,8 @@ import {
   SourceHelp,
 } from './AlertUtils';
 
+import { DataTestIDs } from '../data-test';
+
 const AlertsDetailsPage_: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const params = useParams<{ ruleID: string }>();
@@ -163,7 +165,9 @@ const AlertsDetailsPage_: React.FC = () => {
           <PageBreadcrumb hasBodyWrapper={false}>
             <Breadcrumb>
               <BreadcrumbItem>
-                <Link to={getAlertsUrl(perspective, namespace)}>{t('Alerts')}</Link>
+                <Link to={getAlertsUrl(perspective, namespace)} data-test={DataTestIDs.Breadcrumb}>
+                  {t('Alerts')}
+                </Link>
               </BreadcrumbItem>
               <BreadcrumbItem isActive>{t('Alert details')}</BreadcrumbItem>
             </Breadcrumb>
@@ -175,13 +179,17 @@ const AlertsDetailsPage_: React.FC = () => {
                   <FlexItem
                     alignSelf={{ default: 'alignSelfCenter' }}
                     spacer={{ default: 'spacerNone' }}
+                    data-test={DataTestIDs.AlertResourceIcon}
                   >
                     <ResourceIcon kind={AlertResource.kind} />
                   </FlexItem>
                   <FlexItem>
                     <Title headingLevel="h1">{rule?.name}</Title>
                   </FlexItem>
-                  <FlexItem alignSelf={{ default: 'alignSelfCenter' }}>
+                  <FlexItem
+                    alignSelf={{ default: 'alignSelfCenter' }}
+                    data-test={DataTestIDs.SeverityBadgeHeader}
+                  >
                     <SeverityBadge severity={rule?.labels?.severity} />
                   </FlexItem>
                 </Flex>
@@ -193,6 +201,7 @@ const AlertsDetailsPage_: React.FC = () => {
                   <Button
                     onClick={() => navigate(getNewSilenceAlertUrl(perspective, alert, namespace))}
                     variant="primary"
+                    data-test={DataTestIDs.SilenceButton}
                   >
                     {t('Silence alert')}
                   </Button>
@@ -255,7 +264,7 @@ const AlertsDetailsPage_: React.FC = () => {
                 <DescriptionList>
                   <DescriptionListGroup>
                     <DescriptionListTerm>{t('Name')}</DescriptionListTerm>
-                    <DescriptionListDescription>{labels?.alertname}</DescriptionListDescription>
+                    <DescriptionListDescription> {labels?.alertname} </DescriptionListDescription>
                   </DescriptionListGroup>
                   <DescriptionListGroup>
                     <DescriptionListTermHelpText>
@@ -268,7 +277,7 @@ const AlertsDetailsPage_: React.FC = () => {
                         </DescriptionListTermHelpTextButton>
                       </Popover>
                     </DescriptionListTermHelpText>
-                    <DescriptionListDescription>
+                    <DescriptionListDescription data-test={DataTestIDs.SeverityBadge}>
                       <SeverityBadge severity={labels?.severity} />
                     </DescriptionListDescription>
                   </DescriptionListGroup>
@@ -362,13 +371,13 @@ const AlertsDetailsPage_: React.FC = () => {
                         spaceItems={{ default: 'spaceItemsNone' }}
                         flexWrap={{ default: 'nowrap' }}
                       >
-                        <FlexItem>
+                        <FlexItem data-test={DataTestIDs.AlertingRuleResourceIcon}>
                           <ResourceIcon kind={RuleResource.kind} />
                         </FlexItem>
                         <FlexItem>
                           <Link
                             to={getRuleUrl(perspective, rule, namespace)}
-                            data-test="alert-rules-detail-resource-link"
+                            data-test={DataTestIDs.AlertingRuleResourceLink}
                           >
                             {_.get(rule, 'name')}
                           </Link>

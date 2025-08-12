@@ -1,12 +1,12 @@
-import { commonPages } from '../../views/common';
-import { detailsPage } from '../../views/details-page';
-import { listPage } from '../../views/list-page';
-import { silenceAlertPage } from '../../views/silence-alert-page';
-import { nav } from '../../views/nav';
-import { silenceDetailsPage } from '../../views/silence-details-page';
-import { silencesListPage } from '../../views/silences-list-page';
-import { alertingRuleListPage } from '../../views/alerting-rule-list-page';
-import { alertingRuleDetailsPage } from '../../views/alerting-rule-details-page';
+import { commonPages } from '../../../views/common';
+import { detailsPage } from '../../../views/details-page';
+import { listPage } from '../../../views/list-page';
+import { silenceAlertPage } from '../../../views/silence-alert-page';
+import { nav } from '../../../views/nav';
+import { silenceDetailsPage } from '../../../views/silence-details-page';
+import { silencesListPage } from '../../../views/silences-list-page';
+import { alertingRuleListPage } from '../../../views/alerting-rule-list-page';
+import { alertingRuleDetailsPage } from '../../../views/alerting-rule-details-page';
 
 //
 import common = require('mocha/lib/interfaces/common');
@@ -16,8 +16,6 @@ const MP = {
   operatorName: 'Cluster Monitoring Operator',
 };
 
-const readyTimeout = 120000;
-
 const ALERTNAME = 'Watchdog';
 const NAMESPACE = 'openshift-monitoring';
 const SEVERITY = 'None';
@@ -26,91 +24,14 @@ const ALERT_SUMMARY = 'An alert that should always be firing to certify that Ale
 
 const SILENCE_COMMENT = 'test comment';
 
-/**
-   * Some documentation about this regression testing for Monitoring - Alerts:
-   * - Alerting pages are ""flaky"" (in testing pov), specially SILENCES tab, always being refreshed / updated to show the latest data, due to its nature.
-   * - Notice there are some "unnecessary" filters, that are not needed to be set, but to make the page a bit more stable for searching a certain alert.
-   * - So, be careful with future refactoring, having in mind almost a sprint was taken to have these scenarios stable, with many tentatives to reduce unnecessary steps, but not succeed.
-   */
 describe('Regression: Monitoring - Alerts', () => {
 
   before(() => {
-    cy.adminCLI(
-      `oc adm policy add-cluster-role-to-user cluster-admin ${Cypress.env('LOGIN_USERNAME')}`,
-    );
-    // Getting the oauth url for hypershift cluster login
-    cy.exec(
-      `oc get oauthclient openshift-browser-client -o go-template --template="{{index .redirectURIs 0}}" --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
-    ).then((result) => {
-      if (expect(result.stderr).to.be.empty) {
-        const oauth = result.stdout;
-        // Trimming the origin part of the url
-        const oauthurl = new URL(oauth);
-        const oauthorigin = oauthurl.origin;
-        cy.log(oauthorigin);
-        cy.wrap(oauthorigin).as('oauthorigin');
-      } else {
-        throw new Error(`Execution of oc get oauthclient failed
-          Exit code: ${result.code}
-          Stdout:\n${result.stdout}
-          Stderr:\n${result.stderr}`);
-      }
-    });
-    cy.get('@oauthorigin').then((oauthorigin) => {
-      cy.login(
-        Cypress.env('LOGIN_IDP'),
-        Cypress.env('LOGIN_USERNAME'),
-        Cypress.env('LOGIN_PASSWORD'),
-        oauthorigin,
-      );
-    });
-
-    cy.log('Set Monitoring Plugin image in operator CSV');
-    if (Cypress.env('MP_IMAGE')) {
-      cy.log('MP_IMAGE is set. the image will be patched in CMO operator CSV');
-      cy.exec(
-        './cypress/fixtures/cmo/update-monitoring-plugin-image.sh',
-        {
-          env: {
-            MP_IMAGE: Cypress.env('MP_IMAGE'),
-            KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
-            MP_NAMESPACE: `${MP.namespace}`
-          },
-          timeout: readyTimeout,
-          failOnNonZeroExit: true
-        }
-      ).then((result) => {
-        expect(result.code).to.eq(0);
-        cy.log(`CMO CSV updated successfully with Monitoring Plugin image: ${result.stdout}`);
-      });
-    } else {
-      cy.log('MP_IMAGE is NOT set. Skipping patching the image in CMO operator CSV.');
-    }
-
-    cy.task('clearDownloads');
+    cy.beforeBlock(MP);
   });
 
   after(() => {
-    if (Cypress.env('MP_IMAGE')) {
-      cy.log('MP_IMAGE is set. Lets revert CMO operator CSV');
-      cy.exec(
-        './cypress/fixtures/cmo/reenable-monitoring.sh',
-        {
-          env: {
-            MP_IMAGE: Cypress.env('MP_IMAGE'),
-            KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
-            MP_NAMESPACE: `${MP.namespace}`
-          },
-          timeout: readyTimeout,
-          failOnNonZeroExit: true
-        }
-      ).then((result) => {
-        expect(result.code).to.eq(0);
-        cy.log(`CMO CSV reverted successfully with Monitoring Plugin image: ${result.stdout}`);
-      });
-    } else {
-      cy.log('MP_IMAGE is NOT set. Skipping reverting the image in CMO operator CSV.');
-    }
+    cy.afterBlock(MP);
   });
 
   it('1. Admin perspective - Alerting > Alerts page - Filtering', () => {
