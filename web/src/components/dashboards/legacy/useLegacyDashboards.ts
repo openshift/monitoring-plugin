@@ -66,7 +66,7 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
               data: JSON.parse(_.values(item.data)[0]),
               name: item.metadata.name,
             };
-          } catch (e) {
+          } catch {
             setLegacyDashboardsError(
               t('Could not parse JSON data for dashboard "{{dashboard}}"', {
                 dashboard: item.metadata.name,

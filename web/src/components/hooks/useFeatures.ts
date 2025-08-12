@@ -34,7 +34,7 @@ export const useFeatures = () => {
 
       const response = await proxiedFetch<featuresResponse>(featuresEndpoint);
       setFeatures({ ...noFeatures, ...response });
-    } catch (error) {
+    } catch {
       setFeatures(noFeatures);
     }
   }, []);

@@ -160,44 +160,44 @@ export const setIncidentsChartSelection = (incidentsChartSelectedId) =>
 export const setFilteredIncidentsData = (filteredIncidentsData) =>
   action(ActionType.SetFilteredIncidentsData, filteredIncidentsData);
 
-const actions = {
-  alertingErrored,
-  alertingLoaded,
-  alertingLoading,
-  alertingSetRules,
-  dashboardsPatchAllVariables,
-  dashboardsPatchVariable,
-  DashboardsClearVariables,
-  dashboardsSetEndTime,
-  dashboardsSetPollInterval,
-  dashboardsSetTimespan,
-  dashboardsVariableOptionsLoaded,
-  queryBrowserAddQuery,
-  queryBrowserDuplicateQuery,
-  queryBrowserDeleteAllQueries,
-  queryBrowserDeleteAllSeries,
-  queryBrowserDeleteQuery,
-  queryBrowserDismissNamespaceAlert,
-  queryBrowserPatchQuery,
-  queryBrowserRunQueries,
-  queryBrowserSetAllExpanded,
-  queryBrowserSetMetrics,
-  queryBrowserSetPollInterval,
-  queryBrowserSetTimespan,
-  queryBrowserToggleAllSeries,
-  queryBrowserToggleIsEnabled,
-  queryBrowserToggleSeries,
-  setAlertCount,
-  toggleGraphs,
-  showGraphs,
-  setIncidents,
-  setIncidentsActiveFilters,
-  setChooseIncident,
-  setAlertsData,
-  setAlertsTableData,
-  setAlertsAreLoading,
-  setIncidentsChartSelection,
-  setFilteredIncidentsData,
+type Actions = {
+  alertingErrored: typeof alertingErrored;
+  alertingLoaded: typeof alertingLoaded;
+  alertingLoading: typeof alertingLoading;
+  alertingSetRules: typeof alertingSetRules;
+  dashboardsPatchAllVariables: typeof dashboardsPatchAllVariables;
+  dashboardsPatchVariable: typeof dashboardsPatchVariable;
+  DashboardsClearVariables: typeof DashboardsClearVariables;
+  dashboardsSetEndTime: typeof dashboardsSetEndTime;
+  dashboardsSetPollInterval: typeof dashboardsSetPollInterval;
+  dashboardsSetTimespan: typeof dashboardsSetTimespan;
+  dashboardsVariableOptionsLoaded: typeof dashboardsVariableOptionsLoaded;
+  queryBrowserAddQuery: typeof queryBrowserAddQuery;
+  queryBrowserDuplicateQuery: typeof queryBrowserDuplicateQuery;
+  queryBrowserDeleteAllQueries: typeof queryBrowserDeleteAllQueries;
+  queryBrowserDeleteAllSeries: typeof queryBrowserDeleteAllSeries;
+  queryBrowserDeleteQuery: typeof queryBrowserDeleteQuery;
+  queryBrowserDismissNamespaceAlert: typeof queryBrowserDismissNamespaceAlert;
+  queryBrowserPatchQuery: typeof queryBrowserPatchQuery;
+  queryBrowserRunQueries: typeof queryBrowserRunQueries;
+  queryBrowserSetAllExpanded: typeof queryBrowserSetAllExpanded;
+  queryBrowserSetMetrics: typeof queryBrowserSetMetrics;
+  queryBrowserSetPollInterval: typeof queryBrowserSetPollInterval;
+  queryBrowserSetTimespan: typeof queryBrowserSetTimespan;
+  queryBrowserToggleAllSeries: typeof queryBrowserToggleAllSeries;
+  queryBrowserToggleIsEnabled: typeof queryBrowserToggleIsEnabled;
+  queryBrowserToggleSeries: typeof queryBrowserToggleSeries;
+  setAlertCount: typeof setAlertCount;
+  toggleGraphs: typeof toggleGraphs;
+  showGraphs: typeof showGraphs;
+  setIncidents: typeof setIncidents;
+  setIncidentsActiveFilters: typeof setIncidentsActiveFilters;
+  setChooseIncident: typeof setChooseIncident;
+  setAlertsData: typeof setAlertsData;
+  setAlertsTableData: typeof setAlertsTableData;
+  setAlertsAreLoading: typeof setAlertsAreLoading;
+  setIncidentsChartSelection: typeof setIncidentsChartSelection;
+  setFilteredIncidentsData: typeof setFilteredIncidentsData;
 };
 
-export type ObserveAction = Action<typeof actions>;
+export type ObserveAction = Action<Actions>;

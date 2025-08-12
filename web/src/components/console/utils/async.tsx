@@ -52,7 +52,9 @@ export class AsyncComponent extends React.Component<AsyncComponentProps, AsyncCo
         if (!Component) {
           return Promise.reject(AsyncComponentError.ComponentNotFound);
         }
-        this.isAsyncMounted && this.setState({ Component });
+        if (this.isAsyncMounted) {
+          this.setState({ Component });
+        }
       })
       .catch((error) => {
         if (error === AsyncComponentError.ComponentNotFound) {
