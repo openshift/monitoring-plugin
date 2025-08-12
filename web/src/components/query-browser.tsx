@@ -165,9 +165,10 @@ const SpanControls: React.FC<SpanControlsProps> = React.memo(
                 onChange={(_event, v) => setSpan(v, true)}
                 type="text"
                 value={text}
+                data-test={DataTestIDs.MetricGraphTimespanInput}
               />
             </InputGroupItem>
-            <InputGroupItem data-test={DataTestIDs.MetricGraphTimespanInput}>
+            <InputGroupItem>
               <Dropdown
                 isOpen={isOpen}
                 onSelect={setClosed}
