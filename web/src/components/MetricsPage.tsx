@@ -864,7 +864,7 @@ export const QueryTable: FC<QueryTableProps> = ({ index, namespace, customDataso
         variant="link"
         isInline
         onClick={toggleAllSeries}
-        data-test={DataTestIDs.MetricsPageSelectAllUnselectAllDropdownItem}
+        data-test={DataTestIDs.MetricsPageSelectAllUnselectAllButton}
       >
         {isDisabledSeriesEmpty ? t('Unselect all') : t('Select all')}
       </Button>
@@ -1037,7 +1037,7 @@ const Query: FC<{
           buttonProps={{ isInline: true }}
           id={`toggle-${queryId}`}
           aria-controls={`query-expand-${queryId}`}
-          data-test={DataTestIDs.MetricsPageExpandCollapseAllButton}
+          data-test={DataTestIDs.MetricsPageExpandCollapseRowButton}
         />
         <DataListItemCells
           dataListCells={[

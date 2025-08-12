@@ -1,4 +1,3 @@
-import { commonPages } from "./common";
 import { getPFVersion } from "./utils";
 import { DataTestIDs, Classes, LegacyTestIDs } from "../../src/components/data-test";
 

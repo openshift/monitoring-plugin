@@ -11,7 +11,11 @@ export const alertingRuleDetailsPage = {
       detailsPage.sectionHeaderShouldExist('Active alerts');
       cy.byTestID(DataTestIDs.Expression).should('be.visible');
       cy.byTestID(DataTestIDs.MetricHideShowGraphButton).contains('Hide graph').should('be.visible');
-      cy.get(Classes.GraphCard).should('be.visible');
+      cy.get(Classes.GraphCard).scrollIntoView().should('be.visible');
+      cy.byTestID(DataTestIDs.MetricDisconnectedCheckbox).should('be.visible');
+      cy.byTestID(DataTestIDs.MetricGraphTimespanDropdown).should('be.visible');
+      cy.byTestID(DataTestIDs.MetricGraphTimespanInput).should('be.visible');
+      cy.byTestID(DataTestIDs.MetricResetZoomButton).should('be.visible');
     },
   
     clickOnActiveAlerts: (desc: string) => {
