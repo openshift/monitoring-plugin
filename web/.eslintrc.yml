@@ -29,6 +29,8 @@ rules:
   react/display-name: off
   react/prop-types: off
   "@typescript-eslint/no-explicit-any": off
+  # React 17 doesn't reuqire this anymore
+  react/react-in-jsx-scope: off 
 settings:
   react:
     version: detect

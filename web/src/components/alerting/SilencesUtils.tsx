@@ -39,7 +39,8 @@ import {
 import { Td } from '@patternfly/react-table';
 import { t_global_spacer_xs } from '@patternfly/react-tokens';
 import * as _ from 'lodash-es';
-import * as React from 'react';
+import type { FC, Ref } from 'react';
+import { useContext, useCallback, createContext, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom-v5-compat';
@@ -58,7 +59,7 @@ import {
 } from '../utils';
 import { SeverityCounts, StateTimestamp } from './AlertUtils';
 
-export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheckbox }) => {
+export const SilenceTableRow: FC<SilenceTableRowProps> = ({ obj, showCheckbox }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
   const [namespace] = useActiveNamespace();
@@ -67,9 +68,9 @@ export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheck
   const state = silenceState(obj);
   const cluster = matchers.find((label) => label.name === 'cluster')?.value;
 
-  const { selectedSilences, setSelectedSilences } = React.useContext(SelectedSilencesContext);
+  const { selectedSilences, setSelectedSilences } = useContext(SelectedSilencesContext);
 
-  const onCheckboxChange = React.useCallback(
+  const onCheckboxChange = useCallback(
     (isChecked: boolean) => {
       setSelectedSilences((oldSet) => {
         const newSet = new Set(oldSet);
@@ -154,7 +155,7 @@ type SilenceTableRowProps = {
   showCheckbox?: boolean;
 };
 
-export const SelectedSilencesContext = React.createContext({
+export const SelectedSilencesContext = createContext({
   selectedSilences: new Set(),
   setSelectedSilences: undefined,
 });
@@ -205,7 +206,7 @@ export const SilenceState = ({ silence }) => {
   ) : null;
 };
 
-export const SilenceDropdown: React.FC<SilenceDropdownProps> = ({ silence, toggleText }) => {
+export const SilenceDropdown: FC<SilenceDropdownProps> = ({ silence, toggleText }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
   const [namespace] = useActiveNamespace();
@@ -242,7 +243,7 @@ export const SilenceDropdown: React.FC<SilenceDropdownProps> = ({ silence, toggl
         data-test="silence-actions"
         popperProps={{ position: 'right' }}
         onOpenChange={(isOpen: boolean) => (isOpen ? setIsOpen() : setClosed())}
-        toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+        toggle={(toggleRef: Ref<MenuToggleElement>) => (
           <MenuToggle
             ref={toggleRef}
             aria-label="kebab dropdown toggle"
@@ -261,7 +262,7 @@ export const SilenceDropdown: React.FC<SilenceDropdownProps> = ({ silence, toggl
   );
 };
 
-export const ExpireSilenceModal: React.FC<ExpireSilenceModalProps> = ({
+export const ExpireSilenceModal: FC<ExpireSilenceModalProps> = ({
   isOpen,
   setClosed,
   silenceID,
@@ -274,7 +275,7 @@ export const ExpireSilenceModal: React.FC<ExpireSilenceModalProps> = ({
 
   const [isInProgress, , setInProgress, setNotInProgress] = useBoolean(false);
   const [success, , setSuccess] = useBoolean(false);
-  const [errorMessage, setErrorMessage] = React.useState();
+  const [errorMessage, setErrorMessage] = useState();
 
   const expireSilence = () => {
     setInProgress();

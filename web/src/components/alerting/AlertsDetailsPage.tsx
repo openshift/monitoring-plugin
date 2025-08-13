@@ -12,7 +12,8 @@ import {
   useResolvedExtensions,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
-import * as React from 'react';
+import type { FC, ReactNode } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { Link, useNavigate, useParams } from 'react-router-dom-v5-compat';
@@ -88,7 +89,7 @@ import {
   SourceHelp,
 } from './AlertUtils';
 
-const AlertsDetailsPage_: React.FC = () => {
+const AlertsDetailsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const params = useParams<{ ruleID: string }>();
   const navigate = useNavigate();
@@ -124,7 +125,7 @@ const AlertsDetailsPage_: React.FC = () => {
 
   const labelsMemoKey = JSON.stringify(alert?.labels);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const labels: PrometheusLabels = React.useMemo(() => alert?.labels, [labelsMemoKey]);
+  const labels: PrometheusLabels = useMemo(() => alert?.labels, [labelsMemoKey]);
 
   // eslint-disable-next-line camelcase
   const runbookURL = alert?.annotations?.runbook_url;
@@ -396,7 +397,7 @@ const AlertsDetailsPage_: React.FC = () => {
 };
 const AlertsDetailsPage = withFallback(AlertsDetailsPage_);
 
-const HeaderAlertMessage: React.FC<{ alert: Alert; rule: Rule }> = ({ alert, rule }) => {
+const HeaderAlertMessage: FC<{ alert: Alert; rule: Rule }> = ({ alert, rule }) => {
   const annotation = alert.annotations.description ? 'description' : 'message';
   return (
     <AlertMessage
@@ -407,12 +408,12 @@ const HeaderAlertMessage: React.FC<{ alert: Alert; rule: Rule }> = ({ alert, rul
   );
 };
 
-const AlertMessage: React.FC<AlertMessageProps> = ({ alertText, labels, template }) => {
+const AlertMessage: FC<AlertMessageProps> = ({ alertText, labels, template }) => {
   if (_.isEmpty(alertText)) {
     return null;
   }
 
-  let messageParts: React.ReactNode[] = [alertText];
+  let messageParts: ReactNode[] = [alertText];
 
   // Go through each recognized resource type and replace any resource names that exist in alertText
   // with a link to the resource's details page
@@ -474,7 +475,7 @@ const alertMessageResources: {
 const matchCount = (haystack: string, regExpString: string) =>
   _.size(haystack.match(new RegExp(regExpString, 'g')));
 
-const AlertStateHelp: React.FC = () => {
+const AlertStateHelp: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (

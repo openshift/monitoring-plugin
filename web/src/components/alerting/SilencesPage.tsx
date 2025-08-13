@@ -21,7 +21,8 @@ import {
 } from '@patternfly/react-core';
 import { sortable } from '@patternfly/react-table';
 import * as _ from 'lodash-es';
-import * as React from 'react';
+import type { FC } from 'react';
+import { useState, useMemo, useContext, useCallback, memo } from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -41,13 +42,13 @@ import { Silences } from '../types';
 import { fuzzyCaseInsensitive, refreshSilences, silenceCluster, silenceState } from '../utils';
 import { SelectedSilencesContext, SilenceTableRow } from './SilencesUtils';
 
-const SilencesPage_: React.FC = () => {
+const SilencesPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const { silencesKey, perspective } = usePerspective();
 
-  const [selectedSilences, setSelectedSilences] = React.useState(new Set());
-  const [errorMessage, setErrorMessage] = React.useState();
+  const [selectedSilences, setSelectedSilences] = useState(new Set());
+  const [errorMessage, setErrorMessage] = useState();
 
   useAlertsPoller();
 
@@ -59,7 +60,7 @@ const SilencesPage_: React.FC = () => {
     (state: MonitoringState) => getLegacyObserveState(perspective, state)?.get(silencesKey) || {},
   );
 
-  const clusters = React.useMemo(() => {
+  const clusters = useMemo(() => {
     const clusterSet = new Set<string>();
     data?.forEach((silence) => {
       const clusterName = silenceCluster(silence);
@@ -124,7 +125,7 @@ const SilencesPage_: React.FC = () => {
 
   const [staticData, filteredData, onFilterChange] = useListPageFilter(data, rowFilters);
 
-  const columns = React.useMemo<Array<TableColumn<Silence>>>(() => {
+  const columns = useMemo<Array<TableColumn<Silence>>>(() => {
     const cols: Array<TableColumn<Silence>> = [
       {
         id: 'checkbox',
@@ -242,14 +243,14 @@ const SilencesPage_: React.FC = () => {
 };
 const SilencesPage = withFallback(SilencesPage_);
 
-const SelectAllCheckbox: React.FC<{ silences: Silence[] }> = ({ silences }) => {
-  const { selectedSilences, setSelectedSilences } = React.useContext(SelectedSilencesContext);
+const SelectAllCheckbox: FC<{ silences: Silence[] }> = ({ silences }) => {
+  const { selectedSilences, setSelectedSilences } = useContext(SelectedSilencesContext);
 
   const activeSilences = _.filter(silences, (s) => silenceState(s) !== SilenceStates.Expired);
   const isAllSelected =
     activeSilences.length > 0 && _.every(activeSilences, (s) => selectedSilences.has(s.id));
 
-  const onChange = React.useCallback(
+  const onChange = useCallback(
     (isChecked: boolean) => {
       const ids = isChecked ? activeSilences.map((s) => s.id) : [];
       setSelectedSilences(new Set(ids));
@@ -290,7 +291,7 @@ const silenceClusterOrder = (clusters: Array<string>) => {
   ];
 };
 
-const ExpireAllSilencesButton: React.FC<ExpireAllSilencesButtonProps> = ({ setErrorMessage }) => {
+const ExpireAllSilencesButton: FC<ExpireAllSilencesButtonProps> = ({ setErrorMessage }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const { perspective, silencesKey } = usePerspective();
@@ -299,7 +300,7 @@ const ExpireAllSilencesButton: React.FC<ExpireAllSilencesButtonProps> = ({ setEr
 
   const dispatch = useDispatch();
 
-  const { selectedSilences, setSelectedSilences } = React.useContext(SelectedSilencesContext);
+  const { selectedSilences, setSelectedSilences } = useContext(SelectedSilencesContext);
 
   const [namespace] = useActiveNamespace();
 
@@ -337,11 +338,11 @@ const ExpireAllSilencesButton: React.FC<ExpireAllSilencesButtonProps> = ({ setEr
   );
 };
 
-const SilenceTableRowWithCheckbox: React.FC<RowProps<Silence>> = ({ obj }) => (
+const SilenceTableRowWithCheckbox: FC<RowProps<Silence>> = ({ obj }) => (
   <SilenceTableRow showCheckbox={true} obj={obj} />
 );
 
-const CreateSilenceButton: React.FC = React.memo(() => {
+const CreateSilenceButton: FC = memo(() => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
   const [namespace] = useActiveNamespace();

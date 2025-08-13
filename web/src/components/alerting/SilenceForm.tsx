@@ -32,7 +32,8 @@ import {
 import { ExclamationCircleIcon, MinusCircleIcon, PlusCircleIcon } from '@patternfly/react-icons';
 import { t_global_spacer_sm } from '@patternfly/react-tokens';
 import * as _ from 'lodash-es';
-import * as React from 'react';
+import type { ComponentType, FC, FormEventHandler, MouseEvent, ChangeEvent, Ref } from 'react';
+import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { Trans, useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -60,7 +61,7 @@ type Matcher = {
 
 type SilenceFormProps = {
   defaults: any;
-  Info?: React.ComponentType;
+  Info?: ComponentType;
   title: string;
 };
 
@@ -124,7 +125,7 @@ const NegativeMatcherHelp = () => {
   );
 };
 
-const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => {
+const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const navigate = useNavigate();
 
@@ -166,23 +167,23 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => 
 
   const [isOpen, setIsOpen, , setClosed] = useBoolean(false);
 
-  const [comment, setComment] = React.useState(defaults.comment ?? '');
-  const [createdBy, setCreatedBy] = React.useState(defaults.createdBy ?? '');
-  const [duration, setDuration] = React.useState(defaultDuration);
-  const [endsAt, setEndsAt] = React.useState(
+  const [comment, setComment] = useState(defaults.comment ?? '');
+  const [createdBy, setCreatedBy] = useState(defaults.createdBy ?? '');
+  const [duration, setDuration] = useState(defaultDuration);
+  const [endsAt, setEndsAt] = useState(
     defaults.endsAt ?? formatDate(new Date(new Date(now).setHours(now.getHours() + 2))),
   );
-  const [error, setError] = React.useState<string>();
-  const [inProgress, setInProgress] = React.useState(false);
-  const [isStartNow, setIsStartNow] = React.useState(defaultIsStartNow);
-  const [matchers, setMatchers] = React.useState<Array<Matcher>>(
+  const [error, setError] = useState<string>();
+  const [inProgress, setInProgress] = useState(false);
+  const [isStartNow, setIsStartNow] = useState(defaultIsStartNow);
+  const [matchers, setMatchers] = useState<Array<Matcher>>(
     defaults.matchers ?? [{ isRegex: false, isEqual: true, name: '', value: '' }],
   );
-  const [startsAt, setStartsAt] = React.useState(defaults.startsAt ?? formatDate(now));
+  const [startsAt, setStartsAt] = useState(defaults.startsAt ?? formatDate(now));
   const user = useSelector(getUser);
   const [namespace] = useActiveNamespace();
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!createdBy && user) {
       setCreatedBy(user.metadata?.name || user.username);
     }
@@ -218,7 +219,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => 
     );
   };
 
-  const onSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
+  const onSubmit: FormEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
 
     // Don't allow comments to only contain whitespace
@@ -289,7 +290,6 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => 
         </HelperText>
       </PageSection>
       <Divider />
-
       <PageSection hasBodyWrapper={false}>
         <Form onSubmit={onSubmit} maxWidth="950px">
           {Info && <Info />}
@@ -320,11 +320,11 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => 
                 <Select
                   data-test="silence-for"
                   isOpen={isOpen}
-                  onSelect={(event: React.MouseEvent | React.ChangeEvent, value: string) => {
+                  onSelect={(event: MouseEvent | ChangeEvent, value: string) => {
                     setDuration(value);
                     setClosed();
                   }}
-                  toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+                  toggle={(toggleRef: Ref<MenuToggleElement>) => (
                     <MenuToggle
                       ref={toggleRef}
                       onClick={setIsOpen}

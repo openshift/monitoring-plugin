@@ -11,7 +11,7 @@ import {
   TextInputGroupUtilities,
 } from '@patternfly/react-core';
 import { TimesIcon } from '@patternfly/react-icons';
-import React from 'react';
+import * as React from 'react';
 
 const NO_RESULTS = 'no results';
 

@@ -6,7 +6,7 @@ import {
   PanelMainBody,
   Title,
 } from '@patternfly/react-core';
-import React, { FC } from 'react';
+import { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 
 type ErrorProps = {
