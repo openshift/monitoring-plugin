@@ -37,7 +37,7 @@ import {
 } from '@patternfly/react-core';
 import { Table, TableVariant, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
 import * as _ from 'lodash-es';
-import * as React from 'react';
+import type { FC } from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
@@ -90,7 +90,7 @@ type ActiveAlertsProps = {
   ruleID: string;
 };
 
-export const ActiveAlerts: React.FC<ActiveAlertsProps> = ({ alerts, namespace, ruleID }) => {
+export const ActiveAlerts: FC<ActiveAlertsProps> = ({ alerts, namespace, ruleID }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
   const navigate = useNavigate();
@@ -144,7 +144,7 @@ export const ActiveAlerts: React.FC<ActiveAlertsProps> = ({ alerts, namespace, r
     </Table>
   );
 };
-const AlertRulesDetailsPage_: React.FC = () => {
+const AlertRulesDetailsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const params = useParams<{ ns?: string; id: string }>();
 

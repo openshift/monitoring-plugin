@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useMemo, useCallback, useEffect } from 'react';
 
 import { DashboardResource } from '@perses-dev/core';
 import { useNavigate } from 'react-router-dom-v5-compat';
@@ -28,7 +28,7 @@ export const useDashboardsData = () => {
   const [dashboardName] = useQueryParam(QueryParams.Dashboard, StringParam);
 
   // Determine when to stop having the full page loader be used
-  const combinedInitialLoad = React.useMemo(() => {
+  const combinedInitialLoad = useMemo(() => {
     if (!initialPageLoad) {
       return false;
     }
@@ -41,7 +41,7 @@ export const useDashboardsData = () => {
 
   // Homogenize data needed for dashboards dropdown between legacy and perses dashboards
   // to enable both to use the same component
-  const combinedDashboardsMetadata = React.useMemo<CombinedDashboardMetadata[]>(() => {
+  const combinedDashboardsMetadata = useMemo<CombinedDashboardMetadata[]>(() => {
     if (combinedInitialLoad) {
       return [];
     }
@@ -60,13 +60,13 @@ export const useDashboardsData = () => {
   }, [persesDashboards, combinedInitialLoad]);
 
   // Retrieve dashboard metadata for the currently selected project
-  const activeProjectDashboardsMetadata = React.useMemo<CombinedDashboardMetadata[]>(() => {
+  const activeProjectDashboardsMetadata = useMemo<CombinedDashboardMetadata[]>(() => {
     return combinedDashboardsMetadata.filter((combinedDashboardMetadata) => {
       return combinedDashboardMetadata.project === activeProject;
     });
   }, [combinedDashboardsMetadata, activeProject]);
 
-  const changeBoard = React.useCallback(
+  const changeBoard = useCallback(
     (newBoard: string) => {
       if (!newBoard) {
         // If the board is being cleared then don't do anything
@@ -91,7 +91,7 @@ export const useDashboardsData = () => {
   // If a dashboard hasn't been selected yet, or if the current project doesn't have a
   // matching board name then display the board present in the URL parameters or the first
   // board in the dropdown list
-  React.useEffect(() => {
+  useEffect(() => {
     const metadataMatch = activeProjectDashboardsMetadata.find((activeProjectDashboardMetadata) => {
       return (
         activeProjectDashboardMetadata.project === activeProject &&

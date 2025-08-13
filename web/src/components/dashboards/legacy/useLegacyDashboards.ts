@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useCallback, useState, useMemo, useEffect } from 'react';
 import * as _ from 'lodash-es';
 import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
@@ -32,23 +32,23 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
   const { perspective } = usePerspective();
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const safeFetch = React.useCallback(useSafeFetch(), []);
-  const [legacyDashboards, setLegacyDashboards] = React.useState<Board[]>([]);
-  const [legacyDashboardsError, setLegacyDashboardsError] = React.useState<string>();
+  const safeFetch = useCallback(useSafeFetch(), []);
+  const [legacyDashboards, setLegacyDashboards] = useState<Board[]>([]);
+  const [legacyDashboardsError, setLegacyDashboardsError] = useState<string>();
   const [dashboardParam] = useQueryParam(QueryParams.Dashboard, StringParam);
   const [refreshInterval] = useQueryParam(QueryParams.RefreshInterval, NumberParam);
   const [legacyDashboardsLoading, , , setLegacyDashboardsLoaded] = useBoolean(true);
   const [initialLoad, , , setInitialLoaded] = useBoolean(true);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const legacyDashboard = React.useMemo(() => {
+  const legacyDashboard = useMemo(() => {
     if (perspective === 'dev') {
       return dashboardParam;
     }
     return urlBoard;
   }, [perspective, dashboardParam, urlBoard]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     safeFetch<any>('/api/console/monitoring-dashboard-config')
       .then((response) => {
         setLegacyDashboardsLoaded();
@@ -86,7 +86,7 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
       });
   }, [namespace, safeFetch, setLegacyDashboardsLoaded, t]);
 
-  const legacyRows = React.useMemo(() => {
+  const legacyRows = useMemo(() => {
     const data = _.find(legacyDashboards, { name: legacyDashboard })?.data;
 
     return data?.rows?.length
@@ -107,7 +107,7 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
         }, []);
   }, [legacyDashboard, legacyDashboards]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     // Dashboard query argument is only set in dev perspective, so skip for admin
     if (perspective !== 'dev') {
       return;
@@ -119,7 +119,7 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
 
   // Homogenize data needed for dashboards dropdown between legacy and perses dashboards
   // to enable both to use the same component
-  const legacyDashboardsMetadata = React.useMemo<CombinedDashboardMetadata[]>(() => {
+  const legacyDashboardsMetadata = useMemo<CombinedDashboardMetadata[]>(() => {
     if (legacyDashboardsLoading) {
       return [];
     }
@@ -132,7 +132,7 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
     });
   }, [legacyDashboards, legacyDashboardsLoading]);
 
-  const changeLegacyDashboard = React.useCallback(
+  const changeLegacyDashboard = useCallback(
     (newBoard: string) => {
       if (!newBoard) {
         // If the board is being cleared then don't do anything
@@ -182,7 +182,7 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
     ],
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (
       (!legacyDashboard ||
         !legacyDashboards.some((legacyBoard) => legacyBoard.name === legacyDashboard) ||
@@ -195,7 +195,7 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
   }, [legacyDashboards, changeLegacyDashboard, initialLoad, setInitialLoaded, legacyDashboard]);
 
   // Clear variables on unmount
-  React.useEffect(() => {
+  useEffect(() => {
     return () => {
       dispatch(DashboardsClearVariables(perspective));
     };

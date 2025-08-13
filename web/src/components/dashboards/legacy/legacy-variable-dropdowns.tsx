@@ -17,7 +17,8 @@ import {
   SplitItem,
   Split,
 } from '@patternfly/react-core';
-import * as React from 'react';
+import type { FC, Ref } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { Map as ImmutableMap } from 'immutable';
@@ -105,7 +106,7 @@ const LegacyDashboardsVariableOption = ({ value, isSelected, ...rest }) =>
     </SelectOption>
   );
 
-const LegacyDashboardsVariableDropdown: React.FC<VariableDropdownProps> = ({
+const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({
   id,
   name,
   namespace,
@@ -126,15 +127,15 @@ const LegacyDashboardsVariableDropdown: React.FC<VariableDropdownProps> = ({
   const dispatch = useDispatch();
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const safeFetch = React.useCallback(useSafeFetch(), []);
+  const safeFetch = useCallback(useSafeFetch(), []);
 
-  const [isError, setIsError] = React.useState(false);
+  const [isError, setIsError] = useState(false);
 
   const customDataSourceName = variable?.datasource?.name;
   const [extensions, extensionsResolved] = useResolvedExtensions<DataSource>(isDataSource);
   const hasExtensions = !_.isEmpty(extensions);
 
-  const getURL = React.useCallback(
+  const getURL = useCallback(
     async (prometheusProps) => {
       try {
         if (!customDataSourceName) {
@@ -161,7 +162,7 @@ const LegacyDashboardsVariableDropdown: React.FC<VariableDropdownProps> = ({
     [customDataSourceName, extensions, extensionsResolved, hasExtensions, perspective],
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!query) {
       return;
     }
@@ -236,7 +237,7 @@ const LegacyDashboardsVariableDropdown: React.FC<VariableDropdownProps> = ({
     variable.options,
   ]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (variable.value && variable.value !== getQueryArgument(name)) {
       if (perspective === 'dev' && name !== 'namespace') {
         setQueryArgument(name, variable.value);
@@ -246,7 +247,7 @@ const LegacyDashboardsVariableDropdown: React.FC<VariableDropdownProps> = ({
     }
   }, [perspective, name, variable.value]);
 
-  const onChange = React.useCallback(
+  const onChange = useCallback(
     (v: string) => {
       if (v !== variable.value) {
         if (perspective === 'dev' && name !== 'namespace') {
@@ -286,7 +287,7 @@ const LegacyDashboardsVariableDropdown: React.FC<VariableDropdownProps> = ({
         <StackItem>
           {isError ? (
             <Select
-              toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+              toggle={(toggleRef: Ref<MenuToggleElement>) => (
                 <MenuToggle ref={toggleRef} isDisabled={true} onClick={(e) => e.preventDefault()}>
                   <RedExclamationCircleIcon /> {t('Error loading options')}
                 </MenuToggle>
@@ -310,7 +311,7 @@ const LegacyDashboardsVariableDropdown: React.FC<VariableDropdownProps> = ({
 };
 
 // Expects to be inside of a Patternfly Split Component
-export const LegacyDashboardsAllVariableDropdowns: React.FC = () => {
+export const LegacyDashboardsAllVariableDropdowns: FC = () => {
   const [namespace] = useActiveNamespace();
   const { perspective } = usePerspective();
   const variables = useSelector((state: MonitoringState) =>

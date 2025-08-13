@@ -1,4 +1,5 @@
-import * as React from 'react';
+import type { FC, MouseEvent } from 'react';
+import { useState, useMemo } from 'react';
 import {
   ResourceIcon,
   Silence,
@@ -26,15 +27,15 @@ import { Link } from 'react-router-dom-v5-compat';
 import { SeverityCounts, StateTimestamp } from '../AlertUtils';
 import { t_global_spacer_xs } from '@patternfly/react-tokens';
 
-export const SilencedByList: React.FC<{ silences: Silence[] }> = ({ silences }) => {
+export const SilencedByList: FC<{ silences: Silence[] }> = ({ silences }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
   const [namespace] = useActiveNamespace();
   const navigate = useNavigate();
   const [isModalOpen, , setModalOpen, setModalClosed] = useBoolean(false);
-  const [silence, setSilence] = React.useState<Silence | null>(null);
+  const [silence, setSilence] = useState<Silence | null>(null);
 
-  const editSilence = (event: React.MouseEvent, rowIndex: number) => {
+  const editSilence = (event: MouseEvent, rowIndex: number) => {
     navigate(getEditSilenceAlertUrl(perspective, silences.at(rowIndex)?.id, namespace));
   };
 
@@ -54,7 +55,7 @@ export const SilencedByList: React.FC<{ silences: Silence[] }> = ({ silences }) 
       },
       {
         title: t('Expire silence'),
-        onClick: (event: React.MouseEvent, rowIndex: number) => {
+        onClick: (event: MouseEvent, rowIndex: number) => {
           setSilence(silences.at(rowIndex));
           setModalOpen();
         },
@@ -124,7 +125,7 @@ export const SilencedByList: React.FC<{ silences: Silence[] }> = ({ silences }) 
     },
   ]);
 
-  const columns = React.useMemo<Array<DataViewTh>>(
+  const columns = useMemo<Array<DataViewTh>>(
     () => [
       {
         id: 'name',

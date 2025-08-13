@@ -19,7 +19,7 @@ import { AlertSource } from '../../../components/types';
 import { Td, Tr } from '@patternfly/react-table';
 import { DropdownItem, Flex, FlexItem } from '@patternfly/react-core';
 import KebabDropdown from '../../../components/kebab-dropdown';
-import React from 'react';
+import type { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom-v5-compat';
 import { AlertResource, alertState } from '../../../components/utils';
@@ -31,7 +31,7 @@ import {
 import { Link } from 'react-router-dom-v5-compat';
 import { DataTestIDs } from '../../data-test';
 
-const AlertTableRow: React.FC<{ alert: Alert }> = ({ alert }) => {
+const AlertTableRow: FC<{ alert: Alert }> = ({ alert }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
   const navigate = useNavigate();

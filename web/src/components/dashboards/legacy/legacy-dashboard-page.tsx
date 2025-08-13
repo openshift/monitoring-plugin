@@ -1,5 +1,5 @@
 import { Overview } from '@openshift-console/dynamic-plugin-sdk';
-import * as React from 'react';
+import type { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom-v5-compat';
 import { QueryParamProvider } from 'use-query-params';
@@ -17,7 +17,7 @@ type LegacyDashboardsPageProps = {
   namespace?: string;
 };
 
-const LegacyDashboardsPage_: React.FC<LegacyDashboardsPageProps> = ({
+const LegacyDashboardsPage_: FC<LegacyDashboardsPageProps> = ({
   urlBoard,
   namespace, // only used in developer perspective
 }) => {
@@ -53,7 +53,7 @@ const LegacyDashboardsPage_: React.FC<LegacyDashboardsPageProps> = ({
   );
 };
 
-const LegacyDashboardsPage: React.FC = () => {
+const LegacyDashboardsPage: FC = () => {
   const params = useParams<{ ns?: string; dashboardName: string }>();
 
   return (

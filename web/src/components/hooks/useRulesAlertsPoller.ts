@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { PrometheusEndpoint, PrometheusRulesResponse } from '@openshift-console/dynamic-plugin-sdk';
 import { getPrometheusURL } from '../console/graphs/helpers';
@@ -26,7 +26,7 @@ export const useRulesAlertsPoller = (
   const { perspective, rulesKey, alertsKey } = usePerspective();
   const dispatch = useDispatch();
 
-  React.useEffect(() => {
+  useEffect(() => {
     dispatch(alertingLoading(alertsKey, perspective));
     const url = getPrometheusURL(
       {

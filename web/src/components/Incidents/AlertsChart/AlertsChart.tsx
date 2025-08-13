@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 
 import {
   Chart,
@@ -25,8 +25,8 @@ import { VictoryPortal } from 'victory';
 
 const AlertsChart = ({ chartDays, theme }: { chartDays: number; theme: 'light' | 'dark' }) => {
   const dispatch = useDispatch();
-  const [chartContainerHeight, setChartContainerHeight] = React.useState<number>();
-  const [chartHeight, setChartHeight] = React.useState<number>();
+  const [chartContainerHeight, setChartContainerHeight] = useState<number>();
+  const [chartHeight, setChartHeight] = useState<number>();
   const alertsData = useSelector((state: MonitoringState) =>
     state.plugins.mcp.getIn(['incidentsData', 'alertsData']),
   );
@@ -40,34 +40,34 @@ const AlertsChart = ({ chartDays, theme }: { chartDays: number; theme: 'light' |
     state.plugins.mcp.getIn(['incidentsData', 'groupId']),
   );
 
-  const dateValues = React.useMemo(() => generateDateArray(chartDays), [chartDays]);
+  const dateValues = useMemo(() => generateDateArray(chartDays), [chartDays]);
 
-  const chartData = React.useMemo(() => {
+  const chartData = useMemo(() => {
     if (!Array.isArray(alertsData) || alertsData.length === 0) return [];
     return alertsData.map((alert) => createAlertsChartBars(alert, dateValues));
   }, [alertsData, dateValues]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setChartContainerHeight(chartData?.length < 5 ? 300 : chartData?.length * 60);
     setChartHeight(chartData?.length < 5 ? 250 : chartData?.length * 55);
   }, [chartData]);
 
-  const selectedIncidentIsVisible = React.useMemo(() => {
+  const selectedIncidentIsVisible = useMemo(() => {
     return filteredData.some((incident) => incident.group_id === incidentGroupId);
   }, [filteredData, incidentGroupId]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     dispatch(setAlertsAreLoading({ alertsAreLoading: !selectedIncidentIsVisible }));
   }, [dispatch, selectedIncidentIsVisible]);
 
-  const [width, setWidth] = React.useState(0);
-  const containerRef = React.useRef(null);
-  const handleResize = React.useCallback(() => {
+  const [width, setWidth] = useState(0);
+  const containerRef = useRef(null);
+  const handleResize = useCallback(() => {
     if (containerRef.current && containerRef.current.clientWidth) {
       setWidth(containerRef.current.clientWidth);
     }
   }, []);
-  React.useEffect(() => {
+  useEffect(() => {
     const observer = getResizeObserver(containerRef.current, handleResize);
     handleResize();
     return () => observer();
