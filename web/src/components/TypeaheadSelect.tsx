@@ -237,7 +237,7 @@ export const TypeaheadSelect: React.FC<TypeaheadSelectProps> = ({
 
         <TextInputGroupUtilities {...(!inputValue ? { style: { display: 'none' } } : {})}>
           <Button
-            icon={<TimesIcon aria-hidden />}
+            icon={<TimesIcon aria-hidden="true" />}
             variant="plain"
             onClick={onClearButtonClick}
             aria-label="Clear input value"
@@ -253,7 +253,9 @@ export const TypeaheadSelect: React.FC<TypeaheadSelectProps> = ({
       isOpen={isOpen}
       onSelect={handleSelect}
       onOpenChange={(isOpen) => {
-        !isOpen && closeMenu();
+        if (!isOpen) {
+          closeMenu();
+        }
       }}
       toggle={toggle}
       shouldFocusFirstItemOnOpen={false}
