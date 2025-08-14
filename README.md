@@ -60,7 +60,7 @@ Changes to the store must be completed in the `openshift/console` codebase and a
 
 #### Dependencies
 
-1. [Node.js](https://nodejs.org/en/) and [npm](https://www.npmjs.com/) are required
+1. [Node.js 22+](https://nodejs.org/en/) and [npm](https://www.npmjs.com/) are required
 2. [oc](https://mirror.openshift.com/pub/openshift-v4/clients/oc/4.4/)
 3. [podman 3.2.0+](https://podman.io) or [Docker](https://www.docker.com)
 4. An OpenShift cluster
