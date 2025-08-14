@@ -8,33 +8,33 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { MonitoringContext, MonitoringProvider } from '../../contexts/MonitoringContext';
 
-const MpCmoAlertsPage = React.lazy(() =>
-  import(/* webpackChunkName: "AlertsPage" */ './AlertsPage').then((module) => ({
+const CmoAlertsPage = React.lazy(() =>
+  import(/* webpackChunkName: "CmoAlertsPage" */ './AlertsPage').then((module) => ({
     default: module.MpCmoAlertsPage,
   })),
 );
-const McpAcmAlertsPage = React.lazy(() =>
-  import(/* webpackChunkName: "AlertsPage" */ './AlertsPage').then((module) => ({
+const CooAlertsPage = React.lazy(() =>
+  import(/* webpackChunkName: "CooAlertsPage" */ './AlertsPage').then((module) => ({
     default: module.McpAcmAlertsPage,
   })),
 );
-const MpCmoSilencesPage = React.lazy(() =>
-  import(/* webpackChunkName: "SilencesPage" */ './SilencesPage').then((module) => ({
+const CmoSilencesPage = React.lazy(() =>
+  import(/* webpackChunkName: "CmoSilencesPage" */ './SilencesPage').then((module) => ({
     default: module.MpCmoSilencesPage,
   })),
 );
-const McpAcmSilencesPage = React.lazy(() =>
-  import(/* webpackChunkName: "SilencesPage" */ './SilencesPage').then((module) => ({
+const CooSilencesPage = React.lazy(() =>
+  import(/* webpackChunkName: "CooSilencesPage" */ './SilencesPage').then((module) => ({
     default: module.McpAcmSilencesPage,
   })),
 );
-const MpCmoAlertRulesPage = React.lazy(() =>
-  import(/* webpackChunkName: "AlertRulesPage" */ './AlertRulesPage').then((module) => ({
+const CmoAlertRulesPage = React.lazy(() =>
+  import(/* webpackChunkName: "CmoAlertRulesPage" */ './AlertRulesPage').then((module) => ({
     default: module.MpCmoAlertRulesPage,
   })),
 );
-const McpAcmAlertRulesPage = React.lazy(() =>
-  import(/* webpackChunkName: "AlertRulesPage" */ './AlertRulesPage').then((module) => ({
+const CooAlertRulesPage = React.lazy(() =>
+  import(/* webpackChunkName: "CooAlertRulesPage" */ './AlertRulesPage').then((module) => ({
     default: module.McpAcmAlertRulesPage,
   })),
 );
@@ -55,16 +55,14 @@ const AlertingPage: React.FC = () => {
       href: 'alerts',
       // t('Alerts')
       nameKey: 'Alerts',
-      component: () =>
-        plugin === 'monitoring-plugin' ? <MpCmoAlertsPage /> : <McpAcmAlertsPage />,
+      component: () => (plugin === 'monitoring-plugin' ? <CmoAlertsPage /> : <CooAlertsPage />),
       name: 'Alerts',
     },
     {
       href: 'silences',
       // t('Silences')
       nameKey: 'Silences',
-      component: () =>
-        plugin === 'monitoring-plugin' ? <MpCmoSilencesPage /> : <McpAcmSilencesPage />,
+      component: () => (plugin === 'monitoring-plugin' ? <CmoSilencesPage /> : <CooSilencesPage />),
       name: 'Silences',
     },
     {
@@ -73,7 +71,7 @@ const AlertingPage: React.FC = () => {
       // t('Alerting rules')
       nameKey: 'Alerting rules',
       component: () =>
-        plugin === 'monitoring-plugin' ? <MpCmoAlertRulesPage /> : <McpAcmAlertRulesPage />,
+        plugin === 'monitoring-plugin' ? <CmoAlertRulesPage /> : <CooAlertRulesPage />,
       name: 'Alerting rules',
     },
   ];

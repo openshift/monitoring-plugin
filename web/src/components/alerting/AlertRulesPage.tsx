@@ -7,7 +7,6 @@ import {
   RowProps,
   Rule,
   TableColumn,
-  useActiveNamespace,
   useListPageFilter,
   VirtualizedTable,
 } from '@openshift-console/dynamic-plugin-sdk';
@@ -144,14 +143,6 @@ const AlertRulesPage_: React.FC = () => {
     [data],
   );
 
-  const namespacedData = React.useMemo(() => {
-    if (perspective === 'dev') {
-      return data?.filter((rule) => rule.labels?.namespace === namespace);
-    }
-
-    return data;
-  }, [data, perspective, namespace]);
-
   const rowFilters: RowFilter[] = [
     // TODO: The "name" filter doesn't really fit useListPageFilter's idea of a RowFilter, but
     //       useListPageFilter doesn't yet provide a better way to add a filter like this
@@ -178,7 +169,7 @@ const AlertRulesPage_: React.FC = () => {
     },
   ];
 
-  const [staticData, filteredData, onFilterChange] = useListPageFilter(namespacedData, rowFilters);
+  const [staticData, filteredData, onFilterChange] = useListPageFilter(data, rowFilters);
 
   const columns = React.useMemo<TableColumn<Rule>[]>(
     () => [

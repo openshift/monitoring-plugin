@@ -47,7 +47,9 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { plugin } = React.useContext(MonitoringContext);
 
-  const alertsWithLabels = useSelector((state: MonitoringState) => getObserveState(plugin, state)?.get(alertsKey));
+  const alertsWithLabels = useSelector((state: MonitoringState) =>
+    getObserveState(plugin, state)?.get(alertsKey),
+  );
 
   function findMatchingAlertsWithId(alertsArray, rulesArray) {
     return alertsArray.map((alert) => {
