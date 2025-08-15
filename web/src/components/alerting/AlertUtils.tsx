@@ -1,4 +1,5 @@
-import * as React from 'react';
+import type { FC, ReactNode } from 'react';
+import { memo } from 'react';
 import {
   Action,
   Alert,
@@ -78,9 +79,7 @@ export const alertingRuleSource = (rule: Rule): AlertSource | string => {
 export const alertSource = (alert: Alert): AlertSource | string => alertingRuleSource(alert.rule);
 export const alertCluster = (alert: Alert): string => alert.labels?.cluster ?? '';
 
-export const SilencesNotLoadedWarning: React.FC<{ silencesLoadError: any }> = ({
-  silencesLoadError,
-}) => {
+export const SilencesNotLoadedWarning: FC<{ silencesLoadError: any }> = ({ silencesLoadError }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
@@ -118,7 +117,7 @@ const getSeverityKey = (severity: string, t) => {
   }
 };
 
-export const SeverityIcon: React.FC<{ severity: string }> = React.memo(({ severity }) => {
+export const SeverityIcon: FC<{ severity: string }> = memo(({ severity }) => {
   switch (severity) {
     case AlertSeverity.Critical:
       return <ExclamationCircleIcon color={t_global_color_status_danger_default.var} />;
@@ -133,7 +132,7 @@ export const SeverityIcon: React.FC<{ severity: string }> = React.memo(({ severi
   }
 });
 
-export const AlertState: React.FC<AlertStateProps> = React.memo(({ state }) => {
+export const AlertState: FC<AlertStateProps> = memo(({ state }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const icon = <AlertStateIcon state={state} />;
@@ -153,7 +152,7 @@ type AlertStateProps = {
   state: AlertStates;
 };
 
-export const AlertStateIcon: React.FC<{ state: string }> = React.memo(({ state }) => {
+export const AlertStateIcon: FC<{ state: string }> = memo(({ state }) => {
   switch (state) {
     case AlertStates.Firing:
       return <BellIcon />;
@@ -179,7 +178,7 @@ export const getAlertStateKey = (state, t) => {
   }
 };
 
-export const AlertStateDescription: React.FC<{ alert: Alert }> = ({ alert }) => {
+export const AlertStateDescription: FC<{ alert: Alert }> = ({ alert }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   if (alert && !_.isEmpty(alert.silencedBy)) {
@@ -198,7 +197,7 @@ export const StateTimestamp = ({ text, timestamp }) => (
   </div>
 );
 
-export const SeverityBadge: React.FC<{ severity: string; count?: number }> = React.memo(
+export const SeverityBadge: FC<{ severity: string; count?: number }> = memo(
   ({ severity, count }) => {
     const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
@@ -226,7 +225,7 @@ export const SeverityBadge: React.FC<{ severity: string; count?: number }> = Rea
   },
 );
 
-export const PopoverField: React.FC<{ bodyContent: React.ReactNode; label: string }> = ({
+export const PopoverField: FC<{ bodyContent: ReactNode; label: string }> = ({
   bodyContent,
   label,
 }) => (
@@ -235,7 +234,7 @@ export const PopoverField: React.FC<{ bodyContent: React.ReactNode; label: strin
   </Popover>
 );
 
-export const Graph: React.FC<GraphProps> = ({
+export const Graph: FC<GraphProps> = ({
   filterLabels = undefined,
   formatSeriesTitle,
   namespace,
@@ -276,7 +275,7 @@ type GraphProps = {
   showLegend?: boolean;
 };
 
-export const SeverityHelp: React.FC = () => {
+export const SeverityHelp: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
@@ -329,7 +328,7 @@ export const SeverityHelp: React.FC = () => {
   );
 };
 
-export const SourceHelp: React.FC = () => {
+export const SourceHelp: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
@@ -369,7 +368,7 @@ export const getSourceKey = (source, t: TFunction) => {
   }
 };
 
-export const SeverityCounts: React.FC<{ alerts: Alert[] }> = ({ alerts }) => {
+export const SeverityCounts: FC<{ alerts: Alert[] }> = ({ alerts }) => {
   if (_.isEmpty(alerts)) {
     return <>-</>;
   }

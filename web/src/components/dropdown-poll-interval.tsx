@@ -1,4 +1,5 @@
-import React from 'react';
+import type { FunctionComponent } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   formatPrometheusDuration,
@@ -15,7 +16,7 @@ type DropDownPollIntervalProps = {
 export const DEFAULT_REFRESH_INTERVAL = parsePrometheusDuration('30s');
 const OFF_KEY = 'OFF_KEY';
 
-export const DropDownPollInterval: React.FunctionComponent<DropDownPollIntervalProps> = ({
+export const DropDownPollInterval: FunctionComponent<DropDownPollIntervalProps> = ({
   id,
   setInterval,
   selectedInterval,
@@ -24,7 +25,7 @@ export const DropDownPollInterval: React.FunctionComponent<DropDownPollIntervalP
 
   const selectedKey = selectedInterval ? formatPrometheusDuration(selectedInterval) : OFF_KEY;
 
-  const initialOptions = React.useMemo<SimpleSelectOption[]>(() => {
+  const initialOptions = useMemo<SimpleSelectOption[]>(() => {
     const intervalOptions: SimpleSelectOption[] = [
       { content: t('Refresh off'), value: OFF_KEY },
       { content: t('{{count}} second', { count: 15 }), value: '15s' },

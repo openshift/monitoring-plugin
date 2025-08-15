@@ -1,4 +1,4 @@
-import React from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { Table, Thead, Tr, Th, Tbody, Td } from '@patternfly/react-table';
 import {
   GreenCheckCircleIcon,
@@ -28,7 +28,7 @@ import isEqual from 'lodash/isEqual';
 import { MonitoringState } from 'src/reducers/observe';
 
 function useDeepCompareMemoize(value) {
-  const ref = React.useRef();
+  const ref = useRef();
 
   if (!isEqual(value, ref.current)) {
     ref.current = value;
@@ -42,7 +42,7 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
   const [namespace] = useActiveNamespace();
   useAlertsPoller();
   const { perspective, alertsKey } = usePerspective();
-  const [alertsWithMatchedData, setAlertsWithMatchedData] = React.useState([]);
+  const [alertsWithMatchedData, setAlertsWithMatchedData] = useState([]);
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const alertsWithLabels = useSelector((state: MonitoringState) =>
@@ -63,7 +63,7 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
   }
   const memoizedAlerts = useDeepCompareMemoize(alerts);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setAlertsWithMatchedData(findMatchingAlertsWithId(memoizedAlerts, alertsWithLabels));
   }, [memoizedAlerts, alertsWithLabels]);
 

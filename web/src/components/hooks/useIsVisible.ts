@@ -1,10 +1,10 @@
-import * as React from 'react';
+import { useState, useEffect } from 'react';
 
 export const useIsVisible = (ref) => {
-  const [isVisible, setIsVisible] = React.useState(false);
-  const [wasEverVisible, setWasEverVisible] = React.useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+  const [wasEverVisible, setWasEverVisible] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const callback = ([entry]) => {
       setIsVisible(entry.isIntersecting);
       if (entry.isIntersecting) {

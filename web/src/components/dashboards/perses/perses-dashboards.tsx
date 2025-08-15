@@ -1,4 +1,3 @@
-import React from 'react';
 import { Dashboard } from '@perses-dev/dashboards';
 import { useTranslation } from 'react-i18next';
 

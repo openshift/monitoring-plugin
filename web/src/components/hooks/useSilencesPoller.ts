@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useEffect } from 'react';
 import { alertingErrored, alertingLoaded, alertingLoading } from '../../actions/observe';
 import { useURLPoll } from './useURLPoll';
 import { Silence } from '@openshift-console/dynamic-plugin-sdk';
@@ -18,7 +18,7 @@ export const useSilencesPoller = ({ namespace }) => {
     namespace,
   );
   const dispatch = useDispatch();
-  React.useEffect(() => {
+  useEffect(() => {
     if (loadError) {
       dispatch(alertingErrored(silencesKey, loadError, perspective));
     } else if (loading) {

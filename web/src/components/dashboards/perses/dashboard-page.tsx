@@ -1,6 +1,6 @@
 import { Overview } from '@openshift-console/dynamic-plugin-sdk';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import * as React from 'react';
+import type { FC } from 'react';
 import { QueryParamProvider } from 'use-query-params';
 import { ReactRouter5Adapter } from 'use-query-params/adapters/react-router-5';
 import { LoadingInline } from '../../console/console-shared/src/components/loading/LoadingInline';
@@ -21,7 +21,7 @@ const queryClient = new QueryClient({
   },
 });
 
-const MonitoringDashboardsPage_: React.FC = () => {
+const MonitoringDashboardsPage_: FC = () => {
   const {
     changeBoard,
     activeProjectDashboardsMetadata,
@@ -63,7 +63,7 @@ const MonitoringDashboardsPage_: React.FC = () => {
   );
 };
 
-const MonitoringDashboardsPageWrapper: React.FC = () => {
+const MonitoringDashboardsPageWrapper: FC = () => {
   return (
     <QueryParamProvider adapter={ReactRouter5Adapter}>
       <QueryClientProvider client={queryClient}>

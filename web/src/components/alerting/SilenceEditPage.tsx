@@ -1,7 +1,6 @@
 import { Silence, SilenceStates } from '@openshift-console/dynamic-plugin-sdk';
 import { Alert } from '@patternfly/react-core';
 import * as _ from 'lodash-es';
-import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom-v5-compat';

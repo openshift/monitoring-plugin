@@ -1,4 +1,4 @@
-import * as React from 'react';
+import type { FC } from 'react';
 import { Alert, Flex, FlexItem } from '@patternfly/react-core';
 import { useTranslation } from 'react-i18next';
 import { ConsoleEmptyState } from './ConsoleEmptyState';
@@ -10,7 +10,7 @@ const RestrictedSignIcon = () => {
   return <img src={restrictedSignImg} alt={t('Restricted access')} />;
 };
 
-export const AccessDenied: React.FC = ({ children }) => {
+export const AccessDenied: FC = ({ children }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (

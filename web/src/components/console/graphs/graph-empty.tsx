@@ -1,8 +1,8 @@
 import { EmptyState, EmptyStateVariant, Spinner } from '@patternfly/react-core';
-import * as React from 'react';
+import type { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 
-export const GraphEmpty: React.FC<GraphEmptyProps> = ({ minHeight = 180, loading = false }) => {
+export const GraphEmpty: FC<GraphEmptyProps> = ({ minHeight = 180, loading = false }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (

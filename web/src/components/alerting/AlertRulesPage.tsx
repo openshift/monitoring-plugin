@@ -13,7 +13,8 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { sortable, Td } from '@patternfly/react-table';
 import * as _ from 'lodash-es';
-import * as React from 'react';
+import type { FC } from 'react';
+import { useMemo } from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
@@ -44,7 +45,7 @@ import { getLegacyObserveState, getRuleUrl, usePerspective } from '../hooks/useP
 import { severityRowFilter } from './AlertUtils';
 import { DataTestIDs } from '../data-test';
 
-const StateCounts: React.FC<{ alerts: PrometheusAlert[] }> = ({ alerts }) => {
+const StateCounts: FC<{ alerts: PrometheusAlert[] }> = ({ alerts }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const counts = _.countBy(alerts, 'state');
@@ -84,7 +85,7 @@ const alertStateFilter = (t): RowFilter => ({
   type: 'alerting-rule-has-alert-state',
 });
 
-const RuleTableRow: React.FC<RowProps<Rule>> = ({ obj }) => {
+const RuleTableRow: FC<RowProps<Rule>> = ({ obj }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
 
@@ -120,7 +121,7 @@ const RuleTableRow: React.FC<RowProps<Rule>> = ({ obj }) => {
   );
 };
 
-const AlertRulesPage_: React.FC = () => {
+const AlertRulesPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { alertsKey, silencesKey, rulesKey, perspective, defaultAlertTenant } = usePerspective();
   const [namespace] = useActiveNamespace();
@@ -138,12 +139,12 @@ const AlertRulesPage_: React.FC = () => {
       getLegacyObserveState(perspective, state)?.get(silencesKey)?.loadError,
   );
 
-  const ruleAdditionalSources = React.useMemo(
+  const ruleAdditionalSources = useMemo(
     () => getAdditionalSources(data, alertingRuleSource),
     [data],
   );
 
-  const namespacedData = React.useMemo(() => {
+  const namespacedData = useMemo(() => {
     if (perspective === 'dev') {
       return data?.filter((rule) => rule.labels?.namespace === namespace);
     }
@@ -179,7 +180,7 @@ const AlertRulesPage_: React.FC = () => {
 
   const [staticData, filteredData, onFilterChange] = useListPageFilter(namespacedData, rowFilters);
 
-  const columns = React.useMemo<TableColumn<Rule>[]>(
+  const columns = useMemo<TableColumn<Rule>[]>(
     () => [
       {
         id: 'name',

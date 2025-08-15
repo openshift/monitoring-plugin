@@ -1,4 +1,4 @@
-import React, { ReactElement } from 'react';
+import { ReactElement } from 'react';
 import { Title, EmptyState, EmptyStateBody, Bullseye } from '@patternfly/react-core';
 import { ListIcon } from '@patternfly/react-icons';
 
