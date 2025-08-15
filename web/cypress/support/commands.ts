@@ -5,7 +5,7 @@ import Withinable = Cypress.Withinable;
 import Shadow = Cypress.Shadow;
 import 'cypress-wait-until';
 import { guidedTour } from '../views/tour';
-import './nav';
+import { nav } from '../views/nav';
 import { operatorHubPage } from '../views/operator-hub-page';
 
 
