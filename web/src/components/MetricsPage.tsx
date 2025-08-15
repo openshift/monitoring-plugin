@@ -1,4 +1,5 @@
 import {
+  NamespaceBar,
   PrometheusData,
   PrometheusEndpoint,
   PrometheusLabels,
@@ -79,7 +80,7 @@ import {
   toggleGraphs,
 } from '../actions/observe';
 
-import { getPrometheusURL } from './console/graphs/helpers';
+import { getPrometheusBasePath, buildPrometheusUrl } from './console/graphs/helpers';
 import { AsyncComponent } from './console/utils/async';
 import { usePoll } from './console/utils/poll-hook';
 import {
@@ -97,7 +98,7 @@ import {
 import { MonitoringState } from '../reducers/observe';
 import { DropDownPollInterval } from './dropdown-poll-interval';
 import { useBoolean } from './hooks/useBoolean';
-import { getLegacyObserveState, getObserveState, usePerspective } from './hooks/usePerspective';
+import { getObserveState } from './hooks/usePerspective';
 import KebabDropdown from './kebab-dropdown';
 import { colors, Error, QueryBrowser } from './query-browser';
 import { QueryParams } from './query-params';
@@ -116,6 +117,8 @@ import { ReactRouter5Adapter } from 'use-query-params/adapters/react-router-5';
 import { GraphUnits, isGraphUnit } from './metrics/units';
 import { SimpleSelect, SimpleSelectOption } from '@patternfly/react-templates';
 import { valueFormatter } from './console/console-shared/src/components/query-browser/QueryBrowserTooltip';
+import { ALL_NAMESPACES_KEY } from './utils';
+import { MonitoringContext, MonitoringProvider } from '../contexts/MonitoringContext';
 import { DataTestIDs } from './data-test';
 
 // Stores information about the currently focused query input
@@ -215,27 +218,22 @@ const devQueries = (activeNamespace: string) => {
 
 const PreDefinedQueriesDropdown = () => {
   const [activeNamespace] = useActiveNamespace();
-  const { perspective } = usePerspective();
+  const { plugin } = React.useContext(MonitoringContext);
 
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const queries: SelectOptionProps[] = React.useMemo(() => {
-    switch (perspective) {
-      case 'dev':
-        return devQueries(activeNamespace);
-      case 'admin':
-      case 'virtualization-perspective':
-        return predefinedQueriesAdmin;
-      // TODO: Add ACM queries
-      default:
-        return [];
+    if (activeNamespace === ALL_NAMESPACES_KEY) {
+      return predefinedQueriesAdmin;
     }
-  }, [activeNamespace, perspective]);
+    return devQueries(activeNamespace);
+  }, [activeNamespace]);
 
   const dispatch = useDispatch();
 
   const queriesList = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['queryBrowser', 'queries']),
+    // mcp does not support the metrics page in any perspective
+    getObserveState(plugin, state)?.getIn(['queryBrowser', 'queries']),
   );
 
   const insertPredefinedQuery = (query: string) => {
@@ -275,12 +273,12 @@ const PreDefinedQueriesDropdown = () => {
 
 const MetricsActionsMenu: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { perspective } = usePerspective();
+  const { plugin } = React.useContext(MonitoringContext);
 
   const [isOpen, setIsOpen, , setClosed] = useBoolean(false);
 
   const isAllExpanded = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)
+    getObserveState(plugin, state)
       ?.getIn(['queryBrowser', 'queries'])
       .every((q) => q.get('isExpanded')),
   );
@@ -343,10 +341,10 @@ const MetricsActionsMenu: React.FC = () => {
 
 export const ToggleGraph: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { perspective } = usePerspective();
+  const { plugin } = React.useContext(MonitoringContext);
 
   const hideGraphs = useSelector(
-    (state: MonitoringState) => !!getObserveState(perspective, state)?.get('hideGraphs'),
+    (state: MonitoringState) => !!getObserveState(plugin, state)?.get('hideGraphs'),
   );
 
   const dispatch = useDispatch();
@@ -380,11 +378,11 @@ export const ToggleGraph: React.FC = () => {
 
 const SeriesButton: React.FC<SeriesButtonProps> = ({ index, labels }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { perspective } = usePerspective();
+  const { plugin } = React.useContext(MonitoringContext);
 
   const [colorIndex, isDisabled, isSeriesEmpty]: [number | null, boolean, boolean] = useSelector(
     (state: MonitoringState) => {
-      const observe = getLegacyObserveState(perspective, state);
+      const observe = getObserveState(plugin, state);
       const disabledSeries = observe.getIn(['queryBrowser', 'queries', index, 'disabledSeries']);
       if (_.some(disabledSeries, (s) => _.isEqual(s, labels))) {
         return [null, true, false];
@@ -432,38 +430,23 @@ const SeriesButton: React.FC<SeriesButtonProps> = ({ index, labels }) => {
 
 const QueryKebab: React.FC<{ index: number }> = ({ index }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { perspective } = usePerspective();
+  const { plugin } = React.useContext(MonitoringContext);
 
   const isDisabledSeriesEmpty = useSelector((state: MonitoringState) =>
     _.isEmpty(
-      getLegacyObserveState(perspective, state)?.getIn([
-        'queryBrowser',
-        'queries',
-        index,
-        'disabledSeries',
-      ]),
+      getObserveState(plugin, state)?.getIn(['queryBrowser', 'queries', index, 'disabledSeries']),
     ),
   );
   const isEnabled = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn([
-      'queryBrowser',
-      'queries',
-      index,
-      'isEnabled',
-    ]),
+    getObserveState(plugin, state)?.getIn(['queryBrowser', 'queries', index, 'isEnabled']),
   );
 
   const query = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['queryBrowser', 'queries', index, 'query']),
+    getObserveState(plugin, state)?.getIn(['queryBrowser', 'queries', index, 'query']),
   );
 
   const queryTableData = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn([
-      'queryBrowser',
-      'queries',
-      index,
-      'queryTableData',
-    ]),
+    getObserveState(plugin, state)?.getIn(['queryBrowser', 'queries', index, 'queryTableData']),
   );
 
   const dispatch = useDispatch();
@@ -632,7 +615,7 @@ export const QueryTable: React.FC<QueryTableProps> = ({
   units,
 }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { perspective } = usePerspective();
+  const { plugin } = React.useContext(MonitoringContext);
 
   const [data, setData] = React.useState<PrometheusData>();
   const [error, setError] = React.useState<PrometheusAPIError>();
@@ -642,36 +625,26 @@ export const QueryTable: React.FC<QueryTableProps> = ({
   const valueFormat = valueFormatter(units);
 
   const isEnabled = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn([
-      'queryBrowser',
-      'queries',
-      index,
-      'isEnabled',
-    ]),
+    getObserveState(plugin, state)?.getIn(['queryBrowser', 'queries', index, 'isEnabled']),
   );
   const isExpanded = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn([
-      'queryBrowser',
-      'queries',
-      index,
-      'isExpanded',
-    ]),
+    getObserveState(plugin, state)?.getIn(['queryBrowser', 'queries', index, 'isExpanded']),
   );
   const pollInterval = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['queryBrowser', 'pollInterval'], 15 * 1000),
+    getObserveState(plugin, state)?.getIn(['queryBrowser', 'pollInterval'], 15 * 1000),
   );
   const query = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['queryBrowser', 'queries', index, 'query']),
+    getObserveState(plugin, state)?.getIn(['queryBrowser', 'queries', index, 'query']),
   );
   const series = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['queryBrowser', 'queries', index, 'series']),
+    getObserveState(plugin, state)?.getIn(['queryBrowser', 'queries', index, 'series']),
   );
   const span = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['queryBrowser', 'timespan']),
+    getObserveState(plugin, state)?.getIn(['queryBrowser', 'timespan']),
   );
 
   const lastRequestTime = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['queryBrowser', 'lastRequestTime']),
+    getObserveState(plugin, state)?.getIn(['queryBrowser', 'lastRequestTime']),
   );
 
   const dispatch = useDispatch();
@@ -683,12 +656,7 @@ export const QueryTable: React.FC<QueryTableProps> = ({
 
   const isDisabledSeriesEmpty = useSelector((state: MonitoringState) =>
     _.isEmpty(
-      getLegacyObserveState(perspective, state)?.getIn([
-        'queryBrowser',
-        'queries',
-        index,
-        'disabledSeries',
-      ]),
+      getObserveState(plugin, state)?.getIn(['queryBrowser', 'queries', index, 'disabledSeries']),
     ),
   );
 
@@ -700,15 +668,18 @@ export const QueryTable: React.FC<QueryTableProps> = ({
   const tick = () => {
     if (isEnabled && isExpanded && query) {
       safeFetch<PrometheusResponse>(
-        getPrometheusURL(
-          {
+        buildPrometheusUrl({
+          prometheusUrlProps: {
             endpoint: PrometheusEndpoint.QUERY,
-            namespace: perspective === 'dev' ? namespace : '',
+            namespace,
             query,
           },
-          perspective,
-          customDatasource?.basePath,
-        ),
+          basePath: getPrometheusBasePath({
+            prometheus: 'cmo',
+            namespace,
+            basePathOverride: customDatasource?.basePath,
+          }),
+        }),
       )
         .then((response) => {
           setData(_.get(response, 'data'));
@@ -947,32 +918,19 @@ const Query: React.FC<{
   units: GraphUnits;
 }> = ({ index, customDatasource, units }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { perspective } = usePerspective();
+  const { plugin } = React.useContext(MonitoringContext);
 
   const id = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['queryBrowser', 'queries', index, 'id']),
+    getObserveState(plugin, state)?.getIn(['queryBrowser', 'queries', index, 'id']),
   );
   const isEnabled = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn([
-      'queryBrowser',
-      'queries',
-      index,
-      'isEnabled',
-    ]),
+    getObserveState(plugin, state)?.getIn(['queryBrowser', 'queries', index, 'isEnabled']),
   );
   const isExpanded = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn([
-      'queryBrowser',
-      'queries',
-      index,
-      'isExpanded',
-    ]),
+    getObserveState(plugin, state)?.getIn(['queryBrowser', 'queries', index, 'isExpanded']),
   );
   const text = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(
-      ['queryBrowser', 'queries', index, 'text'],
-      '',
-    ),
+    getObserveState(plugin, state)?.getIn(['queryBrowser', 'queries', index, 'text'], ''),
   );
 
   const dispatch = useDispatch();
@@ -1072,7 +1030,7 @@ const Query: React.FC<{
         <QueryTable
           index={index}
           customDatasource={customDatasource}
-          namespace={perspective === 'dev' ? activeNamespace : undefined}
+          namespace={activeNamespace}
           units={units}
         />
       </DataListContent>
@@ -1087,15 +1045,15 @@ const QueryBrowserWrapper: React.FC<{
   units: GraphUnits;
 }> = ({ customDataSourceName, customDataSource, customDatasourceError, units }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { perspective } = usePerspective();
+  const { plugin } = React.useContext(MonitoringContext);
 
   const dispatch = useDispatch();
 
   const hideGraphs = useSelector(
-    (state: MonitoringState) => !!getObserveState(perspective, state)?.get('hideGraphs'),
+    (state: MonitoringState) => !!getObserveState(plugin, state)?.get('hideGraphs'),
   );
   const queriesList = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['queryBrowser', 'queries']),
+    getObserveState(plugin, state)?.getIn(['queryBrowser', 'queries']),
   );
 
   const queries = queriesList.toJS();
@@ -1248,10 +1206,10 @@ const QueriesList: React.FC<{ customDatasource?: CustomDataSource; units: GraphU
   customDatasource,
   units,
 }) => {
-  const { perspective } = usePerspective();
+  const { plugin } = React.useContext(MonitoringContext);
   const count = useSelector(
     (state: MonitoringState) =>
-      getLegacyObserveState(perspective, state)?.getIn(['queryBrowser', 'queries']).size,
+      getObserveState(plugin, state)?.getIn(['queryBrowser', 'queries']).size,
   );
 
   return (
@@ -1272,14 +1230,14 @@ const QueriesList: React.FC<{ customDatasource?: CustomDataSource; units: GraphU
 };
 
 const IntervalDropdown = () => {
-  const { perspective } = usePerspective();
+  const { plugin } = React.useContext(MonitoringContext);
   const dispatch = useDispatch();
   const setInterval = React.useCallback(
     (v: number) => dispatch(queryBrowserSetPollInterval(v)),
     [dispatch],
   );
   const pollInterval = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['queryBrowser', 'pollInterval'], 15 * 1000),
+    getObserveState(plugin, state)?.getIn(['queryBrowser', 'pollInterval'], 15 * 1000),
   );
   return <DropDownPollInterval setInterval={setInterval} selectedInterval={pollInterval} />;
 };
@@ -1303,7 +1261,7 @@ const GraphUnitsDropDown: React.FC = () => {
     return intervalOptions.map((o) => ({ ...o, selected: o.value === selectedUnits }));
   }, [selectedUnits, t]);
 
-  const onSelect = (_ev, selection: string) => {
+  const onSelect = (_ev: React.MouseEvent<Element, MouseEvent>, selection: string) => {
     setUnits(selection);
   };
 
@@ -1319,9 +1277,9 @@ const GraphUnitsDropDown: React.FC = () => {
 const MetricsPage_: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const [units, setUnits] = useQueryParam(QueryParams.Units, StringParam);
+  const [, setQueryNamespace] = useQueryParam(QueryParams.Namespace, StringParam);
 
   const dispatch = useDispatch();
-  const { perspective } = usePerspective();
 
   React.useEffect(() => {
     if (!isGraphUnit(units)) {
@@ -1402,13 +1360,12 @@ const MetricsPage_: React.FC = () => {
       <Helmet>
         <title>{t('Metrics')}</title>
       </Helmet>
+      <NamespaceBar onNamespaceChange={(namespace) => setQueryNamespace(namespace)} />
       <PageSection hasBodyWrapper={false}>
         <Split hasGutter>
-          {perspective !== 'dev' && (
-            <SplitItem>
-              <Title headingLevel="h1">{t('Metrics')}</Title>
-            </SplitItem>
-          )}
+          <SplitItem>
+            <Title headingLevel="h1">{t('Metrics')}</Title>
+          </SplitItem>
           <SplitItem isFilled />
           <SplitItem data-test={DataTestIDs.MetricGraphUnitsDropDown}>
             <Tooltip content={<>{t('This dropdown only formats results.')}</>}>
@@ -1461,11 +1418,15 @@ const MetricsPage_: React.FC = () => {
 
 const MetricsPage = withFallback(MetricsPage_);
 
-const MetricsPageWrapper_: React.FC = () => (
-  <QueryParamProvider adapter={ReactRouter5Adapter}>
-    <MetricsPage />
-  </QueryParamProvider>
-);
+export const MpCmoMetricsPage: React.FC = () => {
+  return (
+    <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
+      <QueryParamProvider adapter={ReactRouter5Adapter}>
+        <MetricsPage />
+      </QueryParamProvider>
+    </MonitoringProvider>
+  );
+};
 
 type QueryTableProps = {
   index: number;
@@ -1478,5 +1439,3 @@ type SeriesButtonProps = {
   index: number;
   labels: PrometheusLabels;
 };
-
-export default MetricsPageWrapper_;

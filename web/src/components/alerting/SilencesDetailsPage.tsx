@@ -33,7 +33,7 @@ import { useTranslation } from 'react-i18next';
 import { MonitoringState } from 'src/reducers/observe';
 import {
   getAlertUrl,
-  getLegacyObserveState,
+  getObserveState,
   getRuleUrl,
   getSilencesUrl,
   usePerspective,
@@ -48,11 +48,14 @@ import { LoadingInline } from '../console/console-shared/src/components/loading/
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 import { Table, TableVariant, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
 import { useNavigate, useParams, Link } from 'react-router-dom-v5-compat';
+import { MonitoringContext, MonitoringProvider } from '../../contexts/MonitoringContext';
 import { useAlertsPoller } from '../hooks/useAlertsPoller';
 import { DataTestIDs } from '../data-test';
 
 const SilencesDetailsPage_: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const { plugin } = React.useContext(MonitoringContext);
+
   const params = useParams<{ id: string }>();
 
   const id = params.id;
@@ -63,11 +66,11 @@ const SilencesDetailsPage_: React.FC = () => {
   const { alertsKey, perspective, silencesKey } = usePerspective();
 
   const alertsLoaded = useSelector(
-    (state: MonitoringState) => getLegacyObserveState(perspective, state)?.get(alertsKey)?.loaded,
+    (state: MonitoringState) => getObserveState(plugin, state)?.get(alertsKey)?.loaded,
   );
 
   const silences: Silences = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.get(silencesKey),
+    getObserveState(plugin, state)?.get(silencesKey),
   );
   const silence = _.find(silences?.data, { id });
 
@@ -208,7 +211,25 @@ const SilencesDetailsPage_: React.FC = () => {
     </>
   );
 };
-const SilencesDetailsPage = withFallback(SilencesDetailsPage_);
+const SilencesDetailsPageWithFallback = withFallback(SilencesDetailsPage_);
+
+export const MpCmoSilencesDetailsPage = () => {
+  return (
+    <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
+      <SilencesDetailsPageWithFallback />
+    </MonitoringProvider>
+  );
+};
+
+export const McpAcmSilencesDetailsPage = () => {
+  return (
+    <MonitoringProvider
+      monitoringContext={{ plugin: 'monitoring-console-plugin', prometheus: 'acm' }}
+    >
+      <SilencesDetailsPageWithFallback />
+    </MonitoringProvider>
+  );
+};
 
 const SilencedAlertsList: React.FC<SilencedAlertsListProps> = ({ alerts }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -259,7 +280,5 @@ const SilencedAlertsList: React.FC<SilencedAlertsListProps> = ({ alerts }) => {
     </Table>
   );
 };
-
-export default SilencesDetailsPage;
 
 type SilencedAlertsListProps = { alerts: Alert[] };

@@ -1,10 +1,10 @@
 import * as _ from 'lodash-es';
 import { PrometheusEndpoint } from '@openshift-console/dynamic-plugin-sdk';
-import { Perspective } from '../../../actions/observe';
 import {
   Humanize,
   PrometheusResponse,
 } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/console-types';
+import { ALL_NAMESPACES_KEY } from '../../utils';
 
 export const PROMETHEUS_BASE_PATH = window.SERVER_FLAGS.prometheusBaseURL;
 const PROMETHEUS_TENANCY_BASE_PATH = window.SERVER_FLAGS.prometheusTenancyBaseURL;
@@ -17,6 +17,8 @@ export const ALERTMANAGER_PROXY_PATH =
 
 const DEFAULT_PROMETHEUS_SAMPLES = 60;
 const DEFAULT_PROMETHEUS_TIMESPAN = 60 * 60 * 1000;
+
+export type Prometheus = 'acm' | 'cmo';
 
 // Range vector queries require end, start, and step search params
 const getRangeVectorSearchParams = (
@@ -46,31 +48,41 @@ const getSearchParams = ({
   return searchParams;
 };
 
-export const getPrometheusBaseURL = (perspective: Perspective, basePath?: string): string => {
-  let path = basePath;
-  if (perspective === 'acm') {
-    path = PROMETHEUS_PROXY_PATH;
-  } else if (!path && perspective === 'dev') {
-    path = PROMETHEUS_TENANCY_BASE_PATH;
-  } else if (!path) {
-    // admin or virt perspective
-    path = PROMETHEUS_BASE_PATH;
+export const getPrometheusBasePath = ({
+  prometheus,
+  namespace,
+  basePathOverride,
+}: {
+  prometheus?: Prometheus;
+  namespace?: string;
+  basePathOverride?: string;
+}) => {
+  if (basePathOverride) {
+    return basePathOverride;
   }
-  return path;
+
+  if (prometheus === 'acm') {
+    return PROMETHEUS_PROXY_PATH;
+  } else if (namespace && namespace !== ALL_NAMESPACES_KEY) {
+    return PROMETHEUS_TENANCY_BASE_PATH;
+  } else {
+    return PROMETHEUS_BASE_PATH;
+  }
 };
 
-export const getPrometheusURL = (
-  props: PrometheusURLProps,
-  perspective: Perspective,
-  basePath?: string,
-): string => {
-  if (props.endpoint !== PrometheusEndpoint.RULES && !props.query) {
+export const buildPrometheusUrl = ({
+  prometheusUrlProps,
+  basePath,
+}: {
+  prometheusUrlProps: PrometheusURLProps;
+  basePath: string;
+}): string => {
+  if (prometheusUrlProps.endpoint !== PrometheusEndpoint.RULES && !prometheusUrlProps.query) {
     return '';
   }
 
-  const path = getPrometheusBaseURL(perspective, basePath);
-  const params = getSearchParams(props);
-  return `${path}/${props.endpoint}?${params.toString()}`;
+  const params = getSearchParams(prometheusUrlProps);
+  return `${basePath}/${prometheusUrlProps.endpoint}?${params.toString()}`;
 };
 
 export const getInstantVectorStats: GetInstantStats = (response, metric, humanize) => {

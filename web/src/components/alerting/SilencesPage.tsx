@@ -33,17 +33,19 @@ import { useAlertsPoller } from '../hooks/useAlertsPoller';
 import { useBoolean } from '../hooks/useBoolean';
 import {
   getFetchSilenceUrl,
-  getLegacyObserveState,
   getNewSilenceUrl,
+  getObserveState,
   usePerspective,
 } from '../hooks/usePerspective';
 import { Silences } from '../types';
 import { fuzzyCaseInsensitive, refreshSilences, silenceCluster, silenceState } from '../utils';
 import { SelectedSilencesContext, SilenceTableRow } from './SilencesUtils';
+import { MonitoringContext, MonitoringProvider } from '../../contexts/MonitoringContext';
 import { DataTestIDs } from '../data-test';
 
 const SilencesPage_: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const { plugin } = React.useContext(MonitoringContext);
 
   const { silencesKey, perspective } = usePerspective();
 
@@ -57,7 +59,7 @@ const SilencesPage_: React.FC = () => {
     loaded = false,
     loadError,
   }: Silences = useSelector(
-    (state: MonitoringState) => getLegacyObserveState(perspective, state)?.get(silencesKey) || {},
+    (state: MonitoringState) => getObserveState(plugin, state)?.get(silencesKey) || {},
   );
 
   const clusters = React.useMemo(() => {
@@ -184,7 +186,9 @@ const SilencesPage_: React.FC = () => {
 
   return (
     <>
-      <Helmet>{perspective === 'dev' ? <title>Silences</title> : <title>Alerting</title>}</Helmet>
+      <Helmet>
+        <title>Alerting</title>
+      </Helmet>
       <PageSection hasBodyWrapper={false}>
         <SelectedSilencesContext.Provider value={{ selectedSilences, setSelectedSilences }}>
           <Flex>
@@ -241,7 +245,7 @@ const SilencesPage_: React.FC = () => {
     </>
   );
 };
-const SilencesPage = withFallback(SilencesPage_);
+const SilencesPageWithFallback = withFallback(SilencesPage_);
 
 const SelectAllCheckbox: React.FC<{ silences: Silence[] }> = ({ silences }) => {
   const { selectedSilences, setSelectedSilences } = React.useContext(SelectedSilencesContext);
@@ -357,7 +361,23 @@ const CreateSilenceButton: React.FC = React.memo(() => {
   );
 });
 
-export default SilencesPage;
+export const MpCmoSilencesPage = () => {
+  return (
+    <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
+      <SilencesPageWithFallback />
+    </MonitoringProvider>
+  );
+};
+
+export const McpAcmSilencesPage = () => {
+  return (
+    <MonitoringProvider
+      monitoringContext={{ plugin: 'monitoring-console-plugin', prometheus: 'acm' }}
+    >
+      <SilencesPageWithFallback />
+    </MonitoringProvider>
+  );
+};
 
 type ExpireAllSilencesButtonProps = {
   setErrorMessage: (string) => void;

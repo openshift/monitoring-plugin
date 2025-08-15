@@ -2,7 +2,13 @@ import { PrometheusAlert, Rule, useActivePerspective } from '@openshift-console/
 import { Perspective, rulesKey, alertKey, silencesKey } from '../../actions/observe';
 import { AlertSource } from '../types';
 import * as _ from 'lodash-es';
-import { AlertResource, labelsToParams, RuleResource, SilenceResource } from '../utils';
+import {
+  AlertResource,
+  labelsToParams,
+  MonitoringPlugins,
+  RuleResource,
+  SilenceResource,
+} from '../utils';
 import {
   ALERTMANAGER_BASE_PATH,
   ALERTMANAGER_PROXY_PATH,
@@ -283,27 +289,11 @@ export const getFetchSilenceUrl = (
 };
 
 // Redux state defined in the openshift/console repo
-export const getLegacyObserveState = (perspective: Perspective, state: MonitoringState) => {
-  switch (perspective) {
-    case 'acm':
+export const getObserveState = (plugin: MonitoringPlugins, state: MonitoringState) => {
+  switch (plugin) {
+    case 'monitoring-console-plugin':
       return state.plugins?.mcp;
-    case 'virtualization-perspective':
-      return state.plugins?.mp;
-    case 'admin':
-    case 'dev':
-    default:
-      return state.observe;
-  }
-};
-
-// Redux state defined in the openshift/monitoring-plugin repo
-export const getObserveState = (perspective: Perspective, state: MonitoringState) => {
-  switch (perspective) {
-    case 'acm':
-      return state.plugins?.mcp;
-    case 'virtualization-perspective':
-    case 'admin':
-    case 'dev':
+    case 'monitoring-plugin':
     default:
       return state.plugins?.mp;
   }

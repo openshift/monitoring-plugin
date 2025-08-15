@@ -20,14 +20,14 @@ import { ExternalLink, LinkifyExternal } from '../console/utils/link';
 import { getAllQueryArguments } from '../console/utils/router';
 import {
   getAlertsUrl,
-  getLegacyObserveState,
-  getNewSilenceAlertUrl,
   getObserveState,
+  getNewSilenceAlertUrl,
   getRuleUrl,
   usePerspective,
 } from '../hooks/usePerspective';
 import { Alerts } from '../types';
 import { AlertResource, alertState, RuleResource } from '../utils';
+import { MonitoringContext, MonitoringProvider } from '../../contexts/MonitoringContext';
 
 import {
   Breadcrumb,
@@ -94,6 +94,7 @@ const AlertsDetailsPage_: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const params = useParams<{ ruleID: string }>();
   const navigate = useNavigate();
+  const { plugin } = React.useContext(MonitoringContext);
 
   const { alertsKey, silencesKey, perspective } = usePerspective();
 
@@ -102,15 +103,15 @@ const AlertsDetailsPage_: React.FC = () => {
   const [namespace] = useActiveNamespace();
 
   const hideGraphs = useSelector(
-    (state: MonitoringState) => !!getObserveState(perspective, state)?.get('hideGraphs'),
+    (state: MonitoringState) => !!getObserveState(plugin, state)?.get('hideGraphs'),
   );
 
   const alerts: Alerts = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.get(alertsKey),
+    getObserveState(plugin, state)?.get(alertsKey),
   );
 
   const silencesLoaded = useSelector(
-    (state: MonitoringState) => getLegacyObserveState(perspective, state)?.get(silencesKey)?.loaded,
+    (state: MonitoringState) => getObserveState(plugin, state)?.get(silencesKey)?.loaded,
   );
 
   const ruleAlerts = _.filter(alerts?.data, (a) => a.rule.id === params?.ruleID);
@@ -403,7 +404,25 @@ const AlertsDetailsPage_: React.FC = () => {
     </>
   );
 };
-const AlertsDetailsPage = withFallback(AlertsDetailsPage_);
+const AlertsDetailsPageWithFallback = withFallback(AlertsDetailsPage_);
+
+export const MpCmoAlertsDetailsPage = () => {
+  return (
+    <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
+      <AlertsDetailsPageWithFallback />
+    </MonitoringProvider>
+  );
+};
+
+export const McpAcmAlertsDetailsPage = () => {
+  return (
+    <MonitoringProvider
+      monitoringContext={{ plugin: 'monitoring-console-plugin', prometheus: 'acm' }}
+    >
+      <AlertsDetailsPageWithFallback />
+    </MonitoringProvider>
+  );
+};
 
 const HeaderAlertMessage: React.FC<{ alert: Alert; rule: Rule }> = ({ alert, rule }) => {
   const annotation = alert.annotations.description ? 'description' : 'message';
@@ -521,8 +540,6 @@ const AlertStateHelp: React.FC = () => {
     </DescriptionList>
   );
 };
-
-export default AlertsDetailsPage;
 
 type AlertMessageProps = {
   alertText: string;

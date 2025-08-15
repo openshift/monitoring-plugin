@@ -49,13 +49,13 @@ import {
   setIncidentsActiveFilters,
 } from '../../actions/observe';
 import { useLocation } from 'react-router-dom';
-import { usePerspective } from '../hooks/usePerspective';
 import { changeDaysFilter } from './utils';
 import { parsePrometheusDuration } from '../console/console-shared/src/datetime/prometheus';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 import IncidentsChart from './IncidentsChart/IncidentsChart';
 import AlertsChart from './AlertsChart/AlertsChart';
 import { usePatternFlyTheme } from '../hooks/usePatternflyTheme';
+import { MonitoringProvider } from '../../contexts/MonitoringContext';
 import { MonitoringState } from 'src/reducers/observe';
 import { Incident } from './model';
 
@@ -64,7 +64,6 @@ const IncidentsPage = () => {
   const dispatch = useDispatch();
   const location = useLocation();
   const urlParams = React.useMemo(() => parseUrlParams(location.search), [location.search]);
-  const { perspective } = usePerspective();
   const { theme } = usePatternFlyTheme();
   // loading states
   const [incidentsAreLoading, setIncidentsAreLoading] = React.useState(true);
@@ -185,7 +184,6 @@ const IncidentsPage = () => {
             safeFetch,
             range,
             createAlertsQuery(incidentForAlertProcessing),
-            perspective,
           );
           return response.data.result;
         }),
@@ -222,7 +220,6 @@ const IncidentsPage = () => {
             safeFetch,
             range,
             'cluster:health:components:map',
-            perspective,
           );
           return response.data.result;
         }),
@@ -259,7 +256,6 @@ const IncidentsPage = () => {
             safeFetch,
             range,
             `cluster:health:components:map{group_id='${incidentGroupId}'}`,
-            perspective,
           );
           return response.data.result;
         }),
@@ -469,6 +465,14 @@ const IncidentsPage = () => {
   );
 };
 
-const incidentsPageWithFallback = withFallback(IncidentsPage);
+const IncidentsPageWithFallback = withFallback(IncidentsPage);
 
-export default incidentsPageWithFallback;
+export const McpCmoAlertingPage = () => {
+  return (
+    <MonitoringProvider
+      monitoringContext={{ plugin: 'monitoring-console-plugin', prometheus: 'cmo' }}
+    >
+      <IncidentsPageWithFallback />
+    </MonitoringProvider>
+  );
+};

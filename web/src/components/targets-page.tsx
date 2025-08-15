@@ -58,6 +58,7 @@ import { useBoolean } from './hooks/useBoolean';
 import { Labels } from './labels';
 import { AlertSource, PrometheusAPIError, Target } from './types';
 import { fuzzyCaseInsensitive, targetSource } from './utils';
+import { MonitoringProvider } from '../contexts/MonitoringContext';
 
 enum MonitorType {
   ServiceMonitor = 'serviceMonitor',
@@ -563,7 +564,7 @@ const ListPage: React.FC<ListPageProps> = ({ loaded, loadError, targets }) => {
 
 const POLL_INTERVAL = 15 * 1000;
 
-export const TargetsPage: React.FC = () => {
+const TargetsPage_: React.FC = () => {
   const [error, setError] = React.useState<PrometheusAPIError>();
   const [loaded, setLoaded] = React.useState(false);
   const [targets, setTargets] = React.useState<Target[]>();
@@ -629,4 +630,10 @@ export const TargetsPage: React.FC = () => {
   );
 };
 
-export default TargetsPage;
+export const MpCmoTargetsPage: React.FC = () => {
+  return (
+    <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
+      <TargetsPage_ />
+    </MonitoringProvider>
+  );
+};

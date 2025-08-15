@@ -18,7 +18,6 @@ import {
   useVariableDefinitions,
 } from '@perses-dev/dashboards';
 import { TimeRangeControls } from '@perses-dev/plugin-system';
-import { usePerspective } from '../../hooks/usePerspective';
 import { DashboardDropdown } from '../shared/dashboard-dropdown';
 import { CombinedDashboardMetadata } from './hooks/useDashboardsData';
 
@@ -51,7 +50,6 @@ type MonitoringDashboardsPageProps = React.PropsWithChildren<{
 export const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = React.memo(
   ({ children, boardItems, changeBoard, dashboardName, activeProject }) => {
     const { t } = useTranslation(process.env.I18N_NAMESPACE);
-    const { perspective } = usePerspective();
     const { setDashboard } = useDashboardActions();
     const variables = useVariableDefinitions();
 
@@ -78,13 +76,11 @@ export const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = React.
 
     return (
       <>
-        {perspective !== 'dev' && (
-          <Helmet>
-            <title>{t('Metrics dashboards')}</title>
-          </Helmet>
-        )}
+        <Helmet>
+          <title>{t('Metrics dashboards')}</title>
+        </Helmet>
         <PageSection hasBodyWrapper={false}>
-          {perspective !== 'dev' && <HeaderTop />}
+          <HeaderTop />
           <Stack hasGutter>
             {!_.isEmpty(boardItems) && (
               <StackItem>
@@ -101,21 +97,11 @@ export const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = React.
                 <DashboardStickyToolbar initialVariableIsSticky={false} key={dashboardName} />
               </StackItem>
             ) : null}
-            {perspective === 'dev' ? (
-              <StackItem>
-                <Split hasGutter isWrappable>
-                  <SplitItem>
-                    <TimeRangeControls />
-                  </SplitItem>
-                </Split>
-              </StackItem>
-            ) : (
-              <StackItem>
-                <Split>
-                  <SplitItem isFilled />
-                </Split>
-              </StackItem>
-            )}
+            <StackItem>
+              <Split>
+                <SplitItem isFilled />
+              </Split>
+            </StackItem>
           </Stack>
         </PageSection>
         <Divider />
