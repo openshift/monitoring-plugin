@@ -85,7 +85,7 @@
     "@cypress/webpack-preprocessor": "^6.0.2",
     "@types/classnames": "^2.2.7",
     "@types/lodash-es": "^4.17.12",
-    "@types/node": "^17.0.21",
+    "@types/node": "^22.17.2",
     "@types/react": "17.0.83",
     "@types/react-helmet": "^6.1.11",
     "@types/react-router-dom": "^5.3.2",
