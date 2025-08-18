@@ -17,7 +17,8 @@ import {
   FlexItem,
   ExpandableSectionToggle,
 } from '@patternfly/react-core';
-import * as React from 'react';
+import type { FC } from 'react';
+import { memo, useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom-v5-compat';
@@ -98,7 +99,7 @@ const getPanelSpan = (panel: Panel): gridSpans => {
   return 12;
 };
 
-const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
+const Card: FC<CardProps> = memo(({ panel, perspective }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const [namespace] = useActiveNamespace();
@@ -112,17 +113,17 @@ const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
     getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'variables']),
   );
 
-  const ref = React.useRef();
+  const ref = useRef();
   const [, wasEverVisible] = useIsVisible(ref);
 
-  const [isError, setIsError] = React.useState<boolean>(false);
-  const [dataSourceInfoLoading, setDataSourceInfoLoading] = React.useState<boolean>(true);
-  const [customDataSource, setCustomDataSource] = React.useState<CustomDataSource>(undefined);
+  const [isError, setIsError] = useState<boolean>(false);
+  const [dataSourceInfoLoading, setDataSourceInfoLoading] = useState<boolean>(true);
+  const [customDataSource, setCustomDataSource] = useState<CustomDataSource>(undefined);
   const customDataSourceName = panel.datasource?.name;
   const [extensions, extensionsResolved] = useResolvedExtensions<DataSource>(isDataSource);
   const hasExtensions = !_.isEmpty(extensions);
 
-  const formatSeriesTitle = React.useCallback(
+  const formatSeriesTitle = useCallback(
     (labels, i) => {
       const title = panel.targets?.[i]?.legendFormat;
       if (_.isNil(title)) {
@@ -138,7 +139,7 @@ const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
     },
     [panel],
   );
-  const [csvData, setCsvData] = React.useState([]);
+  const [csvData, setCsvData] = useState([]);
 
   const csvExportHandler = () => {
     let csvString = '';
@@ -210,7 +211,7 @@ const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
     </DropdownItem>,
   ];
 
-  React.useEffect(() => {
+  useEffect(() => {
     const getCustomDataSource = async () => {
       if (!customDataSourceName) {
         setDataSourceInfoLoading(false);
@@ -243,14 +244,14 @@ const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
     });
   }, [extensions, extensionsResolved, customDataSourceName, hasExtensions]);
 
-  const handleZoom = React.useCallback((timeRange: number, endTime: number) => {
+  const handleZoom = useCallback((timeRange: number, endTime: number) => {
     setQueryArguments({
       [QueryParams.EndTime]: endTime.toString(),
       [QueryParams.TimeRange]: timeRange.toString(),
     });
   }, []);
 
-  const panelBreakpoints = React.useMemo(() => {
+  const panelBreakpoints = useMemo(() => {
     const panelSpan = getPanelSpan(panel);
     return {
       sm: 12 as gridSpans,
@@ -374,7 +375,7 @@ const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
   );
 });
 
-const PanelsRow: React.FC<PanelsRowProps> = ({ row, perspective }) => {
+const PanelsRow: FC<PanelsRowProps> = ({ row, perspective }) => {
   const showButton = row.showTitle && !_.isEmpty(row.title);
 
   const [isExpanded, toggleIsExpanded] = useBoolean(showButton ? !row.collapse : true);
@@ -401,7 +402,7 @@ const PanelsRow: React.FC<PanelsRowProps> = ({ row, perspective }) => {
   );
 };
 
-export const LegacyDashboard: React.FC<BoardProps> = ({ rows, perspective }) => (
+export const LegacyDashboard: FC<BoardProps> = ({ rows, perspective }) => (
   <Flex direction={{ default: 'column' }}>
     {_.map(rows, (row) => (
       <FlexItem>

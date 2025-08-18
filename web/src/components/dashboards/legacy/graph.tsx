@@ -1,4 +1,5 @@
-import * as React from 'react';
+import type { FC } from 'react';
+import { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { dashboardsSetEndTime, dashboardsSetTimespan, Perspective } from '../../../actions/observe';
@@ -22,7 +23,7 @@ type Props = {
   onDataChange?: (data: any) => void;
 };
 
-const Graph: React.FC<Props> = ({
+const Graph: FC<Props> = ({
   customDataSource,
   formatSeriesTitle,
   isStack,
@@ -42,7 +43,7 @@ const Graph: React.FC<Props> = ({
     getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'timespan']),
   );
 
-  const onZoom = React.useCallback(
+  const onZoom = useCallback(
     (from, to) => {
       dispatch(dashboardsSetEndTime(to, perspective));
       dispatch(dashboardsSetTimespan(to - from, perspective));

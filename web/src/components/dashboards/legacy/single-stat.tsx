@@ -1,5 +1,6 @@
 import * as _ from 'lodash-es';
-import * as React from 'react';
+import type { ReactNode, FC } from 'react';
+import { useState, useCallback } from 'react';
 import { PrometheusEndpoint, PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
 import { Bullseye, Title } from '@patternfly/react-core';
 
@@ -89,17 +90,11 @@ const colorMap: Record<string, PatternflyToken> = {
 const getColorCSS = (colorName: string): string =>
   colorMap[colorName] ? colorMap[colorName].var : undefined;
 
-const Body: React.FC<{ children: React.ReactNode; color?: string }> = ({ children, color }) => (
+const Body: FC<{ children: ReactNode; color?: string }> = ({ children, color }) => (
   <Bullseye style={{ color }}>{children}</Bullseye>
 );
 
-const SingleStat: React.FC<Props> = ({
-  customDataSource,
-  namespace,
-  panel,
-  pollInterval,
-  query,
-}) => {
+const SingleStat: FC<Props> = ({ customDataSource, namespace, panel, pollInterval, query }) => {
   const {
     decimals,
     format,
@@ -113,13 +108,13 @@ const SingleStat: React.FC<Props> = ({
   } = panel;
 
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const [error, setError] = React.useState<string>();
-  const [isLoading, setIsLoading] = React.useState(true);
-  const [value, setValue] = React.useState<string>();
+  const [error, setError] = useState<string>();
+  const [isLoading, setIsLoading] = useState(true);
+  const [value, setValue] = useState<string>();
   const { perspective } = usePerspective();
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const safeFetch = React.useCallback(useSafeFetch(), []);
+  const safeFetch = useCallback(useSafeFetch(), []);
 
   const url = getPrometheusURL(
     {

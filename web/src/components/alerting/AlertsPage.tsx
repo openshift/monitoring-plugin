@@ -8,7 +8,8 @@ import {
 import { Flex, PageSection } from '@patternfly/react-core';
 import { Table, TableGridBreakpoint, Th, Thead, Tr } from '@patternfly/react-table';
 import * as _ from 'lodash-es';
-import * as React from 'react';
+import type { FC } from 'react';
+import { useMemo } from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
@@ -34,7 +35,7 @@ import {
 import Error from './Error';
 import useSelectedFilters from './useSelectedFilters';
 
-const AlertsPage_: React.FC = () => {
+const AlertsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { alertsKey, silencesKey, defaultAlertTenant, perspective } = usePerspective();
 
@@ -52,12 +53,9 @@ const AlertsPage_: React.FC = () => {
       getLegacyObserveState(perspective, state)?.get(silencesKey)?.loadError,
   );
 
-  const alertAdditionalSources = React.useMemo(
-    () => getAdditionalSources(data, alertSource),
-    [data],
-  );
+  const alertAdditionalSources = useMemo(() => getAdditionalSources(data, alertSource), [data]);
 
-  const clusters = React.useMemo(() => {
+  const clusters = useMemo(() => {
     const clusterSet = new Set<string>();
     data?.forEach((alert) => {
       const clusterName = alert.labels?.cluster;
