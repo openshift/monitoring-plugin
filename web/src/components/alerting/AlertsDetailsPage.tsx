@@ -116,7 +116,8 @@ const AlertsDetailsPage_: FC = () => {
 
   const silencesLoaded = useSelector(
     (state: MonitoringState) =>
-      getObserveState(plugin, state)?.get('alerting')?.get(namespace)?.get('silences')?.loaded,
+      getObserveState(plugin, state)?.get('alerting')?.get(namespace)?.get('silences')?.toJS()
+        ?.loaded,
   );
 
   const ruleAlerts = _.filter(alerts, (a) => a.rule.id === params?.ruleID);

@@ -56,8 +56,13 @@ const SilencesPage_: FC = () => {
 
   useAlerts();
 
-  const silenceData: Silences = useSelector((state: MonitoringState) =>
-    getObserveState(plugin, state)?.get('alerting')?.get(namespace)?.get('silences'),
+  const silenceData = useSelector(
+    (state: MonitoringState) =>
+      getObserveState(plugin, state)
+        ?.get('alerting')
+        ?.get(namespace)
+        ?.get('silences')
+        .toJS() as Silences,
   );
 
   const clusters = useMemo(() => {

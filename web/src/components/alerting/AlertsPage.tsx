@@ -53,7 +53,8 @@ const AlertsPage_: FC = () => {
   );
   const silencesLoadError = useSelector(
     (state: MonitoringState) =>
-      getObserveState(plugin, state)?.get('alerting')?.get(namespace)?.get('silences')?.loadError,
+      getObserveState(plugin, state)?.get('alerting')?.get(namespace)?.get('silences')?.toJS()
+        ?.loadError,
   );
 
   const alertAdditionalSources = useMemo(() => getAdditionalSources(alerts, alertSource), [alerts]);

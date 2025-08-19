@@ -90,14 +90,14 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
     case ActionType.AlertingSetSilencesLoaded: {
       const { namespace, silences } = action.payload;
       return state
-        .setIn(['alerting', namespace, 'silences'], silences)
+        .setIn(['alerting', namespace, 'silences', 'data'], silences)
         .setIn(['alerting', namespace, 'silences', 'loaded'], true);
     }
 
     case ActionType.AlertingApplySilences: {
       const { namespace } = action.payload;
       const alerts = state.get('alerting')?.get(namespace)?.get('alerts');
-      const silences = state.get('alerting')?.get(namespace)?.get('silences');
+      const silences = state.get('alerting')?.get(namespace)?.get('silences')?.toJS();
 
       const firingAlerts = alerts.filter(isAlertFiring);
 

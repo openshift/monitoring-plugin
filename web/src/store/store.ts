@@ -74,7 +74,7 @@ export type ObserveState = MapOf<{
       loadError: Error | null;
       alerts: Array<Alert>;
       rules: Array<Rule>;
-      silences: Silences;
+      silences: MapOf<Silences>;
     }>
   >;
   hideGraphs: boolean;

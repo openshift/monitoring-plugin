@@ -70,8 +70,13 @@ const SilencesDetailsPage_: FC = () => {
     getObserveState(plugin, state)?.get('alerting')?.get(namespace)?.get('loaded'),
   );
 
-  const silences: Silences = useSelector((state: MonitoringState) =>
-    getObserveState(plugin, state)?.get('alerting')?.get(namespace)?.get('silences'),
+  const silences = useSelector(
+    (state: MonitoringState) =>
+      getObserveState(plugin, state)
+        ?.get('alerting')
+        ?.get(namespace)
+        ?.get('silences')
+        ?.toJS() as Silences,
   );
   const silence = _.find(silences?.data, { id });
 
