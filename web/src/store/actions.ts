@@ -177,7 +177,7 @@ export const setFilteredIncidentsData = (filteredIncidentsData) =>
 
 type Actions = {
   AlertingSetErrored: typeof alertingSetErrored;
-  AlertingLoading: typeof alertingSetLoading;
+  AlertingSetLoading: typeof alertingSetLoading;
   AlertingSetSilencesErrored: typeof alertingSetSilencesErrored;
   AlertingSetRulesLoaded: typeof alertingSetRulesLoaded;
   AlertingSetSilencesLoaded: typeof alertingSetSilencesLoaded;
