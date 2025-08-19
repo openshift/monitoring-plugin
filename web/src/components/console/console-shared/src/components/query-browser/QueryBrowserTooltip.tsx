@@ -1,4 +1,4 @@
-import * as React from 'react';
+import type { FC } from 'react';
 import * as _ from 'lodash-es';
 
 import { VictoryPortal } from 'victory';
@@ -36,7 +36,7 @@ export const valueFormatter = (units: string): ((v: number) => string) =>
     : formatValue;
 
 // For performance, use this instead of PatternFly's ChartTooltip or Victory VictoryTooltip
-const QueryBrowserTooltipWrapped: React.FC<TooltipProps> = ({
+const QueryBrowserTooltipWrapped: FC<TooltipProps> = ({
   activePoints,
   center,
   height,

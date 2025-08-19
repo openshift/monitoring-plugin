@@ -1,19 +1,20 @@
 import { PageSection, Title } from '@patternfly/react-core';
-import * as React from 'react';
+import type { FC } from 'react';
+import { lazy } from 'react';
 import { useTranslation } from 'react-i18next';
 import { HorizontalNav, useActivePerspective } from '@openshift-console/dynamic-plugin-sdk';
 
-const AlertsPage = React.lazy(
+const AlertsPage = lazy(
   () => import(/* webpackChunkName: "AlertsPage" */ '../alerting/AlertsPage'),
 );
-const SilencesPage = React.lazy(
+const SilencesPage = lazy(
   () => import(/* webpackChunkName: "SilencesPage" */ '../alerting/SilencesPage'),
 );
-const AlertRulesPage = React.lazy(
+const AlertRulesPage = lazy(
   () => import(/* webpackChunkName: "AlertRulesPage" */ '../alerting/AlertRulesPage'),
 );
 
-const AlertingPage: React.FC = () => {
+const AlertingPage: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const [perspective] = useActivePerspective();

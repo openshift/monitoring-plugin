@@ -1,7 +1,8 @@
 import { Stack, StackItem } from '@patternfly/react-core';
 import { SimpleSelect, SimpleSelectOption } from '@patternfly/react-templates';
 import * as _ from 'lodash-es';
-import * as React from 'react';
+import type { FC } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { NumberParam, useQueryParam } from 'use-query-params';
@@ -25,7 +26,7 @@ import { LegacyDashboardPageTestIDs } from '../../data-test';
 const CUSTOM_TIME_RANGE_KEY = 'CUSTOM_TIME_RANGE_KEY';
 const DEFAULT_TIMERANGE = '30m';
 
-export const TimespanDropdown: React.FC = () => {
+export const TimespanDropdown: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const { perspective } = usePerspective();
@@ -48,7 +49,7 @@ export const TimespanDropdown: React.FC = () => {
       : formatPrometheusDuration(_.toNumber(timeRangeFromParams) || timespan);
 
   const dispatch = useDispatch();
-  const onChange = React.useCallback(
+  const onChange = useCallback(
     (v: string) => {
       if (v === CUSTOM_TIME_RANGE_KEY) {
         setModalOpen();
@@ -62,7 +63,7 @@ export const TimespanDropdown: React.FC = () => {
     [setModalOpen, dispatch, perspective, setTimeRange, setEndTime],
   );
 
-  const initialOptions = React.useMemo<SimpleSelectOption[]>(() => {
+  const initialOptions = useMemo<SimpleSelectOption[]>(() => {
     const intervalOptions: SimpleSelectOption[] = [
       { content: t('Custom time range'), value: CUSTOM_TIME_RANGE_KEY },
       { content: t('Last {{count}} minute', { count: 5 }), value: '5m' },
@@ -120,15 +121,15 @@ export const TimespanDropdown: React.FC = () => {
   );
 };
 
-export const PollIntervalDropdown: React.FC = () => {
+export const PollIntervalDropdown: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
-  const [selectedInterval, setSelectedInterval] = React.useState(DEFAULT_REFRESH_INTERVAL);
+  const [selectedInterval, setSelectedInterval] = useState(DEFAULT_REFRESH_INTERVAL);
 
   const dispatch = useDispatch();
   const [, setRefreshInterval] = useQueryParam(QueryParams.RefreshInterval, NumberParam);
 
-  const setInterval = React.useCallback(
+  const setInterval = useCallback(
     (v: number) => {
       setSelectedInterval(v);
       setRefreshInterval(v);

@@ -1,5 +1,5 @@
 import { Button, ButtonVariant } from '@patternfly/react-core';
-import React, { FC } from 'react';
+import { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePerspective } from '../../hooks/usePerspective';
 import { AggregatedAlert } from '../AlertsAggregates';

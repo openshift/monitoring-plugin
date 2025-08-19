@@ -1,5 +1,6 @@
 import * as _ from 'lodash-es';
-import * as React from 'react';
+import type { FC, PropsWithChildren } from 'react';
+import { memo, useCallback } from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 
@@ -18,7 +19,7 @@ import { DashboardDropdown } from '../shared/dashboard-dropdown';
 import { PollIntervalDropdown, TimespanDropdown } from './time-dropdowns';
 import { LegacyDashboardsAllVariableDropdowns } from './legacy-variable-dropdowns';
 
-const HeaderTop: React.FC = React.memo(() => {
+const HeaderTop: FC = memo(() => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
@@ -40,19 +41,19 @@ const HeaderTop: React.FC = React.memo(() => {
   );
 });
 
-type MonitoringDashboardsLegacyPageProps = React.PropsWithChildren<{
+type MonitoringDashboardsLegacyPageProps = PropsWithChildren<{
   boardItems: CombinedDashboardMetadata[];
   changeBoard: (dashboardName: string) => void;
   dashboardName: string;
 }>;
 
-export const DashboardSkeletonLegacy: React.FC<MonitoringDashboardsLegacyPageProps> = React.memo(
+export const DashboardSkeletonLegacy: FC<MonitoringDashboardsLegacyPageProps> = memo(
   ({ children, boardItems, changeBoard, dashboardName }) => {
     const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
     const { perspective } = usePerspective();
 
-    const onChangeBoard = React.useCallback(
+    const onChangeBoard = useCallback(
       (selectedDashboard: string) => {
         changeBoard(selectedDashboard);
       },

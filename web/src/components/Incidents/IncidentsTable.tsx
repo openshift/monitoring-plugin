@@ -3,7 +3,7 @@ import { Bullseye, Card, CardBody, EmptyState, EmptyStateBody } from '@patternfl
 import { SearchIcon } from '@patternfly/react-icons';
 import { ExpandableRowContent, Table, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
 import * as _ from 'lodash-es';
-import React from 'react';
+import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { MonitoringState } from 'src/reducers/observe';
 import { AlertStateIcon, SeverityBadge } from '../alerting/AlertUtils';
@@ -17,7 +17,7 @@ export const IncidentsTable = () => {
     severity: 'Severity',
     state: 'State',
   };
-  const [expandedAlerts, setExpandedAlerts] = React.useState([]);
+  const [expandedAlerts, setExpandedAlerts] = useState([]);
   const setAlertExpanded = (alert: Alert, isExpanding = true) =>
     setExpandedAlerts((prevExpanded) => {
       const otherAlertExpanded = prevExpanded.filter((r) => r !== alert.component);

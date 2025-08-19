@@ -13,7 +13,8 @@ import {
   Tr,
 } from '@patternfly/react-table';
 import * as _ from 'lodash-es';
-import * as React from 'react';
+import type { FC } from 'react';
+import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import ErrorAlert from './error';
@@ -64,20 +65,20 @@ const perPageOptions: PerPageOptions[] = [5, 10, 20, 50, 100].map((n) => ({
   value: n,
 }));
 
-const Table: React.FC<Props> = ({ customDataSource, panel, pollInterval, queries, namespace }) => {
+const Table: FC<Props> = ({ customDataSource, panel, pollInterval, queries, namespace }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
 
-  const [error, setError] = React.useState();
-  const [isLoading, setLoading] = React.useState(true);
-  const [data, setData] = React.useState();
-  const [page, setPage] = React.useState(1);
-  const [perPage, setPerPage] = React.useState(5);
-  const [sortBy, setSortBy] = React.useState<ISortBy>({ index: 0, direction: 'asc' });
+  const [error, setError] = useState();
+  const [isLoading, setLoading] = useState(true);
+  const [data, setData] = useState();
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(5);
+  const [sortBy, setSortBy] = useState<ISortBy>({ index: 0, direction: 'asc' });
   const onSort = (e, index: ISortBy['index'], direction: ISortBy['direction']) =>
     setSortBy({ index, direction });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const safeFetch = React.useCallback(useSafeFetch(), []);
+  const safeFetch = useCallback(useSafeFetch(), []);
 
   const tick = () => {
     const allPromises = _.map(queries, (query) =>
