@@ -84,12 +84,14 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
       return state
         .setIn(['alerting', namespace, 'rules'], rules)
         .setIn(['alerting', namespace, 'alerts'], alerts)
-        .setIn(['alerting', namespace, 'loaded'], true); // Mark as loaded
+        .setIn(['alerting', namespace, 'loaded'], true);
     }
 
     case ActionType.AlertingSetSilencesLoaded: {
       const { namespace, silences } = action.payload;
-      return state.setIn(['alerting', namespace, 'silences'], silences);
+      return state
+        .setIn(['alerting', namespace, 'silences'], silences)
+        .setIn(['alerting', namespace, 'silences', 'loaded'], true);
     }
 
     case ActionType.AlertingApplySilences: {
