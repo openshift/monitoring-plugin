@@ -61,7 +61,11 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
 
     case ActionType.DashboardsVariableOptionsLoaded: {
       const { key, newOptions, perspective } = action.payload;
-      const { options, value } = state.get('dashboards').get(perspective).get('variables').get(key);
+      const { options = [], value } = state
+        .get('dashboards')
+        .get(perspective)
+        .get('variables')
+        .get(key);
       const patch = _.isEqual(options, newOptions)
         ? { isLoading: false }
         : {
@@ -90,8 +94,8 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
 
     case ActionType.AlertingApplySilences: {
       const { namespace } = action.payload;
-      const alerts = state.get('alerting').get(namespace).get('alerts');
-      const silences = state.get('alerting').get(namespace).get('silences');
+      const alerts = state.get('alerting')?.get(namespace)?.get('alerts');
+      const silences = state.get('alerting')?.get(namespace)?.get('silences');
 
       const firingAlerts = alerts.filter(isAlertFiring);
 
@@ -120,7 +124,7 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
           text: originQueryText,
           isEnabled: false,
         })
-        .toJS() as {
+        ?.toJS() as {
         id: string;
         isEnabled: boolean;
         isExpanded: boolean;
@@ -277,7 +281,7 @@ export type NotificationAlerts = {
 const isAlertFiring = (alert: Alert) =>
   alert?.state === AlertStates.Firing || alert?.state === AlertStates.Silenced;
 
-const silenceFiringAlerts = (firingAlerts: Array<Alert>, silences) => {
+const silenceFiringAlerts = (firingAlerts: Array<Alert>, silences): Array<Alert> => {
   // For each firing alert, store a list of the Silences that are silencing it
   // and set its state to show it is silenced
   _.each(firingAlerts, (a) => {
@@ -302,4 +306,5 @@ const silenceFiringAlerts = (firingAlerts: Array<Alert>, silences) => {
       }
     }
   });
+  return firingAlerts;
 };
