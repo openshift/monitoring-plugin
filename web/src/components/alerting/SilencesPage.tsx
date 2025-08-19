@@ -56,17 +56,13 @@ const SilencesPage_: FC = () => {
 
   useAlerts();
 
-  const {
-    data,
-    loaded = false,
-    loadError,
-  }: Silences = useSelector((state: MonitoringState) =>
+  const silenceData: Silences = useSelector((state: MonitoringState) =>
     getObserveState(plugin, state)?.get('alerting')?.get(namespace)?.get('silences'),
   );
 
   const clusters = useMemo(() => {
     const clusterSet = new Set<string>();
-    data?.forEach((silence) => {
+    silenceData?.data?.forEach((silence) => {
       const clusterName = silenceCluster(silence);
       if (clusterName) {
         clusterSet.add(clusterName);
@@ -75,7 +71,7 @@ const SilencesPage_: FC = () => {
 
     const clusterArray = Array.from(clusterSet);
     return clusterArray.sort();
-  }, [data]);
+  }, [silenceData]);
 
   const rowFilters: RowFilter[] = [
     // TODO: The "name" filter doesn't really fit useListPageFilter's idea of a RowFilter, but
@@ -127,7 +123,10 @@ const SilencesPage_: FC = () => {
     } as RowFilter);
   }
 
-  const [staticData, filteredData, onFilterChange] = useListPageFilter(data, rowFilters);
+  const [staticData, filteredData, onFilterChange] = useListPageFilter(
+    silenceData?.data ?? [],
+    rowFilters,
+  );
 
   const columns = useMemo<Array<TableColumn<Silence>>>(() => {
     const cols: Array<TableColumn<Silence>> = [
@@ -198,7 +197,7 @@ const SilencesPage_: FC = () => {
               <ListPageFilter
                 data={staticData}
                 hideLabelFilter
-                loaded={loaded}
+                loaded={!!silenceData?.loaded}
                 onFilterChange={onFilterChange}
                 rowFilters={rowFilters}
               />
@@ -210,7 +209,7 @@ const SilencesPage_: FC = () => {
               <ExpireAllSilencesButton setErrorMessage={setErrorMessage} />
             </FlexItem>
           </Flex>
-          {loadError && (
+          {silenceData?.loadError && (
             <PFAlert
               isInline
               title={t(
@@ -218,7 +217,9 @@ const SilencesPage_: FC = () => {
               )}
               variant="danger"
             >
-              {typeof loadError === 'string' ? loadError : loadError.message}
+              {typeof silenceData?.loadError === 'string'
+                ? silenceData?.loadError
+                : silenceData?.loadError.message}
             </PFAlert>
           )}
           {errorMessage && (
@@ -232,10 +233,10 @@ const SilencesPage_: FC = () => {
               label={t('Silences')}
               columns={columns}
               data={filteredData ?? []}
-              loaded={loaded}
-              loadError={loadError}
+              loaded={!!silenceData?.loaded}
+              loadError={silenceData?.loadError ?? ''}
               Row={SilenceTableRowWithCheckbox}
-              unfilteredData={data}
+              unfilteredData={silenceData?.data ?? []}
               NoDataEmptyMsg={() => {
                 return <EmptyBox label={t('Silences')} />;
               }}
