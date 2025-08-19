@@ -1001,7 +1001,11 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
             },
           )}
         >
-          <div ref={containerRef} style={{ position: 'relative' }}>
+          <div
+            ref={containerRef}
+            style={{ position: 'relative' }}
+            data-test={DataTestIDs.MetricGraph}
+          >
             {error && <Error error={error} />}
             {isGraphDataEmpty && <GraphEmpty loading={updating} />}
             {!isGraphDataEmpty && width > 0 && (

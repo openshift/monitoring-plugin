@@ -3,7 +3,6 @@ import { metricsPage } from '../../../views/metrics';
 import { Classes, DataTestIDs, IDs } from '../../../../src/components/data-test';
 import { GraphTimespan, MetricGraphEmptyState, MetricsPagePredefinedQueries, MetricsPageQueryInput, MetricsPageQueryKebabDropdown, MetricsPageUnits } from '../../../fixtures/monitoring/constants';
 import common = require('mocha/lib/interfaces/common');
-import { listPage } from '../../../views/list-page';
 // Set constants for the operators that need to be installed for tests.
 const MP = {
   namespace: 'openshift-monitoring',
