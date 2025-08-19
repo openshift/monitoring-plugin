@@ -107,16 +107,16 @@ const AlertsDetailsPage_: FC = () => {
   );
 
   const { loaded, loadError } = useSelector((state: MonitoringState) =>
-    getObserveState(plugin, state)?.get('alerting').get(namespace).toJS(),
+    getObserveState(plugin, state)?.get('alerting')?.get(namespace)?.toJS(),
   );
 
   const alerts = useSelector((state: MonitoringState) =>
-    getObserveState(plugin, state)?.get('alerting').get(namespace).get('alerts'),
+    getObserveState(plugin, state)?.get('alerting')?.get(namespace)?.get('alerts'),
   );
 
   const silencesLoaded = useSelector(
     (state: MonitoringState) =>
-      getObserveState(plugin, state)?.get('alerting').get(namespace).get('silences')?.loaded,
+      getObserveState(plugin, state)?.get('alerting')?.get(namespace)?.get('silences')?.loaded,
   );
 
   const ruleAlerts = _.filter(alerts, (a) => a.rule.id === params?.ruleID);

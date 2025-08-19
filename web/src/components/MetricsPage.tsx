@@ -234,7 +234,7 @@ const PreDefinedQueriesDropdown = () => {
 
   const queriesList = useSelector((state: MonitoringState) =>
     // mcp does not support the metrics page in any perspective
-    getObserveState(plugin, state)?.get('queryBrowser').get('queries'),
+    getObserveState(plugin, state)?.get('queryBrowser')?.get('queries'),
   );
 
   const insertPredefinedQuery = (query: string) => {
@@ -434,17 +434,17 @@ const QueryKebab: FC<{ index: number }> = ({ index }) => {
 
   const isDisabledSeriesEmpty = useSelector((state: MonitoringState) =>
     _.isEmpty(
-      getObserveState(plugin, state)?.get('queryBrowser').get('queries').at(index).disabledSeries,
+      getObserveState(plugin, state)?.get('queryBrowser')?.get('queries').at(index).disabledSeries,
     ),
   );
   const isEnabled = useSelector(
     (state: MonitoringState) =>
-      getObserveState(plugin, state)?.get('queryBrowser').get('queries').at(index).isEnabled,
+      getObserveState(plugin, state)?.get('queryBrowser')?.get('queries').at(index).isEnabled,
   );
 
   const query = useSelector(
     (state: MonitoringState) =>
-      getObserveState(plugin, state)?.get('queryBrowser').get('queries').at(index).query,
+      getObserveState(plugin, state)?.get('queryBrowser')?.get('queries').at(index).query,
   );
 
   const queryTableData = useSelector((state: MonitoringState) =>
@@ -452,7 +452,7 @@ const QueryKebab: FC<{ index: number }> = ({ index }) => {
       ?.get('queryBrowser')
       .get('queries')
       .at(index)
-      .queryTableData.toJS(),
+      .queryTableData?.toJS(),
   );
 
   const dispatch = useDispatch();
@@ -1054,7 +1054,7 @@ const QueryBrowserWrapper: FC<{
     (state: MonitoringState) => !!getObserveState(plugin, state)?.get('hideGraphs'),
   );
   const queries = useSelector((state: MonitoringState) =>
-    getObserveState(plugin, state)?.get('queryBrowser').get('queries'),
+    getObserveState(plugin, state)?.get('queryBrowser')?.get('queries'),
   );
 
   // Initialize queries from URL parameters

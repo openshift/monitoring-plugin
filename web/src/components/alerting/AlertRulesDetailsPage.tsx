@@ -155,12 +155,12 @@ const AlertRulesDetailsPage_: FC = () => {
   const namespace = params?.ns;
 
   const rules = useSelector((state: MonitoringState) =>
-    getObserveState(plugin, state)?.get('alerting').get(namespace).get('rules'),
+    getObserveState(plugin, state)?.get('alerting')?.get(namespace)?.get('rules'),
   );
   const rule = _.find(rules, { id: params.id });
 
   const { loaded, loadError } = useSelector((state: MonitoringState) =>
-    getObserveState(plugin, state)?.get('alerting').get(namespace).toJS(),
+    getObserveState(plugin, state)?.get('alerting')?.get(namespace)?.toJS(),
   );
 
   const sourceId = rule?.sourceId;

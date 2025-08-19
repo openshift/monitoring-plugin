@@ -42,7 +42,7 @@ const SilenceEditPage = () => {
   useAlerts();
 
   const silences: Silences = useSelector((state: MonitoringState) =>
-    getObserveState(plugin, state)?.get('alerting').get(namespace).get('silences'),
+    getObserveState(plugin, state)?.get('alerting')?.get(namespace)?.get('silences'),
   );
 
   const silence: Silence = _.find(silences?.data, { id: params.id });

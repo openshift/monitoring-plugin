@@ -67,11 +67,11 @@ const SilencesDetailsPage_: FC = () => {
   const { perspective } = usePerspective();
 
   const alertsLoaded = useSelector((state: MonitoringState) =>
-    getObserveState(plugin, state)?.get('alerting').get(namespace).get('loaded'),
+    getObserveState(plugin, state)?.get('alerting')?.get(namespace)?.get('loaded'),
   );
 
   const silences: Silences = useSelector((state: MonitoringState) =>
-    getObserveState(plugin, state)?.get('alerting').get(namespace).get('silences'),
+    getObserveState(plugin, state)?.get('alerting')?.get(namespace)?.get('silences'),
   );
   const silence = _.find(silences?.data, { id });
 

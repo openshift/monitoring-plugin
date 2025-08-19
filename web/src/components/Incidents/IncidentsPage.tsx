@@ -91,28 +91,28 @@ const IncidentsPage = () => {
   };
 
   const incidentsInitialState = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.get('incidentsData').get('incidentsInitialState').toJS(),
+    state.plugins.mcp.get('incidentsData')?.get('incidentsInitialState')?.toJS(),
   );
 
   const incidents = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.get('incidentsData').get('incidents'),
+    state.plugins.mcp.get('incidentsData')?.get('incidents'),
   );
 
   const incidentsActiveFilters = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.get('incidentsData').get('incidentsActiveFilters').toJS(),
+    state.plugins.mcp.get('incidentsData')?.get('incidentsActiveFilters')?.toJS(),
   );
   const incidentGroupId = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.get('incidentsData').get('groupId'),
+    state.plugins.mcp.get('incidentsData')?.get('groupId'),
   );
   const alertsData = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.get('incidentsData').get('alertsData'),
+    state.plugins.mcp.get('incidentsData')?.get('alertsData'),
   );
   const alertsAreLoading = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.get('incidentsData').get('alertsAreLoading'),
+    state.plugins.mcp.get('incidentsData')?.get('alertsAreLoading'),
   );
 
   const filteredData = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.get('incidentsData').get('filteredIncidentsData'),
+    state.plugins.mcp.get('incidentsData')?.get('filteredIncidentsData'),
   );
   useEffect(() => {
     const hasUrlParams = Object.keys(urlParams).length > 0;

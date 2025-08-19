@@ -25,7 +25,7 @@ export const IncidentsTable = () => {
     });
   const isAlertExpanded = (alert: Alert) => expandedAlerts.includes(alert.component);
   const alertsTableData = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.get('incidentsData').get('alertsTableData'),
+    state.plugins.mcp.get('incidentsData')?.get('alertsTableData'),
   );
   const alertsAreLoading = useSelector((state: MonitoringState) =>
     state.plugins.mcp.getIn(['incidentsData', 'alertsAreLoading']),

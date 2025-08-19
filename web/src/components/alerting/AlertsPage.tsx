@@ -45,15 +45,15 @@ const AlertsPage_: FC = () => {
 
   useAlerts();
 
-  const { loaded, loadError } = useSelector((state: MonitoringState) =>
-    getObserveState(plugin, state)?.get('alerting').get(namespace).toJS(),
+  const loadingInfo = useSelector((state: MonitoringState) =>
+    getObserveState(plugin, state)?.get('alerting')?.get(namespace)?.toJS(),
   );
   const alerts = useSelector((state: MonitoringState) =>
-    getObserveState(plugin, state)?.get('alerting').get(namespace).get('alerts'),
+    getObserveState(plugin, state)?.get('alerting')?.get(namespace)?.get('alerts'),
   );
   const silencesLoadError = useSelector(
     (state: MonitoringState) =>
-      getObserveState(plugin, state)?.get('alerting').get(namespace).get('silences')?.loadError,
+      getObserveState(plugin, state)?.get('alerting')?.get(namespace)?.get('silences')?.loadError,
   );
 
   const alertAdditionalSources = useMemo(() => getAdditionalSources(alerts, alertSource), [alerts]);
@@ -144,6 +144,8 @@ const AlertsPage_: FC = () => {
   const selectedFilters = useSelectedFilters();
 
   const filteredAggregatedAlerts = getAggregateAlertsLists(filteredData);
+  const loaded = !!loadingInfo?.loaded;
+  const loadError = loadingInfo?.loadError ? loadingInfo.loadError : null;
 
   return (
     <>

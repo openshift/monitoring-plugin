@@ -59,7 +59,7 @@ export const evaluateVariableTemplate = (
 
   const range: Variable = { value: `${Math.floor(timespan / 1000)}s` };
   const allVariables = {
-    ...variables.toJS(),
+    ...variables?.toJS(),
     __range: range,
     /* eslint-disable camelcase */
     __range_ms: range,
@@ -121,9 +121,9 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({
   );
 
   const variables = useSelector((state: MonitoringState) =>
-    getObserveState(plugin, state)?.get('dashboards').get(perspective).get('variables'),
+    getObserveState(plugin, state)?.get('dashboards')?.get(perspective)?.get('variables'),
   );
-  const variable = variables.toJS()[name];
+  const variable = variables?.toJS()[name];
   const query = evaluateVariableTemplate(variable.query, variables, timespan);
 
   const dispatch = useDispatch();
@@ -321,7 +321,7 @@ export const LegacyDashboardsAllVariableDropdowns: FC = () => {
   const { plugin } = useContext(MonitoringContext);
 
   const variables = useSelector((state: MonitoringState) =>
-    getObserveState(plugin, state)?.get('dashboards').get(perspective).get('variables'),
+    getObserveState(plugin, state)?.get('dashboards')?.get(perspective)?.get('variables'),
   );
 
   if (!variables) {
