@@ -1,4 +1,4 @@
-FROM registry.redhat.io/ubi9/nodejs-20:1-59 AS web-builder
+FROM registry.redhat.io/ubi9/nodejs-22:9.6-1755075210 AS web-builder
 
 USER 0
 
