@@ -1,4 +1,4 @@
-import { Silence } from '@openshift-console/dynamic-plugin-sdk';
+import { consoleFetchJSON, Silence } from '@openshift-console/dynamic-plugin-sdk';
 import { Action } from 'redux';
 import { ThunkAction } from 'redux-thunk';
 
@@ -12,7 +12,6 @@ import {
 } from './actions';
 import { getAlertsAndRules, getSilenceName } from '../components/utils';
 import { fetchAlerts } from '../components/fetch-alerts';
-import { useSafeFetch } from '../components/console/utils/safe-fetch-hook';
 
 import type { RootState } from './store';
 
@@ -25,12 +24,11 @@ export const fetchAlertingData =
   ): ThunkAction<void, RootState, unknown, Action<string>> =>
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async (dispatch, getState) => {
-    const safeFetch = useSafeFetch();
     dispatch(alertingSetLoading(namespace));
 
     const [rulesResponse, silencesResponse] = await Promise.allSettled([
       fetchAlerts(rulesUrl, alertsSource, namespace),
-      safeFetch<Silence[]>(silencesUrl),
+      consoleFetchJSON(silencesUrl, 'get') as Promise<Silence[]>,
     ]);
 
     if (rulesResponse.status === 'rejected') {
