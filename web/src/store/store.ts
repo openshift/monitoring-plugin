@@ -51,21 +51,7 @@ export type ObserveState = MapOf<{
   queryBrowser: MapOf<{
     metrics: Array<any>;
     pollInterval: string | null;
-    queries: List<
-      MapOf<{
-        id: string;
-        isEnabled: boolean;
-        isExpanded: boolean;
-        text?: string;
-        query?: string;
-        series?: any;
-        disabledSeries?: PrometheusLabels[];
-        queryTableData?: {
-          columns: any;
-          rows: any;
-        };
-      }>
-    >;
+    queries: List<MapOf<QueryStructure>>;
     timespan: number;
   }>;
   alerting: Map<
@@ -135,6 +121,20 @@ export type MonitoringState = {
   plugins: {
     mcp?: ObserveState;
     mp?: ObserveState;
+  };
+};
+
+export type QueryStructure = {
+  id: string;
+  isEnabled: boolean;
+  isExpanded: boolean;
+  text?: string;
+  query?: string;
+  series?: any;
+  disabledSeries?: PrometheusLabels[];
+  queryTableData?: {
+    columns: any;
+    rows: any;
   };
 };
 

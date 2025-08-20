@@ -96,7 +96,7 @@ import {
   DataSource,
   isDataSource,
 } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
-import { MonitoringState } from '../store/store';
+import { MonitoringState, QueryStructure } from '../store/store';
 import { DropDownPollInterval } from './dropdown-poll-interval';
 import { useBoolean } from './hooks/useBoolean';
 import { getObserveState } from './hooks/usePerspective';
@@ -1060,8 +1060,12 @@ const QueryBrowserWrapper: FC<{
   const hideGraphs = useSelector(
     (state: MonitoringState) => !!getObserveState(plugin, state)?.get('hideGraphs'),
   );
-  const queries = useSelector((state: MonitoringState) =>
-    getObserveState(plugin, state)?.get('queryBrowser')?.get('queries'),
+  const queries = useSelector(
+    (state: MonitoringState) =>
+      getObserveState(plugin, state)
+        ?.get('queryBrowser')
+        ?.get('queries')
+        .toJS() as QueryStructure[],
   );
 
   // Initialize queries from URL parameters
