@@ -18,7 +18,7 @@ import {
   Split,
 } from '@patternfly/react-core';
 import type { FC, Ref } from 'react';
-import { useCallback, useState, useEffect, useContext, useMemo } from 'react';
+import { useCallback, useState, useEffect, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { Map as ImmutableMap, Map } from 'immutable';
@@ -42,6 +42,7 @@ import {
   isDataSource,
 } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
 import { MonitoringContext } from '../../../contexts/MonitoringContext';
+import { useDeepMemo } from '../../hooks/useDeepMemo';
 
 const intervalVariableRegExps = ['__interval', '__rate_interval', '__auto_interval_[a-z]+'];
 
@@ -124,9 +125,9 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({
     getObserveState(plugin, state)?.get('dashboards')?.get(perspective)?.get('variables'),
   );
   const variable = variables?.toJS()?.[name] as Variable;
-  const options = useMemo(() => {
-    return variable?.options ?? [];
-  }, variable?.options);
+  const options = useDeepMemo(() => {
+    return variable?.options;
+  }, [variable?.options]);
 
   const query = evaluateVariableTemplate(variable?.query, variables, timespan);
 
@@ -175,7 +176,7 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({
         setIsError(true);
       }
     },
-    [customDataSourceName, extensions, extensionsResolved, hasExtensions, namespace],
+    [customDataSourceName, extensions, extensionsResolved, hasExtensions],
   );
 
   useEffect(() => {
