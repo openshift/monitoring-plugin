@@ -72,6 +72,13 @@ const AlertsPage_: FC = () => {
     return clusterArray.sort();
   }, [alerts]);
 
+  const namespacedAlerts = useMemo(() => {
+    if (perspective === 'acm' || namespace === ALL_NAMESPACES_KEY) {
+      return alerts;
+    }
+    return alerts?.filter((alert) => alert.labels?.namespace === namespace);
+  }, [alerts, perspective, namespace]);
+
   let rowFilters: RowFilter[] = [
     // TODO: The "name" filter doesn't really fit useListPageFilter's idea of a RowFilter, but
     //       useListPageFilter doesn't yet provide a better way to add a filter like this
@@ -139,7 +146,10 @@ const AlertsPage_: FC = () => {
     rowFilters = rowFilters.filter((filter) => filter.type !== 'alert-source');
   }
 
-  const [staticData, filteredData, onFilterChange] = useListPageFilter(alerts, rowFilters);
+  const [staticData, filteredData, onFilterChange] = useListPageFilter(
+    namespacedAlerts,
+    rowFilters,
+  );
 
   const columns = useAggregateAlertColumns();
   const selectedFilters = useSelectedFilters();
