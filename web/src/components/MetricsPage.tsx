@@ -1286,7 +1286,14 @@ const GraphUnitsDropDown: FC = () => {
 const MetricsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const [units, setUnits] = useQueryParam(QueryParams.Units, StringParam);
-  const [, setQueryNamespace] = useQueryParam(QueryParams.Namespace, StringParam);
+  const [queryNamespace, setQueryNamespace] = useQueryParam(QueryParams.Namespace, StringParam);
+  const [activeNamespace, setActiveNamespace] = useActiveNamespace();
+
+  useEffect(() => {
+    if (queryNamespace && activeNamespace !== queryNamespace) {
+      setActiveNamespace(queryNamespace);
+    }
+  }, [queryNamespace, activeNamespace, setActiveNamespace]);
 
   const dispatch = useDispatch();
 
@@ -1368,7 +1375,12 @@ const MetricsPage_: FC = () => {
       <Helmet>
         <title>{t('Metrics')}</title>
       </Helmet>
-      <NamespaceBar onNamespaceChange={(namespace) => setQueryNamespace(namespace)} />
+      <NamespaceBar
+        onNamespaceChange={(namespace) => {
+          dispatch(queryBrowserDeleteAllQueries());
+          setQueryNamespace(namespace);
+        }}
+      />
       <PageSection hasBodyWrapper={false}>
         <Split hasGutter>
           <SplitItem>
