@@ -234,7 +234,7 @@ const PreDefinedQueriesDropdown = () => {
 
   const queriesList = useSelector((state: MonitoringState) =>
     // mcp does not support the metrics page in any perspective
-    getObserveState(plugin, state)?.get('queryBrowser')?.get('queries'),
+    getObserveState(plugin, state)?.get('queryBrowser')?.get('queries')?.toJS(),
   );
 
   const insertPredefinedQuery = (query: string) => {
@@ -280,7 +280,7 @@ const MetricsActionsMenu: FC = () => {
   const isAllExpanded = useSelector((state: MonitoringState) =>
     getObserveState(plugin, state)
       ?.getIn(['queryBrowser', 'queries'])
-      .every((q) => q.isExpanded),
+      .every((q) => q.get('isExpanded')),
   );
 
   const dispatch = useDispatch();
@@ -395,9 +395,9 @@ const SeriesButton: FC<SeriesButtonProps> = ({ index, labels }) => {
 
       const colorOffset = observe
         .getIn(['queryBrowser', 'queries'])
-        .slice(0, index)
-        .filter((q) => q.isEnabled)
-        .reduce((sum, q) => sum + _.size(q.series), 0);
+        .take(index)
+        .filter((q) => q?.get('isEnabled'))
+        .reduce((sum, q) => sum + _.size(q?.get(series)), 0);
       const seriesIndex = _.findIndex(series, (s) => _.isEqual(s, labels));
       return [(colorOffset + seriesIndex) % colors.length, false, false];
     },
@@ -434,25 +434,32 @@ const QueryKebab: FC<{ index: number }> = ({ index }) => {
 
   const isDisabledSeriesEmpty = useSelector((state: MonitoringState) =>
     _.isEmpty(
-      getObserveState(plugin, state)?.get('queryBrowser')?.get('queries').at(index).disabledSeries,
+      getObserveState(plugin, state)
+        ?.get('queryBrowser')
+        ?.get('queries')
+        ?.get(index)
+        ?.get('disabledSeries'),
     ),
   );
-  const isEnabled = useSelector(
-    (state: MonitoringState) =>
-      getObserveState(plugin, state)?.get('queryBrowser')?.get('queries').at(index).isEnabled,
-  );
-
-  const query = useSelector(
-    (state: MonitoringState) =>
-      getObserveState(plugin, state)?.get('queryBrowser')?.get('queries').at(index).query,
-  );
-
-  const queryTableData = useSelector((state: MonitoringState) =>
+  const isEnabled = useSelector((state: MonitoringState) =>
     getObserveState(plugin, state)
       ?.get('queryBrowser')
-      .get('queries')
-      .at(index)
-      .queryTableData?.toJS(),
+      ?.get('queries')
+      ?.get(index)
+      ?.get('isEnabled'),
+  );
+
+  const query = useSelector((state: MonitoringState) =>
+    getObserveState(plugin, state)?.get('queryBrowser')?.get('queries')?.get(index)?.get('query'),
+  );
+
+  const queryTableData = useSelector(
+    (state: MonitoringState) =>
+      getObserveState(plugin, state)
+        ?.get('queryBrowser')
+        ?.get('queries')
+        ?.get(index)
+        ?.get('queryTableData') ?? { rows: [], columns: [] },
   );
 
   const dispatch = useDispatch();
@@ -1207,7 +1214,7 @@ const QueriesList: FC<{ customDatasource?: CustomDataSource; units: GraphUnits }
   const { plugin } = useContext(MonitoringContext);
   const count = useSelector(
     (state: MonitoringState) =>
-      getObserveState(plugin, state)?.getIn(['queryBrowser', 'queries']).length,
+      getObserveState(plugin, state)?.getIn(['queryBrowser', 'queries']).size,
   );
 
   return (

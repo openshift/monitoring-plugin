@@ -121,20 +121,13 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
     case ActionType.QueryBrowserDuplicateQuery: {
       const index = action.payload.index;
       const originQueryText = state.getIn(['queryBrowser', 'queries', index, 'text']);
-      const duplicate = Map(newQueryBrowserQuery())
-        .merge({
-          text: originQueryText,
-          isEnabled: false,
-        })
-        ?.toJS() as {
-        id: string;
-        isEnabled: boolean;
-        isExpanded: boolean;
-        text: string;
-      };
+      const duplicate = newQueryBrowserQuery().merge({
+        text: originQueryText,
+        isEnabled: false,
+      });
       return state.setIn(
         ['queryBrowser', 'queries'],
-        state.getIn(['queryBrowser', 'queries']).push(duplicate),
+        state.getIn(['queryBrowser', 'queries']).concat(duplicate),
       );
     }
 
@@ -166,9 +159,9 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
 
     case ActionType.QueryBrowserRunQueries: {
       const queries = state.getIn(['queryBrowser', 'queries']).map((q) => {
-        const text = _.trim(q.text);
-        return q.isEnabled && q.query !== text
-          ? Map(q).merge({ query: text, series: undefined })
+        const text = _.trim(q.get('text'));
+        return q.get('isEnabled') && q.get('query') !== text
+          ? q.merge({ query: text, series: undefined })
           : q;
       });
 

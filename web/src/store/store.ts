@@ -1,5 +1,5 @@
 import * as _ from 'lodash-es';
-import { Map, MapOf } from 'immutable';
+import { Map, MapOf, List } from 'immutable';
 
 import { Perspective } from './actions';
 
@@ -51,19 +51,21 @@ export type ObserveState = MapOf<{
   queryBrowser: MapOf<{
     metrics: Array<any>;
     pollInterval: string | null;
-    queries: Array<{
-      id: string;
-      isEnabled: boolean;
-      isExpanded: boolean;
-      text?: string;
-      query?: string;
-      series?: any;
-      disabledSeries?: PrometheusLabels[];
-      queryTableData?: MapOf<{
-        columns: any;
-        rows: any;
-      }>;
-    }>;
+    queries: List<
+      MapOf<{
+        id: string;
+        isEnabled: boolean;
+        isExpanded: boolean;
+        text?: string;
+        query?: string;
+        series?: any;
+        disabledSeries?: PrometheusLabels[];
+        queryTableData?: {
+          columns: any;
+          rows: any;
+        };
+      }>
+    >;
     timespan: number;
   }>;
   alerting: Map<
@@ -104,7 +106,7 @@ export const defaultObserveState: ObserveState = Map({
   queryBrowser: Map({
     metrics: [] as Array<any>,
     pollInterval: null,
-    queries: [newQueryBrowserQuery()],
+    queries: List([newQueryBrowserQuery()]),
     timespan: MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
   }),
   incidentsData: Map({
@@ -136,14 +138,14 @@ export type MonitoringState = {
   };
 };
 
-export function newQueryBrowserQuery(): {
+export function newQueryBrowserQuery(): MapOf<{
   id: string;
   isEnabled: boolean;
   isExpanded: boolean;
-} {
-  return {
+}> {
+  return Map({
     id: _.uniqueId('query-browser-query'),
     isEnabled: true,
     isExpanded: true,
-  };
+  });
 }
