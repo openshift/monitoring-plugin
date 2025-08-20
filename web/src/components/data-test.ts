@@ -19,6 +19,7 @@ export const DataTestIDs = {
   ExpireXSilencesButton: 'expire-x-silences-button',
   Expression: 'expression',
   KebabDropdownButton: 'kebab-dropdown-button',
+  MetricGraphNoDatapointsFound: 'datapoints-msg',
   MetricGraphTimespanDropdown: 'graph-timespan-dropdown',
   MetricGraphTimespanInput: 'graph-timespan-input',
   MetricDisconnectedCheckbox: 'disconnected-checkbox',
@@ -35,7 +36,7 @@ export const DataTestIDs = {
   MetricsPageDisableEnableQuerySwitch: 'disable-enable-query-switch',
   MetricsPageDuplicateQueryDropdownItem: 'duplicate-query-dropdown-item',
   MetricsPageDisableEnableQueryDropdownItem: 'disable-enable-query-dropdown-item',
-  MetricsPageExpandCollapseAllButton: 'expand-collapse-all-button',
+  MetricsPageExpandCollapseRowButton: 'expand-collapse-row-button', //div
   MetricsPageExpandCollapseAllDropdownItem: 'expand-collapse-all-dropdown-item',
   MetricsPageExportCsvDropdownItem: 'export-csv-dropdown-item',
   MetricsPageHideShowAllSeriesDropdownItem: 'hide-show-all-series-dropdown-item',
@@ -44,13 +45,10 @@ export const DataTestIDs = {
   MetricsPageNoQueryEntered: 'no-query-entered',
   MetricsPageQueryTable: 'query-table',
   MetricsPageRunQueriesButton: 'run-queries-button',
-  MetricsPageSelectAllUnselectAllDropdownItem: 'select-all-unselect-all-dropdown-item',
+  MetricsPageSelectAllUnselectAllButton: 'select-all-unselect-all-button',
   MetricsPageSeriesButton: 'series-button',
   MetricsPageYellowNoDatapointsFound: 'yellow-no-datapoints-found',
   NameInput: 'name-filter-input',
-  // TODO: remove this once we have a new dropdown component
-  // NameLabelDropdown: 'dropdown-button',
-  // NameLabelDropdownOptions: 'dropdown-menu',
   NameLabelDropdown: 'console-select-menu-toggle',
   NameLabelDropdownOptions: 'console-select-item',
   SeverityBadgeHeader: 'severity-badge-header',
@@ -80,7 +78,7 @@ export const DataTestIDs = {
     StartImmediately: 'start-immediately',
   },
   TypeaheadSelectInput: 'query-select-typeahead-input',
-  Table: 'OUIA-Generated-Table',
+  Table: 'OUIA-Generated-Table', //table ouiaid - ID to be used with byOUIAID(DataTestIDs.Table)
 };
 
 export const LegacyDashboardPageTestIDs = {
@@ -97,6 +95,11 @@ export const LegacyTestIDs = {
   SelectAllSilencesCheckbox: 'select-all-silences-checkbox',
 };
 
+export const IDs = {
+  ChartAxis0ChartLabel: 'chart-axis-0-ChartLabel', //id^=IDs.ChartAxis0ChartLabel AxisX
+  ChartAxis1ChartLabel: 'chart-axis-1-ChartLabel', //id^=IDs.ChartAxis1ChartLabel AxisY
+};
+
 export const Classes = {
   ExpandedRow: 'button[class="pf-v6-c-button pf-m-plain pf-m-expanded"]',
   ToExpandRow: 'button[class="pf-v6-c-button pf-m-plain"]',
@@ -104,11 +107,24 @@ export const Classes = {
   FilterDropdownExpanded: '.pf-v6-c-menu-toggle.pf-m-expanded, .pf-v5-c-menu-toggle.pf-m-expanded',
   FilterDropdownOption: '.pf-v6-c-menu__item, .pf-c-select__menu-item',
   GraphCard: '.pf-v6-c-card.pf-m-compact',
+  GraphCardInlineInfo:
+    '.pf-v6-c-alert.pf-m-inline.pf-m-plain.pf-m-info, .pf-v5-c-alert.pf-m-inline.pf-m-plain.pf-m-info.query-browser__reduced-resolution',
   HorizontalNav: '.pf-v6-c-tabs__item, .co-m-horizontal-nav__menu-item',
   IndividualTag: '.pf-v6-c-label__text, .pf-v5-c-chip__text',
   LabelSuggestion: '.pf-v6-c-label__content.pf-m-clickable, .co-suggestion-line',
   LabelTag: '.pf-v6-c-label__text, .pf-v5-c-label__text',
   MainTag: '.pf-v6-c-label-group__label, .pf-v5-c-chip-group__label',
+  MenuItem: '.pf-v6-c-menu__item, .pf-c-dropdown__menu-item',
+  MenuItemDisabled: '.pf-v6-c-menu__list-item.pf-m-aria-disabled',
+  MenuToggle: '.pf-v6-c-menu-toggle, .pf-c-dropdown__toggle',
+  MetricsPagePredefinedQueriesMenuItem: '.pf-v6-c-menu__item, .pf-v5-c-select__menu-item',
+  MetricsPageRows: '.pf-v6-c-data-list.pf-m-grid-md',
+  MetricsPageExpandedRowIcon: '.pf-v6-c-data-list__item.pf-m-expanded', //li
+  MetricsPageCollapsedRowIcon: '.pf-v6-c-data-list__item', //li
+  MetricsPageQueryInput: '.cm-content.cm-lineWrapping',
+  MetricsPageUngraphableResults: '.pf-v6-c-title.pf-m-md',
+  MetricsPageUngraphableResultsDescription: '.pf-v6-c-empty-state__body',
+  MetricsPageQueryAutocomplete: '.cm-tooltip-autocomplete.cm-tooltip.cm-tooltip-below',
   MoreLessTag: '.pf-v6-c-label-group__label, .pf-v5-c-chip-group__label',
   SectionHeader: '.pf-v6-c-title.pf-m-h2, .co-section-heading',
   TableHeaderColumn: '.pf-v6-c-table__button, .pf-c-table__button',
