@@ -18,7 +18,7 @@ import {
   ExpandableSectionToggle,
 } from '@patternfly/react-core';
 import type { FC } from 'react';
-import { memo, useRef, useState, useCallback, useEffect, useMemo, useContext } from 'react';
+import { memo, useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom-v5-compat';
@@ -50,8 +50,8 @@ import {
 import { t_global_font_size_heading_h2 } from '@patternfly/react-tokens';
 import { GraphEmpty } from '../../../components/console/graphs/graph-empty';
 import { GraphUnits } from '../../../components/metrics/units';
-import { MonitoringContext } from '../../../contexts/MonitoringContext';
 import { LegacyDashboardPageTestIDs } from '../../../components/data-test';
+import { useMonitoring } from '../../../hooks/useMonitoring';
 
 const QueryBrowserLink = ({
   queries,
@@ -102,7 +102,7 @@ const getPanelSpan = (panel: Panel): gridSpans => {
 
 const Card: FC<CardProps> = memo(({ panel, perspective }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { plugin } = useContext(MonitoringContext);
+  const { plugin } = useMonitoring();
 
   const [namespace] = useActiveNamespace();
   const pollInterval = useSelector((state: MonitoringState) =>

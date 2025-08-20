@@ -10,7 +10,7 @@ import { Flex, PageSection } from '@patternfly/react-core';
 import { Table, TableGridBreakpoint, Th, Thead, Tr } from '@patternfly/react-table';
 import * as _ from 'lodash-es';
 import type { FC } from 'react';
-import { useMemo, useContext } from 'react';
+import { useMemo } from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
@@ -34,14 +34,15 @@ import {
 } from './AlertUtils';
 import Error from './Error';
 import useSelectedFilters from './useSelectedFilters';
-import { MonitoringContext, MonitoringProvider } from '../../contexts/MonitoringContext';
+import { MonitoringProvider } from '../../contexts/MonitoringContext';
 import { useAlerts } from '../../hooks/useAlerts';
+import { useMonitoring } from '../../hooks/useMonitoring';
 
 const AlertsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const [namespace] = useActiveNamespace();
   const { defaultAlertTenant, perspective } = usePerspective();
-  const { plugin } = useContext(MonitoringContext);
+  const { plugin } = useMonitoring();
 
   useAlerts();
 

@@ -1,4 +1,4 @@
-import { useContext, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useDispatch } from 'react-redux';
 import { fetchAlertingData } from '../store/thunks';
 import {
@@ -8,7 +8,6 @@ import {
   useActiveNamespace,
   useResolvedExtensions,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { MonitoringContext } from '../contexts/MonitoringContext';
 import {
   buildPrometheusUrl,
   getAlertingContextId,
@@ -16,12 +15,13 @@ import {
   getPrometheusBasePath,
 } from '../components/utils';
 import { usePoll } from '../components/console/utils/poll-hook';
+import { useMonitoring } from './useMonitoring';
 
 const POLLING_INTERVAL_MS = 15 * 1000; // 15 seconds
 
 export const useAlerts = () => {
   const dispatch = useDispatch();
-  const { prometheus } = useContext(MonitoringContext);
+  const { prometheus } = useMonitoring();
   const [namespace] = useActiveNamespace();
   const [customExtensions] =
     useResolvedExtensions<AlertingRulesSourceExtension>(isAlertingRulesSource);

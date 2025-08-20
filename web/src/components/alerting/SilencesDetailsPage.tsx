@@ -1,6 +1,5 @@
 import * as _ from 'lodash-es';
 import type { FC } from 'react';
-import { useContext } from 'react';
 import { useSelector } from 'react-redux';
 
 import {
@@ -49,13 +48,14 @@ import { LoadingInline } from '../console/console-shared/src/components/loading/
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 import { Table, TableVariant, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
 import { useNavigate, useParams, Link } from 'react-router-dom-v5-compat';
-import { MonitoringContext, MonitoringProvider } from '../../contexts/MonitoringContext';
+import { MonitoringProvider } from '../../contexts/MonitoringContext';
 import { DataTestIDs } from '../data-test';
 import { useAlerts } from '../../hooks/useAlerts';
+import { useMonitoring } from '../../hooks/useMonitoring';
 
 const SilencesDetailsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { plugin } = useContext(MonitoringContext);
+  const { plugin } = useMonitoring();
 
   const params = useParams<{ id: string }>();
 

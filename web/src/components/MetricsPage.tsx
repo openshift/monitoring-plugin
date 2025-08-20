@@ -60,7 +60,7 @@ import {
 } from '@patternfly/react-table';
 import * as _ from 'lodash-es';
 import type { FC, Ref } from 'react';
-import { useMemo, useCallback, useEffect, useState, useContext } from 'react';
+import { useMemo, useCallback, useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -119,8 +119,9 @@ import { GraphUnits, isGraphUnit } from './metrics/units';
 import { SimpleSelect, SimpleSelectOption } from '@patternfly/react-templates';
 import { valueFormatter } from './console/console-shared/src/components/query-browser/QueryBrowserTooltip';
 import { ALL_NAMESPACES_KEY } from './utils';
-import { MonitoringContext, MonitoringProvider } from '../contexts/MonitoringContext';
+import { MonitoringProvider } from '../contexts/MonitoringContext';
 import { DataTestIDs } from './data-test';
+import { useMonitoring } from '../hooks/useMonitoring';
 
 // Stores information about the currently focused query input
 let focusedQuery;
@@ -219,7 +220,7 @@ const devQueries = (activeNamespace: string) => {
 
 const PreDefinedQueriesDropdown = () => {
   const [activeNamespace] = useActiveNamespace();
-  const { plugin } = useContext(MonitoringContext);
+  const { plugin } = useMonitoring();
 
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
@@ -273,7 +274,7 @@ const PreDefinedQueriesDropdown = () => {
 
 const MetricsActionsMenu: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { plugin } = useContext(MonitoringContext);
+  const { plugin } = useMonitoring();
 
   const [isOpen, setIsOpen, , setClosed] = useBoolean(false);
 
@@ -341,7 +342,7 @@ const MetricsActionsMenu: FC = () => {
 
 export const ToggleGraph: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { plugin } = useContext(MonitoringContext);
+  const { plugin } = useMonitoring();
 
   const hideGraphs = useSelector(
     (state: MonitoringState) => !!getObserveState(plugin, state)?.get('hideGraphs'),
@@ -378,7 +379,7 @@ export const ToggleGraph: FC = () => {
 
 const SeriesButton: FC<SeriesButtonProps> = ({ index, labels }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { plugin } = useContext(MonitoringContext);
+  const { plugin } = useMonitoring();
 
   const [colorIndex, isDisabled, isSeriesEmpty]: [number | null, boolean, boolean] = useSelector(
     (state: MonitoringState) => {
@@ -430,7 +431,7 @@ const SeriesButton: FC<SeriesButtonProps> = ({ index, labels }) => {
 
 const QueryKebab: FC<{ index: number }> = ({ index }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { plugin } = useContext(MonitoringContext);
+  const { plugin } = useMonitoring();
 
   const isDisabledSeriesEmpty = useSelector((state: MonitoringState) =>
     _.isEmpty(
@@ -623,7 +624,7 @@ const QueryKebab: FC<{ index: number }> = ({ index }) => {
 
 export const QueryTable: FC<QueryTableProps> = ({ index, namespace, customDatasource, units }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { plugin } = useContext(MonitoringContext);
+  const { plugin } = useMonitoring();
 
   const [data, setData] = useState<PrometheusData>();
   const [error, setError] = useState<PrometheusAPIError>();
@@ -926,7 +927,7 @@ const Query: FC<{
   units: GraphUnits;
 }> = ({ index, customDatasource, units }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { plugin } = useContext(MonitoringContext);
+  const { plugin } = useMonitoring();
 
   const id = useSelector((state: MonitoringState) =>
     getObserveState(plugin, state)?.getIn(['queryBrowser', 'queries', index, 'id']),
@@ -1053,7 +1054,7 @@ const QueryBrowserWrapper: FC<{
   units: GraphUnits;
 }> = ({ customDataSourceName, customDataSource, customDatasourceError, units }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { plugin } = useContext(MonitoringContext);
+  const { plugin } = useMonitoring();
 
   const dispatch = useDispatch();
 
@@ -1216,7 +1217,7 @@ const QueriesList: FC<{ customDatasource?: CustomDataSource; units: GraphUnits }
   customDatasource,
   units,
 }) => {
-  const { plugin } = useContext(MonitoringContext);
+  const { plugin } = useMonitoring();
   const count = useSelector(
     (state: MonitoringState) =>
       getObserveState(plugin, state)?.getIn(['queryBrowser', 'queries']).size,
@@ -1240,7 +1241,7 @@ const QueriesList: FC<{ customDatasource?: CustomDataSource; units: GraphUnits }
 };
 
 const IntervalDropdown = () => {
-  const { plugin } = useContext(MonitoringContext);
+  const { plugin } = useMonitoring();
   const dispatch = useDispatch();
   const setInterval = useCallback(
     (v: number) => dispatch(queryBrowserSetPollInterval(v)),

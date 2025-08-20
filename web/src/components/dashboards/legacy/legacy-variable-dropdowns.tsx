@@ -18,7 +18,7 @@ import {
   Split,
 } from '@patternfly/react-core';
 import type { FC, Ref } from 'react';
-import { useCallback, useState, useEffect, useContext } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { Map as ImmutableMap, Map } from 'immutable';
@@ -41,7 +41,7 @@ import {
   DataSource,
   isDataSource,
 } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
-import { MonitoringContext } from '../../../contexts/MonitoringContext';
+import { useMonitoring } from '../../../hooks/useMonitoring';
 import { useDeepMemo } from '../../hooks/useDeepMemo';
 
 const intervalVariableRegExps = ['__interval', '__rate_interval', '__auto_interval_[a-z]+'];
@@ -115,7 +115,7 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({
   perspective,
 }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { plugin } = useContext(MonitoringContext);
+  const { plugin } = useMonitoring();
 
   const timespan = useSelector((state: MonitoringState) =>
     getObserveState(plugin, state)?.getIn(['dashboards', perspective, 'timespan']),
@@ -322,7 +322,7 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({
 export const LegacyDashboardsAllVariableDropdowns: FC = () => {
   const [namespace] = useActiveNamespace();
   const { perspective } = usePerspective();
-  const { plugin } = useContext(MonitoringContext);
+  const { plugin } = useMonitoring();
 
   const variables = useSelector((state: MonitoringState) =>
     Map(getObserveState(plugin, state)?.getIn(['dashboards', perspective, 'variables'])),

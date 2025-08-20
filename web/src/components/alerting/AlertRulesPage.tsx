@@ -14,7 +14,7 @@ import {
 import { sortable, Td } from '@patternfly/react-table';
 import * as _ from 'lodash-es';
 import type { FC } from 'react';
-import { useMemo, useContext } from 'react';
+import { useMemo } from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
@@ -42,9 +42,10 @@ import withFallback from '../console/console-shared/error/fallbacks/withFallback
 import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
 import { getObserveState, getRuleUrl, usePerspective } from '../hooks/usePerspective';
 import { severityRowFilter } from './AlertUtils';
-import { MonitoringContext, MonitoringProvider } from '../../contexts/MonitoringContext';
+import { MonitoringProvider } from '../../contexts/MonitoringContext';
 import { DataTestIDs } from '../data-test';
 import { useAlerts } from '../../hooks/useAlerts';
+import { useMonitoring } from '../../hooks/useMonitoring';
 
 const StateCounts: FC<{ alerts: PrometheusAlert[] }> = ({ alerts }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -124,7 +125,7 @@ const RuleTableRow: FC<RowProps<Rule>> = ({ obj }) => {
 
 const AlertRulesPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { plugin } = useContext(MonitoringContext);
+  const { plugin } = useMonitoring();
   const [namespace] = useActiveNamespace();
 
   const { defaultAlertTenant } = usePerspective();

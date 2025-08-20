@@ -45,7 +45,7 @@ import { ChartLineIcon } from '@patternfly/react-icons';
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
 import type { FC, Ref, ReactNode, KeyboardEvent, MouseEvent, ComponentType } from 'react';
-import { memo, useState, useEffect, useCallback, useLayoutEffect, useContext } from 'react';
+import { memo, useState, useEffect, useCallback, useLayoutEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -89,10 +89,10 @@ import {
   parsePrometheusDuration,
 } from './console/console-shared/src/datetime/prometheus';
 import { getObserveState } from './hooks/usePerspective';
-import { MonitoringContext } from '../contexts/MonitoringContext';
 import './query-browser.scss';
 import { GraphUnits } from './metrics/units';
 import { DataTestIDs } from './data-test';
+import { useMonitoring } from '../hooks/useMonitoring';
 
 const spans = ['5m', '15m', '30m', '1h', '2h', '6h', '12h', '1d', '2d', '1w', '2w'];
 export const colors = queryBrowserTheme.line.colorScale;
@@ -606,7 +606,7 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
   useTenancy = false,
 }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { plugin } = useContext(MonitoringContext);
+  const { plugin } = useMonitoring();
 
   const hideGraphs = useSelector(
     (state: MonitoringState) => !!getObserveState(plugin, state)?.get('hideGraphs'),

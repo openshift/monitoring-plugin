@@ -37,7 +37,6 @@ import {
 import { Table, TableVariant, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
 import * as _ from 'lodash-es';
 import type { FC } from 'react';
-import { useContext } from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
@@ -68,10 +67,11 @@ import KebabDropdown from '../kebab-dropdown';
 import { Labels } from '../labels';
 import { ToggleGraph } from '../MetricsPage';
 import { alertDescription, RuleResource } from '../utils';
-import { MonitoringContext, MonitoringProvider } from '../../contexts/MonitoringContext';
+import { MonitoringProvider } from '../../contexts/MonitoringContext';
 
 import { DataTestIDs } from '../data-test';
 import { useAlerts } from '../../hooks/useAlerts';
+import { useMonitoring } from '../../hooks/useMonitoring';
 
 // Renders Prometheus template text and highlights any {{ ... }} tags that it contains
 const PrometheusTemplate = ({ text }) => (
@@ -147,7 +147,7 @@ export const ActiveAlerts: FC<ActiveAlertsProps> = ({ alerts, namespace, ruleID 
 const AlertRulesDetailsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const params = useParams<{ ns?: string; id: string }>();
-  const { plugin } = useContext(MonitoringContext);
+  const { plugin } = useMonitoring();
 
   useAlerts();
 

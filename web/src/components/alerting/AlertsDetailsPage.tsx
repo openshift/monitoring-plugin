@@ -13,7 +13,7 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import type { FC, ReactNode } from 'react';
-import { useMemo, useContext } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { Link, useNavigate, useParams } from 'react-router-dom-v5-compat';
@@ -27,7 +27,7 @@ import {
   usePerspective,
 } from '../hooks/usePerspective';
 import { AlertResource, alertState, RuleResource } from '../utils';
-import { MonitoringContext, MonitoringProvider } from '../../contexts/MonitoringContext';
+import { MonitoringProvider } from '../../contexts/MonitoringContext';
 
 import {
   Breadcrumb,
@@ -89,12 +89,13 @@ import {
 
 import { DataTestIDs } from '../data-test';
 import { useAlerts } from '../../hooks/useAlerts';
+import { useMonitoring } from '../../hooks/useMonitoring';
 
 const AlertsDetailsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const params = useParams<{ ruleID: string }>();
   const navigate = useNavigate();
-  const { plugin } = useContext(MonitoringContext);
+  const { plugin } = useMonitoring();
 
   const { perspective } = usePerspective();
 

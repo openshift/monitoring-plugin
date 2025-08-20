@@ -1,7 +1,6 @@
 import { Silence, SilenceStates, useActiveNamespace } from '@openshift-console/dynamic-plugin-sdk';
 import { Alert } from '@patternfly/react-core';
 import * as _ from 'lodash-es';
-import { useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom-v5-compat';
@@ -11,8 +10,9 @@ import { getObserveState } from '../hooks/usePerspective';
 import { Silences } from '../types';
 import { SilenceResource, silenceState } from '../utils';
 import { SilenceForm } from './SilenceForm';
-import { MonitoringContext, MonitoringProvider } from '../../contexts/MonitoringContext';
+import { MonitoringProvider } from '../../contexts/MonitoringContext';
 import { useAlerts } from '../../hooks/useAlerts';
+import { useMonitoring } from '../../hooks/useMonitoring';
 
 const pad = (i: number): string => (i < 10 ? `0${i}` : String(i));
 
@@ -35,7 +35,7 @@ const EditInfo = () => {
 
 const SilenceEditPage = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { plugin } = useContext(MonitoringContext);
+  const { plugin } = useMonitoring();
   const params = useParams();
   const [namespace] = useActiveNamespace();
 

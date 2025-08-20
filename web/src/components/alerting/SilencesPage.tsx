@@ -22,7 +22,7 @@ import {
 import { sortable } from '@patternfly/react-table';
 import * as _ from 'lodash-es';
 import type { FC } from 'react';
-import { useState, useMemo, useContext, useCallback, memo } from 'react';
+import { useContext, useState, useMemo, useCallback, memo } from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
@@ -40,13 +40,14 @@ import {
 import { Silences } from '../types';
 import { fuzzyCaseInsensitive, silenceCluster, silenceState } from '../utils';
 import { SelectedSilencesContext, SilenceTableRow } from './SilencesUtils';
-import { MonitoringContext, MonitoringProvider } from '../../contexts/MonitoringContext';
+import { MonitoringProvider } from '../../contexts/MonitoringContext';
 import { DataTestIDs } from '../data-test';
 import { useAlerts } from '../../hooks/useAlerts';
+import { useMonitoring } from '../../hooks/useMonitoring';
 
 const SilencesPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { plugin } = useContext(MonitoringContext);
+  const { plugin } = useMonitoring();
   const [namespace] = useActiveNamespace();
 
   const { perspective } = usePerspective();

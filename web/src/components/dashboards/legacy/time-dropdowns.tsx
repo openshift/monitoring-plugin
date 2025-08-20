@@ -2,7 +2,7 @@ import { Stack, StackItem } from '@patternfly/react-core';
 import { SimpleSelect, SimpleSelectOption } from '@patternfly/react-templates';
 import * as _ from 'lodash-es';
 import type { FC } from 'react';
-import { useCallback, useMemo, useState, useContext } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { NumberParam, useQueryParam } from 'use-query-params';
@@ -21,8 +21,8 @@ import { useBoolean } from '../../hooks/useBoolean';
 import { getObserveState, usePerspective } from '../../hooks/usePerspective';
 import { QueryParams } from '../../query-params';
 import CustomTimeRangeModal from './custom-time-range-modal';
-import { MonitoringContext } from '../../../contexts/MonitoringContext';
 import { LegacyDashboardPageTestIDs } from '../../data-test';
+import { useMonitoring } from '../../../hooks/useMonitoring';
 
 const CUSTOM_TIME_RANGE_KEY = 'CUSTOM_TIME_RANGE_KEY';
 const DEFAULT_TIMERANGE = '30m';
@@ -31,7 +31,7 @@ export const TimespanDropdown: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const { perspective } = usePerspective();
-  const { plugin } = useContext(MonitoringContext);
+  const { plugin } = useMonitoring();
 
   const [isModalOpen, , setModalOpen, setModalClosed] = useBoolean(false);
 

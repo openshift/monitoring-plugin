@@ -1,13 +1,14 @@
 import { PageSection, Title } from '@patternfly/react-core';
 import type { FC } from 'react';
-import { lazy, useContext } from 'react';
+import { lazy } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   HorizontalNav,
   NamespaceBar,
   useActivePerspective,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { MonitoringContext, MonitoringProvider } from '../../contexts/MonitoringContext';
+import { MonitoringProvider } from '../../contexts/MonitoringContext';
+import { useMonitoring } from '../../hooks/useMonitoring';
 
 const CmoAlertsPage = lazy(() =>
   import(/* webpackChunkName: "CmoAlertsPage" */ './AlertsPage').then((module) => ({
@@ -45,7 +46,7 @@ const AlertingPage: FC = () => {
 
   const [perspective] = useActivePerspective();
 
-  const { plugin } = useContext(MonitoringContext);
+  const { plugin } = useMonitoring();
 
   // contextId allow console.tab extensions to be injected
   // https://github.com/openshift/console/blob/main/frontend/packages/console-dynamic-plugin-sdk/docs/console-extensions.md#consoletab

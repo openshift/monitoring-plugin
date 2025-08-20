@@ -33,7 +33,7 @@ import { ExclamationCircleIcon, MinusCircleIcon, PlusCircleIcon } from '@pattern
 import { t_global_spacer_sm } from '@patternfly/react-tokens';
 import * as _ from 'lodash-es';
 import type { ComponentType, FC, FormEventHandler, MouseEvent, ChangeEvent, Ref } from 'react';
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { Trans, useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
@@ -47,9 +47,9 @@ import { ExternalLink } from '../console/utils/link';
 import { useBoolean } from '../hooks/useBoolean';
 import { getSilenceAlertUrl, usePerspective } from '../hooks/usePerspective';
 import { DataTestIDs } from '../data-test';
-import { MonitoringContext } from '../../contexts/MonitoringContext';
 import { getAlertmanagerSilencesUrl } from '../utils';
 import { useAlerts } from '../../hooks/useAlerts';
+import { useMonitoring } from '../../hooks/useMonitoring';
 
 type Matcher = {
   isRegex: boolean;
@@ -161,7 +161,7 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title }) => {
   }
 
   const { perspective } = usePerspective();
-  const { prometheus } = useContext(MonitoringContext);
+  const { prometheus } = useMonitoring();
 
   const [isOpen, setIsOpen, , setClosed] = useBoolean(false);
 
