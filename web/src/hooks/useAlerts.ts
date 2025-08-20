@@ -39,7 +39,7 @@ export const useAlerts = () => {
 
   const rulesUrl = buildPrometheusUrl({
     prometheusUrlProps: { endpoint: PrometheusEndpoint.RULES, namespace },
-    basePath: getPrometheusBasePath({ prometheus }),
+    basePath: getPrometheusBasePath({ prometheus, namespace }),
   });
   const silencesUrl = getAlertmanagerSilencesUrl({ prometheus, namespace });
 

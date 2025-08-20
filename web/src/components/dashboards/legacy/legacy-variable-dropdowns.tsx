@@ -148,7 +148,7 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({
         if (!customDataSourceName) {
           return buildPrometheusUrl({
             prometheusUrlProps: prometheusProps,
-            basePath: getPrometheusBasePath({ prometheus: 'cmo', namespace }),
+            basePath: getPrometheusBasePath({ prometheus: 'cmo' }),
           });
         } else if (extensionsResolved && hasExtensions) {
           const extension = extensions.find(
@@ -165,7 +165,6 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({
             prometheusUrlProps: prometheusProps,
             basePath: getPrometheusBasePath({
               prometheus: 'cmo',
-              namespace,
               basePathOverride: dataSource?.basePath,
             }),
           });

@@ -603,6 +603,7 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
   units,
   onDataChange,
   isPlain = false,
+  useTenancy = false,
 }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { plugin } = useContext(MonitoringContext);
@@ -705,7 +706,7 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
                 },
                 basePath: getPrometheusBasePath({
                   prometheus: 'cmo',
-                  namespace: activeNamespace,
+                  namespace: useTenancy ? activeNamespace : '',
                   basePathOverride: customDataSource?.basePath,
                 }),
               }),
@@ -1103,6 +1104,7 @@ export type QueryBrowserProps = {
   units?: GraphUnits;
   onDataChange?: (data: any) => void;
   isPlain?: boolean;
+  useTenancy?: boolean;
 };
 
 type SpanControlsProps = {

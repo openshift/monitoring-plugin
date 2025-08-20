@@ -122,7 +122,6 @@ const SingleStat: FC<Props> = ({ customDataSource, namespace, panel, pollInterva
     },
     basePath: getPrometheusBasePath({
       prometheus: 'cmo',
-      namespace,
       basePathOverride: customDataSource?.basePath,
     }),
   });

@@ -1171,6 +1171,7 @@ const QueryBrowserWrapper: FC<{
       units={units}
       showStackedControl
       showDisconnectedControl
+      useTenancy
     />
   );
 };

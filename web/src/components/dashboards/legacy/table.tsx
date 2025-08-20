@@ -91,7 +91,6 @@ const Table: FC<Props> = ({ customDataSource, panel, pollInterval, queries, name
               },
               basePath: getPrometheusBasePath({
                 prometheus: 'cmo',
-                namespace,
                 basePathOverride: customDataSource?.basePath,
               }),
             }),
