@@ -281,7 +281,7 @@ const silenceFiringAlerts = (firingAlerts: Array<Alert>, silences): Array<Alert>
   // and set its state to show it is silenced
   _.each(firingAlerts, (a) => {
     a.silencedBy = _.filter(
-      _.get(silences, 'data'),
+      silences,
       (s) => _.get(s, 'status.state') === SilenceStates.Active && isSilenced(a, s),
     );
     if (a.silencedBy.length) {
@@ -295,7 +295,7 @@ const silenceFiringAlerts = (firingAlerts: Array<Alert>, silences): Array<Alert>
       if (!_.isEmpty(a.rule.alerts) && _.every(a.rule.alerts, isSilenced)) {
         a.rule.state = RuleStates.Silenced;
         a.rule.silencedBy = _.filter(
-          silences?.data,
+          silences,
           (s) => s.status.state === SilenceStates.Active && _.some(a.rule.alerts, isSilenced),
         );
       }
