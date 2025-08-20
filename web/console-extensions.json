@@ -246,6 +246,7 @@
     "type": "console.tab",
     "properties": {
       "contextId": "dev-console-observe",
+      // t('Alerting Rules')
       "name": "%plugin__monitoring-plugin~Alerting Rules%",
       "href": "alertrules",
       "component": {
