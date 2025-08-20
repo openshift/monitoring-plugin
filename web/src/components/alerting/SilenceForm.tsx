@@ -180,7 +180,7 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title }) => {
   const [startsAt, setStartsAt] = useState(defaults.startsAt ?? formatDate(now));
   const user = useSelector(getUser);
   const [namespace] = useActiveNamespace();
-  const { trigger: refetchSilences } = useAlerts();
+  const { trigger: refetchSilencesAndAlerts } = useAlerts();
 
   useEffect(() => {
     if (!createdBy && user) {
@@ -254,7 +254,7 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title }) => {
       .post(getAlertmanagerSilencesUrl({ prometheus, namespace }), body)
       .then(({ silenceID }) => {
         setError(undefined);
-        refetchSilences();
+        refetchSilencesAndAlerts();
         navigate(getSilenceAlertUrl(perspective, silenceID, namespace));
       })
       .catch((err) => {

@@ -306,7 +306,7 @@ const silenceClusterOrder = (clusters: Array<string>) => {
 
 const ExpireAllSilencesButton: FC<ExpireAllSilencesButtonProps> = ({ setErrorMessage }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { trigger: refetchSilences } = useAlerts();
+  const { trigger: refetchSilencesAndAlerts } = useAlerts();
 
   const { perspective } = usePerspective();
 
@@ -325,7 +325,7 @@ const ExpireAllSilencesButton: FC<ExpireAllSilencesButtonProps> = ({ setErrorMes
     ).then((values) => {
       setNotInProgress();
       setSelectedSilences(new Set());
-      refetchSilences();
+      refetchSilencesAndAlerts();
       const errors = values
         .filter((v) => v.status === 'rejected')
         .map((v: PromiseRejectedResult) => v.reason);
