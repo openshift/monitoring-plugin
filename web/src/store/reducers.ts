@@ -68,15 +68,15 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
     case ActionType.DashboardsVariableOptionsLoaded: {
       const { key, newOptions, perspective } = action.payload;
       const val = state.get('dashboards').get(perspective).get('variables').get(key);
-      const patch = _.isEqual(val.options, newOptions)
+      const patch = _.isEqual(val?.options, newOptions)
         ? { isLoading: false }
         : {
             isLoading: false,
             options: newOptions,
             value:
-              val.value === MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY ||
-              newOptions.includes(val.value)
-                ? val.value
+              val?.value === MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY ||
+              newOptions.includes(val?.value)
+                ? val?.value
                 : newOptions[0],
           };
       return state.mergeIn(['dashboards', perspective, 'variables', key], Map(patch));
