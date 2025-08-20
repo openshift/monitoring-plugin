@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-import * as React from 'react';
 import {
   ChartsProvider,
   generateChartsTheme,
@@ -234,7 +233,7 @@ export function PersesPrometheusDatasourceWrapper({
   dashboardResource,
 }: PersesPrometheusDatasourceWrapperProps) {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const datasourceApi = React.useMemo(() => {
+  const datasourceApi = useMemo(() => {
     return new CachedDatasourceAPI(new OcpDatasourceApi(t, PERSES_PROXY_BASE_PATH));
   }, [t]);
 
