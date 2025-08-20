@@ -7,6 +7,7 @@ import { MONITORING_DASHBOARDS_DEFAULT_TIMESPAN } from '../components/dashboards
 import { Alert, PrometheusLabels, Rule } from '@openshift-console/dynamic-plugin-sdk';
 import { Silences } from '../components/types';
 import { DaysFilters, IncidentFilters } from '../components/Incidents/model';
+import { Variable } from '../components/dashboards/legacy/legacy-variable-dropdowns';
 
 type Namespace = '#ALL_NS#' | string;
 
@@ -28,7 +29,7 @@ export type ObserveState = MapOf<{
       endTime: string | null;
       pollInterval: number;
       timespan: number;
-      variables: Map<string, any>;
+      variables: Map<string, Variable>;
     }>
   >;
   incidentsData: MapOf<{

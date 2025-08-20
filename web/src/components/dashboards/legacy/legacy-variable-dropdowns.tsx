@@ -18,10 +18,10 @@ import {
   Split,
 } from '@patternfly/react-core';
 import type { FC, Ref } from 'react';
-import { useCallback, useState, useEffect, useContext } from 'react';
+import { useCallback, useState, useEffect, useContext, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { Map as ImmutableMap } from 'immutable';
+import { Map as ImmutableMap, Map } from 'immutable';
 
 import { SingleTypeaheadDropdown } from '../../console/utils/single-typeahead-dropdown';
 import { getPrometheusBasePath, buildPrometheusUrl } from '../../utils';
@@ -123,8 +123,12 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({
   const variables = useSelector((state: MonitoringState) =>
     getObserveState(plugin, state)?.get('dashboards')?.get(perspective)?.get('variables'),
   );
-  const variable = variables?.toJS()[name];
-  const query = evaluateVariableTemplate(variable.query, variables, timespan);
+  const variable = variables?.toJS()?.[name] as Variable;
+  const options = useMemo(() => {
+    return variable?.options ?? [];
+  }, variable?.options);
+
+  const query = evaluateVariableTemplate(variable?.query, variables, timespan);
 
   const dispatch = useDispatch();
 
@@ -245,36 +249,36 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({
     query,
     safeFetch,
     timespan,
-    variable.includeAll,
-    variable.options,
+    variable?.includeAll,
+    options,
   ]);
 
   useEffect(() => {
-    if (variable.value && variable.value !== getQueryArgument(name)) {
-      setQueryArgument(name, variable.value);
+    if (variable?.value && variable?.value !== getQueryArgument(name)) {
+      setQueryArgument(name, variable?.value);
     }
-  }, [perspective, name, variable.value]);
+  }, [perspective, name, variable?.value]);
 
   const onChange = useCallback(
     (v: string) => {
-      if (v !== variable.value) {
+      if (v !== variable?.value) {
         setQueryArgument(name, v);
         dispatch(dashboardsPatchVariable(name, { value: v }, perspective));
       }
     },
-    [perspective, dispatch, name, variable.value],
+    [perspective, dispatch, name, variable?.value],
   );
 
-  if (variable.isHidden || (!isError && _.isEmpty(variable.options))) {
+  if (variable?.isHidden || (!isError && _.isEmpty(variable?.options))) {
     return null;
   }
 
   const items = (
-    variable.includeAll
+    variable?.includeAll
       ? [{ value: MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY, children: 'All' }]
       : []
   ).concat(
-    _.map(variable.options, (option) => ({
+    _.map(variable?.options, (option) => ({
       value: option,
       children: option,
     })),
@@ -302,7 +306,7 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({
               items={items}
               onChange={onChange}
               OptionComponent={LegacyDashboardsVariableOption}
-              selectedKey={variable.value}
+              selectedKey={variable?.value}
               hideClearButton
               resizeToFit
               placeholder={t('Select a dashboard from the dropdown')}
@@ -321,7 +325,7 @@ export const LegacyDashboardsAllVariableDropdowns: FC = () => {
   const { plugin } = useContext(MonitoringContext);
 
   const variables = useSelector((state: MonitoringState) =>
-    getObserveState(plugin, state)?.get('dashboards')?.get(perspective)?.get('variables'),
+    Map(getObserveState(plugin, state)?.getIn(['dashboards', perspective, 'variables'])),
   );
 
   if (!variables) {
@@ -343,12 +347,14 @@ export const LegacyDashboardsAllVariableDropdowns: FC = () => {
   );
 };
 
-type Variable = {
+export type Variable = {
   isHidden?: boolean;
   isLoading?: boolean;
+  includeAll?: boolean;
   options?: string[];
   query?: string;
   value?: string;
+  datasource?: any;
 };
 
 type VariableDropdownProps = {

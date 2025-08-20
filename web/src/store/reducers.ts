@@ -26,54 +26,57 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
   };
 
   switch (action.type) {
-    case ActionType.DashboardsPatchVariable:
+    case ActionType.DashboardsPatchVariable: {
       return state.mergeIn(
         ['dashboards', action.payload.perspective, 'variables', action.payload.key],
         Map(action.payload.patch),
       );
+    }
 
-    case ActionType.DashboardsPatchAllVariables:
+    case ActionType.DashboardsPatchAllVariables: {
       return state.setIn(
         ['dashboards', action.payload.perspective, 'variables'],
         Map(action.payload.variables),
       );
+    }
 
-    case ActionType.DashboardsClearVariables:
+    case ActionType.DashboardsClearVariables: {
       return state.setIn(['dashboards', action.payload.perspective, 'variables'], Map());
+    }
 
-    case ActionType.DashboardsSetEndTime:
+    case ActionType.DashboardsSetEndTime: {
       return state.setIn(
         ['dashboards', action.payload.perspective, 'endTime'],
         action.payload.endTime,
       );
+    }
 
-    case ActionType.DashboardsSetPollInterval:
+    case ActionType.DashboardsSetPollInterval: {
       return state.setIn(
         ['dashboards', action.payload.perspective, 'pollInterval'],
         action.payload.pollInterval,
       );
+    }
 
-    case ActionType.DashboardsSetTimespan:
+    case ActionType.DashboardsSetTimespan: {
       return state.setIn(
         ['dashboards', action.payload.perspective, 'timespan'],
         action.payload.timespan,
       );
+    }
 
     case ActionType.DashboardsVariableOptionsLoaded: {
       const { key, newOptions, perspective } = action.payload;
-      const { options = [], value } = state
-        .get('dashboards')
-        .get(perspective)
-        .get('variables')
-        .get(key);
-      const patch = _.isEqual(options, newOptions)
+      const val = state.get('dashboards').get(perspective).get('variables').get(key);
+      const patch = _.isEqual(val.options, newOptions)
         ? { isLoading: false }
         : {
             isLoading: false,
             options: newOptions,
             value:
-              value === MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY || newOptions.includes(value)
-                ? value
+              val.value === MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY ||
+              newOptions.includes(val.value)
+                ? val.value
                 : newOptions[0],
           };
       return state.mergeIn(['dashboards', perspective, 'variables', key], Map(patch));
@@ -112,11 +115,12 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
     case ActionType.ShowGraphs:
       return state.set('hideGraphs', false);
 
-    case ActionType.QueryBrowserAddQuery:
+    case ActionType.QueryBrowserAddQuery: {
       return state.setIn(
         ['queryBrowser', 'queries'],
         state.getIn(['queryBrowser', 'queries']).push(newQueryBrowserQuery()),
       );
+    }
 
     case ActionType.QueryBrowserDuplicateQuery: {
       const index = action.payload.index;
@@ -131,8 +135,9 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
       );
     }
 
-    case ActionType.QueryBrowserDeleteAllQueries:
+    case ActionType.QueryBrowserDeleteAllQueries: {
       return state.setIn(['queryBrowser', 'queries'], List([newQueryBrowserQuery()]));
+    }
 
     case ActionType.QueryBrowserDeleteAllSeries: {
       return state.setIn(
@@ -149,8 +154,9 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
       return state.setIn(['queryBrowser', 'queries'], queries);
     }
 
-    case ActionType.QueryBrowserDismissNamespaceAlert:
+    case ActionType.QueryBrowserDismissNamespaceAlert: {
       return state.setIn(['queryBrowser', 'dismissNamespaceAlert'], true);
+    }
 
     case ActionType.QueryBrowserPatchQuery: {
       const { index, patch } = action.payload;
@@ -177,14 +183,17 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
       return state.setIn(['queryBrowser', 'queries'], queries);
     }
 
-    case ActionType.QueryBrowserSetMetrics:
+    case ActionType.QueryBrowserSetMetrics: {
       return state.setIn(['queryBrowser', 'metrics'], action.payload.metrics);
+    }
 
-    case ActionType.QueryBrowserSetPollInterval:
+    case ActionType.QueryBrowserSetPollInterval: {
       return state.setIn(['queryBrowser', 'pollInterval'], action.payload.pollInterval);
+    }
 
-    case ActionType.QueryBrowserSetTimespan:
+    case ActionType.QueryBrowserSetTimespan: {
       return state.setIn(['queryBrowser', 'timespan'], action.payload.timespan);
+    }
 
     case ActionType.QueryBrowserToggleAllSeries: {
       const index = action.payload.index;
