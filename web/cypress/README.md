@@ -17,7 +17,7 @@ node_modules/     -> dependencies will be installed at runtime here
 ## Running locally
 
 ### Export necessary variables
-in order to run Cypress tests, we need to export some environment variables that Cypress can read then pass down to our tests, currently we have following environment variables defined and used.
+in order to run Cypress tests, we need to export some environment variables that Cypress can read then pass down to our tests, currently we have following environment variables defined and used. 
 
 Using a non-admin user.
 ```bash
@@ -61,6 +61,28 @@ Set the following var to use custom Monitoring Console Plugin UI plugin image. T
 ```bash
 export CYPRESS_MCP_CONSOLE_IMAGE=<Monitoring Console Plugin image>
 ```
+
+### Environment Configuration Script
+
+The `configure-env.sh` script provides an interactive way to set up all the required environment variables. This script eliminates the need to manually export each variable and helps find the correct kubeconfig file.
+
+**Features:**
+- Automatic prompting for all CYPRESS_ variables
+- Automatic discovery and numbered selection of `*kubeconfig*` files in `$HOME/Downloads` dir
+
+**Usage:**
+```bash
+# Note: source command requires Bash shell
+source ./configure-env.sh
+```
+To export variables directly (Bash only).
+
+**File generation**
+```bash
+./configure-env.sh
+```
+Creates an export file you can source later. (`source "export-env.sh`)
+
 
 ### Before running cypress
 - Make sure cluster's kubeconfig file is located at the correct environment variable / path you have exported
