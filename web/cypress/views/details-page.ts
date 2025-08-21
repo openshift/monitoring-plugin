@@ -114,22 +114,4 @@ export const detailsPage = {
     cy.log('detailsPage.clickSilenceAlertButton');
     cy.byTestID(DataTestIDs.SilenceButton).should('be.visible').click();
   },
-
-  clickResetZoomButton:()=>{
-    cy.log('detailsPage.clickResetZoomButton');
-    cy.byTestID(DataTestIDs.MetricResetZoomButton).should('be.visible').click();
-  },
-
-  clickHideGraphButton:()=>{
-    cy.log('detailsPage.clickHideGraphButton');
-    cy.byTestID(DataTestIDs.MetricHideShowGraphButton).should('be.visible').click();
-    cy.get(Classes.GraphCard).should('not.exist');
-  },
-
-  clickShowGraphButton:()=>{
-    cy.log('detailsPage.clickShowGraphButton');
-    cy.byTestID(DataTestIDs.MetricHideShowGraphButton).should('be.visible').click();
-    cy.get(Classes.GraphCard).should('be.visible');
-  },
-
 };

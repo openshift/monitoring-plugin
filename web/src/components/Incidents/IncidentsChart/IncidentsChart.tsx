@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 
 import {
   Chart,
@@ -46,34 +46,34 @@ const IncidentsChart = ({
   theme: 'light' | 'dark';
 }) => {
   const dispatch = useDispatch();
-  const [isLoading, setIsLoading] = React.useState(true);
-  const [chartContainerHeight, setChartContainerHeight] = React.useState<number>();
-  const [chartHeight, setChartHeight] = React.useState<number>();
-  const dateValues = React.useMemo(() => generateDateArray(chartDays), [chartDays]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [chartContainerHeight, setChartContainerHeight] = useState<number>();
+  const [chartHeight, setChartHeight] = useState<number>();
+  const dateValues = useMemo(() => generateDateArray(chartDays), [chartDays]);
 
-  const chartData = React.useMemo(() => {
+  const chartData = useMemo(() => {
     if (!Array.isArray(incidentsData) || incidentsData.length === 0) return [];
     return incidentsData.map((incident) => createIncidentsChartBars(incident, dateValues));
   }, [incidentsData, dateValues]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setIsLoading(false);
   }, [incidentsData]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setChartContainerHeight(chartData?.length < 5 ? 300 : chartData?.length * 60);
     setChartHeight(chartData?.length < 5 ? 250 : chartData?.length * 55);
   }, [chartData]);
 
-  const [width, setWidth] = React.useState(0);
-  const containerRef = React.useRef(null);
+  const [width, setWidth] = useState(0);
+  const containerRef = useRef(null);
 
   const handleResize = () => {
     if (containerRef.current && containerRef.current.clientWidth) {
       setWidth(containerRef.current.clientWidth);
     }
   };
-  React.useEffect(() => {
+  useEffect(() => {
     const observer = getResizeObserver(containerRef.current, handleResize);
     handleResize();
     return () => observer();
@@ -86,7 +86,7 @@ const IncidentsChart = ({
     state.plugins.mcp.getIn(['incidentsData', 'incidentsActiveFilters']),
   );
 
-  const isHidden = React.useCallback(
+  const isHidden = useCallback(
     (group_id) => selectedId !== '' && selectedId !== group_id,
     [selectedId],
   );
@@ -109,7 +109,7 @@ const IncidentsChart = ({
     }
   };
 
-  const getOpacity = React.useCallback(
+  const getOpacity = useCallback(
     (datum) => (datum.fillOpacity = isHidden(datum.group_id) ? '0.3' : '1'),
     [isHidden],
   );

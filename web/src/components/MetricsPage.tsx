@@ -58,7 +58,8 @@ import {
   wrappable,
 } from '@patternfly/react-table';
 import * as _ from 'lodash-es';
-import * as React from 'react';
+import type { FC, Ref } from 'react';
+import { useMemo, useCallback, useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -219,7 +220,7 @@ const PreDefinedQueriesDropdown = () => {
 
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
-  const queries: SelectOptionProps[] = React.useMemo(() => {
+  const queries: SelectOptionProps[] = useMemo(() => {
     switch (perspective) {
       case 'dev':
         return devQueries(activeNamespace);
@@ -273,7 +274,7 @@ const PreDefinedQueriesDropdown = () => {
   );
 };
 
-const MetricsActionsMenu: React.FC = () => {
+const MetricsActionsMenu: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
 
@@ -286,7 +287,7 @@ const MetricsActionsMenu: React.FC = () => {
   );
 
   const dispatch = useDispatch();
-  const addQuery = React.useCallback(() => dispatch(queryBrowserAddQuery()), [dispatch]);
+  const addQuery = useCallback(() => dispatch(queryBrowserAddQuery()), [dispatch]);
 
   const doDelete = () => {
     dispatch(queryBrowserDeleteAllQueries());
@@ -298,7 +299,7 @@ const MetricsActionsMenu: React.FC = () => {
       isOpen={isOpen}
       onSelect={setClosed}
       onOpenChange={(open: boolean) => (open ? setIsOpen() : setClosed())}
-      toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+      toggle={(toggleRef: Ref<MenuToggleElement>) => (
         <MenuToggle
           ref={toggleRef}
           onClick={setIsOpen}
@@ -341,7 +342,7 @@ const MetricsActionsMenu: React.FC = () => {
   );
 };
 
-export const ToggleGraph: React.FC = () => {
+export const ToggleGraph: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
 
@@ -350,11 +351,11 @@ export const ToggleGraph: React.FC = () => {
   );
 
   const dispatch = useDispatch();
-  const toggle = React.useCallback(() => dispatch(toggleGraphs()), [dispatch]);
+  const toggle = useCallback(() => dispatch(toggleGraphs()), [dispatch]);
 
   // Use an empty useEffect to get access to the cleanup function so that if graphs are
   // currently hidden then we show the graphs as we unmount
-  React.useEffect(() => {
+  useEffect(() => {
     return () => {
       dispatch(showGraphs());
     };
@@ -378,7 +379,7 @@ export const ToggleGraph: React.FC = () => {
   );
 };
 
-const SeriesButton: React.FC<SeriesButtonProps> = ({ index, labels }) => {
+const SeriesButton: FC<SeriesButtonProps> = ({ index, labels }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
 
@@ -406,7 +407,7 @@ const SeriesButton: React.FC<SeriesButtonProps> = ({ index, labels }) => {
   );
 
   const dispatch = useDispatch();
-  const toggleSeries = React.useCallback(
+  const toggleSeries = useCallback(
     () => dispatch(queryBrowserToggleSeries(index, labels)),
     [dispatch, index, labels],
   );
@@ -430,7 +431,7 @@ const SeriesButton: React.FC<SeriesButtonProps> = ({ index, labels }) => {
   );
 };
 
-const QueryKebab: React.FC<{ index: number }> = ({ index }) => {
+const QueryKebab: FC<{ index: number }> = ({ index }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
 
@@ -468,22 +469,22 @@ const QueryKebab: React.FC<{ index: number }> = ({ index }) => {
 
   const dispatch = useDispatch();
 
-  const toggleIsEnabled = React.useCallback(
+  const toggleIsEnabled = useCallback(
     () => dispatch(queryBrowserToggleIsEnabled(index)),
     [dispatch, index],
   );
 
-  const toggleAllSeries = React.useCallback(
+  const toggleAllSeries = useCallback(
     () => dispatch(queryBrowserToggleAllSeries(index)),
     [dispatch, index],
   );
 
-  const doDelete = React.useCallback(() => {
+  const doDelete = useCallback(() => {
     dispatch(queryBrowserDeleteQuery(index));
     focusedQuery = undefined;
   }, [dispatch, index]);
 
-  const doClone = React.useCallback(() => {
+  const doClone = useCallback(() => {
     dispatch(queryBrowserDuplicateQuery(index));
   }, [dispatch, index]);
 
@@ -625,20 +626,15 @@ const QueryKebab: React.FC<{ index: number }> = ({ index }) => {
   return <KebabDropdown dropdownItems={dropdownItems} />;
 };
 
-export const QueryTable: React.FC<QueryTableProps> = ({
-  index,
-  namespace,
-  customDatasource,
-  units,
-}) => {
+export const QueryTable: FC<QueryTableProps> = ({ index, namespace, customDatasource, units }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
 
-  const [data, setData] = React.useState<PrometheusData>();
-  const [error, setError] = React.useState<PrometheusAPIError>();
-  const [page, setPage] = React.useState(1);
-  const [perPage, setPerPage] = React.useState(50);
-  const [sortBy, setSortBy] = React.useState<ISortBy>({});
+  const [data, setData] = useState<PrometheusData>();
+  const [error, setError] = useState<PrometheusAPIError>();
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(50);
+  const [sortBy, setSortBy] = useState<ISortBy>({});
   const valueFormat = valueFormatter(units);
 
   const isEnabled = useSelector((state: MonitoringState) =>
@@ -676,7 +672,7 @@ export const QueryTable: React.FC<QueryTableProps> = ({
 
   const dispatch = useDispatch();
 
-  const toggleAllSeries = React.useCallback(
+  const toggleAllSeries = useCallback(
     () => dispatch(queryBrowserToggleAllSeries(index)),
     [dispatch, index],
   );
@@ -693,7 +689,7 @@ export const QueryTable: React.FC<QueryTableProps> = ({
   );
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const safeFetch = React.useCallback(useSafeFetch(), []);
+  const safeFetch = useCallback(useSafeFetch(), []);
 
   // If the namespace is defined getPrometheusURL will use
   // the PROMETHEUS_TENANCY_BASE_PATH for requests in the developer view
@@ -725,7 +721,7 @@ export const QueryTable: React.FC<QueryTableProps> = ({
 
   usePoll(tick, pollInterval, namespace, query, span, lastRequestTime);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setData(undefined);
     setError(undefined);
     setPage(1);
@@ -868,7 +864,7 @@ export const QueryTable: React.FC<QueryTableProps> = ({
         variant="link"
         isInline
         onClick={toggleAllSeries}
-        data-test={DataTestIDs.MetricsPageSelectAllUnselectAllDropdownItem}
+        data-test={DataTestIDs.MetricsPageSelectAllUnselectAllButton}
       >
         {isDisabledSeriesEmpty ? t('Unselect all') : t('Select all')}
       </Button>
@@ -941,7 +937,7 @@ const PromQLExpressionInput = (props) => (
   />
 );
 
-const Query: React.FC<{
+const Query: FC<{
   index: number;
   customDatasource?: CustomDataSource;
   units: GraphUnits;
@@ -977,19 +973,19 @@ const Query: React.FC<{
 
   const dispatch = useDispatch();
 
-  const toggleIsEnabled = React.useCallback(
+  const toggleIsEnabled = useCallback(
     () => dispatch(queryBrowserToggleIsEnabled(index)),
     [dispatch, index],
   );
 
-  const handleTextChange = React.useCallback(
+  const handleTextChange = useCallback(
     (value: string) => {
       dispatch(queryBrowserPatchQuery(index, { text: value }));
     },
     [dispatch, index],
   );
 
-  const handleExecuteQueries = React.useCallback(() => {
+  const handleExecuteQueries = useCallback(() => {
     dispatch(queryBrowserRunQueries());
   }, [dispatch]);
 
@@ -1041,7 +1037,7 @@ const Query: React.FC<{
           buttonProps={{ isInline: true }}
           id={`toggle-${queryId}`}
           aria-controls={`query-expand-${queryId}`}
-          data-test={DataTestIDs.MetricsPageExpandCollapseAllButton}
+          data-test={DataTestIDs.MetricsPageExpandCollapseRowButton}
         />
         <DataListItemCells
           dataListCells={[
@@ -1080,7 +1076,7 @@ const Query: React.FC<{
   );
 };
 
-const QueryBrowserWrapper: React.FC<{
+const QueryBrowserWrapper: FC<{
   customDataSourceName: string;
   customDataSource: CustomDataSource;
   customDatasourceError: boolean;
@@ -1101,7 +1097,7 @@ const QueryBrowserWrapper: React.FC<{
   const queries = queriesList.toJS();
 
   // Initialize queries from URL parameters
-  React.useEffect(() => {
+  useEffect(() => {
     dispatch(queryBrowserDeleteAllQueries());
     const searchParams = getAllQueryArguments();
     for (let i = 0; _.has(searchParams, `query${i}`); i++) {
@@ -1121,18 +1117,15 @@ const QueryBrowserWrapper: React.FC<{
   // Use React.useMemo() to prevent these two arrays being recreated on every render, which would
   // trigger unnecessary re-renders of QueryBrowser, which can be quite slow
   const queriesMemoKey = JSON.stringify(_.map(queries, 'query'));
-  const queryStrings = React.useMemo(() => _.map(queries, 'query'), [queriesMemoKey]);
+  const queryStrings = useMemo(() => _.map(queries, 'query'), [queriesMemoKey]);
   const disabledSeriesMemoKey = JSON.stringify(
     _.reject(_.map(queries, 'disabledSeries'), _.isEmpty),
   );
-  const disabledSeries = React.useMemo(
-    () => _.map(queries, 'disabledSeries'),
-    [disabledSeriesMemoKey],
-  );
+  const disabledSeries = useMemo(() => _.map(queries, 'disabledSeries'), [disabledSeriesMemoKey]);
   /* eslint-enable react-hooks/exhaustive-deps */
 
   // Update the URL parameters when the queries shown in the graph change
-  React.useEffect(() => {
+  useEffect(() => {
     const newParams: Record<string, string> = {};
     _.each(queryStrings, (q, i) => (newParams[`query${i}`] = q || ''));
     if (customDataSourceName) {
@@ -1208,11 +1201,11 @@ const QueryBrowserWrapper: React.FC<{
   );
 };
 
-const AddQueryButton: React.FC = () => {
+const AddQueryButton: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const dispatch = useDispatch();
-  const addQuery = React.useCallback(() => dispatch(queryBrowserAddQuery()), [dispatch]);
+  const addQuery = useCallback(() => dispatch(queryBrowserAddQuery()), [dispatch]);
 
   return (
     <Button
@@ -1226,11 +1219,11 @@ const AddQueryButton: React.FC = () => {
   );
 };
 
-const RunQueriesButton: React.FC = () => {
+const RunQueriesButton: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const dispatch = useDispatch();
-  const runQueries = React.useCallback(() => dispatch(queryBrowserRunQueries()), [dispatch]);
+  const runQueries = useCallback(() => dispatch(queryBrowserRunQueries()), [dispatch]);
 
   return (
     <Button
@@ -1244,7 +1237,7 @@ const RunQueriesButton: React.FC = () => {
   );
 };
 
-const QueriesList: React.FC<{ customDatasource?: CustomDataSource; units: GraphUnits }> = ({
+const QueriesList: FC<{ customDatasource?: CustomDataSource; units: GraphUnits }> = ({
   customDatasource,
   units,
 }) => {
@@ -1274,7 +1267,7 @@ const QueriesList: React.FC<{ customDatasource?: CustomDataSource; units: GraphU
 const IntervalDropdown = () => {
   const { perspective } = usePerspective();
   const dispatch = useDispatch();
-  const setInterval = React.useCallback(
+  const setInterval = useCallback(
     (v: number) => dispatch(queryBrowserSetPollInterval(v)),
     [dispatch],
   );
@@ -1284,11 +1277,11 @@ const IntervalDropdown = () => {
   return <DropDownPollInterval setInterval={setInterval} selectedInterval={pollInterval} />;
 };
 
-const GraphUnitsDropDown: React.FC = () => {
+const GraphUnitsDropDown: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const [selectedUnits, setUnits] = useQueryParam(QueryParams.Units, StringParam);
 
-  const initialOptions = React.useMemo<SimpleSelectOption[]>(() => {
+  const initialOptions = useMemo<SimpleSelectOption[]>(() => {
     const intervalOptions: SimpleSelectOption[] = [
       { content: t('Bytes Binary (KiB, MiB)'), value: 'bytes' },
       { content: t('Bytes Decimal (kb, MB)'), value: 'Bytes' },
@@ -1316,35 +1309,34 @@ const GraphUnitsDropDown: React.FC = () => {
   );
 };
 
-const MetricsPage_: React.FC = () => {
+const MetricsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const [units, setUnits] = useQueryParam(QueryParams.Units, StringParam);
 
   const dispatch = useDispatch();
   const { perspective } = usePerspective();
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!isGraphUnit(units)) {
       setUnits('short');
     }
   }, [units, setUnits]);
 
   // Clear queries on unmount
-  React.useEffect(() => {
+  useEffect(() => {
     return () => {
       dispatch(queryBrowserDeleteAllQueries());
     };
   }, [dispatch]);
-  const [customDataSource, setCustomDataSource] = React.useState<CustomDataSource>(undefined);
-  const [customDataSourceIsResolved, setCustomDataSourceIsResolved] =
-    React.useState<boolean>(false);
+  const [customDataSource, setCustomDataSource] = useState<CustomDataSource>(undefined);
+  const [customDataSourceIsResolved, setCustomDataSourceIsResolved] = useState<boolean>(false);
   const customDataSourceName = getQueryArgument(QueryParams.Datasource);
   const [extensions, extensionsResolved] = useResolvedExtensions<DataSource>(isDataSource);
   const hasExtensions = !_.isEmpty(extensions);
-  const [customDatasourceError, setCustomDataSourceError] = React.useState(false);
+  const [customDatasourceError, setCustomDataSourceError] = useState(false);
 
   // get custom datasources
-  React.useEffect(() => {
+  useEffect(() => {
     const getCustomDataSource = async () => {
       if (!customDataSourceName) {
         setCustomDataSource(null);
@@ -1461,7 +1453,7 @@ const MetricsPage_: React.FC = () => {
 
 const MetricsPage = withFallback(MetricsPage_);
 
-const MetricsPageWrapper_: React.FC = () => (
+const MetricsPageWrapper_: FC = () => (
   <QueryParamProvider adapter={ReactRouter5Adapter}>
     <MetricsPage />
   </QueryParamProvider>

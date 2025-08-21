@@ -137,7 +137,7 @@ Since the store for the `monitoring-plugin` is stored in the `openshift/console`
 # Login to an OpenShift cluster
 $ oc login <clusterAddress> -u <username> -p <password>
 
-# Start podman (or Docker)
+# Start podman (or Docker) - Linux machines can skip this part 
 $ podman machine init
 $ podman machine start
 
@@ -148,10 +148,10 @@ $ make install
 $ make start-frontend
 
 # In a separate terminal
-$ make start-feature-backend
+$ make start-feature-console
 
 # In a separate terminal
-$ make start-feature-console
+$ make start-feature-backend
 ```
 
 `make start-feature-backend` will inject the `perses-dashboards`, `incidents`, and `dev-config` features by default. Features such as `acm-alerting` which take in extra parameters will need to run the `make start-feature-backend` command with the appropriate environment variables, such as `MONITORING_PLUGIN_ALERTMANAGER`.

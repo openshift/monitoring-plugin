@@ -1,5 +1,5 @@
 import * as _ from 'lodash-es';
-import * as React from 'react';
+import type { FC } from 'react';
 import { useSelector } from 'react-redux';
 
 import {
@@ -51,7 +51,7 @@ import { useNavigate, useParams, Link } from 'react-router-dom-v5-compat';
 import { useAlertsPoller } from '../hooks/useAlertsPoller';
 import { DataTestIDs } from '../data-test';
 
-const SilencesDetailsPage_: React.FC = () => {
+const SilencesDetailsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const params = useParams<{ id: string }>();
 
@@ -210,7 +210,7 @@ const SilencesDetailsPage_: React.FC = () => {
 };
 const SilencesDetailsPage = withFallback(SilencesDetailsPage_);
 
-const SilencedAlertsList: React.FC<SilencedAlertsListProps> = ({ alerts }) => {
+const SilencedAlertsList: FC<SilencedAlertsListProps> = ({ alerts }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const navigate = useNavigate();
   const { perspective } = usePerspective();

@@ -1,5 +1,5 @@
 import { Pagination, PaginationVariant, PerPageOptions } from '@patternfly/react-core';
-import * as React from 'react';
+import type { FC } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 
 const defaultPerPageOptions: PerPageOptions[] = [10, 20, 50, 100, 200, 500].map((n) => ({
@@ -7,7 +7,7 @@ const defaultPerPageOptions: PerPageOptions[] = [10, 20, 50, 100, 200, 500].map(
   value: n,
 }));
 
-const LocalizedToggleTemplate: React.FC<LocalizedToggleTemplateProps> = ({
+const LocalizedToggleTemplate: FC<LocalizedToggleTemplateProps> = ({
   firstIndex,
   itemCount,
   itemsTitle,
@@ -25,7 +25,7 @@ const LocalizedToggleTemplate: React.FC<LocalizedToggleTemplateProps> = ({
   );
 };
 
-const TablePagination: React.FC<TablePaginationProps> = ({
+const TablePagination: FC<TablePaginationProps> = ({
   itemCount,
   page,
   perPage,

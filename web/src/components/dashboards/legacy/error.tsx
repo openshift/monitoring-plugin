@@ -1,7 +1,7 @@
-import * as React from 'react';
+import type { FC } from 'react';
 import { Alert, Panel, PanelMain, PanelMainBody } from '@patternfly/react-core';
 
-const ErrorAlert: React.FC<{ error: Error }> = ({ error }) => {
+const ErrorAlert: FC<{ error: Error }> = ({ error }) => {
   return (
     <Alert isInline title={error.name} variant="danger">
       <Panel isScrollable>

@@ -5,7 +5,7 @@ import Withinable = Cypress.Withinable;
 import Shadow = Cypress.Shadow;
 import 'cypress-wait-until';
 import { guidedTour } from '../views/tour';
-import './nav';
+import { nav } from '../views/nav';
 import { operatorHubPage } from '../views/operator-hub-page';
 
 
@@ -498,7 +498,11 @@ Cypress.Commands.add('beforeBlockCOO', (MCP: { namespace: string, operatorName: 
     cy.log(`Observability-operator pod is now running in namespace: ${MCP.namespace}`);
   });
 
-  nav.sidenav.clickNavLink(['Ecosystem', 'Installed Operators']);
+  cy.get('#page-sidebar').then(($sidebar) => {
+    const section = $sidebar.text().includes('Ecosystem') ? 'Ecosystem' : 'Operators';
+    cy.clickNavLink([section, 'Installed Operators']);
+  });
+
   cy.byTestID('name-filter-input').should('be.visible').type('Cluster Observability{enter}');
   cy.get('[data-test="status-text"]', { timeout: installTimeoutMilliseconds }).eq(0).should('contain.text', 'Succeeded', { timeout: installTimeoutMilliseconds });
 

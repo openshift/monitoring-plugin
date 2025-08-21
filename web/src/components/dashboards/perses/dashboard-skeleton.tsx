@@ -1,5 +1,6 @@
 import * as _ from 'lodash-es';
-import * as React from 'react';
+import type { FC, PropsWithChildren } from 'react';
+import { memo, useCallback, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 
@@ -22,7 +23,7 @@ import { usePerspective } from '../../hooks/usePerspective';
 import { DashboardDropdown } from '../shared/dashboard-dropdown';
 import { CombinedDashboardMetadata } from './hooks/useDashboardsData';
 
-const HeaderTop: React.FC = React.memo(() => {
+const HeaderTop: FC = memo(() => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
@@ -41,21 +42,21 @@ const HeaderTop: React.FC = React.memo(() => {
   );
 });
 
-type MonitoringDashboardsPageProps = React.PropsWithChildren<{
+type MonitoringDashboardsPageProps = PropsWithChildren<{
   boardItems: CombinedDashboardMetadata[];
   changeBoard: (dashboardName: string) => void;
   dashboardName: string;
   activeProject?: string;
 }>;
 
-export const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = React.memo(
+export const DashboardSkeleton: FC<MonitoringDashboardsPageProps> = memo(
   ({ children, boardItems, changeBoard, dashboardName, activeProject }) => {
     const { t } = useTranslation(process.env.I18N_NAMESPACE);
     const { perspective } = usePerspective();
     const { setDashboard } = useDashboardActions();
     const variables = useVariableDefinitions();
 
-    const onChangeBoard = React.useCallback(
+    const onChangeBoard = useCallback(
       (selectedDashboard: string) => {
         changeBoard(selectedDashboard);
 
@@ -72,7 +73,7 @@ export const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = React.
       [changeBoard, boardItems, activeProject, setDashboard],
     );
 
-    React.useEffect(() => {
+    useEffect(() => {
       onChangeBoard(dashboardName);
     }, [dashboardName, onChangeBoard]);
 

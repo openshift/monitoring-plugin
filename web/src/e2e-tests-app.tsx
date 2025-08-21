@@ -1,5 +1,4 @@
 import '@patternfly/patternfly/patternfly.css';
-import React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
 import { BrowserRouter, Link, Route, Routes } from 'react-router-dom-v5-compat';

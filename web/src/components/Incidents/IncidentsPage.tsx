@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import * as React from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useSafeFetch } from '../console/utils/safe-fetch-hook';
 import { createAlertsQuery, fetchDataForIncidentsAndAlerts } from './api';
 import { useTranslation } from 'react-i18next';
@@ -65,25 +65,25 @@ const IncidentsPage = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const dispatch = useDispatch();
   const location = useLocation();
-  const urlParams = React.useMemo(() => parseUrlParams(location.search), [location.search]);
+  const urlParams = useMemo(() => parseUrlParams(location.search), [location.search]);
   const { perspective, rulesKey } = usePerspective();
   useAlertsPoller();
   const { theme } = usePatternFlyTheme();
   // loading states
-  const [incidentsAreLoading, setIncidentsAreLoading] = React.useState(true);
+  const [incidentsAreLoading, setIncidentsAreLoading] = useState(true);
   // days span is where we store the value for creating time ranges for
   // fetch incidents/alerts based on the length of time ranges
   // when days filter changes we set a new days span -> calculate new time range and fetch new data
-  const [daysSpan, setDaysSpan] = React.useState<number>();
-  const [timeRanges, setTimeRanges] = React.useState([]);
+  const [daysSpan, setDaysSpan] = useState<number>();
+  const [timeRanges, setTimeRanges] = useState([]);
   // data that is used for processing to serve it to the alerts table and chart
-  const [incidentForAlertProcessing, setIncidentForAlertProcessing] = React.useState<
+  const [incidentForAlertProcessing, setIncidentForAlertProcessing] = useState<
     Array<Partial<Incident>>
   >([]);
-  const [hideCharts, setHideCharts] = React.useState(false);
+  const [hideCharts, setHideCharts] = useState(false);
 
-  const [incidentFilterIsExpanded, setIncidentIsExpanded] = React.useState(false);
-  const [daysFilterIsExpanded, setDaysFilterIsExpanded] = React.useState(false);
+  const [incidentFilterIsExpanded, setIncidentIsExpanded] = useState(false);
+  const [daysFilterIsExpanded, setDaysFilterIsExpanded] = useState(false);
 
   const onIncidentFilterToggle = (ev) => {
     ev.stopPropagation();
@@ -118,7 +118,7 @@ const IncidentsPage = () => {
   const filteredData = useSelector((state: MonitoringState) =>
     state.plugins.mcp.getIn(['incidentsData', 'filteredIncidentsData']),
   );
-  React.useEffect(() => {
+  useEffect(() => {
     const hasUrlParams = Object.keys(urlParams).length > 0;
     if (hasUrlParams) {
       // If URL parameters exist, update incidentsActiveFilters based on them
@@ -150,11 +150,11 @@ const IncidentsPage = () => {
     }
   }, []);
 
-  React.useEffect(() => {
+  useEffect(() => {
     updateBrowserUrl(incidentsActiveFilters, incidentGroupId);
   }, [incidentsActiveFilters]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     dispatch(
       setFilteredIncidentsData({
         filteredIncidentsData: filterIncident(incidentsActiveFilters, incidents),
@@ -166,11 +166,11 @@ const IncidentsPage = () => {
   const safeFetch = useSafeFetch();
   const title = t('Incidents');
 
-  React.useEffect(() => {
+  useEffect(() => {
     setTimeRanges(getIncidentsTimeRanges(daysSpan, now));
   }, [daysSpan]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setDaysSpan(
       parsePrometheusDuration(
         incidentsActiveFilters.days.length > 0
@@ -180,7 +180,7 @@ const IncidentsPage = () => {
     );
   }, [incidentsActiveFilters.days]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     (async () => {
       Promise.all(
         timeRanges.map(async (range) => {
@@ -213,7 +213,7 @@ const IncidentsPage = () => {
     getLegacyObserveState(perspective, state)?.get(rulesKey),
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (alertingRulesData && alertsData) {
       dispatch(
         setAlertsTableData({
@@ -223,7 +223,7 @@ const IncidentsPage = () => {
     }
   }, [alertsData, alertingRulesData]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     (async () => {
       Promise.all(
         timeRanges.map(async (range) => {
@@ -260,7 +260,7 @@ const IncidentsPage = () => {
     })();
   }, [timeRanges]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (incidentGroupId) {
       Promise.all(
         timeRanges.map(async (range) => {

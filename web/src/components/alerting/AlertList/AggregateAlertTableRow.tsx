@@ -5,7 +5,8 @@ import {
   useActiveNamespace,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { ExpandableRowContent, Table, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
-import React, { useMemo } from 'react';
+import type { FC } from 'react';
+import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getRuleUrl, usePerspective } from '../../../components/hooks/usePerspective';
 import { AggregatedAlert } from '../AlertsAggregates';
@@ -18,7 +19,7 @@ import { filterAlerts } from './hooks/utils';
 import { Badge, Flex, FlexItem } from '@patternfly/react-core';
 import { DataTestIDs } from '../../data-test';
 
-type AggregateAlertTableRowProps = React.FC<{
+type AggregateAlertTableRowProps = FC<{
   aggregatedAlert: AggregatedAlert;
   rowData: { rowIndex: number; selectedFilters: SelectedFilters };
 }>;
@@ -27,7 +28,7 @@ const AggregateAlertTableRow: AggregateAlertTableRowProps = ({
   aggregatedAlert,
   rowData: { rowIndex, selectedFilters },
 }) => {
-  const [isExpanded, setIsExpanded] = React.useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
   const title = aggregatedAlert.name;

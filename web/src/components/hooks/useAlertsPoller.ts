@@ -4,7 +4,7 @@ import {
   useActiveNamespace,
   useResolvedExtensions,
 } from '@openshift-console/dynamic-plugin-sdk';
-import * as React from 'react';
+import { useMemo } from 'react';
 import { usePerspective } from './usePerspective';
 import { useRulesAlertsPoller } from './useRulesAlertsPoller';
 import { useSilencesPoller } from './useSilencesPoller';
@@ -17,7 +17,7 @@ export const useAlertsPoller = () => {
   const [customExtensions] =
     useResolvedExtensions<AlertingRulesSourceExtension>(isAlertingRulesSource);
 
-  const alertsSource = React.useMemo(
+  const alertsSource = useMemo(
     () =>
       customExtensions
         .filter((extension) => extension.properties.contextId === alertingContextId)
