@@ -188,13 +188,17 @@ export function processAlerts(
     .filter((alert) => alert !== null);
 }
 
-export const groupAlertsForTable = (alerts: Array<Alert>): Array<Alert> => {
+export const groupAlertsForTable = (alerts: Array<Alert>, alertingRulesData): Array<Alert> => {
   // group alerts by the component and coun
   const groupedAlerts: Array<Alert> = alerts.reduce((acc, alert) => {
-    const { component, alertstate, severity, layer } = alert;
+    const { component, alertstate, severity, layer, alertname } = alert;
     const existingGroup = acc.find((group) => group.component === component);
+    let rule;
+    if (alertingRulesData) {
+      rule = alertingRulesData.find((rule) => alertname === rule.name);
+    }
     if (existingGroup) {
-      existingGroup.alertsExpandedRowData.push(alert);
+      existingGroup.alertsExpandedRowData.push({ ...alert, rule });
       if (severity === 'warning') existingGroup.warning += 1;
       else if (severity === 'info') existingGroup.info += 1;
       else if (severity === 'critical') existingGroup.critical += 1;
@@ -206,7 +210,7 @@ export const groupAlertsForTable = (alerts: Array<Alert>): Array<Alert> => {
         warning: severity === 'warning' ? 1 : 0,
         info: severity === 'info' ? 1 : 0,
         critical: severity === 'critical' ? 1 : 0,
-        alertsExpandedRowData: [alert],
+        alertsExpandedRowData: [{ ...alert, rule }],
       });
     }
 

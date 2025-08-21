@@ -14,7 +14,6 @@ import KebabDropdown from '../kebab-dropdown';
 import { useTranslation } from 'react-i18next';
 import {
   getAlertUrl,
-  getLegacyObserveState,
   getNewSilenceAlertUrl,
   getRuleUrl,
   usePerspective,
@@ -22,50 +21,12 @@ import {
 import { OutlinedQuestionCircleIcon } from '@patternfly/react-icons';
 import './incidents-styles.css';
 import { SeverityBadge } from '../alerting/AlertUtils';
-import { useAlertsPoller } from '../hooks/useAlertsPoller';
-import { useSelector } from 'react-redux';
-import isEqual from 'lodash/isEqual';
-import { MonitoringState } from 'src/reducers/observe';
-
-function useDeepCompareMemoize(value) {
-  const ref = React.useRef();
-
-  if (!isEqual(value, ref.current)) {
-    ref.current = value;
-  }
-
-  return ref.current;
-}
 
 const IncidentsDetailsRowTable = ({ alerts }) => {
   const history = useHistory();
   const [namespace] = useActiveNamespace();
-  useAlertsPoller();
-  const { perspective, alertsKey } = usePerspective();
-  const [alertsWithMatchedData, setAlertsWithMatchedData] = React.useState([]);
+  const { perspective } = usePerspective();
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-
-  const alertsWithLabels = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.get(alertsKey),
-  );
-
-  function findMatchingAlertsWithId(alertsArray, rulesArray) {
-    return alertsArray.map((alert) => {
-      if (!Array.isArray(rulesArray?.data)) {
-        return alert;
-      }
-      const match = rulesArray.data.find((rule) => alert.alertname === rule.labels.alertname);
-      if (match) {
-        return { ...alert, rule: match };
-      }
-      return alert;
-    });
-  }
-  const memoizedAlerts = useDeepCompareMemoize(alerts);
-
-  React.useEffect(() => {
-    setAlertsWithMatchedData(findMatchingAlertsWithId(memoizedAlerts, alertsWithLabels));
-  }, [memoizedAlerts, alertsWithLabels]);
 
   return (
     <Table borders={false} variant="compact">
@@ -80,31 +41,26 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
         </Tr>
       </Thead>
       <Tbody>
-        {!alertsWithMatchedData ? (
+        {!alerts ? (
           <Bullseye>
             <Spinner aria-label="incidents-chart-spinner" />
           </Bullseye>
         ) : (
-          alertsWithMatchedData?.map((alertDetails, rowIndex) => {
+          alerts?.map((alertDetails, rowIndex) => {
             return (
               <Tr key={rowIndex}>
                 <Td dataLabel="expanded-details-alertname">
                   <ResourceIcon kind={AlertResource.kind} />
                   <Link
                     to={
-                      alertDetails?.rule
+                      alertDetails.rule.state === 'firing'
                         ? getAlertUrl(
                             perspective,
                             alertDetails,
-                            alertDetails?.rule?.rule.id,
-                            namespace,
+                            alertDetails?.rule?.id,
+                            alertDetails?.labels?.namespace || namespace,
                           )
-                        : '#'
-                    }
-                    style={
-                      !alertDetails?.rule || alertDetails.resolved
-                        ? { pointerEvents: 'none', color: 'inherit', textDecoration: 'inherit' }
-                        : {}
+                        : getRuleUrl(perspective, alertDetails?.rule, namespace)
                     }
                   >
                     {alertDetails.alertname}
@@ -162,7 +118,7 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
                         isDisabled={alertDetails?.alertstate === 'resolved' ? true : false}
                       >
                         <Link
-                          to={getRuleUrl(perspective, alertDetails?.rule?.rule)}
+                          to={getRuleUrl(perspective, alertDetails?.rule)}
                           style={{ color: 'inherit', textDecoration: 'inherit' }}
                         >
                           {t('View alerting rule')}
