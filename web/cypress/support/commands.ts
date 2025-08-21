@@ -6,6 +6,7 @@ import Shadow = Cypress.Shadow;
 import 'cypress-wait-until';
 import { guidedTour } from '../views/tour';
 import { nav } from '../views/nav';
+import './nav';
 import { operatorHubPage } from '../views/operator-hub-page';
 
 
@@ -42,11 +43,6 @@ declare global {
     bySemanticElement(element: string, text?: string): Chainable<JQuery<HTMLElement>>;
     byAriaLabel(label: string, options?: Partial<Loggable & Timeoutable & Withinable & Shadow>): Chainable<JQuery<HTMLElement>>;
     byPFRole(role: string, options?: Partial<Loggable & Timeoutable & Withinable & Shadow>): Chainable<JQuery<HTMLElement>>;
-  }
-}
-
-declare global {
-  interface Chainable {
     switchPerspective(perspective: string);
     uiLogin(provider: string, username: string, password: string);
     uiLogout();
@@ -546,6 +542,7 @@ Cypress.Commands.add('beforeBlockCOO', (MCP: { namespace: string, operatorName: 
     expect(result.code).to.eq(0);
     cy.log(`Monitoring plugin pod is now running in namespace: ${MCP.namespace}`);
   });
+  cy.exec(`oc label namespace openshift-cluster-observability-operator openshift.io/cluster-monitoring="true" --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`)
   //TODO: https://issues.redhat.com/browse/OCPBUGS-58468 - console reload and logout was happening more often
   // cy.get('.pf-v5-c-alert, .pf-v6-c-alert', { timeout: readyTimeoutMilliseconds })
   //   .contains('Web console update is available')
@@ -612,6 +609,8 @@ Cypress.Commands.add('afterBlockCOO', (MCP: { namespace: string, operatorName: s
       `oc adm policy remove-cluster-role-from-user cluster-admin ${Cypress.env('LOGIN_USERNAME')} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
     );
 
+    cy.executeAndDelete(`oc label namespace openshift-cluster-observability-operator openshift.io/cluster-monitoring- --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`)
+
     //TODO: https://issues.redhat.com/browse/OCPBUGS-58468 - console reload and logout was happening more often
     // cy.get('.pf-v5-c-alert, .pf-v6-c-alert', { timeout: 120000 })
     //   .contains('Web console update is available')
@@ -626,4 +625,26 @@ Cypress.Commands.add('afterBlockCOO', (MCP: { namespace: string, operatorName: s
 
   }
   cy.log('After block COO completed');
+});
+
+// Apply incident fixture manifests to the cluster
+Cypress.Commands.add('createKubePodCrashLoopingAlert', () => {
+  const kubeconfigPath = Cypress.env('KUBECONFIG_PATH');
+  cy.exec(
+    `oc apply -f ./cypress/fixtures/incidents/prometheus_rule_pod_crash_loop.yaml --kubeconfig ${kubeconfigPath}`,
+  );
+  cy.exec(
+    `oc apply -f ./cypress/fixtures/incidents/pod_crash_loop.yaml --kubeconfig ${kubeconfigPath}`,
+  );
+});
+
+// Clean up incident fixture manifests from the cluster
+Cypress.Commands.add('cleanupIncidentsFixtures', () => {
+  const kubeconfigPath = Cypress.env('KUBECONFIG_PATH');
+  cy.executeAndDelete(
+    `oc delete -f ./cypress/fixtures/incidents/pod_crash_loop.yaml --ignore-not-found=true --kubeconfig ${kubeconfigPath}`,
+  );
+  cy.executeAndDelete(
+    `oc delete -f ./cypress/fixtures/incidents/prometheus_rule_pod_crash_loop.yaml --ignore-not-found=true --kubeconfig ${kubeconfigPath}`,
+  );
 });
