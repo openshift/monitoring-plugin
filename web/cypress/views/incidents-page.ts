@@ -33,10 +33,18 @@ export const incidentsPage = {
 
   selectIncidentByBarIndex: (index = 0) => {
     cy.log('incidentsPage.selectIncidentByBarIndex');
-    incidentsPage.elements.incidentsChartCard()
-      .find('path[role="presentation"]')
-      .eq(index)
-      .click({ force: true });
+    // TODO: There are two bars for the same incident, one transparent, one not. 
+    // Right now, we use both which works but doubles the execution time.
+    return cy.waitUntil(() => {
+      return incidentsPage.elements.incidentsChartCard()
+        .find('path[role="presentation"]')
+        .eq(index)
+        .click({ force: true })
+        .then(() => {
+          return Cypress.$('[aria-label="alerts-table"]').length > 0;
+        });
+    }, { interval: 10000, timeout: 120000 })
+    .then(() => incidentsPage.elements.alertsTable().scrollIntoView().should('be.visible'))
   },
 
   expandRow: (rowIndex = 0) => {
@@ -48,6 +56,50 @@ export const incidentsPage = {
         cy.get('[aria-label="Details"], button[aria-expanded], button.pf-m-plain')
           .first()
           .click({ force: true });
+      });
+  },
+
+
+  findIncidentWithAlert: (alertName: string): Cypress.Chainable<boolean> => {
+    cy.log(`incidentsPage.findIncidentWithAlert: ${alertName}`);
+    return incidentsPage.elements.incidentsChartCard()
+      .find('path[role="presentation"]')
+      .then(($bars) => {
+        const totalBars = $bars.length;
+        if (totalBars <= 3) { // 3 paths are always present in the legend,
+        // their parent is g without presentation label opposed ot the proper bars
+          cy.task('log', 'No bars found in incidents chart');
+          return cy.wrap(false);
+        }
+
+        const tryIndex = (index: number): Cypress.Chainable<boolean> => {
+          if (index >= totalBars - 3) {
+            return cy.wrap(false);
+          }
+
+          return cy
+            .wrap(null)
+            .then(() => {
+              incidentsPage.selectIncidentByBarIndex(index);
+              return null;
+            })
+            .then(() => incidentsPage.elements.alertsTable().invoke('text'))
+            .then((text) => {
+              if (String(text).includes(alertName)) {
+                return cy.wrap(true);
+              }
+              // Expand a row if present to surface nested details
+              incidentsPage.expandRow(0);
+              return incidentsPage.elements.alertsTable().invoke('text').then((text2) => {
+                if (String(text2).includes(alertName)) {
+                  return cy.wrap(true);
+                }
+                return tryIndex(index + 1);
+              });
+            });
+        };
+
+        return tryIndex(0);
       });
   },
 

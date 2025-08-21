@@ -1,8 +1,16 @@
+/*
+The test verifies the basic functionality of the Incidents page and serves
+as a verification that the Incidents View is working as expected.
+
+Currently, it depends on an alert being present in the cluster.
+In the future, mocking requests / injecting alerts should be considered.
+Natural creation of the alert is done in the 00.coo_incidents_e2e.cy.ts test, 
+but takes significant time.
+*/
 
 import { commonPages } from '../../views/common';
 import { incidentsPage } from '../../views/incidents-page';
 
-// Set constants for the operators that need to be installed for tests.
 const MCP = {
   namespace: 'openshift-cluster-observability-operator',
   packageName: 'cluster-observability-operator',
@@ -25,13 +33,14 @@ const ALERT_DESC = 'This is an alert meant to ensure that the entire alerting pi
 const ALERT_SUMMARY = 'An alert that should always be firing to certify that Alertmanager is working properly.'
 describe('Incidents', () => {
   before(() => {
+    cy.afterBlockCOO(MCP, MP); // Following cypher best practices, the cleanup is done before the test block
     cy.beforeBlockCOO(MCP, MP);
-    // TODO: Inject alerts into the database so the behavior is deterministic
   });
 
   after(() => {
-    cy.afterBlockCOO(MCP, MP);
+    cy.afterBlockCOO(MCP, MP); // For compatibility with other tests
   });
+
 
   beforeEach(() => {
 
@@ -65,19 +74,13 @@ describe('Incidents', () => {
 
   it('selecting an incident via chart shows alerts and adds groupId to URL', () => {
     incidentsPage.clearAllFilters();
-    cy.pause();
     incidentsPage.selectIncidentByBarIndex(0);
-    cy.pause();
     cy.url().should('match', /[?&]groupId=/);
-    cy.pause();
     incidentsPage.elements.alertsChartSvg().find('path').should('exist');
-    cy.pause();
   });
 
   it('shows alerts table and allows expanding a row', () => {
-    cy.pause();
     incidentsPage.elements.alertsTable().should('exist');
     incidentsPage.expandRow(0);
-    cy.pause();
   });
 });

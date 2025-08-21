@@ -1,6 +1,8 @@
 import './nav';
 import './selectors';
 import './commands';
+import './alert-injection';
+import './prometheus-query-mocks';
 
 export const checkErrors = () =>
   cy.window().then((win) => {
