@@ -259,16 +259,119 @@ main() {
   fi
   login_users="$login_user:$login_pass"
 
-  local kubeconfig_default
-  if [[ -n "$def_kubeconfig" ]]; then
-    kubeconfig_default="$def_kubeconfig"
-  elif [[ -f "$HOME/Downloads/kubeconfig" ]]; then
-    kubeconfig_default="$HOME/Downloads/kubeconfig"
-  else
-    kubeconfig_default=""
-  fi
+  # First ask if user wants to use currently set kubeconfig
   local kubeconfig
-  kubeconfig=$(ask_required "Path to kubeconfig" "$kubeconfig_default")
+  if [[ -n "$def_kubeconfig" ]]; then
+    echo "Current kubeconfig: $def_kubeconfig"
+    local use_current
+    use_current=$(ask_yes_no "Use current kubeconfig?" "y")
+    
+    if [[ "$use_current" == "y" ]]; then
+      kubeconfig="$def_kubeconfig"
+    else
+      # User declined current, try to find kubeconfigs from Downloads
+      if [[ -d "$HOME/Downloads" ]]; then
+        local kubeconfig_files
+        mapfile -t kubeconfig_files < <(ls -t "$HOME/Downloads"/*kubeconfig* 2>/dev/null | head -10)
+        
+        if [[ ${#kubeconfig_files[@]} -gt 0 ]]; then
+          echo ""
+          echo "Available kubeconfig files in Downloads:"
+          for i in "${!kubeconfig_files[@]}"; do
+            local file_size
+            file_size=$(du -h "${kubeconfig_files[$i]}" 2>/dev/null | cut -f1)
+            echo "  $((i+1))) ${kubeconfig_files[$i]##*/} (${file_size:-unknown size})"
+          done
+          echo "  $(( ${#kubeconfig_files[@]} + 1 ))) Enter custom path"
+          
+          local choice
+          while true; do
+            choice=$(ask "Choose kubeconfig (1-$(( ${#kubeconfig_files[@]} + 1 )))" "")
+            if [[ "$choice" =~ ^[0-9]+$ ]] && [[ "$choice" -ge 1 ]] && [[ "$choice" -le $(( ${#kubeconfig_files[@]} + 1 )) ]]; then
+              break
+            fi
+            echo "Please enter a number between 1 and $(( ${#kubeconfig_files[@]} + 1 ))." 1>&2
+          done
+          
+          if [[ "$choice" -le ${#kubeconfig_files[@]} ]]; then
+            kubeconfig="${kubeconfig_files[$((choice-1))]}"
+            echo "Selected: $kubeconfig"
+          else
+            # User chose to enter custom path
+            local manual_default
+            if [[ -f "$HOME/Downloads/kubeconfig" ]]; then
+              manual_default="$HOME/Downloads/kubeconfig"
+            else
+              manual_default=""
+            fi
+            
+            kubeconfig=$(ask_required "Enter custom kubeconfig path" "$manual_default")
+          fi
+        else
+          # No kubeconfig files found in Downloads, ask manually
+          local manual_default
+          if [[ -f "$HOME/Downloads/kubeconfig" ]]; then
+            manual_default="$HOME/Downloads/kubeconfig"
+          else
+            manual_default=""
+          fi
+          
+          kubeconfig=$(ask_required "Path to kubeconfig" "$manual_default")
+        fi
+      else
+        # Downloads directory doesn't exist, ask manually
+        local manual_default
+        if [[ -f "$HOME/Downloads/kubeconfig" ]]; then
+          manual_default="$HOME/Downloads/kubeconfig"
+        else
+          manual_default=""
+        fi
+        
+        kubeconfig=$(ask_required "Path to kubeconfig" "$manual_default")
+      fi
+    fi
+  else
+    # No current kubeconfig set, try to find kubeconfigs from Downloads
+    if [[ -d "$HOME/Downloads" ]]; then
+      local kubeconfig_files
+      mapfile -t kubeconfig_files < <(ls -t "$HOME/Downloads"/*kubeconfig* 2>/dev/null | head -10)
+      
+      if [[ ${#kubeconfig_files[@]} -gt 0 ]]; then
+        echo ""
+        echo "Available kubeconfig files in Downloads:"
+        for i in "${!kubeconfig_files[@]}"; do
+          local file_size
+          file_size=$(du -h "${kubeconfig_files[$i]}" 2>/dev/null | cut -f1)
+          echo "  $((i+1))) ${kubeconfig_files[$i]##*/} (${file_size:-unknown size})"
+        done
+        echo "  $(( ${#kubeconfig_files[@]} + 1 ))) Enter custom path"
+        
+        local choice
+        while true; do
+          choice=$(ask "Choose kubeconfig (1-$(( ${#kubeconfig_files[@]} + 1 )))" "")
+          if [[ "$choice" =~ ^[0-9]+$ ]] && [[ "$choice" -ge 1 ]] && [[ "$choice" -le $(( ${#kubeconfig_files[@]} + 1 )) ]]; then
+            break
+          fi
+          echo "Please enter a number between 1 and $(( ${#kubeconfig_files[@]} + 1 ))." 1>&2
+        done
+        
+        if [[ "$choice" -le ${#kubeconfig_files[@]} ]]; then
+          kubeconfig="${kubeconfig_files[$((choice-1))]}"
+          echo "Selected: $kubeconfig"
+        else
+          # User chose to enter custom path
+          kubeconfig=$(ask_required "Enter custom kubeconfig path" "")
+        fi
+      else
+        # No kubeconfig files found in Downloads, ask manually
+        kubeconfig=$(ask_required "Path to kubeconfig" "")
+      fi
+    else
+      # Downloads directory doesn't exist, ask manually
+      kubeconfig=$(ask_required "Path to kubeconfig" "")
+    fi
+  fi
+  
   if [[ ! -f "$kubeconfig" ]]; then
     echo "Warning: file does not exist at $kubeconfig" 1>&2
   fi
