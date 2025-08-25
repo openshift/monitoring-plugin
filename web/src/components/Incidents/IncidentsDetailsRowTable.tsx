@@ -6,23 +6,15 @@ import {
   useActiveNamespace,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { BellIcon } from '@patternfly/react-icons';
-import { Bullseye, DropdownItem, Spinner, Tooltip } from '@patternfly/react-core';
-import { Link, useHistory } from 'react-router-dom';
+import { Bullseye, Spinner } from '@patternfly/react-core';
+import { Link } from 'react-router-dom';
 import { AlertResource } from '../utils';
-import KebabDropdown from '../kebab-dropdown';
 import { useTranslation } from 'react-i18next';
-import {
-  getAlertUrl,
-  getNewSilenceAlertUrl,
-  getRuleUrl,
-  usePerspective,
-} from '../hooks/usePerspective';
-import { OutlinedQuestionCircleIcon } from '@patternfly/react-icons';
+import { getRuleUrl, usePerspective } from '../hooks/usePerspective';
 import './incidents-styles.css';
 import { SeverityBadge } from '../alerting/AlertUtils';
 
 const IncidentsDetailsRowTable = ({ alerts }) => {
-  const history = useHistory();
   const [namespace] = useActiveNamespace();
   const { perspective } = usePerspective();
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -50,25 +42,9 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
               <Tr key={rowIndex}>
                 <Td dataLabel="expanded-details-alertname">
                   <ResourceIcon kind={AlertResource.kind} />
-                  <Link
-                    to={
-                      alertDetails.rule.state === 'firing'
-                        ? getAlertUrl(
-                            perspective,
-                            alertDetails,
-                            alertDetails?.rule?.id,
-                            alertDetails?.labels?.namespace || namespace,
-                          )
-                        : getRuleUrl(perspective, alertDetails?.rule, namespace)
-                    }
-                  >
+                  <Link to={getRuleUrl(perspective, alertDetails?.rule, namespace)}>
                     {alertDetails.alertname}
                   </Link>
-                  {(!alertDetails?.rule || alertDetails.resolved) && (
-                    <Tooltip content={<div>No details can be shown for inactive alerts.</div>}>
-                      <OutlinedQuestionCircleIcon className="expanded-details-text-margin" />
-                    </Tooltip>
-                  )}
                 </Td>
                 <Td dataLabel="expanded-details-namespace">{alertDetails.namespace || '---'}</Td>
                 <Td dataLabel="expanded-details-severity">
@@ -96,35 +72,6 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
                   ) : (
                     <Timestamp simple={true} timestamp={alertDetails.alertsEndFiring} />
                   )}
-                </Td>
-                <Td>
-                  <KebabDropdown
-                    dropdownItems={[
-                      <DropdownItem
-                        component="button"
-                        key="silence alert"
-                        isDisabled={!alertDetails?.rule}
-                        onClick={() =>
-                          history.push(
-                            getNewSilenceAlertUrl(perspective, alertDetails.rule, namespace),
-                          )
-                        }
-                      >
-                        {t('Silence alert')}
-                      </DropdownItem>,
-                      <DropdownItem
-                        key="view-rule"
-                        isDisabled={alertDetails?.alertstate === 'resolved' ? true : false}
-                      >
-                        <Link
-                          to={getRuleUrl(perspective, alertDetails?.rule)}
-                          style={{ color: 'inherit', textDecoration: 'inherit' }}
-                        >
-                          {t('View alerting rule')}
-                        </Link>
-                      </DropdownItem>,
-                    ]}
-                  />
                 </Td>
               </Tr>
             );
