@@ -95,7 +95,7 @@ const AlertsDetailsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const params = useParams<{ ruleID: string }>();
   const navigate = useNavigate();
-  const { plugin } = useMonitoring();
+  const { plugin, prometheus } = useMonitoring();
 
   const { perspective } = usePerspective();
 
@@ -108,16 +108,17 @@ const AlertsDetailsPage_: FC = () => {
   );
 
   const { loaded, loadError } = useSelector(
-    (state: MonitoringState) => getObserveState(plugin, state)?.alerting[namespace],
+    (state: MonitoringState) => getObserveState(plugin, state)?.alerting[prometheus]?.[namespace],
   );
 
   const alerts = useSelector(
-    (state: MonitoringState) => getObserveState(plugin, state)?.alerting[namespace]?.alerts,
+    (state: MonitoringState) =>
+      getObserveState(plugin, state)?.alerting[prometheus]?.[namespace]?.alerts,
   );
 
   const silencesLoaded = useSelector(
     (state: MonitoringState) =>
-      getObserveState(plugin, state)?.alerting[namespace]?.silences?.loaded,
+      getObserveState(plugin, state)?.alerting[prometheus]?.[namespace]?.silences?.loaded,
   );
 
   const ruleAlerts = _.filter(alerts, (a) => a.rule.id === params?.ruleID);

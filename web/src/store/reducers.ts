@@ -73,8 +73,12 @@ const monitoringReducer = produce((draft: ObserveState, action: ObserveAction): 
     }
 
     case ActionType.AlertingSetRulesLoaded: {
-      const { namespace, rules, alerts } = action.payload;
-      draft.alerting[namespace] = {
+      const { datasource, identifier, rules, alerts } = action.payload;
+      const datasourceObj = draft.alerting[datasource];
+      if (!datasourceObj) {
+        draft.alerting[datasource] = {};
+      }
+      draft.alerting[datasource][identifier] = {
         rules,
         alerts,
         loaded: true,
@@ -86,22 +90,24 @@ const monitoringReducer = produce((draft: ObserveState, action: ObserveAction): 
     }
 
     case ActionType.AlertingSetSilencesLoaded: {
-      const { namespace, silences } = action.payload;
-      draft.alerting[namespace].silences.data = silences;
-      draft.alerting[namespace].silences.loaded = true;
-      draft.alerting[namespace].silences.loadError = '';
+      const { datasource, identifier, silences } = action.payload;
+      draft.alerting[datasource][identifier].silences = {
+        data: silences,
+        loaded: true,
+        loadError: null,
+      };
       break;
     }
 
     case ActionType.AlertingApplySilences: {
-      const { namespace } = action.payload;
-      const alerts = draft.alerting[namespace]?.alerts;
-      const silences = draft.alerting[namespace]?.silences;
+      const { datasource, identifier } = action.payload;
+      const alerts = draft.alerting[datasource][identifier]?.alerts;
+      const silences = draft.alerting[datasource][identifier]?.silences;
 
       const firingAlerts = alerts.filter(isAlertFiring);
 
       const updatedAlerts = silenceFiringAlerts(firingAlerts, silences.data);
-      draft.alerting[namespace].alerts = updatedAlerts;
+      draft.alerting[datasource][identifier].alerts = updatedAlerts;
       break;
     }
 
@@ -239,7 +245,8 @@ const monitoringReducer = produce((draft: ObserveState, action: ObserveAction): 
     }
 
     case ActionType.SetAlertCount: {
-      draft.alerting[action.payload.namespace].alertCount = action.payload.alertCount;
+      draft.alerting[action.payload.datasource][action.payload.identifier].alertCount =
+        action.payload.alertCount;
       break;
     }
 

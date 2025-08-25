@@ -75,34 +75,50 @@ export const dashboardsVariableOptionsLoaded = (
   perspective: Perspective,
 ) => action(ActionType.DashboardsVariableOptionsLoaded, { key, newOptions, perspective });
 
-export const alertingSetLoading = (namespace: string) =>
+export const alertingSetLoading = (datasource: string, identifier: string) =>
   action(ActionType.AlertingSetLoading, {
-    namespace,
+    datasource,
+    identifier,
     data: { loaded: false, loadError: null },
   });
 
-export const alertingSetRulesLoaded = (namespace: string, rules: Rule[], alerts: Alert[]) =>
-  action(ActionType.AlertingSetRulesLoaded, { namespace, rules, alerts });
+export const alertingSetRulesLoaded = (
+  datasource: string,
+  identifier: string,
+  rules: Rule[],
+  alerts: Alert[],
+) => action(ActionType.AlertingSetRulesLoaded, { datasource, identifier, rules, alerts });
 
-export const alertingSetSilencesLoaded = (namespace: string, silences: Silence[]) =>
+export const alertingSetSilencesLoaded = (
+  datasource: string,
+  identifier: string,
+  silences: Silence[],
+) =>
   action(ActionType.AlertingSetSilencesLoaded, {
-    namespace,
+    datasource,
+    identifier,
     silences,
   });
 
 // New action to trigger the reducer logic
-export const alertingApplySilences = (namespace: string) =>
-  action(ActionType.AlertingApplySilences, { namespace });
+export const alertingApplySilences = (datasource: string, identifier: string) =>
+  action(ActionType.AlertingApplySilences, { datasource, identifier });
 
-export const alertingSetErrored = (namespace: string, loadError: Error) =>
+export const alertingSetErrored = (datasource: string, identifier: string, loadError: Error) =>
   action(ActionType.AlertingSetErrored, {
-    namespace,
+    datasource,
+    identifier,
     data: { loaded: true, loadError },
   });
 
-export const alertingSetSilencesErrored = (namespace: string, loadError: Error) =>
+export const alertingSetSilencesErrored = (
+  datasource: string,
+  identifier: string,
+  loadError: Error,
+) =>
   action(ActionType.AlertingSetSilencesErrored, {
-    namespace,
+    datasource,
+    identifier,
     data: { loaded: true, loadError },
   });
 
@@ -151,8 +167,8 @@ export const queryBrowserToggleIsEnabled = (index: number) =>
 export const queryBrowserToggleSeries = (index: number, labels: { [key: string]: unknown }) =>
   action(ActionType.QueryBrowserToggleSeries, { index, labels });
 
-export const setAlertCount = (namespace: string, alertCount: number) =>
-  action(ActionType.SetAlertCount, { alertCount, namespace });
+export const setAlertCount = (datasource: string, identifier: string, alertCount: number) =>
+  action(ActionType.SetAlertCount, { alertCount, datasource, identifier });
 
 export const setIncidents = (incidents) => action(ActionType.SetIncidents, incidents);
 

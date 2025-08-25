@@ -46,7 +46,7 @@ import { useMonitoring } from '../../hooks/useMonitoring';
 
 const SilencesPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { plugin } = useMonitoring();
+  const { plugin, prometheus } = useMonitoring();
   const [namespace] = useActiveNamespace();
 
   const { perspective } = usePerspective();
@@ -57,7 +57,8 @@ const SilencesPage_: FC = () => {
   useAlerts();
 
   const silenceData = useSelector(
-    (state: MonitoringState) => getObserveState(plugin, state)?.alerting[namespace]?.silences,
+    (state: MonitoringState) =>
+      getObserveState(plugin, state)?.alerting[prometheus]?.[namespace]?.silences,
   );
 
   const clusters = useMemo(() => {

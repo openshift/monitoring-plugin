@@ -125,7 +125,7 @@ const RuleTableRow: FC<RowProps<Rule>> = ({ obj }) => {
 
 const AlertRulesPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { plugin } = useMonitoring();
+  const { plugin, prometheus } = useMonitoring();
   const [namespace] = useActiveNamespace();
 
   const { defaultAlertTenant } = usePerspective();
@@ -133,14 +133,15 @@ const AlertRulesPage_: FC = () => {
   useAlerts();
 
   const data: Rule[] = useSelector(
-    (state: MonitoringState) => getObserveState(plugin, state)?.alerting[namespace]?.rules,
+    (state: MonitoringState) =>
+      getObserveState(plugin, state)?.alerting[prometheus]?.[namespace]?.rules,
   );
   const { loaded = false, loadError } = useSelector(
-    (state: MonitoringState) => getObserveState(plugin, state)?.alerting[namespace],
+    (state: MonitoringState) => getObserveState(plugin, state)?.alerting[prometheus]?.[namespace],
   );
   const silencesLoadError = useSelector(
     (state: MonitoringState) =>
-      getObserveState(plugin, state)?.alerting[namespace]?.silences?.loadError,
+      getObserveState(plugin, state)?.alerting[prometheus]?.[namespace]?.silences?.loadError,
   );
 
   const ruleAdditionalSources = useMemo(

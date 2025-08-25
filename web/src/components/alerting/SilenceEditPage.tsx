@@ -34,14 +34,15 @@ const EditInfo = () => {
 
 const SilenceEditPage = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { plugin } = useMonitoring();
+  const { plugin, prometheus } = useMonitoring();
   const params = useParams();
   const [namespace] = useActiveNamespace();
 
   useAlerts();
 
   const silences = useSelector(
-    (state: MonitoringState) => getObserveState(plugin, state)?.alerting[namespace]?.silences,
+    (state: MonitoringState) =>
+      getObserveState(plugin, state)?.alerting[prometheus]?.[namespace]?.silences,
   );
 
   const silence: Silence = _.find(silences?.data, { id: params.id });

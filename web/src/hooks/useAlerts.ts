@@ -44,7 +44,7 @@ export const useAlerts = () => {
   const silencesUrl = getAlertmanagerSilencesUrl({ prometheus, namespace });
 
   const fetchDispatch = () =>
-    dispatch(fetchAlertingData(namespace, rulesUrl, alertsSource, silencesUrl));
+    dispatch(fetchAlertingData(prometheus, namespace, rulesUrl, alertsSource, silencesUrl));
 
   usePoll(fetchDispatch, POLLING_INTERVAL_MS);
 

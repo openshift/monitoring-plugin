@@ -147,7 +147,7 @@ export const ActiveAlerts: FC<ActiveAlertsProps> = ({ alerts, namespace, ruleID 
 const AlertRulesDetailsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const params = useParams<{ ns?: string; id: string }>();
-  const { plugin } = useMonitoring();
+  const { plugin, prometheus } = useMonitoring();
 
   useAlerts();
 
@@ -155,12 +155,13 @@ const AlertRulesDetailsPage_: FC = () => {
   const namespace = params?.ns;
 
   const rules = useSelector(
-    (state: MonitoringState) => getObserveState(plugin, state)?.alerting[namespace]?.rules,
+    (state: MonitoringState) =>
+      getObserveState(plugin, state)?.alerting[prometheus]?.[namespace]?.rules,
   );
   const rule = _.find(rules, { id: params.id });
 
   const { loaded, loadError } = useSelector(
-    (state: MonitoringState) => getObserveState(plugin, state)?.alerting[namespace],
+    (state: MonitoringState) => getObserveState(plugin, state)?.alerting[prometheus]?.[namespace],
   );
 
   const sourceId = rule?.sourceId;

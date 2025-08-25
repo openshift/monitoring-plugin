@@ -42,19 +42,20 @@ const AlertsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const [namespace] = useActiveNamespace();
   const { defaultAlertTenant, perspective } = usePerspective();
-  const { plugin } = useMonitoring();
+  const { plugin, prometheus } = useMonitoring();
 
   useAlerts();
 
   const loadingInfo = useSelector(
-    (state: MonitoringState) => getObserveState(plugin, state)?.alerting[namespace],
+    (state: MonitoringState) => getObserveState(plugin, state)?.alerting[prometheus]?.[namespace],
   );
   const alerts = useSelector(
-    (state: MonitoringState) => getObserveState(plugin, state)?.alerting[namespace]?.alerts,
+    (state: MonitoringState) =>
+      getObserveState(plugin, state)?.alerting[prometheus]?.[namespace]?.alerts,
   );
   const silencesLoadError = useSelector(
     (state: MonitoringState) =>
-      getObserveState(plugin, state)?.alerting[namespace]?.silences?.loadError,
+      getObserveState(plugin, state)?.alerting[prometheus]?.[namespace]?.silences?.loadError,
   );
 
   const alertAdditionalSources = useMemo(() => getAdditionalSources(alerts, alertSource), [alerts]);

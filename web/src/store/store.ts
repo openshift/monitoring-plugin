@@ -1,14 +1,10 @@
 import * as _ from 'lodash-es';
 
-import { Perspective } from './actions';
-
 import { MONITORING_DASHBOARDS_DEFAULT_TIMESPAN } from '../components/dashboards/legacy/utils';
 import { Alert, PrometheusLabels, Rule } from '@openshift-console/dynamic-plugin-sdk';
 import { Silences } from '../components/types';
 import { DaysFilters, IncidentFilters } from '../components/Incidents/model';
 import { Variable } from '../components/dashboards/legacy/legacy-variable-dropdowns';
-
-type Namespace = '#ALL_NS#' | string;
 
 export type RootState = {
   k8s: { [key: string]: any };
@@ -22,15 +18,14 @@ export type RootState = {
 
 export type LegacyObserveState = Map<string, any>;
 export type ObserveState = {
-  dashboards: Record<
-    Perspective,
-    {
+  dashboards: {
+    [perspective: string]: {
       endTime: string | null;
       pollInterval: number;
       timespan: number;
       variables: Record<string, Variable>;
-    }
-  >;
+    };
+  };
   incidentsData: {
     incidents: Array<any>;
     alertsData: Array<any>;
@@ -56,17 +51,7 @@ export type ObserveState = {
     dismissNamespaceAlert: boolean;
     lastRequestTime: number;
   };
-  alerting: Record<
-    Namespace,
-    {
-      alertCount: number;
-      loaded: boolean;
-      loadError: Error | null;
-      alerts: Array<Alert>;
-      rules: Array<Rule>;
-      silences: Silences;
-    }
-  >;
+  alerting: { [datasource: string]: { [identifier: string]: AlertsInfo } };
   hideGraphs: boolean;
 };
 
@@ -84,17 +69,16 @@ export const defaultObserveState: ObserveState = {
       timespan: MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
       variables: {},
     },
-  } as Record<
-    Perspective,
-    {
+  } as {
+    [perspective: string]: {
       endTime: string | null;
       pollInterval: number;
       timespan: number;
       variables: Record<string, Variable>;
-    }
-  >,
+    };
+  },
   queryBrowser: {
-    metrics: [] as Array<any>,
+    metrics: [],
     pollInterval: null,
     queries: [newQueryBrowserQuery()],
     timespan: MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
@@ -102,34 +86,24 @@ export const defaultObserveState: ObserveState = {
     lastRequestTime: Date.now(),
   },
   incidentsData: {
-    incidents: [] as Array<any>,
-    alertsData: [] as Array<any>,
-    alertsTableData: [] as Array<any>,
-    filteredIncidentsData: [] as Array<any>,
+    incidents: [],
+    alertsData: [],
+    alertsTableData: [],
+    filteredIncidentsData: [],
     alertsAreLoading: true,
     incidentsChartSelectedId: '',
     incidentsInitialState: {
-      days: ['7 days'] as Array<DaysFilters>,
-      incidentFilters: ['Critical', 'Warning', 'Firing'] as Array<IncidentFilters>,
+      days: ['7 days'],
+      incidentFilters: ['Critical', 'Warning', 'Firing'],
     },
     incidentsActiveFilters: {
-      days: [] as Array<DaysFilters>,
-      incidentFilters: [] as Array<IncidentFilters>,
+      days: [],
+      incidentFilters: [],
     },
     groupId: '',
   },
-  alerting: {} as Record<
-    string,
-    {
-      alertCount: number;
-      loaded: boolean;
-      loadError: Error | null;
-      alerts: Array<Alert>;
-      rules: Array<Rule>;
-      silences: Silences;
-    }
-  >,
-  hideGraphs: false as boolean,
+  alerting: {},
+  hideGraphs: false,
 };
 
 export type MonitoringState = {
@@ -152,6 +126,15 @@ export type QueryStructure = {
     columns: any;
     rows: any;
   };
+};
+
+export type AlertsInfo = {
+  alertCount: number;
+  loaded: boolean;
+  loadError: Error | null;
+  alerts: Array<Alert>;
+  rules: Array<Rule>;
+  silences: Silences;
 };
 
 export function newQueryBrowserQuery(): QueryStructure {

@@ -54,7 +54,7 @@ import { useMonitoring } from '../../hooks/useMonitoring';
 
 const SilencesDetailsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { plugin } = useMonitoring();
+  const { plugin, prometheus } = useMonitoring();
 
   const params = useParams<{ id: string }>();
 
@@ -66,11 +66,13 @@ const SilencesDetailsPage_: FC = () => {
   const { perspective } = usePerspective();
 
   const alertsLoaded = useSelector(
-    (state: MonitoringState) => getObserveState(plugin, state)?.alerting[namespace]?.loaded,
+    (state: MonitoringState) =>
+      getObserveState(plugin, state)?.alerting[prometheus]?.[namespace]?.loaded,
   );
 
   const silences = useSelector(
-    (state: MonitoringState) => getObserveState(plugin, state)?.alerting[namespace]?.silences,
+    (state: MonitoringState) =>
+      getObserveState(plugin, state)?.alerting[prometheus]?.[namespace]?.silences,
   );
   const silence = _.find(silences?.data, { id });
 
