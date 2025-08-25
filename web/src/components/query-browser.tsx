@@ -609,14 +609,14 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
   const { plugin } = useMonitoring();
 
   const hideGraphs = useSelector(
-    (state: MonitoringState) => !!getObserveState(plugin, state)?.get('hideGraphs'),
+    (state: MonitoringState) => !!getObserveState(plugin, state)?.hideGraphs,
   );
   const tickInterval = useSelector(
     (state: MonitoringState) =>
-      pollInterval ?? getObserveState(plugin, state)?.getIn(['queryBrowser', 'pollInterval']),
+      pollInterval ?? Number(getObserveState(plugin, state)?.queryBrowser.pollInterval),
   );
-  const lastRequestTime = useSelector((state: MonitoringState) =>
-    getObserveState(plugin, state)?.getIn(['queryBrowser', 'lastRequestTime']),
+  const lastRequestTime = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state)?.queryBrowser.lastRequestTime,
   );
 
   const dispatch = useDispatch();

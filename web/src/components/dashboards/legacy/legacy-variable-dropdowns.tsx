@@ -21,7 +21,6 @@ import type { FC, Ref } from 'react';
 import { useCallback, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { Map as ImmutableMap, Map } from 'immutable';
 
 import { SingleTypeaheadDropdown } from '../../console/utils/single-typeahead-dropdown';
 import { getPrometheusBasePath, buildPrometheusUrl } from '../../utils';
@@ -51,7 +50,7 @@ const isIntervalVariable = (itemKey: string): boolean =>
 
 export const evaluateVariableTemplate = (
   template: string,
-  variables: ImmutableMap<string, Variable>,
+  variables: any,
   timespan: number,
 ): string => {
   if (_.isEmpty(template)) {
@@ -60,7 +59,7 @@ export const evaluateVariableTemplate = (
 
   const range: Variable = { value: `${Math.floor(timespan / 1000)}s` };
   const allVariables = {
-    ...variables?.toJS(),
+    ...variables,
     __range: range,
     /* eslint-disable camelcase */
     __range_ms: range,
@@ -117,14 +116,14 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { plugin } = useMonitoring();
 
-  const timespan = useSelector((state: MonitoringState) =>
-    getObserveState(plugin, state)?.getIn(['dashboards', perspective, 'timespan']),
+  const timespan = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state)?.dashboards[perspective].timespan,
   );
 
-  const variables = useSelector((state: MonitoringState) =>
-    getObserveState(plugin, state)?.get('dashboards')?.get(perspective)?.get('variables'),
+  const variables = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state)?.dashboards[perspective]?.variables,
   );
-  const variable = variables?.toJS()?.[name] as Variable;
+  const variable = variables?.[name] as Variable;
   const options = useDeepMemo(() => {
     return variable?.options;
   }, [variable?.options]);
@@ -324,8 +323,8 @@ export const LegacyDashboardsAllVariableDropdowns: FC = () => {
   const { perspective } = usePerspective();
   const { plugin } = useMonitoring();
 
-  const variables = useSelector((state: MonitoringState) =>
-    Map(getObserveState(plugin, state)?.getIn(['dashboards', perspective, 'variables'])),
+  const variables = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state)?.dashboards[perspective].variables,
   );
 
   if (!variables) {
@@ -334,7 +333,7 @@ export const LegacyDashboardsAllVariableDropdowns: FC = () => {
 
   return (
     <Split hasGutter isWrappable>
-      {variables.keySeq().map((name: string) => (
+      {Object.keys(variables).map((name: string) => (
         <LegacyDashboardsVariableDropdown
           id={name}
           key={name}

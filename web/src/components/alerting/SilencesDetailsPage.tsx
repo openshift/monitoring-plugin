@@ -39,7 +39,6 @@ import {
   usePerspective,
 } from '../hooks/usePerspective';
 import KebabDropdown from '../kebab-dropdown';
-import { Silences } from '../types';
 import { alertDescription, SilenceResource } from '../utils';
 import { SeverityBadge, SeverityCounts } from './AlertUtils';
 import { SilenceDropdown, SilenceMatchersList, SilenceState } from './SilencesUtils';
@@ -66,17 +65,12 @@ const SilencesDetailsPage_: FC = () => {
   const [namespace] = useActiveNamespace();
   const { perspective } = usePerspective();
 
-  const alertsLoaded = useSelector((state: MonitoringState) =>
-    getObserveState(plugin, state)?.get('alerting')?.get(namespace)?.get('loaded'),
+  const alertsLoaded = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state)?.alerting[namespace]?.loaded,
   );
 
   const silences = useSelector(
-    (state: MonitoringState) =>
-      getObserveState(plugin, state)
-        ?.get('alerting')
-        ?.get(namespace)
-        ?.get('silences')
-        ?.toJS() as Silences,
+    (state: MonitoringState) => getObserveState(plugin, state)?.alerting[namespace]?.silences,
   );
   const silence = _.find(silences?.data, { id });
 

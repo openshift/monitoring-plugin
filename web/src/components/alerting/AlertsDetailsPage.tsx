@@ -104,21 +104,20 @@ const AlertsDetailsPage_: FC = () => {
   const [namespace] = useActiveNamespace();
 
   const hideGraphs = useSelector(
-    (state: MonitoringState) => !!getObserveState(plugin, state)?.get('hideGraphs'),
+    (state: MonitoringState) => !!getObserveState(plugin, state)?.hideGraphs,
   );
 
-  const { loaded, loadError } = useSelector((state: MonitoringState) =>
-    getObserveState(plugin, state)?.get('alerting')?.get(namespace)?.toJS(),
+  const { loaded, loadError } = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state)?.alerting[namespace],
   );
 
-  const alerts = useSelector((state: MonitoringState) =>
-    getObserveState(plugin, state)?.get('alerting')?.get(namespace)?.get('alerts'),
+  const alerts = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state)?.alerting[namespace]?.alerts,
   );
 
   const silencesLoaded = useSelector(
     (state: MonitoringState) =>
-      getObserveState(plugin, state)?.get('alerting')?.get(namespace)?.get('silences')?.toJS()
-        ?.loaded,
+      getObserveState(plugin, state)?.alerting[namespace]?.silences?.loaded,
   );
 
   const ruleAlerts = _.filter(alerts, (a) => a.rule.id === params?.ruleID);

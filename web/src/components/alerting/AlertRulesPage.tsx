@@ -132,16 +132,15 @@ const AlertRulesPage_: FC = () => {
 
   useAlerts();
 
-  const data: Rule[] = useSelector((state: MonitoringState) =>
-    getObserveState(plugin, state)?.get('alerting')?.get(namespace)?.get('rules'),
+  const data: Rule[] = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state)?.alerting[namespace]?.rules,
   );
-  const { loaded = false, loadError } = useSelector((state: MonitoringState) =>
-    getObserveState(plugin, state)?.get('alerting')?.get(namespace)?.toJS(),
+  const { loaded = false, loadError } = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state)?.alerting[namespace],
   );
   const silencesLoadError = useSelector(
     (state: MonitoringState) =>
-      getObserveState(plugin, state)?.get('alerting')?.get(namespace)?.get('silences')?.toJS()
-        ?.loadError,
+      getObserveState(plugin, state)?.alerting[namespace]?.silences?.loadError,
   );
 
   const ruleAdditionalSources = useMemo(

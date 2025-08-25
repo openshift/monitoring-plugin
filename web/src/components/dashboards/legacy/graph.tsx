@@ -38,11 +38,11 @@ const Graph: FC<Props> = ({
 }) => {
   const dispatch = useDispatch();
   const { plugin } = useMonitoring();
-  const endTime = useSelector((state: MonitoringState) =>
-    getObserveState(plugin, state)?.getIn(['dashboards', perspective, 'endTime']),
+  const endTime = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state)?.dashboards[perspective].endTime,
   );
-  const timespan = useSelector((state: MonitoringState) =>
-    getObserveState(plugin, state)?.getIn(['dashboards', perspective, 'timespan']),
+  const timespan = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state)?.dashboards[perspective].timespan,
   );
 
   const onZoom = useCallback(
@@ -58,7 +58,7 @@ const Graph: FC<Props> = ({
     <QueryBrowser
       customDataSource={customDataSource}
       defaultSamples={DEFAULT_GRAPH_SAMPLES}
-      fixedEndTime={endTime}
+      fixedEndTime={Number(endTime)}
       formatSeriesTitle={formatSeriesTitle}
       hideControls
       isStack={isStack}

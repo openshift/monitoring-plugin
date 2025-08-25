@@ -105,14 +105,15 @@ const Card: FC<CardProps> = memo(({ panel, perspective }) => {
   const { plugin } = useMonitoring();
 
   const [namespace] = useActiveNamespace();
-  const pollInterval = useSelector((state: MonitoringState) =>
-    getObserveState(plugin, state)?.getIn(['dashboards', perspective, 'pollInterval']),
+  const pollInterval = useSelector(
+    (state: MonitoringState) =>
+      getObserveState(plugin, state)?.dashboards[perspective].pollInterval,
   );
-  const timespan = useSelector((state: MonitoringState) =>
-    getObserveState(plugin, state)?.getIn(['dashboards', perspective, 'timespan']),
+  const timespan = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state)?.dashboards[perspective].timespan,
   );
-  const variables = useSelector((state: MonitoringState) =>
-    getObserveState(plugin, state)?.getIn(['dashboards', perspective, 'variables']),
+  const variables = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state)?.dashboards[perspective].variables,
   );
 
   const ref = useRef();

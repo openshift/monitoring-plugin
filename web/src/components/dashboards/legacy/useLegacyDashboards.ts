@@ -23,7 +23,6 @@ import {
 } from '../../../store/actions';
 import { CombinedDashboardMetadata } from '../perses/hooks/useDashboardsData';
 import { useNavigate } from 'react-router-dom-v5-compat';
-import { Map as ImmutableMap } from 'immutable';
 import { QueryParams } from '../../query-params';
 import { NumberParam, useQueryParam } from 'use-query-params';
 
@@ -214,7 +213,7 @@ const getAllVariables = (boards: Board[], newBoardName: string, namespace: strin
         value = MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY;
       }
 
-      allVariables[v.name] = ImmutableMap({
+      allVariables[v.name] = {
         datasource: v.datasource,
         includeAll: !!v.includeAll,
         isHidden: namespace && v.name === 'namespace' ? true : v.hide !== 0,
@@ -222,7 +221,7 @@ const getAllVariables = (boards: Board[], newBoardName: string, namespace: strin
         options: _.map(v.options, 'value'),
         query: v.type === 'query' ? v.query : undefined,
         value: namespace && v.name === 'namespace' ? namespace : value || v.options?.[0]?.value,
-      });
+      };
     }
   });
 

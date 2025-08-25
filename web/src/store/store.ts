@@ -1,5 +1,4 @@
 import * as _ from 'lodash-es';
-import { Map, MapOf, List } from 'immutable';
 
 import { Perspective } from './actions';
 
@@ -22,100 +21,116 @@ export type RootState = {
 };
 
 export type LegacyObserveState = Map<string, any>;
-export type ObserveState = MapOf<{
-  dashboards: Map<
+export type ObserveState = {
+  dashboards: Record<
     Perspective,
-    MapOf<{
+    {
       endTime: string | null;
       pollInterval: number;
       timespan: number;
-      variables: Map<string, Variable>;
-    }>
+      variables: Record<string, Variable>;
+    }
   >;
-  incidentsData: MapOf<{
+  incidentsData: {
     incidents: Array<any>;
     alertsData: Array<any>;
     alertsTableData: Array<any>;
     filteredIncidentsData: Array<any>;
     alertsAreLoading: boolean;
     incidentsChartSelectedId: string;
-    incidentsInitialState: MapOf<{
+    incidentsInitialState: {
       days: Array<DaysFilters>;
       incidentFilters: Array<IncidentFilters>;
-    }>;
-    incidentsActiveFilters: MapOf<{
+    };
+    incidentsActiveFilters: {
       days: Array<DaysFilters>;
       incidentFilters: Array<IncidentFilters>;
-    }>;
+    };
     groupId: string;
-  }>;
-  queryBrowser: MapOf<{
+  };
+  queryBrowser: {
     metrics: Array<any>;
     pollInterval: string | null;
-    queries: List<MapOf<QueryStructure>>;
+    queries: Array<QueryStructure>;
     timespan: number;
-  }>;
-  alerting: Map<
+    dismissNamespaceAlert: boolean;
+    lastRequestTime: number;
+  };
+  alerting: Record<
     Namespace,
-    MapOf<{
+    {
       alertCount: number;
       loaded: boolean;
       loadError: Error | null;
       alerts: Array<Alert>;
       rules: Array<Rule>;
-      silences: MapOf<Silences>;
-    }>
+      silences: Silences;
+    }
   >;
   hideGraphs: boolean;
-}>;
+};
 
-export const defaultObserveState: ObserveState = Map({
-  dashboards: Map<Perspective, MapOf<any>>([
-    [
-      'dev',
-      Map({
-        endTime: null,
-        pollInterval: 30 * 1000,
-        timespan: MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
-        variables: Map(),
-      }),
-    ],
-    [
-      'admin',
-      Map({
-        endTime: null,
-        pollInterval: 30 * 1000,
-        timespan: MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
-        variables: Map(),
-      }),
-    ],
-  ]),
-  queryBrowser: Map({
+export const defaultObserveState: ObserveState = {
+  dashboards: {
+    dev: {
+      endTime: null,
+      pollInterval: 30 * 1000,
+      timespan: MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
+      variables: {},
+    },
+    admin: {
+      endTime: null,
+      pollInterval: 30 * 1000,
+      timespan: MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
+      variables: {},
+    },
+  } as Record<
+    Perspective,
+    {
+      endTime: string | null;
+      pollInterval: number;
+      timespan: number;
+      variables: Record<string, Variable>;
+    }
+  >,
+  queryBrowser: {
     metrics: [] as Array<any>,
     pollInterval: null,
-    queries: List([newQueryBrowserQuery()]),
+    queries: [newQueryBrowserQuery()],
     timespan: MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
-  }),
-  incidentsData: Map({
+    dismissNamespaceAlert: false,
+    lastRequestTime: Date.now(),
+  },
+  incidentsData: {
     incidents: [] as Array<any>,
     alertsData: [] as Array<any>,
     alertsTableData: [] as Array<any>,
     filteredIncidentsData: [] as Array<any>,
     alertsAreLoading: true,
     incidentsChartSelectedId: '',
-    incidentsInitialState: Map({
+    incidentsInitialState: {
       days: ['7 days'] as Array<DaysFilters>,
       incidentFilters: ['Critical', 'Warning', 'Firing'] as Array<IncidentFilters>,
-    }),
-    incidentsActiveFilters: Map({
+    },
+    incidentsActiveFilters: {
       days: [] as Array<DaysFilters>,
       incidentFilters: [] as Array<IncidentFilters>,
-    }),
+    },
     groupId: '',
-  }),
-  alerting: Map<Namespace, MapOf<any>>([]),
+  },
+  alerting: {} as Record<
+    string,
+    {
+      alertCount: number;
+      loaded: boolean;
+      loadError: Error | null;
+      alerts: Array<Alert>;
+      rules: Array<Rule>;
+      silences: Silences;
+    }
+  >,
   hideGraphs: false as boolean,
-});
+};
 
 export type MonitoringState = {
   observe: LegacyObserveState;
@@ -139,14 +154,10 @@ export type QueryStructure = {
   };
 };
 
-export function newQueryBrowserQuery(): MapOf<{
-  id: string;
-  isEnabled: boolean;
-  isExpanded: boolean;
-}> {
-  return Map({
+export function newQueryBrowserQuery(): QueryStructure {
+  return {
     id: _.uniqueId('query-browser-query'),
     isEnabled: true,
     isExpanded: true,
-  });
+  };
 }

@@ -35,11 +35,11 @@ export const TimespanDropdown: FC = () => {
 
   const [isModalOpen, , setModalOpen, setModalClosed] = useBoolean(false);
 
-  const timespan = useSelector((state: MonitoringState) =>
-    getObserveState(plugin, state)?.getIn(['dashboards', perspective, 'timespan']),
+  const timespan = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state)?.dashboards[perspective].timespan,
   );
-  const endTime = useSelector((state: MonitoringState) =>
-    getObserveState(plugin, state)?.getIn(['dashboards', perspective, 'endTime']),
+  const endTime = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state)?.dashboards[perspective].endTime,
   );
 
   const [timeRangeFromParams, setTimeRange] = useQueryParam(QueryParams.TimeRange, NumberParam);
@@ -90,7 +90,7 @@ export const TimespanDropdown: FC = () => {
   }, [selectedKey, t, timeRangeFromParams, setTimeRange, setEndTime]);
 
   const defaultTimerange = timespan ?? undefined;
-  const defaultEndTime = endTime ?? undefined;
+  const defaultEndTime = Number(endTime) ?? undefined;
 
   return (
     <>

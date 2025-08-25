@@ -79,11 +79,11 @@ const IncidentsChart = ({
     return () => observer();
   }, []);
 
-  const selectedId = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.getIn(['incidentsData', 'groupId']),
+  const selectedId = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData.groupId,
   );
-  const incidentsActiveFilters = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.getIn(['incidentsData', 'incidentsActiveFilters']),
+  const incidentsActiveFilters = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData.incidentsActiveFilters,
   );
 
   const isHidden = useCallback(

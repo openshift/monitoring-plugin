@@ -90,29 +90,29 @@ const IncidentsPage = () => {
     setDaysFilterIsExpanded(!daysFilterIsExpanded);
   };
 
-  const incidentsInitialState = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.get('incidentsData')?.get('incidentsInitialState')?.toJS(),
+  const incidentsInitialState = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData.incidentsInitialState,
   );
 
-  const incidents = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.get('incidentsData')?.get('incidents'),
+  const incidents = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData?.incidents,
   );
 
-  const incidentsActiveFilters = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.get('incidentsData')?.get('incidentsActiveFilters')?.toJS(),
+  const incidentsActiveFilters = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData.incidentsActiveFilters,
   );
-  const incidentGroupId = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.get('incidentsData')?.get('groupId'),
+  const incidentGroupId = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData?.groupId,
   );
-  const alertsData = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.get('incidentsData')?.get('alertsData'),
+  const alertsData = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData?.alertsData,
   );
-  const alertsAreLoading = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.get('incidentsData')?.get('alertsAreLoading'),
+  const alertsAreLoading = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData?.alertsAreLoading,
   );
 
-  const filteredData = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.get('incidentsData')?.get('filteredIncidentsData'),
+  const filteredData = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData?.filteredIncidentsData,
   );
   useEffect(() => {
     const hasUrlParams = Object.keys(urlParams).length > 0;

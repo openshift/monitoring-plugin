@@ -154,13 +154,13 @@ const AlertRulesDetailsPage_: FC = () => {
   const { perspective } = usePerspective();
   const namespace = params?.ns;
 
-  const rules = useSelector((state: MonitoringState) =>
-    getObserveState(plugin, state)?.get('alerting')?.get(namespace)?.get('rules'),
+  const rules = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state)?.alerting[namespace]?.rules,
   );
   const rule = _.find(rules, { id: params.id });
 
-  const { loaded, loadError } = useSelector((state: MonitoringState) =>
-    getObserveState(plugin, state)?.get('alerting')?.get(namespace)?.toJS(),
+  const { loaded, loadError } = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state)?.alerting[namespace],
   );
 
   const sourceId = rule?.sourceId;

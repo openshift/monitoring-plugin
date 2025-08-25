@@ -24,11 +24,11 @@ export const IncidentsTable = () => {
       return isExpanding ? [...otherAlertExpanded, alert.component] : otherAlertExpanded;
     });
   const isAlertExpanded = (alert: Alert) => expandedAlerts.includes(alert.component);
-  const alertsTableData = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.get('incidentsData')?.get('alertsTableData'),
+  const alertsTableData = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData?.alertsTableData,
   );
-  const alertsAreLoading = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.getIn(['incidentsData', 'alertsAreLoading']),
+  const alertsAreLoading = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData.alertsAreLoading,
   );
 
   if (_.isEmpty(alertsTableData) || alertsAreLoading) {

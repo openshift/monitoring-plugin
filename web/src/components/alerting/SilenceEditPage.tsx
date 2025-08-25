@@ -7,7 +7,6 @@ import { useParams } from 'react-router-dom-v5-compat';
 import { MonitoringState } from '../../store/store';
 import { StatusBox } from '../console/console-shared/src/components/status/StatusBox';
 import { getObserveState } from '../hooks/usePerspective';
-import { Silences } from '../types';
 import { SilenceResource, silenceState } from '../utils';
 import { SilenceForm } from './SilenceForm';
 import { MonitoringProvider } from '../../contexts/MonitoringContext';
@@ -42,12 +41,7 @@ const SilenceEditPage = () => {
   useAlerts();
 
   const silences = useSelector(
-    (state: MonitoringState) =>
-      getObserveState(plugin, state)
-        ?.get('alerting')
-        ?.get(namespace)
-        ?.get('silences')
-        ?.toJS() as Silences,
+    (state: MonitoringState) => getObserveState(plugin, state)?.alerting[namespace]?.silences,
   );
 
   const silence: Silence = _.find(silences?.data, { id: params.id });

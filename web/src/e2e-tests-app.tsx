@@ -20,9 +20,8 @@ import PrometheusRedirectPage from './components/prometheus-redirect-page';
 import { MpCmoTargetsPage } from './components/targets-page';
 import i18n from './i18n';
 import ObserveReducers from './store/reducers';
-import { Map } from 'immutable';
 
-type RootState = { observe: Map<string, any> };
+type RootState = { observe: any };
 
 const baseReducers = Object.freeze({ observe: ObserveReducers });
 

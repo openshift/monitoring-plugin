@@ -28,18 +28,16 @@ const AlertsChart = ({ chartDays, theme }: { chartDays: number; theme: 'light' |
   const [chartContainerHeight, setChartContainerHeight] = useState<number>();
   const [chartHeight, setChartHeight] = useState<number>();
   const alertsData = useSelector(
-    (state: MonitoringState) => state.plugins.mcp.getIn(['incidentsData', 'alertsData']) as any,
+    (state: MonitoringState) => state.plugins.mcp.incidentsData.alertsData,
   );
   const alertsAreLoading = useSelector(
-    (state: MonitoringState) =>
-      state.plugins.mcp.getIn(['incidentsData', 'alertsAreLoading']) as any,
+    (state: MonitoringState) => state.plugins.mcp.incidentsData.alertsAreLoading,
   );
   const filteredData = useSelector(
-    (state: MonitoringState) =>
-      state.plugins.mcp.getIn(['incidentsData', 'filteredIncidentsData']) as any,
+    (state: MonitoringState) => state.plugins.mcp.incidentsData.filteredIncidentsData,
   );
   const incidentGroupId = useSelector(
-    (state: MonitoringState) => state.plugins.mcp.getIn(['incidentsData', 'groupId']) as any,
+    (state: MonitoringState) => state.plugins.mcp.incidentsData.groupId,
   );
 
   const dateValues = useMemo(() => generateDateArray(chartDays), [chartDays]);

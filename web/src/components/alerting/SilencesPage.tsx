@@ -37,7 +37,6 @@ import {
   getObserveState,
   usePerspective,
 } from '../hooks/usePerspective';
-import { Silences } from '../types';
 import { fuzzyCaseInsensitive, silenceCluster, silenceState } from '../utils';
 import { SelectedSilencesContext, SilenceTableRow } from './SilencesUtils';
 import { MonitoringProvider } from '../../contexts/MonitoringContext';
@@ -58,12 +57,7 @@ const SilencesPage_: FC = () => {
   useAlerts();
 
   const silenceData = useSelector(
-    (state: MonitoringState) =>
-      getObserveState(plugin, state)
-        ?.get('alerting')
-        ?.get(namespace)
-        ?.get('silences')
-        .toJS() as Silences,
+    (state: MonitoringState) => getObserveState(plugin, state)?.alerting[namespace]?.silences,
   );
 
   const clusters = useMemo(() => {

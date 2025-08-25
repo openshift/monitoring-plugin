@@ -1,5 +1,4 @@
 import * as _ from 'lodash-es';
-import { List, Map } from 'immutable';
 import {
   Alert,
   AlertStates,
@@ -11,63 +10,53 @@ import { ActionType, ObserveAction } from './actions';
 
 import { isSilenced } from '../components/utils';
 import { MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY } from '../components/dashboards/legacy/utils';
-import { defaultObserveState, newQueryBrowserQuery, ObserveState } from './store';
+import { defaultObserveState, newQueryBrowserQuery, ObserveState, QueryStructure } from './store';
+import { produce } from 'immer';
 
-export default (state: ObserveState, action: ObserveAction): ObserveState => {
-  if (!state) {
+const monitoringReducer = produce((draft: ObserveState, action: ObserveAction): ObserveState => {
+  if (!draft) {
     return defaultObserveState;
   }
 
-  const queryBrowserPatchQueryHelper = (index: number, patch: { [key: string]: unknown }) => {
-    const query = state.hasIn(['queryBrowser', 'queries', index])
-      ? Map(patch)
-      : Map(newQueryBrowserQuery()).merge(patch);
-    return state.mergeIn(['queryBrowser', 'queries', index], query);
+  const queryBrowserPatchQueryHelper = (index: number, patch: QueryStructure): QueryStructure => {
+    return draft.queryBrowser.queries[index] ? patch : { ...newQueryBrowserQuery(), ...patch };
   };
 
   switch (action.type) {
     case ActionType.DashboardsPatchVariable: {
-      return state.mergeIn(
-        ['dashboards', action.payload.perspective, 'variables', action.payload.key],
-        Map(action.payload.patch),
-      );
+      draft.dashboards[action.payload.perspective].variables[action.payload.key] =
+        action.payload.patch;
+      break;
     }
 
     case ActionType.DashboardsPatchAllVariables: {
-      return state.setIn(
-        ['dashboards', action.payload.perspective, 'variables'],
-        Map(action.payload.variables),
-      );
+      draft.dashboards[action.payload.perspective].variables = action.payload.variables;
+      break;
     }
 
     case ActionType.DashboardsClearVariables: {
-      return state.setIn(['dashboards', action.payload.perspective, 'variables'], Map());
+      draft.dashboards[action.payload.perspective].variables = {};
+      break;
     }
 
     case ActionType.DashboardsSetEndTime: {
-      return state.setIn(
-        ['dashboards', action.payload.perspective, 'endTime'],
-        action.payload.endTime,
-      );
+      draft.dashboards[action.payload.perspective].endTime = String(action.payload.endTime);
+      break;
     }
 
     case ActionType.DashboardsSetPollInterval: {
-      return state.setIn(
-        ['dashboards', action.payload.perspective, 'pollInterval'],
-        action.payload.pollInterval,
-      );
+      draft.dashboards[action.payload.perspective].pollInterval = action.payload.pollInterval;
+      break;
     }
 
     case ActionType.DashboardsSetTimespan: {
-      return state.setIn(
-        ['dashboards', action.payload.perspective, 'timespan'],
-        action.payload.timespan,
-      );
+      draft.dashboards[action.payload.perspective].timespan = action.payload.timespan;
+      break;
     }
 
     case ActionType.DashboardsVariableOptionsLoaded: {
       const { key, newOptions, perspective } = action.payload;
-      const val = state.get('dashboards').get(perspective).get('variables').get(key);
+      const val = draft.dashboards[perspective].variables[key];
       const patch = _.isEqual(val?.options, newOptions)
         ? { isLoading: false }
         : {
@@ -79,200 +68,225 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
                 ? val?.value
                 : newOptions[0],
           };
-      return state.mergeIn(['dashboards', perspective, 'variables', key], Map(patch));
+      draft.dashboards[perspective].variables[key] = patch;
+      break;
     }
 
     case ActionType.AlertingSetRulesLoaded: {
       const { namespace, rules, alerts } = action.payload;
-      return state
-        .setIn(['alerting', namespace, 'rules'], rules)
-        .setIn(['alerting', namespace, 'alerts'], alerts)
-        .setIn(['alerting', namespace, 'loaded'], true);
+      draft.alerting[namespace] = {
+        rules,
+        alerts,
+        loaded: true,
+        loadError: null,
+        alertCount: alerts.length,
+        silences: { data: [], loaded: false },
+      };
+      break;
     }
 
     case ActionType.AlertingSetSilencesLoaded: {
       const { namespace, silences } = action.payload;
-      return state
-        .setIn(['alerting', namespace, 'silences', 'data'], silences)
-        .setIn(['alerting', namespace, 'silences', 'loaded'], true);
+      draft.alerting[namespace].silences.data = silences;
+      draft.alerting[namespace].silences.loaded = true;
+      draft.alerting[namespace].silences.loadError = '';
+      break;
     }
 
     case ActionType.AlertingApplySilences: {
       const { namespace } = action.payload;
-      const alerts = state.get('alerting')?.get(namespace)?.get('alerts');
-      const silences = state.get('alerting')?.get(namespace)?.get('silences')?.toJS();
+      const alerts = draft.alerting[namespace]?.alerts;
+      const silences = draft.alerting[namespace]?.silences;
 
       const firingAlerts = alerts.filter(isAlertFiring);
 
       const updatedAlerts = silenceFiringAlerts(firingAlerts, silences.data);
-
-      return state.setIn(['alerting', namespace, 'alerts'], updatedAlerts);
+      draft.alerting[namespace].alerts = updatedAlerts;
+      break;
     }
 
-    case ActionType.ToggleGraphs:
-      return state.set('hideGraphs', !state.get('hideGraphs'));
+    case ActionType.ToggleGraphs: {
+      draft.hideGraphs = !draft.hideGraphs;
+      break;
+    }
 
-    case ActionType.ShowGraphs:
-      return state.set('hideGraphs', false);
+    case ActionType.ShowGraphs: {
+      draft.hideGraphs = false;
+      break;
+    }
 
     case ActionType.QueryBrowserAddQuery: {
-      return state.setIn(
-        ['queryBrowser', 'queries'],
-        state.getIn(['queryBrowser', 'queries']).push(newQueryBrowserQuery()),
-      );
+      draft.queryBrowser.queries.push(newQueryBrowserQuery());
+      break;
     }
 
     case ActionType.QueryBrowserDuplicateQuery: {
       const index = action.payload.index;
-      const originQueryText = state.getIn(['queryBrowser', 'queries', index, 'text']);
-      const duplicate = newQueryBrowserQuery().merge({
-        text: originQueryText,
-        isEnabled: false,
-      });
-      return state.setIn(
-        ['queryBrowser', 'queries'],
-        state.getIn(['queryBrowser', 'queries']).concat(duplicate),
-      );
+      const originQueryText = draft.queryBrowser.queries[index].text;
+      const duplicate = { ...newQueryBrowserQuery(), text: originQueryText, isEnabled: false };
+      draft.queryBrowser.queries.push(duplicate);
+      break;
     }
 
     case ActionType.QueryBrowserDeleteAllQueries: {
-      return state.setIn(['queryBrowser', 'queries'], List([newQueryBrowserQuery()]));
+      draft.queryBrowser.queries = [newQueryBrowserQuery()];
+      break;
     }
 
     case ActionType.QueryBrowserDeleteAllSeries: {
-      return state.setIn(
-        ['queryBrowser', 'queries'],
-        state.getIn(['queryBrowser', 'queries']).map((q) => Map(q).set('series', undefined)),
+      draft.queryBrowser.queries = draft.queryBrowser.queries.map(
+        (query) => (query.series = undefined),
       );
+      break;
     }
 
     case ActionType.QueryBrowserDeleteQuery: {
-      let queries = List(state.getIn(['queryBrowser', 'queries'])).delete(action.payload.index);
-      if (queries.size === 0) {
-        queries = queries.push(newQueryBrowserQuery());
+      const queries = [
+        ...draft.queryBrowser.queries.slice(0, action.payload.index),
+        ...draft.queryBrowser.queries.slice(action.payload.index),
+      ];
+      if (queries.length === 0) {
+        queries.push(newQueryBrowserQuery());
       }
-      return state.setIn(['queryBrowser', 'queries'], queries);
+      draft.queryBrowser.queries = queries;
+      break;
     }
 
     case ActionType.QueryBrowserDismissNamespaceAlert: {
-      return state.setIn(['queryBrowser', 'dismissNamespaceAlert'], true);
+      draft.queryBrowser.dismissNamespaceAlert = true;
+      break;
     }
 
     case ActionType.QueryBrowserPatchQuery: {
       const { index, patch } = action.payload;
-      return queryBrowserPatchQueryHelper(index, patch);
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      draft.queryBrowser.queries[index] = queryBrowserPatchQueryHelper(index, patch);
+      break;
     }
 
     case ActionType.QueryBrowserRunQueries: {
-      const queries = state.getIn(['queryBrowser', 'queries']).map((q) => {
-        const text = _.trim(q.get('text'));
-        return q.get('isEnabled') && q.get('query') !== text
-          ? q.merge({ query: text, series: undefined })
-          : q;
+      const queries = draft.queryBrowser.queries.map((query) => {
+        const text = _.trim(query.text);
+        return query.isEnabled && query.query !== text
+          ? { ...query, query: text, series: undefined }
+          : query;
       });
 
-      return state
-        .setIn(['queryBrowser', 'queries'], queries)
-        .setIn(['queryBrowser', 'lastRequestTime'], Date.now());
+      draft.queryBrowser.queries = queries;
+      draft.queryBrowser.lastRequestTime = Date.now();
+      break;
     }
 
     case ActionType.QueryBrowserSetAllExpanded: {
-      const queries = state.getIn(['queryBrowser', 'queries']).map((q) => {
-        return Map(q).set('isExpanded', action.payload.isExpanded);
+      const queries = draft.queryBrowser.queries.map((query) => {
+        query.isExpanded = action.payload.isExpanded;
+        return query;
       });
-      return state.setIn(['queryBrowser', 'queries'], queries);
+      draft.queryBrowser.queries = queries;
+      break;
     }
 
     case ActionType.QueryBrowserSetMetrics: {
-      return state.setIn(['queryBrowser', 'metrics'], action.payload.metrics);
+      draft.queryBrowser.metrics = action.payload.metrics;
+      break;
     }
 
     case ActionType.QueryBrowserSetPollInterval: {
-      return state.setIn(['queryBrowser', 'pollInterval'], action.payload.pollInterval);
+      draft.queryBrowser.pollInterval = String(action.payload.pollInterval);
+      break;
     }
 
     case ActionType.QueryBrowserSetTimespan: {
-      return state.setIn(['queryBrowser', 'timespan'], action.payload.timespan);
+      draft.queryBrowser.timespan = action.payload.timespan;
+      break;
     }
 
     case ActionType.QueryBrowserToggleAllSeries: {
       const index = action.payload.index;
-      const isDisabledSeriesEmpty = _.isEmpty(
-        state.getIn(['queryBrowser', 'queries', index, 'disabledSeries']),
-      );
-      const series = state.getIn(['queryBrowser', 'queries', index, 'series']);
+      const isDisabledSeriesEmpty = _.isEmpty(draft.queryBrowser.queries[index].disabledSeries);
+      const series = draft.queryBrowser.queries[index].series;
       const patch = { disabledSeries: isDisabledSeriesEmpty ? series : [] };
-      return queryBrowserPatchQueryHelper(index, patch);
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      draft.queryBrowser.queries[index] = queryBrowserPatchQueryHelper(index, patch);
+      break;
     }
 
     case ActionType.QueryBrowserToggleIsEnabled: {
-      const query = Map(state.getIn(['queryBrowser', 'queries', action.payload.index]));
-      const isEnabled = !query.get('isEnabled');
-      return state.setIn(
-        ['queryBrowser', 'queries', action.payload.index],
-        query.merge({
+      const query = draft.queryBrowser.queries[action.payload.index];
+      const isEnabled = !query.isEnabled;
+      draft.queryBrowser.queries[action.payload.index] = queryBrowserPatchQueryHelper(
+        action.payload.index,
+        {
+          id: query.id,
           isEnabled,
           isExpanded: isEnabled,
-          query: isEnabled ? query.get('text') : '',
-        }),
+          query: isEnabled ? query.text : '',
+        },
       );
+      break;
     }
 
-    case ActionType.QueryBrowserToggleSeries:
-      return state.updateIn(
-        ['queryBrowser', 'queries', action.payload.index, 'disabledSeries'],
-        (v: Array<any>) => _.xorWith(v, [action.payload.labels], _.isEqual),
-      );
+    // This one is prob wrong
+    case ActionType.QueryBrowserToggleSeries: {
+      draft.queryBrowser.queries[action.payload.index].disabledSeries = draft.queryBrowser.queries[
+        action.payload.index
+      ].disabledSeries.filter((series) => {
+        return _.isEqual(series, action.payload.labels);
+      });
+      break;
+    }
 
-    case ActionType.SetAlertCount:
-      return state.setIn([action.payload.namespace, 'alertCount'], action.payload.alertCount);
+    case ActionType.SetAlertCount: {
+      draft.alerting[action.payload.namespace].alertCount = action.payload.alertCount;
+      break;
+    }
 
     case ActionType.SetIncidents: {
-      return state.setIn(['incidentsData', 'incidents'], action.payload.incidents);
+      draft.incidentsData.incidents = action.payload.incidents;
+      break;
     }
 
     case ActionType.SetIncidentsActiveFilters: {
-      return state.setIn(
-        ['incidentsData', 'incidentsActiveFilters'],
-        action.payload.incidentsActiveFilters,
-      );
+      draft.incidentsData.incidentsActiveFilters = action.payload.incidentsActiveFilters;
+      break;
     }
 
     case ActionType.SetChooseIncident: {
-      return state.setIn(['incidentsData', 'groupId'], action.payload.groupId);
+      draft.incidentsData.groupId = action.payload.groupId;
+      break;
     }
 
     case ActionType.SetAlertsData: {
-      return state.setIn(['incidentsData', 'alertsData'], action.payload.alertsData);
+      draft.incidentsData.alertsData = action.payload.alertsData;
+      break;
     }
 
     case ActionType.SetAlertsTableData: {
-      return state.setIn(['incidentsData', 'alertsTableData'], action.payload.alertsTableData);
+      draft.incidentsData.alertsTableData = action.payload.alertsTableData;
+      break;
     }
 
     case ActionType.SetAlertsAreLoading: {
-      return state.setIn(['incidentsData', 'alertsAreLoading'], action.payload.alertsAreLoading);
+      draft.incidentsData.alertsAreLoading = action.payload.alertsAreLoading;
+      break;
     }
 
     case ActionType.SetIncidentsChartSelection: {
-      return state.setIn(
-        ['incidentsData', 'incidentsChartSelectedId'],
-        action.payload.incidentsChartSelectedId,
-      );
+      draft.incidentsData.incidentsChartSelectedId = action.payload.incidentsChartSelectedId;
+      break;
     }
 
     case ActionType.SetFilteredIncidentsData: {
-      return state.setIn(
-        ['incidentsData', 'filteredIncidentsData'],
-        action.payload.filteredIncidentsData,
-      );
+      draft.incidentsData.filteredIncidentsData = action.payload.filteredIncidentsData;
+      break;
     }
 
     default:
       break;
   }
-  return state;
-};
+});
 
 export type NotificationAlerts = {
   data: Alert[];
@@ -312,3 +326,5 @@ const silenceFiringAlerts = (firingAlerts: Array<Alert>, silences): Array<Alert>
   });
   return firingAlerts;
 };
+
+export default monitoringReducer;
