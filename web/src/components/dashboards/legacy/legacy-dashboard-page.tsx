@@ -11,6 +11,7 @@ import { LegacyDashboard } from '../legacy/legacy-dashboard';
 import ErrorAlert from './error';
 import { DashboardSkeletonLegacy } from './dashboard-skeleton-legacy';
 import { useLegacyDashboards } from './useLegacyDashboards';
+import { MonitoringProvider } from '../../../contexts/MonitoringContext';
 
 type LegacyDashboardsPageProps = {
   urlBoard: string;
@@ -53,14 +54,16 @@ const LegacyDashboardsPage_: FC<LegacyDashboardsPageProps> = ({
   );
 };
 
-const LegacyDashboardsPage: FC = () => {
+const LegacyDashboardsPageWithFallback = withFallback(LegacyDashboardsPage_);
+
+export const MpCmoLegacyDashboardsPage: FC = () => {
   const params = useParams<{ ns?: string; dashboardName: string }>();
 
   return (
-    <QueryParamProvider adapter={ReactRouter5Adapter}>
-      <LegacyDashboardsPage_ urlBoard={params?.dashboardName} namespace={params?.ns} />
-    </QueryParamProvider>
+    <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
+      <QueryParamProvider adapter={ReactRouter5Adapter}>
+        <LegacyDashboardsPageWithFallback urlBoard={params?.dashboardName} namespace={params?.ns} />
+      </QueryParamProvider>
+    </MonitoringProvider>
   );
 };
-
-export default withFallback(LegacyDashboardsPage);

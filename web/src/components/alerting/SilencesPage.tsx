@@ -22,48 +22,48 @@ import {
 import { sortable } from '@patternfly/react-table';
 import * as _ from 'lodash-es';
 import type { FC } from 'react';
-import { useState, useMemo, useContext, useCallback, memo } from 'react';
+import { useContext, useState, useMemo, useCallback, memo } from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom-v5-compat';
-import { MonitoringState } from 'src/reducers/observe';
+import { MonitoringState } from '../../store/store';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
-import { useAlertsPoller } from '../hooks/useAlertsPoller';
 import { useBoolean } from '../hooks/useBoolean';
 import {
   getFetchSilenceUrl,
-  getLegacyObserveState,
   getNewSilenceUrl,
+  getObserveState,
   usePerspective,
 } from '../hooks/usePerspective';
-import { Silences } from '../types';
-import { fuzzyCaseInsensitive, refreshSilences, silenceCluster, silenceState } from '../utils';
+import { fuzzyCaseInsensitive, silenceCluster, silenceState } from '../utils';
 import { SelectedSilencesContext, SilenceTableRow } from './SilencesUtils';
+import { MonitoringProvider } from '../../contexts/MonitoringContext';
 import { DataTestIDs } from '../data-test';
+import { useAlerts } from '../../hooks/useAlerts';
+import { useMonitoring } from '../../hooks/useMonitoring';
 
 const SilencesPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const { plugin, prometheus } = useMonitoring();
+  const [namespace] = useActiveNamespace();
 
-  const { silencesKey, perspective } = usePerspective();
+  const { perspective } = usePerspective();
 
   const [selectedSilences, setSelectedSilences] = useState(new Set());
   const [errorMessage, setErrorMessage] = useState();
 
-  useAlertsPoller();
+  useAlerts();
 
-  const {
-    data,
-    loaded = false,
-    loadError,
-  }: Silences = useSelector(
-    (state: MonitoringState) => getLegacyObserveState(perspective, state)?.get(silencesKey) || {},
+  const silenceData = useSelector(
+    (state: MonitoringState) =>
+      getObserveState(plugin, state)?.alerting[prometheus]?.[namespace]?.silences,
   );
 
   const clusters = useMemo(() => {
     const clusterSet = new Set<string>();
-    data?.forEach((silence) => {
+    silenceData?.data?.forEach((silence) => {
       const clusterName = silenceCluster(silence);
       if (clusterName) {
         clusterSet.add(clusterName);
@@ -72,7 +72,7 @@ const SilencesPage_: FC = () => {
 
     const clusterArray = Array.from(clusterSet);
     return clusterArray.sort();
-  }, [data]);
+  }, [silenceData]);
 
   const rowFilters: RowFilter[] = [
     // TODO: The "name" filter doesn't really fit useListPageFilter's idea of a RowFilter, but
@@ -124,7 +124,10 @@ const SilencesPage_: FC = () => {
     } as RowFilter);
   }
 
-  const [staticData, filteredData, onFilterChange] = useListPageFilter(data, rowFilters);
+  const [staticData, filteredData, onFilterChange] = useListPageFilter(
+    silenceData?.data ?? [],
+    rowFilters,
+  );
 
   const columns = useMemo<Array<TableColumn<Silence>>>(() => {
     const cols: Array<TableColumn<Silence>> = [
@@ -185,7 +188,9 @@ const SilencesPage_: FC = () => {
 
   return (
     <>
-      <Helmet>{perspective === 'dev' ? <title>Silences</title> : <title>Alerting</title>}</Helmet>
+      <Helmet>
+        <title>Alerting</title>
+      </Helmet>
       <PageSection hasBodyWrapper={false}>
         <SelectedSilencesContext.Provider value={{ selectedSilences, setSelectedSilences }}>
           <Flex>
@@ -193,7 +198,7 @@ const SilencesPage_: FC = () => {
               <ListPageFilter
                 data={staticData}
                 hideLabelFilter
-                loaded={loaded}
+                loaded={!!silenceData?.loaded}
                 onFilterChange={onFilterChange}
                 rowFilters={rowFilters}
               />
@@ -205,7 +210,7 @@ const SilencesPage_: FC = () => {
               <ExpireAllSilencesButton setErrorMessage={setErrorMessage} />
             </FlexItem>
           </Flex>
-          {loadError && (
+          {silenceData?.loadError && (
             <PFAlert
               isInline
               title={t(
@@ -213,7 +218,9 @@ const SilencesPage_: FC = () => {
               )}
               variant="danger"
             >
-              {typeof loadError === 'string' ? loadError : loadError.message}
+              {typeof silenceData?.loadError === 'string'
+                ? silenceData?.loadError
+                : silenceData?.loadError.message}
             </PFAlert>
           )}
           {errorMessage && (
@@ -227,10 +234,10 @@ const SilencesPage_: FC = () => {
               label={t('Silences')}
               columns={columns}
               data={filteredData ?? []}
-              loaded={loaded}
-              loadError={loadError}
+              loaded={!!silenceData?.loaded}
+              loadError={silenceData?.loadError ?? ''}
               Row={SilenceTableRowWithCheckbox}
-              unfilteredData={data}
+              unfilteredData={silenceData?.data ?? []}
               NoDataEmptyMsg={() => {
                 return <EmptyBox label={t('Silences')} />;
               }}
@@ -242,7 +249,7 @@ const SilencesPage_: FC = () => {
     </>
   );
 };
-const SilencesPage = withFallback(SilencesPage_);
+const SilencesPageWithFallback = withFallback(SilencesPage_);
 
 const SelectAllCheckbox: FC<{ silences: Silence[] }> = ({ silences }) => {
   const { selectedSilences, setSelectedSilences } = useContext(SelectedSilencesContext);
@@ -294,12 +301,11 @@ const silenceClusterOrder = (clusters: Array<string>) => {
 
 const ExpireAllSilencesButton: FC<ExpireAllSilencesButtonProps> = ({ setErrorMessage }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const { trigger: refetchSilencesAndAlerts } = useAlerts();
 
-  const { perspective, silencesKey } = usePerspective();
+  const { perspective } = usePerspective();
 
   const [isInProgress, , setInProgress, setNotInProgress] = useBoolean(false);
-
-  const dispatch = useDispatch();
 
   const { selectedSilences, setSelectedSilences } = useContext(SelectedSilencesContext);
 
@@ -314,7 +320,7 @@ const ExpireAllSilencesButton: FC<ExpireAllSilencesButtonProps> = ({ setErrorMes
     ).then((values) => {
       setNotInProgress();
       setSelectedSilences(new Set());
-      refreshSilences(dispatch, perspective, silencesKey);
+      refetchSilencesAndAlerts();
       const errors = values
         .filter((v) => v.status === 'rejected')
         .map((v: PromiseRejectedResult) => v.reason);
@@ -358,7 +364,23 @@ const CreateSilenceButton: FC = memo(() => {
   );
 });
 
-export default SilencesPage;
+export const MpCmoSilencesPage = () => {
+  return (
+    <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
+      <SilencesPageWithFallback />
+    </MonitoringProvider>
+  );
+};
+
+export const McpAcmSilencesPage = () => {
+  return (
+    <MonitoringProvider
+      monitoringContext={{ plugin: 'monitoring-console-plugin', prometheus: 'acm' }}
+    >
+      <SilencesPageWithFallback />
+    </MonitoringProvider>
+  );
+};
 
 type ExpireAllSilencesButtonProps = {
   setErrorMessage: (string) => void;

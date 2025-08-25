@@ -5,7 +5,7 @@ import {
   t_global_color_status_warning_default,
 } from '@patternfly/react-tokens';
 import { Dispatch } from 'redux';
-import { setIncidentsActiveFilters } from '../../actions/observe';
+import { setIncidentsActiveFilters } from '../../store/actions';
 import {
   Alert,
   AlertsIntervalsArray,

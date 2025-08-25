@@ -47,16 +47,16 @@ import {
   setFilteredIncidentsData,
   setIncidents,
   setIncidentsActiveFilters,
-} from '../../actions/observe';
+} from '../../store/actions';
 import { useLocation } from 'react-router-dom';
-import { usePerspective } from '../hooks/usePerspective';
 import { changeDaysFilter } from './utils';
 import { parsePrometheusDuration } from '../console/console-shared/src/datetime/prometheus';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 import IncidentsChart from './IncidentsChart/IncidentsChart';
 import AlertsChart from './AlertsChart/AlertsChart';
 import { usePatternFlyTheme } from '../hooks/usePatternflyTheme';
-import { MonitoringState } from 'src/reducers/observe';
+import { MonitoringProvider } from '../../contexts/MonitoringContext';
+import { MonitoringState } from '../../store/store';
 import { Incident } from './model';
 
 const IncidentsPage = () => {
@@ -64,7 +64,6 @@ const IncidentsPage = () => {
   const dispatch = useDispatch();
   const location = useLocation();
   const urlParams = useMemo(() => parseUrlParams(location.search), [location.search]);
-  const { perspective } = usePerspective();
   const { theme } = usePatternFlyTheme();
   // loading states
   const [incidentsAreLoading, setIncidentsAreLoading] = useState(true);
@@ -91,29 +90,29 @@ const IncidentsPage = () => {
     setDaysFilterIsExpanded(!daysFilterIsExpanded);
   };
 
-  const incidentsInitialState = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.getIn(['incidentsData', 'incidentsInitialState']),
+  const incidentsInitialState = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData.incidentsInitialState,
   );
 
-  const incidents = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.getIn(['incidentsData', 'incidents']),
+  const incidents = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData?.incidents,
   );
 
-  const incidentsActiveFilters = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.getIn(['incidentsData', 'incidentsActiveFilters']),
+  const incidentsActiveFilters = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData.incidentsActiveFilters,
   );
-  const incidentGroupId = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.getIn(['incidentsData', 'groupId']),
+  const incidentGroupId = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData?.groupId,
   );
-  const alertsData = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.getIn(['incidentsData', 'alertsData']),
+  const alertsData = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData?.alertsData,
   );
-  const alertsAreLoading = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.getIn(['incidentsData', 'alertsAreLoading']),
+  const alertsAreLoading = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData?.alertsAreLoading,
   );
 
-  const filteredData = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.getIn(['incidentsData', 'filteredIncidentsData']),
+  const filteredData = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData?.filteredIncidentsData,
   );
   useEffect(() => {
     const hasUrlParams = Object.keys(urlParams).length > 0;
@@ -185,7 +184,6 @@ const IncidentsPage = () => {
             safeFetch,
             range,
             createAlertsQuery(incidentForAlertProcessing),
-            perspective,
           );
           return response.data.result;
         }),
@@ -222,7 +220,6 @@ const IncidentsPage = () => {
             safeFetch,
             range,
             'cluster:health:components:map',
-            perspective,
           );
           return response.data.result;
         }),
@@ -259,7 +256,6 @@ const IncidentsPage = () => {
             safeFetch,
             range,
             `cluster:health:components:map{group_id='${incidentGroupId}'}`,
-            perspective,
           );
           return response.data.result;
         }),
@@ -469,6 +465,14 @@ const IncidentsPage = () => {
   );
 };
 
-const incidentsPageWithFallback = withFallback(IncidentsPage);
+const IncidentsPageWithFallback = withFallback(IncidentsPage);
 
-export default incidentsPageWithFallback;
+export const McpCmoAlertingPage = () => {
+  return (
+    <MonitoringProvider
+      monitoringContext={{ plugin: 'monitoring-console-plugin', prometheus: 'cmo' }}
+    >
+      <IncidentsPageWithFallback />
+    </MonitoringProvider>
+  );
+};

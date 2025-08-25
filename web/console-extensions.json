@@ -133,7 +133,7 @@
       "name": "%plugin__monitoring-plugin~Alerts%",
       "href": "alerts",
       "component": {
-        "$codeRef": "AlertsPage"
+        "$codeRef": "AlertsPage.MpCmoAlertsPage"
       }
     }
   },
@@ -144,7 +144,7 @@
       "name": "%plugin__monitoring-plugin~Metrics%",
       "href": "metrics",
       "component": {
-        "$codeRef": "MetricsPage"
+        "$codeRef": "MetricsPage.MpCmoMetricsPage"
       }
     }
   },
@@ -155,7 +155,7 @@
       "name": "%plugin__monitoring-plugin~Silences%",
       "href": "silences",
       "component": {
-        "$codeRef": "SilencesPage"
+        "$codeRef": "SilencesPage.MpCmoSilencesPage"
       }
     }
   },
@@ -166,7 +166,7 @@
       "name": "%plugin__monitoring-plugin~Dashboards%",
       "href": "",
       "component": {
-        "$codeRef": "LegacyDashboardsPage"
+        "$codeRef": "LegacyDashboardsPage.MpCmoLegacyDashboardsPage"
       }
     }
   },
@@ -193,7 +193,7 @@
     "properties": {
       "exact": false,
       "path": "/monitoring",
-      "component": { "$codeRef": "AlertingPage" }
+      "component": { "$codeRef": "AlertingPage.MpCmoAlertingPage" }
     }
   },
   {
@@ -201,7 +201,7 @@
     "properties": {
       "exact": false,
       "path": "/monitoring/silences/~new",
-      "component": { "$codeRef": "SilenceCreatePage" }
+      "component": { "$codeRef": "SilenceCreatePage.MpCmoCreateSilencePage" }
     }
   },
   {
@@ -209,7 +209,7 @@
     "properties": {
       "exact": false,
       "path": "/monitoring/silences/:id",
-      "component": { "$codeRef": "SilencesDetailsPage" }
+      "component": { "$codeRef": "SilencesDetailsPage.MpCmoSilencesDetailsPage" }
     }
   },
   {
@@ -217,7 +217,7 @@
     "properties": {
       "exact": false,
       "path": "/monitoring/silences/:id/edit",
-      "component": { "$codeRef": "SilenceEditPage" }
+      "component": { "$codeRef": "SilenceEditPage.MpCmoSilenceEditPage" }
     }
   },
   {
@@ -225,7 +225,7 @@
     "properties": {
       "exact": false,
       "path": ["/monitoring/targets", "/monitoring/targets/:scrapeUrl"],
-      "component": { "$codeRef": "TargetsPage" }
+      "component": { "$codeRef": "TargetsPage.MpCmoTargetsPage" }
     }
   },
   {
@@ -233,7 +233,7 @@
     "properties": {
       "exact": false,
       "path": ["/monitoring/query-browser"],
-      "component": { "$codeRef": "MetricsPage" }
+      "component": { "$codeRef": "MetricsPage.MpCmoMetricsPage" }
     }
   },
   {
@@ -249,7 +249,7 @@
     "properties": {
       "exact": false,
       "path": ["/monitoring/dashboards", "/monitoring/dashboards/:dashboardName"],
-      "component": { "$codeRef": "LegacyDashboardsPage" }
+      "component": { "$codeRef": "LegacyDashboardsPage.MpCmoLegacyDashboardsPage" }
     }
   },
   {
@@ -257,7 +257,7 @@
     "properties": {
       "exact": false,
       "path": ["/monitoring/alertrules/:id"],
-      "component": { "$codeRef": "AlertRulesDetailsPage" }
+      "component": { "$codeRef": "AlertRulesDetailsPage.MpCmoAlertRulesDetailsPage" }
     }
   },
   {
@@ -265,7 +265,7 @@
     "properties": {
       "exact": false,
       "path": ["/monitoring/alerts/:ruleID"],
-      "component": { "$codeRef": "AlertsDetailsPage" }
+      "component": { "$codeRef": "AlertsDetailsPage.MpCmoAlertsDetailsPage" }
     }
   },
   {
@@ -273,7 +273,7 @@
     "properties": {
       "exact": false,
       "path": ["/virt-monitoring"],
-      "component": { "$codeRef": "AlertingPage" }
+      "component": { "$codeRef": "AlertingPage.MpCmoAlertingPage" }
     }
   },
   {
@@ -281,7 +281,7 @@
     "properties": {
       "exact": false,
       "path": "/virt-monitoring/silences/~new",
-      "component": { "$codeRef": "SilenceCreatePage" }
+      "component": { "$codeRef": "SilenceCreatePage.MpCmoCreateSilencePage" }
     }
   },
   {
@@ -289,7 +289,7 @@
     "properties": {
       "exact": false,
       "path": "/virt-monitoring/silences/:id",
-      "component": { "$codeRef": "SilencesDetailsPage" }
+      "component": { "$codeRef": "SilencesDetailsPage.MpCmoSilencesDetailsPage" }
     }
   },
   {
@@ -297,7 +297,7 @@
     "properties": {
       "exact": false,
       "path": "/virt-monitoring/silences/:id/edit",
-      "component": { "$codeRef": "SilenceEditPage" }
+      "component": { "$codeRef": "SilenceEditPage.MpCmoSilenceEditPage" }
     }
   },
   {
@@ -305,7 +305,7 @@
     "properties": {
       "exact": false,
       "path": ["/virt-monitoring/targets", "/virt-monitoring/targets/:scrapeUrl"],
-      "component": { "$codeRef": "TargetsPage" }
+      "component": { "$codeRef": "TargetsPage.MpCmoTargetsPage" }
     }
   },
   {
@@ -313,7 +313,7 @@
     "properties": {
       "exact": false,
       "path": ["/virt-monitoring/query-browser"],
-      "component": { "$codeRef": "MetricsPage" }
+      "component": { "$codeRef": "MetricsPage.MpCmoMetricsPage" }
     }
   },
   {
@@ -329,7 +329,7 @@
     "properties": {
       "exact": false,
       "path": ["/virt-monitoring/dashboards", "/virt-monitoring/dashboards/:dashboardName"],
-      "component": { "$codeRef": "LegacyDashboardsPage" }
+      "component": { "$codeRef": "LegacyDashboardsPage.MpCmoLegacyDashboardsPage" }
     }
   },
   {
@@ -337,7 +337,7 @@
     "properties": {
       "exact": false,
       "path": ["/virt-monitoring/alertrules/:id"],
-      "component": { "$codeRef": "AlertRulesDetailsPage" }
+      "component": { "$codeRef": "AlertRulesDetailsPage.MpCmoAlertRulesDetailsPage" }
     }
   },
   {
@@ -345,7 +345,7 @@
     "properties": {
       "exact": false,
       "path": ["/virt-monitoring/alerts/:ruleID"],
-      "component": { "$codeRef": "AlertsDetailsPage" }
+      "component": { "$codeRef": "AlertsDetailsPage.MpCmoAlertsDetailsPage" }
     }
   },
   {
@@ -353,7 +353,7 @@
     "properties": {
       "exact": false,
       "path": "/dev-monitoring/ns/:ns/alerts/:ruleID",
-      "component": { "$codeRef": "AlertsDetailsPage" }
+      "component": { "$codeRef": "AlertsDetailsPage.MpCmoAlertsDetailsPage" }
     }
   },
   {
@@ -361,7 +361,7 @@
     "properties": {
       "exact": false,
       "path": "/dev-monitoring/ns/:ns/rules/:id",
-      "component": { "$codeRef": "AlertRulesDetailsPage" }
+      "component": { "$codeRef": "AlertRulesDetailsPage.MpCmoAlertRulesDetailsPage" }
     }
   },
   {
@@ -369,7 +369,7 @@
     "properties": {
       "exact": false,
       "path": "/dev-monitoring/ns/:ns/silences/:id",
-      "component": { "$codeRef": "SilencesDetailsPage" }
+      "component": { "$codeRef": "SilencesDetailsPage.MpCmoSilencesDetailsPage" }
     }
   },
   {
@@ -377,7 +377,7 @@
     "properties": {
       "exact": false,
       "path": "/dev-monitoring/ns/:ns/silences/:id/edit",
-      "component": { "$codeRef": "SilenceEditPage" }
+      "component": { "$codeRef": "SilenceEditPage.MpCmoSilenceEditPage" }
     }
   },
   {
@@ -385,7 +385,7 @@
     "properties": {
       "exact": false,
       "path": "/dev-monitoring/ns/:ns/silences/~new",
-      "component": { "$codeRef": "SilenceCreatePage" }
+      "component": { "$codeRef": "SilenceCreatePage.MpCmoCreateSilencePage" }
     }
   }
 ]

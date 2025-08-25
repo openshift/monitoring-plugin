@@ -10,18 +10,19 @@ import {
   dashboardsSetEndTime,
   dashboardsSetPollInterval,
   dashboardsSetTimespan,
-} from '../../../actions/observe';
-import { MonitoringState } from '../../../reducers/observe';
+} from '../../../store/actions';
+import { MonitoringState } from '../../../store/store';
 import {
   formatPrometheusDuration,
   parsePrometheusDuration,
 } from '../../console/console-shared/src/datetime/prometheus';
 import { DEFAULT_REFRESH_INTERVAL, DropDownPollInterval } from '../../dropdown-poll-interval';
 import { useBoolean } from '../../hooks/useBoolean';
-import { getLegacyObserveState, usePerspective } from '../../hooks/usePerspective';
+import { getObserveState, usePerspective } from '../../hooks/usePerspective';
 import { QueryParams } from '../../query-params';
 import CustomTimeRangeModal from './custom-time-range-modal';
 import { LegacyDashboardPageTestIDs } from '../../data-test';
+import { useMonitoring } from '../../../hooks/useMonitoring';
 
 const CUSTOM_TIME_RANGE_KEY = 'CUSTOM_TIME_RANGE_KEY';
 const DEFAULT_TIMERANGE = '30m';
@@ -30,14 +31,15 @@ export const TimespanDropdown: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const { perspective } = usePerspective();
+  const { plugin } = useMonitoring();
 
   const [isModalOpen, , setModalOpen, setModalClosed] = useBoolean(false);
 
-  const timespan = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'timespan']),
+  const timespan = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state)?.dashboards[perspective].timespan,
   );
-  const endTime = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'endTime']),
+  const endTime = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state)?.dashboards[perspective].endTime,
   );
 
   const [timeRangeFromParams, setTimeRange] = useQueryParam(QueryParams.TimeRange, NumberParam);
@@ -88,7 +90,7 @@ export const TimespanDropdown: FC = () => {
   }, [selectedKey, t, timeRangeFromParams, setTimeRange, setEndTime]);
 
   const defaultTimerange = timespan ?? undefined;
-  const defaultEndTime = endTime ?? undefined;
+  const defaultEndTime = Number(endTime) ?? undefined;
 
   return (
     <>

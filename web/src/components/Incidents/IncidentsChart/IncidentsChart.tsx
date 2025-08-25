@@ -25,8 +25,8 @@ import {
   t_global_color_status_warning_default,
 } from '@patternfly/react-tokens';
 import { useDispatch, useSelector } from 'react-redux';
-import { setAlertsAreLoading, setChooseIncident } from '../../../actions/observe';
-import { MonitoringState } from '../../../reducers/observe';
+import { setAlertsAreLoading, setChooseIncident } from '../../../store/actions';
+import { MonitoringState } from '../../../store/store';
 import { Incident } from '../model';
 import {
   createIncidentsChartBars,
@@ -79,11 +79,11 @@ const IncidentsChart = ({
     return () => observer();
   }, []);
 
-  const selectedId = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.getIn(['incidentsData', 'groupId']),
+  const selectedId = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData.groupId,
   );
-  const incidentsActiveFilters = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.getIn(['incidentsData', 'incidentsActiveFilters']),
+  const incidentsActiveFilters = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData.incidentsActiveFilters,
   );
 
   const isHidden = useCallback(
@@ -150,7 +150,7 @@ const IncidentsChart = ({
                     }
                     return `Severity: ${datum.name}
                     Component: ${datum.componentList?.join(', ')}
-                    Incident ID: 
+                    Incident ID:
                     ${datum.group_id}
                     Start: ${formatDate(new Date(datum.y0), true)}
                     End: ${datum.firing ? '---' : formatDate(new Date(datum.y), true)}`;

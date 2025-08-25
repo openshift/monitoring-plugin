@@ -2,6 +2,7 @@ import * as _ from 'lodash-es';
 import { useTranslation } from 'react-i18next';
 import { getAllQueryArguments } from '../console/utils/router';
 import { SilenceForm } from './SilenceForm';
+import { MonitoringProvider } from '../../contexts/MonitoringContext';
 
 const CreateSilencePage = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -19,4 +20,20 @@ const CreateSilencePage = () => {
   );
 };
 
-export default CreateSilencePage;
+export const MpCmoCreateSilencePage = () => {
+  return (
+    <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
+      <CreateSilencePage />
+    </MonitoringProvider>
+  );
+};
+
+export const McpAcmCreateSilencePage = () => {
+  return (
+    <MonitoringProvider
+      monitoringContext={{ plugin: 'monitoring-console-plugin', prometheus: 'acm' }}
+    >
+      <CreateSilencePage />
+    </MonitoringProvider>
+  );
+};
