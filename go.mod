@@ -1,6 +1,6 @@
 module github.com/openshift/monitoring-plugin
 
-go 1.24
+go 1.24.0
 
 require (
 	github.com/evanphx/json-patch v4.12.0+incompatible
