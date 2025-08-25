@@ -8,7 +8,7 @@ import {
 import { BellIcon } from '@patternfly/react-icons';
 import { Bullseye, Spinner } from '@patternfly/react-core';
 import { Link } from 'react-router-dom';
-import { AlertResource } from '../utils';
+import { RuleResource } from '../utils';
 import { useTranslation } from 'react-i18next';
 import { getRuleUrl, usePerspective } from '../hooks/usePerspective';
 import './incidents-styles.css';
@@ -23,7 +23,7 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
     <Table borders={false} variant="compact">
       <Thead>
         <Tr>
-          <Th width={25}>{t('Alert Name')}</Th>
+          <Th width={25}>{t('Alert Rule')}</Th>
           <Th width={15}>{t('Namespace')}</Th>
           <Th width={10}>{t('Severity')}</Th>
           <Th width={10}>{t('State')}</Th>
@@ -41,7 +41,7 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
             return (
               <Tr key={rowIndex}>
                 <Td dataLabel="expanded-details-alertname">
-                  <ResourceIcon kind={AlertResource.kind} />
+                  <ResourceIcon kind={RuleResource.kind} />
                   <Link to={getRuleUrl(perspective, alertDetails?.rule, namespace)}>
                     {alertDetails.alertname}
                   </Link>
