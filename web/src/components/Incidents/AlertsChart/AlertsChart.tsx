@@ -14,30 +14,30 @@ import { Card, CardBody, CardTitle, EmptyState, EmptyStateBody } from '@patternf
 import { createAlertsChartBars, formatDate, generateDateArray } from '../utils';
 import { getResizeObserver } from '@patternfly/react-core';
 import { useDispatch, useSelector } from 'react-redux';
-import { setAlertsAreLoading } from '../../../actions/observe';
+import { setAlertsAreLoading } from '../../../store/actions';
 import {
   t_global_color_status_danger_default,
   t_global_color_status_info_default,
   t_global_color_status_warning_default,
 } from '@patternfly/react-tokens';
-import { MonitoringState } from '../../../reducers/observe';
+import { MonitoringState } from '../../../store/store';
 import { VictoryPortal } from 'victory';
 
 const AlertsChart = ({ chartDays, theme }: { chartDays: number; theme: 'light' | 'dark' }) => {
   const dispatch = useDispatch();
   const [chartContainerHeight, setChartContainerHeight] = useState<number>();
   const [chartHeight, setChartHeight] = useState<number>();
-  const alertsData = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.getIn(['incidentsData', 'alertsData']),
+  const alertsData = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData.alertsData,
   );
-  const alertsAreLoading = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.getIn(['incidentsData', 'alertsAreLoading']),
+  const alertsAreLoading = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData.alertsAreLoading,
   );
-  const filteredData = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.getIn(['incidentsData', 'filteredIncidentsData']),
+  const filteredData = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData.filteredIncidentsData,
   );
-  const incidentGroupId = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.getIn(['incidentsData', 'groupId']),
+  const incidentGroupId = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData.groupId,
   );
 
   const dateValues = useMemo(() => generateDateArray(chartDays), [chartDays]);

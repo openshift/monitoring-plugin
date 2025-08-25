@@ -1,16 +1,20 @@
 import { PrometheusAlert, Rule, useActivePerspective } from '@openshift-console/dynamic-plugin-sdk';
-import { Perspective, rulesKey, alertKey, silencesKey } from '../../actions/observe';
+import { Perspective } from '../../store/actions';
 import { AlertSource } from '../types';
 import * as _ from 'lodash-es';
-import { AlertResource, labelsToParams, RuleResource, SilenceResource } from '../utils';
 import {
   ALERTMANAGER_BASE_PATH,
   ALERTMANAGER_PROXY_PATH,
   ALERTMANAGER_TENANCY_BASE_PATH,
-} from '../console/graphs/helpers';
-import { MonitoringState } from '../../reducers/observe';
+  AlertResource,
+  labelsToParams,
+  MonitoringPlugins,
+  RuleResource,
+  SilenceResource,
+} from '../utils';
 import { GraphUnits } from '../metrics/units';
 import { QueryParams } from '../query-params';
+import { MonitoringState } from 'src/store/store';
 
 export type UrlRoot = 'monitoring' | 'dev-monitoring' | 'multicloud/monitoring' | 'virt-monitoring';
 
@@ -23,14 +27,6 @@ const enum UrlRecord {
 
 type usePerspectiveReturn = {
   perspective: Perspective;
-  rulesKey: rulesKey;
-  alertsKey: alertKey;
-  silencesKey: silencesKey;
-  alertingContextId:
-    | 'dev-observe-alerting'
-    | 'observe-alerting'
-    | 'acm-observe-alerting'
-    | 'virt-observe-alerting';
   urlRoot: UrlRoot;
   defaultAlertTenant: Array<AlertSource>;
 };
@@ -42,80 +38,36 @@ export const usePerspective = (): usePerspectiveReturn => {
     case 'dev':
       return {
         perspective: 'dev',
-        rulesKey: 'devRules',
-        alertsKey: 'devAlerts',
-        silencesKey: 'devSilences',
-        alertingContextId: 'dev-observe-alerting',
         urlRoot: UrlRecord.dev,
         defaultAlertTenant: [AlertSource.User],
       };
     case 'admin':
       return {
         perspective: 'admin',
-        rulesKey: 'rules',
-        alertsKey: 'alerts',
-        silencesKey: 'silences',
-        alertingContextId: 'observe-alerting',
         urlRoot: UrlRecord.admin,
         defaultAlertTenant: [AlertSource.Platform],
       };
     case 'virtualization-perspective':
       return {
         perspective: 'virtualization-perspective',
-        rulesKey: 'virtRules',
-        alertsKey: 'virtAlerts',
-        silencesKey: 'virtSilences',
-        alertingContextId: 'virt-observe-alerting',
         urlRoot: UrlRecord['virtualization-perspective'],
         defaultAlertTenant: [AlertSource.Platform],
       };
     default:
       return {
         perspective: 'acm',
-        rulesKey: 'acmRules',
-        alertsKey: 'acmAlerts',
-        silencesKey: 'acmSilences',
-        alertingContextId: 'acm-observe-alerting',
         urlRoot: UrlRecord.acm,
         defaultAlertTenant: [],
       };
   }
 };
 
-export const getAlertsKey = (perspective: Perspective): alertKey => {
-  switch (perspective) {
-    case 'acm':
-      return 'acmAlerts';
-    case 'admin':
-      return 'alerts';
-    case 'virtualization-perspective':
-      return 'virtAlerts';
-    case 'dev':
-    default:
-      return 'devAlerts';
-  }
-};
-
-export const getSilencesKey = (perspective: Perspective): silencesKey => {
-  switch (perspective) {
-    case 'acm':
-      return 'acmSilences';
-    case 'admin':
-      return 'silences';
-    case 'virtualization-perspective':
-      return 'virtSilences';
-    case 'dev':
-    default:
-      return 'devSilences';
-  }
-};
-
 export const getAlertsUrl = (perspective: Perspective, namespace?: string) => {
   switch (perspective) {
     case 'acm':
-      return `/multicloud${AlertResource.plural}`;
+      return `/multicloud${AlertResource.url}`;
     case 'admin':
-      return AlertResource.plural;
+      return AlertResource.url;
     case 'virtualization-perspective':
       return `/virt-monitoring/alerts`;
     case 'dev':
@@ -128,23 +80,23 @@ export const getAlertsUrl = (perspective: Perspective, namespace?: string) => {
 export const getAlertRulesUrl = (perspective: Perspective, namespace?: string) => {
   switch (perspective) {
     case 'acm':
-      return `/multicloud${RuleResource.plural}`;
+      return `/multicloud${RuleResource.url}`;
     case 'virtualization-perspective':
       return `/virt-monitoring/alertrules`;
     case 'dev':
       return `/dev-monitoring/ns/${namespace}/alertrules`;
     case 'admin':
     default:
-      return RuleResource.plural;
+      return RuleResource.url;
   }
 };
 
 export const getSilencesUrl = (perspective: Perspective, namespace?: string) => {
   switch (perspective) {
     case 'acm':
-      return `/multicloud${SilenceResource.plural}`;
+      return `/multicloud${SilenceResource.url}`;
     case 'admin':
-      return SilenceResource.plural;
+      return SilenceResource.url;
     case 'virtualization-perspective':
       return `/virt-monitoring/silences`;
     case 'dev':
@@ -160,9 +112,9 @@ export const getNewSilenceAlertUrl = (
 ) => {
   switch (perspective) {
     case 'acm':
-      return `/multicloud${SilenceResource.plural}/~new?${labelsToParams(alert.labels)}`;
+      return `/multicloud${SilenceResource.url}/~new?${labelsToParams(alert.labels)}`;
     case 'admin':
-      return `${SilenceResource.plural}/~new?${labelsToParams(alert.labels)}`;
+      return `${SilenceResource.url}/~new?${labelsToParams(alert.labels)}`;
     case 'virtualization-perspective':
       return `/virt-monitoring/silences/~new?${labelsToParams(alert.labels)}`;
     case 'dev':
@@ -174,11 +126,11 @@ export const getNewSilenceAlertUrl = (
 export const getNewSilenceUrl = (perspective: Perspective, namespace?: string) => {
   switch (perspective) {
     case 'acm':
-      return `/multicloud${SilenceResource.plural}/~new`;
+      return `/multicloud${SilenceResource.url}/~new`;
     case 'virtualization-perspective':
       return `/virt-monitoring/silences/~new`;
     case 'admin':
-      return `${SilenceResource.plural}/~new`;
+      return `${SilenceResource.url}/~new`;
     case 'dev':
     default:
       return `/dev-monitoring/ns/${namespace}/silences/~new`;
@@ -188,11 +140,11 @@ export const getNewSilenceUrl = (perspective: Perspective, namespace?: string) =
 export const getRuleUrl = (perspective: Perspective, rule: Rule, namespace?: string) => {
   switch (perspective) {
     case 'acm':
-      return `/multicloud${RuleResource.plural}/${_.get(rule, 'id')}`;
+      return `/multicloud${RuleResource.url}/${_.get(rule, 'id')}`;
     case 'virtualization-perspective':
       return `/virt-monitoring/alertrules/${rule?.id}`;
     case 'admin':
-      return `${RuleResource.plural}/${_.get(rule, 'id')}`;
+      return `${RuleResource.url}/${_.get(rule, 'id')}`;
     case 'dev':
     default:
       return `/dev-monitoring/ns/${namespace}/rules/${rule?.id}`;
@@ -202,11 +154,11 @@ export const getRuleUrl = (perspective: Perspective, rule: Rule, namespace?: str
 export const getSilenceAlertUrl = (perspective: Perspective, id: string, namespace?: string) => {
   switch (perspective) {
     case 'acm':
-      return `/multicloud${SilenceResource.plural}/${id}`;
+      return `/multicloud${SilenceResource.url}/${id}`;
     case 'virtualization-perspective':
       return `/virt-monitoring/silences/${id}`;
     case 'admin':
-      return `${SilenceResource.plural}/${id}`;
+      return `${SilenceResource.url}/${id}`;
     case 'dev':
     default:
       return `/dev-monitoring/ns/${namespace}/silences/${id}`;
@@ -220,28 +172,14 @@ export const getEditSilenceAlertUrl = (
 ) => {
   switch (perspective) {
     case 'acm':
-      return `/multicloud${SilenceResource.plural}/${id}/edit`;
+      return `/multicloud${SilenceResource.url}/${id}/edit`;
     case 'admin':
-      return `${SilenceResource.plural}/${id}/edit`;
+      return `${SilenceResource.url}/${id}/edit`;
     case 'virtualization-perspective':
       return `/virt-monitoring/silences/${id}/edit`;
     case 'dev':
     default:
       return `/dev-monitoring/ns/${namespace}/silences/${id}/edit`;
-  }
-};
-
-export const getFetchSilenceAlertUrl = (perspective: Perspective, namespace?: string) => {
-  switch (perspective) {
-    case 'acm':
-      return `${ALERTMANAGER_PROXY_PATH}/api/v2/silences`;
-    case 'admin':
-      return `${ALERTMANAGER_BASE_PATH}/api/v2/silences`;
-    case 'virtualization-perspective':
-      return `${ALERTMANAGER_BASE_PATH}/api/v2/silences`;
-    case 'dev':
-    default:
-      return `${ALERTMANAGER_TENANCY_BASE_PATH}/api/v2/silences?namespace=${namespace}`;
   }
 };
 
@@ -253,11 +191,11 @@ export const getAlertUrl = (
 ) => {
   switch (perspective) {
     case 'acm':
-      return `/multicloud${AlertResource.plural}/${ruleID}?${labelsToParams(alert.labels)}`;
+      return `/multicloud${AlertResource.url}/${ruleID}?${labelsToParams(alert.labels)}`;
     case 'virtualization-perspective':
       return `/virt-monitoring/alerts/${ruleID}?${labelsToParams(alert.labels)}`;
     case 'admin':
-      return `${AlertResource.plural}/${ruleID}?${labelsToParams(alert.labels)}`;
+      return `${AlertResource.url}/${ruleID}?${labelsToParams(alert.labels)}`;
     case 'dev':
     default:
       return `/dev-monitoring/ns/${namespace}/alerts/${ruleID}?${labelsToParams(alert.labels)}`;
@@ -283,27 +221,11 @@ export const getFetchSilenceUrl = (
 };
 
 // Redux state defined in the openshift/console repo
-export const getLegacyObserveState = (perspective: Perspective, state: MonitoringState) => {
-  switch (perspective) {
-    case 'acm':
+export const getObserveState = (plugin: MonitoringPlugins, state: MonitoringState) => {
+  switch (plugin) {
+    case 'monitoring-console-plugin':
       return state.plugins?.mcp;
-    case 'virtualization-perspective':
-      return state.plugins?.mp;
-    case 'admin':
-    case 'dev':
-    default:
-      return state.observe;
-  }
-};
-
-// Redux state defined in the openshift/monitoring-plugin repo
-export const getObserveState = (perspective: Perspective, state: MonitoringState) => {
-  switch (perspective) {
-    case 'acm':
-      return state.plugins?.mcp;
-    case 'virtualization-perspective':
-    case 'admin':
-    case 'dev':
+    case 'monitoring-plugin':
     default:
       return state.plugins?.mp;
   }

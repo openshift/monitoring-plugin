@@ -42,7 +42,6 @@ import * as _ from 'lodash-es';
 import type { FC, Ref } from 'react';
 import { useContext, useCallback, createContext, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useDispatch } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom-v5-compat';
 import { useBoolean } from '../hooks/useBoolean';
 import {
@@ -51,14 +50,10 @@ import {
   getSilenceAlertUrl,
   usePerspective,
 } from '../hooks/usePerspective';
-import {
-  refreshSilences,
-  silenceMatcherEqualitySymbol,
-  SilenceResource,
-  silenceState,
-} from '../utils';
+import { silenceMatcherEqualitySymbol, SilenceResource, silenceState } from '../utils';
 import { SeverityCounts, StateTimestamp } from './AlertUtils';
 import { DataTestIDs } from '../data-test';
+import { useAlerts } from '../../hooks/useAlerts';
 
 export const SilenceTableRow: FC<SilenceTableRowProps> = ({ obj, showCheckbox }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -286,10 +281,9 @@ export const ExpireSilenceModal: FC<ExpireSilenceModalProps> = ({
   silenceID,
 }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { perspective, silencesKey } = usePerspective();
+  const { perspective } = usePerspective();
   const [namespace] = useActiveNamespace();
-
-  const dispatch = useDispatch();
+  const { trigger: refetchSilencesAndAlerts } = useAlerts();
 
   const [isInProgress, , setInProgress, setNotInProgress] = useBoolean(false);
   const [success, , setSuccess] = useBoolean(false);
@@ -304,7 +298,7 @@ export const ExpireSilenceModal: FC<ExpireSilenceModalProps> = ({
         setNotInProgress();
         setSuccess();
         setTimeout(() => {
-          refreshSilences(dispatch, perspective, silencesKey);
+          refetchSilencesAndAlerts();
           setClosed();
         }, 1000);
       })

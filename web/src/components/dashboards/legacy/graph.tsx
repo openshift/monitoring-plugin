@@ -2,13 +2,14 @@ import type { FC } from 'react';
 import { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { dashboardsSetEndTime, dashboardsSetTimespan, Perspective } from '../../../actions/observe';
+import { dashboardsSetEndTime, dashboardsSetTimespan, Perspective } from '../../../store/actions';
 import { FormatSeriesTitle, QueryBrowser } from '../../query-browser';
-import { MonitoringState } from '../../../reducers/observe';
-import { getLegacyObserveState } from '../../hooks/usePerspective';
+import { MonitoringState } from '../../../store/store';
+import { getObserveState } from '../../hooks/usePerspective';
 import { DEFAULT_GRAPH_SAMPLES } from './utils';
 import { CustomDataSource } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
 import { GraphUnits } from 'src/components/metrics/units';
+import { useMonitoring } from '../../../hooks/useMonitoring';
 
 type Props = {
   customDataSource?: CustomDataSource;
@@ -36,11 +37,12 @@ const Graph: FC<Props> = ({
   onDataChange,
 }) => {
   const dispatch = useDispatch();
-  const endTime = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'endTime']),
+  const { plugin } = useMonitoring();
+  const endTime = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state)?.dashboards[perspective].endTime,
   );
-  const timespan = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'timespan']),
+  const timespan = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state)?.dashboards[perspective].timespan,
   );
 
   const onZoom = useCallback(
@@ -56,7 +58,7 @@ const Graph: FC<Props> = ({
     <QueryBrowser
       customDataSource={customDataSource}
       defaultSamples={DEFAULT_GRAPH_SAMPLES}
-      fixedEndTime={endTime}
+      fixedEndTime={Number(endTime)}
       formatSeriesTitle={formatSeriesTitle}
       hideControls
       isStack={isStack}

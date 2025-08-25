@@ -4,7 +4,6 @@ import {
   isAlertingRuleChart,
   PrometheusAlert,
   ResourceIcon,
-  Rule,
   Timestamp,
   useResolvedExtensions,
 } from '@openshift-console/dynamic-plugin-sdk';
@@ -42,7 +41,7 @@ import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { Link, useNavigate, useParams } from 'react-router-dom-v5-compat';
-import { MonitoringState } from '../../reducers/observe';
+import { MonitoringState } from '../../store/store';
 import {
   alertingRuleSource,
   AlertState,
@@ -59,7 +58,7 @@ import { ExternalLink } from '../console/utils/link';
 import {
   getAlertRulesUrl,
   getAlertUrl,
-  getLegacyObserveState,
+  getObserveState,
   getNewSilenceAlertUrl,
   getQueryBrowserUrl,
   usePerspective,
@@ -67,11 +66,12 @@ import {
 import KebabDropdown from '../kebab-dropdown';
 import { Labels } from '../labels';
 import { ToggleGraph } from '../MetricsPage';
-import { Alerts } from '../types';
 import { alertDescription, RuleResource } from '../utils';
-import { useAlertsPoller } from '../hooks/useAlertsPoller';
+import { MonitoringProvider } from '../../contexts/MonitoringContext';
 
 import { DataTestIDs } from '../data-test';
+import { useAlerts } from '../../hooks/useAlerts';
+import { useMonitoring } from '../../hooks/useMonitoring';
 
 // Renders Prometheus template text and highlights any {{ ... }} tags that it contains
 const PrometheusTemplate = ({ text }) => (
@@ -147,19 +147,21 @@ export const ActiveAlerts: FC<ActiveAlertsProps> = ({ alerts, namespace, ruleID 
 const AlertRulesDetailsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const params = useParams<{ ns?: string; id: string }>();
+  const { plugin, prometheus } = useMonitoring();
 
-  useAlertsPoller();
+  useAlerts();
 
-  const { rulesKey, alertsKey, perspective } = usePerspective();
+  const { perspective } = usePerspective();
   const namespace = params?.ns;
 
-  const rules: Rule[] = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.get(rulesKey),
+  const rules = useSelector(
+    (state: MonitoringState) =>
+      getObserveState(plugin, state)?.alerting[prometheus]?.[namespace]?.rules,
   );
   const rule = _.find(rules, { id: params.id });
 
-  const { loaded, loadError }: Alerts = useSelector(
-    (state: MonitoringState) => getLegacyObserveState(perspective, state)?.get(alertsKey) || {},
+  const { loaded, loadError } = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state)?.alerting[prometheus]?.[namespace],
   );
 
   const sourceId = rule?.sourceId;
@@ -385,6 +387,22 @@ const AlertRulesDetailsPage_: FC = () => {
     </>
   );
 };
-const AlertRulesDetailsPage = withFallback(AlertRulesDetailsPage_);
+const AlertRulesDetailsPageWithFallback = withFallback(AlertRulesDetailsPage_);
 
-export default AlertRulesDetailsPage;
+export const MpCmoAlertRulesDetailsPage = () => {
+  return (
+    <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
+      <AlertRulesDetailsPageWithFallback />
+    </MonitoringProvider>
+  );
+};
+
+export const McpAcmAlertRulesDetailsPage = () => {
+  return (
+    <MonitoringProvider
+      monitoringContext={{ plugin: 'monitoring-console-plugin', prometheus: 'acm' }}
+    >
+      <AlertRulesDetailsPageWithFallback />
+    </MonitoringProvider>
+  );
+};

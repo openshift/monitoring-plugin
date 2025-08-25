@@ -14,7 +14,6 @@ import KebabDropdown from '../kebab-dropdown';
 import { useTranslation } from 'react-i18next';
 import {
   getAlertUrl,
-  getLegacyObserveState,
   getNewSilenceAlertUrl,
   getRuleUrl,
   usePerspective,
@@ -22,10 +21,9 @@ import {
 import { OutlinedQuestionCircleIcon } from '@patternfly/react-icons';
 import './incidents-styles.css';
 import { SeverityBadge } from '../alerting/AlertUtils';
-import { useAlertsPoller } from '../hooks/useAlertsPoller';
 import { useSelector } from 'react-redux';
 import isEqual from 'lodash/isEqual';
-import { MonitoringState } from 'src/reducers/observe';
+import { MonitoringState } from '../../store/store';
 
 function useDeepCompareMemoize(value) {
   const ref = useRef();
@@ -40,13 +38,13 @@ function useDeepCompareMemoize(value) {
 const IncidentsDetailsRowTable = ({ alerts }) => {
   const history = useHistory();
   const [namespace] = useActiveNamespace();
-  useAlertsPoller();
-  const { perspective, alertsKey } = usePerspective();
+  const { perspective } = usePerspective();
   const [alertsWithMatchedData, setAlertsWithMatchedData] = useState([]);
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
+  // Purposefully retrieve alerts from the openshift/console observe store
   const alertsWithLabels = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.get(alertsKey),
+    state.observe?.get('observe-alerting'),
   );
 
   function findMatchingAlertsWithId(alertsArray, rulesArray) {

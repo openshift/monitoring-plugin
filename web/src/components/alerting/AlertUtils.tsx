@@ -262,6 +262,7 @@ export const Graph: FC<GraphProps> = ({
       GraphLink={GraphLink}
       pollInterval={Math.round(timespan / 120)}
       queries={[query]}
+      useTenancy
     />
   );
 };
