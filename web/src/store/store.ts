@@ -19,12 +19,14 @@ export type RootState = {
 export type LegacyObserveState = Map<string, any>;
 export type ObserveState = {
   dashboards: {
-    [perspective: string]: {
-      endTime: string | null;
-      pollInterval: number;
-      timespan: number;
-      variables: Record<string, Variable>;
-    };
+    [perspective: string]:
+      | {
+          endTime: string | null;
+          pollInterval: number;
+          timespan: number;
+          variables: Record<string, Variable>;
+        }
+      | undefined;
   };
   incidentsData: {
     incidents: Array<any>;
@@ -51,7 +53,7 @@ export type ObserveState = {
     dismissNamespaceAlert: boolean;
     lastRequestTime: number;
   };
-  alerting: { [datasource: string]: { [identifier: string]: AlertsInfo } };
+  alerting: { [datasource: string]: { [identifier: string]: AlertsInfo | undefined } | undefined };
   hideGraphs: boolean;
 };
 
@@ -69,13 +71,6 @@ export const defaultObserveState: ObserveState = {
       timespan: MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
       variables: {},
     },
-  } as {
-    [perspective: string]: {
-      endTime: string | null;
-      pollInterval: number;
-      timespan: number;
-      variables: Record<string, Variable>;
-    };
   },
   queryBrowser: {
     metrics: [],

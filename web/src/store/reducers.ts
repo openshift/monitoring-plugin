@@ -24,38 +24,102 @@ const monitoringReducer = produce((draft: ObserveState, action: ObserveAction): 
 
   switch (action.type) {
     case ActionType.DashboardsPatchVariable: {
+      const perspective = action.payload.perspective;
+
+      // due to some typescript magic in the produce function, dynamic keys are not viewed as being
+      // optional on the draft object, so we need to make sure and manually check them
+      const dashboards = draft.dashboards[perspective];
+      if (!dashboards) {
+        // If the perspective doesn't exist in the store, then don't try to set a specific variable
+        break;
+      }
+      // Don't worry about checking if they key exists, since we will just write into the slot
+      // regardless of if it does or doesn't
       draft.dashboards[action.payload.perspective].variables[action.payload.key] =
         action.payload.patch;
       break;
     }
 
     case ActionType.DashboardsPatchAllVariables: {
+      const perspective = action.payload.perspective;
+
+      // due to some typescript magic in the produce function, dynamic keys are not viewed as being
+      // optional on the draft object, so we need to make sure and manually check them
+      const dashboards = draft.dashboards[perspective];
+      if (!dashboards) {
+        // If the perspective doesn't exist in the store, then don't try to set a specific variable
+        break;
+      }
       draft.dashboards[action.payload.perspective].variables = action.payload.variables;
       break;
     }
 
     case ActionType.DashboardsClearVariables: {
+      const perspective = action.payload.perspective;
+
+      // due to some typescript magic in the produce function, dynamic keys are not viewed as being
+      // optional on the draft object, so we need to make sure and manually check them
+      const dashboards = draft.dashboards[perspective];
+      if (!dashboards) {
+        // If the perspective doesn't exist in the store, then don't try to set a specific variable
+        break;
+      }
       draft.dashboards[action.payload.perspective].variables = {};
       break;
     }
 
     case ActionType.DashboardsSetEndTime: {
+      const perspective = action.payload.perspective;
+
+      // due to some typescript magic in the produce function, dynamic keys are not viewed as being
+      // optional on the draft object, so we need to make sure and manually check them
+      const dashboards = draft.dashboards[perspective];
+      if (!dashboards) {
+        // If the perspective doesn't exist in the store, then don't try to set a specific variable
+        break;
+      }
       draft.dashboards[action.payload.perspective].endTime = String(action.payload.endTime);
       break;
     }
 
     case ActionType.DashboardsSetPollInterval: {
+      const perspective = action.payload.perspective;
+
+      // due to some typescript magic in the produce function, dynamic keys are not viewed as being
+      // optional on the draft object, so we need to make sure and manually check them
+      const dashboards = draft.dashboards[perspective];
+      if (!dashboards) {
+        // If the perspective doesn't exist in the store, then don't try to set a specific variable
+        break;
+      }
       draft.dashboards[action.payload.perspective].pollInterval = action.payload.pollInterval;
       break;
     }
 
     case ActionType.DashboardsSetTimespan: {
+      const perspective = action.payload.perspective;
+
+      // due to some typescript magic in the produce function, dynamic keys are not viewed as being
+      // optional on the draft object, so we need to make sure and manually check them
+      const dashboards = draft.dashboards[perspective];
+      if (!dashboards) {
+        // If the perspective doesn't exist in the store, then don't try to set a specific variable
+        break;
+      }
       draft.dashboards[action.payload.perspective].timespan = action.payload.timespan;
       break;
     }
 
     case ActionType.DashboardsVariableOptionsLoaded: {
       const { key, newOptions, perspective } = action.payload;
+
+      // due to some typescript magic in the produce function, dynamic keys are not viewed as being
+      // optional on the draft object, so we need to make sure and manually check them
+      const dashboards = draft.dashboards[perspective];
+      if (!dashboards) {
+        // If the perspective doesn't exist in the store, then don't try to set a specific variable
+        break;
+      }
       const val = draft.dashboards[perspective].variables[key];
       const patch = _.isEqual(val?.options, newOptions)
         ? { isLoading: false }
@@ -74,10 +138,15 @@ const monitoringReducer = produce((draft: ObserveState, action: ObserveAction): 
 
     case ActionType.AlertingSetRulesLoaded: {
       const { datasource, identifier, rules, alerts } = action.payload;
+
+      // due to some typescript magic in the produce function, dynamic keys are not viewed as being
+      // optional on the draft object since they can be written to, so we need to make sure and
+      //  manually check them
       const datasourceObj = draft.alerting[datasource];
       if (!datasourceObj) {
         draft.alerting[datasource] = {};
       }
+
       draft.alerting[datasource][identifier] = {
         rules,
         alerts,
@@ -91,6 +160,14 @@ const monitoringReducer = produce((draft: ObserveState, action: ObserveAction): 
 
     case ActionType.AlertingSetSilencesLoaded: {
       const { datasource, identifier, silences } = action.payload;
+
+      // due to some typescript magic in the produce function, dynamic keys are not viewed as being
+      // optional on the draft object since they can be written to, so we need to make sure and
+      //  manually check them
+      const datasourceObj = draft.alerting[datasource];
+      if (!datasourceObj) {
+        draft.alerting[datasource] = {};
+      }
       draft.alerting[datasource][identifier].silences = {
         data: silences,
         loaded: true,
@@ -101,6 +178,15 @@ const monitoringReducer = produce((draft: ObserveState, action: ObserveAction): 
 
     case ActionType.AlertingApplySilences: {
       const { datasource, identifier } = action.payload;
+
+      // due to some typescript magic in the produce function, dynamic keys are not viewed as being
+      // optional on the draft object since they can be written to, so we need to make sure and
+      //  manually check them
+      const datasourceObj = draft.alerting[datasource];
+      if (!datasourceObj) {
+        draft.alerting[datasource] = {};
+      }
+
       const alerts = draft.alerting[datasource][identifier]?.alerts;
       const silences = draft.alerting[datasource][identifier]?.silences;
 
@@ -128,7 +214,7 @@ const monitoringReducer = produce((draft: ObserveState, action: ObserveAction): 
 
     case ActionType.QueryBrowserDuplicateQuery: {
       const index = action.payload.index;
-      const originQueryText = draft.queryBrowser.queries[index].text;
+      const originQueryText = draft.queryBrowser.queries[index]?.text;
       const duplicate = { ...newQueryBrowserQuery(), text: originQueryText, isEnabled: false };
       draft.queryBrowser.queries.push(duplicate);
       break;
@@ -149,7 +235,7 @@ const monitoringReducer = produce((draft: ObserveState, action: ObserveAction): 
     case ActionType.QueryBrowserDeleteQuery: {
       const queries = [
         ...draft.queryBrowser.queries.slice(0, action.payload.index),
-        ...draft.queryBrowser.queries.slice(action.payload.index),
+        ...draft.queryBrowser.queries.slice(action.payload.index + 1),
       ];
       if (queries.length === 0) {
         queries.push(newQueryBrowserQuery());
@@ -209,7 +295,16 @@ const monitoringReducer = produce((draft: ObserveState, action: ObserveAction): 
     }
 
     case ActionType.QueryBrowserToggleAllSeries: {
-      const index = action.payload.index;
+      const { index } = action.payload;
+
+      const query = draft.queryBrowser.queries[index];
+      // due to some typescript magic in the produce function, dynamic keys are not viewed as being
+      // optional on the draft object since they can be written to, so we need to make sure and
+      //  manually check them
+      if (!query) {
+        // If the query doesn't exist, then don't toggle all of its series
+        break;
+      }
       const isDisabledSeriesEmpty = _.isEmpty(draft.queryBrowser.queries[index].disabledSeries);
       const series = draft.queryBrowser.queries[index].series;
       const patch = { disabledSeries: isDisabledSeriesEmpty ? series : [] };
@@ -221,6 +316,14 @@ const monitoringReducer = produce((draft: ObserveState, action: ObserveAction): 
 
     case ActionType.QueryBrowserToggleIsEnabled: {
       const query = draft.queryBrowser.queries[action.payload.index];
+
+      // due to some typescript magic in the produce function, dynamic keys are not viewed as being
+      // optional on the draft object since they can be written to, so we need to make sure and
+      //  manually check them
+      if (!query) {
+        // If the query doesn't exist, then don't set it to enabled
+        break;
+      }
       const isEnabled = !query.isEnabled;
       draft.queryBrowser.queries[action.payload.index] = queryBrowserPatchQueryHelper(
         action.payload.index,
@@ -236,17 +339,31 @@ const monitoringReducer = produce((draft: ObserveState, action: ObserveAction): 
 
     // This one is prob wrong
     case ActionType.QueryBrowserToggleSeries: {
-      draft.queryBrowser.queries[action.payload.index].disabledSeries = draft.queryBrowser.queries[
-        action.payload.index
-      ].disabledSeries.filter((series) => {
-        return _.isEqual(series, action.payload.labels);
-      });
+      const { index, labels } = action.payload;
+      // due to some typescript magic in the produce function, dynamic keys are not viewed as being
+      // optional on the draft object since they can be written to, so we need to make sure and
+      //  manually check them
+      if (draft.queryBrowser.queries[index]) {
+        draft.queryBrowser.queries[index].disabledSeries = draft.queryBrowser.queries[
+          index
+        ].disabledSeries.filter((series) => {
+          return _.isEqual(series, labels);
+        });
+      }
       break;
     }
 
     case ActionType.SetAlertCount: {
-      draft.alerting[action.payload.datasource][action.payload.identifier].alertCount =
-        action.payload.alertCount;
+      const { datasource, identifier, alertCount } = action.payload;
+      // due to some typescript magic in the produce function, dynamic keys are not viewed as being
+      // optional on the draft object since they can be written to, so we need to make sure and
+      //  manually check them
+      const datasourceObj = draft.alerting[datasource];
+      if (!datasourceObj) {
+        draft.alerting[datasource] = {};
+      }
+
+      draft.alerting[datasource][identifier].alertCount = alertCount;
       break;
     }
 
