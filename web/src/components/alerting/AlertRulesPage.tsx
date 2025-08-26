@@ -134,14 +134,14 @@ const AlertRulesPage_: FC = () => {
 
   const data: Rule[] = useSelector(
     (state: MonitoringState) =>
-      getObserveState(plugin, state)?.alerting[prometheus]?.[namespace]?.rules,
+      getObserveState(plugin, state).alerting[prometheus]?.[namespace]?.rules,
   );
   const { loaded = false, loadError } = useSelector(
-    (state: MonitoringState) => getObserveState(plugin, state)?.alerting[prometheus]?.[namespace],
+    (state: MonitoringState) => getObserveState(plugin, state).alerting[prometheus]?.[namespace],
   );
   const silencesLoadError = useSelector(
     (state: MonitoringState) =>
-      getObserveState(plugin, state)?.alerting[prometheus]?.[namespace]?.silences?.loadError,
+      getObserveState(plugin, state).alerting[prometheus]?.[namespace]?.silences?.loadError,
   );
 
   const ruleAdditionalSources = useMemo(

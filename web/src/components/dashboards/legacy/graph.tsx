@@ -39,10 +39,10 @@ const Graph: FC<Props> = ({
   const dispatch = useDispatch();
   const { plugin } = useMonitoring();
   const endTime = useSelector(
-    (state: MonitoringState) => getObserveState(plugin, state)?.dashboards[perspective].endTime,
+    (state: MonitoringState) => getObserveState(plugin, state).dashboards[perspective].endTime,
   );
   const timespan = useSelector(
-    (state: MonitoringState) => getObserveState(plugin, state)?.dashboards[perspective].timespan,
+    (state: MonitoringState) => getObserveState(plugin, state).dashboards[perspective].timespan,
   );
 
   const onZoom = useCallback(

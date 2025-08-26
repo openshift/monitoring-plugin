@@ -47,15 +47,15 @@ const AlertsPage_: FC = () => {
   useAlerts();
 
   const loadingInfo = useSelector(
-    (state: MonitoringState) => getObserveState(plugin, state)?.alerting[prometheus]?.[namespace],
+    (state: MonitoringState) => getObserveState(plugin, state).alerting[prometheus]?.[namespace],
   );
   const alerts = useSelector(
     (state: MonitoringState) =>
-      getObserveState(plugin, state)?.alerting[prometheus]?.[namespace]?.alerts,
+      getObserveState(plugin, state).alerting[prometheus]?.[namespace]?.alerts,
   );
   const silencesLoadError = useSelector(
     (state: MonitoringState) =>
-      getObserveState(plugin, state)?.alerting[prometheus]?.[namespace]?.silences?.loadError,
+      getObserveState(plugin, state).alerting[prometheus]?.[namespace]?.silences?.loadError,
   );
 
   const alertAdditionalSources = useMemo(() => getAdditionalSources(alerts, alertSource), [alerts]);

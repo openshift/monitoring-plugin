@@ -156,12 +156,12 @@ const AlertRulesDetailsPage_: FC = () => {
 
   const rules = useSelector(
     (state: MonitoringState) =>
-      getObserveState(plugin, state)?.alerting[prometheus]?.[namespace]?.rules,
+      getObserveState(plugin, state).alerting[prometheus]?.[namespace]?.rules,
   );
   const rule = _.find(rules, { id: params.id });
 
   const { loaded, loadError } = useSelector(
-    (state: MonitoringState) => getObserveState(plugin, state)?.alerting[prometheus]?.[namespace],
+    (state: MonitoringState) => getObserveState(plugin, state).alerting[prometheus]?.[namespace],
   );
 
   const sourceId = rule?.sourceId;

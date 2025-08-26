@@ -67,12 +67,12 @@ const SilencesDetailsPage_: FC = () => {
 
   const alertsLoaded = useSelector(
     (state: MonitoringState) =>
-      getObserveState(plugin, state)?.alerting[prometheus]?.[namespace]?.loaded,
+      getObserveState(plugin, state).alerting[prometheus]?.[namespace]?.loaded,
   );
 
   const silences = useSelector(
     (state: MonitoringState) =>
-      getObserveState(plugin, state)?.alerting[prometheus]?.[namespace]?.silences,
+      getObserveState(plugin, state).alerting[prometheus]?.[namespace]?.silences,
   );
   const silence = _.find(silences?.data, { id });
 

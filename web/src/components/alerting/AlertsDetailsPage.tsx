@@ -104,21 +104,21 @@ const AlertsDetailsPage_: FC = () => {
   const [namespace] = useActiveNamespace();
 
   const hideGraphs = useSelector(
-    (state: MonitoringState) => !!getObserveState(plugin, state)?.hideGraphs,
+    (state: MonitoringState) => !!getObserveState(plugin, state).hideGraphs,
   );
 
   const { loaded, loadError } = useSelector(
-    (state: MonitoringState) => getObserveState(plugin, state)?.alerting[prometheus]?.[namespace],
+    (state: MonitoringState) => getObserveState(plugin, state).alerting[prometheus]?.[namespace],
   );
 
   const alerts = useSelector(
     (state: MonitoringState) =>
-      getObserveState(plugin, state)?.alerting[prometheus]?.[namespace]?.alerts,
+      getObserveState(plugin, state).alerting[prometheus]?.[namespace]?.alerts,
   );
 
   const silencesLoaded = useSelector(
     (state: MonitoringState) =>
-      getObserveState(plugin, state)?.alerting[prometheus]?.[namespace]?.silences?.loaded,
+      getObserveState(plugin, state).alerting[prometheus]?.[namespace]?.silences?.loaded,
   );
 
   const ruleAlerts = _.filter(alerts, (a) => a.rule.id === params?.ruleID);

@@ -58,7 +58,7 @@ const SilencesPage_: FC = () => {
 
   const silenceData = useSelector(
     (state: MonitoringState) =>
-      getObserveState(plugin, state)?.alerting[prometheus]?.[namespace]?.silences,
+      getObserveState(plugin, state).alerting[prometheus]?.[namespace]?.silences,
   );
 
   const clusters = useMemo(() => {

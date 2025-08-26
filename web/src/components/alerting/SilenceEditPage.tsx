@@ -42,7 +42,7 @@ const SilenceEditPage = () => {
 
   const silences = useSelector(
     (state: MonitoringState) =>
-      getObserveState(plugin, state)?.alerting[prometheus]?.[namespace]?.silences,
+      getObserveState(plugin, state).alerting[prometheus]?.[namespace]?.silences,
   );
 
   const silence: Silence = _.find(silences?.data, { id: params.id });
