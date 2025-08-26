@@ -219,11 +219,6 @@ const monitoringReducer = produce((draft: ObserveState, action: ObserveAction): 
       break;
     }
 
-    case ActionType.QueryBrowserSetMetrics: {
-      draft.queryBrowser.metrics = action.payload.metrics;
-      break;
-    }
-
     case ActionType.QueryBrowserSetPollInterval: {
       draft.queryBrowser.pollInterval = String(action.payload.pollInterval);
       break;

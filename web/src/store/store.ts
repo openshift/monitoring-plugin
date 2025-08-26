@@ -42,7 +42,6 @@ export type ObserveState = {
     groupId: string;
   };
   queryBrowser: {
-    metrics: Array<any>;
     pollInterval: string | null;
     queries: Array<QueryStructure>;
     timespan: number;
@@ -61,7 +60,6 @@ export const defaultObserveState: ObserveState = {
     variables: {},
   },
   queryBrowser: {
-    metrics: [],
     pollInterval: null,
     queries: [newQueryBrowserQuery()],
     timespan: MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
@@ -101,11 +99,11 @@ export type QueryStructure = {
   id: string;
   isEnabled: boolean;
   isExpanded: boolean;
-  text?: string;
-  query?: string;
-  series?: any;
-  disabledSeries?: PrometheusLabels[];
-  queryTableData?: {
+  text: string;
+  query: string;
+  series: any;
+  disabledSeries: PrometheusLabels[];
+  queryTableData: {
     columns: any;
     rows: any;
   };
@@ -125,5 +123,10 @@ export function newQueryBrowserQuery(): QueryStructure {
     id: _.uniqueId('query-browser-query'),
     isEnabled: true,
     isExpanded: true,
+    text: '',
+    query: '',
+    series: [],
+    disabledSeries: [],
+    queryTableData: { columns: [], rows: [] },
   };
 }

@@ -25,7 +25,6 @@ export enum ActionType {
   QueryBrowserPatchQuery = 'queryBrowserPatchQuery',
   QueryBrowserRunQueries = 'queryBrowserRunQueries',
   QueryBrowserSetAllExpanded = 'queryBrowserSetAllExpanded',
-  QueryBrowserSetMetrics = 'queryBrowserSetMetrics',
   QueryBrowserSetPollInterval = 'queryBrowserSetPollInterval',
   QueryBrowserSetTimespan = 'queryBrowserSetTimespan',
   QueryBrowserToggleIsEnabled = 'queryBrowserToggleIsEnabled',
@@ -145,9 +144,6 @@ export const queryBrowserRunQueries = () => action(ActionType.QueryBrowserRunQue
 export const queryBrowserSetAllExpanded = (isExpanded: boolean) =>
   action(ActionType.QueryBrowserSetAllExpanded, { isExpanded });
 
-export const queryBrowserSetMetrics = (metrics: string[]) =>
-  action(ActionType.QueryBrowserSetMetrics, { metrics });
-
 export const queryBrowserSetPollInterval = (pollInterval: number) =>
   action(ActionType.QueryBrowserSetPollInterval, { pollInterval });
 
@@ -210,7 +206,6 @@ type Actions = {
   queryBrowserPatchQuery: typeof queryBrowserPatchQuery;
   queryBrowserRunQueries: typeof queryBrowserRunQueries;
   queryBrowserSetAllExpanded: typeof queryBrowserSetAllExpanded;
-  queryBrowserSetMetrics: typeof queryBrowserSetMetrics;
   queryBrowserSetPollInterval: typeof queryBrowserSetPollInterval;
   queryBrowserSetTimespan: typeof queryBrowserSetTimespan;
   queryBrowserToggleAllSeries: typeof queryBrowserToggleAllSeries;
