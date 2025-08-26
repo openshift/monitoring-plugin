@@ -24,10 +24,10 @@ import {
   t_global_color_status_warning_default,
 } from '@patternfly/react-tokens';
 import { useDispatch, useSelector } from 'react-redux';
-import { VictoryPortal } from 'victory';
 import { setAlertsAreLoading, setChooseIncident } from '../../../actions/observe';
 import { MonitoringState } from '../../../reducers/observe';
 import '../incidents-styles.css';
+import { IncidentsTooltip } from '../IncidentsTooltip';
 import { Incident } from '../model';
 import {
   createIncidentsChartBars,
@@ -35,42 +35,6 @@ import {
   generateDateArray,
   updateBrowserUrl,
 } from '../utils';
-
-const TOOLTIP_MAX_HEIGHT = 300;
-const TOOLTIP_MAX_WIDTH = 500;
-
-const IncidentsTooltip = ({
-  x,
-  y,
-  x0,
-  height,
-  text,
-}: {
-  x?: number;
-  y?: number;
-  x0?: number;
-  height?: number;
-  text?: string | Array<string>;
-}) => {
-  const posx = x - (x - x0) / 2 - TOOLTIP_MAX_WIDTH / 2;
-  const posy = y - Math.min(height || 0, TOOLTIP_MAX_HEIGHT) / 2 - 20;
-  const textArray: Array<string> = Array.isArray(text) ? text : [text];
-
-  return (
-    <VictoryPortal>
-      <foreignObject height={TOOLTIP_MAX_HEIGHT} width={TOOLTIP_MAX_WIDTH} x={posx} y={posy}>
-        <div className="incidents__tooltip-wrap">
-          <div className="incidents__tooltip">
-            {textArray.map((text, index) => (
-              <p key={index}>{text}</p>
-            ))}
-          </div>
-          <div className="incidents__tooltip-arrow" />
-        </div>
-      </foreignObject>
-    </VictoryPortal>
-  );
-};
 
 const IncidentsChart = ({
   incidentsData,

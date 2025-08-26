@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   Chart,
@@ -7,21 +7,26 @@ import {
   ChartGroup,
   ChartLabel,
   ChartLegend,
-  ChartTooltip,
   ChartVoronoiContainer,
 } from '@patternfly/react-charts/victory';
-import { Card, CardBody, CardTitle, EmptyState, EmptyStateBody } from '@patternfly/react-core';
-import { createAlertsChartBars, formatDate, generateDateArray } from '../utils';
-import { getResizeObserver } from '@patternfly/react-core';
-import { useDispatch, useSelector } from 'react-redux';
-import { setAlertsAreLoading } from '../../../actions/observe';
+import {
+  Card,
+  CardBody,
+  CardTitle,
+  EmptyState,
+  EmptyStateBody,
+  getResizeObserver,
+} from '@patternfly/react-core';
 import {
   t_global_color_status_danger_default,
   t_global_color_status_info_default,
   t_global_color_status_warning_default,
 } from '@patternfly/react-tokens';
+import { useDispatch, useSelector } from 'react-redux';
+import { setAlertsAreLoading } from '../../../actions/observe';
 import { MonitoringState } from '../../../reducers/observe';
-import { VictoryPortal } from 'victory';
+import { IncidentsTooltip } from '../IncidentsTooltip';
+import { createAlertsChartBars, formatDate, generateDateArray } from '../utils';
 
 const AlertsChart = ({ chartDays, theme }: { chartDays: number; theme: 'light' | 'dark' }) => {
   const dispatch = useDispatch();
@@ -96,16 +101,7 @@ const AlertsChart = ({ chartDays, theme }: { chartDays: number; theme: 'light' |
             <Chart
               containerComponent={
                 <ChartVoronoiContainer
-                  labelComponent={
-                    <VictoryPortal>
-                      <ChartTooltip
-                        orientation="top"
-                        dx={({ x, x0 }: any) => -(x - x0) / 2}
-                        dy={-5} // Position tooltip so pointer appears above bar
-                        labelComponent={<ChartLabel />}
-                      />
-                    </VictoryPortal>
-                  }
+                  labelComponent={<IncidentsTooltip />}
                   labels={({ datum }) => {
                     if (datum.nodata) {
                       return null;
