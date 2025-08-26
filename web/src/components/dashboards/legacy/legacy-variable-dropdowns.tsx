@@ -117,11 +117,11 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({
   const { plugin } = useMonitoring();
 
   const timespan = useSelector(
-    (state: MonitoringState) => getObserveState(plugin, state).dashboards[perspective].timespan,
+    (state: MonitoringState) => getObserveState(plugin, state).dashboards.timespan,
   );
 
   const variables = useSelector(
-    (state: MonitoringState) => getObserveState(plugin, state).dashboards[perspective]?.variables,
+    (state: MonitoringState) => getObserveState(plugin, state).dashboards.variables,
   );
   const variable = variables?.[name] as Variable;
   const options = useDeepMemo(() => {
@@ -324,7 +324,7 @@ export const LegacyDashboardsAllVariableDropdowns: FC = () => {
   const { plugin } = useMonitoring();
 
   const variables = useSelector(
-    (state: MonitoringState) => getObserveState(plugin, state).dashboards[perspective].variables,
+    (state: MonitoringState) => getObserveState(plugin, state).dashboards.variables,
   );
 
   if (!variables) {

@@ -19,14 +19,10 @@ export type RootState = {
 export type LegacyObserveState = Map<string, any>;
 export type ObserveState = {
   dashboards: {
-    [perspective: string]:
-      | {
-          endTime: string | null;
-          pollInterval: number;
-          timespan: number;
-          variables: Record<string, Variable>;
-        }
-      | undefined;
+    endTime: string | null;
+    pollInterval: number;
+    timespan: number;
+    variables: Record<string, Variable>;
   };
   incidentsData: {
     incidents: Array<any>;
@@ -59,18 +55,10 @@ export type ObserveState = {
 
 export const defaultObserveState: ObserveState = {
   dashboards: {
-    dev: {
-      endTime: null,
-      pollInterval: 30 * 1000,
-      timespan: MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
-      variables: {},
-    },
-    admin: {
-      endTime: null,
-      pollInterval: 30 * 1000,
-      timespan: MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
-      variables: {},
-    },
+    endTime: null,
+    pollInterval: 30 * 1000,
+    timespan: MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
+    variables: {},
   },
   queryBrowser: {
     metrics: [],

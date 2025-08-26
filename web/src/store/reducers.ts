@@ -29,103 +29,40 @@ const monitoringReducer = produce((draft: ObserveState, action: ObserveAction): 
 
   switch (action.type) {
     case ActionType.DashboardsPatchVariable: {
-      const perspective = action.payload.perspective;
-
-      // due to some typescript magic in the produce function, dynamic keys are not viewed as being
-      // optional on the draft object, so we need to make sure and manually check them
-      const dashboards = draft.dashboards[perspective];
-      if (!dashboards) {
-        // If the perspective doesn't exist in the store, then don't try to set a specific variable
-        break;
-      }
       // Don't worry about checking if they key exists, since we will just write into the slot
       // regardless of if it does or doesn't
-      draft.dashboards[action.payload.perspective].variables[action.payload.key] =
-        action.payload.patch;
+      draft.dashboards.variables[action.payload.key] = action.payload.patch;
       break;
     }
 
     case ActionType.DashboardsPatchAllVariables: {
-      const perspective = action.payload.perspective;
-
-      // due to some typescript magic in the produce function, dynamic keys are not viewed as being
-      // optional on the draft object, so we need to make sure and manually check them
-      const dashboards = draft.dashboards[perspective];
-      if (!dashboards) {
-        // If the perspective doesn't exist in the store, then don't try to set a specific variable
-        break;
-      }
-      draft.dashboards[action.payload.perspective].variables = action.payload.variables;
+      draft.dashboards.variables = action.payload.variables;
       break;
     }
 
     case ActionType.DashboardsClearVariables: {
-      const perspective = action.payload.perspective;
-
-      // due to some typescript magic in the produce function, dynamic keys are not viewed as being
-      // optional on the draft object, so we need to make sure and manually check them
-      const dashboards = draft.dashboards[perspective];
-      if (!dashboards) {
-        // If the perspective doesn't exist in the store, then don't try to set a specific variable
-        break;
-      }
-      draft.dashboards[action.payload.perspective].variables = {};
+      draft.dashboards.variables = {};
       break;
     }
 
     case ActionType.DashboardsSetEndTime: {
-      const perspective = action.payload.perspective;
-
-      // due to some typescript magic in the produce function, dynamic keys are not viewed as being
-      // optional on the draft object, so we need to make sure and manually check them
-      const dashboards = draft.dashboards[perspective];
-      if (!dashboards) {
-        // If the perspective doesn't exist in the store, then don't try to set a specific variable
-        break;
-      }
-      draft.dashboards[action.payload.perspective].endTime = String(action.payload.endTime);
+      draft.dashboards.endTime = String(action.payload.endTime);
       break;
     }
 
     case ActionType.DashboardsSetPollInterval: {
-      const perspective = action.payload.perspective;
-
-      // due to some typescript magic in the produce function, dynamic keys are not viewed as being
-      // optional on the draft object, so we need to make sure and manually check them
-      const dashboards = draft.dashboards[perspective];
-      if (!dashboards) {
-        // If the perspective doesn't exist in the store, then don't try to set a specific variable
-        break;
-      }
-      draft.dashboards[action.payload.perspective].pollInterval = action.payload.pollInterval;
+      draft.dashboards.pollInterval = action.payload.pollInterval;
       break;
     }
 
     case ActionType.DashboardsSetTimespan: {
-      const perspective = action.payload.perspective;
-
-      // due to some typescript magic in the produce function, dynamic keys are not viewed as being
-      // optional on the draft object, so we need to make sure and manually check them
-      const dashboards = draft.dashboards[perspective];
-      if (!dashboards) {
-        // If the perspective doesn't exist in the store, then don't try to set a specific variable
-        break;
-      }
-      draft.dashboards[action.payload.perspective].timespan = action.payload.timespan;
+      draft.dashboards.timespan = action.payload.timespan;
       break;
     }
 
     case ActionType.DashboardsVariableOptionsLoaded: {
-      const { key, newOptions, perspective } = action.payload;
-
-      // due to some typescript magic in the produce function, dynamic keys are not viewed as being
-      // optional on the draft object, so we need to make sure and manually check them
-      const dashboards = draft.dashboards[perspective];
-      if (!dashboards) {
-        // If the perspective doesn't exist in the store, then don't try to set a specific variable
-        break;
-      }
-      const val = draft.dashboards[perspective].variables[key];
+      const { key, newOptions } = action.payload;
+      const val = draft.dashboards.variables[key];
       const patch = _.isEqual(val?.options, newOptions)
         ? { isLoading: false }
         : {
@@ -137,7 +74,7 @@ const monitoringReducer = produce((draft: ObserveState, action: ObserveAction): 
                 ? val?.value
                 : newOptions[0],
           };
-      draft.dashboards[perspective].variables[key] = patch;
+      draft.dashboards.variables[key] = patch;
       break;
     }
 

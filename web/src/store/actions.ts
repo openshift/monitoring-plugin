@@ -51,29 +51,25 @@ export type Perspective = 'admin' | 'dev' | 'acm' | 'virtualization-perspective'
 
 // type AlertingKey = alertKey | silencesKey | rulesKey;
 
-export const dashboardsPatchVariable = (key: string, patch: any, perspective: Perspective) =>
-  action(ActionType.DashboardsPatchVariable, { key, patch, perspective });
+export const dashboardsPatchVariable = (key: string, patch: any) =>
+  action(ActionType.DashboardsPatchVariable, { key, patch });
 
-export const dashboardsPatchAllVariables = (variables: any, perspective: Perspective) =>
-  action(ActionType.DashboardsPatchAllVariables, { variables, perspective });
+export const dashboardsPatchAllVariables = (variables: any) =>
+  action(ActionType.DashboardsPatchAllVariables, { variables });
 
-export const DashboardsClearVariables = (perspective: Perspective) =>
-  action(ActionType.DashboardsClearVariables, { perspective });
+export const DashboardsClearVariables = () => action(ActionType.DashboardsClearVariables, {});
 
-export const dashboardsSetEndTime = (endTime: number, perspective: Perspective) =>
-  action(ActionType.DashboardsSetEndTime, { endTime, perspective });
+export const dashboardsSetEndTime = (endTime: number) =>
+  action(ActionType.DashboardsSetEndTime, { endTime });
 
-export const dashboardsSetPollInterval = (pollInterval: number, perspective: Perspective) =>
-  action(ActionType.DashboardsSetPollInterval, { pollInterval, perspective });
+export const dashboardsSetPollInterval = (pollInterval: number) =>
+  action(ActionType.DashboardsSetPollInterval, { pollInterval });
 
-export const dashboardsSetTimespan = (timespan: number, perspective: Perspective) =>
-  action(ActionType.DashboardsSetTimespan, { timespan, perspective });
+export const dashboardsSetTimespan = (timespan: number) =>
+  action(ActionType.DashboardsSetTimespan, { timespan });
 
-export const dashboardsVariableOptionsLoaded = (
-  key: string,
-  newOptions: string[],
-  perspective: Perspective,
-) => action(ActionType.DashboardsVariableOptionsLoaded, { key, newOptions, perspective });
+export const dashboardsVariableOptionsLoaded = (key: string, newOptions: string[]) =>
+  action(ActionType.DashboardsVariableOptionsLoaded, { key, newOptions });
 
 export const alertingSetLoading = (datasource: string, identifier: string) =>
   action(ActionType.AlertingSetLoading, {
