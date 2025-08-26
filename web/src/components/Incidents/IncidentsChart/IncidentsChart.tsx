@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   Chart,
@@ -8,7 +8,6 @@ import {
   ChartLabel,
   ChartLegend,
   ChartThemeColor,
-  ChartTooltip,
   ChartVoronoiContainer,
 } from '@patternfly/react-charts/victory';
 import {
@@ -27,6 +26,8 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { setAlertsAreLoading, setChooseIncident } from '../../../actions/observe';
 import { MonitoringState } from '../../../reducers/observe';
+import '../incidents-styles.css';
+import { IncidentsTooltip } from '../IncidentsTooltip';
 import { Incident } from '../model';
 import {
   createIncidentsChartBars,
@@ -34,7 +35,6 @@ import {
   generateDateArray,
   updateBrowserUrl,
 } from '../utils';
-import { VictoryPortal } from 'victory';
 
 const IncidentsChart = ({
   incidentsData,
@@ -132,17 +132,7 @@ const IncidentsChart = ({
             <Chart
               containerComponent={
                 <ChartVoronoiContainer
-                  labelComponent={
-                    <VictoryPortal>
-                      <ChartTooltip
-                        activateData={false}
-                        orientation="top"
-                        dx={({ x, x0 }: any) => -(x - x0) / 2}
-                        dy={-5} // Position tooltip so pointer appears above bar
-                        labelComponent={<ChartLabel />}
-                      />
-                    </VictoryPortal>
-                  }
+                  labelComponent={<IncidentsTooltip />}
                   voronoiPadding={0}
                   labels={({ datum }) => {
                     if (datum.nodata) {
