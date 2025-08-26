@@ -16,6 +16,7 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 
 import { AlertSource, MonitoringResource, Target, TimeRange } from './types';
+import { QueryParams } from './query-params';
 
 export const QUERY_CHUNK_SIZE = 24 * 60 * 60 * 1000;
 
@@ -219,6 +220,9 @@ const getSearchParams = ({
       ? getRangeVectorSearchParams(endTime, samples, timespan)
       : new URLSearchParams();
   _.each(params, (value, key) => value && searchParams.append(key, value.toString()));
+  if (searchParams.get(QueryParams.Namespace) === ALL_NAMESPACES_KEY) {
+    searchParams.delete(QueryParams.Namespace);
+  }
   return searchParams;
 };
 
