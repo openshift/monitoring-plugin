@@ -280,7 +280,7 @@ const MetricsActionsMenu: FC = () => {
   const [isOpen, setIsOpen, , setClosed] = useBoolean(false);
 
   const isAllExpanded = useSelector((state: MonitoringState) =>
-    getObserveState(plugin, state).queryBrowser.queries.every((q) => q.isExpanded),
+    getObserveState(plugin, state).queryBrowser.queries.every((q) => q?.isExpanded),
   );
 
   const dispatch = useDispatch();
@@ -383,12 +383,12 @@ const SeriesButton: FC<SeriesButtonProps> = ({ index, labels }) => {
   const [colorIndex, isDisabled, isSeriesEmpty]: [number | null, boolean, boolean] = useSelector(
     (state: MonitoringState) => {
       const observe = getObserveState(plugin, state);
-      const disabledSeries = observe.queryBrowser.queries[index].disabledSeries;
+      const disabledSeries = observe.queryBrowser.queries[index]?.disabledSeries;
       if (_.some(disabledSeries, (s) => _.isEqual(s, labels))) {
         return [null, true, false];
       }
 
-      const series = observe.queryBrowser.queries[index].series;
+      const series = observe.queryBrowser.queries[index]?.series;
       if (_.isEmpty(series)) {
         return [null, false, true];
       }
@@ -623,21 +623,21 @@ export const QueryTable: FC<QueryTableProps> = ({ index, namespace, customDataso
 
   const isEnabled = useSelector(
     (state: MonitoringState) =>
-      getObserveState(plugin, state).queryBrowser.queries[index].isEnabled,
+      getObserveState(plugin, state).queryBrowser.queries[index]?.isEnabled,
   );
   const isExpanded = useSelector(
     (state: MonitoringState) =>
-      getObserveState(plugin, state).queryBrowser.queries[index].isExpanded,
+      getObserveState(plugin, state).queryBrowser.queries[index]?.isExpanded,
   );
   const pollInterval = useSelector(
     (state: MonitoringState) =>
       Number(getObserveState(plugin, state).queryBrowser.pollInterval) * 15 * 1000,
   );
   const query = useSelector(
-    (state: MonitoringState) => getObserveState(plugin, state).queryBrowser.queries[index].query,
+    (state: MonitoringState) => getObserveState(plugin, state).queryBrowser.queries[index]?.query,
   );
   const series = useSelector(
-    (state: MonitoringState) => getObserveState(plugin, state).queryBrowser.queries[index].series,
+    (state: MonitoringState) => getObserveState(plugin, state).queryBrowser.queries[index]?.series,
   );
   const span = useSelector(
     (state: MonitoringState) => getObserveState(plugin, state).queryBrowser.timespan,
@@ -655,7 +655,7 @@ export const QueryTable: FC<QueryTableProps> = ({ index, namespace, customDataso
   );
 
   const isDisabledSeriesEmpty = useSelector((state: MonitoringState) =>
-    _.isEmpty(getObserveState(plugin, state).queryBrowser.queries[index].disabledSeries),
+    _.isEmpty(getObserveState(plugin, state).queryBrowser.queries[index]?.disabledSeries),
   );
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -919,19 +919,19 @@ const Query: FC<{
   const { plugin } = useMonitoring();
 
   const id = useSelector(
-    (state: MonitoringState) => getObserveState(plugin, state).queryBrowser.queries[index].id,
+    (state: MonitoringState) => getObserveState(plugin, state).queryBrowser.queries[index]?.id,
   );
   const isEnabled = useSelector(
     (state: MonitoringState) =>
-      getObserveState(plugin, state).queryBrowser.queries[index].isEnabled,
+      getObserveState(plugin, state).queryBrowser.queries[index]?.isEnabled,
   );
   const isExpanded = useSelector(
     (state: MonitoringState) =>
-      getObserveState(plugin, state).queryBrowser.queries[index].isExpanded,
+      getObserveState(plugin, state).queryBrowser.queries[index]?.isExpanded,
   );
   const text = useSelector(
     (state: MonitoringState) =>
-      getObserveState(plugin, state).queryBrowser.queries[index].text ?? '',
+      getObserveState(plugin, state).queryBrowser.queries[index]?.text ?? '',
   );
 
   const dispatch = useDispatch();
