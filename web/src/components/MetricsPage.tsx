@@ -1046,6 +1046,7 @@ const QueryBrowserWrapper: FC<{
   units: GraphUnits;
 }> = ({ customDataSourceName, customDataSource, customDatasourceError, units }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const [activeNamespace] = useActiveNamespace();
   const { plugin } = useMonitoring();
 
   const dispatch = useDispatch();
@@ -1160,7 +1161,7 @@ const QueryBrowserWrapper: FC<{
       units={units}
       showStackedControl
       showDisconnectedControl
-      useTenancy
+      useTenancy={activeNamespace !== ALL_NAMESPACES_KEY}
     />
   );
 };
