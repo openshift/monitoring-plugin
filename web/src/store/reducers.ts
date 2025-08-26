@@ -168,9 +168,10 @@ const monitoringReducer = produce((draft: ObserveState, action: ObserveAction): 
     }
 
     case ActionType.QueryBrowserDeleteAllSeries: {
-      draft.queryBrowser.queries = draft.queryBrowser.queries.map(
-        (query) => (query.series = undefined),
-      );
+      draft.queryBrowser.queries = draft.queryBrowser.queries.map((query) => {
+        query.series = [];
+        return query;
+      });
       break;
     }
 
@@ -201,7 +202,7 @@ const monitoringReducer = produce((draft: ObserveState, action: ObserveAction): 
       const queries = draft.queryBrowser.queries.map((query) => {
         const text = _.trim(query.text);
         return query.isEnabled && query.query !== text
-          ? { ...query, query: text, series: undefined }
+          ? { ...query, query: text, series: [] }
           : query;
       });
 
