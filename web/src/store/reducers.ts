@@ -18,8 +18,13 @@ const monitoringReducer = produce((draft: ObserveState, action: ObserveAction): 
     return defaultObserveState;
   }
 
-  const queryBrowserPatchQueryHelper = (index: number, patch: QueryStructure): QueryStructure => {
-    return draft.queryBrowser.queries[index] ? patch : { ...newQueryBrowserQuery(), ...patch };
+  const queryBrowserPatchQueryHelper = (
+    index: number,
+    patch: Partial<QueryStructure>,
+  ): QueryStructure => {
+    return draft.queryBrowser.queries[index]
+      ? { ...draft.queryBrowser.queries[index], ...patch }
+      : { ...newQueryBrowserQuery(), ...patch };
   };
 
   switch (action.type) {
@@ -251,8 +256,6 @@ const monitoringReducer = produce((draft: ObserveState, action: ObserveAction): 
 
     case ActionType.QueryBrowserPatchQuery: {
       const { index, patch } = action.payload;
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
       draft.queryBrowser.queries[index] = queryBrowserPatchQueryHelper(index, patch);
       break;
     }
@@ -308,8 +311,6 @@ const monitoringReducer = produce((draft: ObserveState, action: ObserveAction): 
       const isDisabledSeriesEmpty = _.isEmpty(draft.queryBrowser.queries[index].disabledSeries);
       const series = draft.queryBrowser.queries[index].series;
       const patch = { disabledSeries: isDisabledSeriesEmpty ? series : [] };
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
       draft.queryBrowser.queries[index] = queryBrowserPatchQueryHelper(index, patch);
       break;
     }
