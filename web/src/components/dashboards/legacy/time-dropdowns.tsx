@@ -18,7 +18,7 @@ import {
 } from '../../console/console-shared/src/datetime/prometheus';
 import { DEFAULT_REFRESH_INTERVAL, DropDownPollInterval } from '../../dropdown-poll-interval';
 import { useBoolean } from '../../hooks/useBoolean';
-import { getObserveState, usePerspective } from '../../hooks/usePerspective';
+import { getObserveState } from '../../hooks/usePerspective';
 import { QueryParams } from '../../query-params';
 import CustomTimeRangeModal from './custom-time-range-modal';
 import { LegacyDashboardPageTestIDs } from '../../data-test';
@@ -30,7 +30,6 @@ const DEFAULT_TIMERANGE = '30m';
 export const TimespanDropdown: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
-  const { perspective } = usePerspective();
   const { plugin } = useMonitoring();
 
   const [isModalOpen, , setModalOpen, setModalClosed] = useBoolean(false);
@@ -58,11 +57,11 @@ export const TimespanDropdown: FC = () => {
       } else {
         setTimeRange(parsePrometheusDuration(v));
         setEndTime(undefined);
-        dispatch(dashboardsSetTimespan(parsePrometheusDuration(v), perspective));
-        dispatch(dashboardsSetEndTime(null, perspective));
+        dispatch(dashboardsSetTimespan(parsePrometheusDuration(v)));
+        dispatch(dashboardsSetEndTime(null));
       }
     },
-    [setModalOpen, dispatch, perspective, setTimeRange, setEndTime],
+    [setModalOpen, dispatch, setTimeRange, setEndTime],
   );
 
   const initialOptions = useMemo<SimpleSelectOption[]>(() => {
@@ -95,7 +94,6 @@ export const TimespanDropdown: FC = () => {
   return (
     <>
       <CustomTimeRangeModal
-        perspective={perspective}
         isOpen={isModalOpen}
         setClosed={setModalClosed}
         timespan={defaultTimerange}
@@ -125,7 +123,6 @@ export const TimespanDropdown: FC = () => {
 
 export const PollIntervalDropdown: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { perspective } = usePerspective();
   const [selectedInterval, setSelectedInterval] = useState(DEFAULT_REFRESH_INTERVAL);
 
   const dispatch = useDispatch();
@@ -135,9 +132,9 @@ export const PollIntervalDropdown: FC = () => {
     (v: number) => {
       setSelectedInterval(v);
       setRefreshInterval(v);
-      dispatch(dashboardsSetPollInterval(v, perspective));
+      dispatch(dashboardsSetPollInterval(v));
     },
-    [dispatch, perspective, setRefreshInterval],
+    [dispatch, setRefreshInterval],
   );
 
   return (

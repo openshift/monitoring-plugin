@@ -134,20 +134,17 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
           navigate(url, { replace: true });
         }
 
-        dispatch(dashboardsPatchAllVariables(allVariables, perspective));
+        dispatch(dashboardsPatchAllVariables(allVariables));
 
         // Set time range and poll interval options to their defaults or from the query params if
         // available
         if (refreshInterval !== undefined) {
-          dispatch(dashboardsSetPollInterval(_.toNumber(refreshInterval), perspective));
+          dispatch(dashboardsSetPollInterval(_.toNumber(refreshInterval)));
         }
-        dispatch(
-          dashboardsSetEndTime(_.toNumber(params.get(QueryParams.EndTime)) || null, perspective),
-        );
+        dispatch(dashboardsSetEndTime(_.toNumber(params.get(QueryParams.EndTime)) || null));
         dispatch(
           dashboardsSetTimespan(
             _.toNumber(params.get(QueryParams.TimeRange)) || MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
-            perspective,
           ),
         );
       }
@@ -179,9 +176,9 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
   // Clear variables on unmount
   useEffect(() => {
     return () => {
-      dispatch(DashboardsClearVariables(perspective));
+      dispatch(DashboardsClearVariables());
     };
-  }, [perspective, dispatch]);
+  }, [dispatch]);
 
   return {
     legacyDashboards,

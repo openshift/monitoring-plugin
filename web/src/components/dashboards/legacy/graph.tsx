@@ -2,7 +2,7 @@ import type { FC } from 'react';
 import { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { dashboardsSetEndTime, dashboardsSetTimespan, Perspective } from '../../../store/actions';
+import { dashboardsSetEndTime, dashboardsSetTimespan } from '../../../store/actions';
 import { FormatSeriesTitle, QueryBrowser } from '../../query-browser';
 import { MonitoringState } from '../../../store/store';
 import { getObserveState } from '../../hooks/usePerspective';
@@ -20,7 +20,6 @@ type Props = {
   showLegend?: boolean;
   units: string;
   onZoomHandle?: (timeRange: number, endTime: number) => void;
-  perspective: Perspective;
   onDataChange?: (data: any) => void;
 };
 
@@ -33,7 +32,6 @@ const Graph: FC<Props> = ({
   showLegend,
   units,
   onZoomHandle,
-  perspective,
   onDataChange,
 }) => {
   const dispatch = useDispatch();
@@ -47,11 +45,11 @@ const Graph: FC<Props> = ({
 
   const onZoom = useCallback(
     (from, to) => {
-      dispatch(dashboardsSetEndTime(to, perspective));
-      dispatch(dashboardsSetTimespan(to - from, perspective));
+      dispatch(dashboardsSetEndTime(to));
+      dispatch(dashboardsSetTimespan(to - from));
       onZoomHandle?.(to - from, to);
     },
-    [perspective, dispatch, onZoomHandle],
+    [dispatch, onZoomHandle],
   );
 
   return (

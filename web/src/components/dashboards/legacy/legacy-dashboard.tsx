@@ -345,7 +345,6 @@ const Card: FC<CardProps> = memo(({ panel, perspective }) => {
                       units={panel.yaxes?.[0]?.format}
                       onZoomHandle={handleZoom}
                       customDataSource={customDataSource}
-                      perspective={perspective}
                       onDataChange={(data) => setCsvData(data)}
                     />
                   )}

@@ -27,13 +27,9 @@ import { getPrometheusBasePath, buildPrometheusUrl } from '../../utils';
 import { getQueryArgument, setQueryArgument } from '../../console/utils/router';
 import { useSafeFetch } from '../../console/utils/safe-fetch-hook';
 
-import {
-  dashboardsPatchVariable,
-  dashboardsVariableOptionsLoaded,
-  Perspective,
-} from '../../../store/actions';
+import { dashboardsPatchVariable, dashboardsVariableOptionsLoaded } from '../../../store/actions';
 import { getTimeRanges, isTimeoutError, QUERY_CHUNK_SIZE } from '../../utils';
-import { getObserveState, usePerspective } from '../../hooks/usePerspective';
+import { getObserveState } from '../../hooks/usePerspective';
 import { MonitoringState } from '../../../store/store';
 import { DEFAULT_GRAPH_SAMPLES, MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY } from './utils';
 import {
@@ -107,12 +103,7 @@ const LegacyDashboardsVariableOption = ({ value, isSelected, ...rest }) =>
     </SelectOption>
   );
 
-const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({
-  id,
-  name,
-  namespace,
-  perspective,
-}) => {
+const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({ id, name, namespace }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { plugin } = useMonitoring();
 
@@ -189,7 +180,7 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({
     const timeRanges = getTimeRanges(timespan);
     const newOptions = new Set<string>();
     let abortError = false;
-    dispatch(dashboardsPatchVariable(name, { isLoading: true }, perspective));
+    dispatch(dashboardsPatchVariable(name, { isLoading: true }));
     Promise.allSettled(
       timeRanges.map(async (timeRange) => {
         const prometheusProps = {
@@ -230,17 +221,16 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({
         setIsError(false);
         // Options were found or no options were found but that wasn't in error
         const newOptionArray = Array.from(newOptions).sort();
-        dispatch(dashboardsVariableOptionsLoaded(name, newOptionArray, perspective));
+        dispatch(dashboardsVariableOptionsLoaded(name, newOptionArray));
       } else {
         // No options were found, and there were errors (timeouts or other) in fetching the data
-        dispatch(dashboardsPatchVariable(name, { isLoading: false }, perspective));
+        dispatch(dashboardsPatchVariable(name, { isLoading: false }));
         if (!abortError) {
           setIsError(true);
         }
       }
     });
   }, [
-    perspective,
     dispatch,
     getURL,
     name,
@@ -256,16 +246,16 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({
     if (variable?.value && variable?.value !== getQueryArgument(name)) {
       setQueryArgument(name, variable?.value);
     }
-  }, [perspective, name, variable?.value]);
+  }, [name, variable?.value]);
 
   const onChange = useCallback(
     (v: string) => {
       if (v !== variable?.value) {
         setQueryArgument(name, v);
-        dispatch(dashboardsPatchVariable(name, { value: v }, perspective));
+        dispatch(dashboardsPatchVariable(name, { value: v }));
       }
     },
-    [perspective, dispatch, name, variable?.value],
+    [dispatch, name, variable?.value],
   );
 
   if (variable?.isHidden || (!isError && _.isEmpty(variable?.options))) {
@@ -320,7 +310,6 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({
 // Expects to be inside of a Patternfly Split Component
 export const LegacyDashboardsAllVariableDropdowns: FC = () => {
   const [namespace] = useActiveNamespace();
-  const { perspective } = usePerspective();
   const { plugin } = useMonitoring();
 
   const variables = useSelector(
@@ -334,13 +323,7 @@ export const LegacyDashboardsAllVariableDropdowns: FC = () => {
   return (
     <Split hasGutter isWrappable>
       {Object.keys(variables).map((name: string) => (
-        <LegacyDashboardsVariableDropdown
-          id={name}
-          key={name}
-          name={name}
-          namespace={namespace}
-          perspective={perspective}
-        />
+        <LegacyDashboardsVariableDropdown id={name} key={name} name={name} namespace={namespace} />
       ))}
     </Split>
   );
@@ -359,6 +342,5 @@ export type Variable = {
 type VariableDropdownProps = {
   id: string;
   name: string;
-  perspective: Perspective;
   namespace?: string;
 };
