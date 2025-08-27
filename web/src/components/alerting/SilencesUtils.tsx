@@ -53,7 +53,6 @@ import {
 import { silenceMatcherEqualitySymbol, SilenceResource, silenceState } from '../utils';
 import { SeverityCounts, StateTimestamp } from './AlertUtils';
 import { DataTestIDs } from '../data-test';
-import { useAlerts } from '../../hooks/useAlerts';
 
 export const SilenceTableRow: FC<SilenceTableRowProps> = ({ obj, showCheckbox }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -283,7 +282,6 @@ export const ExpireSilenceModal: FC<ExpireSilenceModalProps> = ({
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
   const [namespace] = useActiveNamespace();
-  const { trigger: refetchSilencesAndAlerts } = useAlerts();
 
   const [isInProgress, , setInProgress, setNotInProgress] = useBoolean(false);
   const [success, , setSuccess] = useBoolean(false);
@@ -298,7 +296,6 @@ export const ExpireSilenceModal: FC<ExpireSilenceModalProps> = ({
         setNotInProgress();
         setSuccess();
         setTimeout(() => {
-          refetchSilencesAndAlerts();
           setClosed();
         }, 1000);
       })
