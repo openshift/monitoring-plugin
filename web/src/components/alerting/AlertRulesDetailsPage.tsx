@@ -5,6 +5,7 @@ import {
   PrometheusAlert,
   ResourceIcon,
   Timestamp,
+  useActiveNamespace,
   useResolvedExtensions,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
@@ -152,7 +153,7 @@ const AlertRulesDetailsPage_: FC = () => {
   useAlerts();
 
   const { perspective } = usePerspective();
-  const namespace = params?.ns;
+  const [namespace] = useActiveNamespace();
 
   const rules = useSelector(
     (state: MonitoringState) =>
