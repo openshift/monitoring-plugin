@@ -132,11 +132,11 @@ const AlertRulesPage_: FC = () => {
 
   useAlerts();
 
-  const data: Rule[] = useSelector(
+  const rules: Rule[] = useSelector(
     (state: MonitoringState) =>
       getObserveState(plugin, state).alerting[prometheus]?.[namespace]?.rules,
   );
-  const { loaded = false, loadError } = useSelector(
+  const loadInformation = useSelector(
     (state: MonitoringState) => getObserveState(plugin, state).alerting[prometheus]?.[namespace],
   );
   const silencesLoadError = useSelector(
@@ -145,8 +145,8 @@ const AlertRulesPage_: FC = () => {
   );
 
   const ruleAdditionalSources = useMemo(
-    () => getAdditionalSources(data, alertingRuleSource),
-    [data],
+    () => getAdditionalSources(rules, alertingRuleSource),
+    [rules],
   );
 
   const rowFilters: RowFilter[] = [
@@ -175,7 +175,7 @@ const AlertRulesPage_: FC = () => {
     },
   ];
 
-  const [staticData, filteredData, onFilterChange] = useListPageFilter(data, rowFilters);
+  const [staticData, filteredData, onFilterChange] = useListPageFilter(rules, rowFilters);
 
   const columns = useMemo<TableColumn<Rule>[]>(
     () => [
@@ -224,7 +224,7 @@ const AlertRulesPage_: FC = () => {
           data={staticData}
           labelFilter="observe-rules"
           labelPath="labels"
-          loaded={loaded}
+          loaded={loadInformation?.loaded ?? false}
           onFilterChange={onFilterChange}
           rowFilters={rowFilters}
         />
@@ -235,10 +235,10 @@ const AlertRulesPage_: FC = () => {
             label={t('Alerting rules')}
             columns={columns}
             data={filteredData ?? []}
-            loaded={loaded}
-            loadError={loadError}
+            loaded={loadInformation?.loaded ?? false}
+            loadError={loadInformation?.loadError ?? null}
             Row={RuleTableRow}
-            unfilteredData={data}
+            unfilteredData={rules}
             scrollNode={() => document.getElementById('alert-rules-table-scroll')}
             NoDataEmptyMsg={() => {
               return <EmptyBox label={t('Alerting rules')} />;
