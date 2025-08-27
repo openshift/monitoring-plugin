@@ -7,10 +7,17 @@ export const checkErrors = () =>
     assert.isTrue(!win.windowError, win.windowError);
   });
 
-  Cypress.on('uncaught:exception', (err, runnable) => {
-    // returning false here prevents Cypress from failing the test
-    // on a JavaScript exception
-    if (err.message.includes('ResizeObserver loop completed with undelivered notifications')) {
-      return false
-    }
-  });
+
+  // Ignore benign ResizeObserver errors globally so they don't fail tests
+// See: https://docs.cypress.io/api/cypress-api/catalog-of-events#Uncaught-Exceptions
+Cypress.on('uncaught:exception', (err) => {
+  const message = err?.message || String(err || '');
+  if (
+    message.includes('ResizeObserver loop limit exceeded') ||
+    message.includes('ResizeObserver loop completed with undelivered notifications') ||
+    message.includes('ResizeObserver')
+  ) {
+    return false;
+  }
+  // allow other errors to fail the test
+});

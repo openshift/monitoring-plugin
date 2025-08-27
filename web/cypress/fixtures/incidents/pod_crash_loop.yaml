@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+ name: crash-loop
+ namespace: openshift-monitoring
+spec:
+ replicas: 1
+ selector:
+   matchLabels:
+     app: crash-loop
+ template:
+   metadata:
+     labels:
+       app: crash-loop
+   spec:
+     containers:
+     - name: crash-loop
+       image: busybox
+       command: ["sh", "-c", "exit 1"]  # Exit immediately with a failure
