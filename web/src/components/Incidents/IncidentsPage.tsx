@@ -49,7 +49,7 @@ import {
   setIncidentsActiveFilters,
 } from '../../actions/observe';
 import { useLocation } from 'react-router-dom';
-import { usePerspective } from '../hooks/usePerspective';
+import { getLegacyObserveState, usePerspective } from '../hooks/usePerspective';
 import { changeDaysFilter } from './utils';
 import { parsePrometheusDuration } from '../console/console-shared/src/datetime/prometheus';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
@@ -58,13 +58,16 @@ import AlertsChart from './AlertsChart/AlertsChart';
 import { usePatternFlyTheme } from '../hooks/usePatternflyTheme';
 import { MonitoringState } from 'src/reducers/observe';
 import { Incident } from './model';
+import { useAlertsPoller } from '../hooks/useAlertsPoller';
+import { Rule } from '@openshift-console/dynamic-plugin-sdk';
 
 const IncidentsPage = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const dispatch = useDispatch();
   const location = useLocation();
   const urlParams = useMemo(() => parseUrlParams(location.search), [location.search]);
-  const { perspective } = usePerspective();
+  const { perspective, rulesKey } = usePerspective();
+  useAlertsPoller();
   const { theme } = usePatternFlyTheme();
   // loading states
   const [incidentsAreLoading, setIncidentsAreLoading] = useState(true);
@@ -206,13 +209,19 @@ const IncidentsPage = () => {
     })();
   }, [incidentForAlertProcessing]);
 
+  const alertingRulesData: Rule[] = useSelector((state: MonitoringState) =>
+    getLegacyObserveState(perspective, state)?.get(rulesKey),
+  );
+
   useEffect(() => {
-    dispatch(
-      setAlertsTableData({
-        alertsTableData: groupAlertsForTable(alertsData),
-      }),
-    );
-  }, [alertsData]);
+    if (alertingRulesData && alertsData) {
+      dispatch(
+        setAlertsTableData({
+          alertsTableData: groupAlertsForTable(alertsData, alertingRulesData),
+        }),
+      );
+    }
+  }, [alertsData, alertingRulesData]);
 
   useEffect(() => {
     (async () => {
