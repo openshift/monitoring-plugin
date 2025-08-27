@@ -3,6 +3,7 @@ import {
   Alert,
   AlertStates,
   RuleStates,
+  Silence,
   SilenceStates,
 } from '@openshift-console/dynamic-plugin-sdk';
 
@@ -128,14 +129,37 @@ const monitoringReducer = produce((draft: ObserveState, action: ObserveAction): 
       if (!datasourceObj) {
         draft.alerting[datasource] = {};
       }
+      if (!draft.alerting[datasource][identifier]) {
+        draft.alerting[datasource][identifier] = {
+          alerts: [],
+          rules: [],
+          alertCount: 0,
+          silences: {
+            data: [],
+            loaded: true,
+            loadError: null,
+          },
+          loaded: true,
+          loadError: null,
+        };
+      }
 
-      const alerts = draft.alerting[datasource][identifier]?.alerts;
-      const silences = draft.alerting[datasource][identifier]?.silences;
+      const alerts = draft.alerting[datasource][identifier].alerts;
+      const silences = draft.alerting[datasource][identifier].silences;
 
       const firingAlerts = alerts.filter(isAlertFiring);
 
       const updatedAlerts = silenceFiringAlerts(firingAlerts, silences.data);
       draft.alerting[datasource][identifier].alerts = updatedAlerts;
+
+      silences.data = silences.data.map((silence) => {
+        silence.firingAlerts = firingAlerts.filter((firingAlert) =>
+          isSilenced(firingAlert, silence),
+        );
+        return silence;
+      });
+
+      draft.alerting[datasource][identifier].silences = silences;
       break;
     }
 
@@ -357,27 +381,38 @@ export type NotificationAlerts = {
 const isAlertFiring = (alert: Alert) =>
   alert?.state === AlertStates.Firing || alert?.state === AlertStates.Silenced;
 
-const silenceFiringAlerts = (firingAlerts: Array<Alert>, silences): Array<Alert> => {
+const silenceFiringAlerts = (
+  firingAlerts: Array<Alert>,
+  silences: Array<Silence>,
+): Array<Alert> => {
   // For each firing alert, store a list of the Silences that are silencing it
   // and set its state to show it is silenced
-  _.each(firingAlerts, (a) => {
-    a.silencedBy = _.filter(
-      silences,
-      (s) => _.get(s, 'status.state') === SilenceStates.Active && isSilenced(a, s),
+  firingAlerts.forEach((firingAlert) => {
+    firingAlert.silencedBy = silences.filter(
+      (silence) =>
+        silence.status.state === SilenceStates.Active && isSilenced(firingAlert, silence),
     );
-    if (a.silencedBy.length) {
-      a.state = AlertStates.Silenced;
+
+    if (firingAlert.silencedBy.length) {
+      firingAlert.state = AlertStates.Silenced;
       // Also set the state of Alerts in `rule.alerts`
-      _.each(a.rule.alerts, (ruleAlert) => {
-        if (_.some(a.silencedBy, (s) => isSilenced(ruleAlert, s))) {
+
+      firingAlert.rule.alerts.forEach((ruleAlert) => {
+        if (firingAlert.silencedBy.some((silence) => isSilenced(ruleAlert, silence))) {
           ruleAlert.state = AlertStates.Silenced;
         }
       });
-      if (!_.isEmpty(a.rule.alerts) && _.every(a.rule.alerts, isSilenced)) {
-        a.rule.state = RuleStates.Silenced;
-        a.rule.silencedBy = _.filter(
-          silences,
-          (s) => s.status.state === SilenceStates.Active && _.some(a.rule.alerts, isSilenced),
+
+      if (
+        firingAlert.rule.alerts.length !== 0 &&
+        firingAlert.rule.alerts.every((alert) => alert.state === AlertStates.Silenced)
+      ) {
+        firingAlert.rule.state = RuleStates.Silenced;
+
+        firingAlert.rule.silencedBy = silences.filter(
+          (silence) =>
+            silence.status.state === SilenceStates.Active &&
+            firingAlert.rule.alerts.some((alert) => isSilenced(alert, silence)),
         );
       }
     }

@@ -124,15 +124,18 @@ export const alertDescription = (alert: PrometheusAlert | Rule): string =>
 
 // Determine if an Alert is silenced by a Silence (if all of the Silence's matchers match one of the
 // Alert's labels)
-export const isSilenced = (alert: PrometheusAlert, silence: Silence): boolean =>
-  [AlertStates.Firing, AlertStates.Silenced].includes(alert.state) &&
-  _.every(silence.matchers, (m) => {
-    const alertValue = _.get(alert.labels, m.name, '');
-    const isMatch = m.isRegex
-      ? new RegExp(`^${m.value}$`).test(alertValue)
-      : alertValue === m.value;
-    return m.isEqual === false && alertValue ? !isMatch : isMatch;
-  });
+export const isSilenced = (alert: PrometheusAlert, silence: Silence): boolean => {
+  return (
+    [AlertStates.Firing, AlertStates.Silenced].includes(alert.state) &&
+    silence.matchers.every((matcher) => {
+      const alertValue = alert.labels[matcher.name] ?? '';
+      const isMatch = matcher.isRegex
+        ? new RegExp(`^${matcher.value}$`).test(alertValue)
+        : alertValue === matcher.value;
+      return matcher.isEqual === false && alertValue ? !isMatch : isMatch;
+    })
+  );
+};
 
 export type ListOrder = (number | string)[];
 
