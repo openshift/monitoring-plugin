@@ -272,7 +272,7 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
             name: 'namespace',
             value: namespace,
             isRegex: false,
-            isEqual: false,
+            isEqual: true,
           })
         : matchers,
       startsAt: saveStartsAt.toISOString(),
