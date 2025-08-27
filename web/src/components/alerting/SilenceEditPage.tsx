@@ -69,6 +69,7 @@ const SilenceEditPage = () => {
         defaults={defaults}
         Info={isExpired ? undefined : EditInfo}
         title={isExpired ? t('Recreate silence') : t('Edit silence')}
+        isNamespaced={prometheus === 'cmo'}
       />
     </StatusBox>
   );

@@ -1,4 +1,8 @@
-import { consoleFetchJSON, useActiveNamespace } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  consoleFetchJSON,
+  NamespaceBar,
+  useActiveNamespace,
+} from '@openshift-console/dynamic-plugin-sdk';
 import {
   ActionGroup,
   Alert,
@@ -33,7 +37,7 @@ import { ExclamationCircleIcon, MinusCircleIcon, PlusCircleIcon } from '@pattern
 import { t_global_spacer_sm } from '@patternfly/react-tokens';
 import * as _ from 'lodash-es';
 import type { ComponentType, FC, FormEventHandler, MouseEvent, ChangeEvent, Ref } from 'react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Helmet } from 'react-helmet';
 import { Trans, useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
@@ -47,9 +51,11 @@ import { ExternalLink } from '../console/utils/link';
 import { useBoolean } from '../hooks/useBoolean';
 import { getSilenceAlertUrl, usePerspective } from '../hooks/usePerspective';
 import { DataTestIDs } from '../data-test';
-import { getAlertmanagerSilencesUrl } from '../utils';
+import { ALL_NAMESPACES_KEY, getAlertmanagerSilencesUrl } from '../utils';
 import { useAlerts } from '../../hooks/useAlerts';
 import { useMonitoring } from '../../hooks/useMonitoring';
+
+const durationOff = '-';
 
 type Matcher = {
   isRegex: boolean;
@@ -62,6 +68,7 @@ type SilenceFormProps = {
   defaults: any;
   Info?: ComponentType;
   title: string;
+  isNamespaced: boolean;
 };
 
 // TODO: These will be available in future versions of the plugin SDK
@@ -124,22 +131,27 @@ const NegativeMatcherHelp = () => {
   );
 };
 
-const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title }) => {
+const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespaced }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const [namespace] = useActiveNamespace();
+  const { prometheus } = useMonitoring();
   const navigate = useNavigate();
 
-  const durationOff = '-';
-  const durations = {
-    [durationOff]: durationOff,
-    '30m': t('30m'),
-    '1h': t('1h'),
-    '2h': t('2h'),
-    '6h': t('6h'),
-    '12h': t('12h'),
-    '1d': t('1d'),
-    '2d': t('2d'),
-    '1w': t('1w'),
-  };
+  const durations = useMemo(() => {
+    return {
+      [durationOff]: durationOff,
+      '30m': t('30m'),
+      '1h': t('1h'),
+      '2h': t('2h'),
+      '6h': t('6h'),
+      '12h': t('12h'),
+      '1d': t('1d'),
+      '2d': t('2d'),
+      '1w': t('1w'),
+    };
+  }, [t]);
+
+  const requireNamespace = isNamespaced && namespace !== ALL_NAMESPACES_KEY;
 
   const now = new Date();
 
@@ -161,7 +173,6 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title }) => {
   }
 
   const { perspective } = usePerspective();
-  const { prometheus } = useMonitoring();
 
   const [isOpen, setIsOpen, , setClosed] = useBoolean(false);
 
@@ -174,12 +185,17 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title }) => {
   const [error, setError] = useState<string>();
   const [inProgress, setInProgress] = useState(false);
   const [isStartNow, setIsStartNow] = useState(defaultIsStartNow);
+
+  // Since the namespace matcher MUST be the same as the namespace the request is being
+  // made in, we remove the namespace value here and re-add it before sending the request
   const [matchers, setMatchers] = useState<Array<Matcher>>(
-    defaults.matchers ?? [{ isRegex: false, isEqual: true, name: '', value: '' }],
+    (requireNamespace
+      ? (defaults.matchers as Matcher[])?.filter((matcher) => matcher.name !== 'namespace')
+      : defaults.matchers) ?? [{ isRegex: false, isEqual: true, name: '', value: '' }],
   );
+
   const [startsAt, setStartsAt] = useState(defaults.startsAt ?? formatDate(now));
   const user = useSelector(getUser);
-  const [namespace] = useActiveNamespace();
   const { trigger: refetchSilencesAndAlerts } = useAlerts();
 
   useEffect(() => {
@@ -207,6 +223,11 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title }) => {
   };
 
   const removeMatcher = (i: number): void => {
+    // If we require the namespace don't allow removing it
+    if (requireNamespace && i === 0) {
+      return;
+    }
+
     const newMatchers = _.clone(matchers);
     newMatchers.splice(i, 1);
 
@@ -246,7 +267,14 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title }) => {
       createdBy,
       endsAt: saveEndsAt.toISOString(),
       id: defaults.id,
-      matchers,
+      matchers: isNamespaced
+        ? matchers.concat({
+            name: 'namespace',
+            value: namespace,
+            isRegex: false,
+            isEqual: false,
+          })
+        : matchers,
       startsAt: saveStartsAt.toISOString(),
     };
 
@@ -278,6 +306,7 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title }) => {
       <Helmet>
         <title>{title}</title>
       </Helmet>
+      <NamespaceBar />
       <PageSection hasBodyWrapper={false}>
         <Title headingLevel="h1">{title}</Title>
         <HelperText>
@@ -319,7 +348,7 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title }) => {
                 <Select
                   data-test={DataTestIDs.SilencesPageFormTestIDs.SilenceFor}
                   isOpen={isOpen}
-                  onSelect={(event: MouseEvent | ChangeEvent, value: string) => {
+                  onSelect={(_event: MouseEvent | ChangeEvent, value: string) => {
                     setDuration(value);
                     setClosed();
                   }}
@@ -392,6 +421,68 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title }) => {
               </HelperTextItem>
             </HelperText>
           </FormHelperText>
+
+          {requireNamespace && (
+            <Grid key={'namespace'} sm={12} md={4} hasGutter>
+              <GridItem>
+                <FormGroup label={t('Label name')}>
+                  <TextInput
+                    aria-label={t('Label name')}
+                    isRequired
+                    placeholder={t('Name')}
+                    value={'namespace'}
+                    data-test={DataTestIDs.SilencesPageFormTestIDs.LabelName}
+                    isDisabled
+                  />
+                </FormGroup>
+              </GridItem>
+              <GridItem>
+                <FormGroup label={t('Label value')}>
+                  <TextInput
+                    aria-label={t('Label value')}
+                    isRequired
+                    placeholder={t('Value')}
+                    value={namespace}
+                    data-test={DataTestIDs.SilencesPageFormTestIDs.LabelValue}
+                    isDisabled
+                  />
+                </FormGroup>
+              </GridItem>
+              <GridItem>
+                <FormGroup isInline label={t('Select all that apply:')}>
+                  <FormGroup role="group" isInline style={{ marginTop: t_global_spacer_sm.var }}>
+                    <Checkbox
+                      id={`regex-namespace`}
+                      label={t('RegEx')}
+                      isChecked={false}
+                      data-test={DataTestIDs.SilencesPageFormTestIDs.Regex}
+                      isDisabled
+                    />
+                    <Tooltip content={<NegativeMatcherHelp />}>
+                      <Checkbox
+                        id={`negative-matcher-namespace`}
+                        label={t('Negative matcher')}
+                        isChecked={false}
+                        data-test={DataTestIDs.SilencesPageFormTestIDs.NegativeMatcherCheckbox}
+                        isDisabled
+                      />
+                    </Tooltip>
+                  </FormGroup>
+                  <Tooltip content={t('Remove')}>
+                    <Button
+                      icon={<MinusCircleIcon />}
+                      type="button"
+                      aria-label={t('Remove')}
+                      variant="plain"
+                      isInline
+                      data-test={DataTestIDs.SilencesPageFormTestIDs.RemoveLabel}
+                      isDisabled
+                    />
+                  </Tooltip>
+                </FormGroup>
+              </GridItem>
+            </Grid>
+          )}
 
           {_.map(matchers, (matcher, i: number) => (
             <Grid key={i} sm={12} md={4} hasGutter>

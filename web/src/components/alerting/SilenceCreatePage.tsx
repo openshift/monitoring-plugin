@@ -4,7 +4,7 @@ import { getAllQueryArguments } from '../console/utils/router';
 import { SilenceForm } from './SilenceForm';
 import { MonitoringProvider } from '../../contexts/MonitoringContext';
 
-const CreateSilencePage = () => {
+const CreateSilencePage = ({ isNamespaced }: { isNamespaced: boolean }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const matchers = _.map(getAllQueryArguments(), (value, name) => ({
@@ -14,16 +14,16 @@ const CreateSilencePage = () => {
   }));
 
   return _.isEmpty(matchers) ? (
-    <SilenceForm defaults={{}} title={t('Create silence')} />
+    <SilenceForm defaults={{}} title={t('Create silence')} isNamespaced={isNamespaced} />
   ) : (
-    <SilenceForm defaults={{ matchers }} title={t('Silence alert')} />
+    <SilenceForm defaults={{ matchers }} title={t('Silence alert')} isNamespaced={isNamespaced} />
   );
 };
 
 export const MpCmoCreateSilencePage = () => {
   return (
     <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
-      <CreateSilencePage />
+      <CreateSilencePage isNamespaced />
     </MonitoringProvider>
   );
 };
@@ -33,7 +33,7 @@ export const McpAcmCreateSilencePage = () => {
     <MonitoringProvider
       monitoringContext={{ plugin: 'monitoring-console-plugin', prometheus: 'acm' }}
     >
-      <CreateSilencePage />
+      <CreateSilencePage isNamespaced={false} />
     </MonitoringProvider>
   );
 };
