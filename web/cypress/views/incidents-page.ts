@@ -61,19 +61,25 @@ export const incidentsPage = {
 
 
   findIncidentWithAlert: (alertName: string): Cypress.Chainable<boolean> => {
+    cy.reload();
     cy.log(`incidentsPage.findIncidentWithAlert: ${alertName}`);
+    // Bars are sometimes not loaded immidiately, this refreshes
+    // the charts and ensures the bars are loaded if present
+    incidentsPage.setDays('1 day');
+    
     return incidentsPage.elements.incidentsChartCard()
       .find('path[role="presentation"]')
       .then(($bars) => {
         const totalBars = $bars.length;
         if (totalBars <= 3) { // 3 paths are always present in the legend,
         // their parent is g without presentation label opposed ot the proper bars
-          cy.task('log', 'No bars found in incidents chart');
+          cy.log('No bars found in incidents chart');
           return cy.wrap(false);
         }
 
         const tryIndex = (index: number): Cypress.Chainable<boolean> => {
           if (index >= totalBars - 3) {
+            cy.log("Index out of bounds for bars in incidents chart");
             return cy.wrap(false);
           }
 
@@ -89,6 +95,7 @@ export const incidentsPage = {
                 return cy.wrap(true);
               }
               // Expand a row if present to surface nested details
+              // Currently expects only one row to be present
               incidentsPage.expandRow(0);
               return incidentsPage.elements.alertsTable().invoke('text').then((text2) => {
                 if (String(text2).includes(alertName)) {

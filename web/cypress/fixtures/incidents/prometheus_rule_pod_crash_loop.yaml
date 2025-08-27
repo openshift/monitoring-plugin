@@ -12,7 +12,7 @@ spec:
  groups:
  - name: kubernetes-apps
    rules:
-   - alert: KubePodCrashLooping
+   - alert: {{ALERT_NAME}}
      annotations:
        description: 'Pod {{ $labels.namespace }}/{{ $labels.pod }} ({{ $labels.container
          }}) is in waiting state (reason: "CrashLoopBackOff").'
