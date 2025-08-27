@@ -107,7 +107,7 @@ const AlertsDetailsPage_: FC = () => {
     (state: MonitoringState) => !!getObserveState(plugin, state).hideGraphs,
   );
 
-  const { loaded, loadError } = useSelector(
+  const loadInformation = useSelector(
     (state: MonitoringState) => getObserveState(plugin, state).alerting[prometheus]?.[namespace],
   );
 
@@ -163,7 +163,12 @@ const AlertsDetailsPage_: FC = () => {
       <Helmet>
         <title>{t('{{name}} details', { name: labels?.alertname || AlertResource.label })}</title>
       </Helmet>
-      <StatusBox data={alert} label={AlertResource.label} loaded={loaded} loadError={loadError}>
+      <StatusBox
+        data={alert}
+        label={AlertResource.label}
+        loaded={loadInformation?.loaded}
+        loadError={loadInformation?.loadError}
+      >
         <PageGroup>
           <PageBreadcrumb hasBodyWrapper={false}>
             <Breadcrumb>

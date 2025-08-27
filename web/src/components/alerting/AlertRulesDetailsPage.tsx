@@ -160,7 +160,7 @@ const AlertRulesDetailsPage_: FC = () => {
   );
   const rule = _.find(rules, { id: params.id });
 
-  const { loaded, loadError } = useSelector(
+  const loadInformation = useSelector(
     (state: MonitoringState) => getObserveState(plugin, state).alerting[prometheus]?.[namespace],
   );
 
@@ -189,7 +189,12 @@ const AlertRulesDetailsPage_: FC = () => {
       <Helmet>
         <title>{t('{{name}} details', { name: rule?.name || RuleResource.label })}</title>
       </Helmet>
-      <StatusBox data={rule} label={RuleResource.label} loaded={loaded} loadError={loadError}>
+      <StatusBox
+        data={rule}
+        label={RuleResource.label}
+        loaded={loadInformation?.loaded}
+        loadError={loadInformation?.loadError}
+      >
         <PageGroup>
           <PageBreadcrumb hasBodyWrapper={false}>
             <Breadcrumb>
