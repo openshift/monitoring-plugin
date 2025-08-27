@@ -9,6 +9,8 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { MonitoringProvider } from '../../contexts/MonitoringContext';
 import { useMonitoring } from '../../hooks/useMonitoring';
+import { useLocation } from 'react-router-dom';
+import { AlertResource, RuleResource, SilenceResource } from '../utils';
 
 const CmoAlertsPage = lazy(() =>
   import(/* webpackChunkName: "CmoAlertsPage" */ './AlertsPage').then((module) => ({
@@ -41,12 +43,16 @@ const CooAlertRulesPage = lazy(() =>
   })),
 );
 
+const namespacedPages = [AlertResource.url, RuleResource.url, SilenceResource.url];
+
 const AlertingPage: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const [perspective] = useActivePerspective();
 
   const { plugin } = useMonitoring();
+
+  const { pathname } = useLocation();
 
   // contextId allow console.tab extensions to be injected
   // https://github.com/openshift/console/blob/main/frontend/packages/console-dynamic-plugin-sdk/docs/console-extensions.md#consoletab
@@ -80,7 +86,7 @@ const AlertingPage: FC = () => {
 
   return (
     <>
-      <NamespaceBar />
+      {namespacedPages.includes(pathname) && <NamespaceBar />}
       <PageSection hasBodyWrapper={false}>
         <Title headingLevel="h1">{t('Alerting')}</Title>
         <HorizontalNav contextId={contextId} pages={pages} />
