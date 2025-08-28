@@ -5,7 +5,7 @@ import Withinable = Cypress.Withinable;
 import Shadow = Cypress.Shadow;
 import 'cypress-wait-until';
 import { operatorHubPage } from '../../views/operator-hub-page';
-
+import { nav } from '../../views/nav';
 
 export {};
 
@@ -22,12 +22,12 @@ declare global {
     }
   }
   
-
 const readyTimeoutMilliseconds = Cypress.config('readyTimeoutMilliseconds') as number;
 const installTimeoutMilliseconds = Cypress.config('installTimeoutMilliseconds') as number;
 
-Cypress.Commands.add('beforeBlock', (MP: { namespace: string, operatorName: string }) => {
-  
+// Shared operator utilities
+const operatorUtils = {
+  loginAndAuth(): void {
     cy.log('Before block');
     cy.adminCLI(
       `oc adm policy add-cluster-role-to-user cluster-admin ${Cypress.env('LOGIN_USERNAME')}`,
@@ -46,8 +46,8 @@ Cypress.Commands.add('beforeBlock', (MP: { namespace: string, operatorName: stri
       } else {
         throw new Error(`Execution of oc get oauthclient failed
           Exit code: ${result.code}
-          Stdout:\n${result.stdout}
-          Stderr:\n${result.stderr}`);
+          Stdout:\\n${result.stdout}
+          Stderr:\\n${result.stderr}`);
       }
     });
     cy.get('@oauthorigin').then((oauthorigin) => {
@@ -58,7 +58,9 @@ Cypress.Commands.add('beforeBlock', (MP: { namespace: string, operatorName: stri
         oauthorigin,
       );
     });
-  
+  },
+
+  setupMonitoringPluginImage(MP: { namespace: string }): void {
     cy.log('Set Monitoring Plugin image in operator CSV');
     if (Cypress.env('MP_IMAGE')) {
       cy.log('MP_IMAGE is set. the image will be patched in CMO operator CSV');
@@ -80,71 +82,9 @@ Cypress.Commands.add('beforeBlock', (MP: { namespace: string, operatorName: stri
     } else {
       cy.log('MP_IMAGE is NOT set. Skipping patching the image in CMO operator CSV.');
     }
-  
-    cy.task('clearDownloads');
-    cy.log('Before block completed');
-  });
-  
-  Cypress.Commands.add('afterBlock', (MP: { namespace: string, operatorName: string }) => {
-    cy.log('After block');
-    if (Cypress.env('MP_IMAGE')) {
-      cy.log('MP_IMAGE is set. Lets revert CMO operator CSV');
-      cy.exec(
-        './cypress/fixtures/cmo/reenable-monitoring.sh',
-        {
-          env: {
-            MP_IMAGE: Cypress.env('MP_IMAGE'),
-            KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
-            MP_NAMESPACE: `${MP.namespace}`
-          },
-          timeout: readyTimeoutMilliseconds,
-          failOnNonZeroExit: true
-        }
-      ).then((result) => {
-        expect(result.code).to.eq(0);
-        cy.log(`CMO CSV reverted successfully with Monitoring Plugin image: ${result.stdout}`);
-      });
-    } else {
-      cy.log('MP_IMAGE is NOT set. Skipping reverting the image in CMO operator CSV.');
-    }
-  
-    cy.log('After block completed');
-  });
-  
-  Cypress.Commands.add('beforeBlockCOO', (MCP: { namespace: string, operatorName: string, packageName: string }, MP: { namespace: string, operatorName: string }) => {
-    cy.log('Before block COO');
-   
-    cy.log('Before all');
-    cy.adminCLI(
-      `oc adm policy add-cluster-role-to-user cluster-admin ${Cypress.env('LOGIN_USERNAME')}`,
-    );
-    // Getting the oauth url for hypershift cluster login
-    cy.exec(
-      `oc get oauthclient openshift-browser-client -o go-template --template="{{index .redirectURIs 0}}" --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
-    ).then((result) => {
-      if (expect(result.stderr).to.be.empty) {
-        const oauth = result.stdout;
-        // Trimming the origin part of the url
-        const oauthurl = new URL(oauth);
-        const oauthorigin = oauthurl.origin;
-        cy.log(oauthorigin);
-        cy.wrap(oauthorigin).as('oauthorigin');
-      } else {
-        throw new Error(`Execution of oc get oauthclient failed
-              Exit code: ${result.code}
-              Stdout:\n${result.stdout}
-              Stderr:\n${result.stderr}`);
-      }
-    });
-    cy.get('@oauthorigin').then((oauthorigin) => {
-      cy.login(
-        Cypress.env('LOGIN_IDP'),
-        Cypress.env('LOGIN_USERNAME'),
-        Cypress.env('LOGIN_PASSWORD'),
-        oauthorigin,
-      );
-    });
-  
+  },
+
+  installCOO(MCP: { namespace: string, packageName: string }): void {
     if (Cypress.env('SKIP_COO_INSTALL')) {
       cy.log('SKIP_COO_INSTALL is set. Skipping Cluster Observability Operator installation.');
     } else if (Cypress.env('COO_UI_INSTALL')) {
@@ -203,11 +143,12 @@ Cypress.Commands.add('beforeBlock', (MP: { namespace: string, operatorName: stri
           timeout: installTimeoutMilliseconds
         }
       );
-  
     } else {
       throw new Error('No CYPRESS env set for operator installation, check the README for more details.');
     }
-  
+  },
+
+  waitForCOOReady(MCP: { namespace: string }): void {
     cy.log('Check Cluster Observability Operator status');
     cy.exec(
       `sleep 15 && oc wait --for=condition=Ready pods --selector=app.kubernetes.io/name=observability-operator -n ${MCP.namespace} --timeout=60s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
@@ -219,15 +160,17 @@ Cypress.Commands.add('beforeBlock', (MP: { namespace: string, operatorName: stri
       expect(result.code).to.eq(0);
       cy.log(`Observability-operator pod is now running in namespace: ${MCP.namespace}`);
     });
-  
+
     cy.get('#page-sidebar').then(($sidebar) => {
       const section = $sidebar.text().includes('Ecosystem') ? 'Ecosystem' : 'Operators';
-      cy.clickNavLink([section, 'Installed Operators']);
+      nav.sidenav.clickNavLink([section, 'Installed Operators']);
     });
-  
+
     cy.byTestID('name-filter-input').should('be.visible').type('Cluster Observability{enter}');
     cy.get('[data-test="status-text"]', { timeout: installTimeoutMilliseconds }).eq(0).should('contain.text', 'Succeeded', { timeout: installTimeoutMilliseconds });
-  
+  },
+
+  setupMonitoringConsolePlugin(MCP: { namespace: string }): void {
     cy.log('Set Monitoring Console Plugin image in operator CSV');
     if (Cypress.env('MCP_CONSOLE_IMAGE')) {
       cy.log('MCP_CONSOLE_IMAGE is set. the image will be patched in COO operator CSV');
@@ -249,13 +192,15 @@ Cypress.Commands.add('beforeBlock', (MP: { namespace: string, operatorName: stri
     } else {
       cy.log('MCP_CONSOLE_IMAGE is NOT set. Skipping patching the image in COO operator CSV.');
     }
-  
+  },
+
+  setupDashboardsAndPlugins(MCP: { namespace: string }): void {
     cy.log('Create PersesDashboard instance.');
     cy.exec(`oc apply -f ./cypress/fixtures/coo/openshift-cluster-sample-dashboard.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
-  
+
     cy.log('Create Thanos Querier instance.');
     cy.exec(`oc apply -f ./cypress/fixtures/coo/thanos-querier-datasource.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
-  
+
     cy.log('Create Monitoring UI Plugin instance.');
     cy.exec(`oc apply -f ./cypress/fixtures/coo/monitoring-ui-plugin.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
     cy.exec(
@@ -268,27 +213,17 @@ Cypress.Commands.add('beforeBlock', (MP: { namespace: string, operatorName: stri
       expect(result.code).to.eq(0);
       cy.log(`Monitoring plugin pod is now running in namespace: ${MCP.namespace}`);
     });
-    cy.exec(`oc label namespace openshift-cluster-observability-operator openshift.io/cluster-monitoring="true" --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`)
-    //TODO: https://issues.redhat.com/browse/OCPBUGS-58468 - console reload and logout was happening more often
-    // cy.get('.pf-v5-c-alert, .pf-v6-c-alert', { timeout: readyTimeoutMilliseconds })
-    //   .contains('Web console update is available')
-    //   .then(($alert) => {
-    //     // If the alert is found, assert that it exists
-    //     expect($alert).to.exist;
-    //   }, () => {
-    //     // If the alert is not found within the timeout, visit and assert the /monitoring/v2/dashboards page
-    //     cy.visit('/monitoring/v2/dashboards');
-    //     cy.url().should('include', '/monitoring/v2/dashboards');
-    //   });
+    cy.exec(`oc label namespace openshift-cluster-observability-operator openshift.io/cluster-monitoring="true" --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
     cy.reload();
     cy.visit('/monitoring/v2/dashboards');
     cy.url().should('include', '/monitoring/v2/dashboards');
-  
-    cy.log('Set Monitoring Plugin image in operator CSV');
+  },
+
+  revertMonitoringPluginImage(MP: { namespace: string }): void {
     if (Cypress.env('MP_IMAGE')) {
-      cy.log('MP_IMAGE is set. the image will be patched in CMO operator CSV');
+      cy.log('MP_IMAGE is set. Lets revert CMO operator CSV');
       cy.exec(
-        './cypress/fixtures/cmo/update-monitoring-plugin-image.sh',
+        './cypress/fixtures/cmo/reenable-monitoring.sh',
         {
           env: {
             MP_IMAGE: Cypress.env('MP_IMAGE'),
@@ -300,55 +235,71 @@ Cypress.Commands.add('beforeBlock', (MP: { namespace: string, operatorName: stri
         }
       ).then((result) => {
         expect(result.code).to.eq(0);
-        cy.log(`CMO CSV updated successfully with Monitoring Plugin image: ${result.stdout}`);
+        cy.log(`CMO CSV reverted successfully with Monitoring Plugin image: ${result.stdout}`);
       });
     } else {
-      cy.log('MP_IMAGE is NOT set. Skipping patching the image in CMO operator CSV.');
+      cy.log('MP_IMAGE is NOT set. Skipping reverting the image in CMO operator CSV.');
     }
+  },
+
+  cleanup(MCP: { namespace: string, config?: { kind: string, name: string } }): void {
+    const config = MCP.config || { kind: 'UIPlugin', name: 'monitoring' };
+    
+    if (Cypress.env('SKIP_COO_INSTALL')) {
+      cy.log('Delete Monitoring UI Plugin instance.');
+      cy.executeAndDelete(
+        `oc delete ${config.kind} ${config.name} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+      );
+
+      cy.log('Remove cluster-admin role from user.');
+      cy.executeAndDelete(
+        `oc adm policy remove-cluster-role-from-user cluster-admin ${Cypress.env('LOGIN_USERNAME')} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+      );
+    } else {
+      cy.log('Delete Monitoring UI Plugin instance.');
+      cy.executeAndDelete(
+        `oc delete ${config.kind} ${config.name} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+      );
+
+      cy.log('Remove Cluster Observability Operator');
+      cy.executeAndDelete(`oc delete namespace ${MCP.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+
+      cy.log('Remove cluster-admin role from user.');
+      cy.executeAndDelete(
+        `oc adm policy remove-cluster-role-from-user cluster-admin ${Cypress.env('LOGIN_USERNAME')} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+      );
+
+      cy.executeAndDelete(`oc label namespace openshift-cluster-observability-operator openshift.io/cluster-monitoring- --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+    }
+  }
+};
+
+Cypress.Commands.add('beforeBlock', (MP: { namespace: string, operatorName: string }) => {
+    operatorUtils.loginAndAuth();
+    operatorUtils.setupMonitoringPluginImage(MP);
+    cy.task('clearDownloads');
+    cy.log('Before block completed');
+  });
   
+  Cypress.Commands.add('afterBlock', (MP: { namespace: string, operatorName: string }) => {
+    cy.log('After block');
+    operatorUtils.revertMonitoringPluginImage(MP);
+    cy.log('After block completed');
+  });
+  
+  Cypress.Commands.add('beforeBlockCOO', (MCP: { namespace: string, operatorName: string, packageName: string }, MP: { namespace: string, operatorName: string }) => {
+    cy.log('Before block COO');
+    operatorUtils.loginAndAuth();
+    operatorUtils.installCOO(MCP);
+    operatorUtils.waitForCOOReady(MCP);
+    operatorUtils.setupMonitoringConsolePlugin(MCP);
+    operatorUtils.setupDashboardsAndPlugins(MCP);
+    operatorUtils.setupMonitoringPluginImage(MP);
     cy.log('Before block COO completed');
   });
   
   Cypress.Commands.add('afterBlockCOO', (MCP: { namespace: string, operatorName: string, packageName: string }, MP: { namespace: string, operatorName: string }) => {
     cy.log('After block COO');
-    if (Cypress.env('SKIP_COO_INSTALL')) {
-      cy.log('Delete Monitoring UI Plugin instance.');
-      cy.executeAndDelete(
-        `oc delete ${MCP.config.kind} ${MCP.config.name} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
-      );
-  
-      cy.log('Remove cluster-admin role from user.');
-      cy.executeAndDelete(
-        `oc adm policy remove-cluster-role-from-user cluster-admin ${Cypress.env('LOGIN_USERNAME')} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
-      );
-    } else {
-      cy.log('Delete Monitoring UI Plugin instance.');
-      cy.executeAndDelete(
-        `oc delete ${MCP.config.kind} ${MCP.config.name} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
-      );
-  
-      cy.log('Remove Cluster Observability Operator');
-      cy.executeAndDelete(`oc delete namespace ${MCP.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
-  
-      cy.log('Remove cluster-admin role from user.');
-      cy.executeAndDelete(
-        `oc adm policy remove-cluster-role-from-user cluster-admin ${Cypress.env('LOGIN_USERNAME')} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
-      );
-  
-      cy.executeAndDelete(`oc label namespace openshift-cluster-observability-operator openshift.io/cluster-monitoring- --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`)
-  
-      //TODO: https://issues.redhat.com/browse/OCPBUGS-58468 - console reload and logout was happening more often
-      // cy.get('.pf-v5-c-alert, .pf-v6-c-alert', { timeout: 120000 })
-      //   .contains('Web console update is available')
-      //   .then(($alert) => {
-      //     // If the alert is found, assert that it exists
-      //     expect($alert).to.exist;
-      //   }, () => {
-      //     // If the alert is not found within the timeout, visit and assert the /monitoring/v2/dashboards page
-      //     cy.visit('/monitoring/v2/dashboards');
-      //     cy.url().should('not.include', '/monitoring/v2/dashboards');
-      //   });
-  
-    }
+    operatorUtils.cleanup(MCP);
     cy.log('After block COO completed');
   });
