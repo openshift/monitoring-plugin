@@ -84,6 +84,7 @@ Cypress.Commands.add(
         {
           cacheAcrossSpecs: true,
           validate() {
+            cy.visit('/');
             cy.byTestID("username", {timeout: 120000}).should('be.visible');
             guidedTour.close();
           },
