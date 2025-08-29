@@ -284,6 +284,7 @@ export const metricsPage = {
     cy.byPFRole('progressbar').should('be.visible');
     cy.byPFRole('progressbar').should('not.exist');
     cy.get('[id^="' + IDs.ChartAxis0ChartLabel + '"]').should('be.visible');
+    cy.byOUIAID(DataTestIDs.MetricsGraphAlertDanger).should('not.exist');
   },
 
   enterGraphTimespan: (timespan: GraphTimespan) => {
@@ -294,6 +295,7 @@ export const metricsPage = {
     cy.byPFRole('progressbar').should('be.visible');
     cy.byPFRole('progressbar').should('not.exist');
     cy.get('[id^="' + IDs.ChartAxis0ChartLabel + '"]').should('be.visible');
+    cy.byOUIAID(DataTestIDs.MetricsGraphAlertDanger).should('not.exist');
   },
 
   graphTimespanDropdownAssertion: () => {

@@ -497,9 +497,15 @@ describe('Regression: Monitoring - Metrics', () => {
     cy.get(Classes.MetricsPageQueryAutocomplete).should('be.visible');
     cy.get(Classes.MetricsPageQueryAutocomplete).should('contain', 'abs');
     
-  
   });
 
-
+  it('10. Admin perspective - Metrics > No Datapoints with alert', () => {
+    cy.log('10.1 No Datapoints with alert');
+    cy.visit('/monitoring/query-browser');
+    metricsPage.enterQueryInput(0, MetricsPageQueryInput.QUERY_WITH_ALERT);
+    metricsPage.clickRunQueriesButton();
+    cy.byOUIAID(DataTestIDs.MetricsGraphAlertDanger).should('be.visible');
+  });
+   
 });
 
