@@ -144,7 +144,6 @@ const IncidentsPage = () => {
         setIncidentsActiveFilters({
           incidentsActiveFilters: {
             days: urlParams.days ? urlParams.days : ['7 days'],
-            incidentFilters: urlParams.incidentFilters ? urlParams.incidentFilters : [],
             severity: urlParams.severity ? urlParams.severity : [],
             state: urlParams.state ? urlParams.state : [],
           },
@@ -330,7 +329,15 @@ const IncidentsPage = () => {
               id="toolbar-with-filter"
               collapseListedFiltersBreakpoint="xl"
               clearAllFilters={() =>
-                onDeleteIncidentFilterChip('', undefined, incidentsActiveFilters, dispatch)
+                dispatch(
+                  setIncidentsActiveFilters({
+                    incidentsActiveFilters: {
+                      severity: [],
+                      days: ['7 days'],
+                      state: [],
+                    },
+                  }),
+                )
               }
             >
               <ToolbarContent>
