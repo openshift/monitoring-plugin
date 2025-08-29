@@ -317,7 +317,7 @@ export function generateDateArray(days: number): Array<number> {
  *
  * Example usage:
  * ```javascript
- * const filters = { incidentFilters: ["Critical", "Firing"] };
+ * const filters = { severity: ["Critical"], state: ["Firing"] };
  * const filteredIncidents = filterIncident(filters, incidents);
  * ```
  */
@@ -331,34 +331,22 @@ export function filterIncident(filters: IncidentFiltersCombined, incidents: Arra
   };
 
   return incidents.filter((incident) => {
-    // If no filters are applied, return all incidents
-    if (!filters.incidentFilters.length) {
-      return incident;
+    if (!filters.severity.length && !filters.state.length) {
+      return true;
     }
 
-    // Normalize user-provided filters to match keys in conditions
-    const normalizedFilters = filters.incidentFilters.map((filter) => filter.trim());
-
-    // Separate filters into categories
-    const severityFilters = ['Critical', 'Warning', 'Informative'].filter((key) =>
-      normalizedFilters.includes(key),
-    );
-    const statusFilters = ['Firing', 'Resolved'].filter((key) => normalizedFilters.includes(key));
-
-    // Match severity filters (OR behavior within the category)
     const isSeverityMatch =
-      severityFilters.length > 0
-        ? severityFilters.some((filter) => incident[conditions[filter]] === true)
+      filters.severity.length > 0
+        ? filters.severity.some((filter) => incident[conditions[filter]] === true)
         : true; // True if no severity filters
 
-    // Match status filters (OR behavior within the category)
-    const isStatusMatch =
-      statusFilters.length > 0
-        ? statusFilters.some((filter) => incident[conditions[filter]] === true)
-        : true; // True if no status filters
+    const isStateMatch =
+      filters.state.length > 0
+        ? filters.state.some((filter) => incident[conditions[filter]] === true)
+        : true; // True if no state filters
 
     // Combine conditions with AND behavior between categories
-    return isSeverityMatch && isStatusMatch;
+    return isSeverityMatch && isStateMatch;
   });
 }
 
@@ -368,12 +356,52 @@ export const onDeleteIncidentFilterChip = (
   filters: IncidentFiltersCombined,
   setFilters,
 ) => {
-  if (type === 'Filters') {
+  if (type === 'State') {
     setFilters(
       setIncidentsActiveFilters({
         incidentsActiveFilters: {
-          incidentFilters: filters.incidentFilters.filter((fil) => fil !== id),
+          severity: filters.severity,
           days: filters.days,
+          state: filters.state.filter((fil) => fil !== id),
+        },
+      }),
+    );
+  }
+  if (type === 'Severity') {
+    setFilters(
+      setIncidentsActiveFilters({
+        incidentsActiveFilters: {
+          severity: filters.severity.filter((fil) => fil !== id),
+          days: filters.days,
+          state: filters.state,
+        },
+      }),
+    );
+  }
+};
+
+export const onDeleteGroupIncidentFilterChip = (
+  filters: IncidentFiltersCombined,
+  setFilters,
+  category,
+) => {
+  if (category === 'State') {
+    setFilters(
+      setIncidentsActiveFilters({
+        incidentsActiveFilters: {
+          severity: filters.severity,
+          days: filters.days,
+          state: [],
+        },
+      }),
+    );
+  } else if (category === 'Severity') {
+    setFilters(
+      setIncidentsActiveFilters({
+        incidentsActiveFilters: {
+          severity: [],
+          days: filters.days,
+          state: filters.state,
         },
       }),
     );
@@ -381,23 +409,13 @@ export const onDeleteIncidentFilterChip = (
     setFilters(
       setIncidentsActiveFilters({
         incidentsActiveFilters: {
-          incidentFilters: [],
-          days: ['7 days'],
+          severity: [],
+          days: filters.days,
+          state: [],
         },
       }),
     );
   }
-};
-
-export const onDeleteGroupIncidentFilterChip = (filters: IncidentFiltersCombined, setFilters) => {
-  setFilters(
-    setIncidentsActiveFilters({
-      incidentsActiveFilters: {
-        incidentFilters: [],
-        days: filters.days,
-      },
-    }),
-  );
 };
 
 export const makeIncidentUrlParams = (
@@ -437,7 +455,7 @@ export const changeDaysFilter = (
 ) => {
   dispatch(
     setIncidentsActiveFilters({
-      incidentsActiveFilters: { days: [days], incidentFilters: filters.incidentFilters },
+      incidentsActiveFilters: { days: [days], severity: filters.severity, state: filters.state },
     }),
   );
 };
@@ -447,31 +465,29 @@ export const onIncidentFiltersSelect = (
   selection: IncidentFilters,
   dispatch,
   incidentsActiveFilters: IncidentFiltersCombined,
+  filterCategoryType: string,
 ) => {
-  onSelect(event, selection, dispatch, incidentsActiveFilters);
+  onSelect(event, selection, dispatch, incidentsActiveFilters, filterCategoryType);
 };
 
-const onSelect = (
-  event,
-  selection: IncidentFilters,
-  dispatch,
-  incidentsActiveFilters: IncidentFiltersCombined,
-) => {
+const onSelect = (event, selection, dispatch, incidentsActiveFilters, filterCategoryType) => {
   const checked = event.target.checked;
 
-  dispatch((dispatch) => {
-    const prevSelections = incidentsActiveFilters.incidentFilters || [];
+  dispatch(() => {
+    const targetArray = incidentsActiveFilters[filterCategoryType] || [];
+    const newFilters = { ...incidentsActiveFilters };
 
-    const updatedSelections = checked
-      ? [...prevSelections, selection]
-      : prevSelections.filter((value) => value !== selection);
+    if (checked) {
+      if (!targetArray.includes(selection)) {
+        newFilters[filterCategoryType] = [...targetArray, selection];
+      }
+    } else {
+      newFilters[filterCategoryType] = targetArray.filter((value) => value !== selection);
+    }
 
     dispatch(
       setIncidentsActiveFilters({
-        incidentsActiveFilters: {
-          ...incidentsActiveFilters,
-          incidentFilters: updatedSelections,
-        },
+        incidentsActiveFilters: newFilters,
       }),
     );
   });
@@ -480,7 +496,7 @@ const onSelect = (
 export const parseUrlParams = (search) => {
   const params = new URLSearchParams(search);
   const result: { [key: string]: any } = {};
-  const arrayKeys = ['days', 'incidentFilters', 'groupId'];
+  const arrayKeys = ['days', 'groupId', 'severity', 'state'];
 
   params.forEach((value, key) => {
     if (arrayKeys.includes(key)) {

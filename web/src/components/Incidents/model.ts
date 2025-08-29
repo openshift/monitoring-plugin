@@ -58,6 +58,7 @@ export type Severity = 'critical' | 'warning' | 'info';
 
 export type IncidentFiltersCombined = {
   days: Array<DaysFilters>;
-  incidentFilters: Array<IncidentFilters>;
   groupId?: Array<string>;
+  severity?: Array<string>;
+  state?: Array<string>;
 };

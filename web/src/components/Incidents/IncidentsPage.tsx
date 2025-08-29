@@ -12,13 +12,14 @@ import {
   Spinner,
   Toolbar,
   ToolbarContent,
-  ToolbarFilter,
   ToolbarItem,
   MenuToggle,
-  Badge,
   PageSection,
   Stack,
   StackItem,
+  ToolbarGroup,
+  Flex,
+  FlexItem,
 } from '@patternfly/react-core';
 import { Helmet } from 'react-helmet';
 import { IncidentsTable } from './IncidentsTable';
@@ -29,7 +30,6 @@ import {
 } from './processIncidents';
 import {
   filterIncident,
-  isIncidentFilter,
   onDeleteGroupIncidentFilterChip,
   onDeleteIncidentFilterChip,
   onIncidentFiltersSelect,
@@ -45,6 +45,7 @@ import {
   setAlertsTableData,
   setChooseIncident,
   setFilteredIncidentsData,
+  setIncidentPageFilterType,
   setIncidents,
   setIncidentsActiveFilters,
 } from '../../actions/observe';
@@ -60,6 +61,7 @@ import { MonitoringState } from 'src/reducers/observe';
 import { Incident } from './model';
 import { useAlertsPoller } from '../hooks/useAlertsPoller';
 import { Rule } from '@openshift-console/dynamic-plugin-sdk';
+import IncidentFilterToolbarItem, { severityOptions, stateOptions } from './ToolbarItemFilter';
 
 const IncidentsPage = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -82,13 +84,24 @@ const IncidentsPage = () => {
   >([]);
   const [hideCharts, setHideCharts] = useState(false);
 
-  const [incidentFilterIsExpanded, setIncidentIsExpanded] = useState(false);
   const [daysFilterIsExpanded, setDaysFilterIsExpanded] = useState(false);
+  const [filterTypeIsExpanded, setFilterTypeIsExpanded] = useState(false);
+  const [severityFilterExpanded, setSeverityFilterExpanded] = useState(false);
+  const [stateFilterExpanded, setStateFilterExpanded] = useState(false);
 
-  const onIncidentFilterToggle = (ev) => {
+  const onFilterTypeToggle = (ev) => {
     ev.stopPropagation();
-    setIncidentIsExpanded(!incidentFilterIsExpanded);
+    setFilterTypeIsExpanded(!filterTypeIsExpanded);
   };
+  const onSeverityFilterToggle = (ev) => {
+    ev.stopPropagation();
+    setSeverityFilterExpanded(!severityFilterExpanded);
+  };
+  const onStateFilterToggle = (ev) => {
+    ev.stopPropagation();
+    setStateFilterExpanded(!stateFilterExpanded);
+  };
+
   const onToggleClick = (ev) => {
     ev.stopPropagation();
     setDaysFilterIsExpanded(!daysFilterIsExpanded);
@@ -118,6 +131,11 @@ const IncidentsPage = () => {
   const filteredData = useSelector((state: MonitoringState) =>
     state.plugins.mcp.getIn(['incidentsData', 'filteredIncidentsData']),
   );
+
+  const incidentPageFilterTypeSelected = useSelector((state: MonitoringState) =>
+    state.plugins.mcp.getIn(['incidentsData', 'incidentPageFilterType']),
+  );
+
   useEffect(() => {
     const hasUrlParams = Object.keys(urlParams).length > 0;
     if (hasUrlParams) {
@@ -126,7 +144,8 @@ const IncidentsPage = () => {
         setIncidentsActiveFilters({
           incidentsActiveFilters: {
             days: urlParams.days ? urlParams.days : ['7 days'],
-            incidentFilters: urlParams.incidentFilters ? urlParams.incidentFilters : [],
+            severity: urlParams.severity ? urlParams.severity : [],
+            state: urlParams.state ? urlParams.state : [],
           },
         }),
       );
@@ -160,7 +179,7 @@ const IncidentsPage = () => {
         filteredIncidentsData: filterIncident(incidentsActiveFilters, incidents),
       }),
     );
-  }, [incidentsActiveFilters.incidentFilters]);
+  }, [incidentsActiveFilters.state, incidentsActiveFilters.severity]);
 
   const now = Date.now();
   const safeFetch = useSafeFetch();
@@ -310,149 +329,137 @@ const IncidentsPage = () => {
               id="toolbar-with-filter"
               collapseListedFiltersBreakpoint="xl"
               clearAllFilters={() =>
-                onDeleteIncidentFilterChip('', undefined, incidentsActiveFilters, dispatch)
+                dispatch(
+                  setIncidentsActiveFilters({
+                    incidentsActiveFilters: {
+                      severity: [],
+                      days: ['7 days'],
+                      state: [],
+                    },
+                  }),
+                )
               }
             >
               <ToolbarContent>
-                <ToolbarItem>
-                  <ToolbarFilter
-                    labels={incidentsActiveFilters.incidentFilters}
-                    deleteLabel={(category, chip) => {
-                      if (isIncidentFilter(chip) && typeof category === 'string') {
-                        onDeleteIncidentFilterChip(
-                          category,
-                          chip,
-                          incidentsActiveFilters,
-                          dispatch,
-                        );
-                      }
-                    }}
-                    deleteLabelGroup={() =>
-                      onDeleteGroupIncidentFilterChip(incidentsActiveFilters, dispatch)
-                    }
-                    categoryName="Filters"
-                  >
+                <ToolbarGroup>
+                  <ToolbarItem>
                     <Select
-                      id="severity-select"
+                      aria-label="Filter type selection"
+                      isOpen={filterTypeIsExpanded}
                       role="menu"
-                      aria-label="Filters"
-                      isOpen={incidentFilterIsExpanded}
-                      selected={incidentsActiveFilters.incidentFilters}
-                      onSelect={(event, selection) => {
-                        if (isIncidentFilter(selection)) {
-                          onIncidentFiltersSelect(
-                            event,
-                            selection,
-                            dispatch,
-                            incidentsActiveFilters,
-                          );
-                        }
-                      }}
-                      onOpenChange={(isOpen) => setIncidentIsExpanded(isOpen)}
+                      selected={incidentPageFilterTypeSelected}
+                      onOpenChange={(isOpen) => setFilterTypeIsExpanded(isOpen)}
+                      onSelect={(event, selection) =>
+                        dispatch(setIncidentPageFilterType({ incidentPageFilterType: selection }))
+                      }
+                      shouldFocusToggleOnSelect
                       toggle={(toggleRef) => (
                         <MenuToggle
                           ref={toggleRef}
-                          onClick={onIncidentFilterToggle}
-                          isExpanded={incidentFilterIsExpanded}
+                          onClick={onFilterTypeToggle}
+                          isExpanded={filterTypeIsExpanded}
                           icon={<FilterIcon />}
-                          badge={
-                            Object.entries(incidentsActiveFilters.incidentFilters).length > 0 ? (
-                              <Badge isRead>
-                                {Object.entries(incidentsActiveFilters.incidentFilters).length}
-                              </Badge>
-                            ) : undefined
-                          }
                         >
-                          Filters
+                          {incidentPageFilterTypeSelected}
                         </MenuToggle>
                       )}
-                      shouldFocusToggleOnSelect
                     >
-                      <SelectList>
-                        <SelectOption
-                          value="Critical"
-                          isSelected={incidentsActiveFilters?.incidentFilters.includes('Critical')}
-                          description="The incident is critical."
-                          hasCheckbox
-                        >
-                          Critical
-                        </SelectOption>
-                        <SelectOption
-                          value="Warning"
-                          isSelected={incidentsActiveFilters?.incidentFilters.includes('Warning')}
-                          description="The incident might lead to critical."
-                          hasCheckbox
-                        >
-                          Warning
-                        </SelectOption>
-                        <SelectOption
-                          value="Informative"
-                          isSelected={incidentsActiveFilters.incidentFilters.includes(
-                            'Informative',
-                          )}
-                          description="The incident is not critical."
-                          hasCheckbox
-                        >
-                          Informative
-                        </SelectOption>
-                        <SelectOption
-                          value="Firing"
-                          isSelected={incidentsActiveFilters.incidentFilters.includes('Firing')}
-                          description="The incident is currently firing."
-                          hasCheckbox
-                        >
-                          Firing
-                        </SelectOption>
-                        <SelectOption
-                          value="Resolved"
-                          isSelected={incidentsActiveFilters.incidentFilters.includes('Resolved')}
-                          description="The incident is not currently firing."
-                          hasCheckbox
-                        >
-                          Resolved
-                        </SelectOption>
-                      </SelectList>
-                    </Select>
-                  </ToolbarFilter>
-                </ToolbarItem>
-                <ToolbarItem>
-                  <Select
-                    id="time-range-select"
-                    isOpen={daysFilterIsExpanded}
-                    selected={incidentsActiveFilters.days[0]}
-                    onSelect={onSelect}
-                    onOpenChange={(isOpen) => setDaysFilterIsExpanded(isOpen)}
-                    toggle={(toggleRef) => (
-                      <MenuToggle
-                        ref={toggleRef}
-                        onClick={onToggleClick}
-                        isExpanded={daysFilterIsExpanded}
+                      <SelectOption
+                        value="Severity"
+                        isSelected={incidentPageFilterTypeSelected?.includes('Severity')}
                       >
-                        {incidentsActiveFilters.days[0]}
-                      </MenuToggle>
-                    )}
-                    shouldFocusToggleOnSelect
-                  >
-                    <SelectList>
-                      <SelectOption value="1 day">{t('1 day')}</SelectOption>
-                      <SelectOption value="3 days">{t('3 days')}</SelectOption>
-                      <SelectOption value="7 days">{t('7 days')}</SelectOption>
-                      <SelectOption value="15 days">{t('15 days')}</SelectOption>
-                    </SelectList>
-                  </Select>
-                </ToolbarItem>
+                        Severity
+                      </SelectOption>
+                      <SelectOption
+                        value="State"
+                        isSelected={incidentPageFilterTypeSelected?.includes('State')}
+                      >
+                        State
+                      </SelectOption>
+                    </Select>
+                  </ToolbarItem>
+                  <ToolbarItem>
+                    <IncidentFilterToolbarItem
+                      categoryName="Severity"
+                      toggleLabel="Severity filters"
+                      options={severityOptions}
+                      incidentsActiveFilters={incidentsActiveFilters}
+                      onDeleteIncidentFilterChip={onDeleteIncidentFilterChip}
+                      onDeleteGroupIncidentFilterChip={onDeleteGroupIncidentFilterChip}
+                      incidentFilterIsExpanded={severityFilterExpanded}
+                      onIncidentFiltersSelect={onIncidentFiltersSelect}
+                      setIncidentIsExpanded={setSeverityFilterExpanded}
+                      onIncidentFilterToggle={onSeverityFilterToggle}
+                      dispatch={dispatch}
+                      showToolbarItem={incidentPageFilterTypeSelected?.includes('Severity')}
+                    />
+                  </ToolbarItem>
+                  <ToolbarItem>
+                    <IncidentFilterToolbarItem
+                      categoryName="State"
+                      toggleLabel="State filters"
+                      options={stateOptions}
+                      incidentsActiveFilters={incidentsActiveFilters}
+                      onDeleteIncidentFilterChip={onDeleteIncidentFilterChip}
+                      onDeleteGroupIncidentFilterChip={onDeleteGroupIncidentFilterChip}
+                      incidentFilterIsExpanded={stateFilterExpanded}
+                      onIncidentFiltersSelect={onIncidentFiltersSelect}
+                      setIncidentIsExpanded={setStateFilterExpanded}
+                      onIncidentFilterToggle={onStateFilterToggle}
+                      dispatch={dispatch}
+                      showToolbarItem={incidentPageFilterTypeSelected?.includes('State')}
+                    />
+                  </ToolbarItem>
+                </ToolbarGroup>
                 <ToolbarItem align={{ default: 'alignEnd' }}>
-                  <Button
-                    variant="link"
-                    icon={hideCharts ? <CompressArrowsAltIcon /> : <CompressIcon />}
-                    onClick={() => setHideCharts(!hideCharts)}
-                  >
-                    <span>{hideCharts ? t('Show graph') : t('Hide graph')}</span>
-                  </Button>
+                  <Stack>
+                    <StackItem>
+                      <span>Time range</span>
+                    </StackItem>
+                    <StackItem>
+                      <Select
+                        id="time-range-select"
+                        isOpen={daysFilterIsExpanded}
+                        selected={incidentsActiveFilters.days[0]}
+                        onSelect={onSelect}
+                        onOpenChange={(isOpen) => setDaysFilterIsExpanded(isOpen)}
+                        toggle={(toggleRef) => (
+                          <MenuToggle
+                            ref={toggleRef}
+                            onClick={onToggleClick}
+                            isExpanded={daysFilterIsExpanded}
+                          >
+                            {`Last ${incidentsActiveFilters.days[0]}`}
+                          </MenuToggle>
+                        )}
+                        shouldFocusToggleOnSelect
+                      >
+                        <SelectList>
+                          <SelectOption value="1 day">{t('Last 1 day')}</SelectOption>
+                          <SelectOption value="3 days">{t('Last 3 days')}</SelectOption>
+                          <SelectOption value="7 days">{t('Last 7 days')}</SelectOption>
+                          <SelectOption value="15 days">{t('Last 15 days')}</SelectOption>
+                        </SelectList>
+                      </Select>
+                    </StackItem>
+                  </Stack>
                 </ToolbarItem>
               </ToolbarContent>
             </Toolbar>
             <Stack hasGutter>
+              <StackItem>
+                <Flex justifyContent={{ default: 'justifyContentFlexEnd' }}>
+                  <FlexItem>
+                    <Button
+                      variant="link"
+                      icon={hideCharts ? <CompressArrowsAltIcon /> : <CompressIcon />}
+                      onClick={() => setHideCharts(!hideCharts)}
+                    >
+                      <span>{hideCharts ? t('Show graph') : t('Hide graph')}</span>
+                    </Button>
+                  </FlexItem>
+                </Flex>
+              </StackItem>
               {!hideCharts && (
                 <>
                   <StackItem>
