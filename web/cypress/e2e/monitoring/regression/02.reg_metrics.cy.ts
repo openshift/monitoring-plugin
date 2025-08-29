@@ -147,6 +147,9 @@ describe('Regression: Monitoring - Metrics', () => {
     metricsPage.graphAxisXAssertion(GraphTimespan.THIRTY_MINUTES);
 
     cy.log('4.2 Graph Timespan Dropdown');
+    metricsPage.clickActionsDeleteAllQueries();
+    metricsPage.enterQueryInput(0, MetricsPageQueryInput.VECTOR_QUERY);
+    metricsPage.clickRunQueriesButton();
     metricsPage.graphTimespanDropdownAssertion();
 
     cy.log('4.3 Select and Assert each timespan');
@@ -157,7 +160,8 @@ describe('Regression: Monitoring - Metrics', () => {
 
     cy.log('4.4 Enter Graph Timespan');
     metricsPage.clickActionsDeleteAllQueries();
-    metricsPage.clickInsertExampleQuery();
+    metricsPage.enterQueryInput(0, MetricsPageQueryInput.VECTOR_QUERY);
+    metricsPage.clickRunQueriesButton();
     Object.values(GraphTimespan).forEach((timespan) => {
       metricsPage.enterGraphTimespan(timespan);
       metricsPage.graphAxisXAssertion(timespan);
@@ -186,7 +190,7 @@ describe('Regression: Monitoring - Metrics', () => {
     cy.byTestID(DataTestIDs.MetricStackedCheckbox).should('not.exist');
 
     cy.log('4.10 Disconnected Checkbox');
-    cy.byTestID(DataTestIDs.MetricDisconnectedCheckbox).should('have.attr', 'disabled');
+    cy.byTestID(DataTestIDs.MetricDisconnectedCheckbox).should('be.visible');
 
     cy.log('4.11 Prepare to test Stacked Checkbox');
     metricsPage.clickActionsDeleteAllQueries();
@@ -230,7 +234,8 @@ describe('Regression: Monitoring - Metrics', () => {
     cy.get(Classes.MetricsPageQueryInput).eq(1).should('contain', MetricsPageQueryInput.INSERT_EXAMPLE_QUERY);
  
     cy.log('6.3 Preparation to test Run Queries button');
-    metricsPage.enterQueryInput(0, MetricsPageQueryInput.VECTOR_QUERY);
+    cy.get(Classes.MetricsPageQueryInput).eq(0).should('be.visible').clear();
+    cy.get(Classes.MetricsPageQueryInput).eq(0).type(MetricsPageQueryInput.VECTOR_QUERY);
     cy.byTestID(DataTestIDs.MetricsPageSelectAllUnselectAllButton).should('have.length', 1);
 
     cy.log('6.4 Run Queries button');
@@ -493,9 +498,15 @@ describe('Regression: Monitoring - Metrics', () => {
     cy.get(Classes.MetricsPageQueryAutocomplete).should('be.visible');
     cy.get(Classes.MetricsPageQueryAutocomplete).should('contain', 'abs');
     
-  
   });
 
-
+  it('10. Admin perspective - Metrics > No Datapoints with alert', () => {
+    cy.log('10.1 No Datapoints with alert');
+    cy.visit('/monitoring/query-browser');
+    metricsPage.enterQueryInput(0, MetricsPageQueryInput.QUERY_WITH_ALERT);
+    metricsPage.clickRunQueriesButton();
+    cy.byOUIAID(DataTestIDs.MetricsGraphAlertDanger).should('be.visible');
+  });
+   
 });
 

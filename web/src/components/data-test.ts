@@ -19,6 +19,7 @@ export const DataTestIDs = {
   ExpireXSilencesButton: 'expire-x-silences-button',
   Expression: 'expression',
   KebabDropdownButton: 'kebab-dropdown-button',
+  MetricGraph: 'metric-graph',
   MetricGraphNoDatapointsFound: 'datapoints-msg',
   MetricGraphTimespanDropdown: 'graph-timespan-dropdown',
   MetricGraphTimespanInput: 'graph-timespan-input',
@@ -79,6 +80,7 @@ export const DataTestIDs = {
   },
   TypeaheadSelectInput: 'query-select-typeahead-input',
   Table: 'OUIA-Generated-Table', //table ouiaid - ID to be used with byOUIAID(DataTestIDs.Table)
+  MetricsGraphAlertDanger: 'OUIA-Generated-Alert-danger', //ID to be used with byOUIAID(DataTestIDs.MetricsGraphAlertDanger)
 };
 
 export const LegacyDashboardPageTestIDs = {
