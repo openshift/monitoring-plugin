@@ -17,6 +17,9 @@ import {
   PageSection,
   Stack,
   StackItem,
+  ToolbarGroup,
+  Flex,
+  FlexItem,
 } from '@patternfly/react-core';
 import { Helmet } from 'react-helmet';
 import { IncidentsTable } from './IncidentsTable';
@@ -331,71 +334,77 @@ const IncidentsPage = () => {
               }
             >
               <ToolbarContent>
-                <ToolbarItem>
-                  <Select
-                    aria-label="Filter type selection"
-                    isOpen={filterTypeIsExpanded}
-                    role="menu"
-                    selected={incidentPageFilterTypeSelected}
-                    onOpenChange={(isOpen) => setFilterTypeIsExpanded(isOpen)}
-                    onSelect={(event, selection) =>
-                      dispatch(setIncidentPageFilterType({ incidentPageFilterType: selection }))
-                    }
-                    shouldFocusToggleOnSelect
-                    toggle={(toggleRef) => (
-                      <MenuToggle
-                        ref={toggleRef}
-                        onClick={onFilterTypeToggle}
-                        isExpanded={filterTypeIsExpanded}
-                        icon={<FilterIcon />}
+                <ToolbarGroup>
+                  <ToolbarItem>
+                    <Select
+                      aria-label="Filter type selection"
+                      isOpen={filterTypeIsExpanded}
+                      role="menu"
+                      selected={incidentPageFilterTypeSelected}
+                      onOpenChange={(isOpen) => setFilterTypeIsExpanded(isOpen)}
+                      onSelect={(event, selection) =>
+                        dispatch(setIncidentPageFilterType({ incidentPageFilterType: selection }))
+                      }
+                      shouldFocusToggleOnSelect
+                      toggle={(toggleRef) => (
+                        <MenuToggle
+                          ref={toggleRef}
+                          onClick={onFilterTypeToggle}
+                          isExpanded={filterTypeIsExpanded}
+                          icon={<FilterIcon />}
+                        >
+                          {incidentPageFilterTypeSelected}
+                        </MenuToggle>
+                      )}
+                    >
+                      <SelectOption
+                        value="Severity"
+                        isSelected={incidentPageFilterTypeSelected?.includes('Severity')}
                       >
-                        {incidentPageFilterTypeSelected}
-                      </MenuToggle>
-                    )}
-                  >
-                    <SelectOption
-                      value="Severity"
-                      isSelected={incidentPageFilterTypeSelected?.includes('Severity')}
-                    >
-                      Severity
-                    </SelectOption>
-                    <SelectOption
-                      value="State"
-                      isSelected={incidentPageFilterTypeSelected?.includes('State')}
-                    >
-                      State
-                    </SelectOption>
-                  </Select>
-                </ToolbarItem>
-                <IncidentFilterToolbarItem
-                  categoryName="Severity"
-                  toggleLabel="Severity filters"
-                  options={severityOptions}
-                  incidentsActiveFilters={incidentsActiveFilters}
-                  onDeleteIncidentFilterChip={onDeleteIncidentFilterChip}
-                  onDeleteGroupIncidentFilterChip={onDeleteGroupIncidentFilterChip}
-                  incidentFilterIsExpanded={severityFilterExpanded}
-                  onIncidentFiltersSelect={onIncidentFiltersSelect}
-                  setIncidentIsExpanded={setSeverityFilterExpanded}
-                  onIncidentFilterToggle={onSeverityFilterToggle}
-                  dispatch={dispatch}
-                  showToolbarItem={incidentPageFilterTypeSelected?.includes('Severity')}
-                />
-                <IncidentFilterToolbarItem
-                  categoryName="State"
-                  toggleLabel="State filters"
-                  options={stateOptions}
-                  incidentsActiveFilters={incidentsActiveFilters}
-                  onDeleteIncidentFilterChip={onDeleteIncidentFilterChip}
-                  onDeleteGroupIncidentFilterChip={onDeleteGroupIncidentFilterChip}
-                  incidentFilterIsExpanded={stateFilterExpanded}
-                  onIncidentFiltersSelect={onIncidentFiltersSelect}
-                  setIncidentIsExpanded={setStateFilterExpanded}
-                  onIncidentFilterToggle={onStateFilterToggle}
-                  dispatch={dispatch}
-                  showToolbarItem={incidentPageFilterTypeSelected?.includes('State')}
-                />
-                <ToolbarItem>
+                        Severity
+                      </SelectOption>
+                      <SelectOption
+                        value="State"
+                        isSelected={incidentPageFilterTypeSelected?.includes('State')}
+                      >
+                        State
+                      </SelectOption>
+                    </Select>
+                  </ToolbarItem>
+                  <ToolbarItem>
+                    <IncidentFilterToolbarItem
+                      categoryName="Severity"
+                      toggleLabel="Severity filters"
+                      options={severityOptions}
+                      incidentsActiveFilters={incidentsActiveFilters}
+                      onDeleteIncidentFilterChip={onDeleteIncidentFilterChip}
+                      onDeleteGroupIncidentFilterChip={onDeleteGroupIncidentFilterChip}
+                      incidentFilterIsExpanded={severityFilterExpanded}
+                      onIncidentFiltersSelect={onIncidentFiltersSelect}
+                      setIncidentIsExpanded={setSeverityFilterExpanded}
+                      onIncidentFilterToggle={onSeverityFilterToggle}
+                      dispatch={dispatch}
+                      showToolbarItem={incidentPageFilterTypeSelected?.includes('Severity')}
+                    />
+                  </ToolbarItem>
+                  <ToolbarItem>
+                    <IncidentFilterToolbarItem
+                      categoryName="State"
+                      toggleLabel="State filters"
+                      options={stateOptions}
+                      incidentsActiveFilters={incidentsActiveFilters}
+                      onDeleteIncidentFilterChip={onDeleteIncidentFilterChip}
+                      onDeleteGroupIncidentFilterChip={onDeleteGroupIncidentFilterChip}
+                      incidentFilterIsExpanded={stateFilterExpanded}
+                      onIncidentFiltersSelect={onIncidentFiltersSelect}
+                      setIncidentIsExpanded={setStateFilterExpanded}
+                      onIncidentFilterToggle={onStateFilterToggle}
+                      dispatch={dispatch}
+                      showToolbarItem={incidentPageFilterTypeSelected?.includes('State')}
+                    />
+                  </ToolbarItem>
+                </ToolbarGroup>
+                <ToolbarItem align={{ default: 'alignEnd' }}>
                   <Select
                     id="time-range-select"
                     isOpen={daysFilterIsExpanded}
@@ -421,18 +430,22 @@ const IncidentsPage = () => {
                     </SelectList>
                   </Select>
                 </ToolbarItem>
-                <ToolbarItem align={{ default: 'alignEnd' }}>
-                  <Button
-                    variant="link"
-                    icon={hideCharts ? <CompressArrowsAltIcon /> : <CompressIcon />}
-                    onClick={() => setHideCharts(!hideCharts)}
-                  >
-                    <span>{hideCharts ? t('Show graph') : t('Hide graph')}</span>
-                  </Button>
-                </ToolbarItem>
               </ToolbarContent>
             </Toolbar>
             <Stack hasGutter>
+              <StackItem>
+                <Flex justifyContent={{ default: 'justifyContentFlexEnd' }}>
+                  <FlexItem>
+                    <Button
+                      variant="link"
+                      icon={hideCharts ? <CompressArrowsAltIcon /> : <CompressIcon />}
+                      onClick={() => setHideCharts(!hideCharts)}
+                    >
+                      <span>{hideCharts ? t('Show graph') : t('Hide graph')}</span>
+                    </Button>
+                  </FlexItem>
+                </Flex>
+              </StackItem>
               {!hideCharts && (
                 <>
                   <StackItem>
