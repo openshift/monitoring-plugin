@@ -377,16 +377,6 @@ export const onDeleteIncidentFilterChip = (
         },
       }),
     );
-  } else {
-    setFilters(
-      setIncidentsActiveFilters({
-        incidentsActiveFilters: {
-          severity: [],
-          days: ['7 days'],
-          state: [],
-        },
-      }),
-    );
   }
 };
 
