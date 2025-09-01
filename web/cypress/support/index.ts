@@ -1,6 +1,9 @@
-import './nav';
 import './selectors';
-import './commands';
+import './commands/selector-commands';
+import './commands/auth-commands';
+import './commands/operator-commands';
+import './commands/incident-commands';
+import './commands/utility-commands';
 
 export const checkErrors = () =>
   cy.window().then((win) => {
