@@ -1,6 +1,6 @@
 import { commonPages } from "./common";
 import { DataTestIDs, Classes, LegacyTestIDs, IDs } from "../../src/components/data-test";
-import { MetricsPageUnits, MetricsPageRefreshInterval, MetricsPageQueryInput, MetricsPageActions, MetricGraphEmptyState, MetricsPagePredefinedQueries, MetricsPageQueryKebabDropdown, GraphTimespan } from "../fixtures/monitoring/constants";
+import { MetricsPageUnits, MonitoringRefreshInterval, MetricsPageQueryInput, MetricsPageActions, MetricGraphEmptyState, MetricsPagePredefinedQueries, MetricsPageQueryKebabDropdown, GraphTimespan } from "../fixtures/monitoring/constants";
 
 export const metricsPage = {
 
@@ -8,7 +8,7 @@ export const metricsPage = {
     cy.log('metricsPage.shouldBeLoaded');
     commonPages.titleShouldHaveText('Metrics');
     cy.byTestID(DataTestIDs.MetricGraphUnitsDropDown).contains(MetricsPageUnits.NO_UNITS).should('be.visible');
-    cy.byTestID(DataTestIDs.MetricDropdownPollInterval).contains(MetricsPageRefreshInterval.REFRESH_OFF).should('be.visible');
+    cy.byTestID(DataTestIDs.MetricDropdownPollInterval).contains(MonitoringRefreshInterval.REFRESH_OFF).should('be.visible');
     cy.byTestID(DataTestIDs.MetricsPageActionsDropdownButton).should('be.visible');
     cy.byTestID(DataTestIDs.MetricHideShowGraphButton).should('be.visible');
     cy.get(Classes.GraphCard).should('not.exist');
@@ -25,7 +25,7 @@ export const metricsPage = {
     cy.log('metricsPage.redirectedToMetricsPage');
     commonPages.titleShouldHaveText('Metrics');
     cy.byTestID(DataTestIDs.MetricGraphUnitsDropDown).contains(MetricsPageUnits.NO_UNITS).should('be.visible');
-    cy.byTestID(DataTestIDs.MetricDropdownPollInterval).contains(MetricsPageRefreshInterval.REFRESH_OFF).should('be.visible');
+    cy.byTestID(DataTestIDs.MetricDropdownPollInterval).contains(MonitoringRefreshInterval.REFRESH_OFF).should('be.visible');
     cy.byTestID(DataTestIDs.MetricsPageActionsDropdownButton).should('be.visible');
     cy.byTestID(DataTestIDs.MetricHideShowGraphButton).should('be.visible');
     cy.get(Classes.GraphCard).should('be.visible');
@@ -54,7 +54,7 @@ export const metricsPage = {
     cy.log('metricsPage.redirectedToMetricsPageWithoutDatapoints');
     commonPages.titleShouldHaveText('Metrics');
     cy.byTestID(DataTestIDs.MetricGraphUnitsDropDown).contains(MetricsPageUnits.NO_UNITS).should('be.visible');
-    cy.byTestID(DataTestIDs.MetricDropdownPollInterval).contains(MetricsPageRefreshInterval.REFRESH_OFF).should('be.visible');
+    cy.byTestID(DataTestIDs.MetricDropdownPollInterval).contains(MonitoringRefreshInterval.REFRESH_OFF).should('be.visible');
     cy.byTestID(DataTestIDs.MetricsPageActionsDropdownButton).should('be.visible');
     cy.byTestID(DataTestIDs.MetricHideShowGraphButton).should('be.visible');
     cy.get(Classes.GraphCard).should('be.visible');
@@ -127,7 +127,7 @@ export const metricsPage = {
     cy.get('[id^="' + IDs.ChartAxis1ChartLabel + '"]').should('not.contain', 'undefined');
   },
 
-  clickRefreshIntervalDropdown: (interval: MetricsPageRefreshInterval) => {
+  clickRefreshIntervalDropdown: (interval: MonitoringRefreshInterval) => {
     cy.log('metricsPage.clickRefreshIntervalDropdown');
     cy.byTestID(DataTestIDs.MetricDropdownPollInterval).should('be.visible').click();
     cy.get(Classes.MenuItem).contains(interval).should('be.visible').click();
@@ -137,7 +137,7 @@ export const metricsPage = {
     cy.log('metricsPage.refreshIntervalDropdownAssertion');
     cy.byTestID(DataTestIDs.MetricDropdownPollInterval).should('be.visible').click();
 
-    const intervals = Object.values(MetricsPageRefreshInterval);
+    const intervals = Object.values(MonitoringRefreshInterval);
     intervals.forEach((interval) => {
       cy.log('Refresh interval: ' + interval);
       cy.get(Classes.MenuItem).contains(interval).should('be.visible');

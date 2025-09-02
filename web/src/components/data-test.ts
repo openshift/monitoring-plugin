@@ -19,6 +19,7 @@ export const DataTestIDs = {
   ExpireXSilencesButton: 'expire-x-silences-button',
   Expression: 'expression',
   KebabDropdownButton: 'kebab-dropdown-button',
+  MetricGraph: 'metric-graph',
   MetricGraphNoDatapointsFound: 'datapoints-msg',
   MetricGraphTimespanDropdown: 'graph-timespan-dropdown',
   MetricGraphTimespanInput: 'graph-timespan-input',
@@ -82,12 +83,16 @@ export const DataTestIDs = {
 };
 
 export const LegacyDashboardPageTestIDs = {
-  TimeRangeDropdown: 'time-range-dropdown',
+  TimeRangeDropdown: 'time-range-dropdown', //div
   TimeRangeDropdownOptions: 'time-range-dropdown-options',
-  PollIntervalDropdown: 'poll-interval-dropdown',
+  PollIntervalDropdown: 'poll-interval-dropdown', //div
   PollIntervalDropdownOptions: 'poll-interval-dropdown-options',
   Inspect: 'inspect',
   ExportAsCsv: 'export-as-csv',
+  DashboardDropdown: 'dashboard-dropdown', //div
+  DashboardTimeRangeDropdownMenu: 'monitoring-time-range-dropdown', //div using get('#'+LegacyDashboardPageTestIDs.DashboardTimeRangeDropdownMenu)
+  DashboardRefreshIntervalDropdownMenu: 'refresh-interval-dropdown', //div using get('#'+LegacyDashboardPageTestIDs.DashboardRefreshIntervalDropdownMenu)
+  Graph: 'graph',
 };
 
 export const LegacyTestIDs = {
