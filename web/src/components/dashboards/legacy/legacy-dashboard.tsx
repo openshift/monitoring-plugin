@@ -321,7 +321,7 @@ const Card: FC<CardProps> = memo(({ panel, perspective }) => {
               <RedExclamationCircleIcon /> {t('Error loading card')}
             </>
           ) : (
-            <div ref={ref} style={{ height: '100%' }}>
+            <div ref={ref} style={{ height: '100%' }} data-test={LegacyDashboardPageTestIDs.Graph}>
               {isLoading || !wasEverVisible ? (
                 <GraphEmpty loading />
               ) : (

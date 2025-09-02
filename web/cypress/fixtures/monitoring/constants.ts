@@ -1,3 +1,13 @@
+export enum MonitoringPageTitles {
+  METRICS = 'Metrics',
+  DASHBOARDS = 'Dashboards',
+  TARGETS = 'Targets',
+  CREATE_SILENCE = 'Create silence',
+  RECREATE_SILENCE = 'Recreate silence',
+  EDIT_SILENCE = 'Edit silence',
+  SILENCE_ALERT = 'Silence alert',
+};
+
 export enum AlertsAlertState {
   FIRING = 'Firing',
   PENDING = 'Pending',
@@ -49,7 +59,7 @@ export enum MetricsPageUnits {
   PERCENTAGE = 'Percentage',
 };
 
-export enum MetricsPageRefreshInterval {
+export enum MonitoringRefreshInterval {
   REFRESH_OFF = 'Refresh off',
   FIFTEEN_SECONDS = '15 seconds',
   THIRTY_SECONDS = '30 seconds',
@@ -86,6 +96,7 @@ export enum MetricsPageQueryInput {
   RATE_OF_RECEIVED_PACKETS_DROPPED = 'OpenShift_Metrics_QueryTable_sum(irate(container_network_receive_packets_dropped_total[2h])) by (pod).csv',
   RATE_OF_TRANSMITTED_PACKETS_DROPPED = 'OpenShift_Metrics_QueryTable_sum(irate(container_network_transmit_packets_dropped_total[2h])) by (pod).csv',
   QUERY_WITH_ALERT = 'vector1)',
+  API_REQUEST_DURATION_BY_VERB_99TH_PERCENTILE_QUERY = 'histogram_quantile(0.99, sum(resource_verb:apiserver_request_duration_seconds_bucket:rate:5m{apiserver="kube-apiserver"}) by (verb, le))',
 }
 
 export enum MetricsPageActions {
@@ -111,4 +122,59 @@ export enum MetricsPageQueryKebabDropdown{
   DELETE_QUERY = 'Delete query',
   DUPLICATE_QUERY = 'Duplicate query',
   EXPORT_AS_CSV = 'Export as CSV',
+}
+
+export enum LegacyDashboardsTimeRange {
+  CUSTOM_TIME_RANGE = 'Custom time range',
+  LAST_5_MINUTES = 'Last 5 minutes',
+  LAST_15_MINUTES = 'Last 15 minutes',
+  LAST_30_MINUTES = 'Last 30 minutes',
+  LAST_1_HOUR = 'Last 1 hour',
+  LAST_2_HOURS = 'Last 2 hours',
+  LAST_6_HOURS = 'Last 6 hours',
+  LAST_12_HOURS = 'Last 12 hours',
+  LAST_1_DAY = 'Last 1 day',
+  LAST_2_DAYS = 'Last 2 days',
+  LAST_1_WEEK = 'Last 1 week',
+  LAST_2_WEEKS = 'Last 2 weeks',
+}
+
+export const LegacyDashboardsDashboardDropdown = {
+API_PERFORMANCE: ['API Performance', ''],
+ETCD: ['etcd', 'etcd-mixin'],
+K8S_COMPUTE_RESOURCES_CLUSTER: ['Kubernetes / Compute Resources / Cluster', 'kubernetes-mixin'],
+K8S_COMPUTE_RESOURCES_NAMESPACE_PODS: ['Kubernetes / Compute Resources / Namespace (Pods)', 'kubernetes-mixin'],
+K8S_COMPUTE_RESOURCES_NAMESPACE_WORKLOADS: ['Kubernetes / Compute Resources / Namespace (Workloads)', 'kubernetes-mixin'],
+K8S_COMPUTE_RESOURCES_NODE_PODS: ['Kubernetes / Compute Resources / Node (Pods)', 'kubernetes-mixin'],
+K8S_COMPUTE_RESOURCES_POD: ['Kubernetes / Compute Resources / Pod', 'kubernetes-mixin'],
+K8S_COMPUTE_RESOURCES_WORKLOAD: ['Kubernetes / Compute Resources / Workload', 'kubernetes-mixin'],
+K8S_NETWORKING_CLUSTER: ['Kubernetes / Networking / Cluster', 'kubernetes-mixin'],
+K8S_NETWORKING_NAMESPACE_PODS: ['Kubernetes / Networking / Namespace (Pods)', 'kubernetes-mixin'],
+K8S_NETWORKING_POD: ['Kubernetes / Networking / Pod', 'kubernetes-mixin'],
+NETWORKING_INFRASTRUCTURE: ['Networking / Infrastructure', 'networking-mixin'],
+NETWORKING_INGRESS: ['Networking / Ingress', 'networking-mixin'],
+NETWORKING_LINUX_SUBSYSTEM_STATS: ['Networking / Linux Subsystem Stats', 'networking-mixin'],
+NODE_CLUSTER: ['Node Cluster', ''],
+NODE_EXPORTER_USE_METHOD_CLUSTER: ['Node Exporter / USE Method / Cluster', 'node-exporter-mixin'],
+NODE_EXPORTER_USE_METHOD_NODE: ['Node Exporter / USE Method / Node', 'node-exporter-mixin'],
+PROMETHEUS_OVERVIEW: ['Prometheus / Overview', 'prometheus-mixin'],
+}
+
+export enum API_PERFORMANCE_DASHBOARD_PANELS {
+  API_PERFORMANCE_PANEL_1 = 'API Request Duration by Verb - 99th Percentile',
+  API_PERFORMANCE_PANEL_2 = 'etcd Request Duration - 99th Percentile',
+  API_PERFORMANCE_PANEL_3 = 'Request Duration by Resource and Verb - 99th Percentile',
+  API_PERFORMANCE_PANEL_4 = 'Request Rate by Resource and Verb',
+  API_PERFORMANCE_PANEL_5 = 'Request Duration by Read vs Write - 99th Percentile',
+  API_PERFORMANCE_PANEL_6 = 'Request Rate by Read vs Write',
+  API_PERFORMANCE_PANEL_7 = 'Requests Dropped Rate',
+  API_PERFORMANCE_PANEL_8 = 'Requests Terminated Rate',
+  API_PERFORMANCE_PANEL_9 = 'Request Rate by Status',
+  API_PERFORMANCE_PANEL_10 = 'Request Rate by Instance',
+  API_PERFORMANCE_PANEL_11 = 'Long Running Requests by Resource',
+  API_PERFORMANCE_PANEL_12 = 'Long Running Requests by Instance',
+  API_PERFORMANCE_PANEL_13 = 'Requests in Flight',
+  API_PERFORMANCE_PANEL_14 = 'Response Bytes per Second by Instance',
+  API_PERFORMANCE_PANEL_15 = 'Response Bytes per Second by Resource and Verb',
+  API_PERFORMANCE_PANEL_16 = 'Priority & Fairness: Requests Rejected',
 }
