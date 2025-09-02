@@ -95,6 +95,7 @@ export enum MetricsPageQueryInput {
   RATE_OF_TRANSMITTED_PACKETS = 'OpenShift_Metrics_QueryTable_sum(irate(container_network_transmit_packets_total[2h])) by (pod).csv',
   RATE_OF_RECEIVED_PACKETS_DROPPED = 'OpenShift_Metrics_QueryTable_sum(irate(container_network_receive_packets_dropped_total[2h])) by (pod).csv',
   RATE_OF_TRANSMITTED_PACKETS_DROPPED = 'OpenShift_Metrics_QueryTable_sum(irate(container_network_transmit_packets_dropped_total[2h])) by (pod).csv',
+  QUERY_WITH_ALERT = 'vector1)',
   API_REQUEST_DURATION_BY_VERB_99TH_PERCENTILE_QUERY = 'histogram_quantile(0.99, sum(resource_verb:apiserver_request_duration_seconds_bucket:rate:5m{apiserver="kube-apiserver"}) by (verb, le))',
 }
 

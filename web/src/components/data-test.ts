@@ -80,6 +80,7 @@ export const DataTestIDs = {
   },
   TypeaheadSelectInput: 'query-select-typeahead-input',
   Table: 'OUIA-Generated-Table', //table ouiaid - ID to be used with byOUIAID(DataTestIDs.Table)
+  MetricsGraphAlertDanger: 'OUIA-Generated-Alert-danger', //ID to be used with byOUIAID(DataTestIDs.MetricsGraphAlertDanger)
 };
 
 export const LegacyDashboardPageTestIDs = {
