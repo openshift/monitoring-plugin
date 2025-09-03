@@ -172,6 +172,7 @@ print_current_config() {
   print_var "CYPRESS_KONFLUX_COO_BUNDLE_IMAGE" "${CYPRESS_KONFLUX_COO_BUNDLE_IMAGE-}"
   print_var "CYPRESS_CUSTOM_COO_BUNDLE_IMAGE" "${CYPRESS_CUSTOM_COO_BUNDLE_IMAGE-}"
   print_var "CYPRESS_MCP_CONSOLE_IMAGE" "${CYPRESS_MCP_CONSOLE_IMAGE-}"
+  print_var "CYPRESS_TIMEZONE" "${CYPRESS_TIMEZONE-}"
 }
 
 main() {
@@ -212,6 +213,7 @@ main() {
   local def_konflux_bundle=${CYPRESS_KONFLUX_COO_BUNDLE_IMAGE-}
   local def_custom_coo_bundle=${CYPRESS_CUSTOM_COO_BUNDLE_IMAGE-}
   local def_mcp_console_image=${CYPRESS_MCP_CONSOLE_IMAGE-}
+  local def_timezone=${CYPRESS_TIMEZONE-}
 
   # Required basics
   local base_url
@@ -400,6 +402,9 @@ main() {
   local mcp_console_image
   mcp_console_image=$(ask "Monitoring Console Plugin UI image (CYPRESS_MCP_CONSOLE_IMAGE)" "$def_mcp_console_image")
 
+  local timezone
+  timezone=$(ask "Cluster timezone (CYPRESS_TIMEZONE)" "${def_timezone:-UTC}")
+
   # Build export lines with safe quoting
   local -a export_lines
   export_lines+=("export CYPRESS_BASE_URL='$(printf %s "$base_url" | escape_for_single_quotes)'" )
@@ -419,6 +424,9 @@ main() {
   fi
   if [[ -n "$mcp_console_image" ]]; then
     export_lines+=("export CYPRESS_MCP_CONSOLE_IMAGE='$(printf %s "$mcp_console_image" | escape_for_single_quotes)'" )
+  fi
+  if [[ -n "$timezone" ]]; then
+    export_lines+=("export CYPRESS_TIMEZONE='$(printf %s "$timezone" | escape_for_single_quotes)'" )
   fi
 
   echo ""
@@ -449,6 +457,7 @@ main() {
   [[ -n "${CYPRESS_KONFLUX_COO_BUNDLE_IMAGE-}$konflux_bundle" ]] && echo "  CYPRESS_KONFLUX_COO_BUNDLE_IMAGE=${CYPRESS_KONFLUX_COO_BUNDLE_IMAGE:-$konflux_bundle}"
   [[ -n "${CYPRESS_CUSTOM_COO_BUNDLE_IMAGE-}$custom_coo_bundle" ]] && echo "  CYPRESS_CUSTOM_COO_BUNDLE_IMAGE=${CYPRESS_CUSTOM_COO_BUNDLE_IMAGE:-$custom_coo_bundle}"
   [[ -n "${CYPRESS_MCP_CONSOLE_IMAGE-}$mcp_console_image" ]] && echo "  CYPRESS_MCP_CONSOLE_IMAGE=${CYPRESS_MCP_CONSOLE_IMAGE:-$mcp_console_image}"
+  [[ -n "${CYPRESS_TIMEZONE-}$timezone" ]] && echo "  CYPRESS_TIMEZONE=${CYPRESS_TIMEZONE:-$timezone}"
 }
 
 main "$@"
