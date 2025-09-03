@@ -459,37 +459,30 @@ const IncidentsPage = () => {
                   </ToolbarItem>
                 </ToolbarGroup>
                 <ToolbarItem align={{ default: 'alignEnd' }}>
-                  <Stack>
-                    <StackItem>
-                      <span>Time range</span>
-                    </StackItem>
-                    <StackItem>
-                      <Select
-                        id="time-range-select"
-                        isOpen={daysFilterIsExpanded}
-                        selected={incidentsActiveFilters.days[0]}
-                        onSelect={onSelect}
-                        onOpenChange={(isOpen) => setDaysFilterIsExpanded(isOpen)}
-                        toggle={(toggleRef) => (
-                          <MenuToggle
-                            ref={toggleRef}
-                            onClick={onToggleClick}
-                            isExpanded={daysFilterIsExpanded}
-                          >
-                            {`Last ${incidentsActiveFilters.days[0]}`}
-                          </MenuToggle>
-                        )}
-                        shouldFocusToggleOnSelect
+                  <Select
+                    id="time-range-select"
+                    isOpen={daysFilterIsExpanded}
+                    selected={incidentsActiveFilters.days[0]}
+                    onSelect={onSelect}
+                    onOpenChange={(isOpen) => setDaysFilterIsExpanded(isOpen)}
+                    toggle={(toggleRef) => (
+                      <MenuToggle
+                        ref={toggleRef}
+                        onClick={onToggleClick}
+                        isExpanded={daysFilterIsExpanded}
                       >
-                        <SelectList>
-                          <SelectOption value="1 day">{t('Last 1 day')}</SelectOption>
-                          <SelectOption value="3 days">{t('Last 3 days')}</SelectOption>
-                          <SelectOption value="7 days">{t('Last 7 days')}</SelectOption>
-                          <SelectOption value="15 days">{t('Last 15 days')}</SelectOption>
-                        </SelectList>
-                      </Select>
-                    </StackItem>
-                  </Stack>
+                        {`Last ${incidentsActiveFilters.days[0]}`}
+                      </MenuToggle>
+                    )}
+                    shouldFocusToggleOnSelect
+                  >
+                    <SelectList>
+                      <SelectOption value="1 day">{t('Last 1 day')}</SelectOption>
+                      <SelectOption value="3 days">{t('Last 3 days')}</SelectOption>
+                      <SelectOption value="7 days">{t('Last 7 days')}</SelectOption>
+                      <SelectOption value="15 days">{t('Last 15 days')}</SelectOption>
+                    </SelectList>
+                  </Select>
                 </ToolbarItem>
               </ToolbarContent>
             </Toolbar>
