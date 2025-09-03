@@ -94,11 +94,13 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
           days: ['7 days'],
           severity: ['Critical', 'Warning'],
           state: ['Firing'],
+          groupId: [],
         },
         incidentsActiveFilters: {
           days: [],
           severity: [],
           state: [],
+          groupId: [],
         },
         incidentPageFilterType: 'Severity',
         groupId: '',

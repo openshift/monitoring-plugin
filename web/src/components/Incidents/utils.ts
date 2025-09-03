@@ -352,7 +352,7 @@ export function filterIncident(filters: IncidentFiltersCombined, incidents: Arra
 
 export const onDeleteIncidentFilterChip = (
   type: string,
-  id: IncidentFilters | undefined,
+  id: IncidentFilters | string,
   filters: IncidentFiltersCombined,
   setFilters,
 ) => {
@@ -363,6 +363,7 @@ export const onDeleteIncidentFilterChip = (
           severity: filters.severity,
           days: filters.days,
           state: filters.state.filter((fil) => fil !== id),
+          groupId: filters.groupId,
         },
       }),
     );
@@ -374,6 +375,19 @@ export const onDeleteIncidentFilterChip = (
           severity: filters.severity.filter((fil) => fil !== id),
           days: filters.days,
           state: filters.state,
+          groupId: filters.groupId,
+        },
+      }),
+    );
+  }
+  if (type === 'Incident ID') {
+    setFilters(
+      setIncidentsActiveFilters({
+        incidentsActiveFilters: {
+          severity: filters.severity,
+          days: filters.days,
+          state: filters.state,
+          groupId: filters.groupId.filter((fil) => fil !== id),
         },
       }),
     );
@@ -392,6 +406,7 @@ export const onDeleteGroupIncidentFilterChip = (
           severity: filters.severity,
           days: filters.days,
           state: [],
+          groupId: filters.groupId,
         },
       }),
     );
@@ -402,6 +417,18 @@ export const onDeleteGroupIncidentFilterChip = (
           severity: [],
           days: filters.days,
           state: filters.state,
+          groupId: filters.groupId,
+        },
+      }),
+    );
+  } else if (category === 'Incident ID') {
+    setFilters(
+      setIncidentsActiveFilters({
+        incidentsActiveFilters: {
+          severity: filters.severity,
+          days: filters.days,
+          state: filters.state,
+          groupId: [],
         },
       }),
     );
@@ -412,6 +439,7 @@ export const onDeleteGroupIncidentFilterChip = (
           severity: [],
           days: filters.days,
           state: [],
+          groupId: [],
         },
       }),
     );
@@ -472,17 +500,22 @@ export const onIncidentFiltersSelect = (
 
 const onSelect = (event, selection, dispatch, incidentsActiveFilters, filterCategoryType) => {
   const checked = event.target.checked;
+  let effectiveFilterType = filterCategoryType;
+
+  if (effectiveFilterType === 'incident id') {
+    effectiveFilterType = 'groupId';
+  }
 
   dispatch(() => {
-    const targetArray = incidentsActiveFilters[filterCategoryType] || [];
+    const targetArray = incidentsActiveFilters[effectiveFilterType] || [];
     const newFilters = { ...incidentsActiveFilters };
 
     if (checked) {
       if (!targetArray.includes(selection)) {
-        newFilters[filterCategoryType] = [...targetArray, selection];
+        newFilters[effectiveFilterType] = [...targetArray, selection];
       }
     } else {
-      newFilters[filterCategoryType] = targetArray.filter((value) => value !== selection);
+      newFilters[effectiveFilterType] = targetArray.filter((value) => value !== selection);
     }
 
     dispatch(
@@ -507,4 +540,23 @@ export const parseUrlParams = (search) => {
   });
 
   return result;
+};
+
+export const getIncidentIdOptions = (incidents: Array<Incident>) => {
+  const uniqueIds = new Set<string>();
+  incidents.forEach((incident) => {
+    if (incident.group_id) {
+      uniqueIds.add(incident.group_id);
+    }
+  });
+  return Array.from(uniqueIds).map((id) => ({
+    value: id,
+  }));
+};
+
+export const getFilterKey = (categoryName: string): string => {
+  if (categoryName === 'Incident ID') {
+    return 'groupId';
+  }
+  return categoryName.toLowerCase();
 };
