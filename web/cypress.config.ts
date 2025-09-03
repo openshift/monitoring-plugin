@@ -21,9 +21,10 @@ export default defineConfig({
     ),
     LOGIN_USERNAME: process.env.CYPRESS_LOGIN_USERS.split(',')[0].split(':')[0],
     LOGIN_PASSWORD: process.env.CYPRESS_LOGIN_USERS.split(',')[0].split(':')[1],
+    TIMEZONE: process.env.CYPRESS_TIMEZONE || 'UTC',
     typeDelay: 200,
   },
-  fixturesFolder: 'fixtures',
+  fixturesFolder: 'cypress/fixtures',
   defaultCommandTimeout: 80000, //due to performance loading issue on console
   readyTimeoutMilliseconds: 120000,
   installTimeoutMilliseconds: 600000,
