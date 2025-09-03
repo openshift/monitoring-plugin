@@ -7,6 +7,8 @@ import { silenceDetailsPage } from '../../../views/silence-details-page';
 import { silencesListPage } from '../../../views/silences-list-page';
 import { alertingRuleListPage } from '../../../views/alerting-rule-list-page';
 import { alertingRuleDetailsPage } from '../../../views/alerting-rule-details-page';
+import { alerts } from '../../../fixtures/monitoring/alert';
+import { AlertingRulesAlertState, MainTagState, Severity, SilenceState, Source, SilenceComment, WatchdogAlert } from '../../../fixtures/monitoring/constants';
 
 //
 import common = require('mocha/lib/interfaces/common');
@@ -15,14 +17,6 @@ const MP = {
   namespace: 'openshift-monitoring',
   operatorName: 'Cluster Monitoring Operator',
 };
-
-const ALERTNAME = 'Watchdog';
-const NAMESPACE = 'openshift-monitoring';
-const SEVERITY = 'None';
-const ALERT_DESC = 'This is an alert meant to ensure that the entire alerting pipeline is functional. This alert is always firing, therefore it should always be firing in Alertmanager and always fire against a receiver. There are integrations with various notification mechanisms that send a notification when this alert is not firing. For example the "DeadMansSnitch" integration in PagerDuty.'
-const ALERT_SUMMARY = 'An alert that should always be firing to certify that Alertmanager is working properly.'
-
-const SILENCE_COMMENT = 'test comment';
 
 describe('Regression: Monitoring - Alerts', () => {
 
@@ -37,77 +31,27 @@ describe('Regression: Monitoring - Alerts', () => {
   it('1. Admin perspective - Alerting > Alerts page - Filtering', () => {
     cy.log('1.1 Header components');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-    cy.intercept('GET', '/api/prometheus/api/v1/rules?', {
-      data: {
-        groups: [
-          {
-            file: 'dummy-file',
-            interval: 30,
-            name: 'general.rules',
-            rules: [
-              {
-                state: 'firing',
-                name: `${ALERTNAME}`,
-                query: 'vector(1)',
-                duration: 0,
-                labels: {
-                  // namespace: `${NAMESPACE}`,
-                  prometheus: 'openshift-monitoring/k8s',
-                  severity: `${SEVERITY}`,
-                },
-                annotations: {
-                  description:
-                    `${ALERT_DESC}`,
-                  summary:
-                    `${ALERT_SUMMARY}`,
-                },
-                alerts: [
-                  {
-                    labels: {
-                      alertname: `${ALERTNAME}`,
-                      namespace: `${NAMESPACE}`,
-                      severity: `${SEVERITY}`,
-                    },
-                    annotations: {
-                      description:
-                        `${ALERT_DESC}`,
-                      summary:
-                        `${ALERT_SUMMARY}`,
-                    },
-                    state: 'firing',
-                    activeAt: '2023-04-10T12:00:00.123456789Z',
-                    value: '1e+00',
-                    'partialResponseStrategy': 'WARN',
-                  },
-                ],
-                health: 'ok',
-                type: 'alerting',
-              },
-            ],
-          },
-        ],
-      },
-    });
+    alerts.getWatchdogAlert();
 
-    listPage.filter.selectFilterOption(true, 'Pending', false);
-    listPage.filter.selectFilterOption(false, 'Silenced', false);
-    listPage.filter.selectFilterOption(false, 'Critical', false);
-    listPage.filter.selectFilterOption(false, 'Warning', false);
-    listPage.filter.selectFilterOption(false, 'Info', false);
-    listPage.filter.selectFilterOption(false, 'None', false);
-    listPage.filter.selectFilterOption(false, 'User', true);
-    listPage.filter.removeMainTag('Source');
-    listPage.filter.removeIndividualTag('Firing');
-    listPage.filter.removeIndividualTag( 'Pending');
-    listPage.filter.removeIndividualTag('Silenced');
+    listPage.filter.selectFilterOption(true, AlertingRulesAlertState.PENDING, false);
+    listPage.filter.selectFilterOption(false, AlertingRulesAlertState.SILENCED, false);
+    listPage.filter.selectFilterOption(false, Severity.CRITICAL, false);
+    listPage.filter.selectFilterOption(false, Severity.WARNING, false);
+    listPage.filter.selectFilterOption(false, Severity.INFO, false);
+    listPage.filter.selectFilterOption(false, Severity.NONE, false);
+    listPage.filter.selectFilterOption(false, Source.USER, true);
+    listPage.filter.removeMainTag(MainTagState.SOURCE);
+    listPage.filter.removeIndividualTag( AlertingRulesAlertState.FIRING);
+    listPage.filter.removeIndividualTag( AlertingRulesAlertState.PENDING);
+    listPage.filter.removeIndividualTag( AlertingRulesAlertState.SILENCED);
     listPage.filter.clearAllFilters();
 
-    listPage.exportAsCSV(true, /openshift.csv/, `${ALERTNAME}`, `${SEVERITY}`, 'firing', 1);
+    listPage.exportAsCSV(true, /openshift.csv/, `${WatchdogAlert.ALERTNAME}`, `${WatchdogAlert.SEVERITY}`, 'firing', 1);
 
-    listPage.filter.byLabel('alertname=Watchdog');
+    listPage.filter.byLabel('alertname='+`${WatchdogAlert.ALERTNAME}`);
     listPage.filter.removeMainTag('Label');
-    listPage.filter.byLabel('alertname=Watchdog');
-    listPage.filter.removeIndividualTag('alertname=Watchdog');
+    listPage.filter.byLabel('alertname='+`${WatchdogAlert.ALERTNAME}`);
+    listPage.filter.removeIndividualTag('alertname='+`${WatchdogAlert.ALERTNAME}`);
 
   });
 
@@ -119,7 +63,7 @@ describe('Regression: Monitoring - Alerts', () => {
     silenceAlertPage.assertCommentNoError();
     silenceAlertPage.clickSubmit();
     silenceAlertPage.assertCommentWithError();
-    silenceAlertPage.addComment('testing');
+    silenceAlertPage.addComment(SilenceComment.SILENCE_COMMENT);
     silenceAlertPage.addCreator('');
     silenceAlertPage.clickSubmit();
     silenceAlertPage.assertCreatorWithError();
@@ -137,71 +81,21 @@ describe('Regression: Monitoring - Alerts', () => {
     cy.visit('/');
     cy.log('3.1 use sidebar nav to go to Observe > Alerting');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-    cy.intercept('GET', '/api/prometheus/api/v1/rules?', {
-      data: {
-        groups: [
-          {
-            file: 'dummy-file',
-            interval: 30,
-            name: 'general.rules',
-            rules: [
-              {
-                state: 'firing',
-                name: `${ALERTNAME}`,
-                query: 'vector(1)',
-                duration: 0,
-                labels: {
-                  // namespace: `${NAMESPACE}`,
-                  prometheus: 'openshift-monitoring/k8s',
-                  severity: `${SEVERITY}`,
-                },
-                annotations: {
-                  description:
-                    `${ALERT_DESC}`,
-                  summary:
-                    `${ALERT_SUMMARY}`,
-                },
-                alerts: [
-                  {
-                    labels: {
-                      alertname: `${ALERTNAME}`,
-                      namespace: `${NAMESPACE}`,
-                      severity: `${SEVERITY}`,
-                    },
-                    annotations: {
-                      description:
-                        `${ALERT_DESC}`,
-                      summary:
-                        `${ALERT_SUMMARY}`,
-                    },
-                    state: 'firing',
-                    activeAt: '2023-04-10T12:00:00.123456789Z',
-                    value: '1e+00',
-                    'partialResponseStrategy': 'WARN',
-                  },
-                ],
-                health: 'ok',
-                type: 'alerting',
-              },
-            ],
-          },
-        ],
-      },
-    });
+    alerts.getWatchdogAlert();
 
     listPage.ARRows.shouldBeLoaded();
 
     cy.log('3.2 filter to Watchdog alert');
-    listPage.filter.byName(`${ALERTNAME}`);
+    listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
     listPage.ARRows.countShouldBe(1);
 
 
     cy.log('3.3 silence alert');
     listPage.ARRows.expandRow();
     listPage.ARRows.silenceAlert();
-    silenceAlertPage.addComment(SILENCE_COMMENT);
+    silenceAlertPage.addComment(SilenceComment.SILENCE_COMMENT);
     silenceAlertPage.clickSubmit();
-    commonPages.titleShouldHaveText(`${ALERTNAME}`);
+    commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
 
     cy.log('3.4 Assert Kebab on Alert Details page');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
@@ -210,43 +104,43 @@ describe('Regression: Monitoring - Alerts', () => {
     listPage.ARRows.expandRow();
     listPage.ARRows.assertNoKebab();
     listPage.ARRows.clickAlert();
-    commonPages.titleShouldHaveText(`${ALERTNAME}`);
+    commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
     detailsPage.assertSilencedAlert();
 
     cy.log('3.5 Assert Kebab on Silence List page for Silenced alert');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     nav.tabs.switchTab('Silences');
     silencesListPage.shouldBeLoaded();
-    listPage.filter.removeIndividualTag('Active');
-    listPage.filter.removeIndividualTag('Pending');
-    silencesListPage.filter.byName(`${ALERTNAME}`);
+    listPage.filter.removeIndividualTag(SilenceState.ACTIVE);
+    listPage.filter.removeIndividualTag(SilenceState.PENDING);
+    silencesListPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
     listPage.filter.clickFilter(true,false);
-    listPage.filter.selectFilterOption(false, 'Active', true);
+    listPage.filter.selectFilterOption(false, SilenceState.ACTIVE, true);
     silencesListPage.rows.assertSilencedAlertKebab();
 
     cy.log('3.6 Click on Silenced alert and Assert Actions button');
-    silencesListPage.rows.clickSilencedAlert(`${ALERTNAME}`);
-    commonPages.titleShouldHaveText(`${ALERTNAME}`);
+    silencesListPage.rows.clickSilencedAlert(`${WatchdogAlert.ALERTNAME}`);
+    commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
     silenceDetailsPage.assertActionsSilencedAlert();
 
     cy.log('3.7 Expire silence');
     silenceDetailsPage.expireSilence(false, true);
-    commonPages.titleShouldHaveText(`${ALERTNAME}`);
+    commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     nav.tabs.switchTab('Silences');
 
     cy.log('3.8 Assert Kebab on Silence List page for Expired alert');
     silencesListPage.emptyState();
-    listPage.filter.removeMainTag('Silence State');
-    listPage.filter.selectFilterOption(true, 'Expired', false);
-    listPage.filter.selectFilterOption(false, 'Active', false);
-    listPage.filter.selectFilterOption(false, 'Pending', true);
-    silencesListPage.filter.byName(`${ALERTNAME}`);
+    listPage.filter.removeMainTag(MainTagState.SILENCE_STATE);
+    listPage.filter.selectFilterOption(true, SilenceState.EXPIRED, false);
+    listPage.filter.selectFilterOption(false, SilenceState.ACTIVE, false);
+    listPage.filter.selectFilterOption(false, SilenceState.PENDING, true);
+    silencesListPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
     silencesListPage.rows.assertExpiredAlertKebab('0');
 
     cy.log('3.9 Click on Expired alert and Assert Actions button');
-    silencesListPage.rows.clickSilencedAlert(`${ALERTNAME}`);
-    commonPages.titleShouldHaveText(`${ALERTNAME}`);
+    silencesListPage.rows.clickSilencedAlert(`${WatchdogAlert.ALERTNAME}`);
+    commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
     silenceDetailsPage.assertActionsExpiredAlert();
 
     cy.log('3.10 Recreate silence');
@@ -255,54 +149,54 @@ describe('Regression: Monitoring - Alerts', () => {
     silenceAlertPage.silenceAlertSectionDefault();
     silenceAlertPage.durationSectionDefault();
     silenceAlertPage.alertLabelsSectionDefault();
-    silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('alertname', `${ALERTNAME}`, false, false);
+    silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('alertname', `${WatchdogAlert.ALERTNAME}`, false, false);
     // silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('severity', `${SEVERITY}`, false, false);
-    silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('namespace', `${NAMESPACE}`, false, false);
+    silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('namespace', `${WatchdogAlert.NAMESPACE}`, false, false);
     silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('prometheus', 'openshift-monitoring/k8s', false, false);
     silenceAlertPage.clickSubmit();
-    commonPages.titleShouldHaveText(`${ALERTNAME}`);
+    commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
 
     cy.log('3.11 Edit silence');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     nav.tabs.switchTab('Silences');
     silencesListPage.shouldBeLoaded();
-    listPage.filter.removeIndividualTag('Pending');
-    silencesListPage.filter.byName( `${ALERTNAME}`);
+    listPage.filter.removeIndividualTag(SilenceState.PENDING);
+    silencesListPage.filter.byName( `${WatchdogAlert.ALERTNAME}`);
     silencesListPage.rows.editSilence();
     commonPages.titleShouldHaveText('Edit silence');
     silenceAlertPage.silenceAlertSectionDefault();
     silenceAlertPage.editAlertWarning();
     silenceAlertPage.editDurationSectionDefault();
     silenceAlertPage.alertLabelsSectionDefault();
-    silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('alertname', `${ALERTNAME}`, false, false);
+    silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('alertname', `${WatchdogAlert.ALERTNAME}`, false, false);
     // silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('severity', `${SEVERITY}`, false, false);
-    silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('namespace', `${NAMESPACE}`, false, false);
+    silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('namespace', `${WatchdogAlert.NAMESPACE}`, false, false);
     silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('prometheus', 'openshift-monitoring/k8s', false, false);
     silenceAlertPage.clickSubmit();
-    commonPages.titleShouldHaveText(`${ALERTNAME}`);
+    commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
 
     cy.log('3.12 Expire silence');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     nav.tabs.switchTab('Silences');
     silencesListPage.shouldBeLoaded(); silencesListPage.shouldBeLoaded();
-    listPage.filter.removeIndividualTag('Active');
-    listPage.filter.removeIndividualTag('Pending');
-    silencesListPage.filter.byName(`${ALERTNAME}`);
+    listPage.filter.removeIndividualTag(SilenceState.ACTIVE);
+    listPage.filter.removeIndividualTag(SilenceState.PENDING);
+    silencesListPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
     listPage.filter.clickFilter(true,false);
-    listPage.filter.selectFilterOption(false, 'Active', true);
+    listPage.filter.selectFilterOption(false, SilenceState.ACTIVE, true);
     silencesListPage.rows.expireSilence(true);
 
     cy.log('3.13 Alert Details > Silence alert button > Cancel');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-    listPage.filter.byName(`${ALERTNAME}`);
+    listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
     listPage.ARRows.countShouldBe(1);
     listPage.ARRows.expandRow();
     listPage.ARRows.clickAlert();
-    commonPages.titleShouldHaveText(`${ALERTNAME}`);
+    commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
     detailsPage.clickSilenceAlertButton();
-    silenceAlertPage.addComment(SILENCE_COMMENT);
+    silenceAlertPage.addComment(SilenceComment.SILENCE_COMMENT);
     silenceAlertPage.clickCancelButton();
-    commonPages.titleShouldHaveText(`${ALERTNAME}`);
+    commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     listPage.ARRows.countShouldBe(1);
   });
@@ -315,71 +209,71 @@ describe('Regression: Monitoring - Alerts', () => {
 
     cy.log('4.2 clear all filters, verify filters and tags');
     // listPage.filter.clearAllFilters('alerting-rules');
-    listPage.filter.selectFilterOption(true, 'Firing', false);
-    listPage.filter.selectFilterOption(false, 'Pending', false);
-    listPage.filter.selectFilterOption(false, 'Silenced', false);
-    listPage.filter.selectFilterOption(false, 'Not Firing', false);
-    listPage.filter.selectFilterOption(false, 'Critical', false);
-    listPage.filter.selectFilterOption(false, 'Warning', false);
-    listPage.filter.selectFilterOption(false, 'Info', false);
-    listPage.filter.selectFilterOption(false, 'None', false);
-    listPage.filter.selectFilterOption(false, 'Platform', false);
-    listPage.filter.selectFilterOption(false, 'User', true);
+    listPage.filter.selectFilterOption(true, AlertingRulesAlertState.FIRING, false);
+    listPage.filter.selectFilterOption(false, AlertingRulesAlertState.PENDING, false);
+    listPage.filter.selectFilterOption(false, AlertingRulesAlertState.SILENCED, false);
+    listPage.filter.selectFilterOption(false, AlertingRulesAlertState.NOT_FIRING, false);
+    listPage.filter.selectFilterOption(false, Severity.CRITICAL, false);
+    listPage.filter.selectFilterOption(false, Severity.WARNING, false);
+    listPage.filter.selectFilterOption(false, Severity.INFO, false);
+    listPage.filter.selectFilterOption(false, Severity.NONE, false);
+    listPage.filter.selectFilterOption(false, Source.PLATFORM, false);
+    listPage.filter.selectFilterOption(false, Source.USER, true);
 
-    listPage.filter.clickOn1more('Alert State');
-    listPage.filter.clickOn1more('Severity');
+    listPage.filter.clickOn1more(MainTagState.ALERT_STATE);
+    listPage.filter.clickOn1more(MainTagState.SEVERITY);
 
-    listPage.filter.clickOnShowLess('Alert State');
-    listPage.filter.clickOnShowLess('Severity');
+    listPage.filter.clickOnShowLess(MainTagState.ALERT_STATE);
+    listPage.filter.clickOnShowLess(MainTagState.SEVERITY);
 
-    listPage.filter.removeIndividualTag('Firing');
-    listPage.filter.removeIndividualTag('Pending');
-    listPage.filter.removeIndividualTag('Silenced');
-    listPage.filter.removeIndividualTag('Not Firing');
+    listPage.filter.removeIndividualTag(AlertingRulesAlertState.FIRING);
+    listPage.filter.removeIndividualTag(AlertingRulesAlertState.PENDING);
+    listPage.filter.removeIndividualTag(AlertingRulesAlertState.SILENCED);
+    listPage.filter.removeIndividualTag(AlertingRulesAlertState.NOT_FIRING);
 
-    listPage.filter.removeMainTag('Severity');
-    listPage.filter.removeMainTag('Source');
+    listPage.filter.removeMainTag(MainTagState.SEVERITY);
+    listPage.filter.removeMainTag(MainTagState.SOURCE);
 
     alertingRuleListPage.filter.assertNoClearAllFilters();
 
     cy.log('4.3 Search by Name');
-    listPage.filter.byName(`${ALERTNAME}`);
+    listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
     alertingRuleListPage.countShouldBe(1);
     listPage.filter.clearAllFilters();
 
     cy.log('4.4 Search by Label');
-    listPage.filter.byLabel(`namespace=${NAMESPACE}`);
+    listPage.filter.byLabel(`namespace=${WatchdogAlert.NAMESPACE}`);
     listPage.filter.clearAllFilters();
 
     cy.log('4.5 Search by Name and see details');
-    listPage.filter.byName(`${ALERTNAME}`);
+    listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
     alertingRuleListPage.countShouldBe(1);
-    alertingRuleListPage.clickAlertingRule(`${ALERTNAME}`);
-    alertingRuleDetailsPage.assertAlertingRuleDetailsPage(`${ALERTNAME}`);
+    alertingRuleListPage.clickAlertingRule(`${WatchdogAlert.ALERTNAME}`);
+    alertingRuleDetailsPage.assertAlertingRuleDetailsPage(`${WatchdogAlert.ALERTNAME}`);
 
     cy.log('4.6 Alerting rule details > Silence alert');
     alertingRuleDetailsPage.clickOnKebabSilenceAlert();
-    silenceAlertPage.addComment(SILENCE_COMMENT);
+    silenceAlertPage.addComment(SilenceComment.SILENCE_COMMENT);
     silenceAlertPage.clickSubmit();
-    commonPages.titleShouldHaveText(`${ALERTNAME}`);
+    commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
 
     cy.log('4.7 Alerting rule details > Assert Kebab');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     nav.tabs.switchTab('Alerting rules');
     listPage.filter.clearAllFilters();
-    listPage.filter.byName(`${ALERTNAME}`);
-    alertingRuleListPage.clickAlertingRule(`${ALERTNAME}`);
+    listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
+    alertingRuleListPage.clickAlertingRule(`${WatchdogAlert.ALERTNAME}`);
     alertingRuleDetailsPage.assertNoKebab();
 
     cy.log('4.8 Expire silence');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     nav.tabs.switchTab('Silences');
     silencesListPage.shouldBeLoaded();
-    listPage.filter.removeIndividualTag('Active');
-    listPage.filter.removeIndividualTag('Pending');
-    silencesListPage.filter.byName(`${ALERTNAME}`);
+    listPage.filter.removeIndividualTag(SilenceState.ACTIVE);
+    listPage.filter.removeIndividualTag(SilenceState.PENDING);
+    silencesListPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
     listPage.filter.clickFilter(true,false);
-    listPage.filter.selectFilterOption(false, 'Active', true);
+    listPage.filter.selectFilterOption(false, SilenceState.ACTIVE, true);
     silencesListPage.rows.expireSilence(true);
 
   });

@@ -112,7 +112,6 @@ export const Classes = {
   FilterDropdown: '.pf-v6-c-menu-toggle, .pf-v5-c-menu-toggle',
   FilterDropdownExpanded: '.pf-v6-c-menu-toggle.pf-m-expanded, .pf-v5-c-menu-toggle.pf-m-expanded',
   FilterDropdownOption: '.pf-v6-c-menu__item, .pf-c-select__menu-item',
-  GraphCard: '.pf-v6-c-card.pf-m-compact',
   GraphCardInlineInfo:
     '.pf-v6-c-alert.pf-m-inline.pf-m-plain.pf-m-info, .pf-v5-c-alert.pf-m-inline.pf-m-plain.pf-m-info.query-browser__reduced-resolution',
   HorizontalNav: '.pf-v6-c-tabs__item, .co-m-horizontal-nav__menu-item',

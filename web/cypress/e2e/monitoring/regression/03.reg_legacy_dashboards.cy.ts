@@ -1,9 +1,12 @@
 import { nav } from '../../../views/nav';
 import common = require('mocha/lib/interfaces/common');
 import { legacyDashboardsPage } from '../../../views/legacy-dashboards';
-import { API_PERFORMANCE_DASHBOARD_PANELS, MetricsPageQueryInput, LegacyDashboardsDashboardDropdown } from '../../../fixtures/monitoring/constants';
+import { API_PERFORMANCE_DASHBOARD_PANELS, MetricsPageQueryInput, WatchdogAlert } from '../../../fixtures/monitoring/constants';
 import { Classes, LegacyDashboardPageTestIDs, DataTestIDs } from '../../../../src/components/data-test';
 import { metricsPage } from '../../../views/metrics';
+import { alertingRuleDetailsPage } from '../../../views/alerting-rule-details-page';
+import { alerts } from '../../../fixtures/monitoring/alert';
+import { listPage } from '../../../views/list-page';
 // Set constants for the operators that need to be installed for tests.
 const MP = {
   namespace: 'openshift-monitoring',
@@ -71,6 +74,51 @@ describe('Regression: Monitoring - Dashboards (Legacy)', () => {
     cy.log('3.2 Table - No kebab dropdown');
     legacyDashboardsPage.clickDashboardDropdown('PROMETHEUS_OVERVIEW');
     cy.byLegacyTestID('chart-1').find('[data-test="'+DataTestIDs.KebabDropdownButton+'"]').should('not.exist');
+
+  });
+
+  it('4. Admin perspective - OU-897 - Hide Graph / Show Graph on Metrics, Alert Details and Dashboards', () => {
+    cy.log('4.1 Observe > Metrics > Hide Graph');
+    nav.sidenav.clickNavLink(['Observe', 'Metrics']);
+    metricsPage.shouldBeLoaded();
+    metricsPage.clickHideGraphButton();
+    cy.byTestID(DataTestIDs.MetricGraph).should('not.exist');
+    
+    cy.log('4.2 Observe > Dashboards - Verify graph is visible');
+    nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
+    cy.byTestID(DataTestIDs.MetricGraph).should('be.visible');
+    
+    cy.log('4.3 Observe > Alerting rule details - Verify graph is visible');
+    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    alerts.getWatchdogAlert();
+    listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
+    listPage.ARRows.clickAlertingRule();
+    alertingRuleDetailsPage.assertAlertingRuleDetailsPage(`${WatchdogAlert.ALERTNAME}`);
+    alertingRuleDetailsPage.clickHideGraphButton();
+    cy.byTestID(DataTestIDs.MetricGraph).should('not.exist');
+    alertingRuleDetailsPage.clickShowGraphButton();
+    cy.byTestID(DataTestIDs.MetricGraph).should('be.visible');
+    alertingRuleDetailsPage.clickHideGraphButton();
+    cy.byTestID(DataTestIDs.MetricGraph).should('not.exist');
+
+    cy.log('4.4 Observe > Alert details - Verify graph is visible');
+    alertingRuleDetailsPage.clickOnActiveAlerts(`${WatchdogAlert.ALERT_DESC}`);
+    cy.byTestID(DataTestIDs.MetricHideShowGraphButton).contains('Hide graph').should('be.visible');
+    cy.byTestID(DataTestIDs.MetricGraph).should('be.visible');
+    cy.byTestID(DataTestIDs.MetricHideShowGraphButton).contains('Hide graph').should('be.visible').click();
+    cy.byTestID(DataTestIDs.MetricGraph).should('not.exist');
+    cy.byTestID(DataTestIDs.MetricHideShowGraphButton).contains('Show graph').should('be.visible').click();
+    cy.byTestID(DataTestIDs.MetricGraph).should('be.visible');
+    cy.byTestID(DataTestIDs.MetricHideShowGraphButton).contains('Hide graph').should('be.visible').click();
+    cy.byTestID(DataTestIDs.MetricGraph).should('not.exist');
+   
+    cy.log('4.5 Observe > Metrics > Hide Graph');
+    nav.sidenav.clickNavLink(['Observe', 'Metrics']);
+    metricsPage.shouldBeLoaded();
+    
+    cy.log('4.6 Observe > Dashboards - Verify graph is visible');
+    nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
+    cy.byTestID(DataTestIDs.MetricGraph).should('be.visible');
 
   });
 

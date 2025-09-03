@@ -63,7 +63,7 @@ export const commonPages = {
       cy.log('commonPages.detailsPage.common');
       commonPages.titleShouldHaveText(alert);
       cy.byTestID(DataTestIDs.MetricHideShowGraphButton).contains('Hide graph').should('be.visible');
-      cy.get(Classes.GraphCard).should('be.visible');
+      cy.byTestID(DataTestIDs.MetricGraph).should('be.visible');
       cy.byTestID(DataTestIDs.MetricResetZoomButton).should('be.visible');
       cy.byAriaLabel('Inspect').should('be.visible'); //pf-5 cy.byAriaLabel('View in Metrics').should('be.visible').click(); 
     },

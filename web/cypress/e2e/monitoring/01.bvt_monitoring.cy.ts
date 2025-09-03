@@ -6,24 +6,15 @@ import { nav } from '../../views/nav';
 import { silenceDetailsPage } from '../../views/silence-details-page';
 import { silencesListPage } from '../../views/silences-list-page';
 import { getValFromElement } from '../../views/utils';
-
 import { overviewPage } from '../../views/overview-page';
 import common = require('mocha/lib/interfaces/common');
+import { AlertsAlertState, SilenceComment, SilenceState, WatchdogAlert } from '../../fixtures/monitoring/constants';
+import { alerts } from '../../fixtures/monitoring/alert';
 // Set constants for the operators that need to be installed for tests.
 const MP = {
   namespace: 'openshift-monitoring',
   operatorName: 'Cluster Monitoring Operator',
 };
-
-const ALERTNAME = 'Watchdog';
-const NAMESPACE = 'openshift-monitoring';
-const SEVERITY = 'None';
-const ALERT_DESC = 'This is an alert meant to ensure that the entire alerting pipeline is functional. This alert is always firing, therefore it should always be firing in Alertmanager and always fire against a receiver. There are integrations with various notification mechanisms that send a notification when this alert is not firing. For example the "DeadMansSnitch" integration in PagerDuty.'
-const ALERT_SUMMARY = 'An alert that should always be firing to certify that Alertmanager is working properly.'
-
-const SILENCE_COMMENT = 'test comment';
-
-
 
 describe('BVT: Monitoring', () => {
 
@@ -101,17 +92,17 @@ describe('BVT: Monitoring', () => {
     listPage.ARRows.shouldBeLoaded();
 
     cy.log('5.2. filter Alerts and click on Alert');
-    listPage.filter.byName(`${ALERTNAME}`);
+    listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
     listPage.ARRows.countShouldBe(1);
-    listPage.ARRows.ARShouldBe(`${ALERTNAME}`, `${SEVERITY}`, 1, 'Firing');
+    listPage.ARRows.ARShouldBe(`${WatchdogAlert.ALERTNAME}`, `${WatchdogAlert.SEVERITY}`, 1, 'Firing');
     listPage.ARRows.expandRow();
-    listPage.ARRows.AShouldBe(`${ALERTNAME}`, `${SEVERITY}`, `${NAMESPACE}`);
+    listPage.ARRows.AShouldBe(`${WatchdogAlert.ALERTNAME}`, `${WatchdogAlert.SEVERITY}`, `${WatchdogAlert.NAMESPACE}`);
     listPage.ARRows.clickAlert();
 
     cy.log('5.3. click on Alert Details Page');
-    commonPages.titleShouldHaveText(`${ALERTNAME}`);
-    commonPages.detailsPage.common(`${ALERTNAME}`, `${SEVERITY}`);
-    commonPages.detailsPage.alert(`${ALERTNAME}`);
+    commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
+    commonPages.detailsPage.common(`${WatchdogAlert.ALERTNAME}`, `${WatchdogAlert.SEVERITY}`);
+    commonPages.detailsPage.alert(`${WatchdogAlert.ALERTNAME}`);
 
     const timeIntervalValue = getValFromElement(`[data-ouia-component-id^="OUIA-Generated-TextInputBase"]`);
     timeIntervalValue.then((value) => {
@@ -119,20 +110,21 @@ describe('BVT: Monitoring', () => {
     });
 
     cy.log('5.4. click on Alert Rule link');
-    detailsPage.clickAlertRule(`${ALERTNAME}`);
-    commonPages.titleShouldHaveText(`${ALERTNAME}`);
+    detailsPage.clickAlertRule(`${WatchdogAlert.ALERTNAME}`);
+    commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
     commonPages.detailsPage.alertRule;
-    commonPages.detailsPage.common(`${ALERTNAME}`, `${SEVERITY}`);
+    commonPages.detailsPage.common(`${WatchdogAlert.ALERTNAME}`, `${WatchdogAlert.SEVERITY}`);
     cy.get(`[class="pf-v6-c-code-block__content"]`).invoke('text').then((expText) => {
       cy.log(`${expText}`);
       cy.wrap(expText).as('alertExpression');
-    });
+      });
+    
 
     cy.log('5.5. click on Alert Details Page');
-    detailsPage.clickAlertDesc(`${ALERT_DESC}`);
-    commonPages.titleShouldHaveText(`${ALERTNAME}`);
-    commonPages.detailsPage.common(`${ALERTNAME}`, `${SEVERITY}`);
-    commonPages.detailsPage.alert(`${ALERTNAME}`);
+    detailsPage.clickAlertDesc(`${WatchdogAlert.ALERT_DESC}`);
+    commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
+    commonPages.detailsPage.common(`${WatchdogAlert.ALERTNAME}`, `${WatchdogAlert.SEVERITY}`);
+    commonPages.detailsPage.alert(`${WatchdogAlert.ALERTNAME}`);
 
     cy.log('5.6. click on Inspect on Alert Details Page');
     detailsPage.clickInspectAlertPage();
@@ -152,63 +144,12 @@ describe('BVT: Monitoring', () => {
     cy.visit('/');
     cy.log('6.1 use sidebar nav to go to Observe > Alerting');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-
-    cy.intercept('GET', '/api/prometheus/api/v1/rules?', {
-      data: {
-        groups: [
-          {
-            file: 'dummy-file',
-            interval: 30,
-            name: 'general.rules',
-            rules: [
-              {
-                state: 'firing',
-                name: `${ALERTNAME}`,
-                query: 'vector(1)',
-                duration: 0,
-                labels: {
-                  // namespace: `${NAMESPACE}`,
-                  prometheus: 'openshift-monitoring/k8s',
-                  severity: `${SEVERITY}`,
-                },
-                annotations: {
-                  description:
-                    `${ALERT_DESC}`,
-                  summary:
-                    `${ALERT_SUMMARY}`,
-                },
-                alerts: [
-                  {
-                    labels: {
-                      alertname: `${ALERTNAME}`,
-                      namespace: `${NAMESPACE}`,
-                      severity: `${SEVERITY}`,
-                    },
-                    annotations: {
-                      description:
-                        `${ALERT_DESC}`,
-                      summary:
-                        `${ALERT_SUMMARY}`,
-                    },
-                    state: 'firing',
-                    activeAt: '2023-04-10T12:00:00.123456789Z',
-                    value: '1e+00',
-                    'partialResponseStrategy': 'WARN',
-                  },
-                ],
-                health: 'ok',
-                type: 'alerting',
-              },
-            ],
-          },
-        ],
-      },
-    });
+    alerts.getWatchdogAlert();
 
     cy.log('6.3 filter to Watchdog alert');
     nav.tabs.switchTab('Alerts');
     listPage.ARRows.shouldBeLoaded();
-    listPage.filter.byName(`${ALERTNAME}`);
+    listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
     listPage.ARRows.countShouldBe(1);
 
     cy.log('6.4 silence alert');
@@ -222,9 +163,9 @@ describe('BVT: Monitoring', () => {
     silenceAlertPage.silenceAlertSectionDefault();
     silenceAlertPage.durationSectionDefault();
     silenceAlertPage.alertLabelsSectionDefault();
-    silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('alertname', `${ALERTNAME}`, false, false);
+    silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('alertname', `${WatchdogAlert.ALERTNAME}`, false, false);
     // silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('severity', `${SEVERITY}`, false, false);
-    silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('namespace', `${NAMESPACE}`, false, false);
+    silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('namespace', `${WatchdogAlert.NAMESPACE}`, false, false);
     silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('prometheus', 'openshift-monitoring/k8s', false, false);
 
     // Change duration
@@ -239,22 +180,22 @@ describe('BVT: Monitoring', () => {
     // Change duration back again
     silenceAlertPage.setForAndStartImmediately('2h', true);
     // Add comment and submit
-    silenceAlertPage.addComment(SILENCE_COMMENT);
+    silenceAlertPage.addComment(SilenceComment.SILENCE_COMMENT);
     silenceAlertPage.clickSubmit();
 
     // After creating the Silence, should be redirected to its details page
     cy.log('6.6 Assert Silence details page');
-    silenceDetailsPage.assertSilenceDetailsPage(`${ALERTNAME}`, 'Silence details', 'alertname=Watchdog');
+    silenceDetailsPage.assertSilenceDetailsPage(`${WatchdogAlert.ALERTNAME}`, 'Silence details', 'alertname=Watchdog');
 
     cy.log('6.7 Click on Firing alerts');
-    silenceDetailsPage.clickOnFiringAlerts(`${ALERTNAME}`);
-    commonPages.titleShouldHaveText(`${ALERTNAME}`);
+    silenceDetailsPage.clickOnFiringAlerts(`${WatchdogAlert.ALERTNAME}`);
+    commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
     detailsPage.sectionHeaderShouldExist('Alert details');
     detailsPage.labelShouldExist('alertname=Watchdog');
 
     cy.log('6.8 Click on Silenced by');
-    detailsPage.clickOnSilencedBy(`${ALERTNAME}`);
-    commonPages.titleShouldHaveText(`${ALERTNAME}`);
+    detailsPage.clickOnSilencedBy(`${WatchdogAlert.ALERTNAME}`);
+    commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
     detailsPage.sectionHeaderShouldExist('Silence details');
     detailsPage.labelShouldExist('alertname=Watchdog');
 
@@ -262,19 +203,19 @@ describe('BVT: Monitoring', () => {
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     nav.tabs.switchTab('Silences');
     silencesListPage.shouldBeLoaded();
-    listPage.filter.removeIndividualTag('Active');
-    listPage.filter.removeIndividualTag('Pending');
-    silencesListPage.filter.byName(`${ALERTNAME}`);
+    listPage.filter.removeIndividualTag(SilenceState.ACTIVE);
+    listPage.filter.removeIndividualTag(SilenceState.PENDING);
+    silencesListPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
     listPage.filter.clickFilter(true, false);
-    listPage.filter.selectFilterOption(false, 'Active', true);
-    silencesListPage.rows.shouldBe(`${ALERTNAME}`, 'Active');
+    listPage.filter.selectFilterOption(false, SilenceState.ACTIVE, true);
+    silencesListPage.rows.shouldBe(`${WatchdogAlert.ALERTNAME}`, SilenceState.ACTIVE);
 
     cy.log('6.10 verify on Alerts list page again');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     listPage.filter.clearAllFilters();
-    listPage.filter.selectFilterOption(true, 'Silenced', true);
-    listPage.filter.byName(`${ALERTNAME}`);
-    listPage.ARRows.ARShouldBe(`${ALERTNAME}`, `${SEVERITY}`, 1, 'Silenced');
+    listPage.filter.selectFilterOption(true, AlertsAlertState.SILENCED, true);
+    listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
+    listPage.ARRows.ARShouldBe(`${WatchdogAlert.ALERTNAME}`, `${WatchdogAlert.SEVERITY}`, 1, AlertsAlertState.SILENCED);
 
     cy.log('6.11 expires the Silence');
     listPage.ARRows.expandRow();
@@ -284,8 +225,8 @@ describe('BVT: Monitoring', () => {
     cy.log('6.12 verify on Alerts list page again');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     listPage.filter.clearAllFilters();
-    listPage.filter.byName(`${ALERTNAME}`);
-    listPage.ARRows.ARShouldBe(`${ALERTNAME}`, `${SEVERITY}`, 1, 'Firing');
+    listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
+    listPage.ARRows.ARShouldBe(`${WatchdogAlert.ALERTNAME}`, `${WatchdogAlert.SEVERITY}`, 1, AlertsAlertState.FIRING);
 
   });
 });

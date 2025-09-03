@@ -28,6 +28,19 @@ export enum Severity {
   NONE = 'None',
 };
 
+export enum SilenceState {
+  ACTIVE = 'Active',
+  PENDING = 'Pending',
+  EXPIRED = 'Expired',
+};
+
+export enum MainTagState {
+  ALERT_STATE = 'Alert State',
+  SEVERITY = 'Severity',
+  SOURCE = 'Source',
+  SILENCE_STATE = 'Silence State',
+};
+
 export enum Source {
   PLATFORM = 'Platform',
   USER = 'User',
@@ -177,4 +190,17 @@ export enum API_PERFORMANCE_DASHBOARD_PANELS {
   API_PERFORMANCE_PANEL_14 = 'Response Bytes per Second by Instance',
   API_PERFORMANCE_PANEL_15 = 'Response Bytes per Second by Resource and Verb',
   API_PERFORMANCE_PANEL_16 = 'Priority & Fairness: Requests Rejected',
+}
+
+export enum WatchdogAlert {
+  ALERTNAME = 'Watchdog',
+  NAMESPACE = 'openshift-monitoring',
+  SEVERITY = 'None',
+  ALERT_DESC = 'This is an alert meant to ensure that the entire alerting pipeline is functional. This alert is always firing, therefore it should always be firing in Alertmanager and always fire against a receiver. There are integrations with various notification mechanisms that send a notification when this alert is not firing. For example the "DeadMansSnitch" integration in PagerDuty.',
+  ALERT_SUMMARY = 'An alert that should always be firing to certify that Alertmanager is working properly.',
+  
+}
+
+export enum SilenceComment {
+  SILENCE_COMMENT = 'test comment',
 }
