@@ -44,7 +44,6 @@ import {
   setAlertsAreLoading,
   setAlertsData,
   setAlertsTableData,
-  setChooseIncident,
   setFilteredIncidentsData,
   setIncidentPageFilterType,
   setIncidents,
@@ -157,13 +156,6 @@ const IncidentsPage = () => {
           },
         }),
       );
-      if (urlParams?.groupId?.length > 0) {
-        dispatch(
-          setChooseIncident({
-            groupId: urlParams?.groupId?.at(0),
-          }),
-        );
-      }
     } else {
       // If no URL parameters exist, set the URL based on incidentsInitialState
       updateBrowserUrl(incidentsInitialState);
@@ -187,7 +179,11 @@ const IncidentsPage = () => {
         filteredIncidentsData: filterIncident(incidentsActiveFilters, incidents),
       }),
     );
-  }, [incidentsActiveFilters.state, incidentsActiveFilters.severity]);
+  }, [
+    incidentsActiveFilters.state,
+    incidentsActiveFilters.severity,
+    incidentsActiveFilters.groupId,
+  ]);
 
   const now = Date.now();
   const safeFetch = useSafeFetch();
@@ -334,7 +330,7 @@ const IncidentsPage = () => {
             <Spinner aria-label="incidents-chart-spinner" />
           </Bullseye>
         ) : (
-          <PageSection hasBodyWrapper={false}>
+          <PageSection hasBodyWrapper={false} className="incidents-page-main-section">
             <Toolbar
               id="toolbar-with-filter"
               collapseListedFiltersBreakpoint="xl"
@@ -342,9 +338,10 @@ const IncidentsPage = () => {
                 dispatch(
                   setIncidentsActiveFilters({
                     incidentsActiveFilters: {
+                      ...incidentsActiveFilters,
                       severity: [],
-                      days: ['7 days'],
                       state: [],
+                      groupId: [],
                     },
                   }),
                 )

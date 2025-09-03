@@ -8,8 +8,7 @@ import {
   MenuToggle,
   Badge,
 } from '@patternfly/react-core';
-import FilterIcon from '@patternfly/react-icons/dist/js/icons/filter-icon';
-import { getFilterKey } from './utils'; // Assuming this utility function exists
+import { getFilterKey } from './utils';
 
 interface IncidentFilterToolbarItemProps {
   categoryName: string;
@@ -97,9 +96,9 @@ const IncidentFilterToolbarItem: React.FC<IncidentFilterToolbarItemProps> = ({
               ref={toggleRef}
               onClick={onIncidentFilterToggle}
               isExpanded={incidentFilterIsExpanded}
-              icon={<FilterIcon />}
               badge={
-                Object.entries(incidentsActiveFilters[getFilterKey(categoryName)]).length > 0 ? (
+                Object.entries(incidentsActiveFilters?.[getFilterKey(categoryName)] || {}).length >
+                0 ? (
                   <Badge isRead>
                     {Object.entries(incidentsActiveFilters[getFilterKey(categoryName)]).length}
                   </Badge>

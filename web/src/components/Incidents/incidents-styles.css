@@ -25,3 +25,7 @@
   margin-top: -1px;
   width: 0;
 }
+
+.incidents-page-main-section.pf-v6-c-page__main-section {
+  gap: 0;
+}
