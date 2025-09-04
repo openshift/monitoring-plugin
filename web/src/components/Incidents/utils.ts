@@ -17,13 +17,6 @@ import {
   Timestamps,
 } from './model';
 
-export const isIncidentFilter = (filter: unknown): filter is IncidentFilters => {
-  return (
-    typeof filter === 'string' &&
-    ['Critical', 'Warning', 'Firing', 'Informative', 'Resolved'].includes(filter)
-  );
-};
-
 function consolidateAndMergeIntervals(data: Incident, dateArray: SpanDates) {
   const severityRank = { 2: 2, 1: 1, 0: 0 };
   const filteredValues = filterAndSortValues(data, severityRank);
@@ -331,7 +324,7 @@ export function filterIncident(filters: IncidentFiltersCombined, incidents: Arra
   };
 
   return incidents.filter((incident) => {
-    if (!filters.severity.length && !filters.state.length) {
+    if (!filters?.severity?.length && !filters?.state?.length && !filters?.groupId?.length) {
       return true;
     }
 
@@ -345,14 +338,17 @@ export function filterIncident(filters: IncidentFiltersCombined, incidents: Arra
         ? filters.state.some((filter) => incident[conditions[filter]] === true)
         : true; // True if no state filters
 
+    const isIncidentIdMatch =
+      filters.groupId?.length > 0 ? filters.groupId.includes(incident.group_id) : true;
+
     // Combine conditions with AND behavior between categories
-    return isSeverityMatch && isStateMatch;
+    return isSeverityMatch && isStateMatch && isIncidentIdMatch;
   });
 }
 
 export const onDeleteIncidentFilterChip = (
   type: string,
-  id: IncidentFilters | undefined,
+  id: IncidentFilters | string,
   filters: IncidentFiltersCombined,
   setFilters,
 ) => {
@@ -363,6 +359,7 @@ export const onDeleteIncidentFilterChip = (
           severity: filters.severity,
           days: filters.days,
           state: filters.state.filter((fil) => fil !== id),
+          groupId: filters.groupId,
         },
       }),
     );
@@ -374,6 +371,19 @@ export const onDeleteIncidentFilterChip = (
           severity: filters.severity.filter((fil) => fil !== id),
           days: filters.days,
           state: filters.state,
+          groupId: filters.groupId,
+        },
+      }),
+    );
+  }
+  if (type === 'Incident ID') {
+    setFilters(
+      setIncidentsActiveFilters({
+        incidentsActiveFilters: {
+          severity: filters.severity,
+          days: filters.days,
+          state: filters.state,
+          groupId: filters.groupId.filter((fil) => fil !== id),
         },
       }),
     );
@@ -392,6 +402,7 @@ export const onDeleteGroupIncidentFilterChip = (
           severity: filters.severity,
           days: filters.days,
           state: [],
+          groupId: filters.groupId,
         },
       }),
     );
@@ -402,6 +413,18 @@ export const onDeleteGroupIncidentFilterChip = (
           severity: [],
           days: filters.days,
           state: filters.state,
+          groupId: filters.groupId,
+        },
+      }),
+    );
+  } else if (category === 'Incident ID') {
+    setFilters(
+      setIncidentsActiveFilters({
+        incidentsActiveFilters: {
+          severity: filters.severity,
+          days: filters.days,
+          state: filters.state,
+          groupId: [],
         },
       }),
     );
@@ -412,6 +435,7 @@ export const onDeleteGroupIncidentFilterChip = (
           severity: [],
           days: filters.days,
           state: [],
+          groupId: [],
         },
       }),
     );
@@ -455,11 +479,30 @@ export const changeDaysFilter = (
 ) => {
   dispatch(
     setIncidentsActiveFilters({
-      incidentsActiveFilters: { days: [days], severity: filters.severity, state: filters.state },
+      incidentsActiveFilters: {
+        days: [days],
+        severity: filters.severity,
+        state: filters.state,
+        groupId: filters.groupId,
+      },
     }),
   );
 };
 
+/**
+ * A wrapper function that handles a user's selection on an incident filter.
+ *
+ * This function acts as the public entry point for filter selection,
+ * passing the event details and filter state to the internal `onSelect`
+ * helper function to perform the state update.
+ *
+ * @param {Event} event - The DOM event from the checkbox or filter selection.
+ * @param {string} selection - The value of the filter being selected or deselected.
+ * @param {Function} dispatch - The Redux dispatch function to trigger state changes.
+ * @param {object} incidentsActiveFilters - The current state of active filters.
+ * @param {string} filterCategoryType - The category of the filter (e.g., 'Incident ID', 'severity').
+ * @returns {void}
+ */
 export const onIncidentFiltersSelect = (
   event,
   selection: IncidentFilters,
@@ -470,19 +513,45 @@ export const onIncidentFiltersSelect = (
   onSelect(event, selection, dispatch, incidentsActiveFilters, filterCategoryType);
 };
 
+/**
+ * An internal helper function that manages the logic for selecting or deselecting a filter.
+ *
+ * It updates the Redux state based on the filter type. For 'groupId', it replaces the
+ * existing selection (single-select behavior). For all other filters, it adds or
+ * removes the selection from the array (multi-select behavior).
+ *
+ * @param {Event} event - The DOM event from the checkbox or filter selection.
+ * @param {string} selection - The value of the filter being selected or deselected.
+ * @param {Function} dispatch - The Redux dispatch function to trigger state changes.
+ * @param {object} incidentsActiveFilters - The current state of active filters.
+ * @param {string} filterCategoryType - The category of the filter.
+ * @returns {void}
+ */
 const onSelect = (event, selection, dispatch, incidentsActiveFilters, filterCategoryType) => {
-  const checked = event.target.checked;
+  let effectiveFilterType = filterCategoryType;
+
+  if (effectiveFilterType === 'incident id') {
+    effectiveFilterType = 'groupId';
+  }
 
   dispatch(() => {
-    const targetArray = incidentsActiveFilters[filterCategoryType] || [];
+    const targetArray = incidentsActiveFilters[effectiveFilterType] || [];
     const newFilters = { ...incidentsActiveFilters };
 
-    if (checked) {
-      if (!targetArray.includes(selection)) {
-        newFilters[filterCategoryType] = [...targetArray, selection];
-      }
+    // Determine if the item is already selected by checking the current state.
+    // This replaces the need for event.target.checked.
+    const isSelected = targetArray.includes(selection);
+
+    if (effectiveFilterType === 'groupId') {
+      // Single-select logic: If already selected, unselect it. Otherwise, select it.
+      newFilters[effectiveFilterType] = isSelected ? [] : [selection];
     } else {
-      newFilters[filterCategoryType] = targetArray.filter((value) => value !== selection);
+      // Multi-select logic: If already selected, remove it. Otherwise, add it.
+      if (isSelected) {
+        newFilters[effectiveFilterType] = targetArray.filter((value) => value !== selection);
+      } else {
+        newFilters[effectiveFilterType] = [...targetArray, selection];
+      }
     }
 
     dispatch(
@@ -507,4 +576,45 @@ export const parseUrlParams = (search) => {
   });
 
   return result;
+};
+
+/**
+ * Generates an array of unique incident ID options for a filter.
+ *
+ * This function iterates through a list of incident objects,
+ * extracts their unique `group_id`s, and returns them in a format
+ * suitable for a dropdown or filter component.
+ *
+ * @param {Array<Incident>} incidents - An array of incident objects.
+ * @returns {{value: string}[]} An array of objects, where each object has a `value` key with a unique incident ID.
+ */
+export const getIncidentIdOptions = (incidents: Array<Incident>) => {
+  const uniqueIds = new Set<string>();
+  incidents.forEach((incident) => {
+    if (incident.group_id) {
+      uniqueIds.add(incident.group_id);
+    }
+  });
+  return Array.from(uniqueIds).map((id) => ({
+    value: id,
+    description: `Incident ID: ${id}`,
+  }));
+};
+
+/**
+ * Maps a human-readable filter category name to its corresponding data key.
+ *
+ * This function is used to convert a display name (e.g., "Incident ID")
+ * into the internal key used to access filter data (e.g., "groupId").
+ * It handles a specific case for "Incident ID" and converts all other
+ * category names to lowercase.
+ *
+ * @param {string} categoryName - The human-readable name of the filter category.
+ * @returns {string} The corresponding data key for the filter.
+ */
+export const getFilterKey = (categoryName: string): string => {
+  if (categoryName === 'Incident ID') {
+    return 'groupId';
+  }
+  return categoryName.toLowerCase();
 };

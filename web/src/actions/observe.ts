@@ -32,7 +32,6 @@ export enum ActionType {
   ShowGraphs = 'showGraphs',
   SetIncidents = 'setIncidents',
   SetIncidentsActiveFilters = 'setIncidentsActiveFilters',
-  SetChooseIncident = 'setChooseIncident',
   SetAlertsData = 'setAlertsData',
   SetAlertsTableData = 'setAlertsTableData',
   SetAlertsAreLoading = 'setAlertsAreLoading',
@@ -145,8 +144,6 @@ export const setIncidents = (incidents) => action(ActionType.SetIncidents, incid
 export const setIncidentsActiveFilters = (incidentsActiveFilters) =>
   action(ActionType.SetIncidentsActiveFilters, incidentsActiveFilters);
 
-export const setChooseIncident = (groupId) => action(ActionType.SetChooseIncident, groupId);
-
 export const setAlertsData = (alertsData) => action(ActionType.SetAlertsData, alertsData);
 
 export const setAlertsTableData = (alertsTableData) =>
@@ -196,7 +193,6 @@ type Actions = {
   showGraphs: typeof showGraphs;
   setIncidents: typeof setIncidents;
   setIncidentsActiveFilters: typeof setIncidentsActiveFilters;
-  setChooseIncident: typeof setChooseIncident;
   setAlertsData: typeof setAlertsData;
   setAlertsTableData: typeof setAlertsTableData;
   setAlertsAreLoading: typeof setAlertsAreLoading;

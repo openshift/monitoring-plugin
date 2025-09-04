@@ -8,19 +8,20 @@ import {
   MenuToggle,
   Badge,
 } from '@patternfly/react-core';
-import FilterIcon from '@patternfly/react-icons/dist/js/icons/filter-icon';
-import { isIncidentFilter } from './utils'; // Assuming this utility function exists
+import { getFilterKey } from './utils';
 
 interface IncidentFilterToolbarItemProps {
   categoryName: string;
   toggleLabel: string;
   options: {
     value: string;
-    description: string;
+    description?: string;
   }[];
   incidentsActiveFilters: {
     severity: string[];
     state: string[];
+    days: string[];
+    groupId: string[];
   };
   onDeleteIncidentFilterChip: (
     category: string,
@@ -61,9 +62,9 @@ const IncidentFilterToolbarItem: React.FC<IncidentFilterToolbarItemProps> = ({
     <ToolbarItem>
       <ToolbarFilter
         showToolbarItem={showToolbarItem}
-        labels={incidentsActiveFilters[categoryName.toLowerCase()]}
+        labels={incidentsActiveFilters[getFilterKey(categoryName)]}
         deleteLabel={(category, chip) => {
-          if (isIncidentFilter(chip) && typeof category === 'string') {
+          if (typeof category === 'string' && typeof chip === 'string') {
             onDeleteIncidentFilterChip(category, chip, incidentsActiveFilters, dispatch);
           }
         }}
@@ -77,9 +78,9 @@ const IncidentFilterToolbarItem: React.FC<IncidentFilterToolbarItemProps> = ({
           role="menu"
           aria-label="Filters"
           isOpen={incidentFilterIsExpanded}
-          selected={incidentsActiveFilters[categoryName.toLowerCase()]}
+          selected={incidentsActiveFilters[getFilterKey(categoryName)]}
           onSelect={(event, selection) => {
-            if (isIncidentFilter(selection)) {
+            if (typeof selection === 'string') {
               onIncidentFiltersSelect(
                 event,
                 selection,
@@ -95,11 +96,11 @@ const IncidentFilterToolbarItem: React.FC<IncidentFilterToolbarItemProps> = ({
               ref={toggleRef}
               onClick={onIncidentFilterToggle}
               isExpanded={incidentFilterIsExpanded}
-              icon={<FilterIcon />}
               badge={
-                Object.entries(incidentsActiveFilters[categoryName.toLowerCase()]).length > 0 ? (
+                Object.entries(incidentsActiveFilters?.[getFilterKey(categoryName)] || {}).length >
+                0 ? (
                   <Badge isRead>
-                    {Object.entries(incidentsActiveFilters[categoryName.toLowerCase()]).length}
+                    {Object.entries(incidentsActiveFilters[getFilterKey(categoryName)]).length}
                   </Badge>
                 ) : undefined
               }
@@ -114,11 +115,11 @@ const IncidentFilterToolbarItem: React.FC<IncidentFilterToolbarItemProps> = ({
               <SelectOption
                 key={option.value}
                 value={option.value}
-                isSelected={incidentsActiveFilters[categoryName.toLowerCase()].includes(
+                isSelected={(incidentsActiveFilters[getFilterKey(categoryName)] ?? []).includes(
                   option.value,
                 )}
-                description={option.description}
-                hasCheckbox
+                description={option?.description}
+                hasCheckbox={categoryName === 'Incident ID' ? false : true}
               >
                 {option.value}
               </SelectOption>

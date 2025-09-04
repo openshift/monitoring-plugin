@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   Chart,
@@ -24,7 +24,7 @@ import {
   t_global_color_status_warning_default,
 } from '@patternfly/react-tokens';
 import { useDispatch, useSelector } from 'react-redux';
-import { setAlertsAreLoading, setChooseIncident } from '../../../actions/observe';
+import { setAlertsAreLoading, setIncidentsActiveFilters } from '../../../actions/observe';
 import { MonitoringState } from '../../../reducers/observe';
 import '../incidents-styles.css';
 import { IncidentsTooltip } from '../IncidentsTooltip';
@@ -51,10 +51,19 @@ const IncidentsChart = ({
   const [chartHeight, setChartHeight] = useState<number>();
   const dateValues = useMemo(() => generateDateArray(chartDays), [chartDays]);
 
+  const incidentsActiveFilters = useSelector((state: MonitoringState) =>
+    state.plugins.mcp.getIn(['incidentsData', 'incidentsActiveFilters']),
+  );
+  const selectedGroupId = incidentsActiveFilters.groupId?.[0] ?? null;
+
   const chartData = useMemo(() => {
     if (!Array.isArray(incidentsData) || incidentsData.length === 0) return [];
-    return incidentsData.map((incident) => createIncidentsChartBars(incident, dateValues));
-  }, [incidentsData, dateValues]);
+    const filteredIncidents = selectedGroupId
+      ? incidentsData.filter((incident) => incident.group_id === selectedGroupId)
+      : incidentsData;
+
+    return filteredIncidents.map((incident) => createIncidentsChartBars(incident, dateValues));
+  }, [incidentsData, dateValues, selectedGroupId]);
 
   useEffect(() => {
     setIsLoading(false);
@@ -79,40 +88,30 @@ const IncidentsChart = ({
     return () => observer();
   }, []);
 
-  const selectedId = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.getIn(['incidentsData', 'groupId']),
-  );
-  const incidentsActiveFilters = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.getIn(['incidentsData', 'incidentsActiveFilters']),
-  );
-
-  const isHidden = useCallback(
-    (group_id) => selectedId !== '' && selectedId !== group_id,
-    [selectedId],
-  );
   const clickHandler = (data, datum) => {
-    if (datum.datum.group_id === selectedId) {
+    if (datum.datum.group_id === selectedGroupId) {
       dispatch(
-        setChooseIncident({
-          groupId: '',
+        setIncidentsActiveFilters({
+          incidentsActiveFilters: {
+            ...incidentsActiveFilters,
+            groupId: [],
+          },
         }),
       );
       updateBrowserUrl(incidentsActiveFilters, '');
       dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
     } else {
       dispatch(
-        setChooseIncident({
-          groupId: datum.datum.group_id,
+        setIncidentsActiveFilters({
+          incidentsActiveFilters: {
+            ...incidentsActiveFilters,
+            groupId: [datum.datum.group_id],
+          },
         }),
       );
       updateBrowserUrl(incidentsActiveFilters, datum.datum.group_id);
     }
   };
-
-  const getOpacity = useCallback(
-    (datum) => (datum.fillOpacity = isHidden(datum.group_id) ? '0.3' : '1'),
-    [isHidden],
-  );
 
   return (
     <Card className="incidents-chart-card" style={{ overflow: 'visible' }}>
@@ -140,7 +139,7 @@ const IncidentsChart = ({
                     }
                     return `Severity: ${datum.name}
                     Component: ${datum.componentList?.join(', ')}
-                    Incident ID: 
+                    Incident ID:
                     ${datum.group_id}
                     Start: ${formatDate(new Date(datum.y0), true)}
                     End: ${datum.firing ? '---' : formatDate(new Date(datum.y), true)}`;
@@ -209,7 +208,7 @@ const IncidentsChart = ({
                         data: {
                           fill: ({ datum }) => datum.fill,
                           stroke: ({ datum }) => datum.fill,
-                          fillOpacity: ({ datum }) => (datum.nodata ? 0 : getOpacity(datum)),
+                          fillOpacity: ({ datum }) => (datum.nodata ? 0 : 1),
                           cursor: 'pointer',
                         },
                       }}

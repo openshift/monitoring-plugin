@@ -62,3 +62,9 @@ export type IncidentFiltersCombined = {
   severity?: Array<string>;
   state?: Array<string>;
 };
+
+export type IncidentsPageFiltersExpandedState = {
+  severity: boolean;
+  state: boolean;
+  groupId: boolean;
+};

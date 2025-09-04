@@ -94,14 +94,15 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
           days: ['7 days'],
           severity: ['Critical', 'Warning'],
           state: ['Firing'],
+          groupId: [],
         },
         incidentsActiveFilters: {
           days: [],
           severity: [],
           state: [],
+          groupId: [],
         },
         incidentPageFilterType: 'Severity',
-        groupId: '',
       }),
     });
   }
@@ -323,10 +324,6 @@ export default (state: ObserveState, action: ObserveAction): ObserveState => {
         ['incidentsData', 'incidentsActiveFilters'],
         action.payload.incidentsActiveFilters,
       );
-    }
-
-    case ActionType.SetChooseIncident: {
-      return state.setIn(['incidentsData', 'groupId'], action.payload.groupId);
     }
 
     case ActionType.SetAlertsData: {
