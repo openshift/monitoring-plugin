@@ -124,9 +124,6 @@ const IncidentsPage = () => {
   const incidentsActiveFilters = useSelector((state: MonitoringState) =>
     state.plugins.mcp.getIn(['incidentsData', 'incidentsActiveFilters']),
   );
-  const incidentGroupId = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.getIn(['incidentsData', 'groupId']),
-  );
   const alertsData = useSelector((state: MonitoringState) =>
     state.plugins.mcp.getIn(['incidentsData', 'alertsData']),
   );
@@ -142,6 +139,7 @@ const IncidentsPage = () => {
     state.plugins.mcp.getIn(['incidentsData', 'incidentPageFilterType']),
   );
 
+  const selectedGroupId = incidentsActiveFilters.groupId?.[0] ?? null;
   useEffect(() => {
     const hasUrlParams = Object.keys(urlParams).length > 0;
     if (hasUrlParams) {
@@ -170,7 +168,7 @@ const IncidentsPage = () => {
   }, []);
 
   useEffect(() => {
-    updateBrowserUrl(incidentsActiveFilters, incidentGroupId);
+    updateBrowserUrl(incidentsActiveFilters, selectedGroupId);
   }, [incidentsActiveFilters]);
 
   useEffect(() => {
@@ -284,13 +282,13 @@ const IncidentsPage = () => {
   }, [timeRanges]);
 
   useEffect(() => {
-    if (incidentGroupId) {
+    if (selectedGroupId) {
       Promise.all(
         timeRanges.map(async (range) => {
           const response = await fetchDataForIncidentsAndAlerts(
             safeFetch,
             range,
-            `cluster:health:components:map{group_id='${incidentGroupId}'}`,
+            `cluster:health:components:map{group_id='${selectedGroupId}'}`,
             perspective,
           );
           return response.data.result;
@@ -307,7 +305,7 @@ const IncidentsPage = () => {
           console.log(err);
         });
     }
-  }, [incidentGroupId, timeRanges]);
+  }, [selectedGroupId, timeRanges]);
 
   const onSelect = (_event, value) => {
     if (value) {
@@ -334,7 +332,7 @@ const IncidentsPage = () => {
             <Toolbar
               id="toolbar-with-filter"
               collapseListedFiltersBreakpoint="xl"
-              clearAllFilters={() =>
+              clearAllFilters={() => {
                 dispatch(
                   setIncidentsActiveFilters({
                     incidentsActiveFilters: {
@@ -344,8 +342,9 @@ const IncidentsPage = () => {
                       groupId: [],
                     },
                   }),
-                )
-              }
+                );
+                dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
+              }}
             >
               <ToolbarContent>
                 <ToolbarGroup>
@@ -373,6 +372,7 @@ const IncidentsPage = () => {
                           {incidentPageFilterTypeSelected}
                         </MenuToggle>
                       )}
+                      style={{ width: '145px' }}
                     >
                       <SelectOption
                         value="Severity"
@@ -394,7 +394,9 @@ const IncidentsPage = () => {
                       </SelectOption>
                     </Select>
                   </ToolbarItem>
-                  <ToolbarItem>
+                  <ToolbarItem
+                    className={incidentPageFilterTypeSelected !== 'Severity' ? 'pf-m-hidden' : ''}
+                  >
                     <IncidentFilterToolbarItem
                       categoryName="Severity"
                       toggleLabel="Severity filters"
@@ -414,7 +416,9 @@ const IncidentsPage = () => {
                       showToolbarItem={incidentPageFilterTypeSelected?.includes('Severity')}
                     />
                   </ToolbarItem>
-                  <ToolbarItem>
+                  <ToolbarItem
+                    className={incidentPageFilterTypeSelected !== 'State' ? 'pf-m-hidden' : ''}
+                  >
                     <IncidentFilterToolbarItem
                       categoryName="State"
                       toggleLabel="State filters"
@@ -434,7 +438,11 @@ const IncidentsPage = () => {
                       showToolbarItem={incidentPageFilterTypeSelected?.includes('State')}
                     />
                   </ToolbarItem>
-                  <ToolbarItem>
+                  <ToolbarItem
+                    className={
+                      incidentPageFilterTypeSelected !== 'Incident ID' ? 'pf-m-hidden' : ''
+                    }
+                  >
                     <IncidentFilterToolbarItem
                       categoryName="Incident ID"
                       toggleLabel="Incident ID filters"
@@ -445,7 +453,7 @@ const IncidentsPage = () => {
                       incidentFilterIsExpanded={filtersExpanded.groupId}
                       onIncidentFiltersSelect={onIncidentFiltersSelect}
                       setIncidentIsExpanded={(isExpanded) =>
-                        setFiltersExpanded((prev) => ({ ...prev, incidentId: isExpanded }))
+                        setFiltersExpanded((prev) => ({ ...prev, groupId: isExpanded }))
                       }
                       onIncidentFilterToggle={(ev) =>
                         onFilterToggle(ev, 'groupId', setFiltersExpanded)

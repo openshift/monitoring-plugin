@@ -29,3 +29,7 @@
 .incidents-page-main-section.pf-v6-c-page__main-section {
   gap: 0;
 }
+
+.pf-m-hidden {
+  display: none;
+}

@@ -119,7 +119,7 @@ const IncidentFilterToolbarItem: React.FC<IncidentFilterToolbarItemProps> = ({
                   option.value,
                 )}
                 description={option?.description}
-                hasCheckbox
+                hasCheckbox={categoryName === 'Incident ID' ? false : true}
               >
                 {option.value}
               </SelectOption>

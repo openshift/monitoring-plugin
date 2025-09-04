@@ -479,7 +479,12 @@ export const changeDaysFilter = (
 ) => {
   dispatch(
     setIncidentsActiveFilters({
-      incidentsActiveFilters: { days: [days], severity: filters.severity, state: filters.state },
+      incidentsActiveFilters: {
+        days: [days],
+        severity: filters.severity,
+        state: filters.state,
+        groupId: filters.groupId,
+      },
     }),
   );
 };
@@ -523,7 +528,6 @@ export const onIncidentFiltersSelect = (
  * @returns {void}
  */
 const onSelect = (event, selection, dispatch, incidentsActiveFilters, filterCategoryType) => {
-  const checked = event.target.checked;
   let effectiveFilterType = filterCategoryType;
 
   if (effectiveFilterType === 'incident id') {
@@ -534,19 +538,19 @@ const onSelect = (event, selection, dispatch, incidentsActiveFilters, filterCate
     const targetArray = incidentsActiveFilters[effectiveFilterType] || [];
     const newFilters = { ...incidentsActiveFilters };
 
+    // Determine if the item is already selected by checking the current state.
+    // This replaces the need for event.target.checked.
+    const isSelected = targetArray.includes(selection);
+
     if (effectiveFilterType === 'groupId') {
-      if (checked) {
-        newFilters[effectiveFilterType] = [selection];
-      } else {
-        newFilters[effectiveFilterType] = [];
-      }
+      // Single-select logic: If already selected, unselect it. Otherwise, select it.
+      newFilters[effectiveFilterType] = isSelected ? [] : [selection];
     } else {
-      if (checked) {
-        if (!targetArray.includes(selection)) {
-          newFilters[effectiveFilterType] = [...targetArray, selection];
-        }
-      } else {
+      // Multi-select logic: If already selected, remove it. Otherwise, add it.
+      if (isSelected) {
         newFilters[effectiveFilterType] = targetArray.filter((value) => value !== selection);
+      } else {
+        newFilters[effectiveFilterType] = [...targetArray, selection];
       }
     }
 
@@ -593,6 +597,7 @@ export const getIncidentIdOptions = (incidents: Array<Incident>) => {
   });
   return Array.from(uniqueIds).map((id) => ({
     value: id,
+    description: `Incident ID: ${id}`,
   }));
 };
 
