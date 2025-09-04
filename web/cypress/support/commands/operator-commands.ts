@@ -78,6 +78,7 @@ const operatorUtils = {
       ).then((result) => {
         expect(result.code).to.eq(0);
         cy.log(`CMO CSV updated successfully with Monitoring Plugin image: ${result.stdout}`);
+        cy.reload();
       });
     } else {
       cy.log('MP_IMAGE is NOT set. Skipping patching the image in CMO operator CSV.');
@@ -188,6 +189,7 @@ const operatorUtils = {
       ).then((result) => {
         expect(result.code).to.eq(0);
         cy.log(`COO CSV updated successfully with Monitoring Console Plugin image: ${result.stdout}`);
+        cy.reload();
       });
     } else {
       cy.log('MCP_CONSOLE_IMAGE is NOT set. Skipping patching the image in COO operator CSV.');
@@ -195,8 +197,20 @@ const operatorUtils = {
   },
 
   setupDashboardsAndPlugins(MCP: { namespace: string }): void {
-    cy.log('Create PersesDashboard instance.');
+    cy.log('Create perses-dev namespace.');
+    cy.exec(`oc new-project perses-dev --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+
+    cy.log('Create openshift-cluster-sample-dashboard instance.');
     cy.exec(`oc apply -f ./cypress/fixtures/coo/openshift-cluster-sample-dashboard.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+
+    cy.log('Create perses-dashboard-sample instance.');
+    cy.exec(`oc apply -f ./cypress/fixtures/coo/perses-dashboard-sample.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+
+    cy.log('Create prometheus-overview-variables instance.');
+    cy.exec(`oc apply -f ./cypress/fixtures/coo/prometheus-overview-variables.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+
+    cy.log('Create thanos-compact-overview-1var instance.');
+    cy.exec(`oc apply -f ./cypress/fixtures/coo/thanos-compact-overview-1var.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
     cy.log('Create Thanos Querier instance.');
     cy.exec(`oc apply -f ./cypress/fixtures/coo/thanos-querier-datasource.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
@@ -236,6 +250,7 @@ const operatorUtils = {
       ).then((result) => {
         expect(result.code).to.eq(0);
         cy.log(`CMO CSV reverted successfully with Monitoring Plugin image: ${result.stdout}`);
+        cy.reload();
       });
     } else {
       cy.log('MP_IMAGE is NOT set. Skipping reverting the image in CMO operator CSV.');
@@ -251,6 +266,9 @@ const operatorUtils = {
         `oc delete ${config.kind} ${config.name} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
       );
 
+      cy.log('Remove perses-dev namespace');
+      cy.executeAndDelete(`oc delete namespace perses-dev --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+
       cy.log('Remove cluster-admin role from user.');
       cy.executeAndDelete(
         `oc adm policy remove-cluster-role-from-user cluster-admin ${Cypress.env('LOGIN_USERNAME')} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
@@ -261,15 +279,17 @@ const operatorUtils = {
         `oc delete ${config.kind} ${config.name} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
       );
 
-      cy.log('Remove Cluster Observability Operator');
+      cy.log('Remove Cluster Observability Operator namespace');
       cy.executeAndDelete(`oc delete namespace ${MCP.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+
+      cy.log('Remove perses-dev namespace');
+      cy.executeAndDelete(`oc delete namespace perses-dev --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
       cy.log('Remove cluster-admin role from user.');
       cy.executeAndDelete(
         `oc adm policy remove-cluster-role-from-user cluster-admin ${Cypress.env('LOGIN_USERNAME')} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
       );
 
-      cy.executeAndDelete(`oc label namespace openshift-cluster-observability-operator openshift.io/cluster-monitoring- --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
     }
   }
 };
@@ -301,5 +321,6 @@ Cypress.Commands.add('beforeBlock', (MP: { namespace: string, operatorName: stri
   Cypress.Commands.add('afterBlockCOO', (MCP: { namespace: string, operatorName: string, packageName: string }, MP: { namespace: string, operatorName: string }) => {
     cy.log('After block COO');
     operatorUtils.cleanup(MCP);
+    operatorUtils.revertMonitoringPluginImage(MP);
     cy.log('After block COO completed');
   });

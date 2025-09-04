@@ -11,7 +11,7 @@ export const metricsPage = {
     cy.byTestID(DataTestIDs.MetricDropdownPollInterval).contains(MonitoringRefreshInterval.REFRESH_OFF).should('be.visible');
     cy.byTestID(DataTestIDs.MetricsPageActionsDropdownButton).should('be.visible');
     cy.byTestID(DataTestIDs.MetricHideShowGraphButton).should('be.visible');
-    cy.get(Classes.GraphCard).should('not.exist');
+    cy.byTestID(DataTestIDs.MetricGraph).should('not.exist'); 
     cy.byTestID(DataTestIDs.MetricsPageNoQueryEnteredTitle).should('be.visible');
     cy.byTestID(DataTestIDs.MetricsPageNoQueryEntered).should('be.visible');
     cy.byTestID(DataTestIDs.MetricsPageInsertExampleQueryButton).should('be.visible');
@@ -28,7 +28,7 @@ export const metricsPage = {
     cy.byTestID(DataTestIDs.MetricDropdownPollInterval).contains(MonitoringRefreshInterval.REFRESH_OFF).should('be.visible');
     cy.byTestID(DataTestIDs.MetricsPageActionsDropdownButton).should('be.visible');
     cy.byTestID(DataTestIDs.MetricHideShowGraphButton).should('be.visible');
-    cy.get(Classes.GraphCard).should('be.visible');
+    cy.byTestID(DataTestIDs.MetricGraph).should('be.visible');
     cy.byTestID(DataTestIDs.MetricGraphTimespanDropdown).should('be.visible');
     cy.byTestID(DataTestIDs.MetricGraphTimespanInput).should('be.visible');
     cy.byTestID(DataTestIDs.MetricResetZoomButton).should('be.visible');
@@ -41,7 +41,7 @@ export const metricsPage = {
     cy.get(Classes.MetricsPageQueryInput).eq(0).should('not.have.text', MetricsPageQueryInput.EXPRESSION_PRESS_SHIFT_ENTER_FOR_NEWLINES);
     cy.byTestID(DataTestIDs.MetricsPageDisableEnableQuerySwitch).eq(0).should('have.attr', 'checked');
     cy.byTestID(DataTestIDs.KebabDropdownButton).eq(0).should('be.visible');
-    cy.get(Classes.GraphCard).should('be.visible');
+    cy.byTestID(DataTestIDs.MetricGraph).should('be.visible'); 
     cy.byTestID(DataTestIDs.MetricsPageQueryTable).eq(0).should('be.visible');
     cy.byTestID(DataTestIDs.MetricsPageSelectAllUnselectAllButton).eq(0).should('be.visible');
     cy.byTestID(DataTestIDs.MetricsPageSeriesButton).eq(0).should('be.visible');
@@ -57,7 +57,7 @@ export const metricsPage = {
     cy.byTestID(DataTestIDs.MetricDropdownPollInterval).contains(MonitoringRefreshInterval.REFRESH_OFF).should('be.visible');
     cy.byTestID(DataTestIDs.MetricsPageActionsDropdownButton).should('be.visible');
     cy.byTestID(DataTestIDs.MetricHideShowGraphButton).should('be.visible');
-    cy.get(Classes.GraphCard).should('be.visible');
+    cy.byTestID(DataTestIDs.MetricGraph).should('be.visible');
     cy.byTestID(DataTestIDs.MetricGraphTimespanDropdown).should('be.visible');
     cy.byTestID(DataTestIDs.MetricGraphTimespanInput).should('be.visible');
     cy.byTestID(DataTestIDs.MetricResetZoomButton).should('be.visible');
@@ -92,7 +92,7 @@ export const metricsPage = {
     cy.byTestID(DataTestIDs.MetricsPageNoQueryEnteredTitle).should('not.exist');
     cy.byTestID(DataTestIDs.MetricsPageNoQueryEntered).should('not.exist');
     cy.byTestID(DataTestIDs.MetricsPageInsertExampleQueryButton).should('not.exist');
-    cy.get(Classes.GraphCard).should('be.visible');
+    cy.byTestID(DataTestIDs.MetricGraph).should('be.visible');
     cy.byTestID(DataTestIDs.MetricGraphTimespanDropdown).should('be.visible');
     cy.byTestID(DataTestIDs.MetricGraphTimespanInput).should('be.visible');
     cy.byTestID(DataTestIDs.MetricResetZoomButton).should('be.visible');
@@ -317,13 +317,13 @@ export const metricsPage = {
   clickHideGraphButton: () => {
     cy.log('metricsPage.clickHideGraphButton');
     cy.byTestID(DataTestIDs.MetricHideShowGraphButton).scrollIntoView().should('be.visible').click();
-    cy.get(Classes.GraphCard).should('not.exist');
+    cy.byTestID(DataTestIDs.MetricGraph).should('not.exist');
   },
 
   clickShowGraphButton: () => {
     cy.log('metricsPage.clickShowGraphButton');
     cy.byTestID(DataTestIDs.MetricHideShowGraphButton).scrollIntoView().should('be.visible').click();
-    cy.get(Classes.GraphCard).should('be.visible');
+    cy.byTestID(DataTestIDs.MetricGraph).should('be.visible');
   },
 
   clickDisconnectedCheckbox: () => {

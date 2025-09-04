@@ -179,11 +179,11 @@ describe('Regression: Monitoring - Metrics', () => {
 
     cy.log('4.7 Hide Graph Button');
     metricsPage.clickHideGraphButton();
-    cy.get(Classes.GraphCard).should('not.exist');
+    cy.byTestID(DataTestIDs.MetricGraph).should('not.exist');
 
     cy.log('4.8 Show Graph Button');
     metricsPage.clickShowGraphButton();
-    cy.get(Classes.GraphCard).should('be.visible');
+    cy.byTestID(DataTestIDs.MetricGraph).should('be.visible');
 
     cy.log('4.9 Stacked Checkbox');
     cy.byTestID(DataTestIDs.MetricStackedCheckbox).should('not.exist');
@@ -256,7 +256,7 @@ describe('Regression: Monitoring - Metrics', () => {
     metricsPage.expandCollapseRowAssertion(true, 1, true, true);
     cy.get(Classes.MetricsPageQueryInput).eq(0).should('contain', MetricsPageQueryInput.VECTOR_QUERY);
     cy.get(Classes.MetricsPageQueryInput).eq(1).should('contain', MetricsPageQueryInput.INSERT_EXAMPLE_QUERY);
-    cy.get(Classes.GraphCard).should('be.visible');
+    cy.byTestID(DataTestIDs.MetricGraph).should('be.visible');
     metricsPage.clickKebabDropdown(0);
     cy.get(Classes.MenuItemDisabled).contains(MetricsPageQueryKebabDropdown.HIDE_ALL_SERIES).should('be.visible');
     cy.byTestID(DataTestIDs.MetricsPageExportCsvDropdownItem).should('not.exist');
@@ -269,7 +269,7 @@ describe('Regression: Monitoring - Metrics', () => {
     metricsPage.expandCollapseRowAssertion(true, 1, true, true);
     cy.get(Classes.MetricsPageQueryInput).eq(0).should('contain', MetricsPageQueryInput.VECTOR_QUERY);
     cy.get(Classes.MetricsPageQueryInput).eq(1).should('contain', MetricsPageQueryInput.INSERT_EXAMPLE_QUERY);
-    cy.get(Classes.GraphCard).should('be.visible');
+    cy.byTestID(DataTestIDs.MetricGraph).should('be.visible');
     metricsPage.clickKebabDropdown(0);
     cy.byTestID(DataTestIDs.MetricsPageHideShowAllSeriesDropdownItem).contains(MetricsPageQueryKebabDropdown.HIDE_ALL_SERIES).should('be.visible');
     cy.byTestID(DataTestIDs.MetricsPageExportCsvDropdownItem).contains(MetricsPageQueryKebabDropdown.EXPORT_AS_CSV).should('be.visible');
@@ -295,7 +295,7 @@ describe('Regression: Monitoring - Metrics', () => {
     metricsPage.clickKebabDropdown(1);
     cy.get(Classes.MetricsPageQueryInput).eq(0).should('contain', MetricsPageQueryInput.VECTOR_QUERY);
     cy.get(Classes.MetricsPageQueryInput).eq(1).should('contain', MetricsPageQueryInput.INSERT_EXAMPLE_QUERY);
-    cy.get(Classes.GraphCard).should('not.exist');
+    cy.byTestID(DataTestIDs.MetricGraph).should('not.exist');
     cy.byTestID(DataTestIDs.MetricsPageNoQueryEnteredTitle).should('be.visible');
     cy.byTestID(DataTestIDs.MetricsPageNoQueryEntered).should('be.visible');
     cy.byTestID(DataTestIDs.MetricsPageInsertExampleQueryButton).should('be.visible');
@@ -320,7 +320,7 @@ describe('Regression: Monitoring - Metrics', () => {
     metricsPage.clickKebabDropdown(1);
     cy.get(Classes.MetricsPageQueryInput).eq(0).should('contain', MetricsPageQueryInput.VECTOR_QUERY);
     cy.get(Classes.MetricsPageQueryInput).eq(1).should('contain', MetricsPageQueryInput.INSERT_EXAMPLE_QUERY);
-    cy.get(Classes.GraphCard).should('be.visible');
+    cy.byTestID(DataTestIDs.MetricGraph).scrollIntoView().should('be.visible');
 
     cy.log('6.10 Kebab icon - Hide all series');
     metricsPage.clickKebabDropdown(1);
