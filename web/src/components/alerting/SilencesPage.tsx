@@ -25,54 +25,26 @@ import type { FC } from 'react';
 import { useContext, useState, useMemo, useCallback, memo } from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom-v5-compat';
-import { MonitoringState } from '../../store/store';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
 import { useBoolean } from '../hooks/useBoolean';
-import {
-  getFetchSilenceUrl,
-  getNewSilenceUrl,
-  getObserveState,
-  usePerspective,
-} from '../hooks/usePerspective';
+import { getFetchSilenceUrl, getNewSilenceUrl, usePerspective } from '../hooks/usePerspective';
 import { fuzzyCaseInsensitive, silenceCluster, silenceState } from '../utils';
 import { SelectedSilencesContext, SilenceTableRow } from './SilencesUtils';
 import { MonitoringProvider } from '../../contexts/MonitoringContext';
 import { DataTestIDs } from '../data-test';
 import { useAlerts } from '../../hooks/useAlerts';
-import { useMonitoring } from '../../hooks/useMonitoring';
 
 const SilencesPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { plugin, prometheus } = useMonitoring();
-  const [namespace] = useActiveNamespace();
 
   const { perspective } = usePerspective();
 
   const [selectedSilences, setSelectedSilences] = useState(new Set());
   const [errorMessage, setErrorMessage] = useState();
 
-  useAlerts();
-
-  const silenceData = useSelector(
-    (state: MonitoringState) =>
-      getObserveState(plugin, state).alerting[prometheus]?.[namespace]?.silences,
-  );
-
-  const clusters = useMemo(() => {
-    const clusterSet = new Set<string>();
-    silenceData?.data?.forEach((silence) => {
-      const clusterName = silenceCluster(silence);
-      if (clusterName) {
-        clusterSet.add(clusterName);
-      }
-    });
-
-    const clusterArray = Array.from(clusterSet);
-    return clusterArray.sort();
-  }, [silenceData]);
+  const { silences, silenceClusters } = useAlerts();
 
   const rowFilters: RowFilter[] = [
     // TODO: The "name" filter doesn't really fit useListPageFilter's idea of a RowFilter, but
@@ -111,7 +83,7 @@ const SilencesPage_: FC = () => {
           ),
         ),
       filterGroupName: t('Cluster'),
-      items: clusters.map((clusterName) => ({
+      items: silenceClusters.map((clusterName) => ({
         id: clusterName,
         title: clusterName?.length > 50 ? clusterName.slice(0, 50) + '...' : clusterName,
       })),
@@ -125,7 +97,7 @@ const SilencesPage_: FC = () => {
   }
 
   const [staticData, filteredData, onFilterChange] = useListPageFilter(
-    silenceData?.data ?? [],
+    silences?.data ?? [],
     rowFilters,
   );
 
@@ -177,14 +149,14 @@ const SilencesPage_: FC = () => {
       cols.splice(-1, 0, {
         id: 'cluster',
         sort: (silences: Silence[], direction: 'asc' | 'desc') =>
-          _.orderBy(silences, silenceClusterOrder(clusters), [direction]),
+          _.orderBy(silences, silenceClusterOrder(silenceClusters), [direction]),
         title: t('Cluster'),
         transforms: [sortable],
         props: { width: 15 },
       });
     }
     return cols;
-  }, [filteredData, t, perspective, clusters]);
+  }, [filteredData, t, perspective, silenceClusters]);
 
   return (
     <>
@@ -198,7 +170,7 @@ const SilencesPage_: FC = () => {
               <ListPageFilter
                 data={staticData}
                 hideLabelFilter
-                loaded={!!silenceData?.loaded}
+                loaded={!!silences?.loaded}
                 onFilterChange={onFilterChange}
                 rowFilters={rowFilters}
               />
@@ -210,7 +182,7 @@ const SilencesPage_: FC = () => {
               <ExpireAllSilencesButton setErrorMessage={setErrorMessage} />
             </FlexItem>
           </Flex>
-          {silenceData?.loadError && (
+          {silences?.loadError && (
             <PFAlert
               isInline
               title={t(
@@ -218,9 +190,9 @@ const SilencesPage_: FC = () => {
               )}
               variant="danger"
             >
-              {typeof silenceData?.loadError === 'string'
-                ? silenceData?.loadError
-                : silenceData?.loadError.message}
+              {typeof silences?.loadError === 'string'
+                ? silences?.loadError
+                : silences?.loadError.message}
             </PFAlert>
           )}
           {errorMessage && (
@@ -234,10 +206,10 @@ const SilencesPage_: FC = () => {
               label={t('Silences')}
               columns={columns}
               data={filteredData ?? []}
-              loaded={!!silenceData?.loaded}
-              loadError={silenceData?.loadError ?? ''}
+              loaded={!!silences?.loaded}
+              loadError={silences?.loadError ?? ''}
               Row={SilenceTableRowWithCheckbox}
-              unfilteredData={silenceData?.data ?? []}
+              unfilteredData={silences?.data ?? []}
               NoDataEmptyMsg={() => {
                 return <EmptyBox label={t('Silences')} />;
               }}

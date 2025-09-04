@@ -1,6 +1,5 @@
 import * as _ from 'lodash-es';
 import type { FC } from 'react';
-import { useSelector } from 'react-redux';
 
 import {
   Alert,
@@ -30,14 +29,7 @@ import {
 } from '@patternfly/react-core';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
-import { MonitoringState } from '../../store/store';
-import {
-  getAlertUrl,
-  getObserveState,
-  getRuleUrl,
-  getSilencesUrl,
-  usePerspective,
-} from '../hooks/usePerspective';
+import { getAlertUrl, getRuleUrl, getSilencesUrl, usePerspective } from '../hooks/usePerspective';
 import KebabDropdown from '../kebab-dropdown';
 import { alertDescription, SilenceResource } from '../utils';
 import { SeverityBadge, SeverityCounts } from './AlertUtils';
@@ -50,30 +42,19 @@ import { useNavigate, useParams, Link } from 'react-router-dom-v5-compat';
 import { MonitoringProvider } from '../../contexts/MonitoringContext';
 import { DataTestIDs } from '../data-test';
 import { useAlerts } from '../../hooks/useAlerts';
-import { useMonitoring } from '../../hooks/useMonitoring';
 
 const SilencesDetailsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { plugin, prometheus } = useMonitoring();
 
   const params = useParams<{ id: string }>();
 
   const id = params.id;
 
-  useAlerts();
+  const { silences, rulesAlertLoading } = useAlerts();
 
   const [namespace] = useActiveNamespace();
   const { perspective } = usePerspective();
 
-  const alertsLoaded = useSelector(
-    (state: MonitoringState) =>
-      getObserveState(plugin, state).alerting[prometheus]?.[namespace]?.loaded,
-  );
-
-  const silences = useSelector(
-    (state: MonitoringState) =>
-      getObserveState(plugin, state).alerting[prometheus]?.[namespace]?.silences,
-  );
   const silence = _.find(silences?.data, { id });
 
   return (
@@ -188,7 +169,7 @@ const SilencesDetailsPage_: FC = () => {
                   <DescriptionListGroup>
                     <DescriptionListTerm>{t('Firing alerts')}</DescriptionListTerm>
                     <DescriptionListDescription>
-                      {alertsLoaded ? (
+                      {rulesAlertLoading.loaded ? (
                         <SeverityCounts alerts={silence?.firingAlerts} />
                       ) : (
                         <LoadingInline />
@@ -202,7 +183,7 @@ const SilencesDetailsPage_: FC = () => {
           <Divider />
           <PageSection hasBodyWrapper={false}>
             <Title headingLevel="h2">{t('Firing alerts')}</Title>
-            {alertsLoaded ? (
+            {rulesAlertLoading.loaded ? (
               <SilencedAlertsList alerts={silence?.firingAlerts} />
             ) : (
               <LoadingInline />

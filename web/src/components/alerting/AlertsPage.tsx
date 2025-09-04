@@ -10,15 +10,12 @@ import { Flex, PageSection } from '@patternfly/react-core';
 import { Table, TableGridBreakpoint, Th, Thead, Tr } from '@patternfly/react-table';
 import * as _ from 'lodash-es';
 import type { FC } from 'react';
-import { useMemo } from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
-import { MonitoringState } from '../../store/store';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
 import { LoadingBox } from '../console/console-shared/src/components/loading/LoadingBox';
-import { getObserveState, usePerspective } from '../hooks/usePerspective';
+import { usePerspective } from '../hooks/usePerspective';
 import { AlertSource } from '../types';
 import { alertState, ALL_NAMESPACES_KEY, fuzzyCaseInsensitive } from '../utils';
 import AggregateAlertTableRow from './AlertList/AggregateAlertTableRow';
@@ -28,7 +25,6 @@ import { getAggregateAlertsLists } from './AlertsAggregates';
 import {
   alertCluster,
   alertSource,
-  getAdditionalSources,
   severityRowFilter,
   SilencesNotLoadedWarning,
 } from './AlertUtils';
@@ -36,49 +32,14 @@ import Error from './Error';
 import useSelectedFilters from './useSelectedFilters';
 import { MonitoringProvider } from '../../contexts/MonitoringContext';
 import { useAlerts } from '../../hooks/useAlerts';
-import { useMonitoring } from '../../hooks/useMonitoring';
 
 const AlertsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const [namespace] = useActiveNamespace();
   const { defaultAlertTenant, perspective } = usePerspective();
-  const { plugin, prometheus } = useMonitoring();
 
-  useAlerts();
-
-  const loadingInfo = useSelector(
-    (state: MonitoringState) => getObserveState(plugin, state).alerting[prometheus]?.[namespace],
-  );
-  const alerts = useSelector(
-    (state: MonitoringState) =>
-      getObserveState(plugin, state).alerting[prometheus]?.[namespace]?.alerts,
-  );
-  const silencesLoadError = useSelector(
-    (state: MonitoringState) =>
-      getObserveState(plugin, state).alerting[prometheus]?.[namespace]?.silences?.loadError,
-  );
-
-  const alertAdditionalSources = useMemo(() => getAdditionalSources(alerts, alertSource), [alerts]);
-
-  const clusters = useMemo(() => {
-    const clusterSet = new Set<string>();
-    alerts?.forEach((alert) => {
-      const clusterName = alert.labels?.cluster;
-      if (clusterName) {
-        clusterSet.add(clusterName);
-      }
-    });
-
-    const clusterArray = Array.from(clusterSet);
-    return clusterArray.sort();
-  }, [alerts]);
-
-  const namespacedAlerts = useMemo(() => {
-    if (perspective === 'acm' || namespace === ALL_NAMESPACES_KEY) {
-      return alerts;
-    }
-    return alerts?.filter((alert) => alert.labels?.namespace === namespace);
-  }, [alerts, perspective, namespace]);
+  const { namespacedAlerts, additionalAlertSources, alertClusters, rulesAlertLoading, silences } =
+    useAlerts();
 
   let rowFilters: RowFilter[] = [
     // TODO: The "name" filter doesn't really fit useListPageFilter's idea of a RowFilter, but
@@ -116,7 +77,7 @@ const AlertsPage_: FC = () => {
       items: [
         { id: AlertSource.Platform, title: t('Platform') },
         { id: AlertSource.User, title: t('User') },
-        ...alertAdditionalSources,
+        ...additionalAlertSources,
       ],
       reducer: alertSource,
       type: 'alert-source',
@@ -134,7 +95,7 @@ const AlertsPage_: FC = () => {
         );
       },
       filterGroupName: t('Cluster'),
-      items: clusters.map((clusterName) => ({
+      items: alertClusters.map((clusterName) => ({
         id: clusterName,
         title: clusterName?.length > 50 ? clusterName.slice(0, 50) + '...' : clusterName,
       })),
@@ -156,8 +117,8 @@ const AlertsPage_: FC = () => {
   const selectedFilters = useSelectedFilters();
 
   const filteredAggregatedAlerts = getAggregateAlertsLists(filteredData);
-  const loaded = !!loadingInfo?.loaded;
-  const loadError = loadingInfo?.loadError ? loadingInfo.loadError : null;
+  const loaded = !!rulesAlertLoading?.loaded;
+  const loadError = rulesAlertLoading?.loadError ? rulesAlertLoading.loadError : null;
 
   return (
     <>
@@ -179,7 +140,9 @@ const AlertsPage_: FC = () => {
             <DownloadCSVButton loaded={loaded} filteredData={filteredAggregatedAlerts} />
           )}
         </Flex>
-        {silencesLoadError && <SilencesNotLoadedWarning silencesLoadError={silencesLoadError} />}
+        {silences?.loadError && (
+          <SilencesNotLoadedWarning silencesLoadError={silences?.loadError} />
+        )}
 
         {filteredAggregatedAlerts?.length > 0 && loaded && (
           <Table gridBreakPoint={TableGridBreakpoint.none} role="presentation">

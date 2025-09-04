@@ -2,12 +2,9 @@ import { Silence, SilenceStates, useActiveNamespace } from '@openshift-console/d
 import { Alert } from '@patternfly/react-core';
 import * as _ from 'lodash-es';
 import { useTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom-v5-compat';
-import { MonitoringState } from '../../store/store';
 import { StatusBox } from '../console/console-shared/src/components/status/StatusBox';
-import { getObserveState } from '../hooks/usePerspective';
-import { SilenceResource, silenceState } from '../utils';
+import { ALL_NAMESPACES_KEY, SilenceResource, silenceState } from '../utils';
 import { SilenceForm } from './SilenceForm';
 import { MonitoringProvider } from '../../contexts/MonitoringContext';
 import { useAlerts } from '../../hooks/useAlerts';
@@ -34,16 +31,11 @@ const EditInfo = () => {
 
 const SilenceEditPage = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { plugin, prometheus } = useMonitoring();
-  const params = useParams();
   const [namespace] = useActiveNamespace();
+  const { prometheus } = useMonitoring();
+  const params = useParams();
 
-  useAlerts();
-
-  const silences = useSelector(
-    (state: MonitoringState) =>
-      getObserveState(plugin, state).alerting[prometheus]?.[namespace]?.silences,
-  );
+  const { silences } = useAlerts();
 
   const silence: Silence = _.find(silences?.data, { id: params.id });
   const isExpired = silenceState(silence) === SilenceStates.Expired;
@@ -69,7 +61,7 @@ const SilenceEditPage = () => {
         defaults={defaults}
         Info={isExpired ? undefined : EditInfo}
         title={isExpired ? t('Recreate silence') : t('Edit silence')}
-        isNamespaced={prometheus === 'cmo'}
+        isNamespaced={prometheus === 'cmo' && namespace !== ALL_NAMESPACES_KEY}
       />
     </StatusBox>
   );

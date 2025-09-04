@@ -7,7 +7,6 @@ import {
   RowProps,
   Rule,
   TableColumn,
-  useActiveNamespace,
   useListPageFilter,
   VirtualizedTable,
 } from '@openshift-console/dynamic-plugin-sdk';
@@ -17,7 +16,6 @@ import type { FC } from 'react';
 import { useMemo } from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom-v5-compat';
 
 import { AlertSource } from '../types';
@@ -29,23 +27,20 @@ import {
 } from '../utils';
 
 import { Flex, FlexItem, PageSection, Truncate } from '@patternfly/react-core';
-import { MonitoringState } from '../../store/store';
 import {
   alertingRuleSource,
   AlertStateIcon,
-  getAdditionalSources,
   getAlertStateKey,
   SeverityBadge,
   SilencesNotLoadedWarning,
 } from '../alerting/AlertUtils';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
-import { getObserveState, getRuleUrl, usePerspective } from '../hooks/usePerspective';
+import { getRuleUrl, usePerspective } from '../hooks/usePerspective';
 import { severityRowFilter } from './AlertUtils';
 import { MonitoringProvider } from '../../contexts/MonitoringContext';
 import { DataTestIDs } from '../data-test';
 import { useAlerts } from '../../hooks/useAlerts';
-import { useMonitoring } from '../../hooks/useMonitoring';
 
 const StateCounts: FC<{ alerts: PrometheusAlert[] }> = ({ alerts }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -125,29 +120,10 @@ const RuleTableRow: FC<RowProps<Rule>> = ({ obj }) => {
 
 const AlertRulesPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { plugin, prometheus } = useMonitoring();
-  const [namespace] = useActiveNamespace();
 
   const { defaultAlertTenant } = usePerspective();
 
-  useAlerts();
-
-  const rules: Rule[] = useSelector(
-    (state: MonitoringState) =>
-      getObserveState(plugin, state).alerting[prometheus]?.[namespace]?.rules,
-  );
-  const loadInformation = useSelector(
-    (state: MonitoringState) => getObserveState(plugin, state).alerting[prometheus]?.[namespace],
-  );
-  const silencesLoadError = useSelector(
-    (state: MonitoringState) =>
-      getObserveState(plugin, state).alerting[prometheus]?.[namespace]?.silences?.loadError,
-  );
-
-  const ruleAdditionalSources = useMemo(
-    () => getAdditionalSources(rules, alertingRuleSource),
-    [rules],
-  );
+  const { rules, additionalRuleSources, rulesAlertLoading, silences } = useAlerts();
 
   const rowFilters: RowFilter[] = [
     // TODO: The "name" filter doesn't really fit useListPageFilter's idea of a RowFilter, but
@@ -168,7 +144,7 @@ const AlertRulesPage_: FC = () => {
       items: [
         { id: AlertSource.Platform, title: t('Platform') },
         { id: AlertSource.User, title: t('User') },
-        ...ruleAdditionalSources,
+        ...additionalRuleSources,
       ],
       reducer: alertingRuleSource,
       type: 'alerting-rule-source',
@@ -224,19 +200,19 @@ const AlertRulesPage_: FC = () => {
           data={staticData}
           labelFilter="observe-rules"
           labelPath="labels"
-          loaded={loadInformation?.loaded ?? false}
+          loaded={rulesAlertLoading?.loaded ?? false}
           onFilterChange={onFilterChange}
           rowFilters={rowFilters}
         />
-        {silencesLoadError && <SilencesNotLoadedWarning silencesLoadError={silencesLoadError} />}
+        {silences.loadError && <SilencesNotLoadedWarning silencesLoadError={silences.loadError} />}
         <div id="alert-rules-table-scroll">
           <VirtualizedTable<Rule>
             aria-label={t('Alerting rules')}
             label={t('Alerting rules')}
             columns={columns}
             data={filteredData ?? []}
-            loaded={loadInformation?.loaded ?? false}
-            loadError={loadInformation?.loadError ?? null}
+            loaded={rulesAlertLoading?.loaded ?? false}
+            loadError={rulesAlertLoading?.loadError ?? null}
             Row={RuleTableRow}
             unfilteredData={rules}
             scrollNode={() => document.getElementById('alert-rules-table-scroll')}

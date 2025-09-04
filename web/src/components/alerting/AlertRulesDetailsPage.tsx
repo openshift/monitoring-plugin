@@ -40,9 +40,7 @@ import * as _ from 'lodash-es';
 import type { FC } from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
 import { Link, useNavigate, useParams } from 'react-router-dom-v5-compat';
-import { MonitoringState } from '../../store/store';
 import {
   alertingRuleSource,
   AlertState,
@@ -59,7 +57,6 @@ import { ExternalLink } from '../console/utils/link';
 import {
   getAlertRulesUrl,
   getAlertUrl,
-  getObserveState,
   getNewSilenceAlertUrl,
   getQueryBrowserUrl,
   usePerspective,
@@ -72,7 +69,6 @@ import { MonitoringProvider } from '../../contexts/MonitoringContext';
 
 import { DataTestIDs } from '../data-test';
 import { useAlerts } from '../../hooks/useAlerts';
-import { useMonitoring } from '../../hooks/useMonitoring';
 
 // Renders Prometheus template text and highlights any {{ ... }} tags that it contains
 const PrometheusTemplate = ({ text }) => (
@@ -148,22 +144,13 @@ export const ActiveAlerts: FC<ActiveAlertsProps> = ({ alerts, namespace, ruleID 
 const AlertRulesDetailsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const params = useParams<{ ns?: string; id: string }>();
-  const { plugin, prometheus } = useMonitoring();
 
-  useAlerts();
+  const { rules, rulesAlertLoading } = useAlerts();
 
   const { perspective } = usePerspective();
   const [namespace] = useActiveNamespace();
 
-  const rules = useSelector(
-    (state: MonitoringState) =>
-      getObserveState(plugin, state).alerting[prometheus]?.[namespace]?.rules,
-  );
   const rule = _.find(rules, { id: params.id });
-
-  const loadInformation = useSelector(
-    (state: MonitoringState) => getObserveState(plugin, state).alerting[prometheus]?.[namespace],
-  );
 
   const sourceId = rule?.sourceId;
 
@@ -193,8 +180,8 @@ const AlertRulesDetailsPage_: FC = () => {
       <StatusBox
         data={rule}
         label={RuleResource.label}
-        loaded={loadInformation?.loaded}
-        loadError={loadInformation?.loadError}
+        loaded={rulesAlertLoading?.loaded}
+        loadError={rulesAlertLoading?.loadError}
       >
         <PageGroup>
           <PageBreadcrumb hasBodyWrapper={false}>
