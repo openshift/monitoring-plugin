@@ -249,7 +249,7 @@ const IncidentsPage = () => {
           const response = await fetchDataForIncidentsAndAlerts(
             safeFetch,
             range,
-            'cluster:health:components:map',
+            'cluster_health_components_map',
             perspective,
           );
           return response.data.result;
@@ -286,7 +286,7 @@ const IncidentsPage = () => {
           const response = await fetchDataForIncidentsAndAlerts(
             safeFetch,
             range,
-            `cluster:health:components:map{group_id='${incidentGroupId}'}`,
+            `cluster_health_components_map{group_id='${incidentGroupId}'}`,
             perspective,
           );
           return response.data.result;
