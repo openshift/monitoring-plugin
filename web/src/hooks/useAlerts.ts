@@ -15,6 +15,7 @@ import {
   getAlertingContextId,
   getAlertmanagerSilencesUrl,
   getPrometheusBasePath,
+  Prometheus,
   silenceCluster,
 } from '../components/utils';
 import { usePoll } from '../components/console/utils/poll-hook';
@@ -30,11 +31,16 @@ import { getObserveState, usePerspective } from '../components/hooks/usePerspect
 const POLLING_INTERVAL_MS = 15 * 1000; // 15 seconds
 
 export const useAlerts = () => {
+  // Retrieve external information which dictates which alerts to load and use
   const { plugin } = useMonitoring();
   const [namespace] = useActiveNamespace();
   const { prometheus } = useMonitoring();
   const { perspective } = usePerspective();
 
+  // Start polling for alerts, rules, and silences
+  const { trigger } = useAlertsPoller({ namespace, prometheus });
+
+  // Retrieve alerts, rules and silences from the store, which is populated in the poller
   const alerts = useSelector(
     (state: MonitoringState) =>
       getObserveState(plugin, state).alerting[prometheus]?.[namespace]?.alerts,
@@ -51,15 +57,16 @@ export const useAlerts = () => {
       getObserveState(plugin, state).alerting[prometheus]?.[namespace]?.rules,
   );
 
-  const { trigger } = useAlertsPoller();
-
-  const additionalAlertSources = useMemo(() => getAdditionalSources(alerts, alertSource), [alerts]);
-  const additionalRuleSources = useMemo(
+  // Find all labels needed within our list pages
+  const additionalAlertSourceLabels = useMemo(
+    () => getAdditionalSources(alerts, alertSource),
+    [alerts],
+  );
+  const additionalRuleSourceLabels = useMemo(
     () => getAdditionalSources(rules, alertingRuleSource),
     [rules],
   );
-
-  const alertClusters = useMemo(() => {
+  const alertClusterLabels = useMemo(() => {
     const clusterSet = new Set<string>();
     alerts?.forEach((alert) => {
       const clusterName = alert.labels?.cluster;
@@ -71,8 +78,7 @@ export const useAlerts = () => {
     const clusterArray = Array.from(clusterSet);
     return clusterArray.sort();
   }, [alerts]);
-
-  const silenceClusters = useMemo(() => {
+  const silenceClusterLabels = useMemo(() => {
     const clusterSet = new Set<string>();
     silences?.data?.forEach((silence) => {
       const clusterName = silenceCluster(silence);
@@ -85,6 +91,9 @@ export const useAlerts = () => {
     return clusterArray.sort();
   }, [silences]);
 
+  // When a user with cluster scoped alerts retrieves alerts from the tenancy API endpoint
+  // the API will still retrun ALL alerts, not just the ones which are available at that tenant
+  // As such we manually filter down the alerts on the frontend
   const namespacedAlerts = useMemo(() => {
     if (perspective === 'acm' || namespace === ALL_NAMESPACES_KEY) {
       return alerts;
@@ -94,22 +103,25 @@ export const useAlerts = () => {
 
   return {
     trigger,
-    additionalAlertSources,
-    additionalRuleSources,
-    alertClusters,
-    silenceClusters,
+    additionalAlertSourceLabels,
+    additionalRuleSourceLabels,
+    alertClusterLabels,
+    silenceClusterLabels,
     rulesAlertLoading,
-    alerts,
     rules,
     silences,
-    namespacedAlerts,
+    alerts: namespacedAlerts,
   };
 };
 
-const useAlertsPoller = () => {
+const useAlertsPoller = ({
+  namespace,
+  prometheus,
+}: {
+  namespace: string;
+  prometheus: Prometheus;
+}) => {
   const dispatch = useDispatch();
-  const { prometheus } = useMonitoring();
-  const [namespace] = useActiveNamespace();
   const [customExtensions] =
     useResolvedExtensions<AlertingRulesSourceExtension>(isAlertingRulesSource);
 

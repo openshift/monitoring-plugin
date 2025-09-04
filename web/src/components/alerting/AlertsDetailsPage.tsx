@@ -99,7 +99,7 @@ const AlertsDetailsPage_: FC = () => {
 
   const { perspective } = usePerspective();
 
-  const { namespacedAlerts, rulesAlertLoading, silences } = useAlerts();
+  const { alerts, rulesAlertLoading, silences } = useAlerts();
 
   const [namespace] = useActiveNamespace();
 
@@ -107,7 +107,7 @@ const AlertsDetailsPage_: FC = () => {
     (state: MonitoringState) => !!getObserveState(plugin, state).hideGraphs,
   );
 
-  const ruleAlerts = _.filter(namespacedAlerts, (a) => a.rule.id === params?.ruleID);
+  const ruleAlerts = _.filter(alerts, (a) => a.rule.id === params?.ruleID);
   const rule = ruleAlerts?.[0]?.rule;
 
   // Search for an alert that matches all of the labels in the URL parameters. We expect there to be

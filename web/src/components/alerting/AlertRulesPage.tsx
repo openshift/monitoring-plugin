@@ -123,7 +123,7 @@ const AlertRulesPage_: FC = () => {
 
   const { defaultAlertTenant } = usePerspective();
 
-  const { rules, additionalRuleSources, rulesAlertLoading, silences } = useAlerts();
+  const { rules, additionalRuleSourceLabels, rulesAlertLoading, silences } = useAlerts();
 
   const rowFilters: RowFilter[] = [
     // TODO: The "name" filter doesn't really fit useListPageFilter's idea of a RowFilter, but
@@ -144,7 +144,7 @@ const AlertRulesPage_: FC = () => {
       items: [
         { id: AlertSource.Platform, title: t('Platform') },
         { id: AlertSource.User, title: t('User') },
-        ...additionalRuleSources,
+        ...additionalRuleSourceLabels,
       ],
       reducer: alertingRuleSource,
       type: 'alerting-rule-source',

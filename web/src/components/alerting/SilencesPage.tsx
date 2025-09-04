@@ -44,7 +44,7 @@ const SilencesPage_: FC = () => {
   const [selectedSilences, setSelectedSilences] = useState(new Set());
   const [errorMessage, setErrorMessage] = useState();
 
-  const { silences, silenceClusters } = useAlerts();
+  const { silences, silenceClusterLabels } = useAlerts();
 
   const rowFilters: RowFilter[] = [
     // TODO: The "name" filter doesn't really fit useListPageFilter's idea of a RowFilter, but
@@ -83,7 +83,7 @@ const SilencesPage_: FC = () => {
           ),
         ),
       filterGroupName: t('Cluster'),
-      items: silenceClusters.map((clusterName) => ({
+      items: silenceClusterLabels.map((clusterName) => ({
         id: clusterName,
         title: clusterName?.length > 50 ? clusterName.slice(0, 50) + '...' : clusterName,
       })),
@@ -149,14 +149,14 @@ const SilencesPage_: FC = () => {
       cols.splice(-1, 0, {
         id: 'cluster',
         sort: (silences: Silence[], direction: 'asc' | 'desc') =>
-          _.orderBy(silences, silenceClusterOrder(silenceClusters), [direction]),
+          _.orderBy(silences, silenceClusterOrder(silenceClusterLabels), [direction]),
         title: t('Cluster'),
         transforms: [sortable],
         props: { width: 15 },
       });
     }
     return cols;
-  }, [filteredData, t, perspective, silenceClusters]);
+  }, [filteredData, t, perspective, silenceClusterLabels]);
 
   return (
     <>

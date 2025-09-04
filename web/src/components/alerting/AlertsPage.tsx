@@ -38,7 +38,7 @@ const AlertsPage_: FC = () => {
   const [namespace] = useActiveNamespace();
   const { defaultAlertTenant, perspective } = usePerspective();
 
-  const { namespacedAlerts, additionalAlertSources, alertClusters, rulesAlertLoading, silences } =
+  const { alerts, additionalAlertSourceLabels, alertClusterLabels, rulesAlertLoading, silences } =
     useAlerts();
 
   let rowFilters: RowFilter[] = [
@@ -77,7 +77,7 @@ const AlertsPage_: FC = () => {
       items: [
         { id: AlertSource.Platform, title: t('Platform') },
         { id: AlertSource.User, title: t('User') },
-        ...additionalAlertSources,
+        ...additionalAlertSourceLabels,
       ],
       reducer: alertSource,
       type: 'alert-source',
@@ -95,7 +95,7 @@ const AlertsPage_: FC = () => {
         );
       },
       filterGroupName: t('Cluster'),
-      items: alertClusters.map((clusterName) => ({
+      items: alertClusterLabels.map((clusterName) => ({
         id: clusterName,
         title: clusterName?.length > 50 ? clusterName.slice(0, 50) + '...' : clusterName,
       })),
@@ -108,10 +108,7 @@ const AlertsPage_: FC = () => {
     rowFilters = rowFilters.filter((filter) => filter.type !== 'alert-source');
   }
 
-  const [staticData, filteredData, onFilterChange] = useListPageFilter(
-    namespacedAlerts,
-    rowFilters,
-  );
+  const [staticData, filteredData, onFilterChange] = useListPageFilter(alerts, rowFilters);
 
   const columns = useAggregateAlertColumns();
   const selectedFilters = useSelectedFilters();
