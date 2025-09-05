@@ -19,6 +19,7 @@ export const DataTestIDs = {
   ExpireXSilencesButton: 'expire-x-silences-button',
   Expression: 'expression',
   KebabDropdownButton: 'kebab-dropdown-button',
+  MetricGraph: 'metric-graph',
   MetricGraphNoDatapointsFound: 'datapoints-msg',
   MetricGraphTimespanDropdown: 'graph-timespan-dropdown',
   MetricGraphTimespanInput: 'graph-timespan-input',
@@ -79,6 +80,7 @@ export const DataTestIDs = {
   },
   TypeaheadSelectInput: 'query-select-typeahead-input',
   Table: 'OUIA-Generated-Table', //table ouiaid - ID to be used with byOUIAID(DataTestIDs.Table)
+  MetricsGraphAlertDanger: 'OUIA-Generated-Alert-danger', //ID to be used with byOUIAID(DataTestIDs.MetricsGraphAlertDanger)
 };
 
 export const LegacyDashboardPageTestIDs = {
@@ -88,6 +90,10 @@ export const LegacyDashboardPageTestIDs = {
   PollIntervalDropdownOptions: 'poll-interval-dropdown-options',
   Inspect: 'inspect',
   ExportAsCsv: 'export-as-csv',
+  DashboardDropdown: 'dashboard-dropdown', //div
+  DashboardTimeRangeDropdownMenu: 'monitoring-time-range-dropdown', //div using get('#'+LegacyDashboardPageTestIDs.DashboardTimeRangeDropdownMenu)
+  DashboardRefreshIntervalDropdownMenu: 'refresh-interval-dropdown', //div using get('#'+LegacyDashboardPageTestIDs.DashboardRefreshIntervalDropdownMenu)
+  Graph: 'graph',
 };
 
 export const LegacyTestIDs = {
@@ -106,7 +112,6 @@ export const Classes = {
   FilterDropdown: '.pf-v6-c-menu-toggle, .pf-v5-c-menu-toggle',
   FilterDropdownExpanded: '.pf-v6-c-menu-toggle.pf-m-expanded, .pf-v5-c-menu-toggle.pf-m-expanded',
   FilterDropdownOption: '.pf-v6-c-menu__item, .pf-c-select__menu-item',
-  GraphCard: '.pf-v6-c-card.pf-m-compact',
   GraphCardInlineInfo:
     '.pf-v6-c-alert.pf-m-inline.pf-m-plain.pf-m-info, .pf-v5-c-alert.pf-m-inline.pf-m-plain.pf-m-info.query-browser__reduced-resolution',
   HorizontalNav: '.pf-v6-c-tabs__item, .co-m-horizontal-nav__menu-item',
