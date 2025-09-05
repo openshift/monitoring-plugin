@@ -21,6 +21,7 @@ const MP = {
 describe('Regression: Monitoring - Alerts', () => {
 
   before(() => {
+    cy.afterBlock(MP);
     cy.beforeBlock(MP);
   });
 

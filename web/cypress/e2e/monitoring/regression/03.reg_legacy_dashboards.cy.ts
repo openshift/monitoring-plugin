@@ -16,6 +16,7 @@ const MP = {
 describe('Regression: Monitoring - Dashboards (Legacy)', () => {
 
   before(() => {
+    cy.afterBlock(MP);
     cy.beforeBlock(MP);
   });
 
