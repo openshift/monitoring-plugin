@@ -314,11 +314,44 @@ export function generateDateArray(days: number): Array<number> {
  * const filteredIncidents = filterIncident(filters, incidents);
  * ```
  */
+/**
+ * Determines all maximum severities that an incident has had over time.
+ * This looks at each time period and finds what was the maximum severity at that time,
+ * then returns all unique maximum severities that occurred.
+ *
+ * @param incident - The incident to evaluate
+ * @returns Array of severity strings that were maximum severities at some point in time
+ */
+function getIncidentMaximumSeveritiesOverTime(incident: Incident): string[] {
+  const severityRank = { '2': 2, '1': 1, '0': 0 };
+  const getSeverityName = (value: string) => {
+    return value === '2' ? 'Critical' : value === '1' ? 'Warning' : 'Informative';
+  };
+
+  // Group values by timestamp to find maximum severity at each point in time
+  const timestampSeverities: Record<string, string> = {};
+
+  incident.values.forEach(([timestamp, severity]) => {
+    const timestampStr = timestamp.toString();
+    if (
+      !timestampSeverities[timestampStr] ||
+      severityRank[severity] > severityRank[timestampSeverities[timestampStr]]
+    ) {
+      timestampSeverities[timestampStr] = severity;
+    }
+  });
+
+  // Get unique maximum severities that occurred over time
+  const maxSeverities = new Set<string>();
+  Object.values(timestampSeverities).forEach((severity) => {
+    maxSeverities.add(getSeverityName(severity));
+  });
+
+  return Array.from(maxSeverities);
+}
+
 export function filterIncident(filters: IncidentFiltersCombined, incidents: Array<Incident>) {
-  const conditions = {
-    Critical: 'critical',
-    Warning: 'warning',
-    Informative: 'informative',
+  const stateConditions = {
     Firing: 'firing',
     Resolved: 'resolved',
   };
@@ -328,14 +361,17 @@ export function filterIncident(filters: IncidentFiltersCombined, incidents: Arra
       return true;
     }
 
+    // Filter by maximum severities that occurred at any point in time
     const isSeverityMatch =
       filters.severity.length > 0
-        ? filters.severity.some((filter) => incident[conditions[filter]] === true)
+        ? filters.severity.some((selectedSeverity) =>
+            getIncidentMaximumSeveritiesOverTime(incident).includes(selectedSeverity),
+          )
         : true; // True if no severity filters
 
     const isStateMatch =
       filters.state.length > 0
-        ? filters.state.some((filter) => incident[conditions[filter]] === true)
+        ? filters.state.some((filter) => incident[stateConditions[filter]] === true)
         : true; // True if no state filters
 
     const isIncidentIdMatch =
