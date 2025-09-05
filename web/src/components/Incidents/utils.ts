@@ -299,51 +299,75 @@ export function generateDateArray(days: number): Array<number> {
 }
 
 /**
- * Filters incidents based on the specified filters.
+ * Filters an array of incidents based on severity, state, and group ID filters.
  *
- * @param {IncidentFiltersCombined} filters - An object containing filter criteria.
- * @param {Array<Incident>} incidents - An array of incidents to be filtered.
- * @returns {Array<Object>} A filtered array of incidents that match at least one of the specified filters.
+ * This function returns incidents that match all provided filters. For severity, it performs a "drill down"
+ * by modifying the incident's `values` array to only include timestamps that match the specified severities.
+ * If an incident contains no values matching the severity filters, the incident is not returned.
  *
- * The `conditions` object maps filter keys to incident properties. If no filters are applied, all incidents are returned.
- * Filters are case-sensitive and must match the keys defined in the `conditions` object.
- *
- * Example usage:
- * ```javascript
- * const filters = { severity: ["Critical"], state: ["Firing"] };
- * const filteredIncidents = filterIncident(filters, incidents);
- * ```
+ * @param {IncidentFiltersCombined} filters An object containing arrays of filter criteria.
+ * @param {Array<Incident>} incidents The array of incident objects to be filtered.
+ * @returns {Array<Incident>} A new array containing the filtered incident objects.
  */
-export function filterIncident(filters: IncidentFiltersCombined, incidents: Array<Incident>) {
-  const conditions = {
-    Critical: 'critical',
-    Warning: 'warning',
-    Informative: 'informative',
+export function filterIncident(
+  filters: IncidentFiltersCombined,
+  incidents: Array<Incident>,
+): Incident[] {
+  // Severity dictionary mapping severity string to a numeric string value.
+  const severityDictionary: { [key: string]: '0' | '1' | '2' } = {
+    informative: '0',
+    warning: '1',
+    critical: '2',
+  };
+
+  const stateConditions: { [key: string]: 'firing' | 'resolved' } = {
     Firing: 'firing',
     Resolved: 'resolved',
   };
 
-  return incidents.filter((incident) => {
-    if (!filters?.severity?.length && !filters?.state?.length && !filters?.groupId?.length) {
-      return true;
-    }
+  if (!filters?.severity?.length && !filters?.state?.length && !filters?.groupId?.length) {
+    return incidents;
+  }
 
-    const isSeverityMatch =
-      filters.severity.length > 0
-        ? filters.severity.some((filter) => incident[conditions[filter]] === true)
-        : true; // True if no severity filters
+  const allowedSeverityValues: Set<string> | null =
+    filters.severity?.length > 0
+      ? new Set(filters.severity.map((filter: string) => severityDictionary[filter.toLowerCase()]))
+      : null;
 
-    const isStateMatch =
-      filters.state.length > 0
-        ? filters.state.some((filter) => incident[conditions[filter]] === true)
-        : true; // True if no state filters
+  const filteredIncidents: Incident[] = incidents
+    .filter((incident: Incident) => {
+      const isStateMatch: boolean =
+        filters.state?.length > 0
+          ? filters.state.some((filter: string) => incident[stateConditions[filter]] === true)
+          : true;
 
-    const isIncidentIdMatch =
-      filters.groupId?.length > 0 ? filters.groupId.includes(incident.group_id) : true;
+      const isIncidentIdMatch: boolean =
+        filters.groupId?.length > 0 ? filters.groupId.includes(incident.group_id) : true;
 
-    // Combine conditions with AND behavior between categories
-    return isSeverityMatch && isStateMatch && isIncidentIdMatch;
-  });
+      let hasAllRequiredSeverities: boolean = true;
+      if (allowedSeverityValues) {
+        hasAllRequiredSeverities = Array.from(allowedSeverityValues).every(
+          (requiredValue: string) => {
+            return incident.values.some((value: [number, string]) => value[1] === requiredValue);
+          },
+        );
+      }
+
+      return isStateMatch && isIncidentIdMatch && hasAllRequiredSeverities;
+    })
+    .map((incident: Incident) => {
+      const newIncident: Incident = { ...incident };
+
+      if (allowedSeverityValues) {
+        newIncident.values = incident.values.filter((valueTuple: [number, string]) =>
+          allowedSeverityValues.has(valueTuple[1]),
+        );
+      }
+
+      return newIncident;
+    });
+
+  return filteredIncidents;
 }
 
 export const onDeleteIncidentFilterChip = (
