@@ -19,6 +19,7 @@ const MP = {
 describe('BVT: Monitoring', () => {
 
   before(() => {
+    cy.afterBlock(MP);
     cy.beforeBlock(MP);
   });
 

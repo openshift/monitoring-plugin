@@ -78,7 +78,7 @@ const operatorUtils = {
       ).then((result) => {
         expect(result.code).to.eq(0);
         cy.log(`CMO CSV updated successfully with Monitoring Plugin image: ${result.stdout}`);
-        cy.reload();
+        cy.reload(true);
       });
     } else {
       cy.log('MP_IMAGE is NOT set. Skipping patching the image in CMO operator CSV.');
@@ -189,7 +189,7 @@ const operatorUtils = {
       ).then((result) => {
         expect(result.code).to.eq(0);
         cy.log(`COO CSV updated successfully with Monitoring Console Plugin image: ${result.stdout}`);
-        cy.reload();
+        cy.reload(true);
       });
     } else {
       cy.log('MCP_CONSOLE_IMAGE is NOT set. Skipping patching the image in COO operator CSV.');
@@ -228,7 +228,7 @@ const operatorUtils = {
       cy.log(`Monitoring plugin pod is now running in namespace: ${MCP.namespace}`);
     });
     cy.exec(`oc label namespace openshift-cluster-observability-operator openshift.io/cluster-monitoring="true" --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
-    cy.reload();
+    cy.reload(true);
     cy.visit('/monitoring/v2/dashboards');
     cy.url().should('include', '/monitoring/v2/dashboards');
   },
@@ -250,7 +250,7 @@ const operatorUtils = {
       ).then((result) => {
         expect(result.code).to.eq(0);
         cy.log(`CMO CSV reverted successfully with Monitoring Plugin image: ${result.stdout}`);
-        cy.reload();
+        cy.reload(true);
       });
     } else {
       cy.log('MP_IMAGE is NOT set. Skipping reverting the image in CMO operator CSV.');
@@ -266,6 +266,21 @@ const operatorUtils = {
         `oc delete ${config.kind} ${config.name} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
       );
 
+      cy.log('Remove openshift-cluster-sample-dashboard instance.');
+      cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/openshift-cluster-sample-dashboard.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+
+      cy.log('Remove perses-dashboard-sample instance.');
+      cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/perses-dashboard-sample.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+
+      cy.log('Remove prometheus-overview-variables instance.');
+      cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/prometheus-overview-variables.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+
+      cy.log('Remove thanos-compact-overview-1var instance.');
+      cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/thanos-compact-overview-1var.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+
+      cy.log('Remove Thanos Querier instance.');
+      cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/thanos-querier-datasource.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+
       cy.log('Remove perses-dev namespace');
       cy.executeAndDelete(`oc delete namespace perses-dev --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
@@ -278,6 +293,21 @@ const operatorUtils = {
       cy.executeAndDelete(
         `oc delete ${config.kind} ${config.name} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
       );
+
+      cy.log('Remove openshift-cluster-sample-dashboard instance.');
+      cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/openshift-cluster-sample-dashboard.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+
+      cy.log('Remove perses-dashboard-sample instance.');
+      cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/perses-dashboard-sample.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+
+      cy.log('Remove prometheus-overview-variables instance.');
+      cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/prometheus-overview-variables.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+
+      cy.log('Remove thanos-compact-overview-1var instance.');
+      cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/thanos-compact-overview-1var.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+
+      cy.log('Remove Thanos Querier instance.');
+      cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/thanos-querier-datasource.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
       cy.log('Remove Cluster Observability Operator namespace');
       cy.executeAndDelete(`oc delete namespace ${MCP.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
