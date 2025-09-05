@@ -1,0 +1,45 @@
+name: "Single Incident Warning Alerts Only"
+description: "A single incident containing only warning severity alerts, representing a degraded but not critical system state."
+incidents:
+  - id: "compute-warning-only-001"
+    component: "compute"
+    layer: "core"
+    timeline:
+      start: "2d"
+      end: "6h"
+    alerts:
+      - name: "NodeMemoryUtilizationHigh001"
+        namespace: "openshift-monitoring"
+        severity: "warning"
+        firing: false
+        timeline:
+          start: "2d"
+          end: "6h"
+      - name: "NodeCPUUtilizationHigh001"
+        namespace: "openshift-monitoring"
+        severity: "warning"
+        firing: false
+        timeline:
+          start: "42h"
+          end: "8h"
+      - name: "PodRestartFrequently001"
+        namespace: "openshift-monitoring"
+        severity: "warning"
+        firing: false
+        timeline:
+          start: "36h"
+          end: "10h"
+      - name: "NodeDiskSpaceLow001"
+        namespace: "openshift-monitoring"
+        severity: "warning"
+        firing: false
+        timeline:
+          start: "30h"
+          end: "12h"
+      - name: "ContainerMemoryLimitApproaching001"
+        namespace: "openshift-monitoring"
+        severity: "warning"
+        firing: false
+        timeline:
+          start: "1d"
+          end: "14h"

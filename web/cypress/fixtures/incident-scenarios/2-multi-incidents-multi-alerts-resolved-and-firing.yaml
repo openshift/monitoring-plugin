@@ -1,0 +1,154 @@
+name: "Multi-Incident Crisis"
+description: "Complex incident scenario with multiple overlapping incidents featuring extended duration incidents and a cluster of critical alerts"
+incidents:
+  - id: "monitoring-extended-outage-001"
+    component: "monitoring"
+    layer: "core"
+    timeline:
+      start: "3600m"
+      end: "2160m"  
+    alerts:
+      - name: "MonitoringAlertmanagerReceiversCritical001"
+        namespace: "openshift-monitoring"
+        severity: "warning"
+        firing: true
+        timeline:
+          start: "3600m"
+          end: "2160m"
+      - name: "MonitoringPrometheusTargetDownWarning002"
+        namespace: "openshift-monitoring"
+        severity: "warning"
+        firing: true
+        timeline:
+          start: "2520m"
+      - name: "MonitoringGrafanaDashboardCritical003"
+        namespace: "openshift-monitoring"
+        severity: "critical"
+        firing: true
+        timeline:
+          start: "2400m"
+      - name: "MonitoringThanosQueryWarning004"
+        namespace: "openshift-monitoring"
+        severity: "warning"
+        firing: true
+        timeline:
+          start: "2280m"
+      - name: "MonitoringAlertmanagerConfigCritical005"
+        namespace: "openshift-monitoring"
+        severity: "critical"
+        firing: true
+        timeline:
+          start: "2160m"
+      - name: "MonitoringPrometheusRuleWarning006"
+        namespace: "openshift-monitoring"
+        severity: "warning"
+        firing: true
+        timeline:
+          start: "2040m"
+      - name: "MonitoringServiceMonitorCritical007"
+        namespace: "openshift-monitoring"
+        severity: "critical"
+        firing: true
+        timeline:
+          start: "1920m"
+      - name: "MonitoringPodMonitorWarning008"
+        namespace: "openshift-monitoring"
+        severity: "warning"
+        firing: true
+        timeline:
+          start: "1800m"
+      - name: "MonitoringPrometheusTargetCritical009"
+        namespace: "openshift-monitoring"
+        severity: "critical"
+        firing: true
+        timeline:
+          start: "1680m"
+      - name: "MonitoringGrafanaDataSourceWarning010"
+        namespace: "openshift-monitoring"
+        severity: "warning"
+        firing: true
+        timeline:
+          start: "1560m"
+      - name: "MonitoringThanosStoreCritical011"
+        namespace: "openshift-monitoring"
+        severity: "critical"
+        firing: true
+        timeline:
+          start: "1500m"
+      - name: "MonitoringPrometheusConfigWarning012"
+        namespace: "openshift-monitoring"
+        severity: "warning"
+        firing: true
+        timeline:
+          start: "1470m"
+
+  - id: "storage-persistent-issue-001"
+    component: "storage"
+    layer: "core"
+    timeline:
+      start: "3600m"
+      end: "2160m"  
+    alerts:
+      - name: "StoragePersistentVolumeClaimPending013"
+        namespace: "openshift-storage"
+        severity: "info"
+        firing: true
+        timeline:
+          start: "3600m"
+          end: "2160m"
+
+  - id: "compute-critical-failure-001"
+    component: "compute"
+    layer: "core"
+    timeline:
+      start: "2160m"
+      end: "1800m"  
+    alerts:
+      - name: "ComputeNodeNotReadyCritical014"
+        namespace: "openshift-machine-api"
+        severity: "critical"
+        firing: true
+        timeline:
+          start: "2160m"
+          end: "1800m"
+
+  - id: "api-server-escalation-001"
+    component: "api-server"
+    layer: "core"
+    timeline:
+      start: "1800m"
+      end: "1620m"  
+    alerts:
+      - name: "APIServerHighErrorRateCritical015"
+        namespace: "openshift-kube-apiserver"
+        severity: "info"
+        firing: true
+        timeline:
+          start: "1800m"
+          end: "1620m"
+
+  - id: "network-connectivity-issue-001"
+    component: "network"
+    layer: "core"
+    timeline:
+      start: "1560m"
+    alerts:
+      - name: "NetworkDNSResolutionFailureCritical016"
+        namespace: "openshift-dns"
+        severity: "critical"
+        firing: true
+        timeline:
+          start: "1560m"
+  - id: "network-connectivity-issue-002"
+    component: "network"
+    layer: "core"
+    timeline:
+      start: "1560m"
+    alerts:
+      - name: "NetworkDNSResolutionFailureCritical017"
+        namespace: "openshift-dns"
+        severity: "critical"
+        firing: true
+        timeline:
+          start: "1560m"
+

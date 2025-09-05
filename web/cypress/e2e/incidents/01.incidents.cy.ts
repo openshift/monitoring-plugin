@@ -43,7 +43,6 @@ describe('BVT: Incidents - UI', () => {
 
 
   beforeEach(() => {
-
     cy.log('Navigate to Observe → Incidents');
     incidentsPage.goTo();
     commonPages.titleShouldHaveText('Incidents');
@@ -80,6 +79,8 @@ describe('BVT: Incidents - UI', () => {
   });
 
   it('4. Admin perspective - Incidents page - Charts and alerts empty state', () => {
+    cy.mockIncidents([]);
+    
     cy.log('4.1 Verify chart titles are visible');
     incidentsPage.elements.incidentsChartTitle().should('be.visible');
     incidentsPage.elements.alertsChartTitle().should('be.visible');
@@ -89,6 +90,8 @@ describe('BVT: Incidents - UI', () => {
   });
 
   it('5. Admin perspective - Incidents page - Incident selection and alert details', () => {
+    cy.mockIncidentFixture('incident-scenarios/1-single-incident-firing-critical-and-warning-alerts.yaml');
+
     cy.log('5.1 Select incident and verify alert details');
     incidentsPage.clearAllFilters();
     incidentsPage.selectIncidentByBarIndex(0);
