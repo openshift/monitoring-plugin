@@ -63,14 +63,14 @@ const AlertingPage: FC = () => {
       href: 'alerts',
       // t('Alerts')
       nameKey: 'Alerts',
-      component: () => (plugin === 'monitoring-plugin' ? <CmoAlertsPage /> : <CooAlertsPage />),
+      component: plugin === 'monitoring-plugin' ? CmoAlertsPage : CooAlertsPage,
       name: 'Alerts',
     },
     {
       href: 'silences',
       // t('Silences')
       nameKey: 'Silences',
-      component: () => (plugin === 'monitoring-plugin' ? <CmoSilencesPage /> : <CooSilencesPage />),
+      component: plugin === 'monitoring-plugin' ? CmoSilencesPage : CooSilencesPage,
       name: 'Silences',
     },
     {
@@ -78,8 +78,7 @@ const AlertingPage: FC = () => {
       // t('Alerting Rules') -- for console.tab extension
       // t('Alerting rules')
       nameKey: 'Alerting rules',
-      component: () =>
-        plugin === 'monitoring-plugin' ? <CmoAlertRulesPage /> : <CooAlertRulesPage />,
+      component: plugin === 'monitoring-plugin' ? CmoAlertRulesPage : CooAlertRulesPage,
       name: 'Alerting rules',
     },
   ];
