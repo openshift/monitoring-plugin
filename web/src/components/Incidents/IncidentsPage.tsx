@@ -515,7 +515,7 @@ const IncidentsPage = () => {
                     />
                   </StackItem>
                   <StackItem>
-                    <AlertsChart chartDays={timeRanges.length} theme={theme} />
+                    <AlertsChart theme={theme} />
                   </StackItem>
                 </>
               )}

@@ -171,7 +171,7 @@ export const createIncidentsChartBars = (incident: Incident, dateArray: SpanDate
   return data;
 };
 
-function consolidateAndMergeAlertIntervals(data: Alert, dateArray: SpanDates) {
+function consolidateAndMergeAlertIntervals(data: Alert) {
   if (!data.values || data.values.length === 0) {
     return [];
   }
@@ -195,24 +195,15 @@ function consolidateAndMergeAlertIntervals(data: Alert, dateArray: SpanDates) {
 
   intervals.push([currentStart, sortedValues[sortedValues.length - 1][0], 'data']);
 
-  // Handle gaps before and after the detected intervals
-  const startBoundary = dateArray[0],
-    endBoundary = dateArray[dateArray.length - 1];
-  const firstIntervalStart = intervals[0][0],
-    lastIntervalEnd = intervals[intervals.length - 1][1];
-
-  if (firstIntervalStart > startBoundary) {
-    intervals.unshift([startBoundary, firstIntervalStart - 1, 'nodata']);
-  }
-  if (lastIntervalEnd < endBoundary) {
-    intervals.push([lastIntervalEnd + 1, endBoundary, 'nodata']);
-  }
+  // For dynamic alerts timeline, we don't add padding gaps since the dateArray
+  // is already calculated to fit the alert data with appropriate padding
+  // This allows the timeline to focus on the actual alert activity period
 
   return intervals;
 }
 
-export const createAlertsChartBars = (alert: Alert, dateValues: SpanDates) => {
-  const groupedData = consolidateAndMergeAlertIntervals(alert, dateValues);
+export const createAlertsChartBars = (alert: Alert) => {
+  const groupedData = consolidateAndMergeAlertIntervals(alert);
   const barChartColorScheme = {
     critical: t_global_color_status_danger_default.var,
     info: t_global_color_status_info_default.var,
@@ -294,6 +285,63 @@ export function generateDateArray(days: number): Array<number> {
     newDate.setHours(0, 0, 0, 0);
     dateArray.push(newDate.getTime() / 1000);
   }
+
+  return dateArray;
+}
+
+/**
+ * Generates a dynamic date array based on the actual min/max timestamps from alerts data.
+ * This creates a focused timeline that spans only the relevant alert activity period.
+ *
+ * @param {Array<Alert>} alertsData - Array of alert objects containing timestamp values
+ * @returns {Array<number>} - Array of timestamp values representing the date range with some padding
+ *
+ * @example
+ * const alertsDateRange = generateAlertsDateArray(alertsData);
+ * // Returns timestamps spanning from earliest alert minus padding to latest alert plus padding
+ */
+export function generateAlertsDateArray(alertsData: Array<Alert>): Array<number> {
+  if (!Array.isArray(alertsData) || alertsData.length === 0) {
+    // Fallback to current day if no alerts data
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    return [now.getTime() / 1000];
+  }
+
+  let minTimestamp = Infinity;
+  let maxTimestamp = -Infinity;
+
+  // Find min and max timestamps across all alerts
+  alertsData.forEach((alert) => {
+    if (alert.values && Array.isArray(alert.values)) {
+      alert.values.forEach(([timestamp]) => {
+        minTimestamp = Math.min(minTimestamp, timestamp);
+        maxTimestamp = Math.max(maxTimestamp, timestamp);
+      });
+    }
+  });
+
+  // Handle edge case where no valid timestamps found
+  if (minTimestamp === Infinity || maxTimestamp === -Infinity) {
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    return [now.getTime() / 1000];
+  }
+
+  // Add some padding to make the timeline more readable
+  // Padding: 10% of the time span, minimum 1 hour, maximum 24 hours
+  const timeSpan = maxTimestamp - minTimestamp;
+  const paddingSeconds = Math.max(3600, Math.min(86400, timeSpan * 0.1));
+
+  const paddedMin = minTimestamp - paddingSeconds;
+  const paddedMax = maxTimestamp + paddingSeconds;
+
+  // Generate array with exactly 2 timestamps: min (start) and max (end)
+  const dateArray: Array<number> = [];
+
+  // Always show exactly 2 ticks for clean X-axis: start and end only
+  dateArray.push(paddedMin); // Min date (start)
+  dateArray.push(paddedMax); // Max date (end)
 
   return dateArray;
 }
