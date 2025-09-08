@@ -79,11 +79,11 @@ deploy-acm:
 
 .PHONY: build-mcp-image
 build-mcp-image:
-	DOCKER_FILE_NAME="Dockerfile.mcp" scripts/build-image.sh
+	DOCKER_FILE_NAME="Dockerfile.mcp" REPO="monitoring-console-plugin" scripts/build-image.sh 
 
 .PHONY: build-dev-mcp-image
 build-dev-mcp-image:
-	DOCKER_FILE_NAME="Dockerfile.dev-mcp" scripts/build-image.sh
+	DOCKER_FILE_NAME="Dockerfile.dev-mcp" REPO="monitoring-console-plugin" scripts/build-image.sh
 
 .PHONY: start-feature-console
 start-feature-console:
