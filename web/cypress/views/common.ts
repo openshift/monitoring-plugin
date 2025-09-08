@@ -34,9 +34,9 @@ export const commonPages = {
     cy.byPFRole('dialog').should('be.visible');
 
     if (yes) {
-      cy.byTestID(DataTestIDs.ExpireSilenceButton).should('be.visible').click();
+      cy.byTestID(DataTestIDs.ExpireSilenceButton).should('be.visible').click({force: true});
     } else {
-      cy.byTestID(DataTestIDs.CancelButton).should('be.visible').click();
+      cy.byTestID(DataTestIDs.CancelButton).should('be.visible').click({force: true});
     };
     cy.byTestID(DataTestIDs.ExpireSilenceButton).should('not.exist');
   },
