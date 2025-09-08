@@ -25,7 +25,7 @@ import { Link } from 'react-router-dom-v5-compat';
 
 import { setQueryArguments } from '../../console/utils/router';
 
-import { Perspective } from '../../../actions/observe';
+import { Perspective } from '../../../store/actions';
 import BarChart from '../legacy/bar-chart';
 import Graph from '../legacy/graph';
 import SingleStat from '../legacy/single-stat';
@@ -34,11 +34,11 @@ import { useBoolean } from '../../hooks/useBoolean';
 import { useIsVisible } from '../../hooks/useIsVisible';
 import {
   getMutlipleQueryBrowserUrl,
-  getLegacyObserveState,
+  getObserveState,
   usePerspective,
 } from '../../hooks/usePerspective';
 import KebabDropdown from '../../kebab-dropdown';
-import { MonitoringState } from '../../../reducers/observe';
+import { MonitoringState } from '../../../store/store';
 import { evaluateVariableTemplate } from './legacy-variable-dropdowns';
 import { Panel, Row } from './types';
 import { QueryParams } from '../../query-params';
@@ -51,6 +51,7 @@ import { t_global_font_size_heading_h2 } from '@patternfly/react-tokens';
 import { GraphEmpty } from '../../../components/console/graphs/graph-empty';
 import { GraphUnits } from '../../../components/metrics/units';
 import { LegacyDashboardPageTestIDs } from '../../../components/data-test';
+import { useMonitoring } from '../../../hooks/useMonitoring';
 
 const QueryBrowserLink = ({
   queries,
@@ -101,16 +102,17 @@ const getPanelSpan = (panel: Panel): gridSpans => {
 
 const Card: FC<CardProps> = memo(({ panel, perspective }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const { plugin } = useMonitoring();
 
   const [namespace] = useActiveNamespace();
-  const pollInterval = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'pollInterval']),
+  const pollInterval = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state).dashboards.pollInterval,
   );
-  const timespan = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'timespan']),
+  const timespan = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state).dashboards.timespan,
   );
-  const variables = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'variables']),
+  const variables = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state).dashboards.variables,
   );
 
   const ref = useRef();
@@ -343,7 +345,6 @@ const Card: FC<CardProps> = memo(({ panel, perspective }) => {
                       units={panel.yaxes?.[0]?.format}
                       onZoomHandle={handleZoom}
                       customDataSource={customDataSource}
-                      perspective={perspective}
                       onDataChange={(data) => setCsvData(data)}
                     />
                   )}
@@ -404,9 +405,9 @@ const PanelsRow: FC<PanelsRowProps> = ({ row, perspective }) => {
 
 export const LegacyDashboard: FC<BoardProps> = ({ rows, perspective }) => (
   <Flex direction={{ default: 'column' }}>
-    {_.map(rows, (row) => (
-      <FlexItem>
-        <PanelsRow key={_.map(row.panels, 'id').join()} row={row} perspective={perspective} />
+    {rows.map((row) => (
+      <FlexItem key={row.panels.map((panel) => `${panel.id}-${row.title}`).join()}>
+        <PanelsRow row={row} perspective={perspective} />
       </FlexItem>
     ))}
   </Flex>

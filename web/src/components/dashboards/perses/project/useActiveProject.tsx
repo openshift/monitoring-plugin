@@ -38,12 +38,8 @@ export const useActiveProject = () => {
       return;
       // If activeProject isn't set yet, but the url is, then load from url
     }
-    if (perspective !== 'dev') {
-      // If the url and the data is out of sync, follow the data
-      setProject(activeProject);
-      // Don't set project in dev perspective since perses dashboards
-      // aren't supported there yet
-    }
+    // If the url and the data is out of sync, follow the data
+    setProject(activeProject);
   }, [
     projectFromUrl,
     activeProject,
