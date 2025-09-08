@@ -1,0 +1,179 @@
+/* eslint-disable @typescript-eslint/no-use-before-define */
+import Loggable = Cypress.Loggable;
+import Timeoutable = Cypress.Timeoutable;
+import Withinable = Cypress.Withinable;
+import Shadow = Cypress.Shadow;
+import 'cypress-wait-until';
+import { operatorHubPage } from '../../views/operator-hub-page';
+import { nav } from '../../views/nav';
+import { guidedTour } from '../../views/tour';
+
+export {};
+
+declare global {
+    namespace Cypress {
+      interface Chainable {
+        adminCLI(command: string, options?);
+        executeAndDelete(command: string);
+        beforeBlockVirtualization(KBV: { namespace: string, operatorName: string, packageName: string });
+        afterBlockVirtualization(KBV: { namespace: string, operatorName: string, packageName: string });
+      }
+    }
+  }
+  
+const readyTimeoutMilliseconds = Cypress.config('readyTimeoutMilliseconds') as number;
+const installTimeoutMilliseconds = Cypress.config('installTimeoutMilliseconds') as number;
+
+const virtualizationUtils = {
+  installVirtualization(KBV: { namespace: string, packageName: string }): void {
+    if (Cypress.env('SKIP_KUBEVIRT_INSTALL')) {
+      cy.log('SKIP_KUBEVIRT_INSTALL is set. Skipping Openshift Virtualization installation.');
+    } else if (Cypress.env('KUBEVIRT_UI_INSTALL')) {
+      cy.log('KUBEVIRT_UI_INSTALL is set. Kubevirt will be installed from redhat-operators catalog source');
+      cy.log('Install Openshift Virtualization');
+      operatorHubPage.installOperator(KBV.packageName, 'redhat-operators');
+      cy.get('.co-clusterserviceversion-install__heading', { timeout: installTimeoutMilliseconds }).should(
+        'include.text',
+        'Operator installed successfully',
+      );
+    } else if (Cypress.env('KONFLUX_KBV_BUNDLE_IMAGE')) {
+      cy.log('KONFLUX_KBV_BUNDLE_IMAGE is set. Openshift Virtualization operator will be installed from Konflux bundle.');
+      cy.log('Install Openshift Virtualization');
+      // cy.exec(
+      //   `oc --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} apply -f ./cypress/fixtures/coo/coo-imagecontentsourcepolicy.yaml`,
+      // );
+      cy.exec(
+        `oc create namespace ${KBV.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+      );
+      cy.exec(
+        `operator-sdk run bundle --timeout=10m --namespace ${KBV.namespace} ${Cypress.env('KONFLUX_KBV_BUNDLE_IMAGE')} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} --verbose `,
+        { timeout: installTimeoutMilliseconds },
+      );
+    } else if (Cypress.env('CUSTOM_KBV_BUNDLE_IMAGE')) {
+      cy.log('CUSTOM_KBV_BUNDLE_IMAGE is set. Openshift Virtualization operator will be installed from custom built bundle.');
+      cy.log('Install Openshift Virtualization');
+      // cy.exec(
+      //   `oc --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} apply -f ./cypress/fixtures/coo/coo-imagecontentsourcepolicy.yaml`,
+      // );
+      cy.exec(
+        `oc create namespace ${KBV.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+      );
+      cy.exec(
+        `operator-sdk run bundle --timeout=10m --namespace ${KBV.namespace} ${Cypress.env('CUSTOM_KBV_BUNDLE_IMAGE')} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} --verbose `,
+        { timeout: installTimeoutMilliseconds },
+      );
+    } else if (Cypress.env('FBC_STAGE_KBV_IMAGE')) {
+      cy.log('FBC_STAGE_KBV_IMAGE is set. Openshift Virtualization operator will be installed from FBC image.');
+      cy.log('Install Openshift Virtualization');
+      // cy.exec(
+      //   `oc --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} apply -f ./cypress/fixtures/coo/coo-imagecontentsourcepolicy.yaml`,
+      // );
+      cy.exec(
+        './cypress/fixtures/virtulization/virtualization_stage.sh',
+        {
+          env: {
+            FBC_STAGE_KBV_IMAGE: Cypress.env('FBC_STAGE_KBV_IMAGE'),
+            KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
+          },
+          timeout: installTimeoutMilliseconds
+        }
+      );
+    } else {
+      throw new Error('No CYPRESS env set for operator installation, check the README for more details.');
+    }
+  },
+
+  waitForVirtualizationReady(KBV: { namespace: string }): void {
+    cy.log('Check Openshift Virtualization status');
+    cy.exec(
+      `sleep 15 && oc wait --for=jsonpath='{.status.phase}'=Succeeded ClusterServiceVersion/kubevirt-hyperconverged-operator.v4.19.0 -n ${KBV.namespace} --timeout=300s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+      {
+        timeout: readyTimeoutMilliseconds,
+        failOnNonZeroExit: true
+      }
+    ).then((result) => {
+      expect(result.code).to.eq(0);
+      cy.log(`Openshift Virtualization CSV is now running in namespace: ${KBV.namespace}`);
+    });
+
+    cy.get('#page-sidebar').then(($sidebar) => {
+      const section = $sidebar.text().includes('Ecosystem') ? 'Ecosystem' : 'Operators';
+      nav.sidenav.clickNavLink([section, 'Installed Operators']);
+    });
+
+    cy.byTestID('name-filter-input').should('be.visible').type('Openshift Virtualization{enter}');
+    cy.get('[data-test="status-text"]', { timeout: installTimeoutMilliseconds }).eq(0).should('contain.text', 'Succeeded', { timeout: installTimeoutMilliseconds });
+  },
+
+  setupHyperconverged(KBV: { namespace: string }): void {
+    cy.log('Create Hyperconverged instance.');
+    cy.exec(`oc apply -f ./cypress/fixtures/virtualization/hyperconverged.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+    cy.exec(
+      `sleep 15 && oc wait --for=condition=Available --selector=app=kubevirt-hyperconverged -n ${KBV.namespace} --timeout=60s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+      {
+        timeout: readyTimeoutMilliseconds,
+        failOnNonZeroExit: true
+      }
+    ).then((result) => {
+      expect(result.code).to.eq(0);
+      cy.log(`Hyperconverged is now running in namespace: ${KBV.namespace}`);
+    });
+    cy.reload(true);
+    cy.visit('/k8s/all-namespaces/virtualization-overview');
+    cy.url().should('include', '/k8s/all-namespaces/virtualization-overview');
+    guidedTour.closeKubevirtTour();
+  },
+
+  cleanup(KBV: { namespace: string, config?: { kind: string, name: string } }): void {
+    const config = KBV.config || { kind: 'HyperConverged', name: 'kubevirt-hyperconverged' };
+    
+    if (Cypress.env('SKIP_KBV_INSTALL')) {
+      cy.log('Delete Hyperconverged instance.');
+      cy.executeAndDelete(
+        `oc delete ${config.kind} ${config.name} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+      );
+
+      // cy.log('Remove Hyperconverged instance.');
+      // cy.executeAndDelete(`oc delete -f ./cypress/fixtures/virtualization/hyperconverged.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+
+      cy.log('Remove Openshift Virtualization namespace');
+      cy.executeAndDelete(`oc delete namespace ${KBV.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+
+      cy.log('Remove cluster-admin role from user.');
+      cy.executeAndDelete(
+        `oc adm policy remove-cluster-role-from-user cluster-admin ${Cypress.env('LOGIN_USERNAME')} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+      );
+    } else {
+      cy.log('Delete Hyperconverged instance.');
+      cy.executeAndDelete(
+        `oc delete ${config.kind} ${config.name} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+      );
+
+      // cy.log('Remove Hyperconverged instance.');
+      // cy.executeAndDelete(`oc delete -f ./cypress/fixtures/virtualization/hyperconverged.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+
+      // cy.log('Remove Openshift Virtualization namespace');
+      // cy.executeAndDelete(`oc delete namespace ${KBV.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+
+      cy.log('Remove cluster-admin role from user.');
+      cy.executeAndDelete(
+        `oc adm policy remove-cluster-role-from-user cluster-admin ${Cypress.env('LOGIN_USERNAME')} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+      );
+
+    }
+  }
+};
+  
+  Cypress.Commands.add('beforeBlockVirtualization', (KBV: { namespace: string, operatorName: string, packageName: string }) => {
+    cy.log('Before block Virtualization');
+    virtualizationUtils.installVirtualization(KBV);
+    virtualizationUtils.waitForVirtualizationReady(KBV);
+    virtualizationUtils.setupHyperconverged(KBV);
+    cy.log('Before block Virtualization completed');
+  });
+  
+  Cypress.Commands.add('afterBlockVirtualization', (KBV: { namespace: string, operatorName: string, packageName: string }) => {
+    cy.log('After block Virtualization');
+    virtualizationUtils.cleanup(KBV);
+    cy.log('After block Virtualization completed');
+  });
