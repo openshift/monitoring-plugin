@@ -9,6 +9,7 @@ import {
   Badge,
 } from '@patternfly/react-core';
 import { getFilterKey } from './utils';
+import { setAlertsAreLoading } from '../../actions/observe';
 
 interface IncidentFilterToolbarItemProps {
   categoryName: string;
@@ -66,11 +67,17 @@ const IncidentFilterToolbarItem: React.FC<IncidentFilterToolbarItemProps> = ({
         deleteLabel={(category, chip) => {
           if (typeof category === 'string' && typeof chip === 'string') {
             onDeleteIncidentFilterChip(category, chip, incidentsActiveFilters, dispatch);
+            if (categoryName === 'Incident ID') {
+              dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
+            }
           }
         }}
-        deleteLabelGroup={(category) =>
-          onDeleteGroupIncidentFilterChip(incidentsActiveFilters, dispatch, category)
-        }
+        deleteLabelGroup={(category) => {
+          onDeleteGroupIncidentFilterChip(incidentsActiveFilters, dispatch, category);
+          if (categoryName === 'Incident ID') {
+            dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
+          }
+        }}
         categoryName={categoryName}
       >
         <Select
