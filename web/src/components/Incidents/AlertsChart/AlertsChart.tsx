@@ -26,9 +26,14 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setAlertsAreLoading } from '../../../actions/observe';
 import { MonitoringState } from '../../../reducers/observe';
 import { IncidentsTooltip } from '../IncidentsTooltip';
-import { createAlertsChartBars, formatDate, generateDateArray } from '../utils';
+import {
+  createAlertsChartBars,
+  formatDate,
+  generateDateArray,
+  generateAlertsDateArray,
+} from '../utils';
 
-const AlertsChart = ({ chartDays, theme }: { chartDays: number; theme: 'light' | 'dark' }) => {
+const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
   const dispatch = useDispatch();
   const [chartContainerHeight, setChartContainerHeight] = useState<number>();
   const [chartHeight, setChartHeight] = useState<number>();
@@ -45,12 +50,19 @@ const AlertsChart = ({ chartDays, theme }: { chartDays: number; theme: 'light' |
     state.plugins.mcp.getIn(['incidentsData', 'groupId']),
   );
 
-  const dateValues = useMemo(() => generateDateArray(chartDays), [chartDays]);
+  // Use dynamic date range based on actual alerts data instead of fixed chartDays
+  const dateValues = useMemo(() => {
+    if (!Array.isArray(alertsData) || alertsData.length === 0) {
+      // Fallback to single day if no alerts data
+      return generateDateArray(1);
+    }
+    return generateAlertsDateArray(alertsData);
+  }, [alertsData]);
 
   const chartData = useMemo(() => {
     if (!Array.isArray(alertsData) || alertsData.length === 0) return [];
-    return alertsData.map((alert) => createAlertsChartBars(alert, dateValues));
-  }, [alertsData, dateValues]);
+    return alertsData.map((alert) => createAlertsChartBars(alert));
+  }, [alertsData]);
 
   useEffect(() => {
     setChartContainerHeight(chartData?.length < 5 ? 300 : chartData?.length * 60);
