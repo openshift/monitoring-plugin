@@ -685,16 +685,20 @@ export const parseUrlParams = (search) => {
  * @returns {{value: string}[]} An array of objects, where each object has a `value` key with a unique incident ID.
  */
 export const getIncidentIdOptions = (incidents: Array<Incident>) => {
-  const uniqueIds = new Set<string>();
+  const incidentMap = new Map<string, Incident>();
   incidents.forEach((incident) => {
     if (incident.group_id) {
-      uniqueIds.add(incident.group_id);
+      incidentMap.set(incident.group_id, incident);
     }
   });
-  return Array.from(uniqueIds).map((id) => ({
-    value: id,
-    description: `Incident ID: ${id}`,
-  }));
+  return Array.from(incidentMap.entries()).map(([id, incident]) => {
+    const componentCount = incident.componentList ? incident.componentList.length : 1;
+    const componentText = componentCount === 1 ? 'component' : 'components';
+    return {
+      value: id,
+      description: `${componentCount} ${componentText}`,
+    };
+  });
 };
 
 /**
