@@ -62,6 +62,7 @@ import { Incident, IncidentsPageFiltersExpandedState } from './model';
 import { useAlertsPoller } from '../hooks/useAlertsPoller';
 import { Rule } from '@openshift-console/dynamic-plugin-sdk';
 import IncidentFilterToolbarItem, { severityOptions, stateOptions } from './ToolbarItemFilter';
+import { isEmpty } from 'lodash-es';
 
 const IncidentsPage = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -221,7 +222,11 @@ const IncidentsPage = () => {
               alertsData: processAlerts(aggregatedData, incidentForAlertProcessing),
             }),
           );
-          dispatch(setAlertsAreLoading({ alertsAreLoading: false }));
+          if (!isEmpty(filteredData)) {
+            dispatch(setAlertsAreLoading({ alertsAreLoading: false }));
+          } else {
+            dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
+          }
         })
         .catch((err) => {
           // eslint-disable-next-line no-console
@@ -316,6 +321,21 @@ const IncidentsPage = () => {
   };
 
   const incidentIdFilterOptions = incidents ? getIncidentIdOptions(incidents) : [];
+
+  //loading states
+  useEffect(() => {
+    //force a loading state for the alerts chart and table if we filtered out all of the incidents
+    if (
+      (!isEmpty(incidentsActiveFilters.severity) || !isEmpty(incidentsActiveFilters.state)) &&
+      isEmpty(filteredData)
+    ) {
+      dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
+    }
+
+    if (!isEmpty(filteredData) && !isEmpty(incidentsActiveFilters.groupId)) {
+      dispatch(setAlertsAreLoading({ alertsAreLoading: false }));
+    }
+  }, [incidentsActiveFilters, filteredData, dispatch]);
 
   return (
     <>
