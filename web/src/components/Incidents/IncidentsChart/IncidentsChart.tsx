@@ -139,13 +139,12 @@ const IncidentsChart = ({
                     }
                     const startDate = dateTimeFormatter(i18n.language).format(new Date(datum.y0));
                     const endDate =
-                      datum.alertstate === 'firing'
+                      datum.firing
                         ? '---'
                         : dateTimeFormatter(i18n.language).format(new Date(datum.y));
                     return `Severity: ${datum.name}
-                    Component: ${datum.componentList?.join(', ')}
-                    Incident ID:
-                    ${datum.group_id}
+                    ID: ${datum.group_id}
+                    Component(s): ${datum.componentList?.join(', ')}
                     Start: ${startDate}
                     End: ${endDate}`;
                   }}

@@ -128,7 +128,7 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
                       datum.alertstate === 'firing'
                         ? '---'
                         : dateTimeFormatter(i18n.language).format(new Date(datum.y));
-                    return `Alert Severity: ${datum.severity}
+                    return `Severity: ${datum.severity}
                     Alert Name: ${datum.name ? datum.name : '---'}
                     Namespace: ${datum.namespace ? datum.namespace : '---'}
                     Layer: ${datum.layer ? datum.layer : '---'}
