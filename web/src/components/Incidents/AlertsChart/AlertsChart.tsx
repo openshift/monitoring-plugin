@@ -31,6 +31,7 @@ import { AlertsChartBar } from '../model';
 import { setAlertsAreLoading } from '../../../store/actions';
 import { MonitoringState } from '../../../store/store';
 import { isEmpty } from 'lodash-es';
+import { DataTestIDs } from '../../data-test';
 
 const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
   const dispatch = useDispatch();
@@ -97,15 +98,20 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
   }, []);
 
   return (
-    <Card className="alerts-chart-card" style={{ overflow: 'visible' }}>
-      <div ref={containerRef}>
-        <CardTitle>Alerts Timeline</CardTitle>
+    <Card
+      className="alerts-chart-card"
+      style={{ overflow: 'visible' }}
+      data-test={DataTestIDs.AlertsChart.Card}
+    >
+      <div ref={containerRef} data-test={DataTestIDs.AlertsChart.ChartContainer}>
+        <CardTitle data-test={DataTestIDs.AlertsChart.Title}>Alerts Timeline</CardTitle>
         {alertsAreLoading || isEmpty(incidentsActiveFilters.groupId) ? (
           <EmptyState
             variant="lg"
             style={{
               height: '250px',
             }}
+            data-test={DataTestIDs.AlertsChart.EmptyState}
           >
             <EmptyStateBody>
               To view alerts, select an incident from the chart above or from the filters.

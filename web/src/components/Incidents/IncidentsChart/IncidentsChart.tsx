@@ -29,6 +29,7 @@ import { Incident } from '../model';
 import { calculateChartDomain, createIncidentsChartBars, generateDateArray } from '../utils';
 import { dateTimeFormatter } from '../../console/utils/datetime';
 import { useTranslation } from 'react-i18next';
+import { DataTestIDs } from '../../data-test';
 
 const IncidentsChart = ({
   incidentsData,
@@ -87,12 +88,23 @@ const IncidentsChart = ({
   };
 
   return (
-    <Card className="incidents-chart-card" style={{ overflow: 'visible' }}>
-      <div ref={containerRef} style={{ position: 'relative' }}>
-        <CardTitle>Incidents Timeline</CardTitle>
+    <Card
+      className="incidents-chart-card"
+      style={{ overflow: 'visible' }}
+      data-test={DataTestIDs.IncidentsChart.Card}
+    >
+      <div
+        ref={containerRef}
+        style={{ position: 'relative' }}
+        data-test={DataTestIDs.IncidentsChart.ChartContainer}
+      >
+        <CardTitle data-test={DataTestIDs.IncidentsChart.Title}>Incidents Timeline</CardTitle>
         {isLoading ? (
           <Bullseye>
-            <Spinner aria-label="incidents-chart-spinner" />
+            <Spinner
+              aria-label="incidents-chart-spinner"
+              data-test={DataTestIDs.IncidentsChart.LoadingSpinner}
+            />
           </Bullseye>
         ) : (
           <CardBody
@@ -174,13 +186,14 @@ const IncidentsChart = ({
                 }
                 domain={calculateChartDomain(dateValues, chartData)}
               />
-              <ChartGroup horizontal>
+              <ChartGroup horizontal data-test={DataTestIDs.IncidentsChart.ChartBars}>
                 {chartData.map((bar) => {
                   return (
                     //we have several arrays and for each array we make a ChartBar
                     <ChartBar
                       data={bar}
                       key={bar[0].group_id}
+                      data-test={`${DataTestIDs.IncidentsChart.ChartBar}-${bar[0].group_id}`}
                       style={{
                         data: {
                           fill: ({ datum }) => datum.fill,
