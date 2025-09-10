@@ -81,6 +81,66 @@ export const DataTestIDs = {
   TypeaheadSelectInput: 'query-select-typeahead-input',
   Table: 'OUIA-Generated-Table', //table ouiaid - ID to be used with byOUIAID(DataTestIDs.Table)
   MetricsGraphAlertDanger: 'OUIA-Generated-Alert-danger', //ID to be used with byOUIAID(DataTestIDs.MetricsGraphAlertDanger)
+
+  // Incidents Page Test IDs
+  IncidentsPage: {
+    Toolbar: 'incidents-toolbar',
+    DaysSelect: 'incidents-days-select',
+    DaysSelectToggle: 'incidents-days-select-toggle',
+    DaysSelectList: 'incidents-days-select-list',
+    DaysSelectOption: 'incidents-days-select-option',
+    FiltersSelect: 'incidents-filters-select',
+    FiltersSelectToggle: 'incidents-filters-select-toggle',
+    FiltersSelectList: 'incidents-filters-select-list',
+    FiltersSelectOption: 'incidents-filters-select-option',
+    FilterChip: 'incidents-filter-chip',
+    FilterChipRemove: 'incidents-filter-chip-remove',
+    ClearAllFiltersButton: 'incidents-clear-all-filters',
+    ToggleChartsButton: 'incidents-toggle-charts',
+    LoadingSpinner: 'incidents-loading-spinner',
+  },
+
+  // Incidents Chart Test IDs
+  IncidentsChart: {
+    Card: 'incidents-chart-card',
+    Title: 'incidents-chart-title',
+    ChartContainer: 'incidents-chart-container',
+    LoadingSpinner: 'incidents-chart-loading-spinner',
+    ChartBars: 'incidents-chart-bars',
+    ChartBar: 'incidents-chart-bar',
+  },
+
+  // Alerts Chart Test IDs
+  AlertsChart: {
+    Card: 'alerts-chart-card',
+    Title: 'alerts-chart-title',
+    EmptyState: 'alerts-chart-empty-state',
+    ChartContainer: 'alerts-chart-container',
+  },
+
+  // Incidents Table Test IDs
+  IncidentsTable: {
+    Table: 'incidents-alerts-table',
+    ExpandButton: 'incidents-table-expand-button',
+    Row: 'incidents-table-row',
+    ComponentCell: 'incidents-table-component-cell',
+    SeverityCell: 'incidents-table-severity-cell',
+    StateCell: 'incidents-table-state-cell',
+  },
+
+  // Incidents Details Row Table Test IDs
+  IncidentsDetailsTable: {
+    Table: 'incidents-details-table',
+    LoadingSpinner: 'incidents-details-loading-spinner',
+    Row: 'incidents-details-row',
+    AlertRuleCell: 'incidents-details-alert-rule-cell',
+    NamespaceCell: 'incidents-details-namespace-cell',
+    SeverityCell: 'incidents-details-severity-cell',
+    StateCell: 'incidents-details-state-cell',
+    StartCell: 'incidents-details-start-cell',
+    EndCell: 'incidents-details-end-cell',
+    AlertRuleLink: 'incidents-details-alert-rule-link',
+  },
 };
 
 export const LegacyDashboardPageTestIDs = {

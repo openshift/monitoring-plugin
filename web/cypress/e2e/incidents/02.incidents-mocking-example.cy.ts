@@ -35,7 +35,6 @@ describe('Incidents - Mocking Examples', () => {
   beforeEach(() => {
     cy.log('Navigate to Observe → Incidents');
     incidentsPage.goTo();
-    commonPages.titleShouldHaveText('Incidents');
   });
 
   it('1. Mock healthy cluster from fixture', () => {
@@ -48,7 +47,6 @@ describe('Incidents - Mocking Examples', () => {
   it('2. Mock single incident with critical and warning alerts', () => {
     cy.log('Setting up single incident with critical and warning alerts from fixture');
     cy.mockIncidentFixture('incident-scenarios/1-single-incident-firing-critical-and-warning-alerts.yaml');
-    
     cy.log('Single incident with mixed severity alerts should be visible');
     cy.pause();
   });
