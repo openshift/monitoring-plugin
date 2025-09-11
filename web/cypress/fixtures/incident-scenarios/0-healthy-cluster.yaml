@@ -1,0 +1,13 @@
+name: "Healthy Cluster"
+description: "Minimal activity with only watchdog alert"
+incidents:
+  - id: "watchdog-info"
+    component: "monitoring"
+    layer: "core"
+    timeline:
+      start: "7d"  # Started 7 days ago (normal)
+    alerts:
+      - name: "Watchdog"
+        namespace: "openshift-monitoring"
+        severity: "info"
+        firing: true
