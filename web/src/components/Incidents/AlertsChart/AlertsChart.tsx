@@ -32,6 +32,7 @@ import {
   generateDateArray,
   generateAlertsDateArray,
 } from '../utils';
+import { AlertsChartBar } from '../model';
 
 const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
   const dispatch = useDispatch();
@@ -49,7 +50,6 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
   const incidentGroupId = useSelector((state: MonitoringState) =>
     state.plugins.mcp.getIn(['incidentsData', 'groupId']),
   );
-
   // Use dynamic date range based on actual alerts data instead of fixed chartDays
   const dateValues = useMemo(() => {
     if (!Array.isArray(alertsData) || alertsData.length === 0) {
@@ -62,7 +62,7 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
   const chartData = useMemo(() => {
     if (!Array.isArray(alertsData) || alertsData.length === 0) return [];
     return alertsData.map((alert) => createAlertsChartBars(alert));
-  }, [alertsData]);
+  }, [alertsData]) as AlertsChartBar[][];
 
   useEffect(() => {
     setChartContainerHeight(chartData?.length < 5 ? 300 : chartData?.length * 60);
@@ -89,6 +89,11 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
     handleResize();
     return () => observer();
   }, [handleResize]);
+
+  const getOpacity = useCallback((datum) => {
+    const opacity = datum.silenced ? 0.3 : 1;
+    return opacity;
+  }, []);
 
   return (
     <Card className="alerts-chart-card" style={{ overflow: 'visible' }}>
@@ -126,7 +131,8 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
                     Start: ${formatDate(new Date(datum.y0), true)}
                     End: ${
                       datum.alertstate === 'firing' ? '---' : formatDate(new Date(datum.y), true)
-                    }`;
+                    }
+                    Silenced: ${datum.silenced}`;
                   }}
                 />
               }
@@ -191,7 +197,7 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
                         data: {
                           fill: ({ datum }) => datum.fill,
                           stroke: ({ datum }) => datum.fill,
-                          fillOpacity: ({ datum }) => (datum.nodata ? 0 : 1),
+                          fillOpacity: ({ datum }) => (datum.nodata ? 0 : getOpacity(datum)),
                           cursor: 'pointer',
                         },
                       }}

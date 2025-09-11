@@ -8,11 +8,13 @@ import { Dispatch } from 'redux';
 import { setIncidentsActiveFilters } from '../../actions/observe';
 import {
   Alert,
+  AlertsChartBar,
   AlertsIntervalsArray,
   DaysFilters,
   Incident,
   IncidentFilters,
   IncidentFiltersCombined,
+  IncidentsDetailsAlert,
   SpanDates,
   Timestamps,
 } from './model';
@@ -202,7 +204,7 @@ function consolidateAndMergeAlertIntervals(data: Alert) {
   return intervals;
 }
 
-export const createAlertsChartBars = (alert: Alert) => {
+export const createAlertsChartBars = (alert: IncidentsDetailsAlert): AlertsChartBar[] => {
   const groupedData = consolidateAndMergeAlertIntervals(alert);
   const barChartColorScheme = {
     critical: t_global_color_status_danger_default.var,
@@ -224,6 +226,7 @@ export const createAlertsChartBars = (alert: Alert) => {
       component: alert.component,
       nodata: groupedData[i][2] === 'nodata' ? true : false,
       alertstate: alert.alertstate,
+      silenced: alert.silenced,
       fill:
         alert.severity === 'critical'
           ? barChartColorScheme.critical
