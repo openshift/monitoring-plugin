@@ -8,14 +8,14 @@ import {
 import { BellIcon } from '@patternfly/react-icons';
 import { Bullseye, Spinner } from '@patternfly/react-core';
 import { Link } from 'react-router-dom';
-import { RuleResource } from '../utils';
+import { ALL_NAMESPACES_KEY, RuleResource } from '../utils';
 import { useTranslation } from 'react-i18next';
 import { getRuleUrl, usePerspective } from '../hooks/usePerspective';
 import './incidents-styles.css';
 import { SeverityBadge } from '../alerting/AlertUtils';
 
 const IncidentsDetailsRowTable = ({ alerts }) => {
-  const [namespace] = useActiveNamespace();
+  const [namespace, setNamespace] = useActiveNamespace();
   const { perspective } = usePerspective();
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
@@ -42,7 +42,11 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
               <Tr key={rowIndex}>
                 <Td dataLabel="expanded-details-alertname">
                   <ResourceIcon kind={RuleResource.kind} />
-                  <Link to={getRuleUrl(perspective, alertDetails?.rule, namespace)}>
+                  <Link
+                    to={getRuleUrl(perspective, alertDetails?.rule, namespace)}
+                    // Set to ALL_NAMESPACES to ensure that the alert rule is found
+                    onClick={() => setNamespace(ALL_NAMESPACES_KEY)}
+                  >
                     {alertDetails.alertname}
                   </Link>
                 </Td>

@@ -21,14 +21,13 @@ import { ExternalLink, LinkifyExternal } from '../console/utils/link';
 import { getAllQueryArguments } from '../console/utils/router';
 import {
   getAlertsUrl,
-  getLegacyObserveState,
-  getNewSilenceAlertUrl,
   getObserveState,
+  getNewSilenceAlertUrl,
   getRuleUrl,
   usePerspective,
 } from '../hooks/usePerspective';
-import { Alerts } from '../types';
 import { AlertResource, alertState, RuleResource } from '../utils';
+import { MonitoringProvider } from '../../contexts/MonitoringContext';
 
 import {
   Breadcrumb,
@@ -58,7 +57,7 @@ import {
   ToolbarItem,
 } from '@patternfly/react-core';
 import { Helmet } from 'react-helmet';
-import { MonitoringState } from '../../reducers/observe';
+import { MonitoringState } from '../../store/store';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 import { StatusBox } from '../console/console-shared/src/components/status/StatusBox';
 import {
@@ -71,7 +70,6 @@ import {
   PodModel,
   StatefulSetModel,
 } from '../console/models';
-import { useAlertsPoller } from '../hooks/useAlertsPoller';
 import { Labels } from '../labels';
 import { ToggleGraph } from '../MetricsPage';
 import { SilencedByList } from './AlertDetail/SilencedByTable';
@@ -90,31 +88,26 @@ import {
 } from './AlertUtils';
 
 import { DataTestIDs } from '../data-test';
+import { useAlerts } from '../../hooks/useAlerts';
+import { useMonitoring } from '../../hooks/useMonitoring';
 
 const AlertsDetailsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const params = useParams<{ ruleID: string }>();
   const navigate = useNavigate();
+  const { plugin } = useMonitoring();
 
-  const { alertsKey, silencesKey, perspective } = usePerspective();
+  const { perspective } = usePerspective();
 
-  useAlertsPoller();
+  const { alerts, rulesAlertLoading, silences } = useAlerts();
 
   const [namespace] = useActiveNamespace();
 
   const hideGraphs = useSelector(
-    (state: MonitoringState) => !!getObserveState(perspective, state)?.get('hideGraphs'),
+    (state: MonitoringState) => !!getObserveState(plugin, state).hideGraphs,
   );
 
-  const alerts: Alerts = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.get(alertsKey),
-  );
-
-  const silencesLoaded = useSelector(
-    (state: MonitoringState) => getLegacyObserveState(perspective, state)?.get(silencesKey)?.loaded,
-  );
-
-  const ruleAlerts = _.filter(alerts?.data, (a) => a.rule.id === params?.ruleID);
+  const ruleAlerts = _.filter(alerts, (a) => a.rule.id === params?.ruleID);
   const rule = ruleAlerts?.[0]?.rule;
 
   // Search for an alert that matches all of the labels in the URL parameters. We expect there to be
@@ -159,8 +152,8 @@ const AlertsDetailsPage_: FC = () => {
       <StatusBox
         data={alert}
         label={AlertResource.label}
-        loaded={alerts?.loaded}
-        loadError={alerts?.loadError}
+        loaded={rulesAlertLoading?.loaded}
+        loadError={rulesAlertLoading?.loadError}
       >
         <PageGroup>
           <PageBreadcrumb hasBodyWrapper={false}>
@@ -390,7 +383,7 @@ const AlertsDetailsPage_: FC = () => {
               </GridItem>
             </Grid>
           </PageSection>
-          {silencesLoaded && !_.isEmpty(alert?.silencedBy) && (
+          {silences.loaded && !_.isEmpty(alert?.silencedBy) && (
             <>
               <Divider />
               <PageSection hasBodyWrapper={false}>
@@ -404,7 +397,25 @@ const AlertsDetailsPage_: FC = () => {
     </>
   );
 };
-const AlertsDetailsPage = withFallback(AlertsDetailsPage_);
+const AlertsDetailsPageWithFallback = withFallback(AlertsDetailsPage_);
+
+export const MpCmoAlertsDetailsPage = () => {
+  return (
+    <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
+      <AlertsDetailsPageWithFallback />
+    </MonitoringProvider>
+  );
+};
+
+export const McpAcmAlertsDetailsPage = () => {
+  return (
+    <MonitoringProvider
+      monitoringContext={{ plugin: 'monitoring-console-plugin', prometheus: 'acm' }}
+    >
+      <AlertsDetailsPageWithFallback />
+    </MonitoringProvider>
+  );
+};
 
 const HeaderAlertMessage: FC<{ alert: Alert; rule: Rule }> = ({ alert, rule }) => {
   const annotation = alert.annotations.description ? 'description' : 'message';
@@ -522,8 +533,6 @@ const AlertStateHelp: FC = () => {
     </DescriptionList>
   );
 };
-
-export default AlertsDetailsPage;
 
 type AlertMessageProps = {
   alertText: string;

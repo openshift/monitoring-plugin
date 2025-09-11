@@ -9,7 +9,8 @@ import {
   Badge,
 } from '@patternfly/react-core';
 import { getFilterKey } from './utils';
-import { setAlertsAreLoading } from '../../actions/observe';
+import { IncidentFilters, IncidentFiltersCombined } from './model';
+import { setAlertsAreLoading } from '../../store/actions';
 
 interface IncidentFilterToolbarItemProps {
   categoryName: string;
@@ -18,12 +19,7 @@ interface IncidentFilterToolbarItemProps {
     value: string;
     description?: string;
   }[];
-  incidentsActiveFilters: {
-    severity: string[];
-    state: string[];
-    days: string[];
-    groupId: string[];
-  };
+  incidentsActiveFilters: IncidentFiltersCombined;
   onDeleteIncidentFilterChip: (
     category: string,
     chip: string,
@@ -33,8 +29,8 @@ interface IncidentFilterToolbarItemProps {
   onDeleteGroupIncidentFilterChip: (activeFilters: any, dispatch: any, category: any) => void;
   incidentFilterIsExpanded: boolean;
   onIncidentFiltersSelect: (
-    event: React.MouseEvent | React.ChangeEvent,
-    selection: string | undefined,
+    event: React.MouseEvent | React.ChangeEvent | undefined,
+    selection: IncidentFilters | undefined,
     dispatch: any,
     activeFilters: any,
     categoryFilterType: string,
@@ -90,7 +86,7 @@ const IncidentFilterToolbarItem: React.FC<IncidentFilterToolbarItemProps> = ({
             if (typeof selection === 'string') {
               onIncidentFiltersSelect(
                 event,
-                selection,
+                selection as IncidentFilters,
                 dispatch,
                 incidentsActiveFilters,
                 categoryName.toLowerCase(),

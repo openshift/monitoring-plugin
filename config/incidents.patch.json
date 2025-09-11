@@ -9,7 +9,7 @@
         "name": "%plugin__monitoring-console-plugin~Incidents%",
         "href": "incidents",
         "component": {
-          "$codeRef": "IncidentsPage"
+          "$codeRef": "IncidentsPage.McpCmoAlertingPage"
         }
       }
     }

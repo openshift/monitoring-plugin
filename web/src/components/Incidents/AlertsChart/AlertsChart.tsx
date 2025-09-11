@@ -23,8 +23,6 @@ import {
   t_global_color_status_warning_default,
 } from '@patternfly/react-tokens';
 import { useDispatch, useSelector } from 'react-redux';
-import { setAlertsAreLoading } from '../../../actions/observe';
-import { MonitoringState } from '../../../reducers/observe';
 import { IncidentsTooltip } from '../IncidentsTooltip';
 import {
   createAlertsChartBars,
@@ -32,22 +30,24 @@ import {
   generateDateArray,
   generateAlertsDateArray,
 } from '../utils';
+import { setAlertsAreLoading } from '../../../store/actions';
+import { MonitoringState } from '../../../store/store';
 
 const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
   const dispatch = useDispatch();
   const [chartContainerHeight, setChartContainerHeight] = useState<number>();
   const [chartHeight, setChartHeight] = useState<number>();
-  const alertsData = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.getIn(['incidentsData', 'alertsData']),
+  const alertsData = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData.alertsData,
   );
-  const alertsAreLoading = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.getIn(['incidentsData', 'alertsAreLoading']),
+  const alertsAreLoading = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData.alertsAreLoading,
   );
-  const filteredData = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.getIn(['incidentsData', 'filteredIncidentsData']),
+  const filteredData = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData.filteredIncidentsData,
   );
-  const incidentGroupId = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.getIn(['incidentsData', 'groupId']),
+  const incidentGroupId = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData.groupId,
   );
 
   // Use dynamic date range based on actual alerts data instead of fixed chartDays
@@ -78,13 +78,15 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
   }, [dispatch, selectedIncidentIsVisible]);
 
   const [width, setWidth] = useState(0);
-  const containerRef = useRef(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const handleResize = useCallback(() => {
     if (containerRef.current && containerRef.current.clientWidth) {
       setWidth(containerRef.current.clientWidth);
     }
   }, []);
   useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     const observer = getResizeObserver(containerRef.current, handleResize);
     handleResize();
     return () => observer();
@@ -116,7 +118,7 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
                   labelComponent={<IncidentsTooltip />}
                   labels={({ datum }) => {
                     if (datum.nodata) {
-                      return null;
+                      return '';
                     }
                     return `Alert Severity: ${datum.severity}
                     Alert Name: ${datum.name ? datum.name : '---'}

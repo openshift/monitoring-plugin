@@ -13,7 +13,6 @@ import {
   StackItem,
   Title,
 } from '@patternfly/react-core';
-import { usePerspective } from '../../hooks/usePerspective';
 import { CombinedDashboardMetadata } from '../perses/hooks/useDashboardsData';
 import { DashboardDropdown } from '../shared/dashboard-dropdown';
 import { PollIntervalDropdown, TimespanDropdown } from './time-dropdowns';
@@ -51,8 +50,6 @@ export const DashboardSkeletonLegacy: FC<MonitoringDashboardsLegacyPageProps> = 
   ({ children, boardItems, changeBoard, dashboardName }) => {
     const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
-    const { perspective } = usePerspective();
-
     const onChangeBoard = useCallback(
       (selectedDashboard: string) => {
         changeBoard(selectedDashboard);
@@ -62,13 +59,11 @@ export const DashboardSkeletonLegacy: FC<MonitoringDashboardsLegacyPageProps> = 
 
     return (
       <>
-        {perspective !== 'dev' && (
-          <Helmet>
-            <title>{t('Metrics dashboards')}</title>
-          </Helmet>
-        )}
+        <Helmet>
+          <title>{t('Metrics dashboards')}</title>
+        </Helmet>
         <PageSection hasBodyWrapper={false}>
-          {perspective !== 'dev' && <HeaderTop />}
+          <HeaderTop />
           <Stack hasGutter>
             {!_.isEmpty(boardItems) && (
               <StackItem>
@@ -83,25 +78,11 @@ export const DashboardSkeletonLegacy: FC<MonitoringDashboardsLegacyPageProps> = 
             <StackItem>
               <LegacyDashboardsAllVariableDropdowns key={dashboardName} />
             </StackItem>
-            {perspective === 'dev' ? (
-              <StackItem>
-                <Split hasGutter>
-                  <SplitItem isFilled />
-                  <SplitItem>
-                    <TimespanDropdown />
-                  </SplitItem>
-                  <SplitItem>
-                    <PollIntervalDropdown />
-                  </SplitItem>
-                </Split>
-              </StackItem>
-            ) : (
-              <StackItem>
-                <Split>
-                  <SplitItem isFilled />
-                </Split>
-              </StackItem>
-            )}
+            <StackItem>
+              <Split>
+                <SplitItem isFilled />
+              </Split>
+            </StackItem>
           </Stack>
         </PageSection>
         <Divider />

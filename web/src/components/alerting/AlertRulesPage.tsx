@@ -7,7 +7,6 @@ import {
   RowProps,
   Rule,
   TableColumn,
-  useActiveNamespace,
   useListPageFilter,
   VirtualizedTable,
 } from '@openshift-console/dynamic-plugin-sdk';
@@ -17,10 +16,9 @@ import type { FC } from 'react';
 import { useMemo } from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom-v5-compat';
 
-import { Alerts, AlertSource } from '../types';
+import { AlertSource } from '../types';
 import {
   alertingRuleStateOrder,
   alertSeverityOrder,
@@ -29,21 +27,20 @@ import {
 } from '../utils';
 
 import { Flex, FlexItem, PageSection, Truncate } from '@patternfly/react-core';
-import { MonitoringState } from '../../reducers/observe';
 import {
   alertingRuleSource,
   AlertStateIcon,
-  getAdditionalSources,
   getAlertStateKey,
   SeverityBadge,
   SilencesNotLoadedWarning,
 } from '../alerting/AlertUtils';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
-import { useAlertsPoller } from '../hooks/useAlertsPoller';
-import { getLegacyObserveState, getRuleUrl, usePerspective } from '../hooks/usePerspective';
+import { getRuleUrl, usePerspective } from '../hooks/usePerspective';
 import { severityRowFilter } from './AlertUtils';
+import { MonitoringProvider } from '../../contexts/MonitoringContext';
 import { DataTestIDs } from '../data-test';
+import { useAlerts } from '../../hooks/useAlerts';
 
 const StateCounts: FC<{ alerts: PrometheusAlert[] }> = ({ alerts }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -123,34 +120,10 @@ const RuleTableRow: FC<RowProps<Rule>> = ({ obj }) => {
 
 const AlertRulesPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { alertsKey, silencesKey, rulesKey, perspective, defaultAlertTenant } = usePerspective();
-  const [namespace] = useActiveNamespace();
 
-  useAlertsPoller();
+  const { defaultAlertTenant } = usePerspective();
 
-  const data: Rule[] = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.get(rulesKey),
-  );
-  const { loaded = false, loadError }: Alerts = useSelector(
-    (state: MonitoringState) => getLegacyObserveState(perspective, state)?.get(alertsKey) || {},
-  );
-  const silencesLoadError = useSelector(
-    (state: MonitoringState) =>
-      getLegacyObserveState(perspective, state)?.get(silencesKey)?.loadError,
-  );
-
-  const ruleAdditionalSources = useMemo(
-    () => getAdditionalSources(data, alertingRuleSource),
-    [data],
-  );
-
-  const namespacedData = useMemo(() => {
-    if (perspective === 'dev') {
-      return data?.filter((rule) => rule.labels?.namespace === namespace);
-    }
-
-    return data;
-  }, [data, perspective, namespace]);
+  const { rules, additionalRuleSourceLabels, rulesAlertLoading, silences } = useAlerts();
 
   const rowFilters: RowFilter[] = [
     // TODO: The "name" filter doesn't really fit useListPageFilter's idea of a RowFilter, but
@@ -171,14 +144,14 @@ const AlertRulesPage_: FC = () => {
       items: [
         { id: AlertSource.Platform, title: t('Platform') },
         { id: AlertSource.User, title: t('User') },
-        ...ruleAdditionalSources,
+        ...additionalRuleSourceLabels,
       ],
       reducer: alertingRuleSource,
       type: 'alerting-rule-source',
     },
   ];
 
-  const [staticData, filteredData, onFilterChange] = useListPageFilter(namespacedData, rowFilters);
+  const [staticData, filteredData, onFilterChange] = useListPageFilter(rules, rowFilters);
 
   const columns = useMemo<TableColumn<Rule>[]>(
     () => [
@@ -225,25 +198,23 @@ const AlertRulesPage_: FC = () => {
       <PageSection hasBodyWrapper={false}>
         <ListPageFilter
           data={staticData}
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore TODO
           labelFilter="observe-rules"
           labelPath="labels"
-          loaded={loaded}
+          loaded={rulesAlertLoading?.loaded ?? false}
           onFilterChange={onFilterChange}
           rowFilters={rowFilters}
         />
-        {silencesLoadError && <SilencesNotLoadedWarning silencesLoadError={silencesLoadError} />}
+        {silences.loadError && <SilencesNotLoadedWarning silencesLoadError={silences.loadError} />}
         <div id="alert-rules-table-scroll">
           <VirtualizedTable<Rule>
             aria-label={t('Alerting rules')}
             label={t('Alerting rules')}
             columns={columns}
             data={filteredData ?? []}
-            loaded={loaded}
-            loadError={loadError}
+            loaded={rulesAlertLoading?.loaded ?? false}
+            loadError={rulesAlertLoading?.loadError ?? null}
             Row={RuleTableRow}
-            unfilteredData={data}
+            unfilteredData={rules}
             scrollNode={() => document.getElementById('alert-rules-table-scroll')}
             NoDataEmptyMsg={() => {
               return <EmptyBox label={t('Alerting rules')} />;
@@ -254,6 +225,22 @@ const AlertRulesPage_: FC = () => {
     </>
   );
 };
-const AlertRulesPage = withFallback(AlertRulesPage_);
+const AlertRulesPageWithFallback = withFallback(AlertRulesPage_);
 
-export default AlertRulesPage;
+export const MpCmoAlertRulesPage = () => {
+  return (
+    <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
+      <AlertRulesPageWithFallback />
+    </MonitoringProvider>
+  );
+};
+
+export const McpAcmAlertRulesPage = () => {
+  return (
+    <MonitoringProvider
+      monitoringContext={{ plugin: 'monitoring-console-plugin', prometheus: 'acm' }}
+    >
+      <AlertRulesPageWithFallback />
+    </MonitoringProvider>
+  );
+};

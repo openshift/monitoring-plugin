@@ -2,12 +2,9 @@ import { useCallback, useState, useMemo, useEffect } from 'react';
 import * as _ from 'lodash-es';
 import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
-
 import { useSafeFetch } from '../../console/utils/safe-fetch-hook';
-
 import { useBoolean } from '../../hooks/useBoolean';
 import { Board } from './types';
-
 import { getLegacyDashboardsUrl, usePerspective } from '../../hooks/usePerspective';
 import { getAllQueryArguments, getQueryArgument } from '../../console/utils/router';
 import {
@@ -20,10 +17,9 @@ import {
   dashboardsSetEndTime,
   dashboardsSetPollInterval,
   dashboardsSetTimespan,
-} from '../../../actions/observe';
+} from '../../../store/actions';
 import { CombinedDashboardMetadata } from '../perses/hooks/useDashboardsData';
 import { useNavigate } from 'react-router-dom-v5-compat';
-import { Map as ImmutableMap } from 'immutable';
 import { QueryParams } from '../../query-params';
 import { NumberParam, StringParam, useQueryParam } from 'use-query-params';
 
@@ -104,7 +100,7 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
             row.panels.push(panel);
           }
           return acc;
-        }, []);
+        }, []) ?? [];
   }, [legacyDashboard, legacyDashboards]);
 
   useEffect(() => {
@@ -113,7 +109,7 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
       return;
     }
     const allVariables = getAllVariables(legacyDashboards, legacyDashboard, namespace);
-    dispatch(dashboardsPatchAllVariables(allVariables, perspective));
+    dispatch(dashboardsPatchAllVariables(allVariables));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [namespace, legacyDashboard]);
 
@@ -152,20 +148,17 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
           navigate(url, { replace: true });
         }
 
-        dispatch(dashboardsPatchAllVariables(allVariables, perspective));
+        dispatch(dashboardsPatchAllVariables(allVariables));
 
         // Set time range and poll interval options to their defaults or from the query params if
         // available
         if (refreshInterval !== undefined) {
-          dispatch(dashboardsSetPollInterval(_.toNumber(refreshInterval), perspective));
+          dispatch(dashboardsSetPollInterval(_.toNumber(refreshInterval)));
         }
-        dispatch(
-          dashboardsSetEndTime(_.toNumber(params.get(QueryParams.EndTime)) || null, perspective),
-        );
+        dispatch(dashboardsSetEndTime(_.toNumber(params.get(QueryParams.EndTime)) || null));
         dispatch(
           dashboardsSetTimespan(
             _.toNumber(params.get(QueryParams.TimeRange)) || MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
-            perspective,
           ),
         );
       }
@@ -197,9 +190,9 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
   // Clear variables on unmount
   useEffect(() => {
     return () => {
-      dispatch(DashboardsClearVariables(perspective));
+      dispatch(DashboardsClearVariables());
     };
-  }, [perspective, dispatch]);
+  }, [dispatch]);
 
   return {
     legacyDashboards,
@@ -231,7 +224,7 @@ const getAllVariables = (boards: Board[], newBoardName: string, namespace: strin
         value = MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY;
       }
 
-      allVariables[v.name] = ImmutableMap({
+      allVariables[v.name] = {
         datasource: v.datasource,
         includeAll: !!v.includeAll,
         isHidden: namespace && v.name === 'namespace' ? true : v.hide !== 0,
@@ -239,7 +232,7 @@ const getAllVariables = (boards: Board[], newBoardName: string, namespace: strin
         options: _.map(v.options, 'value'),
         query: v.type === 'query' ? v.query : undefined,
         value: namespace && v.name === 'namespace' ? namespace : value || v.options?.[0]?.value,
-      });
+      };
     }
   });
 
