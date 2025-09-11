@@ -7,24 +7,17 @@ PUSH="${PUSH:-0}"
 TAG="${TAG:-v1.0.0}"
 REGISTRY_ORG="${REGISTRY_ORG:-openshift-observability-ui}"
 DOCKER_FILE_NAME="${DOCKER_FILE_NAME:-Dockerfile.dev}"
+REPO="${REPO:-monitoring-plugin}"
 
-# Terminal output colors
-YELLOW='\033[0;33m'
-ENDCOLOR='\033[0m' # No Color
+# Define ANSI color codes
 RED='\033[0;31m'
+GREEN='\033[0;32m'
+ENDCOLOR='\033[0m' 
 
-
-# due to apple silicon limitation with installing npm packages inside amd64 images, builds of the frontend must be done outside the dockerfile.
-if [[ "$OSTYPE" == "darwin"* ]] && [[ "$DOCKER_FILE_NAME" == "Dockerfile.mcp" ]]; then
-    printf "${YELLOW}Updateing plugin-name ${ENDCOLOR}\n"
-    make update-plugin-name
-    export I18N_NAMESPACE='plugin__monitoring-console-plugin'
-
-    printf "${YELLOW}Installing Frontend${ENDCOLOR}\n"
-    make install-frontend
-
-    printf "${YELLOW}Building Frontend${ENDCOLOR}\n"
-    make build-frontend
+# Prompt user for TAG 
+read -p "$(echo -e "${RED}Enter a value for TAG [${TAG}]: ${ENDCOLOR}")" USER_TAG
+if [ -n "$USER_TAG" ]; then
+  TAG="$USER_TAG"
 fi
 
 if [[ -x "$(command -v podman)" && $PREFER_PODMAN == 1 ]]; then
@@ -33,23 +26,35 @@ else
     OCI_BIN="docker"
 fi
 
-BASE_IMAGE="quay.io/${REGISTRY_ORG}/monitoring-plugin"
+BASE_IMAGE="quay.io/${REGISTRY_ORG}/${REPO}"
 IMAGE=${BASE_IMAGE}:${TAG}
 
-make lint-backend
+echo_vars() {
+    echo "Environmental Variables set to : "
+    echo -e "${GREEN} PREFER_PODMAN: ${ENDCOLOR} ${PREFER_PODMAN}"
+    echo -e "${GREEN} PUSH: ${ENDCOLOR} ${PUSH}"
+    echo -e "${GREEN} TAG: ${ENDCOLOR} ${TAG}"
+    echo -e "${GREEN} REGISTRY_ORG: ${ENDCOLOR} ${REGISTRY_ORG}"
+    echo -e "${GREEN} DOCKER_FILE_NAME: ${ENDCOLOR} ${DOCKER_FILE_NAME}"
+    echo -e "${GREEN} REPO: ${ENDCOLOR}: ${REPO}"
+    echo -e "${GREEN} IMAGE: ${ENDCOLOR}: ${IMAGE}"
+}
+echo_vars
 
-echo "Building image '${IMAGE}' with ${OCI_BIN}"
-$OCI_BIN build -t $IMAGE --platform=linux/amd64 -f $DOCKER_FILE_NAME .
-
-if [[ $PUSH == 1 ]]; then
-    $OCI_BIN push $IMAGE
+# Prompt use it check env vars before proceeding to build 
+read -r -p "Are the environmental variables correct [y/N] " response
+if [[ "${response:0:1}" =~ ^([nN])$ ]]
+then
+    exit 0
 fi
 
+# Build
+echo -e "${GREEN} Linting... ${ENDCOLOR}"
+make lint-backend
 
-# Rollback local changes made
-if [[ "$OSTYPE" == "darwin"* ]] && [[ "$DOCKER_FILE_NAME" == "Dockerfile.mcp" ]]; then
-    printf "${YELLOW}Replacing in package.json and values.yaml${ENDCOLOR}\n"
-    sed -i 's/"name": "monitoring-console-plugin",/"name": "monitoring-plugin",/g' web/package.json
-    printf "${YELLOW}Renaming translations to the original plugin name${ENDCOLOR}\n"
-    cd web/locales/ && for dir in *; do if cd $dir; then  for filename in *; do mv plugin__monitoring-console-plugin.json plugin__monitoring-plugin.json; done; cd ..; fi; done
+echo -e "${GREEN} Building image '${IMAGE}' with ${OCI_BIN} ${ENDCOLOR}"
+$OCI_BIN build -t $IMAGE --platform=linux/amd64 -f $DOCKER_FILE_NAME .
+
+if [[ $PUSH == 1 ]]; then 
+    $OCI_BIN push $IMAGE
 fi
