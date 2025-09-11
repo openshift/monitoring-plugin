@@ -172,3 +172,25 @@ $ ./scripts/api_backend_dev.sh
 
 # Lastly navigate to http://localhost:8080/ to see Perses app running 
 ```
+
+##### Install COO && Perses Datasource && Perses Sample Dashboard 
+1. Install COO through the OpenShift UI > OperatorHub > Cluster Observability Operator 
+2. Install UIPlugin > monitoring 
+3. oc apply -f <PERSES_DATASOURCE_YAML>
+   - See sample yaml [here](https://github.com/observability-ui/development-tools/blob/main/monitoring-plugin/monitoring-console-plugin/perses/thanos-querier-datasource.yaml) 
+4. oc apply -f <PERSES_DASHBOARD_YAML>
+   - See sample yaml  [here](https://github.com/observability-ui/development-tools/blob/main/monitoring-plugin/monitoring-console-plugin/perses/perses-dashboard.yaml)
+
+##### Port forward Perses Datasource 
+To use the PERSES_DATASOURCE you deployed above, you'll need to forward it to your local machine then proxy it using the local Perses Instance. 
+
+```
+# Forward cluster Prometheus Instance to localhost:9090
+oc port-forward -n openshift-monitoring service/prometheus-operated 9090:9090
+
+# Test is port-forward returns Prometheus data from query 'up'
+curl "http://localhost:9090/api/v1/query?query=up"
+```
+
+Adjust Perses local instance http://localhost:8080/ to use the a proxy to http://localhost:9090/ instead of http://demo.prometheus.io. 
+
