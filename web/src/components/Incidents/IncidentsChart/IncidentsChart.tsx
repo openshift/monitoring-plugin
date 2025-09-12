@@ -29,12 +29,9 @@ import { MonitoringState } from '../../../reducers/observe';
 import '../incidents-styles.css';
 import { IncidentsTooltip } from '../IncidentsTooltip';
 import { Incident } from '../model';
-import {
-  createIncidentsChartBars,
-  formatDate,
-  generateDateArray,
-  updateBrowserUrl,
-} from '../utils';
+import { createIncidentsChartBars, generateDateArray, updateBrowserUrl } from '../utils';
+import { dateTimeFormatter } from '../../console/utils/datetime';
+import { useTranslation } from 'react-i18next';
 
 const IncidentsChart = ({
   incidentsData,
@@ -55,6 +52,7 @@ const IncidentsChart = ({
     state.plugins.mcp.getIn(['incidentsData', 'incidentsActiveFilters']),
   );
   const selectedGroupId = incidentsActiveFilters.groupId?.[0] ?? null;
+  const { i18n } = useTranslation();
 
   const chartData = useMemo(() => {
     if (!Array.isArray(incidentsData) || incidentsData.length === 0) return [];
@@ -137,12 +135,17 @@ const IncidentsChart = ({
                     if (datum.nodata) {
                       return null;
                     }
+                    const startDate = dateTimeFormatter(i18n.language).format(new Date(datum.y0));
+                    const endDate =
+                      datum.alertstate === 'firing'
+                        ? '---'
+                        : dateTimeFormatter(i18n.language).format(new Date(datum.y));
                     return `Severity: ${datum.name}
                     Component: ${datum.componentList?.join(', ')}
                     Incident ID:
                     ${datum.group_id}
-                    Start: ${formatDate(new Date(datum.y0), true)}
-                    End: ${datum.firing ? '---' : formatDate(new Date(datum.y), true)}`;
+                    Start: ${startDate}
+                    End: ${endDate}`;
                   }}
                 />
               }
