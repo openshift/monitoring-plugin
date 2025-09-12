@@ -6,7 +6,7 @@ import { nav } from '../../views/nav';
 const KBV = {
   namespace: 'openshift-cnv',
   packageName: 'kubevirt-hyperconverged',
-  operatorName: 'Openshift Virtualization',
+  operatorName: 'kubevirt-hyperconverged-operator.v4.19.0',
   config: {
     kind: 'HyperConverged',
     name: 'kubevirt-hyperconverged',
