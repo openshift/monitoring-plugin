@@ -9,6 +9,7 @@ import './incidents-styles.css';
 import { SeverityBadge } from '../alerting/AlertUtils';
 import { Alert, IncidentsDetailsAlert } from './model';
 import { IncidentAlertStateIcon } from './IncidentAlertStateIcon';
+import { useMemo } from 'react';
 
 interface IncidentsDetailsRowTableProps {
   alerts: Alert[];
@@ -18,6 +19,47 @@ const IncidentsDetailsRowTable = ({ alerts }: IncidentsDetailsRowTableProps) => 
   const [namespace] = useActiveNamespace();
   const { perspective } = usePerspective();
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+
+  const sortedAndMappedAlerts = useMemo(() => {
+    if (!alerts) {
+      return null;
+    }
+
+    return alerts
+      ?.sort(
+        (a: IncidentsDetailsAlert, b: IncidentsDetailsAlert) =>
+          a.alertsStartFiring - b.alertsStartFiring,
+      )
+      ?.map((alertDetails: IncidentsDetailsAlert, rowIndex) => {
+        return (
+          <Tr key={rowIndex}>
+            <Td dataLabel="expanded-details-alertname">
+              <ResourceIcon kind={RuleResource.kind} />
+              <Link to={getRuleUrl(perspective, alertDetails?.rule, namespace)}>
+                {alertDetails.alertname}
+              </Link>
+            </Td>
+            <Td dataLabel="expanded-details-namespace">{alertDetails.namespace || '---'}</Td>
+            <Td dataLabel="expanded-details-severity">
+              <SeverityBadge severity={alertDetails.severity} />
+            </Td>
+            <Td dataLabel="expanded-details-firingstart">
+              <Timestamp timestamp={alertDetails.alertsStartFiring} />
+            </Td>
+            <Td dataLabel="expanded-details-firingend">
+              {!alertDetails.resolved ? (
+                '---'
+              ) : (
+                <Timestamp timestamp={alertDetails.alertsEndFiring} />
+              )}
+            </Td>
+            <Td dataLabel="expanded-details-alertstate">
+              <IncidentAlertStateIcon alertDetails={alertDetails} />
+            </Td>
+          </Tr>
+        );
+      });
+  }, [alerts, perspective, namespace]);
 
   return (
     <Table borders={false} variant="compact">
@@ -37,40 +79,7 @@ const IncidentsDetailsRowTable = ({ alerts }: IncidentsDetailsRowTableProps) => 
             <Spinner aria-label="incidents-chart-spinner" />
           </Bullseye>
         ) : (
-          alerts
-            ?.sort(
-              (a: IncidentsDetailsAlert, b: IncidentsDetailsAlert) =>
-                a.alertsStartFiring - b.alertsStartFiring,
-            )
-            ?.map((alertDetails: IncidentsDetailsAlert, rowIndex: number) => {
-              return (
-                <Tr key={rowIndex}>
-                  <Td dataLabel="expanded-details-alertname">
-                    <ResourceIcon kind={RuleResource.kind} />
-                    <Link to={getRuleUrl(perspective, alertDetails?.rule, namespace)}>
-                      {alertDetails.alertname}
-                    </Link>
-                  </Td>
-                  <Td dataLabel="expanded-details-namespace">{alertDetails.namespace || '---'}</Td>
-                  <Td dataLabel="expanded-details-severity">
-                    <SeverityBadge severity={alertDetails.severity} />
-                  </Td>
-                  <Td dataLabel="expanded-details-firingstart">
-                    <Timestamp timestamp={alertDetails.alertsStartFiring} />
-                  </Td>
-                  <Td dataLabel="expanded-details-firingend">
-                    {!alertDetails.resolved ? (
-                      '---'
-                    ) : (
-                      <Timestamp timestamp={alertDetails.alertsEndFiring} />
-                    )}
-                  </Td>
-                  <Td dataLabel="expanded-details-alertstate">
-                    <IncidentAlertStateIcon alertDetails={alertDetails} />
-                  </Td>
-                </Tr>
-              );
-            })
+          sortedAndMappedAlerts
         )}
       </Tbody>
     </Table>

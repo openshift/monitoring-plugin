@@ -59,10 +59,10 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
     return generateAlertsDateArray(alertsData);
   }, [alertsData]);
 
-  const chartData = useMemo(() => {
+  const chartData: AlertsChartBar[][] = useMemo(() => {
     if (!Array.isArray(alertsData) || alertsData.length === 0) return [];
     return alertsData.map((alert) => createAlertsChartBars(alert));
-  }, [alertsData]) as AlertsChartBar[][];
+  }, [alertsData]);
 
   useEffect(() => {
     setChartContainerHeight(chartData?.length < 5 ? 300 : chartData?.length * 60);
