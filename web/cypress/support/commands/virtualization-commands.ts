@@ -124,7 +124,7 @@ const virtualizationUtils = {
     guidedTour.closeKubevirtTour();
   },
 
-  cleanup(KBV: { namespace: string, config?: { kind: string, name: string } }): void {
+  cleanup(KBV: { namespace: string, operatorName: string, config?: { kind: string, name: string } }): void {
     const config = KBV.config || { kind: 'HyperConverged', name: 'kubevirt-hyperconverged' };
     
     if (Cypress.env('SKIP_KBV_INSTALL')) {
@@ -133,8 +133,14 @@ const virtualizationUtils = {
         `oc delete ${config.kind} ${config.name} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
       );
 
+      cy.log('Remove Openshift Virtualization CSV');
+      cy.executeAndDelete(`oc delete csv ${KBV.operatorName} -n ${KBV.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+
       // cy.log('Remove Hyperconverged instance.');
       // cy.executeAndDelete(`oc delete -f ./cypress/fixtures/virtualization/hyperconverged.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+
+      cy.log('Remove Openshift Virtualization subscription');
+      cy.executeAndDelete(`oc delete subscription ${config.name} -n ${KBV.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
       cy.log('Remove Openshift Virtualization namespace');
       cy.executeAndDelete(`oc delete namespace ${KBV.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
