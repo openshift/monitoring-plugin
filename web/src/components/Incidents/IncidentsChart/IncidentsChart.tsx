@@ -31,10 +31,11 @@ import { IncidentsTooltip } from '../IncidentsTooltip';
 import { Incident } from '../model';
 import {
   createIncidentsChartBars,
-  formatDate,
   generateDateArray,
   updateBrowserUrl,
+  useLanguageFromStorage,
 } from '../utils';
+import { dateTimeFormatter } from '../../console/utils/datetime';
 
 const IncidentsChart = ({
   incidentsData,
@@ -55,6 +56,7 @@ const IncidentsChart = ({
     state.plugins.mcp.getIn(['incidentsData', 'incidentsActiveFilters']),
   );
   const selectedGroupId = incidentsActiveFilters.groupId?.[0] ?? null;
+  const lang = useLanguageFromStorage();
 
   const chartData = useMemo(() => {
     if (!Array.isArray(incidentsData) || incidentsData.length === 0) return [];
@@ -137,12 +139,17 @@ const IncidentsChart = ({
                     if (datum.nodata) {
                       return null;
                     }
+                    const startDate = dateTimeFormatter(lang).format(new Date(datum.y0));
+                    const endDate =
+                      datum.alertstate === 'firing'
+                        ? '---'
+                        : dateTimeFormatter(lang).format(new Date(datum.y));
                     return `Severity: ${datum.name}
                     Component: ${datum.componentList?.join(', ')}
                     Incident ID:
                     ${datum.group_id}
-                    Start: ${formatDate(new Date(datum.y0), true)}
-                    End: ${datum.firing ? '---' : formatDate(new Date(datum.y), true)}`;
+                    Start: ${startDate}
+                    End: ${endDate}`;
                   }}
                 />
               }

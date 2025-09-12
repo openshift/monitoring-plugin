@@ -28,10 +28,11 @@ import { MonitoringState } from '../../../reducers/observe';
 import { IncidentsTooltip } from '../IncidentsTooltip';
 import {
   createAlertsChartBars,
-  formatDate,
   generateDateArray,
   generateAlertsDateArray,
+  useLanguageFromStorage,
 } from '../utils';
+import { dateTimeFormatter } from '../../console/utils/datetime';
 
 const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
   const dispatch = useDispatch();
@@ -49,6 +50,7 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
   const incidentGroupId = useSelector((state: MonitoringState) =>
     state.plugins.mcp.getIn(['incidentsData', 'groupId']),
   );
+  const lang = useLanguageFromStorage();
 
   // Use dynamic date range based on actual alerts data instead of fixed chartDays
   const dateValues = useMemo(() => {
@@ -118,15 +120,18 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
                     if (datum.nodata) {
                       return null;
                     }
+                    const startDate = dateTimeFormatter(lang).format(new Date(datum.y0));
+                    const endDate =
+                      datum.alertstate === 'firing'
+                        ? '---'
+                        : dateTimeFormatter(lang).format(new Date(datum.y));
                     return `Alert Severity: ${datum.severity}
                     Alert Name: ${datum.name ? datum.name : '---'}
                     Namespace: ${datum.namespace ? datum.namespace : '---'}
                     Layer: ${datum.layer ? datum.layer : '---'}
                     Component: ${datum.component}
-                    Start: ${formatDate(new Date(datum.y0), true)}
-                    End: ${
-                      datum.alertstate === 'firing' ? '---' : formatDate(new Date(datum.y), true)
-                    }`;
+                    Start: ${startDate}
+                    End: ${endDate}`;
                   }}
                 />
               }
