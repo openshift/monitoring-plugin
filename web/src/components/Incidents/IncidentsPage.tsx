@@ -140,6 +140,10 @@ const IncidentsPage = () => {
     state.plugins.mcp.getIn(['incidentsData', 'incidentPageFilterType']),
   );
 
+  const alertingRulesData: Rule[] = useSelector((state: MonitoringState) =>
+    getLegacyObserveState(perspective, state)?.get(rulesKey),
+  );
+
   const selectedGroupId = incidentsActiveFilters.groupId?.[0] ?? null;
   useEffect(() => {
     const hasUrlParams = Object.keys(urlParams).length > 0;
@@ -219,7 +223,11 @@ const IncidentsPage = () => {
           const aggregatedData = results.flat();
           dispatch(
             setAlertsData({
-              alertsData: processAlerts(aggregatedData, incidentForAlertProcessing),
+              alertsData: processAlerts(
+                aggregatedData,
+                incidentForAlertProcessing,
+                alertingRulesData,
+              ),
             }),
           );
           if (!isEmpty(filteredData)) {
@@ -234,10 +242,6 @@ const IncidentsPage = () => {
         });
     })();
   }, [incidentForAlertProcessing]);
-
-  const alertingRulesData: Rule[] = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.get(rulesKey),
-  );
 
   useEffect(() => {
     if (alertingRulesData && alertsData) {
