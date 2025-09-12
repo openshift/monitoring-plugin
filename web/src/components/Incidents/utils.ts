@@ -16,7 +16,6 @@ import {
   SpanDates,
   Timestamps,
 } from './model';
-import { useState, useEffect } from 'react';
 
 function consolidateAndMergeIntervals(data: Incident, dateArray: SpanDates) {
   const severityRank = { 2: 2, 1: 1, 0: 0 };
@@ -688,27 +687,4 @@ export const getFilterKey = (categoryName: string): string => {
     return 'groupId';
   }
   return categoryName.toLowerCase();
-};
-
-const LAST_LANGUAGE_LOCAL_STORAGE_KEY = 'bridge/last-language';
-
-export const getLastLanguage = (): string =>
-  localStorage.getItem(LAST_LANGUAGE_LOCAL_STORAGE_KEY) || navigator.language || 'en-US';
-
-export const useLanguageFromStorage = () => {
-  const [lang, setLang] = useState(getLastLanguage());
-
-  useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === LAST_LANGUAGE_LOCAL_STORAGE_KEY) {
-        setLang(e.newValue || getLastLanguage());
-      }
-    };
-    window.addEventListener('storage', handleStorageChange);
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, []);
-
-  return lang;
 };
