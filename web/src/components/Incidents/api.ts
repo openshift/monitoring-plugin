@@ -1,8 +1,7 @@
 /* eslint-disable max-len */
 
 import { PrometheusEndpoint, PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
-import { getPrometheusURL } from '../console/graphs/helpers';
-import { Perspective } from 'src/actions/observe';
+import { getPrometheusBasePath, buildPrometheusUrl } from '../utils';
 /**
  * Creates a Prometheus alerts query string from grouped alert values.
  * The function dynamically includes any properties in the input objects that have the "src_" prefix,
@@ -64,13 +63,12 @@ export const createAlertsQuery = (groupedAlertsValues) => {
 
 export const fetchDataForIncidentsAndAlerts = (
   fetch: (url: string) => Promise<PrometheusResponse>,
-  range: { startTime: number; endTime: number; duration: number },
+  range: { endTime: number; duration: number },
   customQuery: string,
-  perspective: Perspective,
 ) => {
   return fetch(
-    getPrometheusURL(
-      {
+    buildPrometheusUrl({
+      prometheusUrlProps: {
         endpoint: PrometheusEndpoint.QUERY_RANGE,
         endTime: range.endTime,
         namespace: '',
@@ -78,7 +76,9 @@ export const fetchDataForIncidentsAndAlerts = (
         samples: 288,
         timespan: range.duration - 1,
       },
-      perspective,
-    ),
+      basePath: getPrometheusBasePath({
+        prometheus: 'cmo',
+      }),
+    }),
   );
 };

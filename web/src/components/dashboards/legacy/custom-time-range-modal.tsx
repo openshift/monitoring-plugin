@@ -18,7 +18,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 
-import { dashboardsSetEndTime, dashboardsSetTimespan, Perspective } from '../../../actions/observe';
+import { dashboardsSetEndTime, dashboardsSetTimespan } from '../../../store/actions';
 
 import { NumberParam, useQueryParam } from 'use-query-params';
 import { QueryParams } from '../../query-params';
@@ -36,7 +36,6 @@ const toISOTimeString = (date: Date): string =>
   );
 
 type CustomTimeRangeModalProps = {
-  perspective: Perspective;
   isOpen: boolean;
   setClosed: () => void;
   timespan?: number;
@@ -44,7 +43,6 @@ type CustomTimeRangeModalProps = {
 };
 
 const CustomTimeRangeModal: FC<CustomTimeRangeModalProps> = ({
-  perspective,
   isOpen,
   setClosed,
   timespan,
@@ -69,8 +67,8 @@ const CustomTimeRangeModal: FC<CustomTimeRangeModalProps> = ({
     const from = Date.parse(`${fromDate} ${fromTime}`);
     const to = Date.parse(`${toDate} ${toTime}`);
     if (_.isInteger(from) && _.isInteger(to)) {
-      dispatch(dashboardsSetEndTime(to, perspective));
-      dispatch(dashboardsSetTimespan(to - from, perspective));
+      dispatch(dashboardsSetEndTime(to));
+      dispatch(dashboardsSetTimespan(to - from));
       setEndTime(Number(to.toString()));
       setTimeRange(Number((to - from).toString()));
       setClosed();

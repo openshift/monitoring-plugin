@@ -5,12 +5,11 @@ import { PrometheusEndpoint, PrometheusResponse } from '@openshift-console/dynam
 import { Bullseye, Title } from '@patternfly/react-core';
 
 import ErrorAlert from './error';
-import { getPrometheusURL } from '../../console/graphs/helpers';
+import { getPrometheusBasePath, buildPrometheusUrl } from '../../utils';
 import { usePoll } from '../../console/utils/poll-hook';
 import { useSafeFetch } from '../../console/utils/safe-fetch-hook';
 
 import { formatNumber } from '../../format';
-import { usePerspective } from '../../hooks/usePerspective';
 import { Panel } from './types';
 import { useTranslation } from 'react-i18next';
 import { LoadingInline } from '../../console/console-shared/src/components/loading/LoadingInline';
@@ -111,20 +110,21 @@ const SingleStat: FC<Props> = ({ customDataSource, namespace, panel, pollInterva
   const [error, setError] = useState<string>();
   const [isLoading, setIsLoading] = useState(true);
   const [value, setValue] = useState<string>();
-  const { perspective } = usePerspective();
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const safeFetch = useCallback(useSafeFetch(), []);
 
-  const url = getPrometheusURL(
-    {
+  const url = buildPrometheusUrl({
+    prometheusUrlProps: {
       endpoint: PrometheusEndpoint.QUERY,
       query,
-      namespace: perspective === 'dev' ? namespace : '',
+      namespace: namespace,
     },
-    perspective,
-    customDataSource?.basePath,
-  );
+    basePath: getPrometheusBasePath({
+      prometheus: 'cmo',
+      basePathOverride: customDataSource?.basePath,
+    }),
+  });
 
   const tick = () => {
     if (!url) {
