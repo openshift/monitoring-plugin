@@ -125,21 +125,6 @@ export const getSilenceName = (silence: Silence) => {
 export const alertDescription = (alert: PrometheusAlert | Rule): string =>
   alert.annotations?.description || alert.annotations?.message || alert.labels?.alertname;
 
-// Determine if an Alert is silenced by a Silence (if all of the Silence's matchers match one of the
-// Alert's labels)
-export const isSilenced = (alert: PrometheusAlert, silence: Silence): boolean => {
-  return (
-    [AlertStates.Firing, AlertStates.Silenced].includes(alert.state) &&
-    silence.matchers.every((matcher) => {
-      const alertValue = alert.labels[matcher.name] ?? '';
-      const isMatch = matcher.isRegex
-        ? new RegExp(`^${matcher.value}$`).test(alertValue)
-        : alertValue === matcher.value;
-      return matcher.isEqual === false && alertValue ? !isMatch : isMatch;
-    })
-  );
-};
-
 export type ListOrder = (number | string)[];
 
 // Severity sort order is "critical" > "warning" > (anything else in A-Z order) > "none"
