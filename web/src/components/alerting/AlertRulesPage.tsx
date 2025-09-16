@@ -204,7 +204,7 @@ const AlertRulesPage_: FC = () => {
           onFilterChange={onFilterChange}
           rowFilters={rowFilters}
         />
-        {silences.loadError && <SilencesNotLoadedWarning silencesLoadError={silences.loadError} />}
+        {silences?.loadError && <SilencesNotLoadedWarning silencesLoadError={silences.loadError} />}
         <div id="alert-rules-table-scroll">
           <VirtualizedTable<Rule>
             aria-label={t('Alerting rules')}
