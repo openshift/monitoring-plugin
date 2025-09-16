@@ -1,6 +1,7 @@
+import { Classes } from '../../../src/components/data-test';
 import { commonPages } from '../../views/common';
 import { nav } from '../../views/nav';
-
+import { guidedTour } from '../../views/tour';
 
 // Set constants for the operators that need to be installed for tests.
 const KBV = {
@@ -11,6 +12,10 @@ const KBV = {
     kind: 'HyperConverged',
     name: 'kubevirt-hyperconverged',
   },
+  crd: {
+    kubevirt: 'kubevirts.kubevirt.io',
+    hyperconverged: 'hyperconvergeds.hco.kubevirt.io',
+  }
 };
 
 const MCP = {
@@ -31,26 +36,30 @@ const MP = {
 describe('IVT: Monitoring UIPlugin + Virtualization', () => {
 
   before(() => {
-    cy.afterBlockCOO(MCP, MP); // Following best practices, the cleanup is done before the test block
-    cy.afterBlockVirtualization(KBV);
-    cy.beforeBlockCOO(MCP, MP);
     cy.beforeBlockVirtualization(KBV);
-
+    cy.beforeBlockCOO(MCP, MP);
+    
   });
 
 
   after(() => {
-    cy.afterBlockCOO(MCP, MP);
     cy.afterBlockVirtualization(KBV);
+    cy.log('Remove cluster-admin role from user.');
+    cy.executeAndDelete(
+      `oc adm policy remove-cluster-role-from-user cluster-admin ${Cypress.env('LOGIN_USERNAME')} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+    );
   });
 
-  it('1. Admin perspective - Observe Menu', () => {
-    cy.log('Admin perspective - Observe Menu and verify all submenus');
+  it('1. Virtualization perspective - Observe Menu', () => {
+    cy.log('Virtualization perspective - Observe Menu and verify all submenus');
+    cy.switchPerspective('Virtualization');
+    cy.byAriaLabel('Welcome modal').should('be.visible');
+    guidedTour.closeKubevirtTour();
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     commonPages.titleShouldHaveText('Alerting');
     nav.tabs.switchTab('Silences');
     nav.tabs.switchTab('Alerting rules');
-    // nav.tabs.switchTab('Incidents');
+    cy.get(Classes.HorizontalNav).contains('Incidents').should('not.exist');
     nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
     commonPages.titleShouldHaveText('Dashboards');
 
