@@ -136,11 +136,12 @@ const IncidentsPage = () => {
     (state: MonitoringState) => state.plugins.mcp.incidentsData.filteredIncidentsData,
   );
 
+  const selectedGroupId = incidentsActiveFilters.groupId?.[0] ?? undefined;
+
   const incidentPageFilterTypeSelected = useSelector(
     (state: MonitoringState) => state.plugins.mcp.incidentsData.incidentPageFilterType,
   );
 
-  const selectedGroupId = incidentsActiveFilters.groupId?.[0] ?? undefined;
   useEffect(() => {
     const hasUrlParams = Object.keys(urlParams).length > 0;
     if (hasUrlParams) {
@@ -218,7 +219,7 @@ const IncidentsPage = () => {
           const aggregatedData = results.flat();
           dispatch(
             setAlertsData({
-              alertsData: processAlerts(aggregatedData, incidentForAlertProcessing),
+              alertsData: processAlerts(aggregatedData, incidentForAlertProcessing, rules),
             }),
           );
           if (!isEmpty(filteredData)) {

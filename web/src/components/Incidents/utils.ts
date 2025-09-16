@@ -8,11 +8,13 @@ import { Dispatch } from 'redux';
 import { setIncidentsActiveFilters } from '../../store/actions';
 import {
   Alert,
+  AlertsChartBar,
   AlertsIntervalsArray,
   DaysFilters,
   Incident,
   IncidentFilters,
   IncidentFiltersCombined,
+  IncidentsDetailsAlert,
   SpanDates,
   Timestamps,
 } from './model';
@@ -217,7 +219,7 @@ function consolidateAndMergeAlertIntervals(data: Alert) {
   return intervals;
 }
 
-export const createAlertsChartBars = (alert: Alert) => {
+export const createAlertsChartBars = (alert: IncidentsDetailsAlert): AlertsChartBar[] => {
   const groupedData = consolidateAndMergeAlertIntervals(alert);
   const barChartColorScheme = {
     critical: t_global_color_status_danger_default.var,
@@ -225,32 +227,27 @@ export const createAlertsChartBars = (alert: Alert) => {
     warning: t_global_color_status_warning_default.var,
   };
 
-  const data: {
-    y0: Date;
-    y: Date;
-    x: number;
-    severity: string;
-    name: string;
-    namespace: string;
-    layer: string;
-    component: string;
-    nodata: boolean;
-    alertstate: string;
-    fill: string;
-  }[] = [];
+  const data: AlertsChartBar[] = [];
 
   for (let i = 0; i < groupedData.length; i++) {
+    const y0AsString = new Date(groupedData[i][0] * 1000).toISOString();
+    const yAsString = new Date(groupedData[i][1] * 1000).toISOString();
+
     data.push({
-      y0: new Date(groupedData[i][0] * 1000),
-      y: new Date(groupedData[i][1] * 1000),
+      y0: y0AsString,
+      y: yAsString,
       x: alert.x,
-      severity: alert.severity[0].toUpperCase() + alert.severity.slice(1),
+      severity: (alert.severity[0].toUpperCase() + alert.severity.slice(1)) as
+        | 'Info'
+        | 'Warning'
+        | 'Critical',
       name: alert.alertname,
       namespace: alert.namespace,
       layer: alert.layer,
       component: alert.component,
-      nodata: groupedData[i][2] === 'nodata' ? true : false,
-      alertstate: alert.alertstate,
+      nodata: groupedData[i][2] === 'nodata',
+      alertstate: alert.alertstate as 'resolved' | 'firing',
+      silenced: alert.silenced,
       fill:
         alert.severity === 'critical'
           ? barChartColorScheme.critical

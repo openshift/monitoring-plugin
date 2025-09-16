@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 
-import { PrometheusResult } from '@openshift-console/dynamic-plugin-sdk';
+import { PrometheusResult, PrometheusRule } from '@openshift-console/dynamic-plugin-sdk';
 import { Alert, Incident, Severity } from './model';
 import { sortObjectsByEarliestTimestamp } from './processIncidents';
 
@@ -142,14 +142,13 @@ export function groupAlerts(objects: Array<PrometheusResult>): Array<PrometheusR
 export function processAlerts(
   data: Array<PrometheusResult>,
   selectedIncidents: Array<Partial<Incident>>,
+  alertingRules: Array<PrometheusRule>,
 ): Array<Alert> {
   const firing = groupAlerts(data).filter((alert) => alert.metric.alertname !== 'Watchdog');
-
   // Extract the first and last timestamps from selectedIncidents
   const timestamps = selectedIncidents.flatMap(
     (incident) => incident.values?.map((value) => value[0]) ?? [],
   );
-
   const firstTimestamp = Math.min(...timestamps);
   const lastTimestamp = Math.max(...timestamps);
 
@@ -165,6 +164,7 @@ export function processAlerts(
       if (sortedValues.length === 0) {
         return null;
       }
+      const matchingRule = alertingRules.find((rule) => rule.name === alert.metric.alertname);
 
       const alertsStartFiring = sortedValues[0][0] * 1000;
       const alertsEndFiring = sortedValues[sortedValues.length - 1][0] * 1000;
@@ -183,22 +183,26 @@ export function processAlerts(
         alertsEndFiring,
         resolved,
         x: firing.length - index,
+        silenced: matchingRule ? matchingRule.state === 'silenced' : false,
       };
     })
     .filter((alert) => alert !== null);
 }
 
-export const groupAlertsForTable = (alerts: Array<Alert>, alertingRulesData): Array<Alert> => {
-  // group alerts by the component and coun
-  const groupedAlerts: Array<Alert> = alerts.reduce((acc, alert) => {
+export const groupAlertsForTable = (
+  alerts: Array<Alert>,
+  alertingRulesData: Array<PrometheusRule>,
+): Array<Alert> => {
+  const groupedAlerts = alerts.reduce((acc, alert) => {
     const { component, alertstate, severity, layer, alertname } = alert;
     const existingGroup = acc.find((group) => group.component === component);
     let rule;
     if (alertingRulesData) {
       rule = alertingRulesData.find((rule) => alertname === rule.name);
     }
+    const silenced = rule?.state === 'silenced';
     if (existingGroup) {
-      existingGroup.alertsExpandedRowData.push({ ...alert, rule });
+      existingGroup.alertsExpandedRowData.push({ ...alert, rule, silenced });
       if (severity === 'warning') existingGroup.warning += 1;
       else if (severity === 'info') existingGroup.info += 1;
       else if (severity === 'critical') existingGroup.critical += 1;
@@ -210,7 +214,7 @@ export const groupAlertsForTable = (alerts: Array<Alert>, alertingRulesData): Ar
         warning: severity === 'warning' ? 1 : 0,
         info: severity === 'info' ? 1 : 0,
         critical: severity === 'critical' ? 1 : 0,
-        alertsExpandedRowData: [{ ...alert, rule }],
+        alertsExpandedRowData: [{ ...alert, rule, silenced }],
       });
     }
 
@@ -222,8 +226,11 @@ export const groupAlertsForTable = (alerts: Array<Alert>, alertingRulesData): Ar
     const allResolved = group.alertsExpandedRowData.every(
       (alert) => alert.alertstate === 'resolved',
     );
+    const allSilenced = group.alertsExpandedRowData.every((alert) => alert.silenced === true);
 
-    if (hasFiring) {
+    if (allSilenced) {
+      group.alertstate = 'silenced';
+    } else if (hasFiring) {
       group.alertstate = 'firing';
     } else if (allResolved) {
       group.alertstate = 'resolved';
