@@ -62,6 +62,11 @@ Set the following var to use custom Monitoring Console Plugin UI plugin image. T
 export CYPRESS_MCP_CONSOLE_IMAGE=<Monitoring Console Plugin image>
 ```
 
+Set the following var to specify the cluster timezone for incident timeline calculations. Defaults to UTC if not specified.
+```bash
+export CYPRESS_TIMEZONE=<timezone>
+```
+
 ### Environment Configuration Script
 
 The `configure-env.sh` script provides an interactive way to set up all the required environment variables. This script eliminates the need to manually export each variable and helps find the correct kubeconfig file.
