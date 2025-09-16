@@ -12,7 +12,7 @@ import { ExpandableRowContent, Table, Tbody, Td, Th, Thead, Tr } from '@patternf
 import * as _ from 'lodash-es';
 import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { MonitoringState } from 'src/reducers/observe';
+import { MonitoringState } from '../../store/store';
 import { SeverityBadge } from '../alerting/AlertUtils';
 import IncidentsDetailsRowTable from './IncidentsDetailsRowTable';
 import { GroupedAlertStateIcon } from './IncidentAlertStateIcon';
@@ -27,27 +27,25 @@ export const IncidentsTable = () => {
     state: 'State',
     startDate: 'Start',
   };
-  const [expandedAlerts, setExpandedAlerts] = useState([]);
+  const alertsTableData = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData?.alertsTableData,
+  );
+  const alertsAreLoading = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData.alertsAreLoading,
+  );
+
+  const [expandedAlerts, setExpandedAlerts] = useState<Array<string>>([]);
   const setAlertExpanded = (alert: GroupedAlert, isExpanding = true) =>
     setExpandedAlerts((prevExpanded) => {
       const otherAlertExpanded = prevExpanded.filter((r) => r !== alert.component);
       return isExpanding ? [...otherAlertExpanded, alert.component] : otherAlertExpanded;
     });
   const isAlertExpanded = (alert: GroupedAlert) => expandedAlerts.includes(alert.component);
-  const alertsTableData = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.getIn(['incidentsData', 'alertsTableData']),
-  );
-  const alertsAreLoading = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.getIn(['incidentsData', 'alertsAreLoading']),
-  );
-
-  // Reset expanded state only when incident selection changes (not on data updates)
   const [previousAlertDataLength, setPreviousAlertDataLength] = useState(0);
 
   useEffect(() => {
     if (alertsTableData && !alertsAreLoading) {
       const currentLength = alertsTableData.length;
-      // Only reset if this is a new incident selection (different number of components)
       if (currentLength !== previousAlertDataLength) {
         setExpandedAlerts([]);
         setPreviousAlertDataLength(currentLength);
@@ -55,7 +53,6 @@ export const IncidentsTable = () => {
     }
   }, [alertsTableData, alertsAreLoading, previousAlertDataLength]);
 
-  // Functions for expand/collapse all functionality
   const expandAllRows = () => {
     if (alertsTableData) {
       const allComponents = alertsTableData
@@ -88,7 +85,6 @@ export const IncidentsTable = () => {
     }
   };
 
-  // Function to get the minimum start date for an alert group
   const getMinStartDate = (alert: GroupedAlert): number => {
     if (!alert.alertsExpandedRowData || alert.alertsExpandedRowData.length === 0) {
       return 0;
@@ -137,7 +133,7 @@ export const IncidentsTable = () => {
               <Th>{columnNames.state}</Th>
             </Tr>
           </Thead>
-          {alertsTableData
+          {[...alertsTableData]
             .sort((a: GroupedAlert, b: GroupedAlert) => getMinStartDate(a) - getMinStartDate(b))
             .map((alert: GroupedAlert, rowIndex: number) => {
               return (

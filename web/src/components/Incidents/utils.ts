@@ -5,7 +5,7 @@ import {
   t_global_color_status_warning_default,
 } from '@patternfly/react-tokens';
 import { Dispatch } from 'redux';
-import { setIncidentsActiveFilters } from '../../actions/observe';
+import { setIncidentsActiveFilters } from '../../store/actions';
 import {
   Alert,
   AlertsChartBar,
@@ -62,7 +62,7 @@ function filterAndSortValues(
  * @returns {Array} - The list of consolidated intervals.
  */
 function generateIntervalsWithGaps(filteredValues: Array<Timestamps>, dateArray: SpanDates) {
-  const intervals = [];
+  const intervals: [number, number, string][] = [];
   const startBoundary = dateArray[0];
   const endBoundary = dateArray[dateArray.length - 1];
 
@@ -124,7 +124,10 @@ function hasGap(filteredValues: Array<Timestamps>, index: number) {
  * @param {number} index - The current index in the array.
  * @returns {Array} - The "nodata" interval.
  */
-function createNodataInterval(filteredValues: Array<Timestamps>, index: number) {
+function createNodataInterval(
+  filteredValues: Array<Timestamps>,
+  index: number,
+): [number, number, string] {
   const previousTimestamp = filteredValues[index - 1][0];
   const currentTimestamp = filteredValues[index][0];
 
@@ -139,7 +142,17 @@ function createNodataInterval(filteredValues: Array<Timestamps>, index: number) 
  */
 export const createIncidentsChartBars = (incident: Incident, dateArray: SpanDates) => {
   const groupedData = consolidateAndMergeIntervals(incident, dateArray);
-  const data = [];
+  const data: {
+    y0: Date;
+    y: Date;
+    x: number;
+    name: string;
+    firing: boolean;
+    componentList: string[];
+    group_id: string;
+    nodata: boolean;
+    fill: string;
+  }[] = [];
   const getSeverityName = (value) => {
     return value === '2' ? 'Critical' : value === '1' ? 'Warning' : 'Info';
   };
@@ -177,7 +190,9 @@ function consolidateAndMergeAlertIntervals(data: Alert) {
   if (!data.values || data.values.length === 0) {
     return [];
   }
-  const sortedValues = data.values.sort((a, b) => a[0] - b[0]);
+
+  // Spread the array items to prevent sorting the original array
+  const sortedValues = [...data.values].sort((a, b) => a[0] - b[0]);
 
   const intervals: Array<AlertsIntervalsArray> = [];
   let currentStart = sortedValues[0][0];
@@ -212,20 +227,26 @@ export const createAlertsChartBars = (alert: IncidentsDetailsAlert): AlertsChart
     warning: t_global_color_status_warning_default.var,
   };
 
-  const data = [];
+  const data: AlertsChartBar[] = [];
 
   for (let i = 0; i < groupedData.length; i++) {
+    const y0AsString = new Date(groupedData[i][0] * 1000).toISOString();
+    const yAsString = new Date(groupedData[i][1] * 1000).toISOString();
+
     data.push({
-      y0: new Date(groupedData[i][0] * 1000),
-      y: new Date(groupedData[i][1] * 1000),
+      y0: y0AsString,
+      y: yAsString,
       x: alert.x,
-      severity: alert.severity[0].toUpperCase() + alert.severity.slice(1),
+      severity: (alert.severity[0].toUpperCase() + alert.severity.slice(1)) as
+        | 'Info'
+        | 'Warning'
+        | 'Critical',
       name: alert.alertname,
       namespace: alert.namespace,
       layer: alert.layer,
       component: alert.component,
-      nodata: groupedData[i][2] === 'nodata' ? true : false,
-      alertstate: alert.alertstate,
+      nodata: groupedData[i][2] === 'nodata',
+      alertstate: alert.alertstate as 'resolved' | 'firing',
       silenced: alert.silenced,
       fill:
         alert.severity === 'critical'
@@ -414,19 +435,21 @@ export function filterIncident(filters: IncidentFiltersCombined, incidents: Arra
 
     // Filter by maximum severities that occurred at any point in time
     const isSeverityMatch =
-      filters.severity.length > 0
+      filters.severity && filters.severity.length > 0
         ? filters.severity.some((selectedSeverity) =>
             getIncidentMaximumSeveritiesOverTime(incident).includes(selectedSeverity),
           )
         : true; // True if no severity filters
 
     const isStateMatch =
-      filters.state.length > 0
+      filters.state && filters.state.length > 0
         ? filters.state.some((filter) => incident[stateConditions[filter]] === true)
         : true; // True if no state filters
 
     const isIncidentIdMatch =
-      filters.groupId?.length > 0 ? filters.groupId.includes(incident.group_id) : true;
+      filters.groupId && filters.groupId?.length > 0
+        ? filters.groupId.includes(incident.group_id)
+        : true;
 
     // Combine conditions with AND behavior between categories
     return isSeverityMatch && isStateMatch && isIncidentIdMatch;
@@ -445,7 +468,7 @@ export const onDeleteIncidentFilterChip = (
         incidentsActiveFilters: {
           severity: filters.severity,
           days: filters.days,
-          state: filters.state.filter((fil) => fil !== id),
+          state: filters.state?.filter((fil) => fil !== id) ?? [],
           groupId: filters.groupId,
         },
       }),
@@ -455,7 +478,7 @@ export const onDeleteIncidentFilterChip = (
     setFilters(
       setIncidentsActiveFilters({
         incidentsActiveFilters: {
-          severity: filters.severity.filter((fil) => fil !== id),
+          severity: filters.severity?.filter((fil) => fil !== id) ?? [],
           days: filters.days,
           state: filters.state,
           groupId: filters.groupId,
@@ -470,7 +493,7 @@ export const onDeleteIncidentFilterChip = (
           severity: filters.severity,
           days: filters.days,
           state: filters.state,
-          groupId: filters.groupId.filter((fil) => fil !== id),
+          groupId: filters.groupId?.filter((fil) => fil !== id) ?? [],
         },
       }),
     );
@@ -530,10 +553,10 @@ export const onDeleteGroupIncidentFilterChip = (
 };
 
 export const makeIncidentUrlParams = (
-  params: IncidentFiltersCombined,
+  params?: IncidentFiltersCombined,
   incidentGroupId?: string,
 ) => {
-  const processedParams = Object.entries(params).reduce((acc, [key, value]) => {
+  const processedParams = Object.entries(params ?? {}).reduce((acc, [key, value]) => {
     if (Array.isArray(value)) {
       if (value.length > 0) {
         acc[key] = value.join(',');
@@ -551,7 +574,7 @@ export const makeIncidentUrlParams = (
   return new URLSearchParams(processedParams).toString();
 };
 
-export const updateBrowserUrl = (params: IncidentFiltersCombined, incidentGroupId?: string) => {
+export const updateBrowserUrl = (params?: IncidentFiltersCombined, incidentGroupId?: string) => {
   const queryString = makeIncidentUrlParams(params, incidentGroupId);
 
   const newUrl = `${window.location.origin}${window.location.pathname}?${queryString}`;
@@ -584,7 +607,7 @@ export const changeDaysFilter = (
  * helper function to perform the state update.
  *
  * @param {Event} event - The DOM event from the checkbox or filter selection.
- * @param {string} selection - The value of the filter being selected or deselected.
+ * @param {string | undefined} selection - The value of the filter being selected or deselected.
  * @param {Function} dispatch - The Redux dispatch function to trigger state changes.
  * @param {object} incidentsActiveFilters - The current state of active filters.
  * @param {string} filterCategoryType - The category of the filter (e.g., 'Incident ID', 'severity').
@@ -592,7 +615,7 @@ export const changeDaysFilter = (
  */
 export const onIncidentFiltersSelect = (
   event,
-  selection: IncidentFilters,
+  selection: IncidentFilters | undefined,
   dispatch,
   incidentsActiveFilters: IncidentFiltersCombined,
   filterCategoryType: string,

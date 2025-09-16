@@ -48,20 +48,20 @@ import {
   setIncidentPageFilterType,
   setIncidents,
   setIncidentsActiveFilters,
-} from '../../actions/observe';
+} from '../../store/actions';
 import { useLocation } from 'react-router-dom';
-import { getLegacyObserveState, usePerspective } from '../hooks/usePerspective';
 import { changeDaysFilter } from './utils';
 import { parsePrometheusDuration } from '../console/console-shared/src/datetime/prometheus';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 import IncidentsChart from './IncidentsChart/IncidentsChart';
 import AlertsChart from './AlertsChart/AlertsChart';
 import { usePatternFlyTheme } from '../hooks/usePatternflyTheme';
-import { MonitoringState } from 'src/reducers/observe';
+import { MonitoringState } from '../../store/store';
 import { Incident, IncidentsPageFiltersExpandedState } from './model';
-import { useAlertsPoller } from '../hooks/useAlertsPoller';
-import { Rule } from '@openshift-console/dynamic-plugin-sdk';
+import { useAlerts } from '../../hooks/useAlerts';
 import IncidentFilterToolbarItem, { severityOptions, stateOptions } from './ToolbarItemFilter';
+import { MonitoringProvider } from '../../contexts/MonitoringContext';
+import { ALL_NAMESPACES_KEY } from '../utils';
 import { isEmpty } from 'lodash-es';
 
 const IncidentsPage = () => {
@@ -69,16 +69,15 @@ const IncidentsPage = () => {
   const dispatch = useDispatch();
   const location = useLocation();
   const urlParams = useMemo(() => parseUrlParams(location.search), [location.search]);
-  const { perspective, rulesKey } = usePerspective();
-  useAlertsPoller();
+  const { rules } = useAlerts({ overrideNamespace: ALL_NAMESPACES_KEY });
   const { theme } = usePatternFlyTheme();
   // loading states
   const [incidentsAreLoading, setIncidentsAreLoading] = useState(true);
   // days span is where we store the value for creating time ranges for
   // fetch incidents/alerts based on the length of time ranges
   // when days filter changes we set a new days span -> calculate new time range and fetch new data
-  const [daysSpan, setDaysSpan] = useState<number>();
-  const [timeRanges, setTimeRanges] = useState([]);
+  const [daysSpan, setDaysSpan] = useState<number>(0);
+  const [timeRanges, setTimeRanges] = useState<Array<{ endTime: number; duration: number }>>([]);
   // data that is used for processing to serve it to the alerts table and chart
   const [incidentForAlertProcessing, setIncidentForAlertProcessing] = useState<
     Array<Partial<Incident>>
@@ -114,37 +113,35 @@ const IncidentsPage = () => {
     setDaysFilterIsExpanded(!daysFilterIsExpanded);
   };
 
-  const incidentsInitialState = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.getIn(['incidentsData', 'incidentsInitialState']),
+  const incidentsInitialState = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData.incidentsInitialState,
   );
 
-  const incidents = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.getIn(['incidentsData', 'incidents']),
+  const incidents = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData?.incidents,
   );
 
-  const incidentsActiveFilters = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.getIn(['incidentsData', 'incidentsActiveFilters']),
-  );
-  const alertsData = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.getIn(['incidentsData', 'alertsData']),
-  );
-  const alertsAreLoading = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.getIn(['incidentsData', 'alertsAreLoading']),
+  const incidentsActiveFilters = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData.incidentsActiveFilters,
   );
 
-  const filteredData = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.getIn(['incidentsData', 'filteredIncidentsData']),
+  const alertsData = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData?.alertsData,
+  );
+  const alertsAreLoading = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData?.alertsAreLoading,
   );
 
-  const incidentPageFilterTypeSelected = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.getIn(['incidentsData', 'incidentPageFilterType']),
+  const filteredData = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData.filteredIncidentsData,
   );
 
-  const alertingRulesData: Rule[] = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.get(rulesKey),
+  const selectedGroupId = incidentsActiveFilters.groupId?.[0] ?? undefined;
+
+  const incidentPageFilterTypeSelected = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData.incidentPageFilterType,
   );
 
-  const selectedGroupId = incidentsActiveFilters.groupId?.[0] ?? null;
   useEffect(() => {
     const hasUrlParams = Object.keys(urlParams).length > 0;
     if (hasUrlParams) {
@@ -214,7 +211,6 @@ const IncidentsPage = () => {
             safeFetch,
             range,
             createAlertsQuery(incidentForAlertProcessing),
-            perspective,
           );
           return response.data.result;
         }),
@@ -223,11 +219,7 @@ const IncidentsPage = () => {
           const aggregatedData = results.flat();
           dispatch(
             setAlertsData({
-              alertsData: processAlerts(
-                aggregatedData,
-                incidentForAlertProcessing,
-                alertingRulesData,
-              ),
+              alertsData: processAlerts(aggregatedData, incidentForAlertProcessing, rules),
             }),
           );
           if (!isEmpty(filteredData)) {
@@ -244,14 +236,14 @@ const IncidentsPage = () => {
   }, [incidentForAlertProcessing]);
 
   useEffect(() => {
-    if (alertingRulesData && alertsData) {
+    if (rules && alertsData) {
       dispatch(
         setAlertsTableData({
-          alertsTableData: groupAlertsForTable(alertsData, alertingRulesData),
+          alertsTableData: groupAlertsForTable(alertsData, rules),
         }),
       );
     }
-  }, [alertsData, alertingRulesData]);
+  }, [alertsData, rules]);
 
   useEffect(() => {
     (async () => {
@@ -261,7 +253,6 @@ const IncidentsPage = () => {
             safeFetch,
             range,
             'cluster:health:components:map',
-            perspective,
           );
           return response.data.result;
         }),
@@ -298,7 +289,6 @@ const IncidentsPage = () => {
             safeFetch,
             range,
             `cluster:health:components:map{group_id='${selectedGroupId}'}`,
-            perspective,
           );
           return response.data.result;
         }),
@@ -554,6 +544,14 @@ const IncidentsPage = () => {
   );
 };
 
-const incidentsPageWithFallback = withFallback(IncidentsPage);
+const IncidentsPageWithFallback = withFallback(IncidentsPage);
 
-export default incidentsPageWithFallback;
+export const McpCmoAlertingPage = () => {
+  return (
+    <MonitoringProvider
+      monitoringContext={{ plugin: 'monitoring-console-plugin', prometheus: 'cmo' }}
+    >
+      <IncidentsPageWithFallback />
+    </MonitoringProvider>
+  );
+};

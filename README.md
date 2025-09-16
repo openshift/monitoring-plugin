@@ -156,19 +156,42 @@ $ make start-feature-backend
 
 `make start-feature-backend` will inject the `perses-dashboards`, `incidents`, and `dev-config` features by default. Features such as `acm-alerting` which take in extra parameters will need to run the `make start-feature-backend` command with the appropriate environment variables, such as `MONITORING_PLUGIN_ALERTMANAGER`.
 
-#### Local Development with Perses Proxy 
+#### Local Development with Perses Proxy
 The bridge script `start-console.sh` is configured to proxy to a local Perses instance running at port `:8080`. To run the local Perses instance you will need to clone the [perses/perses](https://github.com/perses/perses) repository and follow the start up instructions in [ui/README.md](https://github.com/perses/perses/blob/63601751674403f626d1dea3dec168bdad0ef1c7/ui/README.md) :
 
 ```
-# Clone the perses/perses repo 
+# Clone the perses/perses repo
 $ git clone https://github.com/perses/perses.git
 $ cd perses
 
 # Follow the instructions in ui/README.md
-$ cd ui 
-$ npm install 
+$ cd ui
+$ npm install
 $ npm run build
 $ ./scripts/api_backend_dev.sh
 
-# Lastly navigate to http://localhost:8080/ to see Perses app running 
+# Lastly navigate to http://localhost:8080/ to see Perses app running
 ```
+
+##### Install COO && Perses Datasource && Perses Sample Dashboard 
+1. Install COO through the OpenShift UI > OperatorHub > Cluster Observability Operator 
+2. Install UIPlugin > monitoring 
+3. oc apply -f <PERSES_DATASOURCE_YAML>
+   - See sample yaml [here](https://github.com/observability-ui/development-tools/blob/main/monitoring-plugin/monitoring-console-plugin/perses/thanos-querier-datasource.yaml) 
+4. oc apply -f <PERSES_DASHBOARD_YAML>
+   - See sample yaml  [here](https://github.com/observability-ui/development-tools/blob/main/monitoring-plugin/monitoring-console-plugin/perses/perses-dashboard.yaml)
+
+##### Port forward Perses Datasource 
+To use the PERSES_DATASOURCE you deployed above, you'll need to forward it to your local machine then proxy it using the local Perses Instance. 
+
+```
+# Forward cluster Prometheus Instance to localhost:9090
+oc port-forward -n openshift-monitoring service/prometheus-operated 9090:9090
+
+# Test is port-forward returns Prometheus data from query 'up'
+curl "http://localhost:9090/api/v1/query?query=up"
+```
+
+Adjust Perses local instance http://localhost:8080/ to use the a proxy to http://localhost:9090/ instead of http://demo.prometheus.io. 
+
+

@@ -149,7 +149,6 @@ export function processAlerts(
   const timestamps = selectedIncidents.flatMap(
     (incident) => incident.values?.map((value) => value[0]) ?? [],
   );
-
   const firstTimestamp = Math.min(...timestamps);
   const lastTimestamp = Math.max(...timestamps);
 

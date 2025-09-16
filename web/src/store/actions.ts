@@ -1,17 +1,22 @@
 import { action, ActionType as Action } from 'typesafe-actions';
 
-import { Rule } from '@openshift-console/dynamic-plugin-sdk';
+import { Alert, Rule, Silence } from '@openshift-console/dynamic-plugin-sdk';
 
 export enum ActionType {
-  AlertingSetData = 'alertingSetData',
-  AlertingSetRules = 'alertingSetRules',
-  DashboardsPatchAllVariables = 'dashboardsPatchAllVariables',
-  DashboardsPatchVariable = 'dashboardsPatchVariable',
-  DashboardsClearVariables = 'dashboardsClearVariables',
-  DashboardsSetEndTime = 'dashboardsSetEndTime',
-  DashboardsSetPollInterval = 'dashboardsSetPollInterval',
-  DashboardsSetTimespan = 'dashboardsSetTimespan',
-  DashboardsVariableOptionsLoaded = 'dashboardsVariableOptionsLoaded',
+  AlertingSetLoading = 'v2/AlertingSetLoading',
+  AlertingSetRulesLoaded = 'v2/AlertingSetRulesLoaded',
+  AlertingSetSilencesLoaded = 'v2/AlertingSetSilencesLoaded',
+  AlertingApplySilences = 'v2/AlertingApplySilences',
+  AlertingSetErrored = 'v2/AlertingSetErrored',
+  AlertingSetSilencesErrored = 'v2/AlertingSetSilencesErrored',
+  AlertingClearSelectorData = 'v2/AlertingClearSelectorData',
+  DashboardsPatchAllVariables = 'v2/dashboardsPatchAllVariables',
+  DashboardsPatchVariable = 'v2/dashboardsPatchVariable',
+  DashboardsClearVariables = 'v2/dashboardsClearVariables',
+  DashboardsSetEndTime = 'v2/dashboardsSetEndTime',
+  DashboardsSetPollInterval = 'v2/dashboardsSetPollInterval',
+  DashboardsSetTimespan = 'v2/dashboardsSetTimespan',
+  DashboardsVariableOptionsLoaded = 'v2/dashboardsVariableOptionsLoaded',
   QueryBrowserAddQuery = 'queryBrowserAddQuery',
   QueryBrowserDuplicateQuery = 'queryBrowserDuplicateQuery',
   QueryBrowserDeleteAllQueries = 'queryBrowserDeleteAllQueries',
@@ -27,9 +32,9 @@ export enum ActionType {
   QueryBrowserToggleIsEnabled = 'queryBrowserToggleIsEnabled',
   QueryBrowserToggleSeries = 'queryBrowserToggleSeries',
   QueryBrowserToggleAllSeries = 'queryBrowserToggleAllSeries',
-  SetAlertCount = 'SetAlertCount',
+  SetAlertCount = 'v2/SetAlertCount',
   ToggleGraphs = 'toggleGraphs',
-  ShowGraphs = 'showGraphs',
+  ShowGraphs = 'v2/ShowGraphs',
   SetIncidents = 'setIncidents',
   SetIncidentsActiveFilters = 'setIncidentsActiveFilters',
   SetAlertsData = 'setAlertsData',
@@ -41,56 +46,79 @@ export enum ActionType {
 }
 
 export type Perspective = 'admin' | 'dev' | 'acm' | 'virtualization-perspective';
-export type alertKey = 'alerts' | 'devAlerts' | 'acmAlerts' | 'virtAlerts';
-export type silencesKey = 'silences' | 'devSilences' | 'acmSilences' | 'virtSilences';
-export type rulesKey = 'rules' | 'devRules' | 'acmRules' | 'notificationAlerts' | 'virtRules';
 
-type AlertingKey = alertKey | silencesKey | rulesKey;
+export const dashboardsPatchVariable = (key: string, patch: any) =>
+  action(ActionType.DashboardsPatchVariable, { key, patch });
 
-export const dashboardsPatchVariable = (key: string, patch: any, perspective: Perspective) =>
-  action(ActionType.DashboardsPatchVariable, { key, patch, perspective });
+export const dashboardsPatchAllVariables = (variables: any) =>
+  action(ActionType.DashboardsPatchAllVariables, { variables });
 
-export const dashboardsPatchAllVariables = (variables: any, perspective: Perspective) =>
-  action(ActionType.DashboardsPatchAllVariables, { variables, perspective });
+export const DashboardsClearVariables = () => action(ActionType.DashboardsClearVariables, {});
 
-export const DashboardsClearVariables = (perspective: Perspective) =>
-  action(ActionType.DashboardsClearVariables, { perspective });
+export const dashboardsSetEndTime = (endTime: number) =>
+  action(ActionType.DashboardsSetEndTime, { endTime });
 
-export const dashboardsSetEndTime = (endTime: number, perspective: Perspective) =>
-  action(ActionType.DashboardsSetEndTime, { endTime, perspective });
+export const dashboardsSetPollInterval = (pollInterval: number) =>
+  action(ActionType.DashboardsSetPollInterval, { pollInterval });
 
-export const dashboardsSetPollInterval = (pollInterval: number, perspective: Perspective) =>
-  action(ActionType.DashboardsSetPollInterval, { pollInterval, perspective });
+export const dashboardsSetTimespan = (timespan: number) =>
+  action(ActionType.DashboardsSetTimespan, { timespan });
 
-export const dashboardsSetTimespan = (timespan: number, perspective: Perspective) =>
-  action(ActionType.DashboardsSetTimespan, { timespan, perspective });
+export const dashboardsVariableOptionsLoaded = (key: string, newOptions: string[]) =>
+  action(ActionType.DashboardsVariableOptionsLoaded, { key, newOptions });
 
-export const dashboardsVariableOptionsLoaded = (
-  key: string,
-  newOptions: string[],
-  perspective: Perspective,
-) => action(ActionType.DashboardsVariableOptionsLoaded, { key, newOptions, perspective });
-
-export const alertingLoading = (key: AlertingKey, perspective: Perspective) =>
-  action(ActionType.AlertingSetData, {
-    key,
-    data: { loaded: false, loadError: null, data: null, perspective },
+export const alertingSetLoading = (datasource: string, identifier: string) =>
+  action(ActionType.AlertingSetLoading, {
+    datasource,
+    identifier,
+    data: { loaded: false, loadError: null },
   });
 
-export const alertingLoaded = (key: AlertingKey, alerts: any, perspective: Perspective) =>
-  action(ActionType.AlertingSetData, {
-    key,
-    data: { loaded: true, loadError: null, data: alerts, perspective },
+export const alertingSetRulesLoaded = (
+  datasource: string,
+  identifier: string,
+  rules: Rule[],
+  alerts: Alert[],
+) => action(ActionType.AlertingSetRulesLoaded, { datasource, identifier, rules, alerts });
+
+export const alertingSetSilencesLoaded = (
+  datasource: string,
+  identifier: string,
+  silences: Silence[],
+) =>
+  action(ActionType.AlertingSetSilencesLoaded, {
+    datasource,
+    identifier,
+    silences,
   });
 
-export const alertingErrored = (key: AlertingKey, loadError: Error, perspective: Perspective) =>
-  action(ActionType.AlertingSetData, {
-    key,
-    data: { loaded: true, loadError, data: null, perspective },
+// New action to trigger the reducer logic
+export const alertingApplySilences = (datasource: string, identifier: string) =>
+  action(ActionType.AlertingApplySilences, { datasource, identifier });
+
+export const alertingSetErrored = (datasource: string, identifier: string, loadError: Error) =>
+  action(ActionType.AlertingSetErrored, {
+    datasource,
+    identifier,
+    loadError,
   });
 
-export const alertingSetRules = (key: rulesKey, rules: Rule[], perspective: Perspective) =>
-  action(ActionType.AlertingSetRules, { key, data: rules, perspective });
+export const alertingSetSilencesErrored = (
+  datasource: string,
+  identifier: string,
+  loadError: Error,
+) =>
+  action(ActionType.AlertingSetSilencesErrored, {
+    datasource,
+    identifier,
+    loadError,
+  });
+
+export const alertingClearSelectorData = (datasource: string, identifier: string) =>
+  action(ActionType.AlertingClearSelectorData, {
+    datasource,
+    identifier,
+  });
 
 export const toggleGraphs = () => action(ActionType.ToggleGraphs);
 
@@ -137,7 +165,8 @@ export const queryBrowserToggleIsEnabled = (index: number) =>
 export const queryBrowserToggleSeries = (index: number, labels: { [key: string]: unknown }) =>
   action(ActionType.QueryBrowserToggleSeries, { index, labels });
 
-export const setAlertCount = (alertCount) => action(ActionType.SetAlertCount, { alertCount });
+export const setAlertCount = (datasource: string, identifier: string, alertCount: number) =>
+  action(ActionType.SetAlertCount, { alertCount, datasource, identifier });
 
 export const setIncidents = (incidents) => action(ActionType.SetIncidents, incidents);
 
@@ -162,10 +191,13 @@ export const setIncidentPageFilterType = (filterTypeSelected) =>
   action(ActionType.SetIncidentPageFilterType, filterTypeSelected);
 
 type Actions = {
-  alertingErrored: typeof alertingErrored;
-  alertingLoaded: typeof alertingLoaded;
-  alertingLoading: typeof alertingLoading;
-  alertingSetRules: typeof alertingSetRules;
+  AlertingSetErrored: typeof alertingSetErrored;
+  AlertingSetLoading: typeof alertingSetLoading;
+  AlertingSetSilencesErrored: typeof alertingSetSilencesErrored;
+  AlertingSetRulesLoaded: typeof alertingSetRulesLoaded;
+  AlertingSetSilencesLoaded: typeof alertingSetSilencesLoaded;
+  AlertingApplySilences: typeof alertingApplySilences;
+  AlertingClearSelectorData: typeof alertingClearSelectorData;
   dashboardsPatchAllVariables: typeof dashboardsPatchAllVariables;
   dashboardsPatchVariable: typeof dashboardsPatchVariable;
   DashboardsClearVariables: typeof DashboardsClearVariables;
