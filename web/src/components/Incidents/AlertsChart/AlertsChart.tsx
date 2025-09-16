@@ -27,6 +27,7 @@ import { IncidentsTooltip } from '../IncidentsTooltip';
 import { createAlertsChartBars, generateDateArray, generateAlertsDateArray } from '../utils';
 import { dateTimeFormatter } from '../../console/utils/datetime';
 import { useTranslation } from 'react-i18next';
+import { AlertsChartBar } from '../model';
 import { setAlertsAreLoading } from '../../../store/actions';
 import { MonitoringState } from '../../../store/store';
 
@@ -56,7 +57,7 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
     return generateAlertsDateArray(alertsData);
   }, [alertsData]);
 
-  const chartData = useMemo(() => {
+  const chartData: AlertsChartBar[][] = useMemo(() => {
     if (!Array.isArray(alertsData) || alertsData.length === 0) return [];
     return alertsData.map((alert) => createAlertsChartBars(alert));
   }, [alertsData]);
@@ -88,6 +89,11 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
     handleResize();
     return () => observer();
   }, [handleResize]);
+
+  const getOpacity = useCallback((datum) => {
+    const opacity = datum.silenced ? 0.3 : 1;
+    return opacity;
+  }, []);
 
   return (
     <Card className="alerts-chart-card" style={{ overflow: 'visible' }}>
@@ -128,7 +134,8 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
                     Layer: ${datum.layer ? datum.layer : '---'}
                     Component: ${datum.component}
                     Start: ${startDate}
-                    End: ${endDate}`;
+                    End: ${endDate};
+                    Silenced: ${datum.silenced}`;
                   }}
                 />
               }
@@ -193,7 +200,7 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
                         data: {
                           fill: ({ datum }) => datum.fill,
                           stroke: ({ datum }) => datum.fill,
-                          fillOpacity: ({ datum }) => (datum.nodata ? 0 : 1),
+                          fillOpacity: ({ datum }) => (datum.nodata ? 0 : getOpacity(datum)),
                           cursor: 'pointer',
                         },
                       }}

@@ -1,15 +1,7 @@
 import * as _ from 'lodash-es';
-import {
-  Alert,
-  AlertStates,
-  RuleStates,
-  Silence,
-  SilenceStates,
-} from '@openshift-console/dynamic-plugin-sdk';
 
 import { ActionType, ObserveAction } from './actions';
 
-import { isSilenced } from '../components/utils';
 import { MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY } from '../components/dashboards/legacy/utils';
 import {
   defaultObserveState,
@@ -19,6 +11,7 @@ import {
   QueryStructure,
 } from './store';
 import { produce } from 'immer';
+import { applySilences } from '../components/alerting/AlertUtils';
 
 const monitoringReducer = produce((draft: ObserveState, action: ObserveAction): ObserveState => {
   if (!draft) {
@@ -179,23 +172,16 @@ const monitoringReducer = produce((draft: ObserveState, action: ObserveAction): 
           loadError: null,
         };
       }
-
-      const alerts = draft.alerting[datasource][identifier].alerts;
-      const silences = draft.alerting[datasource][identifier].silences;
-
-      const firingAlerts = alerts.filter(isAlertFiring);
-
-      const updatedAlerts = silenceFiringAlerts(firingAlerts, silences.data);
-      draft.alerting[datasource][identifier].alerts = updatedAlerts;
-
-      silences.data = silences.data.map((silence) => {
-        silence.firingAlerts = firingAlerts.filter((firingAlert) =>
-          isSilenced(firingAlert, silence),
-        );
-        return silence;
+      const { alerts, rules, silences } = applySilences({
+        alerts: draft.alerting[datasource][identifier].alerts,
+        silences: draft.alerting[datasource][identifier].silences.data,
+        rules: draft.alerting[datasource][identifier].rules,
       });
 
-      draft.alerting[datasource][identifier].silences = silences;
+      draft.alerting[datasource][identifier].alerts = alerts;
+      draft.alerting[datasource][identifier].rules = rules;
+      draft.alerting[datasource][identifier].silences.data = silences;
+
       break;
     }
 
@@ -405,55 +391,5 @@ const monitoringReducer = produce((draft: ObserveState, action: ObserveAction): 
 
   return draft;
 });
-
-export type NotificationAlerts = {
-  data: Alert[];
-  loaded: boolean;
-  loadError?: {
-    message?: string;
-  };
-};
-
-const isAlertFiring = (alert: Alert) =>
-  alert?.state === AlertStates.Firing || alert?.state === AlertStates.Silenced;
-
-const silenceFiringAlerts = (
-  firingAlerts: Array<Alert>,
-  silences: Array<Silence>,
-): Array<Alert> => {
-  // For each firing alert, store a list of the Silences that are silencing it
-  // and set its state to show it is silenced
-  firingAlerts.forEach((firingAlert) => {
-    firingAlert.silencedBy = silences.filter(
-      (silence) =>
-        silence.status?.state === SilenceStates.Active && isSilenced(firingAlert, silence),
-    );
-
-    if (firingAlert.silencedBy.length) {
-      firingAlert.state = AlertStates.Silenced;
-      // Also set the state of Alerts in `rule.alerts`
-
-      firingAlert.rule.alerts.forEach((ruleAlert) => {
-        if (firingAlert.silencedBy?.some((silence) => isSilenced(ruleAlert, silence))) {
-          ruleAlert.state = AlertStates.Silenced;
-        }
-      });
-
-      if (
-        firingAlert.rule.alerts.length !== 0 &&
-        firingAlert.rule.alerts.every((alert) => alert.state === AlertStates.Silenced)
-      ) {
-        firingAlert.rule.state = RuleStates.Silenced;
-
-        firingAlert.rule.silencedBy = silences.filter(
-          (silence) =>
-            silence.status?.state === SilenceStates.Active &&
-            firingAlert.rule.alerts.some((alert) => isSilenced(alert, silence)),
-        );
-      }
-    }
-  });
-  return firingAlerts;
-};
 
 export default monitoringReducer;

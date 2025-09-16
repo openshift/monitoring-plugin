@@ -1,11 +1,5 @@
 import { Table, Thead, Tr, Th, Tbody, Td } from '@patternfly/react-table';
-import {
-  GreenCheckCircleIcon,
-  ResourceIcon,
-  Timestamp,
-  useActiveNamespace,
-} from '@openshift-console/dynamic-plugin-sdk';
-import { BellIcon } from '@patternfly/react-icons';
+import { ResourceIcon, Timestamp, useActiveNamespace } from '@openshift-console/dynamic-plugin-sdk';
 import { Bullseye, Spinner } from '@patternfly/react-core';
 import { Link } from 'react-router-dom';
 import { ALL_NAMESPACES_KEY, RuleResource } from '../utils';
@@ -13,22 +7,73 @@ import { useTranslation } from 'react-i18next';
 import { getRuleUrl, usePerspective } from '../hooks/usePerspective';
 import './incidents-styles.css';
 import { SeverityBadge } from '../alerting/AlertUtils';
+import { Alert, IncidentsDetailsAlert } from './model';
+import { IncidentAlertStateIcon } from './IncidentAlertStateIcon';
+import { useMemo } from 'react';
 
-const IncidentsDetailsRowTable = ({ alerts }) => {
+interface IncidentsDetailsRowTableProps {
+  alerts: Alert[];
+}
+
+const IncidentsDetailsRowTable = ({ alerts }: IncidentsDetailsRowTableProps) => {
   const [namespace, setNamespace] = useActiveNamespace();
   const { perspective } = usePerspective();
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+
+  const sortedAndMappedAlerts = useMemo(() => {
+    if (alerts && alerts.length > 0) {
+      return [...alerts]
+        .sort(
+          (a: IncidentsDetailsAlert, b: IncidentsDetailsAlert) =>
+            a.alertsStartFiring - b.alertsStartFiring,
+        )
+        .map((alertDetails: IncidentsDetailsAlert, rowIndex) => {
+          return (
+            <Tr key={rowIndex}>
+              <Td dataLabel="expanded-details-alertname">
+                <ResourceIcon kind={RuleResource.kind} />
+                <Link
+                  to={getRuleUrl(perspective, alertDetails?.rule, namespace)}
+                  onClick={() => setNamespace(ALL_NAMESPACES_KEY)}
+                >
+                  {alertDetails.alertname}
+                </Link>
+              </Td>
+              <Td dataLabel="expanded-details-namespace">{alertDetails.namespace || '---'}</Td>
+              <Td dataLabel="expanded-details-severity">
+                <SeverityBadge severity={alertDetails.severity} />
+              </Td>
+              <Td dataLabel="expanded-details-firingstart">
+                <Timestamp timestamp={alertDetails.alertsStartFiring} />
+              </Td>
+              <Td dataLabel="expanded-details-firingend">
+                {!alertDetails.resolved ? (
+                  '---'
+                ) : (
+                  <Timestamp timestamp={alertDetails.alertsEndFiring} />
+                )}
+              </Td>
+              <Td dataLabel="expanded-details-alertstate">
+                <IncidentAlertStateIcon alertDetails={alertDetails} />
+              </Td>
+            </Tr>
+          );
+        });
+    }
+
+    return null;
+  }, [alerts, perspective, namespace, setNamespace]);
 
   return (
     <Table borders={false} variant="compact">
       <Thead>
         <Tr>
-          <Th width={25}>{t('Alert Rule')}</Th>
-          <Th width={15}>{t('Namespace')}</Th>
-          <Th width={10}>{t('Severity')}</Th>
-          <Th width={10}>{t('State')}</Th>
-          <Th width={20}>{t('Start')}</Th>
-          <Th width={20}>{t('End')}</Th>
+          <Th width={25}>{t('Alert')}</Th>
+          <Th>{t('Namespace')}</Th>
+          <Th>{t('Severity')}</Th>
+          <Th>{t('Start')}</Th>
+          <Th>{t('End')}</Th>
+          <Th>{t('State')}</Th>
         </Tr>
       </Thead>
       <Tbody>
@@ -37,49 +82,7 @@ const IncidentsDetailsRowTable = ({ alerts }) => {
             <Spinner aria-label="incidents-chart-spinner" />
           </Bullseye>
         ) : (
-          alerts?.map((alertDetails, rowIndex) => {
-            return (
-              <Tr key={rowIndex}>
-                <Td dataLabel="expanded-details-alertname">
-                  <ResourceIcon kind={RuleResource.kind} />
-                  <Link
-                    to={getRuleUrl(perspective, alertDetails?.rule, namespace)}
-                    // Set to ALL_NAMESPACES to ensure that the alert rule is found
-                    onClick={() => setNamespace(ALL_NAMESPACES_KEY)}
-                  >
-                    {alertDetails.alertname}
-                  </Link>
-                </Td>
-                <Td dataLabel="expanded-details-namespace">{alertDetails.namespace || '---'}</Td>
-                <Td dataLabel="expanded-details-severity">
-                  <SeverityBadge severity={alertDetails.severity} />
-                </Td>
-                <Td dataLabel="expanded-details-alertstate">
-                  {!alertDetails.resolved ? (
-                    <>
-                      <BellIcon />
-                      <span className="expanded-details-text-margin">Firing</span>
-                    </>
-                  ) : (
-                    <>
-                      <GreenCheckCircleIcon />
-                      <span className="expanded-details-text-margin">Resolved</span>
-                    </>
-                  )}
-                </Td>
-                <Td dataLabel="expanded-details-firingstart">
-                  <Timestamp simple={true} timestamp={alertDetails.alertsStartFiring} />
-                </Td>
-                <Td dataLabel="expanded-details-firingend">
-                  {!alertDetails.resolved ? (
-                    '---'
-                  ) : (
-                    <Timestamp simple={true} timestamp={alertDetails.alertsEndFiring} />
-                  )}
-                </Td>
-              </Tr>
-            );
-          })
+          sortedAndMappedAlerts
         )}
       </Tbody>
     </Table>
