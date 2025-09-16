@@ -5,7 +5,7 @@ import { ExpandableRowContent, Table, Tbody, Td, Th, Thead, Tr } from '@patternf
 import * as _ from 'lodash-es';
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
-import { MonitoringState } from 'src/reducers/observe';
+import { MonitoringState } from '../../store/store';
 import { AlertStateIcon, SeverityBadge } from '../alerting/AlertUtils';
 import IncidentsDetailsRowTable from './IncidentsDetailsRowTable';
 import { Alert } from './model';
@@ -17,18 +17,18 @@ export const IncidentsTable = () => {
     severity: 'Severity',
     state: 'State',
   };
-  const [expandedAlerts, setExpandedAlerts] = useState([]);
+  const [expandedAlerts, setExpandedAlerts] = useState<Array<string>>([]);
   const setAlertExpanded = (alert: Alert, isExpanding = true) =>
     setExpandedAlerts((prevExpanded) => {
       const otherAlertExpanded = prevExpanded.filter((r) => r !== alert.component);
       return isExpanding ? [...otherAlertExpanded, alert.component] : otherAlertExpanded;
     });
   const isAlertExpanded = (alert: Alert) => expandedAlerts.includes(alert.component);
-  const alertsTableData = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.getIn(['incidentsData', 'alertsTableData']),
+  const alertsTableData = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData?.alertsTableData,
   );
-  const alertsAreLoading = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.getIn(['incidentsData', 'alertsAreLoading']),
+  const alertsAreLoading = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData.alertsAreLoading,
   );
 
   if (_.isEmpty(alertsTableData) || alertsAreLoading) {

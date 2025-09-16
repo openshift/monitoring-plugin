@@ -53,10 +53,10 @@ import {
   queryBrowserDeleteAllSeries,
   queryBrowserPatchQuery,
   queryBrowserSetTimespan,
-} from '../actions/observe';
+} from '../store/actions';
 
 import { GraphEmpty } from './console/graphs/graph-empty';
-import { getPrometheusURL } from './console/graphs/helpers';
+import { getPrometheusBasePath, buildPrometheusUrl } from './utils';
 import {
   dateFormatterNoYear,
   timeFormatter,
@@ -77,7 +77,7 @@ import {
   chart_axis_tick_Size,
   t_chart_global_fill_color_200,
 } from '@patternfly/react-tokens';
-import { MonitoringState } from '../reducers/observe';
+import { MonitoringState } from '../store/store';
 import withFallback from './console/console-shared/error/fallbacks/withFallback';
 import { LoadingInline } from './console/console-shared/src/components/loading/LoadingInline';
 import {
@@ -88,10 +88,11 @@ import {
   formatPrometheusDuration,
   parsePrometheusDuration,
 } from './console/console-shared/src/datetime/prometheus';
-import { getLegacyObserveState, getObserveState, usePerspective } from './hooks/usePerspective';
+import { getObserveState } from './hooks/usePerspective';
 import './query-browser.scss';
 import { GraphUnits } from './metrics/units';
 import { DataTestIDs } from './data-test';
+import { useMonitoring } from '../hooks/useMonitoring';
 
 const spans = ['5m', '15m', '30m', '1h', '2h', '6h', '12h', '1d', '2d', '1w', '2w'];
 export const colors = queryBrowserTheme.line.colorScale;
@@ -603,20 +604,20 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
   units,
   onDataChange,
   isPlain = false,
+  useTenancy = false,
 }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { perspective } = usePerspective();
+  const { plugin, prometheus } = useMonitoring();
 
   const hideGraphs = useSelector(
-    (state: MonitoringState) => !!getObserveState(perspective, state)?.get('hideGraphs'),
+    (state: MonitoringState) => !!getObserveState(plugin, state).hideGraphs,
   );
   const tickInterval = useSelector(
     (state: MonitoringState) =>
-      pollInterval ??
-      getLegacyObserveState(perspective, state)?.getIn(['queryBrowser', 'pollInterval']),
+      pollInterval ?? Number(getObserveState(plugin, state).queryBrowser.pollInterval),
   );
-  const lastRequestTime = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['queryBrowser', 'lastRequestTime']),
+  const lastRequestTime = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state).queryBrowser.lastRequestTime,
   );
 
   const dispatch = useDispatch();
@@ -694,19 +695,22 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
           timeRanges,
           (timeRange: TimeRange) =>
             safeFetch<PrometheusResponse>(
-              getPrometheusURL(
-                {
+              buildPrometheusUrl({
+                prometheusUrlProps: {
                   endpoint: PrometheusEndpoint.QUERY_RANGE,
                   endTime: timeRange.endTime,
-                  namespace: perspective === 'dev' ? activeNamespace : '',
+                  namespace: activeNamespace,
                   query,
                   samples: Math.ceil(samples / timeRanges.length),
                   timeout: '60s',
                   timespan: timeRange.duration - 1,
                 },
-                perspective,
-                customDataSource?.basePath,
-              ),
+                basePath: getPrometheusBasePath({
+                  prometheus,
+                  namespace: useTenancy ? activeNamespace : '',
+                  basePathOverride: customDataSource?.basePath,
+                }),
+              }),
             ),
         );
         return Promise.all(promiseMap).then((responses) => {
@@ -1105,6 +1109,7 @@ export type QueryBrowserProps = {
   units?: GraphUnits;
   onDataChange?: (data: any) => void;
   isPlain?: boolean;
+  useTenancy?: boolean;
 };
 
 type SpanControlsProps = {

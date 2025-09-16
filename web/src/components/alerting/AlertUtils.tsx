@@ -48,6 +48,7 @@ import {
   t_global_text_color_disabled,
   t_global_text_color_subtle,
 } from '@patternfly/react-tokens';
+import { ALL_NAMESPACES_KEY } from '../utils';
 
 export const getAdditionalSources = <T extends Alert | Rule>(
   data: Array<T>,
@@ -262,6 +263,7 @@ export const Graph: FC<GraphProps> = ({
       GraphLink={GraphLink}
       pollInterval={Math.round(timespan / 120)}
       queries={[query]}
+      useTenancy={namespace !== ALL_NAMESPACES_KEY}
     />
   );
 };

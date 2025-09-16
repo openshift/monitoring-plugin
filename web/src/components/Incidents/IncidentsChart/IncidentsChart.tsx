@@ -24,14 +24,14 @@ import {
   t_global_color_status_warning_default,
 } from '@patternfly/react-tokens';
 import { useDispatch, useSelector } from 'react-redux';
-import { setAlertsAreLoading, setIncidentsActiveFilters } from '../../../actions/observe';
-import { MonitoringState } from '../../../reducers/observe';
 import '../incidents-styles.css';
 import { IncidentsTooltip } from '../IncidentsTooltip';
 import { Incident } from '../model';
 import { createIncidentsChartBars, generateDateArray, updateBrowserUrl } from '../utils';
 import { dateTimeFormatter } from '../../console/utils/datetime';
 import { useTranslation } from 'react-i18next';
+import { MonitoringState } from '../../../store/store';
+import { setAlertsAreLoading, setIncidentsActiveFilters } from '../../../store/actions';
 
 const IncidentsChart = ({
   incidentsData,
@@ -48,8 +48,8 @@ const IncidentsChart = ({
   const [chartHeight, setChartHeight] = useState<number>();
   const dateValues = useMemo(() => generateDateArray(chartDays), [chartDays]);
 
-  const incidentsActiveFilters = useSelector((state: MonitoringState) =>
-    state.plugins.mcp.getIn(['incidentsData', 'incidentsActiveFilters']),
+  const incidentsActiveFilters = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData.incidentsActiveFilters,
   );
   const selectedGroupId = incidentsActiveFilters.groupId?.[0] ?? null;
   const { i18n } = useTranslation();
@@ -73,7 +73,7 @@ const IncidentsChart = ({
   }, [chartData]);
 
   const [width, setWidth] = useState(0);
-  const containerRef = useRef(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const handleResize = () => {
     if (containerRef.current && containerRef.current.clientWidth) {
@@ -81,6 +81,8 @@ const IncidentsChart = ({
     }
   };
   useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     const observer = getResizeObserver(containerRef.current, handleResize);
     handleResize();
     return () => observer();
@@ -133,7 +135,7 @@ const IncidentsChart = ({
                   voronoiPadding={0}
                   labels={({ datum }) => {
                     if (datum.nodata) {
-                      return null;
+                      return '';
                     }
                     const startDate = dateTimeFormatter(i18n.language).format(new Date(datum.y0));
                     const endDate =

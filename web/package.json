@@ -65,7 +65,7 @@
     "fuzzysearch": "1.0.x",
     "i18next": "^21.8.14",
     "i18next-http-backend": "^2.2.0",
-    "immutable": "3.x",
+    "immer": "^10.1.1",
     "lodash-es": "^4.17.21",
     "murmurhash-js": "1.0.x",
     "react": "^17.0.1",
@@ -152,10 +152,11 @@
       "AlertsDetailsPage": "./components/alerting/AlertsDetailsPage",
       "AlertRulesPage": "./components/alerting/AlertRulesPage",
       "AlertRulesDetailsPage": "./components/alerting/AlertRulesDetailsPage",
-      "MonitoringReducer": "./reducers/observe",
+      "MonitoringReducer": "./store/reducers",
       "IncidentsPage": "./components/Incidents/IncidentsPage",
       "TargetsPage": "./components/targets-page",
-      "PrometheusRedirectPage": "./components/prometheus-redirect-page"
+      "PrometheusRedirectPage": "./components/prometheus-redirect-page",
+      "MonitoringContext": "./contexts/MonitoringContext"
     },
     "dependencies": {
       "@console/pluginAPI": "*"

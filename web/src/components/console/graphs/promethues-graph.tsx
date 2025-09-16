@@ -6,8 +6,8 @@ import { connect } from 'react-redux';
 import { Link } from 'react-router-dom-v5-compat';
 import { Title } from '@patternfly/react-core';
 
-import { RootState } from '../../../components/types';
 import { getMutlipleQueryBrowserUrl, usePerspective } from '../../hooks/usePerspective';
+import { RootState } from '../../../store/store';
 
 const getActiveNamespace = ({ UI }: RootState): string => UI.get('activeNamespace');
 
