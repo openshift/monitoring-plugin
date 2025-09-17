@@ -125,3 +125,23 @@ export type AlertsChartBar = {
   silenced: boolean;
   fill: string;
 };
+
+export type PrometheusValue = [number, string];
+
+export interface GroupedAlertForQuery {
+  __name__: string;
+  component: string;
+  group_id: string;
+  layer: string;
+  prometheus: string;
+  src_alertname: string;
+  src_namespace: string;
+  src_severity: string;
+  type: string;
+  values: PrometheusValue[];
+  x: number;
+  // This index signature allows for other 'src_' prefixed properties
+  [key: `src_${string}`]: string | undefined;
+}
+
+export type GroupedAlertsValues = GroupedAlertForQuery[];
