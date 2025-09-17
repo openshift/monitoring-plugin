@@ -260,20 +260,6 @@ export const createAlertsChartBars = (alert: IncidentsDetailsAlert): AlertsChart
   return data;
 };
 
-export const formatDate = (date: Date, isTime: boolean) => {
-  const userLocale = navigator.language || 'en-US';
-  const dateString = date?.toLocaleDateString(userLocale, {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
-  const timeString = date?.toLocaleTimeString(userLocale, {
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-  return isTime ? `${dateString}, ${timeString}` : dateString;
-};
-
 /**
  * Generates an array of dates, each representing midnight (00:00:00) of the past `days` number of days, starting from today.
  *

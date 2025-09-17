@@ -24,12 +24,9 @@ import {
 } from '@patternfly/react-tokens';
 import { useDispatch, useSelector } from 'react-redux';
 import { IncidentsTooltip } from '../IncidentsTooltip';
-import {
-  createAlertsChartBars,
-  formatDate,
-  generateDateArray,
-  generateAlertsDateArray,
-} from '../utils';
+import { createAlertsChartBars, generateDateArray, generateAlertsDateArray } from '../utils';
+import { dateTimeFormatter } from '../../console/utils/datetime';
+import { useTranslation } from 'react-i18next';
 import { AlertsChartBar } from '../model';
 import { setAlertsAreLoading } from '../../../store/actions';
 import { MonitoringState } from '../../../store/store';
@@ -50,6 +47,7 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
   const incidentGroupId = useSelector(
     (state: MonitoringState) => state.plugins.mcp.incidentsData.groupId,
   );
+  const { i18n } = useTranslation();
   // Use dynamic date range based on actual alerts data instead of fixed chartDays
   const dateValues = useMemo(() => {
     if (!Array.isArray(alertsData) || alertsData.length === 0) {
@@ -125,15 +123,18 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
                     if (datum.nodata) {
                       return '';
                     }
+                    const startDate = dateTimeFormatter(i18n.language).format(new Date(datum.y0));
+                    const endDate =
+                      datum.alertstate === 'firing'
+                        ? '---'
+                        : dateTimeFormatter(i18n.language).format(new Date(datum.y));
                     return `Alert Severity: ${datum.severity}
                     Alert Name: ${datum.name ? datum.name : '---'}
                     Namespace: ${datum.namespace ? datum.namespace : '---'}
                     Layer: ${datum.layer ? datum.layer : '---'}
                     Component: ${datum.component}
-                    Start: ${formatDate(new Date(datum.y0), true)}
-                    End: ${
-                      datum.alertstate === 'firing' ? '---' : formatDate(new Date(datum.y), true)
-                    }
+                    Start: ${startDate}
+                    End: ${endDate};
                     Silenced: ${datum.silenced}`;
                   }}
                 />
