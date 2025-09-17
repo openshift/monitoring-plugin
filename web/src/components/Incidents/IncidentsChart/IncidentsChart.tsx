@@ -138,14 +138,12 @@ const IncidentsChart = ({
                       return '';
                     }
                     const startDate = dateTimeFormatter(i18n.language).format(new Date(datum.y0));
-                    const endDate =
-                      datum.alertstate === 'firing'
-                        ? '---'
-                        : dateTimeFormatter(i18n.language).format(new Date(datum.y));
+                    const endDate = datum.firing
+                      ? '---'
+                      : dateTimeFormatter(i18n.language).format(new Date(datum.y));
                     return `Severity: ${datum.name}
-                    Component: ${datum.componentList?.join(', ')}
-                    Incident ID:
-                    ${datum.group_id}
+                    ID: ${datum.group_id}
+                    Component(s): ${datum.componentList?.join(', ')}
                     Start: ${startDate}
                     End: ${endDate}`;
                   }}
@@ -183,10 +181,10 @@ const IncidentsChart = ({
               //this should be always less than the container height
               height={chartHeight}
               padding={{
-                bottom: 75, // Adjusted to accommodate legend
-                left: 50,
-                right: 25, // Adjusted to accommodate tooltip
-                top: 50,
+                bottom: 50, // Adjusted to accommodate legend
+                left: 25,
+                right: 25,
+                top: 0,
               }}
               width={width}
               themeColor={ChartThemeColor.purple}
