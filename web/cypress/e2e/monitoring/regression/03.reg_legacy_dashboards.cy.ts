@@ -16,12 +16,7 @@ const MP = {
 describe('Regression: Monitoring - Dashboards (Legacy)', () => {
 
   before(() => {
-    cy.afterBlock(MP);
     cy.beforeBlock(MP);
-  });
-
-  after(() => {
-    cy.afterBlock(MP);
   });
 
   it('1. Admin perspective - Dashboards (legacy)', () => {

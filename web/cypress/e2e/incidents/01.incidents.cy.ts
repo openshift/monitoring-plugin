@@ -33,12 +33,7 @@ const ALERT_DESC = 'This is an alert meant to ensure that the entire alerting pi
 const ALERT_SUMMARY = 'An alert that should always be firing to certify that Alertmanager is working properly.'
 describe('BVT: Incidents - UI', () => {
   before(() => {
-    cy.afterBlockCOO(MCP, MP); // Following cypher best practices, the cleanup is done before the test block
     cy.beforeBlockCOO(MCP, MP);
-  });
-
-  after(() => {
-    cy.afterBlockCOO(MCP, MP); // For compatibility with other tests
   });
 
 

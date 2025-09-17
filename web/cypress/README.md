@@ -67,6 +67,11 @@ Set the following var to specify the cluster timezone for incident timeline calc
 export CYPRESS_TIMEZONE=<timezone>
 ```
 
+Set the following var to enable Cypress session management for faster test execution.
+```bash
+export CYPRESS_SESSION=true
+```
+
 ### Environment Configuration Script
 
 The `configure-env.sh` script provides an interactive way to set up all the required environment variables. This script eliminates the need to manually export each variable and helps find the correct kubeconfig file.

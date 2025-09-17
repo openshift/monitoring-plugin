@@ -19,12 +19,7 @@ const MP = {
 describe('BVT: Monitoring', () => {
 
   before(() => {
-    cy.afterBlock(MP);
     cy.beforeBlock(MP);
-  });
-
-  after(() => {
-    cy.afterBlock(MP);
   });
 
   it('1. Admin perspective - Observe Menu', () => {

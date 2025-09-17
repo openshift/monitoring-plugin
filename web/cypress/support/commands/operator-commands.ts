@@ -15,51 +15,111 @@ declare global {
         adminCLI(command: string, options?);
         executeAndDelete(command: string);
         beforeBlock(MP: { namespace: string, operatorName: string });
-        afterBlock(MP: { namespace: string, operatorName: string });
+        cleanupMP(MP: { namespace: string, operatorName: string });
         beforeBlockCOO(MCP: { namespace: string, operatorName: string, packageName: string }, MP: { namespace: string, operatorName: string});
-        afterBlockCOO(MCP: { namespace: string, operatorName: string, packageName: string }, MP: { namespace: string, operatorName: string});
+        cleanupCOO(MCP: { namespace: string, operatorName: string, packageName: string }, MP: { namespace: string, operatorName: string});
       }
     }
   }
-  
+
 const readyTimeoutMilliseconds = Cypress.config('readyTimeoutMilliseconds') as number;
 const installTimeoutMilliseconds = Cypress.config('installTimeoutMilliseconds') as number;
 
+const useSession = Cypress.env('SESSION');
+
 // Shared operator utilities
-const operatorUtils = {
+const operatorAuthUtils = {
+  // Core login and auth logic (shared between session and non-session versions)
+      performLoginAndAuth(useSession: boolean): void {
+      cy.adminCLI(
+        `oc adm policy add-cluster-role-to-user cluster-admin ${Cypress.env('LOGIN_USERNAME')}`,
+      );
+      cy.exec(
+        `oc get oauthclient openshift-browser-client -o go-template --template="{{index .redirectURIs 0}}" --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+      ).then((result) => {
+        if (result.stderr === '') {
+          const oauth = result.stdout;
+          const oauthurl = new URL(oauth);
+          const oauthorigin = oauthurl.origin;
+          cy.log(oauthorigin);
+          cy.wrap(oauthorigin as string).as('oauthorigin');
+        } else {
+          throw new Error(`Execution of oc get oauthclient failed
+            Exit code: ${result.code}
+            Stdout:\\n${result.stdout}
+            Stderr:\\n${result.stderr}`);
+        }
+      });
+      cy.get('@oauthorigin').then((oauthorigin) => {
+        if (useSession) {
+          cy.login(
+            Cypress.env('LOGIN_IDP'),
+            Cypress.env('LOGIN_USERNAME'),
+            Cypress.env('LOGIN_PASSWORD'),
+            oauthorigin as unknown as string,
+          );
+        } else {
+          cy.loginNoSession(
+            Cypress.env('LOGIN_IDP'),
+            Cypress.env('LOGIN_USERNAME'),
+            Cypress.env('LOGIN_PASSWORD'),
+            oauthorigin as unknown as string,
+          );
+        }
+      });
+    },
+
   loginAndAuth(): void {
     cy.log('Before block');
-    cy.adminCLI(
-      `oc adm policy add-cluster-role-to-user cluster-admin ${Cypress.env('LOGIN_USERNAME')}`,
-    );
-    // Getting the oauth url for hypershift cluster login
-    cy.exec(
-      `oc get oauthclient openshift-browser-client -o go-template --template="{{index .redirectURIs 0}}" --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
-    ).then((result) => {
-      if (expect(result.stderr).to.be.empty) {
-        const oauth = result.stdout;
-        // Trimming the origin part of the url
-        const oauthurl = new URL(oauth);
-        const oauthorigin = oauthurl.origin;
-        cy.log(oauthorigin);
-        cy.wrap(oauthorigin).as('oauthorigin');
-      } else {
-        throw new Error(`Execution of oc get oauthclient failed
-          Exit code: ${result.code}
-          Stdout:\\n${result.stdout}
-          Stderr:\\n${result.stderr}`);
-      }
-    });
-    cy.get('@oauthorigin').then((oauthorigin) => {
-      cy.login(
-        Cypress.env('LOGIN_IDP'),
-        Cypress.env('LOGIN_USERNAME'),
-        Cypress.env('LOGIN_PASSWORD'),
-        oauthorigin,
-      );
-    });
+    operatorAuthUtils.performLoginAndAuth(true);
   },
 
+  loginAndAuthNoSession(): void {
+    cy.log('Before block (no session)');
+    operatorAuthUtils.performLoginAndAuth(false);
+  },
+
+  generateCOOSessionKey(MCP: { namespace: string, operatorName: string, packageName: string }, MP: { namespace: string, operatorName: string }): string[] {
+    const baseKey = [
+      Cypress.env('LOGIN_IDP'),
+      Cypress.env('LOGIN_USERNAME'),
+      MCP.namespace,
+      MCP.operatorName,
+      MCP.packageName,
+      MP.namespace,
+      MP.operatorName
+    ];
+    
+    const envVars = [
+      Cypress.env('SKIP_COO_INSTALL'),
+      Cypress.env('COO_UI_INSTALL'),
+      Cypress.env('KONFLUX_COO_BUNDLE_IMAGE'),
+      Cypress.env('CUSTOM_COO_BUNDLE_IMAGE'),
+      Cypress.env('FBC_STAGE_COO_IMAGE'),
+      Cypress.env('MP_IMAGE'),
+      Cypress.env('MCP_CONSOLE_IMAGE')
+    ];
+    
+    return [...baseKey, ...envVars.filter(Boolean)];
+  },
+
+  generateMPSessionKey(MP: { namespace: string, operatorName: string }): string[] {
+    const baseKey = [
+      Cypress.env('LOGIN_IDP'),
+      Cypress.env('LOGIN_USERNAME'),
+      MP.namespace,
+      MP.operatorName
+    ];
+    
+    const envVars = [
+      Cypress.env('MP_IMAGE')
+    ];
+    
+    return [...baseKey, ...envVars.filter(Boolean)];
+  },
+}
+
+const operatorUtils = {
   setupMonitoringPluginImage(MP: { namespace: string }): void {
     cy.log('Set Monitoring Plugin image in operator CSV');
     if (Cypress.env('MP_IMAGE')) {
@@ -324,33 +384,99 @@ const operatorUtils = {
   }
 };
 
-Cypress.Commands.add('beforeBlock', (MP: { namespace: string, operatorName: string }) => {
-    operatorUtils.loginAndAuth();
-    operatorUtils.setupMonitoringPluginImage(MP);
-    cy.task('clearDownloads');
-    cy.log('Before block completed');
+Cypress.Commands.add('beforeBlock', (MP: { namespace: string, operatorName: string }) => {    
+    if (useSession) {
+      const sessionKey = operatorAuthUtils.generateMPSessionKey(MP);
+      
+      cy.session(
+        sessionKey,
+        () => {
+          cy.log('Before block (session)');
+          
+          // Clean up any existing setup first
+          cy.cleanupMP(MP);
+          
+          // Then set up fresh
+          operatorAuthUtils.loginAndAuthNoSession();
+          operatorUtils.setupMonitoringPluginImage(MP);
+          cy.task('clearDownloads');
+          cy.log('Before block (session) completed');
+        },
+        {
+          cacheAcrossSpecs: true,
+          validate() {
+            cy.visit('/');
+            cy.byTestID("username", {timeout: 120000}).should('be.visible');
+          },
+        },
+      );
+    } else {
+      cy.log('Before block (no session)');
+      cy.cleanupMP(MP);
+      operatorAuthUtils.loginAndAuth();
+      operatorUtils.setupMonitoringPluginImage(MP);
+      cy.task('clearDownloads');
+      cy.log('Before block (no session) completed');
+    }
   });
   
-  Cypress.Commands.add('afterBlock', (MP: { namespace: string, operatorName: string }) => {
-    cy.log('After block');
-    operatorUtils.revertMonitoringPluginImage(MP);
-    cy.log('After block completed');
+  Cypress.Commands.add('cleanupMP', (MP: { namespace: string, operatorName: string }) => {
+    if (useSession) {
+      cy.log('cleanupMP (session)');
+      operatorUtils.revertMonitoringPluginImage(MP);
+      cy.log('cleanupMP (no session) completed');
+    }
   });
   
   Cypress.Commands.add('beforeBlockCOO', (MCP: { namespace: string, operatorName: string, packageName: string }, MP: { namespace: string, operatorName: string }) => {
-    cy.log('Before block COO');
-    operatorUtils.loginAndAuth();
-    operatorUtils.installCOO(MCP);
-    operatorUtils.waitForCOOReady(MCP);
-    operatorUtils.setupMonitoringConsolePlugin(MCP);
-    operatorUtils.setupDashboardsAndPlugins(MCP);
-    operatorUtils.setupMonitoringPluginImage(MP);
-    cy.log('Before block COO completed');
+    if (useSession) {
+      const sessionKey = operatorAuthUtils.generateCOOSessionKey(MCP, MP);
+      
+      cy.session(
+        sessionKey,
+        () => {
+          cy.log('Before block COO (session)');
+          
+          cy.cleanupCOO(MCP, MP);
+          
+          // Then set up fresh
+          operatorAuthUtils.loginAndAuthNoSession();
+          operatorUtils.installCOO(MCP);
+          operatorUtils.waitForCOOReady(MCP);
+          operatorUtils.setupMonitoringConsolePlugin(MCP);
+          operatorUtils.setupDashboardsAndPlugins(MCP);
+          operatorUtils.setupMonitoringPluginImage(MP);
+          cy.log('Before block COO (session) completed');
+        },
+        {
+          cacheAcrossSpecs: true,
+          validate() {
+            cy.visit('/');
+            cy.byTestID("username", {timeout: 120000}).should('be.visible');
+            // Additional validation for COO setup
+            cy.visit('/monitoring/v2/dashboards');
+            cy.url().should('include', '/monitoring/v2/dashboards');
+          },
+        },
+      );
+    } else {
+      cy.log('Before block COO (no session)');
+
+      cy.cleanupCOO(MCP, MP);
+
+      operatorAuthUtils.loginAndAuth();
+      operatorUtils.installCOO(MCP);
+      operatorUtils.waitForCOOReady(MCP);
+      operatorUtils.setupMonitoringConsolePlugin(MCP);
+      operatorUtils.setupDashboardsAndPlugins(MCP);
+      operatorUtils.setupMonitoringPluginImage(MP);
+      cy.log('Before block COO (no session) completed');
+    }
   });
   
-  Cypress.Commands.add('afterBlockCOO', (MCP: { namespace: string, operatorName: string, packageName: string }, MP: { namespace: string, operatorName: string }) => {
-    cy.log('After block COO');
-    operatorUtils.cleanup(MCP);
-    operatorUtils.revertMonitoringPluginImage(MP);
-    cy.log('After block COO completed');
+  Cypress.Commands.add('cleanupCOO', (MCP: { namespace: string, operatorName: string, packageName: string }, MP: { namespace: string, operatorName: string }) => {
+      cy.log('Cleanup COO (no session)');
+      operatorUtils.cleanup(MCP);
+      operatorUtils.revertMonitoringPluginImage(MP);
+      cy.log('Cleanup COO (no session) completed');
   });

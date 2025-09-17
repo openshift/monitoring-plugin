@@ -21,12 +21,7 @@ const MP = {
 describe('Regression: Monitoring - Alerts', () => {
 
   before(() => {
-    cy.afterBlock(MP);
     cy.beforeBlock(MP);
-  });
-
-  after(() => {
-    cy.afterBlock(MP);
   });
 
   it('1. Admin perspective - Alerting > Alerts page - Filtering', () => {
