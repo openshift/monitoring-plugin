@@ -57,7 +57,7 @@ import IncidentsChart from './IncidentsChart/IncidentsChart';
 import AlertsChart from './AlertsChart/AlertsChart';
 import { usePatternFlyTheme } from '../hooks/usePatternflyTheme';
 import { MonitoringState } from '../../store/store';
-import { IncidentsPageFiltersExpandedState } from './model';
+import { IncidentForAlertProcessing, IncidentsPageFiltersExpandedState } from './model';
 import { useAlerts } from '../../hooks/useAlerts';
 import IncidentFilterToolbarItem, { severityOptions, stateOptions } from './ToolbarItemFilter';
 import { MonitoringProvider } from '../../contexts/MonitoringContext';
@@ -79,7 +79,9 @@ const IncidentsPage = () => {
   const [daysSpan, setDaysSpan] = useState<number>(0);
   const [timeRanges, setTimeRanges] = useState<Array<{ endTime: number; duration: number }>>([]);
   // data that is used for processing to serve it to the alerts table and chart
-  const [incidentForAlertProcessing, setIncidentForAlertProcessing] = useState([]);
+  const [incidentForAlertProcessing, setIncidentForAlertProcessing] = useState<
+    Array<IncidentForAlertProcessing>
+  >([]);
   const [hideCharts, setHideCharts] = useState(false);
 
   const [filtersExpanded, setFiltersExpanded] = useState<IncidentsPageFiltersExpandedState>({

@@ -1,7 +1,7 @@
 /* eslint-disable max-len */
 
 import { PrometheusLabels, PrometheusResult } from '@openshift-console/dynamic-plugin-sdk';
-import { Incident, Metric, ProcessedIncident } from './model';
+import { GroupedDataForAlertProcessing, Metric, ProcessedIncident } from './model';
 
 //this will be moved to the utils.js file when I convert them to the Typescript
 export function sortObjectsByEarliestTimestamp(incidents: PrometheusResult[]): PrometheusResult[] {
@@ -158,13 +158,14 @@ export const getIncidentsTimeRanges = (
 
 export const processIncidentsForAlerts = (
   incidents: Array<PrometheusResult>,
-): Array<Partial<Incident>> => {
+): Array<GroupedDataForAlertProcessing> => {
   return incidents.map((incident, index) => {
-    // Return the processed incident
-    return {
+    const alertForQuery = {
       ...incident.metric,
       values: incident.values,
       x: incidents.length - index,
     };
+
+    return alertForQuery as GroupedDataForAlertProcessing;
   });
 };
