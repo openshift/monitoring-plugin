@@ -29,7 +29,6 @@ const MP = {
 describe('Incidents - Mocking Examples', () => {
 
   before(() => {
-    cy.afterBlockCOO(MCP, MP);
     cy.beforeBlockCOO(MCP, MP);
   });
 

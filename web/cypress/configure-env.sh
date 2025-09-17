@@ -173,6 +173,7 @@ print_current_config() {
   print_var "CYPRESS_CUSTOM_COO_BUNDLE_IMAGE" "${CYPRESS_CUSTOM_COO_BUNDLE_IMAGE-}"
   print_var "CYPRESS_MCP_CONSOLE_IMAGE" "${CYPRESS_MCP_CONSOLE_IMAGE-}"
   print_var "CYPRESS_TIMEZONE" "${CYPRESS_TIMEZONE-}"
+  print_var "CYPRESS_SESSION" "${CYPRESS_SESSION-}"
 }
 
 main() {
@@ -214,6 +215,7 @@ main() {
   local def_custom_coo_bundle=${CYPRESS_CUSTOM_COO_BUNDLE_IMAGE-}
   local def_mcp_console_image=${CYPRESS_MCP_CONSOLE_IMAGE-}
   local def_timezone=${CYPRESS_TIMEZONE-}
+  local def_session=${CYPRESS_SESSION-}
 
   # Required basics
   local base_url
@@ -405,6 +407,11 @@ main() {
   local timezone
   timezone=$(ask "Cluster timezone (CYPRESS_TIMEZONE)" "${def_timezone:-UTC}")
 
+  local session_ans
+  session_ans=$(ask_yes_no "Enable Cypress session management for faster test execution? (sets CYPRESS_SESSION)" "$(bool_to_default_yn "$def_session")")
+  local session="false"
+  [[ "$session_ans" == "y" ]] && session="true"
+
   # Build export lines with safe quoting
   local -a export_lines
   export_lines+=("export CYPRESS_BASE_URL='$(printf %s "$base_url" | escape_for_single_quotes)'" )
@@ -428,6 +435,7 @@ main() {
   if [[ -n "$timezone" ]]; then
     export_lines+=("export CYPRESS_TIMEZONE='$(printf %s "$timezone" | escape_for_single_quotes)'" )
   fi
+  export_lines+=("export CYPRESS_SESSION='$(printf %s "$session" | escape_for_single_quotes)'" )
 
   echo ""
   if is_sourced; then
@@ -458,6 +466,7 @@ main() {
   [[ -n "${CYPRESS_CUSTOM_COO_BUNDLE_IMAGE-}$custom_coo_bundle" ]] && echo "  CYPRESS_CUSTOM_COO_BUNDLE_IMAGE=${CYPRESS_CUSTOM_COO_BUNDLE_IMAGE:-$custom_coo_bundle}"
   [[ -n "${CYPRESS_MCP_CONSOLE_IMAGE-}$mcp_console_image" ]] && echo "  CYPRESS_MCP_CONSOLE_IMAGE=${CYPRESS_MCP_CONSOLE_IMAGE:-$mcp_console_image}"
   [[ -n "${CYPRESS_TIMEZONE-}$timezone" ]] && echo "  CYPRESS_TIMEZONE=${CYPRESS_TIMEZONE:-$timezone}"
+  echo "  CYPRESS_SESSION=${CYPRESS_SESSION:-$session}"
 }
 
 main "$@"

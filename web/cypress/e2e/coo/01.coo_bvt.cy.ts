@@ -21,14 +21,8 @@ const MP = {
 describe('BVT: COO', () => {
 
   before(() => {
-    cy.afterBlockCOO(MCP, MP); // Following best practices, the cleanup is done before the test block
     cy.beforeBlockCOO(MCP, MP);
 
-  });
-
-
-  after(() => {
-    cy.afterBlockCOO(MCP, MP);
   });
 
   it('1. Admin perspective - Observe Menu', () => {

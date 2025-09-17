@@ -25,7 +25,6 @@ describe('BVT: Incidents - e2e', () => {
   let currentAlertName: string;
 
   before(() => {
-    cy.afterBlockCOO(MCP, MP); // Following cypher best practices, the cleanup is done before the test block
     cy.beforeBlockCOO(MCP, MP);
     
     cy.cleanupIncidentPrometheusRules(); 
@@ -35,10 +34,6 @@ describe('BVT: Incidents - e2e', () => {
       currentAlertName = alertName;
       cy.log(`Test will look for alert: ${currentAlertName}`);
     });
-  });
-
-  after(() => {
-    cy.afterBlockCOO(MCP, MP); // For compatibility with other tests
   });
 
   it('1. Admin perspective - Incidents page - Incident with custom alert lifecycle', () => {

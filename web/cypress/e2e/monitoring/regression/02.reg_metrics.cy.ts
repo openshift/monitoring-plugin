@@ -12,12 +12,7 @@ const MP = {
 describe('Regression: Monitoring - Metrics', () => {
 
   before(() => {
-    cy.afterBlock(MP);
     cy.beforeBlock(MP);
-  });
-
-  after(() => {
-    cy.afterBlock(MP);
   });
 
   it('1. Admin perspective - Metrics', () => {
