@@ -181,10 +181,10 @@ const IncidentsChart = ({
               //this should be always less than the container height
               height={chartHeight}
               padding={{
-                bottom: 75, // Adjusted to accommodate legend
-                left: 50,
-                right: 25, // Adjusted to accommodate tooltip
-                top: 50,
+                bottom: 50, // Adjusted to accommodate legend
+                left: 25,
+                right: 25,
+                top: 0,
               }}
               width={width}
               themeColor={ChartThemeColor.purple}

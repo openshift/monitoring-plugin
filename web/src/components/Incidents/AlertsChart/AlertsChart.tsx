@@ -130,14 +130,17 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
                       datum.alertstate === 'firing'
                         ? '---'
                         : dateTimeFormatter(i18n.language).format(new Date(datum.y));
-                    return `Severity: ${datum.severity}
-                    Alert Name: ${datum.name ? datum.name : '---'}
-                    Namespace: ${datum.namespace ? datum.namespace : '---'}
-                    Layer: ${datum.layer ? datum.layer : '---'}
+
+                    const baseTooltip = `Severity: ${datum.severity}
+                    Alert Name: ${datum.name || '---'}
+                    Namespace: ${datum.namespace || '---'}
                     Component: ${datum.component}
                     Start: ${startDate}
-                    End: ${endDate};
-                    Silenced: ${datum.silenced}`;
+                    End: ${endDate}`;
+
+                    const silencedText = datum.silenced ? '\nSilenced: true' : '';
+
+                    return `${baseTooltip}${silencedText}`;
                   }}
                 />
               }
@@ -173,10 +176,10 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
               //this should be always less than the container height
               height={chartHeight}
               padding={{
-                bottom: 75, // Adjusted to accommodate legend
-                left: 50,
-                right: 25, // Adjusted to accommodate tooltip
-                top: 50,
+                bottom: 50, // Adjusted to accommodate legend
+                left: 25,
+                right: 25,
+                top: 0,
               }}
               width={width}
             >
