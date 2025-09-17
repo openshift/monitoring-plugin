@@ -103,7 +103,7 @@ export const IncidentsTable = () => {
             icon={SearchIcon}
           >
             <EmptyStateBody>
-              <Bullseye>No incidents selected.</Bullseye>
+              <Bullseye>No incident selected.</Bullseye>
             </EmptyStateBody>
           </EmptyState>
         </CardBody>

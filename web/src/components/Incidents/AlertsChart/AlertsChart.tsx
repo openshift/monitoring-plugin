@@ -106,7 +106,9 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
               height: '250px',
             }}
           >
-            <EmptyStateBody>Select an incident in the chart above to see alerts.</EmptyStateBody>
+            <EmptyStateBody>
+              To view alerts, select an incident from the chart above or from the filters.
+            </EmptyStateBody>
           </EmptyState>
         ) : (
           <CardBody
