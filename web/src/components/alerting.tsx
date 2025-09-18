@@ -71,6 +71,7 @@ import {
   alertingRuleStateOrder,
   alertSeverityOrder,
   alertURL,
+  devAlertURL,
   fuzzyCaseInsensitive,
   labelsToParams,
   refreshSilences,
@@ -85,6 +86,7 @@ import {
   alertingRuleSource,
   AlertState,
   AlertStateIcon,
+  devRuleURL,
   getAdditionalSources,
   getAlertStateKey,
   getSourceKey,
@@ -433,6 +435,8 @@ type SilencedAlertsListProps = RouteComponentProps & { alerts: Alert[] };
 
 const SilencedAlertsList_: React.FC<SilencedAlertsListProps> = ({ alerts, history }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
+  const { isDev } = usePerspective();
+  const namespace = useActiveNamespace();
 
   return _.isEmpty(alerts) ? (
     <div className="pf-u-text-align-center">{t('None found')}</div>
@@ -449,7 +453,7 @@ const SilencedAlertsList_: React.FC<SilencedAlertsListProps> = ({ alerts, histor
               <Link
                 className="co-resource-item"
                 data-test="firing-alerts"
-                to={alertURL(a, a.rule.id)}
+                to={isDev ? devAlertURL(a, a.rule.id, namespace) : alertURL(a, a.rule.id)}
               >
                 {a.labels.alertname}
               </Link>
@@ -461,7 +465,12 @@ const SilencedAlertsList_: React.FC<SilencedAlertsListProps> = ({ alerts, histor
             <div className="dropdown-kebab-pf">
               <KebabDropdown
                 dropdownItems={[
-                  <DropdownItem key="view-rule" onClick={() => history.push(ruleURL(a.rule))}>
+                  <DropdownItem
+                    key="view-rule"
+                    onClick={() =>
+                      history.push(isDev ? devRuleURL(a.rule, namespace) : ruleURL(a.rule))
+                    }
+                  >
                     {t('View alerting rule')}
                   </DropdownItem>,
                 ]}
@@ -647,6 +656,8 @@ const tableRuleClasses = [
 
 const RuleTableRow: React.FC<RowProps<Rule>> = ({ obj }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
+  const { isDev } = usePerspective();
+  const namespace = useActiveNamespace();
 
   const title: string = obj.annotations?.description || obj.annotations?.message;
 
@@ -655,7 +666,10 @@ const RuleTableRow: React.FC<RowProps<Rule>> = ({ obj }) => {
       <td className={tableRuleClasses[0]} title={title}>
         <div className="co-resource-item">
           <MonitoringResourceIcon resource={RuleResource} />
-          <Link to={ruleURL(obj)} className="co-resource-item__resource-name">
+          <Link
+            to={isDev ? devRuleURL(obj, namespace) : ruleURL(obj)}
+            className="co-resource-item__resource-name"
+          >
             {obj.name}
           </Link>
         </div>
@@ -675,11 +689,12 @@ const RuleTableRow: React.FC<RowProps<Rule>> = ({ obj }) => {
 
 const RulesPage_: React.FC = () => {
   const { t } = useTranslation('plugin__monitoring-plugin');
-  const { isDev } = usePerspective();
+  const { isDev, rulesKey, alertsKey } = usePerspective();
+  const namespace = useActiveNamespace();
 
-  const data: Rule[] = useSelector(({ observe }: RootState) => observe.get('rules'));
+  const data: Rule[] = useSelector(({ observe }: RootState) => observe.get(rulesKey));
   const { loaded = false, loadError }: Alerts = useSelector(
-    ({ observe }: RootState) => observe.get('alerts') || {},
+    ({ observe }: RootState) => observe.get(alertsKey) || {},
   );
 
   const silencesLoadError = useSelector(
@@ -690,6 +705,14 @@ const RulesPage_: React.FC = () => {
     () => getAdditionalSources(data, alertingRuleSource),
     [data],
   );
+
+  const namespacedData = React.useMemo(() => {
+    if (isDev) {
+      return data?.filter((rule) => rule.labels?.namespace === namespace);
+    }
+
+    return data;
+  }, [data, isDev, namespace]);
 
   const rowFilters: RowFilter[] = [
     // TODO: The "name" filter doesn't really fit useListPageFilter's idea of a RowFilter, but
@@ -717,7 +740,7 @@ const RulesPage_: React.FC = () => {
     },
   ];
 
-  const [staticData, filteredData, onFilterChange] = useListPageFilter(data, rowFilters);
+  const [staticData, filteredData, onFilterChange] = useListPageFilter(namespacedData, rowFilters);
 
   const columns = React.useMemo<TableColumn<Rule>[]>(
     () => [
@@ -1125,6 +1148,13 @@ const PollerPages = () => {
         <Route path="/dev-monitoring/ns/:ns/alerts" exact component={AlertsPage} />
         <Route path="/dev-monitoring/ns/:ns/alerts/:ruleID" component={AlertsDetailsPage} />
         <Route path="/dev-monitoring/ns/:ns/metrics" exact component={QueryBrowserPage} />
+        <Route path="/dev-monitoring/ns/:ns/alertrules" exact component={RulesPage} />
+        <Route path="/dev-monitoring/ns/:ns/silences/:id" exact component={SilencesDetailsPage} />
+        <Route
+          path="/dev-monitoring/ns/:ns/alertrules/:id"
+          exact
+          component={AlertRulesDetailsPage}
+        />
       </Switch>
     );
   }
