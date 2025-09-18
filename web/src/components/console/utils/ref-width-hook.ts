@@ -6,7 +6,9 @@ export const useRefWidth = () => {
 
   const setRef = useCallback((e: HTMLDivElement) => {
     const newWidth = e?.clientWidth;
-    newWidth && ref.current?.clientWidth !== newWidth && setWidth(e.clientWidth);
+    if (newWidth && ref.current?.clientWidth !== newWidth) {
+      setWidth(e.clientWidth);
+    }
     ref.current = e;
   }, []);
 
@@ -23,7 +25,9 @@ export const useRefWidth = () => {
   const clientWidth = ref.current?.clientWidth;
 
   useEffect(() => {
-    width !== clientWidth && setWidth(clientWidth);
+    if (width !== clientWidth) {
+      setWidth(clientWidth);
+    }
   }, [clientWidth, width]);
 
   return [setRef, width] as [React.Ref<HTMLDivElement>, number];

@@ -1,4 +1,5 @@
 import {
+  NamespaceBar,
   PrometheusData,
   PrometheusEndpoint,
   PrometheusLabels,
@@ -42,8 +43,10 @@ import {
 } from '@patternfly/react-core';
 import { ChartLineIcon, CompressIcon } from '@patternfly/react-icons';
 import {
+  IFormatterValueType,
   InnerScrollContainer,
   ISortBy,
+  ITransform,
   sortable,
   Table,
   TableGridBreakpoint,
@@ -56,7 +59,8 @@ import {
   wrappable,
 } from '@patternfly/react-table';
 import * as _ from 'lodash-es';
-import * as React from 'react';
+import type { FC, Ref } from 'react';
+import { useMemo, useCallback, useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -73,10 +77,11 @@ import {
   queryBrowserToggleAllSeries,
   queryBrowserToggleIsEnabled,
   queryBrowserToggleSeries,
+  showGraphs,
   toggleGraphs,
-} from '../actions/observe';
+} from '../store/actions';
 
-import { getPrometheusURL } from './console/graphs/helpers';
+import { getPrometheusBasePath, buildPrometheusUrl } from './utils';
 import { AsyncComponent } from './console/utils/async';
 import { usePoll } from './console/utils/poll-hook';
 import {
@@ -91,10 +96,10 @@ import {
   DataSource,
   isDataSource,
 } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
-import { MonitoringState } from '../reducers/observe';
+import { MonitoringState } from '../store/store';
 import { DropDownPollInterval } from './dropdown-poll-interval';
 import { useBoolean } from './hooks/useBoolean';
-import { getLegacyObserveState, usePerspective } from './hooks/usePerspective';
+import { getObserveState } from './hooks/usePerspective';
 import KebabDropdown from './kebab-dropdown';
 import { colors, Error, QueryBrowser } from './query-browser';
 import { QueryParams } from './query-params';
@@ -108,6 +113,15 @@ import {
   t_global_spacer_sm,
   t_global_font_family_mono,
 } from '@patternfly/react-tokens';
+import { QueryParamProvider, StringParam, useQueryParam } from 'use-query-params';
+import { ReactRouter5Adapter } from 'use-query-params/adapters/react-router-5';
+import { GraphUnits, isGraphUnit } from './metrics/units';
+import { SimpleSelect, SimpleSelectOption } from '@patternfly/react-templates';
+import { valueFormatter } from './console/console-shared/src/components/query-browser/QueryBrowserTooltip';
+import { ALL_NAMESPACES_KEY } from './utils';
+import { MonitoringProvider } from '../contexts/MonitoringContext';
+import { DataTestIDs } from './data-test';
+import { useMonitoring } from '../hooks/useMonitoring';
 
 // Stores information about the currently focused query input
 let focusedQuery;
@@ -204,42 +218,37 @@ const devQueries = (activeNamespace: string) => {
   ];
 };
 
-export const PreDefinedQueriesDropdown = () => {
+const PreDefinedQueriesDropdown = () => {
   const [activeNamespace] = useActiveNamespace();
-  const { perspective } = usePerspective();
+  const { plugin } = useMonitoring();
 
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
-  const queries: SelectOptionProps[] = React.useMemo(() => {
-    switch (perspective) {
-      case 'dev':
-        return devQueries(activeNamespace);
-      case 'admin':
-      case 'virtualization-perspective':
-        return predefinedQueriesAdmin;
-      // TODO: Add ACM queries
-      default:
-        return [];
+  const queries: SelectOptionProps[] = useMemo(() => {
+    if (activeNamespace === ALL_NAMESPACES_KEY) {
+      return predefinedQueriesAdmin;
     }
-  }, [activeNamespace, perspective]);
+    return devQueries(activeNamespace);
+  }, [activeNamespace]);
 
   const dispatch = useDispatch();
 
-  const queriesList = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['queryBrowser', 'queries']),
+  const queriesList = useSelector(
+    (state: MonitoringState) =>
+      // mcp does not support the metrics page in any perspective
+      getObserveState(plugin, state).queryBrowser?.queries,
   );
 
   const insertPredefinedQuery = (query: string) => {
-    const queriesListDetails = queriesList.toJS();
     const isInitialQueryEmpty =
-      queriesList.size === 1 &&
-      (queriesListDetails[0]?.text === '' ||
-        queriesListDetails[0]?.text === null ||
-        queriesListDetails[0]?.text === undefined);
-    const index = isInitialQueryEmpty ? 0 : queriesList.size;
+      queriesList.length === 1 &&
+      (queriesList[0]?.text === '' ||
+        queriesList[0]?.text === null ||
+        queriesList[0]?.text === undefined);
+    const index = isInitialQueryEmpty ? 0 : queriesList.length;
 
     // Prevent the same selection from being added consecutively
-    const lastQuery = queriesListDetails[queriesListDetails.length - 1];
+    const lastQuery = queriesList[queriesList.length - 1];
     if (lastQuery.text === query) {
       return;
     }
@@ -264,20 +273,18 @@ export const PreDefinedQueriesDropdown = () => {
   );
 };
 
-const MetricsActionsMenu: React.FC = () => {
+const MetricsActionsMenu: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { perspective } = usePerspective();
+  const { plugin } = useMonitoring();
 
   const [isOpen, setIsOpen, , setClosed] = useBoolean(false);
 
   const isAllExpanded = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)
-      ?.getIn(['queryBrowser', 'queries'])
-      .every((q) => q.get('isExpanded')),
+    getObserveState(plugin, state).queryBrowser.queries.every((q) => q?.isExpanded),
   );
 
   const dispatch = useDispatch();
-  const addQuery = React.useCallback(() => dispatch(queryBrowserAddQuery()), [dispatch]);
+  const addQuery = useCallback(() => dispatch(queryBrowserAddQuery()), [dispatch]);
 
   const doDelete = () => {
     dispatch(queryBrowserDeleteAllQueries());
@@ -289,8 +296,13 @@ const MetricsActionsMenu: React.FC = () => {
       isOpen={isOpen}
       onSelect={setClosed}
       onOpenChange={(open: boolean) => (open ? setIsOpen() : setClosed())}
-      toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
-        <MenuToggle ref={toggleRef} onClick={setIsOpen} isExpanded={isOpen}>
+      toggle={(toggleRef: Ref<MenuToggleElement>) => (
+        <MenuToggle
+          ref={toggleRef}
+          onClick={setIsOpen}
+          isExpanded={isOpen}
+          data-test={DataTestIDs.MetricsPageActionsDropdownButton}
+        >
           Actions
         </MenuToggle>
       )}
@@ -298,17 +310,28 @@ const MetricsActionsMenu: React.FC = () => {
       shouldFocusToggleOnSelect
     >
       <DropdownList>
-        <DropdownItem value={0} key="add-query" onClick={addQuery}>
+        <DropdownItem
+          value={0}
+          key="add-query"
+          onClick={addQuery}
+          data-test={DataTestIDs.MetricsPageAddQueryDropdownItem}
+        >
           {t('Add query')}
         </DropdownItem>
         <DropdownItem
           value={1}
           key="expand-collapse-all"
           onClick={() => dispatch(queryBrowserSetAllExpanded(!isAllExpanded))}
+          data-test={DataTestIDs.MetricsPageExpandCollapseAllDropdownItem}
         >
           {isAllExpanded ? t('Collapse all query tables') : t('Expand all query tables')}
         </DropdownItem>
-        <DropdownItem value={2} key="delete-all-queries" onClick={doDelete}>
+        <DropdownItem
+          value={2}
+          key="delete-all-queries"
+          onClick={doDelete}
+          data-test={DataTestIDs.MetricsPageDeleteAllQueriesDropdownItem}
+        >
           {t('Delete all queries')}
         </DropdownItem>
       </DropdownList>
@@ -316,23 +339,36 @@ const MetricsActionsMenu: React.FC = () => {
   );
 };
 
-export const ToggleGraph: React.FC = () => {
+export const ToggleGraph: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { perspective } = usePerspective();
+  const { plugin } = useMonitoring();
 
   const hideGraphs = useSelector(
-    (state: MonitoringState) => !!getLegacyObserveState(perspective, state)?.get('hideGraphs'),
+    (state: MonitoringState) => !!getObserveState(plugin, state).hideGraphs,
   );
 
   const dispatch = useDispatch();
-  const toggle = React.useCallback(() => dispatch(toggleGraphs()), [dispatch]);
+  const toggle = useCallback(() => dispatch(toggleGraphs()), [dispatch]);
+
+  // Use an empty useEffect to get access to the cleanup function so that if graphs are
+  // currently hidden then we show the graphs as we unmount
+  useEffect(() => {
+    return () => {
+      dispatch(showGraphs());
+    };
+  }, [dispatch]);
 
   const icon = hideGraphs ? <ChartLineIcon /> : <CompressIcon />;
 
   return (
     <Flex justifyContent={{ default: 'justifyContentFlexEnd' }}>
       <FlexItem>
-        <Button type="button" onClick={toggle} variant="link">
+        <Button
+          type="button"
+          onClick={toggle}
+          variant="link"
+          data-test={DataTestIDs.MetricHideShowGraphButton}
+        >
           {icon} {hideGraphs ? t('Show graph') : t('Hide graph')}
         </Button>
       </FlexItem>
@@ -340,35 +376,34 @@ export const ToggleGraph: React.FC = () => {
   );
 };
 
-const SeriesButton: React.FC<SeriesButtonProps> = ({ index, labels }) => {
+const SeriesButton: FC<SeriesButtonProps> = ({ index, labels }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { perspective } = usePerspective();
+  const { plugin } = useMonitoring();
 
   const [colorIndex, isDisabled, isSeriesEmpty]: [number | null, boolean, boolean] = useSelector(
     (state: MonitoringState) => {
-      const observe = getLegacyObserveState(perspective, state);
-      const disabledSeries = observe.getIn(['queryBrowser', 'queries', index, 'disabledSeries']);
+      const observe = getObserveState(plugin, state);
+      const disabledSeries = observe.queryBrowser.queries[index]?.disabledSeries;
       if (_.some(disabledSeries, (s) => _.isEqual(s, labels))) {
         return [null, true, false];
       }
 
-      const series = observe.getIn(['queryBrowser', 'queries', index, 'series']);
+      const series = observe.queryBrowser.queries[index]?.series;
       if (_.isEmpty(series)) {
         return [null, false, true];
       }
 
-      const colorOffset = observe
-        .getIn(['queryBrowser', 'queries'])
-        .take(index)
-        .filter((q) => q.get('isEnabled'))
-        .reduce((sum, q) => sum + _.size(q.get('series')), 0);
+      const colorOffset = observe.queryBrowser.queries
+        .slice(0, index)
+        .filter((q) => q?.isEnabled)
+        .reduce((sum, q) => sum + _.size(q[series]), 0);
       const seriesIndex = _.findIndex(series, (s) => _.isEqual(s, labels));
       return [(colorOffset + seriesIndex) % colors.length, false, false];
     },
   );
 
   const dispatch = useDispatch();
-  const toggleSeries = React.useCallback(
+  const toggleSeries = useCallback(
     () => dispatch(queryBrowserToggleSeries(index, labels)),
     [dispatch, index, labels],
   );
@@ -387,64 +422,53 @@ const SeriesButton: React.FC<SeriesButtonProps> = ({ index, labels }) => {
       title={title}
       type="button"
       variant="control"
+      data-test={DataTestIDs.MetricsPageSeriesButton}
     />
   );
 };
 
-const QueryKebab: React.FC<{ index: number }> = ({ index }) => {
+const QueryKebab: FC<{ index: number }> = ({ index }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { perspective } = usePerspective();
+  const { plugin } = useMonitoring();
 
   const isDisabledSeriesEmpty = useSelector((state: MonitoringState) =>
-    _.isEmpty(
-      getLegacyObserveState(perspective, state)?.getIn([
-        'queryBrowser',
-        'queries',
-        index,
-        'disabledSeries',
-      ]),
-    ),
+    _.isEmpty(getObserveState(plugin, state).queryBrowser?.queries[index]?.disabledSeries),
   );
-  const isEnabled = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn([
-      'queryBrowser',
-      'queries',
-      index,
-      'isEnabled',
-    ]),
+  const isEnabled = useSelector(
+    (state: MonitoringState) =>
+      getObserveState(plugin, state).queryBrowser?.queries[index]?.isEnabled,
   );
 
-  const query = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['queryBrowser', 'queries', index, 'query']),
+  const query = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state).queryBrowser?.queries[index]?.query,
   );
 
-  const queryTableData = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn([
-      'queryBrowser',
-      'queries',
-      index,
-      'queryTableData',
-    ]),
+  const queryTableData = useSelector(
+    (state: MonitoringState) =>
+      getObserveState(plugin, state).queryBrowser?.queries[index]?.queryTableData ?? {
+        rows: [],
+        columns: [],
+      },
   );
 
   const dispatch = useDispatch();
 
-  const toggleIsEnabled = React.useCallback(
+  const toggleIsEnabled = useCallback(
     () => dispatch(queryBrowserToggleIsEnabled(index)),
     [dispatch, index],
   );
 
-  const toggleAllSeries = React.useCallback(
+  const toggleAllSeries = useCallback(
     () => dispatch(queryBrowserToggleAllSeries(index)),
     [dispatch, index],
   );
 
-  const doDelete = React.useCallback(() => {
+  const doDelete = useCallback(() => {
     dispatch(queryBrowserDeleteQuery(index));
     focusedQuery = undefined;
   }, [dispatch, index]);
 
-  const doClone = React.useCallback(() => {
+  const doClone = useCallback(() => {
     dispatch(queryBrowserDuplicateQuery(index));
   }, [dispatch, index]);
 
@@ -512,17 +536,32 @@ const QueryKebab: React.FC<{ index: number }> = ({ index }) => {
   };
 
   const exportDropdownItem = (
-    <DropdownItem key="export" component="button" onClick={doExportCsv}>
+    <DropdownItem
+      key="export"
+      component="button"
+      onClick={doExportCsv}
+      data-test={DataTestIDs.MetricsPageExportCsvDropdownItem}
+    >
       {t('Export as CSV')}
     </DropdownItem>
   );
 
   const defaultDropdownItems = [
-    <DropdownItem key="toggle-query" component="button" onClick={toggleIsEnabled}>
+    <DropdownItem
+      key="toggle-query"
+      component="button"
+      onClick={toggleIsEnabled}
+      data-test={DataTestIDs.MetricsPageDisableEnableQueryDropdownItem}
+    >
       {isEnabled ? t('Disable query') : t('Enable query')}
     </DropdownItem>,
     isEnabled ? (
-      <DropdownItem component="button" onClick={toggleAllSeries} key="toggle-all-series">
+      <DropdownItem
+        component="button"
+        onClick={toggleAllSeries}
+        key="toggle-all-series"
+        data-test={DataTestIDs.MetricsPageHideShowAllSeriesDropdownItem}
+      >
         {isDisabledSeriesEmpty ? t('Hide all series') : t('Show all series')}
       </DropdownItem>
     ) : (
@@ -539,10 +578,20 @@ const QueryKebab: React.FC<{ index: number }> = ({ index }) => {
         </DropdownItem>
       </Tooltip>
     ),
-    <DropdownItem key="delete" component="button" onClick={doDelete}>
+    <DropdownItem
+      key="delete"
+      component="button"
+      onClick={doDelete}
+      data-test={DataTestIDs.MetricsPageDeleteQueryDropdownItem}
+    >
       {t('Delete query')}
     </DropdownItem>,
-    <DropdownItem key="duplicate" component="button" onClick={doClone}>
+    <DropdownItem
+      key="duplicate"
+      component="button"
+      onClick={doClone}
+      data-test={DataTestIDs.MetricsPageDuplicateQueryDropdownItem}
+    >
       {t('Duplicate query')}
     </DropdownItem>,
   ];
@@ -561,84 +610,74 @@ const QueryKebab: React.FC<{ index: number }> = ({ index }) => {
   return <KebabDropdown dropdownItems={dropdownItems} />;
 };
 
-export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, customDatasource }) => {
+export const QueryTable: FC<QueryTableProps> = ({ index, namespace, customDatasource, units }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { perspective } = usePerspective();
+  const { plugin } = useMonitoring();
 
-  const [data, setData] = React.useState<PrometheusData>();
-  const [error, setError] = React.useState<PrometheusAPIError>();
-  const [page, setPage] = React.useState(1);
-  const [perPage, setPerPage] = React.useState(50);
-  const [sortBy, setSortBy] = React.useState<ISortBy>({});
+  const [data, setData] = useState<PrometheusData>();
+  const [error, setError] = useState<PrometheusAPIError>();
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(50);
+  const [sortBy, setSortBy] = useState<ISortBy>({});
+  const valueFormat = valueFormatter(units);
 
-  const isEnabled = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn([
-      'queryBrowser',
-      'queries',
-      index,
-      'isEnabled',
-    ]),
+  const isEnabled = useSelector(
+    (state: MonitoringState) =>
+      getObserveState(plugin, state).queryBrowser.queries[index]?.isEnabled,
   );
-  const isExpanded = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn([
-      'queryBrowser',
-      'queries',
-      index,
-      'isExpanded',
-    ]),
+  const isExpanded = useSelector(
+    (state: MonitoringState) =>
+      getObserveState(plugin, state).queryBrowser.queries[index]?.isExpanded,
   );
-  const pollInterval = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['queryBrowser', 'pollInterval'], 15 * 1000),
+  const pollInterval = useSelector(
+    (state: MonitoringState) =>
+      Number(getObserveState(plugin, state).queryBrowser.pollInterval) * 15 * 1000,
   );
-  const query = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['queryBrowser', 'queries', index, 'query']),
+  const query = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state).queryBrowser.queries[index]?.query,
   );
-  const series = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['queryBrowser', 'queries', index, 'series']),
+  const series = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state).queryBrowser.queries[index]?.series,
   );
-  const span = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['queryBrowser', 'timespan']),
+  const span = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state).queryBrowser.timespan,
   );
 
-  const lastRequestTime = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['queryBrowser', 'lastRequestTime']),
+  const lastRequestTime = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state).queryBrowser.lastRequestTime,
   );
 
   const dispatch = useDispatch();
 
-  const toggleAllSeries = React.useCallback(
+  const toggleAllSeries = useCallback(
     () => dispatch(queryBrowserToggleAllSeries(index)),
     [dispatch, index],
   );
 
   const isDisabledSeriesEmpty = useSelector((state: MonitoringState) =>
-    _.isEmpty(
-      getLegacyObserveState(perspective, state)?.getIn([
-        'queryBrowser',
-        'queries',
-        index,
-        'disabledSeries',
-      ]),
-    ),
+    _.isEmpty(getObserveState(plugin, state).queryBrowser.queries[index]?.disabledSeries),
   );
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const safeFetch = React.useCallback(useSafeFetch(), []);
+  const safeFetch = useCallback(useSafeFetch(), []);
 
   // If the namespace is defined getPrometheusURL will use
   // the PROMETHEUS_TENANCY_BASE_PATH for requests in the developer view
   const tick = () => {
     if (isEnabled && isExpanded && query) {
       safeFetch<PrometheusResponse>(
-        getPrometheusURL(
-          {
+        buildPrometheusUrl({
+          prometheusUrlProps: {
             endpoint: PrometheusEndpoint.QUERY,
-            namespace: perspective === 'dev' ? namespace : '',
+            namespace,
             query,
           },
-          perspective,
-          customDatasource?.basePath,
-        ),
+          basePath: getPrometheusBasePath({
+            prometheus: 'cmo',
+            namespace,
+            basePathOverride: customDatasource?.basePath,
+          }),
+        }),
       )
         .then((response) => {
           setData(_.get(response, 'data'));
@@ -655,7 +694,7 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, custom
 
   usePoll(tick, pollInterval, namespace, query, span, lastRequestTime);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setData(undefined);
     setError(undefined);
     setPage(1);
@@ -684,22 +723,45 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, custom
 
   if (!result || result.length === 0) {
     return (
-      <div>
+      <div data-test={DataTestIDs.MetricsPageYellowNoDatapointsFound}>
         <YellowExclamationTriangleIcon /> {t('No datapoints found.')}
       </div>
     );
   }
 
-  const transforms = [sortable, wrappable];
+  const transforms: ITransform[] = [sortable, wrappable];
 
   const buttonCell = (labels) => ({ title: <SeriesButton index={index} labels={labels} /> });
 
   let columns, rows;
   if (data.resultType === 'scalar') {
-    columns = ['', { title: t('Value'), transforms }];
+    columns = [
+      '',
+      {
+        title: t('Value'),
+        transforms,
+        cellTransforms: [
+          (data: IFormatterValueType) => {
+            const val = data?.title ? data.title : data;
+            return !Number.isNaN(Number(val)) ? valueFormat(Number(val)) : val;
+          },
+        ],
+      },
+    ];
     rows = [[buttonCell({}), _.get(result, '[1]')]];
   } else if (data.resultType === 'string') {
-    columns = [{ title: t('Value'), transforms }];
+    columns = [
+      {
+        title: t('Value'),
+        transforms,
+        cellTransforms: [
+          (data: IFormatterValueType) => {
+            const val = data?.title ? data.title : data;
+            return !Number.isNaN(Number(val)) ? valueFormat(Number(val)) : val;
+          },
+        ],
+      },
+    ];
     rows = [[result?.[1]]];
   } else {
     const allLabelKeys = _.uniq(_.flatMap(result, ({ metric }) => Object.keys(metric))).sort();
@@ -710,7 +772,16 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, custom
         title: <span>{k === '__name__' ? t('Name') : k}</span>,
         transforms,
       })),
-      { title: t('Value'), transforms },
+      {
+        title: t('Value'),
+        transforms,
+        cellTransforms: [
+          (data: IFormatterValueType) => {
+            const val = data?.title ? data.title : data;
+            return !Number.isNaN(Number(val)) ? valueFormat(Number(val)) : val;
+          },
+        ],
+      },
     ];
 
     let rowMapper;
@@ -762,7 +833,12 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, custom
 
   return (
     <>
-      <Button variant="link" isInline onClick={toggleAllSeries}>
+      <Button
+        variant="link"
+        isInline
+        onClick={toggleAllSeries}
+        data-test={DataTestIDs.MetricsPageSelectAllUnselectAllButton}
+      >
         {isDisabledSeriesEmpty ? t('Unselect all') : t('Select all')}
       </Button>
       <InnerScrollContainer>
@@ -771,6 +847,7 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, custom
           gridBreakPoint={TableGridBreakpoint.none}
           rows={tableRows.length}
           variant={TableVariant.compact}
+          data-test={DataTestIDs.MetricsPageQueryTable}
         >
           <Thead>
             <Tr>
@@ -801,7 +878,13 @@ export const QueryTable: React.FC<QueryTableProps> = ({ index, namespace, custom
                     style={{ fontFamily: t_global_font_family_mono.var }}
                     key={`cell-${rowIndex}-${cellIndex}`}
                   >
-                    {typeof cell === 'string' ? cell : cell?.title}
+                    {columns[cellIndex].cellTransforms
+                      ? columns[cellIndex].cellTransforms[0](
+                          typeof cell === 'string' ? cell : cell?.title,
+                        )
+                      : typeof cell === 'string'
+                      ? cell
+                      : cell?.title}
                   </Td>
                 ))}
               </Tr>
@@ -827,54 +910,45 @@ const PromQLExpressionInput = (props) => (
   />
 );
 
-const Query: React.FC<{ index: number; customDatasource?: CustomDataSource }> = ({
-  index,
-  customDatasource,
-}) => {
+const Query: FC<{
+  index: number;
+  customDatasource?: CustomDataSource;
+  units: GraphUnits;
+}> = ({ index, customDatasource, units }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { perspective } = usePerspective();
+  const { plugin } = useMonitoring();
 
-  const id = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['queryBrowser', 'queries', index, 'id']),
+  const id = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state).queryBrowser.queries[index]?.id,
   );
-  const isEnabled = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn([
-      'queryBrowser',
-      'queries',
-      index,
-      'isEnabled',
-    ]),
+  const isEnabled = useSelector(
+    (state: MonitoringState) =>
+      getObserveState(plugin, state).queryBrowser.queries[index]?.isEnabled,
   );
-  const isExpanded = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn([
-      'queryBrowser',
-      'queries',
-      index,
-      'isExpanded',
-    ]),
+  const isExpanded = useSelector(
+    (state: MonitoringState) =>
+      getObserveState(plugin, state).queryBrowser.queries[index]?.isExpanded,
   );
-  const text = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(
-      ['queryBrowser', 'queries', index, 'text'],
-      '',
-    ),
+  const text = useSelector(
+    (state: MonitoringState) =>
+      getObserveState(plugin, state).queryBrowser.queries[index]?.text ?? '',
   );
 
   const dispatch = useDispatch();
 
-  const toggleIsEnabled = React.useCallback(
+  const toggleIsEnabled = useCallback(
     () => dispatch(queryBrowserToggleIsEnabled(index)),
     [dispatch, index],
   );
 
-  const handleTextChange = React.useCallback(
+  const handleTextChange = useCallback(
     (value: string) => {
       dispatch(queryBrowserPatchQuery(index, { text: value }));
     },
     [dispatch, index],
   );
 
-  const handleExecuteQueries = React.useCallback(() => {
+  const handleExecuteQueries = useCallback(() => {
     dispatch(queryBrowserRunQueries());
   }, [dispatch]);
 
@@ -900,6 +974,7 @@ const Query: React.FC<{ index: number; customDatasource?: CustomDataSource }> = 
         isChecked={isEnabled}
         key={switchKey}
         onChange={toggleIsEnabled}
+        data-test={DataTestIDs.MetricsPageDisableEnableQuerySwitch}
       />
     </div>
   );
@@ -915,13 +990,6 @@ const Query: React.FC<{ index: number; customDatasource?: CustomDataSource }> = 
 
   // If namespace is defined getPrometheusURL() will use the
   //     PROMETHEUS_TENANCY_BASE_PATH for the developer view
-  const queryTable = (
-    <QueryTable
-      index={index}
-      customDatasource={customDatasource}
-      namespace={perspective === 'dev' ? activeNamespace : undefined}
-    />
-  );
 
   return (
     <DataListItem aria-labelledby={`query-item-${queryId}`} isExpanded={isExpanded}>
@@ -932,6 +1000,7 @@ const Query: React.FC<{ index: number; customDatasource?: CustomDataSource }> = 
           buttonProps={{ isInline: true }}
           id={`toggle-${queryId}`}
           aria-controls={`query-expand-${queryId}`}
+          data-test={DataTestIDs.MetricsPageExpandCollapseRowButton}
         />
         <DataListItemCells
           dataListCells={[
@@ -959,33 +1028,38 @@ const Query: React.FC<{ index: number; customDatasource?: CustomDataSource }> = 
         id={`query-expand-${queryId}`}
         isHidden={!isExpanded}
       >
-        {queryTable}
+        <QueryTable
+          index={index}
+          customDatasource={customDatasource}
+          namespace={activeNamespace}
+          units={units}
+        />
       </DataListContent>
     </DataListItem>
   );
 };
 
-const QueryBrowserWrapper: React.FC<{
+const QueryBrowserWrapper: FC<{
   customDataSourceName: string;
   customDataSource: CustomDataSource;
   customDatasourceError: boolean;
-}> = ({ customDataSourceName, customDataSource, customDatasourceError }) => {
+  units: GraphUnits;
+}> = ({ customDataSourceName, customDataSource, customDatasourceError, units }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { perspective } = usePerspective();
+  const [activeNamespace] = useActiveNamespace();
+  const { plugin } = useMonitoring();
 
   const dispatch = useDispatch();
 
   const hideGraphs = useSelector(
-    (state: MonitoringState) => !!getLegacyObserveState(perspective, state)?.get('hideGraphs'),
+    (state: MonitoringState) => !!getObserveState(plugin, state).hideGraphs,
   );
-  const queriesList = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['queryBrowser', 'queries']),
+  const queries = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state).queryBrowser?.queries,
   );
-
-  const queries = queriesList.toJS();
 
   // Initialize queries from URL parameters
-  React.useEffect(() => {
+  useEffect(() => {
     dispatch(queryBrowserDeleteAllQueries());
     const searchParams = getAllQueryArguments();
     for (let i = 0; _.has(searchParams, `query${i}`); i++) {
@@ -1005,18 +1079,17 @@ const QueryBrowserWrapper: React.FC<{
   // Use React.useMemo() to prevent these two arrays being recreated on every render, which would
   // trigger unnecessary re-renders of QueryBrowser, which can be quite slow
   const queriesMemoKey = JSON.stringify(_.map(queries, 'query'));
-  const queryStrings = React.useMemo(() => _.map(queries, 'query'), [queriesMemoKey]);
+  const queryStrings = useMemo(() => _.map(queries, 'query'), [queriesMemoKey]);
   const disabledSeriesMemoKey = JSON.stringify(
     _.reject(_.map(queries, 'disabledSeries'), _.isEmpty),
   );
-  const disabledSeries = React.useMemo(
+  const disabledSeries = useMemo<PrometheusLabels[][]>(
     () => _.map(queries, 'disabledSeries'),
     [disabledSeriesMemoKey],
   );
-  /* eslint-enable react-hooks/exhaustive-deps */
 
   // Update the URL parameters when the queries shown in the graph change
-  React.useEffect(() => {
+  useEffect(() => {
     const newParams: Record<string, string> = {};
     _.each(queryStrings, (q, i) => (newParams[`query${i}`] = q || ''));
     if (customDataSourceName) {
@@ -1058,17 +1131,21 @@ const QueryBrowserWrapper: React.FC<{
     return (
       <EmptyState
         titleText={
-          <Title headingLevel="h2" size="md">
+          <Title headingLevel="h2" size="md" data-test={DataTestIDs.MetricsPageNoQueryEnteredTitle}>
             {t('No query entered')}
           </Title>
         }
         icon={ChartLineIcon}
         variant={EmptyStateVariant.full}
       >
-        <EmptyStateBody>
+        <EmptyStateBody data-test={DataTestIDs.MetricsPageNoQueryEntered}>
           {t('Enter a query in the box below to explore metrics for this cluster.')}
         </EmptyStateBody>
-        <Button onClick={insertExampleQuery} variant="primary">
+        <Button
+          onClick={insertExampleQuery}
+          variant="primary"
+          data-test={DataTestIDs.MetricsPageInsertExampleQueryButton}
+        >
           {t('Insert example query')}
         </Button>
       </EmptyState>
@@ -1081,42 +1158,57 @@ const QueryBrowserWrapper: React.FC<{
       defaultTimespan={30 * 60 * 1000}
       disabledSeries={disabledSeries}
       queries={queryStrings}
+      units={units}
       showStackedControl
+      showDisconnectedControl
+      useTenancy={activeNamespace !== ALL_NAMESPACES_KEY}
     />
   );
 };
 
-const AddQueryButton: React.FC = () => {
+const AddQueryButton: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const dispatch = useDispatch();
-  const addQuery = React.useCallback(() => dispatch(queryBrowserAddQuery()), [dispatch]);
+  const addQuery = useCallback(() => dispatch(queryBrowserAddQuery()), [dispatch]);
 
   return (
-    <Button onClick={addQuery} type="button" variant="secondary">
+    <Button
+      onClick={addQuery}
+      type="button"
+      variant="secondary"
+      data-test={DataTestIDs.MetricsPageAddQueryButton}
+    >
       {t('Add query')}
     </Button>
   );
 };
 
-const RunQueriesButton: React.FC = () => {
+const RunQueriesButton: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const dispatch = useDispatch();
-  const runQueries = React.useCallback(() => dispatch(queryBrowserRunQueries()), [dispatch]);
+  const runQueries = useCallback(() => dispatch(queryBrowserRunQueries()), [dispatch]);
 
   return (
-    <Button onClick={runQueries} type="submit" variant="primary">
+    <Button
+      onClick={runQueries}
+      type="submit"
+      variant="primary"
+      data-test={DataTestIDs.MetricsPageRunQueriesButton}
+    >
       {t('Run queries')}
     </Button>
   );
 };
 
-const QueriesList: React.FC<{ customDatasource?: CustomDataSource }> = ({ customDatasource }) => {
-  const { perspective } = usePerspective();
+const QueriesList: FC<{ customDatasource?: CustomDataSource; units: GraphUnits }> = ({
+  customDatasource,
+  units,
+}) => {
+  const { plugin } = useMonitoring();
   const count = useSelector(
-    (state: MonitoringState) =>
-      getLegacyObserveState(perspective, state)?.getIn(['queryBrowser', 'queries']).size,
+    (state: MonitoringState) => getObserveState(plugin, state).queryBrowser.queries.length,
   );
 
   return (
@@ -1124,7 +1216,12 @@ const QueriesList: React.FC<{ customDatasource?: CustomDataSource }> = ({ custom
       {_.range(count).map((index) => {
         const reversedIndex = count - index - 1;
         return (
-          <Query index={reversedIndex} key={reversedIndex} customDatasource={customDatasource} />
+          <Query
+            index={reversedIndex}
+            key={reversedIndex}
+            customDatasource={customDatasource}
+            units={units}
+          />
         );
       })}
     </DataList>
@@ -1132,40 +1229,86 @@ const QueriesList: React.FC<{ customDatasource?: CustomDataSource }> = ({ custom
 };
 
 const IntervalDropdown = () => {
-  const { perspective } = usePerspective();
+  const { plugin } = useMonitoring();
   const dispatch = useDispatch();
-  const setInterval = React.useCallback(
+  const setInterval = useCallback(
     (v: number) => dispatch(queryBrowserSetPollInterval(v)),
     [dispatch],
   );
-  const pollInterval = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['queryBrowser', 'pollInterval'], 15 * 1000),
+  const pollInterval = useSelector(
+    (state: MonitoringState) =>
+      Number(getObserveState(plugin, state).queryBrowser.pollInterval) * 15 * 1000,
   );
   return <DropDownPollInterval setInterval={setInterval} selectedInterval={pollInterval} />;
 };
 
-const MetricsPage_: React.FC = () => {
+const GraphUnitsDropDown: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const [selectedUnits, setUnits] = useQueryParam(QueryParams.Units, StringParam);
+
+  const initialOptions = useMemo<SimpleSelectOption[]>(() => {
+    const intervalOptions: SimpleSelectOption[] = [
+      { content: t('Bytes Binary (KiB, MiB)'), value: 'bytes' },
+      { content: t('Bytes Decimal (kb, MB)'), value: 'Bytes' },
+      { content: t('Bytes Binary Per Second (KiB/s, MiB/s)'), value: 'bps' },
+      { content: t('Bytes Decimal Per Second (kB/s, MB/s)'), value: 'Bps' },
+      { content: t('Packets Per Second'), value: 'pps' },
+      { content: t('Miliseconds'), value: 'ms' },
+      { content: t('Seconds'), value: 's' },
+      { content: t('Percentage'), value: 'percentunit' },
+      { content: t('No Units'), value: 'short' },
+    ];
+    return intervalOptions.map((o) => ({ ...o, selected: o.value === selectedUnits }));
+  }, [selectedUnits, t]);
+
+  const onSelect = (_ev: React.MouseEvent<Element, MouseEvent>, selection: string) => {
+    setUnits(selection);
+  };
+
+  return (
+    <SimpleSelect
+      initialOptions={initialOptions}
+      onSelect={(_ev, selection: string) => onSelect(_ev, selection)}
+      toggleWidth="300px"
+    />
+  );
+};
+
+const MetricsPage_: FC = () => {
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const [units, setUnits] = useQueryParam(QueryParams.Units, StringParam);
+  const [queryNamespace, setQueryNamespace] = useQueryParam(QueryParams.Namespace, StringParam);
+  const [activeNamespace, setActiveNamespace] = useActiveNamespace();
+
+  useEffect(() => {
+    if (queryNamespace && activeNamespace !== queryNamespace) {
+      setActiveNamespace(queryNamespace);
+    }
+  }, [queryNamespace, activeNamespace, setActiveNamespace]);
 
   const dispatch = useDispatch();
-  const { perspective } = usePerspective();
+
+  useEffect(() => {
+    if (!isGraphUnit(units)) {
+      setUnits('short');
+    }
+  }, [units, setUnits]);
 
   // Clear queries on unmount
-  React.useEffect(() => {
+  useEffect(() => {
     return () => {
       dispatch(queryBrowserDeleteAllQueries());
     };
   }, [dispatch]);
-  const [customDataSource, setCustomDataSource] = React.useState<CustomDataSource>(undefined);
-  const [customDataSourceIsResolved, setCustomDataSourceIsResolved] =
-    React.useState<boolean>(false);
+  const [customDataSource, setCustomDataSource] = useState<CustomDataSource>(undefined);
+  const [customDataSourceIsResolved, setCustomDataSourceIsResolved] = useState<boolean>(false);
   const customDataSourceName = getQueryArgument(QueryParams.Datasource);
   const [extensions, extensionsResolved] = useResolvedExtensions<DataSource>(isDataSource);
   const hasExtensions = !_.isEmpty(extensions);
-  const [customDatasourceError, setCustomDataSourceError] = React.useState(false);
+  const [customDatasourceError, setCustomDataSourceError] = useState(false);
 
   // get custom datasources
-  React.useEffect(() => {
+  useEffect(() => {
     const getCustomDataSource = async () => {
       if (!customDataSourceName) {
         setCustomDataSource(null);
@@ -1223,15 +1366,24 @@ const MetricsPage_: React.FC = () => {
       <Helmet>
         <title>{t('Metrics')}</title>
       </Helmet>
+      <NamespaceBar
+        onNamespaceChange={(namespace) => {
+          dispatch(queryBrowserDeleteAllQueries());
+          setQueryNamespace(namespace);
+        }}
+      />
       <PageSection hasBodyWrapper={false}>
         <Split hasGutter>
-          {perspective !== 'dev' && (
-            <SplitItem>
-              <Title headingLevel="h1">{t('Metrics')}</Title>
-            </SplitItem>
-          )}
-          <SplitItem isFilled />
           <SplitItem>
+            <Title headingLevel="h1">{t('Metrics')}</Title>
+          </SplitItem>
+          <SplitItem isFilled />
+          <SplitItem data-test={DataTestIDs.MetricGraphUnitsDropDown}>
+            <Tooltip content={<>{t('This dropdown only formats results.')}</>}>
+              <GraphUnitsDropDown />
+            </Tooltip>
+          </SplitItem>
+          <SplitItem data-test={DataTestIDs.MetricDropdownPollInterval}>
             <IntervalDropdown />
           </SplitItem>
           <SplitItem>
@@ -1249,6 +1401,7 @@ const MetricsPage_: React.FC = () => {
               customDataSource={customDataSource}
               customDataSourceName={customDataSourceName}
               customDatasourceError={customDatasourceError}
+              units={units as GraphUnits}
             />
           </StackItem>
           <StackItem>
@@ -1266,24 +1419,34 @@ const MetricsPage_: React.FC = () => {
             </Flex>
           </StackItem>
           <StackItem>
-            <QueriesList customDatasource={customDataSource} />
+            <QueriesList customDatasource={customDataSource} units={units as GraphUnits} />
           </StackItem>
         </Stack>
       </PageSection>
     </>
   );
 };
-export const MetricsPage = withFallback(MetricsPage_);
+
+const MetricsPage = withFallback(MetricsPage_);
+
+export const MpCmoMetricsPage: React.FC = () => {
+  return (
+    <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
+      <QueryParamProvider adapter={ReactRouter5Adapter}>
+        <MetricsPage />
+      </QueryParamProvider>
+    </MonitoringProvider>
+  );
+};
 
 type QueryTableProps = {
   index: number;
   namespace?: string;
   customDatasource?: CustomDataSource;
+  units: GraphUnits;
 };
 
 type SeriesButtonProps = {
   index: number;
   labels: PrometheusLabels;
 };
-
-export default MetricsPage;

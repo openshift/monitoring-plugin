@@ -1,5 +1,5 @@
 import { Overview } from '@openshift-console/dynamic-plugin-sdk';
-import * as React from 'react';
+import type { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom-v5-compat';
 import { QueryParamProvider } from 'use-query-params';
@@ -11,13 +11,14 @@ import { LegacyDashboard } from '../legacy/legacy-dashboard';
 import ErrorAlert from './error';
 import { DashboardSkeletonLegacy } from './dashboard-skeleton-legacy';
 import { useLegacyDashboards } from './useLegacyDashboards';
+import { MonitoringProvider } from '../../../contexts/MonitoringContext';
 
 type LegacyDashboardsPageProps = {
   urlBoard: string;
   namespace?: string;
 };
 
-const LegacyDashboardsPage_: React.FC<LegacyDashboardsPageProps> = ({
+const LegacyDashboardsPage_: FC<LegacyDashboardsPageProps> = ({
   urlBoard,
   namespace, // only used in developer perspective
 }) => {
@@ -53,14 +54,16 @@ const LegacyDashboardsPage_: React.FC<LegacyDashboardsPageProps> = ({
   );
 };
 
-const LegacyDashboardsPage: React.FC = () => {
+const LegacyDashboardsPageWithFallback = withFallback(LegacyDashboardsPage_);
+
+export const MpCmoLegacyDashboardsPage: FC = () => {
   const params = useParams<{ ns?: string; dashboardName: string }>();
 
   return (
-    <QueryParamProvider adapter={ReactRouter5Adapter}>
-      <LegacyDashboardsPage_ urlBoard={params?.dashboardName} namespace={params?.ns} />
-    </QueryParamProvider>
+    <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
+      <QueryParamProvider adapter={ReactRouter5Adapter}>
+        <LegacyDashboardsPageWithFallback urlBoard={params?.dashboardName} namespace={params?.ns} />
+      </QueryParamProvider>
+    </MonitoringProvider>
   );
 };
-
-export default withFallback(LegacyDashboardsPage);

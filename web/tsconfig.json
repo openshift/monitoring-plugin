@@ -4,14 +4,15 @@
     "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "node",
-    "target": "es2020",
-    "jsx": "react",
+    "target": "es2021",
+    "jsx": "react-jsx",
     "allowJs": true,
     "strict": false,
     "noUnusedLocals": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "noUncheckedIndexedAccess": true
   },
   "include": ["src"],
   "exclude": ["node_modules"]

@@ -1,6 +1,6 @@
 # mcp (monitoring-console-plugin)
 
-FROM registry.redhat.io/ubi9/nodejs-20:1-59 AS web-builder
+FROM registry.redhat.io/ubi9/nodejs-22:9.6-1755075210 AS web-builder
 
 USER 0
 
@@ -19,10 +19,7 @@ ENV I18N_NAMESPACE="plugin__monitoring-console-plugin"
 RUN make install-frontend
 RUN make build-frontend
 
-# Almost all images from Red Hat are still on go1.21, however I found one that the cne team has
-# created. Once official Red Hat images are available for local development and pulling this
-# should be updated
-FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_9_golang_1.23 as go-builder
+FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.24-openshift-4.20 as go-builder
 
 WORKDIR /opt/app-root
 

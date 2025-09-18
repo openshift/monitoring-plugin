@@ -1,38 +1,10 @@
 /* eslint-disable max-len */
 
-// Define the interface for Metric
-interface Metric {
-  group_id: string; // The unique ID for grouping
-  component: string; // Component name
-  componentList?: string[]; // List of all unique components
-  [key: string]: any; // Allow other dynamic fields in Metric
-}
-
-interface Incident {
-  metric: Metric;
-  values: Array<[number, string]>;
-}
-
-interface ProcessedIncident {
-  component: string;
-  componentList?: string[];
-  group_id: string;
-  severity: string;
-  alertname: string;
-  namespace: string;
-  name: string;
-  layer: string;
-  values: Array<[Date, string]>;
-  x: number;
-  informative: boolean;
-  critical: string;
-  warning: string;
-  resolved: boolean;
-  firing: boolean;
-}
+import { PrometheusLabels, PrometheusResult } from '@openshift-console/dynamic-plugin-sdk';
+import { Incident, Metric, ProcessedIncident } from './model';
 
 //this will be moved to the utils.js file when I convert them to the Typescript
-export function sortObjectsByEarliestTimestamp(incidents: Incident[]): Incident[] {
+export function sortObjectsByEarliestTimestamp(incidents: PrometheusResult[]): PrometheusResult[] {
   return incidents.sort((a, b) => {
     const earliestA = Math.min(...a.values.map((value) => value[0]));
     const earliestB = Math.min(...b.values.map((value) => value[0]));
@@ -40,19 +12,13 @@ export function sortObjectsByEarliestTimestamp(incidents: Incident[]): Incident[
   });
 }
 
-export function processIncidents(data: Incident[]): ProcessedIncident[] {
+export function processIncidents(data: PrometheusResult[]): ProcessedIncident[] {
   const incidents = groupById(data).filter(
     (incident) => incident.metric.src_alertname !== 'Watchdog',
   );
   const sortedIncidents = sortObjectsByEarliestTimestamp(incidents);
 
   return sortedIncidents.map((incident, index) => {
-    const processedValues = incident.values.map((value) => {
-      const timestamp = value[0];
-      const date = new Date(timestamp * 1000);
-      return [date, value[1]] as [Date, string];
-    });
-
     // Determine severity flags based on values array
     let critical = false;
     let warning = false;
@@ -67,11 +33,10 @@ export function processIncidents(data: Incident[]): ProcessedIncident[] {
 
     const timestamps = incident.values.map((value) => value[0]); // Extract timestamps
     const lastTimestamp = Math.max(...timestamps); // Last timestamp in seconds
-    const currentDate = new Date();
-    const currentTimestamp = Math.floor(currentDate.valueOf() / 1000); // Current time in seconds
+    const currentTimestamp = Math.floor(Date.now() / 1000); // Current time in seconds
 
     // Firing and resolved logic
-    const firing = currentTimestamp - lastTimestamp <= 10 * 60;
+    const firing = currentTimestamp - lastTimestamp <= 10 * 60; // Firing if the last timestamp is within the last 10 minutes
     const resolved = !firing;
 
     // Persistent logic based on the first occurrence
@@ -83,7 +48,7 @@ export function processIncidents(data: Incident[]): ProcessedIncident[] {
       componentList: incident.metric.componentList,
       group_id: incident.metric.group_id,
       layer: incident.metric.layer,
-      values: processedValues,
+      values: incident.values,
       x: incidents.length - index,
       critical, // Updated based on 'values' array
       warning, // Updated based on 'values' array
@@ -102,7 +67,7 @@ export function processIncidents(data: Incident[]): ProcessedIncident[] {
  * @returns An object containing only the properties from metric that start with 'src_'.
  */
 
-function getSrcProperties(metric: Metric): Partial<Metric> {
+function getSrcProperties(metric: PrometheusLabels): Partial<Metric> {
   return Object.keys(metric)
     .filter((key) => key.startsWith('src_'))
     .reduce((acc, key) => {
@@ -119,8 +84,10 @@ function getSrcProperties(metric: Metric): Partial<Metric> {
  * @returns Array of grouped alert objects with deduplicated values and combined properties.
  */
 
-export function groupById(objects: Incident[]): Incident[] {
-  const groupedObjects = new Map<string, Incident>();
+export function groupById(
+  objects: PrometheusResult[],
+): Array<PrometheusResult & { metric: Metric }> {
+  const groupedObjects = new Map<string, PrometheusResult & { metric: Metric }>();
 
   for (const obj of objects) {
     const key = obj.metric.group_id;
@@ -154,7 +121,7 @@ export function groupById(objects: Incident[]): Incident[] {
         metric: {
           ...obj.metric,
           componentList: [obj.metric.component], // Initialize componentList with the current component
-        },
+        } as Metric,
         values: [...new Set(obj.values.map((v) => JSON.stringify(v)))].map((v) => JSON.parse(v)),
       });
     }
@@ -189,19 +156,14 @@ export const getIncidentsTimeRanges = (
   return timeRanges;
 };
 
-export const processIncidentsForAlerts = (incidents) => {
+export const processIncidentsForAlerts = (
+  incidents: Array<PrometheusResult>,
+): Array<Partial<Incident>> => {
   return incidents.map((incident, index) => {
-    // Process the values
-    const processedValues = incident.values.map((value): [Date, string] => {
-      const timestamp = value[0];
-      const date = new Date(timestamp * 1000);
-      return [date, value[1]];
-    });
-
     // Return the processed incident
     return {
       ...incident.metric,
-      values: processedValues,
+      values: incident.values,
       x: incidents.length - index,
     };
   });

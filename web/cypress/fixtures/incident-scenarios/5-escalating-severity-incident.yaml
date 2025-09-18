@@ -1,0 +1,46 @@
+name: "Escalating Severity Incident"
+description: "A single incident where alerts fire gradually with increasing severity levels, causing the incident severity to escalate from info to warning to critical as new alerts start firing."
+incidents:
+  - id: "api-server-escalating-severity-001"
+    component: "api-server"
+    layer: "core"
+    timeline:
+      start: "2d"
+      severityChanges:
+        - time: "2d"
+          severity: "info"
+        - time: "36h"
+          severity: "warning"
+        - time: "1d"
+          severity: "critical"
+    alerts:
+      - name: "APIServerRequestLatencyHigh001"
+        namespace: "openshift-monitoring"
+        severity: "info"
+        firing: true
+        timeline:
+          start: "2d"
+      - name: "APIServerErrorRateElevated001"
+        namespace: "openshift-monitoring"
+        severity: "warning"
+        firing: true
+        timeline:
+          start: "36h"
+      - name: "APIServerDown001"
+        namespace: "openshift-monitoring"
+        severity: "critical"
+        firing: true
+        timeline:
+          start: "1d"
+      - name: "APIServerCertificateExpiring001"
+        namespace: "openshift-monitoring"
+        severity: "warning"
+        firing: true
+        timeline:
+          start: "18h"
+      - name: "APIServerMemoryUsageHigh001"
+        namespace: "openshift-monitoring"
+        severity: "critical"
+        firing: true
+        timeline:
+          start: "12h"

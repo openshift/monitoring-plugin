@@ -1,4 +1,4 @@
-import * as React from 'react';
+import type { FC } from 'react';
 import * as _ from 'lodash-es';
 
 import { VictoryPortal } from 'victory';
@@ -31,12 +31,12 @@ const formatPositiveValue = (v: number): string =>
 const formatValue = (v: number): string => (v < 0 ? '-' : '') + formatPositiveValue(Math.abs(v));
 
 export const valueFormatter = (units: string): ((v: number) => string) =>
-  ['ms', 's', 'bytes', 'Bps', 'pps'].includes(units)
+  ['ms', 's', 'bytes', 'Bytes', 'bps', 'Bps', 'pps'].includes(units)
     ? (v: number) => formatNumber(String(v), undefined, units)
     : formatValue;
 
 // For performance, use this instead of PatternFly's ChartTooltip or Victory VictoryTooltip
-const QueryBrowserTooltipWrapped: React.FC<TooltipProps> = ({
+const QueryBrowserTooltipWrapped: FC<TooltipProps> = ({
   activePoints,
   center,
   height,

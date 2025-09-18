@@ -1,4 +1,3 @@
-import * as React from 'react';
 import {
   Button,
   Divider,
@@ -20,6 +19,7 @@ import { useTranslation } from 'react-i18next';
 import ProjectMenuToggle from './ProjectMenuToggle';
 import { alphanumericCompare } from './utils';
 import { usePerses } from '../hooks/usePerses';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
 export const NoResults: React.FC<{
   onClear: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
@@ -107,13 +107,13 @@ const ProjectMenu: React.FC<{
   selected?: string;
   menuRef: React.MutableRefObject<HTMLDivElement>;
 }> = ({ setOpen, onSelect, selected, menuRef }) => {
-  const filterRef = React.useRef(null);
+  const filterRef = useRef(null);
 
-  const [filterText, setFilterText] = React.useState('');
+  const [filterText, setFilterText] = useState('');
 
   const { persesProjects } = usePerses();
 
-  const optionItems = React.useMemo(() => {
+  const optionItems = useMemo(() => {
     const items = persesProjects.map((item) => {
       const { name } = item.metadata;
       return { title: item?.spec?.display?.name ?? name, key: name };
@@ -127,14 +127,14 @@ const ProjectMenu: React.FC<{
     return items;
   }, [persesProjects, selected]);
 
-  const isOptionShown = React.useCallback(
+  const isOptionShown = useCallback(
     (option) => {
       return fuzzysearch(filterText.toLowerCase(), option.title.toLowerCase());
     },
     [filterText],
   );
 
-  const { filteredOptions } = React.useMemo(
+  const { filteredOptions } = useMemo(
     () =>
       optionItems.reduce(
         (filtered, option) => {
@@ -187,8 +187,8 @@ const ProjectDropdown: React.FC<ProjectDropdownProps> = ({
   shortCut,
 }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const menuRef = React.useRef(null);
-  const [isOpen, setOpen] = React.useState(false);
+  const menuRef = useRef(null);
+  const [isOpen, setOpen] = useState(false);
   const { persesProjectsError, persesProjectsLoading, persesProjects } = usePerses();
 
   // const title = selected === LEGACY_DASHBOARDS_KEY ? legacyDashboardsTitle : selected;

@@ -5,4 +5,6 @@ export enum QueryParams {
   EndTime = 'endTime',
   Datasource = 'datasource',
   Project = 'project',
+  Namespace = 'namespace',
+  Units = 'units',
 }
