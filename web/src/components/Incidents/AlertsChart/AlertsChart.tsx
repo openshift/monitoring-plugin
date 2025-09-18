@@ -44,8 +44,8 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
   const filteredData = useSelector(
     (state: MonitoringState) => state.plugins.mcp.incidentsData.filteredIncidentsData,
   );
-  const incidentGroupId = useSelector(
-    (state: MonitoringState) => state.plugins.mcp.incidentsData.groupId,
+  const incidentsActiveFilters = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData.incidentsActiveFilters,
   );
   const { i18n } = useTranslation();
   // Use dynamic date range based on actual alerts data instead of fixed chartDays
@@ -68,8 +68,8 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
   }, [chartData]);
 
   const selectedIncidentIsVisible = useMemo(() => {
-    return filteredData.some((incident) => incident.group_id === incidentGroupId);
-  }, [filteredData, incidentGroupId]);
+    return filteredData.some((incident) => incident.group_id === incidentsActiveFilters.groupId);
+  }, [filteredData, incidentsActiveFilters.groupId]);
 
   useEffect(() => {
     dispatch(setAlertsAreLoading({ alertsAreLoading: !selectedIncidentIsVisible }));

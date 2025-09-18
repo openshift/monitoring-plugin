@@ -9,7 +9,7 @@ import {
   Badge,
 } from '@patternfly/react-core';
 import { getFilterKey } from './utils';
-import { IncidentFilters, IncidentFiltersCombined } from './model';
+import { IncidentFiltersCombined } from './model';
 import { setAlertsAreLoading } from '../../store/actions';
 
 interface IncidentFilterToolbarItemProps {
@@ -30,7 +30,7 @@ interface IncidentFilterToolbarItemProps {
   incidentFilterIsExpanded: boolean;
   onIncidentFiltersSelect: (
     event: React.MouseEvent | React.ChangeEvent | undefined,
-    selection: IncidentFilters | undefined,
+    selection: any,
     dispatch: any,
     activeFilters: any,
     categoryFilterType: string,
@@ -86,7 +86,7 @@ const IncidentFilterToolbarItem: React.FC<IncidentFilterToolbarItemProps> = ({
             if (typeof selection === 'string') {
               onIncidentFiltersSelect(
                 event,
-                selection as IncidentFilters,
+                selection,
                 dispatch,
                 incidentsActiveFilters,
                 categoryName.toLowerCase(),
