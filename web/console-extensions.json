@@ -4,7 +4,9 @@
     "properties": {
       "exact": true,
       "path": "/monitoring",
-      "component": { "$codeRef": "MonitoringUI" }
+      "component": {
+        "$codeRef": "MonitoringUI"
+      }
     }
   },
   {
@@ -20,13 +22,19 @@
         "/monitoring/silences",
         "/monitoring/targets"
       ],
-      "component": { "$codeRef": "MonitoringUI" }
+      "component": {
+        "$codeRef": "MonitoringUI"
+      }
     }
   },
   {
     "type": "console.navigation/href",
     "flags": {
-      "required": ["PROMETHEUS", "MONITORING", "CAN_GET_NS"]
+      "required": [
+        "PROMETHEUS",
+        "MONITORING",
+        "CAN_GET_NS"
+      ]
     },
     "properties": {
       "id": "alerting",
@@ -34,13 +42,20 @@
       "href": "/monitoring/alerts",
       "perspective": "admin",
       "section": "observe",
-      "startsWith": ["monitoring/alertrules", "monitoring/silences"]
+      "startsWith": [
+        "monitoring/alertrules",
+        "monitoring/silences"
+      ]
     }
   },
   {
     "type": "console.navigation/href",
     "flags": {
-      "required": ["PROMETHEUS", "MONITORING", "CAN_GET_NS"]
+      "required": [
+        "PROMETHEUS",
+        "MONITORING",
+        "CAN_GET_NS"
+      ]
     },
     "properties": {
       "id": "metrics",
@@ -54,7 +69,11 @@
   {
     "type": "console.navigation/href",
     "flags": {
-      "required": ["PROMETHEUS", "MONITORING", "CAN_GET_NS"]
+      "required": [
+        "PROMETHEUS",
+        "MONITORING",
+        "CAN_GET_NS"
+      ]
     },
     "properties": {
       "id": "dashboards",
@@ -68,7 +87,11 @@
   {
     "type": "console.navigation/href",
     "flags": {
-      "required": ["PROMETHEUS", "MONITORING", "CAN_GET_NS"]
+      "required": [
+        "PROMETHEUS",
+        "MONITORING",
+        "CAN_GET_NS"
+      ]
     },
     "properties": {
       "id": "targets",
@@ -94,8 +117,12 @@
     "type": "console.page/route",
     "properties": {
       "exact": false,
-      "path": ["/dev-monitoring/ns/:ns/alerts/:ruleID"],
-      "component": { "$codeRef": "MonitoringUI" }
+      "path": [
+        "/dev-monitoring/ns/:ns/alerts/:ruleID"
+      ],
+      "component": {
+        "$codeRef": "MonitoringUI"
+      }
     }
   },
   {
@@ -104,6 +131,17 @@
       "contextId": "dev-console-observe",
       "name": "%public~Metrics%",
       "href": "metrics",
+      "component": {
+        "$codeRef": "MonitoringUI"
+      }
+    }
+  },
+  {
+    "type": "console.tab",
+    "properties": {
+      "contextId": "dev-console-observe",
+      "name": "%plugin__monitoring-plugin~Alerting Rules%",
+      "href": "alertrules",
       "component": {
         "$codeRef": "MonitoringUI"
       }
