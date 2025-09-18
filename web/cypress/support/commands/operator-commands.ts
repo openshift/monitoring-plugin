@@ -124,7 +124,7 @@ const operatorUtils = {
     cy.log('Set Monitoring Plugin image in operator CSV');
     if (Cypress.env('MP_IMAGE')) {
       cy.exec(
-        './cypress/fixtures/cmo/scale-down.sh',
+        './cypress/fixtures/cmo/update-monitoring-plugin-image.sh',
         {
           env: {
             MP_IMAGE: Cypress.env('MP_IMAGE'),
@@ -139,31 +139,37 @@ const operatorUtils = {
         cy.log(`CMO deployment Scaled Down successfully: ${result.stdout}`);
 
       });
+      // nav.sidenav.clickNavLink(['Workloads', 'Deployments']);
+      // cy.changeNamespace(MP.namespace);
+      // cy.byTestID('name-filter-input').should('be.visible').type('cluster-monitoring-operator{enter}');
+      // cy.byTestID('cluster-monitoring-operator').should('be.visible').click({force: true});
+      // cy.byLegacyTestID('actions-menu-button').should('be.visible').click();
+      // cy.byPFRole('menuitem').contains('Pause rollouts').should('be.visible').click();
 
-      nav.sidenav.clickNavLink(['Workloads', 'Deployments']);
-      cy.byTestID('name-filter-input').should('be.visible').type('monitoring-plugin{enter}');
-      cy.byTestID('monitoring-plugin').should('be.visible').click();
-      cy.byLegacyTestID('actions-menu-button').should('be.visible').click();
-      cy.byPFRole('menuitem').contains('Edit Deployment').should('be.visible').click();
-      cy.byTestID('form-view-input').should('be.visible').click();
-      cy.byTestID('image-name').scrollIntoView().type('{selectall}').type(Cypress.env('MP_IMAGE'));
+      // nav.sidenav.clickNavLink(['Workloads', 'Deployments']);
+      // cy.byTestID('name-filter-input').should('be.visible').type('monitoring-plugin{enter}');
+      // cy.byTestID('monitoring-plugin').should('be.visible').click({force: true});
+      // cy.byLegacyTestID('actions-menu-button').should('be.visible').click();
+      // cy.byPFRole('menuitem').contains('Edit Deployment').should('be.visible').click();
+      // cy.byTestID('form-view-input').should('be.visible').click();
+      // cy.byTestID('image-name').scrollIntoView().type('{selectall}').type(Cypress.env('MP_IMAGE'));
 
-      cy.byTestID('save-changes').should('be.visible').click();
+      // cy.byTestID('save-changes').should('be.visible').click();
 
-      cy.exec(
-        './cypress/fixtures/cmo/scale-up.sh',
-        {
-          env: {
-            MP_IMAGE: Cypress.env('MP_IMAGE'),
-            KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
-            MP_NAMESPACE: `${MP.namespace}`
-          },
-          timeout: readyTimeoutMilliseconds,
-          failOnNonZeroExit: true
-        }
-      ).then((result) => {
-        expect(result.code).to.eq(0);
-        cy.log(`Monitoring-plugin deployment Scaled Up successfully: ${result.stdout}`);
+      // cy.exec(
+      //   './cypress/fixtures/cmo/scale-up.sh',
+      //   {
+      //     env: {
+      //       MP_IMAGE: Cypress.env('MP_IMAGE'),
+      //       KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
+      //       MP_NAMESPACE: `${MP.namespace}`
+      //     },
+      //     timeout: readyTimeoutMilliseconds,
+      //     failOnNonZeroExit: true
+      //   }
+      // ).then((result) => {
+      //   expect(result.code).to.eq(0);
+      //   cy.log(`Monitoring-plugin deployment Scaled Up successfully: ${result.stdout}`);
 
         cy.exec(
           `sleep 15 && oc wait --for=condition=Ready pods --selector=app.kubernetes.io/name=monitoring-plugin -n ${MP.namespace} --timeout=60s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
@@ -176,37 +182,8 @@ const operatorUtils = {
           cy.log(`Monitoring plugin pod is now running in namespace: ${MP.namespace}`);
           cy.reload(true);
         });
-      });
-
-
-      // cy.log('MP_IMAGE is set. the image will be patched in CMO operator CSV');
-      // cy.exec(
-      //   './cypress/fixtures/cmo/update-monitoring-plugin-image.sh',
-      //   {
-      //     env: {
-      //       MP_IMAGE: Cypress.env('MP_IMAGE'),
-      //       KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
-      //       MP_NAMESPACE: `${MP.namespace}`
-      //     },
-      //     timeout: readyTimeoutMilliseconds,
-      //     failOnNonZeroExit: true
-      //   }
-      // ).then((result) => {
-      //   expect(result.code).to.eq(0);
-      //   cy.log(`CMO CSV updated successfully with Monitoring Plugin image: ${result.stdout}`);
-
-      //   cy.exec(
-      //     `sleep 15 && oc wait --for=condition=Ready pods --selector=app.kubernetes.io/name=monitoring-plugin -n ${MP.namespace} --timeout=60s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
-      //     {
-      //       timeout: readyTimeoutMilliseconds,
-      //       failOnNonZeroExit: true
-      //     }
-      //   ).then((result) => {
-      //     expect(result.code).to.eq(0);
-      //     cy.log(`Monitoring plugin pod is now running in namespace: ${MP.namespace}`);
-      //   });
-      //   cy.reload(true);
       // });
+
     } else {
       cy.log('MP_IMAGE is NOT set. Skipping patching the image in CMO operator CSV.');
     }

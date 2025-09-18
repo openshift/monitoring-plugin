@@ -8,6 +8,7 @@ declare global {
           options: { interval: number; timeout: number; timeoutMessage: string }
         ): Cypress.Chainable<any>;
         clickNavLink(path: string[]): Chainable<Element>;
+        changeNamespace(namespace: string): Chainable<Element>;
         }
     }
   }
@@ -50,4 +51,16 @@ Cypress.Commands.add('waitUntilWithCustomTimeout', (
         .contains(path[1])
         .click();
     }
+  });
+
+  Cypress.Commands.add('changeNamespace', (namespace: string) => {
+    cy.byLegacyTestID('namespace-bar-dropdown').find('button').should('be.visible').click();
+    cy.get('[data-test="showSystemSwitch"]').then(($element)=> {
+      if ($element.attr('data-checked-state') !== 'true') {
+        cy.byTestID('showSystemSwitch').siblings('span').eq(0).should('be.visible').click();
+      }
+    });
+    cy.byTestID('dropdown-text-filter').type(namespace);
+    cy.byTestID('dropdown-menu-item-link').contains(namespace).should('be.visible').click();
+    
   });

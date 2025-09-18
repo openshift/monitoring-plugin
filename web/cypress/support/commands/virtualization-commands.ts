@@ -39,9 +39,7 @@ const virtualizationUtils = {
     } else if (Cypress.env('KONFLUX_KBV_BUNDLE_IMAGE')) {
       cy.log('KONFLUX_KBV_BUNDLE_IMAGE is set. Openshift Virtualization operator will be installed from Konflux bundle.');
       cy.log('Install Openshift Virtualization');
-      // cy.exec(
-      //   `oc --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} apply -f ./cypress/fixtures/coo/coo-imagecontentsourcepolicy.yaml`,
-      // );
+
       cy.exec(
         `oc create namespace ${KBV.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
       );
@@ -52,9 +50,7 @@ const virtualizationUtils = {
     } else if (Cypress.env('CUSTOM_KBV_BUNDLE_IMAGE')) {
       cy.log('CUSTOM_KBV_BUNDLE_IMAGE is set. Openshift Virtualization operator will be installed from custom built bundle.');
       cy.log('Install Openshift Virtualization');
-      // cy.exec(
-      //   `oc --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} apply -f ./cypress/fixtures/coo/coo-imagecontentsourcepolicy.yaml`,
-      // );
+
       cy.exec(
         `oc create namespace ${KBV.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
       );
@@ -65,9 +61,7 @@ const virtualizationUtils = {
     } else if (Cypress.env('FBC_STAGE_KBV_IMAGE')) {
       cy.log('FBC_STAGE_KBV_IMAGE is set. Openshift Virtualization operator will be installed from FBC image.');
       cy.log('Install Openshift Virtualization');
-      // cy.exec(
-      //   `oc --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} apply -f ./cypress/fixtures/coo/coo-imagecontentsourcepolicy.yaml`,
-      // );
+      
       cy.exec(
         './cypress/fixtures/virtulization/virtualization_stage.sh',
         {
