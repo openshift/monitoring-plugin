@@ -12,7 +12,6 @@ import {
   AlertsIntervalsArray,
   DaysFilters,
   Incident,
-  IncidentFilters,
   IncidentFiltersCombined,
   IncidentsDetailsAlert,
   SpanDates,
@@ -227,26 +226,20 @@ export const createAlertsChartBars = (alert: IncidentsDetailsAlert): AlertsChart
     warning: t_global_color_status_warning_default.var,
   };
 
-  const data: AlertsChartBar[] = [];
+  const data = [];
 
   for (let i = 0; i < groupedData.length; i++) {
-    const y0AsString = new Date(groupedData[i][0] * 1000).toISOString();
-    const yAsString = new Date(groupedData[i][1] * 1000).toISOString();
-
     data.push({
-      y0: y0AsString,
-      y: yAsString,
+      y0: new Date(groupedData[i][0] * 1000),
+      y: new Date(groupedData[i][1] * 1000),
       x: alert.x,
-      severity: (alert.severity[0].toUpperCase() + alert.severity.slice(1)) as
-        | 'Info'
-        | 'Warning'
-        | 'Critical',
+      severity: alert.severity[0].toUpperCase() + alert.severity.slice(1),
       name: alert.alertname,
       namespace: alert.namespace,
       layer: alert.layer,
       component: alert.component,
-      nodata: groupedData[i][2] === 'nodata',
-      alertstate: alert.alertstate as 'resolved' | 'firing',
+      nodata: groupedData[i][2] === 'nodata' ? true : false,
+      alertstate: alert.alertstate,
       silenced: alert.silenced,
       fill:
         alert.severity === 'critical'
@@ -444,7 +437,7 @@ export function filterIncident(filters: IncidentFiltersCombined, incidents: Arra
 
 export const onDeleteIncidentFilterChip = (
   type: string,
-  id: IncidentFilters | string,
+  id: string,
   filters: IncidentFiltersCombined,
   setFilters,
 ) => {
@@ -601,7 +594,7 @@ export const changeDaysFilter = (
  */
 export const onIncidentFiltersSelect = (
   event,
-  selection: IncidentFilters | undefined,
+  selection: string,
   dispatch,
   incidentsActiveFilters: IncidentFiltersCombined,
   filterCategoryType: string,
