@@ -1,5 +1,5 @@
-import { guidedTour } from '../../views/tour';
 import { nav } from '../../views/nav';
+import { guidedTour } from '../../views/tour';
 
 
 
@@ -16,6 +16,7 @@ declare global {
       loginNoSession(provider: string, username: string, password: string, oauthurl: string): Chainable<Element>;
       adminCLI(command: string, options?);
       executeAndDelete(command: string);
+      validateLogin(): Chainable<Element>;
     }
   }
 }
@@ -79,6 +80,12 @@ declare global {
     );
   }
 
+  Cypress.Commands.add('validateLogin', () => {
+    cy.visit('/');
+    cy.byTestID("username", {timeout: 120000}).should('be.visible');
+    guidedTour.close();
+  });
+
   // Session-wrapped login
   Cypress.Commands.add(
       'login',
@@ -96,9 +103,7 @@ declare global {
           {
             cacheAcrossSpecs: true,
             validate() {
-              cy.visit('/');
-              cy.byTestID("username", {timeout: 120000}).should('be.visible');
-              guidedTour.close();
+              cy.validateLogin();
             },
           },
         );
@@ -108,6 +113,7 @@ declare global {
   // Non-session login (for use within sessions)
   Cypress.Commands.add('loginNoSession', (provider: string, username: string, password: string, oauthurl: string) => {
     performLogin(provider, username, password, oauthurl);
+    cy.validateLogin();
   });
 
   Cypress.Commands.add('switchPerspective', (perspective: string) => {
