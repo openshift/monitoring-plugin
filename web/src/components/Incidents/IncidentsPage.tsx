@@ -83,6 +83,7 @@ const IncidentsPage = () => {
     Array<Partial<Incident>>
   >([]);
   const [hideCharts, setHideCharts] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const [filtersExpanded, setFiltersExpanded] = useState<IncidentsPageFiltersExpandedState>({
     severity: false,
@@ -145,7 +146,6 @@ const IncidentsPage = () => {
   useEffect(() => {
     const hasUrlParams = Object.keys(urlParams).length > 0;
     if (hasUrlParams) {
-      // If URL parameters exist, update incidentsActiveFilters based on them
       dispatch(
         setIncidentsActiveFilters({
           incidentsActiveFilters: {
@@ -157,7 +157,6 @@ const IncidentsPage = () => {
         }),
       );
     } else {
-      // If no URL parameters exist, set the URL based on incidentsInitialState
       updateBrowserUrl(incidentsInitialState);
       dispatch(
         setIncidentsActiveFilters({
@@ -167,6 +166,7 @@ const IncidentsPage = () => {
         }),
       );
     }
+    setIsInitialized(true);
   }, []);
 
   useEffect(() => {
@@ -246,65 +246,57 @@ const IncidentsPage = () => {
   }, [alertsData, rules]);
 
   useEffect(() => {
-    (async () => {
-      Promise.all(
-        timeRanges.map(async (range) => {
-          const response = await fetchDataForIncidentsAndAlerts(
-            safeFetch,
-            range,
-            'cluster_health_components_map',
-          );
-          return response.data.result;
-        }),
-      )
-        .then((results) => {
-          const aggregatedData = results.flat();
-          dispatch(
-            setIncidents({
-              incidents: processIncidents(aggregatedData),
-            }),
-          );
-          dispatch(
-            setFilteredIncidentsData({
-              filteredIncidentsData: filterIncident(
-                urlParams ? incidentsActiveFilters : incidentsInitialState,
-                processIncidents(aggregatedData),
-              ),
-            }),
-          );
-          setIncidentsAreLoading(false);
-        })
-        .catch((err) => {
-          // eslint-disable-next-line no-console
-          console.log(err);
-        });
-    })();
-  }, [timeRanges]);
+    if (!isInitialized) return;
 
-  useEffect(() => {
-    if (selectedGroupId) {
-      Promise.all(
-        timeRanges.map(async (range) => {
-          const response = await fetchDataForIncidentsAndAlerts(
-            safeFetch,
-            range,
-            `cluster_health_components_map{group_id='${selectedGroupId}'}`,
-          );
-          return response.data.result;
-        }),
-      )
-        .then((results) => {
-          const aggregatedData = results.flat();
+    setIncidentsAreLoading(true);
+
+    const daysDuration = parsePrometheusDuration(
+      incidentsActiveFilters.days.length > 0
+        ? incidentsActiveFilters.days[0].split(' ')[0] + 'd'
+        : '',
+    );
+    const calculatedTimeRanges = getIncidentsTimeRanges(daysDuration, now);
+
+    const isGroupSelected = !!selectedGroupId;
+    const incidentsQuery = isGroupSelected
+      ? `cluster_health_components_map{group_id='${selectedGroupId}'}`
+      : 'cluster_health_components_map';
+
+    Promise.all(
+      calculatedTimeRanges.map(async (range) => {
+        const response = await fetchDataForIncidentsAndAlerts(safeFetch, range, incidentsQuery);
+        return response.data.result;
+      }),
+    )
+      .then((results) => {
+        const aggregatedData = results.flat();
+        const processedIncidents = processIncidents(aggregatedData);
+
+        // Update the raw, unfiltered incidents state
+        dispatch(setIncidents({ incidents: processedIncidents }));
+
+        // Now, dispatch the filtered data based on the full incidents list
+        dispatch(
+          setFilteredIncidentsData({
+            filteredIncidentsData: filterIncident(incidentsActiveFilters, processedIncidents),
+          }),
+        );
+
+        setIncidentsAreLoading(false);
+
+        if (isGroupSelected) {
           setIncidentForAlertProcessing(processIncidentsForAlerts(aggregatedData));
           dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
-          setIncidentsAreLoading(false);
-        })
-        .catch((err) => {
-          // eslint-disable-next-line no-console
-          console.log(err);
-        });
-    }
-  }, [selectedGroupId, timeRanges]);
+        } else {
+          setIncidentForAlertProcessing([]);
+          dispatch(setAlertsAreLoading({ alertsAreLoading: false }));
+        }
+      })
+      .catch((err) => {
+        // eslint-disable-next-line no-console
+        console.log(err);
+      });
+  }, [isInitialized, incidentsActiveFilters.days, selectedGroupId]);
 
   const onSelect = (_event, value) => {
     if (value) {
@@ -316,7 +308,6 @@ const IncidentsPage = () => {
 
   const incidentIdFilterOptions = incidents ? getIncidentIdOptions(incidents) : [];
 
-  //loading states
   useEffect(() => {
     //force a loading state for the alerts chart and table if we filtered out all of the incidents
     if (
