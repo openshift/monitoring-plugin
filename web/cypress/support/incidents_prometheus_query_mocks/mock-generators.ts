@@ -93,7 +93,6 @@ function buildTimelineValues(
  */
 export function createIncidentMock(incidents: IncidentDefinition[], query?: string): PrometheusResult[] {
   const now = nowInClusterTimezone();
-
   const results: PrometheusResult[] = [];
   
   // Parse query to extract label selectors if provided

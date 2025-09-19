@@ -33,7 +33,6 @@ export function mockPrometheusQueryRange(incidents: IncidentDefinition[]): void 
     }
 
     results = query.includes('cluster:health:components:map') ? createIncidentMock(incidents, query) : createAlertDetailsMock(incidents, query);
-
     const response: PrometheusResponse = {
         status: 'success',
         data: {
@@ -50,20 +49,21 @@ export function mockPrometheusQueryRange(incidents: IncidentDefinition[]): void 
 
 Cypress.Commands.add('mockIncidents', (incidents: IncidentDefinition[]) => {
   cy.log(`=== SETTING UP INCIDENT MOCKING (${incidents.length} incidents) ===`);
-    if (!Array.isArray(incidents)) {
-      throw new Error('mockIncidents expects an array of IncidentDefinition objects');
+  if (!Array.isArray(incidents)) {
+    throw new Error('mockIncidents expects an array of IncidentDefinition objects');
+  }
+
+  incidents.forEach((incident, index) => {
+    if (!incident.id || !incident.component || !incident.layer || !incident.alerts) {
+      throw new Error(`Invalid incident at index ${index}: missing required fields
+        (id, component, layer, alerts)`);
     }
+  });
 
-    incidents.forEach((incident, index) => {
-      if (!incident.id || !incident.component || !incident.layer || !incident.alerts) {
-        throw new Error(`Invalid incident at index ${index}: missing required fields
-          (id, component, layer, alerts)`);
-      }
-    });
-
-    cy.log(`=== SETTING UP INCIDENT MOCKING (${incidents.length} incidents) ===`);
-    // The mocking is not applied until the page is reloaded and the components fetch the new data
-    cy.reload();
+  cy.log(`=== SETTING UP INCIDENT MOCKING (${incidents.length} incidents) ===`);
+  mockPrometheusQueryRange(incidents);
+  // The mocking is not applied until the page is reloaded and the components fetch the new data
+  cy.reload();
 });
 
 Cypress.Commands.add('mockIncidentFixture', (fixturePath: string) => {
@@ -83,6 +83,6 @@ Cypress.Commands.add('mockIncidentFixture', (fixturePath: string) => {
   }
 
 
-    // The mocking is not applied until the page is reloaded and the components fetch the new data
-    cy.reload();
+  // The mocking is not applied until the page is reloaded and the components fetch the new data
+  cy.reload();
 });

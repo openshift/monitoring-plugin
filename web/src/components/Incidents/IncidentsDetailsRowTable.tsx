@@ -10,6 +10,7 @@ import { SeverityBadge } from '../alerting/AlertUtils';
 import { Alert, IncidentsDetailsAlert } from './model';
 import { IncidentAlertStateIcon } from './IncidentAlertStateIcon';
 import { useMemo } from 'react';
+import { DataTestIDs } from '../data-test';
 
 interface IncidentsDetailsRowTableProps {
   alerts: Alert[];
@@ -65,7 +66,7 @@ const IncidentsDetailsRowTable = ({ alerts }: IncidentsDetailsRowTableProps) => 
   }, [alerts, perspective, namespace, setNamespace]);
 
   return (
-    <Table borders={false} variant="compact">
+    <Table borders={false} variant="compact" data-test={DataTestIDs.IncidentsDetailsTable.Table}>
       <Thead>
         <Tr>
           <Th width={25}>{t('Alert')}</Th>
@@ -79,7 +80,10 @@ const IncidentsDetailsRowTable = ({ alerts }: IncidentsDetailsRowTableProps) => 
       <Tbody>
         {!alerts ? (
           <Bullseye>
-            <Spinner aria-label="incidents-chart-spinner" />
+            <Spinner
+              aria-label="incidents-chart-spinner"
+              data-test={DataTestIDs.IncidentsDetailsTable.LoadingSpinner}
+            />
           </Bullseye>
         ) : (
           sortedAndMappedAlerts
