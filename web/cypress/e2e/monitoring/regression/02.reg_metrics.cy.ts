@@ -166,7 +166,7 @@ describe('Regression: Monitoring - Metrics', () => {
     metricsPage.clickActionsDeleteAllQueries();
     metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.CPU_USAGE);
     metricsPage.graphCardInlineInfoAssertion(true);
-    metricsPage.clickGraphTimespanDropdown(GraphTimespan.ONE_WEEK);
+    metricsPage.clickGraphTimespanDropdown(GraphTimespan.TWO_DAYS);
     metricsPage.graphCardInlineInfoAssertion(false);
 
     cy.log('4.6 Reset Zoom Button');
@@ -470,10 +470,20 @@ describe('Regression: Monitoring - Metrics', () => {
     cy.log('8.1 Ungraphable results');
     cy.visit('/monitoring/query-browser');
     metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.CPU_USAGE);
+    cy.byPFRole('progressbar').should('be.visible');
+    cy.byPFRole('progressbar').should('not.exist');
     metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.MEMORY_USAGE);
+    cy.byPFRole('progressbar').should('be.visible');
+    cy.byPFRole('progressbar').should('not.exist');
     metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.FILESYSTEM_USAGE);
+    cy.byPFRole('progressbar').should('be.visible');
+    cy.byPFRole('progressbar').should('not.exist');
     metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.RECEIVE_BANDWIDTH);
+    cy.byPFRole('progressbar').should('be.visible');
+    cy.byPFRole('progressbar').should('not.exist');
     metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.TRANSMIT_BANDWIDTH);
+    cy.byPFRole('progressbar').should('be.visible');
+    cy.byPFRole('progressbar').should('not.exist');
     metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.RATE_OF_RECEIVED_PACKETS);
     cy.get(Classes.MetricsPageUngraphableResults).scrollIntoView().contains(MetricGraphEmptyState.UNGRAPHABLE_RESULTS).should('be.visible');
     cy.get(Classes.MetricsPageUngraphableResultsDescription).scrollIntoView().contains(MetricGraphEmptyState.UNGRAPHABLE_RESULTS_DESCRIPTION).should('be.visible');

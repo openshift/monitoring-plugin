@@ -7,7 +7,7 @@ import 'cypress-wait-until';
 import { operatorHubPage } from '../../views/operator-hub-page';
 import { nav } from '../../views/nav';
 
-export {};
+export { };
 
 declare global {
     namespace Cypress {
@@ -18,17 +18,18 @@ declare global {
         cleanupMP(MP: { namespace: string, operatorName: string });
         beforeBlockCOO(MCP: { namespace: string, operatorName: string, packageName: string }, MP: { namespace: string, operatorName: string});
         cleanupCOO(MCP: { namespace: string, operatorName: string, packageName: string }, MP: { namespace: string, operatorName: string});
+        RemoveClusterAdminRole();
       }
     }
   }
-
+  
 const readyTimeoutMilliseconds = Cypress.config('readyTimeoutMilliseconds') as number;
 const installTimeoutMilliseconds = Cypress.config('installTimeoutMilliseconds') as number;
 
 const useSession = Cypress.env('SESSION');
 
 // Shared operator utilities
-const operatorAuthUtils = {
+export const operatorAuthUtils = {
   // Core login and auth logic (shared between session and non-session versions)
       performLoginAndAuth(useSession: boolean): void {
       cy.adminCLI(
@@ -117,13 +118,29 @@ const operatorAuthUtils = {
     
     return [...baseKey, ...envVars.filter(Boolean)];
   },
+
+  generateKBVSessionKey(KBV: { namespace: string, operatorName: string, packageName: string }): string[] {
+    const baseKey = [
+      Cypress.env('LOGIN_IDP'),
+      Cypress.env('LOGIN_USERNAME'),
+      KBV.namespace,
+      KBV.operatorName,
+      KBV.packageName
+    ];
+
+    const envVars = [
+      Cypress.env('SKIP_KBV_INSTALL'),
+      Cypress.env('KBV_UI_INSTALL')
+    ];
+    
+    return [...baseKey, ...envVars.filter(Boolean)];
+  }
 }
 
 const operatorUtils = {
   setupMonitoringPluginImage(MP: { namespace: string }): void {
     cy.log('Set Monitoring Plugin image in operator CSV');
     if (Cypress.env('MP_IMAGE')) {
-      cy.log('MP_IMAGE is set. the image will be patched in CMO operator CSV');
       cy.exec(
         './cypress/fixtures/cmo/update-monitoring-plugin-image.sh',
         {
@@ -137,9 +154,23 @@ const operatorUtils = {
         }
       ).then((result) => {
         expect(result.code).to.eq(0);
-        cy.log(`CMO CSV updated successfully with Monitoring Plugin image: ${result.stdout}`);
-        cy.reload(true);
+        cy.log(`CMO deployment Scaled Down successfully: ${result.stdout}`);
+
       });
+
+        cy.exec(
+          `sleep 15 && oc wait --for=condition=Ready pods --selector=app.kubernetes.io/name=monitoring-plugin -n ${MP.namespace} --timeout=60s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+          {
+            timeout: readyTimeoutMilliseconds,
+            failOnNonZeroExit: true
+          }
+        ).then((result) => {
+          expect(result.code).to.eq(0);
+          cy.log(`Monitoring plugin pod is now running in namespace: ${MP.namespace}`);
+          cy.reload(true);
+        });
+      // });
+
     } else {
       cy.log('MP_IMAGE is NOT set. Skipping patching the image in CMO operator CSV.');
     }
@@ -155,6 +186,9 @@ const operatorUtils = {
       cy.get('.co-clusterserviceversion-install__heading', { timeout: installTimeoutMilliseconds }).should(
         'include.text',
         'Operator installed successfully',
+      );
+      cy.exec(
+        `oc label namespaces ${MCP.namespace} openshift.io/cluster-monitoring=true --overwrite=true --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
       );
     } else if (Cypress.env('KONFLUX_COO_BUNDLE_IMAGE')) {
       cy.log('KONFLUX_COO_BUNDLE_IMAGE is set. COO operator will be installed from Konflux bundle.');
@@ -275,6 +309,10 @@ const operatorUtils = {
     cy.log('Create Thanos Querier instance.');
     cy.exec(`oc apply -f ./cypress/fixtures/coo/thanos-querier-datasource.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
+    cy.exec(
+      `oc label namespaces ${MCP.namespace} openshift.io/cluster-monitoring=true --overwrite=true --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+    );
+
     cy.log('Create Monitoring UI Plugin instance.');
     cy.exec(`oc apply -f ./cypress/fixtures/coo/monitoring-ui-plugin.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
     cy.exec(
@@ -287,7 +325,29 @@ const operatorUtils = {
       expect(result.code).to.eq(0);
       cy.log(`Monitoring plugin pod is now running in namespace: ${MCP.namespace}`);
     });
-    cy.exec(`oc label namespace openshift-cluster-observability-operator openshift.io/cluster-monitoring="true" --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+
+    cy.exec(
+      `sleep 15 && oc wait --for=condition=Ready pods --selector=app.kubernetes.io/instance=perses -n ${MCP.namespace} --timeout=60s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+      {
+        timeout: readyTimeoutMilliseconds,
+        failOnNonZeroExit: true
+      }
+    ).then((result) => {
+      expect(result.code).to.eq(0);
+      cy.log(`Perses-0 pod is now running in namespace: ${MCP.namespace}`);
+    });
+
+    cy.exec(
+      `sleep 15 && oc wait --for=jsonpath='{.metadata.name}'=health-analyzer --timeout=60s servicemonitor/health-analyzer --namespace=openshift-cluster-observability-operator -n ${MCP.namespace} --timeout=60s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+      {
+        timeout: readyTimeoutMilliseconds,
+        failOnNonZeroExit: true
+      }
+    ).then((result) => {
+      expect(result.code).to.eq(0);
+      cy.log(`Health-analyzer service monitor is now running in namespace: ${MCP.namespace}`);
+    });
+
     cy.reload(true);
     cy.visit('/monitoring/v2/dashboards');
     cy.url().should('include', '/monitoring/v2/dashboards');
@@ -310,6 +370,18 @@ const operatorUtils = {
       ).then((result) => {
         expect(result.code).to.eq(0);
         cy.log(`CMO CSV reverted successfully with Monitoring Plugin image: ${result.stdout}`);
+
+        cy.exec(
+          `sleep 15 && oc wait --for=condition=Ready pods --selector=app.kubernetes.io/name=monitoring-plugin -n ${MP.namespace} --timeout=60s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+          {
+            timeout: readyTimeoutMilliseconds,
+            failOnNonZeroExit: true
+          }
+        ).then((result) => {
+          expect(result.code).to.eq(0);
+          cy.log(`Monitoring plugin pod is now running in namespace: ${MP.namespace}`);
+        });
+
         cy.reload(true);
       });
     } else {
@@ -319,8 +391,13 @@ const operatorUtils = {
 
   cleanup(MCP: { namespace: string, config?: { kind: string, name: string } }): void {
     const config = MCP.config || { kind: 'UIPlugin', name: 'monitoring' };
-    
+
+    cy.adminCLI(
+      `oc adm policy add-cluster-role-to-user cluster-admin ${Cypress.env('LOGIN_USERNAME')}`,
+    );
+
     if (Cypress.env('SKIP_COO_INSTALL')) {
+      
       cy.log('Delete Monitoring UI Plugin instance.');
       cy.executeAndDelete(
         `oc delete ${config.kind} ${config.name} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
@@ -344,10 +421,6 @@ const operatorUtils = {
       cy.log('Remove perses-dev namespace');
       cy.executeAndDelete(`oc delete namespace perses-dev --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
-      cy.log('Remove cluster-admin role from user.');
-      cy.executeAndDelete(
-        `oc adm policy remove-cluster-role-from-user cluster-admin ${Cypress.env('LOGIN_USERNAME')} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
-      );
     } else {
       cy.log('Delete Monitoring UI Plugin instance.');
       cy.executeAndDelete(
@@ -375,49 +448,51 @@ const operatorUtils = {
       cy.log('Remove perses-dev namespace');
       cy.executeAndDelete(`oc delete namespace perses-dev --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
-      cy.log('Remove cluster-admin role from user.');
-      cy.executeAndDelete(
-        `oc adm policy remove-cluster-role-from-user cluster-admin ${Cypress.env('LOGIN_USERNAME')} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
-      );
-
     }
+  },
+
+  RemoveClusterAdminRole(): void {
+    cy.log('Remove cluster-admin role from user.');
+    cy.executeAndDelete(
+      `oc adm policy remove-cluster-role-from-user cluster-admin ${Cypress.env('LOGIN_USERNAME')} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+    );
   }
 };
 
 Cypress.Commands.add('beforeBlock', (MP: { namespace: string, operatorName: string }) => {    
-    if (useSession) {
-      const sessionKey = operatorAuthUtils.generateMPSessionKey(MP);
-      
-      cy.session(
-        sessionKey,
-        () => {
-          cy.log('Before block (session)');
-          
-          // Clean up any existing setup first
-          cy.cleanupMP(MP);
-          
-          // Then set up fresh
-          operatorAuthUtils.loginAndAuthNoSession();
-          operatorUtils.setupMonitoringPluginImage(MP);
-          cy.task('clearDownloads');
-          cy.log('Before block (session) completed');
+  if (useSession) {
+    const sessionKey = operatorAuthUtils.generateMPSessionKey(MP);
+    
+    cy.session(
+      sessionKey,
+      () => {
+        cy.log('Before block (session)');
+        
+        // Clean up any existing setup first
+        cy.cleanupMP(MP);
+        
+        // Then set up fresh
+        operatorAuthUtils.loginAndAuthNoSession();
+        operatorUtils.setupMonitoringPluginImage(MP);
+        cy.task('clearDownloads');
+        cy.log('Before block (session) completed');
+      },
+      {
+        cacheAcrossSpecs: true,
+        validate() {
+          cy.visit('/');
+          cy.byTestID("username", {timeout: 120000}).should('be.visible');
         },
-        {
-          cacheAcrossSpecs: true,
-          validate() {
-            cy.visit('/');
-            cy.byTestID("username", {timeout: 120000}).should('be.visible');
-          },
-        },
-      );
-    } else {
-      cy.log('Before block (no session)');
-      cy.cleanupMP(MP);
-      operatorAuthUtils.loginAndAuth();
-      operatorUtils.setupMonitoringPluginImage(MP);
-      cy.task('clearDownloads');
-      cy.log('Before block (no session) completed');
-    }
+      },
+    );
+  } else {
+    cy.log('Before block (no session)');
+    cy.cleanupMP(MP);
+    operatorAuthUtils.loginAndAuth();
+    operatorUtils.setupMonitoringPluginImage(MP);
+    cy.task('clearDownloads');
+    cy.log('Before block (no session) completed');
+  }
   });
   
   Cypress.Commands.add('cleanupMP', (MP: { namespace: string, operatorName: string }) => {
@@ -429,6 +504,7 @@ Cypress.Commands.add('beforeBlock', (MP: { namespace: string, operatorName: stri
   });
   
   Cypress.Commands.add('beforeBlockCOO', (MCP: { namespace: string, operatorName: string, packageName: string }, MP: { namespace: string, operatorName: string }) => {
+
     if (useSession) {
       const sessionKey = operatorAuthUtils.generateCOOSessionKey(MCP, MP);
       
@@ -446,6 +522,7 @@ Cypress.Commands.add('beforeBlock', (MP: { namespace: string, operatorName: stri
           operatorUtils.setupMonitoringConsolePlugin(MCP);
           operatorUtils.setupDashboardsAndPlugins(MCP);
           operatorUtils.setupMonitoringPluginImage(MP);
+          operatorUtils.RemoveClusterAdminRole();
           cy.log('Before block COO (session) completed');
         },
         {
@@ -470,13 +547,20 @@ Cypress.Commands.add('beforeBlock', (MP: { namespace: string, operatorName: stri
       operatorUtils.setupMonitoringConsolePlugin(MCP);
       operatorUtils.setupDashboardsAndPlugins(MCP);
       operatorUtils.setupMonitoringPluginImage(MP);
+      operatorUtils.RemoveClusterAdminRole();
       cy.log('Before block COO (no session) completed');
     }
   });
   
   Cypress.Commands.add('cleanupCOO', (MCP: { namespace: string, operatorName: string, packageName: string }, MP: { namespace: string, operatorName: string }) => {
-      cy.log('Cleanup COO (no session)');
-      operatorUtils.cleanup(MCP);
-      operatorUtils.revertMonitoringPluginImage(MP);
-      cy.log('Cleanup COO (no session) completed');
+    cy.log('Cleanup COO (no session)');
+    operatorUtils.cleanup(MCP);
+    operatorUtils.revertMonitoringPluginImage(MP);
+    cy.log('Cleanup COO (no session) completed');
+  });
+
+  Cypress.Commands.add('RemoveClusterAdminRole', () => {
+    cy.log('Remove cluster-admin role from user.');
+    operatorUtils.RemoveClusterAdminRole();
+    cy.log('Remove cluster-admin role from user completed');
   });
