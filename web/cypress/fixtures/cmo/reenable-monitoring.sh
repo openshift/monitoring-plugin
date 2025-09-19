@@ -1,8 +1,9 @@
 #!/bin/bash
 
-oc patch clusterversion version --type json -p "$(cat enable-monitoring.yaml)"
-kubectl scale --replicas=1 -n "${MP_NAMESPACE}" deployment/cluster-monitoring-operator
-kubectl scale --replicas=2 -n "${MP_NAMESPACE}" deployment/monitoring-plugin
+oc patch clusterversion version --type json -p '[{"op":"remove", "path":"/spec/overrides"}]'
+oc delete replicaset --selector=app=cluster-monitoring-operator -n openshift-monitoring
+oc scale --replicas=1 -n "${MP_NAMESPACE}" deployment/cluster-monitoring-operator
+oc scale --replicas=2 -n "${MP_NAMESPACE}" deployment/monitoring-plugin
 
 # Wait for the operator to reconcile the change and make sure all the pods are running.
 sleep 30

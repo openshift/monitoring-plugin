@@ -38,16 +38,6 @@ describe('IVT: Monitoring UIPlugin + Virtualization', () => {
   before(() => {
     cy.beforeBlockVirtualization(KBV);
     cy.beforeBlockCOO(MCP, MP);
-    
-  });
-
-
-  after(() => {
-    cy.afterBlockVirtualization(KBV);
-    cy.log('Remove cluster-admin role from user.');
-    cy.executeAndDelete(
-      `oc adm policy remove-cluster-role-from-user cluster-admin ${Cypress.env('LOGIN_USERNAME')} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
-    );
   });
 
   it('1. Virtualization perspective - Observe Menu', () => {

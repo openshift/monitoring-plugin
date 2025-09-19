@@ -26,8 +26,10 @@ describe('Regression: Monitoring - Alerts', () => {
 
   it('1. Admin perspective - Alerting > Alerts page - Filtering', () => {
     cy.log('1.1 Header components');
+    
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     alerts.getWatchdogAlert();
+    cy.changeNamespace("All Projects");
 
     listPage.filter.selectFilterOption(true, AlertingRulesAlertState.PENDING, false);
     listPage.filter.selectFilterOption(false, AlertingRulesAlertState.SILENCED, false);

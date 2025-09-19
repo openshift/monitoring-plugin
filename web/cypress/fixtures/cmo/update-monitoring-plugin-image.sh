@@ -1,28 +1,29 @@
 #!/bin/bash
-
-# Generate a random filename
 MONITORING_FILE="/tmp/monitoring_csv_$(date +%s%N).yaml"
-
 MONITORING_CSV_NAME=$(oc get deployment --kubeconfig "${KUBECONFIG}" -n openshift-monitoring | grep "monitoring-plugin" | awk '{print $1}')
 
 oc get deployment "${MONITORING_CSV_NAME}" -n openshift-monitoring -o yaml > "${MONITORING_FILE}" --kubeconfig "${KUBECONFIG}"
 
-# Patch the deployment file related images
 sed -i "s#^\([[:space:]]*image: \).*#\1${MP_IMAGE}#g" "${MONITORING_FILE}"
 
+oc patch deployment cluster-monitoring-operator -n openshift-monitoring --type json -p='[{"op": "replace", "path": "/spec/template/spec/containers/0/args/'"$(oc get deployment cluster-monitoring-operator -n openshift-monitoring -o json | jq '.spec.template.spec.containers[0].args | map(startswith("-images=monitoring-plugin=")) | index(true)')"'", "value": "-images=monitoring-plugin='"${MP_IMAGE}"'"}]'
+
 oc replace -f "${MONITORING_FILE}" --kubeconfig "${KUBECONFIG}"
-# Scale down the cluster-monitoring-operator as "manager" pod is responsible for the monitoring-plugin
-oc patch clusterversion version --type json -p "$(cat disable-monitoring.yaml)"
 
-oc scale --replicas=0 -n openshift-monitoring deployment/cluster-monitoring-operator
+cat <<EOF >disable.yaml
+- op: add
+  path: /spec/overrides
+  value:
+  - kind: Deployment
+    group: apps
+    name: cluster-monitoring-operator
+    namespace: openshift-monitoring
+    unmanaged: true
+EOF
 
-oc scale --replicas=0 -n openshift-monitoring deployment/monitoring-plugin
+oc patch clusterversion version --type json --patch-file disable.yaml
 
-# Apply the patched deployment resource file
-#oc replace -f "${MONITORING_FILE}" --kubeconfig "${KUBECONFIG}"
-
-# Scale up the monitoring-plugin with new image, leaving the cluster-monitoring-operator at 0 replicas to not revert the change
-oc scale --replicas=2 -n openshift-monitoring deployment/monitoring-plugin
+oc delete replicaset --selector=app=cluster-monitoring-operator -n openshift-monitoring
 
 # Wait for the operator to reconcile the change and make sure all the pods are running.
 sleep 30

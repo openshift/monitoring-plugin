@@ -212,7 +212,7 @@ describe('BVT: Monitoring', () => {
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     nav.tabs.switchTab('Alerting rules');
     listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
-    alertingRuleListPage.ARShouldBe(`${WatchdogAlert.ALERTNAME}`, `--${WatchdogAlert.SEVERITY}`, 1, AlertsAlertState.SILENCED);
+    alertingRuleListPage.ARShouldBe(`${WatchdogAlert.ALERTNAME}`, `${WatchdogAlert.SEVERITY}`, 1, AlertsAlertState.SILENCED);
 
     cy.log('6.10 verify on Alerts list page again');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
@@ -224,7 +224,9 @@ describe('BVT: Monitoring', () => {
     cy.log('6.11 expires the Silence');
     listPage.ARRows.expandRow();
     listPage.ARRows.clickAlert();
-    detailsPage.expireSilence(true);
+    detailsPage.clickOnSilencedBy(`${WatchdogAlert.ALERTNAME}`);
+    silenceDetailsPage.expireSilence(true, true);
+
 
     cy.log('6.12 verify on Alerts list page again');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
