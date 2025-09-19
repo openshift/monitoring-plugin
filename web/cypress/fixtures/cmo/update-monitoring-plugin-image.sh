@@ -10,18 +10,7 @@ oc patch deployment cluster-monitoring-operator -n openshift-monitoring --type j
 
 oc replace -f "${MONITORING_FILE}" --kubeconfig "${KUBECONFIG}"
 
-cat <<EOF >disable.yaml
-- op: add
-  path: /spec/overrides
-  value:
-  - kind: Deployment
-    group: apps
-    name: cluster-monitoring-operator
-    namespace: openshift-monitoring
-    unmanaged: true
-EOF
-
-oc patch clusterversion version --type json --patch-file disable.yaml
+oc patch clusterversion version --type json --patch-file ./cypress/fixtures/cmo/disable-monitoring.yaml
 
 oc delete replicaset --selector=app=cluster-monitoring-operator -n openshift-monitoring
 
