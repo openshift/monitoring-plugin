@@ -20,18 +20,14 @@ import {
   DatasourceStoreProvider,
   VariableProviderWithQueryParams,
 } from '@perses-dev/dashboards';
-import panelsResource from '@perses-dev/panels-plugin/plugin.json';
 import {
   DataQueriesProvider,
-  dynamicImportPluginLoader,
-  PluginModuleResource,
   PluginRegistry,
   TimeRangeProviderWithQueryParams,
   useInitialRefreshInterval,
   useInitialTimeRange,
   usePluginBuiltinVariableDefinitions,
 } from '@perses-dev/plugin-system';
-import prometheusResource from '@perses-dev/prometheus-plugin/plugin.json';
 import React, { useMemo } from 'react';
 import { usePatternFlyTheme } from '../../hooks/usePatternflyTheme';
 import { OcpDatasourceApi } from './datasource-api';
@@ -48,6 +44,7 @@ import { QueryParams } from '../../query-params';
 import { StringParam, useQueryParam } from 'use-query-params';
 import { useTranslation } from 'react-i18next';
 import { LoadingBox } from '../../../components/console/console-shared/src/components/loading/LoadingBox';
+import { pluginLoader } from './persesPluginsLoader';
 
 // Override eChart defaults with PatternFly colors.
 const patternflyBlue300 = '#2b9af3';
@@ -65,20 +62,6 @@ const patternflyChartsMultiUnorderedPalette = Array.isArray(chartColorScale)
       return match ? [match[0]] : [];
     })
   : [];
-
-// PluginRegistry configuration to allow access to
-// visualization panels/charts (@perses-dev/panels-plugin)
-// and data handlers for prometheus (@perses-dev/prometheus-plugin).
-const pluginLoader = dynamicImportPluginLoader([
-  {
-    resource: panelsResource as PluginModuleResource,
-    importPlugin: () => import('@perses-dev/panels-plugin'),
-  },
-  {
-    resource: prometheusResource as PluginModuleResource,
-    importPlugin: () => import('@perses-dev/prometheus-plugin'),
-  },
-]);
 
 interface PersesWrapperProps {
   children?: React.ReactNode;
