@@ -45,12 +45,13 @@ import {
 } from '@patternfly/react-core';
 import { CloseIcon, ExclamationCircleIcon } from '@patternfly/react-icons';
 import { PromQLExtension } from '@prometheus-io/codemirror-promql';
-import * as React from 'react';
+import type { FC } from 'react';
+import { useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useSafeFetch } from '../console/utils/safe-fetch-hook';
 
-import { PROMETHEUS_BASE_PATH } from '../console/graphs/helpers';
+import { PROMETHEUS_BASE_PATH } from '../utils';
 import { LabelNamesResponse } from '@perses-dev/prometheus-plugin';
 import {
   t_global_color_status_custom_default,
@@ -319,7 +320,7 @@ export const promqlHighlighter = HighlightStyle.define([
   { tag: tags.comment, color: t_global_text_color_disabled.var, fontStyle: 'italic' },
 ]);
 
-export const PromQLExpressionInput: React.FC<PromQLExpressionInputProps> = ({
+export const PromQLExpressionInput: FC<PromQLExpressionInputProps> = ({
   value,
   onExecuteQuery,
   onValueChange,
@@ -328,17 +329,17 @@ export const PromQLExpressionInput: React.FC<PromQLExpressionInputProps> = ({
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { theme: pfTheme } = usePatternFlyTheme();
 
-  const containerRef = React.useRef<HTMLDivElement | null>(null);
-  const viewRef = React.useRef<EditorView | null>(null);
-  const [metricNames, setMetricNames] = React.useState<Array<string>>([]);
-  const [errorMessage, setErrorMessage] = React.useState<string | undefined>();
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const viewRef = useRef<EditorView | null>(null);
+  const [metricNames, setMetricNames] = useState<Array<string>>([]);
+  const [errorMessage, setErrorMessage] = useState<string | undefined>();
 
   const placeholder = t('Expression (press Shift+Enter for newlines)');
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const safeFetch = React.useCallback(useSafeFetch(), []);
+  const safeFetch = useCallback(useSafeFetch(), []);
 
-  React.useEffect(() => {
+  useEffect(() => {
     safeFetch<LabelNamesResponse>(
       `${PROMETHEUS_BASE_PATH}/${PrometheusEndpoint.LABEL}/__name__/values`,
     )
@@ -365,7 +366,7 @@ export const PromQLExpressionInput: React.FC<PromQLExpressionInputProps> = ({
     onValueChange('');
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (viewRef.current !== null) {
       const currentExpression = viewRef.current.state.doc.toString();
       if (currentExpression !== value) {
@@ -376,7 +377,7 @@ export const PromQLExpressionInput: React.FC<PromQLExpressionInputProps> = ({
     }
   }, [value]);
 
-  const target = React.useMemo(
+  const target = useMemo(
     () => ({
       focus: () => viewRef.current.focus(),
       setSelectionRange: (from: number, to: number) => {
@@ -388,7 +389,7 @@ export const PromQLExpressionInput: React.FC<PromQLExpressionInputProps> = ({
     [],
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     promqlExtension.setComplete({
       remote: {
         url: PROMETHEUS_BASE_PATH,

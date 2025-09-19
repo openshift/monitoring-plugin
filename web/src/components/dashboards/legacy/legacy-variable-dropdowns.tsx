@@ -17,29 +17,27 @@ import {
   SplitItem,
   Split,
 } from '@patternfly/react-core';
-import * as React from 'react';
+import type { FC, Ref } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { Map as ImmutableMap } from 'immutable';
 
 import { SingleTypeaheadDropdown } from '../../console/utils/single-typeahead-dropdown';
-import { getPrometheusURL } from '../../console/graphs/helpers';
+import { getPrometheusBasePath, buildPrometheusUrl } from '../../utils';
 import { getQueryArgument, setQueryArgument } from '../../console/utils/router';
 import { useSafeFetch } from '../../console/utils/safe-fetch-hook';
 
-import {
-  dashboardsPatchVariable,
-  dashboardsVariableOptionsLoaded,
-  Perspective,
-} from '../../../actions/observe';
+import { dashboardsPatchVariable, dashboardsVariableOptionsLoaded } from '../../../store/actions';
 import { getTimeRanges, isTimeoutError, QUERY_CHUNK_SIZE } from '../../utils';
-import { getLegacyObserveState, usePerspective } from '../../hooks/usePerspective';
-import { MonitoringState } from '../../../reducers/observe';
+import { getObserveState } from '../../hooks/usePerspective';
+import { MonitoringState } from '../../../store/store';
 import { DEFAULT_GRAPH_SAMPLES, MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY } from './utils';
 import {
   DataSource,
   isDataSource,
 } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
+import { useMonitoring } from '../../../hooks/useMonitoring';
+import { useDeepMemo } from '../../hooks/useDeepMemo';
 
 const intervalVariableRegExps = ['__interval', '__rate_interval', '__auto_interval_[a-z]+'];
 
@@ -48,7 +46,7 @@ const isIntervalVariable = (itemKey: string): boolean =>
 
 export const evaluateVariableTemplate = (
   template: string,
-  variables: ImmutableMap<string, Variable>,
+  variables: any,
   timespan: number,
 ): string => {
   if (_.isEmpty(template)) {
@@ -57,7 +55,7 @@ export const evaluateVariableTemplate = (
 
   const range: Variable = { value: `${Math.floor(timespan / 1000)}s` };
   const allVariables = {
-    ...variables.toJS(),
+    ...variables,
     __range: range,
     /* eslint-disable camelcase */
     __range_ms: range,
@@ -105,40 +103,43 @@ const LegacyDashboardsVariableOption = ({ value, isSelected, ...rest }) =>
     </SelectOption>
   );
 
-const LegacyDashboardsVariableDropdown: React.FC<VariableDropdownProps> = ({
-  id,
-  name,
-  namespace,
-  perspective,
-}) => {
+const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({ id, name, namespace }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const { plugin } = useMonitoring();
 
-  const timespan = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'timespan']),
+  const timespan = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state).dashboards.timespan,
   );
 
-  const variables = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'variables']),
+  const variables = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state).dashboards.variables,
   );
-  const variable = variables.toJS()[name];
-  const query = evaluateVariableTemplate(variable.query, variables, timespan);
+  const variable = variables?.[name] as Variable;
+  const options = useDeepMemo(() => {
+    return variable?.options;
+  }, [variable?.options]);
+
+  const query = evaluateVariableTemplate(variable?.query, variables, timespan);
 
   const dispatch = useDispatch();
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const safeFetch = React.useCallback(useSafeFetch(), []);
+  const safeFetch = useCallback(useSafeFetch(), []);
 
-  const [isError, setIsError] = React.useState(false);
+  const [isError, setIsError] = useState(false);
 
   const customDataSourceName = variable?.datasource?.name;
   const [extensions, extensionsResolved] = useResolvedExtensions<DataSource>(isDataSource);
   const hasExtensions = !_.isEmpty(extensions);
 
-  const getURL = React.useCallback(
+  const getURL = useCallback(
     async (prometheusProps) => {
       try {
         if (!customDataSourceName) {
-          return getPrometheusURL(prometheusProps, perspective);
+          return buildPrometheusUrl({
+            prometheusUrlProps: prometheusProps,
+            basePath: getPrometheusBasePath({ prometheus: 'cmo' }),
+          });
         } else if (extensionsResolved && hasExtensions) {
           const extension = extensions.find(
             (ext) => ext?.properties?.contextId === 'monitoring-dashboards',
@@ -150,7 +151,13 @@ const LegacyDashboardsVariableDropdown: React.FC<VariableDropdownProps> = ({
             setIsError(true);
             return;
           }
-          return getPrometheusURL(prometheusProps, perspective, dataSource?.basePath);
+          return buildPrometheusUrl({
+            prometheusUrlProps: prometheusProps,
+            basePath: getPrometheusBasePath({
+              prometheus: 'cmo',
+              basePathOverride: dataSource?.basePath,
+            }),
+          });
         }
       } catch (error) {
         // eslint-disable-next-line no-console
@@ -158,10 +165,10 @@ const LegacyDashboardsVariableDropdown: React.FC<VariableDropdownProps> = ({
         setIsError(true);
       }
     },
-    [customDataSourceName, extensions, extensionsResolved, hasExtensions, perspective],
+    [customDataSourceName, extensions, extensionsResolved, hasExtensions],
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!query) {
       return;
     }
@@ -173,7 +180,7 @@ const LegacyDashboardsVariableDropdown: React.FC<VariableDropdownProps> = ({
     const timeRanges = getTimeRanges(timespan);
     const newOptions = new Set<string>();
     let abortError = false;
-    dispatch(dashboardsPatchVariable(name, { isLoading: true }, perspective));
+    dispatch(dashboardsPatchVariable(name, { isLoading: true }));
     Promise.allSettled(
       timeRanges.map(async (timeRange) => {
         const prometheusProps = {
@@ -182,7 +189,7 @@ const LegacyDashboardsVariableDropdown: React.FC<VariableDropdownProps> = ({
           samples: Math.ceil(DEFAULT_GRAPH_SAMPLES / timeRanges.length),
           timeout: '60s',
           timespan: timeRange.duration,
-          namespace: perspective === 'dev' ? namespace : '',
+          namespace,
           endTime: timeRange.endTime,
         };
         return getURL(prometheusProps).then((url) =>
@@ -214,17 +221,16 @@ const LegacyDashboardsVariableDropdown: React.FC<VariableDropdownProps> = ({
         setIsError(false);
         // Options were found or no options were found but that wasn't in error
         const newOptionArray = Array.from(newOptions).sort();
-        dispatch(dashboardsVariableOptionsLoaded(name, newOptionArray, perspective));
+        dispatch(dashboardsVariableOptionsLoaded(name, newOptionArray));
       } else {
         // No options were found, and there were errors (timeouts or other) in fetching the data
-        dispatch(dashboardsPatchVariable(name, { isLoading: false }, perspective));
+        dispatch(dashboardsPatchVariable(name, { isLoading: false }));
         if (!abortError) {
           setIsError(true);
         }
       }
     });
   }, [
-    perspective,
     dispatch,
     getURL,
     name,
@@ -232,44 +238,36 @@ const LegacyDashboardsVariableDropdown: React.FC<VariableDropdownProps> = ({
     query,
     safeFetch,
     timespan,
-    variable.includeAll,
-    variable.options,
+    variable?.includeAll,
+    options,
   ]);
 
-  React.useEffect(() => {
-    if (variable.value && variable.value !== getQueryArgument(name)) {
-      if (perspective === 'dev' && name !== 'namespace') {
-        setQueryArgument(name, variable.value);
-      } else if (perspective === 'admin' || perspective === 'virtualization-perspective') {
-        setQueryArgument(name, variable.value);
-      }
+  useEffect(() => {
+    if (variable?.value && variable?.value !== getQueryArgument(name)) {
+      setQueryArgument(name, variable?.value);
     }
-  }, [perspective, name, variable.value]);
+  }, [name, variable?.value]);
 
-  const onChange = React.useCallback(
+  const onChange = useCallback(
     (v: string) => {
-      if (v !== variable.value) {
-        if (perspective === 'dev' && name !== 'namespace') {
-          setQueryArgument(name, v);
-        } else if (perspective === 'admin' || perspective === 'virtualization-perspective') {
-          setQueryArgument(name, v);
-        }
-        dispatch(dashboardsPatchVariable(name, { value: v }, perspective));
+      if (v !== variable?.value) {
+        setQueryArgument(name, v);
+        dispatch(dashboardsPatchVariable(name, { value: v }));
       }
     },
-    [perspective, dispatch, name, variable.value],
+    [dispatch, name, variable?.value],
   );
 
-  if (variable.isHidden || (!isError && _.isEmpty(variable.options))) {
+  if (variable?.isHidden || (!isError && _.isEmpty(variable?.options))) {
     return null;
   }
 
   const items = (
-    variable.includeAll
+    variable?.includeAll
       ? [{ value: MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY, children: 'All' }]
       : []
   ).concat(
-    _.map(variable.options, (option) => ({
+    _.map(variable?.options, (option) => ({
       value: option,
       children: option,
     })),
@@ -286,7 +284,7 @@ const LegacyDashboardsVariableDropdown: React.FC<VariableDropdownProps> = ({
         <StackItem>
           {isError ? (
             <Select
-              toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+              toggle={(toggleRef: Ref<MenuToggleElement>) => (
                 <MenuToggle ref={toggleRef} isDisabled={true} onClick={(e) => e.preventDefault()}>
                   <RedExclamationCircleIcon /> {t('Error loading options')}
                 </MenuToggle>
@@ -297,7 +295,7 @@ const LegacyDashboardsVariableDropdown: React.FC<VariableDropdownProps> = ({
               items={items}
               onChange={onChange}
               OptionComponent={LegacyDashboardsVariableOption}
-              selectedKey={variable.value}
+              selectedKey={variable?.value}
               hideClearButton
               resizeToFit
               placeholder={t('Select a dashboard from the dropdown')}
@@ -310,11 +308,12 @@ const LegacyDashboardsVariableDropdown: React.FC<VariableDropdownProps> = ({
 };
 
 // Expects to be inside of a Patternfly Split Component
-export const LegacyDashboardsAllVariableDropdowns: React.FC = () => {
+export const LegacyDashboardsAllVariableDropdowns: FC = () => {
   const [namespace] = useActiveNamespace();
-  const { perspective } = usePerspective();
-  const variables = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'variables']),
+  const { plugin } = useMonitoring();
+
+  const variables = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state).dashboards.variables,
   );
 
   if (!variables) {
@@ -323,30 +322,25 @@ export const LegacyDashboardsAllVariableDropdowns: React.FC = () => {
 
   return (
     <Split hasGutter isWrappable>
-      {variables.keySeq().map((name: string) => (
-        <LegacyDashboardsVariableDropdown
-          id={name}
-          key={name}
-          name={name}
-          namespace={namespace}
-          perspective={perspective}
-        />
+      {Object.keys(variables).map((name: string) => (
+        <LegacyDashboardsVariableDropdown id={name} key={name} name={name} namespace={namespace} />
       ))}
     </Split>
   );
 };
 
-type Variable = {
+export type Variable = {
   isHidden?: boolean;
   isLoading?: boolean;
+  includeAll?: boolean;
   options?: string[];
   query?: string;
   value?: string;
+  datasource?: any;
 };
 
 type VariableDropdownProps = {
   id: string;
   name: string;
-  perspective: Perspective;
   namespace?: string;
 };

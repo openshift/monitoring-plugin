@@ -60,7 +60,7 @@ Changes to the store must be completed in the `openshift/console` codebase and a
 
 #### Dependencies
 
-1. [Node.js](https://nodejs.org/en/) and [npm](https://www.npmjs.com/) are required
+1. [Node.js 22+](https://nodejs.org/en/) and [npm](https://www.npmjs.com/) are required
 2. [oc](https://mirror.openshift.com/pub/openshift-v4/clients/oc/4.4/)
 3. [podman 3.2.0+](https://podman.io) or [Docker](https://www.docker.com)
 4. An OpenShift cluster
@@ -103,7 +103,7 @@ The application will be running at [localhost:9000](http://localhost:9000/).
 Images for the mcp can be built by running the following command. Due to the limitation of linux/amd64 image builds on Apple Silicon Macs's, some of the changes are run locally and not just in the Dockerfiles. If you are on a Mac, it is not suggested to cancel the exection of this scipt part way through
 
 ```bash
-make build-mcp-image
+make build-dev-mcp-image
 ```
 
 ### Feature Flags
@@ -137,7 +137,7 @@ Since the store for the `monitoring-plugin` is stored in the `openshift/console`
 # Login to an OpenShift cluster
 $ oc login <clusterAddress> -u <username> -p <password>
 
-# Start podman (or Docker)
+# Start podman (or Docker) - Linux machines can skip this part 
 $ podman machine init
 $ podman machine start
 
@@ -148,10 +148,50 @@ $ make install
 $ make start-frontend
 
 # In a separate terminal
-$ make start-feature-backend
+$ make start-feature-console
 
 # In a separate terminal
-$ make start-feature-console
+$ make start-feature-backend
 ```
 
 `make start-feature-backend` will inject the `perses-dashboards`, `incidents`, and `dev-config` features by default. Features such as `acm-alerting` which take in extra parameters will need to run the `make start-feature-backend` command with the appropriate environment variables, such as `MONITORING_PLUGIN_ALERTMANAGER`.
+
+#### Local Development with Perses Proxy
+The bridge script `start-console.sh` is configured to proxy to a local Perses instance running at port `:8080`. To run the local Perses instance you will need to clone the [perses/perses](https://github.com/perses/perses) repository and follow the start up instructions in [ui/README.md](https://github.com/perses/perses/blob/63601751674403f626d1dea3dec168bdad0ef1c7/ui/README.md) :
+
+```
+# Clone the perses/perses repo
+$ git clone https://github.com/perses/perses.git
+$ cd perses
+
+# Follow the instructions in ui/README.md
+$ cd ui
+$ npm install
+$ npm run build
+$ ./scripts/api_backend_dev.sh
+
+# Lastly navigate to http://localhost:8080/ to see Perses app running
+```
+
+##### Install COO && Perses Datasource && Perses Sample Dashboard 
+1. Install COO through the OpenShift UI > OperatorHub > Cluster Observability Operator 
+2. Install UIPlugin > monitoring 
+3. oc apply -f <PERSES_DATASOURCE_YAML>
+   - See sample yaml [here](https://github.com/observability-ui/development-tools/blob/main/monitoring-plugin/monitoring-console-plugin/perses/thanos-querier-datasource.yaml) 
+4. oc apply -f <PERSES_DASHBOARD_YAML>
+   - See sample yaml  [here](https://github.com/observability-ui/development-tools/blob/main/monitoring-plugin/monitoring-console-plugin/perses/perses-dashboard.yaml)
+
+##### Port forward Perses Datasource 
+To use the PERSES_DATASOURCE you deployed above, you'll need to forward it to your local machine then proxy it using the local Perses Instance. 
+
+```
+# Forward cluster Prometheus Instance to localhost:9090
+oc port-forward -n openshift-monitoring service/prometheus-operated 9090:9090
+
+# Test is port-forward returns Prometheus data from query 'up'
+curl "http://localhost:9090/api/v1/query?query=up"
+```
+
+Adjust Perses local instance http://localhost:8080/ to use the a proxy to http://localhost:9090/ instead of http://demo.prometheus.io. 
+
+

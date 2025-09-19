@@ -1,4 +1,4 @@
-import * as React from 'react';
+import type { FC, ComponentType, ReactNode } from 'react';
 import { Alert, Flex, FlexItem, PageSection, Title } from '@patternfly/react-core';
 import * as _ from 'lodash-es';
 import { useTranslation } from 'react-i18next';
@@ -9,7 +9,7 @@ import { LoadingBox } from '../loading/LoadingBox';
 import { LoadError } from '../loading/LoadError';
 import { getLastLanguage } from '../../../../utils/getLastLanguage';
 
-const Data: React.FC<DataProps> = ({
+const Data: FC<DataProps> = ({
   NoDataEmptyMsg,
   EmptyMsg,
   label,
@@ -36,7 +36,7 @@ const Data: React.FC<DataProps> = ({
 };
 Data.displayName = 'Data';
 
-export const StatusBox: React.FC<StatusBoxProps> = (props) => {
+export const StatusBox: FC<StatusBoxProps> = (props) => {
   const { loadError, loaded, skeleton, data, ...dataProps } = props;
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
@@ -89,12 +89,12 @@ export const StatusBox: React.FC<StatusBoxProps> = (props) => {
 StatusBox.displayName = 'StatusBox';
 
 type DataProps = {
-  NoDataEmptyMsg?: React.ComponentType;
-  EmptyMsg?: React.ComponentType;
+  NoDataEmptyMsg?: ComponentType;
+  EmptyMsg?: ComponentType;
   label?: string;
   unfilteredData?: any;
   data?: any;
-  children?: React.ReactNode;
+  children?: ReactNode;
 };
 
 type StatusBoxProps = {
@@ -103,8 +103,8 @@ type StatusBoxProps = {
   loaded?: boolean;
   data?: any;
   unfilteredData?: any;
-  skeleton?: React.ReactNode;
-  NoDataEmptyMsg?: React.ComponentType;
-  EmptyMsg?: React.ComponentType;
-  children?: React.ReactNode;
+  skeleton?: ReactNode;
+  NoDataEmptyMsg?: ComponentType;
+  EmptyMsg?: ComponentType;
+  children?: ReactNode;
 };

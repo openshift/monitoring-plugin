@@ -1,4 +1,8 @@
-import { consoleFetchJSON, useActiveNamespace } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  consoleFetchJSON,
+  NamespaceBar,
+  useActiveNamespace,
+} from '@openshift-console/dynamic-plugin-sdk';
 import {
   ActionGroup,
   Alert,
@@ -32,10 +36,11 @@ import {
 import { ExclamationCircleIcon, MinusCircleIcon, PlusCircleIcon } from '@patternfly/react-icons';
 import { t_global_spacer_sm } from '@patternfly/react-tokens';
 import * as _ from 'lodash-es';
-import * as React from 'react';
+import type { ComponentType, FC, FormEventHandler, MouseEvent, ChangeEvent, Ref } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Helmet } from 'react-helmet';
 import { Trans, useTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom-v5-compat';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 import {
@@ -44,12 +49,13 @@ import {
 } from '../console/console-shared/src/datetime/prometheus';
 import { ExternalLink } from '../console/utils/link';
 import { useBoolean } from '../hooks/useBoolean';
-import {
-  getFetchSilenceAlertUrl,
-  getSilenceAlertUrl,
-  usePerspective,
-} from '../hooks/usePerspective';
-import { refreshSilences } from '../utils';
+import { getSilenceAlertUrl, usePerspective } from '../hooks/usePerspective';
+import { DataTestIDs } from '../data-test';
+import { ALL_NAMESPACES_KEY, getAlertmanagerSilencesUrl } from '../utils';
+import { useAlerts } from '../../hooks/useAlerts';
+import { useMonitoring } from '../../hooks/useMonitoring';
+
+const durationOff = '-';
 
 type Matcher = {
   isRegex: boolean;
@@ -60,8 +66,9 @@ type Matcher = {
 
 type SilenceFormProps = {
   defaults: any;
-  Info?: React.ComponentType;
+  Info?: ComponentType;
   title: string;
+  isNamespaced: boolean;
 };
 
 // TODO: These will be available in future versions of the plugin SDK
@@ -124,22 +131,27 @@ const NegativeMatcherHelp = () => {
   );
 };
 
-const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => {
+const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespaced }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const [namespace] = useActiveNamespace();
+  const { prometheus } = useMonitoring();
   const navigate = useNavigate();
 
-  const durationOff = '-';
-  const durations = {
-    [durationOff]: durationOff,
-    '30m': t('30m'),
-    '1h': t('1h'),
-    '2h': t('2h'),
-    '6h': t('6h'),
-    '12h': t('12h'),
-    '1d': t('1d'),
-    '2d': t('2d'),
-    '1w': t('1w'),
-  };
+  const durations = useMemo(() => {
+    return {
+      [durationOff]: durationOff,
+      '30m': t('30m'),
+      '1h': t('1h'),
+      '2h': t('2h'),
+      '6h': t('6h'),
+      '12h': t('12h'),
+      '1d': t('1d'),
+      '2d': t('2d'),
+      '1w': t('1w'),
+    };
+  }, [t]);
+
+  const requireNamespace = isNamespaced && namespace !== ALL_NAMESPACES_KEY;
 
   const now = new Date();
 
@@ -160,29 +172,33 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => 
     }
   }
 
-  const dispatch = useDispatch();
-
-  const { perspective, silencesKey } = usePerspective();
+  const { perspective } = usePerspective();
 
   const [isOpen, setIsOpen, , setClosed] = useBoolean(false);
 
-  const [comment, setComment] = React.useState(defaults.comment ?? '');
-  const [createdBy, setCreatedBy] = React.useState(defaults.createdBy ?? '');
-  const [duration, setDuration] = React.useState(defaultDuration);
-  const [endsAt, setEndsAt] = React.useState(
+  const [comment, setComment] = useState(defaults.comment ?? '');
+  const [createdBy, setCreatedBy] = useState(defaults.createdBy ?? '');
+  const [duration, setDuration] = useState(defaultDuration);
+  const [endsAt, setEndsAt] = useState(
     defaults.endsAt ?? formatDate(new Date(new Date(now).setHours(now.getHours() + 2))),
   );
-  const [error, setError] = React.useState<string>();
-  const [inProgress, setInProgress] = React.useState(false);
-  const [isStartNow, setIsStartNow] = React.useState(defaultIsStartNow);
-  const [matchers, setMatchers] = React.useState<Array<Matcher>>(
-    defaults.matchers ?? [{ isRegex: false, isEqual: true, name: '', value: '' }],
-  );
-  const [startsAt, setStartsAt] = React.useState(defaults.startsAt ?? formatDate(now));
-  const user = useSelector(getUser);
-  const [namespace] = useActiveNamespace();
+  const [error, setError] = useState<string>();
+  const [inProgress, setInProgress] = useState(false);
+  const [isStartNow, setIsStartNow] = useState(defaultIsStartNow);
 
-  React.useEffect(() => {
+  // Since the namespace matcher MUST be the same as the namespace the request is being
+  // made in, we remove the namespace value here and re-add it before sending the request
+  const [matchers, setMatchers] = useState<Array<Matcher>>(
+    (requireNamespace
+      ? (defaults.matchers as Matcher[])?.filter((matcher) => matcher.name !== 'namespace')
+      : defaults.matchers) ?? [{ isRegex: false, isEqual: true, name: '', value: '' }],
+  );
+
+  const [startsAt, setStartsAt] = useState(defaults.startsAt ?? formatDate(now));
+  const user = useSelector(getUser);
+  const { trigger: refetchSilencesAndAlerts } = useAlerts();
+
+  useEffect(() => {
     if (!createdBy && user) {
       setCreatedBy(user.metadata?.name || user.username);
     }
@@ -207,6 +223,11 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => 
   };
 
   const removeMatcher = (i: number): void => {
+    // If we require the namespace don't allow removing it
+    if (requireNamespace && i === 0) {
+      return;
+    }
+
     const newMatchers = _.clone(matchers);
     newMatchers.splice(i, 1);
 
@@ -218,7 +239,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => 
     );
   };
 
-  const onSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
+  const onSubmit: FormEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
 
     // Don't allow comments to only contain whitespace
@@ -227,7 +248,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => 
       return;
     }
 
-    const url = getFetchSilenceAlertUrl(perspective, namespace);
+    const url = getAlertmanagerSilencesUrl({ prometheus, namespace });
     if (!url) {
       setError('Alertmanager URL not set');
       return;
@@ -246,15 +267,22 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => 
       createdBy,
       endsAt: saveEndsAt.toISOString(),
       id: defaults.id,
-      matchers,
+      matchers: isNamespaced
+        ? matchers.concat({
+            name: 'namespace',
+            value: namespace,
+            isRegex: false,
+            isEqual: true,
+          })
+        : matchers,
       startsAt: saveStartsAt.toISOString(),
     };
 
     consoleFetchJSON
-      .post(getFetchSilenceAlertUrl(perspective, namespace), body)
+      .post(getAlertmanagerSilencesUrl({ prometheus, namespace }), body)
       .then(({ silenceID }) => {
         setError(undefined);
-        refreshSilences(dispatch, perspective, silencesKey, namespace);
+        refetchSilencesAndAlerts();
         navigate(getSilenceAlertUrl(perspective, silenceID, namespace));
       })
       .catch((err) => {
@@ -278,10 +306,11 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => 
       <Helmet>
         <title>{title}</title>
       </Helmet>
+      <NamespaceBar />
       <PageSection hasBodyWrapper={false}>
         <Title headingLevel="h1">{title}</Title>
         <HelperText>
-          <HelperTextItem>
+          <HelperTextItem data-test={DataTestIDs.SilencesPageFormTestIDs.Description}>
             {t(
               'Silences temporarily mute alerts based on a set of label selectors that you define. Notifications will not be sent for alerts that match all the listed values or regular expressions.',
             )}
@@ -289,7 +318,6 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => 
         </HelperText>
       </PageSection>
       <Divider />
-
       <PageSection hasBodyWrapper={false}>
         <Form onSubmit={onSubmit} maxWidth="950px">
           {Info && <Info />}
@@ -301,13 +329,13 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => 
                 {isStartNow ? (
                   <DatetimeTextInput
                     isDisabled
-                    data-test="silence-from"
+                    data-test={DataTestIDs.SilencesPageFormTestIDs.SilenceFrom}
                     value={t('Now')}
                     tooltip={formatDate(new Date())}
                   />
                 ) : (
                   <DatetimeTextInput
-                    data-test="silence-from"
+                    data-test={DataTestIDs.SilencesPageFormTestIDs.SilenceFrom}
                     isRequired
                     onChange={(_event, value: string) => setStartsAt(value)}
                     value={startsAt}
@@ -318,19 +346,19 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => 
             <GridItem sm={4} md={2}>
               <FormGroup label={t('For...')}>
                 <Select
-                  data-test="silence-for"
+                  data-test={DataTestIDs.SilencesPageFormTestIDs.SilenceFor}
                   isOpen={isOpen}
-                  onSelect={(event: React.MouseEvent | React.ChangeEvent, value: string) => {
+                  onSelect={(_event: MouseEvent | ChangeEvent, value: string) => {
                     setDuration(value);
                     setClosed();
                   }}
-                  toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+                  toggle={(toggleRef: Ref<MenuToggleElement>) => (
                     <MenuToggle
                       ref={toggleRef}
                       onClick={setIsOpen}
                       isExpanded={isOpen}
                       isFullWidth
-                      data-test="silence-for-toggle"
+                      data-test={DataTestIDs.SilencesPageFormTestIDs.SilenceForToggle}
                     >
                       {duration}
                     </MenuToggle>
@@ -345,14 +373,14 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => 
               <FormGroup label={t('Until...')}>
                 {duration === durationOff ? (
                   <DatetimeTextInput
-                    data-test="silence-until"
+                    data-test={DataTestIDs.SilencesPageFormTestIDs.SilenceUntil}
                     isRequired
                     onChange={(_event, value: string) => setEndsAt(value)}
                     value={endsAt}
                   />
                 ) : (
                   <DatetimeTextInput
-                    data-test="silence-until"
+                    data-test={DataTestIDs.SilencesPageFormTestIDs.SilenceUntil}
                     isDisabled
                     value={
                       isStartNow
@@ -371,13 +399,17 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => 
               label={t('Start immediately')}
               isChecked={isStartNow}
               onChange={(e) => setIsStartNow(e.currentTarget.checked)}
+              data-test={DataTestIDs.SilencesPageFormTestIDs.StartImmediately}
             />
           </FormGroup>
 
           <Title headingLevel="h2">{t('Alert labels')}</Title>
           <FormHelperText>
             <HelperText>
-              <HelperTextItem variant="indeterminate">
+              <HelperTextItem
+                variant="indeterminate"
+                data-test={DataTestIDs.SilencesPageFormTestIDs.AlertLabelsDescription}
+              >
                 <Trans t={t}>
                   Alerts with labels that match these selectors will be silenced instead of firing.
                   Label values can be matched exactly or with a{' '}
@@ -389,6 +421,68 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => 
               </HelperTextItem>
             </HelperText>
           </FormHelperText>
+
+          {requireNamespace && (
+            <Grid key={'namespace'} sm={12} md={4} hasGutter>
+              <GridItem>
+                <FormGroup label={t('Label name')}>
+                  <TextInput
+                    aria-label={t('Label name')}
+                    isRequired
+                    placeholder={t('Name')}
+                    value={'namespace'}
+                    data-test={DataTestIDs.SilencesPageFormTestIDs.LabelName}
+                    isDisabled
+                  />
+                </FormGroup>
+              </GridItem>
+              <GridItem>
+                <FormGroup label={t('Label value')}>
+                  <TextInput
+                    aria-label={t('Label value')}
+                    isRequired
+                    placeholder={t('Value')}
+                    value={namespace}
+                    data-test={DataTestIDs.SilencesPageFormTestIDs.LabelValue}
+                    isDisabled
+                  />
+                </FormGroup>
+              </GridItem>
+              <GridItem>
+                <FormGroup isInline label={t('Select all that apply:')}>
+                  <FormGroup role="group" isInline style={{ marginTop: t_global_spacer_sm.var }}>
+                    <Checkbox
+                      id={`regex-namespace`}
+                      label={t('RegEx')}
+                      isChecked={false}
+                      data-test={DataTestIDs.SilencesPageFormTestIDs.Regex}
+                      isDisabled
+                    />
+                    <Tooltip content={<NegativeMatcherHelp />}>
+                      <Checkbox
+                        id={`negative-matcher-namespace`}
+                        label={t('Negative matcher')}
+                        isChecked={false}
+                        data-test={DataTestIDs.SilencesPageFormTestIDs.NegativeMatcherCheckbox}
+                        isDisabled
+                      />
+                    </Tooltip>
+                  </FormGroup>
+                  <Tooltip content={t('Remove')}>
+                    <Button
+                      icon={<MinusCircleIcon />}
+                      type="button"
+                      aria-label={t('Remove')}
+                      variant="plain"
+                      isInline
+                      data-test={DataTestIDs.SilencesPageFormTestIDs.RemoveLabel}
+                      isDisabled
+                    />
+                  </Tooltip>
+                </FormGroup>
+              </GridItem>
+            </Grid>
+          )}
 
           {_.map(matchers, (matcher, i: number) => (
             <Grid key={i} sm={12} md={4} hasGutter>
@@ -404,6 +498,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => 
                     }
                     placeholder={t('Name')}
                     value={matcher.name}
+                    data-test={DataTestIDs.SilencesPageFormTestIDs.LabelName}
                   />
                 </FormGroup>
               </GridItem>
@@ -419,6 +514,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => 
                     }
                     placeholder={t('Value')}
                     value={matcher.value}
+                    data-test={DataTestIDs.SilencesPageFormTestIDs.LabelValue}
                   />
                 </FormGroup>
               </GridItem>
@@ -430,6 +526,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => 
                       label={t('RegEx')}
                       isChecked={matcher.isRegex}
                       onChange={(e) => setMatcherField(i, 'isRegex', e.currentTarget.checked)}
+                      data-test={DataTestIDs.SilencesPageFormTestIDs.Regex}
                     />
                     <Tooltip content={<NegativeMatcherHelp />}>
                       <Checkbox
@@ -437,6 +534,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => 
                         label={t('Negative matcher')}
                         isChecked={matcher.isEqual === false}
                         onChange={(e) => setMatcherField(i, 'isEqual', !e.currentTarget.checked)}
+                        data-test={DataTestIDs.SilencesPageFormTestIDs.NegativeMatcherCheckbox}
                       />
                     </Tooltip>
                   </FormGroup>
@@ -448,6 +546,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => 
                       aria-label={t('Remove')}
                       variant="plain"
                       isInline
+                      data-test={DataTestIDs.SilencesPageFormTestIDs.RemoveLabel}
                     />
                   </Tooltip>
                 </FormGroup>
@@ -466,6 +565,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => 
               type="button"
               variant="link"
               isInline
+              data-test={DataTestIDs.SilencesPageFormTestIDs.AddLabel}
             >
               {t('Add label')}
             </Button>
@@ -481,6 +581,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => 
               }
               value={createdBy}
               validated={error && !createdBy ? ValidatedOptions.error : ValidatedOptions.default}
+              data-test={DataTestIDs.SilencesPageFormTestIDs.Creator}
             />
             {error && !createdBy && (
               <FormHelperText>
@@ -502,7 +603,7 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => 
               onChange={(_e, v: string) =>
                 typeof _e === 'string' ? setComment(_e) : setComment(v)
               }
-              data-test="silence-comment"
+              data-test={DataTestIDs.SilencesPageFormTestIDs.Comment}
               value={comment}
               validated={error && !comment ? ValidatedOptions.error : ValidatedOptions.default}
             />
@@ -520,10 +621,20 @@ const SilenceForm_: React.FC<SilenceFormProps> = ({ defaults, Info, title }) => 
             )}
           </FormGroup>
           <ActionGroup>
-            <Button type="submit" variant="primary" isDisabled={inProgress}>
+            <Button
+              type="submit"
+              variant="primary"
+              isDisabled={inProgress}
+              data-test={DataTestIDs.SilenceButton}
+            >
               {t('Silence')}
             </Button>
-            <Button onClick={() => navigate(-1)} variant="secondary" isDisabled={inProgress}>
+            <Button
+              onClick={() => navigate(-1)}
+              variant="secondary"
+              isDisabled={inProgress}
+              data-test={DataTestIDs.CancelButton}
+            >
               {t('Cancel')}
             </Button>
           </ActionGroup>

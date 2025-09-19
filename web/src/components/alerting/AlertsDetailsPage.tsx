@@ -12,7 +12,8 @@ import {
   useResolvedExtensions,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
-import * as React from 'react';
+import type { FC, ReactNode } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { Link, useNavigate, useParams } from 'react-router-dom-v5-compat';
@@ -20,13 +21,13 @@ import { ExternalLink, LinkifyExternal } from '../console/utils/link';
 import { getAllQueryArguments } from '../console/utils/router';
 import {
   getAlertsUrl,
-  getLegacyObserveState,
+  getObserveState,
   getNewSilenceAlertUrl,
   getRuleUrl,
   usePerspective,
 } from '../hooks/usePerspective';
-import { Alerts } from '../types';
 import { AlertResource, alertState, RuleResource } from '../utils';
+import { MonitoringProvider } from '../../contexts/MonitoringContext';
 
 import {
   Breadcrumb,
@@ -56,7 +57,7 @@ import {
   ToolbarItem,
 } from '@patternfly/react-core';
 import { Helmet } from 'react-helmet';
-import { MonitoringState } from '../../reducers/observe';
+import { MonitoringState } from '../../store/store';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 import { StatusBox } from '../console/console-shared/src/components/status/StatusBox';
 import {
@@ -69,7 +70,6 @@ import {
   PodModel,
   StatefulSetModel,
 } from '../console/models';
-import { useAlertsPoller } from '../hooks/useAlertsPoller';
 import { Labels } from '../labels';
 import { ToggleGraph } from '../MetricsPage';
 import { SilencedByList } from './AlertDetail/SilencedByTable';
@@ -87,30 +87,27 @@ import {
   SourceHelp,
 } from './AlertUtils';
 
-const AlertsDetailsPage_: React.FC = () => {
+import { DataTestIDs } from '../data-test';
+import { useAlerts } from '../../hooks/useAlerts';
+import { useMonitoring } from '../../hooks/useMonitoring';
+
+const AlertsDetailsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const params = useParams<{ ruleID: string }>();
   const navigate = useNavigate();
+  const { plugin } = useMonitoring();
 
-  const { alertsKey, silencesKey, perspective } = usePerspective();
+  const { perspective } = usePerspective();
 
-  useAlertsPoller();
+  const { alerts, rulesAlertLoading, silences } = useAlerts();
 
   const [namespace] = useActiveNamespace();
 
   const hideGraphs = useSelector(
-    (state: MonitoringState) => !!getLegacyObserveState(perspective, state)?.get('hideGraphs'),
+    (state: MonitoringState) => !!getObserveState(plugin, state).hideGraphs,
   );
 
-  const alerts: Alerts = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.get(alertsKey),
-  );
-
-  const silencesLoaded = useSelector(
-    (state: MonitoringState) => getLegacyObserveState(perspective, state)?.get(silencesKey)?.loaded,
-  );
-
-  const ruleAlerts = _.filter(alerts?.data, (a) => a.rule.id === params?.ruleID);
+  const ruleAlerts = _.filter(alerts, (a) => a.rule.id === params?.ruleID);
   const rule = ruleAlerts?.[0]?.rule;
 
   // Search for an alert that matches all of the labels in the URL parameters. We expect there to be
@@ -123,7 +120,7 @@ const AlertsDetailsPage_: React.FC = () => {
 
   const labelsMemoKey = JSON.stringify(alert?.labels);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const labels: PrometheusLabels = React.useMemo(() => alert?.labels, [labelsMemoKey]);
+  const labels: PrometheusLabels = useMemo(() => alert?.labels, [labelsMemoKey]);
 
   // eslint-disable-next-line camelcase
   const runbookURL = alert?.annotations?.runbook_url;
@@ -139,6 +136,14 @@ const AlertsDetailsPage_: React.FC = () => {
 
   const AlertsChart = alertsChart?.[0];
 
+  // Keep the default name for the admin perspective while providing specific
+  // entrypoints for all other perspectives as wel
+  const alertActionContextName = `alert-detail-toolbar-actions${
+    perspective === 'admin' ? '' : '-' + perspective
+  }`;
+  const alertActionContext = {};
+  alertActionContext[alertActionContextName] = { alert };
+
   return (
     <>
       <Helmet>
@@ -147,14 +152,16 @@ const AlertsDetailsPage_: React.FC = () => {
       <StatusBox
         data={alert}
         label={AlertResource.label}
-        loaded={alerts?.loaded}
-        loadError={alerts?.loadError}
+        loaded={rulesAlertLoading?.loaded}
+        loadError={rulesAlertLoading?.loadError}
       >
         <PageGroup>
           <PageBreadcrumb hasBodyWrapper={false}>
             <Breadcrumb>
               <BreadcrumbItem>
-                <Link to={getAlertsUrl(perspective, namespace)}>{t('Alerts')}</Link>
+                <Link to={getAlertsUrl(perspective, namespace)} data-test={DataTestIDs.Breadcrumb}>
+                  {t('Alerts')}
+                </Link>
               </BreadcrumbItem>
               <BreadcrumbItem isActive>{t('Alert details')}</BreadcrumbItem>
             </Breadcrumb>
@@ -166,13 +173,17 @@ const AlertsDetailsPage_: React.FC = () => {
                   <FlexItem
                     alignSelf={{ default: 'alignSelfCenter' }}
                     spacer={{ default: 'spacerNone' }}
+                    data-test={DataTestIDs.AlertResourceIcon}
                   >
                     <ResourceIcon kind={AlertResource.kind} />
                   </FlexItem>
                   <FlexItem>
                     <Title headingLevel="h1">{rule?.name}</Title>
                   </FlexItem>
-                  <FlexItem alignSelf={{ default: 'alignSelfCenter' }}>
+                  <FlexItem
+                    alignSelf={{ default: 'alignSelfCenter' }}
+                    data-test={DataTestIDs.SeverityBadgeHeader}
+                  >
                     <SeverityBadge severity={rule?.labels?.severity} />
                   </FlexItem>
                 </Flex>
@@ -184,6 +195,7 @@ const AlertsDetailsPage_: React.FC = () => {
                   <Button
                     onClick={() => navigate(getNewSilenceAlertUrl(perspective, alert, namespace))}
                     variant="primary"
+                    data-test={DataTestIDs.SilenceButton}
                   >
                     {t('Silence alert')}
                   </Button>
@@ -199,7 +211,7 @@ const AlertsDetailsPage_: React.FC = () => {
                   <Title headingLevel="h2">{t('Alert details')}</Title>
                 </ToolbarItem>
                 <ToolbarGroup align={{ default: 'alignEnd' }}>
-                  <ActionServiceProvider context={{ 'alert-detail-toolbar-actions': { alert } }}>
+                  <ActionServiceProvider context={alertActionContext}>
                     {({ actions, loaded }) =>
                       loaded
                         ? actions.map((action) => {
@@ -218,7 +230,6 @@ const AlertsDetailsPage_: React.FC = () => {
                                 </ToolbarItem>
                               );
                             }
-
                             return null;
                           })
                         : null
@@ -247,7 +258,7 @@ const AlertsDetailsPage_: React.FC = () => {
                 <DescriptionList>
                   <DescriptionListGroup>
                     <DescriptionListTerm>{t('Name')}</DescriptionListTerm>
-                    <DescriptionListDescription>{labels?.alertname}</DescriptionListDescription>
+                    <DescriptionListDescription> {labels?.alertname} </DescriptionListDescription>
                   </DescriptionListGroup>
                   <DescriptionListGroup>
                     <DescriptionListTermHelpText>
@@ -260,7 +271,7 @@ const AlertsDetailsPage_: React.FC = () => {
                         </DescriptionListTermHelpTextButton>
                       </Popover>
                     </DescriptionListTermHelpText>
-                    <DescriptionListDescription>
+                    <DescriptionListDescription data-test={DataTestIDs.SeverityBadge}>
                       <SeverityBadge severity={labels?.severity} />
                     </DescriptionListDescription>
                   </DescriptionListGroup>
@@ -354,13 +365,13 @@ const AlertsDetailsPage_: React.FC = () => {
                         spaceItems={{ default: 'spaceItemsNone' }}
                         flexWrap={{ default: 'nowrap' }}
                       >
-                        <FlexItem>
+                        <FlexItem data-test={DataTestIDs.AlertingRuleResourceIcon}>
                           <ResourceIcon kind={RuleResource.kind} />
                         </FlexItem>
                         <FlexItem>
                           <Link
                             to={getRuleUrl(perspective, rule, namespace)}
-                            data-test="alert-rules-detail-resource-link"
+                            data-test={DataTestIDs.AlertingRuleResourceLink}
                           >
                             {_.get(rule, 'name')}
                           </Link>
@@ -372,7 +383,7 @@ const AlertsDetailsPage_: React.FC = () => {
               </GridItem>
             </Grid>
           </PageSection>
-          {silencesLoaded && !_.isEmpty(alert?.silencedBy) && (
+          {silences.loaded && !_.isEmpty(alert?.silencedBy) && (
             <>
               <Divider />
               <PageSection hasBodyWrapper={false}>
@@ -386,9 +397,27 @@ const AlertsDetailsPage_: React.FC = () => {
     </>
   );
 };
-const AlertsDetailsPage = withFallback(AlertsDetailsPage_);
+const AlertsDetailsPageWithFallback = withFallback(AlertsDetailsPage_);
 
-const HeaderAlertMessage: React.FC<{ alert: Alert; rule: Rule }> = ({ alert, rule }) => {
+export const MpCmoAlertsDetailsPage = () => {
+  return (
+    <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
+      <AlertsDetailsPageWithFallback />
+    </MonitoringProvider>
+  );
+};
+
+export const McpAcmAlertsDetailsPage = () => {
+  return (
+    <MonitoringProvider
+      monitoringContext={{ plugin: 'monitoring-console-plugin', prometheus: 'acm' }}
+    >
+      <AlertsDetailsPageWithFallback />
+    </MonitoringProvider>
+  );
+};
+
+const HeaderAlertMessage: FC<{ alert: Alert; rule: Rule }> = ({ alert, rule }) => {
   const annotation = alert.annotations.description ? 'description' : 'message';
   return (
     <AlertMessage
@@ -399,12 +428,12 @@ const HeaderAlertMessage: React.FC<{ alert: Alert; rule: Rule }> = ({ alert, rul
   );
 };
 
-const AlertMessage: React.FC<AlertMessageProps> = ({ alertText, labels, template }) => {
+const AlertMessage: FC<AlertMessageProps> = ({ alertText, labels, template }) => {
   if (_.isEmpty(alertText)) {
     return null;
   }
 
-  let messageParts: React.ReactNode[] = [alertText];
+  let messageParts: ReactNode[] = [alertText];
 
   // Go through each recognized resource type and replace any resource names that exist in alertText
   // with a link to the resource's details page
@@ -466,7 +495,7 @@ const alertMessageResources: {
 const matchCount = (haystack: string, regExpString: string) =>
   _.size(haystack.match(new RegExp(regExpString, 'g')));
 
-const AlertStateHelp: React.FC = () => {
+const AlertStateHelp: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
@@ -504,8 +533,6 @@ const AlertStateHelp: React.FC = () => {
     </DescriptionList>
   );
 };
-
-export default AlertsDetailsPage;
 
 type AlertMessageProps = {
   alertText: string;

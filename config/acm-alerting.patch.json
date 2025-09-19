@@ -22,7 +22,9 @@
         "path": [
           "/multicloud/monitoring"
         ],
-        "component": { "$codeRef": "AlertingPage" }
+        "component": {
+          "$codeRef": "AlertingPage.McpAcmAlertingPage"
+        }
       }
     }
   },
@@ -34,7 +36,9 @@
       "properties": {
         "exact": false,
         "path": "/multicloud/monitoring/silences/~new",
-        "component": { "$codeRef": "SilenceCreatePage" }
+        "component": {
+          "$codeRef": "SilenceCreatePage.McpAcmCreateSilencePage"
+        }
       }
     }
   },
@@ -46,7 +50,9 @@
       "properties": {
         "exact": false,
         "path": "/multicloud/monitoring/silences/:id/edit",
-        "component": { "$codeRef": "SilenceEditPage" }
+        "component": {
+          "$codeRef": "SilenceEditPage.McpAcmSilenceEditPage"
+        }
       }
     }
   },
@@ -58,7 +64,9 @@
       "properties": {
         "exact": false,
         "path": "/multicloud/monitoring/silences/:id",
-        "component": { "$codeRef": "SilencesDetailsPage" }
+        "component": {
+          "$codeRef": "SilencesDetailsPage.McpAcmSilencesDetailsPage"
+        }
       }
     }
   },
@@ -69,8 +77,12 @@
       "type": "console.page/route",
       "properties": {
         "exact": false,
-        "path": ["/multicloud/monitoring/alertrules/:id"],
-        "component": { "$codeRef": "AlertRulesDetailsPage" }
+        "path": [
+          "/multicloud/monitoring/alertrules/:id"
+        ],
+        "component": {
+          "$codeRef": "AlertRulesDetailsPage.McpAcmAlertRulesDetailsPage"
+        }
       }
     }
   },
@@ -81,8 +93,12 @@
       "type": "console.page/route",
       "properties": {
         "exact": false,
-        "path": ["/multicloud/monitoring/alerts/:ruleID"],
-        "component": { "$codeRef": "AlertsDetailsPage" }
+        "path": [
+          "/multicloud/monitoring/alerts/:ruleID"
+        ],
+        "component": {
+          "$codeRef": "AlertsDetailsPage.McpAcmAlertsDetailsPage"
+        }
       }
     }
   },

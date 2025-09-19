@@ -17,14 +17,15 @@ import {
   FlexItem,
   ExpandableSectionToggle,
 } from '@patternfly/react-core';
-import * as React from 'react';
+import type { FC } from 'react';
+import { memo, useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom-v5-compat';
 
 import { setQueryArguments } from '../../console/utils/router';
 
-import { Perspective } from '../../../actions/observe';
+import { Perspective } from '../../../store/actions';
 import BarChart from '../legacy/bar-chart';
 import Graph from '../legacy/graph';
 import SingleStat from '../legacy/single-stat';
@@ -33,11 +34,11 @@ import { useBoolean } from '../../hooks/useBoolean';
 import { useIsVisible } from '../../hooks/useIsVisible';
 import {
   getMutlipleQueryBrowserUrl,
-  getLegacyObserveState,
+  getObserveState,
   usePerspective,
 } from '../../hooks/usePerspective';
 import KebabDropdown from '../../kebab-dropdown';
-import { MonitoringState } from '../../../reducers/observe';
+import { MonitoringState } from '../../../store/store';
 import { evaluateVariableTemplate } from './legacy-variable-dropdowns';
 import { Panel, Row } from './types';
 import { QueryParams } from '../../query-params';
@@ -48,19 +49,27 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
 import { t_global_font_size_heading_h2 } from '@patternfly/react-tokens';
 import { GraphEmpty } from '../../../components/console/graphs/graph-empty';
+import { GraphUnits } from '../../../components/metrics/units';
+import { LegacyDashboardPageTestIDs } from '../../../components/data-test';
+import { useMonitoring } from '../../../hooks/useMonitoring';
 
 const QueryBrowserLink = ({
   queries,
   customDataSourceName,
+  units,
 }: {
   queries: Array<string>;
   customDataSourceName: string;
+  units?: GraphUnits;
 }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
 
   const params = new URLSearchParams();
   queries.forEach((q, i) => params.set(`query${i}`, q));
+  if (units) {
+    params.set(QueryParams.Units, units);
+  }
   const [namespace] = useActiveNamespace();
 
   if (customDataSourceName) {
@@ -68,7 +77,11 @@ const QueryBrowserLink = ({
   }
 
   return (
-    <Link aria-label={t('Inspect')} to={getMutlipleQueryBrowserUrl(perspective, params, namespace)}>
+    <Link
+      aria-label={t('Inspect')}
+      to={getMutlipleQueryBrowserUrl(perspective, params, namespace)}
+      data-test={LegacyDashboardPageTestIDs.Inspect}
+    >
       {t('Inspect')}
     </Link>
   );
@@ -87,31 +100,32 @@ const getPanelSpan = (panel: Panel): gridSpans => {
   return 12;
 };
 
-const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
+const Card: FC<CardProps> = memo(({ panel, perspective }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const { plugin } = useMonitoring();
 
   const [namespace] = useActiveNamespace();
-  const pollInterval = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'pollInterval']),
+  const pollInterval = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state).dashboards.pollInterval,
   );
-  const timespan = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'timespan']),
+  const timespan = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state).dashboards.timespan,
   );
-  const variables = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'variables']),
+  const variables = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state).dashboards.variables,
   );
 
-  const ref = React.useRef();
+  const ref = useRef();
   const [, wasEverVisible] = useIsVisible(ref);
 
-  const [isError, setIsError] = React.useState<boolean>(false);
-  const [dataSourceInfoLoading, setDataSourceInfoLoading] = React.useState<boolean>(true);
-  const [customDataSource, setCustomDataSource] = React.useState<CustomDataSource>(undefined);
+  const [isError, setIsError] = useState<boolean>(false);
+  const [dataSourceInfoLoading, setDataSourceInfoLoading] = useState<boolean>(true);
+  const [customDataSource, setCustomDataSource] = useState<CustomDataSource>(undefined);
   const customDataSourceName = panel.datasource?.name;
   const [extensions, extensionsResolved] = useResolvedExtensions<DataSource>(isDataSource);
   const hasExtensions = !_.isEmpty(extensions);
 
-  const formatSeriesTitle = React.useCallback(
+  const formatSeriesTitle = useCallback(
     (labels, i) => {
       const title = panel.targets?.[i]?.legendFormat;
       if (_.isNil(title)) {
@@ -127,7 +141,7 @@ const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
     },
     [panel],
   );
-  const [csvData, setCsvData] = React.useState([]);
+  const [csvData, setCsvData] = useState([]);
 
   const csvExportHandler = () => {
     let csvString = '';
@@ -193,12 +207,13 @@ const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
       component="button"
       onClick={csvExportHandler}
       isDisabled={!isThereCsvData()}
+      data-test={LegacyDashboardPageTestIDs.ExportAsCsv}
     >
       {t('Export as CSV')}
     </DropdownItem>,
   ];
 
-  React.useEffect(() => {
+  useEffect(() => {
     const getCustomDataSource = async () => {
       if (!customDataSourceName) {
         setDataSourceInfoLoading(false);
@@ -231,14 +246,14 @@ const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
     });
   }, [extensions, extensionsResolved, customDataSourceName, hasExtensions]);
 
-  const handleZoom = React.useCallback((timeRange: number, endTime: number) => {
+  const handleZoom = useCallback((timeRange: number, endTime: number) => {
     setQueryArguments({
       [QueryParams.EndTime]: endTime.toString(),
       [QueryParams.TimeRange]: timeRange.toString(),
     });
   }, []);
 
-  const panelBreakpoints = React.useMemo(() => {
+  const panelBreakpoints = useMemo(() => {
     const panelSpan = getPanelSpan(panel);
     return {
       sm: 12 as gridSpans,
@@ -288,7 +303,11 @@ const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
             actions: (
               <>
                 {!isLoading && (
-                  <QueryBrowserLink queries={queries} customDataSourceName={customDataSourceName} />
+                  <QueryBrowserLink
+                    queries={queries}
+                    customDataSourceName={customDataSourceName}
+                    units={panel?.yaxes?.[0]?.format as GraphUnits}
+                  />
                 )}
                 {panel.type === 'graph' && <KebabDropdown dropdownItems={dropdownItems} />}
               </>
@@ -304,7 +323,7 @@ const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
               <RedExclamationCircleIcon /> {t('Error loading card')}
             </>
           ) : (
-            <div ref={ref} style={{ height: '100%' }}>
+            <div ref={ref} style={{ height: '100%' }} data-test={LegacyDashboardPageTestIDs.Graph}>
               {isLoading || !wasEverVisible ? (
                 <GraphEmpty loading />
               ) : (
@@ -326,7 +345,6 @@ const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
                       units={panel.yaxes?.[0]?.format}
                       onZoomHandle={handleZoom}
                       customDataSource={customDataSource}
-                      perspective={perspective}
                       onDataChange={(data) => setCsvData(data)}
                     />
                   )}
@@ -358,7 +376,7 @@ const Card: React.FC<CardProps> = React.memo(({ panel, perspective }) => {
   );
 });
 
-const PanelsRow: React.FC<PanelsRowProps> = ({ row, perspective }) => {
+const PanelsRow: FC<PanelsRowProps> = ({ row, perspective }) => {
   const showButton = row.showTitle && !_.isEmpty(row.title);
 
   const [isExpanded, toggleIsExpanded] = useBoolean(showButton ? !row.collapse : true);
@@ -385,11 +403,11 @@ const PanelsRow: React.FC<PanelsRowProps> = ({ row, perspective }) => {
   );
 };
 
-export const LegacyDashboard: React.FC<BoardProps> = ({ rows, perspective }) => (
+export const LegacyDashboard: FC<BoardProps> = ({ rows, perspective }) => (
   <Flex direction={{ default: 'column' }}>
-    {_.map(rows, (row) => (
-      <FlexItem>
-        <PanelsRow key={_.map(row.panels, 'id').join()} row={row} perspective={perspective} />
+    {rows.map((row) => (
+      <FlexItem key={row.panels.map((panel) => `${panel.id}-${row.title}`).join()}>
+        <PanelsRow row={row} perspective={perspective} />
       </FlexItem>
     ))}
   </Flex>

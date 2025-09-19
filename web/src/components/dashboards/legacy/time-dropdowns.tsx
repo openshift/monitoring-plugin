@@ -1,7 +1,8 @@
 import { Stack, StackItem } from '@patternfly/react-core';
 import { SimpleSelect, SimpleSelectOption } from '@patternfly/react-templates';
 import * as _ from 'lodash-es';
-import * as React from 'react';
+import type { FC } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { NumberParam, useQueryParam } from 'use-query-params';
@@ -9,33 +10,35 @@ import {
   dashboardsSetEndTime,
   dashboardsSetPollInterval,
   dashboardsSetTimespan,
-} from '../../../actions/observe';
-import { MonitoringState } from '../../../reducers/observe';
+} from '../../../store/actions';
+import { MonitoringState } from '../../../store/store';
 import {
   formatPrometheusDuration,
   parsePrometheusDuration,
 } from '../../console/console-shared/src/datetime/prometheus';
 import { DEFAULT_REFRESH_INTERVAL, DropDownPollInterval } from '../../dropdown-poll-interval';
 import { useBoolean } from '../../hooks/useBoolean';
-import { getLegacyObserveState, usePerspective } from '../../hooks/usePerspective';
+import { getObserveState } from '../../hooks/usePerspective';
 import { QueryParams } from '../../query-params';
 import CustomTimeRangeModal from './custom-time-range-modal';
+import { LegacyDashboardPageTestIDs } from '../../data-test';
+import { useMonitoring } from '../../../hooks/useMonitoring';
 
 const CUSTOM_TIME_RANGE_KEY = 'CUSTOM_TIME_RANGE_KEY';
 const DEFAULT_TIMERANGE = '30m';
 
-export const TimespanDropdown: React.FC = () => {
+export const TimespanDropdown: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
-  const { perspective } = usePerspective();
+  const { plugin } = useMonitoring();
 
   const [isModalOpen, , setModalOpen, setModalClosed] = useBoolean(false);
 
-  const timespan = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'timespan']),
+  const timespan = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state).dashboards.timespan,
   );
-  const endTime = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'endTime']),
+  const endTime = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state).dashboards.endTime,
   );
 
   const [timeRangeFromParams, setTimeRange] = useQueryParam(QueryParams.TimeRange, NumberParam);
@@ -47,21 +50,21 @@ export const TimespanDropdown: React.FC = () => {
       : formatPrometheusDuration(_.toNumber(timeRangeFromParams) || timespan);
 
   const dispatch = useDispatch();
-  const onChange = React.useCallback(
+  const onChange = useCallback(
     (v: string) => {
       if (v === CUSTOM_TIME_RANGE_KEY) {
         setModalOpen();
       } else {
         setTimeRange(parsePrometheusDuration(v));
         setEndTime(undefined);
-        dispatch(dashboardsSetTimespan(parsePrometheusDuration(v), perspective));
-        dispatch(dashboardsSetEndTime(null, perspective));
+        dispatch(dashboardsSetTimespan(parsePrometheusDuration(v)));
+        dispatch(dashboardsSetEndTime(undefined));
       }
     },
-    [setModalOpen, dispatch, perspective, setTimeRange, setEndTime],
+    [setModalOpen, dispatch, setTimeRange, setEndTime],
   );
 
-  const initialOptions = React.useMemo<SimpleSelectOption[]>(() => {
+  const initialOptions = useMemo<SimpleSelectOption[]>(() => {
     const intervalOptions: SimpleSelectOption[] = [
       { content: t('Custom time range'), value: CUSTOM_TIME_RANGE_KEY },
       { content: t('Last {{count}} minute', { count: 5 }), value: '5m' },
@@ -86,12 +89,11 @@ export const TimespanDropdown: React.FC = () => {
   }, [selectedKey, t, timeRangeFromParams, setTimeRange, setEndTime]);
 
   const defaultTimerange = timespan ?? undefined;
-  const defaultEndTime = endTime ?? undefined;
+  const defaultEndTime = Number(endTime) ?? undefined;
 
   return (
     <>
       <CustomTimeRangeModal
-        perspective={perspective}
         isOpen={isModalOpen}
         setClosed={setModalClosed}
         timespan={defaultTimerange}
@@ -101,7 +103,7 @@ export const TimespanDropdown: React.FC = () => {
         <StackItem>
           <label htmlFor="monitoring-time-range-dropdown">{t('Time range')}</label>
         </StackItem>
-        <StackItem>
+        <StackItem data-test={LegacyDashboardPageTestIDs.TimeRangeDropdown}>
           <SimpleSelect
             id="monitoring-time-range-dropdown"
             initialOptions={initialOptions}
@@ -111,6 +113,7 @@ export const TimespanDropdown: React.FC = () => {
               }
             }}
             placeholder={t('Last {{count}} minute', { count: 30 })}
+            data-test={LegacyDashboardPageTestIDs.TimeRangeDropdownOptions}
           />
         </StackItem>
       </Stack>
@@ -118,21 +121,20 @@ export const TimespanDropdown: React.FC = () => {
   );
 };
 
-export const PollIntervalDropdown: React.FC = () => {
+export const PollIntervalDropdown: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { perspective } = usePerspective();
-  const [selectedInterval, setSelectedInterval] = React.useState(DEFAULT_REFRESH_INTERVAL);
+  const [selectedInterval, setSelectedInterval] = useState(DEFAULT_REFRESH_INTERVAL);
 
   const dispatch = useDispatch();
   const [, setRefreshInterval] = useQueryParam(QueryParams.RefreshInterval, NumberParam);
 
-  const setInterval = React.useCallback(
+  const setInterval = useCallback(
     (v: number) => {
       setSelectedInterval(v);
       setRefreshInterval(v);
-      dispatch(dashboardsSetPollInterval(v, perspective));
+      dispatch(dashboardsSetPollInterval(v));
     },
-    [dispatch, perspective, setRefreshInterval],
+    [dispatch, setRefreshInterval],
   );
 
   return (
@@ -140,11 +142,12 @@ export const PollIntervalDropdown: React.FC = () => {
       <StackItem>
         <label htmlFor="refresh-interval-dropdown">{t('Refresh interval')}</label>
       </StackItem>
-      <StackItem>
+      <StackItem data-test={LegacyDashboardPageTestIDs.PollIntervalDropdown}>
         <DropDownPollInterval
           id="refresh-interval-dropdown"
           setInterval={setInterval}
           selectedInterval={selectedInterval}
+          data-test={LegacyDashboardPageTestIDs.PollIntervalDropdownOptions}
         />
       </StackItem>
     </Stack>
