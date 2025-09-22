@@ -531,30 +531,20 @@ export const onDeleteGroupIncidentFilterChip = (
   }
 };
 
-export const makeIncidentUrlParams = (
-  params?: IncidentFiltersCombined,
-  incidentGroupId?: string,
-) => {
-  const processedParams = Object.entries(params ?? {}).reduce((acc, [key, value]) => {
-    if (Array.isArray(value)) {
-      if (value.length > 0) {
-        acc[key] = value.join(',');
-      }
-    } else {
-      acc[key] = value;
+export const makeIncidentUrlParams = (params?: IncidentFiltersCombined) => {
+  const urlParams = new URLSearchParams();
+
+  Object.entries(params ?? {}).forEach(([key, value]) => {
+    if (Array.isArray(value) && value.length > 0) {
+      urlParams.append(key, value.join(','));
     }
-    return acc;
-  }, {} as Record<string, string>);
+  });
 
-  if (incidentGroupId) {
-    processedParams['groupId'] = incidentGroupId;
-  }
-
-  return new URLSearchParams(processedParams).toString();
+  return urlParams.toString();
 };
 
-export const updateBrowserUrl = (params?: IncidentFiltersCombined, incidentGroupId?: string) => {
-  const queryString = makeIncidentUrlParams(params, incidentGroupId);
+export const updateBrowserUrl = (params?: IncidentFiltersCombined) => {
+  const queryString = makeIncidentUrlParams(params);
 
   const newUrl = `${window.location.origin}${window.location.pathname}?${queryString}`;
 

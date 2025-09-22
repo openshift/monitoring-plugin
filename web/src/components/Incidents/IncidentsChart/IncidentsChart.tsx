@@ -98,7 +98,7 @@ const IncidentsChart = ({
           },
         }),
       );
-      updateBrowserUrl(incidentsActiveFilters, '');
+      updateBrowserUrl(incidentsActiveFilters);
       dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
     } else {
       dispatch(
@@ -109,7 +109,7 @@ const IncidentsChart = ({
           },
         }),
       );
-      updateBrowserUrl(incidentsActiveFilters, datum.datum.group_id);
+      updateBrowserUrl(incidentsActiveFilters);
     }
   };
 

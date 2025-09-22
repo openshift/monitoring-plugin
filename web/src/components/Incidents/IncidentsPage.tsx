@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import { useSafeFetch } from '../console/utils/safe-fetch-hook';
 import { createAlertsQuery, fetchDataForIncidentsAndAlerts } from './api';
 import { useTranslation } from 'react-i18next';
@@ -83,8 +83,7 @@ const IncidentsPage = () => {
     Array<Partial<Incident>>
   >([]);
   const [hideCharts, setHideCharts] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false);
-
+  const hasLoadedFromUrl = useRef(false);
   const [filtersExpanded, setFiltersExpanded] = useState<IncidentsPageFiltersExpandedState>({
     severity: false,
     state: false,
@@ -145,32 +144,19 @@ const IncidentsPage = () => {
 
   useEffect(() => {
     const hasUrlParams = Object.keys(urlParams).length > 0;
-    if (hasUrlParams) {
-      dispatch(
-        setIncidentsActiveFilters({
-          incidentsActiveFilters: {
-            days: urlParams.days ? urlParams.days : ['7 days'],
-            severity: urlParams.severity ? urlParams.severity : [],
-            state: urlParams.state ? urlParams.state : [],
-            groupId: urlParams.groupId ? urlParams.groupId : [],
-          },
-        }),
-      );
-    } else {
-      updateBrowserUrl(incidentsInitialState);
-      dispatch(
-        setIncidentsActiveFilters({
-          incidentsActiveFilters: {
-            ...incidentsInitialState,
-          },
-        }),
-      );
+
+    if (!hasLoadedFromUrl.current) {
+      if (hasUrlParams) {
+        dispatch(setIncidentsActiveFilters({ incidentsActiveFilters: urlParams }));
+      } else {
+        dispatch(setIncidentsActiveFilters({ incidentsActiveFilters: incidentsInitialState }));
+      }
+      hasLoadedFromUrl.current = true;
     }
-    setIsInitialized(true);
-  }, []);
+  }, [dispatch, incidentsInitialState, urlParams]);
 
   useEffect(() => {
-    updateBrowserUrl(incidentsActiveFilters, selectedGroupId);
+    updateBrowserUrl(incidentsActiveFilters);
   }, [incidentsActiveFilters]);
 
   useEffect(() => {
@@ -246,8 +232,6 @@ const IncidentsPage = () => {
   }, [alertsData, rules]);
 
   useEffect(() => {
-    if (!isInitialized) return;
-
     setIncidentsAreLoading(true);
 
     const daysDuration = parsePrometheusDuration(
@@ -296,7 +280,7 @@ const IncidentsPage = () => {
         // eslint-disable-next-line no-console
         console.log(err);
       });
-  }, [isInitialized, incidentsActiveFilters.days, selectedGroupId]);
+  }, [incidentsActiveFilters.days, selectedGroupId]);
 
   const onSelect = (_event, value) => {
     if (value) {
