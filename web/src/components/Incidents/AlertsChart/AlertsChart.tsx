@@ -30,6 +30,7 @@ import { useTranslation } from 'react-i18next';
 import { AlertsChartBar } from '../model';
 import { setAlertsAreLoading } from '../../../store/actions';
 import { MonitoringState } from '../../../store/store';
+import { isEmpty } from 'lodash-es';
 
 const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
   const dispatch = useDispatch();
@@ -99,7 +100,7 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
     <Card className="alerts-chart-card" style={{ overflow: 'visible' }}>
       <div ref={containerRef}>
         <CardTitle>Alerts Timeline</CardTitle>
-        {alertsAreLoading ? (
+        {alertsAreLoading || isEmpty(incidentsActiveFilters.groupId) ? (
           <EmptyState
             variant="lg"
             style={{

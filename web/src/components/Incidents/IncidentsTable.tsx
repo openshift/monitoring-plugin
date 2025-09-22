@@ -9,7 +9,7 @@ import {
 } from '@patternfly/react-core';
 import { SearchIcon, AngleDownIcon, AngleRightIcon } from '@patternfly/react-icons';
 import { ExpandableRowContent, Table, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
-import * as _ from 'lodash-es';
+import { isEmpty } from 'lodash-es';
 import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { MonitoringState } from '../../store/store';
@@ -32,6 +32,9 @@ export const IncidentsTable = () => {
   );
   const alertsAreLoading = useSelector(
     (state: MonitoringState) => state.plugins.mcp.incidentsData.alertsAreLoading,
+  );
+  const incidentsActiveFilters = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData.incidentsActiveFilters,
   );
 
   const [expandedAlerts, setExpandedAlerts] = useState<Array<string>>([]);
@@ -92,7 +95,7 @@ export const IncidentsTable = () => {
     return Math.min(...alert.alertsExpandedRowData.map((alertData) => alertData.alertsStartFiring));
   };
 
-  if (_.isEmpty(alertsTableData) || alertsAreLoading) {
+  if (isEmpty(alertsTableData) || alertsAreLoading || isEmpty(incidentsActiveFilters.groupId)) {
     return (
       <Card>
         <CardBody>
