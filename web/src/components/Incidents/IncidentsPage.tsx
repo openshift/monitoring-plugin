@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 import { useSafeFetch } from '../console/utils/safe-fetch-hook';
 import { createAlertsQuery, fetchDataForIncidentsAndAlerts } from './api';
 import { useTranslation } from 'react-i18next';
@@ -322,6 +322,31 @@ const IncidentsPage = () => {
     }
   }, [incidentsActiveFilters, filteredData, dispatch]);
 
+  const handleIncidentChartClick = useCallback(
+    (groupId) => {
+      if (groupId === selectedGroupId) {
+        dispatch(
+          setIncidentsActiveFilters({
+            incidentsActiveFilters: {
+              ...incidentsActiveFilters,
+              groupId: [],
+            },
+          }),
+        );
+      } else {
+        dispatch(
+          setIncidentsActiveFilters({
+            incidentsActiveFilters: {
+              ...incidentsActiveFilters,
+              groupId: [groupId],
+            },
+          }),
+        );
+      }
+    },
+    [dispatch, incidentsActiveFilters, selectedGroupId],
+  );
+
   return (
     <>
       <Helmet>
@@ -512,6 +537,8 @@ const IncidentsPage = () => {
                     incidentsData={filteredData}
                     chartDays={timeRanges.length}
                     theme={theme}
+                    selectedGroupId={selectedGroupId}
+                    onIncidentClick={handleIncidentChartClick}
                   />
                 </StackItem>
                 <StackItem>

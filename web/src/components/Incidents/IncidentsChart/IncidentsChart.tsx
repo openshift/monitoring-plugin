@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   Chart,
@@ -23,35 +23,31 @@ import {
   t_global_color_status_info_default,
   t_global_color_status_warning_default,
 } from '@patternfly/react-tokens';
-import { useDispatch, useSelector } from 'react-redux';
 import '../incidents-styles.css';
 import { IncidentsTooltip } from '../IncidentsTooltip';
 import { Incident } from '../model';
-import { createIncidentsChartBars, generateDateArray, updateBrowserUrl } from '../utils';
+import { createIncidentsChartBars, generateDateArray } from '../utils';
 import { dateTimeFormatter } from '../../console/utils/datetime';
 import { useTranslation } from 'react-i18next';
-import { MonitoringState } from '../../../store/store';
-import { setAlertsAreLoading, setIncidentsActiveFilters } from '../../../store/actions';
 
 const IncidentsChart = ({
   incidentsData,
   chartDays,
   theme,
+  selectedGroupId,
+  onIncidentClick,
 }: {
   incidentsData: Array<Incident>;
   chartDays: number;
   theme: 'light' | 'dark';
+  selectedGroupId: string;
+  onIncidentClick: (groupId: string) => void;
 }) => {
-  const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(true);
   const [chartContainerHeight, setChartContainerHeight] = useState<number>();
   const [chartHeight, setChartHeight] = useState<number>();
   const dateValues = useMemo(() => generateDateArray(chartDays), [chartDays]);
 
-  const incidentsActiveFilters = useSelector(
-    (state: MonitoringState) => state.plugins.mcp.incidentsData.incidentsActiveFilters,
-  );
-  const selectedGroupId = incidentsActiveFilters.groupId?.[0] ?? null;
   const { i18n } = useTranslation();
 
   const chartData = useMemo(() => {
@@ -81,36 +77,13 @@ const IncidentsChart = ({
     }
   };
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
     const observer = getResizeObserver(containerRef.current, handleResize);
     handleResize();
     return () => observer();
   }, []);
 
   const clickHandler = (data, datum) => {
-    if (datum.datum.group_id === selectedGroupId) {
-      dispatch(
-        setIncidentsActiveFilters({
-          incidentsActiveFilters: {
-            ...incidentsActiveFilters,
-            groupId: [],
-          },
-        }),
-      );
-      updateBrowserUrl(incidentsActiveFilters, '');
-      dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
-    } else {
-      dispatch(
-        setIncidentsActiveFilters({
-          incidentsActiveFilters: {
-            ...incidentsActiveFilters,
-            groupId: [datum.datum.group_id],
-          },
-        }),
-      );
-      updateBrowserUrl(incidentsActiveFilters, datum.datum.group_id);
-    }
+    onIncidentClick(datum.datum.group_id);
   };
 
   return (
@@ -235,4 +208,4 @@ const IncidentsChart = ({
   );
 };
 
-export default IncidentsChart;
+export default React.memo(IncidentsChart);
