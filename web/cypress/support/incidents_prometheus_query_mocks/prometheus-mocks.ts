@@ -98,6 +98,7 @@ Cypress.Commands.add('mockIncidentFixture', (fixturePath: string) => {
 Cypress.Commands.add('transformMetrics', () => {
   cy.log('=== SETTING UP METRIC TRANSFORMATION ===');
   const mockNewMetrics = Cypress.env('MOCK_NEW_METRICS') === true;
+
   
   if (!mockNewMetrics) {
     cy.log('CYPRESS_MOCK_NEW_METRICS is disabled, skipping transformation');
