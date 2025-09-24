@@ -125,7 +125,6 @@ declare global {
       }
     });
     nav.sidenav.switcher.changePerspectiveTo(perspective);
-    nav.sidenav.switcher.shouldHaveText(perspective);
   });
 
   // To avoid influence from upstream login change

@@ -174,6 +174,11 @@ print_current_config() {
   print_var "CYPRESS_MCP_CONSOLE_IMAGE" "${CYPRESS_MCP_CONSOLE_IMAGE-}"
   print_var "CYPRESS_TIMEZONE" "${CYPRESS_TIMEZONE-}"
   print_var "CYPRESS_SESSION" "${CYPRESS_SESSION-}"
+  print_var "CYPRESS_SKIP_KBV_INSTALL" "${CYPRESS_SKIP_KBV_INSTALL-}"
+  print_var "CYPRESS_KBV_UI_INSTALL" "${CYPRESS_KBV_UI_INSTALL-}"
+  print_var "CYPRESS_KONFLUX_KBV_BUNDLE_IMAGE" "${CYPRESS_KONFLUX_KBV_BUNDLE_IMAGE-}"
+  print_var "CYPRESS_CUSTOM_KBV_BUNDLE_IMAGE" "${CYPRESS_CUSTOM_KBV_BUNDLE_IMAGE-}"
+  print_var "CYPRESS_FBC_STAGE_KBV_IMAGE" "${CYPRESS_FBC_STAGE_KBV_IMAGE-}"
 }
 
 main() {
@@ -216,7 +221,11 @@ main() {
   local def_mcp_console_image=${CYPRESS_MCP_CONSOLE_IMAGE-}
   local def_timezone=${CYPRESS_TIMEZONE-}
   local def_session=${CYPRESS_SESSION-}
-
+  local def_skip_kbv=${CYPRESS_SKIP_KBV_INSTALL-}
+  local def_kbv_ui_install=${CYPRESS_KBV_UI_INSTALL-}
+  local def_konflux_kbv_bundle=${CYPRESS_KONFLUX_KBV_BUNDLE_IMAGE-}
+  local def_custom_kbv_bundle=${CYPRESS_CUSTOM_KBV_BUNDLE_IMAGE-}
+  local def_fbc_stage_kbv_image=${CYPRESS_FBC_STAGE_KBV_IMAGE-}
   # Required basics
   local base_url
   while true; do
@@ -412,6 +421,26 @@ main() {
   local session="false"
   [[ "$session_ans" == "y" ]] && session="true"
 
+  local skip_kbv_install_ans
+  skip_kbv_install_ans=$(ask_yes_no "Skip Openshift Virtualization installation? (sets CYPRESS_SKIP_KBV_INSTALL)" "$(bool_to_default_yn "$def_skip_kbv")")
+  local skip_kbv_install="false"
+  [[ "$skip_kbv_install_ans" == "y" ]] && skip_kbv_install="true"
+
+  local kbv_ui_install_ans
+  kbv_ui_install_ans=$(ask_yes_no "Install KBV from redhat-operators? (sets CYPRESS_KBV_UI_INSTALL)" "$(bool_to_default_yn "$def_kbv_ui_install")")
+  local kbv_ui_install="false"
+  [[ "$kbv_ui_install_ans" == "y" ]] && kbv_ui_install="true"
+  
+  local konflux_kbv_bundle
+  konflux_kbv_bundle=$(ask "Konflux KBV bundle image (CYPRESS_KONFLUX_KBV_BUNDLE_IMAGE)" "$def_konflux_kbv_bundle")
+  
+  local custom_kbv_bundle
+  custom_kbv_bundle=$(ask "Custom KBV bundle image (CYPRESS_CUSTOM_KBV_BUNDLE_IMAGE)" "$def_custom_kbv_bundle")
+  
+  local fbc_stage_kbv_image
+  fbc_stage_kbv_image=$(ask "KBV FBC image (CYPRESS_FBC_STAGE_KBV_IMAGE)" "$def_fbc_stage_kbv_image")
+  
+
   # Build export lines with safe quoting
   local -a export_lines
   export_lines+=("export CYPRESS_BASE_URL='$(printf %s "$base_url" | escape_for_single_quotes)'" )
@@ -436,6 +465,22 @@ main() {
     export_lines+=("export CYPRESS_TIMEZONE='$(printf %s "$timezone" | escape_for_single_quotes)'" )
   fi
   export_lines+=("export CYPRESS_SESSION='$(printf %s "$session" | escape_for_single_quotes)'" )
+
+  if [[ -n "$skip_kbv_install" ]]; then
+    export_lines+=("export CYPRESS_SKIP_KBV_INSTALL='$(printf %s "$skip_kbv_install" | escape_for_single_quotes)'" )
+  fi
+  if [[ -n "$kbv_ui_install" ]]; then
+    export_lines+=("export CYPRESS_KBV_UI_INSTALL='$(printf %s "$kbv_ui_install" | escape_for_single_quotes)'" )
+  fi
+  if [[ -n "$konflux_kbv_bundle" ]]; then
+    export_lines+=("export CYPRESS_KONFLUX_KBV_BUNDLE_IMAGE='$(printf %s "$konflux_kbv_bundle" | escape_for_single_quotes)'" )
+  fi
+  if [[ -n "$custom_kbv_bundle" ]]; then
+    export_lines+=("export CYPRESS_CUSTOM_KBV_BUNDLE_IMAGE='$(printf %s "$custom_kbv_bundle" | escape_for_single_quotes)'" )
+  fi
+  if [[ -n "$fbc_stage_kbv_image" ]]; then
+    export_lines+=("export CYPRESS_FBC_STAGE_KBV_IMAGE='$(printf %s "$fbc_stage_kbv_image" | escape_for_single_quotes)'" )
+  fi
 
   echo ""
   if is_sourced; then
@@ -467,6 +512,11 @@ main() {
   [[ -n "${CYPRESS_MCP_CONSOLE_IMAGE-}$mcp_console_image" ]] && echo "  CYPRESS_MCP_CONSOLE_IMAGE=${CYPRESS_MCP_CONSOLE_IMAGE:-$mcp_console_image}"
   [[ -n "${CYPRESS_TIMEZONE-}$timezone" ]] && echo "  CYPRESS_TIMEZONE=${CYPRESS_TIMEZONE:-$timezone}"
   echo "  CYPRESS_SESSION=${CYPRESS_SESSION:-$session}"
+  echo "  CYPRESS_SKIP_KBV_INSTALL=${CYPRESS_SKIP_KBV_INSTALL:-$skip_kbv_install}"
+  echo "  CYPRESS_KBV_UI_INSTALL=${CYPRESS_KBV_UI_INSTALL:-$kbv_ui_install}"
+  [[ -n "${CYPRESS_KONFLUX_KBV_BUNDLE_IMAGE-}$konflux_kbv_bundle" ]] && echo "  CYPRESS_KONFLUX_KBV_BUNDLE_IMAGE=${CYPRESS_KONFLUX_KBV_BUNDLE_IMAGE:-$konflux_kbv_bundle}"
+  [[ -n "${CYPRESS_CUSTOM_KBV_BUNDLE_IMAGE-}$custom_kbv_bundle" ]] && echo "  CYPRESS_CUSTOM_KBV_BUNDLE_IMAGE=${CYPRESS_CUSTOM_KBV_BUNDLE_IMAGE:-$custom_kbv_bundle}"
+  [[ -n "${CYPRESS_FBC_STAGE_KBV_IMAGE-}$fbc_stage_kbv_image" ]] && echo "  CYPRESS_FBC_STAGE_KBV_IMAGE=${CYPRESS_FBC_STAGE_KBV_IMAGE:-$fbc_stage_kbv_image}"
 }
 
 main "$@"

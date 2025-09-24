@@ -72,6 +72,33 @@ Set the following var to enable Cypress session management for faster test execu
 export CYPRESS_SESSION=true
 ```
 
+Integration Testing variables
+
+Set the var to skip Openshift Virtualization and all the required operators installation.
+```bash
+export CYPRESS_SKIP_KBV_INSTALL=false
+```
+
+Set the var to install Openshift Virtualization from redhat-operators catalog source.
+```bash
+export CYPRESS_KBV_UI_INSTALL=true
+```
+
+Set the var to install Openshift Virtualization Operator using Konflux bundle.
+```bash
+export CYPRESS_KONFLUX_KBV_BUNDLE_IMAGE=<KBV image>
+```
+
+# Set the var to use custom Openshift Virtualization Operator bundle image
+```bash
+export CYPRESS_CUSTOM_KBV_BUNDLE_IMAGE=<KBV bundle image>
+```
+
+Set the var to use Openshift Virtualization Operator FBC image
+```bash
+export CYPRESS_FBC_STAGE_KBV_IMAGE=<KBV FBC image>
+```
+
 ### Environment Configuration Script
 
 The `configure-env.sh` script provides an interactive way to set up all the required environment variables. This script eliminates the need to manually export each variable and helps find the correct kubeconfig file.
@@ -106,11 +133,22 @@ npx cypress open
 npx cypress run
 ```
 
-To run a specific file
+Some examples to run a specific file(s)
+
+It runs the COO BVT only
 ```bash
 cd monitoring-plugin/web/cypress
-npx cypress run --spec "cypress/e2e/bvt.cy.ts"
-npx cypress run --spec "cypress/e2e/coo_bvt.cy.ts"
+npx cypress run --spec "cypress/e2e/coo/01.coo_bvt.cy.ts"
+```
+
+It runs the Monitoring BVT only
+```bash
+npx cypress run --spec "cypress/e2e/monitoring/01.bvt_monitoring.cy.ts"
+```
+
+It runs the Monitoring Regression tests
+```bash
+npx cypress run --spec "cypress/e2e/monitoring/regression/**"
 ```
 
 ### Testing recording

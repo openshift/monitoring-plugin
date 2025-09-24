@@ -10,6 +10,7 @@ import { overviewPage } from '../../views/overview-page';
 import common = require('mocha/lib/interfaces/common');
 import { AlertsAlertState, SilenceComment, SilenceState, WatchdogAlert } from '../../fixtures/monitoring/constants';
 import { alerts } from '../../fixtures/monitoring/alert';
+import { alertingRuleListPage } from '../../views/alerting-rule-list-page';
 // Set constants for the operators that need to be installed for tests.
 const MP = {
   namespace: 'openshift-monitoring',
@@ -29,6 +30,7 @@ describe('BVT: Monitoring', () => {
     commonPages.detailsPage.administration_clusterSettings();
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     commonPages.titleShouldHaveText('Alerting');
+    cy.changeNamespace('All Projects');
     nav.tabs.switchTab('Silences');
     silencesListPage.firstTimeEmptyState();
     nav.sidenav.clickNavLink(['Observe', 'Metrics']);
@@ -71,6 +73,7 @@ describe('BVT: Monitoring', () => {
     nav.sidenav.clickNavLink(['Home', 'Overview']);
     overviewPage.clickClusterUtilizationViewCPU();
     commonPages.titleShouldHaveText('Metrics');
+    commonPages.projectDropdownShouldExist();
   });
 
 
@@ -79,7 +82,6 @@ describe('BVT: Monitoring', () => {
     cy.log('5.1. use sidebar nav to go to Observe > Alerting');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     commonPages.titleShouldHaveText('Alerting');
-    commonPages.projectDropdownShouldNotExist();
     listPage.tabShouldHaveText('Alerts');
     listPage.tabShouldHaveText('Silences');
     listPage.tabShouldHaveText('Alerting rules');
@@ -206,6 +208,12 @@ describe('BVT: Monitoring', () => {
     listPage.filter.selectFilterOption(false, SilenceState.ACTIVE, true);
     silencesListPage.rows.shouldBe(`${WatchdogAlert.ALERTNAME}`, SilenceState.ACTIVE);
 
+    cy.log('6.9.1 verify on Alerting Rules list page again');
+    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    nav.tabs.switchTab('Alerting rules');
+    listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
+    alertingRuleListPage.ARShouldBe(`${WatchdogAlert.ALERTNAME}`, `${WatchdogAlert.SEVERITY}`, 1, AlertsAlertState.SILENCED);
+
     cy.log('6.10 verify on Alerts list page again');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     listPage.filter.clearAllFilters();
@@ -216,7 +224,9 @@ describe('BVT: Monitoring', () => {
     cy.log('6.11 expires the Silence');
     listPage.ARRows.expandRow();
     listPage.ARRows.clickAlert();
-    detailsPage.expireSilence(true);
+    detailsPage.clickOnSilencedBy(`${WatchdogAlert.ALERTNAME}`);
+    silenceDetailsPage.expireSilence(true, true);
+
 
     cy.log('6.12 verify on Alerts list page again');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
