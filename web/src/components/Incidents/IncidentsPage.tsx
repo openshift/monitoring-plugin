@@ -324,6 +324,11 @@ const IncidentsPage = () => {
 
   const handleIncidentChartClick = useCallback(
     (groupId) => {
+      setFiltersExpanded({
+        severity: false,
+        state: false,
+        groupId: false,
+      });
       if (groupId === selectedGroupId) {
         dispatch(
           setIncidentsActiveFilters({

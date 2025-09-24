@@ -92,6 +92,9 @@ const IncidentFilterToolbarItem: React.FC<IncidentFilterToolbarItemProps> = ({
                 categoryName.toLowerCase(),
               );
             }
+            if (categoryName === 'Incident ID') {
+              setIncidentIsExpanded(false);
+            }
           }}
           onOpenChange={(isOpen) => setIncidentIsExpanded(isOpen)}
           toggle={(toggleRef) => (
