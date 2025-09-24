@@ -26,7 +26,7 @@ import {
 import '../incidents-styles.css';
 import { IncidentsTooltip } from '../IncidentsTooltip';
 import { Incident } from '../model';
-import { createIncidentsChartBars, generateDateArray } from '../utils';
+import { calculateChartDomain, createIncidentsChartBars, generateDateArray } from '../utils';
 import { dateTimeFormatter } from '../../console/utils/datetime';
 import { useTranslation } from 'react-i18next';
 
@@ -172,6 +172,7 @@ const IncidentsChart = ({
                 tickLabelComponent={
                   <ChartLabel style={{ fill: theme === 'light' ? '#1b1d21' : '#e0e0e0' }} />
                 }
+                domain={calculateChartDomain(dateValues, chartData)}
               />
               <ChartGroup horizontal>
                 {chartData.map((bar) => {

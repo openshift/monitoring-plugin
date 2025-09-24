@@ -352,206 +352,212 @@ const IncidentsPage = () => {
       <Helmet>
         <title>{title}</title>
       </Helmet>
-      {alertsAreLoading && incidentsAreLoading ? (
-        <Bullseye>
-          <Spinner aria-label="incidents-chart-spinner" />
-        </Bullseye>
-      ) : (
-        <PageSection hasBodyWrapper={false} className="incidents-page-main-section">
-          <Toolbar
-            id="toolbar-with-filter"
-            collapseListedFiltersBreakpoint="xl"
-            clearAllFilters={() => {
-              dispatch(
-                setIncidentsActiveFilters({
-                  incidentsActiveFilters: {
-                    ...incidentsActiveFilters,
-                    severity: [],
-                    state: [],
-                    groupId: [],
-                  },
-                }),
-              );
-              dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
-            }}
-          >
-            <ToolbarContent>
-              <ToolbarGroup>
-                <ToolbarItem>
-                  <Select
-                    aria-label="Filter type selection"
-                    isOpen={filterTypeExpanded.filterType}
-                    role="menu"
-                    selected={incidentPageFilterTypeSelected}
-                    onOpenChange={(isOpen) =>
-                      setFiltersExpanded((prev) => ({ ...prev, filterType: isOpen }))
+      <PageSection hasBodyWrapper={false} className="incidents-page-main-section">
+        {alertsAreLoading && incidentsAreLoading ? (
+          <Bullseye>
+            <Spinner aria-label="incidents-chart-spinner" />
+          </Bullseye>
+        ) : (
+          <>
+            <Toolbar
+              id="toolbar-with-filter"
+              collapseListedFiltersBreakpoint="xl"
+              clearAllFilters={() => {
+                dispatch(
+                  setIncidentsActiveFilters({
+                    incidentsActiveFilters: {
+                      ...incidentsActiveFilters,
+                      severity: [],
+                      state: [],
+                      groupId: [],
+                    },
+                  }),
+                );
+                dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
+              }}
+            >
+              <ToolbarContent>
+                <ToolbarGroup>
+                  <ToolbarItem>
+                    <Select
+                      aria-label="Filter type selection"
+                      isOpen={filterTypeExpanded.filterType}
+                      role="menu"
+                      selected={incidentPageFilterTypeSelected}
+                      onOpenChange={(isOpen) =>
+                        setFiltersExpanded((prev) => ({ ...prev, filterType: isOpen }))
+                      }
+                      onSelect={(event, selection) => {
+                        dispatch(setIncidentPageFilterType({ incidentPageFilterType: selection }));
+                        setFilterTypeExpanded((prev) => ({ ...prev, filterType: false }));
+                      }}
+                      shouldFocusToggleOnSelect
+                      toggle={(toggleRef) => (
+                        <MenuToggle
+                          ref={toggleRef}
+                          onClick={(ev) => onFilterToggle(ev, 'filterType', setFilterTypeExpanded)}
+                          isExpanded={filterTypeExpanded.filterType}
+                          icon={<FilterIcon />}
+                        >
+                          {incidentPageFilterTypeSelected}
+                        </MenuToggle>
+                      )}
+                      style={{ width: '145px' }}
+                    >
+                      <SelectOption
+                        value="Severity"
+                        isSelected={incidentPageFilterTypeSelected?.includes('Severity')}
+                      >
+                        Severity
+                      </SelectOption>
+                      <SelectOption
+                        value="State"
+                        isSelected={incidentPageFilterTypeSelected?.includes('State')}
+                      >
+                        State
+                      </SelectOption>
+                      <SelectOption
+                        value="Incident ID"
+                        isSelected={incidentPageFilterTypeSelected?.includes('Incident ID')}
+                      >
+                        Incident ID
+                      </SelectOption>
+                    </Select>
+                  </ToolbarItem>
+                  <ToolbarItem
+                    className={incidentPageFilterTypeSelected !== 'Severity' ? 'pf-m-hidden' : ''}
+                  >
+                    <IncidentFilterToolbarItem
+                      categoryName="Severity"
+                      toggleLabel="Severity filters"
+                      options={severityOptions}
+                      incidentsActiveFilters={incidentsActiveFilters}
+                      onDeleteIncidentFilterChip={onDeleteIncidentFilterChip}
+                      onDeleteGroupIncidentFilterChip={onDeleteGroupIncidentFilterChip}
+                      incidentFilterIsExpanded={filtersExpanded.severity}
+                      onIncidentFiltersSelect={onIncidentFiltersSelect}
+                      setIncidentIsExpanded={(isExpanded) =>
+                        setFiltersExpanded((prev) => ({ ...prev, severity: isExpanded }))
+                      }
+                      onIncidentFilterToggle={(ev) =>
+                        onFilterToggle(ev, 'severity', setFiltersExpanded)
+                      }
+                      dispatch={dispatch}
+                      showToolbarItem={incidentPageFilterTypeSelected?.includes('Severity')}
+                    />
+                  </ToolbarItem>
+                  <ToolbarItem
+                    className={incidentPageFilterTypeSelected !== 'State' ? 'pf-m-hidden' : ''}
+                  >
+                    <IncidentFilterToolbarItem
+                      categoryName="State"
+                      toggleLabel="State filters"
+                      options={stateOptions}
+                      incidentsActiveFilters={incidentsActiveFilters}
+                      onDeleteIncidentFilterChip={onDeleteIncidentFilterChip}
+                      onDeleteGroupIncidentFilterChip={onDeleteGroupIncidentFilterChip}
+                      incidentFilterIsExpanded={filtersExpanded.state}
+                      onIncidentFiltersSelect={onIncidentFiltersSelect}
+                      setIncidentIsExpanded={(isExpanded) =>
+                        setFiltersExpanded((prev) => ({ ...prev, state: isExpanded }))
+                      }
+                      onIncidentFilterToggle={(ev) =>
+                        onFilterToggle(ev, 'state', setFiltersExpanded)
+                      }
+                      dispatch={dispatch}
+                      showToolbarItem={incidentPageFilterTypeSelected?.includes('State')}
+                    />
+                  </ToolbarItem>
+                  <ToolbarItem
+                    className={
+                      incidentPageFilterTypeSelected !== 'Incident ID' ? 'pf-m-hidden' : ''
                     }
-                    onSelect={(event, selection) => {
-                      dispatch(setIncidentPageFilterType({ incidentPageFilterType: selection }));
-                      setFilterTypeExpanded((prev) => ({ ...prev, filterType: false }));
-                    }}
-                    shouldFocusToggleOnSelect
+                  >
+                    <IncidentFilterToolbarItem
+                      categoryName="Incident ID"
+                      toggleLabel="Incident ID filters"
+                      options={incidentIdFilterOptions}
+                      incidentsActiveFilters={incidentsActiveFilters}
+                      onDeleteIncidentFilterChip={onDeleteIncidentFilterChip}
+                      onDeleteGroupIncidentFilterChip={onDeleteGroupIncidentFilterChip}
+                      incidentFilterIsExpanded={filtersExpanded.groupId}
+                      onIncidentFiltersSelect={onIncidentFiltersSelect}
+                      setIncidentIsExpanded={(isExpanded) =>
+                        setFiltersExpanded((prev) => ({ ...prev, groupId: isExpanded }))
+                      }
+                      onIncidentFilterToggle={(ev) =>
+                        onFilterToggle(ev, 'groupId', setFiltersExpanded)
+                      }
+                      dispatch={dispatch}
+                      showToolbarItem={incidentPageFilterTypeSelected?.includes('Incident ID')}
+                    />
+                  </ToolbarItem>
+                </ToolbarGroup>
+                <ToolbarItem align={{ default: 'alignEnd' }}>
+                  <Select
+                    id="time-range-select"
+                    isOpen={daysFilterIsExpanded}
+                    selected={incidentsActiveFilters.days[0]}
+                    onSelect={onSelect}
+                    onOpenChange={(isOpen) => setDaysFilterIsExpanded(isOpen)}
                     toggle={(toggleRef) => (
                       <MenuToggle
                         ref={toggleRef}
-                        onClick={(ev) => onFilterToggle(ev, 'filterType', setFilterTypeExpanded)}
-                        isExpanded={filterTypeExpanded.filterType}
-                        icon={<FilterIcon />}
+                        onClick={onToggleClick}
+                        isExpanded={daysFilterIsExpanded}
                       >
-                        {incidentPageFilterTypeSelected}
+                        {`Last ${incidentsActiveFilters.days[0]}`}
                       </MenuToggle>
                     )}
-                    style={{ width: '145px' }}
+                    shouldFocusToggleOnSelect
                   >
-                    <SelectOption
-                      value="Severity"
-                      isSelected={incidentPageFilterTypeSelected?.includes('Severity')}
-                    >
-                      Severity
-                    </SelectOption>
-                    <SelectOption
-                      value="State"
-                      isSelected={incidentPageFilterTypeSelected?.includes('State')}
-                    >
-                      State
-                    </SelectOption>
-                    <SelectOption
-                      value="Incident ID"
-                      isSelected={incidentPageFilterTypeSelected?.includes('Incident ID')}
-                    >
-                      Incident ID
-                    </SelectOption>
+                    <SelectList>
+                      <SelectOption value="1 day">{t('Last 1 day')}</SelectOption>
+                      <SelectOption value="3 days">{t('Last 3 days')}</SelectOption>
+                      <SelectOption value="7 days">{t('Last 7 days')}</SelectOption>
+                      <SelectOption value="15 days">{t('Last 15 days')}</SelectOption>
+                    </SelectList>
                   </Select>
                 </ToolbarItem>
-                <ToolbarItem
-                  className={incidentPageFilterTypeSelected !== 'Severity' ? 'pf-m-hidden' : ''}
-                >
-                  <IncidentFilterToolbarItem
-                    categoryName="Severity"
-                    toggleLabel="Severity filters"
-                    options={severityOptions}
-                    incidentsActiveFilters={incidentsActiveFilters}
-                    onDeleteIncidentFilterChip={onDeleteIncidentFilterChip}
-                    onDeleteGroupIncidentFilterChip={onDeleteGroupIncidentFilterChip}
-                    incidentFilterIsExpanded={filtersExpanded.severity}
-                    onIncidentFiltersSelect={onIncidentFiltersSelect}
-                    setIncidentIsExpanded={(isExpanded) =>
-                      setFiltersExpanded((prev) => ({ ...prev, severity: isExpanded }))
-                    }
-                    onIncidentFilterToggle={(ev) =>
-                      onFilterToggle(ev, 'severity', setFiltersExpanded)
-                    }
-                    dispatch={dispatch}
-                    showToolbarItem={incidentPageFilterTypeSelected?.includes('Severity')}
-                  />
-                </ToolbarItem>
-                <ToolbarItem
-                  className={incidentPageFilterTypeSelected !== 'State' ? 'pf-m-hidden' : ''}
-                >
-                  <IncidentFilterToolbarItem
-                    categoryName="State"
-                    toggleLabel="State filters"
-                    options={stateOptions}
-                    incidentsActiveFilters={incidentsActiveFilters}
-                    onDeleteIncidentFilterChip={onDeleteIncidentFilterChip}
-                    onDeleteGroupIncidentFilterChip={onDeleteGroupIncidentFilterChip}
-                    incidentFilterIsExpanded={filtersExpanded.state}
-                    onIncidentFiltersSelect={onIncidentFiltersSelect}
-                    setIncidentIsExpanded={(isExpanded) =>
-                      setFiltersExpanded((prev) => ({ ...prev, state: isExpanded }))
-                    }
-                    onIncidentFilterToggle={(ev) => onFilterToggle(ev, 'state', setFiltersExpanded)}
-                    dispatch={dispatch}
-                    showToolbarItem={incidentPageFilterTypeSelected?.includes('State')}
-                  />
-                </ToolbarItem>
-                <ToolbarItem
-                  className={incidentPageFilterTypeSelected !== 'Incident ID' ? 'pf-m-hidden' : ''}
-                >
-                  <IncidentFilterToolbarItem
-                    categoryName="Incident ID"
-                    toggleLabel="Incident ID filters"
-                    options={incidentIdFilterOptions}
-                    incidentsActiveFilters={incidentsActiveFilters}
-                    onDeleteIncidentFilterChip={onDeleteIncidentFilterChip}
-                    onDeleteGroupIncidentFilterChip={onDeleteGroupIncidentFilterChip}
-                    incidentFilterIsExpanded={filtersExpanded.groupId}
-                    onIncidentFiltersSelect={onIncidentFiltersSelect}
-                    setIncidentIsExpanded={(isExpanded) =>
-                      setFiltersExpanded((prev) => ({ ...prev, groupId: isExpanded }))
-                    }
-                    onIncidentFilterToggle={(ev) =>
-                      onFilterToggle(ev, 'groupId', setFiltersExpanded)
-                    }
-                    dispatch={dispatch}
-                    showToolbarItem={incidentPageFilterTypeSelected?.includes('Incident ID')}
-                  />
-                </ToolbarItem>
-              </ToolbarGroup>
-              <ToolbarItem align={{ default: 'alignEnd' }}>
-                <Select
-                  id="time-range-select"
-                  isOpen={daysFilterIsExpanded}
-                  selected={incidentsActiveFilters.days[0]}
-                  onSelect={onSelect}
-                  onOpenChange={(isOpen) => setDaysFilterIsExpanded(isOpen)}
-                  toggle={(toggleRef) => (
-                    <MenuToggle
-                      ref={toggleRef}
-                      onClick={onToggleClick}
-                      isExpanded={daysFilterIsExpanded}
+              </ToolbarContent>
+            </Toolbar>
+            <Stack hasGutter>
+              <StackItem>
+                <Flex justifyContent={{ default: 'justifyContentFlexEnd' }}>
+                  <FlexItem>
+                    <Button
+                      variant="link"
+                      icon={hideCharts ? <CompressArrowsAltIcon /> : <CompressIcon />}
+                      onClick={() => setHideCharts(!hideCharts)}
                     >
-                      {`Last ${incidentsActiveFilters.days[0]}`}
-                    </MenuToggle>
-                  )}
-                  shouldFocusToggleOnSelect
-                >
-                  <SelectList>
-                    <SelectOption value="1 day">{t('Last 1 day')}</SelectOption>
-                    <SelectOption value="3 days">{t('Last 3 days')}</SelectOption>
-                    <SelectOption value="7 days">{t('Last 7 days')}</SelectOption>
-                    <SelectOption value="15 days">{t('Last 15 days')}</SelectOption>
-                  </SelectList>
-                </Select>
-              </ToolbarItem>
-            </ToolbarContent>
-          </Toolbar>
-          <Stack hasGutter>
-            <StackItem>
-              <Flex justifyContent={{ default: 'justifyContentFlexEnd' }}>
-                <FlexItem>
-                  <Button
-                    variant="link"
-                    icon={hideCharts ? <CompressArrowsAltIcon /> : <CompressIcon />}
-                    onClick={() => setHideCharts(!hideCharts)}
-                  >
-                    <span>{hideCharts ? t('Show graph') : t('Hide graph')}</span>
-                  </Button>
-                </FlexItem>
-              </Flex>
-            </StackItem>
-            {!hideCharts && (
-              <>
-                <StackItem>
-                  <IncidentsChart
-                    incidentsData={filteredData}
-                    chartDays={timeRanges.length}
-                    theme={theme}
-                    selectedGroupId={selectedGroupId}
-                    onIncidentClick={handleIncidentChartClick}
-                  />
-                </StackItem>
-                <StackItem>
-                  <AlertsChart theme={theme} />
-                </StackItem>
-              </>
-            )}
-            <StackItem>
-              <IncidentsTable />
-            </StackItem>
-          </Stack>
-        </PageSection>
-      )}
+                      <span>{hideCharts ? t('Show graph') : t('Hide graph')}</span>
+                    </Button>
+                  </FlexItem>
+                </Flex>
+              </StackItem>
+              {!hideCharts && (
+                <>
+                  <StackItem>
+                    <IncidentsChart
+                      incidentsData={filteredData}
+                      chartDays={timeRanges.length}
+                      theme={theme}
+                      selectedGroupId={selectedGroupId}
+                      onIncidentClick={handleIncidentChartClick}
+                    />
+                  </StackItem>
+                  <StackItem>
+                    <AlertsChart theme={theme} />
+                  </StackItem>
+                </>
+              )}
+              <StackItem>
+                <IncidentsTable />
+              </StackItem>
+            </Stack>
+          </>
+        )}
+      </PageSection>
     </>
   );
 };

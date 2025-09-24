@@ -332,9 +332,9 @@ export function generateAlertsDateArray(alertsData: Array<Alert>): Array<number>
   }
 
   // Add some padding to make the timeline more readable
-  // Padding: 10% of the time span, minimum 1 hour, maximum 24 hours
+  // Padding: 5% of the time span, minimum 1 hour, maximum 24 hours
   const timeSpan = maxTimestamp - minTimestamp;
-  const paddingSeconds = Math.max(3600, Math.min(86400, timeSpan * 0.1));
+  const paddingSeconds = Math.max(3600, Math.min(86400, timeSpan * 0.05));
 
   const paddedMin = minTimestamp - paddingSeconds;
   const paddedMax = maxTimestamp + paddingSeconds;
@@ -649,6 +649,36 @@ const onSelect = (event, selection, dispatch, incidentsActiveFilters, filterCate
       }),
     );
   });
+};
+
+/**
+ * Calculates the domain boundaries for the incidents chart timeline
+ * @param dateValues - Array of timestamp values representing the ticks
+ * @param chartData - Array of chart bar data containing incident information
+ * @returns Domain boundaries as Date tuple or undefined if no data
+ */
+export const calculateChartDomain = (
+  dateValues: Array<number>,
+  chartData: Array<Array<any>>,
+): [Date, Date] | undefined => {
+  if (dateValues.length === 0) return undefined;
+  let maxTimestamp = Math.max(...dateValues);
+
+  // Find the maximum timestamp from chartData (incident data points)
+  if (chartData.length > 0) {
+    const chartMaxTimestamp = Math.max(...chartData.flat().map((bar) => bar.y.getTime() / 1000));
+    maxTimestamp = Math.max(maxTimestamp, chartMaxTimestamp);
+  }
+
+  // Calculate minTimestamp based on maxTimestamp and number of days
+  const daysInSeconds = dateValues.length * 86400; // Convert days to seconds
+  const minTimestamp = maxTimestamp - daysInSeconds;
+
+  const timespan = maxTimestamp - minTimestamp;
+  const padding = timespan * 0.02;
+  const domainMin = new Date((minTimestamp - padding) * 1000);
+  const domainMax = new Date((maxTimestamp + padding) * 1000);
+  return [domainMin, domainMax] as [Date, Date];
 };
 
 export const parseUrlParams = (search) => {
