@@ -40,6 +40,8 @@ describe('BVT: Incidents - UI', () => {
   beforeEach(() => {
     cy.log('Navigate to Observe → Incidents');
     incidentsPage.goTo();
+    // Temporary workaround for testing against locally built instances.
+    cy.transformMetrics();
   });
 
   it('1. Admin perspective - Incidents page - Toolbar and charts toggle functionality', () => {
