@@ -174,6 +174,7 @@ print_current_config() {
   print_var "CYPRESS_MCP_CONSOLE_IMAGE" "${CYPRESS_MCP_CONSOLE_IMAGE-}"
   print_var "CYPRESS_TIMEZONE" "${CYPRESS_TIMEZONE-}"
   print_var "CYPRESS_SESSION" "${CYPRESS_SESSION-}"
+  print_var "CYPRESS_DEBUG" "${CYPRESS_DEBUG-}"
   print_var "CYPRESS_SKIP_KBV_INSTALL" "${CYPRESS_SKIP_KBV_INSTALL-}"
   print_var "CYPRESS_KBV_UI_INSTALL" "${CYPRESS_KBV_UI_INSTALL-}"
   print_var "CYPRESS_KONFLUX_KBV_BUNDLE_IMAGE" "${CYPRESS_KONFLUX_KBV_BUNDLE_IMAGE-}"
@@ -221,6 +222,7 @@ main() {
   local def_mcp_console_image=${CYPRESS_MCP_CONSOLE_IMAGE-}
   local def_timezone=${CYPRESS_TIMEZONE-}
   local def_session=${CYPRESS_SESSION-}
+  local def_debug=${CYPRESS_DEBUG-}
   local def_skip_kbv=${CYPRESS_SKIP_KBV_INSTALL-}
   local def_kbv_ui_install=${CYPRESS_KBV_UI_INSTALL-}
   local def_konflux_kbv_bundle=${CYPRESS_KONFLUX_KBV_BUNDLE_IMAGE-}
@@ -421,6 +423,11 @@ main() {
   local session="false"
   [[ "$session_ans" == "y" ]] && session="true"
 
+  local debug_ans
+  debug_ans=$(ask_yes_no "Enable Cypress debug mode? (sets CYPRESS_DEBUG)" "$(bool_to_default_yn "$def_debug")")
+  local debug="false"
+  [[ "$debug_ans" == "y" ]] && debug="true"
+
   local skip_kbv_install_ans
   skip_kbv_install_ans=$(ask_yes_no "Skip Openshift Virtualization installation? (sets CYPRESS_SKIP_KBV_INSTALL)" "$(bool_to_default_yn "$def_skip_kbv")")
   local skip_kbv_install="false"
@@ -465,7 +472,7 @@ main() {
     export_lines+=("export CYPRESS_TIMEZONE='$(printf %s "$timezone" | escape_for_single_quotes)'" )
   fi
   export_lines+=("export CYPRESS_SESSION='$(printf %s "$session" | escape_for_single_quotes)'" )
-
+  export_lines+=("export CYPRESS_DEBUG='$(printf %s "$debug" | escape_for_single_quotes)'" )
   if [[ -n "$skip_kbv_install" ]]; then
     export_lines+=("export CYPRESS_SKIP_KBV_INSTALL='$(printf %s "$skip_kbv_install" | escape_for_single_quotes)'" )
   fi
@@ -512,6 +519,7 @@ main() {
   [[ -n "${CYPRESS_MCP_CONSOLE_IMAGE-}$mcp_console_image" ]] && echo "  CYPRESS_MCP_CONSOLE_IMAGE=${CYPRESS_MCP_CONSOLE_IMAGE:-$mcp_console_image}"
   [[ -n "${CYPRESS_TIMEZONE-}$timezone" ]] && echo "  CYPRESS_TIMEZONE=${CYPRESS_TIMEZONE:-$timezone}"
   echo "  CYPRESS_SESSION=${CYPRESS_SESSION:-$session}"
+  echo "  CYPRESS_DEBUG=${CYPRESS_DEBUG:-$debug}"
   echo "  CYPRESS_SKIP_KBV_INSTALL=${CYPRESS_SKIP_KBV_INSTALL:-$skip_kbv_install}"
   echo "  CYPRESS_KBV_UI_INSTALL=${CYPRESS_KBV_UI_INSTALL:-$kbv_ui_install}"
   [[ -n "${CYPRESS_KONFLUX_KBV_BUNDLE_IMAGE-}$konflux_kbv_bundle" ]] && echo "  CYPRESS_KONFLUX_KBV_BUNDLE_IMAGE=${CYPRESS_KONFLUX_KBV_BUNDLE_IMAGE:-$konflux_kbv_bundle}"

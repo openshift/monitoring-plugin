@@ -200,8 +200,7 @@ const virtualizationUtils = {
         {
           cacheAcrossSpecs: true,
           validate() {
-            cy.visit('/');
-            cy.byTestID("username", {timeout: 120000}).should('be.visible');
+            cy.validateLogin();
             // Additional validation for Virtualization setup
             cy.visit('/k8s/all-namespaces/virtualization-overview');
             cy.url().should('include', '/k8s/all-namespaces/virtualization-overview');

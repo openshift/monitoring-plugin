@@ -72,6 +72,11 @@ Set the following var to enable Cypress session management for faster test execu
 export CYPRESS_SESSION=true
 ```
 
+Set the following var to enable Cypress debug mode to log in headless mode.
+```bash
+export CYPRESS_DEBUG=true
+```
+
 Integration Testing variables
 
 Set the var to skip Openshift Virtualization and all the required operators installation.
