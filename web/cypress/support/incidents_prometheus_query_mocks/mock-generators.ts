@@ -99,11 +99,7 @@ export function createIncidentMock(incidents: IncidentDefinition[], query?: stri
   // Parse query to extract label selectors if provided
   const queryLabels = query ? parseQueryLabels(query) : {};
 
-<<<<<<< HEAD
   const versioned_metric = query?.includes(NEW_METRIC_NAME) ? NEW_METRIC_NAME : OLD_METRIC_NAME;
-=======
-  const versioned_metric = query?.includes('cluster_health_components_map') ? 'cluster_health_components_map' : 'cluster:health:components:map';
->>>>>>> 2901fea (fix(cypress): metric change workaround)
 
   incidents.forEach(incident => {
     // Filter incidents based on query parameters
