@@ -40,6 +40,8 @@ describe('BVT: Incidents - UI', () => {
   beforeEach(() => {
     cy.log('Navigate to Observe → Incidents');
     incidentsPage.goTo();
+    // Temporary workaround for testing against locally built instances.
+    cy.transformMetrics();
   });
 
   it('1. Admin perspective - Incidents page - Toolbar and charts toggle functionality', () => {
@@ -86,6 +88,8 @@ describe('BVT: Incidents - UI', () => {
   it('5. Admin perspective - Incidents page - Traverse Incident Table', () => {
     cy.log('5.1 Traverse incident table');
     incidentsPage.clearAllFilters();
+    cy.mockIncidents([]);
+    incidentsPage.findIncidentWithAlert('TargetAlert').should('be.false');
 
     cy.log('5.2 Verify traversing incident table works when the alert is not present');
     cy.mockIncidentFixture('incident-scenarios/1-single-incident-firing-critical-and-warning-alerts.yaml');

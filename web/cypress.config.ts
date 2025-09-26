@@ -22,6 +22,7 @@ export default defineConfig({
     LOGIN_USERNAME: process.env.CYPRESS_LOGIN_USERS.split(',')[0].split(':')[0],
     LOGIN_PASSWORD: process.env.CYPRESS_LOGIN_USERS.split(',')[0].split(':')[1],
     TIMEZONE: process.env.CYPRESS_TIMEZONE || 'UTC',
+    MOCK_NEW_METRICS: process.env.CYPRESS_MOCK_NEW_METRICS || 'false',
     typeDelay: 200,
   },
   fixturesFolder: 'cypress/fixtures',

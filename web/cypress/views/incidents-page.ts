@@ -52,16 +52,27 @@ export const incidentsPage = {
       incidentsChartCard: () => cy.byTestID(DataTestIDs.IncidentsChart.Card),
       incidentsChartContainer: () => cy.byTestID(DataTestIDs.IncidentsChart.ChartContainer),
       incidentsChartLoadingSpinner: () => cy.byTestID(DataTestIDs.IncidentsChart.LoadingSpinner),
-          incidentsChartBars: () => cy.byTestID(DataTestIDs.IncidentsChart.ChartBars),
-    incidentsChartBar: (groupId: string) => cy.byTestID(`${DataTestIDs.IncidentsChart.ChartBar}-${groupId}`),
-    incidentsChartBarsVisiblePaths: () => cy.byTestID(DataTestIDs.IncidentsChart.ChartBars)
-      .find('g[role="presentation"][data-test*="incidents-chart-bar-"]')
-      .find('path[role="presentation"]')
-      .filter((index, element) => {
-        // Only include paths that are visible
-        const fillOpacity = Cypress.$(element).css('fill-opacity') || Cypress.$(element).attr('fill-opacity');
-        return parseFloat(fillOpacity || '0') > 0;
-            }),
+      incidentsChartBars: () => cy.byTestID(DataTestIDs.IncidentsChart.ChartBars),
+      incidentsChartBar: (groupId: string) => cy.byTestID(`${DataTestIDs.IncidentsChart.ChartBar}-${groupId}`),
+      incidentsChartBarsVisiblePaths: () => {
+        return cy.get('body').then($body => {
+          // We need to use the $body as both cases when the element is there or not are valid.
+          const exists = $body.find('g[role="presentation"][data-test*="incidents-chart-bar-"]').length > 0;
+          if (exists) {
+            return cy.get('g[role="presentation"][data-test*="incidents-chart-bar-"]')
+              .find('path[role="presentation"]')
+              .filter((index, element) => {
+                const fillOpacity = Cypress.$(element).css('fill-opacity') || Cypress.$(element).attr('fill-opacity');
+                return parseFloat(fillOpacity || '0') > 0;
+              });
+          } else {
+            cy.log('Chart bars were not found. Test continues.');
+            return cy.wrap([]);
+          }
+        });
+      },
+      incidentsChartBarsGroups: () => cy.byTestID(DataTestIDs.IncidentsChart.ChartBars)
+      .find('g[role="presentation"][data-test*="incidents-chart-bar-"]'),
       incidentsChartSvg: () => incidentsPage.elements.incidentsChartCard().find('svg'),
       
       alertsChartTitle: () => cy.byTestID(DataTestIDs.AlertsChart.Title),
@@ -73,7 +84,7 @@ export const incidentsPage = {
       // Tables and data
       incidentsTable: () => cy.byTestID(DataTestIDs.IncidentsTable.Table),
       incidentsTableRow: (index: number) => cy.byTestID(`${DataTestIDs.IncidentsTable.Row}-${index}`),
-      incidentsTableExpandButton: (index: number) => cy.byTestID(`${DataTestIDs.IncidentsTable.ExpandButton}-${index}`),
+      incidentsTableExpandButton: (index: number) => cy.byTestID(`${DataTestIDs.IncidentsTable.ExpandButton}-${index}`).find('button'),
       incidentsTableComponentCell: (index: number) => cy.byTestID(`${DataTestIDs.IncidentsTable.ComponentCell}-${index}`),
       incidentsTableSeverityCell: (index: number) => cy.byTestID(`${DataTestIDs.IncidentsTable.SeverityCell}-${index}`),
       incidentsTableStateCell: (index: number) => cy.byTestID(`${DataTestIDs.IncidentsTable.StateCell}-${index}`),
@@ -155,64 +166,31 @@ export const incidentsPage = {
 
   /**
    * Selects an incident from the chart by clicking on a bar at the specified index.
-   * Retries up to maxRetries times if the incidents table doesn't appear after clicking.
-   * Will deselect the bar and try again on failure.
    * 
    * @param index - Zero-based index of the incident bar to click (default: 0)
-   * @param maxRetries - Maximum number of retry attempts (default: 3)
    * @returns Promise that resolves when the incidents table is visible
    */
-  selectIncidentByBarIndex: (index = 0, maxRetries = 3) => {
-    cy.log(`incidentsPage.selectIncidentByBarIndex: ${index} (clicking visible path elements, max retries: ${maxRetries})`);
-
-    const attemptSelection = (attemptNumber: number): Cypress.Chainable => {
-      cy.log(`Attempt ${attemptNumber + 1}/${maxRetries + 1} to select incident bar ${index}`);
-      
-      return incidentsPage.elements.incidentsChartBarsVisiblePaths()
-        .should('have.length.greaterThan', index)
-        .then(($paths) => {
-          if (index >= $paths.length) {
-            throw new Error(`Index ${index} exceeds available paths (${$paths.length})`);
-          }
-          
-          return cy.wrap($paths.eq(index))
-            .click({ force: true });
-        })
-        .then(() => {
-          // Try to wait for the table with a shorter timeout to detect failure quickly
-          return incidentsPage.elements.incidentsTable()
-            .scrollIntoView()
-            .should('exist', { timeout: 8000 })
-            .then(
-              // @ts-ignore - Cypress supports two-callback then() at runtime
-              () => {
-                cy.log(`Successfully selected incident bar ${index} on attempt ${attemptNumber + 1}`);
-                return cy.wrap(true);
-                },
-              (error) => {
-                cy.log(`Attempt ${attemptNumber + 1} failed: ${error}`);
-                
-                if (attemptNumber >= maxRetries) {
-                  throw new Error(`Failed to select incident bar ${index} after ${maxRetries + 1} attempts. Last error: ${error}`);
-                }
-                
-                // Deselect by clicking the same bar again to reset state
-                cy.log(`Deselecting bar ${index} before retry`);
-                return incidentsPage.elements.incidentsChartBarsVisiblePaths()
-                  .then(($paths) => {
-                    return cy.wrap($paths.eq(index))
-                      .click({ force: true });
-                  })
-                  .then(() => {
-                    // Wait a bit for the deselection to take effect
-                    cy.wait(500);
-                    return attemptSelection(attemptNumber + 1);
-                  });
-              });
-        });
-    };
-
-    return attemptSelection(0);
+  selectIncidentByBarIndex: (index = 0) => {
+    cy.log(`incidentsPage.selectIncidentByBarIndex: ${index} (clicking visible path elements)`);
+    
+    return incidentsPage.elements.incidentsChartBarsVisiblePaths()
+      .should('have.length.greaterThan', index)
+      .then(($paths) => {
+        if (index >= $paths.length) {
+          throw new Error(`Index ${index} exceeds available paths (${$paths.length})`);
+        }
+        
+        return cy.wrap($paths.eq(index))
+          .click({ force: true });
+      })
+      .then(() => {
+        // The incident table loads the alerts for the previous incident first, then hides them and shows the alerts for the new incident
+        // This is why we need to wait for 2 seconds and can not use should or conditional testing semantics
+        cy.wait(2000);
+        return incidentsPage.elements.incidentsTable()
+          .scrollIntoView()
+          .should('exist');
+      });
   },
 
   deselectIncidentByBar: () => {
@@ -233,7 +211,7 @@ export const incidentsPage = {
 
   expandRow: (rowIndex = 0) => {
     cy.log('incidentsPage.expandRow');
-    cy.byTestID(`${DataTestIDs.IncidentsTable.ExpandButton}-${rowIndex}`)
+    incidentsPage.elements.incidentsTableExpandButton(rowIndex)
           .click({ force: true });
   },
 
