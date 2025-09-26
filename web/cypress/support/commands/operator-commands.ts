@@ -480,8 +480,7 @@ Cypress.Commands.add('beforeBlock', (MP: { namespace: string, operatorName: stri
       {
         cacheAcrossSpecs: true,
         validate() {
-          cy.visit('/');
-          cy.byTestID("username", {timeout: 120000}).should('be.visible');
+          cy.validateLogin();
         },
       },
     );
@@ -493,6 +492,8 @@ Cypress.Commands.add('beforeBlock', (MP: { namespace: string, operatorName: stri
     cy.task('clearDownloads');
     cy.log('Before block (no session) completed');
   }
+  cy.aboutModal();
+  cy.podImage('monitoring-plugin', MP.namespace);
   });
   
   Cypress.Commands.add('cleanupMP', (MP: { namespace: string, operatorName: string }) => {
@@ -528,8 +529,7 @@ Cypress.Commands.add('beforeBlock', (MP: { namespace: string, operatorName: stri
         {
           cacheAcrossSpecs: true,
           validate() {
-            cy.visit('/');
-            cy.byTestID("username", {timeout: 120000}).should('be.visible');
+            cy.validateLogin();
             // Additional validation for COO setup
             cy.visit('/monitoring/v2/dashboards');
             cy.url().should('include', '/monitoring/v2/dashboards');
@@ -550,6 +550,9 @@ Cypress.Commands.add('beforeBlock', (MP: { namespace: string, operatorName: stri
       operatorUtils.RemoveClusterAdminRole();
       cy.log('Before block COO (no session) completed');
     }
+    cy.aboutModal();
+    cy.podImage('monitoring-plugin', MP.namespace);
+    cy.podImage('monitoring', MCP.namespace);
   });
   
   Cypress.Commands.add('cleanupCOO', (MCP: { namespace: string, operatorName: string, packageName: string }, MP: { namespace: string, operatorName: string }) => {

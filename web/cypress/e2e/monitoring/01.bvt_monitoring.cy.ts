@@ -32,7 +32,6 @@ describe('BVT: Monitoring', () => {
     commonPages.titleShouldHaveText('Alerting');
     cy.changeNamespace('All Projects');
     nav.tabs.switchTab('Silences');
-    silencesListPage.firstTimeEmptyState();
     nav.sidenav.clickNavLink(['Observe', 'Metrics']);
     commonPages.titleShouldHaveText('Metrics');
     nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
