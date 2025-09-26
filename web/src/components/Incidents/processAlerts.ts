@@ -166,16 +166,7 @@ export function processAlerts(
       }
       const matchingRule = alertingRules.find((rule) => rule.name === alert.metric.alertname);
 
-      // Create a new timestamp 5 minutes (300 seconds) earlier than the first timestamp
-      const originalAlertsStartFiring = sortedValues[0][0] * 1000;
-      const newFirstTimestamp = sortedValues[0][0] - 5 * 60;
-
-      // Create a copy of the first value from the array of timestamps and update its timestamp
-      const newFirstValue: [number, string] = [newFirstTimestamp, sortedValues[0][1]];
-      // Unshift the new value to the beginning of the sortedValues array
-      sortedValues.unshift(newFirstValue);
-
-      const alertsStartFiring = originalAlertsStartFiring - 5 * 60 * 1000;
+      const alertsStartFiring = sortedValues[0][0] * 1000;
       const alertsEndFiring = sortedValues[sortedValues.length - 1][0] * 1000;
       const resolved = Date.now() - alertsEndFiring > 10 * 60 * 1000;
 
