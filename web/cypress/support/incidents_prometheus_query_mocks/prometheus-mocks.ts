@@ -7,9 +7,14 @@ declare global {
     interface Chainable {
       mockIncidents(incidents: IncidentDefinition[]): Chainable<Element>;
       mockIncidentFixture(fixturePath: string): Chainable<Element>;
+      transformMetrics(): Chainable<Element>;
     }
   }
 }
+
+export const NEW_METRIC_NAME = 'cluster_health_components_map';
+export const OLD_METRIC_NAME = 'cluster:health:components:map';
+const MOCK_QUERY = '/api/prometheus/api/v1/query_range*';
 
 /**
  * Main mocking function - sets up cy.intercept for Prometheus query_range API
@@ -17,7 +22,7 @@ declare global {
  * @param incidents 
  */
 export function mockPrometheusQueryRange(incidents: IncidentDefinition[]): void {
-  cy.intercept('GET', '/api/prometheus/api/v1/query_range*', (req) => {
+  cy.intercept('GET', MOCK_QUERY, (req) => {
     const url = new URL(req.url, window.location.origin);
     const query = url.searchParams.get('query') || '';
 
@@ -25,14 +30,17 @@ export function mockPrometheusQueryRange(incidents: IncidentDefinition[]): void 
     console.log(`Query: ${query}`);
 
     let results: any[];
+
+    const versioned_metric = query.includes(NEW_METRIC_NAME) 
+      ? NEW_METRIC_NAME: OLD_METRIC_NAME;
     
-    if (!(query.includes('cluster:health:components:map') || query.includes('ALERTS{'))) {
+    if (!(query.includes(versioned_metric) || query.includes('ALERTS{'))) {
       console.log(`Passing through non-mocked query`);
       req.continue();
       return;
     }
 
-    results = query.includes('cluster:health:components:map') ? createIncidentMock(incidents, query) : createAlertDetailsMock(incidents, query);
+    results = query.includes(versioned_metric) ? createIncidentMock(incidents, query) : createAlertDetailsMock(incidents, query);
     const response: PrometheusResponse = {
         status: 'success',
         data: {
@@ -85,4 +93,46 @@ Cypress.Commands.add('mockIncidentFixture', (fixturePath: string) => {
 
   // The mocking is not applied until the page is reloaded and the components fetch the new data
   cy.reload();
+});
+
+Cypress.Commands.add('transformMetrics', () => {
+  cy.log('=== SETTING UP METRIC TRANSFORMATION ===');
+  const mockNewMetrics = Cypress.env('MOCK_NEW_METRICS') === true;
+  
+  if (!mockNewMetrics) {
+    cy.log('CYPRESS_MOCK_NEW_METRICS is disabled, skipping transformation');
+    return;
+  }
+
+  cy.log('Transforming old metric queries to new format');
+  
+  cy.intercept('GET', MOCK_QUERY, (req) => {
+    const url = new URL(req.url, window.location.origin);
+    const query = url.searchParams.get('query') || '';
+    const hasNewMetric = query.includes(NEW_METRIC_NAME);
+    
+    if (hasNewMetric) {
+      const transformedQuery = query.replace(new RegExp(NEW_METRIC_NAME, 'g'), OLD_METRIC_NAME);
+      console.log(`Transforming metric query: ${query} -> ${transformedQuery}`);
+      
+      // Update the URL with the transformed query
+      url.searchParams.set('query', transformedQuery);
+      req.url = url.toString();
+      
+      // Also transform the response to use new metric names
+      req.continue((res) => {
+        if (res.body?.data?.result) {
+          res.body.data.result.forEach((result: any) => {
+            if (result?.metric?.__name__ === OLD_METRIC_NAME) {
+              console.log(`Transforming response metric name: ${OLD_METRIC_NAME} -> ${NEW_METRIC_NAME}`);
+              result.metric.__name__ = NEW_METRIC_NAME;
+            }
+          });
+        }
+        res.send();
+      });
+    } else {
+      req.continue();
+    }
+  });
 });

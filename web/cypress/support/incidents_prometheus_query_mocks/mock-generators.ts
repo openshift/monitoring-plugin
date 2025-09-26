@@ -2,6 +2,7 @@
 import { IncidentDefinition, PrometheusResult } from './types';
 import { severityToValue, parseQueryLabels } from './utils';
 import { nowInClusterTimezone } from './utils';
+import { NEW_METRIC_NAME, OLD_METRIC_NAME } from './prometheus-mocks';
 
 /**
  * Generates 5-minute interval timestamps between start and end time
@@ -98,6 +99,8 @@ export function createIncidentMock(incidents: IncidentDefinition[], query?: stri
   // Parse query to extract label selectors if provided
   const queryLabels = query ? parseQueryLabels(query) : {};
 
+  const versioned_metric = query?.includes(NEW_METRIC_NAME) ? NEW_METRIC_NAME : OLD_METRIC_NAME;
+
   incidents.forEach(incident => {
     // Filter incidents based on query parameters
     if (queryLabels.group_id) {
@@ -113,7 +116,7 @@ export function createIncidentMock(incidents: IncidentDefinition[], query?: stri
     
     incident.alerts.forEach(alert => {
       const metric: Record<string, string> = {
-        __name__: 'cluster:health:components:map',
+        __name__: versioned_metric,
         component: incident.component,
         layer: incident.layer,
         group_id: incident.id,
