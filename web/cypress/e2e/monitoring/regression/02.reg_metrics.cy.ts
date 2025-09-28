@@ -18,6 +18,7 @@ describe('Regression: Monitoring - Metrics', () => {
   it('1. Admin perspective - Metrics', () => {
     cy.log('1.1 Metrics page loaded');
     nav.sidenav.clickNavLink(['Observe', 'Metrics']);
+    cy.changeNamespace('All Projects');
     metricsPage.shouldBeLoaded();
 
     cy.log('1.2 Units dropdown');

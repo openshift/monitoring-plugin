@@ -494,6 +494,7 @@ Cypress.Commands.add('beforeBlock', (MP: { namespace: string, operatorName: stri
   }
   cy.aboutModal();
   cy.podImage('monitoring-plugin', MP.namespace);
+  cy.changeNamespace('All Projects');
   });
   
   Cypress.Commands.add('cleanupMP', (MP: { namespace: string, operatorName: string }) => {
@@ -553,6 +554,7 @@ Cypress.Commands.add('beforeBlock', (MP: { namespace: string, operatorName: stri
     cy.aboutModal();
     cy.podImage('monitoring-plugin', MP.namespace);
     cy.podImage('monitoring', MCP.namespace);
+    cy.changeNamespace('All Projects');
   });
   
   Cypress.Commands.add('cleanupCOO', (MCP: { namespace: string, operatorName: string, packageName: string }, MP: { namespace: string, operatorName: string }) => {
