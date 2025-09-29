@@ -7,11 +7,9 @@ import {
   SnackbarProvider,
   typography,
 } from '@perses-dev/components';
-import { ThemeProvider } from '@mui/material';
+import { ThemeOptions, ThemeProvider } from '@mui/material';
 import {
   DataQueriesProvider,
-  dynamicImportPluginLoader,
-  PluginModuleResource,
   PluginRegistry,
   TimeRangeProviderWithQueryParams,
   useInitialRefreshInterval,
@@ -25,8 +23,6 @@ import {
   DashboardResource,
   UnknownSpec,
 } from '@perses-dev/core';
-import panelsResource from '@perses-dev/panels-plugin/plugin.json';
-import prometheusResource from '@perses-dev/prometheus-plugin/plugin.json';
 import {
   DashboardProvider,
   DatasourceStoreProvider,
@@ -35,12 +31,18 @@ import {
 import { ChartThemeColor, getThemeColors } from '@patternfly/react-charts';
 import { usePatternFlyTheme } from './hooks/usePatternflyTheme';
 import { CachedDatasourceAPI } from './perses/datasource-api';
+import {
+  chart_color_blue_100,
+  chart_color_blue_200,
+  chart_color_blue_300,
+} from '@patternfly/react-tokens';
 import { OcpDatasourceApi } from './datasource-api';
 import { PERSES_PROXY_BASE_PATH, useFetchPersesDashboard } from './perses-client';
 import { QueryParams } from '../../query-params';
 import { StringParam, useQueryParam } from 'use-query-params';
 import { useTranslation } from 'react-i18next';
 import { LoadingBox } from '../../../components/console/console-shared/src/components/loading/LoadingBox';
+import { pluginLoader } from './persesPluginsLoader';
 
 // Override eChart defaults with PatternFly colors.
 const patternflyBlue300 = '#2b9af3';
@@ -58,24 +60,142 @@ const patternflyChartsMultiUnorderedPalette = getThemeColors(
   return match ? [match[0]] : [];
 });
 
-// PluginRegistry configuration to allow access to
-// visualization panels/charts (@perses-dev/panels-plugin)
-// and data handlers for prometheus (@perses-dev/prometheus-plugin).
-const pluginLoader = dynamicImportPluginLoader([
-  {
-    resource: panelsResource as PluginModuleResource,
-    importPlugin: () => import('@perses-dev/panels-plugin'),
-  },
-  {
-    resource: prometheusResource as PluginModuleResource,
-    importPlugin: () => import('@perses-dev/prometheus-plugin'),
-  },
-]);
-
 interface PersesWrapperProps {
   children?: React.ReactNode;
   project: string;
 }
+
+const mapPatternFlyThemeToMUI = (theme: 'light' | 'dark'): ThemeOptions => {
+  const isDark = theme === 'dark';
+  const primaryTextColor = isDark ? '#e0e0e0' : '#151515';
+  const primaryBackgroundColor = 'var(--pf-v5-global--BackgroundColor--100)';
+
+  return {
+    typography: {
+      ...typography,
+      fontFamily: 'var(--pf-t--global--font--family--body)',
+      subtitle1: {
+        // Card Heading
+        fontFamily: 'var(--pf-t--global--font--family--heading)',
+        fontWeight: 'var(--pf-t--global--font--weight--heading--default)',
+        lineHeight: 'var(--pf-v5-global--LineHeight--md)',
+        fontSize: 'var(--pf-t--global--font--size--heading--sm)',
+        padding: 'var(--pf-v5-global--spacer--lg)',
+        paddingBottom: 'var(--pf-v5-global--spacer--md)',
+      },
+      h2: {
+        // Panel Group Heading
+        color: 'var(--pf-t--global--text--color--brand--default)',
+        fontWeight: 'var(--pf-t--global--font--weight--body--default)',
+        fontSize: 'var(--pf-t--global--font--size--600)',
+      },
+    },
+    palette: {
+      primary: {
+        light: chart_color_blue_100.value,
+        main: chart_color_blue_200.value,
+        dark: chart_color_blue_300.value,
+        contrastText: primaryTextColor,
+      },
+      secondary: {
+        main: primaryTextColor,
+        light: primaryTextColor,
+        dark: primaryTextColor,
+      },
+      background: {
+        default: primaryBackgroundColor,
+        paper: primaryBackgroundColor,
+        navigation: primaryBackgroundColor,
+        code: primaryBackgroundColor,
+        tooltip: primaryBackgroundColor,
+        lighter: primaryBackgroundColor,
+        border: primaryBackgroundColor,
+      },
+      text: {
+        primary: primaryTextColor,
+        secondary: primaryTextColor,
+        disabled: primaryTextColor,
+        navigation: primaryTextColor,
+        accent: primaryTextColor,
+        link: primaryTextColor,
+        linkHover: primaryTextColor,
+      },
+    },
+    components: {
+      MuiTypography: {
+        styleOverrides: {
+          root: {
+            // Custom Time Range Selector
+            '&.MuiClock-meridiemText': {
+              color: primaryTextColor,
+            },
+          },
+        },
+      },
+      MuiSvgIcon: {
+        styleOverrides: {
+          root: {
+            color: theme === 'dark' ? '#e0e0e0' : '#151515',
+          },
+        },
+      },
+      MuiCard: {
+        styleOverrides: {
+          root: {
+            borderColor: 'var(--pf-t--global--border--color--default)',
+            border: 'none',
+            backgroundColor: primaryBackgroundColor,
+          },
+        },
+      },
+      MuiCardHeader: {
+        styleOverrides: {
+          root: {
+            '&.MuiCardHeader-root': {
+              borderBottom: 'none',
+              paddingBlockEnd: 'var(--pf-t--global--spacer--md)',
+              paddingBlockStart: 'var(--pf-t--global--spacer--lg)',
+              paddingLeft: 'var(--pf-t--global--spacer--lg)',
+              paddingRight: 'var(--pf-t--global--spacer--lg)',
+            },
+          },
+        },
+      },
+      MuiCardContent: {
+        styleOverrides: {
+          root: {
+            '&.MuiCardContent-root': {
+              borderTop: 'none',
+              '&:last-child': {
+                paddingBottom: 'var(--pf-t--global--spacer--lg)',
+                paddingLeft: 'var(--pf-t--global--spacer--lg)',
+                paddingRight: 'var(--pf-t--global--spacer--lg)',
+              },
+            },
+          },
+        },
+      },
+      MuiOutlinedInput: {
+        styleOverrides: {
+          notchedOutline: {
+            borderColor: 'var(--pf-global--BorderColor--light-100)',
+          },
+          input: {
+            // Dashboard Variables >> Text Variable
+            padding: '8.5px 14px',
+          },
+        },
+      },
+      MuiSelect: {
+        styleOverrides: {
+          icon: {
+            color: primaryTextColor,
+          },
+        },
+      },
+    },
+  };
+};
 
 export function PersesWrapper({ children, project }: PersesWrapperProps) {
   const { theme } = usePatternFlyTheme();
@@ -89,6 +209,7 @@ export function PersesWrapper({ children, project }: PersesWrapperProps) {
     shape: {
       borderRadius: 0,
     },
+    ...mapPatternFlyThemeToMUI(theme),
   });
 
   const chartsTheme: PersesChartsTheme = generateChartsTheme(muiTheme, {
