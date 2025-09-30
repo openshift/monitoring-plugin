@@ -173,6 +173,7 @@ print_current_config() {
   print_var "CYPRESS_CUSTOM_COO_BUNDLE_IMAGE" "${CYPRESS_CUSTOM_COO_BUNDLE_IMAGE-}"
   print_var "CYPRESS_MCP_CONSOLE_IMAGE" "${CYPRESS_MCP_CONSOLE_IMAGE-}"
   print_var "CYPRESS_TIMEZONE" "${CYPRESS_TIMEZONE-}"
+  print_var "CYPRESS_MOCK_NEW_METRICS" "${CYPRESS_MOCK_NEW_METRICS-}"
   print_var "CYPRESS_SESSION" "${CYPRESS_SESSION-}"
   print_var "CYPRESS_DEBUG" "${CYPRESS_DEBUG-}"
   print_var "CYPRESS_SKIP_KBV_INSTALL" "${CYPRESS_SKIP_KBV_INSTALL-}"
@@ -221,6 +222,7 @@ main() {
   local def_custom_coo_bundle=${CYPRESS_CUSTOM_COO_BUNDLE_IMAGE-}
   local def_mcp_console_image=${CYPRESS_MCP_CONSOLE_IMAGE-}
   local def_timezone=${CYPRESS_TIMEZONE-}
+  local def_mock_new_metrics=${CYPRESS_MOCK_NEW_METRICS-}
   local def_session=${CYPRESS_SESSION-}
   local def_debug=${CYPRESS_DEBUG-}
   local def_skip_kbv=${CYPRESS_SKIP_KBV_INSTALL-}
@@ -418,6 +420,11 @@ main() {
   local timezone
   timezone=$(ask "Cluster timezone (CYPRESS_TIMEZONE)" "${def_timezone:-UTC}")
 
+  local mock_new_metrics_ans
+  mock_new_metrics_ans=$(ask_yes_no "Transform old metric names to new format in mocks? (sets CYPRESS_MOCK_NEW_METRICS)" "$(bool_to_default_yn "$def_mock_new_metrics")")
+  local mock_new_metrics="false"
+  [[ "$mock_new_metrics_ans" == "y" ]] && mock_new_metrics="true"
+
   local session_ans
   session_ans=$(ask_yes_no "Enable Cypress session management for faster test execution? (sets CYPRESS_SESSION)" "$(bool_to_default_yn "$def_session")")
   local session="false"
@@ -471,6 +478,7 @@ main() {
   if [[ -n "$timezone" ]]; then
     export_lines+=("export CYPRESS_TIMEZONE='$(printf %s "$timezone" | escape_for_single_quotes)'" )
   fi
+  export_lines+=("export CYPRESS_MOCK_NEW_METRICS='$(printf %s "$mock_new_metrics" | escape_for_single_quotes)'" )
   export_lines+=("export CYPRESS_SESSION='$(printf %s "$session" | escape_for_single_quotes)'" )
   export_lines+=("export CYPRESS_DEBUG='$(printf %s "$debug" | escape_for_single_quotes)'" )
   if [[ -n "$skip_kbv_install" ]]; then
@@ -518,6 +526,7 @@ main() {
   [[ -n "${CYPRESS_CUSTOM_COO_BUNDLE_IMAGE-}$custom_coo_bundle" ]] && echo "  CYPRESS_CUSTOM_COO_BUNDLE_IMAGE=${CYPRESS_CUSTOM_COO_BUNDLE_IMAGE:-$custom_coo_bundle}"
   [[ -n "${CYPRESS_MCP_CONSOLE_IMAGE-}$mcp_console_image" ]] && echo "  CYPRESS_MCP_CONSOLE_IMAGE=${CYPRESS_MCP_CONSOLE_IMAGE:-$mcp_console_image}"
   [[ -n "${CYPRESS_TIMEZONE-}$timezone" ]] && echo "  CYPRESS_TIMEZONE=${CYPRESS_TIMEZONE:-$timezone}"
+  echo "  CYPRESS_MOCK_NEW_METRICS=${CYPRESS_MOCK_NEW_METRICS:-$mock_new_metrics}"
   echo "  CYPRESS_SESSION=${CYPRESS_SESSION:-$session}"
   echo "  CYPRESS_DEBUG=${CYPRESS_DEBUG:-$debug}"
   echo "  CYPRESS_SKIP_KBV_INSTALL=${CYPRESS_SKIP_KBV_INSTALL:-$skip_kbv_install}"
