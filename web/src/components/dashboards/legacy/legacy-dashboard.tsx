@@ -39,7 +39,7 @@ import {
 } from '../../hooks/usePerspective';
 import KebabDropdown from '../../kebab-dropdown';
 import { MonitoringState } from '../../../store/store';
-import { evaluateVariableTemplate } from './legacy-variable-dropdowns';
+import { evaluateVariableTemplate, Variable } from './legacy-variable-dropdowns';
 import { Panel, Row } from './types';
 import { QueryParams } from '../../query-params';
 import { CustomDataSource } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/dashboard-data-source';
@@ -104,7 +104,6 @@ const Card: FC<CardProps> = memo(({ panel, perspective }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { plugin } = useMonitoring();
 
-  const [namespace] = useActiveNamespace();
   const pollInterval = useSelector(
     (state: MonitoringState) => getObserveState(plugin, state).dashboards.pollInterval,
   );
@@ -114,6 +113,9 @@ const Card: FC<CardProps> = memo(({ panel, perspective }) => {
   const variables = useSelector(
     (state: MonitoringState) => getObserveState(plugin, state).dashboards.variables,
   );
+
+  // Directly use the namespace variable to prevent desync
+  const namespace = variables?.['namespace'] as Variable;
 
   const ref = useRef();
   const [, wasEverVisible] = useIsVisible(ref);
@@ -281,7 +283,9 @@ const Card: FC<CardProps> = memo(({ panel, perspective }) => {
   if (!rawQueries.length) {
     return null;
   }
-  const queries = rawQueries.map((expr) => evaluateVariableTemplate(expr, variables, timespan));
+  const queries = rawQueries.map((expr) =>
+    evaluateVariableTemplate(expr, variables, timespan, namespace?.value ?? ''),
+  );
   const isLoading =
     (_.some(queries, _.isUndefined) && dataSourceInfoLoading) || customDataSource === undefined;
 
@@ -353,7 +357,7 @@ const Card: FC<CardProps> = memo(({ panel, perspective }) => {
                       panel={panel}
                       pollInterval={pollInterval}
                       query={queries[0]}
-                      namespace={namespace}
+                      namespace={namespace?.value ?? ''}
                       customDataSource={customDataSource}
                     />
                   )}
@@ -362,7 +366,7 @@ const Card: FC<CardProps> = memo(({ panel, perspective }) => {
                       panel={panel}
                       pollInterval={pollInterval}
                       queries={queries}
-                      namespace={namespace}
+                      namespace={namespace?.value ?? ''}
                       customDataSource={customDataSource}
                     />
                   )}

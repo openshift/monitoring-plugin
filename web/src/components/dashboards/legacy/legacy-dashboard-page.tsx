@@ -1,4 +1,4 @@
-import { Overview } from '@openshift-console/dynamic-plugin-sdk';
+import { NamespaceBar, Overview } from '@openshift-console/dynamic-plugin-sdk';
 import type { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom-v5-compat';
@@ -12,16 +12,14 @@ import ErrorAlert from './error';
 import { DashboardSkeletonLegacy } from './dashboard-skeleton-legacy';
 import { useLegacyDashboards } from './useLegacyDashboards';
 import { MonitoringProvider } from '../../../contexts/MonitoringContext';
+import { useOpenshiftProject } from './useOpenshiftProject';
 
 type LegacyDashboardsPageProps = {
   urlBoard: string;
-  namespace?: string;
 };
 
-const LegacyDashboardsPage_: FC<LegacyDashboardsPageProps> = ({
-  urlBoard,
-  namespace, // only used in developer perspective
-}) => {
+const LegacyDashboardsPage_: FC<LegacyDashboardsPageProps> = ({ urlBoard }) => {
+  const { project, setProject } = useOpenshiftProject();
   const {
     legacyDashboardsError,
     legacyRows,
@@ -29,28 +27,31 @@ const LegacyDashboardsPage_: FC<LegacyDashboardsPageProps> = ({
     legacyDashboardsMetadata,
     changeLegacyDashboard,
     legacyDashboard,
-  } = useLegacyDashboards(namespace, urlBoard);
+  } = useLegacyDashboards(project, urlBoard);
   const { perspective } = usePerspective();
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
-    <DashboardSkeletonLegacy
-      boardItems={legacyDashboardsMetadata}
-      changeBoard={changeLegacyDashboard}
-      dashboardName={legacyDashboard}
-    >
-      <Overview>
-        {legacyDashboardsLoading ? (
-          <LoadingInline />
-        ) : legacyDashboardsError ? (
-          <ErrorAlert
-            error={{ message: legacyDashboardsError, name: t('Error Loading Dashboards') }}
-          />
-        ) : (
-          <LegacyDashboard rows={legacyRows} perspective={perspective} />
-        )}
-      </Overview>
-    </DashboardSkeletonLegacy>
+    <>
+      <NamespaceBar onNamespaceChange={(namespace) => setProject(namespace)} />
+      <DashboardSkeletonLegacy
+        boardItems={legacyDashboardsMetadata}
+        changeBoard={changeLegacyDashboard}
+        dashboardName={legacyDashboard}
+      >
+        <Overview>
+          {legacyDashboardsLoading ? (
+            <LoadingInline />
+          ) : legacyDashboardsError ? (
+            <ErrorAlert
+              error={{ message: legacyDashboardsError, name: t('Error Loading Dashboards') }}
+            />
+          ) : (
+            <LegacyDashboard rows={legacyRows} perspective={perspective} />
+          )}
+        </Overview>
+      </DashboardSkeletonLegacy>
+    </>
   );
 };
 
@@ -62,7 +63,7 @@ export const MpCmoLegacyDashboardsPage: FC = () => {
   return (
     <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
       <QueryParamProvider adapter={ReactRouter5Adapter}>
-        <LegacyDashboardsPageWithFallback urlBoard={params?.dashboardName} namespace={params?.ns} />
+        <LegacyDashboardsPageWithFallback urlBoard={params?.dashboardName} />
       </QueryParamProvider>
     </MonitoringProvider>
   );
