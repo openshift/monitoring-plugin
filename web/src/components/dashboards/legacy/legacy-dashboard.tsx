@@ -1,7 +1,6 @@
 import * as _ from 'lodash-es';
 import {
   RedExclamationCircleIcon,
-  useActiveNamespace,
   useResolvedExtensions,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
@@ -70,7 +69,6 @@ const QueryBrowserLink = ({
   if (units) {
     params.set(QueryParams.Units, units);
   }
-  const [namespace] = useActiveNamespace();
 
   if (customDataSourceName) {
     params.set('datasource', customDataSourceName);
@@ -79,7 +77,7 @@ const QueryBrowserLink = ({
   return (
     <Link
       aria-label={t('Inspect')}
-      to={getMutlipleQueryBrowserUrl(perspective, params, namespace)}
+      to={getMutlipleQueryBrowserUrl(perspective, params)}
       data-test={LegacyDashboardPageTestIDs.Inspect}
     >
       {t('Inspect')}

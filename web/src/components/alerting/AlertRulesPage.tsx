@@ -97,7 +97,7 @@ const RuleTableRow: FC<RowProps<Rule>> = ({ obj }) => {
           </FlexItem>
           <FlexItem>
             <Link
-              to={getRuleUrl(perspective, obj, obj.labels.namespace)}
+              to={getRuleUrl(perspective, obj)}
               data-test={DataTestIDs.AlertingRuleResourceLink}
             >
               <Truncate content={obj.name} />

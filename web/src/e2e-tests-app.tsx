@@ -16,7 +16,7 @@ import { MpCmoSilencesDetailsPage } from './components/alerting/SilencesDetailsP
 import { MpCmoSilencesPage } from './components/alerting/SilencesPage';
 import { MpCmoLegacyDashboardsPage } from './components/dashboards/legacy/legacy-dashboard-page';
 import { MpCmoMetricsPage } from './components/MetricsPage';
-import PrometheusRedirectPage from './components/prometheus-redirect-page';
+import PrometheusRedirectPage from './components/redirects/prometheus-redirect-page';
 import { MpCmoTargetsPage } from './components/targets-page';
 import i18n from './i18n';
 import ObserveReducers from './store/reducers';
