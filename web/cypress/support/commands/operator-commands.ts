@@ -441,6 +441,18 @@ const operatorUtils = {
     cy.executeAndDelete(
       `oc adm policy remove-cluster-role-from-user cluster-admin ${Cypress.env('LOGIN_USERNAME')} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
     );
+  },
+
+  collectDebugInfo(MP: { namespace: string }, MCP?: { namespace: string }): void {
+    if (!Cypress.env('DEBUG')) {
+      cy.log('DEBUG not set. Skipping operator debug information collection.');
+      return;
+    }
+    cy.aboutModal();
+    cy.podImage('monitoring-plugin', MP.namespace);
+    if (MCP && MCP.namespace) {
+      cy.podImage('monitoring', MCP.namespace);
+    }
   }
 };
 
@@ -459,6 +471,7 @@ Cypress.Commands.add('beforeBlock', (MP: { namespace: string, operatorName: stri
         // Then set up fresh
         operatorAuthUtils.loginAndAuthNoSession();
         operatorUtils.setupMonitoringPluginImage(MP);
+        operatorUtils.collectDebugInfo(MP);
         cy.task('clearDownloads');
         cy.log('Before block (session) completed');
       },
@@ -474,11 +487,10 @@ Cypress.Commands.add('beforeBlock', (MP: { namespace: string, operatorName: stri
     cy.cleanupMP(MP);
     operatorAuthUtils.loginAndAuth();
     operatorUtils.setupMonitoringPluginImage(MP);
+    operatorUtils.collectDebugInfo(MP);
     cy.task('clearDownloads');
     cy.log('Before block (no session) completed');
   }
-  cy.aboutModal();
-  cy.podImage('monitoring-plugin', MP.namespace);
   });
   
   Cypress.Commands.add('cleanupMP', (MP: { namespace: string, operatorName: string }) => {
@@ -524,9 +536,6 @@ Cypress.Commands.add('beforeBlock', (MP: { namespace: string, operatorName: stri
       cy.setupCOO(MCP, MP);
       cy.log('Before block COO (no session) completed');
     }
-    cy.aboutModal();
-    cy.podImage('monitoring-plugin', MP.namespace);
-    cy.podImage('monitoring', MCP.namespace);
   });
   
   Cypress.Commands.add('cleanupCOO', (MCP: { namespace: string, operatorName: string, packageName: string }, MP: { namespace: string, operatorName: string }) => {
@@ -551,6 +560,7 @@ Cypress.Commands.add('beforeBlock', (MP: { namespace: string, operatorName: stri
     operatorUtils.setupDashboardsAndPlugins(MCP);
     operatorUtils.setupMonitoringPluginImage(MP);
     operatorUtils.RemoveClusterAdminRole();
+    operatorUtils.collectDebugInfo(MP, MCP);
   });
 
   Cypress.Commands.add('RemoveClusterAdminRole', () => {
