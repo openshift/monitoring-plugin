@@ -134,7 +134,7 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
       const queryArguments = getAllQueryArguments();
       const params = new URLSearchParams(queryArguments);
 
-      let url = getLegacyDashboardsUrl(perspective, newBoard, namespace);
+      let url = getLegacyDashboardsUrl(perspective, newBoard);
       url = `${url}${perspective === 'dev' ? '&' : '?'}${params.toString()}`;
 
       if (newBoard !== urlBoard || initialLoad) {

@@ -17,7 +17,7 @@ interface IncidentsDetailsRowTableProps {
 }
 
 const IncidentsDetailsRowTable = ({ alerts }: IncidentsDetailsRowTableProps) => {
-  const [namespace, setNamespace] = useActiveNamespace();
+  const [, setNamespace] = useActiveNamespace();
   const { perspective } = usePerspective();
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
@@ -34,7 +34,7 @@ const IncidentsDetailsRowTable = ({ alerts }: IncidentsDetailsRowTableProps) => 
               <Td dataLabel="expanded-details-alertname">
                 <ResourceIcon kind={RuleResource.kind} />
                 <Link
-                  to={getRuleUrl(perspective, alertDetails?.rule, namespace)}
+                  to={getRuleUrl(perspective, alertDetails?.rule)}
                   onClick={() => setNamespace(ALL_NAMESPACES_KEY)}
                 >
                   {alertDetails.alertname}
@@ -63,7 +63,7 @@ const IncidentsDetailsRowTable = ({ alerts }: IncidentsDetailsRowTableProps) => 
     }
 
     return null;
-  }, [alerts, perspective, namespace, setNamespace]);
+  }, [alerts, perspective, setNamespace]);
 
   return (
     <Table borders={false} variant="compact" data-test={DataTestIDs.IncidentsDetailsTable.Table}>
