@@ -82,6 +82,11 @@ Set the following var to enable Cypress debug mode to log in headless mode.
 export CYPRESS_DEBUG=true
 ```
 
+Set the following var to skip all operator installation, cleanup, and verifications (useful for pre-provisioned environments where COO and Monitoring UI Plugin are already installed).
+```bash
+export CYPRESS_SKIP_ALL_INSTALL=false
+```
+
 Integration Testing variables
 
 Set the var to skip Openshift Virtualization and all the required operators installation.

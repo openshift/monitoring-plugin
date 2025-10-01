@@ -19,6 +19,7 @@ declare global {
         beforeBlockCOO(MCP: { namespace: string, operatorName: string, packageName: string }, MP: { namespace: string, operatorName: string});
         cleanupCOO(MCP: { namespace: string, operatorName: string, packageName: string }, MP: { namespace: string, operatorName: string});
         RemoveClusterAdminRole();
+        setupCOO(MCP: { namespace: string, operatorName: string, packageName: string }, MP: { namespace: string, operatorName: string });
       }
     }
   }
@@ -92,6 +93,7 @@ export const operatorAuthUtils = {
     ];
     
     const envVars = [
+      Cypress.env('SKIP_ALL_INSTALL'),
       Cypress.env('SKIP_COO_INSTALL'),
       Cypress.env('COO_UI_INSTALL'),
       Cypress.env('KONFLUX_COO_BUNDLE_IMAGE'),
@@ -113,6 +115,7 @@ export const operatorAuthUtils = {
     ];
     
     const envVars = [
+      Cypress.env('SKIP_ALL_INSTALL'),
       Cypress.env('MP_IMAGE')
     ];
     
@@ -291,6 +294,7 @@ const operatorUtils = {
   },
 
   setupDashboardsAndPlugins(MCP: { namespace: string }): void {
+
     cy.log('Create perses-dev namespace.');
     cy.exec(`oc new-project perses-dev --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
@@ -396,58 +400,39 @@ const operatorUtils = {
       `oc adm policy add-cluster-role-to-user cluster-admin ${Cypress.env('LOGIN_USERNAME')}`,
     );
 
-    if (Cypress.env('SKIP_COO_INSTALL')) {
-      
-      cy.log('Delete Monitoring UI Plugin instance.');
-      cy.executeAndDelete(
-        `oc delete ${config.kind} ${config.name} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
-      );
+    if (Cypress.env('SKIP_ALL_INSTALL')) {
+      cy.log('SKIP_ALL_INSTALL is set. Skipping Monitoring UI Plugin instance deletion.');
+      return;
+    }
 
-      cy.log('Remove openshift-cluster-sample-dashboard instance.');
-      cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/openshift-cluster-sample-dashboard.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+    cy.log('Delete Monitoring UI Plugin instance.');
+    cy.executeAndDelete(
+      `oc delete ${config.kind} ${config.name} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+    );
+  
+    // Common cleanup steps
+    cy.log('Remove openshift-cluster-sample-dashboard instance.');
+    cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/openshift-cluster-sample-dashboard.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
-      cy.log('Remove perses-dashboard-sample instance.');
-      cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/perses-dashboard-sample.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+    cy.log('Remove perses-dashboard-sample instance.');
+    cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/perses-dashboard-sample.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
-      cy.log('Remove prometheus-overview-variables instance.');
-      cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/prometheus-overview-variables.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+    cy.log('Remove prometheus-overview-variables instance.');
+    cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/prometheus-overview-variables.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
-      cy.log('Remove thanos-compact-overview-1var instance.');
-      cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/thanos-compact-overview-1var.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+    cy.log('Remove thanos-compact-overview-1var instance.');
+    cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/thanos-compact-overview-1var.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
-      cy.log('Remove Thanos Querier instance.');
-      cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/thanos-querier-datasource.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+    cy.log('Remove Thanos Querier instance.');
+    cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/thanos-querier-datasource.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
-      cy.log('Remove perses-dev namespace');
-      cy.executeAndDelete(`oc delete namespace perses-dev --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+    cy.log('Remove perses-dev namespace');
+    cy.executeAndDelete(`oc delete namespace perses-dev --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
-    } else {
-      cy.log('Delete Monitoring UI Plugin instance.');
-      cy.executeAndDelete(
-        `oc delete ${config.kind} ${config.name} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
-      );
-
-      cy.log('Remove openshift-cluster-sample-dashboard instance.');
-      cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/openshift-cluster-sample-dashboard.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
-
-      cy.log('Remove perses-dashboard-sample instance.');
-      cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/perses-dashboard-sample.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
-
-      cy.log('Remove prometheus-overview-variables instance.');
-      cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/prometheus-overview-variables.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
-
-      cy.log('Remove thanos-compact-overview-1var instance.');
-      cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/thanos-compact-overview-1var.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
-
-      cy.log('Remove Thanos Querier instance.');
-      cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/thanos-querier-datasource.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
-
+    // Additional cleanup only when COO is installed
+    if (!Cypress.env('SKIP_COO_INSTALL')) {
       cy.log('Remove Cluster Observability Operator namespace');
       cy.executeAndDelete(`oc delete namespace ${MCP.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
-
-      cy.log('Remove perses-dev namespace');
-      cy.executeAndDelete(`oc delete namespace perses-dev --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
-
     }
   },
 
@@ -456,6 +441,18 @@ const operatorUtils = {
     cy.executeAndDelete(
       `oc adm policy remove-cluster-role-from-user cluster-admin ${Cypress.env('LOGIN_USERNAME')} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
     );
+  },
+
+  collectDebugInfo(MP: { namespace: string }, MCP?: { namespace: string }): void {
+    if (!Cypress.env('DEBUG')) {
+      cy.log('DEBUG not set. Skipping operator debug information collection.');
+      return;
+    }
+    cy.aboutModal();
+    cy.podImage('monitoring-plugin', MP.namespace);
+    if (MCP && MCP.namespace) {
+      cy.podImage('monitoring', MCP.namespace);
+    }
   }
 };
 
@@ -474,6 +471,7 @@ Cypress.Commands.add('beforeBlock', (MP: { namespace: string, operatorName: stri
         // Then set up fresh
         operatorAuthUtils.loginAndAuthNoSession();
         operatorUtils.setupMonitoringPluginImage(MP);
+        operatorUtils.collectDebugInfo(MP);
         cy.task('clearDownloads');
         cy.log('Before block (session) completed');
       },
@@ -489,11 +487,10 @@ Cypress.Commands.add('beforeBlock', (MP: { namespace: string, operatorName: stri
     cy.cleanupMP(MP);
     operatorAuthUtils.loginAndAuth();
     operatorUtils.setupMonitoringPluginImage(MP);
+    operatorUtils.collectDebugInfo(MP);
     cy.task('clearDownloads');
     cy.log('Before block (no session) completed');
   }
-  cy.aboutModal();
-  cy.podImage('monitoring-plugin', MP.namespace);
   });
   
   Cypress.Commands.add('cleanupMP', (MP: { namespace: string, operatorName: string }) => {
@@ -515,15 +512,9 @@ Cypress.Commands.add('beforeBlock', (MP: { namespace: string, operatorName: stri
           cy.log('Before block COO (session)');
           
           cy.cleanupCOO(MCP, MP);
-          
           // Then set up fresh
           operatorAuthUtils.loginAndAuthNoSession();
-          operatorUtils.installCOO(MCP);
-          operatorUtils.waitForCOOReady(MCP);
-          operatorUtils.setupMonitoringConsolePlugin(MCP);
-          operatorUtils.setupDashboardsAndPlugins(MCP);
-          operatorUtils.setupMonitoringPluginImage(MP);
-          operatorUtils.RemoveClusterAdminRole();
+          cy.setupCOO(MCP, MP);
           cy.log('Before block COO (session) completed');
         },
         {
@@ -542,24 +533,34 @@ Cypress.Commands.add('beforeBlock', (MP: { namespace: string, operatorName: stri
       cy.cleanupCOO(MCP, MP);
 
       operatorAuthUtils.loginAndAuth();
-      operatorUtils.installCOO(MCP);
-      operatorUtils.waitForCOOReady(MCP);
-      operatorUtils.setupMonitoringConsolePlugin(MCP);
-      operatorUtils.setupDashboardsAndPlugins(MCP);
-      operatorUtils.setupMonitoringPluginImage(MP);
-      operatorUtils.RemoveClusterAdminRole();
+      cy.setupCOO(MCP, MP);
       cy.log('Before block COO (no session) completed');
     }
-    cy.aboutModal();
-    cy.podImage('monitoring-plugin', MP.namespace);
-    cy.podImage('monitoring', MCP.namespace);
   });
   
   Cypress.Commands.add('cleanupCOO', (MCP: { namespace: string, operatorName: string, packageName: string }, MP: { namespace: string, operatorName: string }) => {
     cy.log('Cleanup COO (no session)');
+    if (Cypress.env('SKIP_ALL_INSTALL')) {
+      cy.log('SKIP_ALL_INSTALL is set. Skipping COO cleanup and operator verifications (preserves existing setup).');
+      return;
+    }
     operatorUtils.cleanup(MCP);
     operatorUtils.revertMonitoringPluginImage(MP);
     cy.log('Cleanup COO (no session) completed');
+  });
+
+  Cypress.Commands.add('setupCOO', (MCP: { namespace: string, operatorName: string, packageName: string }, MP: { namespace: string, operatorName: string }) => {
+    if (Cypress.env('SKIP_ALL_INSTALL')) {
+      cy.log('SKIP_ALL_INSTALL is set. Skipping COO setup and operator verifications (uses existing installation).');
+      return;
+    }
+    operatorUtils.installCOO(MCP);
+    operatorUtils.waitForCOOReady(MCP);
+    operatorUtils.setupMonitoringConsolePlugin(MCP);
+    operatorUtils.setupDashboardsAndPlugins(MCP);
+    operatorUtils.setupMonitoringPluginImage(MP);
+    operatorUtils.RemoveClusterAdminRole();
+    operatorUtils.collectDebugInfo(MP, MCP);
   });
 
   Cypress.Commands.add('RemoveClusterAdminRole', () => {
