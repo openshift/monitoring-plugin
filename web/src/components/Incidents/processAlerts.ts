@@ -237,8 +237,11 @@ export function processAlerts(
   return sortObjectsByEarliestTimestamp(firing)
     .map((alert, index) => {
       // Filter values based on firstTimestamp and lastTimestamp keep only values within range
+      // Add 30 seconds padding before and after
+      const paddingSeconds = 30;
       const processedValues: Array<[number, string]> = alert.values.filter(
-        ([date]) => date >= firstTimestamp && date <= lastTimestamp,
+        ([date]) =>
+          date >= firstTimestamp - paddingSeconds && date <= lastTimestamp + paddingSeconds,
       );
 
       const sortedValues = processedValues.sort((a, b) => a[0] - b[0]);
