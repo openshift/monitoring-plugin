@@ -219,7 +219,7 @@ const IncidentsPage = () => {
           const aggregatedData = results.flat();
           dispatch(
             setAlertsData({
-              alertsData: processAlerts(aggregatedData, incidentForAlertProcessing, rules),
+              alertsData: processAlerts(aggregatedData, incidentForAlertProcessing),
             }),
           );
           if (!isEmpty(filteredData)) {
