@@ -163,13 +163,14 @@ export const createIncidentsChartBars = (incident: Incident, dateArray: SpanDate
 
   for (let i = 0; i < groupedData.length; i++) {
     const severity = getSeverityName(groupedData[i][2]);
+    const isLastElement = i === groupedData.length - 1;
 
     data.push({
       y0: new Date(groupedData[i][0] * 1000),
       y: new Date(groupedData[i][1] * 1000),
       x: incident.x,
       name: severity,
-      firing: incident.firing,
+      firing: isLastElement ? incident.firing : false,
       componentList: incident.componentList || [],
       group_id: incident.group_id,
       nodata: groupedData[i][2] === 'nodata' ? true : false,
