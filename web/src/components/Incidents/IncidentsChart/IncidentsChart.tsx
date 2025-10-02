@@ -49,7 +49,7 @@ const IncidentsChart = ({
   const [chartHeight, setChartHeight] = useState<number>();
   const dateValues = useMemo(() => generateDateArray(chartDays), [chartDays]);
 
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation(process.env.I18N_NAMESPACE);
 
   const chartData = useMemo(() => {
     if (!Array.isArray(incidentsData) || incidentsData.length === 0) return [];
@@ -98,7 +98,9 @@ const IncidentsChart = ({
         style={{ position: 'relative' }}
         data-test={DataTestIDs.IncidentsChart.ChartContainer}
       >
-        <CardTitle data-test={DataTestIDs.IncidentsChart.Title}>Incidents Timeline</CardTitle>
+        <CardTitle data-test={DataTestIDs.IncidentsChart.Title}>
+          {t('Incidents Timeline')}
+        </CardTitle>
         {isLoading ? (
           <Bullseye>
             <Spinner
@@ -126,30 +128,30 @@ const IncidentsChart = ({
                     const endDate = datum.firing
                       ? '---'
                       : dateTimeFormatter(i18n.language).format(new Date(datum.y));
-                    return `Severity: ${datum.name}
-                    ID: ${datum.group_id}
-                    Component(s): ${datum.componentList?.join(', ')}
-                    Start: ${startDate}
-                    End: ${endDate}`;
+                    return `${t('Severity')}: ${t(datum.name)}
+                    ${t('ID')}: ${datum.group_id}
+                    ${t('Component(s)')}: ${datum.componentList?.join(', ')}
+                    ${t('Start')}: ${startDate}
+                    ${t('End')}: ${endDate}`;
                   }}
                 />
               }
               domainPadding={{ x: [30, 25] }}
               legendData={[
                 {
-                  name: 'Critical',
+                  name: t('Critical'),
                   symbol: {
                     fill: t_global_color_status_danger_default.var,
                   },
                 },
                 {
-                  name: 'Info',
+                  name: t('Info'),
                   symbol: {
                     fill: t_global_color_status_info_default.var,
                   },
                 },
                 {
-                  name: 'Warning',
+                  name: t('Warning'),
                   symbol: {
                     fill: t_global_color_status_warning_default.var,
                   },

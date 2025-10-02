@@ -12,6 +12,7 @@ import { ExpandableRowContent, Table, Tbody, Td, Th, Thead, Tr } from '@patternf
 import { isEmpty } from 'lodash-es';
 import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import { MonitoringState } from '../../store/store';
 import { SeverityBadge } from '../alerting/AlertUtils';
 import IncidentsDetailsRowTable from './IncidentsDetailsRowTable';
@@ -21,12 +22,13 @@ import { GroupedAlert } from './model';
 import { DataTestIDs } from '../data-test';
 
 export const IncidentsTable = () => {
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const columnNames = {
     checkbox: '',
-    component: 'Component',
-    severity: 'Severity',
-    state: 'State',
-    startDate: 'Start',
+    component: t('Component'),
+    severity: t('Severity'),
+    state: t('State'),
+    startDate: t('Start'),
   };
   const alertsTableData = useSelector(
     (state: MonitoringState) => state.plugins.mcp.incidentsData?.alertsTableData,
@@ -107,7 +109,7 @@ export const IncidentsTable = () => {
             icon={SearchIcon}
           >
             <EmptyStateBody>
-              <Bullseye>No incident selected.</Bullseye>
+              <Bullseye>{t('No incident selected.')}</Bullseye>
             </EmptyStateBody>
           </EmptyState>
         </CardBody>
