@@ -138,16 +138,16 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
                         ? '---'
                         : dateTimeFormatter(i18n.language).format(new Date(datum.y));
 
-                    const baseTooltip = `Severity: ${datum.severity}
-                    Alert Name: ${datum.name || '---'}
+                    const alertName = datum.silenced
+                      ? `${datum.name} (currently silenced)`
+                      : datum.name;
+
+                    return `Severity: ${datum.severity}
+                    Alert Name: ${alertName}
                     Namespace: ${datum.namespace || '---'}
                     Component: ${datum.component}
                     Start: ${startDate}
                     End: ${endDate}`;
-
-                    const silencedText = datum.silenced ? '\nSilenced: true' : '';
-
-                    return `${baseTooltip}${silencedText}`;
                   }}
                 />
               }

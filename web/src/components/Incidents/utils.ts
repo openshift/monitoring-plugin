@@ -229,6 +229,7 @@ export const createAlertsChartBars = (alert: IncidentsDetailsAlert): AlertsChart
   const data = [];
 
   for (let i = 0; i < groupedData.length; i++) {
+    const isLastElement = i === groupedData.length - 1;
     data.push({
       y0: new Date(groupedData[i][0] * 1000),
       y: new Date(groupedData[i][1] * 1000),
@@ -239,7 +240,7 @@ export const createAlertsChartBars = (alert: IncidentsDetailsAlert): AlertsChart
       layer: alert.layer,
       component: alert.component,
       nodata: groupedData[i][2] === 'nodata' ? true : false,
-      alertstate: alert.alertstate,
+      alertstate: isLastElement ? alert.alertstate : 'resolved',
       silenced: alert.silenced,
       fill:
         alert.severity === 'critical'
