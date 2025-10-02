@@ -847,7 +847,7 @@ export const parseUrlParams = (search) => {
  * @param {Array<Incident>} incidents - An array of incident objects.
  * @returns {{value: string}[]} An array of objects, where each object has a `value` key with a unique incident ID.
  */
-export const getIncidentIdOptions = (incidents: Array<Incident>) => {
+export const getIncidentIdOptions = (incidents: Array<Incident>, t: (key: string) => string) => {
   const incidentMap = new Map<string, Incident>();
   incidents.forEach((incident) => {
     if (incident.group_id) {
@@ -856,7 +856,7 @@ export const getIncidentIdOptions = (incidents: Array<Incident>) => {
   });
   return Array.from(incidentMap.entries()).map(([id, incident]) => {
     const componentCount = incident.componentList ? incident.componentList.length : 1;
-    const componentText = componentCount === 1 ? 'component' : 'components';
+    const componentText = componentCount === 1 ? t('component') : t('components');
     return {
       value: id,
       description: `${componentCount} ${componentText}`,
