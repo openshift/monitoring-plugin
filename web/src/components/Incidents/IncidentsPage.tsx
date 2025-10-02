@@ -186,13 +186,12 @@ const IncidentsPage = () => {
     incidentsActiveFilters.groupId,
   ]);
 
-  const now = Date.now();
   const safeFetch = useSafeFetch();
   const title = t('Incidents');
 
   useEffect(() => {
-    setTimeRanges(getIncidentsTimeRanges(daysSpan, now));
-  }, [daysSpan]);
+    setTimeRanges(getIncidentsTimeRanges(daysSpan, Date.now()));
+  }, [daysSpan, selectedGroupId]);
 
   useEffect(() => {
     setDaysSpan(
@@ -256,7 +255,7 @@ const IncidentsPage = () => {
         ? incidentsActiveFilters.days[0].split(' ')[0] + 'd'
         : '',
     );
-    const calculatedTimeRanges = getIncidentsTimeRanges(daysDuration, now);
+    const calculatedTimeRanges = getIncidentsTimeRanges(daysDuration, Date.now());
 
     const isGroupSelected = !!selectedGroupId;
     const incidentsQuery = isGroupSelected
