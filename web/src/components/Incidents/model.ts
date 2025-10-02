@@ -15,6 +15,7 @@ export type Incident = {
   src_severity: string;
   src_alertname: string;
   src_namespace: string;
+  silenced: boolean;
   x: number;
   values: Array<Timestamps>;
   metric: Metric;
@@ -47,6 +48,7 @@ export type Alert = {
   namespace: string;
   resolved: boolean;
   severity: Severity;
+  silenced: boolean;
   x: number;
   values: Array<Timestamps>;
   alertsExpandedRowData?: Array<Alert>;
