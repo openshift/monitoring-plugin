@@ -79,9 +79,7 @@ export function groupAlerts(objects: Array<PrometheusResult>): Array<PrometheusR
  * @param incidents - Array of incidents to merge
  * @returns Array of merged incidents with deduplicated values and latest silenced/severity values
  */
-function mergeIncidentsByKey(
-  incidents: Array<Partial<Incident>>,
-): Array<Partial<Incident>> {
+function mergeIncidentsByKey(incidents: Array<Partial<Incident>>): Array<Partial<Incident>> {
   const groupedMap = new Map<
     string,
     {
@@ -219,6 +217,7 @@ function mergeIncidentsByKey(
 export function processAlerts(
   data: Array<PrometheusResult>,
   selectedIncidents: Array<Partial<Incident>>,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   alertingRules: Array<PrometheusRule>,
 ): Array<Alert> {
   const firing = groupAlerts(data).filter((alert) => alert.metric.alertname !== 'Watchdog');
