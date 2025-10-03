@@ -59,7 +59,10 @@ import { usePatternFlyTheme } from '../hooks/usePatternflyTheme';
 import { MonitoringState } from '../../store/store';
 import { Incident, IncidentsPageFiltersExpandedState } from './model';
 import { useAlerts } from '../../hooks/useAlerts';
-import IncidentFilterToolbarItem, { severityOptions, stateOptions } from './ToolbarItemFilter';
+import IncidentFilterToolbarItem, {
+  useSeverityOptions,
+  useStateOptions,
+} from './ToolbarItemFilter';
 import { MonitoringProvider } from '../../contexts/MonitoringContext';
 import { ALL_NAMESPACES_KEY } from '../utils';
 import { isEmpty } from 'lodash-es';
@@ -307,7 +310,9 @@ const IncidentsPage = () => {
     setDaysFilterIsExpanded(false);
   };
 
-  const incidentIdFilterOptions = incidents ? getIncidentIdOptions(incidents) : [];
+  const severityOptions = useSeverityOptions();
+  const stateOptions = useStateOptions();
+  const incidentIdFilterOptions = incidents ? getIncidentIdOptions(incidents, t) : [];
 
   useEffect(() => {
     //force a loading state for the alerts chart and table if we filtered out all of the incidents
@@ -389,7 +394,7 @@ const IncidentsPage = () => {
               <ToolbarGroup>
                 <ToolbarItem>
                   <Select
-                    aria-label="Filter type selection"
+                    aria-label={t('Filter type selection')}
                     data-test={DataTestIDs.IncidentsPage.FiltersSelect}
                     isOpen={filterTypeExpanded.filterType}
                     role="menu"
@@ -410,7 +415,7 @@ const IncidentsPage = () => {
                         icon={<FilterIcon />}
                         data-test={DataTestIDs.IncidentsPage.FiltersSelectToggle}
                       >
-                        {incidentPageFilterTypeSelected}
+                        {t(incidentPageFilterTypeSelected)}
                       </MenuToggle>
                     )}
                     style={{ width: '145px' }}
@@ -421,21 +426,21 @@ const IncidentsPage = () => {
                         isSelected={incidentPageFilterTypeSelected?.includes('Severity')}
                         data-test={`${DataTestIDs.IncidentsPage.FiltersSelectOption}-severity`}
                       >
-                        Severity
+                        {t('Severity')}
                       </SelectOption>
                       <SelectOption
                         value="State"
                         isSelected={incidentPageFilterTypeSelected?.includes('State')}
                         data-test={`${DataTestIDs.IncidentsPage.FiltersSelectOption}-state`}
                       >
-                        State
+                        {t('State')}
                       </SelectOption>
                       <SelectOption
                         value="Incident ID"
                         isSelected={incidentPageFilterTypeSelected?.includes('Incident ID')}
                         data-test={`${DataTestIDs.IncidentsPage.FiltersSelectOption}-incident-id`}
                       >
-                        Incident ID
+                        {t('Incident ID')}
                       </SelectOption>
                     </SelectList>
                   </Select>
@@ -445,7 +450,7 @@ const IncidentsPage = () => {
                 >
                   <IncidentFilterToolbarItem
                     categoryName="Severity"
-                    toggleLabel="Severity filters"
+                    toggleLabel={t('Severity filters')}
                     options={severityOptions}
                     incidentsActiveFilters={incidentsActiveFilters}
                     onDeleteIncidentFilterChip={onDeleteIncidentFilterChip}
@@ -467,7 +472,7 @@ const IncidentsPage = () => {
                 >
                   <IncidentFilterToolbarItem
                     categoryName="State"
-                    toggleLabel="State filters"
+                    toggleLabel={t('State filters')}
                     options={stateOptions}
                     incidentsActiveFilters={incidentsActiveFilters}
                     onDeleteIncidentFilterChip={onDeleteIncidentFilterChip}
@@ -487,7 +492,7 @@ const IncidentsPage = () => {
                 >
                   <IncidentFilterToolbarItem
                     categoryName="Incident ID"
-                    toggleLabel="Incident ID filters"
+                    toggleLabel={t('Incident ID filters')}
                     options={incidentIdFilterOptions}
                     incidentsActiveFilters={incidentsActiveFilters}
                     onDeleteIncidentFilterChip={onDeleteIncidentFilterChip}
@@ -520,7 +525,7 @@ const IncidentsPage = () => {
                       isExpanded={daysFilterIsExpanded}
                       data-test={DataTestIDs.IncidentsPage.DaysSelectToggle}
                     >
-                      {`Last ${incidentsActiveFilters.days[0]}`}
+                      {t(`Last ${incidentsActiveFilters.days[0]}`)}
                     </MenuToggle>
                   )}
                   shouldFocusToggleOnSelect
