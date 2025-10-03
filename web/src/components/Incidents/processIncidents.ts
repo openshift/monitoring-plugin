@@ -112,6 +112,16 @@ export function groupById(
         existingObj.metric.componentList.push(obj.metric.component);
       }
 
+      // Update silenced to the value from the time series with the most recent timestamp
+      if (obj.values.length > 0) {
+        const objLatestTimestamp = Math.max(...obj.values.map((v) => v[0]));
+        const existingLatestTimestamp = Math.max(...existingObj.values.map((v) => v[0]));
+
+        if (objLatestTimestamp >= existingLatestTimestamp) {
+          existingObj.metric.silenced = obj.metric.silenced;
+        }
+      }
+
       groupedObjects.set(key, {
         ...existingObj,
         values: existingObj.values,
@@ -160,11 +170,16 @@ export const processIncidentsForAlerts = (
   incidents: Array<PrometheusResult>,
 ): Array<Partial<Incident>> => {
   return incidents.map((incident, index) => {
+    // Read silenced value from cluster_health_components_map metric label
+    // If missing, default to false
+    const silenced = incident.metric.silenced === 'true';
+
     // Return the processed incident
     return {
       ...incident.metric,
       values: incident.values,
       x: incidents.length - index,
+      silenced,
     };
   });
 };
