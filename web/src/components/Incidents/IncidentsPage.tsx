@@ -204,6 +204,13 @@ const IncidentsPage = () => {
   }, [incidentsActiveFilters.days]);
 
   useEffect(() => {
+    // Clear alerts immediately if no incident is selected for alert processing
+    if (isEmpty(incidentForAlertProcessing)) {
+      dispatch(setAlertsData({ alertsData: [] }));
+      dispatch(setAlertsTableData({ alertsTableData: [] }));
+      return;
+    }
+
     (async () => {
       Promise.all(
         timeRanges.map(async (range) => {
@@ -286,9 +293,15 @@ const IncidentsPage = () => {
 
         if (isGroupSelected) {
           setIncidentForAlertProcessing(processIncidentsForAlerts(aggregatedData));
-          dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
+          // Only set loading if we don't already have data to show
+          if (isEmpty(alertsData)) {
+            dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
+          }
         } else {
           setIncidentForAlertProcessing([]);
+          // Clear alerts data when deselecting to avoid showing stale data
+          dispatch(setAlertsData({ alertsData: [] }));
+          dispatch(setAlertsTableData({ alertsTableData: [] }));
           dispatch(setAlertsAreLoading({ alertsAreLoading: false }));
         }
       })
@@ -324,11 +337,19 @@ const IncidentsPage = () => {
 
   const handleIncidentChartClick = useCallback(
     (groupId) => {
+      // Clear alerts data IMMEDIATELY when switching to a different incident
+      if (groupId !== selectedGroupId && groupId) {
+        dispatch(setAlertsData({ alertsData: [] }));
+        dispatch(setAlertsTableData({ alertsTableData: [] }));
+        dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
+      }
+
       setFiltersExpanded({
         severity: false,
         state: false,
         groupId: false,
       });
+
       if (groupId === selectedGroupId) {
         dispatch(
           setIncidentsActiveFilters({
@@ -581,7 +602,7 @@ const IncidentsPage = () => {
                   />
                 </StackItem>
                 <StackItem>
-                  <AlertsChart theme={theme} />
+                  <AlertsChart key={selectedGroupId || 'no-selection'} theme={theme} />
                 </StackItem>
               </>
             )}
