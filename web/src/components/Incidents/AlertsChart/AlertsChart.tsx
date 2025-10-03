@@ -70,7 +70,9 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
   }, [chartData]);
 
   const selectedIncidentIsVisible = useMemo(() => {
-    return filteredData.some((incident) => incident.group_id === incidentsActiveFilters.groupId);
+    return filteredData.some(
+      (incident) => incident.group_id === incidentsActiveFilters.groupId?.[0],
+    );
   }, [filteredData, incidentsActiveFilters.groupId]);
 
   useEffect(() => {
