@@ -283,7 +283,7 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
       .then(({ silenceID }) => {
         setError(undefined);
         refetchSilencesAndAlerts();
-        navigate(getSilenceAlertUrl(perspective, silenceID, namespace));
+        navigate(getSilenceAlertUrl(perspective, silenceID));
       })
       .catch((err) => {
         const errorMessage =

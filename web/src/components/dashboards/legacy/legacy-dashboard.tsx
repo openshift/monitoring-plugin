@@ -1,7 +1,6 @@
 import * as _ from 'lodash-es';
 import {
   RedExclamationCircleIcon,
-  useActiveNamespace,
   useResolvedExtensions,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
@@ -39,7 +38,7 @@ import {
 } from '../../hooks/usePerspective';
 import KebabDropdown from '../../kebab-dropdown';
 import { MonitoringState } from '../../../store/store';
-import { evaluateVariableTemplate } from './legacy-variable-dropdowns';
+import { evaluateVariableTemplate, Variable } from './legacy-variable-dropdowns';
 import { Panel, Row } from './types';
 import { QueryParams } from '../../query-params';
 import { CustomDataSource } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/dashboard-data-source';
@@ -70,7 +69,6 @@ const QueryBrowserLink = ({
   if (units) {
     params.set(QueryParams.Units, units);
   }
-  const [namespace] = useActiveNamespace();
 
   if (customDataSourceName) {
     params.set('datasource', customDataSourceName);
@@ -79,7 +77,7 @@ const QueryBrowserLink = ({
   return (
     <Link
       aria-label={t('Inspect')}
-      to={getMutlipleQueryBrowserUrl(perspective, params, namespace)}
+      to={getMutlipleQueryBrowserUrl(perspective, params)}
       data-test={LegacyDashboardPageTestIDs.Inspect}
     >
       {t('Inspect')}
@@ -104,7 +102,6 @@ const Card: FC<CardProps> = memo(({ panel, perspective }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { plugin } = useMonitoring();
 
-  const [namespace] = useActiveNamespace();
   const pollInterval = useSelector(
     (state: MonitoringState) => getObserveState(plugin, state).dashboards.pollInterval,
   );
@@ -114,6 +111,9 @@ const Card: FC<CardProps> = memo(({ panel, perspective }) => {
   const variables = useSelector(
     (state: MonitoringState) => getObserveState(plugin, state).dashboards.variables,
   );
+
+  // Directly use the namespace variable to prevent desync
+  const namespace = variables?.['namespace'] as Variable;
 
   const ref = useRef();
   const [, wasEverVisible] = useIsVisible(ref);
@@ -281,7 +281,9 @@ const Card: FC<CardProps> = memo(({ panel, perspective }) => {
   if (!rawQueries.length) {
     return null;
   }
-  const queries = rawQueries.map((expr) => evaluateVariableTemplate(expr, variables, timespan));
+  const queries = rawQueries.map((expr) =>
+    evaluateVariableTemplate(expr, variables, timespan, namespace?.value ?? ''),
+  );
   const isLoading =
     (_.some(queries, _.isUndefined) && dataSourceInfoLoading) || customDataSource === undefined;
 
@@ -353,7 +355,7 @@ const Card: FC<CardProps> = memo(({ panel, perspective }) => {
                       panel={panel}
                       pollInterval={pollInterval}
                       query={queries[0]}
-                      namespace={namespace}
+                      namespace={namespace?.value ?? ''}
                       customDataSource={customDataSource}
                     />
                   )}
@@ -362,7 +364,7 @@ const Card: FC<CardProps> = memo(({ panel, perspective }) => {
                       panel={panel}
                       pollInterval={pollInterval}
                       queries={queries}
-                      namespace={namespace}
+                      namespace={namespace?.value ?? ''}
                       customDataSource={customDataSource}
                     />
                   )}
