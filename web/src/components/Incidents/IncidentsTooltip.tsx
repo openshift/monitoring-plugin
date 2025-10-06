@@ -2,7 +2,7 @@ import { VictoryPortal } from 'victory';
 import './incidents-styles.css';
 
 const TOOLTIP_MAX_HEIGHT = 300;
-const TOOLTIP_MAX_WIDTH = 500;
+const TOOLTIP_MAX_WIDTH = 650;
 export const IncidentsTooltip = ({
   x,
   y,

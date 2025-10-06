@@ -144,8 +144,8 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
                       ? `${datum.name} (currently silenced)`
                       : datum.name;
 
-                    return `Severity: ${datum.severity}
-                    Alert Name: ${alertName}
+                    return `Alert Name: ${alertName}
+                    Severity: ${datum.severity}
                     Namespace: ${datum.namespace || '---'}
                     Component: ${datum.component}
                     Start: ${startDate}
