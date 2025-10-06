@@ -2,21 +2,13 @@
 
 import { PrometheusLabels, PrometheusResult } from '@openshift-console/dynamic-plugin-sdk';
 import { Incident, Metric, ProcessedIncident } from './model';
-
-//this will be moved to the utils.js file when I convert them to the Typescript
-export function sortObjectsByEarliestTimestamp(incidents: PrometheusResult[]): PrometheusResult[] {
-  return incidents.sort((a, b) => {
-    const earliestA = Math.min(...a.values.map((value) => value[0]));
-    const earliestB = Math.min(...b.values.map((value) => value[0]));
-    return earliestA - earliestB;
-  });
-}
+import { sortByEarliestTimestamp } from './utils';
 
 export function processIncidents(data: PrometheusResult[]): ProcessedIncident[] {
   const incidents = groupById(data).filter(
     (incident) => incident.metric.src_alertname !== 'Watchdog',
   );
-  const sortedIncidents = sortObjectsByEarliestTimestamp(incidents);
+  const sortedIncidents = sortByEarliestTimestamp(incidents);
 
   return sortedIncidents.map((incident, index) => {
     // Determine severity flags based on values array
