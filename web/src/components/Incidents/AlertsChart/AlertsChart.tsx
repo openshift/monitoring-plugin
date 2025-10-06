@@ -27,7 +27,7 @@ import { IncidentsTooltip } from '../IncidentsTooltip';
 import { createAlertsChartBars, generateDateArray, generateAlertsDateArray } from '../utils';
 import { dateTimeFormatter } from '../../console/utils/datetime';
 import { useTranslation } from 'react-i18next';
-import { AlertsChartBar } from '../model';
+import { AlertsChartBar, IncidentsDetailsAlert } from '../model';
 import { setAlertsAreLoading } from '../../../store/actions';
 import { MonitoringState } from '../../../store/store';
 import { isEmpty } from 'lodash-es';
@@ -55,7 +55,7 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
 
   // Only show alerts data if it belongs to the currently selected incident
   // This prevents showing previous incident's data during the transition
-  const displayAlertsData = useMemo(() => {
+  const displayAlertsData = useMemo<IncidentsDetailsAlert[]>(() => {
     // If no incident is selected, show empty
     if (!selectedGroupId) {
       return [];
@@ -71,7 +71,7 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
 
   // Use dynamic date range based on actual alerts data instead of fixed chartDays
   const dateValues = useMemo(() => {
-    if (!Array.isArray(displayAlertsData) || displayAlertsData.length === 0) {
+    if (displayAlertsData.length === 0) {
       // Fallback to single day if no alerts data
       return generateDateArray(1);
     }
@@ -79,7 +79,7 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
   }, [displayAlertsData]);
 
   const chartData: AlertsChartBar[][] = useMemo(() => {
-    if (!Array.isArray(displayAlertsData) || displayAlertsData.length === 0) return [];
+    if (displayAlertsData.length === 0) return [];
     return displayAlertsData.map((alert) => createAlertsChartBars(alert));
   }, [displayAlertsData]);
 
