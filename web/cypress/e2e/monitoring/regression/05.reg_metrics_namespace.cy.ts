@@ -1,7 +1,7 @@
 import { nav } from '../../../views/nav';
 import { metricsPage } from '../../../views/metrics';
 import { Classes, DataTestIDs, IDs } from '../../../../src/components/data-test';
-import { GraphTimespan, MetricGraphEmptyState, MetricsPagePredefinedQueries, MetricsPageQueryInput, MetricsPageQueryKebabDropdown, MetricsPageUnits } from '../../../fixtures/monitoring/constants';
+import { GraphTimespan, MetricGraphEmptyState, MetricsPagePredefinedQueries, MetricsPageQueryInput, MetricsPageQueryKebabDropdown, MetricsPageQueryInputByNamespace } from '../../../fixtures/monitoring/constants';
 import common = require('mocha/lib/interfaces/common');
 // Set constants for the operators that need to be installed for tests.
 const MP = {
@@ -9,15 +9,15 @@ const MP = {
   operatorName: 'Cluster Monitoring Operator',
 };
 
-describe('Regression: Monitoring - Metrics', () => {
+describe('Regression: Monitoring - Metrics - namespaced', () => {
 
   before(() => {
     cy.beforeBlock(MP);
   });
 
   beforeEach(() => {
-    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-    cy.changeNamespace("All Projects");
+    nav.sidenav.clickNavLink(['Observe', 'Metrics']);
+    cy.changeNamespace(MP.namespace);
   });
 
   it('1. Admin perspective - Metrics', () => {
@@ -172,7 +172,8 @@ describe('Regression: Monitoring - Metrics', () => {
 
     cy.log('4.5 Prepare to test Reset Zoom Button');
     metricsPage.clickActionsDeleteAllQueries();
-    metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.CPU_USAGE);
+    metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.RATE_OF_TRANSMITTED_PACKETS_DROPPED);
+    metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.RATE_OF_RECEIVED_PACKETS_DROPPED);
     metricsPage.graphCardInlineInfoAssertion(true);
     metricsPage.clickGraphTimespanDropdown(GraphTimespan.ONE_WEEK);
     metricsPage.graphCardInlineInfoAssertion(false);
@@ -190,7 +191,7 @@ describe('Regression: Monitoring - Metrics', () => {
     cy.byTestID(DataTestIDs.MetricGraph).should('be.visible');
 
     cy.log('4.9 Stacked Checkbox');
-    cy.byTestID(DataTestIDs.MetricStackedCheckbox).should('not.exist');
+    cy.byTestID(DataTestIDs.MetricStackedCheckbox).should('be.visible');
 
     cy.log('4.10 Disconnected Checkbox');
     cy.byTestID(DataTestIDs.MetricDisconnectedCheckbox).should('be.visible');
@@ -201,7 +202,6 @@ describe('Regression: Monitoring - Metrics', () => {
 
     cy.log('4.12 Stacked Checkbox');
     metricsPage.clickStackedCheckboxAndAssert();
-
   });
 
   /**
@@ -414,7 +414,6 @@ describe('Regression: Monitoring - Metrics', () => {
     metricsPage.clickKebabDropdown(0);
     cy.get(Classes.MenuItemDisabled).contains(MetricsPageQueryKebabDropdown.HIDE_ALL_SERIES).should('have.attr', 'aria-disabled', 'true');
     cy.byTestID(DataTestIDs.MetricsPageExportCsvDropdownItem).should('not.exist');
-
   });
 
   it('7. Admin perspective - Metrics > Predefined Queries > Export as CSV', () => {
@@ -425,55 +424,55 @@ describe('Regression: Monitoring - Metrics', () => {
     metricsPage.shouldBeLoaded();
     metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.CPU_USAGE);
     metricsPage.clickKebabDropdown(0);
-    metricsPage.exportAsCSV(true, MetricsPageQueryInput.CPU_USAGE);
+    metricsPage.exportAsCSV(true, MetricsPageQueryInputByNamespace.CPU_USAGE);
     metricsPage.clickActionsDeleteAllQueries();
 
     cy.log('7.2 Predefined Queries'); 
     metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.MEMORY_USAGE);
     metricsPage.clickKebabDropdown(0);
-    metricsPage.exportAsCSV(true, MetricsPageQueryInput.MEMORY_USAGE);
+    metricsPage.exportAsCSV(true, MetricsPageQueryInputByNamespace.MEMORY_USAGE);
     metricsPage.clickActionsDeleteAllQueries();
 
     cy.log('7.3 Predefined Queries');
     metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.FILESYSTEM_USAGE);
     metricsPage.clickKebabDropdown(0);
-    metricsPage.exportAsCSV(true, MetricsPageQueryInput.FILESYSTEM_USAGE);
+    metricsPage.exportAsCSV(true, MetricsPageQueryInputByNamespace.FILESYSTEM_USAGE);
     metricsPage.clickActionsDeleteAllQueries();
 
     cy.log('7.4 Predefined Queries');
     metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.RECEIVE_BANDWIDTH);
     metricsPage.clickKebabDropdown(0);
-    metricsPage.exportAsCSV(true, MetricsPageQueryInput.RECEIVE_BANDWIDTH);
+    metricsPage.exportAsCSV(true, MetricsPageQueryInputByNamespace.RECEIVE_BANDWIDTH);
     metricsPage.clickActionsDeleteAllQueries();
 
     cy.log('7.5 Predefined Queries');
     metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.TRANSMIT_BANDWIDTH);
     metricsPage.clickKebabDropdown(0);
-    metricsPage.exportAsCSV(true, MetricsPageQueryInput.TRANSMIT_BANDWIDTH);
+    metricsPage.exportAsCSV(true, MetricsPageQueryInputByNamespace.TRANSMIT_BANDWIDTH);
     metricsPage.clickActionsDeleteAllQueries();
 
     cy.log('7.6 Predefined Queries');
     metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.RATE_OF_RECEIVED_PACKETS);
     metricsPage.clickKebabDropdown(0);
-    metricsPage.exportAsCSV(true, MetricsPageQueryInput.RATE_OF_RECEIVED_PACKETS);
+    metricsPage.exportAsCSV(true, MetricsPageQueryInputByNamespace.RATE_OF_RECEIVED_PACKETS);
     metricsPage.clickActionsDeleteAllQueries();
 
     cy.log('7.7 Predefined Queries');
     metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.RATE_OF_TRANSMITTED_PACKETS);
     metricsPage.clickKebabDropdown(0);
-    metricsPage.exportAsCSV(true, MetricsPageQueryInput.RATE_OF_TRANSMITTED_PACKETS);
+    metricsPage.exportAsCSV(true, MetricsPageQueryInputByNamespace.RATE_OF_TRANSMITTED_PACKETS);
     metricsPage.clickActionsDeleteAllQueries();
 
     cy.log('7.8 Predefined Queries');
     metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.RATE_OF_RECEIVED_PACKETS_DROPPED);
     metricsPage.clickKebabDropdown(0);
-    metricsPage.exportAsCSV(true, MetricsPageQueryInput.RATE_OF_RECEIVED_PACKETS_DROPPED);
+    metricsPage.exportAsCSV(true, MetricsPageQueryInputByNamespace.RATE_OF_RECEIVED_PACKETS_DROPPED);
     metricsPage.clickActionsDeleteAllQueries();
 
     cy.log('7.9 Predefined Queries');
     metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.RATE_OF_TRANSMITTED_PACKETS_DROPPED);
     metricsPage.clickKebabDropdown(0);
-    metricsPage.exportAsCSV(true, MetricsPageQueryInput.RATE_OF_TRANSMITTED_PACKETS_DROPPED);
+    metricsPage.exportAsCSV(true, MetricsPageQueryInputByNamespace.RATE_OF_TRANSMITTED_PACKETS_DROPPED);
     metricsPage.clickActionsDeleteAllQueries();
 
   });
@@ -489,10 +488,10 @@ describe('Regression: Monitoring - Metrics', () => {
     metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.RECEIVE_BANDWIDTH);
     metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.TRANSMIT_BANDWIDTH);
     metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.RATE_OF_RECEIVED_PACKETS);
-    cy.byLegacyTestID('namespace-bar-dropdown').scrollIntoView();
+    cy.byLegacyTestID('namespace-bar-dropdown').find('button').scrollIntoView();
     
-    cy.get(Classes.MetricsPageUngraphableResults).contains(MetricGraphEmptyState.UNGRAPHABLE_RESULTS).should('be.visible');
-    cy.get(Classes.MetricsPageUngraphableResultsDescription).contains(MetricGraphEmptyState.UNGRAPHABLE_RESULTS_DESCRIPTION).should('be.visible');
+    cy.get(Classes.MetricsPageUngraphableResults).should('not.exist');
+    cy.get(Classes.MetricsPageUngraphableResultsDescription).should('not.exist');
     
   });
 
@@ -503,8 +502,7 @@ describe('Regression: Monitoring - Metrics', () => {
     metricsPage.shouldBeLoaded();
     metricsPage.enterQueryInput(0, 'aaaaaaaaaa');
     metricsPage.clickRunQueriesButton();
-    cy.byTestID(DataTestIDs.MetricGraphNoDatapointsFound).scrollIntoView().contains(MetricGraphEmptyState.NO_DATAPOINTS_FOUND).should('be.visible');
-    cy.byTestID(DataTestIDs.MetricsPageYellowNoDatapointsFound).scrollIntoView().contains(MetricGraphEmptyState.NO_DATAPOINTS_FOUND).should('be.visible');
+    metricsPage.noDatapointsFound();
 
     metricsPage.clickActionsDeleteAllQueries();
     metricsPage.enterQueryInput(0, 'a');
@@ -521,6 +519,21 @@ describe('Regression: Monitoring - Metrics', () => {
     metricsPage.enterQueryInput(0, MetricsPageQueryInput.QUERY_WITH_ALERT);
     metricsPage.clickRunQueriesButton();
     cy.byOUIAID(DataTestIDs.MetricsGraphAlertDanger).should('be.visible');
+  });
+
+  it('11. Admin perspective - Metrics > Empty state', () => {
+    cy.log('11.1 Insert example query - Empty state');
+    cy.visit('/');
+    nav.sidenav.clickNavLink(['Observe', 'Metrics']);
+    cy.changeNamespace("default");
+    metricsPage.clickInsertExampleQuery();
+    metricsPage.noDatapointsFound();
+
+    cy.log('11.2 Query - Empty state');
+    metricsPage.clickActionsDeleteAllQueries();
+    metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.RATE_OF_TRANSMITTED_PACKETS_DROPPED);
+    metricsPage.noDatapointsFound();
+
   });
    
 });
