@@ -1,7 +1,7 @@
 import { nav } from '../../../views/nav';
 import common = require('mocha/lib/interfaces/common');
 import { legacyDashboardsPage } from '../../../views/legacy-dashboards';
-import { API_PERFORMANCE_DASHBOARD_PANELS, LegacyDashboardsDashboardDropdown, MetricsPageQueryInput, WatchdogAlert } from '../../../fixtures/monitoring/constants';
+import { KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANELS, LegacyDashboardsDashboardDropdownNamespace, MetricsPageQueryInput, MetricsPageQueryInputByNamespace, WatchdogAlert } from '../../../fixtures/monitoring/constants';
 import { Classes, LegacyDashboardPageTestIDs, DataTestIDs } from '../../../../src/components/data-test';
 import { metricsPage } from '../../../views/metrics';
 import { alertingRuleDetailsPage } from '../../../views/alerting-rule-details-page';
@@ -14,15 +14,15 @@ const MP = {
   operatorName: 'Cluster Monitoring Operator',
 };
 
-describe('Regression: Monitoring - Dashboards (Legacy)', () => {
+describe('Regression: Monitoring - Dashboards (Legacy) - namespaced', () => {
 
   before(() => {
     cy.beforeBlock(MP);
   });
 
   beforeEach(() => {
-    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-    cy.changeNamespace("All Projects");
+    nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
+    cy.changeNamespace(MP.namespace);
   });
 
   it('1. Admin perspective - Dashboards (legacy)', () => {
@@ -37,21 +37,21 @@ describe('Regression: Monitoring - Dashboards (Legacy)', () => {
     legacyDashboardsPage.refreshIntervalDropdownAssertion();
 
     cy.log('1.4 Dashboard dropdown');
-    legacyDashboardsPage.dashboardDropdownAssertion(LegacyDashboardsDashboardDropdown);
+    legacyDashboardsPage.dashboardDropdownAssertion(LegacyDashboardsDashboardDropdownNamespace);
 
-    cy.log('1.5 Dashboard API Performance panels');
-    for (const panel of Object.values(API_PERFORMANCE_DASHBOARD_PANELS)) {
-      legacyDashboardsPage.dashboardAPIPerformancePanelAssertion(panel);
+    cy.log('1.5 Dashboard Kubernetes Compute Resources Namespace Pods panels');
+    for (const panel of Object.values(KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANELS)) {
+      legacyDashboardsPage.dashboardKubernetesComputeResourcesNamespacePodsPanelAssertion(panel);
     }
 
-    cy.log('1.6 Inspect - API Request Duration by Verb - 99th Percentile');
+    cy.log('1.6 Inspect - CPU Utilisation (from requests)');
     cy.byTestID(LegacyDashboardPageTestIDs.Inspect).eq(0).scrollIntoView().should('be.visible').click();
     metricsPage.shouldBeLoadedWithGraph();
-    cy.get(Classes.MetricsPageQueryInput).eq(0).should('contain', MetricsPageQueryInput.API_REQUEST_DURATION_BY_VERB_99TH_PERCENTILE_QUERY);
+    cy.get(Classes.MetricsPageQueryInput).eq(0).should('contain', MetricsPageQueryInputByNamespace.CPU_UTILISATION_FROM_REQUESTS);
 
   });
 
-  it('2. Admin perspective - Dashboards (legacy) - Inspect and Export as CSV', () => {
+  it('2. Admin perspective - Dashboards (legacy) - Export as CSV', () => {
     cy.log('2.1 Kebab dropdown - Export as CSV');
     nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
     legacyDashboardsPage.clickKebabDropdown(0);
@@ -60,7 +60,7 @@ describe('Regression: Monitoring - Dashboards (Legacy)', () => {
     legacyDashboardsPage.exportAsCSV(true, 'graphData.csv');
 
     cy.log('2.2 Empty state');
-    legacyDashboardsPage.clickDashboardDropdown('K8S_COMPUTE_RESOURCES_POD');
+    cy.changeNamespace('default');
     cy.byTestID(DataTestIDs.MetricGraphNoDatapointsFound).eq(0).scrollIntoView().should('be.visible');
     legacyDashboardsPage.clickKebabDropdown(0);
     cy.byTestID(LegacyDashboardPageTestIDs.ExportAsCsv).should('be.visible');
@@ -70,13 +70,10 @@ describe('Regression: Monitoring - Dashboards (Legacy)', () => {
 
   it('3. Admin perspective - Dashboards (legacy) - No kebab dropdown', () => {
     cy.log('3.1 Single Stat - No kebab dropdown');
-    nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
-    legacyDashboardsPage.clickDashboardDropdown('K8S_COMPUTE_RESOURCES_NAMESPACE_PODS');
     cy.byLegacyTestID('chart-1').find('[data-test="'+DataTestIDs.KebabDropdownButton+'"]').should('not.exist');
 
     cy.log('3.2 Table - No kebab dropdown');
-    legacyDashboardsPage.clickDashboardDropdown('PROMETHEUS_OVERVIEW');
-    cy.byLegacyTestID('chart-1').find('[data-test="'+DataTestIDs.KebabDropdownButton+'"]').should('not.exist');
+    cy.byLegacyTestID('chart-6').find('[data-test="'+DataTestIDs.KebabDropdownButton+'"]').should('not.exist');
 
   });
 
@@ -92,7 +89,6 @@ describe('Regression: Monitoring - Dashboards (Legacy)', () => {
     cy.byTestID(DataTestIDs.MetricGraph).should('be.visible');
     
     cy.log('4.3 Observe > Alerting rule details - Verify graph is visible');
-    alerts.getWatchdogAlert();
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     alerts.getWatchdogAlert();
     listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
@@ -100,16 +96,11 @@ describe('Regression: Monitoring - Dashboards (Legacy)', () => {
     listPage.ARRows.clickAlertingRule();
     commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
     alertingRuleDetailsPage.clickHideGraphButton();
-    cy.wait(2000);
     cy.byTestID(DataTestIDs.MetricGraph).should('not.exist');
     alertingRuleDetailsPage.clickShowGraphButton();
-    cy.wait(2000);
     cy.byTestID(DataTestIDs.MetricGraph).should('be.visible');
-    cy.wait(2000);
     alertingRuleDetailsPage.clickHideGraphButton();
-    cy.wait(2000);
     cy.byTestID(DataTestIDs.MetricGraph).should('not.exist');
-    cy.wait(2000);
 
     cy.log('4.4 Observe > Alert details - Verify graph is visible');
     cy.byTestID(DataTestIDs.AlertResourceLink).first().click();
