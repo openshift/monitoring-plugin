@@ -58,7 +58,7 @@ const LegacyDashboardsPage_: FC<LegacyDashboardsPageProps> = ({ urlBoard }) => {
 const LegacyDashboardsPageWithFallback = withFallback(LegacyDashboardsPage_);
 
 export const MpCmoLegacyDashboardsPage: FC = () => {
-  const params = useParams<{ ns?: string; dashboardName: string }>();
+  const params = useParams<{ dashboardName: string }>();
 
   return (
     <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>

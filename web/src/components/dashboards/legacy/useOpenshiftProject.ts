@@ -27,11 +27,11 @@ export const useOpenshiftProject = () => {
     // set the activeNamespace to match the URL parameter
     if (openshiftProject && openshiftProject !== activeNamespace) {
       setActiveNamespace(openshiftProject);
-      if (variableNamespace !== openshiftProject) {
+      if (variableNamespace !== openshiftProject && openshiftProject !== ALL_NAMESPACES_KEY) {
         dispatch(
           dashboardsPatchVariable('namespace', {
             // Dashboards space variable shouldn't use the ALL_NAMESPACES_KEY
-            value: openshiftProject === ALL_NAMESPACES_KEY ? '' : openshiftProject,
+            value: openshiftProject,
           }),
         );
       }
@@ -39,11 +39,11 @@ export const useOpenshiftProject = () => {
     }
     if (!openshiftProject) {
       setOpenshiftProject(activeNamespace);
-      if (variableNamespace !== activeNamespace) {
+      if (variableNamespace !== activeNamespace && openshiftProject !== ALL_NAMESPACES_KEY) {
         // Dashboards space variable shouldn't use the ALL_NAMESPACES_KEY
         dispatch(
           dashboardsPatchVariable('namespace', {
-            value: activeNamespace === ALL_NAMESPACES_KEY ? '' : activeNamespace,
+            value: activeNamespace,
           }),
         );
       }
