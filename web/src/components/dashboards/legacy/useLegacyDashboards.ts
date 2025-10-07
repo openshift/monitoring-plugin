@@ -44,7 +44,7 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
         setLegacyDashboardsLoaded();
         setLegacyDashboardsError(undefined);
         let items = response.items;
-        if (namespace !== ALL_NAMESPACES_KEY) {
+        if (namespace && namespace !== ALL_NAMESPACES_KEY) {
           items = _.filter(
             items,
             (item) => item.metadata?.labels['console.openshift.io/odc-dashboard'] === 'true',
@@ -97,16 +97,6 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
         }, []) ?? [];
   }, [urlBoard, legacyDashboards]);
 
-  useEffect(() => {
-    // Dashboard query argument is only set in dev perspective, so skip for admin
-    if (perspective !== 'dev') {
-      return;
-    }
-    const allVariables = getAllVariables(legacyDashboards, urlBoard, namespace);
-    dispatch(dashboardsPatchAllVariables(allVariables));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [namespace, urlBoard]);
-
   // Homogenize data needed for dashboards dropdown between legacy and perses dashboards
   // to enable both to use the same component
   const legacyDashboardsMetadata = useMemo<CombinedDashboardMetadata[]>(() => {
@@ -134,8 +124,7 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
       const queryArguments = getAllQueryArguments();
       const params = new URLSearchParams(queryArguments);
 
-      let url = getLegacyDashboardsUrl(perspective, newBoard);
-      url = `${url}${perspective === 'dev' ? '&' : '?'}${params.toString()}`;
+      const url = getLegacyDashboardsUrl(perspective, newBoard) + params.toString();
 
       if (newBoard !== urlBoard || initialLoad) {
         if (params.get(QueryParams.Dashboard) !== newBoard) {
