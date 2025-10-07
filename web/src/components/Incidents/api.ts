@@ -66,19 +66,28 @@ export const fetchDataForIncidentsAndAlerts = (
   range: { endTime: number; duration: number },
   customQuery: string,
 ) => {
-  return fetch(
-    buildPrometheusUrl({
-      prometheusUrlProps: {
-        endpoint: PrometheusEndpoint.QUERY_RANGE,
-        endTime: range.endTime,
-        namespace: '',
-        query: customQuery,
-        samples: 288,
-        timespan: range.duration - 1,
-      },
-      basePath: getPrometheusBasePath({
-        prometheus: 'cmo',
-      }),
+  const url = buildPrometheusUrl({
+    prometheusUrlProps: {
+      endpoint: PrometheusEndpoint.QUERY_RANGE,
+      endTime: range.endTime,
+      namespace: '',
+      query: customQuery,
+      samples: 288,
+      timespan: range.duration - 1,
+    },
+    basePath: getPrometheusBasePath({
+      prometheus: 'cmo',
     }),
-  );
+  });
+
+  if (!url) {
+    // Return empty result when query is empty to avoid making invalid API calls
+    return Promise.resolve({
+      data: {
+        result: [],
+      },
+    });
+  }
+
+  return fetch(url);
 };
