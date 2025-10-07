@@ -2,14 +2,14 @@
 
 import { PrometheusResult, PrometheusRule } from '@openshift-console/dynamic-plugin-sdk';
 import { Alert, Incident, Severity } from './model';
-import { sortObjectsByEarliestTimestamp } from './processIncidents';
+import { sortByEarliestTimestamp } from './utils';
 
 /**
- * Groups alert objects by their `alertname`, `namespace`, and `component` fields and merges their values
+ * Deduplicates alert objects by their `alertname`, `namespace`, and `component` fields and merges their values
  * while removing duplicates. Alerts with the same combination of `alertname`, `namespace`, and `component`
  * are combined, with values being deduplicated.
  *
- * @param {Array<Object>} objects - Array of alert objects to be grouped. Each object contains a `metric` field
+ * @param {Array<Object>} objects - Array of alert objects to be deduplicated. Each object contains a `metric` field
  * with properties such as `alertname`, `namespace`, `component`, and an array of `values`.
  * @param {Object} objects[].metric - The metric information of the alert.
  * @param {string} objects[].metric.alertname - The name of the alert.
@@ -18,20 +18,20 @@ import { sortObjectsByEarliestTimestamp } from './processIncidents';
  * @param {Array<Array<Number | string>>} objects[].values - The array of values corresponding to the alert, where
  * each value is a tuple containing a timestamp and a value (e.g., [timestamp, value]).
  *
- * @returns {Array<Object>} - An array of grouped alert objects. Each object contains a unique combination of
+ * @returns {Array<Object>} - An array of deduplicated alert objects. Each object contains a unique combination of
  * `alertname`, `namespace`, and `component`, with deduplicated values.
- * @returns {Object} return[].metric - The metric information of the grouped alert.
- * @returns {Array<Array<Number | string>>} return[].values - The deduplicated array of values for the grouped alert.
+ * @returns {Object} return[].metric - The metric information of the deduplicated alert.
+ * @returns {Array<Array<Number | string>>} return[].values - The deduplicated array of values for the alert.
  *
  * @example
  * const alerts = [
  *   { metric: { alertname: "Alert1", namespace: "ns1", component: "comp1" }, values: [[12345, "2"], [12346, "2"]] },
  *   { metric: { alertname: "Alert1", namespace: "ns1", component: "comp1" }, values: [[12346, "2"], [12347, "2"]] }
  * ];
- * const groupedAlerts = groupAlerts(alerts);
- * // Returns an array where the two alerts are grouped together with deduplicated values.
+ * const deduplicated = deduplicateAlerts(alerts);
+ * // Returns an array where the two alerts are combined with deduplicated values.
  */
-export function groupAlerts(objects: Array<PrometheusResult>): Array<PrometheusResult> {
+export function deduplicateAlerts(objects: Array<PrometheusResult>): Array<PrometheusResult> {
   // Step 1: Filter out all non firing alerts
   const filteredObjects = objects.filter((obj) => obj.metric.alertstate === 'firing');
   const groupedObjects = new Map();
@@ -220,7 +220,7 @@ export function processAlerts(
   data: Array<PrometheusResult>,
   selectedIncidents: Array<Partial<Incident>>,
 ): Array<Alert> {
-  const firing = groupAlerts(data).filter((alert) => alert.metric.alertname !== 'Watchdog');
+  const alerts = deduplicateAlerts(data).filter((alert) => alert.metric.alertname !== 'Watchdog');
 
   // Merge incidents that have the same composite key to handle duplicates from multiple queries
   // or silence status changes over time
@@ -233,11 +233,10 @@ export function processAlerts(
   const firstTimestamp = Math.min(...timestamps);
   const lastTimestamp = Math.max(...timestamps);
 
-  return sortObjectsByEarliestTimestamp(firing)
-    .map((alert, index) => {
-      // Filter values based on firstTimestamp and lastTimestamp keep only values within range
-      // Add 30 seconds padding before and after
-      const paddingSeconds = 30;
+  // Filter values based on firstTimestamp and lastTimestamp
+  const paddingSeconds = 30;
+  const filteredAlerts = alerts
+    .map((alert) => {
       const processedValues: Array<[number, string]> = alert.values.filter(
         ([date]) =>
           date >= firstTimestamp - paddingSeconds && date <= lastTimestamp + paddingSeconds,
@@ -249,41 +248,52 @@ export function processAlerts(
         return null;
       }
 
-      const alertsStartFiring = sortedValues[0][0] * 1000;
-      const alertsEndFiring = sortedValues[sortedValues.length - 1][0] * 1000;
-      const resolved = Date.now() - alertsEndFiring > 10 * 60 * 1000;
-
-      // Find matching incident from incidents to get silenced value
-      // Since incidents are already merged by (group_id, src_alertname, src_namespace, src_severity),
-      // there should be at most one matching incident with the latest silenced value
-      const matchingIncident = incidents.find(
-        (incident) =>
-          incident.src_alertname === alert.metric.alertname &&
-          incident.src_namespace === alert.metric.namespace &&
-          incident.src_severity === alert.metric.severity,
-      );
-
-      // Use silenced value from incident data (cluster_health_components_map)
-      // Default to false if no matching incident found
-      const silenced = matchingIncident?.silenced ?? false;
-
       return {
-        alertname: alert.metric.alertname,
-        namespace: alert.metric.namespace,
-        severity: alert.metric.severity as Severity,
-        component: alert.metric.component,
-        layer: alert.metric.layer,
-        name: alert.metric.name,
-        alertstate: resolved ? 'resolved' : 'firing',
+        ...alert,
         values: sortedValues,
-        alertsStartFiring,
-        alertsEndFiring,
-        resolved,
-        x: firing.length - index,
-        silenced,
       };
     })
     .filter((alert) => alert !== null);
+
+  const sortedAlerts = sortByEarliestTimestamp(filteredAlerts);
+
+  const result = sortedAlerts.map((alert, index) => {
+    const alertsStartFiring = alert.values[0][0] * 1000;
+    const alertsEndFiring = alert.values[alert.values.length - 1][0] * 1000;
+    const resolved = Date.now() - alertsEndFiring > 10 * 60 * 1000;
+
+    // Find matching incident from incidents to get silenced value
+    // Since incidents are already merged by (group_id, src_alertname, src_namespace, src_severity),
+    // there should be at most one matching incident with the latest silenced value
+    const matchingIncident = incidents.find(
+      (incident) =>
+        incident.src_alertname === alert.metric.alertname &&
+        incident.src_namespace === alert.metric.namespace &&
+        incident.src_severity === alert.metric.severity,
+    );
+
+    // Use silenced value from incident data (cluster_health_components_map)
+    // Default to false if no matching incident found
+    const silenced = matchingIncident?.silenced ?? false;
+
+    return {
+      alertname: alert.metric.alertname,
+      namespace: alert.metric.namespace,
+      severity: alert.metric.severity as Severity,
+      component: alert.metric.component,
+      layer: alert.metric.layer,
+      name: alert.metric.name,
+      alertstate: resolved ? 'resolved' : 'firing',
+      values: alert.values,
+      alertsStartFiring,
+      alertsEndFiring,
+      resolved,
+      x: filteredAlerts.length - index,
+      silenced,
+    };
+  });
+
+  return result;
 }
 
 export const groupAlertsForTable = (

@@ -4,6 +4,7 @@ import {
   t_global_color_status_info_default,
   t_global_color_status_warning_default,
 } from '@patternfly/react-tokens';
+import { PrometheusResult } from '@openshift-console/dynamic-plugin-sdk';
 import { Dispatch } from 'redux';
 import { setIncidentsActiveFilters } from '../../store/actions';
 import {
@@ -17,6 +18,19 @@ import {
   SpanDates,
   Timestamps,
 } from './model';
+
+/**
+ * Sorts items by their earliest timestamp in ascending order.
+ * @param items - Array of Prometheus results to sort
+ * @returns Sorted array with earliest items first
+ */
+export function sortByEarliestTimestamp(items: PrometheusResult[]): PrometheusResult[] {
+  return items.sort((a, b) => {
+    const earliestA = Math.min(...a.values.map((value) => value[0]));
+    const earliestB = Math.min(...b.values.map((value) => value[0]));
+    return earliestA - earliestB;
+  });
+}
 
 function consolidateAndMergeIntervals(data: Incident, dateArray: SpanDates) {
   const severityRank = { 2: 2, 1: 1, 0: 0 };
