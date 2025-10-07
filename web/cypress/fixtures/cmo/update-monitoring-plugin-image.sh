@@ -14,6 +14,17 @@ oc patch clusterversion version --type json --patch-file ./cypress/fixtures/cmo/
 
 oc delete replicaset --selector=app=cluster-monitoring-operator -n openshift-monitoring
 
+echo "--------------------------------"
+echo "Monitoring file"
+echo "--------------------------------"
+echo "$(cat ${MONITORING_FILE})"
+echo "--------------------------------"
+echo "Cluster monitoring operator"
+echo "--------------------------------"
+csv=$(oc get deployment cluster-monitoring-operator -n openshift-monitoring -o yaml)
+echo "${csv}"
+echo "--------------------------------"
+
 # Wait for the operator to reconcile the change and make sure all the pods are running.
 sleep 30
 OUTPUT=`oc wait --for=condition=Ready pods --selector=app.kubernetes.io/part-of=monitoring-plugin -n openshift-monitoring --timeout=60s`
