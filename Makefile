@@ -48,6 +48,10 @@ build-backend:
 start-backend:
 	go run ./cmd/plugin-backend.go -port='9001' -config-path='./config' -static-path='./web/dist'
 
+.PHONY: test-backend
+test-backend:
+	go test ./pkg/... -v
+
 .PHONY: build-image
 build-image:
 	./scripts/build-image.sh
