@@ -31,6 +31,22 @@ import { dateTimeFormatter } from '../../console/utils/datetime';
 import { useTranslation } from 'react-i18next';
 import { DataTestIDs } from '../../data-test';
 
+/**
+ * Processes component list: moves "Others" to end and limits display to 3 components
+ * @param componentList - Array of component names
+ * @returns Formatted component string with ellipsis if truncated
+ */
+const formatComponentList = (componentList: string[] | undefined): string => {
+  const components = [...(componentList || [])];
+  const othersIndex = components.findIndex((c) => c.toLowerCase() === 'others');
+  if (othersIndex !== -1) {
+    const [others] = components.splice(othersIndex, 1);
+    components.push(others);
+  }
+  const hasMore = components.length > 3;
+  return components.slice(0, 3).join(', ') + (hasMore ? ', ...' : '');
+};
+
 const IncidentsChart = ({
   incidentsData,
   chartDays,
@@ -126,9 +142,11 @@ const IncidentsChart = ({
                     const endDate = datum.firing
                       ? '---'
                       : dateTimeFormatter(i18n.language).format(new Date(datum.y));
-                    return `Severity: ${datum.name}
-                    ID: ${datum.group_id}
-                    Component(s): ${datum.componentList?.join(', ')}
+                    const components = formatComponentList(datum.componentList);
+
+                    return `ID: ${datum.group_id}
+                    Severity: ${datum.name}
+                    Components: ${components}
                     Start: ${startDate}
                     End: ${endDate}`;
                   }}

@@ -677,7 +677,9 @@ export const calculateChartDomain = (
   const minTimestamp = maxTimestamp - daysInSeconds;
 
   const timespan = maxTimestamp - minTimestamp;
-  const padding = timespan * 0.02;
+  // Padding based on number of days: 1 day = 4%, 3 days = 6%, 7+ days = 8%
+  const paddingPercent = dateValues.length === 1 ? 0.04 : dateValues.length === 3 ? 0.06 : 0.08;
+  const padding = timespan * paddingPercent;
   const domainMin = new Date((minTimestamp - padding) * 1000);
   const domainMax = new Date((maxTimestamp + padding) * 1000);
   return [domainMin, domainMax] as [Date, Date];
