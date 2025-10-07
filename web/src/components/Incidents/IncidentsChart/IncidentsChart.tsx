@@ -73,11 +73,19 @@ const IncidentsChart = ({
 
   const chartData = useMemo(() => {
     if (!Array.isArray(incidentsData) || incidentsData.length === 0) return [];
+
     const filteredIncidents = selectedGroupId
       ? incidentsData.filter((incident) => incident.group_id === selectedGroupId)
       : incidentsData;
 
-    return filteredIncidents.map((incident) => createIncidentsChartBars(incident, dateValues));
+    // Create chart bars and sort by original x values to maintain proper order
+    const chartBars = filteredIncidents.map((incident) =>
+      createIncidentsChartBars(incident, dateValues),
+    );
+    chartBars.sort((a, b) => a[0].x - b[0].x);
+
+    // Reassign consecutive x values to eliminate gaps between bars
+    return chartBars.map((bars, index) => bars.map((bar) => ({ ...bar, x: index + 1 })));
   }, [incidentsData, dateValues, selectedGroupId]);
 
   useEffect(() => {
@@ -156,7 +164,9 @@ const IncidentsChart = ({
                   }}
                 />
               }
-              domainPadding={{ x: [30, 25] }}
+              domainPadding={{
+                x: chartData.length <= 2 ? [60, 50] : [30, 25],
+              }}
               legendData={[
                 {
                   name: 'Critical',

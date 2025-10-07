@@ -172,7 +172,9 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
                   }}
                 />
               }
-              domainPadding={{ x: [30, 25] }}
+              domainPadding={{
+                x: chartData.length <= 2 ? [60, 50] : [30, 25],
+              }}
               legendData={[
                 {
                   name: 'Critical',
@@ -234,7 +236,6 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
                           fill: ({ datum }) => datum.fill,
                           stroke: ({ datum }) => datum.fill,
                           fillOpacity: ({ datum }) => (datum.nodata ? 0 : getOpacity(datum)),
-                          cursor: 'pointer',
                         },
                       }}
                     />
