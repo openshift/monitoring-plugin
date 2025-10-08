@@ -28,12 +28,7 @@ import { createAlertsChartBars, generateDateArray, generateAlertsDateArray } fro
 import { dateTimeFormatter } from '../../console/utils/datetime';
 import { useTranslation } from 'react-i18next';
 import { AlertsChartBar, IncidentsDetailsAlert } from '../model';
-import {
-  setAlertsAreLoading,
-  setAlertsData,
-  setAlertsTableData,
-  setIncidentsActiveFilters,
-} from '../../../store/actions';
+import { setAlertsAreLoading } from '../../../store/actions';
 import { MonitoringState } from '../../../store/store';
 import { isEmpty } from 'lodash-es';
 import { DataTestIDs } from '../../data-test';
@@ -100,23 +95,8 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
   }, [filteredData, incidentsActiveFilters.groupId]);
 
   useEffect(() => {
-    if (!selectedIncidentIsVisible && selectedGroupId) {
-      // Clear incident selection when it's no longer visible due to filters
-      dispatch(
-        setIncidentsActiveFilters({
-          incidentsActiveFilters: {
-            ...incidentsActiveFilters,
-            groupId: [],
-          },
-        }),
-      );
-      dispatch(setAlertsData({ alertsData: [] }));
-      dispatch(setAlertsTableData({ alertsTableData: [] }));
-      dispatch(setAlertsAreLoading({ alertsAreLoading: false }));
-    } else {
-      dispatch(setAlertsAreLoading({ alertsAreLoading: !selectedIncidentIsVisible }));
-    }
-  }, [dispatch, selectedIncidentIsVisible, selectedGroupId, incidentsActiveFilters]);
+    dispatch(setAlertsAreLoading({ alertsAreLoading: !selectedIncidentIsVisible }));
+  }, [dispatch, selectedIncidentIsVisible]);
 
   const [width, setWidth] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);

@@ -175,15 +175,43 @@ const IncidentsPage = () => {
   }, [incidentsActiveFilters]);
 
   useEffect(() => {
+    const filteredData = filterIncident(incidentsActiveFilters, incidents);
     dispatch(
       setFilteredIncidentsData({
-        filteredIncidentsData: filterIncident(incidentsActiveFilters, incidents),
+        filteredIncidentsData: filteredData,
       }),
     );
+
+    // Clear incident selection if it's no longer visible due to filters
+    const selectedGroupId = incidentsActiveFilters.groupId?.[0];
+    const selectedIncidentIsVisible = selectedGroupId
+      ? filteredData.some((incident) => incident.group_id === selectedGroupId)
+      : false;
+
+    if (selectedGroupId && !selectedIncidentIsVisible) {
+      setFiltersExpanded({
+        severity: false,
+        state: false,
+        groupId: false,
+      });
+      dispatch(
+        setIncidentsActiveFilters({
+          incidentsActiveFilters: {
+            ...incidentsActiveFilters,
+            groupId: [],
+          },
+        }),
+      );
+      dispatch(setAlertsData({ alertsData: [] }));
+      dispatch(setAlertsTableData({ alertsTableData: [] }));
+    }
   }, [
     incidentsActiveFilters.state,
     incidentsActiveFilters.severity,
     incidentsActiveFilters.groupId,
+    incidents,
+    dispatch,
+    setFiltersExpanded,
   ]);
 
   const safeFetch = useSafeFetch();
