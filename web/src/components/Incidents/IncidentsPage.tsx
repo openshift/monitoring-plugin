@@ -25,7 +25,7 @@ import { Helmet } from 'react-helmet';
 import { IncidentsTable } from './IncidentsTable';
 import {
   getIncidentsTimeRanges,
-  processIncidents,
+  convertToIncidents,
   processIncidentsForAlerts,
 } from './processIncidents';
 import {
@@ -37,7 +37,7 @@ import {
   parseUrlParams,
   updateBrowserUrl,
 } from './utils';
-import { groupAlertsForTable, processAlerts } from './processAlerts';
+import { groupAlertsForTable, convertToAlerts } from './processAlerts';
 import { CompressArrowsAltIcon, CompressIcon, FilterIcon } from '@patternfly/react-icons';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -251,10 +251,10 @@ const IncidentsPage = () => {
         }),
       )
         .then((results) => {
-          const aggregatedData = results.flat();
+          const prometheusResults = results.flat();
           dispatch(
             setAlertsData({
-              alertsData: processAlerts(aggregatedData, incidentForAlertProcessing),
+              alertsData: convertToAlerts(prometheusResults, incidentForAlertProcessing),
             }),
           );
           if (!isEmpty(filteredData)) {
@@ -304,23 +304,23 @@ const IncidentsPage = () => {
       }),
     )
       .then((results) => {
-        const aggregatedData = results.flat();
-        const processedIncidents = processIncidents(aggregatedData);
+        const prometheusResults = results.flat();
+        const incidents = convertToIncidents(prometheusResults);
 
         // Update the raw, unfiltered incidents state
-        dispatch(setIncidents({ incidents: processedIncidents }));
+        dispatch(setIncidents({ incidents }));
 
-        // Now, dispatch the filtered data based on the full incidents list
+        // Filter the incidents and dispatch
         dispatch(
           setFilteredIncidentsData({
-            filteredIncidentsData: filterIncident(incidentsActiveFilters, processedIncidents),
+            filteredIncidentsData: filterIncident(incidentsActiveFilters, incidents),
           }),
         );
 
         setIncidentsAreLoading(false);
 
         if (isGroupSelected) {
-          setIncidentForAlertProcessing(processIncidentsForAlerts(aggregatedData));
+          setIncidentForAlertProcessing(processIncidentsForAlerts(prometheusResults));
           // Only set loading if we don't already have data to show
           if (isEmpty(alertsData)) {
             dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
