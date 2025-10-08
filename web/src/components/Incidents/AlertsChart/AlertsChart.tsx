@@ -27,7 +27,7 @@ import { IncidentsTooltip } from '../IncidentsTooltip';
 import { createAlertsChartBars, generateDateArray, generateAlertsDateArray } from '../utils';
 import { dateTimeFormatter } from '../../console/utils/datetime';
 import { useTranslation } from 'react-i18next';
-import { AlertsChartBar } from '../model';
+import { AlertsChartBar, IncidentsDetailsAlert } from '../model';
 import { setAlertsAreLoading } from '../../../store/actions';
 import { MonitoringState } from '../../../store/store';
 import { isEmpty } from 'lodash-es';
@@ -50,19 +50,38 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
     (state: MonitoringState) => state.plugins.mcp.incidentsData.incidentsActiveFilters,
   );
   const { i18n } = useTranslation();
+
+  const selectedGroupId = incidentsActiveFilters.groupId?.[0];
+
+  // Only show alerts data if it belongs to the currently selected incident
+  // This prevents showing previous incident's data during the transition
+  const displayAlertsData = useMemo<IncidentsDetailsAlert[]>(() => {
+    // If no incident is selected, show empty
+    if (!selectedGroupId) {
+      return [];
+    }
+
+    // If we're loading and have no data, show empty (prevents old data from showing)
+    if (alertsAreLoading && isEmpty(alertsData)) {
+      return [];
+    }
+
+    return alertsData;
+  }, [alertsData, alertsAreLoading, selectedGroupId]);
+
   // Use dynamic date range based on actual alerts data instead of fixed chartDays
   const dateValues = useMemo(() => {
-    if (!Array.isArray(alertsData) || alertsData.length === 0) {
+    if (displayAlertsData.length === 0) {
       // Fallback to single day if no alerts data
       return generateDateArray(1);
     }
-    return generateAlertsDateArray(alertsData);
-  }, [alertsData]);
+    return generateAlertsDateArray(displayAlertsData);
+  }, [displayAlertsData]);
 
   const chartData: AlertsChartBar[][] = useMemo(() => {
-    if (!Array.isArray(alertsData) || alertsData.length === 0) return [];
-    return alertsData.map((alert) => createAlertsChartBars(alert));
-  }, [alertsData]);
+    if (displayAlertsData.length === 0) return [];
+    return displayAlertsData.map((alert) => createAlertsChartBars(alert));
+  }, [displayAlertsData]);
 
   useEffect(() => {
     setChartContainerHeight(chartData?.length < 5 ? 300 : chartData?.length * 60);
@@ -107,7 +126,7 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
     >
       <div ref={containerRef} data-test={DataTestIDs.AlertsChart.ChartContainer}>
         <CardTitle data-test={DataTestIDs.AlertsChart.Title}>Alerts Timeline</CardTitle>
-        {alertsAreLoading || isEmpty(incidentsActiveFilters.groupId) ? (
+        {isEmpty(incidentsActiveFilters.groupId) || isEmpty(displayAlertsData) ? (
           <EmptyState
             variant="lg"
             style={{
