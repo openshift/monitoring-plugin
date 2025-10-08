@@ -30,9 +30,6 @@ export type Metric = {
 };
 
 export type ProcessedIncident = Incident & {
-  informative: boolean;
-  critical: boolean;
-  warning: boolean;
   resolved: boolean;
   firing: boolean;
 };

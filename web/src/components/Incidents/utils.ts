@@ -20,6 +20,43 @@ import {
 } from './model';
 
 /**
+ * Inserts padding data points to ensure the chart renders correctly.
+ * This allows the chart to properly render events, especially single data points.
+ *
+ * @param values - Array of [timestamp, severity] tuples (assumed to be sorted by time)
+ * @returns New array with additional data points inserted where needed
+ */
+export function insertPaddingPointsForChart(
+  values: Array<[number, string]>,
+): Array<[number, string]> {
+  if (values.length === 0) {
+    return values;
+  }
+
+  const result: Array<[number, string]> = [];
+  const fiveMinutes = 5 * 60;
+  const threshold = fiveMinutes + 1;
+
+  for (let i = 0; i < values.length; i++) {
+    const current = values[i];
+    const previous = i > 0 ? result[result.length - 1] : null;
+
+    // Add a data point with the same severity 5 minutes earlier if:
+    // - This is the first item (no previous item)
+    // - This is the first item of a continuous sequence (gap with previous point > 5 min)
+    if (!previous || current[0] - previous[0] > threshold) {
+      const timestamp = current[0] - fiveMinutes;
+      const severity = current[1];
+      result.push([timestamp, severity]);
+    }
+
+    result.push(current);
+  }
+
+  return result;
+}
+
+/**
  * Sorts items by their earliest timestamp in ascending order.
  * @param items - Array of Prometheus results to sort
  * @returns Sorted array with earliest items first
@@ -547,10 +584,7 @@ export const onDeleteGroupIncidentFilterChip = (
   }
 };
 
-export const makeIncidentUrlParams = (
-  params?: IncidentFiltersCombined,
-  incidentGroupId?: string,
-) => {
+const makeIncidentUrlParams = (params?: IncidentFiltersCombined, incidentGroupId?: string) => {
   const processedParams = Object.entries(params ?? {}).reduce((acc, [key, value]) => {
     if (Array.isArray(value)) {
       if (value.length > 0) {
@@ -670,23 +704,18 @@ const onSelect = (event, selection, dispatch, incidentsActiveFilters, filterCate
 /**
  * Calculates the domain boundaries for the incidents chart timeline
  * @param dateValues - Array of timestamp values representing the ticks
- * @param chartData - Array of chart bar data containing incident information
  * @returns Domain boundaries as Date tuple or undefined if no data
  */
-export const calculateChartDomain = (
+export const calculateIncidentsChartDomain = (
   dateValues: Array<number>,
-  chartData: Array<Array<any>>,
 ): [Date, Date] | undefined => {
   if (dateValues.length === 0) return undefined;
-  let maxTimestamp = Math.max(...dateValues);
 
-  // Find the maximum timestamp from chartData (incident data points)
-  if (chartData.length > 0) {
-    const chartMaxTimestamp = Math.max(...chartData.flat().map((bar) => bar.y.getTime() / 1000));
-    maxTimestamp = Math.max(maxTimestamp, chartMaxTimestamp);
-  }
+  // Upper bound is always current time
+  const now = new Date();
+  const maxTimestamp = now.getTime() / 1000;
 
-  // Calculate minTimestamp based on maxTimestamp and number of days
+  // Calculate minTimestamp based on number of days
   const daysInSeconds = dateValues.length * 86400; // Convert days to seconds
   const minTimestamp = maxTimestamp - daysInSeconds;
 
