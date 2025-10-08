@@ -1,27 +1,27 @@
 #!/bin/bash
-MONITORING_FILE="/tmp/monitoring_csv_$(date +%s%N).yaml"
-MONITORING_CSV_NAME=$(oc get deployment --kubeconfig "${KUBECONFIG}" -n openshift-monitoring | grep "monitoring-plugin" | awk '{print $1}')
+oc patch clusterversion version --type json -p "$(cat disable-monitoring.yaml)"
 
-oc get deployment "${MONITORING_CSV_NAME}" -n openshift-monitoring -o yaml > "${MONITORING_FILE}" --kubeconfig "${KUBECONFIG}"
+oc scale --replicas=0 -n openshift-monitoring deployment/cluster-monitoring-operator
 
-sed -i "s#^\([[:space:]]*image: \).*#\1${MP_IMAGE}#g" "${MONITORING_FILE}"
+oc scale --replicas=0 -n openshift-monitoring deployment/monitoring-plugin
 
 oc patch deployment cluster-monitoring-operator -n openshift-monitoring --type json -p='[{"op": "replace", "path": "/spec/template/spec/containers/0/args/'"$(oc get deployment cluster-monitoring-operator -n openshift-monitoring -o json | jq '.spec.template.spec.containers[0].args | map(startswith("-images=monitoring-plugin=")) | index(true)')"'", "value": "-images=monitoring-plugin='"${MP_IMAGE}"'"}]'
 
-oc replace -f "${MONITORING_FILE}" --kubeconfig "${KUBECONFIG}"
+oc scale --replicas=1 -n openshift-monitoring deployment/cluster-monitoring-operator
 
-oc patch clusterversion version --type json --patch-file ./cypress/fixtures/cmo/disable-monitoring.yaml
+oc scale --replicas=2 -n openshift-monitoring deployment/monitoring-plugin
 
-oc delete replicaset --selector=app=cluster-monitoring-operator -n openshift-monitoring
+sleep 30
 
-echo "--------------------------------"
-echo "Monitoring file"
-echo "--------------------------------"
-echo "$(cat ${MONITORING_FILE})"
 echo "--------------------------------"
 echo "Cluster monitoring operator"
 echo "--------------------------------"
 csv=$(oc get deployment cluster-monitoring-operator -n openshift-monitoring -o yaml)
+echo "${csv}"
+echo "--------------------------------"
+echo "Monitoring plugin"
+echo "--------------------------------"
+csv=$(oc get deployment monitoring-plugin -n openshift-monitoring -o yaml)
 echo "${csv}"
 echo "--------------------------------"
 
