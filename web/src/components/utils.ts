@@ -31,6 +31,8 @@ export const AlertResource: MonitoringResource = {
 
 export const RuleResource: MonitoringResource = {
   kind: 'AlertRule',
+  // t('Alerting Rule')
+  // t('Alerting Rules')
   label: 'Alerting Rule',
   plural: '/monitoring/alertrules',
   abbr: 'AR',
