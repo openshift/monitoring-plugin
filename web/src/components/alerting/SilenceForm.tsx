@@ -1,8 +1,4 @@
-import {
-  consoleFetchJSON,
-  NamespaceBar,
-  useActiveNamespace,
-} from '@openshift-console/dynamic-plugin-sdk';
+import { consoleFetchJSON, NamespaceBar } from '@openshift-console/dynamic-plugin-sdk';
 import {
   ActionGroup,
   Alert,
@@ -54,6 +50,7 @@ import { DataTestIDs } from '../data-test';
 import { ALL_NAMESPACES_KEY, getAlertmanagerSilencesUrl } from '../utils';
 import { useAlerts } from '../../hooks/useAlerts';
 import { useMonitoring } from '../../hooks/useMonitoring';
+import { useQueryNamespace } from '../hooks/useQueryNamespace';
 
 const durationOff = '-';
 
@@ -133,7 +130,7 @@ const NegativeMatcherHelp = () => {
 
 const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespaced }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const [namespace] = useActiveNamespace();
+  const { namespace } = useQueryNamespace();
   const { prometheus } = useMonitoring();
   const navigate = useNavigate();
 

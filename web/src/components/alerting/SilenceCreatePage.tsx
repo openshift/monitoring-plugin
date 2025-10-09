@@ -3,8 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { getAllQueryArguments } from '../console/utils/router';
 import { SilenceForm } from './SilenceForm';
 import { MonitoringProvider } from '../../contexts/MonitoringContext';
-import { useActiveNamespace } from '@openshift-console/dynamic-plugin-sdk';
 import { ALL_NAMESPACES_KEY } from '../utils';
+import { useQueryNamespace } from '../hooks/useQueryNamespace';
 
 const CreateSilencePage = ({ isNamespaced }: { isNamespaced: boolean }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -23,11 +23,11 @@ const CreateSilencePage = ({ isNamespaced }: { isNamespaced: boolean }) => {
 };
 
 export const MpCmoCreateSilencePage = () => {
-  const [activeNamespace] = useActiveNamespace();
+  const { namespace } = useQueryNamespace();
 
   return (
     <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
-      <CreateSilencePage isNamespaced={activeNamespace !== ALL_NAMESPACES_KEY} />
+      <CreateSilencePage isNamespaced={namespace !== ALL_NAMESPACES_KEY} />
     </MonitoringProvider>
   );
 };

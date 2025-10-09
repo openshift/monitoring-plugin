@@ -2,8 +2,6 @@ import { NamespaceBar, Overview } from '@openshift-console/dynamic-plugin-sdk';
 import type { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom-v5-compat';
-import { QueryParamProvider } from 'use-query-params';
-import { ReactRouter5Adapter } from 'use-query-params/adapters/react-router-5';
 import { LoadingInline } from '../../../components/console/console-shared/src/components/loading/LoadingInline';
 import withFallback from '../../console/console-shared/error/fallbacks/withFallback';
 import { usePerspective } from '../../hooks/usePerspective';
@@ -62,9 +60,7 @@ export const MpCmoLegacyDashboardsPage: FC = () => {
 
   return (
     <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
-      <QueryParamProvider adapter={ReactRouter5Adapter}>
-        <LegacyDashboardsPageWithFallback urlBoard={params?.dashboardName} />
-      </QueryParamProvider>
+      <LegacyDashboardsPageWithFallback urlBoard={params?.dashboardName} />
     </MonitoringProvider>
   );
 };
