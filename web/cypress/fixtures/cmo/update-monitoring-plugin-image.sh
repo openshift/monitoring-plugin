@@ -1,5 +1,9 @@
 #!/bin/bash
-oc patch clusterversion version --type json -p "$(cat disable-monitoring.yaml)"
+echo "--------------------------------"
+echo "MP_IMAGE: ${MP_IMAGE}"
+echo "--------------------------------"
+
+oc patch clusterversion version --type json -p "$(cat ./cypress/fixtures/cmo/disable-monitoring.yaml)"
 
 oc scale --replicas=0 -n openshift-monitoring deployment/cluster-monitoring-operator
 
