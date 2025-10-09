@@ -9,7 +9,6 @@ import {
   ResourceIcon,
   ResourceLink,
   Rule,
-  useActiveNamespace,
   useResolvedExtensions,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
@@ -90,6 +89,7 @@ import {
 import { DataTestIDs } from '../data-test';
 import { useAlerts } from '../../hooks/useAlerts';
 import { useMonitoring } from '../../hooks/useMonitoring';
+import { useQueryNamespace } from '../hooks/useQueryNamespace';
 
 const AlertsDetailsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -101,7 +101,7 @@ const AlertsDetailsPage_: FC = () => {
 
   const { alerts, rulesAlertLoading, silences } = useAlerts();
 
-  const [namespace] = useActiveNamespace();
+  const { namespace } = useQueryNamespace();
 
   const hideGraphs = useSelector(
     (state: MonitoringState) => !!getObserveState(plugin, state).hideGraphs,

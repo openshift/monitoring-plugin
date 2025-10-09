@@ -3,8 +3,6 @@ import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
 import { BrowserRouter, Link, Route, Routes } from 'react-router-dom-v5-compat';
 import { combineReducers, createStore } from 'redux';
-import { QueryParamProvider } from 'use-query-params';
-import { ReactRouter5Adapter } from 'use-query-params/adapters/react-router-5';
 import { MpCmoAlertingPage } from './components/alerting/AlertingPage';
 import { MpCmoAlertRulesDetailsPage } from './components/alerting/AlertRulesDetailsPage';
 import { MpCmoAlertRulesPage } from './components/alerting/AlertRulesPage';
@@ -37,31 +35,29 @@ const App = () => (
         <Link to="/monitoring/dashboards">Dashboards</Link>
         <Link to="/monitoring/targets">Targets</Link>
       </div>
-      <QueryParamProvider adapter={ReactRouter5Adapter}>
-        <Routes>
-          <Route path="silences/~new" element={<MpCmoCreateSilencePage />} />
+      <Routes>
+        <Route path="silences/~new" element={<MpCmoCreateSilencePage />} />
 
-          <Route path="dashboards" element={<MpCmoLegacyDashboardsPage />} />
-          <Route path="dashboards/:dashboardName" element={<MpCmoLegacyDashboardsPage />} />
+        <Route path="dashboards" element={<MpCmoLegacyDashboardsPage />} />
+        <Route path="dashboards/:dashboardName" element={<MpCmoLegacyDashboardsPage />} />
 
-          <Route path="graph" element={<PrometheusRedirectPage />} />
-          <Route path="query-browser" element={<MpCmoMetricsPage />} />
+        <Route path="graph" element={<PrometheusRedirectPage />} />
+        <Route path="query-browser" element={<MpCmoMetricsPage />} />
 
-          <Route path="targets" element={<MpCmoTargetsPage />} />
-          <Route path="targets/:scrapeUrl" element={<MpCmoTargetsPage />} />
+        <Route path="targets" element={<MpCmoTargetsPage />} />
+        <Route path="targets/:scrapeUrl" element={<MpCmoTargetsPage />} />
 
-          <Route path="alertrules/:id" element={<MpCmoAlertRulesDetailsPage />} />
-          <Route path="alerts/:ruleID" element={<MpCmoAlertsDetailsPage />} />
-          <Route path="silences/:id" element={<MpCmoSilencesDetailsPage />} />
-          <Route path="silences/:id/edit" element={<MpCmoSilenceEditPage />} />
+        <Route path="alertrules/:id" element={<MpCmoAlertRulesDetailsPage />} />
+        <Route path="alerts/:ruleID" element={<MpCmoAlertsDetailsPage />} />
+        <Route path="silences/:id" element={<MpCmoSilencesDetailsPage />} />
+        <Route path="silences/:id/edit" element={<MpCmoSilenceEditPage />} />
 
-          <Route element={<MpCmoAlertingPage />}>
-            <Route path="alerts" element={<MpCmoAlertsPage />} />
-            <Route path="alertrules" element={<MpCmoAlertRulesPage />} />
-            <Route path="silences" element={<MpCmoSilencesPage />} />
-          </Route>
-        </Routes>
-      </QueryParamProvider>
+        <Route element={<MpCmoAlertingPage />}>
+          <Route path="alerts" element={<MpCmoAlertsPage />} />
+          <Route path="alertrules" element={<MpCmoAlertRulesPage />} />
+          <Route path="silences" element={<MpCmoSilencesPage />} />
+        </Route>
+      </Routes>
     </BrowserRouter>
   </Provider>
 );

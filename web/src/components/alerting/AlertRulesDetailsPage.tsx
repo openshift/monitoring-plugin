@@ -6,7 +6,6 @@ import {
   PrometheusAlert,
   ResourceIcon,
   Timestamp,
-  useActiveNamespace,
   useResolvedExtensions,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
@@ -69,6 +68,7 @@ import { MonitoringProvider } from '../../contexts/MonitoringContext';
 
 import { DataTestIDs } from '../data-test';
 import { useAlerts } from '../../hooks/useAlerts';
+import { useQueryNamespace } from '../hooks/useQueryNamespace';
 
 // Renders Prometheus template text and highlights any {{ ... }} tags that it contains
 const PrometheusTemplate = ({ text }) => (
@@ -147,7 +147,7 @@ const AlertRulesDetailsPage_: FC = () => {
   const { rules, rulesAlertLoading } = useAlerts();
 
   const { perspective } = usePerspective();
-  const [namespace] = useActiveNamespace();
+  const { namespace } = useQueryNamespace();
 
   const rule = _.find(rules, { id: params.id });
 
