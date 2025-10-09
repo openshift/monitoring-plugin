@@ -96,6 +96,7 @@
   "Refresh interval": "Refresh interval",
   "Dashboards": "Dashboards",
   "Inspect": "Inspect",
+  "Export as CSV": "Export as CSV",
   "Error loading card": "Error loading card",
   "Metrics dashboards": "Metrics dashboards",
   "panel.styles attribute not found": "panel.styles attribute not found",
@@ -124,7 +125,6 @@
   "Show table": "Show table",
   "Show series": "Show series",
   "Hide series": "Hide series",
-  "Export as CSV": "Export as CSV",
   "Disable query": "Disable query",
   "Enable query": "Enable query",
   "Query must be enabled": "Query must be enabled",
@@ -224,5 +224,7 @@
   "Metrics targets": "Metrics targets",
   "Error loading latest targets data": "Error loading latest targets data",
   "Search by endpoint or namespace...": "Search by endpoint or namespace...",
-  "Text": "Text"
+  "Text": "Text",
+  "Alerting Rule": "Alerting Rule",
+  "Alerting Rules": "Alerting Rules"
 }
