@@ -22,19 +22,17 @@ import {
   t_global_color_status_info_default,
   t_global_color_status_warning_default,
 } from '@patternfly/react-tokens';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { IncidentsTooltip } from '../IncidentsTooltip';
 import { createAlertsChartBars, generateDateArray, generateAlertsDateArray } from '../utils';
 import { dateTimeFormatter } from '../../console/utils/datetime';
 import { useTranslation } from 'react-i18next';
 import { AlertsChartBar, IncidentsDetailsAlert } from '../model';
-import { setAlertsAreLoading } from '../../../store/actions';
 import { MonitoringState } from '../../../store/store';
 import { isEmpty } from 'lodash-es';
 import { DataTestIDs } from '../../data-test';
 
 const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
-  const dispatch = useDispatch();
   const [chartContainerHeight, setChartContainerHeight] = useState<number>();
   const [chartHeight, setChartHeight] = useState<number>();
   const alertsData = useSelector(
@@ -42,9 +40,6 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
   );
   const alertsAreLoading = useSelector(
     (state: MonitoringState) => state.plugins.mcp.incidentsData.alertsAreLoading,
-  );
-  const filteredData = useSelector(
-    (state: MonitoringState) => state.plugins.mcp.incidentsData.filteredIncidentsData,
   );
   const incidentsActiveFilters = useSelector(
     (state: MonitoringState) => state.plugins.mcp.incidentsData.incidentsActiveFilters,
@@ -87,16 +82,6 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
     setChartContainerHeight(chartData?.length < 5 ? 300 : chartData?.length * 60);
     setChartHeight(chartData?.length < 5 ? 250 : chartData?.length * 55);
   }, [chartData]);
-
-  const selectedIncidentIsVisible = useMemo(() => {
-    return filteredData.some(
-      (incident) => incident.group_id === incidentsActiveFilters.groupId?.[0],
-    );
-  }, [filteredData, incidentsActiveFilters.groupId]);
-
-  useEffect(() => {
-    dispatch(setAlertsAreLoading({ alertsAreLoading: !selectedIncidentIsVisible }));
-  }, [dispatch, selectedIncidentIsVisible]);
 
   const [width, setWidth] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
