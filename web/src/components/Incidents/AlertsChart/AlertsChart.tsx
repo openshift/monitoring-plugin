@@ -24,7 +24,12 @@ import {
 } from '@patternfly/react-tokens';
 import { useDispatch, useSelector } from 'react-redux';
 import { IncidentsTooltip } from '../IncidentsTooltip';
-import { createAlertsChartBars, generateDateArray, generateAlertsDateArray } from '../utils';
+import {
+  createAlertsChartBars,
+  generateDateArray,
+  generateAlertsDateArray,
+  getCurrentTime,
+} from '../utils';
 import { dateTimeFormatter } from '../../console/utils/datetime';
 import { useTranslation } from 'react-i18next';
 import { AlertsChartBar, IncidentsDetailsAlert } from '../model';
@@ -49,9 +54,13 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
   const incidentsActiveFilters = useSelector(
     (state: MonitoringState) => state.plugins.mcp.incidentsData.incidentsActiveFilters,
   );
+  const incidentsLastRefreshTime = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData.incidentsLastRefreshTime,
+  );
   const { i18n } = useTranslation();
 
   const selectedGroupId = incidentsActiveFilters.groupId?.[0];
+  const currentTime = incidentsLastRefreshTime ?? getCurrentTime();
 
   // Only show alerts data if it belongs to the currently selected incident
   // This prevents showing previous incident's data during the transition
@@ -73,10 +82,10 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
   const dateValues = useMemo(() => {
     if (displayAlertsData.length === 0) {
       // Fallback to single day if no alerts data
-      return generateDateArray(1);
+      return generateDateArray(1, currentTime);
     }
-    return generateAlertsDateArray(displayAlertsData);
-  }, [displayAlertsData]);
+    return generateAlertsDateArray(displayAlertsData, currentTime);
+  }, [displayAlertsData, currentTime]);
 
   const chartData: AlertsChartBar[][] = useMemo(() => {
     if (displayAlertsData.length === 0) return [];
@@ -159,9 +168,7 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
                         ? '---'
                         : dateTimeFormatter(i18n.language).format(new Date(datum.y));
 
-                    const alertName = datum.silenced
-                      ? `${datum.name} (currently silenced)`
-                      : datum.name;
+                    const alertName = datum.silenced ? `${datum.name} (silenced)` : datum.name;
 
                     return `Alert Name: ${alertName}
                     Severity: ${datum.severity}

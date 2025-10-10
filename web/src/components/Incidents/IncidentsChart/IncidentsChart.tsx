@@ -57,17 +57,22 @@ const IncidentsChart = ({
   theme,
   selectedGroupId,
   onIncidentClick,
+  currentTime,
 }: {
   incidentsData: Array<Incident>;
   chartDays: number;
   theme: 'light' | 'dark';
   selectedGroupId: string;
   onIncidentClick: (groupId: string) => void;
+  currentTime: number;
 }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [chartContainerHeight, setChartContainerHeight] = useState<number>();
   const [chartHeight, setChartHeight] = useState<number>();
-  const dateValues = useMemo(() => generateDateArray(chartDays), [chartDays]);
+  const dateValues = useMemo(
+    () => generateDateArray(chartDays, currentTime),
+    [chartDays, currentTime],
+  );
 
   const { i18n } = useTranslation();
 
@@ -206,7 +211,7 @@ const IncidentsChart = ({
                 tickLabelComponent={
                   <ChartLabel style={{ fill: theme === 'light' ? '#1b1d21' : '#e0e0e0' }} />
                 }
-                domain={calculateIncidentsChartDomain(dateValues)}
+                domain={calculateIncidentsChartDomain(dateValues, currentTime)}
               />
               <ChartGroup horizontal data-test={DataTestIDs.IncidentsChart.ChartBars}>
                 {chartData.map((bar) => {

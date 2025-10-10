@@ -2,38 +2,40 @@
 
 import { PrometheusLabels, PrometheusResult } from '@openshift-console/dynamic-plugin-sdk';
 import { Incident, Metric, ProcessedIncident } from './model';
-import { insertPaddingPointsForChart, sortByEarliestTimestamp } from './utils';
-
-// Constants for time-based calculations
-const INCIDENT_RESOLVED_THRESHOLD_SECONDS = 10 * 60; // 10 minutes
-const QUERY_CHUNK_SIZE_MS = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+import {
+  getCurrentTime,
+  insertPaddingPointsForChart,
+  isResolved,
+  sortByEarliestTimestamp,
+} from './utils';
+import { setIncidentsLastRefreshTime } from '../../store/actions';
 
 /**
  * Converts Prometheus results into processed incidents, filtering out Watchdog incidents.
  * Adds padding points for chart rendering and determines firing/resolved status based on
  * the time elapsed since the last data point.
  *
- * @param data - Array of Prometheus query results containing incident data.
+ * @param prometheusResults - Array of Prometheus query results containing incident data.
+ * @param currentTime - The current time in milliseconds to use for resolved/firing calculations.
  * @returns Array of processed incidents with firing/resolved status, padding points, and x positioning.
  */
-export function convertToIncidents(data: PrometheusResult[]): ProcessedIncident[] {
-  const incidents = getIncidents(data).filter(
+export function convertToIncidents(
+  prometheusResults: PrometheusResult[],
+  currentTime: number,
+): ProcessedIncident[] {
+  const incidents = getIncidents(prometheusResults).filter(
     (incident) => incident.metric.src_alertname !== 'Watchdog',
   );
   const sortedIncidents = sortByEarliestTimestamp(incidents);
 
   return sortedIncidents.map((incident, index) => {
-    const values = insertPaddingPointsForChart(incident.values);
+    // Determine resolved status based on original values before padding
+    const sortedValues = incident.values.sort((a, b) => a[0] - b[0]);
+    const lastTimestamp = sortedValues[sortedValues.length - 1][0];
+    const resolved = isResolved(lastTimestamp, currentTime);
 
-    const timestamps = values.map((value) => value[0]); // Extract timestamps
-    // Handle edge case where timestamps array might be empty
-    const lastTimestamp =
-      timestamps.length > 0 ? Math.max(...timestamps) : Math.floor(Date.now() / 1000);
-    const currentTimestamp = Math.floor(Date.now() / 1000); // Current time in seconds
-
-    // Firing and resolved logic
-    const isFiring = currentTimestamp - lastTimestamp <= INCIDENT_RESOLVED_THRESHOLD_SECONDS;
-    const isResolved = !isFiring;
+    // Add padding points for chart rendering
+    const paddedValues = insertPaddingPointsForChart(sortedValues, currentTime);
 
     const srcProperties = getSrcProperties(incident.metric);
 
@@ -42,10 +44,10 @@ export function convertToIncidents(data: PrometheusResult[]): ProcessedIncident[
       componentList: incident.metric.componentList,
       group_id: incident.metric.group_id,
       layer: incident.metric.layer,
-      values,
+      values: paddedValues,
       x: incidents.length - index,
-      resolved: isResolved,
-      firing: isFiring,
+      resolved,
+      firing: !resolved,
       ...srcProperties,
       metric: incident.metric,
     } as ProcessedIncident;
@@ -79,6 +81,7 @@ function deduplicateByTimestampWithHighestSeverity(
 
 /**
  * Extracts properties from the metric that start with 'src_' and returns them in an object.
+ * These are the keys we use to identify the associated alerts.
  *
  * @param metric - The metric object from which source properties are extracted.
  * @returns An object containing only the properties from metric that start with 'src_'.
@@ -161,21 +164,34 @@ export function getIncidents(
  * Calculates time ranges for incidents based on a given timespan, split into daily intervals.
  *
  * @param timespan - The total timespan for which to calculate ranges.
- * @param maxEndTime - The maximum end time for the ranges, defaulting to the current time.
+ * @param incidentsLastRefreshTime - The last refresh time from state, or null if not yet set.
+ * @param dispatch - Redux dispatch function to set the refresh time on first call.
  * @returns Array of time range objects, each with `endTime` and `duration` for a daily interval.
  */
 
 export const getIncidentsTimeRanges = (
   timespan: number,
-  maxEndTime: number = Date.now(),
+  incidentsLastRefreshTime: number | null,
+  dispatch?: (action: any) => void,
 ): Array<{ endTime: number; duration: number }> => {
+  const currentTime = getCurrentTime();
+
+  // Set the refresh time on first call (when incidentsLastRefreshTime is null)
+  if (incidentsLastRefreshTime === null && dispatch) {
+    dispatch(setIncidentsLastRefreshTime(currentTime));
+  }
+
+  // Use incidentsLastRefreshTime if available, otherwise get current time
+  const maxEndTime = incidentsLastRefreshTime ?? currentTime;
+
+  const ONE_DAY = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
   const startTime = maxEndTime - timespan;
-  const timeRanges = [{ endTime: startTime + QUERY_CHUNK_SIZE_MS, duration: QUERY_CHUNK_SIZE_MS }];
+  const timeRanges = [{ endTime: startTime + ONE_DAY, duration: ONE_DAY }];
 
   while (timeRanges[timeRanges.length - 1].endTime < maxEndTime) {
     const lastRange = timeRanges[timeRanges.length - 1];
-    const nextEndTime = lastRange.endTime + QUERY_CHUNK_SIZE_MS;
-    timeRanges.push({ endTime: nextEndTime, duration: QUERY_CHUNK_SIZE_MS });
+    const nextEndTime = lastRange.endTime + ONE_DAY;
+    timeRanges.push({ endTime: nextEndTime, duration: ONE_DAY });
   }
 
   return timeRanges;
