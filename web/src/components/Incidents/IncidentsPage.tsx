@@ -30,6 +30,7 @@ import {
 } from './processIncidents';
 import {
   filterIncident,
+  getCurrentTime,
   getIncidentIdOptions,
   onDeleteGroupIncidentFilterChip,
   onDeleteIncidentFilterChip,
@@ -48,6 +49,7 @@ import {
   setIncidentPageFilterType,
   setIncidents,
   setIncidentsActiveFilters,
+  setIncidentsLastRefreshTime,
 } from '../../store/actions';
 import { useLocation } from 'react-router-dom';
 import { changeDaysFilter } from './utils';
@@ -144,6 +146,10 @@ const IncidentsPage = () => {
     (state: MonitoringState) => state.plugins.mcp.incidentsData.incidentPageFilterType,
   );
 
+  const incidentsLastRefreshTime = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData.incidentsLastRefreshTime,
+  );
+
   useEffect(() => {
     const hasUrlParams = Object.keys(urlParams).length > 0;
     if (hasUrlParams) {
@@ -218,8 +224,8 @@ const IncidentsPage = () => {
   const title = t('Incidents');
 
   useEffect(() => {
-    setTimeRanges(getIncidentsTimeRanges(daysSpan, Date.now()));
-  }, [daysSpan, selectedGroupId]);
+    setTimeRanges(getIncidentsTimeRanges(daysSpan, incidentsLastRefreshTime, dispatch));
+  }, [daysSpan, selectedGroupId, incidentsLastRefreshTime, dispatch]);
 
   useEffect(() => {
     setDaysSpan(
@@ -240,6 +246,7 @@ const IncidentsPage = () => {
     }
 
     (async () => {
+      const currentTime = incidentsLastRefreshTime;
       Promise.all(
         timeRanges.map(async (range) => {
           const response = await fetchDataForIncidentsAndAlerts(
@@ -254,7 +261,11 @@ const IncidentsPage = () => {
           const prometheusResults = results.flat();
           dispatch(
             setAlertsData({
-              alertsData: convertToAlerts(prometheusResults, incidentForAlertProcessing),
+              alertsData: convertToAlerts(
+                prometheusResults,
+                incidentForAlertProcessing,
+                currentTime,
+              ),
             }),
           );
           if (!isEmpty(filteredData)) {
@@ -285,12 +296,20 @@ const IncidentsPage = () => {
 
     setIncidentsAreLoading(true);
 
+    // Set refresh time before making queries
+    const currentTime = getCurrentTime();
+    dispatch(setIncidentsLastRefreshTime(currentTime));
+
     const daysDuration = parsePrometheusDuration(
       incidentsActiveFilters.days.length > 0
         ? incidentsActiveFilters.days[0].split(' ')[0] + 'd'
         : '',
     );
-    const calculatedTimeRanges = getIncidentsTimeRanges(daysDuration, Date.now());
+    const calculatedTimeRanges = getIncidentsTimeRanges(
+      daysDuration,
+      incidentsLastRefreshTime,
+      dispatch,
+    );
 
     const isGroupSelected = !!selectedGroupId;
     const incidentsQuery = isGroupSelected
@@ -305,7 +324,7 @@ const IncidentsPage = () => {
     )
       .then((results) => {
         const prometheusResults = results.flat();
-        const incidents = convertToIncidents(prometheusResults);
+        const incidents = convertToIncidents(prometheusResults, currentTime);
 
         // Update the raw, unfiltered incidents state
         dispatch(setIncidents({ incidents }));
@@ -627,6 +646,7 @@ const IncidentsPage = () => {
                     theme={theme}
                     selectedGroupId={selectedGroupId}
                     onIncidentClick={handleIncidentChartClick}
+                    currentTime={incidentsLastRefreshTime}
                   />
                 </StackItem>
                 <StackItem>

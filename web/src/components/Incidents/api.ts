@@ -2,6 +2,7 @@
 
 import { PrometheusEndpoint, PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
 import { getPrometheusBasePath, buildPrometheusUrl } from '../utils';
+import { PROMETHEUS_QUERY_INTERVAL_SECONDS } from './utils';
 /**
  * Creates a Prometheus alerts query string from grouped alert values.
  * The function dynamically includes any properties in the input objects that have the "src_" prefix,
@@ -66,14 +67,18 @@ export const fetchDataForIncidentsAndAlerts = (
   range: { endTime: number; duration: number },
   customQuery: string,
 ) => {
+  // Calculate samples to ensure step=PROMETHEUS_QUERY_INTERVAL_SECONDS (300s / 5 minutes)
+  // For 24h duration: Math.ceil(86400000 / 288 / 1000) = 300 seconds
+  const samples = Math.floor(range.duration / (PROMETHEUS_QUERY_INTERVAL_SECONDS * 1000));
+
   const url = buildPrometheusUrl({
     prometheusUrlProps: {
       endpoint: PrometheusEndpoint.QUERY_RANGE,
       endTime: range.endTime,
       namespace: '',
       query: customQuery,
-      samples: 288,
-      timespan: range.duration - 1,
+      samples,
+      timespan: range.duration,
     },
     basePath: getPrometheusBasePath({
       prometheus: 'cmo',
