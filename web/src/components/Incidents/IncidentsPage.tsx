@@ -198,29 +198,12 @@ const IncidentsPage = () => {
       : false;
 
     if (selectedGroupId && !selectedIncidentIsVisible) {
-      setFiltersExpanded({
-        severity: false,
-        state: false,
-        groupId: false,
-      });
-      dispatch(
-        setIncidentsActiveFilters({
-          incidentsActiveFilters: {
-            ...incidentsActiveFilters,
-            groupId: [],
-          },
-        }),
-      );
-      dispatch(setAlertsData({ alertsData: [] }));
       dispatch(setAlertsTableData({ alertsTableData: [] }));
     }
   }, [
     incidentsActiveFilters.state,
     incidentsActiveFilters.severity,
     incidentsActiveFilters.groupId,
-    incidents,
-    dispatch,
-    setFiltersExpanded,
   ]);
 
   const safeFetch = useSafeFetch();
@@ -241,13 +224,6 @@ const IncidentsPage = () => {
   }, [incidentsActiveFilters.days]);
 
   useEffect(() => {
-    // Clear alerts immediately if no incident is selected for alert processing
-    if (isEmpty(incidentForAlertProcessing)) {
-      dispatch(setAlertsData({ alertsData: [] }));
-      dispatch(setAlertsTableData({ alertsTableData: [] }));
-      return;
-    }
-
     (async () => {
       const currentTime = incidentsLastRefreshTime;
       Promise.all(
@@ -349,9 +325,6 @@ const IncidentsPage = () => {
           }
         } else {
           setIncidentForAlertProcessing([]);
-          // Clear alerts data when deselecting to avoid showing stale data
-          dispatch(setAlertsData({ alertsData: [] }));
-          dispatch(setAlertsTableData({ alertsTableData: [] }));
           dispatch(setAlertsAreLoading({ alertsAreLoading: false }));
         }
       })
@@ -389,13 +362,6 @@ const IncidentsPage = () => {
 
   const handleIncidentChartClick = useCallback(
     (groupId) => {
-      // Clear alerts data IMMEDIATELY when switching to a different incident
-      if (groupId !== selectedGroupId && groupId) {
-        dispatch(setAlertsData({ alertsData: [] }));
-        dispatch(setAlertsTableData({ alertsTableData: [] }));
-        dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
-      }
-
       setFiltersExpanded({
         severity: false,
         state: false,
