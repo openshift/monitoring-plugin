@@ -18,16 +18,27 @@ const MOCK_QUERY = '/api/prometheus/api/v1/query_range*';
 
 /**
  * Main mocking function - sets up cy.intercept for Prometheus query_range API
- * Intercepts the query_range API and returns the mock data for the incidents
- * @param incidents 
+ * 
+ * The Incidents page gets all data from the /query endpoint, including silence status
+ * via the 'silenced' label in the cluster_health_components_map metric.
+ * 
+ * Legacy /rules and /silences endpoint mocking has been moved to legacy-endpoint-mocks.ts
+ * 
+ * @param incidents - Array of incident definitions to mock
  */
 export function mockPrometheusQueryRange(incidents: IncidentDefinition[]): void {
   cy.intercept('GET', MOCK_QUERY, (req) => {
     const url = new URL(req.url, window.location.origin);
     const query = url.searchParams.get('query') || '';
+    const startTime = url.searchParams.get('start');
+    const endTime = url.searchParams.get('end');
+
+    const queryStartTime = startTime ? parseFloat(startTime) : undefined;
+    const queryEndTime = endTime ? parseFloat(endTime) : undefined;
 
     console.log(`INTERCEPTED: ${req.method} ${req.url}`);
     console.log(`Query: ${query}`);
+    console.log(`Time range: ${queryStartTime} - ${queryEndTime}`);
 
     let results: any[];
 
@@ -40,7 +51,9 @@ export function mockPrometheusQueryRange(incidents: IncidentDefinition[]): void 
       return;
     }
 
-    results = query.includes(versioned_metric) ? createIncidentMock(incidents, query) : createAlertDetailsMock(incidents, query);
+    results = query.includes(versioned_metric) 
+      ? createIncidentMock(incidents, query, queryStartTime, queryEndTime) 
+      : createAlertDetailsMock(incidents, query, queryStartTime, queryEndTime);
     const response: PrometheusResponse = {
         status: 'success',
         data: {
