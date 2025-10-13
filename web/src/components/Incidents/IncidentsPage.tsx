@@ -184,43 +184,15 @@ const IncidentsPage = () => {
   }, [incidentsActiveFilters]);
 
   useEffect(() => {
-    const filteredData = filterIncident(incidentsActiveFilters, incidents);
     dispatch(
       setFilteredIncidentsData({
-        filteredIncidentsData: filteredData,
+        filteredIncidentsData: filterIncident(incidentsActiveFilters, incidents),
       }),
     );
-
-    // Clear incident selection if it's no longer visible due to filters
-    const selectedGroupId = incidentsActiveFilters.groupId?.[0];
-    const selectedIncidentIsVisible = selectedGroupId
-      ? filteredData.some((incident) => incident.group_id === selectedGroupId)
-      : false;
-
-    if (selectedGroupId && !selectedIncidentIsVisible) {
-      setFiltersExpanded({
-        severity: false,
-        state: false,
-        groupId: false,
-      });
-      dispatch(
-        setIncidentsActiveFilters({
-          incidentsActiveFilters: {
-            ...incidentsActiveFilters,
-            groupId: [],
-          },
-        }),
-      );
-      dispatch(setAlertsData({ alertsData: [] }));
-      dispatch(setAlertsTableData({ alertsTableData: [] }));
-    }
   }, [
     incidentsActiveFilters.state,
     incidentsActiveFilters.severity,
     incidentsActiveFilters.groupId,
-    incidents,
-    dispatch,
-    setFiltersExpanded,
   ]);
 
   const safeFetch = useSafeFetch();
@@ -241,13 +213,6 @@ const IncidentsPage = () => {
   }, [incidentsActiveFilters.days]);
 
   useEffect(() => {
-    // Clear alerts immediately if no incident is selected for alert processing
-    if (isEmpty(incidentForAlertProcessing)) {
-      dispatch(setAlertsData({ alertsData: [] }));
-      dispatch(setAlertsTableData({ alertsTableData: [] }));
-      return;
-    }
-
     (async () => {
       const currentTime = incidentsLastRefreshTime;
       Promise.all(
@@ -343,15 +308,9 @@ const IncidentsPage = () => {
 
         if (isGroupSelected) {
           setIncidentForAlertProcessing(processIncidentsForAlerts(prometheusResults));
-          // Only set loading if we don't already have data to show
-          if (isEmpty(alertsData)) {
-            dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
-          }
+          dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
         } else {
           setIncidentForAlertProcessing([]);
-          // Clear alerts data when deselecting to avoid showing stale data
-          dispatch(setAlertsData({ alertsData: [] }));
-          dispatch(setAlertsTableData({ alertsTableData: [] }));
           dispatch(setAlertsAreLoading({ alertsAreLoading: false }));
         }
       })
@@ -389,19 +348,11 @@ const IncidentsPage = () => {
 
   const handleIncidentChartClick = useCallback(
     (groupId) => {
-      // Clear alerts data IMMEDIATELY when switching to a different incident
-      if (groupId !== selectedGroupId && groupId) {
-        dispatch(setAlertsData({ alertsData: [] }));
-        dispatch(setAlertsTableData({ alertsTableData: [] }));
-        dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
-      }
-
       setFiltersExpanded({
         severity: false,
         state: false,
         groupId: false,
       });
-
       if (groupId === selectedGroupId) {
         dispatch(
           setIncidentsActiveFilters({
@@ -655,7 +606,7 @@ const IncidentsPage = () => {
                   />
                 </StackItem>
                 <StackItem>
-                  <AlertsChart key={selectedGroupId || 'no-selection'} theme={theme} />
+                  <AlertsChart theme={theme} />
                 </StackItem>
               </>
             )}
