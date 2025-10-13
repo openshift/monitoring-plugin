@@ -14,24 +14,11 @@ function generateIntervalTimestamps(startTime: number, endTime: number): number[
   const fiveMinutes = 300;
   const timestamps: number[] = [];
   
-  // For very short durations (less than 5 minutes), use minimal points
-  // This replicates the behavior of real backend
-  if (duration < fiveMinutes) {
-    // For instantaneous alerts or very short ones, just use a single point
+    if (duration < fiveMinutes) {
     timestamps.push(startTime);
-
-    // if (duration === 0) {
-    // } else {
-    //   // For short alerts, use start and end points
-    //   timestamps.push(startTime);
-    //   if (startTime !== endTime) {
-    //     timestamps.push(endTime);
-    //   }
-    // }
     return timestamps;
   }
   
-  // For longer durations, use 5-minute intervals
   let currentTime = startTime;
   while (currentTime <= endTime) {
     timestamps.push(currentTime);
@@ -287,16 +274,3 @@ export function createAlertDetailsMock(
   console.log(`Final ALERTS results array length: ${results.length}`);
   return results;
 }
-
-/**
- * LEGACY SILENCES AND RULES MOCKING
- * 
- * The createSilencesMock() and createRulesMock() functions have been moved to
- * legacy-endpoint-mocks.ts as they are not used by the current Incidents page
- * implementation.
- * 
- * The current implementation gets silence data from the /query endpoint via
- * the 'silenced' label in cluster_health_components_map metric.
- * 
- * See legacy-endpoint-mocks.ts for the preserved implementation.
- */

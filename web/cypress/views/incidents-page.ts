@@ -101,6 +101,10 @@ export const incidentsPage = {
       incidentsDetailsStartCell: (index: number) => cy.byTestID(`${DataTestIDs.IncidentsDetailsTable.StartCell}-${index}`),
       incidentsDetailsEndCell: (index: number) => cy.byTestID(`${DataTestIDs.IncidentsDetailsTable.EndCell}-${index}`),
       
+      // Generic selectors for incident table rows and details table rows
+      incidentsTableRows: () => incidentsPage.elements.incidentsTable().find(`tbody[data-test*="${DataTestIDs.IncidentsTable.Row}-"]`),
+      incidentsDetailsTableRows: () => incidentsPage.elements.incidentsDetailsTable().find('tbody tr'),
+      
       // Days select options
       daysSelectList: () => cy.byTestID(DataTestIDs.IncidentsPage.DaysSelectList),
       daysSelectOption: (days: string) => cy.byTestID(`${DataTestIDs.IncidentsPage.DaysSelectOption}-${days.replace(' ', '-')}`),
@@ -351,6 +355,11 @@ export const incidentsPage = {
             return cy.wrap(true);
           }
           incidentsPage.deselectIncidentByBar();
+          // Wait for the incident to be deselected
+          // Quick workaround, could be improved by waiting for the number of paths to change, but it
+          // does not has to if 1 initially. The check for the alert table non existance is already implemented,
+          // but there seems to be a short delay between the alert table closing and new bars rendering.
+          cy.wait(500)
           return searchNextIncidentBar(currentIndex + 1);
         });
     };
@@ -379,6 +388,60 @@ export const incidentsPage = {
         }
         
         return incidentsPage.traverseAllIncidentsBars(alertName, totalPaths);
+      });
+  },
+
+  /**
+   * Gets structured information about alerts in the currently selected incident.
+   * Expands all incident rows and collects alert details from the expanded tables.
+   * 
+   * @returns Promise resolving to an array of alert information objects
+   */
+  getSelectedIncidentAlerts: () => {
+    cy.log('incidentsPage.getSelectedIncidentAlerts: Collecting alert information from selected incident');
+    
+    return incidentsPage.elements.incidentsTableRows()
+      .then(($rows) => {
+        const totalRows = $rows.length;
+        if (totalRows === 0) {
+          cy.log('No incident rows found');
+          return cy.wrap([]);
+        }
+
+        cy.log(`Found ${totalRows} incident rows to expand`);
+        
+        // Expand all rows first
+        for (let i = 0; i < totalRows; i++) {
+          incidentsPage.expandRow(i);
+        }
+        
+        // Wait for all details to load
+        cy.wait(1000);
+        
+        // Count alert rows using the generic selector for details table rows
+        return incidentsPage.elements.incidentsDetailsTableRows()
+          .then(($detailRows) => {
+            const alerts = [];
+            
+            // Create alert info objects with row indices and element references
+            for (let i = 0; i < $detailRows.length; i++) {
+              alerts.push({
+                index: i,
+                // Provide direct element reference for the row
+                getRow: () => cy.wrap($detailRows.eq(i)),
+                // Provide cell getters using column selectors based on data-label attributes
+                getAlertRuleCell: () => cy.wrap($detailRows.eq(i)).find('td[data-label*="alertname"]'),
+                getNamespaceCell: () => cy.wrap($detailRows.eq(i)).find('td[data-label*="namespace"]'),
+                getSeverityCell: () => cy.wrap($detailRows.eq(i)).find('td[data-label*="severity"]'),
+                getStateCell: () => cy.wrap($detailRows.eq(i)).find('td[data-label*="alertstate"]'),
+                getStartCell: () => cy.wrap($detailRows.eq(i)).find('td[data-label*="firingstart"]'),
+                getEndCell: () => cy.wrap($detailRows.eq(i)).find('td[data-label*="firingend"]')
+              });
+            }
+            
+            cy.log(`Collected information for ${alerts.length} alerts`);
+            return cy.wrap(alerts);
+          });
       });
   }
 };

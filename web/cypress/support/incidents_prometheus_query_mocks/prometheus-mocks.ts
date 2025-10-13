@@ -21,9 +21,7 @@ const MOCK_QUERY = '/api/prometheus/api/v1/query_range*';
  * 
  * The Incidents page gets all data from the /query endpoint, including silence status
  * via the 'silenced' label in the cluster_health_components_map metric.
- * 
- * Legacy /rules and /silences endpoint mocking has been moved to legacy-endpoint-mocks.ts
- * 
+ *  * 
  * @param incidents - Array of incident definitions to mock
  */
 export function mockPrometheusQueryRange(incidents: IncidentDefinition[]): void {
