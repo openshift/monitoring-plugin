@@ -1,4 +1,8 @@
-import { consoleFetchJSON, useActiveNamespace } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  consoleFetchJSON,
+  DocumentTitle,
+  useActiveNamespace,
+} from '@openshift-console/dynamic-plugin-sdk';
 import {
   ActionGroup,
   Alert,
@@ -34,7 +38,6 @@ import { t_global_spacer_sm } from '@patternfly/react-tokens';
 import * as _ from 'lodash-es';
 import type { ComponentType, FC, FormEventHandler, MouseEvent, ChangeEvent, Ref } from 'react';
 import { useState, useEffect } from 'react';
-import { Helmet } from 'react-helmet';
 import { Trans, useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom-v5-compat';
@@ -277,9 +280,7 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title }) => {
 
   return (
     <>
-      <Helmet>
-        <title>{title}</title>
-      </Helmet>
+      <DocumentTitle>{title}</DocumentTitle>
       <PageSection hasBodyWrapper={false}>
         <Title headingLevel="h1">{title}</Title>
         <HelperText>

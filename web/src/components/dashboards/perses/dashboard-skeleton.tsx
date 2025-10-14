@@ -65,8 +65,12 @@ export const DashboardSkeleton: FC<MonitoringDashboardsPageProps> = memo(
 
     return (
       <>
-        {perspective !== 'dev' && <DocumentTitle>{t('Metrics dashboards')}</DocumentTitle>}
-        {perspective !== 'dev' && <HeaderTop />}
+        {perspective !== 'dev' && (
+          <>
+            <DocumentTitle>{t('Metrics dashboards')}</DocumentTitle>
+            <HeaderTop />
+          </>
+        )}
         <PageSection hasBodyWrapper={false}>
           <Stack hasGutter>
             {!_.isEmpty(boardItems) && (

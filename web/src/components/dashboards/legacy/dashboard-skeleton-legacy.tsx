@@ -49,8 +49,12 @@ export const DashboardSkeletonLegacy: FC<MonitoringDashboardsLegacyPageProps> = 
 
     return (
       <>
-        {perspective !== 'dev' && <DocumentTitle>{t('Metrics dashboards')}</DocumentTitle>}
-        {perspective !== 'dev' && <HeaderTop />}
+        {perspective !== 'dev' && (
+          <>
+            <DocumentTitle>{t('Metrics dashboards')}</DocumentTitle>
+            <HeaderTop />
+          </>
+        )}
         <PageSection hasBodyWrapper={false}>
           <Stack hasGutter>
             {!_.isEmpty(boardItems) && (

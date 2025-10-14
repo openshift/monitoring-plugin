@@ -20,7 +20,6 @@ import {
   Stack,
   StackItem,
 } from '@patternfly/react-core';
-import { Helmet } from 'react-helmet';
 import { IncidentsTable } from './IncidentsTable';
 import {
   getIncidentsTimeRanges,
@@ -59,7 +58,7 @@ import { usePatternFlyTheme } from '../hooks/usePatternflyTheme';
 import { MonitoringState } from 'src/reducers/observe';
 import { Incident } from './model';
 import { useAlertsPoller } from '../hooks/useAlertsPoller';
-import { Rule } from '@openshift-console/dynamic-plugin-sdk';
+import { DocumentTitle, Rule } from '@openshift-console/dynamic-plugin-sdk';
 
 const IncidentsPage = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -296,9 +295,7 @@ const IncidentsPage = () => {
 
   return (
     <>
-      <Helmet>
-        <title>{title}</title>
-      </Helmet>
+      <DocumentTitle>{title}</DocumentTitle>
       <PageSection hasBodyWrapper={false}>
         {alertsAreLoading && incidentsAreLoading ? (
           <Bullseye>
