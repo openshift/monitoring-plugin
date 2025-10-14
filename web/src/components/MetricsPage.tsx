@@ -1,4 +1,5 @@
 import {
+  DocumentTitle,
   ListPageHeader,
   NamespaceBar,
   PrometheusData,
@@ -62,7 +63,6 @@ import {
 import * as _ from 'lodash-es';
 import type { FC, Ref } from 'react';
 import { useMemo, useCallback, useEffect, useState } from 'react';
-import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -1364,9 +1364,7 @@ const MetricsPage_: FC = () => {
 
   return (
     <>
-      <Helmet>
-        <title>{t('Metrics')}</title>
-      </Helmet>
+      <DocumentTitle>{t('Metrics')}</DocumentTitle>
       <NamespaceBar
         onNamespaceChange={(namespace) => {
           dispatch(queryBrowserDeleteAllQueries());

@@ -1,7 +1,6 @@
 import * as _ from 'lodash-es';
 import type { FC, PropsWithChildren } from 'react';
 import { memo, useCallback, useEffect } from 'react';
-import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 
 import { Divider, PageSection, Split, SplitItem, Stack, StackItem } from '@patternfly/react-core';
@@ -13,7 +12,7 @@ import {
 import { TimeRangeControls } from '@perses-dev/plugin-system';
 import { DashboardDropdown } from '../shared/dashboard-dropdown';
 import { CombinedDashboardMetadata } from './hooks/useDashboardsData';
-import { ListPageHeader } from '@openshift-console/dynamic-plugin-sdk';
+import { DocumentTitle, ListPageHeader } from '@openshift-console/dynamic-plugin-sdk';
 
 const HeaderTop: FC = memo(() => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -65,9 +64,7 @@ export const DashboardSkeleton: FC<MonitoringDashboardsPageProps> = memo(
 
     return (
       <>
-        <Helmet>
-          <title>{t('Metrics dashboards')}</title>
-        </Helmet>
+        <DocumentTitle>{t('Metrics dashboards')}</DocumentTitle>
         <PageSection hasBodyWrapper={false}>
           <HeaderTop />
           <Stack hasGutter>

@@ -21,7 +21,6 @@ import {
   Flex,
   FlexItem,
 } from '@patternfly/react-core';
-import { Helmet } from 'react-helmet';
 import { IncidentsTable } from './IncidentsTable';
 import {
   getIncidentsTimeRanges,
@@ -69,6 +68,7 @@ import { MonitoringProvider } from '../../contexts/MonitoringContext';
 import { ALL_NAMESPACES_KEY } from '../utils';
 import { isEmpty } from 'lodash-es';
 import { DataTestIDs } from '../data-test';
+import { DocumentTitle } from '@openshift-console/dynamic-plugin-sdk';
 
 const IncidentsPage = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -378,9 +378,7 @@ const IncidentsPage = () => {
 
   return (
     <>
-      <Helmet>
-        <title>{title}</title>
-      </Helmet>
+      <DocumentTitle>{title}</DocumentTitle>
       {alertsAreLoading && incidentsAreLoading ? (
         <Bullseye>
           <Spinner
