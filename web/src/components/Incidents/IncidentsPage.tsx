@@ -227,8 +227,8 @@ const IncidentsPage = () => {
   const title = t('Incidents');
 
   useEffect(() => {
-    setTimeRanges(getIncidentsTimeRanges(daysSpan, incidentsLastRefreshTime, dispatch));
-  }, [daysSpan, selectedGroupId, incidentsLastRefreshTime, dispatch]);
+    setTimeRanges(getIncidentsTimeRanges(daysSpan, incidentsLastRefreshTime));
+  }, [daysSpan, selectedGroupId, incidentsLastRefreshTime]);
 
   useEffect(() => {
     setDaysSpan(
@@ -308,11 +308,7 @@ const IncidentsPage = () => {
         ? incidentsActiveFilters.days[0].split(' ')[0] + 'd'
         : '',
     );
-    const calculatedTimeRanges = getIncidentsTimeRanges(
-      daysDuration,
-      incidentsLastRefreshTime,
-      dispatch,
-    );
+    const calculatedTimeRanges = getIncidentsTimeRanges(daysDuration, currentTime);
 
     const isGroupSelected = !!selectedGroupId;
     const incidentsQuery = isGroupSelected

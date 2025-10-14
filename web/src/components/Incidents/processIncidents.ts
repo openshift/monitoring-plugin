@@ -2,13 +2,7 @@
 
 import { PrometheusLabels, PrometheusResult } from '@openshift-console/dynamic-plugin-sdk';
 import { Incident, Metric, ProcessedIncident } from './model';
-import {
-  getCurrentTime,
-  insertPaddingPointsForChart,
-  isResolved,
-  sortByEarliestTimestamp,
-} from './utils';
-import { setIncidentsLastRefreshTime } from '../../store/actions';
+import { insertPaddingPointsForChart, isResolved, sortByEarliestTimestamp } from './utils';
 
 /**
  * Converts Prometheus results into processed incidents, filtering out Watchdog incidents.
@@ -164,31 +158,19 @@ export function getIncidents(
  * Calculates time ranges for incidents based on a given timespan, split into daily intervals.
  *
  * @param timespan - The total timespan for which to calculate ranges.
- * @param incidentsLastRefreshTime - The last refresh time from state, or null if not yet set.
- * @param dispatch - Redux dispatch function to set the refresh time on first call.
+ * @param currentTime - The current time to use as the end boundary.
  * @returns Array of time range objects, each with `endTime` and `duration` for a daily interval.
  */
 
 export const getIncidentsTimeRanges = (
   timespan: number,
-  incidentsLastRefreshTime: number | null,
-  dispatch?: (action: any) => void,
+  currentTime: number,
 ): Array<{ endTime: number; duration: number }> => {
-  const currentTime = getCurrentTime();
-
-  // Set the refresh time on first call (when incidentsLastRefreshTime is null)
-  if (incidentsLastRefreshTime === null && dispatch) {
-    dispatch(setIncidentsLastRefreshTime(currentTime));
-  }
-
-  // Use incidentsLastRefreshTime if available, otherwise get current time
-  const maxEndTime = incidentsLastRefreshTime ?? currentTime;
-
   const ONE_DAY = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-  const startTime = maxEndTime - timespan;
+  const startTime = currentTime - timespan;
   const timeRanges = [{ endTime: startTime + ONE_DAY, duration: ONE_DAY }];
 
-  while (timeRanges[timeRanges.length - 1].endTime < maxEndTime) {
+  while (timeRanges[timeRanges.length - 1].endTime < currentTime) {
     const lastRange = timeRanges[timeRanges.length - 1];
     const nextEndTime = lastRange.endTime + ONE_DAY;
     timeRanges.push({ endTime: nextEndTime, duration: ONE_DAY });
