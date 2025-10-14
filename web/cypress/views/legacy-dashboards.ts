@@ -1,6 +1,6 @@
 import { commonPages } from "./common";
 import { LegacyDashboardPageTestIDs, DataTestIDs, Classes, IDs, LegacyTestIDs } from "../../src/components/data-test";
-import { MonitoringPageTitles, LegacyDashboardsTimeRange, MonitoringRefreshInterval, LegacyDashboardsDashboardDropdown, API_PERFORMANCE_DASHBOARD_PANELS } from "../fixtures/monitoring/constants";
+import { MonitoringPageTitles, LegacyDashboardsTimeRange, MonitoringRefreshInterval, LegacyDashboardsDashboardDropdown, API_PERFORMANCE_DASHBOARD_PANELS, LegacyDashboardsDashboardDropdownNamespace, KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANELS } from "../fixtures/monitoring/constants";
 import { clickIfExist } from "./utils";
 
 export const legacyDashboardsPage = {
@@ -10,7 +10,13 @@ export const legacyDashboardsPage = {
     commonPages.titleShouldHaveText(MonitoringPageTitles.DASHBOARDS);
     cy.byTestID(LegacyDashboardPageTestIDs.TimeRangeDropdown).contains(LegacyDashboardsTimeRange.LAST_30_MINUTES).should('be.visible');
     cy.byTestID(LegacyDashboardPageTestIDs.PollIntervalDropdown).contains(MonitoringRefreshInterval.THIRTY_SECONDS).should('be.visible');
-    cy.byTestID(LegacyDashboardPageTestIDs.DashboardDropdown).find('input').should('have.value', LegacyDashboardsDashboardDropdown.API_PERFORMANCE[0]).and('be.visible');
+    cy.byLegacyTestID('namespace-bar-dropdown').find('span').invoke('text').then((text) => {
+      if (text === 'Project: All Projects') {
+        cy.byTestID(LegacyDashboardPageTestIDs.DashboardDropdown).find('input').should('have.value', LegacyDashboardsDashboardDropdown.API_PERFORMANCE[0]).and('be.visible');
+      } else {
+        cy.byTestID(LegacyDashboardPageTestIDs.DashboardDropdown).find('input').should('have.value', LegacyDashboardsDashboardDropdownNamespace.K8S_COMPUTE_RESOURCES_NAMESPACE_PODS[0]).and('be.visible');
+      }
+    });
   },
 
   clickTimeRangeDropdown: (timeRange: LegacyDashboardsTimeRange) => {
@@ -55,10 +61,10 @@ export const legacyDashboardsPage = {
     cy.get(Classes.MenuItem).contains(LegacyDashboardsDashboardDropdown[dashboard][0]).should('be.visible').click();
   },
 
-  dashboardDropdownAssertion: () => {
+  dashboardDropdownAssertion: (constants: typeof LegacyDashboardsDashboardDropdown | typeof LegacyDashboardsDashboardDropdownNamespace) => {
     cy.log('legacyDashboardsPage.dashboardDropdownAssertion');
     cy.byTestID(LegacyDashboardPageTestIDs.DashboardDropdown).find('button').should('be.visible').click();
-    const dashboards = Object.values(LegacyDashboardsDashboardDropdown);
+    const dashboards = Object.values(constants);
     dashboards.forEach((dashboard) => {
       cy.log('Dashboard: ' + dashboard[0]);
       cy.get(Classes.MenuItem).contains(dashboard[0]).should('be.visible');
@@ -75,6 +81,18 @@ export const legacyDashboardsPage = {
       return panel.toLowerCase().replace(/\s+/g, '-').concat('-chart');
     }
     const dataTestID = Object.values(API_PERFORMANCE_DASHBOARD_PANELS).map(formatDataTestID);
+    dataTestID.forEach((dataTestID) => {
+      cy.log('Data test ID: ' + dataTestID);
+      cy.byTestID(dataTestID).scrollIntoView().should('be.visible');
+    });
+  },
+
+  dashboardKubernetesComputeResourcesNamespacePodsPanelAssertion: (panel: KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANELS) => {
+    cy.log('legacyDashboardsPage.dashboardKubernetesComputeResourcesNamespacePodsPanelAssertion');
+    function formatDataTestID(panel: KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANELS): string {
+      return panel.toLowerCase().replace(/\s+/g, '-').concat('-chart');
+    }
+    const dataTestID = Object.values(KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANELS).map(formatDataTestID);
     dataTestID.forEach((dataTestID) => {
       cy.log('Data test ID: ' + dataTestID);
       cy.byTestID(dataTestID).scrollIntoView().should('be.visible');

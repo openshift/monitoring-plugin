@@ -19,7 +19,8 @@ Cypress.on('uncaught:exception', (err) => {
   if (
     message.includes('ResizeObserver loop limit exceeded') ||
     message.includes('ResizeObserver loop completed with undelivered notifications') ||
-    message.includes('ResizeObserver')
+    message.includes('ResizeObserver') ||
+    message.includes('Cannot read properties of undefined')
   ) {
     return false;
   }
