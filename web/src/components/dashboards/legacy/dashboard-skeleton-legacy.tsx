@@ -4,39 +4,27 @@ import { memo, useCallback } from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 
-import {
-  Divider,
-  PageSection,
-  Split,
-  SplitItem,
-  Stack,
-  StackItem,
-  Title,
-} from '@patternfly/react-core';
+import { Divider, PageSection, Split, SplitItem, Stack, StackItem } from '@patternfly/react-core';
 import { CombinedDashboardMetadata } from '../perses/hooks/useDashboardsData';
 import { DashboardDropdown } from '../shared/dashboard-dropdown';
 import { PollIntervalDropdown, TimespanDropdown } from './time-dropdowns';
 import { LegacyDashboardsAllVariableDropdowns } from './legacy-variable-dropdowns';
+import { ListPageHeader } from '@openshift-console/dynamic-plugin-sdk';
 
 const HeaderTop: FC = memo(() => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
-    <Split hasGutter isWrappable>
-      <SplitItem isFilled>
-        <Title headingLevel="h1">{t('Dashboards')}</Title>
-      </SplitItem>
-      <SplitItem>
-        <Split hasGutter isWrappable>
-          <SplitItem>
-            <TimespanDropdown />
-          </SplitItem>
-          <SplitItem>
-            <PollIntervalDropdown />
-          </SplitItem>
-        </Split>
-      </SplitItem>
-    </Split>
+    <ListPageHeader title={t('Dashboards')}>
+      <Split hasGutter isWrappable>
+        <SplitItem>
+          <TimespanDropdown />
+        </SplitItem>
+        <SplitItem>
+          <PollIntervalDropdown />
+        </SplitItem>
+      </Split>
+    </ListPageHeader>
   );
 });
 
@@ -62,8 +50,8 @@ export const DashboardSkeletonLegacy: FC<MonitoringDashboardsLegacyPageProps> = 
         <Helmet>
           <title>{t('Metrics dashboards')}</title>
         </Helmet>
+        <HeaderTop />
         <PageSection hasBodyWrapper={false}>
-          <HeaderTop />
           <Stack hasGutter>
             {!_.isEmpty(boardItems) && (
               <StackItem>
