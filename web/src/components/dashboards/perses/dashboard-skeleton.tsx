@@ -1,18 +1,8 @@
 import * as _ from 'lodash-es';
 import type { FC, PropsWithChildren } from 'react';
 import { memo, useCallback, useEffect } from 'react';
-import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
-
-import {
-  Divider,
-  PageSection,
-  Split,
-  SplitItem,
-  Stack,
-  StackItem,
-  Title,
-} from '@patternfly/react-core';
+import { Divider, PageSection, Split, SplitItem, Stack, StackItem } from '@patternfly/react-core';
 import {
   DashboardStickyToolbar,
   useDashboardActions,
@@ -22,23 +12,19 @@ import { TimeRangeControls } from '@perses-dev/plugin-system';
 import { usePerspective } from '../../hooks/usePerspective';
 import { DashboardDropdown } from '../shared/dashboard-dropdown';
 import { CombinedDashboardMetadata } from './hooks/useDashboardsData';
+import { DocumentTitle, ListPageHeader } from '@openshift-console/dynamic-plugin-sdk';
 
 const HeaderTop: FC = memo(() => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
-    <Split hasGutter isWrappable>
-      <SplitItem isFilled>
-        <Title headingLevel="h1">{t('Dashboards')}</Title>
-      </SplitItem>
-      <SplitItem>
-        <Split hasGutter isWrappable>
-          <SplitItem>
-            <TimeRangeControls />
-          </SplitItem>
-        </Split>
-      </SplitItem>
-    </Split>
+    <ListPageHeader title={t('Dashboards')}>
+      <Split hasGutter isWrappable>
+        <SplitItem>
+          <TimeRangeControls />
+        </SplitItem>
+      </Split>
+    </ListPageHeader>
   );
 });
 
@@ -79,13 +65,9 @@ export const DashboardSkeleton: FC<MonitoringDashboardsPageProps> = memo(
 
     return (
       <>
-        {perspective !== 'dev' && (
-          <Helmet>
-            <title>{t('Metrics dashboards')}</title>
-          </Helmet>
-        )}
+        {perspective !== 'dev' && <DocumentTitle>{t('Metrics dashboards')}</DocumentTitle>}
+        {perspective !== 'dev' && <HeaderTop />}
         <PageSection hasBodyWrapper={false}>
-          {perspective !== 'dev' && <HeaderTop />}
           <Stack hasGutter>
             {!_.isEmpty(boardItems) && (
               <StackItem>
