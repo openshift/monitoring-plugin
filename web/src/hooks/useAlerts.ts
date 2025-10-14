@@ -150,7 +150,12 @@ const useAlertsPoller = ({
   const fetchDispatch = () =>
     dispatch(fetchAlertingData(prometheus, namespace, rulesUrl, alertsSource, silencesUrl));
 
-  usePoll(fetchDispatch, POLLING_INTERVAL_MS);
+  const dependencies = useMemo(
+    () => [namespace, rulesUrl, silencesUrl],
+    [namespace, rulesUrl, silencesUrl],
+  );
+
+  usePoll(fetchDispatch, POLLING_INTERVAL_MS, dependencies);
 
   return { trigger: fetchDispatch };
 };
