@@ -1,4 +1,5 @@
 import {
+  ListPageHeader,
   NamespaceBar,
   PrometheusData,
   PrometheusEndpoint,
@@ -1372,12 +1373,8 @@ const MetricsPage_: FC = () => {
           setQueryNamespace(namespace);
         }}
       />
-      <PageSection hasBodyWrapper={false}>
+      <ListPageHeader title={t('Metrics')}>
         <Split hasGutter>
-          <SplitItem>
-            <Title headingLevel="h1">{t('Metrics')}</Title>
-          </SplitItem>
-          <SplitItem isFilled />
           <SplitItem data-test={DataTestIDs.MetricGraphUnitsDropDown}>
             <Tooltip content={<>{t('This dropdown only formats results.')}</>}>
               <GraphUnitsDropDown />
@@ -1390,7 +1387,7 @@ const MetricsPage_: FC = () => {
             <MetricsActionsMenu />
           </SplitItem>
         </Split>
-      </PageSection>
+      </ListPageHeader>
       <PageSection hasBodyWrapper={false}>
         <Stack hasGutter>
           <StackItem>
