@@ -1,7 +1,7 @@
-import { nav } from '../../../views/nav';
-import { metricsPage } from '../../../views/metrics';
-import { Classes, DataTestIDs, IDs } from '../../../../src/components/data-test';
-import { GraphTimespan, MetricGraphEmptyState, MetricsPagePredefinedQueries, MetricsPageQueryInput, MetricsPageQueryKebabDropdown, MetricsPageQueryInputByNamespace } from '../../../fixtures/monitoring/constants';
+import { nav } from '../../views/nav';
+import { metricsPage } from '../../views/metrics';
+import { Classes, DataTestIDs, IDs } from '../../../src/components/data-test';
+import { GraphTimespan, MetricGraphEmptyState, MetricsPagePredefinedQueries, MetricsPageQueryInput, MetricsPageQueryKebabDropdown, MetricsPageQueryInputByNamespace } from '../../fixtures/monitoring/constants';
 import common = require('mocha/lib/interfaces/common');
 // Set constants for the operators that need to be installed for tests.
 const MP = {

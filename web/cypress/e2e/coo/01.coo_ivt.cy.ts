@@ -1,9 +1,14 @@
-import { Classes } from '../../../src/components/data-test';
-import { commonPages } from '../../views/common';
+import { runAllRegressionAlertsTests } from '../../support/monitoring/01.reg_alerts.cy';
+import { runAllRegressionAlertsTestsNamespace } from '../../support/monitoring/04.reg_alerts_namespace.cy';
 import { nav } from '../../views/nav';
 import { guidedTour } from '../../views/tour';
 
 // Set constants for the operators that need to be installed for tests.
+const MP = {
+  namespace: 'openshift-monitoring',
+  operatorName: 'Cluster Monitoring Operator',
+};
+
 const KBV = {
   namespace: 'openshift-cnv',
   packageName: 'kubevirt-hyperconverged',
@@ -29,12 +34,38 @@ describe('IVT: Monitoring UIPlugin + Virtualization', () => {
     cy.switchPerspective('Virtualization');
     cy.byAriaLabel('Welcome modal').should('be.visible');
     guidedTour.closeKubevirtTour();
-    cy.switchPerspective('Administrator');
+  });
+});
 
+describe('Regression: Monitoring - Alerts (Virtualization)', () => {
+
+  beforeEach(() => {
+    cy.visit('/');
+    cy.switchPerspective('Virtualization');
+    guidedTour.closeKubevirtTour();
+    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    cy.changeNamespace("All Projects");
+  });
+  // Run tests in Virtualization perspective
+  runAllRegressionAlertsTests({
+    name: 'Virtualization',
   });
 
-  /**
-   * TODO: To be replaced by COO validation such as Dashboards (Perses) scenarios
-   */
+});
+
+describe('Regression: Monitoring - Alerts Namespaced (Virtualization)', () => {
+
+  beforeEach(() => {
+    cy.visit('/');
+    cy.switchPerspective('Virtualization');
+    guidedTour.closeKubevirtTour();
+    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    cy.changeNamespace(MP.namespace);
+  });
+  // Run tests in Virtualization perspective
+  runAllRegressionAlertsTestsNamespace({
+    name: 'Virtualization',
+
+  });
 
 });
