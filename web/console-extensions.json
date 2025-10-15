@@ -140,7 +140,7 @@
     "type": "console.tab",
     "properties": {
       "contextId": "dev-console-observe",
-      "name": "%plugin__monitoring-plugin~Alerting Rules%",
+      "name": "%public~Alerting rules%",
       "href": "alertrules",
       "component": {
         "$codeRef": "MonitoringUI"
