@@ -59,6 +59,8 @@ export const createAlertsQuery = (groupedAlertsValues) => {
     })
     .join(' or '); // Join all individual alert queries with "or"
 
+  // TODO: remove duplicated conditions, optimize query
+
   return alertsQuery;
 };
 
