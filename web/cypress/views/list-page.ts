@@ -83,7 +83,7 @@ export const listPage = {
       cy.byLegacyTestID(LegacyTestIDs.ItemFilter).scrollIntoView()
         .as('input').should('be.visible');
       cy.get('@input', { timeout: 10000 }).scrollIntoView().type(label + '{enter}').should('have.attr', 'value', label);
-      cy.get(Classes.LabelSuggestion).contains(label).click();
+      cy.byTestID(DataTestIDs.LabelSuggestion).contains(label).click();
     },
     
     clearAllFilters: () => {
