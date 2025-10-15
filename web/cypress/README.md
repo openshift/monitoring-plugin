@@ -166,5 +166,42 @@ It runs the Monitoring Regression tests
 npx cypress run --spec "cypress/e2e/monitoring/regression/**"
 ```
 
+### Running tests by tags
+
+Tests are organized using tags for selective execution:
+
+**Available tags:**
+- `@smoke` - Fast BVT tests for basic functionality validation
+- `@regression` - Comprehensive regression tests
+- `@slow` - Long-running e2e tests (15+ minutes)
+- `@demo` - Interactive demo tests (skipped in CI)
+
+**Run smoke tests only:**
+```bash
+npx cypress run --env grepTags=@smoke
+```
+
+**Run all tests except slow and demo:**
+```bash
+npx cypress run --env grepTags="-@slow -@demo"
+```
+
+**Run smoke and regression tests:**
+```bash
+npx cypress run --env grepTags="@smoke @regression"
+```
+
+**Run tests with multiple tags (AND logic):**
+```bash
+npx cypress run --env grepTags="@smoke+@slow"
+```
+
+**Filter by tag within a specific spec:**
+```bash
+npx cypress run --spec "cypress/e2e/incidents/**" --env grepTags=@regression
+```
+
+For more details on tag filtering, see [@cypress/grep documentation](https://github.com/cypress-io/cypress/tree/develop/npm/grep).
+
 ### Testing recording
 You can access the recording for your test under monitoring-plugin/web/cypress/videos folder
