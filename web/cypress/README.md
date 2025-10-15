@@ -1,6 +1,9 @@
 # Openshift Monitoring Plugin and Monitoring Console Plugin UI Tests
 These console tests are related to Monitoring Plugin deployed by Cluster Monitoring Operator (CMO) as part of OCP - Observe menu with Alerting, Metrics, Dashboards pages and other related Alerting links.
-Besides, Monitoring Console Plugin deployed by Cluster Observability Operator through Monitoring UIPlugin installation. 
+Besides, Monitoring Console Plugin deployed by Cluster Observability Operator through Monitoring UIPlugin installation.
+
+## Test Documentation
+For a comprehensive overview of all E2E test scenarios, including COO (Cluster Observability Operator), Monitoring, and Incidents tests, see [E2E_TEST_SCENARIOS.md](./E2E_TEST_SCENARIOS.md).
 
 ## Prerequisite
 1. [node.js](https://nodejs.org/) >= 18
@@ -164,6 +167,11 @@ npx cypress run --spec "cypress/e2e/monitoring/01.bvt_monitoring.cy.ts"
 It runs the Monitoring Regression tests
 ```bash
 npx cypress run --spec "cypress/e2e/monitoring/regression/**"
+```
+
+It runs the Virtualization IVT tests
+```bash
+npx cypress run --spec "cypress/e2e/virtualization/**"
 ```
 
 ### Testing recording

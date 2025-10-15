@@ -57,15 +57,19 @@ Cypress.Commands.add('waitUntilWithCustomTimeout', (
 
   Cypress.Commands.add('changeNamespace', (namespace: string) => {
     cy.log('Changing Namespace to: ' + namespace);
-    cy.byLegacyTestID('namespace-bar-dropdown').find('button').scrollIntoView().should('be.visible').click();
-    cy.get('[data-test="showSystemSwitch"]').then(($element)=> {
-      if ($element.attr('data-checked-state') !== 'true') {
-        cy.byTestID('showSystemSwitch').siblings('span').eq(0).should('be.visible').click();
+    cy.byLegacyTestID('namespace-bar-dropdown').invoke('text').then((text) => {
+      if (text !== 'Project: '+namespace) {
+        cy.byLegacyTestID('namespace-bar-dropdown').find('button').scrollIntoView().should('be.visible').click();
+        cy.get('[data-test="showSystemSwitch"]').then(($element)=> {
+          if ($element.attr('data-checked-state') !== 'true') {
+            cy.byTestID('showSystemSwitch').siblings('span').eq(0).should('be.visible').click();
+          }
+        });
+        cy.byTestID('dropdown-text-filter').type(namespace);
+        cy.byTestID('dropdown-menu-item-link').contains(namespace).should('be.visible').click();
+        cy.log('Namespace changed to: ' + namespace);
       }
     });
-    cy.byTestID('dropdown-text-filter').type(namespace);
-    cy.byTestID('dropdown-menu-item-link').contains(namespace).should('be.visible').click();
-    cy.log('Namespace changed to: ' + namespace);
   });
 
   Cypress.Commands.add('aboutModal', () => {
@@ -97,14 +101,25 @@ Cypress.Commands.add('waitUntilWithCustomTimeout', (
     cy.log('Get pod image');
     cy.clickNavLink(['Workloads', 'Pods']);
     cy.changeNamespace(namespace);
-    cy.byTestID('name-filter-input').should('be.visible').type(pod);
-    cy.get(`a[data-test^="${pod}"]`).eq(0).as('podLink').click();
-    cy.get('@podLink').should('be.visible').click();
-    cy.byPFRole('rowgroup').find('td').eq(1).scrollIntoView().should('be.visible').then(($td) => {
-      cy.log('Pod image: ' + $td.text());
-      
+    cy.byTestID('page-heading').contains('Pods').should('be.visible');
+    cy.wait(5000);
+    // Check for DataViewFilters component using Cypress's built-in retry-ability
+    cy.get('body').then(($body) => {
+      const hasDataViewFilters = $body.find('[data-ouia-component-id="DataViewFilters"]').length > 0;
+      if (hasDataViewFilters) {
+        cy.byOUIAID('DataViewFilters').find('button').contains('Status').scrollIntoView().should('be.visible').click();
+        cy.byOUIAID('OUIA-Generated-Menu').find('button').contains('Name').scrollIntoView().should('be.visible').click();
+        cy.byAriaLabel('Name filter').scrollIntoView().should('be.visible').type(pod);
+      } else {
+        cy.byTestID('name-filter-input').should('be.visible').type(pod);
+      }
     });
-    cy.log('Get pod image completed');
+    cy.get(`a[data-test^="${pod}"]`).eq(0).as('podLink').click();
+      cy.get('@podLink').should('be.visible').click();
+      cy.byPFRole('rowgroup').find('td').eq(1).scrollIntoView().should('be.visible').then(($td) => {
+        cy.log('Pod image: ' + $td.text());
+      });
+      cy.log('Get pod image completed');
   });
 
   

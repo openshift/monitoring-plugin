@@ -1,49 +1,37 @@
-import { commonPages } from '../../../views/common';
-import { detailsPage } from '../../../views/details-page';
-import { listPage } from '../../../views/list-page';
-import { silenceAlertPage } from '../../../views/silence-alert-page';
-import { nav } from '../../../views/nav';
-import { silenceDetailsPage } from '../../../views/silence-details-page';
-import { silencesListPage } from '../../../views/silences-list-page';
-import { alertingRuleListPage } from '../../../views/alerting-rule-list-page';
-import { alertingRuleDetailsPage } from '../../../views/alerting-rule-details-page';
-import { alerts } from '../../../fixtures/monitoring/alert';
-import { AlertingRulesAlertState, MainTagState, Severity, SilenceState, Source, SilenceComment, WatchdogAlert } from '../../../fixtures/monitoring/constants';
-import { Classes } from "../../../../src/components/data-test";
+import { commonPages } from '../../views/common';
+import { detailsPage } from '../../views/details-page';
+import { listPage } from '../../views/list-page';
+import { silenceAlertPage } from '../../views/silence-alert-page';
+import { nav } from '../../views/nav';
+import { silenceDetailsPage } from '../../views/silence-details-page';
+import { silencesListPage } from '../../views/silences-list-page';
+import { alertingRuleListPage } from '../../views/alerting-rule-list-page';
+import { alertingRuleDetailsPage } from '../../views/alerting-rule-details-page';
+import { AlertingRulesAlertState, MainTagState, Severity, SilenceState, Source, SilenceComment, WatchdogAlert } from '../../fixtures/monitoring/constants';
 
-//
-import common = require('mocha/lib/interfaces/common');
-// Set constants for the operators that need to be installed for tests.
-const MP = {
-  namespace: 'openshift-monitoring',
-  operatorName: 'Cluster Monitoring Operator',
-};
+export interface PerspectiveConfig {
+  name: string;
+  beforeEach?: () => void;
+}
 
-describe('Regression: Monitoring - Alerts - namespaced', () => {
+export function runAllRegressionAlertsTests(perspective: PerspectiveConfig) {
+  testAlertsRegression(perspective);
+}
 
-  before(() => {
-    cy.beforeBlock(MP);
-  });
-
-  beforeEach(() => {
-    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-    cy.changeNamespace(MP.namespace);
-  });
-
-  it('1. Admin perspective - Alerting > Alerts page - Filtering', () => {
+export function testAlertsRegression(perspective: PerspectiveConfig) {
+  it(`${perspective.name} perspective - Alerting > Alerts page - Filtering`, () => {
     cy.log('1.1 Header components');
-    
-    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-    alerts.getWatchdogAlert();
+    // alerts.getWatchdogAlert();
+    // nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    // alerts.getWatchdogAlert();
     listPage.filter.selectFilterOption(true, AlertingRulesAlertState.PENDING, false);
-    cy.get(Classes.FilterDropdownOption).should('not.contain', Source.USER);
-    cy.get(Classes.FilterDropdownOption).should('not.contain', Source.PLATFORM);
     listPage.filter.selectFilterOption(false, AlertingRulesAlertState.SILENCED, false);
     listPage.filter.selectFilterOption(false, Severity.CRITICAL, false);
     listPage.filter.selectFilterOption(false, Severity.WARNING, false);
     listPage.filter.selectFilterOption(false, Severity.INFO, false);
-    listPage.filter.selectFilterOption(false, Severity.NONE, true);
-
+    listPage.filter.selectFilterOption(false, Severity.NONE, false);
+    listPage.filter.selectFilterOption(false, Source.USER, true);
+    listPage.filter.removeMainTag(MainTagState.SOURCE);
     listPage.filter.removeIndividualTag( AlertingRulesAlertState.FIRING);
     listPage.filter.removeIndividualTag( AlertingRulesAlertState.PENDING);
     listPage.filter.removeIndividualTag( AlertingRulesAlertState.SILENCED);
@@ -58,13 +46,11 @@ describe('Regression: Monitoring - Alerts - namespaced', () => {
 
   });
 
-  it('2. Admin perspective - Alerting > Silences page > Create silence', () => {
+  it(`${perspective.name} perspective - Alerting > Silences page > Create silence`, () => {
     cy.log('2.1 use sidebar nav to go to Observe > Alerting');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     nav.tabs.switchTab('Silences');
     silencesListPage.createSilence();
-    commonPages.projectDropdownShouldExist();
-    silenceAlertPage.assertNamespaceLabelNamespaceValueDisabled('namespace', `${WatchdogAlert.NAMESPACE}`, true);
     silenceAlertPage.assertCommentNoError();
     silenceAlertPage.clickSubmit();
     silenceAlertPage.assertCommentWithError();
@@ -72,15 +58,21 @@ describe('Regression: Monitoring - Alerts - namespaced', () => {
     silenceAlertPage.addCreator('');
     silenceAlertPage.clickSubmit();
     silenceAlertPage.assertCreatorWithError();
-  
+    silenceAlertPage.addCreator(Cypress.env('LOGIN_USERNAME'));
+    silenceAlertPage.fillLabeNameLabelValue('', 'a');
+    silenceAlertPage.clickSubmit();
+    silenceAlertPage.assertLabelNameError();
+    silenceAlertPage.fillLabeNameLabelValue('a', '');
+    silenceAlertPage.clickSubmit();
+    silenceAlertPage.assertLabelValueError();
+
   });
 
-  it('3. Admin perspective - Alerting > Alerts / Silences > Kebab icon on List and Details', () => {
-    cy.visit('/');
+  it(`${perspective.name} perspective - Alerting > Alerts / Silences > Kebab icon on List and Details`, () => {
     cy.log('3.1 use sidebar nav to go to Observe > Alerting');
-    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-    alerts.getWatchdogAlert();
-    listPage.ARRows.shouldBeLoaded();
+    // alerts.getWatchdogAlert();
+    // nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    // alerts.getWatchdogAlert();
 
     cy.log('3.2 filter to Watchdog alert');
     listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
@@ -97,7 +89,6 @@ describe('Regression: Monitoring - Alerts - namespaced', () => {
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     commonPages.titleShouldHaveText('Alerting');
     listPage.filter.clearAllFilters();
-    listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
     listPage.ARRows.expandRow();
     listPage.ARRows.assertNoKebab();
     listPage.ARRows.clickAlert();
@@ -128,6 +119,7 @@ describe('Regression: Monitoring - Alerts - namespaced', () => {
     cy.changeNamespace('openshift-monitoring');
 
     cy.log('3.8 Assert Kebab on Silence List page for Expired alert');
+    silencesListPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
     silencesListPage.emptyState();
     listPage.filter.removeMainTag(MainTagState.SILENCE_STATE);
     listPage.filter.selectFilterOption(true, SilenceState.EXPIRED, false);
@@ -143,12 +135,10 @@ describe('Regression: Monitoring - Alerts - namespaced', () => {
     cy.log('3.10 Recreate silence');
     silenceDetailsPage.recreateSilence(false);
     commonPages.titleShouldHaveText('Recreate silence');
-    commonPages.projectDropdownShouldExist();
     silenceAlertPage.silenceAlertSectionDefault();
     silenceAlertPage.durationSectionDefault();
     silenceAlertPage.alertLabelsSectionDefault();
     silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('alertname', `${WatchdogAlert.ALERTNAME}`, false, false);
-    silenceAlertPage.assertNamespaceLabelNamespaceValueDisabled('namespace', `${WatchdogAlert.NAMESPACE}`, true);
     // silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('severity', `${SEVERITY}`, false, false);
     silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('namespace', `${WatchdogAlert.NAMESPACE}`, false, false);
     silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('prometheus', 'openshift-monitoring/k8s', false, false);
@@ -201,14 +191,13 @@ describe('Regression: Monitoring - Alerts - namespaced', () => {
     listPage.ARRows.countShouldBe(1);
   });
 
-  it('4. Admin perspective - Alerting > Alerting Rules', () => {
+  it(`${perspective.name} perspective - Alerting > Alerting Rules`, () => {
     cy.log('4.1 use sidebar nav to go to Observe > Alerting');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     nav.tabs.switchTab('Alerting rules');
     alertingRuleListPage.shouldBeLoaded();
 
     cy.log('4.2 clear all filters, verify filters and tags');
-    // listPage.filter.clearAllFilters('alerting-rules');
     listPage.filter.selectFilterOption(true, AlertingRulesAlertState.FIRING, false);
     listPage.filter.selectFilterOption(false, AlertingRulesAlertState.PENDING, false);
     listPage.filter.selectFilterOption(false, AlertingRulesAlertState.SILENCED, false);
@@ -278,16 +267,4 @@ describe('Regression: Monitoring - Alerts - namespaced', () => {
 
   });
 
-  it('5. Admin perspective - Alerting > Empty state', () => {
-    cy.log('5.1 Empty state');
-    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-    cy.changeNamespace("default");
-    listPage.emptyState();
-    nav.tabs.switchTab('Silences');
-    silencesListPage.firstTimeEmptyState();
-    nav.tabs.switchTab('Alerting rules');
-    alertingRuleListPage.emptyState();
-
-});
-
-});
+}
