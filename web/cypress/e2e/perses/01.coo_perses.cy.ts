@@ -18,7 +18,7 @@ const MP = {
   operatorName: 'Cluster Monitoring Operator',
 };
 
-describe('BVT: COO - Dashboards (Perses) - Administrator perspective', () => {
+describe('BVT: COO - Dashboards (Perses) - Administrator perspective', { tags: ['@smoke', '@dashboards'] }, () => {
 
   before(() => {
     cy.beforeBlockCOO(MCP, MP);

@@ -11,7 +11,7 @@ const MP = {
   operatorName: 'Cluster Monitoring Operator',
 };
 
-describe('BVT: Monitoring', () => {
+describe('BVT: Monitoring', { tags: ['@smoke', '@monitoring'] }, () => {
 
   before(() => {
     cy.beforeBlock(MP);
@@ -83,7 +83,7 @@ describe('BVT: Monitoring', () => {
 
 });
 
-describe('BVT: Monitoring - Namespaced', () => {
+describe('BVT: Monitoring - Namespaced', { tags: ['@smoke', '@monitoring'] }, () => {
 
   before(() => {
     cy.beforeBlock(MP);

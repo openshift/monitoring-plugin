@@ -2,6 +2,7 @@ import { defineConfig } from 'cypress';
 import * as fs from 'fs-extra';
 import * as console from 'console';
 import * as path from 'path';
+import registerCypressGrep from '@cypress/grep/src/plugin';
 
 export default defineConfig({
   screenshotsFolder: './cypress/screenshots',
@@ -39,6 +40,8 @@ export default defineConfig({
     viewportWidth: 1920,
     viewportHeight: 1080,
     setupNodeEvents(on, config) {
+      registerCypressGrep(config);
+      
       on(
         'before:browser:launch',
         (

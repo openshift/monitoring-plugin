@@ -236,6 +236,90 @@ npm run cypress:run --spec "cypress/e2e/**/incidents*.cy.ts"
 
 ---
 
+### Running tests by tags
+
+Tests are organized using tags for selective execution using [@cypress/grep](https://github.com/cypress-io/cypress/tree/develop/npm/grep).
+
+#### Tag Categories
+
+**1. Basic Tags:**
+- `@smoke` - Fast BVT tests
+- `@demo` - Interactive demo tests (no assertions, skipped in CI)
+- `@flaky` - Tests that don't pass reliably
+- `@xfail` - Tests for known bugs expected to fail
+- `@slow` - Long-running e2e tests (15+ minutes)
+
+**2. High-Level Component Tags:**
+- `@monitoring` - Monitoring plugin tests
+- `@incidents` - Incidents feature tests
+- `@coo` - Cluster Observability Operator functionality tests (operator installation, ACM integration)
+- `@virtualization` - Virtualization integration tests
+- `@alerts` - Alert-related tests
+- `@metrics` - Metrics-related tests
+- `@dashboards` - Dashboard-related tests (includes Perses)
+
+**3. Specific Feature Tags** (format: `@{component}-{label}`):
+- Example: `@incidents-redux`
+- Add specific feature tags as needed
+
+**4. JIRA Tags** (format: `@JIRA-{ID}`):
+- Example: `@JIRA-OU-1033`
+- Link tests to specific JIRA issues
+
+#### Running Tests by Tags
+
+**Run smoke tests (BVT):**
+```bash
+npx cypress run --env grepTags=@smoke
+# or
+npm run test-cypress-smoke
+```
+
+**Run regression tests (all non-smoke tests):**
+```bash
+npx cypress run --env grepTags="-@smoke -@flaky -@demo"
+```
+
+**Run component-specific tests:**
+```bash
+npm run test-cypress-monitoring       # All monitoring tests
+npm run test-cypress-incidents        # All incidents tests
+npm run test-cypress-coo              # COO operator functionality tests
+npm run test-cypress-virtualization   # All virtualization integration tests
+npm run test-cypress-alerts           # All alerts tests
+npm run test-cypress-metrics          # All metrics tests
+npm run test-cypress-dashboards       # All dashboards tests (includes Perses)
+```
+
+**Run smoke tests for specific component:**
+```bash
+npm run test-cypress-monitoring-bvt  # Monitoring smoke tests
+npm run test-cypress-coo-bvt         # COO smoke tests
+```
+
+**Run regression for specific component:**
+```bash
+npm run test-cypress-monitoring-regression  # All monitoring except smoke
+```
+
+**Run tests with multiple tags (OR logic):**
+```bash
+npx cypress run --env grepTags="@smoke @slow"
+```
+
+**Run tests with BOTH tags (AND logic):**
+```bash
+npx cypress run --env grepTags="@smoke+@incidents"
+```
+
+**Complex filtering:**
+```bash
+npx cypress run --env grepTags="@incidents -@slow -@flaky"
+```
+
+---
+
+
 ## Test Results
 
 ### Videos

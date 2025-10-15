@@ -11,7 +11,7 @@ const MP = {
 };
 
 // Test suite for Administrator perspective
-describe('Regression: Monitoring - Alerts (Administrator)', () => {
+describe('Regression: Monitoring - Alerts (Administrator)', { tags: ['@monitoring', '@alerts'] }, () => {
 
   before(() => {
     cy.beforeBlock(MP);
@@ -35,7 +35,7 @@ describe('Regression: Monitoring - Alerts (Administrator)', () => {
 
 });
 
-describe('Regression: Monitoring - Alerts Namespaced (Administrator)', () => {
+describe('Regression: Monitoring - Alerts Namespaced (Administrator)', { tags: ['@monitoring', '@alerts'] }, () => {
 
     before(() => {
       cy.beforeBlock(MP);
