@@ -1,6 +1,7 @@
 import {
   Alert,
   AlertStates,
+  DocumentTitle,
   ListPageFilter,
   RowFilter,
   useActiveNamespace,
@@ -10,7 +11,6 @@ import { Flex, PageSection } from '@patternfly/react-core';
 import { Table, TableGridBreakpoint, Th, Thead, Tr } from '@patternfly/react-table';
 import * as _ from 'lodash-es';
 import type { FC } from 'react';
-import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
@@ -119,9 +119,7 @@ const AlertsPage_: FC = () => {
 
   return (
     <>
-      <Helmet>
-        <title>Alerting</title>
-      </Helmet>
+      <DocumentTitle>{t('Alerting')}</DocumentTitle>
       <PageSection hasBodyWrapper={false} type="subnav">
         <Flex>
           <ListPageFilter

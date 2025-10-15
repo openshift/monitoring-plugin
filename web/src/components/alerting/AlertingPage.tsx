@@ -1,9 +1,9 @@
-import { PageSection, Title } from '@patternfly/react-core';
 import type { FC } from 'react';
 import { lazy, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   HorizontalNav,
+  ListPageHeader,
   NamespaceBar,
   useActivePerspective,
 } from '@openshift-console/dynamic-plugin-sdk';
@@ -105,15 +105,13 @@ const AlertingPage: FC = () => {
           }
         />
       )}
-      <PageSection hasBodyWrapper={false}>
-        <Title headingLevel="h1">{t('Alerting')}</Title>
-        <HorizontalNav contextId={contextId} pages={pages} />
-      </PageSection>
+      <ListPageHeader title={t('Alerting')} />
+      <HorizontalNav contextId={contextId} pages={pages} />
     </>
   );
 };
 
-export const MpCmoAlertingPage: React.FC = () => {
+export const MpCmoAlertingPage: FC = () => {
   return (
     <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
       <AlertingPage />
@@ -121,7 +119,7 @@ export const MpCmoAlertingPage: React.FC = () => {
   );
 };
 
-export const McpAcmAlertingPage: React.FC = () => {
+export const McpAcmAlertingPage: FC = () => {
   return (
     <MonitoringProvider
       monitoringContext={{ plugin: 'monitoring-console-plugin', prometheus: 'acm' }}
