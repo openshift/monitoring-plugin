@@ -9,7 +9,7 @@ const MP = {
   operatorName: 'Cluster Monitoring Operator',
 };
 
-describe('Regression: Monitoring - Metrics', () => {
+describe('Regression: Monitoring - Metrics', { tags: '@regression' }, () => {
 
   before(() => {
     cy.beforeBlock(MP);
