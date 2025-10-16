@@ -27,6 +27,7 @@ import {
   useInitialRefreshInterval,
   useInitialTimeRange,
   usePluginBuiltinVariableDefinitions,
+  ValidationProvider,
 } from '@perses-dev/plugin-system';
 import React, { useMemo } from 'react';
 import { usePatternFlyTheme } from '../../hooks/usePatternflyTheme';
@@ -35,8 +36,9 @@ import { PERSES_PROXY_BASE_PATH, useFetchPersesDashboard } from './perses-client
 import { CachedDatasourceAPI } from './perses/datasource-api';
 import {
   chart_color_blue_100,
-  chart_color_blue_200,
   chart_color_blue_300,
+  chart_color_blue_400,
+  chart_color_blue_500,
   t_color_gray_95,
   t_color_white,
 } from '@patternfly/react-tokens';
@@ -47,10 +49,11 @@ import { LoadingBox } from '../../../components/console/console-shared/src/compo
 import { pluginLoader } from './persesPluginsLoader';
 
 // Override eChart defaults with PatternFly colors.
-const patternflyBlue300 = '#2b9af3';
-const patternflyBlue400 = '#0066cc';
-const patternflyBlue500 = '#004080';
-const patternflyBlue600 = '#002952';
+const patternflyBlue100 = chart_color_blue_100.value;
+const patternflyBlue300 = chart_color_blue_300.value;
+const patternflyBlue400 = chart_color_blue_400.value;
+const patternflyBlue500 = chart_color_blue_500.value;
+const patternflyBlue600 = chart_color_blue_100.value;
 const defaultPaletteColors = [patternflyBlue400, patternflyBlue500, patternflyBlue600];
 
 const chartColorScale = getThemeColors(ChartThemeColor.multiUnordered).chart.colorScale;
@@ -92,11 +95,12 @@ const mapPatterflyThemeToMUI = (theme: 'light' | 'dark'): ThemeOptions => {
       },
     },
     palette: {
+      mode: isDark ? 'dark' : 'light', // Help CodeMirror detect theme mode
       primary: {
         light: chart_color_blue_100.value,
-        main: chart_color_blue_200.value,
-        dark: chart_color_blue_300.value,
-        contrastText: primaryTextColor,
+        main: patternflyBlue300,
+        dark: patternflyBlue500,
+        contrastText: t_color_white.value,
       },
       secondary: {
         main: primaryTextColor,
@@ -133,13 +137,6 @@ const mapPatterflyThemeToMUI = (theme: 'light' | 'dark'): ThemeOptions => {
           },
         },
       },
-      MuiSvgIcon: {
-        styleOverrides: {
-          root: {
-            color: theme === 'dark' ? t_color_white.value : t_color_gray_95.value,
-          },
-        },
-      },
       MuiCard: {
         styleOverrides: {
           root: {
@@ -154,9 +151,9 @@ const mapPatterflyThemeToMUI = (theme: 'light' | 'dark'): ThemeOptions => {
             '&.MuiCardHeader-root': {
               borderBottom: 'none',
               paddingBlockEnd: 'var(--pf-t--global--spacer--md)',
-              paddingBlockStart: 'var(--pf-t--global--spacer--lg)',
-              paddingLeft: 'var(--pf-t--global--spacer--lg)',
-              paddingRight: 'var(--pf-t--global--spacer--lg)',
+              paddingBlockStart: 'var(--pf-t--global--spacer--md)',
+              paddingLeft: 'var(--pf-t--global--spacer--md)',
+              paddingRight: 'var(--pf-t--global--spacer--md)',
             },
           },
         },
@@ -167,9 +164,9 @@ const mapPatterflyThemeToMUI = (theme: 'light' | 'dark'): ThemeOptions => {
             '&.MuiCardContent-root': {
               borderTop: 'none',
               '&:last-child': {
-                paddingBottom: 'var(--pf-t--global--spacer--lg)',
-                paddingLeft: 'var(--pf-t--global--spacer--lg)',
-                paddingRight: 'var(--pf-t--global--spacer--lg)',
+                paddingBottom: 'var(--pf-t--global--spacer--md)',
+                paddingLeft: 'var(--pf-t--global--spacer--sm)',
+                paddingRight: 'var(--pf-t--global--spacer--md)',
               },
             },
           },
@@ -198,6 +195,52 @@ const mapPatterflyThemeToMUI = (theme: 'light' | 'dark'): ThemeOptions => {
         styleOverrides: {
           icon: {
             color: primaryTextColor,
+          },
+        },
+      },
+      MuiButton: {
+        styleOverrides: {
+          root: {
+            '&.MuiButton-colorPrimary': {
+              borderRadius: 'var(--pf-t--global--border--radius--pill)',
+              borderColor: 'var(--pf-t--global--border--color--default)',
+              color: isDark ? patternflyBlue100 : patternflyBlue300,
+            },
+            // Buttons with colored backgrounds should have white text
+            '&.MuiButton-contained.MuiButton-colorPrimary': {
+              color: t_color_white.value,
+            },
+          },
+        },
+      },
+      MuiFormLabel: {
+        styleOverrides: {
+          root: {
+            // Align placeholder text in Editing Panel
+            '&.MuiFormLabel-root.MuiInputLabel-root.MuiInputLabel-formControl.MuiInputLabel-animated.MuiInputLabel-sizeMedium.MuiInputLabel-outlined.MuiFormLabel-colorPrimary[data-shrink="false"]':
+              {
+                top: '-7px',
+              },
+          },
+        },
+      },
+      MuiTab: {
+        styleOverrides: {
+          root: {
+            // Selected tab color
+            '&.MuiButtonBase-root.MuiTab-root.Mui-selected': {
+              color: isDark ? patternflyBlue100 : patternflyBlue300,
+            },
+          },
+        },
+      },
+      MuiTabs: {
+        styleOverrides: {
+          indicator: {
+            // Tab indicator should match color of selected MuiTab
+            '&.MuiTabs-indicator': {
+              backgroundColor: isDark ? patternflyBlue100 : patternflyBlue300,
+            },
           },
         },
       },
@@ -331,7 +374,7 @@ function InnerWrapper({ children, project, dashboardName }) {
                 dashboardResource: clearedDashboardResource,
               }}
             >
-              {children}
+              <ValidationProvider>{children}</ValidationProvider>
             </DashboardProvider>
           ) : (
             <>{children}</>

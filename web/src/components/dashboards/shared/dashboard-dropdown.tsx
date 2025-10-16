@@ -62,7 +62,7 @@ export const DashboardDropdown: FC<DashboardDropdownProps> = ({ items, onChange,
   }));
 
   return (
-    <Stack data-test="dashboard-dropdown">
+    <Stack data-test="dashboard-dropdown" className="pf-v6-u-mb-sm">
       <StackItem>
         <label htmlFor="monitoring-board-dropdown">{t('Dashboard')}</label>
       </StackItem>

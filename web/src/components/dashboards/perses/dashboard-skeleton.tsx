@@ -1,25 +1,9 @@
-import * as _ from 'lodash-es';
 import type { FC, PropsWithChildren } from 'react';
-import { memo, useCallback, useEffect } from 'react';
+import { memo } from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 
-import {
-  Divider,
-  PageSection,
-  Split,
-  SplitItem,
-  Stack,
-  StackItem,
-  Title,
-} from '@patternfly/react-core';
-import {
-  DashboardStickyToolbar,
-  useDashboardActions,
-  useVariableDefinitions,
-} from '@perses-dev/dashboards';
-import { TimeRangeControls } from '@perses-dev/plugin-system';
-import { DashboardDropdown } from '../shared/dashboard-dropdown';
+import { PageSection, Split, SplitItem, Title } from '@patternfly/react-core';
 import { CombinedDashboardMetadata } from './hooks/useDashboardsData';
 
 const HeaderTop: FC = memo(() => {
@@ -29,13 +13,7 @@ const HeaderTop: FC = memo(() => {
     <Split hasGutter isWrappable>
       <SplitItem isFilled>
         <Title headingLevel="h1">{t('Dashboards')}</Title>
-      </SplitItem>
-      <SplitItem>
-        <Split hasGutter isWrappable>
-          <SplitItem>
-            <TimeRangeControls />
-          </SplitItem>
-        </Split>
+        {t('View and manage dashboards.')}
       </SplitItem>
     </Split>
   );
@@ -48,66 +26,18 @@ type MonitoringDashboardsPageProps = PropsWithChildren<{
   activeProject?: string;
 }>;
 
-export const DashboardSkeleton: FC<MonitoringDashboardsPageProps> = memo(
-  ({ children, boardItems, changeBoard, dashboardName, activeProject }) => {
-    const { t } = useTranslation(process.env.I18N_NAMESPACE);
-    const { setDashboard } = useDashboardActions();
-    const variables = useVariableDefinitions();
+export const DashboardSkeleton: FC<MonitoringDashboardsPageProps> = memo(({ children }) => {
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
-    const onChangeBoard = useCallback(
-      (selectedDashboard: string) => {
-        changeBoard(selectedDashboard);
-
-        const selectedBoard = boardItems.find(
-          (item) =>
-            item.name.toLowerCase() === selectedDashboard.toLowerCase() &&
-            item.project?.toLowerCase() === activeProject?.toLowerCase(),
-        );
-
-        if (selectedBoard) {
-          setDashboard(selectedBoard.persesDashboard);
-        }
-      },
-      [changeBoard, boardItems, activeProject, setDashboard],
-    );
-
-    useEffect(() => {
-      onChangeBoard(dashboardName);
-    }, [dashboardName, onChangeBoard]);
-
-    return (
-      <>
-        <Helmet>
-          <title>{t('Metrics dashboards')}</title>
-        </Helmet>
-        <PageSection hasBodyWrapper={false}>
-          <HeaderTop />
-          <Stack hasGutter>
-            {!_.isEmpty(boardItems) && (
-              <StackItem>
-                <DashboardDropdown
-                  items={boardItems}
-                  onChange={onChangeBoard}
-                  selectedKey={dashboardName}
-                />
-              </StackItem>
-            )}
-            {variables.length > 0 ? (
-              <StackItem>
-                <b> {t('Dashboard Variables')} </b>
-                <DashboardStickyToolbar initialVariableIsSticky={false} key={dashboardName} />
-              </StackItem>
-            ) : null}
-            <StackItem>
-              <Split>
-                <SplitItem isFilled />
-              </Split>
-            </StackItem>
-          </Stack>
-        </PageSection>
-        <Divider />
-        {children}
-      </>
-    );
-  },
-);
+  return (
+    <>
+      <Helmet>
+        <title>{t('Metrics dashboards')}</title>
+      </Helmet>
+      <PageSection hasBodyWrapper={false}>
+        <HeaderTop />
+      </PageSection>
+      {children}
+    </>
+  );
+});
