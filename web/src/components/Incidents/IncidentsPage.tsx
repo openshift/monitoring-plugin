@@ -153,6 +153,19 @@ const IncidentsPage = () => {
     (state: MonitoringState) => state.plugins.mcp.incidentsData.incidentsLastRefreshTime,
   );
 
+  const closeDropDownFilters = (): void => {
+    setFiltersExpanded({
+      severity: false,
+      state: false,
+      groupId: false,
+    });
+
+    setFilterTypeExpanded({
+      filterType: false,
+    });
+    setDaysFilterIsExpanded(false);
+  };
+
   useEffect(() => {
     const hasUrlParams = Object.keys(urlParams).length > 0;
     if (hasUrlParams) {
@@ -306,6 +319,7 @@ const IncidentsPage = () => {
           setIncidentForAlertProcessing(processIncidentsForAlerts(prometheusResults));
           dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
         } else {
+          closeDropDownFilters();
           setIncidentForAlertProcessing([]);
           dispatch(setAlertsAreLoading({ alertsAreLoading: false }));
         }
@@ -344,11 +358,8 @@ const IncidentsPage = () => {
 
   const handleIncidentChartClick = useCallback(
     (groupId) => {
-      setFiltersExpanded({
-        severity: false,
-        state: false,
-        groupId: false,
-      });
+      closeDropDownFilters();
+
       if (groupId === selectedGroupId) {
         dispatch(
           setIncidentsActiveFilters({
@@ -389,6 +400,7 @@ const IncidentsPage = () => {
             data-test={DataTestIDs.IncidentsPage.Toolbar}
             collapseListedFiltersBreakpoint="xl"
             clearAllFilters={() => {
+              closeDropDownFilters();
               dispatch(
                 setIncidentsActiveFilters({
                   incidentsActiveFilters: {
