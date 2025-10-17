@@ -42,7 +42,7 @@ export const incidentsPage = {
       severityFilterChip: () => incidentsPage.elements.toolbar().contains('span', 'Severity').parent(),
       stateFilterChip: () => incidentsPage.elements.toolbar().contains('span', 'State').parent(),
       incidentIdFilterChip: () => incidentsPage.elements.toolbar().contains('span', 'Incident ID').parent(),
-      filterChip: (category: string) => incidentsPage.elements.toolbar().contains('span', category).parent(),
+      filterChipValue: (value: string) => incidentsPage.elements.toolbar().contains('span', value),
       
       clearAllFiltersButton: () => cy.byTestID(DataTestIDs.IncidentsPage.Toolbar).contains('button', 'Clear all filters'),
       toggleChartsButton: () => cy.byTestID(DataTestIDs.IncidentsPage.ToggleChartsButton),
@@ -56,6 +56,9 @@ export const incidentsPage = {
       incidentsChartBar: (groupId: string) => cy.byTestID(`${DataTestIDs.IncidentsChart.ChartBar}-${groupId}`),
       incidentsChartBarsVisiblePaths: () => {
         return cy.get('body').then($body => {
+          // There is a delay between the element being rendered and the paths being visible.
+          // The case when no paths are visible is valid, so we can not use should or conditional testing semantics.
+          cy.wait(500);
           // We need to use the $body as both cases when the element is there or not are valid.
           const exists = $body.find('g[role="presentation"][data-test*="incidents-chart-bar-"]').length > 0;
           if (exists) {
@@ -70,6 +73,16 @@ export const incidentsPage = {
             return cy.wrap([]);
           }
         });
+      },
+      incidentsChartBarsVisiblePathsNonEmpty: () => {
+        return cy.get('g[role="presentation"][data-test*="incidents-chart-bar-"]')
+          .should('exist')
+          .find('path[role="presentation"]')
+          .should('have.length.greaterThan', 0)
+          .filter((index, element) => {
+            const fillOpacity = Cypress.$(element).css('fill-opacity') || Cypress.$(element).attr('fill-opacity');
+            return parseFloat(fillOpacity || '0') > 0;
+          });
       },
       incidentsChartBarsGroups: () => cy.byTestID(DataTestIDs.IncidentsChart.ChartBars)
       .find('g[role="presentation"][data-test*="incidents-chart-bar-"]'),
@@ -161,6 +174,18 @@ export const incidentsPage = {
     incidentsPage.elements.toolbar()
       .find(`button[aria-label="Close ${value}"]`)
       .click({ force: true });
+  },
+
+  removeFilterCategory: (category: 'Severity' | 'State' | 'Incident ID') => {
+    const chipElementMap = {
+      'Severity': () => incidentsPage.elements.severityFilterChip(),
+      'State': () => incidentsPage.elements.stateFilterChip(),
+      'Incident ID': () => incidentsPage.elements.incidentIdFilterChip(),
+    };
+    
+    chipElementMap[category]().within(() => {
+      cy.get('button[aria-label*="Close"]').click({ force: true });
+    });
   },
 
   toggleCharts: () => {
