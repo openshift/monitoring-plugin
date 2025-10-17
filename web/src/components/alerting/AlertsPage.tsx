@@ -28,10 +28,10 @@ import {
   severityRowFilter,
   SilencesNotLoadedWarning,
 } from './AlertUtils';
-import Error from './Error';
 import useSelectedFilters from './useSelectedFilters';
 import { MonitoringProvider } from '../../contexts/MonitoringContext';
 import { useAlerts } from '../../hooks/useAlerts';
+import { AccessDenied } from '../console/console-shared/src/components/empty-state/AccessDenied';
 
 const AlertsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -115,7 +115,7 @@ const AlertsPage_: FC = () => {
 
   const filteredAggregatedAlerts = getAggregateAlertsLists(filteredData);
   const loaded = !!rulesAlertLoading?.loaded;
-  const loadError = rulesAlertLoading?.loadError ? rulesAlertLoading.loadError : null;
+  const loadError = rulesAlertLoading?.loadError ? rulesAlertLoading.loadError : undefined;
 
   return (
     <>
@@ -135,10 +135,11 @@ const AlertsPage_: FC = () => {
             <DownloadCSVButton loaded={loaded} filteredData={filteredAggregatedAlerts} />
           )}
         </Flex>
-        {silences?.loadError && (
+        {/* Only show the silences error when the alerts have loaded, since failing to load the
+          silences doesn't matter if the alerts haven't loaded*/}
+        {silences?.loadError && !loadError && (
           <SilencesNotLoadedWarning silencesLoadError={silences?.loadError} />
         )}
-
         {filteredAggregatedAlerts?.length > 0 && loaded && (
           <Table gridBreakPoint={TableGridBreakpoint.none} role="presentation">
             <Thead>
@@ -159,8 +160,7 @@ const AlertsPage_: FC = () => {
             ))}
           </Table>
         )}
-
-        {loadError && <Error error={loadError} />}
+        {loadError && <AccessDenied message={loadError.message} />}
         {loaded && filteredAggregatedAlerts?.length === 0 && !loadError && (
           <EmptyBox label={t('Alerts')} />
         )}
