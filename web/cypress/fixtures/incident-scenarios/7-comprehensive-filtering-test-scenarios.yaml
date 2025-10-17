@@ -1,0 +1,316 @@
+name: "Comprehensive Filtering Test Scenarios"
+description: "Multiple incidents with various severity patterns for testing filtering functionality. Includes single-severity incidents, multi-alert incidents with dominant severities, and escalating severity incidents with gradual progression."
+incidents:
+  # Single severity incidents - Critical only
+  - id: "monitoring-critical-single-001"
+    component: "monitoring"
+    layer: "core"
+    timeline:
+      start: "6h"
+      end: "2h"
+    alerts:
+      - name: "AlertmanagerClusterDown001"
+        namespace: "openshift-monitoring"
+        severity: "critical"
+        firing: false
+        timeline:
+          start: "330m"
+          end: "150m"
+      - name: "PrometheusTargetDown001"
+        namespace: "openshift-monitoring"
+        severity: "critical"
+        firing: false
+        timeline:
+          start: "6h"
+          end: "2h"
+
+
+  # Single severity incidents - Warning only
+  - id: "storage-warning-single-001"
+    component: "storage"
+    layer: "core"
+    timeline:
+      start: "8h"
+      end: "1h"
+    alerts:
+      - name: "PersistentVolumeUsageHigh001"
+        namespace: "openshift-storage"
+        severity: "warning"
+        firing: false
+        timeline:
+          start: "8h"
+          end: "1h"
+      - name: "StorageNodeDiskSpaceWarning001"
+        namespace: "openshift-storage"
+        severity: "warning"
+        firing: false
+        timeline:
+          start: "7h"
+          end: "90m"
+
+  # Single severity incidents - Info only
+  - id: "network-info-single-001"
+    component: "network"
+    layer: "core"
+    timeline:
+      start: "4h"
+      end: "30m"
+    alerts:
+      - name: "NetworkBandwidthUtilizationInfo001"
+        namespace: "openshift-network"
+        severity: "info"
+        firing: false
+        timeline:
+          start: "4h"
+          end: "30m"
+      - name: "NetworkConnectionPoolInfo001"
+        namespace: "openshift-network"
+        severity: "info"
+        firing: false
+        timeline:
+          start: "210m"
+          end: "45m"
+
+  # Multi-alert incident with Critical dominant (Critical + Warning + Info)
+  - id: "compute-critical-dominant-001"
+    component: "compute"
+    layer: "core"
+    timeline:
+      start: "12h"
+      end: "3h"
+    alerts:
+      - name: "NodeNotReady001"
+        namespace: "openshift-monitoring"
+        severity: "critical"
+        firing: false
+        timeline:
+          start: "12h"
+          end: "3h"
+      - name: "NodeMemoryPressure001"
+        namespace: "openshift-monitoring"
+        severity: "warning"
+        firing: false
+        timeline:
+          start: "11h"
+          end: "4h"
+      - name: "NodeDiskPressure001"
+        namespace: "openshift-monitoring"
+        severity: "info"
+        firing: false
+        timeline:
+          start: "10h"
+          end: "5h"
+
+  # Multi-alert incident with Warning dominant (Warning + Info)
+  - id: "api-server-warning-dominant-001"
+    component: "api-server"
+    layer: "core"
+    timeline:
+      start: "9h"
+      end: "2h"
+    alerts:
+      - name: "APIServerRequestLatencyWarning001"
+        namespace: "openshift-monitoring"
+        severity: "warning"
+        firing: false
+        timeline:
+          start: "9h"
+          end: "2h"
+      - name: "APIServerCertificateInfo001"
+        namespace: "openshift-monitoring"
+        severity: "info"
+        firing: false
+        timeline:
+          start: "8h"
+          end: "3h"
+      - name: "APIServerConnectionInfo001"
+        namespace: "openshift-monitoring"
+        severity: "info"
+        firing: false
+        timeline:
+          start: "7h"
+          end: "4h"
+
+  # Multi-alert incident with Critical dominant (Critical + Warning)
+  - id: "etcd-critical-warning-001"
+    component: "etcd"
+    layer: "core"
+    timeline:
+      start: "15h"
+      end: "5h"
+    alerts:
+      - name: "EtcdClusterUnavailable001"
+        namespace: "openshift-etcd"
+        severity: "critical"
+        firing: false
+        timeline:
+          start: "15h"
+          end: "5h"
+      - name: "EtcdHighLatency001"
+        namespace: "openshift-etcd"
+        severity: "warning"
+        firing: false
+        timeline:
+          start: "14h"
+          end: "6h"
+      - name: "EtcdBackupFailed001"
+        namespace: "openshift-etcd"
+        severity: "warning"
+        firing: false
+        timeline:
+          start: "13h"
+          end: "7h"
+
+  # Multi-alert incident with Critical dominant (Critical + Info)
+  - id: "version-critical-info-001"
+    component: "version"
+    layer: "core"
+    timeline:
+      start: "20h"
+      end: "8h"
+    alerts:
+      - name: "ClusterVersionUpdateFailed001"
+        namespace: "openshift-cluster-version"
+        severity: "critical"
+        firing: false
+        timeline:
+          start: "20h"
+          end: "8h"
+      - name: "ClusterVersionUpdateAvailable001"
+        namespace: "openshift-cluster-version"
+        severity: "info"
+        firing: false
+        timeline:
+          start: "19h"
+          end: "9h"
+      - name: "ClusterVersionOperatorInfo001"
+        namespace: "openshift-cluster-version"
+        severity: "info"
+        firing: false
+        timeline:
+          start: "18h"
+          end: "10h"
+
+  # Escalating severity incident - Info → Warning → Critical
+  - id: "monitoring-escalating-complete-001"
+    component: "monitoring"
+    layer: "core"
+    timeline:
+      start: "24h"
+      severityChanges:
+        - time: "24h"
+          severity: "info"
+        - time: "18h"
+          severity: "warning"
+        - time: "12h"
+          severity: "critical"
+    alerts:
+      - name: "PrometheusConfigReloadInfo001"
+        namespace: "openshift-monitoring"
+        severity: "info"
+        firing: true
+        timeline:
+          start: "24h"
+      - name: "PrometheusQueryLatencyWarning001"
+        namespace: "openshift-monitoring"
+        severity: "warning"
+        firing: true
+        timeline:
+          start: "18h"
+      - name: "PrometheusRuleEvaluationFailure001"
+        namespace: "openshift-monitoring"
+        severity: "critical"
+        firing: true
+        timeline:
+          start: "12h"
+
+  # Escalating severity incident - Warning → Critical
+  - id: "storage-escalating-partial-001"
+    component: "storage"
+    layer: "core"
+    timeline:
+      start: "16h"
+      severityChanges:
+        - time: "16h"
+          severity: "warning"
+        - time: "8h"
+          severity: "critical"
+    alerts:
+      - name: "CephHealthWarning001"
+        namespace: "openshift-storage"
+        severity: "warning"
+        firing: true
+        timeline:
+          start: "16h"
+      - name: "CephOSDDown001"
+        namespace: "openshift-storage"
+        severity: "critical"
+        firing: true
+        timeline:
+          start: "8h"
+      - name: "CephMonitorDown001"
+        namespace: "openshift-storage"
+        severity: "critical"
+        firing: true
+        timeline:
+          start: "6h"
+
+  # Currently firing single severity - Critical
+  - id: "network-firing-critical-001"
+    component: "network"
+    layer: "core"
+    timeline:
+      start: "3h"
+    alerts:
+      - name: "NetworkInterfaceDown001"
+        namespace: "openshift-network"
+        severity: "critical"
+        firing: true
+        timeline:
+          start: "3h"
+      - name: "NetworkControllerDown001"
+        namespace: "openshift-network"
+        severity: "critical"
+        firing: true
+        timeline:
+          start: "150m"
+
+  # Currently firing single severity - Warning
+  - id: "compute-firing-warning-001"
+    component: "compute"
+    layer: "core"
+    timeline:
+      start: "5h"
+    alerts:
+      - name: "NodeHighCPUUsage001"
+        namespace: "openshift-monitoring"
+        severity: "warning"
+        firing: true
+        timeline:
+          start: "5h"
+      - name: "NodeHighMemoryUsage001"
+        namespace: "openshift-monitoring"
+        severity: "warning"
+        firing: true
+        timeline:
+          start: "4h"
+
+  # Currently firing single severity - Info
+  - id: "others-firing-info-001"
+    component: "Others"
+    layer: "Others"
+    timeline:
+      start: "2h"
+    alerts:
+      - name: "CustomApplicationInfo001"
+        namespace: "custom-namespace"
+        severity: "info"
+        firing: true
+        timeline:
+          start: "2h"
+      - name: "ApplicationHealthcheckInfo001"
+        namespace: "custom-namespace"
+        severity: "info"
+        firing: true
+        timeline:
+          start: "90m"
