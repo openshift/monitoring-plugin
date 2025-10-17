@@ -41,8 +41,10 @@ export function convertFixtureToIncidents(fixture: IncidentScenarioFixture): Inc
       name: alert.name,
       namespace: alert.namespace,
       severity: alert.severity,
+      component: alert.component,
       firing: alert.firing,
-      timeline: convertTimeline(alert.timeline, now) // Process individual alert timeline
+      silenced: alert.silenced === true,
+      timeline: convertTimeline(alert.timeline, now)
     })),
     managed_cluster: incident.managed_cluster
   }));

@@ -1,17 +1,25 @@
 // Mock data generators for Prometheus mocking system
-import { IncidentDefinition, PrometheusResult } from './types';
+import { IncidentDefinition, PrometheusResult, AlertDefinition } from './types';
 import { severityToValue, parseQueryLabels } from './utils';
 import { nowInClusterTimezone } from './utils';
 import { NEW_METRIC_NAME, OLD_METRIC_NAME } from './prometheus-mocks';
 
 /**
- * Generates 5-minute interval timestamps between start and end time
+ * Generates appropriate timestamps between start and end time
+ * For short durations (< 5 minutes), generates minimal points
+ * For longer durations, uses 5-minute intervals
  */
 function generateIntervalTimestamps(startTime: number, endTime: number): number[] {
+  const duration = endTime - startTime;
   const fiveMinutes = 300;
   const timestamps: number[] = [];
-  let currentTime = startTime;
   
+    if (duration < fiveMinutes) {
+    timestamps.push(startTime);
+    return timestamps;
+  }
+  
+  let currentTime = startTime;
   while (currentTime <= endTime) {
     timestamps.push(currentTime);
     currentTime += fiveMinutes;
@@ -61,13 +69,29 @@ function severityToMetricValue(
 function buildTimelineValues(
   timeline: any,
   alertSeverity: 'critical' | 'warning' | 'info',
-  metricType: 'health' | 'alerts'
+  metricType: 'health' | 'alerts',
+  queryStartTime?: number,
+  queryEndTime?: number
 ): Array<[number, string]> {
   const now = nowInClusterTimezone();
   const isOngoing = !timeline.end;
-  const endTime = isOngoing ? now - 60 : timeline.end;
+  let endTime = isOngoing ? now - 60 : timeline.end;
+  let startTime = timeline.start;
   
-  const timestamps = generateIntervalTimestamps(timeline.start, endTime);
+  // Constrain to query window if provided (simulates Prometheus time range filtering)
+  if (queryStartTime !== undefined) {
+    startTime = Math.max(startTime, queryStartTime);
+  }
+  if (queryEndTime !== undefined) {
+    endTime = Math.min(endTime, queryEndTime);
+  }
+  
+  // Skip if no data in this time window
+  if (startTime > endTime) {
+    return [];
+  }
+  
+  const timestamps = generateIntervalTimestamps(startTime, endTime);
   
   const values: Array<[number, string]> = [];
   
@@ -92,7 +116,12 @@ function buildTimelineValues(
 /**
  * Creates mock incident data from declarative definitions
  */
-export function createIncidentMock(incidents: IncidentDefinition[], query?: string): PrometheusResult[] {
+export function createIncidentMock(
+  incidents: IncidentDefinition[], 
+  query?: string,
+  queryStartTime?: number,
+  queryEndTime?: number
+): PrometheusResult[] {
   const now = nowInClusterTimezone();
   const results: PrometheusResult[] = [];
   
@@ -117,12 +146,13 @@ export function createIncidentMock(incidents: IncidentDefinition[], query?: stri
     incident.alerts.forEach(alert => {
       const metric: Record<string, string> = {
         __name__: versioned_metric,
-        component: incident.component,
+        component: alert.component || incident.component,
         layer: incident.layer,
         group_id: incident.id,
         src_alertname: alert.name,
         src_namespace: alert.namespace,
         src_severity: alert.severity,
+        silenced: (alert.silenced === true).toString(),
         type: 'alert',
         // Standard Prometheus labels, not relevant to the mock
         container: 'health-analyzer',
@@ -141,7 +171,12 @@ export function createIncidentMock(incidents: IncidentDefinition[], query?: stri
 
       // Generate timeline values using unified function
       const timeline = incident.timeline || { start: now - 3600 * 24 * 7 };
-      const values = buildTimelineValues(timeline, alert.severity, 'health');
+      const values = buildTimelineValues(timeline, alert.severity, 'health', queryStartTime, queryEndTime);
+
+      // Skip if no data in query time window
+      if (values.length === 0) {
+        return;
+      }
 
       console.log(`Adding alert: ${alert.name} from incident: ${incident.id}`);
       console.log(`Results array length before push: ${results.length}`);
@@ -157,7 +192,12 @@ export function createIncidentMock(incidents: IncidentDefinition[], query?: stri
 /**
  * Creates mock ALERTS metric data for alert detail queries
  */
-export function createAlertDetailsMock(incidents: IncidentDefinition[], query: string): PrometheusResult[] {
+export function createAlertDetailsMock(
+  incidents: IncidentDefinition[], 
+  query: string,
+  queryStartTime?: number,
+  queryEndTime?: number
+): PrometheusResult[] {
   const now = nowInClusterTimezone();
   const results: PrometheusResult[] = [];
   
@@ -177,20 +217,33 @@ export function createAlertDetailsMock(incidents: IncidentDefinition[], query: s
           return; // Skip this alert if it doesn't match the query's alertname(s)
         }
       }
+          
+          if (queryLabels.namespace) {
+            const namespaceFilter = queryLabels.namespace;
+            const namespaceMatches = Array.isArray(namespaceFilter)
+              ? namespaceFilter.includes(alert.namespace)
+              : namespaceFilter === alert.namespace;
+
+            if (!namespaceMatches) {
+              return; // Skip this alert if it doesn't match the query's namespace(s)
+            }
+          }
             
       // Use individual alert timeline if available, otherwise fall back to incident timeline
       const timeline = alert.timeline || incident.timeline || { start: now - 3600 * 24 * 7 };
       const isFiring = !timeline.end;
       
+      const effectiveComponent = alert.component || incident.component;
       const metric: Record<string, string> = {
         __name__: 'ALERTS',
         alertname: alert.name,
         // The only way to see the alert in UI is to have the alertstate as firing
         // Resolved is determined entirely by the values array (last value in 10 minutes from now = resolved)
         alertstate: 'firing',
-        component: incident.component,
+        silenced: (alert.silenced).toString(),
+        component: effectiveComponent,
         layer: incident.layer,
-        name: incident.component, // Required by processAlerts
+        name: effectiveComponent, // Required by processAlerts
         namespace: alert.namespace,
         severity: alert.severity,
         // Standard ALERTS metric labels
@@ -204,7 +257,12 @@ export function createAlertDetailsMock(incidents: IncidentDefinition[], query: s
       }
 
       // Generate alert timeline values using unified function
-      const values = buildTimelineValues(timeline, alert.severity, 'alerts');
+      const values = buildTimelineValues(timeline, alert.severity, 'alerts', queryStartTime, queryEndTime);
+
+      // Skip if no data in query time window
+      if (values.length === 0) {
+        return;
+      }
 
       console.log(`Adding ALERTS alert: ${alert.name} from incident: ${incident.id}`);
       console.log(`ALERTS Results array length before push: ${results.length}`);
