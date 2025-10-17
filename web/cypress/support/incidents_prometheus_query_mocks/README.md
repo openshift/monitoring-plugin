@@ -157,6 +157,7 @@ incidents:
         namespace: "openshift-namespace"
         severity: "critical|warning|info"
         firing: true|false
+        silenced: true|false # Optional; when true, mock adds silenced/src_silenced labels
 ```
 
 For detailed schema documentation and examples, see the files in the `schema/` subdirectory.

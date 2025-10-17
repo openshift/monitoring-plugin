@@ -42,7 +42,7 @@ export const incidentsPage = {
       severityFilterChip: () => incidentsPage.elements.toolbar().contains('span', 'Severity').parent(),
       stateFilterChip: () => incidentsPage.elements.toolbar().contains('span', 'State').parent(),
       incidentIdFilterChip: () => incidentsPage.elements.toolbar().contains('span', 'Incident ID').parent(),
-      filterChip: (category: string) => incidentsPage.elements.toolbar().contains('span', category).parent(),
+      filterChipValue: (value: string) => incidentsPage.elements.toolbar().contains('span', value),
       
       clearAllFiltersButton: () => cy.byTestID(DataTestIDs.IncidentsPage.Toolbar).contains('button', 'Clear all filters'),
       toggleChartsButton: () => cy.byTestID(DataTestIDs.IncidentsPage.ToggleChartsButton),
@@ -56,6 +56,9 @@ export const incidentsPage = {
       incidentsChartBar: (groupId: string) => cy.byTestID(`${DataTestIDs.IncidentsChart.ChartBar}-${groupId}`),
       incidentsChartBarsVisiblePaths: () => {
         return cy.get('body').then($body => {
+          // There is a delay between the element being rendered and the paths being visible.
+          // The case when no paths are visible is valid, so we can not use should or conditional testing semantics.
+          cy.wait(500);
           // We need to use the $body as both cases when the element is there or not are valid.
           const exists = $body.find('g[role="presentation"][data-test*="incidents-chart-bar-"]').length > 0;
           if (exists) {
@@ -70,6 +73,16 @@ export const incidentsPage = {
             return cy.wrap([]);
           }
         });
+      },
+      incidentsChartBarsVisiblePathsNonEmpty: () => {
+        return cy.get('g[role="presentation"][data-test*="incidents-chart-bar-"]')
+          .should('exist')
+          .find('path[role="presentation"]')
+          .should('have.length.greaterThan', 0)
+          .filter((index, element) => {
+            const fillOpacity = Cypress.$(element).css('fill-opacity') || Cypress.$(element).attr('fill-opacity');
+            return parseFloat(fillOpacity || '0') > 0;
+          });
       },
       incidentsChartBarsGroups: () => cy.byTestID(DataTestIDs.IncidentsChart.ChartBars)
       .find('g[role="presentation"][data-test*="incidents-chart-bar-"]'),
@@ -100,6 +113,10 @@ export const incidentsPage = {
       incidentsDetailsStateCell: (index: number) => cy.byTestID(`${DataTestIDs.IncidentsDetailsTable.StateCell}-${index}`),
       incidentsDetailsStartCell: (index: number) => cy.byTestID(`${DataTestIDs.IncidentsDetailsTable.StartCell}-${index}`),
       incidentsDetailsEndCell: (index: number) => cy.byTestID(`${DataTestIDs.IncidentsDetailsTable.EndCell}-${index}`),
+      
+      // Generic selectors for incident table rows and details table rows
+      incidentsTableRows: () => incidentsPage.elements.incidentsTable().find(`tbody[data-test*="${DataTestIDs.IncidentsTable.Row}-"]`),
+      incidentsDetailsTableRows: () => incidentsPage.elements.incidentsDetailsTable().find('tbody tr'),
       
       // Days select options
       daysSelectList: () => cy.byTestID(DataTestIDs.IncidentsPage.DaysSelectList),
@@ -157,6 +174,18 @@ export const incidentsPage = {
     incidentsPage.elements.toolbar()
       .find(`button[aria-label="Close ${value}"]`)
       .click({ force: true });
+  },
+
+  removeFilterCategory: (category: 'Severity' | 'State' | 'Incident ID') => {
+    const chipElementMap = {
+      'Severity': () => incidentsPage.elements.severityFilterChip(),
+      'State': () => incidentsPage.elements.stateFilterChip(),
+      'Incident ID': () => incidentsPage.elements.incidentIdFilterChip(),
+    };
+    
+    chipElementMap[category]().within(() => {
+      cy.get('button[aria-label*="Close"]').click({ force: true });
+    });
   },
 
   toggleCharts: () => {
@@ -351,6 +380,11 @@ export const incidentsPage = {
             return cy.wrap(true);
           }
           incidentsPage.deselectIncidentByBar();
+          // Wait for the incident to be deselected
+          // Quick workaround, could be improved by waiting for the number of paths to change, but it
+          // does not has to if 1 initially. The check for the alert table non existance is already implemented,
+          // but there seems to be a short delay between the alert table closing and new bars rendering.
+          cy.wait(500)
           return searchNextIncidentBar(currentIndex + 1);
         });
     };
@@ -379,6 +413,60 @@ export const incidentsPage = {
         }
         
         return incidentsPage.traverseAllIncidentsBars(alertName, totalPaths);
+      });
+  },
+
+  /**
+   * Gets structured information about alerts in the currently selected incident.
+   * Expands all incident rows and collects alert details from the expanded tables.
+   * 
+   * @returns Promise resolving to an array of alert information objects
+   */
+  getSelectedIncidentAlerts: () => {
+    cy.log('incidentsPage.getSelectedIncidentAlerts: Collecting alert information from selected incident');
+    
+    return incidentsPage.elements.incidentsTableRows()
+      .then(($rows) => {
+        const totalRows = $rows.length;
+        if (totalRows === 0) {
+          cy.log('No incident rows found');
+          return cy.wrap([]);
+        }
+
+        cy.log(`Found ${totalRows} incident rows to expand`);
+        
+        // Expand all rows first
+        for (let i = 0; i < totalRows; i++) {
+          incidentsPage.expandRow(i);
+        }
+        
+        // Wait for all details to load
+        cy.wait(1000);
+        
+        // Count alert rows using the generic selector for details table rows
+        return incidentsPage.elements.incidentsDetailsTableRows()
+          .then(($detailRows) => {
+            const alerts = [];
+            
+            // Create alert info objects with row indices and element references
+            for (let i = 0; i < $detailRows.length; i++) {
+              alerts.push({
+                index: i,
+                // Provide direct element reference for the row
+                getRow: () => cy.wrap($detailRows.eq(i)),
+                // Provide cell getters using column selectors based on data-label attributes
+                getAlertRuleCell: () => cy.wrap($detailRows.eq(i)).find('td[data-label*="alertname"]'),
+                getNamespaceCell: () => cy.wrap($detailRows.eq(i)).find('td[data-label*="namespace"]'),
+                getSeverityCell: () => cy.wrap($detailRows.eq(i)).find('td[data-label*="severity"]'),
+                getStateCell: () => cy.wrap($detailRows.eq(i)).find('td[data-label*="alertstate"]'),
+                getStartCell: () => cy.wrap($detailRows.eq(i)).find('td[data-label*="firingstart"]'),
+                getEndCell: () => cy.wrap($detailRows.eq(i)).find('td[data-label*="firingend"]')
+              });
+            }
+            
+            cy.log(`Collected information for ${alerts.length} alerts`);
+            return cy.wrap(alerts);
+          });
       });
   }
 };
