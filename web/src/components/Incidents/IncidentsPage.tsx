@@ -609,6 +609,7 @@ const IncidentsPage = () => {
                     selectedGroupId={selectedGroupId}
                     onIncidentClick={handleIncidentChartClick}
                     currentTime={incidentsLastRefreshTime}
+                    lastRefreshTime={incidentsLastRefreshTime}
                   />
                 </StackItem>
                 <StackItem>
