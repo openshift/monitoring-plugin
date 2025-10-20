@@ -14,7 +14,10 @@ import {
   Bullseye,
   Card,
   CardBody,
+  CardHeader,
   CardTitle,
+  Flex,
+  FlexItem,
   getResizeObserver,
   Spinner,
 } from '@patternfly/react-core';
@@ -31,7 +34,7 @@ import {
   createIncidentsChartBars,
   generateDateArray,
 } from '../utils';
-import { dateTimeFormatter } from '../../console/utils/datetime';
+import { dateTimeFormatter, timeFormatter } from '../../console/utils/datetime';
 import { useTranslation } from 'react-i18next';
 import { DataTestIDs } from '../../data-test';
 
@@ -58,6 +61,7 @@ const IncidentsChart = ({
   selectedGroupId,
   onIncidentClick,
   currentTime,
+  lastRefreshTime,
 }: {
   incidentsData: Array<Incident>;
   chartDays: number;
@@ -65,6 +69,7 @@ const IncidentsChart = ({
   selectedGroupId: string;
   onIncidentClick: (groupId: string) => void;
   currentTime: number;
+  lastRefreshTime: number | null;
 }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [chartContainerHeight, setChartContainerHeight] = useState<number>();
@@ -131,9 +136,22 @@ const IncidentsChart = ({
         style={{ position: 'relative' }}
         data-test={DataTestIDs.IncidentsChart.ChartContainer}
       >
-        <CardTitle data-test={DataTestIDs.IncidentsChart.Title}>
-          {t('Incidents Timeline')}
-        </CardTitle>
+        <CardHeader>
+          <Flex spaceItems={{ default: 'spaceItemsMd' }}>
+            <FlexItem>
+              <CardTitle data-test={DataTestIDs.IncidentsChart.Title}>
+                {t('Incidents Timeline')}
+              </CardTitle>
+            </FlexItem>
+            {lastRefreshTime && (
+              <FlexItem>
+                <span className="pf-v6-u-text-color-subtle">
+                  {t('Last updated at')} {timeFormatter.format(new Date(lastRefreshTime))}
+                </span>
+              </FlexItem>
+            )}
+          </Flex>
+        </CardHeader>
         {isLoading ? (
           <Bullseye>
             <Spinner
