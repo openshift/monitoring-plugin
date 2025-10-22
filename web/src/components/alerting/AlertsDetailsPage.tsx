@@ -3,6 +3,7 @@ import {
   Alert,
   AlertingRuleChartExtension,
   AlertStates,
+  DocumentTitle,
   isAlertingRuleChart,
   PrometheusLabels,
   ResourceIcon,
@@ -56,7 +57,6 @@ import {
   ToolbarGroup,
   ToolbarItem,
 } from '@patternfly/react-core';
-import { Helmet } from 'react-helmet';
 import { MonitoringState } from '../../store/store';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 import { StatusBox } from '../console/console-shared/src/components/status/StatusBox';
@@ -146,9 +146,9 @@ const AlertsDetailsPage_: FC = () => {
 
   return (
     <>
-      <Helmet>
-        <title>{t('{{name}} details', { name: labels?.alertname || AlertResource.label })}</title>
-      </Helmet>
+      <DocumentTitle>
+        {t('{{name}} details', { name: labels?.alertname || AlertResource.label })}
+      </DocumentTitle>
       <StatusBox
         data={alert}
         label={AlertResource.label}

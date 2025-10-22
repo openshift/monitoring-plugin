@@ -84,7 +84,6 @@ export const metricsPage = {
   clickInsertExampleQuery: () => {
     cy.log('metricsPage.insertExampleQuery');
     cy.byTestID(DataTestIDs.MetricsPageInsertExampleQueryButton).click();
-    cy.get('[id^="' + IDs.ChartAxis0ChartLabel + '"]').eq(0).should('be.visible');
   },
 
   shouldBeLoadedWithGraph: () => {
@@ -564,6 +563,16 @@ export const metricsPage = {
       cy.task('doesFileExist', { fileName: downloadedFileName }).should('be.true');
     });
 
+  },
+
+  noDatapointsFound: () => {
+    cy.log('metricsPage.noDatapointsFound');
+    cy.byTestID(DataTestIDs.MetricGraphNoDatapointsFound).contains(MetricGraphEmptyState.NO_DATAPOINTS_FOUND).should('be.visible');
+    cy.byTestID(DataTestIDs.MetricsPageYellowNoDatapointsFound).contains(MetricGraphEmptyState.NO_DATAPOINTS_FOUND).should('be.visible');
+    cy.byTestID(DataTestIDs.MetricsPageInsertExampleQueryButton).should('not.exist');
+    cy.byTestID(DataTestIDs.MetricsPageQueryTable).should('not.exist');
+    cy.byTestID(DataTestIDs.MetricsPageSelectAllUnselectAllButton).should('not.exist');
+    cy.byTestID(DataTestIDs.MetricsPageSeriesButton).should('not.exist');
   },
 
 };

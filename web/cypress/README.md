@@ -67,9 +67,51 @@ Set the following var to specify the cluster timezone for incident timeline calc
 export CYPRESS_TIMEZONE=<timezone>
 ```
 
+Set the following var to transform old metric names to new format in mocks (temporary workaround for testing against locally built instances).
+```bash
+export CYPRESS_MOCK_NEW_METRICS=false
+```
+
 Set the following var to enable Cypress session management for faster test execution.
 ```bash
 export CYPRESS_SESSION=true
+```
+
+Set the following var to enable Cypress debug mode to log in headless mode.
+```bash
+export CYPRESS_DEBUG=true
+```
+
+Set the following var to skip all operator installation, cleanup, and verifications (useful for pre-provisioned environments where COO and Monitoring UI Plugin are already installed).
+```bash
+export CYPRESS_SKIP_ALL_INSTALL=false
+```
+
+Integration Testing variables
+
+Set the var to skip Openshift Virtualization and all the required operators installation.
+```bash
+export CYPRESS_SKIP_KBV_INSTALL=false
+```
+
+Set the var to install Openshift Virtualization from redhat-operators catalog source.
+```bash
+export CYPRESS_KBV_UI_INSTALL=true
+```
+
+Set the var to install Openshift Virtualization Operator using Konflux bundle.
+```bash
+export CYPRESS_KONFLUX_KBV_BUNDLE_IMAGE=<KBV image>
+```
+
+# Set the var to use custom Openshift Virtualization Operator bundle image
+```bash
+export CYPRESS_CUSTOM_KBV_BUNDLE_IMAGE=<KBV bundle image>
+```
+
+Set the var to use Openshift Virtualization Operator FBC image
+```bash
+export CYPRESS_FBC_STAGE_KBV_IMAGE=<KBV FBC image>
 ```
 
 ### Environment Configuration Script
@@ -106,11 +148,22 @@ npx cypress open
 npx cypress run
 ```
 
-To run a specific file
+Some examples to run a specific file(s)
+
+It runs the COO BVT only
 ```bash
 cd monitoring-plugin/web/cypress
-npx cypress run --spec "cypress/e2e/bvt.cy.ts"
-npx cypress run --spec "cypress/e2e/coo_bvt.cy.ts"
+npx cypress run --spec "cypress/e2e/coo/01.coo_bvt.cy.ts"
+```
+
+It runs the Monitoring BVT only
+```bash
+npx cypress run --spec "cypress/e2e/monitoring/01.bvt_monitoring.cy.ts"
+```
+
+It runs the Monitoring Regression tests
+```bash
+npx cypress run --spec "cypress/e2e/monitoring/regression/**"
 ```
 
 ### Testing recording

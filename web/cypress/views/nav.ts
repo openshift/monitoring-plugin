@@ -4,6 +4,17 @@ export const nav = {
     clickNavLink: (path: string[]) => {
       cy.log('Click navLink - ' + `${path}`);
       cy.clickNavLink(path);
+    },
+    switcher: {
+      changePerspectiveTo: (perspective: string) => {
+      cy.log('Switch perspective - ' + `${perspective}`);
+      cy.byLegacyTestID('perspective-switcher-toggle').scrollIntoView().should('be.visible').click();
+      cy.byLegacyTestID('perspective-switcher-menu-option').contains(perspective).should('be.visible').click();
+      },
+      shouldHaveText: (perspective: string) => {
+        cy.log('Should have text - ' + `${perspective}`);
+        cy.byLegacyTestID('perspective-switcher-toggle').contains(perspective).should('be.visible');
+      }
     }
   },
   tabs: {

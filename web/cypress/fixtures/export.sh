@@ -36,5 +36,12 @@ export CYPRESS_MCP_CONSOLE_IMAGE=<Monitoring Console Plugin image>
 # Set the following var to specify the cluster timezone for incident timeline calculations. Defaults to UTC if not specified.
 export CYPRESS_TIMEZONE=<timezone>
 
+# Set the following var to transform old metric names to new format in mocks (for testing against locally built instances)
+export CYPRESS_MOCK_NEW_METRICS=false
+
 # Set the following var to enable Cypress session management for faster test execution.
 export CYPRESS_SESSION=true
+
+# Skip all operator installation, cleanup, and verifications (for pre-provisioned environments where COO and Monitoring Plugin are already installed)
+# Note: This skips COO installation which would otherwise remove any existing monitoring plugin from the cluster
+export CYPRESS_SKIP_ALL_INSTALL=false

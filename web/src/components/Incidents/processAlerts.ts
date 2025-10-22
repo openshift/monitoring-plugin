@@ -1,44 +1,54 @@
 /* eslint-disable max-len */
 
 import { PrometheusResult, PrometheusRule } from '@openshift-console/dynamic-plugin-sdk';
-import { Alert, Incident, Severity } from './model';
-import { sortObjectsByEarliestTimestamp } from './processIncidents';
+import { Alert, GroupedAlert, Incident, Severity } from './model';
+import {
+  insertPaddingPointsForChart,
+  isResolved,
+  PROMETHEUS_QUERY_INTERVAL_SECONDS,
+} from './utils';
 
 /**
- * Groups alert objects by their `alertname`, `namespace`, and `component` fields and merges their values
- * while removing duplicates. Alerts with the same combination of `alertname`, `namespace`, and `component`
+ * Deduplicates alert objects by their `alertname`, `namespace`, `component`, and `severity` fields and merges their values
+ * while removing duplicates. Only firing alerts are included. Alerts with the same combination of these four fields
  * are combined, with values being deduplicated.
  *
- * @param {Array<Object>} objects - Array of alert objects to be grouped. Each object contains a `metric` field
- * with properties such as `alertname`, `namespace`, `component`, and an array of `values`.
+ * @param {Array<Object>} objects - Array of alert objects to be deduplicated. Each object contains a `metric` field
+ * with properties such as `alertname`, `namespace`, `component`, `severity`, and an array of `values`.
  * @param {Object} objects[].metric - The metric information of the alert.
  * @param {string} objects[].metric.alertname - The name of the alert.
  * @param {string} objects[].metric.namespace - The namespace in which the alert is raised.
  * @param {string} objects[].metric.component - The component associated with the alert.
+ * @param {string} objects[].metric.severity - The severity level of the alert.
+ * @param {string} objects[].metric.alertstate - The current state of the alert (only 'firing' alerts are included).
  * @param {Array<Array<Number | string>>} objects[].values - The array of values corresponding to the alert, where
  * each value is a tuple containing a timestamp and a value (e.g., [timestamp, value]).
  *
- * @returns {Array<Object>} - An array of grouped alert objects. Each object contains a unique combination of
- * `alertname`, `namespace`, and `component`, with deduplicated values.
- * @returns {Object} return[].metric - The metric information of the grouped alert.
- * @returns {Array<Array<Number | string>>} return[].values - The deduplicated array of values for the grouped alert.
+ * @returns {Array<Object>} - An array of deduplicated firing alert objects. Each object contains a unique combination of
+ * `alertname`, `namespace`, `component`, and `severity`, with deduplicated values.
+ * @returns {Object} return[].metric - The metric information of the deduplicated alert.
+ * @returns {Array<Array<Number | string>>} return[].values - The deduplicated array of values for the alert.
  *
  * @example
  * const alerts = [
- *   { metric: { alertname: "Alert1", namespace: "ns1", component: "comp1" }, values: [[12345, "2"], [12346, "2"]] },
- *   { metric: { alertname: "Alert1", namespace: "ns1", component: "comp1" }, values: [[12346, "2"], [12347, "2"]] }
+ *   { metric: { alertname: "Alert1", namespace: "ns1", component: "comp1", severity: "critical", alertstate: "firing" }, values: [[12345, "2"], [12346, "2"]] },
+ *   { metric: { alertname: "Alert1", namespace: "ns1", component: "comp1", severity: "critical", alertstate: "firing" }, values: [[12346, "2"], [12347, "2"]] }
  * ];
- * const groupedAlerts = groupAlerts(alerts);
- * // Returns an array where the two alerts are grouped together with deduplicated values.
+ * const deduplicated = deduplicateAlerts(alerts);
+ * // Returns an array where the two alerts are combined with deduplicated values.
  */
-export function groupAlerts(objects: Array<PrometheusResult>): Array<PrometheusResult> {
+export function deduplicateAlerts(objects: Array<PrometheusResult>): Array<PrometheusResult> {
   // Step 1: Filter out all non firing alerts
   const filteredObjects = objects.filter((obj) => obj.metric.alertstate === 'firing');
   const groupedObjects = new Map();
-  // Group by 3 values to make sure were not losing data'component'
+  // Group by alertname, namespace, component, and severity to ensure no data loss
   for (const obj of filteredObjects) {
-    const key =
-      obj.metric.alertname + obj.metric.namespace + obj.metric.component + obj.metric.severity;
+    const key = [
+      obj.metric.alertname,
+      obj.metric.namespace,
+      obj.metric.component,
+      obj.metric.severity,
+    ].join('|');
 
     // If the key already exists in the map, merge the values after deduplication
     if (groupedObjects.has(key)) {
@@ -50,15 +60,6 @@ export function groupAlerts(objects: Array<PrometheusResult>): Array<PrometheusR
 
       // Concatenate non-duplicate values
       existingObj.values = existingObj.values.concat(newValues);
-
-      // Ensure metric uniqueness based on fields like alertname, severity, etc.
-      const existingMetricsSet = new Set(JSON.stringify(existingObj.metric));
-      if (!existingMetricsSet.has(JSON.stringify(obj.metric))) {
-        groupedObjects.set(key, {
-          ...existingObj,
-          values: existingObj.values,
-        });
-      }
     } else {
       // Otherwise, create a new entry with deduplicated values
       groupedObjects.set(key, {
@@ -72,28 +73,104 @@ export function groupAlerts(objects: Array<PrometheusResult>): Array<PrometheusR
 }
 
 /**
- * Processes a list of alert data, filters out 'Watchdog' alerts, groups them by component,
- * and converts their timestamps to JavaScript `Date` objects. Additionally, it computes
- * the start and end times for when the alerts started and ended firing.
+ * Merges incidents that have the same (group_id, src_alertname, src_namespace, src_severity).
+ * This handles cases where the same incident data is distributed across multiple items
+ * due to multiple queries or silence status varying over time.
  *
- * @param {Array} data - An array of alert objects containing metric and values information.
- * @param {Object} data[].metric - The metric object containing alert metadata.
- * @param {string} data[].metric.alertname - The name of the alert.
- * @param {string} data[].metric.namespace - The namespace from which the alert originated.
- * @param {string} data[].metric.severity - The severity level of the alert (e.g., "warning", "critical").
- * @param {string} data[].metric.component - The component associated with the alert.
- * @param {string} data[].metric.layer - The layer to which the alert belongs.
- * @param {string} data[].metric.name - The name of the alert.
- * @param {string} data[].metric.alertstate - The current state of the alert (e.g., "firing").
- * @param {Array<Array<number, string>>} data[].values - An array of values, where each value is an array
- *                                                       containing a timestamp (as a number) and a string value.
+ * Generated by Claude
  *
- * @returns {Array} - An array of processed alert objects, where each object includes metadata and processed values.
- *                    Each alert object also contains the start and end firing times of the alert, as well as an `x` field
- *                    representing its position in the firing list.
+ * @param incidents - Array of incidents to merge
+ * @returns Array of merged incidents with deduplicated values and latest silenced/severity values
+ */
+function mergeIncidentsByKey(incidents: Array<Partial<Incident>>): Array<Partial<Incident>> {
+  const groupedMap = new Map<
+    string,
+    {
+      incident: Partial<Incident>;
+      values: Array<[number, string]>;
+      latestTimestamp: number;
+      latestSilenced: boolean;
+      latestSrcSeverity: string;
+    }
+  >();
+
+  for (const incident of incidents) {
+    // Create composite key for grouping
+    const key = [
+      incident.group_id,
+      incident.src_alertname,
+      incident.src_namespace,
+      incident.src_severity,
+    ].join('|');
+
+    const existing = groupedMap.get(key);
+
+    if (existing) {
+      // Merge values (deduplicate)
+      const existingValuesSet = new Set(existing.values.map((v) => JSON.stringify(v)));
+      const newValues = (incident.values || []).filter(
+        (v) => !existingValuesSet.has(JSON.stringify(v)),
+      );
+      existing.values = existing.values.concat(newValues);
+
+      // Find the latest timestamp in this incident
+      if (incident.values && incident.values.length > 0) {
+        const maxTimestamp = Math.max(...incident.values.map((v) => v[0]));
+        // Update silenced and src_severity if this incident has a more recent timestamp
+        if (maxTimestamp > existing.latestTimestamp) {
+          existing.latestTimestamp = maxTimestamp;
+          existing.latestSilenced = incident.silenced ?? false;
+          existing.latestSrcSeverity = incident.src_severity || '';
+        }
+      }
+    } else {
+      // New group
+      const maxTimestamp =
+        incident.values && incident.values.length > 0
+          ? Math.max(...incident.values.map((v) => v[0]))
+          : -Infinity;
+
+      groupedMap.set(key, {
+        incident,
+        values: [...(incident.values || [])],
+        latestTimestamp: maxTimestamp,
+        latestSilenced: incident.silenced ?? false,
+        latestSrcSeverity: incident.src_severity || '',
+      });
+    }
+  }
+
+  // Convert map to array with merged data
+  return Array.from(groupedMap.values()).map((group) => ({
+    ...group.incident,
+    values: group.values.sort((a, b) => a[0] - b[0]), // Sort by timestamp
+    silenced: group.latestSilenced,
+    src_severity: group.latestSrcSeverity,
+  }));
+}
+
+/**
+ * Processes alert data from Prometheus results, filtering and deduplicating them within the time window
+ * of selected incidents. Filters out 'Watchdog' alerts and computes the start and end firing times.
+ * Timestamps remain in seconds (Unix epoch) format with padding points added for chart rendering.
+ *
+ * @param {Array} prometheusResults - An array of alert objects containing metric and values information.
+ * @param {Object} prometheusResults[].metric - The metric object containing alert metadata.
+ * @param {string} prometheusResults[].metric.alertname - The name of the alert.
+ * @param {string} prometheusResults[].metric.namespace - The namespace from which the alert originated.
+ * @param {string} prometheusResults[].metric.severity - The severity level of the alert (e.g., "warning", "critical").
+ * @param {string} prometheusResults[].metric.component - The component associated with the alert.
+ * @param {string} prometheusResults[].metric.layer - The layer to which the alert belongs.
+ * @param {string} prometheusResults[].metric.name - The name of the alert.
+ * @param {string} prometheusResults[].metric.alertstate - The current state of the alert (e.g., "firing").
+ * @param {Array<Array<number, string>>} prometheusResults[].values - An array of [timestamp, severity] tuples.
+ * @param {Array} selectedIncidents - Array of incident objects used to determine the time window for filtering alerts.
+ *
+ * @returns {Array} - An array of processed Alert objects with metadata, padded values for chart rendering,
+ *                    start/end firing times in milliseconds, resolved status, silenced status, and x position.
  *
  * @example
- * const data = [
+ * const prometheusResults = [
  *   {
  *     metric: {
  *       alertname: "ClusterOperatorDegraded",
@@ -104,71 +181,85 @@ export function groupAlerts(objects: Array<PrometheusResult>): Array<PrometheusR
  *       name: "machine-config",
  *       alertstate: "firing"
  *     },
- *     values: [[1627897545, "2"], [1627897545, "3"]]
- *   },
+ *     values: [[1627897545, "2"], [1627897600, "2"]]
+ *   }
+ * ];
+ * const selectedIncidents = [
  *   {
- *     metric: {
- *       alertname: "Watchdog",
- *       namespace: "openshift-monitoring",
- *       severity: "info",
- *       component: "monitoring",
- *       layer: "monitoring",
- *       name: "watchdog",
- *       alertstate: "firing"
- *     },
- *     values: [[1627897545, "1"]]
+ *     src_alertname: "ClusterOperatorDegraded",
+ *     src_namespace: "openshift-cluster-version",
+ *     src_severity: "warning",
+ *     values: [[1627897545, "2"]],
+ *     silenced: false
  *   }
  * ];
  *
- * const result = processAlerts(data);
- * // Output:
- * // [
- * //   {
- * //     alertname: "ClusterOperatorDegraded",
- * //     namespace: "openshift-cluster-version",
- * //     severity: "warning",
- * //     component: "machine-config",
- * //     layer: "compute",
- * //     name: "machine-config",
- * //     alertstate: "firing",
- * //     values: [[Date, "2"], [Date, "3"]],
- * //     alertsStartFiring: Date,
- * //     alertsEndFiring: Date,
- * //     x: 1
- * //   }
- * // ]
+ * const result = convertToAlerts(prometheusResults, selectedIncidents);
+ * // Returns array of Alert objects with padded values, firing times in ms, and resolved/silenced status
  */
 
-export function processAlerts(
-  data: Array<PrometheusResult>,
+export function convertToAlerts(
+  prometheusResults: Array<PrometheusResult>,
   selectedIncidents: Array<Partial<Incident>>,
-  alertingRules: Array<PrometheusRule>,
+  currentTime: number,
 ): Array<Alert> {
-  const firing = groupAlerts(data).filter((alert) => alert.metric.alertname !== 'Watchdog');
-  // Extract the first and last timestamps from selectedIncidents
-  const timestamps = selectedIncidents.flatMap(
+  // Merge selected incidents by composite key. Consolidates duplicates caused by non-key labels
+  // like `pod` or `silenced` that aren't supported by cluster health analyzer.
+  const incidents = mergeIncidentsByKey(selectedIncidents);
+
+  // Extract the first and last timestamps of the selected incident
+  const timestamps = incidents.flatMap(
     (incident) => incident.values?.map((value) => value[0]) ?? [],
   );
-  const firstTimestamp = Math.min(...timestamps);
-  const lastTimestamp = Math.max(...timestamps);
 
-  return sortObjectsByEarliestTimestamp(firing)
-    .map((alert, index) => {
-      // Filter values based on firstTimestamp and lastTimestamp keep only values within range
-      const processedValues: Array<[number, string]> = alert.values.filter(
-        ([date]) => date >= firstTimestamp && date <= lastTimestamp,
+  const incidentFirstTimestamp = Math.min(...timestamps);
+  const incidentLastTimestamp = Math.max(...timestamps);
+
+  // Watchdog is a heartbeat metric, not a real issue
+  const validAlerts = prometheusResults.filter((alert) => alert.metric.alertname !== 'Watchdog');
+
+  const distinctAlerts = deduplicateAlerts(validAlerts);
+
+  // Filter alerts to only include values within the incident's time window
+  const ALERT_WINDOW_PADDING_SECONDS = PROMETHEUS_QUERY_INTERVAL_SECONDS / 2;
+
+  const alerts = distinctAlerts
+    .map((alert: PrometheusResult): Alert | null => {
+      // Keep only values within the incident time range (with padding)
+      const values: Array<[number, string]> = alert.values.filter(
+        ([date]) =>
+          date >= incidentFirstTimestamp - ALERT_WINDOW_PADDING_SECONDS &&
+          date <= incidentLastTimestamp + ALERT_WINDOW_PADDING_SECONDS,
       );
 
-      const sortedValues = processedValues.sort((a, b) => a[0] - b[0]);
-
-      if (sortedValues.length === 0) {
+      // Exclude alerts with no values in this time window
+      if (values.length === 0) {
         return null;
       }
-      const matchingRule = alertingRules.find((rule) => rule.name === alert.metric.alertname);
 
-      const alertsStartFiring = sortedValues[0][0] * 1000;
-      const alertsEndFiring = sortedValues[sortedValues.length - 1][0] * 1000;
-      const resolved = Date.now() - alertsEndFiring > 10 * 60 * 1000;
+      // Determine resolved status based on original values before padding
+      const sortedValues = values.sort((a, b) => a[0] - b[0]);
+      let lastTimestamp = sortedValues[sortedValues.length - 1][0];
+      const resolved = isResolved(lastTimestamp, currentTime);
+
+      // Find the associated incident, if it's one of the select ones
+      // Since incidents are already merged by (group_id, src_alertname, src_namespace, src_severity),
+      // there should be at most one matching incident
+      const matchingIncident = incidents.find(
+        (incident) =>
+          incident.src_alertname === alert.metric.alertname &&
+          incident.src_namespace === alert.metric.namespace &&
+          incident.src_severity === alert.metric.severity,
+      );
+
+      // Use silenced value from incident data (cluster_health_components_map)
+      // Default to false if no matching incident found
+      const silenced = matchingIncident?.silenced ?? false;
+
+      // Add padding points for chart rendering
+      const paddedValues = insertPaddingPointsForChart(sortedValues, currentTime);
+      const firstTimestamp = paddedValues[0][0];
+      lastTimestamp = paddedValues[paddedValues.length - 1][0];
 
       return {
         alertname: alert.metric.alertname,
@@ -178,43 +269,47 @@ export function processAlerts(
         layer: alert.metric.layer,
         name: alert.metric.name,
         alertstate: resolved ? 'resolved' : 'firing',
-        values: sortedValues,
-        alertsStartFiring,
-        alertsEndFiring,
+        values: paddedValues,
+        alertsStartFiring: firstTimestamp,
+        alertsEndFiring: lastTimestamp,
         resolved,
-        x: firing.length - index,
-        silenced: matchingRule ? matchingRule.state === 'silenced' : false,
+        x: 0, // Will be set after sorting
+        silenced,
       };
     })
-    .filter((alert) => alert !== null);
+    .filter((alert): alert is Alert => alert !== null)
+    .sort((a, b) => a.alertsStartFiring - b.alertsStartFiring)
+    .map((alert, index, sortedAlerts) => ({
+      ...alert,
+      x: sortedAlerts.length - index,
+    }));
+
+  return alerts;
 }
 
 export const groupAlertsForTable = (
   alerts: Array<Alert>,
   alertingRulesData: Array<PrometheusRule>,
-): Array<Alert> => {
-  const groupedAlerts = alerts.reduce((acc, alert) => {
-    const { component, alertstate, severity, layer, alertname } = alert;
+): Array<GroupedAlert> => {
+  const groupedAlerts = alerts.reduce((acc: Array<GroupedAlert>, alert) => {
+    const { component, alertstate, severity, layer, alertname, silenced } = alert;
     const existingGroup = acc.find((group) => group.component === component);
-    let rule;
-    if (alertingRulesData) {
-      rule = alertingRulesData.find((rule) => alertname === rule.name);
-    }
-    const silenced = rule?.state === 'silenced';
+    const rule = alertingRulesData?.find((rule) => alertname === rule.name);
+    // Use silenced value from alert object (already sourced from cluster_health_components_map)
     if (existingGroup) {
-      existingGroup.alertsExpandedRowData.push({ ...alert, rule, silenced });
+      existingGroup.alertsExpandedRowData.push({ ...alert, rule, silenced } as any);
       if (severity === 'warning') existingGroup.warning += 1;
       else if (severity === 'info') existingGroup.info += 1;
       else if (severity === 'critical') existingGroup.critical += 1;
     } else {
       acc.push({
         component,
-        alertstate,
+        alertstate: alertstate as 'firing' | 'resolved' | 'silenced',
         layer,
         warning: severity === 'warning' ? 1 : 0,
         info: severity === 'info' ? 1 : 0,
         critical: severity === 'critical' ? 1 : 0,
-        alertsExpandedRowData: [{ ...alert, rule, silenced }],
+        alertsExpandedRowData: [{ ...alert, rule, silenced } as any],
       });
     }
 

@@ -1,31 +1,29 @@
 #!/bin/bash
+echo "--------------------------------"
+echo "MP_IMAGE: ${MP_IMAGE}"
+echo "--------------------------------"
 
-# Generate a random filename
-MONITORING_FILE="/tmp/monitoring_csv_$(date +%s%N).yaml"
+CMO_FILE="/tmp/cmo_monitoring_csv_$(date +%s%N).yaml"
 
-MONITORING_CSV_NAME=$(oc get deployment --kubeconfig "${KUBECONFIG}" --namespace="${MP_NAMESPACE}" | grep "monitoring-plugin" | awk '{print $1}')
+oc get deployment cluster-monitoring-operator -n openshift-monitoring -o yaml > "${CMO_FILE}" --kubeconfig "${KUBECONFIG}"
 
-oc project --namespace="${MP_NAMESPACE}"
+sed -i "s#value: .*monitoring-plugin.*#value: ${MP_IMAGE}#g" "${CMO_FILE}"
+sed -i "s#^\([[:space:]]*- -images=monitoring-plugin=\).*#\1${MP_IMAGE}#g" "${CMO_FILE}"
 
-oc get deployment "${MONITORING_CSV_NAME}" -n "${MP_NAMESPACE}" -o yaml > "${MONITORING_FILE}" --kubeconfig "${KUBECONFIG}"
+oc patch clusterversion version --type json -p "$(cat ./cypress/fixtures/cmo/disable-monitoring.yaml)"
 
-# Patch the deployment file related images
-sed -i "s#^\([[:space:]]*image: \).*#\1${MP_IMAGE}#g" "${MONITORING_FILE}"
+oc replace -f "${CMO_FILE}" --kubeconfig "${KUBECONFIG}"
 
-oc replace -f "${MONITORING_FILE}" --kubeconfig "${KUBECONFIG}"
-
-# Scale down the cluster-monitoring-operator as "manager" pod is responsible for the monitoring-plugin
-oc patch clusterversion version --type json -p "$(cat disable-monitoring.yaml)"
-
-oc scale --replicas=0 -n "${MP_NAMESPACE}" deployment/cluster-monitoring-operator
-
-# Apply the patched deployment resource file
-oc replace -f "${MONITORING_FILE}" --kubeconfig "${KUBECONFIG}"
-
-# Scale up the monitoring-plugin with new image, leaving the cluster-monitoring-operator at 0 replicas to not revert the change
-oc scale --replicas=1 -n "${MP_NAMESPACE}" deployment/monitoring-plugin
-
-# Wait for the operator to reconcile the change and make sure all the pods are running.
 sleep 30
-OUTPUT=`oc wait --for=condition=Ready pods --selector=app.kubernetes.io/part-of=monitoring-plugin -n "${MP_NAMESPACE}" --timeout=60s`
-echo "${OUTPUT}"
+
+echo "--------------------------------"
+echo "Cluster monitoring operator"
+echo "--------------------------------"
+csv=$(oc get deployment cluster-monitoring-operator -n openshift-monitoring -o yaml)
+echo "${csv}"
+echo "--------------------------------"
+echo "Monitoring plugin"
+echo "--------------------------------"
+csv=$(oc get deployment monitoring-plugin -n openshift-monitoring -o yaml)
+echo "${csv}"
+echo "--------------------------------"

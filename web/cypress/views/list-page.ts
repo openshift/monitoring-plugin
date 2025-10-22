@@ -173,7 +173,6 @@ export const listPage = {
     shouldBeLoaded: () => {
       cy.log('listPage.ARRows.shouldBeLoaded');
       cy.byOUIAID(DataTestIDs.Table).should('be.visible');
-      // cy.get(`[data-test-rows="resource-row"`).should('be.visible');
     },
     countShouldBe: (count: number) => {
       cy.log('listPage.ARRows.countShouldBe');
@@ -270,5 +269,12 @@ export const listPage = {
         throw error;
       }
     },
+  },
+  emptyState: () => {
+    cy.log('listPage.emptyState');
+    cy.byTestID(DataTestIDs.EmptyBoxBody).contains('No Alerts found').should('be.visible');
+    cy.bySemanticElement('button', 'Clear all filters').should('not.exist');
+    cy.byTestID(DataTestIDs.DownloadCSVButton).should('not.exist');
+    cy.byOUIAID(DataTestIDs.Table).should('not.exist');
   },
 };
