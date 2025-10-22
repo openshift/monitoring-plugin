@@ -245,9 +245,10 @@ export const buildPrometheusUrl = ({
 }: {
   prometheusUrlProps: PrometheusURLProps;
   basePath: string;
-}): string => {
+}): string | null => {
   if (prometheusUrlProps.endpoint !== PrometheusEndpoint.RULES && !prometheusUrlProps.query) {
-    return '';
+    // Empty query provided, skipping API call
+    return null;
   }
 
   const params = getSearchParams(prometheusUrlProps);

@@ -15,6 +15,7 @@ export type Incident = {
   src_severity: string;
   src_alertname: string;
   src_namespace: string;
+  silenced: boolean;
   x: number;
   values: Array<Timestamps>;
   metric: Metric;
@@ -29,9 +30,6 @@ export type Metric = {
 };
 
 export type ProcessedIncident = Incident & {
-  informative: boolean;
-  critical: boolean;
-  warning: boolean;
   resolved: boolean;
   firing: boolean;
 };
@@ -47,6 +45,7 @@ export type Alert = {
   namespace: string;
   resolved: boolean;
   severity: Severity;
+  silenced: boolean;
   x: number;
   values: Array<Timestamps>;
   alertsExpandedRowData?: Array<Alert>;
@@ -54,15 +53,24 @@ export type Alert = {
 
 export type DaysFilters = '1 day' | '3 days' | '7 days' | '15 days';
 
-export type IncidentFilters = 'Critical' | 'Warning' | 'Firing' | 'Informative' | 'Resolved';
+export type IncidentStateFilters = 'Resolved' | 'Firing';
+
+export type IncidentSeverityFilters = 'Critical' | 'Warning' | 'Informative';
 
 export type Severity = 'critical' | 'warning' | 'info';
+
+export type IncidentFilterSelectionCombined =
+  | 'Critical'
+  | 'Warning'
+  | 'Informative'
+  | 'Resolved'
+  | 'Firing';
 
 export type IncidentFiltersCombined = {
   days: Array<DaysFilters>;
   groupId?: Array<string>;
-  severity?: Array<string>;
-  state?: Array<string>;
+  severity?: Array<IncidentSeverityFilters>;
+  state?: Array<IncidentStateFilters>;
 };
 
 export type IncidentsPageFiltersExpandedState = {

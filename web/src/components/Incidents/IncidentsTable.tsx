@@ -9,29 +9,35 @@ import {
 } from '@patternfly/react-core';
 import { SearchIcon, AngleDownIcon, AngleRightIcon } from '@patternfly/react-icons';
 import { ExpandableRowContent, Table, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
-import * as _ from 'lodash-es';
+import { isEmpty } from 'lodash-es';
 import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import { MonitoringState } from '../../store/store';
 import { SeverityBadge } from '../alerting/AlertUtils';
 import IncidentsDetailsRowTable from './IncidentsDetailsRowTable';
 import { GroupedAlertStateIcon } from './IncidentAlertStateIcon';
 
 import { GroupedAlert } from './model';
+import { DataTestIDs } from '../data-test';
 
 export const IncidentsTable = () => {
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const columnNames = {
     checkbox: '',
-    component: 'Component',
-    severity: 'Severity',
-    state: 'State',
-    startDate: 'Start',
+    component: t('Component'),
+    severity: t('Severity'),
+    state: t('State'),
+    startDate: t('Start'),
   };
   const alertsTableData = useSelector(
     (state: MonitoringState) => state.plugins.mcp.incidentsData?.alertsTableData,
   );
   const alertsAreLoading = useSelector(
     (state: MonitoringState) => state.plugins.mcp.incidentsData.alertsAreLoading,
+  );
+  const incidentsActiveFilters = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData.incidentsActiveFilters,
   );
 
   const [expandedAlerts, setExpandedAlerts] = useState<Array<string>>([]);
@@ -92,7 +98,7 @@ export const IncidentsTable = () => {
     return Math.min(...alert.alertsExpandedRowData.map((alertData) => alertData.alertsStartFiring));
   };
 
-  if (_.isEmpty(alertsTableData) || alertsAreLoading) {
+  if (isEmpty(alertsTableData) || alertsAreLoading || isEmpty(incidentsActiveFilters.groupId)) {
     return (
       <Card>
         <CardBody>
@@ -103,7 +109,7 @@ export const IncidentsTable = () => {
             icon={SearchIcon}
           >
             <EmptyStateBody>
-              <Bullseye>No incident selected.</Bullseye>
+              <Bullseye>{t('No incident selected.')}</Bullseye>
             </EmptyStateBody>
           </EmptyState>
         </CardBody>
@@ -113,7 +119,7 @@ export const IncidentsTable = () => {
   return (
     <Card>
       <CardBody>
-        <Table aria-label="alerts-table" isExpandable>
+        <Table aria-label="alerts-table" isExpandable data-test={DataTestIDs.IncidentsTable.Table}>
           <Thead>
             <Tr>
               <Th width={10}>
@@ -137,7 +143,11 @@ export const IncidentsTable = () => {
             .sort((a: GroupedAlert, b: GroupedAlert) => getMinStartDate(a) - getMinStartDate(b))
             .map((alert: GroupedAlert, rowIndex: number) => {
               return (
-                <Tbody key={rowIndex} isExpanded={isAlertExpanded(alert)}>
+                <Tbody
+                  key={rowIndex}
+                  isExpanded={isAlertExpanded(alert)}
+                  data-test={`${DataTestIDs.IncidentsTable.Row}-${rowIndex}`}
+                >
                   <Tr>
                     <Td
                       expand={
@@ -150,9 +160,15 @@ export const IncidentsTable = () => {
                             }
                           : undefined
                       }
+                      data-test={`${DataTestIDs.IncidentsTable.ExpandButton}-${rowIndex}`}
                     />
-                    <Td dataLabel={columnNames.component}>{alert.component}</Td>
-                    <Td>
+                    <Td
+                      dataLabel={columnNames.component}
+                      data-test={`${DataTestIDs.IncidentsTable.ComponentCell}-${rowIndex}`}
+                    >
+                      {alert.component}
+                    </Td>
+                    <Td data-test={`${DataTestIDs.IncidentsTable.SeverityCell}-${rowIndex}`}>
                       {alert.critical > 0 && (
                         <SeverityBadge severity={AlertSeverity.Critical} count={alert.critical} />
                       )}
@@ -164,9 +180,12 @@ export const IncidentsTable = () => {
                       )}
                     </Td>
                     <Td dataLabel={columnNames.startDate}>
-                      <Timestamp timestamp={getMinStartDate(alert)} />
+                      <Timestamp timestamp={getMinStartDate(alert) * 1000} />
                     </Td>
-                    <Td dataLabel={columnNames.state}>
+                    <Td
+                      dataLabel={columnNames.state}
+                      data-test={`${DataTestIDs.IncidentsTable.StateCell}-${rowIndex}`}
+                    >
                       <GroupedAlertStateIcon groupedAlert={alert} />
                     </Td>
                   </Tr>

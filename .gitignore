@@ -1,6 +1,8 @@
 .devcontainer/dev.env
 .DS_Store
 web/cypress/screenshots/
+web/cypress/export-env.sh
+web/screenshots/
 web/cypress/videos/
 web/dist/
 web/node_modules/

@@ -4,6 +4,7 @@ import {
   t_global_color_status_info_default,
   t_global_color_status_warning_default,
 } from '@patternfly/react-tokens';
+import { PrometheusResult } from '@openshift-console/dynamic-plugin-sdk';
 import { Dispatch } from 'redux';
 import { setIncidentsActiveFilters } from '../../store/actions';
 import {
@@ -12,12 +13,139 @@ import {
   AlertsIntervalsArray,
   DaysFilters,
   Incident,
-  IncidentFilters,
   IncidentFiltersCombined,
   IncidentsDetailsAlert,
   SpanDates,
   Timestamps,
 } from './model';
+
+/**
+ * The Prometheus query step interval in seconds.
+ *
+ * All time-related operations are aligned to this interval:
+ * - Prometheus queries use step=300 (calculated from samples=288 for 24h timespan)
+ * - Current time is rounded to 5-minute boundaries
+ * - Resolved threshold is 10 minutes (2x query interval)
+ * - Chart padding points are added 5 minutes before incidents
+ * - Gap detection identifies gaps larger than 5 minutes
+ */
+export const PROMETHEUS_QUERY_INTERVAL_SECONDS = 300; // 5 minutes
+
+/**
+ * Returns the current time in milliseconds, rounded down to the nearest query interval.
+ * For example: 10:03 -> 10:00, 10:05 -> 10:05, 10:06 -> 10:05
+ *
+ * This rounding is done for several important reasons:
+ * 1. **Prometheus query alignment**: Our Prometheus queries use step=300 (5 minutes), so we won't
+ *    receive data updates more frequently than every 5 minutes anyway.
+ * 2. **Consistent sampling intervals**: By rounding to 5-minute boundaries, we ensure that the same
+ *    timestamps are used across refreshes. This prevents the chart data from shifting slightly with
+ *    each refresh, which would cause unnecessary re-renders and visual instability.
+ * 3. **Query efficiency**: Multiple requests within the same 5-minute window will use identical
+ *    timestamps, improving cache hit rates and reducing redundant queries.
+ *
+ * Centralized function for getting current time, making it easy to mock in tests.
+ *
+ * @returns Current timestamp in milliseconds since Unix epoch, rounded to nearest query interval
+ */
+export const getCurrentTime = (): number => {
+  const now = Date.now();
+  const intervalMs = PROMETHEUS_QUERY_INTERVAL_SECONDS * 1000;
+  return Math.floor(now / intervalMs) * intervalMs;
+};
+
+/**
+ * Determines if an incident or alert is resolved based on the time elapsed since the last data point.
+ *
+ * An incident/alert is considered resolved if the last data point is older than or equal to
+ * twice the Prometheus query interval (10 minutes). This threshold provides a buffer to avoid
+ * premature resolution during transient data delays.
+ * This centralized logic ensures consistent resolved detection across incidents and alerts.
+ *
+ * @param lastTimestamp - The timestamp of the last data point in seconds (Prometheus format)
+ * @param currentTime - The current time in milliseconds (JavaScript Date.now() format)
+ * @returns true if resolved (last data point >= 2x query interval old), false if still firing
+ */
+export const isResolved = (lastTimestamp: number, currentTime: number): boolean => {
+  const delta = currentTime - lastTimestamp * 1000;
+  const threshold = 2 * PROMETHEUS_QUERY_INTERVAL_SECONDS * 1000;
+  return delta >= threshold;
+};
+
+/**
+ * Inserts padding data points to ensure the chart renders correctly.
+ * This allows the chart to properly render events, especially single data points.
+ *
+ * Padding points are added at the Prometheus query interval (5 minutes):
+ * - Before the first data point
+ * - Before any data point after a gap larger than the query interval
+ * - After the last data point (if currentTime >= last item + interval)
+ * - After the last item of a continuous sequence (gap with next point > interval)
+ *
+ * @param values - Array of [timestamp, severity] tuples (assumed to be sorted by time)
+ * @param currentTime - The current time in milliseconds (for determining if last item needs padding)
+ * @returns New array with additional data points inserted where needed
+ */
+export function insertPaddingPointsForChart(
+  values: Array<[number, string]>,
+  currentTime: number,
+): Array<[number, string]> {
+  if (values.length === 0) {
+    return values;
+  }
+
+  const result: Array<[number, string]> = [];
+  const threshold = PROMETHEUS_QUERY_INTERVAL_SECONDS + 1;
+  const currentTimeSeconds = currentTime / 1000;
+
+  for (let i = 0; i < values.length; i++) {
+    const current = values[i];
+    const previous = i > 0 ? values[i - 1] : null;
+    const next = i < values.length - 1 ? values[i + 1] : null;
+
+    // Add a data point with the same severity one query interval earlier if:
+    // - This is the first item (no previous item)
+    // - This is the first item of a continuous sequence (gap with previous point > interval)
+    if (!previous || current[0] - previous[0] > threshold) {
+      const timestamp = current[0] - PROMETHEUS_QUERY_INTERVAL_SECONDS;
+      const severity = current[1];
+      result.push([timestamp, severity]);
+    }
+
+    result.push(current);
+
+    // Add a data point with the same severity one query interval later if:
+    // - This is the last item and currentTime >= this item + interval
+    // - This is the last item of a continuous sequence (gap with next point > interval)
+    const isLastItem = !next;
+    const hasGapWithNext = next && next[0] - current[0] > threshold;
+
+    if (isLastItem && currentTimeSeconds >= current[0] + PROMETHEUS_QUERY_INTERVAL_SECONDS) {
+      const timestamp = current[0] + PROMETHEUS_QUERY_INTERVAL_SECONDS;
+      const severity = current[1];
+      result.push([timestamp, severity]);
+    } else if (hasGapWithNext) {
+      const timestamp = current[0] + PROMETHEUS_QUERY_INTERVAL_SECONDS;
+      const severity = current[1];
+      result.push([timestamp, severity]);
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Sorts items by their earliest timestamp in ascending order.
+ * @param items - Array of Prometheus results to sort
+ * @returns Sorted array with earliest items first
+ */
+export function sortByEarliestTimestamp(items: PrometheusResult[]): PrometheusResult[] {
+  return items.sort((a, b) => {
+    const earliestA = Math.min(...a.values.map((value) => value[0]));
+    const earliestB = Math.min(...b.values.map((value) => value[0]));
+    return earliestA - earliestB;
+  });
+}
 
 function consolidateAndMergeIntervals(data: Incident, dateArray: SpanDates) {
   const severityRank = { 2: 2, 1: 1, 0: 0 };
@@ -107,7 +235,7 @@ function generateIntervalsWithGaps(filteredValues: Array<Timestamps>, dateArray:
 }
 
 /**
- * Checks if there is a gap larger than 5 minutes between consecutive timestamps.
+ * Checks if there is a gap larger than the Prometheus query interval between consecutive timestamps.
  * @param {Array} filteredValues - The array of filtered timestamps and severities.
  * @param {number} index - The current index in the array.
  * @returns {boolean} - Whether a gap exists.
@@ -115,7 +243,8 @@ function generateIntervalsWithGaps(filteredValues: Array<Timestamps>, dateArray:
 function hasGap(filteredValues: Array<Timestamps>, index: number) {
   const previousTimestamp = filteredValues[index - 1][0];
   const currentTimestamp = filteredValues[index][0];
-  return (currentTimestamp - previousTimestamp) / 60 > 5;
+  const gapMinutes = (currentTimestamp - previousTimestamp) / 60;
+  return gapMinutes > PROMETHEUS_QUERY_INTERVAL_SECONDS / 60;
 }
 
 /**
@@ -142,6 +271,7 @@ function createNodataInterval(
  */
 export const createIncidentsChartBars = (incident: Incident, dateArray: SpanDates) => {
   const groupedData = consolidateAndMergeIntervals(incident, dateArray);
+
   const data: {
     y0: Date;
     y: Date;
@@ -164,13 +294,14 @@ export const createIncidentsChartBars = (incident: Incident, dateArray: SpanDate
 
   for (let i = 0; i < groupedData.length; i++) {
     const severity = getSeverityName(groupedData[i][2]);
+    const isLastElement = i === groupedData.length - 1;
 
     data.push({
       y0: new Date(groupedData[i][0] * 1000),
       y: new Date(groupedData[i][1] * 1000),
       x: incident.x,
       name: severity,
-      firing: incident.firing,
+      firing: isLastElement ? incident.firing : false,
       componentList: incident.componentList || [],
       group_id: incident.group_id,
       nodata: groupedData[i][2] === 'nodata' ? true : false,
@@ -227,26 +358,21 @@ export const createAlertsChartBars = (alert: IncidentsDetailsAlert): AlertsChart
     warning: t_global_color_status_warning_default.var,
   };
 
-  const data: AlertsChartBar[] = [];
+  const data = [];
 
   for (let i = 0; i < groupedData.length; i++) {
-    const y0AsString = new Date(groupedData[i][0] * 1000).toISOString();
-    const yAsString = new Date(groupedData[i][1] * 1000).toISOString();
-
+    const isLastElement = i === groupedData.length - 1;
     data.push({
-      y0: y0AsString,
-      y: yAsString,
+      y0: new Date(groupedData[i][0] * 1000),
+      y: new Date(groupedData[i][1] * 1000),
       x: alert.x,
-      severity: (alert.severity[0].toUpperCase() + alert.severity.slice(1)) as
-        | 'Info'
-        | 'Warning'
-        | 'Critical',
+      severity: alert.severity[0].toUpperCase() + alert.severity.slice(1),
       name: alert.alertname,
       namespace: alert.namespace,
       layer: alert.layer,
       component: alert.component,
-      nodata: groupedData[i][2] === 'nodata',
-      alertstate: alert.alertstate as 'resolved' | 'firing',
+      nodata: groupedData[i][2] === 'nodata' ? true : false,
+      alertstate: isLastElement ? alert.alertstate : 'resolved',
       silenced: alert.silenced,
       fill:
         alert.severity === 'critical'
@@ -285,8 +411,8 @@ export const createAlertsChartBars = (alert: IncidentsDetailsAlert): AlertsChart
  * //   1754900043
  * // ]
  */
-export function generateDateArray(days: number): Array<number> {
-  const currentDate = new Date();
+export function generateDateArray(days: number, currentTime: number): Array<number> {
+  const currentDate = new Date(currentTime);
 
   const dateArray: Array<number> = [];
   for (let i = 0; i < days; i++) {
@@ -310,10 +436,13 @@ export function generateDateArray(days: number): Array<number> {
  * const alertsDateRange = generateAlertsDateArray(alertsData);
  * // Returns timestamps spanning from earliest alert minus padding to latest alert plus padding
  */
-export function generateAlertsDateArray(alertsData: Array<Alert>): Array<number> {
+export function generateAlertsDateArray(
+  alertsData: Array<Alert>,
+  currentTime: number,
+): Array<number> {
   if (!Array.isArray(alertsData) || alertsData.length === 0) {
     // Fallback to current day if no alerts data
-    const now = new Date();
+    const now = new Date(currentTime);
     now.setHours(0, 0, 0, 0);
     return [now.getTime() / 1000];
   }
@@ -333,15 +462,15 @@ export function generateAlertsDateArray(alertsData: Array<Alert>): Array<number>
 
   // Handle edge case where no valid timestamps found
   if (minTimestamp === Infinity || maxTimestamp === -Infinity) {
-    const now = new Date();
+    const now = new Date(currentTime);
     now.setHours(0, 0, 0, 0);
     return [now.getTime() / 1000];
   }
 
   // Add some padding to make the timeline more readable
-  // Padding: 10% of the time span, minimum 1 hour, maximum 24 hours
+  // Padding: 5% of the time span, minimum 1 hour, maximum 24 hours
   const timeSpan = maxTimestamp - minTimestamp;
-  const paddingSeconds = Math.max(3600, Math.min(86400, timeSpan * 0.1));
+  const paddingSeconds = Math.max(3600, Math.min(86400, timeSpan * 0.05));
 
   const paddedMin = minTimestamp - paddingSeconds;
   const paddedMax = maxTimestamp + paddingSeconds;
@@ -444,7 +573,7 @@ export function filterIncident(filters: IncidentFiltersCombined, incidents: Arra
 
 export const onDeleteIncidentFilterChip = (
   type: string,
-  id: IncidentFilters | string,
+  id: string,
   filters: IncidentFiltersCombined,
   setFilters,
 ) => {
@@ -538,10 +667,7 @@ export const onDeleteGroupIncidentFilterChip = (
   }
 };
 
-export const makeIncidentUrlParams = (
-  params?: IncidentFiltersCombined,
-  incidentGroupId?: string,
-) => {
+const makeIncidentUrlParams = (params?: IncidentFiltersCombined, incidentGroupId?: string) => {
   const processedParams = Object.entries(params ?? {}).reduce((acc, [key, value]) => {
     if (Array.isArray(value)) {
       if (value.length > 0) {
@@ -601,7 +727,7 @@ export const changeDaysFilter = (
  */
 export const onIncidentFiltersSelect = (
   event,
-  selection: IncidentFilters | undefined,
+  selection: string,
   dispatch,
   incidentsActiveFilters: IncidentFiltersCombined,
   filterCategoryType: string,
@@ -658,6 +784,43 @@ const onSelect = (event, selection, dispatch, incidentsActiveFilters, filterCate
   });
 };
 
+/**
+ * Calculates the domain boundaries for the incidents chart timeline
+ * @param dateValues - Array of timestamp values representing the ticks
+ * @returns Domain boundaries as Date tuple or undefined if no data
+ */
+export const calculateIncidentsChartDomain = (
+  dateValues: Array<number>,
+  currentTime: number,
+): [Date, Date] | undefined => {
+  if (dateValues.length === 0) return undefined;
+
+  // Upper bound is always current time
+  const maxTimestamp = currentTime / 1000;
+
+  // Calculate minTimestamp based on number of days
+  const daysInSeconds = dateValues.length * 86400; // Convert days to seconds
+  const minTimestamp = maxTimestamp - daysInSeconds;
+
+  // Padding in hours converted to seconds
+  // 1 day = 3 hours, 3 days = 6 hours, 7 days = 12 hours, else = 24 hours
+  let paddingHours: number;
+  if (dateValues.length === 1) {
+    paddingHours = 0.6;
+  } else if (dateValues.length === 3) {
+    paddingHours = 2;
+  } else if (dateValues.length === 7) {
+    paddingHours = 4;
+  } else {
+    paddingHours = 6;
+  }
+  const paddingSeconds = paddingHours * 3600; // Convert hours to seconds
+
+  const domainMin = new Date((minTimestamp - paddingSeconds) * 1000);
+  const domainMax = new Date((maxTimestamp + paddingSeconds) * 1000);
+  return [domainMin, domainMax] as [Date, Date];
+};
+
 export const parseUrlParams = (search) => {
   const params = new URLSearchParams(search);
   const result: { [key: string]: any } = {};
@@ -684,7 +847,7 @@ export const parseUrlParams = (search) => {
  * @param {Array<Incident>} incidents - An array of incident objects.
  * @returns {{value: string}[]} An array of objects, where each object has a `value` key with a unique incident ID.
  */
-export const getIncidentIdOptions = (incidents: Array<Incident>) => {
+export const getIncidentIdOptions = (incidents: Array<Incident>, t: (key: string) => string) => {
   const incidentMap = new Map<string, Incident>();
   incidents.forEach((incident) => {
     if (incident.group_id) {
@@ -693,7 +856,7 @@ export const getIncidentIdOptions = (incidents: Array<Incident>) => {
   });
   return Array.from(incidentMap.entries()).map(([id, incident]) => {
     const componentCount = incident.componentList ? incident.componentList.length : 1;
-    const componentText = componentCount === 1 ? 'component' : 'components';
+    const componentText = componentCount === 1 ? t('component') : t('components');
     return {
       value: id,
       description: `${componentCount} ${componentText}`,

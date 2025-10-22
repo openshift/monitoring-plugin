@@ -5,6 +5,7 @@ import './commands/operator-commands';
 import './commands/incident-commands';
 import './commands/utility-commands';
 import './incidents_prometheus_query_mocks';
+import './commands/virtualization-commands';
 
 export const checkErrors = () =>
   cy.window().then((win) => {

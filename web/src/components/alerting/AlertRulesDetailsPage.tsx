@@ -1,6 +1,7 @@
 import {
   AlertingRuleChartExtension,
   AlertStates,
+  DocumentTitle,
   isAlertingRuleChart,
   PrometheusAlert,
   ResourceIcon,
@@ -38,7 +39,6 @@ import {
 import { Table, TableVariant, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
 import * as _ from 'lodash-es';
 import type { FC } from 'react';
-import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams } from 'react-router-dom-v5-compat';
 import {
@@ -174,9 +174,9 @@ const AlertRulesDetailsPage_: FC = () => {
 
   return (
     <>
-      <Helmet>
-        <title>{t('{{name}} details', { name: rule?.name || RuleResource.label })}</title>
-      </Helmet>
+      <DocumentTitle>
+        {t('{{name}} details', { name: rule?.name || RuleResource.label })}
+      </DocumentTitle>
       <StatusBox
         data={rule}
         label={RuleResource.label}

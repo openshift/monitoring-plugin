@@ -41,6 +41,16 @@ const incidents: IncidentDefinition[] = [
 cy.mockIncidents(incidents);
 ```
 
+### Metric Transformation for Locally Built Instances
+
+```typescript
+// Transform old metric names to new format (for testing against locally built instances)
+cy.transformMetrics();
+
+// Then visit the page or perform actions that trigger Prometheus queries
+cy.visit('/monitoring/incidents');
+```
+
 ## Key Features
 
 - **Schema Validation**: All YAML fixtures are validated against JSON Schema
@@ -48,6 +58,7 @@ cy.mockIncidents(incidents);
 - **Timeline Support**: Define incident start/end times and severity changes
 - **Timezone Configuration**: Set timezone via `CYPRESS_TIMEZONE` environment variable
 - **Multiple Query Types**: Supports both `cluster:health:components:map` and `ALERTS` queries
+- **Metric Transformation**: Transform old metric names to new format via `cy.transformMetrics()`
 
 ## File Structure
 
@@ -104,6 +115,31 @@ export CYPRESS_TIMEZONE="Asia/Tokyo"
 
 Default: UTC (if `CYPRESS_TIMEZONE` is not set)
 
+### Metric Transformation
+
+Enable transformation of old metric names to new format for testing against locally built instances:
+
+```bash
+export CYPRESS_MOCK_NEW_METRICS=true
+```
+
+When enabled, `cy.transformMetrics()` will intercept Prometheus queries and transform both request and response:
+- **Request**: `cluster:health:components:map` → `cluster_health_components_map` 
+- **Response**: `cluster:health:components:map` → `cluster_health_components_map`
+
+**Usage:**
+```typescript
+// Call before visiting pages that make Prometheus queries
+cy.transformMetrics();
+cy.visit('/monitoring/incidents');
+```
+
+**Use Cases:**
+- **`CYPRESS_MOCK_NEW_METRICS=false`** (default): Test against current release/backend
+- **`CYPRESS_MOCK_NEW_METRICS=true`**: Test against locally built instances with new metric format
+
+Default: `false` (if `CYPRESS_MOCK_NEW_METRICS` is not set)
+
 ## YAML Fixture Format
 
 ```yaml
@@ -121,6 +157,7 @@ incidents:
         namespace: "openshift-namespace"
         severity: "critical|warning|info"
         firing: true|false
+        silenced: true|false # Optional; when true, mock adds silenced/src_silenced labels
 ```
 
 For detailed schema documentation and examples, see the files in the `schema/` subdirectory.

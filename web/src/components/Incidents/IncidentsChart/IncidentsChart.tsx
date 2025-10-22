@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   Chart,
@@ -23,44 +23,74 @@ import {
   t_global_color_status_info_default,
   t_global_color_status_warning_default,
 } from '@patternfly/react-tokens';
-import { useDispatch, useSelector } from 'react-redux';
 import '../incidents-styles.css';
 import { IncidentsTooltip } from '../IncidentsTooltip';
 import { Incident } from '../model';
-import { createIncidentsChartBars, generateDateArray, updateBrowserUrl } from '../utils';
+import {
+  calculateIncidentsChartDomain,
+  createIncidentsChartBars,
+  generateDateArray,
+} from '../utils';
 import { dateTimeFormatter } from '../../console/utils/datetime';
 import { useTranslation } from 'react-i18next';
-import { MonitoringState } from '../../../store/store';
-import { setAlertsAreLoading, setIncidentsActiveFilters } from '../../../store/actions';
+import { DataTestIDs } from '../../data-test';
+
+/**
+ * Processes component list: moves "Others" to end and limits display to 3 components
+ * @param componentList - Array of component names
+ * @returns Formatted component string with ellipsis if truncated
+ */
+const formatComponentList = (componentList: string[] | undefined): string => {
+  const components = [...(componentList || [])];
+  const othersIndex = components.findIndex((c) => c.toLowerCase() === 'others');
+  if (othersIndex !== -1) {
+    const [others] = components.splice(othersIndex, 1);
+    components.push(others);
+  }
+  const hasMore = components.length > 3;
+  return components.slice(0, 3).join(', ') + (hasMore ? ', ...' : '');
+};
 
 const IncidentsChart = ({
   incidentsData,
   chartDays,
   theme,
+  selectedGroupId,
+  onIncidentClick,
+  currentTime,
 }: {
   incidentsData: Array<Incident>;
   chartDays: number;
   theme: 'light' | 'dark';
+  selectedGroupId: string;
+  onIncidentClick: (groupId: string) => void;
+  currentTime: number;
 }) => {
-  const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(true);
   const [chartContainerHeight, setChartContainerHeight] = useState<number>();
   const [chartHeight, setChartHeight] = useState<number>();
-  const dateValues = useMemo(() => generateDateArray(chartDays), [chartDays]);
-
-  const incidentsActiveFilters = useSelector(
-    (state: MonitoringState) => state.plugins.mcp.incidentsData.incidentsActiveFilters,
+  const dateValues = useMemo(
+    () => generateDateArray(chartDays, currentTime),
+    [chartDays, currentTime],
   );
-  const selectedGroupId = incidentsActiveFilters.groupId?.[0] ?? null;
-  const { i18n } = useTranslation();
+
+  const { t, i18n } = useTranslation(process.env.I18N_NAMESPACE);
 
   const chartData = useMemo(() => {
     if (!Array.isArray(incidentsData) || incidentsData.length === 0) return [];
+
     const filteredIncidents = selectedGroupId
       ? incidentsData.filter((incident) => incident.group_id === selectedGroupId)
       : incidentsData;
 
-    return filteredIncidents.map((incident) => createIncidentsChartBars(incident, dateValues));
+    // Create chart bars and sort by original x values to maintain proper order
+    const chartBars = filteredIncidents.map((incident) =>
+      createIncidentsChartBars(incident, dateValues),
+    );
+    chartBars.sort((a, b) => a[0].x - b[0].x);
+
+    // Reassign consecutive x values to eliminate gaps between bars
+    return chartBars.map((bars, index) => bars.map((bar) => ({ ...bar, x: index + 1 })));
   }, [incidentsData, dateValues, selectedGroupId]);
 
   useEffect(() => {
@@ -81,45 +111,35 @@ const IncidentsChart = ({
     }
   };
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
     const observer = getResizeObserver(containerRef.current, handleResize);
     handleResize();
     return () => observer();
   }, []);
 
   const clickHandler = (data, datum) => {
-    if (datum.datum.group_id === selectedGroupId) {
-      dispatch(
-        setIncidentsActiveFilters({
-          incidentsActiveFilters: {
-            ...incidentsActiveFilters,
-            groupId: [],
-          },
-        }),
-      );
-      updateBrowserUrl(incidentsActiveFilters, '');
-      dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
-    } else {
-      dispatch(
-        setIncidentsActiveFilters({
-          incidentsActiveFilters: {
-            ...incidentsActiveFilters,
-            groupId: [datum.datum.group_id],
-          },
-        }),
-      );
-      updateBrowserUrl(incidentsActiveFilters, datum.datum.group_id);
-    }
+    onIncidentClick(datum.datum.group_id);
   };
 
   return (
-    <Card className="incidents-chart-card" style={{ overflow: 'visible' }}>
-      <div ref={containerRef} style={{ position: 'relative' }}>
-        <CardTitle>Incidents Timeline</CardTitle>
+    <Card
+      className="incidents-chart-card"
+      style={{ overflow: 'visible' }}
+      data-test={DataTestIDs.IncidentsChart.Card}
+    >
+      <div
+        ref={containerRef}
+        style={{ position: 'relative' }}
+        data-test={DataTestIDs.IncidentsChart.ChartContainer}
+      >
+        <CardTitle data-test={DataTestIDs.IncidentsChart.Title}>
+          {t('Incidents Timeline')}
+        </CardTitle>
         {isLoading ? (
           <Bullseye>
-            <Spinner aria-label="incidents-chart-spinner" />
+            <Spinner
+              aria-label="incidents-chart-spinner"
+              data-test={DataTestIDs.IncidentsChart.LoadingSpinner}
+            />
           </Bullseye>
         ) : (
           <CardBody
@@ -141,30 +161,34 @@ const IncidentsChart = ({
                     const endDate = datum.firing
                       ? '---'
                       : dateTimeFormatter(i18n.language).format(new Date(datum.y));
-                    return `Severity: ${datum.name}
-                    ID: ${datum.group_id}
-                    Component(s): ${datum.componentList?.join(', ')}
-                    Start: ${startDate}
-                    End: ${endDate}`;
+                    const components = formatComponentList(datum.componentList);
+
+                    return `${t('Severity')}: ${t(datum.name)}
+                    ${t('ID')}: ${datum.group_id}
+                    ${t('Component(s)')}: ${components}
+                    ${t('Start')}: ${startDate}
+                    ${t('End')}: ${endDate}`;
                   }}
                 />
               }
-              domainPadding={{ x: [30, 25] }}
+              domainPadding={{
+                x: chartData.length <= 2 ? [60, 50] : [30, 25],
+              }}
               legendData={[
                 {
-                  name: 'Critical',
+                  name: t('Critical'),
                   symbol: {
                     fill: t_global_color_status_danger_default.var,
                   },
                 },
                 {
-                  name: 'Info',
+                  name: t('Info'),
                   symbol: {
                     fill: t_global_color_status_info_default.var,
                   },
                 },
                 {
-                  name: 'Warning',
+                  name: t('Warning'),
                   symbol: {
                     fill: t_global_color_status_warning_default.var,
                   },
@@ -199,14 +223,16 @@ const IncidentsChart = ({
                 tickLabelComponent={
                   <ChartLabel style={{ fill: theme === 'light' ? '#1b1d21' : '#e0e0e0' }} />
                 }
+                domain={calculateIncidentsChartDomain(dateValues, currentTime)}
               />
-              <ChartGroup horizontal>
+              <ChartGroup horizontal data-test={DataTestIDs.IncidentsChart.ChartBars}>
                 {chartData.map((bar) => {
                   return (
                     //we have several arrays and for each array we make a ChartBar
                     <ChartBar
                       data={bar}
                       key={bar[0].group_id}
+                      data-test={`${DataTestIDs.IncidentsChart.ChartBar}-${bar[0].group_id}`}
                       style={{
                         data: {
                           fill: ({ datum }) => datum.fill,
@@ -235,4 +261,4 @@ const IncidentsChart = ({
   );
 };
 
-export default IncidentsChart;
+export default React.memo(IncidentsChart);

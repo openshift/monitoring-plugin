@@ -24,12 +24,19 @@ import {
 } from '@patternfly/react-tokens';
 import { useDispatch, useSelector } from 'react-redux';
 import { IncidentsTooltip } from '../IncidentsTooltip';
-import { createAlertsChartBars, generateDateArray, generateAlertsDateArray } from '../utils';
+import {
+  createAlertsChartBars,
+  generateDateArray,
+  generateAlertsDateArray,
+  getCurrentTime,
+} from '../utils';
 import { dateTimeFormatter } from '../../console/utils/datetime';
 import { useTranslation } from 'react-i18next';
 import { AlertsChartBar } from '../model';
 import { setAlertsAreLoading } from '../../../store/actions';
 import { MonitoringState } from '../../../store/store';
+import { isEmpty } from 'lodash-es';
+import { DataTestIDs } from '../../data-test';
 
 const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
   const dispatch = useDispatch();
@@ -38,24 +45,27 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
   const alertsData = useSelector(
     (state: MonitoringState) => state.plugins.mcp.incidentsData.alertsData,
   );
-  const alertsAreLoading = useSelector(
-    (state: MonitoringState) => state.plugins.mcp.incidentsData.alertsAreLoading,
-  );
   const filteredData = useSelector(
     (state: MonitoringState) => state.plugins.mcp.incidentsData.filteredIncidentsData,
   );
-  const incidentGroupId = useSelector(
-    (state: MonitoringState) => state.plugins.mcp.incidentsData.groupId,
+  const incidentsActiveFilters = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData.incidentsActiveFilters,
   );
-  const { i18n } = useTranslation();
+  const incidentsLastRefreshTime = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData.incidentsLastRefreshTime,
+  );
+  const { t, i18n } = useTranslation(process.env.I18N_NAMESPACE);
+
+  const currentTime = incidentsLastRefreshTime ?? getCurrentTime();
+
   // Use dynamic date range based on actual alerts data instead of fixed chartDays
   const dateValues = useMemo(() => {
     if (!Array.isArray(alertsData) || alertsData.length === 0) {
       // Fallback to single day if no alerts data
-      return generateDateArray(1);
+      return generateDateArray(1, currentTime);
     }
-    return generateAlertsDateArray(alertsData);
-  }, [alertsData]);
+    return generateAlertsDateArray(alertsData, currentTime);
+  }, [alertsData, currentTime]);
 
   const chartData: AlertsChartBar[][] = useMemo(() => {
     if (!Array.isArray(alertsData) || alertsData.length === 0) return [];
@@ -68,8 +78,10 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
   }, [chartData]);
 
   const selectedIncidentIsVisible = useMemo(() => {
-    return filteredData.some((incident) => incident.group_id === incidentGroupId);
-  }, [filteredData, incidentGroupId]);
+    return filteredData.some(
+      (incident) => incident.group_id === incidentsActiveFilters.groupId?.[0],
+    );
+  }, [filteredData, incidentsActiveFilters.groupId]);
 
   useEffect(() => {
     dispatch(setAlertsAreLoading({ alertsAreLoading: !selectedIncidentIsVisible }));
@@ -96,18 +108,23 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
   }, []);
 
   return (
-    <Card className="alerts-chart-card" style={{ overflow: 'visible' }}>
-      <div ref={containerRef}>
-        <CardTitle>Alerts Timeline</CardTitle>
-        {alertsAreLoading ? (
+    <Card
+      className="alerts-chart-card"
+      style={{ overflow: 'visible' }}
+      data-test={DataTestIDs.AlertsChart.Card}
+    >
+      <div ref={containerRef} data-test={DataTestIDs.AlertsChart.ChartContainer}>
+        <CardTitle data-test={DataTestIDs.AlertsChart.Title}>{t('Alerts Timeline')}</CardTitle>
+        {!selectedIncidentIsVisible || isEmpty(incidentsActiveFilters.groupId) ? (
           <EmptyState
             variant="lg"
             style={{
               height: '250px',
             }}
+            data-test={DataTestIDs.AlertsChart.EmptyState}
           >
             <EmptyStateBody>
-              To view alerts, select an incident from the chart above or from the filters.
+              {t('To view alerts, select an incident from the chart above or from the filters.')}
             </EmptyStateBody>
           </EmptyState>
         ) : (
@@ -131,35 +148,39 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
                         ? '---'
                         : dateTimeFormatter(i18n.language).format(new Date(datum.y));
 
-                    const baseTooltip = `Severity: ${datum.severity}
-                    Alert Name: ${datum.name || '---'}
-                    Namespace: ${datum.namespace || '---'}
-                    Component: ${datum.component}
-                    Start: ${startDate}
-                    End: ${endDate}`;
+                    const alertName = datum.silenced ? `${datum.name} (silenced)` : datum.name;
 
-                    const silencedText = datum.silenced ? '\nSilenced: true' : '';
+                    const baseTooltip = `${t('Severity')}: ${t(datum.severity)}
+                    ${t('Alert Name')}: ${alertName || '---'}
+                    ${t('Namespace')}: ${datum.namespace || '---'}
+                    ${t('Component')}: ${datum.component}
+                    ${t('Start')}: ${startDate}
+                    ${t('End')}: ${endDate}`;
+
+                    const silencedText = datum.silenced ? `\n${t('Silenced')}: true` : '';
 
                     return `${baseTooltip}${silencedText}`;
                   }}
                 />
               }
-              domainPadding={{ x: [30, 25] }}
+              domainPadding={{
+                x: chartData.length <= 2 ? [60, 50] : [30, 25],
+              }}
               legendData={[
                 {
-                  name: 'Critical',
+                  name: t('Critical'),
                   symbol: {
                     fill: t_global_color_status_danger_default.var,
                   },
                 },
                 {
-                  name: 'Info',
+                  name: t('Info'),
                   symbol: {
                     fill: t_global_color_status_info_default.var,
                   },
                 },
                 {
-                  name: 'Warning',
+                  name: t('Warning'),
                   symbol: {
                     fill: t_global_color_status_warning_default.var,
                   },
@@ -206,7 +227,6 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
                           fill: ({ datum }) => datum.fill,
                           stroke: ({ datum }) => datum.fill,
                           fillOpacity: ({ datum }) => (datum.nodata ? 0 : getOpacity(datum)),
-                          cursor: 'pointer',
                         },
                       }}
                     />

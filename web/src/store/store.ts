@@ -5,8 +5,8 @@ import { Alert, PrometheusLabels, Rule } from '@openshift-console/dynamic-plugin
 import { Silences } from '../components/types';
 import {
   DaysFilters,
-  IncidentFilters,
-  IncidentFiltersCombined,
+  IncidentSeverityFilters,
+  IncidentStateFilters,
 } from '../components/Incidents/model';
 import { Variable } from '../components/dashboards/legacy/legacy-variable-dropdowns';
 
@@ -37,11 +37,18 @@ export type ObserveState = {
     incidentsChartSelectedId: string;
     incidentsInitialState: {
       days: Array<DaysFilters>;
-      incidentFilters: Array<IncidentFilters>;
+      severity: Array<IncidentSeverityFilters>;
+      state: Array<IncidentStateFilters>;
+      groupId: Array<string>;
     };
-    incidentsActiveFilters: IncidentFiltersCombined;
-    groupId: string;
+    incidentsActiveFilters: {
+      days: Array<DaysFilters>;
+      severity: Array<IncidentSeverityFilters>;
+      state: Array<IncidentStateFilters>;
+      groupId: Array<string>;
+    };
     incidentPageFilterType: string;
+    incidentsLastRefreshTime: number | null;
   };
   queryBrowser: {
     pollInterval: string | null;
@@ -77,13 +84,18 @@ export const defaultObserveState: ObserveState = {
     incidentsChartSelectedId: '',
     incidentsInitialState: {
       days: ['7 days'],
-      incidentFilters: ['Critical', 'Warning', 'Firing'],
+      severity: ['Critical', 'Warning'],
+      state: ['Firing'],
+      groupId: [],
     },
     incidentsActiveFilters: {
       days: [],
+      severity: [],
+      state: [],
+      groupId: [],
     },
     incidentPageFilterType: 'Severity',
-    groupId: '',
+    incidentsLastRefreshTime: null,
   },
   alerting: {},
   hideGraphs: false,

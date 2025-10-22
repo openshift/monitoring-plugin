@@ -24,11 +24,16 @@ describe('Regression: Monitoring - Alerts', () => {
     cy.beforeBlock(MP);
   });
 
+  beforeEach(() => {
+    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    cy.changeNamespace("All Projects");
+  });
+
   it('1. Admin perspective - Alerting > Alerts page - Filtering', () => {
     cy.log('1.1 Header components');
+    
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     alerts.getWatchdogAlert();
-
     listPage.filter.selectFilterOption(true, AlertingRulesAlertState.PENDING, false);
     listPage.filter.selectFilterOption(false, AlertingRulesAlertState.SILENCED, false);
     listPage.filter.selectFilterOption(false, Severity.CRITICAL, false);
@@ -78,13 +83,11 @@ describe('Regression: Monitoring - Alerts', () => {
     cy.log('3.1 use sidebar nav to go to Observe > Alerting');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     alerts.getWatchdogAlert();
-
     listPage.ARRows.shouldBeLoaded();
 
     cy.log('3.2 filter to Watchdog alert');
     listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
     listPage.ARRows.countShouldBe(1);
-
 
     cy.log('3.3 silence alert');
     listPage.ARRows.expandRow();
@@ -124,6 +127,7 @@ describe('Regression: Monitoring - Alerts', () => {
     commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     nav.tabs.switchTab('Silences');
+    cy.changeNamespace('openshift-monitoring');
 
     cy.log('3.8 Assert Kebab on Silence List page for Expired alert');
     silencesListPage.emptyState();
@@ -131,7 +135,6 @@ describe('Regression: Monitoring - Alerts', () => {
     listPage.filter.selectFilterOption(true, SilenceState.EXPIRED, false);
     listPage.filter.selectFilterOption(false, SilenceState.ACTIVE, false);
     listPage.filter.selectFilterOption(false, SilenceState.PENDING, true);
-    silencesListPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
     silencesListPage.rows.assertExpiredAlertKebab('0');
 
     cy.log('3.9 Click on Expired alert and Assert Actions button');
@@ -194,6 +197,7 @@ describe('Regression: Monitoring - Alerts', () => {
     silenceAlertPage.clickCancelButton();
     commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
     listPage.ARRows.countShouldBe(1);
   });
 

@@ -1,4 +1,6 @@
 import {
+  DocumentTitle,
+  ListPageHeader,
   NamespaceBar,
   PrometheusData,
   PrometheusEndpoint,
@@ -61,7 +63,6 @@ import {
 import * as _ from 'lodash-es';
 import type { FC, Ref } from 'react';
 import { useMemo, useCallback, useEffect, useState } from 'react';
-import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -1363,21 +1364,15 @@ const MetricsPage_: FC = () => {
 
   return (
     <>
-      <Helmet>
-        <title>{t('Metrics')}</title>
-      </Helmet>
+      <DocumentTitle>{t('Metrics')}</DocumentTitle>
       <NamespaceBar
         onNamespaceChange={(namespace) => {
           dispatch(queryBrowserDeleteAllQueries());
           setQueryNamespace(namespace);
         }}
       />
-      <PageSection hasBodyWrapper={false}>
+      <ListPageHeader title={t('Metrics')}>
         <Split hasGutter>
-          <SplitItem>
-            <Title headingLevel="h1">{t('Metrics')}</Title>
-          </SplitItem>
-          <SplitItem isFilled />
           <SplitItem data-test={DataTestIDs.MetricGraphUnitsDropDown}>
             <Tooltip content={<>{t('This dropdown only formats results.')}</>}>
               <GraphUnitsDropDown />
@@ -1390,7 +1385,7 @@ const MetricsPage_: FC = () => {
             <MetricsActionsMenu />
           </SplitItem>
         </Split>
-      </PageSection>
+      </ListPageHeader>
       <PageSection hasBodyWrapper={false}>
         <Stack hasGutter>
           <StackItem>
