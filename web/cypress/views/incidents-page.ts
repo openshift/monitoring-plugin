@@ -94,6 +94,22 @@ export const incidentsPage = {
       alertsChartSvg: () => incidentsPage.elements.alertsChartCard().find('svg'),
       alertsChartBarsGroups: () => incidentsPage.elements.alertsChartSvg().find('g[role="presentation"]'),
       alertsChartBarsPaths: () => incidentsPage.elements.alertsChartSvg().find('path[role="presentation"]'),
+      alertsChartBarsVisiblePaths: () => {
+        return cy.get('body').then($body => {
+          const exists = $body.find('g[role="presentation"][data-test*="alerts-chart-bar-"]').length > 0;
+          if (exists) {
+            return cy.get('g[role="presentation"][data-test*="alerts-chart-bar-"]')
+              .find('path[role="presentation"]')
+              .filter((index, element) => {
+                const fillOpacity = Cypress.$(element).css('fill-opacity') || Cypress.$(element).attr('fill-opacity');
+                return parseFloat(fillOpacity || '0') > 0;
+              });
+          } else {
+            cy.log('Alert chart bars were not found. Test continues.');
+            return cy.wrap([]);
+          }
+        });
+      },
       alertsChartEmptyState: () => cy.byTestID(DataTestIDs.AlertsChart.EmptyState),
   
       // Tables and data
@@ -522,6 +538,8 @@ export const incidentsPage = {
    */
   getSelectedIncidentAlerts: () => {
     cy.log('incidentsPage.getSelectedIncidentAlerts: Collecting alert information from selected incident');
+
+    incidentsPage.elements.incidentsDetailsTable().should('exist');
     
     return incidentsPage.elements.incidentsTableRows()
       .then(($rows) => {

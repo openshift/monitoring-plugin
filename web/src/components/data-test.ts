@@ -116,6 +116,7 @@ export const DataTestIDs = {
     Title: 'alerts-chart-title',
     EmptyState: 'alerts-chart-empty-state',
     ChartContainer: 'alerts-chart-container',
+    ChartBar: 'alerts-chart-bar',
   },
 
   // Incidents Table Test IDs
