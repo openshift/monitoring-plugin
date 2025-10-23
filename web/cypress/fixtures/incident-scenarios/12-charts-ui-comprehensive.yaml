@@ -1,0 +1,331 @@
+name: "Charts UI Comprehensive Test Scenarios"
+description: "Combined scenarios for testing tooltip positioning, bar visibility, short duration alerts, varying alert counts (1-6 alerts), and alert name lengths (short to extremely long). Tests Section 2 of TESTING_CHECKLIST.md comprehensively."
+incidents:
+  # SHORT DURATION INCIDENTS (Section 2.2 - Bar Visibility, Section 2.3 - Date/Time Display)
+  # Resolved incident with 5 alerts of varying durations (0-10 minutes)
+  - id: "network-resolved-short-001"
+    component: "network"
+    layer: "core"
+    timeline:
+      start: "50m"
+      end: "40m"
+    alerts:
+      - name: "NetworkInterfaceDown0023"
+        namespace: "openshift-network"
+        severity: "critical"
+        firing: false
+        timeline:
+          start: "50m"
+          end: "40m"
+      - name: "NetworkLatencyHigh0023"
+        namespace: "openshift-network"
+        severity: "warning"
+        firing: false
+        timeline:
+          start: "47m"
+          end: "40m"
+      - name: "NetworkBandwidthUtilizationHigh0023"
+        namespace: "openshift-network"
+        severity: "warning"
+        firing: false
+        timeline:
+          start: "45m"
+          end: "40m"
+      - name: "NetworkConnectionPoolExhausted0023"
+        namespace: "openshift-network"
+        severity: "info"
+        firing: false
+        timeline:
+          start: "42m"
+          end: "40m"
+      - name: "NetworkDNSResolutionSlow0023"
+        namespace: "openshift-network"
+        severity: "info"
+        firing: false
+        timeline:
+          start: "41m"
+          end: "40m"
+
+  # Firing incident with 5 alerts of short durations
+  - id: "network-firing-short-002"
+    component: "network"
+    layer: "core"
+    timeline:
+      start: "10m"
+    alerts:
+      - name: "NetworkFirewallRuleBlocking0023"
+        namespace: "openshift-network"
+        severity: "critical"
+        firing: true
+        timeline:
+          start: "10m"
+      - name: "NetworkPacketLossHigh0023"
+        namespace: "openshift-network"
+        severity: "warning"
+        firing: true
+        timeline:
+          start: "8m"
+      - name: "NetworkRouteTableCorrupted0023"
+        namespace: "openshift-network"
+        severity: "warning"
+        firing: true
+        timeline:
+          start: "5m"
+      - name: "NetworkSecurityPolicyViolation0023"
+        namespace: "openshift-network"
+        severity: "info"
+        firing: true
+        timeline:
+          start: "3m"
+      - name: "NetworkLoadBalancerUnhealthy0023"
+        namespace: "openshift-network"
+        severity: "info"
+        firing: true
+        timeline:
+          start: "0m"
+
+  # VARYING ALERT COUNTS (Section 2.1 - Tooltip Positioning)
+  # 1 alert - bottom of chart (oldest) - Section 2.1 tooltip positioning
+  - id: "version-short-name-001"
+    component: "version"
+    layer: "core"
+    timeline:
+      start: "8h"
+    alerts:
+      - name: "Ver001"
+        namespace: "openshift-cluster-version"
+        severity: "info"
+        firing: true
+
+  # 1 alert - middle position
+  - id: "monitoring-one-alert-001"
+    component: "monitoring"
+    layer: "core"
+    timeline:
+      start: "7h"
+    alerts:
+      - name: "Short001"
+        namespace: "openshift-monitoring"
+        severity: "warning"
+        firing: true
+
+  # 2 alerts
+  - id: "storage-two-alerts-001"
+    component: "storage"
+    layer: "core"
+    timeline:
+      start: "6h30m"
+    alerts:
+      - name: "DiskPressure001"
+        namespace: "openshift-storage"
+        severity: "warning"
+        firing: true
+      - name: "VolumeSpaceLow001"
+        namespace: "openshift-storage"
+        severity: "warning"
+        firing: true
+
+  # 3 alerts - multi-component incident (Section 2.1 tooltip content)
+  - id: "network-three-alerts-001"
+    component: "network"
+    layer: "core"
+    timeline:
+      start: "6h"
+    alerts:
+      - name: "NetworkLatencyHigh001"
+        namespace: "openshift-network"
+        severity: "warning"
+        firing: true
+        component: "network"
+      - name: "PacketDropRateElevated001"
+        namespace: "openshift-network"
+        severity: "warning"
+        firing: true
+        component: "compute"
+      - name: "ConnectionPoolExhausted001"
+        namespace: "openshift-network"
+        severity: "warning"
+        firing: true
+        component: "storage"
+
+  # 4 alerts - multi-severity (Section 2.3 - Multi-severity segments)
+  - id: "compute-four-alerts-001"
+    component: "compute"
+    layer: "core"
+    timeline:
+      start: "5h"
+    alerts:
+      - name: "NodeMemoryPressureDetected001"
+        namespace: "openshift-monitoring"
+        severity: "critical"
+        firing: true
+      - name: "CPUUtilizationThresholdExceeded001"
+        namespace: "openshift-monitoring"
+        severity: "warning"
+        firing: true
+      - name: "DiskIOSaturation001"
+        namespace: "openshift-monitoring"
+        severity: "warning"
+        firing: true
+      - name: "NetworkBandwidthLimited001"
+        namespace: "openshift-monitoring"
+        severity: "info"
+        firing: true
+
+  # 5 alerts - complex timeline
+  - id: "api-server-five-alerts-001"
+    component: "api-server"
+    layer: "core"
+    timeline:
+      start: "4h"
+    alerts:
+      - name: "APIServerRequestLatencyAboveThresholdForExtendedDuration001"
+        namespace: "openshift-monitoring"
+        severity: "critical"
+        firing: true
+      - name: "APIServerCertificateExpirationWarning001"
+        namespace: "openshift-monitoring"
+        severity: "warning"
+        firing: true
+      - name: "APIServerConnectionPoolUtilizationHigh001"
+        namespace: "openshift-monitoring"
+        severity: "warning"
+        firing: true
+      - name: "APIServerRateLimitingActive001"
+        namespace: "openshift-monitoring"
+        severity: "info"
+        firing: true
+      - name: "APIServerHealthcheckInfo001"
+        namespace: "openshift-monitoring"
+        severity: "info"
+        firing: true
+
+  # 6 alerts - extreme name lengths (Section 2.1 - long names)
+  - id: "etcd-six-alerts-001"
+    component: "etcd"
+    layer: "core"
+    timeline:
+      start: "3h"
+    alerts:
+      - name: "S001"
+        namespace: "openshift-etcd"
+        severity: "critical"
+        firing: true
+      - name: "EtcdBackupOperationFailureDetectedWithRetryAttempts001"
+        namespace: "openshift-etcd"
+        severity: "critical"
+        firing: true
+      - name: "EtcdDatabaseSizeApproachingConfiguredLimitRequiringCompaction001"
+        namespace: "openshift-etcd"
+        severity: "warning"
+        firing: true
+      - name: "EtcdLeaderElectionTimeExceedingNormalThresholdIndicatingPotentialNetworkIssues001"
+        namespace: "openshift-etcd"
+        severity: "warning"
+        firing: true
+      - name: "EtcdMemberCommunicationLatencyHigherThanExpectedBaselinePerformanceMetrics001"
+        namespace: "openshift-etcd"
+        severity: "info"
+        firing: true
+      - name: "EtcdClusterHealthMonitoringSystemReportingNormalOperatingConditionsWithAllMembersRespondingWithinAcceptableTimeframesAndNoOutstandingIssuesDetectedDuringRoutineMaintenanceChecks001"
+        namespace: "openshift-etcd"
+        severity: "info"
+        firing: true
+
+  # ALERT NAME LENGTH VARIATIONS (Section 2.1 - Tooltip content with varying lengths)
+  - id: "monitoring-medium-name-001"
+    component: "monitoring"
+    layer: "core"
+    timeline:
+      start: "2h30m"
+    alerts:
+      - name: "PrometheusTargetScrapeDurationExceeded001"
+        namespace: "openshift-monitoring"
+        severity: "warning"
+        firing: true
+
+  - id: "storage-long-name-001"
+    component: "storage"
+    layer: "core"
+    timeline:
+      start: "2h"
+    alerts:
+      - name: "PersistentVolumeClaimPendingDueToInsufficientStorageCapacityAvailableInCluster001"
+        namespace: "openshift-storage"
+        severity: "critical"
+        firing: true
+
+  - id: "storage-long-component-name-001"
+    component: "storage-very-very-long-component-name"
+    layer: "core"
+    timeline:
+      start: "1h30m"
+    alerts:
+      - name: "StandardAlert001"
+        namespace: "openshift-storage-very-very-long-namespace-name"
+        severity: "critical"
+        firing: true
+
+  - id: "others-very-long-name-001"
+    component: "Others"
+    layer: "Others"
+    timeline:
+      start: "1h"
+    alerts:
+      - name: "CustomApplicationDatabaseConnectionPoolExhaustedRequiringImmediateAttentionFromOperationsTeamToInvestigateAndResolveUnderlyingInfrastructureLimitationsOrConfigurationIssues001"
+        namespace: "custom-application-namespace"
+        severity: "critical"
+        firing: true
+
+  # GRADUAL ESCALATION (Section 2.1 - Alerts chart tooltip positioning, Section 2.3 - Multi-severity segments)
+  # Tests tooltip positioning for multiple bars in alerts chart
+  - id: "monitoring-gradual-alerts-001"
+    component: "monitoring"
+    layer: "core"
+    timeline:
+      start: "6h"
+      severityChanges:
+        - time: "6h"
+          severity: "info"
+        - time: "4h"
+          severity: "warning"
+        - time: "2h"
+          severity: "critical"
+    alerts:
+      - name: "PrometheusRuleEvaluationSlowFirst001"
+        namespace: "openshift-monitoring"
+        severity: "info"
+        firing: true
+        timeline:
+          start: "6h"
+      - name: "PrometheusQueryLatencyIncreasingSecond001"
+        namespace: "openshift-monitoring"
+        severity: "info"
+        firing: true
+        timeline:
+          start: "5h"
+      - name: "AlertmanagerConfigReloadFailedThird001"
+        namespace: "openshift-monitoring"
+        severity: "warning"
+        firing: true
+        timeline:
+          start: "4h"
+      - name: "PrometheusTargetScrapeFailuresFourth001"
+        namespace: "openshift-monitoring"
+        severity: "warning"
+        firing: true
+        timeline:
+          start: "3h"
+      - name: "AlertmanagerClusterFailedToSendNotificationsFifth001"
+        namespace: "openshift-monitoring"
+        severity: "critical"
+        firing: true
+        timeline:
+          start: "2h"
+      - name: "PrometheusRemoteWriteDesiredShardsSixth001"
+        namespace: "openshift-monitoring"
+        severity: "critical"
+        firing: true
+        timeline:
+          start: "1h"
+

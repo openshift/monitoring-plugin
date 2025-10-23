@@ -132,6 +132,7 @@ describe('Regression: Redux State Management', () => {
         dropdown.listElement().should('be.visible');
         
         deselection.action();
+
         cy.wait(2000)
         
         dropdown.listElement().should('not.exist');
