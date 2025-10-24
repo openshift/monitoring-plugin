@@ -233,13 +233,14 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
                   <ChartLabel style={{ fill: theme === 'light' ? '#1b1d21' : '#e0e0e0' }} />
                 }
               />
-              <ChartGroup horizontal>
+              <ChartGroup horizontal data-test={DataTestIDs.AlertsChart.ChartContainer}>
                 {chartData.map((bar, index) => {
                   return (
                     //we have several arrays and for each array we make a ChartBar
                     <ChartBar
                       data={bar}
                       key={index}
+                      data-test={`${DataTestIDs.AlertsChart.ChartBar}-${index}`}
                       style={{
                         data: {
                           fill: ({ datum }) => datum.fill,
