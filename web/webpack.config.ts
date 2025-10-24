@@ -103,6 +103,8 @@ const config: Configuration = {
       'process.env': {
         I18N_NAMESPACE: JSON.stringify('plugin__monitoring-plugin'),
       },
+      // Build-time injection of proxy path for config module
+      PERSES_PROXY_BASE_URL: JSON.stringify('/api/proxy/plugin/monitoring-console-plugin/perses'),
     }),
   ],
   devtool: 'source-map',
