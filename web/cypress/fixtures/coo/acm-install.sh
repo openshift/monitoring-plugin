@@ -57,7 +57,12 @@ oc wait -n open-cluster-management --for=condition=Available deploy/search-colle
 oc wait -n open-cluster-management --for=condition=Available deploy/search-indexer --timeout=300s
 oc -n open-cluster-management get pod
 #create multi-cluster
-oc create ns open-cluster-management-observability || true
+if ! oc get ns open-cluster-management-observability >/dev/null 2>&1; then
+  echo "[INFO] Creating namespace open-cluster-management-observability"
+  oc create ns open-cluster-management-observability
+else
+  echo "[INFO] Namespace open-cluster-management-observability already exists"
+fi
 oc apply -f -<<EOF
 apiVersion: apps/v1
 kind: Deployment
@@ -110,7 +115,6 @@ metadata:
   name: minio
   namespace: open-cluster-management-observability
 spec:
-  storageClassName: gp3-csi
   accessModes:
   - ReadWriteOnce
   resources:
