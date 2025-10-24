@@ -31,7 +31,7 @@ import {
   ViewPlugin,
   ViewUpdate,
 } from '@codemirror/view';
-import { PrometheusEndpoint } from '@openshift-console/dynamic-plugin-sdk';
+import { PrometheusEndpoint, useActiveNamespace } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Button,
   Form,
@@ -51,7 +51,7 @@ import { useTranslation } from 'react-i18next';
 
 import { useSafeFetch } from '../console/utils/safe-fetch-hook';
 
-import { PROMETHEUS_BASE_PATH } from '../console/graphs/helpers';
+import { PROMETHEUS_BASE_PATH, PROMETHEUS_TENANCY_BASE_PATH } from '../console/graphs/helpers';
 import { LabelNamesResponse } from '@perses-dev/prometheus-plugin';
 import {
   t_global_color_status_custom_default,
@@ -70,6 +70,7 @@ import {
   t_global_color_nonstatus_purple_default,
 } from '@patternfly/react-tokens';
 import { usePatternFlyTheme } from '../hooks/usePatternflyTheme';
+import { usePerspective } from '../hooks/usePerspective';
 
 const box_shadow = `
     var(--pf-t--global--box-shadow--X--md--default)
@@ -334,15 +335,20 @@ export const PromQLExpressionInput: FC<PromQLExpressionInputProps> = ({
   const [metricNames, setMetricNames] = useState<Array<string>>([]);
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
 
+  const { perspective } = usePerspective();
   const placeholder = t('Expression (press Shift+Enter for newlines)');
+  const [namespace] = useActiveNamespace();
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const safeFetch = useCallback(useSafeFetch(), []);
 
   useEffect(() => {
-    safeFetch<LabelNamesResponse>(
-      `${PROMETHEUS_BASE_PATH}/${PrometheusEndpoint.LABEL}/__name__/values`,
-    )
+    let url = `${PROMETHEUS_BASE_PATH}/${PrometheusEndpoint.LABEL}/__name__/values`;
+    if (perspective === 'dev') {
+      // eslint-disable-next-line max-len
+      url = `${PROMETHEUS_TENANCY_BASE_PATH}/${PrometheusEndpoint.LABEL}/__name__/values?namespace=${namespace}`;
+    }
+    safeFetch<LabelNamesResponse>(url)
       .then((response) => {
         const metrics = response?.data;
         setMetricNames(metrics);
@@ -356,7 +362,7 @@ export const PromQLExpressionInput: FC<PromQLExpressionInputProps> = ({
           setErrorMessage(message);
         }
       });
-  }, [safeFetch, t]);
+  }, [safeFetch, t, namespace, perspective]);
 
   const onClear = () => {
     if (viewRef.current !== null) {
