@@ -14,7 +14,7 @@ const MP = {
   operatorName: 'Cluster Monitoring Operator',
 };
 
-describe('Regression: Monitoring - Dashboards (Legacy)', () => {
+describe('Regression: Monitoring - Dashboards (Legacy)', { tags: '@regression' }, () => {
 
   before(() => {
     cy.beforeBlock(MP);
