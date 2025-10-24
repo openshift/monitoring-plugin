@@ -147,7 +147,7 @@ export const metricsPage = {
 
   clickAddQueryButton: () => {
     cy.log('metricsPage.clickAddQuery');
-    cy.byTestID(DataTestIDs.MetricsPageAddQueryButton).click();
+    cy.byTestID(DataTestIDs.MetricsPageAddQueryButton).scrollIntoView().click();
     metricsPage.addQueryAssertion();
   },
 
