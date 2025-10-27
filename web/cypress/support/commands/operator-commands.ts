@@ -20,6 +20,8 @@ declare global {
         cleanupCOO(MCP: { namespace: string, operatorName: string, packageName: string }, MP: { namespace: string, operatorName: string});
         RemoveClusterAdminRole();
         setupCOO(MCP: { namespace: string, operatorName: string, packageName: string }, MP: { namespace: string, operatorName: string });
+        beforeBlockACM( MCP: { namespace: string; operatorName: string; packageName: string }, MP: { namespace: string; operatorName: string },): Chainable<void>;
+        closeOnboardingModalIfPresent(): Chainable<void>;
       }
     }
   }
@@ -568,3 +570,35 @@ Cypress.Commands.add('beforeBlock', (MP: { namespace: string, operatorName: stri
     operatorUtils.RemoveClusterAdminRole();
     cy.log('Remove cluster-admin role from user completed');
   });
+
+Cypress.Commands.add('beforeBlockACM', (MCP, MP) => {
+  cy.beforeBlockCOO(MCP, MP);
+  cy.log('=== [Setup] Installing ACM Operator & MCO ===');
+  cy.exec('bash ./cypress/fixtures/coo/acm-install.sh', {
+    env: { KUBECONFIG: Cypress.env('KUBECONFIG_PATH'), },
+    failOnNonZeroExit: false,
+    timeout: 1200000, // long time script
+  });
+  cy.exec(`oc apply -f ./cypress/fixtures/coo/acm-uiplugin.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+  cy.exec(`oc apply -f ./cypress/fixtures/coo/acm-alerrule-test.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+  cy.log('ACM environment setup completed');
+});
+
+Cypress.Commands.add('closeOnboardingModalIfPresent', () => {
+  cy.get('body').then(($body) => {
+    const modalSelector = 'button[data-ouia-component-id="clustersOnboardingModal-ModalBoxCloseButton"]';
+    if ($body.find(modalSelector).length > 0) {
+      cy.log('Onboarding modal detected, attempting to close...');
+      cy.get(modalSelector, { timeout: 20000 })
+        .should('be.visible')
+        .should('not.be.disabled')
+        .click({ force: true });
+
+      cy.get(modalSelector, { timeout: 10000 })
+        .should('not.exist')
+        .then(() => cy.log('Modal successfully closed'));
+    } else {
+      cy.log('No onboarding modal found');
+    }
+  });
+});

@@ -1,4 +1,5 @@
 #!/bin/bash
+# this scrpit use to uninstall ACM test resources and do not excute automatlly with test
 set -eux
 echo "[ACM Uninstall] Using KUBECONFIG=${KUBECONFIG:-~/.kube/config}"
 
@@ -19,7 +20,7 @@ oc delete MultiClusterHub multiclusterhub -n open-cluster-management --ignore-no
 
 # wait for MultiClusterHub deleted
 echo "[ACM Uninstall] Waiting for MultiClusterHub cleanup..."
-oc wait MultiClusterHub multiclusterhub -n open-cluster-management --for=delete --timeout=180s || true
+oc wait MultiClusterHub multiclusterhub -n open-cluster-management --for=delete --timeout=300s || true
 
 # --- Step 4: delete Subscription and OperatorGroup ---
 echo "[ACM Uninstall] Deleting ACM Operator Subscription & OperatorGroup..."
