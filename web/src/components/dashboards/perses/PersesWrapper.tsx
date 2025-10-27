@@ -1,3 +1,4 @@
+import '../../../perses-config';
 import { ThemeOptions, ThemeProvider } from '@mui/material';
 import { ChartThemeColor, getThemeColors } from '@patternfly/react-charts/victory';
 import {
@@ -22,6 +23,7 @@ import {
 } from '@perses-dev/dashboards';
 import {
   DataQueriesProvider,
+  PluginLoader,
   PluginRegistry,
   TimeRangeProviderWithQueryParams,
   useInitialRefreshInterval,
@@ -46,7 +48,7 @@ import { QueryParams } from '../../query-params';
 import { StringParam, useQueryParam } from 'use-query-params';
 import { useTranslation } from 'react-i18next';
 import { LoadingBox } from '../../../components/console/console-shared/src/components/loading/LoadingBox';
-import { pluginLoader } from './persesPluginsLoader';
+import { remotePluginLoader } from '@perses-dev/plugin-system';
 
 // Override eChart defaults with PatternFly colors.
 const patternflyBlue100 = chart_color_blue_100.value;
@@ -248,6 +250,19 @@ const mapPatterflyThemeToMUI = (theme: 'light' | 'dark'): ThemeOptions => {
   };
 };
 
+export function useRemotePluginLoader(): PluginLoader {
+  const pluginLoader = useMemo(
+    () =>
+      remotePluginLoader({
+        baseURL: window.PERSES_PLUGIN_ASSETS_PATH,
+        apiPrefix: window.PERSES_PLUGIN_ASSETS_PATH,
+      }),
+    [],
+  );
+
+  return pluginLoader;
+}
+
 export function PersesWrapper({ children, project }: PersesWrapperProps) {
   const { theme } = usePatternFlyTheme();
   const [dashboardName] = useQueryParam(QueryParams.Dashboard, StringParam);
@@ -267,6 +282,8 @@ export function PersesWrapper({ children, project }: PersesWrapperProps) {
       palette: defaultPaletteColors,
     },
   });
+
+  const pluginLoader = useRemotePluginLoader();
 
   return (
     <ThemeProvider theme={muiTheme}>
