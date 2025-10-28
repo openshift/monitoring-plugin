@@ -33,6 +33,13 @@ export const fetchAlertingData =
     ]);
 
     if (rulesResponse.status === 'rejected') {
+      if (rulesResponse.reason?.response) {
+        // Set the error message to be the RBAC denial reason
+        const responseText = await rulesResponse.reason?.response?.text();
+        if (responseText) {
+          rulesResponse.reason.message = responseText;
+        }
+      }
       dispatch(alertingSetErrored(prometheus, namespace, rulesResponse.reason));
     } else {
       const { alerts, rules } = getAlertsAndRules(rulesResponse.value.data);
@@ -40,6 +47,13 @@ export const fetchAlertingData =
     }
 
     if (silencesResponse.status === 'rejected') {
+      if (silencesResponse.reason?.response) {
+        // Set the error message to be the RBAC denial reason
+        const responseText = await silencesResponse.reason?.response?.text();
+        if (responseText) {
+          silencesResponse.reason.message = responseText;
+        }
+      }
       dispatch(alertingSetSilencesErrored(prometheus, namespace, silencesResponse.reason));
     } else {
       const silences = silencesResponse.value.map((silence) => ({
