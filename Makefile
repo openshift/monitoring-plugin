@@ -1,3 +1,10 @@
+VERSION     ?= latest
+PLATFORMS   ?= linux/arm64,linux/amd64
+ORG         ?= openshift-observability-ui
+PLUGIN_NAME ?=monitoring-plugin
+IMAGE       ?= quay.io/${ORG}/${PLUGIN_NAME}:${VERSION}
+FEATURES    ?=incidents,perses-dashboards,dev-config
+
 .PHONY: install-frontend
 install-frontend:
 	cd web && npm install
@@ -65,11 +72,6 @@ install:
 update-plugin-name:
 	./scripts/update-plugin-name.sh
 
-export REGISTRY_ORG?=openshift-observability-ui
-export TAG?=latest
-export PLUGIN_NAME?=monitoring-plugin
-IMAGE=quay.io/${REGISTRY_ORG}/monitoring-plugin:${TAG}
-
 .PHONY: deploy
 deploy:
 	make lint-backend
@@ -83,7 +85,7 @@ deploy-acm:
 
 .PHONY: build-mcp-image
 build-mcp-image:
-	DOCKER_FILE_NAME="Dockerfile.mcp" REPO="monitoring-console-plugin" scripts/build-image.sh 
+	DOCKER_FILE_NAME="Dockerfile.mcp" REPO="monitoring-console-plugin" scripts/build-image.sh
 
 .PHONY: build-dev-mcp-image
 build-dev-mcp-image:
@@ -93,16 +95,14 @@ build-dev-mcp-image:
 start-feature-console:
 	PLUGIN_PORT=9443 ./scripts/start-console.sh
 
-export FEATURES?=incidents,perses-dashboards,dev-config
 .PHONY: start-feature-backend
 start-feature-backend:
-	go run ./cmd/plugin-backend.go -port='9443' -config-path='./config' -static-path='./web/dist' -features='$(FEATURES)'
+	go run ./cmd/plugin-backend.go -port='9443' -config-path='./config' -static-path='./web/dist' -features='${FEATURES}'
 
-export PLATFORMS ?= linux/arm64,linux/amd64
-.PHONY: mcp-podman-cross-build
-mcp-podman-cross-build:
+.PHONY: podman-cross-build
+podman-cross-build:
 	podman manifest create ${IMAGE}
-	podman build --platform $(PLATFORMS) --manifest ${IMAGE} -f Dockerfile.mcp
+	podman build --platform ${PLATFORMS} --manifest ${IMAGE} -f Dockerfile.mcp
 	podman manifest push ${IMAGE}
 
 .PHONY: test-translations
