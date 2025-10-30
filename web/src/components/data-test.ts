@@ -53,6 +53,7 @@ export const DataTestIDs = {
   NameInput: 'name-filter-input',
   NameLabelDropdown: 'console-select-menu-toggle',
   NameLabelDropdownOptions: 'console-select-item',
+  PersesDashboardDropdown: 'dashboard-dropdown',
   SeverityBadgeHeader: 'severity-badge-header',
   SeverityBadge: 'severity-badge',
   SilenceAlertDropdownItem: 'silence-alert-dropdown-item',
@@ -160,6 +161,7 @@ export const LegacyDashboardPageTestIDs = {
 export const LegacyTestIDs = {
   ItemFilter: 'item-filter',
   SelectAllSilencesCheckbox: 'select-all-silences-checkbox',
+  PersesDashboardSection: 'dashboard',
 };
 
 export const IDs = {
@@ -202,4 +204,16 @@ export const Classes = {
   SilenceKebabDropdown: '.pf-v6-c-menu-toggle.pf-m-plain, .pf-v5-c-dropdown__toggle.pf-m-plain',
   SilenceLabelRow: '.pf-v6-l-grid.pf-m-all-12-col-on-sm.pf-m-all-4-col-on-md.pf-m-gutter, .row',
   SilenceState: '.pf-v6-l-stack__item, .co-break-word',
+};
+
+export const persesAriaLabels = {
+  TimeRangeDropdown: 'Select time range. Currently set to [object Object]',
+  RefreshButton: 'Refresh',
+  RefreshIntervalDropdown: 'Select refresh interval. Currently set to 0s',
+};
+
+export const persesDataTestIDs = {
+  variableDropdown: 'variable',
+  panelGroupHeader: 'panel-group-header',
+  panelHeader: 'panel',
 };

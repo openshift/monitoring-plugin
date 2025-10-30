@@ -5,6 +5,16 @@ import { nav } from '../../views/nav';
 import { guidedTour } from '../../views/tour';
 
 // Set constants for the operators that need to be installed for tests.
+const MCP = {
+  namespace: 'openshift-cluster-observability-operator',
+  packageName: 'cluster-observability-operator',
+  operatorName: 'Cluster Observability Operator',
+  config: {
+    kind: 'UIPlugin',
+    name: 'monitoring',
+  },
+};
+
 const MP = {
   namespace: 'openshift-monitoring',
   operatorName: 'Cluster Monitoring Operator',
@@ -23,14 +33,14 @@ const KBV = {
   }
 };
 
-describe('Setting up Monitoring Plugin', () => {
+describe('Installation: COO and setting up Monitoring Plugin', () => {
 
   before(() => {
-    cy.beforeBlock(MP);
+    cy.beforeBlockCOO(MCP, MP);
   });
 
-  it('1. Setting up Monitoring Plugin', () => {
-    cy.log('Setting up Monitoring Plugin');
+  it('1. Installation: COO and setting up Monitoring Plugin', () => {
+    cy.log('Installation: COO and setting up Monitoring Plugin');
   });
 });
 
