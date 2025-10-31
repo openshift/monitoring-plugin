@@ -1,3 +1,0 @@
-[submodule "web/cypress/fixtures/incidents/test-docs"]
-	path = web/cypress/fixtures/incidents/test-docs
-	url = git@gitlab.cee.redhat.com:drajnoha/cat-test-docs.git

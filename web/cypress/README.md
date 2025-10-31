@@ -428,4 +428,10 @@ cypress/
 
 ---
 
+### Incident Detection Test Documentation
+
+Test documentation for the Incidents feature is available at [`docs/incident_detection/tests/`](../../docs/incident_detection/tests/) in the repository root.
+
+---
+
 *For questions about test architecture, creating tests, or testing workflows, refer to [CYPRESS_TESTING_GUIDE.md](CYPRESS_TESTING_GUIDE.md)*
