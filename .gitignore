@@ -4,6 +4,7 @@ web/cypress/screenshots/
 web/cypress/export-env.sh
 web/screenshots/
 web/cypress/videos/
+web/cypress/fixtures/incidents/test-docs/
 web/dist/
 web/node_modules/
 plugin-backend
