@@ -580,6 +580,7 @@ Cypress.Commands.add('beforeBlockACM', (MCP, MP) => {
     timeout: 1200000, // long time script
   });
   cy.exec(`oc apply -f ./cypress/fixtures/coo/acm-uiplugin.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+  // add example alerts for test
   cy.exec(`oc apply -f ./cypress/fixtures/coo/acm-alerrule-test.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
   cy.log('ACM environment setup completed');
 });
