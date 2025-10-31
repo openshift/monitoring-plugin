@@ -122,12 +122,11 @@ export const operatorAuthUtils = {
     return [...baseKey, ...envVars.filter(Boolean)];
   },
 
-  generateKBVSessionKey(KBV: { namespace: string, operatorName: string, packageName: string }): string[] {
+  generateKBVSessionKey(KBV: { namespace: string, packageName: string }): string[] {
     const baseKey = [
       Cypress.env('LOGIN_IDP'),
       Cypress.env('LOGIN_USERNAME'),
       KBV.namespace,
-      KBV.operatorName,
       KBV.packageName
     ];
 

@@ -1,6 +1,6 @@
 import { alerts } from '../../fixtures/monitoring/alert';
-import { runAllRegressionAlertsTests } from '../../support/monitoring/01.reg_alerts.cy';
-import { runAllRegressionAlertsTestsNamespace } from '../../support/monitoring/04.reg_alerts_namespace.cy';
+import { runAllRegressionLegacyDashboardsTests } from '../../support/monitoring/03.reg_legacy_dashboards.cy';
+import { runAllRegressionLegacyDashboardsTestsNamespace } from '../../support/monitoring/06.reg_legacy_dashboards_namespace.cy';
 import { nav } from '../../views/nav';
 import { guidedTour } from '../../views/tour';
 
@@ -13,7 +13,6 @@ const MP = {
 const KBV = {
   namespace: 'openshift-cnv',
   packageName: 'kubevirt-hyperconverged',
-  operatorName: 'kubevirt-hyperconverged-operator.v4.19.6',
   config: {
     kind: 'HyperConverged',
     name: 'kubevirt-hyperconverged',
@@ -49,42 +48,35 @@ describe('IVT: Monitoring UIPlugin + Virtualization', () => {
   });
 });
 
-describe('Regression: Monitoring - Alerts (Virtualization)', () => {
+describe('Regression: Monitoring - Legacy Dashboards (Virtualization)', () => {
 
   beforeEach(() => {
     cy.visit('/');
     cy.validateLogin();
     cy.switchPerspective('Virtualization');
     guidedTour.closeKubevirtTour();
-    alerts.getWatchdogAlert();
-    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
     cy.changeNamespace("All Projects");
-    alerts.getWatchdogAlert();
   });
-  // Run tests in Virtualization perspective
-  runAllRegressionAlertsTests({
+
+  runAllRegressionLegacyDashboardsTests({
     name: 'Virtualization',
   });
 
 });
 
-describe('Regression: Monitoring - Alerts Namespaced (Virtualization)', () => {
+describe('Regression: Monitoring - Legacy Dashboards Namespaced (Virtualization)', () => {
 
   beforeEach(() => {
     cy.visit('/');
     cy.validateLogin();
     cy.switchPerspective('Virtualization');
     guidedTour.closeKubevirtTour();
-    alerts.getWatchdogAlert();
-    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
     cy.changeNamespace(MP.namespace);
-    alerts.getWatchdogAlert();
-    
   });
-  // Run tests in Virtualization perspective
-  runAllRegressionAlertsTestsNamespace({
+
+  runAllRegressionLegacyDashboardsTestsNamespace({
     name: 'Virtualization',
-
   });
-
 });
