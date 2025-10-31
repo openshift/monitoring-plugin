@@ -11,6 +11,7 @@ export const DataTestIDs = {
   AlertingRuleSeverityBadge: 'alerting-rule-severity-badge',
   AlertingRuleStateBadge: 'alerting-rule-state-badge',
   AlertingRuleTotalAlertsBadge: 'alerting-rule-total-alerts-badge',
+  LabelSuggestion: 'suggestion-line',
   CancelButton: 'cancel-button',
   Breadcrumb: 'breadcrumb',
   DownloadCSVButton: 'download-csv-button',
@@ -52,6 +53,7 @@ export const DataTestIDs = {
   NameInput: 'name-filter-input',
   NameLabelDropdown: 'console-select-menu-toggle',
   NameLabelDropdownOptions: 'console-select-item',
+  PersesDashboardDropdown: 'dashboard-dropdown',
   SeverityBadgeHeader: 'severity-badge-header',
   SeverityBadge: 'severity-badge',
   SilenceAlertDropdownItem: 'silence-alert-dropdown-item',
@@ -160,6 +162,7 @@ export const LegacyDashboardPageTestIDs = {
 export const LegacyTestIDs = {
   ItemFilter: 'item-filter',
   SelectAllSilencesCheckbox: 'select-all-silences-checkbox',
+  PersesDashboardSection: 'dashboard',
 };
 
 export const IDs = {
@@ -177,7 +180,6 @@ export const Classes = {
     '.pf-v6-c-alert.pf-m-inline.pf-m-plain.pf-m-info, .pf-v5-c-alert.pf-m-inline.pf-m-plain.pf-m-info.query-browser__reduced-resolution',
   HorizontalNav: '.pf-v6-c-tabs__item, .co-m-horizontal-nav__menu-item',
   IndividualTag: '.pf-v6-c-label__text, .pf-v5-c-chip__text',
-  LabelSuggestion: '.pf-v6-c-label__content.pf-m-clickable, .co-suggestion-line',
   LabelTag: '.pf-v6-c-label__text, .pf-v5-c-label__text',
   MainTag: '.pf-v6-c-label-group__label, .pf-v5-c-chip-group__label',
   MenuItem: '.pf-v6-c-menu__item, .pf-c-dropdown__menu-item',
@@ -203,4 +205,16 @@ export const Classes = {
   SilenceKebabDropdown: '.pf-v6-c-menu-toggle.pf-m-plain, .pf-v5-c-dropdown__toggle.pf-m-plain',
   SilenceLabelRow: '.pf-v6-l-grid.pf-m-all-12-col-on-sm.pf-m-all-4-col-on-md.pf-m-gutter, .row',
   SilenceState: '.pf-v6-l-stack__item, .co-break-word',
+};
+
+export const persesAriaLabels = {
+  TimeRangeDropdown: 'Select time range. Currently set to [object Object]',
+  RefreshButton: 'Refresh',
+  RefreshIntervalDropdown: 'Select refresh interval. Currently set to 0s',
+};
+
+export const persesDataTestIDs = {
+  variableDropdown: 'variable',
+  panelGroupHeader: 'panel-group-header',
+  panelHeader: 'panel',
 };

@@ -110,6 +110,16 @@ export enum MetricsPageQueryInput {
   RATE_OF_TRANSMITTED_PACKETS_DROPPED = 'OpenShift_Metrics_QueryTable_sum(irate(container_network_transmit_packets_dropped_total[2h])) by (pod).csv',
   QUERY_WITH_ALERT = 'vector1)',
   API_REQUEST_DURATION_BY_VERB_99TH_PERCENTILE_QUERY = 'histogram_quantile(0.99, sum(resource_verb:apiserver_request_duration_seconds_bucket:rate:5m{apiserver="kube-apiserver"}) by (verb, le))',
+  //queries where we should escape the curly braces when typing in the query input
+  CPU_USAGE_QUERY = 'sum(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate) by (pod)',
+  MEMORY_USAGE_QUERY = 'sum(container_memory_working_set_bytes{{}container!=""{}}) by (pod)',
+  FILESYSTEM_USAGE_QUERY = 'topk(25, sort_desc(sum(pod:container_fs_usage_bytes:sum{{}container="",pod!=""{}}) BY (pod, namespace)))',
+  RECEIVE_BANDWIDTH_QUERY = 'sum(irate(container_network_receive_bytes_total[2h])) by (pod)',
+  TRANSMIT_BANDWIDTH_QUERY = 'sum(irate(container_network_transmit_bytes_total[2h])) by (pod)',
+  RATE_OF_RECEIVED_PACKETS_QUERY = 'sum(irate(container_network_receive_packets_total[2h])) by (pod)',
+  RATE_OF_TRANSMITTED_PACKETS_QUERY = 'sum(irate(container_network_transmit_packets_total[2h])) by (pod)',
+  RATE_OF_RECEIVED_PACKETS_DROPPED_QUERY = 'sum(irate(container_network_receive_packets_dropped_total[2h])) by (pod)',
+  RATE_OF_TRANSMITTED_PACKETS_DROPPED_QUERY = 'sum(irate(container_network_transmit_packets_dropped_total[2h])) by (pod)',
 }
 
 export enum MetricsPageQueryInputByNamespace {
@@ -245,4 +255,47 @@ export enum WatchdogAlert {
 
 export enum SilenceComment {
   SILENCE_COMMENT = 'test comment',
+}
+
+export enum persesDashboardsTimeRange {
+  CUSTOM_TIME_RANGE = 'Custom Time Range',
+  LAST_5_MINUTES = 'Last 5 minutes',
+  LAST_15_MINUTES = 'Last 15 minutes',
+  LAST_30_MINUTES = 'Last 30 minutes',
+  LAST_1_HOUR = 'Last 1 hour',
+  LAST_6_HOURS = 'Last 6 hours',
+  LAST_12_HOURS = 'Last 12 hours',
+  LAST_24_HOURS = 'Last 24 hours',
+  LAST_7_DAYS = 'Last 7 days',
+  LAST_14_DAYS = 'Last 14 days',
+}
+
+export enum persesDashboardsRefreshInterval {
+  OFF = 'Off',
+  FIVE_SECONDS = '5s',
+  TEN_SECONDS = '10s',
+  FIFTEEN_SECONDS = '15s',
+  THIRTY_SECONDS = '30s',
+  ONE_MINUTE = '1m',
+}
+
+export const persesDashboardsDashboardDropdownCOO = {
+  ACCELERATORS_COMMON_METRICS:['Accelerators common metrics', 'perses'],
+  K8S_COMPUTE_RESOURCES_CLUSTER: ['Kubernetes / Compute Resources / Cluster', 'perses'],
+}
+
+export const persesDashboardsDashboardDropdownPersesDev = {
+  PERSES_DASHBOARD_SAMPLE: ['Perses Dashboard Sample', 'perses'],
+  PROMETHEUS_OVERVIEW: ['Prometheus / Overview', 'perses'],
+  THANOS_COMPACT_OVERVIEW: ['Thanos / Compact / Overview', 'perses'],
+}
+
+export enum persesDashboardsAcceleratorsCommonMetricsPanels {
+  GPU_UTILIZATION = 'GPU Utilization',
+  MEMORY_USED_BYTES = 'Memory Used Bytes',
+  MEMORY_TOTAL_BYTES = 'Memory Total Bytes',
+  POWER_USAGE_WATTS = 'Power Usage (watts)',
+  TEMPERATURE_CELCIUS = 'Temperature (celcius)',
+  SM_CLOCK_HERTZ = 'SM Clock(hertz)',
+  MEMORY_CLOCK_HERTZ = 'Memory Clock(hertz)',
 }
