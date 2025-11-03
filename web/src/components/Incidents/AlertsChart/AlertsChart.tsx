@@ -12,9 +12,12 @@ import {
 import {
   Card,
   CardBody,
+  CardHeader,
   CardTitle,
   EmptyState,
   EmptyStateBody,
+  Flex,
+  FlexItem,
   getResizeObserver,
 } from '@patternfly/react-core';
 import {
@@ -30,7 +33,7 @@ import {
   generateAlertsDateArray,
   getCurrentTime,
 } from '../utils';
-import { dateTimeFormatter } from '../../console/utils/datetime';
+import { dateTimeFormatter, timeFormatter } from '../../console/utils/datetime';
 import { useTranslation } from 'react-i18next';
 import { AlertsChartBar } from '../model';
 import { setAlertsAreLoading } from '../../../store/actions';
@@ -114,7 +117,22 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
       data-test={DataTestIDs.AlertsChart.Card}
     >
       <div ref={containerRef} data-test={DataTestIDs.AlertsChart.ChartContainer}>
-        <CardTitle data-test={DataTestIDs.AlertsChart.Title}>{t('Alerts Timeline')}</CardTitle>
+        <CardHeader>
+          <Flex spaceItems={{ default: 'spaceItemsMd' }}>
+            <FlexItem>
+              <CardTitle data-test={DataTestIDs.AlertsChart.Title}>
+                {t('Alerts Timeline')}
+              </CardTitle>
+            </FlexItem>
+            {incidentsLastRefreshTime && (
+              <FlexItem>
+                <span className="pf-v6-u-text-color-subtle">
+                  {t('Last updated at')} {timeFormatter.format(new Date(incidentsLastRefreshTime))}
+                </span>
+              </FlexItem>
+            )}
+          </Flex>
+        </CardHeader>
         {!selectedIncidentIsVisible || isEmpty(incidentsActiveFilters.groupId) ? (
           <EmptyState
             variant="lg"
