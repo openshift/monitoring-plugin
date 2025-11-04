@@ -100,9 +100,9 @@ const config: Configuration = {
       patterns: [{ from: path.resolve(__dirname, 'locales'), to: 'locales' }],
     }),
     new DefinePlugin({
-      'process.env': {
-        I18N_NAMESPACE: JSON.stringify('plugin__monitoring-plugin'),
-      },
+      'process.env.I18N_NAMESPACE': process.env.I18N_NAMESPACE
+        ? JSON.stringify(process.env.I18N_NAMESPACE)
+        : JSON.stringify('plugin__monitoring-plugin'),
     }),
   ],
   devtool: 'source-map',
