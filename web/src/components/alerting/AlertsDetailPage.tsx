@@ -138,6 +138,14 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
 
   const AlertsChart = alertsChart?.[0];
 
+  // Keep the default name for the admin perspective while providing specific
+  // entrypoints for all other perspectives as wel
+  const alertActionContextName = `alert-detail-toolbar-actions${
+    perspective === 'admin' ? '' : '-' + perspective
+  }`;
+  const alertActionContext = {};
+  alertActionContext[alertActionContextName] = { alert };
+
   return (
     <>
       <StatusBox
@@ -198,7 +206,7 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
                 <Title headingLevel="h2">{t('Alert details')}</Title>
               </ToolbarItem>
               <ToolbarGroup align={{ default: 'alignRight' }}>
-                <ActionServiceProvider context={{ 'alert-detail-toolbar-actions': { alert } }}>
+                <ActionServiceProvider context={alertActionContext}>
                   {({ actions, loaded }) =>
                     loaded
                       ? actions.map((action) => {
