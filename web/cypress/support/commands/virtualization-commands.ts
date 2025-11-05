@@ -166,30 +166,30 @@ const virtualizationUtils = {
       //https://docs.redhat.com/en/documentation/openshift_container_platform/4.19/html/virtualization/installing#virt-deleting-virt-cli_uninstalling-virt
 
       cy.log('Delete Hyperconverged instance.');  
-      cy.executeAndDelete(`oc patch hyperconverged.hco.kubevirt.io/kubevirt-hyperconverged -n ${KBV.namespace} -p '{"metadata":{"finalizers":[]}}' --type=merge --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+      cy.executeAndDelete(`oc patch hyperconverged.hco.kubevirt.io/kubevirt-hyperconverged -n ${KBV.namespace} -p '{"metadata":{"finalizers":[]}}' --type=merge --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
-      cy.executeAndDelete(`oc patch kubevirt.kubevirt.io/kubevirt -n ${KBV.namespace} --type=merge -p '{"metadata":{"finalizers":[]}}' --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+      cy.executeAndDelete(`oc patch kubevirt.kubevirt.io/kubevirt -n ${KBV.namespace} --type=merge -p '{"metadata":{"finalizers":[]}}' --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
-      cy.executeAndDelete(`oc delete HyperConverged kubevirt-hyperconverged -n ${KBV.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+      cy.executeAndDelete(`oc delete HyperConverged kubevirt-hyperconverged -n ${KBV.namespace} --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
       
       cy.log('Remove Openshift Virtualization subscription');
-      cy.executeAndDelete(`oc delete subscription ${config.name} -n ${KBV.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+      cy.executeAndDelete(`oc delete subscription ${config.name} -n ${KBV.namespace} --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
       cy.log('Remove Openshift Virtualization CSV');
-      cy.executeAndDelete(`oc delete csv -n ${KBV.namespace} -l operators.coreos.com/kubevirt-hyperconverged.openshift-cnv --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+      cy.executeAndDelete(`oc delete csv -n ${KBV.namespace} -l operators.coreos.com/kubevirt-hyperconverged.openshift-cnv --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
       );
 
       cy.log('Remove Openshift Virtualization namespace');
-      cy.executeAndDelete(`oc delete namespace ${KBV.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+      cy.executeAndDelete(`oc delete namespace ${KBV.namespace} --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
       cy.log('Delete Hyperconverged CRD instance.');
       cy.executeAndDelete(
-        `oc delete crd --dry-run=client -l operators.coreos.com/kubevirt-hyperconverged.openshift-cnv --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+        `oc delete crd --dry-run=client -l operators.coreos.com/kubevirt-hyperconverged.openshift-cnv --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
       );
 
       cy.log('Delete Kubevirt instance.');
       cy.executeAndDelete(
-        `oc delete crd -l operators.coreos.com/kubevirt-hyperconverged.openshift-cnv --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+        `oc delete crd -l operators.coreos.com/kubevirt-hyperconverged.openshift-cnv --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
       );
 
     }
