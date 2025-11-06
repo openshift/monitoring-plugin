@@ -33,6 +33,8 @@ import {
 } from '@codemirror/view';
 import {
   PrometheusEndpoint,
+  useActiveNamespace,
+  useActivePerspective,
   YellowExclamationTriangleIcon,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { Button } from '@patternfly/react-core';
@@ -44,7 +46,7 @@ import { useTranslation } from 'react-i18next';
 import { useSafeFetch } from './console/utils/safe-fetch-hook';
 
 import './_promql-expression-input.scss';
-import { PROMETHEUS_BASE_PATH } from './console/graphs/helpers';
+import { PROMETHEUS_BASE_PATH, PROMETHEUS_TENANCY_BASE_PATH } from './console/graphs/helpers';
 
 type InteractionTarget = {
   focus: () => void;
@@ -253,6 +255,8 @@ export const PromQLExpressionInput: React.FC<PromQLExpressionInputProps> = ({
   onSelectionChange,
 }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const [namespace] = useActiveNamespace();
+  const [perspective] = useActivePerspective();
 
   const containerRef = React.useRef<HTMLDivElement | null>(null);
   const viewRef = React.useRef<EditorView | null>(null);
@@ -265,7 +269,12 @@ export const PromQLExpressionInput: React.FC<PromQLExpressionInputProps> = ({
   const safeFetch = React.useCallback(useSafeFetch(), []);
 
   React.useEffect(() => {
-    safeFetch(`${PROMETHEUS_BASE_PATH}/${PrometheusEndpoint.LABEL}/__name__/values`)
+    let url = `${PROMETHEUS_BASE_PATH}/${PrometheusEndpoint.LABEL}/__name__/values`;
+    if (perspective === 'dev') {
+      // eslint-disable-next-line max-len
+      url = `${PROMETHEUS_TENANCY_BASE_PATH}/${PrometheusEndpoint.LABEL}/__name__/values?namespace=${namespace}`;
+    }
+    safeFetch(url)
       .then((response) => {
         const metrics = response?.data;
         setMetricNames(metrics);
@@ -279,7 +288,7 @@ export const PromQLExpressionInput: React.FC<PromQLExpressionInputProps> = ({
           setErrorMessage(message);
         }
       });
-  }, [safeFetch, t]);
+  }, [safeFetch, t, perspective, namespace]);
 
   const onClear = () => {
     if (viewRef.current !== null) {
