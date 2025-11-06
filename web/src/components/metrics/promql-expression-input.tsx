@@ -52,7 +52,6 @@ import { useTranslation } from 'react-i18next';
 import { useSafeFetch } from '../console/utils/safe-fetch-hook';
 
 import { PROMETHEUS_BASE_PATH } from '../utils';
-import { LabelNamesResponse } from '@perses-dev/prometheus-plugin';
 import {
   t_global_color_status_custom_default,
   t_global_color_status_danger_default,
@@ -326,6 +325,8 @@ export const PromQLExpressionInput: FC<PromQLExpressionInputProps> = ({
   onValueChange,
   onSelectionChange,
 }) => {
+  type LabelNamesResponse = { data?: string[] };
+
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { theme: pfTheme } = usePatternFlyTheme();
 
