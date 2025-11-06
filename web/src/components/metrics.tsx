@@ -4,6 +4,7 @@ import {
   PrometheusData,
   PrometheusEndpoint,
   PrometheusLabels,
+  useActiveNamespace,
   useResolvedExtensions,
   YellowExclamationTriangleIcon,
 } from '@openshift-console/dynamic-plugin-sdk';
@@ -87,7 +88,6 @@ import {
   isDataSource,
 } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
 import { getLegacyObserveState, usePerspective } from './hooks/usePerspective';
-import { useActiveNamespace } from './console/console-shared/hooks/useActiveNamespace';
 import { MonitoringState } from '../reducers/observe';
 import { DropDownPollInterval } from './dropdown-poll-interval';
 
@@ -104,7 +104,7 @@ export const PreDefinedQueriesDropdown = () => {
   const [selected, setSelected] = React.useState('');
   let predefinedQueries: PredefinedQueryType[];
 
-  const activeNamespace = useActiveNamespace();
+  const [activeNamespace] = useActiveNamespace();
   const { perspective } = usePerspective();
 
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -904,7 +904,7 @@ const Query: React.FC<{ index: number; customDatasource?: CustomDataSource }> = 
   const switchKey = `${id}-${isEnabled}`;
   const switchLabel = isEnabled ? t('Disable query') : t('Enable query');
 
-  const activeNamespace = useActiveNamespace();
+  const [activeNamespace] = useActiveNamespace();
   return (
     <div
       className={classNames('query-browser__table', {

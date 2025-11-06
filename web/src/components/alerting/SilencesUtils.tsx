@@ -4,6 +4,7 @@ import {
   GreenCheckCircleIcon,
   Silence,
   SilenceStates,
+  useActiveNamespace,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { useTranslation } from 'react-i18next';
@@ -42,7 +43,6 @@ import {
 import { useDispatch } from 'react-redux';
 import { LoadingInline } from '../console/utils/status-box';
 import { MonitoringResourceIcon, OnToggle, SeverityCounts, StateTimestamp } from './AlertUtils';
-import { useActiveNamespace } from '../console/console-shared/hooks/useActiveNamespace';
 
 export const tableSilenceClasses = [
   'pf-c-table__action', // Checkbox
@@ -57,7 +57,7 @@ export const tableSilenceClasses = [
 export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheckbox }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
-  const namespace = useActiveNamespace();
+  const [namespace] = useActiveNamespace();
 
   const { createdBy, endsAt, firingAlerts, id, name, startsAt, matchers } = obj;
   const state = silenceState(obj);
@@ -211,7 +211,7 @@ const SilenceDropdown_: React.FC<SilenceDropdownProps> = ({
 }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
-  const namespace = useActiveNamespace();
+  const [namespace] = useActiveNamespace();
 
   const [isOpen, setIsOpen, , setClosed] = useBoolean(false);
   const [isModalOpen, , setModalOpen, setModalClosed] = useBoolean(false);
@@ -261,7 +261,7 @@ const ExpireSilenceModal: React.FC<ExpireSilenceModalProps> = ({
 }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective, silencesKey } = usePerspective();
-  const namespace = useActiveNamespace();
+  const [namespace] = useActiveNamespace();
 
   const dispatch = useDispatch();
 
