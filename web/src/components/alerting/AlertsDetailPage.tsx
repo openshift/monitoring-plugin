@@ -17,6 +17,7 @@ import {
   Silence,
   TableColumn,
   VirtualizedTable,
+  useActivePerspective,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
   AlertingRuleChartExtension,
@@ -81,6 +82,7 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
   const { t } = useTranslation('plugin__monitoring-plugin');
 
   const { alertsKey, isDev } = usePerspective();
+  const [perspective] = useActivePerspective();
 
   const namespace = match.params?.ns;
   const hideGraphs = useSelector(({ observe }: RootState) => !!observe.get('hideGraphs'));
@@ -133,6 +135,14 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
         .map((extension) => extension.properties),
     [customExtensions, isDev],
   );
+
+  // Keep the default name for the admin perspective while providing specific
+  // entrypoints for all other perspectives as wel
+  const alertActionContextName = `alert-detail-toolbar-actions${
+    perspective === 'admin' ? '' : '-' + perspective
+  }`;
+  const alertActionContext = {};
+  alertActionContext[alertActionContextName] = { alert };
 
   useRulesAlertsPoller(namespace, dispatch, alertsSource);
 
@@ -189,7 +199,7 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
                 <SectionHeading text={t('Alert details')} />
               </ToolbarItem>
               <ToolbarGroup alignment={{ default: 'alignRight' }}>
-                <ActionServiceProvider context={{ 'alert-detail-toolbar-actions': { alert } }}>
+                <ActionServiceProvider context={alertActionContext}>
                   {({ actions, loaded }) =>
                     loaded
                       ? actions.map((action) => {
