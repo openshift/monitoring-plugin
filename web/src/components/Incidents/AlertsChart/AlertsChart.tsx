@@ -168,16 +168,12 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
 
                     const alertName = datum.silenced ? `${datum.name} (silenced)` : datum.name;
 
-                    const baseTooltip = `${t('Severity')}: ${t(datum.severity)}
+                    return `${t('Severity')}: ${t(datum.severity)}
                     ${t('Alert Name')}: ${alertName || '---'}
                     ${t('Namespace')}: ${datum.namespace || '---'}
                     ${t('Component')}: ${datum.component}
                     ${t('Start')}: ${startDate}
                     ${t('End')}: ${endDate}`;
-
-                    const silencedText = datum.silenced ? `\n${t('Silenced')}: true` : '';
-
-                    return `${baseTooltip}${silencedText}`;
                   }}
                 />
               }
