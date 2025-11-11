@@ -12,6 +12,7 @@ import {
   SilenceStates,
   TableColumn,
   Timestamp,
+  useActiveNamespace,
   useListPageFilter,
   useResolvedExtensions,
   VirtualizedTable,
@@ -44,7 +45,6 @@ import { Link, Redirect, Route, RouteComponentProps, Switch, withRouter } from '
 
 // TODO: These will be available in future versions of the plugin SDK
 import { formatPrometheusDuration } from './console/utils/datetime';
-import { useActiveNamespace } from './console/console-shared/hooks/useActiveNamespace';
 
 import { withFallback } from './console/console-shared/error/error-boundary';
 import {
@@ -436,7 +436,7 @@ type SilencedAlertsListProps = RouteComponentProps & { alerts: Alert[] };
 const SilencedAlertsList_: React.FC<SilencedAlertsListProps> = ({ alerts, history }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
   const { isDev } = usePerspective();
-  const namespace = useActiveNamespace();
+  const [namespace] = useActiveNamespace();
 
   return _.isEmpty(alerts) ? (
     <div className="pf-u-text-align-center">{t('None found')}</div>
@@ -487,7 +487,7 @@ const SilencedAlertsList = withRouter(SilencedAlertsList_);
 const SilencesDetailsPage_: React.FC<RouteComponentProps<{ id: string }>> = ({ match }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
 
-  const namespace = useActiveNamespace();
+  const [namespace] = useActiveNamespace();
   const { isDev, alertsKey } = usePerspective();
 
   const alertsLoaded = useSelector(({ observe }: RootState) => observe.get(alertsKey)?.loaded);
@@ -657,7 +657,7 @@ const tableRuleClasses = [
 const RuleTableRow: React.FC<RowProps<Rule>> = ({ obj }) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
   const { isDev } = usePerspective();
-  const namespace = useActiveNamespace();
+  const [namespace] = useActiveNamespace();
 
   const title: string = obj.annotations?.description || obj.annotations?.message;
 
@@ -690,7 +690,7 @@ const RuleTableRow: React.FC<RowProps<Rule>> = ({ obj }) => {
 const RulesPage_: React.FC = () => {
   const { t } = useTranslation('plugin__monitoring-plugin');
   const { isDev, rulesKey, alertsKey } = usePerspective();
-  const namespace = useActiveNamespace();
+  const [namespace] = useActiveNamespace();
 
   const data: Rule[] = useSelector(({ observe }: RootState) => observe.get(rulesKey));
   const { loaded = false, loadError }: Alerts = useSelector(
@@ -1122,7 +1122,7 @@ const PollerPages = () => {
   const dispatch = useDispatch();
 
   const { isDev } = usePerspective();
-  const namespace = useActiveNamespace();
+  const [namespace] = useActiveNamespace();
 
   const [customExtensions] =
     useResolvedExtensions<AlertingRulesSourceExtension>(isAlertingRulesSource);

@@ -4,6 +4,7 @@ import {
   PrometheusData,
   PrometheusEndpoint,
   PrometheusLabels,
+  useActiveNamespace,
   useResolvedExtensions,
   YellowExclamationTriangleIcon,
 } from '@openshift-console/dynamic-plugin-sdk';
@@ -86,7 +87,6 @@ import {
   isDataSource,
 } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
 import { usePerspective } from './hooks/usePerspective';
-import { useActiveNamespace } from './console/console-shared/hooks/useActiveNamespace';
 
 // Stores information about the currently focused query input
 let focusedQuery;
@@ -101,7 +101,7 @@ export const PreDefinedQueriesDropdown = () => {
   const [selected, setSelected] = React.useState('');
   let predefinedQueries: PredefinedQueryType[];
 
-  const activeNamespace = useActiveNamespace();
+  const [activeNamespace] = useActiveNamespace();
   const { isDev } = usePerspective();
 
   const { t } = useTranslation('plugin__monitoring-plugin');
@@ -837,7 +837,7 @@ const Query: React.FC<{ index: number; customDatasource?: CustomDataSource }> = 
   const switchKey = `${id}-${isEnabled}`;
   const switchLabel = isEnabled ? t('Disable query') : t('Enable query');
 
-  const activeNamespace = useActiveNamespace();
+  const [activeNamespace] = useActiveNamespace();
   const { isDev } = usePerspective();
 
   return (
@@ -867,7 +867,7 @@ const Query: React.FC<{ index: number; customDatasource?: CustomDataSource }> = 
           <QueryKebab index={index} />
         </div>
       </div>
-      {/* If namespace is defined getPrometheusURL() will use the 
+      {/* If namespace is defined getPrometheusURL() will use the
       PROMETHEUS_TENANCY_BASE_PATH for the developer view */}
       <QueryTable
         index={index}
