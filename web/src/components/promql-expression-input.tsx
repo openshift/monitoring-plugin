@@ -33,6 +33,8 @@ import {
 } from '@codemirror/view';
 import {
   PrometheusEndpoint,
+  useActiveNamespace,
+  useActivePerspective,
   YellowExclamationTriangleIcon,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { Button } from '@patternfly/react-core';
@@ -43,7 +45,7 @@ import { useTranslation } from 'react-i18next';
 
 import { useSafeFetch } from './console/utils/safe-fetch-hook';
 
-import { PROMETHEUS_BASE_PATH } from './utils';
+import { PROMETHEUS_BASE_PATH, PROMETHEUS_TENANCY_BASE_PATH } from './utils';
 import './_promql-expression-input.scss';
 
 type InteractionTarget = {
@@ -258,6 +260,8 @@ export const PromQLExpressionInput: React.FC<PromQLExpressionInputProps> = ({
   const viewRef = React.useRef<EditorView | null>(null);
   const [metricNames, setMetricNames] = React.useState<Array<string>>([]);
   const [errorMessage, setErrorMessage] = React.useState<string | undefined>();
+  const [namespace] = useActiveNamespace();
+  const [perspective] = useActivePerspective();
 
   const placeholder = t('Expression (press Shift+Enter for newlines)');
 
@@ -265,7 +269,12 @@ export const PromQLExpressionInput: React.FC<PromQLExpressionInputProps> = ({
   const safeFetch = React.useCallback(useSafeFetch(), []);
 
   React.useEffect(() => {
-    safeFetch(`${PROMETHEUS_BASE_PATH}/${PrometheusEndpoint.LABEL}/__name__/values`)
+    let url = `${PROMETHEUS_BASE_PATH}/${PrometheusEndpoint.LABEL}/__name__/values`;
+    if (perspective === 'dev') {
+      // eslint-disable-next-line max-len
+      url = `${PROMETHEUS_TENANCY_BASE_PATH}/${PrometheusEndpoint.LABEL}/__name__/values?namespace=${namespace}`;
+    }
+    safeFetch(url)
       .then((response) => {
         const metrics = response?.data;
         setMetricNames(metrics);
@@ -279,7 +288,7 @@ export const PromQLExpressionInput: React.FC<PromQLExpressionInputProps> = ({
           setErrorMessage(message);
         }
       });
-  }, [safeFetch, t]);
+  }, [safeFetch, t, namespace, perspective]);
 
   const onClear = () => {
     if (viewRef.current !== null) {
