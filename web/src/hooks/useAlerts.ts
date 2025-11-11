@@ -34,7 +34,7 @@ export const useAlerts = (props?: { overrideNamespace?: string }) => {
   // Retrieve external information which dictates which alerts to load and use
   const { plugin } = useMonitoring();
   const [namespace] = useActiveNamespace();
-  const { prometheus } = useMonitoring();
+  const { prometheus, useAlertsTenancy } = useMonitoring();
   const { perspective } = usePerspective();
   const overriddenNamespace = props?.overrideNamespace ? props.overrideNamespace : namespace;
 
@@ -42,6 +42,7 @@ export const useAlerts = (props?: { overrideNamespace?: string }) => {
   const { trigger } = useAlertsPoller({
     namespace: overriddenNamespace,
     prometheus,
+    useAlertsTenancy,
   });
 
   // Retrieve alerts, rules and silences from the store, which is populated in the poller
@@ -122,9 +123,11 @@ export const useAlerts = (props?: { overrideNamespace?: string }) => {
 const useAlertsPoller = ({
   namespace,
   prometheus,
+  useAlertsTenancy,
 }: {
   namespace?: string;
   prometheus: Prometheus;
+  useAlertsTenancy: boolean;
 }) => {
   const dispatch = useDispatch();
   const [customExtensions] =
@@ -143,7 +146,7 @@ const useAlertsPoller = ({
 
   const rulesUrl = buildPrometheusUrl({
     prometheusUrlProps: { endpoint: PrometheusEndpoint.RULES, namespace },
-    basePath: getPrometheusBasePath({ prometheus, namespace }),
+    basePath: getPrometheusBasePath({ prometheus, useTenancyPath: useAlertsTenancy }),
   });
   const silencesUrl = getAlertmanagerSilencesUrl({ prometheus, namespace });
 

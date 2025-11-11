@@ -58,6 +58,7 @@ const namespacedPages = [
 const AlertingPage: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const dispatch = useDispatch();
+  const { useAlertsTenancy, accessCheckLoading } = useMonitoring();
 
   const [perspective] = useActivePerspective();
   const { setNamespace } = useQueryNamespace();
@@ -100,7 +101,7 @@ const AlertingPage: FC = () => {
 
   return (
     <>
-      {namespacedPages.includes(pathname) && (
+      {namespacedPages.includes(pathname) && !accessCheckLoading && useAlertsTenancy && (
         <NamespaceBar
           onNamespaceChange={(namespace) => {
             dispatch(alertingClearSelectorData(prometheus, namespace));

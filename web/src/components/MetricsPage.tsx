@@ -675,7 +675,7 @@ export const QueryTable: FC<QueryTableProps> = ({ index, namespace, customDataso
           },
           basePath: getPrometheusBasePath({
             prometheus: 'cmo',
-            namespace,
+            useTenancyPath: namespace !== ALL_NAMESPACES_KEY,
             basePathOverride: customDatasource?.basePath,
           }),
         }),

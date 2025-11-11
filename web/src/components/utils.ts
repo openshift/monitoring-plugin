@@ -219,11 +219,11 @@ const getSearchParams = ({
 
 export const getPrometheusBasePath = ({
   prometheus,
-  namespace,
+  useTenancyPath,
   basePathOverride,
 }: {
   prometheus?: Prometheus;
-  namespace?: string;
+  useTenancyPath?: boolean;
   basePathOverride?: string;
 }) => {
   if (basePathOverride) {
@@ -232,7 +232,7 @@ export const getPrometheusBasePath = ({
 
   if (prometheus === 'acm') {
     return PROMETHEUS_PROXY_PATH;
-  } else if (namespace && namespace !== ALL_NAMESPACES_KEY) {
+  } else if (useTenancyPath) {
     return PROMETHEUS_TENANCY_BASE_PATH;
   } else {
     return PROMETHEUS_BASE_PATH;

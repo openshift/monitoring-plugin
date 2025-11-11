@@ -1,7 +1,12 @@
 import * as _ from 'lodash-es';
 import type { FC } from 'react';
 
-import { Alert, ResourceIcon, Timestamp } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  Alert,
+  DocumentTitle,
+  ResourceIcon,
+  Timestamp,
+} from '@openshift-console/dynamic-plugin-sdk';
 import {
   Breadcrumb,
   BreadcrumbItem,

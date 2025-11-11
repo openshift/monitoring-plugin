@@ -16,7 +16,7 @@ export const useQueryNamespace = () => {
     if (!queryNamespace) {
       setQueryNamespace(activeNamespace);
     }
-  }, [queryNamespace, activeNamespace, setActiveNamespace]);
+  }, [queryNamespace, activeNamespace, setActiveNamespace, setQueryNamespace]);
 
   return {
     namespace: queryNamespace,

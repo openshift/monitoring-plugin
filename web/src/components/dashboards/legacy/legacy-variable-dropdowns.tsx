@@ -144,7 +144,10 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({ id, name 
         if (!customDataSourceName) {
           return buildPrometheusUrl({
             prometheusUrlProps: prometheusProps,
-            basePath: getPrometheusBasePath({ prometheus: 'cmo' }),
+            basePath: getPrometheusBasePath({
+              prometheus: 'cmo',
+              useTenancyPath: namespace !== ALL_NAMESPACES_KEY,
+            }),
           });
         } else if (extensionsResolved && hasExtensions) {
           const extension = extensions.find(
@@ -161,6 +164,7 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({ id, name 
             prometheusUrlProps: prometheusProps,
             basePath: getPrometheusBasePath({
               prometheus: 'cmo',
+              useTenancyPath: namespace !== ALL_NAMESPACES_KEY,
               basePathOverride: dataSource?.basePath,
             }),
           });
@@ -171,7 +175,7 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({ id, name 
         setIsError(true);
       }
     },
-    [customDataSourceName, extensions, extensionsResolved, hasExtensions],
+    [customDataSourceName, extensions, extensionsResolved, hasExtensions, namespace],
   );
 
   useEffect(() => {

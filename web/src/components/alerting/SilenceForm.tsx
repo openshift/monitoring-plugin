@@ -1,4 +1,8 @@
-import { consoleFetchJSON, NamespaceBar } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  consoleFetchJSON,
+  DocumentTitle,
+  NamespaceBar,
+} from '@openshift-console/dynamic-plugin-sdk';
 import {
   ActionGroup,
   Alert,
