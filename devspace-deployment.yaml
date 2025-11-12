@@ -1,0 +1,14 @@
+# This is a list of `deployments` that DevSpace can create for this project
+app:
+  # This deployment uses `helm` but you can also define `kubectl` deployments or kustomizations
+  helm:
+    # We are deploying this project with the Helm chart you provided
+    chart:
+      name: ./charts/openshift-console-plugin
+    # Under `values` we can define the values for this Helm chart used during `helm install/upgrade`
+    # You may also use `valuesFiles` to load values from files, e.g. valuesFiles: ["values.yaml"]
+    valuesFiles: ["./charts/openshift-console-plugin/values.yaml"]
+    values:
+      plugin:
+        image: "quay.io/rh-ee-pyurkovi/monitoring-plugin:v4.21"
+  namespace: ${DEVSPACE_NAMESPACE}
