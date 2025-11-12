@@ -1,8 +1,8 @@
+import { consoleFetchJSON } from '@openshift-console/dynamic-plugin-sdk';
+import { DashboardResource, ProjectResource } from '@perses-dev/core';
 import { useQuery } from '@tanstack/react-query';
-import { DashboardResource, ProjectResource, fetchJson } from '@perses-dev/core';
 import { NumberParam, useQueryParam } from 'use-query-params';
 import { QueryParams } from '../../query-params';
-import { getCSRFToken } from '@openshift-console/dynamic-plugin-sdk/lib/utils/fetch/console-fetch-utils';
 
 export const PERSES_PROXY_BASE_PATH = '/api/proxy/plugin/monitoring-console-plugin/perses';
 
@@ -10,23 +10,19 @@ export const fetchPersesDashboardsMetadata = (): Promise<DashboardResource[]> =>
   const listDashboardsMetadata = '/api/v1/dashboards';
   const persesURL = `${PERSES_PROXY_BASE_PATH}${listDashboardsMetadata}`;
 
-  return ocpPersesFetchJson<DashboardResource[]>(persesURL);
+  return consoleFetchJSON(persesURL);
 };
 
 export const fetchPersesProjects = (): Promise<ProjectResource[]> => {
   const listProjectURL = '/api/v1/projects';
   const persesURL = `${PERSES_PROXY_BASE_PATH}${listProjectURL}`;
 
-  return ocpPersesFetchJson<ProjectResource[]>(persesURL);
+  return consoleFetchJSON(persesURL);
 };
 
 export async function ocpPersesFetchJson<T>(url: string): Promise<T> {
   // Use perses fetch as base fetch call as it handles refresh tokens
-  return fetchJson(url, {
-    headers: {
-      'X-CSRFToken': getCSRFToken(),
-    },
-  });
+  return consoleFetchJSON(url);
 }
 
 export const fetchPersesDashboard = async (
@@ -36,7 +32,7 @@ export const fetchPersesDashboard = async (
   const getDashboardURL = `/api/v1/projects/${project}/dashboards/${dashboardName}`;
   const persesURL = `${PERSES_PROXY_BASE_PATH}${getDashboardURL}`;
 
-  return await ocpPersesFetchJson<DashboardResource>(persesURL);
+  return await consoleFetchJSON(persesURL);
 };
 
 export const useFetchPersesDashboard = (project: string, dashboardName: string) => {
