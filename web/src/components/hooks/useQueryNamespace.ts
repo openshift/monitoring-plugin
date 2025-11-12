@@ -13,9 +13,6 @@ export const useQueryNamespace = () => {
     if (queryNamespace && activeNamespace !== queryNamespace) {
       setActiveNamespace(queryNamespace);
     }
-    if (!queryNamespace) {
-      setQueryNamespace(activeNamespace);
-    }
   }, [queryNamespace, activeNamespace, setActiveNamespace, setQueryNamespace]);
 
   return {

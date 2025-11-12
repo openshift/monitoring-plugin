@@ -134,7 +134,7 @@ const NegativeMatcherHelp = () => {
 const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespaced }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { namespace } = useQueryNamespace();
-  const { prometheus } = useMonitoring();
+  const { prometheus, useAlertsTenancy } = useMonitoring();
   const navigate = useNavigate();
 
   const durations = useMemo(() => {
@@ -248,7 +248,11 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
       return;
     }
 
-    const url = getAlertmanagerSilencesUrl({ prometheus, namespace });
+    const url = getAlertmanagerSilencesUrl({
+      prometheus,
+      namespace,
+      useTenancyPath: useAlertsTenancy,
+    });
     if (!url) {
       setError('Alertmanager URL not set');
       return;
@@ -279,7 +283,10 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
     };
 
     consoleFetchJSON
-      .post(getAlertmanagerSilencesUrl({ prometheus, namespace }), body)
+      .post(
+        getAlertmanagerSilencesUrl({ prometheus, namespace, useTenancyPath: useAlertsTenancy }),
+        body,
+      )
       .then(({ silenceID }) => {
         setError(undefined);
         refetchSilencesAndAlerts();

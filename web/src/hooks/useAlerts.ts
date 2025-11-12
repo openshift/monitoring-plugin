@@ -26,23 +26,24 @@ import {
   getAdditionalSources,
 } from '../components/alerting/AlertUtils';
 import { MonitoringState } from '../store/store';
-import { getObserveState, usePerspective } from '../components/hooks/usePerspective';
+import { getObserveState } from '../components/hooks/usePerspective';
 
 const POLLING_INTERVAL_MS = 15 * 1000; // 15 seconds
 
-export const useAlerts = (props?: { overrideNamespace?: string }) => {
+export const useAlerts = (props?: { dontUseTenancy?: boolean }) => {
   // Retrieve external information which dictates which alerts to load and use
   const { plugin } = useMonitoring();
   const [namespace] = useActiveNamespace();
-  const { prometheus, useAlertsTenancy } = useMonitoring();
-  const { perspective } = usePerspective();
-  const overriddenNamespace = props?.overrideNamespace ? props.overrideNamespace : namespace;
+  const { prometheus, useAlertsTenancy, accessCheckLoading } = useMonitoring();
+  const overriddenNamespace =
+    props?.dontUseTenancy || !useAlertsTenancy ? ALL_NAMESPACES_KEY : namespace;
 
   // Start polling for alerts, rules, and silences
   const { trigger } = useAlertsPoller({
     namespace: overriddenNamespace,
     prometheus,
     useAlertsTenancy,
+    accessCheckLoading,
   });
 
   // Retrieve alerts, rules and silences from the store, which is populated in the poller
@@ -97,16 +98,6 @@ export const useAlerts = (props?: { overrideNamespace?: string }) => {
     return clusterArray.sort();
   }, [silences]);
 
-  // When a user with cluster scoped alerts retrieves alerts from the tenancy API endpoint
-  // the API will still retrun ALL alerts, not just the ones which are available at that tenant
-  // As such we manually filter down the alerts on the frontend
-  const namespacedAlerts = useMemo(() => {
-    if (perspective === 'acm' || namespace === ALL_NAMESPACES_KEY) {
-      return alerts;
-    }
-    return alerts?.filter((alert) => alert.labels?.namespace === namespace);
-  }, [alerts, perspective, namespace]);
-
   return {
     trigger,
     additionalAlertSourceLabels,
@@ -116,7 +107,7 @@ export const useAlerts = (props?: { overrideNamespace?: string }) => {
     rulesAlertLoading,
     rules,
     silences,
-    alerts: namespacedAlerts,
+    alerts,
   };
 };
 
@@ -124,10 +115,12 @@ const useAlertsPoller = ({
   namespace,
   prometheus,
   useAlertsTenancy,
+  accessCheckLoading,
 }: {
   namespace?: string;
   prometheus: Prometheus;
   useAlertsTenancy: boolean;
+  accessCheckLoading: boolean;
 }) => {
   const dispatch = useDispatch();
   const [customExtensions] =
@@ -148,14 +141,27 @@ const useAlertsPoller = ({
     prometheusUrlProps: { endpoint: PrometheusEndpoint.RULES, namespace },
     basePath: getPrometheusBasePath({ prometheus, useTenancyPath: useAlertsTenancy }),
   });
-  const silencesUrl = getAlertmanagerSilencesUrl({ prometheus, namespace });
+  const silencesUrl = getAlertmanagerSilencesUrl({
+    prometheus,
+    namespace,
+    useTenancyPath: useAlertsTenancy,
+  });
 
   const fetchDispatch = () =>
-    dispatch(fetchAlertingData(prometheus, namespace, rulesUrl, alertsSource, silencesUrl));
+    dispatch(
+      fetchAlertingData(
+        prometheus,
+        namespace,
+        rulesUrl,
+        alertsSource,
+        silencesUrl,
+        !accessCheckLoading, // Wait to poll until we know which endpoint to use
+      ),
+    );
 
   const dependencies = useMemo(
-    () => [namespace, rulesUrl, silencesUrl],
-    [namespace, rulesUrl, silencesUrl],
+    () => [namespace, rulesUrl, silencesUrl, useAlertsTenancy, accessCheckLoading],
+    [namespace, rulesUrl, silencesUrl, useAlertsTenancy, accessCheckLoading],
   );
 
   usePoll(fetchDispatch, POLLING_INTERVAL_MS, dependencies);
