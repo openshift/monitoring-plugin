@@ -32,9 +32,11 @@ Selector labels
 {{- if or (.Values.plugin.features.acm.enabled) (.Values.plugin.features.incidents.enabled) }}
 app: {{ .Values.plugin.features.name }}
 app.kubernetes.io/name: {{ .Values.plugin.features.name }}
+app.kubernetes.io/component: {{ .Values.plugin.features.name }}
 app.kubernetes.io/part-of: {{ .Values.plugin.features.name }}
 {{- else }}
 app: {{ include "openshift-console-plugin.name" . }}
+app.kubernetes.io/component: {{ .Values.plugin.features.name }}
 app.kubernetes.io/name: {{ include "openshift-console-plugin.name" . }}
 app.kubernetes.io/part-of: {{ include "openshift-console-plugin.name" . }}
 {{- end }}
