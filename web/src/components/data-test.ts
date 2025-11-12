@@ -19,6 +19,8 @@ export const DataTestIDs = {
   ExpireXSilencesButton: 'expire-x-silences-button',
   Expression: 'expression',
   KebabDropdownButton: 'kebab-dropdown-button',
+  MastHeadHelpIcon: 'help-dropdown-toggle',
+  MastHeadApplicationItem: 'application-launcher-item',
   MetricGraph: 'metric-graph',
   MetricGraphNoDatapointsFound: 'datapoints-msg',
   MetricGraphTimespanDropdown: 'graph-timespan-dropdown',
@@ -51,7 +53,11 @@ export const DataTestIDs = {
   MetricsPageYellowNoDatapointsFound: 'yellow-no-datapoints-found',
   NameInput: 'name-filter-input',
   NameLabelDropdown: 'console-select-menu-toggle',
+  NamespaceDropdownMenuLink: 'dropdown-menu-item-link',
   NameLabelDropdownOptions: 'console-select-item',
+  NamespaceDropdownShowSwitch: 'showSystemSwitch',
+  NamespaceDropdownTextFilter: 'dropdown-text-filter',
+  PersesDashboardDropdown: 'dashboard-dropdown',
   SeverityBadgeHeader: 'severity-badge-header',
   SeverityBadge: 'severity-badge',
   SilenceAlertDropdownItem: 'silence-alert-dropdown-item',
@@ -160,6 +166,8 @@ export const LegacyDashboardPageTestIDs = {
 export const LegacyTestIDs = {
   ItemFilter: 'item-filter',
   SelectAllSilencesCheckbox: 'select-all-silences-checkbox',
+  PersesDashboardSection: 'dashboard',
+  NamespaceBarDropdown: 'namespace-bar-dropdown',
 };
 
 export const IDs = {
@@ -192,6 +200,7 @@ export const Classes = {
   MetricsPageUngraphableResultsDescription: '.pf-v6-c-empty-state__body',
   MetricsPageQueryAutocomplete: '.cm-tooltip-autocomplete.cm-tooltip.cm-tooltip-below',
   MoreLessTag: '.pf-v6-c-label-group__label, .pf-v5-c-chip-group__label',
+  NamespaceDropdown: '.pf-v6-c-menu-toggle.co-namespace-dropdown__menu-toggle',
   SectionHeader: '.pf-v6-c-title.pf-m-h2, .co-section-heading',
   TableHeaderColumn: '.pf-v6-c-table__button, .pf-c-table__button',
   SilenceAlertTitle: '.pf-v6-c-alert__title, .pf-v5-c-alert__title',
@@ -203,4 +212,18 @@ export const Classes = {
   SilenceKebabDropdown: '.pf-v6-c-menu-toggle.pf-m-plain, .pf-v5-c-dropdown__toggle.pf-m-plain',
   SilenceLabelRow: '.pf-v6-l-grid.pf-m-all-12-col-on-sm.pf-m-all-4-col-on-md.pf-m-gutter, .row',
   SilenceState: '.pf-v6-l-stack__item, .co-break-word',
+};
+
+export const persesAriaLabels = {
+  TimeRangeDropdown: 'Select time range. Currently set to [object Object]',
+  RefreshButton: 'Refresh',
+  RefreshIntervalDropdown: 'Select refresh interval. Currently set to 0s',
+  ZoomInButton: 'Zoom in',
+  ZoomOutButton: 'Zoom out',
+};
+
+export const persesDataTestIDs = {
+  variableDropdown: 'variable',
+  panelGroupHeader: 'panel-group-header',
+  panelHeader: 'panel',
 };

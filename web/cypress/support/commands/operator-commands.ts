@@ -250,17 +250,25 @@ const operatorUtils = {
 
   waitForCOOReady(MCP: { namespace: string }): void {
     cy.log('Check Cluster Observability Operator status');
-    cy.exec(
-      `sleep 15 && oc wait --for=condition=Ready pods --selector=app.kubernetes.io/name=observability-operator -n ${MCP.namespace} --timeout=60s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
-      {
-        timeout: readyTimeoutMilliseconds,
-        failOnNonZeroExit: true
-      }
-    ).then((result) => {
-      expect(result.code).to.eq(0);
-      cy.log(`Observability-operator pod is now running in namespace: ${MCP.namespace}`);
-    });
 
+    cy.exec(`sleep 60 && oc get pods -n ${MCP.namespace} | grep observability-operator | awk '{print $1}'`, { timeout: readyTimeoutMilliseconds, failOnNonZeroExit: true })
+    .its('stdout') // Get the captured output string
+    .then((podName) => {
+      // Trim any extra whitespace (newline, etc.)
+      const COO_POD_NAME = podName.trim();
+      cy.log(`Successfully retrieved Pod Name: ${COO_POD_NAME}`);
+      cy.exec(
+        `sleep 15 && oc wait --for=condition=Ready pods ${COO_POD_NAME} -n ${MCP.namespace} --timeout=60s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+        {
+          timeout: readyTimeoutMilliseconds,
+          failOnNonZeroExit: true
+        }
+      ).then((result) => {
+        expect(result.code).to.eq(0);
+        cy.log(`Observability-operator pod is now running in namespace: ${MCP.namespace}`);
+      });
+    });
+    
     cy.get('#page-sidebar').then(($sidebar) => {
       const section = $sidebar.text().includes('Ecosystem') ? 'Ecosystem' : 'Operators';
       nav.sidenav.clickNavLink([section, 'Installed Operators']);
