@@ -15,6 +15,9 @@ export CYPRESS_KUBECONFIG_PATH=~/Downloads/kubeconfig
 # Set the following var to use custom Monitoring Plugin image (that goes on Cluster Monitoring Operator). The image will be patched in CMO CSV.
 export CYPRESS_MP_IMAGE=<Monitoring Plugin image>
 
+# Set the following var to specify the Cluster Observability Operator namespace (defaults to openshift-cluster-observability-operator if not set)
+export CYPRESS_COO_NAMESPACE=openshift-cluster-observability-operator
+
 # Set the var to skip Cluster Observability and all the required operators installation.
 export CYPRESS_SKIP_COO_INSTALL=false
 
