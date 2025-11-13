@@ -9,7 +9,6 @@ import {
   ResourceIcon,
   ResourceLink,
   Rule,
-  useActiveNamespace,
   useResolvedExtensions,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
@@ -90,6 +89,7 @@ import {
 import { DataTestIDs } from '../data-test';
 import { useAlerts } from '../../hooks/useAlerts';
 import { useMonitoring } from '../../hooks/useMonitoring';
+import { useQueryNamespace } from '../hooks/useQueryNamespace';
 
 const AlertsDetailsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -101,7 +101,7 @@ const AlertsDetailsPage_: FC = () => {
 
   const { alerts, rulesAlertLoading, silences } = useAlerts();
 
-  const [namespace] = useActiveNamespace();
+  const { namespace } = useQueryNamespace();
 
   const hideGraphs = useSelector(
     (state: MonitoringState) => !!getObserveState(plugin, state).hideGraphs,
@@ -159,7 +159,7 @@ const AlertsDetailsPage_: FC = () => {
           <PageBreadcrumb hasBodyWrapper={false}>
             <Breadcrumb>
               <BreadcrumbItem>
-                <Link to={getAlertsUrl(perspective, namespace)} data-test={DataTestIDs.Breadcrumb}>
+                <Link to={getAlertsUrl(perspective)} data-test={DataTestIDs.Breadcrumb}>
                   {t('Alerts')}
                 </Link>
               </BreadcrumbItem>
@@ -193,7 +193,7 @@ const AlertsDetailsPage_: FC = () => {
               {state !== AlertStates.Silenced && (
                 <SplitItem>
                   <Button
-                    onClick={() => navigate(getNewSilenceAlertUrl(perspective, alert, namespace))}
+                    onClick={() => navigate(getNewSilenceAlertUrl(perspective, alert))}
                     variant="primary"
                     data-test={DataTestIDs.SilenceButton}
                   >
@@ -370,7 +370,7 @@ const AlertsDetailsPage_: FC = () => {
                         </FlexItem>
                         <FlexItem>
                           <Link
-                            to={getRuleUrl(perspective, rule, namespace)}
+                            to={getRuleUrl(perspective, rule)}
                             data-test={DataTestIDs.AlertingRuleResourceLink}
                           >
                             {_.get(rule, 'name')}
@@ -383,7 +383,7 @@ const AlertsDetailsPage_: FC = () => {
               </GridItem>
             </Grid>
           </PageSection>
-          {silences.loaded && !_.isEmpty(alert?.silencedBy) && (
+          {silences?.loaded && !_.isEmpty(alert?.silencedBy) && (
             <>
               <Divider />
               <PageSection hasBodyWrapper={false}>

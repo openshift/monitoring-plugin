@@ -5,7 +5,7 @@ import { PrometheusEndpoint, PrometheusResponse } from '@openshift-console/dynam
 import { Bullseye, Title } from '@patternfly/react-core';
 
 import ErrorAlert from './error';
-import { getPrometheusBasePath, buildPrometheusUrl } from '../../utils';
+import { getPrometheusBasePath, buildPrometheusUrl, ALL_NAMESPACES_KEY } from '../../utils';
 import { usePoll } from '../../console/utils/poll-hook';
 import { useSafeFetch } from '../../console/utils/safe-fetch-hook';
 
@@ -118,10 +118,11 @@ const SingleStat: FC<Props> = ({ customDataSource, namespace, panel, pollInterva
     prometheusUrlProps: {
       endpoint: PrometheusEndpoint.QUERY,
       query,
-      namespace: namespace,
+      namespace,
     },
     basePath: getPrometheusBasePath({
       prometheus: 'cmo',
+      useTenancyPath: namespace !== ALL_NAMESPACES_KEY,
       basePathOverride: customDataSource?.basePath,
     }),
   });

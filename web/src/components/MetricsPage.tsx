@@ -114,8 +114,7 @@ import {
   t_global_spacer_sm,
   t_global_font_family_mono,
 } from '@patternfly/react-tokens';
-import { QueryParamProvider, StringParam, useQueryParam } from 'use-query-params';
-import { ReactRouter5Adapter } from 'use-query-params/adapters/react-router-5';
+import { StringParam, useQueryParam } from 'use-query-params';
 import { GraphUnits, isGraphUnit } from './metrics/units';
 import { SimpleSelect, SimpleSelectOption } from '@patternfly/react-templates';
 import { valueFormatter } from './console/console-shared/src/components/query-browser/QueryBrowserTooltip';
@@ -123,6 +122,7 @@ import { ALL_NAMESPACES_KEY } from './utils';
 import { MonitoringProvider } from '../contexts/MonitoringContext';
 import { DataTestIDs } from './data-test';
 import { useMonitoring } from '../hooks/useMonitoring';
+import { useQueryNamespace } from './hooks/useQueryNamespace';
 
 // Stores information about the currently focused query input
 let focusedQuery;
@@ -675,7 +675,7 @@ export const QueryTable: FC<QueryTableProps> = ({ index, namespace, customDataso
           },
           basePath: getPrometheusBasePath({
             prometheus: 'cmo',
-            namespace,
+            useTenancyPath: namespace !== ALL_NAMESPACES_KEY,
             basePathOverride: customDatasource?.basePath,
           }),
         }),
@@ -1278,14 +1278,7 @@ const GraphUnitsDropDown: FC = () => {
 const MetricsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const [units, setUnits] = useQueryParam(QueryParams.Units, StringParam);
-  const [queryNamespace, setQueryNamespace] = useQueryParam(QueryParams.Namespace, StringParam);
-  const [activeNamespace, setActiveNamespace] = useActiveNamespace();
-
-  useEffect(() => {
-    if (queryNamespace && activeNamespace !== queryNamespace) {
-      setActiveNamespace(queryNamespace);
-    }
-  }, [queryNamespace, activeNamespace, setActiveNamespace]);
+  const { setNamespace } = useQueryNamespace();
 
   const dispatch = useDispatch();
 
@@ -1368,7 +1361,7 @@ const MetricsPage_: FC = () => {
       <NamespaceBar
         onNamespaceChange={(namespace) => {
           dispatch(queryBrowserDeleteAllQueries());
-          setQueryNamespace(namespace);
+          setNamespace(namespace);
         }}
       />
       <ListPageHeader title={t('Metrics')}>
@@ -1427,9 +1420,7 @@ const MetricsPage = withFallback(MetricsPage_);
 export const MpCmoMetricsPage: React.FC = () => {
   return (
     <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
-      <QueryParamProvider adapter={ReactRouter5Adapter}>
-        <MetricsPage />
-      </QueryParamProvider>
+      <MetricsPage />
     </MonitoringProvider>
   );
 };

@@ -652,7 +652,7 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
 
   const canStack = _.sumBy(graphData, 'length') <= maxStacks;
 
-  const [activeNamespace] = useActiveNamespace();
+  const [namespace] = useActiveNamespace();
 
   // If provided, `timespan` overrides any existing span setting
   useEffect(() => {
@@ -678,7 +678,7 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
   // Clear any existing series data when the namespace is changed
   useEffect(() => {
     dispatch(queryBrowserDeleteAllSeries());
-  }, [dispatch, activeNamespace]);
+  }, [dispatch, namespace]);
 
   const tick = () => {
     if (hideGraphs) {
@@ -701,7 +701,7 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
                 prometheusUrlProps: {
                   endpoint: PrometheusEndpoint.QUERY_RANGE,
                   endTime: timeRange.endTime,
-                  namespace: activeNamespace,
+                  namespace,
                   query,
                   samples: Math.ceil(samples / timeRanges.length),
                   timeout: '60s',
@@ -709,7 +709,7 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
                 },
                 basePath: getPrometheusBasePath({
                   prometheus,
-                  namespace: useTenancy ? activeNamespace : '',
+                  useTenancyPath: useTenancy,
                   basePathOverride: customDataSource?.basePath,
                 }),
               }),
@@ -850,7 +850,7 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
     delay,
     endTime,
     filterLabels,
-    activeNamespace,
+    namespace,
     queriesKey,
     samples,
     span,
@@ -858,7 +858,7 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
     showDisconnectedValues,
   );
 
-  useLayoutEffect(() => setUpdating(true), [endTime, activeNamespace, queriesKey, samples, span]);
+  useLayoutEffect(() => setUpdating(true), [endTime, namespace, queriesKey, samples, span]);
 
   const onSpanChange = useCallback(
     (newSpan: number) => {

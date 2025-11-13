@@ -18,7 +18,7 @@ import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import ErrorAlert from './error';
-import { getPrometheusBasePath, buildPrometheusUrl } from '../../utils';
+import { getPrometheusBasePath, buildPrometheusUrl, ALL_NAMESPACES_KEY } from '../../utils';
 import { usePoll } from '../../console/utils/poll-hook';
 import { useSafeFetch } from '../../console/utils/safe-fetch-hook';
 
@@ -91,6 +91,7 @@ const Table: FC<Props> = ({ customDataSource, panel, pollInterval, queries, name
               },
               basePath: getPrometheusBasePath({
                 prometheus: 'cmo',
+                useTenancyPath: namespace !== ALL_NAMESPACES_KEY,
                 basePathOverride: customDataSource?.basePath,
               }),
             }),

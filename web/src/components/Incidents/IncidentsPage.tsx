@@ -65,7 +65,6 @@ import IncidentFilterToolbarItem, {
   useStateOptions,
 } from './ToolbarItemFilter';
 import { MonitoringProvider } from '../../contexts/MonitoringContext';
-import { ALL_NAMESPACES_KEY } from '../utils';
 import { isEmpty } from 'lodash-es';
 import { DataTestIDs } from '../data-test';
 import { DocumentTitle } from '@openshift-console/dynamic-plugin-sdk';
@@ -75,7 +74,7 @@ const IncidentsPage = () => {
   const dispatch = useDispatch();
   const location = useLocation();
   const urlParams = useMemo(() => parseUrlParams(location.search), [location.search]);
-  const { rules } = useAlerts({ overrideNamespace: ALL_NAMESPACES_KEY });
+  const { rules } = useAlerts({ dontUseTenancy: true });
   const { theme } = usePatternFlyTheme();
   // loading states
   const [incidentsAreLoading, setIncidentsAreLoading] = useState(true);

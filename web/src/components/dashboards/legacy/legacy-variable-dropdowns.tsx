@@ -23,7 +23,7 @@ import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { SingleTypeaheadDropdown } from '../../console/utils/single-typeahead-dropdown';
-import { getPrometheusBasePath, buildPrometheusUrl } from '../../utils';
+import { getPrometheusBasePath, buildPrometheusUrl, ALL_NAMESPACES_KEY } from '../../utils';
 import { getQueryArgument, setQueryArgument } from '../../console/utils/router';
 import { useSafeFetch } from '../../console/utils/safe-fetch-hook';
 
@@ -48,6 +48,7 @@ export const evaluateVariableTemplate = (
   template: string,
   variables: any,
   timespan: number,
+  namespace: string,
 ): string => {
   if (_.isEmpty(template)) {
     return undefined;
@@ -81,8 +82,11 @@ export const evaluateVariableTemplate = (
         result = undefined;
         return false;
       }
-      const replacement =
+      let replacement =
         v.value === MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY ? '.+' : v.value || '';
+      if (v.name === 'namespace' && namespace !== ALL_NAMESPACES_KEY) {
+        replacement = namespace;
+      }
       result = result.replace(re, replacement);
     }
   });
@@ -103,9 +107,10 @@ const LegacyDashboardsVariableOption = ({ value, isSelected, ...rest }) =>
     </SelectOption>
   );
 
-const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({ id, name, namespace }) => {
+const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({ id, name }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { plugin } = useMonitoring();
+  const [namespace] = useActiveNamespace();
 
   const timespan = useSelector(
     (state: MonitoringState) => getObserveState(plugin, state).dashboards.timespan,
@@ -115,11 +120,12 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({ id, name,
     (state: MonitoringState) => getObserveState(plugin, state).dashboards.variables,
   );
   const variable = variables?.[name] as Variable;
+
   const options = useDeepMemo(() => {
     return variable?.options;
   }, [variable?.options]);
 
-  const query = evaluateVariableTemplate(variable?.query, variables, timespan);
+  const query = evaluateVariableTemplate(variable?.query, variables, timespan, namespace);
 
   const dispatch = useDispatch();
 
@@ -138,7 +144,10 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({ id, name,
         if (!customDataSourceName) {
           return buildPrometheusUrl({
             prometheusUrlProps: prometheusProps,
-            basePath: getPrometheusBasePath({ prometheus: 'cmo' }),
+            basePath: getPrometheusBasePath({
+              prometheus: 'cmo',
+              useTenancyPath: namespace !== ALL_NAMESPACES_KEY,
+            }),
           });
         } else if (extensionsResolved && hasExtensions) {
           const extension = extensions.find(
@@ -155,6 +164,7 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({ id, name,
             prometheusUrlProps: prometheusProps,
             basePath: getPrometheusBasePath({
               prometheus: 'cmo',
+              useTenancyPath: namespace !== ALL_NAMESPACES_KEY,
               basePathOverride: dataSource?.basePath,
             }),
           });
@@ -165,7 +175,7 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({ id, name,
         setIsError(true);
       }
     },
-    [customDataSourceName, extensions, extensionsResolved, hasExtensions],
+    [customDataSourceName, extensions, extensionsResolved, hasExtensions, namespace],
   );
 
   useEffect(() => {
@@ -309,7 +319,6 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({ id, name,
 
 // Expects to be inside of a Patternfly Split Component
 export const LegacyDashboardsAllVariableDropdowns: FC = () => {
-  const [namespace] = useActiveNamespace();
   const { plugin } = useMonitoring();
 
   const variables = useSelector(
@@ -323,7 +332,7 @@ export const LegacyDashboardsAllVariableDropdowns: FC = () => {
   return (
     <Split hasGutter isWrappable>
       {Object.keys(variables).map((name: string) => (
-        <LegacyDashboardsVariableDropdown id={name} key={name} name={name} namespace={namespace} />
+        <LegacyDashboardsVariableDropdown id={name} key={name} name={name} />
       ))}
     </Split>
   );
@@ -342,5 +351,4 @@ export type Variable = {
 type VariableDropdownProps = {
   id: string;
   name: string;
-  namespace?: string;
 };

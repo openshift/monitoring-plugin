@@ -346,9 +346,10 @@ export const PromQLExpressionInput: FC<PromQLExpressionInputProps> = ({
     // If we are using the tenancy path, then add the namespace as a query parameter at the end of
     // the url
     const namespaceQueryParam = namespace !== ALL_NAMESPACES_KEY ? `?namespace=${namespace}` : '';
-    const url = `${getPrometheusBasePath({ namespace, prometheus })}/${
-      PrometheusEndpoint.LABEL
-    }/__name__/values${namespaceQueryParam}`;
+    const url = `${getPrometheusBasePath({
+      useTenancyPath: namespace !== ALL_NAMESPACES_KEY,
+      prometheus,
+    })}/${PrometheusEndpoint.LABEL}/__name__/values${namespaceQueryParam}`;
     safeFetch<LabelNamesResponse>(url)
       .then((response) => {
         const metrics = response?.data;

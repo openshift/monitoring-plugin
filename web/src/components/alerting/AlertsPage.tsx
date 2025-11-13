@@ -32,8 +32,10 @@ import useSelectedFilters from './useSelectedFilters';
 import { MonitoringProvider } from '../../contexts/MonitoringContext';
 import { useAlerts } from '../../hooks/useAlerts';
 import { AccessDenied } from '../console/console-shared/src/components/empty-state/AccessDenied';
+import { useMonitoring } from '../../hooks/useMonitoring';
 
 const AlertsPage_: FC = () => {
+  const { useAlertsTenancy } = useMonitoring();
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const [namespace] = useActiveNamespace();
   const { defaultAlertTenant, perspective } = usePerspective();
@@ -104,7 +106,7 @@ const AlertsPage_: FC = () => {
         fuzzyCaseInsensitive(clusterName, alert.labels?.cluster),
       type: 'alert-cluster',
     } as RowFilter);
-  } else if (namespace && namespace !== ALL_NAMESPACES_KEY) {
+  } else if (useAlertsTenancy && namespace && namespace !== ALL_NAMESPACES_KEY) {
     rowFilters = rowFilters.filter((filter) => filter.type !== 'alert-source');
   }
 
