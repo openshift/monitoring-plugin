@@ -91,7 +91,6 @@ const mapPatterflyThemeToMUI = (theme: 'light' | 'dark'): ThemeOptions => {
       },
       h2: {
         // Panel Group Heading
-        color: 'var(--pf-t--global--text--color--brand--default)',
         fontWeight: 'var(--pf-t--global--font--weight--body--default)',
         fontSize: 'var(--pf-t--global--font--size--600)',
       },
@@ -243,6 +242,81 @@ const mapPatterflyThemeToMUI = (theme: 'light' | 'dark'): ThemeOptions => {
             '&.MuiTabs-indicator': {
               backgroundColor: isDark ? patternflyBlue100 : patternflyBlue300,
             },
+          },
+        },
+      },
+      MuiDrawer: {
+        styleOverrides: {
+          paper: {
+            // Editing Variables Panel
+            '&.MuiDrawer-paper.MuiDrawer-paperAnchorRight': {
+              borderTopLeftRadius: 'var(--pf-t--global--border--radius--medium) !important',
+              borderBottomLeftRadius: 'var(--pf-t--global--border--radius--medium) !important',
+              borderTopRightRadius: '0 !important',
+              borderBottomRightRadius: '0 !important',
+            },
+            '&.MuiDrawer-paper.MuiDrawer-paperAnchorLeft': {
+              borderTopRightRadius: 'var(--pf-t--global--border--radius--medium) !important',
+              borderBottomRightRadius: 'var(--pf-t--global--border--radius--medium) !important',
+              borderTopLeftRadius: '0 !important',
+              borderBottomLeftRadius: '0 !important',
+            },
+            // Editing Variable Panel - drawer cancel button
+            '& .MuiButton-colorSecondary': {
+              borderRadius: 'var(--pf-t--global--border--radius--pill) !important',
+            },
+          },
+        },
+      },
+      MuiAccordion: {
+        styleOverrides: {
+          root: {
+            // Editing Variables Panel
+            borderRadius: 'var(--pf-t--global--border--radius--medium) !important',
+            '&.MuiAccordion-root': {
+              borderRadius: 'var(--pf-t--global--border--radius--medium) !important',
+            },
+            // Hide the separator line above accordion
+            '&::before': {
+              opacity: '0 !important',
+            },
+            backgroundColor:
+              'var(--pf-t--global--background--color--action--plain--default) !important',
+          },
+        },
+      },
+      MuiAccordionSummary: {
+        styleOverrides: {
+          root: {
+            // Editing Variables Panel - accordion header
+            borderRadius: 'var(--pf-t--global--border--radius--medium) !important',
+            backgroundColor: 'var(--pf-t--global--background--color--floating--default) !important',
+            '&.Mui-expanded': {
+              borderBottomLeftRadius: '0 !important',
+              borderBottomRightRadius: '0 !important',
+              borderTopLeftRadius: 'var(--pf-t--global--border--radius--medium) !important',
+              borderTopRightRadius: 'var(--pf-t--global--border--radius--medium) !important',
+            },
+          },
+        },
+      },
+      MuiAccordionDetails: {
+        styleOverrides: {
+          root: {
+            // Editing Variables Panel - accordion contents
+            backgroundColor: 'var(--pf-t--global--background--color--floating--default) !important',
+            borderBottomLeftRadius: 'var(--pf-t--global--border--radius--medium) !important',
+            borderBottomRightRadius: 'var(--pf-t--global--border--radius--medium) !important',
+            borderTopLeftRadius: '0 !important',
+            borderTopRightRadius: '0 !important',
+          },
+        },
+      },
+      MuiTableCell: {
+        styleOverrides: {
+          root: {
+            // Uniform font weight in all table cells
+            fontWeight: 'var(--pf-t--global--font--weight--body--default) !important',
           },
         },
       },
