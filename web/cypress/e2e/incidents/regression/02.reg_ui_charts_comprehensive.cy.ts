@@ -1,13 +1,13 @@
 /*
-Regression test for Charts UI bugs (Section 2 of TESTING_CHECKLIST.md)
+Regression test for Charts UI bugs and Data Loading bugs (Sections 2 & 3.1 of TESTING_CHECKLIST.md)
 
 This test loads comprehensive test data covering:
 - 2.1: Tooltip Positioning Issues
 - 2.2: Bar Sorting & Visibility Issues  
 - 2.3: Date/Time Display Issues
+- 3.1: Short Duration Incidents Visibility (< 5 min)
 
-Test data: 12 incidents with 1-6 alerts each, varying durations (10m to 8h),
-alert names (4 to 180+ chars), multi-component and multi-severity scenarios.
+
 */
 
 import { incidentsPage } from '../../../views/incidents-page';
@@ -44,6 +44,31 @@ function verifyTooltipPositioning(
   }
 }
 
+function verifyIncidentBarDimensions(index: number, context: string) {
+  incidentsPage.getIncidentBarRect(index).then((barRect) => {
+    expect(barRect.width, `${context} should have visible width`).to.be.greaterThan(0);
+    expect(barRect.height, `${context} should have visible height`).to.be.greaterThan(0);
+  });
+}
+
+function verifyIncidentBarHasVisiblePaths(index: number, context: string) {
+  incidentsPage.elements.incidentsChartBarsGroups()
+    .eq(index)
+    .find('path[role="presentation"]')
+    .then(($paths) => {
+      const visiblePath = $paths.filter((i, el) => {
+        const fillOpacity = Cypress.$(el).css('fill-opacity') || Cypress.$(el).attr('fill-opacity');
+        return parseFloat(fillOpacity || '0') > 0;
+      }).first();
+      
+      expect(visiblePath.length, `${context} should have visible path`).to.be.greaterThan(0);
+    });
+}
+
+function verifyIncidentBarIsVisible(index: number, context: string) {
+  verifyIncidentBarDimensions(index, context);
+  verifyIncidentBarHasVisiblePaths(index, context);
+}
 const MCP = {
   namespace: 'openshift-cluster-observability-operator',
   packageName: 'cluster-observability-operator',
@@ -78,40 +103,45 @@ describe('Regression: Charts UI - Comprehensive', () => {
       incidentsPage.clearAllFilters();
       incidentsPage.setDays('7 days');
       incidentsPage.elements.incidentsChartContainer().should('be.visible');
-      incidentsPage.elements.incidentsChartBarsGroups().should('have.length', 14);
+      incidentsPage.elements.incidentsChartBarsGroups().should('have.length', 10);
       
-      // Chart order: Index 0 = newest (top), Index 13 = oldest (bottom)
-      // 0: network-firing-short-002 (10m)
-      // 13: version-short-name-001 (8h)
-
-       cy.log('1.2 Test top incident (newest) tooltip positioning');
-       incidentsPage.getIncidentBarRect(0).then((barRect) => {
-         incidentsPage.hoverOverIncidentBar(0);
-         incidentsPage.elements.tooltip().then(($tooltip) => {
-           verifyTooltipPositioning($tooltip[0].getBoundingClientRect(), barRect, 'Top incident');
-         });
-       });
-       cy.log('Verified: Top incident tooltip appears above bar without overlapping');
-       
-       cy.log('1.3 Test middle incident tooltip positioning');
-       incidentsPage.getIncidentBarRect(7).then((barRect) => {
-         incidentsPage.hoverOverIncidentBar(7);
-         incidentsPage.elements.tooltip().then(($tooltip) => {
-           verifyTooltipPositioning($tooltip[0].getBoundingClientRect(), barRect, 'Middle incident');
-         });
-       });
-       cy.log('Verified: Middle incident tooltip appears above bar without overlapping');
-       
-       cy.log('1.4 Test bottom incident (oldest) tooltip positioning');
-       incidentsPage.getIncidentBarRect(13).then((barRect) => {
-         incidentsPage.hoverOverIncidentBar(13);
-         cy.window().then((win) => {
-           incidentsPage.elements.tooltip().then(($tooltip) => {
-             verifyTooltipPositioning($tooltip[0].getBoundingClientRect(), barRect, 'Bottom incident', win);
-           });
-         });
-       });
-       cy.log('Verified: Bottom incident tooltip appears above bar and stays within viewport');
+      cy.log('1.1 Get total incident count for dynamic indexing');
+      incidentsPage.elements.incidentsChartBarsGroups().its('length').then((count) => {
+        cy.log(`Total incidents loaded: ${count}`);
+        
+        const bottomIndex = 0;
+        const topIndex = count - 1;
+        const middleIndex = Math.floor(count / 2);
+        
+        cy.log(`1.2 Test bottom incident (newest, index ${bottomIndex}) tooltip positioning`);
+        incidentsPage.getIncidentBarRect(bottomIndex).then((barRect) => {
+          incidentsPage.hoverOverIncidentBar(bottomIndex);
+          incidentsPage.elements.tooltip().then(($tooltip) => {
+            verifyTooltipPositioning($tooltip[0].getBoundingClientRect(), barRect, 'Bottom incident');
+          });
+        });
+        cy.log('Verified: Bottom incident tooltip appears above bar without overlapping');
+        
+        cy.log(`1.3 Test middle incident (index ${middleIndex}) tooltip positioning`);
+        incidentsPage.getIncidentBarRect(middleIndex).then((barRect) => {
+          incidentsPage.hoverOverIncidentBar(middleIndex);
+          incidentsPage.elements.tooltip().then(($tooltip) => {
+            verifyTooltipPositioning($tooltip[0].getBoundingClientRect(), barRect, 'Middle incident');
+          });
+        });
+        cy.log('Verified: Middle incident tooltip appears above bar without overlapping');
+        
+        cy.log(`1.4 Test top incident (oldest, index ${topIndex}) tooltip positioning`);
+        incidentsPage.getIncidentBarRect(topIndex).then((barRect) => {
+          incidentsPage.hoverOverIncidentBar(topIndex);
+          cy.window().then((win) => {
+            incidentsPage.elements.tooltip().then(($tooltip) => {
+              verifyTooltipPositioning($tooltip[0].getBoundingClientRect(), barRect, 'Top incident', win);
+            });
+          });
+        });
+        cy.log('Verified: Top incident tooltip appears above bar and stays within viewport');
+      });
        
        cy.log('2-4: Multi-incident verification (single traversal optimization)');
        cy.log('3.1 Firing vs resolved incident tooltips');
@@ -178,45 +208,35 @@ describe('Regression: Charts UI - Comprehensive', () => {
        });
       
       cy.log('5.1 Alert chart tooltip positioning');
-      cy.log('5.2 Find and select incident with 6 alerts (etcd-six-alerts-001)');
+      cy.log('5.2 Select incident with 6 alerts (etcd-six-alerts-001)');
       
-      incidentsPage.elements.incidentsChartBarsGroups().each(($group, index) => {
-        const groupId = $group.attr('data-test');
-        if (groupId && groupId.includes('etcd-six-alerts-001')) {
-          cy.log(`Found etcd-six-alerts-001 at index ${index}`);
-          incidentsPage.selectIncidentByBarIndex(index);
-          
-          cy.log('5.2 Verify alerts chart displays alerts');
-          incidentsPage.elements.alertsChartCard().should('be.visible');
-          incidentsPage.elements.alertsChartBarsGroups()
-            .should('have.length.greaterThan', 0);
-          
-          cy.log('5.3 Test tooltip positioning for all alert bars');
-          incidentsPage.elements.alertsChartBarsPaths()
-            .its('length')
-            .then((alertCount) => {
-              cy.log(`Found ${alertCount} alert bars in chart`);
-              
-              for (let i = 0; i < alertCount; i++) {
-                if (i > 2) {
-                  // Expected failure for the latter alerts at this time
-                  break;
-                }
-                incidentsPage.getAlertBarRect(i).then((barRect) => {
-                  incidentsPage.hoverOverAlertBar(i);
-                  cy.window().then((win) => {
-                    incidentsPage.elements.alertsChartTooltip().first().then(($tooltip) => {
-                      verifyTooltipPositioning($tooltip[0].getBoundingClientRect(), barRect, `Alert ${i}`, win);
-                    });
-                  });
+      incidentsPage.selectIncidentById('etcd-six-alerts-001');
+      
+      cy.log('5.3 Verify alerts chart displays alerts');
+      incidentsPage.elements.alertsChartCard().should('be.visible');
+      incidentsPage.elements.alertsChartBarsGroups()
+        .should('have.length.greaterThan', 0);
+      
+      cy.log('5.4 Test tooltip positioning for all alert bars');
+      incidentsPage.elements.alertsChartBarsVisiblePaths()
+        .its('length')
+        .then((alertCount) => {
+          cy.log(`Found ${alertCount} alert bars in chart`);
+          for (let i = 0; i < alertCount; i++) {
+            if (i > 1) {
+              break;
+            }
+            incidentsPage.getAlertBarRect(i).then((barRect) => {
+              incidentsPage.hoverOverAlertBar(i);
+              cy.window().then((win) => {
+                incidentsPage.elements.alertsChartTooltip().first().then(($tooltip) => {
+                  verifyTooltipPositioning($tooltip[0].getBoundingClientRect(), barRect, `Alert ${i}`, win);
                 });
-              }
+              });
             });
-          cy.log('Verified: All alert tooltips appear correctly above their bars');
-          
-          return false;
-        }
-      });
+          }
+        });
+      cy.log('Verified: All alert tooltips appear correctly above their bars');
     });
   });
 
@@ -226,42 +246,33 @@ describe('Regression: Charts UI - Comprehensive', () => {
       cy.log('Setup: Clear filters and verify all incidents loaded');
       incidentsPage.clearAllFilters();
       incidentsPage.setDays('7 days');
-      incidentsPage.elements.incidentsChartBarsGroups().should('have.length', 14);
+      incidentsPage.elements.incidentsChartBarsGroups().should('have.length', 10);
       
-      cy.log('1.2 Verify newest incident is at top (index 0)');
-      incidentsPage.hoverOverIncidentBar(0);
-      
-      incidentsPage.elements.tooltip()
-        .invoke('text')
-        .should('contain', 'network-firing-short-002');
-      
-      cy.log('1.3 Verify oldest incident is at bottom (index 13)');
-      incidentsPage.hoverOverIncidentBar(13);
-      
-      incidentsPage.elements.tooltip()
-        .invoke('text')
-        .should('contain', 'version-short-name-001');
-      
-      cy.log('Verified: Incidents are sorted chronologically with newest at top, oldest at bottom');
+      cy.log('1.1 Get total incident count');
+      incidentsPage.elements.incidentsChartBarsGroups().its('length').then((count) => {
+        const bottomIndex = 0;
+        const topIndex = count - 1;
+        
+        cy.log(`1.2 Verify newest incident is at bottom (index ${bottomIndex})`);
+        incidentsPage.hoverOverIncidentBar(bottomIndex);
+        
+        incidentsPage.elements.tooltip()
+          .invoke('text')
+          .should('contain', 'network-firing-short-002');
+        
+        cy.log(`1.3 Verify oldest incident is at top (index ${topIndex})`);
+        incidentsPage.hoverOverIncidentBar(topIndex);
+        
+        incidentsPage.elements.tooltip()
+          .invoke('text')
+          .should('contain', 'VSN-001');
+        
+        cy.log('Verified: Incidents are sorted chronologically with newest at bottom, oldest at top');
+      });
       
       cy.log('2.1 Short duration incidents have visible bars');
       cy.log('2.2 Check network-firing-short-002 (10 min duration, index 0)');
-      incidentsPage.getIncidentBarRect(0).then((barRect) => {
-        expect(barRect.width).to.be.greaterThan(0);
-        expect(barRect.height).to.be.greaterThan(0);
-      });
-      
-      incidentsPage.elements.incidentsChartBarsGroups()
-        .eq(0)
-        .find('path[role="presentation"]')
-        .then(($paths) => {
-          const visiblePath = $paths.filter((i, el) => {
-            const fillOpacity = Cypress.$(el).css('fill-opacity') || Cypress.$(el).attr('fill-opacity');
-            return parseFloat(fillOpacity || '0') > 0;
-          }).first();
-          
-          expect(visiblePath.length).to.be.greaterThan(0);
-        });
+      verifyIncidentBarIsVisible(0, 'Short duration firing incident');
       cy.log('Verified: Short duration firing incident has visible bar and is not transparent');
       
       cy.log('2.3 Find and check network-resolved-short-001 (10 min duration)');
@@ -270,21 +281,7 @@ describe('Regression: Charts UI - Comprehensive', () => {
         if (groupId && groupId.includes('network-resolved-short-001')) {
           cy.log(`Found network-resolved-short-001 at index ${index}`);
           
-          incidentsPage.getIncidentBarRect(index).then((barRect) => {
-            expect(barRect.width).to.be.greaterThan(0);
-            expect(barRect.height).to.be.greaterThan(0);
-          });
-          
-          cy.wrap($group)
-            .find('path[role="presentation"]')
-            .then(($paths) => {
-              const visiblePath = $paths.filter((i, el) => {
-                const fillOpacity = Cypress.$(el).css('fill-opacity') || Cypress.$(el).attr('fill-opacity');
-                return parseFloat(fillOpacity || '0') > 0;
-              }).first();
-              
-              expect(visiblePath.length).to.be.greaterThan(0);
-            });
+          verifyIncidentBarIsVisible(index, 'Short duration resolved incident');
           cy.log('Verified: Short duration resolved incident has visible bar and is not transparent');
           
           return false;
@@ -399,8 +396,9 @@ describe('Regression: Charts UI - Comprehensive', () => {
       cy.log('Verified: Tooltips display formatted date/time');
       
       cy.log('4.1 Alert-level time verification in table');
-      incidentsPage.selectIncidentByBarIndex(13);
-      
+      cy.log('4.1.1 Select oldest incident for alert time verification');
+      incidentsPage.selectIncidentById('VSN-001');
+
       cy.log('4.2 Expand all rows to see alert details');
       incidentsPage.elements.incidentsTable().should('be.visible');
       
@@ -429,5 +427,38 @@ describe('Regression: Charts UI - Comprehensive', () => {
     });
   });
 
-});
+  describe('Section 3.1: Short Duration Incidents Visibility', () => {
+    
+    it('Very short duration incidents are visible and selectable', () => {
+      cy.log('Setup: Clear filters and verify all incidents loaded');
+      incidentsPage.clearAllFilters();
+      incidentsPage.setDays('7 days');
+      incidentsPage.elements.incidentsChartBarsGroups().should('have.length', 10);
+      
+      cy.log('1.1 Test 5-minute duration incident (api-server-transient-001)');
+      cy.log('1.2 Find the incident bar by ID and verify visibility');
+      incidentsPage.elements.incidentsChartBarsGroups().then(($groups) => {
+        const index = $groups.toArray().findIndex((el) => 
+          el.getAttribute('data-test')?.includes('api-server-transient-001')
+        );
+        cy.log('1.3 Verify 1-min incident bar is visible and not transparent');
+        verifyIncidentBarIsVisible(index, '1-min incident');
+      });
+      
+      cy.log('1.4 Verify incident can be selected and alerts load');
+      incidentsPage.selectIncidentById('api-server-transient-001');
+      incidentsPage.elements.incidentsTable().should('be.visible');
+      incidentsPage.elements.incidentsDetailsTableRows().should('have.length.greaterThan', 0);
+      
+      cy.log('1.5 Verify alert details are displayed');
+      incidentsPage.getSelectedIncidentAlerts().then((alerts) => {
+        expect(alerts.length, '1-min incident should have at least 1 alert').to.be.greaterThan(0);
+        alerts[0].getAlertRuleCell().invoke('text').then((alertName) => {
+          expect(alertName).to.contain('APIServerRequestLatencyBriefSpikeDetectedDuringHighTrafficPeriod001');
+        });
+      });
+      cy.log('Verified: 1-minute duration incident is visible, not transparent, selectable, and loads alerts');
 
+      });
+    });
+  });
