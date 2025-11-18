@@ -20,6 +20,12 @@ Located in `e2e/coo/`
 |------|------------|---------------|-------------|
 | `01.coo_bvt.cy.ts` | BVT: COO | 1. Admin perspective - Observe Menu | Verifies Observe menu navigation and submenus (Alerting, Silences, Alerting rules, Dashboards (Perses)) |
 
+### ACM Alerting UI Tests
+
+| File | Test Suite | Test Scenario | Description |
+|------|------------|---------------|-------------|
+| `02.acm_alerting_ui.cy.ts` | ACM Alerting UI | 1. Fleet Management perspective - ACM Alerting | Validates ACM integration with COO, Fleet Management perspective navigation, local-cluster access, and ACM alert visibility (Watchdog, Watchdog-spoke, ClusterCPUHealth) |
+
 ---
 
 ## Virtualization Tests
@@ -175,22 +181,11 @@ These test scenarios are reusable test suites called by the main E2E test files.
 
 ---
 
-## Test Statistics Summary
-
-| Category | Test Files | Direct it() Scenarios | Support Module Scenarios | Total Scenarios |
-|----------|------------|----------------------|-------------------------|-----------------|
-| **COO Tests** | 1 | 1 | 0 | 1 |
-| **Virtualization Tests** | 4 | 6 | ~30+ (via support modules) | ~36+ |
-| **Monitoring Tests** | 4 | 9 | ~30+ (via support modules) | ~39+ |
-| **Support Modules** | 8 | 0 | 39 | 39 |
-| **TOTAL** | **20** | **29** | **39** | **~128+** |
-
----
-
 ## Perspectives Tested
 
 - **Administrator** - Standard admin perspective with full cluster access
 - **Virtualization** - Virtualization-specific perspective with integrated monitoring
+- **Fleet Management** - ACM multi-cluster management perspective with observability integration
 
 ## Namespace Scopes
 

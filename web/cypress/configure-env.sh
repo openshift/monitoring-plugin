@@ -99,7 +99,9 @@ ask_yes_no() {
 bool_to_default_yn() {
   # Map truthy/falsey env values to y/n default for yes/no prompts
   local v=${1-}
-  case "${v,,}" in
+  # Convert to lowercase in a portable way
+  v=$(echo "$v" | tr '[:upper:]' '[:lower:]')
+  case "$v" in
     true|1|yes|y) echo "y" ;;
     false|0|no|n|"") echo "n" ;;
     *) echo "n" ;;
