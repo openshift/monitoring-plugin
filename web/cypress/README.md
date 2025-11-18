@@ -38,6 +38,11 @@ Set the following var to use custom Monitoring Plugin image (that goes on Cluste
 export CYPRESS_MP_IMAGE=<Monitoring Plugin image>
 ```
 
+Set the following var to specify the Cluster Observability Operator namespace. Defaults to `openshift-cluster-observability-operator` if not set. This is useful when testing with different namespace configurations (e.g., using `coo` instead of the default).
+```bash
+export CYPRESS_COO_NAMESPACE=openshift-cluster-observability-operator
+```
+
 Set the var to skip Cluster Observability and all the required operators installation.
 ```bash
 export CYPRESS_SKIP_COO_INSTALL=true
