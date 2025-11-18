@@ -99,6 +99,10 @@ start-feature-console:
 start-feature-backend:
 	go run ./cmd/plugin-backend.go -port='9443' -config-path='./config' -static-path='./web/dist' -features='${FEATURES}'
 
+.PHONY: start-devspace-backend
+start-devspace-backend:
+	/opt/app-root/plugin-backend -port='9443' -cert='/var/cert/tls.crt' -key='/var/cert/tls.key' -static-path='/opt/app-root/web/dist' -config-path='/opt/app-root/config' -features='${FEATURES}'
+
 .PHONY: podman-cross-build
 podman-cross-build:
 	podman manifest create ${IMAGE}
