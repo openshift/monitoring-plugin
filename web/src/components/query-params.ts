@@ -9,5 +9,5 @@ export enum QueryParams {
   Units = 'units',
   // Use openshift-namespace query parameter for dashboards page since grafana variables cannot have
   // a `-` character in their name
-  OpenshiftProject = 'openshift-project',
+  OpenshiftProject = 'project-dropdown-value',
 }
