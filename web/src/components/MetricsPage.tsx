@@ -1,5 +1,6 @@
 import {
   DocumentTitle,
+  ListPageHeader,
   PrometheusData,
   PrometheusEndpoint,
   PrometheusLabels,
@@ -1231,14 +1232,8 @@ const MetricsPage_: React.FC = () => {
   return (
     <>
       <DocumentTitle>{t('Metrics')}</DocumentTitle>
-      <PageSection hasBodyWrapper={false}>
+      <ListPageHeader title={perspective !== 'dev' ? t('Metrics') : ''}>
         <Split hasGutter>
-          {perspective !== 'dev' && (
-            <SplitItem>
-              <Title headingLevel="h1">{t('Metrics')}</Title>
-            </SplitItem>
-          )}
-          <SplitItem isFilled />
           <SplitItem>
             <IntervalDropdown />
           </SplitItem>
@@ -1246,7 +1241,7 @@ const MetricsPage_: React.FC = () => {
             <MetricsActionsMenu />
           </SplitItem>
         </Split>
-      </PageSection>
+      </ListPageHeader>
       <PageSection hasBodyWrapper={false}>
         <Stack hasGutter>
           <StackItem>

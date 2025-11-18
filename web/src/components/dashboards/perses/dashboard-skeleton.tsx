@@ -1,16 +1,8 @@
 import * as _ from 'lodash-es';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { DocumentTitle } from '@openshift-console/dynamic-plugin-sdk';
-import {
-  Divider,
-  PageSection,
-  Split,
-  SplitItem,
-  Stack,
-  StackItem,
-  Title,
-} from '@patternfly/react-core';
+import { DocumentTitle, ListPageHeader } from '@openshift-console/dynamic-plugin-sdk';
+import { Divider, PageSection, Split, SplitItem, Stack, StackItem } from '@patternfly/react-core';
 import {
   DashboardStickyToolbar,
   useDashboardActions,
@@ -25,18 +17,13 @@ const HeaderTop: React.FC = React.memo(() => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
-    <Split hasGutter isWrappable>
-      <SplitItem isFilled>
-        <Title headingLevel="h1">{t('Dashboards')}</Title>
-      </SplitItem>
-      <SplitItem>
-        <Split hasGutter isWrappable>
-          <SplitItem>
-            <TimeRangeControls />
-          </SplitItem>
-        </Split>
-      </SplitItem>
-    </Split>
+    <ListPageHeader title={t('Dashboards')}>
+      <Split hasGutter isWrappable>
+        <SplitItem>
+          <TimeRangeControls />
+        </SplitItem>
+      </Split>
+    </ListPageHeader>
   );
 });
 
@@ -78,8 +65,8 @@ export const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = React.
     return (
       <>
         {perspective !== 'dev' && <DocumentTitle>{t('Metrics dashboards')}</DocumentTitle>}
+        {perspective !== 'dev' && <HeaderTop />}
         <PageSection hasBodyWrapper={false}>
-          {perspective !== 'dev' && <HeaderTop />}
           <Stack hasGutter>
             {!_.isEmpty(boardItems) && (
               <StackItem>
