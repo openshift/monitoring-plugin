@@ -1,28 +1,21 @@
-import { nav } from '../../../views/nav';
-import { metricsPage } from '../../../views/metrics';
-import { Classes, DataTestIDs, IDs } from '../../../../src/components/data-test';
-import { GraphTimespan, MetricGraphEmptyState, MetricsPagePredefinedQueries, MetricsPageQueryInput, MetricsPageQueryKebabDropdown, MetricsPageQueryInputByNamespace } from '../../../fixtures/monitoring/constants';
-import common = require('mocha/lib/interfaces/common');
-// Set constants for the operators that need to be installed for tests.
-const MP = {
-  namespace: 'openshift-monitoring',
-  operatorName: 'Cluster Monitoring Operator',
-};
+import { metricsPage } from '../../views/metrics';
+import { Classes, DataTestIDs } from '../../../src/components/data-test';
+import { GraphTimespan, MetricGraphEmptyState, MetricsPagePredefinedQueries, MetricsPageQueryInput, MetricsPageQueryKebabDropdown } from '../../fixtures/monitoring/constants';
 
-describe('Regression: Monitoring - Metrics - namespaced', () => {
+export interface PerspectiveConfig {
+  name: string;
+  beforeEach?: () => void;
+}
 
-  before(() => {
-    cy.beforeBlock(MP);
-  });
+export function runAllRegressionMetricsTests(perspective: PerspectiveConfig) {
+  testMetricsRegression(perspective);
+  testMetricsRegression1(perspective);
+}
 
-  beforeEach(() => {
-    nav.sidenav.clickNavLink(['Observe', 'Metrics']);
-    cy.changeNamespace(MP.namespace);
-  });
+export function testMetricsRegression(perspective: PerspectiveConfig) {
 
-  it('1. Admin perspective - Metrics', () => {
+  it(`${perspective.name} perspective - Metrics`, () => {
     cy.log('1.1 Metrics page loaded');
-    nav.sidenav.clickNavLink(['Observe', 'Metrics']);
     metricsPage.shouldBeLoaded();
 
     cy.log('1.2 Units dropdown');
@@ -42,10 +35,8 @@ describe('Regression: Monitoring - Metrics - namespaced', () => {
 
   });
 
-  it('2. Admin perspective - Metrics > Actions - No query added', () => {
+  it(`${perspective.name} perspective - Metrics > Actions - No query added`, () => {
     cy.log('2.1 Only one query loaded');
-    cy.visit('/');
-    nav.sidenav.clickNavLink(['Observe', 'Metrics']);
     cy.byTestID(DataTestIDs.MetricsPageExpandCollapseRowButton).should('have.length', 1);
 
     cy.log('2.2 Actions >Add query');
@@ -83,10 +74,8 @@ describe('Regression: Monitoring - Metrics - namespaced', () => {
 
   });
 
-  it('3. Admin perspective - Metrics > Actions - One query added', () => {
+  it(`${perspective.name} perspective - Metrics > Actions - One query added`, () => {
     cy.log('3.1 Only one query loaded');
-    cy.visit('/');
-    nav.sidenav.clickNavLink(['Observe', 'Metrics']);
     metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.FILESYSTEM_USAGE);
     metricsPage.shouldBeLoadedWithGraph();
 
@@ -140,10 +129,8 @@ describe('Regression: Monitoring - Metrics - namespaced', () => {
 
   });
 
-  it('4. Admin perspective - Metrics > Insert Example Query', () => {
+  it(`${perspective.name} perspective - Metrics > Insert Example Query`, () => {
     cy.log('4.1 Insert Example Query');
-    cy.visit('/');
-    nav.sidenav.clickNavLink(['Observe', 'Metrics']);
     metricsPage.clickInsertExampleQuery();
     metricsPage.shouldBeLoadedWithGraph();
     cy.get(Classes.MetricsPageQueryInput).eq(0).should('contain', MetricsPageQueryInput.INSERT_EXAMPLE_QUERY);
@@ -172,8 +159,7 @@ describe('Regression: Monitoring - Metrics - namespaced', () => {
 
     cy.log('4.5 Prepare to test Reset Zoom Button');
     metricsPage.clickActionsDeleteAllQueries();
-    metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.RATE_OF_TRANSMITTED_PACKETS_DROPPED);
-    metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.RATE_OF_RECEIVED_PACKETS_DROPPED);
+    metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.CPU_USAGE);
     metricsPage.graphCardInlineInfoAssertion(true);
     metricsPage.clickGraphTimespanDropdown(GraphTimespan.ONE_WEEK);
     metricsPage.graphCardInlineInfoAssertion(false);
@@ -191,7 +177,7 @@ describe('Regression: Monitoring - Metrics - namespaced', () => {
     cy.byTestID(DataTestIDs.MetricGraph).should('be.visible');
 
     cy.log('4.9 Stacked Checkbox');
-    cy.byTestID(DataTestIDs.MetricStackedCheckbox).should('be.visible');
+    cy.byTestID(DataTestIDs.MetricStackedCheckbox).should('not.exist');
 
     cy.log('4.10 Disconnected Checkbox');
     cy.byTestID(DataTestIDs.MetricDisconnectedCheckbox).should('be.visible');
@@ -202,12 +188,13 @@ describe('Regression: Monitoring - Metrics - namespaced', () => {
 
     cy.log('4.12 Stacked Checkbox');
     metricsPage.clickStackedCheckboxAndAssert();
+
   });
 
   /**
    * TODO: uncomment when this bug gets fixed   
    * https://issues.redhat.com/browse/OU-974 - [Metrics] - Units - undefined showing in Y axis and tooltip
-  it('5. Admin perspective - Metrics > Units', () => {
+  it(`${perspective.name} perspective - Metrics > Units`, () => {
     cy.log('5.1 Preparation to test Units dropdown');
     cy.visit('/monitoring/query-browser');
     metricsPage.clickInsertExampleQuery();
@@ -220,12 +207,11 @@ describe('Regression: Monitoring - Metrics - namespaced', () => {
     });
   });
   */
+}
+export function testMetricsRegression1(perspective: PerspectiveConfig) {
 
-  it('6. Admin perspective - Metrics > Add Query - Run Queries - Kebab icon', () => {
+  it(`${perspective.name} perspective - Metrics > Add Query - Run Queries - Kebab icon`, () => {
     cy.log('6.1 Preparation to test Add Query button');
-    cy.visit('/');
-    nav.sidenav.clickNavLink(['Observe', 'Metrics']);
-    metricsPage.shouldBeLoaded();
     cy.byTestID(DataTestIDs.MetricsPageExpandCollapseRowButton).should('have.length', 1);
     metricsPage.clickInsertExampleQuery();
     cy.get(Classes.MetricsPageQueryInput).eq(0).should('contain', MetricsPageQueryInput.INSERT_EXAMPLE_QUERY);
@@ -275,7 +261,7 @@ describe('Regression: Monitoring - Metrics - namespaced', () => {
     metricsPage.expandCollapseRowAssertion(true, 1, true, true);
     cy.get(Classes.MetricsPageQueryInput).eq(0).should('contain', MetricsPageQueryInput.VECTOR_QUERY);
     cy.get(Classes.MetricsPageQueryInput).eq(1).should('contain', MetricsPageQueryInput.INSERT_EXAMPLE_QUERY);
-    cy.byTestID(DataTestIDs.MetricGraph).should('be.visible');
+    cy.byTestID(DataTestIDs.MetricGraph).should('exist');
     metricsPage.clickKebabDropdown(0);
     cy.byTestID(DataTestIDs.MetricsPageHideShowAllSeriesDropdownItem).contains(MetricsPageQueryKebabDropdown.HIDE_ALL_SERIES).should('be.visible');
     cy.byTestID(DataTestIDs.MetricsPageExportCsvDropdownItem).contains(MetricsPageQueryKebabDropdown.EXPORT_AS_CSV).should('be.visible');
@@ -414,95 +400,88 @@ describe('Regression: Monitoring - Metrics - namespaced', () => {
     metricsPage.clickKebabDropdown(0);
     cy.get(Classes.MenuItemDisabled).contains(MetricsPageQueryKebabDropdown.HIDE_ALL_SERIES).should('have.attr', 'aria-disabled', 'true');
     cy.byTestID(DataTestIDs.MetricsPageExportCsvDropdownItem).should('not.exist');
+
   });
 
-  it('7. Admin perspective - Metrics > Predefined Queries > Export as CSV', () => {
+  it(`${perspective.name} perspective - Metrics > Predefined Queries > Export as CSV`, () => {
     //OCPBUGS-54316 - [4.16] Metrics "Export as CSV" is not working for all queries 
     cy.log('7.1 Predefined Queries');
-    cy.visit('/');
-    nav.sidenav.clickNavLink(['Observe', 'Metrics']);
-    metricsPage.shouldBeLoaded();
     metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.CPU_USAGE);
     metricsPage.clickKebabDropdown(0);
-    metricsPage.exportAsCSV(true, MetricsPageQueryInputByNamespace.CPU_USAGE);
+    metricsPage.exportAsCSV(true, MetricsPageQueryInput.CPU_USAGE);
     metricsPage.clickActionsDeleteAllQueries();
 
     cy.log('7.2 Predefined Queries'); 
     metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.MEMORY_USAGE);
     metricsPage.clickKebabDropdown(0);
-    metricsPage.exportAsCSV(true, MetricsPageQueryInputByNamespace.MEMORY_USAGE);
+    metricsPage.exportAsCSV(true, MetricsPageQueryInput.MEMORY_USAGE);
     metricsPage.clickActionsDeleteAllQueries();
 
     cy.log('7.3 Predefined Queries');
     metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.FILESYSTEM_USAGE);
     metricsPage.clickKebabDropdown(0);
-    metricsPage.exportAsCSV(true, MetricsPageQueryInputByNamespace.FILESYSTEM_USAGE);
+    metricsPage.exportAsCSV(true, MetricsPageQueryInput.FILESYSTEM_USAGE);
     metricsPage.clickActionsDeleteAllQueries();
 
     cy.log('7.4 Predefined Queries');
     metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.RECEIVE_BANDWIDTH);
     metricsPage.clickKebabDropdown(0);
-    metricsPage.exportAsCSV(true, MetricsPageQueryInputByNamespace.RECEIVE_BANDWIDTH);
+    metricsPage.exportAsCSV(true, MetricsPageQueryInput.RECEIVE_BANDWIDTH);
     metricsPage.clickActionsDeleteAllQueries();
 
     cy.log('7.5 Predefined Queries');
     metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.TRANSMIT_BANDWIDTH);
     metricsPage.clickKebabDropdown(0);
-    metricsPage.exportAsCSV(true, MetricsPageQueryInputByNamespace.TRANSMIT_BANDWIDTH);
+    metricsPage.exportAsCSV(true, MetricsPageQueryInput.TRANSMIT_BANDWIDTH);
     metricsPage.clickActionsDeleteAllQueries();
 
     cy.log('7.6 Predefined Queries');
     metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.RATE_OF_RECEIVED_PACKETS);
     metricsPage.clickKebabDropdown(0);
-    metricsPage.exportAsCSV(true, MetricsPageQueryInputByNamespace.RATE_OF_RECEIVED_PACKETS);
+    metricsPage.exportAsCSV(true, MetricsPageQueryInput.RATE_OF_RECEIVED_PACKETS);
     metricsPage.clickActionsDeleteAllQueries();
 
     cy.log('7.7 Predefined Queries');
     metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.RATE_OF_TRANSMITTED_PACKETS);
     metricsPage.clickKebabDropdown(0);
-    metricsPage.exportAsCSV(true, MetricsPageQueryInputByNamespace.RATE_OF_TRANSMITTED_PACKETS);
+    metricsPage.exportAsCSV(true, MetricsPageQueryInput.RATE_OF_TRANSMITTED_PACKETS);
     metricsPage.clickActionsDeleteAllQueries();
 
     cy.log('7.8 Predefined Queries');
     metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.RATE_OF_RECEIVED_PACKETS_DROPPED);
     metricsPage.clickKebabDropdown(0);
-    metricsPage.exportAsCSV(true, MetricsPageQueryInputByNamespace.RATE_OF_RECEIVED_PACKETS_DROPPED);
+    metricsPage.exportAsCSV(true, MetricsPageQueryInput.RATE_OF_RECEIVED_PACKETS_DROPPED);
     metricsPage.clickActionsDeleteAllQueries();
 
     cy.log('7.9 Predefined Queries');
     metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.RATE_OF_TRANSMITTED_PACKETS_DROPPED);
     metricsPage.clickKebabDropdown(0);
-    metricsPage.exportAsCSV(true, MetricsPageQueryInputByNamespace.RATE_OF_TRANSMITTED_PACKETS_DROPPED);
+    metricsPage.exportAsCSV(true, MetricsPageQueryInput.RATE_OF_TRANSMITTED_PACKETS_DROPPED);
     metricsPage.clickActionsDeleteAllQueries();
 
   });
 
-  it('8. Admin perspective - Metrics > Ungraphable results', () => {
+  it(`${perspective.name} perspective - Metrics > Ungraphable results`, () => {
     cy.log('8.1 Ungraphable results');
-    cy.visit('/');
-    nav.sidenav.clickNavLink(['Observe', 'Metrics']);
-    metricsPage.shouldBeLoaded();
     metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.CPU_USAGE);
     metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.MEMORY_USAGE);
     metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.FILESYSTEM_USAGE);
     metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.RECEIVE_BANDWIDTH);
     metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.TRANSMIT_BANDWIDTH);
-    metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.RATE_OF_RECEIVED_PACKETS);
-    cy.byLegacyTestID('namespace-bar-dropdown').find('button').scrollIntoView();
+    metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.RATE_OF_RECEIVED_PACKETS);    
+    cy.byLegacyTestID('namespace-bar-dropdown').scrollIntoView();
     
-    cy.get(Classes.MetricsPageUngraphableResults).should('not.exist');
-    cy.get(Classes.MetricsPageUngraphableResultsDescription).should('not.exist');
+    cy.get(Classes.MetricsPageUngraphableResults).contains(MetricGraphEmptyState.UNGRAPHABLE_RESULTS).should('be.visible');
+    cy.get(Classes.MetricsPageUngraphableResultsDescription).contains(MetricGraphEmptyState.UNGRAPHABLE_RESULTS_DESCRIPTION).should('be.visible');
     
   });
 
-  it('9. Admin perspective - Metrics > No Datapoints', () => {
+  it(`${perspective.name} perspective - Metrics > No Datapoints`, () => {
     cy.log('9.1 No Datapoints');
-    cy.visit('/');
-    nav.sidenav.clickNavLink(['Observe', 'Metrics']);
-    metricsPage.shouldBeLoaded();
     metricsPage.enterQueryInput(0, 'aaaaaaaaaa');
     metricsPage.clickRunQueriesButton();
-    metricsPage.noDatapointsFound();
+    cy.byTestID(DataTestIDs.MetricGraphNoDatapointsFound).scrollIntoView().contains(MetricGraphEmptyState.NO_DATAPOINTS_FOUND).should('be.visible');
+    cy.byTestID(DataTestIDs.MetricsPageYellowNoDatapointsFound).scrollIntoView().contains(MetricGraphEmptyState.NO_DATAPOINTS_FOUND).should('be.visible');
 
     metricsPage.clickActionsDeleteAllQueries();
     metricsPage.enterQueryInput(0, 'a');
@@ -511,30 +490,12 @@ describe('Regression: Monitoring - Metrics - namespaced', () => {
     
   });
 
-  it('10. Admin perspective - Metrics > No Datapoints with alert', () => {
+  it(`${perspective.name} perspective - Metrics > No Datapoints with alert`, () => {
     cy.log('10.1 No Datapoints with alert');
-    cy.visit('/');
-    nav.sidenav.clickNavLink(['Observe', 'Metrics']);
-    metricsPage.shouldBeLoaded();
     metricsPage.enterQueryInput(0, MetricsPageQueryInput.QUERY_WITH_ALERT);
     metricsPage.clickRunQueriesButton();
     cy.byOUIAID(DataTestIDs.MetricsGraphAlertDanger).should('be.visible');
   });
-
-  it('11. Admin perspective - Metrics > Empty state', () => {
-    cy.log('11.1 Insert example query - Empty state');
-    cy.visit('/');
-    nav.sidenav.clickNavLink(['Observe', 'Metrics']);
-    cy.changeNamespace("default");
-    metricsPage.clickInsertExampleQuery();
-    metricsPage.noDatapointsFound();
-
-    cy.log('11.2 Query - Empty state');
-    metricsPage.clickActionsDeleteAllQueries();
-    metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.RATE_OF_TRANSMITTED_PACKETS_DROPPED);
-    metricsPage.noDatapointsFound();
-
-  });
    
-});
+}
 

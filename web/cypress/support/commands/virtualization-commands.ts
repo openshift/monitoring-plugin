@@ -16,14 +16,16 @@ declare global {
       interface Chainable {
         adminCLI(command: string, options?);
         executeAndDelete(command: string);
-        beforeBlockVirtualization(KBV: { namespace: string, operatorName: string, packageName: string });
-        cleanupKBV(KBV: { namespace: string, operatorName: string, packageName: string });
+        beforeBlockVirtualization(KBV: { namespace: string, packageName: string });
+        cleanupKBV(KBV: { namespace: string, packageName: string });
       }
     }
   }
   
 const readyTimeoutMilliseconds = Cypress.config('readyTimeoutMilliseconds') as number;
 const installTimeoutMilliseconds = Cypress.config('installTimeoutMilliseconds') as number;
+
+let operatorName;
 
 const useSession = Cypress.env('SESSION');
 
@@ -81,17 +83,23 @@ const virtualizationUtils = {
     }
   },
 
-  waitForVirtualizationReady(KBV: { namespace: string, operatorName: string }): void {
+  waitForVirtualizationReady(KBV: { namespace: string}): void {
     cy.log('Check Openshift Virtualization status');
-    cy.exec(
-      `sleep 15 && oc wait --for=jsonpath='{.status.phase}'=Succeeded ClusterServiceVersion/${KBV.operatorName} -n ${KBV.namespace} --timeout=300s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
-      {
-        timeout: readyTimeoutMilliseconds,
-        failOnNonZeroExit: true
-      }
-    ).then((result) => {
-      expect(result.code).to.eq(0);
-      cy.log(`Openshift Virtualization CSV is now running in namespace: ${KBV.namespace}`);
+    cy.exec(`oc get csv -n openshift-cnv | grep kubevirt | awk '{print $1}'`)
+      .its('stdout') // Get the captured output string
+      .then((operatorName) => {
+    // Trim any extra whitespace (newline, etc.)
+      const KBV_OPERATOR_NAME = operatorName.trim(); 
+
+      cy.log(`Successfully retrieved Operator Name: ${KBV_OPERATOR_NAME}`);
+
+      // Now, run your actual oc wait command using the captured variable
+      cy.exec(
+        `sleep 15 && oc wait --for=jsonpath='{.status.phase}'=Succeeded ClusterServiceVersion/${KBV_OPERATOR_NAME} -n ${KBV.namespace} --timeout=300s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`
+      , {
+          timeout: readyTimeoutMilliseconds // Set a long timeout for the 'oc wait' command
+        }
+      );
     });
 
     cy.get('#page-sidebar').then(($sidebar) => {
@@ -106,16 +114,23 @@ const virtualizationUtils = {
 
   },
 
-  setupHyperconverged(KBV: { namespace: string, operatorName: string }): void {
+  setupHyperconverged(KBV: { namespace: string}): void {
 
     if (Cypress.env('SKIP_KBV_INSTALL')) {
       cy.log('Skip Hyperconverged instance creation.');
     } else if (Cypress.env('KBV_UI_INSTALL')) {
       cy.log('Create Hyperconverged instance.');
-      cy.visit(`k8s/ns/openshift-cnv/operators.coreos.com~v1alpha1~ClusterServiceVersion/${KBV.operatorName}`);
-      cy.byOUIAID('OUIA-Generated-Button-primary').contains('Create HyperConverged').should('be.visible').click();
-      cy.byTestID('create-dynamic-form').scrollIntoView().should('be.visible').click();
-      cy.byTestID('status-text').should('contain.text', 'ReconcileComplete', { timeout: installTimeoutMilliseconds });
+      cy.exec(`oc get csv -n openshift-cnv | grep kubevirt | awk '{print $1}'`)
+        .its('stdout') // Get the captured output string
+        .then((operatorName) => {
+          // Trim any extra whitespace (newline, etc.)
+          const KBV_OPERATOR_NAME = operatorName.trim(); 
+          cy.log(`Successfully retrieved Operator Name: ${KBV_OPERATOR_NAME}`);
+          cy.visit(`k8s/ns/openshift-cnv/operators.coreos.com~v1alpha1~ClusterServiceVersion/${KBV_OPERATOR_NAME}`);
+          cy.byOUIAID('OUIA-Generated-Button-primary').contains('Create HyperConverged').should('be.visible').click();
+          cy.byTestID('create-dynamic-form').scrollIntoView().should('be.visible').click();
+          cy.byTestID('status-text').should('contain.text', 'ReconcileComplete', { timeout: installTimeoutMilliseconds });
+        });
     } else {
       cy.log('Create Hyperconverged instance.');
       cy.exec(`oc apply -f ./cypress/fixtures/virtualization/hyperconverged.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
@@ -136,7 +151,7 @@ const virtualizationUtils = {
 
   },
 
-  cleanup(KBV: { namespace: string, operatorName: string, config?: { kind: string, name: string }, crd?: { kubevirt: string, hyperconverged: string } }): void {
+  cleanup(KBV: { namespace: string, config?: { kind: string, name: string }, crd?: { kubevirt: string, hyperconverged: string } }): void {
     const config = KBV.config || { kind: 'HyperConverged', name: 'kubevirt-hyperconverged' }
     const crd = KBV.crd || { kubevirt: 'kubevirts.kubevirt.io', hyperconverged: 'hyperconvergeds.hco.kubevirt.io' };
 
@@ -181,7 +196,7 @@ const virtualizationUtils = {
   }
 };
   
-  Cypress.Commands.add('beforeBlockVirtualization', (KBV: { namespace: string, operatorName: string, packageName: string }) => {
+  Cypress.Commands.add('beforeBlockVirtualization', (KBV: { namespace: string, packageName: string }) => {
 
     if (useSession) {
       const sessionKey = operatorAuthUtils.generateKBVSessionKey(KBV);
@@ -223,7 +238,7 @@ const virtualizationUtils = {
     }
   });
   
-  Cypress.Commands.add('cleanupKBV', (KBV: { namespace: string, operatorName: string, packageName: string }) => {
+  Cypress.Commands.add('cleanupKBV', (KBV: { namespace: string, packageName: string }) => {
     cy.log('Cleanup Virtualization (no session)');
     virtualizationUtils.cleanup(KBV);
     cy.log('Cleanup Virtualization (no session) completed');

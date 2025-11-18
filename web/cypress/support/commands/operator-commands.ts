@@ -124,12 +124,11 @@ export const operatorAuthUtils = {
     return [...baseKey, ...envVars.filter(Boolean)];
   },
 
-  generateKBVSessionKey(KBV: { namespace: string, operatorName: string, packageName: string }): string[] {
+  generateKBVSessionKey(KBV: { namespace: string, packageName: string }): string[] {
     const baseKey = [
       Cypress.env('LOGIN_IDP'),
       Cypress.env('LOGIN_USERNAME'),
       KBV.namespace,
-      KBV.operatorName,
       KBV.packageName
     ];
 
@@ -442,7 +441,48 @@ const operatorUtils = {
     // Additional cleanup only when COO is installed
     if (!Cypress.env('SKIP_COO_INSTALL')) {
       cy.log('Remove Cluster Observability Operator namespace');
-      cy.executeAndDelete(`oc delete namespace ${MCP.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+      
+      // First check if the namespace exists
+      cy.exec(
+        `oc get namespace openshift-cluster-observability-operator --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+        {
+          timeout: readyTimeoutMilliseconds,
+          failOnNonZeroExit: false
+        }
+      ).then((checkResult) => {
+        if (checkResult.code === 0) {
+          // Namespace exists, proceed with deletion
+          cy.log('Namespace exists, proceeding with deletion');
+          cy.exec(
+            `oc delete namespace openshift-cluster-observability-operator --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+            {
+              timeout: readyTimeoutMilliseconds,
+              failOnNonZeroExit: false
+            }
+          ).then((result) => {
+            if (result.code === 0) {
+              cy.log(`Cluster Observability Operator namespace is now deleted`);
+            } else {
+              cy.log(`Primary delete failed: ${result.stderr}`);
+              cy.log(`Attempting force delete...`);
+              
+              cy.exec(
+                `./cypress/fixtures/coo/force_delete_ns.sh openshift-cluster-observability-operator --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+                { 
+                  failOnNonZeroExit: false, 
+                  timeout: readyTimeoutMilliseconds 
+                }
+              ).then((forceResult) => {
+                if (forceResult.code !== 0) {
+                  cy.log(`Force delete also failed: ${forceResult.stderr}`);
+                }
+              });
+            }
+          });
+        } else {
+          cy.log('Namespace does not exist, skipping deletion');
+        }
+      });
     }
   },
 

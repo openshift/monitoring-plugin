@@ -10,13 +10,14 @@ export const legacyDashboardsPage = {
     commonPages.titleShouldHaveText(MonitoringPageTitles.DASHBOARDS);
     cy.byTestID(LegacyDashboardPageTestIDs.TimeRangeDropdown).contains(LegacyDashboardsTimeRange.LAST_30_MINUTES).should('be.visible');
     cy.byTestID(LegacyDashboardPageTestIDs.PollIntervalDropdown).contains(MonitoringRefreshInterval.THIRTY_SECONDS).should('be.visible');
-    cy.byLegacyTestID('namespace-bar-dropdown').find('span').invoke('text').then((text) => {
-      if (text === 'Project: All Projects') {
-        cy.byTestID(LegacyDashboardPageTestIDs.DashboardDropdown).find('input').should('have.value', LegacyDashboardsDashboardDropdown.API_PERFORMANCE[0]).and('be.visible');
-      } else {
-        cy.byTestID(LegacyDashboardPageTestIDs.DashboardDropdown).find('input').should('have.value', LegacyDashboardsDashboardDropdownNamespace.K8S_COMPUTE_RESOURCES_NAMESPACE_PODS[0]).and('be.visible');
-      }
-    });
+    //TODO: Uncomment when OU-949 gets merged
+    // cy.byLegacyTestID('namespace-bar-dropdown').find('span').invoke('text').then((text) => {
+    //   if (text === 'Project: All Projects') {
+    //     cy.byTestID(LegacyDashboardPageTestIDs.DashboardDropdown).find('input').should('have.value', LegacyDashboardsDashboardDropdown.API_PERFORMANCE[0]).and('be.visible');
+    //   } else {
+    //     cy.byTestID(LegacyDashboardPageTestIDs.DashboardDropdown).find('input').should('have.value', LegacyDashboardsDashboardDropdownNamespace.K8S_COMPUTE_RESOURCES_NAMESPACE_PODS[0]).and('be.visible');
+    //   }
+    // });
   },
 
   clickTimeRangeDropdown: (timeRange: LegacyDashboardsTimeRange) => {

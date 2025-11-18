@@ -1,33 +1,26 @@
-import { nav } from '../../../views/nav';
-import common = require('mocha/lib/interfaces/common');
-import { legacyDashboardsPage } from '../../../views/legacy-dashboards';
-import { KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANELS, LegacyDashboardsDashboardDropdownNamespace, MetricsPageQueryInput, MetricsPageQueryInputByNamespace, WatchdogAlert } from '../../../fixtures/monitoring/constants';
-import { Classes, LegacyDashboardPageTestIDs, DataTestIDs } from '../../../../src/components/data-test';
-import { metricsPage } from '../../../views/metrics';
-import { alertingRuleDetailsPage } from '../../../views/alerting-rule-details-page';
-import { alerts } from '../../../fixtures/monitoring/alert';
-import { listPage } from '../../../views/list-page';
-import { commonPages } from '../../../views/common';
-// Set constants for the operators that need to be installed for tests.
-const MP = {
-  namespace: 'openshift-monitoring',
-  operatorName: 'Cluster Monitoring Operator',
-};
+import { nav } from '../../views/nav';
+import { legacyDashboardsPage } from '../../views/legacy-dashboards';
+import { KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANELS, LegacyDashboardsDashboardDropdownNamespace, MetricsPageQueryInput, MetricsPageQueryInputByNamespace, WatchdogAlert } from '../../fixtures/monitoring/constants';
+import { Classes, LegacyDashboardPageTestIDs, DataTestIDs } from '../../../src/components/data-test';
+import { metricsPage } from '../../views/metrics';
+import { alertingRuleDetailsPage } from '../../views/alerting-rule-details-page';
+import { alerts } from '../../fixtures/monitoring/alert';
+import { listPage } from '../../views/list-page';
+import { commonPages } from '../../views/common';
 
-describe('Regression: Monitoring - Dashboards (Legacy) - namespaced', () => {
+export interface PerspectiveConfig {
+  name: string;
+  beforeEach?: () => void;
+}
 
-  before(() => {
-    cy.beforeBlock(MP);
-  });
+export function runAllRegressionLegacyDashboardsTestsNamespace(perspective: PerspectiveConfig) {
+  testLegacyDashboardsRegressionNamespace(perspective);
+}
 
-  beforeEach(() => {
-    nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
-    cy.changeNamespace(MP.namespace);
-  });
+export function testLegacyDashboardsRegressionNamespace(perspective: PerspectiveConfig) {
 
-  it('1. Admin perspective - Dashboards (legacy)', () => {
+  it(`${perspective.name} perspective - Dashboards (legacy)`, () => {
     cy.log('1.1 Dashboards page loaded');
-    nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
     legacyDashboardsPage.shouldBeLoaded();
 
     cy.log('1.2 Time range dropdown');
@@ -51,9 +44,8 @@ describe('Regression: Monitoring - Dashboards (Legacy) - namespaced', () => {
 
   });
 
-  it('2. Admin perspective - Dashboards (legacy) - Export as CSV', () => {
+  it(`${perspective.name} perspective - Dashboards (legacy) - Export as CSV`, () => {
     cy.log('2.1 Kebab dropdown - Export as CSV');
-    nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
     legacyDashboardsPage.clickKebabDropdown(0);
     cy.byTestID(LegacyDashboardPageTestIDs.ExportAsCsv).should('be.visible');
     cy.byPFRole('menuitem').should('not.have.attr', 'disabled');
@@ -68,7 +60,7 @@ describe('Regression: Monitoring - Dashboards (Legacy) - namespaced', () => {
     
   });
 
-  it('3. Admin perspective - Dashboards (legacy) - No kebab dropdown', () => {
+  it(`${perspective.name} perspective - Dashboards (legacy) - No kebab dropdown`, () => {
     cy.log('3.1 Single Stat - No kebab dropdown');
     cy.byLegacyTestID('chart-1').find('[data-test="'+DataTestIDs.KebabDropdownButton+'"]').should('not.exist');
 
@@ -77,7 +69,7 @@ describe('Regression: Monitoring - Dashboards (Legacy) - namespaced', () => {
 
   });
 
-  it('4. Admin perspective - OU-897 - Hide Graph / Show Graph on Metrics, Alert Details and Dashboards', () => {
+  it(`${perspective.name} perspective - OU-897 - Hide Graph / Show Graph on Metrics, Alert Details and Dashboards`, () => {
     cy.log('4.1 Observe > Metrics > Hide Graph');
     nav.sidenav.clickNavLink(['Observe', 'Metrics']);
     metricsPage.shouldBeLoaded();
@@ -123,5 +115,4 @@ describe('Regression: Monitoring - Dashboards (Legacy) - namespaced', () => {
 
   });
 
-});
-
+}
