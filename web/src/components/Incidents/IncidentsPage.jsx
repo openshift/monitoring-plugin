@@ -16,12 +16,11 @@ import {
   ToolbarItem,
   MenuToggle,
   Badge,
-  Title,
   PageSection,
   Stack,
   StackItem,
 } from '@patternfly/react-core';
-import { Helmet } from 'react-helmet';
+import { DocumentTitle } from '@openshift-console/dynamic-plugin-sdk';
 import { IncidentsTable } from './IncidentsTable';
 import {
   getIncidentsTimeRanges,
@@ -277,9 +276,7 @@ const IncidentsPage = () => {
 
   return (
     <>
-      <Helmet>
-        <title>{title}</title>
-      </Helmet>
+      <DocumentTitle>{title}</DocumentTitle>
       <PageSection hasBodyWrapper={false}>
         {alertsAreLoading && incidentsAreLoading ? (
           <Bullseye>

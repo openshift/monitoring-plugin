@@ -1,8 +1,7 @@
 import * as _ from 'lodash-es';
 import * as React from 'react';
-import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
-
+import { DocumentTitle } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Divider,
   PageSection,
@@ -61,11 +60,7 @@ export const DashboardSkeletonLegacy: React.FC<MonitoringDashboardsLegacyPagePro
 
     return (
       <>
-        {perspective !== 'dev' && (
-          <Helmet>
-            <title>{t('Metrics dashboards')}</title>
-          </Helmet>
-        )}
+        {perspective !== 'dev' && <DocumentTitle>{t('Metrics dashboards')}</DocumentTitle>}
         <PageSection hasBodyWrapper={false}>
           {perspective !== 'dev' && <HeaderTop />}
           <Stack hasGutter>

@@ -1,6 +1,7 @@
 import {
   AlertSeverity,
   consoleFetchJSON,
+  DocumentTitle,
   ListPageFilter,
   RowProps,
   Silence,
@@ -22,7 +23,6 @@ import {
 import { sortable } from '@patternfly/react-table';
 import * as _ from 'lodash-es';
 import * as React from 'react';
-import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom-v5-compat';
@@ -183,7 +183,7 @@ const SilencesPage_: React.FC = () => {
 
   return (
     <>
-      <Helmet>{perspective === 'dev' ? <title>Silences</title> : <title>Alerting</title>}</Helmet>
+      <DocumentTitle>{perspective === 'dev' ? t('Silences') : t('Alerting')}</DocumentTitle>
       <PageSection hasBodyWrapper={false}>
         <SelectedSilencesContext.Provider value={{ selectedSilences, setSelectedSilences }}>
           <Flex>

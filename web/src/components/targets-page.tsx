@@ -1,4 +1,5 @@
 import {
+  DocumentTitle,
   GreenCheckCircleIcon,
   K8sModel,
   K8sResourceKind,
@@ -37,7 +38,6 @@ import {
 import { sortable, Td } from '@patternfly/react-table';
 import { find, includes, isEmpty } from 'lodash-es';
 import * as React from 'react';
-import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router-dom-v5-compat';
 import { EmptyBox } from './console/console-shared/src/components/empty-state/EmptyBox';
@@ -254,9 +254,7 @@ const Details: React.FC<DetailsProps> = ({ loaded, loadError, targets }) => {
 
   return (
     <>
-      <Helmet>
-        <title>{t('Target details')}</title>
-      </Helmet>
+      <DocumentTitle>{t('Target details')}</DocumentTitle>
       <StatusBox data={target} label="target" loaded={loaded} loadError={loadError}>
         <PageGroup>
           <PageBreadcrumb hasBodyWrapper={false}>
@@ -518,9 +516,7 @@ const ListPage: React.FC<ListPageProps> = ({ loaded, loadError, targets }) => {
 
   return (
     <>
-      <Helmet>
-        <title>{title}</title>
-      </Helmet>
+      <DocumentTitle>{title}</DocumentTitle>
       <ListPageHeader title={title} />
       <ListPageBody>
         {loadError && (

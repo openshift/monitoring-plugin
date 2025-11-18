@@ -1,6 +1,7 @@
 import {
   Alert,
   AlertStates,
+  DocumentTitle,
   ListPageFilter,
   RowFilter,
   useListPageFilter,
@@ -9,7 +10,6 @@ import { Flex, PageSection } from '@patternfly/react-core';
 import { Table, TableGridBreakpoint, Th, Thead, Tr } from '@patternfly/react-table';
 import * as _ from 'lodash-es';
 import * as React from 'react';
-import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { MonitoringState } from '../../reducers/observe';
@@ -146,9 +146,7 @@ const AlertsPage_: React.FC = () => {
 
   return (
     <>
-      <Helmet>
-        <title>Alerting</title>
-      </Helmet>
+      <DocumentTitle>{t('Alerting')}</DocumentTitle>
       <PageSection hasBodyWrapper={false} type="subnav">
         <Flex>
           <ListPageFilter

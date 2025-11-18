@@ -1,4 +1,5 @@
 import {
+  DocumentTitle,
   PrometheusData,
   PrometheusEndpoint,
   PrometheusLabels,
@@ -57,7 +58,6 @@ import {
 } from '@patternfly/react-table';
 import * as _ from 'lodash-es';
 import * as React from 'react';
-import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -1230,9 +1230,7 @@ const MetricsPage_: React.FC = () => {
 
   return (
     <>
-      <Helmet>
-        <title>{t('Metrics')}</title>
-      </Helmet>
+      <DocumentTitle>{t('Metrics')}</DocumentTitle>
       <PageSection hasBodyWrapper={false}>
         <Split hasGutter>
           {perspective !== 'dev' && (
