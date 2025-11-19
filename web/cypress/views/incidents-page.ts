@@ -220,6 +220,7 @@ export const incidentsPage = {
 
   /**
    * Selects an incident from the chart by clicking on a bar at the specified index.
+   * BUG: Problems with multi-severity incidents (multiple paths in a single incident bar)
    * 
    * @param index - Zero-based index of the incident bar to click (default: 0)
    * @returns Promise that resolves when the incidents table is visible
@@ -257,6 +258,52 @@ export const incidentsPage = {
         return cy.wrap($paths.eq(0))
           .click({ force: true });
       })
+      .then(() => {
+        return incidentsPage.elements.incidentsTable()
+          .should('not.exist');
+      });
+  },
+
+  /**
+   * Selects an incident by its ID (data-test attribute).
+   * More reliable than index-based selection, especially for multi-severity incidents.
+   * 
+   * @param incidentId - The incident ID to select (e.g., 'etcd-six-alerts-001')
+   * @returns Promise that resolves when the incidents table is visible
+   */
+  selectIncidentById: (incidentId: string) => {
+    cy.log(`incidentsPage.selectIncidentById: ${incidentId}`);
+    return incidentsPage.elements.incidentsChartBarsGroups()
+      .filter(`[data-test*="${incidentId}"]`)
+      .should('have.length', 1)
+      .first()
+      .find('path[role="presentation"]')
+      .first()
+      .click({ force: true })
+      .then(() => {
+        cy.wait(2000);
+        return incidentsPage.elements.incidentsTable()
+          .scrollIntoView()
+          .should('exist');
+      });
+  },
+
+  /**
+   * Deselects the currently selected incident by clicking it again.
+   * Uses the incident ID to reliably find and click the bar.
+   * 
+   * @param incidentId - The incident ID to deselect (e.g., 'etcd-six-alerts-001')
+   * @returns Promise that resolves when the incidents table is hidden
+   */
+  deselectIncidentById: (incidentId: string) => {
+    cy.log(`incidentsPage.deselectIncidentById: ${incidentId}`);
+    return incidentsPage.elements.incidentsChartBarsGroups()
+      .filter(`[data-test*="${incidentId}"]`)
+      .should('have.length', 1)
+      .first()
+      .find('path[role="presentation"]')
+      .first()
+      .click({ force: true })
       .then(() => {
         return incidentsPage.elements.incidentsTable()
           .should('not.exist');
