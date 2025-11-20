@@ -113,13 +113,51 @@ make lint-frontend
 make lint-backend
 make test-translations
 make test-backend
-# Run cypress tests (see web/cypress/README.md)
+# future slash command for test execution
 ```
 
 ### PR Requirements:
 - **Title format**: `[JIRA_ISSUE]: Description`
 - **Testing**: All linting and tests must pass
 - **Translations**: Ensure i18next keys are properly added
+
+### Cypress E2E Testing
+
+#### Overview
+The Monitoring Plugin uses Cypress for comprehensive End-to-End (E2E) testing to ensure functionality across both the core **monitoring-plugin** (managed by CMO) and the **monitoring-console-plugin** (managed by COO). Our test suite covers test scenarios including alerts, metrics, dashboards, and integration with Virtualization and Fleet Management (ACM).
+
+**Key Testing Documentation:**
+- **Setup & Configuration**: `web/cypress/README.md` - Environment variables, installation, troubleshooting
+- **Testing Guide**: `web/cypress/CYPRESS_TESTING_GUIDE.md` - Test architecture, creating tests, workflows
+- **Test Catalog**: `web/cypress/E2E_TEST_SCENARIOS.md` - Complete list of all test scenarios
+
+#### When to Create New Cypress Tests
+
+You should create new Cypress tests when:
+
+1. **Adding New Features**: Any new UI feature requires corresponding E2E tests
+2. **Fixing Bugs**: Bug fixes should include tests to prevent regression
+3. **Modifying Existing Features**: Changes to existing functionality require test updates
+
+#### Quick Test Commands
+
+```bash
+cd web/cypress
+
+# Run all regression tests
+npm run cypress:run --spec "cypress/e2e/**/regression/**"
+
+# Run BVT (Build Verification Tests)
+npm run cypress:run --spec "cypress/e2e/monitoring/00.bvt_admin.cy.ts"
+
+# Run COO tests
+npm run cypress:run --spec "cypress/e2e/coo/*.cy.ts"
+
+# Interactive mode
+npm run cypress:open
+```
+
+For detailed testing instructions, see `web/cypress/CYPRESS_TESTING_GUIDE.md`
 
 ### Release Pipeline:
 - **Konflux**: Handles CI/CD and release automation
