@@ -59,6 +59,10 @@ start-backend:
 test-backend:
 	go test ./pkg/... -v
 
+.PHONY: test-frontend
+test-frontend:
+	cd web && npm run test:unit
+
 .PHONY: build-image
 build-image:
 	./scripts/build-image.sh

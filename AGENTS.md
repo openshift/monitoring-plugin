@@ -113,6 +113,7 @@ make lint-frontend
 make lint-backend
 make test-translations
 make test-backend
+make test-frontend
 # future slash command for test execution
 ```
 
@@ -120,6 +121,101 @@ make test-backend
 - **Title format**: `[JIRA_ISSUE]: Description`
 - **Testing**: All linting and tests must pass
 - **Translations**: Ensure i18next keys are properly added
+
+### Unit Testing
+
+#### Overview
+The Monitoring Plugin uses a dual testing approach for unit tests:
+- **Frontend Unit Tests**: Jest + TypeScript for React components and utilities
+- **Backend Unit Tests**: Go's built-in testing framework for server functionality
+
+Unit tests focus on isolated function testing and run quickly in CI/CD pipelines, while E2E tests (Cypress) validate full user workflows.
+
+#### Test File Structure
+
+**Frontend Tests:**
+- **Location**: Co-located with source files in `web/src/`
+- **Naming**: `*.spec.ts` (e.g., `format.spec.ts`, `utils.spec.ts`)
+- **Framework**: Jest 30.2.0 with ts-jest
+- **Configuration**: `web/jest.config.js`
+
+**Backend Tests:**
+- **Location**: Co-located with source files in `pkg/`
+- **Naming**: `*_test.go` (e.g., `server_test.go`)
+- **Framework**: Go testing package + testify/require
+- **Configuration**: Standard Go test conventions
+
+#### Running Unit Tests
+
+```bash
+# Run all tests (backend + frontend)
+make test-backend
+make test-frontend
+
+# Run individually from web directory
+cd web && npm run test:unit
+
+# Run Go tests directly
+go test ./pkg/... -v
+```
+
+#### When to Create Unit Tests
+
+Create unit tests when:
+1. **Adding utility functions**: Pure functions, formatters, data transformations
+2. **Adding business logic**: Data processing, calculations, validations
+3. **Fixing bugs**: Regression tests to prevent bug recurrence
+4. **Adding API handlers**: Backend endpoint logic (Go tests)
+
+#### Key Testing Libraries
+
+**Frontend:**
+- `jest` (v30.2.0) - Test runner and assertions
+- `ts-jest` (v29.4.4) - TypeScript support
+- `@types/jest` - TypeScript definitions
+
+**Backend:**
+- `testing` (stdlib) - Go testing framework
+- `github.com/stretchr/testify` (v1.9.0) - Assertions and test utilities
+
+#### Frontend Unit Testing Structure
+
+**Testing Framework & Configuration**
+Test Framework: Jest + ts-jest
+Configuration File: web/jest.config.js
+
+**Test File Location & Naming Convention**
+Pattern: *.spec.ts files co-located with source code
+
+**Test Coverage Areas**
+- Edge cases (null, undefined, empty values)
+- Normal behavior and expected outputs
+- Boundary conditions
+- Complex scenarios and integration
+- Data transformations and formatting
+
+#### Backend Unit Testing Structure
+
+**Testing Framework & Configuration**
+Test Framework: Go's built-in testing package
+Assertion Library: github.com/stretchr/testify v1.9.0
+
+**Test File Location & Naming Convention**
+Pattern: *_test.go files in the same directory as source code
+
+**Test Helper Functions**
+- `startTestServer()` - Starts server for testing
+- `prepareServerAssets()` - Sets up test environment
+- `generateCertificate()` - Creates TLS certificates for tests
+- `checkHTTPReady()` - Waits for server to be ready
+- `getRequestResults()` - Makes HTTP requests
+
+**Test Coverage Areas**
+- HTTP server functionality
+- HTTPS/TLS configuration
+- Certificate handling
+- Security settings (TLS versions, cipher suites)
+- Endpoint availability
 
 ### Cypress E2E Testing
 
