@@ -162,7 +162,7 @@ const AlertsPage_: FC = () => {
         )}
         {loadError && <AccessDenied message={loadError.message} />}
         {loaded && filteredAggregatedAlerts?.length === 0 && !loadError && (
-          <EmptyBox label={t('Alerts')} />
+          <EmptyBox customMessage={t('No alerts found')} />
         )}
         {!loaded && <LoadingBox />}
       </PageSection>

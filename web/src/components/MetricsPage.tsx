@@ -304,7 +304,7 @@ const MetricsActionsMenu: FC = () => {
           isExpanded={isOpen}
           data-test={DataTestIDs.MetricsPageActionsDropdownButton}
         >
-          Actions
+          {t('Actions')}
         </MenuToggle>
       )}
       popperProps={{ position: 'right' }}

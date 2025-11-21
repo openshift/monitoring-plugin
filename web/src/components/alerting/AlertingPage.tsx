@@ -72,28 +72,24 @@ const AlertingPage: FC = () => {
     () => [
       {
         href: 'alerts',
-        // t('Alerts')
-        nameKey: 'Alerts',
+        nameKey: `${process.env.I18N_NAMESPACE}~Alerts`,
         component: plugin === 'monitoring-plugin' ? CmoAlertsPage : CooAlertsPage,
-        name: 'Alerts',
+        name: t('Alerts'),
       },
       {
         href: 'silences',
-        // t('Silences')
-        nameKey: 'Silences',
+        nameKey: `${process.env.I18N_NAMESPACE}~Silences`,
         component: plugin === 'monitoring-plugin' ? CmoSilencesPage : CooSilencesPage,
-        name: 'Silences',
+        name: t('Silences'),
       },
       {
         href: 'alertrules',
-        // t('Alerting Rules') -- for console.tab extension
-        // t('Alerting rules')
-        nameKey: 'Alerting rules',
+        nameKey: `${process.env.I18N_NAMESPACE}~Alerting rules`,
         component: plugin === 'monitoring-plugin' ? CmoAlertRulesPage : CooAlertRulesPage,
-        name: 'Alerting rules',
+        name: t('Alerting rules'),
       },
     ],
-    [plugin],
+    [plugin, t],
   );
 
   return (

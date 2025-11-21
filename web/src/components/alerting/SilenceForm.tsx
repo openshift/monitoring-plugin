@@ -358,7 +358,7 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
                       isFullWidth
                       data-test={DataTestIDs.SilencesPageFormTestIDs.SilenceForToggle}
                     >
-                      {duration}
+                      {t(duration)}
                     </MenuToggle>
                   )}
                   onOpenChange={setIsOpen}

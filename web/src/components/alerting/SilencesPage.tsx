@@ -209,7 +209,7 @@ const SilencesPage_: FC = () => {
               Row={SilenceTableRowWithCheckbox}
               unfilteredData={silences?.data ?? []}
               NoDataEmptyMsg={() => {
-                return <EmptyBox label={t('Silences')} />;
+                return <EmptyBox customMessage={t('No silences found')} />;
               }}
               scrollNode={() => document.getElementById('silences-table-scroll')}
             />
