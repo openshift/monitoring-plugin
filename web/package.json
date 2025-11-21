@@ -190,7 +190,8 @@
       "MonitoringReducer": "./store/reducers",
       "IncidentsPage": "./components/Incidents/IncidentsPage",
       "TargetsPage": "./components/targets-page",
-      "PrometheusRedirectPage": "./components/prometheus-redirect-page",
+      "PrometheusRedirectPage": "./components/redirects/prometheus-redirect-page",
+      "DevRedirects": "./components/redirects/dev-redirects",
       "MonitoringContext": "./contexts/MonitoringContext"
     },
     "dependencies": {

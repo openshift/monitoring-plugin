@@ -77,13 +77,13 @@ export const fetchDataForIncidentsAndAlerts = (
     prometheusUrlProps: {
       endpoint: PrometheusEndpoint.QUERY_RANGE,
       endTime: range.endTime,
-      namespace: '',
       query: customQuery,
       samples,
       timespan: range.duration,
     },
     basePath: getPrometheusBasePath({
       prometheus: 'cmo',
+      useTenancyPath: false,
     }),
   });
 

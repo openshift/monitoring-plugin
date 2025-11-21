@@ -100,17 +100,6 @@
     }
   },
   {
-    "type": "console.tab",
-    "properties": {
-      "contextId": "dev-console-observe",
-      "name": "%plugin__monitoring-plugin~Dashboards%",
-      "href": "",
-      "component": {
-        "$codeRef": "LegacyDashboardsPage.MpCmoLegacyDashboardsPage"
-      }
-    }
-  },
-  {
     "type": "console.redux-reducer",
     "properties": {
       "scope": "mp",
@@ -275,6 +264,54 @@
       "exact": false,
       "path": ["/virt-monitoring/alerts/:ruleID"],
       "component": { "$codeRef": "AlertsDetailsPage.MpCmoAlertsDetailsPage" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
+      "path": "/dev-monitoring/ns/:ns/alerts/:ruleID",
+      "component": { "$codeRef": "DevRedirects.AlertRedirect" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
+      "path": "/dev-monitoring/ns/:ns/rules/:id",
+      "component": { "$codeRef": "DevRedirects.RulesRedirect" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
+      "path": "/dev-monitoring/ns/:ns/silences/:id",
+      "component": { "$codeRef": "DevRedirects.SilenceRedirect" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
+      "path": "/dev-monitoring/ns/:ns/silences/:id/edit",
+      "component": { "$codeRef": "DevRedirects.SilenceEditRedirect" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
+      "path": "/dev-monitoring/ns/:ns/silences/~new",
+      "component": { "$codeRef": "DevRedirects.SilenceNewRedirect" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
+      "path": "/dev-monitoring/ns/:ns/metrics",
+      "component": { "$codeRef": "DevRedirects.MetricsRedirect" }
     }
   }
 ]

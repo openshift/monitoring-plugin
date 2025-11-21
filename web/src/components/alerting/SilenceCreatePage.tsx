@@ -3,10 +3,13 @@ import { useTranslation } from 'react-i18next';
 import { getAllQueryArguments } from '../console/utils/router';
 import { SilenceForm } from './SilenceForm';
 import { MonitoringProvider } from '../../contexts/MonitoringContext';
-import { useActiveNamespace } from '@openshift-console/dynamic-plugin-sdk';
 import { ALL_NAMESPACES_KEY } from '../utils';
+import { useQueryNamespace } from '../hooks/useQueryNamespace';
+import { useMonitoring } from '../../hooks/useMonitoring';
 
-const CreateSilencePage = ({ isNamespaced }: { isNamespaced: boolean }) => {
+const CreateSilencePage = ({ allowNamespace }: { allowNamespace: boolean }) => {
+  const { namespace } = useQueryNamespace();
+  const { useAlertsTenancy } = useMonitoring();
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const matchers = _.map(getAllQueryArguments(), (value, name) => ({
@@ -14,6 +17,8 @@ const CreateSilencePage = ({ isNamespaced }: { isNamespaced: boolean }) => {
     value,
     isRegex: false,
   }));
+
+  const isNamespaced = allowNamespace && useAlertsTenancy && namespace !== ALL_NAMESPACES_KEY;
 
   return _.isEmpty(matchers) ? (
     <SilenceForm defaults={{}} title={t('Create silence')} isNamespaced={isNamespaced} />
@@ -23,11 +28,9 @@ const CreateSilencePage = ({ isNamespaced }: { isNamespaced: boolean }) => {
 };
 
 export const MpCmoCreateSilencePage = () => {
-  const [activeNamespace] = useActiveNamespace();
-
   return (
     <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
-      <CreateSilencePage isNamespaced={activeNamespace !== ALL_NAMESPACES_KEY} />
+      <CreateSilencePage allowNamespace={true} />
     </MonitoringProvider>
   );
 };
@@ -37,7 +40,7 @@ export const McpAcmCreateSilencePage = () => {
     <MonitoringProvider
       monitoringContext={{ plugin: 'monitoring-console-plugin', prometheus: 'acm' }}
     >
-      <CreateSilencePage isNamespaced={false} />
+      <CreateSilencePage allowNamespace={false} />
     </MonitoringProvider>
   );
 };

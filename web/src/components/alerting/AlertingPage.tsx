@@ -13,6 +13,7 @@ import { useLocation } from 'react-router-dom';
 import { AlertResource, RuleResource, SilenceResource } from '../utils';
 import { useDispatch } from 'react-redux';
 import { alertingClearSelectorData } from '../../store/actions';
+import { useQueryNamespace } from '../hooks/useQueryNamespace';
 
 const CmoAlertsPage = lazy(() =>
   import(/* webpackChunkName: "CmoAlertsPage" */ './AlertsPage').then((module) => ({
@@ -57,8 +58,10 @@ const namespacedPages = [
 const AlertingPage: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const dispatch = useDispatch();
+  const { useAlertsTenancy, accessCheckLoading } = useMonitoring();
 
   const [perspective] = useActivePerspective();
+  const { setNamespace } = useQueryNamespace();
 
   const { plugin, prometheus } = useMonitoring();
 
@@ -98,11 +101,12 @@ const AlertingPage: FC = () => {
 
   return (
     <>
-      {namespacedPages.includes(pathname) && (
+      {namespacedPages.includes(pathname) && !accessCheckLoading && useAlertsTenancy && (
         <NamespaceBar
-          onNamespaceChange={(namespace) =>
-            dispatch(alertingClearSelectorData(prometheus, namespace))
-          }
+          onNamespaceChange={(namespace) => {
+            dispatch(alertingClearSelectorData(prometheus, namespace));
+            setNamespace(namespace);
+          }}
         />
       )}
       <ListPageHeader title={t('Alerting')} />

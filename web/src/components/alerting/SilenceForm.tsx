@@ -2,7 +2,6 @@ import {
   consoleFetchJSON,
   DocumentTitle,
   NamespaceBar,
-  useActiveNamespace,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
   ActionGroup,
@@ -54,6 +53,7 @@ import { DataTestIDs } from '../data-test';
 import { ALL_NAMESPACES_KEY, getAlertmanagerSilencesUrl } from '../utils';
 import { useAlerts } from '../../hooks/useAlerts';
 import { useMonitoring } from '../../hooks/useMonitoring';
+import { useQueryNamespace } from '../hooks/useQueryNamespace';
 
 const durationOff = '-';
 
@@ -133,8 +133,8 @@ const NegativeMatcherHelp = () => {
 
 const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespaced }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const [namespace] = useActiveNamespace();
-  const { prometheus } = useMonitoring();
+  const { namespace } = useQueryNamespace();
+  const { prometheus, useAlertsTenancy } = useMonitoring();
   const navigate = useNavigate();
 
   const durations = useMemo(() => {
@@ -248,7 +248,11 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
       return;
     }
 
-    const url = getAlertmanagerSilencesUrl({ prometheus, namespace });
+    const url = getAlertmanagerSilencesUrl({
+      prometheus,
+      namespace,
+      useTenancyPath: useAlertsTenancy,
+    });
     if (!url) {
       setError('Alertmanager URL not set');
       return;
@@ -279,11 +283,14 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
     };
 
     consoleFetchJSON
-      .post(getAlertmanagerSilencesUrl({ prometheus, namespace }), body)
+      .post(
+        getAlertmanagerSilencesUrl({ prometheus, namespace, useTenancyPath: useAlertsTenancy }),
+        body,
+      )
       .then(({ silenceID }) => {
         setError(undefined);
         refetchSilencesAndAlerts();
-        navigate(getSilenceAlertUrl(perspective, silenceID, namespace));
+        navigate(getSilenceAlertUrl(perspective, silenceID));
       })
       .catch((err) => {
         const errorMessage =
