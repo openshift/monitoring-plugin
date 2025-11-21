@@ -1,7 +1,10 @@
-import { PageSection, Title } from '@patternfly/react-core';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { HorizontalNav, useActivePerspective } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  HorizontalNav,
+  ListPageHeader,
+  useActivePerspective,
+} from '@openshift-console/dynamic-plugin-sdk';
 
 const AlertsPage = React.lazy(
   () => import(/* webpackChunkName: "AlertsPage" */ '../alerting/AlertsPage'),
@@ -49,10 +52,8 @@ const AlertingPage: React.FC = () => {
 
   return (
     <>
-      <PageSection hasBodyWrapper={false}>
-        <Title headingLevel="h1">{t('Alerting')}</Title>
-        <HorizontalNav contextId={contextId} pages={pages} />
-      </PageSection>
+      <ListPageHeader title={t('Alerting')} />
+      <HorizontalNav contextId={contextId} pages={pages} />
     </>
   );
 };

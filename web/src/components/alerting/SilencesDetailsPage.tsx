@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 
 import {
   Alert,
+  DocumentTitle,
   ResourceIcon,
   Timestamp,
   useActiveNamespace,
@@ -28,7 +29,6 @@ import {
   SplitItem,
   Title,
 } from '@patternfly/react-core';
-import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import { MonitoringState } from 'src/reducers/observe';
 import {
@@ -72,9 +72,9 @@ const SilencesDetailsPage_: React.FC = () => {
 
   return (
     <>
-      <Helmet>
-        <title>{t('{{name}} details', { name: silence?.name || SilenceResource.label })}</title>
-      </Helmet>
+      <DocumentTitle>
+        {t('{{name}} details', { name: silence?.name || SilenceResource.label })}
+      </DocumentTitle>
       <StatusBox
         data={silence}
         label={SilenceResource.label}

@@ -1,5 +1,6 @@
 import {
   AlertStates,
+  DocumentTitle,
   ListPageFilter,
   PrometheusAlert,
   ResourceIcon,
@@ -14,7 +15,6 @@ import {
 import { sortable, Td } from '@patternfly/react-table';
 import * as _ from 'lodash-es';
 import * as React from 'react';
-import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom-v5-compat';
@@ -214,9 +214,7 @@ const AlertRulesPage_: React.FC = () => {
 
   return (
     <>
-      <Helmet>
-        <title>Alerting</title>
-      </Helmet>
+      <DocumentTitle>{t('Alerting')}</DocumentTitle>
       <PageSection hasBodyWrapper={false}>
         <ListPageFilter
           data={staticData}
