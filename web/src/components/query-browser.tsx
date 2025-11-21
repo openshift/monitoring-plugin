@@ -7,6 +7,7 @@ import {
   PrometheusResponse,
   PrometheusResult,
   PrometheusValue,
+  useActiveNamespace,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Chart,
@@ -72,7 +73,6 @@ import { PrometheusAPIError, RootState, TimeRange } from './types';
 import { getTimeRanges } from './utils';
 
 import { usePerspective } from './hooks/usePerspective';
-import { useActiveNamespace } from './console/console-shared/hooks/useActiveNamespace';
 
 const spans = ['5m', '15m', '30m', '1h', '2h', '6h', '12h', '1d', '2d', '1w', '2w'];
 export const colors = queryBrowserTheme.line.colorScale;
@@ -712,7 +712,7 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
 
   const canStack = _.sumBy(graphData, 'length') <= maxStacks;
 
-  const activeNamespace = useActiveNamespace();
+  const [activeNamespace] = useActiveNamespace();
   const { isDev } = usePerspective();
 
   // If provided, `timespan` overrides any existing span setting

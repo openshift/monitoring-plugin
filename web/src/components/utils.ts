@@ -20,6 +20,7 @@ import { alertingErrored, alertingLoaded, alertingLoading, Perspective } from '.
 import { AlertSource, MonitoringResource, Target, TimeRange } from './types';
 
 export const PROMETHEUS_BASE_PATH = window.SERVER_FLAGS.prometheusBaseURL;
+export const PROMETHEUS_TENANCY_BASE_PATH = window.SERVER_FLAGS.prometheusTenancyBaseURL;
 export const QUERY_CHUNK_SIZE = 24 * 60 * 60 * 1000;
 
 export const AlertResource: MonitoringResource = {
