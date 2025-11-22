@@ -25,6 +25,17 @@
 - See README.md for full setup
 - Deployment: https://github.com/observability-ui/development-tools/
 
+### Translations:
+Reference: OU-356
+Follow the process below to add plugin translations:
+
+1. Login to Memsource with the team-observability-ui@redhat.com account
+2. Create a project in Memsource for the plugin
+3. Upload the plugin strings to Memsource
+4. (Wait for the strings to be translated)
+5. Download the translated strings and merge them into our plugin codebase
+6. Create a follow up task after step 4 is completed by the i18n team
+
 ## Development Context
 
 ### When working on Alerts:
