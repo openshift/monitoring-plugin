@@ -95,7 +95,7 @@ const SilencesDetailsPage_: FC = () => {
               </SplitItem>
               <SplitItem isFilled />
               <SplitItem>
-                {silence && <SilenceDropdown silence={silence} toggleText="Actions" />}
+                {silence && <SilenceDropdown silence={silence} toggleText={t('Actions')} />}
               </SplitItem>
             </Split>
           </PageSection>

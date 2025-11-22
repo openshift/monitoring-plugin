@@ -217,7 +217,7 @@ const AlertRulesPage_: FC = () => {
             unfilteredData={rules}
             scrollNode={() => document.getElementById('alert-rules-table-scroll')}
             NoDataEmptyMsg={() => {
-              return <EmptyBox label={t('Alerting rules')} />;
+              return <EmptyBox customMessage={t('No alerting rules found')} />;
             }}
           />
         </div>
