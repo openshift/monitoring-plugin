@@ -169,6 +169,7 @@ print_current_config() {
 
   # Optional vars
   print_var "CYPRESS_MP_IMAGE" "${CYPRESS_MP_IMAGE-}"
+  print_var "CYPRESS_COO_NAMESPACE" "${CYPRESS_COO_NAMESPACE-}"
   print_var "CYPRESS_SKIP_COO_INSTALL" "${CYPRESS_SKIP_COO_INSTALL-}"
   print_var "CYPRESS_COO_UI_INSTALL" "${CYPRESS_COO_UI_INSTALL-}"
   print_var "CYPRESS_KONFLUX_COO_BUNDLE_IMAGE" "${CYPRESS_KONFLUX_COO_BUNDLE_IMAGE-}"
@@ -219,6 +220,7 @@ main() {
   local def_login_users=${CYPRESS_LOGIN_USERS-}
   local def_kubeconfig=${CYPRESS_KUBECONFIG_PATH-${KUBECONFIG-}}
   local def_mp_image=${CYPRESS_MP_IMAGE-}
+  local def_coo_namespace=${CYPRESS_COO_NAMESPACE-}
   local def_skip_coo=${CYPRESS_SKIP_COO_INSTALL-}
   local def_coo_ui_install=${CYPRESS_COO_UI_INSTALL-}
   local def_konflux_bundle=${CYPRESS_KONFLUX_COO_BUNDLE_IMAGE-}
@@ -402,6 +404,9 @@ main() {
   local mp_image
   mp_image=$(ask "Custom Monitoring Plugin image (CYPRESS_MP_IMAGE)" "$def_mp_image")
 
+  local coo_namespace
+  coo_namespace=$(ask "Cluster Observability Operator namespace (CYPRESS_COO_NAMESPACE)" "${def_coo_namespace:-openshift-cluster-observability-operator}")
+
   local skip_coo_install_ans
   skip_coo_install_ans=$(ask_yes_no "Skip Cluster Observability installation? (sets CYPRESS_SKIP_COO_INSTALL)" "$(bool_to_default_yn "$def_skip_coo")")
   local skip_coo_install="false"
@@ -473,6 +478,9 @@ main() {
   if [[ -n "$mp_image" ]]; then
     export_lines+=("export CYPRESS_MP_IMAGE='$(printf %s "$mp_image" | escape_for_single_quotes)'" )
   fi
+  if [[ -n "$coo_namespace" ]]; then
+    export_lines+=("export CYPRESS_COO_NAMESPACE='$(printf %s "$coo_namespace" | escape_for_single_quotes)'" )
+  fi
   export_lines+=("export CYPRESS_SKIP_COO_INSTALL='$(printf %s "$skip_coo_install" | escape_for_single_quotes)'" )
   export_lines+=("export CYPRESS_COO_UI_INSTALL='$(printf %s "$coo_ui_install" | escape_for_single_quotes)'" )
   if [[ -n "$konflux_bundle" ]]; then
@@ -531,6 +539,7 @@ main() {
   echo "  CYPRESS_LOGIN_USERS=${CYPRESS_LOGIN_USERS:-$login_users}"
   echo "  CYPRESS_KUBECONFIG_PATH=${CYPRESS_KUBECONFIG_PATH:-$kubeconfig}"
   [[ -n "${CYPRESS_MP_IMAGE-}$mp_image" ]] && echo "  CYPRESS_MP_IMAGE=${CYPRESS_MP_IMAGE:-$mp_image}"
+  [[ -n "${CYPRESS_COO_NAMESPACE-}$coo_namespace" ]] && echo "  CYPRESS_COO_NAMESPACE=${CYPRESS_COO_NAMESPACE:-$coo_namespace}"
   echo "  CYPRESS_SKIP_COO_INSTALL=${CYPRESS_SKIP_COO_INSTALL:-$skip_coo_install}"
   echo "  CYPRESS_COO_UI_INSTALL=${CYPRESS_COO_UI_INSTALL:-$coo_ui_install}"
   [[ -n "${CYPRESS_KONFLUX_COO_BUNDLE_IMAGE-}$konflux_bundle" ]] && echo "  CYPRESS_KONFLUX_COO_BUNDLE_IMAGE=${CYPRESS_KONFLUX_COO_BUNDLE_IMAGE:-$konflux_bundle}"

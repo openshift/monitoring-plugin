@@ -38,6 +38,7 @@
     "test-cypress-coo-ivt": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --spec cypress/e2e/coo/01.coo_ivt.cy.ts",
     "test-cypress-coo": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --spec cypress/e2e/coo/*cy.ts",
     "test-cypress-incidents": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --spec cypress/e2e/incidents/*cy.ts",
+    "test-cypress-incidents-regression": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --spec cypress/e2e/incidents/regression/*cy.ts",
     "ts-node": "ts-node -O '{\"module\":\"commonjs\"}'"
   },
   "dependencies": {

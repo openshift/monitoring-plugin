@@ -192,7 +192,7 @@ const operatorUtils = {
         'Operator installed successfully',
       );
       cy.exec(
-        `oc label namespaces ${MCP.namespace} openshift.io/cluster-monitoring=true --overwrite=true --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+        `oc label namespace ${MCP.namespace} openshift.io/cluster-monitoring=true --overwrite=true --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
       );
     } else if (Cypress.env('KONFLUX_COO_BUNDLE_IMAGE')) {
       cy.log('KONFLUX_COO_BUNDLE_IMAGE is set. COO operator will be installed from Konflux bundle.');
@@ -204,7 +204,7 @@ const operatorUtils = {
         `oc create namespace ${MCP.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
       );
       cy.exec(
-        `oc label namespaces ${MCP.namespace} openshift.io/cluster-monitoring=true --overwrite=true --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+        `oc label namespace ${MCP.namespace} openshift.io/cluster-monitoring=true --overwrite=true --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
       );
       cy.exec(
         `operator-sdk run bundle --timeout=10m --namespace ${MCP.namespace} ${Cypress.env('KONFLUX_COO_BUNDLE_IMAGE')} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} --verbose `,
@@ -220,7 +220,7 @@ const operatorUtils = {
         `oc create namespace ${MCP.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
       );
       cy.exec(
-        `oc label namespaces ${MCP.namespace} openshift.io/cluster-monitoring=true --overwrite=true --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+        `oc label namespace ${MCP.namespace} openshift.io/cluster-monitoring=true --overwrite=true --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
       );
       cy.exec(
         `operator-sdk run bundle --timeout=10m --namespace ${MCP.namespace} ${Cypress.env('CUSTOM_COO_BUNDLE_IMAGE')} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} --verbose `,
@@ -308,7 +308,7 @@ const operatorUtils = {
     cy.exec(`oc new-project perses-dev --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
     cy.log('Create openshift-cluster-sample-dashboard instance.');
-    cy.exec(`oc apply -f ./cypress/fixtures/coo/openshift-cluster-sample-dashboard.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+    cy.exec(`sed 's/namespace: openshift-cluster-observability-operator/namespace: ${MCP.namespace}/g' ./cypress/fixtures/coo/openshift-cluster-sample-dashboard.yaml | oc apply -f - --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
     cy.log('Create perses-dashboard-sample instance.');
     cy.exec(`oc apply -f ./cypress/fixtures/coo/perses-dashboard-sample.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
@@ -323,7 +323,7 @@ const operatorUtils = {
     cy.exec(`oc apply -f ./cypress/fixtures/coo/thanos-querier-datasource.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
     cy.exec(
-      `oc label namespaces ${MCP.namespace} openshift.io/cluster-monitoring=true --overwrite=true --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+      `oc label namespace ${MCP.namespace} openshift.io/cluster-monitoring=true --overwrite=true --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
     );
 
     cy.log('Create Monitoring UI Plugin instance.');
@@ -351,7 +351,7 @@ const operatorUtils = {
     });
 
     cy.exec(
-      `sleep 15 && oc wait --for=jsonpath='{.metadata.name}'=health-analyzer --timeout=60s servicemonitor/health-analyzer --namespace=openshift-cluster-observability-operator -n ${MCP.namespace} --timeout=60s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+      `sleep 15 && oc wait --for=jsonpath='{.metadata.name}'=health-analyzer --timeout=60s servicemonitor/health-analyzer -n ${MCP.namespace} --timeout=60s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
       {
         timeout: readyTimeoutMilliseconds,
         failOnNonZeroExit: true
@@ -416,27 +416,26 @@ const operatorUtils = {
 
     cy.log('Delete Monitoring UI Plugin instance.');
     cy.executeAndDelete(
-      `oc delete ${config.kind} ${config.name} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+      `oc delete ${config.kind} ${config.name} --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
     );
   
-    // Common cleanup steps
     cy.log('Remove openshift-cluster-sample-dashboard instance.');
-    cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/openshift-cluster-sample-dashboard.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+    cy.executeAndDelete(`sed 's/namespace: openshift-cluster-observability-operator/namespace: ${MCP.namespace}/g' ./cypress/fixtures/coo/openshift-cluster-sample-dashboard.yaml | oc delete -f - --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
     cy.log('Remove perses-dashboard-sample instance.');
-    cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/perses-dashboard-sample.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+    cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/perses-dashboard-sample.yaml --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
     cy.log('Remove prometheus-overview-variables instance.');
-    cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/prometheus-overview-variables.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+    cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/prometheus-overview-variables.yaml --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
     cy.log('Remove thanos-compact-overview-1var instance.');
-    cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/thanos-compact-overview-1var.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+    cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/thanos-compact-overview-1var.yaml --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
     cy.log('Remove Thanos Querier instance.');
-    cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/thanos-querier-datasource.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+    cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/thanos-querier-datasource.yaml --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
     cy.log('Remove perses-dev namespace');
-    cy.executeAndDelete(`oc delete namespace perses-dev --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+    cy.executeAndDelete(`oc delete namespace perses-dev --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
     // Additional cleanup only when COO is installed
     if (!Cypress.env('SKIP_COO_INSTALL')) {
@@ -444,7 +443,7 @@ const operatorUtils = {
       
       // First check if the namespace exists
       cy.exec(
-        `oc get namespace openshift-cluster-observability-operator --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+        `oc get namespace ${MCP.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
         {
           timeout: readyTimeoutMilliseconds,
           failOnNonZeroExit: false
@@ -454,7 +453,7 @@ const operatorUtils = {
           // Namespace exists, proceed with deletion
           cy.log('Namespace exists, proceeding with deletion');
           cy.exec(
-            `oc delete namespace openshift-cluster-observability-operator --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+            `oc delete namespace ${MCP.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
             {
               timeout: readyTimeoutMilliseconds,
               failOnNonZeroExit: false
@@ -467,7 +466,7 @@ const operatorUtils = {
               cy.log(`Attempting force delete...`);
               
               cy.exec(
-                `./cypress/fixtures/coo/force_delete_ns.sh openshift-cluster-observability-operator --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+                `./cypress/fixtures/coo/force_delete_ns.sh ${MCP.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
                 { 
                   failOnNonZeroExit: false, 
                   timeout: readyTimeoutMilliseconds 

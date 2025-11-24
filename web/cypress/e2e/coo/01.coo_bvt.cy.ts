@@ -4,7 +4,7 @@ import { nav } from '../../views/nav';
 
 // Set constants for the operators that need to be installed for tests.
 const MCP = {
-  namespace: 'openshift-cluster-observability-operator',
+  namespace: Cypress.env('COO_NAMESPACE'),
   packageName: 'cluster-observability-operator',
   operatorName: 'Cluster Observability Operator',
   config: {

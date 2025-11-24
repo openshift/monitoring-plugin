@@ -70,7 +70,7 @@ function verifyIncidentBarIsVisible(index: number, context: string) {
   verifyIncidentBarHasVisiblePaths(index, context);
 }
 const MCP = {
-  namespace: 'openshift-cluster-observability-operator',
+  namespace: Cypress.env('COO_NAMESPACE'),
   packageName: 'cluster-observability-operator',
   operatorName: 'Cluster Observability Operator',
   config: {
@@ -80,7 +80,7 @@ const MCP = {
 };
 
 const MP = {
-  namespace: 'openshift-monitoring',
+  namespace: Cypress.env('COO_NAMESPACE'),
   operatorName: 'Cluster Monitoring Operator',
 };
 

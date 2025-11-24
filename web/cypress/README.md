@@ -173,7 +173,14 @@ export CYPRESS_KUBECONFIG_PATH=~/Downloads/kubeconfig
 export CYPRESS_SKIP_ALL_INSTALL=true
 ```
 
-### Example 5: Debug Mode
+### Example 5: Configurable COO Namespace
+
+Set the following var to specify the Cluster Observability Operator namespace. Defaults to `openshift-cluster-observability-operator` if not set. This is useful when testing with different namespace configurations (e.g., using `coo` instead of the default).
+```bash
+export CYPRESS_COO_NAMESPACE=openshift-cluster-observability-operator
+```
+
+### Example 6: Debug Mode
 
 ```bash
 # Required variables + debug
