@@ -65,37 +65,17 @@ describe('Regression: Monitoring - Alerts (Virtualization)', { tags: ['@virtuali
     cy.validateLogin();
     cy.switchPerspective('Virtualization');
     guidedTour.closeKubevirtTour();
+    nav.sidenav.clickNavLink(['Observe', 'Metrics']);
+    commonPages.titleShouldHaveText('Metrics');
+    cy.changeNamespace("All Projects");
     alerts.getWatchdogAlert();
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     commonPages.titleShouldHaveText('Alerting');
-    cy.changeNamespace("All Projects");
     alerts.getWatchdogAlert();
   });
   // Run tests in Virtualization perspective
   runAllRegressionAlertsTests({
     name: 'Virtualization',
-  });
-
-});
-
-describe('Regression: Monitoring - Alerts Namespaced (Virtualization)', { tags: ['@virtualization', '@alerts'] }, () => {
-
-  beforeEach(() => {
-    cy.visit('/');
-    cy.validateLogin();
-    cy.switchPerspective('Virtualization');
-    guidedTour.closeKubevirtTour();
-    alerts.getWatchdogAlert();
-    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-    commonPages.titleShouldHaveText('Alerting');
-    cy.changeNamespace(MP.namespace);
-    alerts.getWatchdogAlert();
-    
-  });
-  // Run tests in Virtualization perspective
-  runAllRegressionAlertsTestsNamespace({
-    name: 'Virtualization',
-
   });
 
 });

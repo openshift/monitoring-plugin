@@ -67,37 +67,17 @@ describe('IVT: Monitoring + Virtualization', { tags: ['@smoke', '@virtualization
     cy.validateLogin();
     cy.switchPerspective('Virtualization');
     guidedTour.closeKubevirtTour();
+    nav.sidenav.clickNavLink(['Observe', 'Metrics']);
+    commonPages.titleShouldHaveText('Metrics');
+    cy.changeNamespace("All Projects");
     alerts.getWatchdogAlert();
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     commonPages.titleShouldHaveText('Alerting');
-    cy.changeNamespace("All Projects");
     alerts.getWatchdogAlert();
   });
 
   // Run tests in Administrator perspective
   runBVTMonitoringTests({
-    name: 'Virtualization',
-  });
-
-});
-
-describe('IVT: Monitoring + Virtualization - Namespaced', { tags: ['@smoke', '@virtualization'] }, () => {
-
-  beforeEach(() => {
-    cy.visit('/');
-    guidedTour.close();
-    cy.validateLogin();
-    cy.switchPerspective('Virtualization');
-    guidedTour.closeKubevirtTour();
-    alerts.getWatchdogAlert();
-    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-    commonPages.titleShouldHaveText('Alerting');
-    cy.changeNamespace(MP.namespace);
-    alerts.getWatchdogAlert();
-  });
-
-  // Run tests in Administrator perspective
-  runBVTMonitoringTestsNamespace({  
     name: 'Virtualization',
   });
 

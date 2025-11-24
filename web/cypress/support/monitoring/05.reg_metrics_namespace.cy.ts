@@ -1,7 +1,6 @@
-import { nav } from '../../views/nav';
 import { metricsPage } from '../../views/metrics';
-import { Classes, DataTestIDs, IDs } from '../../../src/components/data-test';
-import { GraphTimespan, MetricGraphEmptyState, MetricsPagePredefinedQueries, MetricsPageQueryInput, MetricsPageQueryKebabDropdown, MetricsPageQueryInputByNamespace } from '../../fixtures/monitoring/constants';
+import { Classes, DataTestIDs } from '../../../src/components/data-test';
+import { MetricsPageUnits, GraphTimespan, MetricsPagePredefinedQueries, MetricsPageQueryInput, MetricsPageQueryKebabDropdown, MetricsPageQueryInputByNamespace } from '../../fixtures/monitoring/constants';
 
 export interface PerspectiveConfig {
   name: string;
@@ -190,10 +189,8 @@ export function testMetricsRegressionNamespace(perspective: PerspectiveConfig) {
     cy.log('4.12 Stacked Checkbox');
     metricsPage.clickStackedCheckboxAndAssert();
   });
-
-  /**
-   * TODO: uncomment when this bug gets fixed   
-   * https://issues.redhat.com/browse/OU-974 - [Metrics] - Units - undefined showing in Y axis and tooltip
+ 
+  //https://issues.redhat.com/browse/OU-974 - [Metrics] - Units - undefined showing in Y axis and tooltip
   it(`${perspective.name} perspective - Metrics > Units`, () => {
     cy.log('5.1 Preparation to test Units dropdown');
     cy.visit('/monitoring/query-browser');
@@ -205,9 +202,9 @@ export function testMetricsRegressionNamespace(perspective: PerspectiveConfig) {
       metricsPage.clickUnitsDropdown(unit);
       metricsPage.unitsAxisYAssertion(unit);
     });
-  });
-  */
+  });  
 }
+
 export function testMetricsRegressionNamespace1(perspective: PerspectiveConfig) {
 
   it(`${perspective.name} perspective - Metrics > Add Query - Run Queries - Kebab icon`, () => {

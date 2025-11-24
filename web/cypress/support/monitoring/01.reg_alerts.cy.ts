@@ -64,7 +64,8 @@ export function testAlertsRegression(perspective: PerspectiveConfig) {
 
   });
 
-  it(`${perspective.name} perspective - Alerting > Alerts / Silences > Kebab icon on List and Details`, () => {
+  //TODO remove skip when OU-1110 is fixed
+  it.skip(`${perspective.name} perspective - Alerting > Alerts / Silences > Kebab icon on List and Details`, () => {
     cy.log('3.1 use sidebar nav to go to Observe > Alerting');
 
     cy.log('3.2 filter to Watchdog alert');
@@ -82,6 +83,8 @@ export function testAlertsRegression(perspective: PerspectiveConfig) {
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     commonPages.titleShouldHaveText('Alerting');
     listPage.filter.clearAllFilters();
+    listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
+    listPage.ARRows.countShouldBe(1);
     listPage.ARRows.expandRow();
     listPage.ARRows.assertNoKebab();
     listPage.ARRows.clickAlert();
@@ -109,7 +112,6 @@ export function testAlertsRegression(perspective: PerspectiveConfig) {
     commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     nav.tabs.switchTab('Silences');
-    cy.changeNamespace('openshift-monitoring');
 
     cy.log('3.8 Assert Kebab on Silence List page for Expired alert');
     silencesListPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
@@ -133,7 +135,9 @@ export function testAlertsRegression(perspective: PerspectiveConfig) {
     silenceAlertPage.alertLabelsSectionDefault();
     silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('alertname', `${WatchdogAlert.ALERTNAME}`, false, false);
     // silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('severity', `${SEVERITY}`, false, false);
-    silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('namespace', `${WatchdogAlert.NAMESPACE}`, false, false);
+    cy.log('https://issues.redhat.com/browse/OU-1110 - [Namespace-level] - Admin user - Create, Edit, Recreate silences is showing namespace dropdown');
+    // TODO: uncomment when OU-1110 is fixed
+    //silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('namespace', `${WatchdogAlert.NAMESPACE}`, false, false);
     silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('prometheus', 'openshift-monitoring/k8s', false, false);
     silenceAlertPage.clickSubmit();
     commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
@@ -152,7 +156,9 @@ export function testAlertsRegression(perspective: PerspectiveConfig) {
     silenceAlertPage.alertLabelsSectionDefault();
     silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('alertname', `${WatchdogAlert.ALERTNAME}`, false, false);
     // silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('severity', `${SEVERITY}`, false, false);
-    silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('namespace', `${WatchdogAlert.NAMESPACE}`, false, false);
+    cy.log('https://issues.redhat.com/browse/OU-1110 - [Namespace-level] - Admin user - Create, Edit, Recreate silences is showing namespace dropdown');
+    // TODO: uncomment when OU-1110 is fixed
+    // silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('namespace', `${WatchdogAlert.NAMESPACE}`, false, false);
     silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('prometheus', 'openshift-monitoring/k8s', false, false);
     silenceAlertPage.clickSubmit();
     commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);

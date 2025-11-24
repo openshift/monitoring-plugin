@@ -65,8 +65,8 @@ Cypress.Commands.add('waitUntilWithCustomTimeout', (
         cy.byLegacyTestID(LegacyTestIDs.NamespaceBarDropdown).find('button').scrollIntoView().should('be.visible');
         cy.byLegacyTestID(LegacyTestIDs.NamespaceBarDropdown).find('button').scrollIntoView().should('be.visible').click({force: true});
       } else {
-        cy.byClass(Classes.NamespaceDropdown).scrollIntoView().should('be.visible');
-        cy.byClass(Classes.NamespaceDropdown).scrollIntoView().should('be.visible').click({force: true});
+        cy.get(Classes.NamespaceDropdown).scrollIntoView().should('be.visible');
+        cy.get(Classes.NamespaceDropdown).scrollIntoView().should('be.visible').click({force: true});
       }
     });
     cy.get('body').then(($body) => {
@@ -88,13 +88,15 @@ Cypress.Commands.add('waitUntilWithCustomTimeout', (
 
   Cypress.Commands.add('aboutModal', () => {
     cy.log('Getting OCP version');
-    cy.byTestID(DataTestIDs.MastHeadHelpIcon).should('be.visible');
-    cy.byTestID(DataTestIDs.MastHeadHelpIcon).should('be.visible').click({force: true});
-    cy.byTestID(DataTestIDs.MastHeadApplicationItem).contains('About').should('be.visible').click();
-    cy.byAriaLabel('About modal').find('div[class*="co-select-to-copy"]').eq(0).should('be.visible').then(($ocpversion) => {
-      cy.log('OCP version: ' + $ocpversion.text());
-    });
-    cy.byAriaLabel('Close Dialog').should('be.visible').click();
+    if (Cypress.env('LOGIN_USERNAME') === 'kubeadmin') {
+      cy.byTestID(DataTestIDs.MastHeadHelpIcon).should('be.visible');
+      cy.byTestID(DataTestIDs.MastHeadHelpIcon).should('be.visible').click({force: true});
+      cy.byTestID(DataTestIDs.MastHeadApplicationItem).contains('About').should('be.visible').click();
+      cy.byAriaLabel('About modal').find('div[class*="co-select-to-copy"]').eq(0).should('be.visible').then(($ocpversion) => {
+        cy.log('OCP version: ' + $ocpversion.text());
+      });
+      cy.byAriaLabel('Close Dialog').should('be.visible').click();
+    }
 
   });
 

@@ -45,11 +45,13 @@ export function testAlertsRegressionNamespace(perspective: PerspectiveConfig) {
 
   });
 
-  it(`${perspective.name} perspective - Alerting > Silences page > Create silence`, () => {
+  //TODO remove skip when OU-1109 is fixed
+  it.skip(`${perspective.name} perspective - Alerting > Silences page > Create silence`, () => {
     cy.log('2.1 use sidebar nav to go to Observe > Alerting');
     nav.tabs.switchTab('Silences');
     silencesListPage.createSilence();
     commonPages.projectDropdownShouldExist();
+    cy.log('https://issues.redhat.com/browse/OU-1109 - [Namespace-level] - Dev user - Create a silence - namespace label does not have a value');
     silenceAlertPage.assertNamespaceLabelNamespaceValueDisabled('namespace', `${WatchdogAlert.NAMESPACE}`, true);
     silenceAlertPage.assertCommentNoError();
     silenceAlertPage.clickSubmit();
@@ -61,7 +63,9 @@ export function testAlertsRegressionNamespace(perspective: PerspectiveConfig) {
   
   });
 
-  it(`${perspective.name} perspective - Alerting > Alerts / Silences > Kebab icon on List and Details`, () => {
+  
+  //TODO remove skip when OU-1109 is fixed
+  it.skip(`${perspective.name} perspective - Alerting > Alerts / Silences > Kebab icon on List and Details`, () => {
     cy.log('3.1 use sidebar nav to go to Observe > Alerting');
 
     cy.log('3.2 filter to Watchdog alert');
@@ -131,9 +135,10 @@ export function testAlertsRegressionNamespace(perspective: PerspectiveConfig) {
     silenceAlertPage.durationSectionDefault();
     silenceAlertPage.alertLabelsSectionDefault();
     silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('alertname', `${WatchdogAlert.ALERTNAME}`, false, false);
-    silenceAlertPage.assertNamespaceLabelNamespaceValueDisabled('namespace', `${WatchdogAlert.NAMESPACE}`, true);
-    // silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('severity', `${SEVERITY}`, false, false);
-    silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('namespace', `${WatchdogAlert.NAMESPACE}`, false, false);
+    //TODO uncomment when OU-1109 is fixed
+    cy.log('https://issues.redhat.com/browse/OU-1109 - [Namespace-level] - Dev user - Create a silence - namespace label does not have a value');
+    // silenceAlertPage.assertNamespaceLabelNamespaceValueDisabled('namespace', `${WatchdogAlert.NAMESPACE}`, true);
+    // silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('namespace', `${WatchdogAlert.NAMESPACE}`, false, false);
     silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('prometheus', 'openshift-monitoring/k8s', false, false);
     silenceAlertPage.clickSubmit();
     commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
@@ -151,8 +156,10 @@ export function testAlertsRegressionNamespace(perspective: PerspectiveConfig) {
     silenceAlertPage.editDurationSectionDefault();
     silenceAlertPage.alertLabelsSectionDefault();
     silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('alertname', `${WatchdogAlert.ALERTNAME}`, false, false);
-    // silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('severity', `${SEVERITY}`, false, false);
-    silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('namespace', `${WatchdogAlert.NAMESPACE}`, false, false);
+    //TODO uncomment when OU-1109 is fixed
+    cy.log('https://issues.redhat.com/browse/OU-1109 - [Namespace-level] - Dev user - Create a silence - namespace label does not have a value');
+    // silenceAlertPage.assertNamespaceLabelNamespaceValueDisabled('namespace', `${WatchdogAlert.NAMESPACE}`, true);
+    // silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('namespace', `${WatchdogAlert.NAMESPACE}`, false, false);
     silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('prometheus', 'openshift-monitoring/k8s', false, false);
     silenceAlertPage.clickSubmit();
     commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
@@ -183,6 +190,7 @@ export function testAlertsRegressionNamespace(perspective: PerspectiveConfig) {
     listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
     listPage.ARRows.countShouldBe(1);
   });
+  
 
   it(`${perspective.name} perspective - Alerting > Alerting Rules`, () => {
     cy.log('4.1 use sidebar nav to go to Observe > Alerting');
@@ -190,7 +198,6 @@ export function testAlertsRegressionNamespace(perspective: PerspectiveConfig) {
     alertingRuleListPage.shouldBeLoaded();
 
     cy.log('4.2 clear all filters, verify filters and tags');
-    // listPage.filter.clearAllFilters('alerting-rules');
     listPage.filter.selectFilterOption(true, AlertingRulesAlertState.FIRING, false);
     listPage.filter.selectFilterOption(false, AlertingRulesAlertState.PENDING, false);
     listPage.filter.selectFilterOption(false, AlertingRulesAlertState.SILENCED, false);

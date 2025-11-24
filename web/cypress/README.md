@@ -277,7 +277,7 @@ npm run test-cypress-smoke
 
 **Run regression tests (all non-smoke tests):**
 ```bash
-npx cypress run --env grepTags="-@smoke -@flaky -@demo"
+npx cypress run --env grepTags="--@smoke --@flaky --@demo"
 ```
 
 **Run component-specific tests:**
@@ -314,7 +314,7 @@ npx cypress run --env grepTags="@smoke+@incidents"
 
 **Complex filtering:**
 ```bash
-npx cypress run --env grepTags="@incidents -@slow -@flaky"
+npx cypress run --env grepTags="@incidents --@slow --@flaky"
 ```
 
 ---
