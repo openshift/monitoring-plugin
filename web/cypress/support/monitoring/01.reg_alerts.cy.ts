@@ -82,6 +82,8 @@ export function testAlertsRegression(perspective: PerspectiveConfig) {
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     commonPages.titleShouldHaveText('Alerting');
     listPage.filter.clearAllFilters();
+    listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
+    listPage.ARRows.countShouldBe(1);
     listPage.ARRows.expandRow();
     listPage.ARRows.assertNoKebab();
     listPage.ARRows.clickAlert();
@@ -109,7 +111,6 @@ export function testAlertsRegression(perspective: PerspectiveConfig) {
     commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     nav.tabs.switchTab('Silences');
-    cy.changeNamespace('openshift-monitoring');
 
     cy.log('3.8 Assert Kebab on Silence List page for Expired alert');
     silencesListPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
@@ -133,6 +134,7 @@ export function testAlertsRegression(perspective: PerspectiveConfig) {
     silenceAlertPage.alertLabelsSectionDefault();
     silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('alertname', `${WatchdogAlert.ALERTNAME}`, false, false);
     // silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('severity', `${SEVERITY}`, false, false);
+    cy.log('https://issues.redhat.com/browse/OU-1110 - [Namespace-level] - Admin user - Create, Edit, Recreate silences is showing namespace dropdown');
     silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('namespace', `${WatchdogAlert.NAMESPACE}`, false, false);
     silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('prometheus', 'openshift-monitoring/k8s', false, false);
     silenceAlertPage.clickSubmit();
@@ -152,6 +154,7 @@ export function testAlertsRegression(perspective: PerspectiveConfig) {
     silenceAlertPage.alertLabelsSectionDefault();
     silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('alertname', `${WatchdogAlert.ALERTNAME}`, false, false);
     // silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('severity', `${SEVERITY}`, false, false);
+    cy.log('https://issues.redhat.com/browse/OU-1110 - [Namespace-level] - Admin user - Create, Edit, Recreate silences is showing namespace dropdown');
     silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('namespace', `${WatchdogAlert.NAMESPACE}`, false, false);
     silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('prometheus', 'openshift-monitoring/k8s', false, false);
     silenceAlertPage.clickSubmit();

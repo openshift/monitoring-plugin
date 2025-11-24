@@ -59,6 +59,7 @@ export const legacyDashboardsPage = {
   clickDashboardDropdown: (dashboard: keyof typeof LegacyDashboardsDashboardDropdown) => {
     cy.log('legacyDashboardsPage.clickDashboardDropdown');
     cy.byTestID(LegacyDashboardPageTestIDs.DashboardDropdown).find('button').scrollIntoView().should('be.visible').click();
+    cy.wait(2000);
     cy.get(Classes.MenuItem).contains(LegacyDashboardsDashboardDropdown[dashboard][0]).should('be.visible').click();
   },
 

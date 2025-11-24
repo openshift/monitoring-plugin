@@ -1,6 +1,6 @@
 import { metricsPage } from '../../views/metrics';
-import { Classes, DataTestIDs } from '../../../src/components/data-test';
-import { GraphTimespan, MetricGraphEmptyState, MetricsPagePredefinedQueries, MetricsPageQueryInput, MetricsPageQueryKebabDropdown } from '../../fixtures/monitoring/constants';
+import { Classes, DataTestIDs, LegacyTestIDs } from '../../../src/components/data-test';
+import { GraphTimespan, MetricGraphEmptyState, MetricsPagePredefinedQueries, MetricsPageQueryInput, MetricsPageQueryKebabDropdown, MetricsPageUnits } from '../../fixtures/monitoring/constants';
 
 export interface PerspectiveConfig {
   name: string;
@@ -191,9 +191,7 @@ export function testMetricsRegression(perspective: PerspectiveConfig) {
 
   });
 
-  /**
-   * TODO: uncomment when this bug gets fixed   
-   * https://issues.redhat.com/browse/OU-974 - [Metrics] - Units - undefined showing in Y axis and tooltip
+  //https://issues.redhat.com/browse/OU-974 - [Metrics] - Units - undefined showing in Y axis and tooltip
   it(`${perspective.name} perspective - Metrics > Units`, () => {
     cy.log('5.1 Preparation to test Units dropdown');
     cy.visit('/monitoring/query-browser');
@@ -206,8 +204,9 @@ export function testMetricsRegression(perspective: PerspectiveConfig) {
       metricsPage.unitsAxisYAssertion(unit);
     });
   });
-  */
+  
 }
+
 export function testMetricsRegression1(perspective: PerspectiveConfig) {
 
   it(`${perspective.name} perspective - Metrics > Add Query - Run Queries - Kebab icon`, () => {
@@ -469,7 +468,7 @@ export function testMetricsRegression1(perspective: PerspectiveConfig) {
     metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.RECEIVE_BANDWIDTH);
     metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.TRANSMIT_BANDWIDTH);
     metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.RATE_OF_RECEIVED_PACKETS);    
-    cy.byLegacyTestID('namespace-bar-dropdown').scrollIntoView();
+    cy.byLegacyTestID(LegacyTestIDs.NamespaceBarDropdown).scrollIntoView();
     
     cy.get(Classes.MetricsPageUngraphableResults).contains(MetricGraphEmptyState.UNGRAPHABLE_RESULTS).should('be.visible');
     cy.get(Classes.MetricsPageUngraphableResultsDescription).contains(MetricGraphEmptyState.UNGRAPHABLE_RESULTS_DESCRIPTION).should('be.visible');

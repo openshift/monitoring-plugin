@@ -20,15 +20,14 @@ describe('Regression: Monitoring - Legacy Dashboards (Administrator)', { tags: [
     cy.visit('/');
     guidedTour.close();
     cy.validateLogin();
-    //TODO: Begin: To be removed when OU-949 get merged
-    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-    commonPages.titleShouldHaveText('Alerting');
+    //when running only this file, beforeBlock changes the namespace to openshift-monitoring
+    //so we need to change it back to All Projects before landing to Dashboards page in order to have API Performance dashboard loaded by default
+    nav.sidenav.clickNavLink(['Observe', 'Metrics']);
+    commonPages.titleShouldHaveText('Metrics');
     cy.changeNamespace("All Projects");
-    //TODO: End: To be removed when OU-949 get merged
     nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
     commonPages.titleShouldHaveText('Dashboards');
-    //TODO: Uncomment when OU-949 get merged
-    //cy.changeNamespace("All Projects");
+    cy.changeNamespace("All Projects");
   });
 
   // Run tests in Administrator perspective
@@ -38,7 +37,6 @@ describe('Regression: Monitoring - Legacy Dashboards (Administrator)', { tags: [
 
 });
 
-/* TODO: Uncomment when OU-949 get merged
 // Test suite for Administrator perspective
 describe('Regression: Monitoring - Legacy Dashboards Namespaced (Administrator)', { tags: ['@monitoring', '@dashboards'] }, () => {
 
@@ -61,4 +59,3 @@ describe('Regression: Monitoring - Legacy Dashboards Namespaced (Administrator)'
   });
 
 });
- */

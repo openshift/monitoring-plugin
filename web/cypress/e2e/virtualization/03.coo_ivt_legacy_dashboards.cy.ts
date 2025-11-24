@@ -64,15 +64,9 @@ describe('Regression: Monitoring - Legacy Dashboards (Virtualization)', { tags: 
     cy.validateLogin();
     cy.switchPerspective('Virtualization');
     guidedTour.closeKubevirtTour();
-    //TODO: Begin: To be removed when OU-949 get merged
-    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-    commonPages.titleShouldHaveText('Alerting');
-    cy.changeNamespace("All Projects");
-    //TODO: End: To be removed when OU-949 get merged
     nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
     commonPages.titleShouldHaveText('Dashboards');
-    //TODO: Uncomment when OU-949 get merged
-    // cy.changeNamespace("All Projects");
+    cy.changeNamespace("All Projects");
   });
 
   runAllRegressionLegacyDashboardsTests({
@@ -81,20 +75,18 @@ describe('Regression: Monitoring - Legacy Dashboards (Virtualization)', { tags: 
 
 });
 
-/* TODO: Uncomment when OU-949 get merged
-// describe('Regression: Monitoring - Legacy Dashboards Namespaced (Virtualization)', () => {
-//   beforeEach(() => {
-//     cy.visit('/');
-//     cy.validateLogin();
-//     cy.switchPerspective('Virtualization');
-//     guidedTour.closeKubevirtTour();
-//     nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
-//     commonPages.titleShouldHaveText('Dashboards');
-//     cy.changeNamespace(MP.namespace);
-//   });
+describe('Regression: Monitoring - Legacy Dashboards Namespaced (Virtualization)', { tags: ['@virtualization', '@dashboards'] }, () => {
+  beforeEach(() => {
+    cy.visit('/');
+    cy.validateLogin();
+    cy.switchPerspective('Virtualization');
+    guidedTour.closeKubevirtTour();
+    nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
+    commonPages.titleShouldHaveText('Dashboards');
+    cy.changeNamespace(MP.namespace);
+  });
 
-//   runAllRegressionLegacyDashboardsTestsNamespace({
-//     name: 'Virtualization',
-//   });
-// });
-*/
+  runAllRegressionLegacyDashboardsTestsNamespace({
+    name: 'Virtualization',
+  });
+});
