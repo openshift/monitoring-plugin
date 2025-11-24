@@ -201,6 +201,7 @@
   "Component(s)": "组件",
   "Alert": "警报",
   "Incidents": "事件",
+  "Clear all filters": "清除所有过滤器",
   "Filter type selection": "过滤类型选择",
   "Incident ID": "事件 ID",
   "Severity filters": "严重性过滤",
