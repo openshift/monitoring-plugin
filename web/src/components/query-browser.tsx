@@ -28,6 +28,8 @@ import {
   TextInput,
   Title,
   Tooltip as PFTooltip,
+  Split,
+  SplitItem,
 } from '@patternfly/react-core';
 import {
   Dropdown as DropdownDeprecated,
@@ -1020,42 +1022,54 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
             />
             {updating && <Loading />}
           </div>
-          <div className="query-browser__controls--right">
-            {GraphLink && <GraphLink />}
+          <Split hasGutter>
+            {GraphLink && (
+              <SplitItem>
+                <GraphLink />{' '}
+              </SplitItem>
+            )}
+
             {canStack && showStackedControl && (
-              <Checkbox
-                id="stacked"
-                isChecked={isStacked}
-                data-checked-state={isStacked}
-                label={t('Stacked')}
-                onChange={(_e, v) => (typeof _e === 'boolean' ? setIsStacked(_e) : setIsStacked(v))}
-              />
+              <SplitItem>
+                {' '}
+                <Checkbox
+                  id="stacked"
+                  isChecked={isStacked}
+                  data-checked-state={isStacked}
+                  label={t('Stacked')}
+                  onChange={(_e, v) =>
+                    typeof _e === 'boolean' ? setIsStacked(_e) : setIsStacked(v)
+                  }
+                />
+              </SplitItem>
             )}
             {showDisconnectedControl && (
-              <PFTooltip
-                content={
-                  <div>
-                    {isDisconnectedEnabled
-                      ? t('Check to show gaps for missing data')
-                      : t('No gaps found in the data')}
-                  </div>
-                }
-              >
-                <Checkbox
-                  id="disconnected"
-                  isChecked={isDisconnectedEnabled && showDisconnectedValues}
-                  data-checked-state={isDisconnectedEnabled && showDisconnectedValues}
-                  label={t('Disconnected')}
-                  onChange={(_e, v) =>
-                    typeof _e === 'boolean'
-                      ? setIsShowDisconnectedValues(_e)
-                      : setIsShowDisconnectedValues(v)
+              <SplitItem>
+                <PFTooltip
+                  content={
+                    <div>
+                      {isDisconnectedEnabled
+                        ? t('Check to show gaps for missing data')
+                        : t('No gaps found in the data')}
+                    </div>
                   }
-                  isDisabled={!isDisconnectedEnabled}
-                />
-              </PFTooltip>
+                >
+                  <Checkbox
+                    id="disconnected"
+                    isChecked={isDisconnectedEnabled && showDisconnectedValues}
+                    data-checked-state={isDisconnectedEnabled && showDisconnectedValues}
+                    label={t('Disconnected')}
+                    onChange={(_e, v) =>
+                      typeof _e === 'boolean'
+                        ? setIsShowDisconnectedValues(_e)
+                        : setIsShowDisconnectedValues(v)
+                    }
+                    isDisabled={!isDisconnectedEnabled}
+                  />
+                </PFTooltip>
+              </SplitItem>
             )}
-          </div>
+          </Split>
         </div>
       )}
       <div
