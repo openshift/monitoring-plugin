@@ -89,7 +89,6 @@ import {
 import { DataTestIDs } from '../data-test';
 import { useAlerts } from '../../hooks/useAlerts';
 import { useMonitoring } from '../../hooks/useMonitoring';
-import { useQueryNamespace } from '../hooks/useQueryNamespace';
 
 const AlertsDetailsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -100,8 +99,6 @@ const AlertsDetailsPage_: FC = () => {
   const { perspective } = usePerspective();
 
   const { alerts, rulesAlertLoading, silences } = useAlerts();
-
-  const { namespace } = useQueryNamespace();
 
   const hideGraphs = useSelector(
     (state: MonitoringState) => !!getObserveState(plugin, state).hideGraphs,
@@ -244,12 +241,7 @@ const AlertsDetailsPage_: FC = () => {
             <Grid sm={12} md={6} hasGutter>
               <GridItem span={12}>
                 {!sourceId || sourceId === 'prometheus' ? (
-                  <Graph
-                    filterLabels={labels}
-                    namespace={namespace}
-                    query={rule?.query}
-                    ruleDuration={rule?.duration}
-                  />
+                  <Graph filterLabels={labels} query={rule?.query} ruleDuration={rule?.duration} />
                 ) : AlertsChart && !hideGraphs ? (
                   <AlertsChart rule={rule} />
                 ) : null}

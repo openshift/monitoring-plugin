@@ -35,7 +35,7 @@ const Graph: FC<Props> = ({
   onDataChange,
 }) => {
   const dispatch = useDispatch();
-  const { plugin, useMetricsTenancy } = useMonitoring();
+  const { plugin } = useMonitoring();
   const endTime = useSelector(
     (state: MonitoringState) => getObserveState(plugin, state).dashboards.endTime,
   );
@@ -67,7 +67,6 @@ const Graph: FC<Props> = ({
       timespan={timespan}
       units={units as GraphUnits}
       onDataChange={onDataChange}
-      useTenancy={useMetricsTenancy}
       isPlain
     />
   );

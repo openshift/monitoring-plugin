@@ -6,7 +6,6 @@ import {
   isAlertingRulesSource,
   PrometheusEndpoint,
   Rule,
-  useActiveNamespace,
   useResolvedExtensions,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
@@ -27,13 +26,14 @@ import {
 } from '../components/alerting/AlertUtils';
 import { MonitoringState } from '../store/store';
 import { getObserveState } from '../components/hooks/usePerspective';
+import { useQueryNamespace } from '../components/hooks/useQueryNamespace';
 
 const POLLING_INTERVAL_MS = 15 * 1000; // 15 seconds
 
 export const useAlerts = (props?: { dontUseTenancy?: boolean }) => {
   // Retrieve external information which dictates which alerts to load and use
   const { plugin } = useMonitoring();
-  const [namespace] = useActiveNamespace();
+  const { namespace } = useQueryNamespace();
   const { prometheus, useAlertsTenancy, accessCheckLoading } = useMonitoring();
   const overriddenNamespace =
     props?.dontUseTenancy || !useAlertsTenancy ? ALL_NAMESPACES_KEY : namespace;

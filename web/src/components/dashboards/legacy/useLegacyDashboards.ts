@@ -30,7 +30,7 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const safeFetch = useCallback(useSafeFetch(), []);
-  const [legacyDashboards, setLegacyDashboards] = useState<Board[]>([]);
+  const [unfilteredLegacyDashboards, setUnfilteredLegacyDashboards] = useState<any>([]);
   const [legacyDashboardsError, setLegacyDashboardsError] = useState<string>();
   const [refreshInterval] = useQueryParam(QueryParams.RefreshInterval, NumberParam);
   const [legacyDashboardsLoading, , , setLegacyDashboardsLoaded] = useBoolean(true);
@@ -43,30 +43,7 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
       .then((response) => {
         setLegacyDashboardsLoaded();
         setLegacyDashboardsError(undefined);
-        let items = response.items;
-        if (namespace && namespace !== ALL_NAMESPACES_KEY) {
-          items = _.filter(
-            items,
-            (item) => item.metadata?.labels['console.openshift.io/odc-dashboard'] === 'true',
-          );
-        }
-        const getBoardData = (item): Board => {
-          try {
-            return {
-              data: JSON.parse(_.values(item.data)[0]),
-              name: item.metadata.name,
-            };
-          } catch {
-            setLegacyDashboardsError(
-              t('Could not parse JSON data for dashboard "{{dashboard}}"', {
-                dashboard: item.metadata.name,
-              }),
-            );
-            return { data: undefined, name: item?.metadata?.name };
-          }
-        };
-        const newBoards = _.sortBy(_.map(items, getBoardData), (v) => _.toLower(v?.data?.title));
-        setLegacyDashboards(newBoards);
+        setUnfilteredLegacyDashboards(response.items);
       })
       .catch((err) => {
         setLegacyDashboardsLoaded();
@@ -74,7 +51,34 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
           setLegacyDashboardsError(_.get(err, 'json.error', err.message));
         }
       });
-  }, [namespace, safeFetch, setLegacyDashboardsLoaded, t]);
+  }, [safeFetch, setLegacyDashboardsLoaded]);
+
+  // Move namespace filtering out of the fetch response call to avoid race conditions
+  const legacyDashboards = useMemo<Board[]>(() => {
+    let items = unfilteredLegacyDashboards;
+    if (namespace && namespace !== ALL_NAMESPACES_KEY) {
+      items = _.filter(
+        items,
+        (item) => item.metadata?.labels['console.openshift.io/odc-dashboard'] === 'true',
+      );
+    }
+    const getBoardData = (item): Board => {
+      try {
+        return {
+          data: JSON.parse(_.values(item.data)[0]),
+          name: item.metadata.name,
+        };
+      } catch {
+        setLegacyDashboardsError(
+          t('Could not parse JSON data for dashboard "{{dashboard}}"', {
+            dashboard: item.metadata.name,
+          }),
+        );
+        return { data: undefined, name: item?.metadata?.name };
+      }
+    };
+    return _.sortBy(_.map(items, getBoardData), (v) => _.toLower(v?.data?.title));
+  }, [namespace, unfilteredLegacyDashboards, setLegacyDashboardsError, t]);
 
   const legacyRows = useMemo(() => {
     const data = _.find(legacyDashboards, { name: urlBoard })?.data;
