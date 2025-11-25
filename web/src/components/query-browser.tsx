@@ -522,7 +522,8 @@ const formatSeriesValues = (
   // shows the missing values as gaps in the line
   const start = Number(_.get(newValues, '[0].x'));
   const end = Number(_.get(_.last(newValues), 'x'));
-  const step = span / samples;
+  // Calculate step in milliseconds, rounded up to the nearest second
+  const step = Math.ceil(span / samples / 1000) * 1000;
   _.range(start, end, step).forEach((t, i) => {
     const x = new Date(t);
     if (_.get(newValues, [i, 'x']) > x) {
