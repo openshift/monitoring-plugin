@@ -5,7 +5,7 @@ import { PrometheusEndpoint, PrometheusResponse } from '@openshift-console/dynam
 import { Bullseye, Title } from '@patternfly/react-core';
 
 import ErrorAlert from './error';
-import { getPrometheusBasePath, buildPrometheusUrl, ALL_NAMESPACES_KEY } from '../../utils';
+import { getPrometheusBasePath, buildPrometheusUrl } from '../../utils';
 import { usePoll } from '../../console/utils/poll-hook';
 import { useSafeFetch } from '../../console/utils/safe-fetch-hook';
 
@@ -47,6 +47,7 @@ import {
   t_chart_color_yellow_500,
 } from '@patternfly/react-tokens';
 import { PatternflyToken } from '../../types';
+import { useMonitoring } from '../../../hooks/useMonitoring';
 
 const colorMap: Record<string, PatternflyToken> = {
   'super-light-blue': t_chart_color_blue_100,
@@ -107,6 +108,7 @@ const SingleStat: FC<Props> = ({ customDataSource, namespace, panel, pollInterva
   } = panel;
 
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const { accessCheckLoading, useMetricsTenancy } = useMonitoring();
   const [error, setError] = useState<string>();
   const [isLoading, setIsLoading] = useState(true);
   const [value, setValue] = useState<string>();
@@ -122,13 +124,13 @@ const SingleStat: FC<Props> = ({ customDataSource, namespace, panel, pollInterva
     },
     basePath: getPrometheusBasePath({
       prometheus: 'cmo',
-      useTenancyPath: namespace !== ALL_NAMESPACES_KEY,
+      useTenancyPath: useMetricsTenancy,
       basePathOverride: customDataSource?.basePath,
     }),
   });
 
   const tick = () => {
-    if (!url) {
+    if (!url || accessCheckLoading) {
       return;
     }
     safeFetch<PrometheusResponse>(url)
@@ -146,7 +148,7 @@ const SingleStat: FC<Props> = ({ customDataSource, namespace, panel, pollInterva
       });
   };
 
-  usePoll(tick, pollInterval, query);
+  usePoll(tick, pollInterval, query, accessCheckLoading, useMetricsTenancy);
 
   const filteredVMs = valueMaps?.filter((vm) => vm.op === '=');
   const valueMap =

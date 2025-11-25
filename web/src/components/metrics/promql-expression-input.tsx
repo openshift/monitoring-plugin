@@ -51,7 +51,7 @@ import { useTranslation } from 'react-i18next';
 
 import { useSafeFetch } from '../console/utils/safe-fetch-hook';
 
-import { ALL_NAMESPACES_KEY, getPrometheusBasePath, PROMETHEUS_BASE_PATH } from '../utils';
+import { getPrometheusBasePath, PROMETHEUS_BASE_PATH } from '../utils';
 import { LabelNamesResponse } from '@perses-dev/prometheus-plugin';
 import {
   t_global_color_status_custom_default,
@@ -329,7 +329,7 @@ export const PromQLExpressionInput: FC<PromQLExpressionInputProps> = ({
 }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const [namespace] = useActiveNamespace();
-  const { prometheus } = useMonitoring();
+  const { prometheus, accessCheckLoading, useMetricsTenancy } = useMonitoring();
   const { theme: pfTheme } = usePatternFlyTheme();
 
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -343,11 +343,14 @@ export const PromQLExpressionInput: FC<PromQLExpressionInputProps> = ({
   const safeFetch = useCallback(useSafeFetch(), []);
 
   useEffect(() => {
+    if (accessCheckLoading) {
+      return;
+    }
     // If we are using the tenancy path, then add the namespace as a query parameter at the end of
     // the url
-    const namespaceQueryParam = namespace !== ALL_NAMESPACES_KEY ? `?namespace=${namespace}` : '';
+    const namespaceQueryParam = useMetricsTenancy ? `?namespace=${namespace}` : '';
     const url = `${getPrometheusBasePath({
-      useTenancyPath: namespace !== ALL_NAMESPACES_KEY,
+      useTenancyPath: useMetricsTenancy,
       prometheus,
     })}/${PrometheusEndpoint.LABEL}/__name__/values${namespaceQueryParam}`;
     safeFetch<LabelNamesResponse>(url)
@@ -364,7 +367,7 @@ export const PromQLExpressionInput: FC<PromQLExpressionInputProps> = ({
           setErrorMessage(message);
         }
       });
-  }, [safeFetch, t, namespace, prometheus]);
+  }, [safeFetch, t, namespace, prometheus, accessCheckLoading, useMetricsTenancy]);
 
   const onClear = () => {
     if (viewRef.current !== null) {

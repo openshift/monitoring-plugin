@@ -606,10 +606,9 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
   units,
   onDataChange,
   isPlain = false,
-  useTenancy = false,
 }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { plugin, prometheus } = useMonitoring();
+  const { plugin, prometheus, accessCheckLoading, useMetricsTenancy } = useMonitoring();
 
   const hideGraphs = useSelector(
     (state: MonitoringState) => !!getObserveState(plugin, state).hideGraphs,
@@ -681,7 +680,7 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
   }, [dispatch, namespace]);
 
   const tick = () => {
-    if (hideGraphs) {
+    if (hideGraphs || accessCheckLoading) {
       return undefined;
     }
 
@@ -709,7 +708,7 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
                 },
                 basePath: getPrometheusBasePath({
                   prometheus,
-                  useTenancyPath: useTenancy,
+                  useTenancyPath: useMetricsTenancy,
                   basePathOverride: customDataSource?.basePath,
                 }),
               }),
@@ -856,6 +855,8 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
     span,
     lastRequestTime,
     showDisconnectedValues,
+    accessCheckLoading,
+    useMetricsTenancy,
   );
 
   useLayoutEffect(() => setUpdating(true), [endTime, namespace, queriesKey, samples, span]);
@@ -1111,7 +1112,6 @@ export type QueryBrowserProps = {
   units?: GraphUnits;
   onDataChange?: (data: any) => void;
   isPlain?: boolean;
-  useTenancy?: boolean;
 };
 
 type SpanControlsProps = {

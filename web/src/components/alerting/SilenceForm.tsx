@@ -2,6 +2,7 @@ import {
   consoleFetchJSON,
   DocumentTitle,
   NamespaceBar,
+  useActiveNamespace,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
   ActionGroup,
@@ -50,10 +51,9 @@ import { ExternalLink } from '../console/utils/link';
 import { useBoolean } from '../hooks/useBoolean';
 import { getSilenceAlertUrl, usePerspective } from '../hooks/usePerspective';
 import { DataTestIDs } from '../data-test';
-import { ALL_NAMESPACES_KEY, getAlertmanagerSilencesUrl } from '../utils';
+import { getAlertmanagerSilencesUrl } from '../utils';
 import { useAlerts } from '../../hooks/useAlerts';
 import { useMonitoring } from '../../hooks/useMonitoring';
-import { useQueryNamespace } from '../hooks/useQueryNamespace';
 
 const durationOff = '-';
 
@@ -133,8 +133,8 @@ const NegativeMatcherHelp = () => {
 
 const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespaced }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { namespace } = useQueryNamespace();
-  const { prometheus, useAlertsTenancy } = useMonitoring();
+  const [namespace] = useActiveNamespace();
+  const { prometheus } = useMonitoring();
   const navigate = useNavigate();
 
   const durations = useMemo(() => {
@@ -150,8 +150,6 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
       '1w': t('1w'),
     };
   }, [t]);
-
-  const requireNamespace = isNamespaced && namespace !== ALL_NAMESPACES_KEY;
 
   const now = new Date();
 
@@ -189,7 +187,7 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
   // Since the namespace matcher MUST be the same as the namespace the request is being
   // made in, we remove the namespace value here and re-add it before sending the request
   const [matchers, setMatchers] = useState<Array<Matcher>>(
-    (requireNamespace
+    (isNamespaced
       ? (defaults.matchers as Matcher[])?.filter((matcher) => matcher.name !== 'namespace')
       : defaults.matchers) ?? [{ isRegex: false, isEqual: true, name: '', value: '' }],
   );
@@ -224,7 +222,7 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
 
   const removeMatcher = (i: number): void => {
     // If we require the namespace don't allow removing it
-    if (requireNamespace && i === 0) {
+    if (isNamespaced && i === 0) {
       return;
     }
 
@@ -251,7 +249,7 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
     const url = getAlertmanagerSilencesUrl({
       prometheus,
       namespace,
-      useTenancyPath: useAlertsTenancy,
+      useTenancyPath: isNamespaced,
     });
     if (!url) {
       setError('Alertmanager URL not set');
@@ -284,7 +282,7 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
 
     consoleFetchJSON
       .post(
-        getAlertmanagerSilencesUrl({ prometheus, namespace, useTenancyPath: useAlertsTenancy }),
+        getAlertmanagerSilencesUrl({ prometheus, namespace, useTenancyPath: isNamespaced }),
         body,
       )
       .then(({ silenceID }) => {
@@ -427,7 +425,7 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
             </HelperText>
           </FormHelperText>
 
-          {requireNamespace && (
+          {isNamespaced && (
             <Grid key={'namespace'} sm={12} md={4} hasGutter>
               <GridItem>
                 <FormGroup label={t('Label name')}>

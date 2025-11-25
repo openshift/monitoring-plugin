@@ -109,7 +109,7 @@ const LegacyDashboardsVariableOption = ({ value, isSelected, ...rest }) =>
 
 const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({ id, name }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { plugin } = useMonitoring();
+  const { plugin, accessCheckLoading, useMetricsTenancy } = useMonitoring();
   const [namespace] = useActiveNamespace();
 
   const timespan = useSelector(
@@ -146,7 +146,7 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({ id, name 
             prometheusUrlProps: prometheusProps,
             basePath: getPrometheusBasePath({
               prometheus: 'cmo',
-              useTenancyPath: namespace !== ALL_NAMESPACES_KEY,
+              useTenancyPath: useMetricsTenancy,
             }),
           });
         } else if (extensionsResolved && hasExtensions) {
@@ -164,7 +164,7 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({ id, name 
             prometheusUrlProps: prometheusProps,
             basePath: getPrometheusBasePath({
               prometheus: 'cmo',
-              useTenancyPath: namespace !== ALL_NAMESPACES_KEY,
+              useTenancyPath: useMetricsTenancy,
               basePathOverride: dataSource?.basePath,
             }),
           });
@@ -175,11 +175,11 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({ id, name 
         setIsError(true);
       }
     },
-    [customDataSourceName, extensions, extensionsResolved, hasExtensions, namespace],
+    [customDataSourceName, extensions, extensionsResolved, hasExtensions, useMetricsTenancy],
   );
 
   useEffect(() => {
-    if (!query) {
+    if (!query || accessCheckLoading) {
       return;
     }
     // Convert label_values queries to something Prometheus can handle
@@ -250,6 +250,7 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({ id, name 
     timespan,
     variable?.includeAll,
     options,
+    accessCheckLoading,
   ]);
 
   useEffect(() => {
