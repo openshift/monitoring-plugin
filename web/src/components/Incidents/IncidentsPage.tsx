@@ -398,6 +398,7 @@ const IncidentsPage = () => {
             id="toolbar-with-filter"
             data-test={DataTestIDs.IncidentsPage.Toolbar}
             collapseListedFiltersBreakpoint="xl"
+            clearFiltersButtonText={t('Clear all filters')}
             clearAllFilters={() => {
               closeDropDownFilters();
               dispatch(
