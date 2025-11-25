@@ -41,7 +41,7 @@ lint-frontend:
 lint-backend:
 	go mod tidy
 	go fmt ./cmd/
-	go fmt ./pkg/
+	go fmt ./pkg/... ./internal/...
 
 .PHONY: install-backend
 install-backend:
@@ -57,7 +57,7 @@ start-backend:
 
 .PHONY: test-backend
 test-backend:
-	go test ./pkg/... -v
+	go test ./pkg/... ./internal/... -v
 
 .PHONY: build-image
 build-image:
