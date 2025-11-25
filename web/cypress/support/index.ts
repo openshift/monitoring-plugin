@@ -1,3 +1,5 @@
+import '@cypress/grep';
+
 import './selectors';
 import './commands/selector-commands';
 import './commands/auth-commands';

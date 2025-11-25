@@ -31,7 +31,7 @@ const NAMESPACE = 'openshift-monitoring';
 const SEVERITY = 'Critical';
 const ALERT_DESC = 'This is an alert meant to ensure that the entire alerting pipeline is functional. This alert is always firing, therefore it should always be firing in Alertmanager and always fire against a receiver. There are integrations with various notification mechanisms that send a notification when this alert is not firing. For example the "DeadMansSnitch" integration in PagerDuty.'
 const ALERT_SUMMARY = 'An alert that should always be firing to certify that Alertmanager is working properly.'
-describe('BVT: Incidents - UI', () => {
+describe('BVT: Incidents - UI', { tags: ['@smoke', '@incidents'] }, () => {
   before(() => {
     cy.beforeBlockCOO(MCP, MP);
   });

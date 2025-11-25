@@ -10,7 +10,7 @@ const MP = {
 };
 
 // Test suite for Administrator perspective
-describe('Regression: Monitoring - Metrics (Administrator)', () => {
+describe('Regression: Monitoring - Metrics (Administrator)', { tags: ['@monitoring', '@metrics'] }, () => {
 
   before(() => {
     cy.beforeBlock(MP);
@@ -33,7 +33,7 @@ describe('Regression: Monitoring - Metrics (Administrator)', () => {
 });
 
 // Test suite for Administrator perspective
-describe('Regression: Monitoring - Metrics Namespaced (Administrator)', () => {
+describe('Regression: Monitoring - Metrics Namespaced (Administrator)', { tags: ['@monitoring', '@metrics'] }, () => {
 
   before(() => {
     cy.beforeBlock(MP);

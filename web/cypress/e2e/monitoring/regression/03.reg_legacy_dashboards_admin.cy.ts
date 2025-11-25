@@ -10,7 +10,7 @@ const MP = {
 };
 
 // Test suite for Administrator perspective
-describe('Regression: Monitoring - Legacy Dashboards (Administrator)', () => {
+describe('Regression: Monitoring - Legacy Dashboards (Administrator)', { tags: ['@monitoring', '@dashboards'] }, () => {
 
   before(() => {
     cy.beforeBlock(MP);
@@ -40,7 +40,7 @@ describe('Regression: Monitoring - Legacy Dashboards (Administrator)', () => {
 
 /* TODO: Uncomment when OU-949 get merged
 // Test suite for Administrator perspective
-describe('Regression: Monitoring - Legacy Dashboards Namespaced (Administrator)', () => {
+describe('Regression: Monitoring - Legacy Dashboards Namespaced (Administrator)', { tags: ['@monitoring', '@dashboards'] }, () => {
 
   before(() => {
     cy.beforeBlock(MP);

@@ -25,7 +25,7 @@ const MP = {
   operatorName: 'Cluster Monitoring Operator',
 };
 
-describe('Regression: Incidents Filtering', () => {
+describe('Regression: Incidents Filtering', { tags: ['@incidents'] }, () => {
 
   before(() => {
     cy.beforeBlockCOO(MCP, MP);
