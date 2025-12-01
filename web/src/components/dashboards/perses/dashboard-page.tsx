@@ -1,5 +1,4 @@
 import { Overview } from '@openshift-console/dynamic-plugin-sdk';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { FC } from 'react';
 import { LoadingInline } from '../../console/console-shared/src/components/loading/LoadingInline';
 import { PersesWrapper } from './PersesWrapper';
@@ -9,15 +8,7 @@ import { ProjectEmptyState } from './emptystates/ProjectEmptyState';
 import { useDashboardsData } from './hooks/useDashboardsData';
 import PersesBoard from './perses-dashboards';
 import { ProjectBar } from './project/ProjectBar';
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-      retry: 0,
-    },
-  },
-});
+import { MonitoringProvider } from '../../../contexts/MonitoringContext';
 
 const MonitoringDashboardsPage_: FC = () => {
   const {
@@ -63,9 +54,11 @@ const MonitoringDashboardsPage_: FC = () => {
 
 const MonitoringDashboardsPageWrapper: FC = () => {
   return (
-    <QueryClientProvider client={queryClient}>
+    <MonitoringProvider
+      monitoringContext={{ plugin: 'monitoring-console-plugin', prometheus: 'cmo' }}
+    >
       <MonitoringDashboardsPage_ />
-    </QueryClientProvider>
+    </MonitoringProvider>
   );
 };
 
