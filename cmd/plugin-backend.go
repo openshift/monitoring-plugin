@@ -23,7 +23,7 @@ var (
 	logLevelArg         = flag.String("log-level", logrus.InfoLevel.String(), "verbosity of logs\noptions: ['panic', 'fatal', 'error', 'warn', 'info', 'debug', 'trace']\n'trace' level will log all incoming requests\n(default 'error')")
 	alertmanagerUrlArg  = flag.String("alertmanager", "", "alertmanager url to proxy to for acm mode")
 	thanosQuerierUrlArg = flag.String("thanos-querier", "", "thanos querier url to proxy to for acm mode")
-	tlsMinVersionArg    = flag.String("tls-min-version", "", "minimum TLS version\noptions: ['VersionTLS10', 'VersionTLS11', 'VersionTLS12', 'VersionTLS13']\n(default 'VersionTLS12')")
+	tlsMinVersionArg    = flag.String("tls-min-version", "VersionTLS12", "minimum TLS version\noptions: ['VersionTLS10', 'VersionTLS11', 'VersionTLS12', 'VersionTLS13']")
 	tlsMaxVersionArg    = flag.String("tls-max-version", "", "maximum TLS version\noptions: ['VersionTLS10', 'VersionTLS11', 'VersionTLS12', 'VersionTLS13']\n(default is the highest supported by Go)")
 	tlsCipherSuitesArg  = flag.String("tls-cipher-suites", "", "comma-separated list of cipher suites for the server\nvalues are from tls package constants (https://golang.org/pkg/crypto/tls/#pkg-constants)")
 	log                 = logrus.WithField("module", "main")
@@ -62,10 +62,17 @@ func main() {
 
 	log.Infof("enabled features: %+q\n", featuresList)
 
-	// Parse TLS configuration
+	// Parse the TLS configuration.
 	tlsMinVer := parseTLSVersion(tlsMinVersion)
+	log.Infof("Min TLS version: %q", tls.VersionName(tlsMinVer))
 	tlsMaxVer := parseTLSVersion(tlsMaxVersion)
+	if tlsMaxVer != 0 {
+		log.Infof("Max TLS version: %q", tls.VersionName(tlsMaxVer))
+	}
 	tlsCiphers := parseCipherSuites(tlsCipherSuites)
+	if tlsCipherSuites != "" {
+		log.Infof("TLS ciphers: %q", tlsCipherSuites)
+	}
 
 	srv, err := server.CreateServer(context.Background(), &server.Config{
 		Port:             port,
@@ -141,11 +148,10 @@ func getTLSVersionsMap() map[string]uint16 {
 
 func parseTLSVersion(version string) uint16 {
 	if version == "" {
-		return tls.VersionTLS12
+		return 0
 	}
 
 	tlsVersions := getTLSVersionsMap()
-
 	if v, ok := tlsVersions[version]; ok {
 		return v
 	}
