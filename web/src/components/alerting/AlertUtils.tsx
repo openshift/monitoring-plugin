@@ -53,7 +53,6 @@ import {
   t_global_text_color_disabled,
   t_global_text_color_subtle,
 } from '@patternfly/react-tokens';
-import { ALL_NAMESPACES_KEY } from '../utils';
 
 export const getAdditionalSources = <T extends Alert | Rule>(
   data: Array<T>,
@@ -243,7 +242,6 @@ export const PopoverField: FC<{ bodyContent: ReactNode; label: string }> = ({
 export const Graph: FC<GraphProps> = ({
   filterLabels = undefined,
   formatSeriesTitle,
-  namespace,
   query,
   ruleDuration,
 }) => {
@@ -268,7 +266,6 @@ export const Graph: FC<GraphProps> = ({
       GraphLink={GraphLink}
       pollInterval={Math.round(timespan / 120)}
       queries={[query]}
-      useTenancy={namespace !== ALL_NAMESPACES_KEY}
     />
   );
 };
@@ -276,7 +273,6 @@ export const Graph: FC<GraphProps> = ({
 type GraphProps = {
   filterLabels?: PrometheusLabels;
   formatSeriesTitle?: FormatSeriesTitle;
-  namespace?: string;
   query: string;
   ruleDuration: number;
   showLegend?: boolean;

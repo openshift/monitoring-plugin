@@ -68,7 +68,6 @@ import { MonitoringProvider } from '../../contexts/MonitoringContext';
 
 import { DataTestIDs } from '../data-test';
 import { useAlerts } from '../../hooks/useAlerts';
-import { useQueryNamespace } from '../hooks/useQueryNamespace';
 
 // Renders Prometheus template text and highlights any {{ ... }} tags that it contains
 const PrometheusTemplate = ({ text }) => (
@@ -147,7 +146,6 @@ const AlertRulesDetailsPage_: FC = () => {
   const { rules, rulesAlertLoading } = useAlerts();
 
   const { perspective } = usePerspective();
-  const { namespace } = useQueryNamespace();
 
   const rule = _.find(rules, { id: params.id });
 
@@ -356,7 +354,6 @@ const AlertRulesDetailsPage_: FC = () => {
             {!sourceId || sourceId === 'prometheus' ? (
               <Graph
                 formatSeriesTitle={formatSeriesTitle}
-                namespace={namespace}
                 query={rule?.query}
                 ruleDuration={rule?.duration}
                 showLegend

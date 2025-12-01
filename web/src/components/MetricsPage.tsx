@@ -613,7 +613,7 @@ const QueryKebab: FC<{ index: number }> = ({ index }) => {
 
 export const QueryTable: FC<QueryTableProps> = ({ index, namespace, customDatasource, units }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { plugin } = useMonitoring();
+  const { plugin, accessCheckLoading, useMetricsTenancy } = useMonitoring();
 
   const [data, setData] = useState<PrometheusData>();
   const [error, setError] = useState<PrometheusAPIError>();
@@ -665,7 +665,7 @@ export const QueryTable: FC<QueryTableProps> = ({ index, namespace, customDataso
   // If the namespace is defined getPrometheusURL will use
   // the PROMETHEUS_TENANCY_BASE_PATH for requests in the developer view
   const tick = () => {
-    if (isEnabled && isExpanded && query) {
+    if (isEnabled && isExpanded && !accessCheckLoading && query) {
       safeFetch<PrometheusResponse>(
         buildPrometheusUrl({
           prometheusUrlProps: {
@@ -675,7 +675,7 @@ export const QueryTable: FC<QueryTableProps> = ({ index, namespace, customDataso
           },
           basePath: getPrometheusBasePath({
             prometheus: 'cmo',
-            useTenancyPath: namespace !== ALL_NAMESPACES_KEY,
+            useTenancyPath: useMetricsTenancy,
             basePathOverride: customDatasource?.basePath,
           }),
         }),
@@ -693,7 +693,16 @@ export const QueryTable: FC<QueryTableProps> = ({ index, namespace, customDataso
     }
   };
 
-  usePoll(tick, pollInterval, namespace, query, span, lastRequestTime);
+  usePoll(
+    tick,
+    pollInterval,
+    namespace,
+    query,
+    span,
+    lastRequestTime,
+    useMetricsTenancy,
+    accessCheckLoading,
+  );
 
   useEffect(() => {
     setData(undefined);
@@ -1047,7 +1056,6 @@ const QueryBrowserWrapper: FC<{
   units: GraphUnits;
 }> = ({ customDataSourceName, customDataSource, customDatasourceError, units }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const [activeNamespace] = useActiveNamespace();
   const { plugin } = useMonitoring();
 
   const dispatch = useDispatch();
@@ -1162,7 +1170,6 @@ const QueryBrowserWrapper: FC<{
       units={units}
       showStackedControl
       showDisconnectedControl
-      useTenancy={activeNamespace !== ALL_NAMESPACES_KEY}
     />
   );
 };

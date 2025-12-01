@@ -52,8 +52,9 @@ export const MonitoringProvider: React.FC<{
   const monContext = useMemo(() => {
     return {
       ...monitoringContext,
-      useAlertsTenancy: !allNamespaceAlertsTenancy,
-      useMetricsTenancy: !allNamespaceMeticsTenancy,
+      // We only need to use the tenancy path when we are querying the in cluster monitoring
+      useAlertsTenancy: monitoringContext.prometheus === 'cmo' && !allNamespaceAlertsTenancy,
+      useMetricsTenancy: monitoringContext.prometheus === 'cmo' && !allNamespaceMeticsTenancy,
       accessCheckLoading: alertAccessCheckLoading || metricsAccessCheckLoading,
     };
   }, [
