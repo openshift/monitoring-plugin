@@ -309,7 +309,7 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
   return (
     <>
       <DocumentTitle>{title}</DocumentTitle>
-      <NamespaceBar />
+      {isNamespaced && <NamespaceBar />}
       <PageSection hasBodyWrapper={false}>
         <Title headingLevel="h1">{title}</Title>
         <HelperText>
