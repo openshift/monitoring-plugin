@@ -26,18 +26,6 @@ const config: Configuration = {
   module: {
     rules: [
       {
-        test: /\.(jsx?|tsx?)$/,
-        exclude: /node_modules/,
-        use: [
-          {
-            loader: 'ts-loader',
-            options: {
-              configFile: path.resolve(__dirname, 'tsconfig.json'),
-            },
-          },
-        ],
-      },
-      {
         test: /\.scss$/,
         exclude: /node_modules\/(?!(@patternfly|@openshift-console\/plugin-shared)\/).*/,
         use: [
@@ -119,6 +107,28 @@ if (process.env.NODE_ENV === 'production') {
   config.optimization.chunkIds = 'deterministic';
   config.optimization.minimize = true;
   config.devtool = false;
+
+  // Use default ts-loader for prod
+  config.module.rules?.unshift({
+    test: /\.(jsx?|tsx?)$/,
+    exclude: /node_modules/,
+    use: [
+      {
+        loader: 'ts-loader',
+        options: {
+          configFile: path.resolve(__dirname, 'tsconfig.json'),
+        },
+      },
+    ],
+  });
+} else {
+  config.module.rules?.unshift({
+    test: /\.(jsx?|tsx?)$/,
+    exclude: /node_modules/,
+    use: {
+      loader: 'swc-loader',
+    },
+  });
 }
 
 export default config;
