@@ -35,9 +35,41 @@ const useSession = Cypress.env('SESSION');
 export const operatorAuthUtils = {
   // Core login and auth logic (shared between session and non-session versions)
       performLoginAndAuth(useSession: boolean): void {
-      cy.adminCLI(
-        `oc adm policy add-cluster-role-to-user cluster-admin ${Cypress.env('LOGIN_USERNAME')}`,
-      );
+      if (`${Cypress.env('LOGIN_USERNAME')}` === 'kubeadmin') {
+        cy.adminCLI(
+          `oc adm policy add-cluster-role-to-user cluster-admin ${Cypress.env('LOGIN_USERNAME')}`,
+        );
+      } else {
+        cy.adminCLI(
+          `oc project openshift-monitoring`,
+        );
+        cy.adminCLI(
+          `oc adm policy add-role-to-user monitoring-edit ${Cypress.env('LOGIN_USERNAME')} -n openshift-monitoring`,
+        );
+        cy.adminCLI(
+          `oc adm policy add-role-to-user monitoring-alertmanager-edit --role-namespace openshift-monitoring ${Cypress.env('LOGIN_USERNAME')}`,
+        );
+
+        cy.adminCLI(
+          `oc adm policy add-role-to-user view ${Cypress.env('LOGIN_USERNAME')} -n openshift-monitoring`,
+        );
+
+        cy.adminCLI(
+          `oc project default`,
+        );
+
+        cy.adminCLI(
+          `oc adm policy add-role-to-user monitoring-edit ${Cypress.env('LOGIN_USERNAME')} -n default`,
+        );
+        cy.adminCLI(
+          `oc adm policy add-role-to-user monitoring-alertmanager-edit --role-namespace default ${Cypress.env('LOGIN_USERNAME')}`,
+        );
+
+        cy.adminCLI(
+          `oc adm policy add-role-to-user view ${Cypress.env('LOGIN_USERNAME')} -n default`,
+        );
+
+      }
       cy.exec(
         `oc get oauthclient openshift-browser-client -o go-template --template="{{index .redirectURIs 0}}" --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
       ).then((result) => {
@@ -452,12 +484,8 @@ const operatorUtils = {
         if (checkResult.code === 0) {
           // Namespace exists, proceed with deletion
           cy.log('Namespace exists, proceeding with deletion');
-          cy.exec(
-            `oc delete namespace ${MCP.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
-            {
-              timeout: readyTimeoutMilliseconds,
-              failOnNonZeroExit: false
-            }
+          cy.executeAndDelete(
+            `oc delete namespace ${MCP.namespace} --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
           ).then((result) => {
             if (result.code === 0) {
               cy.log(`Cluster Observability Operator namespace is now deleted`);

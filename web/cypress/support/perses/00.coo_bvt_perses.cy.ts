@@ -22,7 +22,7 @@ export function testBVTCOOPerses(perspective: PerspectiveConfig) {
     persesDashboardsPage.timeRangeDropdownAssertion();
     persesDashboardsPage.refreshIntervalDropdownAssertion();
     persesDashboardsPage.dashboardDropdownAssertion(persesDashboardsDashboardDropdownCOO);
-    cy.wait(1000);
+    cy.wait(2000);
     cy.changeNamespace('perses-dev');
     persesDashboardsPage.dashboardDropdownAssertion(persesDashboardsDashboardDropdownPersesDev);
   });

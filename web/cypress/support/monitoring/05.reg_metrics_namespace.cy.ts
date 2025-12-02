@@ -1,7 +1,6 @@
-import { nav } from '../../views/nav';
 import { metricsPage } from '../../views/metrics';
-import { Classes, DataTestIDs, IDs } from '../../../src/components/data-test';
-import { GraphTimespan, MetricGraphEmptyState, MetricsPagePredefinedQueries, MetricsPageQueryInput, MetricsPageQueryKebabDropdown, MetricsPageQueryInputByNamespace } from '../../fixtures/monitoring/constants';
+import { Classes, DataTestIDs } from '../../../src/components/data-test';
+import { MetricsPageUnits, GraphTimespan, MetricsPagePredefinedQueries, MetricsPageQueryInput, MetricsPageQueryKebabDropdown, MetricsPageQueryInputByNamespace } from '../../fixtures/monitoring/constants';
 
 export interface PerspectiveConfig {
   name: string;
@@ -190,10 +189,8 @@ export function testMetricsRegressionNamespace(perspective: PerspectiveConfig) {
     cy.log('4.12 Stacked Checkbox');
     metricsPage.clickStackedCheckboxAndAssert();
   });
-
-  /**
-   * TODO: uncomment when this bug gets fixed   
-   * https://issues.redhat.com/browse/OU-974 - [Metrics] - Units - undefined showing in Y axis and tooltip
+ 
+  //https://issues.redhat.com/browse/OU-974 - [Metrics] - Units - undefined showing in Y axis and tooltip
   it(`${perspective.name} perspective - Metrics > Units`, () => {
     cy.log('5.1 Preparation to test Units dropdown');
     cy.visit('/monitoring/query-browser');
@@ -205,9 +202,9 @@ export function testMetricsRegressionNamespace(perspective: PerspectiveConfig) {
       metricsPage.clickUnitsDropdown(unit);
       metricsPage.unitsAxisYAssertion(unit);
     });
-  });
-  */
+  });  
 }
+
 export function testMetricsRegressionNamespace1(perspective: PerspectiveConfig) {
 
   it(`${perspective.name} perspective - Metrics > Add Query - Run Queries - Kebab icon`, () => {
@@ -249,7 +246,7 @@ export function testMetricsRegressionNamespace1(perspective: PerspectiveConfig) 
     metricsPage.expandCollapseRowAssertion(true, 1, true, true);
     cy.get(Classes.MetricsPageQueryInput).eq(0).should('contain', MetricsPageQueryInput.VECTOR_QUERY);
     cy.get(Classes.MetricsPageQueryInput).eq(1).should('contain', MetricsPageQueryInput.INSERT_EXAMPLE_QUERY);
-    cy.byTestID(DataTestIDs.MetricGraph).should('be.visible');
+    cy.byTestID(DataTestIDs.MetricGraph).scrollIntoView().should('be.visible');
     metricsPage.clickKebabDropdown(0);
     cy.get(Classes.MenuItemDisabled).contains(MetricsPageQueryKebabDropdown.HIDE_ALL_SERIES).should('be.visible');
     cy.byTestID(DataTestIDs.MetricsPageExportCsvDropdownItem).should('not.exist');
@@ -262,7 +259,7 @@ export function testMetricsRegressionNamespace1(perspective: PerspectiveConfig) 
     metricsPage.expandCollapseRowAssertion(true, 1, true, true);
     cy.get(Classes.MetricsPageQueryInput).eq(0).should('contain', MetricsPageQueryInput.VECTOR_QUERY);
     cy.get(Classes.MetricsPageQueryInput).eq(1).should('contain', MetricsPageQueryInput.INSERT_EXAMPLE_QUERY);
-    cy.byTestID(DataTestIDs.MetricGraph).should('be.visible');
+    cy.byTestID(DataTestIDs.MetricGraph).scrollIntoView().should('be.visible');
     metricsPage.clickKebabDropdown(0);
     cy.byTestID(DataTestIDs.MetricsPageHideShowAllSeriesDropdownItem).contains(MetricsPageQueryKebabDropdown.HIDE_ALL_SERIES).should('be.visible');
     cy.byTestID(DataTestIDs.MetricsPageExportCsvDropdownItem).contains(MetricsPageQueryKebabDropdown.EXPORT_AS_CSV).should('be.visible');

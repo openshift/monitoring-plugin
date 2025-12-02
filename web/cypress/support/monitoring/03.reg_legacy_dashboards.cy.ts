@@ -32,6 +32,8 @@ export function testLegacyDashboardsRegression(perspective: PerspectiveConfig) {
     cy.log('1.4 Dashboard dropdown');
     legacyDashboardsPage.dashboardDropdownAssertion(LegacyDashboardsDashboardDropdown);
 
+    legacyDashboardsPage.clickDashboardDropdown('API_PERFORMANCE');
+
     cy.log('1.5 Dashboard API Performance panels');
     for (const panel of Object.values(API_PERFORMANCE_DASHBOARD_PANELS)) {
       legacyDashboardsPage.dashboardAPIPerformancePanelAssertion(panel);

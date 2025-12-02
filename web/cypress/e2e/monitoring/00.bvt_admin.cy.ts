@@ -2,7 +2,6 @@ import { nav } from '../../views/nav';
 import { alerts } from '../../fixtures/monitoring/alert';
 import { guidedTour } from '../../views/tour';
 import { runBVTMonitoringTests } from '../../support/monitoring/00.bvt_monitoring.cy';
-import { runBVTMonitoringTestsNamespace } from '../../support/monitoring/00.bvt_monitoring_namespace.cy';
 import { commonPages } from '../../views/common';
 import { overviewPage } from '../../views/overview-page';
 // Set constants for the operators that need to be installed for tests.
@@ -21,11 +20,13 @@ describe('BVT: Monitoring', { tags: ['@smoke', '@monitoring'] }, () => {
     cy.visit('/');
     guidedTour.close();
     cy.validateLogin();
+    nav.sidenav.clickNavLink(['Observe', 'Metrics']);
+    commonPages.titleShouldHaveText('Metrics');
+    cy.changeNamespace("All Projects");
     alerts.getWatchdogAlert();
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     commonPages.titleShouldHaveText('Alerting');
     alerts.getWatchdogAlert();
-    cy.changeNamespace("All Projects");
   });
 
   it(`1. Admin perspective - Observe Menu`, () => {
@@ -78,64 +79,6 @@ describe('BVT: Monitoring', { tags: ['@smoke', '@monitoring'] }, () => {
 
   // Run tests in Administrator perspective
   runBVTMonitoringTests({
-    name: 'Administrator',
-  });
-
-});
-
-describe('BVT: Monitoring - Namespaced', { tags: ['@smoke', '@monitoring'] }, () => {
-
-  before(() => {
-    cy.beforeBlock(MP);
-  });
-
-  beforeEach(() => {
-    cy.visit('/');
-    guidedTour.close();
-    cy.validateLogin();
-    alerts.getWatchdogAlert();
-    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-    commonPages.titleShouldHaveText('Alerting');
-    alerts.getWatchdogAlert();
-    cy.changeNamespace(MP.namespace);
-  });
-
-  it(`Admin perspective - Observe Menu`, () => {
-    cy.log(`Admin perspective - Observe Menu and verify all submenus`);
-    nav.sidenav.clickNavLink(['Administration', 'Cluster Settings']);
-    commonPages.detailsPage.administration_clusterSettings();
-    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-    commonPages.titleShouldHaveText('Alerting');
-    nav.tabs.switchTab('Silences');
-    commonPages.projectDropdownShouldExist();
-    nav.tabs.switchTab('Alerting rules');
-    commonPages.projectDropdownShouldExist();
-    nav.sidenav.clickNavLink(['Observe', 'Metrics']);
-    commonPages.titleShouldHaveText('Metrics');
-    commonPages.projectDropdownShouldExist();
-    nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
-    commonPages.titleShouldHaveText('Dashboards');
-    // commonPages.projectDropdownShouldExist();
-    nav.sidenav.clickNavLink(['Observe', 'Targets']);
-    commonPages.titleShouldHaveText('Metrics targets');
-    commonPages.projectDropdownShouldNotExist();
-
-  });
-
-  it(`Admin perspective - Overview Page > Status - View alerts`, () => {
-    nav.sidenav.clickNavLink(['Home', 'Overview']);
-    overviewPage.clickStatusViewAlerts();
-    commonPages.titleShouldHaveText('Alerting');
-  });
-
-  it(`Admin perspective - Cluster Utilization - Metrics`, () => {
-    nav.sidenav.clickNavLink(['Home', 'Overview']);
-    overviewPage.clickClusterUtilizationViewCPU();
-    commonPages.titleShouldHaveText('Metrics');
-  });
-
-  // Run tests in Administrator perspective
-  runBVTMonitoringTestsNamespace({  
     name: 'Administrator',
   });
 
