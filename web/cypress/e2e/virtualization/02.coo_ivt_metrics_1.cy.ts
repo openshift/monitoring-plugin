@@ -1,6 +1,6 @@
 import { alerts } from '../../fixtures/monitoring/alert';
-import { runAllRegressionMetricsTests } from '../../support/monitoring/02.reg_metrics.cy';
-import { runAllRegressionMetricsTestsNamespace } from '../../support/monitoring/05.reg_metrics_namespace.cy';
+import { runAllRegressionMetricsTests1 } from '../../support/monitoring/02.reg_metrics_1.cy';
+import { runAllRegressionMetricsTestsNamespace1 } from '../../support/monitoring/05.reg_metrics_namespace_1.cy';
 import { commonPages } from '../../views/common';
 import { nav } from '../../views/nav';
 import { guidedTour } from '../../views/tour';
@@ -71,7 +71,7 @@ describe('Regression: Monitoring - Metrics (Virtualization)', { tags: ['@virtual
     alerts.getWatchdogAlert();
   });
 
-  runAllRegressionMetricsTests({
+  runAllRegressionMetricsTests1({
     name: 'Virtualization',
   });
 
@@ -91,7 +91,7 @@ describe('Regression: Monitoring - Metrics Namespaced (Virtualization)', { tags:
     alerts.getWatchdogAlert();
   });
 
-  runAllRegressionMetricsTestsNamespace({
+  runAllRegressionMetricsTestsNamespace1({
     name: 'Virtualization',
   });
 
