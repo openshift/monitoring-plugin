@@ -169,6 +169,7 @@ export const LegacyTestIDs = {
   SelectAllSilencesCheckbox: 'select-all-silences-checkbox',
   PersesDashboardSection: 'dashboard',
   NamespaceBarDropdown: 'namespace-bar-dropdown',
+  ApplicationLauncher: 'application-launcher',
 };
 
 export const IDs = {
