@@ -1,5 +1,6 @@
 import { commonPages } from '../../views/common';
 import { nav } from '../../views/nav';
+import { troubleshootingPanelPage } from '../../views/troubleshooting-panel';
 
 
 // Set constants for the operators that need to be installed for tests.
@@ -31,9 +32,12 @@ describe('BVT: COO', { tags: ['@smoke', '@coo'] }, () => {
     commonPages.titleShouldHaveText('Alerting');
     nav.tabs.switchTab('Silences');
     nav.tabs.switchTab('Alerting rules');
-    // nav.tabs.switchTab('Incidents');
+    nav.tabs.switchTab('Incidents');
     nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
     commonPages.titleShouldHaveText('Dashboards');
+    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    troubleshootingPanelPage.openSignalCorrelation();
+    troubleshootingPanelPage.troubleshootingPanelPageShouldBeLoadedEnabled();
 
   });
 
