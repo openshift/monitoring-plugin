@@ -428,4 +428,15 @@ cypress/
 
 ---
 
+### Optional Test Documentation Submodule
+
+An optional submodule at `fixtures/incidents/test-docs/` contains AI-enhanced test development documentation. It's only needed for local development and not required for CI/CD.
+
+To enable it locally:
+```bash
+./fixtures/incidents/setup-test-docs-submodule.sh
+```
+
+---
+
 *For questions about test architecture, creating tests, or testing workflows, refer to [CYPRESS_TESTING_GUIDE.md](CYPRESS_TESTING_GUIDE.md)*
