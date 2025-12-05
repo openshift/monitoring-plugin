@@ -1,8 +1,7 @@
-import { useCallback, useState, useMemo, useEffect } from 'react';
+import { useCallback, useMemo, useEffect } from 'react';
 import * as _ from 'lodash-es';
-import { useTranslation } from 'react-i18next';
+import { TFunction, useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
-import { useSafeFetch } from '../../console/utils/safe-fetch-hook';
 import { useBoolean } from '../../hooks/useBoolean';
 import { Board } from './types';
 import { getLegacyDashboardsUrl, usePerspective } from '../../hooks/usePerspective';
@@ -23,98 +22,143 @@ import { useNavigate } from 'react-router-dom-v5-compat';
 import { QueryParams } from '../../query-params';
 import { NumberParam, useQueryParam } from 'use-query-params';
 import { ALL_NAMESPACES_KEY } from '../../utils';
+import {
+  consoleFetchJSON,
+  K8sResourceCommon,
+  ObjectMetadata,
+} from '@openshift-console/dynamic-plugin-sdk';
+import { useQuery, UseQueryResult } from '@tanstack/react-query';
+
+type DashboardConfigMap = { data: Record<string, string>; metadata: ObjectMetadata };
+type DashboardConfigMapList = K8sResourceCommon & { items: DashboardConfigMap[] };
+
+function getDashboardConfig(): Promise<DashboardConfigMapList> {
+  return consoleFetchJSON('/api/console/monitoring-dashboard-config');
+}
+
+export function useDashboardConfig(): UseQueryResult<DashboardConfigMapList> {
+  return useQuery<DashboardConfigMapList>({
+    queryKey: ['monitoring-dashboard-config'],
+    queryFn: () => {
+      return getDashboardConfig();
+    },
+  });
+}
+
+const getBoardData = (item: DashboardConfigMap, t: TFunction): { board: Board; error?: string } => {
+  let dashboardError: string;
+  try {
+    return {
+      board: {
+        data: JSON.parse(_.values(item.data)[0]),
+        name: item.metadata.name,
+      },
+    };
+  } catch {
+    dashboardError = t('Could not parse JSON data for dashboard "{{dashboard}}"', {
+      dashboard: item.metadata.name,
+    });
+    return { board: { data: undefined, name: item?.metadata?.name }, error: dashboardError };
+  }
+};
+
+function getBoards(
+  dashboardsConfig: DashboardConfigMapList,
+  dashboardsLoading: boolean,
+  namespace: string,
+  t: TFunction,
+): { boards: Board[]; dashboardsLoading: boolean; dashboardError?: string } {
+  if (dashboardsLoading) {
+    return {
+      boards: [],
+      dashboardsLoading: true,
+    };
+  }
+  let items = dashboardsConfig.items;
+  if (namespace && namespace !== ALL_NAMESPACES_KEY) {
+    items = items.filter(
+      (item) => item.metadata?.labels['console.openshift.io/odc-dashboard'] === 'true',
+    );
+  }
+
+  const convertedBoards = items.map((item) => getBoardData(item, t));
+  const dashboardError = convertedBoards.find((convertedBoard) => convertedBoard?.error)?.error;
+  const boards = convertedBoards.map((convertedBoard) => convertedBoard.board);
+
+  return {
+    boards: boards.sort((a: Board, b: Board) =>
+      a?.data?.title.toLowerCase() >= b?.data?.title.toLowerCase() ? 1 : 0,
+    ),
+    dashboardsLoading: false,
+    dashboardError,
+  };
+}
+
+function getSelectedDashboardRows(name: string, boards: Board[]) {
+  const selectedDashboard = boards.find((board) => board.name === name)?.data;
+  if (!selectedDashboard) {
+    return [];
+  }
+
+  if (selectedDashboard?.rows?.length > 0) {
+    return selectedDashboard.rows;
+  }
+
+  if (selectedDashboard?.panels?.length > 0) {
+    return selectedDashboard?.panels?.reduce((acc, panel) => {
+      if (panel.type === 'row') {
+        acc.push(_.cloneDeep(panel));
+      } else if (acc.length === 0) {
+        acc.push({ panels: [panel] });
+      } else {
+        const row = acc[acc.length - 1];
+        if (_.isNil(row.panels)) {
+          row.panels = [];
+        }
+        row.panels.push(panel);
+      }
+      return acc;
+    }, []);
+  }
+
+  // No values if there are no rows or panels
+  return [];
+}
 
 export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
   const { perspective } = usePerspective();
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const safeFetch = useCallback(useSafeFetch(), []);
-  const [unfilteredLegacyDashboards, setUnfilteredLegacyDashboards] = useState<any>([]);
-  const [legacyDashboardsError, setLegacyDashboardsError] = useState<string>();
   const [refreshInterval] = useQueryParam(QueryParams.RefreshInterval, NumberParam);
-  const [legacyDashboardsLoading, , , setLegacyDashboardsLoaded] = useBoolean(true);
   const [initialLoad, , setInitialUnloaded, setInitialLoaded] = useBoolean(true);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    safeFetch<any>('/api/console/monitoring-dashboard-config')
-      .then((response) => {
-        setLegacyDashboardsLoaded();
-        setLegacyDashboardsError(undefined);
-        setUnfilteredLegacyDashboards(response.items);
-      })
-      .catch((err) => {
-        setLegacyDashboardsLoaded();
-        if (err.name !== 'AbortError') {
-          setLegacyDashboardsError(_.get(err, 'json.error', err.message));
-        }
-      });
-  }, [safeFetch, setLegacyDashboardsLoaded]);
+  const { isLoading: dashboardConfigLoading, data: dashboardConfig } = useDashboardConfig();
 
   // Move namespace filtering out of the fetch response call to avoid race conditions
-  const legacyDashboards = useMemo<Board[]>(() => {
-    let items = unfilteredLegacyDashboards;
-    if (namespace && namespace !== ALL_NAMESPACES_KEY) {
-      items = _.filter(
-        items,
-        (item) => item.metadata?.labels['console.openshift.io/odc-dashboard'] === 'true',
-      );
-    }
-    const getBoardData = (item): Board => {
-      try {
-        return {
-          data: JSON.parse(_.values(item.data)[0]),
-          name: item.metadata.name,
-        };
-      } catch {
-        setLegacyDashboardsError(
-          t('Could not parse JSON data for dashboard "{{dashboard}}"', {
-            dashboard: item.metadata.name,
-          }),
-        );
-        return { data: undefined, name: item?.metadata?.name };
-      }
-    };
-    return _.sortBy(_.map(items, getBoardData), (v) => _.toLower(v?.data?.title));
-  }, [namespace, unfilteredLegacyDashboards, setLegacyDashboardsError, t]);
+  const legacyDashboards = useMemo(() => {
+    return getBoards(dashboardConfig, dashboardConfigLoading, namespace, t);
+  }, [namespace, t, dashboardConfig, dashboardConfigLoading]);
 
   const legacyRows = useMemo(() => {
-    const data = _.find(legacyDashboards, { name: urlBoard })?.data;
-
-    return data?.rows?.length
-      ? data.rows
-      : data?.panels?.reduce((acc, panel) => {
-          if (panel.type === 'row') {
-            acc.push(_.cloneDeep(panel));
-          } else if (acc.length === 0) {
-            acc.push({ panels: [panel] });
-          } else {
-            const row = acc[acc.length - 1];
-            if (_.isNil(row.panels)) {
-              row.panels = [];
-            }
-            row.panels.push(panel);
-          }
-          return acc;
-        }, []) ?? [];
-  }, [urlBoard, legacyDashboards]);
+    return getSelectedDashboardRows(urlBoard, legacyDashboards.boards);
+  }, [urlBoard, legacyDashboards.boards]);
 
   // Homogenize data needed for dashboards dropdown between legacy and perses dashboards
   // to enable both to use the same component
   const legacyDashboardsMetadata = useMemo<CombinedDashboardMetadata[]>(() => {
-    if (legacyDashboardsLoading) {
+    if (legacyDashboards.dashboardsLoading) {
       return [];
     }
-    return legacyDashboards.map((legacyDashboard) => {
+    return legacyDashboards.boards.map((legacyDashboard) => {
       return {
         name: legacyDashboard.name,
         tags: legacyDashboard.data?.tags,
         title: legacyDashboard.data?.title ?? legacyDashboard.name,
       };
     });
-  }, [legacyDashboards, legacyDashboardsLoading]);
+  }, [legacyDashboards]);
 
   const changeLegacyDashboard = useCallback(
     (newBoard: string) => {
@@ -123,7 +167,7 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
         return;
       }
 
-      const allVariables = getAllVariables(legacyDashboards, newBoard, namespace);
+      const allVariables = getAllVariables(legacyDashboards.boards, newBoard, namespace);
 
       const queryArguments = getAllQueryArguments();
       const params = new URLSearchParams(queryArguments);
@@ -165,7 +209,7 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
   useEffect(() => {
     if (
       (!urlBoard ||
-        !legacyDashboards.some((legacyBoard) => legacyBoard.name === urlBoard) ||
+        !legacyDashboards.boards.some((legacyBoard) => legacyBoard.name === urlBoard) ||
         initialLoad) &&
       !_.isEmpty(legacyDashboards)
     ) {
@@ -192,8 +236,6 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
 
   return {
     legacyDashboards,
-    legacyDashboardsLoading,
-    legacyDashboardsError,
     legacyRows,
     legacyDashboardsMetadata,
     changeLegacyDashboard,

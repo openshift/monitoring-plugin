@@ -2,7 +2,17 @@ import React, { useMemo } from 'react';
 import { MonitoringPlugins, Prometheus } from '../components/utils';
 import { QueryParamProvider } from 'use-query-params';
 import { ReactRouter5Adapter } from 'use-query-params/adapters/react-router-5';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAccessReview } from '@openshift-console/dynamic-plugin-sdk';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 0,
+    },
+  },
+});
 
 type MonitoringContextType = {
   /** Dictates which plugin this code is being run in */
@@ -67,7 +77,9 @@ export const MonitoringProvider: React.FC<{
 
   return (
     <MonitoringContext.Provider value={monContext}>
-      <QueryParamProvider adapter={ReactRouter5Adapter}>{children}</QueryParamProvider>
+      <QueryParamProvider adapter={ReactRouter5Adapter}>
+        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      </QueryParamProvider>
     </MonitoringContext.Provider>
   );
 };

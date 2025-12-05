@@ -19,9 +19,8 @@ type LegacyDashboardsPageProps = {
 const LegacyDashboardsPage_: FC<LegacyDashboardsPageProps> = ({ urlBoard }) => {
   const { project, setProject } = useOpenshiftProject();
   const {
-    legacyDashboardsError,
+    legacyDashboards,
     legacyRows,
-    legacyDashboardsLoading,
     legacyDashboardsMetadata,
     changeLegacyDashboard,
     legacyDashboard,
@@ -38,11 +37,14 @@ const LegacyDashboardsPage_: FC<LegacyDashboardsPageProps> = ({ urlBoard }) => {
         dashboardName={legacyDashboard}
       >
         <Overview>
-          {legacyDashboardsLoading ? (
+          {legacyDashboards.dashboardsLoading ? (
             <LoadingInline />
-          ) : legacyDashboardsError ? (
+          ) : legacyDashboards?.dashboardError ? (
             <ErrorAlert
-              error={{ message: legacyDashboardsError, name: t('Error Loading Dashboards') }}
+              error={{
+                message: legacyDashboards.dashboardError,
+                name: t('Error Loading Dashboards'),
+              }}
             />
           ) : (
             <LegacyDashboard rows={legacyRows} perspective={perspective} />
