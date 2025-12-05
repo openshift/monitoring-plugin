@@ -372,9 +372,9 @@ const operatorUtils = {
     });
 
     cy.exec(
-      `sleep 15 && oc wait --for=condition=Ready pods --selector=app.kubernetes.io/instance=perses -n ${MCP.namespace} --timeout=60s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+      `sleep 15 && oc wait --for=condition=Ready pods --selector=app.kubernetes.io/instance=perses -n ${MCP.namespace} --timeout=600s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
       {
-        timeout: readyTimeoutMilliseconds,
+        timeout: installTimeoutMilliseconds,
         failOnNonZeroExit: true
       }
     ).then((result) => {
@@ -484,28 +484,104 @@ const operatorUtils = {
         if (checkResult.code === 0) {
           // Namespace exists, proceed with deletion
           cy.log('Namespace exists, proceeding with deletion');
-          cy.executeAndDelete(
-            `oc delete namespace ${MCP.namespace} --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+          cy.log('Eve');
+
+          // Step 1: Delete CSV (ClusterServiceVersion)
+          cy.exec(
+            `oc delete csv --all -n ${MCP.namespace} --ignore-not-found --wait=false --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+            {
+              timeout: 30000,
+              failOnNonZeroExit: false
+            }
           ).then((result) => {
             if (result.code === 0) {
-              cy.log(`Cluster Observability Operator namespace is now deleted`);
+              cy.log(`CSV deletion initiated in ${MCP.namespace}`);
             } else {
-              cy.log(`Primary delete failed: ${result.stderr}`);
-              cy.log(`Attempting force delete...`);
-              
-              cy.exec(
-                `./cypress/fixtures/coo/force_delete_ns.sh ${MCP.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
-                { 
-                  failOnNonZeroExit: false, 
-                  timeout: readyTimeoutMilliseconds 
-                }
-              ).then((forceResult) => {
-                if (forceResult.code !== 0) {
-                  cy.log(`Force delete also failed: ${forceResult.stderr}`);
+              cy.log(`CSV deletion failed or not found: ${result.stderr}`);
+            }
+          });
+
+          // Step 2: Delete Subscription
+          cy.exec(
+            `oc delete subscription --all -n ${MCP.namespace} --ignore-not-found --wait=false --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+            {
+              timeout: 30000,
+              failOnNonZeroExit: false
+            }
+          ).then((result) => {
+            if (result.code === 0) {
+              cy.log(`Subscription deletion initiated in ${MCP.namespace}`);
+            } else {
+              cy.log(`Subscription deletion failed or not found: ${result.stderr}`);
+            }
+          });
+
+          // Step 3: Initiate namespace deletion without waiting (--wait=false prevents timeout)
+          cy.exec(
+            `oc delete namespace ${MCP.namespace} --ignore-not-found --wait=false --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+            {
+              timeout: 30000, // Short timeout since we're not waiting
+              failOnNonZeroExit: false
+            }
+          ).then((result) => {
+            if (result.code === 0) {
+              cy.log(`Namespace deletion initiated for ${MCP.namespace}`);
+            } else {
+              cy.log(`Failed to initiate deletion: ${result.stderr}`);
+            }
+          });
+
+
+          const checkIntervalMs = 15000; // Check every 15 seconds
+          const startTime = Date.now();
+          const maxWaitTimeMs = 600000; //10min
+        
+          const checkStatus = () => {
+            const elapsed = Date.now() - startTime;
+        
+            if (elapsed > maxWaitTimeMs) {
+              cy.log(`${elapsed}ms - Timeout reached (${maxWaitTimeMs / 60000}m). Namespace ${MCP.namespace} still terminating. Attempting force-delete.`);
+              // Execute the shell script to remove finalizers
+              return cy.exec(`./cypress/fixtures/coo/force_delete_ns.sh ${MCP.namespace} ${Cypress.env('KUBECONFIG_PATH')}`, 
+                { failOnNonZeroExit: false, timeout: installTimeoutMilliseconds }).then((result) => {
+                cy.log(`${elapsed}ms - Force delete output: ${result.stdout}`);
+                if (result.code !== 0) {
+                  cy.log(`Force delete failed with exit code ${result.code}: ${result.stderr}`);
                 }
               });
             }
-          });
+        
+            // Command to check the namespace status
+            // Use 'oc get ns -o jsonpath' for minimal output and fastest check
+            cy.exec(`oc get ns ${MCP.namespace} --kubeconfig ${`${Cypress.env('KUBECONFIG_PATH')}`} -o jsonpath='{.status.phase}'`, { failOnNonZeroExit: false })
+              .then((result) => {
+                const status = result.stdout.trim();
+        
+                if (status === 'Terminating') {
+                  cy.log(`${elapsed}ms - ${MCP.namespace} is still 'Terminating'. Retrying in ${checkIntervalMs / 1000}s. Elapsed: ${Math.round(elapsed / 1000)}s`);
+                  cy.exec(
+                          `./cypress/fixtures/coo/force_delete_ns.sh ${MCP.namespace} ${Cypress.env('KUBECONFIG_PATH')}`,
+                          { failOnNonZeroExit: false, timeout: installTimeoutMilliseconds }
+                        ).then((forceResult) => {
+                          cy.log(`${elapsed}ms - Force delete output: ${forceResult.stdout}`);
+                          if (forceResult.code !== 0) {
+                            cy.log(`Force delete failed with exit code ${forceResult.code}: ${forceResult.stderr}`);
+                          }
+                        });
+                  // Wait and call recursively
+                  cy.wait(checkIntervalMs).then(checkStatus);
+                } else if (status === 'NotFound') {
+                  cy.log(`${elapsed}ms - ${MCP.namespace} is successfully deleted.`);
+                  // Stop recursion
+                } else {
+                  // Handles 'Active' or other unexpected states if the delete command failed silently earlier
+                  cy.log(`${elapsed}ms - ${MCP.namespace} changed to unexpected state: ${status}. Stopping monitoring.`);
+                }
+              });
+          };
+        
+          checkStatus();
+
         } else {
           cy.log('Namespace does not exist, skipping deletion');
         }
