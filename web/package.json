@@ -153,7 +153,8 @@
     "displayName": "OpenShift console monitoring plugin",
     "description": "This plugin adds the monitoring UI to the OpenShift web console",
     "exposedModules": {
-      "DashboardsPage": "./components/dashboards/perses/dashboard-page",
+      "DashboardListPage": "./components/dashboards/perses/dashboard-list-page",
+      "DashboardPage": "./components/dashboards/perses/dashboard-page",
       "LegacyDashboardsPage": "./components/dashboards/legacy/legacy-dashboard-page",
       "SilencesPage": "./components/alerting/SilencesPage",
       "SilencesDetailsPage": "./components/alerting/SilencesDetailsPage",
