@@ -3,20 +3,41 @@
 import { PrometheusEndpoint, PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
 import { getPrometheusBasePath, buildPrometheusUrl } from '../utils';
 import { PROMETHEUS_QUERY_INTERVAL_SECONDS } from './utils';
+
+const MAX_URL_LENGTH = 5000;
+
+/**
+ * Creates a single Prometheus alert query string from a grouped alert value.
+ * @param {Object} query - Single grouped alert object with src_ prefixed properties and layer/component.
+ * @returns {string} - A string representing a single Prometheus alert query.
+ */
+const createSingleAlertQuery = (query) => {
+  // Dynamically get all keys starting with "src_"
+  const srcKeys = Object.keys(query).filter((key) => key.startsWith('src_'));
+
+  // Create the alertParts array using the dynamically discovered src_ keys,
+  // but remove the "src_" prefix from the keys in the final query string.
+  const alertParts = srcKeys
+    .filter((key) => query[key]) // Only include keys that are present in the query object
+    .map((key) => `${key.replace('src_', '')}="${query[key]}"`) // Remove "src_" prefix from keys
+    .join(', ');
+
+  // Construct the query string for each grouped alert
+  return `ALERTS{${alertParts}}`;
+};
+
 /**
  * Creates a Prometheus alerts query string from grouped alert values.
  * The function dynamically includes any properties in the input objects that have the "src_" prefix,
  * but the prefix is removed from the keys in the final query string.
  *
  * @param {Object[]} groupedAlertsValues - Array of grouped alert objects.
- * Each alert object should contain various properties, including "src_" prefixed properties,
- * as well as "layer" and "component" for constructing the meta fields in the query.
+ * Each alert object should contain various properties, including "src_" prefixed properties
  *
  * @param {string} groupedAlertsValues[].layer - The layer of the alert, used in the absent condition.
  * @param {string} groupedAlertsValues[].component - The component of the alert, used in the absent condition.
- * @returns {string} - A string representing the combined Prometheus alerts query.
- * Each alert query is formatted as `(ALERTS{key="value", ...} + on () group_left (component, layer) (absent(meta{layer="value", component="value"})))`
- * and multiple queries are joined by "or".
+ * @returns {string[]} - An array of strings representing the combined Prometheus alerts query.
+ * Each alert query is formatted as `(ALERTS{key="value", ...} and multiple queries are joined by "or".
  *
  * @example
  * const alerts = [
@@ -38,63 +59,85 @@ import { PROMETHEUS_QUERY_INTERVAL_SECONDS } from './utils';
  *
  * const query = createAlertsQuery(alerts);
  * // Returns:
- * // '(ALERTS{alertname="AlertmanagerReceiversNotConfigured", namespace="openshift-monitoring", severity="warning"} + on () group_left (component, layer) (absent(meta{layer="core", component="monitoring"}))) or
- * //  (ALERTS{alertname="AnotherAlert", namespace="default", severity="critical"} + on () group_left (component, layer) (absent(meta{layer="app", component="frontend"})))'
+ * // ['ALERTS{alertname="AlertmanagerReceiversNotConfigured", namespace="openshift-monitoring", severity="warning"} or
+ * //  ALERTS{alertname="AnotherAlert", namespace="default", severity="critical"}']
  */
 export const createAlertsQuery = (groupedAlertsValues) => {
-  const alertsQuery = groupedAlertsValues
-    .map((query) => {
-      // Dynamically get all keys starting with "src_"
-      const srcKeys = Object.keys(query).filter((key) => key.startsWith('src_'));
+  const queries = [];
+  let currentQueryParts = [];
+  let currentQueryLength = 0;
 
-      // Create the alertParts array using the dynamically discovered src_ keys,
-      // but remove the "src_" prefix from the keys in the final query string.
-      const alertParts = srcKeys
-        .filter((key) => query[key]) // Only include keys that are present in the query object
-        .map((key) => `${key.replace('src_', '')}="${query[key]}"`) // Remove "src_" prefix from keys
-        .join(', ');
+  for (const alertValue of groupedAlertsValues) {
+    const singleAlertQuery = createSingleAlertQuery(alertValue);
+    const newQueryLength = currentQueryLength + singleAlertQuery.length + 4; // 4 for ' or '
 
-      // Construct the query string for each grouped alert
-      return `(ALERTS{${alertParts}} + on () group_left (component, layer) (absent(meta{layer="${query.layer}", component="${query.component}"})))`;
-    })
-    .join(' or '); // Join all individual alert queries with "or"
+    if (newQueryLength <= MAX_URL_LENGTH) {
+      currentQueryParts.push(singleAlertQuery);
+      currentQueryLength = newQueryLength;
+      continue;
+    }
+    queries.push(currentQueryParts.join(' or '));
+    currentQueryParts = [singleAlertQuery];
+    currentQueryLength = singleAlertQuery.length;
+  }
 
-  // TODO: remove duplicated conditions, optimize query
+  if (currentQueryParts.length > 0) {
+    queries.push(currentQueryParts.join(' or '));
+  }
 
-  return alertsQuery;
+  return queries;
 };
 
-export const fetchDataForIncidentsAndAlerts = (
+export const fetchDataForIncidentsAndAlerts = async (
   fetch: (url: string) => Promise<PrometheusResponse>,
   range: { endTime: number; duration: number },
-  customQuery: string,
+  customQuery: string | string[],
 ) => {
   // Calculate samples to ensure step=PROMETHEUS_QUERY_INTERVAL_SECONDS (300s / 5 minutes)
   // For 24h duration: Math.ceil(86400000 / 288 / 1000) = 300 seconds
   const samples = Math.floor(range.duration / (PROMETHEUS_QUERY_INTERVAL_SECONDS * 1000));
+  const queries = Array.isArray(customQuery) ? customQuery : [customQuery];
 
-  const url = buildPrometheusUrl({
-    prometheusUrlProps: {
-      endpoint: PrometheusEndpoint.QUERY_RANGE,
-      endTime: range.endTime,
-      query: customQuery,
-      samples,
-      timespan: range.duration,
-    },
-    basePath: getPrometheusBasePath({
-      prometheus: 'cmo',
-      useTenancyPath: false,
-    }),
+  const promises = queries.map((query) => {
+    const url = buildPrometheusUrl({
+      prometheusUrlProps: {
+        endpoint: PrometheusEndpoint.QUERY_RANGE,
+        endTime: range.endTime,
+        query,
+        samples,
+        timespan: range.duration,
+      },
+      basePath: getPrometheusBasePath({
+        prometheus: 'cmo',
+        useTenancyPath: false,
+      }),
+    });
+
+    if (!url) {
+      // Return empty result when query is empty to avoid making invalid API calls
+      return Promise.resolve({
+        status: 'success',
+        data: {
+          resultType: 'matrix',
+          result: [],
+        },
+      } as PrometheusResponse);
+    }
+
+    return fetch(url);
   });
 
-  if (!url) {
-    // Return empty result when query is empty to avoid making invalid API calls
-    return Promise.resolve({
-      data: {
-        result: [],
-      },
-    });
-  }
+  const responses = await Promise.all(promises);
 
-  return fetch(url);
+  // Merge responses
+  const combinedResult = responses.flatMap((r) => r.data?.result || []);
+
+  // Construct a synthetic response
+  return {
+    status: 'success',
+    data: {
+      resultType: responses[0]?.data?.resultType || 'matrix',
+      result: combinedResult,
+    },
+  } as PrometheusResponse;
 };
