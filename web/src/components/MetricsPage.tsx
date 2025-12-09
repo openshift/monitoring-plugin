@@ -1057,6 +1057,7 @@ const QueryBrowserWrapper: FC<{
 }> = ({ customDataSourceName, customDataSource, customDatasourceError, units }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { plugin } = useMonitoring();
+  const [activeNamespace] = useActiveNamespace();
 
   const dispatch = useDispatch();
 
@@ -1114,7 +1115,11 @@ const QueryBrowserWrapper: FC<{
   const insertExampleQuery = () => {
     const focusedIndex = focusedQuery?.index ?? 0;
     const index = queries[focusedIndex] ? focusedIndex : 0;
-    const text = 'sort_desc(sum(sum_over_time(ALERTS{alertstate="firing"}[24h])) by (alertname))';
+    const labelMatchers =
+      activeNamespace === ALL_NAMESPACES_KEY
+        ? '{alertstate="firing"}'
+        : `{alertstate="firing", namespace="${activeNamespace}"}`;
+    const text = `sort_desc(sum(sum_over_time(ALERTS${labelMatchers}[24h])) by (alertname))`;
     dispatch(queryBrowserPatchQuery(index, { isEnabled: true, query: text, text }));
   };
 
