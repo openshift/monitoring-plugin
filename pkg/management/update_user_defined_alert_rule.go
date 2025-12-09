@@ -16,7 +16,7 @@ func (c *client) UpdateUserDefinedAlertRule(ctx context.Context, alertRuleId str
 		return err
 	}
 
-	if IsPlatformAlertRule(types.NamespacedName(*prId)) {
+	if c.IsPlatformAlertRule(types.NamespacedName(*prId)) {
 		return fmt.Errorf("cannot update alert rule in a platform-managed PrometheusRule")
 	}
 

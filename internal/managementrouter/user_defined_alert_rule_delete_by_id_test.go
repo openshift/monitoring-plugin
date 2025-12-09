@@ -41,7 +41,7 @@ var _ = Describe("DeleteUserDefinedAlertRuleById", func() {
 
 		platformPR := monitoringv1.PrometheusRule{}
 		platformPR.Name = "platform-pr"
-		platformPR.Namespace = "openshift-monitoring"
+		platformPR.Namespace = "platform-namespace-1"
 		platformPR.Spec.Groups = []monitoringv1.RuleGroup{
 			{
 				Name:  "pg1",
@@ -51,12 +51,20 @@ var _ = Describe("DeleteUserDefinedAlertRuleById", func() {
 
 		mockK8sRules.SetPrometheusRules(map[string]*monitoringv1.PrometheusRule{
 			"default/user-pr":                  &userPR,
-			"openshift-monitoring/platform-pr": &platformPR,
+			"platform-namespace-1/platform-pr": &platformPR,
 		})
 
+		mockNSInformer := &testutils.MockNamespaceInformerInterface{}
+		mockNSInformer.SetMonitoringNamespaces(map[string]bool{
+			"platform-namespace-1": true,
+			"platform-namespace-2": true,
+		})
 		mockK8s = &testutils.MockClient{
 			PrometheusRulesFunc: func() k8s.PrometheusRuleInterface {
 				return mockK8sRules
+			},
+			NamespaceInformerFunc: func() k8s.NamespaceInformerInterface {
+				return mockNSInformer
 			},
 		}
 	})
@@ -140,7 +148,7 @@ var _ = Describe("DeleteUserDefinedAlertRuleById", func() {
 				},
 				FindAlertRuleByIdFunc: func(alertRuleId mapper.PrometheusAlertRuleId) (*mapper.PrometheusRuleId, error) {
 					pr := mapper.PrometheusRuleId{
-						Namespace: "openshift-monitoring",
+						Namespace: "platform-namespace-1",
 						Name:      "platform-pr",
 					}
 					return &pr, nil
@@ -157,7 +165,7 @@ var _ = Describe("DeleteUserDefinedAlertRuleById", func() {
 			Expect(w.Code).To(Equal(http.StatusMethodNotAllowed))
 			Expect(w.Body.String()).To(ContainSubstring("cannot delete alert rule from a platform-managed PrometheusRule"))
 
-			pr, found, err := mockK8sRules.Get(context.Background(), "openshift-monitoring", "platform-pr")
+			pr, found, err := mockK8sRules.Get(context.Background(), "platform-namespace-1", "platform-pr")
 			Expect(found).To(BeTrue())
 			Expect(err).NotTo(HaveOccurred())
 			for _, g := range pr.Spec.Groups {

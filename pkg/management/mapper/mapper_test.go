@@ -9,6 +9,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/client-go/tools/cache"
 
 	"github.com/openshift/monitoring-plugin/pkg/management/mapper"
 	"github.com/openshift/monitoring-plugin/pkg/management/testutils"
@@ -320,7 +321,7 @@ var _ = Describe("Mapper", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				By("deleting the PrometheusRule")
-				mapperClient.DeletePrometheusRule(pr)
+				mapperClient.DeletePrometheusRule(cache.ObjectName(types.NamespacedName{Namespace: pr.Namespace, Name: pr.Name}))
 
 				By("verifying the rule is no longer found")
 				_, err = mapperClient.FindAlertRuleById(ruleId)
@@ -338,7 +339,7 @@ var _ = Describe("Mapper", func() {
 
 				By("deleting the non-existent PrometheusRule")
 				Expect(func() {
-					mapperClient.DeletePrometheusRule(pr)
+					mapperClient.DeletePrometheusRule(cache.ObjectName(types.NamespacedName{Namespace: pr.Namespace, Name: pr.Name}))
 				}).NotTo(Panic())
 
 				By("verifying mapper still works after delete attempt")
@@ -635,7 +636,7 @@ var _ = Describe("Mapper", func() {
 				Expect(specs).To(HaveLen(1))
 
 				By("deleting the AlertRelabelConfig")
-				mapperClient.DeleteAlertRelabelConfig(arc)
+				mapperClient.DeleteAlertRelabelConfig(cache.ObjectName(types.NamespacedName{Namespace: arc.Namespace, Name: arc.Name}))
 
 				By("verifying it's no longer found")
 				specs = mapperClient.GetAlertRelabelConfigSpec(alertRule)
@@ -656,7 +657,7 @@ var _ = Describe("Mapper", func() {
 
 				By("deleting the non-existent AlertRelabelConfig")
 				Expect(func() {
-					mapperClient.DeleteAlertRelabelConfig(arc)
+					mapperClient.DeleteAlertRelabelConfig(cache.ObjectName(types.NamespacedName{Namespace: arc.Namespace, Name: arc.Name}))
 				}).NotTo(Panic())
 
 				By("verifying mapper still works after delete attempt")

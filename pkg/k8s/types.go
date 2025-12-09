@@ -6,6 +6,7 @@ import (
 	osmv1 "github.com/openshift/api/monitoring/v1"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/tools/cache"
 )
 
 // ClientOptions holds configuration options for creating a Kubernetes client
@@ -34,6 +35,9 @@ type Client interface {
 
 	// AlertRelabelConfigInformer returns the AlertRelabelConfigInformer interface
 	AlertRelabelConfigInformer() AlertRelabelConfigInformerInterface
+
+	// NamespaceInformer returns the NamespaceInformer interface
+	NamespaceInformer() NamespaceInformerInterface
 }
 
 // PrometheusAlertsInterface defines operations for managing PrometheusAlerts
@@ -64,6 +68,12 @@ type PrometheusRuleInterface interface {
 type PrometheusRuleInformerInterface interface {
 	// Run starts the informer and sets up the provided callbacks for add, update, and delete events
 	Run(ctx context.Context, callbacks PrometheusRuleInformerCallback) error
+
+	// List lists all PrometheusRules in the cluster
+	List(ctx context.Context, namespace string) ([]monitoringv1.PrometheusRule, error)
+
+	// Get retrieves a PrometheusRule by namespace and name
+	Get(ctx context.Context, namespace string, name string) (*monitoringv1.PrometheusRule, bool, error)
 }
 
 // PrometheusRuleInformerCallback holds the callback functions for informer events
@@ -75,7 +85,7 @@ type PrometheusRuleInformerCallback struct {
 	OnUpdate func(pr *monitoringv1.PrometheusRule)
 
 	// OnDelete is called when a PrometheusRule is deleted
-	OnDelete func(pr *monitoringv1.PrometheusRule)
+	OnDelete func(key cache.ObjectName)
 }
 
 // AlertRelabelConfigInterface defines operations for managing AlertRelabelConfigs
@@ -100,6 +110,12 @@ type AlertRelabelConfigInterface interface {
 type AlertRelabelConfigInformerInterface interface {
 	// Run starts the informer and sets up the provided callbacks for add, update, and delete events
 	Run(ctx context.Context, callbacks AlertRelabelConfigInformerCallback) error
+
+	// List lists all AlertRelabelConfigs in the cluster
+	List(ctx context.Context, namespace string) ([]osmv1.AlertRelabelConfig, error)
+
+	// Get retrieves an AlertRelabelConfig by namespace and name
+	Get(ctx context.Context, namespace string, name string) (*osmv1.AlertRelabelConfig, bool, error)
 }
 
 // AlertRelabelConfigInformerCallback holds the callback functions for informer events
@@ -111,5 +127,11 @@ type AlertRelabelConfigInformerCallback struct {
 	OnUpdate func(arc *osmv1.AlertRelabelConfig)
 
 	// OnDelete is called when an AlertRelabelConfig is deleted
-	OnDelete func(arc *osmv1.AlertRelabelConfig)
+	OnDelete func(key cache.ObjectName)
+}
+
+// NamespaceInformerInterface defines operations for Namespace informers
+type NamespaceInformerInterface interface {
+	// IsClusterMonitoringNamespace checks if a namespace has the openshift.io/cluster-monitoring=true label
+	IsClusterMonitoringNamespace(name string) bool
 }

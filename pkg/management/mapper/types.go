@@ -6,6 +6,7 @@ import (
 	osmv1 "github.com/openshift/api/monitoring/v1"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/tools/cache"
 )
 
 // PrometheusRuleId is a unique identifier for a PrometheusRule resource in Kubernetes, represented by its NamespacedName.
@@ -32,7 +33,7 @@ type Client interface {
 	AddPrometheusRule(pr *monitoringv1.PrometheusRule)
 
 	// DeletePrometheusRule removes a PrometheusRule from the mapper.
-	DeletePrometheusRule(pr *monitoringv1.PrometheusRule)
+	DeletePrometheusRule(key cache.ObjectName)
 
 	// WatchAlertRelabelConfigs starts watching for changes to AlertRelabelConfigs.
 	WatchAlertRelabelConfigs(ctx context.Context)
@@ -41,7 +42,7 @@ type Client interface {
 	AddAlertRelabelConfig(arc *osmv1.AlertRelabelConfig)
 
 	// DeleteAlertRelabelConfig removes an AlertRelabelConfig from the mapper.
-	DeleteAlertRelabelConfig(arc *osmv1.AlertRelabelConfig)
+	DeleteAlertRelabelConfig(key cache.ObjectName)
 
 	// GetAlertRelabelConfigSpec returns the RelabelConfigs that match the given alert rule's labels.
 	GetAlertRelabelConfigSpec(alertRule *monitoringv1.Rule) []osmv1.RelabelConfig

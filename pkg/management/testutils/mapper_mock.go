@@ -5,6 +5,7 @@ import (
 
 	osmv1 "github.com/openshift/api/monitoring/v1"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	"k8s.io/client-go/tools/cache"
 
 	"github.com/openshift/monitoring-plugin/pkg/management/mapper"
 )
@@ -17,10 +18,10 @@ type MockMapperClient struct {
 	FindAlertRuleByIdFunc         func(alertRuleId mapper.PrometheusAlertRuleId) (*mapper.PrometheusRuleId, error)
 	WatchPrometheusRulesFunc      func(ctx context.Context)
 	AddPrometheusRuleFunc         func(pr *monitoringv1.PrometheusRule)
-	DeletePrometheusRuleFunc      func(pr *monitoringv1.PrometheusRule)
+	DeletePrometheusRuleFunc      func(key cache.ObjectName)
 	WatchAlertRelabelConfigsFunc  func(ctx context.Context)
 	AddAlertRelabelConfigFunc     func(arc *osmv1.AlertRelabelConfig)
-	DeleteAlertRelabelConfigFunc  func(arc *osmv1.AlertRelabelConfig)
+	DeleteAlertRelabelConfigFunc  func(key cache.ObjectName)
 	GetAlertRelabelConfigSpecFunc func(alertRule *monitoringv1.Rule) []osmv1.RelabelConfig
 }
 
@@ -50,9 +51,9 @@ func (m *MockMapperClient) AddPrometheusRule(pr *monitoringv1.PrometheusRule) {
 	}
 }
 
-func (m *MockMapperClient) DeletePrometheusRule(pr *monitoringv1.PrometheusRule) {
+func (m *MockMapperClient) DeletePrometheusRule(key cache.ObjectName) {
 	if m.DeletePrometheusRuleFunc != nil {
-		m.DeletePrometheusRuleFunc(pr)
+		m.DeletePrometheusRuleFunc(key)
 	}
 }
 
@@ -68,9 +69,9 @@ func (m *MockMapperClient) AddAlertRelabelConfig(arc *osmv1.AlertRelabelConfig) 
 	}
 }
 
-func (m *MockMapperClient) DeleteAlertRelabelConfig(arc *osmv1.AlertRelabelConfig) {
+func (m *MockMapperClient) DeleteAlertRelabelConfig(key cache.ObjectName) {
 	if m.DeleteAlertRelabelConfigFunc != nil {
-		m.DeleteAlertRelabelConfigFunc(arc)
+		m.DeleteAlertRelabelConfigFunc(key)
 	}
 }
 

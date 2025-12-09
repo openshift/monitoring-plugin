@@ -12,6 +12,7 @@ import (
 
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
 	"github.com/openshift/monitoring-plugin/pkg/management"
+	"github.com/openshift/monitoring-plugin/pkg/management/mapper"
 	"github.com/openshift/monitoring-plugin/pkg/management/testutils"
 )
 
@@ -28,12 +29,28 @@ var _ = Describe("ListRules", func() {
 		ctx = context.Background()
 
 		mockPR = &testutils.MockPrometheusRuleInterface{}
+		mockNSInformer := &testutils.MockNamespaceInformerInterface{}
+		mockNSInformer.SetMonitoringNamespaces(map[string]bool{
+			"platform-namespace-1": true,
+			"platform-namespace-2": true,
+		})
 		mockK8s = &testutils.MockClient{
 			PrometheusRulesFunc: func() k8s.PrometheusRuleInterface {
 				return mockPR
 			},
+			NamespaceInformerFunc: func() k8s.NamespaceInformerInterface {
+				return mockNSInformer
+			},
 		}
-		mockMapper = &testutils.MockMapperClient{}
+		mockMapper = &testutils.MockMapperClient{
+			GetAlertingRuleIdFunc: func(rule *monitoringv1.Rule) mapper.PrometheusAlertRuleId {
+				return mapper.PrometheusAlertRuleId(rule.Alert)
+			},
+			FindAlertRuleByIdFunc: func(id mapper.PrometheusAlertRuleId) (*mapper.PrometheusRuleId, error) {
+				// Mock successful lookup for all alert rules
+				return &mapper.PrometheusRuleId{}, nil
+			},
+		}
 
 		client = management.NewWithCustomMapper(ctx, mockK8s, mockMapper)
 	})
@@ -337,7 +354,7 @@ var _ = Describe("ListRules", func() {
 			platformRule := &monitoringv1.PrometheusRule{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "openshift-platform-alerts",
-					Namespace: "openshift-monitoring",
+					Namespace: "platform-namespace-1",
 				},
 				Spec: monitoringv1.PrometheusRuleSpec{
 					Groups: []monitoringv1.RuleGroup{
@@ -356,7 +373,7 @@ var _ = Describe("ListRules", func() {
 
 			mockPR.SetPrometheusRules(map[string]*monitoringv1.PrometheusRule{
 				"monitoring/test-alerts":                         prometheusRule,
-				"openshift-monitoring/openshift-platform-alerts": platformRule,
+				"platform-namespace-1/openshift-platform-alerts": platformRule,
 			})
 
 			prOptions := management.PrometheusRuleOptions{}
@@ -375,7 +392,7 @@ var _ = Describe("ListRules", func() {
 			platformRule := &monitoringv1.PrometheusRule{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "openshift-platform-alerts",
-					Namespace: "openshift-monitoring",
+					Namespace: "platform-namespace-1",
 				},
 				Spec: monitoringv1.PrometheusRuleSpec{
 					Groups: []monitoringv1.RuleGroup{
@@ -394,7 +411,7 @@ var _ = Describe("ListRules", func() {
 
 			mockPR.SetPrometheusRules(map[string]*monitoringv1.PrometheusRule{
 				"monitoring/test-alerts":                         prometheusRule,
-				"openshift-monitoring/openshift-platform-alerts": platformRule,
+				"platform-namespace-1/openshift-platform-alerts": platformRule,
 			})
 
 			prOptions := management.PrometheusRuleOptions{}

@@ -14,6 +14,7 @@ import (
 	osmv1 "github.com/openshift/api/monitoring/v1"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/tools/cache"
 
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
 )
@@ -101,8 +102,8 @@ func (m *mapper) WatchPrometheusRules(ctx context.Context) {
 			OnUpdate: func(pr *monitoringv1.PrometheusRule) {
 				m.AddPrometheusRule(pr)
 			},
-			OnDelete: func(pr *monitoringv1.PrometheusRule) {
-				m.DeletePrometheusRule(pr)
+			OnDelete: func(key cache.ObjectName) {
+				m.DeletePrometheusRule(key)
 			},
 		}
 
@@ -135,11 +136,11 @@ func (m *mapper) AddPrometheusRule(pr *monitoringv1.PrometheusRule) {
 	m.prometheusRules[promRuleId] = rules
 }
 
-func (m *mapper) DeletePrometheusRule(pr *monitoringv1.PrometheusRule) {
+func (m *mapper) DeletePrometheusRule(key cache.ObjectName) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	delete(m.prometheusRules, PrometheusRuleId(types.NamespacedName{Namespace: pr.Namespace, Name: pr.Name}))
+	delete(m.prometheusRules, PrometheusRuleId(key))
 }
 
 func (m *mapper) WatchAlertRelabelConfigs(ctx context.Context) {
@@ -151,8 +152,8 @@ func (m *mapper) WatchAlertRelabelConfigs(ctx context.Context) {
 			OnUpdate: func(arc *osmv1.AlertRelabelConfig) {
 				m.AddAlertRelabelConfig(arc)
 			},
-			OnDelete: func(arc *osmv1.AlertRelabelConfig) {
-				m.DeleteAlertRelabelConfig(arc)
+			OnDelete: func(key cache.ObjectName) {
+				m.DeleteAlertRelabelConfig(key)
 			},
 		}
 
@@ -214,11 +215,11 @@ func parseAlertnameFromRelabelConfig(config osmv1.RelabelConfig) string {
 	return ""
 }
 
-func (m *mapper) DeleteAlertRelabelConfig(arc *osmv1.AlertRelabelConfig) {
+func (m *mapper) DeleteAlertRelabelConfig(key cache.ObjectName) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	arcId := AlertRelabelConfigId(types.NamespacedName{Namespace: arc.Namespace, Name: arc.Name})
+	arcId := AlertRelabelConfigId(key)
 	delete(m.alertRelabelConfigs, arcId)
 }
 

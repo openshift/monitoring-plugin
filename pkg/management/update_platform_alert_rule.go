@@ -14,15 +14,13 @@ import (
 	"github.com/openshift/monitoring-plugin/pkg/management/mapper"
 )
 
-const openshiftMonitoringNamespace = "openshift-monitoring"
-
 func (c *client) UpdatePlatformAlertRule(ctx context.Context, alertRuleId string, alertRule monitoringv1.Rule) error {
 	prId, err := c.mapper.FindAlertRuleById(mapper.PrometheusAlertRuleId(alertRuleId))
 	if err != nil {
 		return err
 	}
 
-	if !IsPlatformAlertRule(types.NamespacedName(*prId)) {
+	if !c.IsPlatformAlertRule(types.NamespacedName(*prId)) {
 		return errors.New("cannot update non-platform alert rule from " + prId.Namespace + "/" + prId.Name)
 	}
 
@@ -36,7 +34,7 @@ func (c *client) UpdatePlatformAlertRule(ctx context.Context, alertRuleId string
 		return errors.New("no label changes detected; platform alert rules can only have labels updated")
 	}
 
-	return c.applyLabelChangesViaAlertRelabelConfig(ctx, alertRuleId, originalRule.Alert, labelChanges)
+	return c.applyLabelChangesViaAlertRelabelConfig(ctx, prId.Namespace, alertRuleId, originalRule.Alert, labelChanges)
 }
 
 func (c *client) getOriginalPlatformRule(ctx context.Context, prId *mapper.PrometheusRuleId, alertRuleId string) (*monitoringv1.Rule, error) {
@@ -100,12 +98,12 @@ func calculateLabelChanges(originalLabels, newLabels map[string]string) []labelC
 	return changes
 }
 
-func (c *client) applyLabelChangesViaAlertRelabelConfig(ctx context.Context, alertRuleId string, alertName string, changes []labelChange) error {
+func (c *client) applyLabelChangesViaAlertRelabelConfig(ctx context.Context, namespace string, alertRuleId string, alertName string, changes []labelChange) error {
 	arcName := fmt.Sprintf("alertmanagement-%s", strings.ToLower(strings.ReplaceAll(alertRuleId, "/", "-")))
 
-	existingArc, found, err := c.k8sClient.AlertRelabelConfigs().Get(ctx, openshiftMonitoringNamespace, arcName)
+	existingArc, found, err := c.k8sClient.AlertRelabelConfigs().Get(ctx, namespace, arcName)
 	if err != nil {
-		return fmt.Errorf("failed to get AlertRelabelConfig %s/%s: %w", openshiftMonitoringNamespace, arcName, err)
+		return fmt.Errorf("failed to get AlertRelabelConfig %s/%s: %w", namespace, arcName, err)
 	}
 
 	relabelConfigs := c.buildRelabelConfigs(alertName, changes)
@@ -125,7 +123,7 @@ func (c *client) applyLabelChangesViaAlertRelabelConfig(ctx context.Context, ale
 		arc = &osmv1.AlertRelabelConfig{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      arcName,
-				Namespace: openshiftMonitoringNamespace,
+				Namespace: namespace,
 			},
 			Spec: osmv1.AlertRelabelConfigSpec{
 				Configs: relabelConfigs,

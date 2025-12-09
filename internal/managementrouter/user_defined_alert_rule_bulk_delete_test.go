@@ -42,7 +42,7 @@ var _ = Describe("BulkDeleteUserDefinedAlertRules", func() {
 
 		platformPR := monitoringv1.PrometheusRule{}
 		platformPR.Name = "platform-pr"
-		platformPR.Namespace = "openshift-monitoring"
+		platformPR.Namespace = "platform-namespace-1"
 		platformPR.Spec.Groups = []monitoringv1.RuleGroup{
 			{
 				Name:  "pg1",
@@ -52,12 +52,20 @@ var _ = Describe("BulkDeleteUserDefinedAlertRules", func() {
 
 		mockK8sRules.SetPrometheusRules(map[string]*monitoringv1.PrometheusRule{
 			"default/user-pr":                  &userPR,
-			"openshift-monitoring/platform-pr": &platformPR,
+			"platform-namespace-1/platform-pr": &platformPR,
 		})
 
+		mockNSInformer := &testutils.MockNamespaceInformerInterface{}
+		mockNSInformer.SetMonitoringNamespaces(map[string]bool{
+			"platform-namespace-1": true,
+			"platform-namespace-2": true,
+		})
 		mockK8s = &testutils.MockClient{
 			PrometheusRulesFunc: func() k8s.PrometheusRuleInterface {
 				return mockK8sRules
+			},
+			NamespaceInformerFunc: func() k8s.NamespaceInformerInterface {
+				return mockNSInformer
 			},
 		}
 
@@ -72,7 +80,7 @@ var _ = Describe("BulkDeleteUserDefinedAlertRules", func() {
 					Name:      "user-pr",
 				}
 				if id == "platform1" {
-					pr.Namespace = "openshift-monitoring"
+					pr.Namespace = "platform-namespace-1"
 					pr.Name = "platform-pr"
 				}
 				return &pr, nil
@@ -125,7 +133,7 @@ var _ = Describe("BulkDeleteUserDefinedAlertRules", func() {
 			Expect(userRuleNames).NotTo(ContainElement("u1"))
 			Expect(userRuleNames).To(ContainElement("u2"))
 
-			prPlatform, _, err := mockK8sRules.Get(context.Background(), "openshift-monitoring", "platform-pr")
+			prPlatform, _, err := mockK8sRules.Get(context.Background(), "platform-namespace-1", "platform-pr")
 			Expect(err).NotTo(HaveOccurred())
 			foundPlatform := false
 			for _, g := range prPlatform.Spec.Groups {
@@ -174,7 +182,7 @@ var _ = Describe("BulkDeleteUserDefinedAlertRules", func() {
 			Expect(userRuleNames).To(ContainElement("u2"))
 
 			// Platform rule remains intact
-			prPlatform, _, err := mockK8sRules.Get(context.Background(), "openshift-monitoring", "platform-pr")
+			prPlatform, _, err := mockK8sRules.Get(context.Background(), "platform-namespace-1", "platform-pr")
 			Expect(err).NotTo(HaveOccurred())
 			foundPlatform := false
 			for _, g := range prPlatform.Spec.Groups {
@@ -215,7 +223,7 @@ var _ = Describe("BulkDeleteUserDefinedAlertRules", func() {
 			Expect(found).To(BeFalse())
 
 			// Platform PrometheusRule remains present
-			_, found, err = mockK8sRules.Get(context.Background(), "openshift-monitoring", "platform-pr")
+			_, found, err = mockK8sRules.Get(context.Background(), "platform-namespace-1", "platform-pr")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(found).To(BeTrue())
 		})

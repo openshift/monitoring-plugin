@@ -26,9 +26,11 @@ type client struct {
 
 	alertRelabelConfigManager  AlertRelabelConfigInterface
 	alertRelabelConfigInformer AlertRelabelConfigInformerInterface
+
+	namespaceInformer NamespaceInformerInterface
 }
 
-func newClient(_ context.Context, config *rest.Config) (Client, error) {
+func newClient(ctx context.Context, config *rest.Config) (Client, error) {
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create clientset: %w", err)
@@ -53,11 +55,17 @@ func newClient(_ context.Context, config *rest.Config) (Client, error) {
 
 	c.prometheusAlerts = newPrometheusAlerts(clientset, config)
 
-	c.prometheusRuleManager = newPrometheusRuleManager(monitoringv1clientset)
 	c.prometheusRuleInformer = newPrometheusRuleInformer(monitoringv1clientset)
+	c.prometheusRuleManager = newPrometheusRuleManager(monitoringv1clientset, c.prometheusRuleInformer)
 
-	c.alertRelabelConfigManager = newAlertRelabelConfigManager(osmv1clientset)
 	c.alertRelabelConfigInformer = newAlertRelabelConfigInformer(osmv1clientset)
+	c.alertRelabelConfigManager = newAlertRelabelConfigManager(osmv1clientset, c.alertRelabelConfigInformer)
+
+	namespaceInformer, err := newNamespaceInformer(ctx, clientset)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create namespace informer: %w", err)
+	}
+	c.namespaceInformer = namespaceInformer
 
 	return c, nil
 }
@@ -88,4 +96,8 @@ func (c *client) AlertRelabelConfigs() AlertRelabelConfigInterface {
 
 func (c *client) AlertRelabelConfigInformer() AlertRelabelConfigInformerInterface {
 	return c.alertRelabelConfigInformer
+}
+
+func (c *client) NamespaceInformer() NamespaceInformerInterface {
+	return c.namespaceInformer
 }

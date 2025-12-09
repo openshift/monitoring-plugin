@@ -16,7 +16,7 @@ func (c *client) DeleteUserDefinedAlertRuleById(ctx context.Context, alertRuleId
 		return &NotFoundError{Resource: "AlertRule", Id: alertRuleId}
 	}
 
-	if IsPlatformAlertRule(types.NamespacedName(*prId)) {
+	if c.IsPlatformAlertRule(types.NamespacedName(*prId)) {
 		return &NotAllowedError{Message: "cannot delete alert rule from a platform-managed PrometheusRule"}
 	}
 

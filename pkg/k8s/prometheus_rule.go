@@ -13,11 +13,13 @@ import (
 
 type prometheusRuleManager struct {
 	clientset *monitoringv1client.Clientset
+	informer  PrometheusRuleInformerInterface
 }
 
-func newPrometheusRuleManager(clientset *monitoringv1client.Clientset) PrometheusRuleInterface {
+func newPrometheusRuleManager(clientset *monitoringv1client.Clientset, informer PrometheusRuleInformerInterface) PrometheusRuleInterface {
 	return &prometheusRuleManager{
 		clientset: clientset,
+		informer:  informer,
 	}
 }
 
@@ -31,16 +33,12 @@ func (prm *prometheusRuleManager) List(ctx context.Context, namespace string) ([
 }
 
 func (prm *prometheusRuleManager) Get(ctx context.Context, namespace string, name string) (*monitoringv1.PrometheusRule, bool, error) {
-	pr, err := prm.clientset.MonitoringV1().PrometheusRules(namespace).Get(ctx, name, metav1.GetOptions{})
+	pr, exists, err := prm.informer.Get(ctx, namespace, name)
 	if err != nil {
-		if errors.IsNotFound(err) {
-			return nil, false, nil
-		}
-
-		return nil, false, fmt.Errorf("failed to get PrometheusRule %s/%s: %w", namespace, name, err)
+		return nil, exists, fmt.Errorf("failed to get PrometheusRule %s/%s: %w", namespace, name, err)
 	}
 
-	return pr, true, nil
+	return pr, exists, nil
 }
 
 func (prm *prometheusRuleManager) Update(ctx context.Context, pr monitoringv1.PrometheusRule) error {

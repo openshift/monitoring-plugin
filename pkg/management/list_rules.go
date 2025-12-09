@@ -85,7 +85,7 @@ func (c *client) matchesAlertRuleFilters(rule monitoringv1.Rule, pr monitoringv1
 	// Filter by source (platform or user-defined)
 	if arOptions.Source != "" {
 		prId := types.NamespacedName{Name: pr.Name, Namespace: pr.Namespace}
-		isPlatform := IsPlatformAlertRule(prId)
+		isPlatform := c.IsPlatformAlertRule(prId)
 
 		if arOptions.Source == "platform" && !isPlatform {
 			return false

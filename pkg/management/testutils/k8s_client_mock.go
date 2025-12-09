@@ -3,9 +3,10 @@ package testutils
 import (
 	"context"
 
+	"k8s.io/apimachinery/pkg/types"
+
 	osmv1 "github.com/openshift/api/monitoring/v1"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
-	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
 )
@@ -18,6 +19,7 @@ type MockClient struct {
 	PrometheusRuleInformerFunc     func() k8s.PrometheusRuleInformerInterface
 	AlertRelabelConfigsFunc        func() k8s.AlertRelabelConfigInterface
 	AlertRelabelConfigInformerFunc func() k8s.AlertRelabelConfigInformerInterface
+	NamespaceInformerFunc          func() k8s.NamespaceInformerInterface
 }
 
 // TestConnection mocks the TestConnection method
@@ -66,6 +68,14 @@ func (m *MockClient) AlertRelabelConfigInformer() k8s.AlertRelabelConfigInformer
 		return m.AlertRelabelConfigInformerFunc()
 	}
 	return &MockAlertRelabelConfigInformerInterface{}
+}
+
+// NamespaceInformer mocks the NamespaceInformer method
+func (m *MockClient) NamespaceInformer() k8s.NamespaceInformerInterface {
+	if m.NamespaceInformerFunc != nil {
+		return m.NamespaceInformerFunc()
+	}
+	return &MockNamespaceInformerInterface{}
 }
 
 // MockPrometheusAlertsInterface is a mock implementation of k8s.PrometheusAlertsInterface
@@ -216,7 +226,16 @@ func (m *MockPrometheusRuleInterface) AddRule(ctx context.Context, namespacedNam
 
 // MockPrometheusRuleInformerInterface is a mock implementation of k8s.PrometheusRuleInformerInterface
 type MockPrometheusRuleInformerInterface struct {
-	RunFunc func(ctx context.Context, callbacks k8s.PrometheusRuleInformerCallback) error
+	RunFunc  func(ctx context.Context, callbacks k8s.PrometheusRuleInformerCallback) error
+	ListFunc func(ctx context.Context, namespace string) ([]monitoringv1.PrometheusRule, error)
+	GetFunc  func(ctx context.Context, namespace string, name string) (*monitoringv1.PrometheusRule, bool, error)
+
+	// Storage for test data
+	PrometheusRules map[string]*monitoringv1.PrometheusRule
+}
+
+func (m *MockPrometheusRuleInformerInterface) SetPrometheusRules(rules map[string]*monitoringv1.PrometheusRule) {
+	m.PrometheusRules = rules
 }
 
 // Run mocks the Run method
@@ -228,6 +247,39 @@ func (m *MockPrometheusRuleInformerInterface) Run(ctx context.Context, callbacks
 	// Default implementation - just wait for context to be cancelled
 	<-ctx.Done()
 	return ctx.Err()
+}
+
+// List mocks the List method
+func (m *MockPrometheusRuleInformerInterface) List(ctx context.Context, namespace string) ([]monitoringv1.PrometheusRule, error) {
+	if m.ListFunc != nil {
+		return m.ListFunc(ctx, namespace)
+	}
+
+	var rules []monitoringv1.PrometheusRule
+	if m.PrometheusRules != nil {
+		for _, rule := range m.PrometheusRules {
+			if namespace == "" || rule.Namespace == namespace {
+				rules = append(rules, *rule)
+			}
+		}
+	}
+	return rules, nil
+}
+
+// Get mocks the Get method
+func (m *MockPrometheusRuleInformerInterface) Get(ctx context.Context, namespace string, name string) (*monitoringv1.PrometheusRule, bool, error) {
+	if m.GetFunc != nil {
+		return m.GetFunc(ctx, namespace, name)
+	}
+
+	key := namespace + "/" + name
+	if m.PrometheusRules != nil {
+		if rule, exists := m.PrometheusRules[key]; exists {
+			return rule, true, nil
+		}
+	}
+
+	return nil, false, nil
 }
 
 // MockAlertRelabelConfigInterface is a mock implementation of k8s.AlertRelabelConfigInterface
@@ -322,7 +374,16 @@ func (m *MockAlertRelabelConfigInterface) Delete(ctx context.Context, namespace 
 
 // MockAlertRelabelConfigInformerInterface is a mock implementation of k8s.AlertRelabelConfigInformerInterface
 type MockAlertRelabelConfigInformerInterface struct {
-	RunFunc func(ctx context.Context, callbacks k8s.AlertRelabelConfigInformerCallback) error
+	RunFunc  func(ctx context.Context, callbacks k8s.AlertRelabelConfigInformerCallback) error
+	ListFunc func(ctx context.Context, namespace string) ([]osmv1.AlertRelabelConfig, error)
+	GetFunc  func(ctx context.Context, namespace string, name string) (*osmv1.AlertRelabelConfig, bool, error)
+
+	// Storage for test data
+	AlertRelabelConfigs map[string]*osmv1.AlertRelabelConfig
+}
+
+func (m *MockAlertRelabelConfigInformerInterface) SetAlertRelabelConfigs(configs map[string]*osmv1.AlertRelabelConfig) {
+	m.AlertRelabelConfigs = configs
 }
 
 // Run mocks the Run method
@@ -334,4 +395,62 @@ func (m *MockAlertRelabelConfigInformerInterface) Run(ctx context.Context, callb
 	// Default implementation - just wait for context to be cancelled
 	<-ctx.Done()
 	return ctx.Err()
+}
+
+// List mocks the List method
+func (m *MockAlertRelabelConfigInformerInterface) List(ctx context.Context, namespace string) ([]osmv1.AlertRelabelConfig, error) {
+	if m.ListFunc != nil {
+		return m.ListFunc(ctx, namespace)
+	}
+
+	var configs []osmv1.AlertRelabelConfig
+	if m.AlertRelabelConfigs != nil {
+		for _, config := range m.AlertRelabelConfigs {
+			if namespace == "" || config.Namespace == namespace {
+				configs = append(configs, *config)
+			}
+		}
+	}
+	return configs, nil
+}
+
+// Get mocks the Get method
+func (m *MockAlertRelabelConfigInformerInterface) Get(ctx context.Context, namespace string, name string) (*osmv1.AlertRelabelConfig, bool, error) {
+	if m.GetFunc != nil {
+		return m.GetFunc(ctx, namespace, name)
+	}
+
+	key := namespace + "/" + name
+	if m.AlertRelabelConfigs != nil {
+		if config, exists := m.AlertRelabelConfigs[key]; exists {
+			return config, true, nil
+		}
+	}
+
+	return nil, false, nil
+}
+
+// MockNamespaceInformerInterface is a mock implementation of k8s.NamespaceInformerInterface
+type MockNamespaceInformerInterface struct {
+	IsClusterMonitoringNamespaceFunc func(name string) bool
+
+	// Storage for test data
+	MonitoringNamespaces map[string]bool
+}
+
+func (m *MockNamespaceInformerInterface) SetMonitoringNamespaces(namespaces map[string]bool) {
+	m.MonitoringNamespaces = namespaces
+}
+
+// IsClusterMonitoringNamespace mocks the IsClusterMonitoringNamespace method
+func (m *MockNamespaceInformerInterface) IsClusterMonitoringNamespace(name string) bool {
+	if m.IsClusterMonitoringNamespaceFunc != nil {
+		return m.IsClusterMonitoringNamespaceFunc(name)
+	}
+
+	if m.MonitoringNamespaces != nil {
+		return m.MonitoringNamespaces[name]
+	}
+
+	return false
 }

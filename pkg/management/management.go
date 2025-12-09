@@ -1,8 +1,6 @@
 package management
 
 import (
-	"strings"
-
 	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
@@ -14,6 +12,6 @@ type client struct {
 	mapper    mapper.Client
 }
 
-func IsPlatformAlertRule(prId types.NamespacedName) bool {
-	return strings.HasPrefix(prId.Namespace, "openshift-")
+func (c *client) IsPlatformAlertRule(prId types.NamespacedName) bool {
+	return c.k8sClient.NamespaceInformer().IsClusterMonitoringNamespace(prId.Namespace)
 }

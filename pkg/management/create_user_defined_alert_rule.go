@@ -22,7 +22,7 @@ func (c *client) CreateUserDefinedAlertRule(ctx context.Context, alertRule monit
 		Namespace: prOptions.Namespace,
 	}
 
-	if IsPlatformAlertRule(nn) {
+	if c.IsPlatformAlertRule(nn) {
 		return "", errors.New("cannot add user-defined alert rule to a platform-managed PrometheusRule")
 	}
 

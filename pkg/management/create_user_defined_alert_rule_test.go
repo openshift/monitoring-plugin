@@ -29,9 +29,17 @@ var _ = Describe("CreateUserDefinedAlertRule", func() {
 		ctx = context.Background()
 
 		mockPR = &testutils.MockPrometheusRuleInterface{}
+		mockNSInformer := &testutils.MockNamespaceInformerInterface{}
+		mockNSInformer.SetMonitoringNamespaces(map[string]bool{
+			"platform-namespace-1": true,
+			"platform-namespace-2": true,
+		})
 		mockK8s = &testutils.MockClient{
 			PrometheusRulesFunc: func() k8s.PrometheusRuleInterface {
 				return mockPR
+			},
+			NamespaceInformerFunc: func() k8s.NamespaceInformerInterface {
+				return mockNSInformer
 			},
 		}
 		mockMapper = &testutils.MockMapperClient{}
@@ -172,8 +180,10 @@ var _ = Describe("CreateUserDefinedAlertRule", func() {
 
 			prOptions := management.PrometheusRuleOptions{
 				Name:      "openshift-platform-alerts",
-				Namespace: "openshift-monitoring",
+				Namespace: "platform-namespace-1",
 			}
+
+			// Don't set up mapper - we should fail before mapper check
 
 			By("attempting to create the alert rule")
 			_, err := client.CreateUserDefinedAlertRule(ctx, alertRule, prOptions)
@@ -287,8 +297,8 @@ var _ = Describe("CreateUserDefinedAlertRule", func() {
 			Expect(addRuleCalled).To(BeTrue())
 		})
 
-		It("should reject PrometheusRules in openshift- prefixed namespaces", func() {
-			By("setting up test data with openshift- namespace prefix")
+		It("should reject PrometheusRules in cluster monitoring namespaces", func() {
+			By("setting up test data with cluster monitoring namespace")
 			alertRule := monitoringv1.Rule{
 				Alert: "TestAlert",
 				Expr:  intstr.FromString("up == 0"),
@@ -296,7 +306,7 @@ var _ = Describe("CreateUserDefinedAlertRule", func() {
 
 			prOptions := management.PrometheusRuleOptions{
 				Name:      "custom-rule",
-				Namespace: "openshift-user-namespace",
+				Namespace: "platform-namespace-1",
 			}
 
 			By("attempting to create the alert rule")

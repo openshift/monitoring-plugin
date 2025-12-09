@@ -6,40 +6,27 @@ import (
 
 	osmv1 "github.com/openshift/api/monitoring/v1"
 	osmv1client "github.com/openshift/client-go/monitoring/clientset/versioned"
-	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type alertRelabelConfigManager struct {
 	clientset *osmv1client.Clientset
+	informer  AlertRelabelConfigInformerInterface
 }
 
-func newAlertRelabelConfigManager(clientset *osmv1client.Clientset) AlertRelabelConfigInterface {
+func newAlertRelabelConfigManager(clientset *osmv1client.Clientset, informer AlertRelabelConfigInformerInterface) AlertRelabelConfigInterface {
 	return &alertRelabelConfigManager{
 		clientset: clientset,
+		informer:  informer,
 	}
 }
 
 func (arcm *alertRelabelConfigManager) List(ctx context.Context, namespace string) ([]osmv1.AlertRelabelConfig, error) {
-	arcs, err := arcm.clientset.MonitoringV1().AlertRelabelConfigs(namespace).List(ctx, metav1.ListOptions{})
-	if err != nil {
-		return nil, err
-	}
-
-	return arcs.Items, nil
+	return arcm.informer.List(ctx, namespace)
 }
 
 func (arcm *alertRelabelConfigManager) Get(ctx context.Context, namespace string, name string) (*osmv1.AlertRelabelConfig, bool, error) {
-	arc, err := arcm.clientset.MonitoringV1().AlertRelabelConfigs(namespace).Get(ctx, name, metav1.GetOptions{})
-	if err != nil {
-		if errors.IsNotFound(err) {
-			return nil, false, nil
-		}
-
-		return nil, false, fmt.Errorf("failed to get AlertRelabelConfig %s/%s: %w", namespace, name, err)
-	}
-
-	return arc, true, nil
+	return arcm.informer.Get(ctx, namespace, name)
 }
 
 func (arcm *alertRelabelConfigManager) Create(ctx context.Context, arc osmv1.AlertRelabelConfig) (*osmv1.AlertRelabelConfig, error) {

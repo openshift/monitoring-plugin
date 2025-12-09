@@ -28,9 +28,17 @@ var _ = Describe("UpdateUserDefinedAlertRule", func() {
 		ctx = context.Background()
 
 		mockPR = &testutils.MockPrometheusRuleInterface{}
+		mockNSInformer := &testutils.MockNamespaceInformerInterface{}
+		mockNSInformer.SetMonitoringNamespaces(map[string]bool{
+			"platform-namespace-1": true,
+			"platform-namespace-2": true,
+		})
 		mockK8s = &testutils.MockClient{
 			PrometheusRulesFunc: func() k8s.PrometheusRuleInterface {
 				return mockPR
+			},
+			NamespaceInformerFunc: func() k8s.NamespaceInformerInterface {
+				return mockNSInformer
 			},
 		}
 		mockMapper = &testutils.MockMapperClient{}
@@ -231,7 +239,7 @@ var _ = Describe("UpdateUserDefinedAlertRule", func() {
 			alertRuleId := "platform-rule-id"
 			mockMapper.FindAlertRuleByIdFunc = func(id mapper.PrometheusAlertRuleId) (*mapper.PrometheusRuleId, error) {
 				return &mapper.PrometheusRuleId{
-					Namespace: "openshift-monitoring",
+					Namespace: "platform-namespace-1",
 					Name:      "openshift-platform-rules",
 				}, nil
 			}
