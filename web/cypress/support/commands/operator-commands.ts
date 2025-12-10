@@ -420,11 +420,16 @@ const operatorUtils = {
           `sleep 15 && oc wait --for=condition=Ready pods --selector=app.kubernetes.io/name=monitoring-plugin -n ${MP.namespace} --timeout=60s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
           {
             timeout: readyTimeoutMilliseconds,
-            failOnNonZeroExit: true
+            failOnNonZeroExit: false
           }
         ).then((result) => {
-          expect(result.code).to.eq(0);
-          cy.log(`Monitoring plugin pod is now running in namespace: ${MP.namespace}`);
+          if (result.code === 0) {
+            cy.log(`Monitoring plugin pod is now running in namespace: ${MP.namespace}`);
+          } else if (result.stderr.includes('no matching resources found')) {
+            cy.log(`No monitoring-plugin pods found in namespace ${MP.namespace} - this is expected on fresh clusters`);
+          } else {
+            throw new Error(`Failed to wait for monitoring-plugin pods: ${result.stderr}`);
+          }
         });
 
         cy.reload(true);
