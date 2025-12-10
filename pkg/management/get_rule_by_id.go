@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/openshift/monitoring-plugin/pkg/management/mapper"
 )
@@ -37,7 +38,15 @@ func (c *client) GetRuleById(ctx context.Context, alertRuleId string) (monitorin
 	}
 
 	if rule != nil {
-		return c.updateRuleBasedOnRelabelConfig(rule)
+		ruleWithRelabel, err := c.updateRuleBasedOnRelabelConfig(rule)
+		if err != nil {
+			return monitoringv1.Rule{}, err
+		}
+
+		isPlatformRule := c.IsPlatformAlertRule(types.NamespacedName(*prId))
+		c.addPlatformSourceLabel(&ruleWithRelabel, isPlatformRule)
+
+		return ruleWithRelabel, nil
 	}
 
 	return monitoringv1.Rule{}, fmt.Errorf("alert rule with id %s not found in PrometheusRule %s/%s", alertRuleId, prId.Namespace, prId.Name)

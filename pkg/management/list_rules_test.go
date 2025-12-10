@@ -386,6 +386,7 @@ var _ = Describe("ListRules", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(rules).To(HaveLen(1))
 			Expect(rules[0].Alert).To(Equal("PlatformAlert"))
+			Expect(rules[0].Labels).To(HaveKeyWithValue("source", "platform"))
 		})
 
 		It("should filter by source user-defined", func() {

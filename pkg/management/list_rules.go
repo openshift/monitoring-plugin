@@ -11,7 +11,11 @@ import (
 	"github.com/openshift/monitoring-plugin/pkg/management/mapper"
 )
 
-const alertRuleIdLabel = "alert_rule_id"
+const (
+	alertRuleIdLabel    = "alert_rule_id"
+	sourceLabel         = "source"
+	platformSourceValue = "platform"
+)
 
 func (c *client) ListRules(ctx context.Context, prOptions PrometheusRuleOptions, arOptions AlertRuleOptions) ([]monitoringv1.Rule, error) {
 	if prOptions.Name != "" && prOptions.Namespace == "" {
@@ -47,6 +51,8 @@ func (c *client) ListRules(ctx context.Context, prOptions PrometheusRuleOptions,
 
 func (c *client) extractAndFilterRules(pr monitoringv1.PrometheusRule, prOptions *PrometheusRuleOptions, arOptions *AlertRuleOptions) []monitoringv1.Rule {
 	var rules []monitoringv1.Rule
+	prId := types.NamespacedName{Name: pr.Name, Namespace: pr.Namespace}
+	isPlatformRule := c.IsPlatformAlertRule(prId)
 
 	for _, group := range pr.Spec.Groups {
 		// Filter by group name if specified
@@ -68,12 +74,24 @@ func (c *client) extractAndFilterRules(pr monitoringv1.PrometheusRule, prOptions
 			// Parse and update the rule based on relabeling configurations
 			r := c.parseRule(rule)
 			if r != nil {
+				c.addPlatformSourceLabel(r, isPlatformRule)
 				rules = append(rules, *r)
 			}
 		}
 	}
 
 	return rules
+}
+
+func (c *client) addPlatformSourceLabel(rule *monitoringv1.Rule, isPlatformRule bool) {
+	if rule == nil || !isPlatformRule {
+		return
+	}
+
+	if rule.Labels == nil {
+		rule.Labels = make(map[string]string)
+	}
+	rule.Labels[sourceLabel] = platformSourceValue
 }
 
 func (c *client) matchesAlertRuleFilters(rule monitoringv1.Rule, pr monitoringv1.PrometheusRule, arOptions *AlertRuleOptions) bool {

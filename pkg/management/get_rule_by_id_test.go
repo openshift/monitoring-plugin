@@ -23,6 +23,7 @@ var _ = Describe("GetRuleById", func() {
 		ctx        context.Context
 		mockK8s    *testutils.MockClient
 		mockPR     *testutils.MockPrometheusRuleInterface
+		mockNS     *testutils.MockNamespaceInformerInterface
 		mockMapper *testutils.MockMapperClient
 		client     management.Client
 	)
@@ -31,9 +32,16 @@ var _ = Describe("GetRuleById", func() {
 		ctx = context.Background()
 
 		mockPR = &testutils.MockPrometheusRuleInterface{}
+		mockNS = &testutils.MockNamespaceInformerInterface{}
+		mockNS.SetMonitoringNamespaces(map[string]bool{
+			"monitoring": true,
+		})
 		mockK8s = &testutils.MockClient{
 			PrometheusRulesFunc: func() k8s.PrometheusRuleInterface {
 				return mockPR
+			},
+			NamespaceInformerFunc: func() k8s.NamespaceInformerInterface {
+				return mockNS
 			},
 		}
 		mockMapper = &testutils.MockMapperClient{}
@@ -104,6 +112,7 @@ var _ = Describe("GetRuleById", func() {
 			By("verifying the returned rule is correct")
 			Expect(rule.Alert).To(Equal("TestAlert2"))
 			Expect(rule.Expr.String()).To(Equal("cpu > 80"))
+			Expect(rule.Labels).To(HaveKeyWithValue("source", "platform"))
 			Expect(rule.Annotations).To(HaveKeyWithValue("summary", "High CPU usage"))
 		})
 
