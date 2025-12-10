@@ -81,6 +81,7 @@ declare global {
   }
 
   Cypress.Commands.add('validateLogin', () => {
+    cy.visit('/');
     cy.wait(2000);
     cy.byTestID("username", {timeout: 120000}).should('be.visible');
     guidedTour.close();
