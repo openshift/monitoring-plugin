@@ -102,7 +102,7 @@ export const TimespanDropdown: React.FC = () => {
         <StackItem>
           <label htmlFor="monitoring-time-range-dropdown">{t('Time range')}</label>
         </StackItem>
-        <StackItem>
+        <StackItem data-test={LegacyDashboardPageTestIDs.TimeRangeDropdown}>
           <SimpleSelect
             id="monitoring-time-range-dropdown"
             initialOptions={initialOptions}
@@ -142,7 +142,7 @@ export const PollIntervalDropdown: React.FC = () => {
       <StackItem>
         <label htmlFor="refresh-interval-dropdown">{t('Refresh interval')}</label>
       </StackItem>
-      <StackItem>
+      <StackItem data-test={LegacyDashboardPageTestIDs.PollIntervalDropdown}>
         <DropDownPollInterval
           id="refresh-interval-dropdown"
           setInterval={setInterval}
