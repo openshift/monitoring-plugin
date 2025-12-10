@@ -26,7 +26,7 @@ const MP = {
   operatorName: 'Cluster Monitoring Operator',
 };
 
-describe('Regression: Silences Not Applied Correctly', { tags: ['@incidents'] }, () => {
+describe('Regression: Silences Not Applied Correctly', { tags: ['@incidents', '@flaky'] }, () => {
 
   before(() => {
     cy.beforeBlockCOO(MCP, MP);

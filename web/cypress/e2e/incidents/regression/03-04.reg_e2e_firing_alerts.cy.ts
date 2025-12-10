@@ -33,7 +33,7 @@ const MP = {
   operatorName: 'Cluster Monitoring Operator',
 };
 
-describe('Regression: Time-Based Alert Resolution (E2E with Firing Alerts)', () => {
+describe('Regression: Time-Based Alert Resolution (E2E with Firing Alerts)', { tags: ['@incidents', '@slow', '@flaky'] }, () => {
   let currentAlertName: string;
 
   before(() => {
@@ -46,9 +46,6 @@ describe('Regression: Time-Based Alert Resolution (E2E with Firing Alerts)', () 
     });
   });
 
-  beforeEach(() => {
-    cy.transformMetrics();
-  });
 
   it('1. Section 3.3 - Alert not incorrectly marked as resolved after time passes', () => {
     cy.log('1.1 Navigate to Incidents page and clear filters');
