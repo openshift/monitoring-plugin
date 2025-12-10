@@ -19,6 +19,7 @@ import { DEFAULT_REFRESH_INTERVAL, DropDownPollInterval } from '../../dropdown-p
 import { useBoolean } from '../../hooks/useBoolean';
 import { getLegacyObserveState, usePerspective } from '../../hooks/usePerspective';
 import { QueryParams } from '../../query-params';
+import { LegacyDashboardPageTestIDs } from '../../data-test';
 import CustomTimeRangeModal from './custom-time-range-modal';
 
 const CUSTOM_TIME_RANGE_KEY = 'CUSTOM_TIME_RANGE_KEY';
@@ -111,6 +112,7 @@ export const TimespanDropdown: React.FC = () => {
               }
             }}
             placeholder={t('Last {{count}} minute', { count: 30 })}
+            data-test={LegacyDashboardPageTestIDs.TimeRangeDropdownOptions}
           />
         </StackItem>
       </Stack>
