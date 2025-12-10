@@ -51,7 +51,7 @@ import { ExternalLink } from '../console/utils/link';
 import { useBoolean } from '../hooks/useBoolean';
 import { getSilenceAlertUrl, usePerspective } from '../hooks/usePerspective';
 import { DataTestIDs } from '../data-test';
-import { getAlertmanagerSilencesUrl } from '../utils';
+import { ALL_NAMESPACES_KEY, getAlertmanagerSilencesUrl } from '../utils';
 import { useAlerts } from '../../hooks/useAlerts';
 import { useMonitoring } from '../../hooks/useMonitoring';
 
@@ -269,14 +269,15 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
       createdBy,
       endsAt: saveEndsAt.toISOString(),
       id: defaults.id,
-      matchers: isNamespaced
-        ? matchers.concat({
-            name: 'namespace',
-            value: namespace,
-            isRegex: false,
-            isEqual: true,
-          })
-        : matchers,
+      matchers:
+        isNamespaced && namespace !== ALL_NAMESPACES_KEY
+          ? matchers.concat({
+              name: 'namespace',
+              value: namespace,
+              isRegex: false,
+              isEqual: true,
+            })
+          : matchers,
       startsAt: saveStartsAt.toISOString(),
     };
 
@@ -425,7 +426,7 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
             </HelperText>
           </FormHelperText>
 
-          {isNamespaced && (
+          {isNamespaced && namespace !== ALL_NAMESPACES_KEY && (
             <Grid key={'namespace'} sm={12} md={4} hasGutter>
               <GridItem>
                 <FormGroup label={t('Label name')}>
