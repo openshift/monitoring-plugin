@@ -211,7 +211,7 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
   };
 
   const setMatcherField = (i: number, field: string, v: string | boolean): void => {
-    const newMatchers = _.clone(matchers);
+    const newMatchers = _.cloneDeep(matchers);
     _.set(newMatchers, [i, field], v);
     setMatchers(newMatchers);
   };
