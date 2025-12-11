@@ -13,7 +13,9 @@ const MAX_URL_LENGTH = 5000;
  */
 const createSingleAlertQuery = (query) => {
   // Dynamically get all keys starting with "src_"
-  const srcKeys = Object.keys(query).filter((key) => key.startsWith('src_'));
+  const srcKeys = Object.keys(query).filter(
+    (key) => key.startsWith('src_') && key != 'src_silenced',
+  );
 
   // Create the alertParts array using the dynamically discovered src_ keys,
   // but remove the "src_" prefix from the keys in the final query string.
@@ -62,16 +64,22 @@ const createSingleAlertQuery = (query) => {
  * // ['ALERTS{alertname="AlertmanagerReceiversNotConfigured", namespace="openshift-monitoring", severity="warning"} or
  * //  ALERTS{alertname="AnotherAlert", namespace="default", severity="critical"}']
  */
-export const createAlertsQuery = (groupedAlertsValues) => {
+export const createAlertsQuery = (groupedAlertsValues, max_url_length = MAX_URL_LENGTH) => {
   const queries = [];
+  const alertsMap = new Map<string, boolean>();
+
   let currentQueryParts = [];
   let currentQueryLength = 0;
 
   for (const alertValue of groupedAlertsValues) {
     const singleAlertQuery = createSingleAlertQuery(alertValue);
+    if (alertsMap.has(singleAlertQuery)) {
+      continue;
+    }
+    alertsMap.set(singleAlertQuery, true);
     const newQueryLength = currentQueryLength + singleAlertQuery.length + 4; // 4 for ' or '
 
-    if (newQueryLength <= MAX_URL_LENGTH) {
+    if (newQueryLength <= max_url_length) {
       currentQueryParts.push(singleAlertQuery);
       currentQueryLength = newQueryLength;
       continue;
