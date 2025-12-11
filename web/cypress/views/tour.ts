@@ -25,7 +25,8 @@ export const guidedTour = {
             .should('not.exist')
             .then(() => cy.log('Modal successfully closed'));
         }
-
+        // Prevents navigating away from the page before the tour is closed
+        cy.wait(2000);
       });
     },
 
@@ -35,6 +36,8 @@ export const guidedTour = {
         if ($body.find(`[aria-label="Welcome modal"]`).length > 0) {
           cy.get('[aria-label="Close"]').should('be.visible').click();
         }
+        // Prevents navigating away from the page before the tour is closed
+        cy.wait(2000);
       });
     },
   };
