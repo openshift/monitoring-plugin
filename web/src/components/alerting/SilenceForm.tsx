@@ -1,7 +1,6 @@
 import {
   consoleFetchJSON,
   DocumentTitle,
-  NamespaceBar,
   useActiveNamespace,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
@@ -136,6 +135,7 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
   const [namespace] = useActiveNamespace();
   const { prometheus } = useMonitoring();
   const navigate = useNavigate();
+  const isPageNamespaceLocked = isNamespaced && namespace !== ALL_NAMESPACES_KEY;
 
   const durations = useMemo(() => {
     return {
@@ -187,7 +187,7 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
   // Since the namespace matcher MUST be the same as the namespace the request is being
   // made in, we remove the namespace value here and re-add it before sending the request
   const [matchers, setMatchers] = useState<Array<Matcher>>(
-    (isNamespaced
+    (isPageNamespaceLocked
       ? (defaults.matchers as Matcher[])?.filter((matcher) => matcher.name !== 'namespace')
       : defaults.matchers) ?? [{ isRegex: false, isEqual: true, name: '', value: '' }],
   );
@@ -221,11 +221,6 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
   };
 
   const removeMatcher = (i: number): void => {
-    // If we require the namespace don't allow removing it
-    if (isNamespaced && i === 0) {
-      return;
-    }
-
     const newMatchers = _.clone(matchers);
     newMatchers.splice(i, 1);
 
@@ -249,7 +244,7 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
     const url = getAlertmanagerSilencesUrl({
       prometheus,
       namespace,
-      useTenancyPath: isNamespaced,
+      useTenancyPath: isPageNamespaceLocked,
     });
     if (!url) {
       setError('Alertmanager URL not set');
@@ -269,21 +264,24 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
       createdBy,
       endsAt: saveEndsAt.toISOString(),
       id: defaults.id,
-      matchers:
-        isNamespaced && namespace !== ALL_NAMESPACES_KEY
-          ? matchers.concat({
-              name: 'namespace',
-              value: namespace,
-              isRegex: false,
-              isEqual: true,
-            })
-          : matchers,
+      matchers: isPageNamespaceLocked
+        ? matchers.concat({
+            name: 'namespace',
+            value: namespace,
+            isRegex: false,
+            isEqual: true,
+          })
+        : matchers,
       startsAt: saveStartsAt.toISOString(),
     };
 
     consoleFetchJSON
       .post(
-        getAlertmanagerSilencesUrl({ prometheus, namespace, useTenancyPath: isNamespaced }),
+        getAlertmanagerSilencesUrl({
+          prometheus,
+          namespace,
+          useTenancyPath: isPageNamespaceLocked,
+        }),
         body,
       )
       .then(({ silenceID }) => {
@@ -310,7 +308,6 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
   return (
     <>
       <DocumentTitle>{title}</DocumentTitle>
-      {isNamespaced && <NamespaceBar />}
       <PageSection hasBodyWrapper={false}>
         <Title headingLevel="h1">{title}</Title>
         <HelperText>
@@ -426,7 +423,7 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
             </HelperText>
           </FormHelperText>
 
-          {isNamespaced && namespace !== ALL_NAMESPACES_KEY && (
+          {isPageNamespaceLocked && (
             <Grid key={'namespace'} sm={12} md={4} hasGutter>
               <GridItem>
                 <FormGroup label={t('Label name')}>
