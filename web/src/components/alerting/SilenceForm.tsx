@@ -237,7 +237,7 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
 
     // Don't allow comments to only contain whitespace
     if (_.trim(comment) === '') {
-      setError('Comment is required.');
+      setError(t('Comment is required.'));
       return;
     }
 
@@ -247,7 +247,7 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
       useTenancyPath: isPageNamespaceLocked,
     });
     if (!url) {
-      setError('Alertmanager URL not set');
+      setError(t('Alertmanager URL not set'));
       return;
     }
 
@@ -290,10 +290,13 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
         navigate(getSilenceAlertUrl(perspective, silenceID));
       })
       .catch((err) => {
-        const errorMessage =
+        let errorMessage =
           typeof _.get(err, 'json') === 'string'
             ? _.get(err, 'json')
-            : err.message || 'Error saving Silence';
+            : err.message || t('Error saving Silence');
+        if (errorMessage === 'Forbidden') {
+          errorMessage = t('Forbidden: Missing permissions for silences');
+        }
         setError(errorMessage);
         setInProgress(false);
       });
