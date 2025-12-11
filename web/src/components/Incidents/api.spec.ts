@@ -1,0 +1,80 @@
+// Setup global.window before importing modules that use it
+(global as any).window = {
+  SERVER_FLAGS: {
+    prometheusBaseURL: '/api/prometheus',
+    prometheusTenancyBaseURL: '/api/prometheus-tenancy',
+    alertManagerBaseURL: '/api/alertmanager',
+  },
+};
+
+import { createAlertsQuery } from './api';
+
+// Mock the SDK
+jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
+  PrometheusEndpoint: {
+    QUERY_RANGE: 'api/v1/query_range',
+  },
+}));
+
+// Mock the global utils to avoid window access side effects
+jest.mock('../utils', () => ({
+  getPrometheusBasePath: jest.fn(),
+  buildPrometheusUrl: jest.fn(),
+}));
+
+describe('createAlertsQuery', () => {
+  it('should create a valid alerts query', () => {
+    const alertsQuery = createAlertsQuery([
+      {
+        src_alertname: 'test',
+        src_severity: 'critical',
+        src_namespace: 'test',
+        src_silenced: 'false',
+      },
+      {
+        src_alertname: 'test2',
+        src_severity: 'warning',
+        src_namespace: 'test2',
+        src_silenced: 'false',
+      },
+      {
+        src_alertname: 'test2',
+        src_severity: 'warning',
+        src_namespace: 'test2',
+        src_silenced: 'true',
+      },
+    ]);
+    expect(alertsQuery).toEqual([
+      'ALERTS{alertname="test", severity="critical", namespace="test"} or ALERTS{alertname="test2", severity="warning", namespace="test2"}',
+    ]);
+  });
+  it('should create valid alerts queries array', () => {
+    const alertsQuery = createAlertsQuery(
+      [
+        {
+          src_alertname: 'test',
+          src_severity: 'critical',
+          src_namespace: 'test',
+          src_silenced: 'false',
+        },
+        {
+          src_alertname: 'test2',
+          src_severity: 'warning',
+          src_namespace: 'test2',
+          src_silenced: 'false',
+        },
+        {
+          src_alertname: 'test2',
+          src_severity: 'warning',
+          src_namespace: 'test2',
+          src_silenced: 'true',
+        },
+      ],
+      100,
+    );
+    expect(alertsQuery).toEqual([
+      'ALERTS{alertname="test", severity="critical", namespace="test"}',
+      'ALERTS{alertname="test2", severity="warning", namespace="test2"}',
+    ]);
+  });
+});
