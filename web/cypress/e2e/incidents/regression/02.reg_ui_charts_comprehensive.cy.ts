@@ -80,7 +80,7 @@ const MCP = {
 };
 
 const MP = {
-  namespace: Cypress.env('COO_NAMESPACE'),
+  namespace: 'openshift-monitoring',
   operatorName: 'Cluster Monitoring Operator',
 };
 
