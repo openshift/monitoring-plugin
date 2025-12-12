@@ -1,7 +1,5 @@
-import { Classes } from '../../../src/components/data-test';
-import { commonPages } from '../../views/common';
-import { nav } from '../../views/nav';
 import { guidedTour } from '../../views/tour';
+import { troubleshootingPanelPage } from '../../views/troubleshooting-panel';
 
 // Set constants for the operators that need to be installed for tests.
 const KBV = {
@@ -29,6 +27,7 @@ describe('IVT: Monitoring UIPlugin + Virtualization', { tags: ['@smoke', '@coo']
     cy.switchPerspective('Virtualization');
     cy.byAriaLabel('Welcome modal').should('be.visible');
     guidedTour.closeKubevirtTour();
+    troubleshootingPanelPage.signalCorrelationShouldNotBeVisible();
     cy.switchPerspective('Administrator');
 
   });

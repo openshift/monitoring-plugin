@@ -6,6 +6,7 @@ import Shadow = Cypress.Shadow;
 import 'cypress-wait-until';
 import { operatorHubPage } from '../../views/operator-hub-page';
 import { nav } from '../../views/nav';
+import { DataTestIDs, LegacyTestIDs } from '../../../src/components/data-test';
 
 export { };
 
@@ -398,6 +399,38 @@ const operatorUtils = {
     cy.url().should('include', '/monitoring/v2/dashboards');
   },
 
+  setupTroubleshootingPanel(MCP: { namespace: string }): void {
+    cy.log('Create troubleshooting panel instance.');
+    cy.exec(`oc apply -f ./cypress/fixtures/coo/troubleshooting-panel-ui-plugin.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+    
+    cy.log('Troubleshooting panel instance created. Waiting for pods to be ready.');
+    cy.exec(
+      `sleep 15 && oc wait --for=condition=Ready pods --selector=app.kubernetes.io/instance=troubleshooting-panel -n ${MCP.namespace} --timeout=60s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+      {
+        timeout: readyTimeoutMilliseconds,
+        failOnNonZeroExit: true
+      }
+    ).then((result) => {
+      expect(result.code).to.eq(0);
+      cy.log(`Troubleshooting panel pod is now running in namespace: ${MCP.namespace}`);
+    });
+
+    cy.exec(
+      `sleep 15 && oc wait --for=condition=Ready pods --selector=app.kubernetes.io/instance=korrel8r -n ${MCP.namespace} --timeout=600s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+      {
+        timeout: installTimeoutMilliseconds,
+        failOnNonZeroExit: true
+      }
+    ).then((result) => {
+      expect(result.code).to.eq(0);
+      cy.log(`Korrel8r pod is now running in namespace: ${MCP.namespace}`);
+    });
+
+    cy.reload(true);
+    cy.byLegacyTestID(LegacyTestIDs.ApplicationLauncher).should('be.visible').click();
+    cy.byTestID(DataTestIDs.MastHeadApplicationItem).contains('Signal Correlation').should('be.visible');
+  },
+
   revertMonitoringPluginImage(MP: { namespace: string }): void {
     if (Cypress.env('MP_IMAGE')) {
       cy.log('MP_IMAGE is set. Lets revert CMO operator CSV');
@@ -489,7 +522,6 @@ const operatorUtils = {
         if (checkResult.code === 0) {
           // Namespace exists, proceed with deletion
           cy.log('Namespace exists, proceeding with deletion');
-          cy.log('Eve');
 
           // Step 1: Delete CSV (ClusterServiceVersion)
           cy.exec(
@@ -584,14 +616,64 @@ const operatorUtils = {
                 }
               });
           };
-        
+          
           checkStatus();
+
+          cy.then(() => {
+            operatorUtils.waitForPodsDeleted(MCP.namespace);
+          });
 
         } else {
           cy.log('Namespace does not exist, skipping deletion');
         }
       });
     }
+  },
+
+  waitForPodsDeleted(namespace: string, maxWaitMs: number = 120000): void {
+    const kubeconfigPath = Cypress.env('KUBECONFIG_PATH');
+    const checkIntervalMs = 5000;
+    const startTime = Date.now();
+    const podPatterns = 'monitoring|perses|perses-0|health-analyzer|troubleshooting-panel|korrel8r';
+    
+    const checkPods = () => {
+      const elapsed = Date.now() - startTime;
+      
+      if (elapsed > maxWaitMs) {
+        throw new Error(`Timeout: Pods still exist after ${maxWaitMs / 1000}s`);
+      }
+      
+      cy.exec(
+        `oc get pods -n ${namespace} --kubeconfig ${kubeconfigPath} -o name 2>&1 | grep -E '${podPatterns}' | wc -l`,
+        { failOnNonZeroExit: false }
+      ).then((result) => {
+        const count = parseInt(result.stdout.trim(), 10);
+        
+        if (count === 0 || result.stderr.includes('not found')) {
+          cy.log(`✓ All target pods deleted after ${elapsed}ms`);
+        } else {
+          cy.log(`${elapsed}ms - ${count} pod(s) still exist, retrying...`);
+          cy.wait(checkIntervalMs).then(checkPods);
+        }
+      });
+    };
+    
+    checkPods();
+  },
+
+  cleanupTroubleshootingPanel(MCP: { namespace: string, config1?: { kind: string, name: string } }): void {
+    const config1 = MCP.config1 || { kind: 'UIPlugin', name: 'troubleshooting-panel' };
+
+    if (Cypress.env('SKIP_ALL_INSTALL')) {
+      cy.log('SKIP_ALL_INSTALL is set. Skipping Troubleshooting Panel instance deletion.');
+      return;
+    }
+
+    cy.log('Delete Troubleshooting Panel instance.');
+    cy.executeAndDelete(
+      `oc delete ${config1.kind} ${config1.name} --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+    );
+
   },
 
   RemoveClusterAdminRole(): void {
@@ -702,6 +784,7 @@ Cypress.Commands.add('beforeBlock', (MP: { namespace: string, operatorName: stri
       cy.log('SKIP_ALL_INSTALL is set. Skipping COO cleanup and operator verifications (preserves existing setup).');
       return;
     }
+    operatorUtils.cleanupTroubleshootingPanel(MCP);
     operatorUtils.cleanup(MCP);
     operatorUtils.revertMonitoringPluginImage(MP);
     cy.log('Cleanup COO (no session) completed');
@@ -716,6 +799,7 @@ Cypress.Commands.add('beforeBlock', (MP: { namespace: string, operatorName: stri
     operatorUtils.waitForCOOReady(MCP);
     operatorUtils.setupMonitoringConsolePlugin(MCP);
     operatorUtils.setupDashboardsAndPlugins(MCP);
+    operatorUtils.setupTroubleshootingPanel(MCP);
     operatorUtils.setupMonitoringPluginImage(MP);
     operatorUtils.RemoveClusterAdminRole();
     operatorUtils.collectDebugInfo(MP, MCP);
