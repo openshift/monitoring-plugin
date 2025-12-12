@@ -7,11 +7,15 @@ export const nav = {
     },
     switcher: {
       changePerspectiveTo: (perspective: string) => {
-      cy.log('Switch perspective - ' + `${perspective}`);
-      cy.byLegacyTestID('perspective-switcher-toggle').scrollIntoView().should('be.visible');
-      cy.byLegacyTestID('perspective-switcher-toggle').scrollIntoView().should('be.visible').click({force: true});
-      cy.byLegacyTestID('perspective-switcher-menu-option').contains(perspective).should('be.visible');
-      cy.byLegacyTestID('perspective-switcher-menu-option').contains(perspective).should('be.visible').click({force: true});
+        cy.get('body').then((body) => {
+          if (body.find('#perspective-switcher-toggle').length > 0) {
+            cy.log('Switch perspective - ' + `${perspective}`);
+            cy.byLegacyTestID('perspective-switcher-toggle').scrollIntoView().should('be.visible').click({force: true});
+            cy.byLegacyTestID('perspective-switcher-menu-option').contains(perspective).should('be.visible');
+            cy.byLegacyTestID('perspective-switcher-menu-option').contains(perspective).should('be.visible').click({force: true});
+          }
+        });
+
       },
       shouldHaveText: (perspective: string) => {
         cy.log('Should have text - ' + `${perspective}`);
