@@ -1,7 +1,6 @@
 import * as _ from 'lodash-es';
 import {
   RedExclamationCircleIcon,
-  useActiveNamespace,
   useResolvedExtensions,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
@@ -25,7 +24,7 @@ import { Link } from 'react-router-dom-v5-compat';
 
 import { setQueryArguments } from '../../console/utils/router';
 
-import { Perspective } from '../../../actions/observe';
+import { Perspective } from '../../../store/actions';
 import BarChart from '../legacy/bar-chart';
 import Graph from '../legacy/graph';
 import SingleStat from '../legacy/single-stat';
@@ -34,12 +33,12 @@ import { useBoolean } from '../../hooks/useBoolean';
 import { useIsVisible } from '../../hooks/useIsVisible';
 import {
   getMutlipleQueryBrowserUrl,
-  getLegacyObserveState,
+  getObserveState,
   usePerspective,
 } from '../../hooks/usePerspective';
 import KebabDropdown from '../../kebab-dropdown';
-import { MonitoringState } from '../../../reducers/observe';
-import { evaluateVariableTemplate } from './legacy-variable-dropdowns';
+import { MonitoringState } from '../../../store/store';
+import { evaluateVariableTemplate, Variable } from './legacy-variable-dropdowns';
 import { Panel, Row } from './types';
 import { QueryParams } from '../../query-params';
 import { CustomDataSource } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/dashboard-data-source';
@@ -51,6 +50,7 @@ import { t_global_font_size_heading_h2 } from '@patternfly/react-tokens';
 import { GraphEmpty } from '../../../components/console/graphs/graph-empty';
 import { GraphUnits } from '../../../components/metrics/units';
 import { LegacyDashboardPageTestIDs } from '../../../components/data-test';
+import { useMonitoring } from '../../../hooks/useMonitoring';
 
 const QueryBrowserLink = ({
   queries,
@@ -69,7 +69,6 @@ const QueryBrowserLink = ({
   if (units) {
     params.set(QueryParams.Units, units);
   }
-  const [namespace] = useActiveNamespace();
 
   if (customDataSourceName) {
     params.set('datasource', customDataSourceName);
@@ -78,7 +77,7 @@ const QueryBrowserLink = ({
   return (
     <Link
       aria-label={t('Inspect')}
-      to={getMutlipleQueryBrowserUrl(perspective, params, namespace)}
+      to={getMutlipleQueryBrowserUrl(perspective, params)}
       data-test={LegacyDashboardPageTestIDs.Inspect}
     >
       {t('Inspect')}
@@ -101,17 +100,20 @@ const getPanelSpan = (panel: Panel): gridSpans => {
 
 const Card: FC<CardProps> = memo(({ panel, perspective }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const { plugin } = useMonitoring();
 
-  const [namespace] = useActiveNamespace();
-  const pollInterval = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'pollInterval']),
+  const pollInterval = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state).dashboards.pollInterval,
   );
-  const timespan = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'timespan']),
+  const timespan = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state).dashboards.timespan,
   );
-  const variables = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.getIn(['dashboards', perspective, 'variables']),
+  const variables = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state).dashboards.variables,
   );
+
+  // Directly use the namespace variable to prevent desync
+  const namespace = variables?.['namespace'] as Variable;
 
   const ref = useRef();
   const [, wasEverVisible] = useIsVisible(ref);
@@ -279,7 +281,9 @@ const Card: FC<CardProps> = memo(({ panel, perspective }) => {
   if (!rawQueries.length) {
     return null;
   }
-  const queries = rawQueries.map((expr) => evaluateVariableTemplate(expr, variables, timespan));
+  const queries = rawQueries.map((expr) =>
+    evaluateVariableTemplate(expr, variables, timespan, namespace?.value ?? ''),
+  );
   const isLoading =
     (_.some(queries, _.isUndefined) && dataSourceInfoLoading) || customDataSource === undefined;
 
@@ -321,7 +325,7 @@ const Card: FC<CardProps> = memo(({ panel, perspective }) => {
               <RedExclamationCircleIcon /> {t('Error loading card')}
             </>
           ) : (
-            <div ref={ref} style={{ height: '100%' }}>
+            <div ref={ref} style={{ height: '100%' }} data-test={LegacyDashboardPageTestIDs.Graph}>
               {isLoading || !wasEverVisible ? (
                 <GraphEmpty loading />
               ) : (
@@ -343,7 +347,6 @@ const Card: FC<CardProps> = memo(({ panel, perspective }) => {
                       units={panel.yaxes?.[0]?.format}
                       onZoomHandle={handleZoom}
                       customDataSource={customDataSource}
-                      perspective={perspective}
                       onDataChange={(data) => setCsvData(data)}
                     />
                   )}
@@ -352,7 +355,7 @@ const Card: FC<CardProps> = memo(({ panel, perspective }) => {
                       panel={panel}
                       pollInterval={pollInterval}
                       query={queries[0]}
-                      namespace={namespace}
+                      namespace={namespace?.value ?? ''}
                       customDataSource={customDataSource}
                     />
                   )}
@@ -361,7 +364,7 @@ const Card: FC<CardProps> = memo(({ panel, perspective }) => {
                       panel={panel}
                       pollInterval={pollInterval}
                       queries={queries}
-                      namespace={namespace}
+                      namespace={namespace?.value ?? ''}
                       customDataSource={customDataSource}
                     />
                   )}
@@ -404,9 +407,9 @@ const PanelsRow: FC<PanelsRowProps> = ({ row, perspective }) => {
 
 export const LegacyDashboard: FC<BoardProps> = ({ rows, perspective }) => (
   <Flex direction={{ default: 'column' }}>
-    {_.map(rows, (row) => (
-      <FlexItem>
-        <PanelsRow key={_.map(row.panels, 'id').join()} row={row} perspective={perspective} />
+    {rows.map((row) => (
+      <FlexItem key={row.panels.map((panel) => `${panel.id}-${row.title}`).join()}>
+        <PanelsRow row={row} perspective={perspective} />
       </FlexItem>
     ))}
   </Flex>

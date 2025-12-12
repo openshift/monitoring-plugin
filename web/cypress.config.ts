@@ -2,6 +2,7 @@ import { defineConfig } from 'cypress';
 import * as fs from 'fs-extra';
 import * as console from 'console';
 import * as path from 'path';
+import registerCypressGrep from '@cypress/grep/src/plugin';
 
 export default defineConfig({
   screenshotsFolder: './cypress/screenshots',
@@ -21,9 +22,12 @@ export default defineConfig({
     ),
     LOGIN_USERNAME: process.env.CYPRESS_LOGIN_USERS.split(',')[0].split(':')[0],
     LOGIN_PASSWORD: process.env.CYPRESS_LOGIN_USERS.split(',')[0].split(':')[1],
+    TIMEZONE: process.env.CYPRESS_TIMEZONE || 'UTC',
+    MOCK_NEW_METRICS: process.env.CYPRESS_MOCK_NEW_METRICS || 'false',
+    COO_NAMESPACE: process.env.CYPRESS_COO_NAMESPACE || 'openshift-cluster-observability-operator',
     typeDelay: 200,
   },
-  fixturesFolder: 'fixtures',
+  fixturesFolder: 'cypress/fixtures',
   defaultCommandTimeout: 80000, //due to performance loading issue on console
   readyTimeoutMilliseconds: 120000,
   installTimeoutMilliseconds: 600000,
@@ -36,6 +40,8 @@ export default defineConfig({
     viewportWidth: 1920,
     viewportHeight: 1080,
     setupNodeEvents(on, config) {
+      registerCypressGrep(config);
+      
       on(
         'before:browser:launch',
         (

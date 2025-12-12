@@ -26,18 +26,6 @@ const config: Configuration = {
   module: {
     rules: [
       {
-        test: /\.(jsx?|tsx?)$/,
-        exclude: /node_modules/,
-        use: [
-          {
-            loader: 'ts-loader',
-            options: {
-              configFile: path.resolve(__dirname, 'tsconfig.json'),
-            },
-          },
-        ],
-      },
-      {
         test: /\.scss$/,
         exclude: /node_modules\/(?!(@patternfly|@openshift-console\/plugin-shared)\/).*/,
         use: [
@@ -100,9 +88,9 @@ const config: Configuration = {
       patterns: [{ from: path.resolve(__dirname, 'locales'), to: 'locales' }],
     }),
     new DefinePlugin({
-      'process.env': {
-        I18N_NAMESPACE: JSON.stringify('plugin__monitoring-plugin'),
-      },
+      'process.env.I18N_NAMESPACE': process.env.I18N_NAMESPACE
+        ? JSON.stringify(process.env.I18N_NAMESPACE)
+        : JSON.stringify('plugin__monitoring-plugin'),
     }),
   ],
   devtool: 'source-map',
@@ -119,6 +107,28 @@ if (process.env.NODE_ENV === 'production') {
   config.optimization.chunkIds = 'deterministic';
   config.optimization.minimize = true;
   config.devtool = false;
+
+  // Use default ts-loader for prod
+  config.module.rules?.unshift({
+    test: /\.(jsx?|tsx?)$/,
+    exclude: /node_modules/,
+    use: [
+      {
+        loader: 'ts-loader',
+        options: {
+          configFile: path.resolve(__dirname, 'tsconfig.json'),
+        },
+      },
+    ],
+  });
+} else {
+  config.module.rules?.unshift({
+    test: /\.(jsx?|tsx?)$/,
+    exclude: /node_modules/,
+    use: {
+      loader: 'swc-loader',
+    },
+  });
 }
 
 export default config;

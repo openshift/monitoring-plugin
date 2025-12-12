@@ -51,7 +51,7 @@ import { useTranslation } from 'react-i18next';
 
 import { useSafeFetch } from '../console/utils/safe-fetch-hook';
 
-import { PROMETHEUS_BASE_PATH, PROMETHEUS_TENANCY_BASE_PATH } from '../console/graphs/helpers';
+import { getPrometheusBasePath, PROMETHEUS_BASE_PATH } from '../utils';
 import { LabelNamesResponse } from '@perses-dev/prometheus-plugin';
 import {
   t_global_color_status_custom_default,
@@ -70,7 +70,7 @@ import {
   t_global_color_nonstatus_purple_default,
 } from '@patternfly/react-tokens';
 import { usePatternFlyTheme } from '../hooks/usePatternflyTheme';
-import { usePerspective } from '../hooks/usePerspective';
+import { useMonitoring } from '../../hooks/useMonitoring';
 
 const box_shadow = `
     var(--pf-t--global--box-shadow--X--md--default)
@@ -328,6 +328,8 @@ export const PromQLExpressionInput: FC<PromQLExpressionInputProps> = ({
   onSelectionChange,
 }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const [namespace] = useActiveNamespace();
+  const { prometheus, accessCheckLoading, useMetricsTenancy } = useMonitoring();
   const { theme: pfTheme } = usePatternFlyTheme();
 
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -335,19 +337,22 @@ export const PromQLExpressionInput: FC<PromQLExpressionInputProps> = ({
   const [metricNames, setMetricNames] = useState<Array<string>>([]);
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
 
-  const { perspective } = usePerspective();
   const placeholder = t('Expression (press Shift+Enter for newlines)');
-  const [namespace] = useActiveNamespace();
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const safeFetch = useCallback(useSafeFetch(), []);
 
   useEffect(() => {
-    let url = `${PROMETHEUS_BASE_PATH}/${PrometheusEndpoint.LABEL}/__name__/values`;
-    if (perspective === 'dev') {
-      // eslint-disable-next-line max-len
-      url = `${PROMETHEUS_TENANCY_BASE_PATH}/${PrometheusEndpoint.LABEL}/__name__/values?namespace=${namespace}`;
+    if (accessCheckLoading) {
+      return;
     }
+    // If we are using the tenancy path, then add the namespace as a query parameter at the end of
+    // the url
+    const namespaceQueryParam = useMetricsTenancy ? `?namespace=${namespace}` : '';
+    const url = `${getPrometheusBasePath({
+      useTenancyPath: useMetricsTenancy,
+      prometheus,
+    })}/${PrometheusEndpoint.LABEL}/__name__/values${namespaceQueryParam}`;
     safeFetch<LabelNamesResponse>(url)
       .then((response) => {
         const metrics = response?.data;
@@ -362,7 +367,7 @@ export const PromQLExpressionInput: FC<PromQLExpressionInputProps> = ({
           setErrorMessage(message);
         }
       });
-  }, [safeFetch, t, namespace, perspective]);
+  }, [safeFetch, t, namespace, prometheus, accessCheckLoading, useMetricsTenancy]);
 
   const onClear = () => {
     if (viewRef.current !== null) {

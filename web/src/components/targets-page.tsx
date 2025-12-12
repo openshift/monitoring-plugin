@@ -44,7 +44,7 @@ import { Link, useParams } from 'react-router-dom-v5-compat';
 import { EmptyBox } from './console/console-shared/src/components/empty-state/EmptyBox';
 import { LoadingInline } from './console/console-shared/src/components/loading/LoadingInline';
 import { StatusBox } from './console/console-shared/src/components/status/StatusBox';
-import { PROMETHEUS_BASE_PATH } from './console/graphs/helpers';
+import { PROMETHEUS_BASE_PATH } from './utils';
 import {
   NamespaceModel,
   PodModel,
@@ -59,6 +59,7 @@ import { useBoolean } from './hooks/useBoolean';
 import { Labels } from './labels';
 import { AlertSource, PrometheusAPIError, Target } from './types';
 import { fuzzyCaseInsensitive, targetSource } from './utils';
+import { MonitoringProvider } from '../contexts/MonitoringContext';
 
 enum MonitorType {
   ServiceMonitor = 'serviceMonitor',
@@ -456,7 +457,7 @@ const List: FC<ListProps> = ({ data, loaded, loadError, unfilteredData }) => {
       Row={Row}
       unfilteredData={unfilteredData}
       NoDataEmptyMsg={() => {
-        return <EmptyBox label={t('Metrics targets')} />;
+        return <EmptyBox customMessage={t('No metrics targets found')} />;
       }}
     />
   );
@@ -558,7 +559,7 @@ const ListPage: FC<ListPageProps> = ({ loaded, loadError, targets }) => {
 
 const POLL_INTERVAL = 15 * 1000;
 
-export const TargetsPage: FC = () => {
+const TargetsPage_: FC = () => {
   const [error, setError] = useState<PrometheusAPIError>();
   const [loaded, setLoaded] = useState(false);
   const [targets, setTargets] = useState<Target[]>();
@@ -624,4 +625,10 @@ export const TargetsPage: FC = () => {
   );
 };
 
-export default TargetsPage;
+export const MpCmoTargetsPage: React.FC = () => {
+  return (
+    <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
+      <TargetsPage_ />
+    </MonitoringProvider>
+  );
+};

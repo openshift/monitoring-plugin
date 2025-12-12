@@ -1,0 +1,221 @@
+name: "Charts UI Comprehensive Test Scenarios with Edge Cases"
+description: "Streamlined scenarios (10 incidents) for testing tooltip positioning with varied name lengths, bar visibility, short duration alerts (< 5 min for Section 3.1), multi-component tooltips, and multi-severity segments. Tests Sections 2 (Charts UI) and 3.1 (Short Duration Visibility) without requiring scrolling."
+incidents:
+  # 1. SHORT DURATION FIRING (newest) - Short names for baseline
+  - id: "network-firing-short-002"
+    component: "network"
+    layer: "core"
+    timeline:
+      start: "10m"
+    alerts:
+      - name: "NetworkFirewallRuleBlocking0023"
+        namespace: "openshift-network"
+        severity: "critical"
+        firing: true
+        timeline:
+          start: "10m"
+      - name: "NetworkPacketLossHigh0023"
+        namespace: "openshift-network"
+        severity: "warning"
+        firing: true
+        timeline:
+          start: "8m"
+      - name: "NetworkRouteTableCorrupted0023"
+        namespace: "openshift-network"
+        severity: "warning"
+        firing: true
+        timeline:
+          start: "5m"
+      - name: "NetworkSecurityPolicyViolation0023"
+        namespace: "openshift-network"
+        severity: "info"
+        firing: true
+        timeline:
+          start: "3m"
+      - name: "NetworkLoadBalancerUnhealthy0023"
+        namespace: "openshift-network"
+        severity: "info"
+        firing: true
+        timeline:
+          start: "0m"
+
+  # 2. SHORT DURATION RESOLVED - Medium names
+  - id: "network-resolved-short-001"
+    component: "network"
+    layer: "core"
+    timeline:
+      start: "50m"
+      end: "40m"
+    alerts:
+      - name: "NetworkInterfaceDown0023"
+        namespace: "openshift-network"
+        severity: "critical"
+        firing: false
+        timeline:
+          start: "50m"
+          end: "40m"
+      - name: "NetworkLatencyHighExceedingThresholds0023"
+        namespace: "openshift-network"
+        severity: "warning"
+        firing: false
+        timeline:
+          start: "47m"
+          end: "40m"
+      - name: "NetworkBandwidthUtilizationHighRequiringInvestigation0023"
+        namespace: "openshift-network"
+        severity: "warning"
+        firing: false
+        timeline:
+          start: "45m"
+          end: "40m"
+
+  # 3. MULTI-COMPONENT - Medium-long names for tooltip width testing
+  - id: "network-three-alerts-001"
+    component: "network"
+    layer: "core"
+    timeline:
+      start: "1h30m"
+    alerts:
+      - name: "NetworkLatencyHighAffectingServiceResponseTimes001"
+        namespace: "openshift-network"
+        severity: "warning"
+        firing: true
+        component: "network"
+      - name: "PacketDropRateElevatedIndicatingPotentialNetworkSaturation001"
+        namespace: "openshift-network"
+        severity: "warning"
+        firing: true
+        component: "compute"
+      - name: "ConnectionPoolExhaustedRequiringImmediateScalingAction001"
+        namespace: "openshift-network"
+        severity: "warning"
+        firing: true
+        component: "storage"
+
+  # 4. SECTION 3.1: 1-minute incident - Long component name
+  - id: "api-server-transient-001"
+    component: "api-server"
+    layer: "core"
+    timeline:
+      start: "2h"
+      end: "119m"
+    alerts:
+      - name: "APIServerRequestLatencyBriefSpikeDetectedDuringHighTrafficPeriod001"
+        namespace: "openshift-monitoring"
+        severity: "warning"
+        firing: false
+
+  # 5. MULTI-SEVERITY GRADUAL ESCALATION - Long names for tooltip positioning edge case
+  - id: "monitoring-gradual-alerts-001"
+    component: "monitoring"
+    layer: "core"
+    timeline:
+      start: "5h30m"
+      severityChanges:
+        - time: "5h30m"
+          severity: "info"
+        - time: "2h"
+          severity: "warning"
+        - time: "1h30m"
+          severity: "critical"
+    alerts:
+      - name: "PrometheusRuleEvaluationPerformanceDegradationDetectedRequiringOptimization001"
+        namespace: "openshift-monitoring"
+        severity: "info"
+        firing: true
+        timeline:
+          start: "5h30m"
+      - name: "PrometheusQueryLatencyIncreasingBeyondAcceptableThresholdsImpactingDashboards001"
+        namespace: "openshift-monitoring"
+        severity: "warning"
+        firing: true
+        timeline:
+          start: "2h"
+      - name: "AlertmanagerClusterFailedToSendNotificationsCriticalAlertsNotDelivered001"
+        namespace: "openshift-monitoring"
+        severity: "critical"
+        firing: true
+        timeline:
+          start: "1h30m"
+
+  # 6. SECTION 3.1: 9-minute incident - Medium names
+  - id: "compute-microsecond-resolution-001"
+    component: "compute"
+    layer: "core"
+    timeline:
+      start: "3h"
+      end: "171m"
+    alerts:
+      - name: "NodeTransientIssueResolvedAutomatically001"
+        namespace: "openshift-monitoring"
+        severity: "warning"
+        firing: false
+
+  # 7. SECTION 3.1: Recently resolved - Short to medium names
+  - id: "monitoring-just-resolved-001"
+    component: "monitoring"
+    layer: "core"
+    timeline:
+      start: "4h"
+      end: "2m"
+    alerts:
+      - name: "PrometheusTargetMissingButRecovered001"
+        namespace: "openshift-monitoring"
+        severity: "warning"
+        firing: false
+
+  # 8. SIX ALERTS FOR ALERTS CHART - Mix of very short and very long names
+  - id: "etcd-six-alerts-001"
+    component: "etcd"
+    layer: "core"
+    timeline:
+      start: "5h"
+    alerts:
+      - name: "E001"
+        namespace: "openshift-etcd"
+        severity: "critical"
+        firing: true
+      - name: "EtcdBackupOperationFailureDetectedWithRetryAttempts001"
+        namespace: "openshift-etcd"
+        severity: "critical"
+        firing: true
+      - name: "EtcdDatabaseSizeApproachingConfiguredLimitRequiringCompactionOperationToFreeSpace001"
+        namespace: "openshift-etcd"
+        severity: "warning"
+        firing: true
+      - name: "EtcdLeaderElectionTimeExceedingNormalThresholdIndicatingPotentialNetworkOrPerformanceIssues001"
+        namespace: "openshift-etcd"
+        severity: "warning"
+        firing: true
+      - name: "EtcdMemberCommunicationLatencyHigherThanExpectedBaselinePerformanceMetricsRequiringInvestigation001"
+        namespace: "openshift-etcd"
+        severity: "info"
+        firing: true
+      - name: "EtcdClusterHealthMonitoringSystemReportingNormalOperatingConditionsWithAllMembersRespondingWithinAcceptableTimeframesAndNoOutstandingIssuesDetectedDuringRoutineMaintenanceChecks001"
+        namespace: "openshift-etcd"
+        severity: "info"
+        firing: true
+
+  # 9. EXTREMELY LONG NAME (180+ chars) - Critical for viewport overflow testing
+  - id: "others-very-long-name-001"
+    component: "Others"
+    layer: "Others"
+    timeline:
+      start: "6h"
+    alerts:
+      - name: "CustomApplicationDatabaseConnectionPoolExhaustedRequiringImmediateAttentionFromOperationsTeamToInvestigatePotentialMemoryLeaksAndResolveUnderlyingInfrastructureLimitationsOrConfigurationIssuesThatMayBeImpactingOverallSystemPerformance001"
+        namespace: "custom-application-namespace-with-very-long-name"
+        severity: "critical"
+        firing: true
+
+  # 10. OLDEST INCIDENT - Very short name for sorting test
+  - id: "VSN-001"
+    component: "version"
+    layer: "core"
+    timeline:
+      start: "8h"
+    alerts:
+      - name: "V001"
+        namespace: "openshift-cluster-version"
+        severity: "info"
+        firing: true

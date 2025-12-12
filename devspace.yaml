@@ -1,0 +1,48 @@
+version: v2beta1
+name: monitoring-plugin
+
+vars:
+  USE_HELM:
+    question: Do you want to deploy using helm? (y/[n])
+    default: "n"
+    noCache: true
+
+functions:
+  scale_down_cmo: |-
+    oc patch clusterversion version --type json -p "$(cat ./web/cypress/fixtures/cmo/disable-monitoring.yaml)"
+    kubectl scale --replicas=0 -n ${DEVSPACE_NAMESPACE} deployment/cluster-monitoring-operator
+  scale_up_cmo: |-
+    kubectl scale --replicas=1 -n ${DEVSPACE_NAMESPACE} deployment/cluster-monitoring-operator
+
+# This is a list of `pipelines` that DevSpace can execute (you can define your own)
+pipelines:
+  # This is the pipeline for the main command: `devspace dev` (or `devspace run-pipeline dev`)
+  dev:
+    run: |-
+      scale_down_cmo
+      start_dev app
+  purge:
+    run: |-
+      stop_dev --all
+      scale_up_cmo
+
+deployments: $( [ ${USE_HELM} == "y" ] && cat devspace-deployment.yaml || echo "app:")
+
+# This is a list of `dev` containers that are based on the containers created by your deployments
+dev:
+  app:
+    # Search for the container that runs this image
+    labelSelector:
+      # Use the instance selector that CMO & helm add
+      app.kubernetes.io/component: monitoring-plugin
+    # Replace the container image with this dev-optimized image (allows to skip image building during development)
+    devImage: quay.io/rh-ee-pyurkovi/monitoring-plugin:devspace-2
+    # Sync files between the local filesystem and the development container
+    sync:
+      - path: ./web/dist:/opt/app-root/web/dist
+        startContainer: true
+    command: ["make"]
+    args: ["start-devspace-backend"]
+    # Inject a lightweight SSH server into the container (so your IDE can connect to the remote dev env)
+    ssh:
+      enabled: true

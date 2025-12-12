@@ -1,9 +1,24 @@
+/* eslint-disable no-console */
+/* eslint-disable @typescript-eslint/no-require-imports */
+/* eslint-disable no-undef */
+
 const fs = require('fs');
 const path = require('path');
 const pluralize = require('pluralize');
-const common = require('./common.js');
 
 const publicDir = path.join(__dirname, './../locales/');
+
+async function parseFolder(directory, argFunction, packageDir) {
+  try {
+    const files = await fs.promises.readdir(directory);
+    for (const file of files) {
+      const filePath = path.join(directory, file);
+      argFunction(filePath, packageDir);
+    }
+  } catch (e) {
+    console.error(`Failed to parseFolder ${directory}:`, e);
+  }
+}
 
 function determineRule(key) {
   if (key.includes('WithCount_plural')) {
@@ -61,8 +76,8 @@ function updateFile(fileName) {
 
 function processLocalesFolder(filePath) {
   if (path.basename(filePath) === 'en') {
-    common.parseFolder(filePath, updateFile);
+    parseFolder(filePath, updateFile);
   }
 }
 
-common.parseFolder(publicDir, processLocalesFolder);
+parseFolder(publicDir, processLocalesFolder);

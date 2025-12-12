@@ -4,7 +4,6 @@ import {
   ResourceIcon,
   Silence,
   SilenceStates,
-  useActiveNamespace,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Button,
@@ -42,7 +41,6 @@ import * as _ from 'lodash-es';
 import type { FC, Ref } from 'react';
 import { useContext, useCallback, createContext, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useDispatch } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom-v5-compat';
 import { useBoolean } from '../hooks/useBoolean';
 import {
@@ -51,19 +49,13 @@ import {
   getSilenceAlertUrl,
   usePerspective,
 } from '../hooks/usePerspective';
-import {
-  refreshSilences,
-  silenceMatcherEqualitySymbol,
-  SilenceResource,
-  silenceState,
-} from '../utils';
+import { silenceMatcherEqualitySymbol, SilenceResource, silenceState } from '../utils';
 import { SeverityCounts, StateTimestamp } from './AlertUtils';
 import { DataTestIDs } from '../data-test';
 
 export const SilenceTableRow: FC<SilenceTableRowProps> = ({ obj, showCheckbox }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
-  const [namespace] = useActiveNamespace();
 
   const { createdBy, endsAt, firingAlerts, id, name, startsAt, matchers } = obj;
   const state = silenceState(obj);
@@ -113,7 +105,7 @@ export const SilenceTableRow: FC<SilenceTableRowProps> = ({ obj, showCheckbox })
             <Link
               data-test-id="silence-resource-link"
               title={id}
-              to={getSilenceAlertUrl(perspective, id, namespace)}
+              to={getSilenceAlertUrl(perspective, id)}
               data-test={DataTestIDs.SilenceResourceLink}
             >
               {name}
@@ -211,14 +203,13 @@ export const SilenceState = ({ silence }) => {
 export const SilenceDropdown: FC<SilenceDropdownProps> = ({ silence, toggleText }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
-  const [namespace] = useActiveNamespace();
   const navigate = useNavigate();
 
   const [isOpen, setIsOpen, , setClosed] = useBoolean(false);
   const [isModalOpen, , setModalOpen, setModalClosed] = useBoolean(false);
 
   const editSilence = () => {
-    navigate(getEditSilenceAlertUrl(perspective, silence.id, namespace));
+    navigate(getEditSilenceAlertUrl(perspective, silence.id));
   };
 
   const dropdownItems =
@@ -286,10 +277,7 @@ export const ExpireSilenceModal: FC<ExpireSilenceModalProps> = ({
   silenceID,
 }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { perspective, silencesKey } = usePerspective();
-  const [namespace] = useActiveNamespace();
-
-  const dispatch = useDispatch();
+  const { perspective } = usePerspective();
 
   const [isInProgress, , setInProgress, setNotInProgress] = useBoolean(false);
   const [success, , setSuccess] = useBoolean(false);
@@ -297,14 +285,13 @@ export const ExpireSilenceModal: FC<ExpireSilenceModalProps> = ({
 
   const expireSilence = () => {
     setInProgress();
-    const url = getFetchSilenceUrl(perspective, silenceID, namespace);
+    const url = getFetchSilenceUrl(perspective, silenceID);
     consoleFetchJSON
       .delete(url)
       .then(() => {
         setNotInProgress();
         setSuccess();
         setTimeout(() => {
-          refreshSilences(dispatch, perspective, silencesKey);
           setClosed();
         }, 1000);
       })

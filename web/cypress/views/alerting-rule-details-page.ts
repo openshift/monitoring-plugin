@@ -11,7 +11,7 @@ export const alertingRuleDetailsPage = {
       detailsPage.sectionHeaderShouldExist('Active alerts');
       cy.byTestID(DataTestIDs.Expression).should('be.visible');
       cy.byTestID(DataTestIDs.MetricHideShowGraphButton).contains('Hide graph').should('be.visible');
-      cy.get(Classes.GraphCard).scrollIntoView().should('be.visible');
+      cy.byTestID(DataTestIDs.MetricGraph).scrollIntoView().should('be.visible'); 
       cy.byTestID(DataTestIDs.MetricDisconnectedCheckbox).should('be.visible');
       cy.byTestID(DataTestIDs.MetricGraphTimespanDropdown).should('be.visible');
       cy.byTestID(DataTestIDs.MetricGraphTimespanInput).should('be.visible');
@@ -51,5 +51,17 @@ export const alertingRuleDetailsPage = {
       cy.log('alertingRuleDetailsPage.clickOnKebabSilenceAlert');
       cy.byTestID(DataTestIDs.KebabDropdownButton).scrollIntoView().should('be.visible').click();
       cy.byPFRole('menuitem').contains('Silence alert').should('be.visible').click();
+    },
+
+    clickHideGraphButton:()=>{
+      cy.log('alertingRuleDetailsPage.clickHideGraphButton');
+      cy.byTestID(DataTestIDs.MetricHideShowGraphButton).scrollIntoView().contains('Hide graph').should('be.visible').click();
+      cy.byTestID(DataTestIDs.MetricGraph).should('not.exist');
+    },
+
+    clickShowGraphButton:()=>{
+      cy.log('alertingRuleDetailsPage.clickShowGraphButton');
+      cy.byTestID(DataTestIDs.MetricHideShowGraphButton).scrollIntoView().contains('Show graph').should('be.visible').click();
+      cy.byTestID(DataTestIDs.MetricGraph).should('be.visible');
     },
 };

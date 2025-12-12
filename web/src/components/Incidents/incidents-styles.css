@@ -12,7 +12,7 @@
   background-color: var(--pf-t--global--background--color--inverse--default);
   border-radius: var(--pf-t--global--border--radius--small);
   color: var(--pf-t--global--text--color--inverse);
-  font-size: 12px;
+  font-size: 14px;
   overflow-x: hidden;
   padding: 10px;
 }
@@ -24,4 +24,12 @@
   height: 0;
   margin-top: -1px;
   width: 0;
+}
+
+.incidents-page-main-section.pf-v6-c-page__main-section {
+  gap: 0;
+}
+
+.pf-m-hidden {
+  display: none;
 }

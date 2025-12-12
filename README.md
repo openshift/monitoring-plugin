@@ -56,6 +56,21 @@ The monitoring-plugin is currently in a transitionary state as the remaining pag
 
 Changes to the store must be completed in the `openshift/console` codebase and are not backwards compatible unless cherry-picked with purpose.
 
+### Running using Devspace
+
+Install the [devspace](https://www.devspace.sh/docs/getting-started/installation) cli.
+
+1. Install the frontend dependencies running `make install-frontend`.
+2. Start the frontend `make start-feature-frontend`.
+4. Select the namespace the monitoring-plugin is located in `devspace use namespace openshift-monitoring`.
+5. In a different terminal start the devspace sync `devspace dev`.
+
+When running the `devspace dev` command, the pipeline will run the `scale_down_cmo` function to prevent CMO from fighting over control of the pod. After CMO has been scaled down, devspace will "take over" the monitoring-plugin pod, grabbing all of the certificates and backend binary and configuration to run in the devspace pod. The backend will stay the same as what is built in the Dockerfile.devspace file, only the frontend changes will be reflected live in cluster.
+
+After the pod has been "taken over" Devspace begins a sync process which will mirror changes from you local `./web/dist` folder into the `/opt/app-root/web/dist` folder in the devspace pod. You can then make changes to your frontend files locally which will trigger the locally running webpack dev server to rebuild the `./web/dist` folder, which will trigger Devspace to re-synced. You can then reload your console webpage to see your local changes running in the cluster.
+
+After development you can run `devspace purge` which will cleanup and then call the `scale_up_cmo` pipeline.
+
 ### Local Development
 
 #### Dependencies
@@ -156,19 +171,40 @@ $ make start-feature-backend
 
 `make start-feature-backend` will inject the `perses-dashboards`, `incidents`, and `dev-config` features by default. Features such as `acm-alerting` which take in extra parameters will need to run the `make start-feature-backend` command with the appropriate environment variables, such as `MONITORING_PLUGIN_ALERTMANAGER`.
 
-#### Local Development with Perses Proxy 
+#### Local Development with Perses Proxy
 The bridge script `start-console.sh` is configured to proxy to a local Perses instance running at port `:8080`. To run the local Perses instance you will need to clone the [perses/perses](https://github.com/perses/perses) repository and follow the start up instructions in [ui/README.md](https://github.com/perses/perses/blob/63601751674403f626d1dea3dec168bdad0ef1c7/ui/README.md) :
 
 ```
-# Clone the perses/perses repo 
+# Clone the perses/perses repo
 $ git clone https://github.com/perses/perses.git
 $ cd perses
 
 # Follow the instructions in ui/README.md
-$ cd ui 
-$ npm install 
+$ cd ui
+$ npm install
 $ npm run build
 $ ./scripts/api_backend_dev.sh
 
-# Lastly navigate to http://localhost:8080/ to see Perses app running 
+# Lastly navigate to http://localhost:8080/ to see Perses app running
 ```
+
+##### Install COO && Perses Datasource && Perses Sample Dashboard 
+1. Install COO through the OpenShift UI > OperatorHub > Cluster Observability Operator 
+2. Install UIPlugin > monitoring 
+3. oc apply -f <PERSES_DATASOURCE_YAML>
+   - See sample yaml [here](https://github.com/observability-ui/development-tools/blob/main/monitoring-plugin/monitoring-console-plugin/perses/thanos-querier-datasource.yaml) 
+4. oc apply -f <PERSES_DASHBOARD_YAML>
+   - See sample yaml  [here](https://github.com/observability-ui/development-tools/blob/main/monitoring-plugin/monitoring-console-plugin/perses/perses-dashboard.yaml)
+
+##### Port forward Perses Datasource 
+To use the PERSES_DATASOURCE you deployed above, you'll need to forward it to your local machine then proxy it using the local Perses Instance. 
+
+```
+# Forward cluster Prometheus Instance to localhost:9090
+oc port-forward -n openshift-monitoring service/prometheus-operated 9090:9090
+
+# Test is port-forward returns Prometheus data from query 'up'
+curl "http://localhost:9090/api/v1/query?query=up"
+```
+
+Adjust Perses local instance http://localhost:8080/ to use the a proxy to http://localhost:9090/ instead of http://demo.prometheus.io.

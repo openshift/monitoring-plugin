@@ -15,6 +15,7 @@ export const silenceDetailsPage = {
     cy.log('silenceDetailsPage.clickOnFiringAlerts');
     cy.byTestID(DataTestIDs.AlertResourceLink)
       .first()
+      .scrollIntoView()
       .should('have.text', alertname)
       .click();
   },

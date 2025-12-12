@@ -54,7 +54,7 @@ export const StatusBox: FC<StatusBoxProps> = (props) => {
       );
     }
     if (status === 403) {
-      return <AccessDenied>{loadError.message}</AccessDenied>;
+      return <AccessDenied message={loadError.message} />;
     }
 
     if (loadError instanceof IncompleteDataError && !_.isEmpty(data)) {

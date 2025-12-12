@@ -34,9 +34,9 @@ export const commonPages = {
     cy.byPFRole('dialog').should('be.visible');
 
     if (yes) {
-      cy.byTestID(DataTestIDs.ExpireSilenceButton).should('be.visible').click();
+      cy.byTestID(DataTestIDs.ExpireSilenceButton).should('be.visible').click({force: true});
     } else {
-      cy.byTestID(DataTestIDs.CancelButton).should('be.visible').click();
+      cy.byTestID(DataTestIDs.CancelButton).should('be.visible').click({force: true});
     };
     cy.byTestID(DataTestIDs.ExpireSilenceButton).should('not.exist');
   },
@@ -63,7 +63,7 @@ export const commonPages = {
       cy.log('commonPages.detailsPage.common');
       commonPages.titleShouldHaveText(alert);
       cy.byTestID(DataTestIDs.MetricHideShowGraphButton).contains('Hide graph').should('be.visible');
-      cy.get(Classes.GraphCard).should('be.visible');
+      cy.byTestID(DataTestIDs.MetricGraph).should('be.visible');
       cy.byTestID(DataTestIDs.MetricResetZoomButton).should('be.visible');
       cy.byAriaLabel('Inspect').should('be.visible'); //pf-5 cy.byAriaLabel('View in Metrics').should('be.visible').click(); 
     },
