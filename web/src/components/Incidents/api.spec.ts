@@ -7,7 +7,9 @@
   },
 };
 
-import { createAlertsQuery } from './api';
+import { createAlertsQuery, fetchDataForIncidentsAndAlerts } from './api';
+import { PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
+import { buildPrometheusUrl } from '../utils';
 
 // Mock the SDK
 jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
@@ -76,5 +78,72 @@ describe('createAlertsQuery', () => {
       'ALERTS{alertname="test", severity="critical", namespace="test"}',
       'ALERTS{alertname="test2", severity="warning", namespace="test2"}',
     ]);
+  });
+});
+
+describe('fetchDataForIncidentsAndAlerts', () => {
+  it('should fetch data for incidents and alerts', async () => {
+    (buildPrometheusUrl as jest.Mock).mockReturnValue('/mock/url');
+    const now = Date.now();
+
+    const result1 = {
+      metric: {
+        alertname: 'test',
+        severity: 'critical',
+        namespace: 'test',
+      },
+      values: [
+        [now - 1000, '1'],
+        [now - 500, '2'],
+      ] as [number, string][],
+    };
+
+    const result2 = {
+      metric: {
+        alertname: 'test2',
+        severity: 'warning',
+        namespace: 'test2',
+      },
+      values: [
+        [now - 2000, '3'],
+        [now - 1500, '4'],
+      ] as [number, string][],
+    };
+
+    const mockPrometheusResponse1: PrometheusResponse = {
+      status: 'success',
+      data: {
+        resultType: 'matrix',
+        result: [result1],
+      },
+    };
+
+    const mockPrometheusResponse2: PrometheusResponse = {
+      status: 'success',
+      data: {
+        resultType: 'matrix',
+        result: [result2],
+      },
+    };
+
+    const fetch = jest
+      .fn()
+      .mockResolvedValueOnce(mockPrometheusResponse1)
+      .mockResolvedValueOnce(mockPrometheusResponse2);
+
+    const range = { endTime: now, duration: 86400000 };
+    const customQuery = [
+      'ALERTS{alertname="test", severity="critical", namespace="test"}',
+      'ALERTS{alertname="test2", severity="warning", namespace="test2"}',
+    ];
+    const result = await fetchDataForIncidentsAndAlerts(fetch, range, customQuery);
+    expect(result).toEqual({
+      status: 'success',
+      data: {
+        resultType: 'matrix',
+        result: [result1, result2],
+      },
+    });
+    expect(fetch).toHaveBeenCalledTimes(2);
   });
 });
