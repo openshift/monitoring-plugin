@@ -4,7 +4,7 @@ import { PrometheusEndpoint, PrometheusResponse } from '@openshift-console/dynam
 import { getPrometheusBasePath, buildPrometheusUrl } from '../utils';
 import { PROMETHEUS_QUERY_INTERVAL_SECONDS } from './utils';
 
-const MAX_URL_LENGTH = 5000;
+const MAX_URL_LENGTH = 2048;
 
 /**
  * Creates a single Prometheus alert query string from a grouped alert value.

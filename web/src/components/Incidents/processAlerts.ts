@@ -275,7 +275,7 @@ export function convertToAlerts(
         alertsEndFiring: lastTimestamp,
         resolved,
         x: 0, // Will be set after sorting
-        silenced: matchingIncident.silenced,
+        silenced: matchingIncident.silenced ?? false,
       };
     })
     .filter((alert): alert is Alert => alert !== null)
