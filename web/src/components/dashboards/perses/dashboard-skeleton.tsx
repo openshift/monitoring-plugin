@@ -2,6 +2,7 @@ import * as _ from 'lodash-es';
 import type { FC, PropsWithChildren } from 'react';
 import { memo, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+
 import { Divider, PageSection, Split, SplitItem, Stack, StackItem } from '@patternfly/react-core';
 import {
   DashboardStickyToolbar,
@@ -9,7 +10,6 @@ import {
   useVariableDefinitions,
 } from '@perses-dev/dashboards';
 import { TimeRangeControls } from '@perses-dev/plugin-system';
-import { usePerspective } from '../../hooks/usePerspective';
 import { DashboardDropdown } from '../shared/dashboard-dropdown';
 import { CombinedDashboardMetadata } from './hooks/useDashboardsData';
 import { DocumentTitle, ListPageHeader } from '@openshift-console/dynamic-plugin-sdk';
@@ -38,7 +38,6 @@ type MonitoringDashboardsPageProps = PropsWithChildren<{
 export const DashboardSkeleton: FC<MonitoringDashboardsPageProps> = memo(
   ({ children, boardItems, changeBoard, dashboardName, activeProject }) => {
     const { t } = useTranslation(process.env.I18N_NAMESPACE);
-    const { perspective } = usePerspective();
     const { setDashboard } = useDashboardActions();
     const variables = useVariableDefinitions();
 
@@ -65,13 +64,9 @@ export const DashboardSkeleton: FC<MonitoringDashboardsPageProps> = memo(
 
     return (
       <>
-        {perspective !== 'dev' && (
-          <>
-            <DocumentTitle>{t('Metrics dashboards')}</DocumentTitle>
-            <HeaderTop />
-          </>
-        )}
+        <DocumentTitle>{t('Metrics dashboards')}</DocumentTitle>
         <PageSection hasBodyWrapper={false}>
+          <HeaderTop />
           <Stack hasGutter>
             {!_.isEmpty(boardItems) && (
               <StackItem>
@@ -88,21 +83,11 @@ export const DashboardSkeleton: FC<MonitoringDashboardsPageProps> = memo(
                 <DashboardStickyToolbar initialVariableIsSticky={false} key={dashboardName} />
               </StackItem>
             ) : null}
-            {perspective === 'dev' ? (
-              <StackItem>
-                <Split hasGutter isWrappable>
-                  <SplitItem>
-                    <TimeRangeControls />
-                  </SplitItem>
-                </Split>
-              </StackItem>
-            ) : (
-              <StackItem>
-                <Split>
-                  <SplitItem isFilled />
-                </Split>
-              </StackItem>
-            )}
+            <StackItem>
+              <Split>
+                <SplitItem isFilled />
+              </Split>
+            </StackItem>
           </Stack>
         </PageSection>
         <Divider />

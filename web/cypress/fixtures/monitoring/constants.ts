@@ -1,3 +1,13 @@
+export enum MonitoringPageTitles {
+  METRICS = 'Metrics',
+  DASHBOARDS = 'Dashboards',
+  TARGETS = 'Targets',
+  CREATE_SILENCE = 'Create silence',
+  RECREATE_SILENCE = 'Recreate silence',
+  EDIT_SILENCE = 'Edit silence',
+  SILENCE_ALERT = 'Silence alert',
+};
+
 export enum AlertsAlertState {
   FIRING = 'Firing',
   PENDING = 'Pending',
@@ -16,6 +26,19 @@ export enum Severity {
   WARNING = 'Warning',
   INFO = 'Info',
   NONE = 'None',
+};
+
+export enum SilenceState {
+  ACTIVE = 'Active',
+  PENDING = 'Pending',
+  EXPIRED = 'Expired',
+};
+
+export enum MainTagState {
+  ALERT_STATE = 'Alert State',
+  SEVERITY = 'Severity',
+  SOURCE = 'Source',
+  SILENCE_STATE = 'Silence State',
 };
 
 export enum Source {
@@ -49,7 +72,7 @@ export enum MetricsPageUnits {
   PERCENTAGE = 'Percentage',
 };
 
-export enum MetricsPageRefreshInterval {
+export enum MonitoringRefreshInterval {
   REFRESH_OFF = 'Refresh off',
   FIFTEEN_SECONDS = '15 seconds',
   THIRTY_SECONDS = '30 seconds',
@@ -85,6 +108,31 @@ export enum MetricsPageQueryInput {
   RATE_OF_TRANSMITTED_PACKETS = 'OpenShift_Metrics_QueryTable_sum(irate(container_network_transmit_packets_total[2h])) by (pod).csv',
   RATE_OF_RECEIVED_PACKETS_DROPPED = 'OpenShift_Metrics_QueryTable_sum(irate(container_network_receive_packets_dropped_total[2h])) by (pod).csv',
   RATE_OF_TRANSMITTED_PACKETS_DROPPED = 'OpenShift_Metrics_QueryTable_sum(irate(container_network_transmit_packets_dropped_total[2h])) by (pod).csv',
+  QUERY_WITH_ALERT = 'vector1)',
+  API_REQUEST_DURATION_BY_VERB_99TH_PERCENTILE_QUERY = 'histogram_quantile(0.99, sum(resource_verb:apiserver_request_duration_seconds_bucket:rate:5m{apiserver="kube-apiserver"}) by (verb, le))',
+  //queries where we should escape the curly braces when typing in the query input
+  CPU_USAGE_QUERY = 'sum(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate) by (pod)',
+  MEMORY_USAGE_QUERY = 'sum(container_memory_working_set_bytes{{}container!=""{}}) by (pod)',
+  FILESYSTEM_USAGE_QUERY = 'topk(25, sort_desc(sum(pod:container_fs_usage_bytes:sum{{}container="",pod!=""{}}) BY (pod, namespace)))',
+  RECEIVE_BANDWIDTH_QUERY = 'sum(irate(container_network_receive_bytes_total[2h])) by (pod)',
+  TRANSMIT_BANDWIDTH_QUERY = 'sum(irate(container_network_transmit_bytes_total[2h])) by (pod)',
+  RATE_OF_RECEIVED_PACKETS_QUERY = 'sum(irate(container_network_receive_packets_total[2h])) by (pod)',
+  RATE_OF_TRANSMITTED_PACKETS_QUERY = 'sum(irate(container_network_transmit_packets_total[2h])) by (pod)',
+  RATE_OF_RECEIVED_PACKETS_DROPPED_QUERY = 'sum(irate(container_network_receive_packets_dropped_total[2h])) by (pod)',
+  RATE_OF_TRANSMITTED_PACKETS_DROPPED_QUERY = 'sum(irate(container_network_transmit_packets_dropped_total[2h])) by (pod)',
+}
+
+export enum MetricsPageQueryInputByNamespace {
+  CPU_USAGE = 'OpenShift_Metrics_QueryTable_sum(node_namespace_pod_container_container_cpu_usage_seconds_total_sum_irate{namespace=\'openshift-monitoring\'}) by (pod).csv',
+  MEMORY_USAGE = 'OpenShift_Metrics_QueryTable_sum(container_memory_working_set_bytes{container!=__, namespace=\'openshift-monitoring\'}) by (pod).csv',
+  FILESYSTEM_USAGE = 'OpenShift_Metrics_QueryTable_topk(25, sort_desc(sum(pod_container_fs_usage_bytes_sum{container=__,pod!=__,namespace=\'openshift-monitoring\'}) BY (pod, namespace))).csv',
+  RECEIVE_BANDWIDTH = 'OpenShift_Metrics_QueryTable_sum(irate(container_network_receive_bytes_total{namespace=\'openshift-monitoring\'}[2h])) by (pod).csv',
+  TRANSMIT_BANDWIDTH = 'OpenShift_Metrics_QueryTable_sum(irate(container_network_transmit_bytes_total{namespace=\'openshift-monitoring\'}[2h])) by (pod).csv',
+  RATE_OF_RECEIVED_PACKETS = 'OpenShift_Metrics_QueryTable_sum(irate(container_network_receive_packets_total{namespace=\'openshift-monitoring\'}[2h])) by (pod).csv',
+  RATE_OF_TRANSMITTED_PACKETS = 'OpenShift_Metrics_QueryTable_sum(irate(container_network_transmit_packets_total{namespace=\'openshift-monitoring\'}[2h])) by (pod).csv',
+  RATE_OF_RECEIVED_PACKETS_DROPPED = 'OpenShift_Metrics_QueryTable_sum(irate(container_network_receive_packets_dropped_total{namespace=\'openshift-monitoring\'}[2h])) by (pod).csv',
+  RATE_OF_TRANSMITTED_PACKETS_DROPPED = 'OpenShift_Metrics_QueryTable_sum(irate(container_network_transmit_packets_dropped_total{namespace=\'openshift-monitoring\'}[2h])) by (pod).csv',
+  CPU_UTILISATION_FROM_REQUESTS = 'sum(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{namespace="openshift-monitoring"}) / sum(kube_pod_container_resource_requests{job="kube-state-metrics", namespace="openshift-monitoring", resource="cpu"})',
 }
 
 export enum MetricsPageActions {
@@ -110,4 +158,101 @@ export enum MetricsPageQueryKebabDropdown{
   DELETE_QUERY = 'Delete query',
   DUPLICATE_QUERY = 'Duplicate query',
   EXPORT_AS_CSV = 'Export as CSV',
+}
+
+export enum LegacyDashboardsTimeRange {
+  CUSTOM_TIME_RANGE = 'Custom time range',
+  LAST_5_MINUTES = 'Last 5 minutes',
+  LAST_15_MINUTES = 'Last 15 minutes',
+  LAST_30_MINUTES = 'Last 30 minutes',
+  LAST_1_HOUR = 'Last 1 hour',
+  LAST_2_HOURS = 'Last 2 hours',
+  LAST_6_HOURS = 'Last 6 hours',
+  LAST_12_HOURS = 'Last 12 hours',
+  LAST_1_DAY = 'Last 1 day',
+  LAST_2_DAYS = 'Last 2 days',
+  LAST_1_WEEK = 'Last 1 week',
+  LAST_2_WEEKS = 'Last 2 weeks',
+}
+
+export const LegacyDashboardsDashboardDropdown = {
+API_PERFORMANCE: ['API Performance', ''],
+ETCD: ['etcd', 'etcd-mixin'],
+K8S_COMPUTE_RESOURCES_CLUSTER: ['Kubernetes / Compute Resources / Cluster', 'kubernetes-mixin'],
+K8S_COMPUTE_RESOURCES_NAMESPACE_PODS: ['Kubernetes / Compute Resources / Namespace (Pods)', 'kubernetes-mixin'],
+K8S_COMPUTE_RESOURCES_NAMESPACE_WORKLOADS: ['Kubernetes / Compute Resources / Namespace (Workloads)', 'kubernetes-mixin'],
+K8S_COMPUTE_RESOURCES_NODE_PODS: ['Kubernetes / Compute Resources / Node (Pods)', 'kubernetes-mixin'],
+K8S_COMPUTE_RESOURCES_POD: ['Kubernetes / Compute Resources / Pod', 'kubernetes-mixin'],
+K8S_COMPUTE_RESOURCES_WORKLOAD: ['Kubernetes / Compute Resources / Workload', 'kubernetes-mixin'],
+K8S_NETWORKING_CLUSTER: ['Kubernetes / Networking / Cluster', 'kubernetes-mixin'],
+K8S_NETWORKING_NAMESPACE_PODS: ['Kubernetes / Networking / Namespace (Pods)', 'kubernetes-mixin'],
+K8S_NETWORKING_POD: ['Kubernetes / Networking / Pod', 'kubernetes-mixin'],
+NETWORKING_INFRASTRUCTURE: ['Networking / Infrastructure', 'networking-mixin'],
+NETWORKING_INGRESS: ['Networking / Ingress', 'networking-mixin'],
+NETWORKING_LINUX_SUBSYSTEM_STATS: ['Networking / Linux Subsystem Stats', 'networking-mixin'],
+NODE_CLUSTER: ['Node Cluster', ''],
+NODE_EXPORTER_USE_METHOD_CLUSTER: ['Node Exporter / USE Method / Cluster', 'node-exporter-mixin'],
+NODE_EXPORTER_USE_METHOD_NODE: ['Node Exporter / USE Method / Node', 'node-exporter-mixin'],
+PROMETHEUS_OVERVIEW: ['Prometheus / Overview', 'prometheus-mixin'],
+}
+
+export const LegacyDashboardsDashboardDropdownNamespace = {
+  K8S_COMPUTE_RESOURCES_NAMESPACE_PODS: ['Kubernetes / Compute Resources / Namespace (Pods)', 'kubernetes-mixin'],
+  K8S_COMPUTE_RESOURCES_NAMESPACE_WORKLOADS: ['Kubernetes / Compute Resources / Namespace (Workloads)', 'kubernetes-mixin'],
+  K8S_COMPUTE_RESOURCES_POD: ['Kubernetes / Compute Resources / Pod', 'kubernetes-mixin'],
+  K8S_COMPUTE_RESOURCES_WORKLOAD: ['Kubernetes / Compute Resources / Workload', 'kubernetes-mixin'],
+}
+
+export enum API_PERFORMANCE_DASHBOARD_PANELS {
+  API_PERFORMANCE_PANEL_1 = 'API Request Duration by Verb - 99th Percentile',
+  API_PERFORMANCE_PANEL_2 = 'etcd Request Duration - 99th Percentile',
+  API_PERFORMANCE_PANEL_3 = 'Request Duration by Resource and Verb - 99th Percentile',
+  API_PERFORMANCE_PANEL_4 = 'Request Rate by Resource and Verb',
+  API_PERFORMANCE_PANEL_5 = 'Request Duration by Read vs Write - 99th Percentile',
+  API_PERFORMANCE_PANEL_6 = 'Request Rate by Read vs Write',
+  API_PERFORMANCE_PANEL_7 = 'Requests Dropped Rate',
+  API_PERFORMANCE_PANEL_8 = 'Requests Terminated Rate',
+  API_PERFORMANCE_PANEL_9 = 'Request Rate by Status',
+  API_PERFORMANCE_PANEL_10 = 'Request Rate by Instance',
+  API_PERFORMANCE_PANEL_11 = 'Long Running Requests by Resource',
+  API_PERFORMANCE_PANEL_12 = 'Long Running Requests by Instance',
+  API_PERFORMANCE_PANEL_13 = 'Requests in Flight',
+  API_PERFORMANCE_PANEL_14 = 'Response Bytes per Second by Instance',
+  API_PERFORMANCE_PANEL_15 = 'Response Bytes per Second by Resource and Verb',
+  API_PERFORMANCE_PANEL_16 = 'Priority & Fairness: Requests Rejected',
+}
+
+export enum KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANELS {
+  KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANEL_1 = 'CPU Utilisation (from requests)',
+  KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANEL_2 = 'CPU Utilisation (from limits)',
+  KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANEL_3 = 'Memory Utilisation (from requests)',
+  KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANEL_4 = 'Memory Utilisation (from limits)',
+  KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANEL_5 = 'CPU Usage',
+  KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANEL_6 = 'CPU Quota',
+  KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANEL_7 = 'Memory Usage (w/o cache)',
+  KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANEL_8 = 'Memory Quota',
+  KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANEL_9 = 'Current Network Usage',
+  KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANEL_10 = 'Receive Bandwidth',
+  KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANEL_11 = 'Transmit Bandwidth',
+  KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANEL_12 = 'Rate of Received Packets',
+  KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANEL_13 = 'Rate of Transmitted Packets',
+  KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANEL_14 = 'Rate of Received Packets Dropped',
+  KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANEL_15 = 'Rate of Transmitted Packets Dropped',
+  KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANEL_16 = 'IOPS(Reads+Writes)',
+  KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANEL_17 = 'ThroughPut(Read+Write)',
+  KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANEL_18 = 'Current Storage IO',
+  
+}
+
+export enum WatchdogAlert {
+  ALERTNAME = 'Watchdog',
+  NAMESPACE = 'openshift-monitoring',
+  SEVERITY = 'None',
+  ALERT_DESC = 'This is an alert meant to ensure that the entire alerting pipeline is functional. This alert is always firing, therefore it should always be firing in Alertmanager and always fire against a receiver. There are integrations with various notification mechanisms that send a notification when this alert is not firing. For example the "DeadMansSnitch" integration in PagerDuty.',
+  ALERT_SUMMARY = 'An alert that should always be firing to certify that Alertmanager is working properly.',
+  
+}
+
+export enum SilenceComment {
+  SILENCE_COMMENT = 'test comment',
 }

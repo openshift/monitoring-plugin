@@ -44,4 +44,20 @@ export const alertingRuleListPage = {
     cy.byTestID(DataTestIDs.AlertingRuleResourceLink).should('have.length', count);
   },
 
+  ARShouldBe: (alert: string, severity: string, total: number, state: string) => {
+    cy.log('alertingRuleListPage.ARShouldBe');
+    cy.byOUIAID('OUIA-Generated-Button-plain').should('exist');
+    cy.byTestID(DataTestIDs.AlertingRuleResourceIcon).contains('AR');
+    cy.byTestID(DataTestIDs.AlertingRuleResourceLink).contains(alert).should('exist');
+    cy.byTestID(DataTestIDs.SeverityBadge).contains(severity).should('exist');
+    cy.byTestID(DataTestIDs.AlertingRuleStateBadge).contains(total).should('exist');
+    cy.byTestID(DataTestIDs.AlertingRuleStateBadge).contains(state).should('exist');
+  },
+  emptyState: () => {
+    cy.log('alertingRuleListPage.emptyState');
+    cy.byTestID(DataTestIDs.EmptyBoxBody).contains('No alerting rules found').should('be.visible');
+    cy.bySemanticElement('button', 'Clear all filters').should('not.exist');
+    cy.byOUIAID(DataTestIDs.Table).should('not.exist');
+  },
+
 };

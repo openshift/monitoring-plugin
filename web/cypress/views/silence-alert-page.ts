@@ -64,6 +64,33 @@ export const silenceAlertPage = {
     })
   },
 
+  assertNamespaceLabelNamespaceValueDisabled: (labelName: string, labelValue: string, disabled: boolean) => {
+    cy.log('silenceAlertPage.assertNamespaceLabelNamespaceValueDisabled');
+    cy.byClass('pf-v6-l-grid pf-m-all-12-col-on-sm pf-m-all-4-col-on-md pf-m-gutter').each(($row, rowIndex) => { //pf-5 cy.get('.row').each(($row, rowIndex) => {
+      cy.wrap($row).find('[data-test="'+DataTestIDs.SilencesPageFormTestIDs.LabelName+'"]').invoke('val').then((cellText) => {
+        if (cellText === labelName){
+          cy.wrap($row).find('[data-test="'+DataTestIDs.SilencesPageFormTestIDs.LabelName+'"]').invoke('val').should('equal', labelName);
+          cy.wrap($row).find('[data-test="'+DataTestIDs.SilencesPageFormTestIDs.LabelValue+'"]').invoke('val').should('equal', labelValue);
+          if (disabled){
+            cy.wrap($row).find('[data-test="'+DataTestIDs.SilencesPageFormTestIDs.LabelName+'"]').should('have.attr', 'disabled');
+            cy.wrap($row).find('[data-test="'+DataTestIDs.SilencesPageFormTestIDs.LabelValue+'"]').should('have.attr', 'disabled');
+            cy.wrap($row).find('[data-test="'+DataTestIDs.SilencesPageFormTestIDs.Regex+'"]').should('have.attr', 'disabled'); 
+            cy.wrap($row).find('[data-test="'+DataTestIDs.SilencesPageFormTestIDs.NegativeMatcherCheckbox+'"]').should('have.attr', 'disabled');
+            cy.wrap($row).find('[data-test="'+DataTestIDs.SilencesPageFormTestIDs.RemoveLabel+'"]').should('have.attr', 'disabled');
+          } else{
+            cy.wrap($row).find('[data-test="'+DataTestIDs.SilencesPageFormTestIDs.LabelName+'"]').should('not.have.attr', 'disabled');
+            cy.wrap($row).find('[data-test="'+DataTestIDs.SilencesPageFormTestIDs.LabelValue+'"]').should('not.have.attr', 'disabled');
+            cy.wrap($row).find('[data-test="'+DataTestIDs.SilencesPageFormTestIDs.Regex+'"]').should('not.have.attr', 'disabled');
+            cy.wrap($row).find('[data-test="'+DataTestIDs.SilencesPageFormTestIDs.NegativeMatcherCheckbox+'"]').should('not.have.attr', 'disabled');
+            cy.wrap($row).find('[data-test="'+DataTestIDs.SilencesPageFormTestIDs.RemoveLabel+'"]').should('not.have.attr', 'disabled');
+          }
+        } else {
+          return;
+        }
+      })
+    })
+  },
+
   infoSectionDefault: () => {
     cy.log('silenceAlertPage.infoSectionDefault');
     cy.byTestID(DataTestIDs.SilencesPageFormTestIDs.Creator).invoke('val')
@@ -198,19 +225,35 @@ export const silenceAlertPage = {
     cy.get(Classes.SilenceCreatorWithError).should('be.visible');
   },
 
-  fillLabeNameLabelValue: (labelName: string, labelValue: string) => {
+  fillLabeNameLabelValue: (labelName: string, labelValue: string, index?: number) => {
     cy.log('silenceAlertPage.fillLabeNameLabelValue');
     cy.get(Classes.SilenceLabelRow).each(($row, rowIndex) => {
       cy.wrap($row).find('[data-test="'+DataTestIDs.SilencesPageFormTestIDs.LabelName+'"]').invoke('val').then((cellText) => {
-        if (!labelName){
-          cy.wrap($row).find('[data-test="'+DataTestIDs.SilencesPageFormTestIDs.LabelName+'"]').clear();
-        } else {
-          cy.wrap($row).find('[data-test="'+DataTestIDs.SilencesPageFormTestIDs.LabelName+'"]').clear().type(labelName);
+        if (index){
+          if (rowIndex === index){
+            if (!labelName){
+              cy.wrap($row).find('[data-test="'+DataTestIDs.SilencesPageFormTestIDs.LabelName+'"]').clear();
+            } else {
+              cy.wrap($row).find('[data-test="'+DataTestIDs.SilencesPageFormTestIDs.LabelName+'"]').clear().type(labelName);
+            }
+            if (!labelValue){
+              cy.wrap($row).find('[data-test="'+DataTestIDs.SilencesPageFormTestIDs.LabelValue+'"]').clear();
+            } else {
+              cy.wrap($row).find('[data-test="'+DataTestIDs.SilencesPageFormTestIDs.LabelValue+'"]').clear().type(labelValue);
+            }
+          }
         }
-         if (!labelValue){
-          cy.wrap($row).find('[data-test="'+DataTestIDs.SilencesPageFormTestIDs.LabelValue+'"]').clear();
-        } else {
-          cy.wrap($row).find('[data-test="'+DataTestIDs.SilencesPageFormTestIDs.LabelValue+'"]').clear().type(labelValue);
+        else{
+          if (!labelName){
+            cy.wrap($row).find('[data-test="'+DataTestIDs.SilencesPageFormTestIDs.LabelName+'"]').clear();
+          } else {
+            cy.wrap($row).find('[data-test="'+DataTestIDs.SilencesPageFormTestIDs.LabelName+'"]').clear().type(labelName);
+          }
+          if (!labelValue){
+            cy.wrap($row).find('[data-test="'+DataTestIDs.SilencesPageFormTestIDs.LabelValue+'"]').clear();
+          } else {
+            cy.wrap($row).find('[data-test="'+DataTestIDs.SilencesPageFormTestIDs.LabelValue+'"]').clear().type(labelValue);
+          }
         }
       })
     });     

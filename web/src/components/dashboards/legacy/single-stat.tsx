@@ -5,12 +5,11 @@ import { PrometheusEndpoint, PrometheusResponse } from '@openshift-console/dynam
 import { Bullseye, Title } from '@patternfly/react-core';
 
 import ErrorAlert from './error';
-import { getPrometheusURL } from '../../console/graphs/helpers';
+import { getPrometheusBasePath, buildPrometheusUrl } from '../../utils';
 import { usePoll } from '../../console/utils/poll-hook';
 import { useSafeFetch } from '../../console/utils/safe-fetch-hook';
 
 import { formatNumber } from '../../format';
-import { usePerspective } from '../../hooks/usePerspective';
 import { Panel } from './types';
 import { useTranslation } from 'react-i18next';
 import { LoadingInline } from '../../console/console-shared/src/components/loading/LoadingInline';
@@ -48,6 +47,7 @@ import {
   t_chart_color_yellow_500,
 } from '@patternfly/react-tokens';
 import { PatternflyToken } from '../../types';
+import { useMonitoring } from '../../../hooks/useMonitoring';
 
 const colorMap: Record<string, PatternflyToken> = {
   'super-light-blue': t_chart_color_blue_100,
@@ -108,26 +108,29 @@ const SingleStat: FC<Props> = ({ customDataSource, namespace, panel, pollInterva
   } = panel;
 
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const { accessCheckLoading, useMetricsTenancy } = useMonitoring();
   const [error, setError] = useState<string>();
   const [isLoading, setIsLoading] = useState(true);
   const [value, setValue] = useState<string>();
-  const { perspective } = usePerspective();
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const safeFetch = useCallback(useSafeFetch(), []);
 
-  const url = getPrometheusURL(
-    {
+  const url = buildPrometheusUrl({
+    prometheusUrlProps: {
       endpoint: PrometheusEndpoint.QUERY,
       query,
-      namespace: perspective === 'dev' ? namespace : '',
+      namespace,
     },
-    perspective,
-    customDataSource?.basePath,
-  );
+    basePath: getPrometheusBasePath({
+      prometheus: 'cmo',
+      useTenancyPath: useMetricsTenancy,
+      basePathOverride: customDataSource?.basePath,
+    }),
+  });
 
   const tick = () => {
-    if (!url) {
+    if (!url || accessCheckLoading) {
       return;
     }
     safeFetch<PrometheusResponse>(url)
@@ -145,7 +148,7 @@ const SingleStat: FC<Props> = ({ customDataSource, namespace, panel, pollInterva
       });
   };
 
-  usePoll(tick, pollInterval, query);
+  usePoll(tick, pollInterval, query, accessCheckLoading, useMetricsTenancy);
 
   const filteredVMs = valueMaps?.filter((vm) => vm.op === '=');
   const valueMap =

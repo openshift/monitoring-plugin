@@ -1,0 +1,194 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/openshift/monitoring-plugin/incident-fixture-schema.json",
+  "title": "Incident Scenario Fixture Schema",
+  "description": "Schema for defining incident scenarios in YAML format for Cypress testing",
+  "type": "object",
+  "required": ["name", "description", "incidents"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Human-readable name for the incident scenario",
+      "minLength": 1,
+      "examples": ["Critical Monitoring Issues", "Healthy Cluster", "Mixed Severity Incidents"]
+    },
+    "description": {
+      "type": "string", 
+      "description": "Detailed description of what this scenario represents",
+      "minLength": 1,
+      "examples": ["Cluster with critical monitoring component failures", "Minimal activity with only watchdog alert"]
+    },
+    "incidents": {
+      "type": "array",
+      "description": "Array of incidents to simulate in this scenario",
+      "minItems": 0,
+      "items": {
+        "$ref": "#/$defs/Incident"
+      }
+    }
+  },
+  "$defs": {
+    "Incident": {
+      "type": "object",
+      "description": "A single incident with associated alerts",
+      "required": ["id", "component", "layer", "alerts"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the incident (used as group_id)",
+          "pattern": "^[a-zA-Z0-9-_]+$",
+          "examples": ["monitoring-critical-001", "storage-escalation-001", "watchdog-info"]
+        },
+        "component": {
+          "type": "string",
+          "description": "The component affected by this incident",
+          "enum": ["monitoring", "storage", "network", "compute", "api-server", "etcd", "version", "Others", "storage-very-very-long-component-name"],
+          "examples": ["monitoring", "storage", "network"]
+        },
+        "layer": {
+          "type": "string",
+          "description": "The layer where the incident occurs",
+          "enum": ["core", "Others"],
+          "examples": ["core", "Others"]
+        },
+        "timeline": {
+          "$ref": "#/$defs/Timeline"
+        },
+        "alerts": {
+          "type": "array",
+          "description": "Array of alerts associated with this incident",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/Alert"
+          }
+        },
+        "managed_cluster": {
+          "type": "string",
+          "description": "Optional managed cluster identifier for multi-cluster scenarios",
+          "examples": ["cluster-1", "hub-cluster"]
+        }
+      }
+    },
+    "Timeline": {
+      "type": "object",
+      "description": "Timeline information for the incident",
+      "required": ["start"],
+      "properties": {
+        "start": {
+          "type": "string",
+          "description": "When the incident started (relative to now)",
+          "pattern": "^(?:\\d+[smhd])+$",
+          "examples": ["2h", "30m", "7d", "1h", "1h30m", "7d2h30m"]
+        },
+        "end": {
+          "type": "string",
+          "description": "When the incident ended (relative to now). Omit for ongoing incidents.",
+          "pattern": "^(?:\\d+[smhd])+$",
+          "examples": ["1h", "30m", "5m", "1h30m", "2h15m"]
+        },
+        "severityChanges": {
+          "type": "array",
+          "description": "Array of severity changes over time",
+          "items": {
+            "$ref": "#/$defs/SeverityChange"
+          }
+        }
+      }
+    },
+    "SeverityChange": {
+      "type": "object",
+      "description": "A change in incident severity over time",
+      "required": ["time", "severity"],
+      "properties": {
+        "time": {
+          "type": "string",
+          "description": "When this severity change occurred (relative to now)",
+          "pattern": "^(?:\\d+[smhd])+$",
+          "examples": ["3h", "1h", "30m", "45m30s", "1h5m"]
+        },
+        "severity": {
+          "type": "string",
+          "description": "The severity level at this time",
+          "enum": ["critical", "warning", "info"],
+          "examples": ["critical", "warning", "info"]
+        }
+      }
+    },
+    "Alert": {
+      "type": "object",
+      "description": "An alert associated with an incident",
+      "required": ["name", "namespace", "severity"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the alert (src_alertname)",
+          "minLength": 1,
+          "examples": ["AlertmanagerReceiversNotConfigured", "KubeDeploymentReplicasMismatch", "Watchdog"]
+        },
+        "namespace": {
+          "type": "string",
+          "description": "The namespace where the alert originates (src_namespace)",
+          "minLength": 1,
+          "examples": ["openshift-monitoring", "openshift-storage", "openshift-network"]
+        },
+        "severity": {
+          "type": "string",
+          "description": "The severity level of the alert",
+          "enum": ["critical", "warning", "info"],
+          "examples": ["critical", "warning", "info"]
+        },
+        "component": {
+          "type": "string",
+          "description": "Optional component override for this specific alert. If not set, uses the incident-level component.",
+          "enum": ["monitoring", "storage", "network", "compute", "api-server", "etcd", "version", "Others", "storage-very-very-long-component-name"],
+          "examples": ["monitoring", "storage", "network"]
+        },
+        "firing": {
+          "type": "boolean",
+          "description": "Whether the alert is currently firing. Defaults to true for critical/warning, false for resolved incidents.",
+          "default": true,
+          "examples": [true, false]
+        },
+            "silenced": {
+              "type": "boolean",
+              "description": "Whether the alert should be marked as silenced in mocks.",
+              "default": false,
+              "examples": [true, false]
+            },
+        "timeline": {
+          "$ref": "#/$defs/Timeline"
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "name": "Critical Monitoring Issues",
+      "description": "Cluster with critical monitoring component failures",
+      "incidents": [
+        {
+          "id": "monitoring-critical-001",
+          "component": "monitoring",
+          "layer": "core",
+          "timeline": {
+            "start": "2h"
+          },
+          "alerts": [
+            {
+              "name": "AlertmanagerReceiversNotConfigured",
+              "namespace": "openshift-monitoring",
+              "severity": "warning",
+              "firing": true
+            },
+            {
+              "name": "KubeDeploymentReplicasMismatch",
+              "namespace": "openshift-monitoring", 
+              "severity": "critical",
+              "firing": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
