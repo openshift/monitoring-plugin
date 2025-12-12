@@ -157,21 +157,21 @@ export const runAlertTests = (perspective: string) => {
 cd web/cypress
 
 # Run all regression tests
-npm run cypress:run --spec "cypress/e2e/**/regression/**"
+npm run cypress:run -- --spec "cypress/e2e/**/regression/**"
 
 # Run specific feature regression
-npm run cypress:run --spec "cypress/e2e/monitoring/regression/01.reg_alerts_admin.cy.ts"
-npm run cypress:run --spec "cypress/e2e/monitoring/regression/02.reg_metrics_admin.cy.ts"
-npm run cypress:run --spec "cypress/e2e/monitoring/regression/03.reg_legacy_dashboards_admin.cy.ts"
+npm run cypress:run -- --spec "cypress/e2e/monitoring/regression/01.reg_alerts_admin.cy.ts"
+npm run cypress:run -- --spec "cypress/e2e/monitoring/regression/02.reg_metrics_admin.cy.ts"
+npm run cypress:run -- --spec "cypress/e2e/monitoring/regression/03.reg_legacy_dashboards_admin.cy.ts"
 
 # Run BVT (Build Verification Tests)
-npm run cypress:run --spec "cypress/e2e/monitoring/00.bvt_admin.cy.ts"
+npm run cypress:run -- --spec "cypress/e2e/monitoring/00.bvt_admin.cy.ts"
 
 # Run COO tests
-npm run cypress:run --spec "cypress/e2e/coo/01.coo_bvt.cy.ts"
+npm run cypress:run -- --spec "cypress/e2e/coo/01.coo_bvt.cy.ts"
 
 # Run ACM Alerting tests
-npm run cypress:run --spec "cypress/e2e/coo/02.acm_alerting_ui.cy.ts"
+npm run cypress:run -- --spec "cypress/e2e/coo/02.acm_alerting_ui.cy.ts"
 
 # Interactive mode (GUI)
 npm run cypress:open
