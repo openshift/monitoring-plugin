@@ -350,7 +350,7 @@ export const metricsPage = {
   graphCardInlineInfoAssertion: (visible: boolean) => {
     cy.log('metricsPage.graphCardInlineInfoAssertion');
     if (visible) {
-      cy.get(Classes.GraphCardInlineInfo).should('be.visible');
+      cy.get(Classes.GraphCardInlineInfo).scrollIntoView().should('be.visible');
     } else {
       cy.get(Classes.GraphCardInlineInfo).should('not.exist');
     }

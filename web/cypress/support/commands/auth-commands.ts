@@ -81,9 +81,11 @@ declare global {
   }
 
   Cypress.Commands.add('validateLogin', () => {
+    cy.log('validateLogin');
     cy.visit('/');
     cy.wait(2000);
     cy.byTestID("username", {timeout: 120000}).should('be.visible');
+    cy.wait(10000);
     guidedTour.close();
   });
 
@@ -127,6 +129,7 @@ declare global {
       }
     });
     nav.sidenav.switcher.changePerspectiveTo(perspective);
+    cy.validateLogin();
   });
 
   // To avoid influence from upstream login change

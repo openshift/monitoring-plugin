@@ -2,7 +2,6 @@ import { runAllRegressionMetricsTests1 } from '../../../support/monitoring/02.re
 import { runAllRegressionMetricsTestsNamespace1 } from '../../../support/monitoring/05.reg_metrics_namespace_1.cy';
 import { commonPages } from '../../../views/common';
 import { nav } from '../../../views/nav';
-import { guidedTour } from '../../../views/tour';
 
 const MP = {
   namespace: 'openshift-monitoring',
@@ -17,9 +16,6 @@ describe('Regression: Monitoring - Metrics (Administrator)', { tags: ['@monitori
   });
 
   beforeEach(() => {
-    cy.visit('/');
-    guidedTour.close();
-    cy.validateLogin();
     nav.sidenav.clickNavLink(['Observe', 'Metrics']);
     commonPages.titleShouldHaveText('Metrics');
     cy.changeNamespace("All Projects");
@@ -40,9 +36,6 @@ describe('Regression: Monitoring - Metrics Namespaced (Administrator)', { tags: 
   });
 
   beforeEach(() => {
-    cy.visit('/');
-    guidedTour.close();
-    cy.validateLogin();
     nav.sidenav.clickNavLink(['Observe', 'Metrics']);
     commonPages.titleShouldHaveText('Metrics');
     cy.changeNamespace(MP.namespace);
