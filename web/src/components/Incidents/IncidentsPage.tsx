@@ -131,9 +131,6 @@ const IncidentsPage = () => {
     (state: MonitoringState) => state.plugins.mcp.incidentsData.incidentsActiveFilters,
   );
 
-  const alertsData = useSelector(
-    (state: MonitoringState) => state.plugins.mcp.incidentsData?.alertsData,
-  );
   const alertsAreLoading = useSelector(
     (state: MonitoringState) => state.plugins.mcp.incidentsData?.alertsAreLoading,
   );
@@ -239,15 +236,23 @@ const IncidentsPage = () => {
       )
         .then((results) => {
           const prometheusResults = results.flat();
+          const alerts = convertToAlerts(
+            prometheusResults,
+            incidentForAlertProcessing,
+            currentTime,
+          );
           dispatch(
             setAlertsData({
-              alertsData: convertToAlerts(
-                prometheusResults,
-                incidentForAlertProcessing,
-                currentTime,
-              ),
+              alertsData: alerts,
             }),
           );
+          if (rules && alerts) {
+            dispatch(
+              setAlertsTableData({
+                alertsTableData: groupAlertsForTable(alerts, rules),
+              }),
+            );
+          }
           if (!isEmpty(filteredData)) {
             dispatch(setAlertsAreLoading({ alertsAreLoading: false }));
           } else {
@@ -260,16 +265,6 @@ const IncidentsPage = () => {
         });
     })();
   }, [incidentForAlertProcessing]);
-
-  useEffect(() => {
-    if (rules && alertsData) {
-      dispatch(
-        setAlertsTableData({
-          alertsTableData: groupAlertsForTable(alertsData, rules),
-        }),
-      );
-    }
-  }, [alertsData, rules]);
 
   useEffect(() => {
     if (!isInitialized) return;
