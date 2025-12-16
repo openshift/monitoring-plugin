@@ -5,7 +5,6 @@ import {
   isAlertingRuleChart,
   PrometheusAlert,
   ResourceIcon,
-  Rule,
   Timestamp,
   useResolvedExtensions,
 } from '@openshift-console/dynamic-plugin-sdk';
@@ -40,9 +39,7 @@ import { Table, TableVariant, Tbody, Td, Th, Thead, Tr } from '@patternfly/react
 import * as _ from 'lodash-es';
 import type { FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
 import { Link, useNavigate, useParams } from 'react-router-dom-v5-compat';
-import { MonitoringState } from '../../reducers/observe';
 import {
   alertingRuleSource,
   AlertState,
@@ -59,7 +56,6 @@ import { ExternalLink } from '../console/utils/link';
 import {
   getAlertRulesUrl,
   getAlertUrl,
-  getLegacyObserveState,
   getNewSilenceAlertUrl,
   getQueryBrowserUrl,
   usePerspective,
@@ -67,11 +63,11 @@ import {
 import KebabDropdown from '../kebab-dropdown';
 import { Labels } from '../labels';
 import { ToggleGraph } from '../MetricsPage';
-import { Alerts } from '../types';
 import { alertDescription, RuleResource } from '../utils';
-import { useAlertsPoller } from '../hooks/useAlertsPoller';
+import { MonitoringProvider } from '../../contexts/MonitoringContext';
 
 import { DataTestIDs } from '../data-test';
+import { useAlerts } from '../../hooks/useAlerts';
 
 // Renders Prometheus template text and highlights any {{ ... }} tags that it contains
 const PrometheusTemplate = ({ text }) => (
@@ -86,11 +82,10 @@ const PrometheusTemplate = ({ text }) => (
 
 type ActiveAlertsProps = {
   alerts: PrometheusAlert[];
-  namespace: string;
   ruleID: string;
 };
 
-export const ActiveAlerts: FC<ActiveAlertsProps> = ({ alerts, namespace, ruleID }) => {
+export const ActiveAlerts: FC<ActiveAlertsProps> = ({ alerts, ruleID }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
   const navigate = useNavigate();
@@ -113,7 +108,7 @@ export const ActiveAlerts: FC<ActiveAlertsProps> = ({ alerts, namespace, ruleID 
             <Td>
               <Link
                 data-test={DataTestIDs.AlertResourceLink}
-                to={getAlertUrl(perspective, a, ruleID, namespace)}
+                to={getAlertUrl(perspective, a, ruleID)}
               >
                 {alertDescription(a)}
               </Link>
@@ -148,19 +143,11 @@ const AlertRulesDetailsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const params = useParams<{ ns?: string; id: string }>();
 
-  useAlertsPoller();
+  const { rules, rulesAlertLoading } = useAlerts();
 
-  const { rulesKey, alertsKey, perspective } = usePerspective();
-  const namespace = params?.ns;
+  const { perspective } = usePerspective();
 
-  const rules: Rule[] = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.get(rulesKey),
-  );
   const rule = _.find(rules, { id: params.id });
-
-  const { loaded, loadError }: Alerts = useSelector(
-    (state: MonitoringState) => getLegacyObserveState(perspective, state)?.get(alertsKey) || {},
-  );
 
   const sourceId = rule?.sourceId;
 
@@ -187,15 +174,17 @@ const AlertRulesDetailsPage_: FC = () => {
       <DocumentTitle>
         {t('{{name}} details', { name: rule?.name || RuleResource.label })}
       </DocumentTitle>
-      <StatusBox data={rule} label={RuleResource.label} loaded={loaded} loadError={loadError}>
+      <StatusBox
+        data={rule}
+        label={RuleResource.label}
+        loaded={rulesAlertLoading?.loaded}
+        loadError={rulesAlertLoading?.loadError}
+      >
         <PageGroup>
           <PageBreadcrumb hasBodyWrapper={false}>
             <Breadcrumb>
               <BreadcrumbItem>
-                <Link
-                  to={getAlertRulesUrl(perspective, namespace)}
-                  data-test={DataTestIDs.Breadcrumb}
-                >
+                <Link to={getAlertRulesUrl(perspective)} data-test={DataTestIDs.Breadcrumb}>
                   {t('Alerting rules')}
                 </Link>
               </BreadcrumbItem>
@@ -321,7 +310,6 @@ const AlertRulesDetailsPage_: FC = () => {
                           to={getQueryBrowserUrl({
                             perspective: perspective,
                             query: rule?.query,
-                            namespace: namespace,
                           })}
                         >
                           <CodeBlock>
@@ -366,7 +354,6 @@ const AlertRulesDetailsPage_: FC = () => {
             {!sourceId || sourceId === 'prometheus' ? (
               <Graph
                 formatSeriesTitle={formatSeriesTitle}
-                namespace={namespace}
                 query={rule?.query}
                 ruleDuration={rule?.duration}
                 showLegend
@@ -377,7 +364,7 @@ const AlertRulesDetailsPage_: FC = () => {
             {_.isEmpty(rule?.alerts) ? (
               <div>{t('None found')}</div>
             ) : (
-              <ActiveAlerts alerts={rule.alerts} ruleID={rule?.id} namespace={namespace} />
+              <ActiveAlerts alerts={rule.alerts} ruleID={rule?.id} />
             )}
           </PageSection>
         </PageGroup>
@@ -385,6 +372,22 @@ const AlertRulesDetailsPage_: FC = () => {
     </>
   );
 };
-const AlertRulesDetailsPage = withFallback(AlertRulesDetailsPage_);
+const AlertRulesDetailsPageWithFallback = withFallback(AlertRulesDetailsPage_);
 
-export default AlertRulesDetailsPage;
+export const MpCmoAlertRulesDetailsPage = () => {
+  return (
+    <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
+      <AlertRulesDetailsPageWithFallback />
+    </MonitoringProvider>
+  );
+};
+
+export const McpAcmAlertRulesDetailsPage = () => {
+  return (
+    <MonitoringProvider
+      monitoringContext={{ plugin: 'monitoring-console-plugin', prometheus: 'acm' }}
+    >
+      <AlertRulesDetailsPageWithFallback />
+    </MonitoringProvider>
+  );
+};

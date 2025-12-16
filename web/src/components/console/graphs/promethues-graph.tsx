@@ -6,8 +6,8 @@ import { connect } from 'react-redux';
 import { Link } from 'react-router-dom-v5-compat';
 import { Title } from '@patternfly/react-core';
 
-import { RootState } from '../../../components/types';
 import { getMutlipleQueryBrowserUrl, usePerspective } from '../../hooks/usePerspective';
+import { RootState } from '../../../store/store';
 
 const getActiveNamespace = ({ UI }: RootState): string => UI.get('activeNamespace');
 
@@ -21,7 +21,6 @@ const mapStateToProps = (state: RootState) => ({
 const PrometheusGraphLink_: FC<PrometheusGraphLinkProps> = ({
   children,
   query,
-  namespace,
   ariaChartLinkLabel,
 }) => {
   const { perspective } = usePerspective();
@@ -32,7 +31,7 @@ const PrometheusGraphLink_: FC<PrometheusGraphLinkProps> = ({
 
   const params = new URLSearchParams();
   queries.forEach((q, index) => params.set(`query${index}`, q));
-  const url = getMutlipleQueryBrowserUrl(perspective, params, namespace);
+  const url = getMutlipleQueryBrowserUrl(perspective, params);
 
   return (
     <Link
@@ -62,7 +61,6 @@ export const PrometheusGraph: FC<PrometheusGraphProps> = forwardRef(
 type PrometheusGraphLinkProps = {
   canAccessMonitoring: boolean;
   query: string | string[];
-  namespace?: string;
   ariaChartLinkLabel?: string;
 };
 

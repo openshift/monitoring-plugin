@@ -1,9 +1,4 @@
-import {
-  Alert,
-  ResourceIcon,
-  TableColumn,
-  useActiveNamespace,
-} from '@openshift-console/dynamic-plugin-sdk';
+import { Alert, ResourceIcon, TableColumn } from '@openshift-console/dynamic-plugin-sdk';
 import { ExpandableRowContent, Table, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
 import type { FC } from 'react';
 import { useState, useMemo } from 'react';
@@ -33,7 +28,6 @@ const AggregateAlertTableRow: AggregateAlertTableRowProps = ({
   const { perspective } = usePerspective();
   const title = aggregatedAlert.name;
   const isACMPerspective = perspective === 'acm';
-  const [namespace] = useActiveNamespace();
 
   const filteredAlerts = useMemo(
     () => filterAlerts(aggregatedAlert.alerts, selectedFilters),
@@ -99,11 +93,7 @@ const AggregateAlertTableRow: AggregateAlertTableRowProps = ({
             </FlexItem>
             <FlexItem>
               <Link
-                to={getRuleUrl(
-                  perspective,
-                  firstAlert?.rule,
-                  firstAlert?.labels?.namespace || namespace,
-                )}
+                to={getRuleUrl(perspective, firstAlert?.rule)}
                 data-test-id="alert-resource-link"
                 data-test={DataTestIDs.AlertingRuleResourceLink}
               >

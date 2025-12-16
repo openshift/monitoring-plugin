@@ -2,7 +2,7 @@ apiVersion: perses.dev/v1alpha1
 kind: PersesDatasource
 metadata:
   name: thanos-querier-datasource
-  namespace: openshift-cluster-observability-operator
+  namespace: perses-dev
 spec:
   config:
     display:

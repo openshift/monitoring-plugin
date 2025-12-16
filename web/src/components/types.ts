@@ -1,17 +1,18 @@
 import { Alert, PrometheusLabels, Silence } from '@openshift-console/dynamic-plugin-sdk';
 
-import { ObserveState } from '../reducers/observe';
-
 export const enum AlertSource {
   Platform = 'platform',
   User = 'user',
 }
 
 export type MonitoringResource = {
+  group: string;
+  resource: string;
   abbr: string;
   kind: string;
   label: string;
-  plural: string;
+  url: string;
+  virtUrl: string;
 };
 
 export type Silences = {
@@ -46,12 +47,6 @@ export type Target = {
   lastScrapeDuration: number;
   scrapePool: string;
   scrapeUrl: string;
-};
-
-export type RootState = {
-  k8s: { [key: string]: any };
-  observe: ObserveState;
-  UI: any;
 };
 
 export type TimeRange = {

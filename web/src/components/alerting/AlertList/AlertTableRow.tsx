@@ -21,7 +21,7 @@ import { DropdownItem, Flex, FlexItem } from '@patternfly/react-core';
 import KebabDropdown from '../../../components/kebab-dropdown';
 import type { FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useParams } from 'react-router-dom-v5-compat';
+import { useNavigate } from 'react-router-dom-v5-compat';
 import { AlertResource, alertState } from '../../../components/utils';
 import {
   getAlertUrl,
@@ -35,9 +35,6 @@ const AlertTableRow: FC<{ alert: Alert }> = ({ alert }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
   const navigate = useNavigate();
-  const params = useParams<{ ns: string }>();
-
-  const namespace = params.ns;
 
   const state = alertState(alert);
 
@@ -49,7 +46,7 @@ const AlertTableRow: FC<{ alert: Alert }> = ({ alert }) => {
     dropdownItems.unshift(
       <DropdownItem
         key="silence-alert"
-        onClick={() => navigate(getNewSilenceAlertUrl(perspective, alert, namespace))}
+        onClick={() => navigate(getNewSilenceAlertUrl(perspective, alert))}
         data-test={DataTestIDs.SilenceAlertDropdownItem}
       >
         {t('Silence alert')}
@@ -86,12 +83,7 @@ const AlertTableRow: FC<{ alert: Alert }> = ({ alert }) => {
           </FlexItem>
           <FlexItem>
             <Link
-              to={getAlertUrl(
-                perspective,
-                alert,
-                alert?.rule?.id,
-                alert?.labels?.namespace || namespace,
-              )}
+              to={getAlertUrl(perspective, alert, alert?.rule?.id)}
               data-test-id="alert-resource-link"
               data-test={DataTestIDs.AlertResourceLink}
             >

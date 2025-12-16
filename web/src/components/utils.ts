@@ -1,13 +1,12 @@
 import fuzzy from 'fuzzysearch';
 import * as _ from 'lodash-es';
 import { murmur3 } from 'murmurhash-js';
-import { Dispatch } from 'redux';
 import {
   Alert,
   AlertSeverity,
   AlertStates,
-  consoleFetchJSON,
   PrometheusAlert,
+  PrometheusEndpoint,
   PrometheusLabels,
   PrometheusRule,
   PrometheusRulesResponse,
@@ -16,36 +15,47 @@ import {
   SilenceStates,
 } from '@openshift-console/dynamic-plugin-sdk';
 
-import {
-  alertingErrored,
-  alertingLoaded,
-  alertingLoading,
-  Perspective,
-  silencesKey,
-} from '../actions/observe';
 import { AlertSource, MonitoringResource, Target, TimeRange } from './types';
-import { getFetchSilenceAlertUrl } from './hooks/usePerspective';
+import { QueryParams } from './query-params';
 
 export const QUERY_CHUNK_SIZE = 24 * 60 * 60 * 1000;
 
+export const PROMETHEUS_BASE_PATH = window.SERVER_FLAGS.prometheusBaseURL;
+const PROMETHEUS_TENANCY_BASE_PATH = window.SERVER_FLAGS.prometheusTenancyBaseURL;
+const PROMETHEUS_PROXY_PATH = '/api/proxy/plugin/monitoring-console-plugin/thanos-proxy';
+
+export const ALERTMANAGER_BASE_PATH = window.SERVER_FLAGS.alertManagerBaseURL;
+export const ALERTMANAGER_TENANCY_BASE_PATH = '/api/alertmanager-tenancy'; // remove it once it get added to SERVER_FLAGS
+export const ALERTMANAGER_PROXY_PATH =
+  '/api/proxy/plugin/monitoring-console-plugin/alertmanager-proxy';
+
 export const AlertResource: MonitoringResource = {
+  group: 'monitoring.coreos.com',
+  resource: 'alertingrules',
   kind: 'Alert',
   label: 'Alert',
-  plural: '/monitoring/alerts',
+  url: '/monitoring/alerts',
+  virtUrl: '/virt-monitoring/alerts',
   abbr: 'AL',
 };
 
 export const RuleResource: MonitoringResource = {
+  group: 'monitoring.coreos.com',
+  resource: 'alertingrules',
   kind: 'AlertRule',
   label: 'Alerting Rule',
-  plural: '/monitoring/alertrules',
+  url: '/monitoring/alertrules',
+  virtUrl: '/virt-monitoring/alertrules',
   abbr: 'AR',
 };
 
 export const SilenceResource: MonitoringResource = {
+  group: 'monitoring.coreos.com',
+  resource: 'alertmanagers',
   kind: 'Silence',
   label: 'Silence',
-  plural: '/monitoring/silences',
+  url: '/monitoring/silences',
+  virtUrl: '/virt-monitoring/silences',
   abbr: 'SL',
 };
 
@@ -57,7 +67,6 @@ export const labelsToParams = (labels: PrometheusLabels) =>
 
 export const getAlertsAndRules = (
   data: PrometheusRulesResponse['data'],
-  perspective: Perspective,
 ): { alerts: Alert[]; rules: Rule[] } => {
   // Flatten the rules data to make it easier to work with, discard non-alerting rules since those
   // are the only ones we will be using and add a unique ID to each rule.
@@ -80,12 +89,10 @@ export const getAlertsAndRules = (
 
   // The console codebase and developer perspective actions don't expect the external labels to be
   // included on the alerts
-  if (perspective !== 'dev') {
-    // Add external labels to all `rules[].alerts[].labels`
-    rules.forEach((rule) => {
-      rule.alerts.forEach((alert) => (alert.labels = { ...rule.labels, ...alert.labels }));
-    });
-  }
+  // Add external labels to all `rules[].alerts[].labels`
+  rules.forEach((rule) => {
+    rule.alerts.forEach((alert) => (alert.labels = { ...rule.labels, ...alert.labels }));
+  });
 
   // Add `rule` object to each alert
   const alerts = _.flatMap(rules, (rule) => rule.alerts.map((a) => ({ rule, ...a })));
@@ -115,50 +122,8 @@ export const getSilenceName = (silence: Silence) => {
         .join(', ');
 };
 
-export const refreshSilences = (
-  dispatch: Dispatch,
-  perspective: Perspective,
-  silencesKey: silencesKey,
-  namespace?: string,
-): void => {
-  const { alertManagerBaseURL } = window.SERVER_FLAGS;
-  if (!alertManagerBaseURL) {
-    return;
-  }
-
-  if (perspective === 'dev' && !namespace) {
-    return;
-  }
-
-  dispatch(alertingLoading(silencesKey, perspective));
-
-  consoleFetchJSON(getFetchSilenceAlertUrl(perspective, namespace))
-    .then((silences) => {
-      // Set a name field on the Silence to make things easier
-      _.each(silences, (s) => {
-        s.name = getSilenceName(s);
-      });
-      dispatch(alertingLoaded(silencesKey, silences, perspective));
-    })
-    .catch((e) => {
-      dispatch(alertingErrored(silencesKey, e, perspective));
-    });
-};
-
 export const alertDescription = (alert: PrometheusAlert | Rule): string =>
   alert.annotations?.description || alert.annotations?.message || alert.labels?.alertname;
-
-// Determine if an Alert is silenced by a Silence (if all of the Silence's matchers match one of the
-// Alert's labels)
-export const isSilenced = (alert: Alert, silence: Silence): boolean =>
-  [AlertStates.Firing, AlertStates.Silenced].includes(alert.state) &&
-  _.every(silence.matchers, (m) => {
-    const alertValue = _.get(alert.labels, m.name, '');
-    const isMatch = m.isRegex
-      ? new RegExp(`^${m.value}$`).test(alertValue)
-      : alertValue === m.value;
-    return m.isEqual === false && alertValue ? !isMatch : isMatch;
-  });
 
 export type ListOrder = (number | string)[];
 
@@ -210,4 +175,136 @@ export const getTimeRanges = (
     timeRanges.push({ endTime: nextEndTime, duration: QUERY_CHUNK_SIZE });
   }
   return timeRanges;
+};
+
+export type MonitoringPlugins = 'monitoring-plugin' | 'monitoring-console-plugin';
+
+export const ALL_NAMESPACES_KEY = '#ALL_NS#';
+
+const DEFAULT_PROMETHEUS_SAMPLES = 60;
+const DEFAULT_PROMETHEUS_TIMESPAN = 60 * 60 * 1000;
+
+export type Prometheus = 'acm' | 'cmo';
+
+// Range vector queries require end, start, and step search params
+const getRangeVectorSearchParams = (
+  endTime: number = Date.now(),
+  samples: number = DEFAULT_PROMETHEUS_SAMPLES,
+  timespan: number = DEFAULT_PROMETHEUS_TIMESPAN,
+): URLSearchParams => {
+  const params = new URLSearchParams();
+  params.append('start', `${(endTime - timespan) / 1000}`);
+  params.append('end', `${endTime / 1000}`);
+  params.append('step', `${Math.ceil(timespan / samples / 1000)}`);
+  return params;
+};
+
+const getSearchParams = ({
+  endpoint,
+  endTime,
+  timespan,
+  samples,
+  ...params
+}: PrometheusURLProps): URLSearchParams => {
+  const searchParams =
+    endpoint === PrometheusEndpoint.QUERY_RANGE
+      ? getRangeVectorSearchParams(endTime, samples, timespan)
+      : new URLSearchParams();
+  _.each(params, (value, key) => value && searchParams.append(key, value.toString()));
+  if (searchParams.get(QueryParams.Namespace) === ALL_NAMESPACES_KEY) {
+    searchParams.delete(QueryParams.Namespace);
+  }
+  return searchParams;
+};
+
+export const getPrometheusBasePath = ({
+  prometheus,
+  useTenancyPath,
+  basePathOverride,
+}: {
+  prometheus?: Prometheus;
+  useTenancyPath?: boolean;
+  basePathOverride?: string;
+}) => {
+  if (basePathOverride) {
+    return basePathOverride;
+  }
+
+  if (prometheus === 'acm') {
+    return PROMETHEUS_PROXY_PATH;
+  } else if (useTenancyPath) {
+    return PROMETHEUS_TENANCY_BASE_PATH;
+  } else {
+    return PROMETHEUS_BASE_PATH;
+  }
+};
+
+export const buildPrometheusUrl = ({
+  prometheusUrlProps,
+  basePath,
+}: {
+  prometheusUrlProps: PrometheusURLProps;
+  basePath: string;
+}): string | null => {
+  if (
+    basePath !== PROMETHEUS_TENANCY_BASE_PATH ||
+    prometheusUrlProps.namespace === ALL_NAMESPACES_KEY
+  ) {
+    prometheusUrlProps.namespace = undefined;
+  }
+  if (prometheusUrlProps.endpoint !== PrometheusEndpoint.RULES && !prometheusUrlProps.query) {
+    // Empty query provided, skipping API call
+    return null;
+  }
+
+  const params = getSearchParams(prometheusUrlProps);
+  return `${basePath}/${prometheusUrlProps.endpoint}${
+    params.size > 0 ? '?' + params.toString() : ''
+  }`;
+};
+
+type PrometheusURLProps = {
+  endpoint: PrometheusEndpoint;
+  endTime?: number;
+  namespace?: string;
+  query?: string;
+  samples?: number;
+  timeout?: string;
+  timespan?: number;
+};
+
+export const getAlertmanagerSilencesUrl = ({
+  prometheus,
+  useTenancyPath,
+  namespace,
+}: {
+  prometheus: Prometheus;
+  useTenancyPath: boolean;
+  namespace?: string;
+}) => {
+  if (prometheus === 'acm') {
+    return `${ALERTMANAGER_PROXY_PATH}/api/v2/silences`;
+  } else if (useTenancyPath && namespace && namespace !== ALL_NAMESPACES_KEY) {
+    return `${ALERTMANAGER_TENANCY_BASE_PATH}/api/v2/silences?namespace=${namespace}`;
+  } else {
+    return `${ALERTMANAGER_BASE_PATH}/api/v2/silences`;
+  }
+};
+
+type AlertingContextId = 'observe-alerting' | 'dev-observe-alerting' | 'acm-observe-alerting';
+
+export const getAlertingContextId = ({
+  prometheus,
+  namespace,
+}: {
+  prometheus: Prometheus;
+  namespace?: string;
+}): AlertingContextId => {
+  if (prometheus === 'acm') {
+    return 'acm-observe-alerting';
+  } else if (namespace && namespace !== ALL_NAMESPACES_KEY) {
+    return 'dev-observe-alerting';
+  } else {
+    return 'observe-alerting';
+  }
 };

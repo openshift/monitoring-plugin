@@ -1,8 +1,8 @@
 /* eslint-disable max-len */
 
 import { PrometheusEndpoint, PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
-import { getPrometheusURL } from '../console/graphs/helpers';
-import { Perspective } from 'src/actions/observe';
+import { getPrometheusBasePath, buildPrometheusUrl } from '../utils';
+import { PROMETHEUS_QUERY_INTERVAL_SECONDS } from './utils';
 /**
  * Creates a Prometheus alerts query string from grouped alert values.
  * The function dynamically includes any properties in the input objects that have the "src_" prefix,
@@ -59,26 +59,42 @@ export const createAlertsQuery = (groupedAlertsValues) => {
     })
     .join(' or '); // Join all individual alert queries with "or"
 
+  // TODO: remove duplicated conditions, optimize query
+
   return alertsQuery;
 };
 
 export const fetchDataForIncidentsAndAlerts = (
   fetch: (url: string) => Promise<PrometheusResponse>,
-  range: { startTime: number; endTime: number; duration: number },
+  range: { endTime: number; duration: number },
   customQuery: string,
-  perspective: Perspective,
 ) => {
-  return fetch(
-    getPrometheusURL(
-      {
-        endpoint: PrometheusEndpoint.QUERY_RANGE,
-        endTime: range.endTime,
-        namespace: '',
-        query: customQuery,
-        samples: 288,
-        timespan: range.duration - 1,
+  // Calculate samples to ensure step=PROMETHEUS_QUERY_INTERVAL_SECONDS (300s / 5 minutes)
+  // For 24h duration: Math.ceil(86400000 / 288 / 1000) = 300 seconds
+  const samples = Math.floor(range.duration / (PROMETHEUS_QUERY_INTERVAL_SECONDS * 1000));
+
+  const url = buildPrometheusUrl({
+    prometheusUrlProps: {
+      endpoint: PrometheusEndpoint.QUERY_RANGE,
+      endTime: range.endTime,
+      query: customQuery,
+      samples,
+      timespan: range.duration,
+    },
+    basePath: getPrometheusBasePath({
+      prometheus: 'cmo',
+      useTenancyPath: false,
+    }),
+  });
+
+  if (!url) {
+    // Return empty result when query is empty to avoid making invalid API calls
+    return Promise.resolve({
+      data: {
+        result: [],
       },
-      perspective,
-    ),
-  );
+    });
+  }
+
+  return fetch(url);
 };
