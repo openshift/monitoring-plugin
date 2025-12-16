@@ -13,11 +13,12 @@ import {
   TimePicker,
 } from '@patternfly/react-core';
 import * as _ from 'lodash-es';
-import * as React from 'react';
+import type { FC, MouseEventHandler } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 
-import { dashboardsSetEndTime, dashboardsSetTimespan, Perspective } from '../../../actions/observe';
+import { dashboardsSetEndTime, dashboardsSetTimespan } from '../../../store/actions';
 
 import { NumberParam, useQueryParam } from 'use-query-params';
 import { QueryParams } from '../../query-params';
@@ -35,15 +36,13 @@ const toISOTimeString = (date: Date): string =>
   );
 
 type CustomTimeRangeModalProps = {
-  perspective: Perspective;
   isOpen: boolean;
   setClosed: () => void;
   timespan?: number;
   endTime?: number;
 };
 
-const CustomTimeRangeModal: React.FC<CustomTimeRangeModalProps> = ({
-  perspective,
+const CustomTimeRangeModal: FC<CustomTimeRangeModalProps> = ({
   isOpen,
   setClosed,
   timespan,
@@ -59,21 +58,17 @@ const CustomTimeRangeModal: React.FC<CustomTimeRangeModalProps> = ({
   // covers all of today
   const now = new Date();
   const defaultFrom = endTime && timespan ? new Date(endTime - timespan) : undefined;
-  const [fromDate, setFromDate] = React.useState(toISODateString(defaultFrom ?? now));
-  const [fromTime, setFromTime] = React.useState(
-    defaultFrom ? toISOTimeString(defaultFrom) : '00:00',
-  );
-  const [toDate, setToDate] = React.useState(toISODateString(endTime ? new Date(endTime) : now));
-  const [toTime, setToTime] = React.useState(
-    endTime ? toISOTimeString(new Date(endTime)) : '23:59',
-  );
+  const [fromDate, setFromDate] = useState(toISODateString(defaultFrom ?? now));
+  const [fromTime, setFromTime] = useState(defaultFrom ? toISOTimeString(defaultFrom) : '00:00');
+  const [toDate, setToDate] = useState(toISODateString(endTime ? new Date(endTime) : now));
+  const [toTime, setToTime] = useState(endTime ? toISOTimeString(new Date(endTime)) : '23:59');
 
-  const submit: React.MouseEventHandler<HTMLButtonElement> = () => {
+  const submit: MouseEventHandler<HTMLButtonElement> = () => {
     const from = Date.parse(`${fromDate} ${fromTime}`);
     const to = Date.parse(`${toDate} ${toTime}`);
     if (_.isInteger(from) && _.isInteger(to)) {
-      dispatch(dashboardsSetEndTime(to, perspective));
-      dispatch(dashboardsSetTimespan(to - from, perspective));
+      dispatch(dashboardsSetEndTime(to));
+      dispatch(dashboardsSetTimespan(to - from));
       setEndTime(Number(to.toString()));
       setTimeRange(Number((to - from).toString()));
       setClosed();

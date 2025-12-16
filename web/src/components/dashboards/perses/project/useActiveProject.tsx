@@ -3,7 +3,7 @@ import {
   useActiveNamespace,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
-import * as React from 'react';
+import { useState, useEffect } from 'react';
 import { ProjectModel } from '../../../console/models';
 import { usePerspective } from '../../../hooks/usePerspective';
 import { usePerses } from '../hooks/usePerses';
@@ -11,7 +11,7 @@ import { QueryParams } from '../../../query-params';
 import { StringParam, useQueryParam } from 'use-query-params';
 
 export const useActiveProject = () => {
-  const [activeProject, setActiveProject] = React.useState('');
+  const [activeProject, setActiveProject] = useState('');
   const [activeNamespace, setActiveNamespace] = useActiveNamespace();
   const { perspective } = usePerspective();
   const { persesProjects, persesProjectsLoading } = usePerses();
@@ -23,7 +23,7 @@ export const useActiveProject = () => {
   });
 
   // Sync the state and the URL param
-  React.useEffect(() => {
+  useEffect(() => {
     // If data and url hasn't been set yet, default to legacy dashboard (for now)
     if (!activeProject && projectFromUrl) {
       setActiveProject(projectFromUrl);
@@ -38,12 +38,8 @@ export const useActiveProject = () => {
       return;
       // If activeProject isn't set yet, but the url is, then load from url
     }
-    if (perspective !== 'dev') {
-      // If the url and the data is out of sync, follow the data
-      setProject(activeProject);
-      // Don't set project in dev perspective since perses dashboards
-      // aren't supported there yet
-    }
+    // If the url and the data is out of sync, follow the data
+    setProject(activeProject);
   }, [
     projectFromUrl,
     activeProject,
@@ -54,7 +50,7 @@ export const useActiveProject = () => {
   ]);
 
   // Sync the activeProject and activeNamespace changes
-  React.useEffect(() => {
+  useEffect(() => {
     if (!activeProject || !namespacesLoaded || activeProject === activeNamespace) {
       return;
     }

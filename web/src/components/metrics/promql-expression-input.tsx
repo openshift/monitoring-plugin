@@ -45,12 +45,13 @@ import {
 } from '@patternfly/react-core';
 import { CloseIcon, ExclamationCircleIcon } from '@patternfly/react-icons';
 import { PromQLExtension } from '@prometheus-io/codemirror-promql';
-import * as React from 'react';
+import type { FC } from 'react';
+import { useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useSafeFetch } from '../console/utils/safe-fetch-hook';
 
-import { PROMETHEUS_BASE_PATH, PROMETHEUS_TENANCY_BASE_PATH } from '../console/graphs/helpers';
+import { getPrometheusBasePath, PROMETHEUS_BASE_PATH } from '../utils';
 import { LabelNamesResponse } from '@perses-dev/prometheus-plugin';
 import {
   t_global_color_status_custom_default,
@@ -69,7 +70,7 @@ import {
   t_global_color_nonstatus_purple_default,
 } from '@patternfly/react-tokens';
 import { usePatternFlyTheme } from '../hooks/usePatternflyTheme';
-import { usePerspective } from '../hooks/usePerspective';
+import { useMonitoring } from '../../hooks/useMonitoring';
 
 const box_shadow = `
     var(--pf-t--global--box-shadow--X--md--default)
@@ -320,33 +321,38 @@ export const promqlHighlighter = HighlightStyle.define([
   { tag: tags.comment, color: t_global_text_color_disabled.var, fontStyle: 'italic' },
 ]);
 
-export const PromQLExpressionInput: React.FC<PromQLExpressionInputProps> = ({
+export const PromQLExpressionInput: FC<PromQLExpressionInputProps> = ({
   value,
   onExecuteQuery,
   onValueChange,
   onSelectionChange,
 }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const [namespace] = useActiveNamespace();
+  const { prometheus, accessCheckLoading, useMetricsTenancy } = useMonitoring();
   const { theme: pfTheme } = usePatternFlyTheme();
 
-  const containerRef = React.useRef<HTMLDivElement | null>(null);
-  const viewRef = React.useRef<EditorView | null>(null);
-  const [metricNames, setMetricNames] = React.useState<Array<string>>([]);
-  const [errorMessage, setErrorMessage] = React.useState<string | undefined>();
-  const { perspective } = usePerspective();
-  const [namespace] = useActiveNamespace();
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const viewRef = useRef<EditorView | null>(null);
+  const [metricNames, setMetricNames] = useState<Array<string>>([]);
+  const [errorMessage, setErrorMessage] = useState<string | undefined>();
 
   const placeholder = t('Expression (press Shift+Enter for newlines)');
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const safeFetch = React.useCallback(useSafeFetch(), []);
+  const safeFetch = useCallback(useSafeFetch(), []);
 
-  React.useEffect(() => {
-    let url = `${PROMETHEUS_BASE_PATH}/${PrometheusEndpoint.LABEL}/__name__/values`;
-    if (perspective === 'dev') {
-      // eslint-disable-next-line max-len
-      url = `${PROMETHEUS_TENANCY_BASE_PATH}/${PrometheusEndpoint.LABEL}/__name__/values?namespace=${namespace}`;
+  useEffect(() => {
+    if (accessCheckLoading) {
+      return;
     }
+    // If we are using the tenancy path, then add the namespace as a query parameter at the end of
+    // the url
+    const namespaceQueryParam = useMetricsTenancy ? `?namespace=${namespace}` : '';
+    const url = `${getPrometheusBasePath({
+      useTenancyPath: useMetricsTenancy,
+      prometheus,
+    })}/${PrometheusEndpoint.LABEL}/__name__/values${namespaceQueryParam}`;
     safeFetch<LabelNamesResponse>(url)
       .then((response) => {
         const metrics = response?.data;
@@ -361,7 +367,7 @@ export const PromQLExpressionInput: React.FC<PromQLExpressionInputProps> = ({
           setErrorMessage(message);
         }
       });
-  }, [safeFetch, t, namespace, perspective]);
+  }, [safeFetch, t, namespace, prometheus, accessCheckLoading, useMetricsTenancy]);
 
   const onClear = () => {
     if (viewRef.current !== null) {
@@ -371,7 +377,7 @@ export const PromQLExpressionInput: React.FC<PromQLExpressionInputProps> = ({
     onValueChange('');
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (viewRef.current !== null) {
       const currentExpression = viewRef.current.state.doc.toString();
       if (currentExpression !== value) {
@@ -382,7 +388,7 @@ export const PromQLExpressionInput: React.FC<PromQLExpressionInputProps> = ({
     }
   }, [value]);
 
-  const target = React.useMemo(
+  const target = useMemo(
     () => ({
       focus: () => viewRef.current.focus(),
       setSelectionRange: (from: number, to: number) => {
@@ -394,7 +400,7 @@ export const PromQLExpressionInput: React.FC<PromQLExpressionInputProps> = ({
     [],
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     promqlExtension.setComplete({
       remote: {
         url: PROMETHEUS_BASE_PATH,

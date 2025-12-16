@@ -1,4 +1,5 @@
-import * as React from 'react';
+import type { FC, ComponentType } from 'react';
+import { Fragment } from 'react';
 import {
   ChartBar,
   ChartLabel,
@@ -48,7 +49,7 @@ const barTheme = {
   },
 };
 
-const BarChart: React.FC<BarChartProps> = ({
+const BarChart: FC<BarChartProps> = ({
   barSpacing = 15,
   barWidth = DEFAULT_BAR_WIDTH,
   data = [],
@@ -82,7 +83,7 @@ const BarChart: React.FC<BarChartProps> = ({
       <PrometheusGraphLink query={noLink ? undefined : query}>
         {data.length ? (
           data.map((datum, index) => (
-            <React.Fragment key={index}>
+            <Fragment key={index}>
               <div className="graph-bar__label">
                 {LabelComponent ? (
                   <LabelComponent title={datum.x} metric={datum.metric} />
@@ -105,7 +106,7 @@ const BarChart: React.FC<BarChartProps> = ({
                   padding={padding}
                 />
               </div>
-            </React.Fragment>
+            </Fragment>
           ))
         ) : (
           <GraphEmpty loading={loading} />
@@ -115,7 +116,7 @@ const BarChart: React.FC<BarChartProps> = ({
   );
 };
 
-export const Bar: React.FC<BarProps> = ({
+export const Bar: FC<BarProps> = ({
   barSpacing,
   barWidth,
   delay = undefined,
@@ -162,7 +163,7 @@ type BarChartProps = {
   barSpacing?: number;
   barWidth?: number;
   data?: DataPoint[];
-  LabelComponent?: React.ComponentType<LabelComponentProps>;
+  LabelComponent?: ComponentType<LabelComponentProps>;
   loading?: boolean;
   noLink?: boolean;
   query?: string;
@@ -176,7 +177,7 @@ type BarProps = {
   barWidth?: number;
   delay?: number;
   humanize?: Humanize;
-  LabelComponent?: React.ComponentType<LabelComponentProps>;
+  LabelComponent?: ComponentType<LabelComponentProps>;
   metric?: string;
   namespace?: string;
   noLink?: boolean;

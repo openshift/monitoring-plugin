@@ -1,4 +1,4 @@
-FROM registry.ci.openshift.org/ocp/builder:rhel-9-base-nodejs-openshift-4.19 AS web-builder
+FROM registry.ci.openshift.org/ocp/builder:rhel-9-base-nodejs-openshift-4.21 AS web-builder
 
 # Copy app sources
 COPY $REMOTE_SOURCES $REMOTE_SOURCES_DIR
@@ -17,7 +17,7 @@ RUN test -d ${REMOTE_SOURCES_DIR}/cachito-gomod-with-deps || exit 1; \
  && make build-frontend
 
 
-FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.23-openshift-4.19 AS go-builder
+FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.24-openshift-4.21 AS go-builder
 
 COPY $REMOTE_SOURCES $REMOTE_SOURCES_DIR
 WORKDIR $REMOTE_SOURCES_DIR/cachito-gomod-with-deps/app
@@ -28,7 +28,7 @@ ENV CGO_ENABLED=1
 RUN source $REMOTE_SOURCES_DIR/cachito-gomod-with-deps/cachito.env \
   && make build-backend BUILD_OPTS="-tags strictfipsruntime"
 
-FROM registry.ci.openshift.org/ocp/4.19:base-rhel9
+FROM registry.ci.openshift.org/ocp/4.21:base-rhel9
 
 USER 1001
 

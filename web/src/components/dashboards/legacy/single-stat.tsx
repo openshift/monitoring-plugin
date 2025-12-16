@@ -1,15 +1,15 @@
 import * as _ from 'lodash-es';
-import * as React from 'react';
+import type { ReactNode, FC } from 'react';
+import { useState, useCallback } from 'react';
 import { PrometheusEndpoint, PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
 import { Bullseye, Title } from '@patternfly/react-core';
 
-import ErrorAlert from '../shared/error';
-import { getPrometheusURL } from '../../console/graphs/helpers';
+import ErrorAlert from './error';
+import { getPrometheusBasePath, buildPrometheusUrl } from '../../utils';
 import { usePoll } from '../../console/utils/poll-hook';
 import { useSafeFetch } from '../../console/utils/safe-fetch-hook';
 
 import { formatNumber } from '../../format';
-import { usePerspective } from '../../hooks/usePerspective';
 import { Panel } from './types';
 import { useTranslation } from 'react-i18next';
 import { LoadingInline } from '../../console/console-shared/src/components/loading/LoadingInline';
@@ -47,6 +47,7 @@ import {
   t_chart_color_yellow_500,
 } from '@patternfly/react-tokens';
 import { PatternflyToken } from '../../types';
+import { useMonitoring } from '../../../hooks/useMonitoring';
 
 const colorMap: Record<string, PatternflyToken> = {
   'super-light-blue': t_chart_color_blue_100,
@@ -89,17 +90,11 @@ const colorMap: Record<string, PatternflyToken> = {
 const getColorCSS = (colorName: string): string =>
   colorMap[colorName] ? colorMap[colorName].var : undefined;
 
-const Body: React.FC<{ children: React.ReactNode; color?: string }> = ({ children, color }) => (
+const Body: FC<{ children: ReactNode; color?: string }> = ({ children, color }) => (
   <Bullseye style={{ color }}>{children}</Bullseye>
 );
 
-const SingleStat: React.FC<Props> = ({
-  customDataSource,
-  namespace,
-  panel,
-  pollInterval,
-  query,
-}) => {
+const SingleStat: FC<Props> = ({ customDataSource, namespace, panel, pollInterval, query }) => {
   const {
     decimals,
     format,
@@ -113,26 +108,29 @@ const SingleStat: React.FC<Props> = ({
   } = panel;
 
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const [error, setError] = React.useState<string>();
-  const [isLoading, setIsLoading] = React.useState(true);
-  const [value, setValue] = React.useState<string>();
-  const { perspective } = usePerspective();
+  const { accessCheckLoading, useMetricsTenancy } = useMonitoring();
+  const [error, setError] = useState<string>();
+  const [isLoading, setIsLoading] = useState(true);
+  const [value, setValue] = useState<string>();
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const safeFetch = React.useCallback(useSafeFetch(), []);
+  const safeFetch = useCallback(useSafeFetch(), []);
 
-  const url = getPrometheusURL(
-    {
+  const url = buildPrometheusUrl({
+    prometheusUrlProps: {
       endpoint: PrometheusEndpoint.QUERY,
       query,
-      namespace: perspective === 'dev' ? namespace : '',
+      namespace,
     },
-    perspective,
-    customDataSource?.basePath,
-  );
+    basePath: getPrometheusBasePath({
+      prometheus: 'cmo',
+      useTenancyPath: useMetricsTenancy,
+      basePathOverride: customDataSource?.basePath,
+    }),
+  });
 
   const tick = () => {
-    if (!url) {
+    if (!url || accessCheckLoading) {
       return;
     }
     safeFetch<PrometheusResponse>(url)
@@ -150,7 +148,7 @@ const SingleStat: React.FC<Props> = ({
       });
   };
 
-  usePoll(tick, pollInterval, query);
+  usePoll(tick, pollInterval, query, accessCheckLoading, useMetricsTenancy);
 
   const filteredVMs = valueMaps?.filter((vm) => vm.op === '=');
   const valueMap =

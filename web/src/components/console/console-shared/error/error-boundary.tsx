@@ -1,8 +1,9 @@
-import * as React from 'react';
+import type { ComponentType, FC } from 'react';
+import { Component } from 'react';
 import { history } from '../../utils/router';
 
 type ErrorBoundaryProps = {
-  FallbackComponent?: React.ComponentType<ErrorBoundaryFallbackProps>;
+  FallbackComponent?: ComponentType<ErrorBoundaryFallbackProps>;
 };
 
 /** Needed for tests -- should not be imported by application logic */
@@ -12,9 +13,9 @@ export type ErrorBoundaryState = {
   errorInfo: { componentStack: string };
 };
 
-const DefaultFallback: React.FC = () => <div />;
+const DefaultFallback: FC = () => <div />;
 
-class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   // eslint-disable-next-line
   unlisten: () => void = () => {};
 

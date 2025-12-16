@@ -37,13 +37,14 @@ import {
 } from '@patternfly/react-core';
 import { sortable, Td } from '@patternfly/react-table';
 import { find, includes, isEmpty } from 'lodash-es';
-import * as React from 'react';
+import type { FC } from 'react';
+import { createContext, useContext, memo, useMemo, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router-dom-v5-compat';
 import { EmptyBox } from './console/console-shared/src/components/empty-state/EmptyBox';
 import { LoadingInline } from './console/console-shared/src/components/loading/LoadingInline';
 import { StatusBox } from './console/console-shared/src/components/status/StatusBox';
-import { PROMETHEUS_BASE_PATH } from './console/graphs/helpers';
+import { PROMETHEUS_BASE_PATH } from './utils';
 import {
   NamespaceModel,
   PodModel,
@@ -58,6 +59,7 @@ import { useBoolean } from './hooks/useBoolean';
 import { Labels } from './labels';
 import { AlertSource, PrometheusAPIError, Target } from './types';
 import { fuzzyCaseInsensitive, targetSource } from './utils';
+import { MonitoringProvider } from '../contexts/MonitoringContext';
 
 enum MonitorType {
   ServiceMonitor = 'serviceMonitor',
@@ -72,23 +74,23 @@ type PrometheusTargetsResponse = {
   };
 };
 
-const ServiceMonitorsWatchContext = React.createContext([]);
-const ServicesWatchContext = React.createContext([]);
+const ServiceMonitorsWatchContext = createContext([]);
+const ServicesWatchContext = createContext([]);
 
-const PodMonitorsWatchContext = React.createContext([]);
-const PodsWatchContext = React.createContext([]);
+const PodMonitorsWatchContext = createContext([]);
+const PodsWatchContext = createContext([]);
 
 const getReference = ({ group, version, kind }) => [group || 'core', version, kind].join('~');
 
 export const getReferenceForModel = (model: K8sModel) =>
   getReference({ group: model.apiGroup, version: model.apiVersion, kind: model.kind });
 
-const PodMonitor: React.FC<{ target: Target }> = ({ target }) => {
+const PodMonitor: FC<{ target: Target }> = ({ target }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const [podMonitors, podMonitorsLoaded, podMonitorsLoadError] =
-    React.useContext(PodMonitorsWatchContext);
-  const [pods, podsLoaded] = React.useContext(PodsWatchContext);
+    useContext(PodMonitorsWatchContext);
+  const [pods, podsLoaded] = useContext(PodsWatchContext);
 
   if (podMonitorsLoadError) {
     return (
@@ -134,13 +136,11 @@ const PodMonitor: React.FC<{ target: Target }> = ({ target }) => {
   );
 };
 
-const ServiceMonitor: React.FC<{ target: Target }> = ({ target }) => {
+const ServiceMonitor: FC<{ target: Target }> = ({ target }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
-  const [monitors, monitorsLoaded, monitorsLoadError] = React.useContext(
-    ServiceMonitorsWatchContext,
-  );
-  const [services, servicesLoaded] = React.useContext(ServicesWatchContext);
+  const [monitors, monitorsLoaded, monitorsLoadError] = useContext(ServiceMonitorsWatchContext);
+  const [services, servicesLoaded] = useContext(ServicesWatchContext);
 
   if (monitorsLoadError) {
     return (
@@ -186,7 +186,7 @@ const ServiceMonitor: React.FC<{ target: Target }> = ({ target }) => {
   );
 };
 
-const Health: React.FC<{ health: 'up' | 'down' }> = React.memo(({ health }) => {
+const Health: FC<{ health: 'up' | 'down' }> = memo(({ health }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return health === 'up' ? (
@@ -205,7 +205,7 @@ type WatchErrorAlertProps = {
   title: string;
 };
 
-const WatchErrorAlert: React.FC<WatchErrorAlertProps> = ({ loadError, title }) => {
+const WatchErrorAlert: FC<WatchErrorAlertProps> = ({ loadError, title }) => {
   const [showError, , , hideError] = useBoolean(true);
 
   if (!showError) {
@@ -229,7 +229,7 @@ type DetailsProps = {
   targets: Target[];
 };
 
-const Details: React.FC<DetailsProps> = ({ loaded, loadError, targets }) => {
+const Details: FC<DetailsProps> = ({ loaded, loadError, targets }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const params = useParams<{ scrapeUrl?: string }>();
@@ -249,8 +249,8 @@ const Details: React.FC<DetailsProps> = ({ loaded, loadError, targets }) => {
     target && target.scrapePool.includes(MonitorType.ServiceMonitor);
   const isPodMonitor: boolean = target && target.scrapePool.includes(MonitorType.PodMonitor);
 
-  const [, , serviceMonitorsLoadError] = React.useContext(ServiceMonitorsWatchContext);
-  const [, , podMonitorsLoadError] = React.useContext(PodMonitorsWatchContext);
+  const [, , serviceMonitorsLoadError] = useContext(ServiceMonitorsWatchContext);
+  const [, , podMonitorsLoadError] = useContext(PodMonitorsWatchContext);
 
   return (
     <>
@@ -351,7 +351,7 @@ const Details: React.FC<DetailsProps> = ({ loaded, loadError, targets }) => {
   );
 };
 
-const Row: React.FC<RowProps<Target>> = ({ obj }) => {
+const Row: FC<RowProps<Target>> = ({ obj }) => {
   const { health, labels, lastError, lastScrape, lastScrapeDuration, scrapePool, scrapeUrl } = obj;
 
   const isServiceMonitor: boolean = scrapePool?.includes(MonitorType.ServiceMonitor);
@@ -403,10 +403,10 @@ type ListProps = {
   unfilteredData: Target[];
 };
 
-const List: React.FC<ListProps> = ({ data, loaded, loadError, unfilteredData }) => {
+const List: FC<ListProps> = ({ data, loaded, loadError, unfilteredData }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
-  const columns = React.useMemo<TableColumn<Target>[]>(
+  const columns = useMemo<TableColumn<Target>[]>(
     () => [
       {
         id: 'scrapeUrl',
@@ -457,7 +457,7 @@ const List: React.FC<ListProps> = ({ data, loaded, loadError, unfilteredData }) 
       Row={Row}
       unfilteredData={unfilteredData}
       NoDataEmptyMsg={() => {
-        return <EmptyBox label={t('Metrics targets')} />;
+        return <EmptyBox customMessage={t('No metrics targets found')} />;
       }}
     />
   );
@@ -469,11 +469,11 @@ type ListPageProps = {
   targets: Target[];
 };
 
-const ListPage: React.FC<ListPageProps> = ({ loaded, loadError, targets }) => {
+const ListPage: FC<ListPageProps> = ({ loaded, loadError, targets }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
-  const [, , serviceMonitorsLoadError] = React.useContext(ServiceMonitorsWatchContext);
-  const [, , podMonitorsLoadError] = React.useContext(PodMonitorsWatchContext);
+  const [, , serviceMonitorsLoadError] = useContext(ServiceMonitorsWatchContext);
+  const [, , podMonitorsLoadError] = useContext(PodMonitorsWatchContext);
 
   const nameFilter: RowFilter = {
     filter: (filter, target: Target) =>
@@ -559,10 +559,10 @@ const ListPage: React.FC<ListPageProps> = ({ loaded, loadError, targets }) => {
 
 const POLL_INTERVAL = 15 * 1000;
 
-export const TargetsPage: React.FC = () => {
-  const [error, setError] = React.useState<PrometheusAPIError>();
-  const [loaded, setLoaded] = React.useState(false);
-  const [targets, setTargets] = React.useState<Target[]>();
+const TargetsPage_: FC = () => {
+  const [error, setError] = useState<PrometheusAPIError>();
+  const [loaded, setLoaded] = useState(false);
+  const [targets, setTargets] = useState<Target[]>();
   const { scrapeUrl } = useParams<{ scrapeUrl?: string }>();
 
   const servicesWatch = useK8sWatchResource<K8sResourceKind[]>({
@@ -586,7 +586,7 @@ export const TargetsPage: React.FC = () => {
   });
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const safeFetch = React.useCallback(useSafeFetch(), []);
+  const safeFetch = useCallback(useSafeFetch(), []);
 
   const tick = () =>
     safeFetch<PrometheusTargetsResponse>(
@@ -625,4 +625,10 @@ export const TargetsPage: React.FC = () => {
   );
 };
 
-export default TargetsPage;
+export const MpCmoTargetsPage: React.FC = () => {
+  return (
+    <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
+      <TargetsPage_ />
+    </MonitoringProvider>
+  );
+};

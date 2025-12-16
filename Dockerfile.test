@@ -1,10 +1,15 @@
-FROM registry.redhat.io/rhel8/nodejs-18:1-71.1698060565
+FROM registry.redhat.io/ubi9/nodejs-22:9.6-1755075210 AS web-builder
+
+USER 0
 
 WORKDIR /usr/src/app
 
-COPY web/package.json web/package-lock.json ./
-RUN npm ci
+COPY web/package*.json web/
+COPY Makefile Makefile
 
-COPY web/. .
+RUN make install-frontend-ci
 
-ENTRYPOINT ["npm", "run", "lint"]
+COPY web/. web/.
+COPY scripts/. scripts/.
+
+ENTRYPOINT ["make", "lint-frontend"]

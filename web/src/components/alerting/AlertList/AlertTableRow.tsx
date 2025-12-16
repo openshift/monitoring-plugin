@@ -19,9 +19,9 @@ import { AlertSource } from '../../../components/types';
 import { Td, Tr } from '@patternfly/react-table';
 import { DropdownItem, Flex, FlexItem } from '@patternfly/react-core';
 import KebabDropdown from '../../../components/kebab-dropdown';
-import React from 'react';
+import type { FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useParams } from 'react-router-dom-v5-compat';
+import { useNavigate } from 'react-router-dom-v5-compat';
 import { AlertResource, alertState } from '../../../components/utils';
 import {
   getAlertUrl,
@@ -29,14 +29,12 @@ import {
   usePerspective,
 } from '../../../components/hooks/usePerspective';
 import { Link } from 'react-router-dom-v5-compat';
+import { DataTestIDs } from '../../data-test';
 
-const AlertTableRow: React.FC<{ alert: Alert }> = ({ alert }) => {
+const AlertTableRow: FC<{ alert: Alert }> = ({ alert }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
   const navigate = useNavigate();
-  const params = useParams<{ ns: string }>();
-
-  const namespace = params.ns;
 
   const state = alertState(alert);
 
@@ -48,7 +46,8 @@ const AlertTableRow: React.FC<{ alert: Alert }> = ({ alert }) => {
     dropdownItems.unshift(
       <DropdownItem
         key="silence-alert"
-        onClick={() => navigate(getNewSilenceAlertUrl(perspective, alert, namespace))}
+        onClick={() => navigate(getNewSilenceAlertUrl(perspective, alert))}
+        data-test={DataTestIDs.SilenceAlertDropdownItem}
       >
         {t('Silence alert')}
       </DropdownItem>,
@@ -79,28 +78,24 @@ const AlertTableRow: React.FC<{ alert: Alert }> = ({ alert }) => {
     <Tr>
       <Td title={title}>
         <Flex spaceItems={{ default: 'spaceItemsNone' }} flexWrap={{ default: 'nowrap' }}>
-          <FlexItem>
+          <FlexItem data-test={DataTestIDs.AlertResourceIcon}>
             <ResourceIcon kind={AlertResource.kind} />
           </FlexItem>
           <FlexItem>
             <Link
-              to={getAlertUrl(
-                perspective,
-                alert,
-                alert?.rule?.id,
-                alert?.labels?.namespace || namespace,
-              )}
+              to={getAlertUrl(perspective, alert, alert?.rule?.id)}
               data-test-id="alert-resource-link"
+              data-test={DataTestIDs.AlertResourceLink}
             >
               {alert?.labels?.alertname}
             </Link>
           </FlexItem>
         </Flex>
       </Td>
-      <Td title={title}>
+      <Td title={title} data-test={DataTestIDs.SeverityBadge}>
         <SeverityBadge severity={alert.labels?.severity} />
       </Td>
-      <Td title={title}>
+      <Td title={title} data-test={DataTestIDs.AlertNamespace}>
         {alert.labels?.namespace ? (
           <ResourceLink
             groupVersionKind={NamespaceGroupVersionKind}
@@ -110,12 +105,18 @@ const AlertTableRow: React.FC<{ alert: Alert }> = ({ alert }) => {
           '-'
         )}
       </Td>
-      <Td title={title}>
+      <Td title={title} data-test={DataTestIDs.AlertState}>
         <AlertState state={state} />
         <AlertStateDescription alert={alert} />
       </Td>
-      <Td title={title}>{alertSource(alert) === AlertSource.User ? t('User') : t('Platform')}</Td>
-      {perspective === 'acm' && <Td title={title}>{alert.labels?.cluster}</Td>}
+      <Td title={title} data-test={DataTestIDs.AlertSource}>
+        {alertSource(alert) === AlertSource.User ? t('User') : t('Platform')}
+      </Td>
+      {perspective === 'acm' && (
+        <Td title={title} data-test={DataTestIDs.AlertCluster}>
+          {alert.labels?.cluster}
+        </Td>
+      )}
       <Td title={title}>
         <ActionServiceProvider context={{ 'monitoring-alert-list-item': { alert: alert } }}>
           {({ actions, loaded }) => {

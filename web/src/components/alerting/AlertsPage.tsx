@@ -4,22 +4,20 @@ import {
   DocumentTitle,
   ListPageFilter,
   RowFilter,
+  useActiveNamespace,
   useListPageFilter,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { Flex, PageSection } from '@patternfly/react-core';
 import { Table, TableGridBreakpoint, Th, Thead, Tr } from '@patternfly/react-table';
 import * as _ from 'lodash-es';
-import * as React from 'react';
+import type { FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
-import { MonitoringState } from '../../reducers/observe';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
 import { LoadingBox } from '../console/console-shared/src/components/loading/LoadingBox';
-import { useAlertsPoller } from '../hooks/useAlertsPoller';
-import { getLegacyObserveState, usePerspective } from '../hooks/usePerspective';
-import { Alerts, AlertSource } from '../types';
-import { alertState, fuzzyCaseInsensitive } from '../utils';
+import { usePerspective } from '../hooks/usePerspective';
+import { AlertSource } from '../types';
+import { alertState, ALL_NAMESPACES_KEY, fuzzyCaseInsensitive } from '../utils';
 import AggregateAlertTableRow from './AlertList/AggregateAlertTableRow';
 import DownloadCSVButton from './AlertList/DownloadCSVButton';
 import useAggregateAlertColumns from './AlertList/hooks/useAggregateAlertColumns';
@@ -27,48 +25,23 @@ import { getAggregateAlertsLists } from './AlertsAggregates';
 import {
   alertCluster,
   alertSource,
-  getAdditionalSources,
   severityRowFilter,
   SilencesNotLoadedWarning,
 } from './AlertUtils';
-import Error from './Error';
 import useSelectedFilters from './useSelectedFilters';
+import { MonitoringProvider } from '../../contexts/MonitoringContext';
+import { useAlerts } from '../../hooks/useAlerts';
+import { AccessDenied } from '../console/console-shared/src/components/empty-state/AccessDenied';
+import { useMonitoring } from '../../hooks/useMonitoring';
 
-const AlertsPage_: React.FC = () => {
+const AlertsPage_: FC = () => {
+  const { useAlertsTenancy } = useMonitoring();
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { alertsKey, silencesKey, defaultAlertTenant, perspective } = usePerspective();
+  const [namespace] = useActiveNamespace();
+  const { defaultAlertTenant, perspective } = usePerspective();
 
-  useAlertsPoller();
-
-  const {
-    data,
-    loaded = false,
-    loadError,
-  }: Alerts = useSelector(
-    (state: MonitoringState) => getLegacyObserveState(perspective, state)?.get(alertsKey) || {},
-  );
-  const silencesLoadError = useSelector(
-    (state: MonitoringState) =>
-      getLegacyObserveState(perspective, state)?.get(silencesKey)?.loadError,
-  );
-
-  const alertAdditionalSources = React.useMemo(
-    () => getAdditionalSources(data, alertSource),
-    [data],
-  );
-
-  const clusters = React.useMemo(() => {
-    const clusterSet = new Set<string>();
-    data?.forEach((alert) => {
-      const clusterName = alert.labels?.cluster;
-      if (clusterName) {
-        clusterSet.add(clusterName);
-      }
-    });
-
-    const clusterArray = Array.from(clusterSet);
-    return clusterArray.sort();
-  }, [data]);
+  const { alerts, additionalAlertSourceLabels, alertClusterLabels, rulesAlertLoading, silences } =
+    useAlerts();
 
   let rowFilters: RowFilter[] = [
     // TODO: The "name" filter doesn't really fit useListPageFilter's idea of a RowFilter, but
@@ -106,16 +79,14 @@ const AlertsPage_: React.FC = () => {
       items: [
         { id: AlertSource.Platform, title: t('Platform') },
         { id: AlertSource.User, title: t('User') },
-        ...alertAdditionalSources,
+        ...additionalAlertSourceLabels,
       ],
       reducer: alertSource,
       type: 'alert-source',
     },
   ];
 
-  if (perspective === 'dev') {
-    rowFilters = rowFilters.filter((filter) => filter.type !== 'alert-source');
-  } else if (perspective === 'acm') {
+  if (perspective === 'acm') {
     rowFilters.splice(-1, 0, {
       filter: (filter, alert: Alert) => {
         return (
@@ -126,7 +97,7 @@ const AlertsPage_: React.FC = () => {
         );
       },
       filterGroupName: t('Cluster'),
-      items: clusters.map((clusterName) => ({
+      items: alertClusterLabels.map((clusterName) => ({
         id: clusterName,
         title: clusterName?.length > 50 ? clusterName.slice(0, 50) + '...' : clusterName,
       })),
@@ -135,14 +106,18 @@ const AlertsPage_: React.FC = () => {
         fuzzyCaseInsensitive(clusterName, alert.labels?.cluster),
       type: 'alert-cluster',
     } as RowFilter);
+  } else if (useAlertsTenancy && namespace && namespace !== ALL_NAMESPACES_KEY) {
+    rowFilters = rowFilters.filter((filter) => filter.type !== 'alert-source');
   }
 
-  const [staticData, filteredData, onFilterChange] = useListPageFilter(data, rowFilters);
+  const [staticData, filteredData, onFilterChange] = useListPageFilter(alerts, rowFilters);
 
   const columns = useAggregateAlertColumns();
   const selectedFilters = useSelectedFilters();
 
   const filteredAggregatedAlerts = getAggregateAlertsLists(filteredData);
+  const loaded = !!rulesAlertLoading?.loaded;
+  const loadError = rulesAlertLoading?.loadError ? rulesAlertLoading.loadError : undefined;
 
   return (
     <>
@@ -162,8 +137,11 @@ const AlertsPage_: React.FC = () => {
             <DownloadCSVButton loaded={loaded} filteredData={filteredAggregatedAlerts} />
           )}
         </Flex>
-        {silencesLoadError && <SilencesNotLoadedWarning silencesLoadError={silencesLoadError} />}
-
+        {/* Only show the silences error when the alerts have loaded, since failing to load the
+          silences doesn't matter if the alerts haven't loaded*/}
+        {silences?.loadError && !loadError && (
+          <SilencesNotLoadedWarning silencesLoadError={silences?.loadError} />
+        )}
         {filteredAggregatedAlerts?.length > 0 && loaded && (
           <Table gridBreakPoint={TableGridBreakpoint.none} role="presentation">
             <Thead>
@@ -184,16 +162,31 @@ const AlertsPage_: React.FC = () => {
             ))}
           </Table>
         )}
-
-        {loadError && <Error error={loadError} />}
+        {loadError && <AccessDenied message={loadError.message} />}
         {loaded && filteredAggregatedAlerts?.length === 0 && !loadError && (
-          <EmptyBox label={t('Alerts')} />
+          <EmptyBox customMessage={t('No alerts found')} />
         )}
         {!loaded && <LoadingBox />}
       </PageSection>
     </>
   );
 };
-const AlertsPage = withFallback(AlertsPage_);
+const AlertsPageWithFallback = withFallback(AlertsPage_);
 
-export default AlertsPage;
+export const MpCmoAlertsPage = () => {
+  return (
+    <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
+      <AlertsPageWithFallback />
+    </MonitoringProvider>
+  );
+};
+
+export const McpAcmAlertsPage = () => {
+  return (
+    <MonitoringProvider
+      monitoringContext={{ plugin: 'monitoring-console-plugin', prometheus: 'acm' }}
+    >
+      <AlertsPageWithFallback />
+    </MonitoringProvider>
+  );
+};
