@@ -76,7 +76,7 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
   }, [alertsData]);
 
   useEffect(() => {
-    setChartContainerHeight(chartData?.length < 5 ? 300 : chartData?.length * 60);
+    setChartContainerHeight(chartData?.length < 5 ? 300 : chartData?.length * 55);
     setChartHeight(chartData?.length < 5 ? 250 : chartData?.length * 55);
   }, [chartData]);
 
