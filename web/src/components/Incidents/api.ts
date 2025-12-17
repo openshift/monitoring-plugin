@@ -1,6 +1,10 @@
 /* eslint-disable max-len */
 
-import { PrometheusEndpoint, PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  consoleFetchJSON,
+  PrometheusEndpoint,
+  PrometheusResponse,
+} from '@openshift-console/dynamic-plugin-sdk';
 import { getPrometheusBasePath, buildPrometheusUrl } from '../utils';
 import { PROMETHEUS_QUERY_INTERVAL_SECONDS } from './utils';
 
@@ -132,7 +136,7 @@ export const fetchDataForIncidentsAndAlerts = async (
       } as PrometheusResponse);
     }
 
-    return fetch(url);
+    return consoleFetchJSON(url);
   });
 
   const responses = await Promise.all(promises);

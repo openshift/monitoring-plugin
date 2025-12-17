@@ -8,7 +8,7 @@
 };
 
 import { createAlertsQuery, fetchDataForIncidentsAndAlerts } from './api';
-import { PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
+import { PrometheusResponse, consoleFetchJSON } from '@openshift-console/dynamic-plugin-sdk';
 import { buildPrometheusUrl } from '../utils';
 
 // Mock the SDK
@@ -16,6 +16,7 @@ jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
   PrometheusEndpoint: {
     QUERY_RANGE: 'api/v1/query_range',
   },
+  consoleFetchJSON: jest.fn(),
 }));
 
 // Mock the global utils to avoid window access side effects
@@ -126,8 +127,8 @@ describe('fetchDataForIncidentsAndAlerts', () => {
       },
     };
 
-    const fetch = jest
-      .fn()
+    const mockConsoleFetchJSON = consoleFetchJSON as jest.MockedFunction<typeof consoleFetchJSON>;
+    mockConsoleFetchJSON
       .mockResolvedValueOnce(mockPrometheusResponse1)
       .mockResolvedValueOnce(mockPrometheusResponse2);
 
@@ -136,7 +137,7 @@ describe('fetchDataForIncidentsAndAlerts', () => {
       'ALERTS{alertname="test", severity="critical", namespace="test"}',
       'ALERTS{alertname="test2", severity="warning", namespace="test2"}',
     ];
-    const result = await fetchDataForIncidentsAndAlerts(fetch, range, customQuery);
+    const result = await fetchDataForIncidentsAndAlerts(mockConsoleFetchJSON, range, customQuery);
     expect(result).toEqual({
       status: 'success',
       data: {
@@ -144,6 +145,6 @@ describe('fetchDataForIncidentsAndAlerts', () => {
         result: [result1, result2],
       },
     });
-    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(mockConsoleFetchJSON).toHaveBeenCalledTimes(2);
   });
 });
