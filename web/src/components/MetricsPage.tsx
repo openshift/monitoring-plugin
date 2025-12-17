@@ -630,9 +630,8 @@ export const QueryTable: FC<QueryTableProps> = ({ index, namespace, customDataso
     (state: MonitoringState) =>
       getObserveState(plugin, state).queryBrowser.queries[index]?.isExpanded,
   );
-  const pollInterval = useSelector(
-    (state: MonitoringState) =>
-      Number(getObserveState(plugin, state).queryBrowser.pollInterval) * 15 * 1000,
+  const pollInterval = useSelector((state: MonitoringState) =>
+    Number(getObserveState(plugin, state).queryBrowser.pollInterval),
   );
   const query = useSelector(
     (state: MonitoringState) => getObserveState(plugin, state).queryBrowser.queries[index]?.query,
@@ -1248,9 +1247,8 @@ const IntervalDropdown = () => {
     (v: number) => dispatch(queryBrowserSetPollInterval(v)),
     [dispatch],
   );
-  const pollInterval = useSelector(
-    (state: MonitoringState) =>
-      Number(getObserveState(plugin, state).queryBrowser.pollInterval) * 15 * 1000,
+  const pollInterval = useSelector((state: MonitoringState) =>
+    Number(getObserveState(plugin, state).queryBrowser.pollInterval),
   );
   return <DropDownPollInterval setInterval={setInterval} selectedInterval={pollInterval} />;
 };
