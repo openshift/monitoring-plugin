@@ -12,7 +12,6 @@ Thank you for your interest in contributing to the OpenShift Monitoring Plugin! 
 - [Code Conventions](#code-conventions)
   - [Naming Conventions](#naming-conventions)
   - [React Component Patterns](#react-component-patterns)
-  - [State Management](#state-management)
   - [TypeScript Best Practices](#typescript-best-practices)
   - [Go Backend Guidelines](#go-backend-guidelines)
 - [Testing Requirements](#testing-requirements)
@@ -278,52 +277,6 @@ export const ErrorAlert: FC<ErrorAlertProps> = ({ error }) => {
 };
 ```
 
-#### Memoization
-
-Use `memo` for components that receive stable props and render frequently:
-
-```typescript
-// ✅ Good: Memoized component with named export
-import { memo } from "react";
-
-export const Health: FC<{ health: "up" | "down" }> = memo(({ health }) => {
-  return health === "up" ? (
-    <GreenCheckCircleIcon />
-  ) : (
-    <RedExclamationCircleIcon />
-  );
-});
-```
-
-Use `useMemo` for expensive computations:
-
-```typescript
-// ✅ Good: Memoized computation
-const additionalAlertSourceLabels = useMemo(
-  () => getAdditionalSources(alerts, alertSource),
-  [alerts]
-);
-
-// Avoid creating new arrays on every render
-const queriesMemoKey = JSON.stringify(_.map(queries, "query"));
-const queryStrings = useMemo(() => _.map(queries, "query"), [queriesMemoKey]);
-```
-
-Use `useCallback` for event handlers passed to child components:
-
-```typescript
-// ✅ Good: Memoized callbacks
-const toggleIsEnabled = useCallback(
-  () => dispatch(queryBrowserToggleIsEnabled(index)),
-  [dispatch, index]
-);
-
-const doDelete = useCallback(() => {
-  dispatch(queryBrowserDeleteQuery(index));
-  focusedQuery = undefined;
-}, [dispatch, index]);
-```
-
 #### Translations (i18n)
 
 Always use the `useTranslation` hook for user-facing strings, this allows the translation
@@ -342,39 +295,6 @@ export const MyComponent: FC = () => {
       <EmptyStateBody>{t("Please try again later")}</EmptyStateBody>
     </EmptyState>
   );
-};
-```
-
-### State Management
-
-#### Context API
-
-Use React Context for sharing state across component trees:
-
-```typescript
-// ✅ Good: Context definition
-import React, { useMemo } from "react";
-
-type MonitoringContextType = {
-  plugin: MonitoringPlugins;
-  prometheus: Prometheus;
-  useAlertsTenancy: boolean;
-  useMetricsTenancy: boolean;
-  accessCheckLoading: boolean;
-};
-
-export const MonitoringContext = React.createContext<MonitoringContextType>({
-  plugin: "monitoring-plugin",
-  prometheus: "cmo",
-  useAlertsTenancy: false,
-  useMetricsTenancy: false,
-  accessCheckLoading: true,
-});
-
-// Custom hook to consume context
-export const useMonitoring = () => {
-  const context = useContext(MonitoringContext);
-  return context;
 };
 ```
 
