@@ -7,189 +7,153 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
+	alertrule "github.com/openshift/monitoring-plugin/pkg/alert_rule"
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
 	"github.com/openshift/monitoring-plugin/pkg/management"
-	"github.com/openshift/monitoring-plugin/pkg/management/mapper"
 	"github.com/openshift/monitoring-plugin/pkg/management/testutils"
 )
 
-var ErrAlertRuleNotFound = errors.New("alert rule not found")
-
 var _ = Describe("GetRuleById", func() {
 	var (
-		ctx        context.Context
-		mockK8s    *testutils.MockClient
-		mockPR     *testutils.MockPrometheusRuleInterface
-		mockNS     *testutils.MockNamespaceInformerInterface
-		mockMapper *testutils.MockMapperClient
-		client     management.Client
+		ctx     context.Context
+		mockK8s *testutils.MockClient
+		client  management.Client
+	)
+
+	var (
+		testRule = monitoringv1.Rule{
+			Alert: "TestAlert",
+			Expr:  intstr.FromString("up == 0"),
+			Labels: map[string]string{
+				"severity":                       "warning",
+				k8s.PrometheusRuleLabelNamespace: "test-namespace",
+				k8s.PrometheusRuleLabelName:      "test-rule",
+			},
+		}
+		testRuleId = alertrule.GetAlertingRuleId(&testRule)
 	)
 
 	BeforeEach(func() {
 		ctx = context.Background()
-
-		mockPR = &testutils.MockPrometheusRuleInterface{}
-		mockNS = &testutils.MockNamespaceInformerInterface{}
-		mockNS.SetMonitoringNamespaces(map[string]bool{
-			"monitoring": true,
-		})
-		mockK8s = &testutils.MockClient{
-			PrometheusRulesFunc: func() k8s.PrometheusRuleInterface {
-				return mockPR
-			},
-			NamespaceInformerFunc: func() k8s.NamespaceInformerInterface {
-				return mockNS
-			},
-		}
-		mockMapper = &testutils.MockMapperClient{}
-
-		client = management.NewWithCustomMapper(ctx, mockK8s, mockMapper)
+		mockK8s = &testutils.MockClient{}
+		client = management.New(ctx, mockK8s)
 	})
 
-	Context("when retrieving an alert rule by ID", func() {
-		It("should successfully return the rule when it exists", func() {
-			By("setting up a PrometheusRule with multiple rules")
-			rule1 := monitoringv1.Rule{
-				Alert: "TestAlert1",
-				Expr:  intstr.FromString("up == 0"),
-				Labels: map[string]string{
-					"severity": "critical",
-				},
-			}
-			rule2 := monitoringv1.Rule{
-				Alert: "TestAlert2",
-				Expr:  intstr.FromString("cpu > 80"),
-				Annotations: map[string]string{
-					"summary": "High CPU usage",
-				},
-			}
-
-			prometheusRule := &monitoringv1.PrometheusRule{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "test-rules",
-					Namespace: "monitoring",
-				},
-				Spec: monitoringv1.PrometheusRuleSpec{
-					Groups: []monitoringv1.RuleGroup{
-						{
-							Name:  "group1",
-							Rules: []monitoringv1.Rule{rule1},
-						},
-						{
-							Name:  "group2",
-							Rules: []monitoringv1.Rule{rule2},
-						},
+	Context("when rule is found", func() {
+		BeforeEach(func() {
+			mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
+				return &testutils.MockRelabeledRulesInterface{
+					GetFunc: func(ctx context.Context, id string) (monitoringv1.Rule, bool) {
+						if id == testRuleId {
+							return testRule, true
+						}
+						return monitoringv1.Rule{}, false
 					},
-				},
-			}
-
-			mockPR.SetPrometheusRules(map[string]*monitoringv1.PrometheusRule{
-				"monitoring/test-rules": prometheusRule,
-			})
-
-			alertRuleId := "test-rule-id-2"
-			mockMapper.FindAlertRuleByIdFunc = func(id mapper.PrometheusAlertRuleId) (*mapper.PrometheusRuleId, error) {
-				return &mapper.PrometheusRuleId{
-					Namespace: "monitoring",
-					Name:      "test-rules",
-				}, nil
-			}
-			mockMapper.GetAlertingRuleIdFunc = func(alertRule *monitoringv1.Rule) mapper.PrometheusAlertRuleId {
-				if alertRule.Alert == "TestAlert2" {
-					return mapper.PrometheusAlertRuleId(alertRuleId)
 				}
-				return mapper.PrometheusAlertRuleId("other-id")
 			}
-
-			By("retrieving the rule by ID")
-			rule, err := client.GetRuleById(ctx, alertRuleId)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(rule).ToNot(BeNil())
-
-			By("verifying the returned rule is correct")
-			Expect(rule.Alert).To(Equal("TestAlert2"))
-			Expect(rule.Expr.String()).To(Equal("cpu > 80"))
-			Expect(rule.Labels).To(HaveKeyWithValue("source", "platform"))
-			Expect(rule.Annotations).To(HaveKeyWithValue("summary", "High CPU usage"))
 		})
 
-		It("should return an error when the mapper cannot find the rule", func() {
-			alertRuleId := "nonexistent-rule-id"
-			mockMapper.FindAlertRuleByIdFunc = func(id mapper.PrometheusAlertRuleId) (*mapper.PrometheusRuleId, error) {
-				return nil, ErrAlertRuleNotFound
+		It("returns the rule", func() {
+			rule, err := client.GetRuleById(ctx, testRuleId)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(rule.Alert).To(Equal("TestAlert"))
+			Expect(rule.Labels["severity"]).To(Equal("warning"))
+		})
+	})
+
+	Context("when rule is not found", func() {
+		BeforeEach(func() {
+			mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
+				return &testutils.MockRelabeledRulesInterface{
+					GetFunc: func(ctx context.Context, id string) (monitoringv1.Rule, bool) {
+						return monitoringv1.Rule{}, false
+					},
+				}
 			}
+		})
 
-			By("attempting to retrieve a nonexistent rule")
-			_, err := client.GetRuleById(ctx, alertRuleId)
-
-			By("verifying an error is returned")
+		It("returns NotFoundError", func() {
+			_, err := client.GetRuleById(ctx, "nonexistent-id")
 			Expect(err).To(HaveOccurred())
-			Expect(err).To(Equal(ErrAlertRuleNotFound))
+
+			var notFoundErr *management.NotFoundError
+			Expect(errors.As(err, &notFoundErr)).To(BeTrue())
+			Expect(notFoundErr.Resource).To(Equal("AlertRule"))
+			Expect(notFoundErr.Id).To(Equal("nonexistent-id"))
 		})
+	})
 
-		It("should return an error when the PrometheusRule does not exist", func() {
-			alertRuleId := "test-rule-id"
-			mockMapper.FindAlertRuleByIdFunc = func(id mapper.PrometheusAlertRuleId) (*mapper.PrometheusRuleId, error) {
-				return &mapper.PrometheusRuleId{
-					Namespace: "monitoring",
-					Name:      "nonexistent-rule",
-				}, nil
-			}
-
-			By("attempting to retrieve a rule from a nonexistent PrometheusRule")
-			_, err := client.GetRuleById(ctx, alertRuleId)
-
-			By("verifying an error is returned")
-			Expect(err).To(HaveOccurred())
-		})
-
-		It("should return an error when the rule ID is not found in the PrometheusRule", func() {
-			By("setting up a PrometheusRule without the target rule")
-			rule1 := monitoringv1.Rule{
-				Alert: "DifferentAlert",
+	Context("when multiple rules exist", func() {
+		var (
+			rule1 = monitoringv1.Rule{
+				Alert: "Alert1",
 				Expr:  intstr.FromString("up == 0"),
 			}
+			rule1Id = alertrule.GetAlertingRuleId(&rule1)
 
-			prometheusRule := &monitoringv1.PrometheusRule{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "test-rules",
-					Namespace: "monitoring",
-				},
-				Spec: monitoringv1.PrometheusRuleSpec{
-					Groups: []monitoringv1.RuleGroup{
-						{
-							Name:  "group1",
-							Rules: []monitoringv1.Rule{rule1},
-						},
+			rule2 = monitoringv1.Rule{
+				Alert: "Alert2",
+				Expr:  intstr.FromString("down == 1"),
+			}
+			rule2Id = alertrule.GetAlertingRuleId(&rule2)
+		)
+
+		BeforeEach(func() {
+			mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
+				return &testutils.MockRelabeledRulesInterface{
+					GetFunc: func(ctx context.Context, id string) (monitoringv1.Rule, bool) {
+						switch id {
+						case rule1Id:
+							return rule1, true
+						case rule2Id:
+							return rule2, true
+						default:
+							return monitoringv1.Rule{}, false
+						}
 					},
-				},
+				}
 			}
+		})
 
-			mockPR.SetPrometheusRules(map[string]*monitoringv1.PrometheusRule{
-				"monitoring/test-rules": prometheusRule,
-			})
+		It("returns the correct rule based on ID", func() {
+			rule, err := client.GetRuleById(ctx, rule1Id)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(rule.Alert).To(Equal("Alert1"))
 
-			alertRuleId := "nonexistent-rule-id"
-			mockMapper.FindAlertRuleByIdFunc = func(id mapper.PrometheusAlertRuleId) (*mapper.PrometheusRuleId, error) {
-				return &mapper.PrometheusRuleId{
-					Namespace: "monitoring",
-					Name:      "test-rules",
-				}, nil
+			rule, err = client.GetRuleById(ctx, rule2Id)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(rule.Alert).To(Equal("Alert2"))
+		})
+	})
+
+	Context("with recording rules", func() {
+		var (
+			recordingRule = monitoringv1.Rule{
+				Record: "job:request_latency_seconds:mean5m",
+				Expr:   intstr.FromString("avg by (job) (request_latency_seconds)"),
 			}
-			mockMapper.GetAlertingRuleIdFunc = func(alertRule *monitoringv1.Rule) mapper.PrometheusAlertRuleId {
-				return mapper.PrometheusAlertRuleId("different-id")
+			recordingRuleId = alertrule.GetAlertingRuleId(&recordingRule)
+		)
+
+		BeforeEach(func() {
+			mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
+				return &testutils.MockRelabeledRulesInterface{
+					GetFunc: func(ctx context.Context, id string) (monitoringv1.Rule, bool) {
+						if id == recordingRuleId {
+							return recordingRule, true
+						}
+						return monitoringv1.Rule{}, false
+					},
+				}
 			}
+		})
 
-			By("attempting to retrieve the rule")
-			_, err := client.GetRuleById(ctx, alertRuleId)
-
-			By("verifying an error is returned")
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("alert rule with id"))
-			Expect(err.Error()).To(ContainSubstring("not found"))
+		It("returns the recording rule", func() {
+			rule, err := client.GetRuleById(ctx, recordingRuleId)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(rule.Record).To(Equal("job:request_latency_seconds:mean5m"))
 		})
 	})
 })

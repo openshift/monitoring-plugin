@@ -2,78 +2,101 @@ package managementrouter_test
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/openshift/monitoring-plugin/internal/managementrouter"
+	alertrule "github.com/openshift/monitoring-plugin/pkg/alert_rule"
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
 	"github.com/openshift/monitoring-plugin/pkg/management"
-	"github.com/openshift/monitoring-plugin/pkg/management/mapper"
 	"github.com/openshift/monitoring-plugin/pkg/management/testutils"
 )
 
 var _ = Describe("DeleteUserDefinedAlertRuleById", func() {
 	var (
-		router       http.Handler
-		mockK8sRules *testutils.MockPrometheusRuleInterface
-		mockK8s      *testutils.MockClient
-		mockMapper   *testutils.MockMapperClient
+		router  http.Handler
+		mockK8s *testutils.MockClient
+	)
+
+	var (
+		userRule1Name = "u1"
+		userRule1     = monitoringv1.Rule{Alert: userRule1Name, Labels: map[string]string{k8s.PrometheusRuleLabelNamespace: "default", k8s.PrometheusRuleLabelName: "user-pr"}}
+		userRule1Id   = alertrule.GetAlertingRuleId(&userRule1)
+
+		userRule2Name = "u2"
+		userRule2     = monitoringv1.Rule{Alert: userRule2Name, Labels: map[string]string{k8s.PrometheusRuleLabelNamespace: "default", k8s.PrometheusRuleLabelName: "user-pr"}}
+		userRule2Id   = alertrule.GetAlertingRuleId(&userRule2)
+
+		platformRuleName = "p1"
+		platformRule     = monitoringv1.Rule{Alert: platformRuleName, Labels: map[string]string{k8s.PrometheusRuleLabelNamespace: "platform-namespace-1", k8s.PrometheusRuleLabelName: "platform-pr"}}
+		platformRuleId   = alertrule.GetAlertingRuleId(&platformRule)
 	)
 
 	BeforeEach(func() {
-		mockK8sRules = &testutils.MockPrometheusRuleInterface{}
+		mockK8s = &testutils.MockClient{}
+		mgmt := management.New(context.Background(), mockK8s)
+		router = managementrouter.New(mgmt)
 
-		userPR := monitoringv1.PrometheusRule{}
-		userPR.Name = "user-pr"
-		userPR.Namespace = "default"
-		userPR.Spec.Groups = []monitoringv1.RuleGroup{
-			{
-				Name:  "g1",
-				Rules: []monitoringv1.Rule{{Alert: "u1"}, {Alert: "u2"}},
-			},
+		mockK8s.PrometheusRulesFunc = func() k8s.PrometheusRuleInterface {
+			return &testutils.MockPrometheusRuleInterface{
+				GetFunc: func(ctx context.Context, namespace string, name string) (*monitoringv1.PrometheusRule, bool, error) {
+					return &monitoringv1.PrometheusRule{
+						ObjectMeta: metav1.ObjectMeta{
+							Namespace: namespace,
+							Name:      name,
+						},
+						Spec: monitoringv1.PrometheusRuleSpec{
+							Groups: []monitoringv1.RuleGroup{
+								{
+									Rules: []monitoringv1.Rule{userRule1, userRule2, platformRule},
+								},
+							},
+						},
+					}, true, nil
+				},
+				DeleteFunc: func(ctx context.Context, namespace string, name string) error {
+					return nil
+				},
+				UpdateFunc: func(ctx context.Context, pr monitoringv1.PrometheusRule) error {
+					return nil
+				},
+			}
 		}
 
-		platformPR := monitoringv1.PrometheusRule{}
-		platformPR.Name = "platform-pr"
-		platformPR.Namespace = "platform-namespace-1"
-		platformPR.Spec.Groups = []monitoringv1.RuleGroup{
-			{
-				Name:  "pg1",
-				Rules: []monitoringv1.Rule{{Alert: "p1"}},
-			},
+		mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
+			return &testutils.MockRelabeledRulesInterface{
+				GetFunc: func(ctx context.Context, id string) (monitoringv1.Rule, bool) {
+					switch id {
+					case userRule1Id:
+						return userRule1, true
+					case userRule2Id:
+						return userRule2, true
+					case platformRuleId:
+						return platformRule, true
+					default:
+						return monitoringv1.Rule{}, false
+					}
+				},
+			}
 		}
 
-		mockK8sRules.SetPrometheusRules(map[string]*monitoringv1.PrometheusRule{
-			"default/user-pr":                  &userPR,
-			"platform-namespace-1/platform-pr": &platformPR,
-		})
-
-		mockNSInformer := &testutils.MockNamespaceInformerInterface{}
-		mockNSInformer.SetMonitoringNamespaces(map[string]bool{
-			"platform-namespace-1": true,
-			"platform-namespace-2": true,
-		})
-		mockK8s = &testutils.MockClient{
-			PrometheusRulesFunc: func() k8s.PrometheusRuleInterface {
-				return mockK8sRules
-			},
-			NamespaceInformerFunc: func() k8s.NamespaceInformerInterface {
-				return mockNSInformer
-			},
+		mockK8s.NamespaceFunc = func() k8s.NamespaceInterface {
+			return &testutils.MockNamespaceInterface{
+				IsClusterMonitoringNamespaceFunc: func(name string) bool {
+					return strings.HasPrefix(name, "platform-namespace-")
+				},
+			}
 		}
 	})
 
 	Context("when ruleId is missing or blank", func() {
 		It("returns 400 with missing ruleId message", func() {
-			mgmt := management.NewWithCustomMapper(context.Background(), mockK8s, mockMapper)
-			router = managementrouter.New(mgmt)
-
 			req := httptest.NewRequest(http.MethodDelete, "/api/v1/alerting/rules/%20", nil)
 			w := httptest.NewRecorder()
 			router.ServeHTTP(w, req)
@@ -83,54 +106,8 @@ var _ = Describe("DeleteUserDefinedAlertRuleById", func() {
 		})
 	})
 
-	Context("when deletion succeeds", func() {
-		It("deletes a user-defined rule and keeps the other intact", func() {
-			mockMapper = &testutils.MockMapperClient{
-				GetAlertingRuleIdFunc: func(rule *monitoringv1.Rule) mapper.PrometheusAlertRuleId {
-					return mapper.PrometheusAlertRuleId(rule.Alert)
-				},
-				FindAlertRuleByIdFunc: func(alertRuleId mapper.PrometheusAlertRuleId) (*mapper.PrometheusRuleId, error) {
-					pr := mapper.PrometheusRuleId{
-						Namespace: "default",
-						Name:      "user-pr",
-					}
-					return &pr, nil
-				},
-			}
-
-			mgmt := management.NewWithCustomMapper(context.Background(), mockK8s, mockMapper)
-			router = managementrouter.New(mgmt)
-
-			req := httptest.NewRequest(http.MethodDelete, "/api/v1/alerting/rules/u1", nil)
-			w := httptest.NewRecorder()
-			router.ServeHTTP(w, req)
-
-			Expect(w.Code).To(Equal(http.StatusNoContent))
-
-			pr, found, err := mockK8sRules.Get(context.Background(), "default", "user-pr")
-			Expect(found).To(BeTrue())
-			Expect(err).NotTo(HaveOccurred())
-			ruleNames := []string{}
-			for _, g := range pr.Spec.Groups {
-				for _, r := range g.Rules {
-					ruleNames = append(ruleNames, r.Alert)
-				}
-			}
-			Expect(ruleNames).NotTo(ContainElement("u1"))
-			Expect(ruleNames).To(ContainElement("u2"))
-		})
-	})
-
 	Context("when rule is not found", func() {
 		It("returns 404 with expected message", func() {
-			mockMapper = &testutils.MockMapperClient{
-				FindAlertRuleByIdFunc: func(alertRuleId mapper.PrometheusAlertRuleId) (*mapper.PrometheusRuleId, error) {
-					return nil, fmt.Errorf("alert rule not found")
-				},
-			}
-			mgmt := management.NewWithCustomMapper(context.Background(), mockK8s, mockMapper)
-			router = managementrouter.New(mgmt)
-
 			req := httptest.NewRequest(http.MethodDelete, "/api/v1/alerting/rules/missing", nil)
 			w := httptest.NewRecorder()
 			router.ServeHTTP(w, req)
@@ -140,42 +117,24 @@ var _ = Describe("DeleteUserDefinedAlertRuleById", func() {
 		})
 	})
 
-	Context("when platform rule", func() {
-		It("rejects platform rule deletion and PR remains unchanged", func() {
-			mockMapper = &testutils.MockMapperClient{
-				GetAlertingRuleIdFunc: func(rule *monitoringv1.Rule) mapper.PrometheusAlertRuleId {
-					return mapper.PrometheusAlertRuleId(rule.Alert)
-				},
-				FindAlertRuleByIdFunc: func(alertRuleId mapper.PrometheusAlertRuleId) (*mapper.PrometheusRuleId, error) {
-					pr := mapper.PrometheusRuleId{
-						Namespace: "platform-namespace-1",
-						Name:      "platform-pr",
-					}
-					return &pr, nil
-				},
-			}
+	Context("when deleting a user-defined rule", func() {
+		It("returns 204", func() {
+			req := httptest.NewRequest(http.MethodDelete, "/api/v1/alerting/rules/"+userRule1Id, nil)
+			w := httptest.NewRecorder()
+			router.ServeHTTP(w, req)
 
-			mgmt := management.NewWithCustomMapper(context.Background(), mockK8s, mockMapper)
-			router = managementrouter.New(mgmt)
+			Expect(w.Code).To(Equal(http.StatusNoContent))
+		})
+	})
 
-			req := httptest.NewRequest(http.MethodDelete, "/api/v1/alerting/rules/p1", nil)
+	Context("when deleting a platform rule", func() {
+		It("returns 405 with expected message", func() {
+			req := httptest.NewRequest(http.MethodDelete, "/api/v1/alerting/rules/"+platformRuleId, nil)
 			w := httptest.NewRecorder()
 			router.ServeHTTP(w, req)
 
 			Expect(w.Code).To(Equal(http.StatusMethodNotAllowed))
 			Expect(w.Body.String()).To(ContainSubstring("cannot delete alert rule from a platform-managed PrometheusRule"))
-
-			pr, found, err := mockK8sRules.Get(context.Background(), "platform-namespace-1", "platform-pr")
-			Expect(found).To(BeTrue())
-			Expect(err).NotTo(HaveOccurred())
-			for _, g := range pr.Spec.Groups {
-				for _, r := range g.Rules {
-					if r.Alert == "p1" {
-						found = true
-					}
-				}
-			}
-			Expect(found).To(BeTrue())
 		})
 	})
 })

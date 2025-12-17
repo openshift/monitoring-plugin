@@ -3,6 +3,7 @@ package management_test
 import (
 	"context"
 	"errors"
+	"strings"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -11,398 +12,374 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
+	alertrule "github.com/openshift/monitoring-plugin/pkg/alert_rule"
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
 	"github.com/openshift/monitoring-plugin/pkg/management"
-	"github.com/openshift/monitoring-plugin/pkg/management/mapper"
 	"github.com/openshift/monitoring-plugin/pkg/management/testutils"
 )
 
 var _ = Describe("UpdatePlatformAlertRule", func() {
 	var (
-		ctx        context.Context
-		mockK8s    *testutils.MockClient
-		mockPR     *testutils.MockPrometheusRuleInterface
-		mockARC    *testutils.MockAlertRelabelConfigInterface
-		mockMapper *testutils.MockMapperClient
-		client     management.Client
+		ctx     context.Context
+		mockK8s *testutils.MockClient
+		client  management.Client
+	)
+
+	var (
+		// Original platform rule as stored in PrometheusRule (without k8s labels)
+		originalPlatformRule = monitoringv1.Rule{
+			Alert: "PlatformAlert",
+			Expr:  intstr.FromString("node_down == 1"),
+			Labels: map[string]string{
+				"severity": "critical",
+			},
+		}
+		originalPlatformRuleId = alertrule.GetAlertingRuleId(&originalPlatformRule)
+
+		// Platform rule as seen by RelabeledRules (with k8s labels added)
+		platformRule = monitoringv1.Rule{
+			Alert: "PlatformAlert",
+			Expr:  intstr.FromString("node_down == 1"),
+			Labels: map[string]string{
+				"severity":                       "critical",
+				k8s.PrometheusRuleLabelNamespace: "openshift-monitoring",
+				k8s.PrometheusRuleLabelName:      "platform-rule",
+				k8s.AlertRuleLabelId:             originalPlatformRuleId,
+			},
+		}
+		platformRuleId = alertrule.GetAlertingRuleId(&platformRule)
+
+		userRule = monitoringv1.Rule{
+			Alert: "UserAlert",
+			Labels: map[string]string{
+				k8s.PrometheusRuleLabelNamespace: "user-namespace",
+				k8s.PrometheusRuleLabelName:      "user-rule",
+			},
+		}
+		userRuleId = alertrule.GetAlertingRuleId(&userRule)
 	)
 
 	BeforeEach(func() {
 		ctx = context.Background()
+		mockK8s = &testutils.MockClient{}
+		client = management.New(ctx, mockK8s)
 
-		mockPR = &testutils.MockPrometheusRuleInterface{}
-		mockARC = &testutils.MockAlertRelabelConfigInterface{}
-		mockNSInformer := &testutils.MockNamespaceInformerInterface{}
-		mockNSInformer.SetMonitoringNamespaces(map[string]bool{
-			"platform-namespace-1": true,
-			"platform-namespace-2": true,
-		})
-		mockK8s = &testutils.MockClient{
-			PrometheusRulesFunc: func() k8s.PrometheusRuleInterface {
-				return mockPR
-			},
-			AlertRelabelConfigsFunc: func() k8s.AlertRelabelConfigInterface {
-				return mockARC
-			},
-			NamespaceInformerFunc: func() k8s.NamespaceInformerInterface {
-				return mockNSInformer
-			},
+		mockK8s.NamespaceFunc = func() k8s.NamespaceInterface {
+			return &testutils.MockNamespaceInterface{
+				IsClusterMonitoringNamespaceFunc: func(name string) bool {
+					return name == "openshift-monitoring"
+				},
+			}
 		}
-		mockMapper = &testutils.MockMapperClient{}
-
-		client = management.NewWithCustomMapper(ctx, mockK8s, mockMapper)
 	})
 
-	Context("when updating a platform alert rule", func() {
-		It("should create an AlertRelabelConfig to update labels", func() {
-			By("setting up the existing platform rule")
-			existingRule := monitoringv1.Rule{
-				Alert: "PlatformAlert",
-				Expr:  intstr.FromString("up == 0"),
-				Labels: map[string]string{
-					"severity": "warning",
-					"team":     "platform",
-				},
-			}
-
-			prometheusRule := &monitoringv1.PrometheusRule{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "openshift-platform-alerts",
-					Namespace: "platform-namespace-1",
-				},
-				Spec: monitoringv1.PrometheusRuleSpec{
-					Groups: []monitoringv1.RuleGroup{
-						{
-							Name:  "platform-group",
-							Rules: []monitoringv1.Rule{existingRule},
-						},
+	Context("when rule is not found", func() {
+		BeforeEach(func() {
+			mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
+				return &testutils.MockRelabeledRulesInterface{
+					GetFunc: func(ctx context.Context, id string) (monitoringv1.Rule, bool) {
+						return monitoringv1.Rule{}, false
 					},
-				},
-			}
-
-			mockPR.SetPrometheusRules(map[string]*monitoringv1.PrometheusRule{
-				"platform-namespace-1/openshift-platform-alerts": prometheusRule,
-			})
-
-			alertRuleId := "test-platform-rule-id"
-			mockMapper.FindAlertRuleByIdFunc = func(id mapper.PrometheusAlertRuleId) (*mapper.PrometheusRuleId, error) {
-				return &mapper.PrometheusRuleId{
-					Namespace: "platform-namespace-1",
-					Name:      "openshift-platform-alerts",
-				}, nil
-			}
-			mockMapper.GetAlertingRuleIdFunc = func(alertRule *monitoringv1.Rule) mapper.PrometheusAlertRuleId {
-				if alertRule.Alert == "PlatformAlert" {
-					return mapper.PrometheusAlertRuleId(alertRuleId)
-				}
-				return mapper.PrometheusAlertRuleId("other-id")
-			}
-
-			By("updating labels through AlertRelabelConfig")
-			updatedRule := monitoringv1.Rule{
-				Alert: "PlatformAlert",
-				Expr:  intstr.FromString("up == 0"),
-				Labels: map[string]string{
-					"severity": "critical",
-					"team":     "platform",
-					"owner":    "sre",
-				},
-			}
-
-			err := client.UpdatePlatformAlertRule(ctx, alertRuleId, updatedRule)
-			Expect(err).ToNot(HaveOccurred())
-
-			By("verifying AlertRelabelConfig was created")
-			arcs, err := mockARC.List(ctx, "platform-namespace-1")
-			Expect(err).ToNot(HaveOccurred())
-			Expect(arcs).To(HaveLen(1))
-
-			arc := arcs[0]
-			Expect(arc.Namespace).To(Equal("platform-namespace-1"))
-			Expect(arc.Name).To(Equal("alertmanagement-test-platform-rule-id"))
-
-			By("verifying relabel configs include label updates with alertname matching")
-			Expect(arc.Spec.Configs).To(HaveLen(2))
-
-			severityUpdate := false
-			ownerAdd := false
-			for _, config := range arc.Spec.Configs {
-				Expect(config.Action).To(Equal("Replace"))
-				Expect(config.SourceLabels).To(ContainElement(osmv1.LabelName("alertname")))
-				Expect(config.Regex).To(ContainSubstring("PlatformAlert"))
-
-				if config.TargetLabel == "severity" && config.Replacement == "critical" {
-					severityUpdate = true
-					Expect(config.SourceLabels).To(ContainElement(osmv1.LabelName("severity")))
-				}
-				if config.TargetLabel == "owner" && config.Replacement == "sre" {
-					ownerAdd = true
-					Expect(config.SourceLabels).To(ContainElement(osmv1.LabelName("owner")))
 				}
 			}
-			Expect(severityUpdate).To(BeTrue())
-			Expect(ownerAdd).To(BeTrue())
 		})
 
-		It("should update existing AlertRelabelConfig when one already exists", func() {
-			By("setting up the existing platform rule and AlertRelabelConfig")
-			existingRule := monitoringv1.Rule{
-				Alert: "PlatformAlert",
-				Expr:  intstr.FromString("up == 0"),
-				Labels: map[string]string{
-					"severity": "warning",
-				},
-			}
+		It("returns NotFoundError", func() {
+			updatedRule := platformRule
+			err := client.UpdatePlatformAlertRule(ctx, "nonexistent-id", updatedRule)
+			Expect(err).To(HaveOccurred())
 
-			prometheusRule := &monitoringv1.PrometheusRule{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "openshift-platform-alerts",
-					Namespace: "platform-namespace-1",
-				},
-				Spec: monitoringv1.PrometheusRuleSpec{
-					Groups: []monitoringv1.RuleGroup{
-						{
-							Name:  "platform-group",
-							Rules: []monitoringv1.Rule{existingRule},
-						},
+			var notFoundErr *management.NotFoundError
+			Expect(errors.As(err, &notFoundErr)).To(BeTrue())
+			Expect(notFoundErr.Resource).To(Equal("AlertRule"))
+		})
+	})
+
+	Context("when trying to update a non-platform rule", func() {
+		BeforeEach(func() {
+			mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
+				return &testutils.MockRelabeledRulesInterface{
+					GetFunc: func(ctx context.Context, id string) (monitoringv1.Rule, bool) {
+						if id == userRuleId {
+							return userRule, true
+						}
+						return monitoringv1.Rule{}, false
 					},
-				},
-			}
-
-			existingARC := &osmv1.AlertRelabelConfig{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "test-platform-rule-id-relabel",
-					Namespace: "platform-namespace-1",
-				},
-				Spec: osmv1.AlertRelabelConfigSpec{
-					Configs: []osmv1.RelabelConfig{
-						{
-							SourceLabels: []osmv1.LabelName{"alertname"},
-							Regex:        "PlatformAlert",
-							Action:       "Keep",
-						},
-					},
-				},
-			}
-
-			mockPR.SetPrometheusRules(map[string]*monitoringv1.PrometheusRule{
-				"platform-namespace-1/openshift-platform-alerts": prometheusRule,
-			})
-			mockARC.SetAlertRelabelConfigs(map[string]*osmv1.AlertRelabelConfig{
-				"platform-namespace-1/alertmanagement-test-platform-rule-id": existingARC,
-			})
-
-			alertRuleId := "test-platform-rule-id"
-			mockMapper.FindAlertRuleByIdFunc = func(id mapper.PrometheusAlertRuleId) (*mapper.PrometheusRuleId, error) {
-				return &mapper.PrometheusRuleId{
-					Namespace: "platform-namespace-1",
-					Name:      "openshift-platform-alerts",
-				}, nil
-			}
-			mockMapper.GetAlertingRuleIdFunc = func(alertRule *monitoringv1.Rule) mapper.PrometheusAlertRuleId {
-				if alertRule.Alert == "PlatformAlert" {
-					return mapper.PrometheusAlertRuleId(alertRuleId)
 				}
-				return mapper.PrometheusAlertRuleId("other-id")
 			}
-
-			By("updating labels through existing AlertRelabelConfig")
-			updatedRule := monitoringv1.Rule{
-				Alert: "PlatformAlert",
-				Expr:  intstr.FromString("up == 0"),
-				Labels: map[string]string{
-					"severity": "critical",
-				},
-			}
-
-			err := client.UpdatePlatformAlertRule(ctx, alertRuleId, updatedRule)
-			Expect(err).ToNot(HaveOccurred())
-
-			By("verifying existing AlertRelabelConfig was updated")
-			arc, found, err := mockARC.Get(ctx, "platform-namespace-1", "alertmanagement-test-platform-rule-id")
-			Expect(found).To(BeTrue())
-			Expect(err).ToNot(HaveOccurred())
-			Expect(arc.Spec.Configs).To(HaveLen(1))
-			Expect(arc.Spec.Configs[0].Action).To(Equal("Replace"))
-			Expect(arc.Spec.Configs[0].SourceLabels).To(ContainElement(osmv1.LabelName("alertname")))
-			Expect(arc.Spec.Configs[0].TargetLabel).To(Equal("severity"))
-			Expect(arc.Spec.Configs[0].Replacement).To(Equal("critical"))
 		})
 
-		It("should handle label removal", func() {
-			By("setting up the existing platform rule with multiple labels")
-			existingRule := monitoringv1.Rule{
-				Alert: "PlatformAlert",
-				Expr:  intstr.FromString("up == 0"),
-				Labels: map[string]string{
-					"severity": "warning",
-					"team":     "platform",
-					"owner":    "sre",
-				},
-			}
-
-			prometheusRule := &monitoringv1.PrometheusRule{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "openshift-platform-alerts",
-					Namespace: "platform-namespace-1",
-				},
-				Spec: monitoringv1.PrometheusRuleSpec{
-					Groups: []monitoringv1.RuleGroup{
-						{
-							Name:  "platform-group",
-							Rules: []monitoringv1.Rule{existingRule},
-						},
-					},
-				},
-			}
-
-			mockPR.SetPrometheusRules(map[string]*monitoringv1.PrometheusRule{
-				"platform-namespace-1/openshift-platform-alerts": prometheusRule,
-			})
-
-			alertRuleId := "test-platform-rule-id"
-			mockMapper.FindAlertRuleByIdFunc = func(id mapper.PrometheusAlertRuleId) (*mapper.PrometheusRuleId, error) {
-				return &mapper.PrometheusRuleId{
-					Namespace: "platform-namespace-1",
-					Name:      "openshift-platform-alerts",
-				}, nil
-			}
-			mockMapper.GetAlertingRuleIdFunc = func(alertRule *monitoringv1.Rule) mapper.PrometheusAlertRuleId {
-				if alertRule.Alert == "PlatformAlert" {
-					return mapper.PrometheusAlertRuleId(alertRuleId)
-				}
-				return mapper.PrometheusAlertRuleId("other-id")
-			}
-
-			By("updating with fewer labels")
-			updatedRule := monitoringv1.Rule{
-				Alert: "PlatformAlert",
-				Expr:  intstr.FromString("up == 0"),
-				Labels: map[string]string{
-					"severity": "warning",
-				},
-			}
-
-			err := client.UpdatePlatformAlertRule(ctx, alertRuleId, updatedRule)
-			Expect(err).ToNot(HaveOccurred())
-
-			By("verifying AlertRelabelConfig includes label removal actions")
-			arcs, err := mockARC.List(ctx, "platform-namespace-1")
-			Expect(err).ToNot(HaveOccurred())
-			Expect(arcs).To(HaveLen(1))
-
-			arc := arcs[0]
-			Expect(arc.Spec.Configs).To(HaveLen(2))
-
-			labelRemovalCount := 0
-			for _, config := range arc.Spec.Configs {
-				if config.Replacement == "" && (config.TargetLabel == "team" || config.TargetLabel == "owner") {
-					labelRemovalCount++
-					Expect(config.Action).To(Equal("Replace"))
-					Expect(config.SourceLabels).To(ContainElement(osmv1.LabelName("alertname")))
-				}
-			}
-			Expect(labelRemovalCount).To(Equal(2))
-		})
-
-		It("should return error when trying to update non-platform rule", func() {
-			By("setting up a user-defined rule")
-			alertRuleId := "test-user-rule-id"
-			mockMapper.FindAlertRuleByIdFunc = func(id mapper.PrometheusAlertRuleId) (*mapper.PrometheusRuleId, error) {
-				return &mapper.PrometheusRuleId{
-					Namespace: "user-namespace",
-					Name:      "user-rule",
-				}, nil
-			}
-
-			updatedRule := monitoringv1.Rule{
-				Alert: "UserAlert",
-				Expr:  intstr.FromString("up == 0"),
-				Labels: map[string]string{
-					"severity": "critical",
-				},
-			}
-
-			err := client.UpdatePlatformAlertRule(ctx, alertRuleId, updatedRule)
+		It("returns an error", func() {
+			updatedRule := userRule
+			err := client.UpdatePlatformAlertRule(ctx, userRuleId, updatedRule)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("cannot update non-platform alert rule"))
 		})
+	})
 
-		It("should return error when no label changes detected", func() {
-			By("setting up the existing platform rule")
-			existingRule := monitoringv1.Rule{
-				Alert: "PlatformAlert",
-				Expr:  intstr.FromString("up == 0"),
-				Labels: map[string]string{
-					"severity": "warning",
-				},
-			}
-
-			prometheusRule := &monitoringv1.PrometheusRule{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "openshift-platform-alerts",
-					Namespace: "platform-namespace-1",
-				},
-				Spec: monitoringv1.PrometheusRuleSpec{
-					Groups: []monitoringv1.RuleGroup{
-						{
-							Name:  "platform-group",
-							Rules: []monitoringv1.Rule{existingRule},
-						},
+	Context("when PrometheusRule is not found", func() {
+		BeforeEach(func() {
+			mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
+				return &testutils.MockRelabeledRulesInterface{
+					GetFunc: func(ctx context.Context, id string) (monitoringv1.Rule, bool) {
+						if id == platformRuleId {
+							return platformRule, true
+						}
+						return monitoringv1.Rule{}, false
 					},
-				},
-			}
-
-			mockPR.SetPrometheusRules(map[string]*monitoringv1.PrometheusRule{
-				"platform-namespace-1/openshift-platform-alerts": prometheusRule,
-			})
-
-			alertRuleId := "test-platform-rule-id"
-			mockMapper.FindAlertRuleByIdFunc = func(id mapper.PrometheusAlertRuleId) (*mapper.PrometheusRuleId, error) {
-				return &mapper.PrometheusRuleId{
-					Namespace: "platform-namespace-1",
-					Name:      "openshift-platform-alerts",
-				}, nil
-			}
-			mockMapper.GetAlertingRuleIdFunc = func(alertRule *monitoringv1.Rule) mapper.PrometheusAlertRuleId {
-				if alertRule.Alert == "PlatformAlert" {
-					return mapper.PrometheusAlertRuleId(alertRuleId)
 				}
-				return mapper.PrometheusAlertRuleId("other-id")
 			}
 
-			By("updating with same labels")
-			updatedRule := monitoringv1.Rule{
-				Alert: "PlatformAlert",
-				Expr:  intstr.FromString("up == 0"),
-				Labels: map[string]string{
-					"severity": "warning",
-				},
+			mockK8s.PrometheusRulesFunc = func() k8s.PrometheusRuleInterface {
+				return &testutils.MockPrometheusRuleInterface{
+					GetFunc: func(ctx context.Context, namespace string, name string) (*monitoringv1.PrometheusRule, bool, error) {
+						return nil, false, nil
+					},
+				}
+			}
+		})
+
+		It("returns NotFoundError", func() {
+			updatedRule := platformRule
+			err := client.UpdatePlatformAlertRule(ctx, platformRuleId, updatedRule)
+			Expect(err).To(HaveOccurred())
+
+			var notFoundErr *management.NotFoundError
+			Expect(errors.As(err, &notFoundErr)).To(BeTrue())
+			Expect(notFoundErr.Resource).To(Equal("PrometheusRule"))
+		})
+	})
+
+	Context("when PrometheusRule Get returns an error", func() {
+		BeforeEach(func() {
+			mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
+				return &testutils.MockRelabeledRulesInterface{
+					GetFunc: func(ctx context.Context, id string) (monitoringv1.Rule, bool) {
+						if id == platformRuleId {
+							return platformRule, true
+						}
+						return monitoringv1.Rule{}, false
+					},
+				}
 			}
 
-			err := client.UpdatePlatformAlertRule(ctx, alertRuleId, updatedRule)
+			mockK8s.PrometheusRulesFunc = func() k8s.PrometheusRuleInterface {
+				return &testutils.MockPrometheusRuleInterface{
+					GetFunc: func(ctx context.Context, namespace string, name string) (*monitoringv1.PrometheusRule, bool, error) {
+						return nil, false, errors.New("failed to get PrometheusRule")
+					},
+				}
+			}
+		})
+
+		It("returns the error", func() {
+			updatedRule := platformRule
+			err := client.UpdatePlatformAlertRule(ctx, platformRuleId, updatedRule)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("failed to get PrometheusRule"))
+		})
+	})
+
+	Context("when no label changes are detected", func() {
+		BeforeEach(func() {
+			mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
+				return &testutils.MockRelabeledRulesInterface{
+					GetFunc: func(ctx context.Context, id string) (monitoringv1.Rule, bool) {
+						if id == platformRuleId {
+							return platformRule, true
+						}
+						return monitoringv1.Rule{}, false
+					},
+				}
+			}
+
+			mockK8s.PrometheusRulesFunc = func() k8s.PrometheusRuleInterface {
+				return &testutils.MockPrometheusRuleInterface{
+					GetFunc: func(ctx context.Context, namespace string, name string) (*monitoringv1.PrometheusRule, bool, error) {
+						return &monitoringv1.PrometheusRule{
+							ObjectMeta: metav1.ObjectMeta{
+								Namespace: namespace,
+								Name:      name,
+							},
+							Spec: monitoringv1.PrometheusRuleSpec{
+								Groups: []monitoringv1.RuleGroup{
+									{
+										Name:  "test-group",
+										Rules: []monitoringv1.Rule{originalPlatformRule},
+									},
+								},
+							},
+						}, true, nil
+					},
+				}
+			}
+		})
+
+		It("returns an error", func() {
+			updatedRule := originalPlatformRule
+			err := client.UpdatePlatformAlertRule(ctx, platformRuleId, updatedRule)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("no label changes detected"))
 		})
+	})
 
-		It("should return error when alert rule not found", func() {
-			By("setting up mapper to return rule ID")
-			alertRuleId := "non-existent-rule-id"
-			mockMapper.FindAlertRuleByIdFunc = func(id mapper.PrometheusAlertRuleId) (*mapper.PrometheusRuleId, error) {
-				return nil, errors.New("alert rule not found")
+	Context("when updating platform rule labels", func() {
+		BeforeEach(func() {
+			mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
+				return &testutils.MockRelabeledRulesInterface{
+					GetFunc: func(ctx context.Context, id string) (monitoringv1.Rule, bool) {
+						if id == platformRuleId {
+							return platformRule, true
+						}
+						return monitoringv1.Rule{}, false
+					},
+				}
 			}
 
-			updatedRule := monitoringv1.Rule{
-				Alert: "PlatformAlert",
-				Expr:  intstr.FromString("up == 0"),
-				Labels: map[string]string{
-					"severity": "critical",
-				},
+			mockK8s.PrometheusRulesFunc = func() k8s.PrometheusRuleInterface {
+				return &testutils.MockPrometheusRuleInterface{
+					GetFunc: func(ctx context.Context, namespace string, name string) (*monitoringv1.PrometheusRule, bool, error) {
+						return &monitoringv1.PrometheusRule{
+							ObjectMeta: metav1.ObjectMeta{
+								Namespace: namespace,
+								Name:      name,
+							},
+							Spec: monitoringv1.PrometheusRuleSpec{
+								Groups: []monitoringv1.RuleGroup{
+									{
+										Name:  "test-group",
+										Rules: []monitoringv1.Rule{originalPlatformRule},
+									},
+								},
+							},
+						}, true, nil
+					},
+				}
 			}
+		})
 
-			err := client.UpdatePlatformAlertRule(ctx, alertRuleId, updatedRule)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("alert rule not found"))
+		Context("when creating new AlertRelabelConfig", func() {
+			BeforeEach(func() {
+				mockK8s.AlertRelabelConfigsFunc = func() k8s.AlertRelabelConfigInterface {
+					return &testutils.MockAlertRelabelConfigInterface{
+						GetFunc: func(ctx context.Context, namespace string, name string) (*osmv1.AlertRelabelConfig, bool, error) {
+							return nil, false, nil
+						},
+						CreateFunc: func(ctx context.Context, arc osmv1.AlertRelabelConfig) (*osmv1.AlertRelabelConfig, error) {
+							return &arc, nil
+						},
+					}
+				}
+			})
+
+			It("creates AlertRelabelConfig for label changes", func() {
+				var createdARC *osmv1.AlertRelabelConfig
+
+				mockK8s.AlertRelabelConfigsFunc = func() k8s.AlertRelabelConfigInterface {
+					return &testutils.MockAlertRelabelConfigInterface{
+						GetFunc: func(ctx context.Context, namespace string, name string) (*osmv1.AlertRelabelConfig, bool, error) {
+							return nil, false, nil
+						},
+						CreateFunc: func(ctx context.Context, arc osmv1.AlertRelabelConfig) (*osmv1.AlertRelabelConfig, error) {
+							createdARC = &arc
+							return &arc, nil
+						},
+					}
+				}
+
+				updatedRule := originalPlatformRule
+				updatedRule.Labels = map[string]string{
+					"severity":  "warning",
+					"new_label": "new_value",
+				}
+
+				err := client.UpdatePlatformAlertRule(ctx, platformRuleId, updatedRule)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(createdARC).NotTo(BeNil())
+				Expect(createdARC.Namespace).To(Equal("openshift-monitoring"))
+				Expect(strings.HasPrefix(createdARC.Name, "alertmanagement-")).To(BeTrue())
+				Expect(createdARC.Spec.Configs).NotTo(BeEmpty())
+			})
+		})
+
+		Context("when updating existing AlertRelabelConfig", func() {
+			BeforeEach(func() {
+				mockK8s.AlertRelabelConfigsFunc = func() k8s.AlertRelabelConfigInterface {
+					existingARC := &osmv1.AlertRelabelConfig{
+						ObjectMeta: metav1.ObjectMeta{
+							Name:      "alertmanagement-existing",
+							Namespace: "openshift-monitoring",
+						},
+					}
+					return &testutils.MockAlertRelabelConfigInterface{
+						GetFunc: func(ctx context.Context, namespace string, name string) (*osmv1.AlertRelabelConfig, bool, error) {
+							return existingARC, true, nil
+						},
+						UpdateFunc: func(ctx context.Context, arc osmv1.AlertRelabelConfig) error {
+							return nil
+						},
+					}
+				}
+			})
+
+			It("updates existing AlertRelabelConfig", func() {
+				var updatedARC *osmv1.AlertRelabelConfig
+
+				mockK8s.AlertRelabelConfigsFunc = func() k8s.AlertRelabelConfigInterface {
+					existingARC := &osmv1.AlertRelabelConfig{
+						ObjectMeta: metav1.ObjectMeta{
+							Name:      "alertmanagement-existing",
+							Namespace: "openshift-monitoring",
+						},
+					}
+					return &testutils.MockAlertRelabelConfigInterface{
+						GetFunc: func(ctx context.Context, namespace string, name string) (*osmv1.AlertRelabelConfig, bool, error) {
+							return existingARC, true, nil
+						},
+						UpdateFunc: func(ctx context.Context, arc osmv1.AlertRelabelConfig) error {
+							updatedARC = &arc
+							return nil
+						},
+					}
+				}
+
+				updatedRule := originalPlatformRule
+				updatedRule.Labels = map[string]string{
+					"severity": "info",
+				}
+
+				err := client.UpdatePlatformAlertRule(ctx, platformRuleId, updatedRule)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(updatedARC).NotTo(BeNil())
+				Expect(updatedARC.Spec.Configs).NotTo(BeEmpty())
+			})
+		})
+
+		Context("when dropping labels", func() {
+			It("creates relabel config to drop labels", func() {
+				var createdARC *osmv1.AlertRelabelConfig
+
+				mockK8s.AlertRelabelConfigsFunc = func() k8s.AlertRelabelConfigInterface {
+					return &testutils.MockAlertRelabelConfigInterface{
+						GetFunc: func(ctx context.Context, namespace string, name string) (*osmv1.AlertRelabelConfig, bool, error) {
+							return nil, false, nil
+						},
+						CreateFunc: func(ctx context.Context, arc osmv1.AlertRelabelConfig) (*osmv1.AlertRelabelConfig, error) {
+							createdARC = &arc
+							return &arc, nil
+						},
+					}
+				}
+
+				updatedRule := originalPlatformRule
+				// Remove severity label (keep alertname as it's special)
+				updatedRule.Labels = map[string]string{}
+
+				err := client.UpdatePlatformAlertRule(ctx, platformRuleId, updatedRule)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(createdARC).NotTo(BeNil())
+				Expect(createdARC.Spec.Configs).NotTo(BeEmpty())
+			})
 		})
 	})
 })

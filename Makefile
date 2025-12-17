@@ -59,6 +59,10 @@ start-backend:
 test-backend:
 	go test ./pkg/... ./internal/... -v
 
+.PHONY: test-e2e
+test-e2e:
+	PLUGIN_URL=http://localhost:9001 go test -v -timeout=150m -count=1 ./test/e2e
+
 .PHONY: build-image
 build-image:
 	./scripts/build-image.sh

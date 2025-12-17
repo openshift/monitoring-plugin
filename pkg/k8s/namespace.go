@@ -2,6 +2,7 @@ package k8s
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	corev1 "k8s.io/api/core/v1"
@@ -16,7 +17,7 @@ const (
 	ClusterMonitoringLabel = "openshift.io/cluster-monitoring"
 )
 
-type namespaceInformer struct {
+type namespaceManager struct {
 	informer cache.SharedIndexInformer
 
 	// monitoringNamespaces stores namespaces with openshift.io/cluster-monitoring=true
@@ -24,7 +25,7 @@ type namespaceInformer struct {
 	mu                   sync.RWMutex
 }
 
-func newNamespaceInformer(ctx context.Context, clientset kubernetes.Interface) (NamespaceInformerInterface, error) {
+func newNamespaceManager(ctx context.Context, clientset *kubernetes.Clientset) (*namespaceManager, error) {
 	informer := cache.NewSharedIndexInformer(
 		namespaceListWatch(clientset.CoreV1()),
 		&corev1.Namespace{},
@@ -32,42 +33,46 @@ func newNamespaceInformer(ctx context.Context, clientset kubernetes.Interface) (
 		cache.Indexers{},
 	)
 
-	ni := &namespaceInformer{
+	nm := &namespaceManager{
 		informer:             informer,
 		monitoringNamespaces: make(map[string]bool),
+		mu:                   sync.RWMutex{},
 	}
 
-	_, err := ni.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+	_, err := nm.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
 			ns, ok := obj.(*corev1.Namespace)
 			if !ok {
 				return
 			}
-			ni.updateMonitoringNamespace(ns)
+			nm.updateMonitoringNamespace(ns)
 		},
 		UpdateFunc: func(oldObj interface{}, newObj interface{}) {
 			ns, ok := newObj.(*corev1.Namespace)
 			if !ok {
 				return
 			}
-			ni.updateMonitoringNamespace(ns)
+			nm.updateMonitoringNamespace(ns)
 		},
 		DeleteFunc: func(obj interface{}) {
 			namespaceName, err := cache.DeletionHandlingMetaNamespaceKeyFunc(obj)
 			if err != nil {
 				return
 			}
-			ni.removeMonitoringNamespace(namespaceName)
+			nm.removeMonitoringNamespace(namespaceName)
 		},
 	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to add event handler to namespace informer: %w", err)
+	}
 
-	go ni.informer.Run(ctx.Done())
+	go nm.informer.Run(ctx.Done())
 
 	cache.WaitForNamedCacheSync("Namespace informer", ctx.Done(),
-		ni.informer.HasSynced,
+		nm.informer.HasSynced,
 	)
 
-	return ni, err
+	return nm, nil
 }
 
 func namespaceListWatch(client corev1client.CoreV1Interface) *cache.ListWatch {
@@ -81,25 +86,25 @@ func namespaceListWatch(client corev1client.CoreV1Interface) *cache.ListWatch {
 	)
 }
 
-func (ni *namespaceInformer) IsClusterMonitoringNamespace(name string) bool {
-	ni.mu.RLock()
-	defer ni.mu.RUnlock()
-	return ni.monitoringNamespaces[name]
-}
-
-func (ni *namespaceInformer) updateMonitoringNamespace(ns *corev1.Namespace) {
-	ni.mu.Lock()
-	defer ni.mu.Unlock()
+func (nm *namespaceManager) updateMonitoringNamespace(ns *corev1.Namespace) {
+	nm.mu.Lock()
+	defer nm.mu.Unlock()
 
 	if ns.Labels != nil && ns.Labels[ClusterMonitoringLabel] == "true" {
-		ni.monitoringNamespaces[ns.Name] = true
+		nm.monitoringNamespaces[ns.Name] = true
 	} else {
-		delete(ni.monitoringNamespaces, ns.Name)
+		delete(nm.monitoringNamespaces, ns.Name)
 	}
 }
 
-func (ni *namespaceInformer) removeMonitoringNamespace(name string) {
-	ni.mu.Lock()
-	defer ni.mu.Unlock()
-	delete(ni.monitoringNamespaces, name)
+func (nm *namespaceManager) removeMonitoringNamespace(name string) {
+	nm.mu.Lock()
+	defer nm.mu.Unlock()
+	delete(nm.monitoringNamespaces, name)
+}
+
+func (nm *namespaceManager) IsClusterMonitoringNamespace(name string) bool {
+	nm.mu.RLock()
+	defer nm.mu.RUnlock()
+	return nm.monitoringNamespaces[name]
 }

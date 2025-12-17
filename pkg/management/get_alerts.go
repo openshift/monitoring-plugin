@@ -4,7 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	"github.com/prometheus/prometheus/model/labels"
+	"github.com/prometheus/prometheus/model/relabel"
 
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
 )
@@ -15,39 +16,19 @@ func (c *client) GetAlerts(ctx context.Context, req k8s.GetAlertsRequest) ([]k8s
 		return nil, fmt.Errorf("failed to get prometheus alerts: %w", err)
 	}
 
+	configs := c.k8sClient.RelabeledRules().Config()
+
 	var result []k8s.PrometheusAlert
 	for _, alert := range alerts {
-		// Apply relabel configurations to the alert
-		updatedAlert, err := c.updateAlertBasedOnRelabelConfig(&alert)
-		if err != nil {
-			// Alert was dropped by relabel config, skip it
+
+		relabels, keep := relabel.Process(labels.FromMap(alert.Labels), configs...)
+		if !keep {
 			continue
 		}
-		result = append(result, updatedAlert)
+
+		alert.Labels = relabels.Map()
+		result = append(result, alert)
 	}
 
 	return result, nil
-}
-
-func (c *client) updateAlertBasedOnRelabelConfig(alert *k8s.PrometheusAlert) (k8s.PrometheusAlert, error) {
-	// Create a temporary rule to match relabel configs
-	rule := &monitoringv1.Rule{
-		Alert:  alert.Labels["alertname"],
-		Labels: alert.Labels,
-	}
-
-	configs := c.mapper.GetAlertRelabelConfigSpec(rule)
-
-	updatedLabels, err := applyRelabelConfigs(string(rule.Alert), alert.Labels, configs)
-	if err != nil {
-		return k8s.PrometheusAlert{}, err
-	}
-
-	alert.Labels = updatedLabels
-	// Update severity if it was changed
-	if severity, exists := updatedLabels["severity"]; exists {
-		alert.Labels["severity"] = severity
-	}
-
-	return *alert, nil
 }

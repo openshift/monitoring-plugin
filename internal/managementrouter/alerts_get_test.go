@@ -34,7 +34,7 @@ var _ = Describe("GetAlerts", func() {
 			},
 		}
 
-		mockManagement = management.NewWithCustomMapper(context.Background(), mockK8s, &testutils.MockMapperClient{})
+		mockManagement = management.New(context.Background(), mockK8s)
 		router = managementrouter.New(mockManagement)
 	})
 

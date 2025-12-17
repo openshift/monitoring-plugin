@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	alertrule "github.com/openshift/monitoring-plugin/pkg/alert_rule"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -27,9 +28,8 @@ func (c *client) CreateUserDefinedAlertRule(ctx context.Context, alertRule monit
 	}
 
 	// Check if rule with the same ID already exists
-	ruleId := c.mapper.GetAlertingRuleId(&alertRule)
-	_, err := c.mapper.FindAlertRuleById(ruleId)
-	if err == nil {
+	_, found := c.k8sClient.RelabeledRules().Get(ctx, alertrule.GetAlertingRuleId(&alertRule))
+	if found {
 		return "", errors.New("alert rule with exact config already exists")
 	}
 
@@ -37,10 +37,10 @@ func (c *client) CreateUserDefinedAlertRule(ctx context.Context, alertRule monit
 		prOptions.GroupName = DefaultGroupName
 	}
 
-	err = c.k8sClient.PrometheusRules().AddRule(ctx, nn, prOptions.GroupName, alertRule)
+	err := c.k8sClient.PrometheusRules().AddRule(ctx, nn, prOptions.GroupName, alertRule)
 	if err != nil {
 		return "", err
 	}
 
-	return string(c.mapper.GetAlertingRuleId(&alertRule)), nil
+	return alertrule.GetAlertingRuleId(&alertRule), nil
 }

@@ -61,11 +61,11 @@ type PluginConfig struct {
 type Feature string
 
 const (
-	AcmAlerting      Feature = "acm-alerting"
-	Incidents        Feature = "incidents"
-	DevConfig        Feature = "dev-config"
-	PersesDashboards Feature = "perses-dashboards"
-	ManagementAPI    Feature = "management-api"
+	AcmAlerting        Feature = "acm-alerting"
+	Incidents          Feature = "incidents"
+	DevConfig          Feature = "dev-config"
+	PersesDashboards   Feature = "perses-dashboards"
+	AlertManagementAPI Feature = "alert-management-api"
 )
 
 func (pluginConfig *PluginConfig) MarshalJSON() ([]byte, error) {
@@ -109,7 +109,7 @@ func (s *PluginServer) Shutdown(ctx context.Context) error {
 
 func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 	acmMode := cfg.Features[AcmAlerting]
-	managementMode := cfg.Features[ManagementAPI]
+	alertManagementAPIMode := cfg.Features[AlertManagementAPI]
 
 	acmLocationsLength := len(cfg.AlertmanagerUrl) + len(cfg.ThanosQuerierUrl)
 
@@ -135,7 +135,7 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 
 	// Comment the following line for local development:
 	var k8sclient *dynamic.DynamicClient
-	if acmMode || managementMode {
+	if acmMode || alertManagementAPIMode {
 		k8sconfig, err = rest.InClusterConfig()
 		if err != nil {
 			return nil, fmt.Errorf("cannot get in cluster config: %w", err)
@@ -151,18 +151,18 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 
 	// Initialize management client if management API feature is enabled
 	var managementClient management.Client
-	if managementMode {
+	if alertManagementAPIMode {
 		k8sClient, err := k8s.NewClient(ctx, k8sconfig)
 		if err != nil {
-			return nil, fmt.Errorf("failed to create k8s client for management API: %w", err)
+			return nil, fmt.Errorf("failed to create k8s client for alert management API: %w", err)
 		}
 
 		if err := k8sClient.TestConnection(ctx); err != nil {
-			return nil, fmt.Errorf("failed to connect to kubernetes cluster for management API: %w", err)
+			return nil, fmt.Errorf("failed to connect to kubernetes cluster for alert management API: %w", err)
 		}
 
 		managementClient = management.New(ctx, k8sClient)
-		log.Info("Management API enabled")
+		log.Info("alert management API enabled")
 	}
 
 	router, pluginConfig := setupRoutes(cfg, managementClient)

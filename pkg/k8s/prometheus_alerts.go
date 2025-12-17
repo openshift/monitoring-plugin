@@ -60,7 +60,7 @@ type prometheusRoute struct {
 	} `json:"spec"`
 }
 
-func newPrometheusAlerts(clientset *kubernetes.Clientset, config *rest.Config) PrometheusAlertsInterface {
+func newPrometheusAlerts(clientset *kubernetes.Clientset, config *rest.Config) *prometheusAlerts {
 	return &prometheusAlerts{
 		clientset: clientset,
 		config:    config,

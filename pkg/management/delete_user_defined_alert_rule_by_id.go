@@ -4,29 +4,32 @@ import (
 	"context"
 	"fmt"
 
+	alertrule "github.com/openshift/monitoring-plugin/pkg/alert_rule"
+	"github.com/openshift/monitoring-plugin/pkg/k8s"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"k8s.io/apimachinery/pkg/types"
-
-	"github.com/openshift/monitoring-plugin/pkg/management/mapper"
 )
 
 func (c *client) DeleteUserDefinedAlertRuleById(ctx context.Context, alertRuleId string) error {
-	prId, err := c.mapper.FindAlertRuleById(mapper.PrometheusAlertRuleId(alertRuleId))
-	if err != nil {
+	rule, found := c.k8sClient.RelabeledRules().Get(ctx, alertRuleId)
+	if !found {
 		return &NotFoundError{Resource: "AlertRule", Id: alertRuleId}
 	}
 
-	if c.IsPlatformAlertRule(types.NamespacedName(*prId)) {
+	namespace := rule.Labels[k8s.PrometheusRuleLabelNamespace]
+	name := rule.Labels[k8s.PrometheusRuleLabelName]
+
+	if c.IsPlatformAlertRule(types.NamespacedName{Namespace: namespace, Name: name}) {
 		return &NotAllowedError{Message: "cannot delete alert rule from a platform-managed PrometheusRule"}
 	}
 
-	pr, found, err := c.k8sClient.PrometheusRules().Get(ctx, prId.Namespace, prId.Name)
+	pr, found, err := c.k8sClient.PrometheusRules().Get(ctx, namespace, name)
 	if err != nil {
 		return err
 	}
 
 	if !found {
-		return &NotFoundError{Resource: "PrometheusRule", Id: fmt.Sprintf("%s/%s", prId.Namespace, prId.Name)}
+		return &NotFoundError{Resource: "PrometheusRule", Id: fmt.Sprintf("%s/%s", namespace, name)}
 	}
 
 	updated := false
@@ -63,7 +66,7 @@ func (c *client) DeleteUserDefinedAlertRuleById(ctx context.Context, alertRuleId
 		return nil
 	}
 
-	return &NotFoundError{Resource: "PrometheusRule", Id: fmt.Sprintf("%s/%s", pr.Namespace, pr.Name)}
+	return &NotFoundError{Resource: "AlertRule", Id: alertRuleId, AdditionalInfo: "rule not found in the given PrometheusRule"}
 }
 
 func (c *client) filterRulesById(rules []monitoringv1.Rule, alertRuleId string, updated *bool) []monitoringv1.Rule {
@@ -81,5 +84,5 @@ func (c *client) filterRulesById(rules []monitoringv1.Rule, alertRuleId string, 
 }
 
 func (c *client) shouldDeleteRule(rule monitoringv1.Rule, alertRuleId string) bool {
-	return alertRuleId == string(c.mapper.GetAlertingRuleId(&rule))
+	return alertRuleId == alertrule.GetAlertingRuleId(&rule)
 }

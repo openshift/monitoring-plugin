@@ -11,20 +11,23 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
-	"github.com/openshift/monitoring-plugin/pkg/management/mapper"
+	"github.com/openshift/monitoring-plugin/pkg/k8s"
 )
 
 func (c *client) UpdatePlatformAlertRule(ctx context.Context, alertRuleId string, alertRule monitoringv1.Rule) error {
-	prId, err := c.mapper.FindAlertRuleById(mapper.PrometheusAlertRuleId(alertRuleId))
-	if err != nil {
-		return err
+	rule, found := c.k8sClient.RelabeledRules().Get(ctx, alertRuleId)
+	if !found {
+		return &NotFoundError{Resource: "AlertRule", Id: alertRuleId}
 	}
 
-	if !c.IsPlatformAlertRule(types.NamespacedName(*prId)) {
-		return errors.New("cannot update non-platform alert rule from " + prId.Namespace + "/" + prId.Name)
+	namespace := rule.Labels[k8s.PrometheusRuleLabelNamespace]
+	name := rule.Labels[k8s.PrometheusRuleLabelName]
+
+	if !c.IsPlatformAlertRule(types.NamespacedName{Namespace: namespace, Name: name}) {
+		return errors.New("cannot update non-platform alert rule from " + namespace + "/" + name)
 	}
 
-	originalRule, err := c.getOriginalPlatformRule(ctx, prId, alertRuleId)
+	originalRule, err := c.getOriginalPlatformRule(ctx, namespace, name, alertRuleId)
 	if err != nil {
 		return err
 	}
@@ -34,17 +37,17 @@ func (c *client) UpdatePlatformAlertRule(ctx context.Context, alertRuleId string
 		return errors.New("no label changes detected; platform alert rules can only have labels updated")
 	}
 
-	return c.applyLabelChangesViaAlertRelabelConfig(ctx, prId.Namespace, alertRuleId, originalRule.Alert, labelChanges)
+	return c.applyLabelChangesViaAlertRelabelConfig(ctx, namespace, alertRuleId, originalRule.Alert, labelChanges)
 }
 
-func (c *client) getOriginalPlatformRule(ctx context.Context, prId *mapper.PrometheusRuleId, alertRuleId string) (*monitoringv1.Rule, error) {
-	pr, found, err := c.k8sClient.PrometheusRules().Get(ctx, prId.Namespace, prId.Name)
+func (c *client) getOriginalPlatformRule(ctx context.Context, namespace string, name string, alertRuleId string) (*monitoringv1.Rule, error) {
+	pr, found, err := c.k8sClient.PrometheusRules().Get(ctx, namespace, name)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get PrometheusRule %s/%s: %w", prId.Namespace, prId.Name, err)
+		return nil, fmt.Errorf("failed to get PrometheusRule %s/%s: %w", namespace, name, err)
 	}
 
 	if !found {
-		return nil, &NotFoundError{Resource: "PrometheusRule", Id: fmt.Sprintf("%s/%s", prId.Namespace, prId.Name)}
+		return nil, &NotFoundError{Resource: "PrometheusRule", Id: fmt.Sprintf("%s/%s", namespace, name)}
 	}
 
 	for groupIdx := range pr.Spec.Groups {
@@ -56,7 +59,7 @@ func (c *client) getOriginalPlatformRule(ctx context.Context, prId *mapper.Prome
 		}
 	}
 
-	return nil, fmt.Errorf("alert rule with id %s not found in PrometheusRule %s/%s", alertRuleId, prId.Namespace, prId.Name)
+	return nil, fmt.Errorf("alert rule with id %s not found in PrometheusRule %s/%s", alertRuleId, namespace, name)
 }
 
 type labelChange struct {
@@ -99,7 +102,7 @@ func calculateLabelChanges(originalLabels, newLabels map[string]string) []labelC
 }
 
 func (c *client) applyLabelChangesViaAlertRelabelConfig(ctx context.Context, namespace string, alertRuleId string, alertName string, changes []labelChange) error {
-	arcName := fmt.Sprintf("alertmanagement-%s", strings.ToLower(strings.ReplaceAll(alertRuleId, "/", "-")))
+	arcName := fmt.Sprintf("alertmanagement-%s", strings.ToLower(strings.ReplaceAll(alertRuleId, ";", "-")))
 
 	existingArc, found, err := c.k8sClient.AlertRelabelConfigs().Get(ctx, namespace, arcName)
 	if err != nil {

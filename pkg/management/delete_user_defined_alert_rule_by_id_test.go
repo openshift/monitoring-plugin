@@ -3,533 +3,449 @@ package management_test
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/intstr"
 
+	alertrule "github.com/openshift/monitoring-plugin/pkg/alert_rule"
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
 	"github.com/openshift/monitoring-plugin/pkg/management"
-	"github.com/openshift/monitoring-plugin/pkg/management/mapper"
 	"github.com/openshift/monitoring-plugin/pkg/management/testutils"
 )
 
 var _ = Describe("DeleteUserDefinedAlertRuleById", func() {
 	var (
-		ctx        context.Context
-		mockK8s    *testutils.MockClient
-		mockPR     *testutils.MockPrometheusRuleInterface
-		mockMapper *testutils.MockMapperClient
-		client     management.Client
+		ctx     context.Context
+		mockK8s *testutils.MockClient
+		client  management.Client
+	)
+
+	var (
+		userRule1 = monitoringv1.Rule{
+			Alert: "UserAlert1",
+			Labels: map[string]string{
+				k8s.PrometheusRuleLabelNamespace: "user-namespace",
+				k8s.PrometheusRuleLabelName:      "user-rule",
+			},
+		}
+		userRule1Id = alertrule.GetAlertingRuleId(&userRule1)
+
+		userRule2 = monitoringv1.Rule{
+			Alert: "UserAlert2",
+			Labels: map[string]string{
+				k8s.PrometheusRuleLabelNamespace: "user-namespace",
+				k8s.PrometheusRuleLabelName:      "user-rule",
+			},
+		}
+
+		platformRule = monitoringv1.Rule{
+			Alert: "PlatformAlert",
+			Labels: map[string]string{
+				k8s.PrometheusRuleLabelNamespace: "openshift-monitoring",
+				k8s.PrometheusRuleLabelName:      "platform-rule",
+			},
+		}
+		platformRuleId = alertrule.GetAlertingRuleId(&platformRule)
 	)
 
 	BeforeEach(func() {
 		ctx = context.Background()
-
-		mockPR = &testutils.MockPrometheusRuleInterface{}
-		mockNSInformer := &testutils.MockNamespaceInformerInterface{}
-		mockNSInformer.SetMonitoringNamespaces(map[string]bool{
-			"platform-namespace-1": true,
-			"platform-namespace-2": true,
-		})
-		mockK8s = &testutils.MockClient{
-			PrometheusRulesFunc: func() k8s.PrometheusRuleInterface {
-				return mockPR
-			},
-			NamespaceInformerFunc: func() k8s.NamespaceInformerInterface {
-				return mockNSInformer
-			},
-		}
-		mockMapper = &testutils.MockMapperClient{}
-
-		client = management.NewWithCustomMapper(ctx, mockK8s, mockMapper)
+		mockK8s = &testutils.MockClient{}
+		client = management.New(ctx, mockK8s)
 	})
 
-	Context("when deleting a user-defined alert rule", func() {
-		It("should delete rule from multi-rule PrometheusRule and update", func() {
-			By("setting up PrometheusRule with 3 rules in 2 groups")
-			rule1 := monitoringv1.Rule{
-				Alert: "Alert1",
-				Expr:  intstr.FromString("up == 0"),
-			}
-			rule2 := monitoringv1.Rule{
-				Alert: "Alert2",
-				Expr:  intstr.FromString("cpu_usage > 80"),
-			}
-			rule3 := monitoringv1.Rule{
-				Alert: "Alert3",
-				Expr:  intstr.FromString("memory_usage > 90"),
-			}
-
-			prometheusRule := &monitoringv1.PrometheusRule{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "multi-rule",
-					Namespace: "test-namespace",
-				},
-				Spec: monitoringv1.PrometheusRuleSpec{
-					Groups: []monitoringv1.RuleGroup{
-						{
-							Name:  "group1",
-							Rules: []monitoringv1.Rule{rule1, rule2},
-						},
-						{
-							Name:  "group2",
-							Rules: []monitoringv1.Rule{rule3},
-						},
+	Context("when rule is not found in RelabeledRules", func() {
+		BeforeEach(func() {
+			mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
+				return &testutils.MockRelabeledRulesInterface{
+					GetFunc: func(ctx context.Context, id string) (monitoringv1.Rule, bool) {
+						return monitoringv1.Rule{}, false
 					},
-				},
-			}
-
-			mockPR.SetPrometheusRules(map[string]*monitoringv1.PrometheusRule{
-				"test-namespace/multi-rule": prometheusRule,
-			})
-
-			alertRuleId := "alert2-id"
-			mockMapper.FindAlertRuleByIdFunc = func(id mapper.PrometheusAlertRuleId) (*mapper.PrometheusRuleId, error) {
-				return &mapper.PrometheusRuleId{
-					Namespace: "test-namespace",
-					Name:      "multi-rule",
-				}, nil
-			}
-			mockMapper.GetAlertingRuleIdFunc = func(alertRule *monitoringv1.Rule) mapper.PrometheusAlertRuleId {
-				if alertRule.Alert == "Alert2" {
-					return mapper.PrometheusAlertRuleId(alertRuleId)
 				}
-				return mapper.PrometheusAlertRuleId("other-id")
 			}
-
-			By("deleting the middle rule")
-			err := client.DeleteUserDefinedAlertRuleById(ctx, alertRuleId)
-			Expect(err).ToNot(HaveOccurred())
-
-			By("verifying PrometheusRule was updated, not deleted")
-			updatedPR, found, err := mockPR.Get(ctx, "test-namespace", "multi-rule")
-			Expect(err).ToNot(HaveOccurred())
-			Expect(found).To(BeTrue())
-			Expect(updatedPR.Spec.Groups).To(HaveLen(2))
-			Expect(updatedPR.Spec.Groups[0].Rules).To(HaveLen(1))
-			Expect(updatedPR.Spec.Groups[0].Rules[0].Alert).To(Equal("Alert1"))
-			Expect(updatedPR.Spec.Groups[1].Rules).To(HaveLen(1))
-			Expect(updatedPR.Spec.Groups[1].Rules[0].Alert).To(Equal("Alert3"))
 		})
 
-		It("should delete entire PrometheusRule when deleting the last rule", func() {
-			By("setting up PrometheusRule with single rule")
-			rule := monitoringv1.Rule{
-				Alert: "OnlyAlert",
-				Expr:  intstr.FromString("up == 0"),
-			}
+		It("returns NotFoundError", func() {
+			err := client.DeleteUserDefinedAlertRuleById(ctx, "nonexistent-id")
+			Expect(err).To(HaveOccurred())
 
-			prometheusRule := &monitoringv1.PrometheusRule{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "single-rule",
-					Namespace: "test-namespace",
-				},
-				Spec: monitoringv1.PrometheusRuleSpec{
-					Groups: []monitoringv1.RuleGroup{
-						{
-							Name:  "group1",
-							Rules: []monitoringv1.Rule{rule},
-						},
-					},
-				},
-			}
-
-			mockPR.SetPrometheusRules(map[string]*monitoringv1.PrometheusRule{
-				"test-namespace/single-rule": prometheusRule,
-			})
-
-			alertRuleId := "only-alert-id"
-			mockMapper.FindAlertRuleByIdFunc = func(id mapper.PrometheusAlertRuleId) (*mapper.PrometheusRuleId, error) {
-				return &mapper.PrometheusRuleId{
-					Namespace: "test-namespace",
-					Name:      "single-rule",
-				}, nil
-			}
-			mockMapper.GetAlertingRuleIdFunc = func(alertRule *monitoringv1.Rule) mapper.PrometheusAlertRuleId {
-				return mapper.PrometheusAlertRuleId(alertRuleId)
-			}
-
-			deleteCalled := false
-			mockPR.DeleteFunc = func(ctx context.Context, namespace, name string) error {
-				deleteCalled = true
-				Expect(namespace).To(Equal("test-namespace"))
-				Expect(name).To(Equal("single-rule"))
-				return nil
-			}
-
-			By("deleting the only rule")
-			err := client.DeleteUserDefinedAlertRuleById(ctx, alertRuleId)
-			Expect(err).ToNot(HaveOccurred())
-
-			By("verifying PrometheusRule was deleted")
-			Expect(deleteCalled).To(BeTrue())
-		})
-
-		It("should remove empty group when deleting its only rule", func() {
-			By("setting up PrometheusRule with 2 groups, one with single rule")
-			rule1 := monitoringv1.Rule{
-				Alert: "Alert1",
-				Expr:  intstr.FromString("up == 0"),
-			}
-			rule2 := monitoringv1.Rule{
-				Alert: "Alert2",
-				Expr:  intstr.FromString("cpu_usage > 80"),
-			}
-			rule3 := monitoringv1.Rule{
-				Alert: "SingleRuleInGroup",
-				Expr:  intstr.FromString("memory_usage > 90"),
-			}
-
-			prometheusRule := &monitoringv1.PrometheusRule{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "multi-group",
-					Namespace: "test-namespace",
-				},
-				Spec: monitoringv1.PrometheusRuleSpec{
-					Groups: []monitoringv1.RuleGroup{
-						{
-							Name:  "group1",
-							Rules: []monitoringv1.Rule{rule1, rule2},
-						},
-						{
-							Name:  "group2",
-							Rules: []monitoringv1.Rule{rule3},
-						},
-					},
-				},
-			}
-
-			mockPR.SetPrometheusRules(map[string]*monitoringv1.PrometheusRule{
-				"test-namespace/multi-group": prometheusRule,
-			})
-
-			alertRuleId := "single-rule-id"
-			mockMapper.FindAlertRuleByIdFunc = func(id mapper.PrometheusAlertRuleId) (*mapper.PrometheusRuleId, error) {
-				return &mapper.PrometheusRuleId{
-					Namespace: "test-namespace",
-					Name:      "multi-group",
-				}, nil
-			}
-			mockMapper.GetAlertingRuleIdFunc = func(alertRule *monitoringv1.Rule) mapper.PrometheusAlertRuleId {
-				if alertRule.Alert == "SingleRuleInGroup" {
-					return mapper.PrometheusAlertRuleId(alertRuleId)
-				}
-				return mapper.PrometheusAlertRuleId("other-id")
-			}
-
-			By("deleting the single rule from group2")
-			err := client.DeleteUserDefinedAlertRuleById(ctx, alertRuleId)
-			Expect(err).ToNot(HaveOccurred())
-
-			By("verifying group2 was removed and group1 remains")
-			updatedPR, found, err := mockPR.Get(ctx, "test-namespace", "multi-group")
-			Expect(found).To(BeTrue())
-			Expect(err).ToNot(HaveOccurred())
-			Expect(updatedPR.Spec.Groups).To(HaveLen(1))
-			Expect(updatedPR.Spec.Groups[0].Name).To(Equal("group1"))
-			Expect(updatedPR.Spec.Groups[0].Rules).To(HaveLen(2))
-		})
-
-		It("should delete only the exact matching rule", func() {
-			By("setting up PrometheusRule with similar rules")
-			rule1 := monitoringv1.Rule{
-				Alert: "TestAlert",
-				Expr:  intstr.FromString("up == 0"),
-				Labels: map[string]string{
-					"severity": "warning",
-				},
-			}
-			rule2 := monitoringv1.Rule{
-				Alert: "TestAlert",
-				Expr:  intstr.FromString("up == 0"),
-				Labels: map[string]string{
-					"severity": "critical",
-				},
-			}
-
-			prometheusRule := &monitoringv1.PrometheusRule{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "similar-rules",
-					Namespace: "test-namespace",
-				},
-				Spec: monitoringv1.PrometheusRuleSpec{
-					Groups: []monitoringv1.RuleGroup{
-						{
-							Name:  "group1",
-							Rules: []monitoringv1.Rule{rule1, rule2},
-						},
-					},
-				},
-			}
-
-			mockPR.SetPrometheusRules(map[string]*monitoringv1.PrometheusRule{
-				"test-namespace/similar-rules": prometheusRule,
-			})
-
-			targetRuleId := "target-rule-id"
-			mockMapper.FindAlertRuleByIdFunc = func(id mapper.PrometheusAlertRuleId) (*mapper.PrometheusRuleId, error) {
-				return &mapper.PrometheusRuleId{
-					Namespace: "test-namespace",
-					Name:      "similar-rules",
-				}, nil
-			}
-			mockMapper.GetAlertingRuleIdFunc = func(alertRule *monitoringv1.Rule) mapper.PrometheusAlertRuleId {
-				// Only rule1 matches the target ID
-				if alertRule.Alert == "TestAlert" && alertRule.Labels["severity"] == "warning" {
-					return mapper.PrometheusAlertRuleId(targetRuleId)
-				}
-				return mapper.PrometheusAlertRuleId("other-id")
-			}
-
-			By("deleting the specific rule")
-			err := client.DeleteUserDefinedAlertRuleById(ctx, targetRuleId)
-			Expect(err).ToNot(HaveOccurred())
-
-			By("verifying only the exact matching rule was deleted")
-			updatedPR, found, err := mockPR.Get(ctx, "test-namespace", "similar-rules")
-			Expect(found).To(BeTrue())
-			Expect(err).ToNot(HaveOccurred())
-			Expect(updatedPR.Spec.Groups[0].Rules).To(HaveLen(1))
-			Expect(updatedPR.Spec.Groups[0].Rules[0].Labels["severity"]).To(Equal("critical"))
+			var notFoundErr *management.NotFoundError
+			Expect(errors.As(err, &notFoundErr)).To(BeTrue())
+			Expect(notFoundErr.Resource).To(Equal("AlertRule"))
+			Expect(notFoundErr.Id).To(Equal("nonexistent-id"))
 		})
 	})
 
-	Context("when handling errors", func() {
-		It("should return error when rule not found in mapper", func() {
-			By("configuring mapper to return error")
-			alertRuleId := "nonexistent-rule-id"
-			mockMapper.FindAlertRuleByIdFunc = func(id mapper.PrometheusAlertRuleId) (*mapper.PrometheusRuleId, error) {
-				return nil, errors.New("alert rule not found")
+	Context("when trying to delete a platform rule", func() {
+		BeforeEach(func() {
+			mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
+				return &testutils.MockRelabeledRulesInterface{
+					GetFunc: func(ctx context.Context, id string) (monitoringv1.Rule, bool) {
+						if id == platformRuleId {
+							return platformRule, true
+						}
+						return monitoringv1.Rule{}, false
+					},
+				}
 			}
 
-			By("attempting to delete the rule")
-			err := client.DeleteUserDefinedAlertRuleById(ctx, alertRuleId)
-
-			By("verifying error is returned")
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("AlertRule with id nonexistent-rule-id not found"))
+			mockK8s.NamespaceFunc = func() k8s.NamespaceInterface {
+				return &testutils.MockNamespaceInterface{
+					IsClusterMonitoringNamespaceFunc: func(name string) bool {
+						return name == "openshift-monitoring"
+					},
+				}
+			}
 		})
 
-		It("should return error when trying to delete from platform-managed PrometheusRule", func() {
-			By("configuring mapper to return platform PrometheusRule")
-			alertRuleId := "platform-rule-id"
-			mockMapper.FindAlertRuleByIdFunc = func(id mapper.PrometheusAlertRuleId) (*mapper.PrometheusRuleId, error) {
-				return &mapper.PrometheusRuleId{
-					Namespace: "platform-namespace-1",
-					Name:      "openshift-platform-alerts",
-				}, nil
+		It("returns NotAllowedError", func() {
+			err := client.DeleteUserDefinedAlertRuleById(ctx, platformRuleId)
+			Expect(err).To(HaveOccurred())
+
+			var notAllowedErr *management.NotAllowedError
+			Expect(errors.As(err, &notAllowedErr)).To(BeTrue())
+			Expect(notAllowedErr.Message).To(ContainSubstring("cannot delete alert rule from a platform-managed PrometheusRule"))
+		})
+	})
+
+	Context("when PrometheusRule is not found", func() {
+		BeforeEach(func() {
+			mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
+				return &testutils.MockRelabeledRulesInterface{
+					GetFunc: func(ctx context.Context, id string) (monitoringv1.Rule, bool) {
+						if id == userRule1Id {
+							return userRule1, true
+						}
+						return monitoringv1.Rule{}, false
+					},
+				}
 			}
 
-			By("attempting to delete the rule")
-			err := client.DeleteUserDefinedAlertRuleById(ctx, alertRuleId)
+			mockK8s.NamespaceFunc = func() k8s.NamespaceInterface {
+				return &testutils.MockNamespaceInterface{
+					IsClusterMonitoringNamespaceFunc: func(name string) bool {
+						return false
+					},
+				}
+			}
 
-			By("verifying error is returned")
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("cannot delete alert rule from a platform-managed PrometheusRule"))
+			mockK8s.PrometheusRulesFunc = func() k8s.PrometheusRuleInterface {
+				return &testutils.MockPrometheusRuleInterface{
+					GetFunc: func(ctx context.Context, namespace string, name string) (*monitoringv1.PrometheusRule, bool, error) {
+						return nil, false, nil
+					},
+				}
+			}
 		})
 
-		It("should return error when PrometheusRule Get fails", func() {
-			By("configuring Get to return error")
-			alertRuleId := "test-rule-id"
-			mockMapper.FindAlertRuleByIdFunc = func(id mapper.PrometheusAlertRuleId) (*mapper.PrometheusRuleId, error) {
-				return &mapper.PrometheusRuleId{
-					Namespace: "test-namespace",
-					Name:      "test-rule",
-				}, nil
+		It("returns NotFoundError", func() {
+			err := client.DeleteUserDefinedAlertRuleById(ctx, userRule1Id)
+			Expect(err).To(HaveOccurred())
+
+			var notFoundErr *management.NotFoundError
+			Expect(errors.As(err, &notFoundErr)).To(BeTrue())
+			Expect(notFoundErr.Resource).To(Equal("PrometheusRule"))
+		})
+	})
+
+	Context("when PrometheusRule Get returns an error", func() {
+		BeforeEach(func() {
+			mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
+				return &testutils.MockRelabeledRulesInterface{
+					GetFunc: func(ctx context.Context, id string) (monitoringv1.Rule, bool) {
+						if id == userRule1Id {
+							return userRule1, true
+						}
+						return monitoringv1.Rule{}, false
+					},
+				}
 			}
 
-			mockPR.GetFunc = func(ctx context.Context, namespace, name string) (*monitoringv1.PrometheusRule, bool, error) {
-				return nil, false, errors.New("failed to get PrometheusRule")
+			mockK8s.NamespaceFunc = func() k8s.NamespaceInterface {
+				return &testutils.MockNamespaceInterface{
+					IsClusterMonitoringNamespaceFunc: func(name string) bool {
+						return false
+					},
+				}
 			}
 
-			By("attempting to delete the rule")
-			err := client.DeleteUserDefinedAlertRuleById(ctx, alertRuleId)
+			mockK8s.PrometheusRulesFunc = func() k8s.PrometheusRuleInterface {
+				return &testutils.MockPrometheusRuleInterface{
+					GetFunc: func(ctx context.Context, namespace string, name string) (*monitoringv1.PrometheusRule, bool, error) {
+						return nil, false, errors.New("failed to get PrometheusRule")
+					},
+				}
+			}
+		})
 
-			By("verifying error is returned")
+		It("returns the error", func() {
+			err := client.DeleteUserDefinedAlertRuleById(ctx, userRule1Id)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("failed to get PrometheusRule"))
 		})
+	})
 
-		It("should return error when PrometheusRule Update fails", func() {
-			By("setting up PrometheusRule with 2 rules")
-			rule1 := monitoringv1.Rule{
-				Alert: "Alert1",
-				Expr:  intstr.FromString("up == 0"),
-			}
-			rule2 := monitoringv1.Rule{
-				Alert: "Alert2",
-				Expr:  intstr.FromString("cpu_usage > 80"),
-			}
-
-			prometheusRule := &monitoringv1.PrometheusRule{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "test-rule",
-					Namespace: "test-namespace",
-				},
-				Spec: monitoringv1.PrometheusRuleSpec{
-					Groups: []monitoringv1.RuleGroup{
-						{
-							Name:  "group1",
-							Rules: []monitoringv1.Rule{rule1, rule2},
-						},
+	Context("when rule is not found in PrometheusRule", func() {
+		BeforeEach(func() {
+			mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
+				return &testutils.MockRelabeledRulesInterface{
+					GetFunc: func(ctx context.Context, id string) (monitoringv1.Rule, bool) {
+						if id == userRule1Id {
+							return userRule1, true
+						}
+						return monitoringv1.Rule{}, false
 					},
-				},
-			}
-
-			mockPR.SetPrometheusRules(map[string]*monitoringv1.PrometheusRule{
-				"test-namespace/test-rule": prometheusRule,
-			})
-
-			alertRuleId := "alert2-id"
-			mockMapper.FindAlertRuleByIdFunc = func(id mapper.PrometheusAlertRuleId) (*mapper.PrometheusRuleId, error) {
-				return &mapper.PrometheusRuleId{
-					Namespace: "test-namespace",
-					Name:      "test-rule",
-				}, nil
-			}
-			mockMapper.GetAlertingRuleIdFunc = func(alertRule *monitoringv1.Rule) mapper.PrometheusAlertRuleId {
-				if alertRule.Alert == "Alert2" {
-					return mapper.PrometheusAlertRuleId(alertRuleId)
 				}
-				return mapper.PrometheusAlertRuleId("other-id")
 			}
 
-			mockPR.UpdateFunc = func(ctx context.Context, pr monitoringv1.PrometheusRule) error {
-				return fmt.Errorf("kubernetes update error")
+			mockK8s.NamespaceFunc = func() k8s.NamespaceInterface {
+				return &testutils.MockNamespaceInterface{
+					IsClusterMonitoringNamespaceFunc: func(name string) bool {
+						return false
+					},
+				}
 			}
 
-			By("attempting to delete the rule")
-			err := client.DeleteUserDefinedAlertRuleById(ctx, alertRuleId)
-
-			By("verifying error is returned")
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("failed to update PrometheusRule"))
-			Expect(err.Error()).To(ContainSubstring("kubernetes update error"))
+			mockK8s.PrometheusRulesFunc = func() k8s.PrometheusRuleInterface {
+				return &testutils.MockPrometheusRuleInterface{
+					GetFunc: func(ctx context.Context, namespace string, name string) (*monitoringv1.PrometheusRule, bool, error) {
+						return &monitoringv1.PrometheusRule{
+							ObjectMeta: metav1.ObjectMeta{
+								Namespace: namespace,
+								Name:      name,
+							},
+							Spec: monitoringv1.PrometheusRuleSpec{
+								Groups: []monitoringv1.RuleGroup{
+									{
+										Name:  "test-group",
+										Rules: []monitoringv1.Rule{userRule2},
+									},
+								},
+							},
+						}, true, nil
+					},
+				}
+			}
 		})
 
-		It("should return error when PrometheusRule Delete fails", func() {
-			By("setting up PrometheusRule with single rule")
-			rule := monitoringv1.Rule{
-				Alert: "OnlyAlert",
-				Expr:  intstr.FromString("up == 0"),
-			}
-
-			prometheusRule := &monitoringv1.PrometheusRule{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "single-rule",
-					Namespace: "test-namespace",
-				},
-				Spec: monitoringv1.PrometheusRuleSpec{
-					Groups: []monitoringv1.RuleGroup{
-						{
-							Name:  "group1",
-							Rules: []monitoringv1.Rule{rule},
-						},
-					},
-				},
-			}
-
-			mockPR.SetPrometheusRules(map[string]*monitoringv1.PrometheusRule{
-				"test-namespace/single-rule": prometheusRule,
-			})
-
-			alertRuleId := "only-alert-id"
-			mockMapper.FindAlertRuleByIdFunc = func(id mapper.PrometheusAlertRuleId) (*mapper.PrometheusRuleId, error) {
-				return &mapper.PrometheusRuleId{
-					Namespace: "test-namespace",
-					Name:      "single-rule",
-				}, nil
-			}
-			mockMapper.GetAlertingRuleIdFunc = func(alertRule *monitoringv1.Rule) mapper.PrometheusAlertRuleId {
-				return mapper.PrometheusAlertRuleId(alertRuleId)
-			}
-
-			mockPR.DeleteFunc = func(ctx context.Context, namespace, name string) error {
-				return fmt.Errorf("kubernetes delete error")
-			}
-
-			By("attempting to delete the rule")
-			err := client.DeleteUserDefinedAlertRuleById(ctx, alertRuleId)
-
-			By("verifying error is returned")
+		It("returns NotFoundError", func() {
+			err := client.DeleteUserDefinedAlertRuleById(ctx, userRule1Id)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("failed to delete PrometheusRule"))
-			Expect(err.Error()).To(ContainSubstring("kubernetes delete error"))
+
+			var notFoundErr *management.NotFoundError
+			Expect(errors.As(err, &notFoundErr)).To(BeTrue())
+			Expect(notFoundErr.Resource).To(Equal("AlertRule"))
+			Expect(notFoundErr.Id).To(Equal(userRule1Id))
 		})
 	})
 
-	Context("when handling edge cases", func() {
-		It("should handle PrometheusRule with multiple groups correctly", func() {
-			By("setting up PrometheusRule with 3 groups")
-			rule1 := monitoringv1.Rule{
-				Alert: "Alert1",
-				Expr:  intstr.FromString("up == 0"),
-			}
-			rule2 := monitoringv1.Rule{
-				Alert: "Alert2",
-				Expr:  intstr.FromString("cpu_usage > 80"),
-			}
-			rule3 := monitoringv1.Rule{
-				Alert: "Alert3",
-				Expr:  intstr.FromString("memory_usage > 90"),
-			}
-
-			prometheusRule := &monitoringv1.PrometheusRule{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "multi-group",
-					Namespace: "test-namespace",
-				},
-				Spec: monitoringv1.PrometheusRuleSpec{
-					Groups: []monitoringv1.RuleGroup{
-						{
-							Name:  "group1",
-							Rules: []monitoringv1.Rule{rule1},
-						},
-						{
-							Name:  "group2",
-							Rules: []monitoringv1.Rule{rule2},
-						},
-						{
-							Name:  "group3",
-							Rules: []monitoringv1.Rule{rule3},
-						},
+	Context("when deleting the only rule", func() {
+		BeforeEach(func() {
+			mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
+				return &testutils.MockRelabeledRulesInterface{
+					GetFunc: func(ctx context.Context, id string) (monitoringv1.Rule, bool) {
+						if id == userRule1Id {
+							return userRule1, true
+						}
+						return monitoringv1.Rule{}, false
 					},
+				}
+			}
+
+			mockK8s.NamespaceFunc = func() k8s.NamespaceInterface {
+				return &testutils.MockNamespaceInterface{
+					IsClusterMonitoringNamespaceFunc: func(name string) bool {
+						return false
+					},
+				}
+			}
+
+			mockK8s.PrometheusRulesFunc = func() k8s.PrometheusRuleInterface {
+				return &testutils.MockPrometheusRuleInterface{
+					GetFunc: func(ctx context.Context, namespace string, name string) (*monitoringv1.PrometheusRule, bool, error) {
+						return &monitoringv1.PrometheusRule{
+							ObjectMeta: metav1.ObjectMeta{
+								Namespace: namespace,
+								Name:      name,
+							},
+							Spec: monitoringv1.PrometheusRuleSpec{
+								Groups: []monitoringv1.RuleGroup{
+									{
+										Name:  "test-group",
+										Rules: []monitoringv1.Rule{userRule1},
+									},
+								},
+							},
+						}, true, nil
+					},
+					DeleteFunc: func(ctx context.Context, namespace string, name string) error {
+						return nil
+					},
+				}
+			}
+		})
+
+		It("deletes the entire PrometheusRule", func() {
+			var deleteCalled bool
+
+			mockK8s.PrometheusRulesFunc = func() k8s.PrometheusRuleInterface {
+				return &testutils.MockPrometheusRuleInterface{
+					GetFunc: func(ctx context.Context, namespace string, name string) (*monitoringv1.PrometheusRule, bool, error) {
+						return &monitoringv1.PrometheusRule{
+							ObjectMeta: metav1.ObjectMeta{
+								Namespace: namespace,
+								Name:      name,
+							},
+							Spec: monitoringv1.PrometheusRuleSpec{
+								Groups: []monitoringv1.RuleGroup{
+									{
+										Name:  "test-group",
+										Rules: []monitoringv1.Rule{userRule1},
+									},
+								},
+							},
+						}, true, nil
+					},
+					DeleteFunc: func(ctx context.Context, namespace string, name string) error {
+						deleteCalled = true
+						return nil
+					},
+				}
+			}
+
+			err := client.DeleteUserDefinedAlertRuleById(ctx, userRule1Id)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(deleteCalled).To(BeTrue())
+		})
+	})
+
+	Context("when deleting one of multiple rules", func() {
+		BeforeEach(func() {
+			mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
+				return &testutils.MockRelabeledRulesInterface{
+					GetFunc: func(ctx context.Context, id string) (monitoringv1.Rule, bool) {
+						if id == userRule1Id {
+							return userRule1, true
+						}
+						return monitoringv1.Rule{}, false
+					},
+				}
+			}
+
+			mockK8s.NamespaceFunc = func() k8s.NamespaceInterface {
+				return &testutils.MockNamespaceInterface{
+					IsClusterMonitoringNamespaceFunc: func(name string) bool {
+						return false
+					},
+				}
+			}
+		})
+
+		It("updates the PrometheusRule with remaining rules", func() {
+			var updateCalled bool
+			var updatedPR *monitoringv1.PrometheusRule
+
+			mockK8s.PrometheusRulesFunc = func() k8s.PrometheusRuleInterface {
+				return &testutils.MockPrometheusRuleInterface{
+					GetFunc: func(ctx context.Context, namespace string, name string) (*monitoringv1.PrometheusRule, bool, error) {
+						return &monitoringv1.PrometheusRule{
+							ObjectMeta: metav1.ObjectMeta{
+								Namespace: namespace,
+								Name:      name,
+							},
+							Spec: monitoringv1.PrometheusRuleSpec{
+								Groups: []monitoringv1.RuleGroup{
+									{
+										Name:  "test-group",
+										Rules: []monitoringv1.Rule{userRule1, userRule2},
+									},
+								},
+							},
+						}, true, nil
+					},
+					UpdateFunc: func(ctx context.Context, pr monitoringv1.PrometheusRule) error {
+						updateCalled = true
+						updatedPR = &pr
+						return nil
+					},
+				}
+			}
+
+			err := client.DeleteUserDefinedAlertRuleById(ctx, userRule1Id)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(updateCalled).To(BeTrue())
+			Expect(updatedPR.Spec.Groups).To(HaveLen(1))
+			Expect(updatedPR.Spec.Groups[0].Rules).To(HaveLen(1))
+			Expect(updatedPR.Spec.Groups[0].Rules[0].Alert).To(Equal("UserAlert2"))
+		})
+	})
+
+	Context("when deleting all rules from a group", func() {
+		It("removes the empty group", func() {
+			anotherRule := monitoringv1.Rule{
+				Alert: "AnotherAlert",
+				Labels: map[string]string{
+					k8s.PrometheusRuleLabelNamespace: "user-namespace",
+					k8s.PrometheusRuleLabelName:      "user-rule",
 				},
 			}
 
-			mockPR.SetPrometheusRules(map[string]*monitoringv1.PrometheusRule{
-				"test-namespace/multi-group": prometheusRule,
-			})
-
-			alertRuleId := "alert2-id"
-			mockMapper.FindAlertRuleByIdFunc = func(id mapper.PrometheusAlertRuleId) (*mapper.PrometheusRuleId, error) {
-				return &mapper.PrometheusRuleId{
-					Namespace: "test-namespace",
-					Name:      "multi-group",
-				}, nil
-			}
-			mockMapper.GetAlertingRuleIdFunc = func(alertRule *monitoringv1.Rule) mapper.PrometheusAlertRuleId {
-				if alertRule.Alert == "Alert2" {
-					return mapper.PrometheusAlertRuleId(alertRuleId)
+			mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
+				return &testutils.MockRelabeledRulesInterface{
+					GetFunc: func(ctx context.Context, id string) (monitoringv1.Rule, bool) {
+						if id == userRule1Id {
+							return userRule1, true
+						}
+						return monitoringv1.Rule{}, false
+					},
 				}
-				return mapper.PrometheusAlertRuleId("other-id")
 			}
 
-			By("deleting rule from middle group")
-			err := client.DeleteUserDefinedAlertRuleById(ctx, alertRuleId)
-			Expect(err).ToNot(HaveOccurred())
+			mockK8s.NamespaceFunc = func() k8s.NamespaceInterface {
+				return &testutils.MockNamespaceInterface{
+					IsClusterMonitoringNamespaceFunc: func(name string) bool {
+						return false
+					},
+				}
+			}
 
-			By("verifying middle group was removed")
-			updatedPR, found, err := mockPR.Get(ctx, "test-namespace", "multi-group")
-			Expect(found).To(BeTrue())
-			Expect(err).ToNot(HaveOccurred())
-			Expect(updatedPR.Spec.Groups).To(HaveLen(2))
-			Expect(updatedPR.Spec.Groups[0].Name).To(Equal("group1"))
-			Expect(updatedPR.Spec.Groups[1].Name).To(Equal("group3"))
+			var updatedPR *monitoringv1.PrometheusRule
+
+			mockK8s.PrometheusRulesFunc = func() k8s.PrometheusRuleInterface {
+				return &testutils.MockPrometheusRuleInterface{
+					GetFunc: func(ctx context.Context, namespace string, name string) (*monitoringv1.PrometheusRule, bool, error) {
+						return &monitoringv1.PrometheusRule{
+							ObjectMeta: metav1.ObjectMeta{
+								Namespace: namespace,
+								Name:      name,
+							},
+							Spec: monitoringv1.PrometheusRuleSpec{
+								Groups: []monitoringv1.RuleGroup{
+									{
+										Name:  "group-to-be-empty",
+										Rules: []monitoringv1.Rule{userRule1},
+									},
+									{
+										Name:  "group-with-rules",
+										Rules: []monitoringv1.Rule{anotherRule},
+									},
+								},
+							},
+						}, true, nil
+					},
+					UpdateFunc: func(ctx context.Context, pr monitoringv1.PrometheusRule) error {
+						updatedPR = &pr
+						return nil
+					},
+				}
+			}
+
+			err := client.DeleteUserDefinedAlertRuleById(ctx, userRule1Id)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(updatedPR.Spec.Groups).To(HaveLen(1))
+			Expect(updatedPR.Spec.Groups[0].Name).To(Equal("group-with-rules"))
 		})
 	})
 })

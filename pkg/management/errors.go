@@ -5,10 +5,18 @@ import "fmt"
 type NotFoundError struct {
 	Resource string
 	Id       string
+
+	AdditionalInfo string
 }
 
 func (r *NotFoundError) Error() string {
-	return fmt.Sprintf("%s with id %s not found", r.Resource, r.Id)
+	s := fmt.Sprintf("%s with id %s not found", r.Resource, r.Id)
+
+	if r.AdditionalInfo != "" {
+		s += fmt.Sprintf(": %s", r.AdditionalInfo)
+	}
+
+	return s
 }
 
 type NotAllowedError struct {
