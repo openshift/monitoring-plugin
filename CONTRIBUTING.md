@@ -14,6 +14,7 @@ Thank you for your interest in contributing to the OpenShift Monitoring Plugin! 
   - [React Component Patterns](#react-component-patterns)
   - [State Management](#state-management)
   - [TypeScript Best Practices](#typescript-best-practices)
+  - [Go Backend Guidelines](#go-backend-guidelines)
 - [Testing Requirements](#testing-requirements)
 - [Internationalization (i18n)](#internationalization-i18n)
 - [Troubleshooting](#troubleshooting)
@@ -418,6 +419,46 @@ type AugmentedColumnStyle = ColumnStyle & {
 type PartialMetric = Partial<Metric>;
 type RequiredFields = Required<Pick<Config, "name" | "url">>;
 ```
+
+### Go Backend Guidelines
+
+The backend that serves plugin assets and proxies APIs is written in Go (see `/cmd` and `/pkg`).
+Follow these Go-specific conventions in addition to the general naming rules:
+
+#### Files and Packages
+
+- **File names**: lowercase with underscores only when required (e.g., `plugin_handler.go`, `server_test.go`).
+- **Packages**: short, all lowercase, no underscores or mixedCaps (e.g., `proxy`, `handlers`).
+- **Tests**: co-locate `_test.go` files next to the implementation and keep table-driven tests when feasible.
+
+#### Variables and Constants
+
+- **Exported identifiers** use `MixedCaps` starting with an uppercase letter (`PluginServer`, `DefaultTimeout`).
+- **Unexported identifiers** use `mixedCaps` starting lowercase (`proxyClient`, `requestCtx`).
+- Favor descriptive names over abbreviations; keep short-lived loop variables concise (`i`, `tc`).
+- Group related constants using `const (...)` blocks.
+
+#### Functions and Methods
+
+- Exported functions and methods must have doc comments beginning with the function name.
+- Function names follow `MixedCaps` (`StartServer`, `newProxyHandler`).
+- Keep parameter order consistent (ctx first, dependencies before data structs) and return `(value, error)` pairs.
+- Ensure all files pass `go fmt ./cmd ./pkg` and `go vet ./...` before submitting.
+
+#### Structs and Interfaces
+
+- Struct names are `MixedCaps` (e.g., `ProxyConfig`, `TLSBundle`).
+- Exported struct fields must be capitalized if used by other packages or JSON marshaling. Always add JSON tags for serialized types:
+
+  ```go
+  type ProxyConfig struct {
+      TargetURL string `json:"targetURL"`
+      Timeout   time.Duration `json:"timeout"`
+  }
+  ```
+
+- Interfaces describe behavior (`MetricsFetcher`, `ClientProvider`) and live near their consumers.
+- Keep files focused: one primary struct or related set of functions per file to ease reviews.
 
 ---
 
