@@ -7,7 +7,7 @@ import { incidentsPage } from '../../views/incidents-page';
 
 // Set constants for the operators that need to be installed for tests.
 const MCP = {
-  namespace: 'openshift-cluster-observability-operator',
+  namespace: Cypress.env('COO_NAMESPACE'),
   packageName: 'cluster-observability-operator',
   operatorName: 'Cluster Observability Operator',
   config: {
@@ -21,11 +21,10 @@ const MP = {
   operatorName: 'Cluster Monitoring Operator',
 };
 
-describe('BVT: Incidents - e2e', () => {
+describe('BVT: Incidents - e2e', { tags: ['@smoke', '@slow', '@incidents'] }, () => {
   let currentAlertName: string;
 
   before(() => {
-    cy.afterBlockCOO(MCP, MP); // Following cypher best practices, the cleanup is done before the test block
     cy.beforeBlockCOO(MCP, MP);
     
     cy.cleanupIncidentPrometheusRules(); 
@@ -37,33 +36,28 @@ describe('BVT: Incidents - e2e', () => {
     });
   });
 
-  after(() => {
-    cy.afterBlockCOO(MCP, MP); // For compatibility with other tests
-  });
-
   it('1. Admin perspective - Incidents page - Incident with custom alert lifecycle', () => {
+    cy.transformMetrics();
     cy.log('1.1 Navigate to Incidents page and clear filters');
     incidentsPage.goTo();
-    commonPages.titleShouldHaveText('Incidents');
     incidentsPage.clearAllFilters();
     
     const intervalMs = 60_000;
     const maxMinutes = 30; 
 
     cy.log('1.2 Wait for incident with custom alert to appear');
-    cy.waitUntilWithCustomTimeout(
+    cy.waitUntil(
       () => incidentsPage.findIncidentWithAlert(currentAlertName),
       { 
         interval: intervalMs, 
         timeout: maxMinutes * intervalMs,
-        timeoutMessage: `Custom timeout: Incident with alert "${currentAlertName}" did not appear within ${maxMinutes} minutes.`
       }
     );
 
     cy.log('1.3 Verify custom alert appears in alerts table');
     incidentsPage
       .elements
-      .alertsTable()
+      .incidentsTable()
       .contains(currentAlertName)
       .should('exist');
   });

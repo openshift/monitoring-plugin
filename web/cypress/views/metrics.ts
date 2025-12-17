@@ -1,6 +1,6 @@
 import { commonPages } from "./common";
 import { DataTestIDs, Classes, LegacyTestIDs, IDs } from "../../src/components/data-test";
-import { MetricsPageUnits, MetricsPageRefreshInterval, MetricsPageQueryInput, MetricsPageActions, MetricGraphEmptyState, MetricsPagePredefinedQueries, MetricsPageQueryKebabDropdown, GraphTimespan } from "../fixtures/monitoring/constants";
+import { MetricsPageUnits, MonitoringRefreshInterval, MetricsPageQueryInput, MetricsPageActions, MetricGraphEmptyState, MetricsPagePredefinedQueries, MetricsPageQueryKebabDropdown, GraphTimespan } from "../fixtures/monitoring/constants";
 
 export const metricsPage = {
 
@@ -8,10 +8,10 @@ export const metricsPage = {
     cy.log('metricsPage.shouldBeLoaded');
     commonPages.titleShouldHaveText('Metrics');
     cy.byTestID(DataTestIDs.MetricGraphUnitsDropDown).contains(MetricsPageUnits.NO_UNITS).should('be.visible');
-    cy.byTestID(DataTestIDs.MetricDropdownPollInterval).contains(MetricsPageRefreshInterval.REFRESH_OFF).should('be.visible');
+    cy.byTestID(DataTestIDs.MetricDropdownPollInterval).contains(MonitoringRefreshInterval.REFRESH_OFF).should('be.visible');
     cy.byTestID(DataTestIDs.MetricsPageActionsDropdownButton).should('be.visible');
     cy.byTestID(DataTestIDs.MetricHideShowGraphButton).should('be.visible');
-    cy.get(Classes.GraphCard).should('not.exist');
+    cy.byTestID(DataTestIDs.MetricGraph).should('not.exist'); 
     cy.byTestID(DataTestIDs.MetricsPageNoQueryEnteredTitle).should('be.visible');
     cy.byTestID(DataTestIDs.MetricsPageNoQueryEntered).should('be.visible');
     cy.byTestID(DataTestIDs.MetricsPageInsertExampleQueryButton).should('be.visible');
@@ -25,10 +25,10 @@ export const metricsPage = {
     cy.log('metricsPage.redirectedToMetricsPage');
     commonPages.titleShouldHaveText('Metrics');
     cy.byTestID(DataTestIDs.MetricGraphUnitsDropDown).contains(MetricsPageUnits.NO_UNITS).should('be.visible');
-    cy.byTestID(DataTestIDs.MetricDropdownPollInterval).contains(MetricsPageRefreshInterval.REFRESH_OFF).should('be.visible');
+    cy.byTestID(DataTestIDs.MetricDropdownPollInterval).contains(MonitoringRefreshInterval.REFRESH_OFF).should('be.visible');
     cy.byTestID(DataTestIDs.MetricsPageActionsDropdownButton).should('be.visible');
     cy.byTestID(DataTestIDs.MetricHideShowGraphButton).should('be.visible');
-    cy.get(Classes.GraphCard).should('be.visible');
+    cy.byTestID(DataTestIDs.MetricGraph).should('be.visible');
     cy.byTestID(DataTestIDs.MetricGraphTimespanDropdown).should('be.visible');
     cy.byTestID(DataTestIDs.MetricGraphTimespanInput).should('be.visible');
     cy.byTestID(DataTestIDs.MetricResetZoomButton).should('be.visible');
@@ -41,7 +41,7 @@ export const metricsPage = {
     cy.get(Classes.MetricsPageQueryInput).eq(0).should('not.have.text', MetricsPageQueryInput.EXPRESSION_PRESS_SHIFT_ENTER_FOR_NEWLINES);
     cy.byTestID(DataTestIDs.MetricsPageDisableEnableQuerySwitch).eq(0).should('have.attr', 'checked');
     cy.byTestID(DataTestIDs.KebabDropdownButton).eq(0).should('be.visible');
-    cy.get(Classes.GraphCard).should('be.visible');
+    cy.byTestID(DataTestIDs.MetricGraph).should('be.visible'); 
     cy.byTestID(DataTestIDs.MetricsPageQueryTable).eq(0).should('be.visible');
     cy.byTestID(DataTestIDs.MetricsPageSelectAllUnselectAllButton).eq(0).should('be.visible');
     cy.byTestID(DataTestIDs.MetricsPageSeriesButton).eq(0).should('be.visible');
@@ -54,10 +54,10 @@ export const metricsPage = {
     cy.log('metricsPage.redirectedToMetricsPageWithoutDatapoints');
     commonPages.titleShouldHaveText('Metrics');
     cy.byTestID(DataTestIDs.MetricGraphUnitsDropDown).contains(MetricsPageUnits.NO_UNITS).should('be.visible');
-    cy.byTestID(DataTestIDs.MetricDropdownPollInterval).contains(MetricsPageRefreshInterval.REFRESH_OFF).should('be.visible');
+    cy.byTestID(DataTestIDs.MetricDropdownPollInterval).contains(MonitoringRefreshInterval.REFRESH_OFF).should('be.visible');
     cy.byTestID(DataTestIDs.MetricsPageActionsDropdownButton).should('be.visible');
     cy.byTestID(DataTestIDs.MetricHideShowGraphButton).should('be.visible');
-    cy.get(Classes.GraphCard).should('be.visible');
+    cy.byTestID(DataTestIDs.MetricGraph).should('be.visible');
     cy.byTestID(DataTestIDs.MetricGraphTimespanDropdown).should('be.visible');
     cy.byTestID(DataTestIDs.MetricGraphTimespanInput).should('be.visible');
     cy.byTestID(DataTestIDs.MetricResetZoomButton).should('be.visible');
@@ -84,7 +84,6 @@ export const metricsPage = {
   clickInsertExampleQuery: () => {
     cy.log('metricsPage.insertExampleQuery');
     cy.byTestID(DataTestIDs.MetricsPageInsertExampleQueryButton).click();
-    cy.get('[id^="' + IDs.ChartAxis0ChartLabel + '"]').eq(0).should('be.visible');
   },
 
   shouldBeLoadedWithGraph: () => {
@@ -92,7 +91,7 @@ export const metricsPage = {
     cy.byTestID(DataTestIDs.MetricsPageNoQueryEnteredTitle).should('not.exist');
     cy.byTestID(DataTestIDs.MetricsPageNoQueryEntered).should('not.exist');
     cy.byTestID(DataTestIDs.MetricsPageInsertExampleQueryButton).should('not.exist');
-    cy.get(Classes.GraphCard).should('be.visible');
+    cy.byTestID(DataTestIDs.MetricGraph).should('be.visible');
     cy.byTestID(DataTestIDs.MetricGraphTimespanDropdown).should('be.visible');
     cy.byTestID(DataTestIDs.MetricGraphTimespanInput).should('be.visible');
     cy.byTestID(DataTestIDs.MetricResetZoomButton).should('be.visible');
@@ -127,7 +126,7 @@ export const metricsPage = {
     cy.get('[id^="' + IDs.ChartAxis1ChartLabel + '"]').should('not.contain', 'undefined');
   },
 
-  clickRefreshIntervalDropdown: (interval: MetricsPageRefreshInterval) => {
+  clickRefreshIntervalDropdown: (interval: MonitoringRefreshInterval) => {
     cy.log('metricsPage.clickRefreshIntervalDropdown');
     cy.byTestID(DataTestIDs.MetricDropdownPollInterval).should('be.visible').click();
     cy.get(Classes.MenuItem).contains(interval).should('be.visible').click();
@@ -137,7 +136,7 @@ export const metricsPage = {
     cy.log('metricsPage.refreshIntervalDropdownAssertion');
     cy.byTestID(DataTestIDs.MetricDropdownPollInterval).should('be.visible').click();
 
-    const intervals = Object.values(MetricsPageRefreshInterval);
+    const intervals = Object.values(MonitoringRefreshInterval);
     intervals.forEach((interval) => {
       cy.log('Refresh interval: ' + interval);
       cy.get(Classes.MenuItem).contains(interval).should('be.visible');
@@ -148,7 +147,7 @@ export const metricsPage = {
 
   clickAddQueryButton: () => {
     cy.log('metricsPage.clickAddQuery');
-    cy.byTestID(DataTestIDs.MetricsPageAddQueryButton).click();
+    cy.byTestID(DataTestIDs.MetricsPageAddQueryButton).scrollIntoView().click();
     metricsPage.addQueryAssertion();
   },
 
@@ -281,7 +280,10 @@ export const metricsPage = {
     cy.log('metricsPage.clickGraphTimespanDropdown');
     cy.byTestID(DataTestIDs.MetricGraphTimespanDropdown).should('be.visible').click();
     cy.get(Classes.MenuItem).contains(timespan).should('be.visible').click();
+    cy.byPFRole('progressbar').should('be.visible');
+    cy.byPFRole('progressbar').should('not.exist');
     cy.get('[id^="' + IDs.ChartAxis0ChartLabel + '"]').should('be.visible');
+    cy.byTestID(DataTestIDs.MetricGraph).find('[data-ouia-component-id^="' + DataTestIDs.MetricsGraphAlertDanger + '"]').should('not.exist');
   },
 
   enterGraphTimespan: (timespan: GraphTimespan) => {
@@ -289,7 +291,10 @@ export const metricsPage = {
     cy.byTestID(DataTestIDs.MetricGraphTimespanInput).type('{selectall}{backspace}', {delay: 1000});
     cy.byTestID(DataTestIDs.MetricGraphTimespanInput).type(timespan);
     cy.byTestID(DataTestIDs.MetricGraphTimespanInput).should('have.attr', 'value', timespan);
+    cy.byPFRole('progressbar').should('be.visible');
+    cy.byPFRole('progressbar').should('not.exist');
     cy.get('[id^="' + IDs.ChartAxis0ChartLabel + '"]').should('be.visible');
+    cy.byTestID(DataTestIDs.MetricGraph).find('[data-ouia-component-id^="' + DataTestIDs.MetricsGraphAlertDanger + '"]').should('not.exist');
   },
 
   graphTimespanDropdownAssertion: () => {
@@ -311,13 +316,13 @@ export const metricsPage = {
   clickHideGraphButton: () => {
     cy.log('metricsPage.clickHideGraphButton');
     cy.byTestID(DataTestIDs.MetricHideShowGraphButton).scrollIntoView().should('be.visible').click();
-    cy.get(Classes.GraphCard).should('not.exist');
+    cy.byTestID(DataTestIDs.MetricGraph).should('not.exist');
   },
 
   clickShowGraphButton: () => {
     cy.log('metricsPage.clickShowGraphButton');
     cy.byTestID(DataTestIDs.MetricHideShowGraphButton).scrollIntoView().should('be.visible').click();
-    cy.get(Classes.GraphCard).should('be.visible');
+    cy.byTestID(DataTestIDs.MetricGraph).should('be.visible');
   },
 
   clickDisconnectedCheckbox: () => {
@@ -345,7 +350,7 @@ export const metricsPage = {
   graphCardInlineInfoAssertion: (visible: boolean) => {
     cy.log('metricsPage.graphCardInlineInfoAssertion');
     if (visible) {
-      cy.get(Classes.GraphCardInlineInfo).should('be.visible');
+      cy.get(Classes.GraphCardInlineInfo).scrollIntoView().should('be.visible');
     } else {
       cy.get(Classes.GraphCardInlineInfo).should('not.exist');
     }
@@ -558,6 +563,16 @@ export const metricsPage = {
       cy.task('doesFileExist', { fileName: downloadedFileName }).should('be.true');
     });
 
+  },
+
+  noDatapointsFound: () => {
+    cy.log('metricsPage.noDatapointsFound');
+    cy.byTestID(DataTestIDs.MetricGraphNoDatapointsFound).contains(MetricGraphEmptyState.NO_DATAPOINTS_FOUND).should('be.visible');
+    cy.byTestID(DataTestIDs.MetricsPageYellowNoDatapointsFound).contains(MetricGraphEmptyState.NO_DATAPOINTS_FOUND).should('be.visible');
+    cy.byTestID(DataTestIDs.MetricsPageInsertExampleQueryButton).should('not.exist');
+    cy.byTestID(DataTestIDs.MetricsPageQueryTable).should('not.exist');
+    cy.byTestID(DataTestIDs.MetricsPageSelectAllUnselectAllButton).should('not.exist');
+    cy.byTestID(DataTestIDs.MetricsPageSeriesButton).should('not.exist');
   },
 
 };

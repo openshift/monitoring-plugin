@@ -11,6 +11,7 @@ export const DataTestIDs = {
   AlertingRuleSeverityBadge: 'alerting-rule-severity-badge',
   AlertingRuleStateBadge: 'alerting-rule-state-badge',
   AlertingRuleTotalAlertsBadge: 'alerting-rule-total-alerts-badge',
+  LabelSuggestion: 'suggestion-line',
   CancelButton: 'cancel-button',
   Breadcrumb: 'breadcrumb',
   DownloadCSVButton: 'download-csv-button',
@@ -19,6 +20,9 @@ export const DataTestIDs = {
   ExpireXSilencesButton: 'expire-x-silences-button',
   Expression: 'expression',
   KebabDropdownButton: 'kebab-dropdown-button',
+  MastHeadHelpIcon: 'help-dropdown-toggle',
+  MastHeadApplicationItem: 'application-launcher-item',
+  MetricGraph: 'metric-graph',
   MetricGraphNoDatapointsFound: 'datapoints-msg',
   MetricGraphTimespanDropdown: 'graph-timespan-dropdown',
   MetricGraphTimespanInput: 'graph-timespan-input',
@@ -50,7 +54,11 @@ export const DataTestIDs = {
   MetricsPageYellowNoDatapointsFound: 'yellow-no-datapoints-found',
   NameInput: 'name-filter-input',
   NameLabelDropdown: 'console-select-menu-toggle',
+  NamespaceDropdownMenuLink: 'dropdown-menu-item-link',
   NameLabelDropdownOptions: 'console-select-item',
+  NamespaceDropdownShowSwitch: 'showSystemSwitch',
+  NamespaceDropdownTextFilter: 'dropdown-text-filter',
+  PersesDashboardDropdown: 'dashboard-dropdown',
   SeverityBadgeHeader: 'severity-badge-header',
   SeverityBadge: 'severity-badge',
   SilenceAlertDropdownItem: 'silence-alert-dropdown-item',
@@ -79,20 +87,89 @@ export const DataTestIDs = {
   },
   TypeaheadSelectInput: 'query-select-typeahead-input',
   Table: 'OUIA-Generated-Table', //table ouiaid - ID to be used with byOUIAID(DataTestIDs.Table)
+  MetricsGraphAlertDanger: 'OUIA-Generated-Alert-danger', //ID to be used with byOUIAID(DataTestIDs.MetricsGraphAlertDanger)
+
+  // Incidents Page Test IDs
+  IncidentsPage: {
+    Toolbar: 'incidents-toolbar',
+    DaysSelect: 'incidents-days-select',
+    DaysSelectToggle: 'incidents-days-select-toggle',
+    DaysSelectList: 'incidents-days-select-list',
+    DaysSelectOption: 'incidents-days-select-option',
+    FiltersSelect: 'incidents-filters-select',
+    FiltersSelectToggle: 'incidents-filters-select-toggle',
+    FiltersSelectList: 'incidents-filters-select-list',
+    FiltersSelectOption: 'incidents-filters-select-option',
+    FilterChip: 'incidents-filter-chip',
+    FilterChipRemove: 'incidents-filter-chip-remove',
+    ClearAllFiltersButton: 'incidents-clear-all-filters',
+    ToggleChartsButton: 'incidents-toggle-charts',
+    LoadingSpinner: 'incidents-loading-spinner',
+  },
+
+  // Incidents Chart Test IDs
+  IncidentsChart: {
+    Card: 'incidents-chart-card',
+    Title: 'incidents-chart-title',
+    ChartContainer: 'incidents-chart-container',
+    LoadingSpinner: 'incidents-chart-loading-spinner',
+    ChartBars: 'incidents-chart-bars',
+    ChartBar: 'incidents-chart-bar',
+  },
+
+  // Alerts Chart Test IDs
+  AlertsChart: {
+    Card: 'alerts-chart-card',
+    Title: 'alerts-chart-title',
+    EmptyState: 'alerts-chart-empty-state',
+    ChartContainer: 'alerts-chart-container',
+    ChartBar: 'alerts-chart-bar',
+  },
+
+  // Incidents Table Test IDs
+  IncidentsTable: {
+    Table: 'incidents-alerts-table',
+    ExpandButton: 'incidents-table-expand-button',
+    Row: 'incidents-table-row',
+    ComponentCell: 'incidents-table-component-cell',
+    SeverityCell: 'incidents-table-severity-cell',
+    StateCell: 'incidents-table-state-cell',
+  },
+
+  // Incidents Details Row Table Test IDs
+  IncidentsDetailsTable: {
+    Table: 'incidents-details-table',
+    LoadingSpinner: 'incidents-details-loading-spinner',
+    Row: 'incidents-details-row',
+    AlertRuleCell: 'incidents-details-alert-rule-cell',
+    NamespaceCell: 'incidents-details-namespace-cell',
+    SeverityCell: 'incidents-details-severity-cell',
+    StateCell: 'incidents-details-state-cell',
+    StartCell: 'incidents-details-start-cell',
+    EndCell: 'incidents-details-end-cell',
+    AlertRuleLink: 'incidents-details-alert-rule-link',
+  },
 };
 
 export const LegacyDashboardPageTestIDs = {
-  TimeRangeDropdown: 'time-range-dropdown',
+  TimeRangeDropdown: 'time-range-dropdown', //div
   TimeRangeDropdownOptions: 'time-range-dropdown-options',
-  PollIntervalDropdown: 'poll-interval-dropdown',
+  PollIntervalDropdown: 'poll-interval-dropdown', //div
   PollIntervalDropdownOptions: 'poll-interval-dropdown-options',
   Inspect: 'inspect',
   ExportAsCsv: 'export-as-csv',
+  DashboardDropdown: 'dashboard-dropdown', //div
+  DashboardTimeRangeDropdownMenu: 'monitoring-time-range-dropdown', //div using get('#'+LegacyDashboardPageTestIDs.DashboardTimeRangeDropdownMenu)
+  DashboardRefreshIntervalDropdownMenu: 'refresh-interval-dropdown', //div using get('#'+LegacyDashboardPageTestIDs.DashboardRefreshIntervalDropdownMenu)
+  Graph: 'graph',
 };
 
 export const LegacyTestIDs = {
   ItemFilter: 'item-filter',
   SelectAllSilencesCheckbox: 'select-all-silences-checkbox',
+  PersesDashboardSection: 'dashboard',
+  NamespaceBarDropdown: 'namespace-bar-dropdown',
+  ApplicationLauncher: 'application-launcher',
 };
 
 export const IDs = {
@@ -106,12 +183,10 @@ export const Classes = {
   FilterDropdown: '.pf-v6-c-menu-toggle, .pf-v5-c-menu-toggle',
   FilterDropdownExpanded: '.pf-v6-c-menu-toggle.pf-m-expanded, .pf-v5-c-menu-toggle.pf-m-expanded',
   FilterDropdownOption: '.pf-v6-c-menu__item, .pf-c-select__menu-item',
-  GraphCard: '.pf-v6-c-card.pf-m-compact',
   GraphCardInlineInfo:
     '.pf-v6-c-alert.pf-m-inline.pf-m-plain.pf-m-info, .pf-v5-c-alert.pf-m-inline.pf-m-plain.pf-m-info.query-browser__reduced-resolution',
   HorizontalNav: '.pf-v6-c-tabs__item, .co-m-horizontal-nav__menu-item',
   IndividualTag: '.pf-v6-c-label__text, .pf-v5-c-chip__text',
-  LabelSuggestion: '.pf-v6-c-label__content.pf-m-clickable, .co-suggestion-line',
   LabelTag: '.pf-v6-c-label__text, .pf-v5-c-label__text',
   MainTag: '.pf-v6-c-label-group__label, .pf-v5-c-chip-group__label',
   MenuItem: '.pf-v6-c-menu__item, .pf-c-dropdown__menu-item',
@@ -126,6 +201,7 @@ export const Classes = {
   MetricsPageUngraphableResultsDescription: '.pf-v6-c-empty-state__body',
   MetricsPageQueryAutocomplete: '.cm-tooltip-autocomplete.cm-tooltip.cm-tooltip-below',
   MoreLessTag: '.pf-v6-c-label-group__label, .pf-v5-c-chip-group__label',
+  NamespaceDropdown: '.pf-v6-c-menu-toggle.co-namespace-dropdown__menu-toggle',
   SectionHeader: '.pf-v6-c-title.pf-m-h2, .co-section-heading',
   TableHeaderColumn: '.pf-v6-c-table__button, .pf-c-table__button',
   SilenceAlertTitle: '.pf-v6-c-alert__title, .pf-v5-c-alert__title',
@@ -137,4 +213,18 @@ export const Classes = {
   SilenceKebabDropdown: '.pf-v6-c-menu-toggle.pf-m-plain, .pf-v5-c-dropdown__toggle.pf-m-plain',
   SilenceLabelRow: '.pf-v6-l-grid.pf-m-all-12-col-on-sm.pf-m-all-4-col-on-md.pf-m-gutter, .row',
   SilenceState: '.pf-v6-l-stack__item, .co-break-word',
+};
+
+export const persesAriaLabels = {
+  TimeRangeDropdown: 'Select time range. Currently set to [object Object]',
+  RefreshButton: 'Refresh',
+  RefreshIntervalDropdown: 'Select refresh interval. Currently set to 0s',
+  ZoomInButton: 'Zoom in',
+  ZoomOutButton: 'Zoom out',
+};
+
+export const persesDataTestIDs = {
+  variableDropdown: 'variable',
+  panelGroupHeader: 'panel-group-header',
+  panelHeader: 'panel',
 };

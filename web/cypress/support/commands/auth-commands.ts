@@ -1,5 +1,5 @@
-import { guidedTour } from '../../views/tour';
 import { nav } from '../../views/nav';
+import { guidedTour } from '../../views/tour';
 
 
 
@@ -13,96 +13,123 @@ declare global {
       cliLogin(username?, password?, hostapi?);
       cliLogout();
       login(provider?: string, username?: string, password?: string, oauthurl?: string): Chainable<Element>;
+      loginNoSession(provider: string, username: string, password: string, oauthurl: string): Chainable<Element>;
       adminCLI(command: string, options?);
       executeAndDelete(command: string);
+      validateLogin(): Chainable<Element>;
     }
   }
 }
 
 
-Cypress.Commands.add(
-    'login',
-    (
-      provider: string = Cypress.env('LOGIN_IDP'),
-      username: string = Cypress.env('LOGIN_USERNAME'),
-      password: string = Cypress.env('LOGIN_PASSWORD'),
-      oauthurl: string,
-    ) => {
-      cy.session(
-        [provider, username],
-        () => {
-          cy.visit(Cypress.config('baseUrl'));
-          cy.log('Session - after visiting');
-          cy.window().then(
-            (
-              win: any, // eslint-disable-line @typescript-eslint/no-explicit-any
-            ) => {
-              // Check if auth is disabled (for a local development environment)
-              if (win.SERVER_FLAGS?.authDisabled) {
-                cy.task('log', '  skipping login, console is running with auth disabled');
-                return;
+  // Core login function (used by both session and non-session versions)
+  function performLogin(
+    provider: string,
+    username: string,
+    password: string,
+    oauthurl: string
+  ): void {
+    cy.visit(Cypress.config('baseUrl'));
+    cy.log('Session - after visiting');
+    cy.window().then(
+      (
+        win: any, // eslint-disable-line @typescript-eslint/no-explicit-any
+      ) => {
+        // Check if auth is disabled (for a local development environment)
+        if (win.SERVER_FLAGS?.authDisabled) {
+          cy.task('log', '  skipping login, console is running with auth disabled');
+          return;
+        }
+        cy.exec(
+          `oc get node --selector=hypershift.openshift.io/managed --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+        ).then((result) => {
+          cy.log(result.stdout);
+          cy.task('log', result.stdout);
+          if (result.stdout.includes('Ready')) {
+            cy.log(`Attempting login via cy.origin to: ${oauthurl}`);
+            cy.task('log', `Attempting login via cy.origin to: ${oauthurl}`);
+            cy.origin(
+              oauthurl,
+              { args: { username, password } },
+              ({ username, password }) => {
+                cy.get('#inputUsername').type(username);
+                cy.get('#inputPassword').type(password);
+                cy.get('button[type=submit]').click();
+              },
+            );
+          } else {
+            cy.task('log', `  Logging in as ${username} using fallback on ${oauthurl}`);
+            cy.origin(
+              oauthurl,
+              { args: { provider, username, password } },
+              ({ provider, username, password }) => {
+                cy.get('[data-test-id="login"]').should('be.visible');
+                cy.get('body').then(($body) => {
+                  if ($body.text().includes(provider)) {
+                    cy.contains(provider).should('be.visible').click();
+                  }
+                });
+                cy.get('#inputUsername').type(username);
+                cy.get('#inputPassword').type(password);
+                cy.get('button[type=submit]').click();
               }
-              cy.exec(
-                `oc get node --selector=hypershift.openshift.io/managed --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
-              ).then((result) => {
-                cy.log(result.stdout);
-                cy.task('log', result.stdout);
-                if (result.stdout.includes('Ready')) {
-                  cy.log(`Attempting login via cy.origin to: ${oauthurl}`);
-                  cy.task('log', `Attempting login via cy.origin to: ${oauthurl}`);
-                  cy.origin(
-                    oauthurl,
-                    { args: { username, password } },
-                    ({ username, password }) => {
-                      cy.get('#inputUsername').type(username);
-                      cy.get('#inputPassword').type(password);
-                      cy.get('button[type=submit]').click();
-                    },
-                  );
-                } else {
-                  cy.task('log', `  Logging in as ${username} using fallback on ${oauthurl}`);
-                  cy.origin(
-                    oauthurl,
-                    { args: { provider, username, password } },
-                    ({ provider, username, password }) => {
-                      cy.get('[data-test-id="login"]').should('be.visible');
-                      cy.get('body').then(($body) => {
-                        if ($body.text().includes(provider)) {
-                          cy.contains(provider).should('be.visible').click();
-                        }
-                      });
-                      cy.get('#inputUsername').type(username);
-                      cy.get('#inputPassword').type(password);
-                      cy.get('button[type=submit]').click();
-                    }
-                  );
-                }
-              });
-            },
-          );
-        },
-        {
-          cacheAcrossSpecs: true,
-          validate() {
-            cy.visit('/');
-            cy.byTestID("username", {timeout: 120000}).should('be.visible');
-            guidedTour.close();
+            );
+          }
+        });
+      },
+    );
+  }
+
+  Cypress.Commands.add('validateLogin', () => {
+    cy.log('validateLogin');
+    cy.visit('/');
+    cy.wait(2000);
+    cy.byTestID("username", {timeout: 120000}).should('be.visible');
+    cy.wait(10000);
+    guidedTour.close();
+  });
+
+  // Session-wrapped login
+  Cypress.Commands.add(
+      'login',
+      (
+        provider: string = Cypress.env('LOGIN_IDP'),
+        username: string = Cypress.env('LOGIN_USERNAME'),
+        password: string = Cypress.env('LOGIN_PASSWORD'),
+        oauthurl: string,
+      ) => {
+        cy.session(
+          [provider, username],
+          () => {
+            performLogin(provider, username, password, oauthurl);
           },
-        },
-      );
-    },
-  );
+          {
+            cacheAcrossSpecs: true,
+            validate() {
+              cy.validateLogin();
+            },
+          },
+        );
+      },
+    );
+
+  // Non-session login (for use within sessions)
+  Cypress.Commands.add('loginNoSession', (provider: string, username: string, password: string, oauthurl: string) => {
+    performLogin(provider, username, password, oauthurl);
+    cy.validateLogin();
+  });
 
   Cypress.Commands.add('switchPerspective', (perspective: string) => {
     /* If side bar is collapsed then expand it
     before switching perspecting */
+    cy.wait(2000);
     cy.get('body').then((body) => {
       if (body.find('.pf-m-collapsed').length > 0) {
         cy.get('#nav-toggle').click();
       }
     });
     nav.sidenav.switcher.changePerspectiveTo(perspective);
-    nav.sidenav.switcher.shouldHaveText(perspective);
+    cy.validateLogin();
   });
 
   // To avoid influence from upstream login change
