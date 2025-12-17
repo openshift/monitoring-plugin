@@ -290,8 +290,19 @@ export function convertToAlerts(
 export const groupAlertsForTable = (
   alerts: Array<Alert>,
   alertingRulesData: Array<PrometheusRule>,
+  currentTime: number,
+  daysSpan: number,
 ): Array<GroupedAlert> => {
-  const groupedAlerts = alerts.reduce((acc: Array<GroupedAlert>, alert) => {
+  const filteredAlerts = alerts.filter((alert) => {
+    const endTime = alert.values[alert.values.length - 1][0];
+    const delta = (currentTime - daysSpan) / 1000;
+    if (endTime < delta) {
+      return false;
+    }
+    return true;
+  });
+
+  const groupedAlerts = filteredAlerts.reduce((acc: Array<GroupedAlert>, alert) => {
     const { component, alertstate, severity, layer, alertname, silenced } = alert;
     const existingGroup = acc.find((group) => group.component === component);
     const rule = alertingRulesData?.find((rule) => alertname === rule.name);

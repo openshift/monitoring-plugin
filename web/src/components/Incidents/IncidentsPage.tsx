@@ -265,7 +265,12 @@ const IncidentsPage = () => {
     if (rules && alertsData) {
       dispatch(
         setAlertsTableData({
-          alertsTableData: groupAlertsForTable(alertsData, rules),
+          alertsTableData: groupAlertsForTable(
+            alertsData,
+            rules,
+            incidentsLastRefreshTime,
+            daysSpan,
+          ),
         }),
       );
     }
@@ -604,7 +609,7 @@ const IncidentsPage = () => {
                 <StackItem>
                   <IncidentsChart
                     incidentsData={filteredData}
-                    chartDays={timeRanges.length}
+                    chartDays={daysSpan / (60 * 60 * 24 * 1000)} // Convert ms to days
                     theme={theme}
                     selectedGroupId={selectedGroupId}
                     onIncidentClick={handleIncidentChartClick}
@@ -613,7 +618,7 @@ const IncidentsPage = () => {
                   />
                 </StackItem>
                 <StackItem>
-                  <AlertsChart theme={theme} />
+                  <AlertsChart theme={theme} daysSpan={daysSpan} />
                 </StackItem>
               </>
             )}
