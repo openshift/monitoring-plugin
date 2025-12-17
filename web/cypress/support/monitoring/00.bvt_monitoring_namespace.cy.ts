@@ -92,7 +92,7 @@ export function testBVTMonitoringTestsNamespace(perspective: PerspectiveConfig) 
 
     cy.log('5.3 silence alert page');
     commonPages.titleShouldHaveText('Silence alert');
-    commonPages.projectDropdownShouldExist();
+    commonPages.projectDropdownShouldNotExist();
 
     // Launches create silence form
     silenceAlertPage.silenceAlertSectionDefault();
