@@ -142,7 +142,18 @@ export const metricsPage = {
       cy.get(Classes.MenuItem).contains(interval).should('be.visible');
     });
 
+    cy.get(Classes.MenuItem).contains(MonitoringRefreshInterval.FIFTEEN_SECONDS).click();
+    cy.byTestID(DataTestIDs.MetricDropdownPollInterval).should(
+      'contain',
+      MonitoringRefreshInterval.FIFTEEN_SECONDS,
+    );
+
     cy.byTestID(DataTestIDs.MetricDropdownPollInterval).should('be.visible').click();
+    cy.get(Classes.MenuItem).contains(MonitoringRefreshInterval.REFRESH_OFF).click();
+    cy.byTestID(DataTestIDs.MetricDropdownPollInterval).should(
+      'contain',
+      MonitoringRefreshInterval.REFRESH_OFF,
+    );
   },
 
   clickAddQueryButton: () => {
