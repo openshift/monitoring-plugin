@@ -167,7 +167,8 @@ export const getIncidentsTimeRanges = (
   currentTime: number,
 ): Array<{ endTime: number; duration: number }> => {
   const ONE_DAY = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-  const startTime = currentTime - timespan;
+  const FIFTEEN_DAYS = 15 * ONE_DAY;
+  const startTime = currentTime - FIFTEEN_DAYS;
   const timeRanges = [{ endTime: startTime + ONE_DAY, duration: ONE_DAY }];
 
   while (timeRanges[timeRanges.length - 1].endTime < currentTime) {
