@@ -1,5 +1,6 @@
 .devcontainer/dev.env
 .DS_Store
+.vscode
 web/cypress/screenshots/
 web/cypress/export-env.sh
 web/screenshots/

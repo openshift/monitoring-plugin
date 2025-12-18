@@ -1,5 +1,8 @@
 export const alphanumericCompare = (a: string, b: string): number => {
-  return a.localeCompare(b, undefined, {
+  const safeA = a || '';
+  const safeB = b || '';
+
+  return safeA.localeCompare(safeB, undefined, {
     numeric: true,
     sensitivity: 'base',
   });

@@ -1,97 +1,42 @@
-import { Overview } from '@openshift-console/dynamic-plugin-sdk';
-import {
-  QueryClient,
-  QueryClientProvider,
-  useMutation,
-  UseMutationResult,
-  useQueryClient,
-} from '@tanstack/react-query';
 import { useCallback, type FC } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom-v5-compat';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { QueryParamProvider } from 'use-query-params';
 import { ReactRouter5Adapter } from 'use-query-params/adapters/react-router-5';
-import { LoadingInline } from '../../console/console-shared/src/components/loading/LoadingInline';
-import { PersesWrapper } from './PersesWrapper';
-import { DashboardSkeleton } from './dashboard-skeleton';
-import { DashboardEmptyState } from './emptystates/DashboardEmptyState';
-import { ProjectEmptyState } from './emptystates/ProjectEmptyState';
+import { DashboardLayout } from './dashboard-layout';
 import { useDashboardsData } from './hooks/useDashboardsData';
-import { ProjectBar } from './project/ProjectBar';
+import { ProjectEmptyState } from './emptystates/ProjectEmptyState';
+import { LoadingInline } from '../../console/console-shared/src/components/loading/LoadingInline';
+import { OCPDashboardApp } from './dashboard-app';
 import {
   DashboardResource,
   EphemeralDashboardResource,
   getResourceExtendedDisplayName,
 } from '@perses-dev/core';
-import { getCSRFToken } from '@openshift-console/dynamic-plugin-sdk/lib/utils/fetch/console-fetch-utils';
 import { useSnackbar } from '@perses-dev/components';
-import buildURL from './perses/url-builder';
-import { OCPDashboardApp } from './dashoard-app';
-import { t } from 'i18next';
-
-const resource = 'dashboards';
-const HTTPMethodPUT = 'PUT';
-const HTTPHeader: Record<string, string> = {
-  'Content-Type': 'application/json',
-  Accept: 'application/json',
-};
+import { useUpdateDashboardMutation } from './dashboard-api';
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
+      retry: false,
       refetchOnWindowFocus: false,
-      retry: 0,
     },
   },
 });
 
-async function updateDashboard(entity: DashboardResource): Promise<DashboardResource> {
-  const url = buildURL({
-    resource: resource,
-    project: entity.metadata.project,
-    name: entity.metadata.name,
-  });
+const DashboardPage_: FC = () => {
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const [searchParams] = useSearchParams();
 
-  const response = await fetch(url, {
-    method: HTTPMethodPUT,
-    headers: {
-      ...HTTPHeader,
-      'X-CSRFToken': getCSRFToken(),
-    },
-    body: JSON.stringify(entity),
-  });
-
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-  }
-
-  return response.json();
-}
-
-function useUpdateDashboardMutation(): UseMutationResult<
-  DashboardResource,
-  Error,
-  DashboardResource
-> {
-  const queryClient = useQueryClient();
-
-  return useMutation<DashboardResource, Error, DashboardResource>({
-    mutationKey: [resource],
-    mutationFn: (dashboard) => {
-      return updateDashboard(dashboard);
-    },
-    onSuccess: () => {
-      return queryClient.invalidateQueries({ queryKey: [resource] });
-    },
-  });
-}
-
-const MonitoringDashboardsPage_: FC = () => {
   const {
-    changeBoard,
     activeProjectDashboardsMetadata,
-    combinedInitialLoad,
-    activeProject,
-    setActiveProject,
+    changeBoard,
     dashboardName,
+    setActiveProject,
+    activeProject,
+    combinedInitialLoad,
   } = useDashboardsData();
 
   const updateDashboardMutation = useUpdateDashboardMutation();
@@ -120,56 +65,79 @@ const MonitoringDashboardsPage_: FC = () => {
     [exceptionSnackbar, successSnackbar, updateDashboardMutation],
   );
 
+  // Get dashboard and project from URL parameters
+  const urlDashboard = searchParams.get('dashboard');
+  const urlProject = searchParams.get('project');
+
+  // Set active project if provided in URL
+  if (urlProject && urlProject !== activeProject) {
+    setActiveProject(urlProject);
+  }
+
+  // Change dashboard if provided in URL
+  if (urlDashboard && urlDashboard !== dashboardName) {
+    changeBoard(urlDashboard);
+  }
+
   if (combinedInitialLoad) {
     return <LoadingInline />;
   }
 
-  if (!activeProject) {
-    // If we have loaded all of the requests fully and there are no projects, then
-    return <ProjectEmptyState />; // empty state
+  if (activeProjectDashboardsMetadata?.length === 0) {
+    return <ProjectEmptyState />;
+  }
+
+  // Find the dashboard that matches either the URL parameter or the current dashboardName
+  const targetDashboardName = urlDashboard || dashboardName;
+  const currentDashboard = activeProjectDashboardsMetadata.find(
+    (d) => d.name === targetDashboardName,
+  );
+
+  if (!currentDashboard) {
+    return (
+      <div style={{ padding: '2rem' }}>
+        <h2>{t('Dashboard not found')}</h2>
+        <p>
+          {t('The dashboard "{{name}}" was not found in project "{{project}}".', {
+            name: targetDashboardName,
+            project: activeProject || urlProject,
+          })}
+        </p>
+      </div>
+    );
   }
 
   return (
-    <>
-      <ProjectBar activeProject={activeProject} setActiveProject={setActiveProject} />
-      <PersesWrapper project={activeProject}>
-        {activeProjectDashboardsMetadata.length === 0 ? (
-          <DashboardEmptyState />
-        ) : (
-          <DashboardSkeleton
-            boardItems={activeProjectDashboardsMetadata}
-            changeBoard={changeBoard}
-            dashboardName={dashboardName}
-            activeProject={activeProject}
-          >
-            <Overview>
-              <OCPDashboardApp
-                dashboardResource={activeProjectDashboardsMetadata[0].persesDashboard}
-                isReadonly={false}
-                isVariableEnabled={true}
-                isDatasourceEnabled={true}
-                onSave={handleDashboardSave}
-                emptyDashboardProps={{
-                  title: t('Empty Dashboard'),
-                  description: t('To get started add something to your dashboard'),
-                }}
-              />
-            </Overview>
-          </DashboardSkeleton>
-        )}
-      </PersesWrapper>
-    </>
+    <DashboardLayout
+      activeProject={activeProject}
+      setActiveProject={setActiveProject}
+      activeProjectDashboardsMetadata={activeProjectDashboardsMetadata}
+      changeBoard={changeBoard}
+      dashboardName={currentDashboard.name}
+    >
+      <OCPDashboardApp
+        dashboardResource={currentDashboard.persesDashboard}
+        isReadonly={false}
+        isVariableEnabled={true}
+        isDatasourceEnabled={true}
+        onSave={handleDashboardSave}
+        emptyDashboardProps={{
+          title: t('Empty Dashboard'),
+          description: t('To get started add something to your dashboard'),
+        }}
+      />
+    </DashboardLayout>
   );
 };
 
-const MonitoringDashboardsPageWrapper: FC = () => {
+const DashboardPage: React.FC = () => {
   return (
     <QueryParamProvider adapter={ReactRouter5Adapter}>
       <QueryClientProvider client={queryClient}>
-        <MonitoringDashboardsPage_ />
+        <DashboardPage_ />
       </QueryClientProvider>
     </QueryParamProvider>
   );
 };
 
-export default MonitoringDashboardsPageWrapper;
+export default DashboardPage;
