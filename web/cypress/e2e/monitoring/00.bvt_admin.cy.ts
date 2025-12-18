@@ -1,5 +1,6 @@
 import { nav } from '../../views/nav';
 import { alerts } from '../../fixtures/monitoring/alert';
+import { guidedTour } from '../../views/tour';
 import { runBVTMonitoringTests } from '../../support/monitoring/00.bvt_monitoring.cy';
 import { commonPages } from '../../views/common';
 import { overviewPage } from '../../views/overview-page';
@@ -16,6 +17,9 @@ describe('BVT: Monitoring', { tags: ['@smoke', '@monitoring'] }, () => {
   });
 
   beforeEach(() => {
+    cy.visit('/');
+    guidedTour.close();
+    cy.validateLogin();
     nav.sidenav.clickNavLink(['Observe', 'Metrics']);
     commonPages.titleShouldHaveText('Metrics');
     cy.changeNamespace("All Projects");

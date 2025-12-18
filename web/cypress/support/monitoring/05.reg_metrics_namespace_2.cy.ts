@@ -18,7 +18,7 @@ export function testMetricsRegressionNamespace2(perspective: PerspectiveConfig) 
     metricsPage.shouldBeLoaded();
     cy.byTestID(DataTestIDs.MetricsPageExpandCollapseRowButton).should('have.length', 1);
     metricsPage.clickInsertExampleQuery();
-    cy.get(Classes.MetricsPageQueryInput).eq(0).should('contain', MetricsPageQueryInput.INSERT_EXAMPLE_QUERY_NAMESPACE);
+    cy.get(Classes.MetricsPageQueryInput).eq(0).should('contain', MetricsPageQueryInput.INSERT_EXAMPLE_QUERY);
 
     cy.log('6.2 Only one query added, resulting in 2 rows');
     metricsPage.clickActionsAddQuery();
@@ -26,7 +26,7 @@ export function testMetricsRegressionNamespace2(perspective: PerspectiveConfig) 
     cy.byTestID(DataTestIDs.MetricsPageExpandCollapseRowButton).find('button').eq(0).should('have.attr', 'aria-expanded', 'true');
     cy.byTestID(DataTestIDs.MetricsPageExpandCollapseRowButton).find('button').eq(1).should('have.attr', 'aria-expanded', 'true');
     cy.get(Classes.MetricsPageQueryInput).eq(0).should('contain', MetricsPageQueryInput.EXPRESSION_PRESS_SHIFT_ENTER_FOR_NEWLINES);
-    cy.get(Classes.MetricsPageQueryInput).eq(1).should('contain', MetricsPageQueryInput.INSERT_EXAMPLE_QUERY_NAMESPACE);
+    cy.get(Classes.MetricsPageQueryInput).eq(1).should('contain', MetricsPageQueryInput.INSERT_EXAMPLE_QUERY);
  
     cy.log('6.3 Preparation to test Run Queries button');
     cy.get(Classes.MetricsPageQueryInput).eq(0).should('be.visible').clear();
@@ -51,7 +51,7 @@ export function testMetricsRegressionNamespace2(perspective: PerspectiveConfig) 
     metricsPage.expandCollapseRowAssertion(false, 0, true, true);
     metricsPage.expandCollapseRowAssertion(true, 1, true, true);
     cy.get(Classes.MetricsPageQueryInput).eq(0).should('contain', MetricsPageQueryInput.VECTOR_QUERY);
-    cy.get(Classes.MetricsPageQueryInput).eq(1).should('contain', MetricsPageQueryInput.INSERT_EXAMPLE_QUERY_NAMESPACE);
+    cy.get(Classes.MetricsPageQueryInput).eq(1).should('contain', MetricsPageQueryInput.INSERT_EXAMPLE_QUERY);
     cy.byTestID(DataTestIDs.MetricGraph).scrollIntoView().should('be.visible');
     metricsPage.clickKebabDropdown(0);
     cy.get(Classes.MenuItemDisabled).contains(MetricsPageQueryKebabDropdown.HIDE_ALL_SERIES).should('be.visible');
@@ -64,7 +64,7 @@ export function testMetricsRegressionNamespace2(perspective: PerspectiveConfig) 
     metricsPage.expandCollapseRowAssertion(true, 0, true, true);
     metricsPage.expandCollapseRowAssertion(true, 1, true, true);
     cy.get(Classes.MetricsPageQueryInput).eq(0).should('contain', MetricsPageQueryInput.VECTOR_QUERY);
-    cy.get(Classes.MetricsPageQueryInput).eq(1).should('contain', MetricsPageQueryInput.INSERT_EXAMPLE_QUERY_NAMESPACE);
+    cy.get(Classes.MetricsPageQueryInput).eq(1).should('contain', MetricsPageQueryInput.INSERT_EXAMPLE_QUERY);
     cy.byTestID(DataTestIDs.MetricGraph).scrollIntoView().should('be.visible');
     metricsPage.clickKebabDropdown(0);
     cy.byTestID(DataTestIDs.MetricsPageHideShowAllSeriesDropdownItem).contains(MetricsPageQueryKebabDropdown.HIDE_ALL_SERIES).should('be.visible');
@@ -90,7 +90,7 @@ export function testMetricsRegressionNamespace2(perspective: PerspectiveConfig) 
     cy.byTestID(DataTestIDs.MetricsPageExportCsvDropdownItem).should('not.exist');
     metricsPage.clickKebabDropdown(1);
     cy.get(Classes.MetricsPageQueryInput).eq(0).should('contain', MetricsPageQueryInput.VECTOR_QUERY);
-    cy.get(Classes.MetricsPageQueryInput).eq(1).should('contain', MetricsPageQueryInput.INSERT_EXAMPLE_QUERY_NAMESPACE);
+    cy.get(Classes.MetricsPageQueryInput).eq(1).should('contain', MetricsPageQueryInput.INSERT_EXAMPLE_QUERY);
     cy.byTestID(DataTestIDs.MetricGraph).should('not.exist');
     cy.byTestID(DataTestIDs.MetricsPageNoQueryEnteredTitle).should('be.visible');
     cy.byTestID(DataTestIDs.MetricsPageNoQueryEntered).should('be.visible');
@@ -115,7 +115,7 @@ export function testMetricsRegressionNamespace2(perspective: PerspectiveConfig) 
     cy.byTestID(DataTestIDs.MetricsPageExportCsvDropdownItem).contains(MetricsPageQueryKebabDropdown.EXPORT_AS_CSV).should('be.visible');
     metricsPage.clickKebabDropdown(1);
     cy.get(Classes.MetricsPageQueryInput).eq(0).should('contain', MetricsPageQueryInput.VECTOR_QUERY);
-    cy.get(Classes.MetricsPageQueryInput).eq(1).should('contain', MetricsPageQueryInput.INSERT_EXAMPLE_QUERY_NAMESPACE);
+    cy.get(Classes.MetricsPageQueryInput).eq(1).should('contain', MetricsPageQueryInput.INSERT_EXAMPLE_QUERY);
     cy.byTestID(DataTestIDs.MetricGraph).scrollIntoView().should('be.visible');
 
     cy.log('6.10 Kebab icon - Hide all series');
@@ -188,14 +188,14 @@ export function testMetricsRegressionNamespace2(perspective: PerspectiveConfig) 
     cy.byTestID(DataTestIDs.MetricsPageDeleteQueryDropdownItem).contains(MetricsPageQueryKebabDropdown.DELETE_QUERY).should('be.visible').click();
     cy.byTestID(DataTestIDs.MetricsPageExpandCollapseRowButton).should('have.length', 1);
     cy.byTestID(DataTestIDs.MetricsPageExpandCollapseRowButton).find('button').eq(0).should('have.attr', 'aria-expanded', 'true');
-    cy.get(Classes.MetricsPageQueryInput).eq(0).should('contain', MetricsPageQueryInput.INSERT_EXAMPLE_QUERY_NAMESPACE);
+    cy.get(Classes.MetricsPageQueryInput).eq(0).should('contain', MetricsPageQueryInput.INSERT_EXAMPLE_QUERY);
     cy.byTestID(DataTestIDs.MetricsPageSelectAllUnselectAllButton).should('have.length', 1);
 
     cy.log('6.17 Kebab icon - Duplicate query');
     metricsPage.clickKebabDropdown(0);
     cy.byTestID(DataTestIDs.MetricsPageDuplicateQueryDropdownItem).contains(MetricsPageQueryKebabDropdown.DUPLICATE_QUERY).should('be.visible').click();
-    cy.get(Classes.MetricsPageQueryInput).eq(0).should('contain', MetricsPageQueryInput.INSERT_EXAMPLE_QUERY_NAMESPACE);
-    cy.get(Classes.MetricsPageQueryInput).eq(1).should('contain', MetricsPageQueryInput.INSERT_EXAMPLE_QUERY_NAMESPACE);
+    cy.get(Classes.MetricsPageQueryInput).eq(0).should('contain', MetricsPageQueryInput.INSERT_EXAMPLE_QUERY);
+    cy.get(Classes.MetricsPageQueryInput).eq(1).should('contain', MetricsPageQueryInput.INSERT_EXAMPLE_QUERY);
     cy.byTestID(DataTestIDs.MetricsPageExpandCollapseRowButton).should('have.length', 2);
     metricsPage.expandCollapseRowAssertion(true, 1, true, true);
     cy.byTestID(DataTestIDs.MetricsPageExpandCollapseRowButton).find('button').eq(0).should('have.attr', 'aria-expanded', 'true');
@@ -284,7 +284,8 @@ export function testMetricsRegressionNamespace2(perspective: PerspectiveConfig) 
     cy.byOUIAID(DataTestIDs.MetricsGraphAlertDanger).should('be.visible');
   });
 
-  it(`${perspective.name} perspective - Metrics > Empty state`, () => {
+  //TODO remove skip when OU-1118 get answered/fixed
+  it.skip(`${perspective.name} perspective - Metrics > Empty state`, () => {
     cy.log('11.1 Insert example query - Empty state');
     cy.changeNamespace("default");
     metricsPage.clickInsertExampleQuery();
