@@ -59,13 +59,11 @@ describe('Installation: Virtualization', { tags: ['@virtualization', '@slow'] },
 describe('IVT: COO - Dashboards (Perses) - Virtualization perspective', { tags: ['@virtualization', '@dashboards'] }, () => {
 
   beforeEach(() => {
-    cy.visit('/');
-    guidedTour.close();
-    cy.validateLogin();
     cy.switchPerspective('Virtualization');
     guidedTour.closeKubevirtTour();
     nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
     commonPages.titleShouldHaveText('Dashboards');
+    cy.changeNamespace(MCP.namespace);
   });
 
   runBVTCOOPersesTests({

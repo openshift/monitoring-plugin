@@ -1,7 +1,8 @@
 // Schema validation for YAML fixtures
 
-import Ajv from 'ajv';
 import { IncidentScenarioFixture } from '../types';
+// Use require for ajv to avoid ESM/CommonJS issues in Cypress
+const Ajv = require('ajv');
 
 // Import the JSON schema
 const schema = require('./fixture-schema.json');

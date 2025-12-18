@@ -61,8 +61,6 @@ describe('IVT: Monitoring UIPlugin + Virtualization', { tags: ['@virtualization'
 describe('Regression: Monitoring - Alerts (Virtualization)', { tags: ['@virtualization', '@alerts'] }, () => {
 
   beforeEach(() => {
-    cy.visit('/');
-    cy.validateLogin();
     cy.switchPerspective('Virtualization');
     guidedTour.closeKubevirtTour();
     nav.sidenav.clickNavLink(['Observe', 'Metrics']);

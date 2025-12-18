@@ -206,7 +206,6 @@ const operatorUtils = {
           cy.log(`Monitoring plugin pod is now running in namespace: ${MP.namespace}`);
           cy.reload(true);
         });
-      // });
 
     } else {
       cy.log('MP_IMAGE is NOT set. Skipping patching the image in CMO operator CSV.');

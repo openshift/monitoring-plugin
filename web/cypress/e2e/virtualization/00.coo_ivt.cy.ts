@@ -62,9 +62,6 @@ describe('Installation: Virtualization', { tags: ['@virtualization', '@slow'] },
 describe('IVT: Monitoring + Virtualization', { tags: ['@smoke', '@virtualization'] }, () => {
 
   beforeEach(() => {
-    cy.visit('/');
-    guidedTour.close();
-    cy.validateLogin();
     cy.switchPerspective('Virtualization');
     guidedTour.closeKubevirtTour();
     nav.sidenav.clickNavLink(['Observe', 'Metrics']);

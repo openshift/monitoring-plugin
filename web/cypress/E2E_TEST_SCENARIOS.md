@@ -202,4 +202,3 @@ These test scenarios are reusable test suites called by the main E2E test files.
 2. **Perspective Parameter**: `{perspective}` is dynamically replaced with the actual perspective name (Administrator, Virtualization) when tests run.
 
 3. **Empty State Tests**: Namespaced tests include additional empty state validation by switching to empty namespaces like `default`.
-

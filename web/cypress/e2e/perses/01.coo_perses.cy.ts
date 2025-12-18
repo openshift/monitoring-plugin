@@ -1,6 +1,5 @@
 import { nav } from '../../views/nav';
 import { runBVTCOOPersesTests } from '../../support/perses/00.coo_bvt_perses.cy';
-import { guidedTour } from '../../views/tour';
 
 // Set constants for the operators that need to be installed for tests.
 const MCP = {
@@ -25,10 +24,8 @@ describe('BVT: COO - Dashboards (Perses) - Administrator perspective', { tags: [
   });
 
   beforeEach(() => {
-    cy.visit('/');
-    guidedTour.close();
-    cy.validateLogin();
     nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
+    cy.changeNamespace(MCP.namespace);
   });
 
   runBVTCOOPersesTests({

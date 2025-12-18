@@ -116,6 +116,8 @@ Cypress.Commands.add('waitUntilWithCustomTimeout', (
 
   Cypress.Commands.add('podImage', (pod: string, namespace: string) => {
     cy.log('Get pod image');
+    cy.switchPerspective('Administrator');
+    cy.wait(5000);
     cy.clickNavLink(['Workloads', 'Pods']);
     cy.changeNamespace(namespace);
     cy.byTestID('page-heading').contains('Pods').should('be.visible');
