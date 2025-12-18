@@ -15,7 +15,6 @@ export function testMetricsRegression2(perspective: PerspectiveConfig) {
 
   it(`${perspective.name} perspective - Metrics > Add Query - Run Queries - Kebab icon`, () => {
     cy.log('6.1 Preparation to test Add Query button');
-    metricsPage.clickActionsDeleteAllQueries();
     cy.byTestID(DataTestIDs.MetricsPageExpandCollapseRowButton).should('have.length', 1);
     metricsPage.clickInsertExampleQuery();
     cy.get(Classes.MetricsPageQueryInput).eq(0).should('contain', MetricsPageQueryInput.INSERT_EXAMPLE_QUERY);
