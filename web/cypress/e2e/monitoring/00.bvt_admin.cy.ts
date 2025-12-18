@@ -3,6 +3,7 @@ import { alerts } from '../../fixtures/monitoring/alert';
 import { runBVTMonitoringTests } from '../../support/monitoring/00.bvt_monitoring.cy';
 import { commonPages } from '../../views/common';
 import { overviewPage } from '../../views/overview-page';
+import { guidedTour } from '../../views/tour';
 // Set constants for the operators that need to be installed for tests.
 const MP = {
   namespace: 'openshift-monitoring',
@@ -16,27 +17,29 @@ describe('BVT: Monitoring', { tags: ['@smoke', '@monitoring'] }, () => {
   });
 
   beforeEach(() => {
-    nav.sidenav.clickNavLink(['Observe', 'Metrics']);
+    cy.validateLogin();
+    cy.switchPerspective('Core platform', 'Administrator');
+    cy.clickNavLink(['Observe', 'Metrics']);
     commonPages.titleShouldHaveText('Metrics');
     cy.changeNamespace("All Projects");
     alerts.getWatchdogAlert();
-    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    cy.clickNavLink(['Observe', 'Alerting']);
     commonPages.titleShouldHaveText('Alerting');
     alerts.getWatchdogAlert();
   });
 
   it(`1. Admin perspective - Observe Menu`, () => {
     cy.log(`Admin perspective - Observe Menu and verify all submenus`);
-    nav.sidenav.clickNavLink(['Administration', 'Cluster Settings']);
+    cy.clickNavLink(['Administration', 'Cluster Settings']);
     commonPages.detailsPage.administration_clusterSettings();
-    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    cy.clickNavLink(['Observe', 'Alerting']);
     commonPages.titleShouldHaveText('Alerting');
     nav.tabs.switchTab('Silences');
-    nav.sidenav.clickNavLink(['Observe', 'Metrics']);
+    cy.clickNavLink(['Observe', 'Metrics']);
     commonPages.titleShouldHaveText('Metrics');
-    nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
+    cy.clickNavLink(['Observe', 'Dashboards']);
     commonPages.titleShouldHaveText('Dashboards');
-    nav.sidenav.clickNavLink(['Observe', 'Targets']);
+    cy.clickNavLink(['Observe', 'Targets']);
     commonPages.titleShouldHaveText('Metrics targets');
 
 

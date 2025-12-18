@@ -144,7 +144,7 @@ export default defineConfig({
     specPattern: './cypress/e2e/**/*.cy.{js,jsx,ts,tsx}',
     downloadsFolder: './cypress/downloads',
     numTestsKeptInMemory: 1,
-    testIsolation: false,
+    testIsolation: true,
     experimentalModifyObstructiveThirdPartyCode: true,
     experimentalOriginDependencies: true,
     experimentalMemoryManagement: true,

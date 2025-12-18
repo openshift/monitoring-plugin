@@ -54,17 +54,14 @@ describe('IVT: Monitoring UIPlugin + Virtualization', { tags: ['@virtualization'
   it('1. Virtualization perspective - Observe Menu', () => {
     cy.log('Virtualization perspective - Observe Menu and verify all submenus');
     cy.switchPerspective('Virtualization');
-    guidedTour.closeKubevirtTour();
   });
 });
 
 describe('Regression: Monitoring - Alerts (Virtualization)', { tags: ['@virtualization', '@alerts'] }, () => {
 
   beforeEach(() => {
-    cy.visit('/');
     cy.validateLogin();
     cy.switchPerspective('Virtualization');
-    guidedTour.closeKubevirtTour();
     nav.sidenav.clickNavLink(['Observe', 'Metrics']);
     commonPages.titleShouldHaveText('Metrics');
     cy.changeNamespace("All Projects");

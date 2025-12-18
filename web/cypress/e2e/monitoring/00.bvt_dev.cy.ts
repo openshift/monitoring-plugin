@@ -15,6 +15,8 @@ describe('BVT: Monitoring - Namespaced', { tags: ['@monitoring-dev', '@smoke-dev
   });
 
   beforeEach(() => {
+    cy.validateLogin();
+    cy.switchPerspective('Core platform', 'Developer');
     alerts.getWatchdogAlert();
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     commonPages.titleShouldHaveText('Alerting');

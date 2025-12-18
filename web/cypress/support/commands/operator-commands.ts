@@ -7,6 +7,7 @@ import 'cypress-wait-until';
 import { operatorHubPage } from '../../views/operator-hub-page';
 import { nav } from '../../views/nav';
 import { DataTestIDs, LegacyTestIDs } from '../../../src/components/data-test';
+import { commonPages } from '../../views/common';
 
 export { };
 
@@ -426,7 +427,11 @@ const operatorUtils = {
     });
 
     cy.reload(true);
+    cy.validateLogin();
+    cy.switchPerspective('Core platform', 'Administrator');
+    cy.log('Waiting for application launcher to be visible...');
     cy.byLegacyTestID(LegacyTestIDs.ApplicationLauncher).should('be.visible').click();
+    cy.log('Waiting for signal correlation item to be visible...');
     cy.byTestID(DataTestIDs.MastHeadApplicationItem).contains('Signal Correlation').should('be.visible');
   },
 
@@ -718,6 +723,8 @@ Cypress.Commands.add('beforeBlock', (MP: { namespace: string, operatorName: stri
         cacheAcrossSpecs: true,
         validate() {
           cy.validateLogin();
+          cy.wait(5000);
+          cy.switchPerspective('Core platform', 'Administrator');
         },
       },
     );
@@ -760,9 +767,12 @@ Cypress.Commands.add('beforeBlock', (MP: { namespace: string, operatorName: stri
           cacheAcrossSpecs: true,
           validate() {
             cy.validateLogin();
+            cy.switchPerspective('Core platform', 'Administrator');
             // Additional validation for COO setup
-            cy.visit('/monitoring/v2/dashboards');
-            cy.url().should('include', '/monitoring/v2/dashboards');
+            cy.wait(5000);
+            nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
+            cy.wait(10000);
+            commonPages.titleShouldHaveText('Dashboards');
           },
         },
       );

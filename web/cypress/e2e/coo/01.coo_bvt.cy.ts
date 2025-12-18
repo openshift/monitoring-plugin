@@ -1,5 +1,6 @@
 import { commonPages } from '../../views/common';
 import { nav } from '../../views/nav';
+import { guidedTour } from '../../views/tour';
 import { troubleshootingPanelPage } from '../../views/troubleshooting-panel';
 
 
@@ -28,6 +29,8 @@ describe('BVT: COO', { tags: ['@smoke', '@coo'] }, () => {
 
   it('1. Admin perspective - Observe Menu', () => {
     cy.log('Admin perspective - Observe Menu and verify all submenus');
+    cy.validateLogin();
+    cy.switchPerspective('Core platform', 'Administrator');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     commonPages.titleShouldHaveText('Alerting');
     nav.tabs.switchTab('Silences');

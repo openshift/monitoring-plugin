@@ -1,7 +1,6 @@
 import { commonPages } from "./common";
 import { LegacyDashboardPageTestIDs, DataTestIDs, Classes, IDs, LegacyTestIDs } from "../../src/components/data-test";
 import { MonitoringPageTitles, LegacyDashboardsTimeRange, MonitoringRefreshInterval, LegacyDashboardsDashboardDropdown, API_PERFORMANCE_DASHBOARD_PANELS, LegacyDashboardsDashboardDropdownNamespace, KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANELS } from "../fixtures/monitoring/constants";
-import { clickIfExist } from "./utils";
 
 export const legacyDashboardsPage = {
 
@@ -77,26 +76,24 @@ export const legacyDashboardsPage = {
     cy.byTestID(LegacyDashboardPageTestIDs.DashboardDropdown).find('button').should('be.visible').click();
   },
 
-  dashboardAPIPerformancePanelAssertion: (panel: API_PERFORMANCE_DASHBOARD_PANELS) => {
+  dashboardAPIPerformancePanelAssertion: () => {
     cy.log('legacyDashboardsPage.dashboardAPIPerformancePanelAssertion');
     function formatDataTestID(panel: API_PERFORMANCE_DASHBOARD_PANELS): string {
       return panel.toLowerCase().replace(/\s+/g, '-').concat('-chart');
     }
-    const dataTestID = Object.values(API_PERFORMANCE_DASHBOARD_PANELS).map(formatDataTestID);
-    dataTestID.forEach((dataTestID) => {
-      cy.log('Data test ID: ' + dataTestID);
+    const dataTestIDs = Object.values(API_PERFORMANCE_DASHBOARD_PANELS).map(formatDataTestID);
+    dataTestIDs.forEach((dataTestID) => {
       cy.byTestID(dataTestID).scrollIntoView().should('be.visible');
     });
   },
 
-  dashboardKubernetesComputeResourcesNamespacePodsPanelAssertion: (panel: KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANELS) => {
+  dashboardKubernetesComputeResourcesNamespacePodsPanelAssertion: () => {
     cy.log('legacyDashboardsPage.dashboardKubernetesComputeResourcesNamespacePodsPanelAssertion');
     function formatDataTestID(panel: KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANELS): string {
       return panel.toLowerCase().replace(/\s+/g, '-').concat('-chart');
     }
-    const dataTestID = Object.values(KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANELS).map(formatDataTestID);
-    dataTestID.forEach((dataTestID) => {
-      cy.log('Data test ID: ' + dataTestID);
+    const dataTestIDs = Object.values(KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANELS).map(formatDataTestID);
+    dataTestIDs.forEach((dataTestID) => {
       cy.byTestID(dataTestID).scrollIntoView().should('be.visible');
     });
   },

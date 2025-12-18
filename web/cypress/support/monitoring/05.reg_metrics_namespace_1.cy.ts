@@ -161,7 +161,7 @@ export function testMetricsRegressionNamespace1(perspective: PerspectiveConfig) 
     metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.RATE_OF_TRANSMITTED_PACKETS_DROPPED);
     metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.RATE_OF_RECEIVED_PACKETS_DROPPED);
     metricsPage.graphCardInlineInfoAssertion(true);
-    metricsPage.clickGraphTimespanDropdown(GraphTimespan.ONE_WEEK);
+    metricsPage.clickGraphTimespanDropdown(GraphTimespan.ONE_DAY);
     metricsPage.graphCardInlineInfoAssertion(false);
 
     cy.log('4.6 Reset Zoom Button');

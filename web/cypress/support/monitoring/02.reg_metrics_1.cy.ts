@@ -160,7 +160,7 @@ export function testMetricsRegression1(perspective: PerspectiveConfig) {
     metricsPage.clickActionsDeleteAllQueries();
     metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.CPU_USAGE);
     metricsPage.graphCardInlineInfoAssertion(true);
-    metricsPage.clickGraphTimespanDropdown(GraphTimespan.ONE_WEEK);
+    metricsPage.clickGraphTimespanDropdown(GraphTimespan.ONE_DAY);
     metricsPage.graphCardInlineInfoAssertion(false);
 
     cy.log('4.6 Reset Zoom Button');

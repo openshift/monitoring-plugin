@@ -60,10 +60,8 @@ describe('IVT: Monitoring UIPlugin + Virtualization', { tags: ['@virtualization'
 describe('Regression: Monitoring - Metrics (Virtualization)', { tags: ['@virtualization', '@metrics'] }, () => {
 
   beforeEach(() => {
-    cy.visit('/');
     cy.validateLogin();
     cy.switchPerspective('Virtualization');
-    guidedTour.closeKubevirtTour();
     alerts.getWatchdogAlert();
     nav.sidenav.clickNavLink(['Observe', 'Metrics']);
     commonPages.titleShouldHaveText('Metrics');
@@ -80,10 +78,7 @@ describe('Regression: Monitoring - Metrics (Virtualization)', { tags: ['@virtual
 describe('Regression: Monitoring - Metrics Namespaced (Virtualization)', { tags: ['@virtualization', '@metrics'] }, () => {
 
   beforeEach(() => {
-    cy.visit('/');
-    cy.validateLogin();
     cy.switchPerspective('Virtualization');
-    guidedTour.closeKubevirtTour();
     alerts.getWatchdogAlert();
     nav.sidenav.clickNavLink(['Observe', 'Metrics']);
     commonPages.titleShouldHaveText('Metrics');

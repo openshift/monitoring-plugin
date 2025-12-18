@@ -16,6 +16,8 @@ describe('Regression: Monitoring - Alerts (Administrator)', { tags: ['@monitorin
   });
 
   beforeEach(() => {
+    cy.validateLogin();
+    cy.switchPerspective('Core platform', 'Administrator');
     alerts.getWatchdogAlert();
     nav.sidenav.clickNavLink(['Observe', 'Metrics']);
     commonPages.titleShouldHaveText('Metrics');

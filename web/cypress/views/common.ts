@@ -6,6 +6,7 @@ export const commonPages = {
   projectDropdownShouldNotExist: () => cy.byLegacyTestID('namespace-bar-dropdown').should('not.exist'),
   projectDropdownShouldExist: () => cy.byLegacyTestID('namespace-bar-dropdown').should('exist'),
   titleShouldHaveText: (title: string) => {
+    cy.wait(2000);
     cy.log('commonPages.titleShouldHaveText - ' + `${title}`);
     cy.bySemanticElement('h1', title).scrollIntoView().should('be.visible');
   },

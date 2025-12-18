@@ -34,6 +34,7 @@ const virtualizationUtils = {
     if (Cypress.env('SKIP_KBV_INSTALL')) {
       cy.log('SKIP_KBV_INSTALL is set. Skipping Openshift Virtualization installation.');
     } else if (Cypress.env('KBV_UI_INSTALL')) {
+      cy.switchPerspective('Core platform', 'Administrator');
       cy.log('KBV_UI_INSTALL is set. Kubevirt will be installed from redhat-operators catalog source');
       cy.log('Install Openshift Virtualization');
       operatorHubPage.installOperator(KBV.packageName, 'redhat-operators');
@@ -101,7 +102,7 @@ const virtualizationUtils = {
         }
       );
     });
-
+    cy.switchPerspective('Core platform', 'Administrator');
     cy.get('#page-sidebar').then(($sidebar) => {
       const section = $sidebar.text().includes('Ecosystem') ? 'Ecosystem' : 'Operators';
       nav.sidenav.clickNavLink([section, 'Installed Operators']);
@@ -217,11 +218,9 @@ const virtualizationUtils = {
           cacheAcrossSpecs: true,
           validate() {
             cy.validateLogin();
-            // Additional validation for Virtualization setup
-            cy.visit('/k8s/all-namespaces/virtualization-overview');
-            cy.url().should('include', '/k8s/all-namespaces/virtualization-overview');
-            guidedTour.closeKubevirtTour();
-
+            cy.wait(10000);
+            cy.switchPerspective('Virtualization');
+            
           },
         },
       );
@@ -234,6 +233,7 @@ const virtualizationUtils = {
       virtualizationUtils.installVirtualization(KBV);
       virtualizationUtils.waitForVirtualizationReady(KBV);
       virtualizationUtils.setupHyperconverged(KBV);
+      cy.switchPerspective('Virtualization');
       cy.log('Before block Virtualization (no session) completed');
     }
   });

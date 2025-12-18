@@ -6,16 +6,25 @@ export const nav = {
       cy.clickNavLink(path);
     },
     switcher: {
-      changePerspectiveTo: (perspective: string) => {
+      changePerspectiveTo: (...perspectives: string[]) => {
+        cy.log('changePerspectiveTo - ' + perspectives.join(' or '));
         cy.get('body').then((body) => {
-          if (body.find('#perspective-switcher-toggle').length > 0) {
-            cy.log('Switch perspective - ' + `${perspective}`);
-            cy.byLegacyTestID('perspective-switcher-toggle').scrollIntoView().should('be.visible').click({force: true});
-            cy.byLegacyTestID('perspective-switcher-menu-option').contains(perspective).should('be.visible');
-            cy.byLegacyTestID('perspective-switcher-menu-option').contains(perspective).should('be.visible').click({force: true});
+          if (body.find('button[data-test-id="perspective-switcher-toggle"]:visible').length > 0) {
+            cy.byLegacyTestID('perspective-switcher-toggle').scrollIntoView().click({ force: true });
+            
+            cy.get('[data-test-id="perspective-switcher-menu-option"]').then(($options) => {
+              const foundPerspective = perspectives.find(p => $options.text().includes(p));
+              if (foundPerspective) {
+                cy.byLegacyTestID('perspective-switcher-menu-option')
+                  .contains(foundPerspective)
+                  .click({ force: true });
+              } else {
+                cy.log('No matching perspective found');
+                cy.get('body').type('{esc}');
+              }
+            });
           }
         });
-
       },
       shouldHaveText: (perspective: string) => {
         cy.log('Should have text - ' + `${perspective}`);

@@ -52,18 +52,14 @@ describe('Installation: Virtualization', { tags: ['@virtualization', '@slow'] },
   it('1. Installation: Virtualization', () => {
     cy.log('Installation: Virtualization');
     cy.switchPerspective('Virtualization');
-    guidedTour.closeKubevirtTour();
   });
 });
 
 describe('IVT: COO - Dashboards (Perses) - Virtualization perspective', { tags: ['@virtualization', '@dashboards'] }, () => {
 
   beforeEach(() => {
-    cy.visit('/');
-    guidedTour.close();
     cy.validateLogin();
     cy.switchPerspective('Virtualization');
-    guidedTour.closeKubevirtTour();
     nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
     commonPages.titleShouldHaveText('Dashboards');
   });

@@ -16,6 +16,8 @@ describe('Regression: Monitoring - Metrics (Administrator)', { tags: ['@monitori
   });
 
   beforeEach(() => {
+    cy.validateLogin();
+    cy.switchPerspective('Core platform', 'Administrator');
     nav.sidenav.clickNavLink(['Observe', 'Metrics']);
     commonPages.titleShouldHaveText('Metrics');
     cy.changeNamespace("All Projects");

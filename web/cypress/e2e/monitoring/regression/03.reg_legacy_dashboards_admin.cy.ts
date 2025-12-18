@@ -18,6 +18,8 @@ describe('Regression: Monitoring - Legacy Dashboards (Administrator)', { tags: [
   beforeEach(() => {
     //when running only this file, beforeBlock changes the namespace to openshift-monitoring
     //so we need to change it back to All Projects before landing to Dashboards page in order to have API Performance dashboard loaded by default
+    cy.validateLogin();
+    cy.switchPerspective('Core platform', 'Administrator');
     nav.sidenav.clickNavLink(['Observe', 'Metrics']);
     commonPages.titleShouldHaveText('Metrics');
     cy.changeNamespace("All Projects");

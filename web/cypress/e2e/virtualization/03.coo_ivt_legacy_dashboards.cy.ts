@@ -53,17 +53,13 @@ describe('IVT: Monitoring UIPlugin + Virtualization', { tags: ['@virtualization'
   it('1. Virtualization perspective - Observe Menu', () => {
     cy.log('Virtualization perspective - Observe Menu and verify all submenus');
     cy.switchPerspective('Virtualization');
-    guidedTour.closeKubevirtTour();
   });
 });
 
 describe('Regression: Monitoring - Legacy Dashboards (Virtualization)', { tags: ['@virtualization', '@dashboards'] }, () => {
 
   beforeEach(() => {
-    cy.visit('/');
-    cy.validateLogin();
     cy.switchPerspective('Virtualization');
-    guidedTour.closeKubevirtTour();
     nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
     commonPages.titleShouldHaveText('Dashboards');
     cy.changeNamespace("All Projects");
@@ -77,10 +73,8 @@ describe('Regression: Monitoring - Legacy Dashboards (Virtualization)', { tags: 
 
 describe('Regression: Monitoring - Legacy Dashboards Namespaced (Virtualization)', { tags: ['@virtualization', '@dashboards'] }, () => {
   beforeEach(() => {
-    cy.visit('/');
     cy.validateLogin();
     cy.switchPerspective('Virtualization');
-    guidedTour.closeKubevirtTour();
     nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
     commonPages.titleShouldHaveText('Dashboards');
     cy.changeNamespace(MP.namespace);

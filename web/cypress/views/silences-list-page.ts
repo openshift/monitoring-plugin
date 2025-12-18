@@ -93,6 +93,7 @@ export const silencesListPage = {
 
     editSilence: () => {
       cy.log('silencesListPage.rows.editSilence');
+      cy.wait(2000);
       silencesListPage.rows.clickAlertKebab();
       cy.byTestID(DataTestIDs.SilenceEditDropdownItem).should('be.visible').click();
 
