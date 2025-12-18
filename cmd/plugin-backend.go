@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"crypto/tls"
 	"flag"
 	"os"
 	"strconv"
@@ -21,6 +23,9 @@ var (
 	logLevelArg         = flag.String("log-level", logrus.InfoLevel.String(), "verbosity of logs\noptions: ['panic', 'fatal', 'error', 'warn', 'info', 'debug', 'trace']\n'trace' level will log all incoming requests\n(default 'error')")
 	alertmanagerUrlArg  = flag.String("alertmanager", "", "alertmanager url to proxy to for acm mode")
 	thanosQuerierUrlArg = flag.String("thanos-querier", "", "thanos querier url to proxy to for acm mode")
+	tlsMinVersionArg    = flag.String("tls-min-version", "VersionTLS12", "minimum TLS version\noptions: ['VersionTLS10', 'VersionTLS11', 'VersionTLS12', 'VersionTLS13']")
+	tlsMaxVersionArg    = flag.String("tls-max-version", "", "maximum TLS version\noptions: ['VersionTLS10', 'VersionTLS11', 'VersionTLS12', 'VersionTLS13']\n(default is the highest supported by Go)")
+	tlsCipherSuitesArg  = flag.String("tls-cipher-suites", "", "comma-separated list of cipher suites for the server\nvalues are from tls package constants (https://golang.org/pkg/crypto/tls/#pkg-constants)")
 	log                 = logrus.WithField("module", "main")
 )
 
@@ -37,6 +42,9 @@ func main() {
 	logLevel := mergeEnvValue("MONITORING_PLUGIN_LOG_LEVEL", *logLevelArg, logrus.InfoLevel.String())
 	alertmanagerUrl := mergeEnvValue("MONITORING_PLUGIN_ALERTMANAGER", *alertmanagerUrlArg, "")
 	thanosQuerierUrl := mergeEnvValue("MONITORING_PLUGIN_THANOS_QUERIER", *thanosQuerierUrlArg, "")
+	tlsMinVersion := mergeEnvValue("TLS_MIN_VERSION", *tlsMinVersionArg, "")
+	tlsMaxVersion := mergeEnvValue("TLS_MAX_VERSION", *tlsMaxVersionArg, "")
+	tlsCipherSuites := mergeEnvValue("TLS_CIPHER_SUITES", *tlsCipherSuitesArg, "")
 
 	featuresList := strings.Fields(strings.Join(strings.Split(strings.ToLower(features), ","), " "))
 
@@ -54,7 +62,19 @@ func main() {
 
 	log.Infof("enabled features: %+q\n", featuresList)
 
-	server.Start(&server.Config{
+	// Parse the TLS configuration.
+	tlsMinVer := parseTLSVersion(tlsMinVersion)
+	log.Infof("Min TLS version: %q", tls.VersionName(tlsMinVer))
+	tlsMaxVer := parseTLSVersion(tlsMaxVersion)
+	if tlsMaxVer != 0 {
+		log.Infof("Max TLS version: %q", tls.VersionName(tlsMaxVer))
+	}
+	tlsCiphers := parseCipherSuites(tlsCipherSuites)
+	if tlsCipherSuites != "" {
+		log.Infof("TLS ciphers: %q", tlsCipherSuites)
+	}
+
+	srv, err := server.CreateServer(context.Background(), &server.Config{
 		Port:             port,
 		CertFile:         cert,
 		PrivateKeyFile:   key,
@@ -64,7 +84,18 @@ func main() {
 		PluginConfigPath: pluginConfigPath,
 		AlertmanagerUrl:  alertmanagerUrl,
 		ThanosQuerierUrl: thanosQuerierUrl,
+		TLSMinVersion:    tlsMinVer,
+		TLSMaxVersion:    tlsMaxVer,
+		TLSCipherSuites:  tlsCiphers,
 	})
+
+	if err != nil {
+		panic(err)
+	}
+
+	if err = srv.StartHTTPServer(); err != nil {
+		panic(err)
+	}
 }
 
 func mergeEnvValue(key string, arg string, defaultValue string) string {
@@ -94,4 +125,66 @@ func mergeEnvValueInt(key string, arg int, defaultValue int) int {
 	}
 
 	return defaultValue
+}
+
+func getCipherSuitesMap() map[string]uint16 {
+	result := make(map[string]uint16)
+
+	for _, suite := range tls.CipherSuites() {
+		result[suite.Name] = suite.ID
+	}
+
+	return result
+}
+
+func getTLSVersionsMap() map[string]uint16 {
+	versions := make(map[string]uint16)
+
+	versions["VersionTLS12"] = tls.VersionTLS12
+	versions["VersionTLS13"] = tls.VersionTLS13
+
+	return versions
+}
+
+func parseTLSVersion(version string) uint16 {
+	if version == "" {
+		return 0
+	}
+
+	tlsVersions := getTLSVersionsMap()
+	if v, ok := tlsVersions[version]; ok {
+		return v
+	}
+
+	log.Warnf("Invalid TLS version %q, using default VersionTLS12", version)
+	return tls.VersionTLS12
+}
+
+func parseCipherSuites(ciphers string) []uint16 {
+	if ciphers == "" {
+		return nil
+	}
+
+	cipherMap := getCipherSuitesMap()
+
+	cipherNames := strings.Split(strings.ReplaceAll(ciphers, " ", ""), ",")
+	var result []uint16
+
+	for _, name := range cipherNames {
+		if name == "" {
+			continue
+		}
+		if cipher, ok := cipherMap[name]; ok {
+			result = append(result, cipher)
+		} else {
+			log.Warnf("Unknown cipher suite %q, skipping", name)
+		}
+	}
+
+	if len(result) == 0 {
+		log.Warn("No valid cipher suites provided, using Go defaults")
+		return nil
+	}
+
+	return result
 }

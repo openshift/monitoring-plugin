@@ -1,7 +1,8 @@
 import * as _ from 'lodash-es';
-import * as React from 'react';
+import type { FC, PropsWithChildren } from 'react';
+import { memo, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { DocumentTitle, ListPageHeader } from '@openshift-console/dynamic-plugin-sdk';
+
 import { Divider, PageSection, Split, SplitItem, Stack, StackItem } from '@patternfly/react-core';
 import {
   DashboardStickyToolbar,
@@ -9,11 +10,11 @@ import {
   useVariableDefinitions,
 } from '@perses-dev/dashboards';
 import { TimeRangeControls } from '@perses-dev/plugin-system';
-import { usePerspective } from '../../hooks/usePerspective';
 import { DashboardDropdown } from '../shared/dashboard-dropdown';
 import { CombinedDashboardMetadata } from './hooks/useDashboardsData';
+import { DocumentTitle, ListPageHeader } from '@openshift-console/dynamic-plugin-sdk';
 
-const HeaderTop: React.FC = React.memo(() => {
+const HeaderTop: FC = memo(() => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
@@ -27,21 +28,20 @@ const HeaderTop: React.FC = React.memo(() => {
   );
 });
 
-type MonitoringDashboardsPageProps = React.PropsWithChildren<{
+type MonitoringDashboardsPageProps = PropsWithChildren<{
   boardItems: CombinedDashboardMetadata[];
   changeBoard: (dashboardName: string) => void;
   dashboardName: string;
   activeProject?: string;
 }>;
 
-export const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = React.memo(
+export const DashboardSkeleton: FC<MonitoringDashboardsPageProps> = memo(
   ({ children, boardItems, changeBoard, dashboardName, activeProject }) => {
     const { t } = useTranslation(process.env.I18N_NAMESPACE);
-    const { perspective } = usePerspective();
     const { setDashboard } = useDashboardActions();
     const variables = useVariableDefinitions();
 
-    const onChangeBoard = React.useCallback(
+    const onChangeBoard = useCallback(
       (selectedDashboard: string) => {
         changeBoard(selectedDashboard);
 
@@ -58,15 +58,15 @@ export const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = React.
       [changeBoard, boardItems, activeProject, setDashboard],
     );
 
-    React.useEffect(() => {
+    useEffect(() => {
       onChangeBoard(dashboardName);
     }, [dashboardName, onChangeBoard]);
 
     return (
       <>
-        {perspective !== 'dev' && <DocumentTitle>{t('Metrics dashboards')}</DocumentTitle>}
-        {perspective !== 'dev' && <HeaderTop />}
+        <DocumentTitle>{t('Metrics dashboards')}</DocumentTitle>
         <PageSection hasBodyWrapper={false}>
+          <HeaderTop />
           <Stack hasGutter>
             {!_.isEmpty(boardItems) && (
               <StackItem>
@@ -83,21 +83,11 @@ export const DashboardSkeleton: React.FC<MonitoringDashboardsPageProps> = React.
                 <DashboardStickyToolbar initialVariableIsSticky={false} key={dashboardName} />
               </StackItem>
             ) : null}
-            {perspective === 'dev' ? (
-              <StackItem>
-                <Split hasGutter isWrappable>
-                  <SplitItem>
-                    <TimeRangeControls />
-                  </SplitItem>
-                </Split>
-              </StackItem>
-            ) : (
-              <StackItem>
-                <Split>
-                  <SplitItem isFilled />
-                </Split>
-              </StackItem>
-            )}
+            <StackItem>
+              <Split>
+                <SplitItem isFilled />
+              </Split>
+            </StackItem>
           </Stack>
         </PageSection>
         <Divider />

@@ -1,13 +1,11 @@
 import * as _ from 'lodash-es';
-import * as React from 'react';
-import { useSelector } from 'react-redux';
+import type { FC } from 'react';
 
 import {
   Alert,
   DocumentTitle,
   ResourceIcon,
   Timestamp,
-  useActiveNamespace,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Breadcrumb,
@@ -30,16 +28,8 @@ import {
   Title,
 } from '@patternfly/react-core';
 import { useTranslation } from 'react-i18next';
-import { MonitoringState } from 'src/reducers/observe';
-import {
-  getAlertUrl,
-  getLegacyObserveState,
-  getRuleUrl,
-  getSilencesUrl,
-  usePerspective,
-} from '../hooks/usePerspective';
+import { getAlertUrl, getRuleUrl, getSilencesUrl, usePerspective } from '../hooks/usePerspective';
 import KebabDropdown from '../kebab-dropdown';
-import { Silences } from '../types';
 import { alertDescription, SilenceResource } from '../utils';
 import { SeverityBadge, SeverityCounts } from './AlertUtils';
 import { SilenceDropdown, SilenceMatchersList, SilenceState } from './SilencesUtils';
@@ -48,26 +38,21 @@ import { LoadingInline } from '../console/console-shared/src/components/loading/
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 import { Table, TableVariant, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
 import { useNavigate, useParams, Link } from 'react-router-dom-v5-compat';
-import { useAlertsPoller } from '../hooks/useAlertsPoller';
+import { MonitoringProvider } from '../../contexts/MonitoringContext';
+import { DataTestIDs } from '../data-test';
+import { useAlerts } from '../../hooks/useAlerts';
 
-const SilencesDetailsPage_: React.FC = () => {
+const SilencesDetailsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+
   const params = useParams<{ id: string }>();
 
   const id = params.id;
 
-  useAlertsPoller();
+  const { silences, rulesAlertLoading } = useAlerts();
 
-  const [namespace] = useActiveNamespace();
-  const { alertsKey, perspective, silencesKey } = usePerspective();
+  const { perspective } = usePerspective();
 
-  const alertsLoaded = useSelector(
-    (state: MonitoringState) => getLegacyObserveState(perspective, state)?.get(alertsKey)?.loaded,
-  );
-
-  const silences: Silences = useSelector((state: MonitoringState) =>
-    getLegacyObserveState(perspective, state)?.get(silencesKey),
-  );
   const silence = _.find(silences?.data, { id });
 
   return (
@@ -85,7 +70,9 @@ const SilencesDetailsPage_: React.FC = () => {
           <PageBreadcrumb hasBodyWrapper={false}>
             <Breadcrumb>
               <BreadcrumbItem>
-                <Link to={getSilencesUrl(perspective, namespace)}>{t('Silences')}</Link>
+                <Link to={getSilencesUrl(perspective)} data-test={DataTestIDs.Breadcrumb}>
+                  {t('Silences')}
+                </Link>
               </BreadcrumbItem>
               <BreadcrumbItem isActive>{t('Silence details')}</BreadcrumbItem>
             </Breadcrumb>
@@ -97,6 +84,7 @@ const SilencesDetailsPage_: React.FC = () => {
                   <FlexItem
                     alignSelf={{ default: 'alignSelfCenter' }}
                     spacer={{ default: 'spacerNone' }}
+                    data-test={DataTestIDs.SilenceResourceIcon}
                   >
                     <ResourceIcon kind={SilenceResource.kind} />
                   </FlexItem>
@@ -107,7 +95,7 @@ const SilencesDetailsPage_: React.FC = () => {
               </SplitItem>
               <SplitItem isFilled />
               <SplitItem>
-                {silence && <SilenceDropdown silence={silence} toggleText="Actions" />}
+                {silence && <SilenceDropdown silence={silence} toggleText={t('Actions')} />}
               </SplitItem>
             </Split>
           </PageSection>
@@ -176,7 +164,7 @@ const SilencesDetailsPage_: React.FC = () => {
                   <DescriptionListGroup>
                     <DescriptionListTerm>{t('Firing alerts')}</DescriptionListTerm>
                     <DescriptionListDescription>
-                      {alertsLoaded ? (
+                      {rulesAlertLoading?.loaded ? (
                         <SeverityCounts alerts={silence?.firingAlerts} />
                       ) : (
                         <LoadingInline />
@@ -190,7 +178,7 @@ const SilencesDetailsPage_: React.FC = () => {
           <Divider />
           <PageSection hasBodyWrapper={false}>
             <Title headingLevel="h2">{t('Firing alerts')}</Title>
-            {alertsLoaded ? (
+            {rulesAlertLoading?.loaded ? (
               <SilencedAlertsList alerts={silence?.firingAlerts} />
             ) : (
               <LoadingInline />
@@ -201,13 +189,30 @@ const SilencesDetailsPage_: React.FC = () => {
     </>
   );
 };
-const SilencesDetailsPage = withFallback(SilencesDetailsPage_);
+const SilencesDetailsPageWithFallback = withFallback(SilencesDetailsPage_);
 
-const SilencedAlertsList: React.FC<SilencedAlertsListProps> = ({ alerts }) => {
+export const MpCmoSilencesDetailsPage = () => {
+  return (
+    <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
+      <SilencesDetailsPageWithFallback />
+    </MonitoringProvider>
+  );
+};
+
+export const McpAcmSilencesDetailsPage = () => {
+  return (
+    <MonitoringProvider
+      monitoringContext={{ plugin: 'monitoring-console-plugin', prometheus: 'acm' }}
+    >
+      <SilencesDetailsPageWithFallback />
+    </MonitoringProvider>
+  );
+};
+
+const SilencedAlertsList: FC<SilencedAlertsListProps> = ({ alerts }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const navigate = useNavigate();
   const { perspective } = usePerspective();
-  const [namespace] = useActiveNamespace();
 
   return _.isEmpty(alerts) ? (
     <div>{t('No Alerts found')}</div>
@@ -224,8 +229,8 @@ const SilencedAlertsList: React.FC<SilencedAlertsListProps> = ({ alerts }) => {
           <Tr key={i}>
             <Td>
               <Link
-                data-test="firing-alerts"
-                to={getAlertUrl(perspective, a, a.rule.id, namespace)}
+                data-test={DataTestIDs.AlertResourceLink}
+                to={getAlertUrl(perspective, a, a.rule.id)}
               >
                 {a.labels.alertname}
               </Link>
@@ -239,7 +244,7 @@ const SilencedAlertsList: React.FC<SilencedAlertsListProps> = ({ alerts }) => {
                 dropdownItems={[
                   <DropdownItem
                     key="view-rule"
-                    onClick={() => navigate(getRuleUrl(perspective, a.rule, namespace))}
+                    onClick={() => navigate(getRuleUrl(perspective, a.rule))}
                   >
                     {t('View alerting rule')}
                   </DropdownItem>,
@@ -252,7 +257,5 @@ const SilencedAlertsList: React.FC<SilencedAlertsListProps> = ({ alerts }) => {
     </Table>
   );
 };
-
-export default SilencesDetailsPage;
 
 type SilencedAlertsListProps = { alerts: Alert[] };

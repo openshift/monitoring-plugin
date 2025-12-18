@@ -1,19 +1,19 @@
-import * as React from 'react';
 import * as _ from 'lodash-es';
 import { LoadingBox } from '../console-shared/src/components/loading/LoadingBox';
+import { Component } from 'react';
+import type { ComponentType, ReactNode } from 'react';
 
 /**
  * FIXME: Comparing two functions is not the *best* solution, but we can handle false negatives.
  */
-const sameLoader =
-  (a: () => Promise<React.ComponentType>) => (b: () => Promise<React.ComponentType>) =>
-    a?.name === b?.name && (a || 'a').toString() === (b || 'b').toString();
+const sameLoader = (a: () => Promise<ComponentType>) => (b: () => Promise<ComponentType>) =>
+  a?.name === b?.name && (a || 'a').toString() === (b || 'b').toString();
 
 enum AsyncComponentError {
   ComponentNotFound = 'COMPONENT_NOT_FOUND',
 }
 
-export class AsyncComponent extends React.Component<AsyncComponentProps, AsyncComponentState> {
+export class AsyncComponent extends Component<AsyncComponentProps, AsyncComponentState> {
   state: AsyncComponentState = { Component: null, loader: null };
   props: AsyncComponentProps;
 
@@ -52,7 +52,9 @@ export class AsyncComponent extends React.Component<AsyncComponentProps, AsyncCo
         if (!Component) {
           return Promise.reject(AsyncComponentError.ComponentNotFound);
         }
-        this.isAsyncMounted && this.setState({ Component });
+        if (this.isAsyncMounted) {
+          this.setState({ Component });
+        }
       })
       .catch((error) => {
         if (error === AsyncComponentError.ComponentNotFound) {
@@ -81,10 +83,10 @@ export class AsyncComponent extends React.Component<AsyncComponentProps, AsyncCo
 }
 
 type AsyncComponentProps = {
-  loader: () => Promise<React.ComponentType>;
-  LoadingComponent?: React.ReactNode;
+  loader: () => Promise<ComponentType>;
+  LoadingComponent?: ReactNode;
 } & any;
 type AsyncComponentState = {
-  Component: React.ComponentType;
-  loader: () => Promise<React.ComponentType>;
+  Component: ComponentType;
+  loader: () => Promise<ComponentType>;
 };

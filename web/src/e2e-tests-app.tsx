@@ -1,28 +1,25 @@
 import '@patternfly/patternfly/patternfly.css';
-import React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
 import { BrowserRouter, Link, Route, Routes } from 'react-router-dom-v5-compat';
 import { combineReducers, createStore } from 'redux';
-import { QueryParamProvider } from 'use-query-params';
-import { ReactRouter5Adapter } from 'use-query-params/adapters/react-router-5';
-import AlertingPage from './components/alerting/AlertingPage';
-import AlertRulesDetailsPage from './components/alerting/AlertRulesDetailsPage';
-import AlertRulesPage from './components/alerting/AlertRulesPage';
-import AlertsDetailsPage from './components/alerting/AlertsDetailsPage';
-import AlertsPage from './components/alerting/AlertsPage';
-import SilenceCreatePage from './components/alerting/SilenceCreatePage';
-import SilenceEditPage from './components/alerting/SilenceEditPage';
-import SilencesDetailsPage from './components/alerting/SilencesDetailsPage';
-import SilencesPage from './components/alerting/SilencesPage';
-import LegacyDashboardsPage from './components/dashboards/legacy/legacy-dashboard-page';
-import MetricsPage from './components/MetricsPage';
-import PrometheusRedirectPage from './components/prometheus-redirect-page';
-import TargetsPage from './components/targets-page';
+import { MpCmoAlertingPage } from './components/alerting/AlertingPage';
+import { MpCmoAlertRulesDetailsPage } from './components/alerting/AlertRulesDetailsPage';
+import { MpCmoAlertRulesPage } from './components/alerting/AlertRulesPage';
+import { MpCmoAlertsDetailsPage } from './components/alerting/AlertsDetailsPage';
+import { MpCmoAlertsPage } from './components/alerting/AlertsPage';
+import { MpCmoCreateSilencePage } from './components/alerting/SilenceCreatePage';
+import { MpCmoSilenceEditPage } from './components/alerting/SilenceEditPage';
+import { MpCmoSilencesDetailsPage } from './components/alerting/SilencesDetailsPage';
+import { MpCmoSilencesPage } from './components/alerting/SilencesPage';
+import { MpCmoLegacyDashboardsPage } from './components/dashboards/legacy/legacy-dashboard-page';
+import { MpCmoMetricsPage } from './components/MetricsPage';
+import PrometheusRedirectPage from './components/redirects/prometheus-redirect-page';
+import { MpCmoTargetsPage } from './components/targets-page';
 import i18n from './i18n';
-import ObserveReducers, { ObserveState } from './reducers/observe';
+import ObserveReducers from './store/reducers';
 
-type RootState = { observe: ObserveState };
+type RootState = { observe: any };
 
 const baseReducers = Object.freeze({ observe: ObserveReducers });
 
@@ -38,31 +35,29 @@ const App = () => (
         <Link to="/monitoring/dashboards">Dashboards</Link>
         <Link to="/monitoring/targets">Targets</Link>
       </div>
-      <QueryParamProvider adapter={ReactRouter5Adapter}>
-        <Routes>
-          <Route path="silences/~new" element={<SilenceCreatePage />} />
+      <Routes>
+        <Route path="silences/~new" element={<MpCmoCreateSilencePage />} />
 
-          <Route path="dashboards" element={<LegacyDashboardsPage />} />
-          <Route path="dashboards/:dashboardName" element={<LegacyDashboardsPage />} />
+        <Route path="dashboards" element={<MpCmoLegacyDashboardsPage />} />
+        <Route path="dashboards/:dashboardName" element={<MpCmoLegacyDashboardsPage />} />
 
-          <Route path="graph" element={<PrometheusRedirectPage />} />
-          <Route path="query-browser" element={<MetricsPage />} />
+        <Route path="graph" element={<PrometheusRedirectPage />} />
+        <Route path="query-browser" element={<MpCmoMetricsPage />} />
 
-          <Route path="targets" element={<TargetsPage />} />
-          <Route path="targets/:scrapeUrl" element={<TargetsPage />} />
+        <Route path="targets" element={<MpCmoTargetsPage />} />
+        <Route path="targets/:scrapeUrl" element={<MpCmoTargetsPage />} />
 
-          <Route path="alertrules/:id" element={<AlertRulesDetailsPage />} />
-          <Route path="alerts/:ruleID" element={<AlertsDetailsPage />} />
-          <Route path="silences/:id" element={<SilencesDetailsPage />} />
-          <Route path="silences/:id/edit" element={<SilenceEditPage />} />
+        <Route path="alertrules/:id" element={<MpCmoAlertRulesDetailsPage />} />
+        <Route path="alerts/:ruleID" element={<MpCmoAlertsDetailsPage />} />
+        <Route path="silences/:id" element={<MpCmoSilencesDetailsPage />} />
+        <Route path="silences/:id/edit" element={<MpCmoSilenceEditPage />} />
 
-          <Route element={<AlertingPage />}>
-            <Route path="alerts" element={<AlertsPage />} />
-            <Route path="alertrules" element={<AlertRulesPage />} />
-            <Route path="silences" element={<SilencesPage />} />
-          </Route>
-        </Routes>
-      </QueryParamProvider>
+        <Route element={<MpCmoAlertingPage />}>
+          <Route path="alerts" element={<MpCmoAlertsPage />} />
+          <Route path="alertrules" element={<MpCmoAlertRulesPage />} />
+          <Route path="silences" element={<MpCmoSilencesPage />} />
+        </Route>
+      </Routes>
     </BrowserRouter>
   </Provider>
 );

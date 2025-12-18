@@ -1,4 +1,4 @@
-FROM registry.redhat.io/ubi9/nodejs-20:1-59 AS web-builder
+FROM registry.redhat.io/ubi9/nodejs-22:9.6-1755075210 AS web-builder
 
 WORKDIR /opt/app-root
 
@@ -16,7 +16,7 @@ RUN make build-frontend
 # Almost all images from Red Hat are still on go1.21, however I found one that the cne team has
 # created. Once official Red Hat images are available for local development and pulling this
 # should be updated
-FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_9_golang_1.23 as go-builder
+FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_9_golang_1.24 as go-builder
 
 WORKDIR /opt/app-root
 

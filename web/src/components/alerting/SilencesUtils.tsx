@@ -4,7 +4,6 @@ import {
   ResourceIcon,
   Silence,
   SilenceStates,
-  useActiveNamespace,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Button,
@@ -39,9 +38,9 @@ import {
 import { Td } from '@patternfly/react-table';
 import { t_global_spacer_xs } from '@patternfly/react-tokens';
 import * as _ from 'lodash-es';
-import * as React from 'react';
+import type { FC, Ref } from 'react';
+import { useContext, useCallback, createContext, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useDispatch } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom-v5-compat';
 import { useBoolean } from '../hooks/useBoolean';
 import {
@@ -50,26 +49,21 @@ import {
   getSilenceAlertUrl,
   usePerspective,
 } from '../hooks/usePerspective';
-import {
-  refreshSilences,
-  silenceMatcherEqualitySymbol,
-  SilenceResource,
-  silenceState,
-} from '../utils';
+import { silenceMatcherEqualitySymbol, SilenceResource, silenceState } from '../utils';
 import { SeverityCounts, StateTimestamp } from './AlertUtils';
+import { DataTestIDs } from '../data-test';
 
-export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheckbox }) => {
+export const SilenceTableRow: FC<SilenceTableRowProps> = ({ obj, showCheckbox }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
-  const [namespace] = useActiveNamespace();
 
   const { createdBy, endsAt, firingAlerts, id, name, startsAt, matchers } = obj;
   const state = silenceState(obj);
   const cluster = matchers.find((label) => label.name === 'cluster')?.value;
 
-  const { selectedSilences, setSelectedSilences } = React.useContext(SelectedSilencesContext);
+  const { selectedSilences, setSelectedSilences } = useContext(SelectedSilencesContext);
 
-  const onCheckboxChange = React.useCallback(
+  const onCheckboxChange = useCallback(
     (isChecked: boolean) => {
       setSelectedSilences((oldSet) => {
         const newSet = new Set(oldSet);
@@ -93,7 +87,7 @@ export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheck
             isChecked={selectedSilences.has(id)}
             isDisabled={state === SilenceStates.Expired}
             onChange={(_e, checked) => {
-              typeof _e === 'boolean' ? onCheckboxChange(checked) : onCheckboxChange(checked);
+              onCheckboxChange(checked);
             }}
           />
         </Td>
@@ -104,14 +98,15 @@ export const SilenceTableRow: React.FC<SilenceTableRowProps> = ({ obj, showCheck
           flexWrap={{ default: 'nowrap' }}
           style={{ paddingBottom: t_global_spacer_xs.var }}
         >
-          <FlexItem>
+          <FlexItem data-test={DataTestIDs.SilenceResourceIcon}>
             <ResourceIcon kind={SilenceResource.kind} />
           </FlexItem>
           <FlexItem>
             <Link
               data-test-id="silence-resource-link"
               title={id}
-              to={getSilenceAlertUrl(perspective, id, namespace)}
+              to={getSilenceAlertUrl(perspective, id)}
+              data-test={DataTestIDs.SilenceResourceLink}
             >
               {name}
             </Link>
@@ -154,7 +149,7 @@ type SilenceTableRowProps = {
   showCheckbox?: boolean;
 };
 
-export const SelectedSilencesContext = React.createContext({
+export const SelectedSilencesContext = createContext({
   selectedSilences: new Set(),
   setSelectedSilences: undefined,
 });
@@ -205,31 +200,45 @@ export const SilenceState = ({ silence }) => {
   ) : null;
 };
 
-export const SilenceDropdown: React.FC<SilenceDropdownProps> = ({ silence, toggleText }) => {
+export const SilenceDropdown: FC<SilenceDropdownProps> = ({ silence, toggleText }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
-  const [namespace] = useActiveNamespace();
   const navigate = useNavigate();
 
   const [isOpen, setIsOpen, , setClosed] = useBoolean(false);
   const [isModalOpen, , setModalOpen, setModalClosed] = useBoolean(false);
 
   const editSilence = () => {
-    navigate(getEditSilenceAlertUrl(perspective, silence.id, namespace));
+    navigate(getEditSilenceAlertUrl(perspective, silence.id));
   };
 
   const dropdownItems =
     silenceState(silence) === SilenceStates.Expired
       ? [
-          <DropdownItem value={0} key="recreate-silence" onClick={editSilence}>
+          <DropdownItem
+            data-test={DataTestIDs.SilenceRecreateDropdownItem}
+            value={0}
+            key="recreate-silence"
+            onClick={editSilence}
+          >
             {t('Recreate silence')}
           </DropdownItem>,
         ]
       : [
-          <DropdownItem value={0} key="edit-silence" onClick={editSilence}>
+          <DropdownItem
+            data-test={DataTestIDs.SilenceEditDropdownItem}
+            value={0}
+            key="edit-silence"
+            onClick={editSilence}
+          >
             {t('Edit silence')}
           </DropdownItem>,
-          <DropdownItem value={1} key="cancel-silence" onClick={setModalOpen}>
+          <DropdownItem
+            data-test={DataTestIDs.SilenceExpireDropdownItem}
+            value={1}
+            key="cancel-silence"
+            onClick={setModalOpen}
+          >
             {t('Expire silence')}
           </DropdownItem>,
         ];
@@ -242,13 +251,14 @@ export const SilenceDropdown: React.FC<SilenceDropdownProps> = ({ silence, toggl
         data-test="silence-actions"
         popperProps={{ position: 'right' }}
         onOpenChange={(isOpen: boolean) => (isOpen ? setIsOpen() : setClosed())}
-        toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+        toggle={(toggleRef: Ref<MenuToggleElement>) => (
           <MenuToggle
             ref={toggleRef}
             aria-label="kebab dropdown toggle"
             variant={toggleText ? 'default' : 'plain'}
             onClick={setIsOpen}
             isExpanded={isOpen}
+            data-test={DataTestIDs.KebabDropdownButton}
           >
             {toggleText || <EllipsisVIcon />}
           </MenuToggle>
@@ -261,31 +271,27 @@ export const SilenceDropdown: React.FC<SilenceDropdownProps> = ({ silence, toggl
   );
 };
 
-export const ExpireSilenceModal: React.FC<ExpireSilenceModalProps> = ({
+export const ExpireSilenceModal: FC<ExpireSilenceModalProps> = ({
   isOpen,
   setClosed,
   silenceID,
 }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { perspective, silencesKey } = usePerspective();
-  const [namespace] = useActiveNamespace();
-
-  const dispatch = useDispatch();
+  const { perspective } = usePerspective();
 
   const [isInProgress, , setInProgress, setNotInProgress] = useBoolean(false);
   const [success, , setSuccess] = useBoolean(false);
-  const [errorMessage, setErrorMessage] = React.useState();
+  const [errorMessage, setErrorMessage] = useState();
 
   const expireSilence = () => {
     setInProgress();
-    const url = getFetchSilenceUrl(perspective, silenceID, namespace);
+    const url = getFetchSilenceUrl(perspective, silenceID);
     consoleFetchJSON
       .delete(url)
       .then(() => {
         setNotInProgress();
         setSuccess();
         setTimeout(() => {
-          refreshSilences(dispatch, perspective, silencesKey);
           setClosed();
         }, 1000);
       })
@@ -316,10 +322,11 @@ export const ExpireSilenceModal: React.FC<ExpireSilenceModalProps> = ({
           onClick={expireSilence}
           isLoading={isInProgress}
           icon={success ? <CheckCircleIcon /> : null}
+          data-test={DataTestIDs.ExpireSilenceButton}
         >
           {success ? t('Expired') : t('Expire silence')}
         </Button>
-        <Button variant="secondary" onClick={setClosed}>
+        <Button variant="secondary" onClick={setClosed} data-test={DataTestIDs.CancelButton}>
           {t('Cancel')}
         </Button>
       </ModalFooter>

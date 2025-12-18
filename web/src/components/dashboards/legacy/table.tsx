@@ -13,20 +13,21 @@ import {
   Tr,
 } from '@patternfly/react-table';
 import * as _ from 'lodash-es';
-import * as React from 'react';
+import type { FC } from 'react';
+import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import ErrorAlert from '../shared/error';
-import { getPrometheusURL } from '../../console/graphs/helpers';
+import ErrorAlert from './error';
+import { getPrometheusBasePath, buildPrometheusUrl } from '../../utils';
 import { usePoll } from '../../console/utils/poll-hook';
 import { useSafeFetch } from '../../console/utils/safe-fetch-hook';
 
 import { formatNumber } from '../../format';
-import { usePerspective } from '../../hooks/usePerspective';
 import TablePagination from '../../table-pagination';
 import { ColumnStyle, Panel } from './types';
 import { CustomDataSource } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
-import { GraphEmpty } from '../../../components/console/graphs/graph-empty';
+import { GraphEmpty } from '../../console/graphs/graph-empty';
+import { useMonitoring } from '../../../hooks/useMonitoring';
 
 type AugmentedColumnStyle = ColumnStyle & {
   className?: string;
@@ -64,35 +65,41 @@ const perPageOptions: PerPageOptions[] = [5, 10, 20, 50, 100].map((n) => ({
   value: n,
 }));
 
-const Table: React.FC<Props> = ({ customDataSource, panel, pollInterval, queries, namespace }) => {
+const Table: FC<Props> = ({ customDataSource, panel, pollInterval, queries, namespace }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { perspective } = usePerspective();
+  const { accessCheckLoading, useMetricsTenancy } = useMonitoring();
 
-  const [error, setError] = React.useState();
-  const [isLoading, setLoading] = React.useState(true);
-  const [data, setData] = React.useState();
-  const [page, setPage] = React.useState(1);
-  const [perPage, setPerPage] = React.useState(5);
-  const [sortBy, setSortBy] = React.useState<ISortBy>({ index: 0, direction: 'asc' });
+  const [error, setError] = useState();
+  const [isLoading, setLoading] = useState(true);
+  const [data, setData] = useState();
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(5);
+  const [sortBy, setSortBy] = useState<ISortBy>({ index: 0, direction: 'asc' });
   const onSort = (e, index: ISortBy['index'], direction: ISortBy['direction']) =>
     setSortBy({ index, direction });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const safeFetch = React.useCallback(useSafeFetch(), []);
+  const safeFetch = useCallback(useSafeFetch(), []);
 
   const tick = () => {
+    if (accessCheckLoading) {
+      return;
+    }
     const allPromises = _.map(queries, (query) =>
       _.isEmpty(query)
         ? Promise.resolve()
         : safeFetch<PrometheusResponse>(
-            getPrometheusURL(
-              {
+            buildPrometheusUrl({
+              prometheusUrlProps: {
                 endpoint: PrometheusEndpoint.QUERY,
                 query,
-                namespace: perspective === 'dev' ? namespace : '',
+                namespace,
               },
-              perspective,
-              customDataSource?.basePath,
-            ),
+              basePath: getPrometheusBasePath({
+                prometheus: 'cmo',
+                useTenancyPath: useMetricsTenancy,
+                basePathOverride: customDataSource?.basePath,
+              }),
+            }),
           ),
     );
 
@@ -131,7 +138,7 @@ const Table: React.FC<Props> = ({ customDataSource, panel, pollInterval, queries
       });
   };
 
-  usePoll(tick, pollInterval, queries);
+  usePoll(tick, pollInterval, queries, useMetricsTenancy, accessCheckLoading);
   if (isLoading) {
     return <GraphEmpty loading />;
   }

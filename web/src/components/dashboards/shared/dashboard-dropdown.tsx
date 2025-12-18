@@ -8,7 +8,8 @@ import {
   Stack,
   StackItem,
 } from '@patternfly/react-core';
-import * as React from 'react';
+import type { FC } from 'react';
+import { memo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { SingleTypeaheadDropdown } from '../../console/utils/single-typeahead-dropdown';
@@ -17,17 +18,13 @@ import { CombinedDashboardMetadata } from '../perses/hooks/useDashboardsData';
 type TagColor = 'red' | 'purple' | 'blue' | 'green' | 'teal' | 'orange';
 const tagColors: TagColor[] = ['red', 'purple', 'blue', 'green', 'teal', 'orange'];
 
-const Tag: React.FC<{ color: TagColor; text: string }> = React.memo(({ color, text }) => (
+const Tag: FC<{ color: TagColor; text: string }> = memo(({ color, text }) => (
   <Label isCompact color={color}>
     {text}
   </Label>
 ));
 
-export const DashboardDropdown: React.FC<DashboardDropdownProps> = ({
-  items,
-  onChange,
-  selectedKey,
-}) => {
+export const DashboardDropdown: FC<DashboardDropdownProps> = ({ items, onChange, selectedKey }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const allTags = _.flatMap(items, 'tags');
@@ -64,12 +61,18 @@ export const DashboardDropdown: React.FC<DashboardDropdownProps> = ({
     children: item.title,
   }));
 
+  useEffect(() => {
+    if (items.filter((item) => item.name === selectedKey).length === 0) {
+      onChange(items.at(0)?.name);
+    }
+  }, [items, selectedKey, onChange]);
+
   return (
     <Stack data-test="dashboard-dropdown">
       <StackItem>
         <label htmlFor="monitoring-board-dropdown">{t('Dashboard')}</label>
       </StackItem>
-      <StackItem>
+      <StackItem isFilled>
         <SingleTypeaheadDropdown
           items={selectItems}
           onChange={onChange}

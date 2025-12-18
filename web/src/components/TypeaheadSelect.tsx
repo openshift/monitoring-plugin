@@ -9,9 +9,11 @@ import {
   TextInputGroup,
   TextInputGroupMain,
   TextInputGroupUtilities,
+  SelectProps,
 } from '@patternfly/react-core';
 import { TimesIcon } from '@patternfly/react-icons';
-import React from 'react';
+import { DataTestIDs } from './data-test';
+import { FC, useState, useRef, useEffect } from 'react';
 
 const NO_RESULTS = 'no results';
 
@@ -21,21 +23,17 @@ interface TypeaheadSelectProps {
   placeholder?: string;
 }
 
-export const TypeaheadSelect: React.FC<TypeaheadSelectProps> = ({
-  options,
-  onSelect,
-  placeholder,
-}) => {
-  const [isOpen, setIsOpen] = React.useState(false);
-  const [selected, setSelected] = React.useState('');
-  const [inputValue, setInputValue] = React.useState<string>('');
-  const [selectOptions, setSelectOptions] = React.useState<SelectOptionProps[]>(options);
-  const [focusedItemIndex, setFocusedItemIndex] = React.useState<number | null>(null);
-  const [activeItemId, setActiveItemId] = React.useState<string | null>(null);
-  const [filterValue, setFilterValue] = React.useState<string>('');
-  const textInputRef = React.useRef<HTMLInputElement>();
+export const TypeaheadSelect: FC<TypeaheadSelectProps> = ({ options, onSelect, placeholder }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [selected, setSelected] = useState('');
+  const [inputValue, setInputValue] = useState<string>('');
+  const [selectOptions, setSelectOptions] = useState<SelectOptionProps[]>(options);
+  const [focusedItemIndex, setFocusedItemIndex] = useState<number | null>(null);
+  const [activeItemId, setActiveItemId] = useState<string | null>(null);
+  const [filterValue, setFilterValue] = useState<string>('');
+  const textInputRef = useRef<HTMLInputElement>();
 
-  React.useEffect(() => {
+  useEffect(() => {
     let newSelectOptions: SelectOptionProps[] = options;
 
     if (filterValue) {
@@ -62,20 +60,18 @@ export const TypeaheadSelect: React.FC<TypeaheadSelectProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterValue, options]);
 
-  const handleSelect = (
-    _event: React.MouseEvent<Element, MouseEvent> | undefined,
-    value: string | undefined,
-  ) => {
+  const handleSelect: SelectProps['onSelect'] = (_event, value) => {
     if (!value) {
       setSelected(undefined);
       setIsOpen(false);
       return;
     }
-    setSelected(value);
+
+    setSelected(String(value));
     setInputValue('');
     setIsOpen(false);
     setSelectOptions(options);
-    onSelect(value);
+    onSelect(String(value));
   };
 
   const resetActiveAndFocusedItem = () => {
@@ -231,11 +227,12 @@ export const TypeaheadSelect: React.FC<TypeaheadSelectProps> = ({
           role="combobox"
           isExpanded={isOpen}
           aria-controls="select-typeahead-listbox"
+          data-test={DataTestIDs.TypeaheadSelectInput}
         />
 
         <TextInputGroupUtilities {...(!inputValue ? { style: { display: 'none' } } : {})}>
           <Button
-            icon={<TimesIcon aria-hidden />}
+            icon={<TimesIcon aria-hidden="true" />}
             variant="plain"
             onClick={onClearButtonClick}
             aria-label="Clear input value"
@@ -251,7 +248,9 @@ export const TypeaheadSelect: React.FC<TypeaheadSelectProps> = ({
       isOpen={isOpen}
       onSelect={handleSelect}
       onOpenChange={(isOpen) => {
-        !isOpen && closeMenu();
+        if (!isOpen) {
+          closeMenu();
+        }
       }}
       toggle={toggle}
       shouldFocusFirstItemOnOpen={false}

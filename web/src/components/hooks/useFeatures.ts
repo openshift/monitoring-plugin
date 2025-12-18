@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { proxiedFetch } from '../proxied-fetch';
 
 type features = {
@@ -24,9 +24,9 @@ const MCP_PROXY_PATH = '/api/proxy/plugin/monitoring-console-plugin/backend';
 const featuresEndpoint = `${MCP_PROXY_PATH}/features`;
 
 export const useFeatures = () => {
-  const [features, setFeatures] = React.useState<features>(noFeatures);
-  const dashboardsAbort = React.useRef<() => void | undefined>();
-  const getFeatures = React.useCallback(async () => {
+  const [features, setFeatures] = useState<features>(noFeatures);
+  const dashboardsAbort = useRef<() => void | undefined>();
+  const getFeatures = useCallback(async () => {
     try {
       if (dashboardsAbort.current) {
         dashboardsAbort.current();
@@ -34,13 +34,13 @@ export const useFeatures = () => {
 
       const response = await proxiedFetch<featuresResponse>(featuresEndpoint);
       setFeatures({ ...noFeatures, ...response });
-    } catch (error) {
+    } catch {
       setFeatures(noFeatures);
     }
   }, []);
 
   // Use useEffect to call getFeatures only once after the component mounts
-  React.useEffect(() => {
+  useEffect(() => {
     getFeatures();
   }, [getFeatures]);
 

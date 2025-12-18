@@ -1,4 +1,4 @@
-import * as React from 'react';
+import type { FC, ComponentType, ReactElement } from 'react';
 import {
   EmptyStateActions,
   EmptyStateBody,
@@ -8,7 +8,7 @@ import {
   EmptyStateProps,
 } from '@patternfly/react-core';
 
-export const ConsoleEmptyState: React.FC<ConsoleEmptyStateProps> = ({
+export const ConsoleEmptyState: FC<ConsoleEmptyStateProps> = ({
   children,
   Icon,
   primaryActions,
@@ -47,9 +47,9 @@ ConsoleEmptyState.displayName = 'ConsoleEmptyState';
 type ConsoleEmptyStateProps = Partial<EmptyStateProps> & {
   className?: string;
   'data-test'?: string;
-  Icon?: React.ComponentType;
-  primaryActions?: React.ReactElement[];
-  secondaryActions?: React.ReactElement[];
-  title?: string | React.ReactElement;
+  Icon?: ComponentType;
+  primaryActions?: ReactElement[];
+  secondaryActions?: ReactElement[];
+  title?: string | ReactElement;
   variant?: EmptyStateVariant;
 };

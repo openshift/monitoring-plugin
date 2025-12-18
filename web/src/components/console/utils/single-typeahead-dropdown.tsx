@@ -17,10 +17,10 @@ import {
   TextInputGroupUtilities,
 } from '@patternfly/react-core';
 import * as _ from 'lodash-es';
-import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { TimesIcon } from '@patternfly/react-icons/dist/esm/icons/times-icon';
+import { TimesIcon } from '@patternfly/react-icons';
 import { t_global_spacer_control_horizontal_default } from '@patternfly/react-tokens';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 export type SingleTypeaheadDropdownProps = {
   /** The items to display in the dropdown */
@@ -96,29 +96,28 @@ export const SingleTypeaheadDropdown: React.FC<SingleTypeaheadDropdownProps> = (
   clearOnNewItems = true,
 }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const [isOpen, setIsOpen] = React.useState(false);
-  const [selectOptions, setSelectOptions] = React.useState<
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectOptions, setSelectOptions] = useState<
     (SelectOptionProps & {
       children?: string;
     })[]
   >(items);
-  const selectedValue = React.useMemo(
+  const selectedValue = useMemo(
     () => selectOptions.find((i) => i.value === selectedKey),
     [selectOptions, selectedKey],
   );
-  const [inputValue, setInputValue] = React.useState<string>(selectedValue?.children || '');
-  const [filterValue, setFilterValue] = React.useState<string>('');
-  const [filteredSelectOptions, setFilteredSelectOptions] =
-    React.useState<SelectOptionProps[]>(items);
-  const [focusedItemIndex, setFocusedItemIndex] = React.useState<number | null>(null);
-  const [activeItemId, setActiveItemId] = React.useState<string | null>(null);
-  const textInputRef = React.useRef<HTMLInputElement>();
+  const [inputValue, setInputValue] = useState<string>(selectedValue?.children || '');
+  const [filterValue, setFilterValue] = useState<string>('');
+  const [filteredSelectOptions, setFilteredSelectOptions] = useState<SelectOptionProps[]>(items);
+  const [focusedItemIndex, setFocusedItemIndex] = useState<number | null>(null);
+  const [activeItemId, setActiveItemId] = useState<string | null>(null);
+  const textInputRef = useRef<HTMLInputElement>();
 
   const ID_PREFIX = _.uniqueId('select-typeahead-'); // for aria to work, ids have to be unique
   const NO_RESULTS = 'typeahead-dropdown__no-results';
   const CREATE_NEW = 'typeahead-dropdown__create-new';
 
-  React.useEffect(() => {
+  useEffect(() => {
     // check if the incoming items are the same as those currently held in the selectOptions
     // If they are, don't setSelectOptions to prevent losing current filter
     if (_.isEmpty(_.xorWith(items, selectOptions, _.isEqual))) {
@@ -134,11 +133,11 @@ export const SingleTypeaheadDropdown: React.FC<SingleTypeaheadDropdownProps> = (
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setFilteredSelectOptions(selectOptions);
   }, [selectOptions]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     let newSelectOptions: SelectOptionProps[] = selectOptions;
 
     // Filter menu items based on the text input value when one exists
@@ -209,7 +208,9 @@ export const SingleTypeaheadDropdown: React.FC<SingleTypeaheadDropdownProps> = (
     if (enableCreateNew && value === CREATE_NEW) {
       if (!selectOptions.some((item) => item.value === filterValue)) {
         setSelectOptions([...selectOptions, { value: filterValue, children: filterValue }]);
-        onCreate && onCreate(filterValue);
+        if (onCreate) {
+          onCreate(filterValue);
+        }
       }
       selectOption(filterValue, filterValue);
       resetActiveAndFocusedItem();
@@ -219,15 +220,16 @@ export const SingleTypeaheadDropdown: React.FC<SingleTypeaheadDropdownProps> = (
     }
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     setInputValue(selectedValue?.children ?? selectedValue?.value ?? '');
   }, [selectedValue]);
 
   const onTextInputChange = (_event: React.FormEvent<HTMLInputElement>, value: string) => {
     setInputValue(value);
     setFilterValue(value);
-    onInputChange && onInputChange(value);
-
+    if (onInputChange) {
+      onInputChange(value);
+    }
     resetActiveAndFocusedItem();
   };
 
@@ -317,10 +319,12 @@ export const SingleTypeaheadDropdown: React.FC<SingleTypeaheadDropdownProps> = (
     setFilterValue('');
     resetActiveAndFocusedItem();
     textInputRef?.current?.focus();
-    onClear && onClear(selectedKey);
+    if (onClear) {
+      onClear(selectedKey);
+    }
   };
 
-  const selectedItemWidth = React.useMemo(() => {
+  const selectedItemWidth = useMemo(() => {
     // font is hardcoded because canvas can't read the non-global CSS variables
     return (
       resizeToFit &&
@@ -343,7 +347,9 @@ export const SingleTypeaheadDropdown: React.FC<SingleTypeaheadDropdownProps> = (
           onClick={onInputClick}
           onChange={onTextInputChange}
           onKeyDown={(ev: React.KeyboardEvent<HTMLInputElement>) => {
-            ev.key === 'Enter' && ev.preventDefault(); // prevent accidental form submission
+            if (ev.key === 'Enter') {
+              ev.preventDefault(); // prevent accidental form submission
+            }
             onInputKeyDown(ev);
           }}
           id={`${ID_PREFIX}-input`}
@@ -385,7 +391,11 @@ export const SingleTypeaheadDropdown: React.FC<SingleTypeaheadDropdownProps> = (
       selected={selectedKey}
       onSelect={onSelect}
       onOpenChange={(open) => {
-        open ? setIsOpen(true) : closeMenu();
+        if (open) {
+          setIsOpen(true);
+        } else {
+          closeMenu();
+        }
       }}
       toggle={toggle}
       shouldFocusFirstItemOnOpen={false}
