@@ -47,8 +47,8 @@ export function testBVTCOOPerses(perspective: PerspectiveConfig) {
     cy.byDataTestID(persesDataTestIDs.variableDropdown+'-interval').should('be.visible');
     cy.byDataTestID(persesDataTestIDs.variableDropdown+'-text').should('be.visible');
     persesDashboardsPage.panelGroupHeaderAssertion('Row 1');
-    persesDashboardsPage.expandPanel('RAM Used');
-    persesDashboardsPage.collapsePanel('RAM Used');
+    persesDashboardsPage.expandPanel('Stat Md');
+    persesDashboardsPage.collapsePanel('Stat Md');
     persesDashboardsPage.statChartValueAssertion('RAM Used', true);
     persesDashboardsPage.searchAndSelectVariable('job', 'node-exporter');
     persesDashboardsPage.statChartValueAssertion('RAM Used', false);

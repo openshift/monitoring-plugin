@@ -60,10 +60,12 @@ describe('IVT: Monitoring UIPlugin + Virtualization', { tags: ['@virtualization'
 describe('Regression: Monitoring - Legacy Dashboards (Virtualization)', { tags: ['@virtualization', '@dashboards'] }, () => {
 
   beforeEach(() => {
-    cy.visit('/');
-    cy.validateLogin();
+    //when running only this file, beforeBlock changes the namespace to openshift-monitoring
+    //so we need to change it back to All Projects before landing to Dashboards page in order to have API Performance dashboard loaded by default
     cy.switchPerspective('Virtualization');
-    guidedTour.closeKubevirtTour();
+    nav.sidenav.clickNavLink(['Observe', 'Metrics']);
+    commonPages.titleShouldHaveText('Metrics');
+    cy.changeNamespace("All Projects");
     nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
     commonPages.titleShouldHaveText('Dashboards');
     cy.changeNamespace("All Projects");
@@ -77,8 +79,6 @@ describe('Regression: Monitoring - Legacy Dashboards (Virtualization)', { tags: 
 
 describe('Regression: Monitoring - Legacy Dashboards Namespaced (Virtualization)', { tags: ['@virtualization', '@dashboards'] }, () => {
   beforeEach(() => {
-    cy.visit('/');
-    cy.validateLogin();
     cy.switchPerspective('Virtualization');
     guidedTour.closeKubevirtTour();
     nav.sidenav.clickNavLink(['Observe', 'Dashboards']);

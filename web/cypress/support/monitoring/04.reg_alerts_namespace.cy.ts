@@ -49,7 +49,7 @@ export function testAlertsRegressionNamespace(perspective: PerspectiveConfig) {
     cy.log('2.1 use sidebar nav to go to Observe > Alerting');
     nav.tabs.switchTab('Silences');
     silencesListPage.createSilence();
-    commonPages.projectDropdownShouldExist();
+    commonPages.projectDropdownShouldNotExist();
     cy.log('https://issues.redhat.com/browse/OU-1109 - [Namespace-level] - Dev user - Create a silence - namespace label does not have a value');
     silenceAlertPage.assertNamespaceLabelNamespaceValueDisabled('namespace', `${WatchdogAlert.NAMESPACE}`, true);
     silenceAlertPage.assertCommentNoError();
@@ -127,7 +127,7 @@ export function testAlertsRegressionNamespace(perspective: PerspectiveConfig) {
     cy.log('3.10 Recreate silence');
     silenceDetailsPage.recreateSilence(false);
     commonPages.titleShouldHaveText('Recreate silence');
-    commonPages.projectDropdownShouldExist();
+    commonPages.projectDropdownShouldNotExist();
     silenceAlertPage.silenceAlertSectionDefault();
     silenceAlertPage.durationSectionDefault();
     silenceAlertPage.alertLabelsSectionDefault();

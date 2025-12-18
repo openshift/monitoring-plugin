@@ -193,7 +193,6 @@ export function testMetricsRegression1(perspective: PerspectiveConfig) {
   //https://issues.redhat.com/browse/OU-974 - [Metrics] - Units - undefined showing in Y axis and tooltip
   it(`${perspective.name} perspective - Metrics > Units`, () => {
     cy.log('5.1 Preparation to test Units dropdown');
-    cy.visit('/monitoring/query-browser');
     metricsPage.clickInsertExampleQuery();
     metricsPage.unitsDropdownAssertion();
 
