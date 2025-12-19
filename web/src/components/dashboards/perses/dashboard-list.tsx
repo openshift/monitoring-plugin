@@ -56,33 +56,34 @@ const sortDashboardData = (
   data: DashboardRow[],
   sortBy: keyof DashboardRow | undefined,
   direction: 'asc' | 'desc' | undefined,
-): DashboardRow[] =>
-  sortBy && direction
-    ? [...data].sort((a, b) => {
-        let aValue: any;
-        let bValue: any;
+): DashboardRow[] => {
+  if (!sortBy || !direction) return data;
 
-        if (sortBy === 'name') {
-          aValue = a.name.label;
-          bValue = b.name.label;
-        } else if (sortBy === 'created') {
-          aValue = a.createdAt;
-          bValue = b.createdAt;
-        } else if (sortBy === 'modified') {
-          aValue = a.updatedAt;
-          bValue = b.updatedAt;
-        } else {
-          aValue = a[sortBy];
-          bValue = b[sortBy];
-        }
+  return [...data].sort((a, b) => {
+    let aValue: any;
+    let bValue: any;
 
-        if (direction === 'asc') {
-          return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
-        } else {
-          return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
-        }
-      })
-    : data;
+    if (sortBy === 'name') {
+      aValue = a.name.label;
+      bValue = b.name.label;
+    } else if (sortBy === 'created') {
+      aValue = a.createdAt;
+      bValue = b.createdAt;
+    } else if (sortBy === 'modified') {
+      aValue = a.updatedAt;
+      bValue = b.updatedAt;
+    } else {
+      aValue = a[sortBy];
+      bValue = b[sortBy];
+    }
+
+    if (direction === 'asc') {
+      return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+    } else {
+      return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+    }
+  });
+};
 
 interface DashboardsTableProps {
   persesDashboards: Array<{
