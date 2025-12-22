@@ -116,13 +116,15 @@ const ProjectMenu: React.FC<{
   const optionItems = useMemo(() => {
     const items = persesProjects.map((item) => {
       const { name } = item.metadata;
-      return { title: item?.spec?.display?.name ?? name, key: name };
+      const title = item?.spec?.display?.name ?? name ?? '';
+      return { title, key: name ?? '' };
     });
 
-    if (!items.some((option) => option.key === selected)) {
+    if (selected && !items.some((option) => option.key === selected)) {
       items.push({ title: selected, key: selected }); // Add current project if it isn't included
     }
     items.sort((a, b) => alphanumericCompare(a.title, b.title));
+    items.unshift({ title: 'All Projects', key: '' });
 
     return items;
   }, [persesProjects, selected]);
@@ -207,7 +209,7 @@ const ProjectDropdown: React.FC<ProjectDropdownProps> = ({
   const selectedProject = persesProjects.find(
     (persesProject) => persesProject.metadata.name === selected,
   );
-  const title = selectedProject?.spec?.display?.name ?? t('Dashboards');
+  const title = selectedProject?.spec?.display?.name ?? t('All Projects');
 
   return (
     <div className="co-namespace-dropdown">

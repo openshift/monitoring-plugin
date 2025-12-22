@@ -35,7 +35,7 @@ import React, { useMemo } from 'react';
 import { usePatternFlyTheme } from '../../hooks/usePatternflyTheme';
 import { OcpDatasourceApi } from './datasource-api';
 import { PERSES_PROXY_BASE_PATH, useFetchPersesDashboard } from './perses-client';
-import { CachedDatasourceAPI } from './perses/datasource-api';
+import { CachedDatasourceAPI } from './perses/datasource-cache-api';
 import {
   chart_color_blue_100,
   chart_color_blue_300,

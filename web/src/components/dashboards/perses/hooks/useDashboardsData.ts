@@ -1,11 +1,11 @@
-import { useMemo, useCallback, useEffect } from 'react';
+import { useMemo, useCallback } from 'react';
 
 import { DashboardResource } from '@perses-dev/core';
 import { useNavigate } from 'react-router-dom-v5-compat';
 import { StringParam, useQueryParam } from 'use-query-params';
 import { getAllQueryArguments } from '../../../console/utils/router';
 import { useBoolean } from '../../../hooks/useBoolean';
-import { getDashboardsUrl, usePerspective } from '../../../hooks/usePerspective';
+import { getDashboardUrl, usePerspective } from '../../../hooks/usePerspective';
 import { QueryParams } from '../../../query-params';
 import { useActiveProject } from '../project/useActiveProject';
 import { usePerses } from './usePerses';
@@ -61,6 +61,9 @@ export const useDashboardsData = () => {
 
   // Retrieve dashboard metadata for the currently selected project
   const activeProjectDashboardsMetadata = useMemo<CombinedDashboardMetadata[]>(() => {
+    if (!activeProject) {
+      return combinedDashboardsMetadata;
+    }
     return combinedDashboardsMetadata.filter((combinedDashboardMetadata) => {
       return combinedDashboardMetadata.project === activeProject;
     });
@@ -75,33 +78,27 @@ export const useDashboardsData = () => {
       const queryArguments = getAllQueryArguments();
 
       const params = new URLSearchParams(queryArguments);
-      params.set(QueryParams.Project, activeProject);
+
+      let projectToUse = activeProject;
+      if (!activeProject) {
+        const dashboardMetadata = combinedDashboardsMetadata.find((item) => item.name === newBoard);
+        projectToUse = dashboardMetadata?.project;
+      }
+
+      if (projectToUse) {
+        params.set(QueryParams.Project, projectToUse);
+      }
       params.set(QueryParams.Dashboard, newBoard);
 
-      let url = getDashboardsUrl(perspective);
+      let url = getDashboardUrl(perspective);
       url = `${url}?${params.toString()}`;
 
       if (newBoard !== dashboardName) {
         navigate(url, { replace: true });
       }
     },
-    [perspective, dashboardName, navigate, activeProject],
+    [perspective, dashboardName, navigate, activeProject, combinedDashboardsMetadata],
   );
-
-  // If a dashboard hasn't been selected yet, or if the current project doesn't have a
-  // matching board name then display the board present in the URL parameters or the first
-  // board in the dropdown list
-  useEffect(() => {
-    const metadataMatch = activeProjectDashboardsMetadata.find((activeProjectDashboardMetadata) => {
-      return (
-        activeProjectDashboardMetadata.project === activeProject &&
-        activeProjectDashboardMetadata.name === dashboardName
-      );
-    });
-    if (!dashboardName || !metadataMatch) {
-      changeBoard(activeProjectDashboardsMetadata?.[0]?.name);
-    }
-  }, [dashboardName, changeBoard, activeProject, activeProjectDashboardsMetadata]);
 
   return {
     persesAvailable,
