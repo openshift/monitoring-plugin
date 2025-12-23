@@ -295,7 +295,11 @@ main() {
       # User declined current, try to find kubeconfigs from Downloads
       if [[ -d "$HOME/Downloads" ]]; then
         local kubeconfig_files
-        mapfile -t kubeconfig_files < <(ls -t "$HOME/Downloads"/*kubeconfig* 2>/dev/null | head -10)
+        # Use 'while read' instead of 'mapfile' for bash 3.x compatibility (macOS)
+        kubeconfig_files=()
+        while IFS= read -r file; do
+          kubeconfig_files+=("$file")
+        done < <(ls -t "$HOME/Downloads"/*kubeconfig* 2>/dev/null | head -10)
         
         if [[ ${#kubeconfig_files[@]} -gt 0 ]]; then
           echo ""
@@ -357,7 +361,11 @@ main() {
     # No current kubeconfig set, try to find kubeconfigs from Downloads
     if [[ -d "$HOME/Downloads" ]]; then
       local kubeconfig_files
-      mapfile -t kubeconfig_files < <(ls -t "$HOME/Downloads"/*kubeconfig* 2>/dev/null | head -10)
+      # Use 'while read' instead of 'mapfile' for bash 3.x compatibility (macOS)
+      kubeconfig_files=()
+      while IFS= read -r file; do
+        kubeconfig_files+=("$file")
+      done < <(ls -t "$HOME/Downloads"/*kubeconfig* 2>/dev/null | head -10)
       
       if [[ ${#kubeconfig_files[@]} -gt 0 ]]; then
         echo ""
@@ -534,27 +542,27 @@ main() {
 
   echo ""
   echo "Configured values:" 
-  echo "  CYPRESS_BASE_URL=$CYPRESS_BASE_URL"
-  echo "  CYPRESS_LOGIN_IDP=${CYPRESS_LOGIN_IDP:-$login_idp}"
-  echo "  CYPRESS_LOGIN_USERS=${CYPRESS_LOGIN_USERS:-$login_users}"
-  echo "  CYPRESS_KUBECONFIG_PATH=${CYPRESS_KUBECONFIG_PATH:-$kubeconfig}"
-  [[ -n "${CYPRESS_MP_IMAGE-}$mp_image" ]] && echo "  CYPRESS_MP_IMAGE=${CYPRESS_MP_IMAGE:-$mp_image}"
-  [[ -n "${CYPRESS_COO_NAMESPACE-}$coo_namespace" ]] && echo "  CYPRESS_COO_NAMESPACE=${CYPRESS_COO_NAMESPACE:-$coo_namespace}"
-  echo "  CYPRESS_SKIP_COO_INSTALL=${CYPRESS_SKIP_COO_INSTALL:-$skip_coo_install}"
-  echo "  CYPRESS_COO_UI_INSTALL=${CYPRESS_COO_UI_INSTALL:-$coo_ui_install}"
-  [[ -n "${CYPRESS_KONFLUX_COO_BUNDLE_IMAGE-}$konflux_bundle" ]] && echo "  CYPRESS_KONFLUX_COO_BUNDLE_IMAGE=${CYPRESS_KONFLUX_COO_BUNDLE_IMAGE:-$konflux_bundle}"
-  [[ -n "${CYPRESS_CUSTOM_COO_BUNDLE_IMAGE-}$custom_coo_bundle" ]] && echo "  CYPRESS_CUSTOM_COO_BUNDLE_IMAGE=${CYPRESS_CUSTOM_COO_BUNDLE_IMAGE:-$custom_coo_bundle}"
-  [[ -n "${CYPRESS_MCP_CONSOLE_IMAGE-}$mcp_console_image" ]] && echo "  CYPRESS_MCP_CONSOLE_IMAGE=${CYPRESS_MCP_CONSOLE_IMAGE:-$mcp_console_image}"
-  [[ -n "${CYPRESS_TIMEZONE-}$timezone" ]] && echo "  CYPRESS_TIMEZONE=${CYPRESS_TIMEZONE:-$timezone}"
-  echo "  CYPRESS_MOCK_NEW_METRICS=${CYPRESS_MOCK_NEW_METRICS:-$mock_new_metrics}"
-  echo "  CYPRESS_SESSION=${CYPRESS_SESSION:-$session}"
-  echo "  CYPRESS_DEBUG=${CYPRESS_DEBUG:-$debug}"
-  echo "  CYPRESS_SKIP_ALL_INSTALL=${CYPRESS_SKIP_ALL_INSTALL:-$skip_all_install}"
-  echo "  CYPRESS_SKIP_KBV_INSTALL=${CYPRESS_SKIP_KBV_INSTALL:-$skip_kbv_install}"
-  echo "  CYPRESS_KBV_UI_INSTALL=${CYPRESS_KBV_UI_INSTALL:-$kbv_ui_install}"
-  [[ -n "${CYPRESS_KONFLUX_KBV_BUNDLE_IMAGE-}$konflux_kbv_bundle" ]] && echo "  CYPRESS_KONFLUX_KBV_BUNDLE_IMAGE=${CYPRESS_KONFLUX_KBV_BUNDLE_IMAGE:-$konflux_kbv_bundle}"
-  [[ -n "${CYPRESS_CUSTOM_KBV_BUNDLE_IMAGE-}$custom_kbv_bundle" ]] && echo "  CYPRESS_CUSTOM_KBV_BUNDLE_IMAGE=${CYPRESS_CUSTOM_KBV_BUNDLE_IMAGE:-$custom_kbv_bundle}"
-  [[ -n "${CYPRESS_FBC_STAGE_KBV_IMAGE-}$fbc_stage_kbv_image" ]] && echo "  CYPRESS_FBC_STAGE_KBV_IMAGE=${CYPRESS_FBC_STAGE_KBV_IMAGE:-$fbc_stage_kbv_image}"
+  echo "  CYPRESS_BASE_URL=$base_url"
+  echo "  CYPRESS_LOGIN_IDP=$login_idp"
+  echo "  CYPRESS_LOGIN_USERS=$login_users"
+  echo "  CYPRESS_KUBECONFIG_PATH=$kubeconfig"
+  [[ -n "$mp_image" ]] && echo "  CYPRESS_MP_IMAGE=$mp_image"
+  [[ -n "$coo_namespace" ]] && echo "  CYPRESS_COO_NAMESPACE=$coo_namespace"
+  echo "  CYPRESS_SKIP_COO_INSTALL=$skip_coo_install"
+  echo "  CYPRESS_COO_UI_INSTALL=$coo_ui_install"
+  [[ -n "$konflux_bundle" ]] && echo "  CYPRESS_KONFLUX_COO_BUNDLE_IMAGE=$konflux_bundle"
+  [[ -n "$custom_coo_bundle" ]] && echo "  CYPRESS_CUSTOM_COO_BUNDLE_IMAGE=$custom_coo_bundle"
+  [[ -n "$mcp_console_image" ]] && echo "  CYPRESS_MCP_CONSOLE_IMAGE=$mcp_console_image"
+  [[ -n "$timezone" ]] && echo "  CYPRESS_TIMEZONE=$timezone"
+  echo "  CYPRESS_MOCK_NEW_METRICS=$mock_new_metrics"
+  echo "  CYPRESS_SESSION=$session"
+  echo "  CYPRESS_DEBUG=$debug"
+  echo "  CYPRESS_SKIP_ALL_INSTALL=$skip_all_install"
+  echo "  CYPRESS_SKIP_KBV_INSTALL=$skip_kbv_install"
+  echo "  CYPRESS_KBV_UI_INSTALL=$kbv_ui_install"
+  [[ -n "$konflux_kbv_bundle" ]] && echo "  CYPRESS_KONFLUX_KBV_BUNDLE_IMAGE=$konflux_kbv_bundle"
+  [[ -n "$custom_kbv_bundle" ]] && echo "  CYPRESS_CUSTOM_KBV_BUNDLE_IMAGE=$custom_kbv_bundle"
+  [[ -n "$fbc_stage_kbv_image" ]] && echo "  CYPRESS_FBC_STAGE_KBV_IMAGE=$fbc_stage_kbv_image"
 }
 
 main "$@"

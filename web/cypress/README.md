@@ -212,22 +212,22 @@ npm run cypress:run
 
 ```bash
 # COO BVT tests
-npm run cypress:run --spec "cypress/e2e/coo/01.coo_bvt.cy.ts"
+npm run cypress:run -- --spec "cypress/e2e/coo/01.coo_bvt.cy.ts"
 
 # ACM Alerting tests
-npm run cypress:run --spec "cypress/e2e/coo/02.acm_alerting_ui.cy.ts"
+npm run cypress:run -- --spec "cypress/e2e/coo/02.acm_alerting_ui.cy.ts"
 
 # Monitoring BVT tests
-npm run cypress:run --spec "cypress/e2e/monitoring/00.bvt_admin.cy.ts"
+npm run cypress:run -- --spec "cypress/e2e/monitoring/00.bvt_admin.cy.ts"
 
 # All Monitoring Regression tests
-npm run cypress:run --spec "cypress/e2e/monitoring/regression/**"
+npm run cypress:run -- --spec "cypress/e2e/monitoring/regression/**"
 
 # All Virtualization IVT tests
-npm run cypress:run --spec "cypress/e2e/virtualization/**"
+npm run cypress:run -- --spec "cypress/e2e/virtualization/**"
 
 # Incidents tests (requires CYPRESS_TIMEZONE and optionally CYPRESS_MOCK_NEW_METRICS)
-npm run cypress:run --spec "cypress/e2e/**/incidents*.cy.ts"
+npm run cypress:run -- --spec "cypress/e2e/**/incidents*.cy.ts"
 ```
 
 **Note**: Incidents tests require `CYPRESS_TIMEZONE` to be set to match your cluster's timezone configuration. See [Incidents Testing Configuration](#incidents-testing-configuration) for details.
