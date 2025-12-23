@@ -26,6 +26,7 @@ func New(managementClient management.Client) *mux.Router {
 
 	r.HandleFunc("/api/v1/alerting/health", httpRouter.GetHealth).Methods(http.MethodGet)
 	r.HandleFunc("/api/v1/alerting/alerts", httpRouter.GetAlerts).Methods(http.MethodGet)
+	r.HandleFunc("/api/v1/alerting/rules", httpRouter.CreateUserDefinedAlertRule).Methods(http.MethodPost)
 	r.HandleFunc("/api/v1/alerting/rules", httpRouter.BulkDeleteUserDefinedAlertRules).Methods(http.MethodDelete)
 	r.HandleFunc("/api/v1/alerting/rules/{ruleId}", httpRouter.DeleteUserDefinedAlertRuleById).Methods(http.MethodDelete)
 
@@ -48,9 +49,17 @@ func parseError(err error) (int, string) {
 	if errors.As(err, &nf) {
 		return http.StatusNotFound, err.Error()
 	}
+	var ve *management.ValidationError
+	if errors.As(err, &ve) {
+		return http.StatusBadRequest, err.Error()
+	}
 	var na *management.NotAllowedError
 	if errors.As(err, &na) {
 		return http.StatusMethodNotAllowed, err.Error()
+	}
+	var ce *management.ConflictError
+	if errors.As(err, &ce) {
+		return http.StatusConflict, err.Error()
 	}
 	log.Printf("An unexpected error occurred: %v", err)
 	return http.StatusInternalServerError, "An unexpected error occurred"

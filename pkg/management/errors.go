@@ -26,3 +26,19 @@ type NotAllowedError struct {
 func (r *NotAllowedError) Error() string {
 	return r.Message
 }
+
+type ValidationError struct {
+	Message string
+}
+
+func (e *ValidationError) Error() string {
+	return e.Message
+}
+
+type ConflictError struct {
+	Message string
+}
+
+func (e *ConflictError) Error() string {
+	return e.Message
+}

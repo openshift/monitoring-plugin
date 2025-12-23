@@ -2,7 +2,6 @@ package management
 
 import (
 	"context"
-	"errors"
 
 	alertrule "github.com/openshift/monitoring-plugin/pkg/alert_rule"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
@@ -15,7 +14,7 @@ const (
 
 func (c *client) CreateUserDefinedAlertRule(ctx context.Context, alertRule monitoringv1.Rule, prOptions PrometheusRuleOptions) (string, error) {
 	if prOptions.Name == "" || prOptions.Namespace == "" {
-		return "", errors.New("PrometheusRule Name and Namespace must be specified")
+		return "", &ValidationError{Message: "PrometheusRule Name and Namespace must be specified"}
 	}
 
 	nn := types.NamespacedName{
@@ -24,13 +23,13 @@ func (c *client) CreateUserDefinedAlertRule(ctx context.Context, alertRule monit
 	}
 
 	if c.IsPlatformAlertRule(nn) {
-		return "", errors.New("cannot add user-defined alert rule to a platform-managed PrometheusRule")
+		return "", &NotAllowedError{Message: "cannot add user-defined alert rule to a platform-managed PrometheusRule"}
 	}
 
 	// Check if rule with the same ID already exists
 	_, found := c.k8sClient.RelabeledRules().Get(ctx, alertrule.GetAlertingRuleId(&alertRule))
 	if found {
-		return "", errors.New("alert rule with exact config already exists")
+		return "", &ConflictError{Message: "alert rule with exact config already exists"}
 	}
 
 	if prOptions.GroupName == "" {
