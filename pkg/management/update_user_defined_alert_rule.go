@@ -10,26 +10,30 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-func (c *client) UpdateUserDefinedAlertRule(ctx context.Context, alertRuleId string, alertRule monitoringv1.Rule) error {
+func (c *client) UpdateUserDefinedAlertRule(ctx context.Context, alertRuleId string, alertRule monitoringv1.Rule) (string, error) {
 	rule, found := c.k8sClient.RelabeledRules().Get(ctx, alertRuleId)
 	if !found {
-		return &NotFoundError{Resource: "AlertRule", Id: alertRuleId}
+		return "", &NotFoundError{Resource: "AlertRule", Id: alertRuleId}
 	}
 
 	namespace := rule.Labels[k8s.PrometheusRuleLabelNamespace]
 	name := rule.Labels[k8s.PrometheusRuleLabelName]
 
 	if c.IsPlatformAlertRule(types.NamespacedName{Namespace: namespace, Name: name}) {
-		return fmt.Errorf("cannot update alert rule in a platform-managed PrometheusRule")
+		return "", &NotAllowedError{Message: "cannot update alert rule in a platform-managed PrometheusRule"}
 	}
 
 	pr, found, err := c.k8sClient.PrometheusRules().Get(ctx, namespace, name)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	if !found {
-		return &NotFoundError{Resource: "PrometheusRule", Id: fmt.Sprintf("%s/%s", namespace, name)}
+		return "", &NotFoundError{
+			Resource:       "AlertRule",
+			Id:             alertRuleId,
+			AdditionalInfo: fmt.Sprintf("PrometheusRule %s/%s not found", namespace, name),
+		}
 	}
 
 	updated := false
@@ -48,15 +52,20 @@ func (c *client) UpdateUserDefinedAlertRule(ctx context.Context, alertRuleId str
 	}
 
 	if !updated {
-		return fmt.Errorf("alert rule with id %s not found in PrometheusRule %s/%s", alertRuleId, namespace, name)
+		return "", &NotFoundError{
+			Resource:       "AlertRule",
+			Id:             alertRuleId,
+			AdditionalInfo: fmt.Sprintf("in PrometheusRule %s/%s", namespace, name),
+		}
 	}
 
 	err = c.k8sClient.PrometheusRules().Update(ctx, *pr)
 	if err != nil {
-		return fmt.Errorf("failed to update PrometheusRule %s/%s: %w", pr.Namespace, pr.Name, err)
+		return "", fmt.Errorf("failed to update PrometheusRule %s/%s: %w", pr.Namespace, pr.Name, err)
 	}
 
-	return nil
+	newRuleId := alertrule.GetAlertingRuleId(&alertRule)
+	return newRuleId, nil
 }
 
 func (c *client) shouldUpdateRule(rule monitoringv1.Rule, alertRuleId string) bool {

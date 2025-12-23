@@ -84,7 +84,7 @@ var _ = Describe("UpdateUserDefinedAlertRule", func() {
 
 		It("returns NotFoundError", func() {
 			updatedRule := userRule
-			err := client.UpdateUserDefinedAlertRule(ctx, "nonexistent-id", updatedRule)
+			_, err := client.UpdateUserDefinedAlertRule(ctx, "nonexistent-id", updatedRule)
 			Expect(err).To(HaveOccurred())
 
 			var notFoundErr *management.NotFoundError
@@ -109,7 +109,7 @@ var _ = Describe("UpdateUserDefinedAlertRule", func() {
 
 		It("returns an error", func() {
 			updatedRule := platformRule
-			err := client.UpdateUserDefinedAlertRule(ctx, platformRuleId, updatedRule)
+			_, err := client.UpdateUserDefinedAlertRule(ctx, platformRuleId, updatedRule)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("cannot update alert rule in a platform-managed PrometheusRule"))
 		})
@@ -139,7 +139,7 @@ var _ = Describe("UpdateUserDefinedAlertRule", func() {
 
 		It("returns NotFoundError", func() {
 			updatedRule := userRule
-			err := client.UpdateUserDefinedAlertRule(ctx, userRuleId, updatedRule)
+			_, err := client.UpdateUserDefinedAlertRule(ctx, userRuleId, updatedRule)
 			Expect(err).To(HaveOccurred())
 
 			var notFoundErr *management.NotFoundError
@@ -172,7 +172,7 @@ var _ = Describe("UpdateUserDefinedAlertRule", func() {
 
 		It("returns the error", func() {
 			updatedRule := userRule
-			err := client.UpdateUserDefinedAlertRule(ctx, userRuleId, updatedRule)
+			_, err := client.UpdateUserDefinedAlertRule(ctx, userRuleId, updatedRule)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("failed to get PrometheusRule"))
 		})
@@ -216,7 +216,7 @@ var _ = Describe("UpdateUserDefinedAlertRule", func() {
 
 		It("returns an error", func() {
 			updatedRule := userRule
-			err := client.UpdateUserDefinedAlertRule(ctx, userRuleId, updatedRule)
+			_, err := client.UpdateUserDefinedAlertRule(ctx, userRuleId, updatedRule)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(fmt.Sprintf("alert rule with id %s not found", userRuleId)))
 		})
@@ -262,7 +262,7 @@ var _ = Describe("UpdateUserDefinedAlertRule", func() {
 
 		It("returns the error", func() {
 			updatedRule := originalUserRule
-			err := client.UpdateUserDefinedAlertRule(ctx, userRuleId, updatedRule)
+			_, err := client.UpdateUserDefinedAlertRule(ctx, userRuleId, updatedRule)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("failed to update PrometheusRule"))
 		})
@@ -319,8 +319,10 @@ var _ = Describe("UpdateUserDefinedAlertRule", func() {
 			updatedRule.Labels["severity"] = "critical"
 			updatedRule.Expr = intstr.FromString("up == 1")
 
-			err := client.UpdateUserDefinedAlertRule(ctx, userRuleId, updatedRule)
+			expectedNewRuleId := alertrule.GetAlertingRuleId(&updatedRule)
+			newRuleId, err := client.UpdateUserDefinedAlertRule(ctx, userRuleId, updatedRule)
 			Expect(err).NotTo(HaveOccurred())
+			Expect(newRuleId).To(Equal(expectedNewRuleId))
 			Expect(updatedPR).NotTo(BeNil())
 			Expect(updatedPR.Spec.Groups[0].Rules[0].Labels["severity"]).To(Equal("critical"))
 			Expect(updatedPR.Spec.Groups[0].Rules[0].Expr.String()).To(Equal("up == 1"))
@@ -367,8 +369,10 @@ var _ = Describe("UpdateUserDefinedAlertRule", func() {
 			}
 			updatedRule.Labels["severity"] = "info"
 
-			err := client.UpdateUserDefinedAlertRule(ctx, userRuleId, updatedRule)
+			expectedNewRuleId := alertrule.GetAlertingRuleId(&updatedRule)
+			newRuleId, err := client.UpdateUserDefinedAlertRule(ctx, userRuleId, updatedRule)
 			Expect(err).NotTo(HaveOccurred())
+			Expect(newRuleId).To(Equal(expectedNewRuleId))
 			Expect(updatedPR).NotTo(BeNil())
 			Expect(updatedPR.Spec.Groups[0].Rules).To(HaveLen(2))
 			Expect(updatedPR.Spec.Groups[0].Rules[0].Labels["severity"]).To(Equal("info"))
@@ -415,8 +419,10 @@ var _ = Describe("UpdateUserDefinedAlertRule", func() {
 			}
 			updatedRule.Labels["new_label"] = "new_value"
 
-			err := client.UpdateUserDefinedAlertRule(ctx, userRuleId, updatedRule)
+			expectedNewRuleId := alertrule.GetAlertingRuleId(&updatedRule)
+			newRuleId, err := client.UpdateUserDefinedAlertRule(ctx, userRuleId, updatedRule)
 			Expect(err).NotTo(HaveOccurred())
+			Expect(newRuleId).To(Equal(expectedNewRuleId))
 			Expect(updatedPR).NotTo(BeNil())
 			Expect(updatedPR.Spec.Groups).To(HaveLen(2))
 			Expect(updatedPR.Spec.Groups[0].Rules).To(HaveLen(0))

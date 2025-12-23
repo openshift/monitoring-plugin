@@ -2,7 +2,6 @@ package management
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 
@@ -24,7 +23,7 @@ func (c *client) UpdatePlatformAlertRule(ctx context.Context, alertRuleId string
 	name := rule.Labels[k8s.PrometheusRuleLabelName]
 
 	if !c.IsPlatformAlertRule(types.NamespacedName{Namespace: namespace, Name: name}) {
-		return errors.New("cannot update non-platform alert rule from " + namespace + "/" + name)
+		return &NotAllowedError{Message: "cannot update non-platform alert rule from " + namespace + "/" + name}
 	}
 
 	originalRule, err := c.getOriginalPlatformRule(ctx, namespace, name, alertRuleId)
@@ -34,7 +33,7 @@ func (c *client) UpdatePlatformAlertRule(ctx context.Context, alertRuleId string
 
 	labelChanges := calculateLabelChanges(originalRule.Labels, alertRule.Labels)
 	if len(labelChanges) == 0 {
-		return errors.New("no label changes detected; platform alert rules can only have labels updated")
+		return &ValidationError{Message: "no label changes detected; platform alert rules can only have labels updated"}
 	}
 
 	return c.applyLabelChangesViaAlertRelabelConfig(ctx, namespace, alertRuleId, originalRule.Alert, labelChanges)
@@ -47,7 +46,11 @@ func (c *client) getOriginalPlatformRule(ctx context.Context, namespace string, 
 	}
 
 	if !found {
-		return nil, &NotFoundError{Resource: "PrometheusRule", Id: fmt.Sprintf("%s/%s", namespace, name)}
+		return nil, &NotFoundError{
+			Resource:       "AlertRule",
+			Id:             alertRuleId,
+			AdditionalInfo: fmt.Sprintf("PrometheusRule %s/%s not found", namespace, name),
+		}
 	}
 
 	for groupIdx := range pr.Spec.Groups {
@@ -59,7 +62,11 @@ func (c *client) getOriginalPlatformRule(ctx context.Context, namespace string, 
 		}
 	}
 
-	return nil, fmt.Errorf("alert rule with id %s not found in PrometheusRule %s/%s", alertRuleId, namespace, name)
+	return nil, &NotFoundError{
+		Resource:       "AlertRule",
+		Id:             alertRuleId,
+		AdditionalInfo: fmt.Sprintf("in PrometheusRule %s/%s", namespace, name),
+	}
 }
 
 type labelChange struct {
@@ -158,11 +165,8 @@ func (c *client) buildRelabelConfigs(alertName string, changes []labelChange) []
 			configs = append(configs, config)
 		case "LabelDrop":
 			config := osmv1.RelabelConfig{
-				SourceLabels: []osmv1.LabelName{"alertname"},
-				Regex:        alertName,
-				TargetLabel:  change.sourceLabel,
-				Replacement:  "",
-				Action:       "Replace",
+				Regex:  change.sourceLabel,
+				Action: "LabelDrop",
 			}
 			configs = append(configs, config)
 		}

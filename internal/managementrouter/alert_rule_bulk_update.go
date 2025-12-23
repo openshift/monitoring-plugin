@@ -1,0 +1,140 @@
+package managementrouter
+
+import (
+	"encoding/json"
+	"errors"
+	"net/http"
+	"strings"
+
+	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+
+	"github.com/openshift/monitoring-plugin/pkg/management"
+)
+
+type BulkUpdateAlertRulesRequest struct {
+	RuleIds []string          `json:"ruleIds"`
+	Labels  map[string]string `json:"labels"`
+}
+
+type BulkUpdateAlertRulesResponse struct {
+	Rules []UpdateAlertRuleResponse `json:"rules"`
+}
+
+func (hr *httpRouter) BulkUpdateAlertRules(w http.ResponseWriter, req *http.Request) {
+	var payload BulkUpdateAlertRulesRequest
+	if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	if len(payload.RuleIds) == 0 {
+		writeError(w, http.StatusBadRequest, "ruleIds is required")
+		return
+	}
+
+	if payload.Labels == nil {
+		writeError(w, http.StatusBadRequest, "labels is required")
+		return
+	}
+
+	results := make([]UpdateAlertRuleResponse, 0, len(payload.RuleIds))
+
+	for _, rawId := range payload.RuleIds {
+		id, err := parseParam(rawId, "ruleId")
+		if err != nil {
+			results = append(results, UpdateAlertRuleResponse{
+				Id:         rawId,
+				StatusCode: http.StatusBadRequest,
+				Message:    err.Error(),
+			})
+			continue
+		}
+
+		// For bulk update, merge labels and handle empty strings as drops
+		currentRule, err := hr.managementClient.GetRuleById(req.Context(), id)
+		if err != nil {
+			status, message := parseError(err)
+			results = append(results, UpdateAlertRuleResponse{
+				Id:         id,
+				StatusCode: status,
+				Message:    message,
+			})
+			continue
+		}
+
+		mergedLabels := make(map[string]string)
+		for k, v := range currentRule.Labels {
+			mergedLabels[k] = v
+		}
+		for k, v := range payload.Labels {
+			if v == "" {
+				// Empty string means drop this label
+				delete(mergedLabels, k)
+			} else {
+				mergedLabels[k] = v
+			}
+		}
+
+		updatedRule := monitoringv1.Rule{
+			Labels: mergedLabels,
+		}
+
+		err = hr.managementClient.UpdatePlatformAlertRule(req.Context(), id, updatedRule)
+		if err != nil {
+			var ve *management.ValidationError
+			var nf *management.NotFoundError
+			if errors.As(err, &ve) || errors.As(err, &nf) {
+				status, message := parseError(err)
+				results = append(results, UpdateAlertRuleResponse{
+					Id:         id,
+					StatusCode: status,
+					Message:    message,
+				})
+				continue
+			}
+
+			var na *management.NotAllowedError
+			if errors.As(err, &na) && strings.Contains(na.Error(), "cannot update non-platform alert rule") {
+				// Not a platform rule, try user-defined
+				// Use the already-merged labels from above
+				updatedRule := currentRule
+				updatedRule.Labels = mergedLabels
+
+				newRuleId, err := hr.managementClient.UpdateUserDefinedAlertRule(req.Context(), id, updatedRule)
+				if err != nil {
+					status, message := parseError(err)
+					results = append(results, UpdateAlertRuleResponse{
+						Id:         id,
+						StatusCode: status,
+						Message:    message,
+					})
+					continue
+				}
+				results = append(results, UpdateAlertRuleResponse{
+					Id:         newRuleId,
+					StatusCode: http.StatusNoContent,
+				})
+				continue
+			}
+
+			status, message := parseError(err)
+			results = append(results, UpdateAlertRuleResponse{
+				Id:         id,
+				StatusCode: status,
+				Message:    message,
+			})
+			continue
+		}
+
+		results = append(results, UpdateAlertRuleResponse{
+			Id:         id,
+			StatusCode: http.StatusNoContent,
+		})
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(BulkUpdateAlertRulesResponse{
+		Rules: results,
+	})
+}
