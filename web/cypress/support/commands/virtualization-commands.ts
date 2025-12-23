@@ -218,8 +218,7 @@ const virtualizationUtils = {
           validate() {
             cy.validateLogin();
             // Additional validation for Virtualization setup
-            cy.visit('/k8s/all-namespaces/virtualization-overview');
-            cy.url().should('include', '/k8s/all-namespaces/virtualization-overview');
+            cy.switchPerspective('Virtualization');
             guidedTour.closeKubevirtTour();
 
           },
