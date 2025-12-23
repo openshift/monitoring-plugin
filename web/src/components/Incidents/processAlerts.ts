@@ -252,9 +252,10 @@ export function convertToAlerts(
           incident.src_severity === alert.metric.severity,
       );
 
-      // Use silenced value from incident data (cluster_health_components_map)
-      // Default to false if no matching incident found
-      const silenced = matchingIncident?.silenced ?? false;
+      // If no matching incident found, skip the alert
+      if (!matchingIncident) {
+        return null;
+      }
 
       // Add padding points for chart rendering
       const paddedValues = insertPaddingPointsForChart(sortedValues, currentTime);
@@ -265,8 +266,8 @@ export function convertToAlerts(
         alertname: alert.metric.alertname,
         namespace: alert.metric.namespace,
         severity: alert.metric.severity as Severity,
-        component: alert.metric.component,
-        layer: alert.metric.layer,
+        component: matchingIncident.component,
+        layer: matchingIncident.layer,
         name: alert.metric.name,
         alertstate: resolved ? 'resolved' : 'firing',
         values: paddedValues,
@@ -274,7 +275,7 @@ export function convertToAlerts(
         alertsEndFiring: lastTimestamp,
         resolved,
         x: 0, // Will be set after sorting
-        silenced,
+        silenced: matchingIncident.silenced ?? false,
       };
     })
     .filter((alert): alert is Alert => alert !== null)
