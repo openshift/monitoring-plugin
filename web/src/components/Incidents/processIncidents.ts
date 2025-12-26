@@ -167,16 +167,8 @@ export const getIncidentsTimeRanges = (
   currentTime: number,
 ): Array<{ endTime: number; duration: number }> => {
   const ONE_DAY = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-  const startTime = currentTime - timespan;
-  const timeRanges = [{ endTime: startTime + ONE_DAY, duration: ONE_DAY }];
-
-  while (timeRanges[timeRanges.length - 1].endTime < currentTime) {
-    const lastRange = timeRanges[timeRanges.length - 1];
-    const nextEndTime = lastRange.endTime + ONE_DAY;
-    timeRanges.push({ endTime: nextEndTime, duration: ONE_DAY });
-  }
-
-  return timeRanges;
+  const FIFTEEN_DAYS = 15 * ONE_DAY;
+  return [{ endTime: currentTime, duration: FIFTEEN_DAYS }];
 };
 
 /**

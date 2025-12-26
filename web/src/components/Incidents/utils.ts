@@ -73,6 +73,24 @@ export const isResolved = (lastTimestamp: number, currentTime: number): boolean 
 };
 
 /**
+ * Checks if the last timestamp is in the time window.
+ * @param lastTimestamp - The last timestamp in the incident/alert (in seconds)
+ * @param daysSpan - The number of days in the time window (in milliseconds).
+ * @param currentTime - The current time in milliseconds.
+ * @returns true if the last timestamp is in the time window, false otherwise.
+ */
+export const isInTimeWindow = (
+  lastTimestamp: number,
+  daysSpan: number,
+  currentTime: number,
+): boolean => {
+  // convert chartDays to ms and then convert the result to seconds
+  const timeWindow = (currentTime - daysSpan) / 1000;
+  // if endTime is lower than currentTime-chartDays, return false else true
+  return lastTimestamp >= timeWindow;
+};
+
+/**
  * Inserts padding data points to ensure the chart renders correctly.
  * This allows the chart to properly render events, especially single data points.
  *
