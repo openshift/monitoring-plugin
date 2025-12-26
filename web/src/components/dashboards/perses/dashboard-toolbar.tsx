@@ -20,6 +20,8 @@ import { useDashboardsData } from './hooks/useDashboardsData';
 import { useAccessReview } from '@openshift-console/dynamic-plugin-sdk';
 import { useTranslation } from 'react-i18next';
 
+import { persesDashboardDataTestIDs } from '../../data-test';
+
 export interface DashboardToolbarProps {
   dashboardName: string;
   dashboardTitleComponent?: ReactNode;
@@ -72,6 +74,7 @@ export const EditButton = ({ onClick }: EditButtonProps): ReactElement => {
       color="secondary"
       disabled={disabled || loading}
       sx={{ whiteSpace: 'nowrap', minWidth: 'auto' }}
+      data-test={persesDashboardDataTestIDs.editDashboardButtonToolbar}
     >
       {loading ? t('Loading...') : t('Edit')}
     </Button>
@@ -199,7 +202,11 @@ export const OCPDashboardToolbar = (props: DashboardToolbarProps): ReactElement 
                 <AddGroupButton />
               </Stack>
               <SaveDashboardButton onSave={onSave} isDisabled={isReadonly} />
-              <Button variant="outlined" onClick={onCancelButtonClick}>
+              <Button
+                variant="outlined"
+                onClick={onCancelButtonClick}
+                data-test={persesDashboardDataTestIDs.cancelButtonToolbar}
+              >
                 Cancel
               </Button>
             </Stack>

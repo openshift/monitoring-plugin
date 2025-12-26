@@ -15,6 +15,7 @@ import { useNavigate } from 'react-router-dom-v5-compat';
 import { chart_color_blue_100, chart_color_blue_300 } from '@patternfly/react-tokens';
 import { usePatternFlyTheme } from '../../hooks/usePatternflyTheme';
 import { ListPageHeader } from '@openshift-console/dynamic-plugin-sdk';
+import { listPersesDashboardsDataTestIDs } from '../../data-test';
 
 const DashboardBreadCrumb: React.FunctionComponent = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -43,10 +44,18 @@ const DashboardBreadCrumb: React.FunctionComponent = () => {
           color: linkColor,
           textDecoration: 'underline',
         }}
+        data-test={listPersesDashboardsDataTestIDs.PersesBreadcrumbDashboardItem}
       >
         {t('Dashboards')}
       </BreadcrumbItem>
-      {dashboardName && <BreadcrumbItem isActive>{dashboardName}</BreadcrumbItem>}
+      {dashboardName && (
+        <BreadcrumbItem
+          isActive
+          data-test={listPersesDashboardsDataTestIDs.PersesBreadcrumbDashboardNameItem}
+        >
+          {dashboardName}
+        </BreadcrumbItem>
+      )}
     </Breadcrumb>
   );
 };
