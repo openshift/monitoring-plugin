@@ -178,6 +178,7 @@ export const IDs = {
   ChartAxis1ChartLabel: 'chart-axis-1-ChartLabel', //id^=IDs.ChartAxis1ChartLabel AxisY
   persesDashboardCount: 'options-menu-top-pagination',
   persesDashboardDownloadButton: 'download-dashboard-button',
+  persesDashboardActionMenuModal: 'action-menu',
 };
 
 export const Classes = {
@@ -226,6 +227,18 @@ export const persesAriaLabels = {
   ZoomInButton: 'Zoom in',
   ZoomOutButton: 'Zoom out',
   ViewJSONButton: 'View JSON',
+  EditVariablesButton: 'Edit variables',
+  EditDatasourcesButton: 'Edit datasources',
+  AddPanelButton: 'Add panel',
+  AddGroupButton: 'Add panel group',
+  //PanelGroup toolbar buttons
+  AddPanelToGroupPrefix: 'add panel to group ',
+  EditPanelGroupPrefix: 'edit group ',
+  DeletePanelGroupPrefix: 'delete group ',
+  MovePanelGroupDownPrefix: 'move group ',
+  MovePanelGroupDownSuffix: ' down',
+  MovePanelGroupUpPrefix: 'move group ',
+  MovePanelGroupUpSuffix: ' up',
 };
 
 //data-testid from MUI components
