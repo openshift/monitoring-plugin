@@ -14,7 +14,7 @@ export const listPersesDashboardsPage = {
 
   shouldBeLoaded: () => {
     cy.log('listPersesDashboardsPage.shouldBeLoaded');
-    cy.byOUIAID(listPersesDashboardsOUIAIDs.PersesBreadcrumb).should('contain', 'Dashboards').should('be.visible');
+    cy.byOUIAID(listPersesDashboardsOUIAIDs.PersesBreadcrumb).should('not.exist');
     commonPages.titleShouldHaveText(MonitoringPageTitles.DASHBOARDS);
     cy.byOUIAID(listPersesDashboardsOUIAIDs.PageHeaderSubtitle).should('contain', listPersesDashboardsPageSubtitle).should('be.visible');
     cy.byTestID(DataTestIDs.FavoriteStarButton).should('be.visible');
@@ -79,5 +79,10 @@ export const listPersesDashboardsPage = {
     cy.log('listPersesDashboardsPage.clickDashboard');
     cy.byTestID(listPersesDashboardsDataTestIDs.DashboardLinkPrefix+name).eq(idx).should('be.visible').click();
     cy.wait(15000);
+  },
+
+  removeTag: (value: string) => {
+    cy.log('listPersesDashboardsPage.removeTag');
+    cy.byAriaLabel('Close '+ value).click();
   },
 } 

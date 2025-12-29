@@ -82,6 +82,35 @@ export const persesDashboardsEditVariables = {
     }
   },
 
+  addListVariable_staticListVariable_enterValue: (value: string) => {
+    cy.log('persesDashboardsEditVariables.addListVariable_staticListVariable_enterValue');
+    cy.wait(2000);
+    cy.get('h6').contains('List Options').next('div').eq(0).find('input[role="combobox"]').click().type(value+'{enter}');
+    cy.wait(2000);
+    cy.byDataTestID(persesMUIDataTestIDs.editDashboardAddVariableRunQueryButton).click();
+    cy.wait(2000);
+    cy.get('h4').contains('Preview Values').parent('div').siblings('div').contains(value).should('be.visible');
+  },
+
+  addListVariable_promLabelValuesVariable_enterLabelName: (labelName: string) => {
+    cy.log('persesDashboardsEditVariables.addListVariable_promLabelValuesVariable_enterLabelName');
+    cy.wait(2000);
+    cy.get('label').contains('Label Name').next('div').find('input').click().type(labelName);
+    cy.wait(2000);
+    cy.byDataTestID(persesMUIDataTestIDs.editDashboardAddVariableRunQueryButton).click();
+    cy.wait(2000);
+  },
+
+  addListVariable_promLabelValuesVariable_addSeriesSelector: (seriesSelector: string) => {
+    cy.log('persesDashboardsEditVariables.addListVariable_promLabelValuesVariable_addSeriesSelector');
+    cy.wait(2000);
+    cy.bySemanticElement('button', 'Add Series Selector').click();
+    cy.get('label').contains('Series Selector').next('div').find('input').click().type(seriesSelector);
+    cy.wait(2000);
+    cy.byDataTestID(persesMUIDataTestIDs.editDashboardAddVariableRunQueryButton).click();
+    cy.wait(2000);
+  },
+
   /**
    * 
    * @param label - label of the dropdown
