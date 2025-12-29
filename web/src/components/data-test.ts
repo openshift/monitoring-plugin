@@ -60,6 +60,7 @@ export const DataTestIDs = {
   NamespaceDropdownShowSwitch: 'showSystemSwitch',
   NamespaceDropdownTextFilter: 'dropdown-text-filter',
   PersesDashboardDropdown: 'dashboard-dropdown',
+  PersesCreateDashboardButton: 'create-dashboard-button-list-page',
   SeverityBadgeHeader: 'severity-badge-header',
   SeverityBadge: 'severity-badge',
   SilenceAlertDropdownItem: 'silence-alert-dropdown-item',
@@ -183,6 +184,7 @@ export const IDs = {
   persesDashboardAddPanelGroupForm: 'panel-group-editor-form',
   persesDashboardAddPanelForm: 'panel-editor-form',
   persesDashboardDiscardChangesDialog: 'discard-dialog',
+  persesDashboardCreateDashboardName: 'text-input-create-dashboard-dialog-name',
 };
 
 export const Classes = {
@@ -210,6 +212,10 @@ export const Classes = {
   MetricsPageQueryAutocomplete: '.cm-tooltip-autocomplete.cm-tooltip.cm-tooltip-below',
   MoreLessTag: '.pf-v6-c-label-group__label, .pf-v5-c-chip-group__label',
   NamespaceDropdown: '.pf-v6-c-menu-toggle.co-namespace-dropdown__menu-toggle',
+  NamespaceDropdownExpanded:
+    '.pf-v6-c-menu-toggle.pf-m-expanded.co-namespace-dropdown__menu-toggle',
+  PersesCreateDashboardProjectDropdown: '.pf-v6-c-menu-toggle.pf-m-full-width',
+  PersesCreateDashboardDashboardNameError: '.pf-v6-c-helper-text__item-text',
   PersesListDashboardCount: '.pf-v6-c-menu-toggle__text',
   SectionHeader: '.pf-v6-c-title.pf-m-h2, .co-section-heading',
   TableHeaderColumn: '.pf-v6-c-table__button, .pf-c-table__button',
@@ -231,6 +237,7 @@ export const persesAriaLabels = {
   ZoomInButton: 'Zoom in',
   ZoomOutButton: 'Zoom out',
   ViewJSONButton: 'View JSON',
+  EditJSONButton: 'Edit JSON',
   EditVariablesButton: 'Edit variables',
   EditDatasourcesButton: 'Edit datasources',
   AddPanelButton: 'Add panel',
@@ -254,6 +261,9 @@ export const persesAriaLabels = {
   EditPanelDuplicateButtonPrefix: 'duplicate panel ',
   EditPanelDeleteButtonPrefix: 'delete panel ',
   EditPanelMovePanelButtonPrefix: 'move panel ',
+  PanelExportTimeSeriesDataAsCSV: 'Export time series data as CSV',
+  //Add Panel tabs
+  AddPanelTabs: 'Panel configuration tabs',
 };
 
 //data-testid from MUI components

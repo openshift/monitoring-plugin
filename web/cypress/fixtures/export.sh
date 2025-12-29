@@ -9,7 +9,8 @@
 # kubeadmin user
 export CYPRESS_BASE_URL=https://<console_route_spec_host>
 export CYPRESS_LOGIN_IDP=kube:admin
-export CYPRESS_LOGIN_USERS=kubeadmin:<password>
+export CYPRESS_LOGIN_IDP_DEV_USER=my_htpasswd_provider
+export CYPRESS_LOGIN_USERS=kubeadmin:password,user1:password,user2:password
 export CYPRESS_KUBECONFIG_PATH=~/Downloads/kubeconfig
 
 # Set the following var to use custom Monitoring Plugin image (that goes on Cluster Monitoring Operator). The image will be patched in CMO CSV.
