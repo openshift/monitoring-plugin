@@ -240,7 +240,7 @@ const operatorUtils = {
         `oc label namespace ${MCP.namespace} openshift.io/cluster-monitoring=true --overwrite=true --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
       );
       cy.exec(
-        `operator-sdk run bundle --timeout=10m --namespace ${MCP.namespace} ${Cypress.env('KONFLUX_COO_BUNDLE_IMAGE')} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} --verbose `,
+        `operator-sdk run bundle --timeout=10m --namespace ${MCP.namespace} --security-context-config restricted ${Cypress.env('KONFLUX_COO_BUNDLE_IMAGE')} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} --verbose `,
         { timeout: installTimeoutMilliseconds },
       );
     } else if (Cypress.env('CUSTOM_COO_BUNDLE_IMAGE')) {
@@ -256,7 +256,7 @@ const operatorUtils = {
         `oc label namespace ${MCP.namespace} openshift.io/cluster-monitoring=true --overwrite=true --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
       );
       cy.exec(
-        `operator-sdk run bundle --timeout=10m --namespace ${MCP.namespace} ${Cypress.env('CUSTOM_COO_BUNDLE_IMAGE')} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} --verbose `,
+        `operator-sdk run bundle --timeout=10m --namespace ${MCP.namespace} --security-context-config restricted ${Cypress.env('CUSTOM_COO_BUNDLE_IMAGE')} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} --verbose `,
         { timeout: installTimeoutMilliseconds },
       );
     } else if (Cypress.env('FBC_STAGE_COO_IMAGE')) {
@@ -283,7 +283,9 @@ const operatorUtils = {
   waitForCOOReady(MCP: { namespace: string }): void {
     cy.log('Check Cluster Observability Operator status');
 
-    cy.exec(`sleep 60 && oc get pods -n ${MCP.namespace} | grep observability-operator | awk '{print $1}'`, { timeout: readyTimeoutMilliseconds, failOnNonZeroExit: true })
+    cy.exec(`oc project ${MCP.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+
+    cy.exec(`sleep 60 && oc get pods -n ${MCP.namespace} | grep observability-operator | grep -v bundle | awk '{print $1}'`, { timeout: readyTimeoutMilliseconds, failOnNonZeroExit: true })
     .its('stdout') // Get the captured output string
     .then((podName) => {
       // Trim any extra whitespace (newline, etc.)
@@ -306,7 +308,7 @@ const operatorUtils = {
       nav.sidenav.clickNavLink([section, 'Installed Operators']);
     });
 
-    cy.byTestID('name-filter-input').should('be.visible').type('Cluster Observability{enter}');
+    cy.byTestID('name-filter-input').should('be.visible').type('Observability{enter}');
     cy.get('[data-test="status-text"]', { timeout: installTimeoutMilliseconds }).eq(0).should('contain.text', 'Succeeded', { timeout: installTimeoutMilliseconds });
   },
 
@@ -373,20 +375,45 @@ const operatorUtils = {
     cy.log('Create perses-dev namespace.');
     cy.exec(`oc new-project perses-dev --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
-    cy.log('Create openshift-cluster-sample-dashboard instance.');
-    cy.exec(`sed 's/namespace: openshift-cluster-observability-operator/namespace: ${MCP.namespace}/g' ./cypress/fixtures/coo/openshift-cluster-sample-dashboard.yaml | oc apply -f - --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+    /**
+     * TODO: When COO1.4.0 is released, points COO_UI_INSTALL to install dashboards on COO1.4.0 folder
+     */
+    if (Cypress.env('COO_UI_INSTALL')) {
+      cy.log('COO_UI_INSTALL is set. Installing dashboards on COO1.2.0 folder');
 
-    cy.log('Create perses-dashboard-sample instance.');
-    cy.exec(`oc apply -f ./cypress/fixtures/coo/perses-dashboard-sample.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+      cy.log('Create openshift-cluster-sample-dashboard instance.');
+      cy.exec(`oc apply -f ./cypress/fixtures/coo/coo121_perses_dashboards/openshift-cluster-sample-dashboard.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
-    cy.log('Create prometheus-overview-variables instance.');
-    cy.exec(`oc apply -f ./cypress/fixtures/coo/prometheus-overview-variables.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+      cy.log('Create perses-dashboard-sample instance.');
+      cy.exec(`oc apply -f ./cypress/fixtures/coo/coo121_perses_dashboards/perses-dashboard-sample.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
-    cy.log('Create thanos-compact-overview-1var instance.');
-    cy.exec(`oc apply -f ./cypress/fixtures/coo/thanos-compact-overview-1var.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+      cy.log('Create prometheus-overview-variables instance.');
+      cy.exec(`oc apply -f ./cypress/fixtures/coo/coo121_perses_dashboards/prometheus-overview-variables.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
-    cy.log('Create Thanos Querier instance.');
-    cy.exec(`oc apply -f ./cypress/fixtures/coo/thanos-querier-datasource.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+      cy.log('Create thanos-compact-overview-1var instance.');
+      cy.exec(`oc apply -f ./cypress/fixtures/coo/coo121_perses_dashboards/thanos-compact-overview-1var.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+
+      cy.log('Create Thanos Querier instance.');
+      cy.exec(`oc apply -f ./cypress/fixtures/coo/coo121_perses_dashboards/thanos-querier-datasource.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+    } else {
+      cy.log('COO_UI_INSTALL is not set. Installing dashboards on COO1.4.0 folder');
+
+      cy.log('Create openshift-cluster-sample-dashboard instance.');
+      cy.exec(`oc apply -f ./cypress/fixtures/coo/coo141_perses_dashboards/openshift-cluster-sample-dashboard.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+
+      cy.log('Create perses-dashboard-sample instance.');
+      cy.exec(`oc apply -f ./cypress/fixtures/coo/coo141_perses_dashboards/perses-dashboard-sample.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+
+      cy.log('Create prometheus-overview-variables instance.');
+      cy.exec(`oc apply -f ./cypress/fixtures/coo/coo141_perses_dashboards/prometheus-overview-variables.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+
+      cy.log('Create thanos-compact-overview-1var instance.');
+      cy.exec(`oc apply -f ./cypress/fixtures/coo/coo141_perses_dashboards/thanos-compact-overview-1var.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+
+      cy.log('Create Thanos Querier instance.');
+      cy.exec(`oc apply -f ./cypress/fixtures/coo/coo141_perses_dashboards/thanos-querier-datasource.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+
+    }    
 
     cy.exec(
       `oc label namespace ${MCP.namespace} openshift.io/cluster-monitoring=true --overwrite=true --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
@@ -459,7 +486,8 @@ const operatorUtils = {
       cy.log(`Korrel8r pod is now running in namespace: ${MCP.namespace}`);
     });
 
-    cy.reload(true);
+    cy.wait(30000);
+    cy.log(`Clicking the application launcher`);
     cy.byLegacyTestID(LegacyTestIDs.ApplicationLauncher).should('be.visible').click();
     cy.byTestID(DataTestIDs.MastHeadApplicationItem).contains('Signal Correlation').should('be.visible');
   },
@@ -521,22 +549,40 @@ const operatorUtils = {
     cy.executeAndDelete(
       `oc delete ${config.kind} ${config.name} --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
     );
-  
-    cy.log('Remove openshift-cluster-sample-dashboard instance.');
-    cy.executeAndDelete(`sed 's/namespace: openshift-cluster-observability-operator/namespace: ${MCP.namespace}/g' ./cypress/fixtures/coo/openshift-cluster-sample-dashboard.yaml | oc delete -f - --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+    
+    if (Cypress.env('COO_UI_INSTALL')) {
+      cy.log('Remove openshift-cluster-sample-dashboard instance.');
+      cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/coo121_perses_dashboards/openshift-cluster-sample-dashboard.yaml --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
-    cy.log('Remove perses-dashboard-sample instance.');
-    cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/perses-dashboard-sample.yaml --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+      cy.log('Remove perses-dashboard-sample instance.');
+      cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/coo121_perses_dashboards/perses-dashboard-sample.yaml --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
-    cy.log('Remove prometheus-overview-variables instance.');
-    cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/prometheus-overview-variables.yaml --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+      cy.log('Remove prometheus-overview-variables instance.');
+      cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/coo121_perses_dashboards/prometheus-overview-variables.yaml --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
-    cy.log('Remove thanos-compact-overview-1var instance.');
-    cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/thanos-compact-overview-1var.yaml --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+      cy.log('Remove thanos-compact-overview-1var instance.');
+      cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/coo121_perses_dashboards/thanos-compact-overview-1var.yaml --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
-    cy.log('Remove Thanos Querier instance.');
-    cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/thanos-querier-datasource.yaml --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+      cy.log('Remove Thanos Querier instance.');
+      cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/coo121_perses_dashboards/thanos-querier-datasource.yaml --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+    } else {
+      cy.log('COO_UI_INSTALL is not set. Removing dashboards on COO1.4.0 folder');
 
+      cy.log('Remove openshift-cluster-sample-dashboard instance.');
+      cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/coo141_perses_dashboards/openshift-cluster-sample-dashboard.yaml --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+
+      cy.log('Remove perses-dashboard-sample instance.');
+      cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/coo141_perses_dashboards/perses-dashboard-sample.yaml --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+
+      cy.log('Remove prometheus-overview-variables instance.');
+      cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/coo141_perses_dashboards/prometheus-overview-variables.yaml --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+
+      cy.log('Remove thanos-compact-overview-1var instance.');
+      cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/coo141_perses_dashboards/thanos-compact-overview-1var.yaml --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+
+      cy.log('Remove Thanos Querier instance.');
+      cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/coo141_perses_dashboards/thanos-querier-datasource.yaml --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+    }
     cy.log('Remove perses-dev namespace');
     cy.executeAndDelete(`oc delete namespace perses-dev --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 

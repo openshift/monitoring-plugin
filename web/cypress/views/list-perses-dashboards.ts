@@ -78,5 +78,6 @@ export const listPersesDashboardsPage = {
     const idx = index !== undefined ? index : 0;
     cy.log('listPersesDashboardsPage.clickDashboard');
     cy.byTestID(listPersesDashboardsDataTestIDs.DashboardLinkPrefix+name).eq(idx).should('be.visible').click();
+    cy.wait(15000);
   },
 } 
