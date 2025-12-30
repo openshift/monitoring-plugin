@@ -49,3 +49,40 @@ export const listPersesDashboardsEmptyState = {
   BODY: 'No results match the filter criteria. Clear filters to show results.',
 
 }
+
+export const persesDashboardsModalTitles ={
+  EDIT_DASHBOARD_VARIABLES: 'Edit Dashboard Variables',
+  DASHBOARD_BUILT_IN_VARIABLES: 'Dashboard Built-in Variables',
+  ADD_VARIABLE: 'Add Variable',
+  EDIT_VARIABLE: 'Edit Variable',
+  EDIT_DASHBOARD_DATASOURCES: 'Edit Dashboard Datasources',
+  ADD_DATASOURCE: 'Add Datasource',
+  EDIT_DATASOURCE: 'Edit Datasource',
+  ADD_PANEL: 'Add Panel',
+  EDIT_PANEL: 'Edit Panel',
+  DELETE_PANEL: 'Delete Panel',
+  ADD_PANEL_GROUP: 'Add Panel Group',
+  EDIT_PANEL_GROUP: 'Edit Panel Group',
+  DELETE_PANEL_GROUP: 'Delete Panel Group',
+  EDIT_DASHBOARD_JSON: 'Edit Dashboard JSON',
+  SAVE_DASHBOARD: 'Save Dashboard',
+}
+
+export enum persesDashboardsAddListVariableSource {
+  STATIC_LIST_VARIABLE=  'Static List Variable',
+  DATASOURCE_VARIABLE= 'Datasource Variable',
+  PROMETHEUS_LABEL_VARIABLE= 'Prometheus Label Variable',
+  PROMETHEUS_NAMES_VARIABLE= 'Prometheus Names Variable',
+  PROMETHEUS_PROMQL_VARIABLE= 'Prometheus PromQL Variable',
+}
+
+
+export enum persesDashboardsAddListVariableSort {
+  NONE = 'None',
+  ALPHABETICAL_ASC = 'Alphabetical, asc',
+  ALPHABETICAL_DESC = 'Alphabetical, desc',
+  NUMERICAL_ASC = 'Numerical, asc',
+  NUMERICAL_DESC = 'Numerical, desc',
+  ALPHABETICAL_CI_ASC = 'Alphabetical, case-insensitive, asc',
+  ALPHABETICAL_CI_DESC = 'Alphabetical, case-insensitive, desc',
+}

@@ -10,6 +10,11 @@ export const commonPages = {
     cy.bySemanticElement('h1', title).scrollIntoView().should('be.visible');
   },
 
+  titleModalShouldHaveText: (title: string) => {
+    cy.log('commonPages.titleModalShouldHaveText - ' + `${title}`);
+    cy.bySemanticElement('h2', title).scrollIntoView().should('be.visible');
+  },
+
   linkShouldExist: (linkName: string) => {
     cy.log('commonPages.linkShouldExist - ' + `${linkName}`);
     cy.bySemanticElement('button', linkName).should('be.visible');

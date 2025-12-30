@@ -179,6 +179,7 @@ export const IDs = {
   persesDashboardCount: 'options-menu-top-pagination',
   persesDashboardDownloadButton: 'download-dashboard-button',
   persesDashboardActionMenuModal: 'action-menu',
+  persesDashboardEditVariablesModalBuiltinButton: 'builtin',
 };
 
 export const Classes = {
@@ -239,6 +240,7 @@ export const persesAriaLabels = {
   MovePanelGroupDownSuffix: ' down',
   MovePanelGroupUpPrefix: 'move group ',
   MovePanelGroupUpSuffix: ' up',
+  EditDashboardVariablesTable: 'table of variables',
 };
 
 //data-testid from MUI components
@@ -246,6 +248,8 @@ export const persesMUIDataTestIDs = {
   variableDropdown: 'variable',
   panelGroupHeader: 'panel-group-header',
   panelHeader: 'panel',
+  editDashboardVariablesModal: 'variable-editor',
+  editDashboardAddVariableRunQueryButton: 'run_query_button',
 };
 
 export const persesDashboardDataTestIDs = {
@@ -272,4 +276,18 @@ export const listPersesDashboardsOUIAIDs = {
   persesListDataViewFilters: 'DataViewFilters',
   persesListDataViewHeaderSortButton: 'PersesDashList-DataViewTable-th',
   persesListDataViewTableDashboardNameTD: 'PersesDashList-DataViewTable-td-',
+};
+
+export const editPersesDashboardsAddVariable = {
+  inputName: 'spec.name',
+  inputDisplayLabel: 'spec.display.name',
+  inputDescription: 'spec.display.description',
+  //type='Text'
+  inputValue: 'spec.value',
+  inputConstant: 'spec.constant',
+  //type='List'
+  inputCapturingRegexp: 'spec.capturingRegexp',
+  inputAllowMultiple: 'spec.allowMultiple',
+  inputAllowAllValue: 'spec.allowAllValue',
+  inputCustomAllValue: 'spec.customAllValue',
 };
