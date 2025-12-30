@@ -1,5 +1,5 @@
 import { commonPages } from "./common";
-import { DataTestIDs, Classes, LegacyTestIDs, persesAriaLabels, persesMUIDataTestIDs, listPersesDashboardsOUIAIDs, IDs, persesDashboardDataTestIDs } from "../../src/components/data-test";
+import { DataTestIDs, Classes, LegacyTestIDs, persesAriaLabels, persesMUIDataTestIDs, listPersesDashboardsOUIAIDs, IDs, persesDashboardDataTestIDs, listPersesDashboardsDataTestIDs } from "../../src/components/data-test";
 import { MonitoringPageTitles } from "../fixtures/monitoring/constants";
 import { listPersesDashboardsPageSubtitle } from "../fixtures/perses/constants";
 import { persesDashboardsTimeRange, persesDashboardsRefreshInterval, persesDashboardsDashboardDropdownCOO, persesDashboardsDashboardDropdownPersesDev, persesDashboardsAcceleratorsCommonMetricsPanels } from "../fixtures/perses/constants";
@@ -164,6 +164,30 @@ export const persesDashboardsPage = {
     cy.byTestID(persesDashboardDataTestIDs.cancelButtonToolbar).scrollIntoView().should('be.visible');
   },
 
+  clickEditActionButton: (button: 'EditVariables' | 'EditDatasources'| 'AddPanel' | 'AddGroup' | 'Save' | 'Cancel') => {
+    cy.log('persesDashboardsPage.clickEditActionButton');
+    switch (button) {
+      case 'EditVariables':
+        cy.byAriaLabel(persesAriaLabels.EditVariablesButton).scrollIntoView().should('be.visible').click({ force: true });
+        break;
+      case 'EditDatasources':
+        cy.byAriaLabel(persesAriaLabels.EditDatasourcesButton).scrollIntoView().should('be.visible').click({ force: true });
+        break;
+      case 'AddPanel':
+        cy.byAriaLabel(persesAriaLabels.AddPanelButton).scrollIntoView().should('be.visible').click({ force: true });
+        break;
+      case 'AddGroup':
+        cy.byAriaLabel(persesAriaLabels.AddGroupButton).scrollIntoView().should('be.visible').click({ force: true });
+        break;
+      case 'Save':
+        cy.bySemanticElement('button', 'Save').scrollIntoView().should('be.visible').click({ force: true });
+        break;
+      case 'Cancel':
+        cy.byTestID(persesDashboardDataTestIDs.cancelButtonToolbar).scrollIntoView().should('be.visible').click({ force: true });
+        break;
+    }
+  },
+
   assertEditModePanelGroupButtons: (panelGroup: string) => {
     cy.log('persesDashboardsPage.assertEditModePanelGroupButtons');
     cy.byAriaLabel(persesAriaLabels.AddPanelToGroupPrefix + panelGroup).scrollIntoView().should('be.visible');
@@ -222,5 +246,24 @@ export const persesDashboardsPage = {
         cy.byDataTestID(persesMUIDataTestIDs.panelHeader).find('h6').contains(panel).scrollIntoView().siblings('div').eq(2).find('[data-testid="DeleteOutlineIcon"]').should('be.visible');
       }
     });
-  }
+  },
+
+  clickSaveDashboardButton: (currentTimeRange: boolean, currentRefreshInterval: boolean, currentVariables: boolean) => {
+    cy.log('persesDashboardsPage.clickSaveDashboardButton');
+    // if (!currentTimeRange) {
+    //   cy.get('input').eq(0).click({ force: true });
+    // }
+    // if (currentRefreshInterval) {
+    //   cy.get('input').eq(1).click({ force: true });
+    // }
+    // if (currentVariables) {
+    //   cy.get('input').eq(2).click({ force: true });
+    // }
+    cy.bySemanticElement('button', 'Save Changes').scrollIntoView().should('be.visible').click({ force: true });
+  },
+
+  backToListPersesDashboardsPage: () => {
+    cy.log('persesDashboardsPage.backToListPersesDashboardsPage');
+    cy.byTestID(listPersesDashboardsDataTestIDs.PersesBreadcrumbDashboardItem).scrollIntoView().should('be.visible').click({ force: true });
+  },
 }

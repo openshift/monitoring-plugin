@@ -1,7 +1,8 @@
-import { persesDashboardsDashboardDropdownCOO, persesDashboardsDashboardDropdownPersesDev } from '../../fixtures/perses/constants';
+import { persesDashboardsAddListVariableSort, persesDashboardsAddListVariableSource, persesDashboardsDashboardDropdownCOO, persesDashboardsDashboardDropdownPersesDev } from '../../fixtures/perses/constants';
 import { commonPages } from '../../views/common';
 import { listPersesDashboardsPage } from "../../views/list-perses-dashboards";
 import { persesDashboardsPage } from '../../views/perses-dashboards';
+import { persesDashboardsEditVariables } from '../../views/perses-dashboards-edit-variables';
 
 export interface PerspectiveConfig {
   name: string;
@@ -42,60 +43,91 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
   });
 
   it(`2.${perspective.name} perspective - Edit Toolbar - Edit Variables`, () => {
+    cy.log(`2.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
+    commonPages.titleShouldHaveText('Dashboards');
+    listPersesDashboardsPage.shouldBeLoaded();
+
+    cy.log(`2.2. Filter by Name`);
+    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[2]);
+    listPersesDashboardsPage.countDashboards('1');
+
+    cy.log(`2.3. Click on a dashboard`);
+    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[2]);
+    //TODO: change back to shouldBeLoaded when customizable-dashboards gets merged
+    // persesDashboardsPage.shouldBeLoaded1();
+
+    cy.log(`2.4. Click on Edit button`);
+    cy.wait(2000);
+    persesDashboardsPage.clickEditButton();
+    persesDashboardsPage.clickEditActionButton('EditVariables');
+    persesDashboardsEditVariables.shouldBeLoaded();
+    persesDashboardsEditVariables.addListVariable('test', true, true, 'All', 'Test', 'Test', undefined, undefined);
+    persesDashboardsEditVariables.clickButton('Add');
+    persesDashboardsEditVariables.clickButton('Apply');
+    persesDashboardsPage.clickEditActionButton('Save');
+    persesDashboardsPage.clickSaveDashboardButton(true, true, true);
+    persesDashboardsPage.backToListPersesDashboardsPage();
+    //TODO: testing more to check if it is time constraint or cache issue
+    // cy.wait(10000);
+    // listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[2]);
+    // listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[2]);
+    // persesDashboardsPage.searchAndSelectVariable('test', 'All');
+
+
 
   });
 
-  it(`3.${perspective.name} perspective - Edit Toolbar - Edit Datasources`, () => {
+  // it(`3.${perspective.name} perspective - Edit Toolbar - Edit Datasources`, () => {
 
-  });
+  // });
 
-  it(`4.${perspective.name} perspective - Edit Toolbar - Add Panel`, () => {
+  // it(`4.${perspective.name} perspective - Edit Toolbar - Add Panel`, () => {
 
-  });
+  // });
 
-  it(`5.${perspective.name} perspective - Edit Toolbar - Add Panel Group`, () => {
+  // it(`5.${perspective.name} perspective - Edit Toolbar - Add Panel Group`, () => {
 
-  });
+  // });
 
-  it(`6.${perspective.name} perspective - Panel Group Toolbar - Add Panel to Panel Group`, () => {
+  // it(`6.${perspective.name} perspective - Panel Group Toolbar - Add Panel to Panel Group`, () => {
 
-  });
+  // });
 
-  it(`7.${perspective.name} perspective - Panel Group Toolbar - Edit Panel Group`, () => {
+  // it(`7.${perspective.name} perspective - Panel Group Toolbar - Edit Panel Group`, () => {
 
-  });
+  // });
 
-  it(`8.${perspective.name} perspective - Panel Group Toolbar - Delete Panel Group`, () => {
+  // it(`8.${perspective.name} perspective - Panel Group Toolbar - Delete Panel Group`, () => {
 
-  });
+  // });
 
-  it(`9.${perspective.name} perspective - Panel Group Toolbar - Move Panel Group Down`, () => {
+  // it(`9.${perspective.name} perspective - Panel Group Toolbar - Move Panel Group Down`, () => {
 
-  });
+  // });
 
-  it(`10.${perspective.name} perspective - Panel Group Toolbar - Move Panel Group Up`, () => {
+  // it(`10.${perspective.name} perspective - Panel Group Toolbar - Move Panel Group Up`, () => {
 
-  });
+  // });
 
-  it(`11.${perspective.name} perspective - Panel Toolbar - Edit Panel`, () => {
+  // it(`11.${perspective.name} perspective - Panel Toolbar - Edit Panel`, () => {
 
-  });
+  // });
 
-  it(`12.${perspective.name} perspective - Panel Toolbar - Duplicate Panel`, () => {
+  // it(`12.${perspective.name} perspective - Panel Toolbar - Duplicate Panel`, () => {
 
-  });
+  // });
 
-  it(`13.${perspective.name} perspective - Panel Toolbar - Delete Panel`, () => {
+  // it(`13.${perspective.name} perspective - Panel Toolbar - Delete Panel`, () => {
 
-  });
+  // });
 
-  it(`14.${perspective.name} perspective - Perform changes and Cancel`, () => {
+  // it(`14.${perspective.name} perspective - Perform changes and Cancel`, () => {
 
-  });
+  // });
 
-  it(`15.${perspective.name} perspective - Perform changes and Save`, () => {
+  // it(`15.${perspective.name} perspective - Perform changes and Save`, () => {
 
-  });
+  // });
 
   /** TODO: OU-886 Mark dashboards and datasources created using CRD as readonly
   it(`X.${perspective.name} perspective - Try to editAccelerators and APM dashboards`, () => {
