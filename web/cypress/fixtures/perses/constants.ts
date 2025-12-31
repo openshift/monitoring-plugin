@@ -66,6 +66,7 @@ export const persesDashboardsModalTitles ={
   DELETE_PANEL_GROUP: 'Delete Panel Group',
   EDIT_DASHBOARD_JSON: 'Edit Dashboard JSON',
   SAVE_DASHBOARD: 'Save Dashboard',
+  DISCARD_CHANGES: 'Discard Changes',
 }
 
 export enum persesDashboardsAddListVariableSource {
@@ -76,7 +77,6 @@ export enum persesDashboardsAddListVariableSource {
   PROMETHEUS_PROMQL_VARIABLE= 'Prometheus PromQL Variable',
 }
 
-
 export enum persesDashboardsAddListVariableSort {
   NONE = 'None',
   ALPHABETICAL_ASC = 'Alphabetical, asc',
@@ -85,4 +85,8 @@ export enum persesDashboardsAddListVariableSort {
   NUMERICAL_DESC = 'Numerical, desc',
   ALPHABETICAL_CI_ASC = 'Alphabetical, case-insensitive, asc',
   ALPHABETICAL_CI_DESC = 'Alphabetical, case-insensitive, desc',
+}
+
+export const persesDashboardsRequiredFields = {
+  AddVariableNameField: 'String must contain at least 1 character(s)'
 }
