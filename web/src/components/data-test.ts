@@ -250,6 +250,10 @@ export const persesMUIDataTestIDs = {
   panelHeader: 'panel',
   editDashboardVariablesModal: 'variable-editor',
   editDashboardAddVariableRunQueryButton: 'run_query_button',
+  editDashboardEditVariableMoveDownButton: 'ArrowDownIcon',
+  editDashboardEditVariableMoveUpButton: 'ArrowUpIcon',
+  editDashboardEditVariableEditButton: 'PencilIcon',
+  editDashboardEditVariableDeleteButton: 'TrashCanIcon',
 };
 
 export const persesDashboardDataTestIDs = {

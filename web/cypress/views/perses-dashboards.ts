@@ -148,6 +148,29 @@ export const persesDashboardsPage = {
     cy.wait(1000);
   },
 
+  searchAndTypeVariable: (variable: string, value: string) => {
+    cy.log('persesDashboardsPage.searchAndTypeVariable');
+    if (value !== undefined) {
+      cy.byDataTestID(persesMUIDataTestIDs.variableDropdown + '-' + variable).find('input').type(value);
+    }
+    cy.wait(1000);
+  },
+
+  assertVariableBeVisible: (variable: string) => {
+    cy.log('persesDashboardsPage.assertVariableBeVisible');
+    cy.byDataTestID(persesMUIDataTestIDs.variableDropdown + '-' + variable).should('be.visible');
+  },
+
+  assertVariableNotExist: (variable: string) => {
+    cy.log('persesDashboardsPage.assertVariableNotExist');
+    cy.byDataTestID(persesMUIDataTestIDs.variableDropdown + '-' + variable).should('not.exist');
+  },
+
+  assertVariableNotBeVisible: (variable: string) => {
+    cy.log('persesDashboardsPage.assertVariableNotBeVisible');
+    cy.byDataTestID(persesMUIDataTestIDs.variableDropdown + '-' + variable).should('not.be.visible');
+  },
+
   clickEditButton: () => {
     cy.log('persesDashboardsPage.clickEditButton');
     cy.byTestID(persesDashboardDataTestIDs.editDashboardButtonToolbar).scrollIntoView().should('be.visible').click({ force: true });

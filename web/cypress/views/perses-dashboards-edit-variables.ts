@@ -1,6 +1,6 @@
 import { commonPages } from "./common";
 import { persesAriaLabels, persesMUIDataTestIDs, IDs, editPersesDashboardsAddVariable } from "../../src/components/data-test";
-import { persesDashboardsModalTitles, persesDashboardsAddListVariableSource, persesDashboardsAddListVariableSort } from "../fixtures/perses/constants";
+import { persesDashboardsModalTitles, persesDashboardsAddListVariableSource, persesDashboardsAddListVariableSort, persesDashboardsRequiredFields } from "../fixtures/perses/constants";
 
 export const persesDashboardsEditVariables = {
 
@@ -21,21 +21,19 @@ export const persesDashboardsEditVariables = {
   },
 
   addTextVariable: (name: string, constant: boolean, displayLabel?: string, description?: string, value?: string) => {
-    cy.log('persesDashboardsEditVariables.addVariable');
-    cy.byDataTestID(persesMUIDataTestIDs.editDashboardVariablesModal).find('button').contains('Add Variable').should('be.visible').click();
-    cy.get('input[name="'+editPersesDashboardsAddVariable.inputName+'"]').type(name);
+    cy.log('persesDashboardsEditVariables.addTextVariable');
+    cy.get('input[name="'+editPersesDashboardsAddVariable.inputName+'"]').clear().type(name);
     
     const displayLabelInput = displayLabel !== undefined ? displayLabel : name;
     const descriptionInput = description !== undefined ? description : name;
     const valueInput = value !== undefined ? value : '';
 
-    cy.get('input[name="'+editPersesDashboardsAddVariable.inputDisplayLabel+'"]').type(displayLabelInput);
-    cy.get('input[name="'+editPersesDashboardsAddVariable.inputDescription+'"]').type(descriptionInput);
-    cy.get('input[name="'+editPersesDashboardsAddVariable.inputValue+'"]').type(valueInput);
+    cy.get('input[name="'+editPersesDashboardsAddVariable.inputDisplayLabel+'"]').clear().type(displayLabelInput);
+    cy.get('input[name="'+editPersesDashboardsAddVariable.inputDescription+'"]').clear().type(descriptionInput);
+    cy.get('input[name="'+editPersesDashboardsAddVariable.inputValue+'"]').clear().type(valueInput);
     if (constant) {
       cy.get('input[name="'+editPersesDashboardsAddVariable.inputConstant+'"]').click();
     }
-
   },
 
   addListVariable: (
@@ -48,14 +46,13 @@ export const persesDashboardsEditVariables = {
     source?: persesDashboardsAddListVariableSource, 
     sort?: persesDashboardsAddListVariableSort) => {
     cy.log('persesDashboardsEditVariables.addListVariable');
-    cy.byDataTestID(persesMUIDataTestIDs.editDashboardVariablesModal).find('button').contains('Add Variable').should('be.visible').click();
     cy.get('input[name="'+editPersesDashboardsAddVariable.inputName+'"]').clear().type(name);
     
     if (displayLabel !== undefined) {
-      cy.get('input[name="'+editPersesDashboardsAddVariable.inputDisplayLabel+'"]').type(displayLabel);
+      cy.get('input[name="'+editPersesDashboardsAddVariable.inputDisplayLabel+'"]').clear().type(displayLabel);
     }
     if (description !== undefined) {
-      cy.get('input[name="'+editPersesDashboardsAddVariable.inputDescription+'"]').type(description);
+      cy.get('input[name="'+editPersesDashboardsAddVariable.inputDescription+'"]').clear().type(description);
     }
     persesDashboardsEditVariables.clickDropdownAndSelectOption('Type', 'List');
 
@@ -71,19 +68,58 @@ export const persesDashboardsEditVariables = {
     if (allowAllValue) {
       cy.get('input[name="'+editPersesDashboardsAddVariable.inputAllowAllValue+'"]').click();
       if (customAllValue !== undefined) {
-        cy.get('input[name="'+editPersesDashboardsAddVariable.inputCustomAllValue+'"]').type(customAllValue);
+        cy.get('input[name="'+editPersesDashboardsAddVariable.inputCustomAllValue+'"]').clear().type(customAllValue);
       }
-
     }
-   
   },
 
   clickDropdownAndSelectOption: (label: string, option: string) => {
     cy.log('persesDashboardsEditVariables.selectVariableType');
     cy.byDataTestID(persesMUIDataTestIDs.editDashboardVariablesModal).find('label').contains(label).siblings('div').click();
     cy.get('li').contains(option).should('be.visible').click();
-
   },
 
-  
+  assertRequiredFieldValidation: (field: string) => {
+    cy.log('persesDashboardsEditVariables.assertRequiredFieldValidation');
+
+    switch (field) {
+      case 'Name':
+        cy.byDataTestID(persesMUIDataTestIDs.editDashboardVariablesModal).find('label').contains(field).siblings('p').should('have.text', persesDashboardsRequiredFields.AddVariableNameField);
+        break;
+    }
+  },
+
+  clickDiscardChangesButton: () => {
+    cy.log('persesDashboardsEditVariables.clickDiscardChangesButton');
+    cy.bySemanticElement('button', 'Discard Changes').scrollIntoView().should('be.visible').click({ force: true });
+  },
+
+  toggleVariableVisibility: (index: number, visible: boolean) => {
+    cy.log('persesDashboardsEditVariables.toggleVariableVisibility');
+    cy.byDataTestID(persesMUIDataTestIDs.editDashboardVariablesModal).find('input[type="checkbox"]').eq(index).then((checkbox) => {
+      if ((checkbox.not(':checked') && visible) || (checkbox.is(':checked') && !visible)) {
+        cy.byDataTestID(persesMUIDataTestIDs.editDashboardVariablesModal).find('input[type="checkbox"]').eq(index).click();
+      }
+    });
+  },
+
+  moveVariableUp: (index: number) => {
+    cy.log('persesDashboardsEditVariables.moveVariableUp');
+    cy.byDataTestID(persesMUIDataTestIDs.editDashboardVariablesModal).find('[data-testid="'+persesMUIDataTestIDs.editDashboardEditVariableMoveUpButton+'"]').eq(index).should('be.visible').click();
+  },
+
+  moveVariableDown: (index: number) => {
+    cy.log('persesDashboardsEditVariables.moveVariableDown');
+    cy.byDataTestID(persesMUIDataTestIDs.editDashboardVariablesModal).find('[data-testid="'+persesMUIDataTestIDs.editDashboardEditVariableMoveDownButton+'"]').eq(index).should('be.visible').click();
+  },
+
+  clickEditVariableButton: (index: number) => {
+    cy.log('persesDashboardsEditVariables.clickEditVariableButton');
+    cy.byDataTestID(persesMUIDataTestIDs.editDashboardVariablesModal).find('[data-testid="'+persesMUIDataTestIDs.editDashboardEditVariableEditButton+'"]').eq(index).should('be.visible').click();
+  },
+
+  clickDeleteVariableButton: (index: number) => {
+    cy.log('persesDashboardsEditVariables.clickDeleteVariableButton');
+    cy.byDataTestID(persesMUIDataTestIDs.editDashboardVariablesModal).find('[data-testid="'+persesMUIDataTestIDs.editDashboardEditVariableDeleteButton+'"]').eq(index).should('be.visible').click();
+  },
 }
