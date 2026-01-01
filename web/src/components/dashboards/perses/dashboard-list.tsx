@@ -27,6 +27,7 @@ import { Link, useSearchParams } from 'react-router-dom-v5-compat';
 
 import { getDashboardUrl, usePerspective } from '../../hooks/usePerspective';
 import { Timestamp } from '@openshift-console/dynamic-plugin-sdk';
+import { listPersesDashboardsDataTestIDs } from 'src/components/data-test';
 const perPageOptions = [
   { title: '10', value: 10 },
   { title: '20', value: 20 },
@@ -230,11 +231,13 @@ const DashboardsTable: React.FunctionComponent<DashboardsTableProps> = ({
               filterId="name"
               title={t('Name')}
               placeholder={t('Filter by name')}
+              data-test={listPersesDashboardsDataTestIDs.NameFilter}
             />
             <DataViewTextFilter
               filterId="project-filter"
               title={t('Project')}
               placeholder={t('Filter by project')}
+              data-test={listPersesDashboardsDataTestIDs.ProjectFilter}
             />
           </DataViewFilters>
         }
@@ -248,16 +251,24 @@ const DashboardsTable: React.FunctionComponent<DashboardsTableProps> = ({
         />
       ) : (
         <EmptyState variant={EmptyStateVariant.sm}>
-          <Title headingLevel="h4" size="lg">
+          <Title
+            headingLevel="h4"
+            size="lg"
+            data-test={listPersesDashboardsDataTestIDs.EmptyStateTitle}
+          >
             {hasFiltersApplied ? t('No results found') : t('No dashboards found')}
           </Title>
-          <EmptyStateBody>
+          <EmptyStateBody data-test={listPersesDashboardsDataTestIDs.EmptyStateBody}>
             {hasFiltersApplied
               ? t('No results match the filter criteria. Clear filters to show results.')
               : t('No Perses dashboards are currently available in this project.')}
           </EmptyStateBody>
           {hasFiltersApplied && (
-            <Button onClick={clearAllFilters} className="pf-c-button pf-m-link">
+            <Button
+              onClick={clearAllFilters}
+              className="pf-c-button pf-m-link"
+              data-test={listPersesDashboardsDataTestIDs.ClearAllFiltersButton}
+            >
               {t('Clear all filters')}
             </Button>
           )}

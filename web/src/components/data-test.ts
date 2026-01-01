@@ -164,6 +164,8 @@ export const LegacyTestIDs = {
 export const IDs = {
   ChartAxis0ChartLabel: 'chart-axis-0-ChartLabel', //id^=IDs.ChartAxis0ChartLabel AxisX
   ChartAxis1ChartLabel: 'chart-axis-1-ChartLabel', //id^=IDs.ChartAxis1ChartLabel AxisY
+  persesDashboardCount: 'options-menu-top-pagination',
+  persesDashboardDownloadButton: 'download-dashboard-button',
 };
 
 export const Classes = {
@@ -202,4 +204,42 @@ export const Classes = {
   SilenceKebabDropdown: '.pf-v6-c-menu-toggle.pf-m-plain, .pf-v5-c-dropdown__toggle.pf-m-plain',
   SilenceLabelRow: '.pf-v6-l-grid.pf-m-all-12-col-on-sm.pf-m-all-4-col-on-md.pf-m-gutter, .row',
   SilenceState: '.pf-v6-l-stack__item, .co-break-word',
+};
+
+export const persesAriaLabels = {
+  TimeRangeDropdown: 'Select time range. Currently set to [object Object]',
+  RefreshButton: 'Refresh',
+  RefreshIntervalDropdown: 'Select refresh interval. Currently set to 0s',
+  ZoomInButton: 'Zoom in',
+  ZoomOutButton: 'Zoom out',
+  ViewJSONButton: 'View JSON',
+};
+
+//data-testid
+export const persesMUIDataTestIDs = {
+  variableDropdown: 'variable',
+  panelGroupHeader: 'panel-group-header',
+  panelHeader: 'panel',
+};
+
+export const persesDashboardDataTestIDs = {
+  editDashboardButtonToolbar: 'edit-dashboard-button-toolbar',
+  cancelButtonToolbar: 'cancel-button-toolbar',
+};
+
+export const listPersesDashboardsDataTestIDs = {
+  PersesBreadcrumbDashboardItem: 'perses-dashboards-breadcrumb-dashboard-item',
+  PersesBreadcrumbDashboardNameItem: 'perses-dashboards-breadcrumb-dashboard-name-item',
+  NameFilter: 'name-filter',
+  ProjectFilter: 'project-filter',
+  EmptyStateTitle: 'empty-state-title',
+  EmptyStateBody: 'empty-state-body',
+  ClearAllFiltersButton: 'clear-all-filters-button',
+  DashboardLinkPrefix: 'perseslistpage-',
+};
+
+export const listPersesDashboardsOUIAIDs = {
+  PageHeaderSubtitle: 'PageHeader-subtitle',
+  PersesBreadcrumb: 'perses-dashboards-breadcrumb',
+  PersesDashListDataViewTable: 'PersesDashList-DataViewTable',
 };
