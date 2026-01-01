@@ -21,14 +21,15 @@ export enum persesDashboardsRefreshInterval {
 }
 
 export const persesDashboardsDashboardDropdownCOO = {
-  ACCELERATORS_COMMON_METRICS:['Accelerators common metrics', 'perses'],
-  K8S_COMPUTE_RESOURCES_CLUSTER: ['Kubernetes / Compute Resources / Cluster', 'perses'],
+  ACCELERATORS_COMMON_METRICS:['Accelerators common metrics', 'perses', 'accelerators-dashboard'],
+  APM_DASHBOARD: ['Application Performance Monitoring (APM)', 'perses', 'apm-dashboard'],
+  K8S_COMPUTE_RESOURCES_CLUSTER: ['Kubernetes / Compute Resources / Cluster', 'perses', 'openshift-cluster-sample-dashboard'],
 }
 
 export const persesDashboardsDashboardDropdownPersesDev = {
-  PERSES_DASHBOARD_SAMPLE: ['Perses Dashboard Sample', 'perses'],
-  PROMETHEUS_OVERVIEW: ['Prometheus / Overview', 'perses'],
-  THANOS_COMPACT_OVERVIEW: ['Thanos / Compact / Overview', 'perses'],
+  PERSES_DASHBOARD_SAMPLE: ['Perses Dashboard Sample', 'perses', 'perses-dashboard-sample'],
+  PROMETHEUS_OVERVIEW: ['Prometheus / Overview', 'perses', 'prometheus-overview'],
+  THANOS_COMPACT_OVERVIEW: ['Thanos / Compact / Overview', 'perses', 'thanos-compact-overview'],
 }
 
 export enum persesDashboardsAcceleratorsCommonMetricsPanels {
@@ -39,4 +40,12 @@ export enum persesDashboardsAcceleratorsCommonMetricsPanels {
   TEMPERATURE_CELCIUS = 'Temperature (Celsius)',
   SM_CLOCK_HERTZ = 'SM Clock (Hertz)',
   MEMORY_CLOCK_HERTZ = 'Memory Clock (Hertz)',
+}
+
+export const listPersesDashboardsPageSubtitle = 'View and manage dashboards.';
+
+export const listPersesDashboardsEmptyState = {
+  TITLE: 'No results found',
+  BODY: 'No results match the filter criteria. Clear filters to show results.',
+
 }
