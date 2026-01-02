@@ -33,6 +33,7 @@ import {
   calculateIncidentsChartDomain,
   createIncidentsChartBars,
   generateDateArray,
+  isInTimeWindow,
 } from '../utils';
 import { dateTimeFormatter, timeFormatter } from '../../console/utils/datetime';
 import { useTranslation } from 'react-i18next';
@@ -84,9 +85,14 @@ const IncidentsChart = ({
   const chartData = useMemo(() => {
     if (!Array.isArray(incidentsData) || incidentsData.length === 0) return [];
 
-    const filteredIncidents = selectedGroupId
+    const groupFilteredIncidents = selectedGroupId
       ? incidentsData.filter((incident) => incident.group_id === selectedGroupId)
       : incidentsData;
+
+    const filteredIncidents = groupFilteredIncidents.filter((incident) => {
+      const lastTimestamp = incident.values[incident.values.length - 1][0];
+      return isInTimeWindow(lastTimestamp, chartDays * (60 * 60 * 24 * 1000), currentTime);
+    });
 
     // Create chart bars and sort by original x values to maintain proper order
     const chartBars = filteredIncidents.map((incident) =>
@@ -96,7 +102,7 @@ const IncidentsChart = ({
 
     // Reassign consecutive x values to eliminate gaps between bars
     return chartBars.map((bars, index) => bars.map((bar) => ({ ...bar, x: index + 1 })));
-  }, [incidentsData, dateValues, selectedGroupId]);
+  }, [incidentsData, dateValues, selectedGroupId, currentTime, chartDays]);
 
   useEffect(() => {
     setIsLoading(false);

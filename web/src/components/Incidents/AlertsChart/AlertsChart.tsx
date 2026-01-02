@@ -32,6 +32,7 @@ import {
   generateDateArray,
   generateAlertsDateArray,
   getCurrentTime,
+  isInTimeWindow,
 } from '../utils';
 import { dateTimeFormatter, timeFormatter } from '../../console/utils/datetime';
 import { useTranslation } from 'react-i18next';
@@ -41,7 +42,7 @@ import { MonitoringState } from '../../../store/store';
 import { isEmpty } from 'lodash-es';
 import { DataTestIDs } from '../../data-test';
 
-const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
+const AlertsChart = ({ theme, daysSpan }: { theme: 'light' | 'dark'; daysSpan: number }) => {
   const dispatch = useDispatch();
   const [chartContainerHeight, setChartContainerHeight] = useState<number>();
   const [chartHeight, setChartHeight] = useState<number>();
@@ -72,8 +73,13 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
 
   const chartData: AlertsChartBar[][] = useMemo(() => {
     if (!Array.isArray(alertsData) || alertsData.length === 0) return [];
-    return alertsData.map((alert) => createAlertsChartBars(alert));
-  }, [alertsData]);
+    return alertsData
+      .filter((alert) => {
+        const lastTimestamp = alert.values[alert.values.length - 1][0];
+        return isInTimeWindow(lastTimestamp, daysSpan, currentTime);
+      })
+      .map((alert) => createAlertsChartBars(alert));
+  }, [alertsData, currentTime, daysSpan]);
 
   useEffect(() => {
     setChartContainerHeight(chartData?.length < 5 ? 300 : chartData?.length * 55);
