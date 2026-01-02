@@ -241,6 +241,7 @@ export const persesAriaLabels = {
   MovePanelGroupUpPrefix: 'move group ',
   MovePanelGroupUpSuffix: ' up',
   EditDashboardVariablesTable: 'table of variables',
+  EditDashboardDatasourcesTable: 'table of datasources',
 };
 
 //data-testid from MUI components
@@ -249,11 +250,13 @@ export const persesMUIDataTestIDs = {
   panelGroupHeader: 'panel-group-header',
   panelHeader: 'panel',
   editDashboardVariablesModal: 'variable-editor',
+  editDashboardDatasourcesModal: 'datasource-editor',
   editDashboardAddVariableRunQueryButton: 'run_query_button',
+  editDashboardAddVariablePreviewValuesCopy: 'ClipboardOutlineIcon',
   editDashboardEditVariableMoveDownButton: 'ArrowDownIcon',
   editDashboardEditVariableMoveUpButton: 'ArrowUpIcon',
-  editDashboardEditVariableEditButton: 'PencilIcon',
-  editDashboardEditVariableDeleteButton: 'TrashCanIcon',
+  editDashboardEditVariableDatasourceEditButton: 'PencilIcon',
+  editDashboardEditVariableDatasourceDeleteButton: 'TrashCanIcon',
 };
 
 export const persesDashboardDataTestIDs = {
@@ -282,6 +285,7 @@ export const listPersesDashboardsOUIAIDs = {
   persesListDataViewTableDashboardNameTD: 'PersesDashList-DataViewTable-td-',
 };
 
+//name attribute from MUI components
 export const editPersesDashboardsAddVariable = {
   inputName: 'spec.name',
   inputDisplayLabel: 'spec.display.name',
@@ -294,4 +298,12 @@ export const editPersesDashboardsAddVariable = {
   inputAllowMultiple: 'spec.allowMultiple',
   inputAllowAllValue: 'spec.allowAllValue',
   inputCustomAllValue: 'spec.customAllValue',
+};
+
+//name attribute from MUI components
+export const editPersesDashboardsAddDatasource = {
+  inputName: 'name',
+  inputDefaultDatasource: 'spec.default',
+  inputDisplayLabel: 'title',
+  inputDescription: 'description',
 };
