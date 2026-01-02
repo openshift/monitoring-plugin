@@ -15,7 +15,7 @@ export const persesDashboardsEditVariables = {
     cy.byDataTestID(persesMUIDataTestIDs.editDashboardVariablesModal).find('#'+IDs.persesDashboardEditVariablesModalBuiltinButton).should('have.attr', 'aria-expanded', 'false');
   },
 
-  clickButton: (button: 'Apply' | 'Cancel' | 'Add Variable' | 'Add') => {
+  clickButton: (button: 'Apply' | 'Cancel' | 'Add Variable' | 'Add' | 'Run Query') => {
     cy.log('persesDashboardsEditVariables.clickButton');
     cy.byDataTestID(persesMUIDataTestIDs.editDashboardVariablesModal).find('button').contains(button).should('be.visible').click();
   },
@@ -73,6 +73,11 @@ export const persesDashboardsEditVariables = {
     }
   },
 
+  /**
+   * 
+   * @param label - label of the dropdown
+   * @param option - option to select
+   */
   clickDropdownAndSelectOption: (label: string, option: string) => {
     cy.log('persesDashboardsEditVariables.selectVariableType');
     cy.byDataTestID(persesMUIDataTestIDs.editDashboardVariablesModal).find('label').contains(label).siblings('div').click();
@@ -115,11 +120,11 @@ export const persesDashboardsEditVariables = {
 
   clickEditVariableButton: (index: number) => {
     cy.log('persesDashboardsEditVariables.clickEditVariableButton');
-    cy.byDataTestID(persesMUIDataTestIDs.editDashboardVariablesModal).find('[data-testid="'+persesMUIDataTestIDs.editDashboardEditVariableEditButton+'"]').eq(index).should('be.visible').click();
+    cy.byDataTestID(persesMUIDataTestIDs.editDashboardVariablesModal).find('[data-testid="'+persesMUIDataTestIDs.editDashboardEditVariableDatasourceEditButton+'"]').eq(index).should('be.visible').click();
   },
 
   clickDeleteVariableButton: (index: number) => {
     cy.log('persesDashboardsEditVariables.clickDeleteVariableButton');
-    cy.byDataTestID(persesMUIDataTestIDs.editDashboardVariablesModal).find('[data-testid="'+persesMUIDataTestIDs.editDashboardEditVariableDeleteButton+'"]').eq(index).should('be.visible').click();
+    cy.byDataTestID(persesMUIDataTestIDs.editDashboardVariablesModal).find('[data-testid="'+persesMUIDataTestIDs.editDashboardEditVariableDatasourceDeleteButton+'"]').eq(index).should('be.visible').click();
   },
 }

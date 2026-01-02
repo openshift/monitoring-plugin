@@ -289,4 +289,9 @@ export const persesDashboardsPage = {
     cy.log('persesDashboardsPage.backToListPersesDashboardsPage');
     cy.byTestID(listPersesDashboardsDataTestIDs.PersesBreadcrumbDashboardItem).scrollIntoView().should('be.visible').click({ force: true });
   },
+
+  clickDiscardChangesButton: () => {
+    cy.log('persesDashboardsPage.clickDiscardChangesButton');
+    cy.bySemanticElement('button', 'Discard Changes').scrollIntoView().should('be.visible').click({ force: true });
+  },
 }
