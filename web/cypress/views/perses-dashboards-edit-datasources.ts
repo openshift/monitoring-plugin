@@ -13,13 +13,18 @@ export const persesDashboardsEditDatasources = {
     cy.byDataTestID(persesMUIDataTestIDs.editDashboardDatasourcesModal).find('button').contains('Add Datasource').should('be.visible');
   },
 
-  assertDatasource: (name: string, type: 'PrometheusDatasource' | 'TempoDatasource', description: string) => {
+  assertDatasource: (index: number, name: string, type: 'PrometheusDatasource' | 'TempoDatasource', description: string) => {
     cy.log('persesDashboardsEditDatasources.assertDatasource');
-    cy.byDataTestID(persesMUIDataTestIDs.editDashboardDatasourcesModal).find('th').contains(name).should('be.visible');
-    cy.byDataTestID(persesMUIDataTestIDs.editDashboardDatasourcesModal).find('td').eq(0).contains(type).should('be.visible');
+    cy.byDataTestID(persesMUIDataTestIDs.editDashboardDatasourcesModal).find('tbody').find('tr').eq(index).find('th').contains(name).should('be.visible');
+    cy.byDataTestID(persesMUIDataTestIDs.editDashboardDatasourcesModal).find('tbody').find('tr').eq(index).find('td').eq(0).contains(type).should('be.visible');
     if (description !== '') {
-      cy.byDataTestID(persesMUIDataTestIDs.editDashboardDatasourcesModal).find('td').eq(1).contains(description).should('be.visible');
+      cy.byDataTestID(persesMUIDataTestIDs.editDashboardDatasourcesModal).find('tbody').find('tr').eq(index).find('td').eq(1).contains(description).should('be.visible');
     }
+  },
+
+  assertDatasourceNotExist: (name: string) => {
+    cy.log('persesDashboardsEditDatasources.assertDatasource');
+    cy.byDataTestID(persesMUIDataTestIDs.editDashboardDatasourcesModal).find('th').contains(name).should('not.exist');
   },
 
   clickButton: (button: 'Apply' | 'Cancel' | 'Add Datasource' | 'Add') => {
