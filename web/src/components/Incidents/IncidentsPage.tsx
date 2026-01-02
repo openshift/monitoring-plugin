@@ -21,7 +21,6 @@ import {
   Flex,
   FlexItem,
 } from '@patternfly/react-core';
-import { Helmet } from 'react-helmet';
 import { IncidentsTable } from './IncidentsTable';
 import {
   getIncidentsTimeRanges,
@@ -30,6 +29,7 @@ import {
 } from './processIncidents';
 import {
   filterIncident,
+  getCurrentTime,
   getIncidentIdOptions,
   onDeleteGroupIncidentFilterChip,
   onDeleteIncidentFilterChip,
@@ -48,6 +48,7 @@ import {
   setIncidentPageFilterType,
   setIncidents,
   setIncidentsActiveFilters,
+  setIncidentsLastRefreshTime,
 } from '../../store/actions';
 import { useLocation } from 'react-router-dom';
 import { changeDaysFilter } from './utils';
@@ -59,18 +60,21 @@ import { usePatternFlyTheme } from '../hooks/usePatternflyTheme';
 import { MonitoringState } from '../../store/store';
 import { Incident, IncidentsPageFiltersExpandedState } from './model';
 import { useAlerts } from '../../hooks/useAlerts';
-import IncidentFilterToolbarItem, { severityOptions, stateOptions } from './ToolbarItemFilter';
+import IncidentFilterToolbarItem, {
+  useSeverityOptions,
+  useStateOptions,
+} from './ToolbarItemFilter';
 import { MonitoringProvider } from '../../contexts/MonitoringContext';
-import { ALL_NAMESPACES_KEY } from '../utils';
 import { isEmpty } from 'lodash-es';
 import { DataTestIDs } from '../data-test';
+import { DocumentTitle } from '@openshift-console/dynamic-plugin-sdk';
 
 const IncidentsPage = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const dispatch = useDispatch();
   const location = useLocation();
   const urlParams = useMemo(() => parseUrlParams(location.search), [location.search]);
-  const { rules } = useAlerts({ overrideNamespace: ALL_NAMESPACES_KEY });
+  const { rules } = useAlerts({ dontUseTenancy: true });
   const { theme } = usePatternFlyTheme();
   // loading states
   const [incidentsAreLoading, setIncidentsAreLoading] = useState(true);
@@ -144,6 +148,23 @@ const IncidentsPage = () => {
     (state: MonitoringState) => state.plugins.mcp.incidentsData.incidentPageFilterType,
   );
 
+  const incidentsLastRefreshTime = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData.incidentsLastRefreshTime,
+  );
+
+  const closeDropDownFilters = (): void => {
+    setFiltersExpanded({
+      severity: false,
+      state: false,
+      groupId: false,
+    });
+
+    setFilterTypeExpanded({
+      filterType: false,
+    });
+    setDaysFilterIsExpanded(false);
+  };
+
   useEffect(() => {
     const hasUrlParams = Object.keys(urlParams).length > 0;
     if (hasUrlParams) {
@@ -175,51 +196,23 @@ const IncidentsPage = () => {
   }, [incidentsActiveFilters]);
 
   useEffect(() => {
-    const filteredData = filterIncident(incidentsActiveFilters, incidents);
     dispatch(
       setFilteredIncidentsData({
-        filteredIncidentsData: filteredData,
+        filteredIncidentsData: filterIncident(incidentsActiveFilters, incidents),
       }),
     );
-
-    // Clear incident selection if it's no longer visible due to filters
-    const selectedGroupId = incidentsActiveFilters.groupId?.[0];
-    const selectedIncidentIsVisible = selectedGroupId
-      ? filteredData.some((incident) => incident.group_id === selectedGroupId)
-      : false;
-
-    if (selectedGroupId && !selectedIncidentIsVisible) {
-      setFiltersExpanded({
-        severity: false,
-        state: false,
-        groupId: false,
-      });
-      dispatch(
-        setIncidentsActiveFilters({
-          incidentsActiveFilters: {
-            ...incidentsActiveFilters,
-            groupId: [],
-          },
-        }),
-      );
-      dispatch(setAlertsData({ alertsData: [] }));
-      dispatch(setAlertsTableData({ alertsTableData: [] }));
-    }
   }, [
     incidentsActiveFilters.state,
     incidentsActiveFilters.severity,
     incidentsActiveFilters.groupId,
-    incidents,
-    dispatch,
-    setFiltersExpanded,
   ]);
 
   const safeFetch = useSafeFetch();
   const title = t('Incidents');
 
   useEffect(() => {
-    setTimeRanges(getIncidentsTimeRanges(daysSpan, Date.now()));
-  }, [daysSpan, selectedGroupId]);
+    setTimeRanges(getIncidentsTimeRanges(daysSpan, incidentsLastRefreshTime));
+  }, [daysSpan, selectedGroupId, incidentsLastRefreshTime]);
 
   useEffect(() => {
     setDaysSpan(
@@ -232,14 +225,8 @@ const IncidentsPage = () => {
   }, [incidentsActiveFilters.days]);
 
   useEffect(() => {
-    // Clear alerts immediately if no incident is selected for alert processing
-    if (isEmpty(incidentForAlertProcessing)) {
-      dispatch(setAlertsData({ alertsData: [] }));
-      dispatch(setAlertsTableData({ alertsTableData: [] }));
-      return;
-    }
-
     (async () => {
+      const currentTime = incidentsLastRefreshTime;
       Promise.all(
         timeRanges.map(async (range) => {
           const response = await fetchDataForIncidentsAndAlerts(
@@ -254,7 +241,11 @@ const IncidentsPage = () => {
           const prometheusResults = results.flat();
           dispatch(
             setAlertsData({
-              alertsData: convertToAlerts(prometheusResults, incidentForAlertProcessing),
+              alertsData: convertToAlerts(
+                prometheusResults,
+                incidentForAlertProcessing,
+                currentTime,
+              ),
             }),
           );
           if (!isEmpty(filteredData)) {
@@ -285,12 +276,16 @@ const IncidentsPage = () => {
 
     setIncidentsAreLoading(true);
 
+    // Set refresh time before making queries
+    const currentTime = getCurrentTime();
+    dispatch(setIncidentsLastRefreshTime(currentTime));
+
     const daysDuration = parsePrometheusDuration(
       incidentsActiveFilters.days.length > 0
         ? incidentsActiveFilters.days[0].split(' ')[0] + 'd'
         : '',
     );
-    const calculatedTimeRanges = getIncidentsTimeRanges(daysDuration, Date.now());
+    const calculatedTimeRanges = getIncidentsTimeRanges(daysDuration, currentTime);
 
     const isGroupSelected = !!selectedGroupId;
     const incidentsQuery = isGroupSelected
@@ -305,7 +300,7 @@ const IncidentsPage = () => {
     )
       .then((results) => {
         const prometheusResults = results.flat();
-        const incidents = convertToIncidents(prometheusResults);
+        const incidents = convertToIncidents(prometheusResults, currentTime);
 
         // Update the raw, unfiltered incidents state
         dispatch(setIncidents({ incidents }));
@@ -321,15 +316,10 @@ const IncidentsPage = () => {
 
         if (isGroupSelected) {
           setIncidentForAlertProcessing(processIncidentsForAlerts(prometheusResults));
-          // Only set loading if we don't already have data to show
-          if (isEmpty(alertsData)) {
-            dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
-          }
+          dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
         } else {
+          closeDropDownFilters();
           setIncidentForAlertProcessing([]);
-          // Clear alerts data when deselecting to avoid showing stale data
-          dispatch(setAlertsData({ alertsData: [] }));
-          dispatch(setAlertsTableData({ alertsTableData: [] }));
           dispatch(setAlertsAreLoading({ alertsAreLoading: false }));
         }
       })
@@ -347,7 +337,9 @@ const IncidentsPage = () => {
     setDaysFilterIsExpanded(false);
   };
 
-  const incidentIdFilterOptions = incidents ? getIncidentIdOptions(incidents) : [];
+  const severityOptions = useSeverityOptions();
+  const stateOptions = useStateOptions();
+  const incidentIdFilterOptions = incidents ? getIncidentIdOptions(incidents, t) : [];
 
   useEffect(() => {
     //force a loading state for the alerts chart and table if we filtered out all of the incidents
@@ -365,18 +357,7 @@ const IncidentsPage = () => {
 
   const handleIncidentChartClick = useCallback(
     (groupId) => {
-      // Clear alerts data IMMEDIATELY when switching to a different incident
-      if (groupId !== selectedGroupId && groupId) {
-        dispatch(setAlertsData({ alertsData: [] }));
-        dispatch(setAlertsTableData({ alertsTableData: [] }));
-        dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
-      }
-
-      setFiltersExpanded({
-        severity: false,
-        state: false,
-        groupId: false,
-      });
+      closeDropDownFilters();
 
       if (groupId === selectedGroupId) {
         dispatch(
@@ -403,9 +384,7 @@ const IncidentsPage = () => {
 
   return (
     <>
-      <Helmet>
-        <title>{title}</title>
-      </Helmet>
+      <DocumentTitle>{title}</DocumentTitle>
       {alertsAreLoading && incidentsAreLoading ? (
         <Bullseye>
           <Spinner
@@ -419,7 +398,9 @@ const IncidentsPage = () => {
             id="toolbar-with-filter"
             data-test={DataTestIDs.IncidentsPage.Toolbar}
             collapseListedFiltersBreakpoint="xl"
+            clearFiltersButtonText={t('Clear all filters')}
             clearAllFilters={() => {
+              closeDropDownFilters();
               dispatch(
                 setIncidentsActiveFilters({
                   incidentsActiveFilters: {
@@ -437,7 +418,7 @@ const IncidentsPage = () => {
               <ToolbarGroup>
                 <ToolbarItem>
                   <Select
-                    aria-label="Filter type selection"
+                    aria-label={t('Filter type selection')}
                     data-test={DataTestIDs.IncidentsPage.FiltersSelect}
                     isOpen={filterTypeExpanded.filterType}
                     role="menu"
@@ -458,7 +439,7 @@ const IncidentsPage = () => {
                         icon={<FilterIcon />}
                         data-test={DataTestIDs.IncidentsPage.FiltersSelectToggle}
                       >
-                        {incidentPageFilterTypeSelected}
+                        {t(incidentPageFilterTypeSelected)}
                       </MenuToggle>
                     )}
                     style={{ width: '145px' }}
@@ -469,21 +450,21 @@ const IncidentsPage = () => {
                         isSelected={incidentPageFilterTypeSelected?.includes('Severity')}
                         data-test={`${DataTestIDs.IncidentsPage.FiltersSelectOption}-severity`}
                       >
-                        Severity
+                        {t('Severity')}
                       </SelectOption>
                       <SelectOption
                         value="State"
                         isSelected={incidentPageFilterTypeSelected?.includes('State')}
                         data-test={`${DataTestIDs.IncidentsPage.FiltersSelectOption}-state`}
                       >
-                        State
+                        {t('State')}
                       </SelectOption>
                       <SelectOption
                         value="Incident ID"
                         isSelected={incidentPageFilterTypeSelected?.includes('Incident ID')}
                         data-test={`${DataTestIDs.IncidentsPage.FiltersSelectOption}-incident-id`}
                       >
-                        Incident ID
+                        {t('Incident ID')}
                       </SelectOption>
                     </SelectList>
                   </Select>
@@ -493,7 +474,7 @@ const IncidentsPage = () => {
                 >
                   <IncidentFilterToolbarItem
                     categoryName="Severity"
-                    toggleLabel="Severity filters"
+                    toggleLabel={t('Severity filters')}
                     options={severityOptions}
                     incidentsActiveFilters={incidentsActiveFilters}
                     onDeleteIncidentFilterChip={onDeleteIncidentFilterChip}
@@ -515,7 +496,7 @@ const IncidentsPage = () => {
                 >
                   <IncidentFilterToolbarItem
                     categoryName="State"
-                    toggleLabel="State filters"
+                    toggleLabel={t('State filters')}
                     options={stateOptions}
                     incidentsActiveFilters={incidentsActiveFilters}
                     onDeleteIncidentFilterChip={onDeleteIncidentFilterChip}
@@ -535,7 +516,7 @@ const IncidentsPage = () => {
                 >
                   <IncidentFilterToolbarItem
                     categoryName="Incident ID"
-                    toggleLabel="Incident ID filters"
+                    toggleLabel={t('Incident ID filters')}
                     options={incidentIdFilterOptions}
                     incidentsActiveFilters={incidentsActiveFilters}
                     onDeleteIncidentFilterChip={onDeleteIncidentFilterChip}
@@ -568,7 +549,7 @@ const IncidentsPage = () => {
                       isExpanded={daysFilterIsExpanded}
                       data-test={DataTestIDs.IncidentsPage.DaysSelectToggle}
                     >
-                      {`Last ${incidentsActiveFilters.days[0]}`}
+                      {t(`Last ${incidentsActiveFilters.days[0]}`)}
                     </MenuToggle>
                   )}
                   shouldFocusToggleOnSelect
@@ -627,10 +608,12 @@ const IncidentsPage = () => {
                     theme={theme}
                     selectedGroupId={selectedGroupId}
                     onIncidentClick={handleIncidentChartClick}
+                    currentTime={incidentsLastRefreshTime}
+                    lastRefreshTime={incidentsLastRefreshTime}
                   />
                 </StackItem>
                 <StackItem>
-                  <AlertsChart key={selectedGroupId || 'no-selection'} theme={theme} />
+                  <AlertsChart theme={theme} />
                 </StackItem>
               </>
             )}

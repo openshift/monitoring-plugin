@@ -3,9 +3,9 @@ import type { FC } from 'react';
 
 import {
   Alert,
+  DocumentTitle,
   ResourceIcon,
   Timestamp,
-  useActiveNamespace,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Breadcrumb,
@@ -27,7 +27,6 @@ import {
   SplitItem,
   Title,
 } from '@patternfly/react-core';
-import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import { getAlertUrl, getRuleUrl, getSilencesUrl, usePerspective } from '../hooks/usePerspective';
 import KebabDropdown from '../kebab-dropdown';
@@ -52,16 +51,15 @@ const SilencesDetailsPage_: FC = () => {
 
   const { silences, rulesAlertLoading } = useAlerts();
 
-  const [namespace] = useActiveNamespace();
   const { perspective } = usePerspective();
 
   const silence = _.find(silences?.data, { id });
 
   return (
     <>
-      <Helmet>
-        <title>{t('{{name}} details', { name: silence?.name || SilenceResource.label })}</title>
-      </Helmet>
+      <DocumentTitle>
+        {t('{{name}} details', { name: silence?.name || SilenceResource.label })}
+      </DocumentTitle>
       <StatusBox
         data={silence}
         label={SilenceResource.label}
@@ -72,10 +70,7 @@ const SilencesDetailsPage_: FC = () => {
           <PageBreadcrumb hasBodyWrapper={false}>
             <Breadcrumb>
               <BreadcrumbItem>
-                <Link
-                  to={getSilencesUrl(perspective, namespace)}
-                  data-test={DataTestIDs.Breadcrumb}
-                >
+                <Link to={getSilencesUrl(perspective)} data-test={DataTestIDs.Breadcrumb}>
                   {t('Silences')}
                 </Link>
               </BreadcrumbItem>
@@ -100,7 +95,7 @@ const SilencesDetailsPage_: FC = () => {
               </SplitItem>
               <SplitItem isFilled />
               <SplitItem>
-                {silence && <SilenceDropdown silence={silence} toggleText="Actions" />}
+                {silence && <SilenceDropdown silence={silence} toggleText={t('Actions')} />}
               </SplitItem>
             </Split>
           </PageSection>
@@ -169,7 +164,7 @@ const SilencesDetailsPage_: FC = () => {
                   <DescriptionListGroup>
                     <DescriptionListTerm>{t('Firing alerts')}</DescriptionListTerm>
                     <DescriptionListDescription>
-                      {rulesAlertLoading.loaded ? (
+                      {rulesAlertLoading?.loaded ? (
                         <SeverityCounts alerts={silence?.firingAlerts} />
                       ) : (
                         <LoadingInline />
@@ -183,7 +178,7 @@ const SilencesDetailsPage_: FC = () => {
           <Divider />
           <PageSection hasBodyWrapper={false}>
             <Title headingLevel="h2">{t('Firing alerts')}</Title>
-            {rulesAlertLoading.loaded ? (
+            {rulesAlertLoading?.loaded ? (
               <SilencedAlertsList alerts={silence?.firingAlerts} />
             ) : (
               <LoadingInline />
@@ -218,7 +213,6 @@ const SilencedAlertsList: FC<SilencedAlertsListProps> = ({ alerts }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const navigate = useNavigate();
   const { perspective } = usePerspective();
-  const [namespace] = useActiveNamespace();
 
   return _.isEmpty(alerts) ? (
     <div>{t('No Alerts found')}</div>
@@ -236,7 +230,7 @@ const SilencedAlertsList: FC<SilencedAlertsListProps> = ({ alerts }) => {
             <Td>
               <Link
                 data-test={DataTestIDs.AlertResourceLink}
-                to={getAlertUrl(perspective, a, a.rule.id, namespace)}
+                to={getAlertUrl(perspective, a, a.rule.id)}
               >
                 {a.labels.alertname}
               </Link>
@@ -250,7 +244,7 @@ const SilencedAlertsList: FC<SilencedAlertsListProps> = ({ alerts }) => {
                 dropdownItems={[
                   <DropdownItem
                     key="view-rule"
-                    onClick={() => navigate(getRuleUrl(perspective, a.rule, namespace))}
+                    onClick={() => navigate(getRuleUrl(perspective, a.rule))}
                   >
                     {t('View alerting rule')}
                   </DropdownItem>,

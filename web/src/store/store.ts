@@ -48,6 +48,7 @@ export type ObserveState = {
       groupId: Array<string>;
     };
     incidentPageFilterType: string;
+    incidentsLastRefreshTime: number | null;
   };
   queryBrowser: {
     pollInterval: string | null;
@@ -94,6 +95,7 @@ export const defaultObserveState: ObserveState = {
       groupId: [],
     },
     incidentPageFilterType: 'Severity',
+    incidentsLastRefreshTime: null,
   },
   alerting: {},
   hideGraphs: false,

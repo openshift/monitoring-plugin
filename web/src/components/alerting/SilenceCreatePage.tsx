@@ -3,11 +3,16 @@ import { useTranslation } from 'react-i18next';
 import { getAllQueryArguments } from '../console/utils/router';
 import { SilenceForm } from './SilenceForm';
 import { MonitoringProvider } from '../../contexts/MonitoringContext';
-import { useActiveNamespace } from '@openshift-console/dynamic-plugin-sdk';
-import { ALL_NAMESPACES_KEY } from '../utils';
+import { useMonitoring } from '../../hooks/useMonitoring';
+import { LoadingBox } from '../console/console-shared/src/components/loading/LoadingBox';
+import { useQueryNamespace } from '../hooks/useQueryNamespace';
 
-const CreateSilencePage = ({ isNamespaced }: { isNamespaced: boolean }) => {
+const CreateSilencePage = () => {
+  const { accessCheckLoading, useAlertsTenancy } = useMonitoring();
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+
+  // Set the activeNamespace to be the namespace query parameter if it is set
+  useQueryNamespace();
 
   const matchers = _.map(getAllQueryArguments(), (value, name) => ({
     name,
@@ -15,19 +20,25 @@ const CreateSilencePage = ({ isNamespaced }: { isNamespaced: boolean }) => {
     isRegex: false,
   }));
 
+  if (accessCheckLoading) {
+    return <LoadingBox />;
+  }
+
   return _.isEmpty(matchers) ? (
-    <SilenceForm defaults={{}} title={t('Create silence')} isNamespaced={isNamespaced} />
+    <SilenceForm defaults={{}} title={t('Create silence')} isNamespaced={useAlertsTenancy} />
   ) : (
-    <SilenceForm defaults={{ matchers }} title={t('Silence alert')} isNamespaced={isNamespaced} />
+    <SilenceForm
+      defaults={{ matchers }}
+      title={t('Silence alert')}
+      isNamespaced={useAlertsTenancy}
+    />
   );
 };
 
 export const MpCmoCreateSilencePage = () => {
-  const [activeNamespace] = useActiveNamespace();
-
   return (
     <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
-      <CreateSilencePage isNamespaced={activeNamespace !== ALL_NAMESPACES_KEY} />
+      <CreateSilencePage />
     </MonitoringProvider>
   );
 };
@@ -37,7 +48,7 @@ export const McpAcmCreateSilencePage = () => {
     <MonitoringProvider
       monitoringContext={{ plugin: 'monitoring-console-plugin', prometheus: 'acm' }}
     >
-      <CreateSilencePage isNamespaced={false} />
+      <CreateSilencePage />
     </MonitoringProvider>
   );
 };

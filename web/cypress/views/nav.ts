@@ -6,10 +6,25 @@ export const nav = {
       cy.clickNavLink(path);
     },
     switcher: {
-      changePerspectiveTo: (perspective: string) => {
-      cy.log('Switch perspective - ' + `${perspective}`);
-      cy.byLegacyTestID('perspective-switcher-toggle').scrollIntoView().should('be.visible').click();
-      cy.byLegacyTestID('perspective-switcher-menu-option').contains(perspective).should('be.visible').click();
+      changePerspectiveTo: (...perspectives: string[]) => {
+        cy.get('body').then((body) => {
+          if (body.find('button[data-test-id="perspective-switcher-toggle"]:visible').length > 0) {
+            cy.byLegacyTestID('perspective-switcher-toggle').scrollIntoView().click({ force: true });
+
+            cy.get('[data-test-id="perspective-switcher-menu-option"]').then(($options) => {
+              const foundPerspective = perspectives.find(p => $options.text().includes(p));
+              if (foundPerspective) {
+                cy.byLegacyTestID('perspective-switcher-menu-option')
+                  .contains(foundPerspective)
+                  .click({ force: true });
+              } else {
+                cy.log('No matching perspective found');
+                cy.get('body').type('{esc}');
+              }
+            });
+
+          }
+        });
       },
       shouldHaveText: (perspective: string) => {
         cy.log('Should have text - ' + `${perspective}`);

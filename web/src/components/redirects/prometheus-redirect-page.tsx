@@ -1,7 +1,7 @@
 import type { FC } from 'react';
 import { Navigate } from 'react-router-dom-v5-compat';
-import { getAllQueryArguments } from './console/utils/router';
-import { usePerspective } from './hooks/usePerspective';
+import { getAllQueryArguments } from '../console/utils/router';
+import { usePerspective } from '../hooks/usePerspective';
 
 // Handles links that have the Prometheus UI's URL format (expected for links in alerts sent by
 // Alertmanager). The Prometheus UI specifies the PromQL query with the GET param `g0.expr`, so we

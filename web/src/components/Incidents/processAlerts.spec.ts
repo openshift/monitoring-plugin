@@ -1,14 +1,15 @@
 import { PrometheusResult } from '@openshift-console/dynamic-plugin-sdk';
 import { convertToAlerts, deduplicateAlerts } from './processAlerts';
 import { Incident } from './model';
+import { getCurrentTime } from './utils';
 
 describe('convertToAlerts', () => {
-  const now = Date.now();
+  const now = getCurrentTime();
   const nowSeconds = Math.floor(now / 1000);
 
   describe('edge cases', () => {
     it('should return empty array when no prometheus results provided', () => {
-      const result = convertToAlerts([], []);
+      const result = convertToAlerts([], [], now);
       expect(result).toEqual([]);
     });
 
@@ -27,7 +28,7 @@ describe('convertToAlerts', () => {
           values: [[nowSeconds, '1']],
         },
       ];
-      const result = convertToAlerts(prometheusResults, []);
+      const result = convertToAlerts(prometheusResults, [], now);
       expect(result).toEqual([]);
     });
 
@@ -68,7 +69,7 @@ describe('convertToAlerts', () => {
         },
       ];
 
-      const result = convertToAlerts(prometheusResults, incidents);
+      const result = convertToAlerts(prometheusResults, incidents, now);
       expect(result).toHaveLength(1);
       expect(result[0].alertname).toBe('ClusterOperatorDegraded');
     });
@@ -112,7 +113,7 @@ describe('convertToAlerts', () => {
         },
       ];
 
-      const result = convertToAlerts(prometheusResults, incidents);
+      const result = convertToAlerts(prometheusResults, incidents, now);
       expect(result).toHaveLength(1);
       // Should include values within incident time + 30s padding
       // Plus padding points added by insertPaddingPointsForChart
@@ -147,13 +148,57 @@ describe('convertToAlerts', () => {
         },
       ];
 
-      const result = convertToAlerts(prometheusResults, incidents);
+      const result = convertToAlerts(prometheusResults, incidents, now);
       expect(result).toEqual([]);
     });
   });
 
   describe('alert processing', () => {
-    it('should convert timestamps to milliseconds for firing times', () => {
+    it('should determine resolved status from original values BUT return padded values', () => {
+      const timestamp = nowSeconds - 660; // 11 minutes ago
+
+      const prometheusResults: PrometheusResult[] = [
+        {
+          metric: {
+            alertname: 'TestAlert',
+            namespace: 'test-namespace',
+            severity: 'critical',
+            component: 'test-component',
+            layer: 'test-layer',
+            name: 'test',
+            alertstate: 'firing',
+          },
+          values: [[timestamp, '2']],
+        },
+      ];
+
+      const incidents: Array<Partial<Incident>> = [
+        {
+          group_id: 'incident1',
+          src_alertname: 'TestAlert',
+          src_namespace: 'test-namespace',
+          src_severity: 'critical',
+          values: [[timestamp, '2']],
+        },
+      ];
+
+      const result = convertToAlerts(prometheusResults, incidents, now);
+      expect(result).toHaveLength(1);
+
+      // Verify resolved is determined from ORIGINAL values (before padding)
+      // Original timestamp: 11 minutes ago (> 10 minutes, so resolved)
+      const timeSinceOriginal = nowSeconds - timestamp;
+      expect(result[0].resolved).toBe(timeSinceOriginal >= 600); // >= 10 minutes
+      expect(result[0].resolved).toBe(true); // Should be resolved
+
+      // Verify the returned values ARE the padded values
+      expect(result[0].values.length).toBe(3); // Original + 2 padding points
+      expect(result[0].values[0][0]).toBe(timestamp - 300); // Padding before
+      expect(result[0].values[1][0]).toBe(timestamp); // Original
+      expect(result[0].values[2][0]).toBe(timestamp + 300); // Padding after
+    });
+
+    it('should use padded timestamps for firing times', () => {
       const timestamp = nowSeconds - 600; // 10 minutes ago
 
       const prometheusResults: PrometheusResult[] = [
@@ -181,20 +226,22 @@ describe('convertToAlerts', () => {
         },
       ];
 
-      const result = convertToAlerts(prometheusResults, incidents);
+      const result = convertToAlerts(prometheusResults, incidents, now);
       expect(result).toHaveLength(1);
       expect(result[0].alertsStartFiring).toBeGreaterThan(0);
       expect(result[0].alertsEndFiring).toBeGreaterThan(0);
-      // insertPaddingPointsForChart adds a point 5 minutes (300s) before the first timestamp
-      // So alertsStartFiring should be 300s before the original timestamp
-      const expectedStart = (timestamp - 300) * 1000;
+      // alertsStartFiring and alertsEndFiring use padded timestamps
+      // This ensures table displays same times as chart
+      const expectedStart = timestamp - 300; // Padding point 5 minutes before
       expect(result[0].alertsStartFiring).toBe(expectedStart);
-      // alertsEndFiring should be the original timestamp
-      expect(result[0].alertsEndFiring).toBe(timestamp * 1000);
+      const expectedEnd = timestamp + 300; // Padding point 5 minutes after
+      expect(result[0].alertsEndFiring).toBe(expectedEnd);
     });
 
     it('should mark alert as resolved if ended more than 10 minutes ago', () => {
-      const oldTimestamp = nowSeconds - 900; // 15 minutes ago
+      const oldTimestamp = nowSeconds - 960; // 16 minutes ago
+      // After padding (+300s), last timestamp will be 11 minutes ago (960-300=660s ago)
+      // which is > 10 minutes, so it should be resolved
 
       const prometheusResults: PrometheusResult[] = [
         {
@@ -221,14 +268,16 @@ describe('convertToAlerts', () => {
         },
       ];
 
-      const result = convertToAlerts(prometheusResults, incidents);
+      const result = convertToAlerts(prometheusResults, incidents, now);
       expect(result).toHaveLength(1);
       expect(result[0].alertstate).toBe('resolved');
       expect(result[0].resolved).toBe(true);
     });
 
     it('should mark alert as firing if ended less than 10 minutes ago', () => {
-      const recentTimestamp = nowSeconds - 300; // 5 minutes ago
+      const recentTimestamp = nowSeconds - 840; // 14 minutes ago
+      // After padding (+300s), last timestamp will be 9 minutes ago (840-300=540s ago)
+      // which is < 10 minutes, so it should still be firing
 
       const prometheusResults: PrometheusResult[] = [
         {
@@ -255,7 +304,7 @@ describe('convertToAlerts', () => {
         },
       ];
 
-      const result = convertToAlerts(prometheusResults, incidents);
+      const result = convertToAlerts(prometheusResults, incidents, now);
       expect(result).toHaveLength(1);
       expect(result[0].alertstate).toBe('firing');
       expect(result[0].resolved).toBe(false);
@@ -270,8 +319,6 @@ describe('convertToAlerts', () => {
             alertname: 'Alert2',
             namespace: 'ns2',
             severity: 'warning',
-            component: 'comp2',
-            layer: 'layer2',
             name: 'name2',
             alertstate: 'firing',
           },
@@ -282,8 +329,6 @@ describe('convertToAlerts', () => {
             alertname: 'Alert1',
             namespace: 'ns1',
             severity: 'critical',
-            component: 'comp1',
-            layer: 'layer1',
             name: 'name1',
             alertstate: 'firing',
           },
@@ -294,6 +339,8 @@ describe('convertToAlerts', () => {
       const incidents: Array<Partial<Incident>> = [
         {
           group_id: 'incident1',
+          component: 'comp1',
+          layer: 'layer1',
           src_alertname: 'Alert1',
           src_namespace: 'ns1',
           src_severity: 'critical',
@@ -301,6 +348,8 @@ describe('convertToAlerts', () => {
         },
         {
           group_id: 'incident2',
+          component: 'comp2',
+          layer: 'layer2',
           src_alertname: 'Alert2',
           src_namespace: 'ns2',
           src_severity: 'warning',
@@ -308,7 +357,7 @@ describe('convertToAlerts', () => {
         },
       ];
 
-      const result = convertToAlerts(prometheusResults, incidents);
+      const result = convertToAlerts(prometheusResults, incidents, now);
       expect(result).toHaveLength(2);
       expect(result[0].alertname).toBe('Alert1'); // Earlier alert first
       expect(result[1].alertname).toBe('Alert2');
@@ -321,8 +370,6 @@ describe('convertToAlerts', () => {
             alertname: 'Alert1',
             namespace: 'ns1',
             severity: 'critical',
-            component: 'comp1',
-            layer: 'layer1',
             name: 'name1',
             alertstate: 'firing',
           },
@@ -333,8 +380,6 @@ describe('convertToAlerts', () => {
             alertname: 'Alert2',
             namespace: 'ns2',
             severity: 'warning',
-            component: 'comp2',
-            layer: 'layer2',
             name: 'name2',
             alertstate: 'firing',
           },
@@ -344,14 +389,26 @@ describe('convertToAlerts', () => {
 
       const incidents: Array<Partial<Incident>> = [
         {
-          values: [
-            [nowSeconds - 3600, '2'],
-            [nowSeconds - 1800, '1'],
-          ],
+          group_id: 'incident1',
+          src_alertname: 'Alert1',
+          src_namespace: 'ns1',
+          src_severity: 'critical',
+          component: 'comp1',
+          layer: 'layer1',
+          values: [[nowSeconds - 3600, '2']],
+        },
+        {
+          group_id: 'incident2',
+          src_alertname: 'Alert2',
+          src_namespace: 'ns2',
+          src_severity: 'warning',
+          component: 'comp2',
+          layer: 'layer2',
+          values: [[nowSeconds - 1800, '1']],
         },
       ];
 
-      const result = convertToAlerts(prometheusResults, incidents);
+      const result = convertToAlerts(prometheusResults, incidents, now);
       expect(result).toHaveLength(2);
       expect(result[0].x).toBe(2); // Earliest alert has highest x
       expect(result[1].x).toBe(1); // Latest alert has lowest x
@@ -366,8 +423,6 @@ describe('convertToAlerts', () => {
             alertname: 'TestAlert',
             namespace: 'test-namespace',
             severity: 'critical',
-            component: 'test-component',
-            layer: 'test-layer',
             name: 'test',
             alertstate: 'firing',
           },
@@ -381,45 +436,16 @@ describe('convertToAlerts', () => {
           src_alertname: 'TestAlert',
           src_namespace: 'test-namespace',
           src_severity: 'critical',
+          component: 'test-component',
+          layer: 'test-layer',
           silenced: true,
           values: [[nowSeconds, '2']],
         },
       ];
 
-      const result = convertToAlerts(prometheusResults, incidents);
+      const result = convertToAlerts(prometheusResults, incidents, now);
       expect(result).toHaveLength(1);
       expect(result[0].silenced).toBe(true);
-    });
-
-    it('should default silenced to false when no matching incident found', () => {
-      const prometheusResults: PrometheusResult[] = [
-        {
-          metric: {
-            alertname: 'TestAlert',
-            namespace: 'test-namespace',
-            severity: 'critical',
-            component: 'test-component',
-            layer: 'test-layer',
-            name: 'test',
-            alertstate: 'firing',
-          },
-          values: [[nowSeconds, '2']],
-        },
-      ];
-
-      const incidents: Array<Partial<Incident>> = [
-        {
-          group_id: 'incident1',
-          src_alertname: 'DifferentAlert',
-          src_namespace: 'different-namespace',
-          src_severity: 'warning',
-          values: [[nowSeconds, '1']],
-        },
-      ];
-
-      const result = convertToAlerts(prometheusResults, incidents);
-      expect(result).toHaveLength(1);
-      expect(result[0].silenced).toBe(false);
     });
   });
 
@@ -431,8 +457,6 @@ describe('convertToAlerts', () => {
             alertname: 'TestAlert',
             namespace: 'test-namespace',
             severity: 'critical',
-            component: 'test-component',
-            layer: 'test-layer',
             name: 'test',
             alertstate: 'firing',
           },
@@ -450,6 +474,8 @@ describe('convertToAlerts', () => {
           src_alertname: 'TestAlert',
           src_namespace: 'test-namespace',
           src_severity: 'critical',
+          component: 'test-component',
+          layer: 'test-layer',
           silenced: false,
           values: [[nowSeconds - 600, '2']],
         },
@@ -463,7 +489,7 @@ describe('convertToAlerts', () => {
         },
       ];
 
-      const result = convertToAlerts(prometheusResults, incidents);
+      const result = convertToAlerts(prometheusResults, incidents, now);
       expect(result).toHaveLength(1);
       // Should use the silenced value from the latest timestamp
       expect(result[0].silenced).toBe(true);
@@ -478,8 +504,6 @@ describe('convertToAlerts', () => {
             alertname: 'MyAlert',
             namespace: 'my-namespace',
             severity: 'warning',
-            component: 'my-component',
-            layer: 'my-layer',
             name: 'my-name',
             alertstate: 'firing',
           },
@@ -493,11 +517,13 @@ describe('convertToAlerts', () => {
           src_alertname: 'MyAlert',
           src_namespace: 'my-namespace',
           src_severity: 'warning',
+          component: 'my-component',
+          layer: 'my-layer',
           values: [[nowSeconds, '1']],
         },
       ];
 
-      const result = convertToAlerts(prometheusResults, incidents);
+      const result = convertToAlerts(prometheusResults, incidents, now);
       expect(result).toHaveLength(1);
       expect(result[0].alertname).toBe('MyAlert');
       expect(result[0].namespace).toBe('my-namespace');
@@ -517,7 +543,6 @@ describe('deduplicateAlerts', () => {
           metric: {
             alertname: 'Alert1',
             namespace: 'ns1',
-            component: 'comp1',
             severity: 'critical',
             alertstate: 'resolved',
           },
@@ -527,7 +552,6 @@ describe('deduplicateAlerts', () => {
           metric: {
             alertname: 'Alert2',
             namespace: 'ns2',
-            component: 'comp2',
             severity: 'warning',
             alertstate: 'firing',
           },
@@ -548,7 +572,6 @@ describe('deduplicateAlerts', () => {
           metric: {
             alertname: 'Alert1',
             namespace: 'ns1',
-            component: 'comp1',
             severity: 'critical',
             alertstate: 'firing',
           },
@@ -561,7 +584,6 @@ describe('deduplicateAlerts', () => {
           metric: {
             alertname: 'Alert1',
             namespace: 'ns1',
-            component: 'comp1',
             severity: 'critical',
             alertstate: 'firing',
           },
@@ -583,7 +605,6 @@ describe('deduplicateAlerts', () => {
           metric: {
             alertname: 'Alert1',
             namespace: 'ns1',
-            component: 'comp1',
             severity: 'critical',
             alertstate: 'firing',
           },
@@ -593,7 +614,6 @@ describe('deduplicateAlerts', () => {
           metric: {
             alertname: 'Alert2',
             namespace: 'ns1',
-            component: 'comp1',
             severity: 'critical',
             alertstate: 'firing',
           },
@@ -611,7 +631,6 @@ describe('deduplicateAlerts', () => {
           metric: {
             alertname: 'Alert1',
             namespace: 'ns1',
-            component: 'comp1',
             severity: 'critical',
             alertstate: 'firing',
           },
@@ -621,7 +640,6 @@ describe('deduplicateAlerts', () => {
           metric: {
             alertname: 'Alert1',
             namespace: 'ns1',
-            component: 'comp1',
             severity: 'warning',
             alertstate: 'firing',
           },
@@ -641,7 +659,6 @@ describe('deduplicateAlerts', () => {
           metric: {
             alertname: 'Alert1',
             namespace: 'ns1',
-            component: 'comp1',
             severity: 'critical',
             alertstate: 'firing',
           },

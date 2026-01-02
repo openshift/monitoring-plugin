@@ -56,6 +56,21 @@ The monitoring-plugin is currently in a transitionary state as the remaining pag
 
 Changes to the store must be completed in the `openshift/console` codebase and are not backwards compatible unless cherry-picked with purpose.
 
+### Running using Devspace
+
+Install the [devspace](https://www.devspace.sh/docs/getting-started/installation) cli.
+
+1. Install the frontend dependencies running `make install-frontend`.
+2. Start the frontend `make start-feature-frontend`.
+4. Select the namespace the monitoring-plugin is located in `devspace use namespace openshift-monitoring`.
+5. In a different terminal start the devspace sync `devspace dev`.
+
+When running the `devspace dev` command, the pipeline will run the `scale_down_cmo` function to prevent CMO from fighting over control of the pod. After CMO has been scaled down, devspace will "take over" the monitoring-plugin pod, grabbing all of the certificates and backend binary and configuration to run in the devspace pod. The backend will stay the same as what is built in the Dockerfile.devspace file, only the frontend changes will be reflected live in cluster.
+
+After the pod has been "taken over" Devspace begins a sync process which will mirror changes from you local `./web/dist` folder into the `/opt/app-root/web/dist` folder in the devspace pod. You can then make changes to your frontend files locally which will trigger the locally running webpack dev server to rebuild the `./web/dist` folder, which will trigger Devspace to re-synced. You can then reload your console webpage to see your local changes running in the cluster.
+
+After development you can run `devspace purge` which will cleanup and then call the `scale_up_cmo` pipeline.
+
 ### Local Development
 
 #### Dependencies
@@ -192,6 +207,4 @@ oc port-forward -n openshift-monitoring service/prometheus-operated 9090:9090
 curl "http://localhost:9090/api/v1/query?query=up"
 ```
 
-Adjust Perses local instance http://localhost:8080/ to use the a proxy to http://localhost:9090/ instead of http://demo.prometheus.io. 
-
-
+Adjust Perses local instance http://localhost:8080/ to use the a proxy to http://localhost:9090/ instead of http://demo.prometheus.io.

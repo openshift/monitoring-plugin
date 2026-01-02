@@ -14,7 +14,10 @@ import {
   Bullseye,
   Card,
   CardBody,
+  CardHeader,
   CardTitle,
+  Flex,
+  FlexItem,
   getResizeObserver,
   Spinner,
 } from '@patternfly/react-core';
@@ -31,7 +34,7 @@ import {
   createIncidentsChartBars,
   generateDateArray,
 } from '../utils';
-import { dateTimeFormatter } from '../../console/utils/datetime';
+import { dateTimeFormatter, timeFormatter } from '../../console/utils/datetime';
 import { useTranslation } from 'react-i18next';
 import { DataTestIDs } from '../../data-test';
 
@@ -57,27 +60,42 @@ const IncidentsChart = ({
   theme,
   selectedGroupId,
   onIncidentClick,
+  currentTime,
+  lastRefreshTime,
 }: {
   incidentsData: Array<Incident>;
   chartDays: number;
   theme: 'light' | 'dark';
   selectedGroupId: string;
   onIncidentClick: (groupId: string) => void;
+  currentTime: number;
+  lastRefreshTime: number | null;
 }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [chartContainerHeight, setChartContainerHeight] = useState<number>();
   const [chartHeight, setChartHeight] = useState<number>();
-  const dateValues = useMemo(() => generateDateArray(chartDays), [chartDays]);
+  const dateValues = useMemo(
+    () => generateDateArray(chartDays, currentTime),
+    [chartDays, currentTime],
+  );
 
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation(process.env.I18N_NAMESPACE);
 
   const chartData = useMemo(() => {
     if (!Array.isArray(incidentsData) || incidentsData.length === 0) return [];
+
     const filteredIncidents = selectedGroupId
       ? incidentsData.filter((incident) => incident.group_id === selectedGroupId)
       : incidentsData;
 
-    return filteredIncidents.map((incident) => createIncidentsChartBars(incident, dateValues));
+    // Create chart bars and sort by original x values to maintain proper order
+    const chartBars = filteredIncidents.map((incident) =>
+      createIncidentsChartBars(incident, dateValues),
+    );
+    chartBars.sort((a, b) => a[0].x - b[0].x);
+
+    // Reassign consecutive x values to eliminate gaps between bars
+    return chartBars.map((bars, index) => bars.map((bar) => ({ ...bar, x: index + 1 })));
   }, [incidentsData, dateValues, selectedGroupId]);
 
   useEffect(() => {
@@ -118,7 +136,22 @@ const IncidentsChart = ({
         style={{ position: 'relative' }}
         data-test={DataTestIDs.IncidentsChart.ChartContainer}
       >
-        <CardTitle data-test={DataTestIDs.IncidentsChart.Title}>Incidents Timeline</CardTitle>
+        <CardHeader>
+          <Flex spaceItems={{ default: 'spaceItemsMd' }}>
+            <FlexItem>
+              <CardTitle data-test={DataTestIDs.IncidentsChart.Title}>
+                {t('Incidents Timeline')}
+              </CardTitle>
+            </FlexItem>
+            {lastRefreshTime && (
+              <FlexItem>
+                <span className="pf-v6-u-text-color-subtle">
+                  {t('Last updated at')} {timeFormatter.format(new Date(lastRefreshTime))}
+                </span>
+              </FlexItem>
+            )}
+          </Flex>
+        </CardHeader>
         {isLoading ? (
           <Bullseye>
             <Spinner
@@ -148,30 +181,32 @@ const IncidentsChart = ({
                       : dateTimeFormatter(i18n.language).format(new Date(datum.y));
                     const components = formatComponentList(datum.componentList);
 
-                    return `ID: ${datum.group_id}
-                    Severity: ${datum.name}
-                    Components: ${components}
-                    Start: ${startDate}
-                    End: ${endDate}`;
+                    return `${t('Severity')}: ${t(datum.name)}
+                    ${t('ID')}: ${datum.group_id}
+                    ${t('Component(s)')}: ${components}
+                    ${t('Start')}: ${startDate}
+                    ${t('End')}: ${endDate}`;
                   }}
                 />
               }
-              domainPadding={{ x: [30, 25] }}
+              domainPadding={{
+                x: chartData.length <= 2 ? [60, 50] : [30, 25],
+              }}
               legendData={[
                 {
-                  name: 'Critical',
+                  name: t('Critical'),
                   symbol: {
                     fill: t_global_color_status_danger_default.var,
                   },
                 },
                 {
-                  name: 'Info',
+                  name: t('Info'),
                   symbol: {
                     fill: t_global_color_status_info_default.var,
                   },
                 },
                 {
-                  name: 'Warning',
+                  name: t('Warning'),
                   symbol: {
                     fill: t_global_color_status_warning_default.var,
                   },
@@ -206,7 +241,7 @@ const IncidentsChart = ({
                 tickLabelComponent={
                   <ChartLabel style={{ fill: theme === 'light' ? '#1b1d21' : '#e0e0e0' }} />
                 }
-                domain={calculateIncidentsChartDomain(dateValues)}
+                domain={calculateIncidentsChartDomain(dateValues, currentTime)}
               />
               <ChartGroup horizontal data-test={DataTestIDs.IncidentsChart.ChartBars}>
                 {chartData.map((bar) => {

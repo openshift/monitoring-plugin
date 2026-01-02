@@ -43,6 +43,7 @@ export enum ActionType {
   SetIncidentsChartSelection = 'setIncidentsChartSelection',
   SetFilteredIncidentsData = 'setFilteredIncidentsData',
   SetIncidentPageFilterType = 'setIncidentPageFilterType',
+  SetIncidentsLastRefreshTime = 'setIncidentsLastRefreshTime',
 }
 
 export type Perspective = 'admin' | 'dev' | 'acm' | 'virtualization-perspective';
@@ -190,6 +191,9 @@ export const setFilteredIncidentsData = (filteredIncidentsData) =>
 export const setIncidentPageFilterType = (filterTypeSelected) =>
   action(ActionType.SetIncidentPageFilterType, filterTypeSelected);
 
+export const setIncidentsLastRefreshTime = (timestamp: number) =>
+  action(ActionType.SetIncidentsLastRefreshTime, { timestamp });
+
 type Actions = {
   AlertingSetErrored: typeof alertingSetErrored;
   AlertingSetLoading: typeof alertingSetLoading;
@@ -231,6 +235,7 @@ type Actions = {
   setIncidentsChartSelection: typeof setIncidentsChartSelection;
   setFilteredIncidentsData: typeof setFilteredIncidentsData;
   setIncidentPageFilterType: typeof setIncidentPageFilterType;
+  setIncidentsLastRefreshTime: typeof setIncidentsLastRefreshTime;
 };
 
 export type ObserveAction = Action<Actions>;

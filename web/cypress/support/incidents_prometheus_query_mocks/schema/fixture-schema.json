@@ -42,7 +42,7 @@
         "component": {
           "type": "string",
           "description": "The component affected by this incident",
-          "enum": ["monitoring", "storage", "network", "compute", "api-server", "etcd", "version", "Others"],
+          "enum": ["monitoring", "storage", "network", "compute", "api-server", "etcd", "version", "Others", "storage-very-very-long-component-name"],
           "examples": ["monitoring", "storage", "network"]
         },
         "layer": {
@@ -77,14 +77,14 @@
         "start": {
           "type": "string",
           "description": "When the incident started (relative to now)",
-          "pattern": "^\\d+[smhd]$",
-          "examples": ["2h", "30m", "7d", "1h"]
+          "pattern": "^(?:\\d+[smhd])+$",
+          "examples": ["2h", "30m", "7d", "1h", "1h30m", "7d2h30m"]
         },
         "end": {
           "type": "string",
           "description": "When the incident ended (relative to now). Omit for ongoing incidents.",
-          "pattern": "^\\d+[smhd]$",
-          "examples": ["1h", "30m", "5m"]
+          "pattern": "^(?:\\d+[smhd])+$",
+          "examples": ["1h", "30m", "5m", "1h30m", "2h15m"]
         },
         "severityChanges": {
           "type": "array",
@@ -103,8 +103,8 @@
         "time": {
           "type": "string",
           "description": "When this severity change occurred (relative to now)",
-          "pattern": "^\\d+[smhd]$",
-          "examples": ["3h", "1h", "30m"]
+          "pattern": "^(?:\\d+[smhd])+$",
+          "examples": ["3h", "1h", "30m", "45m30s", "1h5m"]
         },
         "severity": {
           "type": "string",
@@ -137,12 +137,24 @@
           "enum": ["critical", "warning", "info"],
           "examples": ["critical", "warning", "info"]
         },
+        "component": {
+          "type": "string",
+          "description": "Optional component override for this specific alert. If not set, uses the incident-level component.",
+          "enum": ["monitoring", "storage", "network", "compute", "api-server", "etcd", "version", "Others", "storage-very-very-long-component-name"],
+          "examples": ["monitoring", "storage", "network"]
+        },
         "firing": {
           "type": "boolean",
           "description": "Whether the alert is currently firing. Defaults to true for critical/warning, false for resolved incidents.",
           "default": true,
           "examples": [true, false]
         },
+            "silenced": {
+              "type": "boolean",
+              "description": "Whether the alert should be marked as silenced in mocks.",
+              "default": false,
+              "examples": [true, false]
+            },
         "timeline": {
           "$ref": "#/$defs/Timeline"
         }

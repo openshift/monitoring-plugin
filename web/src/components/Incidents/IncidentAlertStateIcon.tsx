@@ -1,6 +1,7 @@
 import React from 'react';
 import { Tooltip } from '@patternfly/react-core';
 import { BellIcon, CheckIcon, BellSlashIcon } from '@patternfly/react-icons';
+import { useTranslation } from 'react-i18next';
 import { GroupedAlert, IncidentsDetailsAlert } from './model';
 
 interface IncidentAlertStateIconProps {
@@ -23,6 +24,7 @@ export const IncidentAlertStateIcon: React.FC<IncidentAlertStateIconProps> = ({
   alertDetails,
   showTooltip = true,
 }) => {
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const state = getAlertState(alertDetails);
 
   const getIconAndTooltip = () => {
@@ -30,22 +32,22 @@ export const IncidentAlertStateIcon: React.FC<IncidentAlertStateIconProps> = ({
       case 'firing':
         return {
           icon: <BellIcon />,
-          tooltip: 'Firing',
+          tooltip: t('Firing'),
         };
       case 'resolved':
         return {
           icon: <CheckIcon />,
-          tooltip: 'Resolved',
+          tooltip: t('Resolved'),
         };
       case 'silenced':
         return {
           icon: <BellSlashIcon style={{ color: 'var(--pf-t--global--icon--color--disabled)' }} />,
-          tooltip: 'Silenced',
+          tooltip: t('Silenced'),
         };
       default:
         return {
           icon: <BellIcon />,
-          tooltip: 'Unknown',
+          tooltip: t('Unknown'),
         };
     }
   };
@@ -77,6 +79,7 @@ export const GroupedAlertStateIcon: React.FC<GroupedAlertStateIconProps> = ({
   groupedAlert,
   showTooltip = true,
 }) => {
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const state = getGroupedAlertState(groupedAlert);
 
   const getIconAndTooltip = () => {
@@ -84,22 +87,22 @@ export const GroupedAlertStateIcon: React.FC<GroupedAlertStateIconProps> = ({
       case 'firing':
         return {
           icon: <BellIcon />,
-          tooltip: 'Firing',
+          tooltip: t('Firing'),
         };
       case 'resolved':
         return {
           icon: <CheckIcon />,
-          tooltip: 'Resolved',
+          tooltip: t('Resolved'),
         };
       case 'silenced':
         return {
           icon: <BellSlashIcon style={{ color: 'var(--pf-t--global--icon--color--disabled)' }} />,
-          tooltip: 'Silenced',
+          tooltip: t('Silenced'),
         };
       default:
         return {
           icon: <BellIcon />,
-          tooltip: 'Unknown',
+          tooltip: t('Unknown'),
         };
     }
   };

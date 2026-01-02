@@ -52,6 +52,12 @@ export const alertingRuleListPage = {
     cy.byTestID(DataTestIDs.SeverityBadge).contains(severity).should('exist');
     cy.byTestID(DataTestIDs.AlertingRuleStateBadge).contains(total).should('exist');
     cy.byTestID(DataTestIDs.AlertingRuleStateBadge).contains(state).should('exist');
-  }
+  },
+  emptyState: () => {
+    cy.log('alertingRuleListPage.emptyState');
+    cy.byTestID(DataTestIDs.EmptyBoxBody).contains('No alerting rules found').should('be.visible');
+    cy.bySemanticElement('button', 'Clear all filters').should('not.exist');
+    cy.byOUIAID(DataTestIDs.Table).should('not.exist');
+  },
 
 };
