@@ -12,9 +12,12 @@ import {
 import {
   Card,
   CardBody,
+  CardHeader,
   CardTitle,
   EmptyState,
   EmptyStateBody,
+  Flex,
+  FlexItem,
   getResizeObserver,
 } from '@patternfly/react-core';
 import {
@@ -24,10 +27,15 @@ import {
 } from '@patternfly/react-tokens';
 import { useDispatch, useSelector } from 'react-redux';
 import { IncidentsTooltip } from '../IncidentsTooltip';
-import { createAlertsChartBars, generateDateArray, generateAlertsDateArray } from '../utils';
-import { dateTimeFormatter } from '../../console/utils/datetime';
+import {
+  createAlertsChartBars,
+  generateDateArray,
+  generateAlertsDateArray,
+  getCurrentTime,
+} from '../utils';
+import { dateTimeFormatter, timeFormatter } from '../../console/utils/datetime';
 import { useTranslation } from 'react-i18next';
-import { AlertsChartBar, IncidentsDetailsAlert } from '../model';
+import { AlertsChartBar } from '../model';
 import { setAlertsAreLoading } from '../../../store/actions';
 import { MonitoringState } from '../../../store/store';
 import { isEmpty } from 'lodash-es';
@@ -40,51 +48,35 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
   const alertsData = useSelector(
     (state: MonitoringState) => state.plugins.mcp.incidentsData.alertsData,
   );
-  const alertsAreLoading = useSelector(
-    (state: MonitoringState) => state.plugins.mcp.incidentsData.alertsAreLoading,
-  );
   const filteredData = useSelector(
     (state: MonitoringState) => state.plugins.mcp.incidentsData.filteredIncidentsData,
   );
   const incidentsActiveFilters = useSelector(
     (state: MonitoringState) => state.plugins.mcp.incidentsData.incidentsActiveFilters,
   );
-  const { i18n } = useTranslation();
+  const incidentsLastRefreshTime = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData.incidentsLastRefreshTime,
+  );
+  const { t, i18n } = useTranslation(process.env.I18N_NAMESPACE);
 
-  const selectedGroupId = incidentsActiveFilters.groupId?.[0];
-
-  // Only show alerts data if it belongs to the currently selected incident
-  // This prevents showing previous incident's data during the transition
-  const displayAlertsData = useMemo<IncidentsDetailsAlert[]>(() => {
-    // If no incident is selected, show empty
-    if (!selectedGroupId) {
-      return [];
-    }
-
-    // If we're loading and have no data, show empty (prevents old data from showing)
-    if (alertsAreLoading && isEmpty(alertsData)) {
-      return [];
-    }
-
-    return alertsData;
-  }, [alertsData, alertsAreLoading, selectedGroupId]);
+  const currentTime = incidentsLastRefreshTime ?? getCurrentTime();
 
   // Use dynamic date range based on actual alerts data instead of fixed chartDays
   const dateValues = useMemo(() => {
-    if (displayAlertsData.length === 0) {
+    if (!Array.isArray(alertsData) || alertsData.length === 0) {
       // Fallback to single day if no alerts data
-      return generateDateArray(1);
+      return generateDateArray(1, currentTime);
     }
-    return generateAlertsDateArray(displayAlertsData);
-  }, [displayAlertsData]);
+    return generateAlertsDateArray(alertsData, currentTime);
+  }, [alertsData, currentTime]);
 
   const chartData: AlertsChartBar[][] = useMemo(() => {
-    if (displayAlertsData.length === 0) return [];
-    return displayAlertsData.map((alert) => createAlertsChartBars(alert));
-  }, [displayAlertsData]);
+    if (!Array.isArray(alertsData) || alertsData.length === 0) return [];
+    return alertsData.map((alert) => createAlertsChartBars(alert));
+  }, [alertsData]);
 
   useEffect(() => {
-    setChartContainerHeight(chartData?.length < 5 ? 300 : chartData?.length * 60);
+    setChartContainerHeight(chartData?.length < 5 ? 300 : chartData?.length * 55);
     setChartHeight(chartData?.length < 5 ? 250 : chartData?.length * 55);
   }, [chartData]);
 
@@ -125,8 +117,23 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
       data-test={DataTestIDs.AlertsChart.Card}
     >
       <div ref={containerRef} data-test={DataTestIDs.AlertsChart.ChartContainer}>
-        <CardTitle data-test={DataTestIDs.AlertsChart.Title}>Alerts Timeline</CardTitle>
-        {isEmpty(incidentsActiveFilters.groupId) || isEmpty(displayAlertsData) ? (
+        <CardHeader>
+          <Flex spaceItems={{ default: 'spaceItemsMd' }}>
+            <FlexItem>
+              <CardTitle data-test={DataTestIDs.AlertsChart.Title}>
+                {t('Alerts Timeline')}
+              </CardTitle>
+            </FlexItem>
+            {incidentsLastRefreshTime && (
+              <FlexItem>
+                <span className="pf-v6-u-text-color-subtle">
+                  {t('Last updated at')} {timeFormatter.format(new Date(incidentsLastRefreshTime))}
+                </span>
+              </FlexItem>
+            )}
+          </Flex>
+        </CardHeader>
+        {!selectedIncidentIsVisible || isEmpty(incidentsActiveFilters.groupId) ? (
           <EmptyState
             variant="lg"
             style={{
@@ -135,7 +142,7 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
             data-test={DataTestIDs.AlertsChart.EmptyState}
           >
             <EmptyStateBody>
-              To view alerts, select an incident from the chart above or from the filters.
+              {t('To view alerts, select an incident from the chart above or from the filters.')}
             </EmptyStateBody>
           </EmptyState>
         ) : (
@@ -159,35 +166,35 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
                         ? '---'
                         : dateTimeFormatter(i18n.language).format(new Date(datum.y));
 
-                    const alertName = datum.silenced
-                      ? `${datum.name} (currently silenced)`
-                      : datum.name;
+                    const alertName = datum.silenced ? `${datum.name} (silenced)` : datum.name;
 
-                    return `Alert Name: ${alertName}
-                    Severity: ${datum.severity}
-                    Namespace: ${datum.namespace || '---'}
-                    Component: ${datum.component}
-                    Start: ${startDate}
-                    End: ${endDate}`;
+                    return `${t('Severity')}: ${t(datum.severity)}
+                    ${t('Alert Name')}: ${alertName || '---'}
+                    ${t('Namespace')}: ${datum.namespace || '---'}
+                    ${t('Component')}: ${datum.component}
+                    ${t('Start')}: ${startDate}
+                    ${t('End')}: ${endDate}`;
                   }}
                 />
               }
-              domainPadding={{ x: [30, 25] }}
+              domainPadding={{
+                x: chartData.length <= 2 ? [60, 50] : [30, 25],
+              }}
               legendData={[
                 {
-                  name: 'Critical',
+                  name: t('Critical'),
                   symbol: {
                     fill: t_global_color_status_danger_default.var,
                   },
                 },
                 {
-                  name: 'Info',
+                  name: t('Info'),
                   symbol: {
                     fill: t_global_color_status_info_default.var,
                   },
                 },
                 {
-                  name: 'Warning',
+                  name: t('Warning'),
                   symbol: {
                     fill: t_global_color_status_warning_default.var,
                   },
@@ -222,19 +229,19 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
                   <ChartLabel style={{ fill: theme === 'light' ? '#1b1d21' : '#e0e0e0' }} />
                 }
               />
-              <ChartGroup horizontal>
+              <ChartGroup horizontal data-test={DataTestIDs.AlertsChart.ChartContainer}>
                 {chartData.map((bar, index) => {
                   return (
                     //we have several arrays and for each array we make a ChartBar
                     <ChartBar
                       data={bar}
                       key={index}
+                      data-test={`${DataTestIDs.AlertsChart.ChartBar}-${index}`}
                       style={{
                         data: {
                           fill: ({ datum }) => datum.fill,
                           stroke: ({ datum }) => datum.fill,
                           fillOpacity: ({ datum }) => (datum.nodata ? 0 : getOpacity(datum)),
-                          cursor: 'pointer',
                         },
                       }}
                     />

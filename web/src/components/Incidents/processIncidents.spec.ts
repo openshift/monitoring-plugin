@@ -5,14 +5,15 @@ import {
   getIncidentsTimeRanges,
   processIncidentsForAlerts,
 } from './processIncidents';
+import { getCurrentTime } from './utils';
 
 describe('convertToIncidents', () => {
-  const now = Date.now();
+  const now = getCurrentTime();
   const nowSeconds = Math.floor(now / 1000);
 
   describe('edge cases', () => {
     it('should return empty array when no data provided', () => {
-      const result = convertToIncidents([]);
+      const result = convertToIncidents([], now);
       expect(result).toEqual([]);
     });
 
@@ -42,15 +43,47 @@ describe('convertToIncidents', () => {
         },
       ];
 
-      const result = convertToIncidents(data);
+      const result = convertToIncidents(data, now);
       expect(result).toHaveLength(1);
       expect(result[0].src_alertname).toBe('ClusterOperatorDegraded');
     });
   });
 
   describe('firing and resolved status', () => {
+    it('should determine resolved status from original values but return padded values', () => {
+      const timestamp = nowSeconds - 540; // 9 minutes ago
+
+      const data: PrometheusResult[] = [
+        {
+          metric: {
+            group_id: 'incident1',
+            component: 'test-component',
+            layer: 'test-layer',
+            src_alertname: 'TestAlert',
+            src_namespace: 'test-namespace',
+            src_severity: 'critical',
+          },
+          values: [[timestamp, '2']],
+        },
+      ];
+
+      const result = convertToIncidents(data, now);
+      expect(result).toHaveLength(1);
+
+      // Verify resolved is determined from ORIGINAL values (before padding)
+      const timeSinceOriginal = nowSeconds - timestamp;
+      expect(result[0].resolved).toBe(timeSinceOriginal >= 600); // >= 10 minutes
+      expect(result[0].firing).toBe(timeSinceOriginal < 600); // < 10 minutes
+
+      // Verify the returned values ARE the padded values
+      expect(result[0].values.length).toBe(3); // Original + 2 padding points
+      expect(result[0].values[0][0]).toBe(timestamp - 300); // Padding before
+      expect(result[0].values[1][0]).toBe(timestamp); // Original
+      expect(result[0].values[2][0]).toBe(timestamp + 300); // Padding after
+    });
+
     it('should mark incident as firing if last timestamp is within 10 minutes', () => {
-      const recentTimestamp = nowSeconds - 300; // 5 minutes ago
+      const recentTimestamp = nowSeconds - 540; // 9 minutes ago
 
       const data: PrometheusResult[] = [
         {
@@ -66,14 +99,14 @@ describe('convertToIncidents', () => {
         },
       ];
 
-      const result = convertToIncidents(data);
+      const result = convertToIncidents(data, now);
       expect(result).toHaveLength(1);
       expect(result[0].firing).toBe(true);
       expect(result[0].resolved).toBe(false);
     });
 
     it('should mark incident as resolved if last timestamp is more than 10 minutes ago', () => {
-      const oldTimestamp = nowSeconds - 900; // 15 minutes ago
+      const oldTimestamp = nowSeconds - 660; // 11 minutes ago
 
       const data: PrometheusResult[] = [
         {
@@ -89,13 +122,13 @@ describe('convertToIncidents', () => {
         },
       ];
 
-      const result = convertToIncidents(data);
+      const result = convertToIncidents(data, now);
       expect(result).toHaveLength(1);
       expect(result[0].firing).toBe(false);
       expect(result[0].resolved).toBe(true);
     });
 
-    it('should mark incident as firing at exactly 10 minutes boundary', () => {
+    it('should mark incident as resolved at exactly 10 minutes boundary', () => {
       const boundaryTimestamp = nowSeconds - 600; // Exactly 10 minutes ago
 
       const data: PrometheusResult[] = [
@@ -112,10 +145,10 @@ describe('convertToIncidents', () => {
         },
       ];
 
-      const result = convertToIncidents(data);
+      const result = convertToIncidents(data, now);
       expect(result).toHaveLength(1);
-      expect(result[0].firing).toBe(true); // <= 10 minutes is still firing
-      expect(result[0].resolved).toBe(false);
+      expect(result[0].firing).toBe(false); // >= 10 minutes is resolved
+      expect(result[0].resolved).toBe(true);
     });
   });
 
@@ -146,7 +179,7 @@ describe('convertToIncidents', () => {
         },
       ];
 
-      const result = convertToIncidents(data);
+      const result = convertToIncidents(data, now);
       expect(result).toHaveLength(2);
       expect(result[0].group_id).toBe('incident1'); // Earliest first
       expect(result[1].group_id).toBe('incident2');
@@ -178,7 +211,7 @@ describe('convertToIncidents', () => {
         },
       ];
 
-      const result = convertToIncidents(data);
+      const result = convertToIncidents(data, now);
       expect(result).toHaveLength(2);
       expect(result[0].x).toBe(2); // Earliest has highest x
       expect(result[1].x).toBe(1); // Latest has lowest x
@@ -201,7 +234,7 @@ describe('convertToIncidents', () => {
         },
       ];
 
-      const result = convertToIncidents(data);
+      const result = convertToIncidents(data, now);
       expect(result).toHaveLength(1);
       expect(result[0].src_alertname).toBe('TestAlert');
       expect(result[0].src_namespace).toBe('test-namespace');
@@ -221,7 +254,7 @@ describe('convertToIncidents', () => {
         },
       ];
 
-      const result = convertToIncidents(data);
+      const result = convertToIncidents(data, now);
       expect(result).toHaveLength(1);
       expect(result[0].src_alertname).toBe('TestAlert');
       // Only src_ properties should be extracted
@@ -247,12 +280,14 @@ describe('convertToIncidents', () => {
         },
       ];
 
-      const result = convertToIncidents(data);
+      const result = convertToIncidents(data, now);
       expect(result).toHaveLength(1);
-      // insertPaddingPointsForChart adds a point 5 minutes before the first point
-      expect(result[0].values.length).toBe(2);
-      expect(result[0].values[0][0]).toBe(timestamp - 300); // Padding point
+      // insertPaddingPointsForChart adds a point 5 minutes before and after the point
+      // After padding is added because now >= timestamp + 300 (since timestamp = nowSeconds - 600)
+      expect(result[0].values.length).toBe(3);
+      expect(result[0].values[0][0]).toBe(timestamp - 300); // Padding point before
       expect(result[0].values[1][0]).toBe(timestamp); // Original point
+      expect(result[0].values[2][0]).toBe(timestamp + 300); // Padding point after
     });
   });
 
@@ -272,7 +307,7 @@ describe('convertToIncidents', () => {
         },
       ];
 
-      const result = convertToIncidents(data);
+      const result = convertToIncidents(data, now);
       expect(result).toHaveLength(1);
       expect(result[0].component).toBe('test-component');
       // componentList is created by getIncidents
@@ -569,11 +604,12 @@ describe('getIncidents', () => {
 
 describe('getIncidentsTimeRanges', () => {
   const ONE_DAY = 24 * 60 * 60 * 1000;
+  const now = getCurrentTime();
 
   describe('basic functionality', () => {
     it('should return single range for timespan less than one day', () => {
       const timespan = 12 * 60 * 60 * 1000; // 12 hours
-      const result = getIncidentsTimeRanges(timespan);
+      const result = getIncidentsTimeRanges(timespan, now);
 
       expect(result).toHaveLength(1);
       expect(result[0].duration).toBe(ONE_DAY);
@@ -581,7 +617,7 @@ describe('getIncidentsTimeRanges', () => {
 
     it('should split longer timespans into daily chunks', () => {
       const timespan = 3 * ONE_DAY; // 3 days
-      const result = getIncidentsTimeRanges(timespan);
+      const result = getIncidentsTimeRanges(timespan, now);
 
       expect(result.length).toBeGreaterThan(1);
       result.forEach((range) => {
@@ -598,10 +634,10 @@ describe('getIncidentsTimeRanges', () => {
     });
 
     it('should default to current time when maxEndTime not provided', () => {
-      const before = Date.now();
+      const before = getCurrentTime();
       const timespan = ONE_DAY;
-      const result = getIncidentsTimeRanges(timespan);
-      const after = Date.now();
+      const result = getIncidentsTimeRanges(timespan, now);
+      const after = getCurrentTime();
 
       const lastEndTime = result[result.length - 1].endTime;
       expect(lastEndTime).toBeGreaterThanOrEqual(before);
@@ -612,7 +648,7 @@ describe('getIncidentsTimeRanges', () => {
   describe('range calculation', () => {
     it('should have sequential endTime values', () => {
       const timespan = 3 * ONE_DAY;
-      const result = getIncidentsTimeRanges(timespan);
+      const result = getIncidentsTimeRanges(timespan, now);
 
       for (let i = 1; i < result.length; i++) {
         expect(result[i].endTime).toBeGreaterThan(result[i - 1].endTime);
@@ -621,7 +657,7 @@ describe('getIncidentsTimeRanges', () => {
 
     it('should have endTime increments of one day', () => {
       const timespan = 3 * ONE_DAY;
-      const result = getIncidentsTimeRanges(timespan);
+      const result = getIncidentsTimeRanges(timespan, now);
 
       for (let i = 1; i < result.length; i++) {
         const diff = result[i].endTime - result[i - 1].endTime;

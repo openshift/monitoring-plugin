@@ -385,6 +385,11 @@ const monitoringReducer = produce((draft: ObserveState, action: ObserveAction): 
       break;
     }
 
+    case ActionType.SetIncidentsLastRefreshTime: {
+      draft.incidentsData.incidentsLastRefreshTime = action.payload.timestamp;
+      break;
+    }
+
     default:
       break;
   }

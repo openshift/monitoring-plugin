@@ -11,6 +11,7 @@ export const DataTestIDs = {
   AlertingRuleSeverityBadge: 'alerting-rule-severity-badge',
   AlertingRuleStateBadge: 'alerting-rule-state-badge',
   AlertingRuleTotalAlertsBadge: 'alerting-rule-total-alerts-badge',
+  LabelSuggestion: 'suggestion-line',
   CancelButton: 'cancel-button',
   Breadcrumb: 'breadcrumb',
   DownloadCSVButton: 'download-csv-button',
@@ -18,7 +19,10 @@ export const DataTestIDs = {
   ExpireSilenceButton: 'expire-silence-button',
   ExpireXSilencesButton: 'expire-x-silences-button',
   Expression: 'expression',
+  FavoriteStarButton: 'favorite-button',
   KebabDropdownButton: 'kebab-dropdown-button',
+  MastHeadHelpIcon: 'help-dropdown-toggle',
+  MastHeadApplicationItem: 'application-launcher-item',
   MetricGraph: 'metric-graph',
   MetricGraphNoDatapointsFound: 'datapoints-msg',
   MetricGraphTimespanDropdown: 'graph-timespan-dropdown',
@@ -51,7 +55,11 @@ export const DataTestIDs = {
   MetricsPageYellowNoDatapointsFound: 'yellow-no-datapoints-found',
   NameInput: 'name-filter-input',
   NameLabelDropdown: 'console-select-menu-toggle',
+  NamespaceDropdownMenuLink: 'dropdown-menu-item-link',
   NameLabelDropdownOptions: 'console-select-item',
+  NamespaceDropdownShowSwitch: 'showSystemSwitch',
+  NamespaceDropdownTextFilter: 'dropdown-text-filter',
+  PersesDashboardDropdown: 'dashboard-dropdown',
   SeverityBadgeHeader: 'severity-badge-header',
   SeverityBadge: 'severity-badge',
   SilenceAlertDropdownItem: 'silence-alert-dropdown-item',
@@ -116,6 +124,7 @@ export const DataTestIDs = {
     Title: 'alerts-chart-title',
     EmptyState: 'alerts-chart-empty-state',
     ChartContainer: 'alerts-chart-container',
+    ChartBar: 'alerts-chart-bar',
   },
 
   // Incidents Table Test IDs
@@ -159,6 +168,9 @@ export const LegacyDashboardPageTestIDs = {
 export const LegacyTestIDs = {
   ItemFilter: 'item-filter',
   SelectAllSilencesCheckbox: 'select-all-silences-checkbox',
+  PersesDashboardSection: 'dashboard',
+  NamespaceBarDropdown: 'namespace-bar-dropdown',
+  ApplicationLauncher: 'application-launcher',
 };
 
 export const IDs = {
@@ -178,7 +190,6 @@ export const Classes = {
     '.pf-v6-c-alert.pf-m-inline.pf-m-plain.pf-m-info, .pf-v5-c-alert.pf-m-inline.pf-m-plain.pf-m-info.query-browser__reduced-resolution',
   HorizontalNav: '.pf-v6-c-tabs__item, .co-m-horizontal-nav__menu-item',
   IndividualTag: '.pf-v6-c-label__text, .pf-v5-c-chip__text',
-  LabelSuggestion: '.pf-v6-c-label__content.pf-m-clickable, .co-suggestion-line',
   LabelTag: '.pf-v6-c-label__text, .pf-v5-c-label__text',
   MainTag: '.pf-v6-c-label-group__label, .pf-v5-c-chip-group__label',
   MenuItem: '.pf-v6-c-menu__item, .pf-c-dropdown__menu-item',
@@ -193,6 +204,8 @@ export const Classes = {
   MetricsPageUngraphableResultsDescription: '.pf-v6-c-empty-state__body',
   MetricsPageQueryAutocomplete: '.cm-tooltip-autocomplete.cm-tooltip.cm-tooltip-below',
   MoreLessTag: '.pf-v6-c-label-group__label, .pf-v5-c-chip-group__label',
+  NamespaceDropdown: '.pf-v6-c-menu-toggle.co-namespace-dropdown__menu-toggle',
+  PersesListDashboardCount: '.pf-v6-c-menu-toggle__text',
   SectionHeader: '.pf-v6-c-title.pf-m-h2, .co-section-heading',
   TableHeaderColumn: '.pf-v6-c-table__button, .pf-c-table__button',
   SilenceAlertTitle: '.pf-v6-c-alert__title, .pf-v5-c-alert__title',
@@ -215,7 +228,7 @@ export const persesAriaLabels = {
   ViewJSONButton: 'View JSON',
 };
 
-//data-testid
+//data-testid from MUI components
 export const persesMUIDataTestIDs = {
   variableDropdown: 'variable',
   panelGroupHeader: 'panel-group-header',
@@ -242,4 +255,8 @@ export const listPersesDashboardsOUIAIDs = {
   PageHeaderSubtitle: 'PageHeader-subtitle',
   PersesBreadcrumb: 'perses-dashboards-breadcrumb',
   PersesDashListDataViewTable: 'PersesDashList-DataViewTable',
+  persesListDataViewHeaderClearAllFiltersButton: 'PersesDashList-DataViewHeader-clear-all-filters',
+  persesListDataViewFilters: 'DataViewFilters',
+  persesListDataViewHeaderSortButton: 'PersesDashList-DataViewTable-th',
+  persesListDataViewTableDashboardNameTD: 'PersesDashList-DataViewTable-td-',
 };

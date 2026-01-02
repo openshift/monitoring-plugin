@@ -18,6 +18,7 @@ export const alerts = {
                     labels: {
                         // namespace: `${NAMESPACE}`,
                         prometheus: 'openshift-monitoring/k8s',
+                        namespace: `${WatchdogAlert.NAMESPACE}`,
                         severity: `${WatchdogAlert.SEVERITY}`,
                     },
                     annotations: {

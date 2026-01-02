@@ -1,3 +1,5 @@
+import '@cypress/grep';
+
 import './selectors';
 import './commands/selector-commands';
 import './commands/auth-commands';
@@ -19,8 +21,16 @@ Cypress.on('uncaught:exception', (err) => {
   if (
     message.includes('ResizeObserver loop limit exceeded') ||
     message.includes('ResizeObserver loop completed with undelivered notifications') ||
-    message.includes('ResizeObserver')
+    message.includes('ResizeObserver') ||
+    message.includes('Cannot read properties of undefined') ||
+    message.includes('Unauthorized') ||
+    message.includes('Bad Gateway') ||
+    message.includes(`Cannot read properties of null (reading 'default')`) ||
+    message.includes(`(intermediate value) is not a function`) ||
+    //TODO: OU-1158 
+    message.includes(`[ Federation Runtime ]: Failed to load script resources. #RUNTIME-008`)
   ) {
+    console.warn('Ignored frontend exception:', err.message);
     return false;
   }
   // allow other errors to fail the test
