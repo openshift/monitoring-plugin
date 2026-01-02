@@ -27,7 +27,7 @@ import { Link, useSearchParams } from 'react-router-dom-v5-compat';
 
 import { getDashboardUrl, usePerspective } from '../../hooks/usePerspective';
 import { Timestamp } from '@openshift-console/dynamic-plugin-sdk';
-import { listPersesDashboardsDataTestIDs } from 'src/components/data-test';
+import { listPersesDashboardsDataTestIDs } from '../../../components/data-test';
 const perPageOptions = [
   { title: '10', value: 10 },
   { title: '20', value: 20 },

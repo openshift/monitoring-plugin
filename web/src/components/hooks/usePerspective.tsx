@@ -14,7 +14,7 @@ import {
 } from '../utils';
 import { GraphUnits } from '../metrics/units';
 import { QueryParams } from '../query-params';
-import { MonitoringState } from 'src/store/store';
+import { MonitoringState } from '../../store/store';
 
 export type UrlRoot = 'monitoring' | 'dev-monitoring' | 'multicloud/monitoring' | 'virt-monitoring';
 
