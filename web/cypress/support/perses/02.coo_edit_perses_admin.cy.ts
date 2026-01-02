@@ -247,7 +247,7 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
   });
 
 
-  it(`6.${perspective.name} perspective - Edit Toolbar - Edit Datasources - Add Prometheus Datasource`, () => {
+  it(`6.${perspective.name} perspective - Edit Toolbar - Edit Datasources - Add and DeletePrometheus Datasource`, () => {
     cy.log(`6.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
     commonPages.titleShouldHaveText('Dashboards');
     listPersesDashboardsPage.shouldBeLoaded();
@@ -267,12 +267,24 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
     persesDashboardsPage.clickEditActionButton('EditDatasources');
 
     cy.log(`6.5. Verify existing datasources`);
-    persesDashboardsEditDatasources.assertDatasource('PrometheusLocal', 'PrometheusDatasource', '');
+    persesDashboardsEditDatasources.assertDatasource(0, 'PrometheusLocal', 'PrometheusDatasource', '');
 
     cy.log(`6.6. Add datasource`);
     persesDashboardsEditDatasources.clickButton('Add Datasource');
     persesDashboardsEditDatasources.addDatasource('Datasource1', true, 'Prometheus Datasource', 'Datasource1', 'Datasource1');
     persesDashboardsEditDatasources.clickButton('Add');
+    persesDashboardsEditDatasources.assertDatasource(1, 'Datasource1', 'PrometheusDatasource', 'Datasource1');
+
+    cy.log(`6.7. Add second datasource`);
+    persesDashboardsEditDatasources.clickButton('Add Datasource');
+    persesDashboardsEditDatasources.addDatasource('Datasource2', true, 'Prometheus Datasource', 'Datasource2', 'Datasource2');
+    persesDashboardsEditDatasources.clickButton('Add');
+    persesDashboardsEditDatasources.assertDatasource(2, 'Datasource2', 'PrometheusDatasource', 'Datasource2');
+
+    cy.log(`6.8. Delete first datasource`);
+    persesDashboardsEditDatasources.clickDeleteDatasourceButton(1);
+    persesDashboardsEditDatasources.assertDatasourceNotExist('Datasource1');
+
     persesDashboardsEditDatasources.clickButton('Apply');
     //https://issues.redhat.com/browse/OU-1160 - Datasource is not saved
     // persesDashboardsPage.clickEditActionButton('Save');
@@ -299,13 +311,13 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
     persesDashboardsPage.clickEditActionButton('EditDatasources');
 
     cy.log(`7.5. Verify existing datasources`);
-    persesDashboardsEditDatasources.assertDatasource('PrometheusLocal', 'PrometheusDatasource', '');
+    persesDashboardsEditDatasources.assertDatasource(0,'PrometheusLocal', 'PrometheusDatasource', '');
 
     cy.log(`7.6. Edit datasource`);
     persesDashboardsEditDatasources.clickEditDatasourceButton(0);
     persesDashboardsEditDatasources.addDatasource('PrometheusLocal', false, 'Prometheus Datasource', 'Datasource1', 'Datasource1');
     persesDashboardsEditDatasources.clickButton('Apply');
-    persesDashboardsEditDatasources.assertDatasource('PrometheusLocal', 'PrometheusDatasource', 'Datasource1');
+    persesDashboardsEditDatasources.assertDatasource(0,'PrometheusLocal', 'PrometheusDatasource', 'Datasource1');
     persesDashboardsEditDatasources.clickButton('Cancel');
     persesDashboardsPage.clickEditActionButton('Cancel');
     persesDashboardsPage.clickDiscardChangesButton();
@@ -314,6 +326,8 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
 
   // it(`8.${perspective.name} perspective - Edit Toolbar - Edit Datasources - Add Tempo Datasource`, () => {
   // });
+
+
 
   // it(`4.${perspective.name} perspective - Edit Toolbar - Add Panel`, () => {
 
