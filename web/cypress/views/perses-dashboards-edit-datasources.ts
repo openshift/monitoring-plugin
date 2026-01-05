@@ -1,6 +1,6 @@
 import { commonPages } from "./common";
-import { persesAriaLabels, persesMUIDataTestIDs, IDs, editPersesDashboardsAddVariable, editPersesDashboardsAddDatasource } from "../../src/components/data-test";
-import { persesDashboardsModalTitles, persesDashboardsAddListVariableSource, persesDashboardsAddListVariableSort, persesDashboardsRequiredFields } from "../fixtures/perses/constants";
+import { persesAriaLabels, persesMUIDataTestIDs, editPersesDashboardsAddDatasource } from "../../src/components/data-test";
+import { persesDashboardsModalTitles, persesDashboardsRequiredFields } from "../fixtures/perses/constants";
 
 export const persesDashboardsEditDatasources = {
 

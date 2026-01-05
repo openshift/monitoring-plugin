@@ -1,5 +1,5 @@
 import { nav } from '../../views/nav';
-import { runCOOEditPersesTests } from '../../support/perses/02.coo_edit_perses_admin.cy';
+import { runCOOEditPersesTests, runCOOEditPersesTests1 } from '../../support/perses/02.coo_edit_perses_admin_1.cy';
 
 // Set constants for the operators that need to be installed for tests.
 const MCP = {
@@ -30,6 +30,10 @@ describe('COO - Dashboards (Perses) - Edit perses dashboard', { tags: ['@perses'
   });
 
   runCOOEditPersesTests({ 
+    name: 'Administrator',
+  });
+
+  runCOOEditPersesTests1({
     name: 'Administrator',
   });
 

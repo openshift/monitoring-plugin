@@ -181,6 +181,7 @@ export const IDs = {
   persesDashboardActionMenuModal: 'action-menu',
   persesDashboardEditVariablesModalBuiltinButton: 'builtin',
   persesDashboardAddPanelGroupForm: 'panel-group-editor-form',
+  persesDashboardAddPanelForm: 'panel-editor-form',
 };
 
 export const Classes = {
@@ -318,4 +319,9 @@ export const editPersesDashboardsAddDatasource = {
   inputDefaultDatasource: 'spec.default',
   inputDisplayLabel: 'title',
   inputDescription: 'description',
+};
+
+export const editPersesDashboardsAddPanel = {
+  inputName: 'panelDefinition.spec.display.name',
+  inputDescription: 'panelDefinition.spec.display.description',
 };
