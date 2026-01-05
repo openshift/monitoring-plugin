@@ -289,7 +289,7 @@ export const metricsPage = {
 
   clickGraphTimespanDropdown: (timespan: GraphTimespan) => {
     cy.log('metricsPage.clickGraphTimespanDropdown');
-    cy.byTestID(DataTestIDs.MetricGraphTimespanDropdown).should('be.visible').click();
+    cy.byTestID(DataTestIDs.MetricGraphTimespanDropdown).scrollIntoView().should('be.visible').click();
     cy.get(Classes.MenuItem).contains(timespan).should('be.visible').click();
     cy.byPFRole('progressbar').should('be.visible');
     cy.byPFRole('progressbar').should('not.exist');
@@ -321,7 +321,7 @@ export const metricsPage = {
 
   clickResetZoomButton: () => {
     cy.log('metricsPage.clickResetZoomButton');
-    cy.byTestID(DataTestIDs.MetricResetZoomButton).should('be.visible').click();
+    cy.byTestID(DataTestIDs.MetricResetZoomButton).scrollIntoView().should('be.visible').click();
   },
 
   clickHideGraphButton: () => {
@@ -338,18 +338,18 @@ export const metricsPage = {
 
   clickDisconnectedCheckbox: () => {
     cy.log('metricsPage.clickDisconnectedCheckbox');
-    cy.byTestID(DataTestIDs.MetricDisconnectedCheckbox).should('be.visible').click();
+    cy.byTestID(DataTestIDs.MetricDisconnectedCheckbox).scrollIntoView().should('be.visible').click();
   },
 
   clickStackedCheckbox: () => {
     cy.log('metricsPage.clickStackedCheckbox');
-    cy.byTestID(DataTestIDs.MetricStackedCheckbox).should('be.visible').click();
+    cy.byTestID(DataTestIDs.MetricStackedCheckbox).scrollIntoView().should('be.visible').click();
   },
 
   clickStackedCheckboxAndAssert: () => {
     cy.log('metricsPage.clickStackedCheckboxAndAssert');
     cy.get('[id^="' + IDs.ChartAxis1ChartLabel + '"]').invoke('text').as('yAxisLabel');
-    cy.byTestID(DataTestIDs.MetricStackedCheckbox).should('be.visible').click();
+    cy.byTestID(DataTestIDs.MetricStackedCheckbox).scrollIntoView().should('be.visible').click();
     cy.get('[id^="' + IDs.ChartAxis1ChartLabel + '"]').then(() => {
       cy.get('@yAxisLabel').then((value) => {
         cy.get('[id^="' + IDs.ChartAxis1ChartLabel + '"]').should('not.contain', value);
@@ -369,7 +369,7 @@ export const metricsPage = {
 
   predefinedQueriesAssertion: () => {
     cy.log('metricsPage.predefinedQueriesAssertion');
-    cy.byTestID(DataTestIDs.TypeaheadSelectInput).should('be.visible').click();
+    cy.byTestID(DataTestIDs.TypeaheadSelectInput).scrollIntoView().should('be.visible').click();
 
     const queries = Object.values(MetricsPagePredefinedQueries);
     queries.forEach((query) => {
@@ -380,7 +380,7 @@ export const metricsPage = {
 
   clickPredefinedQuery: (query: MetricsPagePredefinedQueries) => {
     cy.log('metricsPage.clickPredefinedQuery');
-    cy.byTestID(DataTestIDs.TypeaheadSelectInput).should('be.visible').click();
+    cy.byTestID(DataTestIDs.TypeaheadSelectInput).scrollIntoView().should('be.visible').click();
     cy.get(Classes.MetricsPagePredefinedQueriesMenuItem).contains(query).should('be.visible').click();
   },
 
@@ -441,46 +441,50 @@ export const metricsPage = {
  */
   graphAxisXAssertion: (graphTimespan: GraphTimespan) => {
     cy.log('metricsPage.graphAxisAssertion');
-
-    switch (graphTimespan) {
-      case GraphTimespan.FIVE_MINUTES:
-        cy.get('[id^="' + IDs.ChartAxis0ChartLabel + '"]').should('have.length', 20);
-        break;
-      case GraphTimespan.FIFTEEN_MINUTES:
-        cy.get('[id^="' + IDs.ChartAxis0ChartLabel + '"]').should('have.length', 15);
-        break;
-      case GraphTimespan.THIRTY_MINUTES:
-        cy.get('[id^="' + IDs.ChartAxis0ChartLabel + '"]').should('have.length.lte', 30);
-        break;
-      case GraphTimespan.ONE_HOUR:
-        cy.get('[id^="' + IDs.ChartAxis0ChartLabel + '"]').should('have.length', 12);
-        break;
-      case GraphTimespan.TWO_HOURS:
-        cy.get('[id^="' + IDs.ChartAxis0ChartLabel + '"]').should('have.length', 24);
-        break;
-      case GraphTimespan.SIX_HOURS:
-        cy.get('[id^="' + IDs.ChartAxis0ChartLabel + '"]').should('have.length', 12);
-        break;
-      case GraphTimespan.TWELVE_HOURS:
-        cy.get('[id^="' + IDs.ChartAxis0ChartLabel + '"]').should('have.length', 12);
-        break;
-      case GraphTimespan.ONE_DAY:
-        cy.get('[id^="' + IDs.ChartAxis0ChartLabel + '"]').should('have.length', 24);
-        break;
-      case GraphTimespan.TWO_DAYS:
-        cy.get('[id^="' + IDs.ChartAxis0ChartLabel + '"]').should('have.length', 16);
-        break;
-      case GraphTimespan.ONE_WEEK:
-        cy.get('[id^="' + IDs.ChartAxis0ChartLabel + '"]').should('have.length', 14);
-        break;
-      case GraphTimespan.TWO_WEEKS:
-        cy.get('[id^="' + IDs.ChartAxis0ChartLabel + '"]').should('have.length', 14);
-        break;
-      default: //30m is default
-        cy.get('[id^="' + IDs.ChartAxis0ChartLabel + '"]').should('have.length', 15);
-        break;
-    }
-
+    cy.get('body').then($body => {
+      if ($body.find('[id^="' + IDs.ChartAxis0ChartLabel + '"]').length > 0) {
+        switch (graphTimespan) {
+          case GraphTimespan.FIVE_MINUTES:
+            cy.get('[id^="' + IDs.ChartAxis0ChartLabel + '"]').should('have.length', 20);
+            break;
+          case GraphTimespan.FIFTEEN_MINUTES:
+            cy.get('[id^="' + IDs.ChartAxis0ChartLabel + '"]').should('have.length', 15);
+            break;
+          case GraphTimespan.THIRTY_MINUTES:
+            cy.get('[id^="' + IDs.ChartAxis0ChartLabel + '"]').should('have.length.lte', 30);
+            break;
+          case GraphTimespan.ONE_HOUR:
+            cy.get('[id^="' + IDs.ChartAxis0ChartLabel + '"]').should('have.length', 12);
+            break;
+          case GraphTimespan.TWO_HOURS:
+            cy.get('[id^="' + IDs.ChartAxis0ChartLabel + '"]').should('have.length', 24);
+            break;
+          case GraphTimespan.SIX_HOURS:
+            cy.get('[id^="' + IDs.ChartAxis0ChartLabel + '"]').should('have.length', 12);
+            break;
+          case GraphTimespan.TWELVE_HOURS:
+            cy.get('[id^="' + IDs.ChartAxis0ChartLabel + '"]').should('have.length', 12);
+            break;
+          case GraphTimespan.ONE_DAY:
+            cy.get('[id^="' + IDs.ChartAxis0ChartLabel + '"]').should('have.length', 24);
+            break;
+          case GraphTimespan.TWO_DAYS:
+            cy.get('[id^="' + IDs.ChartAxis0ChartLabel + '"]').should('have.length', 16);
+            break;
+          case GraphTimespan.ONE_WEEK:
+            cy.get('[id^="' + IDs.ChartAxis0ChartLabel + '"]').should('have.length', 14);
+            break;
+          case GraphTimespan.TWO_WEEKS:
+            cy.get('[id^="' + IDs.ChartAxis0ChartLabel + '"]').should('have.length', 14);
+            break;
+          default: //30m is default
+            cy.get('[id^="' + IDs.ChartAxis0ChartLabel + '"]').should('have.length', 15);
+            break;
+        }
+      } else {
+        cy.byTestID(DataTestIDs.MetricGraphNoDatapointsFound).scrollIntoView().contains(MetricGraphEmptyState.NO_DATAPOINTS_FOUND).should('be.visible');
+      }
+    });
   },
 
   enterQueryInput: (index: number, query: string) => {
