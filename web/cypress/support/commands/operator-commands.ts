@@ -205,6 +205,8 @@ const operatorUtils = {
           expect(result.code).to.eq(0);
           cy.log(`Monitoring plugin pod is now running in namespace: ${MP.namespace}`);
           cy.reload(true);
+          cy.get('#page-sidebar', { timeout: 30000 }).should('be.visible');
+          cy.wait(3000);
         });
 
     } else {
