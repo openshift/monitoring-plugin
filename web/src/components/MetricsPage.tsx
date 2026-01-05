@@ -1,4 +1,6 @@
 import {
+  DocumentTitle,
+  ListPageHeader,
   NamespaceBar,
   PrometheusData,
   PrometheusEndpoint,
@@ -61,7 +63,6 @@ import {
 import * as _ from 'lodash-es';
 import type { FC, Ref } from 'react';
 import { useMemo, useCallback, useEffect, useState } from 'react';
-import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -113,8 +114,7 @@ import {
   t_global_spacer_sm,
   t_global_font_family_mono,
 } from '@patternfly/react-tokens';
-import { QueryParamProvider, StringParam, useQueryParam } from 'use-query-params';
-import { ReactRouter5Adapter } from 'use-query-params/adapters/react-router-5';
+import { StringParam, useQueryParam } from 'use-query-params';
 import { GraphUnits, isGraphUnit } from './metrics/units';
 import { SimpleSelect, SimpleSelectOption } from '@patternfly/react-templates';
 import { valueFormatter } from './console/console-shared/src/components/query-browser/QueryBrowserTooltip';
@@ -122,6 +122,7 @@ import { ALL_NAMESPACES_KEY } from './utils';
 import { MonitoringProvider } from '../contexts/MonitoringContext';
 import { DataTestIDs } from './data-test';
 import { useMonitoring } from '../hooks/useMonitoring';
+import { useQueryNamespace } from './hooks/useQueryNamespace';
 
 // Stores information about the currently focused query input
 let focusedQuery;
@@ -303,7 +304,7 @@ const MetricsActionsMenu: FC = () => {
           isExpanded={isOpen}
           data-test={DataTestIDs.MetricsPageActionsDropdownButton}
         >
-          Actions
+          {t('Actions')}
         </MenuToggle>
       )}
       popperProps={{ position: 'right' }}
@@ -612,7 +613,7 @@ const QueryKebab: FC<{ index: number }> = ({ index }) => {
 
 export const QueryTable: FC<QueryTableProps> = ({ index, namespace, customDatasource, units }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { plugin } = useMonitoring();
+  const { plugin, accessCheckLoading, useMetricsTenancy } = useMonitoring();
 
   const [data, setData] = useState<PrometheusData>();
   const [error, setError] = useState<PrometheusAPIError>();
@@ -629,9 +630,8 @@ export const QueryTable: FC<QueryTableProps> = ({ index, namespace, customDataso
     (state: MonitoringState) =>
       getObserveState(plugin, state).queryBrowser.queries[index]?.isExpanded,
   );
-  const pollInterval = useSelector(
-    (state: MonitoringState) =>
-      Number(getObserveState(plugin, state).queryBrowser.pollInterval) * 15 * 1000,
+  const pollInterval = useSelector((state: MonitoringState) =>
+    Number(getObserveState(plugin, state).queryBrowser.pollInterval),
   );
   const query = useSelector(
     (state: MonitoringState) => getObserveState(plugin, state).queryBrowser.queries[index]?.query,
@@ -664,7 +664,7 @@ export const QueryTable: FC<QueryTableProps> = ({ index, namespace, customDataso
   // If the namespace is defined getPrometheusURL will use
   // the PROMETHEUS_TENANCY_BASE_PATH for requests in the developer view
   const tick = () => {
-    if (isEnabled && isExpanded && query) {
+    if (isEnabled && isExpanded && !accessCheckLoading && query) {
       safeFetch<PrometheusResponse>(
         buildPrometheusUrl({
           prometheusUrlProps: {
@@ -674,7 +674,7 @@ export const QueryTable: FC<QueryTableProps> = ({ index, namespace, customDataso
           },
           basePath: getPrometheusBasePath({
             prometheus: 'cmo',
-            namespace,
+            useTenancyPath: useMetricsTenancy,
             basePathOverride: customDatasource?.basePath,
           }),
         }),
@@ -692,7 +692,16 @@ export const QueryTable: FC<QueryTableProps> = ({ index, namespace, customDataso
     }
   };
 
-  usePoll(tick, pollInterval, namespace, query, span, lastRequestTime);
+  usePoll(
+    tick,
+    pollInterval,
+    namespace,
+    query,
+    span,
+    lastRequestTime,
+    useMetricsTenancy,
+    accessCheckLoading,
+  );
 
   useEffect(() => {
     setData(undefined);
@@ -1046,8 +1055,8 @@ const QueryBrowserWrapper: FC<{
   units: GraphUnits;
 }> = ({ customDataSourceName, customDataSource, customDatasourceError, units }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const [activeNamespace] = useActiveNamespace();
   const { plugin } = useMonitoring();
+  const [activeNamespace] = useActiveNamespace();
 
   const dispatch = useDispatch();
 
@@ -1105,7 +1114,11 @@ const QueryBrowserWrapper: FC<{
   const insertExampleQuery = () => {
     const focusedIndex = focusedQuery?.index ?? 0;
     const index = queries[focusedIndex] ? focusedIndex : 0;
-    const text = 'sort_desc(sum(sum_over_time(ALERTS{alertstate="firing"}[24h])) by (alertname))';
+    const labelMatchers =
+      activeNamespace === ALL_NAMESPACES_KEY
+        ? '{alertstate="firing"}'
+        : `{alertstate="firing", namespace="${activeNamespace}"}`;
+    const text = `sort_desc(sum(sum_over_time(ALERTS${labelMatchers}[24h])) by (alertname))`;
     dispatch(queryBrowserPatchQuery(index, { isEnabled: true, query: text, text }));
   };
 
@@ -1161,7 +1174,6 @@ const QueryBrowserWrapper: FC<{
       units={units}
       showStackedControl
       showDisconnectedControl
-      useTenancy={activeNamespace !== ALL_NAMESPACES_KEY}
     />
   );
 };
@@ -1235,9 +1247,8 @@ const IntervalDropdown = () => {
     (v: number) => dispatch(queryBrowserSetPollInterval(v)),
     [dispatch],
   );
-  const pollInterval = useSelector(
-    (state: MonitoringState) =>
-      Number(getObserveState(plugin, state).queryBrowser.pollInterval) * 15 * 1000,
+  const pollInterval = useSelector((state: MonitoringState) =>
+    Number(getObserveState(plugin, state).queryBrowser.pollInterval),
   );
   return <DropDownPollInterval setInterval={setInterval} selectedInterval={pollInterval} />;
 };
@@ -1277,14 +1288,7 @@ const GraphUnitsDropDown: FC = () => {
 const MetricsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const [units, setUnits] = useQueryParam(QueryParams.Units, StringParam);
-  const [queryNamespace, setQueryNamespace] = useQueryParam(QueryParams.Namespace, StringParam);
-  const [activeNamespace, setActiveNamespace] = useActiveNamespace();
-
-  useEffect(() => {
-    if (queryNamespace && activeNamespace !== queryNamespace) {
-      setActiveNamespace(queryNamespace);
-    }
-  }, [queryNamespace, activeNamespace, setActiveNamespace]);
+  const { setNamespace } = useQueryNamespace();
 
   const dispatch = useDispatch();
 
@@ -1363,21 +1367,15 @@ const MetricsPage_: FC = () => {
 
   return (
     <>
-      <Helmet>
-        <title>{t('Metrics')}</title>
-      </Helmet>
+      <DocumentTitle>{t('Metrics')}</DocumentTitle>
       <NamespaceBar
         onNamespaceChange={(namespace) => {
           dispatch(queryBrowserDeleteAllQueries());
-          setQueryNamespace(namespace);
+          setNamespace(namespace);
         }}
       />
-      <PageSection hasBodyWrapper={false}>
+      <ListPageHeader title={t('Metrics')}>
         <Split hasGutter>
-          <SplitItem>
-            <Title headingLevel="h1">{t('Metrics')}</Title>
-          </SplitItem>
-          <SplitItem isFilled />
           <SplitItem data-test={DataTestIDs.MetricGraphUnitsDropDown}>
             <Tooltip content={<>{t('This dropdown only formats results.')}</>}>
               <GraphUnitsDropDown />
@@ -1390,7 +1388,7 @@ const MetricsPage_: FC = () => {
             <MetricsActionsMenu />
           </SplitItem>
         </Split>
-      </PageSection>
+      </ListPageHeader>
       <PageSection hasBodyWrapper={false}>
         <Stack hasGutter>
           <StackItem>
@@ -1432,9 +1430,7 @@ const MetricsPage = withFallback(MetricsPage_);
 export const MpCmoMetricsPage: React.FC = () => {
   return (
     <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
-      <QueryParamProvider adapter={ReactRouter5Adapter}>
-        <MetricsPage />
-      </QueryParamProvider>
+      <MetricsPage />
     </MonitoringProvider>
   );
 };

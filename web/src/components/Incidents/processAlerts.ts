@@ -2,11 +2,11 @@
 
 import { PrometheusResult, PrometheusRule } from '@openshift-console/dynamic-plugin-sdk';
 import { Alert, GroupedAlert, Incident, Severity } from './model';
-import { insertPaddingPointsForChart, sortByEarliestTimestamp } from './utils';
-
-// Constants for time-based calculations
-const ALERT_WINDOW_PADDING_SECONDS = 30;
-const ALERT_RESOLVED_THRESHOLD_MS = 10 * 60 * 1000; // 10 minutes
+import {
+  insertPaddingPointsForChart,
+  isResolved,
+  PROMETHEUS_QUERY_INTERVAL_SECONDS,
+} from './utils';
 
 /**
  * Deduplicates alert objects by their `alertname`, `namespace`, `component`, and `severity` fields and merges their values
@@ -201,6 +201,7 @@ function mergeIncidentsByKey(incidents: Array<Partial<Incident>>): Array<Partial
 export function convertToAlerts(
   prometheusResults: Array<PrometheusResult>,
   selectedIncidents: Array<Partial<Incident>>,
+  currentTime: number,
 ): Array<Alert> {
   // Merge selected incidents by composite key. Consolidates duplicates caused by non-key labels
   // like `pod` or `silenced` that aren't supported by cluster health analyzer.
@@ -211,13 +212,8 @@ export function convertToAlerts(
     (incident) => incident.values?.map((value) => value[0]) ?? [],
   );
 
-  // Handle edge case where there are no timestamps
-  if (timestamps.length === 0) {
-    return [];
-  }
-
-  const firstTimestamp = Math.min(...timestamps);
-  const lastTimestamp = Math.max(...timestamps);
+  const incidentFirstTimestamp = Math.min(...timestamps);
+  const incidentLastTimestamp = Math.max(...timestamps);
 
   // Watchdog is a heartbeat metric, not a real issue
   const validAlerts = prometheusResults.filter((alert) => alert.metric.alertname !== 'Watchdog');
@@ -225,13 +221,15 @@ export function convertToAlerts(
   const distinctAlerts = deduplicateAlerts(validAlerts);
 
   // Filter alerts to only include values within the incident's time window
+  const ALERT_WINDOW_PADDING_SECONDS = PROMETHEUS_QUERY_INTERVAL_SECONDS / 2;
+
   const alerts = distinctAlerts
-    .map((alert: PrometheusResult): PrometheusResult | null => {
+    .map((alert: PrometheusResult): Alert | null => {
       // Keep only values within the incident time range (with padding)
       const values: Array<[number, string]> = alert.values.filter(
         ([date]) =>
-          date >= firstTimestamp - ALERT_WINDOW_PADDING_SECONDS &&
-          date <= lastTimestamp + ALERT_WINDOW_PADDING_SECONDS,
+          date >= incidentFirstTimestamp - ALERT_WINDOW_PADDING_SECONDS &&
+          date <= incidentLastTimestamp + ALERT_WINDOW_PADDING_SECONDS,
       );
 
       // Exclude alerts with no values in this time window
@@ -239,53 +237,55 @@ export function convertToAlerts(
         return null;
       }
 
+      // Determine resolved status based on original values before padding
       const sortedValues = values.sort((a, b) => a[0] - b[0]);
-      const paddedValues = insertPaddingPointsForChart(sortedValues);
+      let lastTimestamp = sortedValues[sortedValues.length - 1][0];
+      const resolved = isResolved(lastTimestamp, currentTime);
+
+      // Find the associated incident, if it's one of the select ones
+      // Since incidents are already merged by (group_id, src_alertname, src_namespace, src_severity),
+      // there should be at most one matching incident
+      const matchingIncident = incidents.find(
+        (incident) =>
+          incident.src_alertname === alert.metric.alertname &&
+          incident.src_namespace === alert.metric.namespace &&
+          incident.src_severity === alert.metric.severity,
+      );
+
+      // If no matching incident found, skip the alert
+      if (!matchingIncident) {
+        return null;
+      }
+
+      // Add padding points for chart rendering
+      const paddedValues = insertPaddingPointsForChart(sortedValues, currentTime);
+      const firstTimestamp = paddedValues[0][0];
+      lastTimestamp = paddedValues[paddedValues.length - 1][0];
 
       return {
-        ...alert,
+        alertname: alert.metric.alertname,
+        namespace: alert.metric.namespace,
+        severity: alert.metric.severity as Severity,
+        component: matchingIncident.component,
+        layer: matchingIncident.layer,
+        name: alert.metric.name,
+        alertstate: resolved ? 'resolved' : 'firing',
         values: paddedValues,
+        alertsStartFiring: firstTimestamp,
+        alertsEndFiring: lastTimestamp,
+        resolved,
+        x: 0, // Will be set after sorting
+        silenced: matchingIncident.silenced ?? false,
       };
     })
-    .filter((alert): alert is PrometheusResult => alert !== null);
-
-  const sortedAlerts = sortByEarliestTimestamp(alerts);
-
-  return sortedAlerts.map((alert, index) => {
-    const alertsStartFiring = alert.values[0][0] * 1000;
-    const alertsEndFiring = alert.values[alert.values.length - 1][0] * 1000;
-    const resolved = Date.now() - alertsEndFiring > ALERT_RESOLVED_THRESHOLD_MS;
-
-    // Find the associated incident, if it's one of the select ones
-    // Since incidents are already merged by (group_id, src_alertname, src_namespace, src_severity),
-    // there should be at most one matching incident
-    const matchingIncident = incidents.find(
-      (incident) =>
-        incident.src_alertname === alert.metric.alertname &&
-        incident.src_namespace === alert.metric.namespace &&
-        incident.src_severity === alert.metric.severity,
-    );
-
-    // Use silenced value from incident data (cluster_health_components_map)
-    // Default to false if no matching incident found
-    const silenced = matchingIncident?.silenced ?? false;
-
-    return {
-      alertname: alert.metric.alertname,
-      namespace: alert.metric.namespace,
-      severity: alert.metric.severity as Severity,
-      component: alert.metric.component,
-      layer: alert.metric.layer,
-      name: alert.metric.name,
-      alertstate: resolved ? 'resolved' : 'firing',
-      values: alert.values,
-      alertsStartFiring,
-      alertsEndFiring,
-      resolved,
+    .filter((alert): alert is Alert => alert !== null)
+    .sort((a, b) => a.alertsStartFiring - b.alertsStartFiring)
+    .map((alert, index, sortedAlerts) => ({
+      ...alert,
       x: sortedAlerts.length - index,
-      silenced,
-    };
-  });
+    }));
+
+  return alerts;
 }
 
 export const groupAlertsForTable = (

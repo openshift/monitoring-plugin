@@ -1,21 +1,21 @@
 import type { FC, PropsWithChildren } from 'react';
 import { memo } from 'react';
-import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 
 import { PageSection, Stack, StackItem } from '@patternfly/react-core';
+
+import { DocumentTitle, ListPageHeader } from '@openshift-console/dynamic-plugin-sdk';
 import { CombinedDashboardMetadata } from './hooks/useDashboardsData';
 
 import { Breadcrumb, BreadcrumbItem } from '@patternfly/react-core';
-import { getDashboardsListUrl, usePerspective } from '../../hooks/usePerspective';
-import { StringParam, useQueryParam } from 'use-query-params';
-import { QueryParams } from '../../query-params';
 import { useNavigate } from 'react-router-dom-v5-compat';
+import { StringParam, useQueryParam } from 'use-query-params';
+import { getDashboardsListUrl, usePerspective } from '../../hooks/usePerspective';
+import { QueryParams } from '../../query-params';
 
 import { chart_color_blue_100, chart_color_blue_300 } from '@patternfly/react-tokens';
-import { usePatternFlyTheme } from '../../hooks/usePatternflyTheme';
-import { ListPageHeader } from '@openshift-console/dynamic-plugin-sdk';
 import { listPersesDashboardsDataTestIDs } from '../../data-test';
+import { usePatternFlyTheme } from '../../hooks/usePatternflyTheme';
 
 const DashboardBreadCrumb: React.FunctionComponent = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -94,9 +94,7 @@ export const DashboardSkeleton: FC<MonitoringDashboardsPageProps> = memo(({ chil
 
   return (
     <>
-      <Helmet>
-        <title>{t('Metrics dashboards')}</title>
-      </Helmet>
+      <DocumentTitle>{t('Metrics dashboards')}</DocumentTitle>
       <PageSection hasBodyWrapper={false}>
         <HeaderTop />
       </PageSection>

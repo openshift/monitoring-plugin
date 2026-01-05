@@ -1,12 +1,12 @@
 import {
   AlertSeverity,
   consoleFetchJSON,
+  DocumentTitle,
   ListPageFilter,
   RowProps,
   Silence,
   SilenceStates,
   TableColumn,
-  useActiveNamespace,
   useListPageFilter,
   VirtualizedTable,
 } from '@openshift-console/dynamic-plugin-sdk';
@@ -23,7 +23,6 @@ import { sortable } from '@patternfly/react-table';
 import * as _ from 'lodash-es';
 import type { FC } from 'react';
 import { useContext, useState, useMemo, useCallback, memo } from 'react';
-import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom-v5-compat';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
@@ -160,9 +159,7 @@ const SilencesPage_: FC = () => {
 
   return (
     <>
-      <Helmet>
-        <title>Alerting</title>
-      </Helmet>
+      <DocumentTitle>{t('Alerting')}</DocumentTitle>
       <PageSection hasBodyWrapper={false}>
         <SelectedSilencesContext.Provider value={{ selectedSilences, setSelectedSilences }}>
           <Flex>
@@ -211,7 +208,7 @@ const SilencesPage_: FC = () => {
               Row={SilenceTableRowWithCheckbox}
               unfilteredData={silences?.data ?? []}
               NoDataEmptyMsg={() => {
-                return <EmptyBox label={t('Silences')} />;
+                return <EmptyBox customMessage={t('No silences found')} />;
               }}
               scrollNode={() => document.getElementById('silences-table-scroll')}
             />
@@ -281,13 +278,11 @@ const ExpireAllSilencesButton: FC<ExpireAllSilencesButtonProps> = ({ setErrorMes
 
   const { selectedSilences, setSelectedSilences } = useContext(SelectedSilencesContext);
 
-  const [namespace] = useActiveNamespace();
-
   const onClick = () => {
     setInProgress();
     Promise.allSettled(
       [...selectedSilences].map((silenceID: string) =>
-        consoleFetchJSON.delete(getFetchSilenceUrl(perspective, silenceID, namespace)),
+        consoleFetchJSON.delete(getFetchSilenceUrl(perspective, silenceID)),
       ),
     ).then((values) => {
       setNotInProgress();
@@ -325,10 +320,9 @@ const SilenceTableRowWithCheckbox: FC<RowProps<Silence>> = ({ obj }) => (
 const CreateSilenceButton: FC = memo(() => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
-  const [namespace] = useActiveNamespace();
 
   return (
-    <Link to={getNewSilenceUrl(perspective, namespace)}>
+    <Link to={getNewSilenceUrl(perspective)}>
       <Button data-test={DataTestIDs.SilenceButton} variant="primary">
         {t('Create silence')}
       </Button>

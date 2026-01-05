@@ -84,7 +84,6 @@ export const metricsPage = {
   clickInsertExampleQuery: () => {
     cy.log('metricsPage.insertExampleQuery');
     cy.byTestID(DataTestIDs.MetricsPageInsertExampleQueryButton).click();
-    cy.get('[id^="' + IDs.ChartAxis0ChartLabel + '"]').eq(0).should('be.visible');
   },
 
   shouldBeLoadedWithGraph: () => {
@@ -143,12 +142,23 @@ export const metricsPage = {
       cy.get(Classes.MenuItem).contains(interval).should('be.visible');
     });
 
+    cy.get(Classes.MenuItem).contains(MonitoringRefreshInterval.FIFTEEN_SECONDS).click();
+    cy.byTestID(DataTestIDs.MetricDropdownPollInterval).should(
+      'contain',
+      MonitoringRefreshInterval.FIFTEEN_SECONDS,
+    );
+
     cy.byTestID(DataTestIDs.MetricDropdownPollInterval).should('be.visible').click();
+    cy.get(Classes.MenuItem).contains(MonitoringRefreshInterval.REFRESH_OFF).click();
+    cy.byTestID(DataTestIDs.MetricDropdownPollInterval).should(
+      'contain',
+      MonitoringRefreshInterval.REFRESH_OFF,
+    );
   },
 
   clickAddQueryButton: () => {
     cy.log('metricsPage.clickAddQuery');
-    cy.byTestID(DataTestIDs.MetricsPageAddQueryButton).click();
+    cy.byTestID(DataTestIDs.MetricsPageAddQueryButton).scrollIntoView().click();
     metricsPage.addQueryAssertion();
   },
 
@@ -351,7 +361,7 @@ export const metricsPage = {
   graphCardInlineInfoAssertion: (visible: boolean) => {
     cy.log('metricsPage.graphCardInlineInfoAssertion');
     if (visible) {
-      cy.get(Classes.GraphCardInlineInfo).should('be.visible');
+      cy.get(Classes.GraphCardInlineInfo).scrollIntoView().should('be.visible');
     } else {
       cy.get(Classes.GraphCardInlineInfo).should('not.exist');
     }
@@ -564,6 +574,16 @@ export const metricsPage = {
       cy.task('doesFileExist', { fileName: downloadedFileName }).should('be.true');
     });
 
+  },
+
+  noDatapointsFound: () => {
+    cy.log('metricsPage.noDatapointsFound');
+    cy.byTestID(DataTestIDs.MetricGraphNoDatapointsFound).contains(MetricGraphEmptyState.NO_DATAPOINTS_FOUND).should('be.visible');
+    cy.byTestID(DataTestIDs.MetricsPageYellowNoDatapointsFound).contains(MetricGraphEmptyState.NO_DATAPOINTS_FOUND).should('be.visible');
+    cy.byTestID(DataTestIDs.MetricsPageInsertExampleQueryButton).should('not.exist');
+    cy.byTestID(DataTestIDs.MetricsPageQueryTable).should('not.exist');
+    cy.byTestID(DataTestIDs.MetricsPageSelectAllUnselectAllButton).should('not.exist');
+    cy.byTestID(DataTestIDs.MetricsPageSeriesButton).should('not.exist');
   },
 
 };

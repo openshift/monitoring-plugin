@@ -1,6 +1,7 @@
 import {
   Alert,
   AlertStates,
+  DocumentTitle,
   ListPageFilter,
   RowFilter,
   useActiveNamespace,
@@ -10,7 +11,6 @@ import { Flex, PageSection } from '@patternfly/react-core';
 import { Table, TableGridBreakpoint, Th, Thead, Tr } from '@patternfly/react-table';
 import * as _ from 'lodash-es';
 import type { FC } from 'react';
-import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
@@ -28,12 +28,14 @@ import {
   severityRowFilter,
   SilencesNotLoadedWarning,
 } from './AlertUtils';
-import Error from './Error';
 import useSelectedFilters from './useSelectedFilters';
 import { MonitoringProvider } from '../../contexts/MonitoringContext';
 import { useAlerts } from '../../hooks/useAlerts';
+import { AccessDenied } from '../console/console-shared/src/components/empty-state/AccessDenied';
+import { useMonitoring } from '../../hooks/useMonitoring';
 
 const AlertsPage_: FC = () => {
+  const { useAlertsTenancy } = useMonitoring();
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const [namespace] = useActiveNamespace();
   const { defaultAlertTenant, perspective } = usePerspective();
@@ -104,7 +106,7 @@ const AlertsPage_: FC = () => {
         fuzzyCaseInsensitive(clusterName, alert.labels?.cluster),
       type: 'alert-cluster',
     } as RowFilter);
-  } else if (namespace && namespace !== ALL_NAMESPACES_KEY) {
+  } else if (useAlertsTenancy && namespace && namespace !== ALL_NAMESPACES_KEY) {
     rowFilters = rowFilters.filter((filter) => filter.type !== 'alert-source');
   }
 
@@ -115,13 +117,11 @@ const AlertsPage_: FC = () => {
 
   const filteredAggregatedAlerts = getAggregateAlertsLists(filteredData);
   const loaded = !!rulesAlertLoading?.loaded;
-  const loadError = rulesAlertLoading?.loadError ? rulesAlertLoading.loadError : null;
+  const loadError = rulesAlertLoading?.loadError ? rulesAlertLoading.loadError : undefined;
 
   return (
     <>
-      <Helmet>
-        <title>Alerting</title>
-      </Helmet>
+      <DocumentTitle>{t('Alerting')}</DocumentTitle>
       <PageSection hasBodyWrapper={false} type="subnav">
         <Flex>
           <ListPageFilter
@@ -137,10 +137,11 @@ const AlertsPage_: FC = () => {
             <DownloadCSVButton loaded={loaded} filteredData={filteredAggregatedAlerts} />
           )}
         </Flex>
-        {silences?.loadError && (
+        {/* Only show the silences error when the alerts have loaded, since failing to load the
+          silences doesn't matter if the alerts haven't loaded*/}
+        {silences?.loadError && !loadError && (
           <SilencesNotLoadedWarning silencesLoadError={silences?.loadError} />
         )}
-
         {filteredAggregatedAlerts?.length > 0 && loaded && (
           <Table gridBreakPoint={TableGridBreakpoint.none} role="presentation">
             <Thead>
@@ -161,10 +162,9 @@ const AlertsPage_: FC = () => {
             ))}
           </Table>
         )}
-
-        {loadError && <Error error={loadError} />}
+        {loadError && <AccessDenied message={loadError.message} />}
         {loaded && filteredAggregatedAlerts?.length === 0 && !loadError && (
-          <EmptyBox label={t('Alerts')} />
+          <EmptyBox customMessage={t('No alerts found')} />
         )}
         {!loaded && <LoadingBox />}
       </PageSection>

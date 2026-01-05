@@ -3,12 +3,12 @@ import {
   Alert,
   AlertingRuleChartExtension,
   AlertStates,
+  DocumentTitle,
   isAlertingRuleChart,
   PrometheusLabels,
   ResourceIcon,
   ResourceLink,
   Rule,
-  useActiveNamespace,
   useResolvedExtensions,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
@@ -56,7 +56,6 @@ import {
   ToolbarGroup,
   ToolbarItem,
 } from '@patternfly/react-core';
-import { Helmet } from 'react-helmet';
 import { MonitoringState } from '../../store/store';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 import { StatusBox } from '../console/console-shared/src/components/status/StatusBox';
@@ -101,8 +100,6 @@ const AlertsDetailsPage_: FC = () => {
 
   const { alerts, rulesAlertLoading, silences } = useAlerts();
 
-  const [namespace] = useActiveNamespace();
-
   const hideGraphs = useSelector(
     (state: MonitoringState) => !!getObserveState(plugin, state).hideGraphs,
   );
@@ -146,9 +143,9 @@ const AlertsDetailsPage_: FC = () => {
 
   return (
     <>
-      <Helmet>
-        <title>{t('{{name}} details', { name: labels?.alertname || AlertResource.label })}</title>
-      </Helmet>
+      <DocumentTitle>
+        {t('{{name}} details', { name: labels?.alertname || AlertResource.label })}
+      </DocumentTitle>
       <StatusBox
         data={alert}
         label={AlertResource.label}
@@ -159,7 +156,7 @@ const AlertsDetailsPage_: FC = () => {
           <PageBreadcrumb hasBodyWrapper={false}>
             <Breadcrumb>
               <BreadcrumbItem>
-                <Link to={getAlertsUrl(perspective, namespace)} data-test={DataTestIDs.Breadcrumb}>
+                <Link to={getAlertsUrl(perspective)} data-test={DataTestIDs.Breadcrumb}>
                   {t('Alerts')}
                 </Link>
               </BreadcrumbItem>
@@ -193,7 +190,7 @@ const AlertsDetailsPage_: FC = () => {
               {state !== AlertStates.Silenced && (
                 <SplitItem>
                   <Button
-                    onClick={() => navigate(getNewSilenceAlertUrl(perspective, alert, namespace))}
+                    onClick={() => navigate(getNewSilenceAlertUrl(perspective, alert))}
                     variant="primary"
                     data-test={DataTestIDs.SilenceButton}
                   >
@@ -244,12 +241,7 @@ const AlertsDetailsPage_: FC = () => {
             <Grid sm={12} md={6} hasGutter>
               <GridItem span={12}>
                 {!sourceId || sourceId === 'prometheus' ? (
-                  <Graph
-                    filterLabels={labels}
-                    namespace={namespace}
-                    query={rule?.query}
-                    ruleDuration={rule?.duration}
-                  />
+                  <Graph filterLabels={labels} query={rule?.query} ruleDuration={rule?.duration} />
                 ) : AlertsChart && !hideGraphs ? (
                   <AlertsChart rule={rule} />
                 ) : null}
@@ -370,7 +362,7 @@ const AlertsDetailsPage_: FC = () => {
                         </FlexItem>
                         <FlexItem>
                           <Link
-                            to={getRuleUrl(perspective, rule, namespace)}
+                            to={getRuleUrl(perspective, rule)}
                             data-test={DataTestIDs.AlertingRuleResourceLink}
                           >
                             {_.get(rule, 'name')}
@@ -383,7 +375,7 @@ const AlertsDetailsPage_: FC = () => {
               </GridItem>
             </Grid>
           </PageSection>
-          {silences.loaded && !_.isEmpty(alert?.silencedBy) && (
+          {silences?.loaded && !_.isEmpty(alert?.silencedBy) && (
             <>
               <Divider />
               <PageSection hasBodyWrapper={false}>

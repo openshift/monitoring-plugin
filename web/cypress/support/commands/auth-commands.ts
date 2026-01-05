@@ -7,7 +7,7 @@ export {};
 declare global {
   namespace Cypress {
     interface Chainable {
-      switchPerspective(perspective: string);
+      switchPerspective(...perspectives: string[]);
       uiLogin(provider: string, username: string, password: string, oauthurl?: string);
       uiLogout();
       cliLogin(username?, password?, hostapi?);
@@ -81,8 +81,11 @@ declare global {
   }
 
   Cypress.Commands.add('validateLogin', () => {
+    cy.log('validateLogin');
     cy.visit('/');
+    cy.wait(2000);
     cy.byTestID("username", {timeout: 120000}).should('be.visible');
+    cy.wait(10000);
     guidedTour.close();
   });
 
@@ -116,15 +119,18 @@ declare global {
     cy.validateLogin();
   });
 
-  Cypress.Commands.add('switchPerspective', (perspective: string) => {
+  Cypress.Commands.add('switchPerspective', (...perspectives: string[]) => {
     /* If side bar is collapsed then expand it
     before switching perspecting */
+    cy.wait(2000);
     cy.get('body').then((body) => {
       if (body.find('.pf-m-collapsed').length > 0) {
         cy.get('#nav-toggle').click();
       }
     });
-    nav.sidenav.switcher.changePerspectiveTo(perspective);
+    nav.sidenav.switcher.changePerspectiveTo(...perspectives);
+    cy.wait(3000);
+    guidedTour.close();
   });
 
   // To avoid influence from upstream login change

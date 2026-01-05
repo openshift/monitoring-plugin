@@ -6,6 +6,7 @@ import Shadow = Cypress.Shadow;
 import 'cypress-wait-until';
 import { operatorHubPage } from '../../views/operator-hub-page';
 import { nav } from '../../views/nav';
+import { DataTestIDs, LegacyTestIDs } from '../../../src/components/data-test';
 
 export { };
 
@@ -20,6 +21,8 @@ declare global {
         cleanupCOO(MCP: { namespace: string, operatorName: string, packageName: string }, MP: { namespace: string, operatorName: string});
         RemoveClusterAdminRole();
         setupCOO(MCP: { namespace: string, operatorName: string, packageName: string }, MP: { namespace: string, operatorName: string });
+        beforeBlockACM( MCP: { namespace: string; operatorName: string; packageName: string }, MP: { namespace: string; operatorName: string },): Chainable<void>;
+        closeOnboardingModalIfPresent(): Chainable<void>;
       }
     }
   }
@@ -33,9 +36,41 @@ const useSession = Cypress.env('SESSION');
 export const operatorAuthUtils = {
   // Core login and auth logic (shared between session and non-session versions)
       performLoginAndAuth(useSession: boolean): void {
-      cy.adminCLI(
-        `oc adm policy add-cluster-role-to-user cluster-admin ${Cypress.env('LOGIN_USERNAME')}`,
-      );
+      if (`${Cypress.env('LOGIN_USERNAME')}` === 'kubeadmin') {
+        cy.adminCLI(
+          `oc adm policy add-cluster-role-to-user cluster-admin ${Cypress.env('LOGIN_USERNAME')}`,
+        );
+      } else {
+        cy.adminCLI(
+          `oc project openshift-monitoring`,
+        );
+        cy.adminCLI(
+          `oc adm policy add-role-to-user monitoring-edit ${Cypress.env('LOGIN_USERNAME')} -n openshift-monitoring`,
+        );
+        cy.adminCLI(
+          `oc adm policy add-role-to-user monitoring-alertmanager-edit --role-namespace openshift-monitoring ${Cypress.env('LOGIN_USERNAME')}`,
+        );
+
+        cy.adminCLI(
+          `oc adm policy add-role-to-user view ${Cypress.env('LOGIN_USERNAME')} -n openshift-monitoring`,
+        );
+
+        cy.adminCLI(
+          `oc project default`,
+        );
+
+        cy.adminCLI(
+          `oc adm policy add-role-to-user monitoring-edit ${Cypress.env('LOGIN_USERNAME')} -n default`,
+        );
+        cy.adminCLI(
+          `oc adm policy add-role-to-user monitoring-alertmanager-edit --role-namespace default ${Cypress.env('LOGIN_USERNAME')}`,
+        );
+
+        cy.adminCLI(
+          `oc adm policy add-role-to-user view ${Cypress.env('LOGIN_USERNAME')} -n default`,
+        );
+
+      }
       cy.exec(
         `oc get oauthclient openshift-browser-client -o go-template --template="{{index .redirectURIs 0}}" --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
       ).then((result) => {
@@ -122,12 +157,11 @@ export const operatorAuthUtils = {
     return [...baseKey, ...envVars.filter(Boolean)];
   },
 
-  generateKBVSessionKey(KBV: { namespace: string, operatorName: string, packageName: string }): string[] {
+  generateKBVSessionKey(KBV: { namespace: string, packageName: string }): string[] {
     const baseKey = [
       Cypress.env('LOGIN_IDP'),
       Cypress.env('LOGIN_USERNAME'),
       KBV.namespace,
-      KBV.operatorName,
       KBV.packageName
     ];
 
@@ -172,7 +206,6 @@ const operatorUtils = {
           cy.log(`Monitoring plugin pod is now running in namespace: ${MP.namespace}`);
           cy.reload(true);
         });
-      // });
 
     } else {
       cy.log('MP_IMAGE is NOT set. Skipping patching the image in CMO operator CSV.');
@@ -191,7 +224,7 @@ const operatorUtils = {
         'Operator installed successfully',
       );
       cy.exec(
-        `oc label namespaces ${MCP.namespace} openshift.io/cluster-monitoring=true --overwrite=true --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+        `oc label namespace ${MCP.namespace} openshift.io/cluster-monitoring=true --overwrite=true --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
       );
     } else if (Cypress.env('KONFLUX_COO_BUNDLE_IMAGE')) {
       cy.log('KONFLUX_COO_BUNDLE_IMAGE is set. COO operator will be installed from Konflux bundle.');
@@ -203,7 +236,7 @@ const operatorUtils = {
         `oc create namespace ${MCP.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
       );
       cy.exec(
-        `oc label namespaces ${MCP.namespace} openshift.io/cluster-monitoring=true --overwrite=true --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+        `oc label namespace ${MCP.namespace} openshift.io/cluster-monitoring=true --overwrite=true --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
       );
       cy.exec(
         `operator-sdk run bundle --timeout=10m --namespace ${MCP.namespace} ${Cypress.env('KONFLUX_COO_BUNDLE_IMAGE')} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} --verbose `,
@@ -219,7 +252,7 @@ const operatorUtils = {
         `oc create namespace ${MCP.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
       );
       cy.exec(
-        `oc label namespaces ${MCP.namespace} openshift.io/cluster-monitoring=true --overwrite=true --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+        `oc label namespace ${MCP.namespace} openshift.io/cluster-monitoring=true --overwrite=true --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
       );
       cy.exec(
         `operator-sdk run bundle --timeout=10m --namespace ${MCP.namespace} ${Cypress.env('CUSTOM_COO_BUNDLE_IMAGE')} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} --verbose `,
@@ -248,17 +281,25 @@ const operatorUtils = {
 
   waitForCOOReady(MCP: { namespace: string }): void {
     cy.log('Check Cluster Observability Operator status');
-    cy.exec(
-      `sleep 15 && oc wait --for=condition=Ready pods --selector=app.kubernetes.io/name=observability-operator -n ${MCP.namespace} --timeout=60s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
-      {
-        timeout: readyTimeoutMilliseconds,
-        failOnNonZeroExit: true
-      }
-    ).then((result) => {
-      expect(result.code).to.eq(0);
-      cy.log(`Observability-operator pod is now running in namespace: ${MCP.namespace}`);
-    });
 
+    cy.exec(`sleep 60 && oc get pods -n ${MCP.namespace} | grep observability-operator | awk '{print $1}'`, { timeout: readyTimeoutMilliseconds, failOnNonZeroExit: true })
+    .its('stdout') // Get the captured output string
+    .then((podName) => {
+      // Trim any extra whitespace (newline, etc.)
+      const COO_POD_NAME = podName.trim();
+      cy.log(`Successfully retrieved Pod Name: ${COO_POD_NAME}`);
+      cy.exec(
+        `sleep 15 && oc wait --for=condition=Ready pods ${COO_POD_NAME} -n ${MCP.namespace} --timeout=60s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+        {
+          timeout: readyTimeoutMilliseconds,
+          failOnNonZeroExit: true
+        }
+      ).then((result) => {
+        expect(result.code).to.eq(0);
+        cy.log(`Observability-operator pod is now running in namespace: ${MCP.namespace}`);
+      });
+    });
+    
     cy.get('#page-sidebar').then(($sidebar) => {
       const section = $sidebar.text().includes('Ecosystem') ? 'Ecosystem' : 'Operators';
       nav.sidenav.clickNavLink([section, 'Installed Operators']);
@@ -299,7 +340,7 @@ const operatorUtils = {
     cy.exec(`oc new-project perses-dev --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
     cy.log('Create openshift-cluster-sample-dashboard instance.');
-    cy.exec(`oc apply -f ./cypress/fixtures/coo/openshift-cluster-sample-dashboard.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+    cy.exec(`sed 's/namespace: openshift-cluster-observability-operator/namespace: ${MCP.namespace}/g' ./cypress/fixtures/coo/openshift-cluster-sample-dashboard.yaml | oc apply -f - --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
     cy.log('Create perses-dashboard-sample instance.');
     cy.exec(`oc apply -f ./cypress/fixtures/coo/perses-dashboard-sample.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
@@ -314,7 +355,7 @@ const operatorUtils = {
     cy.exec(`oc apply -f ./cypress/fixtures/coo/thanos-querier-datasource.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
     cy.exec(
-      `oc label namespaces ${MCP.namespace} openshift.io/cluster-monitoring=true --overwrite=true --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+      `oc label namespace ${MCP.namespace} openshift.io/cluster-monitoring=true --overwrite=true --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
     );
 
     cy.log('Create Monitoring UI Plugin instance.');
@@ -331,9 +372,9 @@ const operatorUtils = {
     });
 
     cy.exec(
-      `sleep 15 && oc wait --for=condition=Ready pods --selector=app.kubernetes.io/instance=perses -n ${MCP.namespace} --timeout=60s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+      `sleep 15 && oc wait --for=condition=Ready pods --selector=app.kubernetes.io/instance=perses -n ${MCP.namespace} --timeout=600s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
       {
-        timeout: readyTimeoutMilliseconds,
+        timeout: installTimeoutMilliseconds,
         failOnNonZeroExit: true
       }
     ).then((result) => {
@@ -342,7 +383,7 @@ const operatorUtils = {
     });
 
     cy.exec(
-      `sleep 15 && oc wait --for=jsonpath='{.metadata.name}'=health-analyzer --timeout=60s servicemonitor/health-analyzer --namespace=openshift-cluster-observability-operator -n ${MCP.namespace} --timeout=60s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+      `sleep 15 && oc wait --for=jsonpath='{.metadata.name}'=health-analyzer --timeout=60s servicemonitor/health-analyzer -n ${MCP.namespace} --timeout=60s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
       {
         timeout: readyTimeoutMilliseconds,
         failOnNonZeroExit: true
@@ -355,6 +396,38 @@ const operatorUtils = {
     cy.reload(true);
     cy.visit('/monitoring/v2/dashboards');
     cy.url().should('include', '/monitoring/v2/dashboards');
+  },
+
+  setupTroubleshootingPanel(MCP: { namespace: string }): void {
+    cy.log('Create troubleshooting panel instance.');
+    cy.exec(`oc apply -f ./cypress/fixtures/coo/troubleshooting-panel-ui-plugin.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+    
+    cy.log('Troubleshooting panel instance created. Waiting for pods to be ready.');
+    cy.exec(
+      `sleep 15 && oc wait --for=condition=Ready pods --selector=app.kubernetes.io/instance=troubleshooting-panel -n ${MCP.namespace} --timeout=60s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+      {
+        timeout: readyTimeoutMilliseconds,
+        failOnNonZeroExit: true
+      }
+    ).then((result) => {
+      expect(result.code).to.eq(0);
+      cy.log(`Troubleshooting panel pod is now running in namespace: ${MCP.namespace}`);
+    });
+
+    cy.exec(
+      `sleep 15 && oc wait --for=condition=Ready pods --selector=app.kubernetes.io/instance=korrel8r -n ${MCP.namespace} --timeout=600s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+      {
+        timeout: installTimeoutMilliseconds,
+        failOnNonZeroExit: true
+      }
+    ).then((result) => {
+      expect(result.code).to.eq(0);
+      cy.log(`Korrel8r pod is now running in namespace: ${MCP.namespace}`);
+    });
+
+    cy.reload(true);
+    cy.byLegacyTestID(LegacyTestIDs.ApplicationLauncher).should('be.visible').click();
+    cy.byTestID(DataTestIDs.MastHeadApplicationItem).contains('Signal Correlation').should('be.visible');
   },
 
   revertMonitoringPluginImage(MP: { namespace: string }): void {
@@ -379,11 +452,16 @@ const operatorUtils = {
           `sleep 15 && oc wait --for=condition=Ready pods --selector=app.kubernetes.io/name=monitoring-plugin -n ${MP.namespace} --timeout=60s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
           {
             timeout: readyTimeoutMilliseconds,
-            failOnNonZeroExit: true
+            failOnNonZeroExit: false
           }
         ).then((result) => {
-          expect(result.code).to.eq(0);
-          cy.log(`Monitoring plugin pod is now running in namespace: ${MP.namespace}`);
+          if (result.code === 0) {
+            cy.log(`Monitoring plugin pod is now running in namespace: ${MP.namespace}`);
+          } else if (result.stderr.includes('no matching resources found')) {
+            cy.log(`No monitoring-plugin pods found in namespace ${MP.namespace} - this is expected on fresh clusters`);
+          } else {
+            throw new Error(`Failed to wait for monitoring-plugin pods: ${result.stderr}`);
+          }
         });
 
         cy.reload(true);
@@ -407,33 +485,194 @@ const operatorUtils = {
 
     cy.log('Delete Monitoring UI Plugin instance.');
     cy.executeAndDelete(
-      `oc delete ${config.kind} ${config.name} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+      `oc delete ${config.kind} ${config.name} --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
     );
   
-    // Common cleanup steps
     cy.log('Remove openshift-cluster-sample-dashboard instance.');
-    cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/openshift-cluster-sample-dashboard.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+    cy.executeAndDelete(`sed 's/namespace: openshift-cluster-observability-operator/namespace: ${MCP.namespace}/g' ./cypress/fixtures/coo/openshift-cluster-sample-dashboard.yaml | oc delete -f - --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
     cy.log('Remove perses-dashboard-sample instance.');
-    cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/perses-dashboard-sample.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+    cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/perses-dashboard-sample.yaml --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
     cy.log('Remove prometheus-overview-variables instance.');
-    cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/prometheus-overview-variables.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+    cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/prometheus-overview-variables.yaml --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
     cy.log('Remove thanos-compact-overview-1var instance.');
-    cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/thanos-compact-overview-1var.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+    cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/thanos-compact-overview-1var.yaml --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
     cy.log('Remove Thanos Querier instance.');
-    cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/thanos-querier-datasource.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+    cy.executeAndDelete(`oc delete -f ./cypress/fixtures/coo/thanos-querier-datasource.yaml --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
     cy.log('Remove perses-dev namespace');
-    cy.executeAndDelete(`oc delete namespace perses-dev --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+    cy.executeAndDelete(`oc delete namespace perses-dev --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
     // Additional cleanup only when COO is installed
     if (!Cypress.env('SKIP_COO_INSTALL')) {
       cy.log('Remove Cluster Observability Operator namespace');
-      cy.executeAndDelete(`oc delete namespace ${MCP.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+      
+      // First check if the namespace exists
+      cy.exec(
+        `oc get namespace ${MCP.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+        {
+          timeout: readyTimeoutMilliseconds,
+          failOnNonZeroExit: false
+        }
+      ).then((checkResult) => {
+        if (checkResult.code === 0) {
+          // Namespace exists, proceed with deletion
+          cy.log('Namespace exists, proceeding with deletion');
+
+          // Step 1: Delete CSV (ClusterServiceVersion)
+          cy.exec(
+            `oc delete csv --all -n ${MCP.namespace} --ignore-not-found --wait=false --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+            {
+              timeout: 30000,
+              failOnNonZeroExit: false
+            }
+          ).then((result) => {
+            if (result.code === 0) {
+              cy.log(`CSV deletion initiated in ${MCP.namespace}`);
+            } else {
+              cy.log(`CSV deletion failed or not found: ${result.stderr}`);
+            }
+          });
+
+          // Step 2: Delete Subscription
+          cy.exec(
+            `oc delete subscription --all -n ${MCP.namespace} --ignore-not-found --wait=false --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+            {
+              timeout: 30000,
+              failOnNonZeroExit: false
+            }
+          ).then((result) => {
+            if (result.code === 0) {
+              cy.log(`Subscription deletion initiated in ${MCP.namespace}`);
+            } else {
+              cy.log(`Subscription deletion failed or not found: ${result.stderr}`);
+            }
+          });
+
+          // Step 3: Initiate namespace deletion without waiting (--wait=false prevents timeout)
+          cy.exec(
+            `oc delete namespace ${MCP.namespace} --ignore-not-found --wait=false --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+            {
+              timeout: 30000, // Short timeout since we're not waiting
+              failOnNonZeroExit: false
+            }
+          ).then((result) => {
+            if (result.code === 0) {
+              cy.log(`Namespace deletion initiated for ${MCP.namespace}`);
+            } else {
+              cy.log(`Failed to initiate deletion: ${result.stderr}`);
+            }
+          });
+
+
+          const checkIntervalMs = 15000; // Check every 15 seconds
+          const startTime = Date.now();
+          const maxWaitTimeMs = 600000; //10min
+        
+          const checkStatus = () => {
+            const elapsed = Date.now() - startTime;
+        
+            if (elapsed > maxWaitTimeMs) {
+              cy.log(`${elapsed}ms - Timeout reached (${maxWaitTimeMs / 60000}m). Namespace ${MCP.namespace} still terminating. Attempting force-delete.`);
+              // Execute the shell script to remove finalizers
+              return cy.exec(`./cypress/fixtures/coo/force_delete_ns.sh ${MCP.namespace} ${Cypress.env('KUBECONFIG_PATH')}`, 
+                { failOnNonZeroExit: false, timeout: installTimeoutMilliseconds }).then((result) => {
+                cy.log(`${elapsed}ms - Force delete output: ${result.stdout}`);
+                if (result.code !== 0) {
+                  cy.log(`Force delete failed with exit code ${result.code}: ${result.stderr}`);
+                }
+              });
+            }
+        
+            // Command to check the namespace status
+            // Use 'oc get ns -o jsonpath' for minimal output and fastest check
+            cy.exec(`oc get ns ${MCP.namespace} --kubeconfig ${`${Cypress.env('KUBECONFIG_PATH')}`} -o jsonpath='{.status.phase}'`, { failOnNonZeroExit: false })
+              .then((result) => {
+                const status = result.stdout.trim();
+        
+                if (status === 'Terminating') {
+                  cy.log(`${elapsed}ms - ${MCP.namespace} is still 'Terminating'. Retrying in ${checkIntervalMs / 1000}s. Elapsed: ${Math.round(elapsed / 1000)}s`);
+                  cy.exec(
+                          `./cypress/fixtures/coo/force_delete_ns.sh ${MCP.namespace} ${Cypress.env('KUBECONFIG_PATH')}`,
+                          { failOnNonZeroExit: false, timeout: installTimeoutMilliseconds }
+                        ).then((forceResult) => {
+                          cy.log(`${elapsed}ms - Force delete output: ${forceResult.stdout}`);
+                          if (forceResult.code !== 0) {
+                            cy.log(`Force delete failed with exit code ${forceResult.code}: ${forceResult.stderr}`);
+                          }
+                        });
+                  // Wait and call recursively
+                  cy.wait(checkIntervalMs).then(checkStatus);
+                } else if (status === 'NotFound') {
+                  cy.log(`${elapsed}ms - ${MCP.namespace} is successfully deleted.`);
+                  // Stop recursion
+                } else {
+                  // Handles 'Active' or other unexpected states if the delete command failed silently earlier
+                  cy.log(`${elapsed}ms - ${MCP.namespace} changed to unexpected state: ${status}. Stopping monitoring.`);
+                }
+              });
+          };
+          
+          checkStatus();
+
+          cy.then(() => {
+            operatorUtils.waitForPodsDeleted(MCP.namespace);
+          });
+
+        } else {
+          cy.log('Namespace does not exist, skipping deletion');
+        }
+      });
     }
+  },
+
+  waitForPodsDeleted(namespace: string, maxWaitMs: number = 120000): void {
+    const kubeconfigPath = Cypress.env('KUBECONFIG_PATH');
+    const checkIntervalMs = 5000;
+    const startTime = Date.now();
+    const podPatterns = 'monitoring|perses|perses-0|health-analyzer|troubleshooting-panel|korrel8r';
+    
+    const checkPods = () => {
+      const elapsed = Date.now() - startTime;
+      
+      if (elapsed > maxWaitMs) {
+        throw new Error(`Timeout: Pods still exist after ${maxWaitMs / 1000}s`);
+      }
+      
+      cy.exec(
+        `oc get pods -n ${namespace} --kubeconfig ${kubeconfigPath} -o name 2>&1 | grep -E '${podPatterns}' | wc -l`,
+        { failOnNonZeroExit: false }
+      ).then((result) => {
+        const count = parseInt(result.stdout.trim(), 10);
+        
+        if (count === 0 || result.stderr.includes('not found')) {
+          cy.log(`✓ All target pods deleted after ${elapsed}ms`);
+        } else {
+          cy.log(`${elapsed}ms - ${count} pod(s) still exist, retrying...`);
+          cy.wait(checkIntervalMs).then(checkPods);
+        }
+      });
+    };
+    
+    checkPods();
+  },
+
+  cleanupTroubleshootingPanel(MCP: { namespace: string, config1?: { kind: string, name: string } }): void {
+    const config1 = MCP.config1 || { kind: 'UIPlugin', name: 'troubleshooting-panel' };
+
+    if (Cypress.env('SKIP_ALL_INSTALL')) {
+      cy.log('SKIP_ALL_INSTALL is set. Skipping Troubleshooting Panel instance deletion.');
+      return;
+    }
+
+    cy.log('Delete Troubleshooting Panel instance.');
+    cy.executeAndDelete(
+      `oc delete ${config1.kind} ${config1.name} --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+    );
+
   },
 
   RemoveClusterAdminRole(): void {
@@ -544,6 +783,7 @@ Cypress.Commands.add('beforeBlock', (MP: { namespace: string, operatorName: stri
       cy.log('SKIP_ALL_INSTALL is set. Skipping COO cleanup and operator verifications (preserves existing setup).');
       return;
     }
+    operatorUtils.cleanupTroubleshootingPanel(MCP);
     operatorUtils.cleanup(MCP);
     operatorUtils.revertMonitoringPluginImage(MP);
     cy.log('Cleanup COO (no session) completed');
@@ -558,6 +798,7 @@ Cypress.Commands.add('beforeBlock', (MP: { namespace: string, operatorName: stri
     operatorUtils.waitForCOOReady(MCP);
     operatorUtils.setupMonitoringConsolePlugin(MCP);
     operatorUtils.setupDashboardsAndPlugins(MCP);
+    operatorUtils.setupTroubleshootingPanel(MCP);
     operatorUtils.setupMonitoringPluginImage(MP);
     operatorUtils.RemoveClusterAdminRole();
     operatorUtils.collectDebugInfo(MP, MCP);
@@ -568,3 +809,36 @@ Cypress.Commands.add('beforeBlock', (MP: { namespace: string, operatorName: stri
     operatorUtils.RemoveClusterAdminRole();
     cy.log('Remove cluster-admin role from user completed');
   });
+
+Cypress.Commands.add('beforeBlockACM', (MCP, MP) => {
+  cy.beforeBlockCOO(MCP, MP);
+  cy.log('=== [Setup] Installing ACM Operator & MCO ===');
+  cy.exec('bash ./cypress/fixtures/coo/acm-install.sh', {
+    env: { KUBECONFIG: Cypress.env('KUBECONFIG_PATH'), },
+    failOnNonZeroExit: false,
+    timeout: 1200000, // long time script
+  });
+  cy.exec(`oc apply -f ./cypress/fixtures/coo/acm-uiplugin.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+  // add example alerts for test
+  cy.exec(`oc apply -f ./cypress/fixtures/coo/acm-alerrule-test.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+  cy.log('ACM environment setup completed');
+});
+
+Cypress.Commands.add('closeOnboardingModalIfPresent', () => {
+  cy.get('body').then(($body) => {
+    const modalSelector = 'button[data-ouia-component-id="clustersOnboardingModal-ModalBoxCloseButton"]';
+    if ($body.find(modalSelector).length > 0) {
+      cy.log('Onboarding modal detected, attempting to close...');
+      cy.get(modalSelector, { timeout: 20000 })
+        .should('be.visible')
+        .should('not.be.disabled')
+        .click({ force: true });
+
+      cy.get(modalSelector, { timeout: 10000 })
+        .should('not.exist')
+        .then(() => cy.log('Modal successfully closed'));
+    } else {
+      cy.log('No onboarding modal found');
+    }
+  });
+});
