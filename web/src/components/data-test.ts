@@ -180,6 +180,7 @@ export const IDs = {
   persesDashboardDownloadButton: 'download-dashboard-button',
   persesDashboardActionMenuModal: 'action-menu',
   persesDashboardEditVariablesModalBuiltinButton: 'builtin',
+  persesDashboardAddPanelGroupForm: 'panel-group-editor-form',
 };
 
 export const Classes = {
@@ -232,21 +233,31 @@ export const persesAriaLabels = {
   EditDatasourcesButton: 'Edit datasources',
   AddPanelButton: 'Add panel',
   AddGroupButton: 'Add panel group',
+  OpenCollapseGroupButtonPrefix: 'expand group ',
+  CollapseGroupButtonPrefix: 'collapse group ',
   //PanelGroup toolbar buttons
   AddPanelToGroupPrefix: 'add panel to group ',
   EditPanelGroupPrefix: 'edit group ',
   DeletePanelGroupPrefix: 'delete group ',
-  MovePanelGroupDownPrefix: 'move group ',
+  MovePanelGroupPrefix: 'move group ',
   MovePanelGroupDownSuffix: ' down',
-  MovePanelGroupUpPrefix: 'move group ',
   MovePanelGroupUpSuffix: ' up',
   EditDashboardVariablesTable: 'table of variables',
   EditDashboardDatasourcesTable: 'table of datasources',
+  //Panel toolbar buttons
+  EditPanelActionMenuButtonPrefix: 'show panel actions for ',
+  EditPanelExpandCollapseButtonPrefix: 'toggle panel ',
+  EditPanelExpandCollapseButtonSuffix: ' view mode',
+  EditPanelPrefix: 'edit panel ',
+  EditPanelDuplicateButtonPrefix: 'duplicate panel ',
+  EditPanelDeleteButtonPrefix: 'delete panel ',
+  EditPanelMovePanelButtonPrefix: 'move panel ',
 };
 
 //data-testid from MUI components
 export const persesMUIDataTestIDs = {
   variableDropdown: 'variable',
+  panelGroup: 'panel-group',
   panelGroupHeader: 'panel-group-header',
   panelHeader: 'panel',
   editDashboardVariablesModal: 'variable-editor',
@@ -257,6 +268,7 @@ export const persesMUIDataTestIDs = {
   editDashboardEditVariableMoveUpButton: 'ArrowUpIcon',
   editDashboardEditVariableDatasourceEditButton: 'PencilIcon',
   editDashboardEditVariableDatasourceDeleteButton: 'TrashCanIcon',
+  addPanelGroupFormName: 'panel-group-editor-name',
 };
 
 export const persesDashboardDataTestIDs = {

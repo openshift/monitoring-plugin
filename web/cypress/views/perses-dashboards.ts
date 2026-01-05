@@ -9,14 +9,14 @@ export const persesDashboardsPage = {
   shouldBeLoaded: () => {
     cy.log('persesDashboardsPage.shouldBeLoaded');
     commonPages.titleShouldHaveText(MonitoringPageTitles.DASHBOARDS);
-    cy.byAriaLabel(persesAriaLabels.TimeRangeDropdown).contains(persesDashboardsTimeRange.LAST_30_MINUTES).should('be.visible');
-    cy.byAriaLabel(persesAriaLabels.ZoomInButton).should('be.visible');
-    cy.byAriaLabel(persesAriaLabels.ZoomOutButton).should('be.visible');
-    cy.byAriaLabel(persesAriaLabels.RefreshButton).should('be.visible');
-    cy.byAriaLabel(persesAriaLabels.RefreshIntervalDropdown).contains(persesDashboardsRefreshInterval.OFF).should('be.visible');
-    cy.byTestID(DataTestIDs.PersesDashboardDropdown).find('input').should('be.visible');
-    cy.byTestID(DataTestIDs.PersesDashboardDropdown).find('button').should('be.visible');
-    cy.byLegacyTestID(LegacyTestIDs.PersesDashboardSection).should('be.visible');
+    cy.byAriaLabel(persesAriaLabels.TimeRangeDropdown).contains(persesDashboardsTimeRange.LAST_30_MINUTES).scrollIntoView().should('be.visible');
+    cy.byAriaLabel(persesAriaLabels.ZoomInButton).scrollIntoView().should('be.visible');
+    cy.byAriaLabel(persesAriaLabels.ZoomOutButton).scrollIntoView().should('be.visible');
+    cy.byAriaLabel(persesAriaLabels.RefreshButton).scrollIntoView().should('be.visible');
+    cy.byAriaLabel(persesAriaLabels.RefreshIntervalDropdown).contains(persesDashboardsRefreshInterval.OFF).scrollIntoView().should('be.visible');
+    cy.byTestID(DataTestIDs.PersesDashboardDropdown).find('input').scrollIntoView().should('be.visible');
+    cy.byTestID(DataTestIDs.PersesDashboardDropdown).find('button').scrollIntoView().should('be.visible');
+    cy.byLegacyTestID(LegacyTestIDs.PersesDashboardSection).scrollIntoView().should('be.visible');
 
   },
 
@@ -24,91 +24,108 @@ export const persesDashboardsPage = {
   shouldBeLoaded1: () => {
     cy.log('persesDashboardsPage.shouldBeLoaded');
     commonPages.titleShouldHaveText(MonitoringPageTitles.DASHBOARDS);
-    cy.byOUIAID(listPersesDashboardsOUIAIDs.PageHeaderSubtitle).should('contain', listPersesDashboardsPageSubtitle).should('be.visible');
+    cy.byOUIAID(listPersesDashboardsOUIAIDs.PageHeaderSubtitle).scrollIntoView().should('contain', listPersesDashboardsPageSubtitle).should('be.visible');
 
-    cy.byTestID(persesDashboardDataTestIDs.editDashboardButtonToolbar).should('be.visible');
+    cy.byTestID(persesDashboardDataTestIDs.editDashboardButtonToolbar).scrollIntoView().should('be.visible');
 
-    cy.byAriaLabel(persesAriaLabels.TimeRangeDropdown).contains(persesDashboardsTimeRange.LAST_30_MINUTES).should('be.visible');
-    cy.byAriaLabel(persesAriaLabels.ZoomInButton).should('be.visible');
-    cy.byAriaLabel(persesAriaLabels.ZoomOutButton).should('be.visible');
-    cy.byAriaLabel(persesAriaLabels.RefreshButton).should('be.visible');
-    cy.byAriaLabel(persesAriaLabels.RefreshIntervalDropdown).contains(persesDashboardsRefreshInterval.OFF).should('be.visible');
+    cy.byAriaLabel(persesAriaLabels.TimeRangeDropdown).contains(persesDashboardsTimeRange.LAST_30_MINUTES).scrollIntoView().should('be.visible');
+    cy.byAriaLabel(persesAriaLabels.ZoomInButton).scrollIntoView().should('be.visible');
+    cy.byAriaLabel(persesAriaLabels.ZoomOutButton).scrollIntoView().should('be.visible');
+    cy.byAriaLabel(persesAriaLabels.RefreshButton).scrollIntoView().should('be.visible');
+    cy.byAriaLabel(persesAriaLabels.RefreshIntervalDropdown).contains(persesDashboardsRefreshInterval.OFF).scrollIntoView().should('be.visible');
 
-    cy.get('#' + IDs.persesDashboardDownloadButton).should('be.visible');
-    cy.byAriaLabel(persesAriaLabels.ViewJSONButton).should('be.visible');
+    cy.get('#' + IDs.persesDashboardDownloadButton).scrollIntoView().should('be.visible');
+    cy.byAriaLabel(persesAriaLabels.ViewJSONButton).scrollIntoView().should('be.visible');
 
-    cy.byTestID(DataTestIDs.PersesDashboardDropdown).find('input').should('be.visible');
-    cy.byTestID(DataTestIDs.PersesDashboardDropdown).find('button').should('be.visible');
-    cy.byLegacyTestID(LegacyTestIDs.PersesDashboardSection).should('be.visible');
+    cy.byTestID(DataTestIDs.PersesDashboardDropdown).find('input').scrollIntoView().should('be.visible');
+    cy.byTestID(DataTestIDs.PersesDashboardDropdown).find('button').scrollIntoView().should('be.visible');
+    cy.byLegacyTestID(LegacyTestIDs.PersesDashboardSection).scrollIntoView().should('be.visible');
 
   },
 
   clickTimeRangeDropdown: (timeRange: persesDashboardsTimeRange) => {
     cy.log('persesDashboardsPage.clickTimeRangeDropdown');
-    cy.byAriaLabel(persesAriaLabels.TimeRangeDropdown).should('be.visible').click({ force: true });
-    cy.byPFRole('option').contains(timeRange).should('be.visible').click({ force: true });
+    cy.byAriaLabel(persesAriaLabels.TimeRangeDropdown).scrollIntoView().should('be.visible').click({ force: true });
+    cy.byPFRole('option').contains(timeRange).scrollIntoView().should('be.visible').click({ force: true });
   },
 
   timeRangeDropdownAssertion: () => {
     cy.log('persesDashboardsPage.timeRangeDropdownAssertion');
-    cy.byAriaLabel(persesAriaLabels.TimeRangeDropdown).should('be.visible').click({ force: true });
+    cy.byAriaLabel(persesAriaLabels.TimeRangeDropdown).scrollIntoView().should('be.visible').click({ force: true });
     const timeRanges = Object.values(persesDashboardsTimeRange);
     timeRanges.forEach((timeRange) => {
       cy.log('Time range: ' + timeRange);
-      cy.byPFRole('option').contains(timeRange).should('be.visible');
+      cy.byPFRole('option').contains(timeRange).scrollIntoView().should('be.visible');
     });
-    cy.byAriaLabel(persesAriaLabels.TimeRangeDropdown).should('be.visible').click({ force: true });
+    cy.byAriaLabel(persesAriaLabels.TimeRangeDropdown).scrollIntoView().should('be.visible').click({ force: true });
   },
 
   clickRefreshButton: () => {
     cy.log('persesDashboardsPage.clickRefreshButton');
-    cy.byAriaLabel(persesAriaLabels.RefreshButton).should('be.visible').click();
+    cy.byAriaLabel(persesAriaLabels.RefreshButton).scrollIntoView().should('be.visible').click();
   },
 
   clickRefreshIntervalDropdown: (interval: persesDashboardsRefreshInterval) => {
     cy.log('persesDashboardsPage.clickRefreshIntervalDropdown');
-    cy.byAriaLabel(persesAriaLabels.RefreshIntervalDropdown).should('be.visible').click({ force: true });
-    cy.byPFRole('option').contains(interval).should('be.visible').click({ force: true });
+    cy.byAriaLabel(persesAriaLabels.RefreshIntervalDropdown).scrollIntoView().should('be.visible').click({ force: true });
+    cy.byPFRole('option').contains(interval).scrollIntoView().should('be.visible').click({ force: true });
   },
 
   refreshIntervalDropdownAssertion: () => {
     cy.log('persesDashboardsPage.refreshIntervalDropdownAssertion');
-    cy.byAriaLabel(persesAriaLabels.RefreshIntervalDropdown).should('be.visible').click({ force: true });
+    cy.byAriaLabel(persesAriaLabels.RefreshIntervalDropdown).scrollIntoView().should('be.visible').click({ force: true });
 
     const intervals = Object.values(persesDashboardsRefreshInterval);
     intervals.forEach((interval) => {
       cy.log('Refresh interval: ' + interval);
-      cy.byPFRole('option').contains(interval).should('be.visible');
+      cy.byPFRole('option').contains(interval).scrollIntoView().should('be.visible');
     });
     //Closing the dropdown by clicking on the OFF option, because the dropdown is not accessible while the menu is open, even forcing it
-    cy.byPFRole('option').contains(persesDashboardsRefreshInterval.OFF).should('be.visible').click({ force: true });
+    cy.byPFRole('option').contains(persesDashboardsRefreshInterval.OFF).scrollIntoView().should('be.visible').click({ force: true });
 
   },
 
   clickDashboardDropdown: (dashboard: keyof typeof persesDashboardsDashboardDropdownCOO | keyof typeof persesDashboardsDashboardDropdownPersesDev) => {
     cy.log('persesDashboardsPage.clickDashboardDropdown');
-    cy.byTestID(DataTestIDs.PersesDashboardDropdown).find('button').should('be.visible').click({ force: true });
-    cy.byPFRole('option').contains(dashboard).should('be.visible').click({ force: true });
+    cy.byTestID(DataTestIDs.PersesDashboardDropdown).find('button').scrollIntoView().should('be.visible').click({ force: true });
+    cy.byPFRole('option').contains(dashboard).scrollIntoView().should('be.visible').click({ force: true });
   },
 
   dashboardDropdownAssertion: (constants: typeof persesDashboardsDashboardDropdownCOO | typeof persesDashboardsDashboardDropdownPersesDev) => {
     cy.log('persesDashboardsPage.dashboardDropdownAssertion');
-    cy.byTestID(DataTestIDs.PersesDashboardDropdown).find('button').should('be.visible').click({ force: true });
+    cy.byTestID(DataTestIDs.PersesDashboardDropdown).find('button').scrollIntoView().should('be.visible').click({ force: true });
     const dashboards = Object.values(constants);
     dashboards.forEach((dashboard) => {
       cy.log('Dashboard: ' + dashboard[0]);
-      cy.get(Classes.MenuItem).contains(dashboard[0]).should('be.visible');
+      cy.get(Classes.MenuItem).contains(dashboard[0]).scrollIntoView().should('be.visible');
       if (dashboard[1] !== '') {
-        cy.get(Classes.MenuItem).should('contain', dashboard[0]).and('contain', dashboard[1]);
+        cy.get(Classes.MenuItem).scrollIntoView().should('contain', dashboard[0]).and('contain', dashboard[1]);
       }
     });
     cy.wait(1000);
-    cy.byTestID(DataTestIDs.PersesDashboardDropdown).find('button').should('be.visible').click({ force: true });
+    cy.byTestID(DataTestIDs.PersesDashboardDropdown).find('button').scrollIntoView().should('be.visible').click({ force: true });
   },
 
-  panelGroupHeaderAssertion: (panelGroupHeader: string) => {
+  panelGroupHeaderAssertion: (panelGroupHeader: string, collapse_state: 'Open' | 'Closed') => {
     cy.log('persesDashboardsPage.panelGroupHeaderAssertion');
-    cy.byDataTestID(persesMUIDataTestIDs.panelGroupHeader).contains(panelGroupHeader).should('be.visible');
+    cy.byDataTestID(persesMUIDataTestIDs.panelGroupHeader).contains(panelGroupHeader).scrollIntoView().should('be.visible');
+    if (collapse_state === 'Open') {
+      cy.byAriaLabel(persesAriaLabels.CollapseGroupButtonPrefix + panelGroupHeader).scrollIntoView().should('be.visible');
+    } else {
+      cy.byAriaLabel(persesAriaLabels.OpenCollapseGroupButtonPrefix + panelGroupHeader).scrollIntoView().should('be.visible');
+      
+    }
+  },
+
+  assertPanelGroupNotExist: (panelGroup: string) => {
+    cy.log('persesDashboardsPage.assertPanelGroupNotExist');
+    cy.byAriaLabel(persesAriaLabels.OpenCollapseGroupButtonPrefix + panelGroup).should('not.exist');
+    cy.byAriaLabel(persesAriaLabels.CollapseGroupButtonPrefix + panelGroup).should('not.exist');
+  },
+
+  assertPanelGroupOrder: (panelGroup: string, order: number) => {
+    cy.log('persesDashboardsPage.assertPanelGroupOrder');
+    cy.byDataTestID(persesMUIDataTestIDs.panelGroupHeader).eq(order).find('h2').contains(panelGroup).scrollIntoView().should('be.visible');
   },
 
   panelHeadersAcceleratorsCommonMetricsAssertion: () => {
@@ -216,58 +233,47 @@ export const persesDashboardsPage = {
     cy.byAriaLabel(persesAriaLabels.AddPanelToGroupPrefix + panelGroup).scrollIntoView().should('be.visible');
     cy.byAriaLabel(persesAriaLabels.EditPanelGroupPrefix + panelGroup).scrollIntoView().should('be.visible');
     cy.byAriaLabel(persesAriaLabels.DeletePanelGroupPrefix + panelGroup).scrollIntoView().should('be.visible');
-    cy.byAriaLabel(persesAriaLabels.MovePanelGroupDownPrefix + panelGroup + persesAriaLabels.MovePanelGroupDownSuffix).scrollIntoView().should('be.visible');
-    cy.byAriaLabel(persesAriaLabels.MovePanelGroupUpPrefix + panelGroup + persesAriaLabels.MovePanelGroupUpSuffix).scrollIntoView().should('be.visible');
+    cy.byAriaLabel(persesAriaLabels.MovePanelGroupPrefix + panelGroup + persesAriaLabels.MovePanelGroupDownSuffix).scrollIntoView().should('be.visible');
+    cy.byAriaLabel(persesAriaLabels.MovePanelGroupPrefix + panelGroup + persesAriaLabels.MovePanelGroupUpSuffix).scrollIntoView().should('be.visible');
   },
 
   clickPanelAction: (panel: string, button: 'expand' | 'collapse' | 'edit' | 'duplicate' | 'delete') => {
     cy.log('persesDashboardsPage.clickPanelActions');
-
-    let element = cy.byDataTestID(persesMUIDataTestIDs.panelHeader).find('h6').contains(panel).scrollIntoView().siblings('div').eq(2);
-
     cy.byDataTestID(persesMUIDataTestIDs.panelHeader).find('h6').contains(panel).scrollIntoView().siblings('div').eq(0).then((element1) => {
       if (element1.find('[data-testid="MenuIcon"]').length > 0 && element1.find('[data-testid="MenuIcon"]').is(':visible')) {
-        cy.byDataTestID(persesMUIDataTestIDs.panelHeader).find('h6').contains(panel).scrollIntoView().siblings('div').eq(0).find('[data-testid="MenuIcon"]').click({ force: true });
-        element = cy.get('#' + IDs.persesDashboardActionMenuModal).scrollIntoView();
+        cy.byAriaLabel(persesAriaLabels.EditPanelActionMenuButtonPrefix + panel).scrollIntoView().should('be.visible').click({ force: true });
       }
     });
 
     switch (button) {
       case 'expand':
-        element.find('[data-testid="ArrowExpandIcon"]').click({ force: true });
-        break;
       case 'collapse':
-        element.find('[data-testid="ArrowCollapseIcon"]').click({ force: true });
+        cy.byAriaLabel(persesAriaLabels.EditPanelExpandCollapseButtonPrefix + panel + persesAriaLabels.EditPanelExpandCollapseButtonSuffix).scrollIntoView().should('be.visible').click({ force: true });
         break;
       case 'edit':
-        element.find('[data-testid="PencilOutlineIcon"]').click({ force: true });
+        cy.byAriaLabel(persesAriaLabels.EditPanelPrefix + panel).scrollIntoView().should('be.visible').click({ force: true });
         break;
       case 'duplicate':
-        element.find('[data-testid="ContentCopyIcon"]').click({ force: true });
+        cy.byAriaLabel(persesAriaLabels.EditPanelDuplicateButtonPrefix + panel).scrollIntoView().should('be.visible').click({ force: true });
         break;
       case 'delete':
-        element.find('[data-testid="DeleteOutlineIcon"]').click({ force: true });
+        cy.byAriaLabel(persesAriaLabels.EditPanelDeleteButtonPrefix + panel).scrollIntoView().should('be.visible').click({ force: true });
         break;
     }
-
   },
 
   assertPanelActionButtons: (panel: string) => {
     cy.log('persesDashboardsPage.assertPanelActionButtons');
 
-    cy.byDataTestID(persesMUIDataTestIDs.panelHeader).find('h6').contains(panel).scrollIntoView().siblings('div').eq(1).then((element1) => {
+    cy.byDataTestID(persesMUIDataTestIDs.panelHeader).find('h6').contains(panel).siblings('div').eq(1).then((element1) => {
       if (element1.find('[data-testid="MenuIcon"]').length > 0 && element1.find('[data-testid="MenuIcon"]').is(':visible')) {
-        cy.byDataTestID(persesMUIDataTestIDs.panelHeader).find('h6').contains(panel).scrollIntoView().siblings('div').eq(1).find('[data-testid="ArrowExpandIcon"]').click({ force: true });
-        cy.byDataTestID(persesMUIDataTestIDs.panelHeader).find('h6').contains(panel).scrollIntoView().siblings('div').eq(2).find('[data-testid="PencilOutlineIcon"]').should('be.visible');
-        cy.byDataTestID(persesMUIDataTestIDs.panelHeader).find('h6').contains(panel).scrollIntoView().siblings('div').eq(2).find('[data-testid="ContentCopyIcon"]').should('be.visible');
-        cy.byDataTestID(persesMUIDataTestIDs.panelHeader).find('h6').contains(panel).scrollIntoView().siblings('div').eq(2).find('[data-testid="DeleteOutlineIcon"]').should('be.visible');
-        cy.byDataTestID(persesMUIDataTestIDs.panelHeader).find('h6').contains(panel).scrollIntoView().siblings('div').eq(2).find('[data-testid="ArrowCollapseIcon"]').should('be.visible').click({ force: true });
-      } else {
-        cy.byDataTestID(persesMUIDataTestIDs.panelHeader).find('h6').contains(panel).scrollIntoView().siblings('div').eq(2).find('[data-testid="ArrowExpandIcon"]').should('be.visible');
-        cy.byDataTestID(persesMUIDataTestIDs.panelHeader).find('h6').contains(panel).scrollIntoView().siblings('div').eq(2).find('[data-testid="PencilOutlineIcon"]').should('be.visible');
-        cy.byDataTestID(persesMUIDataTestIDs.panelHeader).find('h6').contains(panel).scrollIntoView().siblings('div').eq(2).find('[data-testid="ContentCopyIcon"]').should('be.visible');
-        cy.byDataTestID(persesMUIDataTestIDs.panelHeader).find('h6').contains(panel).scrollIntoView().siblings('div').eq(2).find('[data-testid="DeleteOutlineIcon"]').should('be.visible');
+        cy.byAriaLabel(persesAriaLabels.EditPanelExpandCollapseButtonPrefix + panel + persesAriaLabels.EditPanelExpandCollapseButtonSuffix).eq(0).should('be.visible').click();
       }
+      cy.byAriaLabel(persesAriaLabels.EditPanelExpandCollapseButtonPrefix + panel + persesAriaLabels.EditPanelExpandCollapseButtonSuffix).should('be.visible');
+      cy.byAriaLabel(persesAriaLabels.EditPanelPrefix + panel).should('be.visible');
+      cy.byAriaLabel(persesAriaLabels.EditPanelDuplicateButtonPrefix + panel).should('be.visible');
+      cy.byAriaLabel(persesAriaLabels.EditPanelDeleteButtonPrefix + panel).should('be.visible');
+      
     });
   },
 

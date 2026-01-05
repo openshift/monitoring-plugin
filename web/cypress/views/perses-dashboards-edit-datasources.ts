@@ -63,7 +63,7 @@ export const persesDashboardsEditDatasources = {
 
     switch (field) {
       case 'Name':
-        cy.byDataTestID(persesMUIDataTestIDs.editDashboardVariablesModal).find('label').contains(field).siblings('p').should('have.text', persesDashboardsRequiredFields.AddVariableNameField);
+        cy.byDataTestID(persesMUIDataTestIDs.editDashboardDatasourcesModal).find('label').contains(field).siblings('p').should('have.text', persesDashboardsRequiredFields.AddVariableNameField);
         break;
     }
   },
