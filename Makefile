@@ -5,6 +5,8 @@ PLUGIN_NAME ?=monitoring-plugin
 IMAGE       ?= quay.io/${ORG}/${PLUGIN_NAME}:${VERSION}
 FEATURES    ?=incidents,perses-dashboards,dev-config
 
+export NODE_OPTIONS?=--max_old_space_size=4096
+
 .PHONY: install-frontend
 install-frontend:
 	cd web && npm install
@@ -109,8 +111,11 @@ start-devspace-backend:
 
 .PHONY: podman-cross-build
 podman-cross-build:
-	podman manifest create ${IMAGE}
+	podman manifest create -a ${IMAGE}
 	podman build --platform ${PLATFORMS} --manifest ${IMAGE} -f Dockerfile.mcp
+
+.PHONY: podman-cross-build-push
+podman-cross-build-push: podman-cross-build
 	podman manifest push ${IMAGE}
 
 .PHONY: test-translations
