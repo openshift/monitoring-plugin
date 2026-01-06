@@ -43,6 +43,13 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
     // due to modal is opened and page is refreshed, it is not easy to assert buttons in the modal
     persesDashboardsPage.assertPanelActionButtons('CPU Utilisation');
 
+    cy.log(`1.5. Click on Cancel button`);
+    persesDashboardsPage.clickEditActionButton('Cancel');
+    
+    cy.log(`1.6. Change namespace to All Projects`);
+    cy.changeNamespace('All Projects');
+    listPersesDashboardsPage.shouldBeLoaded();
+
   });
 
   it(`2.${perspective.name} perspective - Edit Toolbar - Edit Variables - Add List Variable`, () => {
@@ -138,7 +145,7 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
     // listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[2]);
 
     cy.log(`3.9. Search and type variable`);
-    persesDashboardsPage.searchAndTypeVariable('TextVariable', undefined);
+    persesDashboardsPage.searchAndTypeVariable('TextVariable', '');
     //TODO: END testing more to check if it is time constraint or cache issue
 
   });
@@ -531,5 +538,13 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
     persesDashboardsPage.assertPanelGroupNotExist('PanelGroup2');
   });
+
+  //TODO: https://issues.redhat.com/browse/OU-1164
+  // it(`13.${perspective.name} perspective - Edit Toolbar - Add Panel Group - Required field validation`, () => {
+ 
+  // });
+
+// security testing
+
 
 }

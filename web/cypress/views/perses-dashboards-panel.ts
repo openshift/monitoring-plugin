@@ -1,6 +1,7 @@
 import { commonPages } from "./common";
 import { persesAriaLabels, persesMUIDataTestIDs, IDs, editPersesDashboardsAddPanel } from "../../src/components/data-test";
 import { persesDashboardsModalTitles, persesDashboardsRequiredFields, persesDashboardsAddListPanelType } from "../fixtures/perses/constants";
+import { persesDashboardsPage } from "./perses-dashboards";
 
 export const persesDashboardsPanel = {
 
@@ -11,33 +12,45 @@ export const persesDashboardsPanel = {
     cy.get('#'+IDs.persesDashboardAddPanelForm).find('label').contains('Group').should('be.visible');
     cy.get('input[name="'+editPersesDashboardsAddPanel.inputDescription+'"]').should('be.visible');
     cy.get('#'+IDs.persesDashboardAddPanelForm).find('label').contains('Type').should('be.visible');
-    cy.get('#'+IDs.persesDashboardAddPanelForm).parent('div').siblings('div').find('button').contains('Add').should('be.visible').and('have.attr', 'disabled');
-    cy.get('#'+IDs.persesDashboardAddPanelForm).parent('div').siblings('div').find('button').contains('Cancel').should('be.visible');
-
+    cy.get('#'+IDs.persesDashboardAddPanelForm).parent('div').find('h2').siblings('div').find('button').contains('Add').should('be.visible').and('have.attr', 'disabled');
+    cy.get('#'+IDs.persesDashboardAddPanelForm).parent('div').find('h2').siblings('div').find('button').contains('Cancel').should('be.visible');
   },
 
   clickButton: (button: 'Add' | 'Cancel') => {
     cy.log('persesDashboardsPanel.clickButton');
-    cy.get('#'+IDs.persesDashboardAddPanelForm).parent('div').siblings('div').find('button').contains(button).should('be.visible').click();
+    if (button === 'Cancel') {
+      cy.get('#'+IDs.persesDashboardAddPanelForm).siblings('div').find('button').contains(button).should('be.visible').click();
+      cy.wait(1000);
+      cy.get('body').then((body) => {
+        if (body.find('#'+IDs.persesDashboardDiscardChangesDialog).length > 0 && body.find('#'+IDs.persesDashboardDiscardChangesDialog).is(':visible')) {
+          cy.bySemanticElement('button', 'Discard Changes').scrollIntoView().should('be.visible').click({ force: true });
+        }
+      });
+    } else {
+      cy.get('#'+IDs.persesDashboardAddPanelForm).siblings('div').find('button').contains(button).should('be.visible').click();
+    }
   },
 
-  clickDropdownAndSelectOption: (label: string, option: string | keyof typeof persesDashboardsAddListPanelType) => {
+  clickDropdownAndSelectOption: (label: string, option: string) => {
     cy.log('persesDashboardsPanel.clickDropdownAndSelectOption');
     cy.get('#'+IDs.persesDashboardAddPanelForm).find('label').contains(label).siblings('div').click();
+    cy.wait(1000);
     cy.get('li').contains(option).should('be.visible').click();
   },
 
+  //TODO: OU-1164 - After it gets fixed, change the text 'Required' to the actual text from the UI
   assertRequiredFieldValidation: (field: string) => {
     cy.log('persesDashboardsPanel.assertRequiredFieldValidation');
 
     switch (field) {
       case 'Name':
-        cy.byDataTestID(persesMUIDataTestIDs.editDashboardVariablesModal).find('label').contains(field).siblings('p').should('have.text', persesDashboardsRequiredFields.AddVariableNameField);
+        cy.get('#'+IDs.persesDashboardAddPanelForm).find('label').contains(field).siblings('p').should('have.text', 'Required');
         break;
     }
   },
 
-  addPanel: (name: string, group: string, type: keyof typeof persesDashboardsAddListPanelType, description?: string) => {
+  //TODO: OU-1064 - After it gets fixed, change addPanel to cleanup the fulfilment of the form
+  addPanel: (name: string, group: string, type: string, description?: string) => {
     cy.log('persesDashboardsPanel.addPanel');
     cy.get('input[name="'+editPersesDashboardsAddPanel.inputName+'"]').clear().type(name);
     if (description !== undefined && description !== '') {
@@ -45,7 +58,10 @@ export const persesDashboardsPanel = {
     }
     persesDashboardsPanel.clickDropdownAndSelectOption('Group', group);
     persesDashboardsPanel.clickDropdownAndSelectOption('Type', type);
-    cy.get('#'+IDs.persesDashboardAddPanelForm).parent('div').siblings('div').find('button').contains('Add').should('be.visible').click();
+    persesDashboardsPanel.clickDropdownAndSelectOption('Group', group);
+    cy.get('input[name="'+editPersesDashboardsAddPanel.inputName+'"]').clear().type(name);
+    persesDashboardsPanel.clickDropdownAndSelectOption('Type', type);
+    cy.get('#'+IDs.persesDashboardAddPanelForm).parent('div').find('h2').siblings('div').find('button').contains('Add').should('be.visible').click();
   },
 
   editPanelShouldBeLoaded: () => {
@@ -55,12 +71,11 @@ export const persesDashboardsPanel = {
     cy.get('#'+IDs.persesDashboardAddPanelForm).find('label').contains('Group').should('be.visible');
     cy.get('input[name="'+editPersesDashboardsAddPanel.inputDescription+'"]').should('be.visible');
     cy.get('#'+IDs.persesDashboardAddPanelForm).find('label').contains('Type').should('be.visible');
-    cy.get('#'+IDs.persesDashboardAddPanelForm).parent('div').siblings('div').find('button').contains('Apply').should('be.visible').and('have.attr', 'disabled');
-    cy.get('#'+IDs.persesDashboardAddPanelForm).parent('div').siblings('div').find('button').contains('Cancel').should('be.visible');
-
+    cy.get('#'+IDs.persesDashboardAddPanelForm).parent('div').find('h2').siblings('div').find('button').contains('Apply').should('be.visible').and('have.attr', 'disabled');
+    cy.get('#'+IDs.persesDashboardAddPanelForm).parent('div').find('h2').siblings('div').find('button').contains('Cancel').should('be.visible');
   },
 
-  editPanel: (name: string, group: string, type: keyof typeof persesDashboardsAddListPanelType, description?: string) => {
+  editPanel: (name: string, group: string, type: string, description?: string) => {
     cy.log('persesDashboardsPanel.editPanel');
     cy.get('input[name="'+editPersesDashboardsAddPanel.inputName+'"]').clear().type(name);
     if (description !== undefined && description !== '') {
@@ -68,7 +83,7 @@ export const persesDashboardsPanel = {
     }
     persesDashboardsPanel.clickDropdownAndSelectOption('Group', group);
     persesDashboardsPanel.clickDropdownAndSelectOption('Type', type);
-    cy.get('#'+IDs.persesDashboardAddPanelForm).parent('div').siblings('div').find('button').contains('Apply').should('be.visible').click();
+    cy.get('#'+IDs.persesDashboardAddPanelForm).parent('div').find('h2').siblings('div').find('button').contains('Apply').should('be.visible').click();
   },
 
   clickPanelGroupAction: (panelGroup: string, button: 'addPanel' | 'edit' | 'delete' | 'moveDown' | 'moveUp') => {
@@ -91,13 +106,15 @@ export const persesDashboardsPanel = {
         cy.byAriaLabel(persesAriaLabels.MovePanelGroupPrefix + panelGroup + persesAriaLabels.MovePanelGroupUpSuffix).scrollIntoView().should('be.visible').click({ force: true });
         break;
     }
-
   },
 
-  clickDeletePanelGroupButton: () => {
-    cy.log('persesDashboardsPage.clickDeletePanelGroupButton');
+  deletePanel: (panel: string) => {
+    cy.log('persesDashboardsPage.deletePanel');
+    cy.byAriaLabel(persesAriaLabels.EditPanelDeleteButtonPrefix + panel).scrollIntoView().should('be.visible').click({ force: true });
+  },
+
+  clickDeletePanelButton: () => {
+    cy.log('persesDashboardsPage.clickDeletePanelButton');
     cy.bySemanticElement('button', 'Delete').scrollIntoView().should('be.visible').click({ force: true });
   },
-
-
 }

@@ -112,14 +112,13 @@ export const persesDashboardsPage = {
     if (collapse_state === 'Open') {
       cy.byAriaLabel(persesAriaLabels.CollapseGroupButtonPrefix + panelGroupHeader).scrollIntoView().should('be.visible');
     } else {
-      cy.byAriaLabel(persesAriaLabels.OpenCollapseGroupButtonPrefix + panelGroupHeader).scrollIntoView().should('be.visible');
-      
+      cy.byAriaLabel(persesAriaLabels.OpenGroupButtonPrefix + panelGroupHeader).scrollIntoView().should('be.visible');
     }
   },
 
   assertPanelGroupNotExist: (panelGroup: string) => {
     cy.log('persesDashboardsPage.assertPanelGroupNotExist');
-    cy.byAriaLabel(persesAriaLabels.OpenCollapseGroupButtonPrefix + panelGroup).should('not.exist');
+    cy.byAriaLabel(persesAriaLabels.OpenGroupButtonPrefix + panelGroup).should('not.exist');
     cy.byAriaLabel(persesAriaLabels.CollapseGroupButtonPrefix + panelGroup).should('not.exist');
   },
 
@@ -167,7 +166,7 @@ export const persesDashboardsPage = {
 
   searchAndTypeVariable: (variable: string, value: string) => {
     cy.log('persesDashboardsPage.searchAndTypeVariable');
-    if (value !== undefined) {
+    if (value !== undefined && value !== '') {
       cy.byDataTestID(persesMUIDataTestIDs.variableDropdown + '-' + variable).find('input').type(value);
     }
     cy.wait(1000);
@@ -225,6 +224,7 @@ export const persesDashboardsPage = {
         break;
       case 'Cancel':
         cy.byTestID(persesDashboardDataTestIDs.cancelButtonToolbar).scrollIntoView().should('be.visible').click({ force: true });
+        cy.wait(1000);
         persesDashboardsPage.clickDiscardChangesButton();
         break;
     }
@@ -309,5 +309,22 @@ export const persesDashboardsPage = {
         cy.bySemanticElement('button', 'Discard Changes').scrollIntoView().should('be.visible').click({ force: true });
       }
     });
+  },
+
+  assertPanel: (name: string, group: string, collapse_state: 'Open' | 'Closed') => {
+    cy.log('persesDashboardsPage.assertPanel');
+    persesDashboardsPage.panelGroupHeaderAssertion(group, collapse_state);
+    if (collapse_state === 'Open') {
+      cy.byDataTestID(persesMUIDataTestIDs.panelHeader).find('h6').contains(name).scrollIntoView().should('be.visible');
+    } else {
+      cy.byAriaLabel(persesAriaLabels.OpenGroupButtonPrefix + group).scrollIntoView().should('be.visible').click({ force: true });
+      cy.byDataTestID(persesMUIDataTestIDs.panelHeader).find('h6').contains(name).scrollIntoView().should('be.visible');
+      cy.byAriaLabel(persesAriaLabels.CollapseGroupButtonPrefix + group).scrollIntoView().should('be.visible').click({ force: true });
+    }
+  },
+
+  assertPanelNotExist: (name: string) => {
+    cy.log('persesDashboardsPage.assertPanelNotExist');
+    cy.byDataTestID(persesMUIDataTestIDs.panelHeader).find('h6').contains(name).should('not.exist');
   },
 }

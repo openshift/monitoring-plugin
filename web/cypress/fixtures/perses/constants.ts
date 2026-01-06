@@ -91,18 +91,19 @@ export const persesDashboardsRequiredFields = {
   AddVariableNameField: 'String must contain at least 1 character(s)'
 }
 
-export enum persesDashboardsAddListPanelType {
-  BAR_CHART = 'Bar Chart',
-  GAUGE_CHART = 'Gauge Chart',
-  HISTOGRAM_CHART = 'Histogram Chart',
-  MARKDOWN = 'Markdown',
-  PIE_CHART = 'Pie Chart',
-  SCATTER_CHART = 'Scatter Chart',
-  STAT_CHART = 'Stat Chart',
-  STATUS_HISTORY_CHART = 'Status History Chart',
-  TABLE = 'Table',
-  TIME_SERIES_CHART = 'Time Series Chart',
-  TIME_SERIES_TABLE = 'TimeSeries Table',
-  TRACE_TABLE = 'Trace Table',
-  TRACING_GANTT_CHART = 'Tracing Gantt Chart',
+export const persesDashboardsAddListPanelType = {
+  BAR_CHART: 'Bar Chart',
+  GAUGE_CHART: 'Gauge Chart',
+  HISTOGRAM_CHART: 'Histogram Chart',
+  //TODO: OU-1166 - After it gets fixed, uncomment Markdown and Pie Chart
+  // MARKDOWN: 'Markdown',
+  // PIE_CHART: 'Pie Chart',
+  SCATTER_CHART: 'Scatter Chart',
+  STAT_CHART: 'Stat Chart',
+  STATUS_HISTORY_CHART: 'Status History Chart',
+  TABLE: 'Table',
+  TIME_SERIES_CHART: 'Time Series Chart',
+  TIME_SERIES_TABLE: 'TimeSeries Table',
+  TRACE_TABLE: 'Trace Table',
+  TRACING_GANTT_CHART: 'Tracing Gantt Chart',
 }

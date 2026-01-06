@@ -56,10 +56,10 @@ export const persesDashboardsEditVariables = {
     cy.log('persesDashboardsEditVariables.addListVariable');
     cy.get('input[name="'+editPersesDashboardsAddVariable.inputName+'"]').clear().type(name);
     
-    if (displayLabel !== undefined) {
+    if (displayLabel !== undefined && displayLabel !== '') {
       cy.get('input[name="'+editPersesDashboardsAddVariable.inputDisplayLabel+'"]').clear().type(displayLabel);
     }
-    if (description !== undefined) {
+    if (description !== undefined && description !== '' ) {
       cy.get('input[name="'+editPersesDashboardsAddVariable.inputDescription+'"]').clear().type(description);
     }
     persesDashboardsEditVariables.clickDropdownAndSelectOption('Type', 'List');
@@ -75,7 +75,7 @@ export const persesDashboardsEditVariables = {
     }
     if (allowAllValue) {
       cy.get('input[name="'+editPersesDashboardsAddVariable.inputAllowAllValue+'"]').click();
-      if (customAllValue !== undefined) {
+      if (customAllValue !== undefined && customAllValue !== '') {
         cy.get('input[name="'+editPersesDashboardsAddVariable.inputCustomAllValue+'"]').clear().type(customAllValue);
       }
     }

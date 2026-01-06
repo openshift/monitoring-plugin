@@ -235,7 +235,7 @@ export const persesAriaLabels = {
   EditDatasourcesButton: 'Edit datasources',
   AddPanelButton: 'Add panel',
   AddGroupButton: 'Add panel group',
-  OpenCollapseGroupButtonPrefix: 'expand group ',
+  OpenGroupButtonPrefix: 'expand group ',
   CollapseGroupButtonPrefix: 'collapse group ',
   //PanelGroup toolbar buttons
   AddPanelToGroupPrefix: 'add panel to group ',

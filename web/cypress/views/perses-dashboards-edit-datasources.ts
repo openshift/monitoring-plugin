@@ -30,6 +30,8 @@ export const persesDashboardsEditDatasources = {
   clickButton: (button: 'Apply' | 'Cancel' | 'Add Datasource' | 'Add') => {
     cy.log('persesDashboardsEditDatasources.clickButton');
     if (button === 'Cancel') {
+      cy.byDataTestID(persesMUIDataTestIDs.editDashboardDatasourcesModal).find('button').contains(button).should('be.visible').click();
+      cy.wait(1000);
       cy.get('body').then((body) => {
         if (body.find('#'+IDs.persesDashboardDiscardChangesDialog).length > 0 && body.find('#'+IDs.persesDashboardDiscardChangesDialog).is(':visible')) {
           cy.bySemanticElement('button', 'Discard Changes').scrollIntoView().should('be.visible').click({ force: true });
