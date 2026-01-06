@@ -221,9 +221,11 @@ export const persesDashboardsPage = {
         break;
       case 'Save':
         cy.bySemanticElement('button', 'Save').scrollIntoView().should('be.visible').click({ force: true });
+        persesDashboardsPage.clickSaveDashboardButton(true, true, true);
         break;
       case 'Cancel':
         cy.byTestID(persesDashboardDataTestIDs.cancelButtonToolbar).scrollIntoView().should('be.visible').click({ force: true });
+        persesDashboardsPage.clickDiscardChangesButton();
         break;
     }
   },
@@ -267,7 +269,7 @@ export const persesDashboardsPage = {
 
     cy.byDataTestID(persesMUIDataTestIDs.panelHeader).find('h6').contains(panel).siblings('div').eq(1).then((element1) => {
       if (element1.find('[data-testid="MenuIcon"]').length > 0 && element1.find('[data-testid="MenuIcon"]').is(':visible')) {
-        cy.byAriaLabel(persesAriaLabels.EditPanelExpandCollapseButtonPrefix + panel + persesAriaLabels.EditPanelExpandCollapseButtonSuffix).eq(0).should('be.visible').click();
+        cy.byAriaLabel(persesAriaLabels.EditPanelExpandCollapseButtonPrefix + panel + persesAriaLabels.EditPanelExpandCollapseButtonSuffix).find('[data-testid="ArrowExpandIcon"]').eq(0).should('be.visible').click();
       }
       cy.byAriaLabel(persesAriaLabels.EditPanelExpandCollapseButtonPrefix + panel + persesAriaLabels.EditPanelExpandCollapseButtonSuffix).should('be.visible');
       cy.byAriaLabel(persesAriaLabels.EditPanelPrefix + panel).should('be.visible');
@@ -288,7 +290,11 @@ export const persesDashboardsPage = {
     // if (currentVariables) {
     //   cy.get('input').eq(2).click({ force: true });
     // }
-    cy.bySemanticElement('button', 'Save Changes').scrollIntoView().should('be.visible').click({ force: true });
+    cy.get('body').then((body) => {
+      if (body.find('[data-testid="CloseIcon"]').length > 0 && body.find('[data-testid="CloseIcon"]').is(':visible')) {
+        cy.bySemanticElement('button', 'Save Changes').scrollIntoView().should('be.visible').click({ force: true });
+      }
+    });
   },
 
   backToListPersesDashboardsPage: () => {
@@ -298,6 +304,10 @@ export const persesDashboardsPage = {
 
   clickDiscardChangesButton: () => {
     cy.log('persesDashboardsPage.clickDiscardChangesButton');
-    cy.bySemanticElement('button', 'Discard Changes').scrollIntoView().should('be.visible').click({ force: true });
+    cy.get('body').then((body) => {
+      if (body.find('#'+IDs.persesDashboardDiscardChangesDialog).length > 0 && body.find('#'+IDs.persesDashboardDiscardChangesDialog).is(':visible')) {
+        cy.bySemanticElement('button', 'Discard Changes').scrollIntoView().should('be.visible').click({ force: true });
+      }
+    });
   },
 }

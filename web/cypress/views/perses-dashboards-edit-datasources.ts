@@ -1,5 +1,5 @@
 import { commonPages } from "./common";
-import { persesAriaLabels, persesMUIDataTestIDs, editPersesDashboardsAddDatasource } from "../../src/components/data-test";
+import { persesAriaLabels, persesMUIDataTestIDs, editPersesDashboardsAddDatasource, IDs } from "../../src/components/data-test";
 import { persesDashboardsModalTitles, persesDashboardsRequiredFields } from "../fixtures/perses/constants";
 
 export const persesDashboardsEditDatasources = {
@@ -29,7 +29,15 @@ export const persesDashboardsEditDatasources = {
 
   clickButton: (button: 'Apply' | 'Cancel' | 'Add Datasource' | 'Add') => {
     cy.log('persesDashboardsEditDatasources.clickButton');
-    cy.byDataTestID(persesMUIDataTestIDs.editDashboardDatasourcesModal).find('button').contains(button).should('be.visible').click();
+    if (button === 'Cancel') {
+      cy.get('body').then((body) => {
+        if (body.find('#'+IDs.persesDashboardDiscardChangesDialog).length > 0 && body.find('#'+IDs.persesDashboardDiscardChangesDialog).is(':visible')) {
+          cy.bySemanticElement('button', 'Discard Changes').scrollIntoView().should('be.visible').click({ force: true });
+        }
+      });
+    } else {
+      cy.byDataTestID(persesMUIDataTestIDs.editDashboardDatasourcesModal).find('button').contains(button).should('be.visible').click();
+    }
   },
 
   addDatasource: (name: string, defaultDatasource: boolean, pluginOptions: 'Prometheus Datasource' | 'Tempo Datasource', displayLabel?: string, description?: string) => {

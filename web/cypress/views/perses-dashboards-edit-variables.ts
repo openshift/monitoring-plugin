@@ -17,7 +17,15 @@ export const persesDashboardsEditVariables = {
 
   clickButton: (button: 'Apply' | 'Cancel' | 'Add Variable' | 'Add' | 'Run Query') => {
     cy.log('persesDashboardsEditVariables.clickButton');
-    cy.byDataTestID(persesMUIDataTestIDs.editDashboardVariablesModal).find('button').contains(button).should('be.visible').click();
+    if (button === 'Cancel') {
+      cy.get('body').then((body) => {
+        if (body.find('#'+IDs.persesDashboardDiscardChangesDialog).length > 0 && body.find('#'+IDs.persesDashboardDiscardChangesDialog).is(':visible')) {
+          cy.bySemanticElement('button', 'Discard Changes').scrollIntoView().should('be.visible').click({ force: true });
+        }
+      });
+    } else {
+      cy.byDataTestID(persesMUIDataTestIDs.editDashboardVariablesModal).find('button').contains(button).should('be.visible').click();
+    }
   },
 
   addTextVariable: (name: string, constant: boolean, displayLabel?: string, description?: string, value?: string) => {

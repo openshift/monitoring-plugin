@@ -1,5 +1,6 @@
 import { nav } from '../../views/nav';
-import { runCOOEditPersesTests, runCOOEditPersesTests1 } from '../../support/perses/02.coo_edit_perses_admin_1.cy';
+import { runCOOEditPersesTests1 } from '../../support/perses/02.coo_edit_perses_admin_1.cy';
+import { runCOOEditPersesTests } from '../../support/perses/02.coo_edit_perses_admin.cy';
 
 // Set constants for the operators that need to be installed for tests.
 const MCP = {

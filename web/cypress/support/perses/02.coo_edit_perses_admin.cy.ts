@@ -80,7 +80,6 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
 
     cy.log(`2.8. Save dashboard`);
     persesDashboardsPage.clickEditActionButton('Save');
-    persesDashboardsPage.clickSaveDashboardButton(true, true, true);
     //TODO: START testing more to check if it is time constraint or cache issue
     persesDashboardsPage.backToListPersesDashboardsPage();
     listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[2]);
@@ -243,7 +242,6 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
     persesDashboardsEditVariables.clickButton('Add');
     persesDashboardsEditVariables.assertRequiredFieldValidation('Name');
     persesDashboardsEditVariables.clickButton('Cancel');
-    persesDashboardsEditVariables.clickDiscardChangesButton();
     persesDashboardsEditVariables.clickButton('Cancel');
   });
 
@@ -289,7 +287,6 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
     persesDashboardsEditDatasources.clickButton('Apply');
     //https://issues.redhat.com/browse/OU-1160 - Datasource is not saved
     // persesDashboardsPage.clickEditActionButton('Save');
-    // persesDashboardsPage.clickSaveDashboardButton(true, true, true);
   });
 
   it(`7.${perspective.name} perspective - Edit Toolbar - Edit Datasources - Edit Prometheus Datasource`, () => {
@@ -321,7 +318,6 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
     persesDashboardsEditDatasources.assertDatasource(0,'PrometheusLocal', 'PrometheusDatasource', 'Datasource1');
     persesDashboardsEditDatasources.clickButton('Cancel');
     persesDashboardsPage.clickEditActionButton('Cancel');
-    persesDashboardsPage.clickDiscardChangesButton();
 
   });
 
@@ -358,7 +354,6 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
     cy.log(`8.7. Assert required field validation`);
     persesDashboardsEditDatasources.assertRequiredFieldValidation('Name');
     persesDashboardsEditDatasources.clickButton('Cancel');
-    persesDashboardsPage.clickDiscardChangesButton();
 
     cy.log(`8.8. Cancel changes`);
     persesDashboardsEditDatasources.clickButton('Cancel');

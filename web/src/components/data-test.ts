@@ -182,6 +182,7 @@ export const IDs = {
   persesDashboardEditVariablesModalBuiltinButton: 'builtin',
   persesDashboardAddPanelGroupForm: 'panel-group-editor-form',
   persesDashboardAddPanelForm: 'panel-editor-form',
+  persesDashboardDiscardChangesDialog: 'discard-dialog',
 };
 
 export const Classes = {
