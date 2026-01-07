@@ -15,6 +15,50 @@ export interface DashboardLayoutProps {
   children: ReactNode;
 }
 
+const DashboardPageFrame = ({
+  activeProject,
+  activeProjectDashboardsMetadata,
+  changeBoard,
+  dashboardName,
+  children,
+}) => {
+  return (
+    <PersesWrapper project={activeProject}>
+      {activeProjectDashboardsMetadata?.length === 0 ? (
+        <DashboardEmptyState />
+      ) : (
+        <DashboardSkeleton
+          boardItems={activeProjectDashboardsMetadata}
+          changeBoard={changeBoard}
+          dashboardName={dashboardName}
+          activeProject={activeProject}
+        >
+          <Overview>{children}</Overview>
+        </DashboardSkeleton>
+      )}
+    </PersesWrapper>
+  );
+};
+
+const DashboardListPageFrame = ({
+  activeProjectDashboardsMetadata,
+  changeBoard,
+  dashboardName,
+  activeProject,
+  children,
+}) => {
+  return (
+    <DashboardSkeleton
+      boardItems={activeProjectDashboardsMetadata}
+      changeBoard={changeBoard}
+      dashboardName={dashboardName}
+      activeProject={activeProject}
+    >
+      <Overview>{children}</Overview>
+    </DashboardSkeleton>
+  );
+};
+
 export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   activeProject,
   setActiveProject,
@@ -23,23 +67,30 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   dashboardName,
   children,
 }) => {
+  const isDashboardPage = activeProject && dashboardName;
+
   return (
     <>
       <ProjectBar activeProject={activeProject} setActiveProject={setActiveProject} />
-      <PersesWrapper project={activeProject}>
-        {activeProjectDashboardsMetadata?.length === 0 ? (
-          <DashboardEmptyState />
-        ) : (
-          <DashboardSkeleton
-            boardItems={activeProjectDashboardsMetadata}
-            changeBoard={changeBoard}
-            dashboardName={dashboardName}
-            activeProject={activeProject}
-          >
-            <Overview>{children}</Overview>
-          </DashboardSkeleton>
-        )}
-      </PersesWrapper>
+      {isDashboardPage ? (
+        <DashboardPageFrame
+          activeProject={activeProject}
+          activeProjectDashboardsMetadata={activeProjectDashboardsMetadata}
+          changeBoard={changeBoard}
+          dashboardName={dashboardName}
+        >
+          {children}
+        </DashboardPageFrame>
+      ) : (
+        <DashboardListPageFrame
+          activeProjectDashboardsMetadata={activeProjectDashboardsMetadata}
+          changeBoard={changeBoard}
+          dashboardName={dashboardName}
+          activeProject={activeProject}
+        >
+          {children}
+        </DashboardListPageFrame>
+      )}
     </>
   );
 };
