@@ -67,6 +67,7 @@ export const persesDashboardsModalTitles ={
   EDIT_DASHBOARD_JSON: 'Edit Dashboard JSON',
   SAVE_DASHBOARD: 'Save Dashboard',
   DISCARD_CHANGES: 'Discard Changes',
+  VIEW_JSON_DIALOG: 'Dashboard JSON',
 }
 
 export enum persesDashboardsAddListVariableSource {

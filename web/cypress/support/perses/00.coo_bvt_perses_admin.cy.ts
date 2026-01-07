@@ -32,7 +32,7 @@ export function testBVTCOOPerses(perspective: PerspectiveConfig) {
     cy.changeNamespace('openshift-cluster-observability-operator');
     persesDashboardsPage.clickDashboardDropdown(persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[0] as keyof typeof persesDashboardsDashboardDropdownCOO);
     cy.byDataTestID(persesMUIDataTestIDs.variableDropdown+'-cluster').should('be.visible');
-    persesDashboardsPage.panelGroupHeaderAssertion('Accelerators');
+    persesDashboardsPage.panelGroupHeaderAssertion('Accelerators', 'Open');
     persesDashboardsPage.panelHeadersAcceleratorsCommonMetricsAssertion();
     persesDashboardsPage.expandPanel(persesDashboardsAcceleratorsCommonMetricsPanels.GPU_UTILIZATION);
     persesDashboardsPage.collapsePanel(persesDashboardsAcceleratorsCommonMetricsPanels.GPU_UTILIZATION);
@@ -46,7 +46,7 @@ export function testBVTCOOPerses(perspective: PerspectiveConfig) {
     cy.byDataTestID(persesMUIDataTestIDs.variableDropdown+'-instance').should('be.visible');
     cy.byDataTestID(persesMUIDataTestIDs.variableDropdown+'-interval').should('be.visible');
     cy.byDataTestID(persesMUIDataTestIDs.variableDropdown+'-text').should('be.visible');
-    persesDashboardsPage.panelGroupHeaderAssertion('Row 1');
+    persesDashboardsPage.panelGroupHeaderAssertion('Row 1', 'Open');
     persesDashboardsPage.expandPanel('RAM Used');
     persesDashboardsPage.collapsePanel('RAM Used');
     persesDashboardsPage.statChartValueAssertion('RAM Used', true);

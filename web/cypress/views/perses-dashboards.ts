@@ -1,7 +1,7 @@
 import { commonPages } from "./common";
 import { DataTestIDs, Classes, LegacyTestIDs, persesAriaLabels, persesMUIDataTestIDs, listPersesDashboardsOUIAIDs, IDs, persesDashboardDataTestIDs, listPersesDashboardsDataTestIDs } from "../../src/components/data-test";
 import { MonitoringPageTitles } from "../fixtures/monitoring/constants";
-import { listPersesDashboardsPageSubtitle } from "../fixtures/perses/constants";
+import { listPersesDashboardsPageSubtitle, persesDashboardsModalTitles } from "../fixtures/perses/constants";
 import { persesDashboardsTimeRange, persesDashboardsRefreshInterval, persesDashboardsDashboardDropdownCOO, persesDashboardsDashboardDropdownPersesDev, persesDashboardsAcceleratorsCommonMetricsPanels } from "../fixtures/perses/constants";
 
 export const persesDashboardsPage = {
@@ -241,25 +241,27 @@ export const persesDashboardsPage = {
 
   clickPanelAction: (panel: string, button: 'expand' | 'collapse' | 'edit' | 'duplicate' | 'delete') => {
     cy.log('persesDashboardsPage.clickPanelActions');
-    cy.byDataTestID(persesMUIDataTestIDs.panelHeader).find('h6').contains(panel).scrollIntoView().siblings('div').eq(0).then((element1) => {
+    cy.byDataTestID(persesMUIDataTestIDs.panelHeader).find('h6').contains(panel).siblings('div').eq(0).then((element1) => {
       if (element1.find('[data-testid="MenuIcon"]').length > 0 && element1.find('[data-testid="MenuIcon"]').is(':visible')) {
-        cy.byAriaLabel(persesAriaLabels.EditPanelActionMenuButtonPrefix + panel).scrollIntoView().should('be.visible').click({ force: true });
+        cy.byAriaLabel(persesAriaLabels.EditPanelActionMenuButtonPrefix + panel).should('be.visible').click({ force: true });
       }
     });
 
     switch (button) {
       case 'expand':
+        cy.byAriaLabel(persesAriaLabels.EditPanelExpandCollapseButtonPrefix + panel + persesAriaLabels.EditPanelExpandCollapseButtonSuffix).find('[data-testid="ArrowExpandIcon"]').eq(0).invoke('show').click({ force: true });
+        break;
       case 'collapse':
-        cy.byAriaLabel(persesAriaLabels.EditPanelExpandCollapseButtonPrefix + panel + persesAriaLabels.EditPanelExpandCollapseButtonSuffix).scrollIntoView().should('be.visible').click({ force: true });
+        cy.byAriaLabel(persesAriaLabels.EditPanelExpandCollapseButtonPrefix + panel + persesAriaLabels.EditPanelExpandCollapseButtonSuffix).find('[data-testid="ArrowCollapseIcon"]').eq(1).should('be.visible').click({ force: true });
         break;
       case 'edit':
-        cy.byAriaLabel(persesAriaLabels.EditPanelPrefix + panel).scrollIntoView().should('be.visible').click({ force: true });
+        cy.byAriaLabel(persesAriaLabels.EditPanelPrefix + panel).should('be.visible').click({ force: true });
         break;
       case 'duplicate':
-        cy.byAriaLabel(persesAriaLabels.EditPanelDuplicateButtonPrefix + panel).scrollIntoView().should('be.visible').click({ force: true });
+        cy.byAriaLabel(persesAriaLabels.EditPanelDuplicateButtonPrefix + panel).should('be.visible').click({ force: true });
         break;
       case 'delete':
-        cy.byAriaLabel(persesAriaLabels.EditPanelDeleteButtonPrefix + panel).scrollIntoView().should('be.visible').click({ force: true });
+        cy.byAriaLabel(persesAriaLabels.EditPanelDeleteButtonPrefix + panel).should('be.visible').click({ force: true });
         break;
     }
   },
@@ -327,4 +329,58 @@ export const persesDashboardsPage = {
     cy.log('persesDashboardsPage.assertPanelNotExist');
     cy.byDataTestID(persesMUIDataTestIDs.panelHeader).find('h6').contains(name).should('not.exist');
   },
+
+  downloadDashboard: (clearFolder: boolean, dashboardName: string, format: 'JSON' | 'YAML' | 'YAML (CR)') => {
+    cy.log('persesDashboardsPage.downloadDashboard');
+
+    if (clearFolder) {
+      cy.task('clearDownloads');
+    }
+
+    cy.get('#'+ IDs.persesDashboardDownloadButton).scrollIntoView().should('be.visible').click({ force: true });
+    cy.byPFRole('menuitem').contains(format).should('be.visible').click({ force: true });
+    cy.wait(1000);
+    let filename: string;
+    if (format === 'YAML (CR)') {
+      filename = dashboardName + '-cr' + '.yaml';
+    } else {
+      filename = dashboardName + '.' + format.toLowerCase();
+    }
+    persesDashboardsPage.assertFilename(true, filename);
+  },
+
+  assertFilename: (clearFolder: boolean, fileNameExp: string) => {
+    cy.log('persesDashboardsPage.assertFilename');
+    let downloadedFileName: string | null = null;
+    const downloadsFolder = Cypress.config('downloadsFolder');
+    const expectedFileNamePattern = fileNameExp;
+   
+    cy.waitUntil(() => {
+      return cy.task('getFilesInFolder', downloadsFolder).then((currentFiles: string[]) => {
+        const matchingFile = currentFiles.find(file => file.includes(expectedFileNamePattern));
+        if (matchingFile) {
+          downloadedFileName = matchingFile;
+          return true;
+        }
+        return false;
+      });
+    }, {
+      timeout: 20000,
+      interval: 1000,
+      errorMsg: `File matching "${expectedFileNamePattern}" was not downloaded within timeout.`
+    });
+
+    cy.then(() => {
+      expect(downloadedFileName).to.not.be.null;
+      cy.task('doesFileExist', { fileName: downloadedFileName }).should('be.true');
+    });
+  },
+
+  viewJSON: (dashboardName: string, namespace: string) => {
+    cy.log('persesDashboardsPage.viewJSON');
+    cy.byAriaLabel(persesAriaLabels.ViewJSONButton).scrollIntoView().should('be.visible').click({ force: true });
+    cy.byPFRole('dialog').find('h2').contains(persesDashboardsModalTitles.VIEW_JSON_DIALOG).scrollIntoView().should('be.visible');
+    cy.byAriaLabel('Close').should('be.visible').click({ force: true });
+  },
+  
 }
