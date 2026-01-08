@@ -119,7 +119,7 @@ const DashboardPage_: FC = () => {
         dashboardResource={currentDashboard.persesDashboard}
         isReadonly={false}
         isVariableEnabled={true}
-        isDatasourceEnabled={true}
+        isDatasourceEnabled={false}
         onSave={handleDashboardSave}
         emptyDashboardProps={{
           title: t('Empty Dashboard'),
