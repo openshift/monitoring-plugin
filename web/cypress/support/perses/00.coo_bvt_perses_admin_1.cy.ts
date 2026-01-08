@@ -47,8 +47,8 @@ export function testBVTCOOPerses1(perspective: PerspectiveConfig) {
     cy.byDataTestID(persesMUIDataTestIDs.variableDropdown+'-interval').should('be.visible');
     cy.byDataTestID(persesMUIDataTestIDs.variableDropdown+'-text').should('be.visible');
     persesDashboardsPage.panelGroupHeaderAssertion('Row 1', 'Open');
-    persesDashboardsPage.expandPanel('RAM Used');
-    persesDashboardsPage.collapsePanel('RAM Used');
+    persesDashboardsPage.expandPanel('RAM Total');
+    persesDashboardsPage.collapsePanel('RAM Total');
     //TODO: when federation problem gets fixed, uncomment the following lines
     // persesDashboardsPage.statChartValueAssertion('RAM Used', true);
     // persesDashboardsPage.searchAndSelectVariable('job', 'node-exporter');

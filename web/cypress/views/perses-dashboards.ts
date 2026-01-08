@@ -137,14 +137,24 @@ export const persesDashboardsPage = {
     });
   },
 
-  expandPanel: (panel: keyof typeof persesDashboardsAcceleratorsCommonMetricsPanels | string) => {
+  expandPanel: (panel: string) => {
     cy.log('persesDashboardsPage.expandPanel');
     persesDashboardsPage.clickPanelAction(panel, 'expand');
   },
 
-  collapsePanel: (panel: keyof typeof persesDashboardsAcceleratorsCommonMetricsPanels | string) => {
+  collapsePanel: (panel: string) => {
     cy.log('persesDashboardsPage.collapsePanel');
     persesDashboardsPage.clickPanelAction(panel, 'collapse');
+  },
+
+  expandPanelGroup: (panelGroup: string) => {
+    cy.log('persesDashboardsPage.expandPanelGroup');
+    cy.byAriaLabel(persesAriaLabels.OpenGroupButtonPrefix + panelGroup).scrollIntoView().should('be.visible').click({ force: true });
+  },
+
+  collapsePanelGroup: (panelGroup: string) => {
+    cy.log('persesDashboardsPage.collapsePanelGroup');
+    cy.byAriaLabel(persesAriaLabels.CollapseGroupButtonPrefix + panelGroup).scrollIntoView().should('be.visible').click({ force: true });
   },
 
   statChartValueAssertion: (panel: keyof typeof persesDashboardsAcceleratorsCommonMetricsPanels | string, noData: boolean) => {
@@ -383,4 +393,8 @@ export const persesDashboardsPage = {
     cy.byAriaLabel('Close').should('be.visible').click({ force: true });
   },
   
+  assertDuplicatedPanel: (panel: string, amount: number) => {
+    cy.log('persesDashboardsPage.assertDuplicatedPanel');
+    cy.byDataTestID(persesMUIDataTestIDs.panelHeader).find('h6').filter(`:contains("${panel}")`).should('have.length', amount);
+  },
 }

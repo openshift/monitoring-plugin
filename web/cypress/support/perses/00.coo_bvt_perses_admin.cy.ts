@@ -47,11 +47,11 @@ export function testBVTCOOPerses(perspective: PerspectiveConfig) {
     cy.byDataTestID(persesMUIDataTestIDs.variableDropdown+'-interval').should('be.visible');
     cy.byDataTestID(persesMUIDataTestIDs.variableDropdown+'-text').should('be.visible');
     persesDashboardsPage.panelGroupHeaderAssertion('Row 1', 'Open');
-    persesDashboardsPage.expandPanel('RAM Used');
-    persesDashboardsPage.collapsePanel('RAM Used');
-    persesDashboardsPage.statChartValueAssertion('RAM Used', true);
+    persesDashboardsPage.expandPanel('RAM Total');
+    persesDashboardsPage.collapsePanel('RAM Total');
+    persesDashboardsPage.statChartValueAssertion('RAM Total', true);
     persesDashboardsPage.searchAndSelectVariable('job', 'node-exporter');
-    persesDashboardsPage.statChartValueAssertion('RAM Used', false);
+    persesDashboardsPage.statChartValueAssertion('RAM Total', false);
   
   });
 

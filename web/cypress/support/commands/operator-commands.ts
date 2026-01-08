@@ -425,7 +425,11 @@ const operatorUtils = {
       cy.log(`Korrel8r pod is now running in namespace: ${MCP.namespace}`);
     });
 
+    cy.log(`Reloading the page`);
     cy.reload(true);
+    cy.log(`Waiting for 10 seconds before clicking the application launcher`);
+    cy.wait(10000);
+    cy.log(`Clicking the application launcher`);
     cy.byLegacyTestID(LegacyTestIDs.ApplicationLauncher).should('be.visible').click();
     cy.byTestID(DataTestIDs.MastHeadApplicationItem).contains('Signal Correlation').should('be.visible');
   },

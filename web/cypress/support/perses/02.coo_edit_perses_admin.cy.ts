@@ -252,7 +252,7 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
     persesDashboardsEditVariables.clickButton('Cancel');
   });
 
-
+  /**TODO: https://issues.redhat.com/browse/OU-1054 is targeted for COO1.5.0, so, commenting all Datasources related scenarios
   it(`6.${perspective.name} perspective - Edit Toolbar - Edit Datasources - Add and Delete Prometheus Datasource`, () => {
     cy.log(`6.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
     commonPages.titleShouldHaveText('Dashboards');
@@ -328,7 +328,6 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
 
   });
 
-  //TODO: Add Tempo Datasource is throwing extra Federation problem in the UI and not persisting this datasource Type
   // it(`8.${perspective.name} perspective - Edit Toolbar - Edit Datasources - Add Tempo Datasource`, () => {
   // });
 
@@ -367,9 +366,146 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
     persesDashboardsPage.clickEditActionButton('Cancel');
 
   });
+*/
 
+  it(`6.${perspective.name} perspective - Edit Toolbar - Add Panel Group`, () => {
+    cy.log(`6.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
+    commonPages.titleShouldHaveText('Dashboards');
+    listPersesDashboardsPage.shouldBeLoaded();
 
-  it(`9.${perspective.name} perspective - Edit Toolbar - Add Panel Group`, () => {
+    cy.log(`6.2. Filter by Name`);
+    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+    listPersesDashboardsPage.countDashboards('1');
+
+    cy.log(`6.3. Click on a dashboard`);
+    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+    //TODO: change back to shouldBeLoaded when customizable-dashboards gets merged
+    // persesDashboardsPage.shouldBeLoaded1();
+
+    cy.log(`6.4. Click on Edit button`);
+    cy.wait(2000);
+    persesDashboardsPage.clickEditButton();
+    persesDashboardsPage.clickEditActionButton('AddGroup');
+
+    cy.log(`6.5. Add panel group`);
+    persesDashboardsPanelGroup.addPanelGroup('PanelGroup1', 'Open', '');
+
+    cy.log(`6.6. Save panel group`);
+    persesDashboardsPage.clickEditActionButton('Save');
+    persesDashboardsPage.panelGroupHeaderAssertion('PanelGroup1', 'Open');
+
+    cy.log(`6.7. Back and check panel group`);
+    //TODO: START testing more to check if it is time constraint or cache issue
+    persesDashboardsPage.backToListPersesDashboardsPage();
+    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+    persesDashboardsPage.backToListPersesDashboardsPage();
+    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+    persesDashboardsPage.panelGroupHeaderAssertion('PanelGroup1', 'Open');
+
+  });
+
+  it(`7.${perspective.name} perspective - Edit Toolbar - Edit Panel Group`, () => {
+    cy.log(`7.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
+    commonPages.titleShouldHaveText('Dashboards');
+    listPersesDashboardsPage.shouldBeLoaded();
+
+    cy.log(`7.2. Filter by Name`);
+    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+    listPersesDashboardsPage.countDashboards('1');
+
+    cy.log(`7.3. Click on a dashboard`);
+    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+    //TODO: change back to shouldBeLoaded when customizable-dashboards gets merged
+    // persesDashboardsPage.shouldBeLoaded1();
+
+    cy.log(`7.4. Click on Edit button`);
+    cy.wait(2000);
+    persesDashboardsPage.clickEditButton();
+    persesDashboardsPanelGroup.clickPanelGroupAction('PanelGroup1', 'edit');
+    persesDashboardsPanelGroup.editPanelGroup('PanelGroup2', 'Closed', '');
+    persesDashboardsPage.clickEditActionButton('Save');
+    persesDashboardsPage.panelGroupHeaderAssertion('PanelGroup2', 'Closed');
+
+    cy.log(`7.5. Back and check panel group`);
+    //TODO: START testing more to check if it is time constraint or cache issue
+    persesDashboardsPage.backToListPersesDashboardsPage();
+    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+    persesDashboardsPage.backToListPersesDashboardsPage();
+    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+    persesDashboardsPage.panelGroupHeaderAssertion('PanelGroup2', 'Closed');
+
+  });
+
+  it(`8.${perspective.name} perspective - Edit Toolbar - Move Panel Group Down and Up`, () => {
+    cy.log(`8.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
+    commonPages.titleShouldHaveText('Dashboards');
+    listPersesDashboardsPage.shouldBeLoaded();
+
+    cy.log(`8.2. Filter by Name`);
+    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+    listPersesDashboardsPage.countDashboards('1');
+
+    cy.log(`8.3. Click on a dashboard`);
+    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+    //TODO: change back to shouldBeLoaded when customizable-dashboards gets merged
+    // persesDashboardsPage.shouldBeLoaded1();
+
+    cy.log(`8.4. Click on Edit button`);
+    cy.wait(2000);
+    persesDashboardsPage.clickEditButton();
+    persesDashboardsPanelGroup.clickPanelGroupAction('PanelGroup2', 'moveDown');
+    
+    cy.log(`8.5. Save panel group`);
+    persesDashboardsPage.clickEditActionButton('Save');
+
+    cy.log(`8.6. Assert panel group order`);
+    persesDashboardsPage.assertPanelGroupOrder('Row 1', 0);
+    persesDashboardsPage.assertPanelGroupOrder('PanelGroup2', 1);
+    persesDashboardsPage.assertPanelGroupOrder('Row 2', 2);
+
+    cy.log(`8.7. Back and check panel group order`);
+    //TODO: START testing more to check if it is time constraint or cache issue
+    persesDashboardsPage.backToListPersesDashboardsPage();
+    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+    persesDashboardsPage.backToListPersesDashboardsPage();
+    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+    persesDashboardsPage.assertPanelGroupOrder('Row 1', 0);
+    persesDashboardsPage.assertPanelGroupOrder('PanelGroup2', 1);
+    persesDashboardsPage.assertPanelGroupOrder('Row 2', 2);
+
+    cy.log(`8.8. Click on Edit button`);
+    cy.wait(2000);
+    persesDashboardsPage.clickEditButton();
+
+    cy.log(`8.9. Move panel group up`);
+    persesDashboardsPanelGroup.clickPanelGroupAction('PanelGroup2', 'moveUp');
+    persesDashboardsPage.clickEditActionButton('Save');
+
+    cy.log(`8.10. Assert panel group order`);
+    persesDashboardsPage.assertPanelGroupOrder('PanelGroup2', 0);
+    persesDashboardsPage.assertPanelGroupOrder('Row 1', 1);
+    persesDashboardsPage.assertPanelGroupOrder('Row 2', 2);
+    
+    cy.log(`8.11. Back and check panel group order`);
+    //TODO: START testing more to check if it is time constraint or cache issue
+    persesDashboardsPage.backToListPersesDashboardsPage();
+    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+    persesDashboardsPage.backToListPersesDashboardsPage();
+    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+    persesDashboardsPage.assertPanelGroupOrder('PanelGroup2', 0);
+    persesDashboardsPage.assertPanelGroupOrder('Row 1', 1);
+    persesDashboardsPage.assertPanelGroupOrder('Row 2', 2);
+  });
+
+  it(`9.${perspective.name} perspective - Edit Toolbar - Delete Panel Group`, () => {
     cy.log(`9.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
     commonPages.titleShouldHaveText('Dashboards');
     listPersesDashboardsPage.shouldBeLoaded();
@@ -386,149 +522,12 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
     cy.log(`9.4. Click on Edit button`);
     cy.wait(2000);
     persesDashboardsPage.clickEditButton();
-    persesDashboardsPage.clickEditActionButton('AddGroup');
-
-    cy.log(`9.5. Add panel group`);
-    persesDashboardsPanelGroup.addPanelGroup('PanelGroup1', 'Open', '');
-
-    cy.log(`9.6. Save panel group`);
-    persesDashboardsPage.clickEditActionButton('Save');
-    persesDashboardsPage.panelGroupHeaderAssertion('PanelGroup1', 'Open');
-
-    cy.log(`9.7. Back and check panel group`);
-    //TODO: START testing more to check if it is time constraint or cache issue
-    persesDashboardsPage.backToListPersesDashboardsPage();
-    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
-    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
-    persesDashboardsPage.backToListPersesDashboardsPage();
-    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
-    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
-    persesDashboardsPage.panelGroupHeaderAssertion('PanelGroup1', 'Open');
-
-  });
-
-  it(`10.${perspective.name} perspective - Edit Toolbar - Edit Panel Group`, () => {
-    cy.log(`10.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
-    commonPages.titleShouldHaveText('Dashboards');
-    listPersesDashboardsPage.shouldBeLoaded();
-
-    cy.log(`10.2. Filter by Name`);
-    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
-    listPersesDashboardsPage.countDashboards('1');
-
-    cy.log(`10.3. Click on a dashboard`);
-    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
-    //TODO: change back to shouldBeLoaded when customizable-dashboards gets merged
-    // persesDashboardsPage.shouldBeLoaded1();
-
-    cy.log(`10.4. Click on Edit button`);
-    cy.wait(2000);
-    persesDashboardsPage.clickEditButton();
-    persesDashboardsPanelGroup.clickPanelGroupAction('PanelGroup1', 'edit');
-    persesDashboardsPanelGroup.editPanelGroup('PanelGroup2', 'Closed', '');
-    persesDashboardsPage.clickEditActionButton('Save');
-    persesDashboardsPage.panelGroupHeaderAssertion('PanelGroup2', 'Closed');
-
-    cy.log(`10.5. Back and check panel group`);
-    //TODO: START testing more to check if it is time constraint or cache issue
-    persesDashboardsPage.backToListPersesDashboardsPage();
-    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
-    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
-    persesDashboardsPage.backToListPersesDashboardsPage();
-    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
-    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
-    persesDashboardsPage.panelGroupHeaderAssertion('PanelGroup2', 'Closed');
-
-  });
-
-  it(`11.${perspective.name} perspective - Edit Toolbar - Move Panel Group Down and Up`, () => {
-    cy.log(`11.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
-    commonPages.titleShouldHaveText('Dashboards');
-    listPersesDashboardsPage.shouldBeLoaded();
-
-    cy.log(`11.2. Filter by Name`);
-    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
-    listPersesDashboardsPage.countDashboards('1');
-
-    cy.log(`11.3. Click on a dashboard`);
-    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
-    //TODO: change back to shouldBeLoaded when customizable-dashboards gets merged
-    // persesDashboardsPage.shouldBeLoaded1();
-
-    cy.log(`11.4. Click on Edit button`);
-    cy.wait(2000);
-    persesDashboardsPage.clickEditButton();
-    persesDashboardsPanelGroup.clickPanelGroupAction('PanelGroup2', 'moveDown');
-    
-    cy.log(`11.5. Save panel group`);
-    persesDashboardsPage.clickEditActionButton('Save');
-
-    cy.log(`11.6. Assert panel group order`);
-    persesDashboardsPage.assertPanelGroupOrder('Row 1', 0);
-    persesDashboardsPage.assertPanelGroupOrder('PanelGroup2', 1);
-    persesDashboardsPage.assertPanelGroupOrder('Row 2', 2);
-
-    cy.log(`11.7. Back and check panel group order`);
-    //TODO: START testing more to check if it is time constraint or cache issue
-    persesDashboardsPage.backToListPersesDashboardsPage();
-    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
-    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
-    persesDashboardsPage.backToListPersesDashboardsPage();
-    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
-    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
-    persesDashboardsPage.assertPanelGroupOrder('Row 1', 0);
-    persesDashboardsPage.assertPanelGroupOrder('PanelGroup2', 1);
-    persesDashboardsPage.assertPanelGroupOrder('Row 2', 2);
-
-    cy.log(`11.8. Click on Edit button`);
-    cy.wait(2000);
-    persesDashboardsPage.clickEditButton();
-
-    cy.log(`11.9. Move panel group up`);
-    persesDashboardsPanelGroup.clickPanelGroupAction('PanelGroup2', 'moveUp');
-    persesDashboardsPage.clickEditActionButton('Save');
-
-    cy.log(`11.10. Assert panel group order`);
-    persesDashboardsPage.assertPanelGroupOrder('PanelGroup2', 0);
-    persesDashboardsPage.assertPanelGroupOrder('Row 1', 1);
-    persesDashboardsPage.assertPanelGroupOrder('Row 2', 2);
-    
-    cy.log(`11.11. Back and check panel group order`);
-    //TODO: START testing more to check if it is time constraint or cache issue
-    persesDashboardsPage.backToListPersesDashboardsPage();
-    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
-    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
-    persesDashboardsPage.backToListPersesDashboardsPage();
-    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
-    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
-    persesDashboardsPage.assertPanelGroupOrder('PanelGroup2', 0);
-    persesDashboardsPage.assertPanelGroupOrder('Row 1', 1);
-    persesDashboardsPage.assertPanelGroupOrder('Row 2', 2);
-  });
-
-  it(`12.${perspective.name} perspective - Edit Toolbar - Delete Panel Group`, () => {
-    cy.log(`12.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
-    commonPages.titleShouldHaveText('Dashboards');
-    listPersesDashboardsPage.shouldBeLoaded();
-
-    cy.log(`12.2. Filter by Name`);
-    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
-    listPersesDashboardsPage.countDashboards('1');
-
-    cy.log(`12.3. Click on a dashboard`);
-    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
-    //TODO: change back to shouldBeLoaded when customizable-dashboards gets merged
-    // persesDashboardsPage.shouldBeLoaded1();
-
-    cy.log(`12.4. Click on Edit button`);
-    cy.wait(2000);
-    persesDashboardsPage.clickEditButton();
     persesDashboardsPanelGroup.clickPanelGroupAction('PanelGroup2', 'delete');
     persesDashboardsPanelGroup.clickDeletePanelGroupButton();
     persesDashboardsPage.clickEditActionButton('Save');
     persesDashboardsPage.assertPanelGroupNotExist('PanelGroup2');
 
-    cy.log(`12.5. Back and check panel group`);
+    cy.log(`9.5. Back and check panel group`);
     //TODO: START testing more to check if it is time constraint or cache issue
     persesDashboardsPage.backToListPersesDashboardsPage();
     listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
@@ -543,8 +542,5 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
   // it(`13.${perspective.name} perspective - Edit Toolbar - Add Panel Group - Required field validation`, () => {
  
   // });
-
-// security testing
-
 
 }
