@@ -175,6 +175,7 @@ print_current_config() {
   print_var "CYPRESS_KONFLUX_COO_BUNDLE_IMAGE" "${CYPRESS_KONFLUX_COO_BUNDLE_IMAGE-}"
   print_var "CYPRESS_CUSTOM_COO_BUNDLE_IMAGE" "${CYPRESS_CUSTOM_COO_BUNDLE_IMAGE-}"
   print_var "CYPRESS_MCP_CONSOLE_IMAGE" "${CYPRESS_MCP_CONSOLE_IMAGE-}"
+  print_var "CYPRESS_CHA_IMAGE" "${CYPRESS_CHA_IMAGE-}"
   print_var "CYPRESS_TIMEZONE" "${CYPRESS_TIMEZONE-}"
   print_var "CYPRESS_MOCK_NEW_METRICS" "${CYPRESS_MOCK_NEW_METRICS-}"
   print_var "CYPRESS_SESSION" "${CYPRESS_SESSION-}"
@@ -226,6 +227,7 @@ main() {
   local def_konflux_bundle=${CYPRESS_KONFLUX_COO_BUNDLE_IMAGE-}
   local def_custom_coo_bundle=${CYPRESS_CUSTOM_COO_BUNDLE_IMAGE-}
   local def_mcp_console_image=${CYPRESS_MCP_CONSOLE_IMAGE-}
+  local def_cha_image=${CYPRESS_CHA_IMAGE-}
   local def_timezone=${CYPRESS_TIMEZONE-}
   local def_mock_new_metrics=${CYPRESS_MOCK_NEW_METRICS-}
   local def_session=${CYPRESS_SESSION-}
@@ -434,6 +436,9 @@ main() {
   local mcp_console_image
   mcp_console_image=$(ask "Monitoring Console Plugin UI image (CYPRESS_MCP_CONSOLE_IMAGE)" "$def_mcp_console_image")
 
+  local cha_image
+  cha_image=$(ask "Cluster Health Analyzer image (CYPRESS_CHA_IMAGE)" "$def_cha_image")
+
   local timezone
   timezone=$(ask "Cluster timezone (CYPRESS_TIMEZONE)" "${def_timezone:-UTC}")
 
@@ -500,6 +505,9 @@ main() {
   if [[ -n "$mcp_console_image" ]]; then
     export_lines+=("export CYPRESS_MCP_CONSOLE_IMAGE='$(printf %s "$mcp_console_image" | escape_for_single_quotes)'" )
   fi
+  if [[ -n "$cha_image" ]]; then
+    export_lines+=("export CYPRESS_CHA_IMAGE='$(printf %s "$cha_image" | escape_for_single_quotes)'" )
+  fi
   if [[ -n "$timezone" ]]; then
     export_lines+=("export CYPRESS_TIMEZONE='$(printf %s "$timezone" | escape_for_single_quotes)'" )
   fi
@@ -553,6 +561,7 @@ main() {
   [[ -n "$konflux_bundle" ]] && echo "  CYPRESS_KONFLUX_COO_BUNDLE_IMAGE=$konflux_bundle"
   [[ -n "$custom_coo_bundle" ]] && echo "  CYPRESS_CUSTOM_COO_BUNDLE_IMAGE=$custom_coo_bundle"
   [[ -n "$mcp_console_image" ]] && echo "  CYPRESS_MCP_CONSOLE_IMAGE=$mcp_console_image"
+  [[ -n "$cha_image" ]] && echo "  CYPRESS_CHA_IMAGE=$cha_image"
   [[ -n "$timezone" ]] && echo "  CYPRESS_TIMEZONE=$timezone"
   echo "  CYPRESS_MOCK_NEW_METRICS=$mock_new_metrics"
   echo "  CYPRESS_SESSION=$session"
