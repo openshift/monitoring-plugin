@@ -181,7 +181,9 @@ const IncidentsChart = ({
                     if (datum.nodata) {
                       return '';
                     }
-                    const startDate = dateTimeFormatter(i18n.language).format(new Date(datum.y0));
+                    const startDate = dateTimeFormatter(i18n.language).format(
+                      new Date(datum.originalStartDate),
+                    );
                     const endDate = datum.firing
                       ? '---'
                       : dateTimeFormatter(i18n.language).format(new Date(datum.y));
