@@ -21,6 +21,7 @@ import { useAccessReview } from '@openshift-console/dynamic-plugin-sdk';
 import { useTranslation } from 'react-i18next';
 
 import { persesDashboardDataTestIDs } from '../../data-test';
+import { useActiveProject } from './project/useActiveProject';
 
 export interface DashboardToolbarProps {
   dashboardName: string;
@@ -91,7 +92,8 @@ export const EditButton = ({ onClick }: EditButtonProps): ReactElement => {
   return button;
 };
 
-const usePersesEditPermissions = (namespace?: string) => {
+const usePersesEditPermissions = () => {
+  const { activeProject: namespace } = useActiveProject();
   const [canCreate, createLoading] = useAccessReview({
     group: 'perses.dev',
     resource: 'persesdashboards',
