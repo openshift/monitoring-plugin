@@ -33,7 +33,7 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
     // persesDashboardsPage.shouldBeLoaded1();
 
     cy.log(`1.4. Click on Edit button`);
-    cy.wait(2000);
+    cy.wait(10000);
     persesDashboardsPage.clickEditButton();
     persesDashboardsPage.assertEditModeButtons();
     persesDashboardsPage.assertEditModePanelGroupButtons('Headlines');
