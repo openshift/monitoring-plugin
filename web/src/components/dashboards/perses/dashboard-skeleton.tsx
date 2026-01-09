@@ -89,7 +89,7 @@ type MonitoringDashboardsPageProps = PropsWithChildren<{
   activeProject?: string;
 }>;
 
-export const DashboardSkeleton: FC<MonitoringDashboardsPageProps> = memo(({ children }) => {
+export const DashboardHeader: FC<MonitoringDashboardsPageProps> = memo(({ children }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (

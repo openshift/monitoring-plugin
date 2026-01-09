@@ -1,6 +1,5 @@
 import React, { ReactNode, useMemo, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { DashboardLayout } from './dashboard-layout';
 import { useDashboardsData } from './hooks/useDashboardsData';
 
 import {
@@ -28,6 +27,7 @@ import { Link, useSearchParams } from 'react-router-dom-v5-compat';
 import { getDashboardUrl, usePerspective } from '../../hooks/usePerspective';
 import { Timestamp } from '@openshift-console/dynamic-plugin-sdk';
 import { listPersesDashboardsDataTestIDs } from '../../../components/data-test';
+import { DashboardListFrame } from './dashboard-list-frame';
 const perPageOptions = [
   { title: '10', value: 10 },
   { title: '20', value: 20 },
@@ -291,7 +291,7 @@ export const DashboardList: FC = () => {
   } = useDashboardsData();
 
   return (
-    <DashboardLayout
+    <DashboardListFrame
       activeProject={activeProject}
       setActiveProject={setActiveProject}
       activeProjectDashboardsMetadata={activeProjectDashboardsMetadata}
@@ -303,6 +303,6 @@ export const DashboardList: FC = () => {
         persesDashboardsLoading={combinedInitialLoad}
         activeProject={activeProject}
       />
-    </DashboardLayout>
+    </DashboardListFrame>
   );
 };

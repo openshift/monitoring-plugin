@@ -1,12 +1,12 @@
 import React, { ReactNode } from 'react';
 import { DashboardEmptyState } from './emptystates/DashboardEmptyState';
-import { DashboardSkeleton } from './dashboard-skeleton';
+import { DashboardHeader } from './dashboard-skeleton';
 import { CombinedDashboardMetadata } from './hooks/useDashboardsData';
 import { ProjectBar } from './project/ProjectBar';
 import { PersesWrapper } from './PersesWrapper';
 import { Overview } from '@openshift-console/dynamic-plugin-sdk';
 
-export interface DashboardLayoutProps {
+interface DashboardFrameProps {
   activeProject: string | null;
   setActiveProject: (project: string | null) => void;
   activeProjectDashboardsMetadata: CombinedDashboardMetadata[];
@@ -15,7 +15,7 @@ export interface DashboardLayoutProps {
   children: ReactNode;
 }
 
-export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
+export const DashboardFrame: React.FC<DashboardFrameProps> = ({
   activeProject,
   setActiveProject,
   activeProjectDashboardsMetadata,
@@ -30,14 +30,14 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         {activeProjectDashboardsMetadata?.length === 0 ? (
           <DashboardEmptyState />
         ) : (
-          <DashboardSkeleton
+          <DashboardHeader
             boardItems={activeProjectDashboardsMetadata}
             changeBoard={changeBoard}
             dashboardName={dashboardName}
             activeProject={activeProject}
           >
             <Overview>{children}</Overview>
-          </DashboardSkeleton>
+          </DashboardHeader>
         )}
       </PersesWrapper>
     </>
