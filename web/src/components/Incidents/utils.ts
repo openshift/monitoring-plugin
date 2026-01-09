@@ -73,6 +73,24 @@ export const isResolved = (lastTimestamp: number, currentTime: number): boolean 
 };
 
 /**
+ * Checks if the last timestamp is in the time window.
+ * @param lastTimestamp - The last timestamp in the incident/alert (in seconds)
+ * @param daysSpan - The number of days in the time window (in milliseconds).
+ * @param currentTime - The current time in milliseconds.
+ * @returns true if the last timestamp is in the time window, false otherwise.
+ */
+export const isInTimeWindow = (
+  lastTimestamp: number,
+  daysSpan: number,
+  currentTime: number,
+): boolean => {
+  // convert chartDays to ms and then convert the result to seconds
+  const timeWindow = (currentTime - daysSpan) / 1000;
+  // if endTime is lower than currentTime-chartDays, return false else true
+  return lastTimestamp >= timeWindow;
+};
+
+/**
  * Inserts padding data points to ensure the chart renders correctly.
  * This allows the chart to properly render events, especially single data points.
  *
@@ -273,6 +291,7 @@ export const createIncidentsChartBars = (incident: Incident, dateArray: SpanDate
   const groupedData = consolidateAndMergeIntervals(incident, dateArray);
 
   const data: {
+    originalStartDate: Date;
     y0: Date;
     y: Date;
     x: number;
@@ -296,8 +315,17 @@ export const createIncidentsChartBars = (incident: Incident, dateArray: SpanDate
     const severity = getSeverityName(groupedData[i][2]);
     const isLastElement = i === groupedData.length - 1;
 
+    let startDateTimestamp = groupedData[i][0];
+    // if startDateTimestamp is more than 24 hours before the dateArray[0], set startDateTimestamp to 24 hours before the dateArray[0]
+    // in a way to avoid the chart to be too far in the past
+    // 86400 is 24 hours in seconds
+    if (startDateTimestamp < dateArray[0] - 86400) {
+      startDateTimestamp = dateArray[0] - 86400;
+    }
+
     data.push({
-      y0: new Date(groupedData[i][0] * 1000),
+      originalStartDate: new Date(groupedData[i][0] * 1000),
+      y0: new Date(startDateTimestamp * 1000),
       y: new Date(groupedData[i][1] * 1000),
       x: incident.x,
       name: severity,
