@@ -27,6 +27,7 @@ describe('COO - Dashboards (Perses) - Edit perses dashboard', { tags: ['@perses'
 
   beforeEach(() => {
     nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
+    cy.wait(5000);
     cy.changeNamespace('All Projects');
   });
 
