@@ -205,23 +205,23 @@ export const persesDashboardsPage = {
   assertEditModeButtons: () => {
     cy.log('persesDashboardsPage.assertEditModeButtons');
     cy.byTestID(persesDashboardDataTestIDs.editDashboardButtonToolbar).should('not.exist');
-    cy.byAriaLabel(persesAriaLabels.EditVariablesButton).scrollIntoView().should('be.visible');
-    cy.byAriaLabel(persesAriaLabels.EditDatasourcesButton).scrollIntoView().should('be.visible');
-    cy.byAriaLabel(persesAriaLabels.AddPanelButton).scrollIntoView().should('be.visible');
-    cy.byAriaLabel(persesAriaLabels.AddGroupButton).scrollIntoView().should('be.visible');
-    cy.bySemanticElement('button', 'Save').scrollIntoView().should('be.visible');
-    cy.byTestID(persesDashboardDataTestIDs.cancelButtonToolbar).scrollIntoView().should('be.visible');
+    cy.byAriaLabel(persesAriaLabels.EditVariablesButton).should('be.visible');
+    cy.byAriaLabel(persesAriaLabels.EditDatasourcesButton).should('not.exist');
+    cy.byAriaLabel(persesAriaLabels.AddPanelButton).should('be.visible');
+    cy.byAriaLabel(persesAriaLabels.AddGroupButton).should('be.visible');
+    cy.bySemanticElement('button', 'Save').should('be.visible');
+    cy.byTestID(persesDashboardDataTestIDs.cancelButtonToolbar).should('be.visible');
   },
 
-  clickEditActionButton: (button: 'EditVariables' | 'EditDatasources'| 'AddPanel' | 'AddGroup' | 'Save' | 'Cancel') => {
+  clickEditActionButton: (button: 'EditVariables' | 'AddPanel' | 'AddGroup' | 'Save' | 'Cancel') => {
     cy.log('persesDashboardsPage.clickEditActionButton');
     switch (button) {
       case 'EditVariables':
         cy.byAriaLabel(persesAriaLabels.EditVariablesButton).scrollIntoView().should('be.visible').click({ force: true });
         break;
-      case 'EditDatasources':
-        cy.byAriaLabel(persesAriaLabels.EditDatasourcesButton).scrollIntoView().should('be.visible').click({ force: true });
-        break;
+      // case 'EditDatasources':
+      //   cy.byAriaLabel(persesAriaLabels.EditDatasourcesButton).scrollIntoView().should('be.visible').click({ force: true });
+      //   break;
       case 'AddPanel':
         cy.byAriaLabel(persesAriaLabels.AddPanelButton).scrollIntoView().should('be.visible').click({ force: true });
         break;
