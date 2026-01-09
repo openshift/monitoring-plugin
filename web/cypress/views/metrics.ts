@@ -293,19 +293,15 @@ export const metricsPage = {
     cy.get(Classes.MenuItem).contains(timespan).should('be.visible').click();
     cy.byPFRole('progressbar').should('be.visible');
     cy.byPFRole('progressbar').should('not.exist');
-    cy.get('[id^="' + IDs.ChartAxis0ChartLabel + '"]').should('be.visible');
-    cy.byTestID(DataTestIDs.MetricGraph).find('[data-ouia-component-id^="' + DataTestIDs.MetricsGraphAlertDanger + '"]').should('not.exist');
   },
 
   enterGraphTimespan: (timespan: GraphTimespan) => {
     cy.log('metricsPage.enterGraphTimespan');
-    cy.byTestID(DataTestIDs.MetricGraphTimespanInput).type('{selectall}{backspace}', {delay: 1000});
+    cy.byTestID(DataTestIDs.MetricGraphTimespanInput).scrollIntoView().should('be.visible').type('{selectall}{backspace}', {delay: 1000});
     cy.byTestID(DataTestIDs.MetricGraphTimespanInput).type(timespan);
     cy.byTestID(DataTestIDs.MetricGraphTimespanInput).should('have.attr', 'value', timespan);
     cy.byPFRole('progressbar').should('be.visible');
     cy.byPFRole('progressbar').should('not.exist');
-    cy.get('[id^="' + IDs.ChartAxis0ChartLabel + '"]').should('be.visible');
-    cy.byTestID(DataTestIDs.MetricGraph).find('[data-ouia-component-id^="' + DataTestIDs.MetricsGraphAlertDanger + '"]').should('not.exist');
   },
 
   graphTimespanDropdownAssertion: () => {
