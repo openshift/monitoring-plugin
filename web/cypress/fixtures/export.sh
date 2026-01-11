@@ -36,6 +36,9 @@ export CYPRESS_FBC_STAGE_COO_IMAGE=<COO FBC image>
 # Set the following var to use custom Monitoring Console Plugin UI plugin image. The image will be patched in Cluster Observability Operator CSV.
 export CYPRESS_MCP_CONSOLE_IMAGE=<Monitoring Console Plugin image>
 
+# Set the following var to use custom cluster-health-analyzer image. The image will be patched in Cluster Observability Operator CSV.
+export CYPRESS_CHA_IMAGE=<cluster-health-analyzer image>
+
 # Set the following var to specify the cluster timezone for incident timeline calculations. Defaults to UTC if not specified.
 export CYPRESS_TIMEZONE=<timezone>
 

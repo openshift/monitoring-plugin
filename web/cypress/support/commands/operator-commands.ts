@@ -135,7 +135,8 @@ export const operatorAuthUtils = {
       Cypress.env('CUSTOM_COO_BUNDLE_IMAGE'),
       Cypress.env('FBC_STAGE_COO_IMAGE'),
       Cypress.env('MP_IMAGE'),
-      Cypress.env('MCP_CONSOLE_IMAGE')
+      Cypress.env('MCP_CONSOLE_IMAGE'),
+      Cypress.env('CHA_IMAGE')
     ];
     
     return [...baseKey, ...envVars.filter(Boolean)];
@@ -309,15 +310,32 @@ const operatorUtils = {
     cy.get('[data-test="status-text"]', { timeout: installTimeoutMilliseconds }).eq(0).should('contain.text', 'Succeeded', { timeout: installTimeoutMilliseconds });
   },
 
-  setupMonitoringConsolePlugin(MCP: { namespace: string }): void {
-    cy.log('Set Monitoring Console Plugin image in operator CSV');
-    if (Cypress.env('MCP_CONSOLE_IMAGE')) {
-      cy.log('MCP_CONSOLE_IMAGE is set. the image will be patched in COO operator CSV');
+  /**
+   * Generic function to patch a component image in the COO CSV
+   * @param MCP - The MCP namespace configuration
+   * @param config - Configuration for the image patch
+   * @param config.envVar - The Cypress environment variable name (also used as the shell script env var)
+   * @param config.scriptPath - Path to the shell script that performs the patch
+   * @param config.componentName - Human-readable name for logging
+   */
+  patchCOOCSVImage(
+    MCP: { namespace: string },
+    config: {
+      envVar: string;
+      scriptPath: string;
+      componentName: string;
+    }
+  ): void {
+    const imageValue = Cypress.env(config.envVar);
+    cy.log(`Set ${config.componentName} image in operator CSV`);
+    
+    if (imageValue) {
+      cy.log(`${config.envVar} is set. The image will be patched in COO operator CSV`);
       cy.exec(
-        './cypress/fixtures/coo/update-mcp-image.sh',
+        config.scriptPath,
         {
           env: {
-            MCP_CONSOLE_IMAGE: Cypress.env('MCP_CONSOLE_IMAGE'),
+            [config.envVar]: imageValue,
             KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
             MCP_NAMESPACE: `${MCP.namespace}`
           },
@@ -326,12 +344,28 @@ const operatorUtils = {
         }
       ).then((result) => {
         expect(result.code).to.eq(0);
-        cy.log(`COO CSV updated successfully with Monitoring Console Plugin image: ${result.stdout}`);
+        cy.log(`COO CSV updated successfully with ${config.componentName} image: ${result.stdout}`);
         cy.reload(true);
       });
     } else {
-      cy.log('MCP_CONSOLE_IMAGE is NOT set. Skipping patching the image in COO operator CSV.');
+      cy.log(`${config.envVar} is NOT set. Skipping patching the image in COO operator CSV.`);
     }
+  },
+
+  setupMonitoringConsolePlugin(MCP: { namespace: string }): void {
+    operatorUtils.patchCOOCSVImage(MCP, {
+      envVar: 'MCP_CONSOLE_IMAGE',
+      scriptPath: './cypress/fixtures/coo/update-mcp-image.sh',
+      componentName: 'Monitoring Console Plugin'
+    });
+  },
+
+  setupClusterHealthAnalyzer(MCP: { namespace: string }): void {
+    operatorUtils.patchCOOCSVImage(MCP, {
+      envVar: 'CHA_IMAGE',
+      scriptPath: './cypress/fixtures/coo/update-cha-image.sh',
+      componentName: 'cluster-health-analyzer'
+    });
   },
 
   setupDashboardsAndPlugins(MCP: { namespace: string }): void {
@@ -797,6 +831,7 @@ Cypress.Commands.add('beforeBlock', (MP: { namespace: string, operatorName: stri
     operatorUtils.installCOO(MCP);
     operatorUtils.waitForCOOReady(MCP);
     operatorUtils.setupMonitoringConsolePlugin(MCP);
+    operatorUtils.setupClusterHealthAnalyzer(MCP);
     operatorUtils.setupDashboardsAndPlugins(MCP);
     operatorUtils.setupTroubleshootingPanel(MCP);
     operatorUtils.setupMonitoringPluginImage(MP);

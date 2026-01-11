@@ -75,6 +75,7 @@ Creates `export-env.sh` that you can source later: `source export-env.sh`
 |----------|-------------|----------|
 | `CYPRESS_MP_IMAGE` | Custom Monitoring Plugin image | Testing custom MP builds |
 | `CYPRESS_MCP_CONSOLE_IMAGE` | Custom Monitoring Console Plugin image | Testing custom MCP builds |
+| `CYPRESS_CHA_IMAGE` | Custom cluster-health-analyzer image | Testing custom CHA builds |
 
 ### Operator Installation Control
 
@@ -160,7 +161,25 @@ export CYPRESS_MP_IMAGE=quay.io/myorg/monitoring-plugin:my-branch
 export CYPRESS_MCP_CONSOLE_IMAGE=quay.io/myorg/monitoring-console-plugin:my-branch
 ```
 
-### Example 4: Pre-Provisioned Cluster (Skip Installations)
+### Example 4: Testing Custom cluster-health-analyzer Build
+
+For CI jobs testing PRs to cluster-health-analyzer:
+
+```bash
+# Required variables
+export CYPRESS_BASE_URL=https://...
+export CYPRESS_LOGIN_IDP=flexy-htpasswd-provider
+export CYPRESS_LOGIN_USERS=username:password
+export CYPRESS_KUBECONFIG_PATH=~/Downloads/kubeconfig
+
+# Custom cluster-health-analyzer image built from PR
+export CYPRESS_CHA_IMAGE=quay.io/myorg/cluster-health-analyzer:pr-123
+
+# Use COO bundle (required for incidents feature testing)
+export CYPRESS_KONFLUX_COO_BUNDLE_IMAGE=quay.io/rhobs/observability-operator-bundle:latest
+```
+
+### Example 5: Pre-Provisioned Cluster (Skip Installations)
 
 ```bash
 # Required variables
@@ -173,14 +192,14 @@ export CYPRESS_KUBECONFIG_PATH=~/Downloads/kubeconfig
 export CYPRESS_SKIP_ALL_INSTALL=true
 ```
 
-### Example 5: Configurable COO Namespace
+### Example 6: Configurable COO Namespace
 
 Set the following var to specify the Cluster Observability Operator namespace. Defaults to `openshift-cluster-observability-operator` if not set. This is useful when testing with different namespace configurations (e.g., using `coo` instead of the default).
 ```bash
 export CYPRESS_COO_NAMESPACE=openshift-cluster-observability-operator
 ```
 
-### Example 6: Debug Mode
+### Example 7: Debug Mode
 
 ```bash
 # Required variables + debug
