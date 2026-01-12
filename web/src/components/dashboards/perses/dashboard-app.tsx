@@ -32,6 +32,7 @@ import {
 } from '@perses-dev/dashboards';
 import { OCPDashboardToolbar } from './dashboard-toolbar';
 import { useUpdateDashboardMutation } from './dashboard-api';
+import { useTranslation } from 'react-i18next';
 
 export interface DashboardAppProps {
   dashboardResource: DashboardResource | EphemeralDashboardResource;
@@ -60,6 +61,8 @@ export const OCPDashboardApp = (props: DashboardAppProps): ReactElement => {
     isLeavingConfirmDialogEnabled,
     onDiscard,
   } = props;
+
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const chartsTheme = useChartsTheme();
   const { successSnackbar, exceptionSnackbar } = useSnackbar();
@@ -129,9 +132,11 @@ export const OCPDashboardApp = (props: DashboardAppProps): ReactElement => {
         const result = await updateDashboardMutation.mutateAsync(data, {
           onSuccess: (updatedDashboard: DashboardResource) => {
             successSnackbar(
-              `Dashboard ${getResourceExtendedDisplayName(
-                updatedDashboard,
-              )} has been successfully updated`,
+              t(
+                `Dashboard ${getResourceExtendedDisplayName(
+                  updatedDashboard,
+                )} has been successfully updated`,
+              ),
             );
             setSaveErrorOccurred(false);
             return updatedDashboard;
@@ -144,7 +149,7 @@ export const OCPDashboardApp = (props: DashboardAppProps): ReactElement => {
         return null;
       }
     },
-    [updateDashboardMutation, successSnackbar, exceptionSnackbar, setSaveErrorOccurred],
+    [updateDashboardMutation, successSnackbar, t, exceptionSnackbar],
   );
 
   return (
