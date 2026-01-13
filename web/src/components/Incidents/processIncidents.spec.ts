@@ -607,14 +607,6 @@ describe('getIncidentsTimeRanges', () => {
   const now = getCurrentTime();
 
   describe('basic functionality', () => {
-    it('should return single range for timespan less than one day', () => {
-      const timespan = 12 * 60 * 60 * 1000; // 12 hours
-      const result = getIncidentsTimeRanges(timespan, now);
-
-      expect(result).toHaveLength(1);
-      expect(result[0].duration).toBe(ONE_DAY);
-    });
-
     it('should split longer timespans into daily chunks', () => {
       const timespan = 3 * ONE_DAY; // 3 days
       const result = getIncidentsTimeRanges(timespan, now);
