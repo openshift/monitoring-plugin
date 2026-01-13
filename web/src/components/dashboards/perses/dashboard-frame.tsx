@@ -5,6 +5,7 @@ import { CombinedDashboardMetadata } from './hooks/useDashboardsData';
 import { ProjectBar } from './project/ProjectBar';
 import { PersesWrapper } from './PersesWrapper';
 import { Overview } from '@openshift-console/dynamic-plugin-sdk';
+import { ToastProvider } from './ToastProvider';
 
 interface DashboardFrameProps {
   activeProject: string | null;
@@ -26,20 +27,22 @@ export const DashboardFrame: React.FC<DashboardFrameProps> = ({
   return (
     <>
       <ProjectBar activeProject={activeProject} setActiveProject={setActiveProject} />
-      <PersesWrapper project={activeProject}>
-        {activeProjectDashboardsMetadata?.length === 0 ? (
-          <DashboardEmptyState />
-        ) : (
-          <DashboardHeader
-            boardItems={activeProjectDashboardsMetadata}
-            changeBoard={changeBoard}
-            dashboardName={dashboardName}
-            activeProject={activeProject}
-          >
-            <Overview>{children}</Overview>
-          </DashboardHeader>
-        )}
-      </PersesWrapper>
+      <ToastProvider>
+        <PersesWrapper project={activeProject}>
+          {activeProjectDashboardsMetadata?.length === 0 ? (
+            <DashboardEmptyState />
+          ) : (
+            <DashboardHeader
+              boardItems={activeProjectDashboardsMetadata}
+              changeBoard={changeBoard}
+              dashboardName={dashboardName}
+              activeProject={activeProject}
+            >
+              <Overview>{children}</Overview>
+            </DashboardHeader>
+          )}
+        </PersesWrapper>
+      </ToastProvider>
     </>
   );
 };

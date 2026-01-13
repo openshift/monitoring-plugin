@@ -1,12 +1,6 @@
 import { ReactElement, ReactNode, useState, useCallback, useEffect } from 'react';
 import { Box } from '@mui/material';
-import {
-  ChartsProvider,
-  ErrorAlert,
-  ErrorBoundary,
-  useChartsTheme,
-  useSnackbar,
-} from '@perses-dev/components';
+import { ChartsProvider, ErrorAlert, ErrorBoundary, useChartsTheme } from '@perses-dev/components';
 import {
   DashboardResource,
   EphemeralDashboardResource,
@@ -33,6 +27,7 @@ import {
 import { OCPDashboardToolbar } from './dashboard-toolbar';
 import { useUpdateDashboardMutation } from './dashboard-api';
 import { useTranslation } from 'react-i18next';
+import { useToast } from './ToastProvider';
 
 export interface DashboardAppProps {
   dashboardResource: DashboardResource | EphemeralDashboardResource;
@@ -65,7 +60,7 @@ export const OCPDashboardApp = (props: DashboardAppProps): ReactElement => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const chartsTheme = useChartsTheme();
-  const { successSnackbar, exceptionSnackbar } = useSnackbar();
+  const { addAlert } = useToast();
 
   const { isEditMode, setEditMode } = useEditMode();
   const { dashboard, setDashboard } = useDashboard();
@@ -131,25 +126,27 @@ export const OCPDashboardApp = (props: DashboardAppProps): ReactElement => {
       try {
         const result = await updateDashboardMutation.mutateAsync(data, {
           onSuccess: (updatedDashboard: DashboardResource) => {
-            successSnackbar(
+            addAlert(
               t(
                 `Dashboard ${getResourceExtendedDisplayName(
                   updatedDashboard,
                 )} has been successfully updated`,
               ),
+              'success',
             );
+
             setSaveErrorOccurred(false);
             return updatedDashboard;
           },
         });
         return result;
       } catch (error) {
-        exceptionSnackbar(error);
+        addAlert(`${error}`, 'danger');
         setSaveErrorOccurred(true);
         return null;
       }
     },
-    [updateDashboardMutation, successSnackbar, t, exceptionSnackbar],
+    [updateDashboardMutation, addAlert, t],
   );
 
   return (
