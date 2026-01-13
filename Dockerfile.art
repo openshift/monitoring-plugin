@@ -9,11 +9,13 @@ USER 0
 
 # use dependencies provided by Cachito
 ENV HUSKY=0
-RUN test -d ${REMOTE_SOURCES_DIR}/cachito-gomod-with-deps || exit 1; \
-    cp -f $REMOTE_SOURCES_DIR/cachito-gomod-with-deps/app/registry-ca.pem . \
- && cp -f $REMOTE_SOURCES_DIR/cachito-gomod-with-deps/app/web/{.npmrc,package-lock.json} web/ \
- && source ${REMOTE_SOURCES_DIR}/cachito-gomod-with-deps/cachito.env \
- && make install-frontend-ci \
+RUN test -d ${REMOTE_SOURCES_DIR}/cachito-gomod-with-deps || exit 1;
+RUN cp -f $REMOTE_SOURCES_DIR/cachito-gomod-with-deps/app/registry-ca.pem .
+RUN cp -f $REMOTE_SOURCES_DIR/cachito-gomod-with-deps/app/web/{.npmrc,package-lock.json} web/
+
+ RUN source ${REMOTE_SOURCES_DIR}/cachito-gomod-with-deps/cachito.env \
+ && make install-frontend
+RUN source ${REMOTE_SOURCES_DIR}/cachito-gomod-with-deps/cachito.env \
  && make build-frontend
 
 

@@ -9,7 +9,7 @@ export NODE_OPTIONS?=--max_old_space_size=4096
 
 .PHONY: install-frontend
 install-frontend:
-	cd web && npm install
+	cd web && npm install --verbose
 
 .PHONY: install-frontend-ci
 install-frontend-ci:
