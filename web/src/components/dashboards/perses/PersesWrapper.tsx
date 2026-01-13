@@ -365,7 +365,6 @@ export function PersesWrapper({ children, project }: PersesWrapperProps) {
         <SnackbarProvider
           anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
           variant="default"
-          content=""
         >
           <PluginRegistry pluginLoader={pluginLoader}>
             {!project ? (
@@ -461,7 +460,6 @@ function InnerWrapper({ children, project, dashboardName }) {
           {clearedDashboardResource ? (
             <DashboardProvider
               initialState={{
-                isEditMode: false,
                 dashboardResource: clearedDashboardResource,
               }}
             >

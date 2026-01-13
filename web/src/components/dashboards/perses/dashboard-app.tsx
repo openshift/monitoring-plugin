@@ -1,7 +1,11 @@
-import { ReactElement, ReactNode, useState } from 'react';
+import { ReactElement, ReactNode, useState, useCallback, useEffect } from 'react';
 import { Box } from '@mui/material';
 import { ChartsProvider, ErrorAlert, ErrorBoundary, useChartsTheme } from '@perses-dev/components';
-import { DashboardResource, EphemeralDashboardResource } from '@perses-dev/core';
+import {
+  DashboardResource,
+  EphemeralDashboardResource,
+  getResourceExtendedDisplayName,
+} from '@perses-dev/core';
 import { useDatasourceStore } from '@perses-dev/plugin-system';
 import {
   PanelDrawer,
@@ -16,12 +20,14 @@ import {
   LeaveDialog,
 } from '@perses-dev/dashboards';
 import {
-  OnSaveDashboard,
   useDashboard,
   useDiscardChangesConfirmationDialog,
   useEditMode,
 } from '@perses-dev/dashboards';
 import { OCPDashboardToolbar } from './dashboard-toolbar';
+import { useUpdateDashboardMutation } from './dashboard-api';
+import { useTranslation } from 'react-i18next';
+import { useToast } from './ToastProvider';
 
 export interface DashboardAppProps {
   dashboardResource: DashboardResource | EphemeralDashboardResource;
@@ -35,7 +41,6 @@ export interface DashboardAppProps {
   // when navigating away with unsaved changes (closing tab, ...).
   isLeavingConfirmDialogEnabled?: boolean;
   dashboardTitleComponent?: ReactNode;
-  onSave?: OnSaveDashboard;
   onDiscard?: (entity: DashboardResource) => void;
 }
 
@@ -49,17 +54,28 @@ export const OCPDashboardApp = (props: DashboardAppProps): ReactElement => {
     isCreating,
     isInitialVariableSticky,
     isLeavingConfirmDialogEnabled,
-    onSave,
     onDiscard,
   } = props;
 
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
+
   const chartsTheme = useChartsTheme();
+  const { addAlert } = useToast();
 
   const { isEditMode, setEditMode } = useEditMode();
   const { dashboard, setDashboard } = useDashboard();
+
   const [originalDashboard, setOriginalDashboard] = useState<
     DashboardResource | EphemeralDashboardResource | undefined
   >(undefined);
+  const [saveErrorOccurred, setSaveErrorOccurred] = useState(false);
+
+  useEffect(() => {
+    if (saveErrorOccurred && !isEditMode) {
+      setEditMode(true);
+      setSaveErrorOccurred(false);
+    }
+  }, [isEditMode, saveErrorOccurred, setEditMode]);
   const { setSavedDatasources } = useDatasourceStore();
 
   const { openDiscardChangesConfirmationDialog, closeDiscardChangesConfirmationDialog } =
@@ -98,6 +114,40 @@ export const OCPDashboardApp = (props: DashboardAppProps): ReactElement => {
       });
     }
   };
+
+  const updateDashboardMutation = useUpdateDashboardMutation();
+
+  const onSave = useCallback(
+    async (data: DashboardResource | EphemeralDashboardResource) => {
+      if (data.kind !== 'Dashboard') {
+        throw new Error('Invalid kind');
+      }
+
+      try {
+        const result = await updateDashboardMutation.mutateAsync(data, {
+          onSuccess: (updatedDashboard: DashboardResource) => {
+            addAlert(
+              t(
+                `Dashboard ${getResourceExtendedDisplayName(
+                  updatedDashboard,
+                )} has been successfully updated`,
+              ),
+              'success',
+            );
+
+            setSaveErrorOccurred(false);
+            return updatedDashboard;
+          },
+        });
+        return result;
+      } catch (error) {
+        addAlert(`${error}`, 'danger');
+        setSaveErrorOccurred(true);
+        return null;
+      }
+    },
+    [updateDashboardMutation, addAlert, t],
+  );
 
   return (
     <Box

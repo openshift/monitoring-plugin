@@ -1,17 +1,10 @@
-import { useSnackbar } from '@perses-dev/components';
-import {
-  DashboardResource,
-  EphemeralDashboardResource,
-  getResourceExtendedDisplayName,
-} from '@perses-dev/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useCallback, type FC } from 'react';
+import { type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom-v5-compat';
 import { QueryParamProvider } from 'use-query-params';
 import { ReactRouter5Adapter } from 'use-query-params/adapters/react-router-5';
 import { LoadingInline } from '../../console/console-shared/src/components/loading/LoadingInline';
-import { useUpdateDashboardMutation } from './dashboard-api';
 import { OCPDashboardApp } from './dashboard-app';
 import { DashboardFrame } from './dashboard-frame';
 import { ProjectEmptyState } from './emptystates/ProjectEmptyState';
@@ -38,32 +31,6 @@ const DashboardPage_: FC = () => {
     activeProject,
     combinedInitialLoad,
   } = useDashboardsData();
-
-  const updateDashboardMutation = useUpdateDashboardMutation();
-  const { successSnackbar, exceptionSnackbar } = useSnackbar();
-
-  const handleDashboardSave = useCallback(
-    (data: DashboardResource | EphemeralDashboardResource) => {
-      if (data.kind !== 'Dashboard') {
-        throw new Error('Invalid kind');
-      }
-      return updateDashboardMutation.mutateAsync(data, {
-        onSuccess: (updatedDashboard: DashboardResource) => {
-          successSnackbar(
-            `Dashboard ${getResourceExtendedDisplayName(
-              updatedDashboard,
-            )} has been successfully updated`,
-          );
-          return updatedDashboard;
-        },
-        onError: (err) => {
-          exceptionSnackbar(err);
-          throw err;
-        },
-      });
-    },
-    [exceptionSnackbar, successSnackbar, updateDashboardMutation],
-  );
 
   // Get dashboard and project from URL parameters
   const urlDashboard = searchParams.get('dashboard');
@@ -120,7 +87,6 @@ const DashboardPage_: FC = () => {
         isReadonly={false}
         isVariableEnabled={true}
         isDatasourceEnabled={false}
-        onSave={handleDashboardSave}
         emptyDashboardProps={{
           title: t('Empty Dashboard'),
           description: t('To get started add something to your dashboard'),
