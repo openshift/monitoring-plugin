@@ -4,15 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/go-playground/form/v4"
-
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
 )
-
-type GetAlertsQueryParams struct {
-	Labels map[string]string `form:"labels"`
-	State  string            `form:"state"`
-}
 
 type GetAlertsResponse struct {
 	Data   GetAlertsResponseData `json:"data"`
@@ -24,16 +17,22 @@ type GetAlertsResponseData struct {
 }
 
 func (hr *httpRouter) GetAlerts(w http.ResponseWriter, req *http.Request) {
-	var params GetAlertsQueryParams
-
-	if err := form.NewDecoder().Decode(&params, req.URL.Query()); err != nil {
-		writeError(w, http.StatusBadRequest, "Invalid query parameters: "+err.Error())
-		return
+	// Flat label filters: any key other than "state" is treated as a label match
+	q := req.URL.Query()
+	state := q.Get("state")
+	labels := make(map[string]string)
+	for key, vals := range q {
+		if key == "state" {
+			continue
+		}
+		if len(vals) > 0 && vals[0] != "" {
+			labels[key] = vals[0]
+		}
 	}
 
 	alerts, err := hr.managementClient.GetAlerts(req.Context(), k8s.GetAlertsRequest{
-		Labels: params.Labels,
-		State:  params.State,
+		Labels: labels,
+		State:  state,
 	})
 	if err != nil {
 		handleError(w, err)

@@ -33,9 +33,31 @@ var _ = Describe("GetAlerts", func() {
 				return mockPrometheusAlerts
 			},
 		}
-
 		mockManagement = management.New(context.Background(), mockK8s)
 		router = managementrouter.New(mockManagement)
+	})
+
+	Context("flat label parsing", func() {
+		It("parses flat query params into Labels map and state", func() {
+			var captured k8s.GetAlertsRequest
+			mockPrometheusAlerts.GetAlertsFunc = func(ctx context.Context, req k8s.GetAlertsRequest) ([]k8s.PrometheusAlert, error) {
+				captured = req
+				return []k8s.PrometheusAlert{}, nil
+			}
+
+			By("making the request")
+			req := httptest.NewRequest(http.MethodGet, "/api/v1/alerting/alerts?namespace=ns1&severity=critical&state=firing&team=sre", nil)
+			w := httptest.NewRecorder()
+
+			router.ServeHTTP(w, req)
+
+			By("verifying the response")
+			Expect(w.Code).To(Equal(http.StatusOK))
+			Expect(captured.State).To(Equal("firing"))
+			Expect(captured.Labels["namespace"]).To(Equal("ns1"))
+			Expect(captured.Labels["severity"]).To(Equal("critical"))
+			Expect(captured.Labels["team"]).To(Equal("sre"))
+		})
 	})
 
 	Context("when getting all alerts without filters", func() {
@@ -125,5 +147,4 @@ var _ = Describe("GetAlerts", func() {
 			Expect(w.Body.String()).To(ContainSubstring("An unexpected error occurred"))
 		})
 	})
-
 })
