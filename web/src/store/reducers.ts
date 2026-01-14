@@ -380,6 +380,11 @@ const monitoringReducer = produce((draft: ObserveState, action: ObserveAction): 
       break;
     }
 
+    case ActionType.SetIncidentsTimestamps: {
+      draft.incidentsData.incidentsTimestamps = action.payload.incidentsTimestamps;
+      break;
+    }
+
     case ActionType.SetIncidentPageFilterType: {
       draft.incidentsData.incidentPageFilterType = action.payload.incidentPageFilterType;
       break;

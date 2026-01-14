@@ -28,7 +28,7 @@ import {
 } from '@patternfly/react-tokens';
 import '../incidents-styles.css';
 import { IncidentsTooltip } from '../IncidentsTooltip';
-import { Incident } from '../model';
+import { Incident, IncidentsTimestamps } from '../model';
 import {
   calculateIncidentsChartDomain,
   createIncidentsChartBars,
@@ -54,8 +54,27 @@ const formatComponentList = (componentList: string[] | undefined): string => {
   return components.slice(0, 3).join(', ') + (hasMore ? ', ...' : '');
 };
 
+/*
+ * Function to match a timestamp metric based on the common labels
+ * (group_id, src_alertname, src_namespace, src_severity)
+ * @param incident - The incident to match the timestamp for
+ * @param timestamps - The timestamps to match the incident for
+ * @returns The matched timestamp
+ */
+const matchTimestampMetric = (incident: Incident, timestamps: Array<any>): any => {
+  return timestamps.find(
+    (timestamp) =>
+      timestamp.metric.group_id === incident.group_id &&
+      timestamp.metric.src_alertname === incident.src_alertname &&
+      timestamp.metric.src_namespace === incident.src_namespace &&
+      timestamp.metric.component === incident.component &&
+      timestamp.metric.src_severity === incident.src_severity,
+  );
+};
+
 const IncidentsChart = ({
   incidentsData,
+  incidentsTimestamps,
   chartDays,
   theme,
   selectedGroupId,
@@ -64,6 +83,7 @@ const IncidentsChart = ({
   lastRefreshTime,
 }: {
   incidentsData: Array<Incident>;
+  incidentsTimestamps: IncidentsTimestamps;
   chartDays: number;
   theme: 'light' | 'dark';
   selectedGroupId: string;
@@ -78,6 +98,19 @@ const IncidentsChart = ({
     () => generateDateArray(chartDays, currentTime),
     [chartDays, currentTime],
   );
+
+  // enrich incidentsData with first_timestamp and last_timestamp from timestamp metric
+  incidentsData = incidentsData.map((incident) => {
+    // find the matched timestamp for the incident
+    const matchedMinTimestamp = matchTimestampMetric(incident, incidentsTimestamps.minOverTime);
+    const matchedLastTimestamp = matchTimestampMetric(incident, incidentsTimestamps.lastOverTime);
+
+    return {
+      ...incident,
+      firstTimestamp: parseInt(matchedMinTimestamp?.value?.[1] ?? '0'),
+      lastTimestamp: parseInt(matchedLastTimestamp?.value?.[1] ?? '0'),
+    };
+  });
 
   const { t, i18n } = useTranslation(process.env.I18N_NAMESPACE);
 
@@ -175,10 +208,12 @@ const IncidentsChart = ({
                     if (datum.nodata) {
                       return '';
                     }
-                    const startDate = dateTimeFormatter(i18n.language).format(new Date(datum.y0));
+                    const startDate = dateTimeFormatter(i18n.language).format(
+                      new Date(datum.startDate),
+                    );
                     const endDate = datum.firing
                       ? '---'
-                      : dateTimeFormatter(i18n.language).format(new Date(datum.y));
+                      : dateTimeFormatter(i18n.language).format(new Date(datum.endDate));
                     const components = formatComponentList(datum.componentList);
 
                     return `${t('Severity')}: ${t(datum.name)}

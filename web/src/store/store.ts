@@ -7,6 +7,7 @@ import {
   DaysFilters,
   IncidentSeverityFilters,
   IncidentStateFilters,
+  IncidentsTimestamps,
 } from '../components/Incidents/model';
 import { Variable } from '../components/dashboards/legacy/legacy-variable-dropdowns';
 
@@ -33,6 +34,7 @@ export type ObserveState = {
     alertsData: Array<any>;
     alertsTableData: Array<any>;
     filteredIncidentsData: Array<any>;
+    incidentsTimestamps: IncidentsTimestamps;
     alertsAreLoading: boolean;
     incidentsChartSelectedId: string;
     incidentsInitialState: {
@@ -80,6 +82,7 @@ export const defaultObserveState: ObserveState = {
     alertsData: [],
     alertsTableData: [],
     filteredIncidentsData: [],
+    incidentsTimestamps: [],
     alertsAreLoading: true,
     incidentsChartSelectedId: '',
     incidentsInitialState: {
