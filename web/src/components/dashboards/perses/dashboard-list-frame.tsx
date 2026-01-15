@@ -1,8 +1,7 @@
 import React, { ReactNode } from 'react';
-import { DashboardHeader } from './dashboard-skeleton';
+import { DashboardListHeader } from './dashboard-header';
 import { CombinedDashboardMetadata } from './hooks/useDashboardsData';
 import { ProjectBar } from './project/ProjectBar';
-import { Overview } from '@openshift-console/dynamic-plugin-sdk';
 
 interface DashboardListFrameProps {
   activeProject: string | null;
@@ -24,14 +23,14 @@ export const DashboardListFrame: React.FC<DashboardListFrameProps> = ({
   return (
     <>
       <ProjectBar activeProject={activeProject} setActiveProject={setActiveProject} />
-      <DashboardHeader
+      <DashboardListHeader
         boardItems={activeProjectDashboardsMetadata}
         changeBoard={changeBoard}
         dashboardName={dashboardName}
         activeProject={activeProject}
       >
-        <Overview>{children}</Overview>
-      </DashboardHeader>
+        {children}
+      </DashboardListHeader>
     </>
   );
 };

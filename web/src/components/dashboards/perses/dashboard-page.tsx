@@ -9,6 +9,7 @@ import { OCPDashboardApp } from './dashboard-app';
 import { DashboardFrame } from './dashboard-frame';
 import { ProjectEmptyState } from './emptystates/ProjectEmptyState';
 import { useDashboardsData } from './hooks/useDashboardsData';
+import { ToastProvider } from './ToastProvider';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -100,7 +101,9 @@ const DashboardPage: React.FC = () => {
   return (
     <QueryParamProvider adapter={ReactRouter5Adapter}>
       <QueryClientProvider client={queryClient}>
-        <DashboardPage_ />
+        <ToastProvider>
+          <DashboardPage_ />
+        </ToastProvider>
       </QueryClientProvider>
     </QueryParamProvider>
   );
