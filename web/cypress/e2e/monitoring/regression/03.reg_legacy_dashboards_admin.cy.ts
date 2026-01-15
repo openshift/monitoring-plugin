@@ -2,6 +2,7 @@ import { runAllRegressionLegacyDashboardsTests } from '../../../support/monitori
 import { runAllRegressionLegacyDashboardsTestsNamespace } from '../../../support/monitoring/06.reg_legacy_dashboards_namespace.cy';
 import { commonPages } from '../../../views/common';
 import { nav } from '../../../views/nav';
+import { guidedTour } from '../../../views/tour';
 
 const MP = {
   namespace: 'openshift-monitoring',
@@ -16,6 +17,9 @@ describe('Regression: Monitoring - Legacy Dashboards (Administrator)', { tags: [
   });
 
   beforeEach(() => {
+    cy.visit('/');
+    guidedTour.close();
+    cy.validateLogin();
     //when running only this file, beforeBlock changes the namespace to openshift-monitoring
     //so we need to change it back to All Projects before landing to Dashboards page in order to have API Performance dashboard loaded by default
     nav.sidenav.clickNavLink(['Observe', 'Metrics']);
@@ -41,6 +45,9 @@ describe('Regression: Monitoring - Legacy Dashboards Namespaced (Administrator)'
   });
 
   beforeEach(() => {
+    cy.visit('/');
+    guidedTour.close();
+    cy.validateLogin();
     nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
     commonPages.titleShouldHaveText('Dashboards');
     cy.changeNamespace(MP.namespace);

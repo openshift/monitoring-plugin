@@ -132,7 +132,7 @@ export function testMetricsRegressionNamespace1(perspective: PerspectiveConfig) 
     cy.log('4.1 Insert Example Query');
     metricsPage.clickInsertExampleQuery();
     metricsPage.shouldBeLoadedWithGraph();
-    cy.get(Classes.MetricsPageQueryInput).eq(0).should('contain', MetricsPageQueryInput.INSERT_EXAMPLE_QUERY_NAMESPACE);
+    cy.get(Classes.MetricsPageQueryInput).eq(0).should('contain', MetricsPageQueryInput.INSERT_EXAMPLE_QUERY);
     metricsPage.graphAxisXAssertion(GraphTimespan.THIRTY_MINUTES);
 
     cy.log('4.2 Graph Timespan Dropdown');
@@ -193,6 +193,7 @@ export function testMetricsRegressionNamespace1(perspective: PerspectiveConfig) 
   //https://issues.redhat.com/browse/OU-974 - [Metrics] - Units - undefined showing in Y axis and tooltip
   it(`${perspective.name} perspective - Metrics > Units`, () => {
     cy.log('5.1 Preparation to test Units dropdown');
+    cy.visit('/monitoring/query-browser');
     metricsPage.clickInsertExampleQuery();
     metricsPage.unitsDropdownAssertion();
 
