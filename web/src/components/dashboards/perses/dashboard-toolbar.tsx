@@ -92,7 +92,7 @@ export const EditButton = ({ onClick }: EditButtonProps): ReactElement => {
   return button;
 };
 
-const usePersesEditPermissions = () => {
+export const usePersesEditPermissions = () => {
   const { activeProject: namespace } = useActiveProject();
   const [canCreate, createLoading] = useAccessReview({
     group: 'perses.dev',

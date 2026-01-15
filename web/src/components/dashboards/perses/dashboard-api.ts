@@ -30,3 +30,27 @@ export const useUpdateDashboardMutation = (): UseMutationResult<
     },
   });
 };
+
+const createDashboard = async (entity: DashboardResource): Promise<DashboardResource> => {
+  const url = buildURL({
+    resource: resource,
+    project: entity.metadata.project,
+  });
+
+  return consoleFetchJSON.post(url, entity);
+};
+
+export const useCreateDashboardMutation = (
+  onSuccess?: (data: DashboardResource, variables: DashboardResource) => Promise<unknown> | unknown,
+): UseMutationResult<DashboardResource, Error, DashboardResource> => {
+  const queryClient = useQueryClient();
+
+  return useMutation<DashboardResource, Error, DashboardResource>({
+    mutationKey: [resource],
+    mutationFn: (dashboard) => createDashboard(dashboard),
+    onSuccess: onSuccess,
+    onSettled: () => {
+      return queryClient.invalidateQueries({ queryKey: [resource] });
+    },
+  });
+};

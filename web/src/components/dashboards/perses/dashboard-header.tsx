@@ -2,7 +2,7 @@ import type { FC, PropsWithChildren } from 'react';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { PageSection, Stack, StackItem } from '@patternfly/react-core';
+import { Divider, Grid, GridItem, PageSection, Stack, StackItem } from '@patternfly/react-core';
 
 import { DocumentTitle, ListPageHeader } from '@openshift-console/dynamic-plugin-sdk';
 import { CombinedDashboardMetadata } from './hooks/useDashboardsData';
@@ -13,9 +13,22 @@ import { StringParam, useQueryParam } from 'use-query-params';
 import { getDashboardsListUrl, usePerspective } from '../../hooks/usePerspective';
 import { QueryParams } from '../../query-params';
 
-import { chart_color_blue_100, chart_color_blue_300 } from '@patternfly/react-tokens';
+import {
+  chart_color_blue_100,
+  chart_color_blue_300,
+  t_global_spacer_md,
+  t_global_spacer_sm,
+} from '@patternfly/react-tokens';
 import { listPersesDashboardsDataTestIDs } from '../../data-test';
 import { usePatternFlyTheme } from '../../hooks/usePatternflyTheme';
+import { DashboardCreateDialog } from './dashboard-create-dialog';
+
+const DASHBOARD_VIEW_PATH = 'v2/dashboards/view';
+
+const shouldHideFavoriteButton = (): boolean => {
+  const currentUrl = window.location.href;
+  return currentUrl.includes(DASHBOARD_VIEW_PATH);
+};
 
 const DashboardBreadCrumb: React.FunctionComponent = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -29,11 +42,11 @@ const DashboardBreadCrumb: React.FunctionComponent = () => {
     navigate(getDashboardsListUrl(perspective));
   };
 
-  const patternflyBlue100 = chart_color_blue_100.value;
+  const lightThemeColor = chart_color_blue_100.value;
 
-  const patternflyBlue300 = chart_color_blue_300.value;
+  const darkThemeColor = chart_color_blue_300.value;
 
-  const linkColor = theme == 'dark' ? patternflyBlue100 : patternflyBlue300;
+  const linkColor = theme == 'dark' ? lightThemeColor : darkThemeColor;
 
   return (
     <Breadcrumb ouiaId="perses-dashboards-breadcrumb">
@@ -43,6 +56,7 @@ const DashboardBreadCrumb: React.FunctionComponent = () => {
           cursor: 'pointer',
           color: linkColor,
           textDecoration: 'underline',
+          paddingLeft: t_global_spacer_md.value,
         }}
         data-test={listPersesDashboardsDataTestIDs.PersesBreadcrumbDashboardItem}
       >
@@ -60,27 +74,53 @@ const DashboardBreadCrumb: React.FunctionComponent = () => {
   );
 };
 
-const HeaderTop: FC = memo(() => {
+const DashboardPageHeader: React.FunctionComponent = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-
-  const currentUrl = window.location.href;
-  const hideFavBtn = currentUrl.includes('v2/dashboards/view');
+  const hideFavBtn = shouldHideFavoriteButton();
 
   return (
-    <Stack hasGutter>
+    <Stack>
       <StackItem>
         <DashboardBreadCrumb />
-      </StackItem>
-      <StackItem>
         <ListPageHeader
           title={t('Dashboards')}
           helpText={t('View and manage dashboards.')}
           hideFavoriteButton={hideFavBtn}
         />
       </StackItem>
+      <StackItem>
+        <Divider inset={{ default: 'insetMd' }} />
+      </StackItem>
     </Stack>
   );
-});
+};
+
+const DashboardListPageHeader: React.FunctionComponent = () => {
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const hideFavBtn = shouldHideFavoriteButton();
+
+  return (
+    <Grid hasGutter>
+      <GridItem span={9}>
+        <ListPageHeader
+          title={t('Dashboards')}
+          helpText={t('View and manage dashboards.')}
+          hideFavoriteButton={hideFavBtn}
+        />
+      </GridItem>
+      <GridItem
+        span={3}
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+        }}
+      >
+        <DashboardCreateDialog />
+      </GridItem>
+    </Grid>
+  );
+};
 
 type MonitoringDashboardsPageProps = PropsWithChildren<{
   boardItems: CombinedDashboardMetadata[];
@@ -95,9 +135,38 @@ export const DashboardHeader: FC<MonitoringDashboardsPageProps> = memo(({ childr
   return (
     <>
       <DocumentTitle>{t('Metrics dashboards')}</DocumentTitle>
-      <PageSection hasBodyWrapper={false}>
-        <HeaderTop />
+      <PageSection
+        hasBodyWrapper={false}
+        style={{
+          paddingBottom: t_global_spacer_sm.value,
+          paddingTop: t_global_spacer_md.value,
+          paddingLeft: t_global_spacer_sm.value,
+        }}
+      >
+        <DashboardPageHeader />
       </PageSection>
+      {children}
+    </>
+  );
+});
+
+export const DashboardListHeader: FC<MonitoringDashboardsPageProps> = memo(({ children }) => {
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
+
+  return (
+    <>
+      <DocumentTitle>{t('Metrics dashboards')}</DocumentTitle>
+      <PageSection
+        hasBodyWrapper={false}
+        style={{
+          paddingBottom: t_global_spacer_sm.value,
+          paddingTop: t_global_spacer_sm.value,
+          paddingLeft: t_global_spacer_sm.value,
+        }}
+      >
+        <DashboardListPageHeader />
+      </PageSection>
+      <Divider inset={{ default: 'insetMd' }} />
       {children}
     </>
   );
