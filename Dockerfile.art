@@ -28,7 +28,7 @@ ENV CGO_ENABLED=1
 RUN source $REMOTE_SOURCES_DIR/cachito-gomod-with-deps/cachito.env \
   && make build-backend BUILD_OPTS="-tags strictfipsruntime"
 
-FROM registry.ci.openshift.org/ocp/4.22:base-rhel9
+FROM registry.ci.openshift.org/ocp/4.22:base-rhel9-minimal
 
 USER 1001
 
