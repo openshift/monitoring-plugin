@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
+  Alert,
   Button,
   Dropdown,
   DropdownList,
@@ -14,7 +15,13 @@ import {
   FormGroup,
   Form,
   TextInput,
+  FormHelperText,
+  HelperText,
+  HelperTextItem,
+  HelperTextItemVariant,
+  ValidatedOptions,
 } from '@patternfly/react-core';
+import { ExclamationCircleIcon } from '@patternfly/react-icons';
 import { usePerses } from './hooks/usePerses';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom-v5-compat';
@@ -24,7 +31,6 @@ import { useCreateDashboardMutation } from './dashboard-api';
 import { createNewDashboard } from './dashboard-utils';
 import { useToast } from './ToastProvider';
 import { usePerspective, getDashboardUrl } from '../../hooks/usePerspective';
-import { t_color_red_50 } from '@patternfly/react-tokens';
 import { usePersesEditPermissions } from './dashboard-toolbar';
 import { persesDashboardDataTestIDs } from '../../data-test';
 
@@ -53,8 +59,6 @@ export const DashboardCreateDialog: React.FunctionComponent = () => {
 
   const { persesProjectDashboards: dashboards } = usePerses(selectedProject || undefined);
 
-  const warningColor = t_color_red_50.value;
-
   const handleSetDashboardName = (_event, dashboardName: string) => {
     setDashboardName(dashboardName);
     if (formErrors.dashboardName) {
@@ -67,8 +71,8 @@ export const DashboardCreateDialog: React.FunctionComponent = () => {
 
     if (!selectedProject || !dashboardName.trim()) {
       const errors: { [key: string]: string } = {};
-      if (!selectedProject) errors.project = 'Project is required';
-      if (!dashboardName.trim()) errors.dashboardName = 'Dashboard name is required';
+      if (!selectedProject) errors.project = t('Project is required');
+      if (!dashboardName.trim()) errors.dashboardName = t('Dashboard name is required');
       setFormErrors(errors);
       return;
     }
@@ -166,12 +170,15 @@ export const DashboardCreateDialog: React.FunctionComponent = () => {
         onEscapePress={onEscapePress}
         aria-labelledby="modal-with-dropdown"
       >
-        <ModalHeader title="Create Dashboard" />
+        <ModalHeader title={t('Create Dashboard')} />
         <ModalBody>
           {formErrors.general && (
-            <div style={{ marginBottom: '16px', color: 'var(--pf-global--danger-color--100)' }}>
-              {formErrors.general}
-            </div>
+            <Alert
+              variant="danger"
+              title={formErrors.general}
+              isInline
+              style={{ marginBottom: '16px' }}
+            />
           )}
           <Form
             onSubmit={(e) => {
@@ -180,7 +187,7 @@ export const DashboardCreateDialog: React.FunctionComponent = () => {
             }}
           >
             <FormGroup
-              label="Select project"
+              label={t('Select project')}
               isRequired
               fieldId="form-group-create-dashboard-dialog-project-selection"
             >
@@ -212,7 +219,7 @@ export const DashboardCreateDialog: React.FunctionComponent = () => {
               </Dropdown>
             </FormGroup>
             <FormGroup
-              label="Dashboard name"
+              label={t('Dashboard name')}
               isRequired
               fieldId="form-group-create-dashboard-dialog-name"
             >
@@ -224,17 +231,21 @@ export const DashboardCreateDialog: React.FunctionComponent = () => {
                 placeholder={t('my-new-dashboard')}
                 value={dashboardName}
                 onChange={handleSetDashboardName}
+                validated={
+                  formErrors.dashboardName ? ValidatedOptions.error : ValidatedOptions.default
+                }
               />
               {formErrors.dashboardName && (
-                <div
-                  style={{
-                    color: warningColor,
-                    fontSize: '14px',
-                    marginTop: '4px',
-                  }}
-                >
-                  {formErrors.dashboardName}
-                </div>
+                <FormHelperText>
+                  <HelperText>
+                    <HelperTextItem
+                      icon={<ExclamationCircleIcon />}
+                      variant={HelperTextItemVariant.error}
+                    >
+                      {formErrors.dashboardName}
+                    </HelperTextItem>
+                  </HelperText>
+                </FormHelperText>
               )}
             </FormGroup>
           </Form>
@@ -249,10 +260,10 @@ export const DashboardCreateDialog: React.FunctionComponent = () => {
             }
             isLoading={createDashboardMutation.isPending}
           >
-            {createDashboardMutation.isPending ? 'Creating...' : 'Create'}
+            {createDashboardMutation.isPending ? t('Creating...') : t('Create')}
           </Button>
           <Button key="cancel" variant="link" onClick={handleModalToggle}>
-            Cancel
+            {t('Cancel')}
           </Button>
         </ModalFooter>
       </Modal>

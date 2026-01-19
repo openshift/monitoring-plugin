@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Alert,
   AlertProps,
@@ -22,9 +23,10 @@ interface ToastContextType {
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
 export const useToast = () => {
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const context = useContext(ToastContext);
   if (!context) {
-    throw new Error('useToast must be used within ToastProvider');
+    throw new Error(t('useToast must be used within ToastProvider'));
   }
   return context;
 };

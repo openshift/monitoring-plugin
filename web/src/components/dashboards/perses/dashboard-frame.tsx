@@ -5,8 +5,7 @@ import { CombinedDashboardMetadata } from './hooks/useDashboardsData';
 import { ProjectBar } from './project/ProjectBar';
 import { PersesWrapper } from './PersesWrapper';
 import { ToastProvider } from './ToastProvider';
-import { PageSection } from '@patternfly/react-core';
-import { t_global_spacer_sm } from '@patternfly/react-tokens';
+import { PagePadding } from './dashboard-page-padding';
 
 interface DashboardFrameProps {
   activeProject: string | null;
@@ -40,15 +39,7 @@ export const DashboardFrame: React.FC<DashboardFrameProps> = ({
                 dashboardName={dashboardName}
                 activeProject={activeProject}
               >
-                <PageSection
-                  hasBodyWrapper={false}
-                  style={{
-                    paddingTop: 0,
-                    paddingLeft: t_global_spacer_sm.value,
-                  }}
-                >
-                  {children}
-                </PageSection>
+                <PagePadding top="0">{children}</PagePadding>
               </DashboardHeader>
             </>
           )}

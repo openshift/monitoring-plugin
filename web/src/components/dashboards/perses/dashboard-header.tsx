@@ -1,8 +1,8 @@
 import type { FC, PropsWithChildren } from 'react';
-import { memo } from 'react';
+import React, { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Divider, Grid, GridItem, PageSection, Stack, StackItem } from '@patternfly/react-core';
+import { Divider, Grid, GridItem, Stack, StackItem } from '@patternfly/react-core';
 
 import { DocumentTitle, ListPageHeader } from '@openshift-console/dynamic-plugin-sdk';
 import { CombinedDashboardMetadata } from './hooks/useDashboardsData';
@@ -17,11 +17,11 @@ import {
   chart_color_blue_100,
   chart_color_blue_300,
   t_global_spacer_md,
-  t_global_spacer_sm,
 } from '@patternfly/react-tokens';
 import { listPersesDashboardsDataTestIDs } from '../../data-test';
 import { usePatternFlyTheme } from '../../hooks/usePatternflyTheme';
 import { DashboardCreateDialog } from './dashboard-create-dialog';
+import { PagePadding } from './dashboard-page-padding';
 
 const DASHBOARD_VIEW_PATH = 'v2/dashboards/view';
 
@@ -135,16 +135,9 @@ export const DashboardHeader: FC<MonitoringDashboardsPageProps> = memo(({ childr
   return (
     <>
       <DocumentTitle>{t('Metrics dashboards')}</DocumentTitle>
-      <PageSection
-        hasBodyWrapper={false}
-        style={{
-          paddingBottom: t_global_spacer_sm.value,
-          paddingTop: t_global_spacer_md.value,
-          paddingLeft: t_global_spacer_sm.value,
-        }}
-      >
+      <PagePadding top={t_global_spacer_md.value}>
         <DashboardPageHeader />
-      </PageSection>
+      </PagePadding>
       {children}
     </>
   );
@@ -156,16 +149,9 @@ export const DashboardListHeader: FC<MonitoringDashboardsPageProps> = memo(({ ch
   return (
     <>
       <DocumentTitle>{t('Metrics dashboards')}</DocumentTitle>
-      <PageSection
-        hasBodyWrapper={false}
-        style={{
-          paddingBottom: t_global_spacer_sm.value,
-          paddingTop: t_global_spacer_sm.value,
-          paddingLeft: t_global_spacer_sm.value,
-        }}
-      >
+      <PagePadding>
         <DashboardListPageHeader />
-      </PageSection>
+      </PagePadding>
       <Divider inset={{ default: 'insetMd' }} />
       {children}
     </>
