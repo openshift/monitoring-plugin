@@ -218,7 +218,7 @@ var _ = Describe("UpdateUserDefinedAlertRule", func() {
 			updatedRule := userRule
 			_, err := client.UpdateUserDefinedAlertRule(ctx, userRuleId, updatedRule)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring(fmt.Sprintf("alert rule with id %s not found", userRuleId)))
+			Expect(err.Error()).To(ContainSubstring(fmt.Sprintf("AlertRule with id %s not found", userRuleId)))
 		})
 	})
 
@@ -428,6 +428,54 @@ var _ = Describe("UpdateUserDefinedAlertRule", func() {
 			Expect(updatedPR.Spec.Groups[0].Rules).To(HaveLen(0))
 			Expect(updatedPR.Spec.Groups[1].Rules).To(HaveLen(1))
 			Expect(updatedPR.Spec.Groups[1].Rules[0].Labels["new_label"]).To(Equal("new_value"))
+		})
+	})
+
+	Context("severity validation", func() {
+		BeforeEach(func() {
+			mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
+				return &testutils.MockRelabeledRulesInterface{
+					GetFunc: func(ctx context.Context, id string) (monitoringv1.Rule, bool) {
+						if id == userRuleId {
+							return userRule, true
+						}
+						return monitoringv1.Rule{}, false
+					},
+				}
+			}
+			mockK8s.PrometheusRulesFunc = func() k8s.PrometheusRuleInterface {
+				return &testutils.MockPrometheusRuleInterface{
+					GetFunc: func(ctx context.Context, namespace string, name string) (*monitoringv1.PrometheusRule, bool, error) {
+						return &monitoringv1.PrometheusRule{
+							ObjectMeta: metav1.ObjectMeta{
+								Namespace: namespace,
+								Name:      name,
+							},
+							Spec: monitoringv1.PrometheusRuleSpec{
+								Groups: []monitoringv1.RuleGroup{
+									{
+										Name:  "test-group",
+										Rules: []monitoringv1.Rule{originalUserRule},
+									},
+								},
+							},
+						}, true, nil
+					},
+					UpdateFunc: func(ctx context.Context, pr monitoringv1.PrometheusRule) error {
+						return nil
+					},
+				}
+			}
+		})
+
+		It("rejects invalid severity", func() {
+			updatedRule := originalUserRule
+			updatedRule.Labels = map[string]string{
+				"severity": "urgent",
+			}
+			_, err := client.UpdateUserDefinedAlertRule(ctx, userRuleId, updatedRule)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("invalid severity"))
 		})
 	})
 })

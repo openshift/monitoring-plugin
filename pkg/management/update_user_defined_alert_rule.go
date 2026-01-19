@@ -30,28 +30,31 @@ func (c *client) UpdateUserDefinedAlertRule(ctx context.Context, alertRuleId str
 
 	if !found {
 		return "", &NotFoundError{
-			Resource:       "AlertRule",
+			Resource:       "PrometheusRule",
 			Id:             alertRuleId,
 			AdditionalInfo: fmt.Sprintf("PrometheusRule %s/%s not found", namespace, name),
 		}
 	}
 
-	updated := false
+	// Locate the target rule once and update it after validation
+	var foundGroupIdx, foundRuleIdx int
+	ruleFound := false
 	for groupIdx := range pr.Spec.Groups {
 		for ruleIdx := range pr.Spec.Groups[groupIdx].Rules {
 			rule := &pr.Spec.Groups[groupIdx].Rules[ruleIdx]
 			if c.shouldUpdateRule(*rule, alertRuleId) {
-				pr.Spec.Groups[groupIdx].Rules[ruleIdx] = alertRule
-				updated = true
+				foundGroupIdx = groupIdx
+				foundRuleIdx = ruleIdx
+				ruleFound = true
 				break
 			}
 		}
-		if updated {
+		if ruleFound {
 			break
 		}
 	}
 
-	if !updated {
+	if !ruleFound {
 		return "", &NotFoundError{
 			Resource:       "AlertRule",
 			Id:             alertRuleId,
@@ -59,13 +62,29 @@ func (c *client) UpdateUserDefinedAlertRule(ctx context.Context, alertRuleId str
 		}
 	}
 
+	// Validate severity if present
+	if sev, ok := alertRule.Labels["severity"]; ok && sev != "" {
+		if !isValidSeverity(sev) {
+			return "", &ValidationError{Message: fmt.Sprintf("invalid severity %q: must be one of critical|warning|info|none", sev)}
+		}
+	}
+
+	// Enforce/stamp rule id label on user-defined rules
+	computedId := alertrule.GetAlertingRuleId(&alertRule)
+	if alertRule.Labels == nil {
+		alertRule.Labels = map[string]string{}
+	}
+	alertRule.Labels["openshift_io_alert_rule_id"] = computedId
+
+	// Perform the update in-place exactly once
+	pr.Spec.Groups[foundGroupIdx].Rules[foundRuleIdx] = alertRule
+
 	err = c.k8sClient.PrometheusRules().Update(ctx, *pr)
 	if err != nil {
 		return "", fmt.Errorf("failed to update PrometheusRule %s/%s: %w", pr.Namespace, pr.Name, err)
 	}
 
-	newRuleId := alertrule.GetAlertingRuleId(&alertRule)
-	return newRuleId, nil
+	return computedId, nil
 }
 
 func (c *client) shouldUpdateRule(rule monitoringv1.Rule, alertRuleId string) bool {

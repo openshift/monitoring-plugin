@@ -11,9 +11,13 @@ import (
 	"github.com/openshift/monitoring-plugin/pkg/management"
 )
 
+// Note: router no longer filters provenance/identity labels here.
+// Backend enforces ARC scoping and ignores/guards protected labels as needed.
+
 type BulkUpdateAlertRulesRequest struct {
-	RuleIds []string          `json:"ruleIds"`
-	Labels  map[string]string `json:"labels"`
+	RuleIds []string `json:"ruleIds"`
+	// Use pointer values so we can distinguish null (delete) vs string value (set)
+	Labels map[string]*string `json:"labels"`
 }
 
 type BulkUpdateAlertRulesResponse struct {
@@ -63,23 +67,26 @@ func (hr *httpRouter) BulkUpdateAlertRules(w http.ResponseWriter, req *http.Requ
 		}
 
 		mergedLabels := make(map[string]string)
+		intentLabels := make(map[string]string)
 		for k, v := range currentRule.Labels {
 			mergedLabels[k] = v
 		}
-		for k, v := range payload.Labels {
-			if v == "" {
-				// Empty string means drop this label
+		for k, pv := range payload.Labels {
+			// K8s-aligned: null => delete; support empty string as delete for compatibility
+			if pv == nil || *pv == "" {
+				// keep intent for platform path as explicit delete
+				intentLabels[k] = ""
 				delete(mergedLabels, k)
-			} else {
-				mergedLabels[k] = v
+				continue
 			}
+			mergedLabels[k] = *pv
+			intentLabels[k] = *pv
 		}
 
-		updatedRule := monitoringv1.Rule{
-			Labels: mergedLabels,
-		}
+		// For platform flow, pass only the user-intent labels (avoid pinning merged fields)
+		updatedPlatformRule := monitoringv1.Rule{Labels: intentLabels}
 
-		err = hr.managementClient.UpdatePlatformAlertRule(req.Context(), id, updatedRule)
+		err = hr.managementClient.UpdatePlatformAlertRule(req.Context(), id, updatedPlatformRule)
 		if err != nil {
 			var ve *management.ValidationError
 			var nf *management.NotFoundError
@@ -96,11 +103,11 @@ func (hr *httpRouter) BulkUpdateAlertRules(w http.ResponseWriter, req *http.Requ
 			var na *management.NotAllowedError
 			if errors.As(err, &na) && strings.Contains(na.Error(), "cannot update non-platform alert rule") {
 				// Not a platform rule, try user-defined
-				// Use the already-merged labels from above
-				updatedRule := currentRule
-				updatedRule.Labels = mergedLabels
+				// For user-defined, we apply the merged labels to the PR
+				updatedUserRule := currentRule
+				updatedUserRule.Labels = mergedLabels
 
-				newRuleId, err := hr.managementClient.UpdateUserDefinedAlertRule(req.Context(), id, updatedRule)
+				newRuleId, err := hr.managementClient.UpdateUserDefinedAlertRule(req.Context(), id, updatedUserRule)
 				if err != nil {
 					status, message := parseError(err)
 					results = append(results, UpdateAlertRuleResponse{

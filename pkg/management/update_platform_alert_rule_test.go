@@ -215,11 +215,31 @@ var _ = Describe("UpdatePlatformAlertRule", func() {
 			}
 		})
 
-		It("returns an error", func() {
-			updatedRule := originalPlatformRule
+		It("deletes existing ARC when reverting to original", func() {
+			// Simulate an existing ARC present
+			deleted := false
+			mockK8s.AlertRelabelConfigsFunc = func() k8s.AlertRelabelConfigInterface {
+				return &testutils.MockAlertRelabelConfigInterface{
+					GetFunc: func(ctx context.Context, namespace string, name string) (*osmv1.AlertRelabelConfig, bool, error) {
+						return &osmv1.AlertRelabelConfig{
+							ObjectMeta: metav1.ObjectMeta{
+								Name:      name,
+								Namespace: namespace,
+							},
+							Spec: osmv1.AlertRelabelConfigSpec{Configs: []osmv1.RelabelConfig{}},
+						}, true, nil
+					},
+					DeleteFunc: func(ctx context.Context, namespace string, name string) error {
+						deleted = true
+						return nil
+					},
+				}
+			}
+
+			updatedRule := originalPlatformRule // revert to original
 			err := client.UpdatePlatformAlertRule(ctx, platformRuleId, updatedRule)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("no label changes detected"))
+			Expect(err).NotTo(HaveOccurred())
+			Expect(deleted).To(BeTrue())
 		})
 	})
 
@@ -297,8 +317,143 @@ var _ = Describe("UpdatePlatformAlertRule", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(createdARC).NotTo(BeNil())
 				Expect(createdARC.Namespace).To(Equal("openshift-monitoring"))
-				Expect(strings.HasPrefix(createdARC.Name, "alertmanagement-")).To(BeTrue())
+				Expect(strings.HasPrefix(createdARC.Name, "arc-")).To(BeTrue())
 				Expect(createdARC.Spec.Configs).NotTo(BeEmpty())
+			})
+
+			It("scopes id stamp by alertname + all original static labels (excluding namespace)", func() {
+				var createdARC *osmv1.AlertRelabelConfig
+
+				// Override PR getter to return a rule with extra stable labels
+				mockK8s.PrometheusRulesFunc = func() k8s.PrometheusRuleInterface {
+					return &testutils.MockPrometheusRuleInterface{
+						GetFunc: func(ctx context.Context, namespace string, name string) (*monitoringv1.PrometheusRule, bool, error) {
+							orig := originalPlatformRule
+							orig.Labels = map[string]string{
+								"severity":  "critical",
+								"component": "kube",
+								"team":      "sre",
+							}
+							return &monitoringv1.PrometheusRule{
+								ObjectMeta: metav1.ObjectMeta{
+									Namespace: namespace,
+									Name:      name,
+								},
+								Spec: monitoringv1.PrometheusRuleSpec{
+									Groups: []monitoringv1.RuleGroup{
+										{
+											Name:  "test-group",
+											Rules: []monitoringv1.Rule{orig},
+										},
+									},
+								},
+							}, true, nil
+						},
+					}
+				}
+
+				// Compute the id for the PR's original rule (with extra stable labels)
+				origWithExtras := originalPlatformRule
+				origWithExtras.Labels = map[string]string{
+					"severity":  "critical",
+					"component": "kube",
+					"team":      "sre",
+				}
+				idForExtras := alertrule.GetAlertingRuleId(&origWithExtras)
+
+				// RelabeledRules should resolve using the same id
+				mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
+					return &testutils.MockRelabeledRulesInterface{
+						GetFunc: func(ctx context.Context, id string) (monitoringv1.Rule, bool) {
+							if id == idForExtras {
+								return monitoringv1.Rule{
+									Alert: "PlatformAlert",
+									Expr:  intstr.FromString("node_down == 1"),
+									Labels: map[string]string{
+										k8s.PrometheusRuleLabelNamespace: "openshift-monitoring",
+										k8s.PrometheusRuleLabelName:      "platform-rule",
+										k8s.AlertRuleLabelId:             idForExtras,
+										"severity":                       "critical",
+									},
+								}, true
+							}
+							return monitoringv1.Rule{}, false
+						},
+					}
+				}
+
+				mockK8s.AlertRelabelConfigsFunc = func() k8s.AlertRelabelConfigInterface {
+					return &testutils.MockAlertRelabelConfigInterface{
+						GetFunc: func(ctx context.Context, namespace string, name string) (*osmv1.AlertRelabelConfig, bool, error) {
+							return nil, false, nil
+						},
+						CreateFunc: func(ctx context.Context, arc osmv1.AlertRelabelConfig) (*osmv1.AlertRelabelConfig, error) {
+							createdARC = &arc
+							return &arc, nil
+						},
+					}
+				}
+
+				updatedRule := originalPlatformRule
+				updatedRule.Labels = map[string]string{
+					"severity": "info",
+				}
+
+				err := client.UpdatePlatformAlertRule(ctx, idForExtras, updatedRule)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(createdARC).NotTo(BeNil())
+				// Expect two entries: id-stamp Replace, then severity Replace
+				Expect(createdARC.Spec.Configs).To(HaveLen(2))
+
+				idCfg := createdARC.Spec.Configs[0]
+				Expect(string(idCfg.Action)).To(Equal("Replace"))
+				Expect(string(idCfg.TargetLabel)).To(Equal("openshift_io_alert_rule_id"))
+				// SourceLabels must include alertname and all original static labels
+				var sl []string
+				for _, s := range idCfg.SourceLabels {
+					sl = append(sl, string(s))
+				}
+				Expect(sl).To(ContainElements("alertname", "component", "severity", "team"))
+				Expect(sl).NotTo(ContainElement("namespace"))
+				// Regex must be anchored and include alertname; then values for component,severity,team in sorted key order
+				Expect(strings.HasPrefix(idCfg.Regex, "^")).To(BeTrue())
+				Expect(strings.HasSuffix(idCfg.Regex, "$")).To(BeTrue())
+				// sorted(keys: component, severity, team) => values after alertname: kube;critical;sre
+				Expect(idCfg.Regex).To(ContainSubstring("^PlatformAlert;kube;critical;sre$"))
+			})
+
+			It("emits id setter then a single Replace for simple severity change", func() {
+				var createdARC *osmv1.AlertRelabelConfig
+				mockK8s.AlertRelabelConfigsFunc = func() k8s.AlertRelabelConfigInterface {
+					return &testutils.MockAlertRelabelConfigInterface{
+						GetFunc: func(ctx context.Context, namespace string, name string) (*osmv1.AlertRelabelConfig, bool, error) {
+							return nil, false, nil
+						},
+						CreateFunc: func(ctx context.Context, arc osmv1.AlertRelabelConfig) (*osmv1.AlertRelabelConfig, error) {
+							createdARC = &arc
+							return &arc, nil
+						},
+					}
+				}
+
+				updatedRule := originalPlatformRule
+				updatedRule.Labels = map[string]string{
+					"severity": "info",
+				}
+
+				err := client.UpdatePlatformAlertRule(ctx, platformRuleId, updatedRule)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(createdARC).NotTo(BeNil())
+				// Expect two entries: id setter Replace, then severity Replace
+				Expect(createdARC.Spec.Configs).To(HaveLen(2))
+				cfg0 := createdARC.Spec.Configs[0]
+				Expect(string(cfg0.Action)).To(Equal("Replace"))
+				Expect(string(cfg0.TargetLabel)).To(Equal("openshift_io_alert_rule_id"))
+				Expect(cfg0.Replacement).To(Equal(platformRuleId))
+				cfg1 := createdARC.Spec.Configs[1]
+				Expect(string(cfg1.Action)).To(Equal("Replace"))
+				Expect(string(cfg1.TargetLabel)).To(Equal("severity"))
+				Expect(cfg1.Replacement).To(Equal("info"))
 			})
 		})
 
@@ -309,6 +464,15 @@ var _ = Describe("UpdatePlatformAlertRule", func() {
 						ObjectMeta: metav1.ObjectMeta{
 							Name:      "alertmanagement-existing",
 							Namespace: "openshift-monitoring",
+						},
+						Spec: osmv1.AlertRelabelConfigSpec{
+							Configs: []osmv1.RelabelConfig{
+								{
+									TargetLabel: "testing2",
+									Replacement: "newlabel2",
+									Action:      "Replace",
+								},
+							},
 						},
 					}
 					return &testutils.MockAlertRelabelConfigInterface{
@@ -330,6 +494,15 @@ var _ = Describe("UpdatePlatformAlertRule", func() {
 						ObjectMeta: metav1.ObjectMeta{
 							Name:      "alertmanagement-existing",
 							Namespace: "openshift-monitoring",
+						},
+						Spec: osmv1.AlertRelabelConfigSpec{
+							Configs: []osmv1.RelabelConfig{
+								{
+									TargetLabel: "testing2",
+									Replacement: "newlabel2",
+									Action:      "Replace",
+								},
+							},
 						},
 					}
 					return &testutils.MockAlertRelabelConfigInterface{
@@ -353,32 +526,87 @@ var _ = Describe("UpdatePlatformAlertRule", func() {
 				Expect(updatedARC).NotTo(BeNil())
 				Expect(updatedARC.Spec.Configs).NotTo(BeEmpty())
 			})
-		})
 
-		Context("when dropping labels", func() {
-			It("creates relabel config to drop labels", func() {
-				var createdARC *osmv1.AlertRelabelConfig
-
+			It("removes override-only label (explicit delete) and deletes ARC when no other overrides remain", func() {
+				var updatedARC *osmv1.AlertRelabelConfig
+				deleted := false
 				mockK8s.AlertRelabelConfigsFunc = func() k8s.AlertRelabelConfigInterface {
+					existingARC := &osmv1.AlertRelabelConfig{
+						ObjectMeta: metav1.ObjectMeta{
+							Name:      "alertmanagement-existing",
+							Namespace: "openshift-monitoring",
+						},
+						Spec: osmv1.AlertRelabelConfigSpec{
+							Configs: []osmv1.RelabelConfig{
+								{
+									TargetLabel: "testing2",
+									Replacement: "newlabel2",
+									Action:      "Replace",
+								},
+							},
+						},
+					}
 					return &testutils.MockAlertRelabelConfigInterface{
 						GetFunc: func(ctx context.Context, namespace string, name string) (*osmv1.AlertRelabelConfig, bool, error) {
-							return nil, false, nil
+							return existingARC, true, nil
 						},
-						CreateFunc: func(ctx context.Context, arc osmv1.AlertRelabelConfig) (*osmv1.AlertRelabelConfig, error) {
-							createdARC = &arc
-							return &arc, nil
+						UpdateFunc: func(ctx context.Context, arc osmv1.AlertRelabelConfig) error {
+							updatedARC = &arc
+							return nil
+						},
+						DeleteFunc: func(ctx context.Context, namespace string, name string) error {
+							deleted = true
+							return nil
 						},
 					}
 				}
 
+				// Explicitly drop testing2; keep severity unchanged (no override)
 				updatedRule := originalPlatformRule
-				// Remove severity label (keep alertname as it's special)
-				updatedRule.Labels = map[string]string{}
+				updatedRule.Labels = map[string]string{
+					"severity": "critical",
+					"testing2": "",
+				}
 
 				err := client.UpdatePlatformAlertRule(ctx, platformRuleId, updatedRule)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(createdARC).NotTo(BeNil())
-				Expect(createdARC.Spec.Configs).NotTo(BeEmpty())
+				// No more overrides remain (severity unchanged), ARC should be deleted
+				Expect(updatedARC).To(BeNil())
+				Expect(deleted).To(BeTrue())
+			})
+		})
+
+		Context("when dropping labels", func() {
+			It("rejects dropping severity label", func() {
+				updatedRule := originalPlatformRule
+				// Attempt to drop severity explicitly (K8s-style)
+				updatedRule.Labels = map[string]string{"severity": ""}
+
+				err := client.UpdatePlatformAlertRule(ctx, platformRuleId, updatedRule)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("label \"severity\" cannot be dropped"))
+			})
+		})
+
+		Context("when attempting to modify protected labels", func() {
+			It("ignores provenance/identity labels merged from relabeled state", func() {
+				updatedRule := originalPlatformRule
+				updatedRule.Labels = map[string]string{
+					"severity":                   "critical",
+					"openshift_io_alert_rule_id": "fake",
+				}
+				err := client.UpdatePlatformAlertRule(ctx, platformRuleId, updatedRule)
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("rejects changing alertname via labels", func() {
+				updatedRule := originalPlatformRule
+				updatedRule.Labels = map[string]string{
+					"alertname": "NewName",
+				}
+				err := client.UpdatePlatformAlertRule(ctx, platformRuleId, updatedRule)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("immutable"))
 			})
 		})
 	})

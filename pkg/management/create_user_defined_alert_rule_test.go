@@ -257,6 +257,40 @@ var _ = Describe("CreateUserDefinedAlertRule", func() {
 			Expect(capturedGroupName).To(Equal("custom-group"))
 		})
 	})
+
+	Context("duplicate detection ignoring alert name", func() {
+		BeforeEach(func() {
+			mockK8s.NamespaceFunc = func() k8s.NamespaceInterface {
+				return &testutils.MockNamespaceInterface{
+					IsClusterMonitoringNamespaceFunc: func(name string) bool { return false },
+				}
+			}
+			// existing rule with different alert name but same spec (expr/for/labels)
+			existing := monitoringv1.Rule{}
+			(&testRule).DeepCopyInto(&existing)
+			existing.Alert = "OtherName"
+			mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
+				return &testutils.MockRelabeledRulesInterface{
+					ListFunc: func(ctx context.Context) []monitoringv1.Rule {
+						return []monitoringv1.Rule{existing}
+					},
+					GetFunc: func(ctx context.Context, id string) (monitoringv1.Rule, bool) {
+						return monitoringv1.Rule{}, false
+					},
+				}
+			}
+		})
+
+		It("denies adding equivalent rule with different alert name", func() {
+			prOptions := management.PrometheusRuleOptions{
+				Name:      "user-rule",
+				Namespace: "user-namespace",
+			}
+			_, err := client.CreateUserDefinedAlertRule(ctx, testRule, prOptions)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("equivalent spec already exists"))
+		})
+	})
 })
 
 func stringPtr(s string) *string {

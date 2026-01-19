@@ -4,7 +4,6 @@ go 1.24.0
 
 require (
 	github.com/evanphx/json-patch v4.12.0+incompatible
-	github.com/go-playground/form/v4 v4.3.0
 	github.com/gorilla/handlers v1.5.2
 	github.com/gorilla/mux v1.8.1
 	github.com/onsi/ginkgo/v2 v2.22.0
