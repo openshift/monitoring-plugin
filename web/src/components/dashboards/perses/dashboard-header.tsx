@@ -2,7 +2,7 @@ import type { FC, PropsWithChildren } from 'react';
 import React, { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Divider, Grid, GridItem, Stack, StackItem } from '@patternfly/react-core';
+import { Divider, Split, SplitItem, Stack, StackItem } from '@patternfly/react-core';
 
 import { DocumentTitle, ListPageHeader } from '@openshift-console/dynamic-plugin-sdk';
 import { CombinedDashboardMetadata } from './hooks/useDashboardsData';
@@ -17,6 +17,7 @@ import {
   chart_color_blue_100,
   chart_color_blue_300,
   t_global_spacer_md,
+  t_global_spacer_xl,
 } from '@patternfly/react-tokens';
 import { listPersesDashboardsDataTestIDs } from '../../data-test';
 import { usePatternFlyTheme } from '../../hooks/usePatternflyTheme';
@@ -100,16 +101,15 @@ const DashboardListPageHeader: React.FunctionComponent = () => {
   const hideFavBtn = shouldHideFavoriteButton();
 
   return (
-    <Grid hasGutter>
-      <GridItem span={9}>
+    <Split hasGutter isWrappable>
+      <SplitItem isFilled>
         <ListPageHeader
           title={t('Dashboards')}
           helpText={t('View and manage dashboards.')}
           hideFavoriteButton={hideFavBtn}
         />
-      </GridItem>
-      <GridItem
-        span={3}
+      </SplitItem>
+      <SplitItem
         style={{
           display: 'flex',
           flexDirection: 'column',
@@ -117,8 +117,8 @@ const DashboardListPageHeader: React.FunctionComponent = () => {
         }}
       >
         <DashboardCreateDialog />
-      </GridItem>
-    </Grid>
+      </SplitItem>
+    </Split>
   );
 };
 
@@ -149,7 +149,7 @@ export const DashboardListHeader: FC<MonitoringDashboardsPageProps> = memo(({ ch
   return (
     <>
       <DocumentTitle>{t('Metrics dashboards')}</DocumentTitle>
-      <PagePadding>
+      <PagePadding right={t_global_spacer_xl.value}>
         <DashboardListPageHeader />
       </PagePadding>
       <Divider inset={{ default: 'insetMd' }} />
