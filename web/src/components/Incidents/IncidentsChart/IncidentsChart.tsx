@@ -33,6 +33,7 @@ import {
   calculateIncidentsChartDomain,
   createIncidentsChartBars,
   generateDateArray,
+  matchTimestampMetricForIncident,
 } from '../utils';
 import { dateTimeFormatter, timeFormatter } from '../../console/utils/datetime';
 import { useTranslation } from 'react-i18next';
@@ -52,24 +53,6 @@ const formatComponentList = (componentList: string[] | undefined): string => {
   }
   const hasMore = components.length > 3;
   return components.slice(0, 3).join(', ') + (hasMore ? ', ...' : '');
-};
-
-/*
- * Function to match a timestamp metric based on the common labels
- * (group_id, src_alertname, src_namespace, src_severity)
- * @param incident - The incident to match the timestamp for
- * @param timestamps - The timestamps to match the incident for
- * @returns The matched timestamp
- */
-const matchTimestampMetric = (incident: Incident, timestamps: Array<any>): any => {
-  return timestamps.find(
-    (timestamp) =>
-      timestamp.metric.group_id === incident.group_id &&
-      timestamp.metric.src_alertname === incident.src_alertname &&
-      timestamp.metric.src_namespace === incident.src_namespace &&
-      timestamp.metric.component === incident.component &&
-      timestamp.metric.src_severity === incident.src_severity,
-  );
 };
 
 const IncidentsChart = ({
@@ -99,16 +82,17 @@ const IncidentsChart = ({
     [chartDays, currentTime],
   );
 
-  // enrich incidentsData with first_timestamp and last_timestamp from timestamp metric
+  // enrich incidentsData with first_timestamp from timestamp metric
   incidentsData = incidentsData.map((incident) => {
     // find the matched timestamp for the incident
-    const matchedMinTimestamp = matchTimestampMetric(incident, incidentsTimestamps.minOverTime);
-    const matchedLastTimestamp = matchTimestampMetric(incident, incidentsTimestamps.lastOverTime);
+    const matchedMinTimestamp = matchTimestampMetricForIncident(
+      incident,
+      incidentsTimestamps.minOverTime,
+    );
 
     return {
       ...incident,
       firstTimestamp: parseInt(matchedMinTimestamp?.value?.[1] ?? '0'),
-      lastTimestamp: parseInt(matchedLastTimestamp?.value?.[1] ?? '0'),
     };
   });
 
@@ -213,7 +197,7 @@ const IncidentsChart = ({
                     );
                     const endDate = datum.firing
                       ? '---'
-                      : dateTimeFormatter(i18n.language).format(new Date(datum.endDate));
+                      : dateTimeFormatter(i18n.language).format(new Date(datum.y));
                     const components = formatComponentList(datum.componentList);
 
                     return `${t('Severity')}: ${t(datum.name)}
