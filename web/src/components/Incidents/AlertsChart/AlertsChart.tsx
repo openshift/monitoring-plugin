@@ -161,7 +161,9 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
                     if (datum.nodata) {
                       return '';
                     }
-                    const startDate = dateTimeFormatter(i18n.language).format(new Date(datum.y0));
+                    const startDate = dateTimeFormatter(i18n.language).format(
+                      new Date(datum.startDate),
+                    );
                     const endDate =
                       datum.alertstate === 'firing'
                         ? '---'

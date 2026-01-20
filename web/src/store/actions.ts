@@ -43,6 +43,7 @@ export enum ActionType {
   SetIncidentsChartSelection = 'setIncidentsChartSelection',
   SetFilteredIncidentsData = 'setFilteredIncidentsData',
   SetIncidentsTimestamps = 'setIncidentsTimestamps',
+  SetAlertsTimestamps = 'setAlertsTimestamps',
   SetIncidentPageFilterType = 'setIncidentPageFilterType',
   SetIncidentsLastRefreshTime = 'setIncidentsLastRefreshTime',
 }
@@ -192,6 +193,9 @@ export const setFilteredIncidentsData = (filteredIncidentsData) =>
 export const setIncidentsTimestamps = (incidentsTimestamps) =>
   action(ActionType.SetIncidentsTimestamps, incidentsTimestamps);
 
+export const setAlertsTimestamps = (alertsTimestamps) =>
+  action(ActionType.SetAlertsTimestamps, alertsTimestamps);
+
 export const setIncidentPageFilterType = (filterTypeSelected) =>
   action(ActionType.SetIncidentPageFilterType, filterTypeSelected);
 
@@ -239,6 +243,7 @@ type Actions = {
   setIncidentsChartSelection: typeof setIncidentsChartSelection;
   setFilteredIncidentsData: typeof setFilteredIncidentsData;
   setIncidentsTimestamps: typeof setIncidentsTimestamps;
+  setAlertsTimestamps: typeof setAlertsTimestamps;
   setIncidentPageFilterType: typeof setIncidentPageFilterType;
   setIncidentsLastRefreshTime: typeof setIncidentsLastRefreshTime;
 };
