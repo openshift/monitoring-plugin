@@ -44,7 +44,14 @@ func patchManifest(baseManifestData []byte, cfg *Config) []byte {
 		patchedManifest = performPatch(baseManifestData, filepath.Join(cfg.ConfigPath, "clear-extensions.patch.json"))
 	}
 
+	if cfg.Features[Incidents] || cfg.Features[ClusterHealthAnalyzer] {
+		patchedManifest = performPatch(patchedManifest, filepath.Join(cfg.ConfigPath, "cluster-health-analyzer.patch.json"))
+	}
+
 	for feature := range cfg.Features {
+		if feature == ClusterHealthAnalyzer || feature == Incidents {
+			continue
+		}
 		patchedManifest = performPatch(patchedManifest, filepath.Join(cfg.ConfigPath, fmt.Sprintf("%s.patch.json", feature)))
 	}
 
