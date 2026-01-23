@@ -20,6 +20,8 @@ import {
   ToolbarGroup,
   Flex,
   FlexItem,
+  Alert,
+  AlertActionCloseButton,
 } from '@patternfly/react-core';
 import { IncidentsTable } from './IncidentsTable';
 import {
@@ -89,6 +91,11 @@ const IncidentsPage = () => {
   >([]);
   const [hideCharts, setHideCharts] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const INCIDENTS_DATA_ALERT_DISPLAYED = 'monitoring/incidents/data-alert-displayed';
+  const [showDataDelayAlert, setShowDataDelayAlert] = useState(() => {
+    const alertDisplayed = localStorage.getItem(INCIDENTS_DATA_ALERT_DISPLAYED);
+    return !alertDisplayed;
+  });
 
   const [filtersExpanded, setFiltersExpanded] = useState<IncidentsPageFiltersExpandedState>({
     severity: false,
@@ -350,6 +357,18 @@ const IncidentsPage = () => {
     }
   }, [incidentsActiveFilters, filteredData, dispatch]);
 
+  useEffect(() => {
+    // Set up 5-minute timer to hide banner automatically on first visit
+    if (showDataDelayAlert) {
+      const timer = setTimeout(() => {
+        setShowDataDelayAlert(false);
+        localStorage.setItem(INCIDENTS_DATA_ALERT_DISPLAYED, 'true');
+      }, 5 * 60 * 1000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [showDataDelayAlert]);
+
   const handleIncidentChartClick = useCallback(
     (groupId) => {
       closeDropDownFilters();
@@ -389,6 +408,26 @@ const IncidentsPage = () => {
         </Bullseye>
       ) : (
         <PageSection hasBodyWrapper={false} className="incidents-page-main-section">
+          {showDataDelayAlert && (
+            <Alert
+              variant="info"
+              title="Data delay"
+              className="pf-v6-u-mb-md"
+              actionClose={
+                <AlertActionCloseButton
+                  aria-label="Close data delay alert"
+                  onClose={() => {
+                    setShowDataDelayAlert(false);
+                    localStorage.setItem(INCIDENTS_DATA_ALERT_DISPLAYED, 'true');
+                  }}
+                />
+              }
+            >
+              {t(
+                'Incident data is updated every few minutes. What you see may be up to 5 minutes old. Refresh the page to view updated information.',
+              )}
+            </Alert>
+          )}
           <Toolbar
             id="toolbar-with-filter"
             data-test={DataTestIDs.IncidentsPage.Toolbar}
