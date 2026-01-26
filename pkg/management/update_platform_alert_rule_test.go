@@ -459,10 +459,11 @@ var _ = Describe("UpdatePlatformAlertRule", func() {
 
 		Context("when updating existing AlertRelabelConfig", func() {
 			BeforeEach(func() {
+				expectedArcName := k8s.GetAlertRelabelConfigName("platform-rule", platformRuleId)
 				mockK8s.AlertRelabelConfigsFunc = func() k8s.AlertRelabelConfigInterface {
 					existingARC := &osmv1.AlertRelabelConfig{
 						ObjectMeta: metav1.ObjectMeta{
-							Name:      "alertmanagement-existing",
+							Name:      expectedArcName,
 							Namespace: "openshift-monitoring",
 						},
 						Spec: osmv1.AlertRelabelConfigSpec{
@@ -477,7 +478,10 @@ var _ = Describe("UpdatePlatformAlertRule", func() {
 					}
 					return &testutils.MockAlertRelabelConfigInterface{
 						GetFunc: func(ctx context.Context, namespace string, name string) (*osmv1.AlertRelabelConfig, bool, error) {
-							return existingARC, true, nil
+							if name == expectedArcName {
+								return existingARC, true, nil
+							}
+							return nil, false, nil
 						},
 						UpdateFunc: func(ctx context.Context, arc osmv1.AlertRelabelConfig) error {
 							return nil
@@ -488,11 +492,12 @@ var _ = Describe("UpdatePlatformAlertRule", func() {
 
 			It("updates existing AlertRelabelConfig", func() {
 				var updatedARC *osmv1.AlertRelabelConfig
+				expectedArcName := k8s.GetAlertRelabelConfigName("platform-rule", platformRuleId)
 
 				mockK8s.AlertRelabelConfigsFunc = func() k8s.AlertRelabelConfigInterface {
 					existingARC := &osmv1.AlertRelabelConfig{
 						ObjectMeta: metav1.ObjectMeta{
-							Name:      "alertmanagement-existing",
+							Name:      expectedArcName,
 							Namespace: "openshift-monitoring",
 						},
 						Spec: osmv1.AlertRelabelConfigSpec{
@@ -507,7 +512,10 @@ var _ = Describe("UpdatePlatformAlertRule", func() {
 					}
 					return &testutils.MockAlertRelabelConfigInterface{
 						GetFunc: func(ctx context.Context, namespace string, name string) (*osmv1.AlertRelabelConfig, bool, error) {
-							return existingARC, true, nil
+							if name == expectedArcName {
+								return existingARC, true, nil
+							}
+							return nil, false, nil
 						},
 						UpdateFunc: func(ctx context.Context, arc osmv1.AlertRelabelConfig) error {
 							updatedARC = &arc
@@ -530,10 +538,11 @@ var _ = Describe("UpdatePlatformAlertRule", func() {
 			It("removes override-only label (explicit delete) and deletes ARC when no other overrides remain", func() {
 				var updatedARC *osmv1.AlertRelabelConfig
 				deleted := false
+				expectedArcName := k8s.GetAlertRelabelConfigName("platform-rule", platformRuleId)
 				mockK8s.AlertRelabelConfigsFunc = func() k8s.AlertRelabelConfigInterface {
 					existingARC := &osmv1.AlertRelabelConfig{
 						ObjectMeta: metav1.ObjectMeta{
-							Name:      "alertmanagement-existing",
+							Name:      expectedArcName,
 							Namespace: "openshift-monitoring",
 						},
 						Spec: osmv1.AlertRelabelConfigSpec{
@@ -548,7 +557,10 @@ var _ = Describe("UpdatePlatformAlertRule", func() {
 					}
 					return &testutils.MockAlertRelabelConfigInterface{
 						GetFunc: func(ctx context.Context, namespace string, name string) (*osmv1.AlertRelabelConfig, bool, error) {
-							return existingARC, true, nil
+							if name == expectedArcName {
+								return existingARC, true, nil
+							}
+							return nil, false, nil
 						},
 						UpdateFunc: func(ctx context.Context, arc osmv1.AlertRelabelConfig) error {
 							updatedARC = &arc

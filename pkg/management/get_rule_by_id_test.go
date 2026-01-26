@@ -3,10 +3,13 @@ package management_test
 import (
 	"context"
 	"errors"
+	"maps"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	osmv1 "github.com/openshift/api/monitoring/v1"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	alertrule "github.com/openshift/monitoring-plugin/pkg/alert_rule"
@@ -154,6 +157,305 @@ var _ = Describe("GetRuleById", func() {
 			rule, err := client.GetRuleById(ctx, recordingRuleId)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(rule.Record).To(Equal("job:request_latency_seconds:mean5m"))
+		})
+	})
+
+	Context("when rule has openshift_io_rule_managed_by label computed by DetermineManagedBy", func() {
+		var (
+			mockARC          *testutils.MockAlertRelabelConfigInterface
+			mockNamespaceMgr *testutils.MockNamespaceInterface
+		)
+
+		BeforeEach(func() {
+			mockARC = &testutils.MockAlertRelabelConfigInterface{}
+			mockNamespaceMgr = &testutils.MockNamespaceInterface{}
+		})
+
+		It("returns rule with openshift_io_rule_managed_by=operator when PrometheusRule has OwnerReferences", func() {
+			promRule := &monitoringv1.PrometheusRule{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "operator-rule",
+					Namespace: "test-namespace",
+					OwnerReferences: []metav1.OwnerReference{
+						{
+							APIVersion: "apps/v1",
+							Kind:       "Deployment",
+							Name:       "test-operator",
+							UID:        "test-uid",
+						},
+					},
+				},
+			}
+
+			mockNamespaceMgr.IsClusterMonitoringNamespaceFunc = func(name string) bool {
+				return false // User rule
+			}
+			ruleManagedBy, relabelConfigManagedBy := k8s.DetermineManagedByForTesting(ctx, mockARC, mockNamespaceMgr, promRule, testRuleId)
+
+			// Create rule with label computed by DetermineManagedBy
+			ruleWithLabel := testRule
+			if ruleWithLabel.Labels == nil {
+				ruleWithLabel.Labels = make(map[string]string)
+			} else {
+				ruleWithLabel.Labels = maps.Clone(ruleWithLabel.Labels) // Deep copy labels
+			}
+			ruleWithLabel.Labels["alertname"] = ruleWithLabel.Alert
+			ruleWithLabel.Labels[k8s.AlertRuleLabelId] = testRuleId
+			ruleWithLabel.Labels[k8s.PrometheusRuleLabelNamespace] = promRule.Namespace
+			ruleWithLabel.Labels[k8s.PrometheusRuleLabelName] = promRule.Name
+			if ruleManagedBy != "" {
+				ruleWithLabel.Labels[k8s.RuleManagedByLabel] = ruleManagedBy
+			}
+			if relabelConfigManagedBy != "" {
+				ruleWithLabel.Labels[k8s.RelabelConfigManagedByLabel] = relabelConfigManagedBy
+			}
+
+			mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
+				return &testutils.MockRelabeledRulesInterface{
+					GetFunc: func(ctx context.Context, id string) (monitoringv1.Rule, bool) {
+						if id == testRuleId {
+							return ruleWithLabel, true
+						}
+						return monitoringv1.Rule{}, false
+					},
+				}
+			}
+
+			rule, err := client.GetRuleById(ctx, testRuleId)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(rule.Labels).To(HaveKey(k8s.RuleManagedByLabel))
+			Expect(rule.Labels[k8s.RuleManagedByLabel]).To(Equal("operator"))
+		})
+
+		It("returns rule without openshift_io_rule_managed_by label when PrometheusRule has no special conditions", func() {
+			promRule := &monitoringv1.PrometheusRule{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "local-rule",
+					Namespace: "test-namespace",
+				},
+			}
+
+			mockNamespaceMgr.IsClusterMonitoringNamespaceFunc = func(name string) bool {
+				return false // User rule
+			}
+			ruleManagedBy, relabelConfigManagedBy := k8s.DetermineManagedByForTesting(ctx, mockARC, mockNamespaceMgr, promRule, testRuleId)
+
+			ruleWithLabel := testRule
+			if ruleWithLabel.Labels == nil {
+				ruleWithLabel.Labels = make(map[string]string)
+			} else {
+				ruleWithLabel.Labels = maps.Clone(ruleWithLabel.Labels) // Deep copy labels
+			}
+			ruleWithLabel.Labels["alertname"] = ruleWithLabel.Alert
+			ruleWithLabel.Labels[k8s.AlertRuleLabelId] = testRuleId
+			ruleWithLabel.Labels[k8s.PrometheusRuleLabelNamespace] = promRule.Namespace
+			ruleWithLabel.Labels[k8s.PrometheusRuleLabelName] = promRule.Name
+			if ruleManagedBy != "" {
+				ruleWithLabel.Labels[k8s.RuleManagedByLabel] = ruleManagedBy
+			}
+			if relabelConfigManagedBy != "" {
+				ruleWithLabel.Labels[k8s.RelabelConfigManagedByLabel] = relabelConfigManagedBy
+			}
+
+			mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
+				return &testutils.MockRelabeledRulesInterface{
+					GetFunc: func(ctx context.Context, id string) (monitoringv1.Rule, bool) {
+						if id == testRuleId {
+							return ruleWithLabel, true
+						}
+						return monitoringv1.Rule{}, false
+					},
+				}
+			}
+
+			rule, err := client.GetRuleById(ctx, testRuleId)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(rule.Labels).NotTo(HaveKey(k8s.RuleManagedByLabel)) // Label should not be added
+		})
+
+		It("returns platform rule with openshift_io_relabel_config_managed_by=gitops when AlertRelabelConfig is GitOps managed", func() {
+			promRule := &monitoringv1.PrometheusRule{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "platform-rule",
+					Namespace: "openshift-monitoring",
+					OwnerReferences: []metav1.OwnerReference{
+						{
+							APIVersion: "apps/v1",
+							Kind:       "Deployment",
+							Name:       "test-operator",
+							UID:        "test-uid",
+						},
+					},
+				},
+			}
+
+			mockARC.GetFunc = func(ctx context.Context, namespace string, name string) (*osmv1.AlertRelabelConfig, bool, error) {
+				return &osmv1.AlertRelabelConfig{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      name,
+						Namespace: namespace,
+						Annotations: map[string]string{
+							"argocd.argoproj.io/tracking-id": "test-id",
+						},
+					},
+				}, true, nil
+			}
+
+			mockNamespaceMgr.IsClusterMonitoringNamespaceFunc = func(name string) bool {
+				return true // Platform rule
+			}
+			ruleManagedBy, relabelConfigManagedBy := k8s.DetermineManagedByForTesting(ctx, mockARC, mockNamespaceMgr, promRule, testRuleId)
+
+			ruleWithLabel := testRule
+			if ruleWithLabel.Labels == nil {
+				ruleWithLabel.Labels = make(map[string]string)
+			} else {
+				ruleWithLabel.Labels = maps.Clone(ruleWithLabel.Labels) // Deep copy labels
+			}
+			ruleWithLabel.Labels["alertname"] = ruleWithLabel.Alert
+			ruleWithLabel.Labels[k8s.AlertRuleLabelId] = testRuleId
+			ruleWithLabel.Labels[k8s.PrometheusRuleLabelNamespace] = promRule.Namespace
+			ruleWithLabel.Labels[k8s.PrometheusRuleLabelName] = promRule.Name
+			if ruleManagedBy != "" {
+				ruleWithLabel.Labels[k8s.RuleManagedByLabel] = ruleManagedBy
+			}
+			if relabelConfigManagedBy != "" {
+				ruleWithLabel.Labels[k8s.RelabelConfigManagedByLabel] = relabelConfigManagedBy
+			}
+
+			mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
+				return &testutils.MockRelabeledRulesInterface{
+					GetFunc: func(ctx context.Context, id string) (monitoringv1.Rule, bool) {
+						if id == testRuleId {
+							return ruleWithLabel, true
+						}
+						return monitoringv1.Rule{}, false
+					},
+				}
+			}
+
+			rule, err := client.GetRuleById(ctx, testRuleId)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(rule.Labels).To(HaveKey(k8s.RuleManagedByLabel))
+			Expect(rule.Labels[k8s.RuleManagedByLabel]).To(Equal("operator")) // Platform rule with OwnerReferences
+			Expect(rule.Labels).To(HaveKey(k8s.RelabelConfigManagedByLabel))
+			Expect(rule.Labels[k8s.RelabelConfigManagedByLabel]).To(Equal("gitops"))
+		})
+
+		It("returns platform rule with openshift_io_rule_managed_by=gitops when PrometheusRule is GitOps managed", func() {
+			promRule := &monitoringv1.PrometheusRule{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "platform-rule",
+					Namespace: "openshift-monitoring",
+					Annotations: map[string]string{
+						"argocd.argoproj.io/tracking-id": "test-id",
+					},
+				},
+			}
+
+			mockNamespaceMgr.IsClusterMonitoringNamespaceFunc = func(name string) bool {
+				return true // Platform rule
+			}
+			ruleManagedBy, relabelConfigManagedBy := k8s.DetermineManagedByForTesting(ctx, mockARC, mockNamespaceMgr, promRule, testRuleId)
+
+			ruleWithLabel := testRule
+			if ruleWithLabel.Labels == nil {
+				ruleWithLabel.Labels = make(map[string]string)
+			} else {
+				ruleWithLabel.Labels = maps.Clone(ruleWithLabel.Labels) // Deep copy labels
+			}
+			ruleWithLabel.Labels["alertname"] = ruleWithLabel.Alert
+			ruleWithLabel.Labels[k8s.AlertRuleLabelId] = testRuleId
+			ruleWithLabel.Labels[k8s.PrometheusRuleLabelNamespace] = promRule.Namespace
+			ruleWithLabel.Labels[k8s.PrometheusRuleLabelName] = promRule.Name
+			if ruleManagedBy != "" {
+				ruleWithLabel.Labels[k8s.RuleManagedByLabel] = ruleManagedBy
+			}
+			if relabelConfigManagedBy != "" {
+				ruleWithLabel.Labels[k8s.RelabelConfigManagedByLabel] = relabelConfigManagedBy
+			}
+
+			mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
+				return &testutils.MockRelabeledRulesInterface{
+					GetFunc: func(ctx context.Context, id string) (monitoringv1.Rule, bool) {
+						if id == testRuleId {
+							return ruleWithLabel, true
+						}
+						return monitoringv1.Rule{}, false
+					},
+				}
+			}
+
+			rule, err := client.GetRuleById(ctx, testRuleId)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(rule.Labels).To(HaveKey(k8s.RuleManagedByLabel))
+			Expect(rule.Labels[k8s.RuleManagedByLabel]).To(Equal("gitops")) // Platform rule with GitOps annotations
+		})
+
+		It("returns platform rule without openshift_io_relabel_config_managed_by label when AlertRelabelConfig is not GitOps managed", func() {
+			promRule := &monitoringv1.PrometheusRule{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "platform-rule",
+					Namespace: "openshift-monitoring",
+					OwnerReferences: []metav1.OwnerReference{
+						{
+							APIVersion: "apps/v1",
+							Kind:       "Deployment",
+							Name:       "test-operator",
+							UID:        "test-uid",
+						},
+					},
+				},
+			}
+
+			mockARC.GetFunc = func(ctx context.Context, namespace string, name string) (*osmv1.AlertRelabelConfig, bool, error) {
+				return &osmv1.AlertRelabelConfig{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      name,
+						Namespace: namespace,
+						// No GitOps annotations/labels
+					},
+				}, true, nil
+			}
+
+			mockNamespaceMgr.IsClusterMonitoringNamespaceFunc = func(name string) bool {
+				return true // Platform rule
+			}
+			ruleManagedBy, relabelConfigManagedBy := k8s.DetermineManagedByForTesting(ctx, mockARC, mockNamespaceMgr, promRule, testRuleId)
+
+			ruleWithLabel := testRule
+			if ruleWithLabel.Labels == nil {
+				ruleWithLabel.Labels = make(map[string]string)
+			} else {
+				ruleWithLabel.Labels = maps.Clone(ruleWithLabel.Labels) // Deep copy labels
+			}
+			ruleWithLabel.Labels["alertname"] = ruleWithLabel.Alert
+			ruleWithLabel.Labels[k8s.AlertRuleLabelId] = testRuleId
+			ruleWithLabel.Labels[k8s.PrometheusRuleLabelNamespace] = promRule.Namespace
+			ruleWithLabel.Labels[k8s.PrometheusRuleLabelName] = promRule.Name
+			if ruleManagedBy != "" {
+				ruleWithLabel.Labels[k8s.RuleManagedByLabel] = ruleManagedBy
+			}
+			if relabelConfigManagedBy != "" {
+				ruleWithLabel.Labels[k8s.RelabelConfigManagedByLabel] = relabelConfigManagedBy
+			}
+
+			mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
+				return &testutils.MockRelabeledRulesInterface{
+					GetFunc: func(ctx context.Context, id string) (monitoringv1.Rule, bool) {
+						if id == testRuleId {
+							return ruleWithLabel, true
+						}
+						return monitoringv1.Rule{}, false
+					},
+				}
+			}
+
+			rule, err := client.GetRuleById(ctx, testRuleId)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(rule.Labels).To(HaveKey(k8s.RuleManagedByLabel))
+			Expect(rule.Labels[k8s.RuleManagedByLabel]).To(Equal("operator"))   // Platform rule with OwnerReferences
+			Expect(rule.Labels).NotTo(HaveKey(k8s.RelabelConfigManagedByLabel)) // Label should not be added
 		})
 	})
 })

@@ -67,7 +67,7 @@ func newClient(ctx context.Context, config *rest.Config) (Client, error) {
 		return nil, fmt.Errorf("failed to create namespace manager: %w", err)
 	}
 
-	c.relabeledRulesManager, err = newRelabeledRulesManager(ctx, c.namespaceManager, monitoringv1clientset, clientset)
+	c.relabeledRulesManager, err = newRelabeledRulesManager(ctx, c.namespaceManager, c.alertRelabelConfigManager, monitoringv1clientset, clientset)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create relabeled rules config manager: %w", err)
 	}

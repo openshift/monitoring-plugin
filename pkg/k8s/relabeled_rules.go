@@ -2,7 +2,9 @@ package k8s
 
 import (
 	"context"
+	"crypto/sha256"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -38,17 +40,22 @@ const (
 	PrometheusRuleLabelNamespace = "openshift_io_prometheus_rule_namespace"
 	PrometheusRuleLabelName      = "openshift_io_prometheus_rule_name"
 	AlertRuleLabelId             = "openshift_io_alert_rule_id"
+	RuleManagedByLabel           = "openshift_io_rule_managed_by"
+	RelabelConfigManagedByLabel  = "openshift_io_relabel_config_managed_by"
 
 	AppKubernetesIoComponent                   = "app.kubernetes.io/component"
 	AppKubernetesIoManagedBy                   = "app.kubernetes.io/managed-by"
 	AppKubernetesIoComponentAlertManagementApi = "alert-management-api"
 	AppKubernetesIoComponentMonitoringPlugin   = "monitoring-plugin"
+
+	ArgocdArgoprojIoPrefix = "argocd.argoproj.io/"
 )
 
 type relabeledRulesManager struct {
 	queue workqueue.TypedRateLimitingInterface[string]
 
 	namespaceManager        NamespaceInterface
+	alertRelabelConfigs     AlertRelabelConfigInterface
 	prometheusRulesInformer cache.SharedIndexInformer
 	secretInformer          cache.SharedIndexInformer
 	configMapInformer       cache.SharedIndexInformer
@@ -60,7 +67,7 @@ type relabeledRulesManager struct {
 	mu             sync.RWMutex
 }
 
-func newRelabeledRulesManager(ctx context.Context, namespaceManager NamespaceInterface, monitoringv1clientset *monitoringv1client.Clientset, clientset *kubernetes.Clientset) (*relabeledRulesManager, error) {
+func newRelabeledRulesManager(ctx context.Context, namespaceManager NamespaceInterface, alertRelabelConfigs AlertRelabelConfigInterface, monitoringv1clientset *monitoringv1client.Clientset, clientset *kubernetes.Clientset) (*relabeledRulesManager, error) {
 	prometheusRulesInformer := cache.NewSharedIndexInformer(
 		prometheusRuleListWatchForAllNamespaces(monitoringv1clientset),
 		&monitoringv1.PrometheusRule{},
@@ -90,6 +97,7 @@ func newRelabeledRulesManager(ctx context.Context, namespaceManager NamespaceInt
 	rrm := &relabeledRulesManager{
 		queue:                   queue,
 		namespaceManager:        namespaceManager,
+		alertRelabelConfigs:     alertRelabelConfigs,
 		prometheusRulesInformer: prometheusRulesInformer,
 		secretInformer:          secretInformer,
 		configMapInformer:       configMapInformer,
@@ -232,7 +240,7 @@ func (rrm *relabeledRulesManager) sync(ctx context.Context, key string) error {
 	rrm.relabelConfigs = relabelConfigs
 	rrm.mu.Unlock()
 
-	alerts := rrm.collectAlerts(relabelConfigs)
+	alerts := rrm.collectAlerts(ctx, relabelConfigs)
 
 	rrm.mu.Lock()
 	rrm.relabeledRules = alerts
@@ -335,7 +343,7 @@ func (rrm *relabeledRulesManager) loadRelabelConfigs() ([]*relabel.Config, error
 	return configs, nil
 }
 
-func (rrm *relabeledRulesManager) collectAlerts(relabelConfigs []*relabel.Config) map[string]monitoringv1.Rule {
+func (rrm *relabeledRulesManager) collectAlerts(ctx context.Context, relabelConfigs []*relabel.Config) map[string]monitoringv1.Rule {
 	alerts := make(map[string]monitoringv1.Rule)
 
 	for _, obj := range rrm.prometheusRulesInformer.GetStore().List() {
@@ -381,6 +389,14 @@ func (rrm *relabeledRulesManager) collectAlerts(relabelConfigs []*relabel.Config
 				rule.Labels[PrometheusRuleLabelNamespace] = promRule.Namespace
 				rule.Labels[PrometheusRuleLabelName] = promRule.Name
 
+				ruleManagedBy, relabelConfigManagedBy := rrm.determineManagedBy(ctx, promRule, alertRuleId)
+				if ruleManagedBy != "" {
+					rule.Labels[RuleManagedByLabel] = ruleManagedBy
+				}
+				if relabelConfigManagedBy != "" {
+					rule.Labels[RelabelConfigManagedByLabel] = relabelConfigManagedBy
+				}
+
 				alerts[alertRuleId] = rule
 			}
 		}
@@ -388,6 +404,112 @@ func (rrm *relabeledRulesManager) collectAlerts(relabelConfigs []*relabel.Config
 
 	log.Debugf("Collected %d alerts", len(alerts))
 	return alerts
+}
+
+// isGitOpsManaged checks if an object is managed by GitOps (ArgoCD) based on annotations and labels
+func isGitOpsManaged(obj metav1.Object) bool {
+	annotations := obj.GetAnnotations()
+	for key := range annotations {
+		if strings.HasPrefix(key, ArgocdArgoprojIoPrefix) {
+			return true
+		}
+	}
+
+	labels := obj.GetLabels()
+	for key := range labels {
+		if strings.HasPrefix(key, ArgocdArgoprojIoPrefix) {
+			return true
+		}
+	}
+
+	if managedBy, exists := labels[AppKubernetesIoManagedBy]; exists {
+		managedByLower := strings.ToLower(managedBy)
+		if managedByLower == "openshift-gitops" || managedByLower == "argocd-cluster" || managedByLower == "argocd" || strings.Contains(managedByLower, "gitops") {
+			return true
+		}
+	}
+
+	return false
+}
+
+// GetAlertRelabelConfigName builds the AlertRelabelConfig name from a PrometheusRule name and alert rule ID
+func GetAlertRelabelConfigName(promRuleName string, alertRuleId string) string {
+	return fmt.Sprintf("arc-%s-%s", sanitizeDNSName(promRuleName), shortHash(alertRuleId, 12))
+}
+
+// sanitizeDNSName lowercases and replaces invalid chars with '-', trims extra '-'
+func sanitizeDNSName(in string) string {
+	if in == "" {
+		return ""
+	}
+	s := strings.ToLower(in)
+	// replace any char not [a-z0-9-] with '-'
+	out := make([]rune, 0, len(s))
+	for _, r := range s {
+		if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') || r == '-' {
+			out = append(out, r)
+		} else {
+			out = append(out, '-')
+		}
+	}
+	// collapse multiple '-' and trim
+	res := strings.Trim(strings.ReplaceAll(string(out), "--", "-"), "-")
+	if res == "" {
+		return "arc"
+	}
+	return res
+}
+
+func shortHash(id string, n int) string {
+	// if id already contains a ';<hex>', use that suffix
+	parts := strings.Split(id, ";")
+	if len(parts) > 1 {
+		h := parts[len(parts)-1]
+		if len(h) >= n {
+			return h[:n]
+		}
+	}
+	sum := sha256.Sum256([]byte(id))
+	full := fmt.Sprintf("%x", sum[:])
+	if n > len(full) {
+		return full
+	}
+	return full[:n]
+}
+
+// determineManagedBy determines the openshift_io_rule_managed_by and openshift_io_relabel_config_managed_by label values
+func (rrm *relabeledRulesManager) determineManagedBy(ctx context.Context, promRule *monitoringv1.PrometheusRule, alertRuleId string) (string, string) {
+	// Determine ruleManagedBy from PrometheusRule
+	var ruleManagedBy string
+	if isGitOpsManaged(promRule) {
+		ruleManagedBy = "gitops"
+	} else if len(promRule.OwnerReferences) > 0 {
+		ruleManagedBy = "operator"
+	}
+
+	// Determine relabelConfigManagedBy only for platform rules
+	isPlatform := rrm.namespaceManager.IsClusterMonitoringNamespace(promRule.Namespace)
+	var relabelConfigManagedBy string
+	if isPlatform && rrm.alertRelabelConfigs != nil {
+		arcName := GetAlertRelabelConfigName(promRule.Name, alertRuleId)
+		arc, found, err := rrm.alertRelabelConfigs.Get(ctx, promRule.Namespace, arcName)
+		if err == nil && found {
+			if isGitOpsManaged(arc) {
+				relabelConfigManagedBy = "gitops"
+			}
+		}
+	}
+
+	return ruleManagedBy, relabelConfigManagedBy
+}
+
+// DetermineManagedByForTesting creates a minimal relabeledRulesManager for testing purposes
+func DetermineManagedByForTesting(ctx context.Context, alertRelabelConfigs AlertRelabelConfigInterface, namespaceManager NamespaceInterface, promRule *monitoringv1.PrometheusRule, alertRuleId string) (string, string) {
+	rrm := &relabeledRulesManager{
+		alertRelabelConfigs: alertRelabelConfigs,
+		namespaceManager:    namespaceManager,
+	}
+	return rrm.determineManagedBy(ctx, promRule, alertRuleId)
 }
 
 func (rrm *relabeledRulesManager) List(ctx context.Context) []monitoringv1.Rule {

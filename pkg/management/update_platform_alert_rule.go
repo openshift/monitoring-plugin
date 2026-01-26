@@ -2,7 +2,6 @@ package management
 
 import (
 	"context"
-	"crypto/sha256"
 	"fmt"
 	"regexp"
 	"sort"
@@ -123,7 +122,7 @@ func (c *client) applyLabelChangesViaAlertRelabelConfig(ctx context.Context, nam
 		}
 	}
 	prName := relabeled.Labels[k8s.PrometheusRuleLabelName]
-	arcName := fmt.Sprintf("arc-%s-%s", sanitizeDNSName(prName), shortHash(alertRuleId, 12))
+	arcName := k8s.GetAlertRelabelConfigName(prName, alertRuleId)
 
 	existingArc, found, err := c.k8sClient.AlertRelabelConfigs().Get(ctx, namespace, arcName)
 	if err != nil {
@@ -313,44 +312,4 @@ func (c *client) buildRelabelConfigs(alertName string, originalLabels map[string
 	}
 
 	return configs
-}
-
-// sanitizeDNSName lowercases and replaces invalid chars with '-', trims extra '-'
-func sanitizeDNSName(in string) string {
-	if in == "" {
-		return ""
-	}
-	s := strings.ToLower(in)
-	// replace any char not [a-z0-9-] with '-'
-	out := make([]rune, 0, len(s))
-	for _, r := range s {
-		if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') || r == '-' {
-			out = append(out, r)
-		} else {
-			out = append(out, '-')
-		}
-	}
-	// collapse multiple '-' and trim
-	res := strings.Trim(strings.ReplaceAll(string(out), "--", "-"), "-")
-	if res == "" {
-		return "arc"
-	}
-	return res
-}
-
-func shortHash(id string, n int) string {
-	// if id already contains a ';<hex>', use that suffix
-	parts := strings.Split(id, ";")
-	if len(parts) > 1 {
-		h := parts[len(parts)-1]
-		if len(h) >= n {
-			return h[:n]
-		}
-	}
-	sum := sha256.Sum256([]byte(id))
-	full := fmt.Sprintf("%x", sum[:])
-	if n > len(full) {
-		return full
-	}
-	return full[:n]
 }
