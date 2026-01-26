@@ -21,7 +21,6 @@ import { useAccessReview } from '@openshift-console/dynamic-plugin-sdk';
 import { useTranslation } from 'react-i18next';
 
 import { persesDashboardDataTestIDs } from '../../data-test';
-import { useActiveProject } from './project/useActiveProject';
 
 export interface DashboardToolbarProps {
   dashboardName: string;
@@ -60,11 +59,16 @@ export interface EditButtonProps {
    * Whether permissions are still loading.
    */
   loading?: boolean;
+
+  /**
+   * The active project/namespace for permissions check.
+   */
+  activeProject?: string | null;
 }
 
-export const EditButton = ({ onClick }: EditButtonProps): ReactElement => {
+export const EditButton = ({ onClick, activeProject }: EditButtonProps): ReactElement => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { canEdit, loading } = usePersesEditPermissions();
+  const { canEdit, loading } = usePersesEditPermissions(activeProject);
   const disabled = !canEdit;
 
   const button = (
@@ -92,8 +96,7 @@ export const EditButton = ({ onClick }: EditButtonProps): ReactElement => {
   return button;
 };
 
-export const usePersesEditPermissions = () => {
-  const { activeProject: namespace } = useActiveProject();
+export const usePersesEditPermissions = (namespace: string | null = null) => {
   const [canCreate, createLoading] = useAccessReview({
     group: 'perses.dev',
     resource: 'persesdashboards',
@@ -216,7 +219,7 @@ export const OCPDashboardToolbar = (props: DashboardToolbarProps): ReactElement 
             <>
               {isBiggerThanSm && (
                 <Stack direction="row" gap={1} ml="auto">
-                  <EditButton onClick={onEditButtonClick} />
+                  <EditButton onClick={onEditButtonClick} activeProject={activeProject} />
                 </Stack>
               )}
             </>

@@ -101,24 +101,17 @@ const DashboardListPageHeader: React.FunctionComponent = () => {
   const hideFavBtn = shouldHideFavoriteButton();
 
   return (
-    <Split hasGutter isWrappable>
-      <SplitItem isFilled>
-        <ListPageHeader
-          title={t('Dashboards')}
-          helpText={t('View and manage dashboards.')}
-          hideFavoriteButton={hideFavBtn}
-        />
-      </SplitItem>
-      <SplitItem
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-        }}
-      >
-        <DashboardCreateDialog />
-      </SplitItem>
-    </Split>
+    <ListPageHeader
+      title={t('Dashboards')}
+      helpText={t('View and manage dashboards.')}
+      hideFavoriteButton={hideFavBtn}
+    >
+      <Split hasGutter isWrappable>
+        <SplitItem>
+          <DashboardCreateDialog />
+        </SplitItem>
+      </Split>
+    </ListPageHeader>
   );
 };
 

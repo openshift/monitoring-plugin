@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   Button,
@@ -25,6 +25,8 @@ import { ExclamationCircleIcon } from '@patternfly/react-icons';
 import { usePerses } from './hooks/usePerses';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom-v5-compat';
+import { StringParam, useQueryParam } from 'use-query-params';
+import { QueryParams } from '../../query-params';
 
 import { DashboardResource } from '@perses-dev/core';
 import { useCreateDashboardMutation } from './dashboard-api';
@@ -33,31 +35,135 @@ import { useToast } from './ToastProvider';
 import { usePerspective, getDashboardUrl } from '../../hooks/usePerspective';
 import { usePersesEditPermissions } from './dashboard-toolbar';
 import { persesDashboardDataTestIDs } from '../../data-test';
+import { checkAccess } from '@openshift-console/dynamic-plugin-sdk';
+
+const useHasEditableProjects = (projects: any[]) => {
+  const [editableProjects, setEditableProjects] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!projects || projects.length === 0) {
+      setEditableProjects([]);
+      setLoading(false);
+      return;
+    }
+
+    let mounted = true;
+
+    const checkProjectPermissions = async () => {
+      setLoading(true);
+      const editableProjectNames: string[] = [];
+
+      for (const project of projects) {
+        const projectName = project?.metadata?.name;
+        if (!projectName) continue;
+
+        try {
+          const [createResult, updateResult, deleteResult] = await Promise.all([
+            checkAccess({
+              group: 'perses.dev',
+              resource: 'persesdashboards',
+              verb: 'create',
+              namespace: projectName,
+            }),
+            checkAccess({
+              group: 'perses.dev',
+              resource: 'persesdashboards',
+              verb: 'update',
+              namespace: projectName,
+            }),
+            checkAccess({
+              group: 'perses.dev',
+              resource: 'persesdashboards',
+              verb: 'delete',
+              namespace: projectName,
+            }),
+          ]);
+
+          const canEdit =
+            createResult.status.allowed &&
+            updateResult.status.allowed &&
+            deleteResult.status.allowed;
+
+          if (canEdit) {
+            editableProjectNames.push(projectName);
+          }
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.warn(`Failed to check permissions for project ${projectName}:`, error);
+        }
+      }
+
+      if (mounted) {
+        setEditableProjects(editableProjectNames);
+        setLoading(false);
+      }
+    };
+
+    checkProjectPermissions();
+
+    return () => {
+      mounted = false;
+    };
+  }, [projects]);
+
+  const hasEditableProject = editableProjects.length > 0;
+
+  return { editableProjects, hasEditableProject, loading };
+};
 
 export const DashboardCreateDialog: React.FunctionComponent = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const navigate = useNavigate();
   const { perspective } = usePerspective();
   const { addAlert } = useToast();
-  const { canEdit, loading } = usePersesEditPermissions();
-  const disabled = !canEdit;
-
   const { persesProjects } = usePerses();
+  const [activeProjectFromUrl] = useQueryParam(QueryParams.Project, StringParam);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
   const [dashboardName, setDashboardName] = useState<string>('');
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
-
   const createDashboardMutation = useCreateDashboardMutation();
 
-  useEffect(() => {
-    if (persesProjects && persesProjects.length > 0 && selectedProject === null) {
-      setSelectedProject(persesProjects[0].metadata.name);
-    }
-  }, [persesProjects, selectedProject]);
+  const { canEdit, loading } = usePersesEditPermissions(activeProjectFromUrl);
 
-  const { persesProjectDashboards: dashboards } = usePerses(selectedProject || undefined);
+  const hookInput = useMemo(() => {
+    return persesProjects || [];
+  }, [persesProjects]);
+
+  const {
+    editableProjects,
+    hasEditableProject,
+    loading: globalPermissionsLoading,
+  } = useHasEditableProjects(hookInput);
+
+  const disabled = activeProjectFromUrl ? !canEdit : !hasEditableProject;
+
+  const filteredProjects = useMemo(() => {
+    return persesProjects.filter((project) => editableProjects.includes(project.metadata.name));
+  }, [persesProjects, editableProjects]);
+
+  useEffect(() => {
+    if (
+      isModalOpen &&
+      filteredProjects &&
+      filteredProjects.length > 0 &&
+      selectedProject === null
+    ) {
+      const projectToSelect =
+        activeProjectFromUrl &&
+        filteredProjects.some((p) => p.metadata.name === activeProjectFromUrl)
+          ? activeProjectFromUrl
+          : filteredProjects[0].metadata.name;
+
+      setSelectedProject(projectToSelect);
+    }
+  }, [isModalOpen, filteredProjects, selectedProject, activeProjectFromUrl]);
+
+  const { persesProjectDashboards: dashboards } = usePerses(
+    isModalOpen && selectedProject ? selectedProject : undefined,
+  );
 
   const handleSetDashboardName = (_event, dashboardName: string) => {
     setDashboardName(dashboardName);
@@ -158,10 +264,10 @@ export const DashboardCreateDialog: React.FunctionComponent = () => {
       <Button
         variant="primary"
         onClick={handleModalToggle}
-        isDisabled={disabled || loading}
+        isDisabled={disabled || loading || globalPermissionsLoading}
         data-test={persesDashboardDataTestIDs.createDashboardButtonToolbar}
       >
-        {loading ? t('Loading...') : t('Create')}
+        {loading || globalPermissionsLoading ? t('Loading...') : t('Create')}
       </Button>
       <Modal
         variant={ModalVariant.small}
@@ -207,7 +313,7 @@ export const DashboardCreateDialog: React.FunctionComponent = () => {
                 )}
               >
                 <DropdownList>
-                  {persesProjects.map((project, i) => (
+                  {filteredProjects.map((project, i) => (
                     <DropdownItem
                       value={`${project.metadata.name}`}
                       key={`${i}-${project.metadata.name}`}

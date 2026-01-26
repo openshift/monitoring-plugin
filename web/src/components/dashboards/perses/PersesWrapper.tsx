@@ -43,6 +43,8 @@ import {
   chart_color_blue_500,
   t_color_gray_95,
   t_color_white,
+  t_global_background_color_100,
+  t_global_background_color_400,
 } from '@patternfly/react-tokens';
 import { QueryParams } from '../../query-params';
 import { StringParam, useQueryParam } from 'use-query-params';
@@ -76,7 +78,9 @@ interface PersesWrapperProps {
 const mapPatterflyThemeToMUI = (theme: 'light' | 'dark'): ThemeOptions => {
   const isDark = theme === 'dark';
   const primaryTextColor = isDark ? t_color_white.value : t_color_gray_95.value;
-  const primaryBackgroundColor = 'var(--pf-t--global--background--color--primary--default)';
+  const primaryBackgroundColor = isDark
+    ? t_global_background_color_400.value
+    : t_global_background_color_100.value;
 
   return {
     typography: {
