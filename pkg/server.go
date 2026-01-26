@@ -12,7 +12,6 @@ import (
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	"github.com/openshift/monitoring-plugin/pkg/proxy"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"
@@ -21,6 +20,12 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/record"
+
+	"github.com/openshift/monitoring-plugin/internal/managementrouter"
+	"github.com/openshift/monitoring-plugin/pkg/management"
+	"github.com/openshift/monitoring-plugin/pkg/proxy"
+
+	"github.com/openshift/monitoring-plugin/pkg/k8s"
 )
 
 var log = logrus.WithField("module", "server")
@@ -56,10 +61,11 @@ type PluginConfig struct {
 type Feature string
 
 const (
-	AcmAlerting      Feature = "acm-alerting"
-	Incidents        Feature = "incidents"
-	DevConfig        Feature = "dev-config"
-	PersesDashboards Feature = "perses-dashboards"
+	AcmAlerting        Feature = "acm-alerting"
+	Incidents          Feature = "incidents"
+	DevConfig          Feature = "dev-config"
+	PersesDashboards   Feature = "perses-dashboards"
+	AlertManagementAPI Feature = "alert-management-api"
 )
 
 func (pluginConfig *PluginConfig) MarshalJSON() ([]byte, error) {
@@ -103,6 +109,8 @@ func (s *PluginServer) Shutdown(ctx context.Context) error {
 
 func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 	acmMode := cfg.Features[AcmAlerting]
+	alertManagementAPIMode := cfg.Features[AlertManagementAPI]
+
 	acmLocationsLength := len(cfg.AlertmanagerUrl) + len(cfg.ThanosQuerierUrl)
 
 	if acmLocationsLength > 0 && !acmMode {
@@ -116,15 +124,19 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 		return nil, fmt.Errorf("cannot set default port to reserved port %d", cfg.Port)
 	}
 
+	var k8sconfig *rest.Config
+	var err error
+
 	// Uncomment the following line for local development:
-	// k8sconfig, err := clientcmd.BuildConfigFromFlags("", "$HOME/.kube/config")
+	// k8sconfig, err = clientcmd.BuildConfigFromFlags("", os.Getenv("KUBECONFIG"))
+	// if err != nil {
+	// 	return nil, fmt.Errorf("cannot get kubeconfig from file: %w", err)
+	// }
 
 	// Comment the following line for local development:
 	var k8sclient *dynamic.DynamicClient
-	if acmMode {
-
-		k8sconfig, err := rest.InClusterConfig()
-
+	if acmMode || alertManagementAPIMode {
+		k8sconfig, err = rest.InClusterConfig()
 		if err != nil {
 			return nil, fmt.Errorf("cannot get in cluster config: %w", err)
 		}
@@ -137,7 +149,23 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 		k8sclient = nil
 	}
 
-	router, pluginConfig := setupRoutes(cfg)
+	// Initialize management client if management API feature is enabled
+	var managementClient management.Client
+	if alertManagementAPIMode {
+		k8sClient, err := k8s.NewClient(ctx, k8sconfig)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create k8s client for alert management API: %w", err)
+		}
+
+		if err := k8sClient.TestConnection(ctx); err != nil {
+			return nil, fmt.Errorf("failed to connect to kubernetes cluster for alert management API: %w", err)
+		}
+
+		managementClient = management.New(ctx, k8sClient)
+		log.Info("alert management API enabled")
+	}
+
+	router, pluginConfig := setupRoutes(cfg, managementClient)
 	router.Use(corsHeaderMiddleware())
 
 	tlsConfig := &tls.Config{}
@@ -222,7 +250,7 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 	return httpServer, nil
 }
 
-func setupRoutes(cfg *Config) (*mux.Router, *PluginConfig) {
+func setupRoutes(cfg *Config, managementClient management.Client) (*mux.Router, *PluginConfig) {
 	configHandlerFunc, pluginConfig := configHandler(cfg)
 
 	router := mux.NewRouter()
@@ -233,6 +261,12 @@ func setupRoutes(cfg *Config) (*mux.Router, *PluginConfig) {
 
 	router.PathPrefix("/features").HandlerFunc(featuresHandler(cfg))
 	router.PathPrefix("/config").HandlerFunc(configHandlerFunc)
+
+	if managementClient != nil {
+		managementRouter := managementrouter.New(managementClient)
+		router.PathPrefix("/api/v1/alerting").Handler(managementRouter)
+	}
+
 	router.PathPrefix("/").Handler(filesHandler(http.Dir(cfg.StaticPath)))
 
 	return router, pluginConfig
