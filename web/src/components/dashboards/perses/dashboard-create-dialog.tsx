@@ -113,6 +113,7 @@ const useProjectPermissions = (projects: any[]) => {
     refetchOnWindowFocus: true,
     retry: 2,
     onError: (error) => {
+      // eslint-disable-next-line no-console
       console.warn('Failed to check project permissions:', error);
     },
   });
