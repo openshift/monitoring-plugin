@@ -21,6 +21,7 @@ import {
   HelperTextItemVariant,
   ValidatedOptions,
 } from '@patternfly/react-core';
+import { useQuery } from '@tanstack/react-query';
 import { ExclamationCircleIcon } from '@patternfly/react-icons';
 import { usePerses } from './hooks/usePerses';
 import { useTranslation } from 'react-i18next';
@@ -37,79 +38,88 @@ import { usePersesEditPermissions } from './dashboard-toolbar';
 import { persesDashboardDataTestIDs } from '../../data-test';
 import { checkAccess } from '@openshift-console/dynamic-plugin-sdk';
 
-const useHasEditableProjects = (projects: any[]) => {
-  const [editableProjects, setEditableProjects] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
+const checkProjectPermissions = async (projects: any[]): Promise<string[]> => {
+  if (!projects || projects.length === 0) {
+    return [];
+  }
 
-  useEffect(() => {
+  const editableProjectNames: string[] = [];
+
+  for (const project of projects) {
+    const projectName = project?.metadata?.name;
+    if (!projectName) continue;
+
+    try {
+      const [createResult, updateResult, deleteResult] = await Promise.all([
+        checkAccess({
+          group: 'perses.dev',
+          resource: 'persesdashboards',
+          verb: 'create',
+          namespace: projectName,
+        }),
+        checkAccess({
+          group: 'perses.dev',
+          resource: 'persesdashboards',
+          verb: 'update',
+          namespace: projectName,
+        }),
+        checkAccess({
+          group: 'perses.dev',
+          resource: 'persesdashboards',
+          verb: 'delete',
+          namespace: projectName,
+        }),
+      ]);
+
+      const canEdit =
+        createResult.status.allowed && updateResult.status.allowed && deleteResult.status.allowed;
+
+      if (canEdit) {
+        editableProjectNames.push(projectName);
+      }
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.warn(`Failed to check permissions for project ${projectName}:`, error);
+    }
+  }
+
+  return editableProjectNames;
+};
+
+const useProjectPermissions = (projects: any[]) => {
+  const queryKey = useMemo(() => {
     if (!projects || projects.length === 0) {
-      setEditableProjects([]);
-      setLoading(false);
-      return;
+      return ['project-permissions', 'empty'];
     }
 
-    let mounted = true;
+    const projectFingerprint = projects.map((p) => ({
+      name: p?.metadata?.name,
+      version: p?.metadata?.version,
+      updatedAt: p?.metadata?.updatedAt,
+    }));
 
-    const checkProjectPermissions = async () => {
-      setLoading(true);
-      const editableProjectNames: string[] = [];
-
-      for (const project of projects) {
-        const projectName = project?.metadata?.name;
-        if (!projectName) continue;
-
-        try {
-          const [createResult, updateResult, deleteResult] = await Promise.all([
-            checkAccess({
-              group: 'perses.dev',
-              resource: 'persesdashboards',
-              verb: 'create',
-              namespace: projectName,
-            }),
-            checkAccess({
-              group: 'perses.dev',
-              resource: 'persesdashboards',
-              verb: 'update',
-              namespace: projectName,
-            }),
-            checkAccess({
-              group: 'perses.dev',
-              resource: 'persesdashboards',
-              verb: 'delete',
-              namespace: projectName,
-            }),
-          ]);
-
-          const canEdit =
-            createResult.status.allowed &&
-            updateResult.status.allowed &&
-            deleteResult.status.allowed;
-
-          if (canEdit) {
-            editableProjectNames.push(projectName);
-          }
-        } catch (error) {
-          // eslint-disable-next-line no-console
-          console.warn(`Failed to check permissions for project ${projectName}:`, error);
-        }
-      }
-
-      if (mounted) {
-        setEditableProjects(editableProjectNames);
-        setLoading(false);
-      }
-    };
-
-    checkProjectPermissions();
-
-    return () => {
-      mounted = false;
-    };
+    return ['project-permissions', JSON.stringify(projectFingerprint)];
   }, [projects]);
+
+  const {
+    data: editableProjects = [],
+    isLoading: loading,
+    error,
+  } = useQuery({
+    queryKey,
+    queryFn: () => checkProjectPermissions(projects),
+    enabled: !!projects && projects.length > 0,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: true,
+    retry: 2,
+    onError: (error) => {
+      console.warn('Failed to check project permissions:', error);
+    },
+  });
 
   const hasEditableProject = editableProjects.length > 0;
 
-  return { editableProjects, hasEditableProject, loading };
+  return { editableProjects, hasEditableProject, loading, error };
 };
 
 export const DashboardCreateDialog: React.FunctionComponent = () => {
@@ -136,7 +146,7 @@ export const DashboardCreateDialog: React.FunctionComponent = () => {
     editableProjects,
     hasEditableProject,
     loading: globalPermissionsLoading,
-  } = useHasEditableProjects(hookInput);
+  } = useProjectPermissions(hookInput);
 
   const disabled = activeProjectFromUrl ? !canEdit : !hasEditableProject;
 
