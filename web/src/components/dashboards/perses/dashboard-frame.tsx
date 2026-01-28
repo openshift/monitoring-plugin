@@ -1,11 +1,11 @@
 import React, { ReactNode } from 'react';
 import { DashboardEmptyState } from './emptystates/DashboardEmptyState';
-import { DashboardHeader } from './dashboard-skeleton';
+import { DashboardHeader } from './dashboard-header';
 import { CombinedDashboardMetadata } from './hooks/useDashboardsData';
 import { ProjectBar } from './project/ProjectBar';
 import { PersesWrapper } from './PersesWrapper';
-import { Overview } from '@openshift-console/dynamic-plugin-sdk';
 import { ToastProvider } from './ToastProvider';
+import { PagePadding } from './dashboard-page-padding';
 
 interface DashboardFrameProps {
   activeProject: string | null;
@@ -32,14 +32,16 @@ export const DashboardFrame: React.FC<DashboardFrameProps> = ({
           {activeProjectDashboardsMetadata?.length === 0 ? (
             <DashboardEmptyState />
           ) : (
-            <DashboardHeader
-              boardItems={activeProjectDashboardsMetadata}
-              changeBoard={changeBoard}
-              dashboardName={dashboardName}
-              activeProject={activeProject}
-            >
-              <Overview>{children}</Overview>
-            </DashboardHeader>
+            <>
+              <DashboardHeader
+                boardItems={activeProjectDashboardsMetadata}
+                changeBoard={changeBoard}
+                dashboardName={dashboardName}
+                activeProject={activeProject}
+              >
+                <PagePadding top="0">{children}</PagePadding>
+              </DashboardHeader>
+            </>
           )}
         </PersesWrapper>
       </ToastProvider>

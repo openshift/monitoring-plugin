@@ -77,6 +77,8 @@ export const useDashboardsData = () => {
       }
       const queryArguments = getAllQueryArguments();
 
+      delete queryArguments.edit;
+
       const params = new URLSearchParams(queryArguments);
 
       let projectToUse = activeProject;
