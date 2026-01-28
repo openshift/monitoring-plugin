@@ -303,5 +303,6 @@
   "No metrics targets found": "No metrics targets found",
   "Error loading latest targets data": "Error loading latest targets data",
   "Search by endpoint or namespace...": "Search by endpoint or namespace...",
-  "Text": "Text"
+  "Text": "Text",
+  "Incident data is updated every few minutes. What you see may be up to 5 minutes old. Refresh the page to view updated information.":"Incident data is updated every few minutes. What you see may be up to 5 minutes old. Refresh the page to view updated information."
 }
