@@ -75,6 +75,28 @@ export const roundDateToInterval = (date: Date): Date => {
 };
 
 /**
+ * Rounds a timestamp down to the nearest 5-minute boundary.
+ * This ensures consistent display of start dates in tooltips and tables,
+ * matching the rounding behavior of end dates which come from Prometheus data
+ * that is already aligned to 5-minute intervals.
+ *
+ * @param timestampSeconds - Timestamp in seconds (Prometheus format)
+ * @returns Timestamp in seconds, rounded down to the nearest 5-minute boundary
+ *
+ * @example
+ * roundTimestampToFiveMinutes(1704067200) // 1704067200 (already on boundary)
+ * roundTimestampToFiveMinutes(1704067230) // 1704067200 (rounded down)
+ * roundTimestampToFiveMinutes(1704067499) // 1704067200 (rounded down)
+ * roundTimestampToFiveMinutes(1704067500) // 1704067500 (on next boundary)
+ */
+export const roundTimestampToFiveMinutes = (timestampSeconds: number): number => {
+  return (
+    Math.floor(timestampSeconds / PROMETHEUS_QUERY_INTERVAL_SECONDS) *
+    PROMETHEUS_QUERY_INTERVAL_SECONDS
+  );
+};
+
+/**
  * Determines if an incident or alert is resolved based on the time elapsed since the last data point.
  *
  * An incident/alert is considered resolved if the last data point is older than or equal to
@@ -326,7 +348,7 @@ export const createIncidentsChartBars = (incident: Incident, dateArray: SpanDate
       componentList: incident.componentList || [],
       group_id: incident.group_id,
       nodata: groupedData[i][2] === 'nodata' ? true : false,
-      startDate: new Date(incident.firstTimestamp * 1000),
+      startDate: new Date(roundTimestampToFiveMinutes(incident.firstTimestamp) * 1000),
       fill:
         severity === 'Critical'
           ? barChartColorScheme.critical
@@ -388,7 +410,7 @@ export const createAlertsChartBars = (alert: IncidentsDetailsAlert): AlertsChart
     data.push({
       y0: new Date(groupedData[i][0] * 1000),
       y: new Date(groupedData[i][1] * 1000),
-      startDate: new Date(alert.firstTimestamp * 1000),
+      startDate: new Date(roundTimestampToFiveMinutes(alert.firstTimestamp) * 1000),
       x: alert.x,
       severity: alert.severity[0].toUpperCase() + alert.severity.slice(1),
       name: alert.alertname,
