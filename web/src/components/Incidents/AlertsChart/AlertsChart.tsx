@@ -32,6 +32,7 @@ import {
   generateDateArray,
   generateAlertsDateArray,
   getCurrentTime,
+  roundTimestampToFiveMinutes,
 } from '../utils';
 import { dateTimeFormatter, timeFormatter } from '../../console/utils/datetime';
 import { useTranslation } from 'react-i18next';
@@ -161,7 +162,9 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
                       return '';
                     }
                     const startDate = dateTimeFormatter(i18n.language).format(
-                      new Date(datum.startDate),
+                      new Date(
+                        roundTimestampToFiveMinutes(datum.startDate.getTime() / 1000) * 1000,
+                      ),
                     );
                     const endDate =
                       datum.alertstate === 'firing'
