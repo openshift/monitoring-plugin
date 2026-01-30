@@ -936,6 +936,9 @@ export const getFilterKey = (categoryName: string): string => {
  * @returns The matched timestamp
  */
 export const matchTimestampMetricForIncident = (incident: any, timestamps: Array<any>): any => {
+  if (!timestamps || !Array.isArray(timestamps)) {
+    return undefined;
+  }
   return timestamps.find(
     (timestamp) =>
       timestamp.metric.group_id === incident.group_id &&
