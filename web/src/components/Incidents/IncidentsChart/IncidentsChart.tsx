@@ -28,11 +28,13 @@ import {
 } from '@patternfly/react-tokens';
 import '../incidents-styles.css';
 import { IncidentsTooltip } from '../IncidentsTooltip';
-import { Incident } from '../model';
+import { Incident, IncidentsTimestamps } from '../model';
 import {
   calculateIncidentsChartDomain,
   createIncidentsChartBars,
   generateDateArray,
+  matchTimestampMetricForIncident,
+  roundTimestampToFiveMinutes,
 } from '../utils';
 import { dateTimeFormatter, timeFormatter } from '../../console/utils/datetime';
 import { useTranslation } from 'react-i18next';
@@ -56,6 +58,7 @@ const formatComponentList = (componentList: string[] | undefined): string => {
 
 const IncidentsChart = ({
   incidentsData,
+  incidentsTimestamps,
   chartDays,
   theme,
   selectedGroupId,
@@ -64,6 +67,7 @@ const IncidentsChart = ({
   lastRefreshTime,
 }: {
   incidentsData: Array<Incident>;
+  incidentsTimestamps: IncidentsTimestamps;
   chartDays: number;
   theme: 'light' | 'dark';
   selectedGroupId: string;
@@ -78,6 +82,20 @@ const IncidentsChart = ({
     () => generateDateArray(chartDays, currentTime),
     [chartDays, currentTime],
   );
+
+  // enrich incidentsData with first_timestamp from timestamp metric
+  incidentsData = incidentsData.map((incident) => {
+    // find the matched timestamp for the incident
+    const matchedMinTimestamp = matchTimestampMetricForIncident(
+      incident,
+      incidentsTimestamps.minOverTime,
+    );
+
+    return {
+      ...incident,
+      firstTimestamp: parseInt(matchedMinTimestamp?.value?.[1] ?? '0'),
+    };
+  });
 
   const { t, i18n } = useTranslation(process.env.I18N_NAMESPACE);
 
@@ -175,7 +193,11 @@ const IncidentsChart = ({
                     if (datum.nodata) {
                       return '';
                     }
-                    const startDate = dateTimeFormatter(i18n.language).format(new Date(datum.y0));
+                    const startDate = dateTimeFormatter(i18n.language).format(
+                      new Date(
+                        roundTimestampToFiveMinutes(datum.startDate.getTime() / 1000) * 1000,
+                      ),
+                    );
                     const endDate = datum.firing
                       ? '---'
                       : dateTimeFormatter(i18n.language).format(new Date(datum.y));

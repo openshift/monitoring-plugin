@@ -20,6 +20,7 @@ import { GroupedAlertStateIcon } from './IncidentAlertStateIcon';
 
 import { GroupedAlert } from './model';
 import { DataTestIDs } from '../data-test';
+import { roundTimestampToFiveMinutes } from './utils';
 
 export const IncidentsTable = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -95,7 +96,7 @@ export const IncidentsTable = () => {
     if (!alert.alertsExpandedRowData || alert.alertsExpandedRowData.length === 0) {
       return 0;
     }
-    return Math.min(...alert.alertsExpandedRowData.map((alertData) => alertData.alertsStartFiring));
+    return Math.min(...alert.alertsExpandedRowData.map((alertData) => alertData.firstTimestamp));
   };
 
   if (isEmpty(alertsTableData) || alertsAreLoading || isEmpty(incidentsActiveFilters.groupId)) {
@@ -180,7 +181,9 @@ export const IncidentsTable = () => {
                       )}
                     </Td>
                     <Td dataLabel={columnNames.startDate}>
-                      <Timestamp timestamp={getMinStartDate(alert) * 1000} />
+                      <Timestamp
+                        timestamp={roundTimestampToFiveMinutes(getMinStartDate(alert)) * 1000}
+                      />
                     </Td>
                     <Td
                       dataLabel={columnNames.state}
