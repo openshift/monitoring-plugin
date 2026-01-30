@@ -84,8 +84,8 @@ export const defaultObserveState: ObserveState = {
     alertsData: [],
     alertsTableData: [],
     filteredIncidentsData: [],
-    incidentsTimestamps: [],
-    alertsTimestamps: [],
+    incidentsTimestamps: { minOverTime: [], lastOverTime: [] },
+    alertsTimestamps: { minOverTime: [], lastOverTime: [] },
     alertsAreLoading: true,
     incidentsChartSelectedId: '',
     incidentsInitialState: {
