@@ -1,4 +1,4 @@
-import { insertPaddingPointsForChart } from './utils';
+import { insertPaddingPointsForChart, roundDateToInterval } from './utils';
 
 describe('insertPaddingPointsForChart', () => {
   describe('edge cases', () => {
@@ -284,6 +284,32 @@ describe('insertPaddingPointsForChart', () => {
       expect(result[1]).toEqual([1000, 'critical']);
       expect(result[2]).toEqual([1001, 'critical']);
       expect(result[3]).toEqual([1301, 'critical']); // Padding after last
+    });
+  });
+});
+
+describe('roundDateToInterval', () => {
+  describe('exact 5-minute boundaries', () => {
+    it('should return unchanged date for 23:55:00', () => {
+      const date = new Date('2026-01-26T23:55:00.000Z');
+      const rounded = roundDateToInterval(date);
+      expect(rounded.getTime()).toBe(date.getTime());
+    });
+  });
+
+  describe('rounding to nearest 5-minute boundary', () => {
+    it('should round 22:57:00 down to 22:55:00', () => {
+      const date = new Date('2026-01-26T22:57:00.000Z');
+      const rounded = roundDateToInterval(date);
+      const expected = new Date('2026-01-26T22:55:00.000Z');
+      expect(rounded.getTime()).toBe(expected.getTime());
+    });
+
+    it('should round 22:59:00 up to 23:00:00', () => {
+      const date = new Date('2026-01-26T22:59:00.000Z');
+      const rounded = roundDateToInterval(date);
+      const expected = new Date('2026-01-26T23:00:00.000Z');
+      expect(rounded.getTime()).toBe(expected.getTime());
     });
   });
 });
