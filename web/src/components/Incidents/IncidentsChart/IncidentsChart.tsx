@@ -34,11 +34,8 @@ import {
   createIncidentsChartBars,
   generateDateArray,
   matchTimestampMetricForIncident,
-<<<<<<< HEAD
   roundDateToInterval,
-=======
   roundTimestampToFiveMinutes,
->>>>>>> 55a5bc3 (feat: round absolute start dates to 5 minutes boundaries)
 } from '../utils';
 import { dateTimeFormatter, timeFormatter } from '../../console/utils/datetime';
 import { useTranslation } from 'react-i18next';

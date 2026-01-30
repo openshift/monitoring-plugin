@@ -1,6 +1,7 @@
 import {
   getCurrentTime,
-  insertPaddingPointsForChart, roundDateToInterval,
+  insertPaddingPointsForChart,
+  roundDateToInterval,
   matchTimestampMetricForIncident,
   roundTimestampToFiveMinutes,
 } from './utils';
