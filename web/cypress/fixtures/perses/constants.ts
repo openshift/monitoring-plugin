@@ -68,13 +68,14 @@ export const persesDashboardsModalTitles ={
   SAVE_DASHBOARD: 'Save Dashboard',
   DISCARD_CHANGES: 'Discard Changes',
   VIEW_JSON_DIALOG: 'Dashboard JSON',
+  CREATE_DASHBOARD: 'Create Dashboard',
 }
 
 export enum persesDashboardsAddListVariableSource {
   STATIC_LIST_VARIABLE=  'Static List Variable',
   DATASOURCE_VARIABLE= 'Datasource Variable',
-  PROMETHEUS_LABEL_VARIABLE= 'Prometheus Label Variable',
-  PROMETHEUS_NAMES_VARIABLE= 'Prometheus Names Variable',
+  PROMETHEUS_LABEL_VARIABLE= 'Prometheus Label Values Variable',
+  PROMETHEUS_NAMES_VARIABLE= 'Prometheus Label Names Variable',
   PROMETHEUS_PROMQL_VARIABLE= 'Prometheus PromQL Variable',
 }
 
@@ -109,4 +110,42 @@ export const persesDashboardsAddListPanelType = {
   TIME_SERIES_TABLE: 'Time Series Table',
   TRACE_TABLE: 'Trace Table',
   TRACING_GANTT_CHART: 'Tracing Gantt Chart',
+}
+
+export const persesDashboardsAddPanelAddQueryType ={
+  BAR_GAUGE_HEAT_HISTOGRAM_PIE_STAT_STATUS_TABLE_TIMESERIES : {
+    CLICKHOUSE_TIME_SERIES_QUERY: 'ClickHouse Time Series Query',
+    LOKI_TIME_SERIES_QUERY: 'Loki Time Series Query',
+    PROMETHEUS_TIME_SERIES_QUERY: 'Prometheus Time Series Query',
+    VICTORIALOGS_TIME_SERIES_QUERY: 'VictoriaLogs Time Series Query',
+  },
+  FLAME_CHART : {
+    PYROSCOPE_PROFILE_QUERY: 'Pyroscope Profile Query',
+  },
+  LOGS_TABLE : {
+    CLICKHOUSE_LOG_QUERY: 'ClickHouse Log Query',
+    LOKI_LOG_QUERY: 'Loki Log Query',
+    VICTORIALOGS_LOG_QUERY: 'Victorialogs Log Query',
+  },
+  SCATTER_TRACE_TRACINGGANTT : {
+    TEMPO_TRACE_QUERY: 'Tempo Trace Query',
+  },
+}
+
+export const persesCreateDashboard = {
+  DIALOG_MAX_LENGTH_VALIDATION: 'Danger alert:bad request: code=400, message=cannot contain more than 75 characters, internal=cannot contain more than 75 characters',
+  DIALOG_DUPLICATED_NAME_PF_VALIDATION_PREFIX: 'Dashboard name ',
+  DIALOG_DUPLICATED_NAME_PF_VALIDATION_SUFFIX: ' already exists in this project: error status;',
+  DIALOG_DUPLICATED_NAME_BKD_VALIDATION: 'Danger alert:document already exists',
+}
+
+export const persesDashboardsEmptyDashboard = {
+  TITLE: 'Empty Dashboard',
+  DESCRIPTION: 'To get started add something to your dashboard',
+}
+
+export const persesDashboardSampleQueries = {
+  CPU_LINE_MULTI_SERIES: 'avg without (cpu)(rate(node_cpu_seconds_total{job=\'$job\',instance=\~\'$instance\',mode!=\"nice\",mode!=\"steal\",mode!=\"irq\"}[$interval]))',
+  CPU_LINE_MULTI_SERIES_LEGEND: '{{}{{}mode{}}{}} mode - {{}{{}job{}}{}} {{}{{}instance{}}{}}',
+  CPU_LINE_MULTI_SERIES_SERIES_SELECTOR: 'up{{}job=~"$job"{}}',
 }

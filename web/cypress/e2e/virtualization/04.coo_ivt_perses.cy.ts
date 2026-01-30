@@ -1,5 +1,5 @@
 import { nav } from '../../views/nav';
-import { runBVTCOOPersesTests } from '../../support/perses/00.coo_bvt_perses.cy';
+import { runBVTCOOPersesTests } from '../../support/perses/00.coo_bvt_perses_admin.cy';
 import { guidedTour } from '../../views/tour';
 import { commonPages } from '../../views/common';
 
@@ -56,7 +56,7 @@ describe('Installation: Virtualization', { tags: ['@virtualization', '@slow'] },
   });
 });
 
-describe('IVT: COO - Dashboards (Perses) - Virtualization perspective', { tags: ['@virtualization', '@dashboards'] }, () => {
+describe('IVT: COO - Dashboards (Perses) - Virtualization perspective', { tags: ['@virtualization', '@perses'] }, () => {
 
   beforeEach(() => {
     cy.visit('/');

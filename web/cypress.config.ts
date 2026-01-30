@@ -17,11 +17,20 @@ export default defineConfig({
   },
   env: {
     grepFilterSpecs: true,
-    HOST_API: process.env.CYPRESS_BASE_URL.replace(/console-openshift-console.apps/, 'api').concat(
+    HOST_API: (process.env.CYPRESS_BASE_URL || '').replace(/console-openshift-console.apps/, 'api').concat(
       ':6443',
     ),
-    LOGIN_USERNAME: process.env.CYPRESS_LOGIN_USERS.split(',')[0].split(':')[0],
-    LOGIN_PASSWORD: process.env.CYPRESS_LOGIN_USERS.split(',')[0].split(':')[1],
+    // User 0 credentials - as kubeadmin or even non-admin user
+    // specifically for perses e2e tests, user0 is considered as console admin user to install COO and create RBAC roles and bindings
+    LOGIN_USERNAME: (process.env.CYPRESS_LOGIN_USERS || '').split(',')[0]?.split(':')[0] || '',
+    LOGIN_PASSWORD: (process.env.CYPRESS_LOGIN_USERS || '').split(',')[0]?.split(':')[1] || '',
+    // User 1 credentials
+    // User 2 credentials
+    // specifically for perses e2e tests, user1 and user2 are considered as perses e2e users to test RBAC access to dashboards
+    LOGIN_USERNAME1: (process.env.CYPRESS_LOGIN_USERS || '').split(',')[1]?.split(':')[0] || '',
+    LOGIN_PASSWORD1: (process.env.CYPRESS_LOGIN_USERS || '').split(',')[1]?.split(':')[1] || '',
+    LOGIN_USERNAME2: (process.env.CYPRESS_LOGIN_USERS || '').split(',')[2]?.split(':')[0] || '',
+    LOGIN_PASSWORD2: (process.env.CYPRESS_LOGIN_USERS || '').split(',')[2]?.split(':')[1] || '',
     TIMEZONE: process.env.CYPRESS_TIMEZONE || 'UTC',
     MOCK_NEW_METRICS: process.env.CYPRESS_MOCK_NEW_METRICS || 'false',
     COO_NAMESPACE: process.env.CYPRESS_COO_NAMESPACE || 'openshift-cluster-observability-operator',
