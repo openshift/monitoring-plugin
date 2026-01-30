@@ -263,7 +263,7 @@ export function convertToAlerts(
       const firstTimestamp = paddedValues[0][0];
       lastTimestamp = paddedValues[paddedValues.length - 1][0];
 
-      let labeledAlert = {
+      let labeledAlert: Alert = {
         alertname: alert.metric.alertname,
         namespace: alert.metric.namespace,
         severity: alert.metric.severity as Severity,
@@ -277,10 +277,11 @@ export function convertToAlerts(
         resolved,
         x: 0, // Will be set after sorting
         silenced: matchingIncident.silenced ?? false,
+        firstTimestamp: 0, // Will be set from matched timestamp
       };
 
       let matchedMinTimestamp = matchTimestampMetric(labeledAlert, alertsTimestamps.minOverTime);
-      if (!matchedMinTimestamp || matchedMinTimestamp.value[1] < matchingIncident.firstTimestamp) {
+      if (matchedMinTimestamp && matchedMinTimestamp.value[1] < matchingIncident.firstTimestamp) {
         matchedMinTimestamp = {
           value: [matchingIncident.firstTimestamp, matchingIncident.firstTimestamp.toString()],
         };

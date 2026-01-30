@@ -1,15 +1,19 @@
 import { PrometheusResult } from '@openshift-console/dynamic-plugin-sdk';
 import { convertToAlerts, deduplicateAlerts } from './processAlerts';
-import { Incident } from './model';
+import { AlertsTimestamps, Incident } from './model';
 import { getCurrentTime } from './utils';
 
 describe('convertToAlerts', () => {
   const now = getCurrentTime();
   const nowSeconds = Math.floor(now / 1000);
+  const emptyAlertsTimestamps: AlertsTimestamps = {
+    minOverTime: [],
+    lastOverTime: [],
+  };
 
   describe('edge cases', () => {
     it('should return empty array when no prometheus results provided', () => {
-      const result = convertToAlerts([], [], now);
+      const result = convertToAlerts([], [], now, emptyAlertsTimestamps);
       expect(result).toEqual([]);
     });
 
@@ -28,7 +32,7 @@ describe('convertToAlerts', () => {
           values: [[nowSeconds, '1']],
         },
       ];
-      const result = convertToAlerts(prometheusResults, [], now);
+      const result = convertToAlerts(prometheusResults, [], now, emptyAlertsTimestamps);
       expect(result).toEqual([]);
     });
 
@@ -69,7 +73,7 @@ describe('convertToAlerts', () => {
         },
       ];
 
-      const result = convertToAlerts(prometheusResults, incidents, now);
+      const result = convertToAlerts(prometheusResults, incidents, now, emptyAlertsTimestamps);
       expect(result).toHaveLength(1);
       expect(result[0].alertname).toBe('ClusterOperatorDegraded');
     });
@@ -113,7 +117,7 @@ describe('convertToAlerts', () => {
         },
       ];
 
-      const result = convertToAlerts(prometheusResults, incidents, now);
+      const result = convertToAlerts(prometheusResults, incidents, now, emptyAlertsTimestamps);
       expect(result).toHaveLength(1);
       // Should include values within incident time + 30s padding
       // Plus padding points added by insertPaddingPointsForChart
@@ -148,7 +152,7 @@ describe('convertToAlerts', () => {
         },
       ];
 
-      const result = convertToAlerts(prometheusResults, incidents, now);
+      const result = convertToAlerts(prometheusResults, incidents, now, emptyAlertsTimestamps);
       expect(result).toEqual([]);
     });
   });
@@ -182,7 +186,7 @@ describe('convertToAlerts', () => {
         },
       ];
 
-      const result = convertToAlerts(prometheusResults, incidents, now);
+      const result = convertToAlerts(prometheusResults, incidents, now, emptyAlertsTimestamps);
       expect(result).toHaveLength(1);
 
       // Verify resolved is determined from ORIGINAL values (before padding)
@@ -226,7 +230,7 @@ describe('convertToAlerts', () => {
         },
       ];
 
-      const result = convertToAlerts(prometheusResults, incidents, now);
+      const result = convertToAlerts(prometheusResults, incidents, now, emptyAlertsTimestamps);
       expect(result).toHaveLength(1);
       expect(result[0].alertsStartFiring).toBeGreaterThan(0);
       expect(result[0].alertsEndFiring).toBeGreaterThan(0);
@@ -268,16 +272,16 @@ describe('convertToAlerts', () => {
         },
       ];
 
-      const result = convertToAlerts(prometheusResults, incidents, now);
+      const result = convertToAlerts(prometheusResults, incidents, now, emptyAlertsTimestamps);
       expect(result).toHaveLength(1);
       expect(result[0].alertstate).toBe('resolved');
       expect(result[0].resolved).toBe(true);
     });
 
     it('should mark alert as firing if ended less than 10 minutes ago', () => {
-      const recentTimestamp = nowSeconds - 840; // 14 minutes ago
-      // After padding (+300s), last timestamp will be 9 minutes ago (840-300=540s ago)
-      // which is < 10 minutes, so it should still be firing
+      const recentTimestamp = nowSeconds - 540; // 9 minutes ago
+      // Resolved check is done on original timestamp (before padding)
+      // 9 minutes ago is < 10 minutes, so it should still be firing
 
       const prometheusResults: PrometheusResult[] = [
         {
@@ -304,7 +308,7 @@ describe('convertToAlerts', () => {
         },
       ];
 
-      const result = convertToAlerts(prometheusResults, incidents, now);
+      const result = convertToAlerts(prometheusResults, incidents, now, emptyAlertsTimestamps);
       expect(result).toHaveLength(1);
       expect(result[0].alertstate).toBe('firing');
       expect(result[0].resolved).toBe(false);
@@ -357,7 +361,7 @@ describe('convertToAlerts', () => {
         },
       ];
 
-      const result = convertToAlerts(prometheusResults, incidents, now);
+      const result = convertToAlerts(prometheusResults, incidents, now, emptyAlertsTimestamps);
       expect(result).toHaveLength(2);
       expect(result[0].alertname).toBe('Alert1'); // Earlier alert first
       expect(result[1].alertname).toBe('Alert2');
@@ -408,7 +412,7 @@ describe('convertToAlerts', () => {
         },
       ];
 
-      const result = convertToAlerts(prometheusResults, incidents, now);
+      const result = convertToAlerts(prometheusResults, incidents, now, emptyAlertsTimestamps);
       expect(result).toHaveLength(2);
       expect(result[0].x).toBe(2); // Earliest alert has highest x
       expect(result[1].x).toBe(1); // Latest alert has lowest x
@@ -443,7 +447,7 @@ describe('convertToAlerts', () => {
         },
       ];
 
-      const result = convertToAlerts(prometheusResults, incidents, now);
+      const result = convertToAlerts(prometheusResults, incidents, now, emptyAlertsTimestamps);
       expect(result).toHaveLength(1);
       expect(result[0].silenced).toBe(true);
     });
@@ -489,7 +493,7 @@ describe('convertToAlerts', () => {
         },
       ];
 
-      const result = convertToAlerts(prometheusResults, incidents, now);
+      const result = convertToAlerts(prometheusResults, incidents, now, emptyAlertsTimestamps);
       expect(result).toHaveLength(1);
       // Should use the silenced value from the latest timestamp
       expect(result[0].silenced).toBe(true);
@@ -523,7 +527,7 @@ describe('convertToAlerts', () => {
         },
       ];
 
-      const result = convertToAlerts(prometheusResults, incidents, now);
+      const result = convertToAlerts(prometheusResults, incidents, now, emptyAlertsTimestamps);
       expect(result).toHaveLength(1);
       expect(result[0].alertname).toBe('MyAlert');
       expect(result[0].namespace).toBe('my-namespace');
@@ -531,6 +535,196 @@ describe('convertToAlerts', () => {
       expect(result[0].component).toBe('my-component');
       expect(result[0].layer).toBe('my-layer');
       expect(result[0].name).toBe('my-name');
+    });
+  });
+
+  describe('timestamp matching', () => {
+    it('should use matched minOverTime timestamp when available and newer than incident firstTimestamp', () => {
+      const timestamp = nowSeconds - 600;
+      const matchedMinTimestamp = nowSeconds - 300; // 5 minutes ago (newer than incident)
+
+      const prometheusResults: PrometheusResult[] = [
+        {
+          metric: {
+            alertname: 'TestAlert',
+            namespace: 'test-namespace',
+            severity: 'critical',
+            alertstate: 'firing',
+          },
+          values: [[timestamp, '2']],
+        },
+      ];
+
+      const incidents: Array<Partial<Incident>> = [
+        {
+          group_id: 'incident1',
+          src_alertname: 'TestAlert',
+          src_namespace: 'test-namespace',
+          src_severity: 'critical',
+          component: 'test-component',
+          layer: 'test-layer',
+          values: [[timestamp, '2']],
+        },
+      ];
+
+      const alertsTimestamps: AlertsTimestamps = {
+        minOverTime: [
+          {
+            metric: {
+              alertname: 'TestAlert',
+              namespace: 'test-namespace',
+              severity: 'critical',
+            },
+            value: [matchedMinTimestamp, matchedMinTimestamp.toString()],
+          },
+        ],
+        lastOverTime: [],
+      };
+
+      const result = convertToAlerts(prometheusResults, incidents, now, alertsTimestamps);
+      expect(result).toHaveLength(1);
+      expect(result[0].firstTimestamp).toBe(matchedMinTimestamp);
+    });
+
+    it('should use incident firstTimestamp when matched timestamp is older than incident firstTimestamp', () => {
+      const timestamp = nowSeconds - 600;
+      const incidentFirstTimestamp = nowSeconds - 1800; // 30 minutes ago
+      const matchedMinTimestamp = nowSeconds - 3600; // 1 hour ago (older)
+
+      const prometheusResults: PrometheusResult[] = [
+        {
+          metric: {
+            alertname: 'TestAlert',
+            namespace: 'test-namespace',
+            severity: 'critical',
+            name: 'test',
+            alertstate: 'firing',
+          },
+          values: [[timestamp, '2']],
+        },
+      ];
+
+      const incidents: Array<Partial<Incident>> = [
+        {
+          group_id: 'incident1',
+          src_alertname: 'TestAlert',
+          src_namespace: 'test-namespace',
+          src_severity: 'critical',
+          component: 'test-component',
+          layer: 'test-layer',
+          firstTimestamp: incidentFirstTimestamp,
+          values: [[timestamp, '2']],
+        },
+      ];
+
+      const alertsTimestamps: AlertsTimestamps = {
+        minOverTime: [
+          {
+            metric: {
+              alertname: 'TestAlert',
+              namespace: 'test-namespace',
+              severity: 'critical',
+            },
+            value: [matchedMinTimestamp, matchedMinTimestamp.toString()],
+          },
+        ],
+        lastOverTime: [],
+      };
+
+      const result = convertToAlerts(prometheusResults, incidents, now, alertsTimestamps);
+      expect(result).toHaveLength(1);
+      // Should use incident firstTimestamp because matched timestamp is older
+      expect(result[0].firstTimestamp).toBe(incidentFirstTimestamp);
+    });
+
+    it('should use matched timestamp when it is newer than incident firstTimestamp', () => {
+      const timestamp = nowSeconds - 600;
+      const incidentFirstTimestamp = nowSeconds - 3600; // 1 hour ago
+      const matchedMinTimestamp = nowSeconds - 1800; // 30 minutes ago (newer)
+
+      const prometheusResults: PrometheusResult[] = [
+        {
+          metric: {
+            alertname: 'TestAlert',
+            namespace: 'test-namespace',
+            severity: 'critical',
+            name: 'test',
+            alertstate: 'firing',
+          },
+          values: [[timestamp, '2']],
+        },
+      ];
+
+      const incidents: Array<Partial<Incident>> = [
+        {
+          group_id: 'incident1',
+          src_alertname: 'TestAlert',
+          src_namespace: 'test-namespace',
+          src_severity: 'critical',
+          component: 'test-component',
+          layer: 'test-layer',
+          firstTimestamp: incidentFirstTimestamp,
+          values: [[timestamp, '2']],
+        },
+      ];
+
+      const alertsTimestamps: AlertsTimestamps = {
+        minOverTime: [
+          {
+            metric: {
+              alertname: 'TestAlert',
+              namespace: 'test-namespace',
+              severity: 'critical',
+            },
+            value: [matchedMinTimestamp, matchedMinTimestamp.toString()],
+          },
+        ],
+        lastOverTime: [],
+      };
+
+      const result = convertToAlerts(prometheusResults, incidents, now, alertsTimestamps);
+      expect(result).toHaveLength(1);
+      // Should use matched timestamp because it's newer
+      expect(result[0].firstTimestamp).toBe(matchedMinTimestamp);
+    });
+
+    it('should default to 0 when no timestamp is available', () => {
+      const timestamp = nowSeconds - 600;
+
+      const prometheusResults: PrometheusResult[] = [
+        {
+          metric: {
+            alertname: 'TestAlert',
+            namespace: 'test-namespace',
+            severity: 'critical',
+            name: 'test',
+            alertstate: 'firing',
+          },
+          values: [[timestamp, '2']],
+        },
+      ];
+
+      const incidents: Array<Partial<Incident>> = [
+        {
+          group_id: 'incident1',
+          src_alertname: 'TestAlert',
+          src_namespace: 'test-namespace',
+          src_severity: 'critical',
+          component: 'test-component',
+          layer: 'test-layer',
+          // No firstTimestamp
+          values: [[timestamp, '2']],
+        },
+      ];
+
+      const alertsTimestamps: AlertsTimestamps = {
+        minOverTime: [], // No match
+        lastOverTime: [],
+      };
+
+      const result = convertToAlerts(prometheusResults, incidents, now, alertsTimestamps);
+      expect(result).toHaveLength(1);
+      expect(result[0].firstTimestamp).toBe(0);
     });
   });
 });

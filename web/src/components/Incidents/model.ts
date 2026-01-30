@@ -60,7 +60,6 @@ export type Alert = {
   silenced: boolean;
   x: number;
   firstTimestamp: number;
-  lastTimestamp: number;
   values: Array<Timestamps>;
   alertsExpandedRowData?: Array<Alert>;
 };
