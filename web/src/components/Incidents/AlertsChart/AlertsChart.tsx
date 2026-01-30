@@ -32,6 +32,7 @@ import {
   generateDateArray,
   generateAlertsDateArray,
   getCurrentTime,
+  roundDateToInterval,
 } from '../utils';
 import { dateTimeFormatter, timeFormatter } from '../../console/utils/datetime';
 import { useTranslation } from 'react-i18next';
@@ -164,7 +165,9 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
                     const endDate =
                       datum.alertstate === 'firing'
                         ? '---'
-                        : dateTimeFormatter(i18n.language).format(new Date(datum.y));
+                        : dateTimeFormatter(i18n.language).format(
+                            roundDateToInterval(new Date(datum.y)),
+                          );
 
                     const alertName = datum.silenced ? `${datum.name} (silenced)` : datum.name;
 
