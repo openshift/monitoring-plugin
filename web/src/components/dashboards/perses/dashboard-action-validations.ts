@@ -4,21 +4,29 @@ import { nameSchema } from '@perses-dev/core';
 import { useDashboardList } from './dashboard-api';
 import { generateMetadataName } from './dashboard-utils';
 
-export const dashboardDisplayNameValidationSchema = z
-  .string()
-  .min(1, 'Required')
-  .max(75, 'Must be 75 or fewer characters long');
+export const createDashboardDisplayNameValidationSchema = (t?: (key: string) => string) =>
+  z
+    .string()
+    .min(1, t ? t('Required') : 'Required')
+    .max(75, t ? t('Must be 75 or fewer characters long') : 'Must be 75 or fewer characters long');
 
-export const createDashboardDialogValidationSchema = z.object({
-  projectName: nameSchema,
-  dashboardName: dashboardDisplayNameValidationSchema,
-});
-export type CreateDashboardValidationType = z.infer<typeof createDashboardDialogValidationSchema>;
+export const createDashboardDialogValidationSchema = (t?: (key: string) => string) =>
+  z.object({
+    projectName: nameSchema,
+    dashboardName: createDashboardDisplayNameValidationSchema(t),
+  });
 
-export const renameDashboardDialogValidationSchema = z.object({
-  dashboardName: dashboardDisplayNameValidationSchema,
-});
-export type RenameDashboardValidationType = z.infer<typeof renameDashboardDialogValidationSchema>;
+export const renameDashboardDialogValidationSchema = (t?: (key: string) => string) =>
+  z.object({
+    dashboardName: createDashboardDisplayNameValidationSchema(t),
+  });
+
+export type CreateDashboardValidationType = z.infer<
+  ReturnType<typeof createDashboardDialogValidationSchema>
+>;
+export type RenameDashboardValidationType = z.infer<
+  ReturnType<typeof renameDashboardDialogValidationSchema>
+>;
 
 export interface DashboardValidationSchema {
   schema?: z.ZodSchema;
@@ -27,7 +35,10 @@ export interface DashboardValidationSchema {
 }
 
 // Validate dashboard name and check if it doesn't already exist
-export function useDashboardValidationSchema(projectName?: string): DashboardValidationSchema {
+export function useDashboardValidationSchema(
+  projectName?: string,
+  t?: (key: string, options?: any) => string,
+): DashboardValidationSchema {
   const {
     data: dashboards,
     isLoading: isDashboardsLoading,
@@ -51,12 +62,12 @@ export function useDashboardValidationSchema(projectName?: string): DashboardVal
 
     if (!dashboards?.length)
       return {
-        schema: createDashboardDialogValidationSchema,
+        schema: createDashboardDialogValidationSchema(t),
         isSchemaLoading: true,
         hasSchemaError: false,
       };
 
-    const refinedSchema = createDashboardDialogValidationSchema.refine(
+    const refinedSchema = createDashboardDialogValidationSchema(t).refine(
       (schema) => {
         return !(dashboards ?? []).some((dashboard) => {
           return (
@@ -68,11 +79,17 @@ export function useDashboardValidationSchema(projectName?: string): DashboardVal
       },
       (schema) => ({
         // eslint-disable-next-line max-len
-        message: `Dashboard name '${schema.dashboardName}' already exists in '${schema.projectName}' project!`,
+        message: t
+          ? t(`Dashboard name '{{dashboardName}}' already exists in '{{projectName}}' project!`, {
+              dashboardName: schema.dashboardName,
+              projectName: schema.projectName,
+            })
+          : // eslint-disable-next-line max-len
+            `Dashboard name '${schema.dashboardName}' already exists in '${schema.projectName}' project!`,
         path: ['dashboardName'],
       }),
     );
 
     return { schema: refinedSchema, isSchemaLoading: true, hasSchemaError: false };
-  }, [dashboards, isDashboardsLoading, isError]);
+  }, [dashboards, isDashboardsLoading, isError, t]);
 }

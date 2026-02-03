@@ -49,9 +49,13 @@ import { useToast } from './ToastProvider';
 import { usePerses } from './hooks/usePerses';
 import { generateMetadataName } from './dashboard-utils';
 import { useProjectPermissions } from './dashboard-permissions';
-import { t_global_spacer_200 } from '@patternfly/react-tokens';
+import { t_global_spacer_200, t_global_font_weight_200 } from '@patternfly/react-tokens';
 import { useNavigate } from 'react-router-dom-v5-compat';
 import { usePerspective, getDashboardUrl } from '../../hooks/usePerspective';
+
+const formGroupStyle = {
+  fontWeight: t_global_font_weight_200.value,
+} as React.CSSProperties;
 
 const LabelSpacer = () => {
   return <div style={{ paddingBottom: t_global_spacer_200.value }} />;
@@ -68,12 +72,8 @@ export const RenameActionModal = ({ dashboard, isOpen, onClose }: ActionModalPro
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { addAlert } = useToast();
 
-  const formGroupStyle = {
-    '--pf-v6-c-form__label-text--FontWeight': 'bold',
-  } as React.CSSProperties;
-
   const form = useForm<RenameDashboardValidationType>({
-    resolver: zodResolver(renameDashboardDialogValidationSchema),
+    resolver: zodResolver(renameDashboardDialogValidationSchema(t)),
     mode: 'onBlur',
     defaultValues: { dashboardName: dashboard ? getResourceDisplayName(dashboard) : '' },
   });
@@ -122,7 +122,7 @@ export const RenameActionModal = ({ dashboard, isOpen, onClose }: ActionModalPro
       ouiaId="RenameModal"
       aria-labelledby="rename-modal"
     >
-      <ModalHeader title="Rename Dashboard" labelId="rename-modal-title" />
+      <ModalHeader title={t('Rename Dashboard')} labelId="rename-modal-title" />
       <FormProvider {...form}>
         <form onSubmit={form.handleSubmit(processForm)}>
           <ModalBody id="rename-modal-box">
@@ -197,7 +197,7 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
     return persesProjects || [];
   }, [persesProjects]);
 
-  const { editableProjects, loading: permissionsLoading } = useProjectPermissions(hookInput);
+  const { editableProjects } = useProjectPermissions(hookInput);
 
   const filteredProjects = useMemo(() => {
     return persesProjects.filter((project) => editableProjects.includes(project.metadata.name));
@@ -213,12 +213,12 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
     return filteredProjects[0]?.metadata.name || '';
   }, [dashboard, editableProjects, filteredProjects]);
 
-  const { schema: validationSchema } = useDashboardValidationSchema(defaultProject);
+  const { schema: validationSchema } = useDashboardValidationSchema(defaultProject, t);
 
   const form = useForm<CreateDashboardValidationType>({
     resolver: validationSchema
       ? zodResolver(validationSchema)
-      : zodResolver(createDashboardDialogValidationSchema),
+      : zodResolver(createDashboardDialogValidationSchema(t)),
     mode: 'onBlur',
     defaultValues: {
       projectName: defaultProject,
@@ -242,27 +242,11 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
     const selectedProject = filteredProjects.find((p) => p.metadata.name === selectedProjectName);
     return selectedProject
       ? getResourceDisplayName(selectedProject)
-      : selectedProjectName || 'Select project';
-  }, [filteredProjects, selectedProjectName]);
+      : selectedProjectName || t('Select project');
+  }, [filteredProjects, selectedProjectName, t]);
 
   if (!dashboard) {
     return null;
-  }
-
-  if (permissionsLoading || persesProjects.length === 0) {
-    return (
-      <Modal
-        variant={ModalVariant.small}
-        isOpen={isOpen}
-        onClose={onClose}
-        aria-labelledby="duplicate-modal-title"
-      >
-        <ModalHeader title="Duplicate Dashboard" labelId="duplicate-modal-title" />
-        <ModalBody style={{ textAlign: 'center', padding: '2rem' }}>
-          {t('Loading projects...')}
-        </ModalBody>
-      </Modal>
-    );
   }
 
   if (filteredProjects.length === 0) {
@@ -273,7 +257,7 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
         onClose={onClose}
         aria-labelledby="duplicate-modal-title"
       >
-        <ModalHeader title="Duplicate Dashboard" labelId="duplicate-modal-title" />
+        <ModalHeader title={t('Duplicate Dashboard')} labelId="duplicate-modal-title" />
         <ModalBody>
           <p>{t('You do not have permission to create dashboards in any projects.')}</p>
         </ModalBody>
@@ -345,10 +329,6 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
       setIsProjectSelectOpen(false);
     }
   };
-
-  const formGroupStyle = {
-    '--pf-v6-c-form__label-text--FontWeight': 'bold',
-  } as React.CSSProperties;
 
   return (
     <Modal
@@ -526,7 +506,7 @@ export const DeleteActionModal = ({ dashboard, isOpen, onClose }: ActionModalPro
     >
       <ModalHeader
         titleIconVariant="warning"
-        title="Permanently delete dashboard?"
+        title={t('Permanently delete dashboard?')}
         labelId="delete-modal-title"
       />
       <ModalBody id="delete-modal-box-body">
