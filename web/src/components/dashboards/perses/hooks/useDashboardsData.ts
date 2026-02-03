@@ -1,4 +1,4 @@
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useRef } from 'react';
 
 import { DashboardResource } from '@perses-dev/core';
 import { useNavigate } from 'react-router-dom-v5-compat';
@@ -39,13 +39,33 @@ export const useDashboardsData = () => {
     return true;
   }, [persesProjectsLoading, persesDashboardsLoading, initialPageLoad, setInitialPageLoadFalse]);
 
+  const prevDashboardsRef = useRef<DashboardResource[]>([]);
+  const prevMetadataRef = useRef<CombinedDashboardMetadata[]>([]);
+
   // Homogenize data needed for dashboards dropdown between legacy and perses dashboards
   // to enable both to use the same component
   const combinedDashboardsMetadata = useMemo<CombinedDashboardMetadata[]>(() => {
     if (combinedInitialLoad) {
       return [];
     }
-    return persesDashboards.map((persesDashboard) => {
+
+    // Check if dashboards data has actually changed to avoid recreation
+    const dashboardsChanged =
+      persesDashboards.length !== prevDashboardsRef.current.length ||
+      persesDashboards.some((dashboard, i) => {
+        const prevDashboard = prevDashboardsRef.current[i];
+        return (
+          dashboard?.metadata?.name !== prevDashboard?.metadata?.name ||
+          dashboard?.spec?.display?.name !== prevDashboard?.spec?.display?.name ||
+          dashboard?.metadata?.project !== prevDashboard?.metadata?.project
+        );
+      });
+
+    if (!dashboardsChanged && prevMetadataRef.current.length > 0) {
+      return prevMetadataRef.current;
+    }
+
+    const newMetadata = persesDashboards.map((persesDashboard) => {
       const name = persesDashboard?.metadata?.name;
       const displayName = persesDashboard?.spec?.display?.name || name;
 
@@ -57,6 +77,10 @@ export const useDashboardsData = () => {
         persesDashboard,
       };
     });
+
+    prevDashboardsRef.current = persesDashboards;
+    prevMetadataRef.current = newMetadata;
+    return newMetadata;
   }, [persesDashboards, combinedInitialLoad]);
 
   // Retrieve dashboard metadata for the currently selected project

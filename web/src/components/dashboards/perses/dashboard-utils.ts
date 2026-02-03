@@ -1,5 +1,9 @@
 import { DashboardResource } from '@perses-dev/core';
 
+/**
+ * Generated a resource name valid for the API.
+ * By removing accents from alpha characters and replace specials character by underscores.
+ */
 export const generateMetadataName = (name: string): string => {
   return name
     .normalize('NFD')

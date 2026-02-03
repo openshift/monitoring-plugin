@@ -26,7 +26,7 @@ export const DashboardListFrame: React.FC<DashboardListFrameProps> = ({
       <DashboardListHeader
         boardItems={activeProjectDashboardsMetadata}
         changeBoard={changeBoard}
-        dashboardName={dashboardName}
+        dashboardDisplayName={dashboardName}
         activeProject={activeProject}
       >
         {children}
