@@ -1,7 +1,7 @@
 import { commonPages } from "./common";
 import { DataTestIDs, Classes, LegacyTestIDs, persesAriaLabels, persesMUIDataTestIDs, listPersesDashboardsOUIAIDs, IDs, persesDashboardDataTestIDs, listPersesDashboardsDataTestIDs } from "../../src/components/data-test";
 import { MonitoringPageTitles } from "../fixtures/monitoring/constants";
-import { listPersesDashboardsPageSubtitle, persesDashboardsModalTitles } from "../fixtures/perses/constants";
+import { listPersesDashboardsPageSubtitle, persesDashboardsEmptyDashboard, persesDashboardsModalTitles } from "../fixtures/perses/constants";
 import { persesDashboardsTimeRange, persesDashboardsRefreshInterval, persesDashboardsDashboardDropdownCOO, persesDashboardsDashboardDropdownPersesDev, persesDashboardsAcceleratorsCommonMetricsPanels } from "../fixtures/perses/constants";
 
 export const persesDashboardsPage = {
@@ -39,7 +39,33 @@ export const persesDashboardsPage = {
 
     cy.byTestID(DataTestIDs.PersesDashboardDropdown).find('input').scrollIntoView().should('be.visible');
     cy.byTestID(DataTestIDs.PersesDashboardDropdown).find('button').scrollIntoView().should('be.visible');
-    cy.byLegacyTestID(LegacyTestIDs.PersesDashboardSection).scrollIntoView().should('be.visible');
+  },
+
+  shouldBeLoadedEditionMode: (dashboardName: string) => {
+    cy.log('persesDashboardsPage.shouldBeLoadedEditionMode');
+    commonPages.titleShouldHaveText(MonitoringPageTitles.DASHBOARDS);
+    cy.byOUIAID(listPersesDashboardsOUIAIDs.PageHeaderSubtitle).scrollIntoView().should('contain', listPersesDashboardsPageSubtitle).should('be.visible');
+    cy.byTestID(listPersesDashboardsDataTestIDs.PersesBreadcrumbDashboardNameItem).scrollIntoView().should('contain', dashboardName.toLowerCase().replace(/ /g, '_')).should('be.visible');
+    persesDashboardsPage.assertEditModeButtons();
+
+    cy.byAriaLabel(persesAriaLabels.TimeRangeDropdown).contains(persesDashboardsTimeRange.LAST_30_MINUTES).scrollIntoView().should('be.visible');
+    cy.byAriaLabel(persesAriaLabels.ZoomInButton).scrollIntoView().should('be.visible');
+    cy.byAriaLabel(persesAriaLabels.ZoomOutButton).scrollIntoView().should('be.visible');
+    cy.byAriaLabel(persesAriaLabels.RefreshButton).scrollIntoView().should('be.visible');
+    cy.byAriaLabel(persesAriaLabels.RefreshIntervalDropdown).contains(persesDashboardsRefreshInterval.OFF).scrollIntoView().should('be.visible');
+
+    cy.get('#' + IDs.persesDashboardDownloadButton).scrollIntoView().should('be.visible');
+    cy.byAriaLabel(persesAriaLabels.EditJSONButton).scrollIntoView().should('be.visible');
+
+    cy.byTestID(DataTestIDs.PersesDashboardDropdown).find('input').scrollIntoView().should('be.visible');
+    cy.byTestID(DataTestIDs.PersesDashboardDropdown).find('input').should('have.value', dashboardName);
+    cy.byTestID(DataTestIDs.PersesDashboardDropdown).find('button').scrollIntoView().should('be.visible');
+
+    cy.get('h2').contains(persesDashboardsEmptyDashboard.TITLE).scrollIntoView().should('be.visible');
+    cy.get('p').contains(persesDashboardsEmptyDashboard.DESCRIPTION).scrollIntoView().should('be.visible');
+
+    cy.get('h2').siblings('div').find('[aria-label="Add panel"]').scrollIntoView().should('be.visible');
+    cy.get('h2').siblings('div').find('[aria-label="Edit variables"]').scrollIntoView().should('be.visible');
 
   },
 
@@ -88,7 +114,7 @@ export const persesDashboardsPage = {
   clickDashboardDropdown: (dashboard: keyof typeof persesDashboardsDashboardDropdownCOO | keyof typeof persesDashboardsDashboardDropdownPersesDev) => {
     cy.log('persesDashboardsPage.clickDashboardDropdown');
     cy.byTestID(DataTestIDs.PersesDashboardDropdown).find('button').scrollIntoView().should('be.visible').click({ force: true });
-    cy.byPFRole('option').contains(dashboard).scrollIntoView().should('be.visible').click({ force: true });
+    cy.byPFRole('option').contains(dashboard).should('be.visible').click({ force: true });
   },
 
   dashboardDropdownAssertion: (constants: typeof persesDashboardsDashboardDropdownCOO | typeof persesDashboardsDashboardDropdownPersesDev) => {
@@ -204,6 +230,28 @@ export const persesDashboardsPage = {
     cy.wait(2000);
   },
 
+  assertEditButtonIsDisabled: () => {
+    cy.log('persesDashboardsPage.assertEditButtonIsDisabled');
+    cy.byTestID(persesDashboardDataTestIDs.editDashboardButtonToolbar).scrollIntoView().should('be.visible').should('have.attr', 'disabled');
+  },
+
+  clickCreateButton: () => {
+    cy.log('persesDashboardsPage.clickCreateButton');
+    cy.byTestID(DataTestIDs.PersesCreateDashboardButton).scrollIntoView().should('be.visible').and('not.have.attr', 'disabled');
+    cy.byTestID(DataTestIDs.PersesCreateDashboardButton).click({ force: true });
+    cy.wait(2000);
+  },
+
+  assertCreateButtonIsEnabled: () => {
+    cy.log('persesDashboardsPage.assertCreateButtonIsEnabled');
+    cy.byTestID(DataTestIDs.PersesCreateDashboardButton).scrollIntoView().should('be.visible').should('not.have.attr', 'disabled');
+  },
+
+  assertCreateButtonIsDisabled: () => {
+    cy.log('persesDashboardsPage.assertCreateButtonIsDisabled');
+    cy.byTestID(DataTestIDs.PersesCreateDashboardButton).scrollIntoView().should('be.visible').should('have.attr', 'disabled');
+  },
+
   assertEditModeButtons: () => {
     cy.log('persesDashboardsPage.assertEditModeButtons');
     cy.byTestID(persesDashboardDataTestIDs.editDashboardButtonToolbar).should('not.exist');
@@ -220,14 +268,14 @@ export const persesDashboardsPage = {
     cy.wait(2000);
     switch (button) {
       case 'EditVariables':
-        cy.byAriaLabel(persesAriaLabels.EditVariablesButton).scrollIntoView().should('be.visible').click({ force: true });
+        cy.byAriaLabel(persesAriaLabels.EditVariablesButton).eq(0).scrollIntoView().should('be.visible').click({ force: true });
         break;
       //TODO: OU-1054 target for COO1.5.0, so, commenting out for now
       // case 'EditDatasources':
       //   cy.byAriaLabel(persesAriaLabels.EditDatasourcesButton).scrollIntoView().should('be.visible').click({ force: true });
       //   break;
       case 'AddPanel':
-        cy.byAriaLabel(persesAriaLabels.AddPanelButton).scrollIntoView().should('be.visible').click({ force: true });
+        cy.byAriaLabel(persesAriaLabels.AddPanelButton).eq(0).scrollIntoView().should('be.visible').click({ force: true });
         break;
       case 'AddGroup':
         cy.byAriaLabel(persesAriaLabels.AddGroupButton).scrollIntoView().should('be.visible').click({ force: true });
@@ -235,6 +283,7 @@ export const persesDashboardsPage = {
       case 'Save':
         cy.bySemanticElement('button', 'Save').scrollIntoView().should('be.visible').click({ force: true });
         persesDashboardsPage.clickSaveDashboardButton();
+        persesDashboardsPage.closeSuccessAlert();
         break;
       case 'Cancel':
         cy.byTestID(persesDashboardDataTestIDs.cancelButtonToolbar).scrollIntoView().should('be.visible').click({ force: true });
@@ -291,18 +340,24 @@ export const persesDashboardsPage = {
       cy.byAriaLabel(persesAriaLabels.EditPanelPrefix + panel).should('be.visible');
       cy.byAriaLabel(persesAriaLabels.EditPanelDuplicateButtonPrefix + panel).should('be.visible');
       cy.byAriaLabel(persesAriaLabels.EditPanelDeleteButtonPrefix + panel).should('be.visible');
-      
+    });
+
+    cy.byDataTestID(persesMUIDataTestIDs.panelHeader).find('h6').contains(panel).siblings('div').eq(2).then((element1) => {
+      if (element1.find('[data-testid="ArrowCollapseIcon"]').length > 0 && element1.find('[data-testid="ArrowCollapseIcon"]').is(':visible')) {
+        cy.byAriaLabel(persesAriaLabels.EditPanelExpandCollapseButtonPrefix + panel + persesAriaLabels.EditPanelExpandCollapseButtonSuffix).find('[data-testid="ArrowCollapseIcon"]').eq(0).click({ force: true });
+      }
     });
   },
 
   clickSaveDashboardButton: () => {
     cy.log('persesDashboardsPage.clickSaveDashboardButton');
-
+    cy.wait(2000);
     cy.get('body').then((body) => {
       if (body.find('[data-testid="CloseIcon"]').length > 0 && body.find('[data-testid="CloseIcon"]').is(':visible')) {
         cy.bySemanticElement('button', 'Save Changes').scrollIntoView().should('be.visible').click({ force: true });
       }
     });
+    cy.wait(2000);
   },
 
   backToListPersesDashboardsPage: () => {
@@ -323,11 +378,11 @@ export const persesDashboardsPage = {
     cy.log('persesDashboardsPage.assertPanel');
     persesDashboardsPage.panelGroupHeaderAssertion(group, collapse_state);
     if (collapse_state === 'Open') {
-      cy.byDataTestID(persesMUIDataTestIDs.panelHeader).find('h6').contains(name).scrollIntoView().should('be.visible');
+      cy.byDataTestID(persesMUIDataTestIDs.panelHeader).find('h6').contains(name).should('be.visible');
     } else {
       cy.byAriaLabel(persesAriaLabels.OpenGroupButtonPrefix + group).scrollIntoView().should('be.visible').click({ force: true });
-      cy.byDataTestID(persesMUIDataTestIDs.panelHeader).find('h6').contains(name).scrollIntoView().should('be.visible');
-      cy.byAriaLabel(persesAriaLabels.CollapseGroupButtonPrefix + group).scrollIntoView().should('be.visible').click({ force: true });
+      cy.byDataTestID(persesMUIDataTestIDs.panelHeader).find('h6').contains(name).should('be.visible');
+      cy.byAriaLabel(persesAriaLabels.CollapseGroupButtonPrefix + group).should('be.visible').click({ force: true });
     }
   },
 
@@ -352,10 +407,10 @@ export const persesDashboardsPage = {
     } else {
       filename = dashboardName + '.' + format.toLowerCase();
     }
-    persesDashboardsPage.assertFilename(true, filename);
+    persesDashboardsPage.assertFilename(filename);
   },
 
-  assertFilename: (clearFolder: boolean, fileNameExp: string) => {
+  assertFilename: (fileNameExp: string) => {
     cy.log('persesDashboardsPage.assertFilename');
     let downloadedFileName: string | null = null;
     const downloadsFolder = Cypress.config('downloadsFolder');
@@ -392,5 +447,15 @@ export const persesDashboardsPage = {
   assertDuplicatedPanel: (panel: string, amount: number) => {
     cy.log('persesDashboardsPage.assertDuplicatedPanel');
     cy.byDataTestID(persesMUIDataTestIDs.panelHeader).find('h6').filter(`:contains("${panel}")`).should('have.length', amount);
+  },
+
+  closeSuccessAlert: () => {
+    cy.log('persesDashboardsPage.closeSuccessAlert');
+    cy.wait(2000);
+    cy.get('body').then((body) => {
+      if (body.find('h4').length > 0 && body.find('h4').is(':visible')) {
+        cy.get('h4').siblings('div').find('button').scrollIntoView().should('be.visible').click({ force: true });
+      }
+    });
   },
 }

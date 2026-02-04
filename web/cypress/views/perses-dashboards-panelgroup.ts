@@ -39,7 +39,7 @@ export const persesDashboardsPanelGroup = {
       cy.byPFRole('dialog').find('div[role="combobox"]').eq(1).click();
       cy.byPFRole('option').contains(repeat_variable).click();
     }
-    cy.bySemanticElement('button', 'Add').should('be.visible').click();
+    cy.byPFRole('dialog').find('button').contains('Add').should('be.visible').click({ force: true });
   },
 
   editPanelGroupShouldBeLoaded: () => {

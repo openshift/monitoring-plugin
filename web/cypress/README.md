@@ -66,7 +66,8 @@ Creates `export-env.sh` that you can source later: `source export-env.sh`
 |----------|-------------|---------|
 | `CYPRESS_BASE_URL` | OpenShift Console URL | `https://console-openshift-console.apps...` |
 | `CYPRESS_LOGIN_IDP` | Identity provider name | `flexy-htpasswd-provider` or `kube:admin` |
-| `CYPRESS_LOGIN_USERS` | Login credentials | `username:password` or `kubeadmin:password` |
+| `CYPRESS_LOGIN_IDP_DEV_USER`| Identity provider name for devuser |  `flexy-htpasswd-provider` or `my_htpasswd_provider`|
+| `CYPRESS_LOGIN_USERS` | Login credentials | `username:password` or `kubeadmin:password` or `kubeadmin:password,user1:password,user2:password` |
 | `CYPRESS_KUBECONFIG_PATH` | Path to kubeconfig file | `~/Downloads/kubeconfig` |
 
 ### Plugin Image Configuration
