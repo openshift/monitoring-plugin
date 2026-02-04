@@ -2,6 +2,7 @@ package management_test
 
 import (
 	"context"
+	"errors"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -90,7 +91,7 @@ var _ = Describe("ListRules", func() {
 	})
 
 	Context("when PrometheusRule Name is provided without Namespace", func() {
-		It("returns an error", func() {
+		It("returns a ValidationError", func() {
 			prOptions := management.PrometheusRuleOptions{
 				Name: "rule1",
 			}
@@ -98,7 +99,10 @@ var _ = Describe("ListRules", func() {
 
 			_, err := client.ListRules(ctx, prOptions, arOptions)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("PrometheusRule Namespace must be specified when Name is provided"))
+
+			var ve *management.ValidationError
+			Expect(errors.As(err, &ve)).To(BeTrue(), "expected error to be a ValidationError")
+			Expect(err.Error()).To(ContainSubstring("namespace is required when prometheusRuleName is specified"))
 		})
 	})
 

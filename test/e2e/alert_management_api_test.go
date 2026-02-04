@@ -11,7 +11,6 @@ import (
 	"time"
 
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
-	"gopkg.in/yaml.v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -20,6 +19,36 @@ import (
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
 	"github.com/openshift/monitoring-plugin/test/e2e/framework"
 )
+
+func listRulesForAlertMgmt(ctx context.Context, pluginURL string) ([]monitoringv1.Rule, error) {
+	client := &http.Client{Timeout: 10 * time.Second}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, pluginURL+"/api/v1/alerting/rules", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	var listResp struct {
+		Data struct {
+			Rules []monitoringv1.Rule `json:"rules"`
+		} `json:"data"`
+		Status string `json:"status"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&listResp); err != nil {
+		return nil, err
+	}
+
+	return listResp.Data.Rules, nil
+}
 
 func TestBulkDeleteUserDefinedAlertRules(t *testing.T) {
 	f, err := framework.New()
@@ -80,32 +109,19 @@ func TestBulkDeleteUserDefinedAlertRules(t *testing.T) {
 
 	var ruleIdsToDelete []string
 	err = wait.PollUntilContextTimeout(ctx, 2*time.Second, 2*time.Minute, true, func(ctx context.Context) (bool, error) {
-		cm, err := f.Clientset.CoreV1().ConfigMaps(k8s.ClusterMonitoringNamespace).Get(
-			ctx,
-			k8s.RelabeledRulesConfigMapName,
-			metav1.GetOptions{},
-		)
+		rules, err := listRulesForAlertMgmt(ctx, f.PluginURL)
 		if err != nil {
-			t.Logf("Failed to get ConfigMap: %v", err)
-			return false, nil
-		}
-
-		configData, ok := cm.Data[k8s.RelabeledRulesConfigMapKey]
-		if !ok {
-			t.Logf("ConfigMap has no %s key", k8s.RelabeledRulesConfigMapKey)
-			return false, nil
-		}
-
-		var rules map[string]monitoringv1.Rule
-		if err := yaml.Unmarshal([]byte(configData), &rules); err != nil {
-			t.Logf("Failed to unmarshal config data: %v", err)
+			t.Logf("Failed to list rules: %v", err)
 			return false, nil
 		}
 
 		foundRuleIds := []string{}
-		for ruleId, rule := range rules {
+		for _, rule := range rules {
 			if rule.Alert == "TestBulkDeleteAlert1" || rule.Alert == "TestBulkDeleteAlert2" {
-				foundRuleIds = append(foundRuleIds, ruleId)
+				ruleId := rule.Labels[k8s.AlertRuleLabelId]
+				if ruleId != "" {
+					foundRuleIds = append(foundRuleIds, ruleId)
+				}
 			}
 		}
 
@@ -115,12 +131,12 @@ func TestBulkDeleteUserDefinedAlertRules(t *testing.T) {
 			return true, nil
 		}
 
-		t.Logf("Found %d/2 test alerts in ConfigMap", len(foundRuleIds))
+		t.Logf("Found %d/2 test alerts in memory", len(foundRuleIds))
 		return false, nil
 	})
 
 	if err != nil {
-		t.Fatalf("Timeout waiting for alerts to appear in ConfigMap: %v", err)
+		t.Fatalf("Timeout waiting for alerts to appear in memory: %v", err)
 	}
 
 	reqBody := managementrouter.BulkDeleteUserDefinedAlertRulesRequest{
@@ -245,42 +261,26 @@ func TestDeleteUserDefinedAlertRuleById(t *testing.T) {
 
 	var ruleIdToDelete string
 	err = wait.PollUntilContextTimeout(ctx, 2*time.Second, 2*time.Minute, true, func(ctx context.Context) (bool, error) {
-		cm, err := f.Clientset.CoreV1().ConfigMaps(k8s.ClusterMonitoringNamespace).Get(
-			ctx,
-			k8s.RelabeledRulesConfigMapName,
-			metav1.GetOptions{},
-		)
+		rules, err := listRulesForAlertMgmt(ctx, f.PluginURL)
 		if err != nil {
-			t.Logf("Failed to get ConfigMap: %v", err)
+			t.Logf("Failed to list rules: %v", err)
 			return false, nil
 		}
 
-		configData, ok := cm.Data[k8s.RelabeledRulesConfigMapKey]
-		if !ok {
-			t.Logf("ConfigMap has no %s key", k8s.RelabeledRulesConfigMapKey)
-			return false, nil
-		}
-
-		var rules map[string]monitoringv1.Rule
-		if err := yaml.Unmarshal([]byte(configData), &rules); err != nil {
-			t.Logf("Failed to unmarshal config data: %v", err)
-			return false, nil
-		}
-
-		for ruleId, rule := range rules {
+		for _, rule := range rules {
 			if rule.Alert == "TestDeleteByIdAlert1" {
-				ruleIdToDelete = ruleId
+				ruleIdToDelete = rule.Labels[k8s.AlertRuleLabelId]
 				t.Logf("Found rule ID to delete: %s", ruleIdToDelete)
 				return true, nil
 			}
 		}
 
-		t.Logf("Test alert not found yet in ConfigMap")
+		t.Logf("Test alert not found yet in memory")
 		return false, nil
 	})
 
 	if err != nil {
-		t.Fatalf("Timeout waiting for alerts to appear in ConfigMap: %v", err)
+		t.Fatalf("Timeout waiting for alerts to appear in memory: %v", err)
 	}
 
 	deleteURL := fmt.Sprintf("%s/api/v1/alerting/rules/%s", f.PluginURL, ruleIdToDelete)

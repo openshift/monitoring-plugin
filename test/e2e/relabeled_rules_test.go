@@ -2,13 +2,14 @@ package e2e
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"testing"
 	"time"
 
 	osmv1 "github.com/openshift/api/monitoring/v1"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
-	"gopkg.in/yaml.v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -17,37 +18,41 @@ import (
 	"github.com/openshift/monitoring-plugin/test/e2e/framework"
 )
 
-func TestRelabeledRulesConfigMapExists(t *testing.T) {
-	f, err := framework.New()
-	if err != nil {
-		t.Fatalf("Failed to create framework: %v", err)
-	}
-
-	ctx := context.Background()
-
-	cm, err := f.Clientset.CoreV1().ConfigMaps(k8s.ClusterMonitoringNamespace).Get(
-		ctx,
-		k8s.RelabeledRulesConfigMapName,
-		metav1.GetOptions{},
-	)
-	if err != nil {
-		t.Fatalf("Failed to get ConfigMap %s/%s: %v", k8s.ClusterMonitoringNamespace, k8s.RelabeledRulesConfigMapName, err)
-	}
-
-	if cm.Labels == nil {
-		t.Fatal("ConfigMap has no labels")
-	}
-
-	if cm.Labels[k8s.AppKubernetesIoManagedBy] != k8s.AppKubernetesIoComponentMonitoringPlugin {
-		t.Errorf("ConfigMap has wrong managed-by label. Expected %s, got %s", k8s.AppKubernetesIoComponentMonitoringPlugin, cm.Labels[k8s.AppKubernetesIoManagedBy])
-	}
-
-	if cm.Labels[k8s.AppKubernetesIoComponent] != k8s.AppKubernetesIoComponentAlertManagementApi {
-		t.Errorf("ConfigMap has wrong component label. Expected %s, got %s", k8s.AppKubernetesIoComponentAlertManagementApi, cm.Labels[k8s.AppKubernetesIoComponent])
-	}
+type listRulesResponse struct {
+	Data   listRulesResponseData `json:"data"`
+	Status string                `json:"status"`
 }
 
-func TestPrometheusRuleAppearsInConfigMap(t *testing.T) {
+type listRulesResponseData struct {
+	Rules []monitoringv1.Rule `json:"rules"`
+}
+
+func listRules(ctx context.Context, pluginURL string) ([]monitoringv1.Rule, error) {
+	client := &http.Client{Timeout: 10 * time.Second}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, pluginURL+"/api/v1/alerting/rules", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	var listResp listRulesResponse
+	if err := json.NewDecoder(resp.Body).Decode(&listResp); err != nil {
+		return nil, err
+	}
+
+	return listResp.Data.Rules, nil
+}
+
+func TestPrometheusRuleAppearsInMemory(t *testing.T) {
 	f, err := framework.New()
 	if err != nil {
 		t.Fatalf("Failed to create framework: %v", err)
@@ -82,25 +87,9 @@ func TestPrometheusRuleAppearsInConfigMap(t *testing.T) {
 	}
 
 	err = wait.PollUntilContextTimeout(ctx, 2*time.Second, 2*time.Minute, true, func(ctx context.Context) (bool, error) {
-		cm, err := f.Clientset.CoreV1().ConfigMaps(k8s.ClusterMonitoringNamespace).Get(
-			ctx,
-			k8s.RelabeledRulesConfigMapName,
-			metav1.GetOptions{},
-		)
+		rules, err := listRules(ctx, f.PluginURL)
 		if err != nil {
-			t.Logf("Failed to get ConfigMap: %v", err)
-			return false, nil
-		}
-
-		configData, ok := cm.Data[k8s.RelabeledRulesConfigMapKey]
-		if !ok {
-			t.Logf("ConfigMap has no %s key", k8s.RelabeledRulesConfigMapKey)
-			return false, nil
-		}
-
-		var rules map[string]monitoringv1.Rule
-		if err := yaml.Unmarshal([]byte(configData), &rules); err != nil {
-			t.Logf("Failed to unmarshal config data: %v", err)
+			t.Logf("Failed to list rules: %v", err)
 			return false, nil
 		}
 
@@ -120,17 +109,17 @@ func TestPrometheusRuleAppearsInConfigMap(t *testing.T) {
 					return false, fmt.Errorf("alert missing openshift_io_alert_rule_id label")
 				}
 
-				t.Logf("Found alert %s in ConfigMap with all expected labels", testAlertName)
+				t.Logf("Found alert %s in memory with all expected labels", testAlertName)
 				return true, nil
 			}
 		}
 
-		t.Logf("Alert %s not found in ConfigMap yet (found %d rules)", testAlertName, len(rules))
+		t.Logf("Alert %s not found in memory yet (found %d rules)", testAlertName, len(rules))
 		return false, nil
 	})
 
 	if err != nil {
-		t.Fatalf("Timeout waiting for alert to appear in ConfigMap: %v", err)
+		t.Fatalf("Timeout waiting for alert to appear in memory: %v", err)
 	}
 }
 
@@ -219,25 +208,9 @@ func TestRelabelAlert(t *testing.T) {
 	}()
 
 	err = wait.PollUntilContextTimeout(ctx, 2*time.Second, 2*time.Minute, true, func(ctx context.Context) (bool, error) {
-		cm, err := f.Clientset.CoreV1().ConfigMaps(k8s.ClusterMonitoringNamespace).Get(
-			ctx,
-			k8s.RelabeledRulesConfigMapName,
-			metav1.GetOptions{},
-		)
+		rules, err := listRules(ctx, f.PluginURL)
 		if err != nil {
-			t.Logf("Failed to get ConfigMap: %v", err)
-			return false, nil
-		}
-
-		configData, ok := cm.Data[k8s.RelabeledRulesConfigMapKey]
-		if !ok {
-			t.Logf("ConfigMap has no %s key", k8s.RelabeledRulesConfigMapKey)
-			return false, nil
-		}
-
-		var rules map[string]monitoringv1.Rule
-		if err := yaml.Unmarshal([]byte(configData), &rules); err != nil {
-			t.Logf("Failed to unmarshal config data: %v", err)
+			t.Logf("Failed to list rules: %v", err)
 			return false, nil
 		}
 

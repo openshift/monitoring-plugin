@@ -2,7 +2,6 @@ package management
 
 import (
 	"context"
-	"errors"
 
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
@@ -10,7 +9,7 @@ import (
 
 func (c *client) ListRules(ctx context.Context, prOptions PrometheusRuleOptions, arOptions AlertRuleOptions) ([]monitoringv1.Rule, error) {
 	if prOptions.Name != "" && prOptions.Namespace == "" {
-		return nil, errors.New("PrometheusRule Namespace must be specified when Name is provided")
+		return nil, &ValidationError{Message: "namespace is required when prometheusRuleName is specified"}
 	}
 
 	allRules := c.k8sClient.RelabeledRules().List(ctx)

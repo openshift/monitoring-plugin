@@ -16,8 +16,6 @@ import (
 	"github.com/prometheus/prometheus/model/relabel"
 	"gopkg.in/yaml.v2"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
@@ -30,9 +28,6 @@ const (
 	queueMaxDelay  = 3 * time.Minute
 
 	ClusterMonitoringNamespace = "openshift-monitoring"
-
-	RelabeledRulesConfigMapName = "relabeled-rules-config"
-	RelabeledRulesConfigMapKey  = "config.yaml"
 
 	AlertRelabelConfigSecretName = "alert-relabel-configs"
 	AlertRelabelConfigSecretKey  = "config.yaml"
@@ -58,10 +53,8 @@ type relabeledRulesManager struct {
 	alertRelabelConfigs     AlertRelabelConfigInterface
 	prometheusRulesInformer cache.SharedIndexInformer
 	secretInformer          cache.SharedIndexInformer
-	configMapInformer       cache.SharedIndexInformer
-	clientset               *kubernetes.Clientset
 
-	// relabeledRules stores the relabeled rules
+	// relabeledRules stores the relabeled rules in memory
 	relabeledRules map[string]monitoringv1.Rule
 	relabelConfigs []*relabel.Config
 	mu             sync.RWMutex
@@ -82,13 +75,6 @@ func newRelabeledRulesManager(ctx context.Context, namespaceManager NamespaceInt
 		cache.Indexers{},
 	)
 
-	configMapInformer := cache.NewSharedIndexInformer(
-		configMapListWatch(clientset, ClusterMonitoringNamespace),
-		&corev1.ConfigMap{},
-		resyncPeriod,
-		cache.Indexers{},
-	)
-
 	queue := workqueue.NewTypedRateLimitingQueueWithConfig(
 		workqueue.NewTypedItemExponentialFailureRateLimiter[string](queueBaseDelay, queueMaxDelay),
 		workqueue.TypedRateLimitingQueueConfig[string]{Name: "relabeled-rules"},
@@ -100,8 +86,6 @@ func newRelabeledRulesManager(ctx context.Context, namespaceManager NamespaceInt
 		alertRelabelConfigs:     alertRelabelConfigs,
 		prometheusRulesInformer: prometheusRulesInformer,
 		secretInformer:          secretInformer,
-		configMapInformer:       configMapInformer,
-		clientset:               clientset,
 	}
 
 	_, err := rrm.prometheusRulesInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
@@ -153,29 +137,12 @@ func newRelabeledRulesManager(ctx context.Context, namespaceManager NamespaceInt
 		return nil, fmt.Errorf("failed to add event handler to secret informer: %w", err)
 	}
 
-	_, err = rrm.configMapInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
-		AddFunc: func(obj interface{}) {
-			rrm.queue.Add("config-map-sync")
-		},
-		UpdateFunc: func(oldObj interface{}, newObj interface{}) {
-			rrm.queue.Add("config-map-sync")
-		},
-		DeleteFunc: func(obj interface{}) {
-			rrm.queue.Add("config-map-sync")
-		},
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to add event handler to config map informer: %w", err)
-	}
-
 	go rrm.prometheusRulesInformer.Run(ctx.Done())
 	go rrm.secretInformer.Run(ctx.Done())
-	go rrm.configMapInformer.Run(ctx.Done())
 
 	cache.WaitForNamedCacheSync("RelabeledRulesConfig informer", ctx.Done(),
 		rrm.prometheusRulesInformer.HasSynced,
 		rrm.secretInformer.HasSynced,
-		rrm.configMapInformer.HasSynced,
 	)
 
 	go rrm.worker(ctx)
@@ -193,15 +160,6 @@ func alertRelabelConfigSecretListWatch(clientset *kubernetes.Clientset, namespac
 	)
 }
 
-func configMapListWatch(clientset *kubernetes.Clientset, namespace string) *cache.ListWatch {
-	return cache.NewListWatchFromClient(
-		clientset.CoreV1().RESTClient(),
-		"configmaps",
-		namespace,
-		fields.OneTermEqualSelector("metadata.name", RelabeledRulesConfigMapName),
-	)
-}
-
 func (rrm *relabeledRulesManager) worker(ctx context.Context) {
 	for rrm.processNextWorkItem(ctx) {
 	}
@@ -215,7 +173,7 @@ func (rrm *relabeledRulesManager) processNextWorkItem(ctx context.Context) bool 
 
 	defer rrm.queue.Done(key)
 
-	if err := rrm.sync(ctx, key); err != nil {
+	if err := rrm.sync(ctx); err != nil {
 		log.Errorf("error syncing relabeled rules: %v", err)
 		rrm.queue.AddRateLimited(key)
 		return true
@@ -226,11 +184,7 @@ func (rrm *relabeledRulesManager) processNextWorkItem(ctx context.Context) bool 
 	return true
 }
 
-func (rrm *relabeledRulesManager) sync(ctx context.Context, key string) error {
-	if key == "config-map-sync" {
-		return rrm.reapplyConfigMap(ctx)
-	}
-
+func (rrm *relabeledRulesManager) sync(ctx context.Context) error {
 	relabelConfigs, err := rrm.loadRelabelConfigs()
 	if err != nil {
 		return fmt.Errorf("failed to load relabel configs: %w", err)
@@ -246,64 +200,7 @@ func (rrm *relabeledRulesManager) sync(ctx context.Context, key string) error {
 	rrm.relabeledRules = alerts
 	rrm.mu.Unlock()
 
-	return rrm.reapplyConfigMap(ctx)
-}
-
-func (rrm *relabeledRulesManager) reapplyConfigMap(ctx context.Context) error {
-	rrm.mu.RLock()
-	defer rrm.mu.RUnlock()
-
-	data, err := yaml.Marshal(rrm.relabeledRules)
-	if err != nil {
-		return fmt.Errorf("failed to marshal relabeled rules: %w", err)
-	}
-
-	configMapData := map[string]string{
-		RelabeledRulesConfigMapKey: string(data),
-	}
-
-	configMapClient := rrm.clientset.CoreV1().ConfigMaps(ClusterMonitoringNamespace)
-
-	existingConfigMap, err := configMapClient.Get(ctx, RelabeledRulesConfigMapName, metav1.GetOptions{})
-	if err != nil {
-		if errors.IsNotFound(err) {
-			log.Infof("Creating ConfigMap %s with %d relabeled rules", RelabeledRulesConfigMapName, len(rrm.relabeledRules))
-			newConfigMap := &corev1.ConfigMap{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      RelabeledRulesConfigMapName,
-					Namespace: ClusterMonitoringNamespace,
-					Labels: map[string]string{
-						AppKubernetesIoManagedBy: AppKubernetesIoComponentMonitoringPlugin,
-						AppKubernetesIoComponent: AppKubernetesIoComponentAlertManagementApi,
-					},
-				},
-				Data: configMapData,
-			}
-
-			if _, err := configMapClient.Create(ctx, newConfigMap, metav1.CreateOptions{}); err != nil {
-				return fmt.Errorf("failed to create config map: %w", err)
-			}
-
-			log.Infof("Successfully created ConfigMap %s", RelabeledRulesConfigMapName)
-			return nil
-		}
-
-		return fmt.Errorf("failed to get config map: %w", err)
-	}
-
-	if existingConfigMap.Data[RelabeledRulesConfigMapKey] == configMapData[RelabeledRulesConfigMapKey] {
-		log.Debugf("ConfigMap %s data unchanged, skipping update", RelabeledRulesConfigMapName)
-		return nil
-	}
-
-	log.Infof("Updating ConfigMap %s with %d relabeled rules", RelabeledRulesConfigMapName, len(rrm.relabeledRules))
-	existingConfigMap.Data = configMapData
-
-	if _, err := configMapClient.Update(ctx, existingConfigMap, metav1.UpdateOptions{}); err != nil {
-		return fmt.Errorf("failed to update config map: %w", err)
-	}
-
-	log.Infof("Successfully updated ConfigMap %s", RelabeledRulesConfigMapName)
+	log.Infof("Synced %d relabeled rules in memory", len(alerts))
 	return nil
 }
 
