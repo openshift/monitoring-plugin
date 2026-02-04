@@ -41,7 +41,7 @@ lint-frontend:
 lint-backend:
 	go mod tidy
 	go fmt ./cmd/
-	go fmt ./pkg/
+	go fmt ./pkg/... ./internal/...
 
 .PHONY: install-backend
 install-backend:
@@ -57,7 +57,11 @@ start-backend:
 
 .PHONY: test-backend
 test-backend:
-	go test ./pkg/... -v
+	go test ./pkg/... ./internal/... -v
+
+.PHONY: test-e2e
+test-e2e:
+	PLUGIN_URL=http://localhost:9001 go test -v -timeout=150m -count=1 ./test/e2e
 
 .PHONY: build-image
 build-image:
