@@ -149,3 +149,11 @@ export const persesDashboardSampleQueries = {
   CPU_LINE_MULTI_SERIES_LEGEND: '{{}{{}mode{}}{}} mode - {{}{{}job{}}{}} {{}{{}instance{}}{}}',
   CPU_LINE_MULTI_SERIES_SERIES_SELECTOR: 'up{{}job=~"$job"{}}',
 }
+
+export const persesDashboardsRenameDashboard = {
+  DIALOG_MAX_LENGTH_VALIDATION: 'Must be 75 or fewer characters long: error status;',
+}
+
+export const persesDashboardsDuplicateDashboard = {
+  DIALOG_DUPLICATED_NAME_VALIDATION: "already exists", //use contains
+}

@@ -43,9 +43,11 @@ export const persesDashboardsPage = {
 
   shouldBeLoadedEditionMode: (dashboardName: string) => {
     cy.log('persesDashboardsPage.shouldBeLoadedEditionMode');
+    cy.wait(10000);
     commonPages.titleShouldHaveText(MonitoringPageTitles.DASHBOARDS);
     cy.byOUIAID(listPersesDashboardsOUIAIDs.PageHeaderSubtitle).scrollIntoView().should('contain', listPersesDashboardsPageSubtitle).should('be.visible');
-    cy.byTestID(listPersesDashboardsDataTestIDs.PersesBreadcrumbDashboardNameItem).scrollIntoView().should('contain', dashboardName.toLowerCase().replace(/ /g, '_')).should('be.visible');
+    // cy.byTestID(listPersesDashboardsDataTestIDs.PersesBreadcrumbDashboardNameItem).scrollIntoView().should('contain', dashboardName.toLowerCase().replace(/ /g, '_')).should('be.visible');
+    cy.byTestID(listPersesDashboardsDataTestIDs.PersesBreadcrumbDashboardNameItem).scrollIntoView().should('contain', dashboardName).should('be.visible');
     persesDashboardsPage.assertEditModeButtons();
 
     cy.byAriaLabel(persesAriaLabels.TimeRangeDropdown).contains(persesDashboardsTimeRange.LAST_30_MINUTES).scrollIntoView().should('be.visible');
@@ -61,12 +63,32 @@ export const persesDashboardsPage = {
     cy.byTestID(DataTestIDs.PersesDashboardDropdown).find('input').should('have.value', dashboardName);
     cy.byTestID(DataTestIDs.PersesDashboardDropdown).find('button').scrollIntoView().should('be.visible');
 
+  },
+
+  shouldBeLoadedEditionModeFromCreateDashboard: () => {
+    cy.log('persesDashboardsPage.shouldBeLoadedEditionModeFromCreateDashboard');
+    cy.wait(10000);
     cy.get('h2').contains(persesDashboardsEmptyDashboard.TITLE).scrollIntoView().should('be.visible');
     cy.get('p').contains(persesDashboardsEmptyDashboard.DESCRIPTION).scrollIntoView().should('be.visible');
 
     cy.get('h2').siblings('div').find('[aria-label="Add panel"]').scrollIntoView().should('be.visible');
     cy.get('h2').siblings('div').find('[aria-label="Edit variables"]').scrollIntoView().should('be.visible');
+  },
 
+  shouldBeLoadedAfterRename: (dashboardName: string) => {
+    cy.log('persesDashboardsPage.shouldBeLoadedAfterRename');
+    persesDashboardsPage.shouldBeLoadedAfter(dashboardName);
+  },
+
+  shouldBeLoadedAfterDuplicate: (dashboardName: string) => {
+    cy.log('persesDashboardsPage.shouldBeLoadedAfterDuplicate');
+    persesDashboardsPage.shouldBeLoadedAfter(dashboardName);
+  },
+
+  shouldBeLoadedAfter: (dashboardName: string) => {
+    cy.log('persesDashboardsPage.shouldBeLoadedAfter');
+    cy.byTestID(listPersesDashboardsDataTestIDs.PersesBreadcrumbDashboardNameItem).scrollIntoView().should('contain', dashboardName).should('be.visible');
+    cy.byTestID(DataTestIDs.PersesDashboardDropdown).find('input').should('have.value', dashboardName);
   },
 
   clickTimeRangeDropdown: (timeRange: persesDashboardsTimeRange) => {
@@ -235,23 +257,6 @@ export const persesDashboardsPage = {
     cy.byTestID(persesDashboardDataTestIDs.editDashboardButtonToolbar).scrollIntoView().should('be.visible').should('have.attr', 'disabled');
   },
 
-  clickCreateButton: () => {
-    cy.log('persesDashboardsPage.clickCreateButton');
-    cy.byTestID(DataTestIDs.PersesCreateDashboardButton).scrollIntoView().should('be.visible').and('not.have.attr', 'disabled');
-    cy.byTestID(DataTestIDs.PersesCreateDashboardButton).click({ force: true });
-    cy.wait(2000);
-  },
-
-  assertCreateButtonIsEnabled: () => {
-    cy.log('persesDashboardsPage.assertCreateButtonIsEnabled');
-    cy.byTestID(DataTestIDs.PersesCreateDashboardButton).scrollIntoView().should('be.visible').should('not.have.attr', 'disabled');
-  },
-
-  assertCreateButtonIsDisabled: () => {
-    cy.log('persesDashboardsPage.assertCreateButtonIsDisabled');
-    cy.byTestID(DataTestIDs.PersesCreateDashboardButton).scrollIntoView().should('be.visible').should('have.attr', 'disabled');
-  },
-
   assertEditModeButtons: () => {
     cy.log('persesDashboardsPage.assertEditModeButtons');
     cy.byTestID(persesDashboardDataTestIDs.editDashboardButtonToolbar).should('not.exist');
@@ -363,6 +368,7 @@ export const persesDashboardsPage = {
   backToListPersesDashboardsPage: () => {
     cy.log('persesDashboardsPage.backToListPersesDashboardsPage');
     cy.byTestID(listPersesDashboardsDataTestIDs.PersesBreadcrumbDashboardItem).scrollIntoView().should('be.visible').click({ force: true });
+    cy.wait(2000);
   },
 
   clickDiscardChangesButton: () => {

@@ -1,5 +1,5 @@
 import { nav } from '../../views/nav';
-import { runCOOListPersesTests } from '../../support/perses/01.coo_list_perses_admin.cy';
+import { runCOOListPersesDuplicateDashboardTests, runCOOListPersesTests } from '../../support/perses/01.coo_list_perses_admin.cy';
 import { runCOOListPersesTestsNamespace } from '../../support/perses/01.coo_list_perses_admin_namespace.cy';
 
 // Set constants for the operators that need to be installed for tests.
@@ -27,10 +27,15 @@ describe('COO - Dashboards (Perses) - List perses dashboards', { tags: ['@perses
 
   beforeEach(() => {
     nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
+    cy.wait(5000);
     cy.changeNamespace('All Projects');
   });
 
   runCOOListPersesTests({
+    name: 'Administrator',
+  });
+
+  runCOOListPersesDuplicateDashboardTests({
     name: 'Administrator',
   });
 

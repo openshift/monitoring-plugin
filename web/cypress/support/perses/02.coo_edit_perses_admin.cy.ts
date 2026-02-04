@@ -1,7 +1,7 @@
 import { editPersesDashboardsAddVariable, persesMUIDataTestIDs, IDs, editPersesDashboardsAddDatasource } from '../../../src/components/data-test';
 import { persesDashboardsDashboardDropdownCOO, persesDashboardsDashboardDropdownPersesDev } from '../../fixtures/perses/constants';
 import { commonPages } from '../../views/common';
-import { listPersesDashboardsPage } from "../../views/list-perses-dashboards";
+import { listPersesDashboardsPage } from "../../views/perses-dashboards-list-dashboards";
 import { persesDashboardsPage } from '../../views/perses-dashboards';
 import { persesDashboardsPanelGroup } from '../../views/perses-dashboards-panelgroup';
 import { persesDashboardsEditDatasources } from '../../views/perses-dashboards-edit-datasources';
@@ -24,11 +24,11 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.shouldBeLoaded();
 
     cy.log(`1.2. Filter by Name`);
-    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[2]);
+    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[0]);
     listPersesDashboardsPage.countDashboards('1');
 
     cy.log(`1.3. Click on a dashboard`);
-    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[2]);
+    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[0]);
     //TODO: change back to shouldBeLoaded when customizable-dashboards gets merged
     // persesDashboardsPage.shouldBeLoaded1();
 
@@ -58,11 +58,11 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.shouldBeLoaded();
 
     cy.log(`2.2. Filter by Name`);
-    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[2]);
+    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[0]);
     listPersesDashboardsPage.countDashboards('1');
 
     cy.log(`2.3. Click on a dashboard`);
-    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[2]);
+    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[0]);
     //TODO: change back to shouldBeLoaded when customizable-dashboards gets merged
     // persesDashboardsPage.shouldBeLoaded1();
 
@@ -88,8 +88,8 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
     cy.log(`2.8. Save dashboard`);
     persesDashboardsPage.clickEditActionButton('Save');
     persesDashboardsPage.backToListPersesDashboardsPage();
-    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[2]);
-    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[2]);
+    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[0]);
+    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[0]);
     //https://issues.redhat.com/browse/OU-1159 - Custom All Value is not working, so selecting "All" for now
     persesDashboardsPage.searchAndSelectVariable('ListVariable', 'All');
     //TODO: END testing more to check if it is time constraint or cache issue
@@ -102,11 +102,11 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.shouldBeLoaded();
 
     cy.log(`3.2. Filter by Name`);
-    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[2]);
+    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[0]);
     listPersesDashboardsPage.countDashboards('1');
 
     cy.log(`3.3. Click on a dashboard`);
-    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[2]);
+    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[0]);
     //TODO: change back to shouldBeLoaded when customizable-dashboards gets merged
     // persesDashboardsPage.shouldBeLoaded1();
 
@@ -133,8 +133,8 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
     persesDashboardsPage.clickEditActionButton('Save');
     
     persesDashboardsPage.backToListPersesDashboardsPage();
-    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[2]);
-    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[2]);
+    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[0]);
+    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[0]);
 
     cy.log(`3.9. Search and type variable`);
     persesDashboardsPage.searchAndTypeVariable('TextVariable', '');
@@ -147,11 +147,11 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.shouldBeLoaded();
 
     cy.log(`4.2. Filter by Name`);
-    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[2]);
+    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[0]);
     listPersesDashboardsPage.countDashboards('1');
 
     cy.log(`4.3. Click on a dashboard`);
-    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[2]);
+    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[0]);
     //TODO: change back to shouldBeLoaded when customizable-dashboards gets merged
     // persesDashboardsPage.shouldBeLoaded1();
 
@@ -223,11 +223,11 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.shouldBeLoaded();
 
     cy.log(`5.2. Filter by Name`);
-    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0]);
     listPersesDashboardsPage.countDashboards('1');
 
     cy.log(`5.3. Click on a dashboard`);
-    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0]);
     //TODO: change back to shouldBeLoaded when customizable-dashboards gets merged
     // persesDashboardsPage.shouldBeLoaded1();
 
@@ -365,11 +365,11 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.shouldBeLoaded();
 
     cy.log(`6.2. Filter by Name`);
-    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0]);
     listPersesDashboardsPage.countDashboards('1');
 
     cy.log(`6.3. Click on a dashboard`);
-    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0]);
     //TODO: change back to shouldBeLoaded when customizable-dashboards gets merged
     // persesDashboardsPage.shouldBeLoaded1();
 
@@ -388,8 +388,8 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
     cy.log(`6.7. Back and check panel group`);
     //TODO: START testing more to check if it is time constraint or cache issue
     persesDashboardsPage.backToListPersesDashboardsPage();
-    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
-    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0]);
+    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0]);
     persesDashboardsPage.panelGroupHeaderAssertion('PanelGroup1', 'Open');
 
   });
@@ -400,11 +400,11 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.shouldBeLoaded();
 
     cy.log(`7.2. Filter by Name`);
-    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0]);
     listPersesDashboardsPage.countDashboards('1');
 
     cy.log(`7.3. Click on a dashboard`);
-    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0]);
     //TODO: change back to shouldBeLoaded when customizable-dashboards gets merged
     // persesDashboardsPage.shouldBeLoaded1();
 
@@ -412,15 +412,16 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
     cy.wait(2000);
     persesDashboardsPage.clickEditButton();
     persesDashboardsPanelGroup.clickPanelGroupAction('PanelGroup1', 'edit');
+    //TODO: https://issues.redhat.com/browse/OU-1223 - Upstream ref: [Edit Dashboard] - Edit Panel Group from closed/opened vice-versa is not shown right away
     persesDashboardsPanelGroup.editPanelGroup('PanelGroup2', 'Closed', '');
     persesDashboardsPage.clickEditActionButton('Save');
-    persesDashboardsPage.panelGroupHeaderAssertion('PanelGroup2', 'Closed');
+    //persesDashboardsPage.panelGroupHeaderAssertion('PanelGroup2', 'Closed'); //TODO: uncomment when https://issues.redhat.com/browse/OU-1223 is fixed
 
     cy.log(`7.5. Back and check panel group`);
     //TODO: START testing more to check if it is time constraint or cache issue
     persesDashboardsPage.backToListPersesDashboardsPage();
-    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
-    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0]);
+    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0]);
     persesDashboardsPage.panelGroupHeaderAssertion('PanelGroup2', 'Closed');
 
   });
@@ -431,11 +432,11 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.shouldBeLoaded();
 
     cy.log(`8.2. Filter by Name`);
-    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0]);
     listPersesDashboardsPage.countDashboards('1');
 
     cy.log(`8.3. Click on a dashboard`);
-    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0]);
     //TODO: change back to shouldBeLoaded when customizable-dashboards gets merged
     // persesDashboardsPage.shouldBeLoaded1();
 
@@ -455,8 +456,8 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
     cy.log(`8.7. Back and check panel group order`);
     //TODO: START testing more to check if it is time constraint or cache issue
     persesDashboardsPage.backToListPersesDashboardsPage();
-    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
-    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0]);
+    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0]);
     persesDashboardsPage.assertPanelGroupOrder('Row 1', 0);
     persesDashboardsPage.assertPanelGroupOrder('PanelGroup2', 1);
     persesDashboardsPage.assertPanelGroupOrder('Row 2', 2);
@@ -477,8 +478,8 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
     cy.log(`8.11. Back and check panel group order`);
     //TODO: START testing more to check if it is time constraint or cache issue
     persesDashboardsPage.backToListPersesDashboardsPage();
-    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
-    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0]);
+    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0]);
     persesDashboardsPage.assertPanelGroupOrder('PanelGroup2', 0);
     persesDashboardsPage.assertPanelGroupOrder('Row 1', 1);
     persesDashboardsPage.assertPanelGroupOrder('Row 2', 2);
@@ -490,11 +491,11 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.shouldBeLoaded();
 
     cy.log(`9.2. Filter by Name`);
-    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0]);
     listPersesDashboardsPage.countDashboards('1');
 
     cy.log(`9.3. Click on a dashboard`);
-    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0]);
     //TODO: change back to shouldBeLoaded when customizable-dashboards gets merged
     // persesDashboardsPage.shouldBeLoaded1();
 
@@ -509,8 +510,8 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
     cy.log(`9.5. Back and check panel group`);
     //TODO: START testing more to check if it is time constraint or cache issue
     persesDashboardsPage.backToListPersesDashboardsPage();
-    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
-    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0]);
+    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0]);
     persesDashboardsPage.assertPanelGroupNotExist('PanelGroup2');
   });
 

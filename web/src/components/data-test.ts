@@ -185,6 +185,8 @@ export const IDs = {
   persesDashboardAddPanelForm: 'panel-editor-form',
   persesDashboardDiscardChangesDialog: 'discard-dialog',
   persesDashboardCreateDashboardName: 'text-input-create-dashboard-dialog-name',
+  persesDashboardRenameDashboardName: 'rename-modal-text-input',
+  persesDashboardDuplicateDashboardName: 'duplicate-modal-dashboard-name-form-group-text-input',
 };
 
 export const Classes = {
@@ -264,6 +266,8 @@ export const persesAriaLabels = {
   PanelExportTimeSeriesDataAsCSV: 'Export time series data as CSV',
   //Add Panel tabs
   AddPanelTabs: 'Panel configuration tabs',
+  //List Page
+  persesDashboardKebabIcon: 'Kebab toggle',
 };
 
 //data-testid from MUI components
