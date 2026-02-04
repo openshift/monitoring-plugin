@@ -4,11 +4,8 @@ import { nameSchema } from '@perses-dev/core';
 import { useDashboardList } from './dashboard-api';
 import { generateMetadataName } from './dashboard-utils';
 
-export const createDashboardDisplayNameValidationSchema = (t?: (key: string) => string) =>
-  z
-    .string()
-    .min(1, t ? t('Required') : 'Required')
-    .max(75, t ? t('Must be 75 or fewer characters long') : 'Must be 75 or fewer characters long');
+export const createDashboardDisplayNameValidationSchema = (t: (key: string) => string) =>
+  z.string().min(1, t('Required')).max(75, t('Must be 75 or fewer characters long'));
 
 export const createDashboardDialogValidationSchema = (t?: (key: string) => string) =>
   z.object({

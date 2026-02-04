@@ -249,27 +249,6 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
     return null;
   }
 
-  if (filteredProjects.length === 0) {
-    return (
-      <Modal
-        variant={ModalVariant.small}
-        isOpen={isOpen}
-        onClose={onClose}
-        aria-labelledby="duplicate-modal-title"
-      >
-        <ModalHeader title={t('Duplicate Dashboard')} labelId="duplicate-modal-title" />
-        <ModalBody>
-          <p>{t('You do not have permission to create dashboards in any projects.')}</p>
-        </ModalBody>
-        <ModalFooter>
-          <Button key="close" variant="primary" onClick={onClose}>
-            {t('Close')}
-          </Button>
-        </ModalFooter>
-      </Modal>
-    );
-  }
-
   const processForm: SubmitHandler<CreateDashboardValidationType> = (data) => {
     const newDashboard: DashboardResource = {
       ...dashboard,
