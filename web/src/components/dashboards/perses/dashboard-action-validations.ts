@@ -7,13 +7,13 @@ import { generateMetadataName } from './dashboard-utils';
 export const createDashboardDisplayNameValidationSchema = (t: (key: string) => string) =>
   z.string().min(1, t('Required')).max(75, t('Must be 75 or fewer characters long'));
 
-export const createDashboardDialogValidationSchema = (t?: (key: string) => string) =>
+export const createDashboardDialogValidationSchema = (t: (key: string) => string) =>
   z.object({
     projectName: nameSchema,
     dashboardName: createDashboardDisplayNameValidationSchema(t),
   });
 
-export const renameDashboardDialogValidationSchema = (t?: (key: string) => string) =>
+export const renameDashboardDialogValidationSchema = (t: (key: string) => string) =>
   z.object({
     dashboardName: createDashboardDisplayNameValidationSchema(t),
   });
