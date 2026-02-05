@@ -9,9 +9,7 @@ import { CombinedDashboardMetadata } from './hooks/useDashboardsData';
 
 import { Breadcrumb, BreadcrumbItem } from '@patternfly/react-core';
 import { useNavigate } from 'react-router-dom-v5-compat';
-import { StringParam, useQueryParam } from 'use-query-params';
 import { getDashboardsListUrl, usePerspective } from '../../hooks/usePerspective';
-import { QueryParams } from '../../query-params';
 
 import {
   chart_color_blue_100,
@@ -31,11 +29,12 @@ const shouldHideFavoriteButton = (): boolean => {
   return currentUrl.includes(DASHBOARD_VIEW_PATH);
 };
 
-const DashboardBreadCrumb: React.FunctionComponent = () => {
+const DashboardBreadCrumb: React.FunctionComponent<{ dashboardDisplayName?: string }> = ({
+  dashboardDisplayName,
+}) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const { perspective } = usePerspective();
-  const [dashboardName] = useQueryParam(QueryParams.Dashboard, StringParam);
   const { theme } = usePatternFlyTheme();
   const navigate = useNavigate();
 
@@ -63,26 +62,28 @@ const DashboardBreadCrumb: React.FunctionComponent = () => {
       >
         {t('Dashboards')}
       </BreadcrumbItem>
-      {dashboardName && (
+      {dashboardDisplayName && (
         <BreadcrumbItem
           isActive
           data-test={listPersesDashboardsDataTestIDs.PersesBreadcrumbDashboardNameItem}
         >
-          {dashboardName}
+          {dashboardDisplayName}
         </BreadcrumbItem>
       )}
     </Breadcrumb>
   );
 };
 
-const DashboardPageHeader: React.FunctionComponent = () => {
+const DashboardPageHeader: React.FunctionComponent<{ dashboardDisplayName?: string }> = ({
+  dashboardDisplayName,
+}) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const hideFavBtn = shouldHideFavoriteButton();
 
   return (
     <Stack>
       <StackItem>
-        <DashboardBreadCrumb />
+        <DashboardBreadCrumb dashboardDisplayName={dashboardDisplayName} />
         <ListPageHeader
           title={t('Dashboards')}
           helpText={t('View and manage dashboards.')}
@@ -118,23 +119,25 @@ const DashboardListPageHeader: React.FunctionComponent = () => {
 type MonitoringDashboardsPageProps = PropsWithChildren<{
   boardItems: CombinedDashboardMetadata[];
   changeBoard: (dashboardName: string) => void;
-  dashboardName: string;
+  dashboardDisplayName: string;
   activeProject?: string;
 }>;
 
-export const DashboardHeader: FC<MonitoringDashboardsPageProps> = memo(({ children }) => {
-  const { t } = useTranslation(process.env.I18N_NAMESPACE);
+export const DashboardHeader: FC<MonitoringDashboardsPageProps> = memo(
+  ({ children, dashboardDisplayName }) => {
+    const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
-  return (
-    <>
-      <DocumentTitle>{t('Metrics dashboards')}</DocumentTitle>
-      <PagePadding top={t_global_spacer_md.value}>
-        <DashboardPageHeader />
-      </PagePadding>
-      {children}
-    </>
-  );
-});
+    return (
+      <>
+        <DocumentTitle>{t('Metrics dashboards')}</DocumentTitle>
+        <PagePadding top={t_global_spacer_md.value}>
+          <DashboardPageHeader dashboardDisplayName={dashboardDisplayName} />
+        </PagePadding>
+        {children}
+      </>
+    );
+  },
+);
 
 export const DashboardListHeader: FC<MonitoringDashboardsPageProps> = memo(({ children }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);

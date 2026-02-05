@@ -12,7 +12,7 @@ interface DashboardFrameProps {
   setActiveProject: (project: string | null) => void;
   activeProjectDashboardsMetadata: CombinedDashboardMetadata[];
   changeBoard: (boardName: string) => void;
-  dashboardName: string;
+  dashboardDisplayName: string;
   children: ReactNode;
 }
 
@@ -21,7 +21,7 @@ export const DashboardFrame: React.FC<DashboardFrameProps> = ({
   setActiveProject,
   activeProjectDashboardsMetadata,
   changeBoard,
-  dashboardName,
+  dashboardDisplayName,
   children,
 }) => {
   return (
@@ -36,7 +36,7 @@ export const DashboardFrame: React.FC<DashboardFrameProps> = ({
               <DashboardHeader
                 boardItems={activeProjectDashboardsMetadata}
                 changeBoard={changeBoard}
-                dashboardName={dashboardName}
+                dashboardDisplayName={dashboardDisplayName}
                 activeProject={activeProject}
               >
                 <PagePadding top="0">{children}</PagePadding>

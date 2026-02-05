@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { type FC } from 'react';
+import { useEffect, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom-v5-compat';
 import { QueryParamProvider } from 'use-query-params';
@@ -42,10 +42,11 @@ const DashboardPage_: FC = () => {
     setActiveProject(urlProject);
   }
 
-  // Change dashboard if provided in URL
-  if (urlDashboard && urlDashboard !== dashboardName) {
-    changeBoard(urlDashboard);
-  }
+  useEffect(() => {
+    if (urlDashboard && urlDashboard !== dashboardName) {
+      changeBoard(urlDashboard);
+    }
+  }, [urlDashboard, dashboardName, changeBoard]);
 
   if (combinedInitialLoad) {
     return <LoadingInline />;
@@ -81,7 +82,7 @@ const DashboardPage_: FC = () => {
       setActiveProject={setActiveProject}
       activeProjectDashboardsMetadata={activeProjectDashboardsMetadata}
       changeBoard={changeBoard}
-      dashboardName={currentDashboard.name}
+      dashboardDisplayName={currentDashboard.title}
     >
       <OCPDashboardApp
         dashboardResource={currentDashboard.persesDashboard}
