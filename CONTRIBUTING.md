@@ -342,7 +342,7 @@ type RequiredFields = Required<Pick<Config, "name" | "url">>;
 
 ### Go Backend Guidelines
 
-The backend that serves plugin assets and proxies APIs is written in Go (see `/cmd` and `/pkg`).
+The backend that serves plugin assets and proxies APIs is written in Go (see `backend/cmd` and `backend/pkg`).
 Follow these Go-specific conventions in addition to the general naming rules:
 
 #### Files and Packages
@@ -363,7 +363,7 @@ Follow these Go-specific conventions in addition to the general naming rules:
 - Exported functions and methods must have doc comments beginning with the function name.
 - Function names follow `MixedCaps` (`StartServer`, `newProxyHandler`).
 - Keep parameter order consistent (ctx first, dependencies before data structs) and return `(value, error)` pairs.
-- Ensure all files pass `go fmt ./cmd ./pkg` and `go vet ./...` before submitting.
+- Ensure all files pass `make lint-backend` before submitting.
 
 #### Structs and Interfaces
 

@@ -160,7 +160,7 @@ Unit tests focus on isolated function testing and run quickly in CI/CD pipelines
 
 **Backend Tests:**
 
-- **Location**: Co-located with source files in `pkg/`
+- **Location**: Co-located with source files in `backend/`
 - **Naming**: `*_test.go` (e.g., `server_test.go`)
 - **Framework**: Go testing package + testify/require
 - **Configuration**: Standard Go test conventions
@@ -176,7 +176,7 @@ make test-frontend
 cd web && npm run test:unit
 
 # Run Go tests directly
-go test ./pkg/... -v
+cd backend && go test ./... -v
 ```
 
 #### When to Create Unit Tests

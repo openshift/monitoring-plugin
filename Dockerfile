@@ -18,13 +18,13 @@ FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.24-openshift-4.20 as 
 WORKDIR /opt/app-root
 
 COPY Makefile Makefile
-COPY go.mod go.mod
-COPY go.sum go.sum
+COPY backend/Makefile backend/Makefile
+COPY backend/go.mod backend/go.mod
+COPY backend/go.sum backend/go.sum
 
 RUN make install-backend
 
-COPY cmd/ cmd/
-COPY pkg/ pkg/
+COPY backend/ backend/
 
 ENV GOEXPERIMENT=strictfipsruntime
 ENV CGO_ENABLED=1
