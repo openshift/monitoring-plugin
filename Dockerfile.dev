@@ -21,15 +21,15 @@ FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_9_golang_1.24
 WORKDIR /opt/app-root
 
 COPY Makefile Makefile
-COPY go.mod go.mod
-COPY go.sum go.sum
+COPY backend/Makefile backend/Makefile
+COPY backend/go.mod backend/go.mod
+COPY backend/go.sum backend/go.sum
 
-RUN go mod download
+RUN make install-backend
 
-COPY cmd/ cmd/
-COPY pkg/ pkg/
+COPY backend/ backend/
 
-RUN go build -mod=mod -o plugin-backend cmd/plugin-backend.go
+RUN make build-backend
 
 FROM registry.access.redhat.com/ubi9/ubi-minimal
 

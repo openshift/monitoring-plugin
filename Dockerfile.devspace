@@ -12,14 +12,14 @@ RUN chmod -R g+rw /.devspace
 ENV HUSKY=0
 
 COPY Makefile Makefile
-COPY go.mod go.mod
-COPY go.sum go.sum
+COPY backend/Makefile backend/Makefile
+COPY backend/go.mod backend/go.mod
+COPY backend/go.sum backend/go.sum
 
 RUN make install-backend
 
 COPY config/ config/
-COPY cmd/ cmd/
-COPY pkg/ pkg/
+COPY backend/ backend/
 
 RUN make build-backend
 
