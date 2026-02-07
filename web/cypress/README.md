@@ -58,6 +58,33 @@ Creates `export-env.sh` that you can source later: `source export-env.sh`
 
 ---
 
+## Test Configuration Scenarios
+
+All scenarios require the [standard variables](#required-variables) (`CYPRESS_BASE_URL`, `CYPRESS_LOGIN_IDP`, `CYPRESS_LOGIN_USERS`, `CYPRESS_KUBECONFIG_PATH`).
+
+### General Scenarios
+
+| Scenario | Key Variables | Description |
+|----------|---------------|-------------|
+| **Released Version** | `CYPRESS_COO_UI_INSTALL=true` | Install operators from redhat-operators catalog. Production-like testing. |
+| **Pre-provisioned COO** | `CYPRESS_SKIP_COO_INSTALL=true`, optionally `CYPRESS_COO_NAMESPACE=<ns>` | COO already installed. Tests still enable the monitoring plugin. Specify namespace if non-default. |
+| **Pre-provisioned Virtualization** | `CYPRESS_SKIP_KBV_INSTALL=true` | OpenShift Virtualization already installed. |
+| **Local Dev / PR Testing** | `CYPRESS_SKIP_ALL_INSTALL=true` | Run UI locally via `make start-feature-frontend` ([details](../../README.md#development)). Skips all setup. |
+| **Custom Images** | `CYPRESS_MP_IMAGE`, `CYPRESS_MCP_CONSOLE_IMAGE`, `CYPRESS_CHA_IMAGE`, `CYPRESS_CUSTOM_COO_BUNDLE_IMAGE` | Patch component images in the CSV, or replace the operator bundle. Combine with an installation method above. |
+| **FBC Image** | `CYPRESS_FBC_STAGE_COO_IMAGE` | Install COO from File-Based Catalog image. For release validation. |
+| **Konflux CI Bundle** | `CYPRESS_KONFLUX_COO_BUNDLE_IMAGE=<image>` | Install COO from Konflux CI bundle. For PR/CI testing. |
+
+### Test Areas
+
+| Area | Description | Run Command |
+|------|-------------|-------------|
+| **Monitoring (CMO)** | Core monitoring tests against CMO stack. No additional operator installation needed. | `npm run test-cypress-monitoring` |
+| **COO (Perses, Dashboards, Incidents)** | Requires COO installation. | `npm run test-cypress-coo` |
+| **Incidents** | COO subset. Set `CYPRESS_TIMEZONE` to match cluster timezone. | `npm run test-cypress-incidents` |
+| **Virtualization** | Requires OpenShift Virtualization (KubeVirt) installation. | `npm run test-cypress-virtualization` |
+
+---
+
 ## Environment Variables Reference
 
 ### Required Variables
@@ -124,88 +151,6 @@ Creates `export-env.sh` that you can source later: `source export-env.sh`
 ```bash
 export CYPRESS_TIMEZONE="America/New_York"
 export CYPRESS_MOCK_NEW_METRICS=true
-```
-
----
-
-## Configuration Examples
-
-### Example 1: Testing with Non-Admin User
-
-```bash
-export CYPRESS_BASE_URL=https://console-openshift-console.apps.cluster.example.com
-export CYPRESS_LOGIN_IDP=flexy-htpasswd-provider
-export CYPRESS_LOGIN_USERS=testuser:testpassword
-export CYPRESS_KUBECONFIG_PATH=~/Downloads/kubeconfig
-```
-
-### Example 2: Testing with Kubeadmin
-
-```bash
-export CYPRESS_BASE_URL=https://console-openshift-console.apps.cluster.example.com
-export CYPRESS_LOGIN_IDP=kube:admin
-export CYPRESS_LOGIN_USERS=kubeadmin:admin-password
-export CYPRESS_KUBECONFIG_PATH=~/Downloads/kubeconfig
-```
-
-### Example 3: Testing Custom Plugin Build
-
-```bash
-# Required variables
-export CYPRESS_BASE_URL=https://...
-export CYPRESS_LOGIN_IDP=flexy-htpasswd-provider
-export CYPRESS_LOGIN_USERS=username:password
-export CYPRESS_KUBECONFIG_PATH=~/Downloads/kubeconfig
-
-# Custom image
-export CYPRESS_MP_IMAGE=quay.io/myorg/monitoring-plugin:my-branch
-export CYPRESS_MCP_CONSOLE_IMAGE=quay.io/myorg/monitoring-console-plugin:my-branch
-```
-
-### Example 4: Testing Custom cluster-health-analyzer Build
-
-For CI jobs testing PRs to cluster-health-analyzer:
-
-```bash
-# Required variables
-export CYPRESS_BASE_URL=https://...
-export CYPRESS_LOGIN_IDP=flexy-htpasswd-provider
-export CYPRESS_LOGIN_USERS=username:password
-export CYPRESS_KUBECONFIG_PATH=~/Downloads/kubeconfig
-
-# Custom cluster-health-analyzer image built from PR
-export CYPRESS_CHA_IMAGE=quay.io/myorg/cluster-health-analyzer:pr-123
-
-# Use COO bundle (required for incidents feature testing)
-export CYPRESS_KONFLUX_COO_BUNDLE_IMAGE=quay.io/rhobs/observability-operator-bundle:latest
-```
-
-### Example 5: Pre-Provisioned Cluster (Skip Installations)
-
-```bash
-# Required variables
-export CYPRESS_BASE_URL=https://...
-export CYPRESS_LOGIN_IDP=flexy-htpasswd-provider
-export CYPRESS_LOGIN_USERS=username:password
-export CYPRESS_KUBECONFIG_PATH=~/Downloads/kubeconfig
-
-# Skip installations (cluster already configured)
-export CYPRESS_SKIP_ALL_INSTALL=true
-```
-
-### Example 6: Configurable COO Namespace
-
-Set the following var to specify the Cluster Observability Operator namespace. Defaults to `openshift-cluster-observability-operator` if not set. This is useful when testing with different namespace configurations (e.g., using `coo` instead of the default).
-```bash
-export CYPRESS_COO_NAMESPACE=openshift-cluster-observability-operator
-```
-
-### Example 7: Debug Mode
-
-```bash
-# Required variables + debug
-export CYPRESS_DEBUG=true
-export CYPRESS_SESSION=true  # Faster test execution
 ```
 
 ---
@@ -448,9 +393,20 @@ cypress/
 
 ---
 
-### Incident Detection Test Documentation
+## Incident Detection Test Documentation
 
-Test documentation for the Incidents feature is available at [`docs/incident_detection/tests/`](../../docs/incident_detection/tests/) in the repository root.
+For configuration scenarios, see [COO Tests](#coo-tests-perses-dashboards-incidents) above.
+
+### Incidents-Specific Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `CYPRESS_TIMEZONE` | `UTC` | Cluster timezone for incident timeline calculations |
+| `CYPRESS_MOCK_NEW_METRICS` | `false` | Transform old metric names to new format in mocks |
+
+### Test Case Documentation
+
+Detailed test documentation: [`docs/incident_detection/tests/`](../../docs/incident_detection/tests/)
 
 ---
 
