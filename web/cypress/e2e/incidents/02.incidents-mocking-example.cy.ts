@@ -12,7 +12,7 @@ import { incidentsPage } from '../../views/incidents-page';
 import { IncidentDefinition } from '../../support/incidents_prometheus_query_mocks';
 
 const MCP = {
-  namespace: 'openshift-cluster-observability-operator',
+  namespace: Cypress.env('COO_NAMESPACE'),
   packageName: 'cluster-observability-operator',
   operatorName: 'Cluster Observability Operator',
   config: {
@@ -26,7 +26,7 @@ const MP = {
   operatorName: 'Cluster Monitoring Operator',
 };
 
-describe('Incidents - Mocking Examples', () => {
+describe('Incidents - Mocking Examples', { tags: ['@demo', '@incidents'] }, () => {
 
   before(() => {
     cy.beforeBlockCOO(MCP, MP);
@@ -37,21 +37,29 @@ describe('Incidents - Mocking Examples', () => {
     incidentsPage.goTo();
   });
 
-  it('1. Mock healthy cluster from fixture', () => {
+  it('1. Mock silenced and firing incidents with mixed severity', () => {
+    cy.log('Setting up silenced critical and firing warning incidents');
+    cy.mockIncidentFixture('incident-scenarios/silenced-and-firing-mixed-severity.yaml');
+    
+    cy.log('One silenced critical incident (resolved) and one firing warning incident should be visible');
+    cy.pause();
+  });
+
+  it('2. Mock healthy cluster from fixture', () => {
     cy.log('Setting up healthy cluster scenario from fixture');
     cy.mockIncidentFixture('incident-scenarios/0-healthy-cluster.yaml');
     
     cy.pause();
   });
 
-  it('2. Mock single incident with critical and warning alerts', () => {
+  it('3. Mock single incident with critical and warning alerts', () => {
     cy.log('Setting up single incident with critical and warning alerts from fixture');
     cy.mockIncidentFixture('incident-scenarios/1-single-incident-firing-critical-and-warning-alerts.yaml');
     cy.log('Single incident with mixed severity alerts should be visible');
     cy.pause();
   });
 
-  it('3. Mock multi-incidents with resolved and firing alerts', () => {
+  it('4. Mock multi-incidents with resolved and firing alerts', () => {
     cy.log('Setting up multi-incidents with resolved and firing alerts from fixture');
     cy.mockIncidentFixture('incident-scenarios/2-multi-incidents-multi-alerts-resolved-and-firing.yaml');
     
@@ -59,7 +67,7 @@ describe('Incidents - Mocking Examples', () => {
     cy.pause();
   });
 
-  it('4. Mock multi-severity overlapping incidents', () => {
+  it('5. Mock multi-severity overlapping incidents', () => {
     cy.log('Setting up multi-severity overlapping incidents from fixture');
     cy.mockIncidentFixture('incident-scenarios/3-multi-severity-overlapping-incidents.yaml');
     
@@ -67,7 +75,7 @@ describe('Incidents - Mocking Examples', () => {
     cy.pause();
   });
 
-  it('5. Mock single incident with escalating severity alerts', () => {
+  it('6. Mock single incident with escalating severity alerts', () => {
     cy.log('Setting up single incident with escalating severity alerts from fixture');
     cy.mockIncidentFixture('incident-scenarios/5-escalating-severity-incident.yaml');
 
@@ -76,7 +84,7 @@ describe('Incidents - Mocking Examples', () => {
     
   });
 
-  it('6. Mock empty incident state', () => {
+  it('7. Mock empty incident state', () => {
     cy.log('Setting up empty incident state');
     cy.mockIncidents([]);
     

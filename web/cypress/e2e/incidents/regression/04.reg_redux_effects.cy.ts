@@ -16,7 +16,7 @@ Test cases:
 import { incidentsPage } from '../../../views/incidents-page';
 
 const MCP = {
-  namespace: 'openshift-cluster-observability-operator',
+  namespace: Cypress.env('COO_NAMESPACE'),
   packageName: 'cluster-observability-operator',
   operatorName: 'Cluster Observability Operator',
   config: {
@@ -30,7 +30,7 @@ const MP = {
   operatorName: 'Cluster Monitoring Operator',
 };
 
-describe('Regression: Redux State Management', () => {
+describe('Regression: Redux State Management', { tags: ['@incidents', '@incidents-redux'] }, () => {
 
   before(() => {
     cy.beforeBlockCOO(MCP, MP);
@@ -132,6 +132,7 @@ describe('Regression: Redux State Management', () => {
         dropdown.listElement().should('be.visible');
         
         deselection.action();
+
         cy.wait(2000)
         
         dropdown.listElement().should('not.exist');

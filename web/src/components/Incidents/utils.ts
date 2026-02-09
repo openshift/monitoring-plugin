@@ -55,6 +55,26 @@ export const getCurrentTime = (): number => {
 };
 
 /**
+ * Rounds a Date to the nearest 5-minute boundary for display purposes.
+ * This is used in tooltips to show cleaner, rounded timestamps instead of precise
+ * interval boundaries that may differ by seconds.
+ *
+ * For example:
+ * - 22:57:00 -> 22:55:00 (rounds down)
+ * - 22:59:00 -> 23:00:00 (rounds up)
+ * - 23:30:00 -> 23:30:00 (already at boundary)
+ * - 23:29:59 -> 23:30:00 (rounds up)
+ *
+ * @param date - The Date object to round
+ * @returns A new Date object rounded to the nearest 5-minute boundary
+ */
+export const roundDateToInterval = (date: Date): Date => {
+  const intervalMs = PROMETHEUS_QUERY_INTERVAL_SECONDS * 1000;
+  const roundedMs = Math.round(date.getTime() / intervalMs) * intervalMs;
+  return new Date(roundedMs);
+};
+
+/**
  * Determines if an incident or alert is resolved based on the time elapsed since the last data point.
  *
  * An incident/alert is considered resolved if the last data point is older than or equal to

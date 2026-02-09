@@ -6,7 +6,6 @@ import {
   PrometheusAlert,
   ResourceIcon,
   Timestamp,
-  useActiveNamespace,
   useResolvedExtensions,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
@@ -83,11 +82,10 @@ const PrometheusTemplate = ({ text }) => (
 
 type ActiveAlertsProps = {
   alerts: PrometheusAlert[];
-  namespace: string;
   ruleID: string;
 };
 
-export const ActiveAlerts: FC<ActiveAlertsProps> = ({ alerts, namespace, ruleID }) => {
+export const ActiveAlerts: FC<ActiveAlertsProps> = ({ alerts, ruleID }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
   const navigate = useNavigate();
@@ -110,7 +108,7 @@ export const ActiveAlerts: FC<ActiveAlertsProps> = ({ alerts, namespace, ruleID 
             <Td>
               <Link
                 data-test={DataTestIDs.AlertResourceLink}
-                to={getAlertUrl(perspective, a, ruleID, namespace)}
+                to={getAlertUrl(perspective, a, ruleID)}
               >
                 {alertDescription(a)}
               </Link>
@@ -148,7 +146,6 @@ const AlertRulesDetailsPage_: FC = () => {
   const { rules, rulesAlertLoading } = useAlerts();
 
   const { perspective } = usePerspective();
-  const [namespace] = useActiveNamespace();
 
   const rule = _.find(rules, { id: params.id });
 
@@ -187,10 +184,7 @@ const AlertRulesDetailsPage_: FC = () => {
           <PageBreadcrumb hasBodyWrapper={false}>
             <Breadcrumb>
               <BreadcrumbItem>
-                <Link
-                  to={getAlertRulesUrl(perspective, namespace)}
-                  data-test={DataTestIDs.Breadcrumb}
-                >
+                <Link to={getAlertRulesUrl(perspective)} data-test={DataTestIDs.Breadcrumb}>
                   {t('Alerting rules')}
                 </Link>
               </BreadcrumbItem>
@@ -316,7 +310,6 @@ const AlertRulesDetailsPage_: FC = () => {
                           to={getQueryBrowserUrl({
                             perspective: perspective,
                             query: rule?.query,
-                            namespace: namespace,
                           })}
                         >
                           <CodeBlock>
@@ -361,7 +354,6 @@ const AlertRulesDetailsPage_: FC = () => {
             {!sourceId || sourceId === 'prometheus' ? (
               <Graph
                 formatSeriesTitle={formatSeriesTitle}
-                namespace={namespace}
                 query={rule?.query}
                 ruleDuration={rule?.duration}
                 showLegend
@@ -372,7 +364,7 @@ const AlertRulesDetailsPage_: FC = () => {
             {_.isEmpty(rule?.alerts) ? (
               <div>{t('None found')}</div>
             ) : (
-              <ActiveAlerts alerts={rule.alerts} ruleID={rule?.id} namespace={namespace} />
+              <ActiveAlerts alerts={rule.alerts} ruleID={rule?.id} />
             )}
           </PageSection>
         </PageGroup>

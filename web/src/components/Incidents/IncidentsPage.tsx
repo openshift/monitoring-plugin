@@ -20,6 +20,8 @@ import {
   ToolbarGroup,
   Flex,
   FlexItem,
+  Alert,
+  AlertActionCloseButton,
 } from '@patternfly/react-core';
 import { IncidentsTable } from './IncidentsTable';
 import {
@@ -65,7 +67,6 @@ import IncidentFilterToolbarItem, {
   useStateOptions,
 } from './ToolbarItemFilter';
 import { MonitoringProvider } from '../../contexts/MonitoringContext';
-import { ALL_NAMESPACES_KEY } from '../utils';
 import { isEmpty } from 'lodash-es';
 import { DataTestIDs } from '../data-test';
 import { DocumentTitle } from '@openshift-console/dynamic-plugin-sdk';
@@ -75,7 +76,7 @@ const IncidentsPage = () => {
   const dispatch = useDispatch();
   const location = useLocation();
   const urlParams = useMemo(() => parseUrlParams(location.search), [location.search]);
-  const { rules } = useAlerts({ overrideNamespace: ALL_NAMESPACES_KEY });
+  const { rules } = useAlerts({ dontUseTenancy: true });
   const { theme } = usePatternFlyTheme();
   // loading states
   const [incidentsAreLoading, setIncidentsAreLoading] = useState(true);
@@ -90,6 +91,11 @@ const IncidentsPage = () => {
   >([]);
   const [hideCharts, setHideCharts] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const INCIDENTS_DATA_ALERT_DISPLAYED = 'monitoring/incidents/data-alert-displayed';
+  const [showDataDelayAlert, setShowDataDelayAlert] = useState(() => {
+    const alertDisplayed = localStorage.getItem(INCIDENTS_DATA_ALERT_DISPLAYED);
+    return !alertDisplayed;
+  });
 
   const [filtersExpanded, setFiltersExpanded] = useState<IncidentsPageFiltersExpandedState>({
     severity: false,
@@ -132,9 +138,6 @@ const IncidentsPage = () => {
     (state: MonitoringState) => state.plugins.mcp.incidentsData.incidentsActiveFilters,
   );
 
-  const alertsData = useSelector(
-    (state: MonitoringState) => state.plugins.mcp.incidentsData?.alertsData,
-  );
   const alertsAreLoading = useSelector(
     (state: MonitoringState) => state.plugins.mcp.incidentsData?.alertsAreLoading,
   );
@@ -240,15 +243,23 @@ const IncidentsPage = () => {
       )
         .then((results) => {
           const prometheusResults = results.flat();
+          const alerts = convertToAlerts(
+            prometheusResults,
+            incidentForAlertProcessing,
+            currentTime,
+          );
           dispatch(
             setAlertsData({
-              alertsData: convertToAlerts(
-                prometheusResults,
-                incidentForAlertProcessing,
-                currentTime,
-              ),
+              alertsData: alerts,
             }),
           );
+          if (rules && alerts) {
+            dispatch(
+              setAlertsTableData({
+                alertsTableData: groupAlertsForTable(alerts, rules),
+              }),
+            );
+          }
           if (!isEmpty(filteredData)) {
             dispatch(setAlertsAreLoading({ alertsAreLoading: false }));
           } else {
@@ -261,16 +272,6 @@ const IncidentsPage = () => {
         });
     })();
   }, [incidentForAlertProcessing]);
-
-  useEffect(() => {
-    if (rules && alertsData) {
-      dispatch(
-        setAlertsTableData({
-          alertsTableData: groupAlertsForTable(alertsData, rules),
-        }),
-      );
-    }
-  }, [alertsData, rules]);
 
   useEffect(() => {
     if (!isInitialized) return;
@@ -356,6 +357,18 @@ const IncidentsPage = () => {
     }
   }, [incidentsActiveFilters, filteredData, dispatch]);
 
+  useEffect(() => {
+    // Set up 5-minute timer to hide banner automatically on first visit
+    if (showDataDelayAlert) {
+      const timer = setTimeout(() => {
+        setShowDataDelayAlert(false);
+        localStorage.setItem(INCIDENTS_DATA_ALERT_DISPLAYED, 'true');
+      }, 5 * 60 * 1000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [showDataDelayAlert]);
+
   const handleIncidentChartClick = useCallback(
     (groupId) => {
       closeDropDownFilters();
@@ -395,10 +408,31 @@ const IncidentsPage = () => {
         </Bullseye>
       ) : (
         <PageSection hasBodyWrapper={false} className="incidents-page-main-section">
+          {showDataDelayAlert && (
+            <Alert
+              variant="info"
+              title="Data delay"
+              className="pf-v6-u-mb-md"
+              actionClose={
+                <AlertActionCloseButton
+                  aria-label="Close data delay alert"
+                  onClose={() => {
+                    setShowDataDelayAlert(false);
+                    localStorage.setItem(INCIDENTS_DATA_ALERT_DISPLAYED, 'true');
+                  }}
+                />
+              }
+            >
+              {t(
+                'Incident data is updated every few minutes. What you see may be up to 5 minutes old. Refresh the page to view updated information.',
+              )}
+            </Alert>
+          )}
           <Toolbar
             id="toolbar-with-filter"
             data-test={DataTestIDs.IncidentsPage.Toolbar}
             collapseListedFiltersBreakpoint="xl"
+            clearFiltersButtonText={t('Clear all filters')}
             clearAllFilters={() => {
               closeDropDownFilters();
               dispatch(
