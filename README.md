@@ -1,4 +1,5 @@
 # OpenShift Monitoring Plugin
+test
 
 This plugin runs in one of two modes, with and without feature flags. When deployed without any feature flags enabled, it will add the monitoring UI to the OpenShift web console. This is most commonly seen in the [CMO](https://github.com/openshift/cluster-monitoring-operator) deployment of it, which is shipped by default with every OpenShift cluster. Documentation for this mode is located under the [monitoring-plugin](#monitoring-plugin) heading.
 
