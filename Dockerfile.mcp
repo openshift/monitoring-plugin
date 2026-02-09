@@ -1,4 +1,4 @@
-FROM registry.redhat.io/ubi9/nodejs-22:latest AS web-builder
+FROM registry.ci.openshift.org/ocp/builder:rhel-9-base-nodejs-openshift-4.19 AS web-builder
 
 WORKDIR /opt/app-root
 
