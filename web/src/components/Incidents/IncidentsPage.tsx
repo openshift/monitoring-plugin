@@ -37,6 +37,7 @@ import {
   onDeleteIncidentFilterChip,
   onIncidentFiltersSelect,
   parseUrlParams,
+  roundTimestampToFiveMinutes,
   updateBrowserUrl,
 } from './utils';
 import { groupAlertsForTable, convertToAlerts } from './processAlerts';
@@ -243,12 +244,10 @@ const IncidentsPage = () => {
     const currentTime = incidentsLastRefreshTime;
 
     // Fetch timestamps and alerts in parallel, but wait for both before processing
-    const timestampsPromise = Promise.all(
-      ['min_over_time(timestamp(ALERTS{alertstate="firing"})[15d:5m])'].map(async (query) => {
-        const response = await fetchInstantData(safeFetch, query);
-        return response.data.result;
-      }),
-    );
+    const timestampPromise = fetchInstantData(
+      safeFetch,
+      'min_over_time(timestamp(ALERTS{alertstate="firing"})[15d:5m])',
+    ).then((res) => res.data.result);
 
     const alertsPromise = Promise.all(
       timeRanges.map(async (range) => {
@@ -261,11 +260,21 @@ const IncidentsPage = () => {
       }),
     );
 
-    Promise.all([timestampsPromise, alertsPromise])
+    Promise.all([timestampPromise, alertsPromise])
       .then(([timestampsResults, alertsResults]) => {
-        // Dispatch timestamps to store
+        // Round timestamp values before storing
+        const roundedTimestamps =
+          timestampsResults?.map((result: any) => ({
+            ...result,
+            value: [
+              result.value[0],
+              roundTimestampToFiveMinutes(parseInt(result.value[1])).toString(),
+            ],
+          })) || [];
+
         const fetchedAlertsTimestamps = {
-          minOverTime: timestampsResults[0],
+          minOverTime: roundedTimestamps,
+          lastOverTime: [],
         };
         dispatch(
           setAlertsTimestamps({
@@ -300,7 +309,7 @@ const IncidentsPage = () => {
       })
       .catch((err) => {
         // eslint-disable-next-line no-console
-        console.log(err);
+        console.error(err);
       });
   }, [incidentForAlertProcessing, timeRanges, rules]);
 
@@ -326,12 +335,10 @@ const IncidentsPage = () => {
       : 'cluster_health_components_map';
 
     // Fetch timestamps and incidents in parallel, but wait for both before processing
-    const timestampsPromise = Promise.all(
-      ['min_over_time(timestamp(cluster_health_components_map)[15d:5m])'].map(async (query) => {
-        const response = await fetchInstantData(safeFetch, query);
-        return response.data.result;
-      }),
-    );
+    const timestampPromise = fetchInstantData(
+      safeFetch,
+      'min_over_time(timestamp(cluster_health_components_map)[15d:5m])',
+    ).then((res) => res.data.result);
 
     const incidentsPromise = Promise.all(
       calculatedTimeRanges.map(async (range) => {
@@ -340,11 +347,21 @@ const IncidentsPage = () => {
       }),
     );
 
-    Promise.all([timestampsPromise, incidentsPromise])
+    Promise.all([timestampPromise, incidentsPromise])
       .then(([timestampsResults, incidentsResults]) => {
-        // Dispatch timestamps to store
+        // Round timestamp values before storing
+        const roundedTimestamps =
+          timestampsResults?.map((result: any) => ({
+            ...result,
+            value: [
+              result.value[0],
+              roundTimestampToFiveMinutes(parseInt(result.value[1])).toString(),
+            ],
+          })) || [];
+
         const fetchedTimestamps = {
-          minOverTime: timestampsResults[0],
+          minOverTime: roundedTimestamps,
+          lastOverTime: [],
         };
         dispatch(
           setIncidentsTimestamps({

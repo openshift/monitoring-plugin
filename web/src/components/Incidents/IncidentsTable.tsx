@@ -20,7 +20,6 @@ import { GroupedAlertStateIcon } from './IncidentAlertStateIcon';
 
 import { GroupedAlert } from './model';
 import { DataTestIDs } from '../data-test';
-import { roundTimestampToFiveMinutes } from './utils';
 
 export const IncidentsTable = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -181,9 +180,7 @@ export const IncidentsTable = () => {
                       )}
                     </Td>
                     <Td dataLabel={columnNames.startDate}>
-                      <Timestamp
-                        timestamp={roundTimestampToFiveMinutes(getMinStartDate(alert)) * 1000}
-                      />
+                      <Timestamp timestamp={getMinStartDate(alert) * 1000} />
                     </Td>
                     <Td
                       dataLabel={columnNames.state}

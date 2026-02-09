@@ -11,7 +11,6 @@ import { Alert, IncidentsDetailsAlert } from './model';
 import { IncidentAlertStateIcon } from './IncidentAlertStateIcon';
 import { useMemo } from 'react';
 import { DataTestIDs } from '../data-test';
-import { roundTimestampToFiveMinutes } from './utils';
 
 interface IncidentsDetailsRowTableProps {
   alerts: Alert[];
@@ -49,11 +48,9 @@ const IncidentsDetailsRowTable = ({ alerts }: IncidentsDetailsRowTableProps) => 
               <Td dataLabel="expanded-details-firingstart">
                 <Timestamp
                   timestamp={
-                    roundTimestampToFiveMinutes(
-                      alertDetails.firstTimestamp > 0
-                        ? alertDetails.firstTimestamp
-                        : alertDetails.alertsStartFiring,
-                    ) * 1000
+                    (alertDetails.firstTimestamp > 0
+                      ? alertDetails.firstTimestamp
+                      : alertDetails.alertsStartFiring) * 1000
                   }
                 />
               </Td>

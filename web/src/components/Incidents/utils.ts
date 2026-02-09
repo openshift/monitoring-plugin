@@ -341,7 +341,10 @@ export const createIncidentsChartBars = (incident: Incident, dateArray: SpanDate
 
     // to avoid certain edge cases the startDate should
     // be the minimum between alert.firstTimestamp and groupedData[i][0]
-    const startDate = Math.min(incident.firstTimestamp, groupedData[i][0]);
+    // Round the result since groupedData comes from raw time series values
+    const startDate = roundTimestampToFiveMinutes(
+      Math.min(incident.firstTimestamp, groupedData[i][0]),
+    );
 
     data.push({
       y0: new Date(groupedData[i][0] * 1000),
@@ -352,7 +355,7 @@ export const createIncidentsChartBars = (incident: Incident, dateArray: SpanDate
       componentList: incident.componentList || [],
       group_id: incident.group_id,
       nodata: groupedData[i][2] === 'nodata' ? true : false,
-      startDate: new Date(roundTimestampToFiveMinutes(startDate) * 1000),
+      startDate: new Date(startDate * 1000),
       fill:
         severity === 'Critical'
           ? barChartColorScheme.critical
@@ -413,12 +416,15 @@ export const createAlertsChartBars = (alert: IncidentsDetailsAlert): AlertsChart
 
     // to avoid certain edge cases the startDate should
     // be the minimum between alert.firstTimestamp and groupedData[i][0]
-    const startDate = Math.min(alert.firstTimestamp, groupedData[i][0]);
+    // Round the result since groupedData comes from raw time series values
+    const startDate = roundTimestampToFiveMinutes(
+      Math.min(alert.firstTimestamp, groupedData[i][0]),
+    );
 
     data.push({
       y0: new Date(groupedData[i][0] * 1000),
       y: new Date(groupedData[i][1] * 1000),
-      startDate: new Date(roundTimestampToFiveMinutes(startDate) * 1000),
+      startDate: new Date(startDate * 1000),
       x: alert.x,
       severity: alert.severity[0].toUpperCase() + alert.severity.slice(1),
       name: alert.alertname,
