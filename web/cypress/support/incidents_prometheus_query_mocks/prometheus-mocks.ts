@@ -8,8 +8,15 @@ declare global {
       mockIncidents(incidents: IncidentDefinition[]): Chainable<Element>;
       mockIncidentFixture(fixturePath: string): Chainable<Element>;
       transformMetrics(): Chainable<Element>;
+      mockPermissionDenied(endpoints?: PermissionDeniedEndpoints): Chainable<void>;
     }
   }
+}
+
+export interface PermissionDeniedEndpoints {
+  rules?: boolean;
+  silences?: boolean;
+  prometheus?: boolean;
 }
 
 export const NEW_METRIC_NAME = 'cluster_health_components_map';
@@ -147,4 +154,59 @@ Cypress.Commands.add('transformMetrics', () => {
       req.continue();
     }
   });
+});
+
+/**
+ * Mocks API endpoints to return 403 Forbidden responses.
+ * Useful for testing permission error handling in the Incidents page.
+ * 
+ * @param endpoints - Configuration for which endpoints to mock as forbidden
+ *   - rules: Mock /api/prometheus/api/v1/rules as 403
+ *   - silences: Mock /api/alertmanager/api/v2/silences as 403
+ *   - prometheus: Mock all Prometheus query endpoints as 403
+ */
+export function mockPermissionDeniedResponses(endpoints: PermissionDeniedEndpoints = {}): void {
+  const { rules = true, silences = true, prometheus = true } = endpoints;
+
+  const forbiddenResponse = {
+    statusCode: 403,
+    body: 'Forbidden',
+    headers: {
+      'content-type': 'text/plain'
+    }
+  };
+
+  if (rules) {
+    cy.intercept('GET', '/api/prometheus/api/v1/rules*', (req) => {
+      Cypress.log({ name: '403', message: `${req.method} ${req.url}` });
+      req.reply(forbiddenResponse);
+    }).as('rulesPermissionDenied');
+    cy.log('Mocking /api/prometheus/api/v1/rules as 403 Forbidden');
+  }
+
+  if (silences) {
+    cy.intercept('GET', '/api/alertmanager/api/v2/silences*', (req) => {
+      Cypress.log({ name: '403', message: `${req.method} ${req.url}` });
+      req.reply(forbiddenResponse);
+    }).as('silencesPermissionDenied');
+    cy.log('Mocking /api/alertmanager/api/v2/silences as 403 Forbidden');
+  }
+
+  if (prometheus) {
+    cy.intercept('GET', MOCK_QUERY, (req) => {
+      Cypress.log({ name: '403', message: `${req.method} ${req.url}` });
+      req.reply(forbiddenResponse);
+    }).as('prometheusQueryRangePermissionDenied');
+
+    cy.intercept('GET', /\/api\/prometheus\/api\/v1\/query\?.*/, (req) => {
+      Cypress.log({ name: '403', message: `${req.method} ${req.url}` });
+      req.reply(forbiddenResponse);
+    }).as('prometheusQueryInstantPermissionDenied');
+    cy.log('Mocking all Prometheus query endpoints as 403 Forbidden');
+  }
+}
+
+Cypress.Commands.add('mockPermissionDenied', (endpoints: PermissionDeniedEndpoints = {}) => {
+  cy.log('=== SETTING UP PERMISSION DENIED MOCKS ===');
+  mockPermissionDeniedResponses(endpoints);
 });
