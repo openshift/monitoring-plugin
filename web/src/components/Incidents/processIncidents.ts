@@ -1,7 +1,7 @@
 /* eslint-disable max-len */
 
 import { PrometheusLabels, PrometheusResult } from '@openshift-console/dynamic-plugin-sdk';
-import { Incident, IncidentsTimestamps, Metric, ProcessedIncident } from './model';
+import { IncidentsTimestamps, Metric, ProcessedIncident } from './model';
 import {
   insertPaddingPointsForChart,
   isResolved,
@@ -194,17 +194,18 @@ export const getIncidentsTimeRanges = (
 export const processIncidentsForAlerts = (
   incidents: Array<PrometheusResult>,
   incidentsTimestamps: IncidentsTimestamps,
-): Array<Partial<Incident>> => {
+) => {
   const matchedIncidents = incidents.map((incident) => {
     // expand matchTimestampMetricForIncident here
     const matchedMinTimestamp = matchTimestampMetricForIncident(
       incident.metric,
       incidentsTimestamps.minOverTime,
     );
+
     return {
       ...incident,
       firstTimestamp: parseInt(matchedMinTimestamp?.value?.[1] ?? '0'),
-    } as Partial<Incident>;
+    };
   });
 
   return matchedIncidents.map((incident, index) => {
@@ -213,12 +214,13 @@ export const processIncidentsForAlerts = (
     const silenced = incident.metric.silenced === 'true';
 
     // Return the processed incident
-    return {
+    const retval = {
       ...incident.metric,
       values: incident.values,
       x: incidents.length - index,
       silenced,
       firstTimestamp: incident.firstTimestamp,
     };
+    return retval;
   });
 };

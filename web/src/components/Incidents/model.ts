@@ -20,6 +20,7 @@ export type Incident = {
   values: Array<Timestamps>;
   metric: Metric;
   firstTimestamp: number;
+  firstTimestamps: Array<Array<any>>;
   lastTimestamp: number;
 };
 
@@ -59,7 +60,7 @@ export type Alert = {
   severity: Severity;
   silenced: boolean;
   x: number;
-  firstTimestamp: number;
+  firstTimestamps: Array<Array<any>>;
   values: Array<Timestamps>;
   alertsExpandedRowData?: Array<Alert>;
 };
@@ -114,7 +115,7 @@ export type IncidentsDetailsAlert = {
   resolved: boolean;
   severity: Severity;
   x: number;
-  firstTimestamp: number;
+  firstTimestamps: Array<Array<any>>;
   lastTimestamp: number;
   values: Array<Timestamps>;
   silenced: boolean;

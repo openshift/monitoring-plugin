@@ -25,8 +25,10 @@ const IncidentsDetailsRowTable = ({ alerts }: IncidentsDetailsRowTableProps) => 
     if (alerts && alerts.length > 0) {
       return [...alerts]
         .sort((a: IncidentsDetailsAlert, b: IncidentsDetailsAlert) => {
-          const aStart = a.firstTimestamp > 0 ? a.firstTimestamp : a.alertsStartFiring;
-          const bStart = b.firstTimestamp > 0 ? b.firstTimestamp : b.alertsStartFiring;
+          const aFirstTimestamp = a.firstTimestamps[0][1];
+          const bFirstTimestamp = b.firstTimestamps[0][1];
+          const aStart = aFirstTimestamp > 0 ? aFirstTimestamp : a.alertsStartFiring;
+          const bStart = bFirstTimestamp > 0 ? bFirstTimestamp : b.alertsStartFiring;
           return aStart - bStart;
         })
         .map((alertDetails: IncidentsDetailsAlert, rowIndex) => {
@@ -48,8 +50,8 @@ const IncidentsDetailsRowTable = ({ alerts }: IncidentsDetailsRowTableProps) => 
               <Td dataLabel="expanded-details-firingstart">
                 <Timestamp
                   timestamp={
-                    (alertDetails.firstTimestamp > 0
-                      ? alertDetails.firstTimestamp
+                    (alertDetails.firstTimestamps[0][1] > 0
+                      ? alertDetails.firstTimestamps[0][1]
                       : alertDetails.alertsStartFiring) * 1000
                   }
                 />

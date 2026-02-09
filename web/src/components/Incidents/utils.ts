@@ -335,20 +335,45 @@ export const createIncidentsChartBars = (incident: Incident, dateArray: SpanDate
     warning: t_global_color_status_warning_default.var,
   };
 
+  let prev = null;
   for (let i = 0; i < groupedData.length; i++) {
     const severity = getSeverityName(groupedData[i][2]);
     const isLastElement = i === groupedData.length - 1;
+    const isNodata = groupedData[i][2] === 'nodata';
 
-    // - To avoid certain edge cases the startDate should
-    //   be the minimum between alert.firstTimestamp and groupedData[i][0]
     // - Round the result since groupedData comes from raw time series values.
-    // - We are considering only the first element of the groupedData (i === 0)
-    //   because in the case of consecutive intervals (i.e. the incident changes priority)
-    //   we want that the end of a bar is equal to the start of the next one
-    const startDate =
-      i === 0
-        ? roundTimestampToFiveMinutes(Math.min(incident.firstTimestamp, groupedData[i][0]))
-        : groupedData[i][0];
+    let startDate = 0;
+    if (i === 0) {
+      // - For the first bar, use the incident's first timestamp (rounded)
+      //   This represents when the incident actually started
+      //   If the first interval is 'nodata', we still use incident.firstTimestamp
+      //   as the absolute start, since 'nodata' at the beginning is just visualization
+      // - Math.min is needed to handle edge cases when the incident is quite new and the firstTimestamp may be greater
+      //   than the aggregated data from the query_range
+      startDate =
+        roundTimestampToFiveMinutes(Math.min(incident.firstTimestamp, groupedData[i][0])) * 1000;
+    } else {
+      // For subsequent bars, only calculate startDate for non-nodata intervals
+      // (nodata intervals don't need accurate startDate for tooltip display)
+      if (!isNodata) {
+        if (prev) {
+          // Calculate absolute start by:
+          // Previous bar's absolute start + duration of previous bar + gap to current bar
+          // This maintains continuity in the absolute timeline
+          const prevBarDuration = prev.y.getTime() - prev.startDate.getTime();
+          const gapToCurrent = groupedData[i][0] * 1000 - prev.y.getTime();
+          startDate = prev.startDate.getTime() + prevBarDuration + gapToCurrent;
+        } else {
+          // If prev is null (e.g., first interval was 'nodata'), fall back to incident.firstTimestamp or first groupedData
+          // This ensures we always have a valid absolute start time
+          startDate = roundTimestampToFiveMinutes(Math.min(incident.firstTimestamp, groupedData[i][0])) * 1000;
+        }
+      } else {
+        // For 'nodata' intervals, we can use the interval start timestamp
+        // This is mainly for consistency, but won't be displayed in tooltips
+        startDate = groupedData[i][0] * 1000;
+      }
+    }
 
     data.push({
       y0: new Date(groupedData[i][0] * 1000),
@@ -359,7 +384,7 @@ export const createIncidentsChartBars = (incident: Incident, dateArray: SpanDate
       componentList: incident.componentList || [],
       group_id: incident.group_id,
       nodata: groupedData[i][2] === 'nodata' ? true : false,
-      startDate: new Date(startDate * 1000),
+      startDate: new Date(startDate),
       fill:
         severity === 'Critical'
           ? barChartColorScheme.critical
@@ -367,6 +392,9 @@ export const createIncidentsChartBars = (incident: Incident, dateArray: SpanDate
           ? barChartColorScheme.warning
           : barChartColorScheme.info,
     });
+    if (!isNodata) {
+      prev = data[i];
+    }
   }
 
   return data;
@@ -415,15 +443,26 @@ export const createAlertsChartBars = (alert: IncidentsDetailsAlert): AlertsChart
 
   const data = [];
 
-  for (let i = 0; i < groupedData.length; i++) {
+  let idx = alert.firstTimestamps.length - 1;
+  for (let i = groupedData.length - 1; i >= 0; i--) {
     const isLastElement = i === groupedData.length - 1;
+    const isNodata = groupedData[i][2] === 'nodata';
 
-    // to avoid certain edge cases the startDate should
-    // be the minimum between alert.firstTimestamp and groupedData[i][0]
-    // Round the result since groupedData comes from raw time series values
-    const startDate = roundTimestampToFiveMinutes(
-      Math.min(alert.firstTimestamp, groupedData[i][0]),
-    );
+    let startDate = 0;
+    if (i === 0) {
+      // For the first bar, use the minimum of alert's first timestamp and the first interval start
+      // This handles the case when the alert was created within 5 minutes
+      startDate = roundTimestampToFiveMinutes(
+        Math.min(parseInt(alert.firstTimestamps[idx][1]), groupedData[i][0]),
+      );
+      idx--;
+    } else {
+      if (!isNodata && idx >= 0) {
+        startDate = roundTimestampToFiveMinutes(parseInt(alert.firstTimestamps[idx][1]));
+        idx--;
+      }
+      // Note: If isNodata, startDate remains 0 (not used in tooltips for nodata intervals)
+    }
 
     data.push({
       y0: new Date(groupedData[i][0] * 1000),

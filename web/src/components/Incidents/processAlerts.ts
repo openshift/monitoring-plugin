@@ -277,20 +277,24 @@ export function convertToAlerts(
         resolved,
         x: 0, // Will be set after sorting
         silenced: matchingIncident.silenced ?? false,
-        firstTimestamp: 0, // Will be set from matched timestamp
+        firstTimestamps: [],
       };
 
       let matchedMinTimestamp = matchTimestampMetric(labeledAlert, alertsTimestamps.minOverTime);
-      if (matchedMinTimestamp && matchedMinTimestamp.value[1] < matchingIncident.firstTimestamp) {
+      const lastTimestampIdx = matchedMinTimestamp?.value.length - 1;
+      if (
+        matchedMinTimestamp &&
+        parseInt(matchedMinTimestamp.value[lastTimestampIdx][1]) < matchingIncident.firstTimestamp
+      ) {
         matchedMinTimestamp = {
-          value: [matchingIncident.firstTimestamp, matchingIncident.firstTimestamp.toString()],
+          value: [[matchingIncident.firstTimestamp, matchingIncident.firstTimestamp.toString()]],
         };
       }
 
       if (matchedMinTimestamp) {
         labeledAlert = {
           ...labeledAlert,
-          firstTimestamp: parseInt(matchedMinTimestamp?.value?.[1] ?? '0'),
+          firstTimestamps: matchedMinTimestamp?.value,
         } as Alert;
       }
       return labeledAlert;
