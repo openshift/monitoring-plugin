@@ -339,12 +339,16 @@ export const createIncidentsChartBars = (incident: Incident, dateArray: SpanDate
     const severity = getSeverityName(groupedData[i][2]);
     const isLastElement = i === groupedData.length - 1;
 
-    // to avoid certain edge cases the startDate should
-    // be the minimum between alert.firstTimestamp and groupedData[i][0]
-    // Round the result since groupedData comes from raw time series values
-    const startDate = roundTimestampToFiveMinutes(
-      Math.min(incident.firstTimestamp, groupedData[i][0]),
-    );
+    // - To avoid certain edge cases the startDate should
+    //   be the minimum between alert.firstTimestamp and groupedData[i][0]
+    // - Round the result since groupedData comes from raw time series values.
+    // - We are considering only the first element of the groupedData (i === 0)
+    //   because in the case of consecutive intervals (i.e. the incident changes priority)
+    //   we want that the end of a bar is equal to the start of the next one
+    const startDate =
+      i === 0
+        ? roundTimestampToFiveMinutes(Math.min(incident.firstTimestamp, groupedData[i][0]))
+        : groupedData[i][0];
 
     data.push({
       y0: new Date(groupedData[i][0] * 1000),
