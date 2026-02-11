@@ -7,7 +7,11 @@
       "href": "/monitoring/alerts",
       "perspective": "admin",
       "section": "observe",
-      "startsWith": ["monitoring/alertrules", "monitoring/silences"]
+      "startsWith": [
+        "monitoring/alertrules",
+        "monitoring/silences",
+        "monitoring/incidents"
+      ]
     }
   },
   {
@@ -16,7 +20,10 @@
         "data-quickstart-id": "qs-nav-monitoring"
       },
       "id": "observe-virt-perspective",
-      "insertBefore": ["compute-virt-perspective", "usermanagement-virt-perspective"],
+      "insertBefore": [
+        "compute-virt-perspective",
+        "usermanagement-virt-perspective"
+      ],
       "name": "%console-app~Observe%",
       "perspective": "virtualization-perspective"
     },
@@ -30,7 +37,11 @@
       "href": "/virt-monitoring/alerts",
       "perspective": "virtualization-perspective",
       "section": "observe-virt-perspective",
-      "startsWith": ["virt-monitoring/alertrules", "virt-monitoring/silences"]
+      "startsWith": [
+        "virt-monitoring/alertrules",
+        "virt-monitoring/silences",
+        "virt-monitoring/incidents"
+      ]
     }
   },
   {
@@ -103,7 +114,9 @@
     "type": "console.redux-reducer",
     "properties": {
       "scope": "mp",
-      "reducer": { "$codeRef": "MonitoringReducer" }
+      "reducer": {
+        "$codeRef": "MonitoringReducer"
+      }
     }
   },
   {
@@ -111,7 +124,9 @@
     "properties": {
       "exact": false,
       "path": "/monitoring",
-      "component": { "$codeRef": "AlertingPage.MpCmoAlertingPage" }
+      "component": {
+        "$codeRef": "AlertingPage.MpCmoAlertingPage"
+      }
     }
   },
   {
@@ -119,7 +134,9 @@
     "properties": {
       "exact": false,
       "path": "/monitoring/silences/~new",
-      "component": { "$codeRef": "SilenceCreatePage.MpCmoCreateSilencePage" }
+      "component": {
+        "$codeRef": "SilenceCreatePage.MpCmoCreateSilencePage"
+      }
     }
   },
   {
@@ -127,7 +144,9 @@
     "properties": {
       "exact": false,
       "path": "/monitoring/silences/:id",
-      "component": { "$codeRef": "SilencesDetailsPage.MpCmoSilencesDetailsPage" }
+      "component": {
+        "$codeRef": "SilencesDetailsPage.MpCmoSilencesDetailsPage"
+      }
     }
   },
   {
@@ -135,63 +154,95 @@
     "properties": {
       "exact": false,
       "path": "/monitoring/silences/:id/edit",
-      "component": { "$codeRef": "SilenceEditPage.MpCmoSilenceEditPage" }
+      "component": {
+        "$codeRef": "SilenceEditPage.MpCmoSilenceEditPage"
+      }
     }
   },
   {
     "type": "console.page/route",
     "properties": {
       "exact": false,
-      "path": ["/monitoring/targets", "/monitoring/targets/:scrapeUrl"],
-      "component": { "$codeRef": "TargetsPage.MpCmoTargetsPage" }
+      "path": [
+        "/monitoring/targets",
+        "/monitoring/targets/:scrapeUrl"
+      ],
+      "component": {
+        "$codeRef": "TargetsPage.MpCmoTargetsPage"
+      }
     }
   },
   {
     "type": "console.page/route",
     "properties": {
       "exact": false,
-      "path": ["/monitoring/query-browser"],
-      "component": { "$codeRef": "MetricsPage.MpCmoMetricsPage" }
+      "path": [
+        "/monitoring/query-browser"
+      ],
+      "component": {
+        "$codeRef": "MetricsPage.MpCmoMetricsPage"
+      }
     }
   },
   {
     "type": "console.page/route",
     "properties": {
       "exact": false,
-      "path": ["/monitoring/graph"],
-      "component": { "$codeRef": "PrometheusRedirectPage" }
+      "path": [
+        "/monitoring/graph"
+      ],
+      "component": {
+        "$codeRef": "PrometheusRedirectPage"
+      }
     }
   },
   {
     "type": "console.page/route",
     "properties": {
       "exact": false,
-      "path": ["/monitoring/dashboards", "/monitoring/dashboards/:dashboardName"],
-      "component": { "$codeRef": "LegacyDashboardsPage.MpCmoLegacyDashboardsPage" }
+      "path": [
+        "/monitoring/dashboards",
+        "/monitoring/dashboards/:dashboardName"
+      ],
+      "component": {
+        "$codeRef": "LegacyDashboardsPage.MpCmoLegacyDashboardsPage"
+      }
     }
   },
   {
     "type": "console.page/route",
     "properties": {
       "exact": false,
-      "path": ["/monitoring/alertrules/:id"],
-      "component": { "$codeRef": "AlertRulesDetailsPage.MpCmoAlertRulesDetailsPage" }
+      "path": [
+        "/monitoring/alertrules/:id"
+      ],
+      "component": {
+        "$codeRef": "AlertRulesDetailsPage.MpCmoAlertRulesDetailsPage"
+      }
     }
   },
   {
     "type": "console.page/route",
     "properties": {
       "exact": false,
-      "path": ["/monitoring/alerts/:ruleID"],
-      "component": { "$codeRef": "AlertsDetailsPage.MpCmoAlertsDetailsPage" }
+      "path": [
+        "/monitoring/alerts/:ruleID"
+      ],
+      "component": {
+        "$codeRef": "AlertsDetailsPage.MpCmoAlertsDetailsPage"
+      }
     }
   },
   {
     "type": "console.page/route",
     "properties": {
       "exact": false,
-      "path": ["/virt-monitoring"],
-      "component": { "$codeRef": "AlertingPage.MpCmoAlertingPage" }
+      "path": [
+        "/virt-monitoring"
+      ],
+      "component": {
+        "$codeRef": "AlertingPage.MpCmoAlertingPage"
+      }
     }
   },
   {
@@ -199,7 +250,9 @@
     "properties": {
       "exact": false,
       "path": "/virt-monitoring/silences/~new",
-      "component": { "$codeRef": "SilenceCreatePage.MpCmoCreateSilencePage" }
+      "component": {
+        "$codeRef": "SilenceCreatePage.MpCmoCreateSilencePage"
+      }
     }
   },
   {
@@ -207,7 +260,9 @@
     "properties": {
       "exact": false,
       "path": "/virt-monitoring/silences/:id",
-      "component": { "$codeRef": "SilencesDetailsPage.MpCmoSilencesDetailsPage" }
+      "component": {
+        "$codeRef": "SilencesDetailsPage.MpCmoSilencesDetailsPage"
+      }
     }
   },
   {
@@ -215,55 +270,83 @@
     "properties": {
       "exact": false,
       "path": "/virt-monitoring/silences/:id/edit",
-      "component": { "$codeRef": "SilenceEditPage.MpCmoSilenceEditPage" }
+      "component": {
+        "$codeRef": "SilenceEditPage.MpCmoSilenceEditPage"
+      }
     }
   },
   {
     "type": "console.page/route",
     "properties": {
       "exact": false,
-      "path": ["/virt-monitoring/targets", "/virt-monitoring/targets/:scrapeUrl"],
-      "component": { "$codeRef": "TargetsPage.MpCmoTargetsPage" }
+      "path": [
+        "/virt-monitoring/targets",
+        "/virt-monitoring/targets/:scrapeUrl"
+      ],
+      "component": {
+        "$codeRef": "TargetsPage.MpCmoTargetsPage"
+      }
     }
   },
   {
     "type": "console.page/route",
     "properties": {
       "exact": false,
-      "path": ["/virt-monitoring/query-browser"],
-      "component": { "$codeRef": "MetricsPage.MpCmoMetricsPage" }
+      "path": [
+        "/virt-monitoring/query-browser"
+      ],
+      "component": {
+        "$codeRef": "MetricsPage.MpCmoMetricsPage"
+      }
     }
   },
   {
     "type": "console.page/route",
     "properties": {
       "exact": false,
-      "path": ["/virt-monitoring/graph"],
-      "component": { "$codeRef": "PrometheusRedirectPage" }
+      "path": [
+        "/virt-monitoring/graph"
+      ],
+      "component": {
+        "$codeRef": "PrometheusRedirectPage"
+      }
     }
   },
   {
     "type": "console.page/route",
     "properties": {
       "exact": false,
-      "path": ["/virt-monitoring/dashboards", "/virt-monitoring/dashboards/:dashboardName"],
-      "component": { "$codeRef": "LegacyDashboardsPage.MpCmoLegacyDashboardsPage" }
+      "path": [
+        "/virt-monitoring/dashboards",
+        "/virt-monitoring/dashboards/:dashboardName"
+      ],
+      "component": {
+        "$codeRef": "LegacyDashboardsPage.MpCmoLegacyDashboardsPage"
+      }
     }
   },
   {
     "type": "console.page/route",
     "properties": {
       "exact": false,
-      "path": ["/virt-monitoring/alertrules/:id"],
-      "component": { "$codeRef": "AlertRulesDetailsPage.MpCmoAlertRulesDetailsPage" }
+      "path": [
+        "/virt-monitoring/alertrules/:id"
+      ],
+      "component": {
+        "$codeRef": "AlertRulesDetailsPage.MpCmoAlertRulesDetailsPage"
+      }
     }
   },
   {
     "type": "console.page/route",
     "properties": {
       "exact": false,
-      "path": ["/virt-monitoring/alerts/:ruleID"],
-      "component": { "$codeRef": "AlertsDetailsPage.MpCmoAlertsDetailsPage" }
+      "path": [
+        "/virt-monitoring/alerts/:ruleID"
+      ],
+      "component": {
+        "$codeRef": "AlertsDetailsPage.MpCmoAlertsDetailsPage"
+      }
     }
   },
   {
@@ -271,7 +354,9 @@
     "properties": {
       "exact": false,
       "path": "/dev-monitoring/ns/:ns/alerts/:ruleID",
-      "component": { "$codeRef": "DevRedirects.AlertRedirect" }
+      "component": {
+        "$codeRef": "DevRedirects.AlertRedirect"
+      }
     }
   },
   {
@@ -279,7 +364,9 @@
     "properties": {
       "exact": false,
       "path": "/dev-monitoring/ns/:ns/rules/:id",
-      "component": { "$codeRef": "DevRedirects.RulesRedirect" }
+      "component": {
+        "$codeRef": "DevRedirects.RulesRedirect"
+      }
     }
   },
   {
@@ -287,7 +374,9 @@
     "properties": {
       "exact": false,
       "path": "/dev-monitoring/ns/:ns/silences/:id",
-      "component": { "$codeRef": "DevRedirects.SilenceRedirect" }
+      "component": {
+        "$codeRef": "DevRedirects.SilenceRedirect"
+      }
     }
   },
   {
@@ -295,7 +384,9 @@
     "properties": {
       "exact": false,
       "path": "/dev-monitoring/ns/:ns/silences/:id/edit",
-      "component": { "$codeRef": "DevRedirects.SilenceEditRedirect" }
+      "component": {
+        "$codeRef": "DevRedirects.SilenceEditRedirect"
+      }
     }
   },
   {
@@ -303,7 +394,9 @@
     "properties": {
       "exact": false,
       "path": "/dev-monitoring/ns/:ns/silences/~new",
-      "component": { "$codeRef": "DevRedirects.SilenceNewRedirect" }
+      "component": {
+        "$codeRef": "DevRedirects.SilenceNewRedirect"
+      }
     }
   },
   {
@@ -311,7 +404,9 @@
     "properties": {
       "exact": false,
       "path": "/dev-monitoring/ns/:ns/metrics",
-      "component": { "$codeRef": "DevRedirects.MetricsRedirect" }
+      "component": {
+        "$codeRef": "DevRedirects.MetricsRedirect"
+      }
     }
   }
 ]
