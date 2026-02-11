@@ -39,6 +39,7 @@
     "test-cypress-coo-bvt": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@coo+@smoke --@demo'",
     "test-cypress-virtualization": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@virtualization --@flaky --@demo'",
     "test-cypress-incidents": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@incidents --@flaky --@demo'",
+    "test-cypress-incidents-e2e": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@incidents+@e2e-real --@flaky --@demo'",
     "test-cypress-smoke": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@smoke --@flaky --@demo'",
     "test-cypress-fast": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@smoke --@slow --@demo --@flaky'",
     "test-cypress-perses-dev": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@perses-dev --@demo'",
