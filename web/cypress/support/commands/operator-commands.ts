@@ -896,15 +896,12 @@ Cypress.Commands.add('beforeBlock', (MP: { namespace: string, operatorName: stri
 
 Cypress.Commands.add('beforeBlockACM', (MCP, MP) => {
   cy.beforeBlockCOO(MCP, MP);
-  cy.log('=== [Setup] Installing ACM Operator & MCO ===');
+  cy.log('=== [Setup] Installing ACM test resources ===');
   cy.exec('bash ./cypress/fixtures/coo/acm-install.sh', {
     env: { KUBECONFIG: Cypress.env('KUBECONFIG_PATH'), },
     failOnNonZeroExit: false,
     timeout: 1200000, // long time script
   });
-  cy.exec(`oc apply -f ./cypress/fixtures/coo/acm-uiplugin.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
-  // add example alerts for test
-  cy.exec(`oc apply -f ./cypress/fixtures/coo/acm-alerrule-test.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
   cy.log('ACM environment setup completed');
 });
 
