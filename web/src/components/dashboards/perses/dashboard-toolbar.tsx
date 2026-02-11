@@ -1,24 +1,28 @@
-import { Stack, Button, Box, useTheme, useMediaQuery, Alert, Tooltip } from '@mui/material';
-import { ErrorBoundary, ErrorAlert } from '@perses-dev/components';
-import { TimeRangeControls } from '@perses-dev/plugin-system';
+import { Alert, Box, Button, Stack, Tooltip, useMediaQuery, useTheme } from '@mui/material';
+import { ErrorAlert, ErrorBoundary } from '@perses-dev/components';
+import {
+  AddGroupButton,
+  AddPanelButton,
+  DashboardStickyToolbar,
+  DownloadButton,
+  EditDatasourcesButton,
+  EditJsonButton,
+  EditVariablesButton,
+  OnSaveDashboard,
+  SaveDashboardButton,
+  useDashboardActions,
+  useEditMode,
+} from '@perses-dev/dashboards';
+import { TimeRangeControls, useTimeZoneParams } from '@perses-dev/plugin-system';
 import { ReactElement, ReactNode, useCallback, useEffect } from 'react';
-import { OnSaveDashboard, useDashboardActions, useEditMode } from '@perses-dev/dashboards';
-import { AddPanelButton } from '@perses-dev/dashboards';
-import { AddGroupButton } from '@perses-dev/dashboards';
-import { DownloadButton } from '@perses-dev/dashboards';
-import { EditVariablesButton } from '@perses-dev/dashboards';
-import { EditDatasourcesButton } from '@perses-dev/dashboards';
-import { EditJsonButton } from '@perses-dev/dashboards';
-import { SaveDashboardButton } from '@perses-dev/dashboards';
-import { DashboardStickyToolbar } from '@perses-dev/dashboards';
 
-import PencilIcon from 'mdi-material-ui/PencilOutline';
-import { StackItem } from '@patternfly/react-core';
-import { DashboardDropdown } from '../shared/dashboard-dropdown';
-import * as _ from 'lodash-es';
-import { useDashboardsData } from './hooks/useDashboardsData';
 import { useAccessReview } from '@openshift-console/dynamic-plugin-sdk';
+import { StackItem } from '@patternfly/react-core';
+import * as _ from 'lodash-es';
+import PencilIcon from 'mdi-material-ui/PencilOutline';
 import { useTranslation } from 'react-i18next';
+import { DashboardDropdown } from '../shared/dashboard-dropdown';
+import { useDashboardsData } from './hooks/useDashboardsData';
 
 import { persesDashboardDataTestIDs } from '../../data-test';
 
@@ -136,6 +140,7 @@ export const OCPDashboardToolbar = (props: DashboardToolbarProps): ReactElement 
   } = props;
 
   const { isEditMode } = useEditMode();
+  const { timeZone, setTimeZone } = useTimeZoneParams('local');
 
   const isBiggerThanSm = useMediaQuery(useTheme().breakpoints.up('sm'));
   const isBiggerThanMd = useMediaQuery(useTheme().breakpoints.up('md'));
@@ -248,7 +253,10 @@ export const OCPDashboardToolbar = (props: DashboardToolbarProps): ReactElement 
           </Box>
           <Stack direction="row" ml="auto" flexWrap="wrap" justifyContent="end">
             <Stack direction="row" spacing={1} mt={1} ml={1}>
-              <TimeRangeControls />
+              <TimeRangeControls
+                timeZone={timeZone}
+                onTimeZoneChange={(tz) => setTimeZone(tz.value)}
+              />
               <DownloadButton />
               <EditJsonButton isReadonly={!isEditMode} />
             </Stack>
