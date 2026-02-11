@@ -175,6 +175,7 @@ print_current_config() {
   print_var "CYPRESS_KONFLUX_COO_BUNDLE_IMAGE" "${CYPRESS_KONFLUX_COO_BUNDLE_IMAGE-}"
   print_var "CYPRESS_CUSTOM_COO_BUNDLE_IMAGE" "${CYPRESS_CUSTOM_COO_BUNDLE_IMAGE-}"
   print_var "CYPRESS_MCP_CONSOLE_IMAGE" "${CYPRESS_MCP_CONSOLE_IMAGE-}"
+  print_var "CYPRESS_CHA_IMAGE" "${CYPRESS_CHA_IMAGE-}"
   print_var "CYPRESS_TIMEZONE" "${CYPRESS_TIMEZONE-}"
   print_var "CYPRESS_MOCK_NEW_METRICS" "${CYPRESS_MOCK_NEW_METRICS-}"
   print_var "CYPRESS_SESSION" "${CYPRESS_SESSION-}"
@@ -185,6 +186,7 @@ print_current_config() {
   print_var "CYPRESS_KONFLUX_KBV_BUNDLE_IMAGE" "${CYPRESS_KONFLUX_KBV_BUNDLE_IMAGE-}"
   print_var "CYPRESS_CUSTOM_KBV_BUNDLE_IMAGE" "${CYPRESS_CUSTOM_KBV_BUNDLE_IMAGE-}"
   print_var "CYPRESS_FBC_STAGE_KBV_IMAGE" "${CYPRESS_FBC_STAGE_KBV_IMAGE-}"
+  print_var "CYPRESS_LOGIN_IDP_DEV_USER" "${CYPRESS_LOGIN_IDP_DEV_USER-}"
 }
 
 main() {
@@ -226,6 +228,7 @@ main() {
   local def_konflux_bundle=${CYPRESS_KONFLUX_COO_BUNDLE_IMAGE-}
   local def_custom_coo_bundle=${CYPRESS_CUSTOM_COO_BUNDLE_IMAGE-}
   local def_mcp_console_image=${CYPRESS_MCP_CONSOLE_IMAGE-}
+  local def_cha_image=${CYPRESS_CHA_IMAGE-}
   local def_timezone=${CYPRESS_TIMEZONE-}
   local def_mock_new_metrics=${CYPRESS_MOCK_NEW_METRICS-}
   local def_session=${CYPRESS_SESSION-}
@@ -236,6 +239,7 @@ main() {
   local def_konflux_kbv_bundle=${CYPRESS_KONFLUX_KBV_BUNDLE_IMAGE-}
   local def_custom_kbv_bundle=${CYPRESS_CUSTOM_KBV_BUNDLE_IMAGE-}
   local def_fbc_stage_kbv_image=${CYPRESS_FBC_STAGE_KBV_IMAGE-}
+  local def_login_idp_dev_user=${CYPRESS_LOGIN_IDP_DEV_USER-}
   # Required basics
   local base_url
   while true; do
@@ -434,6 +438,9 @@ main() {
   local mcp_console_image
   mcp_console_image=$(ask "Monitoring Console Plugin UI image (CYPRESS_MCP_CONSOLE_IMAGE)" "$def_mcp_console_image")
 
+  local cha_image
+  cha_image=$(ask "Cluster Health Analyzer image (CYPRESS_CHA_IMAGE)" "$def_cha_image")
+
   local timezone
   timezone=$(ask "Cluster timezone (CYPRESS_TIMEZONE)" "${def_timezone:-UTC}")
 
@@ -476,7 +483,9 @@ main() {
   local fbc_stage_kbv_image
   fbc_stage_kbv_image=$(ask "KBV FBC image (CYPRESS_FBC_STAGE_KBV_IMAGE)" "$def_fbc_stage_kbv_image")
   
-
+  local login_idp_dev_user
+  login_idp_dev_user=$(ask "Login identity provider dev user (CYPRESS_LOGIN_IDP_DEV_USER)" "$def_login_idp_dev_user")
+  
   # Build export lines with safe quoting
   local -a export_lines
   export_lines+=("export CYPRESS_BASE_URL='$(printf %s "$base_url" | escape_for_single_quotes)'" )
@@ -499,6 +508,9 @@ main() {
   fi
   if [[ -n "$mcp_console_image" ]]; then
     export_lines+=("export CYPRESS_MCP_CONSOLE_IMAGE='$(printf %s "$mcp_console_image" | escape_for_single_quotes)'" )
+  fi
+  if [[ -n "$cha_image" ]]; then
+    export_lines+=("export CYPRESS_CHA_IMAGE='$(printf %s "$cha_image" | escape_for_single_quotes)'" )
   fi
   if [[ -n "$timezone" ]]; then
     export_lines+=("export CYPRESS_TIMEZONE='$(printf %s "$timezone" | escape_for_single_quotes)'" )
@@ -523,7 +535,9 @@ main() {
   if [[ -n "$fbc_stage_kbv_image" ]]; then
     export_lines+=("export CYPRESS_FBC_STAGE_KBV_IMAGE='$(printf %s "$fbc_stage_kbv_image" | escape_for_single_quotes)'" )
   fi
-
+  if [[ -n "$login_idp_dev_user" ]]; then
+    export_lines+=("export CYPRESS_LOGIN_IDP_DEV_USER='$(printf %s "$login_idp_dev_user" | escape_for_single_quotes)'" )
+  fi
   echo ""
   if is_sourced; then
     # Export directly into current shell
@@ -545,6 +559,7 @@ main() {
   echo "  CYPRESS_BASE_URL=$base_url"
   echo "  CYPRESS_LOGIN_IDP=$login_idp"
   echo "  CYPRESS_LOGIN_USERS=$login_users"
+  echo "  CYPRESS_LOGIN_IDP_DEV_USER=$login_idp_dev_user"
   echo "  CYPRESS_KUBECONFIG_PATH=$kubeconfig"
   [[ -n "$mp_image" ]] && echo "  CYPRESS_MP_IMAGE=$mp_image"
   [[ -n "$coo_namespace" ]] && echo "  CYPRESS_COO_NAMESPACE=$coo_namespace"
@@ -553,6 +568,7 @@ main() {
   [[ -n "$konflux_bundle" ]] && echo "  CYPRESS_KONFLUX_COO_BUNDLE_IMAGE=$konflux_bundle"
   [[ -n "$custom_coo_bundle" ]] && echo "  CYPRESS_CUSTOM_COO_BUNDLE_IMAGE=$custom_coo_bundle"
   [[ -n "$mcp_console_image" ]] && echo "  CYPRESS_MCP_CONSOLE_IMAGE=$mcp_console_image"
+  [[ -n "$cha_image" ]] && echo "  CYPRESS_CHA_IMAGE=$cha_image"
   [[ -n "$timezone" ]] && echo "  CYPRESS_TIMEZONE=$timezone"
   echo "  CYPRESS_MOCK_NEW_METRICS=$mock_new_metrics"
   echo "  CYPRESS_SESSION=$session"

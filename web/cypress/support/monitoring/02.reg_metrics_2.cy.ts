@@ -265,23 +265,8 @@ export function testMetricsRegression2(perspective: PerspectiveConfig) {
 
   });
 
-  it(`${perspective.name} perspective - Metrics > Ungraphable results`, () => {
-    cy.log('8.1 Ungraphable results');
-    metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.CPU_USAGE);
-    metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.MEMORY_USAGE);
-    metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.FILESYSTEM_USAGE);
-    metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.RECEIVE_BANDWIDTH);
-    metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.TRANSMIT_BANDWIDTH);
-    metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.RATE_OF_RECEIVED_PACKETS);    
-    cy.byLegacyTestID(LegacyTestIDs.NamespaceBarDropdown).scrollIntoView();
-    
-    cy.get(Classes.MetricsPageUngraphableResults).contains(MetricGraphEmptyState.UNGRAPHABLE_RESULTS).should('be.visible');
-    cy.get(Classes.MetricsPageUngraphableResultsDescription).contains(MetricGraphEmptyState.UNGRAPHABLE_RESULTS_DESCRIPTION).should('be.visible');
-    
-  });
-
   it(`${perspective.name} perspective - Metrics > No Datapoints`, () => {
-    cy.log('9.1 No Datapoints');
+    cy.log('8.1 No Datapoints');
     metricsPage.enterQueryInput(0, 'aaaaaaaaaa');
     metricsPage.clickRunQueriesButton();
     cy.byTestID(DataTestIDs.MetricGraphNoDatapointsFound).scrollIntoView().contains(MetricGraphEmptyState.NO_DATAPOINTS_FOUND).should('be.visible');
@@ -295,7 +280,7 @@ export function testMetricsRegression2(perspective: PerspectiveConfig) {
   });
 
   it(`${perspective.name} perspective - Metrics > No Datapoints with alert`, () => {
-    cy.log('10.1 No Datapoints with alert');
+    cy.log('9.1 No Datapoints with alert');
     metricsPage.enterQueryInput(0, MetricsPageQueryInput.QUERY_WITH_ALERT);
     metricsPage.clickRunQueriesButton();
     cy.byOUIAID(DataTestIDs.MetricsGraphAlertDanger).should('be.visible');

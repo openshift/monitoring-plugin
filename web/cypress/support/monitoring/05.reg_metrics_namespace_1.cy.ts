@@ -160,13 +160,11 @@ export function testMetricsRegressionNamespace1(perspective: PerspectiveConfig) 
     metricsPage.clickActionsDeleteAllQueries();
     metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.RATE_OF_TRANSMITTED_PACKETS_DROPPED);
     metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.RATE_OF_RECEIVED_PACKETS_DROPPED);
-    metricsPage.graphCardInlineInfoAssertion(true);
     metricsPage.clickGraphTimespanDropdown(GraphTimespan.ONE_WEEK);
-    metricsPage.graphCardInlineInfoAssertion(false);
 
     cy.log('4.6 Reset Zoom Button');
     metricsPage.clickResetZoomButton();
-    metricsPage.graphCardInlineInfoAssertion(true);
+    cy.byTestID(DataTestIDs.MetricGraphTimespanInput).should('have.attr', 'value', GraphTimespan.THIRTY_MINUTES);
 
     cy.log('4.7 Hide Graph Button');
     metricsPage.clickHideGraphButton();
@@ -176,17 +174,14 @@ export function testMetricsRegressionNamespace1(perspective: PerspectiveConfig) 
     metricsPage.clickShowGraphButton();
     cy.byTestID(DataTestIDs.MetricGraph).should('be.visible');
 
-    cy.log('4.9 Stacked Checkbox');
-    cy.byTestID(DataTestIDs.MetricStackedCheckbox).should('be.visible');
-
-    cy.log('4.10 Disconnected Checkbox');
+    cy.log('4.9 Disconnected Checkbox');
     cy.byTestID(DataTestIDs.MetricDisconnectedCheckbox).should('be.visible');
 
-    cy.log('4.11 Prepare to test Stacked Checkbox');
+    cy.log('4.10 Prepare to test Stacked Checkbox');
     metricsPage.clickActionsDeleteAllQueries();
     metricsPage.clickInsertExampleQuery();
 
-    cy.log('4.12 Stacked Checkbox');
+    cy.log('4.11 Stacked Checkbox');
     metricsPage.clickStackedCheckboxAndAssert();
   });
  

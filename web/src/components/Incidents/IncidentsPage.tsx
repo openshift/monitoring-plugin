@@ -20,7 +20,10 @@ import {
   ToolbarGroup,
   Flex,
   FlexItem,
+  Alert,
+  AlertActionCloseButton,
 } from '@patternfly/react-core';
+import { AccessDenied } from '../console/console-shared/src/components/empty-state/AccessDenied';
 import { IncidentsTable } from './IncidentsTable';
 import {
   getIncidentsTimeRanges,
@@ -78,6 +81,7 @@ const IncidentsPage = () => {
   const { theme } = usePatternFlyTheme();
   // loading states
   const [incidentsAreLoading, setIncidentsAreLoading] = useState(true);
+  const [loadError, setLoadError] = useState<Error | null>(null);
   // days span is where we store the value for creating time ranges for
   // fetch incidents/alerts based on the length of time ranges
   // when days filter changes we set a new days span -> calculate new time range and fetch new data
@@ -89,6 +93,11 @@ const IncidentsPage = () => {
   >([]);
   const [hideCharts, setHideCharts] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const INCIDENTS_DATA_ALERT_DISPLAYED = 'monitoring/incidents/data-alert-displayed';
+  const [showDataDelayAlert, setShowDataDelayAlert] = useState(() => {
+    const alertDisplayed = localStorage.getItem(INCIDENTS_DATA_ALERT_DISPLAYED);
+    return !alertDisplayed;
+  });
 
   const [filtersExpanded, setFiltersExpanded] = useState<IncidentsPageFiltersExpandedState>({
     severity: false,
@@ -131,9 +140,6 @@ const IncidentsPage = () => {
     (state: MonitoringState) => state.plugins.mcp.incidentsData.incidentsActiveFilters,
   );
 
-  const alertsData = useSelector(
-    (state: MonitoringState) => state.plugins.mcp.incidentsData?.alertsData,
-  );
   const alertsAreLoading = useSelector(
     (state: MonitoringState) => state.plugins.mcp.incidentsData?.alertsAreLoading,
   );
@@ -239,15 +245,23 @@ const IncidentsPage = () => {
       )
         .then((results) => {
           const prometheusResults = results.flat();
+          const alerts = convertToAlerts(
+            prometheusResults,
+            incidentForAlertProcessing,
+            currentTime,
+          );
           dispatch(
             setAlertsData({
-              alertsData: convertToAlerts(
-                prometheusResults,
-                incidentForAlertProcessing,
-                currentTime,
-              ),
+              alertsData: alerts,
             }),
           );
+          if (rules && alerts) {
+            dispatch(
+              setAlertsTableData({
+                alertsTableData: groupAlertsForTable(alerts, rules),
+              }),
+            );
+          }
           if (!isEmpty(filteredData)) {
             dispatch(setAlertsAreLoading({ alertsAreLoading: false }));
           } else {
@@ -257,24 +271,18 @@ const IncidentsPage = () => {
         .catch((err) => {
           // eslint-disable-next-line no-console
           console.log(err);
+
+          dispatch(setAlertsAreLoading({ alertsAreLoading: false }));
+          setLoadError(err);
         });
     })();
   }, [incidentForAlertProcessing]);
 
   useEffect(() => {
-    if (rules && alertsData) {
-      dispatch(
-        setAlertsTableData({
-          alertsTableData: groupAlertsForTable(alertsData, rules),
-        }),
-      );
-    }
-  }, [alertsData, rules]);
-
-  useEffect(() => {
     if (!isInitialized) return;
 
     setIncidentsAreLoading(true);
+    setLoadError(null);
 
     // Set refresh time before making queries
     const currentTime = getCurrentTime();
@@ -326,6 +334,10 @@ const IncidentsPage = () => {
       .catch((err) => {
         // eslint-disable-next-line no-console
         console.log(err);
+
+        setIncidentsAreLoading(false);
+        dispatch(setAlertsAreLoading({ alertsAreLoading: false }));
+        setLoadError(err);
       });
   }, [isInitialized, incidentsActiveFilters.days, selectedGroupId]);
 
@@ -354,6 +366,18 @@ const IncidentsPage = () => {
       dispatch(setAlertsAreLoading({ alertsAreLoading: false }));
     }
   }, [incidentsActiveFilters, filteredData, dispatch]);
+
+  useEffect(() => {
+    // Set up 5-minute timer to hide banner automatically on first visit
+    if (showDataDelayAlert) {
+      const timer = setTimeout(() => {
+        setShowDataDelayAlert(false);
+        localStorage.setItem(INCIDENTS_DATA_ALERT_DISPLAYED, 'true');
+      }, 5 * 60 * 1000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [showDataDelayAlert]);
 
   const handleIncidentChartClick = useCallback(
     (groupId) => {
@@ -385,7 +409,9 @@ const IncidentsPage = () => {
   return (
     <>
       <DocumentTitle>{title}</DocumentTitle>
-      {alertsAreLoading && incidentsAreLoading ? (
+      {loadError ? (
+        <AccessDenied message={loadError.message} />
+      ) : alertsAreLoading && incidentsAreLoading ? (
         <Bullseye>
           <Spinner
             aria-label="incidents-chart-spinner"
@@ -393,235 +419,261 @@ const IncidentsPage = () => {
           />
         </Bullseye>
       ) : (
-        <PageSection hasBodyWrapper={false} className="incidents-page-main-section">
-          <Toolbar
-            id="toolbar-with-filter"
-            data-test={DataTestIDs.IncidentsPage.Toolbar}
-            collapseListedFiltersBreakpoint="xl"
-            clearFiltersButtonText={t('Clear all filters')}
-            clearAllFilters={() => {
-              closeDropDownFilters();
-              dispatch(
-                setIncidentsActiveFilters({
-                  incidentsActiveFilters: {
-                    ...incidentsActiveFilters,
-                    severity: [],
-                    state: [],
-                    groupId: [],
-                  },
-                }),
-              );
-              dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
-            }}
-          >
-            <ToolbarContent>
-              <ToolbarGroup>
-                <ToolbarItem>
-                  <Select
-                    aria-label={t('Filter type selection')}
-                    data-test={DataTestIDs.IncidentsPage.FiltersSelect}
-                    isOpen={filterTypeExpanded.filterType}
-                    role="menu"
-                    selected={incidentPageFilterTypeSelected}
-                    onOpenChange={(isOpen) =>
-                      setFiltersExpanded((prev) => ({ ...prev, filterType: isOpen }))
-                    }
-                    onSelect={(event, selection) => {
-                      dispatch(setIncidentPageFilterType({ incidentPageFilterType: selection }));
-                      setFilterTypeExpanded((prev) => ({ ...prev, filterType: false }));
+        !loadError && (
+          <PageSection hasBodyWrapper={false} className="incidents-page-main-section">
+            {showDataDelayAlert && (
+              <Alert
+                variant="info"
+                title="Data delay"
+                className="pf-v6-u-mb-md"
+                actionClose={
+                  <AlertActionCloseButton
+                    aria-label="Close data delay alert"
+                    onClose={() => {
+                      setShowDataDelayAlert(false);
+                      localStorage.setItem(INCIDENTS_DATA_ALERT_DISPLAYED, 'true');
                     }}
-                    shouldFocusToggleOnSelect
+                  />
+                }
+              >
+                {t(
+                  'Incident data is updated every few minutes. What you see may be up to 5 minutes old. Refresh the page to view updated information.',
+                )}
+              </Alert>
+            )}
+            <Toolbar
+              id="toolbar-with-filter"
+              data-test={DataTestIDs.IncidentsPage.Toolbar}
+              collapseListedFiltersBreakpoint="xl"
+              clearFiltersButtonText={t('Clear all filters')}
+              clearAllFilters={() => {
+                closeDropDownFilters();
+                dispatch(
+                  setIncidentsActiveFilters({
+                    incidentsActiveFilters: {
+                      ...incidentsActiveFilters,
+                      severity: [],
+                      state: [],
+                      groupId: [],
+                    },
+                  }),
+                );
+                dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
+              }}
+            >
+              <ToolbarContent>
+                <ToolbarGroup>
+                  <ToolbarItem>
+                    <Select
+                      aria-label={t('Filter type selection')}
+                      data-test={DataTestIDs.IncidentsPage.FiltersSelect}
+                      isOpen={filterTypeExpanded.filterType}
+                      role="menu"
+                      selected={incidentPageFilterTypeSelected}
+                      onOpenChange={(isOpen) =>
+                        setFiltersExpanded((prev) => ({ ...prev, filterType: isOpen }))
+                      }
+                      onSelect={(event, selection) => {
+                        dispatch(setIncidentPageFilterType({ incidentPageFilterType: selection }));
+                        setFilterTypeExpanded((prev) => ({ ...prev, filterType: false }));
+                      }}
+                      shouldFocusToggleOnSelect
+                      toggle={(toggleRef) => (
+                        <MenuToggle
+                          ref={toggleRef}
+                          onClick={(ev) => onFilterToggle(ev, 'filterType', setFilterTypeExpanded)}
+                          isExpanded={filterTypeExpanded.filterType}
+                          icon={<FilterIcon />}
+                          data-test={DataTestIDs.IncidentsPage.FiltersSelectToggle}
+                        >
+                          {t(incidentPageFilterTypeSelected)}
+                        </MenuToggle>
+                      )}
+                      style={{ width: '145px' }}
+                    >
+                      <SelectList data-test={DataTestIDs.IncidentsPage.FiltersSelectList}>
+                        <SelectOption
+                          value="Severity"
+                          isSelected={incidentPageFilterTypeSelected?.includes('Severity')}
+                          data-test={`${DataTestIDs.IncidentsPage.FiltersSelectOption}-severity`}
+                        >
+                          {t('Severity')}
+                        </SelectOption>
+                        <SelectOption
+                          value="State"
+                          isSelected={incidentPageFilterTypeSelected?.includes('State')}
+                          data-test={`${DataTestIDs.IncidentsPage.FiltersSelectOption}-state`}
+                        >
+                          {t('State')}
+                        </SelectOption>
+                        <SelectOption
+                          value="Incident ID"
+                          isSelected={incidentPageFilterTypeSelected?.includes('Incident ID')}
+                          data-test={`${DataTestIDs.IncidentsPage.FiltersSelectOption}-incident-id`}
+                        >
+                          {t('Incident ID')}
+                        </SelectOption>
+                      </SelectList>
+                    </Select>
+                  </ToolbarItem>
+                  <ToolbarItem
+                    className={incidentPageFilterTypeSelected !== 'Severity' ? 'pf-m-hidden' : ''}
+                  >
+                    <IncidentFilterToolbarItem
+                      categoryName="Severity"
+                      toggleLabel={t('Severity filters')}
+                      options={severityOptions}
+                      incidentsActiveFilters={incidentsActiveFilters}
+                      onDeleteIncidentFilterChip={onDeleteIncidentFilterChip}
+                      onDeleteGroupIncidentFilterChip={onDeleteGroupIncidentFilterChip}
+                      incidentFilterIsExpanded={filtersExpanded.severity}
+                      onIncidentFiltersSelect={onIncidentFiltersSelect}
+                      setIncidentIsExpanded={(isExpanded) =>
+                        setFiltersExpanded((prev) => ({ ...prev, severity: isExpanded }))
+                      }
+                      onIncidentFilterToggle={(ev) =>
+                        onFilterToggle(ev, 'severity', setFiltersExpanded)
+                      }
+                      dispatch={dispatch}
+                      showToolbarItem={incidentPageFilterTypeSelected?.includes('Severity')}
+                    />
+                  </ToolbarItem>
+                  <ToolbarItem
+                    className={incidentPageFilterTypeSelected !== 'State' ? 'pf-m-hidden' : ''}
+                  >
+                    <IncidentFilterToolbarItem
+                      categoryName="State"
+                      toggleLabel={t('State filters')}
+                      options={stateOptions}
+                      incidentsActiveFilters={incidentsActiveFilters}
+                      onDeleteIncidentFilterChip={onDeleteIncidentFilterChip}
+                      onDeleteGroupIncidentFilterChip={onDeleteGroupIncidentFilterChip}
+                      incidentFilterIsExpanded={filtersExpanded.state}
+                      onIncidentFiltersSelect={onIncidentFiltersSelect}
+                      setIncidentIsExpanded={(isExpanded) =>
+                        setFiltersExpanded((prev) => ({ ...prev, state: isExpanded }))
+                      }
+                      onIncidentFilterToggle={(ev) =>
+                        onFilterToggle(ev, 'state', setFiltersExpanded)
+                      }
+                      dispatch={dispatch}
+                      showToolbarItem={incidentPageFilterTypeSelected?.includes('State')}
+                    />
+                  </ToolbarItem>
+                  <ToolbarItem
+                    className={
+                      incidentPageFilterTypeSelected !== 'Incident ID' ? 'pf-m-hidden' : ''
+                    }
+                  >
+                    <IncidentFilterToolbarItem
+                      categoryName="Incident ID"
+                      toggleLabel={t('Incident ID filters')}
+                      options={incidentIdFilterOptions}
+                      incidentsActiveFilters={incidentsActiveFilters}
+                      onDeleteIncidentFilterChip={onDeleteIncidentFilterChip}
+                      onDeleteGroupIncidentFilterChip={onDeleteGroupIncidentFilterChip}
+                      incidentFilterIsExpanded={filtersExpanded.groupId}
+                      onIncidentFiltersSelect={onIncidentFiltersSelect}
+                      setIncidentIsExpanded={(isExpanded) =>
+                        setFiltersExpanded((prev) => ({ ...prev, groupId: isExpanded }))
+                      }
+                      onIncidentFilterToggle={(ev) =>
+                        onFilterToggle(ev, 'groupId', setFiltersExpanded)
+                      }
+                      dispatch={dispatch}
+                      showToolbarItem={incidentPageFilterTypeSelected?.includes('Incident ID')}
+                    />
+                  </ToolbarItem>
+                </ToolbarGroup>
+                <ToolbarItem align={{ default: 'alignEnd' }}>
+                  <Select
+                    id="time-range-select"
+                    data-test={DataTestIDs.IncidentsPage.DaysSelect}
+                    isOpen={daysFilterIsExpanded}
+                    selected={incidentsActiveFilters.days[0]}
+                    onSelect={onSelect}
+                    onOpenChange={(isOpen) => setDaysFilterIsExpanded(isOpen)}
                     toggle={(toggleRef) => (
                       <MenuToggle
                         ref={toggleRef}
-                        onClick={(ev) => onFilterToggle(ev, 'filterType', setFilterTypeExpanded)}
-                        isExpanded={filterTypeExpanded.filterType}
-                        icon={<FilterIcon />}
-                        data-test={DataTestIDs.IncidentsPage.FiltersSelectToggle}
+                        onClick={onToggleClick}
+                        isExpanded={daysFilterIsExpanded}
+                        data-test={DataTestIDs.IncidentsPage.DaysSelectToggle}
                       >
-                        {t(incidentPageFilterTypeSelected)}
+                        {t(`Last ${incidentsActiveFilters.days[0]}`)}
                       </MenuToggle>
                     )}
-                    style={{ width: '145px' }}
+                    shouldFocusToggleOnSelect
                   >
-                    <SelectList data-test={DataTestIDs.IncidentsPage.FiltersSelectList}>
+                    <SelectList data-test={DataTestIDs.IncidentsPage.DaysSelectList}>
                       <SelectOption
-                        value="Severity"
-                        isSelected={incidentPageFilterTypeSelected?.includes('Severity')}
-                        data-test={`${DataTestIDs.IncidentsPage.FiltersSelectOption}-severity`}
+                        value="1 day"
+                        data-test={`${DataTestIDs.IncidentsPage.DaysSelectOption}-1-day`}
                       >
-                        {t('Severity')}
+                        {t('Last 1 day')}
                       </SelectOption>
                       <SelectOption
-                        value="State"
-                        isSelected={incidentPageFilterTypeSelected?.includes('State')}
-                        data-test={`${DataTestIDs.IncidentsPage.FiltersSelectOption}-state`}
+                        value="3 days"
+                        data-test={`${DataTestIDs.IncidentsPage.DaysSelectOption}-3-days`}
                       >
-                        {t('State')}
+                        {t('Last 3 days')}
                       </SelectOption>
                       <SelectOption
-                        value="Incident ID"
-                        isSelected={incidentPageFilterTypeSelected?.includes('Incident ID')}
-                        data-test={`${DataTestIDs.IncidentsPage.FiltersSelectOption}-incident-id`}
+                        value="7 days"
+                        data-test={`${DataTestIDs.IncidentsPage.DaysSelectOption}-7-days`}
                       >
-                        {t('Incident ID')}
+                        {t('Last 7 days')}
+                      </SelectOption>
+                      <SelectOption
+                        value="15 days"
+                        data-test={`${DataTestIDs.IncidentsPage.DaysSelectOption}-15-days`}
+                      >
+                        {t('Last 15 days')}
                       </SelectOption>
                     </SelectList>
                   </Select>
                 </ToolbarItem>
-                <ToolbarItem
-                  className={incidentPageFilterTypeSelected !== 'Severity' ? 'pf-m-hidden' : ''}
-                >
-                  <IncidentFilterToolbarItem
-                    categoryName="Severity"
-                    toggleLabel={t('Severity filters')}
-                    options={severityOptions}
-                    incidentsActiveFilters={incidentsActiveFilters}
-                    onDeleteIncidentFilterChip={onDeleteIncidentFilterChip}
-                    onDeleteGroupIncidentFilterChip={onDeleteGroupIncidentFilterChip}
-                    incidentFilterIsExpanded={filtersExpanded.severity}
-                    onIncidentFiltersSelect={onIncidentFiltersSelect}
-                    setIncidentIsExpanded={(isExpanded) =>
-                      setFiltersExpanded((prev) => ({ ...prev, severity: isExpanded }))
-                    }
-                    onIncidentFilterToggle={(ev) =>
-                      onFilterToggle(ev, 'severity', setFiltersExpanded)
-                    }
-                    dispatch={dispatch}
-                    showToolbarItem={incidentPageFilterTypeSelected?.includes('Severity')}
-                  />
-                </ToolbarItem>
-                <ToolbarItem
-                  className={incidentPageFilterTypeSelected !== 'State' ? 'pf-m-hidden' : ''}
-                >
-                  <IncidentFilterToolbarItem
-                    categoryName="State"
-                    toggleLabel={t('State filters')}
-                    options={stateOptions}
-                    incidentsActiveFilters={incidentsActiveFilters}
-                    onDeleteIncidentFilterChip={onDeleteIncidentFilterChip}
-                    onDeleteGroupIncidentFilterChip={onDeleteGroupIncidentFilterChip}
-                    incidentFilterIsExpanded={filtersExpanded.state}
-                    onIncidentFiltersSelect={onIncidentFiltersSelect}
-                    setIncidentIsExpanded={(isExpanded) =>
-                      setFiltersExpanded((prev) => ({ ...prev, state: isExpanded }))
-                    }
-                    onIncidentFilterToggle={(ev) => onFilterToggle(ev, 'state', setFiltersExpanded)}
-                    dispatch={dispatch}
-                    showToolbarItem={incidentPageFilterTypeSelected?.includes('State')}
-                  />
-                </ToolbarItem>
-                <ToolbarItem
-                  className={incidentPageFilterTypeSelected !== 'Incident ID' ? 'pf-m-hidden' : ''}
-                >
-                  <IncidentFilterToolbarItem
-                    categoryName="Incident ID"
-                    toggleLabel={t('Incident ID filters')}
-                    options={incidentIdFilterOptions}
-                    incidentsActiveFilters={incidentsActiveFilters}
-                    onDeleteIncidentFilterChip={onDeleteIncidentFilterChip}
-                    onDeleteGroupIncidentFilterChip={onDeleteGroupIncidentFilterChip}
-                    incidentFilterIsExpanded={filtersExpanded.groupId}
-                    onIncidentFiltersSelect={onIncidentFiltersSelect}
-                    setIncidentIsExpanded={(isExpanded) =>
-                      setFiltersExpanded((prev) => ({ ...prev, groupId: isExpanded }))
-                    }
-                    onIncidentFilterToggle={(ev) =>
-                      onFilterToggle(ev, 'groupId', setFiltersExpanded)
-                    }
-                    dispatch={dispatch}
-                    showToolbarItem={incidentPageFilterTypeSelected?.includes('Incident ID')}
-                  />
-                </ToolbarItem>
-              </ToolbarGroup>
-              <ToolbarItem align={{ default: 'alignEnd' }}>
-                <Select
-                  id="time-range-select"
-                  data-test={DataTestIDs.IncidentsPage.DaysSelect}
-                  isOpen={daysFilterIsExpanded}
-                  selected={incidentsActiveFilters.days[0]}
-                  onSelect={onSelect}
-                  onOpenChange={(isOpen) => setDaysFilterIsExpanded(isOpen)}
-                  toggle={(toggleRef) => (
-                    <MenuToggle
-                      ref={toggleRef}
-                      onClick={onToggleClick}
-                      isExpanded={daysFilterIsExpanded}
-                      data-test={DataTestIDs.IncidentsPage.DaysSelectToggle}
+              </ToolbarContent>
+            </Toolbar>
+            <Stack hasGutter>
+              <StackItem>
+                <Flex justifyContent={{ default: 'justifyContentFlexEnd' }}>
+                  <FlexItem>
+                    <Button
+                      variant="link"
+                      icon={hideCharts ? <CompressArrowsAltIcon /> : <CompressIcon />}
+                      onClick={() => setHideCharts(!hideCharts)}
+                      data-test={DataTestIDs.IncidentsPage.ToggleChartsButton}
                     >
-                      {t(`Last ${incidentsActiveFilters.days[0]}`)}
-                    </MenuToggle>
-                  )}
-                  shouldFocusToggleOnSelect
-                >
-                  <SelectList data-test={DataTestIDs.IncidentsPage.DaysSelectList}>
-                    <SelectOption
-                      value="1 day"
-                      data-test={`${DataTestIDs.IncidentsPage.DaysSelectOption}-1-day`}
-                    >
-                      {t('Last 1 day')}
-                    </SelectOption>
-                    <SelectOption
-                      value="3 days"
-                      data-test={`${DataTestIDs.IncidentsPage.DaysSelectOption}-3-days`}
-                    >
-                      {t('Last 3 days')}
-                    </SelectOption>
-                    <SelectOption
-                      value="7 days"
-                      data-test={`${DataTestIDs.IncidentsPage.DaysSelectOption}-7-days`}
-                    >
-                      {t('Last 7 days')}
-                    </SelectOption>
-                    <SelectOption
-                      value="15 days"
-                      data-test={`${DataTestIDs.IncidentsPage.DaysSelectOption}-15-days`}
-                    >
-                      {t('Last 15 days')}
-                    </SelectOption>
-                  </SelectList>
-                </Select>
-              </ToolbarItem>
-            </ToolbarContent>
-          </Toolbar>
-          <Stack hasGutter>
-            <StackItem>
-              <Flex justifyContent={{ default: 'justifyContentFlexEnd' }}>
-                <FlexItem>
-                  <Button
-                    variant="link"
-                    icon={hideCharts ? <CompressArrowsAltIcon /> : <CompressIcon />}
-                    onClick={() => setHideCharts(!hideCharts)}
-                    data-test={DataTestIDs.IncidentsPage.ToggleChartsButton}
-                  >
-                    <span>{hideCharts ? t('Show graph') : t('Hide graph')}</span>
-                  </Button>
-                </FlexItem>
-              </Flex>
-            </StackItem>
-            {!hideCharts && (
-              <>
-                <StackItem>
-                  <IncidentsChart
-                    incidentsData={filteredData}
-                    chartDays={timeRanges.length}
-                    theme={theme}
-                    selectedGroupId={selectedGroupId}
-                    onIncidentClick={handleIncidentChartClick}
-                    currentTime={incidentsLastRefreshTime}
-                    lastRefreshTime={incidentsLastRefreshTime}
-                  />
-                </StackItem>
-                <StackItem>
-                  <AlertsChart theme={theme} />
-                </StackItem>
-              </>
-            )}
-            <StackItem>
-              <IncidentsTable />
-            </StackItem>
-          </Stack>
-        </PageSection>
+                      <span>{hideCharts ? t('Show graph') : t('Hide graph')}</span>
+                    </Button>
+                  </FlexItem>
+                </Flex>
+              </StackItem>
+              {!hideCharts && (
+                <>
+                  <StackItem>
+                    <IncidentsChart
+                      incidentsData={filteredData}
+                      chartDays={timeRanges.length}
+                      theme={theme}
+                      selectedGroupId={selectedGroupId}
+                      onIncidentClick={handleIncidentChartClick}
+                      currentTime={incidentsLastRefreshTime}
+                      lastRefreshTime={incidentsLastRefreshTime}
+                    />
+                  </StackItem>
+                  <StackItem>
+                    <AlertsChart theme={theme} />
+                  </StackItem>
+                </>
+              )}
+              <StackItem>
+                <IncidentsTable />
+              </StackItem>
+            </Stack>
+          </PageSection>
+        )
       )}
     </>
   );

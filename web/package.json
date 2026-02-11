@@ -39,8 +39,11 @@
     "test-cypress-coo-bvt": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@coo+@smoke --@demo'",
     "test-cypress-virtualization": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@virtualization --@flaky --@demo'",
     "test-cypress-incidents": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@incidents --@flaky --@demo'",
+    "test-cypress-incidents-e2e": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@incidents+@e2e-real --@flaky --@demo'",
     "test-cypress-smoke": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@smoke --@flaky --@demo'",
     "test-cypress-fast": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@smoke --@slow --@demo --@flaky'",
+    "test-cypress-perses-dev": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@perses-dev --@demo'",
+    "test-cypress-perses": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@perses --@smoke --@flaky --@demo'",
     "ts-node": "ts-node -O '{\"module\":\"commonjs\"}'"
   },
   "dependencies": {
@@ -111,7 +114,6 @@
     "@types/node": "^22.17.2",
     "@types/react": "17.0.83",
     "@types/react-router-dom": "^5.3.2",
-    "@types/webpack-dev-server": "^4.7.2",
     "@typescript-eslint/eslint-plugin": "^8.39.1",
     "@typescript-eslint/parser": "^8.39.1",
     "copy-webpack-plugin": "^11.0.0",
@@ -120,6 +122,7 @@
     "cypress": "^14.2.1",
     "cypress-multi-reporters": "^1.4.0",
     "cypress-wait-until": "^3.0.2",
+    "esbuild-loader": "^4.4.2",
     "eslint": "^8.44.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.0.0",
@@ -142,7 +145,6 @@
     "style-loader": "^3.3.1",
     "swc-loader": "^0.2.6",
     "ts-jest": "^29.4.4",
-    "ts-loader": "^9.2.8",
     "ts-node": "^10.7.0",
     "typescript": "^5.9.2",
     "webpack": "^5.94.0",
@@ -153,7 +155,8 @@
     "react-router-dom": "<7"
   },
   "overrides": {
-    "echarts": "^5.6.0"
+    "echarts": "^5.6.0",
+    "qs": "^6.14.1"
   },
   "consolePlugin": {
     "name": "monitoring-plugin",
