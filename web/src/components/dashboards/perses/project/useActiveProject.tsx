@@ -11,7 +11,7 @@ import { QueryParams } from '../../../query-params';
 import { StringParam, useQueryParam } from 'use-query-params';
 
 export const useActiveProject = () => {
-  const [activeProject, setActiveProject] = useState('');
+  const [activeProject, setActiveProject] = useState<string | null>(null);
   const [activeNamespace, setActiveNamespace] = useActiveNamespace();
   const { perspective } = usePerspective();
   const { persesProjects, persesProjectsLoading } = usePerses();
@@ -24,7 +24,6 @@ export const useActiveProject = () => {
 
   // Sync the state and the URL param
   useEffect(() => {
-    // If data and url hasn't been set yet, default to legacy dashboard (for now)
     if (!activeProject && projectFromUrl) {
       setActiveProject(projectFromUrl);
       return;
@@ -32,14 +31,10 @@ export const useActiveProject = () => {
     if (persesProjectsLoading) {
       return;
     }
-    if (!activeProject && !projectFromUrl) {
-      // set to first project
-      setActiveProject(persesProjects[0]?.metadata?.name);
-      return;
-      // If activeProject isn't set yet, but the url is, then load from url
-    }
     // If the url and the data is out of sync, follow the data
-    setProject(activeProject);
+    if (activeProject) {
+      setProject(activeProject);
+    }
   }, [
     projectFromUrl,
     activeProject,

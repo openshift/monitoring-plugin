@@ -9,28 +9,28 @@ import {
 } from '@codemirror/autocomplete';
 import {
   defaultKeymap,
-  historyKeymap,
   history,
+  historyKeymap,
   insertNewlineAndIndent,
 } from '@codemirror/commands';
 import {
-  indentOnInput,
-  HighlightStyle,
   bracketMatching,
+  HighlightStyle,
+  indentOnInput,
   syntaxHighlighting,
 } from '@codemirror/language';
-import { tags } from '@lezer/highlight';
 import { lintKeymap } from '@codemirror/lint';
 import { highlightSelectionMatches } from '@codemirror/search';
 import { EditorState, Prec } from '@codemirror/state';
 import {
+  placeholder as codeMirrorPlaceholder,
   EditorView,
   highlightSpecialChars,
   keymap,
-  placeholder as codeMirrorPlaceholder,
   ViewPlugin,
   ViewUpdate,
 } from '@codemirror/view';
+import { tags } from '@lezer/highlight';
 import { PrometheusEndpoint, useActiveNamespace } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Button,
@@ -46,31 +46,30 @@ import {
 import { CloseIcon, ExclamationCircleIcon } from '@patternfly/react-icons';
 import { PromQLExtension } from '@prometheus-io/codemirror-promql';
 import type { FC } from 'react';
-import { useRef, useState, useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useSafeFetch } from '../console/utils/safe-fetch-hook';
 
-import { getPrometheusBasePath, PROMETHEUS_BASE_PATH } from '../utils';
-import { LabelNamesResponse } from '@perses-dev/prometheus-plugin';
 import {
+  t_global_color_brand_default,
+  t_global_color_nonstatus_purple_default,
+  t_global_color_nonstatus_yellow_default,
   t_global_color_status_custom_default,
   t_global_color_status_danger_default,
   t_global_color_status_success_default,
   t_global_color_status_warning_default,
-  t_global_font_weight_body_bold,
-  t_global_text_color_disabled,
-  t_global_text_color_regular,
-  t_global_spacer_xs,
-  t_global_text_color_subtle,
   t_global_font_family_mono,
   t_global_font_size_sm,
-  t_global_color_brand_default,
-  t_global_color_nonstatus_yellow_default,
-  t_global_color_nonstatus_purple_default,
+  t_global_font_weight_body_bold,
+  t_global_spacer_xs,
+  t_global_text_color_disabled,
+  t_global_text_color_regular,
+  t_global_text_color_subtle,
 } from '@patternfly/react-tokens';
-import { usePatternFlyTheme } from '../hooks/usePatternflyTheme';
 import { useMonitoring } from '../../hooks/useMonitoring';
+import { usePatternFlyTheme } from '../hooks/usePatternflyTheme';
+import { getPrometheusBasePath, PROMETHEUS_BASE_PATH } from '../utils';
 
 const box_shadow = `
     var(--pf-t--global--box-shadow--X--md--default)
@@ -327,6 +326,8 @@ export const PromQLExpressionInput: FC<PromQLExpressionInputProps> = ({
   onValueChange,
   onSelectionChange,
 }) => {
+  type LabelNamesResponse = { data?: string[] };
+
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const [namespace] = useActiveNamespace();
   const { prometheus, accessCheckLoading, useMetricsTenancy } = useMonitoring();

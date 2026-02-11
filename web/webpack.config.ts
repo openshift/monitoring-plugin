@@ -88,6 +88,8 @@ const config: Configuration = {
       patterns: [{ from: path.resolve(__dirname, 'locales'), to: 'locales' }],
     }),
     new DefinePlugin({
+      // Build-time injection of proxy path for config module
+      PERSES_PROXY_BASE_URL: JSON.stringify('/api/proxy/plugin/monitoring-console-plugin/perses'),
       'process.env.I18N_NAMESPACE': process.env.I18N_NAMESPACE
         ? JSON.stringify(process.env.I18N_NAMESPACE)
         : JSON.stringify('plugin__monitoring-plugin'),
