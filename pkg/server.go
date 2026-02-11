@@ -56,10 +56,11 @@ type PluginConfig struct {
 type Feature string
 
 const (
-	AcmAlerting      Feature = "acm-alerting"
-	Incidents        Feature = "incidents"
-	DevConfig        Feature = "dev-config"
-	PersesDashboards Feature = "perses-dashboards"
+	AcmAlerting           Feature = "acm-alerting"
+	Incidents             Feature = "incidents"
+	DevConfig             Feature = "dev-config"
+	PersesDashboards      Feature = "perses-dashboards"
+	ClusterHealthAnalyzer Feature = "cluster-health-analyzer"
 )
 
 func (pluginConfig *PluginConfig) MarshalJSON() ([]byte, error) {

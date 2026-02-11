@@ -33,7 +33,7 @@ const MP = {
   operatorName: 'Cluster Monitoring Operator',
 };
 
-describe('Regression: Time-Based Alert Resolution (E2E with Firing Alerts)', { tags: ['@incidents', '@slow'] }, () => {
+describe('Regression: Time-Based Alert Resolution (E2E with Firing Alerts)', { tags: ['@incidents', '@slow', '@e2e-real'] }, () => {
   let currentAlertName: string;
 
   before(() => {

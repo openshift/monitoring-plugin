@@ -110,18 +110,13 @@ if (process.env.NODE_ENV === 'production') {
   config.optimization.minimize = true;
   config.devtool = false;
 
-  // Use default ts-loader for prod
+  // Use default esbuild-loader for prod
   config.module.rules?.unshift({
-    test: /\.(jsx?|tsx?)$/,
-    exclude: /node_modules/,
-    use: [
-      {
-        loader: 'ts-loader',
-        options: {
-          configFile: path.resolve(__dirname, 'tsconfig.json'),
-        },
-      },
-    ],
+    test: /\.[jt]sx?$/,
+    loader: 'esbuild-loader',
+    options: {
+      target: 'es2021',
+    },
   });
 } else {
   config.module.rules?.unshift({

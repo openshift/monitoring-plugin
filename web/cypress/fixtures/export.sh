@@ -9,7 +9,8 @@
 # kubeadmin user
 export CYPRESS_BASE_URL=https://<console_route_spec_host>
 export CYPRESS_LOGIN_IDP=kube:admin
-export CYPRESS_LOGIN_USERS=kubeadmin:<password>
+export CYPRESS_LOGIN_IDP_DEV_USER=my_htpasswd_provider
+export CYPRESS_LOGIN_USERS=kubeadmin:password,user1:password,user2:password
 export CYPRESS_KUBECONFIG_PATH=~/Downloads/kubeconfig
 
 # Set the following var to use custom Monitoring Plugin image (that goes on Cluster Monitoring Operator). The image will be patched in CMO CSV.
@@ -35,6 +36,9 @@ export CYPRESS_FBC_STAGE_COO_IMAGE=<COO FBC image>
 
 # Set the following var to use custom Monitoring Console Plugin UI plugin image. The image will be patched in Cluster Observability Operator CSV.
 export CYPRESS_MCP_CONSOLE_IMAGE=<Monitoring Console Plugin image>
+
+# Set the following var to use custom cluster-health-analyzer image. The image will be patched in Cluster Observability Operator CSV.
+export CYPRESS_CHA_IMAGE=<cluster-health-analyzer image>
 
 # Set the following var to specify the cluster timezone for incident timeline calculations. Defaults to UTC if not specified.
 export CYPRESS_TIMEZONE=<timezone>

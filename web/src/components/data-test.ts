@@ -60,6 +60,7 @@ export const DataTestIDs = {
   NamespaceDropdownShowSwitch: 'showSystemSwitch',
   NamespaceDropdownTextFilter: 'dropdown-text-filter',
   PersesDashboardDropdown: 'dashboard-dropdown',
+  PersesCreateDashboardButton: 'create-dashboard-button-list-page',
   SeverityBadgeHeader: 'severity-badge-header',
   SeverityBadge: 'severity-badge',
   SilenceAlertDropdownItem: 'silence-alert-dropdown-item',
@@ -178,6 +179,12 @@ export const IDs = {
   ChartAxis1ChartLabel: 'chart-axis-1-ChartLabel', //id^=IDs.ChartAxis1ChartLabel AxisY
   persesDashboardCount: 'options-menu-top-pagination',
   persesDashboardDownloadButton: 'download-dashboard-button',
+  persesDashboardActionMenuModal: 'action-menu',
+  persesDashboardEditVariablesModalBuiltinButton: 'builtin',
+  persesDashboardAddPanelGroupForm: 'panel-group-editor-form',
+  persesDashboardAddPanelForm: 'panel-editor-form',
+  persesDashboardDiscardChangesDialog: 'discard-dialog',
+  persesDashboardCreateDashboardName: 'text-input-create-dashboard-dialog-name',
 };
 
 export const Classes = {
@@ -205,6 +212,10 @@ export const Classes = {
   MetricsPageQueryAutocomplete: '.cm-tooltip-autocomplete.cm-tooltip.cm-tooltip-below',
   MoreLessTag: '.pf-v6-c-label-group__label, .pf-v5-c-chip-group__label',
   NamespaceDropdown: '.pf-v6-c-menu-toggle.co-namespace-dropdown__menu-toggle',
+  NamespaceDropdownExpanded:
+    '.pf-v6-c-menu-toggle.pf-m-expanded.co-namespace-dropdown__menu-toggle',
+  PersesCreateDashboardProjectDropdown: '.pf-v6-c-menu-toggle.pf-m-full-width',
+  PersesCreateDashboardDashboardNameError: '.pf-v6-c-helper-text__item-text',
   PersesListDashboardCount: '.pf-v6-c-menu-toggle__text',
   SectionHeader: '.pf-v6-c-title.pf-m-h2, .co-section-heading',
   TableHeaderColumn: '.pf-v6-c-table__button, .pf-c-table__button',
@@ -226,13 +237,50 @@ export const persesAriaLabels = {
   ZoomInButton: 'Zoom in',
   ZoomOutButton: 'Zoom out',
   ViewJSONButton: 'View JSON',
+  EditJSONButton: 'Edit JSON',
+  EditVariablesButton: 'Edit variables',
+  EditDatasourcesButton: 'Edit datasources',
+  AddPanelButton: 'Add panel',
+  AddGroupButton: 'Add panel group',
+  OpenGroupButtonPrefix: 'expand group ',
+  CollapseGroupButtonPrefix: 'collapse group ',
+  //PanelGroup toolbar buttons
+  AddPanelToGroupPrefix: 'add panel to group ',
+  EditPanelGroupPrefix: 'edit group ',
+  DeletePanelGroupPrefix: 'delete group ',
+  MovePanelGroupPrefix: 'move group ',
+  MovePanelGroupDownSuffix: ' down',
+  MovePanelGroupUpSuffix: ' up',
+  EditDashboardVariablesTable: 'table of variables',
+  EditDashboardDatasourcesTable: 'table of datasources',
+  //Panel toolbar buttons
+  EditPanelActionMenuButtonPrefix: 'show panel actions for ',
+  EditPanelExpandCollapseButtonPrefix: 'toggle panel ',
+  EditPanelExpandCollapseButtonSuffix: ' view mode',
+  EditPanelPrefix: 'edit panel ',
+  EditPanelDuplicateButtonPrefix: 'duplicate panel ',
+  EditPanelDeleteButtonPrefix: 'delete panel ',
+  EditPanelMovePanelButtonPrefix: 'move panel ',
+  PanelExportTimeSeriesDataAsCSV: 'Export time series data as CSV',
+  //Add Panel tabs
+  AddPanelTabs: 'Panel configuration tabs',
 };
 
 //data-testid from MUI components
 export const persesMUIDataTestIDs = {
   variableDropdown: 'variable',
+  panelGroup: 'panel-group',
   panelGroupHeader: 'panel-group-header',
   panelHeader: 'panel',
+  editDashboardVariablesModal: 'variable-editor',
+  editDashboardDatasourcesModal: 'datasource-editor',
+  editDashboardAddVariableRunQueryButton: 'run_query_button',
+  editDashboardAddVariablePreviewValuesCopy: 'ClipboardOutlineIcon',
+  editDashboardEditVariableMoveDownButton: 'ArrowDownIcon',
+  editDashboardEditVariableMoveUpButton: 'ArrowUpIcon',
+  editDashboardEditVariableDatasourceEditButton: 'PencilIcon',
+  editDashboardEditVariableDatasourceDeleteButton: 'TrashCanIcon',
+  addPanelGroupFormName: 'panel-group-editor-name',
 };
 
 export const persesDashboardDataTestIDs = {
@@ -259,4 +307,32 @@ export const listPersesDashboardsOUIAIDs = {
   persesListDataViewFilters: 'DataViewFilters',
   persesListDataViewHeaderSortButton: 'PersesDashList-DataViewTable-th',
   persesListDataViewTableDashboardNameTD: 'PersesDashList-DataViewTable-td-',
+};
+
+//name attribute from MUI components
+export const editPersesDashboardsAddVariable = {
+  inputName: 'spec.name',
+  inputDisplayLabel: 'spec.display.name',
+  inputDescription: 'spec.display.description',
+  //type='Text'
+  inputValue: 'spec.value',
+  inputConstant: 'spec.constant',
+  //type='List'
+  inputCapturingRegexp: 'spec.capturingRegexp',
+  inputAllowMultiple: 'spec.allowMultiple',
+  inputAllowAllValue: 'spec.allowAllValue',
+  inputCustomAllValue: 'spec.customAllValue',
+};
+
+//name attribute from MUI components
+export const editPersesDashboardsAddDatasource = {
+  inputName: 'name',
+  inputDefaultDatasource: 'spec.default',
+  inputDisplayLabel: 'title',
+  inputDescription: 'description',
+};
+
+export const editPersesDashboardsAddPanel = {
+  inputName: 'panelDefinition.spec.display.name',
+  inputDescription: 'panelDefinition.spec.display.description',
 };
