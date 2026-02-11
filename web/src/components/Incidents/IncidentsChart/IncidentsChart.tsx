@@ -28,11 +28,12 @@ import {
 } from '@patternfly/react-tokens';
 import '../incidents-styles.css';
 import { IncidentsTooltip } from '../IncidentsTooltip';
-import { Incident } from '../model';
+import { Incident, IncidentsTimestamps } from '../model';
 import {
   calculateIncidentsChartDomain,
   createIncidentsChartBars,
   generateDateArray,
+  matchTimestampMetricForIncident,
   roundDateToInterval,
 } from '../utils';
 import { dateTimeFormatter, timeFormatter } from '../../console/utils/datetime';
@@ -57,6 +58,7 @@ const formatComponentList = (componentList: string[] | undefined): string => {
 
 const IncidentsChart = ({
   incidentsData,
+  incidentsTimestamps,
   chartDays,
   theme,
   selectedGroupId,
@@ -65,6 +67,7 @@ const IncidentsChart = ({
   lastRefreshTime,
 }: {
   incidentsData: Array<Incident>;
+  incidentsTimestamps: IncidentsTimestamps;
   chartDays: number;
   theme: 'light' | 'dark';
   selectedGroupId: string;
@@ -80,14 +83,29 @@ const IncidentsChart = ({
     [chartDays, currentTime],
   );
 
+  const enrichedIncidentsData = useMemo(() => {
+    return incidentsData.map((incident) => {
+      // find the matched timestamp for the incident
+      const matchedMinTimestamp = matchTimestampMetricForIncident(
+        incident,
+        incidentsTimestamps.minOverTime,
+      );
+
+      return {
+        ...incident,
+        firstTimestamp: parseInt(matchedMinTimestamp?.value?.[1] ?? '0'),
+      };
+    });
+  }, [incidentsData, incidentsTimestamps]);
+
   const { t, i18n } = useTranslation(process.env.I18N_NAMESPACE);
 
   const chartData = useMemo(() => {
-    if (!Array.isArray(incidentsData) || incidentsData.length === 0) return [];
+    if (!Array.isArray(enrichedIncidentsData) || enrichedIncidentsData.length === 0) return [];
 
     const filteredIncidents = selectedGroupId
-      ? incidentsData.filter((incident) => incident.group_id === selectedGroupId)
-      : incidentsData;
+      ? enrichedIncidentsData.filter((incident) => incident.group_id === selectedGroupId)
+      : enrichedIncidentsData;
 
     // Create chart bars and sort by original x values to maintain proper order
     const chartBars = filteredIncidents.map((incident) =>
@@ -97,12 +115,11 @@ const IncidentsChart = ({
 
     // Reassign consecutive x values to eliminate gaps between bars
     return chartBars.map((bars, index) => bars.map((bar) => ({ ...bar, x: index + 1 })));
-  }, [incidentsData, dateValues, selectedGroupId]);
+  }, [enrichedIncidentsData, dateValues, selectedGroupId]);
 
   useEffect(() => {
     setIsLoading(false);
-  }, [incidentsData]);
-
+  }, [enrichedIncidentsData]);
   useEffect(() => {
     setChartContainerHeight(chartData?.length < 5 ? 300 : chartData?.length * 60);
     setChartHeight(chartData?.length < 5 ? 250 : chartData?.length * 55);
@@ -176,7 +193,7 @@ const IncidentsChart = ({
                     if (datum.nodata) {
                       return '';
                     }
-                    const startDate = dateTimeFormatter(i18n.language).format(new Date(datum.y0));
+                    const startDate = dateTimeFormatter(i18n.language).format(datum.startDate);
                     const endDate = datum.firing
                       ? '---'
                       : dateTimeFormatter(i18n.language).format(

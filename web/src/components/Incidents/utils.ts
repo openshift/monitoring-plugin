@@ -75,6 +75,28 @@ export const roundDateToInterval = (date: Date): Date => {
 };
 
 /**
+ * Rounds a timestamp down to the nearest 5-minute boundary.
+ * This ensures consistent display of start dates in tooltips and tables,
+ * matching the rounding behavior of end dates which come from Prometheus data
+ * that is already aligned to 5-minute intervals.
+ *
+ * @param timestampSeconds - Timestamp in seconds (Prometheus format)
+ * @returns Timestamp in seconds, rounded down to the nearest 5-minute boundary
+ *
+ * @example
+ * roundTimestampToFiveMinutes(1704067200) // 1704067200 (already on boundary)
+ * roundTimestampToFiveMinutes(1704067230) // 1704067200 (rounded down)
+ * roundTimestampToFiveMinutes(1704067499) // 1704067200 (rounded down)
+ * roundTimestampToFiveMinutes(1704067500) // 1704067500 (on next boundary)
+ */
+export const roundTimestampToFiveMinutes = (timestampSeconds: number): number => {
+  return (
+    Math.floor(timestampSeconds / PROMETHEUS_QUERY_INTERVAL_SECONDS) *
+    PROMETHEUS_QUERY_INTERVAL_SECONDS
+  );
+};
+
+/**
  * Determines if an incident or alert is resolved based on the time elapsed since the last data point.
  *
  * An incident/alert is considered resolved if the last data point is older than or equal to
@@ -301,6 +323,7 @@ export const createIncidentsChartBars = (incident: Incident, dateArray: SpanDate
     componentList: string[];
     group_id: string;
     nodata: boolean;
+    startDate: Date;
     fill: string;
   }[] = [];
   const getSeverityName = (value) => {
@@ -312,9 +335,45 @@ export const createIncidentsChartBars = (incident: Incident, dateArray: SpanDate
     warning: t_global_color_status_warning_default.var,
   };
 
+  let prev = null;
   for (let i = 0; i < groupedData.length; i++) {
     const severity = getSeverityName(groupedData[i][2]);
     const isLastElement = i === groupedData.length - 1;
+    const isNodata = groupedData[i][2] === 'nodata';
+
+    // - Round the result since groupedData comes from raw time series values.
+    let startDate = 0;
+    if (i === 0) {
+      // - For the first bar, use the incident's first timestamp (rounded)
+      //   This represents when the incident actually started
+      //   If the first interval is 'nodata', we still use incident.firstTimestamp
+      //   as the absolute start, since 'nodata' at the beginning is just visualization
+      // - Math.min is needed to handle edge cases when the incident is quite new and the firstTimestamp may be greater
+      //   than the aggregated data from the query_range
+      startDate =
+        roundTimestampToFiveMinutes(Math.min(incident.firstTimestamp, groupedData[i][0])) * 1000;
+    } else {
+      // For subsequent bars, only calculate startDate for non-nodata intervals
+      // (nodata intervals don't need accurate startDate for tooltip display)
+      if (!isNodata) {
+        if (prev) {
+          // Calculate absolute start by:
+          // Previous bar's absolute start + duration of previous bar + gap to current bar
+          // This maintains continuity in the absolute timeline
+          const prevBarDuration = prev.y.getTime() - prev.startDate.getTime();
+          const gapToCurrent = groupedData[i][0] * 1000 - prev.y.getTime();
+          startDate = prev.startDate.getTime() + prevBarDuration + gapToCurrent;
+        } else {
+          // If prev is null (e.g., first interval was 'nodata'), fall back to incident.firstTimestamp or first groupedData
+          // This ensures we always have a valid absolute start time
+          startDate = roundTimestampToFiveMinutes(Math.min(incident.firstTimestamp, groupedData[i][0])) * 1000;
+        }
+      } else {
+        // For 'nodata' intervals, we can use the interval start timestamp
+        // This is mainly for consistency, but won't be displayed in tooltips
+        startDate = groupedData[i][0] * 1000;
+      }
+    }
 
     data.push({
       y0: new Date(groupedData[i][0] * 1000),
@@ -325,6 +384,7 @@ export const createIncidentsChartBars = (incident: Incident, dateArray: SpanDate
       componentList: incident.componentList || [],
       group_id: incident.group_id,
       nodata: groupedData[i][2] === 'nodata' ? true : false,
+      startDate: new Date(startDate),
       fill:
         severity === 'Critical'
           ? barChartColorScheme.critical
@@ -332,6 +392,9 @@ export const createIncidentsChartBars = (incident: Incident, dateArray: SpanDate
           ? barChartColorScheme.warning
           : barChartColorScheme.info,
     });
+    if (!isNodata) {
+      prev = data[i];
+    }
   }
 
   return data;
@@ -380,11 +443,31 @@ export const createAlertsChartBars = (alert: IncidentsDetailsAlert): AlertsChart
 
   const data = [];
 
-  for (let i = 0; i < groupedData.length; i++) {
+  let idx = alert.firstTimestamps.length - 1;
+  for (let i = groupedData.length - 1; i >= 0; i--) {
     const isLastElement = i === groupedData.length - 1;
+    const isNodata = groupedData[i][2] === 'nodata';
+
+    let startDate = 0;
+    if (i === 0) {
+      // For the first bar, use the minimum of alert's first timestamp and the first interval start
+      // This handles the case when the alert was created within 5 minutes
+      startDate = roundTimestampToFiveMinutes(
+        Math.min(parseInt(alert.firstTimestamps[idx][1]), groupedData[i][0]),
+      );
+      idx--;
+    } else {
+      if (!isNodata && idx >= 0) {
+        startDate = roundTimestampToFiveMinutes(parseInt(alert.firstTimestamps[idx][1]));
+        idx--;
+      }
+      // Note: If isNodata, startDate remains 0 (not used in tooltips for nodata intervals)
+    }
+
     data.push({
       y0: new Date(groupedData[i][0] * 1000),
       y: new Date(groupedData[i][1] * 1000),
+      startDate: new Date(startDate * 1000),
       x: alert.x,
       severity: alert.severity[0].toUpperCase() + alert.severity.slice(1),
       name: alert.alertname,
@@ -444,7 +527,6 @@ export function generateDateArray(days: number, currentTime: number): Array<numb
 
   return dateArray;
 }
-
 /**
  * Generates a dynamic date array based on the actual min/max timestamps from alerts data.
  * This creates a focused timeline that spans only the relevant alert activity period.
@@ -467,6 +549,7 @@ export function generateAlertsDateArray(
     return [now.getTime() / 1000];
   }
 
+  // Find min and max timestamps across all alerts
   let minTimestamp = Infinity;
   let maxTimestamp = -Infinity;
 
@@ -900,4 +983,25 @@ export const getFilterKey = (categoryName: string): string => {
     return 'groupId';
   }
   return categoryName.toLowerCase();
+};
+
+/**
+ * Function to match a timestamp metric for an incident based on the common labels
+ * (group_id, src_alertname, src_namespace, src_severity)
+ * @param incident - The incident to match the timestamp for
+ * @param timestamps - The timestamps to match the incident for
+ * @returns The matched timestamp
+ */
+export const matchTimestampMetricForIncident = (incident: any, timestamps: Array<any>): any => {
+  if (!timestamps || !Array.isArray(timestamps)) {
+    return undefined;
+  }
+  return timestamps.find(
+    (timestamp) =>
+      timestamp.metric.group_id === incident.group_id &&
+      timestamp.metric.src_alertname === incident.src_alertname &&
+      timestamp.metric.src_namespace === incident.src_namespace &&
+      timestamp.metric.component === incident.component &&
+      timestamp.metric.src_severity === incident.src_severity,
+  );
 };

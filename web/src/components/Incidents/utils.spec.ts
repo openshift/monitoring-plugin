@@ -1,4 +1,273 @@
-import { insertPaddingPointsForChart, roundDateToInterval } from './utils';
+import {
+  getCurrentTime,
+  insertPaddingPointsForChart,
+  roundDateToInterval,
+  matchTimestampMetricForIncident,
+  roundTimestampToFiveMinutes,
+} from './utils';
+
+describe('getCurrentTime', () => {
+  it('should return current time rounded down to 5-minute boundary', () => {
+    const result = getCurrentTime();
+    const now = Date.now();
+    const intervalMs = 300 * 1000; // 5 minutes in milliseconds
+    const expected = Math.floor(now / intervalMs) * intervalMs;
+
+    expect(result).toBe(expected);
+    expect(result % intervalMs).toBe(0); // Should be on 5-minute boundary
+  });
+
+  it('should round down to nearest 5-minute boundary', () => {
+    // Mock Date.now() to return a specific time
+    const mockTime = 1704067230 * 1000; // 2024-01-01 00:00:30 UTC (30 seconds past)
+    jest.spyOn(Date, 'now').mockReturnValue(mockTime);
+
+    const result = getCurrentTime();
+    const expected = 1704067200 * 1000; // 2024-01-01 00:00:00 UTC (rounded down)
+
+    expect(result).toBe(expected);
+
+    jest.restoreAllMocks();
+  });
+
+  it('should return same value for times on 5-minute boundaries', () => {
+    const mockTime = 1704067200 * 1000; // 2024-01-01 00:00:00 UTC (on boundary)
+    jest.spyOn(Date, 'now').mockReturnValue(mockTime);
+
+    const result = getCurrentTime();
+    expect(result).toBe(mockTime);
+
+    jest.restoreAllMocks();
+  });
+});
+
+describe('roundTimestampToFiveMinutes', () => {
+  it('should return same value when timestamp is already on 5-minute boundary', () => {
+    const timestamp = 1704067200; // 2024-01-01 00:00:00 UTC
+    const result = roundTimestampToFiveMinutes(timestamp);
+    expect(result).toBe(1704067200);
+  });
+
+  it('should round down timestamp that is 30 seconds past boundary', () => {
+    const timestamp = 1704067230; // 2024-01-01 00:00:30 UTC
+    const result = roundTimestampToFiveMinutes(timestamp);
+    expect(result).toBe(1704067200); // Rounded down to 00:00:00
+  });
+
+  it('should round down timestamp that is 4 minutes 59 seconds past boundary', () => {
+    const timestamp = 1704067499; // 2024-01-01 00:04:59 UTC
+    const result = roundTimestampToFiveMinutes(timestamp);
+    expect(result).toBe(1704067200); // Rounded down to 00:00:00
+  });
+
+  it('should return next boundary when timestamp is exactly on next boundary', () => {
+    const timestamp = 1704067500; // 2024-01-01 00:05:00 UTC
+    const result = roundTimestampToFiveMinutes(timestamp);
+    expect(result).toBe(1704067500); // Already on boundary
+  });
+
+  it('should round down timestamp that is 1 second past boundary', () => {
+    const timestamp = 1704067201; // 2024-01-01 00:00:01 UTC
+    const result = roundTimestampToFiveMinutes(timestamp);
+    expect(result).toBe(1704067200); // Rounded down
+  });
+
+  it('should handle timestamps with large values', () => {
+    const timestamp = 1735689600; // 2025-01-01 00:00:00 UTC
+    const result = roundTimestampToFiveMinutes(timestamp);
+    expect(result).toBe(1735689600);
+  });
+
+  it('should round down correctly for various offsets', () => {
+    const base = 1704067200; // 2024-01-01 00:00:00 UTC
+
+    expect(roundTimestampToFiveMinutes(base + 0)).toBe(base); // On boundary
+    expect(roundTimestampToFiveMinutes(base + 1)).toBe(base); // 1 second
+    expect(roundTimestampToFiveMinutes(base + 60)).toBe(base); // 1 minute
+    expect(roundTimestampToFiveMinutes(base + 299)).toBe(base); // 4 min 59 sec
+    expect(roundTimestampToFiveMinutes(base + 300)).toBe(base + 300); // 5 minutes (next boundary)
+    expect(roundTimestampToFiveMinutes(base + 301)).toBe(base + 300); // 5 min 1 sec
+  });
+});
+
+describe('matchTimestampMetricForIncident', () => {
+  it('should match timestamp metric when all labels match', () => {
+    const incident = {
+      group_id: 'group1',
+      src_alertname: 'TestAlert',
+      src_namespace: 'test-namespace',
+      component: 'test-component',
+      src_severity: 'critical',
+    };
+
+    const timestamps = [
+      {
+        metric: {
+          group_id: 'group1',
+          src_alertname: 'TestAlert',
+          src_namespace: 'test-namespace',
+          component: 'test-component',
+          src_severity: 'critical',
+        },
+        value: [1704067200, '1704067200'],
+      },
+      {
+        metric: {
+          group_id: 'group2',
+          src_alertname: 'OtherAlert',
+          src_namespace: 'other-namespace',
+          component: 'other-component',
+          src_severity: 'warning',
+        },
+        value: [1704067300, '1704067300'],
+      },
+    ];
+
+    const result = matchTimestampMetricForIncident(incident, timestamps);
+    expect(result).toBe(timestamps[0]);
+  });
+
+  it('should return undefined when no match is found', () => {
+    const incident = {
+      group_id: 'group1',
+      src_alertname: 'TestAlert',
+      src_namespace: 'test-namespace',
+      component: 'test-component',
+      src_severity: 'critical',
+    };
+
+    const timestamps = [
+      {
+        metric: {
+          group_id: 'group2',
+          src_alertname: 'OtherAlert',
+          src_namespace: 'other-namespace',
+          component: 'other-component',
+          src_severity: 'warning',
+        },
+        value: [1704067300, '1704067300'],
+      },
+    ];
+
+    const result = matchTimestampMetricForIncident(incident, timestamps);
+    expect(result).toBeUndefined();
+  });
+
+  const incident = {
+    group_id: 'group1',
+    src_alertname: 'Alert1',
+    src_namespace: 'ns1',
+    component: 'comp1',
+    src_severity: 'warning',
+  };
+
+  const timestamps = [
+    {
+      metric: {
+        group_id: 'group1',
+        src_alertname: 'Alert1',
+        src_namespace: 'ns1',
+        component: 'comp1',
+        src_severity: 'warning',
+      },
+      value: [1704067200, '1704067200'],
+    },
+  ];
+
+  const result = matchTimestampMetricForIncident(incident, timestamps);
+  expect(result).toBe(timestamps[0]);
+});
+
+it('should not match when group_id differs', () => {
+  const incident = {
+    group_id: 'group1',
+    src_alertname: 'TestAlert',
+    src_namespace: 'test-namespace',
+    component: 'test-component',
+    src_severity: 'critical',
+  };
+
+  const timestamps = [
+    {
+      metric: {
+        group_id: 'group2', // Different
+        src_alertname: 'TestAlert',
+        src_namespace: 'test-namespace',
+        component: 'test-component',
+        src_severity: 'critical',
+      },
+      value: [1704067200, '1704067200'],
+    },
+  ];
+
+  const result = matchTimestampMetricForIncident(incident, timestamps);
+  expect(result).toBeUndefined();
+});
+
+it('should not match when src_alertname differs', () => {
+  const incident = {
+    group_id: 'group1',
+    src_alertname: 'TestAlert',
+    src_namespace: 'test-namespace',
+    component: 'test-component',
+    src_severity: 'critical',
+  };
+
+  const timestamps = [
+    {
+      metric: {
+        group_id: 'group1',
+        src_alertname: 'OtherAlert', // Different
+        src_namespace: 'test-namespace',
+        component: 'test-component',
+        src_severity: 'critical',
+      },
+      value: [1704067200, '1704067200'],
+    },
+  ];
+
+  const result = matchTimestampMetricForIncident(incident, timestamps);
+  expect(result).toBeUndefined();
+});
+
+it('should not match when component differs', () => {
+  const incident = {
+    group_id: 'group1',
+    src_alertname: 'TestAlert',
+    src_namespace: 'test-namespace',
+    component: 'test-component',
+    src_severity: 'critical',
+  };
+
+  const timestamps = [
+    {
+      metric: {
+        group_id: 'group1',
+        src_alertname: 'TestAlert',
+        src_namespace: 'test-namespace',
+        component: 'other-component', // Different
+        src_severity: 'critical',
+      },
+      value: [1704067200, '1704067200'],
+    },
+  ];
+
+  const result = matchTimestampMetricForIncident(incident, timestamps);
+  expect(result).toBeUndefined();
+});
+
+it('should handle empty timestamps array', () => {
+  const incident = {
+    group_id: 'group1',
+    src_alertname: 'TestAlert',
+    src_namespace: 'test-namespace',
+    component: 'test-component',
+    src_severity: 'critical',
+  };
+
+  const result = matchTimestampMetricForIncident(incident, []);
+  expect(result).toBeUndefined();
+});
 
 describe('insertPaddingPointsForChart', () => {
   describe('edge cases', () => {

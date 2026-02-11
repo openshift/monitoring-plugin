@@ -1,7 +1,7 @@
 /* eslint-disable max-len */
 
 import { PrometheusResult, PrometheusRule } from '@openshift-console/dynamic-plugin-sdk';
-import { Alert, GroupedAlert, Incident, Severity } from './model';
+import { Alert, AlertsTimestamps, GroupedAlert, Incident, Severity } from './model';
 import {
   insertPaddingPointsForChart,
   isResolved,
@@ -202,6 +202,7 @@ export function convertToAlerts(
   prometheusResults: Array<PrometheusResult>,
   selectedIncidents: Array<Partial<Incident>>,
   currentTime: number,
+  alertsTimestamps: AlertsTimestamps,
 ): Array<Alert> {
   // Merge selected incidents by composite key. Consolidates duplicates caused by non-key labels
   // like `pod` or `silenced` that aren't supported by cluster health analyzer.
@@ -262,7 +263,7 @@ export function convertToAlerts(
       const firstTimestamp = paddedValues[0][0];
       lastTimestamp = paddedValues[paddedValues.length - 1][0];
 
-      return {
+      let labeledAlert: Alert = {
         alertname: alert.metric.alertname,
         namespace: alert.metric.namespace,
         severity: alert.metric.severity as Severity,
@@ -276,7 +277,27 @@ export function convertToAlerts(
         resolved,
         x: 0, // Will be set after sorting
         silenced: matchingIncident.silenced ?? false,
+        firstTimestamps: [],
       };
+
+      let matchedMinTimestamp = matchTimestampMetric(labeledAlert, alertsTimestamps.minOverTime);
+      const lastTimestampIdx = matchedMinTimestamp?.value.length - 1;
+      if (
+        matchedMinTimestamp &&
+        parseInt(matchedMinTimestamp.value[lastTimestampIdx][1]) < matchingIncident.firstTimestamp
+      ) {
+        matchedMinTimestamp = {
+          value: [[matchingIncident.firstTimestamp, matchingIncident.firstTimestamp.toString()]],
+        };
+      }
+
+      if (matchedMinTimestamp) {
+        labeledAlert = {
+          ...labeledAlert,
+          firstTimestamps: matchedMinTimestamp?.value,
+        } as Alert;
+      }
+      return labeledAlert;
     })
     .filter((alert): alert is Alert => alert !== null)
     .sort((a, b) => a.alertsStartFiring - b.alertsStartFiring)
@@ -334,4 +355,20 @@ export const groupAlertsForTable = (
   });
 
   return groupedAlerts;
+};
+
+/**
+ * Function to match a timestamp metric based on the common labels
+ * (alertname, namespace, severity)
+ * @param alert - The alert to match the timestamp for
+ * @param timestamps - The timestamps to match the alert for
+ * @returns The matched timestamp
+ */
+const matchTimestampMetric = (alert: Alert, timestamps: Array<any>): any => {
+  return timestamps.find(
+    (timestamp) =>
+      timestamp.metric.alertname === alert.alertname &&
+      timestamp.metric.namespace === alert.namespace &&
+      timestamp.metric.severity === alert.severity,
+  );
 };

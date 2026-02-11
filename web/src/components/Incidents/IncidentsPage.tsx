@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useMemo, useState, useEffect, useCallback } from 'react';
 import { useSafeFetch } from '../console/utils/safe-fetch-hook';
-import { createAlertsQuery, fetchDataForIncidentsAndAlerts } from './api';
+import { createAlertsQuery, fetchDataForIncidentsAndAlerts, fetchInstantData } from './api';
 import { useTranslation } from 'react-i18next';
 import {
   Bullseye,
@@ -37,6 +37,8 @@ import {
   onDeleteIncidentFilterChip,
   onIncidentFiltersSelect,
   parseUrlParams,
+  PROMETHEUS_QUERY_INTERVAL_SECONDS,
+  roundTimestampToFiveMinutes,
   updateBrowserUrl,
 } from './utils';
 import { groupAlertsForTable, convertToAlerts } from './processAlerts';
@@ -46,7 +48,9 @@ import {
   setAlertsAreLoading,
   setAlertsData,
   setAlertsTableData,
+  setAlertsTimestamps,
   setFilteredIncidentsData,
+  setIncidentsTimestamps,
   setIncidentPageFilterType,
   setIncidents,
   setIncidentsActiveFilters,
@@ -146,6 +150,10 @@ const IncidentsPage = () => {
     (state: MonitoringState) => state.plugins.mcp.incidentsData.filteredIncidentsData,
   );
 
+  const incidentsTimestamps = useSelector(
+    (state: MonitoringState) => state.plugins.mcp.incidentsData.incidentsTimestamps,
+  );
+
   const selectedGroupId = incidentsActiveFilters.groupId?.[0] ?? undefined;
 
   const incidentPageFilterTypeSelected = useSelector(
@@ -229,49 +237,96 @@ const IncidentsPage = () => {
   }, [incidentsActiveFilters.days]);
 
   useEffect(() => {
-    (async () => {
-      const currentTime = incidentsLastRefreshTime;
-      Promise.all(
-        timeRanges.map(async (range) => {
-          const response = await fetchDataForIncidentsAndAlerts(
-            safeFetch,
-            range,
-            createAlertsQuery(incidentForAlertProcessing),
-          );
-          return response.data.result;
-        }),
-      )
-        .then((results) => {
-          const prometheusResults = results.flat();
-          const alerts = convertToAlerts(
-            prometheusResults,
-            incidentForAlertProcessing,
-            currentTime,
-          );
+    // Guard: don't process if no incidents selected or timeRanges not ready
+    if (incidentForAlertProcessing.length === 0 || timeRanges.length === 0) {
+      return;
+    }
+
+    const currentTime = incidentsLastRefreshTime;
+    const ONE_DAY = 24 * 60 * 60 * 1000;
+
+    // Fetch timestamps and alerts in parallel, but wait for both before processing
+    const timestampPromise = fetchDataForIncidentsAndAlerts(
+      safeFetch,
+      { endTime: currentTime, duration: 15 * ONE_DAY },
+      'timestamp(ALERTS{alertstate="firing"})',
+    ).then((res) => res.data.result);
+
+    const alertsPromise = Promise.all(
+      timeRanges.map(async (range) => {
+        const response = await fetchDataForIncidentsAndAlerts(
+          safeFetch,
+          range,
+          createAlertsQuery(incidentForAlertProcessing),
+        );
+        return response.data.result;
+      }),
+    );
+
+    Promise.all([timestampPromise, alertsPromise])
+      .then(([timestampsResults, alertsResults]) => {
+        // Gaps detection here such that if the same timestamp has
+        // gaps greater than 5 minutes, this will be added more than one time.
+        // For example, if there is a metric for AlertH_Gapped
+        // with values:[ "1770699000", "1770699300", "1770708300", "1770708600", "1770708900"]
+        // there will be two gaps detected. With the following min values: 1770699300 and 1770699300
+        // the interval will be [1770699300 - 1770699300] and [1770708300 - 1770699300]
+
+        const timestampsValues = timestampsResults?.map((result: any) => ({
+          ...result,
+          value: detectMinForEachGap(result.values, PROMETHEUS_QUERY_INTERVAL_SECONDS),
+        }));
+
+        // Round timestamp values before storing
+        const roundedTimestamps =
+          timestampsValues?.map((result: any) => ({
+            ...result,
+            value: result.value.map((value: any) => [
+              value[0],
+              roundTimestampToFiveMinutes(parseInt(value[1])).toString(),
+            ]),
+          })) || [];
+
+        const fetchedAlertsTimestamps = {
+          minOverTime: roundedTimestamps,
+          lastOverTime: [],
+        };
+        dispatch(
+          setAlertsTimestamps({
+            alertsTimestamps: fetchedAlertsTimestamps,
+          }),
+        );
+
+        const prometheusResults = alertsResults.flat();
+        const alerts = convertToAlerts(
+          prometheusResults,
+          incidentForAlertProcessing,
+          currentTime,
+          fetchedAlertsTimestamps,
+        );
+        dispatch(
+          setAlertsData({
+            alertsData: alerts,
+          }),
+        );
+        if (rules && alerts) {
           dispatch(
-            setAlertsData({
-              alertsData: alerts,
+            setAlertsTableData({
+              alertsTableData: groupAlertsForTable(alerts, rules),
             }),
           );
-          if (rules && alerts) {
-            dispatch(
-              setAlertsTableData({
-                alertsTableData: groupAlertsForTable(alerts, rules),
-              }),
-            );
-          }
-          if (!isEmpty(filteredData)) {
-            dispatch(setAlertsAreLoading({ alertsAreLoading: false }));
-          } else {
-            dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
-          }
-        })
-        .catch((err) => {
-          // eslint-disable-next-line no-console
-          console.log(err);
-        });
-    })();
-  }, [incidentForAlertProcessing]);
+        }
+        if (!isEmpty(filteredData)) {
+          dispatch(setAlertsAreLoading({ alertsAreLoading: false }));
+        } else {
+          dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
+        }
+      })
+      .catch((err) => {
+        // eslint-disable-next-line no-console
+        console.error(err);
+      });
+  }, [incidentForAlertProcessing, timeRanges, rules]);
 
   useEffect(() => {
     if (!isInitialized) return;
@@ -294,14 +349,42 @@ const IncidentsPage = () => {
       ? `cluster_health_components_map{group_id='${selectedGroupId}'}`
       : 'cluster_health_components_map';
 
-    Promise.all(
+    // Fetch timestamps and incidents in parallel, but wait for both before processing
+    const timestampPromise = fetchInstantData(
+      safeFetch,
+      'min_over_time(timestamp(cluster_health_components_map)[15d:5m])',
+    ).then((res) => res.data.result);
+
+    const incidentsPromise = Promise.all(
       calculatedTimeRanges.map(async (range) => {
         const response = await fetchDataForIncidentsAndAlerts(safeFetch, range, incidentsQuery);
         return response.data.result;
       }),
-    )
-      .then((results) => {
-        const prometheusResults = results.flat();
+    );
+
+    Promise.all([timestampPromise, incidentsPromise])
+      .then(([timestampsResults, incidentsResults]) => {
+        // Round timestamp values before storing
+        const roundedTimestamps =
+          timestampsResults?.map((result: any) => ({
+            ...result,
+            value: [
+              result.value[0],
+              roundTimestampToFiveMinutes(parseInt(result.value[1])).toString(),
+            ],
+          })) || [];
+
+        const fetchedTimestamps = {
+          minOverTime: roundedTimestamps,
+          lastOverTime: [],
+        };
+        dispatch(
+          setIncidentsTimestamps({
+            incidentsTimestamps: fetchedTimestamps,
+          }),
+        );
+
+        const prometheusResults = incidentsResults.flat();
         const incidents = convertToIncidents(prometheusResults, currentTime);
 
         // Update the raw, unfiltered incidents state
@@ -317,7 +400,10 @@ const IncidentsPage = () => {
         setIncidentsAreLoading(false);
 
         if (isGroupSelected) {
-          setIncidentForAlertProcessing(processIncidentsForAlerts(prometheusResults));
+          // Use fetchedTimestamps directly instead of stale closure value
+          setIncidentForAlertProcessing(
+            processIncidentsForAlerts(prometheusResults, fetchedTimestamps),
+          );
           dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
         } else {
           closeDropDownFilters();
@@ -638,6 +724,7 @@ const IncidentsPage = () => {
                 <StackItem>
                   <IncidentsChart
                     incidentsData={filteredData}
+                    incidentsTimestamps={incidentsTimestamps}
                     chartDays={timeRanges.length}
                     theme={theme}
                     selectedGroupId={selectedGroupId}
@@ -671,4 +758,31 @@ export const McpCmoAlertingPage = () => {
       <IncidentsPageWithFallback />
     </MonitoringProvider>
   );
+};
+
+/**
+ * @param {Array<Array>} dataValues - The matrix from out.json (data.result[0].values)
+ * @param {number} gapThreshold - e.g., 300
+ */
+const detectMinForEachGap = (dataValues, gapThreshold) => {
+  if (!dataValues || dataValues.length === 0) return [];
+
+  const mins = [];
+  let currentMin = dataValues[0];
+
+  // Start from the second element to compare with the previous one
+  for (let i = 1; i < dataValues.length; i++) {
+    const delta = dataValues[i][1] - dataValues[i - 1][1];
+
+    if (delta > gapThreshold) {
+      // Gap detected: save the min of the interval that just ended
+      mins.push(currentMin);
+      // The current timestamp is the min of the NEW interval
+      currentMin = dataValues[i];
+    }
+  }
+
+  // Always push the min of the last interval
+  mins.push(currentMin);
+  return mins;
 };

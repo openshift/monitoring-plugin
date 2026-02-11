@@ -1,8 +1,13 @@
 /* eslint-disable max-len */
 
 import { PrometheusLabels, PrometheusResult } from '@openshift-console/dynamic-plugin-sdk';
-import { Incident, Metric, ProcessedIncident } from './model';
-import { insertPaddingPointsForChart, isResolved, sortByEarliestTimestamp } from './utils';
+import { IncidentsTimestamps, Metric, ProcessedIncident } from './model';
+import {
+  insertPaddingPointsForChart,
+  isResolved,
+  matchTimestampMetricForIncident,
+  sortByEarliestTimestamp,
+} from './utils';
 
 /**
  * Converts Prometheus results into processed incidents, filtering out Watchdog incidents.
@@ -188,18 +193,34 @@ export const getIncidentsTimeRanges = (
  */
 export const processIncidentsForAlerts = (
   incidents: Array<PrometheusResult>,
-): Array<Partial<Incident>> => {
-  return incidents.map((incident, index) => {
+  incidentsTimestamps: IncidentsTimestamps,
+) => {
+  const matchedIncidents = incidents.map((incident) => {
+    // expand matchTimestampMetricForIncident here
+    const matchedMinTimestamp = matchTimestampMetricForIncident(
+      incident.metric,
+      incidentsTimestamps.minOverTime,
+    );
+
+    return {
+      ...incident,
+      firstTimestamp: parseInt(matchedMinTimestamp?.value?.[1] ?? '0'),
+    };
+  });
+
+  return matchedIncidents.map((incident, index) => {
     // Read silenced value from cluster_health_components_map metric label
     // If missing, default to false
     const silenced = incident.metric.silenced === 'true';
 
     // Return the processed incident
-    return {
+    const retval = {
       ...incident.metric,
       values: incident.values,
       x: incidents.length - index,
       silenced,
+      firstTimestamp: incident.firstTimestamp,
     };
+    return retval;
   });
 };

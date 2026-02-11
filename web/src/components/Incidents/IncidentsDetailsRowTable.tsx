@@ -24,10 +24,13 @@ const IncidentsDetailsRowTable = ({ alerts }: IncidentsDetailsRowTableProps) => 
   const sortedAndMappedAlerts = useMemo(() => {
     if (alerts && alerts.length > 0) {
       return [...alerts]
-        .sort(
-          (a: IncidentsDetailsAlert, b: IncidentsDetailsAlert) =>
-            a.alertsStartFiring - b.alertsStartFiring,
-        )
+        .sort((a: IncidentsDetailsAlert, b: IncidentsDetailsAlert) => {
+          const aFirstTimestamp = a.firstTimestamps[0][1];
+          const bFirstTimestamp = b.firstTimestamps[0][1];
+          const aStart = aFirstTimestamp > 0 ? aFirstTimestamp : a.alertsStartFiring;
+          const bStart = bFirstTimestamp > 0 ? bFirstTimestamp : b.alertsStartFiring;
+          return aStart - bStart;
+        })
         .map((alertDetails: IncidentsDetailsAlert, rowIndex) => {
           return (
             <Tr key={rowIndex}>
@@ -45,13 +48,25 @@ const IncidentsDetailsRowTable = ({ alerts }: IncidentsDetailsRowTableProps) => 
                 <SeverityBadge severity={alertDetails.severity} />
               </Td>
               <Td dataLabel="expanded-details-firingstart">
-                <Timestamp timestamp={alertDetails.alertsStartFiring * 1000} />
+                <Timestamp
+                  timestamp={
+                    (alertDetails.firstTimestamps[0][1] > 0
+                      ? alertDetails.firstTimestamps[0][1]
+                      : alertDetails.alertsStartFiring) * 1000
+                  }
+                />
               </Td>
               <Td dataLabel="expanded-details-firingend">
                 {!alertDetails.resolved ? (
                   '---'
                 ) : (
-                  <Timestamp timestamp={alertDetails.alertsEndFiring * 1000} />
+                  <Timestamp
+                    timestamp={
+                      (alertDetails.lastTimestamp > 0
+                        ? alertDetails.lastTimestamp
+                        : alertDetails.alertsEndFiring) * 1000
+                    }
+                  />
                 )}
               </Td>
               <Td dataLabel="expanded-details-alertstate">
