@@ -1,5 +1,5 @@
-import { IncidentDefinition, PrometheusResponse, IncidentScenarioFixture } from './types';
-import { createIncidentMock, createAlertDetailsMock } from './mock-generators';
+import { IncidentDefinition, PrometheusResponse, PrometheusInstantResponse, IncidentScenarioFixture } from './types';
+import { createIncidentMock, createAlertDetailsMock, createIncidentTimestampMock, createAlertTimestampMock } from './mock-generators';
 import { convertFixtureToIncidents, parseYamlFixture } from './schema/fixture-converter';
 
 declare global {
@@ -14,7 +14,8 @@ declare global {
 
 export const NEW_METRIC_NAME = 'cluster_health_components_map';
 export const OLD_METRIC_NAME = 'cluster:health:components:map';
-const MOCK_QUERY = '/api/prometheus/api/v1/query_range*';
+const MOCK_QUERY_RANGE = '/api/prometheus/api/v1/query_range*';
+const MOCK_QUERY_INSTANT = /\/api\/prometheus\/api\/v1\/query\?.*/;
 
 /**
  * Main mocking function - sets up cy.intercept for Prometheus query_range API
@@ -25,7 +26,7 @@ const MOCK_QUERY = '/api/prometheus/api/v1/query_range*';
  * @param incidents - Array of incident definitions to mock
  */
 export function mockPrometheusQueryRange(incidents: IncidentDefinition[]): void {
-  cy.intercept('GET', MOCK_QUERY, (req) => {
+  cy.intercept('GET', MOCK_QUERY_RANGE, (req) => {
     const url = new URL(req.url, window.location.origin);
     const query = url.searchParams.get('query') || '';
     const startTime = url.searchParams.get('start');
@@ -66,6 +67,49 @@ export function mockPrometheusQueryRange(incidents: IncidentDefinition[]): void 
   });
 }
 
+/**
+ * Mocks instant queries for min_over_time timestamp lookups
+ * Used for absolute start timestamps of incidents and alerts
+ */
+export function mockPrometheusInstantQuery(incidents: IncidentDefinition[]): void {
+  cy.intercept('GET', MOCK_QUERY_INSTANT, (req) => {
+    const url = new URL(req.url, window.location.origin);
+    const query = url.searchParams.get('query') || '';
+
+    console.log(`INTERCEPTED INSTANT: ${req.method} ${req.url}`);
+    console.log(`Query: ${query}`);
+
+    if (query.includes('min_over_time') && query.includes('timestamp')) {
+      let results: any[];
+      
+      if (query.includes(NEW_METRIC_NAME) || query.includes(OLD_METRIC_NAME)) {
+        results = createIncidentTimestampMock(incidents);
+      } else if (query.includes('ALERTS')) {
+        results = createAlertTimestampMock(incidents);
+      } else {
+        console.log('Passing through non-mocked instant query');
+        req.continue();
+        return;
+      }
+
+      const response: PrometheusInstantResponse = {
+        status: 'success',
+        data: {
+          resultType: 'vector',
+          result: results
+        }
+      };
+
+      console.log(`Responding with ${results.length} timestamp results`);
+      req.reply(response);
+      return;
+    }
+
+    console.log('Passing through non-mocked instant query');
+    req.continue();
+  });
+}
+
 Cypress.Commands.add('mockIncidents', (incidents: IncidentDefinition[]) => {
   cy.log(`=== SETTING UP INCIDENT MOCKING (${incidents.length} incidents) ===`);
   if (!Array.isArray(incidents)) {
@@ -81,6 +125,7 @@ Cypress.Commands.add('mockIncidents', (incidents: IncidentDefinition[]) => {
 
   cy.log(`=== SETTING UP INCIDENT MOCKING (${incidents.length} incidents) ===`);
   mockPrometheusQueryRange(incidents);
+  mockPrometheusInstantQuery(incidents);
   // The mocking is not applied until the page is reloaded and the components fetch the new data
   cy.reload();
 });
@@ -92,12 +137,14 @@ Cypress.Commands.add('mockIncidentFixture', (fixturePath: string) => {
       const incidents = convertFixtureToIncidents(fixture);
       cy.log(`=== SETTING UP YAML FIXTURE: ${fixture.name} (${incidents.length} incidents) ===`);
       mockPrometheusQueryRange(incidents);
+      mockPrometheusInstantQuery(incidents);
     });
   } else {
     cy.fixture(fixturePath).then((fixture: IncidentScenarioFixture) => {
       const incidents = convertFixtureToIncidents(fixture);
       cy.log(`=== SETTING UP JSON FIXTURE: ${fixture.name} (${incidents.length} incidents) ===`);
       mockPrometheusQueryRange(incidents);
+      mockPrometheusInstantQuery(incidents);
     });
   }
 
@@ -118,7 +165,7 @@ Cypress.Commands.add('transformMetrics', () => {
 
   cy.log('Transforming old metric queries to new format');
   
-  cy.intercept('GET', MOCK_QUERY, (req) => {
+  cy.intercept('GET', MOCK_QUERY_RANGE, (req) => {
     const url = new URL(req.url, window.location.origin);
     const query = url.searchParams.get('query') || '';
     const hasNewMetric = query.includes(NEW_METRIC_NAME);

@@ -13,6 +13,19 @@ export interface PrometheusResponse {
   };
 }
 
+export interface PrometheusInstantResult {
+  metric: Record<string, string>;
+  value: [number, string];
+}
+
+export interface PrometheusInstantResponse {
+  status: 'success' | 'error';
+  data: {
+    resultType: 'vector';
+    result: PrometheusInstantResult[];
+  };
+}
+
 // Declarative interface for defining incidents with alerts
 export interface IncidentDefinition {
   id: string; // Used as group_id

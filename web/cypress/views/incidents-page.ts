@@ -119,6 +119,11 @@ export const incidentsPage = {
       incidentsTableComponentCell: (index: number) => cy.byTestID(`${DataTestIDs.IncidentsTable.ComponentCell}-${index}`),
       incidentsTableSeverityCell: (index: number) => cy.byTestID(`${DataTestIDs.IncidentsTable.SeverityCell}-${index}`),
       incidentsTableStateCell: (index: number) => cy.byTestID(`${DataTestIDs.IncidentsTable.StateCell}-${index}`),
+      incidentsDetailsStartCell: (index: number) => incidentsPage.elements.incidentsTable()
+      .find('td[data-label="Start"]').eq(index).find('span[data-test="timestamp"]'),
+      incidentsDetailsEndCell: (index: number) => incidentsPage.elements.incidentsTable()
+      .find('td[data-label="End"]').eq(index).find('span[data-test="timestamp"]'),
+    
       
       // Details table (expanded row)
       incidentsDetailsTable: () => cy.byTestID(DataTestIDs.IncidentsDetailsTable.Table),
@@ -129,9 +134,11 @@ export const incidentsPage = {
       incidentsDetailsNamespaceCell: (index: number) => cy.byTestID(`${DataTestIDs.IncidentsDetailsTable.NamespaceCell}-${index}`),
       incidentsDetailsSeverityCell: (index: number) => cy.byTestID(`${DataTestIDs.IncidentsDetailsTable.SeverityCell}-${index}`),
       incidentsDetailsStateCell: (index: number) => cy.byTestID(`${DataTestIDs.IncidentsDetailsTable.StateCell}-${index}`),
-      incidentsDetailsStartCell: (index: number) => cy.byTestID(`${DataTestIDs.IncidentsDetailsTable.StartCell}-${index}`),
-      incidentsDetailsEndCell: (index: number) => cy.byTestID(`${DataTestIDs.IncidentsDetailsTable.EndCell}-${index}`),
-      
+      incidentsDetailsFiringStartCell: (index: number) => incidentsPage.elements.incidentsDetailsTable()
+        .find('td[data-label="expanded-details-firingstart"]').eq(index).find('span[data-test="timestamp"]'),
+      incidentsDetailsFiringEndCell: (index: number) => incidentsPage.elements.incidentsDetailsTable()
+        .find('td[data-label="expanded-details-firingend"]').eq(index).find('span[data-test="timestamp"]'),
+
       // Generic selectors for incident table rows and details table rows
       incidentsTableRows: () => incidentsPage.elements.incidentsTable().find(`tbody[data-test*="${DataTestIDs.IncidentsTable.Row}-"]`),
       incidentsDetailsTableRows: () => incidentsPage.elements.incidentsDetailsTable().find('tbody tr'),
@@ -350,6 +357,32 @@ export const incidentsPage = {
     return incidentsPage.waitForTooltip();
   },
 
+  hoverOverIncidentBarById: (incidentId: string, segmentIndex = 0) => {
+    cy.log(`incidentsPage.hoverOverIncidentBarById: ${incidentId}, segment: ${segmentIndex}`);
+    incidentsPage.elements.incidentsChartBar(incidentId)
+      .find('path[role="presentation"]')
+      .then(($paths) => {
+        const visiblePaths = $paths.filter((i, el) => {
+          const fillOpacity = Cypress.$(el).css('fill-opacity') || Cypress.$(el).attr('fill-opacity');
+          return parseFloat(fillOpacity || '0') > 0;
+        });
+
+        if (segmentIndex >= visiblePaths.length) {
+          throw new Error(`Segment ${segmentIndex} not found for incident ${incidentId} (${visiblePaths.length} visible)`);
+        }
+
+        const rect = visiblePaths[segmentIndex].getBoundingClientRect();
+        const x = rect.left + rect.width / 2;
+        const y = rect.top + rect.height / 2;
+
+        incidentsPage.elements.incidentsChartSvg()
+          .first()
+          .trigger('mousemove', { clientX: x, clientY: y, force: true })
+          .wait(100);
+      });
+    return incidentsPage.waitForTooltip();
+  },
+
   getIncidentBarRect: (index: number) => {
     cy.log(`incidentsPage.getIncidentBarRect: ${index}`);
     return incidentsPage.elements.incidentsChartBarsGroups()
@@ -391,18 +424,74 @@ export const incidentsPage = {
   hoverOverAlertBar: (index: number) => {
     cy.log(`incidentsPage.hoverOverAlertBar: ${index}`);
     incidentsPage.elements.alertsChartBarsPaths()
-      .eq(index)
-      .then(($bar) => {
-        const rect = $bar[0].getBoundingClientRect();
+      .then(($paths) => {
+        const visiblePaths = $paths.filter((i, el) => {
+          const fillOpacity = Cypress.$(el).css('fill-opacity') || Cypress.$(el).attr('fill-opacity');
+          return parseFloat(fillOpacity || '0') > 0;
+        });
+
+        if (index >= visiblePaths.length) {
+          throw new Error(`Alert bar ${index} not found (${visiblePaths.length} visible)`);
+        }
+
+        const rect = visiblePaths[index].getBoundingClientRect();
         const x = rect.left + rect.width / 2;
         const y = rect.top + rect.height / 2;
-        
+
         incidentsPage.elements.alertsChartSvg()
           .first()
           .trigger('mousemove', { clientX: x, clientY: y, force: true })
           .wait(100);
       });
     return incidentsPage.waitForTooltip();
+  },
+
+  getTooltipStartDate: (): Cypress.Chainable<string> => {
+    cy.log('incidentsPage.getTooltipStartDate');
+    return incidentsPage.elements.tooltip()
+      .find('p')
+      .contains('Start:')
+      .invoke('text')
+      .then((text) => {
+        const match = text.match(/Start\s*:\s*(.*)/);
+        return cy.wrap(match ? match[1].trim() : '');
+      });
+  },
+
+  getTooltipSeverity: (): Cypress.Chainable<string> => {
+    cy.log('incidentsPage.getTooltipSeverity');
+    return incidentsPage.elements.tooltip()
+      .find('p')
+      .contains('Severity:')
+      .invoke('text')
+      .then((text) => {
+        const match = text.match(/Severity\s*:\s*(.*)/);
+        return cy.wrap(match ? match[1].trim() : '');
+      });
+  },
+
+  getTooltipEndDate: (): Cypress.Chainable<string> => {
+    cy.log('incidentsPage.getTooltipEndDate');
+    return incidentsPage.elements.tooltip()
+      .find('p')
+      .contains('End:')
+      .invoke('text')
+      .then((text) => {
+        const match = text.match(/End\s*:\s*(.*)/);
+        return cy.wrap(match ? match[1].trim() : '');
+      });
+  },
+
+  getAlertsTooltipStartDate: (): Cypress.Chainable<string> => {
+    cy.log('incidentsPage.getAlertsTooltipStartDate');
+    return incidentsPage.elements.alertsChartTooltip()
+      .find('p')
+      .contains('Start:')
+      .invoke('text')
+      .then((text) => {
+        const match = text.match(/Start\s*:\s*(.*)/);
+        return cy.wrap(match ? match[1].trim() : '');
+      });
   },
 
   // Constants for search configuration

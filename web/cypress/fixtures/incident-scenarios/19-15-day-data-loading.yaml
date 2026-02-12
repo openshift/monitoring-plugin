@@ -1,0 +1,83 @@
+name: "14-Day Data Loading Test"
+description: "Tests absolute start date display when incidents span beyond the selected 'Last N Days' filter window. Uses 14d durations to guarantee all data fits within the 15-day fetch window. Baseline is collected at 15d filter (widest), then narrowed to 7d and 3d."
+incidents:
+  # 14-day ongoing incident: fully within 15d fetch window, extends beyond 7d filter
+  - id: "LONG-14d-monitoring-ongoing"
+    component: "monitoring"
+    layer: "core"
+    timeline:
+      start: "14d"
+    alerts:
+      - name: "AlertLong14DayCritical"
+        namespace: "openshift-monitoring"
+        severity: "critical"
+        firing: true
+        timeline:
+          start: "14d"
+
+  # 10-day resolved incident: start beyond 7-day window, ended 2 days ago
+  - id: "MEDIUM-10d-storage-resolved"
+    component: "storage"
+    layer: "core"
+    timeline:
+      start: "10d"
+      end: "2d"
+    alerts:
+      - name: "AlertMedium10DayStorageWarning"
+        namespace: "openshift-storage"
+        severity: "warning"
+        firing: false
+        timeline:
+          start: "10d"
+          end: "2d"
+
+  # Escalating severity incident: info (14d-10d) → warning (10d-5d) → critical (5d-now)
+  # The severityChange at "14d" anchors the initial severity so that all 3 alerts
+  # produce identical health metric values (getSeverityAtTime never falls back to default).
+  - id: "ESCALATING-14d-monitoring-severity"
+    component: "monitoring"
+    layer: "core"
+    timeline:
+      start: "14d"
+      severityChanges:
+        - time: "14d"
+          severity: "info"
+        - time: "10d"
+          severity: "warning"
+        - time: "5d"
+          severity: "critical"
+    alerts:
+      - name: "AlertEscalatingInfo"
+        namespace: "openshift-monitoring"
+        severity: "info"
+        firing: false
+        timeline:
+          start: "14d"
+          end: "10d"
+      - name: "AlertEscalatingWarning"
+        namespace: "openshift-monitoring"
+        severity: "warning"
+        firing: false
+        timeline:
+          start: "10d"
+          end: "5d"
+      - name: "AlertEscalatingCritical"
+        namespace: "openshift-monitoring"
+        severity: "critical"
+        firing: true
+        timeline:
+          start: "5d"
+
+  # 2-day recent incident: fully within all filter windows
+  - id: "SHORT-2d-network-recent"
+    component: "network"
+    layer: "core"
+    timeline:
+      start: "2d"
+    alerts:
+      - name: "AlertShortRecentNetworkWarning"
+        namespace: "openshift-network"
+        severity: "warning"
+        firing: true
+        timeline:
+          start: "2d"

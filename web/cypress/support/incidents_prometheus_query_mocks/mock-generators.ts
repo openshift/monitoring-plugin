@@ -1,5 +1,5 @@
 // Mock data generators for Prometheus mocking system
-import { IncidentDefinition, PrometheusResult, AlertDefinition } from './types';
+import { IncidentDefinition, PrometheusResult, AlertDefinition, PrometheusInstantResult } from './types';
 import { severityToValue, parseQueryLabels } from './utils';
 import { nowInClusterTimezone } from './utils';
 import { NEW_METRIC_NAME, OLD_METRIC_NAME } from './prometheus-mocks';
@@ -10,24 +10,24 @@ import { NEW_METRIC_NAME, OLD_METRIC_NAME } from './prometheus-mocks';
  * For longer durations, uses 5-minute intervals
  */
 function generateIntervalTimestamps(startTime: number, endTime: number): number[] {
-  const duration = endTime - startTime;
   const fiveMinutes = 300;
+
+  // Align to 5-minute grid (matches real Prometheus query_range step=300 behavior)
+  const alignedStart = Math.ceil(startTime / fiveMinutes) * fiveMinutes;
+  const alignedEnd = Math.floor(endTime / fiveMinutes) * fiveMinutes;
+
+  const duration = alignedEnd - alignedStart;
   const timestamps: number[] = [];
   
-    if (duration < fiveMinutes) {
-    timestamps.push(startTime);
+  if (duration < fiveMinutes) {
+    timestamps.push(alignedStart);
     return timestamps;
   }
   
-  let currentTime = startTime;
-  while (currentTime <= endTime) {
+  let currentTime = alignedStart;
+  while (currentTime <= alignedEnd) {
     timestamps.push(currentTime);
     currentTime += fiveMinutes;
-  }
-  
-  // Ensure we have the end timestamp if it doesn't align with 5-minute intervals
-  if (timestamps[timestamps.length - 1] !== endTime) {
-    timestamps.push(endTime);
   }
   
   return timestamps;
@@ -272,5 +272,83 @@ export function createAlertDetailsMock(
   });
 
   console.log(`Final ALERTS results array length: ${results.length}`);
+  return results;
+}
+/**
+ * Creates mock instant query response for incident start timestamps
+ * Used for: min_over_time(timestamp(cluster_health_components_map)[15d:5m])
+ */
+export function createIncidentTimestampMock(
+  incidents: IncidentDefinition[]
+): PrometheusInstantResult[] {
+  const now = nowInClusterTimezone();
+  const results: PrometheusInstantResult[] = [];
+
+  incidents.forEach(incident => {
+    incident.alerts.forEach(alert => {
+
+      const timeline = alert.timeline || { start: 0};
+      // Use rounded version to see edge case for Tooltip Dates
+      // const startTimestamp = Math.floor(timeline.start / 300) * 300;
+      const startTimestamp = timeline.start;
+
+      results.push({
+        metric: {
+          component: alert.component || incident.component,
+          container: 'cluster-health-analyzer',
+          endpoint: 'metrics',
+          group_id: incident.id,
+          instance: '10.128.0.134:8443',
+          job: 'cluster-health-analyzer',
+          layer: incident.layer,
+          namespace: alert.namespace,
+          severity: alert.severity,
+          src_alertname: alert.name,
+          src_namespace: alert.namespace,
+          src_severity: alert.severity,
+          type: 'alert'
+        },
+        value: [now, startTimestamp.toString()]
+      });
+    });
+  });
+
+  console.log(`Created ${results.length} incident timestamp mocks`);
+  return results;
+}
+
+/**
+ * Creates mock instant query response for alert start timestamps
+ * Used for: min_over_time(timestamp(ALERTS{alertstate="firing"})[15d:5m])
+ */
+export function createAlertTimestampMock(
+  incidents: IncidentDefinition[]
+): PrometheusInstantResult[] {
+  const now = nowInClusterTimezone();
+  const results: PrometheusInstantResult[] = [];
+
+  incidents.forEach(incident => {
+    incident.alerts
+      .filter(alert => alert.firing !== false)
+      .forEach(alert => {
+        const timeline = alert.timeline || { start: 0};
+        // Use rounded version to see edge case for Tooltip Dates
+        // const startTimestamp = Math.floor(timeline.start / 300) * 300;
+        const startTimestamp = timeline.start;
+
+        results.push({
+          metric: {
+            alertname: alert.name,
+            alertstate: 'firing',
+            namespace: alert.namespace,
+            prometheus: 'openshift-monitoring/k8s',
+            severity: alert.severity
+          },
+          value: [now, startTimestamp.toString()]
+        });
+      });
+  });
+
+  console.log(`Created ${results.length} alert timestamp mocks`);
   return results;
 }
