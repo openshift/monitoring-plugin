@@ -146,14 +146,20 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 	tlsEnabled := cfg.IsTLSEnabled()
 	if tlsEnabled {
 		// Set MinVersion - default to TLS 1.2 if not specified
+		tlsConfig.MinVersion = tls.VersionTLS12
 		if cfg.TLSMinVersion != 0 {
 			tlsConfig.MinVersion = cfg.TLSMinVersion
-		} else {
-			tlsConfig.MinVersion = tls.VersionTLS12
 		}
 
 		if cfg.TLSMaxVersion != 0 {
 			tlsConfig.MaxVersion = cfg.TLSMaxVersion
+			if tlsConfig.MaxVersion < tlsConfig.MinVersion {
+				return nil, fmt.Errorf(
+					"min TLS version %q greater than max TLS version %q",
+					tls.VersionName(tlsConfig.MinVersion),
+					tls.VersionName(tlsConfig.MaxVersion),
+				)
+			}
 		}
 
 		if len(cfg.TLSCipherSuites) > 0 {

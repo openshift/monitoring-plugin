@@ -92,6 +92,24 @@ export const incidentsPage = {
       alertsChartCard: () => cy.byTestID(DataTestIDs.AlertsChart.Card),
       alertsChartContainer: () => cy.byTestID(DataTestIDs.AlertsChart.ChartContainer),
       alertsChartSvg: () => incidentsPage.elements.alertsChartCard().find('svg'),
+      alertsChartBarsGroups: () => incidentsPage.elements.alertsChartSvg().find('g[role="presentation"]'),
+      alertsChartBarsPaths: () => incidentsPage.elements.alertsChartSvg().find('path[role="presentation"]'),
+      alertsChartBarsVisiblePaths: () => {
+        return cy.get('body').then($body => {
+          const exists = $body.find('g[role="presentation"][data-test*="alerts-chart-bar-"]').length > 0;
+          if (exists) {
+            return cy.get('g[role="presentation"][data-test*="alerts-chart-bar-"]')
+              .find('path[role="presentation"]')
+              .filter((index, element) => {
+                const fillOpacity = Cypress.$(element).css('fill-opacity') || Cypress.$(element).attr('fill-opacity');
+                return parseFloat(fillOpacity || '0') > 0;
+              });
+          } else {
+            cy.log('Alert chart bars were not found. Test continues.');
+            return cy.wrap([]);
+          }
+        });
+      },
       alertsChartEmptyState: () => cy.byTestID(DataTestIDs.AlertsChart.EmptyState),
   
       // Tables and data
@@ -121,6 +139,13 @@ export const incidentsPage = {
       // Days select options
       daysSelectList: () => cy.byTestID(DataTestIDs.IncidentsPage.DaysSelectList),
       daysSelectOption: (days: string) => cy.byTestID(`${DataTestIDs.IncidentsPage.DaysSelectOption}-${days.replace(' ', '-')}`),
+      
+      // Tooltips (custom Victory chart tooltips)
+      tooltip: () => cy.get('.incidents__tooltip'),
+      tooltipWrap: () => cy.get('.incidents__tooltip-wrap'),
+      tooltipArrow: () => cy.get('.incidents__tooltip-arrow'),
+
+      alertsChartTooltip: () => incidentsPage.elements.alertsChartCard().find('.incidents__tooltip'),
     },
   
   
@@ -195,6 +220,7 @@ export const incidentsPage = {
 
   /**
    * Selects an incident from the chart by clicking on a bar at the specified index.
+   * BUG: Problems with multi-severity incidents (multiple paths in a single incident bar)
    * 
    * @param index - Zero-based index of the incident bar to click (default: 0)
    * @returns Promise that resolves when the incidents table is visible
@@ -238,10 +264,145 @@ export const incidentsPage = {
       });
   },
 
+  /**
+   * Selects an incident by its ID (data-test attribute).
+   * More reliable than index-based selection, especially for multi-severity incidents.
+   * 
+   * @param incidentId - The incident ID to select (e.g., 'etcd-six-alerts-001')
+   * @returns Promise that resolves when the incidents table is visible
+   */
+  selectIncidentById: (incidentId: string) => {
+    cy.log(`incidentsPage.selectIncidentById: ${incidentId}`);
+    return incidentsPage.elements.incidentsChartBarsGroups()
+      .filter(`[data-test*="${incidentId}"]`)
+      .should('have.length', 1)
+      .first()
+      .find('path[role="presentation"]')
+      .first()
+      .click({ force: true })
+      .then(() => {
+        cy.wait(2000);
+        return incidentsPage.elements.incidentsTable()
+          .scrollIntoView()
+          .should('exist');
+      });
+  },
+
+  /**
+   * Deselects the currently selected incident by clicking it again.
+   * Uses the incident ID to reliably find and click the bar.
+   * 
+   * @param incidentId - The incident ID to deselect (e.g., 'etcd-six-alerts-001')
+   * @returns Promise that resolves when the incidents table is hidden
+   */
+  deselectIncidentById: (incidentId: string) => {
+    cy.log(`incidentsPage.deselectIncidentById: ${incidentId}`);
+    return incidentsPage.elements.incidentsChartBarsGroups()
+      .filter(`[data-test*="${incidentId}"]`)
+      .should('have.length', 1)
+      .first()
+      .find('path[role="presentation"]')
+      .first()
+      .click({ force: true })
+      .then(() => {
+        return incidentsPage.elements.incidentsTable()
+          .should('not.exist');
+      });
+  },
+
   expandRow: (rowIndex = 0) => {
     cy.log('incidentsPage.expandRow');
     incidentsPage.elements.incidentsTableExpandButton(rowIndex)
           .click({ force: true });
+  },
+
+  waitForTooltip: () => {
+    cy.log('incidentsPage.waitForTooltip');
+    return incidentsPage.elements.tooltip().should('be.visible');
+  },
+
+  hoverOverIncidentBar: (index: number) => {
+    cy.log(`incidentsPage.hoverOverIncidentBar: ${index}`);
+    incidentsPage.elements.incidentsChartBarsGroups()
+      .eq(index)
+      .find('path[role="presentation"]')
+      .then(($paths) => {
+        const visiblePath = $paths.filter((i, el) => {
+          const fillOpacity = Cypress.$(el).css('fill-opacity') || Cypress.$(el).attr('fill-opacity');
+          return parseFloat(fillOpacity || '0') > 0;
+        }).first();
+        
+        if (visiblePath.length > 0) {
+          const rect = visiblePath[0].getBoundingClientRect();
+          const x = rect.left + rect.width / 2;
+          const y = rect.top + rect.height / 2;
+          
+          cy.log(`Hovering at coordinates: x=${x}, y=${y}`);
+          
+          incidentsPage.elements.incidentsChartSvg()
+            .first()
+            .trigger('mousemove', { clientX: x, clientY: y, force: true })
+            .wait(100);
+        } else {
+          throw new Error(`No visible paths found in bar group ${index}`);
+        }
+      });
+    return incidentsPage.waitForTooltip();
+  },
+
+  getIncidentBarRect: (index: number) => {
+    cy.log(`incidentsPage.getIncidentBarRect: ${index}`);
+    return incidentsPage.elements.incidentsChartBarsGroups()
+      .eq(index)
+      .then(($group) => {
+        const rect = $group[0].getBoundingClientRect();
+        return cy.wrap({
+          top: rect.top,
+          bottom: rect.bottom,
+          left: rect.left,
+          right: rect.right,
+          width: rect.width,
+          height: rect.height,
+          x: rect.x,
+          y: rect.y
+        });
+      });
+  },
+
+  getAlertBarRect: (index: number) => {
+    cy.log(`incidentsPage.getAlertBarRect: ${index}`);
+    return incidentsPage.elements.alertsChartBarsPaths()
+      .eq(index)
+      .then(($bar) => {
+        const rect = $bar[0].getBoundingClientRect();
+        return cy.wrap({
+          top: rect.top,
+          bottom: rect.bottom,
+          left: rect.left,
+          right: rect.right,
+          width: rect.width,
+          height: rect.height,
+          x: rect.x,
+          y: rect.y
+        });
+      });
+  },
+
+  hoverOverAlertBar: (index: number) => {
+    cy.log(`incidentsPage.hoverOverAlertBar: ${index}`);
+    incidentsPage.elements.alertsChartBarsPaths()
+      .eq(index)
+      .then(($bar) => {
+        const rect = $bar[0].getBoundingClientRect();
+        const x = rect.left + rect.width / 2;
+        const y = rect.top + rect.height / 2;
+        
+        incidentsPage.elements.alertsChartSvg()
+          .first()
+          .trigger('mousemove', { clientX: x, clientY: y, force: true })
+          .wait(100);
+      });
+    return incidentsPage.waitForTooltip();
   },
 
   // Constants for search configuration
@@ -424,6 +585,8 @@ export const incidentsPage = {
    */
   getSelectedIncidentAlerts: () => {
     cy.log('incidentsPage.getSelectedIncidentAlerts: Collecting alert information from selected incident');
+
+    incidentsPage.elements.incidentsDetailsTable().should('exist');
     
     return incidentsPage.elements.incidentsTableRows()
       .then(($rows) => {

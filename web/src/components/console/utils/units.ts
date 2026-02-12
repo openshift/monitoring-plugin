@@ -7,9 +7,14 @@ const TYPES = {
     divisor: 1000,
   },
   binaryBytes: {
-    units: ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB'],
+    units: ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB'],
     space: true,
     divisor: 1024,
+  },
+  decimalBytes: {
+    units: ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB'],
+    space: true,
+    divisor: 1000,
   },
   SI: {
     units: ['', 'k', 'M', 'G', 'T', 'P', 'E'],
@@ -20,6 +25,11 @@ const TYPES = {
     units: ['Bps', 'KBps', 'MBps', 'GBps', 'TBps', 'PBps', 'EBps'],
     space: true,
     divisor: 1000,
+  },
+  binaryBytesPerSec: {
+    units: ['Bps', 'KiBps', 'MiBps', 'GiBps', 'TiBps', 'PiBps', 'EiBps'],
+    space: true,
+    divisor: 1024,
   },
   packetsPerSec: {
     units: ['pps', 'kpps'],

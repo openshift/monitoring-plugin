@@ -10,6 +10,7 @@ export const legacyDashboardsPage = {
     commonPages.titleShouldHaveText(MonitoringPageTitles.DASHBOARDS);
     cy.byTestID(LegacyDashboardPageTestIDs.TimeRangeDropdown).contains(LegacyDashboardsTimeRange.LAST_30_MINUTES).should('be.visible');
     cy.byTestID(LegacyDashboardPageTestIDs.PollIntervalDropdown).contains(MonitoringRefreshInterval.THIRTY_SECONDS).should('be.visible');
+    
     cy.byLegacyTestID('namespace-bar-dropdown').find('span').invoke('text').then((text) => {
       if (text === 'Project: All Projects') {
         cy.byTestID(LegacyDashboardPageTestIDs.DashboardDropdown).find('input').should('have.value', LegacyDashboardsDashboardDropdown.API_PERFORMANCE[0]).and('be.visible');
@@ -58,6 +59,7 @@ export const legacyDashboardsPage = {
   clickDashboardDropdown: (dashboard: keyof typeof LegacyDashboardsDashboardDropdown) => {
     cy.log('legacyDashboardsPage.clickDashboardDropdown');
     cy.byTestID(LegacyDashboardPageTestIDs.DashboardDropdown).find('button').scrollIntoView().should('be.visible').click();
+    cy.wait(2000);
     cy.get(Classes.MenuItem).contains(LegacyDashboardsDashboardDropdown[dashboard][0]).should('be.visible').click();
   },
 
@@ -75,25 +77,25 @@ export const legacyDashboardsPage = {
     cy.byTestID(LegacyDashboardPageTestIDs.DashboardDropdown).find('button').should('be.visible').click();
   },
 
-  dashboardAPIPerformancePanelAssertion: (panel: API_PERFORMANCE_DASHBOARD_PANELS) => {
+  dashboardAPIPerformancePanelAssertion: () => {
     cy.log('legacyDashboardsPage.dashboardAPIPerformancePanelAssertion');
     function formatDataTestID(panel: API_PERFORMANCE_DASHBOARD_PANELS): string {
       return panel.toLowerCase().replace(/\s+/g, '-').concat('-chart');
     }
-    const dataTestID = Object.values(API_PERFORMANCE_DASHBOARD_PANELS).map(formatDataTestID);
-    dataTestID.forEach((dataTestID) => {
+    const dataTestIDs = Object.values(API_PERFORMANCE_DASHBOARD_PANELS).map(formatDataTestID);
+    dataTestIDs.forEach((dataTestID) => {
       cy.log('Data test ID: ' + dataTestID);
       cy.byTestID(dataTestID).scrollIntoView().should('be.visible');
     });
   },
 
-  dashboardKubernetesComputeResourcesNamespacePodsPanelAssertion: (panel: KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANELS) => {
+  dashboardKubernetesComputeResourcesNamespacePodsPanelAssertion: () => {
     cy.log('legacyDashboardsPage.dashboardKubernetesComputeResourcesNamespacePodsPanelAssertion');
     function formatDataTestID(panel: KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANELS): string {
       return panel.toLowerCase().replace(/\s+/g, '-').concat('-chart');
     }
-    const dataTestID = Object.values(KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANELS).map(formatDataTestID);
-    dataTestID.forEach((dataTestID) => {
+    const dataTestIDs = Object.values(KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANELS).map(formatDataTestID);
+    dataTestIDs.forEach((dataTestID) => {
       cy.log('Data test ID: ' + dataTestID);
       cy.byTestID(dataTestID).scrollIntoView().should('be.visible');
     });

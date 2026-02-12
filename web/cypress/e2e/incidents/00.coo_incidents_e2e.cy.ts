@@ -7,7 +7,7 @@ import { incidentsPage } from '../../views/incidents-page';
 
 // Set constants for the operators that need to be installed for tests.
 const MCP = {
-  namespace: 'openshift-cluster-observability-operator',
+  namespace: Cypress.env('COO_NAMESPACE'),
   packageName: 'cluster-observability-operator',
   operatorName: 'Cluster Observability Operator',
   config: {
@@ -21,7 +21,7 @@ const MP = {
   operatorName: 'Cluster Monitoring Operator',
 };
 
-describe('BVT: Incidents - e2e', () => {
+describe('BVT: Incidents - e2e', { tags: ['@smoke', '@slow', '@incidents', '@e2e-real'] }, () => {
   let currentAlertName: string;
 
   before(() => {

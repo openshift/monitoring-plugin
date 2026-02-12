@@ -55,7 +55,7 @@ export const alertingRuleListPage = {
   },
   emptyState: () => {
     cy.log('alertingRuleListPage.emptyState');
-    cy.byTestID(DataTestIDs.EmptyBoxBody).contains('No Alerting rules found').should('be.visible');
+    cy.byTestID(DataTestIDs.EmptyBoxBody).contains('No alerting rules found').should('be.visible');
     cy.bySemanticElement('button', 'Clear all filters').should('not.exist');
     cy.byOUIAID(DataTestIDs.Table).should('not.exist');
   },

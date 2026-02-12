@@ -1,25 +1,22 @@
-# mcp (monitoring-console-plugin)
-
-FROM registry.redhat.io/ubi9/nodejs-22:9.6-1755075210 AS web-builder
-
-USER 0
+FROM registry.redhat.io/ubi9/nodejs-22:latest AS web-builder
 
 WORKDIR /opt/app-root
 
+USER 0
+
 ENV HUSKY=0
-
+COPY web/package*.json web/
 COPY Makefile Makefile
-COPY scripts/update-plugin-name.sh scripts/update-plugin-name.sh
+RUN cd web && npm ci --legacy-peer-deps --ignore-scripts
+
 COPY web/ web/
-
+COPY config/ config/
+COPY scripts/update-plugin-name.sh scripts/update-plugin-name.sh
 RUN make update-plugin-name
-
 ENV I18N_NAMESPACE="plugin__monitoring-console-plugin"
-
-RUN make install-frontend
 RUN make build-frontend
 
-FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.24-openshift-4.20 as go-builder
+FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_9_1.24 as go-builder
 
 WORKDIR /opt/app-root
 
@@ -27,20 +24,28 @@ COPY Makefile Makefile
 COPY go.mod go.mod
 COPY go.sum go.sum
 
-RUN go mod download
+RUN make install-backend
 
 COPY cmd/ cmd/
 COPY pkg/ pkg/
 
-RUN go build -mod=mod -o plugin-backend cmd/plugin-backend.go
+ENV GOOS=${TARGETOS:-linux}
+ENV GOARCH=${TARGETARCH}
+ENV GOEXPERIMENT=strictfipsruntime
+ENV GOFLAGS=-mod=readonly
+ENV CGO_ENABLED=1
 
-FROM registry.access.redhat.com/ubi9/ubi-minimal
+RUN make build-backend
+
+FROM registry.redhat.io/rhel9-4-els/rhel:9.4
+
+RUN mkdir /licenses
+COPY LICENSE /licenses/.
 
 USER 1001
 
 COPY --from=web-builder /opt/app-root/web/dist /opt/app-root/web/dist
-COPY --from=web-builder /opt/app-root/web/package.json /opt/app-root/web/package.json
 COPY --from=go-builder /opt/app-root/plugin-backend /opt/app-root
-COPY config/ /opt/app-root/config
+COPY --from=web-builder /opt/app-root/config /opt/app-root/config
 
-ENTRYPOINT ["/opt/app-root/plugin-backend", "-static-path", "/opt/app-root/web/dist", "-config-path", "/opt/app-root/config"]
+ENTRYPOINT ["/opt/app-root/plugin-backend", "-static-path", "/opt/app-root/web/dist"]
