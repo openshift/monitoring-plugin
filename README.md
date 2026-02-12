@@ -123,7 +123,7 @@ make build-dev-mcp-image
 
 ### Feature Flags
 
-Feature flags are used by the mcp mode to dictate the specific features which are enabled when the server starts up. Feature flags should be added to the Feature enum [here](pkg/server.go) and to the useFeature hook [here](web/src/components/hooks/useFeatures.ts). When any feature flag is enabled the default extension points are overridden, including a new monitoring-console-plugin exclusive redux store and all extension points for the flags. These feature extension points are created through the use of [json-patches](https://datatracker.ietf.org/doc/html/rfc6902), such as the `acm-alerting` patch [here](config/acm-alerting.patch.json). The server looks for a patch in the format of `{feature-flag-name}.patch.json` to apply.
+Feature flags are used by the mcp mode to dictate the specific features which are enabled when the server starts up. Feature flags should be added to the Feature enum [here](backend/pkg/server.go) and to the useFeature hook [here](web/src/components/hooks/useFeatures.ts). When any feature flag is enabled the default extension points are overridden, including a new monitoring-console-plugin exclusive redux store and all extension points for the flags. These feature extension points are created through the use of [json-patches](https://datatracker.ietf.org/doc/html/rfc6902), such as the `acm-alerting` patch [here](config/acm-alerting.patch.json). The server looks for a patch in the format of `{feature-flag-name}.patch.json` to apply.
 
 | Feature           | OCP Version |
 |-------------------|-------------|

@@ -21,13 +21,13 @@ FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_9_1.24 as go-
 WORKDIR /opt/app-root
 
 COPY Makefile Makefile
-COPY go.mod go.mod
-COPY go.sum go.sum
+COPY backend/Makefile backend/Makefile
+COPY backend/go.mod backend/go.mod
+COPY backend/go.sum backend/go.sum
 
 RUN make install-backend
 
-COPY cmd/ cmd/
-COPY pkg/ pkg/
+COPY backend/ backend/
 
 ENV GOEXPERIMENT=strictfipsruntime
 ENV CGO_ENABLED=1

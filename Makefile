@@ -41,25 +41,23 @@ lint-frontend:
 
 .PHONY: lint-backend
 lint-backend:
-	go mod tidy
-	go fmt ./cmd/
-	go fmt ./pkg/
+	cd backend && make lint-backend
 
 .PHONY: install-backend
 install-backend:
-	go mod download
+	cd backend && make install-backend
 
 .PHONY: build-backend
 build-backend:
-	go build $(BUILD_OPTS) -mod=readonly -o plugin-backend cmd/plugin-backend.go
+	cd backend && make build-backend
 
 .PHONY: start-backend
 start-backend:
-	go run ./cmd/plugin-backend.go -port='9001' -config-path='./config' -static-path='./web/dist'
+	cd backend && make start-backend
 
 .PHONY: test-backend
 test-backend:
-	go test ./pkg/... -v
+	cd backend && make test-backend
 
 .PHONY: test-frontend
 test-frontend:
@@ -103,7 +101,7 @@ start-feature-console:
 
 .PHONY: start-feature-backend
 start-feature-backend:
-	go run ./cmd/plugin-backend.go -port='9443' -config-path='./config' -static-path='./web/dist' -features='${FEATURES}'
+	cd backend && go run ./cmd/plugin-backend.go -port='9443' -config-path='./config' -static-path='./web/dist' -features='${FEATURES}'
 
 .PHONY: start-devspace-backend
 start-devspace-backend:
