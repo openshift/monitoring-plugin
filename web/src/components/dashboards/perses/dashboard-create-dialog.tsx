@@ -1,12 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Alert,
   Button,
-  Dropdown,
-  DropdownList,
-  DropdownItem,
-  MenuToggle,
-  MenuToggleElement,
   Modal,
   ModalBody,
   ModalHeader,
@@ -20,71 +15,50 @@ import {
   HelperTextItem,
   HelperTextItemVariant,
   ValidatedOptions,
+  Tooltip,
 } from '@patternfly/react-core';
+import { TypeaheadSelect, TypeaheadSelectOption } from '@patternfly/react-templates';
 import { ExclamationCircleIcon } from '@patternfly/react-icons';
 import { usePerses } from './hooks/usePerses';
+import { useEditableProjects } from './hooks/useEditableProjects';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom-v5-compat';
-import { StringParam, useQueryParam } from 'use-query-params';
-import { QueryParams } from '../../query-params';
 
 import { DashboardResource } from '@perses-dev/core';
-import { useCreateDashboardMutation } from './dashboard-api';
+import { useCreateDashboardMutation, useCreateProjectMutation } from './dashboard-api';
 import { createNewDashboard } from './dashboard-utils';
 import { useToast } from './ToastProvider';
 import { usePerspective, getDashboardUrl } from '../../hooks/usePerspective';
-import { usePersesEditPermissions } from './dashboard-toolbar';
 import { persesDashboardDataTestIDs } from '../../data-test';
-import { useProjectPermissions } from './dashboard-permissions';
 
 export const DashboardCreateDialog: React.FunctionComponent = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const navigate = useNavigate();
   const { perspective } = usePerspective();
   const { addAlert } = useToast();
-  const { persesProjects } = usePerses();
-  const [activeProjectFromUrl] = useQueryParam(QueryParams.Project, StringParam);
+  const { editableProjects, hasEditableProject, permissionsLoading, permissionsError } =
+    useEditableProjects();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
   const [dashboardName, setDashboardName] = useState<string>('');
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
   const createDashboardMutation = useCreateDashboardMutation();
+  const createProjectMutation = useCreateProjectMutation();
+  const { persesProjects } = usePerses();
 
-  const { canEdit, loading } = usePersesEditPermissions(activeProjectFromUrl);
+  const disabled = permissionsLoading || !hasEditableProject;
 
-  const hookInput = useMemo(() => {
-    return persesProjects || [];
-  }, [persesProjects]);
-
-  const {
-    editableProjects,
-    hasEditableProject,
-    loading: globalPermissionsLoading,
-  } = useProjectPermissions(hookInput);
-
-  const disabled = activeProjectFromUrl ? !canEdit : !hasEditableProject;
-
-  const filteredProjects = useMemo(() => {
-    return persesProjects.filter((project) => editableProjects.includes(project.metadata.name));
-  }, [persesProjects, editableProjects]);
-
-  useEffect(() => {
-    if (
-      isModalOpen &&
-      filteredProjects &&
-      filteredProjects.length > 0 &&
-      selectedProject === null
-    ) {
-      const projectToSelect =
-        activeProjectFromUrl &&
-        filteredProjects.some((p) => p.metadata.name === activeProjectFromUrl)
-          ? activeProjectFromUrl
-          : filteredProjects[0].metadata.name;
-
-      setSelectedProject(projectToSelect);
+  const projectOptions = useMemo<TypeaheadSelectOption[]>(() => {
+    if (!editableProjects) {
+      return [];
     }
-  }, [isModalOpen, filteredProjects, selectedProject, activeProjectFromUrl]);
+
+    return editableProjects.map((project) => ({
+      content: project,
+      value: project,
+      selected: project === selectedProject,
+    }));
+  }, [editableProjects, selectedProject]);
 
   const { persesProjectDashboards: dashboards } = usePerses(
     isModalOpen && selectedProject ? selectedProject : undefined,
@@ -123,6 +97,24 @@ export const DashboardCreateDialog: React.FunctionComponent = () => {
         return;
       }
 
+      const projectExists = persesProjects.some(
+        (project) => project.metadata?.name === selectedProject,
+      );
+
+      if (!projectExists) {
+        try {
+          await createProjectMutation.mutateAsync(selectedProject as string);
+          addAlert(`Project "${selectedProject}" created successfully`, 'success');
+        } catch (projectError) {
+          const errorMessage =
+            projectError?.message ||
+            `Failed to create project "${selectedProject}". Please try again.`;
+          addAlert(`Error creating project: ${errorMessage}`, 'danger');
+          setFormErrors({ general: errorMessage });
+          return;
+        }
+      }
+
       const newDashboard: DashboardResource = createNewDashboard(
         dashboardName.trim(),
         selectedProject as string,
@@ -150,50 +142,44 @@ export const DashboardCreateDialog: React.FunctionComponent = () => {
 
   const handleModalToggle = () => {
     setIsModalOpen(!isModalOpen);
-    setIsDropdownOpen(false);
     if (isModalOpen) {
       setDashboardName('');
       setFormErrors({});
     }
   };
 
-  const handleDropdownToggle = () => {
-    setIsDropdownOpen(!isDropdownOpen);
-  };
-
-  const onFocus = () => {
-    const element = document.getElementById('modal-dropdown-toggle');
-    (element as HTMLElement)?.focus();
-  };
-
   const onEscapePress = () => {
-    if (isDropdownOpen) {
-      setIsDropdownOpen(!isDropdownOpen);
-      onFocus();
-    } else {
-      handleModalToggle();
-    }
+    handleModalToggle();
   };
 
-  const onSelect = (
-    event: React.MouseEvent<Element, MouseEvent> | undefined,
-    value: string | number | undefined,
-  ) => {
-    setSelectedProject(typeof value === 'string' ? value : null);
-    setIsDropdownOpen(false);
-    onFocus();
+  const onSelect = (_event: any, selection: string) => {
+    setSelectedProject(selection);
+  };
+
+  const CreateBtn = () => {
+    return (
+      <Button
+        variant="primary"
+        onClick={handleModalToggle}
+        isDisabled={disabled}
+        data-test={persesDashboardDataTestIDs.createDashboardButtonToolbar}
+      >
+        {permissionsLoading ? t('Loading...') : t('Create')}
+      </Button>
+    );
   };
 
   return (
     <>
-      <Button
-        variant="primary"
-        onClick={handleModalToggle}
-        isDisabled={disabled || loading || globalPermissionsLoading}
-        data-test={persesDashboardDataTestIDs.createDashboardButtonToolbar}
-      >
-        {loading || globalPermissionsLoading ? t('Loading...') : t('Create')}
-      </Button>
+      {disabled ? (
+        <Tooltip content={t('Create button is disabled because you do not have permission')}>
+          <span style={{ cursor: 'not-allowed' }}>
+            <CreateBtn />
+          </span>
+        </Tooltip>
+      ) : (
+        <CreateBtn />
+      )}
       <Modal
         variant={ModalVariant.small}
         isOpen={isModalOpen}
@@ -203,6 +189,16 @@ export const DashboardCreateDialog: React.FunctionComponent = () => {
       >
         <ModalHeader title={t('Create Dashboard')} />
         <ModalBody>
+          {permissionsError && (
+            <Alert
+              variant="danger"
+              title={t(
+                'Failed to load project permissions. Please refresh the page and try again.',
+              )}
+              isInline
+              style={{ marginBottom: '16px' }}
+            />
+          )}
           {formErrors.general && (
             <Alert
               variant="danger"
@@ -222,32 +218,18 @@ export const DashboardCreateDialog: React.FunctionComponent = () => {
               isRequired
               fieldId="form-group-create-dashboard-dialog-project-selection"
             >
-              <Dropdown
-                isOpen={isDropdownOpen}
+              <TypeaheadSelect
+                key={selectedProject || 'no-selection'}
+                initialOptions={projectOptions}
+                placeholder={t('Select a project')}
+                noOptionsFoundMessage={(filter) => t(`No project found for "${filter}"`)}
+                onClearSelection={() => {
+                  setSelectedProject(null);
+                }}
                 onSelect={onSelect}
-                onOpenChange={(isOpen: boolean) => setIsDropdownOpen(isOpen)}
-                toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
-                  <MenuToggle
-                    ref={toggleRef}
-                    onClick={handleDropdownToggle}
-                    isExpanded={isDropdownOpen}
-                    isFullWidth
-                  >
-                    {selectedProject}
-                  </MenuToggle>
-                )}
-              >
-                <DropdownList>
-                  {filteredProjects.map((project, i) => (
-                    <DropdownItem
-                      value={`${project.metadata.name}`}
-                      key={`${i}-${project.metadata.name}`}
-                    >
-                      {project.metadata.name}
-                    </DropdownItem>
-                  ))}
-                </DropdownList>
-              </Dropdown>
+                isCreatable={false}
+                maxMenuHeight="200px"
+              />
             </FormGroup>
             <FormGroup
               label={t('Dashboard name')}
@@ -287,11 +269,16 @@ export const DashboardCreateDialog: React.FunctionComponent = () => {
             variant="primary"
             onClick={handleAdd}
             isDisabled={
-              !dashboardName?.trim() || !selectedProject || createDashboardMutation.isPending
+              !dashboardName?.trim() ||
+              !selectedProject ||
+              createDashboardMutation.isPending ||
+              createProjectMutation.isPending
             }
-            isLoading={createDashboardMutation.isPending}
+            isLoading={createDashboardMutation.isPending || createProjectMutation.isPending}
           >
-            {createDashboardMutation.isPending ? t('Creating...') : t('Create')}
+            {createDashboardMutation.isPending || createProjectMutation.isPending
+              ? t('Creating...')
+              : t('Create')}
           </Button>
           <Button key="cancel" variant="link" onClick={handleModalToggle}>
             {t('Cancel')}

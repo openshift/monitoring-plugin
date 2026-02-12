@@ -13,15 +13,11 @@ import {
   HelperTextItemVariant,
   ModalVariant,
   AlertVariant,
-  Select,
-  SelectOption,
-  SelectList,
-  MenuToggle,
-  MenuToggleElement,
   Stack,
   StackItem,
   Spinner,
 } from '@patternfly/react-core';
+import { TypeaheadSelect, TypeaheadSelectOption } from '@patternfly/react-templates';
 import { ExclamationCircleIcon } from '@patternfly/react-icons';
 import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -46,9 +42,8 @@ import {
   getResourceExtendedDisplayName,
 } from '@perses-dev/core';
 import { useToast } from './ToastProvider';
-import { usePerses } from './hooks/usePerses';
 import { generateMetadataName } from './dashboard-utils';
-import { useProjectPermissions } from './dashboard-permissions';
+import { useEditableProjects } from './hooks/useEditableProjects';
 import { t_global_spacer_200, t_global_font_weight_200 } from '@patternfly/react-tokens';
 import { useNavigate } from 'react-router-dom-v5-compat';
 import { usePerspective, getDashboardUrl } from '../../hooks/usePerspective';
@@ -189,19 +184,15 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
 
   const navigate = useNavigate();
   const { perspective } = usePerspective();
-  const [isProjectSelectOpen, setIsProjectSelectOpen] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<string | null>(null);
 
-  const { persesProjects, persesProjectsLoading } = usePerses();
-
-  const hookInput = useMemo(() => {
-    return persesProjects || [];
-  }, [persesProjects]);
-
-  const { editableProjects } = useProjectPermissions(hookInput);
-
-  const filteredProjects = useMemo(() => {
-    return persesProjects.filter((project) => editableProjects.includes(project.metadata.name));
-  }, [persesProjects, editableProjects]);
+  const {
+    editableProjects,
+    allProjects,
+    hasEditableProject,
+    permissionsLoading,
+    permissionsError,
+  } = useEditableProjects();
 
   const defaultProject = useMemo(() => {
     if (!dashboard) return '';
@@ -210,8 +201,8 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
       return dashboard.metadata.project;
     }
 
-    return filteredProjects[0]?.metadata.name || '';
-  }, [dashboard, editableProjects, filteredProjects]);
+    return allProjects[0] || '';
+  }, [dashboard, editableProjects, allProjects]);
 
   const { schema: validationSchema } = useDashboardValidationSchema(defaultProject, t);
 
@@ -226,24 +217,29 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
     },
   });
 
+  const selectedProjectName = form.watch('projectName');
+
+  const projectOptions = useMemo<TypeaheadSelectOption[]>(() => {
+    if (!editableProjects) {
+      return [];
+    }
+    return editableProjects.map((project) => ({
+      content: project,
+      value: project,
+      selected: project === selectedProjectName,
+    }));
+  }, [editableProjects, selectedProjectName]);
+
   const createDashboardMutation = useCreateDashboardMutation();
 
   React.useEffect(() => {
-    if (isOpen && dashboard && filteredProjects.length > 0 && defaultProject) {
+    if (isOpen && dashboard && editableProjects?.length > 0 && defaultProject) {
       form.reset({
         projectName: defaultProject,
         dashboardName: '',
       });
     }
-  }, [isOpen, dashboard, defaultProject, filteredProjects.length, form]);
-
-  const selectedProjectName = form.watch('projectName');
-  const selectedProjectDisplay = useMemo(() => {
-    const selectedProject = filteredProjects.find((p) => p.metadata.name === selectedProjectName);
-    return selectedProject
-      ? getResourceDisplayName(selectedProject)
-      : selectedProjectName || t('Select project');
-  }, [filteredProjects, selectedProjectName, t]);
+  }, [isOpen, dashboard, defaultProject, editableProjects?.length, form]);
 
   if (!dashboard) {
     return null;
@@ -295,18 +291,9 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
     form.reset();
   };
 
-  const onProjectToggle = () => {
-    setIsProjectSelectOpen(!isProjectSelectOpen);
-  };
-
-  const onProjectSelect = (
-    _event: React.MouseEvent<Element, MouseEvent> | undefined,
-    value: string | number | undefined,
-  ) => {
-    if (typeof value === 'string') {
-      form.setValue('projectName', value);
-      setIsProjectSelectOpen(false);
-    }
+  const onProjectSelect = (_event: any, selection: string) => {
+    form.setValue('projectName', selection);
+    setSelectedProject(selection);
   };
 
   return (
@@ -318,9 +305,14 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
       aria-labelledby="duplicate-modal"
     >
       <ModalHeader title="Duplicate Dashboard" labelId="duplicate-modal-title" />
-      {persesProjectsLoading ? (
+      {permissionsLoading ? (
         <ModalBody style={{ textAlign: 'center', padding: '2rem' }}>
           {t('Loading...')} <Spinner aria-label="Duplicate Dashboard Modal Loading" />
+        </ModalBody>
+      ) : permissionsError ? (
+        <ModalBody style={{ textAlign: 'center', padding: '2rem' }}>
+          <ExclamationCircleIcon />
+          {t('Failed to load project permissions. Please refresh the page and try again.')}
         </ModalBody>
       ) : (
         <FormProvider {...form}>
@@ -368,7 +360,7 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
                   <Controller
                     control={form.control}
                     name="projectName"
-                    render={({ field, fieldState }) => (
+                    render={({ fieldState }) => (
                       <FormGroup
                         label={t('Select namespace')}
                         isRequired
@@ -376,34 +368,20 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
                         style={formGroupStyle}
                       >
                         <LabelSpacer />
-                        <Select
-                          id="duplicate-modal-select-namespace-form-group-select"
-                          isOpen={isProjectSelectOpen}
-                          selected={field.value}
+                        <TypeaheadSelect
+                          key={selectedProject || 'no-selection'}
+                          initialOptions={projectOptions}
+                          placeholder={t('Select namespace')}
+                          noOptionsFoundMessage={(filter) =>
+                            t(`No namespace found for "${filter}"`)
+                          }
+                          onClearSelection={() => {
+                            setSelectedProject(null);
+                          }}
                           onSelect={onProjectSelect}
-                          onOpenChange={setIsProjectSelectOpen}
-                          toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
-                            <MenuToggle
-                              ref={toggleRef}
-                              onClick={onProjectToggle}
-                              isExpanded={isProjectSelectOpen}
-                              isFullWidth
-                            >
-                              {selectedProjectDisplay}
-                            </MenuToggle>
-                          )}
-                        >
-                          <SelectList>
-                            {filteredProjects.map((project) => (
-                              <SelectOption
-                                key={project.metadata.name}
-                                value={project.metadata.name}
-                              >
-                                {getResourceDisplayName(project)}
-                              </SelectOption>
-                            ))}
-                          </SelectList>
-                        </Select>
+                          isCreatable={false}
+                          maxMenuHeight="200px"
+                        />
                         {fieldState.error && (
                           <FormHelperText>
                             <HelperText>
@@ -430,6 +408,7 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
                 isDisabled={
                   !(form.watch('dashboardName') || '')?.trim() ||
                   !(form.watch('projectName') || '')?.trim() ||
+                  !hasEditableProject ||
                   createDashboardMutation.isPending
                 }
                 isLoading={createDashboardMutation.isPending}
