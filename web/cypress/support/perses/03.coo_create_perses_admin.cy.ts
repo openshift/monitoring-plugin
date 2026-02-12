@@ -1,4 +1,4 @@
-import { listPersesDashboardsPage } from "../../views/list-perses-dashboards";
+import { listPersesDashboardsPage } from "../../views/perses-dashboards-list-dashboards";
 import { persesDashboardsPage } from '../../views/perses-dashboards';
 import { persesDashboardsAddListPanelType, persesDashboardSampleQueries, persesDashboardsEmptyDashboard } from '../../fixtures/perses/constants';
 import { persesCreateDashboardsPage } from '../../views/perses-dashboards-create-dashboard';
@@ -26,7 +26,7 @@ export function testCOOCreatePerses(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.shouldBeLoaded();
 
     cy.log(`1.2. Click on Create button`);
-    persesDashboardsPage.clickCreateButton();
+    listPersesDashboardsPage.clickCreateButton();
     persesCreateDashboardsPage.createDashboardShouldBeLoaded();
 
     cy.log(`1.3. Verify Project dropdown`);
@@ -44,6 +44,7 @@ export function testCOOCreatePerses(perspective: PerspectiveConfig) {
     persesCreateDashboardsPage.enterDashboardName(dashboardName);
     persesCreateDashboardsPage.createDashboardDialogCreateButton();
     persesDashboardsPage.shouldBeLoadedEditionMode(dashboardName);
+    persesDashboardsPage.shouldBeLoadedEditionModeFromCreateDashboard();
     
   });
 
@@ -56,17 +57,18 @@ export function testCOOCreatePerses(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.shouldBeLoaded();
 
     cy.log(`2.2. Click on Create button`);
-    persesDashboardsPage.clickCreateButton();
+    listPersesDashboardsPage.clickCreateButton();
     
     cy.log(`2.3. Verify Project dropdown`);
     persesCreateDashboardsPage.selectProject('openshift-cluster-observability-operator');
     persesCreateDashboardsPage.enterDashboardName(dashboardName);
     persesCreateDashboardsPage.createDashboardDialogCreateButton();
     persesDashboardsPage.shouldBeLoadedEditionMode(dashboardName);
+    persesDashboardsPage.shouldBeLoadedEditionModeFromCreateDashboard();
 
     cy.log(`2.4. Create another dashboard with the same name`);
     persesDashboardsPage.backToListPersesDashboardsPage();
-    persesDashboardsPage.clickCreateButton();
+    listPersesDashboardsPage.clickCreateButton();
     persesCreateDashboardsPage.selectProject('openshift-cluster-observability-operator');
     persesCreateDashboardsPage.enterDashboardName(dashboardName);
     persesCreateDashboardsPage.createDashboardDialogCreateButton();
@@ -79,10 +81,11 @@ export function testCOOCreatePerses(perspective: PerspectiveConfig) {
     persesCreateDashboardsPage.enterDashboardName(dashboardName);
     persesCreateDashboardsPage.createDashboardDialogCreateButton();
     persesDashboardsPage.shouldBeLoadedEditionMode(dashboardName);
+    persesDashboardsPage.shouldBeLoadedEditionModeFromCreateDashboard();
 
     cy.log(`2.6. Create another dashboard with the same name without spaces`);
     persesDashboardsPage.backToListPersesDashboardsPage();
-    persesDashboardsPage.clickCreateButton();
+    listPersesDashboardsPage.clickCreateButton();
     persesCreateDashboardsPage.selectProject('openshift-cluster-observability-operator');
     persesCreateDashboardsPage.enterDashboardName(dashboardName);
     persesCreateDashboardsPage.createDashboardDialogCreateButton();
@@ -93,6 +96,7 @@ export function testCOOCreatePerses(perspective: PerspectiveConfig) {
     persesCreateDashboardsPage.enterDashboardName(dashboardName);
     persesCreateDashboardsPage.createDashboardDialogCreateButton();
     persesDashboardsPage.shouldBeLoadedEditionMode(dashboardName);
+    persesDashboardsPage.shouldBeLoadedEditionModeFromCreateDashboard();
 
   });
 
@@ -104,7 +108,7 @@ export function testCOOCreatePerses(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.shouldBeLoaded();
 
     cy.log(`3.2. Click on Create button`);
-    persesDashboardsPage.clickCreateButton();
+    listPersesDashboardsPage.clickCreateButton();
     persesCreateDashboardsPage.createDashboardShouldBeLoaded();
 
     cy.log(`3.3. Create Dashboard`);
@@ -112,6 +116,7 @@ export function testCOOCreatePerses(perspective: PerspectiveConfig) {
     persesCreateDashboardsPage.enterDashboardName(dashboardName);
     persesCreateDashboardsPage.createDashboardDialogCreateButton();
     persesDashboardsPage.shouldBeLoadedEditionMode(dashboardName);
+    persesDashboardsPage.shouldBeLoadedEditionModeFromCreateDashboard();
 
     cy.log(`3.4. Add Variable`);
     persesDashboardsPage.clickEditActionButton('EditVariables');
@@ -148,8 +153,8 @@ export function testCOOCreatePerses(perspective: PerspectiveConfig) {
 
     cy.log(`3.7. Back and check panel`);
     persesDashboardsPage.backToListPersesDashboardsPage();
-    listPersesDashboardsPage.filter.byName(dashboardName.toLowerCase().replace(/ /g, '_'));
-    listPersesDashboardsPage.clickDashboard(dashboardName.toLowerCase().replace(/ /g, '_'));
+    listPersesDashboardsPage.filter.byName(dashboardName);
+    listPersesDashboardsPage.clickDashboard(dashboardName);
     persesDashboardsPage.panelGroupHeaderAssertion('Panel Group Up', 'Open');
     persesDashboardsPage.assertPanel('Up', 'Panel Group Up', 'Open');
     persesDashboardsPage.assertVariableBeVisible('interval');
@@ -184,5 +189,21 @@ export function testCOOCreatePerses(perspective: PerspectiveConfig) {
     cy.get('p').contains(persesDashboardsEmptyDashboard.DESCRIPTION).scrollIntoView().should('be.visible');
 
   });
+
+  //TODO: Verify Create project dropdown not only showing perses projects, but all namespaces you have access to, independently of having perses object (that creates a perses project)
+  // it(`4.${perspective.name} perspective - Verify Create project dropdown not only showing perses projects, but all namespaces you have access to, independently of having perses object (that creates a perses project)`, () => {
+    // cy.log(`4.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
+    // listPersesDashboardsPage.shouldBeLoaded();
+
+    // cy.log(`4.2. Click on Create button`);
+    // listPersesDashboardsPage.clickCreateButton();
+    // persesCreateDashboardsPage.createDashboardShouldBeLoaded();
+
+    // cy.log(`4.3. Verify Project dropdown`);
+    // persesCreateDashboardsPage.assertProjectDropdown('openshift-cluster-observability-operator');
+    // openshift-monitoringas an example of a namespace that you have access to and does not have any perses object created yet, but you are able to create a dashboard
+    // persesCreateDashboardsPage.assertProjectDropdown('openshift-monitoring);
+
+  // });
 
 }

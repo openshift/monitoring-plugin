@@ -1,7 +1,7 @@
 import { IDs, editPersesDashboardsAddPanel } from '../../../src/components/data-test';
 import { persesDashboardsAddListPanelType, persesDashboardsDashboardDropdownCOO, persesDashboardsDashboardDropdownPersesDev } from '../../fixtures/perses/constants';
 import { commonPages } from '../../views/common';
-import { listPersesDashboardsPage } from "../../views/list-perses-dashboards";
+import { listPersesDashboardsPage } from "../../views/perses-dashboards-list-dashboards";
 import { persesDashboardsPage } from '../../views/perses-dashboards';
 import { persesDashboardsEditDatasources } from '../../views/perses-dashboards-edit-datasources';
 import { persesDashboardsEditVariables } from '../../views/perses-dashboards-edit-variables';
@@ -25,11 +25,11 @@ export function testCOOEditPerses1(perspective: PerspectiveConfig) {
       listPersesDashboardsPage.shouldBeLoaded();
   
       cy.log(`10.2. Filter by Name`);
-      listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+      listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0]);
       listPersesDashboardsPage.countDashboards('1');
   
       cy.log(`10.3. Click on a dashboard`);
-      listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+      listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0]);
   
       const panelTypeKeys = Object.keys(persesDashboardsAddListPanelType) as (keyof typeof persesDashboardsAddListPanelType)[];
       panelTypeKeys.forEach((typeKey) => {
@@ -61,11 +61,11 @@ export function testCOOEditPerses1(perspective: PerspectiveConfig) {
       listPersesDashboardsPage.shouldBeLoaded();
   
       cy.log(`11.2. Filter by Name`);
-      listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+      listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0]);
       listPersesDashboardsPage.countDashboards('1');
   
       cy.log(`11.3. Click on a dashboard`);
-      listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+      listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0]);
   
       cy.log(`11.4. Click on Edit button`);
       cy.wait(2000);
@@ -97,11 +97,11 @@ export function testCOOEditPerses1(perspective: PerspectiveConfig) {
       listPersesDashboardsPage.shouldBeLoaded();
   
       cy.log(`12.2. Filter by Name`);
-      listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+      listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0]);
       listPersesDashboardsPage.countDashboards('1');
   
       cy.log(`12.3. Click on a dashboard`);
-      listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+      listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0]);
   
       const panelTypeKeys = Object.keys(persesDashboardsAddListPanelType) as (keyof typeof persesDashboardsAddListPanelType)[];
   
@@ -125,11 +125,11 @@ export function testCOOEditPerses1(perspective: PerspectiveConfig) {
       listPersesDashboardsPage.shouldBeLoaded();
   
       cy.log(`13.2. Filter by Name`);
-      listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+      listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0]);
       listPersesDashboardsPage.countDashboards('1');
 
       cy.log(`13.3. Click on a dashboard`);
-      listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+      listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0]);
 
       cy.log(`13.4. Click on Edit button`);
       cy.wait(2000);
@@ -152,11 +152,11 @@ export function testCOOEditPerses1(perspective: PerspectiveConfig) {
       listPersesDashboardsPage.shouldBeLoaded();
   
       cy.log(`14.2. Filter by Name`);
-      listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+      listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0]);
       listPersesDashboardsPage.countDashboards('1');
   
       cy.log(`14.3. Click on a dashboard`);
-      listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+      listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0]);
   
       cy.log(`14.4. Click on Edit button`);
       cy.wait(2000);
@@ -189,11 +189,11 @@ export function testCOOEditPerses1(perspective: PerspectiveConfig) {
       listPersesDashboardsPage.shouldBeLoaded();
 
       cy.log(`15.2. Filter by Name`);
-      listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[2]);
+      listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[0]);
       listPersesDashboardsPage.countDashboards('1');
 
       cy.log(`15.3. Click on a dashboard`);
-      listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[2]);
+      listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[0]);
       //TODO: change back to shouldBeLoaded when customizable-dashboards gets merged
       // persesDashboardsPage.shouldBeLoaded1();
 
@@ -248,11 +248,11 @@ export function testCOOEditPerses1(perspective: PerspectiveConfig) {
       listPersesDashboardsPage.shouldBeLoaded();
 
       cy.log(`16.2. Filter by Name`);
-      listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[2]);
+      listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[0]);
       listPersesDashboardsPage.countDashboards('1');
 
       cy.log(`16.3. Click on a dashboard`);
-      listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[2]);
+      listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[0]);
       //TODO: change back to shouldBeLoaded when customizable-dashboards gets merged
       // persesDashboardsPage.shouldBeLoaded1();
 
@@ -286,8 +286,8 @@ export function testCOOEditPerses1(perspective: PerspectiveConfig) {
 
       cy.log(`16.11. Back and check panel group`);
       persesDashboardsPage.backToListPersesDashboardsPage();
-      listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[2]);
-      listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[2]);
+      listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[0]);
+      listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[0]);
 
       cy.log(`16.12. Assert Variable before deleting`);
       persesDashboardsPage.searchAndSelectVariable('ListVariable', 'All');
