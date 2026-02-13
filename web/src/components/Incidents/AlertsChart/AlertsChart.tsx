@@ -32,6 +32,7 @@ import {
   generateDateArray,
   generateAlertsDateArray,
   getCurrentTime,
+  roundDateToInterval,
 } from '../utils';
 import { dateTimeFormatter, timeFormatter } from '../../console/utils/datetime';
 import { useTranslation } from 'react-i18next';
@@ -76,7 +77,7 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
   }, [alertsData]);
 
   useEffect(() => {
-    setChartContainerHeight(chartData?.length < 5 ? 300 : chartData?.length * 60);
+    setChartContainerHeight(chartData?.length < 5 ? 300 : chartData?.length * 55);
     setChartHeight(chartData?.length < 5 ? 250 : chartData?.length * 55);
   }, [chartData]);
 
@@ -164,7 +165,9 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
                     const endDate =
                       datum.alertstate === 'firing'
                         ? '---'
-                        : dateTimeFormatter(i18n.language).format(new Date(datum.y));
+                        : dateTimeFormatter(i18n.language).format(
+                            roundDateToInterval(new Date(datum.y)),
+                          );
 
                     const alertName = datum.silenced ? `${datum.name} (silenced)` : datum.name;
 
@@ -229,13 +232,14 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
                   <ChartLabel style={{ fill: theme === 'light' ? '#1b1d21' : '#e0e0e0' }} />
                 }
               />
-              <ChartGroup horizontal>
+              <ChartGroup horizontal data-test={DataTestIDs.AlertsChart.ChartContainer}>
                 {chartData.map((bar, index) => {
                   return (
                     //we have several arrays and for each array we make a ChartBar
                     <ChartBar
                       data={bar}
                       key={index}
+                      data-test={`${DataTestIDs.AlertsChart.ChartBar}-${index}`}
                       style={{
                         data: {
                           fill: ({ datum }) => datum.fill,

@@ -22,6 +22,10 @@ declare global {
       bySemanticElement(element: string, text?: string): Chainable<JQuery<HTMLElement>>;
       byAriaLabel(label: string, options?: Partial<Loggable & Timeoutable & Withinable & Shadow>): Chainable<JQuery<HTMLElement>>;
       byPFRole(role: string, options?: Partial<Loggable & Timeoutable & Withinable & Shadow>): Chainable<JQuery<HTMLElement>>;
+      byDataTestID(
+        selector: string,
+        options?: Partial<Loggable & Timeoutable & Withinable & Shadow>,
+      ): Chainable<Element>;
     }
   }
 }
@@ -37,6 +41,11 @@ Cypress.Commands.add(
     cy.get(`[data-test="${selector}"]`, options);
   },
 );
+
+//MaterialUI data-testid selectors
+Cypress.Commands.add('byDataTestID', (selector: string, options?: Partial<Loggable & Timeoutable & Withinable & Shadow>) => {
+  cy.get(`[data-testid="${selector}"]`, options);
+});
 
 // deprecated!  new IDs should use 'data-test', ie. `cy.byTestID(...)`
 Cypress.Commands.add('byLegacyTestID', (selector: string) =>

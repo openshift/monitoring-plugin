@@ -34,6 +34,43 @@ const (
 	testHostname = "127.0.0.1"
 )
 
+func TestCreateHTTPServer(t *testing.T) {
+	for _, tc := range []struct {
+		cfg *Config
+		err bool
+	}{
+		{
+			// The minimum TLS version is 1.2 by default.
+			cfg: &Config{
+				TLSMaxVersion:  tls.VersionTLS11,
+				CertFile:       "/etc/tls/server.crt",
+				PrivateKeyFile: "/etc/tls/server.key",
+			},
+			err: true,
+		},
+		{
+			cfg: &Config{
+				TLSMinVersion:  tls.VersionTLS13,
+				TLSMaxVersion:  tls.VersionTLS12,
+				CertFile:       "/etc/tls/server.crt",
+				PrivateKeyFile: "/etc/tls/server.key",
+			},
+			err: true,
+		},
+	} {
+		t.Run("", func(t *testing.T) {
+			_, err := createHTTPServer(context.Background(), tc.cfg)
+			if tc.err {
+				require.Error(t, err)
+				return
+			}
+
+			require.NoError(t, err)
+		})
+	}
+
+}
+
 // startTestServer is a helper that starts a server for testing and returns
 // a cleanup function that should be deferred by the caller.
 func startTestServer(t *testing.T, conf *Config) (*PluginServer, func()) {

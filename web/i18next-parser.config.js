@@ -1,3 +1,5 @@
+/* eslint-disable no-undef */
+
 module.exports = {
   createOldCatalogs: false,
   defaultNamespace: 'plugin__monitoring-plugin',

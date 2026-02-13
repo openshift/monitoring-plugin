@@ -1,10 +1,11 @@
 import { commonPages } from '../../views/common';
 import { nav } from '../../views/nav';
+import { troubleshootingPanelPage } from '../../views/troubleshooting-panel';
 
 
 // Set constants for the operators that need to be installed for tests.
 const MCP = {
-  namespace: 'openshift-cluster-observability-operator',
+  namespace: Cypress.env('COO_NAMESPACE'),
   packageName: 'cluster-observability-operator',
   operatorName: 'Cluster Observability Operator',
   config: {
@@ -18,7 +19,7 @@ const MP = {
   operatorName: 'Cluster Monitoring Operator',
 };
 
-describe('BVT: COO', () => {
+describe('BVT: COO', { tags: ['@smoke', '@coo'] }, () => {
 
   before(() => {
     cy.beforeBlockCOO(MCP, MP);
@@ -27,13 +28,18 @@ describe('BVT: COO', () => {
 
   it('1. Admin perspective - Observe Menu', () => {
     cy.log('Admin perspective - Observe Menu and verify all submenus');
+    cy.reload(true);
+    cy.wait(10000);
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     commonPages.titleShouldHaveText('Alerting');
     nav.tabs.switchTab('Silences');
     nav.tabs.switchTab('Alerting rules');
-    // nav.tabs.switchTab('Incidents');
+    nav.tabs.switchTab('Incidents');
     nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
     commonPages.titleShouldHaveText('Dashboards');
+    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    troubleshootingPanelPage.openSignalCorrelation();
+    troubleshootingPanelPage.troubleshootingPanelPageShouldBeLoadedEnabled();
 
   });
 
