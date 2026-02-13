@@ -67,7 +67,8 @@ export function testBVTCOOPerses1(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[0]);
     persesDashboardsPage.downloadDashboard(true, persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[2], 'JSON');
     persesDashboardsPage.downloadDashboard(true, persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[2], 'YAML');
-    persesDashboardsPage.downloadDashboard(true, persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[2], 'YAML (CR)');
+    persesDashboardsPage.downloadDashboard(true, persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[2], 'YAML (CR v1alpha1)');
+    persesDashboardsPage.downloadDashboard(true, persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[2], 'YAML (CR v1alpha2)');
     persesDashboardsPage.viewJSON(persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[2], 'openshift-cluster-observability-operator');
 
   });
