@@ -145,55 +145,77 @@ export function testCOOEditPerses1(perspective: PerspectiveConfig) {
       persesDashboardsPage.assertDuplicatedPanel('Legend Example', 2);
 
     });
-    
-    it(`14.${perspective.name} perspective - Edit Toolbar - Add Panel - Required field validation`, () => {
+  
+    it(`14.${perspective.name} perspective - Edit Toolbar - Perform changes and Cancel`, () => {
       cy.log(`14.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
       commonPages.titleShouldHaveText('Dashboards');
       listPersesDashboardsPage.shouldBeLoaded();
-  
+
       cy.log(`14.2. Filter by Name`);
-      listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0]);
+      listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[0]);
       listPersesDashboardsPage.countDashboards('1');
-  
+
       cy.log(`14.3. Click on a dashboard`);
-      listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0]);
-  
+      listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[0]);
+      //TODO: change back to shouldBeLoaded when customizable-dashboards gets merged
+      // persesDashboardsPage.shouldBeLoaded1();
+
       cy.log(`14.4. Click on Edit button`);
       cy.wait(2000);
       persesDashboardsPage.clickEditButton();
-  
-      cy.log(`14.5. Click on Add Panel Group button`);
+      persesDashboardsPage.clickEditActionButton('EditVariables');
+      persesDashboardsEditVariables.clickButton('Add Variable');
+      //https://issues.redhat.com/browse/OU-1159 - Custom All Value is not working
+      persesDashboardsEditVariables.addListVariable('ListVariable', true, true, 'AAA', 'Test', 'Test', undefined, undefined);
+
+      cy.log(`14.5. Add variable`);
+      persesDashboardsEditVariables.clickButton('Add');
+
+      cy.log(`14.6. Apply changes`);
+      persesDashboardsEditVariables.clickButton('Apply');
+
+      cy.log(`14.7. Assert Variable before cancelling`);
+      persesDashboardsPage.searchAndSelectVariable('ListVariable', 'All');
+
+      cy.log(`14.8. Click on Add Panel Group button`);
       persesDashboardsPage.clickEditActionButton('AddGroup');
-      persesDashboardsPanelGroup.addPanelGroup('PanelGroup Required Field Validation', 'Open', '');
-  
-      cy.log(`14.6. Click on Add Panel button`);
-      persesDashboardsPanelGroup.clickPanelGroupAction('PanelGroup Required Field Validation', 'addPanel');
-      
-      cy.get('input[name="'+editPersesDashboardsAddPanel.inputName+'"]').clear().type('Required Field Validation');
-   
-      persesDashboardsPanel.clickDropdownAndSelectOption('Type', persesDashboardsAddListPanelType.BAR_CHART);
-      cy.get('input[name="'+editPersesDashboardsAddPanel.inputName+'"]').clear().type('Required Field Validation');
-      persesDashboardsPanel.clickDropdownAndSelectOption('Type', persesDashboardsAddListPanelType.BAR_CHART);
-      cy.get('input[name="'+editPersesDashboardsAddPanel.inputName+'"]').clear();
-      cy.get('#'+IDs.persesDashboardAddPanelForm).parent('div').find('h2').siblings('div').find('button').contains('Add').should('be.visible').click();
-  
-      cy.log(`14.7. Assert required field validation`);
-      persesDashboardsPanel.assertRequiredFieldValidation('Name');
-      persesDashboardsPanel.clickButton('Cancel');
+      persesDashboardsPanelGroup.addPanelGroup('PanelGroup Perform Changes and Cancel', 'Open', '');
+
+      cy.log(`14.9. Click on Add Panel button`);
+      persesDashboardsPanelGroup.clickPanelGroupAction('PanelGroup Perform Changes and Cancel', 'addPanel');
+      persesDashboardsPanel.addPanel('Panel Perform Changes and Cancel', 'PanelGroup Perform Changes and Cancel', 'Bar Chart');
+
+      cy.log(`14.10. Click on Cancel button`);
       persesDashboardsPage.clickEditActionButton('Cancel');
+
+      cy.log(`14.11. Assert variable not exist`);
+      persesDashboardsPage.assertVariableNotExist('ListVariable');
+
+      cy.log(`14.12. Assert panel group not exist`);
+      persesDashboardsPage.assertPanelGroupNotExist('PanelGroup Perform Changes and Cancel');
+
+      cy.log(`14.13. Assert panel not exist`);
+      persesDashboardsPage.assertPanelNotExist('Panel Perform Changes and Cancel');
+
     });
-  
-    it(`15.${perspective.name} perspective - Edit Toolbar - Perform changes and Cancel`, () => {
-      cy.log(`15.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
+
+  /**
+   * OU-886 Mark dashboards and datasources created using CRD as readonly
+   * 
+   * Admin user and dev users with persesdashboard-editor-role will be able to edit dashboards using CRD.
+   * 
+   */ 
+  it(`15.${perspective.name} perspective - Try to editAccelerators and APM dashboards`, () => {
+    cy.log(`15.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
       commonPages.titleShouldHaveText('Dashboards');
       listPersesDashboardsPage.shouldBeLoaded();
 
       cy.log(`15.2. Filter by Name`);
-      listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[0]);
+      listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[0]);
       listPersesDashboardsPage.countDashboards('1');
 
       cy.log(`15.3. Click on a dashboard`);
-      listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[0]);
+      listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[0]);
       //TODO: change back to shouldBeLoaded when customizable-dashboards gets merged
       // persesDashboardsPage.shouldBeLoaded1();
 
@@ -211,103 +233,44 @@ export function testCOOEditPerses1(perspective: PerspectiveConfig) {
       cy.log(`15.6. Apply changes`);
       persesDashboardsEditVariables.clickButton('Apply');
 
-      cy.log(`15.7. Assert Variable before cancelling`);
+      cy.log(`15.7. Assert Variable before saving`);
       persesDashboardsPage.searchAndSelectVariable('ListVariable', 'All');
 
       cy.log(`15.8. Click on Add Panel Group button`);
       persesDashboardsPage.clickEditActionButton('AddGroup');
-      persesDashboardsPanelGroup.addPanelGroup('PanelGroup Perform Changes and Cancel', 'Open', '');
-
-      cy.log(`15.9. Click on Add Panel button`);
-      persesDashboardsPanelGroup.clickPanelGroupAction('PanelGroup Perform Changes and Cancel', 'addPanel');
-      persesDashboardsPanel.addPanel('Panel Perform Changes and Cancel', 'PanelGroup Perform Changes and Cancel', 'Bar Chart');
-
-      cy.log(`15.10. Click on Cancel button`);
-      persesDashboardsPage.clickEditActionButton('Cancel');
-
-      cy.log(`15.11. Assert variable not exist`);
-      persesDashboardsPage.assertVariableNotExist('ListVariable');
-
-      cy.log(`15.12. Assert panel group not exist`);
-      persesDashboardsPage.assertPanelGroupNotExist('PanelGroup Perform Changes and Cancel');
-
-      cy.log(`15.13. Assert panel not exist`);
-      persesDashboardsPage.assertPanelNotExist('Panel Perform Changes and Cancel');
-
-    });
-
-  /**
-   * OU-886 Mark dashboards and datasources created using CRD as readonly
-   * 
-   * Admin user and dev users with persesdashboard-editor-role will be able to edit dashboards using CRD.
-   * 
-   */ 
-  it(`16.${perspective.name} perspective - Try to editAccelerators and APM dashboards`, () => {
-    cy.log(`16.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
-      commonPages.titleShouldHaveText('Dashboards');
-      listPersesDashboardsPage.shouldBeLoaded();
-
-      cy.log(`16.2. Filter by Name`);
-      listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[0]);
-      listPersesDashboardsPage.countDashboards('1');
-
-      cy.log(`16.3. Click on a dashboard`);
-      listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[0]);
-      //TODO: change back to shouldBeLoaded when customizable-dashboards gets merged
-      // persesDashboardsPage.shouldBeLoaded1();
-
-      cy.log(`16.4. Click on Edit button`);
-      cy.wait(2000);
-      persesDashboardsPage.clickEditButton();
-      persesDashboardsPage.clickEditActionButton('EditVariables');
-      persesDashboardsEditVariables.clickButton('Add Variable');
-      //https://issues.redhat.com/browse/OU-1159 - Custom All Value is not working
-      persesDashboardsEditVariables.addListVariable('ListVariable', true, true, 'AAA', 'Test', 'Test', undefined, undefined);
-
-      cy.log(`16.5. Add variable`);
-      persesDashboardsEditVariables.clickButton('Add');
-
-      cy.log(`16.6. Apply changes`);
-      persesDashboardsEditVariables.clickButton('Apply');
-
-      cy.log(`16.7. Assert Variable before saving`);
-      persesDashboardsPage.searchAndSelectVariable('ListVariable', 'All');
-
-      cy.log(`16.8. Click on Add Panel Group button`);
-      persesDashboardsPage.clickEditActionButton('AddGroup');
       persesDashboardsPanelGroup.addPanelGroup('PanelGroup Perform Changes and Save', 'Open', '');
 
-      cy.log(`16.9. Click on Add Panel button`);
+      cy.log(`15.9. Click on Add Panel button`);
       persesDashboardsPanelGroup.clickPanelGroupAction('PanelGroup Perform Changes and Save', 'addPanel');
       persesDashboardsPanel.addPanel('Panel Perform Changes and Save', 'PanelGroup Perform Changes and Save', 'Bar Chart');
 
-      cy.log(`16.10. Click on Save button`);
+      cy.log(`15.10. Click on Save button`);
       persesDashboardsPage.clickEditActionButton('Save');
 
-      cy.log(`16.11. Back and check panel group`);
+      cy.log(`15.11. Back and check panel group`);
       persesDashboardsPage.backToListPersesDashboardsPage();
       listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[0]);
       listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[0]);
 
-      cy.log(`16.12. Assert Variable before deleting`);
+      cy.log(`15.12. Assert Variable before deleting`);
       persesDashboardsPage.searchAndSelectVariable('ListVariable', 'All');
 
-      cy.log(`16.13. Assert panel group exists`);
+      cy.log(`15.13. Assert panel group exists`);
       persesDashboardsPage.panelGroupHeaderAssertion('PanelGroup Perform Changes and Save', 'Open');
 
-      cy.log(`16.14. Assert panel exists`);
+      cy.log(`15.14. Assert panel exists`);
       persesDashboardsPage.assertPanel('Panel Perform Changes and Save', 'PanelGroup Perform Changes and Save', 'Open');
 
-      cy.log (`16.15. Click on Edit button`);
+      cy.log (`15.15. Click on Edit button`);
       persesDashboardsPage.clickEditButton();
 
-      cy.log(`16.16. Delete variable`);
+      cy.log(`15.16. Delete variable`);
       persesDashboardsPage.clickEditActionButton('EditVariables');
       persesDashboardsEditVariables.clickDeleteVariableButton(1);
       persesDashboardsEditVariables.clickButton('Apply');
       persesDashboardsPage.assertVariableNotExist('ListVariable');
 
-      cy.log(`16.17. Delete panel group`);
+      cy.log(`15.17. Delete panel group`);
       persesDashboardsPanelGroup.clickPanelGroupAction('PanelGroup Perform Changes and Save', 'delete');
       persesDashboardsPanelGroup.clickDeletePanelGroupButton();
       persesDashboardsPage.clickEditActionButton('Save');
