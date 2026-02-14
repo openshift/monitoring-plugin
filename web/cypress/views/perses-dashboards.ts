@@ -397,7 +397,7 @@ export const persesDashboardsPage = {
     cy.byDataTestID(persesMUIDataTestIDs.panelHeader).find('h6').contains(name).should('not.exist');
   },
 
-  downloadDashboard: (clearFolder: boolean, dashboardName: string, format: 'JSON' | 'YAML' | 'YAML (CR)') => {
+  downloadDashboard: (clearFolder: boolean, dashboardName: string, format: 'JSON' | 'YAML' | 'YAML (CR v1alpha1)' | 'YAML (CR v1alpha2)') => {
     cy.log('persesDashboardsPage.downloadDashboard');
 
     if (clearFolder) {
@@ -408,8 +408,10 @@ export const persesDashboardsPage = {
     cy.byPFRole('menuitem').contains(format).should('be.visible').click({ force: true });
     cy.wait(1000);
     let filename: string;
-    if (format === 'YAML (CR)') {
-      filename = dashboardName + '-cr' + '.yaml';
+    if (format === 'YAML (CR v1alpha1)') {
+      filename = dashboardName + '-cr-v1alpha1' + '.yaml';
+    } else if (format === 'YAML (CR v1alpha2)') {
+      filename = dashboardName + '-cr-v1alpha2' + '.yaml';
     } else {
       filename = dashboardName + '.' + format.toLowerCase();
     }
