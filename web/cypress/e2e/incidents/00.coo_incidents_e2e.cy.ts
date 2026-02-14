@@ -17,11 +17,11 @@ const MCP = {
 };
 
 const MP = {
-  namespace: Cypress.env('COO_NAMESPACE'),
+  namespace: 'openshift-monitoring',
   operatorName: 'Cluster Monitoring Operator',
 };
 
-describe('BVT: Incidents - e2e', { tags: ['@smoke', '@slow', '@incidents'] }, () => {
+describe('BVT: Incidents - e2e', { tags: ['@smoke', '@slow', '@incidents', '@e2e-real'] }, () => {
   let currentAlertName: string;
 
   before(() => {

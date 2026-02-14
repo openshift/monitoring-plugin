@@ -100,4 +100,3 @@ Cypress.Commands.add('createKubePodCrashLoopingAlert', (testName?: string) => {
       `oc delete -f ./cypress/fixtures/incidents/pod_crash_loop.yaml --ignore-not-found=true --kubeconfig ${kubeconfigPath}`,
     );
   });
-

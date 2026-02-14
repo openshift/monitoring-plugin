@@ -2,7 +2,6 @@ import { alerts } from '../../../fixtures/monitoring/alert';
 import { runAllRegressionAlertsTestsNamespace } from '../../../support/monitoring/04.reg_alerts_namespace.cy';
 import { commonPages } from '../../../views/common';
 import { nav } from '../../../views/nav';
-import { guidedTour } from '../../../views/tour';
 
 const MP = {
   namespace: 'openshift-monitoring',
@@ -16,9 +15,6 @@ describe('Regression: Monitoring - Alerts Namespaced (Administrator)', { tags: [
     });
 
     beforeEach(() => {
-      cy.visit('/');
-      guidedTour.close();
-      cy.validateLogin();
       alerts.getWatchdogAlert();
       nav.sidenav.clickNavLink(['Observe', 'Alerting']);
       commonPages.titleShouldHaveText('Alerting');
@@ -32,4 +28,3 @@ describe('Regression: Monitoring - Alerts Namespaced (Administrator)', { tags: [
     });
   
 });
-

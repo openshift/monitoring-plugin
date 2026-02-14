@@ -12,6 +12,7 @@ declare global {
         changeNamespace(namespace: string): Chainable<Element>;
         aboutModal(): Chainable<Element>;
         podImage(pod: string, namespace: string): Chainable<Element>;
+        assertNamespace(namespace: string, exists: boolean): Chainable<Element>;
         }
     }
   }
@@ -116,6 +117,8 @@ Cypress.Commands.add('waitUntilWithCustomTimeout', (
 
   Cypress.Commands.add('podImage', (pod: string, namespace: string) => {
     cy.log('Get pod image');
+    cy.switchPerspective('Core platform', 'Administrator');
+    cy.wait(5000);
     cy.clickNavLink(['Workloads', 'Pods']);
     cy.changeNamespace(namespace);
     cy.byTestID('page-heading').contains('Pods').should('be.visible');
@@ -140,3 +143,48 @@ Cypress.Commands.add('waitUntilWithCustomTimeout', (
   });
 
   
+  Cypress.Commands.add('assertNamespace', (namespace: string, exists: boolean) => {
+    cy.log('Asserting Namespace: ' + namespace + ' exists: ' + exists);
+    cy.wait(2000);
+    cy.get('body').then(($body) => {
+      const hasNamespaceBarDropdown = $body.find('[data-test-id="'+LegacyTestIDs.NamespaceBarDropdown+'"]').length > 0;
+      if (hasNamespaceBarDropdown) {
+        cy.byLegacyTestID(LegacyTestIDs.NamespaceBarDropdown).find('button').scrollIntoView().should('be.visible');
+        cy.byLegacyTestID(LegacyTestIDs.NamespaceBarDropdown).find('button').scrollIntoView().should('be.visible').click({force: true});
+      } else {
+        cy.get(Classes.NamespaceDropdown).scrollIntoView().should('be.visible');
+        cy.get(Classes.NamespaceDropdown).scrollIntoView().should('be.visible').click({force: true});
+      }
+    });
+    cy.get('body').then(($body) => {
+      const hasShowSystemSwitch = $body.find('[data-test="'+DataTestIDs.NamespaceDropdownShowSwitch+'"]').length > 0;
+      if (hasShowSystemSwitch) {
+        cy.get('[data-test="'+DataTestIDs.NamespaceDropdownShowSwitch+'"]').then(($element)=> {
+          if ($element.attr('data-checked-state') !== 'true') {
+            cy.byTestID(DataTestIDs.NamespaceDropdownShowSwitch).siblings('span').eq(0).should('be.visible');
+            cy.byTestID(DataTestIDs.NamespaceDropdownShowSwitch).siblings('span').eq(0).should('be.visible').click({force: true});
+          }
+        });
+      }
+    });
+    cy.byTestID(DataTestIDs.NamespaceDropdownTextFilter).type(namespace, {delay: 100});
+    if (exists) {
+      cy.log('Namespace: ' + namespace + ' exists');
+      cy.byTestID(DataTestIDs.NamespaceDropdownMenuLink).contains(namespace).should('be.visible');
+    } else {
+      cy.log('Namespace: ' + namespace + ' does not exist');
+      cy.byTestID(DataTestIDs.NamespaceDropdownMenuLink).should('not.exist');
+    }
+
+    cy.get('body').then(($body) => {
+      const hasNamespaceBarDropdown = $body.find('[data-test-id="'+LegacyTestIDs.NamespaceBarDropdown+'"]').length > 0;
+      if (hasNamespaceBarDropdown) {
+        cy.byLegacyTestID(LegacyTestIDs.NamespaceBarDropdown).find('button').scrollIntoView().should('be.visible');
+        cy.byLegacyTestID(LegacyTestIDs.NamespaceBarDropdown).find('button').scrollIntoView().should('be.visible').click({force: true});
+      } else {
+        cy.get(Classes.NamespaceDropdownExpanded).scrollIntoView().should('be.visible');
+        cy.get(Classes.NamespaceDropdownExpanded).scrollIntoView().should('be.visible').click({force: true});
+      }
+    });
+
+  });

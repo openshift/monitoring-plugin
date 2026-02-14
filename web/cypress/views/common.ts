@@ -1,13 +1,18 @@
 import { detailsPage } from "./details-page";
-import { nav } from "./nav";
 import { DataTestIDs, Classes } from "../../src/components/data-test";
 
 export const commonPages = {
   projectDropdownShouldNotExist: () => cy.byLegacyTestID('namespace-bar-dropdown').should('not.exist'),
   projectDropdownShouldExist: () => cy.byLegacyTestID('namespace-bar-dropdown').should('exist'),
   titleShouldHaveText: (title: string) => {
+    cy.wait(15000);
     cy.log('commonPages.titleShouldHaveText - ' + `${title}`);
-    cy.bySemanticElement('h1', title).should('be.visible');
+    cy.bySemanticElement('h1', title).scrollIntoView().should('be.visible');
+  },
+
+  titleModalShouldHaveText: (title: string) => {
+    cy.log('commonPages.titleModalShouldHaveText - ' + `${title}`);
+    cy.bySemanticElement('h2', title).scrollIntoView().should('be.visible');
   },
 
   linkShouldExist: (linkName: string) => {

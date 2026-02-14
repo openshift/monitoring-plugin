@@ -1,7 +1,7 @@
 import { persesDashboardsAcceleratorsCommonMetricsPanels, persesDashboardsDashboardDropdownCOO, persesDashboardsDashboardDropdownPersesDev } from '../../fixtures/perses/constants';
 import { commonPages } from '../../views/common';
 import { persesDashboardsPage } from '../../views/perses-dashboards';
-import { persesDataTestIDs } from '../../../src/components/data-test';
+import { persesMUIDataTestIDs } from '../../../src/components/data-test';
 
 export interface PerspectiveConfig {
   name: string;
@@ -31,8 +31,8 @@ export function testBVTCOOPerses(perspective: PerspectiveConfig) {
     cy.log(`2.1. use sidebar nav to go to Observe > Dashboards (Perses) > Accelerators common metrics dashboard`);
     cy.changeNamespace('openshift-cluster-observability-operator');
     persesDashboardsPage.clickDashboardDropdown(persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[0] as keyof typeof persesDashboardsDashboardDropdownCOO);
-    cy.byDataTestID(persesDataTestIDs.variableDropdown+'-cluster').should('be.visible');
-    persesDashboardsPage.panelGroupHeaderAssertion('Accelerators');
+    cy.byDataTestID(persesMUIDataTestIDs.variableDropdown+'-cluster').should('be.visible');
+    persesDashboardsPage.panelGroupHeaderAssertion('Accelerators', 'Open');
     persesDashboardsPage.panelHeadersAcceleratorsCommonMetricsAssertion();
     persesDashboardsPage.expandPanel(persesDashboardsAcceleratorsCommonMetricsPanels.GPU_UTILIZATION);
     persesDashboardsPage.collapsePanel(persesDashboardsAcceleratorsCommonMetricsPanels.GPU_UTILIZATION);
@@ -42,16 +42,16 @@ export function testBVTCOOPerses(perspective: PerspectiveConfig) {
     cy.log(`3.1. use sidebar nav to go to Observe > Dashboards (Perses) > Perses Dashboard Sample dashboard`);
     cy.changeNamespace('perses-dev');
     persesDashboardsPage.clickDashboardDropdown(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0] as keyof typeof persesDashboardsDashboardDropdownPersesDev);
-    cy.byDataTestID(persesDataTestIDs.variableDropdown+'-job').should('be.visible');
-    cy.byDataTestID(persesDataTestIDs.variableDropdown+'-instance').should('be.visible');
-    cy.byDataTestID(persesDataTestIDs.variableDropdown+'-interval').should('be.visible');
-    cy.byDataTestID(persesDataTestIDs.variableDropdown+'-text').should('be.visible');
-    persesDashboardsPage.panelGroupHeaderAssertion('Row 1');
-    persesDashboardsPage.expandPanel('RAM Used');
-    persesDashboardsPage.collapsePanel('RAM Used');
-    persesDashboardsPage.statChartValueAssertion('RAM Used', true);
+    cy.byDataTestID(persesMUIDataTestIDs.variableDropdown+'-job').should('be.visible');
+    cy.byDataTestID(persesMUIDataTestIDs.variableDropdown+'-instance').should('be.visible');
+    cy.byDataTestID(persesMUIDataTestIDs.variableDropdown+'-interval').should('be.visible');
+    cy.byDataTestID(persesMUIDataTestIDs.variableDropdown+'-text').should('be.visible');
+    persesDashboardsPage.panelGroupHeaderAssertion('Row 1', 'Open');
+    persesDashboardsPage.expandPanel('RAM Total');
+    persesDashboardsPage.collapsePanel('RAM Total');
+    persesDashboardsPage.statChartValueAssertion('RAM Total', true);
     persesDashboardsPage.searchAndSelectVariable('job', 'node-exporter');
-    persesDashboardsPage.statChartValueAssertion('RAM Used', false);
+    persesDashboardsPage.statChartValueAssertion('RAM Total', false);
   
   });
 

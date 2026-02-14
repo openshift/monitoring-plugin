@@ -19,4 +19,3 @@ declare namespace Cypress {
 }
 
 export {};
-

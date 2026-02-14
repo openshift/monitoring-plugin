@@ -60,13 +60,20 @@ export const listPage = {
      */
     byName: (name: string) => {
       cy.log('listPage.filter.byName');
-      try {
+      cy.get('body').then(($body) => {
+        const hasFilterbyName419 = $body.find('[data-test-id="' + LegacyTestIDs.NameLabelDropdown + '"]').length > 0;
+        if (hasFilterbyName419) {
+          cy.byLegacyTestID(LegacyTestIDs.NameLabelDropdown).scrollIntoView().click();
+          cy.byLegacyTestID(LegacyTestIDs.NameLabelDropdownOptions).contains('Name').click();
+        } else {
           cy.byTestID(DataTestIDs.NameLabelDropdown).scrollIntoView().click();
           cy.byTestID(DataTestIDs.NameLabelDropdownOptions).contains('Name').click();
-          cy.byTestID(DataTestIDs.NameInput).scrollIntoView().as('input').should('be.visible');
-          cy.get('@input', { timeout: 10000 }).scrollIntoView().type(name + '{enter}');
-          cy.get('@input', { timeout: 10000 }).scrollIntoView().should('have.attr', 'value', name);
-        
+        }
+      });
+      try {
+        cy.byTestID(DataTestIDs.NameInput).scrollIntoView().as('input').should('be.visible');
+        cy.get('@input', { timeout: 10000 }).scrollIntoView().type(name + '{enter}');
+        cy.get('@input', { timeout: 10000 }).scrollIntoView().should('have.attr', 'value', name);
       }
       catch (error) {
         cy.log(`${error.message}`);
@@ -78,14 +85,22 @@ export const listPage = {
      */
     byLabel: (label: string) => {
       cy.log('listPage.filter.byLabel');
-      cy.byTestID(DataTestIDs.NameLabelDropdown).scrollIntoView().click();
-      cy.byTestID(DataTestIDs.NameLabelDropdownOptions).contains('Label').click();
+      cy.get('body').then(($body) => {
+        const hasFilterbyName419 = $body.find('[data-test-id="' + LegacyTestIDs.NameLabelDropdown + '"]').length > 0;
+        if (hasFilterbyName419) {
+          cy.byLegacyTestID(LegacyTestIDs.NameLabelDropdown).scrollIntoView().click();
+          cy.byLegacyTestID(LegacyTestIDs.NameLabelDropdownOptions).contains('Label').click();
+        } else {
+          cy.byTestID(DataTestIDs.NameLabelDropdown).scrollIntoView().click();
+          cy.byTestID(DataTestIDs.NameLabelDropdownOptions).contains('Label').click();
+        }
+      });
       cy.byLegacyTestID(LegacyTestIDs.ItemFilter).scrollIntoView()
         .as('input').should('be.visible');
       cy.get('@input', { timeout: 10000 }).scrollIntoView().type(label + '{enter}').should('have.attr', 'value', label);
       cy.byTestID(DataTestIDs.LabelSuggestion).contains(label).click();
     },
-    
+
     clearAllFilters: () => {
       cy.log('listPage.filter.clearAllFilters');
       try {
@@ -178,7 +193,7 @@ export const listPage = {
       cy.log('listPage.ARRows.countShouldBe');
       cy.byTestID(DataTestIDs.AlertingRuleResourceIcon).should('have.length', count);
     },
-    
+
     //pf-6 only
     ARShouldBe: (alert: string, severity: string, total: number, state: string) => {
       cy.log('listPage.ARRows.ARShouldBe');
@@ -190,7 +205,7 @@ export const listPage = {
         cy.byTestID(DataTestIDs.AlertingRuleTotalAlertsBadge).contains(total).should('exist');
         cy.byTestID(DataTestIDs.AlertingRuleStateBadge).contains(state).should('exist');
       }
-    
+
     },
     AShouldBe: (alert: string, severity: string, namespace: string) => {
       cy.log('listPage.ARRows.AShouldBe');
@@ -198,7 +213,7 @@ export const listPage = {
       cy.byTestID(DataTestIDs.AlertResourceLink).contains(alert).should('exist');
       cy.byTestID(DataTestIDs.SeverityBadge).contains(severity).should('exist');
       cy.byTestID(DataTestIDs.AlertNamespace).contains(namespace).should('exist'); //pf-6 only
-      
+
     },
     //pf-6 only
     expandRow: () => {

@@ -26,11 +26,11 @@ const MCP = {
 };
 
 const MP = {
-  namespace: Cypress.env('COO_NAMESPACE'),
+  namespace: 'openshift-monitoring',
   operatorName: 'Cluster Monitoring Operator',
 };
 
-describe('Regression: Redux State Management', { tags: ['@incidents', '@incidents-redux', '@flaky'] }, () => {
+describe('Regression: Redux State Management', { tags: ['@incidents', '@incidents-redux'] }, () => {
 
   before(() => {
     cy.beforeBlockCOO(MCP, MP);

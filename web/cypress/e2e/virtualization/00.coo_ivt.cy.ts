@@ -1,5 +1,4 @@
 import { runBVTMonitoringTests } from '../../support/monitoring/00.bvt_monitoring.cy';
-import { runBVTMonitoringTestsNamespace } from '../../support/monitoring/00.bvt_monitoring_namespace.cy';
 import { guidedTour } from '../../views/tour';
 import { alerts } from '../../fixtures/monitoring/alert';
 import { nav } from '../../views/nav';

@@ -98,6 +98,7 @@ export enum MetricsPagePredefinedQueries {
 export enum MetricsPageQueryInput {
   EXPRESSION_PRESS_SHIFT_ENTER_FOR_NEWLINES = 'Expression (press Shift+Enter for newlines)',
   INSERT_EXAMPLE_QUERY = 'sort_desc(sum(sum_over_time(ALERTS{alertstate="firing"}[24h])) by (alertname))',
+  INSERT_EXAMPLE_QUERY_NAMESPACE = 'sort_desc(sum(sum_over_time(ALERTS{alertstate="firing", namespace="openshift-monitoring"}[24h])) by (alertname))',
   VECTOR_QUERY='vector(1)',
   CPU_USAGE = 'OpenShift_Metrics_QueryTable_sum(node_namespace_pod_container_container_cpu_usage_seconds_total_sum_irate) by (pod).csv',
   MEMORY_USAGE = 'OpenShift_Metrics_QueryTable_sum(container_memory_working_set_bytes{container!=__}) by (pod).csv',

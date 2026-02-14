@@ -5,7 +5,9 @@ export const troubleshootingPanelPage = {
   openSignalCorrelation: () => {
     cy.log('troubleshootingPanelPage.openSignalCorrelation');
     cy.byLegacyTestID(LegacyTestIDs.ApplicationLauncher).should('be.visible').click();
+    cy.wait(3000);
     cy.byTestID(DataTestIDs.MastHeadApplicationItem).contains('Signal Correlation').should('be.visible').click();
+    cy.wait(3000);
   },
 
   signalCorrelationShouldNotBeVisible: () => {

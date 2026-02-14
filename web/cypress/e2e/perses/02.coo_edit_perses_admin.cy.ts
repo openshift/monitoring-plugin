@@ -1,6 +1,6 @@
 import { nav } from '../../views/nav';
-import { runBVTCOOPersesTests } from '../../support/perses/00.coo_bvt_perses.cy';
-import { guidedTour } from '../../views/tour';
+import { runCOOEditPersesTests1 } from '../../support/perses/02.coo_edit_perses_admin_1.cy';
+import { runCOOEditPersesTests } from '../../support/perses/02.coo_edit_perses_admin.cy';
 
 // Set constants for the operators that need to be installed for tests.
 const MCP = {
@@ -18,21 +18,27 @@ const MP = {
   operatorName: 'Cluster Monitoring Operator',
 };
 
-describe('BVT: COO - Dashboards (Perses) - Administrator perspective', { tags: ['@smoke', '@dashboards'] }, () => {
+//TODO: change tag to @dashboards when customizable-dashboards gets merged
+describe('COO - Dashboards (Perses) - Edit perses dashboard', { tags: ['@perses', '@dashboards-'] }, () => {
 
   before(() => {
     cy.beforeBlockCOO(MCP, MP);
   });
 
   beforeEach(() => {
-    cy.visit('/');
-    guidedTour.close();
-    cy.validateLogin();
     nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
+    cy.wait(5000);
+    cy.changeNamespace('All Projects');
   });
 
-  runBVTCOOPersesTests({
+  runCOOEditPersesTests({ 
+    name: 'Administrator',
+  });
+
+  runCOOEditPersesTests1({
     name: 'Administrator',
   });
 
 });
+
+

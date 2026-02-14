@@ -88,6 +88,7 @@ export const silencesListPage = {
 
     clickAlertKebab: () => {
       cy.log('silencesListPage.rows.clickAlertKebab');
+      cy.wait(2000);
       cy.byTestID(DataTestIDs.KebabDropdownButton).should('be.visible').click();
     },
 
