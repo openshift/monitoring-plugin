@@ -1,5 +1,3 @@
-import { DataTestIDs, Classes } from "../../src/components/data-test";
-
 export const acmAlertingPage = {
   shouldBeLoaded: () => {
     cy.log('acmAlertingPage.shouldBeLoaded');

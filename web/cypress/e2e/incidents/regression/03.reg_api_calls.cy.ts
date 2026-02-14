@@ -22,11 +22,11 @@ const MCP = {
 };
 
 const MP = {
-  namespace: Cypress.env('COO_NAMESPACE'),
+  namespace: 'openshift-monitoring',
   operatorName: 'Cluster Monitoring Operator',
 };
 
-describe('Regression: Silences Not Applied Correctly', { tags: ['@incidents', '@flaky'] }, () => {
+describe('Regression: Silences Not Applied Correctly', { tags: ['@incidents'] }, () => {
 
   before(() => {
     cy.beforeBlockCOO(MCP, MP);
@@ -124,5 +124,4 @@ describe('Regression: Silences Not Applied Correctly', { tags: ['@incidents', '@
     cy.log('Verified: Silence matching uses alertname + namespace + severity');
   });
 });
-
 

@@ -1,6 +1,5 @@
 import { alerts } from '../../fixtures/monitoring/alert';
 import { runAllRegressionAlertsTests } from '../../support/monitoring/01.reg_alerts.cy';
-import { runAllRegressionAlertsTestsNamespace } from '../../support/monitoring/04.reg_alerts_namespace.cy';
 import { commonPages } from '../../views/common';
 import { nav } from '../../views/nav';
 import { guidedTour } from '../../views/tour';

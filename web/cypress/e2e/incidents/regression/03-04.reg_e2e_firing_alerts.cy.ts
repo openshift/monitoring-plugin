@@ -33,7 +33,7 @@ const MP = {
   operatorName: 'Cluster Monitoring Operator',
 };
 
-describe('Regression: Time-Based Alert Resolution (E2E with Firing Alerts)', { tags: ['@incidents', '@slow', '@flaky'] }, () => {
+describe('Regression: Time-Based Alert Resolution (E2E with Firing Alerts)', { tags: ['@incidents', '@slow', '@e2e-real'] }, () => {
   let currentAlertName: string;
 
   before(() => {
@@ -300,5 +300,4 @@ describe('Regression: Time-Based Alert Resolution (E2E with Firing Alerts)', { t
     cy.log('Verified: Alert lifecycle maintained correctly throughout test suite (end time = "---")');
   });
 });
-
 
