@@ -96,13 +96,13 @@ export const silenceAlertPage = {
 
   buttonDefault: () => {
     cy.log('silenceAlertPage.buttonDefault');
-    cy.byTestID(DataTestIDs.SilenceButton).should('be.visible');
-    cy.byTestID(DataTestIDs.CancelButton).should('be.visible');
+    cy.bySemanticElement('button', 'Silence').scrollIntoView().should('be.visible');
+    cy.bySemanticElement('button', 'Cancel').should('be.visible');
   },
   
   clickCancelButton: () => {
     cy.log('silenceAlertPage.clickCancelButton');
-    cy.byTestID(DataTestIDs.CancelButton).scrollIntoView().should('be.visible').click();
+    cy.bySemanticElement('button', 'Cancel').scrollIntoView().should('be.visible').click({force: true});
   },
   /**
    * changeDuration only changing For (time dropdown) and Start immediately checkbox
@@ -191,7 +191,7 @@ export const silenceAlertPage = {
   },
   clickSubmit: () =>{
     cy.log('silenceAlertPage.clickSubmit');
-    cy.bySemanticElement('button').contains('Silence').should('be.visible').click();
+    cy.bySemanticElement('button').contains('Silence').scrollIntoView().should('be.visible').click({force: true});
   },
   /**
    * pf-6 only

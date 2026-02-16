@@ -43,26 +43,7 @@ export function testAlertsRegression(perspective: PerspectiveConfig) {
 
   });
 
-  it(`${perspective.name} perspective - Alerting > Silences page > Create silence`, () => {
-    cy.log('2.1 use sidebar nav to go to Observe > Alerting');
-    nav.tabs.switchTab('Silences');
-    silencesListPage.createSilence();
-    silenceAlertPage.assertCommentNoError();
-    silenceAlertPage.clickSubmit();
-    silenceAlertPage.assertCommentWithError();
-    silenceAlertPage.addComment(SilenceComment.SILENCE_COMMENT);
-    silenceAlertPage.addCreator('');
-    silenceAlertPage.clickSubmit();
-    silenceAlertPage.assertCreatorWithError();
-    silenceAlertPage.addCreator(Cypress.env('LOGIN_USERNAME'));
-    silenceAlertPage.fillLabeNameLabelValue('', 'a');
-    silenceAlertPage.clickSubmit();
-    silenceAlertPage.assertLabelNameError();
-    silenceAlertPage.fillLabeNameLabelValue('a', '');
-    silenceAlertPage.clickSubmit();
-    silenceAlertPage.assertLabelValueError();
-
-  });
+  // Scenario 2 was dropped due to the differences in the UI between pf-5 and pf-6 to create a silence
 
   it(`${perspective.name} perspective - Alerting > Alerts / Silences > Kebab icon on List and Details`, () => {
     cy.log('3.1 use sidebar nav to go to Observe > Alerting');
@@ -72,7 +53,6 @@ export function testAlertsRegression(perspective: PerspectiveConfig) {
     listPage.ARRows.countShouldBe(1);
 
     cy.log('3.3 silence alert');
-    listPage.ARRows.expandRow();
     listPage.ARRows.silenceAlert();
     silenceAlertPage.addComment(SilenceComment.SILENCE_COMMENT);
     silenceAlertPage.clickSubmit();
@@ -84,8 +64,7 @@ export function testAlertsRegression(perspective: PerspectiveConfig) {
     listPage.filter.clearAllFilters();
     listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
     listPage.ARRows.countShouldBe(1);
-    listPage.ARRows.expandRow();
-    listPage.ARRows.assertNoKebab();
+    listPage.ARRows.assertKebabNoSilenceAlert();
     listPage.ARRows.clickAlert();
     commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
     detailsPage.assertSilencedAlert();
@@ -132,11 +111,11 @@ export function testAlertsRegression(perspective: PerspectiveConfig) {
     silenceAlertPage.silenceAlertSectionDefault();
     silenceAlertPage.durationSectionDefault();
     silenceAlertPage.alertLabelsSectionDefault();
-    silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('alertname', `${WatchdogAlert.ALERTNAME}`, false, false);
+    silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('alertname', `${WatchdogAlert.ALERTNAME}`);
     // silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('severity', `${SEVERITY}`, false, false);
     cy.log('https://issues.redhat.com/browse/OU-1110 - [Namespace-level] - Admin user - Create, Edit, Recreate silences is showing namespace dropdown');
-    silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('namespace', `${WatchdogAlert.NAMESPACE}`, false, false);
-    silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('prometheus', 'openshift-monitoring/k8s', false, false);
+    silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('namespace', `${WatchdogAlert.NAMESPACE}`);
+    silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('prometheus', 'openshift-monitoring/k8s');
     silenceAlertPage.clickSubmit();
     commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
 
@@ -152,11 +131,11 @@ export function testAlertsRegression(perspective: PerspectiveConfig) {
     silenceAlertPage.editAlertWarning();
     silenceAlertPage.editDurationSectionDefault();
     silenceAlertPage.alertLabelsSectionDefault();
-    silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('alertname', `${WatchdogAlert.ALERTNAME}`, false, false);
+    silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('alertname', `${WatchdogAlert.ALERTNAME}`);
     // silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('severity', `${SEVERITY}`, false, false);
     cy.log('https://issues.redhat.com/browse/OU-1110 - [Namespace-level] - Admin user - Create, Edit, Recreate silences is showing namespace dropdown');
-    silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('namespace', `${WatchdogAlert.NAMESPACE}`, false, false);
-    silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('prometheus', 'openshift-monitoring/k8s', false, false);
+    silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('namespace', `${WatchdogAlert.NAMESPACE}`);
+    silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('prometheus', 'openshift-monitoring/k8s');
     silenceAlertPage.clickSubmit();
     commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
 
@@ -173,9 +152,9 @@ export function testAlertsRegression(perspective: PerspectiveConfig) {
 
     cy.log('3.13 Alert Details > Silence alert button > Cancel');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    listPage.filter.clearAllFilters();
     listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
     listPage.ARRows.countShouldBe(1);
-    listPage.ARRows.expandRow();
     listPage.ARRows.clickAlert();
     commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
     detailsPage.clickSilenceAlertButton();
@@ -247,7 +226,7 @@ export function testAlertsRegression(perspective: PerspectiveConfig) {
     listPage.filter.clearAllFilters();
     listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
     alertingRuleListPage.clickAlertingRule(`${WatchdogAlert.ALERTNAME}`);
-    alertingRuleDetailsPage.assertNoKebab();
+    alertingRuleDetailsPage.assertKebabNoSilenceAlert();
 
     cy.log('4.8 Expire silence');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);

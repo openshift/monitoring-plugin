@@ -65,7 +65,7 @@ export const detailsPage = {
   assertSilencedAlert: () => {
     cy.log('detailsPage.assertSilencedAlert');
     try {
-      cy.byTestID(DataTestIDs.SilenceButton).should('not.exist');
+      cy.get('body').find('button:contains("Silence alert")').should('have.length', 0);
       detailsPage.clickOnSilenceByKebab();
       cy.byPFRole('menuitem').contains('Edit silence').should('be.visible');
       cy.byPFRole('menuitem').contains('Expire silence').should('be.visible');
@@ -119,7 +119,7 @@ export const detailsPage = {
   },
   clickSilenceAlertButton:()=>{
     cy.log('detailsPage.clickSilenceAlertButton');
-    cy.byTestID(DataTestIDs.SilenceButton).should('be.visible').click();
+    cy.bySemanticElement('button', 'Silence alert').should('be.visible').click();
   },
 
   

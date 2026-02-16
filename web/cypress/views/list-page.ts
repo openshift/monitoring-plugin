@@ -84,7 +84,7 @@ export const listPage = {
       cy.byLegacyTestID(LegacyTestIDs.ItemFilter).scrollIntoView()
         .as('input').should('be.visible');
       cy.get('@input', { timeout: 10000 }).scrollIntoView().type(label + '{enter}').should('have.attr', 'value', label);
-      cy.byTestID(DataTestIDs.LabelSuggestion).contains(label).click();
+      cy.get(Classes.SuggestionLine).contains(label).click();
     },
     
     clearAllFilters: () => {
@@ -223,10 +223,12 @@ export const listPage = {
       }
       cy.wait(5000);
     },
-    assertNoKebab: () => {
-      cy.log('listPage.ARRows.assertNoKebab');
+    assertKebabNoSilenceAlert: () => {
+      cy.log('listPage.ARRows.assertKebabNoSilenceAlert');
       try {
-        cy.byAriaLabel('toggle menu').should('not.exist');
+        cy.byLegacyTestID(LegacyTestIDs.KebabButton).should('be.visible').click();
+        cy.byPFRole('menuitem').contains('View alerting rule').should('be.visible');
+        cy.get('body').find('a:contains("Silence alert")').should('have.length', 0);
       } catch (error) {
         cy.log(`${error.message}`);
         throw error;
