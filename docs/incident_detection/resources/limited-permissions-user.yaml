@@ -1,0 +1,31 @@
+# Namespace and RoleBinding for testing limited permissions
+#
+# This creates a namespace with cluster-monitoring enabled and grants
+# the testuser only monitoring-rules-view access (no full monitoring access)
+#
+# The user will receive 403 Forbidden when accessing:
+# - /api/prometheus/api/v1/rules
+# - /api/alertmanager/api/v2/silences  
+# - /api/prometheus/api/v1/query_range
+# - /api/prometheus/api/v1/query
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: namespace-a
+  labels:
+    openshift.io/cluster-monitoring: "true"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: testuser-monitoring-view
+  namespace: namespace-a
+subjects:
+- kind: User
+  name: testuser
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: monitoring-rules-view
+  apiGroup: rbac.authorization.k8s.io
