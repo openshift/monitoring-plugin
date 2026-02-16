@@ -623,3 +623,284 @@ var _ = Describe("UpdatePlatformAlertRule", func() {
 		})
 	})
 })
+
+var _ = Describe("Drop/Restore Platform Alert Rule", func() {
+	var (
+		ctx     context.Context
+		mockK8s *testutils.MockClient
+		client  management.Client
+	)
+
+	var (
+		drOriginalPlatformRule = monitoringv1.Rule{
+			Alert: "PlatformAlertDrop",
+			Expr:  intstr.FromString("up == 0"),
+			Labels: map[string]string{
+				"severity": "warning",
+				"team":     "sre",
+			},
+		}
+		drOriginalPlatformRuleId = alertrule.GetAlertingRuleId(&drOriginalPlatformRule)
+
+		// Platform rule as seen by RelabeledRules (with k8s labels added)
+		drPlatformRule = monitoringv1.Rule{
+			Alert: "PlatformAlertDrop",
+			Expr:  intstr.FromString("up == 0"),
+			Labels: map[string]string{
+				"severity":                       "warning",
+				"team":                           "sre",
+				k8s.PrometheusRuleLabelNamespace: "openshift-monitoring",
+				k8s.PrometheusRuleLabelName:      "platform-rule-drop",
+				k8s.AlertRuleLabelId:             drOriginalPlatformRuleId,
+			},
+		}
+		drPlatformRuleId = alertrule.GetAlertingRuleId(&drPlatformRule)
+	)
+
+	BeforeEach(func() {
+		ctx = context.Background()
+		mockK8s = &testutils.MockClient{}
+		client = management.New(ctx, mockK8s)
+
+		mockK8s.NamespaceFunc = func() k8s.NamespaceInterface {
+			return &testutils.MockNamespaceInterface{
+				IsClusterMonitoringNamespaceFunc: func(name string) bool {
+					return name == "openshift-monitoring"
+				},
+			}
+		}
+
+		// Relabeled rule lookup by id
+		mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
+			return &testutils.MockRelabeledRulesInterface{
+				GetFunc: func(ctx context.Context, id string) (monitoringv1.Rule, bool) {
+					if id == drPlatformRuleId {
+						return drPlatformRule, true
+					}
+					return monitoringv1.Rule{}, false
+				},
+			}
+		}
+
+		// Original PR with the original rule
+		mockK8s.PrometheusRulesFunc = func() k8s.PrometheusRuleInterface {
+			return &testutils.MockPrometheusRuleInterface{
+				GetFunc: func(ctx context.Context, namespace string, name string) (*monitoringv1.PrometheusRule, bool, error) {
+					return &monitoringv1.PrometheusRule{
+						ObjectMeta: metav1.ObjectMeta{
+							Namespace: namespace,
+							Name:      name,
+						},
+						Spec: monitoringv1.PrometheusRuleSpec{
+							Groups: []monitoringv1.RuleGroup{
+								{
+									Name:  "grp",
+									Rules: []monitoringv1.Rule{drOriginalPlatformRule},
+								},
+							},
+						},
+					}, true, nil
+				},
+			}
+		}
+	})
+
+	It("creates ARC with id-stamp Replace and scoped Drop, preserving existing entries", func() {
+		var createdOrUpdated *osmv1.AlertRelabelConfig
+
+		existingARC := &osmv1.AlertRelabelConfig{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "arc-platform-rule-drop-xxxx",
+				Namespace: "openshift-monitoring",
+			},
+			Spec: osmv1.AlertRelabelConfigSpec{
+				Configs: []osmv1.RelabelConfig{
+					{
+						TargetLabel: "component",
+						Replacement: "kube-apiserver",
+						Action:      "Replace",
+					},
+				},
+			},
+		}
+
+		mockK8s.AlertRelabelConfigsFunc = func() k8s.AlertRelabelConfigInterface {
+			return &testutils.MockAlertRelabelConfigInterface{
+				GetFunc: func(ctx context.Context, namespace string, name string) (*osmv1.AlertRelabelConfig, bool, error) {
+					if namespace == "openshift-monitoring" && strings.HasPrefix(name, "arc-") {
+						return existingARC, true, nil
+					}
+					return nil, false, nil
+				},
+				UpdateFunc: func(ctx context.Context, arc osmv1.AlertRelabelConfig) error {
+					createdOrUpdated = &arc
+					return nil
+				},
+				CreateFunc: func(ctx context.Context, arc osmv1.AlertRelabelConfig) (*osmv1.AlertRelabelConfig, error) {
+					createdOrUpdated = &arc
+					return &arc, nil
+				},
+			}
+		}
+
+		err := client.DropPlatformAlertRule(ctx, drPlatformRuleId)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(createdOrUpdated).NotTo(BeNil())
+		Expect(createdOrUpdated.Namespace).To(Equal("openshift-monitoring"))
+		Expect(strings.HasPrefix(createdOrUpdated.Name, "arc-")).To(BeTrue())
+
+		var hasPriorReplace, hasIdStamp, hasDrop bool
+		for _, rc := range createdOrUpdated.Spec.Configs {
+			switch string(rc.Action) {
+			case "Replace":
+				if string(rc.TargetLabel) == "component" && rc.Replacement == "kube-apiserver" {
+					hasPriorReplace = true
+				}
+				if string(rc.TargetLabel) == "openshift_io_alert_rule_id" && rc.Replacement == drPlatformRuleId {
+					hasIdStamp = true
+				}
+			case "Drop":
+				if len(rc.SourceLabels) == 1 &&
+					string(rc.SourceLabels[0]) == "openshift_io_alert_rule_id" &&
+					rc.Regex == drPlatformRuleId {
+					hasDrop = true
+				}
+			}
+		}
+		Expect(hasPriorReplace).To(BeTrue())
+		Expect(hasIdStamp).To(BeTrue())
+		Expect(hasDrop).To(BeTrue())
+	})
+
+	It("is idempotent when dropping twice", func() {
+		var last *osmv1.AlertRelabelConfig
+		mockK8s.AlertRelabelConfigsFunc = func() k8s.AlertRelabelConfigInterface {
+			var stored *osmv1.AlertRelabelConfig
+			return &testutils.MockAlertRelabelConfigInterface{
+				GetFunc: func(ctx context.Context, namespace string, name string) (*osmv1.AlertRelabelConfig, bool, error) {
+					if stored == nil {
+						return nil, false, nil
+					}
+					return stored, true, nil
+				},
+				CreateFunc: func(ctx context.Context, arc osmv1.AlertRelabelConfig) (*osmv1.AlertRelabelConfig, error) {
+					stored = &arc
+					last = &arc
+					return &arc, nil
+				},
+				UpdateFunc: func(ctx context.Context, arc osmv1.AlertRelabelConfig) error {
+					last = &arc
+					stored = &arc
+					return nil
+				},
+			}
+		}
+
+		err := client.DropPlatformAlertRule(ctx, drPlatformRuleId)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(last).NotTo(BeNil())
+		cfgCount := len(last.Spec.Configs)
+
+		// Drop again; expect same number of configs
+		err = client.DropPlatformAlertRule(ctx, drPlatformRuleId)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(last.Spec.Configs).To(HaveLen(cfgCount))
+	})
+
+	It("restores by removing only the Drop entry, preserving others; deletes ARC when becomes empty", func() {
+		deleted := false
+		var updated *osmv1.AlertRelabelConfig
+
+		// Case A: existing ARC has only Drop -> restore should delete ARC
+		mockK8s.AlertRelabelConfigsFunc = func() k8s.AlertRelabelConfigInterface {
+			onlyDrop := &osmv1.AlertRelabelConfig{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "arc-to-delete",
+					Namespace: "openshift-monitoring",
+				},
+				Spec: osmv1.AlertRelabelConfigSpec{
+					Configs: []osmv1.RelabelConfig{
+						{
+							SourceLabels: []osmv1.LabelName{"openshift_io_alert_rule_id"},
+							Regex:        drPlatformRuleId,
+							Action:       "Drop",
+						},
+					},
+				},
+			}
+			return &testutils.MockAlertRelabelConfigInterface{
+				GetFunc: func(ctx context.Context, namespace string, name string) (*osmv1.AlertRelabelConfig, bool, error) {
+					return onlyDrop, true, nil
+				},
+				DeleteFunc: func(ctx context.Context, namespace string, name string) error {
+					deleted = true
+					return nil
+				},
+				UpdateFunc: func(ctx context.Context, arc osmv1.AlertRelabelConfig) error {
+					updated = &arc
+					return nil
+				},
+			}
+		}
+
+		err := client.RestorePlatformAlertRule(ctx, drPlatformRuleId)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(deleted).To(BeTrue())
+		Expect(updated).To(BeNil())
+
+		// Case B: existing ARC has other Replace; restore should keep it and only remove Drop
+		deleted = false
+		mockK8s.AlertRelabelConfigsFunc = func() k8s.AlertRelabelConfigInterface {
+			withOthers := &osmv1.AlertRelabelConfig{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "arc-keep",
+					Namespace: "openshift-monitoring",
+				},
+				Spec: osmv1.AlertRelabelConfigSpec{
+					Configs: []osmv1.RelabelConfig{
+						{
+							TargetLabel: "component",
+							Replacement: "kube-apiserver",
+							Action:      "Replace",
+						},
+						{
+							SourceLabels: []osmv1.LabelName{"openshift_io_alert_rule_id"},
+							Regex:        drPlatformRuleId,
+							Action:       "Drop",
+						},
+					},
+				},
+			}
+			return &testutils.MockAlertRelabelConfigInterface{
+				GetFunc: func(ctx context.Context, namespace string, name string) (*osmv1.AlertRelabelConfig, bool, error) {
+					return withOthers, true, nil
+				},
+				DeleteFunc: func(ctx context.Context, namespace string, name string) error {
+					deleted = true
+					return nil
+				},
+				UpdateFunc: func(ctx context.Context, arc osmv1.AlertRelabelConfig) error {
+					updated = &arc
+					return nil
+				},
+			}
+		}
+
+		err = client.RestorePlatformAlertRule(ctx, drPlatformRuleId)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(deleted).To(BeFalse())
+		Expect(updated).NotTo(BeNil())
+		// Ensure Drop removed, other Replace preserved
+		var hasDrop, hasReplace bool
+		for _, rc := range updated.Spec.Configs {
+			if string(rc.Action) == "Drop" {
+				hasDrop = true
+			}
+			if string(rc.Action) == "Replace" && string(rc.TargetLabel) == "component" && rc.Replacement == "kube-apiserver" {
+				hasReplace = true
+			}
+		}
+		Expect(hasDrop).To(BeFalse())
+		Expect(hasReplace).To(BeTrue())
+	})
+})

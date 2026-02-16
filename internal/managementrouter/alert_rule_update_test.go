@@ -258,7 +258,45 @@ var _ = Describe("UpdateAlertRule", func() {
 		})
 	})
 
-	Context("when alertingRule is missing", func() {
+	Context("enabled toggle for platform alerts", func() {
+		It("should drop (AlertingRuleEnabled=false) and return 204 envelope", func() {
+			mockARC := &testutils.MockAlertRelabelConfigInterface{}
+			mockK8s.AlertRelabelConfigsFunc = func() k8s.AlertRelabelConfigInterface { return mockARC }
+
+			body := map[string]interface{}{"AlertingRuleEnabled": false}
+			buf, _ := json.Marshal(body)
+			req := httptest.NewRequest(http.MethodPatch, "/api/v1/alerting/rules/"+platformRuleId, bytes.NewReader(buf))
+			w := httptest.NewRecorder()
+			router.ServeHTTP(w, req)
+
+			Expect(w.Code).To(Equal(http.StatusOK))
+			var resp managementrouter.UpdateAlertRuleResponse
+			Expect(json.NewDecoder(w.Body).Decode(&resp)).To(Succeed())
+			Expect(resp.Id).To(Equal(platformRuleId))
+			Expect(resp.StatusCode).To(Equal(http.StatusNoContent))
+			Expect(resp.Message).To(BeEmpty())
+		})
+
+		It("should restore (AlertingRuleEnabled=true) and return 204 envelope", func() {
+			mockARC := &testutils.MockAlertRelabelConfigInterface{}
+			mockK8s.AlertRelabelConfigsFunc = func() k8s.AlertRelabelConfigInterface { return mockARC }
+
+			body := map[string]interface{}{"AlertingRuleEnabled": true}
+			buf, _ := json.Marshal(body)
+			req := httptest.NewRequest(http.MethodPatch, "/api/v1/alerting/rules/"+platformRuleId, bytes.NewReader(buf))
+			w := httptest.NewRecorder()
+			router.ServeHTTP(w, req)
+
+			Expect(w.Code).To(Equal(http.StatusOK))
+			var resp managementrouter.UpdateAlertRuleResponse
+			Expect(json.NewDecoder(w.Body).Decode(&resp)).To(Succeed())
+			Expect(resp.Id).To(Equal(platformRuleId))
+			Expect(resp.StatusCode).To(Equal(http.StatusNoContent))
+			Expect(resp.Message).To(BeEmpty())
+		})
+	})
+
+	Context("when both alertingRule and AlertingRuleEnabled are missing", func() {
 		It("should return 400", func() {
 			body := map[string]interface{}{}
 			buf, _ := json.Marshal(body)
@@ -268,7 +306,7 @@ var _ = Describe("UpdateAlertRule", func() {
 			router.ServeHTTP(w, req)
 
 			Expect(w.Code).To(Equal(http.StatusBadRequest))
-			Expect(w.Body.String()).To(ContainSubstring("alertingRule is required"))
+			Expect(w.Body.String()).To(ContainSubstring("either alertingRule (labels) or AlertingRuleEnabled (toggle drop/restore) is required"))
 		})
 	})
 

@@ -17,7 +17,8 @@ import (
 type BulkUpdateAlertRulesRequest struct {
 	RuleIds []string `json:"ruleIds"`
 	// Use pointer values so we can distinguish null (delete) vs string value (set)
-	Labels map[string]*string `json:"labels"`
+	Labels              map[string]*string `json:"labels"`
+	AlertingRuleEnabled *bool              `json:"AlertingRuleEnabled,omitempty"`
 }
 
 type BulkUpdateAlertRulesResponse struct {
@@ -36,9 +37,15 @@ func (hr *httpRouter) BulkUpdateAlertRules(w http.ResponseWriter, req *http.Requ
 		return
 	}
 
-	if payload.Labels == nil {
-		writeError(w, http.StatusBadRequest, "labels is required")
+	if payload.AlertingRuleEnabled == nil && payload.Labels == nil {
+		writeError(w, http.StatusBadRequest, "AlertingRuleEnabled (toggle drop/restore) or labels (set/unset) is required")
 		return
+	}
+	var haveToggle bool
+	var enabled bool
+	if payload.AlertingRuleEnabled != nil {
+		enabled = *payload.AlertingRuleEnabled
+		haveToggle = true
 	}
 
 	results := make([]UpdateAlertRuleResponse, 0, len(payload.RuleIds))
@@ -54,43 +61,44 @@ func (hr *httpRouter) BulkUpdateAlertRules(w http.ResponseWriter, req *http.Requ
 			continue
 		}
 
-		// For bulk update, merge labels and handle empty strings as drops
-		currentRule, err := hr.managementClient.GetRuleById(req.Context(), id)
-		if err != nil {
-			status, message := parseError(err)
-			results = append(results, UpdateAlertRuleResponse{
-				Id:         id,
-				StatusCode: status,
-				Message:    message,
-			})
-			continue
-		}
-
-		mergedLabels := make(map[string]string)
-		intentLabels := make(map[string]string)
-		for k, v := range currentRule.Labels {
-			mergedLabels[k] = v
-		}
-		for k, pv := range payload.Labels {
-			// K8s-aligned: null => delete; support empty string as delete for compatibility
-			if pv == nil || *pv == "" {
-				// keep intent for platform path as explicit delete
-				intentLabels[k] = ""
-				delete(mergedLabels, k)
+		// Handle enabled drop/restore first if requested
+		if haveToggle {
+			notAllowedEnabled := false
+			var derr error
+			if !enabled {
+				derr = hr.managementClient.DropPlatformAlertRule(req.Context(), id)
+			} else {
+				derr = hr.managementClient.RestorePlatformAlertRule(req.Context(), id)
+			}
+			if derr != nil {
+				// If NotAllowed (likely user-defined), we still allow label updates.
+				var na *management.NotAllowedError
+				if errors.As(derr, &na) {
+					notAllowedEnabled = true
+				} else {
+					status, message := parseError(derr)
+					results = append(results, UpdateAlertRuleResponse{
+						Id:         id,
+						StatusCode: status,
+						Message:    message,
+					})
+					continue
+				}
+			}
+			// If only enabled was requested and it was NotAllowed, return 405 for this id
+			if notAllowedEnabled && payload.Labels == nil {
+				results = append(results, UpdateAlertRuleResponse{
+					Id:         id,
+					StatusCode: http.StatusMethodNotAllowed,
+				})
 				continue
 			}
-			mergedLabels[k] = *pv
-			intentLabels[k] = *pv
 		}
 
-		// For platform flow, pass only the user-intent labels (avoid pinning merged fields)
-		updatedPlatformRule := monitoringv1.Rule{Labels: intentLabels}
-
-		err = hr.managementClient.UpdatePlatformAlertRule(req.Context(), id, updatedPlatformRule)
-		if err != nil {
-			var ve *management.ValidationError
-			var nf *management.NotFoundError
-			if errors.As(err, &ve) || errors.As(err, &nf) {
+		if payload.Labels != nil {
+			// For bulk update, merge labels and handle empty strings as drops
+			currentRule, err := hr.managementClient.GetRuleById(req.Context(), id)
+			if err != nil {
 				status, message := parseError(err)
 				results = append(results, UpdateAlertRuleResponse{
 					Id:         id,
@@ -100,15 +108,28 @@ func (hr *httpRouter) BulkUpdateAlertRules(w http.ResponseWriter, req *http.Requ
 				continue
 			}
 
-			var na *management.NotAllowedError
-			if errors.As(err, &na) && strings.Contains(na.Error(), "cannot update non-platform alert rule") {
-				// Not a platform rule, try user-defined
-				// For user-defined, we apply the merged labels to the PR
-				updatedUserRule := currentRule
-				updatedUserRule.Labels = mergedLabels
+			mergedLabels := make(map[string]string)
+			intentLabels := make(map[string]string)
+			for k, v := range currentRule.Labels {
+				mergedLabels[k] = v
+			}
+			for k, pv := range payload.Labels {
+				if pv == nil || *pv == "" {
+					intentLabels[k] = ""
+					delete(mergedLabels, k)
+					continue
+				}
+				mergedLabels[k] = *pv
+				intentLabels[k] = *pv
+			}
 
-				newRuleId, err := hr.managementClient.UpdateUserDefinedAlertRule(req.Context(), id, updatedUserRule)
-				if err != nil {
+			updatedPlatformRule := monitoringv1.Rule{Labels: intentLabels}
+
+			err = hr.managementClient.UpdatePlatformAlertRule(req.Context(), id, updatedPlatformRule)
+			if err != nil {
+				var ve *management.ValidationError
+				var nf *management.NotFoundError
+				if errors.As(err, &ve) || errors.As(err, &nf) {
 					status, message := parseError(err)
 					results = append(results, UpdateAlertRuleResponse{
 						Id:         id,
@@ -117,20 +138,39 @@ func (hr *httpRouter) BulkUpdateAlertRules(w http.ResponseWriter, req *http.Requ
 					})
 					continue
 				}
+
+				var na *management.NotAllowedError
+				if errors.As(err, &na) && strings.Contains(na.Error(), "cannot update non-platform alert rule") {
+					// Not a platform rule, try user-defined
+					// For user-defined, we apply the merged labels to the PR
+					updatedUserRule := currentRule
+					updatedUserRule.Labels = mergedLabels
+
+					newRuleId, err := hr.managementClient.UpdateUserDefinedAlertRule(req.Context(), id, updatedUserRule)
+					if err != nil {
+						status, message := parseError(err)
+						results = append(results, UpdateAlertRuleResponse{
+							Id:         id,
+							StatusCode: status,
+							Message:    message,
+						})
+						continue
+					}
+					results = append(results, UpdateAlertRuleResponse{
+						Id:         newRuleId,
+						StatusCode: http.StatusNoContent,
+					})
+					continue
+				}
+
+				status, message := parseError(err)
 				results = append(results, UpdateAlertRuleResponse{
-					Id:         newRuleId,
-					StatusCode: http.StatusNoContent,
+					Id:         id,
+					StatusCode: status,
+					Message:    message,
 				})
 				continue
 			}
-
-			status, message := parseError(err)
-			results = append(results, UpdateAlertRuleResponse{
-				Id:         id,
-				StatusCode: status,
-				Message:    message,
-			})
-			continue
 		}
 
 		results = append(results, UpdateAlertRuleResponse{

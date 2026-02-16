@@ -316,7 +316,7 @@ var _ = Describe("BulkUpdateAlertRules", func() {
 		})
 	})
 
-	Context("when labels is missing", func() {
+	Context("when both labels and AlertingRuleEnabled are missing", func() {
 		It("should return 400", func() {
 			body := map[string]interface{}{
 				"ruleIds": []string{userRule1Id},
@@ -328,7 +328,38 @@ var _ = Describe("BulkUpdateAlertRules", func() {
 			router.ServeHTTP(w, req)
 
 			Expect(w.Code).To(Equal(http.StatusBadRequest))
-			Expect(w.Body.String()).To(ContainSubstring("labels is required"))
+			Expect(w.Body.String()).To(ContainSubstring("AlertingRuleEnabled (toggle drop/restore) or labels (set/unset) is required"))
+		})
+	})
+
+	Context("enabled toggle in bulk for platform/user/missing", func() {
+		It("should drop platform, mark user as not allowed, and missing as not found", func() {
+			mockARC := &testutils.MockAlertRelabelConfigInterface{}
+			mockK8s.AlertRelabelConfigsFunc = func() k8s.AlertRelabelConfigInterface { return mockARC }
+
+			body := map[string]interface{}{
+				"ruleIds":             []string{platformRuleId, userRule1Id, "missing-alert;hash"},
+				"AlertingRuleEnabled": false,
+			}
+			buf, _ := json.Marshal(body)
+			req := httptest.NewRequest(http.MethodPatch, "/api/v1/alerting/rules", bytes.NewReader(buf))
+			w := httptest.NewRecorder()
+
+			router.ServeHTTP(w, req)
+
+			Expect(w.Code).To(Equal(http.StatusOK))
+			var resp managementrouter.BulkUpdateAlertRulesResponse
+			Expect(json.NewDecoder(w.Body).Decode(&resp)).To(Succeed())
+			Expect(resp.Rules).To(HaveLen(3))
+
+			// Order corresponds to input order
+			Expect(resp.Rules[0].Id).To(Equal(platformRuleId))
+			Expect(resp.Rules[0].StatusCode).To(Equal(http.StatusNoContent))
+			Expect(resp.Rules[1].Id).To(Equal(userRule1Id))
+			// user-defined alerts cannot be dropped/restored via enabled
+			Expect(resp.Rules[1].StatusCode).To(Equal(http.StatusMethodNotAllowed))
+			Expect(resp.Rules[2].Id).To(Equal("missing-alert;hash"))
+			Expect(resp.Rules[2].StatusCode).To(Equal(http.StatusNotFound))
 		})
 	})
 

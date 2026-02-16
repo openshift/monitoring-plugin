@@ -12,7 +12,8 @@ import (
 )
 
 type UpdateAlertRuleRequest struct {
-	AlertingRule *monitoringv1.Rule `json:"alertingRule,omitempty"`
+	AlertingRule        *monitoringv1.Rule `json:"alertingRule,omitempty"`
+	AlertingRuleEnabled *bool              `json:"AlertingRuleEnabled,omitempty"`
 }
 
 type UpdateAlertRuleResponse struct {
@@ -34,8 +35,40 @@ func (hr *httpRouter) UpdateAlertRule(w http.ResponseWriter, req *http.Request) 
 		return
 	}
 
-	if payload.AlertingRule == nil {
-		writeError(w, http.StatusBadRequest, "alertingRule is required")
+	alertingRuleEnabled := payload.AlertingRuleEnabled
+
+	// Handle drop/restore for platform alerts
+	if alertingRuleEnabled != nil {
+		var derr error
+		if !*alertingRuleEnabled {
+			derr = hr.managementClient.DropPlatformAlertRule(req.Context(), ruleId)
+		} else {
+			derr = hr.managementClient.RestorePlatformAlertRule(req.Context(), ruleId)
+		}
+		if derr != nil {
+			status, message := parseError(derr)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			_ = json.NewEncoder(w).Encode(UpdateAlertRuleResponse{
+				Id:         ruleId,
+				StatusCode: status,
+				Message:    message,
+			})
+			return
+		}
+		if payload.AlertingRule == nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			_ = json.NewEncoder(w).Encode(UpdateAlertRuleResponse{
+				Id:         ruleId,
+				StatusCode: http.StatusNoContent,
+			})
+			return
+		}
+	}
+
+	if payload.AlertingRule == nil && alertingRuleEnabled == nil {
+		writeError(w, http.StatusBadRequest, "either alertingRule (labels) or AlertingRuleEnabled (toggle drop/restore) is required")
 		return
 	}
 

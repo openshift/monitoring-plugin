@@ -30,6 +30,12 @@ type Client interface {
 	// Platform alert rules can only have the labels updated through AlertRelabelConfigs
 	UpdatePlatformAlertRule(ctx context.Context, alertRuleId string, alertRule monitoringv1.Rule) error
 
+	// DropPlatformAlertRule hides a platform alert by adding a scoped Drop relabel entry
+	DropPlatformAlertRule(ctx context.Context, alertRuleId string) error
+
+	// RestorePlatformAlertRule restores a previously dropped platform alert by removing its Drop relabel entry
+	RestorePlatformAlertRule(ctx context.Context, alertRuleId string) error
+
 	// GetAlerts retrieves Prometheus alerts
 	GetAlerts(ctx context.Context, req k8s.GetAlertsRequest) ([]k8s.PrometheusAlert, error)
 }
