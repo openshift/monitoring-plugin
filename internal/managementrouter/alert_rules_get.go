@@ -18,17 +18,25 @@ type GetAlertRulesResponseData struct {
 	Rules []monitoringv1.Rule `json:"rules"`
 }
 
+// Query parameter keys used by management HTTP handlers (scoped to router)
+const (
+	queryPrometheusRuleNamespace = "namespace"
+	queryPrometheusRuleName      = "prometheusRuleName"
+	queryAlertRuleName           = "name"
+	queryAlertRuleSource         = "source"
+)
+
 func (hr *httpRouter) GetAlertRules(w http.ResponseWriter, req *http.Request) {
 	q := req.URL.Query()
 
 	prOptions := management.PrometheusRuleOptions{
-		Namespace: q.Get("namespace"),
-		Name:      q.Get("prometheusRuleName"),
+		Namespace: q.Get(queryPrometheusRuleNamespace),
+		Name:      q.Get(queryPrometheusRuleName),
 	}
 
 	arOptions := management.AlertRuleOptions{
-		Name:   q.Get("name"),
-		Source: q.Get("source"),
+		Name:   q.Get(queryAlertRuleName),
+		Source: q.Get(queryAlertRuleSource),
 	}
 
 	rules, err := hr.managementClient.ListRules(req.Context(), prOptions, arOptions)

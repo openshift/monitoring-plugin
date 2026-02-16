@@ -12,12 +12,6 @@ import (
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
 )
 
-const (
-	labelAlertRuleID = "openshift_io_alert_rule_id"
-	labelAlertSource = "openshift_io_alert_source"
-	labelAlertName   = "alertname"
-)
-
 func (c *client) GetAlerts(ctx context.Context, req k8s.GetAlertsRequest) ([]k8s.PrometheusAlert, error) {
 	alerts, err := c.k8sClient.PrometheusAlerts().GetAlerts(ctx, req)
 	if err != nil {
@@ -45,31 +39,31 @@ func (c *client) GetAlerts(ctx context.Context, req k8s.GetAlertsRequest) ([]k8s
 }
 
 func (c *client) setRuleIDAndSourceIfMissing(ctx context.Context, alert *k8s.PrometheusAlert) {
-	if alert.Labels[labelAlertRuleID] == "" {
+	if alert.Labels[k8s.AlertRuleLabelId] == "" {
 		for _, existing := range c.k8sClient.RelabeledRules().List(ctx) {
-			if existing.Alert != alert.Labels[labelAlertName] {
+			if existing.Alert != alert.Labels[k8s.AlertNameLabel] {
 				continue
 			}
 			if !ruleMatchesAlert(existing.Labels, alert.Labels) {
 				continue
 			}
 			rid := alertrule.GetAlertingRuleId(&existing)
-			alert.Labels[labelAlertRuleID] = rid
-			if alert.Labels[labelAlertSource] == "" {
+			alert.Labels[k8s.AlertRuleLabelId] = rid
+			if alert.Labels[k8s.AlertSourceLabel] == "" {
 				if src := c.deriveAlertSource(existing.Labels); src != "" {
-					alert.Labels[labelAlertSource] = src
+					alert.Labels[k8s.AlertSourceLabel] = src
 				}
 			}
 			break
 		}
 	}
-	if alert.Labels[labelAlertSource] != "" {
+	if alert.Labels[k8s.AlertSourceLabel] != "" {
 		return
 	}
-	if rid := alert.Labels[labelAlertRuleID]; rid != "" {
+	if rid := alert.Labels[k8s.AlertRuleLabelId]; rid != "" {
 		if existing, ok := c.k8sClient.RelabeledRules().Get(ctx, rid); ok {
 			if src := c.deriveAlertSource(existing.Labels); src != "" {
-				alert.Labels[labelAlertSource] = src
+				alert.Labels[k8s.AlertSourceLabel] = src
 			}
 		}
 	}
@@ -93,7 +87,7 @@ func (c *client) deriveAlertSource(ruleLabels map[string]string) string {
 		return ""
 	}
 	if c.IsPlatformAlertRule(types.NamespacedName{Namespace: ns, Name: name}) {
-		return "platform"
+		return k8s.SourcePlatform
 	}
-	return "user"
+	return k8s.SourceUser
 }

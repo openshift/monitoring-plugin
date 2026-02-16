@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	alertrule "github.com/openshift/monitoring-plugin/pkg/alert_rule"
+	"github.com/openshift/monitoring-plugin/pkg/k8s"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -24,7 +25,7 @@ func (c *client) CreateUserDefinedAlertRule(ctx context.Context, alertRule monit
 	if alertRule.Labels == nil {
 		alertRule.Labels = map[string]string{}
 	}
-	alertRule.Labels["openshift_io_alert_rule_id"] = newRuleId
+	alertRule.Labels[k8s.AlertRuleLabelId] = newRuleId
 
 	// Check if rule with the same ID already exists (fast path)
 	_, found := c.k8sClient.RelabeledRules().Get(ctx, newRuleId)
@@ -102,7 +103,7 @@ func rulesHaveEquivalentSpec(a, b monitoringv1.Rule) bool {
 func filterBusinessLabels(in map[string]string) map[string]string {
 	out := map[string]string{}
 	for k, v := range in {
-		if strings.HasPrefix(k, "openshift_io_") || k == "alertname" {
+		if strings.HasPrefix(k, "openshift_io_") || k == k8s.AlertNameLabel {
 			continue
 		}
 		out[k] = v

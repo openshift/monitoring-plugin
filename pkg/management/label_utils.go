@@ -1,10 +1,12 @@
 package management
 
+import "github.com/openshift/monitoring-plugin/pkg/k8s"
+
 // isProtectedLabel returns true for labels we will not modify via ARC for platform rules.
 // These carry provenance or rule identity and must remain intact.
 var protectedLabels = map[string]bool{
-	"alertname":                  true,
-	"openshift_io_alert_rule_id": true,
+	k8s.AlertNameLabel:     true,
+	k8s.AlertRuleLabelId:   true,
 }
 
 func isProtectedLabel(label string) bool {

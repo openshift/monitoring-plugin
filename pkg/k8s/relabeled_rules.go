@@ -36,8 +36,6 @@ const (
 	PrometheusRuleLabelNamespace = "openshift_io_prometheus_rule_namespace"
 	PrometheusRuleLabelName      = "openshift_io_prometheus_rule_name"
 	AlertRuleLabelId             = "openshift_io_alert_rule_id"
-	RuleManagedByLabel           = "openshift_io_rule_managed_by"
-	RelabelConfigManagedByLabel  = "openshift_io_relabel_config_managed_by"
 
 	AppKubernetesIoComponent                   = "app.kubernetes.io/component"
 	AppKubernetesIoManagedBy                   = "app.kubernetes.io/managed-by"
@@ -268,7 +266,7 @@ func (rrm *relabeledRulesManager) collectAlerts(ctx context.Context, relabelConf
 					rule.Labels = make(map[string]string)
 				}
 
-				rule.Labels["alertname"] = rule.Alert
+				rule.Labels[AlertNameLabel] = rule.Alert
 
 				if rrm.namespaceManager.IsClusterMonitoringNamespace(promRule.Namespace) {
 					// Relabel the alert labels
@@ -380,9 +378,9 @@ func (rrm *relabeledRulesManager) determineManagedBy(ctx context.Context, promRu
 	// Determine ruleManagedBy from PrometheusRule
 	var ruleManagedBy string
 	if isGitOpsManaged(promRule) {
-		ruleManagedBy = "gitops"
+		ruleManagedBy = ManagedByGitOps
 	} else if len(promRule.OwnerReferences) > 0 {
-		ruleManagedBy = "operator"
+		ruleManagedBy = ManagedByOperator
 	}
 
 	// Determine relabelConfigManagedBy only for platform rules
@@ -393,7 +391,7 @@ func (rrm *relabeledRulesManager) determineManagedBy(ctx context.Context, promRu
 		arc, found, err := rrm.alertRelabelConfigs.Get(ctx, promRule.Namespace, arcName)
 		if err == nil && found {
 			if isGitOpsManaged(arc) {
-				relabelConfigManagedBy = "gitops"
+				relabelConfigManagedBy = ManagedByGitOps
 			}
 		}
 	}

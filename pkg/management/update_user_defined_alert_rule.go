@@ -74,7 +74,7 @@ func (c *client) UpdateUserDefinedAlertRule(ctx context.Context, alertRuleId str
 	if alertRule.Labels == nil {
 		alertRule.Labels = map[string]string{}
 	}
-	alertRule.Labels["openshift_io_alert_rule_id"] = computedId
+	alertRule.Labels[k8s.AlertRuleLabelId] = computedId
 
 	// Perform the update in-place exactly once
 	pr.Spec.Groups[foundGroupIdx].Rules[foundRuleIdx] = alertRule

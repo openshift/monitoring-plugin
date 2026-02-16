@@ -43,13 +43,13 @@ func (c *client) matchesAlertRuleFilters(rule monitoringv1.Rule, arOptions Alert
 	}
 
 	// Filter by source (platform)
-	if arOptions.Source == "platform" {
-		source, exists := rule.Labels["openshift_io_alert_source"]
+	if arOptions.Source == k8s.SourcePlatform {
+		source, exists := rule.Labels[k8s.AlertSourceLabel]
 		if !exists {
 			return false
 		}
 
-		return source == "platform"
+		return source == k8s.SourcePlatform
 	}
 
 	// Filter by labels
