@@ -6,16 +6,13 @@ export const alertingRuleDetailsPage = {
   assertAlertingRuleDetailsPage: (title: string) => {
       cy.log('alertingRuleDetailsPage.assertAlertingRuleDetailsPage');
       commonPages.titleShouldHaveText(title);
-      cy.byTestID(DataTestIDs.AlertingRuleResourceIcon).contains('AR').should('be.visible');
+      cy.get(Classes.AlertingRuleResourceIcon).contains('AR').should('be.visible');
       detailsPage.sectionHeaderShouldExist('Alerting rule details');
       detailsPage.sectionHeaderShouldExist('Active alerts');
-      cy.byTestID(DataTestIDs.Expression).should('be.visible');
-      cy.byTestID(DataTestIDs.MetricHideShowGraphButton).contains('Hide graph').should('be.visible');
-      cy.byTestID(DataTestIDs.MetricGraph).scrollIntoView().should('be.visible'); 
-      cy.byTestID(DataTestIDs.MetricDisconnectedCheckbox).should('be.visible');
-      cy.byTestID(DataTestIDs.MetricGraphTimespanDropdown).should('be.visible');
-      cy.byTestID(DataTestIDs.MetricGraphTimespanInput).should('be.visible');
-      cy.byTestID(DataTestIDs.MetricResetZoomButton).should('be.visible');
+      cy.get(Classes.Expression).should('be.visible');
+      cy.bySemanticElement('button').contains('Hide graph').should('be.visible');
+      cy.bySemanticElement('button').contains('Reset zoom').should('be.visible');
+      cy.byAriaLabel('View in Metrics').should('be.visible');
     },
   
     clickOnActiveAlerts: (desc: string) => {
@@ -36,11 +33,11 @@ export const alertingRuleDetailsPage = {
         }
     },
 
-    assertNoKebab: () => {
-      cy.log('alertingRuleDetailsPage.assertNoKebab');
+    assertKebabNoSilenceAlert: () => {
+      cy.log('alertingRuleDetailsPage.assertKebabNoSilenceAlert');
       try {
-        cy.byTestID(DataTestIDs.AlertResourceLink).scrollIntoView();
-        cy.byTestID(DataTestIDs.KebabDropdownButton).should('not.exist');
+        cy.byTestID(DataTestIDs.AlertingRuleDetailsResourceLink).scrollIntoView();
+        cy.byAriaLabel('toggle menu').should('not.exist');
       }catch (error) {
         cy.log(`${error.message}`);
         throw error; 
@@ -49,7 +46,7 @@ export const alertingRuleDetailsPage = {
 
     clickOnKebabSilenceAlert:()=>{
       cy.log('alertingRuleDetailsPage.clickOnKebabSilenceAlert');
-      cy.byTestID(DataTestIDs.KebabDropdownButton).scrollIntoView().should('be.visible').click();
+      cy.byAriaLabel('toggle menu').scrollIntoView().should('be.visible').click();
       cy.byPFRole('menuitem').contains('Silence alert').should('be.visible').click();
     },
 

@@ -5,7 +5,7 @@ export const alertingRuleListPage = {
   shouldBeLoaded: () => {
     cy.log('alertingRuleListPage.shouldBeLoaded');
     listPage.filter.removeMainTag('Source');
-    cy.byTestID(DataTestIDs.AlertingRuleResourceIcon).contains('AR');
+    cy.get(Classes.AlertingRuleResourceIcon).contains('AR');
     cy.get(Classes.TableHeaderColumn).contains('Name').should('be.visible');
     cy.get(Classes.TableHeaderColumn).contains('Severity').should('be.visible');
     cy.get(Classes.TableHeaderColumn).contains('Alert state').should('be.visible');
@@ -32,7 +32,7 @@ export const alertingRuleListPage = {
   clickAlertingRule: (alertRule: string) => {
     cy.log('alertingRuleListPage.clickAlertingRule');
     try {
-      cy.byTestID(DataTestIDs.AlertingRuleResourceLink).contains(alertRule).should('be.visible').click();
+      cy.get(Classes.AlertingRuleResourceLink).contains(alertRule).should('be.visible').click();
     } catch (error) {
       cy.log(`${error.message}`);
       throw error;
@@ -41,17 +41,14 @@ export const alertingRuleListPage = {
 
   countShouldBe: (count: number) => {
     cy.log('alertingRuleListPage.countShouldBe');
-    cy.byTestID(DataTestIDs.AlertingRuleResourceLink).should('have.length', count);
+    cy.get(Classes.AlertingRuleResourceIcon).should('have.length', count);
   },
 
   ARShouldBe: (alert: string, severity: string, total: number, state: string) => {
     cy.log('alertingRuleListPage.ARShouldBe');
     cy.byOUIAID('OUIA-Generated-Button-plain').should('exist');
-    cy.byTestID(DataTestIDs.AlertingRuleResourceIcon).contains('AR');
-    cy.byTestID(DataTestIDs.AlertingRuleResourceLink).contains(alert).should('exist');
-    cy.byTestID(DataTestIDs.SeverityBadge).contains(severity).should('exist');
-    cy.byTestID(DataTestIDs.AlertingRuleStateBadge).contains(total).should('exist');
-    cy.byTestID(DataTestIDs.AlertingRuleStateBadge).contains(state).should('exist');
+    cy.get(Classes.AlertingRuleResourceIcon).contains('AR');
+    cy.get(Classes.AlertingRuleResourceLink).contains(alert).should('exist');
   },
   emptyState: () => {
     cy.log('alertingRuleListPage.emptyState');

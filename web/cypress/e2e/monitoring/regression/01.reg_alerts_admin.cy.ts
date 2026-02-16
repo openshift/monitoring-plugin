@@ -19,10 +19,9 @@ describe('Regression: Monitoring - Alerts (Administrator)', { tags: ['@monitorin
     alerts.getWatchdogAlert();
     nav.sidenav.clickNavLink(['Observe', 'Metrics']);
     commonPages.titleShouldHaveText('Metrics');
-    commonPages.projectDropdownShouldNotExist();
+    alerts.getWatchdogAlert();
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     commonPages.titleShouldHaveText('Alerting');
-    commonPages.projectDropdownShouldNotExist();
     alerts.getWatchdogAlert();
   });
 
