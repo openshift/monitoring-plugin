@@ -153,36 +153,3 @@ export const fetchDataForIncidentsAndAlerts = async (
     },
   } as PrometheusResponse;
 };
-
-export const fetchInstantData = async (
-  fetch: (url: string) => Promise<PrometheusResponse>,
-  query: string,
-) => {
-  const url = buildPrometheusUrl({
-    prometheusUrlProps: {
-      endpoint: PrometheusEndpoint.QUERY,
-      query,
-    },
-    basePath: getPrometheusBasePath({
-      prometheus: 'cmo',
-      useTenancyPath: false,
-    }),
-  });
-  if (!url) {
-    return Promise.resolve({
-      status: 'success',
-      data: {
-        resultType: 'matrix',
-        result: [],
-      },
-    } as PrometheusResponse);
-  }
-  const response = await Promise.resolve(consoleFetchJSON(url));
-  return {
-    status: 'success',
-    data: {
-      resultType: 'matrix',
-      result: response.data.result,
-    },
-  } as PrometheusResponse;
-};

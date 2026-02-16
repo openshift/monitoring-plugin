@@ -28,12 +28,12 @@ import {
 } from '@patternfly/react-tokens';
 import '../incidents-styles.css';
 import { IncidentsTooltip } from '../IncidentsTooltip';
-import { Incident, IncidentsTimestamps } from '../model';
+import { Incident } from '../model';
 import {
   calculateIncidentsChartDomain,
   createIncidentsChartBars,
   generateDateArray,
-  matchTimestampMetricForIncident,
+  removeTrailingPaddingFromSeveritySegments,
   roundDateToInterval,
 } from '../utils';
 import { dateTimeFormatter, timeFormatter } from '../../console/utils/datetime';
@@ -58,7 +58,6 @@ const formatComponentList = (componentList: string[] | undefined): string => {
 
 const IncidentsChart = ({
   incidentsData,
-  incidentsTimestamps,
   chartDays,
   theme,
   selectedGroupId,
@@ -67,7 +66,6 @@ const IncidentsChart = ({
   lastRefreshTime,
 }: {
   incidentsData: Array<Incident>;
-  incidentsTimestamps: IncidentsTimestamps;
   chartDays: number;
   theme: 'light' | 'dark';
   selectedGroupId: string;
@@ -83,43 +81,45 @@ const IncidentsChart = ({
     [chartDays, currentTime],
   );
 
-  const enrichedIncidentsData = useMemo(() => {
-    return incidentsData.map((incident) => {
-      // find the matched timestamp for the incident
-      const matchedMinTimestamp = matchTimestampMetricForIncident(
-        incident,
-        incidentsTimestamps.minOverTime,
-      );
-
-      return {
-        ...incident,
-        firstTimestamp: parseInt(matchedMinTimestamp?.value?.[1] ?? '0'),
-      };
-    });
-  }, [incidentsData, incidentsTimestamps]);
-
   const { t, i18n } = useTranslation(process.env.I18N_NAMESPACE);
 
   const chartData = useMemo(() => {
-    if (!Array.isArray(enrichedIncidentsData) || enrichedIncidentsData.length === 0) return [];
+    if (!Array.isArray(incidentsData) || incidentsData.length === 0) return [];
 
     const filteredIncidents = selectedGroupId
-      ? enrichedIncidentsData.filter((incident) => incident.group_id === selectedGroupId)
-      : enrichedIncidentsData;
+      ? incidentsData.filter((incident) => incident.group_id === selectedGroupId)
+      : incidentsData;
 
-    // Create chart bars and sort by original x values to maintain proper order
-    const chartBars = filteredIncidents.map((incident) =>
-      createIncidentsChartBars(incident, dateValues),
+    // Group incidents by group_id so split severity segments share the same row
+    const incidentsByGroupId = new Map<string, typeof filteredIncidents>();
+    for (const incident of filteredIncidents) {
+      const existing = incidentsByGroupId.get(incident.group_id);
+      if (existing) {
+        existing.push(incident);
+      } else {
+        incidentsByGroupId.set(incident.group_id, [incident]);
+      }
+    }
+
+    // When an incident changes severity, its segments share the same row.
+    // Non-last segments have trailing padding (+300s) that overlaps with the
+    // next segment's leading padding (-300s). Remove the trailing padding
+    // value from non-last segments to prevent visual overlap.
+    const adjustedGroups = Array.from(incidentsByGroupId.values()).map((group) =>
+      removeTrailingPaddingFromSeveritySegments(group),
     );
+
+    // Create chart bars per group and sort by original x values
+    const chartBars = adjustedGroups.map((group) => createIncidentsChartBars(group, dateValues));
     chartBars.sort((a, b) => a[0].x - b[0].x);
 
     // Reassign consecutive x values to eliminate gaps between bars
     return chartBars.map((bars, index) => bars.map((bar) => ({ ...bar, x: index + 1 })));
-  }, [enrichedIncidentsData, dateValues, selectedGroupId]);
+  }, [incidentsData, dateValues, selectedGroupId]);
 
   useEffect(() => {
     setIsLoading(false);
-  }, [enrichedIncidentsData]);
+  }, [incidentsData]);
   useEffect(() => {
     setChartContainerHeight(chartData?.length < 5 ? 300 : chartData?.length * 60);
     setChartHeight(chartData?.length < 5 ? 250 : chartData?.length * 55);

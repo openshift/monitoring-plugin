@@ -73,7 +73,18 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
 
   const chartData: AlertsChartBar[][] = useMemo(() => {
     if (!Array.isArray(alertsData) || alertsData.length === 0) return [];
-    return alertsData.map((alert) => createAlertsChartBars(alert));
+
+    // Group alerts by identity so intervals of the same alert share the same row
+    const groupedByIdentity = new Map<string, typeof alertsData>();
+    for (const alert of alertsData) {
+      const key = [alert.alertname, alert.namespace, alert.severity].join('|');
+      if (!groupedByIdentity.has(key)) {
+        groupedByIdentity.set(key, []);
+      }
+      groupedByIdentity.get(key)!.push(alert);
+    }
+
+    return Array.from(groupedByIdentity.values()).map((alerts) => createAlertsChartBars(alerts));
   }, [alertsData]);
 
   useEffect(() => {

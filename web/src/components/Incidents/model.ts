@@ -4,7 +4,7 @@ export type Timestamps = [number, string];
 
 export type SpanDates = Array<number>;
 
-export type AlertsIntervalsArray = [number, number, 'data' | 'nodata'];
+export type AlertsIntervalsArray = [number, number, 'data' | 'nodata', number?];
 
 export type Incident = {
   component: string;
@@ -15,23 +15,12 @@ export type Incident = {
   src_severity: string;
   src_alertname: string;
   src_namespace: string;
+  severity: any;
   silenced: boolean;
   x: number;
   values: Array<Timestamps>;
   metric: Metric;
   firstTimestamp: number;
-  firstTimestamps: Array<Array<any>>;
-  lastTimestamp: number;
-};
-
-export type IncidentsTimestamps = {
-  minOverTime: Array<any>;
-  lastOverTime: Array<any>;
-};
-
-export type AlertsTimestamps = {
-  minOverTime: Array<any>;
-  lastOverTime: Array<any>;
 };
 
 // Define the interface for Metric
@@ -60,7 +49,7 @@ export type Alert = {
   severity: Severity;
   silenced: boolean;
   x: number;
-  firstTimestamps: Array<Array<any>>;
+  firstTimestamp: number;
   values: Array<Timestamps>;
   alertsExpandedRowData?: Array<Alert>;
 };
@@ -115,8 +104,7 @@ export type IncidentsDetailsAlert = {
   resolved: boolean;
   severity: Severity;
   x: number;
-  firstTimestamps: Array<Array<any>>;
-  lastTimestamp: number;
+  firstTimestamp: number;
   values: Array<Timestamps>;
   silenced: boolean;
   rule: {

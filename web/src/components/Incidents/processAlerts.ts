@@ -1,7 +1,7 @@
 /* eslint-disable max-len */
 
 import { PrometheusResult, PrometheusRule } from '@openshift-console/dynamic-plugin-sdk';
-import { Alert, AlertsTimestamps, GroupedAlert, Incident, Severity } from './model';
+import { Alert, GroupedAlert, Incident, Severity } from './model';
 import {
   insertPaddingPointsForChart,
   isResolved,
@@ -12,6 +12,10 @@ import {
  * Deduplicates alert objects by their `alertname`, `namespace`, `component`, and `severity` fields and merges their values
  * while removing duplicates. Only firing alerts are included. Alerts with the same combination of these four fields
  * are combined, with values being deduplicated.
+ *
+ * After deduplication, alerts are split into separate entries when there is a gap longer than 5 minutes
+ * (PROMETHEUS_QUERY_INTERVAL_SECONDS) between consecutive datapoints. This means the same alert identity
+ * can appear multiple times in the result, once per continuous firing interval.
  *
  * @param {Array<Object>} objects - Array of alert objects to be deduplicated. Each object contains a `metric` field
  * with properties such as `alertname`, `namespace`, `component`, `severity`, and an array of `values`.
@@ -24,18 +28,18 @@ import {
  * @param {Array<Array<Number | string>>} objects[].values - The array of values corresponding to the alert, where
  * each value is a tuple containing a timestamp and a value (e.g., [timestamp, value]).
  *
- * @returns {Array<Object>} - An array of deduplicated firing alert objects. Each object contains a unique combination of
- * `alertname`, `namespace`, `component`, and `severity`, with deduplicated values.
+ * @returns {Array<Object>} - An array of deduplicated firing alert objects, split by gaps. Each object contains
+ * a combination of `alertname`, `namespace`, `component`, and `severity`, with values for one continuous interval.
  * @returns {Object} return[].metric - The metric information of the deduplicated alert.
- * @returns {Array<Array<Number | string>>} return[].values - The deduplicated array of values for the alert.
+ * @returns {Array<Array<Number | string>>} return[].values - The values for one continuous interval, sorted by timestamp.
  *
  * @example
  * const alerts = [
- *   { metric: { alertname: "Alert1", namespace: "ns1", component: "comp1", severity: "critical", alertstate: "firing" }, values: [[12345, "2"], [12346, "2"]] },
- *   { metric: { alertname: "Alert1", namespace: "ns1", component: "comp1", severity: "critical", alertstate: "firing" }, values: [[12346, "2"], [12347, "2"]] }
+ *   { metric: { alertname: "Alert1", namespace: "ns1", component: "comp1", severity: "critical", alertstate: "firing" }, values: [[1000, "2"], [1300, "2"], [2000, "2"], [2300, "2"]] }
  * ];
  * const deduplicated = deduplicateAlerts(alerts);
- * // Returns an array where the two alerts are combined with deduplicated values.
+ * // Returns two entries for Alert1: one with values [[1000, "2"], [1300, "2"]] and another with [[2000, "2"], [2300, "2"]]
+ * // because the gap between 1300 and 2000 (700s) exceeds the 5-minute threshold (300s).
  */
 export function deduplicateAlerts(objects: Array<PrometheusResult>): Array<PrometheusResult> {
   // Step 1: Filter out all non firing alerts
@@ -69,7 +73,37 @@ export function deduplicateAlerts(objects: Array<PrometheusResult>): Array<Prome
     }
   }
 
-  return Array.from(groupedObjects.values());
+  // Step 2: Split alerts with gaps longer than 5 minutes into separate entries
+  const result: Array<PrometheusResult> = [];
+  for (const alert of groupedObjects.values()) {
+    const sortedValues = alert.values.sort(
+      (a: [number, string], b: [number, string]) => a[0] - b[0],
+    );
+
+    if (sortedValues.length <= 1) {
+      result.push({ metric: alert.metric, values: sortedValues });
+      continue;
+    }
+
+    let currentInterval: Array<[number, string]> = [sortedValues[0]];
+
+    for (let i = 1; i < sortedValues.length; i++) {
+      const delta = sortedValues[i][0] - sortedValues[i - 1][0];
+
+      if (delta > PROMETHEUS_QUERY_INTERVAL_SECONDS) {
+        // Gap detected: save current interval and start a new one
+        result.push({ metric: { ...alert.metric }, values: currentInterval });
+        currentInterval = [sortedValues[i]];
+      } else {
+        currentInterval.push(sortedValues[i]);
+      }
+    }
+
+    // Push the last interval
+    result.push({ metric: { ...alert.metric }, values: currentInterval });
+  }
+
+  return result;
 }
 
 /**
@@ -202,10 +236,11 @@ export function convertToAlerts(
   prometheusResults: Array<PrometheusResult>,
   selectedIncidents: Array<Partial<Incident>>,
   currentTime: number,
-  alertsTimestamps: AlertsTimestamps,
+  daysSpanMs: number,
 ): Array<Alert> {
   // Merge selected incidents by composite key. Consolidates duplicates caused by non-key labels
   // like `pod` or `silenced` that aren't supported by cluster health analyzer.
+
   const incidents = mergeIncidentsByKey(selectedIncidents);
 
   // Extract the first and last timestamps of the selected incident
@@ -216,20 +251,24 @@ export function convertToAlerts(
   const incidentFirstTimestamp = Math.min(...timestamps);
   const incidentLastTimestamp = Math.max(...timestamps);
 
+  // Clip the incident window to the N-day span so we only show alerts within the selected range
+  const nDaysStartSeconds = (currentTime - daysSpanMs) / 1000;
+  const effectiveFirstTimestamp = Math.max(incidentFirstTimestamp, nDaysStartSeconds);
+
   // Watchdog is a heartbeat metric, not a real issue
   const validAlerts = prometheusResults.filter((alert) => alert.metric.alertname !== 'Watchdog');
 
-  const distinctAlerts = deduplicateAlerts(validAlerts);
+  const deduplicatedAlerts = deduplicateAlerts(validAlerts);
 
-  // Filter alerts to only include values within the incident's time window
+  // Filter alerts to only include values within the effective time window
   const ALERT_WINDOW_PADDING_SECONDS = PROMETHEUS_QUERY_INTERVAL_SECONDS / 2;
 
-  const alerts = distinctAlerts
+  const alerts = deduplicatedAlerts
     .map((alert: PrometheusResult): Alert | null => {
-      // Keep only values within the incident time range (with padding)
+      // Keep only values within the effective time range (with padding)
       const values: Array<[number, string]> = alert.values.filter(
         ([date]) =>
-          date >= incidentFirstTimestamp - ALERT_WINDOW_PADDING_SECONDS &&
+          date >= effectiveFirstTimestamp - ALERT_WINDOW_PADDING_SECONDS &&
           date <= incidentLastTimestamp + ALERT_WINDOW_PADDING_SECONDS,
       );
 
@@ -260,44 +299,27 @@ export function convertToAlerts(
 
       // Add padding points for chart rendering
       const paddedValues = insertPaddingPointsForChart(sortedValues, currentTime);
-      const firstTimestamp = paddedValues[0][0];
+      // firstTimestamp is absolute over the full 15-day data (before N-day filtering),
+      // with the padding offset applied to match chart rendering
+      const alertFirstTimestamp = alert.values[0]?.[0] - PROMETHEUS_QUERY_INTERVAL_SECONDS;
       lastTimestamp = paddedValues[paddedValues.length - 1][0];
 
-      let labeledAlert: Alert = {
+      return {
         alertname: alert.metric.alertname,
         namespace: alert.metric.namespace,
         severity: alert.metric.severity as Severity,
+        firstTimestamp: alertFirstTimestamp,
         component: matchingIncident.component,
         layer: matchingIncident.layer,
         name: alert.metric.name,
         alertstate: resolved ? 'resolved' : 'firing',
         values: paddedValues,
-        alertsStartFiring: firstTimestamp,
+        alertsStartFiring: alertFirstTimestamp,
         alertsEndFiring: lastTimestamp,
         resolved,
         x: 0, // Will be set after sorting
         silenced: matchingIncident.silenced ?? false,
-        firstTimestamps: [],
       };
-
-      let matchedMinTimestamp = matchTimestampMetric(labeledAlert, alertsTimestamps.minOverTime);
-      const lastTimestampIdx = matchedMinTimestamp?.value.length - 1;
-      if (
-        matchedMinTimestamp &&
-        parseInt(matchedMinTimestamp.value[lastTimestampIdx][1]) < matchingIncident.firstTimestamp
-      ) {
-        matchedMinTimestamp = {
-          value: [[matchingIncident.firstTimestamp, matchingIncident.firstTimestamp.toString()]],
-        };
-      }
-
-      if (matchedMinTimestamp) {
-        labeledAlert = {
-          ...labeledAlert,
-          firstTimestamps: matchedMinTimestamp?.value,
-        } as Alert;
-      }
-      return labeledAlert;
     })
     .filter((alert): alert is Alert => alert !== null)
     .sort((a, b) => a.alertsStartFiring - b.alertsStartFiring)
@@ -355,20 +377,4 @@ export const groupAlertsForTable = (
   });
 
   return groupedAlerts;
-};
-
-/**
- * Function to match a timestamp metric based on the common labels
- * (alertname, namespace, severity)
- * @param alert - The alert to match the timestamp for
- * @param timestamps - The timestamps to match the alert for
- * @returns The matched timestamp
- */
-const matchTimestampMetric = (alert: Alert, timestamps: Array<any>): any => {
-  return timestamps.find(
-    (timestamp) =>
-      timestamp.metric.alertname === alert.alertname &&
-      timestamp.metric.namespace === alert.namespace &&
-      timestamp.metric.severity === alert.severity,
-  );
 };

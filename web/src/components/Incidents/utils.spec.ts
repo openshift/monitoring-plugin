@@ -1,10 +1,11 @@
 import {
   getCurrentTime,
   insertPaddingPointsForChart,
+  removeTrailingPaddingFromSeveritySegments,
   roundDateToInterval,
-  matchTimestampMetricForIncident,
   roundTimestampToFiveMinutes,
 } from './utils';
+import { Incident } from './model';
 
 describe('getCurrentTime', () => {
   it('should return current time rounded down to 5-minute boundary', () => {
@@ -88,185 +89,6 @@ describe('roundTimestampToFiveMinutes', () => {
     expect(roundTimestampToFiveMinutes(base + 300)).toBe(base + 300); // 5 minutes (next boundary)
     expect(roundTimestampToFiveMinutes(base + 301)).toBe(base + 300); // 5 min 1 sec
   });
-});
-
-describe('matchTimestampMetricForIncident', () => {
-  it('should match timestamp metric when all labels match', () => {
-    const incident = {
-      group_id: 'group1',
-      src_alertname: 'TestAlert',
-      src_namespace: 'test-namespace',
-      component: 'test-component',
-      src_severity: 'critical',
-    };
-
-    const timestamps = [
-      {
-        metric: {
-          group_id: 'group1',
-          src_alertname: 'TestAlert',
-          src_namespace: 'test-namespace',
-          component: 'test-component',
-          src_severity: 'critical',
-        },
-        value: [1704067200, '1704067200'],
-      },
-      {
-        metric: {
-          group_id: 'group2',
-          src_alertname: 'OtherAlert',
-          src_namespace: 'other-namespace',
-          component: 'other-component',
-          src_severity: 'warning',
-        },
-        value: [1704067300, '1704067300'],
-      },
-    ];
-
-    const result = matchTimestampMetricForIncident(incident, timestamps);
-    expect(result).toBe(timestamps[0]);
-  });
-
-  it('should return undefined when no match is found', () => {
-    const incident = {
-      group_id: 'group1',
-      src_alertname: 'TestAlert',
-      src_namespace: 'test-namespace',
-      component: 'test-component',
-      src_severity: 'critical',
-    };
-
-    const timestamps = [
-      {
-        metric: {
-          group_id: 'group2',
-          src_alertname: 'OtherAlert',
-          src_namespace: 'other-namespace',
-          component: 'other-component',
-          src_severity: 'warning',
-        },
-        value: [1704067300, '1704067300'],
-      },
-    ];
-
-    const result = matchTimestampMetricForIncident(incident, timestamps);
-    expect(result).toBeUndefined();
-  });
-
-  const incident = {
-    group_id: 'group1',
-    src_alertname: 'Alert1',
-    src_namespace: 'ns1',
-    component: 'comp1',
-    src_severity: 'warning',
-  };
-
-  const timestamps = [
-    {
-      metric: {
-        group_id: 'group1',
-        src_alertname: 'Alert1',
-        src_namespace: 'ns1',
-        component: 'comp1',
-        src_severity: 'warning',
-      },
-      value: [1704067200, '1704067200'],
-    },
-  ];
-
-  const result = matchTimestampMetricForIncident(incident, timestamps);
-  expect(result).toBe(timestamps[0]);
-});
-
-it('should not match when group_id differs', () => {
-  const incident = {
-    group_id: 'group1',
-    src_alertname: 'TestAlert',
-    src_namespace: 'test-namespace',
-    component: 'test-component',
-    src_severity: 'critical',
-  };
-
-  const timestamps = [
-    {
-      metric: {
-        group_id: 'group2', // Different
-        src_alertname: 'TestAlert',
-        src_namespace: 'test-namespace',
-        component: 'test-component',
-        src_severity: 'critical',
-      },
-      value: [1704067200, '1704067200'],
-    },
-  ];
-
-  const result = matchTimestampMetricForIncident(incident, timestamps);
-  expect(result).toBeUndefined();
-});
-
-it('should not match when src_alertname differs', () => {
-  const incident = {
-    group_id: 'group1',
-    src_alertname: 'TestAlert',
-    src_namespace: 'test-namespace',
-    component: 'test-component',
-    src_severity: 'critical',
-  };
-
-  const timestamps = [
-    {
-      metric: {
-        group_id: 'group1',
-        src_alertname: 'OtherAlert', // Different
-        src_namespace: 'test-namespace',
-        component: 'test-component',
-        src_severity: 'critical',
-      },
-      value: [1704067200, '1704067200'],
-    },
-  ];
-
-  const result = matchTimestampMetricForIncident(incident, timestamps);
-  expect(result).toBeUndefined();
-});
-
-it('should not match when component differs', () => {
-  const incident = {
-    group_id: 'group1',
-    src_alertname: 'TestAlert',
-    src_namespace: 'test-namespace',
-    component: 'test-component',
-    src_severity: 'critical',
-  };
-
-  const timestamps = [
-    {
-      metric: {
-        group_id: 'group1',
-        src_alertname: 'TestAlert',
-        src_namespace: 'test-namespace',
-        component: 'other-component', // Different
-        src_severity: 'critical',
-      },
-      value: [1704067200, '1704067200'],
-    },
-  ];
-
-  const result = matchTimestampMetricForIncident(incident, timestamps);
-  expect(result).toBeUndefined();
-});
-
-it('should handle empty timestamps array', () => {
-  const incident = {
-    group_id: 'group1',
-    src_alertname: 'TestAlert',
-    src_namespace: 'test-namespace',
-    component: 'test-component',
-    src_severity: 'critical',
-  };
-
-  const result = matchTimestampMetricForIncident(incident, []);
-  expect(result).toBeUndefined();
 });
 
 describe('insertPaddingPointsForChart', () => {
@@ -580,5 +402,228 @@ describe('roundDateToInterval', () => {
       const expected = new Date('2026-01-26T23:00:00.000Z');
       expect(rounded.getTime()).toBe(expected.getTime());
     });
+  });
+});
+
+describe('removeTrailingPaddingFromSeveritySegments', () => {
+  const makeIncident = (
+    overrides: Partial<Incident> & { values: Array<[number, string]> },
+  ): Incident => ({
+    component: 'test-component',
+    componentList: ['test-component'],
+    layer: 'compute',
+    firing: false,
+    group_id: 'group-1',
+    src_severity: 'critical',
+    src_alertname: 'TestAlert',
+    src_namespace: 'test-ns',
+    severity: 'critical',
+    silenced: false,
+    x: 1,
+    firstTimestamp: 1000,
+    metric: { group_id: 'group-1', component: 'test-component' },
+    ...overrides,
+  });
+
+  it('should return the group unchanged when it has a single incident', () => {
+    const group = [
+      makeIncident({
+        values: [
+          [1000, '2'],
+          [1300, '2'],
+          [1600, '2'],
+        ],
+      }),
+    ];
+
+    const result = removeTrailingPaddingFromSeveritySegments(group);
+
+    expect(result).toEqual(group);
+    expect(result[0].values).toHaveLength(3);
+  });
+
+  it('should remove the trailing value from non-last segments in a multi-segment group', () => {
+    const group = [
+      makeIncident({
+        values: [
+          [1000, '1'],
+          [1300, '1'],
+          [1600, '1'], // trailing padding — should be removed
+        ],
+      }),
+      makeIncident({
+        values: [
+          [1300, '2'],
+          [1600, '2'],
+          [1900, '2'],
+        ],
+      }),
+    ];
+
+    const result = removeTrailingPaddingFromSeveritySegments(group);
+
+    // First segment (non-last): trailing value removed
+    expect(result[0].values).toEqual([
+      [1000, '1'],
+      [1300, '1'],
+    ]);
+    // Last segment: unchanged
+    expect(result[1].values).toEqual([
+      [1300, '2'],
+      [1600, '2'],
+      [1900, '2'],
+    ]);
+  });
+
+  it('should not remove the trailing value from the last segment', () => {
+    const group = [
+      makeIncident({
+        values: [
+          [1000, '1'],
+          [1300, '1'],
+          [1600, '1'],
+        ],
+      }),
+      makeIncident({
+        values: [
+          [1600, '2'],
+          [1900, '2'],
+          [2200, '2'],
+        ],
+      }),
+    ];
+
+    const result = removeTrailingPaddingFromSeveritySegments(group);
+
+    // Last segment should keep all values
+    const lastSegment = result[result.length - 1];
+    expect(lastSegment.values).toHaveLength(3);
+  });
+
+  it('should not remove values from a non-last segment that has only one value', () => {
+    const group = [
+      makeIncident({
+        values: [[1000, '1']], // single value — nothing to trim
+      }),
+      makeIncident({
+        values: [
+          [1300, '2'],
+          [1600, '2'],
+        ],
+      }),
+    ];
+
+    const result = removeTrailingPaddingFromSeveritySegments(group);
+
+    // Single-value segment should be unchanged
+    expect(result[0].values).toEqual([[1000, '1']]);
+    // Last segment unchanged
+    expect(result[1].values).toEqual([
+      [1300, '2'],
+      [1600, '2'],
+    ]);
+  });
+
+  it('should sort segments by their first timestamp before processing', () => {
+    // Pass segments in reverse order to verify sorting
+    const group = [
+      makeIncident({
+        values: [
+          [2000, '2'],
+          [2300, '2'],
+          [2600, '2'],
+        ],
+      }),
+      makeIncident({
+        values: [
+          [1000, '1'],
+          [1300, '1'],
+          [1600, '1'],
+        ],
+      }),
+    ];
+
+    const result = removeTrailingPaddingFromSeveritySegments(group);
+
+    // After sorting, the segment starting at 1000 is first (non-last) and gets trimmed
+    expect(result[0].values).toEqual([
+      [1000, '1'],
+      [1300, '1'],
+    ]);
+    // The segment starting at 2000 is last and stays unchanged
+    expect(result[1].values).toEqual([
+      [2000, '2'],
+      [2300, '2'],
+      [2600, '2'],
+    ]);
+  });
+
+  it('should handle three severity segments, trimming only non-last ones', () => {
+    const group = [
+      makeIncident({
+        values: [
+          [1000, '0'],
+          [1300, '0'],
+          [1600, '0'],
+        ],
+      }),
+      makeIncident({
+        values: [
+          [1600, '1'],
+          [1900, '1'],
+          [2200, '1'],
+        ],
+      }),
+      makeIncident({
+        values: [
+          [2200, '2'],
+          [2500, '2'],
+          [2800, '2'],
+        ],
+      }),
+    ];
+
+    const result = removeTrailingPaddingFromSeveritySegments(group);
+
+    // First segment: trimmed
+    expect(result[0].values).toEqual([
+      [1000, '0'],
+      [1300, '0'],
+    ]);
+    // Second segment: trimmed (also non-last)
+    expect(result[1].values).toEqual([
+      [1600, '1'],
+      [1900, '1'],
+    ]);
+    // Third (last) segment: unchanged
+    expect(result[2].values).toEqual([
+      [2200, '2'],
+      [2500, '2'],
+      [2800, '2'],
+    ]);
+  });
+
+  it('should not mutate the original incident objects', () => {
+    const original = makeIncident({
+      values: [
+        [1000, '1'],
+        [1300, '1'],
+        [1600, '1'],
+      ],
+    });
+    const group = [
+      original,
+      makeIncident({
+        values: [
+          [1600, '2'],
+          [1900, '2'],
+        ],
+      }),
+    ];
+
+    removeTrailingPaddingFromSeveritySegments(group);
+
+    // Original incident should still have all 3 values
+    expect(original.values).toHaveLength(3);
   });
 });

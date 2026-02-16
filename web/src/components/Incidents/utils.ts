@@ -14,10 +14,14 @@ import {
   DaysFilters,
   Incident,
   IncidentFiltersCombined,
-  IncidentsDetailsAlert,
   SpanDates,
   Timestamps,
 } from './model';
+
+/**
+ * Number of milliseconds in a day
+ */
+export const DAY_MS = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
 /**
  * The Prometheus query step interval in seconds.
@@ -306,13 +310,51 @@ function createNodataInterval(
 }
 
 /**
- * Creates an array of incident data for chart bars, ensuring that when two severities have the same time range, the lower severity is removed.
+ * Creates chart bar data for a group of incidents that share the same group_id.
+ * Each incident (potentially a different severity segment) produces its own bars,
+ * all sharing the same x position so they render on the same row.
+ * Each bar retains its own properties (severity, startDate, firing, etc.).
  *
- * @param {Object} incident - The incident data containing values with timestamps and severity levels.
- * @returns {Array} - An array of incident objects with `y0`, `y`, `x`, and `name` fields representing the bars for the chart.
+ * @param incidents - Array of incidents with the same group_id (split severity segments).
+ * @param dateArray - Array of span dates for interval calculation.
+ * @returns Flat array of bar objects for the chart, all sharing the same x.
  */
-export const createIncidentsChartBars = (incident: Incident, dateArray: SpanDates) => {
-  const groupedData = consolidateAndMergeIntervals(incident, dateArray);
+/**
+ * Removes trailing padding values from non-last severity segments within a group.
+ *
+ * When an incident changes severity, its segments share the same chart row.
+ * Non-last segments have a trailing padding point (+300s) that overlaps with the
+ * next segment's leading padding point (-300s). This function removes the trailing
+ * padding value from non-last segments to prevent visual overlap.
+ *
+ * Single-segment groups and the last segment of multi-segment groups are left unchanged.
+ * Segments with only one value are also left unchanged (nothing to trim).
+ *
+ * @param group - Array of incidents sharing the same group_id (severity segments)
+ * @returns The group with trailing padding removed from non-last segments
+ */
+export function removeTrailingPaddingFromSeveritySegments(group: Incident[]): Incident[] {
+  if (group.length <= 1) return group;
+
+  const sorted = [...group].sort((a, b) => a.values[0][0] - b.values[0][0]);
+
+  return sorted.map((incident, idx) => {
+    if (idx < sorted.length - 1 && incident.values.length > 1) {
+      return { ...incident, values: incident.values.slice(0, -1) };
+    }
+    return incident;
+  });
+}
+
+export const createIncidentsChartBars = (incidents: Incident[], dateArray: SpanDates) => {
+  const getSeverityName = (value) => {
+    return value === '2' ? 'Critical' : value === '1' ? 'Warning' : 'Info';
+  };
+  const barChartColorScheme = {
+    critical: t_global_color_status_danger_default.var,
+    info: t_global_color_status_info_default.var,
+    warning: t_global_color_status_warning_default.var,
+  };
 
   const data: {
     y0: Date;
@@ -326,105 +368,72 @@ export const createIncidentsChartBars = (incident: Incident, dateArray: SpanDate
     startDate: Date;
     fill: string;
   }[] = [];
-  const getSeverityName = (value) => {
-    return value === '2' ? 'Critical' : value === '1' ? 'Warning' : 'Info';
-  };
-  const barChartColorScheme = {
-    critical: t_global_color_status_danger_default.var,
-    info: t_global_color_status_info_default.var,
-    warning: t_global_color_status_warning_default.var,
-  };
 
-  let prev = null;
-  for (let i = 0; i < groupedData.length; i++) {
-    const severity = getSeverityName(groupedData[i][2]);
-    const isLastElement = i === groupedData.length - 1;
-    const isNodata = groupedData[i][2] === 'nodata';
+  for (const incident of incidents) {
+    const groupedData = consolidateAndMergeIntervals(incident, dateArray);
 
-    // - Round the result since groupedData comes from raw time series values.
-    let startDate = 0;
-    if (i === 0) {
-      // - For the first bar, use the incident's first timestamp (rounded)
-      //   This represents when the incident actually started
-      //   If the first interval is 'nodata', we still use incident.firstTimestamp
-      //   as the absolute start, since 'nodata' at the beginning is just visualization
-      // - Math.min is needed to handle edge cases when the incident is quite new and the firstTimestamp may be greater
-      //   than the aggregated data from the query_range
-      startDate =
-        roundTimestampToFiveMinutes(Math.min(incident.firstTimestamp, groupedData[i][0])) * 1000;
-    } else {
-      // For subsequent bars, only calculate startDate for non-nodata intervals
-      // (nodata intervals don't need accurate startDate for tooltip display)
-      if (!isNodata) {
-        if (prev) {
-          // Calculate absolute start by:
-          // Previous bar's absolute start + duration of previous bar + gap to current bar
-          // This maintains continuity in the absolute timeline
-          const prevBarDuration = prev.y.getTime() - prev.startDate.getTime();
-          const gapToCurrent = groupedData[i][0] * 1000 - prev.y.getTime();
-          startDate = prev.startDate.getTime() + prevBarDuration + gapToCurrent;
-        } else {
-          // If prev is null (e.g., first interval was 'nodata'), fall back to incident.firstTimestamp or first groupedData
-          // This ensures we always have a valid absolute start time
-          startDate = roundTimestampToFiveMinutes(Math.min(incident.firstTimestamp, groupedData[i][0])) * 1000;
-        }
-      } else {
-        // For 'nodata' intervals, we can use the interval start timestamp
-        // This is mainly for consistency, but won't be displayed in tooltips
-        startDate = groupedData[i][0] * 1000;
-      }
-    }
+    for (let i = 0; i < groupedData.length; i++) {
+      const severity = getSeverityName(groupedData[i][2]);
+      const isLastElement = i === groupedData.length - 1;
 
-    data.push({
-      y0: new Date(groupedData[i][0] * 1000),
-      y: new Date(groupedData[i][1] * 1000),
-      x: incident.x,
-      name: severity,
-      firing: isLastElement ? incident.firing : false,
-      componentList: incident.componentList || [],
-      group_id: incident.group_id,
-      nodata: groupedData[i][2] === 'nodata' ? true : false,
-      startDate: new Date(startDate),
-      fill:
-        severity === 'Critical'
-          ? barChartColorScheme.critical
-          : severity === 'Warning'
-          ? barChartColorScheme.warning
-          : barChartColorScheme.info,
-    });
-    if (!isNodata) {
-      prev = data[i];
+      data.push({
+        y0: new Date(groupedData[i][0] * 1000),
+        y: new Date(groupedData[i][1] * 1000),
+        x: incident.x,
+        name: severity,
+        firing: isLastElement ? incident.firing : false,
+        componentList: incident.componentList || [],
+        group_id: incident.group_id,
+        nodata: groupedData[i][2] === 'nodata',
+        startDate: new Date(incident.firstTimestamp * 1000),
+        fill:
+          severity === 'Critical'
+            ? barChartColorScheme.critical
+            : severity === 'Warning'
+            ? barChartColorScheme.warning
+            : barChartColorScheme.info,
+      });
     }
   }
 
   return data;
 };
 
-function consolidateAndMergeAlertIntervals(data: Alert) {
-  if (!data.values || data.values.length === 0) {
-    return [];
-  }
+function consolidateAndMergeAlertIntervals(alerts: Array<Alert>): Array<AlertsIntervalsArray> {
+  if (alerts.length === 0) return [];
 
-  // Spread the array items to prevent sorting the original array
-  const sortedValues = [...data.values].sort((a, b) => a[0] - b[0]);
+  // Tag each value with its source alert's firstTimestamp, then sort
+  const taggedValues = alerts.flatMap((alert) =>
+    alert.values.map((v) => ({ timestamp: v[0], firstTimestamp: alert.firstTimestamp })),
+  );
+
+  if (taggedValues.length === 0) return [];
+
+  const sorted = [...taggedValues].sort((a, b) => a.timestamp - b.timestamp);
 
   const intervals: Array<AlertsIntervalsArray> = [];
-  let currentStart = sortedValues[0][0];
+  let currentStart = sorted[0].timestamp;
+  let currentFirstTimestamp = sorted[0].firstTimestamp;
   let previousTimestamp = currentStart;
 
-  for (let i = 1; i < sortedValues.length; i++) {
-    const currentTimestamp = sortedValues[i][0];
-    const timeDifference = (currentTimestamp - previousTimestamp) / 60; // Convert to minutes
+  for (let i = 1; i < sorted.length; i++) {
+    const timeDifference = (sorted[i].timestamp - previousTimestamp) / 60; // Convert to minutes
 
     if (timeDifference > 5) {
-      intervals.push([currentStart, sortedValues[i - 1][0], 'data']);
-      intervals.push([previousTimestamp + 1, currentTimestamp - 1, 'nodata']);
-      currentStart = sortedValues[i][0];
+      intervals.push([currentStart, sorted[i - 1].timestamp, 'data', currentFirstTimestamp]);
+      intervals.push([previousTimestamp + 1, sorted[i].timestamp - 1, 'nodata']);
+      currentStart = sorted[i].timestamp;
+      currentFirstTimestamp = sorted[i].firstTimestamp;
     }
-    previousTimestamp = currentTimestamp;
+    previousTimestamp = sorted[i].timestamp;
   }
 
-  intervals.push([currentStart, sortedValues[sortedValues.length - 1][0], 'data']);
+  intervals.push([
+    currentStart,
+    sorted[sorted.length - 1].timestamp,
+    'data',
+    currentFirstTimestamp,
+  ]);
 
   // For dynamic alerts timeline, we don't add padding gaps since the dateArray
   // is already calculated to fit the alert data with appropriate padding
@@ -433,8 +442,15 @@ function consolidateAndMergeAlertIntervals(data: Alert) {
   return intervals;
 }
 
-export const createAlertsChartBars = (alert: IncidentsDetailsAlert): AlertsChartBar[] => {
-  const groupedData = consolidateAndMergeAlertIntervals(alert);
+export const createAlertsChartBars = (alerts: Array<Alert>): AlertsChartBar[] => {
+  if (alerts.length === 0) return [];
+
+  const groupedData = consolidateAndMergeAlertIntervals(alerts);
+
+  // Use first interval for identity, last for alertstate
+  const firstAlert = alerts[0];
+  const lastAlert = alerts[alerts.length - 1];
+
   const barChartColorScheme = {
     critical: t_global_color_status_danger_default.var,
     info: t_global_color_status_info_default.var,
@@ -443,44 +459,27 @@ export const createAlertsChartBars = (alert: IncidentsDetailsAlert): AlertsChart
 
   const data = [];
 
-  let idx = alert.firstTimestamps.length - 1;
-  for (let i = groupedData.length - 1; i >= 0; i--) {
+  for (let i = 0; i < groupedData.length; i++) {
     const isLastElement = i === groupedData.length - 1;
-    const isNodata = groupedData[i][2] === 'nodata';
-
-    let startDate = 0;
-    if (i === 0) {
-      // For the first bar, use the minimum of alert's first timestamp and the first interval start
-      // This handles the case when the alert was created within 5 minutes
-      startDate = roundTimestampToFiveMinutes(
-        Math.min(parseInt(alert.firstTimestamps[idx][1]), groupedData[i][0]),
-      );
-      idx--;
-    } else {
-      if (!isNodata && idx >= 0) {
-        startDate = roundTimestampToFiveMinutes(parseInt(alert.firstTimestamps[idx][1]));
-        idx--;
-      }
-      // Note: If isNodata, startDate remains 0 (not used in tooltips for nodata intervals)
-    }
+    const intervalFirstTimestamp = groupedData[i][3] ?? firstAlert.firstTimestamp;
 
     data.push({
       y0: new Date(groupedData[i][0] * 1000),
       y: new Date(groupedData[i][1] * 1000),
-      startDate: new Date(startDate * 1000),
-      x: alert.x,
-      severity: alert.severity[0].toUpperCase() + alert.severity.slice(1),
-      name: alert.alertname,
-      namespace: alert.namespace,
-      layer: alert.layer,
-      component: alert.component,
-      nodata: groupedData[i][2] === 'nodata' ? true : false,
-      alertstate: isLastElement ? alert.alertstate : 'resolved',
-      silenced: alert.silenced,
+      startDate: new Date(intervalFirstTimestamp * 1000),
+      x: firstAlert.x,
+      severity: firstAlert.severity[0].toUpperCase() + firstAlert.severity.slice(1),
+      name: firstAlert.alertname,
+      namespace: firstAlert.namespace,
+      layer: firstAlert.layer,
+      component: firstAlert.component,
+      nodata: groupedData[i][2] === 'nodata',
+      alertstate: isLastElement ? lastAlert.alertstate : 'resolved',
+      silenced: firstAlert.silenced,
       fill:
-        alert.severity === 'critical'
+        firstAlert.severity === 'critical'
           ? barChartColorScheme.critical
-          : alert.severity === 'warning'
+          : firstAlert.severity === 'warning'
           ? barChartColorScheme.warning
           : barChartColorScheme.info,
     });
@@ -983,25 +982,4 @@ export const getFilterKey = (categoryName: string): string => {
     return 'groupId';
   }
   return categoryName.toLowerCase();
-};
-
-/**
- * Function to match a timestamp metric for an incident based on the common labels
- * (group_id, src_alertname, src_namespace, src_severity)
- * @param incident - The incident to match the timestamp for
- * @param timestamps - The timestamps to match the incident for
- * @returns The matched timestamp
- */
-export const matchTimestampMetricForIncident = (incident: any, timestamps: Array<any>): any => {
-  if (!timestamps || !Array.isArray(timestamps)) {
-    return undefined;
-  }
-  return timestamps.find(
-    (timestamp) =>
-      timestamp.metric.group_id === incident.group_id &&
-      timestamp.metric.src_alertname === incident.src_alertname &&
-      timestamp.metric.src_namespace === incident.src_namespace &&
-      timestamp.metric.component === incident.component &&
-      timestamp.metric.src_severity === incident.src_severity,
-  );
 };

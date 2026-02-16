@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useMemo, useState, useEffect, useCallback } from 'react';
 import { useSafeFetch } from '../console/utils/safe-fetch-hook';
-import { createAlertsQuery, fetchDataForIncidentsAndAlerts, fetchInstantData } from './api';
+import { createAlertsQuery, fetchDataForIncidentsAndAlerts } from './api';
 import { useTranslation } from 'react-i18next';
 import {
   Bullseye,
@@ -37,9 +37,8 @@ import {
   onDeleteIncidentFilterChip,
   onIncidentFiltersSelect,
   parseUrlParams,
-  PROMETHEUS_QUERY_INTERVAL_SECONDS,
-  roundTimestampToFiveMinutes,
   updateBrowserUrl,
+  DAY_MS,
 } from './utils';
 import { groupAlertsForTable, convertToAlerts } from './processAlerts';
 import { CompressArrowsAltIcon, CompressIcon, FilterIcon } from '@patternfly/react-icons';
@@ -48,9 +47,7 @@ import {
   setAlertsAreLoading,
   setAlertsData,
   setAlertsTableData,
-  setAlertsTimestamps,
   setFilteredIncidentsData,
-  setIncidentsTimestamps,
   setIncidentPageFilterType,
   setIncidents,
   setIncidentsActiveFilters,
@@ -150,10 +147,6 @@ const IncidentsPage = () => {
     (state: MonitoringState) => state.plugins.mcp.incidentsData.filteredIncidentsData,
   );
 
-  const incidentsTimestamps = useSelector(
-    (state: MonitoringState) => state.plugins.mcp.incidentsData.incidentsTimestamps,
-  );
-
   const selectedGroupId = incidentsActiveFilters.groupId?.[0] ?? undefined;
 
   const incidentPageFilterTypeSelected = useSelector(
@@ -243,17 +236,12 @@ const IncidentsPage = () => {
     }
 
     const currentTime = incidentsLastRefreshTime;
-    const ONE_DAY = 24 * 60 * 60 * 1000;
 
-    // Fetch timestamps and alerts in parallel, but wait for both before processing
-    const timestampPromise = fetchDataForIncidentsAndAlerts(
-      safeFetch,
-      { endTime: currentTime, duration: 15 * ONE_DAY },
-      'timestamp(ALERTS{alertstate="firing"})',
-    ).then((res) => res.data.result);
+    // Always fetch 15 days of alert data so firstTimestamp is computed from full history
+    const fetchTimeRanges = getIncidentsTimeRanges(15 * DAY_MS, currentTime);
 
-    const alertsPromise = Promise.all(
-      timeRanges.map(async (range) => {
+    Promise.all(
+      fetchTimeRanges.map(async (range) => {
         const response = await fetchDataForIncidentsAndAlerts(
           safeFetch,
           range,
@@ -261,48 +249,14 @@ const IncidentsPage = () => {
         );
         return response.data.result;
       }),
-    );
-
-    Promise.all([timestampPromise, alertsPromise])
-      .then(([timestampsResults, alertsResults]) => {
-        // Gaps detection here such that if the same timestamp has
-        // gaps greater than 5 minutes, this will be added more than one time.
-        // For example, if there is a metric for AlertH_Gapped
-        // with values:[ "1770699000", "1770699300", "1770708300", "1770708600", "1770708900"]
-        // there will be two gaps detected. With the following min values: 1770699300 and 1770699300
-        // the interval will be [1770699300 - 1770699300] and [1770708300 - 1770699300]
-
-        const timestampsValues = timestampsResults?.map((result: any) => ({
-          ...result,
-          value: detectMinForEachGap(result.values, PROMETHEUS_QUERY_INTERVAL_SECONDS),
-        }));
-
-        // Round timestamp values before storing
-        const roundedTimestamps =
-          timestampsValues?.map((result: any) => ({
-            ...result,
-            value: result.value.map((value: any) => [
-              value[0],
-              roundTimestampToFiveMinutes(parseInt(value[1])).toString(),
-            ]),
-          })) || [];
-
-        const fetchedAlertsTimestamps = {
-          minOverTime: roundedTimestamps,
-          lastOverTime: [],
-        };
-        dispatch(
-          setAlertsTimestamps({
-            alertsTimestamps: fetchedAlertsTimestamps,
-          }),
-        );
-
+    )
+      .then((alertsResults) => {
         const prometheusResults = alertsResults.flat();
         const alerts = convertToAlerts(
           prometheusResults,
           incidentForAlertProcessing,
           currentTime,
-          fetchedAlertsTimestamps,
+          daysSpan,
         );
         dispatch(
           setAlertsData({
@@ -342,68 +296,41 @@ const IncidentsPage = () => {
         ? incidentsActiveFilters.days[0].split(' ')[0] + 'd'
         : '',
     );
-    const calculatedTimeRanges = getIncidentsTimeRanges(daysDuration, currentTime);
 
     const isGroupSelected = !!selectedGroupId;
     const incidentsQuery = isGroupSelected
       ? `cluster_health_components_map{group_id='${selectedGroupId}'}`
       : 'cluster_health_components_map';
 
-    // Fetch timestamps and incidents in parallel, but wait for both before processing
-    const timestampPromise = fetchInstantData(
-      safeFetch,
-      'min_over_time(timestamp(cluster_health_components_map)[15d:5m])',
-    ).then((res) => res.data.result);
+    // Always fetch 15 days of data so firstTimestamp is computed from full history
+    const fetchTimeRanges = getIncidentsTimeRanges(15 * DAY_MS, currentTime);
 
-    const incidentsPromise = Promise.all(
-      calculatedTimeRanges.map(async (range) => {
+    Promise.all(
+      fetchTimeRanges.map(async (range) => {
         const response = await fetchDataForIncidentsAndAlerts(safeFetch, range, incidentsQuery);
         return response.data.result;
       }),
-    );
-
-    Promise.all([timestampPromise, incidentsPromise])
-      .then(([timestampsResults, incidentsResults]) => {
-        // Round timestamp values before storing
-        const roundedTimestamps =
-          timestampsResults?.map((result: any) => ({
-            ...result,
-            value: [
-              result.value[0],
-              roundTimestampToFiveMinutes(parseInt(result.value[1])).toString(),
-            ],
-          })) || [];
-
-        const fetchedTimestamps = {
-          minOverTime: roundedTimestamps,
-          lastOverTime: [],
-        };
-        dispatch(
-          setIncidentsTimestamps({
-            incidentsTimestamps: fetchedTimestamps,
-          }),
-        );
-
+    )
+      .then((incidentsResults) => {
         const prometheusResults = incidentsResults.flat();
-        const incidents = convertToIncidents(prometheusResults, currentTime);
+        const incidents = convertToIncidents(prometheusResults, currentTime, daysDuration);
 
         // Update the raw, unfiltered incidents state
         dispatch(setIncidents({ incidents }));
 
+        const filteredData = filterIncident(incidentsActiveFilters, incidents);
+
         // Filter the incidents and dispatch
         dispatch(
           setFilteredIncidentsData({
-            filteredIncidentsData: filterIncident(incidentsActiveFilters, incidents),
+            filteredIncidentsData: filteredData,
           }),
         );
 
         setIncidentsAreLoading(false);
 
         if (isGroupSelected) {
-          // Use fetchedTimestamps directly instead of stale closure value
-          setIncidentForAlertProcessing(
-            processIncidentsForAlerts(prometheusResults, fetchedTimestamps),
-          );
+          setIncidentForAlertProcessing(processIncidentsForAlerts(prometheusResults));
           dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
         } else {
           closeDropDownFilters();
@@ -724,7 +651,6 @@ const IncidentsPage = () => {
                 <StackItem>
                   <IncidentsChart
                     incidentsData={filteredData}
-                    incidentsTimestamps={incidentsTimestamps}
                     chartDays={timeRanges.length}
                     theme={theme}
                     selectedGroupId={selectedGroupId}
@@ -758,31 +684,4 @@ export const McpCmoAlertingPage = () => {
       <IncidentsPageWithFallback />
     </MonitoringProvider>
   );
-};
-
-/**
- * @param {Array<Array>} dataValues - The matrix from out.json (data.result[0].values)
- * @param {number} gapThreshold - e.g., 300
- */
-const detectMinForEachGap = (dataValues, gapThreshold) => {
-  if (!dataValues || dataValues.length === 0) return [];
-
-  const mins = [];
-  let currentMin = dataValues[0];
-
-  // Start from the second element to compare with the previous one
-  for (let i = 1; i < dataValues.length; i++) {
-    const delta = dataValues[i][1] - dataValues[i - 1][1];
-
-    if (delta > gapThreshold) {
-      // Gap detected: save the min of the interval that just ended
-      mins.push(currentMin);
-      // The current timestamp is the min of the NEW interval
-      currentMin = dataValues[i];
-    }
-  }
-
-  // Always push the min of the last interval
-  mins.push(currentMin);
-  return mins;
 };
