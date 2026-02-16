@@ -21,7 +21,7 @@ const combinePersesAndOcpProjects = (
 ): string[] => {
   const persesProjectNames = Object.keys(persesUserPermissions).filter((name) => name !== '*');
   const allAvailableProjects = new Set<string>([...persesProjectNames]);
-  ocpProjects?.forEach((project) => {
+  ocpProjects.forEach((project) => {
     if (project.metadata?.name) {
       allAvailableProjects.add(project.metadata.name);
     }

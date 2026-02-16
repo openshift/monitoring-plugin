@@ -172,7 +172,7 @@ export const DashboardCreateDialog: React.FunctionComponent = () => {
   return (
     <>
       {disabled ? (
-        <Tooltip content={t('Create button is disabled because you do not have permission')}>
+        <Tooltip content={t("You don't have permissions to create dashboards")}>
           <span style={{ cursor: 'not-allowed' }}>
             <CreateBtn />
           </span>
@@ -222,7 +222,9 @@ export const DashboardCreateDialog: React.FunctionComponent = () => {
                 key={selectedProject || 'no-selection'}
                 initialOptions={projectOptions}
                 placeholder={t('Select a project')}
-                noOptionsFoundMessage={(filter) => t(`No project found for "${filter}"`)}
+                noOptionsFoundMessage={(filter) =>
+                  t('No project found for "{{filter}}"', { filter })
+                }
                 onClearSelection={() => {
                   setSelectedProject(null);
                 }}
