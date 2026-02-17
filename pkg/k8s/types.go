@@ -30,6 +30,9 @@ type Client interface {
 	// AlertRelabelConfigs returns the AlertRelabelConfig interface
 	AlertRelabelConfigs() AlertRelabelConfigInterface
 
+	// AlertingRules returns the AlertingRule interface
+	AlertingRules() AlertingRuleInterface
+
 	// RelabeledRules returns the RelabeledRules interface
 	RelabeledRules() RelabeledRulesInterface
 
@@ -77,6 +80,25 @@ type AlertRelabelConfigInterface interface {
 
 	// Delete deletes an AlertRelabelConfig by namespace and name
 	Delete(ctx context.Context, namespace string, name string) error
+}
+
+// AlertingRuleInterface defines operations for managing AlertingRules
+// in the cluster monitoring namespace
+type AlertingRuleInterface interface {
+	// List lists all AlertingRules in the cluster
+	List(ctx context.Context) ([]osmv1.AlertingRule, error)
+
+	// Get retrieves an AlertingRule by name
+	Get(ctx context.Context, name string) (*osmv1.AlertingRule, bool, error)
+
+	// Create creates a new AlertingRule
+	Create(ctx context.Context, ar osmv1.AlertingRule) (*osmv1.AlertingRule, error)
+
+	// Update updates an existing AlertingRule
+	Update(ctx context.Context, ar osmv1.AlertingRule) error
+
+	// Delete deletes an AlertingRule by name
+	Delete(ctx context.Context, name string) error
 }
 
 // RelabeledRulesInterface defines operations for managing relabeled rules

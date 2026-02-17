@@ -26,6 +26,7 @@ type client struct {
 
 	prometheusRuleManager     *prometheusRuleManager
 	alertRelabelConfigManager *alertRelabelConfigManager
+	alertingRuleManager       *alertingRuleManager
 	namespaceManager          *namespaceManager
 	relabeledRulesManager     *relabeledRulesManager
 }
@@ -62,6 +63,11 @@ func newClient(ctx context.Context, config *rest.Config) (Client, error) {
 		return nil, fmt.Errorf("failed to create alert relabel config manager: %w", err)
 	}
 
+	c.alertingRuleManager, err = newAlertingRuleManager(ctx, osmv1clientset)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create alerting rule manager: %w", err)
+	}
+
 	c.namespaceManager, err = newNamespaceManager(ctx, clientset)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create namespace manager: %w", err)
@@ -93,6 +99,10 @@ func (c *client) PrometheusRules() PrometheusRuleInterface {
 
 func (c *client) AlertRelabelConfigs() AlertRelabelConfigInterface {
 	return c.alertRelabelConfigManager
+}
+
+func (c *client) AlertingRules() AlertingRuleInterface {
+	return c.alertingRuleManager
 }
 
 func (c *client) RelabeledRules() RelabeledRulesInterface {

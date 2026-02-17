@@ -18,6 +18,7 @@ type MockClient struct {
 	PrometheusAlertsFunc    func() k8s.PrometheusAlertsInterface
 	PrometheusRulesFunc     func() k8s.PrometheusRuleInterface
 	AlertRelabelConfigsFunc func() k8s.AlertRelabelConfigInterface
+	AlertingRulesFunc       func() k8s.AlertingRuleInterface
 	RelabeledRulesFunc      func() k8s.RelabeledRulesInterface
 	NamespaceFunc           func() k8s.NamespaceInterface
 }
@@ -52,6 +53,14 @@ func (m *MockClient) AlertRelabelConfigs() k8s.AlertRelabelConfigInterface {
 		return m.AlertRelabelConfigsFunc()
 	}
 	return &MockAlertRelabelConfigInterface{}
+}
+
+// AlertingRules mocks the AlertingRules method
+func (m *MockClient) AlertingRules() k8s.AlertingRuleInterface {
+	if m.AlertingRulesFunc != nil {
+		return m.AlertingRulesFunc()
+	}
+	return &MockAlertingRuleInterface{}
 }
 
 // RelabeledRules mocks the RelabeledRules method
@@ -302,6 +311,96 @@ func (m *MockAlertRelabelConfigInterface) Delete(ctx context.Context, namespace 
 	key := namespace + "/" + name
 	if m.AlertRelabelConfigs != nil {
 		delete(m.AlertRelabelConfigs, key)
+	}
+	return nil
+}
+
+// MockAlertingRuleInterface is a mock implementation of k8s.AlertingRuleInterface
+type MockAlertingRuleInterface struct {
+	ListFunc   func(ctx context.Context) ([]osmv1.AlertingRule, error)
+	GetFunc    func(ctx context.Context, name string) (*osmv1.AlertingRule, bool, error)
+	CreateFunc func(ctx context.Context, ar osmv1.AlertingRule) (*osmv1.AlertingRule, error)
+	UpdateFunc func(ctx context.Context, ar osmv1.AlertingRule) error
+	DeleteFunc func(ctx context.Context, name string) error
+
+	// Storage for test data
+	AlertingRules map[string]*osmv1.AlertingRule
+}
+
+func (m *MockAlertingRuleInterface) SetAlertingRules(rules map[string]*osmv1.AlertingRule) {
+	m.AlertingRules = rules
+}
+
+// List mocks the List method
+func (m *MockAlertingRuleInterface) List(ctx context.Context) ([]osmv1.AlertingRule, error) {
+	if m.ListFunc != nil {
+		return m.ListFunc(ctx)
+	}
+
+	var rules []osmv1.AlertingRule
+	if m.AlertingRules != nil {
+		for _, rule := range m.AlertingRules {
+			if rule.Namespace == k8s.ClusterMonitoringNamespace {
+				rules = append(rules, *rule)
+			}
+		}
+	}
+	return rules, nil
+}
+
+// Get mocks the Get method
+func (m *MockAlertingRuleInterface) Get(ctx context.Context, name string) (*osmv1.AlertingRule, bool, error) {
+	if m.GetFunc != nil {
+		return m.GetFunc(ctx, name)
+	}
+
+	key := k8s.ClusterMonitoringNamespace + "/" + name
+	if m.AlertingRules != nil {
+		if rule, exists := m.AlertingRules[key]; exists {
+			return rule, true, nil
+		}
+	}
+
+	return nil, false, nil
+}
+
+// Create mocks the Create method
+func (m *MockAlertingRuleInterface) Create(ctx context.Context, ar osmv1.AlertingRule) (*osmv1.AlertingRule, error) {
+	if m.CreateFunc != nil {
+		return m.CreateFunc(ctx, ar)
+	}
+
+	key := ar.Namespace + "/" + ar.Name
+	if m.AlertingRules == nil {
+		m.AlertingRules = make(map[string]*osmv1.AlertingRule)
+	}
+	m.AlertingRules[key] = &ar
+	return &ar, nil
+}
+
+// Update mocks the Update method
+func (m *MockAlertingRuleInterface) Update(ctx context.Context, ar osmv1.AlertingRule) error {
+	if m.UpdateFunc != nil {
+		return m.UpdateFunc(ctx, ar)
+	}
+
+	key := ar.Namespace + "/" + ar.Name
+	if m.AlertingRules == nil {
+		m.AlertingRules = make(map[string]*osmv1.AlertingRule)
+	}
+	m.AlertingRules[key] = &ar
+	return nil
+}
+
+// Delete mocks the Delete method
+func (m *MockAlertingRuleInterface) Delete(ctx context.Context, name string) error {
+	if m.DeleteFunc != nil {
+		return m.DeleteFunc(ctx, name)
+	}
+
+	key := k8s.ClusterMonitoringNamespace + "/" + name
+	if m.AlertingRules != nil {
+		delete(m.AlertingRules, key)
 	}
 	return nil
 }

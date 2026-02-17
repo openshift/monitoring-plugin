@@ -28,8 +28,6 @@ const (
 	queueBaseDelay = 50 * time.Millisecond
 	queueMaxDelay  = 3 * time.Minute
 
-	ClusterMonitoringNamespace = "openshift-monitoring"
-
 	AlertRelabelConfigSecretName = "alert-relabel-configs"
 	AlertRelabelConfigSecretKey  = "config.yaml"
 
