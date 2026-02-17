@@ -28,7 +28,7 @@ export const fetchPersesProjects = (): Promise<ProjectResource[]> => {
 };
 
 export interface PersesPermission {
-  scopes: string;
+  scopes: string[];
   actions: string[];
 }
 

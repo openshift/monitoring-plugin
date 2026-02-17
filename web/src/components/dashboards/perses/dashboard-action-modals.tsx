@@ -304,7 +304,7 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
       ouiaId="DuplicateModal"
       aria-labelledby="duplicate-modal"
     >
-      <ModalHeader title="Duplicate Dashboard" labelId="duplicate-modal-title" />
+      <ModalHeader title={t('Duplicate Dashboard')} labelId="duplicate-modal-title" />
       {permissionsLoading ? (
         <ModalBody style={{ textAlign: 'center', padding: '2rem' }}>
           {t('Loading...')} <Spinner aria-label="Duplicate Dashboard Modal Loading" />
@@ -373,10 +373,11 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
                           initialOptions={projectOptions}
                           placeholder={t('Select namespace')}
                           noOptionsFoundMessage={(filter) =>
-                            t(`No namespace found for "${filter}"`)
+                            t('No namespace found for "{{filter}}"', { filter })
                           }
                           onClearSelection={() => {
                             setSelectedProject(null);
+                            form.setValue('projectName', '');
                           }}
                           onSelect={onProjectSelect}
                           isCreatable={false}

@@ -145,6 +145,7 @@ export const DashboardCreateDialog: React.FunctionComponent = () => {
     if (isModalOpen) {
       setDashboardName('');
       setFormErrors({});
+      setSelectedProject(null);
     }
   };
 
@@ -156,29 +157,25 @@ export const DashboardCreateDialog: React.FunctionComponent = () => {
     setSelectedProject(selection);
   };
 
-  const CreateBtn = () => {
-    return (
-      <Button
-        variant="primary"
-        onClick={handleModalToggle}
-        isDisabled={disabled}
-        data-test={persesDashboardDataTestIDs.createDashboardButtonToolbar}
-      >
-        {permissionsLoading ? t('Loading...') : t('Create')}
-      </Button>
-    );
-  };
+  const createBtn = (
+    <Button
+      variant="primary"
+      onClick={handleModalToggle}
+      isDisabled={disabled}
+      data-test={persesDashboardDataTestIDs.createDashboardButtonToolbar}
+    >
+      {permissionsLoading ? t('Loading...') : t('Create')}
+    </Button>
+  );
 
   return (
     <>
       {disabled ? (
         <Tooltip content={t("You don't have permissions to create dashboards")}>
-          <span style={{ cursor: 'not-allowed' }}>
-            <CreateBtn />
-          </span>
+          <span style={{ cursor: 'not-allowed' }}> {createBtn}</span>
         </Tooltip>
       ) : (
-        <CreateBtn />
+        createBtn
       )}
       <Modal
         variant={ModalVariant.small}

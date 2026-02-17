@@ -33,7 +33,7 @@ const getEditableProjects = (
   persesUserPermissions: PersesUserPermissions,
   allAvailableProjects: string[],
 ): string[] => {
-  const editableProjectNames: string[] = [];
+  const editableProjectNames = new Set<string>();
   Object.entries(persesUserPermissions).forEach(([projectName, permissions]) => {
     const hasDashboardPermissions = permissions.some((permission) => {
       const allActions = permission.actions.includes('*');
@@ -47,16 +47,14 @@ const getEditableProjects = (
     });
 
     if (hasDashboardPermissions) {
-      // Handle wildcard permissions to all projects
       if (projectName === '*') {
-        editableProjectNames.push(...allAvailableProjects);
-      } else if (projectName !== '*') {
-        // Handle specific project permissions
-        editableProjectNames.push(projectName);
+        allAvailableProjects.forEach((p) => editableProjectNames.add(p));
+      } else {
+        editableProjectNames.add(projectName);
       }
     }
   });
-  return editableProjectNames;
+  return Array.from(editableProjectNames);
 };
 
 export const useEditableProjects = () => {
