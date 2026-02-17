@@ -12,8 +12,13 @@
 // limitations under the License.
 
 import { getCSRFToken } from '@openshift-console/dynamic-plugin-sdk/lib/utils/fetch/console-fetch-utils';
-import { DatasourceResource, DatasourceSelector, GlobalDatasourceResource } from '@perses-dev/core';
-import { BuildDatasourceProxyUrlFunc, DatasourceApi } from '@perses-dev/dashboards';
+import {
+  BuildDatasourceProxyUrlFunc,
+  DatasourceApi,
+  DatasourceResource,
+  DatasourceSelector,
+  GlobalDatasourceResource,
+} from '@perses-dev/core';
 import LRUCache from 'lru-cache';
 
 class Cache {
