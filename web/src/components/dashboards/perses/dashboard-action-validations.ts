@@ -33,8 +33,8 @@ export interface DashboardValidationSchema {
 
 // Validate dashboard name and check if it doesn't already exist
 export function useDashboardValidationSchema(
+  t: (key: string, options?: any) => string,
   projectName?: string,
-  t?: (key: string, options?: any) => string,
 ): DashboardValidationSchema {
   const {
     data: dashboards,
@@ -42,12 +42,13 @@ export function useDashboardValidationSchema(
     isError,
   } = useDashboardList({ project: projectName });
   return useMemo((): DashboardValidationSchema => {
-    if (isDashboardsLoading)
+    if (isDashboardsLoading) {
       return {
         schema: undefined,
         isSchemaLoading: true,
         hasSchemaError: false,
       };
+    }
 
     if (isError) {
       return {
@@ -57,12 +58,13 @@ export function useDashboardValidationSchema(
       };
     }
 
-    if (!dashboards?.length)
+    if (!dashboards?.length) {
       return {
         schema: createDashboardDialogValidationSchema(t),
-        isSchemaLoading: true,
+        isSchemaLoading: false,
         hasSchemaError: false,
       };
+    }
 
     const refinedSchema = createDashboardDialogValidationSchema(t).refine(
       (schema) => {
@@ -76,17 +78,17 @@ export function useDashboardValidationSchema(
       },
       (schema) => ({
         // eslint-disable-next-line max-len
-        message: t
-          ? t(`Dashboard name '{{dashboardName}}' already exists in '{{projectName}}' project!`, {
-              dashboardName: schema.dashboardName,
-              projectName: schema.projectName,
-            })
-          : // eslint-disable-next-line max-len
-            `Dashboard name '${schema.dashboardName}' already exists in '${schema.projectName}' project!`,
+        message: t(
+          `Dashboard name '{{dashboardName}}' already exists in '{{projectName}}' project!`,
+          {
+            dashboardName: schema.dashboardName,
+            projectName: schema.projectName,
+          },
+        ),
         path: ['dashboardName'],
       }),
     );
 
-    return { schema: refinedSchema, isSchemaLoading: true, hasSchemaError: false };
+    return { schema: refinedSchema, isSchemaLoading: false, hasSchemaError: false };
   }, [dashboards, isDashboardsLoading, isError, t]);
 }

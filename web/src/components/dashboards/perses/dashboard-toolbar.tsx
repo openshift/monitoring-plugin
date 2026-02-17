@@ -38,30 +38,9 @@ export interface DashboardToolbarProps {
 
 export interface EditButtonProps {
   /**
-   * The label used inside the button.
-   */
-  label?: string;
-
-  /**
    * Handler that puts the dashboard into editing mode.
    */
   onClick: () => void;
-
-  /**
-   * Whether the button is disabled.
-   */
-  disabled?: boolean;
-
-  /**
-   * Tooltip text to show when button is disabled.
-   */
-  disabledTooltip?: string;
-
-  /**
-   * Whether permissions are still loading.
-   */
-  loading?: boolean;
-
   /**
    * The active project/namespace for permissions check.
    */
@@ -136,6 +115,7 @@ export const OCPDashboardToolbar = (props: DashboardToolbarProps): React.ReactEl
     onSave,
   } = props;
 
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { isEditMode } = useEditMode();
   const { timeZone, setTimeZone } = useTimeZoneParams('local');
 
@@ -197,7 +177,7 @@ export const OCPDashboardToolbar = (props: DashboardToolbarProps): React.ReactEl
             <Stack direction="row" gap={1} ml="auto">
               {isReadonly && (
                 <Alert severity="warning" sx={{ backgroundColor: 'transparent', padding: 0 }}>
-                  Dashboard managed via code only. Download JSON and commit changes to save.
+                  {t('Dashboard managed via code only. Download JSON and commit changes to save.')}
                 </Alert>
               )}
               <Stack direction="row" spacing={0.5} ml={1} whiteSpace="nowrap">

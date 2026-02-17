@@ -34,18 +34,13 @@ import { usePatternFlyTheme } from './hooks/usePatternflyTheme';
 import { OcpDatasourceApi } from './datasource-api';
 import { PERSES_PROXY_BASE_PATH, useFetchPersesDashboard } from './perses-client';
 import { CachedDatasourceAPI } from './perses/datasource-cache-api';
-import {
-  chart_color_blue_100,
-  chart_color_blue_200,
-  chart_color_blue_300,
-} from '@patternfly/react-tokens';
+import { chart_color_blue_100 } from '@patternfly/react-tokens';
 import { QueryParams } from '../../query-params';
 import { StringParam, useQueryParam } from 'use-query-params';
 import { useTranslation } from 'react-i18next';
 import { LoadingBox } from '../../../components/console/console-shared/src/components/loading/LoadingBox';
 import { remotePluginLoader } from '@perses-dev/plugin-system';
 import { ChartThemeColor, getThemeColors } from '@patternfly/react-charts';
-import { DrawerColorVariant } from '@patternfly/react-core';
 
 // Override eChart defaults with PatternFly colors.
 const patternflyBlue100 = '#73bcf7'; // PF-5 lightest blue for dark theme

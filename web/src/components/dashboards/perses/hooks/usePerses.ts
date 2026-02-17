@@ -51,10 +51,9 @@ export const usePerses = (project?: string | number) => {
 
   return {
     // All Dashboards - fallback to project dashboards when all dashboards query is disabled
-    persesDashboards: persesDashboards ?? persesProjectDashboards ?? [],
-    persesDashboardsError: persesDashboardsError ?? persesProjectDashboardsError,
-    persesDashboardsLoading:
-      persesDashboardsLoading || (!!project && persesProjectDashboardsLoading),
+    persesDashboards: (project ? persesProjectDashboards : persesDashboards) ?? [],
+    persesDashboardsError: project ? persesProjectDashboardsError : persesDashboardsError,
+    persesDashboardsLoading: project ? persesProjectDashboardsLoading : persesDashboardsLoading,
     // All Projects
     persesProjectsLoading,
     persesProjects: persesProjects ?? [],

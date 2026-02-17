@@ -75,18 +75,28 @@ export const RenameActionModal = ({ dashboard, isOpen, onClose }: ActionModalPro
 
   const updateDashboardMutation = useUpdateDashboardMutation();
 
+  React.useEffect(() => {
+    if (isOpen && dashboard) {
+      form.reset({ dashboardName: getResourceDisplayName(dashboard) });
+    }
+  }, [isOpen, dashboard, form]);
+
   if (!dashboard) {
     return null;
   }
 
   const processForm: SubmitHandler<RenameDashboardValidationType> = (data) => {
-    if (dashboard.spec?.display) {
-      dashboard.spec.display.name = data.dashboardName;
-    } else {
-      dashboard.spec.display = { name: data.dashboardName };
-    }
-
-    updateDashboardMutation.mutate(dashboard, {
+    const updatedDashboard: DashboardResource = {
+      ...dashboard,
+      spec: {
+        ...dashboard.spec,
+        display: {
+          ...dashboard.spec?.display,
+          name: data.dashboardName,
+        },
+      },
+    };
+    updateDashboardMutation.mutate(updatedDashboard, {
       onSuccess: (updatedDashboard: DashboardResource) => {
         const msg = t(
           `Dashboard ${getResourceExtendedDisplayName(
@@ -99,7 +109,6 @@ export const RenameActionModal = ({ dashboard, isOpen, onClose }: ActionModalPro
       onError: (err) => {
         const msg = t(`Could not rename dashboard. ${err}`);
         addAlert(msg, AlertVariant.danger);
-        throw err;
       },
     });
   };
@@ -203,7 +212,7 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
     return filteredProjects[0]?.metadata.name || '';
   }, [dashboard, editableProjects, filteredProjects]);
 
-  const { schema: validationSchema } = useDashboardValidationSchema(defaultProject, t);
+  const { schema: validationSchema } = useDashboardValidationSchema(t, defaultProject);
 
   const form = useForm<CreateDashboardValidationType>({
     resolver: validationSchema
@@ -449,7 +458,6 @@ export const DeleteActionModal = ({ dashboard, isOpen, onClose }: ActionModalPro
       onError: (err) => {
         const msg = t(`Could not delete dashboard. ${err}`);
         addAlert(msg, AlertVariant.danger);
-        throw err;
       },
     });
   };

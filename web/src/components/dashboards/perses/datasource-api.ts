@@ -47,7 +47,7 @@ export class OcpDatasourceApi implements DatasourceApi {
   getDatasource = async (
     project: string,
     selector: DatasourceSelector,
-  ): Promise<DatasourceResource | undefined> => {
+  ): Promise<DatasourceResource> => {
     return fetchDatasourceList(
       project,
       selector.kind,
@@ -62,9 +62,7 @@ export class OcpDatasourceApi implements DatasourceApi {
     });
   };
 
-  getGlobalDatasource = async (
-    selector: DatasourceSelector,
-  ): Promise<GlobalDatasourceResource | undefined> => {
+  getGlobalDatasource = async (selector: DatasourceSelector): Promise<GlobalDatasourceResource> => {
     return fetchGlobalDatasourceList(
       selector.kind,
       selector.name ? undefined : true,

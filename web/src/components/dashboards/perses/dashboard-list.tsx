@@ -430,7 +430,9 @@ export const DashboardList: React.FC = () => {
   return (
     <>
       <ProjectBar activeProject={activeProject} setActiveProject={setActiveProject} />
-      <Helmet>{t('Metrics dashboards')}</Helmet>
+      <Helmet>
+        <title>{t('Metrics dashboards')}</title>
+      </Helmet>
       <DashboardListPageHeader />
       <DashboardsTable
         persesDashboards={persesDashboards}

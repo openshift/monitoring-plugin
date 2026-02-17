@@ -56,7 +56,7 @@ export const useFetchPersesDashboard = (project: string, dashboardName: string) 
   } = useQuery({
     queryKey: ['dashboards', project, dashboardName],
     queryFn: () => fetchPersesDashboard(project, dashboardName),
-    enabled: true,
+    enabled: !!dashboardName,
     refetchInterval: refreshInterval,
   });
 

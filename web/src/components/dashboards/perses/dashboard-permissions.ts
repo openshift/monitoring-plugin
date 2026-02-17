@@ -36,7 +36,9 @@ const checkProjectPermissions = async (projects: any[]): Promise<string[]> => {
       ]);
 
       const canEdit =
-        createResult.status.allowed && updateResult.status.allowed && deleteResult.status.allowed;
+        createResult?.status?.allowed &&
+        updateResult?.status?.allowed &&
+        deleteResult?.status?.allowed;
 
       if (canEdit) {
         editableProjectNames.push(projectName);

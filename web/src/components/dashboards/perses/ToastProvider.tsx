@@ -49,7 +49,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       <AlertGroup isToast isLiveRegion>
         {alerts.map(({ key, variant, title }) => (
           <Alert
-            variant={AlertVariant[variant]}
+            variant={variant}
             title={title}
             actionClose={
               <AlertActionCloseButton

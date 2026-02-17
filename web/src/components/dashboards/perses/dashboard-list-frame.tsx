@@ -23,7 +23,9 @@ export const DashboardListFrame: React.FC<DashboardListFrameProps> = ({
   return (
     <>
       <ProjectBar activeProject={activeProject} setActiveProject={setActiveProject} />
-      <Helmet>{t('Metrics dashboards')}</Helmet>
+      <Helmet>
+        <title>{t('Metrics dashboards')}</title>
+      </Helmet>
       <PagePadding right={global_spacer_xl.value}>
         <DashboardListPageHeader />
       </PagePadding>

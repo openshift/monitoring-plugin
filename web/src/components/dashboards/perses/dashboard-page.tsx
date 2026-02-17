@@ -38,10 +38,12 @@ const DashboardPage_: React.FC = () => {
   const urlDashboard = searchParams.get('dashboard');
   const urlProject = searchParams.get('project');
 
-  // Set active project if provided in URL
-  if (urlProject && urlProject !== activeProject) {
-    setActiveProject(urlProject);
-  }
+  React.useEffect(() => {
+    // Set active project if provided in URL
+    if (urlProject && urlProject !== activeProject) {
+      setActiveProject(urlProject);
+    }
+  }, [urlProject, activeProject, setActiveProject]);
 
   React.useEffect(() => {
     if (urlDashboard && urlDashboard !== dashboardName) {
@@ -103,9 +105,7 @@ const DashboardPage: React.FC = () => {
   return (
     <QueryParamProvider adapter={ReactRouter5Adapter}>
       <QueryClientProvider client={queryClient}>
-        <ToastProvider>
-          <DashboardPage_ />
-        </ToastProvider>
+        <DashboardPage_ />
       </QueryClientProvider>
     </QueryParamProvider>
   );

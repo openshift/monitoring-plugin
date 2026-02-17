@@ -26,7 +26,7 @@ import { QueryParams } from '../../query-params';
 
 import { DashboardResource } from '@perses-dev/core';
 import { useCreateDashboardMutation } from './dashboard-api';
-import { createNewDashboard } from './dashboard-utils';
+import { createNewDashboard, generateMetadataName } from './dashboard-utils';
 import { useToast } from './ToastProvider';
 import { usePerspective, getDashboardUrl } from '../../hooks/usePerspective';
 import { usePersesEditPermissions } from './dashboard-toolbar';
@@ -103,13 +103,14 @@ export const DashboardCreateDialog: React.FunctionComponent = () => {
       return;
     }
 
+    const newMetadataName = generateMetadataName(dashboardName.trim()).toLowerCase();
     try {
       if (
         dashboards &&
         dashboards.some(
           (d) =>
             d.metadata.project === selectedProject &&
-            d.metadata.name.toLowerCase() === dashboardName.trim().toLowerCase(),
+            d.metadata.name.toLowerCase() === newMetadataName,
         )
       ) {
         setFormErrors({

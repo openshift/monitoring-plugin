@@ -23,4 +23,6 @@ COPY pkg/ pkg/
 
 RUN make build-backend
 
+USER 1001
+
 ENTRYPOINT ["make", "start-devspace-backend"]

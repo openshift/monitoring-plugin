@@ -108,7 +108,9 @@ export const DashboardHeader: FC<MonitoringDashboardsPageProps> = React.memo(
 
     return (
       <>
-        <Helmet>{t('Metrics dashboards')}</Helmet>
+        <Helmet>
+          <title>{t('Metrics dashboards')}</title>
+        </Helmet>
         <PagePadding top={global_spacer_md.value}>
           <DashboardPageHeader dashboardDisplayName={dashboardDisplayName} />
         </PagePadding>
