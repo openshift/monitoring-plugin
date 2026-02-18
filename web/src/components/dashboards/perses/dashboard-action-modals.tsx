@@ -19,7 +19,7 @@ import {
 } from '@patternfly/react-core';
 import { TypeaheadSelect, TypeaheadSelectOption } from '@patternfly/react-templates';
 import { ExclamationCircleIcon } from '@patternfly/react-icons';
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   useUpdateDashboardMutation,
@@ -184,7 +184,6 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
 
   const navigate = useNavigate();
   const { perspective } = usePerspective();
-  const [selectedProject, setSelectedProject] = useState<string | null>(null);
 
   const {
     editableProjects,
@@ -293,7 +292,6 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
 
   const onProjectSelect = (_event: any, selection: string) => {
     form.setValue('projectName', selection);
-    setSelectedProject(selection);
   };
 
   return (
@@ -369,14 +367,13 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
                       >
                         <LabelSpacer />
                         <TypeaheadSelect
-                          key={selectedProject || 'no-selection'}
+                          key={selectedProjectName || 'no-selection'}
                           initialOptions={projectOptions}
                           placeholder={t('Select namespace')}
                           noOptionsFoundMessage={(filter) =>
                             t('No namespace found for "{{filter}}"', { filter })
                           }
                           onClearSelection={() => {
-                            setSelectedProject(null);
                             form.setValue('projectName', '');
                           }}
                           onSelect={onProjectSelect}
