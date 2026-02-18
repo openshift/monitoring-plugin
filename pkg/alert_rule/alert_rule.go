@@ -6,59 +6,78 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"unicode/utf8"
 
+	"github.com/openshift/monitoring-plugin/pkg/classification"
+	"github.com/openshift/monitoring-plugin/pkg/managementlabels"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 )
 
 func GetAlertingRuleId(alertRule *monitoringv1.Rule) string {
-	var kind, name string
+	var name string
+	var kind string
 	if alertRule.Alert != "" {
-		kind = "alert"
 		name = alertRule.Alert
+		kind = "alert"
 	} else if alertRule.Record != "" {
-		kind = "record"
 		name = alertRule.Record
+		kind = "record"
 	} else {
 		return ""
 	}
 
-	expr := strings.Join(strings.Fields(strings.TrimSpace(alertRule.Expr.String())), " ")
+	expr := normalizeExpr(alertRule.Expr.String())
 	forDuration := ""
 	if alertRule.For != nil {
 		forDuration = strings.TrimSpace(string(*alertRule.For))
 	}
 
-	var sortedLabels []string
-	if alertRule.Labels != nil {
-		for key, value := range alertRule.Labels {
-			k := strings.TrimSpace(key)
-			if k == "" {
-				continue
-			}
-			if strings.HasPrefix(k, "openshift_io_") || k == "alertname" {
-				// Skip system labels
-				continue
-			}
-			if value == "" {
-				continue
-			}
+	labelsBlock := normalizedBusinessLabelsBlock(alertRule.Labels)
 
-			sortedLabels = append(sortedLabels, fmt.Sprintf("%s=%s", k, value))
-		}
-		sort.Strings(sortedLabels)
-	}
-
-	// Build the hash input string
-	canonicalPayload := strings.Join([]string{
-		kind,
-		name,
-		expr,
-		forDuration,
-		strings.Join(sortedLabels, "\n"),
-	}, "\n---\n")
+	// Canonical payload is intentionally derived from rule spec (expr/for/labels) and identity (kind/name),
+	// and excludes annotations and openshift_io_* provenance/system labels.
+	canonicalPayload := strings.Join([]string{kind, name, expr, forDuration, labelsBlock}, "\n---\n")
 
 	// Generate SHA256 hash
 	hash := sha256.Sum256([]byte(canonicalPayload))
 
 	return "rid_" + base64.RawURLEncoding.EncodeToString(hash[:])
+}
+
+func normalizeExpr(expr string) string {
+	// Collapse consecutive whitespace so cosmetic formatting changes do not churn ids.
+	return strings.Join(strings.Fields(strings.TrimSpace(expr)), " ")
+}
+
+func normalizedBusinessLabelsBlock(in map[string]string) string {
+	if len(in) == 0 {
+		return ""
+	}
+
+	lines := make([]string, 0, len(in))
+	for k, v := range in {
+		key := strings.TrimSpace(k)
+		if key == "" {
+			continue
+		}
+		if strings.HasPrefix(key, "openshift_io_") || key == managementlabels.AlertNameLabel {
+			// Skip system labels
+			continue
+		}
+		if !classification.ValidatePromLabelName(key) {
+			continue
+		}
+		if v == "" {
+			// Align with specHash behavior: drop empty values
+			continue
+		}
+		if !utf8.ValidString(v) {
+			continue
+		}
+
+		lines = append(lines, fmt.Sprintf("%s=%s", key, v))
+	}
+
+	sort.Strings(lines)
+	return strings.Join(lines, "\n")
 }

@@ -3,6 +3,7 @@ package testutils
 import (
 	"context"
 
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 
 	osmv1 "github.com/openshift/api/monitoring/v1"
@@ -21,6 +22,7 @@ type MockClient struct {
 	AlertingRulesFunc       func() k8s.AlertingRuleInterface
 	RelabeledRulesFunc      func() k8s.RelabeledRulesInterface
 	NamespaceFunc           func() k8s.NamespaceInterface
+	ConfigMapsFunc          func() k8s.ConfigMapInterface
 }
 
 // TestConnection mocks the TestConnection method
@@ -77,6 +79,14 @@ func (m *MockClient) Namespace() k8s.NamespaceInterface {
 		return m.NamespaceFunc()
 	}
 	return &MockNamespaceInterface{}
+}
+
+// ConfigMaps mocks the ConfigMaps method
+func (m *MockClient) ConfigMaps() k8s.ConfigMapInterface {
+	if m.ConfigMapsFunc != nil {
+		return m.ConfigMapsFunc()
+	}
+	return &MockConfigMapInterface{}
 }
 
 // MockPrometheusAlertsInterface is a mock implementation of k8s.PrometheusAlertsInterface
@@ -451,4 +461,53 @@ func (m *MockNamespaceInterface) IsClusterMonitoringNamespace(name string) bool 
 		return m.IsClusterMonitoringNamespaceFunc(name)
 	}
 	return m.MonitoringNamespaces[name]
+}
+
+// MockConfigMapInterface is a mock implementation of k8s.ConfigMapInterface
+type MockConfigMapInterface struct {
+	GetFunc    func(ctx context.Context, namespace string, name string) (*corev1.ConfigMap, bool, error)
+	UpdateFunc func(ctx context.Context, cm corev1.ConfigMap) error
+	CreateFunc func(ctx context.Context, cm corev1.ConfigMap) (*corev1.ConfigMap, error)
+
+	// Storage
+	ConfigMaps map[string]*corev1.ConfigMap
+}
+
+func (m *MockConfigMapInterface) Get(ctx context.Context, namespace string, name string) (*corev1.ConfigMap, bool, error) {
+	if m.GetFunc != nil {
+		return m.GetFunc(ctx, namespace, name)
+	}
+	key := namespace + "/" + name
+	if m.ConfigMaps != nil {
+		if cm, ok := m.ConfigMaps[key]; ok {
+			return cm, true, nil
+		}
+	}
+	return nil, false, nil
+}
+
+func (m *MockConfigMapInterface) Update(ctx context.Context, cm corev1.ConfigMap) error {
+	if m.UpdateFunc != nil {
+		return m.UpdateFunc(ctx, cm)
+	}
+	key := cm.Namespace + "/" + cm.Name
+	if m.ConfigMaps == nil {
+		m.ConfigMaps = make(map[string]*corev1.ConfigMap)
+	}
+	copy := cm
+	m.ConfigMaps[key] = &copy
+	return nil
+}
+
+func (m *MockConfigMapInterface) Create(ctx context.Context, cm corev1.ConfigMap) (*corev1.ConfigMap, error) {
+	if m.CreateFunc != nil {
+		return m.CreateFunc(ctx, cm)
+	}
+	key := cm.Namespace + "/" + cm.Name
+	if m.ConfigMaps == nil {
+		m.ConfigMaps = make(map[string]*corev1.ConfigMap)
+	}
+	copy := cm
+	m.ConfigMaps[key] = &copy
+	return &copy, nil
 }

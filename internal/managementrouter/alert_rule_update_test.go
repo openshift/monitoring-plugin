@@ -29,8 +29,15 @@ var _ = Describe("UpdateAlertRule", func() {
 	)
 
 	var (
-		userRule       = monitoringv1.Rule{Alert: "user-alert", Expr: intstr.FromString("up == 0"), Labels: map[string]string{"severity": "warning"}}
-		userRuleId     = alertrule.GetAlertingRuleId(&userRule)
+		originalUserRule = monitoringv1.Rule{
+			Alert: "user-alert",
+			Expr:  intstr.FromString("up == 0"),
+			Labels: map[string]string{
+				"severity": "warning",
+			},
+		}
+		userRuleId = alertrule.GetAlertingRuleId(&originalUserRule)
+
 		platformRule   = monitoringv1.Rule{Alert: "platform-alert", Expr: intstr.FromString("cpu > 80"), Labels: map[string]string{"severity": "critical"}}
 		platformRuleId = alertrule.GetAlertingRuleId(&platformRule)
 	)
@@ -46,9 +53,9 @@ var _ = Describe("UpdateAlertRule", func() {
 				Name: "g1",
 				Rules: []monitoringv1.Rule{
 					{
-						Alert:  "user-alert",
-						Expr:   intstr.FromString("up == 0"),
-						Labels: map[string]string{"severity": "warning"},
+						Alert:  originalUserRule.Alert,
+						Expr:   originalUserRule.Expr,
+						Labels: map[string]string{"severity": "warning", k8s.AlertRuleLabelId: userRuleId},
 					},
 				},
 			},
@@ -89,6 +96,7 @@ var _ = Describe("UpdateAlertRule", func() {
 						Expr:  intstr.FromString("up == 0"),
 						Labels: map[string]string{
 							"severity":                       "warning",
+							k8s.AlertRuleLabelId:             userRuleId,
 							k8s.PrometheusRuleLabelNamespace: "default",
 							k8s.PrometheusRuleLabelName:      "user-pr",
 						},
@@ -100,6 +108,7 @@ var _ = Describe("UpdateAlertRule", func() {
 						Expr:  intstr.FromString("cpu > 80"),
 						Labels: map[string]string{
 							"severity":                       "critical",
+							k8s.AlertRuleLabelId:             platformRuleId,
 							k8s.PrometheusRuleLabelNamespace: "platform-namespace-1",
 							k8s.PrometheusRuleLabelName:      "platform-pr",
 						},
@@ -127,6 +136,14 @@ var _ = Describe("UpdateAlertRule", func() {
 
 	Context("when updating a user-defined alert rule", func() {
 		It("should successfully update the rule and return new ID", func() {
+			expectedNewId := alertrule.GetAlertingRuleId(&monitoringv1.Rule{
+				Alert: "user-alert",
+				Expr:  intstr.FromString("up == 1"),
+				Labels: map[string]string{
+					"severity": "critical",
+					"team":     "sre",
+				},
+			})
 			body := map[string]interface{}{
 				"alertingRule": map[string]interface{}{
 					"alert": "user-alert",
@@ -147,23 +164,19 @@ var _ = Describe("UpdateAlertRule", func() {
 			var resp managementrouter.UpdateAlertRuleResponse
 			Expect(json.NewDecoder(w.Body).Decode(&resp)).To(Succeed())
 
-			updatedRule := monitoringv1.Rule{
-				Alert: "user-alert",
-				Expr:  intstr.FromString("up == 1"),
-				Labels: map[string]string{
-					"severity": "critical",
-					"team":     "sre",
-				},
-			}
-			expectedNewRuleId := alertrule.GetAlertingRuleId(&updatedRule)
-
-			Expect(resp.Id).To(Equal(expectedNewRuleId))
-			Expect(resp.Id).NotTo(Equal("user-alert"))
+			Expect(resp.Id).To(Equal(expectedNewId))
 			Expect(resp.StatusCode).To(Equal(http.StatusNoContent))
 			Expect(resp.Message).To(BeEmpty())
 		})
 
 		It("should replace all labels without merging", func() {
+			expectedNewId := alertrule.GetAlertingRuleId(&monitoringv1.Rule{
+				Alert: "user-alert",
+				Expr:  intstr.FromString("up == 0"),
+				Labels: map[string]string{
+					"team": "sre",
+				},
+			})
 			body := map[string]interface{}{
 				"alertingRule": map[string]interface{}{
 					"alert": "user-alert",
@@ -183,16 +196,29 @@ var _ = Describe("UpdateAlertRule", func() {
 			var resp managementrouter.UpdateAlertRuleResponse
 			Expect(json.NewDecoder(w.Body).Decode(&resp)).To(Succeed())
 
-			updatedRule := monitoringv1.Rule{
-				Alert: "user-alert",
-				Expr:  intstr.FromString("up == 0"),
-				Labels: map[string]string{
-					"team": "sre",
+			Expect(resp.Id).To(Equal(expectedNewId))
+			Expect(resp.StatusCode).To(Equal(http.StatusNoContent))
+		})
+	})
+
+	Context("when updating rule classification via PATCH /rules/{ruleId}", func() {
+		It("should update classification overrides with nested classification payload", func() {
+			body := map[string]any{
+				"classification": map[string]any{
+					"openshift_io_alert_rule_component": "team-x",
+					"openshift_io_alert_rule_layer":     "namespace",
 				},
 			}
-			expectedNewRuleId := alertrule.GetAlertingRuleId(&updatedRule)
+			buf, _ := json.Marshal(body)
+			req := httptest.NewRequest(http.MethodPatch, "/api/v1/alerting/rules/"+userRuleId, bytes.NewReader(buf))
+			w := httptest.NewRecorder()
 
-			Expect(resp.Id).To(Equal(expectedNewRuleId))
+			router.ServeHTTP(w, req)
+
+			Expect(w.Code).To(Equal(http.StatusOK))
+			var resp managementrouter.UpdateAlertRuleResponse
+			Expect(json.NewDecoder(w.Body).Decode(&resp)).To(Succeed())
+			Expect(resp.Id).To(Equal(userRuleId))
 			Expect(resp.StatusCode).To(Equal(http.StatusNoContent))
 		})
 	})
@@ -296,7 +322,7 @@ var _ = Describe("UpdateAlertRule", func() {
 		})
 	})
 
-	Context("when both alertingRule and AlertingRuleEnabled are missing", func() {
+	Context("when alertingRule, AlertingRuleEnabled, and classification are missing", func() {
 		It("should return 400", func() {
 			body := map[string]interface{}{}
 			buf, _ := json.Marshal(body)
@@ -306,7 +332,7 @@ var _ = Describe("UpdateAlertRule", func() {
 			router.ServeHTTP(w, req)
 
 			Expect(w.Code).To(Equal(http.StatusBadRequest))
-			Expect(w.Body.String()).To(ContainSubstring("either alertingRule (labels) or AlertingRuleEnabled (toggle drop/restore) is required"))
+			Expect(w.Body.String()).To(ContainSubstring("either alertingRule, AlertingRuleEnabled, or classification is required"))
 		})
 	})
 
@@ -325,7 +351,7 @@ var _ = Describe("UpdateAlertRule", func() {
 				},
 			}
 			buf, _ := json.Marshal(body)
-			req := httptest.NewRequest(http.MethodPatch, "/api/v1/alerting/rules/missing-alert;hash", bytes.NewReader(buf))
+			req := httptest.NewRequest(http.MethodPatch, "/api/v1/alerting/rules/rid_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", bytes.NewReader(buf))
 			w := httptest.NewRecorder()
 
 			router.ServeHTTP(w, req)
@@ -333,7 +359,7 @@ var _ = Describe("UpdateAlertRule", func() {
 			Expect(w.Code).To(Equal(http.StatusOK))
 			var resp managementrouter.UpdateAlertRuleResponse
 			Expect(json.NewDecoder(w.Body).Decode(&resp)).To(Succeed())
-			Expect(resp.Id).To(Equal("missing-alert;hash"))
+			Expect(resp.Id).To(Equal("rid_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"))
 			Expect(resp.StatusCode).To(Equal(http.StatusNotFound))
 			Expect(resp.Message).To(ContainSubstring("not found"))
 		})

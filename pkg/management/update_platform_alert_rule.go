@@ -13,6 +13,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
+	"github.com/openshift/monitoring-plugin/pkg/managementlabels"
 )
 
 func (c *client) UpdatePlatformAlertRule(ctx context.Context, alertRuleId string, alertRule monitoringv1.Rule) error {
@@ -34,9 +35,9 @@ func (c *client) UpdatePlatformAlertRule(ctx context.Context, alertRuleId string
 	}
 
 	// If alertname is explicitly provided and differs, reject
-	if v, ok := alertRule.Labels[k8s.AlertNameLabel]; ok {
+	if v, ok := alertRule.Labels[managementlabels.AlertNameLabel]; ok {
 		if v != originalRule.Alert {
-			return &ValidationError{Message: fmt.Sprintf("label %q is immutable for platform alerts", k8s.AlertNameLabel)}
+			return &ValidationError{Message: fmt.Sprintf("label %q is immutable for platform alerts", managementlabels.AlertNameLabel)}
 		}
 	}
 
@@ -49,7 +50,7 @@ func (c *client) UpdatePlatformAlertRule(ctx context.Context, alertRuleId string
 	}
 	// Validate set intents only (missing keys are no-op; explicit deletes handled via ARC diff/effective state)
 	for k, v := range filteredLabels {
-		if k == k8s.AlertNameLabel {
+		if k == managementlabels.AlertNameLabel {
 			// already validated above; treat as no-op when equal
 			continue
 		}
@@ -84,7 +85,7 @@ func (c *client) getOriginalPlatformRule(ctx context.Context, namespace string, 
 	for groupIdx := range pr.Spec.Groups {
 		for ruleIdx := range pr.Spec.Groups[groupIdx].Rules {
 			rule := &pr.Spec.Groups[groupIdx].Rules[ruleIdx]
-			if c.shouldUpdateRule(*rule, alertRuleId) {
+			if ruleMatchesAlertRuleID(*rule, alertRuleId) {
 				return rule, nil
 			}
 		}
@@ -275,12 +276,12 @@ func (c *client) upsertAlertRelabelConfig(
 		if arc.Labels == nil {
 			arc.Labels = map[string]string{}
 		}
-		arc.Labels[k8s.ARCLabelPrometheusRuleNameKey] = prName
-		arc.Labels[k8s.ARCLabelAlertNameKey] = alertName
+		arc.Labels[managementlabels.ARCLabelPrometheusRuleNameKey] = prName
+		arc.Labels[managementlabels.ARCLabelAlertNameKey] = alertName
 		if arc.Annotations == nil {
 			arc.Annotations = map[string]string{}
 		}
-		arc.Annotations[k8s.ARCAnnotationAlertRuleIDKey] = alertRuleId
+		arc.Annotations[managementlabels.ARCAnnotationAlertRuleIDKey] = alertRuleId
 		if err := c.k8sClient.AlertRelabelConfigs().Update(ctx, *arc); err != nil {
 			return fmt.Errorf("failed to update AlertRelabelConfig %s/%s: %w", arc.Namespace, arc.Name, err)
 		}
@@ -292,11 +293,11 @@ func (c *client) upsertAlertRelabelConfig(
 			Name:      arcName,
 			Namespace: namespace,
 			Labels: map[string]string{
-				k8s.ARCLabelPrometheusRuleNameKey: prName,
-				k8s.ARCLabelAlertNameKey:          alertName,
+				managementlabels.ARCLabelPrometheusRuleNameKey: prName,
+				managementlabels.ARCLabelAlertNameKey:          alertName,
 			},
 			Annotations: map[string]string{
-				k8s.ARCAnnotationAlertRuleIDKey: alertRuleId,
+				managementlabels.ARCAnnotationAlertRuleIDKey: alertRuleId,
 			},
 		},
 		Spec: osmv1.AlertRelabelConfigSpec{Configs: relabelConfigs},
@@ -321,7 +322,7 @@ func (c *client) buildRelabelConfigs(alertName string, originalLabels map[string
 	}
 	sort.Strings(keys)
 	// Scope by alertname + original static labels only (ARCs apply to platform stack)
-	source := []osmv1.LabelName{k8s.AlertNameLabel}
+	source := []osmv1.LabelName{managementlabels.AlertNameLabel}
 	values := []string{alertName}
 	for _, k := range keys {
 		source = append(source, osmv1.LabelName(k))
@@ -471,12 +472,12 @@ func (c *client) DropPlatformAlertRule(ctx context.Context, alertRuleId string) 
 		if arc.Labels == nil {
 			arc.Labels = map[string]string{}
 		}
-		arc.Labels[k8s.ARCLabelPrometheusRuleNameKey] = prName
-		arc.Labels[k8s.ARCLabelAlertNameKey] = originalRule.Alert
+		arc.Labels[managementlabels.ARCLabelPrometheusRuleNameKey] = prName
+		arc.Labels[managementlabels.ARCLabelAlertNameKey] = originalRule.Alert
 		if arc.Annotations == nil {
 			arc.Annotations = map[string]string{}
 		}
-		arc.Annotations[k8s.ARCAnnotationAlertRuleIDKey] = alertRuleId
+		arc.Annotations[managementlabels.ARCAnnotationAlertRuleIDKey] = alertRuleId
 
 		if err := c.k8sClient.AlertRelabelConfigs().Update(ctx, *arc); err != nil {
 			return fmt.Errorf("failed to update AlertRelabelConfig %s/%s: %w", arc.Namespace, arc.Name, err)
@@ -489,11 +490,11 @@ func (c *client) DropPlatformAlertRule(ctx context.Context, alertRuleId string) 
 			Name:      arcName,
 			Namespace: k8s.ClusterMonitoringNamespace,
 			Labels: map[string]string{
-				k8s.ARCLabelPrometheusRuleNameKey: prName,
-				k8s.ARCLabelAlertNameKey:          originalRule.Alert,
+				managementlabels.ARCLabelPrometheusRuleNameKey: prName,
+				managementlabels.ARCLabelAlertNameKey:          originalRule.Alert,
 			},
 			Annotations: map[string]string{
-				k8s.ARCAnnotationAlertRuleIDKey: alertRuleId,
+				managementlabels.ARCAnnotationAlertRuleIDKey: alertRuleId,
 			},
 		},
 		Spec: osmv1.AlertRelabelConfigSpec{
@@ -534,7 +535,7 @@ func (c *client) RestorePlatformAlertRule(ctx context.Context, alertRuleId strin
 		}
 		for i := range arcs {
 			arc := arcs[i]
-			if arc.Annotations != nil && arc.Annotations[k8s.ARCAnnotationAlertRuleIDKey] == alertRuleId {
+			if arc.Annotations != nil && arc.Annotations[managementlabels.ARCAnnotationAlertRuleIDKey] == alertRuleId {
 				arcCopy := arc
 				existingArc = &arcCopy
 				arcName = arc.Name
@@ -572,7 +573,7 @@ func (c *client) RestorePlatformAlertRule(ctx context.Context, alertRuleId strin
 	if arc.Annotations == nil {
 		arc.Annotations = map[string]string{}
 	}
-	arc.Annotations[k8s.ARCAnnotationAlertRuleIDKey] = alertRuleId
+	arc.Annotations[managementlabels.ARCAnnotationAlertRuleIDKey] = alertRuleId
 
 	if err := c.k8sClient.AlertRelabelConfigs().Update(ctx, *arc); err != nil {
 		return fmt.Errorf("failed to update AlertRelabelConfig %s/%s: %w", arc.Namespace, arc.Name, err)

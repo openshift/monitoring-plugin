@@ -17,8 +17,9 @@ import (
 type BulkUpdateAlertRulesRequest struct {
 	RuleIds []string `json:"ruleIds"`
 	// Use pointer values so we can distinguish null (delete) vs string value (set)
-	Labels              map[string]*string `json:"labels"`
-	AlertingRuleEnabled *bool              `json:"AlertingRuleEnabled,omitempty"`
+	Labels              map[string]*string            `json:"labels,omitempty"`
+	AlertingRuleEnabled *bool                         `json:"AlertingRuleEnabled,omitempty"`
+	Classification      *AlertRuleClassificationPatch `json:"classification,omitempty"`
 }
 
 type BulkUpdateAlertRulesResponse struct {
@@ -37,8 +38,8 @@ func (hr *httpRouter) BulkUpdateAlertRules(w http.ResponseWriter, req *http.Requ
 		return
 	}
 
-	if payload.AlertingRuleEnabled == nil && payload.Labels == nil {
-		writeError(w, http.StatusBadRequest, "AlertingRuleEnabled (toggle drop/restore) or labels (set/unset) is required")
+	if payload.AlertingRuleEnabled == nil && payload.Labels == nil && payload.Classification == nil {
+		writeError(w, http.StatusBadRequest, "AlertingRuleEnabled (toggle drop/restore) or labels (set/unset) or classification is required")
 		return
 	}
 	var haveToggle bool
@@ -62,8 +63,8 @@ func (hr *httpRouter) BulkUpdateAlertRules(w http.ResponseWriter, req *http.Requ
 		}
 
 		// Handle enabled drop/restore first if requested
+		notAllowedEnabled := false
 		if haveToggle {
-			notAllowedEnabled := false
 			var derr error
 			if !enabled {
 				derr = hr.managementClient.DropPlatformAlertRule(req.Context(), id)
@@ -85,13 +86,37 @@ func (hr *httpRouter) BulkUpdateAlertRules(w http.ResponseWriter, req *http.Requ
 					continue
 				}
 			}
-			// If only enabled was requested and it was NotAllowed, return 405 for this id
-			if notAllowedEnabled && payload.Labels == nil {
-				results = append(results, UpdateAlertRuleResponse{
-					Id:         id,
-					StatusCode: http.StatusMethodNotAllowed,
-				})
-				continue
+		}
+
+		if payload.Classification != nil {
+			update := management.UpdateRuleClassificationRequest{RuleId: id}
+			if payload.Classification.ComponentSet {
+				update.Component = payload.Classification.Component
+				update.ComponentSet = true
+			}
+			if payload.Classification.LayerSet {
+				update.Layer = payload.Classification.Layer
+				update.LayerSet = true
+			}
+			if payload.Classification.ComponentFromSet {
+				update.ComponentFrom = payload.Classification.ComponentFrom
+				update.ComponentFromSet = true
+			}
+			if payload.Classification.LayerFromSet {
+				update.LayerFrom = payload.Classification.LayerFrom
+				update.LayerFromSet = true
+			}
+
+			if update.ComponentSet || update.LayerSet || update.ComponentFromSet || update.LayerFromSet {
+				if err := hr.managementClient.UpdateAlertRuleClassification(req.Context(), update); err != nil {
+					status, message := parseError(err)
+					results = append(results, UpdateAlertRuleResponse{
+						Id:         id,
+						StatusCode: status,
+						Message:    message,
+					})
+					continue
+				}
 			}
 		}
 
@@ -171,6 +196,15 @@ func (hr *httpRouter) BulkUpdateAlertRules(w http.ResponseWriter, req *http.Requ
 				})
 				continue
 			}
+		}
+
+		// If only enabled was requested and it was NotAllowed, return 405 for this id.
+		if notAllowedEnabled && payload.Labels == nil && payload.Classification == nil {
+			results = append(results, UpdateAlertRuleResponse{
+				Id:         id,
+				StatusCode: http.StatusMethodNotAllowed,
+			})
+			continue
 		}
 
 		results = append(results, UpdateAlertRuleResponse{

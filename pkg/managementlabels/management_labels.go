@@ -1,4 +1,4 @@
-package k8s
+package managementlabels
 
 const (
 	// Label keys
@@ -19,4 +19,14 @@ const (
 	ARCLabelPrometheusRuleNameKey = "monitoring.openshift.io/prometheusrule-name"
 	ARCLabelAlertNameKey          = "monitoring.openshift.io/alertname"
 	ARCAnnotationAlertRuleIDKey   = "monitoring.openshift.io/alertRuleId"
+)
+
+// Alert classification overrides ConfigMap metadata
+const (
+	AlertClassificationOverridesConfigMapName = "alert-classification-overrides"
+
+	AlertClassificationOverridesTypeLabelKey        = "monitoring.openshift.io/type"
+	AlertClassificationOverridesTypeLabelValue      = "alert-classification-overrides"
+	AlertClassificationOverridesManagedByLabelKey   = "app.kubernetes.io/managed-by"
+	AlertClassificationOverridesManagedByLabelValue = "openshift-console"
 )

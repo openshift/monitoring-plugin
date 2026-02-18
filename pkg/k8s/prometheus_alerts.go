@@ -5,25 +5,41 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
+	"strings"
 	"time"
 
+	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 )
 
 const (
 	prometheusRouteNamespace = "openshift-monitoring"
-	prometheusRouteName      = "prometheus-k8s"
-	prometheusAPIPath        = "/v1/alerts"
+	prometheusAPIPath        = "/api/v1/alerts"
+	thanosRouteName          = "thanos-querier"
+	thanosAPIV1AlertsPath    = "/v1/alerts"
+	defaultServiceCAPath     = "/var/run/configmaps/service-ca/service-ca.crt"
+	envSSLCertFile           = "SSL_CERT_FILE"
+	prometheusServiceHost    = "prometheus-k8s.openshift-monitoring.svc"
+	prometheusServiceTLSPort = "9091"
+	prometheusServiceHTTPPort = "9090"
+	// In-cluster fallbacks (service DNS) if route lookup is not available
+	inClusterPrometheusURL = "https://" + prometheusServiceHost + ":" + prometheusServiceTLSPort + prometheusAPIPath
+	// Some environments expose Prometheus on 9090 (plain HTTP)
+	inClusterPrometheusHTTPURL = "http://" + prometheusServiceHost + ":" + prometheusServiceHTTPPort + prometheusAPIPath
+	// Thanos exposes API under /api; full alerts endpoint becomes /api/v1/alerts
+	inClusterThanosURL = "https://thanos-querier.openshift-monitoring.svc:9091" + prometheusAPIPath
 )
 
-var (
-	prometheusRoutePath = fmt.Sprintf("/apis/route.openshift.io/v1/namespaces/%s/routes/%s", prometheusRouteNamespace, prometheusRouteName)
-)
+func buildRoutePath(routeName string) string {
+	return fmt.Sprintf("/apis/route.openshift.io/v1/namespaces/%s/routes/%s", prometheusRouteNamespace, routeName)
+}
 
 type prometheusAlerts struct {
 	clientset *kubernetes.Clientset
@@ -44,20 +60,28 @@ type PrometheusAlert struct {
 	State       string            `json:"state"`
 	ActiveAt    time.Time         `json:"activeAt"`
 	Value       string            `json:"value"`
+	// Optional enrichment populated by management layer
+	AlertRuleId    string `json:"openshift_io_alert_rule_id,omitempty"`
+	AlertComponent string `json:"openshift_io_alert_component,omitempty"`
+	AlertLayer     string `json:"openshift_io_alert_layer,omitempty"`
+}
+
+type prometheusAlertsData struct {
+	Alerts []PrometheusAlert `json:"alerts"`
 }
 
 type prometheusAlertsResponse struct {
 	Status string `json:"status"`
-	Data   struct {
-		Alerts []PrometheusAlert `json:"alerts"`
-	} `json:"data"`
+	Data   prometheusAlertsData `json:"data"`
+}
+
+type prometheusRouteSpec struct {
+	Host string `json:"host"`
+	Path string `json:"path"`
 }
 
 type prometheusRoute struct {
-	Spec struct {
-		Host string `json:"host"`
-		Path string `json:"path"`
-	} `json:"spec"`
+	Spec prometheusRouteSpec `json:"spec"`
 }
 
 func newPrometheusAlerts(clientset *kubernetes.Clientset, config *rest.Config) *prometheusAlerts {
@@ -100,32 +124,75 @@ func (pa prometheusAlerts) GetAlerts(ctx context.Context, req GetAlertsRequest) 
 }
 
 func (pa prometheusAlerts) getAlertsViaProxy(ctx context.Context) ([]byte, error) {
-	url, err := pa.buildPrometheusURL(ctx)
-	if err != nil {
-		return nil, err
-	}
-
+	// Try multiple candidates to keep Prometheus API compatibility:
+	// 1) In-cluster prometheus service (most reliable inside the cluster)
+	// 2) Route to prometheus-k8s (if available)
+	candidates := pa.buildCandidateURLs(ctx)
 	client, err := pa.createHTTPClient()
 	if err != nil {
 		return nil, err
 	}
 
-	return pa.executeRequest(ctx, client, url)
+	var lastErr error
+	logrus.Debugf("prometheus alerts: candidate URLs: %+v", candidates)
+	for _, url := range candidates {
+		if url == "" {
+			continue
+		}
+		logrus.Debugf("prometheus alerts: querying %s", url)
+		if raw, err := pa.executeRequest(ctx, client, url); err == nil {
+			return raw, nil
+		} else {
+			logrus.Debugf("prometheus alerts: %s failed: %v", url, err)
+			lastErr = err
+		}
+	}
+	if lastErr == nil {
+		lastErr = fmt.Errorf("no candidate URLs to query alerts")
+	}
+	return nil, fmt.Errorf("failed to get prometheus alerts: %w", lastErr)
 }
 
-func (pa prometheusAlerts) buildPrometheusURL(ctx context.Context) (string, error) {
-	route, err := pa.fetchPrometheusRoute(ctx)
-	if err != nil {
-		return "", err
+func (pa prometheusAlerts) buildCandidateURLs(ctx context.Context) []string {
+	var urls []string
+
+	buildPrometheusCandidates := func() []string {
+		var c []string
+		// In-cluster Prometheus first (9091 TLS)
+		c = append(c, inClusterPrometheusURL)
+		// Some environments expose Prometheus on 9090 (plain HTTP)
+		c = append(c, inClusterPrometheusHTTPURL)
+		// Prometheus Route if exists
+		if route, err := pa.fetchPrometheusRoute(ctx, "prometheus-k8s"); err == nil && route != nil && route.Spec.Host != "" {
+			c = append(c, fmt.Sprintf("https://%s%s%s", route.Spec.Host, route.Spec.Path, prometheusAPIPath))
+		}
+		return c
 	}
 
-	return fmt.Sprintf("https://%s%s%s", route.Spec.Host, route.Spec.Path, prometheusAPIPath), nil
+	buildThanosCandidates := func() []string {
+		var c []string
+		// Thanos Route (oauth-proxied): route path is /api, final endpoint /api/v1/alerts
+		if route, err := pa.fetchPrometheusRoute(ctx, thanosRouteName); err == nil && route != nil && route.Spec.Host != "" {
+			c = append(c, fmt.Sprintf("https://%s%s%s", route.Spec.Host, route.Spec.Path, thanosAPIV1AlertsPath))
+		}
+		// In-cluster Thanos service as fallback
+		c = append(c, inClusterThanosURL)
+		return c
+	}
+
+	// Align with alerts-ui-management: prefer Thanos route first (aggregated alerts),
+	// then fall back to in-cluster Prometheus and its route.
+	urls = append(urls, buildThanosCandidates()...)
+	urls = append(urls, buildPrometheusCandidates()...)
+	// Log candidates at debug to avoid noisy logs and leaking internal URLs at info level
+	logrus.Debugf("prometheus alerts: candidates=%v", urls)
+	return urls
 }
 
-func (pa prometheusAlerts) fetchPrometheusRoute(ctx context.Context) (*prometheusRoute, error) {
+func (pa prometheusAlerts) fetchPrometheusRoute(ctx context.Context, routeName string) (*prometheusRoute, error) {
 	routeData, err := pa.clientset.CoreV1().RESTClient().
 		Get().
-		AbsPath(prometheusRoutePath).
+		AbsPath(buildRoutePath(routeName)).
 		DoRaw(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get prometheus route: %w", err)
@@ -170,6 +237,7 @@ func (pa prometheusAlerts) loadCACertPool() (*x509.CertPool, error) {
 		caCertPool = x509.NewCertPool()
 	}
 
+	// Prefer explicitly provided CA data/file from rest.Config
 	if len(pa.config.CAData) > 0 {
 		caCertPool.AppendCertsFromPEM(pa.config.CAData)
 		return caCertPool, nil
@@ -183,6 +251,19 @@ func (pa prometheusAlerts) loadCACertPool() (*x509.CertPool, error) {
 		caCertPool.AppendCertsFromPEM(caCert)
 	}
 
+	// If an explicit SSL_CERT_FILE is set, append it (commonly pointed to service-ca)
+	if sslCA := os.Getenv(envSSLCertFile); sslCA != "" {
+		if b, err := os.ReadFile(sslCA); err == nil {
+			caCertPool.AppendCertsFromPEM(b)
+		}
+	}
+	// Append default mounted service-ca if present
+	if _, err := os.Stat(defaultServiceCAPath); err == nil {
+		if b, err := os.ReadFile(filepath.Clean(defaultServiceCAPath)); err == nil {
+			caCertPool.AppendCertsFromPEM(b)
+		}
+	}
+
 	return caCertPool, nil
 }
 
@@ -192,7 +273,11 @@ func (pa prometheusAlerts) executeRequest(ctx context.Context, client *http.Clie
 		return nil, err
 	}
 
-	return pa.performRequest(client, req)
+	raw, err := pa.performRequest(client, req)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", url, err)
+	}
+	return raw, nil
 }
 
 func (pa prometheusAlerts) createAuthenticatedRequest(ctx context.Context, url string) (*http.Request, error) {
@@ -216,7 +301,7 @@ func (pa prometheusAlerts) loadBearerToken() (string, error) {
 	}
 
 	if pa.config.BearerTokenFile == "" {
-		return "", fmt.Errorf("no bearer token or token file configured")
+		return "", errors.New("no bearer token or token file configured")
 	}
 
 	tokenBytes, err := os.ReadFile(pa.config.BearerTokenFile)
@@ -224,7 +309,7 @@ func (pa prometheusAlerts) loadBearerToken() (string, error) {
 		return "", fmt.Errorf("load bearer token file: %w", err)
 	}
 
-	return string(tokenBytes), nil
+	return strings.TrimSpace(string(tokenBytes)), nil
 }
 
 func (pa prometheusAlerts) performRequest(client *http.Client, req *http.Request) ([]byte, error) {

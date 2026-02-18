@@ -16,6 +16,7 @@ import (
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
 	"github.com/openshift/monitoring-plugin/pkg/management"
 	"github.com/openshift/monitoring-plugin/pkg/management/testutils"
+	"github.com/openshift/monitoring-plugin/pkg/managementlabels"
 )
 
 var _ = Describe("GetRuleById", func() {
@@ -199,15 +200,15 @@ var _ = Describe("GetRuleById", func() {
 			} else {
 				ruleWithLabel.Labels = maps.Clone(ruleWithLabel.Labels) // Deep copy labels
 			}
-			ruleWithLabel.Labels["alertname"] = ruleWithLabel.Alert
+			ruleWithLabel.Labels[managementlabels.AlertNameLabel] = ruleWithLabel.Alert
 			ruleWithLabel.Labels[k8s.AlertRuleLabelId] = testRuleId
 			ruleWithLabel.Labels[k8s.PrometheusRuleLabelNamespace] = promRule.Namespace
 			ruleWithLabel.Labels[k8s.PrometheusRuleLabelName] = promRule.Name
 			if ruleManagedBy != "" {
-				ruleWithLabel.Labels[k8s.RuleManagedByLabel] = ruleManagedBy
+				ruleWithLabel.Labels[managementlabels.RuleManagedByLabel] = ruleManagedBy
 			}
 			if relabelConfigManagedBy != "" {
-				ruleWithLabel.Labels[k8s.RelabelConfigManagedByLabel] = relabelConfigManagedBy
+				ruleWithLabel.Labels[managementlabels.RelabelConfigManagedByLabel] = relabelConfigManagedBy
 			}
 
 			mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
@@ -223,8 +224,8 @@ var _ = Describe("GetRuleById", func() {
 
 			rule, err := client.GetRuleById(ctx, testRuleId)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(rule.Labels).To(HaveKey(k8s.RuleManagedByLabel))
-			Expect(rule.Labels[k8s.RuleManagedByLabel]).To(Equal("operator"))
+			Expect(rule.Labels).To(HaveKey(managementlabels.RuleManagedByLabel))
+			Expect(rule.Labels[managementlabels.RuleManagedByLabel]).To(Equal("operator"))
 		})
 
 		It("returns rule without openshift_io_rule_managed_by label when PrometheusRule has no special conditions", func() {
@@ -246,15 +247,15 @@ var _ = Describe("GetRuleById", func() {
 			} else {
 				ruleWithLabel.Labels = maps.Clone(ruleWithLabel.Labels) // Deep copy labels
 			}
-			ruleWithLabel.Labels["alertname"] = ruleWithLabel.Alert
+			ruleWithLabel.Labels[managementlabels.AlertNameLabel] = ruleWithLabel.Alert
 			ruleWithLabel.Labels[k8s.AlertRuleLabelId] = testRuleId
 			ruleWithLabel.Labels[k8s.PrometheusRuleLabelNamespace] = promRule.Namespace
 			ruleWithLabel.Labels[k8s.PrometheusRuleLabelName] = promRule.Name
 			if ruleManagedBy != "" {
-				ruleWithLabel.Labels[k8s.RuleManagedByLabel] = ruleManagedBy
+				ruleWithLabel.Labels[managementlabels.RuleManagedByLabel] = ruleManagedBy
 			}
 			if relabelConfigManagedBy != "" {
-				ruleWithLabel.Labels[k8s.RelabelConfigManagedByLabel] = relabelConfigManagedBy
+				ruleWithLabel.Labels[managementlabels.RelabelConfigManagedByLabel] = relabelConfigManagedBy
 			}
 
 			mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
@@ -270,7 +271,7 @@ var _ = Describe("GetRuleById", func() {
 
 			rule, err := client.GetRuleById(ctx, testRuleId)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(rule.Labels).NotTo(HaveKey(k8s.RuleManagedByLabel)) // Label should not be added
+			Expect(rule.Labels).NotTo(HaveKey(managementlabels.RuleManagedByLabel)) // Label should not be added
 		})
 
 		It("returns platform rule with openshift_io_relabel_config_managed_by=gitops when AlertRelabelConfig is GitOps managed", func() {
@@ -312,15 +313,15 @@ var _ = Describe("GetRuleById", func() {
 			} else {
 				ruleWithLabel.Labels = maps.Clone(ruleWithLabel.Labels) // Deep copy labels
 			}
-			ruleWithLabel.Labels["alertname"] = ruleWithLabel.Alert
+			ruleWithLabel.Labels[managementlabels.AlertNameLabel] = ruleWithLabel.Alert
 			ruleWithLabel.Labels[k8s.AlertRuleLabelId] = testRuleId
 			ruleWithLabel.Labels[k8s.PrometheusRuleLabelNamespace] = promRule.Namespace
 			ruleWithLabel.Labels[k8s.PrometheusRuleLabelName] = promRule.Name
 			if ruleManagedBy != "" {
-				ruleWithLabel.Labels[k8s.RuleManagedByLabel] = ruleManagedBy
+				ruleWithLabel.Labels[managementlabels.RuleManagedByLabel] = ruleManagedBy
 			}
 			if relabelConfigManagedBy != "" {
-				ruleWithLabel.Labels[k8s.RelabelConfigManagedByLabel] = relabelConfigManagedBy
+				ruleWithLabel.Labels[managementlabels.RelabelConfigManagedByLabel] = relabelConfigManagedBy
 			}
 
 			mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
@@ -336,10 +337,10 @@ var _ = Describe("GetRuleById", func() {
 
 			rule, err := client.GetRuleById(ctx, testRuleId)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(rule.Labels).To(HaveKey(k8s.RuleManagedByLabel))
-			Expect(rule.Labels[k8s.RuleManagedByLabel]).To(Equal("operator")) // Platform rule with OwnerReferences
-			Expect(rule.Labels).To(HaveKey(k8s.RelabelConfigManagedByLabel))
-			Expect(rule.Labels[k8s.RelabelConfigManagedByLabel]).To(Equal("gitops"))
+			Expect(rule.Labels).To(HaveKey(managementlabels.RuleManagedByLabel))
+			Expect(rule.Labels[managementlabels.RuleManagedByLabel]).To(Equal("operator")) // Platform rule with OwnerReferences
+			Expect(rule.Labels).To(HaveKey(managementlabels.RelabelConfigManagedByLabel))
+			Expect(rule.Labels[managementlabels.RelabelConfigManagedByLabel]).To(Equal("gitops"))
 		})
 
 		It("returns platform rule with openshift_io_rule_managed_by=gitops when PrometheusRule is GitOps managed", func() {
@@ -364,15 +365,15 @@ var _ = Describe("GetRuleById", func() {
 			} else {
 				ruleWithLabel.Labels = maps.Clone(ruleWithLabel.Labels) // Deep copy labels
 			}
-			ruleWithLabel.Labels["alertname"] = ruleWithLabel.Alert
+			ruleWithLabel.Labels[managementlabels.AlertNameLabel] = ruleWithLabel.Alert
 			ruleWithLabel.Labels[k8s.AlertRuleLabelId] = testRuleId
 			ruleWithLabel.Labels[k8s.PrometheusRuleLabelNamespace] = promRule.Namespace
 			ruleWithLabel.Labels[k8s.PrometheusRuleLabelName] = promRule.Name
 			if ruleManagedBy != "" {
-				ruleWithLabel.Labels[k8s.RuleManagedByLabel] = ruleManagedBy
+				ruleWithLabel.Labels[managementlabels.RuleManagedByLabel] = ruleManagedBy
 			}
 			if relabelConfigManagedBy != "" {
-				ruleWithLabel.Labels[k8s.RelabelConfigManagedByLabel] = relabelConfigManagedBy
+				ruleWithLabel.Labels[managementlabels.RelabelConfigManagedByLabel] = relabelConfigManagedBy
 			}
 
 			mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
@@ -388,8 +389,8 @@ var _ = Describe("GetRuleById", func() {
 
 			rule, err := client.GetRuleById(ctx, testRuleId)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(rule.Labels).To(HaveKey(k8s.RuleManagedByLabel))
-			Expect(rule.Labels[k8s.RuleManagedByLabel]).To(Equal("gitops")) // Platform rule with GitOps annotations
+			Expect(rule.Labels).To(HaveKey(managementlabels.RuleManagedByLabel))
+			Expect(rule.Labels[managementlabels.RuleManagedByLabel]).To(Equal("gitops")) // Platform rule with GitOps annotations
 		})
 
 		It("returns platform rule without openshift_io_relabel_config_managed_by label when AlertRelabelConfig is not GitOps managed", func() {
@@ -429,15 +430,15 @@ var _ = Describe("GetRuleById", func() {
 			} else {
 				ruleWithLabel.Labels = maps.Clone(ruleWithLabel.Labels) // Deep copy labels
 			}
-			ruleWithLabel.Labels["alertname"] = ruleWithLabel.Alert
+			ruleWithLabel.Labels[managementlabels.AlertNameLabel] = ruleWithLabel.Alert
 			ruleWithLabel.Labels[k8s.AlertRuleLabelId] = testRuleId
 			ruleWithLabel.Labels[k8s.PrometheusRuleLabelNamespace] = promRule.Namespace
 			ruleWithLabel.Labels[k8s.PrometheusRuleLabelName] = promRule.Name
 			if ruleManagedBy != "" {
-				ruleWithLabel.Labels[k8s.RuleManagedByLabel] = ruleManagedBy
+				ruleWithLabel.Labels[managementlabels.RuleManagedByLabel] = ruleManagedBy
 			}
 			if relabelConfigManagedBy != "" {
-				ruleWithLabel.Labels[k8s.RelabelConfigManagedByLabel] = relabelConfigManagedBy
+				ruleWithLabel.Labels[managementlabels.RelabelConfigManagedByLabel] = relabelConfigManagedBy
 			}
 
 			mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
@@ -453,9 +454,9 @@ var _ = Describe("GetRuleById", func() {
 
 			rule, err := client.GetRuleById(ctx, testRuleId)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(rule.Labels).To(HaveKey(k8s.RuleManagedByLabel))
-			Expect(rule.Labels[k8s.RuleManagedByLabel]).To(Equal("operator"))   // Platform rule with OwnerReferences
-			Expect(rule.Labels).NotTo(HaveKey(k8s.RelabelConfigManagedByLabel)) // Label should not be added
+			Expect(rule.Labels).To(HaveKey(managementlabels.RuleManagedByLabel))
+			Expect(rule.Labels[managementlabels.RuleManagedByLabel]).To(Equal("operator"))   // Platform rule with OwnerReferences
+			Expect(rule.Labels).NotTo(HaveKey(managementlabels.RelabelConfigManagedByLabel)) // Label should not be added
 		})
 	})
 })

@@ -2,12 +2,16 @@ package management_test
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
@@ -15,6 +19,7 @@ import (
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
 	"github.com/openshift/monitoring-plugin/pkg/management"
 	"github.com/openshift/monitoring-plugin/pkg/management/testutils"
+	"github.com/openshift/monitoring-plugin/pkg/managementlabels"
 )
 
 var _ = Describe("UpdateUserDefinedAlertRule", func() {
@@ -326,6 +331,88 @@ var _ = Describe("UpdateUserDefinedAlertRule", func() {
 			Expect(updatedPR).NotTo(BeNil())
 			Expect(updatedPR.Spec.Groups[0].Rules[0].Labels["severity"]).To(Equal("critical"))
 			Expect(updatedPR.Spec.Groups[0].Rules[0].Expr.String()).To(Equal("up == 1"))
+		})
+
+		It("migrates classification override when rule id changes", func() {
+			Expect(os.Setenv("MONITORING_PLUGIN_NAMESPACE", "plugin-ns")).To(Succeed())
+			DeferCleanup(func() {
+				_ = os.Unsetenv("MONITORING_PLUGIN_NAMESPACE")
+			})
+			client = management.New(ctx, mockK8s)
+
+			updatedRule := originalUserRule
+			updatedRule.Labels = make(map[string]string)
+			for k, v := range originalUserRule.Labels {
+				updatedRule.Labels[k] = v
+			}
+			updatedRule.Labels["severity"] = "critical"
+			updatedRule.Expr = intstr.FromString("up == 1")
+
+			expectedNewRuleId := alertrule.GetAlertingRuleId(&updatedRule)
+
+			cmName := management.OverrideConfigMapName("user-namespace")
+			oldKey := base64.RawURLEncoding.EncodeToString([]byte(userRuleId))
+			overrideJSON, err := json.Marshal(map[string]any{
+				"classification": map[string]any{
+					"openshift_io_alert_rule_component": "api",
+					"openshift_io_alert_rule_layer":     "cluster",
+				},
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			mockCM := &testutils.MockConfigMapInterface{
+				ConfigMaps: map[string]*corev1.ConfigMap{
+					"plugin-ns/" + cmName: {
+						ObjectMeta: metav1.ObjectMeta{
+							Namespace: "plugin-ns",
+							Name:      cmName,
+							Labels: map[string]string{
+								managementlabels.AlertClassificationOverridesTypeLabelKey:      managementlabels.AlertClassificationOverridesTypeLabelValue,
+								managementlabels.AlertClassificationOverridesManagedByLabelKey: managementlabels.AlertClassificationOverridesManagedByLabelValue,
+								k8s.PrometheusRuleLabelNamespace:                               "user-namespace",
+							},
+						},
+						Data: map[string]string{
+							oldKey: string(overrideJSON),
+						},
+					},
+				},
+			}
+			mockK8s.ConfigMapsFunc = func() k8s.ConfigMapInterface { return mockCM }
+
+			mockK8s.PrometheusRulesFunc = func() k8s.PrometheusRuleInterface {
+				return &testutils.MockPrometheusRuleInterface{
+					GetFunc: func(ctx context.Context, namespace string, name string) (*monitoringv1.PrometheusRule, bool, error) {
+						return &monitoringv1.PrometheusRule{
+							ObjectMeta: metav1.ObjectMeta{
+								Namespace: namespace,
+								Name:      name,
+							},
+							Spec: monitoringv1.PrometheusRuleSpec{
+								Groups: []monitoringv1.RuleGroup{
+									{
+										Name:  "test-group",
+										Rules: []monitoringv1.Rule{originalUserRule},
+									},
+								},
+							},
+						}, true, nil
+					},
+					UpdateFunc: func(ctx context.Context, pr monitoringv1.PrometheusRule) error {
+						return nil
+					},
+				}
+			}
+
+			newRuleId, err := client.UpdateUserDefinedAlertRule(ctx, userRuleId, updatedRule)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(newRuleId).To(Equal(expectedNewRuleId))
+
+			newKey := base64.RawURLEncoding.EncodeToString([]byte(expectedNewRuleId))
+			cm := mockCM.ConfigMaps["plugin-ns/"+cmName]
+			Expect(cm).NotTo(BeNil())
+			Expect(cm.Data).NotTo(HaveKey(oldKey))
+			Expect(cm.Data).To(HaveKey(newKey))
 		})
 
 		It("updates only the matching rule when multiple rules exist", func() {

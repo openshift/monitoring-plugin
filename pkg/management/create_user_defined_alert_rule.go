@@ -6,6 +6,7 @@ import (
 
 	alertrule "github.com/openshift/monitoring-plugin/pkg/alert_rule"
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
+	"github.com/openshift/monitoring-plugin/pkg/managementlabels"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -120,7 +121,7 @@ func rulesHaveEquivalentSpec(a, b monitoringv1.Rule) bool {
 func filterBusinessLabels(in map[string]string) map[string]string {
 	out := map[string]string{}
 	for k, v := range in {
-		if strings.HasPrefix(k, "openshift_io_") || k == k8s.AlertNameLabel {
+		if strings.HasPrefix(k, "openshift_io_") || k == managementlabels.AlertNameLabel {
 			continue
 		}
 		out[k] = v

@@ -6,6 +6,7 @@ import (
 	osmv1 "github.com/openshift/api/monitoring/v1"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/prometheus/prometheus/model/relabel"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
 
@@ -38,6 +39,9 @@ type Client interface {
 
 	// Namespace returns the Namespace interface
 	Namespace() NamespaceInterface
+
+	// ConfigMaps returns the ConfigMap interface
+	ConfigMaps() ConfigMapInterface
 }
 
 // PrometheusAlertsInterface defines operations for managing PrometheusAlerts
@@ -117,4 +121,14 @@ type RelabeledRulesInterface interface {
 type NamespaceInterface interface {
 	// IsClusterMonitoringNamespace checks if a namespace has the openshift.io/cluster-monitoring=true label
 	IsClusterMonitoringNamespace(name string) bool
+}
+
+// ConfigMapInterface defines minimal operations used for classification updates
+type ConfigMapInterface interface {
+	// Get retrieves a ConfigMap by namespace and name
+	Get(ctx context.Context, namespace string, name string) (*corev1.ConfigMap, bool, error)
+	// Update updates an existing ConfigMap
+	Update(ctx context.Context, cm corev1.ConfigMap) error
+	// Create creates a new ConfigMap
+	Create(ctx context.Context, cm corev1.ConfigMap) (*corev1.ConfigMap, error)
 }

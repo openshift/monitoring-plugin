@@ -1,11 +1,14 @@
 package management
 
-import "github.com/openshift/monitoring-plugin/pkg/k8s"
+import (
+	"github.com/openshift/monitoring-plugin/pkg/k8s"
+	"github.com/openshift/monitoring-plugin/pkg/managementlabels"
+)
 
 // isProtectedLabel returns true for labels we will not modify via ARC for platform rules.
 // These carry provenance or rule identity and must remain intact.
 var protectedLabels = map[string]bool{
-	k8s.AlertNameLabel:     true,
+	managementlabels.AlertNameLabel: true,
 	k8s.AlertRuleLabelId:   true,
 }
 

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
+	"github.com/openshift/monitoring-plugin/pkg/managementlabels"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 )
 
@@ -43,13 +44,13 @@ func (c *client) matchesAlertRuleFilters(rule monitoringv1.Rule, arOptions Alert
 	}
 
 	// Filter by source (platform)
-	if arOptions.Source == k8s.SourcePlatform {
-		source, exists := rule.Labels[k8s.AlertSourceLabel]
+	if arOptions.Source == managementlabels.SourcePlatform {
+		source, exists := rule.Labels[managementlabels.AlertSourceLabel]
 		if !exists {
 			return false
 		}
 
-		return source == k8s.SourcePlatform
+		return source == managementlabels.SourcePlatform
 	}
 
 	// Filter by labels

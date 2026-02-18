@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	alertrule "github.com/openshift/monitoring-plugin/pkg/alert_rule"
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -73,7 +72,7 @@ func (c *client) filterRulesById(rules []monitoringv1.Rule, alertRuleId string, 
 	var newRules []monitoringv1.Rule
 
 	for _, rule := range rules {
-		if c.shouldDeleteRule(rule, alertRuleId) {
+		if ruleMatchesAlertRuleID(rule, alertRuleId) {
 			*updated = true
 			continue
 		}
@@ -81,8 +80,4 @@ func (c *client) filterRulesById(rules []monitoringv1.Rule, alertRuleId string, 
 	}
 
 	return newRules
-}
-
-func (c *client) shouldDeleteRule(rule monitoringv1.Rule, alertRuleId string) bool {
-	return alertRuleId == alertrule.GetAlertingRuleId(&rule)
 }

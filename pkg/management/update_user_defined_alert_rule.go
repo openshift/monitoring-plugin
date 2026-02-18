@@ -2,11 +2,14 @@ package management
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	alertrule "github.com/openshift/monitoring-plugin/pkg/alert_rule"
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
+	"github.com/openshift/monitoring-plugin/pkg/managementlabels"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 )
 
@@ -42,7 +45,7 @@ func (c *client) UpdateUserDefinedAlertRule(ctx context.Context, alertRuleId str
 	for groupIdx := range pr.Spec.Groups {
 		for ruleIdx := range pr.Spec.Groups[groupIdx].Rules {
 			rule := &pr.Spec.Groups[groupIdx].Rules[ruleIdx]
-			if c.shouldUpdateRule(*rule, alertRuleId) {
+			if ruleMatchesAlertRuleID(*rule, alertRuleId) {
 				foundGroupIdx = groupIdx
 				foundRuleIdx = ruleIdx
 				ruleFound = true
@@ -69,7 +72,6 @@ func (c *client) UpdateUserDefinedAlertRule(ctx context.Context, alertRuleId str
 		}
 	}
 
-	// Enforce/stamp rule id label on user-defined rules
 	computedId := alertrule.GetAlertingRuleId(&alertRule)
 
 	// Treat "true clones" (spec-identical rules that compute to the same id) as unsupported.
@@ -108,9 +110,73 @@ func (c *client) UpdateUserDefinedAlertRule(ctx context.Context, alertRuleId str
 		return "", fmt.Errorf("failed to update PrometheusRule %s/%s: %w", pr.Namespace, pr.Name, err)
 	}
 
+	if err := c.migrateClassificationOverrideIfRuleIDChanged(ctx, namespace, name, alertRuleId, computedId, alertRule.Alert); err != nil {
+		return "", err
+	}
+
 	return computedId, nil
 }
 
-func (c *client) shouldUpdateRule(rule monitoringv1.Rule, alertRuleId string) bool {
-	return alertRuleId == alertrule.GetAlertingRuleId(&rule)
+func (c *client) migrateClassificationOverrideIfRuleIDChanged(
+	ctx context.Context,
+	ruleNamespace string,
+	prometheusRuleName string,
+	oldRuleId string,
+	newRuleId string,
+	alertName string,
+) error {
+	if oldRuleId == "" || newRuleId == "" || oldRuleId == newRuleId {
+		return nil
+	}
+
+	overrideNamespace := c.overrideNamespace
+	cmName := OverrideConfigMapName(ruleNamespace)
+	oldKey := classificationOverrideKey(oldRuleId)
+	newKey := classificationOverrideKey(newRuleId)
+
+	for i := 0; i < 3; i++ {
+		cm, exists, err := c.k8sClient.ConfigMaps().Get(ctx, overrideNamespace, cmName)
+		if err != nil {
+			return err
+		}
+		if !exists || cm == nil || cm.Data == nil {
+			return nil
+		}
+
+		raw, ok := cm.Data[oldKey]
+		if !ok || raw == "" {
+			return nil
+		}
+
+		if _, already := cm.Data[newKey]; !already {
+			var entry alertRuleClassificationOverridePayload
+			if err := json.Unmarshal([]byte(raw), &entry); err == nil {
+				entry.AlertName = alertName
+				entry.RuleName = prometheusRuleName
+				entry.RuleNamespace = ruleNamespace
+				if encoded, err := json.Marshal(entry); err == nil {
+					raw = string(encoded)
+				}
+			}
+			cm.Data[newKey] = raw
+		}
+		delete(cm.Data, oldKey)
+
+		if cm.Labels == nil {
+			cm.Labels = map[string]string{}
+		}
+		cm.Labels[managementlabels.AlertClassificationOverridesTypeLabelKey] = managementlabels.AlertClassificationOverridesTypeLabelValue
+		cm.Labels[managementlabels.AlertClassificationOverridesManagedByLabelKey] = managementlabels.AlertClassificationOverridesManagedByLabelValue
+		cm.Labels[k8s.PrometheusRuleLabelNamespace] = ruleNamespace
+
+		if err := c.k8sClient.ConfigMaps().Update(ctx, *cm); err != nil {
+			if apierrors.IsConflict(err) {
+				continue
+			}
+			return err
+		}
+		return nil
+	}
+
+	return fmt.Errorf("failed to migrate classification override after retries")
 }

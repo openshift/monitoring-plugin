@@ -12,8 +12,9 @@ import (
 )
 
 type UpdateAlertRuleRequest struct {
-	AlertingRule        *monitoringv1.Rule `json:"alertingRule,omitempty"`
-	AlertingRuleEnabled *bool              `json:"AlertingRuleEnabled,omitempty"`
+	AlertingRule        *monitoringv1.Rule            `json:"alertingRule,omitempty"`
+	AlertingRuleEnabled *bool                         `json:"AlertingRuleEnabled,omitempty"`
+	Classification      *AlertRuleClassificationPatch `json:"classification,omitempty"`
 }
 
 type UpdateAlertRuleResponse struct {
@@ -35,12 +36,15 @@ func (hr *httpRouter) UpdateAlertRule(w http.ResponseWriter, req *http.Request) 
 		return
 	}
 
-	alertingRuleEnabled := payload.AlertingRuleEnabled
+	if payload.AlertingRule == nil && payload.AlertingRuleEnabled == nil && payload.Classification == nil {
+		writeError(w, http.StatusBadRequest, "either alertingRule, AlertingRuleEnabled, or classification is required")
+		return
+	}
 
 	// Handle drop/restore for platform alerts
-	if alertingRuleEnabled != nil {
+	if payload.AlertingRuleEnabled != nil {
 		var derr error
-		if !*alertingRuleEnabled {
+		if !*payload.AlertingRuleEnabled {
 			derr = hr.managementClient.DropPlatformAlertRule(req.Context(), ruleId)
 		} else {
 			derr = hr.managementClient.RestorePlatformAlertRule(req.Context(), ruleId)
@@ -56,7 +60,7 @@ func (hr *httpRouter) UpdateAlertRule(w http.ResponseWriter, req *http.Request) 
 			})
 			return
 		}
-		if payload.AlertingRule == nil {
+		if payload.AlertingRule == nil && payload.Classification == nil {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
 			_ = json.NewEncoder(w).Encode(UpdateAlertRuleResponse{
@@ -67,9 +71,46 @@ func (hr *httpRouter) UpdateAlertRule(w http.ResponseWriter, req *http.Request) 
 		}
 	}
 
-	if payload.AlertingRule == nil && alertingRuleEnabled == nil {
-		writeError(w, http.StatusBadRequest, "either alertingRule (labels) or AlertingRuleEnabled (toggle drop/restore) is required")
-		return
+	if payload.Classification != nil {
+		update := management.UpdateRuleClassificationRequest{RuleId: ruleId}
+		if payload.Classification.ComponentSet {
+			update.Component = payload.Classification.Component
+			update.ComponentSet = true
+		}
+		if payload.Classification.LayerSet {
+			update.Layer = payload.Classification.Layer
+			update.LayerSet = true
+		}
+		if payload.Classification.ComponentFromSet {
+			update.ComponentFrom = payload.Classification.ComponentFrom
+			update.ComponentFromSet = true
+		}
+		if payload.Classification.LayerFromSet {
+			update.LayerFrom = payload.Classification.LayerFrom
+			update.LayerFromSet = true
+		}
+		if err := hr.managementClient.UpdateAlertRuleClassification(req.Context(), update); err != nil {
+			status, message := parseError(err)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			_ = json.NewEncoder(w).Encode(UpdateAlertRuleResponse{
+				Id:         ruleId,
+				StatusCode: status,
+				Message:    message,
+			})
+			return
+		}
+
+		// If this is a classification-only patch, return success now.
+		if payload.AlertingRule == nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			_ = json.NewEncoder(w).Encode(UpdateAlertRuleResponse{
+				Id:         ruleId,
+				StatusCode: http.StatusNoContent,
+			})
+			return
+		}
 	}
 
 	alertRule := *payload.AlertingRule

@@ -29,9 +29,22 @@ var _ = Describe("BulkUpdateAlertRules", func() {
 	)
 
 	var (
-		userRule1      = monitoringv1.Rule{Alert: "user-alert-1", Expr: intstr.FromString("up == 0"), Labels: map[string]string{"severity": "warning"}}
-		userRule1Id    = alertrule.GetAlertingRuleId(&userRule1)
-		userRule2      = monitoringv1.Rule{Alert: "user-alert-2", Expr: intstr.FromString("cpu > 80"), Labels: map[string]string{"severity": "info"}}
+		userRule1 = monitoringv1.Rule{
+			Alert: "user-alert-1",
+			Expr:  intstr.FromString("up == 0"),
+			Labels: map[string]string{
+				"severity": "warning",
+			},
+		}
+		userRule1Id = alertrule.GetAlertingRuleId(&userRule1)
+
+		userRule2 = monitoringv1.Rule{
+			Alert: "user-alert-2",
+			Expr:  intstr.FromString("cpu > 80"),
+			Labels: map[string]string{
+				"severity": "info",
+			},
+		}
 		userRule2Id    = alertrule.GetAlertingRuleId(&userRule2)
 		platformRule   = monitoringv1.Rule{Alert: "platform-alert", Expr: intstr.FromString("memory > 90"), Labels: map[string]string{"severity": "critical"}}
 		platformRuleId = alertrule.GetAlertingRuleId(&platformRule)
@@ -48,14 +61,14 @@ var _ = Describe("BulkUpdateAlertRules", func() {
 				Name: "g1",
 				Rules: []monitoringv1.Rule{
 					{
-						Alert:  "user-alert-1",
-						Expr:   intstr.FromString("up == 0"),
-						Labels: map[string]string{"severity": "warning"},
+						Alert:  userRule1.Alert,
+						Expr:   userRule1.Expr,
+						Labels: map[string]string{"severity": "warning", k8s.AlertRuleLabelId: userRule1Id},
 					},
 					{
-						Alert:  "user-alert-2",
-						Expr:   intstr.FromString("cpu > 80"),
-						Labels: map[string]string{"severity": "info"},
+						Alert:  userRule2.Alert,
+						Expr:   userRule2.Expr,
+						Labels: map[string]string{"severity": "info", k8s.AlertRuleLabelId: userRule2Id},
 					},
 				},
 			},
@@ -92,10 +105,11 @@ var _ = Describe("BulkUpdateAlertRules", func() {
 			GetFunc: func(ctx context.Context, id string) (monitoringv1.Rule, bool) {
 				if id == userRule1Id {
 					return monitoringv1.Rule{
-						Alert: "user-alert-1",
-						Expr:  intstr.FromString("up == 0"),
+						Alert: userRule1.Alert,
+						Expr:  userRule1.Expr,
 						Labels: map[string]string{
 							"severity":                       "warning",
+							k8s.AlertRuleLabelId:             userRule1Id,
 							k8s.PrometheusRuleLabelNamespace: "default",
 							k8s.PrometheusRuleLabelName:      "user-pr",
 						},
@@ -103,10 +117,11 @@ var _ = Describe("BulkUpdateAlertRules", func() {
 				}
 				if id == userRule2Id {
 					return monitoringv1.Rule{
-						Alert: "user-alert-2",
-						Expr:  intstr.FromString("cpu > 80"),
+						Alert: userRule2.Alert,
+						Expr:  userRule2.Expr,
 						Labels: map[string]string{
 							"severity":                       "info",
+							k8s.AlertRuleLabelId:             userRule2Id,
 							k8s.PrometheusRuleLabelNamespace: "default",
 							k8s.PrometheusRuleLabelName:      "user-pr",
 						},
@@ -118,6 +133,7 @@ var _ = Describe("BulkUpdateAlertRules", func() {
 						Expr:  intstr.FromString("memory > 90"),
 						Labels: map[string]string{
 							"severity":                       "critical",
+							k8s.AlertRuleLabelId:             platformRuleId,
 							k8s.PrometheusRuleLabelNamespace: "platform-namespace-1",
 							k8s.PrometheusRuleLabelName:      "platform-pr",
 						},
@@ -144,7 +160,25 @@ var _ = Describe("BulkUpdateAlertRules", func() {
 	})
 
 	Context("when updating multiple user-defined rules", func() {
-		It("should successfully update all rules and return new IDs", func() {
+		It("should successfully update all rules and return updated IDs", func() {
+			expectedNewUserRule1Id := alertrule.GetAlertingRuleId(&monitoringv1.Rule{
+				Alert: userRule1.Alert,
+				Expr:  userRule1.Expr,
+				Labels: map[string]string{
+					"severity":  "warning",
+					"component": "api",
+					"team":      "backend",
+				},
+			})
+			expectedNewUserRule2Id := alertrule.GetAlertingRuleId(&monitoringv1.Rule{
+				Alert: userRule2.Alert,
+				Expr:  userRule2.Expr,
+				Labels: map[string]string{
+					"severity":  "info",
+					"component": "api",
+					"team":      "backend",
+				},
+			})
 			body := map[string]interface{}{
 				"ruleIds": []string{userRule1Id, userRule2Id},
 				"labels": map[string]string{
@@ -163,37 +197,20 @@ var _ = Describe("BulkUpdateAlertRules", func() {
 			Expect(json.NewDecoder(w.Body).Decode(&resp)).To(Succeed())
 			Expect(resp.Rules).To(HaveLen(2))
 
-			updatedRule1 := monitoringv1.Rule{
-				Alert: "user-alert-1",
-				Expr:  intstr.FromString("up == 0"),
-				Labels: map[string]string{
-					"severity":  "warning",
-					"component": "api",
-					"team":      "backend",
-				},
-			}
-			expectedNewId1 := alertrule.GetAlertingRuleId(&updatedRule1)
-
-			updatedRule2 := monitoringv1.Rule{
-				Alert: "user-alert-2",
-				Expr:  intstr.FromString("cpu > 80"),
-				Labels: map[string]string{
-					"severity":  "info",
-					"component": "api",
-					"team":      "backend",
-				},
-			}
-			expectedNewId2 := alertrule.GetAlertingRuleId(&updatedRule2)
-
-			Expect(resp.Rules[0].Id).To(Equal(expectedNewId1))
-			Expect(resp.Rules[0].Id).NotTo(Equal(userRule1Id))
+			Expect(resp.Rules[0].Id).To(Equal(expectedNewUserRule1Id))
 			Expect(resp.Rules[0].StatusCode).To(Equal(http.StatusNoContent))
-			Expect(resp.Rules[1].Id).To(Equal(expectedNewId2))
-			Expect(resp.Rules[1].Id).NotTo(Equal(userRule2Id))
+			Expect(resp.Rules[1].Id).To(Equal(expectedNewUserRule2Id))
 			Expect(resp.Rules[1].StatusCode).To(Equal(http.StatusNoContent))
 		})
 
 		It("should drop labels with empty string value", func() {
+			expectedNewUserRule1Id := alertrule.GetAlertingRuleId(&monitoringv1.Rule{
+				Alert: "user-alert-1",
+				Expr:  intstr.FromString("up == 0"),
+				Labels: map[string]string{
+					"severity": "critical",
+				},
+			})
 			mockRelabeledRules.GetFunc = func(ctx context.Context, id string) (monitoringv1.Rule, bool) {
 				if id == userRule1Id {
 					return monitoringv1.Rule{
@@ -202,6 +219,7 @@ var _ = Describe("BulkUpdateAlertRules", func() {
 						Labels: map[string]string{
 							"severity":                       "warning",
 							"team":                           "backend",
+							k8s.AlertRuleLabelId:             userRule1Id,
 							k8s.PrometheusRuleLabelNamespace: "default",
 							k8s.PrometheusRuleLabelName:      "user-pr",
 						},
@@ -231,22 +249,21 @@ var _ = Describe("BulkUpdateAlertRules", func() {
 			Expect(json.NewDecoder(w.Body).Decode(&resp)).To(Succeed())
 			Expect(resp.Rules).To(HaveLen(1))
 
-			updatedRule := monitoringv1.Rule{
-				Alert: "user-alert-1",
-				Expr:  intstr.FromString("up == 0"),
-				Labels: map[string]string{
-					"severity": "critical",
-				},
-			}
-			expectedNewId := alertrule.GetAlertingRuleId(&updatedRule)
-
-			Expect(resp.Rules[0].Id).To(Equal(expectedNewId))
+			Expect(resp.Rules[0].Id).To(Equal(expectedNewUserRule1Id))
 			Expect(resp.Rules[0].StatusCode).To(Equal(http.StatusNoContent))
 		})
 	})
 
 	Context("when updating mixed platform and user-defined rules", func() {
-		It("should handle both types correctly - platform keeps same ID, user gets new ID", func() {
+		It("should handle both types correctly - both keep their IDs", func() {
+			expectedNewUserRule1Id := alertrule.GetAlertingRuleId(&monitoringv1.Rule{
+				Alert: userRule1.Alert,
+				Expr:  userRule1.Expr,
+				Labels: map[string]string{
+					"severity":  "warning",
+					"component": "api",
+				},
+			})
 			mockARC := &testutils.MockAlertRelabelConfigInterface{}
 			mockK8s.AlertRelabelConfigsFunc = func() k8s.AlertRelabelConfigInterface {
 				return mockARC
@@ -269,17 +286,7 @@ var _ = Describe("BulkUpdateAlertRules", func() {
 			Expect(json.NewDecoder(w.Body).Decode(&resp)).To(Succeed())
 			Expect(resp.Rules).To(HaveLen(2))
 
-			updatedUserRule := monitoringv1.Rule{
-				Alert: "user-alert-1",
-				Expr:  intstr.FromString("up == 0"),
-				Labels: map[string]string{
-					"severity":  "warning",
-					"component": "api",
-				},
-			}
-			expectedNewUserId := alertrule.GetAlertingRuleId(&updatedUserRule)
-			Expect(resp.Rules[0].Id).To(Equal(expectedNewUserId))
-			Expect(resp.Rules[0].Id).NotTo(Equal(userRule1Id))
+			Expect(resp.Rules[0].Id).To(Equal(expectedNewUserRule1Id))
 			Expect(resp.Rules[0].StatusCode).To(Equal(http.StatusNoContent))
 
 			Expect(resp.Rules[1].Id).To(Equal(platformRuleId))
@@ -316,7 +323,7 @@ var _ = Describe("BulkUpdateAlertRules", func() {
 		})
 	})
 
-	Context("when both labels and AlertingRuleEnabled are missing", func() {
+	Context("when labels, AlertingRuleEnabled, and classification are missing", func() {
 		It("should return 400", func() {
 			body := map[string]interface{}{
 				"ruleIds": []string{userRule1Id},
@@ -328,7 +335,7 @@ var _ = Describe("BulkUpdateAlertRules", func() {
 			router.ServeHTTP(w, req)
 
 			Expect(w.Code).To(Equal(http.StatusBadRequest))
-			Expect(w.Body.String()).To(ContainSubstring("AlertingRuleEnabled (toggle drop/restore) or labels (set/unset) is required"))
+			Expect(w.Body.String()).To(ContainSubstring("AlertingRuleEnabled (toggle drop/restore) or labels (set/unset) or classification is required"))
 		})
 	})
 
@@ -338,7 +345,7 @@ var _ = Describe("BulkUpdateAlertRules", func() {
 			mockK8s.AlertRelabelConfigsFunc = func() k8s.AlertRelabelConfigInterface { return mockARC }
 
 			body := map[string]interface{}{
-				"ruleIds":             []string{platformRuleId, userRule1Id, "missing-alert;hash"},
+				"ruleIds":             []string{platformRuleId, userRule1Id, "rid_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},
 				"AlertingRuleEnabled": false,
 			}
 			buf, _ := json.Marshal(body)
@@ -358,13 +365,21 @@ var _ = Describe("BulkUpdateAlertRules", func() {
 			Expect(resp.Rules[1].Id).To(Equal(userRule1Id))
 			// user-defined alerts cannot be dropped/restored via enabled
 			Expect(resp.Rules[1].StatusCode).To(Equal(http.StatusMethodNotAllowed))
-			Expect(resp.Rules[2].Id).To(Equal("missing-alert;hash"))
+			Expect(resp.Rules[2].Id).To(Equal("rid_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"))
 			Expect(resp.Rules[2].StatusCode).To(Equal(http.StatusNotFound))
 		})
 	})
 
 	Context("when some rules are not found", func() {
 		It("should return mixed results", func() {
+			expectedNewUserRule1Id := alertrule.GetAlertingRuleId(&monitoringv1.Rule{
+				Alert: userRule1.Alert,
+				Expr:  userRule1.Expr,
+				Labels: map[string]string{
+					"severity":  "warning",
+					"component": "api",
+				},
+			})
 			mockRelabeledRules.GetFunc = func(ctx context.Context, id string) (monitoringv1.Rule, bool) {
 				if id == userRule1Id {
 					return monitoringv1.Rule{
@@ -372,6 +387,7 @@ var _ = Describe("BulkUpdateAlertRules", func() {
 						Expr:  intstr.FromString("up == 0"),
 						Labels: map[string]string{
 							"severity":                       "warning",
+							k8s.AlertRuleLabelId:             userRule1Id,
 							k8s.PrometheusRuleLabelNamespace: "default",
 							k8s.PrometheusRuleLabelName:      "user-pr",
 						},
@@ -384,7 +400,7 @@ var _ = Describe("BulkUpdateAlertRules", func() {
 			router = managementrouter.New(mgmt)
 
 			body := map[string]interface{}{
-				"ruleIds": []string{userRule1Id, "missing-alert;hash"},
+				"ruleIds": []string{userRule1Id, "rid_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},
 				"labels":  map[string]string{"component": "api"},
 			}
 			buf, _ := json.Marshal(body)
@@ -398,25 +414,23 @@ var _ = Describe("BulkUpdateAlertRules", func() {
 			Expect(json.NewDecoder(w.Body).Decode(&resp)).To(Succeed())
 			Expect(resp.Rules).To(HaveLen(2))
 
-			updatedRule := monitoringv1.Rule{
-				Alert: "user-alert-1",
-				Expr:  intstr.FromString("up == 0"),
-				Labels: map[string]string{
-					"severity":  "warning",
-					"component": "api",
-				},
-			}
-			expectedNewId := alertrule.GetAlertingRuleId(&updatedRule)
-
-			Expect(resp.Rules[0].Id).To(Equal(expectedNewId))
+			Expect(resp.Rules[0].Id).To(Equal(expectedNewUserRule1Id))
 			Expect(resp.Rules[0].StatusCode).To(Equal(http.StatusNoContent))
-			Expect(resp.Rules[1].Id).To(Equal("missing-alert;hash"))
+			Expect(resp.Rules[1].Id).To(Equal("rid_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"))
 			Expect(resp.Rules[1].StatusCode).To(Equal(http.StatusNotFound))
 		})
 	})
 
 	Context("when ruleId is invalid", func() {
 		It("should return 400 for invalid ruleId", func() {
+			expectedNewUserRule1Id := alertrule.GetAlertingRuleId(&monitoringv1.Rule{
+				Alert: userRule1.Alert,
+				Expr:  userRule1.Expr,
+				Labels: map[string]string{
+					"severity":  "warning",
+					"component": "api",
+				},
+			})
 			body := map[string]interface{}{
 				"ruleIds": []string{userRule1Id, ""},
 				"labels":  map[string]string{"component": "api"},
@@ -432,21 +446,35 @@ var _ = Describe("BulkUpdateAlertRules", func() {
 			Expect(json.NewDecoder(w.Body).Decode(&resp)).To(Succeed())
 			Expect(resp.Rules).To(HaveLen(2))
 
-			updatedRule := monitoringv1.Rule{
-				Alert: "user-alert-1",
-				Expr:  intstr.FromString("up == 0"),
-				Labels: map[string]string{
-					"severity":  "warning",
-					"component": "api",
-				},
-			}
-			expectedNewId := alertrule.GetAlertingRuleId(&updatedRule)
-
-			Expect(resp.Rules[0].Id).To(Equal(expectedNewId))
+			Expect(resp.Rules[0].Id).To(Equal(expectedNewUserRule1Id))
 			Expect(resp.Rules[0].StatusCode).To(Equal(http.StatusNoContent))
 			Expect(resp.Rules[1].Id).To(Equal(""))
 			Expect(resp.Rules[1].StatusCode).To(Equal(http.StatusBadRequest))
 			Expect(resp.Rules[1].Message).To(ContainSubstring("missing ruleId"))
+		})
+	})
+
+	Context("when bulk updating classification only", func() {
+		It("should update classification overrides and return 204 per rule", func() {
+			body := map[string]any{
+				"ruleIds": []string{userRule1Id, userRule2Id},
+				"classification": map[string]any{
+					"openshift_io_alert_rule_component": "team-x",
+					"openshift_io_alert_rule_layer":     "namespace",
+				},
+			}
+			buf, _ := json.Marshal(body)
+			req := httptest.NewRequest(http.MethodPatch, "/api/v1/alerting/rules", bytes.NewReader(buf))
+			w := httptest.NewRecorder()
+
+			router.ServeHTTP(w, req)
+
+			Expect(w.Code).To(Equal(http.StatusOK))
+			var resp managementrouter.BulkUpdateAlertRulesResponse
+			Expect(json.NewDecoder(w.Body).Decode(&resp)).To(Succeed())
+			Expect(resp.Rules).To(HaveLen(2))
+			Expect(resp.Rules[0].StatusCode).To(Equal(http.StatusNoContent))
+			Expect(resp.Rules[1].StatusCode).To(Equal(http.StatusNoContent))
 		})
 	})
 })
