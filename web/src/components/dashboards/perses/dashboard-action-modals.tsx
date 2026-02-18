@@ -25,6 +25,7 @@ import {
   useUpdateDashboardMutation,
   useCreateDashboardMutation,
   useDeleteDashboardMutation,
+  useCreateProjectMutation,
 } from './dashboard-api';
 import {
   renameDashboardDialogValidationSchema,
@@ -44,6 +45,7 @@ import {
 import { useToast } from './ToastProvider';
 import { generateMetadataName } from './dashboard-utils';
 import { useEditableProjects } from './hooks/useEditableProjects';
+import { usePerses } from './hooks/usePerses';
 import { t_global_spacer_200, t_global_font_weight_200 } from '@patternfly/react-tokens';
 import { useNavigate } from 'react-router-dom-v5-compat';
 import { usePerspective, getDashboardUrl } from '../../hooks/usePerspective';
@@ -193,6 +195,9 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
     permissionsError,
   } = useEditableProjects();
 
+  const { persesProjects } = usePerses();
+  const createProjectMutation = useCreateProjectMutation();
+
   const defaultProject = useMemo(() => {
     if (!dashboard) return '';
 
@@ -244,7 +249,30 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
     return null;
   }
 
-  const processForm: SubmitHandler<CreateDashboardValidationType> = (data) => {
+  const processForm: SubmitHandler<CreateDashboardValidationType> = async (data) => {
+    // Check if project exists, create it if it doesn't
+    const projectExists = persesProjects?.some(
+      (project) => project.metadata.name === data.projectName,
+    );
+
+    if (!projectExists) {
+      try {
+        await createProjectMutation.mutateAsync(data.projectName);
+        addAlert(
+          t('Project "{{project}}" created successfully', { project: data.projectName }),
+          'success',
+        );
+      } catch (projectError) {
+        const errorMessage =
+          projectError?.message ||
+          t('Failed to create project "{{project}}". Please try again.', {
+            project: data.projectName,
+          });
+        addAlert(t('Error creating project: {{error}}', { error: errorMessage }), 'danger');
+        return;
+      }
+    }
+
     const newDashboard: DashboardResource = {
       ...dashboard,
       metadata: {

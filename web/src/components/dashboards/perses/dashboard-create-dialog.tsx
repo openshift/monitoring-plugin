@@ -44,6 +44,7 @@ export const DashboardCreateDialog: React.FunctionComponent = () => {
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
   const createDashboardMutation = useCreateDashboardMutation();
   const createProjectMutation = useCreateProjectMutation();
+  const { persesProjects } = usePerses();
 
   const disabled = permissionsLoading || !hasEditableProject;
 
@@ -96,7 +97,9 @@ export const DashboardCreateDialog: React.FunctionComponent = () => {
         return;
       }
 
-      const projectExists = editableProjects?.some((project) => project === selectedProject);
+      const projectExists = persesProjects?.some(
+        (project) => project.metadata.name === selectedProject,
+      );
 
       if (!projectExists) {
         try {
