@@ -101,12 +101,17 @@ export const DashboardCreateDialog: React.FunctionComponent = () => {
       if (!projectExists) {
         try {
           await createProjectMutation.mutateAsync(selectedProject as string);
-          addAlert(`Project "${selectedProject}" created successfully`, 'success');
+          addAlert(
+            t('Project "{{project}}" created successfully', { project: selectedProject }),
+            'success',
+          );
         } catch (projectError) {
           const errorMessage =
             projectError?.message ||
-            `Failed to create project "${selectedProject}". Please try again.`;
-          addAlert(`Error creating project: ${errorMessage}`, 'danger');
+            t('Failed to create project "{{project}}". Please try again.', {
+              project: selectedProject,
+            });
+          addAlert(t('Error creating project: {{error}}', { error: errorMessage }), 'danger');
           setFormErrors({ general: errorMessage });
           return;
         }
