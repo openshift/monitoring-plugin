@@ -52,7 +52,7 @@ export const DashboardCreateDialog: React.FunctionComponent = () => {
       return [];
     }
 
-    return editableProjects.map((project) => ({
+    return editableProjects?.map((project) => ({
       content: project,
       value: project,
       selected: project === selectedProject,
@@ -96,7 +96,7 @@ export const DashboardCreateDialog: React.FunctionComponent = () => {
         return;
       }
 
-      const projectExists = editableProjects.some((project) => project === selectedProject);
+      const projectExists = editableProjects?.some((project) => project === selectedProject);
 
       if (!projectExists) {
         try {
@@ -172,7 +172,7 @@ export const DashboardCreateDialog: React.FunctionComponent = () => {
 
   return (
     <>
-      {disabled ? (
+      {!hasEditableProject ? (
         <Tooltip
           content={t('To create dashboards, contact your cluster administrator for permission.')}
         >
