@@ -20,15 +20,15 @@ func (c *client) CreateUserDefinedAlertRule(ctx context.Context, alertRule monit
 	}
 
 	// compute id from the rule content BEFORE mutating labels
-	newRuleId := alertrule.GetAlertingRuleId(&alertRule)
+	computedRuleID := alertrule.GetAlertingRuleId(&alertRule)
 	// set/stamp the rule id label on user-defined rules
 	if alertRule.Labels == nil {
 		alertRule.Labels = map[string]string{}
 	}
-	alertRule.Labels[k8s.AlertRuleLabelId] = newRuleId
+	alertRule.Labels[k8s.AlertRuleLabelId] = computedRuleID
 
 	// Check if rule with the same ID already exists (fast path)
-	_, found := c.k8sClient.RelabeledRules().Get(ctx, newRuleId)
+	_, found := c.k8sClient.RelabeledRules().Get(ctx, computedRuleID)
 	if found {
 		return "", &ConflictError{Message: "alert rule with exact config already exists"}
 	}
@@ -47,16 +47,33 @@ func (c *client) CreateUserDefinedAlertRule(ctx context.Context, alertRule monit
 		return "", &NotAllowedError{Message: "cannot add user-defined alert rule to a platform-managed PrometheusRule"}
 	}
 
+	// Enforce uniqueness within the target PrometheusRule:
+	// - "True clones" (different entries with identical definitions) are unsupported; they compute to the same rule ID.
+	pr, prFound, err := c.k8sClient.PrometheusRules().Get(ctx, nn.Namespace, nn.Name)
+	if err != nil {
+		return "", err
+	}
+	if prFound && pr != nil {
+		for _, g := range pr.Spec.Groups {
+			for _, r := range g.Rules {
+				// Treat "true clones" as unsupported: identical definitions compute to the same id.
+				if r.Alert != "" && alertrule.GetAlertingRuleId(&r) == computedRuleID {
+					return "", &ConflictError{Message: "alert rule with exact config already exists"}
+				}
+			}
+		}
+	}
+
 	if prOptions.GroupName == "" {
 		prOptions.GroupName = DefaultGroupName
 	}
 
-	err := c.k8sClient.PrometheusRules().AddRule(ctx, nn, prOptions.GroupName, alertRule)
+	err = c.k8sClient.PrometheusRules().AddRule(ctx, nn, prOptions.GroupName, alertRule)
 	if err != nil {
 		return "", err
 	}
 
-	return newRuleId, nil
+	return computedRuleID, nil
 }
 
 // existsUserDefinedRuleWithSameSpec returns true if a rule with an equivalent

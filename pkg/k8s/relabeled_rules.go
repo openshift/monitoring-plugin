@@ -239,6 +239,7 @@ func (rrm *relabeledRulesManager) loadRelabelConfigs() ([]*relabel.Config, error
 
 func (rrm *relabeledRulesManager) collectAlerts(ctx context.Context, relabelConfigs []*relabel.Config) map[string]monitoringv1.Rule {
 	alerts := make(map[string]monitoringv1.Rule)
+	seenIDs := make(map[string]struct{})
 
 	for _, obj := range rrm.prometheusRulesInformer.GetStore().List() {
 		promRule, ok := obj.(*monitoringv1.PrometheusRule)
@@ -259,6 +260,13 @@ func (rrm *relabeledRulesManager) collectAlerts(ctx context.Context, relabelConf
 				}
 
 				alertRuleId := alertrule.GetAlertingRuleId(&rule)
+				if _, exists := seenIDs[alertRuleId]; exists {
+					// A second rule that computes to the same id is ambiguous/unsupported (a "true clone").
+					// Don't silently overwrite the first rule in the cache.
+					log.Warnf("Duplicate alert rule id %q computed for %s/%s (alert=%q); skipping duplicate", alertRuleId, promRule.Namespace, promRule.Name, rule.Alert)
+					continue
+				}
+				seenIDs[alertRuleId] = struct{}{}
 
 				if rule.Labels == nil {
 					rule.Labels = make(map[string]string)
@@ -355,14 +363,6 @@ func sanitizeDNSName(in string) string {
 }
 
 func shortHash(id string, n int) string {
-	// if id already contains a ';<hex>', use that suffix
-	parts := strings.Split(id, ";")
-	if len(parts) > 1 {
-		h := parts[len(parts)-1]
-		if len(h) >= n {
-			return h[:n]
-		}
-	}
 	sum := sha256.Sum256([]byte(id))
 	full := fmt.Sprintf("%x", sum[:])
 	if n > len(full) {

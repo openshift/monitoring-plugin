@@ -71,6 +71,30 @@ func (c *client) UpdateUserDefinedAlertRule(ctx context.Context, alertRuleId str
 
 	// Enforce/stamp rule id label on user-defined rules
 	computedId := alertrule.GetAlertingRuleId(&alertRule)
+
+	// Treat "true clones" (spec-identical rules that compute to the same id) as unsupported.
+	// If the updated rule would collide with some other existing rule, reject the update.
+	if computedId != "" && computedId != alertRuleId {
+		// Check within the same PrometheusRule first (authoritative).
+		for groupIdx := range pr.Spec.Groups {
+			for ruleIdx := range pr.Spec.Groups[groupIdx].Rules {
+				if groupIdx == foundGroupIdx && ruleIdx == foundRuleIdx {
+					continue
+				}
+				existing := pr.Spec.Groups[groupIdx].Rules[ruleIdx]
+				// Treat "true clones" as unsupported: identical definitions compute to the same id.
+				if existing.Alert != "" && alertrule.GetAlertingRuleId(&existing) == computedId {
+					return "", &ConflictError{Message: "alert rule with exact config already exists"}
+				}
+			}
+		}
+
+		_, found := c.k8sClient.RelabeledRules().Get(ctx, computedId)
+		if found {
+			return "", &ConflictError{Message: "alert rule with exact config already exists"}
+		}
+	}
+
 	if alertRule.Labels == nil {
 		alertRule.Labels = map[string]string{}
 	}

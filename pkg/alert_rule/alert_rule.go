@@ -2,6 +2,7 @@ package alertrule
 
 import (
 	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
 	"sort"
 	"strings"
@@ -21,45 +22,43 @@ func GetAlertingRuleId(alertRule *monitoringv1.Rule) string {
 		return ""
 	}
 
-	expr := alertRule.Expr.String()
+	expr := strings.Join(strings.Fields(strings.TrimSpace(alertRule.Expr.String())), " ")
 	forDuration := ""
 	if alertRule.For != nil {
-		forDuration = string(*alertRule.For)
+		forDuration = strings.TrimSpace(string(*alertRule.For))
 	}
 
 	var sortedLabels []string
 	if alertRule.Labels != nil {
 		for key, value := range alertRule.Labels {
-			if strings.HasPrefix(key, "openshift_io_") || key == "alertname" {
+			k := strings.TrimSpace(key)
+			if k == "" {
+				continue
+			}
+			if strings.HasPrefix(k, "openshift_io_") || k == "alertname" {
 				// Skip system labels
 				continue
 			}
+			if value == "" {
+				continue
+			}
 
-			sortedLabels = append(sortedLabels, fmt.Sprintf("%s=%s", key, value))
+			sortedLabels = append(sortedLabels, fmt.Sprintf("%s=%s", k, value))
 		}
 		sort.Strings(sortedLabels)
 	}
 
-	var sortedAnnotations []string
-	if alertRule.Annotations != nil {
-		for key, value := range alertRule.Annotations {
-			sortedAnnotations = append(sortedAnnotations, fmt.Sprintf("%s=%s", key, value))
-		}
-		sort.Strings(sortedAnnotations)
-	}
-
 	// Build the hash input string
-	hashInput := strings.Join([]string{
+	canonicalPayload := strings.Join([]string{
 		kind,
 		name,
 		expr,
 		forDuration,
-		strings.Join(sortedLabels, ","),
-		strings.Join(sortedAnnotations, ","),
-	}, "\n")
+		strings.Join(sortedLabels, "\n"),
+	}, "\n---\n")
 
 	// Generate SHA256 hash
-	hash := sha256.Sum256([]byte(hashInput))
+	hash := sha256.Sum256([]byte(canonicalPayload))
 
-	return fmt.Sprintf("%s;%x", name, hash)
+	return "rid_" + base64.RawURLEncoding.EncodeToString(hash[:])
 }
