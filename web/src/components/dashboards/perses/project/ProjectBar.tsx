@@ -24,9 +24,8 @@ export const ProjectBar: React.FC<ProjectBarProps> = ({ setActiveProject, active
               params.set('project', newProject);
               setActiveProject(newProject);
             }
-            const url = `${getDashboardsListUrl(perspective)}${
-              newProject === '' ? '' : params.toString()
-            }`;
+            const paramsString = params.size > 0 ? `?${params.toString()}` : '';
+            const url = getDashboardsListUrl(perspective) + paramsString;
             history.push(url);
           }}
           selected={activeProject || ''}
