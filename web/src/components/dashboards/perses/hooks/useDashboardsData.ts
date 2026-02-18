@@ -1,14 +1,14 @@
-import * as React from 'react';
+import { useMemo, useCallback, useRef } from 'react';
 
-import { usePerses } from './usePerses';
-import { getDashboardsUrl, usePerspective } from '../../../hooks/usePerspective';
-import { getAllQueryArguments } from '../../../console/utils/router';
-import { useHistory } from 'react-router';
-import { useActiveProject } from '../project/useActiveProject';
-import { useBoolean } from '../../../hooks/useBoolean';
-import { QueryParams } from '../../../query-params';
 import { DashboardResource } from '@perses-dev/core';
+import { useHistory } from 'react-router-dom';
 import { StringParam, useQueryParam } from 'use-query-params';
+import { getAllQueryArguments } from '../../../console/utils/router';
+import { useBoolean } from '../../../hooks/useBoolean';
+import { getDashboardUrl, usePerspective } from '../../../hooks/usePerspective';
+import { QueryParams } from '../../../query-params';
+import { useActiveProject } from '../project/useActiveProject';
+import { usePerses } from './usePerses';
 
 // This hook syncs with mutliple external API's, redux, and URL state. Its a lot, but needs to all
 // be in a single location
@@ -28,7 +28,7 @@ export const useDashboardsData = () => {
   const [dashboardName] = useQueryParam(QueryParams.Dashboard, StringParam);
 
   // Determine when to stop having the full page loader be used
-  const combinedInitialLoad = React.useMemo(() => {
+  const combinedInitialLoad = useMemo(() => {
     if (!initialPageLoad) {
       return false;
     }
@@ -39,13 +39,33 @@ export const useDashboardsData = () => {
     return true;
   }, [persesProjectsLoading, persesDashboardsLoading, initialPageLoad, setInitialPageLoadFalse]);
 
+  const prevDashboardsRef = useRef<DashboardResource[]>([]);
+  const prevMetadataRef = useRef<CombinedDashboardMetadata[]>([]);
+
   // Homogenize data needed for dashboards dropdown between legacy and perses dashboards
   // to enable both to use the same component
-  const combinedDashboardsMetadata = React.useMemo<CombinedDashboardMetadata[]>(() => {
+  const combinedDashboardsMetadata = useMemo<CombinedDashboardMetadata[]>(() => {
     if (combinedInitialLoad) {
       return [];
     }
-    return persesDashboards.map((persesDashboard) => {
+
+    // Check if dashboards data has actually changed to avoid recreation
+    const dashboardsChanged =
+      persesDashboards.length !== prevDashboardsRef.current.length ||
+      persesDashboards.some((dashboard, i) => {
+        const prevDashboard = prevDashboardsRef.current[i];
+        return (
+          dashboard?.metadata?.name !== prevDashboard?.metadata?.name ||
+          dashboard?.spec?.display?.name !== prevDashboard?.spec?.display?.name ||
+          dashboard?.metadata?.project !== prevDashboard?.metadata?.project
+        );
+      });
+
+    if (!dashboardsChanged && prevMetadataRef.current.length > 0) {
+      return prevMetadataRef.current;
+    }
+
+    const newMetadata = persesDashboards.map((persesDashboard) => {
       const name = persesDashboard?.metadata?.name;
       const displayName = persesDashboard?.spec?.display?.name || name;
 
@@ -57,16 +77,23 @@ export const useDashboardsData = () => {
         persesDashboard,
       };
     });
+
+    prevDashboardsRef.current = persesDashboards;
+    prevMetadataRef.current = newMetadata;
+    return newMetadata;
   }, [persesDashboards, combinedInitialLoad]);
 
   // Retrieve dashboard metadata for the currently selected project
-  const activeProjectDashboardsMetadata = React.useMemo<CombinedDashboardMetadata[]>(() => {
+  const activeProjectDashboardsMetadata = useMemo<CombinedDashboardMetadata[]>(() => {
+    if (!activeProject) {
+      return combinedDashboardsMetadata;
+    }
     return combinedDashboardsMetadata.filter((combinedDashboardMetadata) => {
       return combinedDashboardMetadata.project === activeProject;
     });
   }, [combinedDashboardsMetadata, activeProject]);
 
-  const changeBoard = React.useCallback(
+  const changeBoard = useCallback(
     (newBoard: string) => {
       if (!newBoard) {
         // If the board is being cleared then don't do anything
@@ -74,34 +101,30 @@ export const useDashboardsData = () => {
       }
       const queryArguments = getAllQueryArguments();
 
+      delete queryArguments.edit;
+
       const params = new URLSearchParams(queryArguments);
-      params.set(QueryParams.Project, activeProject);
+
+      let projectToUse = activeProject;
+      if (!activeProject) {
+        const dashboardMetadata = combinedDashboardsMetadata.find((item) => item.name === newBoard);
+        projectToUse = dashboardMetadata?.project;
+      }
+
+      if (projectToUse) {
+        params.set(QueryParams.Project, projectToUse);
+      }
       params.set(QueryParams.Dashboard, newBoard);
 
-      let url = getDashboardsUrl(perspective);
+      let url = getDashboardUrl(perspective);
       url = `${url}?${params.toString()}`;
 
       if (newBoard !== dashboardName) {
         history.replace(url);
       }
     },
-    [perspective, dashboardName, history, activeProject],
+    [perspective, dashboardName, history, activeProject, combinedDashboardsMetadata],
   );
-
-  // If a dashboard hasn't been selected yet, or if the current project doesn't have a
-  // matching board name then display the board present in the URL parameters or the first
-  // board in the dropdown list
-  React.useEffect(() => {
-    const metadataMatch = activeProjectDashboardsMetadata.find((activeProjectDashboardMetadata) => {
-      return (
-        activeProjectDashboardMetadata.project === activeProject &&
-        activeProjectDashboardMetadata.name === dashboardName
-      );
-    });
-    if (!dashboardName || !metadataMatch) {
-      changeBoard(activeProjectDashboardsMetadata?.[0]?.name);
-    }
-  }, [dashboardName, changeBoard, activeProject, activeProjectDashboardsMetadata]);
 
   return {
     persesAvailable,

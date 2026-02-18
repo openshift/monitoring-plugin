@@ -1,7 +1,8 @@
 import * as React from 'react';
 import { KEYBOARD_SHORTCUTS } from './utils';
 import ProjectDropdown from './ProjectDropdown';
-import { default as classNames } from 'classnames';
+import { getDashboardsListUrl, usePerspective } from '../../../hooks/usePerspective';
+import { useHistory } from 'react-router';
 
 export type ProjectBarProps = {
   setActiveProject: React.Dispatch<React.SetStateAction<string>>;
@@ -9,14 +10,25 @@ export type ProjectBarProps = {
 };
 
 export const ProjectBar: React.FC<ProjectBarProps> = ({ setActiveProject, activeProject }) => {
+  const history = useHistory();
+  const { perspective } = usePerspective();
   return (
-    <div className={classNames('monitoring__project-bar')}>
-      <div className="monitoring__project-bar__items" data-test-id="project-bar-dropdown">
+    <div className="co-namespace-bar">
+      <div className="co-namespace-bar__items">
         <ProjectDropdown
           onSelect={(event, newProject) => {
-            setActiveProject(newProject);
+            const params = new URLSearchParams();
+            if (newProject === '') {
+              setActiveProject(null);
+            } else {
+              params.set('project', newProject);
+              setActiveProject(newProject);
+            }
+            const paramsString = params.size > 0 ? `?${params.toString()}` : '';
+            const url = getDashboardsListUrl(perspective) + paramsString;
+            history.push(url);
           }}
-          selected={activeProject}
+          selected={activeProject || ''}
           shortCut={KEYBOARD_SHORTCUTS.focusNamespaceDropdown}
         />
       </div>

@@ -13,6 +13,13 @@ export const fetchPersesDashboardsMetadata = (): Promise<DashboardResource[]> =>
   return ocpPersesFetchJson<DashboardResource[]>(persesURL);
 };
 
+export const fetchPersesDashboardsByProject = (project: string): Promise<DashboardResource[]> => {
+  const dashboardsEndpoint = `${PERSES_PROXY_BASE_PATH}/api/v1/dashboards`;
+  const persesURL = `${dashboardsEndpoint}?project=${encodeURIComponent(project)}`;
+
+  return ocpPersesFetchJson<DashboardResource[]>(persesURL);
+};
+
 export const fetchPersesProjects = (): Promise<ProjectResource[]> => {
   const listProjectURL = '/api/v1/projects';
   const persesURL = `${PERSES_PROXY_BASE_PATH}${listProjectURL}`;
@@ -49,7 +56,7 @@ export const useFetchPersesDashboard = (project: string, dashboardName: string) 
   } = useQuery({
     queryKey: ['dashboards', project, dashboardName],
     queryFn: () => fetchPersesDashboard(project, dashboardName),
-    enabled: true,
+    enabled: !!dashboardName,
     refetchInterval: refreshInterval,
   });
 

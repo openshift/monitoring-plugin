@@ -1,5 +1,9 @@
-import { DatasourceResource, DatasourceSelector, GlobalDatasourceResource } from '@perses-dev/core';
-import { DatasourceApi } from '@perses-dev/dashboards';
+import {
+  DatasourceResource,
+  DatasourceSelector,
+  GlobalDatasourceResource,
+  DatasourceApi,
+} from '@perses-dev/core';
 import { fetchDatasourceList } from './perses/datasource-client';
 import { fetchGlobalDatasourceList } from './perses/global-datasource-client';
 import { TFunction } from 'i18next';
@@ -40,10 +44,10 @@ export class OcpDatasourceApi implements DatasourceApi {
     return `${this.basePath}/proxy/${url}`;
   }
 
-  getDatasource(
+  getDatasource = async (
     project: string,
     selector: DatasourceSelector,
-  ): Promise<DatasourceResource | undefined> {
+  ): Promise<DatasourceResource> => {
     return fetchDatasourceList(
       project,
       selector.kind,
@@ -56,9 +60,9 @@ export class OcpDatasourceApi implements DatasourceApi {
       const datasource = list[0];
       return datasource;
     });
-  }
+  };
 
-  getGlobalDatasource(selector: DatasourceSelector): Promise<GlobalDatasourceResource | undefined> {
+  getGlobalDatasource = async (selector: DatasourceSelector): Promise<GlobalDatasourceResource> => {
     return fetchGlobalDatasourceList(
       selector.kind,
       selector.name ? undefined : true,
@@ -70,7 +74,7 @@ export class OcpDatasourceApi implements DatasourceApi {
       const datasource = list[0];
       return datasource;
     });
-  }
+  };
 
   listDatasources(project: string, pluginKind?: string): Promise<DatasourceResource[]> {
     return fetchDatasourceList(project, pluginKind);

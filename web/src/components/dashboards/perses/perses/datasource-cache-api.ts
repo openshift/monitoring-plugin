@@ -12,8 +12,13 @@
 // limitations under the License.
 
 import { getCSRFToken } from '@openshift-console/dynamic-plugin-sdk/lib/utils/fetch/console-fetch-utils';
-import { DatasourceResource, DatasourceSelector, GlobalDatasourceResource } from '@perses-dev/core';
-import { BuildDatasourceProxyUrlFunc, DatasourceApi } from '@perses-dev/dashboards';
+import {
+  BuildDatasourceProxyUrlFunc,
+  DatasourceApi,
+  DatasourceResource,
+  DatasourceSelector,
+  GlobalDatasourceResource,
+} from '@perses-dev/core';
 import LRUCache from 'lru-cache';
 
 class Cache {
@@ -129,20 +134,26 @@ export class CachedDatasourceAPI implements DatasourceApi {
       // but the datasource doesn't exist. So we can safely return an undefined Promise.
       return Promise.resolve(undefined);
     }
-    return this.client.getDatasource(project, selector).then((result?: DatasourceResource) => {
-      if (result === undefined) {
-        // in case the result is undefined, we should then notify
-        // that the datasource doesn't exist for the given selector.
-        // Like that, next time another panel ask for the exact same
-        // datasource (with the same selector), then we won't query the server to try it again.
-        // It's ok to do it as the cache has an expiration of 5min.
-        // We have the same logic for the globalDatasources.
-        this.cache.setUndefinedDatasource(project, selector);
-      } else {
-        this.cache.setDatasource(result);
-      }
-      return addCsrfToken(result);
-    });
+    return (
+      this.client
+        .getDatasource(project, selector)
+        .then((result?: DatasourceResource) => {
+          if (result === undefined) {
+            // in case the result is undefined, we should then notify
+            // that the datasource doesn't exist for the given selector.
+            // Like that, next time another panel ask for the exact same
+            // datasource (with the same selector), then we won't query the server to try it again.
+            // It's ok to do it as the cache has an expiration of 5min.
+            // We have the same logic for the globalDatasources.
+            this.cache.setUndefinedDatasource(project, selector);
+          } else {
+            this.cache.setDatasource(result);
+          }
+          return addCsrfToken(result);
+        })
+        // eslint-disable-next-line no-console
+        .catch((err) => console.error(err))
+    );
   }
 
   getGlobalDatasource(selector: DatasourceSelector): Promise<GlobalDatasourceResource | undefined> {

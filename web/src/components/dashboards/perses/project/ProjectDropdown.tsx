@@ -31,15 +31,11 @@ export const NoResults: React.FC<{
     <>
       <Divider />
       <EmptyState>
-        <EmptyStateHeader titleText={<>{t('No projects found')}</>} headingLevel="h4" />
+        <EmptyStateHeader titleText={t('No projects found')} headingLevel="h4" />
         <EmptyStateBody>{t('No results match the filter criteria.')}</EmptyStateBody>
         <EmptyStateFooter>
           <EmptyStateActions>
-            <Button
-              variant="link"
-              onClick={onClear}
-              className="monitoring__project-selector__clear-filters"
-            >
+            <Button variant="link" onClick={onClear}>
               {t('Clear filters')}
             </Button>
           </EmptyStateActions>
@@ -126,10 +122,11 @@ const ProjectMenu: React.FC<{
       return { title: item?.spec?.display?.name ?? name, key: name };
     });
 
-    if (!items.some((option) => option.key === selected)) {
+    if (selected && !items.some((option) => option.key === selected)) {
       items.push({ title: selected, key: selected }); // Add current project if it isn't included
     }
     items.sort((a, b) => alphanumericCompare(a.title, b.title));
+    items.unshift({ title: 'All Projects', key: '' });
 
     return items;
   }, [persesProjects, selected]);
@@ -214,7 +211,7 @@ const ProjectDropdown: React.FC<ProjectDropdownProps> = ({
   const selectedProject = persesProjects.find(
     (persesProject) => persesProject.metadata.name === selected,
   );
-  const title = selectedProject?.spec?.display?.name ?? t('Dashboards');
+  const title = selectedProject?.spec?.display?.name ?? t('All Projects');
 
   return (
     <div className="monitoring__project-dropdown">

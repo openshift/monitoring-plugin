@@ -1,9 +1,14 @@
-import { fetchPersesProjects, fetchPersesDashboardsMetadata } from '../perses-client';
+import {
+  fetchPersesProjects,
+  fetchPersesDashboardsMetadata,
+  fetchPersesDashboardsByProject,
+} from '../perses-client';
 import { useQuery } from '@tanstack/react-query';
 import { NumberParam, useQueryParam } from 'use-query-params';
 import { QueryParams } from '../../../query-params';
+import { t } from 'i18next';
 
-export const usePerses = () => {
+export const usePerses = (project?: string | number) => {
   const [refreshInterval] = useQueryParam(QueryParams.RefreshInterval, NumberParam);
 
   const {
@@ -24,16 +29,38 @@ export const usePerses = () => {
   } = useQuery({
     queryKey: ['dashboards'],
     queryFn: fetchPersesDashboardsMetadata,
-    enabled: true,
+    enabled: !project, // Only fetch all dashboards when no specific project is requested
+    refetchInterval: refreshInterval,
+  });
+
+  const {
+    isLoading: persesProjectDashboardsLoading,
+    error: persesProjectDashboardsError,
+    data: persesProjectDashboards,
+  } = useQuery({
+    queryKey: ['dashboards', 'project', project],
+    queryFn: () => {
+      if (project === undefined || project === null) {
+        throw new Error(t('Project is required for fetching project dashboards'));
+      }
+      return fetchPersesDashboardsByProject(String(project));
+    },
+    enabled: !!project,
     refetchInterval: refreshInterval,
   });
 
   return {
-    persesDashboards: persesDashboards ?? [],
-    persesDashboardsError,
-    persesDashboardsLoading,
+    // All Dashboards - fallback to project dashboards when all dashboards query is disabled
+    persesDashboards: (project ? persesProjectDashboards : persesDashboards) ?? [],
+    persesDashboardsError: project ? persesProjectDashboardsError : persesDashboardsError,
+    persesDashboardsLoading: project ? persesProjectDashboardsLoading : persesDashboardsLoading,
+    // All Projects
     persesProjectsLoading,
     persesProjects: persesProjects ?? [],
     persesProjectsError,
+    // Dashboards of a given project
+    persesProjectDashboards: persesProjectDashboards ?? [],
+    persesProjectDashboardsError,
+    persesProjectDashboardsLoading,
   };
 };
