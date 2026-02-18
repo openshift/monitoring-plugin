@@ -172,7 +172,7 @@ export const DashboardCreateDialog: React.FunctionComponent = () => {
 
   return (
     <>
-      {!hasEditableProject ? (
+      {!permissionsLoading && !hasEditableProject ? (
         <Tooltip
           content={t('To create dashboards, contact your cluster administrator for permission.')}
         >
