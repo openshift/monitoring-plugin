@@ -88,7 +88,7 @@ export const useEditableProjects = () => {
     const editableProjectNames = getEditableProjects(persesUserPermissions, allAvailableProjects);
 
     // Sort projects alphabetically
-    const sortedEditableProjects = editableProjectNames.sort();
+    const sortedEditableProjects = editableProjectNames.sort((a, b) => a.localeCompare(b));
     const sortedProjects = allAvailableProjects.sort((a, b) => a.localeCompare(b));
 
     return {
