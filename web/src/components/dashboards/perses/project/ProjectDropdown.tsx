@@ -108,6 +108,7 @@ const ProjectMenu: React.FC<{
   menuRef: React.MutableRefObject<HTMLDivElement>;
 }> = ({ setOpen, onSelect, selected, menuRef }) => {
   const filterRef = useRef(null);
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const [filterText, setFilterText] = useState('');
 
@@ -123,10 +124,10 @@ const ProjectMenu: React.FC<{
       items.push({ title: selected, key: selected }); // Add current project if it isn't included
     }
     items.sort((a, b) => alphanumericCompare(a.title, b.title));
-    items.unshift({ title: 'All Projects', key: '' });
+    items.unshift({ title: t('All Projects'), key: '' });
 
     return items;
-  }, [allProjects, selected]);
+  }, [allProjects, selected, t]);
 
   const isOptionShown = useCallback(
     (option) => {
