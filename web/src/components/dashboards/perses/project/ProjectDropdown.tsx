@@ -18,7 +18,6 @@ import fuzzysearch from 'fuzzysearch';
 import { useTranslation } from 'react-i18next';
 import ProjectMenuToggle from './ProjectMenuToggle';
 import { alphanumericCompare } from './utils';
-import { usePerses } from '../hooks/usePerses';
 import { useEditableProjects } from '../hooks/useEditableProjects';
 import { useCallback, useMemo, useRef, useState } from 'react';
 

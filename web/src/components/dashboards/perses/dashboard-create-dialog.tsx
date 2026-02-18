@@ -164,14 +164,16 @@ export const DashboardCreateDialog: React.FunctionComponent = () => {
       isDisabled={disabled}
       data-test={persesDashboardDataTestIDs.createDashboardButtonToolbar}
     >
-      {permissionsLoading ? t('Loading...') : t('Create')}
+      {permissionsLoading ? t('Checking permissions...') : t('Create')}
     </Button>
   );
 
   return (
     <>
       {disabled ? (
-        <Tooltip content={t("You don't have permissions to create dashboards")}>
+        <Tooltip
+          content={t('To create dashboards, contact your cluster administrator for permission.')}
+        >
           <span style={{ cursor: 'not-allowed' }}> {createBtn}</span>
         </Tooltip>
       ) : (
