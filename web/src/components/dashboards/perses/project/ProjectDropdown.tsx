@@ -18,7 +18,7 @@ import fuzzysearch from 'fuzzysearch';
 import { useTranslation } from 'react-i18next';
 import ProjectMenuToggle from './ProjectMenuToggle';
 import { alphanumericCompare } from './utils';
-import { usePerses } from '../hooks/usePerses';
+import { useEditableProjects } from '../hooks/useEditableProjects';
 import { useCallback, useMemo, useRef, useState } from 'react';
 
 export const NoResults: React.FC<{
@@ -108,26 +108,26 @@ const ProjectMenu: React.FC<{
   menuRef: React.MutableRefObject<HTMLDivElement>;
 }> = ({ setOpen, onSelect, selected, menuRef }) => {
   const filterRef = useRef(null);
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const [filterText, setFilterText] = useState('');
 
-  const { persesProjects } = usePerses();
+  const { allProjects } = useEditableProjects();
 
   const optionItems = useMemo(() => {
-    const items = persesProjects.map((item) => {
-      const { name } = item.metadata;
-      const title = item?.spec?.display?.name ?? name ?? '';
-      return { title, key: name ?? '' };
-    });
+    const items =
+      allProjects?.map((projectName) => {
+        return { title: projectName, key: projectName };
+      }) || [];
 
     if (selected && !items.some((option) => option.key === selected)) {
       items.push({ title: selected, key: selected }); // Add current project if it isn't included
     }
     items.sort((a, b) => alphanumericCompare(a.title, b.title));
-    items.unshift({ title: 'All Projects', key: '' });
+    items.unshift({ title: t('All Projects'), key: '' });
 
     return items;
-  }, [persesProjects, selected]);
+  }, [allProjects, selected, t]);
 
   const isOptionShown = useCallback(
     (option) => {
@@ -191,7 +191,7 @@ const ProjectDropdown: React.FC<ProjectDropdownProps> = ({
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const menuRef = useRef(null);
   const [isOpen, setOpen] = useState(false);
-  const { persesProjectsError, persesProjectsLoading, persesProjects } = usePerses();
+  const { allProjects, permissionsLoading, permissionsError } = useEditableProjects();
 
   // const title = selected === LEGACY_DASHBOARDS_KEY ? legacyDashboardsTitle : selected;
 
@@ -202,14 +202,11 @@ const ProjectDropdown: React.FC<ProjectDropdownProps> = ({
     menuRef,
   };
 
-  if (persesProjectsLoading || persesProjectsError || persesProjects.length === 0) {
+  if (permissionsLoading || permissionsError || !allProjects || allProjects.length === 0) {
     return null;
   }
 
-  const selectedProject = persesProjects.find(
-    (persesProject) => persesProject.metadata.name === selected,
-  );
-  const title = selectedProject?.spec?.display?.name ?? t('All Projects');
+  const title = selected && allProjects.includes(selected) ? selected : t('All Projects');
 
   return (
     <div className="co-namespace-dropdown">
