@@ -1,0 +1,367 @@
+package managementrouter_test
+
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+
+	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
+
+	"github.com/openshift/monitoring-plugin/internal/managementrouter"
+	alertrule "github.com/openshift/monitoring-plugin/pkg/alert_rule"
+	"github.com/openshift/monitoring-plugin/pkg/k8s"
+	"github.com/openshift/monitoring-plugin/pkg/management"
+	"github.com/openshift/monitoring-plugin/pkg/management/testutils"
+)
+
+var _ = Describe("UpdateAlertRule", func() {
+	var (
+		router             http.Handler
+		mockK8sRules       *testutils.MockPrometheusRuleInterface
+		mockK8s            *testutils.MockClient
+		mockRelabeledRules *testutils.MockRelabeledRulesInterface
+	)
+
+	var (
+		originalUserRule = monitoringv1.Rule{
+			Alert: "user-alert",
+			Expr:  intstr.FromString("up == 0"),
+			Labels: map[string]string{
+				"severity": "warning",
+			},
+		}
+		userRuleId = alertrule.GetAlertingRuleId(&originalUserRule)
+
+		platformRule   = monitoringv1.Rule{Alert: "platform-alert", Expr: intstr.FromString("cpu > 80"), Labels: map[string]string{"severity": "critical"}}
+		platformRuleId = alertrule.GetAlertingRuleId(&platformRule)
+	)
+
+	BeforeEach(func() {
+		mockK8sRules = &testutils.MockPrometheusRuleInterface{}
+
+		userPR := monitoringv1.PrometheusRule{}
+		userPR.Name = "user-pr"
+		userPR.Namespace = "default"
+		userPR.Spec.Groups = []monitoringv1.RuleGroup{
+			{
+				Name: "g1",
+				Rules: []monitoringv1.Rule{
+					{
+						Alert:  originalUserRule.Alert,
+						Expr:   originalUserRule.Expr,
+						Labels: map[string]string{"severity": "warning", k8s.AlertRuleLabelId: userRuleId},
+					},
+				},
+			},
+		}
+
+		platformPR := monitoringv1.PrometheusRule{}
+		platformPR.Name = "platform-pr"
+		platformPR.Namespace = "platform-namespace-1"
+		platformPR.Spec.Groups = []monitoringv1.RuleGroup{
+			{
+				Name: "pg1",
+				Rules: []monitoringv1.Rule{
+					{
+						Alert:  "platform-alert",
+						Expr:   intstr.FromString("cpu > 80"),
+						Labels: map[string]string{"severity": "critical"},
+					},
+				},
+			},
+		}
+
+		mockK8sRules.SetPrometheusRules(map[string]*monitoringv1.PrometheusRule{
+			"default/user-pr":                  &userPR,
+			"platform-namespace-1/platform-pr": &platformPR,
+		})
+
+		mockNamespace := &testutils.MockNamespaceInterface{
+			IsClusterMonitoringNamespaceFunc: func(name string) bool {
+				return name == "platform-namespace-1" || name == "platform-namespace-2"
+			},
+		}
+
+		mockRelabeledRules = &testutils.MockRelabeledRulesInterface{
+			GetFunc: func(ctx context.Context, id string) (monitoringv1.Rule, bool) {
+				if id == userRuleId {
+					return monitoringv1.Rule{
+						Alert: "user-alert",
+						Expr:  intstr.FromString("up == 0"),
+						Labels: map[string]string{
+							"severity":                       "warning",
+							k8s.AlertRuleLabelId:             userRuleId,
+							k8s.PrometheusRuleLabelNamespace: "default",
+							k8s.PrometheusRuleLabelName:      "user-pr",
+						},
+					}, true
+				}
+				if id == platformRuleId {
+					return monitoringv1.Rule{
+						Alert: "platform-alert",
+						Expr:  intstr.FromString("cpu > 80"),
+						Labels: map[string]string{
+							"severity":                       "critical",
+							k8s.AlertRuleLabelId:             platformRuleId,
+							k8s.PrometheusRuleLabelNamespace: "platform-namespace-1",
+							k8s.PrometheusRuleLabelName:      "platform-pr",
+						},
+					}, true
+				}
+				return monitoringv1.Rule{}, false
+			},
+		}
+
+		mockK8s = &testutils.MockClient{
+			PrometheusRulesFunc: func() k8s.PrometheusRuleInterface {
+				return mockK8sRules
+			},
+			NamespaceFunc: func() k8s.NamespaceInterface {
+				return mockNamespace
+			},
+			RelabeledRulesFunc: func() k8s.RelabeledRulesInterface {
+				return mockRelabeledRules
+			},
+		}
+
+		mgmt := management.New(context.Background(), mockK8s)
+		router = managementrouter.New(mgmt)
+	})
+
+	Context("when updating a user-defined alert rule", func() {
+		It("should successfully update the rule and return new ID", func() {
+			expectedNewId := alertrule.GetAlertingRuleId(&monitoringv1.Rule{
+				Alert: "user-alert",
+				Expr:  intstr.FromString("up == 1"),
+				Labels: map[string]string{
+					"severity": "critical",
+					"team":     "sre",
+				},
+			})
+			body := map[string]interface{}{
+				"alertingRule": map[string]interface{}{
+					"alert": "user-alert",
+					"expr":  "up == 1",
+					"labels": map[string]string{
+						"severity": "critical",
+						"team":     "sre",
+					},
+				},
+			}
+			buf, _ := json.Marshal(body)
+			req := httptest.NewRequest(http.MethodPatch, "/api/v1/alerting/rules/"+userRuleId, bytes.NewReader(buf))
+			w := httptest.NewRecorder()
+
+			router.ServeHTTP(w, req)
+
+			Expect(w.Code).To(Equal(http.StatusOK))
+			var resp managementrouter.UpdateAlertRuleResponse
+			Expect(json.NewDecoder(w.Body).Decode(&resp)).To(Succeed())
+
+			Expect(resp.Id).To(Equal(expectedNewId))
+			Expect(resp.StatusCode).To(Equal(http.StatusNoContent))
+			Expect(resp.Message).To(BeEmpty())
+		})
+
+		It("should replace all labels without merging", func() {
+			expectedNewId := alertrule.GetAlertingRuleId(&monitoringv1.Rule{
+				Alert: "user-alert",
+				Expr:  intstr.FromString("up == 0"),
+				Labels: map[string]string{
+					"team": "sre",
+				},
+			})
+			body := map[string]interface{}{
+				"alertingRule": map[string]interface{}{
+					"alert": "user-alert",
+					"expr":  "up == 0",
+					"labels": map[string]string{
+						"team": "sre",
+					},
+				},
+			}
+			buf, _ := json.Marshal(body)
+			req := httptest.NewRequest(http.MethodPatch, "/api/v1/alerting/rules/"+userRuleId, bytes.NewReader(buf))
+			w := httptest.NewRecorder()
+
+			router.ServeHTTP(w, req)
+
+			Expect(w.Code).To(Equal(http.StatusOK))
+			var resp managementrouter.UpdateAlertRuleResponse
+			Expect(json.NewDecoder(w.Body).Decode(&resp)).To(Succeed())
+
+			Expect(resp.Id).To(Equal(expectedNewId))
+			Expect(resp.StatusCode).To(Equal(http.StatusNoContent))
+		})
+	})
+
+	Context("when updating rule classification via PATCH /rules/{ruleId}", func() {
+		It("should update classification overrides with nested classification payload", func() {
+			body := map[string]any{
+				"classification": map[string]any{
+					"openshift_io_alert_rule_component": "team-x",
+					"openshift_io_alert_rule_layer":     "namespace",
+				},
+			}
+			buf, _ := json.Marshal(body)
+			req := httptest.NewRequest(http.MethodPatch, "/api/v1/alerting/rules/"+userRuleId, bytes.NewReader(buf))
+			w := httptest.NewRecorder()
+
+			router.ServeHTTP(w, req)
+
+			Expect(w.Code).To(Equal(http.StatusOK))
+			var resp managementrouter.UpdateAlertRuleResponse
+			Expect(json.NewDecoder(w.Body).Decode(&resp)).To(Succeed())
+			Expect(resp.Id).To(Equal(userRuleId))
+			Expect(resp.StatusCode).To(Equal(http.StatusNoContent))
+		})
+	})
+
+	Context("when updating a platform alert rule", func() {
+		It("should successfully update labels via AlertRelabelConfig", func() {
+			mockARC := &testutils.MockAlertRelabelConfigInterface{}
+			mockK8s.AlertRelabelConfigsFunc = func() k8s.AlertRelabelConfigInterface {
+				return mockARC
+			}
+
+			body := map[string]interface{}{
+				"alertingRule": map[string]interface{}{
+					"alert": "platform-alert",
+					"expr":  "cpu > 80",
+					"labels": map[string]string{
+						"severity": "warning",
+					},
+				},
+			}
+			buf, _ := json.Marshal(body)
+			req := httptest.NewRequest(http.MethodPatch, "/api/v1/alerting/rules/"+platformRuleId, bytes.NewReader(buf))
+			w := httptest.NewRecorder()
+
+			router.ServeHTTP(w, req)
+
+			Expect(w.Code).To(Equal(http.StatusOK))
+			var resp managementrouter.UpdateAlertRuleResponse
+			Expect(json.NewDecoder(w.Body).Decode(&resp)).To(Succeed())
+			Expect(resp.Id).To(Equal(platformRuleId))
+			Expect(resp.StatusCode).To(Equal(http.StatusNoContent))
+			Expect(resp.Message).To(BeEmpty())
+		})
+	})
+
+	Context("when ruleId is missing", func() {
+		It("should return 400", func() {
+			body := map[string]interface{}{
+				"alertingRule": map[string]interface{}{
+					"alert": "test-alert",
+				},
+			}
+			buf, _ := json.Marshal(body)
+			req := httptest.NewRequest(http.MethodPatch, "/api/v1/alerting/rules/%20", bytes.NewReader(buf))
+			w := httptest.NewRecorder()
+
+			router.ServeHTTP(w, req)
+
+			Expect(w.Code).To(Equal(http.StatusBadRequest))
+			Expect(w.Body.String()).To(ContainSubstring("missing ruleId"))
+		})
+	})
+
+	Context("when request body is invalid", func() {
+		It("should return 400", func() {
+			req := httptest.NewRequest(http.MethodPatch, "/api/v1/alerting/rules/user-alert", bytes.NewBufferString("{"))
+			w := httptest.NewRecorder()
+
+			router.ServeHTTP(w, req)
+
+			Expect(w.Code).To(Equal(http.StatusBadRequest))
+			Expect(w.Body.String()).To(ContainSubstring("invalid request body"))
+		})
+	})
+
+	Context("enabled toggle for platform alerts", func() {
+		It("should drop (AlertingRuleEnabled=false) and return 204 envelope", func() {
+			mockARC := &testutils.MockAlertRelabelConfigInterface{}
+			mockK8s.AlertRelabelConfigsFunc = func() k8s.AlertRelabelConfigInterface { return mockARC }
+
+			body := map[string]interface{}{"AlertingRuleEnabled": false}
+			buf, _ := json.Marshal(body)
+			req := httptest.NewRequest(http.MethodPatch, "/api/v1/alerting/rules/"+platformRuleId, bytes.NewReader(buf))
+			w := httptest.NewRecorder()
+			router.ServeHTTP(w, req)
+
+			Expect(w.Code).To(Equal(http.StatusOK))
+			var resp managementrouter.UpdateAlertRuleResponse
+			Expect(json.NewDecoder(w.Body).Decode(&resp)).To(Succeed())
+			Expect(resp.Id).To(Equal(platformRuleId))
+			Expect(resp.StatusCode).To(Equal(http.StatusNoContent))
+			Expect(resp.Message).To(BeEmpty())
+		})
+
+		It("should restore (AlertingRuleEnabled=true) and return 204 envelope", func() {
+			mockARC := &testutils.MockAlertRelabelConfigInterface{}
+			mockK8s.AlertRelabelConfigsFunc = func() k8s.AlertRelabelConfigInterface { return mockARC }
+
+			body := map[string]interface{}{"AlertingRuleEnabled": true}
+			buf, _ := json.Marshal(body)
+			req := httptest.NewRequest(http.MethodPatch, "/api/v1/alerting/rules/"+platformRuleId, bytes.NewReader(buf))
+			w := httptest.NewRecorder()
+			router.ServeHTTP(w, req)
+
+			Expect(w.Code).To(Equal(http.StatusOK))
+			var resp managementrouter.UpdateAlertRuleResponse
+			Expect(json.NewDecoder(w.Body).Decode(&resp)).To(Succeed())
+			Expect(resp.Id).To(Equal(platformRuleId))
+			Expect(resp.StatusCode).To(Equal(http.StatusNoContent))
+			Expect(resp.Message).To(BeEmpty())
+		})
+	})
+
+	Context("when alertingRule, AlertingRuleEnabled, and classification are missing", func() {
+		It("should return 400", func() {
+			body := map[string]interface{}{}
+			buf, _ := json.Marshal(body)
+			req := httptest.NewRequest(http.MethodPatch, "/api/v1/alerting/rules/"+userRuleId, bytes.NewReader(buf))
+			w := httptest.NewRecorder()
+
+			router.ServeHTTP(w, req)
+
+			Expect(w.Code).To(Equal(http.StatusBadRequest))
+			Expect(w.Body.String()).To(ContainSubstring("either alertingRule, AlertingRuleEnabled, or classification is required"))
+		})
+	})
+
+	Context("when rule is not found", func() {
+		It("should return JSON response with 404 status code", func() {
+			mockRelabeledRules.GetFunc = func(ctx context.Context, id string) (monitoringv1.Rule, bool) {
+				return monitoringv1.Rule{}, false
+			}
+
+			mgmt := management.New(context.Background(), mockK8s)
+			router = managementrouter.New(mgmt)
+
+			body := map[string]interface{}{
+				"alertingRule": map[string]interface{}{
+					"alert": "missing-alert",
+				},
+			}
+			buf, _ := json.Marshal(body)
+			req := httptest.NewRequest(http.MethodPatch, "/api/v1/alerting/rules/rid_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", bytes.NewReader(buf))
+			w := httptest.NewRecorder()
+
+			router.ServeHTTP(w, req)
+
+			Expect(w.Code).To(Equal(http.StatusOK))
+			var resp managementrouter.UpdateAlertRuleResponse
+			Expect(json.NewDecoder(w.Body).Decode(&resp)).To(Succeed())
+			Expect(resp.Id).To(Equal("rid_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"))
+			Expect(resp.StatusCode).To(Equal(http.StatusNotFound))
+			Expect(resp.Message).To(ContainSubstring("not found"))
+		})
+	})
+})
