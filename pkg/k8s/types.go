@@ -22,6 +22,9 @@ type Client interface {
 	// TestConnection tests the connection to the Kubernetes cluster
 	TestConnection(ctx context.Context) error
 
+	// AlertingHealth returns alerting route and stack health details
+	AlertingHealth(ctx context.Context) (AlertingHealth, error)
+
 	// PrometheusAlerts retrieves active Prometheus alerts
 	PrometheusAlerts() PrometheusAlertsInterface
 
@@ -44,10 +47,43 @@ type Client interface {
 	ConfigMaps() ConfigMapInterface
 }
 
+// RouteStatus describes the availability state of a monitoring route.
+type RouteStatus string
+
+const (
+	RouteNotFound    RouteStatus = "notFound"
+	RouteUnreachable RouteStatus = "unreachable"
+	RouteReachable   RouteStatus = "reachable"
+)
+
+// AlertingRouteHealth describes route availability and reachability.
+type AlertingRouteHealth struct {
+	Name              string      `json:"name"`
+	Namespace         string      `json:"namespace"`
+	Status            RouteStatus `json:"status"`
+	FallbackReachable bool        `json:"fallbackReachable,omitempty"`
+	Error             string      `json:"error,omitempty"`
+}
+
+// AlertingStackHealth describes alerting health for a monitoring stack.
+type AlertingStackHealth struct {
+	Prometheus   AlertingRouteHealth `json:"prometheus"`
+	Alertmanager AlertingRouteHealth `json:"alertmanager"`
+}
+
+// AlertingHealth provides alerting health details for platform and user workload stacks.
+type AlertingHealth struct {
+	Platform            *AlertingStackHealth `json:"platform"`
+	UserWorkloadEnabled bool                 `json:"userWorkloadEnabled"`
+	UserWorkload        *AlertingStackHealth `json:"userWorkload"`
+}
+
 // PrometheusAlertsInterface defines operations for managing PrometheusAlerts
 type PrometheusAlertsInterface interface {
 	// GetAlerts retrieves Prometheus alerts with optional state filtering
 	GetAlerts(ctx context.Context, req GetAlertsRequest) ([]PrometheusAlert, error)
+	// GetRules retrieves Prometheus alerting rules and active alerts
+	GetRules(ctx context.Context, req GetRulesRequest) ([]PrometheusRuleGroup, error)
 }
 
 // PrometheusRuleInterface defines operations for managing PrometheusRules

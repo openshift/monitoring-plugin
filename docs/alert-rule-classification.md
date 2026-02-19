@@ -124,6 +124,9 @@ Location: `pkg/management/get_alerts.go`, `pkg/k8s/prometheus_alerts.go`
   - `openshift_io_alert_rule_id`
   - `openshift_io_alert_component`
   - `openshift_io_alert_layer`
+  - `prometheusRuleName`: name of the PrometheusRule resource the alert originates from
+  - `prometheusRuleNamespace`: namespace of that PrometheusRule resource
+  - `alertingRuleName`: name of the AlertingRule CR that generated the PrometheusRule (empty when the PrometheusRule is not owned by an AlertingRule CR)
 - Prometheus compatibility:
   - Base response matches Prometheus `/api/v1/alerts`.
   - Additional fields are additive and safe for clients like Perses.

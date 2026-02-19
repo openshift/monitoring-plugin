@@ -8,6 +8,7 @@ import (
 	"k8s.io/client-go/rest"
 
 	osmv1client "github.com/openshift/client-go/monitoring/clientset/versioned"
+	routeclient "github.com/openshift/client-go/route/clientset/versioned"
 	monitoringv1client "github.com/prometheus-operator/prometheus-operator/pkg/client/versioned"
 	"github.com/sirupsen/logrus"
 )
@@ -29,6 +30,7 @@ type client struct {
 	alertingRuleManager       *alertingRuleManager
 	namespaceManager          *namespaceManager
 	relabeledRulesManager     *relabeledRulesManager
+	clusterMonitoringConfig   *clusterMonitoringConfigManager
 }
 
 func newClient(ctx context.Context, config *rest.Config) (Client, error) {
@@ -47,6 +49,11 @@ func newClient(ctx context.Context, config *rest.Config) (Client, error) {
 		return nil, fmt.Errorf("failed to create osmv1 clientset: %w", err)
 	}
 
+	routeClientset, err := routeclient.NewForConfig(config)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create route clientset: %w", err)
+	}
+
 	c := &client{
 		clientset:             clientset,
 		monitoringv1clientset: monitoringv1clientset,
@@ -54,9 +61,9 @@ func newClient(ctx context.Context, config *rest.Config) (Client, error) {
 		config:                config,
 	}
 
-	c.prometheusAlerts = newPrometheusAlerts(clientset, config)
-
 	c.prometheusRuleManager = newPrometheusRuleManager(ctx, monitoringv1clientset)
+
+	c.prometheusAlerts = newPrometheusAlerts(routeClientset, clientset.CoreV1(), config, c.prometheusRuleManager)
 
 	c.alertRelabelConfigManager, err = newAlertRelabelConfigManager(ctx, osmv1clientset)
 	if err != nil {
@@ -71,6 +78,11 @@ func newClient(ctx context.Context, config *rest.Config) (Client, error) {
 	c.namespaceManager, err = newNamespaceManager(ctx, clientset)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create namespace manager: %w", err)
+	}
+
+	c.clusterMonitoringConfig, err = newClusterMonitoringConfigManager(ctx, clientset)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create cluster monitoring config manager: %w", err)
 	}
 
 	c.relabeledRulesManager, err = newRelabeledRulesManager(ctx, c.namespaceManager, c.alertRelabelConfigManager, monitoringv1clientset, clientset)

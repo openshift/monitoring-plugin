@@ -57,7 +57,7 @@ var _ = Describe("ListRules", func() {
 			Expr:  intstr.FromString("node_down == 1"),
 			Labels: map[string]string{
 				"severity":                       "critical",
-				"openshift_io_alert_source":      "platform",
+				k8s.AlertSourceLabel:             k8s.AlertSourcePlatform,
 				k8s.PrometheusRuleLabelNamespace: "openshift-monitoring",
 				k8s.PrometheusRuleLabelName:      "platform-rule",
 			},
@@ -174,14 +174,14 @@ var _ = Describe("ListRules", func() {
 		It("returns only platform rules", func() {
 			prOptions := management.PrometheusRuleOptions{}
 			arOptions := management.AlertRuleOptions{
-				Source: "platform",
+				Source: k8s.AlertSourcePlatform,
 			}
 
 			rules, err := client.ListRules(ctx, prOptions, arOptions)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(rules).To(HaveLen(1))
 			Expect(rules[0].Alert).To(Equal("PlatformAlert"))
-			Expect(rules[0].Labels["openshift_io_alert_source"]).To(Equal("platform"))
+			Expect(rules[0].Labels[k8s.AlertSourceLabel]).To(Equal(k8s.AlertSourcePlatform))
 		})
 	})
 

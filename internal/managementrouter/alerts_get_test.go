@@ -12,9 +12,14 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/openshift/monitoring-plugin/internal/managementrouter"
+	alertrule "github.com/openshift/monitoring-plugin/pkg/alert_rule"
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
 	"github.com/openshift/monitoring-plugin/pkg/management"
 	"github.com/openshift/monitoring-plugin/pkg/management/testutils"
+	"github.com/openshift/monitoring-plugin/pkg/managementlabels"
+	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	"github.com/prometheus/prometheus/model/relabel"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 var _ = Describe("GetAlerts", func() {
@@ -66,9 +71,9 @@ var _ = Describe("GetAlerts", func() {
 			testAlerts := []k8s.PrometheusAlert{
 				{
 					Labels: map[string]string{
-						"alertname": "HighCPUUsage",
-						"severity":  "warning",
-						"namespace": "default",
+						managementlabels.AlertNameLabel: "HighCPUUsage",
+						"severity":                      "warning",
+						"namespace":                     "default",
 					},
 					Annotations: map[string]string{
 						"description": "CPU usage is high",
@@ -78,9 +83,9 @@ var _ = Describe("GetAlerts", func() {
 				},
 				{
 					Labels: map[string]string{
-						"alertname": "LowMemory",
-						"severity":  "critical",
-						"namespace": "monitoring",
+						managementlabels.AlertNameLabel: "LowMemory",
+						"severity":                      "critical",
+						"namespace":                     "monitoring",
 					},
 					Annotations: map[string]string{
 						"description": "Memory is running low",
@@ -105,8 +110,61 @@ var _ = Describe("GetAlerts", func() {
 			err := json.NewDecoder(w.Body).Decode(&response)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(response.Data.Alerts).To(HaveLen(2))
-			Expect(response.Data.Alerts[0].Labels["alertname"]).To(Equal("HighCPUUsage"))
-			Expect(response.Data.Alerts[1].Labels["alertname"]).To(Equal("LowMemory"))
+			Expect(response.Data.Alerts[0].Labels[managementlabels.AlertNameLabel]).To(Equal("HighCPUUsage"))
+			Expect(response.Data.Alerts[1].Labels[managementlabels.AlertNameLabel]).To(Equal("LowMemory"))
+		})
+
+		It("returns warnings when user workload routes are missing", func() {
+			mockK8s.AlertingHealthFunc = func(ctx context.Context) (k8s.AlertingHealth, error) {
+				return k8s.AlertingHealth{
+					UserWorkloadEnabled: true,
+					UserWorkload: &k8s.AlertingStackHealth{
+						Prometheus:   k8s.AlertingRouteHealth{Status: k8s.RouteNotFound},
+						Alertmanager: k8s.AlertingRouteHealth{Status: k8s.RouteNotFound},
+					},
+				}, nil
+			}
+
+			req := httptest.NewRequest(http.MethodGet, "/api/v1/alerting/alerts", nil)
+			w := httptest.NewRecorder()
+
+			router.ServeHTTP(w, req)
+
+			var response managementrouter.GetAlertsResponse
+			err := json.NewDecoder(w.Body).Decode(&response)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(response.Warnings).To(ContainElements(
+				"user workload Prometheus route is missing",
+				"user workload Alertmanager route is missing",
+			))
+		})
+
+		It("suppresses warnings when fallbacks are healthy", func() {
+			mockK8s.AlertingHealthFunc = func(ctx context.Context) (k8s.AlertingHealth, error) {
+				return k8s.AlertingHealth{
+					UserWorkloadEnabled: true,
+					UserWorkload: &k8s.AlertingStackHealth{
+						Prometheus: k8s.AlertingRouteHealth{
+							Status:            k8s.RouteUnreachable,
+							FallbackReachable: true,
+						},
+						Alertmanager: k8s.AlertingRouteHealth{
+							Status:            k8s.RouteUnreachable,
+							FallbackReachable: true,
+						},
+					},
+				}, nil
+			}
+
+			req := httptest.NewRequest(http.MethodGet, "/api/v1/alerting/alerts", nil)
+			w := httptest.NewRecorder()
+
+			router.ServeHTTP(w, req)
+
+			var response managementrouter.GetAlertsResponse
+			err := json.NewDecoder(w.Body).Decode(&response)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(response.Warnings).To(BeEmpty())
 		})
 
 		It("should return empty array when no alerts exist", func() {
@@ -145,6 +203,207 @@ var _ = Describe("GetAlerts", func() {
 			By("verifying error response")
 			Expect(w.Code).To(Equal(http.StatusInternalServerError))
 			Expect(w.Body.String()).To(ContainSubstring("An unexpected error occurred"))
+		})
+	})
+
+	Context("bearer token forwarding", func() {
+		It("forwards the Authorization bearer token to the management client via context", func() {
+			var capturedCtx context.Context
+			mockPrometheusAlerts.GetAlertsFunc = func(ctx context.Context, req k8s.GetAlertsRequest) ([]k8s.PrometheusAlert, error) {
+				capturedCtx = ctx
+				return []k8s.PrometheusAlert{}, nil
+			}
+
+			req := httptest.NewRequest(http.MethodGet, "/api/v1/alerting/alerts", nil)
+			req.Header.Set("Authorization", "Bearer test-token-abc123")
+			w := httptest.NewRecorder()
+
+			router.ServeHTTP(w, req)
+
+			Expect(w.Code).To(Equal(http.StatusOK))
+			token := k8s.BearerTokenFromContext(capturedCtx)
+			Expect(token).To(Equal("test-token-abc123"))
+		})
+
+		It("handles missing Authorization header gracefully", func() {
+			var capturedCtx context.Context
+			mockPrometheusAlerts.GetAlertsFunc = func(ctx context.Context, req k8s.GetAlertsRequest) ([]k8s.PrometheusAlert, error) {
+				capturedCtx = ctx
+				return []k8s.PrometheusAlert{}, nil
+			}
+
+			req := httptest.NewRequest(http.MethodGet, "/api/v1/alerting/alerts", nil)
+			w := httptest.NewRecorder()
+
+			router.ServeHTTP(w, req)
+
+			Expect(w.Code).To(Equal(http.StatusOK))
+			token := k8s.BearerTokenFromContext(capturedCtx)
+			Expect(token).To(BeEmpty())
+		})
+	})
+
+	Context("alert enrichment from relabeled rules cache", func() {
+		It("enriches alerts with alertRuleId, prometheusRule metadata, and alertingRule name", func() {
+			baseRule := monitoringv1.Rule{
+				Alert: "HighCPU",
+				Expr:  intstr.FromString("node_cpu > 0.9"),
+				Labels: map[string]string{
+					"severity": "critical",
+				},
+			}
+			ruleId := alertrule.GetAlertingRuleId(&baseRule)
+
+			relabeledRule := monitoringv1.Rule{
+				Alert: "HighCPU",
+				Expr:  intstr.FromString("node_cpu > 0.9"),
+				Labels: map[string]string{
+					managementlabels.AlertNameLabel:        "HighCPU",
+					"severity":                             "critical",
+					k8s.AlertRuleLabelId:                   ruleId,
+					k8s.PrometheusRuleLabelNamespace:       "openshift-monitoring",
+					k8s.PrometheusRuleLabelName:            "cluster-cpu-rules",
+					managementlabels.AlertingRuleLabelName: "my-alerting-rule",
+				},
+			}
+
+			mockRelabeled := &testutils.MockRelabeledRulesInterface{
+				ListFunc: func(ctx context.Context) []monitoringv1.Rule {
+					return []monitoringv1.Rule{relabeledRule}
+				},
+				GetFunc: func(ctx context.Context, id string) (monitoringv1.Rule, bool) {
+					if id == ruleId {
+						return relabeledRule, true
+					}
+					return monitoringv1.Rule{}, false
+				},
+				ConfigFunc: func() []*relabel.Config {
+					return []*relabel.Config{}
+				},
+			}
+
+			mockNamespace := &testutils.MockNamespaceInterface{
+				IsClusterMonitoringNamespaceFunc: func(name string) bool {
+					return name == "openshift-monitoring"
+				},
+			}
+
+			mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface { return mockRelabeled }
+			mockK8s.NamespaceFunc = func() k8s.NamespaceInterface { return mockNamespace }
+			mockManagement = management.New(context.Background(), mockK8s)
+			router = managementrouter.New(mockManagement)
+
+			testAlerts := []k8s.PrometheusAlert{
+				{
+					Labels: map[string]string{
+						managementlabels.AlertNameLabel: "HighCPU",
+						"severity":                      "critical",
+						k8s.AlertSourceLabel:            k8s.AlertSourcePlatform,
+						k8s.AlertBackendLabel:           "alertmanager",
+					},
+					Annotations: map[string]string{"summary": "CPU is high"},
+					State:       "firing",
+					ActiveAt:    time.Now(),
+				},
+			}
+			mockPrometheusAlerts.SetActiveAlerts(testAlerts)
+
+			req := httptest.NewRequest(http.MethodGet, "/api/v1/alerting/alerts", nil)
+			w := httptest.NewRecorder()
+			router.ServeHTTP(w, req)
+
+			Expect(w.Code).To(Equal(http.StatusOK))
+
+			var response managementrouter.GetAlertsResponse
+			Expect(json.NewDecoder(w.Body).Decode(&response)).To(Succeed())
+			Expect(response.Data.Alerts).To(HaveLen(1))
+
+			alert := response.Data.Alerts[0]
+			Expect(alert.AlertRuleId).To(Equal(ruleId))
+			Expect(alert.PrometheusRuleNamespace).To(Equal("openshift-monitoring"))
+			Expect(alert.PrometheusRuleName).To(Equal("cluster-cpu-rules"))
+			Expect(alert.AlertingRuleName).To(Equal("my-alerting-rule"))
+			Expect(alert.AlertComponent).NotTo(BeEmpty())
+			Expect(alert.AlertLayer).NotTo(BeEmpty())
+		})
+
+		It("enriches platform alert without alertingRule when PrometheusRule is not from AlertingRule CR", func() {
+			baseRule := monitoringv1.Rule{
+				Alert: "KubePodCrashLooping",
+				Expr:  intstr.FromString("rate(kube_pod_restart_total[5m]) > 0"),
+				Labels: map[string]string{
+					"severity": "warning",
+				},
+			}
+			ruleId := alertrule.GetAlertingRuleId(&baseRule)
+
+			relabeledRule := monitoringv1.Rule{
+				Alert: "KubePodCrashLooping",
+				Expr:  intstr.FromString("rate(kube_pod_restart_total[5m]) > 0"),
+				Labels: map[string]string{
+					managementlabels.AlertNameLabel:  "KubePodCrashLooping",
+					"severity":                       "warning",
+					k8s.AlertRuleLabelId:             ruleId,
+					k8s.PrometheusRuleLabelNamespace: "openshift-monitoring",
+					k8s.PrometheusRuleLabelName:      "kube-state-metrics",
+				},
+			}
+
+			mockRelabeled := &testutils.MockRelabeledRulesInterface{
+				ListFunc: func(ctx context.Context) []monitoringv1.Rule {
+					return []monitoringv1.Rule{relabeledRule}
+				},
+				GetFunc: func(ctx context.Context, id string) (monitoringv1.Rule, bool) {
+					if id == ruleId {
+						return relabeledRule, true
+					}
+					return monitoringv1.Rule{}, false
+				},
+				ConfigFunc: func() []*relabel.Config {
+					return []*relabel.Config{}
+				},
+			}
+
+			mockNamespace := &testutils.MockNamespaceInterface{
+				IsClusterMonitoringNamespaceFunc: func(name string) bool {
+					return name == "openshift-monitoring"
+				},
+			}
+
+			mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface { return mockRelabeled }
+			mockK8s.NamespaceFunc = func() k8s.NamespaceInterface { return mockNamespace }
+			mockManagement = management.New(context.Background(), mockK8s)
+			router = managementrouter.New(mockManagement)
+
+			testAlerts := []k8s.PrometheusAlert{
+				{
+					Labels: map[string]string{
+						managementlabels.AlertNameLabel: "KubePodCrashLooping",
+						"severity":                      "warning",
+						k8s.AlertSourceLabel:            k8s.AlertSourcePlatform,
+						k8s.AlertBackendLabel:           "alertmanager",
+					},
+					State:    "firing",
+					ActiveAt: time.Now(),
+				},
+			}
+			mockPrometheusAlerts.SetActiveAlerts(testAlerts)
+
+			req := httptest.NewRequest(http.MethodGet, "/api/v1/alerting/alerts", nil)
+			w := httptest.NewRecorder()
+			router.ServeHTTP(w, req)
+
+			Expect(w.Code).To(Equal(http.StatusOK))
+
+			var response managementrouter.GetAlertsResponse
+			Expect(json.NewDecoder(w.Body).Decode(&response)).To(Succeed())
+			Expect(response.Data.Alerts).To(HaveLen(1))
+
+			alert := response.Data.Alerts[0]
+			Expect(alert.AlertRuleId).To(Equal(ruleId))
+			Expect(alert.PrometheusRuleNamespace).To(Equal("openshift-monitoring"))
+			Expect(alert.PrometheusRuleName).To(Equal("kube-state-metrics"))
+			Expect(alert.AlertingRuleName).To(BeEmpty())
 		})
 	})
 })

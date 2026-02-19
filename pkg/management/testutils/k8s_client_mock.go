@@ -16,6 +16,7 @@ import (
 // MockClient is a mock implementation of k8s.Client interface
 type MockClient struct {
 	TestConnectionFunc      func(ctx context.Context) error
+	AlertingHealthFunc      func(ctx context.Context) (k8s.AlertingHealth, error)
 	PrometheusAlertsFunc    func() k8s.PrometheusAlertsInterface
 	PrometheusRulesFunc     func() k8s.PrometheusRuleInterface
 	AlertRelabelConfigsFunc func() k8s.AlertRelabelConfigInterface
@@ -31,6 +32,14 @@ func (m *MockClient) TestConnection(ctx context.Context) error {
 		return m.TestConnectionFunc(ctx)
 	}
 	return nil
+}
+
+// AlertingHealth mocks the AlertingHealth method
+func (m *MockClient) AlertingHealth(ctx context.Context) (k8s.AlertingHealth, error) {
+	if m.AlertingHealthFunc != nil {
+		return m.AlertingHealthFunc(ctx)
+	}
+	return k8s.AlertingHealth{}, nil
 }
 
 // PrometheusAlerts mocks the PrometheusAlerts method
@@ -92,13 +101,19 @@ func (m *MockClient) ConfigMaps() k8s.ConfigMapInterface {
 // MockPrometheusAlertsInterface is a mock implementation of k8s.PrometheusAlertsInterface
 type MockPrometheusAlertsInterface struct {
 	GetAlertsFunc func(ctx context.Context, req k8s.GetAlertsRequest) ([]k8s.PrometheusAlert, error)
+	GetRulesFunc  func(ctx context.Context, req k8s.GetRulesRequest) ([]k8s.PrometheusRuleGroup, error)
 
 	// Storage for test data
 	ActiveAlerts []k8s.PrometheusAlert
+	RuleGroups   []k8s.PrometheusRuleGroup
 }
 
 func (m *MockPrometheusAlertsInterface) SetActiveAlerts(alerts []k8s.PrometheusAlert) {
 	m.ActiveAlerts = alerts
+}
+
+func (m *MockPrometheusAlertsInterface) SetRuleGroups(groups []k8s.PrometheusRuleGroup) {
+	m.RuleGroups = groups
 }
 
 // GetAlerts mocks the GetAlerts method
@@ -111,6 +126,17 @@ func (m *MockPrometheusAlertsInterface) GetAlerts(ctx context.Context, req k8s.G
 		return m.ActiveAlerts, nil
 	}
 	return []k8s.PrometheusAlert{}, nil
+}
+
+// GetRules mocks the GetRules method
+func (m *MockPrometheusAlertsInterface) GetRules(ctx context.Context, req k8s.GetRulesRequest) ([]k8s.PrometheusRuleGroup, error) {
+	if m.GetRulesFunc != nil {
+		return m.GetRulesFunc(ctx, req)
+	}
+	if m.RuleGroups != nil {
+		return m.RuleGroups, nil
+	}
+	return []k8s.PrometheusRuleGroup{}, nil
 }
 
 // MockPrometheusRuleInterface is a mock implementation of k8s.PrometheusRuleInterface

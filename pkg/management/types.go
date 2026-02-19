@@ -41,6 +41,11 @@ type Client interface {
 
 	// GetAlerts retrieves Prometheus alerts
 	GetAlerts(ctx context.Context, req k8s.GetAlertsRequest) ([]k8s.PrometheusAlert, error)
+	// GetRules retrieves Prometheus alerting rules and active alerts
+	GetRules(ctx context.Context, req k8s.GetRulesRequest) ([]k8s.PrometheusRuleGroup, error)
+
+	// GetAlertingHealth retrieves alerting health details
+	GetAlertingHealth(ctx context.Context) (k8s.AlertingHealth, error)
 
 	// UpdateAlertRuleClassification updates component/layer for a single alert rule id
 	UpdateAlertRuleClassification(ctx context.Context, req UpdateRuleClassificationRequest) error

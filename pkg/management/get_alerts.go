@@ -19,9 +19,7 @@ import (
 	"github.com/openshift/monitoring-plugin/pkg/managementlabels"
 )
 
-type empty struct{}
-
-var cvoAlertNames = map[string]empty{
+var cvoAlertNames = map[string]struct{}{
 	"ClusterOperatorDown":     {},
 	"ClusterOperatorDegraded": {},
 }
@@ -36,14 +34,17 @@ func (c *client) GetAlerts(ctx context.Context, req k8s.GetAlertsRequest) ([]k8s
 	rules := c.k8sClient.RelabeledRules().List(ctx)
 	classificationCache := map[string]map[string]alertRuleClassificationOverridePayload{}
 
-	var result []k8s.PrometheusAlert
+	result := make([]k8s.PrometheusAlert, 0, len(alerts))
 	for _, alert := range alerts {
-		relabels, keep := relabel.Process(labels.FromMap(alert.Labels), configs...)
-		if !keep {
-			continue
+		// Only apply relabel configs for platform alerts. User workload alerts
+		// already come from their own stack and should not be relabeled here.
+		if alert.Labels[k8s.AlertSourceLabel] != k8s.AlertSourceUser {
+			relabels, keep := relabel.Process(labels.FromMap(alert.Labels), configs...)
+			if !keep {
+				continue
+			}
+			alert.Labels = relabels.Map()
 		}
-
-		alert.Labels = relabels.Map()
 
 		// Add calculated rule ID and source when not present (labels enrichment)
 		c.setRuleIDAndSourceIfMissing(ctx, &alert, rules)
@@ -65,7 +66,7 @@ func (c *client) GetAlerts(ctx context.Context, req k8s.GetAlertsRequest) ([]k8s
 
 		if bestRule != nil {
 			if src := c.deriveAlertSource(bestRule.Labels); src != "" {
-				alert.Labels[managementlabels.AlertSourceLabel] = src
+				alert.Labels[k8s.AlertSourceLabel] = src
 			}
 			component, layer = classifyFromRule(bestRule)
 		} else {
@@ -110,6 +111,13 @@ func (c *client) GetAlerts(ctx context.Context, req k8s.GetAlertsRequest) ([]k8s
 
 		alert.AlertComponent = component
 		alert.AlertLayer = layer
+
+		if bestRule != nil && bestRule.Labels != nil {
+			alert.PrometheusRuleNamespace = bestRule.Labels[k8s.PrometheusRuleLabelNamespace]
+			alert.PrometheusRuleName = bestRule.Labels[k8s.PrometheusRuleLabelName]
+			alert.AlertingRuleName = bestRule.Labels[managementlabels.AlertingRuleLabelName]
+		}
+
 		result = append(result, alert)
 	}
 
@@ -134,21 +142,21 @@ func (c *client) setRuleIDAndSourceIfMissing(ctx context.Context, alert *k8s.Pro
 			}
 			rid := alertrule.GetAlertingRuleId(&existing)
 			alert.Labels[k8s.AlertRuleLabelId] = rid
-			if alert.Labels[managementlabels.AlertSourceLabel] == "" {
+			if alert.Labels[k8s.AlertSourceLabel] == "" {
 				if src := c.deriveAlertSource(existing.Labels); src != "" {
-					alert.Labels[managementlabels.AlertSourceLabel] = src
+					alert.Labels[k8s.AlertSourceLabel] = src
 				}
 			}
 			break
 		}
 	}
-	if alert.Labels[managementlabels.AlertSourceLabel] != "" {
+	if alert.Labels[k8s.AlertSourceLabel] != "" {
 		return
 	}
 	if rid := alert.Labels[k8s.AlertRuleLabelId]; rid != "" {
 		if existing, ok := c.k8sClient.RelabeledRules().Get(ctx, rid); ok {
 			if src := c.deriveAlertSource(existing.Labels); src != "" {
-				alert.Labels[managementlabels.AlertSourceLabel] = src
+				alert.Labels[k8s.AlertSourceLabel] = src
 			}
 		}
 	}
@@ -220,9 +228,9 @@ func (c *client) deriveAlertSource(ruleLabels map[string]string) string {
 		return ""
 	}
 	if c.IsPlatformAlertRule(types.NamespacedName{Namespace: ns, Name: name}) {
-		return managementlabels.SourcePlatform
+		return k8s.AlertSourcePlatform
 	}
-	return managementlabels.SourceUser
+	return k8s.AlertSourceUser
 }
 
 func (c *client) getRuleClassificationOverride(ctx context.Context, rule *monitoringv1.Rule, ruleId string, cache map[string]map[string]alertRuleClassificationOverridePayload) (ruleClassificationOverride, bool, error) {
@@ -349,7 +357,7 @@ func classifyFromAlertLabels(alertLabels map[string]string) (string, string) {
 func deriveLayerFromSource(labels map[string]string) string {
 	// - platform (openshift-monitoring prometheus) -> cluster
 	// - user -> namespace
-	if labels[managementlabels.AlertSourceLabel] == managementlabels.SourcePlatform {
+	if labels[k8s.AlertSourceLabel] == k8s.AlertSourcePlatform {
 		return "cluster"
 	}
 	if labels[k8s.PrometheusRuleLabelNamespace] == k8s.ClusterMonitoringNamespace {
