@@ -1,6 +1,7 @@
 package managementrouter
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -27,7 +28,7 @@ func New(managementClient management.Client) *mux.Router {
 	r.HandleFunc("/api/v1/alerting/health", httpRouter.GetHealth).Methods(http.MethodGet)
 	r.HandleFunc("/api/v1/alerting/alerts", httpRouter.GetAlerts).Methods(http.MethodGet)
 	r.HandleFunc("/api/v1/alerting/rules", httpRouter.GetAlertRules).Methods(http.MethodGet)
-	r.HandleFunc("/api/v1/alerting/rules", httpRouter.CreateUserDefinedAlertRule).Methods(http.MethodPost)
+	r.HandleFunc("/api/v1/alerting/rules", httpRouter.CreateAlertRule).Methods(http.MethodPost)
 	r.HandleFunc("/api/v1/alerting/rules", httpRouter.BulkDeleteUserDefinedAlertRules).Methods(http.MethodDelete)
 	r.HandleFunc("/api/v1/alerting/rules", httpRouter.BulkUpdateAlertRules).Methods(http.MethodPatch)
 	r.HandleFunc("/api/v1/alerting/rules/{ruleId}", httpRouter.DeleteUserDefinedAlertRuleById).Methods(http.MethodDelete)
@@ -39,7 +40,8 @@ func New(managementClient management.Client) *mux.Router {
 func writeError(w http.ResponseWriter, statusCode int, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
-	_, _ = w.Write([]byte(`{"error":"` + message + `"}`))
+	resp, _ := json.Marshal(map[string]string{"error": message})
+	_, _ = w.Write(resp)
 }
 
 func handleError(w http.ResponseWriter, err error) {
@@ -65,7 +67,7 @@ func parseError(err error) (int, string) {
 		return http.StatusConflict, err.Error()
 	}
 	log.Printf("An unexpected error occurred: %v", err)
-	return http.StatusInternalServerError, "An unexpected error occurred"
+	return http.StatusInternalServerError, fmt.Sprintf("An unexpected error occurred: %s", err.Error())
 }
 
 func parseParam(raw string, name string) (string, error) {

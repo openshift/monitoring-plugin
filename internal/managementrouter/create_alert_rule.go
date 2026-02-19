@@ -18,7 +18,7 @@ type CreateAlertRuleResponse struct {
 	Id string `json:"id"`
 }
 
-func (hr *httpRouter) CreateUserDefinedAlertRule(w http.ResponseWriter, req *http.Request) {
+func (hr *httpRouter) CreateAlertRule(w http.ResponseWriter, req *http.Request) {
 	var payload CreateAlertRuleRequest
 	if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid request body")
@@ -30,14 +30,19 @@ func (hr *httpRouter) CreateUserDefinedAlertRule(w http.ResponseWriter, req *htt
 		return
 	}
 
-	if payload.PrometheusRule == nil {
-		writeError(w, http.StatusBadRequest, "prometheusRule is required")
-		return
+	alertRule := *payload.AlertingRule
+
+	var (
+		id  string
+		err error
+	)
+
+	if payload.PrometheusRule != nil {
+		id, err = hr.managementClient.CreateUserDefinedAlertRule(req.Context(), alertRule, *payload.PrometheusRule)
+	} else {
+		id, err = hr.managementClient.CreatePlatformAlertRule(req.Context(), alertRule)
 	}
 
-	alertRule := *payload.AlertingRule
-	prOptions := *payload.PrometheusRule
-	id, err := hr.managementClient.CreateUserDefinedAlertRule(req.Context(), alertRule, prOptions)
 	if err != nil {
 		handleError(w, err)
 		return

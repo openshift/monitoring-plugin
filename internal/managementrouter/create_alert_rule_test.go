@@ -18,18 +18,30 @@ import (
 	"github.com/openshift/monitoring-plugin/pkg/management/testutils"
 )
 
-var _ = Describe("CreateUserDefinedAlertRule", func() {
+var _ = Describe("CreateAlertRule", func() {
 	var (
 		router       http.Handler
 		mockK8sRules *testutils.MockPrometheusRuleInterface
+		mockARules   *testutils.MockAlertingRuleInterface
 		mockK8s      *testutils.MockClient
 	)
 
 	BeforeEach(func() {
 		mockK8sRules = &testutils.MockPrometheusRuleInterface{}
+		mockARules = &testutils.MockAlertingRuleInterface{}
 		mockK8s = &testutils.MockClient{
 			PrometheusRulesFunc: func() k8s.PrometheusRuleInterface {
 				return mockK8sRules
+			},
+			AlertingRulesFunc: func() k8s.AlertingRuleInterface {
+				return mockARules
+			},
+			NamespaceFunc: func() k8s.NamespaceInterface {
+				return &testutils.MockNamespaceInterface{
+					IsClusterMonitoringNamespaceFunc: func(name string) bool {
+						return false
+					},
+				}
 			},
 		}
 	})
@@ -164,7 +176,7 @@ var _ = Describe("CreateUserDefinedAlertRule", func() {
 	})
 
 	Context("target is platform-managed PR", func() {
-		It("fails for platform PR", func() {
+		It("rejects with MethodNotAllowed", func() {
 			mockNamespace := &testutils.MockNamespaceInterface{
 				IsClusterMonitoringNamespaceFunc: func(name string) bool {
 					return name == "openshift-monitoring"
