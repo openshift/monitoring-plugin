@@ -15,11 +15,11 @@ import {
   chart_color_blue_300,
   global_spacer_md,
 } from '@patternfly/react-tokens';
-import { usePatternFlyTheme } from './hooks/usePatternflyTheme';
-import { DashboardCreateDialog } from './dashboard-create-dialog';
-import { PagePadding } from './dashboard-page-padding';
-import { Helmet } from 'react-helmet';
 import classNames from 'classnames';
+import { Helmet } from 'react-helmet';
+import { DashboardActionsMenu } from './dashboard-actions-menu';
+import { PagePadding } from './dashboard-page-padding';
+import { usePatternFlyTheme } from './hooks/usePatternflyTheme';
 
 const DashboardBreadCrumb: React.FunctionComponent<{ dashboardDisplayName?: string }> = ({
   dashboardDisplayName,
@@ -81,7 +81,7 @@ export const DashboardListPageHeader: React.FunctionComponent = () => {
 
   return (
     <ListPageHeader title={t('Dashboards')} helpText={t('View and manage dashboards.')}>
-      <DashboardCreateDialog />
+      <DashboardActionsMenu />
     </ListPageHeader>
   );
 };
