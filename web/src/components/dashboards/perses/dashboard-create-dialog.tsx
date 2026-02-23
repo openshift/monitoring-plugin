@@ -15,7 +15,6 @@ import {
   HelperTextItem,
   HelperTextItemVariant,
   ValidatedOptions,
-  Tooltip,
 } from '@patternfly/react-core';
 import { TypeaheadSelect, TypeaheadSelectOption } from '@patternfly/react-templates';
 import { ExclamationCircleIcon } from '@patternfly/react-icons';
@@ -29,24 +28,27 @@ import { useCreateDashboardMutation, useCreateProjectMutation } from './dashboar
 import { createNewDashboard } from './dashboard-utils';
 import { useToast } from './ToastProvider';
 import { usePerspective, getDashboardUrl } from '../../hooks/usePerspective';
-import { persesDashboardDataTestIDs } from '../../data-test';
 
-export const DashboardCreateDialog: React.FunctionComponent = () => {
+interface DashboardCreateDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export const DashboardCreateDialog: React.FunctionComponent<DashboardCreateDialogProps> = ({
+  isOpen,
+  onClose,
+}) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const navigate = useNavigate();
   const { perspective } = usePerspective();
   const { addAlert } = useToast();
-  const { editableProjects, hasEditableProject, permissionsLoading, permissionsError } =
-    useEditableProjects();
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { editableProjects, permissionsError } = useEditableProjects();
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
   const [dashboardName, setDashboardName] = useState<string>('');
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
   const createDashboardMutation = useCreateDashboardMutation();
   const createProjectMutation = useCreateProjectMutation();
   const { persesProjects } = usePerses();
-
-  const disabled = permissionsLoading || !hasEditableProject;
 
   const projectOptions = useMemo<TypeaheadSelectOption[]>(() => {
     if (!editableProjects) {
@@ -61,7 +63,7 @@ export const DashboardCreateDialog: React.FunctionComponent = () => {
   }, [editableProjects, selectedProject]);
 
   const { persesProjectDashboards: dashboards } = usePerses(
-    isModalOpen && selectedProject ? selectedProject : undefined,
+    isOpen && selectedProject ? selectedProject : undefined,
   );
 
   const handleSetDashboardName = (_event, dashboardName: string) => {
@@ -135,9 +137,7 @@ export const DashboardCreateDialog: React.FunctionComponent = () => {
       const editModeParam = `edit=true`;
       navigate(`${dashboardUrl}?${dashboardParam}&${projectParam}&${editModeParam}`);
 
-      setIsModalOpen(false);
-      setDashboardName('');
-      setFormErrors({});
+      handleClose();
     } catch (error) {
       const errorMessage = error?.message || t('Failed to create dashboard. Please try again.');
       addAlert(`Error creating dashboard: ${errorMessage}`, 'danger');
@@ -145,152 +145,120 @@ export const DashboardCreateDialog: React.FunctionComponent = () => {
     }
   };
 
-  const handleModalToggle = () => {
-    setIsModalOpen(!isModalOpen);
-    if (isModalOpen) {
-      setDashboardName('');
-      setFormErrors({});
-      setSelectedProject(null);
-    }
-  };
-
-  const onEscapePress = () => {
-    handleModalToggle();
+  const handleClose = () => {
+    setDashboardName('');
+    setFormErrors({});
+    setSelectedProject(null);
+    onClose();
   };
 
   const onSelect = (_event: any, selection: string) => {
     setSelectedProject(selection);
   };
 
-  const createBtn = (
-    <Button
-      variant="primary"
-      onClick={handleModalToggle}
-      isDisabled={disabled}
-      data-test={persesDashboardDataTestIDs.createDashboardButtonToolbar}
-    >
-      {permissionsLoading ? t('Checking permissions...') : t('Create')}
-    </Button>
-  );
-
   return (
-    <>
-      {!permissionsLoading && !hasEditableProject ? (
-        <Tooltip
-          content={t('To create dashboards, contact your cluster administrator for permission.')}
+    <Modal
+      variant={ModalVariant.small}
+      isOpen={isOpen}
+      onClose={handleClose}
+      onEscapePress={handleClose}
+      aria-labelledby="modal-with-dropdown"
+    >
+      <ModalHeader title={t('Create Dashboard')} />
+      <ModalBody>
+        {permissionsError && (
+          <Alert
+            variant="danger"
+            title={t('Failed to load project permissions. Please refresh the page and try again.')}
+            isInline
+            style={{ marginBottom: '16px' }}
+          />
+        )}
+        {formErrors.general && (
+          <Alert
+            variant="danger"
+            title={formErrors.general}
+            isInline
+            style={{ marginBottom: '16px' }}
+          />
+        )}
+        <Form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleAdd();
+          }}
         >
-          <span style={{ cursor: 'not-allowed' }}> {createBtn}</span>
-        </Tooltip>
-      ) : (
-        createBtn
-      )}
-      <Modal
-        variant={ModalVariant.small}
-        isOpen={isModalOpen}
-        onClose={handleModalToggle}
-        onEscapePress={onEscapePress}
-        aria-labelledby="modal-with-dropdown"
-      >
-        <ModalHeader title={t('Create Dashboard')} />
-        <ModalBody>
-          {permissionsError && (
-            <Alert
-              variant="danger"
-              title={t(
-                'Failed to load project permissions. Please refresh the page and try again.',
-              )}
-              isInline
-              style={{ marginBottom: '16px' }}
-            />
-          )}
-          {formErrors.general && (
-            <Alert
-              variant="danger"
-              title={formErrors.general}
-              isInline
-              style={{ marginBottom: '16px' }}
-            />
-          )}
-          <Form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleAdd();
-            }}
+          <FormGroup
+            label={t('Select project')}
+            isRequired
+            fieldId="form-group-create-dashboard-dialog-project-selection"
           >
-            <FormGroup
-              label={t('Select project')}
-              isRequired
-              fieldId="form-group-create-dashboard-dialog-project-selection"
-            >
-              <TypeaheadSelect
-                key={selectedProject || 'no-selection'}
-                initialOptions={projectOptions}
-                placeholder={t('Select a project')}
-                noOptionsFoundMessage={(filter) =>
-                  t('No project found for "{{filter}}"', { filter })
-                }
-                onClearSelection={() => {
-                  setSelectedProject(null);
-                }}
-                onSelect={onSelect}
-                isCreatable={false}
-                maxMenuHeight="200px"
-              />
-            </FormGroup>
-            <FormGroup
-              label={t('Dashboard name')}
-              isRequired
-              fieldId="form-group-create-dashboard-dialog-name"
-            >
-              <TextInput
-                isRequired
-                type="text"
-                id="text-input-create-dashboard-dialog-name"
-                name="text-input-create-dashboard-dialog-name"
-                placeholder={t('my-new-dashboard')}
-                value={dashboardName}
-                onChange={handleSetDashboardName}
-                validated={
-                  formErrors.dashboardName ? ValidatedOptions.error : ValidatedOptions.default
-                }
-              />
-              {formErrors.dashboardName && (
-                <FormHelperText>
-                  <HelperText>
-                    <HelperTextItem
-                      icon={<ExclamationCircleIcon />}
-                      variant={HelperTextItemVariant.error}
-                    >
-                      {formErrors.dashboardName}
-                    </HelperTextItem>
-                  </HelperText>
-                </FormHelperText>
-              )}
-            </FormGroup>
-          </Form>
-        </ModalBody>
-        <ModalFooter>
-          <Button
-            key="create"
-            variant="primary"
-            onClick={handleAdd}
-            isDisabled={
-              !dashboardName?.trim() ||
-              !selectedProject ||
-              createDashboardMutation.isPending ||
-              createProjectMutation.isPending
-            }
-            isLoading={createDashboardMutation.isPending || createProjectMutation.isPending}
+            <TypeaheadSelect
+              key={selectedProject || 'no-selection'}
+              initialOptions={projectOptions}
+              placeholder={t('Select a project')}
+              noOptionsFoundMessage={(filter) => t('No project found for "{{filter}}"', { filter })}
+              onClearSelection={() => {
+                setSelectedProject(null);
+              }}
+              onSelect={onSelect}
+              isCreatable={false}
+              maxMenuHeight="200px"
+            />
+          </FormGroup>
+          <FormGroup
+            label={t('Dashboard name')}
+            isRequired
+            fieldId="form-group-create-dashboard-dialog-name"
           >
-            {createDashboardMutation.isPending || createProjectMutation.isPending
-              ? t('Creating...')
-              : t('Create')}
-          </Button>
-          <Button key="cancel" variant="link" onClick={handleModalToggle}>
-            {t('Cancel')}
-          </Button>
-        </ModalFooter>
-      </Modal>
-    </>
+            <TextInput
+              isRequired
+              type="text"
+              id="text-input-create-dashboard-dialog-name"
+              name="text-input-create-dashboard-dialog-name"
+              placeholder={t('my-new-dashboard')}
+              value={dashboardName}
+              onChange={handleSetDashboardName}
+              validated={
+                formErrors.dashboardName ? ValidatedOptions.error : ValidatedOptions.default
+              }
+            />
+            {formErrors.dashboardName && (
+              <FormHelperText>
+                <HelperText>
+                  <HelperTextItem
+                    icon={<ExclamationCircleIcon />}
+                    variant={HelperTextItemVariant.error}
+                  >
+                    {formErrors.dashboardName}
+                  </HelperTextItem>
+                </HelperText>
+              </FormHelperText>
+            )}
+          </FormGroup>
+        </Form>
+      </ModalBody>
+      <ModalFooter>
+        <Button
+          key="create"
+          variant="primary"
+          onClick={handleAdd}
+          isDisabled={
+            !dashboardName?.trim() ||
+            !selectedProject ||
+            createDashboardMutation.isPending ||
+            createProjectMutation.isPending
+          }
+          isLoading={createDashboardMutation.isPending || createProjectMutation.isPending}
+        >
+          {createDashboardMutation.isPending || createProjectMutation.isPending
+            ? t('Creating...')
+            : t('Create')}
+        </Button>
+        <Button key="cancel" variant="link" onClick={handleClose}>
+          {t('Cancel')}
+        </Button>
+      </ModalFooter>
+    </Modal>
   );
 };

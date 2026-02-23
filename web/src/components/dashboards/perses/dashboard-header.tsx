@@ -2,7 +2,7 @@ import type { FC, PropsWithChildren } from 'react';
 import React, { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Divider, Split, SplitItem, Stack, StackItem } from '@patternfly/react-core';
+import { Divider, Stack, StackItem } from '@patternfly/react-core';
 
 import { DocumentTitle, ListPageHeader } from '@openshift-console/dynamic-plugin-sdk';
 import { CombinedDashboardMetadata } from './hooks/useDashboardsData';
@@ -19,7 +19,7 @@ import {
 } from '@patternfly/react-tokens';
 import { listPersesDashboardsDataTestIDs } from '../../data-test';
 import { usePatternFlyTheme } from '../../hooks/usePatternflyTheme';
-import { DashboardCreateDialog } from './dashboard-create-dialog';
+import { DashboardActionsMenu } from './dashboard-actions-menu';
 import { PagePadding } from './dashboard-page-padding';
 
 const DASHBOARD_VIEW_PATH = 'v2/dashboards/view';
@@ -107,11 +107,7 @@ const DashboardListPageHeader: React.FunctionComponent = () => {
       helpText={t('View and manage dashboards.')}
       hideFavoriteButton={hideFavBtn}
     >
-      <Split hasGutter isWrappable>
-        <SplitItem>
-          <DashboardCreateDialog />
-        </SplitItem>
-      </Split>
+      <DashboardActionsMenu />
     </ListPageHeader>
   );
 };
