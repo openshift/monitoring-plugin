@@ -95,6 +95,33 @@ var _ = Describe("CreatePlatformAlertRule", func() {
 	})
 
 	Context("when target AlertingRule exists", func() {
+		It("returns NotAllowed when AlertingRule is GitOps-managed", func() {
+			mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
+				return &testutils.MockRelabeledRulesInterface{
+					GetFunc: func(ctx context.Context, id string) (monitoringv1.Rule, bool) {
+						return monitoringv1.Rule{}, false
+					},
+				}
+			}
+			mockK8s.AlertingRulesFunc = func() k8s.AlertingRuleInterface {
+				return &testutils.MockAlertingRuleInterface{
+					GetFunc: func(ctx context.Context, name string) (*osmv1.AlertingRule, bool, error) {
+						return &osmv1.AlertingRule{
+							ObjectMeta: metav1.ObjectMeta{
+								Name:        name,
+								Namespace:   k8s.ClusterMonitoringNamespace,
+								Annotations: map[string]string{"argocd.argoproj.io/tracking-id": "abc"},
+							},
+						}, true, nil
+					},
+				}
+			}
+
+			_, err := client.CreatePlatformAlertRule(ctx, baseRule)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("The AlertingRule is managed by GitOps"))
+		})
+
 		It("adds rule to default group and updates AlertingRule", func() {
 			var updated osmv1.AlertingRule
 

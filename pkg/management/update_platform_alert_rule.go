@@ -29,7 +29,19 @@ func (c *client) UpdatePlatformAlertRule(ctx context.Context, alertRuleId string
 		return &NotAllowedError{Message: "cannot update non-platform alert rule from " + namespace + "/" + name}
 	}
 
-	originalRule, err := c.getOriginalPlatformRule(ctx, namespace, name, alertRuleId)
+	// Fetch PR to validate metadata constraints as part of preconditions
+	var prMeta *monitoringv1.PrometheusRule
+	if pr, found, err := c.k8sClient.PrometheusRules().Get(ctx, namespace, name); err != nil {
+		return err
+	} else if found {
+		prMeta = pr
+	}
+	// Early validation on rule/PR (ARC checked later in applyLabelChangesViaAlertRelabelConfig)
+	if err := validatePlatformUpdatePreconditions(rule, prMeta, nil); err != nil {
+		return err
+	}
+
+	originalRule, err := getOriginalPlatformRuleFromPR(prMeta, namespace, name, alertRuleId)
 	if err != nil {
 		return err
 	}
@@ -41,31 +53,65 @@ func (c *client) UpdatePlatformAlertRule(ctx context.Context, alertRuleId string
 		}
 	}
 
-	// Filter out protected labels before proceeding
-	filteredLabels := map[string]string{}
-	for k, v := range alertRule.Labels {
+	// AlertRelabelConfigs for platform alerts must live in the central platform namespace
+	// Choose update strategy based on owning AlertingRule management:
+	// - GitOps-managed: block
+	// - Operator-managed: use ARC
+	// - Unmanaged: update AlertingRule directly
+	arName := rule.Labels[managementlabels.AlertingRuleLabelName]
+	if arName == "" {
+		arName = defaultAlertingRuleName
+	}
+	ar, arFound, arErr := c.getAlertingRule(ctx, arName)
+	if arErr != nil {
+		return arErr
+	}
+	if arFound && ar != nil {
+		if gitOpsManaged, operatorManaged := k8s.IsExternallyManagedObject(ar); gitOpsManaged {
+			return &NotAllowedError{Message: "This alert is managed by GitOps; edit it in Git."}
+		} else if operatorManaged {
+			// ARC path: update via AlertRelabelConfig
+			return c.applyLabelChangesViaAlertRelabelConfig(ctx, k8s.ClusterMonitoringNamespace, alertRuleId, *originalRule, alertRule.Labels)
+		}
+		// Direct AR path: update labels on the owning AlertingRule
+		return c.updateAlertingRuleLabels(ctx, ar, originalRule.Alert, alertRuleId, alertRule.Labels, arName)
+	}
+
+	// No AR found: fall back to ARC path
+	return c.applyLabelChangesViaAlertRelabelConfig(ctx, k8s.ClusterMonitoringNamespace, alertRuleId, *originalRule, alertRule.Labels)
+}
+
+// filterAndValidatePlatformLabelChanges filters out protected labels and validates platform-specific rules
+func filterAndValidatePlatformLabelChanges(labels map[string]string) (map[string]string, error) {
+	filtered := make(map[string]string)
+	for k, v := range labels {
 		if !isProtectedLabel(k) {
-			filteredLabels[k] = v
+			filtered[k] = v
 		}
 	}
-	// Validate set intents only (missing keys are no-op; explicit deletes handled via ARC diff/effective state)
-	for k, v := range filteredLabels {
+	for k, v := range filtered {
 		if k == managementlabels.AlertNameLabel {
-			// already validated above; treat as no-op when equal
 			continue
 		}
 		if k == "severity" {
 			if v == "" {
-				return &NotAllowedError{Message: fmt.Sprintf("label %q cannot be dropped for platform alerts", k)}
+				return nil, &NotAllowedError{Message: fmt.Sprintf("label %q cannot be dropped for platform alerts", k)}
 			}
 			if !isValidSeverity(v) {
-				return &ValidationError{Message: fmt.Sprintf("invalid severity %q: must be one of critical|warning|info|none", v)}
+				return nil, &ValidationError{Message: fmt.Sprintf("invalid severity %q: must be one of critical|warning|info|none", v)}
 			}
 		}
 	}
+	return filtered, nil
+}
 
-	// AlertRelabelConfigs for platform alerts must live in the central platform namespace
-	return c.applyLabelChangesViaAlertRelabelConfig(ctx, k8s.ClusterMonitoringNamespace, alertRuleId, *originalRule, filteredLabels)
+// getAlertingRule wraps AlertingRule fetch with consistent error formatting.
+func (c *client) getAlertingRule(ctx context.Context, name string) (*osmv1.AlertingRule, bool, error) {
+	ar, found, err := c.k8sClient.AlertingRules().Get(ctx, name)
+	if err != nil {
+		return nil, false, fmt.Errorf("failed to get AlertingRule %s: %w", name, err)
+	}
+	return ar, found, nil
 }
 
 func (c *client) getOriginalPlatformRule(ctx context.Context, namespace string, name string, alertRuleId string) (*monitoringv1.Rule, error) {
@@ -98,6 +144,81 @@ func (c *client) getOriginalPlatformRule(ctx context.Context, namespace string, 
 	}
 }
 
+// updateAlertingRuleLabels updates labels for the rule (by alert name) in the given AlertingRule.
+func (c *client) updateAlertingRuleLabels(
+	ctx context.Context,
+	ar *osmv1.AlertingRule,
+	originalAlertName string,
+	alertRuleId string,
+	rawLabels map[string]string,
+	arName string,
+) error {
+	filteredLabels, err := filterAndValidatePlatformLabelChanges(rawLabels)
+	if err != nil {
+		return err
+	}
+	target, found := findAlertByNameInAlertingRule(ar, originalAlertName)
+	if !found || target == nil {
+		return &NotFoundError{
+			Resource:       "AlertRule",
+			Id:             alertRuleId,
+			AdditionalInfo: fmt.Sprintf("alert %q not found in AlertingRule %s", originalAlertName, arName),
+		}
+	}
+	// Apply label updates
+	if target.Labels == nil {
+		target.Labels = map[string]string{}
+	}
+	for k, v := range filteredLabels {
+		if v == "" {
+			delete(target.Labels, k)
+		} else {
+			target.Labels[k] = v
+		}
+	}
+	if err := c.k8sClient.AlertingRules().Update(ctx, *ar); err != nil {
+		return fmt.Errorf("failed to update AlertingRule %s: %w", ar.Name, err)
+	}
+	return nil
+}
+
+// findAlertByNameInAlertingRule returns a pointer to the rule with the given alert name within the AlertingRule.
+func findAlertByNameInAlertingRule(ar *osmv1.AlertingRule, alertName string) (*osmv1.Rule, bool) {
+	for gi := range ar.Spec.Groups {
+		for ri := range ar.Spec.Groups[gi].Rules {
+			r := &ar.Spec.Groups[gi].Rules[ri]
+			if r.Alert == alertName {
+				return r, true
+			}
+		}
+	}
+	return nil, false
+}
+
+// getOriginalPlatformRuleFromPR returns the original rule from a pre-fetched PrometheusRule
+func getOriginalPlatformRuleFromPR(pr *monitoringv1.PrometheusRule, namespace string, name string, alertRuleId string) (*monitoringv1.Rule, error) {
+	if pr == nil {
+		return nil, &NotFoundError{
+			Resource:       "PrometheusRule",
+			Id:             alertRuleId,
+			AdditionalInfo: fmt.Sprintf("PrometheusRule %s/%s not found", namespace, name),
+		}
+	}
+	for groupIdx := range pr.Spec.Groups {
+		for ruleIdx := range pr.Spec.Groups[groupIdx].Rules {
+			rule := &pr.Spec.Groups[groupIdx].Rules[ruleIdx]
+			if ruleMatchesAlertRuleID(*rule, alertRuleId) {
+				return rule, nil
+			}
+		}
+	}
+	return nil, &NotFoundError{
+		Resource:       "AlertRule",
+		Id:             alertRuleId,
+		AdditionalInfo: fmt.Sprintf("in PrometheusRule %s/%s", namespace, name),
+	}
+}
+
 type labelChange struct {
 	action      string
 	sourceLabel string
@@ -105,7 +226,11 @@ type labelChange struct {
 	value       string
 }
 
-func (c *client) applyLabelChangesViaAlertRelabelConfig(ctx context.Context, namespace string, alertRuleId string, originalRule monitoringv1.Rule, newLabels map[string]string) error {
+func (c *client) applyLabelChangesViaAlertRelabelConfig(ctx context.Context, namespace string, alertRuleId string, originalRule monitoringv1.Rule, rawLabels map[string]string) error {
+	filtered, err := filterAndValidatePlatformLabelChanges(rawLabels)
+	if err != nil {
+		return err
+	}
 	// Build human-friendly, short ARC name: arc-<prname>-<hash12>
 	relabeled, found := c.k8sClient.RelabeledRules().Get(ctx, alertRuleId)
 	if !found || relabeled.Labels == nil {
@@ -122,6 +247,10 @@ func (c *client) applyLabelChangesViaAlertRelabelConfig(ctx context.Context, nam
 	if err != nil {
 		return fmt.Errorf("failed to get AlertRelabelConfig %s/%s: %w", namespace, arcName, err)
 	}
+	// If ARC is GitOps-managed, block updates via API (centralized)
+	if err := validatePlatformUpdatePreconditions(relabeled, nil, relabelConfigIfFound(found, existingArc)); err != nil {
+		return err
+	}
 
 	original := copyStringMap(originalRule.Labels)
 	existingOverrides, existingDrops := collectExistingFromARC(found, existingArc)
@@ -129,11 +258,11 @@ func (c *client) applyLabelChangesViaAlertRelabelConfig(ctx context.Context, nam
 	effective := computeEffectiveLabels(original, existingOverrides, existingDrops)
 
 	// If no actual label changes leave existing ARC as-is
-	if len(newLabels) == 0 {
+	if len(filtered) == 0 {
 		return nil
 	}
 
-	desired := buildDesiredLabels(effective, newLabels)
+	desired := buildDesiredLabels(effective, filtered)
 	nextChanges := buildNextLabelChanges(original, desired)
 
 	// If no changes remove ARC if it exists
@@ -153,6 +282,14 @@ func (c *client) applyLabelChangesViaAlertRelabelConfig(ctx context.Context, nam
 		return err
 	}
 
+	return nil
+}
+
+// relabelConfigIfFound returns the ARC when found is true; otherwise returns nil.
+func relabelConfigIfFound(found bool, arc *osmv1.AlertRelabelConfig) *osmv1.AlertRelabelConfig {
+	if found {
+		return arc
+	}
 	return nil
 }
 
@@ -434,9 +571,13 @@ func (c *client) DropPlatformAlertRule(ctx context.Context, alertRuleId string) 
 	prName := relabeled.Labels[k8s.PrometheusRuleLabelName]
 	arcName := k8s.GetAlertRelabelConfigName(prName, alertRuleId)
 
-	existingArc, arcFound, err := c.k8sClient.AlertRelabelConfigs().Get(ctx, k8s.ClusterMonitoringNamespace, arcName)
+	existingArc, arcExists, err := c.k8sClient.AlertRelabelConfigs().Get(ctx, k8s.ClusterMonitoringNamespace, arcName)
 	if err != nil {
 		return fmt.Errorf("failed to get AlertRelabelConfig %s/%s: %w", k8s.ClusterMonitoringNamespace, arcName, err)
+	}
+	// If ARC is GitOps-managed, block updates via API
+	if err := validatePlatformUpdatePreconditions(relabeled, nil, relabelConfigIfFound(arcExists, existingArc)); err != nil {
+		return err
 	}
 
 	original := map[string]string{}
@@ -456,7 +597,7 @@ func (c *client) DropPlatformAlertRule(ctx context.Context, alertRuleId string) 
 	}
 
 	var next []osmv1.RelabelConfig
-	if arcFound && existingArc != nil {
+	if arcExists && existingArc != nil {
 		next = append(next, existingArc.Spec.Configs...)
 	}
 
@@ -466,7 +607,7 @@ func (c *client) DropPlatformAlertRule(ctx context.Context, alertRuleId string) 
 		return nil
 	}
 
-	if arcFound {
+	if arcExists {
 		arc := existingArc
 		arc.Spec = osmv1.AlertRelabelConfigSpec{Configs: next}
 		if arc.Labels == nil {
@@ -520,13 +661,17 @@ func (c *client) RestorePlatformAlertRule(ctx context.Context, alertRuleId strin
 		}
 		prName := relabeled.Labels[k8s.PrometheusRuleLabelName]
 		arcName = k8s.GetAlertRelabelConfigName(prName, alertRuleId)
-		var arcFound bool
-		existingArc, arcFound, err = c.k8sClient.AlertRelabelConfigs().Get(ctx, k8s.ClusterMonitoringNamespace, arcName)
+		var arcExists bool
+		existingArc, arcExists, err = c.k8sClient.AlertRelabelConfigs().Get(ctx, k8s.ClusterMonitoringNamespace, arcName)
 		if err != nil {
 			return fmt.Errorf("failed to get AlertRelabelConfig %s/%s: %w", k8s.ClusterMonitoringNamespace, arcName, err)
 		}
-		if !arcFound || existingArc == nil {
+		if !arcExists || existingArc == nil {
 			return nil
+		}
+		// If ARC is GitOps-managed, block updates via API
+		if err := validatePlatformUpdatePreconditions(relabeled, nil, existingArc); err != nil {
+			return err
 		}
 	} else {
 		arcs, lerr := c.k8sClient.AlertRelabelConfigs().List(ctx, k8s.ClusterMonitoringNamespace)

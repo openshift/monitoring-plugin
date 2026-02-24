@@ -9,6 +9,7 @@ import (
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	osmv1 "github.com/openshift/api/monitoring/v1"
 	alertrule "github.com/openshift/monitoring-plugin/pkg/alert_rule"
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
 	"github.com/openshift/monitoring-plugin/pkg/management"
@@ -78,7 +79,7 @@ var _ = Describe("DeleteUserDefinedAlertRuleById", func() {
 		})
 	})
 
-	Context("when trying to delete a platform rule", func() {
+	Context("when deleting a platform rule not operator-managed (user-via-platform)", func() {
 		BeforeEach(func() {
 			mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
 				return &testutils.MockRelabeledRulesInterface{
@@ -98,15 +99,174 @@ var _ = Describe("DeleteUserDefinedAlertRuleById", func() {
 					},
 				}
 			}
+			// Original PrometheusRule containing the platform rule
+			mockK8s.PrometheusRulesFunc = func() k8s.PrometheusRuleInterface {
+				return &testutils.MockPrometheusRuleInterface{
+					GetFunc: func(ctx context.Context, namespace string, name string) (*monitoringv1.PrometheusRule, bool, error) {
+						return &monitoringv1.PrometheusRule{
+							ObjectMeta: metav1.ObjectMeta{
+								Namespace: namespace,
+								Name:      name,
+							},
+							Spec: monitoringv1.PrometheusRuleSpec{
+								Groups: []monitoringv1.RuleGroup{
+									{
+										Name:  "test-group",
+										Rules: []monitoringv1.Rule{platformRule},
+									},
+								},
+							},
+						}, true, nil
+					},
+				}
+			}
+			// Provide owning AlertingRule so deletion can succeed
+			mockK8s.AlertingRulesFunc = func() k8s.AlertingRuleInterface {
+				return &testutils.MockAlertingRuleInterface{
+					GetFunc: func(ctx context.Context, name string) (*osmv1.AlertingRule, bool, error) {
+						if name == "platform-alert-rules" {
+							return &osmv1.AlertingRule{
+								ObjectMeta: metav1.ObjectMeta{
+									Name:      "platform-alert-rules",
+									Namespace: k8s.ClusterMonitoringNamespace,
+								},
+								Spec: osmv1.AlertingRuleSpec{
+									Groups: []osmv1.RuleGroup{
+										{
+											Name: "test-group",
+											Rules: []osmv1.Rule{
+												{Alert: platformRule.Alert},
+											},
+										},
+									},
+								},
+							}, true, nil
+						}
+						return nil, false, nil
+					},
+					UpdateFunc: func(ctx context.Context, ar osmv1.AlertingRule) error {
+						return nil
+					},
+				}
+			}
 		})
 
-		It("returns NotAllowedError", func() {
+		It("deletes rule from owning AlertingRule", func() {
+			err := client.DeleteUserDefinedAlertRuleById(ctx, platformRuleId)
+			Expect(err).NotTo(HaveOccurred())
+		})
+	})
+
+	Context("when deleting a platform rule but owning AlertingRule is GitOps-managed", func() {
+		BeforeEach(func() {
+			mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
+				return &testutils.MockRelabeledRulesInterface{
+					GetFunc: func(ctx context.Context, id string) (monitoringv1.Rule, bool) {
+						if id == platformRuleId {
+							return platformRule, true
+						}
+						return monitoringv1.Rule{}, false
+					},
+				}
+			}
+			mockK8s.NamespaceFunc = func() k8s.NamespaceInterface {
+				return &testutils.MockNamespaceInterface{
+					IsClusterMonitoringNamespaceFunc: func(name string) bool { return name == "openshift-monitoring" },
+				}
+			}
+			// PR contains the rule
+			mockK8s.PrometheusRulesFunc = func() k8s.PrometheusRuleInterface {
+				return &testutils.MockPrometheusRuleInterface{
+					GetFunc: func(ctx context.Context, namespace string, name string) (*monitoringv1.PrometheusRule, bool, error) {
+						return &monitoringv1.PrometheusRule{
+							ObjectMeta: metav1.ObjectMeta{Namespace: namespace, Name: name},
+							Spec: monitoringv1.PrometheusRuleSpec{
+								Groups: []monitoringv1.RuleGroup{{Name: "grp", Rules: []monitoringv1.Rule{platformRule}}},
+							},
+						}, true, nil
+					},
+				}
+			}
+			// Owning AR exists and is GitOps-managed via metadata
+			mockK8s.AlertingRulesFunc = func() k8s.AlertingRuleInterface {
+				return &testutils.MockAlertingRuleInterface{
+					GetFunc: func(ctx context.Context, name string) (*osmv1.AlertingRule, bool, error) {
+						return &osmv1.AlertingRule{
+							ObjectMeta: metav1.ObjectMeta{
+								Name:        "platform-alert-rules",
+								Namespace:   k8s.ClusterMonitoringNamespace,
+								Annotations: map[string]string{"argocd.argoproj.io/tracking-id": "gitops"},
+							},
+							Spec: osmv1.AlertingRuleSpec{
+								Groups: []osmv1.RuleGroup{{Name: "grp", Rules: []osmv1.Rule{{Alert: platformRule.Alert}}}},
+							},
+						}, true, nil
+					},
+				}
+			}
+		})
+		It("blocks deletion with GitOps message", func() {
 			err := client.DeleteUserDefinedAlertRuleById(ctx, platformRuleId)
 			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("managed by GitOps"))
+		})
+	})
 
-			var notAllowedErr *management.NotAllowedError
-			Expect(errors.As(err, &notAllowedErr)).To(BeTrue())
-			Expect(notAllowedErr.Message).To(ContainSubstring("cannot delete alert rule from a platform-managed PrometheusRule"))
+	Context("when deleting a platform rule but owning AlertingRule is operator-managed", func() {
+		BeforeEach(func() {
+			mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
+				return &testutils.MockRelabeledRulesInterface{
+					GetFunc: func(ctx context.Context, id string) (monitoringv1.Rule, bool) {
+						if id == platformRuleId {
+							return platformRule, true
+						}
+						return monitoringv1.Rule{}, false
+					},
+				}
+			}
+			mockK8s.NamespaceFunc = func() k8s.NamespaceInterface {
+				return &testutils.MockNamespaceInterface{
+					IsClusterMonitoringNamespaceFunc: func(name string) bool { return name == "openshift-monitoring" },
+				}
+			}
+			// PR contains the rule
+			mockK8s.PrometheusRulesFunc = func() k8s.PrometheusRuleInterface {
+				return &testutils.MockPrometheusRuleInterface{
+					GetFunc: func(ctx context.Context, namespace string, name string) (*monitoringv1.PrometheusRule, bool, error) {
+						return &monitoringv1.PrometheusRule{
+							ObjectMeta: metav1.ObjectMeta{Namespace: namespace, Name: name},
+							Spec: monitoringv1.PrometheusRuleSpec{
+								Groups: []monitoringv1.RuleGroup{{Name: "grp", Rules: []monitoringv1.Rule{platformRule}}},
+							},
+						}, true, nil
+					},
+				}
+			}
+			// Owning AR exists and is operator-managed via ownerReferences
+			mockK8s.AlertingRulesFunc = func() k8s.AlertingRuleInterface {
+				return &testutils.MockAlertingRuleInterface{
+					GetFunc: func(ctx context.Context, name string) (*osmv1.AlertingRule, bool, error) {
+						controller := true
+						return &osmv1.AlertingRule{
+							ObjectMeta: metav1.ObjectMeta{
+								Name:      "platform-alert-rules",
+								Namespace: k8s.ClusterMonitoringNamespace,
+								OwnerReferences: []metav1.OwnerReference{
+									{Kind: "SomeOperatorKind", Name: "operator", Controller: &controller},
+								},
+							},
+							Spec: osmv1.AlertingRuleSpec{
+								Groups: []osmv1.RuleGroup{{Name: "grp", Rules: []osmv1.Rule{{Alert: platformRule.Alert}}}},
+							},
+						}, true, nil
+					},
+				}
+			}
+		})
+		It("blocks deletion with operator-managed message", func() {
+			err := client.DeleteUserDefinedAlertRuleById(ctx, platformRuleId)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("managed by an operator"))
 		})
 	})
 

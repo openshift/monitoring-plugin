@@ -43,6 +43,12 @@ func (c *client) CreatePlatformAlertRule(ctx context.Context, alertRule monitori
 	}
 
 	if found {
+		// Disallow adding to externally managed AlertingRules
+		if gitOpsManaged, operatorManaged := k8s.IsExternallyManagedObject(existing); gitOpsManaged {
+			return "", &NotAllowedError{Message: "The AlertingRule is managed by GitOps; create the alert in Git."}
+		} else if operatorManaged {
+			return "", &NotAllowedError{Message: "This AlertingRule is managed by an operator; you cannot add alerts to it."}
+		}
 		updated := existing.DeepCopy()
 		if err := addRuleToGroup(&updated.Spec, defaultPlatformGroupName, osmRule); err != nil {
 			return "", err

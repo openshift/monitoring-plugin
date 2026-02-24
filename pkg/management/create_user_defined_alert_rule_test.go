@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
@@ -43,6 +44,84 @@ var _ = Describe("CreateUserDefinedAlertRule", func() {
 		client = management.New(ctx, mockK8s)
 	})
 
+	Context("when target PrometheusRule is GitOps-managed", func() {
+		BeforeEach(func() {
+			mockK8s.NamespaceFunc = func() k8s.NamespaceInterface {
+				return &testutils.MockNamespaceInterface{
+					IsClusterMonitoringNamespaceFunc: func(name string) bool { return false },
+				}
+			}
+			// No duplicate
+			mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
+				return &testutils.MockRelabeledRulesInterface{
+					GetFunc: func(ctx context.Context, id string) (monitoringv1.Rule, bool) {
+						return monitoringv1.Rule{}, false
+					},
+				}
+			}
+			// Existing PrometheusRule with GitOps annotation
+			mockK8s.PrometheusRulesFunc = func() k8s.PrometheusRuleInterface {
+				return &testutils.MockPrometheusRuleInterface{
+					GetFunc: func(ctx context.Context, namespace string, name string) (*monitoringv1.PrometheusRule, bool, error) {
+						return &monitoringv1.PrometheusRule{
+							ObjectMeta: metav1.ObjectMeta{
+								Namespace:   namespace,
+								Name:        name,
+								Annotations: map[string]string{"argocd.argoproj.io/tracking-id": "abc"},
+							},
+						}, true, nil
+					},
+				}
+			}
+		})
+
+		It("returns NotAllowed with GitOps message", func() {
+			prOptions := management.PrometheusRuleOptions{Name: "user-pr", Namespace: "user-ns"}
+			_, err := client.CreateUserDefinedAlertRule(ctx, testRule, prOptions)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("This PrometheusRule is managed by GitOps; create the alert in Git."))
+		})
+	})
+
+	Context("when target PrometheusRule is operator-managed", func() {
+		BeforeEach(func() {
+			mockK8s.NamespaceFunc = func() k8s.NamespaceInterface {
+				return &testutils.MockNamespaceInterface{
+					IsClusterMonitoringNamespaceFunc: func(name string) bool { return false },
+				}
+			}
+			mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
+				return &testutils.MockRelabeledRulesInterface{
+					GetFunc: func(ctx context.Context, id string) (monitoringv1.Rule, bool) {
+						return monitoringv1.Rule{}, false
+					},
+				}
+			}
+			// Existing PrometheusRule with OwnerReferences
+			mockK8s.PrometheusRulesFunc = func() k8s.PrometheusRuleInterface {
+				return &testutils.MockPrometheusRuleInterface{
+					GetFunc: func(ctx context.Context, namespace string, name string) (*monitoringv1.PrometheusRule, bool, error) {
+						return &monitoringv1.PrometheusRule{
+							ObjectMeta: metav1.ObjectMeta{
+								Namespace: namespace,
+								Name:      name,
+								OwnerReferences: []metav1.OwnerReference{
+									{Kind: "Deployment", Name: "some-operator"},
+								},
+							},
+						}, true, nil
+					},
+				}
+			}
+		})
+
+		It("returns NotAllowed for operator-managed PrometheusRule", func() {
+			prOptions := management.PrometheusRuleOptions{Name: "user-pr", Namespace: "user-ns"}
+			_, err := client.CreateUserDefinedAlertRule(ctx, testRule, prOptions)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("This PrometheusRule is managed by an operator; you cannot add alerts to it."))
+		})
+	})
 	Context("when PrometheusRule Name is not specified", func() {
 		It("returns an error", func() {
 			prOptions := management.PrometheusRuleOptions{

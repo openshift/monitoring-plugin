@@ -16,6 +16,7 @@ import (
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
 	"github.com/openshift/monitoring-plugin/pkg/management"
 	"github.com/openshift/monitoring-plugin/pkg/management/testutils"
+	"github.com/openshift/monitoring-plugin/pkg/managementlabels"
 )
 
 var _ = Describe("UpdatePlatformAlertRule", func() {
@@ -73,6 +74,185 @@ var _ = Describe("UpdatePlatformAlertRule", func() {
 		}
 	})
 
+	Context("Operator-managed platform rule with GitOps PR metadata and no ARC", func() {
+		BeforeEach(func() {
+			// Relabeled rule marked as operator-managed at rule level
+			opRule := platformRule
+			opRule.Labels = make(map[string]string)
+			for k, v := range platformRule.Labels {
+				opRule.Labels[k] = v
+			}
+			opRule.Labels[managementlabels.RuleManagedByLabel] = managementlabels.ManagedByOperator
+			mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
+				return &testutils.MockRelabeledRulesInterface{
+					GetFunc: func(ctx context.Context, id string) (monitoringv1.Rule, bool) {
+						if id == platformRuleId {
+							return opRule, true
+						}
+						return monitoringv1.Rule{}, false
+					},
+				}
+			}
+			// Original PR exists and is GitOps-managed via metadata
+			mockK8s.PrometheusRulesFunc = func() k8s.PrometheusRuleInterface {
+				return &testutils.MockPrometheusRuleInterface{
+					GetFunc: func(ctx context.Context, namespace string, name string) (*monitoringv1.PrometheusRule, bool, error) {
+						return &monitoringv1.PrometheusRule{
+							ObjectMeta: metav1.ObjectMeta{
+								Namespace:   namespace,
+								Name:        name,
+								Annotations: map[string]string{"argocd.argoproj.io/tracking-id": "gitops-track"},
+							},
+							Spec: monitoringv1.PrometheusRuleSpec{
+								Groups: []monitoringv1.RuleGroup{
+									{
+										Name:  "grp",
+										Rules: []monitoringv1.Rule{originalPlatformRule},
+									},
+								},
+							},
+						}, true, nil
+					},
+				}
+			}
+			// No ARC yet
+			mockK8s.AlertRelabelConfigsFunc = func() k8s.AlertRelabelConfigInterface {
+				return &testutils.MockAlertRelabelConfigInterface{
+					GetFunc: func(ctx context.Context, namespace string, name string) (*osmv1.AlertRelabelConfig, bool, error) {
+						return nil, false, nil
+					},
+				}
+			}
+		})
+
+		It("blocks platform update due to GitOps PR metadata when managed_by=operator", func() {
+			updatedRule := originalPlatformRule
+			err := client.UpdatePlatformAlertRule(ctx, platformRuleId, updatedRule)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("managed by GitOps"))
+		})
+	})
+	Context("blocks update when ARC is GitOps-managed", func() {
+		BeforeEach(func() {
+			// Relabeled rule in platform namespace
+			mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
+				return &testutils.MockRelabeledRulesInterface{
+					GetFunc: func(ctx context.Context, id string) (monitoringv1.Rule, bool) {
+						if id == platformRuleId {
+							// Mark as operator-managed at rule level; ARC GitOps must still block
+							opRule := platformRule
+							if opRule.Labels == nil {
+								opRule.Labels = map[string]string{}
+							}
+							opRule.Labels[managementlabels.RuleManagedByLabel] = managementlabels.ManagedByOperator
+							return opRule, true
+						}
+						return monitoringv1.Rule{}, false
+					},
+				}
+			}
+			// Original PR exists and contains the platform rule
+			mockK8s.PrometheusRulesFunc = func() k8s.PrometheusRuleInterface {
+				return &testutils.MockPrometheusRuleInterface{
+					GetFunc: func(ctx context.Context, namespace string, name string) (*monitoringv1.PrometheusRule, bool, error) {
+						return &monitoringv1.PrometheusRule{
+							ObjectMeta: metav1.ObjectMeta{
+								Namespace: namespace,
+								Name:      name,
+							},
+							Spec: monitoringv1.PrometheusRuleSpec{
+								Groups: []monitoringv1.RuleGroup{
+									{
+										Name:  "grp",
+										Rules: []monitoringv1.Rule{originalPlatformRule},
+									},
+								},
+							},
+						}, true, nil
+					},
+				}
+			}
+			// ARC exists and is GitOps-managed via metadata
+			mockK8s.AlertRelabelConfigsFunc = func() k8s.AlertRelabelConfigInterface {
+				return &testutils.MockAlertRelabelConfigInterface{
+					GetFunc: func(ctx context.Context, namespace string, name string) (*osmv1.AlertRelabelConfig, bool, error) {
+						return &osmv1.AlertRelabelConfig{
+							ObjectMeta: metav1.ObjectMeta{
+								Name:        name,
+								Namespace:   namespace,
+								Annotations: map[string]string{"argocd.argoproj.io/tracking-id": "abc"},
+							},
+						}, true, nil
+					},
+				}
+			}
+		})
+
+		It("blocks platform update when ARC is GitOps-managed", func() {
+			updatedRule := originalPlatformRule
+			err := client.UpdatePlatformAlertRule(ctx, platformRuleId, updatedRule)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("managed by GitOps"))
+		})
+	})
+
+	Context("GitOps-managed at rule level (no ARC yet)", func() {
+		BeforeEach(func() {
+			// Relabeled rule marked as GitOps-managed at rule level
+			gitopsRule := platformRule
+			gitopsRule.Labels = make(map[string]string)
+			for k, v := range platformRule.Labels {
+				gitopsRule.Labels[k] = v
+			}
+			gitopsRule.Labels[managementlabels.RuleManagedByLabel] = managementlabels.ManagedByGitOps
+			mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
+				return &testutils.MockRelabeledRulesInterface{
+					GetFunc: func(ctx context.Context, id string) (monitoringv1.Rule, bool) {
+						if id == platformRuleId {
+							return gitopsRule, true
+						}
+						return monitoringv1.Rule{}, false
+					},
+				}
+			}
+			// Original PR exists with the rule
+			mockK8s.PrometheusRulesFunc = func() k8s.PrometheusRuleInterface {
+				return &testutils.MockPrometheusRuleInterface{
+					GetFunc: func(ctx context.Context, namespace string, name string) (*monitoringv1.PrometheusRule, bool, error) {
+						return &monitoringv1.PrometheusRule{
+							ObjectMeta: metav1.ObjectMeta{
+								Namespace: namespace,
+								Name:      name,
+							},
+							Spec: monitoringv1.PrometheusRuleSpec{
+								Groups: []monitoringv1.RuleGroup{
+									{
+										Name:  "grp",
+										Rules: []monitoringv1.Rule{originalPlatformRule},
+									},
+								},
+							},
+						}, true, nil
+					},
+				}
+			}
+			// No ARC yet
+			mockK8s.AlertRelabelConfigsFunc = func() k8s.AlertRelabelConfigInterface {
+				return &testutils.MockAlertRelabelConfigInterface{
+					GetFunc: func(ctx context.Context, namespace string, name string) (*osmv1.AlertRelabelConfig, bool, error) {
+						return nil, false, nil
+					},
+				}
+			}
+		})
+
+		It("blocks platform update early when rule managed_by=gitops and ARC missing", func() {
+			updatedRule := originalPlatformRule
+			err := client.UpdatePlatformAlertRule(ctx, platformRuleId, updatedRule)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("managed by GitOps"))
+		})
+	})
 	Context("when rule is not found", func() {
 		BeforeEach(func() {
 			mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {

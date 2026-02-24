@@ -22,6 +22,11 @@ func (c *client) UpdateUserDefinedAlertRule(ctx context.Context, alertRuleId str
 	namespace := rule.Labels[k8s.PrometheusRuleLabelNamespace]
 	name := rule.Labels[k8s.PrometheusRuleLabelName]
 
+	// Common preconditions on relabeled rule (labels-based)
+	if err := validateUserUpdatePreconditions(rule, nil); err != nil {
+		return "", err
+	}
+
 	if c.IsPlatformAlertRule(types.NamespacedName{Namespace: namespace, Name: name}) {
 		return "", &NotAllowedError{Message: "cannot update alert rule in a platform-managed PrometheusRule"}
 	}
@@ -37,6 +42,11 @@ func (c *client) UpdateUserDefinedAlertRule(ctx context.Context, alertRuleId str
 			Id:             alertRuleId,
 			AdditionalInfo: fmt.Sprintf("PrometheusRule %s/%s not found", namespace, name),
 		}
+	}
+
+	// After fetching the PR, block edits for operator-managed PrometheusRules (they will be reconciled)
+	if err := validateUserUpdatePreconditions(rule, pr); err != nil {
+		return "", err
 	}
 
 	// Locate the target rule once and update it after validation

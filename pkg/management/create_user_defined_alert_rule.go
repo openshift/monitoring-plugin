@@ -55,6 +55,12 @@ func (c *client) CreateUserDefinedAlertRule(ctx context.Context, alertRule monit
 		return "", err
 	}
 	if prFound && pr != nil {
+		// Disallow adding to GitOps- or operator-managed PrometheusRule
+		if gitOpsManaged, operatorManaged := k8s.IsExternallyManagedObject(pr); gitOpsManaged {
+			return "", &NotAllowedError{Message: "This PrometheusRule is managed by GitOps; create the alert in Git."}
+		} else if operatorManaged {
+			return "", &NotAllowedError{Message: "This PrometheusRule is managed by an operator; you cannot add alerts to it."}
+		}
 		for _, g := range pr.Spec.Groups {
 			for _, r := range g.Rules {
 				// Treat "true clones" as unsupported: identical definitions compute to the same id.

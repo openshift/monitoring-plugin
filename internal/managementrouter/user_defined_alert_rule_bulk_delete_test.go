@@ -10,6 +10,7 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	osmv1 "github.com/openshift/api/monitoring/v1"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -88,6 +89,36 @@ var _ = Describe("BulkDeleteUserDefinedAlertRules", func() {
 			}
 		}
 
+		// Provide owning AlertingRule so platform (user-via-platform) deletion can succeed
+		mockK8s.AlertingRulesFunc = func() k8s.AlertingRuleInterface {
+			return &testutils.MockAlertingRuleInterface{
+				GetFunc: func(ctx context.Context, name string) (*osmv1.AlertingRule, bool, error) {
+					if name == "platform-alert-rules" {
+						return &osmv1.AlertingRule{
+							ObjectMeta: metav1.ObjectMeta{
+								Name:      "platform-alert-rules",
+								Namespace: k8s.ClusterMonitoringNamespace,
+							},
+							Spec: osmv1.AlertingRuleSpec{
+								Groups: []osmv1.RuleGroup{
+									{
+										Name: "test-group",
+										Rules: []osmv1.Rule{
+											{Alert: platformRuleName},
+										},
+									},
+								},
+							},
+						}, true, nil
+					}
+					return nil, false, nil
+				},
+				UpdateFunc: func(ctx context.Context, ar osmv1.AlertingRule) error {
+					return nil
+				},
+			}
+		}
+
 		mockK8s.NamespaceFunc = func() k8s.NamespaceInterface {
 			return &testutils.MockNamespaceInterface{
 				IsClusterMonitoringNamespaceFunc: func(name string) bool {
@@ -121,10 +152,10 @@ var _ = Describe("BulkDeleteUserDefinedAlertRules", func() {
 			Expect(resp.Rules[0].StatusCode).To(Equal(http.StatusNoContent), resp.Rules[0].Message)
 			Expect(resp.Rules[0].Message).To(BeEmpty())
 
-			// platform1 -> not allowed
+			// platform1 (user-via-platform) -> success
 			Expect(resp.Rules[1].Id).To(Equal(platformRuleId))
-			Expect(resp.Rules[1].StatusCode).To(Equal(http.StatusMethodNotAllowed), resp.Rules[1].Message)
-			Expect(resp.Rules[1].Message).To(ContainSubstring("cannot delete alert rule from a platform-managed PrometheusRule"))
+			Expect(resp.Rules[1].StatusCode).To(Equal(http.StatusNoContent), resp.Rules[1].Message)
+			Expect(resp.Rules[1].Message).To(BeEmpty())
 
 			// "" -> bad request (missing id)
 			Expect(resp.Rules[2].Id).To(Equal(""))

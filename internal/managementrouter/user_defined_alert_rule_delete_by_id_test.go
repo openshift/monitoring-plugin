@@ -8,6 +8,7 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	osmv1 "github.com/openshift/api/monitoring/v1"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -86,6 +87,36 @@ var _ = Describe("DeleteUserDefinedAlertRuleById", func() {
 			}
 		}
 
+		// Provide owning AlertingRule so platform (user-via-platform) deletion can succeed
+		mockK8s.AlertingRulesFunc = func() k8s.AlertingRuleInterface {
+			return &testutils.MockAlertingRuleInterface{
+				GetFunc: func(ctx context.Context, name string) (*osmv1.AlertingRule, bool, error) {
+					if name == "platform-alert-rules" {
+						return &osmv1.AlertingRule{
+							ObjectMeta: metav1.ObjectMeta{
+								Name:      "platform-alert-rules",
+								Namespace: k8s.ClusterMonitoringNamespace,
+							},
+							Spec: osmv1.AlertingRuleSpec{
+								Groups: []osmv1.RuleGroup{
+									{
+										Name: "test-group",
+										Rules: []osmv1.Rule{
+											{Alert: platformRuleName},
+										},
+									},
+								},
+							},
+						}, true, nil
+					}
+					return nil, false, nil
+				},
+				UpdateFunc: func(ctx context.Context, ar osmv1.AlertingRule) error {
+					return nil
+				},
+			}
+		}
+
 		mockK8s.NamespaceFunc = func() k8s.NamespaceInterface {
 			return &testutils.MockNamespaceInterface{
 				IsClusterMonitoringNamespaceFunc: func(name string) bool {
@@ -128,13 +159,13 @@ var _ = Describe("DeleteUserDefinedAlertRuleById", func() {
 	})
 
 	Context("when deleting a platform rule", func() {
-		It("returns 405 with expected message", func() {
+		It("returns 204 for user-via-platform (not operator-managed)", func() {
 			req := httptest.NewRequest(http.MethodDelete, "/api/v1/alerting/rules/"+platformRuleId, nil)
 			w := httptest.NewRecorder()
 			router.ServeHTTP(w, req)
 
-			Expect(w.Code).To(Equal(http.StatusMethodNotAllowed))
-			Expect(w.Body.String()).To(ContainSubstring("cannot delete alert rule from a platform-managed PrometheusRule"))
+			Expect(w.Code).To(Equal(http.StatusNoContent))
+			Expect(w.Body.String()).To(BeEmpty())
 		})
 	})
 })

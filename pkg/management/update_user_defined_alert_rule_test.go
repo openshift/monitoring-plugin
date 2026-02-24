@@ -76,6 +76,55 @@ var _ = Describe("UpdateUserDefinedAlertRule", func() {
 		}
 	})
 
+	Context("managed-by enforcement", func() {
+		It("blocks update when rule is GitOps-managed", func() {
+			gitopsRule := userRule
+			// Deep copy labels to avoid mutating shared map across tests
+			gitopsRule.Labels = make(map[string]string)
+			for k, v := range userRule.Labels {
+				gitopsRule.Labels[k] = v
+			}
+			gitopsRule.Labels[managementlabels.RuleManagedByLabel] = managementlabels.ManagedByGitOps
+			mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
+				return &testutils.MockRelabeledRulesInterface{
+					GetFunc: func(ctx context.Context, id string) (monitoringv1.Rule, bool) {
+						if id == userRuleId {
+							return gitopsRule, true
+						}
+						return monitoringv1.Rule{}, false
+					},
+				}
+			}
+			updated := userRule
+			_, err := client.UpdateUserDefinedAlertRule(ctx, userRuleId, updated)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("managed by GitOps"))
+		})
+
+		It("blocks update when rule is operator-managed", func() {
+			opRule := userRule
+			// Deep copy labels to avoid mutating shared map across tests
+			opRule.Labels = make(map[string]string)
+			for k, v := range userRule.Labels {
+				opRule.Labels[k] = v
+			}
+			opRule.Labels[managementlabels.RuleManagedByLabel] = managementlabels.ManagedByOperator
+			mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
+				return &testutils.MockRelabeledRulesInterface{
+					GetFunc: func(ctx context.Context, id string) (monitoringv1.Rule, bool) {
+						if id == userRuleId {
+							return opRule, true
+						}
+						return monitoringv1.Rule{}, false
+					},
+				}
+			}
+			updated := userRule
+			_, err := client.UpdateUserDefinedAlertRule(ctx, userRuleId, updated)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("managed by an operator"))
+		})
+	})
 	Context("when rule is not found", func() {
 		BeforeEach(func() {
 			mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
