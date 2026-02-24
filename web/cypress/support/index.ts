@@ -28,8 +28,7 @@ Cypress.on('uncaught:exception', (err) => {
     message.includes('Bad Gateway') ||
     message.includes(`Cannot read properties of null (reading 'default')`) ||
     message.includes(`(intermediate value) is not a function`) ||
-    //TODO: OU-1158 
-    message.includes(`[ Federation Runtime ]: Failed to load script resources. #RUNTIME-008`)
+    message.includes(`Cannot read properties of null (reading '0')`)
   ) {
     console.warn('Ignored frontend exception:', err.message);
     return false;

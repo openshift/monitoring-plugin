@@ -1,5 +1,5 @@
 import { persesDashboardsPage } from '../../views/perses-dashboards';
-import { listPersesDashboardsPage } from '../../views/list-perses-dashboards';
+import { listPersesDashboardsPage } from '../../views/perses-dashboards-list-dashboards';
 import { persesCreateDashboardsPage } from '../../views/perses-dashboards-create-dashboard';
 import { persesDashboardsAddListVariableSource, persesDashboardSampleQueries, persesDashboardsDashboardDropdownCOO, persesDashboardsDashboardDropdownPersesDev, persesDashboardsEmptyDashboard } from '../../fixtures/perses/constants';
 import { persesDashboardsEditVariables } from '../../views/perses-dashboards-edit-variables';
@@ -35,20 +35,20 @@ export function testCOORBACPersesTestsDevUser1(perspective: PerspectiveConfig) {
 
     cy.log(`1.2. All Projects validation - Dashboard search - ${persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[2]} dashboard`);
     cy.changeNamespace('All Projects');
-    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[2]);
+    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[0]);
     listPersesDashboardsPage.countDashboards('1');
-    listPersesDashboardsPage.removeTag(persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[2]);
+    listPersesDashboardsPage.removeTag(persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[0]);
 
     cy.log(`1.3. All Projects validation - Dashboard search - ${persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[2]} dashboard`);
-    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[2]);
+    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[0]);
     listPersesDashboardsPage.countDashboards('2');
-    listPersesDashboardsPage.removeTag(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[2]);
+    listPersesDashboardsPage.removeTag(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[0]);
 
     cy.log(`1.4. All Projects validation - Dashboard search - ${persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]} dashboard`);
-    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0]);
     listPersesDashboardsPage.filter.byProject('perses-dev');
     listPersesDashboardsPage.emptyState();
-    listPersesDashboardsPage.removeTag(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+    listPersesDashboardsPage.removeTag(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0]);
     listPersesDashboardsPage.removeTag('perses-dev');
 
   });
@@ -62,11 +62,11 @@ export function testCOORBACPersesTestsDevUser1(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.shouldBeLoaded();
 
     cy.log(`2.3. Filter by Name`);
-    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[2]);
+    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[0]);
     listPersesDashboardsPage.countDashboards('1');
 
     cy.log(`2.4. Click on a dashboard`);
-    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[2]);
+    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[0]);
     persesDashboardsPage.shouldBeLoaded1();
 
     cy.log(`2.5. Click on Edit button`);
@@ -118,8 +118,8 @@ export function testCOORBACPersesTestsDevUser1(perspective: PerspectiveConfig) {
     cy.log(`2.15. Back and check changes`);
     persesDashboardsPage.backToListPersesDashboardsPage();
     cy.changeNamespace('openshift-cluster-observability-operator');
-    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[2]);
-    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[2]);
+    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[0]);
+    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[0]);
     persesDashboardsPage.shouldBeLoaded1();
     persesDashboardsPage.searchAndSelectVariable('ListVariable', 'All');
     persesDashboardsPage.panelGroupHeaderAssertion('PanelGroup Perform Changes and Save', 'Open');
@@ -155,11 +155,11 @@ export function testCOORBACPersesTestsDevUser1(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.shouldBeLoaded();
 
     cy.log(`3.3. Filter by Name`);
-    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0]);
     listPersesDashboardsPage.countDashboards('1');
 
     cy.log(`3.4. Click on a dashboard`);
-    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
+    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0]);
     persesDashboardsPage.shouldBeLoaded1();
 
     cy.log(`3.5. Verify Edit button is not editable`);
@@ -175,21 +175,23 @@ export function testCOORBACPersesTestsDevUser1(perspective: PerspectiveConfig) {
     cy.changeNamespace('observ-test');
 
     cy.log(`4.3. Verify Create button is disabled`);
-    persesDashboardsPage.assertCreateButtonIsDisabled();
+    listPersesDashboardsPage.assertCreateButtonIsDisabled();
 
     cy.log(`4.4 change namespace to openshift-cluster-observability-operator`);
     cy.changeNamespace('openshift-cluster-observability-operator');
 
     cy.log(`4.5. Verify Create button is enabled`);
-    persesDashboardsPage.assertCreateButtonIsEnabled();
+    listPersesDashboardsPage.assertCreateButtonIsEnabled();
 
     cy.log(`4.2 change namespace to All Projects`);
     cy.changeNamespace('All Projects');
 
     cy.log(`4.3. Verify Create button is enabled`);
-    persesDashboardsPage.assertCreateButtonIsEnabled();
+    listPersesDashboardsPage.assertCreateButtonIsEnabled();
 
   });
+
+  //TODO: OU-1195 Create, Duplicate - Project dropdown 
 
   it(`5.${perspective.name} perspective - Create Dashboard with panel groups, panels and variables`, () => {
     let dashboardName = 'Testing Dashboard - UP ';
@@ -202,7 +204,7 @@ export function testCOORBACPersesTestsDevUser1(perspective: PerspectiveConfig) {
     cy.changeNamespace('openshift-cluster-observability-operator');
 
     cy.log(`5.2. Click on Create button`);
-    persesDashboardsPage.clickCreateButton();
+    listPersesDashboardsPage.clickCreateButton();
     persesCreateDashboardsPage.createDashboardShouldBeLoaded();
 
     cy.log(`5.3. Create Dashboard`);
@@ -210,6 +212,7 @@ export function testCOORBACPersesTestsDevUser1(perspective: PerspectiveConfig) {
     persesCreateDashboardsPage.enterDashboardName(dashboardName);
     persesCreateDashboardsPage.createDashboardDialogCreateButton();
     persesDashboardsPage.shouldBeLoadedEditionMode(dashboardName);
+    persesDashboardsPage.shouldBeLoadedEditionModeFromCreateDashboard();
 
     cy.log(`5.4. Add Variable`);
     persesDashboardsPage.clickEditActionButton('EditVariables');
@@ -247,8 +250,8 @@ export function testCOORBACPersesTestsDevUser1(perspective: PerspectiveConfig) {
     cy.log(`5.7. Back and check panel`);
     persesDashboardsPage.backToListPersesDashboardsPage();
     cy.changeNamespace('openshift-cluster-observability-operator');
-    listPersesDashboardsPage.filter.byName(dashboardName.toLowerCase().replace(/ /g, '_'));
-    listPersesDashboardsPage.clickDashboard(dashboardName.toLowerCase().replace(/ /g, '_'));
+    listPersesDashboardsPage.filter.byName(dashboardName);
+    listPersesDashboardsPage.clickDashboard(dashboardName);
     persesDashboardsPage.panelGroupHeaderAssertion('Panel Group Up', 'Open');
     persesDashboardsPage.assertPanel('Up', 'Panel Group Up', 'Open');
     persesDashboardsPage.assertVariableBeVisible('interval');
@@ -284,63 +287,178 @@ export function testCOORBACPersesTestsDevUser1(perspective: PerspectiveConfig) {
 
   });
 
-  // it(`6.${perspective.name} perspective - Kebab icon - Enabled / Disabled`, () => {
-  //   // Enabled for openshift-cluster-observability-operator namespace
-  //     // Rename
-  //     // Duplicate
-  //     // Delete
-  //   // Disabled for observ-test namespace or enabled but with options disabled
-  //     // Rename
-  //     // Duplicate
-  //     // Delete
-  // });
+  it(`6.${perspective.name} perspective - Kebab icon - Enabled / Disabled`, () => {
+    cy.log(`6.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
+    listPersesDashboardsPage.shouldBeLoaded();
 
-  // it(`7.${perspective.name} perspective - Rename to an existing dashboard name with spaces`, () => {
-  //  
-  // });
+    cy.log(`6.2. Change namespace to observ-test`);
+    cy.changeNamespace('observ-test');
 
-  // it(`8.${perspective.name} perspective - Rename to an existing dashboard name without spaces`, () => {
-  //   
-  // });
+    cy.log(`6.3. Assert Kebab icon is disabled`);
+    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0]);
+    listPersesDashboardsPage.assertKebabIconDisabled();
 
-  // it(`8.${perspective.name} perspective - Rename to a new dashboard name`, () => {
-  //   
-  // });
+    cy.log(`6.4. Change namespace to openshift-cluster-observability-operator`);
+    cy.changeNamespace('openshift-cluster-observability-operator');
 
-  // it(`9.${perspective.name} perspective - Duplicate and verify project dropdown`, () => {
-  //   // openshift-cluster-observability-operator namespace
-  //   // observ-test namespace not available
-  //   // perses-dev namespace not available
-  // });
+    cy.log(`6.5. Assert Kebab icon is enabled`);
+    listPersesDashboardsPage.clearAllFilters();
+    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[0]);
+    listPersesDashboardsPage.clickKebabIcon();
+    listPersesDashboardsPage.assertKebabIconOptions();
+    listPersesDashboardsPage.clickKebabIcon();
 
-  // it(`10.${perspective.name} perspective - Duplicate to an existing dashboard name with spaces`, () => {
-  //  
-  // });
+    cy.log(`6.2. Change namespace to All Projects`);
+    cy.changeNamespace('All Projects');
+    listPersesDashboardsPage.clearAllFilters();
 
-  // it(`11.${perspective.name} perspective - Duplicate to an existing dashboard name without spaces`, () => {
-  //   
-  // });
+    cy.log(`6.3. Filter by Project and Name`);
+    listPersesDashboardsPage.filter.byProject('observ-test');
+    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0]);
+    listPersesDashboardsPage.countDashboards('1');
+    listPersesDashboardsPage.clickKebabIcon();
+    listPersesDashboardsPage.assertKebabIconDisabled();
+    listPersesDashboardsPage.clearAllFilters();
 
-  // it(`12.${perspective.name} perspective - Duplicate to a new dashboard name in the same project`, () => {
-  //  
-  // });
+    cy.log(`6.4. Filter by Project and Name`);
+    listPersesDashboardsPage.filter.byProject('openshift-cluster-observability-operator');
+    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[0]);
+    listPersesDashboardsPage.countDashboards('1');
+    listPersesDashboardsPage.clickKebabIcon();
+    listPersesDashboardsPage.assertKebabIconOptions();
+    listPersesDashboardsPage.clickKebabIcon();
+    listPersesDashboardsPage.clearAllFilters();
+    
+  });
 
-  // it(`13.${perspective.name} perspective - Delete and Cancel - Enabled`, () => {
-  //  
-  // });
 
-  // it(`14.${perspective.name} perspective - Delete and Confirm`, () => {
-  //  
-  // });
+  it(`7.${perspective.name} perspective - Rename to a new dashboard name`, () => {
+    let dashboardName = 'Renamed dashboard ';
+    let randomSuffix = Math.random().toString(5);
+    dashboardName += randomSuffix;
 
-  // it(`15.${perspective.name} perspective - Delete all dashboard from a project to check empty state`, () => {
-  //  
-  // });
+    cy.log(`7.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
+    listPersesDashboardsPage.shouldBeLoaded();
 
-  // it(`16.${perspective.name} perspective - Delete namespace and check project dropdown does not load this namespace`, () => {
-  // OU-1192 - [Perses operator] - Delete namespace is not deleting perses project
-  //  
-  // });
+    cy.log(`7.2. Change namespace to openshift-cluster-observability-operator`);
+    cy.changeNamespace('openshift-cluster-observability-operator');
+
+    cy.log(`7.3. Filter by Name`);
+    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[0]);
+    listPersesDashboardsPage.countDashboards('1');
+    
+    cy.log(`7.4. Click on the Kebab icon - Rename`);
+    listPersesDashboardsPage.clickKebabIcon();
+    listPersesDashboardsPage.clickRenameDashboardOption();
+    listPersesDashboardsPage.renameDashboardEnterName(dashboardName);
+    listPersesDashboardsPage.renameDashboardRenameButton();
+    listPersesDashboardsPage.emptyState();
+    listPersesDashboardsPage.countDashboards('0');
+    listPersesDashboardsPage.clearAllFilters();
+
+    cy.log(`7.5. Filter by Name`);
+    listPersesDashboardsPage.filter.byName(dashboardName);
+    listPersesDashboardsPage.countDashboards('1');
+    listPersesDashboardsPage.clickDashboard(dashboardName);
+    persesDashboardsPage.shouldBeLoaded1();
+    persesDashboardsPage.shouldBeLoadedAfterRename(dashboardName);
+    persesDashboardsPage.backToListPersesDashboardsPage();
+
+    cy.log(`7.6. Rename back to the original name`);
+    cy.changeNamespace('openshift-cluster-observability-operator');
+    listPersesDashboardsPage.filter.byName(dashboardName);
+    listPersesDashboardsPage.countDashboards('1');
+    listPersesDashboardsPage.clickKebabIcon();
+    listPersesDashboardsPage.clickRenameDashboardOption();
+    listPersesDashboardsPage.renameDashboardEnterName(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[0]);
+    listPersesDashboardsPage.renameDashboardRenameButton();
+    listPersesDashboardsPage.emptyState();
+    listPersesDashboardsPage.countDashboards('0');
+    listPersesDashboardsPage.clearAllFilters();
+    
+    cy.log(`7.7. Filter by Name`);
+    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[0]);
+    listPersesDashboardsPage.countDashboards('1');
+    listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[0]);
+    persesDashboardsPage.shouldBeLoaded1();
+    persesDashboardsPage.shouldBeLoadedAfterRename(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[0]);
+    persesDashboardsPage.backToListPersesDashboardsPage();
+    
+  });
+
+  //TODO: OU-1195 Create, Duplicate - Project dropdown 
+  it(`8.${perspective.name} perspective - Duplicate and verify project dropdown and Delete`, () => {
+    let dashboardName = 'Duplicate dashboard ';
+    let randomSuffix = Math.random().toString(5);
+    dashboardName += randomSuffix;
+
+    cy.log(`8.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
+    listPersesDashboardsPage.shouldBeLoaded();
+
+    cy.log(`8.2. Change namespace to openshift-cluster-observability-operator`);
+    cy.changeNamespace('openshift-cluster-observability-operator');
+
+    cy.log(`8.3. Filter by Name`);
+    listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[0]);
+    listPersesDashboardsPage.countDashboards('1');
+    
+    cy.log(`8.4. Click on the Kebab icon - Duplicate`);
+    listPersesDashboardsPage.clickKebabIcon();
+    listPersesDashboardsPage.clickDuplicateOption();
+
+    cy.log(`8.5. Assert project dropdown options`);
+    listPersesDashboardsPage.assertDuplicateProjectDropdownOptions('openshift-cluster-observability-operator', true);
+    listPersesDashboardsPage.assertDuplicateProjectDropdownOptions('observ-test', false);
+    listPersesDashboardsPage.assertDuplicateProjectDropdownOptions('perses-dev', false);
+
+    cy.log(`8.6. Enter new dashboard name`);
+    listPersesDashboardsPage.duplicateDashboardEnterName(dashboardName);
+    listPersesDashboardsPage.duplicateDashboardDuplicateButton();
+    persesDashboardsPage.shouldBeLoadedEditionMode(dashboardName);
+    persesDashboardsPage.shouldBeLoadedAfterDuplicate(dashboardName);
+    persesDashboardsPage.backToListPersesDashboardsPage();
+
+    cy.log(`8.7. Filter by Name`);
+    listPersesDashboardsPage.filter.byName(dashboardName);
+    listPersesDashboardsPage.countDashboards('1');
+
+    cy.log(`8.8. Click on the Kebab icon - Delete`);
+    listPersesDashboardsPage.clickKebabIcon();
+    listPersesDashboardsPage.clickDeleteOption();
+    listPersesDashboardsPage.deleteDashboardDeleteButton();
+    listPersesDashboardsPage.emptyState();
+    listPersesDashboardsPage.countDashboards('0');
+    listPersesDashboardsPage.clearAllFilters();
+
+    cy.log(`8.9. Filter by Name`);
+    listPersesDashboardsPage.filter.byName(dashboardName);
+    listPersesDashboardsPage.countDashboards('0');
+    listPersesDashboardsPage.clearAllFilters();
+
+  });
+
+  it(`9.${perspective.name} perspective - Delete dashboard`, () => {
+    cy.log(`9.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
+    listPersesDashboardsPage.shouldBeLoaded();
+
+    cy.log(`9.3. Filter by Name`);
+    listPersesDashboardsPage.filter.byName('Testing Dashboard - UP');
+    listPersesDashboardsPage.countDashboards('1');
+
+    cy.log(`9.4. Click on the Kebab icon - Delete`);
+    listPersesDashboardsPage.clickKebabIcon();
+    listPersesDashboardsPage.clickDeleteOption();
+    listPersesDashboardsPage.deleteDashboardDeleteButton();
+    listPersesDashboardsPage.emptyState();
+    listPersesDashboardsPage.countDashboards('0');
+    listPersesDashboardsPage.clearAllFilters();
+
+    cy.log(`9.5. Filter by Name`);
+    listPersesDashboardsPage.filter.byName('Testing Dashboard - UP');
+    listPersesDashboardsPage.countDashboards('0');
+    listPersesDashboardsPage.clearAllFilters();
+
+  });
 
   // it(`17.${perspective.name} perspective - Import button validation - Enabled / Disabled`, () => {
   //   // Enabled for openshift-cluster-observability-operator namespace
