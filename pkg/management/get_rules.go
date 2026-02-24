@@ -65,11 +65,22 @@ func (c *client) GetRules(ctx context.Context, req k8s.GetRulesRequest) ([]k8s.P
 			for _, alert := range rule.Alerts {
 				if alert.State == "pending" || alert.State == "firing" {
 					if alert.Labels[k8s.AlertSourceLabel] != k8s.AlertSourceUser {
-						relabeledLabels, keep := relabel.Process(labels.FromMap(alert.Labels), configs...)
+						// Apply relabeling to the "real" alert labels only; preserve plugin meta labels.
+						src := alert.Labels[k8s.AlertSourceLabel]
+						in := make(map[string]string, len(alert.Labels))
+						for k, v := range alert.Labels {
+							in[k] = v
+						}
+						delete(in, k8s.AlertSourceLabel)
+
+						relabeledLabels, keep := relabel.Process(labels.FromMap(in), configs...)
 						if !keep {
 							continue
 						}
 						alert.Labels = relabeledLabels.Map()
+						if src != "" {
+							alert.Labels[k8s.AlertSourceLabel] = src
+						}
 					}
 				}
 
@@ -133,23 +144,27 @@ func applyRelabeledRuleLabels(rule *k8s.PrometheusRule, relabeledByAlert map[str
 		return
 	}
 
+	// Preserve plugin meta labels added during API fetch.
+	source := ""
+	if rule.Labels != nil {
+		source = rule.Labels[k8s.AlertSourceLabel]
+	}
+
 	match := findRelabeledMatch(rule, relabeledByAlert[rule.Name])
 	if match == nil || match.Labels == nil {
 		return
 	}
 
-	if rule.Labels == nil {
-		rule.Labels = make(map[string]string)
-	}
-
-	// Overlay non-empty labels from the relabeled cache. This reflects ARC-applied
-	// changes (e.g. severity updates) while never clearing an existing label with
-	// an empty value from the cache.
+	// Replace rule labels with the relabeled cache version so that actions which
+	// remove/rename labels (e.g. LabelDrop/LabelKeep/LabelMap) are faithfully reflected.
+	labelsOut := make(map[string]string, len(match.Labels)+1)
 	for k, v := range match.Labels {
-		if v != "" {
-			rule.Labels[k] = v
-		}
+		labelsOut[k] = v
 	}
+	if source != "" {
+		labelsOut[k8s.AlertSourceLabel] = source
+	}
+	rule.Labels = labelsOut
 }
 
 func findRelabeledMatch(rule *k8s.PrometheusRule, candidates []monitoringv1.Rule) *monitoringv1.Rule {
