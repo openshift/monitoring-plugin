@@ -45,7 +45,6 @@ import { useSafeFetch } from '../console/utils/safe-fetch-hook';
 
 import './_promql-expression-input.scss';
 import { PROMETHEUS_BASE_PATH } from '../console/graphs/helpers';
-import { LabelNamesResponse } from '@perses-dev/prometheus-plugin';
 
 type InteractionTarget = {
   focus: () => void;
@@ -266,9 +265,7 @@ export const PromQLExpressionInput: React.FC<PromQLExpressionInputProps> = ({
   const safeFetch = React.useCallback(useSafeFetch(), []);
 
   React.useEffect(() => {
-    safeFetch<LabelNamesResponse>(
-      `${PROMETHEUS_BASE_PATH}/${PrometheusEndpoint.LABEL}/__name__/values`,
-    )
+    safeFetch<any>(`${PROMETHEUS_BASE_PATH}/${PrometheusEndpoint.LABEL}/__name__/values`)
       .then((response) => {
         const metrics = response?.data;
         setMetricNames(metrics);

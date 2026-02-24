@@ -65,7 +65,7 @@ export const DashboardDropdown: React.FC<DashboardDropdownProps> = ({
   }));
 
   return (
-    <Stack data-test="dashboard-dropdown">
+    <Stack data-test="dashboard-dropdown" className="pf-v5-u-mb-sm">
       <StackItem>
         <label htmlFor="monitoring-board-dropdown">{t('Dashboard')}</label>
       </StackItem>

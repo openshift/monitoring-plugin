@@ -1,3 +1,5 @@
+FEATURES    ?=incidents,perses-dashboards,dev-config
+
 .PHONY: install-frontend
 install-frontend:
 	cd web && npm install
@@ -96,3 +98,7 @@ mcp-podman-cross-build:
 	podman manifest create ${IMAGE}
 	podman build --platform $(PLATFORMS) --manifest ${IMAGE} -f Dockerfile.mcp
 	podman manifest push ${IMAGE}
+
+.PHONY: start-devspace-backend
+start-devspace-backend:
+	/opt/app-root/plugin-backend -port='9443' -cert='/var/cert/tls.crt' -key='/var/cert/tls.key' -static-path='/opt/app-root/web/dist' -config-path='/opt/app-root/config' -features='${FEATURES}'

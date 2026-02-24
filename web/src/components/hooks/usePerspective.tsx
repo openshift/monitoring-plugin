@@ -355,7 +355,7 @@ export const getLegacyDashboardsUrl = (
   }
 };
 
-export const getDashboardsUrl = (perspective: Perspective) => {
+export const getDashboardsListUrl = (perspective: Perspective) => {
   switch (perspective) {
     case 'virtualization-perspective':
       return `/virt-monitoring/v2/dashboards`;
@@ -363,6 +363,19 @@ export const getDashboardsUrl = (perspective: Perspective) => {
       return `/monitoring/v2/dashboards`;
     case 'acm':
       return `/multicloud/monitoring/v2/dashboards`;
+    default:
+      return '';
+  }
+};
+
+export const getDashboardUrl = (perspective: Perspective) => {
+  switch (perspective) {
+    case 'virtualization-perspective':
+      return `/virt-monitoring/v2/dashboards/view`;
+    case 'admin':
+      return `/monitoring/v2/dashboards/view`;
+    case 'acm':
+      return `/multicloud/monitoring/v2/dashboards/view`;
     default:
       return '';
   }
