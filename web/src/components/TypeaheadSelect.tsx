@@ -19,16 +19,20 @@ interface TypeaheadSelectProps {
   options: SelectOptionProps[];
   onSelect: (value: string | undefined) => void;
   placeholder?: string;
+  defaultValue?: string;
+  retainValue?: boolean;
 }
 
 export const TypeaheadSelect: React.FC<TypeaheadSelectProps> = ({
   options,
   onSelect,
   placeholder,
+  defaultValue,
+  retainValue,
 }) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const [selected, setSelected] = React.useState('');
-  const [inputValue, setInputValue] = React.useState<string>('');
+  const [inputValue, setInputValue] = React.useState<string>(defaultValue);
   const [selectOptions, setSelectOptions] = React.useState<SelectOptionProps[]>(options);
   const [focusedItemIndex, setFocusedItemIndex] = React.useState<number | null>(null);
   const [activeItemId, setActiveItemId] = React.useState<string | null>(null);
@@ -72,7 +76,9 @@ export const TypeaheadSelect: React.FC<TypeaheadSelectProps> = ({
       return;
     }
     setSelected(value);
-    setInputValue('');
+    if (retainValue) {
+      setInputValue(value);
+    }
     setIsOpen(false);
     setSelectOptions(options);
     onSelect(value);

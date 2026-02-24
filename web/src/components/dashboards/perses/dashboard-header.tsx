@@ -2,16 +2,7 @@ import type { FC, PropsWithChildren } from 'react';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 
-import {
-  Divider,
-  Split,
-  SplitItem,
-  Stack,
-  StackItem,
-  Text,
-  TextContent,
-  TextVariants,
-} from '@patternfly/react-core';
+import { Divider, Stack, StackItem, Text, TextVariants } from '@patternfly/react-core';
 
 import { CombinedDashboardMetadata } from './hooks/useDashboardsData';
 

@@ -82,7 +82,7 @@ const DashboardActionsCell = React.memo(
 
     if (disabled || loading) {
       return (
-        <Tooltip content={t("You don't have permissions to dashboard actions")}>
+        <Tooltip content={t("You don't have permissions for dashboard actions")}>
           <div>
             <ActionsColumn items={emptyActions} isDisabled={true} />
           </div>
@@ -299,7 +299,7 @@ const DashboardsTable: React.FunctionComponent<DashboardsTableProps> = ({
   const emptyRowActions = React.useMemo(
     () => [
       {
-        title: t("You don't have permissions to dashboard actions"),
+        title: t("You don't have permissions for dashboard actions"),
         // eslint-disable-next-line @typescript-eslint/no-empty-function
         onClick: () => {},
       },

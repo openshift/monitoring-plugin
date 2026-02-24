@@ -1,12 +1,6 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Alert,
-  AlertProps,
-  AlertGroup,
-  AlertActionCloseButton,
-  AlertVariant,
-} from '@patternfly/react-core';
+import { Alert, AlertProps, AlertGroup, AlertActionCloseButton } from '@patternfly/react-core';
 
 interface ToastItem {
   key: string;

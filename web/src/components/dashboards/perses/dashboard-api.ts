@@ -1,9 +1,10 @@
-import { DashboardResource } from '@perses-dev/core';
+import { DashboardResource, ProjectResource } from '@perses-dev/core';
 import buildURL from './perses/url-builder';
 import { useMutation, UseMutationResult, useQueryClient } from '@tanstack/react-query';
 import { consoleFetchJSON } from '@openshift-console/dynamic-plugin-sdk';
 import { useQuery, UseQueryOptions, UseQueryResult } from '@tanstack/react-query';
 import { StatusError } from '@perses-dev/core';
+import { PERSES_PROXY_BASE_PATH } from './perses-client';
 
 const resource = 'dashboards';
 
@@ -121,3 +122,36 @@ export function useDashboardList(
     ...options,
   });
 }
+
+export const createPersesProject = async (projectName: string): Promise<ProjectResource> => {
+  const createProjectURL = '/api/v1/projects';
+  const persesURL = `${PERSES_PROXY_BASE_PATH}${createProjectURL}`;
+
+  const newProject: Partial<ProjectResource> = {
+    kind: 'Project',
+    metadata: {
+      name: projectName,
+      version: 0,
+    },
+    spec: {
+      display: {
+        name: projectName,
+      },
+    },
+  };
+
+  return consoleFetchJSON.post(persesURL, newProject);
+};
+
+export const useCreateProjectMutation = (): UseMutationResult<ProjectResource, Error, string> => {
+  const queryClient = useQueryClient();
+
+  return useMutation<ProjectResource, Error, string>({
+    mutationKey: ['projects'],
+    mutationFn: createPersesProject,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      queryClient.invalidateQueries({ queryKey: [resource] });
+    },
+  });
+};

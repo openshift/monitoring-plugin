@@ -9,7 +9,6 @@ import { OCPDashboardApp } from './dashboard-app';
 import { DashboardFrame } from './dashboard-frame';
 import { ProjectEmptyState } from './emptystates/ProjectEmptyState';
 import { useDashboardsData } from './hooks/useDashboardsData';
-import { ToastProvider } from './ToastProvider';
 
 const queryClient = new QueryClient({
   defaultOptions: {
