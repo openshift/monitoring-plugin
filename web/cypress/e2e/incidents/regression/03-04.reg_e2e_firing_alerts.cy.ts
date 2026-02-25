@@ -37,7 +37,7 @@ describe('Regression: Time-Based Alert Resolution (E2E with Firing Alerts)', { t
   let currentAlertName: string;
 
   before(() => {
-    cy.beforeBlockCOO(MCP, MP);
+    cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
     
     cy.log('Create or reuse firing alert for testing');
     cy.createKubePodCrashLoopingAlert('TimeBasedResolution2').then((alertName) => {

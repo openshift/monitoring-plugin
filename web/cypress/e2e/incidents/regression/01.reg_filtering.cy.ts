@@ -28,7 +28,7 @@ const MP = {
 describe('Regression: Incidents Filtering', { tags: ['@incidents'] }, () => {
 
   before(() => {
-    cy.beforeBlockCOO(MCP, MP);
+    cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
   });
 
   beforeEach(() => {

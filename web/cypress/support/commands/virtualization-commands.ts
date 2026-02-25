@@ -6,7 +6,7 @@ import Shadow = Cypress.Shadow;
 import 'cypress-wait-until';
 import { operatorHubPage } from '../../views/operator-hub-page';
 import { nav } from '../../views/nav';
-import { operatorAuthUtils } from './operator-commands';
+import { operatorAuthUtils } from './auth-commands';
 import { guidedTour } from '../../views/tour';
 
 export {};
