@@ -8,6 +8,7 @@ import (
 	"k8s.io/client-go/rest"
 
 	osmv1client "github.com/openshift/client-go/monitoring/clientset/versioned"
+	routeclient "github.com/openshift/client-go/route/clientset/versioned"
 	monitoringv1client "github.com/prometheus-operator/prometheus-operator/pkg/client/versioned"
 	"github.com/sirupsen/logrus"
 )
@@ -21,6 +22,8 @@ type client struct {
 	monitoringv1clientset *monitoringv1client.Clientset
 	osmv1clientset        *osmv1client.Clientset
 	config                *rest.Config
+
+	prometheusAlerts *prometheusAlerts
 
 	prometheusRuleManager *prometheusRuleManager
 	namespaceManager      *namespaceManager
@@ -42,6 +45,11 @@ func NewClient(ctx context.Context, config *rest.Config) (Client, error) {
 		return nil, fmt.Errorf("failed to create osmv1 clientset: %w", err)
 	}
 
+	routeClientset, err := routeclient.NewForConfig(config)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create route clientset: %w", err)
+	}
+
 	c := &client{
 		clientset:             clientset,
 		monitoringv1clientset: monitoringv1clientset,
@@ -53,6 +61,8 @@ func NewClient(ctx context.Context, config *rest.Config) (Client, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create PrometheusRule manager: %w", err)
 	}
+
+	c.prometheusAlerts = newPrometheusAlerts(routeClientset, clientset.CoreV1(), config, c.prometheusRuleManager)
 
 	c.namespaceManager, err = newNamespaceManager(ctx, clientset)
 	if err != nil {
@@ -68,6 +78,10 @@ func (c *client) TestConnection(_ context.Context) error {
 		return fmt.Errorf("failed to connect to cluster: %w", err)
 	}
 	return nil
+}
+
+func (c *client) PrometheusAlerts() PrometheusAlertsInterface {
+	return c.prometheusAlerts
 }
 
 func (c *client) PrometheusRules() PrometheusRuleInterface {
