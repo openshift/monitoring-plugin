@@ -289,6 +289,7 @@ export const persesMUIDataTestIDs = {
 
 export const persesDashboardDataTestIDs = {
   createDashboardButtonToolbar: 'create-dashboard-button-list-page',
+  importDashboardButtonToolbar: 'import-dashboard-button-list-page',
   editDashboardButtonToolbar: 'edit-dashboard-button-toolbar',
   cancelButtonToolbar: 'cancel-button-toolbar',
 };
