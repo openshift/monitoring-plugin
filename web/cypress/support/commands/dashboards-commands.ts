@@ -1,4 +1,5 @@
 import { DataTestIDs, LegacyTestIDs } from '../../../src/components/data-test';
+import { waitForPodsReady, waitForResourceCondition } from './wait-utils';
 
 export { };
 
@@ -9,16 +10,8 @@ export const dashboardsUtils = {
   setupMonitoringUIPlugin(MCP: { namespace: string }): void {
     cy.log('Create Monitoring UI Plugin instance.');
     cy.exec(`oc apply -f ./cypress/fixtures/coo/monitoring-ui-plugin.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
-    cy.exec(
-      `sleep 15 && oc wait --for=condition=Ready pods --selector=app.kubernetes.io/instance=monitoring -n ${MCP.namespace} --timeout=60s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
-      {
-        timeout: readyTimeoutMilliseconds,
-        failOnNonZeroExit: true,
-      },
-    ).then((result) => {
-      expect(result.code).to.eq(0);
-      cy.log(`Monitoring plugin pod is now running in namespace: ${MCP.namespace}`);
-    });
+    waitForPodsReady('app.kubernetes.io/instance=monitoring', MCP.namespace, readyTimeoutMilliseconds);
+    cy.log(`Monitoring plugin pod is now running in namespace: ${MCP.namespace}`);
   },
 
   setupDashboardsAndPlugins(MCP: { namespace: string }): void {
@@ -68,27 +61,16 @@ export const dashboardsUtils = {
       `oc label namespace ${MCP.namespace} openshift.io/cluster-monitoring=true --overwrite=true --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
     );
 
-    cy.exec(
-      `sleep 15 && oc wait --for=condition=Ready pods --selector=app.kubernetes.io/instance=perses -n ${MCP.namespace} --timeout=600s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
-      {
-        timeout: installTimeoutMilliseconds,
-        failOnNonZeroExit: true,
-      },
-    ).then((result) => {
-      expect(result.code).to.eq(0);
-      cy.log(`Perses-0 pod is now running in namespace: ${MCP.namespace}`);
-    });
+    waitForPodsReady('app.kubernetes.io/instance=perses', MCP.namespace, installTimeoutMilliseconds);
+    cy.log(`Perses-0 pod is now running in namespace: ${MCP.namespace}`);
 
-    cy.exec(
-      `sleep 15 && oc wait --for=jsonpath='{.metadata.name}'=health-analyzer --timeout=60s servicemonitor/health-analyzer -n ${MCP.namespace} --timeout=60s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
-      {
-        timeout: readyTimeoutMilliseconds,
-        failOnNonZeroExit: true,
-      },
-    ).then((result) => {
-      expect(result.code).to.eq(0);
-      cy.log(`Health-analyzer service monitor is now running in namespace: ${MCP.namespace}`);
-    });
+    waitForResourceCondition(
+      'servicemonitor/health-analyzer',
+      "jsonpath='{.metadata.name}'=health-analyzer",
+      MCP.namespace,
+      readyTimeoutMilliseconds,
+    );
+    cy.log(`Health-analyzer service monitor is now running in namespace: ${MCP.namespace}`);
 
     cy.reload(true);
     cy.visit('/monitoring/v2/dashboards');
@@ -100,34 +82,14 @@ export const dashboardsUtils = {
     cy.exec(`oc apply -f ./cypress/fixtures/coo/troubleshooting-panel-ui-plugin.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
     cy.log('Troubleshooting panel instance created. Waiting for pods to be ready.');
-    cy.exec(
-      `sleep 15 && oc wait --for=condition=Ready pods --selector=app.kubernetes.io/instance=troubleshooting-panel -n ${MCP.namespace} --timeout=60s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
-      {
-        timeout: readyTimeoutMilliseconds,
-        failOnNonZeroExit: true,
-      },
-    ).then((result) => {
-      expect(result.code).to.eq(0);
-      cy.log(`Troubleshooting panel pod is now running in namespace: ${MCP.namespace}`);
-    });
+    waitForPodsReady('app.kubernetes.io/instance=troubleshooting-panel', MCP.namespace, readyTimeoutMilliseconds);
+    cy.log(`Troubleshooting panel pod is now running in namespace: ${MCP.namespace}`);
 
-    cy.exec(
-      `sleep 15 && oc wait --for=condition=Ready pods --selector=app.kubernetes.io/instance=korrel8r -n ${MCP.namespace} --timeout=600s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
-      {
-        timeout: installTimeoutMilliseconds,
-        failOnNonZeroExit: true,
-      },
-    ).then((result) => {
-      expect(result.code).to.eq(0);
-      cy.log(`Korrel8r pod is now running in namespace: ${MCP.namespace}`);
-    });
+    waitForPodsReady('app.kubernetes.io/instance=korrel8r', MCP.namespace, installTimeoutMilliseconds);
+    cy.log(`Korrel8r pod is now running in namespace: ${MCP.namespace}`);
 
-    cy.log('Reloading the page');
     cy.reload(true);
-    cy.log('Waiting for 10 seconds before clicking the application launcher');
-    cy.wait(10000);
-    cy.log('Clicking the application launcher');
-    cy.byLegacyTestID(LegacyTestIDs.ApplicationLauncher).should('be.visible').click();
+    cy.byLegacyTestID(LegacyTestIDs.ApplicationLauncher, { timeout: 30000 }).should('be.visible').click();
     cy.byTestID(DataTestIDs.MastHeadApplicationItem).contains('Signal Correlation').should('be.visible');
   },
 

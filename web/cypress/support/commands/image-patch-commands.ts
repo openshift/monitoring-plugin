@@ -1,3 +1,5 @@
+import { waitForPodsReady, waitForPodsReadyOrAbsent } from './wait-utils';
+
 export { };
 
 const readyTimeoutMilliseconds = Cypress.config('readyTimeoutMilliseconds') as number;
@@ -22,17 +24,9 @@ export const imagePatchUtils = {
         cy.log(`CMO deployment Scaled Down successfully: ${result.stdout}`);
       });
 
-      cy.exec(
-        `sleep 15 && oc wait --for=condition=Ready pods --selector=app.kubernetes.io/name=monitoring-plugin -n ${MP.namespace} --timeout=60s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
-        {
-          timeout: readyTimeoutMilliseconds,
-          failOnNonZeroExit: true,
-        },
-      ).then((result) => {
-        expect(result.code).to.eq(0);
-        cy.log(`Monitoring plugin pod is now running in namespace: ${MP.namespace}`);
-        cy.reload(true);
-      });
+      waitForPodsReady('app.kubernetes.io/name=monitoring-plugin', MP.namespace, readyTimeoutMilliseconds);
+      cy.log(`Monitoring plugin pod is now running in namespace: ${MP.namespace}`);
+      cy.reload(true);
     } else {
       cy.log('MP_IMAGE is NOT set. Skipping patching the image in CMO operator CSV.');
     }
@@ -106,21 +100,8 @@ export const imagePatchUtils = {
         expect(result.code).to.eq(0);
         cy.log(`CMO CSV reverted successfully with Monitoring Plugin image: ${result.stdout}`);
 
-        cy.exec(
-          `sleep 15 && oc wait --for=condition=Ready pods --selector=app.kubernetes.io/name=monitoring-plugin -n ${MP.namespace} --timeout=60s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
-          {
-            timeout: readyTimeoutMilliseconds,
-            failOnNonZeroExit: false,
-          },
-        ).then((result) => {
-          if (result.code === 0) {
-            cy.log(`Monitoring plugin pod is now running in namespace: ${MP.namespace}`);
-          } else if (result.stderr.includes('no matching resources found')) {
-            cy.log(`No monitoring-plugin pods found in namespace ${MP.namespace} - this is expected on fresh clusters`);
-          } else {
-            throw new Error(`Failed to wait for monitoring-plugin pods: ${result.stderr}`);
-          }
-        });
+        waitForPodsReadyOrAbsent('app.kubernetes.io/name=monitoring-plugin', MP.namespace, readyTimeoutMilliseconds);
+        cy.log(`Monitoring plugin pods verified in namespace: ${MP.namespace}`);
 
         cy.reload(true);
       });
