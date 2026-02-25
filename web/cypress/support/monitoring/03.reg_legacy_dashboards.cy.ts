@@ -86,7 +86,6 @@ export function testLegacyDashboardsRegression(perspective: PerspectiveConfig) {
     alerts.getWatchdogAlert();
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     commonPages.titleShouldHaveText('Alerting');
-    alerts.getWatchdogAlert();
     listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
     listPage.ARRows.countShouldBe(1);
     listPage.ARRows.clickAlertingRule();

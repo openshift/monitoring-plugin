@@ -60,16 +60,8 @@ export const listPage = {
      */
     byName: (name: string) => {
       cy.log('listPage.filter.byName');
-      cy.get('body').then(($body) => {
-        const hasFilterbyName419 = $body.find('[data-test-id="' + LegacyTestIDs.NameLabelDropdown + '"]').length > 0;
-        if (hasFilterbyName419) {
-          cy.byLegacyTestID(LegacyTestIDs.NameLabelDropdown).scrollIntoView().click();
-          cy.byLegacyTestID(LegacyTestIDs.NameLabelDropdownOptions).contains('Name').click();
-        } else {
-          cy.byTestID(DataTestIDs.NameLabelDropdown).scrollIntoView().click();
-          cy.byTestID(DataTestIDs.NameLabelDropdownOptions).contains('Name').click();
-        }
-      });
+      cy.byLegacyTestID(LegacyTestIDs.NameLabelDropdown).scrollIntoView().click();
+      cy.byLegacyTestID(LegacyTestIDs.NameLabelDropdownOptions).contains('Name').click();
       try {
         cy.byTestID(DataTestIDs.NameInput).scrollIntoView().as('input').should('be.visible');
         cy.get('@input', { timeout: 10000 }).scrollIntoView().type(name + '{enter}');
@@ -85,16 +77,8 @@ export const listPage = {
      */
     byLabel: (label: string) => {
       cy.log('listPage.filter.byLabel');
-      cy.get('body').then(($body) => {
-        const hasFilterbyName419 = $body.find('[data-test-id="' + LegacyTestIDs.NameLabelDropdown + '"]').length > 0;
-        if (hasFilterbyName419) {
-          cy.byLegacyTestID(LegacyTestIDs.NameLabelDropdown).scrollIntoView().click();
-          cy.byLegacyTestID(LegacyTestIDs.NameLabelDropdownOptions).contains('Label').click();
-        } else {
-          cy.byTestID(DataTestIDs.NameLabelDropdown).scrollIntoView().click();
-          cy.byTestID(DataTestIDs.NameLabelDropdownOptions).contains('Label').click();
-        }
-      });
+      cy.byLegacyTestID(LegacyTestIDs.NameLabelDropdown).scrollIntoView().click();
+      cy.byLegacyTestID(LegacyTestIDs.NameLabelDropdownOptions).contains('Label').click();
       cy.byLegacyTestID(LegacyTestIDs.ItemFilter).scrollIntoView()
         .as('input').should('be.visible');
       cy.get('@input', { timeout: 10000 }).scrollIntoView().type(label + '{enter}').should('have.attr', 'value', label);
