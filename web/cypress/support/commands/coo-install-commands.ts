@@ -1,3 +1,4 @@
+import 'cypress-wait-until';
 import { operatorHubPage } from '../../views/operator-hub-page';
 import { nav } from '../../views/nav';
 
@@ -76,38 +77,53 @@ export const cooInstallUtils = {
 
   waitForCOOReady(MCP: { namespace: string }): void {
     cy.log('Check Cluster Observability Operator status');
+    const kubeconfig = Cypress.env('KUBECONFIG_PATH');
 
-    cy.exec(`oc project ${MCP.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+    cy.exec(`oc project ${MCP.namespace} --kubeconfig ${kubeconfig}`);
+
+    cy.waitUntil(
+      () =>
+        cy
+          .exec(
+            `oc get pods -n ${MCP.namespace} -o name --kubeconfig ${kubeconfig} | grep observability-operator | grep -v bundle`,
+            { failOnNonZeroExit: false },
+          )
+          .then((result) => result.code === 0 && result.stdout.trim().length > 0),
+      {
+        timeout: readyTimeoutMilliseconds,
+        interval: 10000,
+        errorMsg: `Observability operator pod not found in namespace ${MCP.namespace}`,
+      },
+    );
 
     cy.exec(
-      `sleep 60 && oc get pods -n ${MCP.namespace} | grep observability-operator | grep -v bundle | awk '{print $1}'`,
-      { timeout: readyTimeoutMilliseconds, failOnNonZeroExit: true },
+      `oc get pods -n ${MCP.namespace} -o name --kubeconfig ${kubeconfig} | grep observability-operator | grep -v bundle`,
     )
       .its('stdout')
-      .then((podName) => {
-        const COO_POD_NAME = podName.trim();
-        cy.log(`Successfully retrieved Pod Name: ${COO_POD_NAME}`);
+      .then((podOutput) => {
+        const podName = podOutput.trim();
+        cy.log(`Found COO pod: ${podName}`);
+
         cy.exec(
-          `sleep 15 && oc wait --for=condition=Ready pods ${COO_POD_NAME} -n ${MCP.namespace} --timeout=60s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
-          {
-            timeout: readyTimeoutMilliseconds,
-            failOnNonZeroExit: true,
-          },
+          `oc wait --for=condition=Ready ${podName} -n ${MCP.namespace} --timeout=120s --kubeconfig ${kubeconfig}`,
+          { timeout: readyTimeoutMilliseconds, failOnNonZeroExit: true },
         ).then((result) => {
           expect(result.code).to.eq(0);
           cy.log(`Observability-operator pod is now running in namespace: ${MCP.namespace}`);
         });
       });
 
-    cy.get('#page-sidebar').then(($sidebar) => {
-      const section = $sidebar.text().includes('Ecosystem') ? 'Ecosystem' : 'Operators';
-      nav.sidenav.clickNavLink([section, 'Installed Operators']);
-    });
+    if (Cypress.env('COO_UI_INSTALL')) {
+      cy.get('#page-sidebar').then(($sidebar) => {
+        const section = $sidebar.text().includes('Ecosystem') ? 'Ecosystem' : 'Operators';
+        nav.sidenav.clickNavLink([section, 'Installed Operators']);
+      });
 
-    cy.byTestID('name-filter-input').should('be.visible').type('Observability{enter}');
-    cy.get('[data-test="status-text"]', { timeout: installTimeoutMilliseconds })
-      .eq(0)
-      .should('contain.text', 'Succeeded', { timeout: installTimeoutMilliseconds });
+      cy.byTestID('name-filter-input').should('be.visible').type('Observability{enter}');
+      cy.get('[data-test="status-text"]', { timeout: installTimeoutMilliseconds })
+        .eq(0)
+        .should('contain.text', 'Succeeded', { timeout: installTimeoutMilliseconds });
+    }
   },
 
   cleanupCOONamespace(MCP: { namespace: string }): void {
