@@ -394,8 +394,14 @@ function InnerWrapper({ children, project, dashboardName }) {
   const DEFAULT_DASHBOARD_DURATION = '30m';
   const DEFAULT_REFRESH_INTERVAL = '0s';
 
-  const initialTimeRange = useInitialTimeRange(DEFAULT_DASHBOARD_DURATION);
-  const initialRefreshInterval = useInitialRefreshInterval(DEFAULT_REFRESH_INTERVAL);
+  const dashboardDuration = persesDashboard?.spec?.duration;
+  const dashboardTimeInterval = persesDashboard?.spec?.refreshInterval;
+
+  const effectiveDuration = dashboardDuration || DEFAULT_DASHBOARD_DURATION;
+  const effectiveRefreshInterval = dashboardTimeInterval || DEFAULT_REFRESH_INTERVAL;
+
+  const initialTimeRange = useInitialTimeRange(effectiveDuration);
+  const initialRefreshInterval = useInitialRefreshInterval(effectiveRefreshInterval);
 
   const builtinVariables = useMemo(() => {
     const result = [
@@ -436,17 +442,6 @@ function InnerWrapper({ children, project, dashboardName }) {
     return <LoadingBox />;
   }
 
-  let clearedDashboardResource: DashboardResource | undefined;
-  if (Array.isArray(persesDashboard)) {
-    if (persesDashboard.length === 0) {
-      clearedDashboardResource = undefined;
-    } else {
-      clearedDashboardResource = persesDashboard[0];
-    }
-  } else {
-    clearedDashboardResource = persesDashboard;
-  }
-
   return (
     <TimeRangeProviderWithQueryParams
       initialTimeRange={initialTimeRange}
@@ -454,17 +449,14 @@ function InnerWrapper({ children, project, dashboardName }) {
     >
       <VariableProviderWithQueryParams
         builtinVariableDefinitions={builtinVariables}
-        initialVariableDefinitions={clearedDashboardResource?.spec?.variables}
-        key={clearedDashboardResource?.metadata.name}
+        initialVariableDefinitions={persesDashboard?.spec?.variables}
+        key={persesDashboard?.metadata.name}
       >
-        <PersesPrometheusDatasourceWrapper
-          queries={[]}
-          dashboardResource={clearedDashboardResource}
-        >
-          {clearedDashboardResource ? (
+        <PersesPrometheusDatasourceWrapper queries={[]} dashboardResource={persesDashboard}>
+          {persesDashboard ? (
             <DashboardProvider
               initialState={{
-                dashboardResource: clearedDashboardResource,
+                dashboardResource: persesDashboard,
               }}
             >
               <ValidationProvider>{children}</ValidationProvider>
