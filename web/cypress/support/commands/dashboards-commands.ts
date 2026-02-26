@@ -1,3 +1,4 @@
+import 'cypress-wait-until';
 import { DataTestIDs, LegacyTestIDs } from '../../../src/components/data-test';
 import { waitForPodsReady, waitForResourceCondition } from './wait-utils';
 
@@ -89,8 +90,30 @@ export const dashboardsUtils = {
     cy.log(`Korrel8r pod is now running in namespace: ${MCP.namespace}`);
 
     cy.reload(true);
-    cy.byLegacyTestID(LegacyTestIDs.ApplicationLauncher, { timeout: 30000 }).should('be.visible').click();
-    cy.byTestID(DataTestIDs.MastHeadApplicationItem).contains('Signal Correlation').should('be.visible');
+
+    // Dynamic plugins may take time to register after reload.
+    // Retry by closing/re-opening the launcher until the item appears.
+    cy.waitUntil(
+      () =>
+        cy.byLegacyTestID(LegacyTestIDs.ApplicationLauncher, { timeout: 10000 })
+          .should('be.visible')
+          .click()
+          .then(() =>
+            cy.get(`[data-test="${DataTestIDs.MastHeadApplicationItem}"]`, { timeout: 5000 })
+              .then(($items) => $items.filter(':contains("Signal Correlation")').length > 0)
+              .then((found) => {
+                if (!found) {
+                  cy.byLegacyTestID(LegacyTestIDs.ApplicationLauncher).click();
+                }
+                return found;
+              }),
+          ),
+      {
+        timeout: 60000,
+        interval: 5000,
+        errorMsg: 'Signal Correlation not found in application launcher after 60s',
+      },
+    );
   },
 
   cleanupTroubleshootingPanel(MCP: { namespace: string; config1?: { kind: string; name: string } }): void {
