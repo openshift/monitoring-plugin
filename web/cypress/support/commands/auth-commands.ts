@@ -120,7 +120,7 @@ export const operatorAuthUtils = {
       Cypress.env('MCP_CONSOLE_IMAGE'),
       Cypress.env('CHA_IMAGE'),
     ];
-    return [...baseKey, ...envVars.filter(Boolean)];
+    return [...baseKey, ...envVars.map((v) => v || '')];
   },
 
   generateMPSessionKey(MP: { namespace: string; operatorName: string }): string[] {
@@ -134,7 +134,7 @@ export const operatorAuthUtils = {
       Cypress.env('SKIP_ALL_INSTALL'),
       Cypress.env('MP_IMAGE'),
     ];
-    return [...baseKey, ...envVars.filter(Boolean)];
+    return [...baseKey, ...envVars.map((v) => v || '')];
   },
 
   generateKBVSessionKey(KBV: { namespace: string; packageName: string }): string[] {
@@ -148,7 +148,7 @@ export const operatorAuthUtils = {
       Cypress.env('SKIP_KBV_INSTALL'),
       Cypress.env('KBV_UI_INSTALL'),
     ];
-    return [...baseKey, ...envVars.filter(Boolean)];
+    return [...baseKey, ...envVars.map((v) => v || '')];
   },
 };
 

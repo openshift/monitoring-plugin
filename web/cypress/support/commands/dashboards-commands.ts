@@ -17,7 +17,7 @@ export const dashboardsUtils = {
 
   setupDashboardsAndPlugins(MCP: { namespace: string }): void {
     cy.log('Create perses-dev namespace.');
-    cy.exec(`oc new-project perses-dev --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+    cy.exec(`oc new-project perses-dev --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`, { failOnNonZeroExit: false });
 
     /**
      * TODO: When COO1.4.0 is released, points COO_UI_INSTALL to install dashboards on COO1.4.0 folder
