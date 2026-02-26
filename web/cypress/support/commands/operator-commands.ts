@@ -49,7 +49,7 @@ declare global {
   }
 }
 
-const useSession = Cypress.env('SESSION');
+const useSession = String(Cypress.env('SESSION')).toLowerCase() === 'true';
 
 // ── Helpers used only by the orchestration commands ────────────────
 

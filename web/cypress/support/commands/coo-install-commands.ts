@@ -29,7 +29,7 @@ export const cooInstallUtils = {
         `oc --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} apply -f ./cypress/fixtures/coo/coo-imagecontentsourcepolicy.yaml`,
       );
       cy.exec(
-        `oc create namespace ${MCP.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+        `oc create namespace ${MCP.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} --dry-run=client -o yaml | oc apply --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} -f -`,
       );
       cy.exec(
         `oc label namespace ${MCP.namespace} openshift.io/cluster-monitoring=true --overwrite=true --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
@@ -45,7 +45,7 @@ export const cooInstallUtils = {
         `oc --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} apply -f ./cypress/fixtures/coo/coo-imagecontentsourcepolicy.yaml`,
       );
       cy.exec(
-        `oc create namespace ${MCP.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+        `oc create namespace ${MCP.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} --dry-run=client -o yaml | oc apply --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} -f -`,
       );
       cy.exec(
         `oc label namespace ${MCP.namespace} openshift.io/cluster-monitoring=true --overwrite=true --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
@@ -122,7 +122,7 @@ export const cooInstallUtils = {
       cy.byTestID('name-filter-input').should('be.visible').type('Observability{enter}');
       cy.get('[data-test="status-text"]', { timeout: installTimeoutMilliseconds })
         .eq(0)
-        .should('contain.text', 'Succeeded', { timeout: installTimeoutMilliseconds });
+        .should('contain.text', 'Succeeded');
     }
   },
 
@@ -197,6 +197,10 @@ export const cooInstallUtils = {
             `oc get ns ${MCP.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} -o jsonpath='{.status.phase}'`,
             { failOnNonZeroExit: false },
           ).then((result) => {
+            if (result.code !== 0) {
+              cy.log(`${elapsed}ms - ${MCP.namespace} is successfully deleted.`);
+              return;
+            }
             const status = result.stdout.trim();
 
             if (status === 'Terminating') {
@@ -211,8 +215,6 @@ export const cooInstallUtils = {
                 }
               });
               cy.wait(checkIntervalMs).then(checkStatus);
-            } else if (status === 'NotFound') {
-              cy.log(`${elapsed}ms - ${MCP.namespace} is successfully deleted.`);
             } else {
               cy.log(`${elapsed}ms - ${MCP.namespace} changed to unexpected state: ${status}. Stopping monitoring.`);
             }
@@ -244,15 +246,27 @@ export const cooInstallUtils = {
       }
 
       cy.exec(
-        `oc get pods -n ${namespace} --kubeconfig ${kubeconfigPath} -o name 2>&1 | grep -E '${podPatterns}' | wc -l`,
+        `oc get pods -n ${namespace} --kubeconfig ${kubeconfigPath} -o name`,
         { failOnNonZeroExit: false },
       ).then((result) => {
-        const count = parseInt(result.stdout.trim(), 10);
+        if (result.code !== 0) {
+          if (result.stderr.includes('not found')) {
+            cy.log(`All target pods deleted after ${elapsed}ms (namespace gone)`);
+          } else {
+            cy.log(`${elapsed}ms - oc get pods failed: ${result.stderr}, retrying...`);
+            cy.wait(checkIntervalMs).then(checkPods);
+          }
+          return;
+        }
 
-        if (count === 0 || result.stderr.includes('not found')) {
+        const matchingPods = result.stdout
+          .split('\n')
+          .filter((line) => new RegExp(podPatterns).test(line));
+
+        if (matchingPods.length === 0) {
           cy.log(`All target pods deleted after ${elapsed}ms`);
         } else {
-          cy.log(`${elapsed}ms - ${count} pod(s) still exist, retrying...`);
+          cy.log(`${elapsed}ms - ${matchingPods.length} pod(s) still exist, retrying...`);
           cy.wait(checkIntervalMs).then(checkPods);
         }
       });
