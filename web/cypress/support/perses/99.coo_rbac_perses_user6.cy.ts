@@ -24,21 +24,13 @@ export function testCOORBACPersesTestsDevUser6(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.assertCreateButtonIsDisabled();
   });
 
-  // it(`18.${perspective.name} perspective - Import button validation - Enabled - YAML - project and namespace in the file mismatches`, () => {
-  //   // Enabled for openshift-cluster-observability-operator namespace
-  // });
+  it(`2.${perspective.name} perspective - Import button validation - Disabled`, () => {
+    cy.log(`2.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
+    listPersesDashboardsPage.noDashboardsFoundState();
 
-  // it(`19.${perspective.name} perspective - Import button validation - Enabled - YAML project and namespace in the file matches`, () => {
-  //   // Enabled for openshift-cluster-observability-operator namespace
-  // });
-
-  // it(`20.${perspective.name} perspective - Import button validation - Enabled - JSON - project and namespace in the file mismatches`, () => {
-  //   // Enabled for openshift-cluster-observability-operator namespace
-  // });
-
-  // it(`21.${perspective.name} perspective - Import button validation - Enabled - JSON project and namespace in the file matches`, () => {
-  //   // Enabled for openshift-cluster-observability-operator namespace
-  // });
+    cy.log(`2.2. Verify Import button is disabled`);
+    listPersesDashboardsPage.assertImportButtonIsDisabled();
+  });
 
 
 }

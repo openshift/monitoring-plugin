@@ -74,6 +74,7 @@ export const persesDashboardsModalTitles ={
   DISCARD_CHANGES: 'Discard Changes',
   VIEW_JSON_DIALOG: 'Dashboard JSON',
   CREATE_DASHBOARD: 'Create Dashboard',
+  IMPORT_DASHBOARD: 'Import Dashboard',
 }
 
 export enum persesDashboardsAddListVariableSource {
@@ -161,4 +162,14 @@ export const persesDashboardsRenameDashboard = {
 
 export const persesDashboardsDuplicateDashboard = {
   DIALOG_DUPLICATED_NAME_VALIDATION: "already exists", //use contains
+}
+
+export const persesDashboardsImportDashboard = {
+  DIALOG_TITLE: '1. Provide a dashboard (JSON or YAML)',
+  DIALOG_UPLOAD_JSON_YAML_FILE: 'Upload a dashboard file or paste the dashboard definition directly in the editor below.',
+  DIALOG_UNABLE_TO_DETECT_DASHBOARD_FORMAT: 'Unable to detect dashboard format. Please provide a valid Perses or Grafana dashboard.',
+  DIALOG_GRAFANA_DASHBOARD_DETECTED: 'Grafana dashboard detected. It will be automatically migrated to Perses format. Note: migration may be partial as not all Grafana features are supported.',
+  DIALOG_PERSES_DASHBOARD_DETECTED: 'Perses dashboard detected.',
+  DIALOG_FAILED_TO_MIGRATE_GRAFANA_DASHBOARD: 'Danger alert:Failed to migrate dashboard: internal server error',
+  DIALOG_DUPLICATED_DASHBOARD_ERROR: 'Danger alert:document already exists',
 }

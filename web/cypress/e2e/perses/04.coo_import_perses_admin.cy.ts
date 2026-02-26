@@ -1,6 +1,5 @@
 import { nav } from '../../views/nav';
-//TODO: rename after customizable-dashboards gets merged
-import { runBVTCOOPersesTests1 } from '../../support/perses/00.coo_bvt_perses_admin_1.cy';
+import { runCOOImportPersesTests } from '../../support/perses/04.coo_import_perses_admin.cy';
 
 // Set constants for the operators that need to be installed for tests.
 const MCP = {
@@ -18,21 +17,30 @@ const MP = {
   operatorName: 'Cluster Monitoring Operator',
 };
 
-//TODO: change tag to @smoke, @dashboards, @perses when customizable-dashboards gets merged
-describe('BVT: COO - Dashboards (Perses) - Administrator perspective', { tags: ['@smoke-', '@dashboards-', '@perses-'] }, () => {
+//TODO: change tag to @dashboards when customizable-dashboards gets merged
+describe('COO - Dashboards (Perses) - Import perses dashboard', { tags: ['@perses', '@dashboards-'] }, () => {
 
   before(() => {
     cy.beforeBlockCOO(MCP, MP);
     cy.cleanupPersesTestDashboardsBeforeTests();
+    cy.setupPersesRBACandExtraDashboards();
   });
 
   beforeEach(() => {
     nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
+    cy.wait(5000);
+    cy.changeNamespace('All Projects');
   });
 
-  //TODO: rename after customizable-dashboards gets merged
-  runBVTCOOPersesTests1({
+  after(() => {
+    cy.cleanupExtraDashboards();
+  });
+
+  runCOOImportPersesTests({ 
     name: 'Administrator',
   });
 
 });
+
+
+

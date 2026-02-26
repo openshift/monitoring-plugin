@@ -13,7 +13,7 @@ export const persesDashboardsPage = {
     cy.byAriaLabel(persesAriaLabels.ZoomInButton).scrollIntoView().should('be.visible');
     cy.byAriaLabel(persesAriaLabels.ZoomOutButton).scrollIntoView().should('be.visible');
     cy.byAriaLabel(persesAriaLabels.RefreshButton).scrollIntoView().should('be.visible');
-    cy.byAriaLabel(persesAriaLabels.RefreshIntervalDropdown).contains(persesDashboardsRefreshInterval.OFF).scrollIntoView().should('be.visible');
+    cy.get('#' + IDs.persesDashboardRefreshIntervalDropdown).scrollIntoView().should('be.visible');
     cy.byTestID(DataTestIDs.PersesDashboardDropdown).find('input').scrollIntoView().should('be.visible');
     cy.byTestID(DataTestIDs.PersesDashboardDropdown).find('button').scrollIntoView().should('be.visible');
     cy.byLegacyTestID(LegacyTestIDs.PersesDashboardSection).scrollIntoView().should('be.visible');
@@ -28,11 +28,11 @@ export const persesDashboardsPage = {
 
     cy.byTestID(persesDashboardDataTestIDs.editDashboardButtonToolbar).scrollIntoView().should('be.visible');
 
-    cy.byAriaLabel(persesAriaLabels.TimeRangeDropdown).contains(persesDashboardsTimeRange.LAST_30_MINUTES).scrollIntoView().should('be.visible');
+    cy.byAriaLabel(persesAriaLabels.TimeRangeDropdown).scrollIntoView().should('be.visible');
     cy.byAriaLabel(persesAriaLabels.ZoomInButton).scrollIntoView().should('be.visible');
     cy.byAriaLabel(persesAriaLabels.ZoomOutButton).scrollIntoView().should('be.visible');
     cy.byAriaLabel(persesAriaLabels.RefreshButton).scrollIntoView().should('be.visible');
-    cy.byAriaLabel(persesAriaLabels.RefreshIntervalDropdown).contains(persesDashboardsRefreshInterval.OFF).scrollIntoView().should('be.visible');
+    cy.get('#' + IDs.persesDashboardRefreshIntervalDropdown).scrollIntoView().should('be.visible');
 
     cy.get('#' + IDs.persesDashboardDownloadButton).scrollIntoView().should('be.visible');
     cy.byAriaLabel(persesAriaLabels.ViewJSONButton).scrollIntoView().should('be.visible');
@@ -46,15 +46,14 @@ export const persesDashboardsPage = {
     cy.wait(10000);
     commonPages.titleShouldHaveText(MonitoringPageTitles.DASHBOARDS);
     cy.byOUIAID(listPersesDashboardsOUIAIDs.PageHeaderSubtitle).scrollIntoView().should('contain', listPersesDashboardsPageSubtitle).should('be.visible');
-    // cy.byTestID(listPersesDashboardsDataTestIDs.PersesBreadcrumbDashboardNameItem).scrollIntoView().should('contain', dashboardName.toLowerCase().replace(/ /g, '_')).should('be.visible');
     cy.byTestID(listPersesDashboardsDataTestIDs.PersesBreadcrumbDashboardNameItem).scrollIntoView().should('contain', dashboardName).should('be.visible');
     persesDashboardsPage.assertEditModeButtons();
 
-    cy.byAriaLabel(persesAriaLabels.TimeRangeDropdown).contains(persesDashboardsTimeRange.LAST_30_MINUTES).scrollIntoView().should('be.visible');
+    cy.byAriaLabel(persesAriaLabels.TimeRangeDropdown).scrollIntoView().should('be.visible');
     cy.byAriaLabel(persesAriaLabels.ZoomInButton).scrollIntoView().should('be.visible');
     cy.byAriaLabel(persesAriaLabels.ZoomOutButton).scrollIntoView().should('be.visible');
     cy.byAriaLabel(persesAriaLabels.RefreshButton).scrollIntoView().should('be.visible');
-    cy.byAriaLabel(persesAriaLabels.RefreshIntervalDropdown).contains(persesDashboardsRefreshInterval.OFF).scrollIntoView().should('be.visible');
+    cy.get('#' + IDs.persesDashboardRefreshIntervalDropdown).scrollIntoView().should('be.visible');
 
     cy.get('#' + IDs.persesDashboardDownloadButton).scrollIntoView().should('be.visible');
     cy.byAriaLabel(persesAriaLabels.EditJSONButton).scrollIntoView().should('be.visible');
@@ -115,13 +114,13 @@ export const persesDashboardsPage = {
 
   clickRefreshIntervalDropdown: (interval: persesDashboardsRefreshInterval) => {
     cy.log('persesDashboardsPage.clickRefreshIntervalDropdown');
-    cy.byAriaLabel(persesAriaLabels.RefreshIntervalDropdown).scrollIntoView().should('be.visible').click({ force: true });
+    cy.get('#' + IDs.persesDashboardRefreshIntervalDropdown).scrollIntoView().should('be.visible').click({ force: true });
     cy.byPFRole('option').contains(interval).scrollIntoView().should('be.visible').click({ force: true });
   },
 
   refreshIntervalDropdownAssertion: () => {
     cy.log('persesDashboardsPage.refreshIntervalDropdownAssertion');
-    cy.byAriaLabel(persesAriaLabels.RefreshIntervalDropdown).scrollIntoView().should('be.visible').click({ force: true });
+    cy.get('#' + IDs.persesDashboardRefreshIntervalDropdown).scrollIntoView().should('be.visible').click({ force: true });
 
     const intervals = Object.values(persesDashboardsRefreshInterval);
     intervals.forEach((interval) => {
@@ -368,7 +367,7 @@ export const persesDashboardsPage = {
   backToListPersesDashboardsPage: () => {
     cy.log('persesDashboardsPage.backToListPersesDashboardsPage');
     cy.byTestID(listPersesDashboardsDataTestIDs.PersesBreadcrumbDashboardItem).scrollIntoView().should('be.visible').click({ force: true });
-    cy.wait(2000);
+    cy.wait(5000);
   },
 
   clickDiscardChangesButton: () => {

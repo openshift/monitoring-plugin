@@ -22,6 +22,7 @@ describe('COO - Dashboards (Perses) - Create perses dashboard', { tags: ['@perse
 
   before(() => {
     cy.beforeBlockCOO(MCP, MP);
+    cy.cleanupPersesTestDashboardsBeforeTests();
     cy.setupPersesRBACandExtraDashboards();
   });
 
