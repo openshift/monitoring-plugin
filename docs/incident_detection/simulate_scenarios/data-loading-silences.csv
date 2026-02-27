@@ -1,0 +1,6 @@
+start,end,alertname,namespace,severity,silenced,labels
+1140,1260,AlertF_KubePodCrashLooping,openshift-monitoring,warning,false,{"component": "monitoring"}
+1200,1380,AlertF_HighMemoryUsage,openshift-monitoring,critical,false,{"component": "monitoring"}
+1440,1500,AlertG_APIServerLatency,openshift-kube-apiserver,warning,false,{"component": "kube-apiserver"}
+1800,1980,AlertI_KubePodNotReady,openshift-operators,warning,true,{"component": "operators"}
+2040,2220,AlertJ_KubePodNotReady,openshift-storage,warning,false,{"component": "storage"}
