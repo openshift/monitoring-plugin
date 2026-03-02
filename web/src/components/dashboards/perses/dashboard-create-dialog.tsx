@@ -1,277 +1,254 @@
-import * as React from 'react';
+import { useMemo, useState } from 'react';
 import {
   Alert,
   Button,
   Modal,
   ModalVariant,
   FormGroup,
+  Form,
   TextInput,
   FormHelperText,
   HelperText,
   HelperTextItem,
   ValidatedOptions,
-  SelectOptionProps,
-  Tooltip,
-  AlertVariant,
-  Stack,
-  StackItem,
 } from '@patternfly/react-core';
+import { TypeaheadSelect, TypeaheadSelectOption } from '@patternfly/react-templates';
 import { ExclamationCircleIcon } from '@patternfly/react-icons';
 import { usePerses } from './hooks/usePerses';
+import { useEditableProjects } from './hooks/useEditableProjects';
 import { useTranslation } from 'react-i18next';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom-v5-compat';
 
-import { DashboardResource, getResourceExtendedDisplayName } from '@perses-dev/core';
+import { DashboardResource } from '@perses-dev/core';
 import { useCreateDashboardMutation, useCreateProjectMutation } from './dashboard-api';
 import { createNewDashboard } from './dashboard-utils';
 import { useToast } from './ToastProvider';
 import { usePerspective, getDashboardUrl } from '../../hooks/usePerspective';
-import { useEditableProjects } from './hooks/useEditableProjects';
-import { TypeaheadSelect } from '../../TypeaheadSelect';
-import {
-  createDashboardDialogValidationSchema,
-  CreateDashboardValidationType,
-  useDashboardValidationSchema,
-} from './dashboard-action-validations';
-import { Controller, FormProvider, SubmitHandler, useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { formGroupStyle, LabelSpacer } from './dashboard-action-modals';
+import React from 'react';
 
-export const DashboardCreateDialog: React.FunctionComponent = () => {
+interface DashboardCreateDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export const DashboardCreateDialog: React.FunctionComponent<DashboardCreateDialogProps> = ({
+  isOpen,
+  onClose,
+}) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const history = useHistory();
+  const navigate = useNavigate();
   const { perspective } = usePerspective();
   const { addAlert } = useToast();
-  const { editableProjects, hasEditableProject, permissionsLoading, permissionsError } =
-    useEditableProjects();
-  const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const { editableProjects, permissionsError } = useEditableProjects();
+  const [selectedProject, setSelectedProject] = useState<string | null>(null);
+  const [dashboardName, setDashboardName] = useState<string>('');
+  const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
   const createDashboardMutation = useCreateDashboardMutation();
   const createProjectMutation = useCreateProjectMutation();
   const { persesProjects } = usePerses();
-  const disabled = permissionsLoading || !hasEditableProject;
 
-  const projectOptions = React.useMemo<SelectOptionProps[]>(() => {
+  const projectOptions = useMemo<TypeaheadSelectOption[]>(() => {
     if (!editableProjects) {
       return [];
     }
-    return editableProjects.map((project) => ({
-      name: project,
-      value: project,
+
+    return editableProjects?.map((project) => ({
       content: project,
-      children: project,
+      value: project,
+      selected: project === selectedProject,
     }));
-  }, [editableProjects]);
+  }, [editableProjects, selectedProject]);
 
-  const defaultProject = React.useMemo(() => {
-    return persesProjects[0]?.metadata?.name || '';
-  }, [persesProjects]);
-
-  const { schema: validationSchema } = useDashboardValidationSchema(t, defaultProject);
-
-  const form = useForm<CreateDashboardValidationType>({
-    resolver: validationSchema
-      ? zodResolver(validationSchema)
-      : zodResolver(createDashboardDialogValidationSchema(t)),
-    mode: 'onBlur',
-    defaultValues: {
-      projectName: '',
-      dashboardName: '',
-    },
-  });
-
-  React.useEffect(() => {
-    if (isModalOpen && editableProjects?.length > 0) {
-      form.reset({
-        projectName: '',
-        dashboardName: '',
-      });
-    }
-  }, [isModalOpen, editableProjects?.length, form]);
-
-  const processForm: SubmitHandler<CreateDashboardValidationType> = async (data) => {
-    // Check if project exists, create it if it doesn't
-    const projectExists = persesProjects?.some(
-      (project) => project.metadata.name === data.projectName,
-    );
-
-    if (!projectExists) {
-      try {
-        await createProjectMutation.mutateAsync(data.projectName);
-        addAlert(
-          t('Project "{{project}}" created successfully', { project: data.projectName }),
-          'success',
-        );
-      } catch (projectError) {
-        const errorMessage =
-          projectError?.message ||
-          t('Failed to create project "{{project}}". Please try again.', {
-            project: data.projectName,
-          });
-        addAlert(t('Error creating project: {{error}}', { error: errorMessage }), 'danger');
-        return;
-      }
-    }
-
-    const newDashboard = createNewDashboard(data.dashboardName, data.projectName);
-
-    createDashboardMutation.mutate(newDashboard, {
-      onSuccess: (createdDashboard: DashboardResource) => {
-        const msg = t(
-          `Dashboard ${getResourceExtendedDisplayName(
-            createdDashboard,
-          )} has been successfully created`,
-        );
-        addAlert(msg, AlertVariant.success);
-
-        handleModalToggle();
-
-        const dashboardUrl = getDashboardUrl(perspective);
-        const dashboardParam = `dashboard=${createdDashboard.metadata.name}`;
-        const projectParam = `project=${createdDashboard.metadata.project}`;
-        const editModeParam = `edit=true`;
-        history.push(`${dashboardUrl}?${dashboardParam}&${projectParam}&${editModeParam}`);
-      },
-      onError: (err) => {
-        const msg = t(`Could not create dashboard. ${err}`);
-        addAlert(msg, AlertVariant.danger);
-      },
-    });
-  };
-
-  const onProjectSelect = (selection: string) => {
-    form.setValue('projectName', selection);
-  };
-
-  const handleModalToggle = () => {
-    if (isModalOpen) {
-      form.reset();
-    }
-    setIsModalOpen(!isModalOpen);
-  };
-
-  const createBtn = (
-    <Button variant="primary" onClick={handleModalToggle} isDisabled={disabled}>
-      {permissionsLoading ? t('Checking permissions...') : t('Create')}
-    </Button>
+  const { persesProjectDashboards: dashboards } = usePerses(
+    isOpen && selectedProject ? selectedProject : undefined,
   );
 
+  const handleSetDashboardName = (_event, dashboardName: string) => {
+    setDashboardName(dashboardName);
+    if (formErrors.dashboardName) {
+      setFormErrors((prev) => ({ ...prev, dashboardName: '' }));
+    }
+  };
+
+  const handleAdd = async () => {
+    setFormErrors({});
+
+    if (!selectedProject || !dashboardName.trim()) {
+      const errors: { [key: string]: string } = {};
+      if (!selectedProject) errors.project = t('Project is required');
+      if (!dashboardName.trim()) errors.dashboardName = t('Dashboard name is required');
+      setFormErrors(errors);
+      return;
+    }
+
+    try {
+      if (
+        dashboards &&
+        dashboards.some(
+          (d) =>
+            d.metadata.project === selectedProject &&
+            d.metadata.name.toLowerCase() === dashboardName.trim().toLowerCase(),
+        )
+      ) {
+        setFormErrors({
+          dashboardName: `Dashboard name "${dashboardName}" already exists in this project`,
+        });
+        return;
+      }
+
+      const projectExists = persesProjects?.some(
+        (project) => project.metadata.name === selectedProject,
+      );
+
+      if (!projectExists) {
+        try {
+          await createProjectMutation.mutateAsync(selectedProject as string);
+          addAlert(
+            t('Project "{{project}}" created successfully', { project: selectedProject }),
+            'success',
+          );
+        } catch (projectError) {
+          const errorMessage =
+            projectError?.message ||
+            t('Failed to create project "{{project}}". Please try again.', {
+              project: selectedProject,
+            });
+          addAlert(t('Error creating project: {{error}}', { error: errorMessage }), 'danger');
+          setFormErrors({ general: errorMessage });
+          return;
+        }
+      }
+
+      const newDashboard: DashboardResource = createNewDashboard(
+        dashboardName.trim(),
+        selectedProject as string,
+      );
+
+      const createdDashboard = await createDashboardMutation.mutateAsync(newDashboard);
+
+      addAlert(`Dashboard "${dashboardName}" created successfully`, 'success');
+
+      const dashboardUrl = getDashboardUrl(perspective);
+      const dashboardParam = `dashboard=${createdDashboard.metadata.name}`;
+      const projectParam = `project=${createdDashboard.metadata.project}`;
+      const editModeParam = `edit=true`;
+      navigate(`${dashboardUrl}?${dashboardParam}&${projectParam}&${editModeParam}`);
+
+      handleClose();
+    } catch (error) {
+      const errorMessage = error?.message || t('Failed to create dashboard. Please try again.');
+      addAlert(`Error creating dashboard: ${errorMessage}`, 'danger');
+      setFormErrors({ general: errorMessage });
+    }
+  };
+
+  const handleClose = () => {
+    setDashboardName('');
+    setFormErrors({});
+    setSelectedProject(null);
+    onClose();
+  };
+
+  const onSelect = (_event: any, selection: string) => {
+    setSelectedProject(selection);
+  };
+
   return (
-    <>
-      {!permissionsLoading && !hasEditableProject ? (
-        <Tooltip
-          content={t('To create dashboards, contact your cluster administrator for permission.')}
+    <Modal
+      variant={ModalVariant.small}
+      isOpen={isOpen}
+      onClose={handleClose}
+      onEscapePress={handleClose}
+      aria-labelledby="modal-with-dropdown"
+      actions={[
+        <Button
+          key="create-modal-btn"
+          variant="primary"
+          isDisabled={
+            !dashboardName?.trim() ||
+            !selectedProject ||
+            createDashboardMutation.isPending ||
+            createProjectMutation.isPending
+          }
+          isLoading={createDashboardMutation.isPending || createProjectMutation.isPending}
+          onClick={handleAdd}
         >
-          <span style={{ cursor: 'not-allowed' }}> {createBtn}</span>
-        </Tooltip>
-      ) : (
-        createBtn
+          {createDashboardMutation.isPending || createProjectMutation.isPending
+            ? t('Creating...')
+            : t('Create')}
+        </Button>,
+        <Button key="cancel" variant="link" onClick={handleClose}>
+          {t('Cancel')}
+        </Button>,
+      ]}
+      title={t('Create Dashboard')}
+    >
+      {permissionsError && (
+        <Alert
+          variant="danger"
+          title={t('Failed to load project permissions. Please refresh the page and try again.')}
+          isInline
+          style={{ marginBottom: '16px' }}
+        />
       )}
-      <Modal
-        variant={ModalVariant.small}
-        title={t('Create Dashboard')}
-        isOpen={isModalOpen}
-        onClose={handleModalToggle}
-        actions={[
-          <Button
-            key="create-modal-btn"
-            variant="primary"
-            isDisabled={
-              !(form.watch('dashboardName') || '')?.trim() ||
-              !(form.watch('projectName') || '')?.trim() ||
-              !hasEditableProject
-            }
-            isLoading={createDashboardMutation.isPending || createProjectMutation.isPending}
-            onClick={form.handleSubmit(processForm)}
-          >
-            {createDashboardMutation.isPending || createProjectMutation.isPending
-              ? t('Creating...')
-              : t('Create')}
-          </Button>,
-          <Button key="cancel" variant="link" onClick={handleModalToggle}>
-            {t('Cancel')}
-          </Button>,
-        ]}
-        aria-labelledby="modal-with-dropdown"
+      {formErrors.general && (
+        <Alert
+          variant="danger"
+          title={formErrors.general}
+          isInline
+          style={{ marginBottom: '16px' }}
+        />
+      )}
+      <Form
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleAdd();
+        }}
       >
-        {permissionsError && (
-          <Alert
-            variant="danger"
-            title={t('Failed to load project permissions. Please refresh the page and try again.')}
-            isInline
-            style={{ marginBottom: '16px' }}
+        <FormGroup
+          label={t('Select project')}
+          isRequired
+          fieldId="form-group-create-dashboard-dialog-project-selection"
+        >
+          <TypeaheadSelect
+            key={selectedProject || 'no-selection'}
+            selectOptions={projectOptions}
+            placeholder={t('Select a project')}
+            noOptionsFoundMessage={(filter) => t('No project found for "{{filter}}"', { filter })}
+            onClearSelection={() => {
+              setSelectedProject(null);
+            }}
+            onSelect={onSelect}
+            isCreatable={false}
+            maxMenuHeight="200px"
           />
-        )}
-        <FormProvider {...form}>
-          <form onSubmit={form.handleSubmit(processForm)}>
-            <Stack hasGutter>
-              <StackItem>
-                <Controller
-                  control={form.control}
-                  name="dashboardName"
-                  render={({ field, fieldState }) => (
-                    <FormGroup
-                      label={t('Dashboard name')}
-                      isRequired
-                      fieldId="duplicate-modal-dashboard-name-form-group"
-                      style={formGroupStyle}
-                    >
-                      <LabelSpacer />
-                      <TextInput
-                        {...field}
-                        isRequired
-                        type="text"
-                        id="duplicate-modal-dashboard-name-form-group-text-input"
-                        validated={
-                          fieldState.error ? ValidatedOptions.error : ValidatedOptions.default
-                        }
-                      />
-                      {fieldState.error && (
-                        <FormHelperText>
-                          <HelperText>
-                            <HelperTextItem icon={<ExclamationCircleIcon />} variant="error">
-                              {fieldState.error.message}
-                            </HelperTextItem>
-                          </HelperText>
-                        </FormHelperText>
-                      )}
-                    </FormGroup>
-                  )}
-                />
-              </StackItem>
-              <StackItem>
-                <Controller
-                  control={form.control}
-                  name="projectName"
-                  render={({ fieldState }) => (
-                    <FormGroup
-                      label={t('Select namespace')}
-                      isRequired
-                      fieldId="duplicate-modal-select-namespace-form-group"
-                      style={formGroupStyle}
-                    >
-                      <LabelSpacer />
-                      <TypeaheadSelect
-                        options={projectOptions}
-                        onSelect={onProjectSelect}
-                        retainValue
-                      />
-                      {fieldState.error && (
-                        <FormHelperText>
-                          <HelperText>
-                            <HelperTextItem icon={<ExclamationCircleIcon />} variant="error">
-                              {fieldState.error.message}
-                            </HelperTextItem>
-                          </HelperText>
-                        </FormHelperText>
-                      )}
-                    </FormGroup>
-                  )}
-                />
-              </StackItem>
-            </Stack>
-          </form>
-        </FormProvider>
-      </Modal>
-    </>
+        </FormGroup>
+        <FormGroup
+          label={t('Dashboard name')}
+          isRequired
+          fieldId="form-group-create-dashboard-dialog-name"
+        >
+          <TextInput
+            isRequired
+            type="text"
+            id="text-input-create-dashboard-dialog-name"
+            name="text-input-create-dashboard-dialog-name"
+            placeholder={t('my-new-dashboard')}
+            value={dashboardName}
+            onChange={handleSetDashboardName}
+            validated={formErrors.dashboardName ? ValidatedOptions.error : ValidatedOptions.default}
+          />
+          {formErrors.dashboardName && (
+            <FormHelperText>
+              <HelperText>
+                <HelperTextItem icon={<ExclamationCircleIcon />} variant="error">
+                  {formErrors.dashboardName}
+                </HelperTextItem>
+              </HelperText>
+            </FormHelperText>
+          )}
+        </FormGroup>
+      </Form>
+    </Modal>
   );
 };
