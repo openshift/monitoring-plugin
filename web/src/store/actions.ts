@@ -1,3 +1,4 @@
+import type { PanelDefinition } from '@perses-dev/core';
 import { action, ActionType as Action } from 'typesafe-actions';
 
 import { Alert, Rule, Silence } from '@openshift-console/dynamic-plugin-sdk';
@@ -19,6 +20,9 @@ export enum ActionType {
   DashboardsSetPollInterval = 'v2/dashboardsSetPollInterval',
   DashboardsSetTimespan = 'v2/dashboardsSetTimespan',
   DashboardsVariableOptionsLoaded = 'v2/dashboardsVariableOptionsLoaded',
+  DashboardsOpened = 'dashboardsPersesDashboardsOpened',
+  DashboardsAddPersesPanelExternally = 'dashboardsAddPersesPanelExternally',
+  DashboardsPersesPanelExternallyAdded = 'dashboardsPersesPanelExternallyAdded',
   QueryBrowserAddQuery = 'queryBrowserAddQuery',
   QueryBrowserDuplicateQuery = 'queryBrowserDuplicateQuery',
   QueryBrowserDeleteAllQueries = 'queryBrowserDeleteAllQueries',
@@ -69,6 +73,15 @@ export const dashboardsSetTimespan = (timespan: number) =>
 
 export const dashboardsVariableOptionsLoaded = (key: string, newOptions: string[]) =>
   action(ActionType.DashboardsVariableOptionsLoaded, { key, newOptions });
+
+export const dashboardsOpened = (isOpened: boolean) =>
+  action(ActionType.DashboardsOpened, { isOpened });
+
+export const dashboardsPersesPanelExternallyAdded = () =>
+  action(ActionType.DashboardsPersesPanelExternallyAdded, {});
+
+export const dashboardsAddPersesPanelExternally = (panelDefinition: PanelDefinition) =>
+  action(ActionType.DashboardsAddPersesPanelExternally, { panelDefinition });
 
 export const alertingSetLoading = (datasource: string, identifier: string) =>
   action(ActionType.AlertingSetLoading, {

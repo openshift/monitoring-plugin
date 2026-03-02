@@ -119,5 +119,18 @@
         "component": { "$codeRef": "DashboardPage" }
       }
     }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/1",
+    "value": {
+      "type": "ols.tool-ui",
+      "properties": {
+        "id": "mcp-obs/execute-range-query",
+        "component": {
+          "$codeRef": "ols-tool-ui.ExecuteRangeQuery"
+        }
+      }
+    }
   }
 ]

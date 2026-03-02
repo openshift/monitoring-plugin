@@ -29,6 +29,7 @@ import { useUpdateDashboardMutation } from './dashboard-api';
 import { useTranslation } from 'react-i18next';
 import { useToast } from './ToastProvider';
 import { useSearchParams } from 'react-router';
+import { useExternalPanelAddition } from './useExternalPanelAddition';
 
 export interface DashboardAppProps {
   dashboardResource: DashboardResource | EphemeralDashboardResource;
@@ -123,6 +124,8 @@ export const OCPDashboardApp = (props: DashboardAppProps): ReactElement => {
       });
     }
   };
+
+  useExternalPanelAddition({ isEditMode, onEditButtonClick });
 
   const updateDashboardMutation = useUpdateDashboardMutation();
 
