@@ -1,11 +1,14 @@
 import { persesDashboardsPage } from '../../views/perses-dashboards';
 import { listPersesDashboardsPage } from '../../views/perses-dashboards-list-dashboards';
 import { persesCreateDashboardsPage } from '../../views/perses-dashboards-create-dashboard';
-import { persesDashboardsAddListVariableSource, persesDashboardSampleQueries, persesDashboardsEmptyDashboard } from '../../fixtures/perses/constants';
+import { persesDashboardsAddListVariableSource, persesDashboardSampleQueries, persesDashboardsEmptyDashboard, persesDashboardsTimeRange } from '../../fixtures/perses/constants';
 import { persesDashboardsEditVariables } from '../../views/perses-dashboards-edit-variables';
 import { persesDashboardsPanelGroup } from '../../views/perses-dashboards-panelgroup';
 import { persesDashboardsPanel } from '../../views/perses-dashboards-panel';
 import { persesDashboardsAddListPanelType } from '../../fixtures/perses/constants';
+import { persesImportDashboardsPage } from '../../views/perses-dashboards-import-dashboard';
+import { nav } from '../../views/nav';
+import { persesAriaLabels } from '../../../src/components/data-test';
 
 export interface PerspectiveConfig {
   name: string;
@@ -260,10 +263,10 @@ export function testCOORBACPersesTestsDevUser3(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.renameDashboardRenameButton();
     listPersesDashboardsPage.emptyState();
     listPersesDashboardsPage.countDashboards('0');
-    listPersesDashboardsPage.clearAllFilters();
-    cy.wait(5000);
 
     cy.log(`5.5. Filter by Name`);
+    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
     listPersesDashboardsPage.filter.byName(renamedDashboardName);
     listPersesDashboardsPage.countDashboards('1');
     listPersesDashboardsPage.clickDashboard(renamedDashboardName);
@@ -281,10 +284,10 @@ export function testCOORBACPersesTestsDevUser3(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.renameDashboardRenameButton();
     listPersesDashboardsPage.emptyState();
     listPersesDashboardsPage.countDashboards('0');
-    listPersesDashboardsPage.clearAllFilters();
-    cy.wait(5000);
     
     cy.log(`5.7. Filter by Name`);
+    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
     listPersesDashboardsPage.filter.byName(dashboardName);
     listPersesDashboardsPage.countDashboards('1');
     listPersesDashboardsPage.clickDashboard(dashboardName);
@@ -337,14 +340,17 @@ export function testCOORBACPersesTestsDevUser3(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.clickKebabIcon();
     listPersesDashboardsPage.clickDeleteOption();
     listPersesDashboardsPage.deleteDashboardDeleteButton();
+    persesDashboardsPage.closeSuccessAlert();
     listPersesDashboardsPage.emptyState();
     listPersesDashboardsPage.countDashboards('0');
-    listPersesDashboardsPage.clearAllFilters();
 
     cy.log(`6.9. Filter by Name`);
+    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
     listPersesDashboardsPage.filter.byName(duplicatedDashboardName);
     listPersesDashboardsPage.countDashboards('0');
-    listPersesDashboardsPage.clearAllFilters();
+    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
 
   });
 
@@ -353,7 +359,7 @@ export function testCOORBACPersesTestsDevUser3(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.shouldBeLoaded();
 
     cy.log(`7.2. Filter by Name`);
-    listPersesDashboardsPage.filter.byName('Testing Dashboard - UP');
+    listPersesDashboardsPage.filter.byName(dashboardName);
     listPersesDashboardsPage.countDashboards('1');
 
     cy.log(`7.3. Click on the Kebab icon - Delete`);
@@ -362,35 +368,113 @@ export function testCOORBACPersesTestsDevUser3(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.deleteDashboardDeleteButton();
     listPersesDashboardsPage.emptyState();
     listPersesDashboardsPage.countDashboards('0');
-    listPersesDashboardsPage.clearAllFilters();
 
     cy.log(`7.4. Filter by Name`);
-    listPersesDashboardsPage.filter.byName('Testing Dashboard - UP');
+    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
+    listPersesDashboardsPage.filter.byName(dashboardName);
     listPersesDashboardsPage.countDashboards('0');
-    listPersesDashboardsPage.clearAllFilters();
-
+    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
   });
 
-  // it(`17.${perspective.name} perspective - Import button validation - Enabled / Disabled`, () => {
-  //   // Enabled for openshift-cluster-observability-operator namespace
-  //   // Disabled for observ-test namespace
-  // });
+  it(`8.${perspective.name} perspective - Import button validation - Enabled / Disabled`, () => {
+    cy.log(`8.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
+    listPersesDashboardsPage.noDashboardsFoundState();
 
-  // it(`18.${perspective.name} perspective - Import button validation - Enabled - YAML - project and namespace in the file mismatches`, () => {
-  //   // Enabled for openshift-cluster-observability-operator namespace
-  // });
+    cy.log(`8.2 change namespace to empty-namespace3`);
+    cy.changeNamespace('empty-namespace3');
 
-  // it(`19.${perspective.name} perspective - Import button validation - Enabled - YAML project and namespace in the file matches`, () => {
-  //   // Enabled for openshift-cluster-observability-operator namespace
-  // });
+    cy.log(`8.3. Verify Import button is still enabled`);
+    listPersesDashboardsPage.assertImportButtonIsEnabled();
+    listPersesDashboardsPage.clickImportButton();
+    persesImportDashboardsPage.importDashboardShouldBeLoaded();
+    persesImportDashboardsPage.uploadFile('./cypress/fixtures/coo/coo141_perses/import/testing-perses-dashboard.json');
+    persesImportDashboardsPage.assertPersesDashboardDetected();
 
-  // it(`20.${perspective.name} perspective - Import button validation - Enabled - JSON - project and namespace in the file mismatches`, () => {
-  //   // Enabled for openshift-cluster-observability-operator namespace
-  // });
+    cy.log(`8.4. Verify project dropdown options`);
+    persesImportDashboardsPage.assertProjectDropdown('empty-namespace3');
+    persesImportDashboardsPage.assertProjectNotExistsInDropdown('openshift-cluster-observability-operator');
+    persesImportDashboardsPage.assertProjectNotExistsInDropdown('observ-test');
+    persesImportDashboardsPage.assertProjectNotExistsInDropdown('perses-dev');
+    persesImportDashboardsPage.assertProjectNotExistsInDropdown('openshift-monitoring');
+    persesImportDashboardsPage.assertProjectNotExistsInDropdown('empty-namespace4');
+    persesImportDashboardsPage.clickCancelButton();
+  
+    cy.log(`8.5 change namespace to openshift-monitoring`);
+    cy.changeNamespace('openshift-monitoring');
 
-  // it(`21.${perspective.name} perspective - Import button validation - Enabled - JSON project and namespace in the file matches`, () => {
-  //   // Enabled for openshift-cluster-observability-operator namespace
-  // });
+    cy.log(`8.6. Verify Import button is enabled`);
+    listPersesDashboardsPage.assertImportButtonIsEnabled();
+
+    cy.log(`8.7 change namespace to All Projects`);
+    cy.changeNamespace('All Projects');
+
+    cy.log(`8.8. Verify Import button is enabled`);
+    listPersesDashboardsPage.assertImportButtonIsEnabled();
+  });
+
+  it(`9.${perspective.name} perspective - Import button validation - YAML`, () => {
+    cy.log(`9.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
+    listPersesDashboardsPage.noDashboardsFoundState();
+
+    cy.log(`9.2 change namespace to empty-namespace3`);
+    cy.changeNamespace('empty-namespace3');
+
+    cy.log(`9.3. Verify Import button is still enabled`);
+    listPersesDashboardsPage.assertImportButtonIsEnabled();
+    listPersesDashboardsPage.clickImportButton();
+    persesImportDashboardsPage.importDashboardShouldBeLoaded();
+    persesImportDashboardsPage.uploadFile('./cypress/fixtures/coo/coo141_perses/import/testing-perses-dashboard.yaml');
+    persesImportDashboardsPage.assertPersesDashboardDetected();
+
+    cy.log(`9.4. Select a project`);
+    persesImportDashboardsPage.selectProject('empty-namespace3');
+
+    cy.log(`9.5. Import dashboard`);
+    persesImportDashboardsPage.clickImportFileButton();
+    persesDashboardsPage.closeSuccessAlert();
+
+    cy.log(`9.6. Assert dashboard is imported`);
+    persesDashboardsPage.shouldBeLoadedEditionMode('Testing Perses dashboard - YAML');
+    cy.byAriaLabel(persesAriaLabels.TimeRangeDropdown).contains(persesDashboardsTimeRange.LAST_30_MINUTES).scrollIntoView().should('be.visible');
+
+    cy.log(`9.7. Back to list of dashboards`);
+    persesDashboardsPage.backToListPersesDashboardsPage();
+
+    cy.log(`9.8. Filter by Name`);
+    listPersesDashboardsPage.filter.byName('Testing Perses dashboard - YAML');
+    listPersesDashboardsPage.countDashboards('1');
+    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
+
+    cy.log(`9.9. Import the same dashboard - Duplicated error`);
+    listPersesDashboardsPage.clickImportButton();
+    persesImportDashboardsPage.importDashboardShouldBeLoaded();
+    persesImportDashboardsPage.uploadFile('./cypress/fixtures/coo/coo141_perses/import/testing-perses-dashboard.yaml');
+    persesImportDashboardsPage.assertPersesDashboardDetected();
+    persesImportDashboardsPage.selectProject('empty-namespace3');
+    persesImportDashboardsPage.clickImportFileButton();
+    persesImportDashboardsPage.assertDuplicatedDashboardError();
+    persesImportDashboardsPage.clickCancelButton();
+
+    cy.log(`9.10. Filter by Name`);
+    listPersesDashboardsPage.filter.byName('Testing Perses dashboard - YAML');
+    listPersesDashboardsPage.countDashboards('1');
+    listPersesDashboardsPage.clickKebabIcon();
+    listPersesDashboardsPage.clickDeleteOption();
+    listPersesDashboardsPage.deleteDashboardDeleteButton();
+    listPersesDashboardsPage.emptyState();
+    listPersesDashboardsPage.countDashboards('0');
+    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
+
+    cy.log(`9.11. Filter by Name`);
+    listPersesDashboardsPage.filter.byName('Testing Perses dashboard - YAML');
+    listPersesDashboardsPage.countDashboards('0');
+    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
+  });
 
 
 }

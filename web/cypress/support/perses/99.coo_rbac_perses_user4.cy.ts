@@ -1,3 +1,4 @@
+import { persesImportDashboardsPage } from '../../views/perses-dashboards-import-dashboard';
 import { listPersesDashboardsPage } from '../../views/perses-dashboards-list-dashboards';
 
 export interface PerspectiveConfig {
@@ -45,26 +46,27 @@ export function testCOORBACPersesTestsDevUser4(perspective: PerspectiveConfig) {
 
   });
 
-  // it(`17.${perspective.name} perspective - Import button validation - Enabled / Disabled`, () => {
-  //   // Enabled for openshift-cluster-observability-operator namespace
-  //   // Disabled for observ-test namespace
-  // });
+  it(`2.${perspective.name} perspective - Import button validation - Disabled`, () => {
+    cy.log(`2.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
+    listPersesDashboardsPage.noDashboardsFoundState();
 
-  // it(`18.${perspective.name} perspective - Import button validation - Enabled - YAML - project and namespace in the file mismatches`, () => {
-  //   // Enabled for openshift-cluster-observability-operator namespace
-  // });
+    cy.log(`2.2 change namespace to empty-namespace4`);
+    cy.changeNamespace('empty-namespace4');
+    
+    cy.log(`2.3. Verify Import button is disabled`);
+    listPersesDashboardsPage.assertImportButtonIsDisabled();
 
-  // it(`19.${perspective.name} perspective - Import button validation - Enabled - YAML project and namespace in the file matches`, () => {
-  //   // Enabled for openshift-cluster-observability-operator namespace
-  // });
-
-  // it(`20.${perspective.name} perspective - Import button validation - Enabled - JSON - project and namespace in the file mismatches`, () => {
-  //   // Enabled for openshift-cluster-observability-operator namespace
-  // });
-
-  // it(`21.${perspective.name} perspective - Import button validation - Enabled - JSON project and namespace in the file matches`, () => {
-  //   // Enabled for openshift-cluster-observability-operator namespace
-  // });
+    cy.log(`2.4. Change namespace to openshift-monitoring`);
+    cy.changeNamespace('openshift-monitoring');
+    cy.log(`2.5. Verify Import button is disabled`);
+    listPersesDashboardsPage.assertImportButtonIsDisabled();
+    
+    cy.log(`2.6. Change namespace to All Projects`);
+    cy.changeNamespace('All Projects');
+    cy.log(`2.7. Verify Import button is disabled`);
+    listPersesDashboardsPage.assertImportButtonIsDisabled();
+    
+  });
 
 
 }

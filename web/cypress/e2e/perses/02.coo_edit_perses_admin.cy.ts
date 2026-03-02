@@ -23,6 +23,7 @@ describe('COO - Dashboards (Perses) - Edit perses dashboard', { tags: ['@perses'
 
   before(() => {
     cy.beforeBlockCOO(MCP, MP);
+    cy.cleanupPersesTestDashboardsBeforeTests();
   });
 
   beforeEach(() => {

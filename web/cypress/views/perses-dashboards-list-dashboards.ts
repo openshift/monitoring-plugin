@@ -180,6 +180,7 @@ export const listPersesDashboardsPage = {
   assertDuplicateProjectDropdown: (project: string) => {
     cy.log('listPersesDashboardsPage.assertDuplicateProjectDropdown');
     cy.get(Classes.PersesCreateDashboardProjectDropdown).should('be.visible').click({ force: true });
+    cy.byAriaLabel(persesAriaLabels.dialogProjectInput).should('be.visible').clear().type(project);
     cy.byPFRole('option').contains(project).should('be.visible');
     cy.get(Classes.PersesCreateDashboardProjectDropdown).should('be.visible').click({ force: true });
   },
@@ -262,5 +263,29 @@ export const listPersesDashboardsPage = {
     cy.log('listPersesDashboardsPage.projectDropdownNotExists');
     cy.byLegacyTestID(LegacyTestIDs.NamespaceBarDropdown).should('not.exist');
     cy.get(Classes.NamespaceDropdown).should('not.exist');
+  },
+
+  clickImportButton: () => {
+    cy.log('listPersesDashboardsPage.clickImportButton');
+    cy.byAriaLabel(persesAriaLabels.dashboardActionsMenu).scrollIntoView().should('be.visible').click({ force: true });
+    cy.wait(2000);
+    cy.byPFRole('menuitem').contains('Import').should('be.visible').click({ force: true });
+    cy.wait(2000);
+  },
+
+  dismissDuplicatedDashboardError: () => {
+    cy.log('listPersesDashboardsPage.dismissDuplicatedDashboardError');
+    cy.byAriaLabel(persesAriaLabels.importDashboardDuplicatedDashboardError).scrollIntoView().should('be.visible').click({ force: true });
+    cy.wait(2000);
+  },
+
+  assertImportButtonIsEnabled: () => {
+    cy.log('listPersesDashboardsPage.assertImportButtonIsEnabled');
+    cy.byAriaLabel(persesAriaLabels.dashboardActionsMenu).scrollIntoView().should('be.visible').should('not.have.attr', 'disabled');
+  },
+
+  assertImportButtonIsDisabled: () => {
+    cy.log('listPersesDashboardsPage.assertImportButtonIsDisabled');
+    cy.byAriaLabel(persesAriaLabels.dashboardActionsMenu).scrollIntoView().should('be.visible').should('have.attr', 'disabled');
   },
 } 

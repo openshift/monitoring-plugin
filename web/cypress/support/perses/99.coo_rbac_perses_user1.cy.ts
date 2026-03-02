@@ -7,6 +7,8 @@ import { persesDashboardsPanelGroup } from '../../views/perses-dashboards-panelg
 import { persesAriaLabels } from '../../../src/components/data-test';
 import { persesDashboardsPanel } from '../../views/perses-dashboards-panel';
 import { persesDashboardsAddListPanelType } from '../../fixtures/perses/constants';
+import { persesImportDashboardsPage } from '../../views/perses-dashboards-import-dashboard';
+import { nav } from '../../views/nav';
 
 export interface PerspectiveConfig {
   name: string;
@@ -305,6 +307,7 @@ export function testCOORBACPersesTestsDevUser1(perspective: PerspectiveConfig) {
     persesDashboardsPanelGroup.clickPanelGroupAction('Panel Group Up', 'delete');
     persesDashboardsPanelGroup.clickDeletePanelGroupButton();
     persesDashboardsPage.clickEditActionButton('Save');
+    persesDashboardsPage.closeSuccessAlert();
 
     cy.get('h2').contains(persesDashboardsEmptyDashboard.TITLE).scrollIntoView().should('be.visible');
     cy.get('p').contains(persesDashboardsEmptyDashboard.DESCRIPTION).scrollIntoView().should('be.visible');
@@ -378,7 +381,8 @@ export function testCOORBACPersesTestsDevUser1(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.renameDashboardRenameButton();
     listPersesDashboardsPage.emptyState();
     listPersesDashboardsPage.countDashboards('0');
-    listPersesDashboardsPage.clearAllFilters();
+    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
 
     cy.log(`7.5. Filter by Name`);
     listPersesDashboardsPage.filter.byName(dashboardName);
@@ -398,9 +402,11 @@ export function testCOORBACPersesTestsDevUser1(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.renameDashboardRenameButton();
     listPersesDashboardsPage.emptyState();
     listPersesDashboardsPage.countDashboards('0');
-    listPersesDashboardsPage.clearAllFilters();
+    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
     
     cy.log(`7.7. Filter by Name`);
+    cy.changeNamespace('openshift-cluster-observability-operator');
     listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[0]);
     listPersesDashboardsPage.countDashboards('1');
     listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[0]);
@@ -453,14 +459,17 @@ export function testCOORBACPersesTestsDevUser1(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.clickKebabIcon();
     listPersesDashboardsPage.clickDeleteOption();
     listPersesDashboardsPage.deleteDashboardDeleteButton();
+    persesDashboardsPage.closeSuccessAlert();
     listPersesDashboardsPage.emptyState();
     listPersesDashboardsPage.countDashboards('0');
-    listPersesDashboardsPage.clearAllFilters();
+    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
 
     cy.log(`8.9. Filter by Name`);
     listPersesDashboardsPage.filter.byName(dashboardName);
     listPersesDashboardsPage.countDashboards('0');
-    listPersesDashboardsPage.clearAllFilters();
+    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
 
   });
 
@@ -476,37 +485,114 @@ export function testCOORBACPersesTestsDevUser1(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.clickKebabIcon();
     listPersesDashboardsPage.clickDeleteOption();
     listPersesDashboardsPage.deleteDashboardDeleteButton();
+    persesDashboardsPage.closeSuccessAlert();
     listPersesDashboardsPage.emptyState();
     listPersesDashboardsPage.countDashboards('0');
-    listPersesDashboardsPage.clearAllFilters();
+    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
 
     cy.log(`9.5. Filter by Name`);
     listPersesDashboardsPage.filter.byName('Testing Dashboard - UP');
     listPersesDashboardsPage.countDashboards('0');
-    listPersesDashboardsPage.clearAllFilters();
+    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
 
   });
 
-  // it(`17.${perspective.name} perspective - Import button validation - Enabled / Disabled`, () => {
-  //   // Enabled for openshift-cluster-observability-operator namespace
-  //   // Disabled for observ-test namespace
-  // });
+  it(`10.${perspective.name} perspective - Import button validation - Enabled / Disabled`, () => {
+    cy.log(`10.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
+    listPersesDashboardsPage.shouldBeLoaded();
 
-  // it(`18.${perspective.name} perspective - Import button validation - Enabled - YAML - project and namespace in the file mismatches`, () => {
-  //   // Enabled for openshift-cluster-observability-operator namespace
-  // });
+    cy.log(`10.2 change namespace to observ-test`);
+    cy.changeNamespace('observ-test');
 
-  // it(`19.${perspective.name} perspective - Import button validation - Enabled - YAML project and namespace in the file matches`, () => {
-  //   // Enabled for openshift-cluster-observability-operator namespace
-  // });
+    cy.log(`10.3. Verify Import button is still enabled`);
+    listPersesDashboardsPage.assertImportButtonIsEnabled();
+    listPersesDashboardsPage.clickImportButton();
+    persesImportDashboardsPage.importDashboardShouldBeLoaded();
+    persesImportDashboardsPage.uploadFile('./cypress/fixtures/coo/coo141_perses/import/testing-perses-dashboard.json');
+    persesImportDashboardsPage.assertPersesDashboardDetected();
 
-  // it(`20.${perspective.name} perspective - Import button validation - Enabled - JSON - project and namespace in the file mismatches`, () => {
-  //   // Enabled for openshift-cluster-observability-operator namespace
-  // });
+    cy.log(`10.4. Verify project dropdown options`);
+    persesImportDashboardsPage.assertProjectDropdown('openshift-cluster-observability-operator');
+    persesImportDashboardsPage.assertProjectNotExistsInDropdown('observ-test');
+    persesImportDashboardsPage.assertProjectNotExistsInDropdown('perses-dev');
+    persesImportDashboardsPage.assertProjectNotExistsInDropdown('openshift-monitoring');
+    persesImportDashboardsPage.assertProjectNotExistsInDropdown('empty-namespace3');
+    persesImportDashboardsPage.assertProjectNotExistsInDropdown('empty-namespace4');
+    persesImportDashboardsPage.clickCancelButton();
+  
+    cy.log(`10.5 change namespace to openshift-cluster-observability-operator`);
+    cy.changeNamespace('openshift-cluster-observability-operator');
 
-  // it(`21.${perspective.name} perspective - Import button validation - Enabled - JSON project and namespace in the file matches`, () => {
-  //   // Enabled for openshift-cluster-observability-operator namespace
-  // });
+    cy.log(`10.6. Verify Import button is enabled`);
+    listPersesDashboardsPage.assertImportButtonIsEnabled();
 
+    cy.log(`10.7 change namespace to All Projects`);
+    cy.changeNamespace('All Projects');
+
+    cy.log(`10.8. Verify Import button is enabled`);
+    listPersesDashboardsPage.assertImportButtonIsEnabled();
+  });
+
+  it(`11.${perspective.name} perspective - Import button validation - YAML`, () => {
+    cy.log(`11.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
+    listPersesDashboardsPage.shouldBeLoaded();
+
+    cy.log(`11.2 change namespace to observ-test`);
+    cy.changeNamespace('observ-test');
+
+    cy.log(`11.3. Verify Import button is still enabled`);
+    listPersesDashboardsPage.assertImportButtonIsEnabled();
+    listPersesDashboardsPage.clickImportButton();
+    persesImportDashboardsPage.importDashboardShouldBeLoaded();
+    persesImportDashboardsPage.uploadFile('./cypress/fixtures/coo/coo141_perses/import/testing-perses-dashboard.yaml');
+    persesImportDashboardsPage.assertPersesDashboardDetected();
+
+    cy.log(`11.4. Select a project`);
+    persesImportDashboardsPage.selectProject('openshift-cluster-observability-operator');
+
+    cy.log(`11.5. Import dashboard`);
+    persesImportDashboardsPage.clickImportFileButton();
+    persesDashboardsPage.closeSuccessAlert();
+
+    cy.log(`11.6. Assert dashboard is imported`);
+    persesDashboardsPage.shouldBeLoadedEditionMode('Testing Perses dashboard - YAML');
+
+    cy.log(`11.7. Back to list of dashboards`);
+    persesDashboardsPage.backToListPersesDashboardsPage();
+
+    cy.log(`11.8. Filter by Name`);
+    listPersesDashboardsPage.filter.byName('Testing Perses dashboard - YAML');
+    listPersesDashboardsPage.countDashboards('1');
+    listPersesDashboardsPage.clearAllFilters();
+
+    cy.log(`11.9. Import the same dashboard - Duplicated error`);
+    listPersesDashboardsPage.clickImportButton();
+    persesImportDashboardsPage.importDashboardShouldBeLoaded();
+    persesImportDashboardsPage.uploadFile('./cypress/fixtures/coo/coo141_perses/import/testing-perses-dashboard.yaml');
+    persesImportDashboardsPage.assertPersesDashboardDetected();
+    persesImportDashboardsPage.selectProject('openshift-cluster-observability-operator');
+    persesImportDashboardsPage.clickImportFileButton();
+    persesImportDashboardsPage.assertDuplicatedDashboardError();
+    persesImportDashboardsPage.clickCancelButton();
+
+    cy.log(`11.10. Filter by Name`);
+    listPersesDashboardsPage.filter.byName('Testing Perses dashboard - YAML');
+    listPersesDashboardsPage.countDashboards('1');
+    listPersesDashboardsPage.clickKebabIcon();
+    listPersesDashboardsPage.clickDeleteOption();
+    listPersesDashboardsPage.deleteDashboardDeleteButton();
+    listPersesDashboardsPage.emptyState();
+    listPersesDashboardsPage.countDashboards('0');
+    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
+
+    cy.log(`11.11. Filter by Name`);
+    listPersesDashboardsPage.filter.byName('Testing Perses dashboard - YAML');
+    listPersesDashboardsPage.countDashboards('0');
+    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
+  });
 
 }

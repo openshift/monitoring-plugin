@@ -2,6 +2,7 @@ import { persesDashboardsDashboardDropdownCOO, persesDashboardsDashboardDropdown
 import { commonPages } from '../../views/common';
 import { listPersesDashboardsPage } from "../../views/perses-dashboards-list-dashboards";
 import { persesDashboardsPage } from '../../views/perses-dashboards';
+import { nav } from '../../views/nav';
 
 export interface PerspectiveConfig {
   name: string;
@@ -133,7 +134,8 @@ export function testCOOListPerses(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.countDashboards('0');
 
     cy.log(`3.4. Clear all filters and filter by Name`);
-    listPersesDashboardsPage.clearAllFilters();
+    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
     listPersesDashboardsPage.filter.byName(dashboardName);
     listPersesDashboardsPage.countDashboards('1');
 
@@ -157,7 +159,8 @@ export function testCOOListPerses(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.countDashboards('0');
 
     cy.log(`3.8. Clear all filters and filter by Name`);
-    listPersesDashboardsPage.clearAllFilters();
+    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
     listPersesDashboardsPage.filter.byProject('perses-dev');
     listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.THANOS_COMPACT_OVERVIEW[0]);
     listPersesDashboardsPage.countDashboards('1');
@@ -188,7 +191,8 @@ export function testCOOListPerses(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.countDashboards('0');
 
     cy.log(`4.3. Clear all filters and filter by Name`);
-    listPersesDashboardsPage.clearAllFilters();
+    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
     listPersesDashboardsPage.filter.byProject('perses-dev');
     listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PROMETHEUS_OVERVIEW[0]);
     listPersesDashboardsPage.countDashboards('2');
@@ -204,13 +208,15 @@ export function testCOOListPerses(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.countDashboards('1');
 
     cy.log(`4.5. Clear all filters and filter by Name`);
-    listPersesDashboardsPage.clearAllFilters();
+    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
     listPersesDashboardsPage.filter.byProject('perses-dev');
     cy.wait(2000);
     listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.THANOS_COMPACT_OVERVIEW[0]);
     cy.wait(2000);
     listPersesDashboardsPage.countDashboards('1');
-    listPersesDashboardsPage.clearAllFilters();
+    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
   });
 }
 
@@ -231,11 +237,13 @@ export function testCOOListPerses(perspective: PerspectiveConfig) {
       listPersesDashboardsPage.clickDuplicateOption();
       listPersesDashboardsPage.assertDuplicateProjectDropdown('openshift-cluster-observability-operator');
       listPersesDashboardsPage.assertDuplicateProjectDropdown('perses-dev');
+      listPersesDashboardsPage.duplicateDashboardSelectProjectDropdown('perses-dev');
       listPersesDashboardsPage.duplicateDashboardEnterName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]);
       listPersesDashboardsPage.duplicateDashboardDuplicateButton();
       listPersesDashboardsPage.assertDuplicateDashboardAlreadyExists();
       listPersesDashboardsPage.duplicateDashboardCancelButton();
-      listPersesDashboardsPage.clearAllFilters();
+      nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+      nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
   
     });
   
@@ -274,7 +282,8 @@ export function testCOOListPerses(perspective: PerspectiveConfig) {
       listPersesDashboardsPage.duplicateDashboardDuplicateButton();
       listPersesDashboardsPage.assertDuplicateDashboardAlreadyExists();    
       listPersesDashboardsPage.duplicateDashboardCancelButton();
-      listPersesDashboardsPage.clearAllFilters();
+      nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+      nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
   
     });
   
@@ -323,7 +332,8 @@ export function testCOOListPerses(perspective: PerspectiveConfig) {
       listPersesDashboardsPage.clickDeleteOption();
       listPersesDashboardsPage.deleteDashboardDeleteButton();
       listPersesDashboardsPage.countDashboards('1');
-      listPersesDashboardsPage.clearAllFilters();
+      nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+      nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
   
       cy.log(`8.6. Filter by Name and click on the Kebab icon`);
       listPersesDashboardsPage.filter.byProject('openshift-cluster-observability-operator');
@@ -336,27 +346,8 @@ export function testCOOListPerses(perspective: PerspectiveConfig) {
       listPersesDashboardsPage.deleteDashboardDeleteButton();
       listPersesDashboardsPage.emptyState();
       listPersesDashboardsPage.countDashboards('0');
-      listPersesDashboardsPage.clearAllFilters();
+      nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+      nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
      
     });
   }
-
-  //TODO: Verify Duplicate Dashboard - Select project dropdown not only showing perses projects, but all namespaces you have access to, independently of having perses object (that creates a perses project)
-  // it(`9.${perspective.name} perspective - Verify Duplicate Dashboard - Select project dropdown not only showing perses projects, but all namespaces you have access to, independently of having perses object (that creates a perses project)`, () => {
-    // cy.log(`9.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
-    // commonPages.titleShouldHaveText('Dashboards');
-    // listPersesDashboardsPage.shouldBeLoaded();
-
-    // cy.log(`9.2. Click on the Kebab icon - Duplicate`);
-    // listPersesDashboardsPage.clickKebabIcon();
-    // listPersesDashboardsPage.clickDuplicateDashboardOption();
-    // listPersesDashboardsPage.assertProjectDropdown('openshift-cluster-observability-operator');
-    // openshift-monitoringas an example of a namespace that you have access to and does not have any perses object created yet, but you are able to create a dashboard
-    // listPersesDashboardsPage.assertProjectDropdown('openshift-monitoring');
-  // });
-
-  //TODO: Delete namespace and check project dropdown does not load this namespace
-  // it(`10.${perspective.name} perspective - Delete namespace and check project dropdown does not load this namespace`, () => {
-  // OU-1192 - [Perses operator] - Delete namespace is not deleting perses project
-  //  
-  // });

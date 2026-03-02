@@ -4,6 +4,7 @@ export const nav = {
     clickNavLink: (path: string[]) => {
       cy.log('Click navLink - ' + `${path}`);
       cy.clickNavLink(path);
+      cy.wait(2000);
     },
     switcher: {
       changePerspectiveTo: (...perspectives: string[]) => {
@@ -25,6 +26,7 @@ export const nav = {
 
           }
         });
+        cy.wait(2000);
       },
       shouldHaveText: (perspective: string) => {
         cy.log('Should have text - ' + `${perspective}`);
@@ -39,6 +41,7 @@ export const nav = {
      */
     switchTab: (tabname: string) => {
       cy.get(Classes.HorizontalNav).contains(tabname).should('be.visible').click();
+      cy.wait(2000);
   }
 }
 };

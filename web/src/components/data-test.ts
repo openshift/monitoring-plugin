@@ -187,6 +187,8 @@ export const IDs = {
   persesDashboardCreateDashboardName: 'text-input-create-dashboard-dialog-name',
   persesDashboardRenameDashboardName: 'rename-modal-text-input',
   persesDashboardDuplicateDashboardName: 'duplicate-modal-dashboard-name-form-group-text-input',
+  persesDashboardImportDashboardUploadFileInput: 'import-dashboard-file-filename',
+  persesDashboardRefreshIntervalDropdown: 'refreshInterval',
 };
 
 export const Classes = {
@@ -230,12 +232,12 @@ export const Classes = {
   SilenceKebabDropdown: '.pf-v6-c-menu-toggle.pf-m-plain, .pf-v5-c-dropdown__toggle.pf-m-plain',
   SilenceLabelRow: '.pf-v6-l-grid.pf-m-all-12-col-on-sm.pf-m-all-4-col-on-md.pf-m-gutter, .row',
   SilenceState: '.pf-v6-l-stack__item, .co-break-word',
+  ImportDashboardTextArea: '.view-lines.monaco-mouse-cursor-text',
 };
 
 export const persesAriaLabels = {
   TimeRangeDropdown: 'Select time range. Currently set to [object Object]',
   RefreshButton: 'Refresh',
-  RefreshIntervalDropdown: 'Select refresh interval. Currently set to 0s',
   ZoomInButton: 'Zoom in',
   ZoomOutButton: 'Zoom out',
   ViewJSONButton: 'View JSON',
@@ -270,6 +272,10 @@ export const persesAriaLabels = {
   persesDashboardKebabIcon: 'Kebab toggle',
   //dialogProjectDropdown
   dialogProjectInput: 'Type to filter',
+  //Import Dashboard
+  dashboardActionsMenu: 'Dashboard actions',
+  importDashboardProjectInputButton: 'Typeahead menu toggle',
+  importDashboardDuplicatedDashboardError: 'Danger alert:document already exists',
 };
 
 //data-testid from MUI components

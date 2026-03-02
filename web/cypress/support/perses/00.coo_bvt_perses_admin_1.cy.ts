@@ -10,6 +10,7 @@ import { persesDashboardsAddListVariableSource } from '../../fixtures/perses/con
 import { persesDashboardSampleQueries } from '../../fixtures/perses/constants';
 import { persesDashboardsAddListPanelType } from '../../fixtures/perses/constants';
 import { commonPages } from '../../views/common';
+import { nav } from '../../views/nav';
 
 export interface PerspectiveConfig {
   name: string;
@@ -104,7 +105,8 @@ export function testBVTCOOPerses1(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.renameDashboardRenameButton();
 
     cy.log(`5.5. Click on the Kebab icon - Delete`);
-    listPersesDashboardsPage.clearAllFilters();
+    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);s
     listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0] + ' - Renamed');
     listPersesDashboardsPage.countDashboards('1');
 
@@ -116,7 +118,8 @@ export function testBVTCOOPerses1(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.countDashboards('0');
 
     cy.log(`5.7. Search for the renamed dashboard`);
-    listPersesDashboardsPage.clearAllFilters();
+    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
     cy.changeNamespace('All Projects');
     listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0] + ' - Renamed');
     listPersesDashboardsPage.countDashboards('0');
@@ -224,7 +227,8 @@ export function testBVTCOOPerses1(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.deleteDashboardDeleteButton();
     listPersesDashboardsPage.emptyState();
     listPersesDashboardsPage.countDashboards('0');
-    listPersesDashboardsPage.clearAllFilters();
+    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
 
     cy.log(`6.15. Filter by Name`);
     listPersesDashboardsPage.filter.byName(dashboardName);

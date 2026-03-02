@@ -23,6 +23,7 @@ describe('COO - Dashboards (Perses) - List perses dashboards', { tags: ['@perses
 
   before(() => {
     cy.beforeBlockCOO(MCP, MP);
+    cy.cleanupPersesTestDashboardsBeforeTests();
   });
 
   beforeEach(() => {
@@ -46,6 +47,7 @@ describe('COO - Dashboards (Perses) - List perses dashboards - Namespace', { tag
 
   before(() => {
     cy.beforeBlockCOO(MCP, MP);
+    cy.cleanupPersesTestDashboardsBeforeTests();
   });
 
   beforeEach(() => {

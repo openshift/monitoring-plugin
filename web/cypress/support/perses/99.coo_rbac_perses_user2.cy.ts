@@ -129,10 +129,24 @@ export function testCOORBACPersesTestsDevUser2(perspective: PerspectiveConfig) {
 
   });
 
-  // it(`5.${perspective.name} perspective - Import button validation - Disabled`, () => {
-  //   // Disabled for perses-dev namespace
-  //     
-  // });
+  it(`5.${perspective.name} perspective - Import button validation - Disabled`, () => {
+    cy.log(`5.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
+    listPersesDashboardsPage.shouldBeLoaded();
 
+    cy.log(`5.2. Change namespace to perses-dev`);
+    cy.changeNamespace('perses-dev');
+
+    cy.log(`5.3. Verify Import button is disabled`);
+    listPersesDashboardsPage.assertImportButtonIsDisabled();
+
+    cy.log(`5.5. Change namespace to openshift-monitoring`);
+    cy.changeNamespace('openshift-monitoring');
+    listPersesDashboardsPage.assertImportButtonIsDisabled();
+
+    cy.log(`5.6. Change namespace to All Projects`);
+    cy.changeNamespace('All Projects');
+    listPersesDashboardsPage.assertImportButtonIsDisabled();
+
+  });
 
 }
