@@ -182,7 +182,8 @@
       "TargetsPage": "./components/targets-page",
       "PrometheusRedirectPage": "./components/redirects/prometheus-redirect-page",
       "DevRedirects": "./components/redirects/dev-redirects",
-      "MonitoringContext": "./contexts/MonitoringContext"
+      "MonitoringContext": "./contexts/MonitoringContext",
+      "ols-tool-ui": "./components/ols-tool-ui"
     },
     "dependencies": {
       "@console/pluginAPI": "*"
