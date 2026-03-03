@@ -9,13 +9,8 @@ USER 0
 
 # use dependencies provided by Cachito
 ENV HUSKY=0
-RUN test -d ${REMOTE_SOURCES_DIR}/cachito-gomod-with-deps || exit 1; \
-    cp -f $REMOTE_SOURCES_DIR/cachito-gomod-with-deps/app/registry-ca.pem . \
- && cp -f $REMOTE_SOURCES_DIR/cachito-gomod-with-deps/app/web/{.npmrc,package-lock.json} web/ \
- && source ${REMOTE_SOURCES_DIR}/cachito-gomod-with-deps/cachito.env \
- && make install-frontend-ci \
- && make build-frontend
-
+ENV CYPRESS_INSTALL_BINARY=0
+RUN make install-frontend-ci && make build-frontend
 
 FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.22-openshift-4.18 AS go-builder
 
