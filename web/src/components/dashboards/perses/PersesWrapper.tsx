@@ -68,9 +68,7 @@ interface PersesWrapperProps {
 const mapPatternFlyThemeToMUI = (theme: 'light' | 'dark'): ThemeOptions => {
   const isDark = theme === 'dark';
   const primaryTextColor = isDark ? '#FFFFFF' : '#151515';
-  const primaryBackgroundColor = isDark
-    ? 'var(--pf-v5-global--BackgroundColor--dark-100)'
-    : 'var(--pf-v5-global--BackgroundColor--100)';
+  const primaryBackgroundColor = isDark ? '#151515' : '#FFFFFF';
 
   return {
     typography: {
