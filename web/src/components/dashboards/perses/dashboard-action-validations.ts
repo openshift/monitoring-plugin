@@ -18,11 +18,19 @@ export const renameDashboardDialogValidationSchema = (t: (key: string) => string
     dashboardName: createDashboardDisplayNameValidationSchema(t),
   });
 
+export const importDashboardDialogValidationSchema = () =>
+  z.object({
+    projectName: nameSchema,
+  });
+
 export type CreateDashboardValidationType = z.infer<
   ReturnType<typeof createDashboardDialogValidationSchema>
 >;
 export type RenameDashboardValidationType = z.infer<
   ReturnType<typeof renameDashboardDialogValidationSchema>
+>;
+export type ImportDashboardValidationType = z.infer<
+  ReturnType<typeof importDashboardDialogValidationSchema>
 >;
 
 export interface DashboardValidationSchema {

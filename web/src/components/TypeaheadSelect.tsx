@@ -21,6 +21,7 @@ interface TypeaheadSelectProps {
   placeholder?: string;
   defaultValue?: string;
   retainValue?: boolean;
+  maxHeight?: string;
 }
 
 export const TypeaheadSelect: React.FC<TypeaheadSelectProps> = ({
@@ -29,6 +30,7 @@ export const TypeaheadSelect: React.FC<TypeaheadSelectProps> = ({
   placeholder,
   defaultValue,
   retainValue,
+  maxHeight = '300px',
 }) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const [selected, setSelected] = React.useState('');
@@ -259,7 +261,7 @@ export const TypeaheadSelect: React.FC<TypeaheadSelectProps> = ({
       toggle={toggle}
       shouldFocusFirstItemOnOpen={false}
     >
-      <SelectList>
+      <SelectList style={{ maxHeight, overflowY: 'auto' }}>
         {selectOptions.map((option, index) => (
           <SelectOption
             key={`${option.name} ${index}`}
