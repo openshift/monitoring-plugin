@@ -17,7 +17,7 @@ RUN test -d ${REMOTE_SOURCES_DIR}/cachito-gomod-with-deps || exit 1; \
  && make build-frontend
 
 
-FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.24-openshift-4.22 AS go-builder
+FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.25-openshift-4.22 AS go-builder
 
 COPY $REMOTE_SOURCES $REMOTE_SOURCES_DIR
 WORKDIR $REMOTE_SOURCES_DIR/cachito-gomod-with-deps/app
