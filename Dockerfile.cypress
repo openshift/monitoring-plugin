@@ -4,14 +4,14 @@ WORKDIR /usr/src/app
 
 ENV HUSKY=0
 
-COPY web/package.json web/yarn.lock ./
+COPY web/package.json web/package-lock.json ./
 
-RUN yarn install --frozen-lockfile
+RUN npm ci
 
 COPY web/console-extensions.json web/cypress.config.ts web/tsconfig.json web/webpack.config.ts ./
 COPY web/cypress/ ./cypress
 COPY web/locales/ ./locales
 COPY web/src/ ./src
-RUN yarn build
+RUN npm run build
 
-ENTRYPOINT ["yarn", "cypress:run:ci"]
+ENTRYPOINT ["npm", "run", "cypress:run:ci"]
