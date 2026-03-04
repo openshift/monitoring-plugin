@@ -9,7 +9,7 @@ function createPanelDefinition(query: string): PanelDefinition {
     kind: 'Panel',
     spec: {
       display: {
-        name: '',
+        name: query,
       },
       plugin: {
         kind: 'TimeSeriesChart',
