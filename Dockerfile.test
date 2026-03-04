@@ -2,11 +2,11 @@ FROM registry.redhat.io/rhel8/nodejs-18:1-71.1698060565
 
 WORKDIR /usr/src/app
 
-RUN npm install --global yarn
+ENV HUSKY=0
 
-COPY package.json yarn.lock .
-RUN yarn
+COPY package.json package-lock.json .
+RUN npm ci
 
 COPY . .
 
-ENTRYPOINT ["yarn", "lint"]
+ENTRYPOINT ["npm", "run", "lint"]
