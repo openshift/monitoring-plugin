@@ -2,14 +2,12 @@ FROM registry.redhat.io/ubi9/nodejs-20-minimal:1-51 AS web-builder
 
 WORKDIR /opt/app-root
 
-RUN npm install --global yarn
-
 ENV HUSKY=0
 
 COPY Makefile Makefile
 COPY web/ web/
 
-RUN make install-frontend
+RUN make install-frontend-ci
 RUN make build-frontend
 
 FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_9_golang_1.23 as go-builder
