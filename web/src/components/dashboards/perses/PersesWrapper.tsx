@@ -354,13 +354,9 @@ export function PersesWrapper({ children, project }: PersesWrapperProps) {
           content=""
         >
           <PluginRegistry pluginLoader={pluginLoader}>
-            {!project ? (
-              <>{children}</>
-            ) : (
-              <InnerWrapper project={project} dashboardName={dashboardName}>
-                {children}
-              </InnerWrapper>
-            )}
+            <InnerWrapper project={project} dashboardName={dashboardName}>
+              {children}
+            </InnerWrapper>
           </PluginRegistry>
         </SnackbarProvider>
       </ChartsProvider>
@@ -376,6 +372,31 @@ function InnerWrapper({ children, project, dashboardName }) {
   );
   const DEFAULT_DASHBOARD_DURATION = '30m';
   const DEFAULT_REFRESH_INTERVAL = '0s';
+
+  // Always have a dashboard resource to prevent context issues
+  const effectiveDashboard: DashboardResource = React.useMemo(() => {
+    if (persesDashboard) {
+      return persesDashboard;
+    }
+    // Create a temporary dashboard when the real one isn't available
+    return {
+      kind: 'Dashboard' as const,
+      metadata: {
+        name: 'loading',
+        project: null,
+        version: 0,
+      },
+      spec: {
+        display: { name: 'Loading...' },
+        datasources: {},
+        panels: {},
+        layouts: [],
+        variables: [],
+        duration: '1h',
+        refreshInterval: '30s',
+      },
+    };
+  }, [persesDashboard]);
 
   const dashboardDuration = persesDashboard?.spec?.duration;
   const dashboardTimeInterval = persesDashboard?.spec?.refreshInterval;
@@ -421,10 +442,6 @@ function InnerWrapper({ children, project, dashboardName }) {
     return result;
   }, [data, project, dashboardName]);
 
-  if (persesDashboardLoading) {
-    return <LoadingBox />;
-  }
-
   return (
     <TimeRangeProviderWithQueryParams
       initialTimeRange={initialTimeRange}
@@ -432,21 +449,20 @@ function InnerWrapper({ children, project, dashboardName }) {
     >
       <VariableProviderWithQueryParams
         builtinVariableDefinitions={builtinVariables}
-        initialVariableDefinitions={persesDashboard?.spec?.variables}
-        key={persesDashboard?.metadata.name}
+        initialVariableDefinitions={effectiveDashboard?.spec?.variables}
+        key={effectiveDashboard.metadata.name}
       >
-        <PersesPrometheusDatasourceWrapper queries={[]} dashboardResource={persesDashboard}>
-          {persesDashboard ? (
-            <DashboardProvider
-              initialState={{
-                dashboardResource: persesDashboard,
-              }}
-            >
-              <ValidationProvider>{children}</ValidationProvider>
-            </DashboardProvider>
-          ) : (
-            <>{children}</>
-          )}
+        <PersesPrometheusDatasourceWrapper queries={[]} dashboardResource={effectiveDashboard}>
+          <DashboardProvider
+            initialState={{
+              dashboardResource: effectiveDashboard,
+            }}
+            key={effectiveDashboard.metadata.name}
+          >
+            <ValidationProvider>
+              {persesDashboardLoading ? <LoadingBox /> : children}
+            </ValidationProvider>
+          </DashboardProvider>
         </PersesPrometheusDatasourceWrapper>
       </VariableProviderWithQueryParams>
     </TimeRangeProviderWithQueryParams>

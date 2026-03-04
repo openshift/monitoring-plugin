@@ -9,6 +9,15 @@ import { OCPDashboardApp } from './dashboard-app';
 import { DashboardFrame } from './dashboard-frame';
 import { ProjectEmptyState } from './emptystates/ProjectEmptyState';
 import { useDashboardsData } from './hooks/useDashboardsData';
+import {
+  Bullseye,
+  EmptyState,
+  EmptyStateBody,
+  EmptyStateHeader,
+  EmptyStateIcon,
+  Spinner,
+} from '@patternfly/react-core';
+import { SearchIcon } from '@patternfly/react-icons';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -18,6 +27,39 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+export const EmptyStateSpinner: React.FunctionComponent = () => (
+  <Bullseye>
+    <EmptyState>
+      <EmptyStateHeader
+        titleText="Loading"
+        headingLevel="h4"
+        icon={<EmptyStateIcon icon={Spinner} />}
+      />
+    </EmptyState>
+  </Bullseye>
+);
+
+interface EmptyStateNoMatchFoundProps {
+  headerMsg: string;
+  bodyMsg: string;
+}
+
+export const EmptyStateNoMatchFound: React.FunctionComponent<EmptyStateNoMatchFoundProps> = ({
+  headerMsg,
+  bodyMsg,
+}) => (
+  <Bullseye>
+    <EmptyState>
+      <EmptyStateHeader
+        titleText={headerMsg}
+        headingLevel="h4"
+        icon={<EmptyStateIcon icon={SearchIcon} />}
+      />
+      <EmptyStateBody>{bodyMsg}</EmptyStateBody>
+    </EmptyState>
+  </Bullseye>
+);
 
 const DashboardPage_: React.FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -65,17 +107,16 @@ const DashboardPage_: React.FC = () => {
   );
 
   if (!currentDashboard) {
-    return (
-      <div style={{ padding: '2rem' }}>
-        <h2>{t('Dashboard not found')}</h2>
-        <p>
-          {t('The dashboard "{{name}}" was not found in project "{{project}}".', {
-            name: targetDashboardName,
-            project: activeProject || urlProject,
-          })}
-        </p>
-      </div>
-    );
+    const headerMsg = t('Dashboard not found');
+    const bodyMsg = t('The dashboard "{{name}}" was not found in project "{{project}}".', {
+      name: targetDashboardName,
+      project: activeProject || urlProject,
+    });
+    return <EmptyStateNoMatchFound headerMsg={headerMsg} bodyMsg={bodyMsg} />;
+  }
+
+  if (!currentDashboard.persesDashboard) {
+    return <EmptyStateSpinner />;
   }
 
   return (
