@@ -1,9 +1,9 @@
 VERSION     ?= latest
 PLATFORMS   ?= linux/arm64,linux/amd64
 ORG         ?= openshift-observability-ui
-PLUGIN_NAME ?=monitoring-plugin
+PLUGIN_NAME ?= monitoring-plugin
 IMAGE       ?= quay.io/${ORG}/${PLUGIN_NAME}:${VERSION}
-FEATURES    ?=incidents,perses-dashboards,dev-config
+FEATURES    ?= incidents,perses-dashboards,dev-config
 
 export NODE_OPTIONS?=--max_old_space_size=4096
 
@@ -111,7 +111,8 @@ start-devspace-backend:
 
 .PHONY: podman-cross-build
 podman-cross-build:
-	podman manifest create -a ${IMAGE}
+	podman manifest rm ${IMAGE} || true
+	podman manifest create ${IMAGE}
 	podman build --platform ${PLATFORMS} --manifest ${IMAGE} -f Dockerfile.mcp
 
 .PHONY: podman-cross-build-push
