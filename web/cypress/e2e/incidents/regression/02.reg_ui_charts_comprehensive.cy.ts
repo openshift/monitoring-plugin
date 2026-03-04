@@ -87,7 +87,7 @@ const MP = {
 describe('Regression: Charts UI - Comprehensive', { tags: ['@incidents'] }, () => {
 
   before(() => {
-    cy.beforeBlockCOO(MCP, MP);
+    cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
 
   });
 
