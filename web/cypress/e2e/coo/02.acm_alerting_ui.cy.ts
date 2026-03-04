@@ -5,9 +5,8 @@ import { commonPages } from '../../views/common';
 import { nav } from '../../views/nav';
 import { acmAlertingPage } from '../../views/acm-alerting-page';
 
-const COO_NAMESPACE = Cypress.env('COO_NAMESPACE') || 'openshift-cluster-observability-operator';
 const MCP = {
-  namespace: COO_NAMESPACE,
+  namespace: Cypress.env('COO_NAMESPACE'),
   packageName: 'cluster-observability-operator',
   operatorName: 'Cluster Observability Operator',
   config: {
