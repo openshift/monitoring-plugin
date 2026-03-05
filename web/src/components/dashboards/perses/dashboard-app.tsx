@@ -21,6 +21,7 @@ import {
 } from '@perses-dev/dashboards';
 import {
   useDashboard,
+  useDashboardActions,
   useDiscardChangesConfirmationDialog,
   useEditMode,
 } from '@perses-dev/dashboards';
@@ -64,7 +65,8 @@ export const OCPDashboardApp = (props: DashboardAppProps): React.ReactElement =>
   const { addAlert } = useToast();
 
   const { isEditMode, setEditMode } = useEditMode();
-  const { dashboard, setDashboard } = useDashboard();
+  const { dashboard } = useDashboard();
+  const { setDashboard } = useDashboardActions();
 
   const [originalDashboard, setOriginalDashboard] = React.useState<
     DashboardResource | EphemeralDashboardResource | undefined
@@ -146,6 +148,7 @@ export const OCPDashboardApp = (props: DashboardAppProps): React.ReactElement =>
             );
 
             setSaveErrorOccurred(false);
+            setDashboard(updatedDashboard);
             return updatedDashboard;
           },
         });
@@ -156,7 +159,7 @@ export const OCPDashboardApp = (props: DashboardAppProps): React.ReactElement =>
         return null;
       }
     },
-    [updateDashboardMutation, addAlert, t],
+    [updateDashboardMutation, addAlert, t, setDashboard],
   );
 
   return (
@@ -182,6 +185,7 @@ export const OCPDashboardApp = (props: DashboardAppProps): React.ReactElement =>
       <Box sx={{ paddingTop: 2, paddingX: 2, height: '100%' }}>
         <ErrorBoundary FallbackComponent={ErrorAlert}>
           <Dashboard
+            key={`dashboard-${dashboard?.metadata?.updatedAt || dashboard?.metadata?.version}`}
             emptyDashboardProps={{
               onEditButtonClick,
               ...emptyDashboardProps,
