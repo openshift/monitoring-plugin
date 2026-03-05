@@ -1,40 +1,39 @@
-import * as React from 'react';
 import {
+  AlertVariant,
   Button,
-  Modal,
-  ModalVariant,
   FormGroup,
-  TextInput,
   FormHelperText,
   HelperText,
   HelperTextItem,
-  ValidatedOptions,
+  Modal,
+  ModalVariant,
   Stack,
   StackItem,
-  AlertVariant,
+  TextInput,
+  ValidatedOptions,
 } from '@patternfly/react-core';
-import { ExclamationCircleIcon } from '@patternfly/react-icons';
-import { Controller, FormProvider, SubmitHandler, useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
-import {
-  useDashboardProjects,
-  useProjectCreation,
-  useDashboardNavigation,
-  PermissionStateWrapper,
-  ProjectSelectFormGroup,
-} from './dashboard-dialog-helpers';
 
+import { zodResolver } from '@hookform/resolvers/zod';
 import { DashboardResource } from '@perses-dev/core';
-import { useCreateDashboardMutation } from './dashboard-api';
-import { createNewDashboard } from './dashboard-utils';
-import { useToast } from './ToastProvider';
+import React from 'react';
+import { Controller, FormProvider, SubmitHandler, useForm } from 'react-hook-form';
+import { formGroupStyle, LabelSpacer } from './dashboard-action-modals';
 import {
   createDashboardDialogValidationSchema,
   CreateDashboardValidationType,
   useDashboardValidationSchema,
 } from './dashboard-action-validations';
-import { formGroupStyle, LabelSpacer } from './dashboard-action-modals';
+import { useCreateDashboardMutation } from './dashboard-api';
+import {
+  PermissionStateWrapper,
+  ProjectSelectFormGroup,
+  useDashboardNavigation,
+  useDashboardProjects,
+  useProjectCreation,
+} from './dashboard-dialog-helpers';
+import { createNewDashboard } from './dashboard-utils';
+import { useToast } from './ToastProvider';
 
 interface DashboardCreateDialogProps {
   isOpen: boolean;
@@ -87,7 +86,7 @@ export const DashboardCreateDialog: React.FunctionComponent<DashboardCreateDialo
   const processForm: SubmitHandler<CreateDashboardValidationType> = async (data) => {
     try {
       await ensureProjectExists(data.projectName, persesProjects || []);
-    } catch (error) {
+    } catch {
       return;
     }
 
@@ -116,13 +115,13 @@ export const DashboardCreateDialog: React.FunctionComponent<DashboardCreateDialo
     form.reset();
   };
 
-  const onProjectSelect = (selection: string) => {
-    form.setValue('projectName', selection);
-  };
-
   return (
     <Modal
       variant={ModalVariant.small}
+      isOpen={isOpen}
+      onClose={handleClose}
+      ouiaId="CreateModal"
+      aria-labelledby="create-modal-title"
       title={t('Create Dashboard')}
       actions={[
         <Button
@@ -142,10 +141,6 @@ export const DashboardCreateDialog: React.FunctionComponent<DashboardCreateDialo
           {t('Cancel')}
         </Button>,
       ]}
-      isOpen={isOpen}
-      onClose={handleClose}
-      ouiaId="CreateModal"
-      aria-labelledby="create-modal"
     >
       <PermissionStateWrapper
         permissionsLoading={permissionsLoading}
@@ -179,7 +174,7 @@ export const DashboardCreateDialog: React.FunctionComponent<DashboardCreateDialo
                       {fieldState.error && (
                         <FormHelperText>
                           <HelperText>
-                            <HelperTextItem icon={<ExclamationCircleIcon />} variant="error">
+                            <HelperTextItem variant="error">
                               {fieldState.error.message}
                             </HelperTextItem>
                           </HelperText>
@@ -193,9 +188,8 @@ export const DashboardCreateDialog: React.FunctionComponent<DashboardCreateDialo
                 <ProjectSelectFormGroup
                   control={form.control}
                   projectOptions={projectOptions}
-                  onProjectSelect={onProjectSelect}
                   defaultValue={defaultProject}
-                  label={t('Select namespace')}
+                  label={t('Select project')}
                 />
               </StackItem>
             </Stack>
