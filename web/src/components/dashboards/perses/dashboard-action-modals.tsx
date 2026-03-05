@@ -33,11 +33,7 @@ import {
 
 import { Controller, FormProvider, SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  DashboardResource,
-  getResourceDisplayName,
-  getResourceExtendedDisplayName,
-} from '@perses-dev/core';
+import { DashboardResource, getResourceExtendedDisplayName } from '@perses-dev/core';
 import { useToast } from './ToastProvider';
 import { usePerses } from './hooks/usePerses';
 import { generateMetadataName } from './dashboard-utils';
@@ -68,14 +64,14 @@ export const RenameActionModal = ({ dashboard, isOpen, onClose }: ActionModalPro
   const form = useForm<RenameDashboardValidationType>({
     resolver: zodResolver(renameDashboardDialogValidationSchema(t)),
     mode: 'onBlur',
-    defaultValues: { dashboardName: dashboard ? getResourceDisplayName(dashboard) : '' },
+    defaultValues: { dashboardName: '' },
   });
 
   const updateDashboardMutation = useUpdateDashboardMutation();
 
   React.useEffect(() => {
     if (isOpen && dashboard) {
-      form.reset({ dashboardName: getResourceDisplayName(dashboard) });
+      form.reset({ dashboardName: '' });
     }
   }, [isOpen, dashboard, form]);
 
