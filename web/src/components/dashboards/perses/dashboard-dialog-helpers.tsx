@@ -153,7 +153,6 @@ export const PermissionStateWrapper: React.FC<PermissionStateProps> = ({
 interface ProjectSelectFormGroupProps {
   control: Control<any>;
   projectOptions: SelectOptionProps[];
-  onProjectSelect: (selection: string) => void;
   defaultValue: string;
   label?: string;
   required?: boolean;
@@ -163,7 +162,6 @@ interface ProjectSelectFormGroupProps {
 export const ProjectSelectFormGroup: React.FC<ProjectSelectFormGroupProps> = ({
   control,
   projectOptions,
-  onProjectSelect,
   defaultValue,
   label,
   required = true,
@@ -175,7 +173,7 @@ export const ProjectSelectFormGroup: React.FC<ProjectSelectFormGroupProps> = ({
     <Controller
       control={control}
       name="projectName"
-      render={({ fieldState }) => (
+      render={({ field, fieldState }) => (
         <FormGroup
           label={label || t('Select project')}
           isRequired={required}
@@ -185,7 +183,9 @@ export const ProjectSelectFormGroup: React.FC<ProjectSelectFormGroupProps> = ({
           <LabelSpacer />
           <TypeaheadSelect
             options={projectOptions}
-            onSelect={onProjectSelect}
+            onSelect={(selection) => {
+              field.onChange(selection);
+            }}
             defaultValue={defaultValue}
             retainValue
             maxHeight={maxHeight}

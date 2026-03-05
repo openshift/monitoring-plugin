@@ -314,11 +314,6 @@ export const DashboardImportDialog: React.FunctionComponent<DashboardImportDialo
     form.reset();
   };
 
-  const onProjectSelect = (selection: string) => {
-    form.setValue('projectName', selection);
-    form.trigger('projectName');
-  };
-
   const projectNameValue = form.watch('projectName');
   const canImport = parsedDashboard && projectNameValue && !isImporting && !parseError;
 
@@ -421,7 +416,6 @@ export const DashboardImportDialog: React.FunctionComponent<DashboardImportDialo
                   <ProjectSelectFormGroup
                     control={form.control}
                     projectOptions={projectOptions}
-                    onProjectSelect={onProjectSelect}
                     defaultValue={projectNameValue || defaultProject}
                     label={t('2. Select project')}
                     maxHeight="200px"
