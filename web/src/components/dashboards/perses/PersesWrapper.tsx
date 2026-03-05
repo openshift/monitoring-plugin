@@ -38,9 +38,9 @@ import { chart_color_blue_100 } from '@patternfly/react-tokens';
 import { QueryParams } from '../../query-params';
 import { StringParam, useQueryParam } from 'use-query-params';
 import { useTranslation } from 'react-i18next';
-import { LoadingBox } from '../../../components/console/console-shared/src/components/loading/LoadingBox';
 import { remotePluginLoader } from '@perses-dev/plugin-system';
 import { ChartThemeColor, getThemeColors } from '@patternfly/react-charts';
+import { EmptyStateSpinner } from './dashboard-page';
 
 // Override eChart defaults with PatternFly colors.
 const patternflyBlue100 = '#73bcf7'; // PF-5 lightest blue for dark theme
@@ -442,6 +442,10 @@ function InnerWrapper({ children, project, dashboardName }) {
     return result;
   }, [data, project, dashboardName]);
 
+  if (persesDashboardLoading) {
+    return <EmptyStateSpinner />;
+  }
+
   return (
     <TimeRangeProviderWithQueryParams
       initialTimeRange={initialTimeRange}
@@ -459,9 +463,7 @@ function InnerWrapper({ children, project, dashboardName }) {
             }}
             key={effectiveDashboard.metadata.name}
           >
-            <ValidationProvider>
-              {persesDashboardLoading ? <LoadingBox /> : children}
-            </ValidationProvider>
+            <ValidationProvider>{children}</ValidationProvider>
           </DashboardProvider>
         </PersesPrometheusDatasourceWrapper>
       </VariableProviderWithQueryParams>
