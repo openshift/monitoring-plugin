@@ -1,14 +1,13 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import { CodeEditor } from '@patternfly/react-code-editor';
 import {
-  Alert,
+  AlertVariant,
   Button,
   FileUpload,
-  Form,
   FormGroup,
   FormHelperText,
   HelperText,
   HelperTextItem,
-  HelperTextItemVariant,
   Modal,
   ModalBody,
   ModalFooter,
@@ -18,16 +17,24 @@ import {
   StackItem,
 } from '@patternfly/react-core';
 import { ExclamationCircleIcon } from '@patternfly/react-icons';
-import { TypeaheadSelect, TypeaheadSelectOption } from '@patternfly/react-templates';
 import yaml from 'js-yaml';
-import { ChangeEvent, useMemo, useState } from 'react';
+import React, { ChangeEvent, useEffect, useState } from 'react';
+import { FormProvider, SubmitHandler, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom-v5-compat';
-import { useEditableProjects } from './hooks/useEditableProjects';
+import {
+  PermissionStateWrapper,
+  ProjectSelectFormGroup,
+  useDashboardNavigation,
+  useDashboardProjects,
+  useProjectCreation,
+} from './dashboard-dialog-helpers';
 
 import { DashboardResource } from '@perses-dev/core';
 import { usePatternFlyTheme } from '../../hooks/usePatternflyTheme';
-import { getDashboardUrl, usePerspective } from '../../hooks/usePerspective';
+import {
+  importDashboardDialogValidationSchema,
+  ImportDashboardValidationType,
+} from './dashboard-action-validations';
 import { useCreateDashboardMutation } from './dashboard-api';
 import { useMigrateDashboard } from './migrate-api';
 import { useToast } from './ToastProvider';
@@ -67,34 +74,45 @@ export const DashboardImportDialog: React.FunctionComponent<DashboardImportDialo
   onClose,
 }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const navigate = useNavigate();
-  const { perspective } = usePerspective();
   const { addAlert } = useToast();
-  const { editableProjects, permissionsError } = useEditableProjects();
+
+  const {
+    editableProjects,
+    permissionsLoading,
+    permissionsError,
+    persesProjects,
+    defaultProject,
+    projectOptions,
+  } = useDashboardProjects();
+
+  const { ensureProjectExists, isCreatingProject } = useProjectCreation();
+  const { navigateToDashboard } = useDashboardNavigation();
   const { theme } = usePatternFlyTheme();
 
-  const [selectedProject, setSelectedProject] = useState<string | null>(null);
+  const form = useForm<ImportDashboardValidationType>({
+    resolver: zodResolver(importDashboardDialogValidationSchema()),
+    mode: 'onBlur',
+    defaultValues: {
+      projectName: defaultProject,
+    },
+  });
+
   const [dashboardInput, setDashboardInput] = useState<string>('');
   const [parsedDashboard, setParsedDashboard] = useState<ParsedDashboard | undefined>();
   const [parseError, setParseError] = useState<string>('');
   const [filename, setFilename] = useState<string>('');
-  const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
   const [isUploadingFile, setIsUploadingFile] = useState(false);
 
   const createDashboardMutation = useCreateDashboardMutation();
   const migrateMutation = useMigrateDashboard();
 
-  const projectOptions = useMemo<TypeaheadSelectOption[]>(() => {
-    if (!editableProjects) {
-      return [];
+  useEffect(() => {
+    if (isOpen && editableProjects?.length > 0 && defaultProject) {
+      form.reset({
+        projectName: defaultProject,
+      });
     }
-
-    return editableProjects.map((project) => ({
-      content: project,
-      value: project,
-      selected: project === selectedProject,
-    }));
-  }, [editableProjects, selectedProject]);
+  }, [isOpen, defaultProject, editableProjects?.length, form]);
 
   const getDashboardType = (dashboard: Record<string, unknown>): DashboardType => {
     if ('kind' in dashboard && dashboard.kind === 'Dashboard') {
@@ -201,7 +219,8 @@ export const DashboardImportDialog: React.FunctionComponent<DashboardImportDialo
     setParseError('');
   };
 
-  const isImporting = createDashboardMutation.isPending || migrateMutation.isPending;
+  const isImporting =
+    createDashboardMutation.isPending || isCreatingProject || migrateMutation.isPending;
 
   const importDashboard = async (dashboard: DashboardResource, projectName: string) => {
     dashboard.metadata.project = projectName;
@@ -211,37 +230,33 @@ export const DashboardImportDialog: React.FunctionComponent<DashboardImportDialo
     const displayName = sanitizeDashboardName(
       createdDashboard.spec?.display?.name || createdDashboard.metadata.name,
     );
-    addAlert(t('Dashboard "{{name}}" imported successfully', { name: displayName }), 'success');
-
-    const dashboardUrl = getDashboardUrl(perspective);
-    const dashboardParam = `dashboard=${createdDashboard.metadata.name}`;
-    const projectParam = `project=${createdDashboard.metadata.project}`;
-    const editModeParam = `edit=true`;
-    navigate(`${dashboardUrl}?${dashboardParam}&${projectParam}&${editModeParam}`);
+    addAlert(
+      t('Dashboard "{{name}}" imported successfully', { name: displayName }),
+      AlertVariant.success,
+    );
 
     handleClose();
+    navigateToDashboard(createdDashboard, true);
   };
 
-  const handleImport = async () => {
+  const processForm: SubmitHandler<ImportDashboardValidationType> = async (data) => {
     if (isImporting) {
       return;
     }
 
-    setFormErrors({});
-
-    if (!selectedProject) {
-      setFormErrors({ project: t('Project is required') });
-      return;
-    }
-
     if (!parsedDashboard) {
-      setFormErrors({ dashboard: t('A valid dashboard is required') });
+      addAlert(t('A valid dashboard is required'), AlertVariant.danger);
       return;
     }
 
-    // Capture current values before async operations to prevent race conditions
-    const currentProject = selectedProject;
+    const currentProject = data.projectName;
     const currentParsedDashboard = parsedDashboard;
+
+    try {
+      await ensureProjectExists(currentProject, persesProjects || []);
+    } catch {
+      return;
+    }
 
     try {
       if (currentParsedDashboard.kind === 'grafana') {
@@ -260,15 +275,17 @@ export const DashboardImportDialog: React.FunctionComponent<DashboardImportDialo
                   getErrorMessage(error) || t('Failed to import dashboard. Please try again.');
                 addAlert(
                   t('Error importing dashboard: {{error}}', { error: errorMessage }),
-                  'danger',
+                  AlertVariant.danger,
                 );
-                setFormErrors({ general: errorMessage });
               }
             },
             onError: (error) => {
               const errorMessage =
                 getErrorMessage(error) || t('Migration failed. Please try again.');
-              setFormErrors({ general: errorMessage });
+              addAlert(
+                t('Error migrating dashboard: {{error}}', { error: errorMessage }),
+                AlertVariant.danger,
+              );
             },
           },
         );
@@ -279,7 +296,10 @@ export const DashboardImportDialog: React.FunctionComponent<DashboardImportDialo
     } catch (error) {
       const errorMessage =
         getErrorMessage(error) || t('Failed to import dashboard. Please try again.');
-      setFormErrors({ general: errorMessage });
+      addAlert(
+        t('Error importing dashboard: {{error}}', { error: errorMessage }),
+        AlertVariant.danger,
+      );
     }
   };
 
@@ -292,16 +312,12 @@ export const DashboardImportDialog: React.FunctionComponent<DashboardImportDialo
     setDashboardInput('');
     setParsedDashboard(undefined);
     setParseError('');
-    setSelectedProject(null);
     setFilename('');
-    setFormErrors({});
+    form.reset();
   };
 
-  const onProjectSelect = (_event: unknown, selection: string) => {
-    setSelectedProject(selection);
-  };
-
-  const canImport = parsedDashboard && selectedProject && !isImporting && !parseError;
+  const projectNameValue = form.watch('projectName');
+  const canImport = parsedDashboard && projectNameValue && !isImporting && !parseError;
 
   return (
     <Modal
@@ -311,126 +327,100 @@ export const DashboardImportDialog: React.FunctionComponent<DashboardImportDialo
       onEscapePress={handleClose}
       aria-labelledby="import-dashboard-modal"
     >
-      <ModalHeader title={t('Import Dashboard')} />
+      <ModalHeader title={t('Import Dashboard')} labelId="import-dashboard-modal" />
       <ModalBody>
-        {permissionsError && (
-          <Alert
-            variant="danger"
-            title={t('Failed to load project permissions. Please refresh the page and try again.')}
-            isInline
-            style={{ marginBottom: '16px' }}
-          />
-        )}
-        {formErrors.general && (
-          <Alert
-            variant="danger"
-            title={formErrors.general}
-            isInline
-            style={{ marginBottom: '16px' }}
-          />
-        )}
-
-        <Form>
-          <Stack hasGutter>
-            <StackItem>
-              <FormGroup
-                label={t('1. Provide a dashboard (JSON or YAML)')}
-                fieldId="import-dashboard-input"
-              >
-                <HelperText style={{ marginBottom: '8px' }}>
-                  <HelperTextItem>
-                    {t(
-                      'Upload a dashboard file or paste the dashboard definition directly in the editor below.',
+        <PermissionStateWrapper
+          permissionsLoading={permissionsLoading}
+          permissionsError={permissionsError}
+        >
+          <FormProvider {...form}>
+            <form onSubmit={form.handleSubmit(processForm)}>
+              <Stack hasGutter>
+                <StackItem>
+                  <FormGroup
+                    label={t('1. Provide a dashboard (JSON or YAML)')}
+                    fieldId="import-dashboard-input"
+                  >
+                    <HelperText style={{ marginBottom: '8px' }}>
+                      <HelperTextItem>
+                        {t(
+                          'Upload a dashboard file or paste the dashboard definition directly in the editor below.',
+                        )}
+                      </HelperTextItem>
+                    </HelperText>
+                    <Stack hasGutter>
+                      <StackItem>
+                        <FileUpload
+                          id="import-dashboard-file"
+                          type="text"
+                          value={dashboardInput}
+                          filename={filename}
+                          filenamePlaceholder={t('Drag and drop a file or upload one')}
+                          browseButtonText={t('Upload')}
+                          clearButtonText={t('Clear')}
+                          onFileInputChange={handleFileUpload}
+                          onClearClick={handleClearFile}
+                          hideDefaultPreview
+                          isLoading={isUploadingFile}
+                        />
+                      </StackItem>
+                      <StackItem>
+                        <CodeEditor
+                          id="import-dashboard-code-editor"
+                          code={dashboardInput}
+                          onChange={handleDashboardInputChange}
+                          height="300px"
+                          isLineNumbersVisible
+                          isDarkTheme={theme === 'dark'}
+                        />
+                      </StackItem>
+                    </Stack>
+                    {parseError && (
+                      <FormHelperText>
+                        <HelperText>
+                          <HelperTextItem icon={<ExclamationCircleIcon />} variant="error">
+                            {parseError}
+                          </HelperTextItem>
+                        </HelperText>
+                      </FormHelperText>
                     )}
-                  </HelperTextItem>
-                </HelperText>
-                <Stack hasGutter>
-                  <StackItem>
-                    <FileUpload
-                      id="import-dashboard-file"
-                      type="text"
-                      value={dashboardInput}
-                      filename={filename}
-                      filenamePlaceholder={t('Drag and drop a file or upload one')}
-                      browseButtonText={t('Upload')}
-                      clearButtonText={t('Clear')}
-                      onFileInputChange={handleFileUpload}
-                      onClearClick={handleClearFile}
-                      hideDefaultPreview
-                      isLoading={isUploadingFile}
-                    />
-                  </StackItem>
-                  <StackItem>
-                    <CodeEditor
-                      id="import-dashboard-code-editor"
-                      code={dashboardInput}
-                      onChange={handleDashboardInputChange}
-                      height="300px"
-                      isLineNumbersVisible
-                      isDarkTheme={theme === 'dark'}
-                    />
-                  </StackItem>
-                </Stack>
-                {(parseError || formErrors.dashboard) && (
-                  <FormHelperText>
-                    <HelperText>
-                      <HelperTextItem
-                        icon={<ExclamationCircleIcon />}
-                        variant={HelperTextItemVariant.error}
-                      >
-                        {parseError || formErrors.dashboard}
-                      </HelperTextItem>
-                    </HelperText>
-                  </FormHelperText>
-                )}
-                {parsedDashboard && (
-                  <FormHelperText>
-                    <HelperText>
-                      <HelperTextItem variant={HelperTextItemVariant.success}>
-                        {parsedDashboard.kind === 'grafana'
-                          ? t(
-                              'Grafana dashboard detected. It will be automatically migrated to Perses format. Note: migration may be partial as not all Grafana features are supported.',
-                            )
-                          : t('Perses dashboard detected.')}
-                      </HelperTextItem>
-                    </HelperText>
-                  </FormHelperText>
-                )}
-              </FormGroup>
-            </StackItem>
+                    {parsedDashboard && (
+                      <FormHelperText>
+                        <HelperText>
+                          <HelperTextItem variant="success">
+                            {parsedDashboard.kind === 'grafana'
+                              ? t(
+                                  'Grafana dashboard detected. It will be automatically migrated to Perses format. Note: migration may be partial as not all Grafana features are supported.',
+                                )
+                              : t('Perses dashboard detected.')}
+                          </HelperTextItem>
+                        </HelperText>
+                      </FormHelperText>
+                    )}
+                  </FormGroup>
+                </StackItem>
 
-            {parsedDashboard && (
-              <StackItem>
-                <FormGroup
-                  label={t('2. Select project')}
-                  isRequired
-                  fieldId="import-dashboard-project"
-                >
-                  <TypeaheadSelect
-                    key={selectedProject || 'no-selection'}
-                    initialOptions={projectOptions}
-                    placeholder={t('Select a project')}
-                    noOptionsFoundMessage={(filter) =>
-                      t('No project found for "{{filter}}"', { filter })
-                    }
-                    onClearSelection={() => {
-                      setSelectedProject(null);
-                    }}
-                    onSelect={onProjectSelect}
-                    isCreatable={false}
-                    maxMenuHeight="200px"
-                  />
-                </FormGroup>
-              </StackItem>
-            )}
-          </Stack>
-        </Form>
+                {parsedDashboard && (
+                  <StackItem>
+                    <ProjectSelectFormGroup
+                      control={form.control}
+                      projectOptions={projectOptions}
+                      defaultValue={projectNameValue || defaultProject}
+                      label={t('2. Select project')}
+                      maxHeight="200px"
+                    />
+                  </StackItem>
+                )}
+              </Stack>
+            </form>
+          </FormProvider>
+        </PermissionStateWrapper>
       </ModalBody>
       <ModalFooter>
         <Button
           key="import"
           variant="primary"
-          onClick={handleImport}
+          onClick={form.handleSubmit(processForm)}
           isDisabled={!canImport}
           isLoading={isImporting}
         >
