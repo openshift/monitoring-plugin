@@ -1,60 +1,60 @@
 import {
+  AlertVariant,
   Button,
+  FormGroup,
+  FormHelperText,
+  HelperText,
+  HelperTextItem,
+  HelperTextItemVariant,
   Modal,
   ModalBody,
   ModalFooter,
   ModalHeader,
-  FormGroup,
-  TextInput,
-  FormHelperText,
-  HelperText,
-  HelperTextItem,
-  ValidatedOptions,
-  HelperTextItemVariant,
   ModalVariant,
-  AlertVariant,
+  Spinner,
   Stack,
   StackItem,
-  Spinner,
+  TextInput,
+  ValidatedOptions,
 } from '@patternfly/react-core';
-import { TypeaheadSelect, TypeaheadSelectOption } from '@patternfly/react-templates';
 import { ExclamationCircleIcon } from '@patternfly/react-icons';
-import React, { useMemo } from 'react';
+import { TypeaheadSelect, TypeaheadSelectOption } from '@patternfly/react-templates';
+import React, { useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  useUpdateDashboardMutation,
-  useCreateDashboardMutation,
-  useDeleteDashboardMutation,
-  useCreateProjectMutation,
-} from './dashboard-api';
-import {
-  renameDashboardDialogValidationSchema,
-  RenameDashboardValidationType,
   createDashboardDialogValidationSchema,
   CreateDashboardValidationType,
+  renameDashboardDialogValidationSchema,
+  RenameDashboardValidationType,
   useDashboardValidationSchema,
 } from './dashboard-action-validations';
+import {
+  useCreateDashboardMutation,
+  useCreateProjectMutation,
+  useDeleteDashboardMutation,
+  useUpdateDashboardMutation,
+} from './dashboard-api';
 
-import { Controller, FormProvider, SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { t_global_font_weight_200, t_global_spacer_200 } from '@patternfly/react-tokens';
 import {
   DashboardResource,
   getResourceDisplayName,
   getResourceExtendedDisplayName,
 } from '@perses-dev/core';
+import { Controller, FormProvider, SubmitHandler, useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom-v5-compat';
+import { getDashboardUrl, usePerspective } from '../../hooks/usePerspective';
 import { useToast } from './ToastProvider';
 import { generateMetadataName } from './dashboard-utils';
 import { useEditableProjects } from './hooks/useEditableProjects';
 import { usePerses } from './hooks/usePerses';
-import { t_global_spacer_200, t_global_font_weight_200 } from '@patternfly/react-tokens';
-import { useNavigate } from 'react-router-dom-v5-compat';
-import { usePerspective, getDashboardUrl } from '../../hooks/usePerspective';
 
-const formGroupStyle = {
+export const formGroupStyle = {
   fontWeight: t_global_font_weight_200.value,
 } as React.CSSProperties;
 
-const LabelSpacer = () => {
+export const LabelSpacer = () => {
   return <div style={{ paddingBottom: t_global_spacer_200.value }} />;
 };
 
@@ -208,7 +208,7 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
     return allProjects[0] || '';
   }, [dashboard, editableProjects, allProjects]);
 
-  const { schema: validationSchema } = useDashboardValidationSchema(defaultProject, t);
+  const { schema: validationSchema } = useDashboardValidationSchema(t, defaultProject);
 
   const form = useForm<CreateDashboardValidationType>({
     resolver: validationSchema
@@ -236,7 +236,7 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
 
   const createDashboardMutation = useCreateDashboardMutation();
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isOpen && dashboard && editableProjects?.length > 0 && defaultProject) {
       form.reset({
         projectName: defaultProject,
