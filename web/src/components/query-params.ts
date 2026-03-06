@@ -5,4 +5,7 @@ export enum QueryParams {
   EndTime = 'endTime',
   Datasource = 'datasource',
   Project = 'project',
+  Edit = 'edit',
+  Start = 'start',
+  Refresh = 'refresh',
 }

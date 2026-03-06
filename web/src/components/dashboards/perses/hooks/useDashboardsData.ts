@@ -105,16 +105,16 @@ export const useDashboardsData = () => {
 
       const params = new URLSearchParams(queryArguments);
 
-      let projectToUse = activeProject;
-      if (!activeProject) {
-        const dashboardMetadata = combinedDashboardsMetadata.find((item) => item.name === newBoard);
-        projectToUse = dashboardMetadata?.project;
-      }
+      const dashboard = combinedDashboardsMetadata.find((item) => item.name === newBoard);
+
+      const projectToUse = activeProject || dashboard?.project;
 
       if (projectToUse) {
         params.set(QueryParams.Project, projectToUse);
       }
       params.set(QueryParams.Dashboard, newBoard);
+      params.set(QueryParams.Start, dashboard?.persesDashboard?.spec?.duration);
+      params.set(QueryParams.Refresh, dashboard?.persesDashboard?.spec?.refreshInterval);
 
       let url = getDashboardUrl(perspective);
       url = `${url}?${params.toString()}`;
