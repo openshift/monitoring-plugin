@@ -37,6 +37,7 @@ import {
 import { ProjectBar } from './project/ProjectBar';
 import { Helmet } from 'react-helmet';
 import { DashboardListPageHeader } from './dashboard-header';
+import { useEditableProjects } from './hooks/useEditableProjects';
 const perPageOptions = [
   { title: '10', value: 10 },
   { title: '20', value: 20 },
@@ -59,6 +60,7 @@ const DashboardActionsCell = React.memo(
     emptyActions: any[];
   }) => {
     const { t } = useTranslation(process.env.I18N_NAMESPACE);
+    const { permissionsLoading } = useEditableProjects();
     const { canEdit, loading } = usePersesEditPermissions(project);
     const disabled = !canEdit;
 
@@ -83,6 +85,16 @@ const DashboardActionsCell = React.memo(
     if (disabled || loading) {
       return (
         <Tooltip content={t("You don't have permissions for dashboard actions")}>
+          <div>
+            <ActionsColumn items={emptyActions} isDisabled={true} />
+          </div>
+        </Tooltip>
+      );
+    }
+
+    if (permissionsLoading) {
+      return (
+        <Tooltip content={t('Checking permissions...')}>
           <div>
             <ActionsColumn items={emptyActions} isDisabled={true} />
           </div>

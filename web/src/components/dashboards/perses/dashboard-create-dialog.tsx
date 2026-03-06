@@ -53,9 +53,10 @@ export const DashboardCreateDialog: React.FunctionComponent<DashboardCreateDialo
     permissionsLoading,
     permissionsError,
     persesProjects,
-    defaultProject,
     projectOptions,
   } = useDashboardProjects();
+
+  const defaultProject = editableProjects ? editableProjects[0] : '';
 
   const { ensureProjectExists, isCreatingProject } = useProjectCreation();
   const { navigateToDashboard } = useDashboardNavigation();
