@@ -37,11 +37,7 @@ import {
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { t_global_font_weight_200, t_global_spacer_200 } from '@patternfly/react-tokens';
-import {
-  DashboardResource,
-  getResourceDisplayName,
-  getResourceExtendedDisplayName,
-} from '@perses-dev/core';
+import { DashboardResource, getResourceExtendedDisplayName } from '@perses-dev/core';
 import { Controller, FormProvider, SubmitHandler, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom-v5-compat';
 import { getDashboardUrl, usePerspective } from '../../hooks/usePerspective';
@@ -72,7 +68,7 @@ export const RenameActionModal = ({ dashboard, isOpen, onClose }: ActionModalPro
   const form = useForm<RenameDashboardValidationType>({
     resolver: zodResolver(renameDashboardDialogValidationSchema(t)),
     mode: 'onBlur',
-    defaultValues: { dashboardName: dashboard ? getResourceDisplayName(dashboard) : '' },
+    defaultValues: { dashboardName: '' },
   });
 
   const updateDashboardMutation = useUpdateDashboardMutation();
@@ -108,7 +104,7 @@ export const RenameActionModal = ({ dashboard, isOpen, onClose }: ActionModalPro
 
   const handleClose = () => {
     onClose();
-    form.reset();
+    form.reset({ dashboardName: '' });
   };
 
   return (
