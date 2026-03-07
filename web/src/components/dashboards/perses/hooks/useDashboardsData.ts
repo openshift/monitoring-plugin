@@ -113,8 +113,12 @@ export const useDashboardsData = () => {
         params.set(QueryParams.Project, projectToUse);
       }
       params.set(QueryParams.Dashboard, newBoard);
-      params.set(QueryParams.Start, dashboard?.persesDashboard?.spec?.duration);
-      params.set(QueryParams.Refresh, dashboard?.persesDashboard?.spec?.refreshInterval);
+      if (dashboard?.persesDashboard?.spec?.duration) {
+        params.set(QueryParams.Start, dashboard.persesDashboard.spec.duration);
+      }
+      if (dashboard?.persesDashboard?.spec?.refreshInterval) {
+        params.set(QueryParams.Refresh, dashboard.persesDashboard.spec.refreshInterval);
+      }
 
       let url = getDashboardUrl(perspective);
       url = `${url}?${params.toString()}`;
