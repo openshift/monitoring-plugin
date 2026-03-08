@@ -287,7 +287,6 @@ export const persesDashboardsPage = {
       case 'Save':
         cy.bySemanticElement('button', 'Save').scrollIntoView().should('be.visible').click({ force: true });
         persesDashboardsPage.clickSaveDashboardButton();
-        persesDashboardsPage.closeSuccessAlert();
         break;
       case 'Cancel':
         cy.byTestID(persesDashboardDataTestIDs.cancelButtonToolbar).scrollIntoView().should('be.visible').click({ force: true });

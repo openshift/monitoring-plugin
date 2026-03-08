@@ -19,7 +19,7 @@ const MP = {
 };
 
 //TODO: change tag to @smoke, @dashboards, @perses when customizable-dashboards gets merged
-describe('BVT: COO - Dashboards (Perses) - Administrator perspective', { tags: ['@smoke-', '@dashboards-', '@perses-'] }, () => {
+describe('BVT: COO - Dashboards (Perses) - Administrator perspective', { tags: ['@smoke-', '@dashboards-', '@perses'] }, () => {
 
   before(() => {
     cy.beforeBlockCOO(MCP, MP);
