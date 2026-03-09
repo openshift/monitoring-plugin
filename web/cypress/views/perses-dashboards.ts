@@ -1,6 +1,7 @@
 import { commonPages } from "./common";
-import { DataTestIDs, Classes, LegacyTestIDs, persesAriaLabels, persesDataTestIDs } from "../../src/components/data-test";
+import { DataTestIDs, Classes, LegacyTestIDs, persesAriaLabels, persesMUIDataTestIDs, listPersesDashboardsOUIAIDs, IDs, persesDashboardDataTestIDs } from "../../src/components/data-test";
 import { MonitoringPageTitles } from "../fixtures/monitoring/constants";
+import { listPersesDashboardsPageSubtitle } from "../fixtures/perses/constants";
 import { persesDashboardsTimeRange, persesDashboardsRefreshInterval, persesDashboardsDashboardDropdownCOO, persesDashboardsDashboardDropdownPersesDev, persesDashboardsAcceleratorsCommonMetricsPanels } from "../fixtures/perses/constants";
 
 export const persesDashboardsPage = {
@@ -13,6 +14,29 @@ export const persesDashboardsPage = {
     cy.byAriaLabel(persesAriaLabels.ZoomOutButton).should('be.visible');
     cy.byAriaLabel(persesAriaLabels.RefreshButton).should('be.visible');
     cy.byAriaLabel(persesAriaLabels.RefreshIntervalDropdown).contains(persesDashboardsRefreshInterval.OFF).should('be.visible');
+    cy.byTestID(DataTestIDs.PersesDashboardDropdown).find('input').should('be.visible');
+    cy.byTestID(DataTestIDs.PersesDashboardDropdown).find('button').should('be.visible');
+    cy.byLegacyTestID(LegacyTestIDs.PersesDashboardSection).should('be.visible');
+
+  },
+
+  //TODO: change back to shouldBeLoaded when customizable-dashboards gets merged
+  shouldBeLoaded1: () => {
+    cy.log('persesDashboardsPage.shouldBeLoaded');
+    commonPages.titleShouldHaveText(MonitoringPageTitles.DASHBOARDS);
+    cy.byOUIAID(listPersesDashboardsOUIAIDs.PageHeaderSubtitle).should('contain', listPersesDashboardsPageSubtitle).should('be.visible');
+
+    cy.byTestID(persesDashboardDataTestIDs.editDashboardButtonToolbar).should('be.visible');
+
+    cy.byAriaLabel(persesAriaLabels.TimeRangeDropdown).contains(persesDashboardsTimeRange.LAST_30_MINUTES).should('be.visible');
+    cy.byAriaLabel(persesAriaLabels.ZoomInButton).should('be.visible');
+    cy.byAriaLabel(persesAriaLabels.ZoomOutButton).should('be.visible');
+    cy.byAriaLabel(persesAriaLabels.RefreshButton).should('be.visible');
+    cy.byAriaLabel(persesAriaLabels.RefreshIntervalDropdown).contains(persesDashboardsRefreshInterval.OFF).should('be.visible');
+
+    cy.get('#'+IDs.persesDashboardDownloadButton).should('be.visible');
+    cy.byAriaLabel(persesAriaLabels.ViewJSONButton).should('be.visible');    
+
     cy.byTestID(DataTestIDs.PersesDashboardDropdown).find('input').should('be.visible');
     cy.byTestID(DataTestIDs.PersesDashboardDropdown).find('button').should('be.visible');
     cy.byLegacyTestID(LegacyTestIDs.PersesDashboardSection).should('be.visible');
@@ -84,7 +108,7 @@ export const persesDashboardsPage = {
 
   panelGroupHeaderAssertion: (panelGroupHeader: string) => {
     cy.log('persesDashboardsPage.panelGroupHeaderAssertion');
-    cy.byDataTestID(persesDataTestIDs.panelGroupHeader).contains(panelGroupHeader).should('be.visible');
+    cy.byDataTestID(persesMUIDataTestIDs.panelGroupHeader).contains(panelGroupHeader).should('be.visible');
   },
 
   panelHeadersAcceleratorsCommonMetricsAssertion: () => {
@@ -93,33 +117,33 @@ export const persesDashboardsPage = {
     const panels = Object.values(persesDashboardsAcceleratorsCommonMetricsPanels);
     panels.forEach((panel) => {
       cy.log('Panel: ' + panel);
-      cy.byDataTestID(persesDataTestIDs.panelHeader).find('h6').contains(panel).scrollIntoView().should('be.visible');
+      cy.byDataTestID(persesMUIDataTestIDs.panelHeader).find('h6').contains(panel).scrollIntoView().should('be.visible');
     });
   },
 
   expandPanel: (panel: keyof typeof persesDashboardsAcceleratorsCommonMetricsPanels | string) => {
     cy.log('persesDashboardsPage.expandPanel');
-    cy.byDataTestID(persesDataTestIDs.panelHeader).find('h6').contains(panel).scrollIntoView().siblings('div').eq(2).find('[data-testid="ArrowExpandIcon"]').click({force: true});
+    cy.byDataTestID(persesMUIDataTestIDs.panelHeader).find('h6').contains(panel).scrollIntoView().siblings('div').eq(2).find('[data-testid="ArrowExpandIcon"]').click({force: true});
   },
 
   collapsePanel: (panel: keyof typeof persesDashboardsAcceleratorsCommonMetricsPanels | string) => {
     cy.log('persesDashboardsPage.collapsePanel');
-    cy.byDataTestID(persesDataTestIDs.panelHeader).find('h6').contains(panel).scrollIntoView().siblings('div').eq(2).find('[data-testid="ArrowCollapseIcon"]').click({force: true});
+    cy.byDataTestID(persesMUIDataTestIDs.panelHeader).find('h6').contains(panel).scrollIntoView().siblings('div').eq(2).find('[data-testid="ArrowCollapseIcon"]').click({force: true});
   },
 
   statChartValueAssertion: (panel: keyof typeof persesDashboardsAcceleratorsCommonMetricsPanels | string, noData: boolean) => {
     cy.log('persesDashboardsPage.statChartValueAssertion');
     cy.wait(2000);
     if (noData) {
-      cy.byDataTestID(persesDataTestIDs.panelHeader).find('h6').contains(panel).scrollIntoView().parents('header').siblings('figure').find('p').should('contain', 'No data').should('be.visible');
+      cy.byDataTestID(persesMUIDataTestIDs.panelHeader).find('h6').contains(panel).scrollIntoView().parents('header').siblings('figure').find('p').should('contain', 'No data').should('be.visible');
     } else {
-      cy.byDataTestID(persesDataTestIDs.panelHeader).find('h6').contains(panel).scrollIntoView().parents('header').siblings('figure').find('h3').should('not.contain', 'No data').should('be.visible');
+      cy.byDataTestID(persesMUIDataTestIDs.panelHeader).find('h6').contains(panel).scrollIntoView().parents('header').siblings('figure').find('h3').should('not.contain', 'No data').should('be.visible');
     }
   },
 
   searchAndSelectVariable: (variable: string, value: string) => {
     cy.log('persesDashboardsPage.searchAndSelectVariable');
-    cy.byDataTestID(persesDataTestIDs.variableDropdown+'-'+variable).find('input').type(value);
+    cy.byDataTestID(persesMUIDataTestIDs.variableDropdown+'-'+variable).find('input').type(value);
     cy.byPFRole('option').contains(value).click({force: true});
     cy.wait(1000);
   },
