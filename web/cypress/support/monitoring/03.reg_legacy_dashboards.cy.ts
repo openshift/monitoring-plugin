@@ -35,9 +35,7 @@ export function testLegacyDashboardsRegression(perspective: PerspectiveConfig) {
     legacyDashboardsPage.clickDashboardDropdown('API_PERFORMANCE');
 
     cy.log('1.5 Dashboard API Performance panels');
-    for (const panel of Object.values(API_PERFORMANCE_DASHBOARD_PANELS)) {
-      legacyDashboardsPage.dashboardAPIPerformancePanelAssertion(panel);
-    }
+    legacyDashboardsPage.dashboardAPIPerformancePanelAssertion();
 
     cy.log('1.6 Inspect - API Request Duration by Verb - 99th Percentile');
     cy.byTestID(LegacyDashboardPageTestIDs.Inspect).eq(0).scrollIntoView().should('be.visible').click();

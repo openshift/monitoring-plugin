@@ -34,9 +34,7 @@ export function testLegacyDashboardsRegressionNamespace(perspective: Perspective
     legacyDashboardsPage.dashboardDropdownAssertion(LegacyDashboardsDashboardDropdownNamespace);
 
     cy.log('1.5 Dashboard Kubernetes Compute Resources Namespace Pods panels');
-    for (const panel of Object.values(KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANELS)) {
-      legacyDashboardsPage.dashboardKubernetesComputeResourcesNamespacePodsPanelAssertion(panel);
-    }
+    legacyDashboardsPage.dashboardKubernetesComputeResourcesNamespacePodsPanelAssertion();
 
     cy.log('1.6 Inspect - CPU Utilisation (from requests)');
     cy.byTestID(LegacyDashboardPageTestIDs.Inspect).eq(0).scrollIntoView().should('be.visible').click();
