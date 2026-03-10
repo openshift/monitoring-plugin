@@ -60,6 +60,7 @@ import {
   getQueryBrowserUrl,
   usePerspective,
 } from '../hooks/usePerspective';
+import { useQueryNamespace } from '../hooks/useQueryNamespace';
 import KebabDropdown from '../kebab-dropdown';
 import { Labels } from '../labels';
 import { ToggleGraph } from '../MetricsPage';
@@ -89,6 +90,7 @@ export const ActiveAlerts: FC<ActiveAlertsProps> = ({ alerts, ruleID }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
   const navigate = useNavigate();
+  const { namespace } = useQueryNamespace();
 
   return (
     <Table variant={TableVariant.compact}>
@@ -108,7 +110,7 @@ export const ActiveAlerts: FC<ActiveAlertsProps> = ({ alerts, ruleID }) => {
             <Td>
               <Link
                 data-test={DataTestIDs.AlertResourceLink}
-                to={getAlertUrl(perspective, a, ruleID)}
+                to={getAlertUrl(perspective, a, ruleID, namespace)}
               >
                 {alertDescription(a)}
               </Link>
@@ -126,7 +128,7 @@ export const ActiveAlerts: FC<ActiveAlertsProps> = ({ alerts, ruleID }) => {
                   <DropdownItem
                     component="button"
                     key="silence"
-                    onClick={() => navigate(getNewSilenceAlertUrl(perspective, a))}
+                    onClick={() => navigate(getNewSilenceAlertUrl(perspective, a, namespace))}
                   >
                     {t('Silence alert')}
                   </DropdownItem>,
@@ -141,7 +143,8 @@ export const ActiveAlerts: FC<ActiveAlertsProps> = ({ alerts, ruleID }) => {
 };
 const AlertRulesDetailsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const params = useParams<{ ns?: string; id: string }>();
+  const params = useParams<{ id: string }>();
+  const { namespace } = useQueryNamespace();
 
   const { rules, rulesAlertLoading } = useAlerts();
 
@@ -184,7 +187,10 @@ const AlertRulesDetailsPage_: FC = () => {
           <PageBreadcrumb hasBodyWrapper={false}>
             <Breadcrumb>
               <BreadcrumbItem>
-                <Link to={getAlertRulesUrl(perspective)} data-test={DataTestIDs.Breadcrumb}>
+                <Link
+                  to={getAlertRulesUrl(perspective, namespace)}
+                  data-test={DataTestIDs.Breadcrumb}
+                >
                   {t('Alerting rules')}
                 </Link>
               </BreadcrumbItem>
@@ -310,6 +316,7 @@ const AlertRulesDetailsPage_: FC = () => {
                           to={getQueryBrowserUrl({
                             perspective: perspective,
                             query: rule?.query,
+                            namespace,
                           })}
                         >
                           <CodeBlock>

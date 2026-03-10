@@ -22,28 +22,34 @@ import {
 import { sortable } from '@patternfly/react-table';
 import * as _ from 'lodash-es';
 import type { FC } from 'react';
-import { useContext, useState, useMemo, useCallback, memo } from 'react';
+import { useContext, useState, useMemo, useCallback, memo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom-v5-compat';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
 import { useBoolean } from '../hooks/useBoolean';
 import { getFetchSilenceUrl, getNewSilenceUrl, usePerspective } from '../hooks/usePerspective';
-import { fuzzyCaseInsensitive, silenceCluster, silenceState } from '../utils';
+import { ALL_NAMESPACES_KEY, fuzzyCaseInsensitive, silenceCluster, silenceState } from '../utils';
 import { SelectedSilencesContext, SilenceTableRow } from './SilencesUtils';
 import { MonitoringProvider } from '../../contexts/MonitoringContext';
 import { DataTestIDs } from '../data-test';
 import { useAlerts } from '../../hooks/useAlerts';
+import { useQueryNamespace } from '../hooks/useQueryNamespace';
 
 const SilencesPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-
+  const { namespace } = useQueryNamespace();
   const { perspective } = usePerspective();
 
   const [selectedSilences, setSelectedSilences] = useState(new Set());
   const [errorMessage, setErrorMessage] = useState();
 
-  const { silences, silenceClusterLabels } = useAlerts();
+  const { silences, silenceClusterLabels, trigger } = useAlerts();
+
+  useEffect(() => {
+    trigger();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const rowFilters: RowFilter[] = useMemo(() => {
     const filters = [
@@ -98,7 +104,20 @@ const SilencesPage_: FC = () => {
     return filters;
   }, [perspective, t, silenceClusterLabels]);
 
-  const [staticData, filteredData, onFilterChange] = useListPageFilter(silences?.data, rowFilters);
+  /**
+   * Filters silences based on the selected namespace.
+   * "All Projects": returns all silences, including those without a namespace matcher.
+   */
+  const namespacedSilences =
+    ALL_NAMESPACES_KEY === namespace
+      ? silences?.data
+      : silences?.data?.filter((s) =>
+          s.matchers.some((m) => m.name === 'namespace' && m.value === namespace),
+        );
+  const [staticData, filteredData, onFilterChange] = useListPageFilter(
+    namespacedSilences,
+    rowFilters,
+  );
 
   const columns = useMemo<Array<TableColumn<Silence>>>(() => {
     const cols: Array<TableColumn<Silence>> = [
@@ -273,6 +292,7 @@ const ExpireAllSilencesButton: FC<ExpireAllSilencesButtonProps> = ({ setErrorMes
   const { trigger: refetchSilencesAndAlerts } = useAlerts();
 
   const { perspective } = usePerspective();
+  const { namespace } = useQueryNamespace();
 
   const [isInProgress, , setInProgress, setNotInProgress] = useBoolean(false);
 
@@ -282,7 +302,7 @@ const ExpireAllSilencesButton: FC<ExpireAllSilencesButtonProps> = ({ setErrorMes
     setInProgress();
     Promise.allSettled(
       [...selectedSilences].map((silenceID: string) =>
-        consoleFetchJSON.delete(getFetchSilenceUrl(perspective, silenceID)),
+        consoleFetchJSON.delete(getFetchSilenceUrl(perspective, silenceID, namespace)),
       ),
     ).then((values) => {
       setNotInProgress();
@@ -320,9 +340,10 @@ const SilenceTableRowWithCheckbox: FC<RowProps<Silence>> = ({ obj }) => (
 const CreateSilenceButton: FC = memo(() => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
+  const { namespace } = useQueryNamespace();
 
   return (
-    <Link to={getNewSilenceUrl(perspective)}>
+    <Link to={getNewSilenceUrl(perspective, namespace)}>
       <Button data-test={DataTestIDs.SilenceButton} variant="primary">
         {t('Create silence')}
       </Button>

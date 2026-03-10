@@ -49,6 +49,7 @@ import {
   getSilenceAlertUrl,
   usePerspective,
 } from '../hooks/usePerspective';
+import { useQueryNamespace } from '../hooks/useQueryNamespace';
 import { silenceMatcherEqualitySymbol, SilenceResource, silenceState } from '../utils';
 import { SeverityCounts, StateTimestamp } from './AlertUtils';
 import { DataTestIDs } from '../data-test';
@@ -56,6 +57,7 @@ import { DataTestIDs } from '../data-test';
 export const SilenceTableRow: FC<SilenceTableRowProps> = ({ obj, showCheckbox }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
+  const { namespace } = useQueryNamespace();
 
   const { createdBy, endsAt, firingAlerts, id, name, startsAt, matchers } = obj;
   const state = silenceState(obj);
@@ -105,7 +107,7 @@ export const SilenceTableRow: FC<SilenceTableRowProps> = ({ obj, showCheckbox })
             <Link
               data-test-id="silence-resource-link"
               title={id}
-              to={getSilenceAlertUrl(perspective, id)}
+              to={getSilenceAlertUrl(perspective, id, namespace)}
               data-test={DataTestIDs.SilenceResourceLink}
             >
               {name}
@@ -204,12 +206,13 @@ export const SilenceDropdown: FC<SilenceDropdownProps> = ({ silence, toggleText 
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
   const navigate = useNavigate();
+  const { namespace } = useQueryNamespace();
 
   const [isOpen, setIsOpen, , setClosed] = useBoolean(false);
   const [isModalOpen, , setModalOpen, setModalClosed] = useBoolean(false);
 
   const editSilence = () => {
-    navigate(getEditSilenceAlertUrl(perspective, silence.id));
+    navigate(getEditSilenceAlertUrl(perspective, silence.id, namespace));
   };
 
   const dropdownItems =
@@ -278,6 +281,7 @@ export const ExpireSilenceModal: FC<ExpireSilenceModalProps> = ({
 }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
+  const { namespace } = useQueryNamespace();
 
   const [isInProgress, , setInProgress, setNotInProgress] = useBoolean(false);
   const [success, , setSuccess] = useBoolean(false);
@@ -285,7 +289,7 @@ export const ExpireSilenceModal: FC<ExpireSilenceModalProps> = ({
 
   const expireSilence = () => {
     setInProgress();
-    const url = getFetchSilenceUrl(perspective, silenceID);
+    const url = getFetchSilenceUrl(perspective, silenceID, namespace);
     consoleFetchJSON
       .delete(url)
       .then(() => {

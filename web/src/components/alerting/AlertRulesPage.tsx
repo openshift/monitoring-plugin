@@ -41,6 +41,7 @@ import { severityRowFilter } from './AlertUtils';
 import { MonitoringProvider } from '../../contexts/MonitoringContext';
 import { DataTestIDs } from '../data-test';
 import { useAlerts } from '../../hooks/useAlerts';
+import { useQueryNamespace } from '../hooks/useQueryNamespace';
 
 const StateCounts: FC<{ alerts: PrometheusAlert[] }> = ({ alerts }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -85,6 +86,7 @@ const alertStateFilter = (t): RowFilter => ({
 const RuleTableRow: FC<RowProps<Rule>> = ({ obj }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
+  const { namespace } = useQueryNamespace();
 
   const title: string = obj.annotations?.description || obj.annotations?.message;
 
@@ -97,7 +99,7 @@ const RuleTableRow: FC<RowProps<Rule>> = ({ obj }) => {
           </FlexItem>
           <FlexItem>
             <Link
-              to={getRuleUrl(perspective, obj)}
+              to={getRuleUrl(perspective, obj, namespace)}
               data-test={DataTestIDs.AlertingRuleResourceLink}
             >
               <Truncate content={obj.name} />

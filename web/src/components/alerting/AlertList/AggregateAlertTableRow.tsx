@@ -4,6 +4,7 @@ import type { FC } from 'react';
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getRuleUrl, usePerspective } from '../../../components/hooks/usePerspective';
+import { useQueryNamespace } from '../../../components/hooks/useQueryNamespace';
 import { AggregatedAlert } from '../AlertsAggregates';
 import { AlertState, SeverityBadge } from '../AlertUtils';
 import AlertTableRow from './AlertTableRow';
@@ -26,6 +27,7 @@ const AggregateAlertTableRow: AggregateAlertTableRowProps = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
+  const { namespace } = useQueryNamespace();
   const title = aggregatedAlert.name;
   const isACMPerspective = perspective === 'acm';
 
@@ -93,7 +95,7 @@ const AggregateAlertTableRow: AggregateAlertTableRowProps = ({
             </FlexItem>
             <FlexItem>
               <Link
-                to={getRuleUrl(perspective, firstAlert?.rule)}
+                to={getRuleUrl(perspective, firstAlert?.rule, namespace)}
                 data-test-id="alert-resource-link"
                 data-test={DataTestIDs.AlertingRuleResourceLink}
               >

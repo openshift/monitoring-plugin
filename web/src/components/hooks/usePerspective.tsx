@@ -5,6 +5,7 @@ import * as _ from 'lodash-es';
 import {
   ALERTMANAGER_BASE_PATH,
   ALERTMANAGER_PROXY_PATH,
+  ALERTMANAGER_TENANCY_BASE_PATH,
   AlertResource,
   labelsToParams,
   MonitoringPlugins,
@@ -61,119 +62,155 @@ export const usePerspective = (): usePerspectiveReturn => {
   }
 };
 
-export const getAlertsUrl = (perspective: Perspective) => {
+export const getAlertsUrl = (perspective: Perspective, namespace?: string) => {
   switch (perspective) {
     case 'acm':
       return `/multicloud${AlertResource.url}`;
+    case 'dev':
+      return `/dev-monitoring/ns/${namespace}/alerts`;
     case 'virtualization-perspective':
-      return `/virt-monitoring/alerts`;
+      return AlertResource.virtUrl;
     case 'admin':
     default:
       return AlertResource.url;
   }
 };
 
-// There is no equivalent rules list page in the developer perspective
-export const getAlertRulesUrl = (perspective: Perspective) => {
+export const getAlertRulesUrl = (perspective: Perspective, namespace?: string) => {
   switch (perspective) {
     case 'acm':
       return `/multicloud${RuleResource.url}`;
+    case 'dev':
+      return `/dev-monitoring/ns/${namespace}/alertrules`;
     case 'virtualization-perspective':
-      return `/virt-monitoring/alertrules`;
+      return RuleResource.virtUrl;
     case 'admin':
     default:
       return RuleResource.url;
   }
 };
 
-export const getSilencesUrl = (perspective: Perspective) => {
+export const getSilencesUrl = (perspective: Perspective, namespace?: string) => {
   switch (perspective) {
     case 'acm':
       return `/multicloud${SilenceResource.url}`;
+    case 'dev':
+      return `/dev-monitoring/ns/${namespace}/silences`;
     case 'virtualization-perspective':
-      return `/virt-monitoring/silences`;
+      return SilenceResource.virtUrl;
     case 'admin':
     default:
       return SilenceResource.url;
   }
 };
 
-export const getNewSilenceAlertUrl = (perspective: Perspective, alert: PrometheusAlert) => {
+export const getNewSilenceAlertUrl = (
+  perspective: Perspective,
+  alert: PrometheusAlert,
+  namespace?: string,
+) => {
   switch (perspective) {
     case 'acm':
       return `/multicloud${SilenceResource.url}/~new?${labelsToParams(alert.labels)}`;
+    case 'dev':
+      return `/dev-monitoring/ns/${namespace}/silences/~new?${labelsToParams(alert.labels)}`;
     case 'virtualization-perspective':
-      return `/virt-monitoring/silences/~new?${labelsToParams(alert.labels)}`;
+      return `${SilenceResource.virtUrl}/~new?${labelsToParams(alert.labels)}`;
     case 'admin':
     default:
       return `${SilenceResource.url}/~new?${labelsToParams(alert.labels)}`;
   }
 };
 
-export const getNewSilenceUrl = (perspective: Perspective) => {
+export const getNewSilenceUrl = (perspective: Perspective, namespace?: string) => {
   switch (perspective) {
     case 'acm':
       return `/multicloud${SilenceResource.url}/~new`;
+    case 'dev':
+      return `/dev-monitoring/ns/${namespace}/silences/~new`;
     case 'virtualization-perspective':
-      return `/virt-monitoring/silences/~new`;
+      return `${SilenceResource.virtUrl}/~new`;
     case 'admin':
     default:
       return `${SilenceResource.url}/~new`;
   }
 };
 
-export const getRuleUrl = (perspective: Perspective, rule: Rule) => {
+export const getRuleUrl = (perspective: Perspective, rule: Rule, namespace?: string) => {
   switch (perspective) {
     case 'acm':
       return `/multicloud${RuleResource.url}/${_.get(rule, 'id')}`;
+    case 'dev':
+      return `/dev-monitoring/ns/${namespace}/rules/${rule?.id}`;
     case 'virtualization-perspective':
-      return `/virt-monitoring/alertrules/${rule?.id}`;
+      return `${RuleResource.virtUrl}/${rule?.id}`;
     case 'admin':
     default:
       return `${RuleResource.url}/${_.get(rule, 'id')}`;
   }
 };
 
-export const getSilenceAlertUrl = (perspective: Perspective, id: string) => {
+export const getSilenceAlertUrl = (perspective: Perspective, id: string, namespace?: string) => {
   switch (perspective) {
     case 'acm':
       return `/multicloud${SilenceResource.url}/${id}`;
+    case 'dev':
+      return `/dev-monitoring/ns/${namespace}/silences/${id}`;
     case 'virtualization-perspective':
-      return `/virt-monitoring/silences/${id}`;
+      return `${SilenceResource.virtUrl}/${id}`;
     case 'admin':
     default:
       return `${SilenceResource.url}/${id}`;
   }
 };
 
-export const getEditSilenceAlertUrl = (perspective: Perspective, id: string) => {
+export const getEditSilenceAlertUrl = (
+  perspective: Perspective,
+  id: string,
+  namespace?: string,
+) => {
   switch (perspective) {
     case 'acm':
       return `/multicloud${SilenceResource.url}/${id}/edit`;
+    case 'dev':
+      return `/dev-monitoring/ns/${namespace}/silences/${id}/edit`;
     case 'virtualization-perspective':
-      return `/virt-monitoring/silences/${id}/edit`;
+      return `${SilenceResource.virtUrl}/${id}/edit`;
     case 'admin':
     default:
       return `${SilenceResource.url}/${id}/edit`;
   }
 };
 
-export const getAlertUrl = (perspective: Perspective, alert: PrometheusAlert, ruleID: string) => {
+export const getAlertUrl = (
+  perspective: Perspective,
+  alert: PrometheusAlert,
+  ruleID: string,
+  namespace?: string,
+) => {
   switch (perspective) {
     case 'acm':
       return `/multicloud${AlertResource.url}/${ruleID}?${labelsToParams(alert.labels)}`;
+    case 'dev':
+      return `/dev-monitoring/ns/${namespace}/alerts/${ruleID}?${labelsToParams(alert.labels)}`;
     case 'virtualization-perspective':
-      return `/virt-monitoring/alerts/${ruleID}?${labelsToParams(alert.labels)}`;
+      return `${AlertResource.virtUrl}/${ruleID}?${labelsToParams(alert.labels)}`;
     case 'admin':
     default:
       return `${AlertResource.url}/${ruleID}?${labelsToParams(alert.labels)}`;
   }
 };
 
-export const getFetchSilenceUrl = (perspective: Perspective, silenceID: string) => {
+export const getFetchSilenceUrl = (
+  perspective: Perspective,
+  silenceID: string,
+  namespace?: string,
+) => {
   switch (perspective) {
     case 'acm':
       return `${ALERTMANAGER_PROXY_PATH}/api/v2/silence/${silenceID}`;
+    case 'dev':
+      return `${ALERTMANAGER_TENANCY_BASE_PATH}/api/v2/silence/${silenceID}?namespace=${namespace}`;
     case 'virtualization-perspective':
       return `${ALERTMANAGER_BASE_PATH}/api/v2/silence/${silenceID}`;
     default:
@@ -196,42 +233,60 @@ export const getObserveState = (plugin: MonitoringPlugins, state: MonitoringStat
 export const getQueryBrowserUrl = ({
   perspective,
   query,
+  namespace,
   units,
 }: {
   perspective: Perspective;
   query: string;
+  namespace?: string;
   units?: GraphUnits;
 }) => {
   const unitsQueryParam = units ? `&${QueryParams.Units}=${units}` : '';
   switch (perspective) {
-    case 'virtualization-perspective':
-      return `/virt-monitoring/query-browser?query0=${encodeURIComponent(query)}${unitsQueryParam}`;
     case 'acm':
       return '';
+    case 'dev':
+      return `/dev-monitoring/ns/${namespace}/metrics?query0=${encodeURIComponent(
+        query,
+      )}${unitsQueryParam}`;
+    case 'virtualization-perspective':
+      return `/virt-monitoring/query-browser?query0=${encodeURIComponent(query)}${unitsQueryParam}`;
     case 'admin':
     default:
       return `/monitoring/query-browser?query0=${encodeURIComponent(query)}${unitsQueryParam}`;
   }
 };
 
-export const getMutlipleQueryBrowserUrl = (perspective: Perspective, params: URLSearchParams) => {
+export const getMutlipleQueryBrowserUrl = (
+  perspective: Perspective,
+  params: URLSearchParams,
+  namespace?: string,
+) => {
   switch (perspective) {
-    case 'virtualization-perspective':
-      return `/virt-monitoring/query-browser?${params.toString()}`;
     case 'acm':
       return '';
+    case 'dev':
+      return `/dev-monitoring/ns/${namespace}/metrics?${params.toString()}`;
+    case 'virtualization-perspective':
+      return `/virt-monitoring/query-browser?${params.toString()}`;
     case 'admin':
     default:
       return `/monitoring/query-browser?${params.toString()}`;
   }
 };
 
-export const getLegacyDashboardsUrl = (perspective: Perspective, boardName: string) => {
+export const getLegacyDashboardsUrl = (
+  perspective: Perspective,
+  boardName: string,
+  namespace?: string,
+) => {
   switch (perspective) {
-    case 'virtualization-perspective':
-      return `/virt-monitoring/dashboards/${boardName}`;
     case 'acm':
       return '';
+    case 'dev':
+      return `/dev-monitoring/ns/${namespace}?dashboard=${boardName}`;
+    case 'virtualization-perspective':
+      return `/virt-monitoring/dashboards/${boardName}`;
     case 'admin':
     default:
       return `/monitoring/dashboards/${boardName}`;

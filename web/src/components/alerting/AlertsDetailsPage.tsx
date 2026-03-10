@@ -26,6 +26,7 @@ import {
   getRuleUrl,
   usePerspective,
 } from '../hooks/usePerspective';
+import { useQueryNamespace } from '../hooks/useQueryNamespace';
 import { AlertResource, alertState, RuleResource } from '../utils';
 import { MonitoringProvider } from '../../contexts/MonitoringContext';
 
@@ -95,6 +96,7 @@ const AlertsDetailsPage_: FC = () => {
   const params = useParams<{ ruleID: string }>();
   const navigate = useNavigate();
   const { plugin } = useMonitoring();
+  const { namespace } = useQueryNamespace();
 
   const { perspective } = usePerspective();
 
@@ -156,7 +158,7 @@ const AlertsDetailsPage_: FC = () => {
           <PageBreadcrumb hasBodyWrapper={false}>
             <Breadcrumb>
               <BreadcrumbItem>
-                <Link to={getAlertsUrl(perspective)} data-test={DataTestIDs.Breadcrumb}>
+                <Link to={getAlertsUrl(perspective, namespace)} data-test={DataTestIDs.Breadcrumb}>
                   {t('Alerts')}
                 </Link>
               </BreadcrumbItem>
@@ -190,7 +192,7 @@ const AlertsDetailsPage_: FC = () => {
               {state !== AlertStates.Silenced && (
                 <SplitItem>
                   <Button
-                    onClick={() => navigate(getNewSilenceAlertUrl(perspective, alert))}
+                    onClick={() => navigate(getNewSilenceAlertUrl(perspective, alert, namespace))}
                     variant="primary"
                     data-test={DataTestIDs.SilenceButton}
                   >
@@ -362,7 +364,7 @@ const AlertsDetailsPage_: FC = () => {
                         </FlexItem>
                         <FlexItem>
                           <Link
-                            to={getRuleUrl(perspective, rule)}
+                            to={getRuleUrl(perspective, rule, namespace)}
                             data-test={DataTestIDs.AlertingRuleResourceLink}
                           >
                             {_.get(rule, 'name')}
