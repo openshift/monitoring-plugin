@@ -76,7 +76,7 @@ export const legacyDashboardsPage = {
     cy.byTestID(LegacyDashboardPageTestIDs.DashboardDropdown).find('button').should('be.visible').click();
   },
 
-  dashboardAPIPerformancePanelAssertion: (panel: API_PERFORMANCE_DASHBOARD_PANELS) => {
+  dashboardAPIPerformancePanelAssertion: () => {
     cy.log('legacyDashboardsPage.dashboardAPIPerformancePanelAssertion');
     function formatDataTestID(panel: API_PERFORMANCE_DASHBOARD_PANELS): string {
       return panel.toLowerCase().replace(/\s+/g, '-').concat('-chart');
@@ -88,7 +88,7 @@ export const legacyDashboardsPage = {
     });
   },
 
-  dashboardKubernetesComputeResourcesNamespacePodsPanelAssertion: (panel: KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANELS) => {
+  dashboardKubernetesComputeResourcesNamespacePodsPanelAssertion: () => {
     cy.log('legacyDashboardsPage.dashboardKubernetesComputeResourcesNamespacePodsPanelAssertion');
     function formatDataTestID(panel: KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANELS): string {
       return panel.toLowerCase().replace(/\s+/g, '-').concat('-chart');
