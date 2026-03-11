@@ -14,3 +14,4 @@ dist/
 .devspace
 web/po-files/
 .claude/commands/configs
+_output/

@@ -5,6 +5,9 @@ PLUGIN_NAME ?=monitoring-plugin
 IMAGE       ?= quay.io/${ORG}/${PLUGIN_NAME}:${VERSION}
 FEATURES    ?=incidents,perses-dashboards,dev-config
 
+GOLANGCI_LINT = $(shell pwd)/_output/tools/bin/golangci-lint
+GOLANGCI_LINT_VERSION ?= v2.11.3
+
 export NODE_OPTIONS?=--max_old_space_size=4096
 
 .PHONY: install-frontend
@@ -39,12 +42,6 @@ i18n-frontend:
 lint-frontend:
 	cd web && npm run lint
 
-.PHONY: lint-backend
-lint-backend:
-	go mod tidy
-	go fmt ./cmd/
-	go fmt ./pkg/
-
 .PHONY: install-backend
 install-backend:
 	go mod download
@@ -69,7 +66,6 @@ test-frontend:
 build-image:
 	./scripts/build-image.sh
 
-
 .PHONY: install
 install:
 	make install-frontend && make install-backend
@@ -79,8 +75,7 @@ update-plugin-name:
 	./scripts/update-plugin-name.sh
 
 .PHONY: deploy
-deploy:
-	make lint-backend
+deploy: lint-backend
 	PUSH=1 scripts/build-image.sh
 	helm uninstall $(PLUGIN_NAME) -n $(PLUGIN_NAME)-ns || true
 	helm install $(PLUGIN_NAME) charts/openshift-console-plugin -n monitoring-plugin-ns --create-namespace --set plugin.image=$(IMAGE)
@@ -88,6 +83,19 @@ deploy:
 .PHONY: deploy-acm
 deploy-acm:
 	./scripts/deploy-acm.sh
+
+# Download and install golangci-lint if not already installed
+.PHONY: golangci-lint
+golangci-lint:
+	@[ -f $(GOLANGCI_LINT) ] || { \
+		set -e ;\
+		curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell dirname $(GOLANGCI_LINT)) $(GOLANGCI_LINT_VERSION) ;\
+	}
+
+.PHONY: lint-backend
+lint-backend: golangci-lint
+	go mod tidy
+	$(GOLANGCI_LINT) -c $(shell pwd)/.golangci-lint.yaml run --verbose
 
 .PHONY: build-mcp-image
 build-mcp-image:
