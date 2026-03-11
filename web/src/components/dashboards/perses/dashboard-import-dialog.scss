@@ -1,0 +1,11 @@
+.monitoring__modal-body {
+  flex: 1 1 auto;
+  padding-inline-start: var(--pf-v5-global--spacer--lg);
+  padding-inline-end: var(--pf-v5-global--spacer--lg);
+  min-height: 435px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  word-break: break-word;
+  -webkit-overflow-scrolling: touch;
+}

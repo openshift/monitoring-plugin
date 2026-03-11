@@ -1,4 +1,3 @@
-import { CodeEditor } from '@patternfly/react-code-editor';
 import {
   Button,
   FileUpload,
@@ -36,6 +35,8 @@ import {
   importDashboardDialogValidationSchema,
   ImportDashboardValidationType,
 } from './dashboard-action-validations';
+import { CodeEditor } from '@openshift-console/dynamic-plugin-sdk';
+import './dashboard-import-dialog.scss';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_MIME_TYPES = ['application/json', 'text/yaml', 'application/x-yaml', 'text/x-yaml'];
@@ -324,6 +325,7 @@ export const DashboardImportDialog: React.FunctionComponent<DashboardImportDialo
       onClose={handleClose}
       onEscapePress={handleClose}
       aria-labelledby="import-dashboard-modal"
+      hasNoBodyWrapper
       actions={[
         <Button
           key="import"
@@ -345,85 +347,84 @@ export const DashboardImportDialog: React.FunctionComponent<DashboardImportDialo
         permissionsError={permissionsError}
       >
         <FormProvider {...form}>
-          <form onSubmit={form.handleSubmit(processForm)}>
-            <Stack hasGutter>
-              <StackItem>
-                <FormGroup
-                  label={t('1. Provide a dashboard (JSON or YAML)')}
-                  fieldId="import-dashboard-input"
-                >
-                  <HelperText style={{ marginBottom: '8px' }}>
-                    <HelperTextItem>
-                      {t(
-                        'Upload a dashboard file or paste the dashboard definition directly in the editor below.',
-                      )}
-                    </HelperTextItem>
-                  </HelperText>
-                  <Stack hasGutter>
-                    <StackItem>
-                      <FileUpload
-                        id="import-dashboard-file"
-                        type="text"
-                        value={dashboardInput}
-                        filename={filename}
-                        filenamePlaceholder={t('Drag and drop a file or upload one')}
-                        browseButtonText={t('Upload')}
-                        clearButtonText={t('Clear')}
-                        onFileInputChange={handleFileUpload}
-                        onClearClick={handleClearFile}
-                        hideDefaultPreview
-                        isLoading={isUploadingFile}
-                      />
-                    </StackItem>
-                    <StackItem>
-                      <CodeEditor
-                        id="import-dashboard-code-editor"
-                        code={dashboardInput}
-                        onChange={handleDashboardInputChange}
-                        height="300px"
-                        isLineNumbersVisible
-                        isDarkTheme={theme === 'dark'}
-                      />
-                    </StackItem>
-                  </Stack>
-                  {parseError && (
-                    <FormHelperText>
-                      <HelperText>
-                        <HelperTextItem icon={<ExclamationCircleIcon />} variant="error">
-                          {parseError}
-                        </HelperTextItem>
-                      </HelperText>
-                    </FormHelperText>
-                  )}
-                  {parsedDashboard && (
-                    <FormHelperText>
-                      <HelperText>
-                        <HelperTextItem variant="success">
-                          {parsedDashboard.kind === 'grafana'
-                            ? t(
-                                'Grafana dashboard detected. It will be automatically migrated to Perses format. Note: migration may be partial as not all Grafana features are supported.',
-                              )
-                            : t('Perses dashboard detected.')}
-                        </HelperTextItem>
-                      </HelperText>
-                    </FormHelperText>
-                  )}
-                </FormGroup>
-              </StackItem>
-
-              {parsedDashboard && (
+          <div className="monitoring__modal-body">
+            <form onSubmit={form.handleSubmit(processForm)}>
+              <Stack hasGutter>
                 <StackItem>
-                  <ProjectSelectFormGroup
-                    control={form.control}
-                    projectOptions={projectOptions}
-                    defaultValue={projectNameValue || defaultProject}
-                    label={t('2. Select project')}
-                    maxHeight="200px"
-                  />
+                  <FormGroup
+                    label={t('1. Provide a dashboard (JSON or YAML)')}
+                    fieldId="import-dashboard-input"
+                  >
+                    <HelperText style={{ marginBottom: '8px' }}>
+                      <HelperTextItem>
+                        {t(
+                          'Upload a dashboard file or paste the dashboard definition directly in the editor below.',
+                        )}
+                      </HelperTextItem>
+                    </HelperText>
+                    <Stack hasGutter>
+                      <StackItem>
+                        <FileUpload
+                          id="import-dashboard-file"
+                          type="text"
+                          value={dashboardInput}
+                          filename={filename}
+                          filenamePlaceholder={t('Drag and drop a file or upload one')}
+                          browseButtonText={t('Upload')}
+                          clearButtonText={t('Clear')}
+                          onFileInputChange={handleFileUpload}
+                          onClearClick={handleClearFile}
+                          hideDefaultPreview
+                          isLoading={isUploadingFile}
+                        />
+                      </StackItem>
+                      <StackItem>
+                        <CodeEditor
+                          value={dashboardInput}
+                          onChange={handleDashboardInputChange}
+                          minHeight="300px"
+                        />
+                      </StackItem>
+                    </Stack>
+                    {parseError && (
+                      <FormHelperText>
+                        <HelperText>
+                          <HelperTextItem icon={<ExclamationCircleIcon />} variant="error">
+                            {parseError}
+                          </HelperTextItem>
+                        </HelperText>
+                      </FormHelperText>
+                    )}
+                    {parsedDashboard && (
+                      <FormHelperText>
+                        <HelperText>
+                          <HelperTextItem variant="success">
+                            {parsedDashboard.kind === 'grafana'
+                              ? t(
+                                  'Grafana dashboard detected. It will be automatically migrated to Perses format. Note: migration may be partial as not all Grafana features are supported.',
+                                )
+                              : t('Perses dashboard detected.')}
+                          </HelperTextItem>
+                        </HelperText>
+                      </FormHelperText>
+                    )}
+                  </FormGroup>
                 </StackItem>
-              )}
-            </Stack>
-          </form>
+
+                {parsedDashboard && (
+                  <StackItem>
+                    <ProjectSelectFormGroup
+                      control={form.control}
+                      projectOptions={projectOptions}
+                      defaultValue={projectNameValue || defaultProject}
+                      label={t('2. Select project')}
+                      maxHeight="200px"
+                    />
+                  </StackItem>
+                )}
+              </Stack>
+            </form>
+          </div>
         </FormProvider>
       </PermissionStateWrapper>
     </Modal>
