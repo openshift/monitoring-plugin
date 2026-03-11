@@ -12,7 +12,6 @@ import (
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	"github.com/openshift/monitoring-plugin/pkg/proxy"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"
@@ -21,6 +20,8 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/record"
+
+	"github.com/openshift/monitoring-plugin/pkg/proxy"
 )
 
 var log = logrus.WithField("module", "server")
@@ -88,11 +89,11 @@ func CreateServer(ctx context.Context, cfg *Config) (*PluginServer, error) {
 
 func (s *PluginServer) StartHTTPServer() error {
 	if s.Config.IsTLSEnabled() {
-		log.Infof("listening for https on %s", s.Server.Addr)
-		return s.Server.ListenAndServeTLS(s.Config.CertFile, s.Config.PrivateKeyFile)
+		log.Infof("listening for https on %s", s.Addr)
+		return s.ListenAndServeTLS(s.Config.CertFile, s.Config.PrivateKeyFile)
 	}
-	log.Infof("listening for http on %s", s.Server.Addr)
-	return s.Server.ListenAndServe()
+	log.Infof("listening for http on %s", s.Addr)
+	return s.ListenAndServe()
 }
 
 func (s *PluginServer) Shutdown(ctx context.Context) error {
