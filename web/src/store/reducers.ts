@@ -81,6 +81,21 @@ const monitoringReducer = produce((draft: ObserveState, action: ObserveAction): 
       break;
     }
 
+    case ActionType.DashboardsOpened: {
+      draft.dashboards.isOpened = action.payload.isOpened;
+      break;
+    }
+
+    case ActionType.DashboardsAddPersesPanelExternally: {
+      draft.dashboards.addPersesPanelExternally = action.payload.panelDefinition;
+      break;
+    }
+
+    case ActionType.DashboardsPersesPanelExternallyAdded: {
+      draft.dashboards.addPersesPanelExternally = null;
+      break;
+    }
+
     case ActionType.AlertingSetRulesLoaded: {
       const { datasource, identifier, rules, alerts } = action.payload;
 
