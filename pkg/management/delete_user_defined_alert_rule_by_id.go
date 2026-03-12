@@ -64,7 +64,7 @@ func (c *client) deletePlatformAlertRuleById(ctx context.Context, relabeled moni
 		return fmt.Errorf("failed to get AlertingRule %s: %w", arName, err)
 	}
 	if !found || ar == nil {
-		return &NotFoundError{Resource: "AlertingRule", Id: arName}
+		return c.deleteUserAlertRuleById(ctx, namespace, name, alertRuleId)
 	}
 	// Common preconditions for platform delete
 	if err := validatePlatformDeletePreconditions(ar); err != nil {
@@ -85,9 +85,20 @@ func (c *client) deletePlatformAlertRuleById(ctx context.Context, relabeled moni
 			AdditionalInfo: fmt.Sprintf("alert %q not found in AlertingRule %s", originalRule.Alert, arName),
 		}
 	}
-	ar.Spec.Groups = newGroups
-	if err := c.k8sClient.AlertingRules().Update(ctx, *ar); err != nil {
-		return fmt.Errorf("failed to update AlertingRule %s: %w", ar.Name, err)
+
+	if len(newGroups) == 0 {
+		if err := c.k8sClient.AlertingRules().Delete(ctx, ar.Name); err != nil {
+			return fmt.Errorf("failed to delete AlertingRule %s: %w", ar.Name, err)
+		}
+	} else {
+		ar.Spec.Groups = newGroups
+		if err := c.k8sClient.AlertingRules().Update(ctx, *ar); err != nil {
+			return fmt.Errorf("failed to update AlertingRule %s: %w", ar.Name, err)
+		}
+	}
+
+	if err := c.deleteAssociatedARC(ctx, k8s.ClusterMonitoringNamespace, name, alertRuleId); err != nil {
+		return fmt.Errorf("failed to clean up ARC for platform rule %s: %w", alertRuleId, err)
 	}
 	return nil
 }
@@ -100,6 +111,9 @@ func (c *client) deleteUserAlertRuleById(ctx context.Context, namespace, name, a
 	}
 	if !found {
 		return &NotFoundError{Resource: "PrometheusRule", Id: fmt.Sprintf("%s/%s", namespace, name)}
+	}
+	if gitOpsManaged, _ := k8s.IsExternallyManagedObject(pr); gitOpsManaged {
+		return notAllowedGitOpsRemove()
 	}
 
 	updated := false
@@ -121,14 +135,39 @@ func (c *client) deleteUserAlertRuleById(ctx context.Context, namespace, name, a
 		if err := c.k8sClient.PrometheusRules().Delete(ctx, pr.Namespace, pr.Name); err != nil {
 			return fmt.Errorf("failed to delete PrometheusRule %s/%s: %w", pr.Namespace, pr.Name, err)
 		}
-		return nil
+		return c.cleanupARCForDeletedRule(ctx, namespace, name, alertRuleId)
 	}
 
 	pr.Spec.Groups = newGroups
 	if err := c.k8sClient.PrometheusRules().Update(ctx, *pr); err != nil {
 		return fmt.Errorf("failed to update PrometheusRule %s/%s: %w", pr.Namespace, pr.Name, err)
 	}
-	return nil
+	return c.cleanupARCForDeletedRule(ctx, namespace, name, alertRuleId)
+}
+
+// cleanupARCForDeletedRule attempts to remove any associated ARC after a rule is deleted.
+// It determines the ARC namespace from the rule's namespace and silently skips if no ARC exists.
+func (c *client) cleanupARCForDeletedRule(ctx context.Context, namespace, name, alertRuleId string) error {
+	nn := types.NamespacedName{Namespace: namespace, Name: name}
+	arcNamespace, err := c.arcNamespaceForRule(nn)
+	if err != nil {
+		return nil
+	}
+	return c.deleteAssociatedARC(ctx, arcNamespace, name, alertRuleId)
+}
+
+// deleteAssociatedARC removes the AlertRelabelConfig associated with an alert rule, if it exists.
+// This is best-effort: if the ARC does not exist or is GitOps-managed, it is silently skipped.
+func (c *client) deleteAssociatedARC(ctx context.Context, namespace, prName, alertRuleId string) error {
+	arcName := k8s.GetAlertRelabelConfigName(prName, alertRuleId)
+	arc, found, err := c.k8sClient.AlertRelabelConfigs().Get(ctx, namespace, arcName)
+	if err != nil || !found {
+		return nil
+	}
+	if gitOpsManaged, _ := k8s.IsExternallyManagedObject(arc); gitOpsManaged {
+		return nil
+	}
+	return c.k8sClient.AlertRelabelConfigs().Delete(ctx, namespace, arcName)
 }
 
 // removeAlertFromAlertingRuleGroups removes all instances of an alert by alert name across groups.

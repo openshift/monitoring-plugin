@@ -40,7 +40,6 @@ func New(managementClient management.Client) *mux.Router {
 		BaseURL:    "/api/v1/alerting",
 		BaseRouter: r,
 	})
-
 	return r
 }
 

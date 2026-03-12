@@ -27,7 +27,7 @@ func (hr *httpRouter) BulkDeleteUserDefinedAlertRules(w http.ResponseWriter, req
 			msg := err.Error()
 			results = append(results, DeleteAlertRuleResult{
 				Id:         rawId,
-				StatusCode: http.StatusBadRequest,
+				StatusCode: int32(http.StatusBadRequest),
 				Message:    &msg,
 			})
 			continue
@@ -37,14 +37,14 @@ func (hr *httpRouter) BulkDeleteUserDefinedAlertRules(w http.ResponseWriter, req
 			status, message := parseError(err)
 			results = append(results, DeleteAlertRuleResult{
 				Id:         id,
-				StatusCode: status,
+				StatusCode: int32(status),
 				Message:    &message,
 			})
 			continue
 		}
 		results = append(results, DeleteAlertRuleResult{
 			Id:         id,
-			StatusCode: http.StatusNoContent,
+			StatusCode: int32(http.StatusNoContent),
 		})
 	}
 
