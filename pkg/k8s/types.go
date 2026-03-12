@@ -48,8 +48,9 @@ type PrometheusAlertsInterface interface {
 	// FetchAlerts retrieves Prometheus alerts with optional state filtering.
 	// Non-fatal endpoint failures are returned as warnings rather than errors.
 	FetchAlerts(ctx context.Context, req GetAlertsRequest) ([]PrometheusAlert, []string, error)
-	// GetRules retrieves Prometheus alerting rules and active alerts
-	GetRules(ctx context.Context, req GetRulesRequest) ([]PrometheusRuleGroup, error)
+	// FetchRules retrieves Prometheus alerting rules and active alerts.
+	// Non-fatal endpoint failures are returned as warnings rather than errors.
+	FetchRules(ctx context.Context, req GetRulesRequest) ([]PrometheusRuleGroup, []string, error)
 }
 
 // PrometheusRuleInterface defines operations for managing PrometheusRules

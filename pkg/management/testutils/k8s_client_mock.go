@@ -110,7 +110,7 @@ func (m *MockClient) Namespace() k8s.NamespaceInterface {
 
 type MockPrometheusAlertsInterface struct {
 	FetchAlertsFunc func(ctx context.Context, req k8s.GetAlertsRequest) ([]k8s.PrometheusAlert, []string, error)
-	GetRulesFunc    func(ctx context.Context, req k8s.GetRulesRequest) ([]k8s.PrometheusRuleGroup, error)
+	FetchRulesFunc  func(ctx context.Context, req k8s.GetRulesRequest) ([]k8s.PrometheusRuleGroup, []string, error)
 
 	ActiveAlerts []k8s.PrometheusAlert
 	RuleGroups   []k8s.PrometheusRuleGroup
@@ -134,14 +134,14 @@ func (m *MockPrometheusAlertsInterface) FetchAlerts(ctx context.Context, req k8s
 	return []k8s.PrometheusAlert{}, nil, nil
 }
 
-func (m *MockPrometheusAlertsInterface) GetRules(ctx context.Context, req k8s.GetRulesRequest) ([]k8s.PrometheusRuleGroup, error) {
-	if m.GetRulesFunc != nil {
-		return m.GetRulesFunc(ctx, req)
+func (m *MockPrometheusAlertsInterface) FetchRules(ctx context.Context, req k8s.GetRulesRequest) ([]k8s.PrometheusRuleGroup, []string, error) {
+	if m.FetchRulesFunc != nil {
+		return m.FetchRulesFunc(ctx, req)
 	}
 	if m.RuleGroups != nil {
-		return m.RuleGroups, nil
+		return m.RuleGroups, nil, nil
 	}
-	return []k8s.PrometheusRuleGroup{}, nil
+	return []k8s.PrometheusRuleGroup{}, nil, nil
 }
 
 type MockPrometheusRuleInterface struct {

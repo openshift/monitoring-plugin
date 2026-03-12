@@ -66,6 +66,14 @@ func decodeAlertsResp(t *testing.T, w *httptest.ResponseRecorder) managementrout
 	return resp
 }
 
+func TestGetAlerts_RepeatedStateRejected(t *testing.T) {
+	f := newAGFixture(t)
+	w := f.get(t, "/api/v1/alerting/alerts?state=&state=firing")
+	if w.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d: %s", w.Code, w.Body)
+	}
+}
+
 func TestGetAlerts_ParsesFlatQueryParams(t *testing.T) {
 	f := newAGFixture(t)
 	var captured k8s.GetAlertsRequest

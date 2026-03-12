@@ -394,7 +394,15 @@ func TestValueMatcherEquals(t *testing.T) {
 	}
 
 	r1 := NewRegexValuesMatcher(regexp.MustCompile("^Argo"))
+	r2 := NewRegexValuesMatcher(regexp.MustCompile("^Argo"))
+	r3 := NewRegexValuesMatcher(regexp.MustCompile("^Kube"))
 	if s1.Equals(r1) {
 		t.Error("expected string matcher not to equal regexp matcher")
+	}
+	if !r1.Equals(r2) {
+		t.Error("expected regexp matchers with the same patterns to be equal")
+	}
+	if r1.Equals(r3) {
+		t.Error("expected regexp matchers with different patterns not to be equal")
 	}
 }
