@@ -51,7 +51,7 @@ Location: `pkg/alertcomponent/matcher.go`
 
 2) Fallback:
    - If the computed component is empty or "Others", we set:
-     - `component = other`
+     - `component = "Others"`
      - `layer` derived from source:
        - `openshift_io_alert_source=platform` → `cluster`
        - `openshift_io_prometheus_rule_namespace=openshift-monitoring` → `cluster`
