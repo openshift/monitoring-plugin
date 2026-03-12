@@ -171,33 +171,50 @@ func (pa *prometheusAlerts) FetchAlerts(ctx context.Context, req GetAlertsReques
 	return out, warnings, nil
 }
 
-func (pa *prometheusAlerts) GetRules(ctx context.Context, req GetRulesRequest) ([]PrometheusRuleGroup, error) {
+func (pa *prometheusAlerts) FetchRules(ctx context.Context, req GetRulesRequest) ([]PrometheusRuleGroup, []string, error) {
+	namespaceScoped := namespaceFromLabels(req.Labels) != ""
+
 	platformRules, err := pa.getRulesViaProxy(ctx, ClusterMonitoringNamespace, PlatformRouteName, AlertSourcePlatform)
 	if err != nil {
 		// Namespace-scoped callers (Thanos tenancy) often lack platform
 		// Prometheus access. Soft-fail so tenancy results are still returned.
-		if namespaceFromLabels(req.Labels) == "" {
-			return nil, err
+		if !namespaceScoped {
+			return nil, nil, err
 		}
-		prometheusLog.Warnf("failed to get platform rules (continuing with namespace filter): %v", err)
 	}
 
-	userRules, err := pa.getUserWorkloadRules(ctx, req)
+	userRules, userErr := pa.getUserWorkloadRules(ctx, req)
+	groups, warnings, err := mergeRuleFetchResults(platformRules, err, userRules, userErr, namespaceScoped)
 	if err != nil {
-		prometheusLog.Warnf("failed to get user workload rules: %v", err)
+		return nil, nil, err
 	}
-
-	groups := append(platformRules, userRules...)
 
 	matchers, err := compileRuleLabelMatchers(req)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if len(matchers) == 0 {
-		return groups, nil
+		return groups, warnings, nil
 	}
 
-	return filterRuleGroupsByLabelMatchers(groups, matchers), nil
+	return filterRuleGroupsByLabelMatchers(groups, matchers), warnings, nil
+}
+
+// mergeRuleFetchResults combines platform and user-workload rule groups.
+// Platform fetch errors are fatal for cluster-wide requests and warnings
+// for namespace-scoped requests. User-workload errors are always warnings.
+func mergeRuleFetchResults(platform []PrometheusRuleGroup, platformErr error, user []PrometheusRuleGroup, userErr error, namespaceScoped bool) ([]PrometheusRuleGroup, []string, error) {
+	var warnings []string
+	if platformErr != nil {
+		if !namespaceScoped {
+			return nil, nil, platformErr
+		}
+		warnings = append(warnings, fmt.Sprintf("failed to get platform rules: %v", platformErr))
+	}
+	if userErr != nil {
+		warnings = append(warnings, fmt.Sprintf("failed to get user workload rules: %v", userErr))
+	}
+	return append(platform, user...), warnings, nil
 }
 
 func (pa *prometheusAlerts) alertingHealth(ctx context.Context) AlertingHealth {
@@ -652,18 +669,12 @@ func (pa *prometheusAlerts) getRulesViaProxy(ctx context.Context, namespace stri
 	if err != nil {
 		return nil, err
 	}
-
-	var rulesResp prometheusRulesResponse
-	if err := json.Unmarshal(raw, &rulesResp); err != nil {
-		return nil, fmt.Errorf("decode prometheus response: %w", err)
+	groups, err := parsePrometheusRulesResponse(raw, "prometheus")
+	if err != nil {
+		return nil, err
 	}
-
-	if rulesResp.Status != "success" {
-		return nil, fmt.Errorf("prometheus API returned non-success status: %s", rulesResp.Status)
-	}
-
-	applyRuleSource(rulesResp.Data.Groups, source)
-	return rulesResp.Data.Groups, nil
+	applyRuleSource(groups, source)
+	return groups, nil
 }
 
 func (pa *prometheusAlerts) getRulesViaThanosTenancy(ctx context.Context, namespace string, source string) ([]PrometheusRuleGroup, error) {
@@ -671,17 +682,22 @@ func (pa *prometheusAlerts) getRulesViaThanosTenancy(ctx context.Context, namesp
 	if err != nil {
 		return nil, err
 	}
+	groups, err := parsePrometheusRulesResponse(raw, "thanos")
+	if err != nil {
+		return nil, err
+	}
+	applyRuleSource(groups, source)
+	return groups, nil
+}
 
+func parsePrometheusRulesResponse(raw []byte, apiName string) ([]PrometheusRuleGroup, error) {
 	var rulesResp prometheusRulesResponse
 	if err := json.Unmarshal(raw, &rulesResp); err != nil {
-		return nil, fmt.Errorf("decode thanos response: %w", err)
+		return nil, fmt.Errorf("decode %s response: %w", apiName, err)
 	}
-
 	if rulesResp.Status != "success" {
-		return nil, fmt.Errorf("thanos API returned non-success status: %s", rulesResp.Status)
+		return nil, fmt.Errorf("%s API returned non-success status: %s", apiName, rulesResp.Status)
 	}
-
-	applyRuleSource(rulesResp.Data.Groups, source)
 	return rulesResp.Data.Groups, nil
 }
 

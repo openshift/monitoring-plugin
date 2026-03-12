@@ -2,6 +2,7 @@ package k8s
 
 import (
 	"fmt"
+	"maps"
 	"strings"
 
 	"github.com/prometheus/prometheus/model/labels"
@@ -10,14 +11,27 @@ import (
 
 const namespaceLabelKey = "namespace"
 
+// LabelsWithoutNamespace returns a copy of labels without the tenancy
+// "namespace" key. For rule queries that key selects the user-workload
+// endpoint and is not a rule label filter.
+func LabelsWithoutNamespace(labels map[string]string) map[string]string {
+	out := maps.Clone(labels)
+	delete(out, namespaceLabelKey)
+	return out
+}
+
+// ParseRuleMatchers compiles Prometheus-style match[] values. Invalid syntax
+// is returned as an error so callers can reject the request before fetching.
+func ParseRuleMatchers(rawMatchers []string) error {
+	_, err := parseRuleMatcherSelectors(rawMatchers)
+	return err
+}
+
 func compileRuleLabelMatchers(req GetRulesRequest) ([]*labels.Matcher, error) {
 	var out []*labels.Matcher
 
-	for k, v := range req.Labels {
+	for k, v := range LabelsWithoutNamespace(req.Labels) {
 		if strings.TrimSpace(k) == "" {
-			continue
-		}
-		if k == namespaceLabelKey {
 			continue
 		}
 		m, err := labels.NewMatcher(labels.MatchEqual, k, v)
@@ -27,7 +41,16 @@ func compileRuleLabelMatchers(req GetRulesRequest) ([]*labels.Matcher, error) {
 		out = append(out, m)
 	}
 
-	for _, raw := range req.Matchers {
+	matchers, err := parseRuleMatcherSelectors(req.Matchers)
+	if err != nil {
+		return nil, err
+	}
+	return append(out, matchers...), nil
+}
+
+func parseRuleMatcherSelectors(rawMatchers []string) ([]*labels.Matcher, error) {
+	var out []*labels.Matcher
+	for _, raw := range rawMatchers {
 		sel := strings.TrimSpace(raw)
 		if sel == "" {
 			continue
@@ -41,7 +64,6 @@ func compileRuleLabelMatchers(req GetRulesRequest) ([]*labels.Matcher, error) {
 		}
 		out = append(out, matchers...)
 	}
-
 	return out, nil
 }
 
