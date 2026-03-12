@@ -1,0 +1,151 @@
+openapi: "3.0.3"
+info:
+  title: Monitoring Plugin Management API
+  description: >
+    API for managing alert rules in OpenShift Monitoring Plugin.
+    All endpoints require a valid OpenShift user bearer token in the
+    Authorization header (forwarded by the console bridge).
+  version: "1.0.0"
+
+servers:
+  - url: /api/v1/alerting
+
+paths:
+  /rules:
+    post:
+      operationId: CreateAlertRule
+      summary: Create an alert rule
+      description: >
+        Creates a new alert rule. If prometheusRule is omitted the rule is
+        created as a platform alert rule; if prometheusRule is provided the
+        rule is created as a user-defined alert rule in the specified
+        PrometheusRule resource.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAlertRuleRequest"
+      responses:
+        "201":
+          description: Alert rule created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateAlertRuleResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Missing or invalid authorization token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "405":
+          description: Operation not allowed (e.g. rule is externally managed)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Conflict (e.g. duplicate rule ID)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  schemas:
+    AlertRuleSpec:
+      type: object
+      description: >
+        Specification of a Prometheus alerting or recording rule.
+        Maps to prometheus-operator Rule fields.
+      properties:
+        alert:
+          type: string
+          description: Name of the alert. Must be set for alerting rules.
+        record:
+          type: string
+          description: Name of the time series for recording rules.
+        expr:
+          type: string
+          description: PromQL expression to evaluate.
+        for:
+          type: string
+          description: Duration the condition must be true before firing (e.g. "5m").
+        labels:
+          type: object
+          additionalProperties:
+            type: string
+          description: Labels to attach to alerts produced by the rule.
+        annotations:
+          type: object
+          additionalProperties:
+            type: string
+          description: Annotations to attach to alerts produced by the rule.
+        keepFiringFor:
+          type: string
+          description: >
+            Duration to keep alert firing after the condition is no longer true.
+
+    PrometheusRuleTarget:
+      type: object
+      description: >
+        Identifies the PrometheusRule resource and rule group where the alert
+        rule will be stored. Required for user-defined alert rules.
+      required:
+        - prometheusRuleName
+        - prometheusRuleNamespace
+      properties:
+        prometheusRuleName:
+          type: string
+          description: Name of the PrometheusRule resource.
+        prometheusRuleNamespace:
+          type: string
+          description: Namespace of the PrometheusRule resource.
+        groupName:
+          type: string
+          description: Name of the rule group within the PrometheusRule. Optional.
+
+    CreateAlertRuleRequest:
+      type: object
+      properties:
+        alertingRule:
+          $ref: "#/components/schemas/AlertRuleSpec"
+        prometheusRule:
+          $ref: "#/components/schemas/PrometheusRuleTarget"
+
+    CreateAlertRuleResponse:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          description: Computed stable ID for the created alert rule.
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Human-readable error message.
