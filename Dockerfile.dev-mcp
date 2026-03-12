@@ -31,6 +31,7 @@ RUN go mod download
 
 COPY cmd/ cmd/
 COPY pkg/ pkg/
+COPY internal/ internal/
 
 RUN go build -mod=mod -o plugin-backend cmd/plugin-backend.go
 
