@@ -302,7 +302,8 @@ const operatorUtils = {
         cy.log(`Observability-operator pod is now running in namespace: ${MCP.namespace}`);
       });
     });
-    
+
+    cy.switchPerspective('Core platform');
     cy.get('#page-sidebar').then(($sidebar) => {
       const section = $sidebar.text().includes('Ecosystem') ? 'Ecosystem' : 'Operators';
       nav.sidenav.clickNavLink([section, 'Installed Operators']);

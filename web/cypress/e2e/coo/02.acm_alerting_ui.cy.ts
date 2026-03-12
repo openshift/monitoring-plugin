@@ -27,6 +27,7 @@ describe('ACM Alerting UI', { tags: ['@coo', '@alerts'] }, () => {
 
   it('Navigate to Fleet Management > local-cluster > Observe > Alerting', () => {
     // check monitoring-plugin UI is not been affected
+    cy.switchPerspective('Core platform');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     commonPages.titleShouldHaveText('Alerting')
     nav.sidenav.clickNavLink(['Observe', 'Metrics']);
