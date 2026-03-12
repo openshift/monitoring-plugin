@@ -8,8 +8,9 @@ import (
 	"strconv"
 	"strings"
 
-	server "github.com/openshift/monitoring-plugin/pkg"
 	"github.com/sirupsen/logrus"
+
+	server "github.com/openshift/monitoring-plugin/pkg"
 )
 
 var (
