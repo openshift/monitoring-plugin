@@ -1,0 +1,19 @@
+# oapi-codegen configuration for the monitoring-plugin management API.
+# Run: oapi-codegen --config api/oapi-codegen.yaml api/openapi.yaml
+
+package: managementrouter
+output: internal/managementrouter/api_generated.go
+
+generate:
+  # Generate the gorilla/mux router bindings (RegisterHandlers / RegisterHandlersWithBaseURL)
+  gorilla-server: true
+  # Generate request/response types from the spec schemas
+  models: true
+  # Do not generate an embedded spec — it adds binary bloat with no benefit here
+  embedded-spec: false
+
+output-options:
+  # Silence the "do not edit" header so editors don't flag the file in git diff
+  skip-fmt: false
+  # Keep generated file name stable for git
+  user-templates: {}
