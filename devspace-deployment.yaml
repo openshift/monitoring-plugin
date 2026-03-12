@@ -10,5 +10,5 @@ app:
     valuesFiles: ["./charts/openshift-console-plugin/values.yaml"]
     values:
       plugin:
-        image: "quay.io/rh-ee-pyurkovi/monitoring-plugin:v4.21"
+        image: "quay.io/rh-ee-pyurkovi/monitoring-plugin:release-coo-0.5"
   namespace: ${DEVSPACE_NAMESPACE}
