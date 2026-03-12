@@ -26,3 +26,9 @@ const (
 	// ARCAnnotationAlertRuleIDKey stores the computed alert rule ID for cross-referencing.
 	ARCAnnotationAlertRuleIDKey = "monitoring.openshift.io/alertRuleId"
 )
+
+// Classification provenance labels
+const (
+	ClassificationManagedByKey   = "openshift_io_alert_rule_classification_managed_by"
+	ClassificationManagedByValue = "monitoring-plugin"
+)

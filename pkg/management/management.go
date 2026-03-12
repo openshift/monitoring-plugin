@@ -7,7 +7,8 @@ import (
 )
 
 type client struct {
-	k8sClient k8s.Client
+	k8sClient              k8s.Client
+	enableUserWorkloadARCs bool
 }
 
 // isPlatformManagedPrometheusRule returns true when the target
