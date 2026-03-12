@@ -10,13 +10,18 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"sort"
 	"strings"
 	"sync"
 	"time"
 
 	routev1 "github.com/openshift/api/route/v1"
 	routeclient "github.com/openshift/client-go/route/clientset/versioned"
+	"github.com/prometheus/common/model"
+	"github.com/prometheus/prometheus/model/labels"
+	"github.com/prometheus/prometheus/model/relabel"
 	"github.com/sirupsen/logrus"
+	"gopkg.in/yaml.v2"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
@@ -316,6 +321,13 @@ func (pa *prometheusAlerts) routeHealth(ctx context.Context, namespace string, r
 	return health
 }
 
+// getAlertsForSource fetches alerts from both Alertmanager and Prometheus
+// and merges the results. The fallback strategy is:
+//   - Both succeed: AM (firing+silenced) + Prom pending, with AM timestamps
+//     enriched from Prometheus activeAt.
+//   - AM only: AM alerts returned as-is (no Prom data to enrich from).
+//   - Prom only: all Prom alerts returned (AM was unreachable).
+//   - Both fail: error propagated from Prometheus.
 func (pa *prometheusAlerts) getAlertsForSource(ctx context.Context, namespace string, promRouteName string, amRouteName string, source string) ([]PrometheusAlert, error) {
 	amAlerts, amErr := pa.getAlertmanagerAlerts(ctx, namespace, amRouteName, source)
 	promAlerts, promErr := pa.getAlertsViaProxy(ctx, namespace, promRouteName, source)
@@ -325,6 +337,11 @@ func (pa *prometheusAlerts) getAlertsForSource(ctx context.Context, namespace st
 	}
 
 	if amErr == nil {
+		if promErr == nil {
+			enrichActiveAtFromConfig(amAlerts, promAlerts, func() ([]byte, error) {
+				return pa.getPrometheusResponse(ctx, namespace, promRouteName, PrometheusConfigPath)
+			})
+		}
 		pending := filterAlertsByState(promAlerts, "pending")
 		return append(amAlerts, pending...), nil
 	}
@@ -379,15 +396,23 @@ func (pa *prometheusAlerts) getUserWorkloadAlertsViaAlertmanager(ctx context.Con
 		}
 	}
 
-	pending, err := pa.getAlertsViaProxy(ctx, UserWorkloadMonitoringNamespace, UserWorkloadRouteName, AlertSourceUser)
+	promAlerts, err := pa.getAlertsViaProxy(ctx, UserWorkloadMonitoringNamespace, UserWorkloadRouteName, AlertSourceUser)
+	getConfig := func() ([]byte, error) {
+		return pa.getPrometheusResponse(ctx, UserWorkloadMonitoringNamespace, UserWorkloadRouteName, PrometheusConfigPath)
+	}
 	if err != nil {
-		pending, err = pa.getPrometheusAlertsViaService(ctx, UserWorkloadMonitoringNamespace, UserWorkloadPrometheusServiceName, UserWorkloadPrometheusPort, AlertSourceUser)
+		promAlerts, err = pa.getPrometheusAlertsViaService(ctx, UserWorkloadMonitoringNamespace, UserWorkloadPrometheusServiceName, UserWorkloadPrometheusPort, AlertSourceUser)
 		if err != nil {
 			return alerts, nil
 		}
+		getConfig = func() ([]byte, error) {
+			return pa.getServiceResponse(ctx, UserWorkloadMonitoringNamespace, UserWorkloadPrometheusServiceName, UserWorkloadPrometheusPort, PrometheusConfigPath)
+		}
 	}
 
-	return append(alerts, filterAlertsByState(pending, "pending")...), nil
+	// Enrich before filtering: AM alerts need activeAt from all Prom states.
+	enrichActiveAtFromConfig(alerts, promAlerts, getConfig)
+	return append(alerts, filterAlertsByState(promAlerts, "pending")...), nil
 }
 
 func (pa *prometheusAlerts) getPrometheusAlertsViaService(ctx context.Context, namespace string, serviceName string, port int32, source string) ([]PrometheusAlert, error) {
@@ -860,6 +885,136 @@ func filterAlertsByState(alerts []PrometheusAlert, state string) []PrometheusAle
 		}
 	}
 	return out
+}
+
+// alertDeliveryConfig contains only the settings that change alert identity
+// between the Prometheus alerts API and delivery to Alertmanager.
+type alertDeliveryConfig struct {
+	Global struct {
+		ExternalLabels             map[string]string      `yaml:"external_labels"`
+		MetricNameValidationScheme model.ValidationScheme `yaml:"metric_name_validation_scheme"`
+	} `yaml:"global"`
+	Alerting struct {
+		RelabelConfigs []*relabel.Config `yaml:"alert_relabel_configs"`
+	} `yaml:"alerting"`
+}
+
+func parseAlertDeliveryConfig(raw []byte) (*alertDeliveryConfig, error) {
+	var response struct {
+		Status string `json:"status"`
+		Data   struct {
+			YAML string `json:"yaml"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(raw, &response); err != nil {
+		return nil, fmt.Errorf("decode prometheus config response: %w", err)
+	}
+	if response.Status != "success" || strings.TrimSpace(response.Data.YAML) == "" {
+		return nil, fmt.Errorf("prometheus config response is unsuccessful or empty")
+	}
+	var config alertDeliveryConfig
+	if err := yaml.Unmarshal([]byte(response.Data.YAML), &config); err != nil {
+		return nil, fmt.Errorf("decode prometheus alert delivery config: %w", err)
+	}
+	if config.Global.MetricNameValidationScheme == model.UnsetValidation {
+		config.Global.MetricNameValidationScheme = model.UTF8Validation
+	}
+	for _, relabelConfig := range config.Alerting.RelabelConfigs {
+		if relabelConfig == nil {
+			return nil, fmt.Errorf("prometheus alert delivery config contains a null relabel rule")
+		}
+		if err := relabelConfig.Validate(config.Global.MetricNameValidationScheme); err != nil {
+			return nil, fmt.Errorf("invalid prometheus alert relabel rule: %w", err)
+		}
+	}
+	return &config, nil
+}
+
+func enrichActiveAtFromConfig(amAlerts, promAlerts []PrometheusAlert, getConfig func() ([]byte, error)) {
+	if len(amAlerts) == 0 || len(promAlerts) == 0 {
+		return
+	}
+	raw, err := getConfig()
+	var config *alertDeliveryConfig
+	if err == nil {
+		config, err = parseAlertDeliveryConfig(raw)
+	}
+	if err != nil {
+		// Configuration access can require additional permissions. Keep exact
+		// matching as a fallback; never guess by dropping arbitrary labels.
+		prometheusLog.WithError(err).Warn("cannot account for Prometheus alert delivery labels when enriching activeAt")
+	}
+	enrichActiveAt(amAlerts, promAlerts, config)
+}
+
+// enrichActiveAt replaces ActiveAt in Alertmanager-sourced alerts with the
+// authoritative value from Prometheus. Alertmanager only exposes startsAt
+// (when it received the alert), while Prometheus tracks the true activeAt
+// (when the alert condition first became true).
+func enrichActiveAt(amAlerts, promAlerts []PrometheusAlert, config *alertDeliveryConfig) {
+	if len(promAlerts) == 0 {
+		return
+	}
+	if config == nil {
+		config = &alertDeliveryConfig{}
+	}
+
+	lookup := make(map[string]time.Time, len(promAlerts))
+	for _, alert := range promAlerts {
+		if alert.ActiveAt.IsZero() {
+			continue
+		}
+		builder := labels.NewBuilder(labels.FromMap(alert.Labels))
+		builder.Del(AlertSourceLabel, AlertBackendLabel)
+		for name, value := range config.Global.ExternalLabels {
+			if builder.Get(name) == "" {
+				builder.Set(name, value)
+			}
+		}
+		if !relabel.ProcessBuilder(builder, config.Alerting.RelabelConfigs...) {
+			continue
+		}
+		fp := alertFingerprint(builder.Labels().Map())
+		// Relabeling can collapse several instances into one delivered alert.
+		if activeAt, exists := lookup[fp]; !exists || alert.ActiveAt.Before(activeAt) {
+			lookup[fp] = alert.ActiveAt
+		}
+	}
+
+	for i := range amAlerts {
+		fp := alertFingerprint(amAlerts[i].Labels)
+		if activeAt, ok := lookup[fp]; ok {
+			amAlerts[i].ActiveAt = activeAt
+		}
+	}
+}
+
+// alertFingerprint builds a stable identity key from an alert's labels,
+// excluding metadata labels injected by this plugin (source, backend).
+// This matches the same alert *instance* across Alertmanager and Prometheus
+// (which may differ only in injected metadata). It is distinct from the
+// alert rule ID (GetAlertingRuleId) which identifies the *rule definition*
+// and is computed from the rule spec (name, expr, duration, static labels).
+func alertFingerprint(labels map[string]string) string {
+	keys := make([]string, 0, len(labels))
+	for k := range labels {
+		if k == AlertSourceLabel || k == AlertBackendLabel {
+			continue
+		}
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	var b strings.Builder
+	for i, k := range keys {
+		if i > 0 {
+			b.WriteByte('\xff')
+		}
+		b.WriteString(k)
+		b.WriteByte('\xfe')
+		b.WriteString(labels[k])
+	}
+	return b.String()
 }
 
 func mapAlertmanagerState(state string) string {

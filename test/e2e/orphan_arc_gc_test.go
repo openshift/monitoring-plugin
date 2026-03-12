@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -125,6 +126,16 @@ func TestOrphanAlertRelabelConfigGC(t *testing.T) {
 		t.Fatalf("Failed to create live ARC: %v", err)
 	}
 
+	var baseline float64
+	err = framework.PollWithContext(ctx, orphanARCGCPollInterval, orphanARCGCOpTimeout, func(pollCtx context.Context) error {
+		var metricErr error
+		baseline, metricErr = gitOpsOrphanCount(pollCtx, f)
+		return metricErr
+	})
+	if err != nil {
+		t.Fatalf("Failed to read GitOps orphan baseline: %v", err)
+	}
+
 	if err := createAlertRelabelConfig(ctx, f, gitopsName, map[string]string{
 		managementlabels.ARCAnnotationAlertRuleIDKey: gitopsRuleID,
 		"argocd.argoproj.io/tracking-id":             "e2e-orphan-arc-gc",
@@ -188,6 +199,19 @@ func TestOrphanAlertRelabelConfigGC(t *testing.T) {
 		if !exists {
 			t.Errorf("keeper ARC %s was deleted", keeper)
 		}
+	}
+	err = framework.PollWithContext(ctx, orphanARCGCPollInterval, orphanARCGCOpTimeout, func(pollCtx context.Context) error {
+		count, metricErr := gitOpsOrphanCount(pollCtx, f)
+		if metricErr != nil {
+			return metricErr
+		}
+		if count < baseline+1 {
+			return fmt.Errorf("GitOps orphan count %g, want at least %g", count, baseline+1)
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("GitOps orphan gauge did not increase: %v", err)
 	}
 }
 
@@ -340,4 +364,17 @@ func triggerOrphanARCGC(ctx context.Context, f *framework.Framework, namespace, 
 		)
 		return updateErr
 	})
+}
+
+func gitOpsOrphanCount(ctx context.Context, f *framework.Framework) (float64, error) {
+	body, err := fetchMetrics(ctx, f)
+	if err != nil {
+		return 0, err
+	}
+	for _, line := range strings.Split(body, "\n") {
+		if strings.HasPrefix(line, k8s.MetricAlertRelabelConfigGitOpsOrphans+" ") {
+			return parseGaugeValue(line)
+		}
+	}
+	return 0, fmt.Errorf("GitOps orphan gauge is missing")
 }
