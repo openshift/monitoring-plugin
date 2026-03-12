@@ -5,6 +5,11 @@ import (
 	"time"
 )
 
+const (
+	RuleTypeAlerting  = "alerting"
+	RuleTypeRecording = "recording"
+)
+
 // GetRulesRequest holds parameters for filtering rules alerts.
 type GetRulesRequest struct {
 	// Labels filters rules by exact label equality. The special key "namespace"

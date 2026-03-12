@@ -40,9 +40,10 @@ func New(managementClient management.Client) *mux.Router {
 		BaseURL:    "/api/v1/alerting",
 		BaseRouter: r,
 	})
-	// GET /alerts is not yet in the OpenAPI spec; registered manually
-	// until its branch adds the spec entry and generated bindings.
+	// GET /alerts and GET /rules are not yet in the OpenAPI spec; registered
+	// manually until their respective branches add the spec entries.
 	r.HandleFunc("/api/v1/alerting/alerts", hr.GetAlerts).Methods(http.MethodGet)
+	r.HandleFunc("/api/v1/alerting/rules", hr.GetRules).Methods(http.MethodGet)
 
 	return r
 }
