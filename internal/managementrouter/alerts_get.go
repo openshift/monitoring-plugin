@@ -1,7 +1,6 @@
 package managementrouter
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 
@@ -18,7 +17,7 @@ type GetAlertsResponseData struct {
 }
 
 func (hr *httpRouter) GetAlerts(w http.ResponseWriter, req *http.Request) {
-	state, labels, err := parseStateAndLabels(req.URL.Query())
+	state, labels, _, err := parseStateLabelsAndMatchers(req.URL.Query())
 	if err != nil {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
@@ -44,53 +43,5 @@ func (hr *httpRouter) GetAlerts(w http.ResponseWriter, req *http.Request) {
 		Warnings: warnings,
 	}); err != nil {
 		log.WithError(err).Warn("failed to encode alerts response")
-	}
-}
-
-//nolint:unused // used by the rules listing handler in a subsequent branch
-func (hr *httpRouter) rulesWarnings(ctx context.Context) []string {
-	health, ok := hr.alertingHealth(ctx)
-	if !ok {
-		return nil
-	}
-
-	if health.UserWorkloadEnabled && health.UserWorkload != nil {
-		return buildRouteWarnings(health.UserWorkload.Prometheus, k8s.UserWorkloadRouteName, "user workload Prometheus")
-	}
-
-	return nil
-}
-
-//nolint:unused // called by rulesWarnings, used in a subsequent branch
-func (hr *httpRouter) alertingHealth(ctx context.Context) (k8s.AlertingHealth, bool) {
-	if hr.managementClient == nil {
-		return k8s.AlertingHealth{}, false
-	}
-
-	health, err := hr.managementClient.GetAlertingHealth(ctx)
-	if err != nil {
-		log.WithError(err).Warn("alerting health unavailable")
-		return k8s.AlertingHealth{}, false
-	}
-
-	return health, true
-}
-
-//nolint:unused // called by rulesWarnings, used in a subsequent branch
-func buildRouteWarnings(route k8s.AlertingRouteHealth, expectedName string, friendlyName string) []string {
-	if route.Name != "" && route.Name != expectedName {
-		return nil
-	}
-	if route.FallbackReachable {
-		return nil
-	}
-
-	switch route.Status {
-	case k8s.RouteNotFound:
-		return []string{friendlyName + " route is missing"}
-	case k8s.RouteUnreachable:
-		return []string{friendlyName + " route is unreachable"}
-	default:
-		return nil
 	}
 }
