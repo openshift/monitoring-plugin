@@ -34,6 +34,10 @@ type Framework struct {
 
 type CleanupFunc func() error
 
+// ErrSkip is returned by New when required environment variables are not set,
+// so callers can distinguish a missing-env skip from a real error.
+var ErrSkip = fmt.Errorf("required environment variables not set, skipping e2e test")
+
 func New() (*Framework, error) {
 	if f != nil {
 		return f, nil
@@ -41,12 +45,12 @@ func New() (*Framework, error) {
 
 	kubeConfigPath := os.Getenv("KUBECONFIG")
 	if kubeConfigPath == "" {
-		return nil, fmt.Errorf("KUBECONFIG environment variable not set")
+		return nil, fmt.Errorf("%w: KUBECONFIG", ErrSkip)
 	}
 
 	pluginURL := os.Getenv("PLUGIN_URL")
 	if pluginURL == "" {
-		return nil, fmt.Errorf("PLUGIN_URL environment variable not set, skipping management API e2e test")
+		return nil, fmt.Errorf("%w: PLUGIN_URL", ErrSkip)
 	}
 
 	config, err := clientcmd.BuildConfigFromFlags("", kubeConfigPath)

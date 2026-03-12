@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"testing"
@@ -16,6 +17,9 @@ import (
 
 func TestCreateUserDefinedAlertRule(t *testing.T) {
 	f, err := framework.New()
+	if errors.Is(err, framework.ErrSkip) {
+		t.Skip(err)
+	}
 	if err != nil {
 		t.Fatalf("Failed to create framework: %v", err)
 	}
