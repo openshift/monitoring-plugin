@@ -46,6 +46,10 @@ const (
 	AppKubernetesIoComponent                   = "app.kubernetes.io/component"
 	AppKubernetesIoComponentAlertManagementApi = "alert-management-api"
 	AppKubernetesIoComponentMonitoringPlugin   = "monitoring-plugin"
+
+	relabeledRulesSyncKeyInitial        = "initial-sync"
+	relabeledRulesSyncKeyPrometheusRule = "prometheus-rule-sync"
+	relabeledRulesSyncKeySecret         = "secret-sync"
 )
 
 type relabeledRulesManager struct {
@@ -97,7 +101,7 @@ func newRelabeledRulesManager(ctx context.Context, namespaceManager NamespaceInt
 				return
 			}
 			log.Debugf("prometheus rule added: %s/%s", promRule.Namespace, promRule.Name)
-			rrm.queue.Add("prometheus-rule-sync")
+			rrm.queue.Add(relabeledRulesSyncKeyPrometheusRule)
 		},
 		UpdateFunc: func(oldObj interface{}, newObj interface{}) {
 			promRule, ok := newObj.(*monitoringv1.PrometheusRule)
@@ -105,7 +109,7 @@ func newRelabeledRulesManager(ctx context.Context, namespaceManager NamespaceInt
 				return
 			}
 			log.Debugf("prometheus rule updated: %s/%s", promRule.Namespace, promRule.Name)
-			rrm.queue.Add("prometheus-rule-sync")
+			rrm.queue.Add(relabeledRulesSyncKeyPrometheusRule)
 		},
 		DeleteFunc: func(obj interface{}) {
 			if tombstone, ok := obj.(cache.DeletedFinalStateUnknown); ok {
@@ -117,7 +121,7 @@ func newRelabeledRulesManager(ctx context.Context, namespaceManager NamespaceInt
 				return
 			}
 			log.Debugf("prometheus rule deleted: %s/%s", promRule.Namespace, promRule.Name)
-			rrm.queue.Add("prometheus-rule-sync")
+			rrm.queue.Add(relabeledRulesSyncKeyPrometheusRule)
 		},
 	})
 	if err != nil {
@@ -126,13 +130,13 @@ func newRelabeledRulesManager(ctx context.Context, namespaceManager NamespaceInt
 
 	_, err = rrm.secretInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
-			rrm.queue.Add("secret-sync")
+			rrm.queue.Add(relabeledRulesSyncKeySecret)
 		},
 		UpdateFunc: func(oldObj interface{}, newObj interface{}) {
-			rrm.queue.Add("secret-sync")
+			rrm.queue.Add(relabeledRulesSyncKeySecret)
 		},
 		DeleteFunc: func(obj interface{}) {
-			rrm.queue.Add("secret-sync")
+			rrm.queue.Add(relabeledRulesSyncKeySecret)
 		},
 	})
 	if err != nil {
@@ -149,7 +153,7 @@ func newRelabeledRulesManager(ctx context.Context, namespaceManager NamespaceInt
 		return nil, fmt.Errorf("failed to sync RelabeledRulesConfig informer")
 	}
 
-	if err := rrm.sync(ctx); err != nil {
+	if err := rrm.sync(ctx, relabeledRulesSyncKeyInitial); err != nil {
 		return nil, fmt.Errorf("initial relabeled rules sync failed: %w", err)
 	}
 
@@ -180,7 +184,7 @@ func (rrm *relabeledRulesManager) processNextWorkItem(ctx context.Context) bool 
 
 	defer rrm.queue.Done(key)
 
-	if err := rrm.sync(ctx); err != nil {
+	if err := rrm.sync(ctx, key); err != nil {
 		log.Errorf("error syncing relabeled rules: %v", err)
 		rrm.queue.AddRateLimited(key)
 		return true
@@ -191,7 +195,7 @@ func (rrm *relabeledRulesManager) processNextWorkItem(ctx context.Context) bool 
 	return true
 }
 
-func (rrm *relabeledRulesManager) sync(ctx context.Context) error {
+func (rrm *relabeledRulesManager) sync(ctx context.Context, key string) error {
 	relabelConfigs, err := rrm.loadRelabelConfigs()
 	if err != nil {
 		return fmt.Errorf("failed to load relabel configs: %w", err)
@@ -201,13 +205,20 @@ func (rrm *relabeledRulesManager) sync(ctx context.Context) error {
 	rrm.relabelConfigs = relabelConfigs
 	rrm.mu.Unlock()
 
-	alerts := rrm.collectAlerts(ctx, relabelConfigs)
+	alerts, allRuleIDs := rrm.collectAlerts(ctx, relabelConfigs)
 
 	rrm.mu.Lock()
 	rrm.relabeledRules = alerts
 	rrm.mu.Unlock()
 
 	log.Infof("Synced %d relabeled rules in memory", len(alerts))
+
+	// GC orphaned ARCs only when triggered by PrometheusRule events or
+	// initial sync — secret-only changes cannot create orphans.
+	if key == relabeledRulesSyncKeyPrometheusRule || key == relabeledRulesSyncKeyInitial {
+		rrm.gcOrphanedARCs(ctx, allRuleIDs)
+	}
+
 	return nil
 }
 
@@ -256,7 +267,7 @@ func (rrm *relabeledRulesManager) loadRelabelConfigs() ([]*relabel.Config, error
 	return configs, nil
 }
 
-func (rrm *relabeledRulesManager) collectAlerts(ctx context.Context, relabelConfigs []*relabel.Config) map[string]monitoringv1.Rule {
+func (rrm *relabeledRulesManager) collectAlerts(ctx context.Context, relabelConfigs []*relabel.Config) (map[string]monitoringv1.Rule, map[string]struct{}) {
 	alerts := make(map[string]monitoringv1.Rule)
 	seenIDs := make(map[string]struct{})
 
@@ -336,7 +347,7 @@ func (rrm *relabeledRulesManager) collectAlerts(ctx context.Context, relabelConf
 	}
 
 	log.Debugf("Collected %d alerts", len(alerts))
-	return alerts
+	return alerts, seenIDs
 }
 
 // alertingRuleOwner returns the name of the AlertingRule CR that generated
