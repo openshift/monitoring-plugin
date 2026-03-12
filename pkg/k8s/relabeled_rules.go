@@ -147,7 +147,7 @@ func newRelabeledRulesManager(ctx context.Context, namespaceManager NamespaceInt
 		return nil, fmt.Errorf("failed to sync RelabeledRulesConfig informer")
 	}
 
-	if err := rrm.sync(ctx); err != nil {
+	if err := rrm.sync(ctx, "initial-sync"); err != nil {
 		return nil, fmt.Errorf("initial relabeled rules sync failed: %w", err)
 	}
 
@@ -178,7 +178,7 @@ func (rrm *relabeledRulesManager) processNextWorkItem(ctx context.Context) bool 
 
 	defer rrm.queue.Done(key)
 
-	if err := rrm.sync(ctx); err != nil {
+	if err := rrm.sync(ctx, key); err != nil {
 		log.Errorf("error syncing relabeled rules: %v", err)
 		rrm.queue.AddRateLimited(key)
 		return true
@@ -189,7 +189,7 @@ func (rrm *relabeledRulesManager) processNextWorkItem(ctx context.Context) bool 
 	return true
 }
 
-func (rrm *relabeledRulesManager) sync(ctx context.Context) error {
+func (rrm *relabeledRulesManager) sync(ctx context.Context, key string) error {
 	relabelConfigs, err := rrm.loadRelabelConfigs()
 	if err != nil {
 		return fmt.Errorf("failed to load relabel configs: %w", err)
@@ -199,13 +199,20 @@ func (rrm *relabeledRulesManager) sync(ctx context.Context) error {
 	rrm.relabelConfigs = relabelConfigs
 	rrm.mu.Unlock()
 
-	alerts := rrm.collectAlerts(ctx, relabelConfigs)
+	alerts, allRuleIDs := rrm.collectAlerts(ctx, relabelConfigs)
 
 	rrm.mu.Lock()
 	rrm.relabeledRules = alerts
 	rrm.mu.Unlock()
 
 	log.Infof("Synced %d relabeled rules in memory", len(alerts))
+
+	// GC orphaned ARCs only when triggered by PrometheusRule events or
+	// initial sync — secret-only changes cannot create orphans.
+	if key == "prometheus-rule-sync" || key == "initial-sync" {
+		rrm.gcOrphanedARCs(ctx, allRuleIDs)
+	}
+
 	return nil
 }
 
@@ -254,7 +261,7 @@ func (rrm *relabeledRulesManager) loadRelabelConfigs() ([]*relabel.Config, error
 	return configs, nil
 }
 
-func (rrm *relabeledRulesManager) collectAlerts(ctx context.Context, relabelConfigs []*relabel.Config) map[string]monitoringv1.Rule {
+func (rrm *relabeledRulesManager) collectAlerts(ctx context.Context, relabelConfigs []*relabel.Config) (map[string]monitoringv1.Rule, map[string]struct{}) {
 	alerts := make(map[string]monitoringv1.Rule)
 	seenIDs := make(map[string]struct{})
 
@@ -329,7 +336,7 @@ func (rrm *relabeledRulesManager) collectAlerts(ctx context.Context, relabelConf
 	}
 
 	log.Debugf("Collected %d alerts", len(alerts))
-	return alerts
+	return alerts, seenIDs
 }
 
 // alertingRuleOwner returns the name of the AlertingRule CR that generated
