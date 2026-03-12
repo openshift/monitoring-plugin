@@ -11,9 +11,9 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
+	"k8s.io/client-go/rest"
 
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
-	"k8s.io/client-go/rest"
 )
 
 var metricsLog = logrus.WithField("module", "metrics")

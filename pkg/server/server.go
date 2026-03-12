@@ -184,7 +184,10 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 		log.Info("alert management API enabled")
 	}
 
-	router, pluginConfig := setupRoutes(cfg, managementClient)
+	router, pluginConfig, err := setupRoutes(ctx, cfg, managementClient, k8sconfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed to set up routes: %w", err)
+	}
 	router.Use(corsHeaderMiddleware())
 
 	tlsConfig := &tls.Config{}
@@ -275,7 +278,7 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 	return httpServer, nil
 }
 
-func setupRoutes(cfg *Config, managementClient management.Client) (*mux.Router, *PluginConfig) {
+func setupRoutes(ctx context.Context, cfg *Config, managementClient management.Client, k8sconfig *rest.Config) (*mux.Router, *PluginConfig, error) {
 	configHandlerFunc, pluginConfig := configHandler(cfg)
 
 	router := mux.NewRouter()
@@ -290,11 +293,18 @@ func setupRoutes(cfg *Config, managementClient management.Client) (*mux.Router, 
 	if managementClient != nil {
 		managementRouter := managementrouter.New(managementClient)
 		router.PathPrefix("/api/v1/alerting").Handler(managementRouter)
+
+		metricsHandler, err := managementClient.MetricsHandler(ctx, k8sconfig)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to start alert management metrics: %w", err)
+		}
+		router.Path("/metrics").Handler(metricsHandler)
+		log.Info("alert management metrics started")
 	}
 
 	router.PathPrefix("/").Handler(filesHandler(http.Dir(cfg.StaticPath)))
 
-	return router, pluginConfig
+	return router, pluginConfig, nil
 }
 
 func setupProxyRoutes(cfg *Config, k8sclient *dynamic.DynamicClient, kind monitoring.KindType) *mux.Router {
@@ -366,7 +376,6 @@ func corsHeaderMiddleware() func(next http.Handler) http.Handler {
 func featuresHandler(cfg *Config) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		jsonFeatures, err := json.Marshal(cfg.Features)
-
 		if err != nil {
 			log.WithError(err).Errorf("cannot marshall, features were: %v", string(jsonFeatures))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -380,7 +389,6 @@ func featuresHandler(cfg *Config) http.HandlerFunc {
 
 func configHandler(cfg *Config) (http.HandlerFunc, *PluginConfig) {
 	pluginConfData, err := os.ReadFile(cfg.PluginConfigPath)
-
 	if err != nil {
 		log.WithError(err).Warnf("cannot read config file, serving plugin with default configuration, tried %s", cfg.PluginConfigPath)
 
@@ -392,7 +400,6 @@ func configHandler(cfg *Config) (http.HandlerFunc, *PluginConfig) {
 
 	var pluginConfig PluginConfig
 	err = yaml.Unmarshal(pluginConfData, &pluginConfig)
-
 	if err != nil {
 		log.WithError(err).Error("unable to unmarshall config data")
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -401,7 +408,6 @@ func configHandler(cfg *Config) (http.HandlerFunc, *PluginConfig) {
 	}
 
 	jsonPluginConfig, err := pluginConfig.MarshalJSON()
-
 	if err != nil {
 		log.WithError(err).Errorf("unable to marshall, config data: %v", pluginConfig)
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

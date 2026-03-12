@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	"k8s.io/client-go/rest"
 
 	"github.com/openshift/monitoring-plugin/internal/managementrouter"
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
@@ -25,15 +26,19 @@ type stubClient struct {
 func (s *stubClient) ListRules(_ context.Context, _ management.PrometheusRuleOptions, _ management.AlertRuleOptions, _ management.PaginationOptions) (management.ListRulesResult, error) {
 	return management.ListRulesResult{}, nil
 }
+
 func (s *stubClient) GetRuleById(_ context.Context, _ string) (monitoringv1.Rule, error) {
 	return monitoringv1.Rule{}, nil
 }
+
 func (s *stubClient) CreateUserDefinedAlertRule(_ context.Context, _ monitoringv1.Rule, _ management.PrometheusRuleOptions) (string, error) {
 	return "", nil
 }
+
 func (s *stubClient) CreatePlatformAlertRule(_ context.Context, _ monitoringv1.Rule) (string, error) {
 	return "", nil
 }
+
 func (s *stubClient) UpdateUserDefinedAlertRule(_ context.Context, _ string, _ monitoringv1.Rule) (string, error) {
 	return "", nil
 }
@@ -46,26 +51,35 @@ func (s *stubClient) RestoreAlertRule(_ context.Context, _ string) error { retur
 func (s *stubClient) UpdateAlertRuleLabels(_ context.Context, _ string, _ map[string]*string) (string, error) {
 	return "", nil
 }
+
 func (s *stubClient) GetAlerts(_ context.Context, _ k8s.GetAlertsRequest) ([]k8s.PrometheusAlert, error) {
 	return nil, nil
 }
+
 func (s *stubClient) GetRules(ctx context.Context, req k8s.GetRulesRequest) ([]k8s.PrometheusRuleGroup, error) {
 	if s.getRules != nil {
 		return s.getRules(ctx, req)
 	}
 	return []k8s.PrometheusRuleGroup{}, nil
 }
+
 func (s *stubClient) GetAlertingHealth(ctx context.Context) (k8s.AlertingHealth, error) {
 	if s.alertingHealth != nil {
 		return s.alertingHealth(ctx)
 	}
 	return k8s.AlertingHealth{}, nil
 }
+
 func (s *stubClient) UpdateAlertRuleClassification(_ context.Context, _ management.UpdateRuleClassificationRequest) error {
 	return nil
 }
+
 func (s *stubClient) BulkUpdateAlertRuleClassification(_ context.Context, _ []management.UpdateRuleClassificationRequest) []error {
 	return nil
+}
+
+func (s *stubClient) MetricsHandler(_ context.Context, _ *rest.Config) (http.Handler, error) {
+	return nil, nil
 }
 
 // newStubRouter builds a router backed by stub and adds a Bearer token header
