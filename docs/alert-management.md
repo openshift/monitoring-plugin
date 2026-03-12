@@ -2,6 +2,9 @@
 
 This document covers alert management behavior and prerequisites for the monitoring plugin.
 
+For metrics, client certificate authentication, and operator prerequisites, see
+[Backend metrics](metrics.md).
+
 ### User workload monitoring prerequisites
 
 To include **user workload** alerts and rules in `/api/v1/alerting/alerts` and `/api/v1/alerting/rules`, the user workload monitoring stack must be enabled. Follow the OpenShift documentation for enabling and configuring UWM:
