@@ -184,7 +184,10 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 		log.Info("alert management API enabled")
 	}
 
-	router, pluginConfig := setupRoutes(cfg, managementClient)
+	router, pluginConfig, err := setupRoutes(ctx, cfg, managementClient, k8sconfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed to set up routes: %w", err)
+	}
 	router.Use(corsHeaderMiddleware())
 
 	tlsConfig := &tls.Config{}
@@ -275,7 +278,7 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 	return httpServer, nil
 }
 
-func setupRoutes(cfg *Config, managementClient management.Client) (*mux.Router, *PluginConfig) {
+func setupRoutes(ctx context.Context, cfg *Config, managementClient management.Client, k8sconfig *rest.Config) (*mux.Router, *PluginConfig, error) {
 	configHandlerFunc, pluginConfig := configHandler(cfg)
 
 	router := mux.NewRouter()
@@ -290,11 +293,18 @@ func setupRoutes(cfg *Config, managementClient management.Client) (*mux.Router, 
 	if managementClient != nil {
 		managementRouter := managementrouter.New(managementClient)
 		router.PathPrefix("/api/v1/alerting").Handler(managementRouter)
+
+		metricsHandler, err := managementClient.MetricsHandler(ctx, k8sconfig)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to start alert management metrics: %w", err)
+		}
+		router.Path("/metrics").Handler(metricsHandler)
+		log.Info("alert management metrics started")
 	}
 
 	router.PathPrefix("/").Handler(filesHandler(http.Dir(cfg.StaticPath)))
 
-	return router, pluginConfig
+	return router, pluginConfig, nil
 }
 
 func setupProxyRoutes(cfg *Config, k8sclient *dynamic.DynamicClient, kind monitoring.KindType) *mux.Router {
