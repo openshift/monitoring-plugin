@@ -49,7 +49,7 @@ type Client interface {
 	// GetRules retrieves Prometheus alerting rules and active alerts
 	GetRules(ctx context.Context, req k8s.GetRulesRequest) ([]k8s.PrometheusRuleGroup, error)
 
-	// GetAlertingHealth retrieves the alerting stack health status
+	// GetAlertingHealth retrieves alerting health details
 	GetAlertingHealth(ctx context.Context) (k8s.AlertingHealth, error)
 }
 
@@ -65,7 +65,6 @@ type PrometheusRuleOptions struct {
 	GroupName string `json:"groupName"`
 }
 
-// AlertRuleOptions specifies additional filtering options for alert rules
 type AlertRuleOptions struct {
 	// Name filters alert rules by alert name
 	Name string `json:"name,omitempty"`
