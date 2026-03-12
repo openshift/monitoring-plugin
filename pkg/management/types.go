@@ -4,6 +4,8 @@ import (
 	"context"
 
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+
+	"github.com/openshift/monitoring-plugin/pkg/k8s"
 )
 
 // Client is the interface for managing alert rules
@@ -46,6 +48,13 @@ type Client interface {
 	UpdateAlertRuleClassification(ctx context.Context, req UpdateRuleClassificationRequest) error
 	// BulkUpdateAlertRuleClassification updates classification for multiple rule ids
 	BulkUpdateAlertRuleClassification(ctx context.Context, items []UpdateRuleClassificationRequest) []error
+
+	// EnrichAlerts retrieves and enriches Prometheus alerts with classification.
+	// Non-fatal endpoint failures are returned as warnings.
+	EnrichAlerts(ctx context.Context, req k8s.GetAlertsRequest) ([]k8s.PrometheusAlert, []string, error)
+
+	// GetAlertingHealth retrieves the alerting stack health status
+	GetAlertingHealth(ctx context.Context) (k8s.AlertingHealth, error)
 }
 
 // PrometheusRuleOptions specifies options for selecting PrometheusRule resources and groups

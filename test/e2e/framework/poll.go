@@ -25,3 +25,14 @@ func Poll(interval, timeout time.Duration, f func() error) error {
 	}
 	return err
 }
+
+// retry calls f up to n times, returning the last error on failure.
+func retry(n int, f func() error) error {
+	var err error
+	for i := 0; i < n; i++ {
+		if err = f(); err == nil {
+			return nil
+		}
+	}
+	return err
+}
