@@ -34,6 +34,18 @@ type AlertRuleSpec struct {
 	Record *string `json:"record,omitempty"`
 }
 
+// BulkDeleteAlertRulesRequest defines model for BulkDeleteAlertRulesRequest.
+type BulkDeleteAlertRulesRequest struct {
+	// RuleIds List of stable alert rule IDs to delete.
+	RuleIds []string `json:"ruleIds"`
+}
+
+// BulkDeleteAlertRulesResponse defines model for BulkDeleteAlertRulesResponse.
+type BulkDeleteAlertRulesResponse struct {
+	// Rules Per-rule deletion results.
+	Rules []DeleteAlertRuleResult `json:"rules"`
+}
+
 // CreateAlertRuleRequest defines model for CreateAlertRuleRequest.
 type CreateAlertRuleRequest struct {
 	// AlertingRule Specification of a Prometheus alerting or recording rule. Maps to prometheus-operator Rule fields.
@@ -47,6 +59,18 @@ type CreateAlertRuleRequest struct {
 type CreateAlertRuleResponse struct {
 	// Id Computed stable ID for the created alert rule.
 	Id string `json:"id"`
+}
+
+// DeleteAlertRuleResult defines model for DeleteAlertRuleResult.
+type DeleteAlertRuleResult struct {
+	// Id The stable alert rule ID that was processed.
+	Id string `json:"id"`
+
+	// Message Error message if deletion failed; omitted on success.
+	Message *string `json:"message,omitempty"`
+
+	// StatusCode HTTP status code for this rule's deletion result.
+	StatusCode int `json:"status_code"`
 }
 
 // ErrorResponse defines model for ErrorResponse.
@@ -67,11 +91,17 @@ type PrometheusRuleTarget struct {
 	PrometheusRuleNamespace string `json:"prometheusRuleNamespace"`
 }
 
+// BulkDeleteUserDefinedAlertRulesJSONRequestBody defines body for BulkDeleteUserDefinedAlertRules for application/json ContentType.
+type BulkDeleteUserDefinedAlertRulesJSONRequestBody = BulkDeleteAlertRulesRequest
+
 // CreateAlertRuleJSONRequestBody defines body for CreateAlertRule for application/json ContentType.
 type CreateAlertRuleJSONRequestBody = CreateAlertRuleRequest
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// Bulk delete user-defined alert rules
+	// (DELETE /rules)
+	BulkDeleteUserDefinedAlertRules(w http.ResponseWriter, r *http.Request)
 	// Create an alert rule
 	// (POST /rules)
 	CreateAlertRule(w http.ResponseWriter, r *http.Request)
@@ -85,6 +115,20 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc func(http.Handler) http.Handler
+
+// BulkDeleteUserDefinedAlertRules operation middleware
+func (siw *ServerInterfaceWrapper) BulkDeleteUserDefinedAlertRules(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.BulkDeleteUserDefinedAlertRules(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
 
 // CreateAlertRule operation middleware
 func (siw *ServerInterfaceWrapper) CreateAlertRule(w http.ResponseWriter, r *http.Request) {
@@ -212,6 +256,8 @@ func HandlerWithOptions(si ServerInterface, options GorillaServerOptions) http.H
 		HandlerMiddlewares: options.Middlewares,
 		ErrorHandlerFunc:   options.ErrorHandlerFunc,
 	}
+
+	r.HandleFunc(options.BaseURL+"/rules", wrapper.BulkDeleteUserDefinedAlertRules).Methods("DELETE")
 
 	r.HandleFunc(options.BaseURL+"/rules", wrapper.CreateAlertRule).Methods("POST")
 

@@ -12,6 +12,44 @@ servers:
 
 paths:
   /rules:
+    delete:
+      operationId: BulkDeleteUserDefinedAlertRules
+      summary: Bulk delete user-defined alert rules
+      description: >
+        Deletes one or more user-defined alert rules by their stable IDs.
+        Each rule is deleted independently; per-rule status is returned in
+        the response so partial success is visible to the caller.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BulkDeleteAlertRulesRequest"
+      responses:
+        "200":
+          description: Deletion results (may include per-rule errors)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BulkDeleteAlertRulesResponse"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Missing or invalid authorization token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
     post:
       operationId: CreateAlertRule
       summary: Create an alert rule
@@ -140,6 +178,45 @@ components:
         id:
           type: string
           description: Computed stable ID for the created alert rule.
+
+    BulkDeleteAlertRulesRequest:
+      type: object
+      required:
+        - ruleIds
+      properties:
+        ruleIds:
+          type: array
+          minItems: 1
+          items:
+            type: string
+          description: List of stable alert rule IDs to delete.
+
+    DeleteAlertRuleResult:
+      type: object
+      required:
+        - id
+        - status_code
+      properties:
+        id:
+          type: string
+          description: The stable alert rule ID that was processed.
+        status_code:
+          type: integer
+          description: HTTP status code for this rule's deletion result.
+        message:
+          type: string
+          description: Error message if deletion failed; omitted on success.
+
+    BulkDeleteAlertRulesResponse:
+      type: object
+      required:
+        - rules
+      properties:
+        rules:
+          type: array
+          items:
+            $ref: "#/components/schemas/DeleteAlertRuleResult"
+          description: Per-rule deletion results.
 
     ErrorResponse:
       type: object

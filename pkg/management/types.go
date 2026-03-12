@@ -11,6 +11,9 @@ type Client interface {
 	// CreateUserDefinedAlertRule creates a new user-defined alert rule
 	CreateUserDefinedAlertRule(ctx context.Context, alertRule monitoringv1.Rule, prOptions PrometheusRuleOptions) (alertRuleId string, err error)
 
+	// DeleteUserDefinedAlertRuleById deletes a user-defined alert rule by its ID
+	DeleteUserDefinedAlertRuleById(ctx context.Context, alertRuleId string) error
+
 	// CreatePlatformAlertRule creates a new platform alert rule
 	CreatePlatformAlertRule(ctx context.Context, alertRule monitoringv1.Rule) (alertRuleId string, err error)
 }

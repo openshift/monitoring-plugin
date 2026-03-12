@@ -7,7 +7,10 @@ package managementrouter
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
+	"net/url"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -97,4 +100,16 @@ func parseError(err error) (int, string) {
 	}
 	log.WithError(err).Error("unexpected management API error")
 	return http.StatusInternalServerError, "An unexpected error occurred"
+}
+
+func parseParam(raw string, name string) (string, error) {
+	decoded, err := url.PathUnescape(raw)
+	if err != nil {
+		return "", fmt.Errorf("invalid %s encoding", name)
+	}
+	value := strings.TrimSpace(decoded)
+	if value == "" {
+		return "", fmt.Errorf("missing %s", name)
+	}
+	return value, nil
 }
