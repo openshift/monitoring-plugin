@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	"k8s.io/client-go/rest"
 
 	"github.com/openshift/monitoring-plugin/internal/managementrouter"
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
@@ -63,6 +64,9 @@ func (s *stubClient) UpdateAlertRuleClassification(_ context.Context, _ manageme
 }
 func (s *stubClient) BulkUpdateAlertRuleClassification(_ context.Context, _ []management.UpdateRuleClassificationRequest) []error {
 	return nil
+}
+func (s *stubClient) MetricsHandler(_ context.Context, _ *rest.Config) (http.Handler, error) {
+	return nil, nil
 }
 
 // newStubRouter builds a router backed by stub and adds a Bearer token header

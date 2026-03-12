@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -278,11 +279,21 @@ func (pa *prometheusAlerts) routeHealth(ctx context.Context, namespace string, r
 	return health
 }
 
+// getAlertsForSource fetches alerts from both Alertmanager and Prometheus in
+// parallel and merges the results. The fallback strategy is:
+//   - Both succeed: AM (firing+silenced) + Prom pending, with AM timestamps
+//     enriched from Prometheus activeAt.
+//   - AM only: AM alerts returned as-is (no Prom data to enrich from).
+//   - Prom only: all Prom alerts returned (AM was unreachable).
+//   - Both fail: error propagated from Prometheus.
 func (pa *prometheusAlerts) getAlertsForSource(ctx context.Context, namespace string, promRouteName string, amRouteName string, source string) ([]PrometheusAlert, error) {
 	amAlerts, amErr := pa.getAlertmanagerAlerts(ctx, namespace, amRouteName, source)
 	promAlerts, promErr := pa.getAlertsViaProxy(ctx, namespace, promRouteName, source)
 
 	if amErr == nil {
+		if promErr == nil {
+			enrichActiveAt(amAlerts, promAlerts)
+		}
 		pending := filterAlertsByState(promAlerts, "pending")
 		return append(amAlerts, pending...), nil
 	}
@@ -337,15 +348,17 @@ func (pa *prometheusAlerts) getUserWorkloadAlertsViaAlertmanager(ctx context.Con
 		}
 	}
 
-	pending, err := pa.getAlertsViaProxy(ctx, UserWorkloadMonitoringNamespace, UserWorkloadRouteName, AlertSourceUser)
+	promAlerts, err := pa.getAlertsViaProxy(ctx, UserWorkloadMonitoringNamespace, UserWorkloadRouteName, AlertSourceUser)
 	if err != nil {
-		pending, err = pa.getPrometheusAlertsViaService(ctx, UserWorkloadMonitoringNamespace, UserWorkloadPrometheusServiceName, UserWorkloadPrometheusPort, AlertSourceUser)
+		promAlerts, err = pa.getPrometheusAlertsViaService(ctx, UserWorkloadMonitoringNamespace, UserWorkloadPrometheusServiceName, UserWorkloadPrometheusPort, AlertSourceUser)
 		if err != nil {
 			return alerts, nil
 		}
 	}
 
-	return append(alerts, filterAlertsByState(pending, "pending")...), nil
+	// Enrich before filtering: AM alerts need activeAt from all Prom states.
+	enrichActiveAt(alerts, promAlerts)
+	return append(alerts, filterAlertsByState(promAlerts, "pending")...), nil
 }
 
 func (pa *prometheusAlerts) getPrometheusAlertsViaService(ctx context.Context, namespace string, serviceName string, port int32, source string) ([]PrometheusAlert, error) {
@@ -774,6 +787,59 @@ func filterAlertsByState(alerts []PrometheusAlert, state string) []PrometheusAle
 		}
 	}
 	return out
+}
+
+// enrichActiveAt replaces ActiveAt in Alertmanager-sourced alerts with the
+// authoritative value from Prometheus. Alertmanager only exposes startsAt
+// (when it received the alert), while Prometheus tracks the true activeAt
+// (when the alert condition first became true).
+func enrichActiveAt(amAlerts, promAlerts []PrometheusAlert) {
+	if len(promAlerts) == 0 {
+		return
+	}
+
+	lookup := make(map[string]time.Time, len(promAlerts))
+	for i := range promAlerts {
+		fp := alertFingerprint(promAlerts[i].Labels)
+		if !promAlerts[i].ActiveAt.IsZero() {
+			lookup[fp] = promAlerts[i].ActiveAt
+		}
+	}
+
+	for i := range amAlerts {
+		fp := alertFingerprint(amAlerts[i].Labels)
+		if activeAt, ok := lookup[fp]; ok {
+			amAlerts[i].ActiveAt = activeAt
+		}
+	}
+}
+
+// alertFingerprint builds a stable identity key from an alert's labels,
+// excluding metadata labels injected by this plugin (source, backend).
+// This matches the same alert *instance* across Alertmanager and Prometheus
+// (which may differ only in injected metadata). It is distinct from the
+// alert rule ID (GetAlertingRuleId) which identifies the *rule definition*
+// and is computed from the rule spec (name, expr, duration, static labels).
+func alertFingerprint(labels map[string]string) string {
+	keys := make([]string, 0, len(labels))
+	for k := range labels {
+		if k == AlertSourceLabel || k == AlertBackendLabel {
+			continue
+		}
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	var b strings.Builder
+	for i, k := range keys {
+		if i > 0 {
+			b.WriteByte('\xff')
+		}
+		b.WriteString(k)
+		b.WriteByte('\xfe')
+		b.WriteString(labels[k])
+	}
+	return b.String()
 }
 
 func mapAlertmanagerState(state string) string {

@@ -12,7 +12,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
-	"github.com/openshift/monitoring-plugin/pkg/metrics"
+	"github.com/openshift/monitoring-plugin/pkg/management/metrics"
 	"github.com/openshift/monitoring-plugin/test/e2e/framework"
 )
 

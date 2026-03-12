@@ -10,7 +10,7 @@ import (
 	dto "github.com/prometheus/client_model/go"
 
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
-	"github.com/openshift/monitoring-plugin/pkg/metrics"
+	"github.com/openshift/monitoring-plugin/pkg/management/metrics"
 )
 
 type mockAlertsFetcher struct {

@@ -1,9 +1,14 @@
 package management
 
 import (
+	"context"
+	"net/http"
+
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/rest"
 
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
+	"github.com/openshift/monitoring-plugin/pkg/management/metrics"
 )
 
 type client struct {
@@ -20,4 +25,8 @@ type client struct {
 // CRs rather than direct PrometheusRule manipulation.
 func (c *client) isPlatformManagedPrometheusRule(nn types.NamespacedName) bool {
 	return c.k8sClient.Namespace().IsClusterMonitoringNamespace(nn.Namespace)
+}
+
+func (c *client) MetricsHandler(ctx context.Context, kubeConfig *rest.Config) (http.Handler, error) {
+	return metrics.NewHandler(ctx, c, kubeConfig)
 }
