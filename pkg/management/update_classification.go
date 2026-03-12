@@ -432,28 +432,3 @@ func getOriginalPlatformRuleFromPR(pr *monitoringv1.PrometheusRule, namespace st
 		AdditionalInfo: fmt.Sprintf("in PrometheusRule %s/%s", namespace, name),
 	}
 }
-
-// ApplyDynamicClassification resolves the effective component and layer for an
-// alert by applying _from indirection. If a rule carries a component_from or
-// layer_from label, the corresponding alert label value is used instead of the
-// static default. Unresolvable or empty lookups fall back to the supplied
-// defaults.
-func ApplyDynamicClassification(ruleLabels, alertLabels map[string]string, defaultComponent, defaultLayer string) (string, string) {
-	component := defaultComponent
-	layer := defaultLayer
-
-	if ruleLabels != nil {
-		if fromKey := ruleLabels[k8s.AlertRuleClassificationComponentFromKey]; fromKey != "" {
-			if v, ok := alertLabels[fromKey]; ok && v != "" {
-				component = v
-			}
-		}
-		if fromKey := ruleLabels[k8s.AlertRuleClassificationLayerFromKey]; fromKey != "" {
-			if v, ok := alertLabels[fromKey]; ok && v != "" {
-				layer = strings.ToLower(v)
-			}
-		}
-	}
-
-	return component, layer
-}
