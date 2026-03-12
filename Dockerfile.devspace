@@ -24,7 +24,8 @@ RUN GOFLAGS=-mod=mod GOBIN=/usr/local/bin go install github.com/air-verse/air@v1
 COPY config/ config/
 COPY cmd/ cmd/
 COPY pkg/ pkg/
+COPY internal/ internal/
 COPY .air.toml .air.toml
-RUN chgrp -R 0 config cmd pkg && chmod -R g+rwX config cmd pkg
+RUN chgrp -R 0 config cmd pkg internal && chmod -R g+rwX config cmd pkg internal
 
 ENTRYPOINT ["make", "start-devspace-backend"]

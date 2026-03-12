@@ -1,0 +1,21 @@
+name: Unit Tests
+
+on:
+  pull_request:
+    branches:
+      - add-alert-management-api-base
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Run tests
+        run: go test -count=1 $(go list ./... | grep -v /test/e2e)

@@ -21,6 +21,9 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/record"
 
+	"github.com/openshift/monitoring-plugin/internal/managementrouter"
+	"github.com/openshift/monitoring-plugin/pkg/k8s"
+	"github.com/openshift/monitoring-plugin/pkg/management"
 	"github.com/openshift/monitoring-plugin/pkg/monitoring"
 )
 
@@ -67,6 +70,7 @@ const (
 	PersesDashboards      Feature = "perses-dashboards"
 	PersesUICustomization Feature = "perses-ui-customization"
 	ClusterHealthAnalyzer Feature = "cluster-health-analyzer"
+	AlertManagementAPI    Feature = "alert-management-api"
 )
 
 func (pluginConfig *PluginConfig) MarshalJSON() ([]byte, error) {
@@ -121,6 +125,7 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 	}
 
 	acmMode := cfg.Features[AcmAlerting]
+	alertManagementAPIMode := cfg.Features[AlertManagementAPI]
 	acmLocationsLength := len(cfg.AlertmanagerUrl) + len(cfg.ThanosQuerierUrl)
 
 	if acmLocationsLength > 0 && !acmMode {
@@ -134,15 +139,11 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 		return nil, fmt.Errorf("cannot set default port to reserved port %d", cfg.Port)
 	}
 
-	// Uncomment the following line for local development:
-	// k8sconfig, err := clientcmd.BuildConfigFromFlags("", "$HOME/.kube/config")
-
-	// Comment the following line for local development:
+	var k8sconfig *rest.Config
+	var err error
 	var k8sclient *dynamic.DynamicClient
-	if acmMode {
-
-		k8sconfig, err := rest.InClusterConfig()
-
+	if acmMode || alertManagementAPIMode {
+		k8sconfig, err = rest.InClusterConfig()
 		if err != nil {
 			return nil, fmt.Errorf("cannot get in cluster config: %w", err)
 		}
@@ -155,7 +156,29 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 		k8sclient = nil
 	}
 
-	router, pluginConfig := setupRoutes(cfg)
+	// Initialize management client if management API feature is enabled.
+	// Use a bounded timeout so a slow/unreachable API server doesn't
+	// hang the entire server startup indefinitely.
+	var managementClient management.Client
+	if alertManagementAPIMode {
+		const initTimeout = 30 * time.Second
+		initCtx, initCancel := context.WithTimeout(ctx, initTimeout)
+		defer initCancel()
+
+		k8sClient, err := k8s.NewClient(initCtx, k8sconfig)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create k8s client for alert management API: %w", err)
+		}
+
+		if err := k8sClient.TestConnection(initCtx); err != nil {
+			return nil, fmt.Errorf("failed to connect to kubernetes cluster for alert management API: %w", err)
+		}
+
+		managementClient = management.New(ctx, k8sClient)
+		log.Info("alert management API enabled")
+	}
+
+	router, pluginConfig := setupRoutes(cfg, managementClient)
 	router.Use(corsHeaderMiddleware())
 
 	tlsConfig := &tls.Config{}
@@ -246,7 +269,7 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 	return httpServer, nil
 }
 
-func setupRoutes(cfg *Config) (*mux.Router, *PluginConfig) {
+func setupRoutes(cfg *Config, managementClient management.Client) (*mux.Router, *PluginConfig) {
 	configHandlerFunc, pluginConfig := configHandler(cfg)
 
 	router := mux.NewRouter()
@@ -257,6 +280,11 @@ func setupRoutes(cfg *Config) (*mux.Router, *PluginConfig) {
 
 	router.Path("/features").HandlerFunc(featuresHandler(cfg))
 	router.Path("/config").HandlerFunc(configHandlerFunc)
+
+	if managementClient != nil {
+		managementRouter := managementrouter.New(managementClient)
+		router.PathPrefix("/api/v1/alerting").Handler(managementRouter)
+	}
 	router.PathPrefix("/").Handler(filesHandler(http.Dir(cfg.StaticPath)))
 
 	return router, pluginConfig

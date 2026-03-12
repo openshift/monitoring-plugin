@@ -3,7 +3,9 @@ package k8s
 import (
 	"context"
 
+	osmv1 "github.com/openshift/api/monitoring/v1"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	"github.com/prometheus/prometheus/model/relabel"
 	"k8s.io/apimachinery/pkg/types"
 )
 
@@ -21,6 +23,15 @@ type Client interface {
 
 	// PrometheusRules returns the PrometheusRule interface
 	PrometheusRules() PrometheusRuleInterface
+
+	// AlertRelabelConfigs returns the AlertRelabelConfig interface
+	AlertRelabelConfigs() AlertRelabelConfigInterface
+
+	// AlertingRules returns the AlertingRule interface
+	AlertingRules() AlertingRuleInterface
+
+	// RelabeledRules returns the RelabeledRules interface
+	RelabeledRules() RelabeledRulesInterface
 
 	// Namespace returns the Namespace interface
 	Namespace() NamespaceInterface
@@ -42,6 +53,55 @@ type PrometheusRuleInterface interface {
 
 	// AddRule adds a new rule to the specified PrometheusRule
 	AddRule(ctx context.Context, namespacedName types.NamespacedName, groupName string, rule monitoringv1.Rule) error
+}
+
+// AlertRelabelConfigInterface defines operations for managing AlertRelabelConfigs
+type AlertRelabelConfigInterface interface {
+	// List lists all AlertRelabelConfigs in the cluster
+	List(ctx context.Context, namespace string) ([]osmv1.AlertRelabelConfig, error)
+
+	// Get retrieves an AlertRelabelConfig by namespace and name
+	Get(ctx context.Context, namespace string, name string) (*osmv1.AlertRelabelConfig, bool, error)
+
+	// Create creates a new AlertRelabelConfig
+	Create(ctx context.Context, arc osmv1.AlertRelabelConfig) (*osmv1.AlertRelabelConfig, error)
+
+	// Update updates an existing AlertRelabelConfig
+	Update(ctx context.Context, arc osmv1.AlertRelabelConfig) error
+
+	// Delete deletes an AlertRelabelConfig by namespace and name
+	Delete(ctx context.Context, namespace string, name string) error
+}
+
+// AlertingRuleInterface defines operations for managing AlertingRules
+// in the cluster monitoring namespace
+type AlertingRuleInterface interface {
+	// List lists all AlertingRules in the cluster
+	List(ctx context.Context) ([]osmv1.AlertingRule, error)
+
+	// Get retrieves an AlertingRule by name
+	Get(ctx context.Context, name string) (*osmv1.AlertingRule, bool, error)
+
+	// Create creates a new AlertingRule
+	Create(ctx context.Context, ar osmv1.AlertingRule) (*osmv1.AlertingRule, error)
+
+	// Update updates an existing AlertingRule
+	Update(ctx context.Context, ar osmv1.AlertingRule) error
+
+	// Delete deletes an AlertingRule by name
+	Delete(ctx context.Context, name string) error
+}
+
+// RelabeledRulesInterface defines operations for managing relabeled rules
+type RelabeledRulesInterface interface {
+	// List retrieves the relabeled rules for a given PrometheusRule
+	List(ctx context.Context) []monitoringv1.Rule
+
+	// Get retrieves the relabeled rule for a given id
+	Get(ctx context.Context, id string) (monitoringv1.Rule, bool)
+
+	// Config returns the list of alert relabel configs
+	Config() []*relabel.Config
 }
 
 // NamespaceInterface defines operations for Namespaces
