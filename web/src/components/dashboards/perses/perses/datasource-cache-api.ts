@@ -192,16 +192,18 @@ export class CachedDatasourceAPI implements DatasourceApi {
 }
 
 const addCsrfToken = (datasource) => {
-  datasource.spec.plugin.spec = {
-    ...datasource.spec.plugin.spec,
-    proxy: {
-      spec: {
-        headers: {
-          'X-CSRFToken': getCSRFToken(),
-          'Sec-Fetch-Site': 'same-origin',
+  if (datasource?.spec?.plugin?.spec) {
+    datasource.spec.plugin.spec = {
+      ...datasource.spec.plugin.spec,
+      proxy: {
+        spec: {
+          headers: {
+            'X-CSRFToken': getCSRFToken(),
+            'Sec-Fetch-Site': 'same-origin',
+          },
         },
       },
-    },
-  };
+    };
+  }
   return datasource;
 };
