@@ -1,0 +1,16 @@
+start,end,alertname,namespace,severity,silenced,labels
+0,180,AlertA_Info,A-openshift-logging,info,false,{"component": "logging"}
+240,360,AlertB_Warning,B-openshift-storage,warning,false,{"component": "storage"}
+420,420,AlertC_ShortDuration,C-openshift-apiserver,warning,false,{"component": "api-server"}
+480,780,AlertD_Info,D-openshift-monitoring,info,false,{"component": "monitoring"}
+540,780,AlertD_Warning,D-openshift-monitoring,warning,false,{"component": "monitoring"}
+600,780,AlertD_Critical,D-openshift-monitoring,critical,false,{"component": "monitoring"}
+840,1080,AlertE_Etcd,-Eopenshift-etcd,critical,false,{"component": "etcd"}
+840,1080,AlertE_KubeAPI,E-openshift-kube-apiserver,critical,false,{"component": "kube-apiserver"}
+840,1080,AlertE_Controller_Very_Very_Very_Very_Long_Name_Alert,E-openshift-kube-controller,critical,false,{"component": "kube-controller"}
+1140,1260,AlertF_KubePodCrashLooping,F-openshift-monitoring,warning,false,{"component": "monitoring"}
+1200,1380,AlertF_HighMemoryUsage,F-openshift-monitoring,critical,false,{"component": "monitoring"}
+1440,1500,AlertG_APIServerLatency,G-openshift-kube-apiserver,warning,false,{"component": "kube-apiserver"}
+1560,1740,AlertH_Critical,H-openshift-network,critical,false,{"component": "network"}
+1800,1980,AlertI_KubePodNotReady,I-openshift-operators,warning,true,{"component": "operators"}
+2040,2220,AlertJ_KubePodNotReady,J-openshift-storage,warning,false,{"component": "storage"}
