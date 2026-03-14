@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom-v5-compat';
 import { Title } from '@patternfly/react-core';
 
 import { getMutlipleQueryBrowserUrl, usePerspective } from '../../hooks/usePerspective';
+import { useQueryNamespace } from '../../hooks/useQueryNamespace';
 import { RootState } from '../../../store/store';
 
 const getActiveNamespace = ({ UI }: RootState): string => UI.get('activeNamespace');
@@ -24,6 +25,7 @@ const PrometheusGraphLink_: FC<PrometheusGraphLinkProps> = ({
   ariaChartLinkLabel,
 }) => {
   const { perspective } = usePerspective();
+  const { namespace } = useQueryNamespace();
   const queries = _.compact(_.castArray(query));
   if (!queries.length) {
     return <>{children}</>;
@@ -31,7 +33,7 @@ const PrometheusGraphLink_: FC<PrometheusGraphLinkProps> = ({
 
   const params = new URLSearchParams();
   queries.forEach((q, index) => params.set(`query${index}`, q));
-  const url = getMutlipleQueryBrowserUrl(perspective, params);
+  const url = getMutlipleQueryBrowserUrl(perspective, params, namespace);
 
   return (
     <Link

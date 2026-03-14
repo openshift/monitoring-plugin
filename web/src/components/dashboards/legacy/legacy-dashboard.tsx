@@ -36,6 +36,7 @@ import {
   getObserveState,
   usePerspective,
 } from '../../hooks/usePerspective';
+import { useQueryNamespace } from '../../hooks/useQueryNamespace';
 import KebabDropdown from '../../kebab-dropdown';
 import { MonitoringState } from '../../../store/store';
 import { evaluateVariableTemplate, Variable } from './legacy-variable-dropdowns';
@@ -63,6 +64,7 @@ const QueryBrowserLink = ({
 }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
+  const { namespace } = useQueryNamespace();
 
   const params = new URLSearchParams();
   queries.forEach((q, i) => params.set(`query${i}`, q));
@@ -77,7 +79,7 @@ const QueryBrowserLink = ({
   return (
     <Link
       aria-label={t('Inspect')}
-      to={getMutlipleQueryBrowserUrl(perspective, params)}
+      to={getMutlipleQueryBrowserUrl(perspective, params, namespace)}
       data-test={LegacyDashboardPageTestIDs.Inspect}
     >
       {t('Inspect')}

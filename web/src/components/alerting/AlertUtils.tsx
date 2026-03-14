@@ -1,5 +1,3 @@
-import type { FC, ReactNode } from 'react';
-import { memo } from 'react';
 import {
   Action,
   Alert,
@@ -15,18 +13,15 @@ import {
   SilenceStates,
   Timestamp,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { AlertSource } from '../types';
-import * as _ from 'lodash-es';
-import { useTranslation } from 'react-i18next';
 import {
-  Alert as PFAlert,
-  Popover,
   Button,
   DescriptionList,
+  DescriptionListDescription,
   DescriptionListGroup,
   DescriptionListTerm,
-  DescriptionListDescription,
   Label,
+  Alert as PFAlert,
+  Popover,
   Tooltip,
 } from '@patternfly/react-core';
 import {
@@ -38,11 +33,6 @@ import {
   OutlinedBellIcon,
   SeverityUndefinedIcon,
 } from '@patternfly/react-icons';
-import { FormatSeriesTitle, QueryBrowser } from '../query-browser';
-import { Link } from 'react-router-dom-v5-compat';
-import { TFunction } from 'i18next';
-import { getQueryBrowserUrl, usePerspective } from '../hooks/usePerspective';
-import { NamespaceModel } from '../console/models';
 import {
   t_global_border_color_status_info_default,
   t_global_color_status_danger_default,
@@ -53,6 +43,17 @@ import {
   t_global_text_color_disabled,
   t_global_text_color_subtle,
 } from '@patternfly/react-tokens';
+import { TFunction } from 'i18next';
+import * as _ from 'lodash-es';
+import type { FC, ReactNode } from 'react';
+import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom-v5-compat';
+import { NamespaceModel } from '../console/models';
+import { getQueryBrowserUrl, usePerspective } from '../hooks/usePerspective';
+import { useQueryNamespace } from '../hooks/useQueryNamespace';
+import { FormatSeriesTitle, QueryBrowser } from '../query-browser';
+import { AlertSource } from '../types';
 
 export const getAdditionalSources = <T extends Alert | Rule>(
   data: Array<T>,
@@ -247,13 +248,14 @@ export const Graph: FC<GraphProps> = ({
 }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
+  const { namespace } = useQueryNamespace();
 
   // 3 times the rule's duration, but not less than 30 minutes
   const timespan = Math.max(3 * ruleDuration, 30 * 60) * 1000;
 
   const GraphLink = () =>
     query && perspective !== 'acm' ? (
-      <Link aria-label={t('Inspect')} to={getQueryBrowserUrl({ perspective, query })}>
+      <Link aria-label={t('Inspect')} to={getQueryBrowserUrl({ perspective, query, namespace })}>
         {t('Inspect')}
       </Link>
     ) : null;

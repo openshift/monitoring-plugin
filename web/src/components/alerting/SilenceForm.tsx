@@ -1,8 +1,4 @@
-import {
-  consoleFetchJSON,
-  DocumentTitle,
-  useActiveNamespace,
-} from '@openshift-console/dynamic-plugin-sdk';
+import { consoleFetchJSON, DocumentTitle } from '@openshift-console/dynamic-plugin-sdk';
 import {
   ActionGroup,
   Alert,
@@ -49,6 +45,7 @@ import {
 import { ExternalLink } from '../console/utils/link';
 import { useBoolean } from '../hooks/useBoolean';
 import { getSilenceAlertUrl, usePerspective } from '../hooks/usePerspective';
+import { useQueryNamespace } from '../hooks/useQueryNamespace';
 import { DataTestIDs } from '../data-test';
 import { ALL_NAMESPACES_KEY, getAlertmanagerSilencesUrl } from '../utils';
 import { useAlerts } from '../../hooks/useAlerts';
@@ -132,7 +129,7 @@ const NegativeMatcherHelp = () => {
 
 const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespaced }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const [namespace] = useActiveNamespace();
+  const { namespace } = useQueryNamespace();
   const { prometheus } = useMonitoring();
   const navigate = useNavigate();
   const isPageNamespaceLocked = isNamespaced && namespace !== ALL_NAMESPACES_KEY;
@@ -287,7 +284,7 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
       .then(({ silenceID }) => {
         setError(undefined);
         refetchSilencesAndAlerts();
-        navigate(getSilenceAlertUrl(perspective, silenceID));
+        navigate(getSilenceAlertUrl(perspective, silenceID, namespace));
       })
       .catch((err) => {
         let errorMessage =
