@@ -2,6 +2,7 @@ import { persesDashboardsDashboardDropdownCOO, persesDashboardsDashboardDropdown
 import { commonPages } from '../../views/common';
 import { listPersesDashboardsPage } from "../../views/perses-dashboards-list-dashboards";
 import { persesDashboardsPage } from '../../views/perses-dashboards';
+import { nav } from '../../views/nav';
 
 export interface PerspectiveConfig {
   name: string;
@@ -69,10 +70,10 @@ export function testCOOListPersesNamespace(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.emptyState();
     listPersesDashboardsPage.countDashboards('0');
 
-    cy.log(`1.11. Clear all filters`);
-    listPersesDashboardsPage.clearAllFilters();
+    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
 
-    cy.log(`1.12. Click on a dashboard`);
+    cy.log(`1.11. Click on a dashboard`);
     listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownCOO.APM_DASHBOARD[0]);
     //TODO: change back to shouldBeLoaded when customizable-dashboards gets merged
     persesDashboardsPage.shouldBeLoaded1();
@@ -121,8 +122,8 @@ export function testCOOListPersesNamespace(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.countDashboards('0');
 
     cy.log(`2.7. Search for the renamed dashboard`);
-    listPersesDashboardsPage.clearAllFilters();
-    cy.changeNamespace('All Projects');
+    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
     listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0] + ' - Renamed');
     listPersesDashboardsPage.countDashboards('0');
     listPersesDashboardsPage.clearAllFilters();
