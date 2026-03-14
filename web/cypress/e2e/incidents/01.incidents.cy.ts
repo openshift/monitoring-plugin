@@ -33,7 +33,7 @@ const ALERT_DESC = 'This is an alert meant to ensure that the entire alerting pi
 const ALERT_SUMMARY = 'An alert that should always be firing to certify that Alertmanager is working properly.'
 describe('BVT: Incidents - UI', { tags: ['@smoke', '@incidents'] }, () => {
   before(() => {
-    cy.beforeBlockCOO(MCP, MP);
+    cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
   });
 
 

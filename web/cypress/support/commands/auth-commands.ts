@@ -1,8 +1,6 @@
 import { nav } from '../../views/nav';
 import { guidedTour } from '../../views/tour';
 
-
-
 export { };
 declare global {
   namespace Cypress {
@@ -21,6 +19,138 @@ declare global {
     }
   }
 }
+
+// ── Auth orchestration (RBAC + OAuth discovery + login) ────────────
+// Moved from operator-commands.ts so all auth concerns live in one file.
+
+export const operatorAuthUtils = {
+  performLoginAndAuth(useSession: boolean): void {
+    if (`${Cypress.env('LOGIN_USERNAME')}` === 'kubeadmin') {
+      cy.adminCLI(
+        `oc adm policy add-cluster-role-to-user cluster-admin ${Cypress.env('LOGIN_USERNAME')}`,
+      );
+    } else {
+      cy.adminCLI(`oc project openshift-monitoring`);
+      cy.adminCLI(
+        `oc adm policy add-role-to-user monitoring-edit ${Cypress.env('LOGIN_USERNAME')} -n openshift-monitoring`,
+      );
+      cy.adminCLI(
+        `oc adm policy add-role-to-user monitoring-alertmanager-edit --role-namespace openshift-monitoring ${Cypress.env('LOGIN_USERNAME')}`,
+      );
+      cy.adminCLI(
+        `oc adm policy add-role-to-user view ${Cypress.env('LOGIN_USERNAME')} -n openshift-monitoring`,
+      );
+      cy.adminCLI(`oc project default`);
+      cy.adminCLI(
+        `oc adm policy add-role-to-user monitoring-edit ${Cypress.env('LOGIN_USERNAME')} -n default`,
+      );
+      cy.adminCLI(
+        `oc adm policy add-role-to-user monitoring-alertmanager-edit --role-namespace default ${Cypress.env('LOGIN_USERNAME')}`,
+      );
+      cy.adminCLI(
+        `oc adm policy add-role-to-user view ${Cypress.env('LOGIN_USERNAME')} -n default`,
+      );
+    }
+    cy.exec(
+      `oc get oauthclient openshift-browser-client -o go-template --template="{{index .redirectURIs 0}}" --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+    ).then((result) => {
+      if (result.stderr === '') {
+        const oauth = result.stdout;
+        const oauthurl = new URL(oauth);
+        const oauthorigin = oauthurl.origin;
+        cy.log(oauthorigin);
+        cy.wrap(oauthorigin as string).as('oauthorigin');
+      } else {
+        throw new Error(`Execution of oc get oauthclient failed
+          Exit code: ${result.code}
+          Stdout:\n${result.stdout}
+          Stderr:\n${result.stderr}`);
+      }
+    });
+    cy.get('@oauthorigin').then((oauthorigin) => {
+      if (useSession) {
+        cy.login(
+          Cypress.env('LOGIN_IDP'),
+          Cypress.env('LOGIN_USERNAME'),
+          Cypress.env('LOGIN_PASSWORD'),
+          oauthorigin as unknown as string,
+        );
+      } else {
+        cy.loginNoSession(
+          Cypress.env('LOGIN_IDP'),
+          Cypress.env('LOGIN_USERNAME'),
+          Cypress.env('LOGIN_PASSWORD'),
+          oauthorigin as unknown as string,
+        );
+      }
+    });
+  },
+
+  loginAndAuth(): void {
+    cy.log('Before block');
+    operatorAuthUtils.performLoginAndAuth(true);
+  },
+
+  loginAndAuthNoSession(): void {
+    cy.log('Before block (no session)');
+    operatorAuthUtils.performLoginAndAuth(false);
+  },
+
+  generateCOOSessionKey(
+    MCP: { namespace: string; operatorName: string; packageName: string },
+    MP: { namespace: string; operatorName: string },
+  ): string[] {
+    const baseKey = [
+      Cypress.env('LOGIN_IDP'),
+      Cypress.env('LOGIN_USERNAME'),
+      MCP.namespace,
+      MCP.operatorName,
+      MCP.packageName,
+      MP.namespace,
+      MP.operatorName,
+    ];
+    const envVars = [
+      Cypress.env('SKIP_ALL_INSTALL'),
+      Cypress.env('SKIP_COO_INSTALL'),
+      Cypress.env('COO_UI_INSTALL'),
+      Cypress.env('KONFLUX_COO_BUNDLE_IMAGE'),
+      Cypress.env('CUSTOM_COO_BUNDLE_IMAGE'),
+      Cypress.env('FBC_STAGE_COO_IMAGE'),
+      Cypress.env('MP_IMAGE'),
+      Cypress.env('MCP_CONSOLE_IMAGE'),
+      Cypress.env('CHA_IMAGE'),
+    ];
+    return [...baseKey, ...envVars.map((v) => v || '')];
+  },
+
+  generateMPSessionKey(MP: { namespace: string; operatorName: string }): string[] {
+    const baseKey = [
+      Cypress.env('LOGIN_IDP'),
+      Cypress.env('LOGIN_USERNAME'),
+      MP.namespace,
+      MP.operatorName,
+    ];
+    const envVars = [
+      Cypress.env('SKIP_ALL_INSTALL'),
+      Cypress.env('MP_IMAGE'),
+    ];
+    return [...baseKey, ...envVars.map((v) => v || '')];
+  },
+
+  generateKBVSessionKey(KBV: { namespace: string; packageName: string }): string[] {
+    const baseKey = [
+      Cypress.env('LOGIN_IDP'),
+      Cypress.env('LOGIN_USERNAME'),
+      KBV.namespace,
+      KBV.packageName,
+    ];
+    const envVars = [
+      Cypress.env('SKIP_KBV_INSTALL'),
+      Cypress.env('KBV_UI_INSTALL'),
+    ];
+    return [...baseKey, ...envVars.map((v) => v || '')];
+  },
+};
 
 
 // Core login function (used by both session and non-session versions)

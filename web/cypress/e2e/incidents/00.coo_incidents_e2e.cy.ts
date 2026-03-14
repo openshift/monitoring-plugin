@@ -25,7 +25,7 @@ describe('BVT: Incidents - e2e', { tags: ['@smoke', '@slow', '@incidents', '@e2e
   let currentAlertName: string;
 
   before(() => {
-    cy.beforeBlockCOO(MCP, MP);
+    cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
     
     cy.cleanupIncidentPrometheusRules(); 
 

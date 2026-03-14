@@ -29,7 +29,7 @@ const MP = {
 describe('Incidents - Mocking Examples', { tags: ['@demo', '@incidents'] }, () => {
 
   before(() => {
-    cy.beforeBlockCOO(MCP, MP);
+    cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
   });
 
   beforeEach(() => {
