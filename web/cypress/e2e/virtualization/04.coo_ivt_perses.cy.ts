@@ -1,5 +1,5 @@
 import { nav } from '../../views/nav';
-import { runBVTCOOPersesTests } from '../../support/perses/00.coo_bvt_perses.cy';
+import { runBVTCOOPersesTests } from '../../support/perses/00.coo_bvt_perses_admin.cy';
 import { guidedTour } from '../../views/tour';
 import { commonPages } from '../../views/common';
 
@@ -32,7 +32,7 @@ const KBV = {
   }
 };
 
-describe('Installation: COO and setting up Monitoring Plugin', () => {
+describe('Installation: COO and setting up Monitoring Plugin', { tags: ['@virtualization', '@slow'] }, () => {
 
   before(() => {
     cy.beforeBlockCOO(MCP, MP);
@@ -43,7 +43,7 @@ describe('Installation: COO and setting up Monitoring Plugin', () => {
   });
 });
 
-describe('Installation: Virtualization', () => {
+describe('Installation: Virtualization', { tags: ['@virtualization', '@slow'] }, () => {
 
   before(() => {
     cy.beforeBlockVirtualization(KBV);
@@ -56,7 +56,7 @@ describe('Installation: Virtualization', () => {
   });
 });
 
-describe('IVT: COO - Dashboards (Perses) - Virtualization perspective', () => {
+describe('IVT: COO - Dashboards (Perses) - Virtualization perspective', { tags: ['@virtualization', '@perses'] }, () => {
 
   beforeEach(() => {
     cy.visit('/');

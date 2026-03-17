@@ -57,11 +57,12 @@ type PluginConfig struct {
 type Feature string
 
 const (
-	AcmAlerting        Feature = "acm-alerting"
-	Incidents          Feature = "incidents"
-	DevConfig          Feature = "dev-config"
-	PersesDashboards   Feature = "perses-dashboards"
-	AlertManagementAPI Feature = "alert-management-api"
+	AcmAlerting           Feature = "acm-alerting"
+	Incidents             Feature = "incidents"
+	DevConfig             Feature = "dev-config"
+	PersesDashboards      Feature = "perses-dashboards"
+	AlertManagementAPI    Feature = "alert-management-api"
+	ClusterHealthAnalyzer Feature = "cluster-health-analyzer"
 )
 
 func (pluginConfig *PluginConfig) MarshalJSON() ([]byte, error) {
@@ -89,11 +90,11 @@ func CreateServer(ctx context.Context, cfg *Config) (*PluginServer, error) {
 
 func (s *PluginServer) StartHTTPServer() error {
 	if s.Config.IsTLSEnabled() {
-		log.Infof("listening for https on %s", s.Server.Addr)
-		return s.Server.ListenAndServeTLS(s.Config.CertFile, s.Config.PrivateKeyFile)
+		log.Infof("listening for https on %s", s.Addr)
+		return s.ListenAndServeTLS(s.Config.CertFile, s.Config.PrivateKeyFile)
 	}
-	log.Infof("listening for http on %s", s.Server.Addr)
-	return s.Server.ListenAndServe()
+	log.Infof("listening for http on %s", s.Addr)
+	return s.ListenAndServe()
 }
 
 func (s *PluginServer) Shutdown(ctx context.Context) error {
@@ -153,14 +154,20 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 	tlsEnabled := cfg.IsTLSEnabled()
 	if tlsEnabled {
 		// Set MinVersion - default to TLS 1.2 if not specified
+		tlsConfig.MinVersion = tls.VersionTLS12
 		if cfg.TLSMinVersion != 0 {
 			tlsConfig.MinVersion = cfg.TLSMinVersion
-		} else {
-			tlsConfig.MinVersion = tls.VersionTLS12
 		}
 
 		if cfg.TLSMaxVersion != 0 {
 			tlsConfig.MaxVersion = cfg.TLSMaxVersion
+			if tlsConfig.MaxVersion < tlsConfig.MinVersion {
+				return nil, fmt.Errorf(
+					"min TLS version %q greater than max TLS version %q",
+					tls.VersionName(tlsConfig.MinVersion),
+					tls.VersionName(tlsConfig.MaxVersion),
+				)
+			}
 		}
 
 		if len(cfg.TLSCipherSuites) > 0 {

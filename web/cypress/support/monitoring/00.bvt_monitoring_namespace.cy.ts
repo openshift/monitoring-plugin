@@ -20,7 +20,7 @@ export function runBVTMonitoringTestsNamespace(perspective: PerspectiveConfig) {
 
 export function testBVTMonitoringTestsNamespace(perspective: PerspectiveConfig) {
 
-   it(`${perspective.name} perspective - Alerting > Alerting Details page > Alerting Rule > Metrics`, () => {
+  it(`${perspective.name} perspective - Alerting > Alerting Details page > Alerting Rule > Metrics`, () => {
     cy.log('4.1. use sidebar nav to go to Observe > Alerting');
     commonPages.titleShouldHaveText('Alerting');
     listPage.tabShouldHaveText('Alerts');
@@ -56,8 +56,8 @@ export function testBVTMonitoringTestsNamespace(perspective: PerspectiveConfig) 
     cy.get(`[class="pf-v6-c-code-block__content"]`).invoke('text').then((expText) => {
       cy.log(`${expText}`);
       cy.wrap(expText).as('alertExpression');
-      });
-    
+    });
+
 
     cy.log('4.5. click on Alert Details Page');
     detailsPage.clickAlertDesc(`${WatchdogAlert.ALERT_DESC}`);
@@ -92,7 +92,7 @@ export function testBVTMonitoringTestsNamespace(perspective: PerspectiveConfig) 
 
     cy.log('5.3 silence alert page');
     commonPages.titleShouldHaveText('Silence alert');
-    commonPages.projectDropdownShouldExist();
+    commonPages.projectDropdownShouldNotExist();
 
     // Launches create silence form
     silenceAlertPage.silenceAlertSectionDefault();

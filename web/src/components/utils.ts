@@ -219,11 +219,11 @@ const getSearchParams = ({
 
 export const getPrometheusBasePath = ({
   prometheus,
-  namespace,
+  useTenancyPath,
   basePathOverride,
 }: {
   prometheus?: Prometheus;
-  namespace?: string;
+  useTenancyPath?: boolean;
   basePathOverride?: string;
 }) => {
   if (basePathOverride) {
@@ -232,7 +232,7 @@ export const getPrometheusBasePath = ({
 
   if (prometheus === 'acm') {
     return PROMETHEUS_PROXY_PATH;
-  } else if (namespace && namespace !== ALL_NAMESPACES_KEY) {
+  } else if (useTenancyPath) {
     return PROMETHEUS_TENANCY_BASE_PATH;
   } else {
     return PROMETHEUS_BASE_PATH;
@@ -246,13 +246,21 @@ export const buildPrometheusUrl = ({
   prometheusUrlProps: PrometheusURLProps;
   basePath: string;
 }): string | null => {
+  if (
+    basePath !== PROMETHEUS_TENANCY_BASE_PATH ||
+    prometheusUrlProps.namespace === ALL_NAMESPACES_KEY
+  ) {
+    prometheusUrlProps.namespace = undefined;
+  }
   if (prometheusUrlProps.endpoint !== PrometheusEndpoint.RULES && !prometheusUrlProps.query) {
     // Empty query provided, skipping API call
     return null;
   }
 
   const params = getSearchParams(prometheusUrlProps);
-  return `${basePath}/${prometheusUrlProps.endpoint}?${params.toString()}`;
+  return `${basePath}/${prometheusUrlProps.endpoint}${
+    params.size > 0 ? '?' + params.toString() : ''
+  }`;
 };
 
 type PrometheusURLProps = {
@@ -267,14 +275,16 @@ type PrometheusURLProps = {
 
 export const getAlertmanagerSilencesUrl = ({
   prometheus,
+  useTenancyPath,
   namespace,
 }: {
   prometheus: Prometheus;
+  useTenancyPath: boolean;
   namespace?: string;
 }) => {
   if (prometheus === 'acm') {
     return `${ALERTMANAGER_PROXY_PATH}/api/v2/silences`;
-  } else if (namespace && namespace !== ALL_NAMESPACES_KEY) {
+  } else if (useTenancyPath && namespace && namespace !== ALL_NAMESPACES_KEY) {
     return `${ALERTMANAGER_TENANCY_BASE_PATH}/api/v2/silences?namespace=${namespace}`;
   } else {
     return `${ALERTMANAGER_BASE_PATH}/api/v2/silences`;

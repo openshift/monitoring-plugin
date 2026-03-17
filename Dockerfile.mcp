@@ -7,7 +7,7 @@ USER 0
 ENV HUSKY=0
 COPY web/package*.json web/
 COPY Makefile Makefile
-RUN cd web && npm ci --legacy-peer-deps --omit=optional --ignore-scripts
+RUN cd web && npm ci --legacy-peer-deps --ignore-scripts
 
 COPY web/ web/
 COPY config/ config/

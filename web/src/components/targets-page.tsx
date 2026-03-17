@@ -457,7 +457,7 @@ const List: FC<ListProps> = ({ data, loaded, loadError, unfilteredData }) => {
       Row={Row}
       unfilteredData={unfilteredData}
       NoDataEmptyMsg={() => {
-        return <EmptyBox label={t('Metrics targets')} />;
+        return <EmptyBox customMessage={t('No metrics targets found')} />;
       }}
     />
   );

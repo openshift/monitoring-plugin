@@ -47,6 +47,7 @@ import {
   t_chart_color_yellow_500,
 } from '@patternfly/react-tokens';
 import { PatternflyToken } from '../../types';
+import { useMonitoring } from '../../../hooks/useMonitoring';
 
 const colorMap: Record<string, PatternflyToken> = {
   'super-light-blue': t_chart_color_blue_100,
@@ -107,6 +108,7 @@ const SingleStat: FC<Props> = ({ customDataSource, namespace, panel, pollInterva
   } = panel;
 
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const { accessCheckLoading, useMetricsTenancy } = useMonitoring();
   const [error, setError] = useState<string>();
   const [isLoading, setIsLoading] = useState(true);
   const [value, setValue] = useState<string>();
@@ -118,16 +120,17 @@ const SingleStat: FC<Props> = ({ customDataSource, namespace, panel, pollInterva
     prometheusUrlProps: {
       endpoint: PrometheusEndpoint.QUERY,
       query,
-      namespace: namespace,
+      namespace,
     },
     basePath: getPrometheusBasePath({
       prometheus: 'cmo',
+      useTenancyPath: useMetricsTenancy,
       basePathOverride: customDataSource?.basePath,
     }),
   });
 
   const tick = () => {
-    if (!url) {
+    if (!url || accessCheckLoading) {
       return;
     }
     safeFetch<PrometheusResponse>(url)
@@ -145,7 +148,7 @@ const SingleStat: FC<Props> = ({ customDataSource, namespace, panel, pollInterva
       });
   };
 
-  usePoll(tick, pollInterval, query);
+  usePoll(tick, pollInterval, query, accessCheckLoading, useMetricsTenancy);
 
   const filteredVMs = valueMaps?.filter((vm) => vm.op === '=');
   const valueMap =

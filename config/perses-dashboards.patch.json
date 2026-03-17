@@ -8,7 +8,7 @@
         "exact": false,
         "path": ["/multicloud/monitoring/v2/dashboards"],
         "component": {
-          "$codeRef": "DashboardsPage"
+          "$codeRef": "DashboardListPage"
         }
       }
     }
@@ -36,7 +36,7 @@
       "properties": {
         "exact": false,
         "path": ["/monitoring/v2/dashboards"],
-        "component": { "$codeRef": "DashboardsPage" }
+        "component": { "$codeRef": "DashboardListPage" }
       }
     }
   },
@@ -64,7 +64,7 @@
       "properties": {
         "exact": false,
         "path": ["/virt-monitoring/v2/dashboards"],
-        "component": { "$codeRef": "DashboardsPage" }
+        "component": { "$codeRef": "DashboardListPage" }
       }
     }
   },
@@ -81,6 +81,42 @@
         "perspective": "virtualization-perspective",
         "section": "observe-virt-perspective",
         "insertAfter": "dashboards-virt"
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/1",
+    "value": {
+      "type": "console.page/route",
+      "properties": {
+        "exact": false,
+        "path": ["/monitoring/v2/dashboards/view"],
+        "component": { "$codeRef": "DashboardPage" }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/1",
+    "value": {
+      "type": "console.page/route",
+      "properties": {
+        "exact": false,
+        "path": ["/virt-monitoring/v2/dashboards/view"],
+        "component": { "$codeRef": "DashboardPage" }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/1",
+    "value": {
+      "type": "console.page/route",
+      "properties": {
+        "exact": false,
+        "path": ["/multicloud/monitoring/v2/dashboards/view"],
+        "component": { "$codeRef": "DashboardPage" }
       }
     }
   }

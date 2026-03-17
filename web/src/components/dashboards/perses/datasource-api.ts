@@ -1,5 +1,9 @@
-import { DatasourceResource, DatasourceSelector, GlobalDatasourceResource } from '@perses-dev/core';
-import { DatasourceApi } from '@perses-dev/dashboards';
+import {
+  DatasourceResource,
+  DatasourceSelector,
+  GlobalDatasourceResource,
+  DatasourceApi,
+} from '@perses-dev/core';
 import { fetchDatasourceList } from './perses/datasource-client';
 import { fetchGlobalDatasourceList } from './perses/global-datasource-client';
 import { TFunction } from 'i18next';

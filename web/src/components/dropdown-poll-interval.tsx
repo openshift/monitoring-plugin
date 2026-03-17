@@ -6,6 +6,7 @@ import {
   parsePrometheusDuration,
 } from './console/console-shared/src/datetime/prometheus';
 import { SimpleSelect, SimpleSelectOption } from '@patternfly/react-templates';
+import { LegacyDashboardPageTestIDs } from './data-test';
 
 type DropDownPollIntervalProps = {
   setInterval: (v: number) => void;
@@ -49,6 +50,7 @@ export const DropDownPollInterval: FunctionComponent<DropDownPollIntervalProps> 
       initialOptions={initialOptions}
       onSelect={(_ev, selection) => onSelect(_ev, selection)}
       toggleWidth="150px"
+      data-test={LegacyDashboardPageTestIDs.PollIntervalDropdownOptions}
     />
   );
 };

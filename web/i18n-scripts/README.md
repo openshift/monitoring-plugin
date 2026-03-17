@@ -19,4 +19,4 @@ Once your login info is configured, you should be able to log in by running `sou
 1. **Note the Memsource project link**: After the upload is complete, the script will output the Memsource project link. Make sure to copy it for the next step.
 1. **Translate in Memsource**: Send an email to the globalization team `localization-requests@redhat.com` with CC to `team-observability-ui@redhat.com` with the Memsource project link and request translation for the required languages.
 1. **Wait for translation completion**: Accessing memsource you can monitor the progress of the translations.
-1. **Download translations**: once the translations are completed, run `./i18n-scripts/memsource-download.sh -p <project_id>` to download the translated `.po` files from Memsource and convert them back to the i18n JSON format used by the application.
+1. **Download translations**: once the translations are completed, run `./i18n-scripts/memsource-download.sh -p <project_id>` to download the translated `.po` files from Memsource, convert them back to the i18n JSON format, and create a commit. Check the translations for encoding errors and adjust the commit.
