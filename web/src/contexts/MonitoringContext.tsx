@@ -19,6 +19,11 @@ type MonitoringContextType = {
   useMetricsTenancy: boolean;
   /** Dictates if the users access is being loaded. */
   accessCheckLoading: boolean;
+  /**
+   * Dictates if the namespace selector is shown inside the view,
+   * in some perspectives the selector already exist outside monitoring components scope
+   */
+  displayNamespaceSelector: boolean;
 };
 
 export const MonitoringContext = React.createContext<MonitoringContextType>({
@@ -27,12 +32,14 @@ export const MonitoringContext = React.createContext<MonitoringContextType>({
   useAlertsTenancy: false,
   useMetricsTenancy: false,
   accessCheckLoading: true,
+  displayNamespaceSelector: true,
 });
 
 export const MonitoringProvider: React.FC<{
   monitoringContext: {
     plugin: MonitoringPlugins;
     prometheus: Prometheus;
+    displayNamespaceSelector?: boolean;
   };
 }> = ({ children, monitoringContext }) => {
   const [allNamespaceAlertsTenancy, alertAccessCheckLoading] = useAccessReview({
@@ -56,6 +63,7 @@ export const MonitoringProvider: React.FC<{
       useAlertsTenancy: monitoringContext.prometheus === 'cmo' && !allNamespaceAlertsTenancy,
       useMetricsTenancy: monitoringContext.prometheus === 'cmo' && !allNamespaceMeticsTenancy,
       accessCheckLoading: alertAccessCheckLoading || metricsAccessCheckLoading,
+      displayNamespaceSelector: monitoringContext.displayNamespaceSelector ?? true,
     };
   }, [
     monitoringContext,

@@ -28,6 +28,7 @@ import {
   getNewSilenceAlertUrl,
   usePerspective,
 } from '../../../components/hooks/usePerspective';
+import { useMonitoringNamespace } from '../../hooks/useMonitoringNamespace';
 import { Link } from 'react-router-dom-v5-compat';
 import { DataTestIDs } from '../../data-test';
 
@@ -35,6 +36,7 @@ const AlertTableRow: FC<{ alert: Alert }> = ({ alert }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
   const navigate = useNavigate();
+  const { namespace } = useMonitoringNamespace();
 
   const state = alertState(alert);
 
@@ -46,7 +48,7 @@ const AlertTableRow: FC<{ alert: Alert }> = ({ alert }) => {
     dropdownItems.unshift(
       <DropdownItem
         key="silence-alert"
-        onClick={() => navigate(getNewSilenceAlertUrl(perspective, alert))}
+        onClick={() => navigate(getNewSilenceAlertUrl(perspective, alert, namespace))}
         data-test={DataTestIDs.SilenceAlertDropdownItem}
       >
         {t('Silence alert')}
@@ -83,7 +85,7 @@ const AlertTableRow: FC<{ alert: Alert }> = ({ alert }) => {
           </FlexItem>
           <FlexItem>
             <Link
-              to={getAlertUrl(perspective, alert, alert?.rule?.id)}
+              to={getAlertUrl(perspective, alert, alert?.rule?.id, namespace)}
               data-test-id="alert-resource-link"
               data-test={DataTestIDs.AlertResourceLink}
             >
