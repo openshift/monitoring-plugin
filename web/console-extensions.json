@@ -391,7 +391,7 @@
     "properties": {
       "contextId": "dev-console-observe",
       "name": "%plugin__monitoring-plugin~Dashboards%",
-      "href": "dashboards",
+      "href": "",
       "component": {
         "$codeRef": "LegacyDashboardsPage.MpCmoLegacyDevDashboardsPage"
       }
