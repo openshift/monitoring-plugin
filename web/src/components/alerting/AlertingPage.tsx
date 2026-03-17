@@ -9,11 +9,11 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { MonitoringProvider } from '../../contexts/MonitoringContext';
 import { useMonitoring } from '../../hooks/useMonitoring';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom-v5-compat';
 import { AlertResource, RuleResource, SilenceResource } from '../utils';
 import { useDispatch } from 'react-redux';
 import { alertingClearSelectorData } from '../../store/actions';
-import { useQueryNamespace } from '../hooks/useQueryNamespace';
+import { useMonitoringNamespace } from '../hooks/useMonitoringNamespace';
 
 const CmoAlertsPage = lazy(() =>
   import(/* webpackChunkName: "CmoAlertsPage" */ './AlertsPage').then((module) => ({
@@ -58,10 +58,8 @@ const namespacedPages = [
 const AlertingPage: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const dispatch = useDispatch();
-  const { useAlertsTenancy, accessCheckLoading } = useMonitoring();
-
   const [perspective] = useActivePerspective();
-  const { setNamespace } = useQueryNamespace();
+  const { setNamespace } = useMonitoringNamespace();
 
   const { plugin, prometheus } = useMonitoring();
 
@@ -97,7 +95,7 @@ const AlertingPage: FC = () => {
 
   return (
     <>
-      {namespacedPages.includes(pathname) && !accessCheckLoading && useAlertsTenancy && (
+      {namespacedPages.includes(pathname) && (
         <NamespaceBar
           onNamespaceChange={(namespace) => {
             dispatch(alertingClearSelectorData(prometheus, namespace));

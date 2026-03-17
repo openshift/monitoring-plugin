@@ -122,7 +122,7 @@ import { ALL_NAMESPACES_KEY } from './utils';
 import { MonitoringProvider } from '../contexts/MonitoringContext';
 import { DataTestIDs } from './data-test';
 import { useMonitoring } from '../hooks/useMonitoring';
-import { useQueryNamespace } from './hooks/useQueryNamespace';
+import { useMonitoringNamespace } from './hooks/useMonitoringNamespace';
 
 // Stores information about the currently focused query input
 let focusedQuery;
@@ -1323,7 +1323,8 @@ const GraphUnitsDropDown: FC = () => {
 const MetricsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const [units, setUnits] = useQueryParam(QueryParams.Units, StringParam);
-  const { setNamespace } = useQueryNamespace();
+  const { setNamespace } = useMonitoringNamespace();
+  const { displayNamespaceSelector } = useMonitoring();
 
   const dispatch = useDispatch();
 
@@ -1402,14 +1403,18 @@ const MetricsPage_: FC = () => {
 
   return (
     <>
-      <DocumentTitle>{t('Metrics')}</DocumentTitle>
-      <NamespaceBar
-        onNamespaceChange={(namespace) => {
-          dispatch(queryBrowserDeleteAllQueries());
-          setNamespace(namespace);
-        }}
-      />
-      <ListPageHeader title={t('Metrics')}>
+      {displayNamespaceSelector && (
+        <>
+          <DocumentTitle>{t('Metrics')}</DocumentTitle>
+          <NamespaceBar
+            onNamespaceChange={(namespace) => {
+              dispatch(queryBrowserDeleteAllQueries());
+              setNamespace(namespace);
+            }}
+          />
+        </>
+      )}
+      <ListPageHeader title={displayNamespaceSelector ? t('Metrics') : ' '}>
         <Split hasGutter>
           <SplitItem data-test={DataTestIDs.MetricGraphUnitsDropDown}>
             <Tooltip content={<>{t('This dropdown only formats results.')}</>}>
@@ -1465,6 +1470,20 @@ const MetricsPage = withFallback(MetricsPage_);
 export const MpCmoMetricsPage: React.FC = () => {
   return (
     <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
+      <MetricsPage />
+    </MonitoringProvider>
+  );
+};
+
+export const MpCmoDevMetricsPage: React.FC = () => {
+  return (
+    <MonitoringProvider
+      monitoringContext={{
+        plugin: 'monitoring-plugin',
+        prometheus: 'cmo',
+        displayNamespaceSelector: false,
+      }}
+    >
       <MetricsPage />
     </MonitoringProvider>
   );

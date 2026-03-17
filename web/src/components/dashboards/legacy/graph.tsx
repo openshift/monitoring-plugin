@@ -15,6 +15,7 @@ type Props = {
   customDataSource?: CustomDataSource;
   formatSeriesTitle?: FormatSeriesTitle;
   isStack: boolean;
+  onLoadingChange?: (isLoading: boolean) => void;
   pollInterval: number;
   queries: string[];
   showLegend?: boolean;
@@ -27,6 +28,7 @@ const Graph: FC<Props> = ({
   customDataSource,
   formatSeriesTitle,
   isStack,
+  onLoadingChange,
   pollInterval,
   queries,
   showLegend,
@@ -60,6 +62,7 @@ const Graph: FC<Props> = ({
       formatSeriesTitle={formatSeriesTitle}
       hideControls
       isStack={isStack}
+      onLoadingChange={onLoadingChange}
       onZoom={onZoom}
       pollInterval={pollInterval}
       queries={queries}
