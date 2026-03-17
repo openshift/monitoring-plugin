@@ -79,6 +79,9 @@ export const detailsPage = {
     cy.log('detailsPage.clickOnSilenceByKebab');
     try {
       cy.byLegacyTestID(DataTestIDs.SilenceResourceLink).scrollIntoView();
+      cy.get('table').should('be.visible');
+      cy.wait(2000);
+      cy.get('table').find(Classes.SilenceKebabDropdown).should('be.visible');
       cy.get('table').find(Classes.SilenceKebabDropdown).should('be.visible').click({force: true});
     } catch (error) {
       cy.log(`${error.message}`);

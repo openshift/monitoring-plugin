@@ -26,7 +26,8 @@ import { formatNumber } from '../../format';
 import TablePagination from '../../table-pagination';
 import { ColumnStyle, Panel } from './types';
 import { CustomDataSource } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
-import { GraphEmpty } from '../../../components/console/graphs/graph-empty';
+import { GraphEmpty } from '../../console/graphs/graph-empty';
+import { useMonitoring } from '../../../hooks/useMonitoring';
 
 type AugmentedColumnStyle = ColumnStyle & {
   className?: string;
@@ -66,6 +67,7 @@ const perPageOptions: PerPageOptions[] = [5, 10, 20, 50, 100].map((n) => ({
 
 const Table: FC<Props> = ({ customDataSource, panel, pollInterval, queries, namespace }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const { accessCheckLoading, useMetricsTenancy } = useMonitoring();
 
   const [error, setError] = useState();
   const [isLoading, setLoading] = useState(true);
@@ -79,6 +81,9 @@ const Table: FC<Props> = ({ customDataSource, panel, pollInterval, queries, name
   const safeFetch = useCallback(useSafeFetch(), []);
 
   const tick = () => {
+    if (accessCheckLoading) {
+      return;
+    }
     const allPromises = _.map(queries, (query) =>
       _.isEmpty(query)
         ? Promise.resolve()
@@ -91,6 +96,7 @@ const Table: FC<Props> = ({ customDataSource, panel, pollInterval, queries, name
               },
               basePath: getPrometheusBasePath({
                 prometheus: 'cmo',
+                useTenancyPath: useMetricsTenancy,
                 basePathOverride: customDataSource?.basePath,
               }),
             }),
@@ -132,7 +138,7 @@ const Table: FC<Props> = ({ customDataSource, panel, pollInterval, queries, name
       });
   };
 
-  usePoll(tick, pollInterval, queries);
+  usePoll(tick, pollInterval, queries, useMetricsTenancy, accessCheckLoading);
   if (isLoading) {
     return <GraphEmpty loading />;
   }

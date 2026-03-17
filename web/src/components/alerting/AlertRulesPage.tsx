@@ -97,7 +97,7 @@ const RuleTableRow: FC<RowProps<Rule>> = ({ obj }) => {
           </FlexItem>
           <FlexItem>
             <Link
-              to={getRuleUrl(perspective, obj, obj.labels.namespace)}
+              to={getRuleUrl(perspective, obj)}
               data-test={DataTestIDs.AlertingRuleResourceLink}
             >
               <Truncate content={obj.name} />
@@ -217,7 +217,7 @@ const AlertRulesPage_: FC = () => {
             unfilteredData={rules}
             scrollNode={() => document.getElementById('alert-rules-table-scroll')}
             NoDataEmptyMsg={() => {
-              return <EmptyBox label={t('Alerting rules')} />;
+              return <EmptyBox customMessage={t('No alerting rules found')} />;
             }}
           />
         </div>

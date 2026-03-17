@@ -1,12 +1,13 @@
 import { nav } from '../../views/nav';
 import { legacyDashboardsPage } from '../../views/legacy-dashboards';
-import { KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANELS, LegacyDashboardsDashboardDropdownNamespace, MetricsPageQueryInput, MetricsPageQueryInputByNamespace, WatchdogAlert } from '../../fixtures/monitoring/constants';
+import { LegacyDashboardsDashboardDropdownNamespace, MetricsPageQueryInputByNamespace, WatchdogAlert } from '../../fixtures/monitoring/constants';
 import { Classes, LegacyDashboardPageTestIDs, DataTestIDs } from '../../../src/components/data-test';
 import { metricsPage } from '../../views/metrics';
 import { alertingRuleDetailsPage } from '../../views/alerting-rule-details-page';
 import { alerts } from '../../fixtures/monitoring/alert';
 import { listPage } from '../../views/list-page';
 import { commonPages } from '../../views/common';
+import { guidedTour } from '../../views/tour';
 
 export interface PerspectiveConfig {
   name: string;
@@ -33,9 +34,7 @@ export function testLegacyDashboardsRegressionNamespace(perspective: Perspective
     legacyDashboardsPage.dashboardDropdownAssertion(LegacyDashboardsDashboardDropdownNamespace);
 
     cy.log('1.5 Dashboard Kubernetes Compute Resources Namespace Pods panels');
-    for (const panel of Object.values(KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANELS)) {
-      legacyDashboardsPage.dashboardKubernetesComputeResourcesNamespacePodsPanelAssertion(panel);
-    }
+    legacyDashboardsPage.dashboardKubernetesComputeResourcesNamespacePodsPanelAssertion();
 
     cy.log('1.6 Inspect - CPU Utilisation (from requests)');
     cy.byTestID(LegacyDashboardPageTestIDs.Inspect).eq(0).scrollIntoView().should('be.visible').click();
@@ -53,6 +52,7 @@ export function testLegacyDashboardsRegressionNamespace(perspective: Perspective
 
     cy.log('2.2 Empty state');
     cy.changeNamespace('default');
+    legacyDashboardsPage.shouldBeLoaded();
     cy.byTestID(DataTestIDs.MetricGraphNoDatapointsFound).eq(0).scrollIntoView().should('be.visible');
     legacyDashboardsPage.clickKebabDropdown(0);
     cy.byTestID(LegacyDashboardPageTestIDs.ExportAsCsv).should('be.visible');
@@ -62,6 +62,13 @@ export function testLegacyDashboardsRegressionNamespace(perspective: Perspective
 
   it(`${perspective.name} perspective - Dashboards (legacy) - No kebab dropdown`, () => {
     cy.log('3.1 Single Stat - No kebab dropdown');
+    cy.visit('/');
+    guidedTour.close();
+    cy.validateLogin();
+    nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
+    commonPages.titleShouldHaveText('Dashboards');
+    cy.changeNamespace('openshift-monitoring');
+    legacyDashboardsPage.shouldBeLoaded();
     cy.byLegacyTestID('chart-1').find('[data-test="'+DataTestIDs.KebabDropdownButton+'"]').should('not.exist');
 
     cy.log('3.2 Table - No kebab dropdown');

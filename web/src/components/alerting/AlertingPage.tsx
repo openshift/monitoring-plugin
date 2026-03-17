@@ -13,6 +13,7 @@ import { useLocation } from 'react-router-dom';
 import { AlertResource, RuleResource, SilenceResource } from '../utils';
 import { useDispatch } from 'react-redux';
 import { alertingClearSelectorData } from '../../store/actions';
+import { useQueryNamespace } from '../hooks/useQueryNamespace';
 
 const CmoAlertsPage = lazy(() =>
   import(/* webpackChunkName: "CmoAlertsPage" */ './AlertsPage').then((module) => ({
@@ -57,8 +58,10 @@ const namespacedPages = [
 const AlertingPage: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const dispatch = useDispatch();
+  const { useAlertsTenancy, accessCheckLoading } = useMonitoring();
 
   const [perspective] = useActivePerspective();
+  const { setNamespace } = useQueryNamespace();
 
   const { plugin, prometheus } = useMonitoring();
 
@@ -72,37 +75,34 @@ const AlertingPage: FC = () => {
     () => [
       {
         href: 'alerts',
-        // t('Alerts')
-        nameKey: 'Alerts',
+        nameKey: `${process.env.I18N_NAMESPACE}~Alerts`,
         component: plugin === 'monitoring-plugin' ? CmoAlertsPage : CooAlertsPage,
-        name: 'Alerts',
+        name: t('Alerts'),
       },
       {
         href: 'silences',
-        // t('Silences')
-        nameKey: 'Silences',
+        nameKey: `${process.env.I18N_NAMESPACE}~Silences`,
         component: plugin === 'monitoring-plugin' ? CmoSilencesPage : CooSilencesPage,
-        name: 'Silences',
+        name: t('Silences'),
       },
       {
         href: 'alertrules',
-        // t('Alerting Rules') -- for console.tab extension
-        // t('Alerting rules')
-        nameKey: 'Alerting rules',
+        nameKey: `${process.env.I18N_NAMESPACE}~Alerting rules`,
         component: plugin === 'monitoring-plugin' ? CmoAlertRulesPage : CooAlertRulesPage,
-        name: 'Alerting rules',
+        name: t('Alerting rules'),
       },
     ],
-    [plugin],
+    [plugin, t],
   );
 
   return (
     <>
-      {namespacedPages.includes(pathname) && (
+      {namespacedPages.includes(pathname) && !accessCheckLoading && useAlertsTenancy && (
         <NamespaceBar
-          onNamespaceChange={(namespace) =>
-            dispatch(alertingClearSelectorData(prometheus, namespace))
-          }
+          onNamespaceChange={(namespace) => {
+            dispatch(alertingClearSelectorData(prometheus, namespace));
+            setNamespace(namespace);
+          }}
         />
       )}
       <ListPageHeader title={t('Alerting')} />

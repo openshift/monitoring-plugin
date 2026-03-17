@@ -1,6 +1,6 @@
 import { nav } from '../../views/nav';
 import { legacyDashboardsPage } from '../../views/legacy-dashboards';
-import { API_PERFORMANCE_DASHBOARD_PANELS, LegacyDashboardsDashboardDropdown, MetricsPageQueryInput, WatchdogAlert } from '../../fixtures/monitoring/constants';
+import { LegacyDashboardsDashboardDropdown, MetricsPageQueryInput, WatchdogAlert } from '../../fixtures/monitoring/constants';
 import { Classes, LegacyDashboardPageTestIDs, DataTestIDs } from '../../../src/components/data-test';
 import { metricsPage } from '../../views/metrics';
 import { alertingRuleDetailsPage } from '../../views/alerting-rule-details-page';
@@ -32,10 +32,10 @@ export function testLegacyDashboardsRegression(perspective: PerspectiveConfig) {
     cy.log('1.4 Dashboard dropdown');
     legacyDashboardsPage.dashboardDropdownAssertion(LegacyDashboardsDashboardDropdown);
 
+    legacyDashboardsPage.clickDashboardDropdown('API_PERFORMANCE');
+
     cy.log('1.5 Dashboard API Performance panels');
-    for (const panel of Object.values(API_PERFORMANCE_DASHBOARD_PANELS)) {
-      legacyDashboardsPage.dashboardAPIPerformancePanelAssertion(panel);
-    }
+    legacyDashboardsPage.dashboardAPIPerformancePanelAssertion();
 
     cy.log('1.6 Inspect - API Request Duration by Verb - 99th Percentile');
     cy.byTestID(LegacyDashboardPageTestIDs.Inspect).eq(0).scrollIntoView().should('be.visible').click();

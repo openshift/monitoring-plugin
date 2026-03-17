@@ -11,7 +11,7 @@ Verifies: OU-727
 import { incidentsPage } from '../../../views/incidents-page';
 
 const MCP = {
-  namespace: 'openshift-cluster-observability-operator',
+  namespace: Cypress.env('COO_NAMESPACE'),
   packageName: 'cluster-observability-operator',
   operatorName: 'Cluster Observability Operator',
   config: {
@@ -25,7 +25,7 @@ const MP = {
   operatorName: 'Cluster Monitoring Operator',
 };
 
-describe('Regression: Incidents Filtering', () => {
+describe('Regression: Incidents Filtering', { tags: ['@incidents'] }, () => {
 
   before(() => {
     cy.beforeBlockCOO(MCP, MP);

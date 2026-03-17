@@ -9,7 +9,7 @@ import {
   StackItem,
 } from '@patternfly/react-core';
 import type { FC } from 'react';
-import { memo } from 'react';
+import { memo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { SingleTypeaheadDropdown } from '../../console/utils/single-typeahead-dropdown';
@@ -61,8 +61,14 @@ export const DashboardDropdown: FC<DashboardDropdownProps> = ({ items, onChange,
     children: item.title,
   }));
 
+  useEffect(() => {
+    if (items.filter((item) => item.name === selectedKey).length === 0) {
+      onChange(items.at(0)?.name);
+    }
+  }, [items, selectedKey, onChange]);
+
   return (
-    <Stack data-test="dashboard-dropdown">
+    <Stack data-test="dashboard-dropdown" className="pf-v6-u-mb-sm">
       <StackItem>
         <label htmlFor="monitoring-board-dropdown">{t('Dashboard')}</label>
       </StackItem>

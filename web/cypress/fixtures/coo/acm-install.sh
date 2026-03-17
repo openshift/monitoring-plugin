@@ -1,7 +1,23 @@
 #!/bin/bash
-set -eux
-oc patch Scheduler cluster --type='json' -p '[{ "op": "replace", "path": "/spec/mastersSchedulable", "value": true }]'
+#set -eux
+set -x
+# This script will install ACM, MCH, MCO, and other test resources.
+# The script will skip installation when MCO CR existed.
 
+echo "[INFO] Checking for existing MultiClusterObservability CR..."
+MCO_NAMESPACE="open-cluster-management-observability"
+MCO_NAME="observability"
+# The 'oc get ...' command will have a non-zero exit code if the resource is not found.
+if oc get multiclusterobservability ${MCO_NAME} -n ${MCO_NAMESPACE} >/dev/null 2>&1; then
+    echo "[INFO] MultiClusterObservability CR '${MCO_NAME}' already exists in '${MCO_NAMESPACE}'."
+    echo "[INFO] Skipping installation to avoid conflicts and assuming a previous step is managing it."
+    exit 0
+else
+    echo "[INFO] No existing MultiClusterObservability CR found. Proceeding with installation."
+fi
+# patch node
+oc patch Scheduler cluster --type='json' -p '[{ "op": "replace", "path": "/spec/mastersSchedulable", "value": true }]'
+# install acm
 oc apply -f - <<EOF
 apiVersion: v1
 kind: Namespace
@@ -43,6 +59,7 @@ while [[ $tries -gt 0 ]] &&
 	((tries--))
 done
 oc wait -n open-cluster-management --for=condition=Available deploy/multiclusterhub-operator --timeout=300s
+# install mch
 oc apply -f - <<EOF
 apiVersion: operator.open-cluster-management.io/v1
 kind: MultiClusterHub
@@ -56,7 +73,7 @@ oc wait -n open-cluster-management --for=condition=Available deploy/search-api -
 oc wait -n open-cluster-management --for=condition=Available deploy/search-collector --timeout=300s
 oc wait -n open-cluster-management --for=condition=Available deploy/search-indexer --timeout=300s
 oc -n open-cluster-management get pod
-#create multi-cluster
+# create mco
 if ! oc get ns open-cluster-management-observability >/dev/null 2>&1; then
   echo "[INFO] Creating namespace open-cluster-management-observability"
   oc create ns open-cluster-management-observability
@@ -168,5 +185,64 @@ spec:
 EOF
 sleep 1m
 oc wait --for=condition=Ready pod -l alertmanager=observability,app=multicluster-observability-alertmanager -n open-cluster-management-observability --timeout=300s
-oc -n open-cluster-management-observability get pod
-oc -n open-cluster-management-observability get svc | grep -E 'alertmanager|rbac-query'
+# enable UIPlugin
+oc apply -f - <<EOF
+apiVersion: observability.openshift.io/v1alpha1
+kind: UIPlugin
+metadata:
+  name: monitoring
+spec:
+  monitoring:
+    acm:    
+      enabled: true
+      alertmanager:
+        url: 'https://alertmanager.open-cluster-management-observability.svc:9095'
+      thanosQuerier:
+        url: 'https://rbac-query-proxy.open-cluster-management-observability.svc:8443'
+  type: Monitoring
+EOF
+# apply custom-rules
+oc apply -f - <<EOF
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: thanos-ruler-custom-rules
+  namespace: open-cluster-management-observability
+data:
+  custom_rules.yaml: |
+    groups:
+      - name: alertrule-testing
+        rules:
+        - alert: Watchdog
+          annotations:
+            summary: An alert that should always be firing to certify that Alertmanager is working properly.
+            description: This is an alert meant to ensure that the entire alerting pipeline is functional.
+          expr: vector(1)
+          labels:
+            instance: "local"
+            cluster: "local"
+            clusterID: "111111111"
+            severity: info
+        - alert: Watchdog-spoke
+          annotations:
+            summary: An alert that should always be firing to certify that Alertmanager is working properly.
+            description: This is an alert meant to ensure that the entire alerting pipeline is functional.
+          expr: vector(1)
+          labels:
+            instance: "spoke"
+            cluster: "spoke"
+            clusterID: "22222222"
+            severity: warn
+      - name: cluster-health
+        rules:
+        - alert: ClusterCPUHealth-jb
+          annotations:
+            summary: Notify when CPU utilization on a cluster is greater than the defined utilization limit
+            description: "The cluster has a high CPU usage: core for"
+          expr: |
+            max(cluster:cpu_usage_cores:sum) by (clusterID, cluster, prometheus) > 0
+          labels:
+            cluster: "{{ $labels.cluster }}"
+            prometheus: "{{ $labels.prometheus }}"
+            severity: critical
+EOF

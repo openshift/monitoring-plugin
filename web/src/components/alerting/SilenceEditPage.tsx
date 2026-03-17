@@ -1,10 +1,10 @@
-import { Silence, SilenceStates, useActiveNamespace } from '@openshift-console/dynamic-plugin-sdk';
+import { Silence, SilenceStates } from '@openshift-console/dynamic-plugin-sdk';
 import { Alert } from '@patternfly/react-core';
 import * as _ from 'lodash-es';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom-v5-compat';
 import { StatusBox } from '../console/console-shared/src/components/status/StatusBox';
-import { ALL_NAMESPACES_KEY, SilenceResource, silenceState } from '../utils';
+import { SilenceResource, silenceState } from '../utils';
 import { SilenceForm } from './SilenceForm';
 import { MonitoringProvider } from '../../contexts/MonitoringContext';
 import { useAlerts } from '../../hooks/useAlerts';
@@ -31,8 +31,7 @@ const EditInfo = () => {
 
 const SilenceEditPage = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const [namespace] = useActiveNamespace();
-  const { prometheus } = useMonitoring();
+  const { accessCheckLoading, useAlertsTenancy } = useMonitoring();
   const params = useParams();
 
   const { silences } = useAlerts();
@@ -54,14 +53,14 @@ const SilenceEditPage = () => {
     <StatusBox
       data={silence}
       label={SilenceResource.label}
-      loaded={silences?.loaded}
+      loaded={silences?.loaded && !accessCheckLoading}
       loadError={silences?.loadError}
     >
       <SilenceForm
         defaults={defaults}
         Info={isExpired ? undefined : EditInfo}
         title={isExpired ? t('Recreate silence') : t('Edit silence')}
-        isNamespaced={prometheus === 'cmo' && namespace !== ALL_NAMESPACES_KEY}
+        isNamespaced={useAlertsTenancy}
       />
     </StatusBox>
   );
