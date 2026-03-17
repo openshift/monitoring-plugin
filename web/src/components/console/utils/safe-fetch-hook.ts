@@ -11,6 +11,6 @@ export const useSafeFetch = () => {
     return () => controller.current.abort();
   }, []);
 
-  return (url) =>
-    consoleFetchJSON(url, 'get', { signal: controller.current.signal as AbortSignal }, NO_TIMEOUT);
+  return <T>(url: string): Promise<T> =>
+    consoleFetchJSON(url, 'GET', { signal: controller.current.signal as AbortSignal }, NO_TIMEOUT);
 };
