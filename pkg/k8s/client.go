@@ -4,15 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
-
 	osmv1client "github.com/openshift/client-go/monitoring/clientset/versioned"
 	monitoringv1client "github.com/prometheus-operator/prometheus-operator/pkg/client/versioned"
-	"github.com/sirupsen/logrus"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 )
 
-var log = logrus.WithField("module", "k8s")
+//var log = logrus.WithField("module", "k8s")
 
 var _ Client = (*client)(nil)
 
