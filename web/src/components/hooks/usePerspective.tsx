@@ -284,7 +284,7 @@ export const getLegacyDashboardsUrl = (
     case 'acm':
       return '';
     case 'dev':
-      return `/dev-monitoring/ns/${namespace}/dashboards`;
+      return `/dev-monitoring/ns/${namespace}`;
     case 'virtualization-perspective':
       return `/virt-monitoring/dashboards/${boardName}`;
     case 'admin':
