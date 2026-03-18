@@ -1,39 +1,48 @@
 #!/usr/bin/env bash
 
-# Only set strict error handling when not sourced
-if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
-  set -euo pipefail
-fi
-
-# Generated with Claude Code – Gemini 2.5
+# Interactive configurator for Cypress environment variables.
 #
-# Interactive configurator for Cypress environment variables used by this repo's tests.
+# Flow: Cluster Connection → Installation Mode → (conditional) Operators → Runtime
+# Options are gated so irrelevant questions are never shown.
 #
 # How to use:
-# 1) To set variables in your current shell: source this file
-#    source ./configure-env.sh
-# 2) To generate an exports file and source it later: run normally and then source the output
-#    ./configure-env.sh
-#    source ./export-env.sh
-# 3) To show current configuration without making changes:
-#    ./configure-env.sh --show
+# 1) Source into current shell:    source ./configure-env.sh
+# 2) Generate an exports file:     ./configure-env.sh && source ./export-env.sh
+# 3) Show current configuration:   source ./configure-env.sh --show
+
+# When sourced from zsh, delegate to bash for the interactive prompts
+# (zsh doesn't support bash's `read -p`), then auto-source the result.
+if [[ -n "${ZSH_VERSION:-}" ]]; then
+  _cfg_dir="$(cd "$(dirname "$0")" && pwd)"
+  _cfg_out="$_cfg_dir/export-env.sh"
+  _CONFIGURE_ENV_AUTO_SOURCE=1 bash "$_cfg_dir/configure-env.sh" "$@"
+  _cfg_rc=$?
+  if [[ $_cfg_rc -eq 0 && -f "$_cfg_out" && "$*" != *--show* && "$*" != *-s* ]]; then
+    source "$_cfg_out"
+    echo "Exported variables into current shell."
+  fi
+  unset _cfg_dir _cfg_out _cfg_rc
+  return 0 2>/dev/null || exit 0
+fi
+
+is_sourced() {
+  [[ "${BASH_SOURCE[0]}" != "$0" ]]
+}
+
+if ! is_sourced; then
+  set -euo pipefail
+fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OUTPUT_FILE_DEFAULT="$SCRIPT_DIR/export-env.sh"
 
-is_sourced() {
-  # Returns 0 if sourced, 1 if executed
-  [[ "${BASH_SOURCE[0]}" != "$0" ]]
-}
-
 print_header() {
-  echo "";
-  echo "========================================";
-  echo "Cypress environment setup";
-  echo "========================================";
-  echo "This will configure variables used by tests in web/cypress.";
-  echo "Values in parentheses are defaults (press Enter to accept).";
-  echo "";
+  echo ""
+  echo "========================================"
+  echo "Cypress environment setup"
+  echo "========================================"
+  echo "Values in brackets are defaults (press Enter to accept)."
+  echo ""
 }
 
 print_usage() {
@@ -44,12 +53,18 @@ Options:
   --show, -s   Show current values of Cypress environment variables and exit
   --help, -h   Show this help and exit
 
-Run without flags to be interactively prompted and either export to current shell (if sourced) or write an export file.
+Run without flags to be interactively prompted and either export to current
+shell (if sourced) or write an export file.
 EOF
 }
 
+section_header() {
+  echo ""
+  echo "--- $1 ---"
+  echo ""
+}
+
 ask() {
-  # Usage: ask "Prompt" "default"
   local prompt=$1
   local default_value=${2-}
   local input
@@ -63,7 +78,6 @@ ask() {
 }
 
 ask_required() {
-  # Usage: ask_required "Prompt" "default"
   local prompt=$1
   local default_value=${2-}
   local value
@@ -78,7 +92,6 @@ ask_required() {
 }
 
 ask_yes_no() {
-  # Usage: ask_yes_no "Prompt" "default_y_or_n"
   local prompt=$1
   local default_answer=${2:-n}
   local suffix="[y/N]"
@@ -97,19 +110,15 @@ ask_yes_no() {
 }
 
 bool_to_default_yn() {
-  # Map truthy/falsey env values to y/n default for yes/no prompts
   local v=${1-}
-  # Convert to lowercase in a portable way
   v=$(echo "$v" | tr '[:upper:]' '[:lower:]')
   case "$v" in
     true|1|yes|y) echo "y" ;;
-    false|0|no|n|"") echo "n" ;;
     *) echo "n" ;;
   esac
 }
 
 escape_for_single_quotes() {
-  # Escape single quotes for use inside single-quoted strings
   # shellcheck disable=SC2001
   sed "s/'/'\\''/g"
 }
@@ -130,12 +139,49 @@ write_exports_file() {
   echo "Wrote $file_path"
 }
 
+# Interactively pick a kubeconfig from ~/Downloads or manual entry.
+# Prints the chosen path to stdout; UI messages go to stderr.
+pick_kubeconfig_interactive() {
+  if [[ -d "$HOME/Downloads" ]]; then
+    local kubeconfig_files=()
+    while IFS= read -r file; do
+      kubeconfig_files+=("$file")
+    done < <(ls -t "$HOME/Downloads"/*kubeconfig* 2>/dev/null | head -10)
+
+    if [[ ${#kubeconfig_files[@]} -gt 0 ]]; then
+      echo "" >&2
+      echo "Available kubeconfig files in Downloads:" >&2
+      local i
+      for i in "${!kubeconfig_files[@]}"; do
+        local file_size
+        file_size=$(du -h "${kubeconfig_files[$i]}" 2>/dev/null | cut -f1)
+        echo "  $((i+1))) ${kubeconfig_files[$i]##*/} (${file_size:-unknown size})" >&2
+      done
+      echo "  $(( ${#kubeconfig_files[@]} + 1 ))) Enter custom path" >&2
+
+      local choice
+      while true; do
+        choice=$(ask "Choose kubeconfig (1-$(( ${#kubeconfig_files[@]} + 1 )))" "")
+        if [[ "$choice" =~ ^[0-9]+$ ]] && [[ "$choice" -ge 1 ]] && [[ "$choice" -le $(( ${#kubeconfig_files[@]} + 1 )) ]]; then
+          break
+        fi
+        echo "Please enter a number between 1 and $(( ${#kubeconfig_files[@]} + 1 ))." >&2
+      done
+
+      if [[ "$choice" -le ${#kubeconfig_files[@]} ]]; then
+        echo "${kubeconfig_files[$((choice-1))]}"
+        return 0
+      fi
+    fi
+  fi
+
+  ask_required "Path to kubeconfig" ""
+}
+
 print_current_config() {
   echo ""
   echo "Current Cypress configuration:"
-  local v
 
-  # helper to print name/value with [unset]
   local print_var
   print_var() {
     local name=$1
@@ -147,66 +193,61 @@ print_current_config() {
     fi
   }
 
-  # BASE_URL
+  local v
+
+  echo ""
+  echo "  -- Cluster Connection --"
+  v=${CYPRESS_KUBECONFIG_PATH-}
+  if [[ -n "${v:-}" && ! -f "$v" ]]; then
+    v+=" (file not found)"
+  fi
+  print_var "CYPRESS_KUBECONFIG_PATH" "$v"
   print_var "CYPRESS_BASE_URL" "${CYPRESS_BASE_URL-}"
-
-  # LOGIN_IDP
   print_var "CYPRESS_LOGIN_IDP" "${CYPRESS_LOGIN_IDP-}"
-
-  # LOGIN_USERS (mask password if present)
   v=${CYPRESS_LOGIN_USERS-}
   if [[ -n "${v:-}" && "$v" == *:* ]]; then
     v="${v%%:*}:********"
   fi
   print_var "CYPRESS_LOGIN_USERS" "$v"
 
-  # KUBECONFIG_PATH with existence note
-  v=${CYPRESS_KUBECONFIG_PATH-}
-  if [[ -n "${v:-}" && ! -f "$v" ]]; then
-    v+=" (file not found)"
-  fi
-  print_var "CYPRESS_KUBECONFIG_PATH" "$v"
+  echo ""
+  echo "  -- Installation Mode --"
+  print_var "CYPRESS_SKIP_ALL_INSTALL" "${CYPRESS_SKIP_ALL_INSTALL-}"
 
-  # Optional vars
-  print_var "CYPRESS_MP_IMAGE" "${CYPRESS_MP_IMAGE-}"
-  print_var "CYPRESS_COO_NAMESPACE" "${CYPRESS_COO_NAMESPACE-}"
+  echo ""
+  echo "  -- COO --"
   print_var "CYPRESS_SKIP_COO_INSTALL" "${CYPRESS_SKIP_COO_INSTALL-}"
+  print_var "CYPRESS_COO_NAMESPACE" "${CYPRESS_COO_NAMESPACE-}"
   print_var "CYPRESS_COO_UI_INSTALL" "${CYPRESS_COO_UI_INSTALL-}"
   print_var "CYPRESS_KONFLUX_COO_BUNDLE_IMAGE" "${CYPRESS_KONFLUX_COO_BUNDLE_IMAGE-}"
   print_var "CYPRESS_CUSTOM_COO_BUNDLE_IMAGE" "${CYPRESS_CUSTOM_COO_BUNDLE_IMAGE-}"
+  print_var "CYPRESS_MP_IMAGE" "${CYPRESS_MP_IMAGE-}"
   print_var "CYPRESS_MCP_CONSOLE_IMAGE" "${CYPRESS_MCP_CONSOLE_IMAGE-}"
   print_var "CYPRESS_CHA_IMAGE" "${CYPRESS_CHA_IMAGE-}"
-  print_var "CYPRESS_TIMEZONE" "${CYPRESS_TIMEZONE-}"
-  print_var "CYPRESS_MOCK_NEW_METRICS" "${CYPRESS_MOCK_NEW_METRICS-}"
-  print_var "CYPRESS_SESSION" "${CYPRESS_SESSION-}"
-  print_var "CYPRESS_DEBUG" "${CYPRESS_DEBUG-}"
-  print_var "CYPRESS_SKIP_ALL_INSTALL" "${CYPRESS_SKIP_ALL_INSTALL-}"
+
+  echo ""
+  echo "  -- KBV --"
   print_var "CYPRESS_SKIP_KBV_INSTALL" "${CYPRESS_SKIP_KBV_INSTALL-}"
   print_var "CYPRESS_KBV_UI_INSTALL" "${CYPRESS_KBV_UI_INSTALL-}"
   print_var "CYPRESS_KONFLUX_KBV_BUNDLE_IMAGE" "${CYPRESS_KONFLUX_KBV_BUNDLE_IMAGE-}"
   print_var "CYPRESS_CUSTOM_KBV_BUNDLE_IMAGE" "${CYPRESS_CUSTOM_KBV_BUNDLE_IMAGE-}"
   print_var "CYPRESS_FBC_STAGE_KBV_IMAGE" "${CYPRESS_FBC_STAGE_KBV_IMAGE-}"
-  print_var "CYPRESS_LOGIN_IDP_DEV_USER" "${CYPRESS_LOGIN_IDP_DEV_USER-}"
+
+  echo ""
+  echo "  -- Runtime --"
+  print_var "CYPRESS_TIMEZONE" "${CYPRESS_TIMEZONE-}"
+  print_var "CYPRESS_MOCK_NEW_METRICS" "${CYPRESS_MOCK_NEW_METRICS-}"
+  print_var "CYPRESS_SESSION" "${CYPRESS_SESSION-}"
+  print_var "CYPRESS_DEBUG" "${CYPRESS_DEBUG-}"
 }
 
 main() {
-  # Flags
   local mode_show=false
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --show|-s)
-        mode_show=true
-        shift
-        ;;
-      --help|-h)
-        print_usage
-        return 0
-        ;;
-      *)
-        echo "Unknown option: $1" 1>&2
-        print_usage
-        return 1
-        ;;
+      --show|-s) mode_show=true; shift;;
+      --help|-h) print_usage; return 0;;
+      *) echo "Unknown option: $1" 1>&2; print_usage; return 1;;
     esac
   done
 
@@ -216,371 +257,233 @@ main() {
   fi
   print_header
 
-  # Defaults from current environment if present
-  local def_base_url=${CYPRESS_BASE_URL-}
-  local def_login_idp=${CYPRESS_LOGIN_IDP-}
-  local def_login_users=${CYPRESS_LOGIN_USERS-}
-  local def_kubeconfig=${CYPRESS_KUBECONFIG_PATH-${KUBECONFIG-}}
-  local def_mp_image=${CYPRESS_MP_IMAGE-}
-  local def_coo_namespace=${CYPRESS_COO_NAMESPACE-}
-  local def_skip_coo=${CYPRESS_SKIP_COO_INSTALL-}
-  local def_coo_ui_install=${CYPRESS_COO_UI_INSTALL-}
-  local def_konflux_bundle=${CYPRESS_KONFLUX_COO_BUNDLE_IMAGE-}
-  local def_custom_coo_bundle=${CYPRESS_CUSTOM_COO_BUNDLE_IMAGE-}
-  local def_mcp_console_image=${CYPRESS_MCP_CONSOLE_IMAGE-}
-  local def_cha_image=${CYPRESS_CHA_IMAGE-}
-  local def_timezone=${CYPRESS_TIMEZONE-}
-  local def_mock_new_metrics=${CYPRESS_MOCK_NEW_METRICS-}
-  local def_session=${CYPRESS_SESSION-}
-  local def_debug=${CYPRESS_DEBUG-}
-  local def_skip_all_install=${CYPRESS_SKIP_ALL_INSTALL-}
-  local def_skip_kbv=${CYPRESS_SKIP_KBV_INSTALL-}
-  local def_kbv_ui_install=${CYPRESS_KBV_UI_INSTALL-}
-  local def_konflux_kbv_bundle=${CYPRESS_KONFLUX_KBV_BUNDLE_IMAGE-}
-  local def_custom_kbv_bundle=${CYPRESS_CUSTOM_KBV_BUNDLE_IMAGE-}
-  local def_fbc_stage_kbv_image=${CYPRESS_FBC_STAGE_KBV_IMAGE-}
-  local def_login_idp_dev_user=${CYPRESS_LOGIN_IDP_DEV_USER-}
-  # Required basics
-  local base_url
+  # ── Initialise all variables from current environment ──────────────
+  local base_url="${CYPRESS_BASE_URL-}"
+  local login_idp="${CYPRESS_LOGIN_IDP-}"
+  local login_users="${CYPRESS_LOGIN_USERS-}"
+  local kubeconfig=""
+  local mp_image="${CYPRESS_MP_IMAGE-}"
+  local coo_namespace="${CYPRESS_COO_NAMESPACE:-openshift-cluster-observability-operator}"
+  local skip_coo_install="${CYPRESS_SKIP_COO_INSTALL:-false}"
+  local coo_ui_install="${CYPRESS_COO_UI_INSTALL:-false}"
+  local konflux_bundle="${CYPRESS_KONFLUX_COO_BUNDLE_IMAGE-}"
+  local custom_coo_bundle="${CYPRESS_CUSTOM_COO_BUNDLE_IMAGE-}"
+  local mcp_console_image="${CYPRESS_MCP_CONSOLE_IMAGE-}"
+  local cha_image="${CYPRESS_CHA_IMAGE-}"
+  local timezone="${CYPRESS_TIMEZONE:-UTC}"
+  local mock_new_metrics="${CYPRESS_MOCK_NEW_METRICS:-false}"
+  local session="${CYPRESS_SESSION:-false}"
+  local debug="${CYPRESS_DEBUG:-false}"
+  local skip_all_install="${CYPRESS_SKIP_ALL_INSTALL:-false}"
+  local skip_kbv_install="${CYPRESS_SKIP_KBV_INSTALL:-false}"
+  local kbv_ui_install="${CYPRESS_KBV_UI_INSTALL:-false}"
+  local konflux_kbv_bundle="${CYPRESS_KONFLUX_KBV_BUNDLE_IMAGE-}"
+  local custom_kbv_bundle="${CYPRESS_CUSTOM_KBV_BUNDLE_IMAGE-}"
+  local fbc_stage_kbv_image="${CYPRESS_FBC_STAGE_KBV_IMAGE-}"
+
+  # ── Section 1: Cluster Connection ─────────────────────────────────
+  section_header "Cluster Connection"
+
+  # Kubeconfig — default chain: CYPRESS_KUBECONFIG_PATH → KUBECONFIG → ~/.kube/config
+  local kube_default="${CYPRESS_KUBECONFIG_PATH:-${KUBECONFIG:-}}"
+  if [[ -z "$kube_default" && -f "$HOME/.kube/config" ]]; then kube_default="$HOME/.kube/config"; fi
+
+  if [[ -n "$kube_default" ]]; then
+    echo "Kubeconfig: $kube_default"
+    local change_kube
+    change_kube=$(ask_yes_no "Change kubeconfig?" "n")
+    if [[ "$change_kube" == "n" ]]; then
+      kubeconfig="$kube_default"
+    else
+      kubeconfig=$(pick_kubeconfig_interactive)
+    fi
+  else
+    kubeconfig=$(pick_kubeconfig_interactive)
+  fi
+
+  if [[ ! -f "$kubeconfig" ]]; then
+    echo "Warning: file does not exist at $kubeconfig" 1>&2
+  fi
+
+  # Console base URL
   while true; do
-    base_url=$(ask_required "Console base URL (e.g. https://console-openshift-console.apps.<cluster>)" "$def_base_url")
+    base_url=$(ask_required "Console base URL (e.g. https://console-openshift-console.apps.<cluster>)" "$base_url")
     if [[ "$base_url" =~ ^https?:// ]]; then
       break
     fi
     echo "Must start with http:// or https://" 1>&2
   done
 
+  # Login
   echo ""
   echo "Login method"
   echo "  1) kubeadmin (kube:admin)"
   echo "  2) Custom identity provider"
+  local login_choice_default=""
+  if [[ "$login_idp" == "kube:admin" ]]; then
+    login_choice_default="1"
+  elif [[ -n "$login_idp" ]]; then
+    login_choice_default="2"
+  fi
   local login_choice
   while true; do
-    login_choice=$(ask "Choose 1 or 2" "${def_login_idp:+2}")
+    login_choice=$(ask "Choose 1 or 2" "$login_choice_default")
     case "$login_choice" in
-      1)
-        def_login_idp="kube:admin"
-        ;;
-      2|"")
-        :
-        ;;
-      *) echo "Please enter 1 or 2." 1>&2; continue;;
+      1|2) break;;
+      *) echo "Please enter 1 or 2." 1>&2;;
     esac
-    break
   done
 
-  local login_idp
-  if [[ "${def_login_idp:-}" == "kube:admin" || "$login_choice" == "1" ]]; then
+  local login_user login_pass
+  if [[ "$login_choice" == "1" ]]; then
     login_idp="kube:admin"
-  else
-    login_idp=$(ask_required "Login identity provider name" "${def_login_idp:-flexy-htpasswd-provider}")
-  fi
-
-  local login_user login_pass login_users
-  if [[ "$login_idp" == "kube:admin" ]]; then
     login_user="kubeadmin"
-    login_pass=$(ask_required "kubeadmin password" "${def_login_users##*:}")
+    login_pass=$(ask_required "kubeadmin password" "${login_users##*:}")
   else
-    login_user=$(ask_required "Username" "${def_login_users%%:*}")
-    login_pass=$(ask_required "Password" "${def_login_users##*:}")
+    login_idp=$(ask_required "Identity provider name" "${login_idp:-flexy-htpasswd-provider}")
+    login_user=$(ask_required "Username" "${login_users%%:*}")
+    login_pass=$(ask_required "Password" "${login_users##*:}")
   fi
   login_users="$login_user:$login_pass"
 
-  # First ask if user wants to use currently set kubeconfig
-  local kubeconfig
-  if [[ -n "$def_kubeconfig" ]]; then
-    echo "Current kubeconfig: $def_kubeconfig"
-    local use_current
-    use_current=$(ask_yes_no "Use current kubeconfig?" "y")
-    
-    if [[ "$use_current" == "y" ]]; then
-      kubeconfig="$def_kubeconfig"
-    else
-      # User declined current, try to find kubeconfigs from Downloads
-      if [[ -d "$HOME/Downloads" ]]; then
-        local kubeconfig_files
-        # Use 'while read' instead of 'mapfile' for bash 3.x compatibility (macOS)
-        kubeconfig_files=()
-        while IFS= read -r file; do
-          kubeconfig_files+=("$file")
-        done < <(ls -t "$HOME/Downloads"/*kubeconfig* 2>/dev/null | head -10)
-        
-        if [[ ${#kubeconfig_files[@]} -gt 0 ]]; then
-          echo ""
-          echo "Available kubeconfig files in Downloads:"
-          for i in "${!kubeconfig_files[@]}"; do
-            local file_size
-            file_size=$(du -h "${kubeconfig_files[$i]}" 2>/dev/null | cut -f1)
-            echo "  $((i+1))) ${kubeconfig_files[$i]##*/} (${file_size:-unknown size})"
-          done
-          echo "  $(( ${#kubeconfig_files[@]} + 1 ))) Enter custom path"
-          
-          local choice
-          while true; do
-            choice=$(ask "Choose kubeconfig (1-$(( ${#kubeconfig_files[@]} + 1 )))" "")
-            if [[ "$choice" =~ ^[0-9]+$ ]] && [[ "$choice" -ge 1 ]] && [[ "$choice" -le $(( ${#kubeconfig_files[@]} + 1 )) ]]; then
-              break
-            fi
-            echo "Please enter a number between 1 and $(( ${#kubeconfig_files[@]} + 1 ))." 1>&2
-          done
-          
-          if [[ "$choice" -le ${#kubeconfig_files[@]} ]]; then
-            kubeconfig="${kubeconfig_files[$((choice-1))]}"
-            echo "Selected: $kubeconfig"
-          else
-            # User chose to enter custom path
-            local manual_default
-            if [[ -f "$HOME/Downloads/kubeconfig" ]]; then
-              manual_default="$HOME/Downloads/kubeconfig"
-            else
-              manual_default=""
-            fi
-            
-            kubeconfig=$(ask_required "Enter custom kubeconfig path" "$manual_default")
-          fi
-        else
-          # No kubeconfig files found in Downloads, ask manually
-          local manual_default
-          if [[ -f "$HOME/Downloads/kubeconfig" ]]; then
-            manual_default="$HOME/Downloads/kubeconfig"
-          else
-            manual_default=""
-          fi
-          
-          kubeconfig=$(ask_required "Path to kubeconfig" "$manual_default")
-        fi
-      else
-        # Downloads directory doesn't exist, ask manually
-        local manual_default
-        if [[ -f "$HOME/Downloads/kubeconfig" ]]; then
-          manual_default="$HOME/Downloads/kubeconfig"
-        else
-          manual_default=""
-        fi
-        
-        kubeconfig=$(ask_required "Path to kubeconfig" "$manual_default")
+  # ── Section 2: Installation Mode ──────────────────────────────────
+  section_header "Installation Mode"
+
+  local skip_all_ans
+  skip_all_ans=$(ask_yes_no "Skip ALL operator install/cleanup? (for pre-provisioned environments)" "$(bool_to_default_yn "$skip_all_install")")
+  skip_all_install="false"
+  if [[ "$skip_all_ans" == "y" ]]; then skip_all_install="true"; fi
+
+  if [[ "$skip_all_install" == "false" ]]; then
+
+    # ── Section 3a: COO Installation ────────────────────────────────
+    section_header "COO (Cluster Observability Operator)"
+
+    local skip_coo_ans
+    skip_coo_ans=$(ask_yes_no "Skip COO installation?" "$(bool_to_default_yn "$skip_coo_install")")
+    skip_coo_install="false"
+    if [[ "$skip_coo_ans" == "y" ]]; then skip_coo_install="true"; fi
+
+    if [[ "$skip_coo_install" == "false" ]]; then
+      coo_namespace=$(ask "COO namespace" "$coo_namespace")
+
+      local coo_ui_ans
+      coo_ui_ans=$(ask_yes_no "Install COO from redhat-operators catalog?" "$(bool_to_default_yn "$coo_ui_install")")
+      coo_ui_install="false"
+      if [[ "$coo_ui_ans" == "y" ]]; then coo_ui_install="true"; fi
+
+      if [[ "$coo_ui_install" == "false" ]]; then
+        konflux_bundle=$(ask "Konflux COO bundle image" "$konflux_bundle")
+        custom_coo_bundle=$(ask "Custom COO bundle image" "$custom_coo_bundle")
+      fi
+
+      mp_image=$(ask "Monitoring Plugin image (CYPRESS_MP_IMAGE)" "$mp_image")
+      mcp_console_image=$(ask "Monitoring Console Plugin image (CYPRESS_MCP_CONSOLE_IMAGE)" "$mcp_console_image")
+      cha_image=$(ask "Cluster Health Analyzer image (CYPRESS_CHA_IMAGE)" "$cha_image")
+    fi
+
+    # ── Section 3b: KBV Installation ────────────────────────────────
+    section_header "KBV (OpenShift Virtualization)"
+
+    local skip_kbv_ans
+    skip_kbv_ans=$(ask_yes_no "Skip OpenShift Virtualization installation?" "$(bool_to_default_yn "$skip_kbv_install")")
+    skip_kbv_install="false"
+    if [[ "$skip_kbv_ans" == "y" ]]; then skip_kbv_install="true"; fi
+
+    if [[ "$skip_kbv_install" == "false" ]]; then
+      local kbv_ui_ans
+      kbv_ui_ans=$(ask_yes_no "Install KBV from redhat-operators catalog?" "$(bool_to_default_yn "$kbv_ui_install")")
+      kbv_ui_install="false"
+      if [[ "$kbv_ui_ans" == "y" ]]; then kbv_ui_install="true"; fi
+
+      if [[ "$kbv_ui_install" == "false" ]]; then
+        konflux_kbv_bundle=$(ask "Konflux KBV bundle image" "$konflux_kbv_bundle")
+        custom_kbv_bundle=$(ask "Custom KBV bundle image" "$custom_kbv_bundle")
+        fbc_stage_kbv_image=$(ask "KBV FBC image" "$fbc_stage_kbv_image")
       fi
     fi
-  else
-    # No current kubeconfig set, try to find kubeconfigs from Downloads
-    if [[ -d "$HOME/Downloads" ]]; then
-      local kubeconfig_files
-      # Use 'while read' instead of 'mapfile' for bash 3.x compatibility (macOS)
-      kubeconfig_files=()
-      while IFS= read -r file; do
-        kubeconfig_files+=("$file")
-      done < <(ls -t "$HOME/Downloads"/*kubeconfig* 2>/dev/null | head -10)
-      
-      if [[ ${#kubeconfig_files[@]} -gt 0 ]]; then
-        echo ""
-        echo "Available kubeconfig files in Downloads:"
-        for i in "${!kubeconfig_files[@]}"; do
-          local file_size
-          file_size=$(du -h "${kubeconfig_files[$i]}" 2>/dev/null | cut -f1)
-          echo "  $((i+1))) ${kubeconfig_files[$i]##*/} (${file_size:-unknown size})"
-        done
-        echo "  $(( ${#kubeconfig_files[@]} + 1 ))) Enter custom path"
-        
-        local choice
-        while true; do
-          choice=$(ask "Choose kubeconfig (1-$(( ${#kubeconfig_files[@]} + 1 )))" "")
-          if [[ "$choice" =~ ^[0-9]+$ ]] && [[ "$choice" -ge 1 ]] && [[ "$choice" -le $(( ${#kubeconfig_files[@]} + 1 )) ]]; then
-            break
-          fi
-          echo "Please enter a number between 1 and $(( ${#kubeconfig_files[@]} + 1 ))." 1>&2
-        done
-        
-        if [[ "$choice" -le ${#kubeconfig_files[@]} ]]; then
-          kubeconfig="${kubeconfig_files[$((choice-1))]}"
-          echo "Selected: $kubeconfig"
-        else
-          # User chose to enter custom path
-          kubeconfig=$(ask_required "Enter custom kubeconfig path" "")
-        fi
-      else
-        # No kubeconfig files found in Downloads, ask manually
-        kubeconfig=$(ask_required "Path to kubeconfig" "")
-      fi
-    else
-      # Downloads directory doesn't exist, ask manually
-      kubeconfig=$(ask_required "Path to kubeconfig" "")
-    fi
-  fi
-  
-  if [[ ! -f "$kubeconfig" ]]; then
-    echo "Warning: file does not exist at $kubeconfig" 1>&2
   fi
 
-  echo ""
-  echo "Optional settings"
-  local mp_image
-  mp_image=$(ask "Custom Monitoring Plugin image (CYPRESS_MP_IMAGE)" "$def_mp_image")
+  # ── Section 4: Runtime Settings ───────────────────────────────────
+  section_header "Runtime Settings"
 
-  local coo_namespace
-  coo_namespace=$(ask "Cluster Observability Operator namespace (CYPRESS_COO_NAMESPACE)" "${def_coo_namespace:-openshift-cluster-observability-operator}")
+  timezone=$(ask "Cluster timezone" "$timezone")
 
-  local skip_coo_install_ans
-  skip_coo_install_ans=$(ask_yes_no "Skip Cluster Observability installation? (sets CYPRESS_SKIP_COO_INSTALL)" "$(bool_to_default_yn "$def_skip_coo")")
-  local skip_coo_install="false"
-  [[ "$skip_coo_install_ans" == "y" ]] && skip_coo_install="true"
-
-  local coo_ui_install_ans
-  coo_ui_install_ans=$(ask_yes_no "Install COO from redhat-operators? (sets CYPRESS_COO_UI_INSTALL)" "$(bool_to_default_yn "$def_coo_ui_install")")
-  local coo_ui_install="false"
-  [[ "$coo_ui_install_ans" == "y" ]] && coo_ui_install="true"
-
-  local konflux_bundle
-  konflux_bundle=$(ask "Konflux COO bundle image (CYPRESS_KONFLUX_COO_BUNDLE_IMAGE)" "$def_konflux_bundle")
-
-  local custom_coo_bundle
-  custom_coo_bundle=$(ask "Custom COO bundle image (CYPRESS_CUSTOM_COO_BUNDLE_IMAGE)" "$def_custom_coo_bundle")
-
-  local mcp_console_image
-  mcp_console_image=$(ask "Monitoring Console Plugin UI image (CYPRESS_MCP_CONSOLE_IMAGE)" "$def_mcp_console_image")
-
-  local cha_image
-  cha_image=$(ask "Cluster Health Analyzer image (CYPRESS_CHA_IMAGE)" "$def_cha_image")
-
-  local timezone
-  timezone=$(ask "Cluster timezone (CYPRESS_TIMEZONE)" "${def_timezone:-UTC}")
-
-  local mock_new_metrics_ans
-  mock_new_metrics_ans=$(ask_yes_no "Transform old metric names to new format in mocks? (sets CYPRESS_MOCK_NEW_METRICS)" "$(bool_to_default_yn "$def_mock_new_metrics")")
-  local mock_new_metrics="false"
-  [[ "$mock_new_metrics_ans" == "y" ]] && mock_new_metrics="true"
+  local mock_ans
+  mock_ans=$(ask_yes_no "Transform old metric names to new format in mocks?" "$(bool_to_default_yn "$mock_new_metrics")")
+  mock_new_metrics="false"
+  if [[ "$mock_ans" == "y" ]]; then mock_new_metrics="true"; fi
 
   local session_ans
-  session_ans=$(ask_yes_no "Enable Cypress session management for faster test execution? (sets CYPRESS_SESSION)" "$(bool_to_default_yn "$def_session")")
-  local session="false"
-  [[ "$session_ans" == "y" ]] && session="true"
+  session_ans=$(ask_yes_no "Enable session management for faster test execution?" "$(bool_to_default_yn "$session")")
+  session="false"
+  if [[ "$session_ans" == "y" ]]; then session="true"; fi
 
   local debug_ans
-  debug_ans=$(ask_yes_no "Enable Cypress debug mode? (sets CYPRESS_DEBUG)" "$(bool_to_default_yn "$def_debug")")
-  local debug="false"
-  [[ "$debug_ans" == "y" ]] && debug="true"
+  debug_ans=$(ask_yes_no "Enable debug mode?" "$(bool_to_default_yn "$debug")")
+  debug="false"
+  if [[ "$debug_ans" == "y" ]]; then debug="true"; fi
 
-  local skip_all_install_ans
-  skip_all_install_ans=$(ask_yes_no "Skip all operator installation/cleanup and verifications? (sets CYPRESS_SKIP_ALL_INSTALL, for pre-provisioned environments)" "$(bool_to_default_yn "$def_skip_all_install")")
-  local skip_all_install="false"
-  [[ "$skip_all_install_ans" == "y" ]] && skip_all_install="true"
-
-  local skip_kbv_install_ans
-  skip_kbv_install_ans=$(ask_yes_no "Skip Openshift Virtualization installation? (sets CYPRESS_SKIP_KBV_INSTALL)" "$(bool_to_default_yn "$def_skip_kbv")")
-  local skip_kbv_install="false"
-  [[ "$skip_kbv_install_ans" == "y" ]] && skip_kbv_install="true"
-
-  local kbv_ui_install_ans
-  kbv_ui_install_ans=$(ask_yes_no "Install KBV from redhat-operators? (sets CYPRESS_KBV_UI_INSTALL)" "$(bool_to_default_yn "$def_kbv_ui_install")")
-  local kbv_ui_install="false"
-  [[ "$kbv_ui_install_ans" == "y" ]] && kbv_ui_install="true"
-  
-  local konflux_kbv_bundle
-  konflux_kbv_bundle=$(ask "Konflux KBV bundle image (CYPRESS_KONFLUX_KBV_BUNDLE_IMAGE)" "$def_konflux_kbv_bundle")
-  
-  local custom_kbv_bundle
-  custom_kbv_bundle=$(ask "Custom KBV bundle image (CYPRESS_CUSTOM_KBV_BUNDLE_IMAGE)" "$def_custom_kbv_bundle")
-  
-  local fbc_stage_kbv_image
-  fbc_stage_kbv_image=$(ask "KBV FBC image (CYPRESS_FBC_STAGE_KBV_IMAGE)" "$def_fbc_stage_kbv_image")
-  
-  local login_idp_dev_user
-  login_idp_dev_user=$(ask "Login identity provider dev user (CYPRESS_LOGIN_IDP_DEV_USER)" "$def_login_idp_dev_user")
-  
-  # Build export lines with safe quoting
+  # ── Build export lines ────────────────────────────────────────────
   local -a export_lines
-  export_lines+=("export CYPRESS_BASE_URL='$(printf %s "$base_url" | escape_for_single_quotes)'" )
-  export_lines+=("export CYPRESS_LOGIN_IDP='$(printf %s "$login_idp" | escape_for_single_quotes)'" )
-  export_lines+=("export CYPRESS_LOGIN_USERS='$(printf %s "$login_users" | escape_for_single_quotes)'" )
-  export_lines+=("export CYPRESS_KUBECONFIG_PATH='$(printf %s "$kubeconfig" | escape_for_single_quotes)'" )
-  if [[ -n "$mp_image" ]]; then
-    export_lines+=("export CYPRESS_MP_IMAGE='$(printf %s "$mp_image" | escape_for_single_quotes)'" )
-  fi
-  if [[ -n "$coo_namespace" ]]; then
-    export_lines+=("export CYPRESS_COO_NAMESPACE='$(printf %s "$coo_namespace" | escape_for_single_quotes)'" )
-  fi
-  export_lines+=("export CYPRESS_SKIP_COO_INSTALL='$(printf %s "$skip_coo_install" | escape_for_single_quotes)'" )
-  export_lines+=("export CYPRESS_COO_UI_INSTALL='$(printf %s "$coo_ui_install" | escape_for_single_quotes)'" )
-  if [[ -n "$konflux_bundle" ]]; then
-    export_lines+=("export CYPRESS_KONFLUX_COO_BUNDLE_IMAGE='$(printf %s "$konflux_bundle" | escape_for_single_quotes)'" )
-  fi
-  if [[ -n "$custom_coo_bundle" ]]; then
-    export_lines+=("export CYPRESS_CUSTOM_COO_BUNDLE_IMAGE='$(printf %s "$custom_coo_bundle" | escape_for_single_quotes)'" )
-  fi
-  if [[ -n "$mcp_console_image" ]]; then
-    export_lines+=("export CYPRESS_MCP_CONSOLE_IMAGE='$(printf %s "$mcp_console_image" | escape_for_single_quotes)'" )
-  fi
-  if [[ -n "$cha_image" ]]; then
-    export_lines+=("export CYPRESS_CHA_IMAGE='$(printf %s "$cha_image" | escape_for_single_quotes)'" )
-  fi
-  if [[ -n "$timezone" ]]; then
-    export_lines+=("export CYPRESS_TIMEZONE='$(printf %s "$timezone" | escape_for_single_quotes)'" )
-  fi
-  export_lines+=("export CYPRESS_MOCK_NEW_METRICS='$(printf %s "$mock_new_metrics" | escape_for_single_quotes)'" )
-  export_lines+=("export CYPRESS_SESSION='$(printf %s "$session" | escape_for_single_quotes)'" )
-  export_lines+=("export CYPRESS_DEBUG='$(printf %s "$debug" | escape_for_single_quotes)'" )
-  export_lines+=("export CYPRESS_SKIP_ALL_INSTALL='$(printf %s "$skip_all_install" | escape_for_single_quotes)'" )
 
-  if [[ -n "$skip_kbv_install" ]]; then
-    export_lines+=("export CYPRESS_SKIP_KBV_INSTALL='$(printf %s "$skip_kbv_install" | escape_for_single_quotes)'" )
-  fi
-  if [[ -n "$kbv_ui_install" ]]; then
-    export_lines+=("export CYPRESS_KBV_UI_INSTALL='$(printf %s "$kbv_ui_install" | escape_for_single_quotes)'" )
-  fi
-  if [[ -n "$konflux_kbv_bundle" ]]; then
-    export_lines+=("export CYPRESS_KONFLUX_KBV_BUNDLE_IMAGE='$(printf %s "$konflux_kbv_bundle" | escape_for_single_quotes)'" )
-  fi
-  if [[ -n "$custom_kbv_bundle" ]]; then
-    export_lines+=("export CYPRESS_CUSTOM_KBV_BUNDLE_IMAGE='$(printf %s "$custom_kbv_bundle" | escape_for_single_quotes)'" )
-  fi
-  if [[ -n "$fbc_stage_kbv_image" ]]; then
-    export_lines+=("export CYPRESS_FBC_STAGE_KBV_IMAGE='$(printf %s "$fbc_stage_kbv_image" | escape_for_single_quotes)'" )
-  fi
-  if [[ -n "$login_idp_dev_user" ]]; then
-    export_lines+=("export CYPRESS_LOGIN_IDP_DEV_USER='$(printf %s "$login_idp_dev_user" | escape_for_single_quotes)'" )
-  fi
+  add_export() {
+    export_lines+=("export $1='$(printf %s "$2" | escape_for_single_quotes)'")
+  }
+  add_export_if_set() {
+    if [[ -n "$2" ]]; then add_export "$1" "$2"; fi
+  }
+
+  add_export      CYPRESS_BASE_URL              "$base_url"
+  add_export      CYPRESS_LOGIN_IDP             "$login_idp"
+  add_export      CYPRESS_LOGIN_USERS           "$login_users"
+  add_export      CYPRESS_KUBECONFIG_PATH       "$kubeconfig"
+  add_export      CYPRESS_SKIP_ALL_INSTALL      "$skip_all_install"
+  add_export      CYPRESS_SKIP_COO_INSTALL      "$skip_coo_install"
+  add_export      CYPRESS_COO_UI_INSTALL        "$coo_ui_install"
+  add_export_if_set CYPRESS_COO_NAMESPACE       "$coo_namespace"
+  add_export_if_set CYPRESS_MP_IMAGE            "$mp_image"
+  add_export_if_set CYPRESS_KONFLUX_COO_BUNDLE_IMAGE "$konflux_bundle"
+  add_export_if_set CYPRESS_CUSTOM_COO_BUNDLE_IMAGE  "$custom_coo_bundle"
+  add_export_if_set CYPRESS_MCP_CONSOLE_IMAGE   "$mcp_console_image"
+  add_export_if_set CYPRESS_CHA_IMAGE           "$cha_image"
+  add_export      CYPRESS_SKIP_KBV_INSTALL      "$skip_kbv_install"
+  add_export      CYPRESS_KBV_UI_INSTALL        "$kbv_ui_install"
+  add_export_if_set CYPRESS_KONFLUX_KBV_BUNDLE_IMAGE "$konflux_kbv_bundle"
+  add_export_if_set CYPRESS_CUSTOM_KBV_BUNDLE_IMAGE  "$custom_kbv_bundle"
+  add_export_if_set CYPRESS_FBC_STAGE_KBV_IMAGE "$fbc_stage_kbv_image"
+  add_export_if_set CYPRESS_TIMEZONE            "$timezone"
+  add_export      CYPRESS_MOCK_NEW_METRICS      "$mock_new_metrics"
+  add_export      CYPRESS_SESSION               "$session"
+  add_export      CYPRESS_DEBUG                 "$debug"
+
+  # ── Output ────────────────────────────────────────────────────────
   echo ""
-  if is_sourced; then
-    # Export directly into current shell
+  if [[ -n "${_CONFIGURE_ENV_AUTO_SOURCE:-}" ]]; then
+    write_exports_file "$OUTPUT_FILE_DEFAULT" "${export_lines[@]}"
+  elif is_sourced; then
     for line in "${export_lines[@]}"; do
       eval "$line"
     done
     echo "Exported variables into current shell."
   else
-    # Write to file so the user can source it
     local output_file
     output_file=$(ask "Write exports to file" "$OUTPUT_FILE_DEFAULT")
     write_exports_file "$output_file" "${export_lines[@]}"
-    echo "To load them into your shell, run:"
+    echo ""
+    echo "========================================"
+    echo "IMPORTANT: Variables are NOT yet active."
+    echo "Run this to apply them to your shell:"
+    echo ""
     echo "  source \"$output_file\""
+    echo "========================================"
   fi
 
   echo ""
-  echo "Configured values:" 
-  echo "  CYPRESS_BASE_URL=$base_url"
-  echo "  CYPRESS_LOGIN_IDP=$login_idp"
-  echo "  CYPRESS_LOGIN_USERS=$login_users"
-  echo "  CYPRESS_LOGIN_IDP_DEV_USER=$login_idp_dev_user"
-  echo "  CYPRESS_KUBECONFIG_PATH=$kubeconfig"
-  [[ -n "$mp_image" ]] && echo "  CYPRESS_MP_IMAGE=$mp_image"
-  [[ -n "$coo_namespace" ]] && echo "  CYPRESS_COO_NAMESPACE=$coo_namespace"
-  echo "  CYPRESS_SKIP_COO_INSTALL=$skip_coo_install"
-  echo "  CYPRESS_COO_UI_INSTALL=$coo_ui_install"
-  [[ -n "$konflux_bundle" ]] && echo "  CYPRESS_KONFLUX_COO_BUNDLE_IMAGE=$konflux_bundle"
-  [[ -n "$custom_coo_bundle" ]] && echo "  CYPRESS_CUSTOM_COO_BUNDLE_IMAGE=$custom_coo_bundle"
-  [[ -n "$mcp_console_image" ]] && echo "  CYPRESS_MCP_CONSOLE_IMAGE=$mcp_console_image"
-  [[ -n "$cha_image" ]] && echo "  CYPRESS_CHA_IMAGE=$cha_image"
-  [[ -n "$timezone" ]] && echo "  CYPRESS_TIMEZONE=$timezone"
-  echo "  CYPRESS_MOCK_NEW_METRICS=$mock_new_metrics"
-  echo "  CYPRESS_SESSION=$session"
-  echo "  CYPRESS_DEBUG=$debug"
-  echo "  CYPRESS_SKIP_ALL_INSTALL=$skip_all_install"
-  echo "  CYPRESS_SKIP_KBV_INSTALL=$skip_kbv_install"
-  echo "  CYPRESS_KBV_UI_INSTALL=$kbv_ui_install"
-  [[ -n "$konflux_kbv_bundle" ]] && echo "  CYPRESS_KONFLUX_KBV_BUNDLE_IMAGE=$konflux_kbv_bundle"
-  [[ -n "$custom_kbv_bundle" ]] && echo "  CYPRESS_CUSTOM_KBV_BUNDLE_IMAGE=$custom_kbv_bundle"
-  [[ -n "$fbc_stage_kbv_image" ]] && echo "  CYPRESS_FBC_STAGE_KBV_IMAGE=$fbc_stage_kbv_image"
+  echo "Configured values:"
+  for line in "${export_lines[@]}"; do
+    echo "  ${line#export }"
+  done
 }
 
 main "$@"
-
-

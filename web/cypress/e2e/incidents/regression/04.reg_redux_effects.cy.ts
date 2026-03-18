@@ -33,7 +33,7 @@ const MP = {
 describe('Regression: Redux State Management', { tags: ['@incidents', '@incidents-redux'] }, () => {
 
   before(() => {
-    cy.beforeBlockCOO(MCP, MP);
+    cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
   });
 
   beforeEach(() => {
