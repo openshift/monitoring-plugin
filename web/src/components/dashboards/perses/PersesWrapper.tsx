@@ -365,7 +365,6 @@ export function useRemotePluginLoader(): PluginLoader {
 
 export function PersesWrapper({ children, project }: PersesWrapperProps) {
   const { theme } = usePatternFlyTheme();
-  const [dashboardName] = useQueryParam(QueryParams.Dashboard, StringParam);
   const muiTheme = getTheme(theme, {
     shape: {
       borderRadius: 6,
@@ -393,13 +392,7 @@ export function PersesWrapper({ children, project }: PersesWrapperProps) {
           variant="default"
         >
           <PluginRegistry pluginLoader={pluginLoader}>
-            {!project ? (
-              <>{children}</>
-            ) : (
-              <InnerWrapper project={project} dashboardName={dashboardName}>
-                {children}
-              </InnerWrapper>
-            )}
+            {!project ? <>{children}</> : <InnerWrapper project={project}>{children}</InnerWrapper>}
           </PluginRegistry>
         </SnackbarProvider>
       </ChartsProvider>
@@ -407,7 +400,8 @@ export function PersesWrapper({ children, project }: PersesWrapperProps) {
   );
 }
 
-function InnerWrapper({ children, project, dashboardName }) {
+function InnerWrapper({ children, project }) {
+  const [dashboardName] = useQueryParam(QueryParams.Dashboard, StringParam);
   const { data } = usePluginBuiltinVariableDefinitions();
   const { persesDashboard, persesDashboardLoading } = useFetchPersesDashboard(
     project,
