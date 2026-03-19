@@ -1,9 +1,9 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useEffect, type FC } from 'react';
+import React, { useEffect, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSearchParams } from 'react-router-dom-v5-compat';
+import { useLocation } from 'react-router-dom';
 import { QueryParamProvider } from 'use-query-params';
-import { ReactRouter5Adapter } from 'use-query-params/adapters/react-router-5';
+import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6';
 import { LoadingInline } from '../../console/console-shared/src/components/loading/LoadingInline';
 import { OCPDashboardApp } from './dashboard-app';
 import { DashboardFrame } from './dashboard-frame';
@@ -22,7 +22,8 @@ const queryClient = new QueryClient({
 
 const DashboardPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const [searchParams] = useSearchParams();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
 
   const {
     activeProjectDashboardsMetadata,
@@ -100,7 +101,7 @@ const DashboardPage_: FC = () => {
 
 const DashboardPage: React.FC = () => {
   return (
-    <QueryParamProvider adapter={ReactRouter5Adapter}>
+    <QueryParamProvider adapter={ReactRouter6Adapter}>
       <QueryClientProvider client={queryClient}>
         <ToastProvider>
           <DashboardPage_ />

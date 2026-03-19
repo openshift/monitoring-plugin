@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { MonitoringPlugins, Prometheus } from '../components/utils';
 import { QueryParamProvider } from 'use-query-params';
-import { ReactRouter5Adapter } from 'use-query-params/adapters/react-router-5';
+import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6';
 import { useAccessReview } from '@openshift-console/dynamic-plugin-sdk';
 
 type MonitoringContextType = {
@@ -67,7 +67,7 @@ export const MonitoringProvider: React.FC<{
 
   return (
     <MonitoringContext.Provider value={monContext}>
-      <QueryParamProvider adapter={ReactRouter5Adapter}>{children}</QueryParamProvider>
+      <QueryParamProvider adapter={ReactRouter6Adapter}>{children}</QueryParamProvider>
     </MonitoringContext.Provider>
   );
 };
