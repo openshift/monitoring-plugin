@@ -437,6 +437,53 @@ export const incidentsPage = {
     return incidentsPage.waitForTooltip();
   },
 
+  /**
+   * Returns the visible (non-nodata) path elements within a single incident bar group.
+   * Useful for multi-severity incidents where each severity segment is a separate path.
+   *
+   * @param barIndex - Zero-based index of the incident bar group
+   * @returns Chainable resolving to a jQuery set of visible path elements
+   */
+  getIncidentBarVisibleSegments: (barIndex: number) => {
+    cy.log(`incidentsPage.getIncidentBarVisibleSegments: ${barIndex}`);
+    return incidentsPage.elements.incidentsChartBarsGroups().eq(barIndex)
+      .find('path[role="presentation"]')
+      .then(($paths) => {
+        return $paths.filter((_, el) => {
+          const opacity = Cypress.$(el).css('fill-opacity') || Cypress.$(el).attr('fill-opacity');
+          return parseFloat(opacity || '0') > 0;
+        });
+      });
+  },
+
+  /**
+   * Hovers over a specific severity segment within an incident bar group to trigger its tooltip.
+   * Unlike hoverOverIncidentBar (which always targets the first visible path),
+   * this method lets you target any segment by index within a multi-severity bar.
+   *
+   * @param barIndex - Zero-based index of the incident bar group
+   * @param segmentIndex - Zero-based index of the visible segment within that bar
+   */
+  hoverOverIncidentBarSegment: (barIndex: number, segmentIndex: number) => {
+    cy.log(`incidentsPage.hoverOverIncidentBarSegment: bar=${barIndex}, segment=${segmentIndex}`);
+    incidentsPage.getIncidentBarVisibleSegments(barIndex).then((segments) => {
+      if (segmentIndex >= segments.length) {
+        throw new Error(`Segment ${segmentIndex} not found (only ${segments.length} visible segments in bar ${barIndex})`);
+      }
+      const path = segments[segmentIndex];
+      const rect = path.getBoundingClientRect();
+      incidentsPage.elements.incidentsChartSvg()
+        .first()
+        .trigger('mousemove', {
+          clientX: rect.left + rect.width / 2,
+          clientY: rect.top + rect.height / 2,
+          force: true,
+        })
+        .wait(200);
+    });
+    return incidentsPage.waitForTooltip();
+  },
+
   getIncidentBarRect: (index: number) => {
     cy.log(`incidentsPage.getIncidentBarRect: ${index}`);
     return incidentsPage.elements.incidentsChartBarsGroups()
