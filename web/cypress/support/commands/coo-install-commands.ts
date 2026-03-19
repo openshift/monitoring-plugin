@@ -114,6 +114,7 @@ export const cooInstallUtils = {
       });
 
     if (Cypress.env('COO_UI_INSTALL')) {
+      cy.switchPerspective('Core platform');
       cy.get('#page-sidebar').then(($sidebar) => {
         const section = $sidebar.text().includes('Ecosystem') ? 'Ecosystem' : 'Operators';
         nav.sidenav.clickNavLink([section, 'Installed Operators']);
