@@ -8,8 +8,10 @@ const MP = {
   operatorName: 'Cluster Monitoring Operator',
 };
 
-describe('Regression: Monitoring - Alerts Namespaced (Administrator)', { tags: ['@monitoring-dev', '@alerts-dev'] }, () => {
-
+describe(
+  'Regression: Monitoring - Alerts Namespaced (Administrator)',
+  { tags: ['@monitoring-dev', '@alerts-dev'] },
+  () => {
     before(() => {
       cy.beforeBlock(MP);
     });
@@ -21,11 +23,10 @@ describe('Regression: Monitoring - Alerts Namespaced (Administrator)', { tags: [
       alerts.getWatchdogAlert();
       cy.changeNamespace(MP.namespace);
     });
-  
+
     // Run tests in Administrator perspective
     runAllRegressionAlertsTestsNamespace({
       name: 'Administrator',
     });
-  
-});
-
+  },
+);

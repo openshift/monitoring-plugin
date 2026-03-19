@@ -1,7 +1,15 @@
 import { nav } from '../../views/nav';
 import { legacyDashboardsPage } from '../../views/legacy-dashboards';
-import { LegacyDashboardsDashboardDropdownNamespace, MetricsPageQueryInputByNamespace, WatchdogAlert } from '../../fixtures/monitoring/constants';
-import { Classes, LegacyDashboardPageTestIDs, DataTestIDs } from '../../../src/components/data-test';
+import {
+  LegacyDashboardsDashboardDropdownNamespace,
+  MetricsPageQueryInputByNamespace,
+  WatchdogAlert,
+} from '../../fixtures/monitoring/constants';
+import {
+  Classes,
+  LegacyDashboardPageTestIDs,
+  DataTestIDs,
+} from '../../../src/components/data-test';
 import { metricsPage } from '../../views/metrics';
 import { alertingRuleDetailsPage } from '../../views/alerting-rule-details-page';
 import { alerts } from '../../fixtures/monitoring/alert';
@@ -19,7 +27,6 @@ export function runAllRegressionLegacyDashboardsTestsNamespace(perspective: Pers
 }
 
 export function testLegacyDashboardsRegressionNamespace(perspective: PerspectiveConfig) {
-
   it(`${perspective.name} perspective - Dashboards (legacy)`, () => {
     cy.log('1.1 Dashboards page loaded');
     legacyDashboardsPage.shouldBeLoaded();
@@ -37,10 +44,15 @@ export function testLegacyDashboardsRegressionNamespace(perspective: Perspective
     legacyDashboardsPage.dashboardKubernetesComputeResourcesNamespacePodsPanelAssertion();
 
     cy.log('1.6 Inspect - CPU Utilisation (from requests)');
-    cy.byTestID(LegacyDashboardPageTestIDs.Inspect).eq(0).scrollIntoView().should('be.visible').click();
+    cy.byTestID(LegacyDashboardPageTestIDs.Inspect)
+      .eq(0)
+      .scrollIntoView()
+      .should('be.visible')
+      .click();
     metricsPage.shouldBeLoadedWithGraph();
-    cy.get(Classes.MetricsPageQueryInput).eq(0).should('contain', MetricsPageQueryInputByNamespace.CPU_UTILISATION_FROM_REQUESTS);
-
+    cy.get(Classes.MetricsPageQueryInput)
+      .eq(0)
+      .should('contain', MetricsPageQueryInputByNamespace.CPU_UTILISATION_FROM_REQUESTS);
   });
 
   it(`${perspective.name} perspective - Dashboards (legacy) - Export as CSV`, () => {
@@ -53,11 +65,13 @@ export function testLegacyDashboardsRegressionNamespace(perspective: Perspective
     cy.log('2.2 Empty state');
     cy.changeNamespace('default');
     legacyDashboardsPage.shouldBeLoaded();
-    cy.byTestID(DataTestIDs.MetricGraphNoDatapointsFound).eq(0).scrollIntoView().should('be.visible');
+    cy.byTestID(DataTestIDs.MetricGraphNoDatapointsFound)
+      .eq(0)
+      .scrollIntoView()
+      .should('be.visible');
     legacyDashboardsPage.clickKebabDropdown(0);
     cy.byTestID(LegacyDashboardPageTestIDs.ExportAsCsv).should('be.visible');
     cy.byPFRole('menuitem').should('have.attr', 'disabled');
-    
   });
 
   it(`${perspective.name} perspective - Dashboards (legacy) - No kebab dropdown`, () => {
@@ -69,57 +83,73 @@ export function testLegacyDashboardsRegressionNamespace(perspective: Perspective
     commonPages.titleShouldHaveText('Dashboards');
     cy.changeNamespace('openshift-monitoring');
     legacyDashboardsPage.shouldBeLoaded();
-    cy.byLegacyTestID('chart-1').find('[data-test="'+DataTestIDs.KebabDropdownButton+'"]').should('not.exist');
+    cy.byLegacyTestID('chart-1')
+      .find('[data-test="' + DataTestIDs.KebabDropdownButton + '"]')
+      .should('not.exist');
 
     cy.log('3.2 Table - No kebab dropdown');
-    cy.byLegacyTestID('chart-6').find('[data-test="'+DataTestIDs.KebabDropdownButton+'"]').should('not.exist');
-
+    cy.byLegacyTestID('chart-6')
+      .find('[data-test="' + DataTestIDs.KebabDropdownButton + '"]')
+      .should('not.exist');
   });
 
-  it(`${perspective.name} perspective - OU-897 - Hide Graph / Show Graph on Metrics, Alert Details and Dashboards`, () => {
-    cy.log('4.1 Observe > Metrics > Hide Graph');
-    nav.sidenav.clickNavLink(['Observe', 'Metrics']);
-    metricsPage.shouldBeLoaded();
-    metricsPage.clickHideGraphButton();
-    cy.byTestID(DataTestIDs.MetricGraph).should('not.exist');
-    
-    cy.log('4.2 Observe > Dashboards - Verify graph is visible');
-    nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
-    cy.byTestID(DataTestIDs.MetricGraph).should('be.visible');
-    
-    cy.log('4.3 Observe > Alerting rule details - Verify graph is visible');
-    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-    alerts.getWatchdogAlert();
-    listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
-    listPage.ARRows.countShouldBe(1);
-    listPage.ARRows.clickAlertingRule();
-    commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
-    alertingRuleDetailsPage.clickHideGraphButton();
-    cy.byTestID(DataTestIDs.MetricGraph).should('not.exist');
-    alertingRuleDetailsPage.clickShowGraphButton();
-    cy.byTestID(DataTestIDs.MetricGraph).should('be.visible');
-    alertingRuleDetailsPage.clickHideGraphButton();
-    cy.byTestID(DataTestIDs.MetricGraph).should('not.exist');
+  it(
+    `${perspective.name} perspective - OU-897 - ` +
+      'Hide Graph / Show Graph on Metrics, Alert Details and Dashboards',
+    () => {
+      cy.log('4.1 Observe > Metrics > Hide Graph');
+      nav.sidenav.clickNavLink(['Observe', 'Metrics']);
+      metricsPage.shouldBeLoaded();
+      metricsPage.clickHideGraphButton();
+      cy.byTestID(DataTestIDs.MetricGraph).should('not.exist');
 
-    cy.log('4.4 Observe > Alert details - Verify graph is visible');
-    cy.byTestID(DataTestIDs.AlertResourceLink).first().click();
-    cy.byTestID(DataTestIDs.MetricHideShowGraphButton).contains('Hide graph').should('be.visible');
-    cy.byTestID(DataTestIDs.MetricGraph).should('be.visible');
-    cy.byTestID(DataTestIDs.MetricHideShowGraphButton).contains('Hide graph').should('be.visible').click();
-    cy.byTestID(DataTestIDs.MetricGraph).should('not.exist');
-    cy.byTestID(DataTestIDs.MetricHideShowGraphButton).contains('Show graph').should('be.visible').click();
-    cy.byTestID(DataTestIDs.MetricGraph).should('be.visible');
-    cy.byTestID(DataTestIDs.MetricHideShowGraphButton).contains('Hide graph').should('be.visible').click();
-    cy.byTestID(DataTestIDs.MetricGraph).should('not.exist');
-   
-    cy.log('4.5 Observe > Metrics > Hide Graph');
-    nav.sidenav.clickNavLink(['Observe', 'Metrics']);
-    metricsPage.shouldBeLoaded();
-    
-    cy.log('4.6 Observe > Dashboards - Verify graph is visible');
-    nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
-    cy.byTestID(DataTestIDs.MetricGraph).should('be.visible');
+      cy.log('4.2 Observe > Dashboards - Verify graph is visible');
+      nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
+      cy.byTestID(DataTestIDs.MetricGraph).should('be.visible');
 
-  });
+      cy.log('4.3 Observe > Alerting rule details - Verify graph is visible');
+      nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+      alerts.getWatchdogAlert();
+      listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
+      listPage.ARRows.countShouldBe(1);
+      listPage.ARRows.clickAlertingRule();
+      commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
+      alertingRuleDetailsPage.clickHideGraphButton();
+      cy.byTestID(DataTestIDs.MetricGraph).should('not.exist');
+      alertingRuleDetailsPage.clickShowGraphButton();
+      cy.byTestID(DataTestIDs.MetricGraph).should('be.visible');
+      alertingRuleDetailsPage.clickHideGraphButton();
+      cy.byTestID(DataTestIDs.MetricGraph).should('not.exist');
 
+      cy.log('4.4 Observe > Alert details - Verify graph is visible');
+      cy.byTestID(DataTestIDs.AlertResourceLink).first().click();
+      cy.byTestID(DataTestIDs.MetricHideShowGraphButton)
+        .contains('Hide graph')
+        .should('be.visible');
+      cy.byTestID(DataTestIDs.MetricGraph).should('be.visible');
+      cy.byTestID(DataTestIDs.MetricHideShowGraphButton)
+        .contains('Hide graph')
+        .should('be.visible')
+        .click();
+      cy.byTestID(DataTestIDs.MetricGraph).should('not.exist');
+      cy.byTestID(DataTestIDs.MetricHideShowGraphButton)
+        .contains('Show graph')
+        .should('be.visible')
+        .click();
+      cy.byTestID(DataTestIDs.MetricGraph).should('be.visible');
+      cy.byTestID(DataTestIDs.MetricHideShowGraphButton)
+        .contains('Hide graph')
+        .should('be.visible')
+        .click();
+      cy.byTestID(DataTestIDs.MetricGraph).should('not.exist');
+
+      cy.log('4.5 Observe > Metrics > Hide Graph');
+      nav.sidenav.clickNavLink(['Observe', 'Metrics']);
+      metricsPage.shouldBeLoaded();
+
+      cy.log('4.6 Observe > Dashboards - Verify graph is visible');
+      nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
+      cy.byTestID(DataTestIDs.MetricGraph).should('be.visible');
+    },
+  );
 }

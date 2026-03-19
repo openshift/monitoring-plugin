@@ -9,27 +9,27 @@ const MP = {
 };
 
 // Test suite for Administrator perspective
-describe('Regression: Monitoring - Alerts (Administrator)', { tags: ['@monitoring', '@alerts'] }, () => {
+describe(
+  'Regression: Monitoring - Alerts (Administrator)',
+  { tags: ['@monitoring', '@alerts'] },
+  () => {
+    before(() => {
+      cy.beforeBlock(MP);
+    });
 
-  before(() => {
-    cy.beforeBlock(MP);
-  });
+    beforeEach(() => {
+      alerts.getWatchdogAlert();
+      nav.sidenav.clickNavLink(['Observe', 'Metrics']);
+      commonPages.titleShouldHaveText('Metrics');
+      cy.changeNamespace('All Projects');
+      nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+      commonPages.titleShouldHaveText('Alerting');
+      alerts.getWatchdogAlert();
+    });
 
-  beforeEach(() => {
-    alerts.getWatchdogAlert();
-    nav.sidenav.clickNavLink(['Observe', 'Metrics']);
-    commonPages.titleShouldHaveText('Metrics');
-    cy.changeNamespace("All Projects");
-    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-    commonPages.titleShouldHaveText('Alerting');
-    alerts.getWatchdogAlert();
-  });
-
-  // Run tests in Administrator perspective
-  runAllRegressionAlertsTests({
-    name: 'Administrator',
-  });
-
-});
-
-
+    // Run tests in Administrator perspective
+    runAllRegressionAlertsTests({
+      name: 'Administrator',
+    });
+  },
+);

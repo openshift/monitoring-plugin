@@ -18,7 +18,7 @@ export const checkErrors = () =>
     assert.isTrue(!win.windowError, win.windowError);
   });
 
-  // Ignore benign ResizeObserver errors globally so they don't fail tests
+// Ignore benign ResizeObserver errors globally so they don't fail tests
 // See: https://docs.cypress.io/api/cypress-api/catalog-of-events#Uncaught-Exceptions
 Cypress.on('uncaught:exception', (err) => {
   const message = err?.message || String(err || '');
@@ -33,6 +33,7 @@ Cypress.on('uncaught:exception', (err) => {
     message.includes(`(intermediate value) is not a function`) ||
     message.includes(`Cannot read properties of null (reading '0')`)
   ) {
+    // eslint-disable-next-line no-console
     console.warn('Ignored frontend exception:', err.message);
     return false;
   }

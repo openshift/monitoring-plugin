@@ -21,14 +21,17 @@ export function waitForPodsReady(
     () =>
       cy
         .exec(
-          `oc wait --for=condition=Ready pods --selector=${selector} -n ${namespace} --timeout=10s --kubeconfig ${kubeconfig}`,
+          `oc wait --for=condition=Ready pods --selector=${selector} ` +
+            `-n ${namespace} --timeout=10s --kubeconfig ${kubeconfig}`,
           { failOnNonZeroExit: false, timeout: 20000 },
         )
         .then((result) => result.code === 0),
     {
       timeout,
       interval: intervalMs,
-      errorMsg: `Pods with selector '${selector}' not ready in '${namespace}' within ${timeout / 1000}s`,
+      errorMsg: `Pods with selector '${selector}' not ready in '${namespace}' within ${
+        timeout / 1000
+      }s`,
     },
   );
 }
@@ -50,17 +53,19 @@ export function waitForPodsReadyOrAbsent(
     () =>
       cy
         .exec(
-          `oc wait --for=condition=Ready pods --selector=${selector} -n ${namespace} --timeout=10s --kubeconfig ${kubeconfig}`,
+          `oc wait --for=condition=Ready pods --selector=${selector} ` +
+            `-n ${namespace} --timeout=10s --kubeconfig ${kubeconfig}`,
           { failOnNonZeroExit: false, timeout: 20000 },
         )
         .then(
-          (result) =>
-            result.code === 0 || result.stderr.includes('no matching resources found'),
+          (result) => result.code === 0 || result.stderr.includes('no matching resources found'),
         ),
     {
       timeout,
       interval: intervalMs,
-      errorMsg: `Pods with selector '${selector}' neither ready nor absent in '${namespace}' within ${timeout / 1000}s`,
+      errorMsg:
+        `Pods with selector '${selector}' neither ready nor absent ` +
+        `in '${namespace}' within ${timeout / 1000}s`,
     },
   );
 }
@@ -83,14 +88,17 @@ export function waitForResourceCondition(
     () =>
       cy
         .exec(
-          `oc wait --for=${condition} ${resource} -n ${namespace} --timeout=10s --kubeconfig ${kubeconfig}`,
+          `oc wait --for=${condition} ${resource} ` +
+            `-n ${namespace} --timeout=10s --kubeconfig ${kubeconfig}`,
           { failOnNonZeroExit: false, timeout: 20000 },
         )
         .then((result) => result.code === 0),
     {
       timeout,
       interval: intervalMs,
-      errorMsg: `Condition '${condition}' not met for '${resource}' in '${namespace}' within ${timeout / 1000}s`,
+      errorMsg: `Condition '${condition}' not met for '${resource}' in '${namespace}' within ${
+        timeout / 1000
+      }s`,
     },
   );
 }

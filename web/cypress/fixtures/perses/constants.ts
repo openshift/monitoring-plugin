@@ -21,16 +21,20 @@ export enum persesDashboardsRefreshInterval {
 }
 
 export const persesDashboardsDashboardDropdownCOO = {
-  ACCELERATORS_COMMON_METRICS:['Accelerators common metrics', 'perses', 'accelerators-dashboard'],
+  ACCELERATORS_COMMON_METRICS: ['Accelerators common metrics', 'perses', 'accelerators-dashboard'],
   APM_DASHBOARD: ['Application Performance Monitoring (APM)', 'perses', 'apm-dashboard'],
-  K8S_COMPUTE_RESOURCES_CLUSTER: ['Kubernetes / Compute Resources / Cluster', 'perses', 'openshift-cluster-sample-dashboard'],
-}
+  K8S_COMPUTE_RESOURCES_CLUSTER: [
+    'Kubernetes / Compute Resources / Cluster',
+    'perses',
+    'openshift-cluster-sample-dashboard',
+  ],
+};
 
 export const persesDashboardsDashboardDropdownPersesDev = {
   PERSES_DASHBOARD_SAMPLE: ['Perses Dashboard Sample', 'perses', 'perses-dashboard-sample'],
   PROMETHEUS_OVERVIEW: ['Prometheus / Overview', 'perses', 'prometheus-overview'],
   THANOS_COMPACT_OVERVIEW: ['Thanos / Compact / Overview', 'perses', 'thanos-compact-overview'],
-}
+};
 
 export enum persesDashboardsAcceleratorsCommonMetricsPanels {
   GPU_UTILIZATION = 'GPU Utilization',
@@ -47,15 +51,14 @@ export const listPersesDashboardsPageSubtitle = 'View and manage dashboards.';
 export const listPersesDashboardsEmptyState = {
   TITLE: 'No results found',
   BODY: 'No results match the filter criteria. Clear filters to show results.',
-
-}
+};
 
 export const listPersesDashboardsNoDashboardsFoundState = {
   TITLE: 'No dashboards found',
   BODY: 'No Perses dashboards are currently available in this project.',
-}
+};
 
-export const persesDashboardsModalTitles ={
+export const persesDashboardsModalTitles = {
   EDIT_DASHBOARD_VARIABLES: 'Edit Dashboard Variables',
   DASHBOARD_BUILT_IN_VARIABLES: 'Dashboard Built-in Variables',
   ADD_VARIABLE: 'Add Variable',
@@ -75,14 +78,14 @@ export const persesDashboardsModalTitles ={
   VIEW_JSON_DIALOG: 'Dashboard JSON',
   CREATE_DASHBOARD: 'Create Dashboard',
   IMPORT_DASHBOARD: 'Import Dashboard',
-}
+};
 
 export enum persesDashboardsAddListVariableSource {
-  STATIC_LIST_VARIABLE=  'Static List Variable',
-  DATASOURCE_VARIABLE= 'Datasource Variable',
-  PROMETHEUS_LABEL_VARIABLE= 'Prometheus Label Values Variable',
-  PROMETHEUS_NAMES_VARIABLE= 'Prometheus Label Names Variable',
-  PROMETHEUS_PROMQL_VARIABLE= 'Prometheus PromQL Variable',
+  STATIC_LIST_VARIABLE = 'Static List Variable',
+  DATASOURCE_VARIABLE = 'Datasource Variable',
+  PROMETHEUS_LABEL_VARIABLE = 'Prometheus Label Values Variable',
+  PROMETHEUS_NAMES_VARIABLE = 'Prometheus Label Names Variable',
+  PROMETHEUS_PROMQL_VARIABLE = 'Prometheus PromQL Variable',
 }
 
 export enum persesDashboardsAddListVariableSort {
@@ -96,8 +99,8 @@ export enum persesDashboardsAddListVariableSort {
 }
 
 export const persesDashboardsRequiredFields = {
-  AddVariableNameField: 'String must contain at least 1 character(s)'
-}
+  AddVariableNameField: 'String must contain at least 1 character(s)',
+};
 
 export const persesDashboardsAddListPanelType = {
   BAR_CHART: 'Bar Chart',
@@ -116,60 +119,68 @@ export const persesDashboardsAddListPanelType = {
   TIME_SERIES_TABLE: 'Time Series Table',
   TRACE_TABLE: 'Trace Table',
   TRACING_GANTT_CHART: 'Tracing Gantt Chart',
-}
+};
 
-export const persesDashboardsAddPanelAddQueryType ={
-  BAR_GAUGE_HEAT_HISTOGRAM_PIE_STAT_STATUS_TABLE_TIMESERIES : {
+export const persesDashboardsAddPanelAddQueryType = {
+  BAR_GAUGE_HEAT_HISTOGRAM_PIE_STAT_STATUS_TABLE_TIMESERIES: {
     CLICKHOUSE_TIME_SERIES_QUERY: 'ClickHouse Time Series Query',
     LOKI_TIME_SERIES_QUERY: 'Loki Time Series Query',
     PROMETHEUS_TIME_SERIES_QUERY: 'Prometheus Time Series Query',
     VICTORIALOGS_TIME_SERIES_QUERY: 'VictoriaLogs Time Series Query',
   },
-  FLAME_CHART : {
+  FLAME_CHART: {
     PYROSCOPE_PROFILE_QUERY: 'Pyroscope Profile Query',
   },
-  LOGS_TABLE : {
+  LOGS_TABLE: {
     CLICKHOUSE_LOG_QUERY: 'ClickHouse Log Query',
     LOKI_LOG_QUERY: 'Loki Log Query',
     VICTORIALOGS_LOG_QUERY: 'Victorialogs Log Query',
   },
-  SCATTER_TRACE_TRACINGGANTT : {
+  SCATTER_TRACE_TRACINGGANTT: {
     TEMPO_TRACE_QUERY: 'Tempo Trace Query',
   },
-}
+};
 
 export const persesCreateDashboard = {
-  DIALOG_MAX_LENGTH_VALIDATION: 'Danger alert:bad request: code=400, message=cannot contain more than 75 characters, internal=cannot contain more than 75 characters',
+  DIALOG_MAX_LENGTH_VALIDATION: 'Must be 75 or fewer characters long: error status;',
   DIALOG_DUPLICATED_NAME_PF_VALIDATION_PREFIX: 'Dashboard name ',
-  DIALOG_DUPLICATED_NAME_PF_VALIDATION_SUFFIX: ' already exists in this project: error status;',
-  DIALOG_DUPLICATED_NAME_BKD_VALIDATION: 'Danger alert:document already exists',
-}
+  DIALOG_DUPLICATED_NAME_PF_VALIDATION_SUFFIX: ' already exists in ',
+  DIALOG_DUPLICATED_NAME_PF_VALIDATION_SUFFIX_PROJECT: ' project!: error status;',
+  DIALOG_DUPLICATED_NAME_BKD_VALIDATION:
+    'Danger alert:Could not create dashboard. e: document already exists',
+};
 
 export const persesDashboardsEmptyDashboard = {
   TITLE: 'Empty Dashboard',
   DESCRIPTION: 'To get started add something to your dashboard',
-}
+};
 
 export const persesDashboardSampleQueries = {
-  CPU_LINE_MULTI_SERIES: 'avg without (cpu)(rate(node_cpu_seconds_total{job=\'$job\',instance=\~\'$instance\',mode!=\"nice\",mode!=\"steal\",mode!=\"irq\"}[$interval]))',
+  CPU_LINE_MULTI_SERIES:
+    'avg without (cpu)(rate(node_cpu_seconds_total{job=\'$job\',instance=~\'$instance\',mode!="nice",mode!="steal",mode!="irq"}[$interval]))',
   CPU_LINE_MULTI_SERIES_LEGEND: '{{}{{}mode{}}{}} mode - {{}{{}job{}}{}} {{}{{}instance{}}{}}',
   CPU_LINE_MULTI_SERIES_SERIES_SELECTOR: 'up{{}job=~"$job"{}}',
-}
+};
 
 export const persesDashboardsRenameDashboard = {
   DIALOG_MAX_LENGTH_VALIDATION: 'Must be 75 or fewer characters long: error status;',
-}
+};
 
 export const persesDashboardsDuplicateDashboard = {
-  DIALOG_DUPLICATED_NAME_VALIDATION: "already exists", //use contains
-}
+  DIALOG_DUPLICATED_NAME_VALIDATION: 'already exists', //use contains
+};
 
 export const persesDashboardsImportDashboard = {
   DIALOG_TITLE: '1. Provide a dashboard (JSON or YAML)',
-  DIALOG_UPLOAD_JSON_YAML_FILE: 'Upload a dashboard file or paste the dashboard definition directly in the editor below.',
-  DIALOG_UNABLE_TO_DETECT_DASHBOARD_FORMAT: 'Unable to detect dashboard format. Please provide a valid Perses or Grafana dashboard.',
-  DIALOG_GRAFANA_DASHBOARD_DETECTED: 'Grafana dashboard detected. It will be automatically migrated to Perses format. Note: migration may be partial as not all Grafana features are supported.',
+  DIALOG_UPLOAD_JSON_YAML_FILE:
+    'Upload a dashboard file or paste the dashboard definition directly in the editor below.',
+  DIALOG_UNABLE_TO_DETECT_DASHBOARD_FORMAT:
+    'Unable to detect dashboard format. Please provide a valid Perses or Grafana dashboard.',
+  DIALOG_GRAFANA_DASHBOARD_DETECTED:
+    'Grafana dashboard detected. It will be automatically migrated to Perses format. Note: migration may be partial as not all Grafana features are supported.',
   DIALOG_PERSES_DASHBOARD_DETECTED: 'Perses dashboard detected.',
-  DIALOG_FAILED_TO_MIGRATE_GRAFANA_DASHBOARD: 'Danger alert:Failed to migrate dashboard: internal server error',
-  DIALOG_DUPLICATED_DASHBOARD_ERROR: 'Danger alert:document already exists',
-}
+  DIALOG_FAILED_TO_MIGRATE_GRAFANA_DASHBOARD:
+    'Danger alert:Error migrating dashboard: Failed to migrate dashboard: internal server error',
+  DIALOG_DUPLICATED_DASHBOARD_ERROR:
+    'Danger alert:Error importing dashboard: document already exists',
+};
