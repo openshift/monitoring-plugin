@@ -357,6 +357,7 @@ export const PromQLExpressionInput: FC<PromQLExpressionInputProps> = ({
       .then((response) => {
         const metrics = response?.data;
         setMetricNames(metrics);
+        setErrorMessage(undefined);
       })
       .catch((err) => {
         if (err.name !== 'AbortError') {

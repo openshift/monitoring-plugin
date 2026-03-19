@@ -5,14 +5,14 @@ import { SilenceForm } from './SilenceForm';
 import { MonitoringProvider } from '../../contexts/MonitoringContext';
 import { useMonitoring } from '../../hooks/useMonitoring';
 import { LoadingBox } from '../console/console-shared/src/components/loading/LoadingBox';
-import { useQueryNamespace } from '../hooks/useQueryNamespace';
+import { useMonitoringNamespace } from '../hooks/useMonitoringNamespace';
 
 const CreateSilencePage = () => {
   const { accessCheckLoading, useAlertsTenancy } = useMonitoring();
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   // Set the activeNamespace to be the namespace query parameter if it is set
-  useQueryNamespace();
+  useMonitoringNamespace();
 
   const matchers = _.map(getAllQueryArguments(), (value, name) => ({
     name,

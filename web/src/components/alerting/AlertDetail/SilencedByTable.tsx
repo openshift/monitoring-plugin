@@ -8,6 +8,7 @@ import {
   getSilenceAlertUrl,
   usePerspective,
 } from '../../hooks/usePerspective';
+import { useMonitoringNamespace } from '../../hooks/useMonitoringNamespace';
 import {
   DataViewTable,
   DataViewTr,
@@ -26,11 +27,12 @@ export const SilencedByList: FC<{ silences: Silence[] }> = ({ silences }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
   const navigate = useNavigate();
+  const { namespace } = useMonitoringNamespace();
   const [isModalOpen, , setModalOpen, setModalClosed] = useBoolean(false);
   const [silence, setSilence] = useState<Silence | null>(null);
 
   const editSilence = (event: MouseEvent, rowIndex: number) => {
-    navigate(getEditSilenceAlertUrl(perspective, silences.at(rowIndex)?.id));
+    navigate(getEditSilenceAlertUrl(perspective, silences.at(rowIndex)?.id, namespace));
   };
 
   const rowActions = (silence: Silence): IAction[] => {
@@ -73,7 +75,7 @@ export const SilencedByList: FC<{ silences: Silence[] }> = ({ silences }) => {
               <Link
                 data-test-id="silence-resource-link"
                 title={silence.id}
-                to={getSilenceAlertUrl(perspective, silence.id)}
+                to={getSilenceAlertUrl(perspective, silence.id, namespace)}
               >
                 {silence.name}
               </Link>
