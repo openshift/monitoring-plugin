@@ -1,6 +1,7 @@
 import { IncidentDefinition, PrometheusResponse, IncidentScenarioFixture } from './types';
 import { createIncidentMock, createAlertDetailsMock } from './mock-generators';
 import { convertFixtureToIncidents, parseYamlFixture } from './schema/fixture-converter';
+import { incidentsPage } from '../../views/incidents-page';
 
 declare global {
   namespace Cypress {
@@ -63,8 +64,14 @@ export function mockPrometheusQueryRange(incidents: IncidentDefinition[]): void 
       console.log(`Responding with ${results.length} incident alerts from ${incidents.length} incidents`);
       req.reply(response);
 
-  });
+  }).as('prometheusQueryMock');
 }
+
+/**
+ * Mock commands: register intercepts and navigate via goTo() to trigger a fresh data fetch.
+ * Using SPA navigation instead of cy.reload() avoids the dynamic-plugin chunk loading
+ * race condition that causes flaky empty-page failures in headless CI.
+ */
 
 Cypress.Commands.add('mockIncidents', (incidents: IncidentDefinition[]) => {
   cy.log(`=== SETTING UP INCIDENT MOCKING (${incidents.length} incidents) ===`);
@@ -81,8 +88,7 @@ Cypress.Commands.add('mockIncidents', (incidents: IncidentDefinition[]) => {
 
   cy.log(`=== SETTING UP INCIDENT MOCKING (${incidents.length} incidents) ===`);
   mockPrometheusQueryRange(incidents);
-  // The mocking is not applied until the page is reloaded and the components fetch the new data
-  cy.reload();
+  incidentsPage.goTo();
 });
 
 Cypress.Commands.add('mockIncidentFixture', (fixturePath: string) => {
@@ -101,9 +107,8 @@ Cypress.Commands.add('mockIncidentFixture', (fixturePath: string) => {
     });
   }
 
-
-  // The mocking is not applied until the page is reloaded and the components fetch the new data
-  cy.reload();
+  incidentsPage.goTo();
+  cy.wait('@prometheusQueryMock', { timeout: 30000 });
 });
 
 Cypress.Commands.add('transformMetrics', () => {

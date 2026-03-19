@@ -36,11 +36,13 @@ const MP = {
 describe('Regression: Time-Based Alert Resolution (E2E with Firing Alerts)', { tags: ['@incidents', '@slow', '@e2e-real'] }, () => {
   let currentAlertName: string;
 
+
   before(() => {
     cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
     
-    cy.log('Create or reuse firing alert for testing');
-    cy.createKubePodCrashLoopingAlert('TimeBasedResolution2').then((alertName) => {
+    cy.log('Create firing alert for testing');
+    cy.cleanupIncidentPrometheusRules();
+    cy.createKubePodCrashLoopingAlert().then((alertName) => {
       currentAlertName = alertName;
       cy.log(`Test will monitor alert: ${currentAlertName}`);
     });
@@ -50,6 +52,7 @@ describe('Regression: Time-Based Alert Resolution (E2E with Firing Alerts)', { t
   it('1. Section 3.3 - Alert not incorrectly marked as resolved after time passes', () => {
     cy.log('1.1 Navigate to Incidents page and clear filters');
     incidentsPage.goTo();
+    cy.wait(10000);
     incidentsPage.clearAllFilters();
     
     const intervalMs = 60_000;
@@ -161,6 +164,7 @@ describe('Regression: Time-Based Alert Resolution (E2E with Firing Alerts)', { t
   it('2. Section 4.7 - Prometheus query end time updates to current time on filter refresh', () => {
     cy.log('2.1 Navigate to Incidents page and clear filters');
     incidentsPage.goTo();
+    cy.wait(10000);
     incidentsPage.clearAllFilters();
 
     cy.log('2.2 Capture initial page load time');
@@ -262,6 +266,7 @@ describe('Regression: Time-Based Alert Resolution (E2E with Firing Alerts)', { t
   it('3. Verify alert lifecycle - alert continues firing throughout test', () => {
     cy.log('3.1 Navigate to Incidents page');
     incidentsPage.goTo();
+    cy.wait(10000);
     incidentsPage.clearAllFilters();
 
     cy.log('3.2 Search for and select incident with custom alert');

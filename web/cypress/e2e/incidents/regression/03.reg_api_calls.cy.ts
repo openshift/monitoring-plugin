@@ -33,8 +33,6 @@ describe('Regression: Silences Not Applied Correctly', { tags: ['@incidents'] },
   });
 
   beforeEach(() => {
-    cy.log('Navigate to Observe → Incidents');
-    incidentsPage.goTo();
     cy.log('Setting up silenced alerts mixed scenario');
     cy.mockIncidentFixture('incident-scenarios/9-silenced-alerts-mixed-scenario.yaml');
   });
