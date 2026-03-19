@@ -52,6 +52,7 @@ export default defineConfig({
     typeDelay: 200,
   },
   fixturesFolder: 'cypress/fixtures',
+  pageLoadTimeout: 60000,
   defaultCommandTimeout: 80000, //due to performance loading issue on console
   readyTimeoutMilliseconds: 120000,
   installTimeoutMilliseconds: 600000,

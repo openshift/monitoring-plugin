@@ -2,13 +2,11 @@
 The test verifies the basic functionality of the Incidents page and serves
 as a verification that the Incidents View is working as expected.
 
-Currently, it depends on an alert being present in the cluster.
-In the future, mocking requests / injecting alerts should be considered.
-Natural creation of the alert is done in the 00.coo_incidents_e2e.cy.ts test, 
-but takes significant time.
+All tests use mocked data. Tests 1-3 use a default fixture (incident content
+is irrelevant for toolbar/filter verification). Tests 4-5 switch mocks
+mid-test for empty state and traversal scenarios.
 */
 
-import { commonPages } from '../../views/common';
 import { incidentsPage } from '../../views/incidents-page';
 
 const MCP = {
@@ -26,23 +24,12 @@ const MP = {
   operatorName: 'Cluster Monitoring Operator',
 };
 
-const ALERTNAME = 'Watchdog';
-const NAMESPACE = 'openshift-monitoring';
-const SEVERITY = 'Critical';
-const ALERT_DESC = 'This is an alert meant to ensure that the entire alerting pipeline is functional. This alert is always firing, therefore it should always be firing in Alertmanager and always fire against a receiver. There are integrations with various notification mechanisms that send a notification when this alert is not firing. For example the "DeadMansSnitch" integration in PagerDuty.'
-const ALERT_SUMMARY = 'An alert that should always be firing to certify that Alertmanager is working properly.'
 describe('BVT: Incidents - UI', { tags: ['@smoke', '@incidents'] }, () => {
   before(() => {
     cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
+    cy.mockIncidentFixture('incident-scenarios/1-single-incident-firing-critical-and-warning-alerts.yaml');
   });
 
-
-  beforeEach(() => {
-    cy.log('Navigate to Observe → Incidents');
-    incidentsPage.goTo();
-    // Temporary workaround for testing against locally built instances.
-    cy.transformMetrics();
-  });
 
   it('1. Admin perspective - Incidents page - Toolbar and charts toggle functionality', () => {
     cy.log('1.1 Verify toolbar and toggle charts button');
@@ -80,14 +67,14 @@ describe('BVT: Incidents - UI', { tags: ['@smoke', '@incidents'] }, () => {
     cy.log('4.1 Verify chart titles are visible');
     incidentsPage.elements.incidentsChartTitle().should('be.visible');
     incidentsPage.elements.alertsChartTitle().should('be.visible');
-    
     cy.log('4.2 Verify alerts chart shows empty state');
     incidentsPage.elements.alertsChartEmptyState().should('exist');
   });
 
   it('5. Admin perspective - Incidents page - Traverse Incident Table', () => {
+    incidentsPage.goTo();
+
     cy.log('5.1 Traverse incident table');
-    incidentsPage.clearAllFilters();
     cy.mockIncidents([]);
     incidentsPage.findIncidentWithAlert('TargetAlert').should('be.false');
 
@@ -95,9 +82,8 @@ describe('BVT: Incidents - UI', { tags: ['@smoke', '@incidents'] }, () => {
     cy.mockIncidentFixture('incident-scenarios/1-single-incident-firing-critical-and-warning-alerts.yaml');
     incidentsPage.findIncidentWithAlert('TargetAlert').should('be.false');
 
-    incidentsPage.clearAllFilters
     cy.log('5.3 Verify traversing incident table works when the alert is present');
     cy.mockIncidentFixture('incident-scenarios/6-multi-incident-target-alert-scenario.yaml');
-    incidentsPage.findIncidentWithAlert('TargetAlert').should('be.true');    
+    incidentsPage.findIncidentWithAlert('TargetAlert').should('be.true');
   });
 });

@@ -32,8 +32,6 @@ describe('Regression: Incidents Filtering', { tags: ['@incidents'] }, () => {
   });
 
   beforeEach(() => {
-    cy.log('Navigate to Observe → Incidents');
-    incidentsPage.goTo();
     cy.log('Setting up comprehensive filtering test scenarios');
     cy.mockIncidentFixture('incident-scenarios/7-comprehensive-filtering-test-scenarios.yaml');
   });

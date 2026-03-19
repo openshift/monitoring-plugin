@@ -40,7 +40,7 @@ export const nav = {
      * @param tabname - The name of the tab to switch to
      */
     switchTab: (tabname: string) => {
-      cy.get(Classes.HorizontalNav).contains(tabname).should('be.visible').click();
+      cy.get(Classes.HorizontalNav).contains(tabname).should('be.visible').click({force: true});
       cy.wait(2000);
   }
 }
