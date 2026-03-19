@@ -37,8 +37,6 @@ describe('Regression: Redux State Management', { tags: ['@incidents', '@incident
   });
 
   beforeEach(() => {
-    cy.log('Navigate to Observe → Incidents');
-    incidentsPage.goTo();
     cy.log('Setting up comprehensive filtering test scenarios');
     cy.mockIncidentFixture('incident-scenarios/7-comprehensive-filtering-test-scenarios.yaml');
   });
@@ -144,10 +142,8 @@ describe('Regression: Redux State Management', { tags: ['@incidents', '@incident
   it('3. Adding filter when incident selected should not remove the incident ID filter', () => {
     cy.log('3.1 Clear all filters and ensure critical incidents exist');
     incidentsPage.clearAllFilters();
-    
     cy.log('3.2 Apply critical severity filter');
     incidentsPage.toggleFilter('Critical');
-    
     incidentsPage.elements.incidentsChartBarsGroups().should('have.length.greaterThan', 0);
     
     cy.log('3.3 Click on the first critical incident to select it by ID');
@@ -161,9 +157,12 @@ describe('Regression: Redux State Management', { tags: ['@incidents', '@incident
     cy.log('3.5 Verify both Critical and Incident ID chips are present');
     incidentsPage.elements.filterChipValue('Critical').should('be.visible');
     incidentsPage.elements.incidentIdFilterChip().should('be.visible');
-    
+  
     cy.log('3.6 Deselect Critical and Apply Warning filter (which does not match the critical incident)');
+    cy.wait(500);
     incidentsPage.toggleFilter('Critical');
+    incidentsPage.elements.filterChipValue('Critical').should('not.exist');
+
     incidentsPage.toggleFilter('Warning');
     
     cy.log('3.7 Verify incident is filtered out (no bars visible)');
@@ -177,7 +176,9 @@ describe('Regression: Redux State Management', { tags: ['@incidents', '@incident
     cy.log('SUCCESS: Incident ID filter was not removed when non-matching severity filter was added');
     
     cy.log('3.9 Remove Warning filter and verify incident reappears');
-    incidentsPage.toggleFilter('Warning');
+    // Legacy path for quick rollback:
+    // incidentsPage.toggleFilter('Warning');
+    incidentsPage.deselectFilterValue('Warning');
     
     cy.log('3.10 With only Incident ID filter, incident should be visible again');
     incidentsPage.elements.incidentsChartBarsGroups().should('have.length', 1);

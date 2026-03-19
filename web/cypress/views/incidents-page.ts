@@ -154,42 +154,131 @@ export const incidentsPage = {
     cy.log('incidentsPage.goTo');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     nav.tabs.switchTab('Incidents');
-
+    incidentsPage.elements.daysSelectToggle().should('be.visible');
   },
 
   setDays: (value: '1 day' | '3 days' | '7 days' | '15 days') => {
     cy.log('incidentsPage.setDays');
-
     incidentsPage.elements.daysSelectToggle().scrollIntoView().click();
     const dayKey = value.replace(' ', '-');
     cy.byTestID(`${DataTestIDs.IncidentsPage.DaysSelectOption}-${dayKey}`).should('be.visible').click();
     incidentsPage.elements.daysSelectToggle().should('contain.text', value);
   },
 
+  toggleFilterValueFromDropdown: (
+    kind: 'severity' | 'state',
+    name: 'Critical' | 'Warning' | 'Informative' | 'Firing' | 'Resolved',
+  ) => {
+    const listSelector = kind === 'severity'
+      ? `[data-test="${DataTestIDs.IncidentsPage.FiltersSelectList}-severity"]`
+      : `[data-test="${DataTestIDs.IncidentsPage.FiltersSelectList}-state"]`;
+
+    if (kind === 'severity') {
+      incidentsPage.elements.severityFilterToggle().click();
+      incidentsPage.elements.severityFilterList().should('be.visible');
+      cy.wait(250);
+      incidentsPage.elements.severityFilterOption(name as 'Critical' | 'Warning' | 'Informative').click();
+    } else {
+      incidentsPage.elements.stateFilterToggle().click();
+      incidentsPage.elements.stateFilterList().should('be.visible');
+      cy.wait(250);
+      incidentsPage.elements.stateFilterOption(name as 'Firing' | 'Resolved').click();
+    }
+
+    // Always close the dropdown after selection and give the UI a moment to settle.
+    cy.get('body').type('{esc}');
+    cy.wait(250);
+    cy.get('body').then(($updatedBody) => {
+      expect($updatedBody.find(listSelector).filter(':visible').length).to.equal(0);
+    });
+  },
+
+  selectFilterValue: (name: 'Critical' | 'Warning' | 'Informative' | 'Firing' | 'Resolved') => {
+    cy.log(`incidentsPage.selectFilterValue: ${name}`);
+    cy.get('body').then(($body) => {
+      const chipExists =
+        $body
+          .find(`[data-test="${DataTestIDs.IncidentsPage.Toolbar}"] span`)
+          .filter((_, element) => Cypress.$(element).text().trim() === name).length > 0;
+
+      if (!chipExists) {
+        incidentsPage.toggleFilter(name);
+      }
+
+      incidentsPage.elements.filterChipValue(name).should('be.visible');
+    });
+  },
+
+  deselectFilterValue: (name: 'Critical' | 'Warning' | 'Informative' | 'Firing' | 'Resolved') => {
+    cy.log(`incidentsPage.deselectFilterValue: ${name}`);
+    const chipSelector = `[data-test="${DataTestIDs.IncidentsPage.Toolbar}"] span`;
+    const isChipPresent = ($body: JQuery<HTMLElement>) =>
+      $body.find(chipSelector).filter((_, element) => Cypress.$(element).text().trim() === name).length > 0;
+
+    cy.get('body').then(($body) => {
+      if (!isChipPresent($body)) {
+        incidentsPage.elements.toolbar().should('not.contain.text', name);
+        return;
+      }
+
+      const attemptDeselect = (attempt: number) => {
+        cy.log(`Deselecting "${name}" via dropdown (attempt ${attempt})`);
+        incidentsPage.toggleFilter(name);
+
+        return cy.get('body').then(($updatedBody) => {
+          if (!isChipPresent($updatedBody)) {
+            incidentsPage.elements.toolbar().should('not.contain.text', name);
+            return cy.wrap(undefined);
+          }
+
+          if (attempt >= 2) {
+            throw new Error(`Failed to deselect "${name}" via dropdown after ${attempt} attempts`);
+          }
+
+          cy.log(
+            `Retrying deselection for "${name}" because option click was visible but selection state did not change`,
+          );
+          return attemptDeselect(attempt + 1);
+        });
+      };
+
+      return attemptDeselect(1);
+    });
+  },
+
   toggleFilter: (name: 'Critical' | 'Warning' | 'Informative' | 'Firing' | 'Resolved') => {
     cy.log('incidentsPage.toggleFilter');
     
-    // Determine filter type based on the filter name
     const isSeverityFilter = ['Critical', 'Warning', 'Informative'].includes(name);
     const filterType = isSeverityFilter ? 'Severity' : 'State';
-    
-    // Step 1: Select filter type if not already selected
-    incidentsPage.elements.filtersSelectToggle().click();
-    incidentsPage.elements.filtersSelectOption(filterType).click();
-    
-    // Step 2: Select the specific filter value
-    if (isSeverityFilter) {
-      incidentsPage.elements.severityFilterToggle().click();
-      incidentsPage.elements.severityFilterOption(name).click();
-    } else {
-      incidentsPage.elements.stateFilterToggle().click();
-      incidentsPage.elements.stateFilterOption(name).click();
-    }
+    const valueToggleSelector = isSeverityFilter
+      ? `[data-test="${DataTestIDs.IncidentsPage.FiltersSelectToggle}-severity"]`
+      : `[data-test="${DataTestIDs.IncidentsPage.FiltersSelectToggle}-state"]`;
+
+    cy.wait(500);
+
+    // If the value toggle is already visible (filter type already selected), skip
+    // re-selecting the filter type. Re-selecting triggers a React re-render and can
+    // leave PatternFly Select in a stale state where options render but ignore clicks.
+    cy.get('body').then(($body) => {
+      const isToggleVisible = $body.find(valueToggleSelector).filter(':visible').length > 0;
+
+      if (!isToggleVisible) {
+        incidentsPage.elements.filtersSelectToggle().click();
+        incidentsPage.elements.filtersSelectOption(filterType).click();
+      }
+
+      if (isSeverityFilter) {
+        incidentsPage.toggleFilterValueFromDropdown('severity', name);
+      } else {
+        incidentsPage.toggleFilterValueFromDropdown('state', name);
+      }
+    });
   },
 
   clearAllFilters: () => {
     cy.log('incidentsPage.clearAllFilters');
-    incidentsPage.elements.clearAllFiltersButton().click({ force: true });
+    incidentsPage.elements.clearAllFiltersButton().should('be.visible').click({ force: true });
   },
 
   removeFilter: (category: 'Severity' | 'State' | 'Incident ID', value: string) => {
@@ -239,8 +328,6 @@ export const incidentsPage = {
           .click({ force: true });
       })
       .then(() => {
-        // The incident table loads the alerts for the previous incident first, then hides them and shows the alerts for the new incident
-        // This is why we need to wait for 2 seconds and can not use should or conditional testing semantics
         cy.wait(2000);
         return incidentsPage.elements.incidentsTable()
           .scrollIntoView()
@@ -413,7 +500,7 @@ export const incidentsPage = {
 
   prepareIncidentsPageForSearch: () => {
     cy.log('incidentsPage.prepareIncidentsPageForSearch: Setting up page for search');
-    cy.reload();
+    incidentsPage.goTo();
     incidentsPage.setDays(incidentsPage.SEARCH_CONFIG.DEFAULT_DAYS);
     incidentsPage.elements.incidentsChartContainer().should('be.visible');
     cy.wait(incidentsPage.SEARCH_CONFIG.CHART_LOAD_WAIT);

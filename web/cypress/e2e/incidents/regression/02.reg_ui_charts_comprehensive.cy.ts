@@ -92,7 +92,6 @@ describe('Regression: Charts UI - Comprehensive', { tags: ['@incidents'] }, () =
   });
 
   beforeEach(() => {
-    incidentsPage.goTo();
     cy.mockIncidentFixture('incident-scenarios/12-charts-ui-comprehensive.yaml');
   });
 
