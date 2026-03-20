@@ -28,6 +28,51 @@ parameters:
 
 Autonomous test iteration loop: run tests, diagnose failures, apply fixes, verify, and probe for flakiness.
 
+## Prerequisites
+
+### 1. Cypress Environment
+
+Run `/cypress-setup` first to ensure `web/cypress/export-env.sh` exists with cluster credentials.
+
+### 2. Permissions
+
+This skill runs autonomously and needs pre-approved permissions in `.claude/settings.local.json` to avoid interactive approval prompts blocking the loop. Required permissions:
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "Bash(git stash:*)",
+      "Bash(git checkout:*)",
+      "Bash(git checkout -b:*)",
+      "Bash(git branch:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(rm -f screenshots/cypress_report_*.json:*)",
+      "Bash(rm -f screenshots/merged-report.json:*)",
+      "Bash(rm -rf cypress/screenshots/*:*)",
+      "Bash(rm -rf cypress/videos/*:*)",
+      "Bash(npx cypress run:*)",
+      "Bash(npx mochawesome-merge:*)",
+      "Bash(source cypress/export-env.sh:*)",
+      "Bash(cd /home/drajnoha/Code/monitoring-plugin:*)",
+      "Bash(find /home/drajnoha/Code/monitoring-plugin/web/cypress:*)",
+      "Bash(ls:*)"
+    ]
+  }
+}
+```
+
+The `rm` permissions are scoped to test artifact directories only (mochawesome reports, screenshots, videos) — these are regenerated every run.
+
+If using CI analysis, also add to `web/.claude/settings.local.json`:
+```json
+"WebFetch(domain:gcsweb-ci.apps.ci.l2s4.p1.openshiftapps.com)"
+```
+
 ## Instructions
 
 Execute the following steps in order. This is the main orchestrator — it coordinates sub-agents and manages the iteration loop.
