@@ -68,6 +68,10 @@ This skill runs autonomously and needs pre-approved permissions in `.claude/sett
 
 The `rm` permissions are scoped to test artifact directories only (mochawesome reports, screenshots, videos) — these are regenerated every run.
 
+### 3. Unsigned Commits
+
+All commits in this workflow use `--no-gpg-sign` to avoid GPG passphrase prompts blocking the loop. These unsigned commits live on a working branch and are intended to be **squash-merged** by the user with their own signature when approved. Never push unsigned commits directly to main.
+
 If using CI analysis, also add to `web/.claude/settings.local.json`:
 ```json
 "WebFetch(domain:gcsweb-ci.apps.ci.l2s4.p1.openshiftapps.com)"
@@ -262,7 +266,7 @@ For each test:
 After all fixable failures are addressed (or max retries reached):
 
 ```bash
-cd /home/drajnoha/Code/monitoring-plugin && git add <fixed-files> && git commit -m "<message>"
+cd /home/drajnoha/Code/monitoring-plugin && git add <fixed-files> && git commit --no-gpg-sign -m "<message>"
 ```
 
 Commit message format:
