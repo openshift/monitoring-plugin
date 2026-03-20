@@ -14,22 +14,22 @@ export const persesCreateDashboardsPage = {
 
   selectProject: (project: string) => {
     cy.log('persesCreateDashboardsPage.selectProject');
-    cy.get(Classes.PersesCreateDashboardProjectDropdown).should('be.visible').click({ force: true });
+    cy.byPFRole('dialog').find(Classes.PersesCreateDashboardProjectDropdown).click({ force: true });
     cy.byAriaLabel(persesAriaLabels.dialogProjectInput).clear().type(project);
     cy.byPFRole('option').contains(project).should('be.visible').click({ force: true });
   },
   
   assertProjectDropdown: (project: string) => {
     cy.log('persesCreateDashboardsPage.assertProjectDropdown');
-    cy.get(Classes.PersesCreateDashboardProjectDropdown).should('be.visible').click({ force: true });
+    cy.byPFRole('dialog').find(Classes.PersesCreateDashboardProjectDropdown).click({ force: true });
     cy.byAriaLabel(persesAriaLabels.dialogProjectInput).clear().type(project);
     cy.byPFRole('option').contains(project).should('be.visible');
-    cy.get(Classes.PersesCreateDashboardProjectDropdown).should('be.visible').click({ force: true });
+    cy.byPFRole('option').contains(project).should('be.visible').click({ force: true });
   },
 
   assertProjectNotExistsInDropdown: (project: string) => {
     cy.log('persesCreateDashboardsPage.assertProjectNotExistsInDropdown');
-    cy.get(Classes.PersesCreateDashboardProjectDropdown).should('be.visible').click({ force: true });
+    cy.byPFRole('dialog').find(Classes.PersesCreateDashboardProjectDropdown).click({ force: true });
     cy.byPFRole('listbox').find('li').then((items) => {
       items.each((index, item) => {
         cy.log('Project: ' + item.innerText);
@@ -38,7 +38,7 @@ export const persesCreateDashboardsPage = {
         }
       });
     });
-    cy.get(Classes.PersesCreateDashboardProjectDropdown).should('be.visible').click({ force: true });
+    cy.byPFRole('dialog').find(Classes.PersesCreateDashboardProjectDropdown).click({ force: true });
   },
 
   enterDashboardName: (name: string) => {
@@ -54,20 +54,17 @@ export const persesCreateDashboardsPage = {
 
   assertMaxLengthValidation: () => {
     cy.log('persesCreateDashboardsPage.assertMaxLengthValidation');
-    cy.byPFRole('dialog').find('h4').should('have.text', persesCreateDashboard.DIALOG_MAX_LENGTH_VALIDATION).should('be.visible');
+    cy.byPFRole('dialog').find(Classes.PersesCreateDashboardDashboardNameError).should('have.text', `${persesCreateDashboard.DIALOG_MAX_LENGTH_VALIDATION}`).should('be.visible');
   },
 
-  assertDuplicatedNameValidation: (dashboardName: string) => {
+  assertDuplicatedNameValidation: () => {
     cy.log('persesCreateDashboardsPage.assertDuplicatedNameValidation');
-    if (dashboardName.includes(' ')) {
-      cy.byPFRole('dialog').find('h4').should('have.text', persesCreateDashboard.DIALOG_DUPLICATED_NAME_BKD_VALIDATION).should('be.visible');
-    } else {
-      cy.byPFRole('dialog').find(Classes.PersesCreateDashboardDashboardNameError).should('have.text', `${persesCreateDashboard.DIALOG_DUPLICATED_NAME_PF_VALIDATION_PREFIX}"${dashboardName}"${persesCreateDashboard.DIALOG_DUPLICATED_NAME_PF_VALIDATION_SUFFIX}`).should('be.visible');
-    }
+    cy.get(Classes.PersesDuplicateDashboardNameError).should('have.text', persesCreateDashboard.DIALOG_DUPLICATED_NAME_BKD_VALIDATION).should('be.visible');
   },
 
   createDashboardDialogCancelButton: () => {
     cy.log('persesCreateDashboardsPage.clickCancelButton');
+    cy.wait(2000);
     cy.byPFRole('dialog').find('button').contains('Cancel').should('be.visible').click({ force: true });
     cy.wait(2000);
   },

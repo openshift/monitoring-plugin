@@ -179,10 +179,10 @@ export const listPersesDashboardsPage = {
 
   assertDuplicateProjectDropdown: (project: string) => {
     cy.log('listPersesDashboardsPage.assertDuplicateProjectDropdown');
-    cy.get(Classes.PersesCreateDashboardProjectDropdown).should('be.visible').click({ force: true });
+    cy.byPFRole('dialog').find(Classes.PersesCreateDashboardProjectDropdown).click({ force: true });
     cy.byAriaLabel(persesAriaLabels.dialogProjectInput).should('be.visible').clear().type(project);
     cy.byPFRole('option').contains(project).should('be.visible');
-    cy.get(Classes.PersesCreateDashboardProjectDropdown).should('be.visible').click({ force: true });
+    cy.byPFRole('dialog').find(Classes.PersesCreateDashboardProjectDropdown).click({ force: true });
   },
 
   duplicateDashboardEnterName: (name: string) => {
@@ -212,7 +212,7 @@ export const listPersesDashboardsPage = {
 
   duplicateDashboardSelectProjectDropdown: (project: string) => {
     cy.log('listPersesDashboardsPage.duplicateDashboardSelectProjectDropdown');
-    cy.get(Classes.PersesCreateDashboardProjectDropdown).should('be.visible').click({ force: true });
+    cy.byPFRole('dialog').find(Classes.PersesCreateDashboardProjectDropdown).click({ force: true });
     cy.byAriaLabel(persesAriaLabels.dialogProjectInput).clear().type(project);
     cy.byPFRole('option').contains(project).should('be.visible').click({ force: true });
     cy.wait(2000);
@@ -220,16 +220,16 @@ export const listPersesDashboardsPage = {
 
   assertDuplicateProjectDropdownExists: (project: string) => {
     cy.log('listPersesDashboardsPage.assertDuplicateProjectDropdownExists');
-    cy.get(Classes.PersesCreateDashboardProjectDropdown).should('be.visible').click({ force: true });
+    cy.byPFRole('dialog').find(Classes.PersesCreateDashboardProjectDropdown).click({ force: true });
     cy.byAriaLabel(persesAriaLabels.dialogProjectInput).clear().type(project);
     cy.byPFRole('option').contains(project).should('be.visible');
     cy.log('Project: ' + project + ' is available in the dropdown');
-    cy.get(Classes.PersesCreateDashboardProjectDropdown).should('be.visible').click({ force: true });
+    cy.byPFRole('dialog').find(Classes.PersesCreateDashboardProjectDropdown).click({ force: true });
   },
 
   assertDuplicateProjectDropdownNotExists: (project: string) => {
     cy.log('listPersesDashboardsPage.assertDuplicateProjectDropdownNotExists');
-    cy.get(Classes.PersesCreateDashboardProjectDropdown).should('be.visible').click({ force: true });
+    cy.byPFRole('dialog').find(Classes.PersesCreateDashboardProjectDropdown).click({ force: true });
     cy.byPFRole('listbox').find('li').then((items) => {
       items.each((index, item) => {
         cy.log('Project: ' + item.innerText);
@@ -238,7 +238,7 @@ export const listPersesDashboardsPage = {
         }
       });
     });
-    cy.get(Classes.PersesCreateDashboardProjectDropdown).should('be.visible').click({ force: true });
+    cy.byPFRole('dialog').find(Classes.PersesCreateDashboardProjectDropdown).click({ force: true });
   },
 
   clickDeleteOption: () => {

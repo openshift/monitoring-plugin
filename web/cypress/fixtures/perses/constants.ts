@@ -139,10 +139,11 @@ export const persesDashboardsAddPanelAddQueryType ={
 }
 
 export const persesCreateDashboard = {
-  DIALOG_MAX_LENGTH_VALIDATION: 'Danger alert:bad request: code=400, message=cannot contain more than 75 characters, internal=cannot contain more than 75 characters',
+  DIALOG_MAX_LENGTH_VALIDATION: 'Must be 75 or fewer characters long: error status;',
   DIALOG_DUPLICATED_NAME_PF_VALIDATION_PREFIX: 'Dashboard name ',
-  DIALOG_DUPLICATED_NAME_PF_VALIDATION_SUFFIX: ' already exists in this project: error status;',
-  DIALOG_DUPLICATED_NAME_BKD_VALIDATION: 'Danger alert:document already exists',
+  DIALOG_DUPLICATED_NAME_PF_VALIDATION_SUFFIX: ' already exists in ',
+  DIALOG_DUPLICATED_NAME_PF_VALIDATION_SUFFIX_PROJECT: ' project!: error status;',
+  DIALOG_DUPLICATED_NAME_BKD_VALIDATION: 'Danger alert:Could not create dashboard. e: document already exists',
 }
 
 export const persesDashboardsEmptyDashboard = {
@@ -170,6 +171,6 @@ export const persesDashboardsImportDashboard = {
   DIALOG_UNABLE_TO_DETECT_DASHBOARD_FORMAT: 'Unable to detect dashboard format. Please provide a valid Perses or Grafana dashboard.',
   DIALOG_GRAFANA_DASHBOARD_DETECTED: 'Grafana dashboard detected. It will be automatically migrated to Perses format. Note: migration may be partial as not all Grafana features are supported.',
   DIALOG_PERSES_DASHBOARD_DETECTED: 'Perses dashboard detected.',
-  DIALOG_FAILED_TO_MIGRATE_GRAFANA_DASHBOARD: 'Danger alert:Failed to migrate dashboard: internal server error',
-  DIALOG_DUPLICATED_DASHBOARD_ERROR: 'Danger alert:document already exists',
+  DIALOG_FAILED_TO_MIGRATE_GRAFANA_DASHBOARD: 'Danger alert:Error migrating dashboard: Failed to migrate dashboard: internal server error',
+  DIALOG_DUPLICATED_DASHBOARD_ERROR: 'Danger alert:Error importing dashboard: document already exists',
 }

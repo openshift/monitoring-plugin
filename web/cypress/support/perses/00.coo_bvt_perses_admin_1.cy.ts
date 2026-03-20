@@ -106,7 +106,7 @@ export function testBVTCOOPerses1(perspective: PerspectiveConfig) {
 
     cy.log(`5.5. Click on the Kebab icon - Delete`);
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-    nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);s
+    nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
     listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0] + ' - Renamed');
     listPersesDashboardsPage.countDashboards('1');
 

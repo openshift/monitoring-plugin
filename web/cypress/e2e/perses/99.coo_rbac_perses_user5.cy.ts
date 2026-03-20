@@ -63,6 +63,7 @@ describe('RBAC User5: COO - Dashboards (Perses) - Administrator perspective', { 
   });
 
   beforeEach(() => {
+    nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
     nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
   });
 
