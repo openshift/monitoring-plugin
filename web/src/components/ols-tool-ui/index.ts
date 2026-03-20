@@ -1,1 +1,1 @@
-export { ExecuteRangeQuery } from './ExecuteRangeQuery';
+export { ShowTimeseries } from './ShowTimeseries';
