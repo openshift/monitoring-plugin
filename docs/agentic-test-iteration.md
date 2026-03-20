@@ -210,6 +210,16 @@ Mochawesome JSON structure (per report file):
 
 Use `npx mochawesome-merge screenshots/cypress_report_*.json > merged-report.json` to combine per-spec reports.
 
+## Skills
+
+| Skill | Purpose | Invoked by |
+|-------|---------|------------|
+| `/iterate-incident-tests` | Main orchestrator — runs the iteration loop, dispatches agents, manages commits | User |
+| `/diagnose-test-failure` | Classifies a single test failure using screenshots + code analysis | Orchestrator (as sub-agent prompt) |
+| `/analyze-ci-results` | Fetches and analyzes OpenShift CI artifacts, classifies infra vs test/code | User or orchestrator |
+
+Skills are defined in `.claude/commands/` and can be invoked as slash commands.
+
 ## Existing Infrastructure Leveraged
 
 | Asset | How the agent uses it |
