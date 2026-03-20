@@ -16,6 +16,11 @@ User: /iterate-incident-tests target=regression max-iterations=3
 
 Coordinator (main Claude Code session)
   |
+  |-- [CI Analysis] /analyze-ci-results (optional first step)
+  |     Fetches CI artifacts, classifies infra vs test/code failures
+  |     Correlates failures with git commits for context
+  |     If all INFRA -> report to user and STOP
+  |
   |-- Create branch: test/incident-robustness-<date>
   |
   |-- [Runner] Cypress headless via Bash (inline, not separate terminal)
@@ -123,61 +128,34 @@ This catches intermittent failures that a single run would miss.
 
 ## CI Result Ingestion
 
-The agent can ingest results from OpenShift CI (Prow) runs stored on GCS.
+CI analysis is handled by the dedicated `/analyze-ci-results` skill (`.claude/commands/analyze-ci-results.md`).
 
-### URL Structure
+The skill fetches artifacts from OpenShift CI (Prow) runs on GCS, classifies failures as infrastructure vs test/code issues, reads failure screenshots with multimodal vision, and correlates failures with the git commits that triggered them.
 
-```
-Base: https://gcsweb-ci.apps.ci.l2s4.p1.openshiftapps.com/gcs/test-platform-results/
-      pr-logs/pull/openshift_monitoring-plugin/{PR_NUMBER}/
-      pull-ci-openshift-monitoring-plugin-main-e2e-incidents/{RUN_ID}/
+### Key Capabilities
 
-Job root:     {base}/
-Test root:    {base}/artifacts/e2e-incidents/monitoring-plugin-tests-incidents-ui/
-```
+- **URL normalization**: Accepts gcsweb or Prow UI URLs at any level of the artifact tree
+- **Structured metadata**: Extracts PR number, author, branch, commit SHAs from `started.json` / `finished.json` / `prowjob.json`
+- **Build log parsing**: Parses Cypress console output from `build-log.txt` for per-spec pass/fail/skip counts and error details
+- **Visual diagnosis**: Fetches and reads failure screenshots (multimodal) to understand UI state at failure time
+- **Failure classification**: Categorizes each failure as `INFRA_*` (cluster, operator, plugin, auth, CI) or test/code (`TEST_BUG`, `FIXTURE_ISSUE`, `PAGE_OBJECT_GAP`, `MOCK_ISSUE`, `CODE_REGRESSION`)
+- **Commit correlation**: Maps failures to specific file changes in the PR using `git diff {base}..{pr_head}`
 
-### Available Artifacts
+### Integration with Orchestrator
 
-| Path (relative to job root) | Content |
-|-----|---------|
-| `build-log.txt` | Full Cypress console output with pass/fail per test |
-| `finished.json` | Job result (passed/failed), timestamp |
-| `prowjob.json` | Job config, cluster info |
-| `artifacts/e2e-incidents/monitoring-plugin-tests-incidents-ui/build-log.txt` | Test-specific build log |
-| `.../artifacts/screenshots/{spec-file}/` | Failure screenshots, named: `{suite} -- {test} -- {hook} (failed).png` |
-| `.../artifacts/videos/{spec-file}.mp4` | Test execution videos (kept on failure) |
-| `.../artifacts/videos/regression/*.mp4` | Regression test videos |
+The orchestrator uses `/analyze-ci-results` as an optional first step:
 
-### Screenshot Naming Convention
-
-```
-{Suite Name} -- {Test Title} -- before all hook (failed).png
-{Suite Name} -- {Test Title} (failed).png
-```
-
-### CI Ingestion Workflow
-
-When the user provides a CI run URL:
-
-1. **Fetch `build-log.txt`** — parse Cypress output for pass/fail summary
-2. **Fetch `finished.json`** — get overall result and timing
-3. **List `screenshots/` subdirs** — identify which specs had failures
-4. **Fetch individual screenshots** — read with multimodal vision for diagnosis
-5. **Reference videos** — provide download links to user (too large for inline fetch)
-6. **Cross-reference with local code** — match failing tests to current codebase state
-7. **Diagnose and fix** — same Diagnosis/Fix agent flow as local runs
-
-The agent can compare CI failures against local run results to identify environment-specific vs code-specific issues.
+1. If all failures are `INFRA_*` -> report to user and STOP (no test changes will help)
+2. If mixed -> report infra issues, proceed with test/code fixes only
+3. If all test/code -> proceed with full iteration loop
+4. Commit correlation tells the orchestrator whether to fix tests or investigate source changes
+5. CI screenshots give the Diagnosis Agent a head start before local reproduction
 
 ### Usage
 
 ```
-/iterate-incident-tests ci-url=https://gcsweb-ci.apps.ci.l2s4.p1.openshiftapps.com/gcs/.../{RUN_ID}/
-```
-
-Or combined with local iteration:
-```
-/iterate-incident-tests target=regression ci-url=https://.../{RUN_ID}/ max-iterations=3
+/analyze-ci-results ci-url=https://gcsweb-ci.apps.ci.l2s4.p1.openshiftapps.com/gcs/.../{RUN_ID}/
+/analyze-ci-results ci-url=https://prow.ci.openshift.org/view/gs/.../{RUN_ID} focus=regression
 ```
 
 ## Commit Strategy
