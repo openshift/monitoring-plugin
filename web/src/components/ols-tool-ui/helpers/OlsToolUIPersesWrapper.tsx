@@ -7,7 +7,7 @@ import type { DurationString } from '@perses-dev/prometheus-plugin';
 import {
   PersesWrapper,
   PersesPrometheusDatasourceWrapper,
-} from '../dashboards/perses/PersesWrapper';
+} from '../../dashboards/perses/PersesWrapper';
 
 const queryClient = new QueryClient({
   defaultOptions: {

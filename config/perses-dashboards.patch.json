@@ -126,9 +126,9 @@
     "value": {
       "type": "ols.tool-ui",
       "properties": {
-        "id": "mcp-obs/execute-range-query",
+        "id": "mcp-obs/show-timeseries",
         "component": {
-          "$codeRef": "ols-tool-ui.ExecuteRangeQuery"
+          "$codeRef": "ols-tool-ui.ShowTimeseries"
         }
       }
     }

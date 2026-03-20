@@ -1,14 +1,16 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { DataQueriesProvider } from '@perses-dev/plugin-system';
 import type { DurationString } from '@perses-dev/prometheus-plugin';
 import { Panel } from '@perses-dev/dashboards';
 
-import { OlsToolUIPersesWrapper } from './OlsToolUIPersesWrapper';
-import { AddToDashboardButton } from './AddToDashboardButton';
+import { OlsToolUIPersesWrapper } from './helpers/OlsToolUIPersesWrapper';
+import { AddToDashboardButton } from './helpers/AddToDashboardButton';
 
 type ExecuteRangeQueryTool = {
-  name: 'execute_range_query';
   args: {
+    title: string;
+    description: string;
     query: string;
   };
 };
@@ -17,8 +19,10 @@ const persesTimeRange = {
   pastDuration: '1h' as DurationString,
 };
 
-export const ExecuteRangeQuery: React.FC<{ tool: ExecuteRangeQueryTool }> = ({ tool }) => {
-  const query = tool.args.query;
+export const ShowTimeseries: React.FC<{ tool: ExecuteRangeQueryTool }> = ({ tool }) => {
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const { query, title, description } = tool.args;
+  const queryDescription = t('Query: {{query}}', { query: query });
   const definitions = [
     {
       kind: 'PrometheusTimeSeriesQuery',
@@ -38,17 +42,20 @@ export const ExecuteRangeQuery: React.FC<{ tool: ExecuteRangeQueryTool }> = ({ t
           <Panel
             panelOptions={{
               hideHeader: false,
+              extra: () => (
+                <AddToDashboardButton query={query} name={title} description={description} />
+              ),
             }}
             definition={{
               kind: 'Panel',
               spec: {
                 queries: [],
-                display: { name: query },
+                display: { name: title, description: `${description}\n\n${queryDescription}` },
                 plugin: {
                   kind: 'TimeSeriesChart',
                   spec: {
-                    visual: {
-                      stack: 'all',
+                    legend: {
+                      position: 'bottom',
                     },
                   },
                 },
@@ -57,9 +64,8 @@ export const ExecuteRangeQuery: React.FC<{ tool: ExecuteRangeQueryTool }> = ({ t
           />
         </DataQueriesProvider>
       </OlsToolUIPersesWrapper>
-      <AddToDashboardButton query={query} />
     </>
   );
 };
 
-export default ExecuteRangeQuery;
+export default ShowTimeseries;
