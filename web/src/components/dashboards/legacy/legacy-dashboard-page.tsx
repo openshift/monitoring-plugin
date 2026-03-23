@@ -10,14 +10,17 @@ import ErrorAlert from './error';
 import { DashboardSkeletonLegacy } from './dashboard-skeleton-legacy';
 import { useLegacyDashboards } from './useLegacyDashboards';
 import { MonitoringProvider } from '../../../contexts/MonitoringContext';
-import { useOpenshiftProject } from './useOpenshiftProject';
+import { useMonitoringNamespace } from '../../hooks/useMonitoringNamespace';
+import { useMonitoring } from '../../../hooks/useMonitoring';
+import { StringParam, useQueryParam } from 'use-query-params';
+import { QueryParams } from '../../../components/query-params';
 
 type LegacyDashboardsPageProps = {
   urlBoard: string;
 };
 
 const LegacyDashboardsPage_: FC<LegacyDashboardsPageProps> = ({ urlBoard }) => {
-  const { project, setProject } = useOpenshiftProject();
+  const { namespace, setNamespace } = useMonitoringNamespace();
   const {
     legacyDashboardsError,
     legacyRows,
@@ -25,13 +28,14 @@ const LegacyDashboardsPage_: FC<LegacyDashboardsPageProps> = ({ urlBoard }) => {
     legacyDashboardsMetadata,
     changeLegacyDashboard,
     legacyDashboard,
-  } = useLegacyDashboards(project, urlBoard);
+  } = useLegacyDashboards(namespace, urlBoard);
   const { perspective } = usePerspective();
+  const { displayNamespaceSelector } = useMonitoring();
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
     <>
-      <NamespaceBar onNamespaceChange={(namespace) => setProject(namespace)} />
+      {displayNamespaceSelector && <NamespaceBar onNamespaceChange={(ns) => setNamespace(ns)} />}
       <DashboardSkeletonLegacy
         boardItems={legacyDashboardsMetadata}
         changeBoard={changeLegacyDashboard}
@@ -61,6 +65,27 @@ export const MpCmoLegacyDashboardsPage: FC = () => {
   return (
     <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
       <LegacyDashboardsPageWithFallback urlBoard={params?.dashboardName} />
+    </MonitoringProvider>
+  );
+};
+
+// Small wrapper to be able to use the query params provided by the monitoring provider
+const DashboardQueryWrapper = () => {
+  const [dashboard] = useQueryParam(QueryParams.Dashboard, StringParam);
+
+  return <LegacyDashboardsPageWithFallback urlBoard={dashboard} />;
+};
+
+export const MpCmoLegacyDevDashboardsPage: FC = () => {
+  return (
+    <MonitoringProvider
+      monitoringContext={{
+        plugin: 'monitoring-plugin',
+        prometheus: 'cmo',
+        displayNamespaceSelector: false,
+      }}
+    >
+      <DashboardQueryWrapper />
     </MonitoringProvider>
   );
 };

@@ -1,16 +1,9 @@
-import { useCallback, useState, useMemo, useEffect } from 'react';
 import * as _ from 'lodash-es';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
-import { useSafeFetch } from '../../console/utils/safe-fetch-hook';
-import { useBoolean } from '../../hooks/useBoolean';
-import { Board } from './types';
-import { getLegacyDashboardsUrl, usePerspective } from '../../hooks/usePerspective';
-import { getAllQueryArguments, getQueryArgument } from '../../console/utils/router';
-import {
-  MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
-  MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY,
-} from './utils';
+import { useNavigate } from 'react-router-dom-v5-compat';
+import { NumberParam, useQueryParam } from 'use-query-params';
 import {
   DashboardsClearVariables,
   dashboardsPatchAllVariables,
@@ -18,11 +11,18 @@ import {
   dashboardsSetPollInterval,
   dashboardsSetTimespan,
 } from '../../../store/actions';
-import { CombinedDashboardMetadata } from '../perses/hooks/useDashboardsData';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { getAllQueryArguments, getQueryArgument } from '../../console/utils/router';
+import { useSafeFetch } from '../../console/utils/safe-fetch-hook';
+import { useBoolean } from '../../hooks/useBoolean';
+import { getLegacyDashboardsUrl, usePerspective } from '../../hooks/usePerspective';
 import { QueryParams } from '../../query-params';
-import { NumberParam, useQueryParam } from 'use-query-params';
 import { ALL_NAMESPACES_KEY } from '../../utils';
+import { CombinedDashboardMetadata } from '../perses/hooks/useDashboardsData';
+import { Board } from './types';
+import {
+  MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
+  MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY,
+} from './utils';
 
 export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
@@ -34,7 +34,7 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
   const [legacyDashboardsError, setLegacyDashboardsError] = useState<string>();
   const [refreshInterval] = useQueryParam(QueryParams.RefreshInterval, NumberParam);
   const [legacyDashboardsLoading, , , setLegacyDashboardsLoaded] = useBoolean(true);
-  const [initialLoad, , setInitialUnloaded, setInitialLoaded] = useBoolean(true);
+  const [initialLoad, , , setInitialLoaded] = useBoolean(true);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -117,7 +117,7 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
   }, [legacyDashboards, legacyDashboardsLoading]);
 
   const changeLegacyDashboard = useCallback(
-    (newBoard: string) => {
+    (newBoard: string, forceRefresh = false) => {
       if (!newBoard) {
         // If the board is being cleared then don't do anything
         return;
@@ -128,11 +128,12 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
       const queryArguments = getAllQueryArguments();
       const params = new URLSearchParams(queryArguments);
 
-      const url = `${getLegacyDashboardsUrl(perspective, newBoard)}?${params.toString()}`;
+      const url = getLegacyDashboardsUrl(perspective, newBoard, namespace);
 
-      if (newBoard !== urlBoard || initialLoad) {
-        if (params.get(QueryParams.Dashboard) !== newBoard) {
-          navigate(url, { replace: true });
+      if (newBoard !== urlBoard || forceRefresh) {
+        if (!params.has(QueryParams.Dashboard) || params.get(QueryParams.Dashboard) !== newBoard) {
+          params.set(QueryParams.Dashboard, newBoard);
+          navigate(`${url}?${params.toString()}`, { replace: true });
         }
 
         dispatch(dashboardsPatchAllVariables(allVariables));
@@ -150,16 +151,7 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
         );
       }
     },
-    [
-      perspective,
-      urlBoard,
-      dispatch,
-      navigate,
-      namespace,
-      legacyDashboards,
-      initialLoad,
-      refreshInterval,
-    ],
+    [perspective, urlBoard, dispatch, navigate, namespace, legacyDashboards, refreshInterval],
   );
 
   useEffect(() => {
@@ -169,19 +161,22 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
         initialLoad) &&
       !_.isEmpty(legacyDashboards)
     ) {
-      changeLegacyDashboard(urlBoard || legacyDashboards?.[0]?.name);
+      changeLegacyDashboard(urlBoard || legacyDashboards?.[0]?.name, initialLoad);
       setInitialLoaded();
     }
   }, [legacyDashboards, changeLegacyDashboard, initialLoad, setInitialLoaded, urlBoard]);
 
   useEffect(() => {
-    // Basically perform a full reload when changing a namespace to force the variables and the
-    // dashboard to reset. This is needed for when we transition between ALL_NS and a normal
-    // namespace, but is performed quickly and should help insure consistency when transitioning
-    // between any namespaces
-    setInitialUnloaded();
-    /* eslint-disable react-hooks/exhaustive-deps */
-  }, [namespace]);
+    if (initialLoad || _.isEmpty(legacyDashboards)) {
+      return;
+    }
+
+    const currentBoard = urlBoard || legacyDashboards?.[0]?.name;
+    if (currentBoard) {
+      const allVariables = getAllVariables(legacyDashboards, currentBoard, namespace);
+      dispatch(dashboardsPatchAllVariables(allVariables));
+    }
+  }, [namespace, legacyDashboards, urlBoard, dispatch, initialLoad]);
 
   // Clear variables on unmount
   useEffect(() => {
