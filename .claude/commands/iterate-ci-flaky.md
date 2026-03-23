@@ -32,8 +32,10 @@ gh auth status
 ```
 
 Must be logged in as a user with:
-- **Issues: Write** on `openshift/monitoring-plugin` (for `/test` comments to trigger CI)
-- Push access to your fork via SSH (`origin` remote)
+- **Issues: Write** on `openshift/monitoring-plugin` (for `/test` comments to trigger CI). The fine-grained PAT must include the **upstream** repo in its scope, not just your fork.
+- Push access to your fork via SSH (`origin` remote) — this is separate from the `gh` token.
+
+If the token lacks upstream comment permissions, the agent will report the blocker and suggest posting the `/test` comment manually on the PR page.
 
 ### 2. Permissions
 
@@ -43,6 +45,7 @@ Required in `.claude/settings.local.json`:
 {
   "permissions": {
     "allow": [
+      "Bash(gh auth:*)",
       "Bash(gh api:*)",
       "Bash(gh pr:*)",
       "Bash(git push:*)",
@@ -55,6 +58,7 @@ Required in `.claude/settings.local.json`:
       "Bash(git -C:*)",
       "Bash(git checkout:*)",
       "Bash(git fetch:*)",
+      "Bash(python3:*)",
       "Bash(find screenshots:*)",
       "Bash(find cypress/screenshots:*)",
       "Bash(find cypress/videos:*)",
@@ -69,6 +73,11 @@ Required in `.claude/settings.local.json`:
 Same as `/iterate-incident-tests` — all commits use `--no-gpg-sign`. They live on a PR branch and are squash-merged by the user.
 
 ## Instructions
+
+**IMPORTANT — Autonomous Execution Rules:**
+- **Never chain commands** with `&&` or `|` — use separate Bash calls for each operation. Compound commands and pipes trigger security prompts that block autonomous execution.
+- **Never combine `cd` with other commands** — `cd && git` triggers an unskippable security prompt.
+- When you need to process command output (e.g., parse JSON), capture it with a Bash call first, then process it in a second call or read the output directly.
 
 ### Step 1: Gather PR Context
 
@@ -124,34 +133,41 @@ After triggering, proceed to Step 4.
 
 ### Step 4: Wait for CI Completion
 
-Poll the PR check status using a background task:
+Poll the PR check status. Use separate commands — no pipes.
+
+**Polling approach**: Run a single self-contained background script that writes results to a temp file. No pipes between commands.
 
 ```bash
-while true; do
-  status=$(gh pr checks {pr} --json name,state,detailsUrl 2>/dev/null | \
-    python3 -c "
-import sys, json
-checks = json.load(sys.stdin)
-for c in checks:
-    if '{job}' in c.get('name', ''):
-        print(c['state'], c.get('detailsUrl', ''))
-        sys.exit(0)
-print('NOT_FOUND')
-")
-  state=$(echo "$status" | cut -d' ' -f1)
-  if [ "$state" = "SUCCESS" ] || [ "$state" = "FAILURE" ]; then
-    echo "CI_COMPLETE: $status"
-    break
-  fi
-  sleep 300
-done
+python3 -c "
+import subprocess, json, time, sys
+job = 'pull-ci-openshift-monitoring-plugin-main-e2e-incidents'
+pr = '{pr}'
+for attempt in range(30):
+    result = subprocess.run(['gh', 'pr', 'checks', pr, '--json', 'name,state,detailsUrl'], capture_output=True, text=True)
+    if result.returncode != 0:
+        time.sleep(300)
+        continue
+    checks = json.loads(result.stdout)
+    for c in checks:
+        if job in c.get('name', ''):
+            state = c['state']
+            url = c.get('detailsUrl', '')
+            if state in ('SUCCESS', 'FAILURE'):
+                print(f'CI_COMPLETE state={state} url={url}')
+                sys.exit(0)
+            print(f'CI_PENDING state={state}, attempt {attempt+1}/30, sleeping 5m...')
+            break
+    time.sleep(300)
+print('CI_TIMEOUT')
+sys.exit(1)
+"
 ```
 
 Run this with `run_in_background: true` and a timeout of 9000000ms (150 minutes).
 
-When the background task completes, parse the output:
+When the background task completes, parse the output line starting with `CI_COMPLETE`:
 - Extract `state` (SUCCESS or FAILURE)
-- Extract `detailsUrl` (Prow URL for the run)
+- Extract `url` (Prow URL for the run)
 
 ### Step 5: Analyze CI Results
 
