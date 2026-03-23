@@ -27,7 +27,7 @@ import sys
 def poll(pr, job_substring="e2e-incidents", max_attempts=30, interval=300):
     for attempt in range(max_attempts):
         result = subprocess.run(
-            ["gh", "pr", "checks", pr, "--json", "name,state,detailsUrl"],
+            ["gh", "pr", "checks", pr, "--json", "name,state,link"],
             capture_output=True,
             text=True,
         )
@@ -55,7 +55,7 @@ def poll(pr, job_substring="e2e-incidents", max_attempts=30, interval=300):
             if job_substring in check.get("name", ""):
                 found = True
                 state = check["state"]
-                url = check.get("detailsUrl", "")
+                url = check.get("link", "")
 
                 if state in ("SUCCESS", "FAILURE"):
                     print(f"CI_COMPLETE state={state} url={url}")
