@@ -129,8 +129,10 @@ From the status check rollup, determine the state of the target job:
 If there's no recent run, or a fix was just pushed:
 
 ```bash
-gh api repos/openshift/monitoring-plugin/issues/{pr}/comments -f body="/test pull-ci-openshift-monitoring-plugin-main-e2e-incidents"
+gh api repos/openshift/monitoring-plugin/issues/{pr}/comments -f body="/test e2e-incidents"
 ```
+
+**IMPORTANT**: The `/test` command uses the **short alias** (`e2e-incidents`), not the full Prow job name. Using the full name will fail with "specified target(s) for /test were not found."
 
 Note: If you just pushed a commit in Step 6, the push automatically triggers Prow — you can skip the `/test` comment. Only use `/test` for:
 - Retriggering without code changes (flakiness retry)
@@ -140,35 +142,16 @@ After triggering, proceed to Step 4.
 
 ### Step 4: Wait for CI Completion
 
-Poll the PR check status. Use separate commands — no pipes.
-
-**Polling approach**: Run a single self-contained background script that writes results to a temp file. No pipes between commands.
+Use the polling script at `.claude/commands/cypress/scripts/poll-ci-status.py`:
 
 ```bash
-python3 -c "
-import subprocess, json, time, sys
-job = 'pull-ci-openshift-monitoring-plugin-main-e2e-incidents'
-pr = '{pr}'
-for attempt in range(30):
-    result = subprocess.run(['gh', 'pr', 'checks', pr, '--json', 'name,state,detailsUrl'], capture_output=True, text=True)
-    if result.returncode != 0:
-        time.sleep(300)
-        continue
-    checks = json.loads(result.stdout)
-    for c in checks:
-        if job in c.get('name', ''):
-            state = c['state']
-            url = c.get('detailsUrl', '')
-            if state in ('SUCCESS', 'FAILURE'):
-                print(f'CI_COMPLETE state={state} url={url}')
-                sys.exit(0)
-            print(f'CI_PENDING state={state}, attempt {attempt+1}/30, sleeping 5m...')
-            break
-    time.sleep(300)
-print('CI_TIMEOUT')
-sys.exit(1)
-"
+python3 .claude/commands/cypress/scripts/poll-ci-status.py {pr}
 ```
+
+Arguments: `<pr_number> [job_substring] [max_attempts] [interval_seconds]`
+- Default job substring: `e2e-incidents`
+- Default max attempts: 30 (150 minutes at 5-minute intervals)
+- Default interval: 300 seconds
 
 Run this with `run_in_background: true` and a timeout of 9000000ms (150 minutes).
 
@@ -241,7 +224,7 @@ For each confirmation run:
 
 1. Trigger via `/test` comment (no code changes):
    ```bash
-   gh api repos/openshift/monitoring-plugin/issues/{pr}/comments -f body="/test pull-ci-openshift-monitoring-plugin-main-e2e-incidents"
+   gh api repos/openshift/monitoring-plugin/issues/{pr}/comments -f body="/test e2e-incidents"
    ```
 
 2. Wait for completion (Step 4)
