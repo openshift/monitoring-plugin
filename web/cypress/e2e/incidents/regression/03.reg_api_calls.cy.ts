@@ -1,15 +1,20 @@
 /*
-Regression test for Silences Not Applied Correctly (Section 3.2)
+Regression tests for API Calls and Data Loading (Section 3)
 
-BUG: Silences were being matched by name only, not by name + namespace + severity.
-This test verifies that silence matching uses: alertname + namespace + severity.
+Tests:
+1. Silences Not Applied Correctly (Section 3.2)
+   BUG: Silences were being matched by name only, not by name + namespace + severity.
+   This test verifies that silence matching uses: alertname + namespace + severity.
 
-While targeting the bug, it verifies the basic Silences Implementation.
+2. Permission Denied Handling (Section 3.5)
+   Tests graceful handling of 403 Forbidden responses from rules/silences endpoints.
+   Incidents page should still function when user lacks permissions to view rules/silences.
 
-Verifies: OU-1020, OU-706
+Verifies: OU-1020, OU-706, OU-1213
 */
 
 import { incidentsPage } from '../../../views/incidents-page';
+import { nav } from '../../../views/nav';
 
 const MCP = {
   namespace: Cypress.env('COO_NAMESPACE'),
@@ -123,4 +128,39 @@ describe('Regression: Silences Not Applied Correctly', { tags: ['@incidents'] },
   });
 });
 
+describe('Regression: Permission Denied Handling', { tags: ['@incidents'] }, () => {
 
+  before(() => {
+    cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
+  });
+
+  beforeEach(() => {
+    cy.log('Mock all API endpoints as 403 Forbidden');
+    cy.mockPermissionDenied();
+    cy.log('Navigate to Observe -> Incidents');
+    // Using custom navigation commands to avoid waiting for the page to load which never happens in this test
+    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    nav.tabs.switchTab('Incidents');
+
+  });
+
+  it('Page displays access denied state when all API endpoints return 403 Forbidden', () => {
+    cy.log('1.1 Verify 403 requests were intercepted');
+    const waitTimeout = { timeout: 120000 };
+    cy.wait('@rulesPermissionDenied', waitTimeout)
+      .its('response').should('exist')
+      .its('statusCode').should('eq', 403);
+    cy.wait('@silencesPermissionDenied', waitTimeout)
+      .its('response').should('exist')
+      .its('statusCode').should('eq', 403);
+    cy.wait('@prometheusQueryRangePermissionDenied', waitTimeout)
+      .its('response').should('exist')
+      .its('statusCode').should('eq', 403);
+
+    cy.log('1.2 Verify access denied empty state is displayed');
+    cy.byTestID('access-denied').should('be.visible');
+    cy.byTestID('access-denied').should('contain.text', 'You don\'t have access to this section due to cluster policy');
+
+    cy.log('Verified: Page displays restricted access state for permission denied');
+  });
+});
