@@ -31,11 +31,18 @@ Fix flaky Cypress tests by iterating against real OpenShift CI presubmit jobs. P
 gh auth status
 ```
 
-Must be logged in as a user with:
-- **Issues: Write** on `openshift/monitoring-plugin` (for `/test` comments to trigger CI). The fine-grained PAT must include the **upstream** repo in its scope, not just your fork.
-- Push access to your fork via SSH (`origin` remote) — this is separate from the `gh` token.
+Must be logged in with comment access to `openshift/monitoring-plugin` (for `/test` comments to trigger Prow CI).
 
-If the token lacks upstream comment permissions, the agent will report the blocker and suggest posting the `/test` comment manually on the PR page.
+**Recommended auth method**: `gh auth login --web` (OAuth via browser). This uses your GitHub user's existing org permissions — no PAT scope management needed. Revocable anytime at GitHub → Settings → Applications.
+
+**Why not a PAT?**
+- Fine-grained PATs can only scope repos you own — you can't add `openshift/monitoring-plugin` as a contributor.
+- Classic PATs with `public_repo` scope work but grant broader access than needed.
+- OAuth via `--web` uses the GitHub CLI OAuth app which requests only the permissions it needs and inherits your org membership.
+
+**Push access**: Git push to your fork uses SSH (`origin` remote) — this is independent of the `gh` token.
+
+**Fallback**: If the token lacks upstream comment permissions, the agent will report the blocker and ask you to post the `/test` comment manually on the PR page.
 
 ### 2. Permissions
 
