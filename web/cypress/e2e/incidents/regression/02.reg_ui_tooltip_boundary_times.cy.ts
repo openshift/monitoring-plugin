@@ -27,7 +27,7 @@ const MP = {
   operatorName: 'Cluster Monitoring Operator',
 };
 
-describe('Regression: Mixed Severity Interval Boundary Times', { tags: ['@incidents', '@xfail'] }, () => {
+describe('Regression: Mixed Severity Interval Boundary Times', { tags: ['@incidents', '@xfail', '@flaky'] }, () => {
 
   before(() => {
     cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
@@ -103,7 +103,7 @@ describe('Regression: Mixed Severity Interval Boundary Times', { tags: ['@incide
     incidentsPage.setDays('1 day');
     incidentsPage.elements.incidentsChartContainer().should('be.visible');
     incidentsPage.elements.incidentsChartBarsGroups().should('have.length', 1);
-    cy.pause();
+
 
     cy.log('2.2 Consecutive interval boundaries: End of segment 1 should equal Start of segment 2');
     incidentsPage.hoverOverIncidentBarSegment(0, 0);
@@ -122,7 +122,7 @@ describe('Regression: Mixed Severity Interval Boundary Times', { tags: ['@incide
         ).to.equal(firstEnd);
       });
     });
-    cy.pause();
+
 
     cy.log('2.3 Incident tooltip Start vs alert tooltip Start vs alerts table Start');
     incidentsPage.hoverOverIncidentBarSegment(0, 0);
@@ -158,7 +158,7 @@ describe('Regression: Mixed Severity Interval Boundary Times', { tags: ['@incide
         });
       });
     });
-    cy.pause();
+
 
     cy.log('Expected failure: Incident tooltip Start times are 5 minutes off (OU-1221)');
   });
