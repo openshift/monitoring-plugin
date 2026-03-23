@@ -214,7 +214,8 @@ Use `npx mochawesome-merge screenshots/cypress_report_*.json > merged-report.jso
 
 | Skill | Purpose | Invoked by |
 |-------|---------|------------|
-| `/iterate-incident-tests` | Main orchestrator — runs the iteration loop, dispatches agents, manages commits | User |
+| `/iterate-incident-tests` | Main orchestrator — local iteration loop, dispatches agents, manages commits | User |
+| `/iterate-ci-flaky` | CI-based iteration — push fixes, trigger Prow jobs, wait, analyze, repeat | User |
 | `/diagnose-test-failure` | Classifies a single test failure using screenshots + code analysis | Orchestrator (as sub-agent prompt) |
 | `/analyze-ci-results` | Fetches and analyzes OpenShift CI artifacts, classifies infra vs test/code | User or orchestrator |
 
