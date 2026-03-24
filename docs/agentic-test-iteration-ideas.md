@@ -128,71 +128,205 @@ The orchestrator could automatically transition from Phase A to Phase B when loc
 
 ## Slack Notifications for Long-Running Loops
 
-**Problem**: The CI iteration loop (`/iterate-ci-flaky`) runs for hours (each CI run takes ~2h). The user has no visibility into what the agent is doing until the session ends. By then, multiple fix-push-wait cycles may have happened with no chance for the user to intervene.
+### The Problem
 
-**Idea**: Optional Slack notifications at key moments, giving the user a chance to review and influence the next cycle.
+The CI iteration loop (`/iterate-ci-flaky`) runs for hours — each CI run takes ~2h, and the loop may do 3-5 fix-push-wait cycles. During that time:
 
-### Notification Events
+- The user has no visibility into what the agent decided to fix or how
+- By the time the loop finishes, multiple commits may have been pushed with no chance to course-correct
+- A wrong fix in cycle 1 wastes 2+ hours of CI time before the agent discovers it didn't work
+- The user may have domain context ("that test is flaky because of animation timing, not the selector") that would save cycles
 
-| Event | When | Why the user cares |
-|-------|------|-------------------|
-| `fix_applied` | After committing and pushing a fix | User can review the diff before CI runs. Can reply "redo" or "don't change X" to influence next cycle |
-| `ci_started` | After triggering `/test` or push | Confirmation that the loop is progressing |
-| `ci_complete` | CI run finished (pass or fail) | User knows whether to check in or let it continue |
-| `review_needed` | 5-commit threshold reached or blocking issue | User needs to act |
-| `flaky_found` | Intermittent failure detected | User may have context about why |
-| `blocked` | Agent stopped — REAL_REGRESSION, infra issue, or auth problem | Needs human input to continue |
-| `iteration_done` | Full loop complete with summary | Final status |
+The core tension: **autonomy vs oversight**. The agent should run independently, but the user needs the ability to intervene at natural pause points.
 
-### Implementation Options
+### Natural Pause Points
 
-**Option A: Slack Incoming Webhook** (simplest)
-- User creates a webhook for their channel: Slack → Apps → Incoming Webhooks
-- Set `SLACK_WEBHOOK_URL` in `export-env.sh` or shell environment
-- Agent calls `curl -X POST -H 'Content-type: application/json' -d '{"text":"..."}' $SLACK_WEBHOOK_URL`
-- Pro: No Slack app needed, 5-minute setup
-- Con: One-way — user can't reply to the agent via Slack
+The CI loop has built-in pauses where user input is most valuable:
 
-**Option B: Slack Bot with interactive messages**
-- A proper Slack app with bot token
-- Sends messages with action buttons: "Approve", "Redo", "Stop"
-- User clicks a button, webhook fires back to the agent
-- Pro: Two-way interaction without leaving Slack
-- Con: Needs a server to receive button callbacks. Possible with a lightweight service or ngrok tunnel
-
-**Option C: Claude Code hooks**
-- Use Claude Code's hook system to trigger notifications on specific events (tool calls, commits)
-- Pro: Native to Claude Code, no external service
-- Con: Hooks are local — would need forwarding to Slack
-
-### Recommended Approach
-
-Start with **Option A** (webhook). It's 5 minutes to set up and covers the primary need: visibility into what the agent is doing. The agent posts, the user reads. If the user wants to intervene, they message the agent directly in the Claude Code session.
-
-The `notify-slack.py` script would:
-- Check if `SLACK_WEBHOOK_URL` is set — if not, skip silently (notifications are optional)
-- Format messages with Slack Block Kit (sections, context with PR link, branch, CI URL)
-- Be called by both skills at key points in the loop
-
-### Configuration
-
-Add to `cypress/export-env.sh`:
-```bash
-export SLACK_WEBHOOK_URL="https://hooks.slack.com/services/T.../B.../..."
+```
+Push fix ──→ [PAUSE: fix_applied] ──→ CI runs (~2h) ──→ [PAUSE: ci_complete] ──→ Analyze ──→ ...
 ```
 
-Or set globally in `~/.zshrc` if preferred.
+1. **After fix, before CI runs** (`fix_applied`): The agent committed a fix and is about to push (or just pushed). This is the highest-value notification — the user can review the approach and say "redo" before a 2-hour CI cycle starts.
 
-### Message Format Example
+2. **After CI completes** (`ci_complete`): Results are in. The agent is about to diagnose. User might have context about known issues.
 
+3. **When blocked** (`blocked`): Agent can't continue — needs human decision.
+
+### Review Window
+
+For the `fix_applied` event, the agent could optionally **wait before pushing**, giving the user a time window to respond:
+
+```
+Agent: "I'm about to push this fix. Waiting 10 minutes for feedback before proceeding."
+       [Shows diff summary in Slack]
+
+User (within 10 min): "Don't change the selector, the issue is timing. Add a cy.wait(500) instead."
+
+Agent: Reverts fix, applies user's suggestion, pushes that instead.
+```
+
+Or if no response within the window, the agent proceeds autonomously.
+
+Configuration: `review-window=10m` parameter on `/iterate-ci-flaky`. Set to `0` for fully autonomous (no waiting).
+
+### Notification Content — What Makes Each Message Actionable
+
+**`fix_applied`** — the most important notification:
 ```
 :wrench: Agent: Fix Applied
 
-Fixed selector timeout in filtering test — `.severity-filter` →
-`[data-test="severity-filter"]`. Pushed to `test/incident-robustness-2026-03-24`.
+*What changed:*
+• `cypress/views/incidents-page.ts:45` — selector `.severity-filter` → `[data-test="severity-filter"]`
+• `cypress/e2e/incidents/regression/01.reg_filtering.cy.ts:78` — added `.should('exist')` guard before click
 
-CI will run automatically. Reply in the agent session if you want to
-change approach before next cycle.
+*Why:* Screenshot showed the filter dropdown existed but had a different class. The `data-test` attribute is stable across builds.
 
-PR #860 | Branch: agentic-test-iteration | CI Run
+*Classification:* PAGE_OBJECT_GAP (confidence: HIGH)
+
+*Diff:* `git diff HEAD~1` on branch `test/incident-robustness-2026-03-24`
+
+*Next:* CI will trigger automatically on push. Reply in the agent session to change approach.
+
+PR #860 | Branch: test/incident-robustness-2026-03-24
 ```
+
+The key: show **what** changed, **why** the agent chose that fix, and **how confident** it is. This lets the user quickly decide "looks good, let it run" vs "wrong approach, let me intervene."
+
+**`ci_complete`** — actionable status:
+```
+:white_check_mark: Agent: CI Complete — PASSED (run 2/5)
+
+*Results:* 15/15 tests passed in 1h 47m
+*Flakiness probe:* 2 of 5 confirmation runs complete, all green so far
+
+*Next:* Triggering confirmation run 3. No action needed.
+
+PR #860 | Branch: test/incident-robustness-2026-03-24 | CI Run
+```
+
+Or on failure:
+```
+:x: Agent: CI Complete — FAILED (iteration 2/3)
+
+*Results:* 13/15 passed, 2 failed
+*Failures:*
+• "should filter by severity" — Timed out on `[data-test="severity-chip"]` (same as last run)
+• "should display chart bars" — new failure, `Expected 5 bars, found 0`
+
+*Assessment:*
+• severity filter: same fix didn't work, will try different approach
+• chart bars: new failure — possibly caused by previous fix (will investigate)
+
+*Next:* Diagnosing and fixing. Will notify before pushing.
+
+PR #860 | Branch: test/incident-robustness-2026-03-24 | CI Run
+```
+
+**`blocked`** — requires user action:
+```
+:octagonal_sign: Agent: Blocked — REAL_REGRESSION
+
+*Test:* "should display incident bars in chart"
+*Issue:* Chart component renders empty. Screenshot shows the chart area with no bars, no error, no loading state.
+*Commit correlation:* `src/components/incidents/IncidentChart.tsx` was modified in this PR (+45, -12)
+
+*This is not a test issue* — the chart rendering logic appears broken. Agent cannot fix source code in Phase 1.
+
+*Action needed:* Investigate the chart component refactor. Agent will stop iterating on this test.
+
+PR #860 | Branch: test/incident-robustness-2026-03-24
+```
+
+### Implementation Options
+
+**Option A: Slack Incoming Webhook** (recommended starting point)
+- Setup: Slack → Apps → Incoming Webhooks → create webhook for your channel. 5 minutes.
+- Set `SLACK_WEBHOOK_URL` in `export-env.sh` or `~/.zshrc`
+- Agent posts via `curl` in a standalone `notify-slack.py` script
+- Messages formatted with Slack Block Kit (sections, context, code blocks)
+- Pro: No Slack app, no server, no OAuth. Just a URL.
+- Con: One-way — user sees notifications but must respond in the Claude Code session, not in Slack
+
+**Option B: Slack Bot with thread-based interaction** (no callback server needed)
+- Create a Slack App with bot token (`chat:write`, `channels:history`)
+- Agent posts messages to a channel, capturing the message `ts` (timestamp/ID)
+- Before proceeding at pause points, agent **reads thread replies** via `conversations.replies` API
+- If user replied in the Slack thread → agent reads the reply and adjusts
+- If no reply within the review window → agent proceeds
+
+```
+Agent posts:  "Fix applied. Reply in this thread to change approach. Proceeding in 10 min."
+User replies: "Use data-test attributes instead of class selectors"
+Agent reads:  conversations.replies → sees user feedback → adjusts fix
+```
+
+- Pro: Two-way interaction without a callback server. User stays in Slack.
+- Con: Needs a Slack App (not just a webhook). Polling for replies adds complexity. Bot token needs to be stored securely.
+
+**Implementation sketch for Option B:**
+```python
+# Post notification and get message timestamp
+response = slack_client.chat_postMessage(channel=CHANNEL, blocks=blocks)
+message_ts = response["ts"]
+
+# Wait for review window, polling for replies
+deadline = time.time() + review_window_seconds
+while time.time() < deadline:
+    replies = slack_client.conversations_replies(channel=CHANNEL, ts=message_ts)
+    user_replies = [r for r in replies["messages"] if r.get("user") != BOT_USER_ID]
+    if user_replies:
+        return user_replies[-1]["text"]  # Return latest user feedback
+    time.sleep(30)
+
+return None  # No feedback, proceed autonomously
+```
+
+**Option C: Claude Code hooks → Slack bridge**
+- Configure a Claude Code hook that fires on `git commit` or specific tool calls
+- The hook runs a shell script that posts to Slack
+- Pro: Zero changes to the skills — hooks are external
+- Con: Less control over notification content and timing. Can't implement review windows. Hooks are local config, not portable.
+
+**Option D: GitHub PR comments as notification channel**
+- Instead of Slack, the agent posts status updates as PR comments
+- User replies directly on the PR
+- Agent reads PR comments via `gh api` before proceeding
+- Pro: No Slack setup at all. Everything stays in GitHub. Natural for code review context.
+- Con: Noisier PR history. Not real-time (no push notifications unless GitHub notifications are configured).
+
+### Recommended Progression
+
+1. **Start with Option A** — get visibility. User monitors passively, intervenes in Claude Code session when needed.
+2. **Upgrade to Option B** when the review window pattern proves valuable — adds two-way interaction within Slack.
+3. **Option D** is a good alternative if you prefer keeping everything in GitHub — especially for team use where the PR is the natural communication hub.
+
+### Configuration
+
+```bash
+# Option A: Webhook only (one-way)
+export SLACK_WEBHOOK_URL="https://hooks.slack.com/services/T.../B.../..."
+
+# Option B: Bot with thread interaction (two-way)
+export SLACK_BOT_TOKEN="xoxb-..."
+export SLACK_CHANNEL_ID="C0123456789"
+export SLACK_REVIEW_WINDOW="600"  # seconds to wait for feedback (0 = no wait)
+```
+
+### Skill Integration Points
+
+Where notifications fire in each skill:
+
+**`/iterate-ci-flaky`:**
+- Step 3: `ci_started` — after `/test` comment or push
+- Step 5: `ci_complete` — after CI analysis
+- Step 6: `fix_applied` — after committing fix, before push (with optional review window)
+- Step 7: `flaky_found` — when flakiness detected in confirmation runs
+- Step 8: `iteration_done` — final summary
+- Any step: `blocked` — on REAL_REGRESSION, INFRA_ISSUE, auth failure
+
+**`/iterate-incident-tests`:**
+- Step 10: `fix_applied` — after committing batch (less critical since local runs are fast)
+- Step 12: `flaky_found` — during flakiness probe
+- Step 13: `iteration_done` — final summary
+- Any step: `blocked` — on REAL_REGRESSION
