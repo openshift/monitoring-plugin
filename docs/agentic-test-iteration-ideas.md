@@ -104,12 +104,95 @@ The orchestrator could automatically transition from Phase A to Phase B when loc
 
 ---
 
-## Test Stability Dashboard
+## Test Stability Ledger
 
-**Problem**: Flakiness data is ephemeral — it exists in the agent's report from one run and is lost.
+**Status**: Partially implemented. Ledger file created at `web/cypress/reports/test-stability.md`. Update step added to `/iterate-incident-tests` (Step 14). Still needs to be wired into `/iterate-ci-flaky`.
 
-**Idea**: Persist test stability data across runs in a simple format (CSV, JSON, or markdown table). Track:
-- Test name, last N run results, flakiness rate, last failure date, last fix commit
-- Trend over time: is the test getting more or less stable?
+**Problem**: Flakiness data is ephemeral — it exists in the agent's report from one run and is lost. Next time the agent runs, it has no memory of previous results.
 
-Could be a file in the repo (`docs/test-stability.md`) updated by the agent after each iteration.
+**Design**: A markdown file with embedded machine-readable JSON, updated by both skills after each run.
+
+**Location**: `web/cypress/reports/test-stability.md` — committed to the working branch, travels with the fixes.
+
+**Contents**:
+- Human-readable table: per-test pass rate, trend, last failure reason, fix commit
+- Run history log: date, type (local/CI), branch, pass/fail counts
+- Machine-readable JSON block for programmatic parsing by the agent
+
+**Agent behavior**:
+- Reads the ledger at the start of each run to prioritize — "this test was flaky in last 3 runs, focus here"
+- Updates the ledger after each run with new results
+- Commits the ledger update alongside fixes
+
+---
+
+## Slack Notifications for Long-Running Loops
+
+**Problem**: The CI iteration loop (`/iterate-ci-flaky`) runs for hours (each CI run takes ~2h). The user has no visibility into what the agent is doing until the session ends. By then, multiple fix-push-wait cycles may have happened with no chance for the user to intervene.
+
+**Idea**: Optional Slack notifications at key moments, giving the user a chance to review and influence the next cycle.
+
+### Notification Events
+
+| Event | When | Why the user cares |
+|-------|------|-------------------|
+| `fix_applied` | After committing and pushing a fix | User can review the diff before CI runs. Can reply "redo" or "don't change X" to influence next cycle |
+| `ci_started` | After triggering `/test` or push | Confirmation that the loop is progressing |
+| `ci_complete` | CI run finished (pass or fail) | User knows whether to check in or let it continue |
+| `review_needed` | 5-commit threshold reached or blocking issue | User needs to act |
+| `flaky_found` | Intermittent failure detected | User may have context about why |
+| `blocked` | Agent stopped — REAL_REGRESSION, infra issue, or auth problem | Needs human input to continue |
+| `iteration_done` | Full loop complete with summary | Final status |
+
+### Implementation Options
+
+**Option A: Slack Incoming Webhook** (simplest)
+- User creates a webhook for their channel: Slack → Apps → Incoming Webhooks
+- Set `SLACK_WEBHOOK_URL` in `export-env.sh` or shell environment
+- Agent calls `curl -X POST -H 'Content-type: application/json' -d '{"text":"..."}' $SLACK_WEBHOOK_URL`
+- Pro: No Slack app needed, 5-minute setup
+- Con: One-way — user can't reply to the agent via Slack
+
+**Option B: Slack Bot with interactive messages**
+- A proper Slack app with bot token
+- Sends messages with action buttons: "Approve", "Redo", "Stop"
+- User clicks a button, webhook fires back to the agent
+- Pro: Two-way interaction without leaving Slack
+- Con: Needs a server to receive button callbacks. Possible with a lightweight service or ngrok tunnel
+
+**Option C: Claude Code hooks**
+- Use Claude Code's hook system to trigger notifications on specific events (tool calls, commits)
+- Pro: Native to Claude Code, no external service
+- Con: Hooks are local — would need forwarding to Slack
+
+### Recommended Approach
+
+Start with **Option A** (webhook). It's 5 minutes to set up and covers the primary need: visibility into what the agent is doing. The agent posts, the user reads. If the user wants to intervene, they message the agent directly in the Claude Code session.
+
+The `notify-slack.py` script would:
+- Check if `SLACK_WEBHOOK_URL` is set — if not, skip silently (notifications are optional)
+- Format messages with Slack Block Kit (sections, context with PR link, branch, CI URL)
+- Be called by both skills at key points in the loop
+
+### Configuration
+
+Add to `cypress/export-env.sh`:
+```bash
+export SLACK_WEBHOOK_URL="https://hooks.slack.com/services/T.../B.../..."
+```
+
+Or set globally in `~/.zshrc` if preferred.
+
+### Message Format Example
+
+```
+:wrench: Agent: Fix Applied
+
+Fixed selector timeout in filtering test — `.severity-filter` →
+`[data-test="severity-filter"]`. Pushed to `test/incident-robustness-2026-03-24`.
+
+CI will run automatically. Reply in the agent session if you want to
+change approach before next cycle.
+
+PR #860 | Branch: agentic-test-iteration | CI Run
+```

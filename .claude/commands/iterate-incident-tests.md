@@ -395,6 +395,57 @@ Output a summary:
 - [Whether to merge current fixes or wait]
 ```
 
+### Step 14: Update Stability Ledger
+
+After the final report, update `web/cypress/reports/test-stability.md`.
+
+Read the file and update both sections:
+
+**1. Current Status table** — for each test in this run:
+- If test already in table: update pass rate (rolling average across all recorded runs), update trend
+- If test is new: add a row
+- Pass rate = total passes / total runs across all recorded iterations
+- Trend: compare last 3 runs — improving / stable / degrading
+
+**2. Run History log** — append a new row:
+```
+| {next_number} | {YYYY-MM-DD} | local | {branch} | {total_tests} | {passed} | {failed} | {flaky} | {commit_sha} |
+```
+
+**3. Machine-readable data** — update the JSON block between `STABILITY_DATA_START` and `STABILITY_DATA_END`:
+```json
+{
+  "tests": {
+    "test full title": {
+      "results": ["pass", "pass", "fail", "pass"],
+      "last_failure_reason": "Timed out...",
+      "last_failure_date": "2026-03-23",
+      "fixed_by": "abc1234"
+    }
+  },
+  "runs": [
+    {
+      "date": "2026-03-23",
+      "type": "local",
+      "branch": "test/incident-robustness-2026-03-23",
+      "total": 15,
+      "passed": 15,
+      "failed": 0,
+      "flaky": 0,
+      "commit": "abc1234"
+    }
+  ]
+}
+```
+
+Commit the ledger update together with the final batch of fixes if any, or as a standalone commit:
+```bash
+git add web/cypress/reports/test-stability.md
+```
+```bash
+git commit --no-gpg-sign -m "docs: update test stability ledger — {passed}/{total} passed, {flaky} flaky"
+```
+
 ### Error Handling
 
 - **Cypress crashes** (not just test failures): Check if it's an OOM issue (`--max-old-space-size`), a missing dependency, or a config problem. Report to user.
