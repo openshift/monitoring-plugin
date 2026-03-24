@@ -27,7 +27,7 @@ const MP = {
   operatorName: 'Cluster Monitoring Operator',
 };
 
-describe('Regression: Mixed Severity Interval Boundary Times', { tags: ['@incidents', '@xfail', '@flaky'] }, () => {
+describe('Regression: Mixed Severity Interval Boundary Times', { tags: ['@incidents', '@xfail'] }, () => {
 
   before(() => {
     cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
