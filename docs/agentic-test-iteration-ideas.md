@@ -330,3 +330,133 @@ Where notifications fire in each skill:
 - Step 12: `flaky_found` — during flakiness probe
 - Step 13: `iteration_done` — final summary
 - Any step: `blocked` — on REAL_REGRESSION
+
+---
+
+## Cloud Execution: Long-Running Autonomous Agent
+
+**Problem**: The current setup requires a local machine with an active Claude Code CLI session. Long CI polling (~2h per run) causes session timeouts, and the user must keep a terminal open.
+
+### Option 1: Claude Code Headless Mode (simplest)
+
+Run Claude Code non-interactively without a TTY:
+
+```bash
+claude --print --dangerously-skip-permissions \
+  -p "/iterate-ci-flaky pr=860 confirm-runs=5"
+```
+
+- `--print` / `-p`: non-interactive, outputs result and exits
+- `--dangerously-skip-permissions`: skips all approval prompts (use only in sandboxed environments)
+- Can run in `tmux`, `nohup`, GitHub Actions, or any CI runner
+- Uses the same tools, skills, and CLAUDE.md as interactive mode
+- Limitation: single-shot execution — runs the prompt and exits
+
+**Deployment**: `nohup claude --print ... > output.log 2>&1 &` on any machine, or in a GitHub Actions runner.
+
+### Option 2: Claude Agent SDK (most flexible)
+
+The Agent SDK (`@anthropic-ai/claude-code`) is a Node.js/TypeScript library that embeds Claude Code as a programmable agent:
+
+```typescript
+import { Claude } from "@anthropic-ai/claude-code";
+
+const claude = new Claude({
+  dangerouslySkipPermissions: true,
+});
+
+const result = await claude.message({
+  prompt: "/iterate-ci-flaky pr=860 confirm-runs=5",
+  workingDirectory: "/path/to/monitoring-plugin",
+});
+
+// Post result as PR comment
+await octokit.issues.createComment({
+  owner: "openshift", repo: "monitoring-plugin",
+  issue_number: 860, body: result.text,
+});
+```
+
+#### SDK vs CLI comparison
+
+| Aspect | CLI (`claude`) | Agent SDK |
+|--------|---------------|-----------|
+| Runtime | Terminal process | Node.js library |
+| Lifecycle | Single session, exits | Embed in any long-lived process |
+| Event-driven | No | Yes — webhooks, timers, PR events |
+| Permissions | Interactive prompts or skip-all | Programmatic control |
+| Tools | Built-in (Read, Write, Bash, etc.) | Same built-in + custom tools |
+| State | Session-scoped | Persistent (DB, files, etc.) |
+| Deployment | Local terminal | Anywhere Node.js runs |
+
+#### Requirements to port current skills
+
+- Node.js runtime with `@anthropic-ai/claude-code`
+- `ANTHROPIC_API_KEY` environment variable
+- `gh` CLI authenticated (or GitHub App token for comment access)
+- Git + SSH for pushing to fork
+- The repo cloned in the agent's working directory
+- All skill files (`.claude/commands/`) present in the clone
+
+#### What stays the same
+
+- Skills (`.md` files) — the SDK reads them from `.claude/commands/`
+- Polling script (`poll-ci-status.py`) — SDK runs Bash the same way
+- `/diagnose-test-failure`, `/analyze-ci-results` — all work as-is
+- File editing, git operations, Cypress execution — identical
+
+#### What changes
+
+- No permission prompts — `dangerouslySkipPermissions` in a sandboxed container
+- State between runs — persist to file or DB instead of ephemeral session
+- Triggering — webhook handler calls the SDK instead of user typing a command
+- Error recovery — the wrapping process can catch failures and retry
+
+### Option 3: GitHub Actions Workflow (cloud, event-driven)
+
+A GitHub Actions workflow that runs the agent on PR events:
+
+```yaml
+name: Flaky Test Iteration
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  iterate:
+    if: contains(github.event.comment.body, '/run-flaky-iteration')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+      - name: Install Claude Code
+        run: npm install -g @anthropic-ai/claude-code
+      - name: Run iteration
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          claude --print --dangerously-skip-permissions \
+            -p "/iterate-ci-flaky pr=${{ github.event.issue.number }} confirm-runs=3"
+      - name: Post results
+        run: gh pr comment ${{ github.event.issue.number }} --body-file output.md
+```
+
+**Flow**:
+1. User comments `/run-flaky-iteration` on a PR
+2. GitHub Actions triggers the workflow
+3. Claude Code runs in headless mode on the Actions runner
+4. Agent executes the full iteration loop (trigger CI, wait, analyze, fix, push)
+5. Results posted back as a PR comment
+
+**Considerations**:
+- GitHub Actions runners have a 6h timeout — enough for 2-3 CI runs
+- Needs `ANTHROPIC_API_KEY` and `GH_TOKEN` as repository secrets
+- Runner needs SSH key for git push (or use `GH_TOKEN` with HTTPS)
+- Cost: API tokens consumed + GitHub Actions minutes
+
+### Recommendation
+
+1. **Start with headless mode** (`tmux` + `--print`) to validate the flow works without interactive prompts
+2. **Move to GitHub Actions** for true cloud execution — event-driven, no local machine needed
+3. **Agent SDK** when you want a custom orchestrator with richer state management, error recovery, or Slack integration beyond what the skills provide
