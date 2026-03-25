@@ -17,6 +17,9 @@ parameters:
   - name: focus
     description: "Optional: focus analysis on specific test area (e.g., 'regression', 'filtering')"
     required: false
+  - name: review-window
+    description: "Seconds to wait for user feedback after posting fix to Slack before pushing (default: 0 = no wait). Requires Option B Slack setup."
+    required: false
 ---
 
 # Iterate CI Flaky Tests
@@ -75,7 +78,28 @@ Required in `.claude/settings.local.json`:
 }
 ```
 
-### 3. Unsigned Commits
+### 3. Slack Notifications (optional)
+
+Notifications are optional — if not configured, the script prints to stdout and the loop continues normally.
+
+**Option A (one-way — webhook):**
+```bash
+export SLACK_WEBHOOK_URL="https://hooks.slack.com/services/T.../B.../..."
+```
+Setup: Slack → Apps → Incoming Webhooks → create webhook for your channel.
+
+**Option B (two-way — bot with thread replies):**
+```bash
+export SLACK_BOT_TOKEN="xoxb-..."
+export SLACK_CHANNEL_ID="C0123456789"
+```
+Setup: Create a Slack App at api.slack.com/apps with scopes `chat:write`, `channels:history`. Install to workspace. Invite the bot to the target channel.
+
+Option B enables the `review-window` parameter — after posting a fix, the agent waits for your reply in the Slack thread before pushing.
+
+Both can be set in `cypress/export-env.sh` or `~/.zshrc`.
+
+### 4. Unsigned Commits
 
 Same as `/iterate-incident-tests` — all commits use `--no-gpg-sign`. They live on a PR branch and are squash-merged by the user.
 
@@ -138,7 +162,10 @@ Note: If you just pushed a commit in Step 6, the push automatically triggers Pro
 - Retriggering without code changes (flakiness retry)
 - The initial run if none exists
 
-After triggering, proceed to Step 4.
+After triggering, notify and proceed to Step 4:
+```bash
+python3 .claude/commands/cypress/scripts/notify-slack.py send ci_started "CI triggered for PR #{pr}. Polling for results (~2h)." --pr {pr} --branch {headRefName}
+```
 
 ### Step 4: Wait for CI Completion
 
@@ -182,6 +209,23 @@ Run `/analyze-ci-results` (or follow its instructions inline):
 | `MOCK_ISSUE` | Diagnose and fix locally (Step 6) |
 | `CODE_REGRESSION` | Report to user and **STOP** |
 
+Notify after analysis:
+
+If failures:
+```bash
+python3 .claude/commands/cypress/scripts/notify-slack.py send ci_failed "{N} failures found: {test_names}. Diagnosing..." --pr {pr} --branch {headRefName} --url {ci_url}
+```
+
+If all green:
+```bash
+python3 .claude/commands/cypress/scripts/notify-slack.py send ci_complete "All tests passed. Starting flakiness confirmation." --pr {pr} --branch {headRefName} --url {ci_url}
+```
+
+If `CODE_REGRESSION` or `INFRA_*` blocks the loop:
+```bash
+python3 .claude/commands/cypress/scripts/notify-slack.py send blocked "{classification}: {description}. Agent stopped — needs human input." --pr {pr} --branch {headRefName}
+```
+
 If **all green** (SUCCESS): Proceed to Step 7 (flakiness confirmation).
 
 ### Step 6: Fix and Push
@@ -196,7 +240,7 @@ For each fixable failure:
    ```bash
    source cypress/export-env.sh && npx cypress run --spec "{SPEC}" --env grep="{TEST_NAME}"
    ```
-4. **Commit and push**:
+4. **Commit**:
    ```bash
    git add {files}
    ```
@@ -208,6 +252,26 @@ For each fixable failure:
 
    Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
    ```
+
+5. **Notify and review window** (before pushing):
+
+   Post the fix details to Slack:
+   ```bash
+   python3 .claude/commands/cypress/scripts/notify-slack.py send fix_applied "*What changed:*\n• {file}: {change_description}\n\n*Why:* {diagnosis_summary}\n*Classification:* {classification} (confidence: {confidence})\n\n`git diff HEAD~1` on branch `{headRefName}`" --pr {pr} --branch {headRefName}
+   ```
+
+   If `review-window` > 0 and Option B is configured, wait for user feedback:
+   ```bash
+   python3 .claude/commands/cypress/scripts/notify-slack.py wait {MESSAGE_TS} --timeout {review-window}
+   ```
+
+   Parse the output:
+   - `REPLY=<text>`: User provided feedback. Read the reply text and adjust the fix accordingly. This may mean:
+     - Reverting the commit (`git reset --soft HEAD~1`), applying the user's suggestion, and re-committing
+     - Or making an additional commit on top with the adjustment
+   - `NO_REPLY`: No feedback within the window. Proceed with push.
+
+6. **Push**:
    ```bash
    git push origin {headRefName}
    ```
@@ -281,6 +345,38 @@ Stability Report:
 
 ## Recommendations
 - {merge / needs more investigation / etc.}
+```
+
+After generating the report, send the final notification:
+```bash
+python3 .claude/commands/cypress/scripts/notify-slack.py send iteration_done "Iteration complete: {passed}/{total} passed, {flaky} flaky, {iterations} cycles.\n\n{short_summary}" --pr {pr} --branch {headRefName}
+```
+
+### Step 9: Update Stability Ledger
+
+After the final report, update `web/cypress/reports/test-stability.md`.
+
+Read the file and update both sections:
+
+**1. Current Status table** — for each test in this run:
+- If test already in table: update pass rate, update trend
+- If test is new: add a row
+- Pass rate = total passes / total runs across all recorded iterations
+- Trend: compare last 3 runs — improving / stable / degrading
+
+**2. Run History log** — append a new row:
+```
+| {next_number} | {YYYY-MM-DD} | ci | {branch} | {total_tests} | {passed} | {failed} | {flaky} | {commit_sha} |
+```
+
+**3. Machine-readable data** — update the JSON block between `STABILITY_DATA_START` and `STABILITY_DATA_END` with the new run data.
+
+Commit:
+```bash
+git add web/cypress/reports/test-stability.md
+```
+```bash
+git commit --no-gpg-sign -m "docs: update test stability ledger — {passed}/{total} passed, {flaky} flaky (CI)"
 ```
 
 ## Error Handling
