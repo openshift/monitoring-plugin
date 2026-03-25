@@ -128,6 +128,8 @@ The orchestrator could automatically transition from Phase A to Phase B when loc
 
 ## Slack Notifications for Long-Running Loops
 
+**Status**: Implemented. Slack webhook notifications (Option A) integrated into `/iterate-ci-flaky`. GitHub PR comment-based review flow implemented as the two-way interaction channel (`review-github.py`). Option B (Slack bot with thread replies) documented but deprioritized due to internal setup complexity.
+
 ### The Problem
 
 The CI iteration loop (`/iterate-ci-flaky`) runs for hours — each CI run takes ~2h, and the loop may do 3-5 fix-push-wait cycles. During that time:
