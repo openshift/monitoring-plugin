@@ -1,8 +1,14 @@
 /* eslint-disable max-len */
 
-import { PrometheusEndpoint, PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  consoleFetchJSON,
+  PrometheusEndpoint,
+  PrometheusResponse,
+} from '@openshift-console/dynamic-plugin-sdk';
 import { getPrometheusBasePath, buildPrometheusUrl } from '../utils';
 import { PROMETHEUS_QUERY_INTERVAL_SECONDS } from './utils';
+
+const NO_TIMEOUT = -1;
 /**
  * Creates a Prometheus alerts query string from grouped alert values.
  * The function dynamically includes any properties in the input objects that have the "src_" prefix,
@@ -96,5 +102,5 @@ export const fetchDataForIncidentsAndAlerts = (
     });
   }
 
-  return fetch(url);
+  return consoleFetchJSON(url, 'GET', {}, NO_TIMEOUT);
 };
