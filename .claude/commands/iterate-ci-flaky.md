@@ -78,26 +78,34 @@ Required in `.claude/settings.local.json`:
 }
 ```
 
-### 3. Slack Notifications (optional)
+### 3. Notifications & Review (optional)
 
-Notifications are optional — if not configured, the script prints to stdout and the loop continues normally.
+Notifications and review are optional — if not configured, the script prints to stdout and the loop continues normally.
 
-**Option A (one-way — webhook):**
+**Slack Notifications (one-way):**
 ```bash
 export SLACK_WEBHOOK_URL="https://hooks.slack.com/services/T.../B.../..."
 ```
-Setup: Slack → Apps → Incoming Webhooks → create webhook for your channel.
+Setup: Slack → Apps → Incoming Webhooks → create webhook for your channel. 5 minutes.
+Provides one-way status notifications at key events (ci_started, ci_failed, fix_applied, etc.).
 
-**Option B (two-way — bot with thread replies):**
-```bash
-export SLACK_BOT_TOKEN="xoxb-..."
-export SLACK_CHANNEL_ID="C0123456789"
-```
-Setup: Create a Slack App at api.slack.com/apps with scopes `chat:write`, `channels:history`. Install to workspace. Invite the bot to the target channel.
+**GitHub PR Comment Review (two-way):**
 
-Option B enables the `review-window` parameter — after posting a fix, the agent waits for your reply in the Slack thread before pushing.
+The `review-window` parameter enables a two-way review flow using GitHub PR comments. When a fix is ready:
 
-Both can be set in `cypress/export-env.sh` or `~/.zshrc`.
+1. Agent posts fix details as a PR comment (via `review-github.py post`)
+2. Agent also sends a Slack webhook notification (if configured)
+3. Agent waits `review-window` seconds for a reply from the **PR author only**
+4. If the author replies on the PR — agent reads the feedback and adjusts the fix
+5. If no reply within the window — agent proceeds autonomously
+
+**Security**: Author filtering is **code-enforced** in `review-github.py` — only comments where `.user.login` matches the PR author are considered. This is deterministic, not instruction-based.
+
+**How to reply**: Post a regular comment on the PR. The agent only reads comments from the PR author posted after the agent's notification. Optionally prefix with `/agent` for clarity.
+
+No additional setup needed beyond `gh auth` (Step 1) — the same token used for `/test` comments is used for posting and reading review comments.
+
+Both Slack webhook URL and review-window can be set in `cypress/export-env.sh` or `~/.zshrc`.
 
 ### 4. Unsigned Commits
 
@@ -255,21 +263,30 @@ For each fixable failure:
 
 5. **Notify and review window** (before pushing):
 
-   Post the fix details to Slack:
+   **a) Slack notification** (one-way, if configured):
    ```bash
    python3 .claude/commands/cypress/scripts/notify-slack.py send fix_applied "*What changed:*\n• {file}: {change_description}\n\n*Why:* {diagnosis_summary}\n*Classification:* {classification} (confidence: {confidence})\n\n`git diff HEAD~1` on branch `{headRefName}`" --pr {pr} --branch {headRefName}
    ```
 
-   If `review-window` > 0 and Option B is configured, wait for user feedback:
+   **b) GitHub PR review comment** (two-way, if `review-window` > 0):
+
+   Post fix details as a PR comment:
    ```bash
-   python3 .claude/commands/cypress/scripts/notify-slack.py wait {MESSAGE_TS} --timeout {review-window}
+   python3 .claude/commands/cypress/scripts/review-github.py post {pr} "**What changed:**\n• {file}: {change_description}\n\n**Why:** {diagnosis_summary}\n**Classification:** {classification} (confidence: {confidence})\n\n\`git diff HEAD~1\` on branch \`{headRefName}\`"
+   ```
+
+   Capture `COMMENT_TIME` from the output, then wait for author reply:
+   ```bash
+   python3 .claude/commands/cypress/scripts/review-github.py wait {pr} {COMMENT_TIME} --timeout {review-window}
    ```
 
    Parse the output:
-   - `REPLY=<text>`: User provided feedback. Read the reply text and adjust the fix accordingly. This may mean:
+   - `REPLY=<text>`: PR author provided feedback. Read the reply text and adjust the fix accordingly. This may mean:
      - Reverting the commit (`git reset --soft HEAD~1`), applying the user's suggestion, and re-committing
      - Or making an additional commit on top with the adjustment
    - `NO_REPLY`: No feedback within the window. Proceed with push.
+
+   **Note**: The `wait` command only considers comments from the PR author (`.user.login` match, code-enforced). Comments from other users or bots are ignored.
 
 6. **Push**:
    ```bash
