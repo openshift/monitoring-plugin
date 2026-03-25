@@ -69,6 +69,7 @@ Cypress.Commands.add('waitUntilWithCustomTimeout', (
         cy.get(Classes.NamespaceDropdown).scrollIntoView().should('be.visible').click({force: true});
       }
     });
+    cy.wait(3000);
     cy.get('body').then(($body) => {
       const hasShowSystemSwitch = $body.find('[data-test="'+DataTestIDs.NamespaceDropdownShowSwitch+'"]').length > 0;
       if (hasShowSystemSwitch) {
@@ -80,6 +81,7 @@ Cypress.Commands.add('waitUntilWithCustomTimeout', (
         });
       }
     });
+    cy.wait(3000);
     cy.byTestID(DataTestIDs.NamespaceDropdownTextFilter).type(namespace, {delay: 150});
     cy.byTestID(DataTestIDs.NamespaceDropdownMenuLink).contains(namespace).should('be.visible');
     cy.byTestID(DataTestIDs.NamespaceDropdownMenuLink).contains(namespace).should('be.visible').click({force: true});
