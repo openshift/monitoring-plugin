@@ -338,6 +338,8 @@
   "No Units": "No Units",
   "Metrics": "Metrics",
   "This dropdown only formats results.": "This dropdown only formats results.",
+  "Add To Dashboard": "Add To Dashboard",
+  "Query: {{query}}": "Query: {{query}}",
   "graph timespan": "graph timespan",
   "Reset zoom": "Reset zoom",
   "Displaying with reduced resolution due to large dataset.": "Displaying with reduced resolution due to large dataset.",
