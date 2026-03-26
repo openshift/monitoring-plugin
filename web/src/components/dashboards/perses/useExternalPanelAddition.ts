@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useDashboardActions, useDashboardStore } from '@perses-dev/dashboards';
 import { dashboardsOpened, dashboardsPersesPanelExternallyAdded } from '../../../store/actions';
@@ -20,20 +20,23 @@ export function useExternalPanelAddition({
   const dashboardStore = useDashboardStore();
   const [externallyAddedPanel, setExternallyAddedPanel] = useState(null);
 
-  const addPanelExternally = (panelDefinition: any): void => {
-    // Simulate opening a panel to add the pane so that we can use it to programatically
-    // add a panel to the dashboard from an external source (AI assistant).
-    if (!isEditMode) {
-      onEditButtonClick();
-    }
-    openAddPanel();
-    // Wrap the panelDefinition with the groupId structure
-    const change = {
-      groupId: 0,
-      panelDefinition,
-    };
-    setExternallyAddedPanel(change);
-  };
+  const addPanelExternally = useCallback(
+    (panelDefinition: any): void => {
+      // Simulate opening a panel to add the pane so that we can use it to programatically
+      // add a panel to the dashboard from an external source (AI assistant).
+      if (!isEditMode) {
+        onEditButtonClick();
+      }
+      openAddPanel();
+      // Wrap the panelDefinition with the groupId structure
+      const change = {
+        groupId: 0,
+        panelDefinition,
+      };
+      setExternallyAddedPanel(change);
+    },
+    [isEditMode, onEditButtonClick, openAddPanel],
+  );
 
   useEffect(() => {
     // Listen for external panel addition requests
@@ -55,7 +58,14 @@ export function useExternalPanelAddition({
       // Clear the externally added panel after applying changes
       setExternallyAddedPanel(null);
     }
-  }, [externallyAddedPanel, addPersesPanelExternally]);
+  }, [
+    dispatch,
+    dashboardStore.panelGroupOrder,
+    dashboardStore.panelEditor,
+    externallyAddedPanel,
+    addPanelExternally,
+    addPersesPanelExternally,
+  ]);
 
   // Advertise when custom dashboard is opened/closed
   useEffect(() => {
