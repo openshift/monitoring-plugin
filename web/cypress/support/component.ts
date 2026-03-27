@@ -18,3 +18,18 @@ declare global {
 }
 
 Cypress.Commands.add('mount', mount);
+
+// Mock react-i18next for all component tests: returns the key with {{interpolations}} replaced
+const mockT = (key: string, opts?: Record<string, string>) => {
+  if (opts) {
+    return Object.entries(opts).reduce(
+      (result, [k, v]) => result.replace(`{{${k}}}`, v),
+      key,
+    );
+  }
+  return key;
+};
+
+beforeEach(() => {
+  cy.stub(require('react-i18next'), 'useTranslation').returns({ t: mockT });
+});
