@@ -1,14 +1,4 @@
-import React from 'react';
 import { Labels } from '../../src/components/labels';
-
-// Mock react-i18next to return the key as-is
-const mockT = (key: string) => key;
-const mockUseTranslation = () => ({ t: mockT });
-
-// Stub the module before import
-beforeEach(() => {
-  cy.stub(require('react-i18next'), 'useTranslation').returns(mockUseTranslation());
-});
 
 describe('Labels', () => {
   it('renders "No labels" when labels is empty', () => {

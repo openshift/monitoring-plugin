@@ -3,7 +3,7 @@ import * as fs from 'fs-extra';
 import * as console from 'console';
 import * as path from 'path';
 import registerCypressGrep from '@cypress/grep/src/plugin';
-import { DefinePlugin } from 'webpack';
+import { DefinePlugin, NormalModuleReplacementPlugin } from 'webpack';
 
 export default defineConfig({
   screenshotsFolder: './cypress/screenshots',
@@ -167,6 +167,11 @@ export default defineConfig({
       webpackConfig: {
         resolve: {
           extensions: ['.ts', '.tsx', '.js', '.jsx'],
+          alias: {
+            '@perses-dev/plugin-system': path.resolve(__dirname, 'cypress/component/mocks/perses-plugin-system.tsx'),
+            '@perses-dev/dashboards': path.resolve(__dirname, 'cypress/component/mocks/perses-dashboards.tsx'),
+            '@perses-dev/prometheus-plugin': path.resolve(__dirname, 'cypress/component/mocks/perses-prometheus-plugin.ts'),
+          },
         },
         module: {
           rules: [
@@ -198,6 +203,14 @@ export default defineConfig({
           new DefinePlugin({
             'process.env.I18N_NAMESPACE': JSON.stringify('plugin__monitoring-plugin'),
           }),
+          new NormalModuleReplacementPlugin(
+            /helpers\/OlsToolUIPersesWrapper/,
+            path.resolve(__dirname, 'cypress/component/mocks/OlsToolUIPersesWrapper.tsx'),
+          ),
+          new NormalModuleReplacementPlugin(
+            /helpers\/AddToDashboardButton/,
+            path.resolve(__dirname, 'cypress/component/mocks/AddToDashboardButton.tsx'),
+          ),
         ],
       },
     },
