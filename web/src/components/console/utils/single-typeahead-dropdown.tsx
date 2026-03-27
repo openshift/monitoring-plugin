@@ -404,7 +404,7 @@ export const SingleTypeaheadDropdown: React.FC<SingleTypeaheadDropdownProps> = (
       <SelectList id={`${ID_PREFIX}-listbox`}>
         {filteredSelectOptions.map((v, k) => {
           const SelectOptionComponent =
-            v.value === CREATE_NEW ? SelectOption : OptionComponent ?? SelectOption;
+            v.value === CREATE_NEW ? SelectOption : (OptionComponent ?? SelectOption);
 
           return (
             <SelectOptionComponent
