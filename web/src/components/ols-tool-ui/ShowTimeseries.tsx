@@ -1,27 +1,27 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { DataQueriesProvider } from '@perses-dev/plugin-system';
-import type { DurationString } from '@perses-dev/prometheus-plugin';
 import { Panel } from '@perses-dev/dashboards';
 
 import { OlsToolUIPersesWrapper } from './helpers/OlsToolUIPersesWrapper';
 import { AddToDashboardButton } from './helpers/AddToDashboardButton';
+import { useTimeRange } from './helpers/useTimeRange';
 
 type ExecuteRangeQueryTool = {
   args: {
     title: string;
     description: string;
     query: string;
+    start?: string;
+    end?: string;
+    duration?: string;
   };
-};
-
-const persesTimeRange = {
-  pastDuration: '1h' as DurationString,
 };
 
 export const ShowTimeseries: React.FC<{ tool: ExecuteRangeQueryTool }> = ({ tool }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { query, title, description } = tool.args;
+  const { query, title, description, start, end, duration } = tool.args;
+  const timeRange = useTimeRange(start, end, duration);
   const queryDescription = t('Query: {{query}}', { query: query });
   const definitions = [
     {
@@ -34,7 +34,7 @@ export const ShowTimeseries: React.FC<{ tool: ExecuteRangeQueryTool }> = ({ tool
 
   return (
     <>
-      <OlsToolUIPersesWrapper initialTimeRange={persesTimeRange}>
+      <OlsToolUIPersesWrapper initialTimeRange={timeRange}>
         <DataQueriesProvider
           definitions={definitions}
           options={{ suggestedStepMs: 15000, mode: 'range' }}
