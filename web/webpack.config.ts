@@ -100,6 +100,9 @@ const config: Configuration = {
     chunkIds: 'named',
     minimize: false,
   },
+  stats: {
+    errorDetails: true,
+  },
 };
 
 if (process.env.NODE_ENV === 'production') {

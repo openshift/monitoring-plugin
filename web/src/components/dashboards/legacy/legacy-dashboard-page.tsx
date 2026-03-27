@@ -1,7 +1,7 @@
 import { NamespaceBar, Overview } from '@openshift-console/dynamic-plugin-sdk';
 import type { FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useParams } from 'react-router-dom-v5-compat';
+import { useParams } from 'react-router';
 import { LoadingInline } from '../../../components/console/console-shared/src/components/loading/LoadingInline';
 import withFallback from '../../console/console-shared/error/fallbacks/withFallback';
 import { usePerspective } from '../../hooks/usePerspective';

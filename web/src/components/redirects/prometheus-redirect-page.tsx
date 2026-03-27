@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import { Navigate } from 'react-router-dom-v5-compat';
+import { Navigate } from 'react-router';
 import { getAllQueryArguments } from '../console/utils/router';
 import { usePerspective } from '../hooks/usePerspective';
 

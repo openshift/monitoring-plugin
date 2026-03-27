@@ -1,7 +1,7 @@
 import { useMemo, useCallback, useRef } from 'react';
 
 import { DashboardResource } from '@perses-dev/core';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { useNavigate } from 'react-router';
 import { StringParam, useQueryParam } from 'use-query-params';
 import { getAllQueryArguments } from '../../../console/utils/router';
 import { useBoolean } from '../../../hooks/useBoolean';

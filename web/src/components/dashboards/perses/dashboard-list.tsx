@@ -23,7 +23,7 @@ import { DataViewToolbar } from '@patternfly/react-data-view/dist/dynamic/DataVi
 import { useDataViewFilters, useDataViewSort } from '@patternfly/react-data-view';
 import { useDataViewPagination } from '@patternfly/react-data-view/dist/dynamic/Hooks';
 import { ActionsColumn, ThProps } from '@patternfly/react-table';
-import { Link, useSearchParams } from 'react-router-dom-v5-compat';
+import { Link, useSearchParams } from 'react-router';
 
 import { getDashboardUrl, usePerspective } from '../../hooks/usePerspective';
 import { Timestamp } from '@openshift-console/dynamic-plugin-sdk';

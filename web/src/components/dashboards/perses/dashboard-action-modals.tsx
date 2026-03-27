@@ -43,7 +43,7 @@ import { generateMetadataName } from './dashboard-utils';
 import { useEditableProjects } from './hooks/useEditableProjects';
 import { usePerses } from './hooks/usePerses';
 import { t_global_spacer_200, t_global_font_weight_200 } from '@patternfly/react-tokens';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { useNavigate } from 'react-router';
 import { usePerspective, getDashboardUrl } from '../../hooks/usePerspective';
 
 const formGroupStyle = {

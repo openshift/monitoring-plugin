@@ -2,7 +2,7 @@ import * as _ from 'lodash-es';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { useNavigate } from 'react-router';
 import { NumberParam, useQueryParam } from 'use-query-params';
 import {
   DashboardsClearVariables,
@@ -85,7 +85,7 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
 
     return data?.rows?.length
       ? data.rows
-      : data?.panels?.reduce((acc, panel) => {
+      : (data?.panels?.reduce((acc, panel) => {
           if (panel.type === 'row') {
             acc.push(_.cloneDeep(panel));
           } else if (acc.length === 0) {
@@ -98,7 +98,7 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
             row.panels.push(panel);
           }
           return acc;
-        }, []) ?? [];
+        }, []) ?? []);
   }, [urlBoard, legacyDashboards]);
 
   // Homogenize data needed for dashboards dropdown between legacy and perses dashboards

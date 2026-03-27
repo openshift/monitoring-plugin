@@ -927,8 +927,8 @@ export const QueryTable: FC<QueryTableProps> = ({ index, namespace, customDataso
                           typeof cell === 'string' ? cell : cell?.title,
                         )
                       : typeof cell === 'string'
-                      ? cell
-                      : cell?.title}
+                        ? cell
+                        : cell?.title}
                   </Td>
                 ))}
               </Tr>
@@ -1323,6 +1323,7 @@ const GraphUnitsDropDown: FC = () => {
 const MetricsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const [units, setUnits] = useQueryParam(QueryParams.Units, StringParam);
+  const [customDataSourceName] = useQueryParam(QueryParams.Datasource, StringParam);
   const { setNamespace } = useMonitoringNamespace();
   const { displayNamespaceSelector } = useMonitoring();
 
@@ -1342,7 +1343,6 @@ const MetricsPage_: FC = () => {
   }, [dispatch]);
   const [customDataSource, setCustomDataSource] = useState<CustomDataSource>(undefined);
   const [customDataSourceIsResolved, setCustomDataSourceIsResolved] = useState<boolean>(false);
-  const customDataSourceName = getQueryArgument(QueryParams.Datasource);
   const [extensions, extensionsResolved] = useResolvedExtensions<DataSource>(isDataSource);
   const hasExtensions = !_.isEmpty(extensions);
   const [customDatasourceError, setCustomDataSourceError] = useState(false);

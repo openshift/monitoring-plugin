@@ -3,7 +3,7 @@ import * as _ from 'lodash-es';
 import type { FC, RefObject, Ref } from 'react';
 import { forwardRef } from 'react';
 import { connect } from 'react-redux';
-import { Link } from 'react-router-dom-v5-compat';
+import { Link } from 'react-router';
 import { Title } from '@patternfly/react-core';
 
 import { getMutlipleQueryBrowserUrl, usePerspective } from '../../hooks/usePerspective';

@@ -28,7 +28,7 @@ import { OCPDashboardToolbar } from './dashboard-toolbar';
 import { useUpdateDashboardMutation } from './dashboard-api';
 import { useTranslation } from 'react-i18next';
 import { useToast } from './ToastProvider';
-import { useSearchParams } from 'react-router-dom-v5-compat';
+import { useSearchParams } from 'react-router';
 
 export interface DashboardAppProps {
   dashboardResource: DashboardResource | EphemeralDashboardResource;

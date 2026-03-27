@@ -48,7 +48,7 @@ import * as _ from 'lodash-es';
 import type { FC, ReactNode } from 'react';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom-v5-compat';
+import { Link } from 'react-router';
 import { NamespaceModel } from '../console/models';
 import { getQueryBrowserUrl, usePerspective } from '../hooks/usePerspective';
 import { useMonitoringNamespace } from '../hooks/useMonitoringNamespace';

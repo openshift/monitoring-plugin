@@ -16,7 +16,7 @@ import type { FC, ReactNode } from 'react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
-import { Link, useNavigate, useParams } from 'react-router-dom-v5-compat';
+import { Link, useNavigate, useParams } from 'react-router';
 import { ExternalLink, LinkifyExternal } from '../console/utils/link';
 import { getAllQueryArguments } from '../console/utils/router';
 import {
