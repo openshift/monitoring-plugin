@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router';
-import { NumberParam, useQueryParam } from 'use-query-params';
+import { NumberParam, useQueryParam, useQueryParams } from 'use-query-params';
 import {
   DashboardsClearVariables,
   dashboardsPatchAllVariables,
@@ -11,7 +11,6 @@ import {
   dashboardsSetPollInterval,
   dashboardsSetTimespan,
 } from '../../../store/actions';
-import { getAllQueryArguments, getQueryArgument } from '../../console/utils/router';
 import { useSafeFetch } from '../../console/utils/safe-fetch-hook';
 import { useBoolean } from '../../hooks/useBoolean';
 import { getLegacyDashboardsUrl, usePerspective } from '../../hooks/usePerspective';
@@ -37,6 +36,7 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
   const [initialLoad, , , setInitialLoaded] = useBoolean(true);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [queryParams] = useQueryParams();
 
   useEffect(() => {
     safeFetch<any>('/api/console/monitoring-dashboard-config')
@@ -79,6 +79,7 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
     };
     return _.sortBy(_.map(items, getBoardData), (v) => _.toLower(v?.data?.title));
   }, [namespace, unfilteredLegacyDashboards, setLegacyDashboardsError, t]);
+  const allVariablesCallback = useAllVariables(legacyDashboards, namespace);
 
   const legacyRows = useMemo(() => {
     const data = _.find(legacyDashboards, { name: urlBoard })?.data;
@@ -123,10 +124,7 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
         return;
       }
 
-      const allVariables = getAllVariables(legacyDashboards, newBoard, namespace);
-
-      const queryArguments = getAllQueryArguments();
-      const params = new URLSearchParams(queryArguments);
+      const params = new URLSearchParams(queryParams);
 
       const url = getLegacyDashboardsUrl(perspective, newBoard, namespace);
 
@@ -136,7 +134,7 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
           navigate(`${url}?${params.toString()}`, { replace: true });
         }
 
-        dispatch(dashboardsPatchAllVariables(allVariables));
+        dispatch(dashboardsPatchAllVariables(allVariablesCallback(newBoard)));
 
         // Set time range and poll interval options to their defaults or from the query params if
         // available
@@ -151,7 +149,16 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
         );
       }
     },
-    [perspective, urlBoard, dispatch, navigate, namespace, legacyDashboards, refreshInterval],
+    [
+      perspective,
+      urlBoard,
+      dispatch,
+      navigate,
+      namespace,
+      refreshInterval,
+      queryParams,
+      allVariablesCallback,
+    ],
   );
 
   useEffect(() => {
@@ -173,10 +180,9 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
 
     const currentBoard = urlBoard || legacyDashboards?.[0]?.name;
     if (currentBoard) {
-      const allVariables = getAllVariables(legacyDashboards, currentBoard, namespace);
-      dispatch(dashboardsPatchAllVariables(allVariables));
+      dispatch(dashboardsPatchAllVariables(allVariablesCallback(currentBoard)));
     }
-  }, [namespace, legacyDashboards, urlBoard, dispatch, initialLoad]);
+  }, [namespace, legacyDashboards, urlBoard, dispatch, initialLoad, allVariablesCallback]);
 
   // Clear variables on unmount
   useEffect(() => {
@@ -196,39 +202,41 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
   };
 };
 
-const getAllVariables = (boards: Board[], newBoardName: string, namespace: string) => {
-  const data = _.find(boards, { name: newBoardName })?.data;
+const useAllVariables = (boards: Board[], namespace: string) => {
+  const [params] = useQueryParams();
 
-  const allVariables = {};
-  _.each(data?.templating?.list, (v) => {
-    if (v.type === 'query' || v.type === 'interval') {
-      // Look for query param that is equal to the variable name
-      let value = getQueryArgument(v.name);
+  return (newBoardName: string) => {
+    const data = _.find(boards, { name: newBoardName })?.data;
+    const allVariables = {};
+    _.each(data?.templating?.list, (v) => {
+      if (v.type === 'query' || v.type === 'interval') {
+        // Look for query param that is equal to the variable name
+        let value = params?.v.name;
 
-      // Look for an option that should be selected by default
-      if (value === null) {
-        value = _.find(v.options, { selected: true })?.value;
+        // Look for an option that should be selected by default
+        if (value === null) {
+          value = _.find(v.options, { selected: true })?.value;
+        }
+
+        // If no default option was found, default to "All" (if present)
+        if (value === undefined && v.includeAll) {
+          value = MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY;
+        }
+
+        allVariables[v.name] = {
+          datasource: v.datasource,
+          includeAll: !!v.includeAll,
+          isHidden:
+            v.name === 'namespace' && namespace !== ALL_NAMESPACES_KEY ? true : v.hide !== 0,
+          isLoading: v.name === 'namespace' ? false : v.type === 'query',
+          options: _.map(v.options, 'value'),
+          query: v.type === 'query' ? v.query : undefined,
+          value:
+            v.name === 'namespace' && namespace !== ALL_NAMESPACES_KEY
+              ? namespace
+              : value || v.options?.[0]?.value,
+        };
       }
-
-      // If no default option was found, default to "All" (if present)
-      if (value === undefined && v.includeAll) {
-        value = MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY;
-      }
-
-      allVariables[v.name] = {
-        datasource: v.datasource,
-        includeAll: !!v.includeAll,
-        isHidden: v.name === 'namespace' && namespace !== ALL_NAMESPACES_KEY ? true : v.hide !== 0,
-        isLoading: v.name === 'namespace' ? false : v.type === 'query',
-        options: _.map(v.options, 'value'),
-        query: v.type === 'query' ? v.query : undefined,
-        value:
-          v.name === 'namespace' && namespace !== ALL_NAMESPACES_KEY
-            ? namespace
-            : value || v.options?.[0]?.value,
-      };
-    }
-  });
-
-  return allVariables;
+    });
+  };
 };

@@ -2,8 +2,7 @@ import { useMemo, useCallback, useRef } from 'react';
 
 import { DashboardResource } from '@perses-dev/core';
 import { useNavigate } from 'react-router';
-import { StringParam, useQueryParam } from 'use-query-params';
-import { getAllQueryArguments } from '../../../console/utils/router';
+import { StringParam, useQueryParam, useQueryParams } from 'use-query-params';
 import { useBoolean } from '../../../hooks/useBoolean';
 import { getDashboardUrl, usePerspective } from '../../../hooks/usePerspective';
 import { QueryParams } from '../../../query-params';
@@ -16,6 +15,7 @@ export const useDashboardsData = () => {
   const navigate = useNavigate();
   const { perspective } = usePerspective();
   const { activeProject, setActiveProject } = useActiveProject();
+  const [queryParams] = useQueryParams();
 
   // track initial page load to prevent a full page loading state when swapping dashboards
   // or projects
@@ -99,11 +99,10 @@ export const useDashboardsData = () => {
         // If the board is being cleared then don't do anything
         return;
       }
-      const queryArguments = getAllQueryArguments();
 
-      delete queryArguments.edit;
+      const params = new URLSearchParams(queryParams);
 
-      const params = new URLSearchParams(queryArguments);
+      params.delete('edit');
 
       const dashboard = combinedDashboardsMetadata.find((item) => item.name === newBoard);
 

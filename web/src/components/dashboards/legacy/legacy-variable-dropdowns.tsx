@@ -24,7 +24,6 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import { SingleTypeaheadDropdown } from '../../console/utils/single-typeahead-dropdown';
 import { getPrometheusBasePath, buildPrometheusUrl, ALL_NAMESPACES_KEY } from '../../utils';
-import { setQueryArgument } from '../../console/utils/router';
 import { useSafeFetch } from '../../console/utils/safe-fetch-hook';
 
 import { dashboardsPatchVariable, dashboardsVariableOptionsLoaded } from '../../../store/actions';
@@ -264,11 +263,11 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({ id, name 
   const onChange = useCallback(
     (v: string) => {
       if (v !== variable?.value) {
-        setQueryArgument(name, v);
+        setQueryParam(v);
         dispatch(dashboardsPatchVariable(name, { value: v }));
       }
     },
-    [dispatch, name, variable?.value],
+    [dispatch, name, variable?.value, setQueryParam],
   );
 
   if (variable?.isHidden || (!isError && _.isEmpty(variable?.options))) {

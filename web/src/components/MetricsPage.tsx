@@ -85,11 +85,6 @@ import {
 import { getPrometheusBasePath, buildPrometheusUrl } from './utils';
 import { AsyncComponent } from './console/utils/async';
 import { usePoll } from './console/utils/poll-hook';
-import {
-  getAllQueryArguments,
-  getQueryArgument,
-  setAllQueryArguments,
-} from './console/utils/router';
 import { useSafeFetch } from './console/utils/safe-fetch-hook';
 
 import {
@@ -114,7 +109,7 @@ import {
   t_global_spacer_sm,
   t_global_font_family_mono,
 } from '@patternfly/react-tokens';
-import { StringParam, useQueryParam } from 'use-query-params';
+import { StringParam, useQueryParam, useQueryParams } from 'use-query-params';
 import { GraphUnits, isGraphUnit } from './metrics/units';
 import { SimpleSelect, SimpleSelectOption } from '@patternfly/react-templates';
 import { valueFormatter } from './console/console-shared/src/components/query-browser/QueryBrowserTooltip';
@@ -1092,6 +1087,7 @@ const QueryBrowserWrapper: FC<{
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { plugin } = useMonitoring();
   const [activeNamespace] = useActiveNamespace();
+  const [queryParams, setQueryParams] = useQueryParams();
 
   const dispatch = useDispatch();
 
@@ -1105,9 +1101,8 @@ const QueryBrowserWrapper: FC<{
   // Initialize queries from URL parameters
   useEffect(() => {
     dispatch(queryBrowserDeleteAllQueries());
-    const searchParams = getAllQueryArguments();
-    for (let i = 0; _.has(searchParams, `query${i}`); i++) {
-      const query = searchParams[`query${i}`];
+    for (let i = 0; _.has(queryParams, `query${i}`); i++) {
+      const query = queryParams[`query${i}`];
       dispatch(
         queryBrowserPatchQuery(i, {
           isEnabled: true,
@@ -1117,7 +1112,7 @@ const QueryBrowserWrapper: FC<{
         }),
       );
     }
-  }, [dispatch]);
+  }, [dispatch, queryParams]);
 
   /* eslint-disable react-hooks/exhaustive-deps */
   // Use React.useMemo() to prevent these two arrays being recreated on every render, which would
@@ -1139,7 +1134,7 @@ const QueryBrowserWrapper: FC<{
     if (customDataSourceName) {
       newParams.datasource = customDataSourceName;
     }
-    setAllQueryArguments(newParams);
+    setQueryParams(newParams);
   }, [queryStrings, customDataSourceName]);
 
   if (hideGraphs) {
