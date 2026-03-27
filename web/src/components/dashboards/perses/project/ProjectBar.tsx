@@ -1,5 +1,5 @@
 import type { SetStateAction, Dispatch, FC } from 'react';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { useNavigate } from 'react-router';
 import { KEYBOARD_SHORTCUTS } from './utils';
 import { getDashboardsListUrl, usePerspective } from '../../../hooks/usePerspective';
 import ProjectDropdown from './ProjectDropdown';

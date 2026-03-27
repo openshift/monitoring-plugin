@@ -1,6 +1,6 @@
 import { useActiveNamespace } from '@openshift-console/dynamic-plugin-sdk';
 import { useEffect } from 'react';
-import { useParams } from 'react-router-dom-v5-compat';
+import { useParams } from 'react-router';
 import { useMonitoring } from '../../hooks/useMonitoring';
 
 /**

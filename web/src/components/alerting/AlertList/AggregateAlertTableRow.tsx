@@ -9,7 +9,7 @@ import { AggregatedAlert } from '../AlertsAggregates';
 import { AlertState, SeverityBadge } from '../AlertUtils';
 import AlertTableRow from './AlertTableRow';
 import { RuleResource } from '../../../components/utils';
-import { Link } from 'react-router-dom-v5-compat';
+import { Link } from 'react-router';
 import { SelectedFilters } from '../useSelectedFilters';
 import { filterAlerts } from './hooks/utils';
 import { Badge, Flex, FlexItem } from '@patternfly/react-core';

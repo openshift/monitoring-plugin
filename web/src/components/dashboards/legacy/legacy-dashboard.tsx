@@ -21,9 +21,7 @@ import type { FC } from 'react';
 import { memo, useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
-import { Link } from 'react-router-dom-v5-compat';
-
-import { setQueryArguments } from '../../console/utils/router';
+import { Link, useSearchParams } from 'react-router';
 
 import { Perspective } from '../../../store/actions';
 import BarChart from '../legacy/bar-chart';
@@ -127,6 +125,7 @@ const Card: FC<CardProps> = memo(({ panel, perspective }) => {
   const customDataSourceName = panel.datasource?.name;
   const [extensions, extensionsResolved] = useResolvedExtensions<DataSource>(isDataSource);
   const hasExtensions = !_.isEmpty(extensions);
+  const [, setQueryParams] = useSearchParams();
 
   const formatSeriesTitle = useCallback(
     (labels, i) => {
@@ -249,12 +248,12 @@ const Card: FC<CardProps> = memo(({ panel, perspective }) => {
     });
   }, [extensions, extensionsResolved, customDataSourceName, hasExtensions]);
 
-  const handleZoom = useCallback((timeRange: number, endTime: number) => {
-    setQueryArguments({
-      [QueryParams.EndTime]: endTime.toString(),
-      [QueryParams.TimeRange]: timeRange.toString(),
-    });
-  }, []);
+  const handleZoom = (timeRange: number, endTime: number) => {
+    setQueryParams([
+      [QueryParams.EndTime, endTime.toString()],
+      [QueryParams.TimeRange, timeRange.toString()],
+    ]);
+  };
 
   const panelBreakpoints = useMemo(() => {
     const panelSpan = getPanelSpan(panel);

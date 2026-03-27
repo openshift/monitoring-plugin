@@ -39,7 +39,7 @@ import { Table, TableVariant, Tbody, Td, Th, Thead, Tr } from '@patternfly/react
 import * as _ from 'lodash-es';
 import type { FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate, useParams } from 'react-router-dom-v5-compat';
+import { Link, useNavigate, useParams } from 'react-router';
 import {
   alertingRuleSource,
   AlertState,

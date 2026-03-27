@@ -38,7 +38,7 @@ import { StatusBox } from '../console/console-shared/src/components/status/Statu
 import { LoadingInline } from '../console/console-shared/src/components/loading/LoadingInline';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 import { Table, TableVariant, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
-import { useNavigate, useParams, Link } from 'react-router-dom-v5-compat';
+import { useNavigate, useParams, Link } from 'react-router';
 import { MonitoringProvider } from '../../contexts/MonitoringContext';
 import { DataTestIDs } from '../data-test';
 import { useAlerts } from '../../hooks/useAlerts';
