@@ -3,6 +3,7 @@ import * as fs from 'fs-extra';
 import * as console from 'console';
 import * as path from 'path';
 import registerCypressGrep from '@cypress/grep/src/plugin';
+import { DefinePlugin } from 'webpack';
 
 export default defineConfig({
   screenshotsFolder: './cypress/screenshots',
@@ -158,5 +159,49 @@ export default defineConfig({
     experimentalOriginDependencies: true,
     experimentalMemoryManagement: true,
     experimentalStudio: true,
+  },
+  component: {
+    devServer: {
+      framework: 'react',
+      bundler: 'webpack',
+      webpackConfig: {
+        resolve: {
+          extensions: ['.ts', '.tsx', '.js', '.jsx'],
+        },
+        module: {
+          rules: [
+            {
+              test: /\.(jsx?|tsx?)$/,
+              exclude: /node_modules/,
+              use: { loader: 'swc-loader' },
+            },
+            {
+              test: /\.scss$/,
+              exclude: /node_modules\/(?!(@patternfly|@openshift-console\/plugin-shared)\/).*/,
+              use: ['style-loader', 'css-loader', 'sass-loader'],
+            },
+            {
+              test: /\.css$/,
+              use: ['style-loader', 'css-loader'],
+            },
+            {
+              test: /\.(png|jpg|jpeg|gif|svg|woff2?|ttf|eot|otf)(\?.*$|$)/,
+              type: 'asset/resource',
+            },
+            {
+              test: /\.m?js/,
+              resolve: { fullySpecified: false },
+            },
+          ],
+        },
+        plugins: [
+          new DefinePlugin({
+            'process.env.I18N_NAMESPACE': JSON.stringify('plugin__monitoring-plugin'),
+          }),
+        ],
+      },
+    },
+    specPattern: './cypress/component/**/*.cy.{js,jsx,ts,tsx}',
+    supportFile: './cypress/support/component.ts',
   },
 });

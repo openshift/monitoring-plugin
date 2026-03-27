@@ -67,6 +67,7 @@ The Monitoring Plugin uses a 3-layer architecture for test organization:
 
 ```
 cypress/
+├── component/                # Component tests (isolated, no cluster needed)
 ├── e2e/
 │   ├── monitoring/           # Core monitoring tests (Administrator)
 │   │   ├── 00.bvt_admin.cy.ts
@@ -81,7 +82,9 @@ cypress/
 │   │   ├── 02.reg_metrics.cy.ts
 │   │   └── 03.reg_legacy_dashboards.cy.ts
 │   ├── perses/               # COO/Perses scenarios
-│   └── commands/             # Custom Cypress commands
+│   ├── commands/             # Custom Cypress commands
+│   ├── component.ts          # Component test support (mount command)
+│   └── component-index.html  # HTML template for component mounting
 └── views/                    # Page object models (reusable actions)
 ```
 
@@ -92,7 +95,65 @@ cypress/
 
 ---
 
-## Creating Tests
+## Component Testing
+
+Component tests mount individual React components in isolation using Cypress, without requiring a running OpenShift cluster. They provide fast feedback for rendering logic, props handling, and interactions.
+
+### When to Use Component Tests vs E2E Tests
+
+| Use Component Tests When | Use E2E Tests When |
+|---|---|
+| Testing rendering and visual output | Testing full user workflows |
+| Verifying props and conditional display | Testing navigation between pages |
+| Validating empty/error states | Testing API integration |
+| Fast feedback during development | Testing cross-component interactions |
+
+### Writing Component Tests
+
+Component test files use the `.cy.tsx` extension and live in `cypress/component/`:
+
+```typescript
+import React from 'react';
+import { Labels } from '../../src/components/labels';
+
+describe('Labels', () => {
+  it('renders "No labels" when labels is empty', () => {
+    cy.mount(<Labels labels={{}} />);
+    cy.contains('No labels').should('be.visible');
+  });
+
+  it('renders a single label', () => {
+    cy.mount(<Labels labels={{ app: 'monitoring' }} />);
+    cy.contains('app').should('be.visible');
+    cy.contains('monitoring').should('be.visible');
+  });
+});
+```
+
+### Running Component Tests
+
+```bash
+cd web
+
+# Interactive mode (GUI) - best for development
+npm run cypress:open:component
+
+# Headless mode - best for CI
+npm run cypress:run:component
+
+# Run a single component test file
+npx cypress run --component --spec cypress/component/labels.cy.tsx
+```
+
+### Key Differences from E2E Tests
+
+- **No cluster required**: Components are mounted directly in the browser
+- **Custom mount command**: Use `cy.mount(<Component />)` instead of `cy.visit()`
+- **Support file**: Uses `cypress/support/component.ts` (not `cypress/support/index.ts`)
+
+---
+
+## Creating E2E Tests
 
 ### Workflow
 
@@ -133,11 +194,12 @@ export const runAlertTests = (perspective: string) => {
 
 | Scenario | Action |
 |----------|--------|
-| New UI feature | Create new test scenario in support/ |
+| New UI feature | Create new E2E test scenario in support/ |
 | Bug fix | Add test case to existing support file |
 | Component update | Update existing test scenarios |
-| New Perses feature | Create new test scenario in support/ |
-| ACM integration | Add test in e2e/coo/ |
+| New Perses feature | Create new E2E test scenario in support/ |
+| ACM integration | Add E2E test in e2e/coo/ |
+| Isolated component logic | Add component test in component/ |
 
 ### Best Practices
 
