@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
-import type { FC, RefObject, Ref } from 'react';
+import type { FC, RefObject, Ref, PropsWithChildren } from 'react';
 import { forwardRef } from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router';
@@ -19,7 +19,7 @@ const mapStateToProps = (state: RootState) => ({
   namespace: getActiveNamespace(state),
 });
 
-const PrometheusGraphLink_: FC<PrometheusGraphLinkProps> = ({
+const PrometheusGraphLink_: FC<PropsWithChildren<PrometheusGraphLinkProps>> = ({
   children,
   query,
   ariaChartLinkLabel,
@@ -47,7 +47,7 @@ const PrometheusGraphLink_: FC<PrometheusGraphLinkProps> = ({
 };
 export const PrometheusGraphLink = connect(mapStateToProps)(PrometheusGraphLink_);
 
-export const PrometheusGraph: FC<PrometheusGraphProps> = forwardRef(
+export const PrometheusGraph: FC<PropsWithChildren<PrometheusGraphProps>> = forwardRef(
   ({ children, className, title }, ref: RefObject<HTMLDivElement>) => (
     <div ref={ref} className={classNames('graph-wrapper graph-wrapper__horizontal-bar', className)}>
       {title && (

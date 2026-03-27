@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { PropsWithChildren, useMemo } from 'react';
 import { MonitoringPlugins, Prometheus } from '../components/utils';
 import { QueryParamProvider } from 'use-query-params';
 import { useAccessReview } from '@openshift-console/dynamic-plugin-sdk';
@@ -35,13 +35,15 @@ export const MonitoringContext = React.createContext<MonitoringContextType>({
   displayNamespaceSelector: true,
 });
 
-export const MonitoringProvider: React.FC<{
-  monitoringContext: {
-    plugin: MonitoringPlugins;
-    prometheus: Prometheus;
-    displayNamespaceSelector?: boolean;
-  };
-}> = ({ children, monitoringContext }) => {
+export const MonitoringProvider: React.FC<
+  PropsWithChildren<{
+    monitoringContext: {
+      plugin: MonitoringPlugins;
+      prometheus: Prometheus;
+      displayNamespaceSelector?: boolean;
+    };
+  }>
+> = ({ children, monitoringContext }) => {
   const [allNamespaceAlertsTenancy, alertAccessCheckLoading] = useAccessReview({
     group: 'monitoring.coreos.com',
     resource: 'prometheusrules',
