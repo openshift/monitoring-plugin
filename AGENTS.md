@@ -283,6 +283,54 @@ npm run cypress:open
 
 For detailed testing instructions, see `web/cypress/CYPRESS_TESTING_GUIDE.md`
 
+### Cypress Component Testing
+
+#### Overview
+
+Cypress component tests mount individual React components in isolation, without requiring a running OpenShift cluster. They are useful for testing component rendering, user interactions, and visual behavior with fast feedback.
+
+- **Test location**: `web/cypress/component/`
+- **Support file**: `web/cypress/support/component.ts`
+- **Config**: `component` section in `web/cypress.config.ts`
+
+#### When to Create Component Tests
+
+- Testing a component's rendering logic (conditional display, empty states)
+- Verifying props are handled correctly
+- Validating user interactions within a single component
+- When E2E tests would be overkill for the behavior under test
+
+#### Quick Test Commands
+
+```bash
+cd web
+
+# Interactive mode
+npm run cypress:open:component
+
+# Headless mode - all component tests
+npm run cypress:run:component
+
+# Run a single component test file
+npx cypress run --component --spec cypress/component/labels.cy.tsx
+```
+
+#### Writing a Component Test
+
+Component test files use the `.cy.tsx` extension and go in `web/cypress/component/`:
+
+```typescript
+import React from 'react';
+import { MyComponent } from '../../src/components/MyComponent';
+
+describe('MyComponent', () => {
+  it('renders correctly', () => {
+    cy.mount(<MyComponent prop="value" />);
+    cy.contains('expected text').should('be.visible');
+  });
+});
+```
+
 ### Release Pipeline:
 
 - **Konflux**: Handles CI/CD and release automation
