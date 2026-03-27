@@ -2,7 +2,7 @@ import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { VariableProvider } from '@perses-dev/dashboards';
 import { TimeRangeProviderBasic } from '@perses-dev/plugin-system';
-import type { DurationString } from '@perses-dev/prometheus-plugin';
+import type { DurationString, TimeRangeValue } from '@perses-dev/core';
 
 import {
   PersesWrapper,
@@ -21,9 +21,7 @@ const queryClient = new QueryClient({
 interface OlsToolUIPersesWrapperProps {
   children: React.ReactNode;
   height?: string;
-  initialTimeRange?: {
-    pastDuration: DurationString;
-  };
+  initialTimeRange?: TimeRangeValue;
 }
 
 export const OlsToolUIPersesWrapper: React.FC<OlsToolUIPersesWrapperProps> = ({
