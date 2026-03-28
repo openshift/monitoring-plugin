@@ -15,7 +15,7 @@
     "i18n": "i18n-scripts/build-i18n.sh && node i18n-scripts/set-english-defaults.js",
     "i18n-to-po": "node ./i18n-scripts/i18n-to-po.js",
     "po-to-i18n": "node ./i18n-scripts/po-to-i18n.js",
-    "lint": "eslint ./src",
+    "lint": "eslint ./src ./cypress",
     "lint:tsc": "tsc --noEmit",
     "lint-fix": "eslint ./src --fix",
     "pre-commit:check": "npm run lint",

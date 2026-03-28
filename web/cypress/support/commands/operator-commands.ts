@@ -5,7 +5,7 @@ import { cooInstallUtils } from './coo-install-commands';
 import { imagePatchUtils } from './image-patch-commands';
 import { dashboardsUtils } from './dashboards-commands';
 
-export { };
+export {};
 
 export interface COOSetupOptions {
   dashboards?: boolean;
@@ -20,6 +20,7 @@ const DEFAULT_COO_OPTIONS: Required<COOSetupOptions> = {
 };
 
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Cypress {
     interface Chainable {
       beforeBlock(MP: { namespace: string; operatorName: string });
@@ -56,7 +57,9 @@ const useSession = String(Cypress.env('SESSION')).toLowerCase() === 'true';
 function removeClusterAdminRole(): void {
   cy.log('Remove cluster-admin role from user.');
   cy.executeAndDelete(
-    `oc adm policy remove-cluster-role-from-user cluster-admin ${Cypress.env('LOGIN_USERNAME')} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+    `oc adm policy remove-cluster-role-from-user cluster-admin ${Cypress.env(
+      'LOGIN_USERNAME',
+    )} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
   );
 }
 
@@ -89,7 +92,9 @@ function cleanupUIPlugin(
 
   cy.log('Delete Monitoring UI Plugin instance.');
   cy.executeAndDelete(
-    `oc delete ${config.kind} ${config.name} --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+    `oc delete ${config.kind} ${config.name} --ignore-not-found --kubeconfig ${Cypress.env(
+      'KUBECONFIG_PATH',
+    )}`,
   );
 
   if (opts.dashboards) {
@@ -199,7 +204,9 @@ Cypress.Commands.add(
 
     cy.log('Cleanup COO');
     if (Cypress.env('SKIP_ALL_INSTALL')) {
-      cy.log('SKIP_ALL_INSTALL is set. Skipping COO cleanup and operator verifications (preserves existing setup).');
+      cy.log(
+        'SKIP_ALL_INSTALL is set. Skipping COO cleanup and operator verifications (preserves existing setup).',
+      );
       return;
     }
     if (opts.troubleshootingPanel) {
@@ -221,7 +228,9 @@ Cypress.Commands.add(
     const opts = { ...DEFAULT_COO_OPTIONS, ...options };
 
     if (Cypress.env('SKIP_ALL_INSTALL')) {
-      cy.log('SKIP_ALL_INSTALL is set. Skipping COO setup and operator verifications (uses existing installation).');
+      cy.log(
+        'SKIP_ALL_INSTALL is set. Skipping COO setup and operator verifications (uses existing installation).',
+      );
       return;
     }
     cooInstallUtils.installCOO(MCP);
@@ -257,14 +266,23 @@ Cypress.Commands.add('beforeBlockACM', (MCP, MP) => {
     failOnNonZeroExit: false,
     timeout: 1200000,
   });
-  cy.exec(`oc apply -f ./cypress/fixtures/coo/acm-uiplugin.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
-  cy.exec(`oc apply -f ./cypress/fixtures/coo/acm-alerrule-test.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+  cy.exec(
+    `oc apply -f ./cypress/fixtures/coo/acm-uiplugin.yaml --kubeconfig ${Cypress.env(
+      'KUBECONFIG_PATH',
+    )}`,
+  );
+  cy.exec(
+    `oc apply -f ./cypress/fixtures/coo/acm-alerrule-test.yaml --kubeconfig ${Cypress.env(
+      'KUBECONFIG_PATH',
+    )}`,
+  );
   cy.log('ACM environment setup completed');
 });
 
 Cypress.Commands.add('closeOnboardingModalIfPresent', () => {
   cy.get('body').then(($body) => {
-    const modalSelector = 'button[data-ouia-component-id="clustersOnboardingModal-ModalBoxCloseButton"]';
+    const modalSelector =
+      'button[data-ouia-component-id="clustersOnboardingModal-ModalBoxCloseButton"]';
     if ($body.find(modalSelector).length > 0) {
       cy.log('Onboarding modal detected, attempting to close...');
       cy.get(modalSelector, { timeout: 20000 })

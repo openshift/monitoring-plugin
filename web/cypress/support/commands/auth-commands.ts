@@ -1,8 +1,9 @@
 import { nav } from '../../views/nav';
 import { guidedTour } from '../../views/tour';
 
-export { };
+export {};
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Cypress {
     interface Chainable {
       switchPerspective(...perspectives: string[]);
@@ -10,8 +11,18 @@ declare global {
       uiLogout();
       cliLogin(username?, password?, hostapi?);
       cliLogout();
-      login(provider?: string, username?: string, password?: string, oauthurl?: string): Chainable<Element>;
-      loginNoSession(provider: string, username: string, password: string, oauthurl: string): Chainable<Element>;
+      login(
+        provider?: string,
+        username?: string,
+        password?: string,
+        oauthurl?: string,
+      ): Chainable<Element>;
+      loginNoSession(
+        provider: string,
+        username: string,
+        password: string,
+        oauthurl: string,
+      ): Chainable<Element>;
       adminCLI(command: string, options?);
       executeAndDelete(command: string);
       validateLogin(): Chainable<Element>;
@@ -32,27 +43,36 @@ export const operatorAuthUtils = {
     } else {
       cy.adminCLI(`oc project openshift-monitoring`);
       cy.adminCLI(
-        `oc adm policy add-role-to-user monitoring-edit ${Cypress.env('LOGIN_USERNAME')} -n openshift-monitoring`,
+        `oc adm policy add-role-to-user monitoring-edit ${Cypress.env(
+          'LOGIN_USERNAME',
+        )} -n openshift-monitoring`,
       );
       cy.adminCLI(
-        `oc adm policy add-role-to-user monitoring-alertmanager-edit --role-namespace openshift-monitoring ${Cypress.env('LOGIN_USERNAME')}`,
+        'oc adm policy add-role-to-user monitoring-alertmanager-edit ' +
+          `--role-namespace openshift-monitoring ${Cypress.env('LOGIN_USERNAME')}`,
       );
       cy.adminCLI(
-        `oc adm policy add-role-to-user view ${Cypress.env('LOGIN_USERNAME')} -n openshift-monitoring`,
+        `oc adm policy add-role-to-user view ${Cypress.env(
+          'LOGIN_USERNAME',
+        )} -n openshift-monitoring`,
       );
       cy.adminCLI(`oc project default`);
       cy.adminCLI(
-        `oc adm policy add-role-to-user monitoring-edit ${Cypress.env('LOGIN_USERNAME')} -n default`,
+        `oc adm policy add-role-to-user monitoring-edit ${Cypress.env(
+          'LOGIN_USERNAME',
+        )} -n default`,
       );
       cy.adminCLI(
-        `oc adm policy add-role-to-user monitoring-alertmanager-edit --role-namespace default ${Cypress.env('LOGIN_USERNAME')}`,
+        'oc adm policy add-role-to-user monitoring-alertmanager-edit ' +
+          `--role-namespace default ${Cypress.env('LOGIN_USERNAME')}`,
       );
       cy.adminCLI(
         `oc adm policy add-role-to-user view ${Cypress.env('LOGIN_USERNAME')} -n default`,
       );
     }
     cy.exec(
-      `oc get oauthclient openshift-browser-client -o go-template --template="{{index .redirectURIs 0}}" --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+      `oc get oauthclient openshift-browser-client -o go-template ` +
+        `--template="{{index .redirectURIs 0}}" --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
     ).then((result) => {
       if (result.stderr === '') {
         const oauth = result.stdout;
@@ -130,10 +150,7 @@ export const operatorAuthUtils = {
       MP.namespace,
       MP.operatorName,
     ];
-    const envVars = [
-      Cypress.env('SKIP_ALL_INSTALL'),
-      Cypress.env('MP_IMAGE'),
-    ];
+    const envVars = [Cypress.env('SKIP_ALL_INSTALL'), Cypress.env('MP_IMAGE')];
     return [...baseKey, ...envVars.map((v) => v || '')];
   },
 
@@ -144,21 +161,17 @@ export const operatorAuthUtils = {
       KBV.namespace,
       KBV.packageName,
     ];
-    const envVars = [
-      Cypress.env('SKIP_KBV_INSTALL'),
-      Cypress.env('KBV_UI_INSTALL'),
-    ];
+    const envVars = [Cypress.env('SKIP_KBV_INSTALL'), Cypress.env('KBV_UI_INSTALL')];
     return [...baseKey, ...envVars.map((v) => v || '')];
   },
 };
-
 
 // Core login function (used by both session and non-session versions)
 function performLogin(
   provider: string,
   username: string,
   password: string,
-  oauthurl: string
+  oauthurl: string,
 ): void {
   cy.visit(Cypress.config('baseUrl'));
   cy.log('Session - after visiting');
@@ -172,22 +185,20 @@ function performLogin(
         return;
       }
       cy.exec(
-        `oc get node --selector=hypershift.openshift.io/managed --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+        `oc get node --selector=hypershift.openshift.io/managed --kubeconfig ${Cypress.env(
+          'KUBECONFIG_PATH',
+        )}`,
       ).then((result) => {
         cy.log(result.stdout);
         cy.task('log', result.stdout);
         if (result.stdout.includes('Ready')) {
           cy.log(`Attempting login via cy.origin to: ${oauthurl}`);
           cy.task('log', `Attempting login via cy.origin to: ${oauthurl}`);
-          cy.origin(
-            oauthurl,
-            { args: { username, password } },
-            ({ username, password }) => {
-              cy.get('#inputUsername').type(username);
-              cy.get('#inputPassword').type(password);
-              cy.get('button[type=submit]').click();
-            },
-          );
+          cy.origin(oauthurl, { args: { username, password } }, ({ username, password }) => {
+            cy.get('#inputUsername').type(username);
+            cy.get('#inputPassword').type(password);
+            cy.get('button[type=submit]').click();
+          });
         } else {
           cy.task('log', `  Logging in as ${username} using fallback on ${oauthurl}`);
           cy.origin(
@@ -203,7 +214,7 @@ function performLogin(
               cy.get('#inputUsername').type(username);
               cy.get('#inputPassword').type(password);
               cy.get('button[type=submit]').click();
-            }
+            },
           );
         }
       });
@@ -215,7 +226,7 @@ Cypress.Commands.add('validateLogin', () => {
   cy.log('validateLogin');
   cy.visit('/');
   cy.wait(2000);
-  cy.byTestID("username", { timeout: 120000 }).should('be.visible');
+  cy.byTestID('username', { timeout: 120000 }).should('be.visible');
   cy.wait(10000);
   guidedTour.close();
 });
@@ -245,10 +256,13 @@ Cypress.Commands.add(
 );
 
 // Non-session login (for use within sessions)
-Cypress.Commands.add('loginNoSession', (provider: string, username: string, password: string, oauthurl: string) => {
-  performLogin(provider, username, password, oauthurl);
-  cy.validateLogin();
-});
+Cypress.Commands.add(
+  'loginNoSession',
+  (provider: string, username: string, password: string, oauthurl: string) => {
+    performLogin(provider, username, password, oauthurl);
+    cy.validateLogin();
+  },
+);
 
 Cypress.Commands.add('switchPerspective', (...perspectives: string[]) => {
   /* If side bar is collapsed then expand it
@@ -299,25 +313,26 @@ Cypress.Commands.add('uiLogin', (provider: string, username: string, password: s
 // Fetches OAuth URL and uses cy.origin() for cross-origin login like the other login commands
 Cypress.Commands.add('relogin', (provider: string, username: string, password: string) => {
   cy.log('Commands relogin - fetching OAuth URL and performing fresh login');
-  
+
   cy.uiLogout();
   // Get the OAuth URL from the cluster (same as performLoginAndAuth does)
   cy.exec(
-    `oc get oauthclient openshift-browser-client -o go-template --template="{{index .redirectURIs 0}}" --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+    `oc get oauthclient openshift-browser-client -o go-template ` +
+      `--template="{{index .redirectURIs 0}}" --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
   ).then((result) => {
     if (result.stderr !== '') {
       throw new Error(`Failed to get OAuth URL: ${result.stderr}`);
     }
-    
+
     const oauth = result.stdout;
     const oauthurl = new URL(oauth);
     const oauthorigin = oauthurl.origin;
     cy.log(`OAuth origin: ${oauthorigin}`);
-    
+
     // Now perform login using cy.origin() for cross-origin OAuth
     cy.clearCookie('openshift-session-token');
     cy.visit(Cypress.config('baseUrl'));
-    
+
     // Use cy.origin() for cross-origin login (OAuth is on a different domain)
     cy.origin(
       oauthorigin,
@@ -325,26 +340,26 @@ Cypress.Commands.add('relogin', (provider: string, username: string, password: s
       ({ provider, username, password }) => {
         // Wait for login page to load
         cy.get('[data-test-id="login"]', { timeout: 60000 }).should('be.visible');
-        
+
         // Select the IDP if available
         cy.get('body').then(($body) => {
           if ($body.text().includes(provider)) {
             cy.contains(provider).should('be.visible').click();
           }
         });
-        
+
         // Fill in login form
         cy.get('#inputUsername', { timeout: 30000 }).should('be.visible').type(username);
         cy.get('#inputPassword').type(password);
         cy.get('button[type=submit]').click();
-      }
+      },
     );
-    
+
     // Wait for successful login back on the main origin
     cy.byTestID('username', { timeout: 120000 }).should('be.visible');
     cy.switchPerspective('Administrator');
   });
-});  
+});
 
 Cypress.Commands.add('uiLogout', () => {
   cy.window().then(
@@ -368,7 +383,8 @@ Cypress.Commands.add('cliLogin', (username?, password?, hostapi?) => {
   const loginPassword = password || Cypress.env('LOGIN_PASSWORD');
   const hostapiurl = hostapi || Cypress.env('HOST_API');
   cy.exec(
-    `oc login -u ${loginUsername} -p ${loginPassword} ${hostapiurl} --insecure-skip-tls-verify=true`,
+    `oc login -u ${loginUsername} -p ${loginPassword} ${hostapiurl} ` +
+      '--insecure-skip-tls-verify=true',
     { failOnNonZeroExit: false },
   ).then((result) => {
     cy.log(result.stderr);
@@ -390,12 +406,11 @@ Cypress.Commands.add('adminCLI', (command: string) => {
 });
 
 Cypress.Commands.add('executeAndDelete', (command: string) => {
-  cy.exec(command, { failOnNonZeroExit: false })
-    .then(result => {
-      if (result.code !== 0) {
-        cy.task('logError', `Command "${command}" failed: ${result.stderr || result.stdout}`);
-      } else {
-        cy.task('log', `Command "${command}" executed successfully`);
-      }
-    });
+  cy.exec(command, { failOnNonZeroExit: false }).then((result) => {
+    if (result.code !== 0) {
+      cy.task('logError', `Command "${command}" failed: ${result.stderr || result.stdout}`);
+    } else {
+      cy.task('log', `Command "${command}" executed successfully`);
+    }
+  });
 });

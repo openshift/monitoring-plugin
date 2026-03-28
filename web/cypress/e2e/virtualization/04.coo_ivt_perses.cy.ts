@@ -1,11 +1,11 @@
 import { nav } from '../../views/nav';
-import { runBVTCOOPersesTests } from '../../support/perses/00.coo_bvt_perses_admin.cy';
+import { runBVTCOOPersesTests1 } from '../../support/perses/00.coo_bvt_perses_admin.cy';
 import { guidedTour } from '../../views/tour';
 import { commonPages } from '../../views/common';
 
 // Set constants for the operators that need to be installed for tests.
 const MCP = {
-  namespace: 'openshift-cluster-observability-operator',
+  namespace: Cypress.env('COO_NAMESPACE'),
   packageName: 'cluster-observability-operator',
   operatorName: 'Cluster Observability Operator',
   config: {
@@ -29,22 +29,25 @@ const KBV = {
   crd: {
     kubevirt: 'kubevirts.kubevirt.io',
     hyperconverged: 'hyperconvergeds.hco.kubevirt.io',
-  }
+  },
 };
 
-describe('Installation: COO and setting up Monitoring Plugin', { tags: ['@virtualization', '@slow'] }, () => {
+describe(
+  'Installation: COO and setting up Monitoring Plugin',
+  { tags: ['@virtualization', '@slow'] },
+  () => {
+    before(() => {
+      cy.beforeBlockCOO(MCP, MP);
+      cy.cleanupPersesTestDashboardsBeforeTests();
+    });
 
-  before(() => {
-    cy.beforeBlockCOO(MCP, MP);
-  });
-
-  it('1. Installation: COO and setting up Monitoring Plugin', () => {
-    cy.log('Installation: COO and setting up Monitoring Plugin');
-  });
-});
+    it('1. Installation: COO and setting up Monitoring Plugin', () => {
+      cy.log('Installation: COO and setting up Monitoring Plugin');
+    });
+  },
+);
 
 describe('Installation: Virtualization', { tags: ['@virtualization', '@slow'] }, () => {
-
   before(() => {
     cy.beforeBlockVirtualization(KBV);
   });
@@ -56,20 +59,22 @@ describe('Installation: Virtualization', { tags: ['@virtualization', '@slow'] },
   });
 });
 
-describe('IVT: COO - Dashboards (Perses) - Virtualization perspective', { tags: ['@virtualization', '@perses'] }, () => {
+describe(
+  'IVT: COO - Dashboards (Perses) - Virtualization perspective',
+  { tags: ['@virtualization', '@perses'] },
+  () => {
+    beforeEach(() => {
+      cy.visit('/');
+      guidedTour.close();
+      cy.validateLogin();
+      cy.switchPerspective('Virtualization');
+      guidedTour.closeKubevirtTour();
+      nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
+      commonPages.titleShouldHaveText('Dashboards');
+    });
 
-  beforeEach(() => {
-    cy.visit('/');
-    guidedTour.close();
-    cy.validateLogin();
-    cy.switchPerspective('Virtualization');
-    guidedTour.closeKubevirtTour();
-    nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
-    commonPages.titleShouldHaveText('Dashboards');
-  });
-
-  runBVTCOOPersesTests({
-    name: 'Virtualization',
-  });
-
-});
+    runBVTCOOPersesTests1({
+      name: 'Virtualization',
+    });
+  },
+);

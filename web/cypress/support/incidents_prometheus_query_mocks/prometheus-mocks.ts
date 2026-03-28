@@ -4,6 +4,7 @@ import { convertFixtureToIncidents, parseYamlFixture } from './schema/fixture-co
 import { incidentsPage } from '../../views/incidents-page';
 
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Cypress {
     interface Chainable {
       mockIncidents(incidents: IncidentDefinition[]): Chainable<Element>;
@@ -26,10 +27,10 @@ const MOCK_QUERY = '/api/prometheus/api/v1/query_range*';
 
 /**
  * Main mocking function - sets up cy.intercept for Prometheus query_range API
- * 
+ *
  * The Incidents page gets all data from the /query endpoint, including silence status
  * via the 'silenced' label in the cluster_health_components_map metric.
- *  * 
+ *  *
  * @param incidents - Array of incident definitions to mock
  */
 export function mockPrometheusQueryRange(incidents: IncidentDefinition[]): void {
@@ -42,35 +43,33 @@ export function mockPrometheusQueryRange(incidents: IncidentDefinition[]): void 
     const queryStartTime = startTime ? parseFloat(startTime) : undefined;
     const queryEndTime = endTime ? parseFloat(endTime) : undefined;
 
+    // eslint-disable-next-line no-console
     console.log(`INTERCEPTED: ${req.method} ${req.url}`);
+    // eslint-disable-next-line no-console
     console.log(`Query: ${query}`);
+    // eslint-disable-next-line no-console
     console.log(`Time range: ${queryStartTime} - ${queryEndTime}`);
 
-    let results: any[];
+    const versioned_metric = query.includes(NEW_METRIC_NAME) ? NEW_METRIC_NAME : OLD_METRIC_NAME;
 
-    const versioned_metric = query.includes(NEW_METRIC_NAME) 
-      ? NEW_METRIC_NAME: OLD_METRIC_NAME;
-    
     if (!(query.includes(versioned_metric) || query.includes('ALERTS{'))) {
+      // eslint-disable-next-line no-console
       console.log(`Passing through non-mocked query`);
       req.continue();
       return;
     }
 
-    results = query.includes(versioned_metric) 
-      ? createIncidentMock(incidents, query, queryStartTime, queryEndTime) 
+    const results = query.includes(versioned_metric)
+      ? createIncidentMock(incidents, query, queryStartTime, queryEndTime)
       : createAlertDetailsMock(incidents, query, queryStartTime, queryEndTime);
     const response: PrometheusResponse = {
-        status: 'success',
-        data: {
-          resultType: 'matrix',
-          result: results
-        }
-      };
-
-      console.log(`Responding with ${results.length} incident alerts from ${incidents.length} incidents`);
-      req.reply(response);
-
+      status: 'success',
+      data: {
+        resultType: 'matrix',
+        result: results,
+      },
+    };
+    req.reply(response);
   }).as('prometheusQueryMock');
 }
 
@@ -122,33 +121,36 @@ Cypress.Commands.add('transformMetrics', () => {
   cy.log('=== SETTING UP METRIC TRANSFORMATION ===');
   const mockNewMetrics = Cypress.env('MOCK_NEW_METRICS') === true;
 
-  
   if (!mockNewMetrics) {
     cy.log('CYPRESS_MOCK_NEW_METRICS is disabled, skipping transformation');
     return;
   }
 
   cy.log('Transforming old metric queries to new format');
-  
+
   cy.intercept('GET', MOCK_QUERY, (req) => {
     const url = new URL(req.url, window.location.origin);
     const query = url.searchParams.get('query') || '';
     const hasNewMetric = query.includes(NEW_METRIC_NAME);
-    
+
     if (hasNewMetric) {
       const transformedQuery = query.replace(new RegExp(NEW_METRIC_NAME, 'g'), OLD_METRIC_NAME);
+      // eslint-disable-next-line no-console
       console.log(`Transforming metric query: ${query} -> ${transformedQuery}`);
-      
+
       // Update the URL with the transformed query
       url.searchParams.set('query', transformedQuery);
       req.url = url.toString();
-      
+
       // Also transform the response to use new metric names
       req.continue((res) => {
         if (res.body?.data?.result) {
           res.body.data.result.forEach((result: any) => {
             if (result?.metric?.__name__ === OLD_METRIC_NAME) {
-              console.log(`Transforming response metric name: ${OLD_METRIC_NAME} -> ${NEW_METRIC_NAME}`);
+              // eslint-disable-next-line no-console
+              console.log(
+                `Transforming response metric name: ${OLD_METRIC_NAME} -> ${NEW_METRIC_NAME}`,
+              );
               result.metric.__name__ = NEW_METRIC_NAME;
             }
           });
@@ -168,8 +170,8 @@ export function mockPermissionDeniedResponses(endpoints: PermissionDeniedEndpoin
     statusCode: 403,
     body: 'Forbidden',
     headers: {
-      'content-type': 'text/plain'
-    }
+      'content-type': 'text/plain',
+    },
   };
 
   if (rules) {

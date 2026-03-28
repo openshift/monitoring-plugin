@@ -1,17 +1,29 @@
-import { commonPages } from "./common";
-import { DataTestIDs, Classes, LegacyTestIDs, IDs } from "../../src/components/data-test";
-import { MetricsPageUnits, MonitoringRefreshInterval, MetricsPageQueryInput, MetricsPageActions, MetricGraphEmptyState, MetricsPagePredefinedQueries, MetricsPageQueryKebabDropdown, GraphTimespan } from "../fixtures/monitoring/constants";
+import { commonPages } from './common';
+import { DataTestIDs, Classes, IDs } from '../../src/components/data-test';
+import {
+  MetricsPageUnits,
+  MonitoringRefreshInterval,
+  MetricsPageQueryInput,
+  MetricsPageActions,
+  MetricGraphEmptyState,
+  MetricsPagePredefinedQueries,
+  MetricsPageQueryKebabDropdown,
+  GraphTimespan,
+} from '../fixtures/monitoring/constants';
 
 export const metricsPage = {
-
   shouldBeLoaded: () => {
     cy.log('metricsPage.shouldBeLoaded');
     commonPages.titleShouldHaveText('Metrics');
-    cy.byTestID(DataTestIDs.MetricGraphUnitsDropDown).contains(MetricsPageUnits.NO_UNITS).should('be.visible');
-    cy.byTestID(DataTestIDs.MetricDropdownPollInterval).contains(MonitoringRefreshInterval.REFRESH_OFF).should('be.visible');
+    cy.byTestID(DataTestIDs.MetricGraphUnitsDropDown)
+      .contains(MetricsPageUnits.NO_UNITS)
+      .should('be.visible');
+    cy.byTestID(DataTestIDs.MetricDropdownPollInterval)
+      .contains(MonitoringRefreshInterval.REFRESH_OFF)
+      .should('be.visible');
     cy.byTestID(DataTestIDs.MetricsPageActionsDropdownButton).should('be.visible');
     cy.byTestID(DataTestIDs.MetricHideShowGraphButton).should('be.visible');
-    cy.byTestID(DataTestIDs.MetricGraph).should('not.exist'); 
+    cy.byTestID(DataTestIDs.MetricGraph).should('not.exist');
     cy.byTestID(DataTestIDs.MetricsPageNoQueryEnteredTitle).should('be.visible');
     cy.byTestID(DataTestIDs.MetricsPageNoQueryEntered).should('be.visible');
     cy.byTestID(DataTestIDs.MetricsPageInsertExampleQueryButton).should('be.visible');
@@ -24,8 +36,12 @@ export const metricsPage = {
   redirectedToMetricsPageWithDatapoints: () => {
     cy.log('metricsPage.redirectedToMetricsPage');
     commonPages.titleShouldHaveText('Metrics');
-    cy.byTestID(DataTestIDs.MetricGraphUnitsDropDown).contains(MetricsPageUnits.NO_UNITS).should('be.visible');
-    cy.byTestID(DataTestIDs.MetricDropdownPollInterval).contains(MonitoringRefreshInterval.REFRESH_OFF).should('be.visible');
+    cy.byTestID(DataTestIDs.MetricGraphUnitsDropDown)
+      .contains(MetricsPageUnits.NO_UNITS)
+      .should('be.visible');
+    cy.byTestID(DataTestIDs.MetricDropdownPollInterval)
+      .contains(MonitoringRefreshInterval.REFRESH_OFF)
+      .should('be.visible');
     cy.byTestID(DataTestIDs.MetricsPageActionsDropdownButton).should('be.visible');
     cy.byTestID(DataTestIDs.MetricHideShowGraphButton).should('be.visible');
     cy.byTestID(DataTestIDs.MetricGraph).should('be.visible');
@@ -38,10 +54,14 @@ export const metricsPage = {
     cy.byTestID(DataTestIDs.MetricsPageRunQueriesButton).should('be.visible');
     cy.byTestID(DataTestIDs.MetricsPageExpandCollapseRowButton).eq(0).should('be.visible');
     cy.get(Classes.MetricsPageExpandedRowIcon).eq(0).should('be.visible');
-    cy.get(Classes.MetricsPageQueryInput).eq(0).should('not.have.text', MetricsPageQueryInput.EXPRESSION_PRESS_SHIFT_ENTER_FOR_NEWLINES);
-    cy.byTestID(DataTestIDs.MetricsPageDisableEnableQuerySwitch).eq(0).should('have.attr', 'checked');
+    cy.get(Classes.MetricsPageQueryInput)
+      .eq(0)
+      .should('not.have.text', MetricsPageQueryInput.EXPRESSION_PRESS_SHIFT_ENTER_FOR_NEWLINES);
+    cy.byTestID(DataTestIDs.MetricsPageDisableEnableQuerySwitch)
+      .eq(0)
+      .should('have.attr', 'checked');
     cy.byTestID(DataTestIDs.KebabDropdownButton).eq(0).should('be.visible');
-    cy.byTestID(DataTestIDs.MetricGraph).should('be.visible'); 
+    cy.byTestID(DataTestIDs.MetricGraph).should('be.visible');
     cy.byTestID(DataTestIDs.MetricsPageQueryTable).eq(0).should('be.visible');
     cy.byTestID(DataTestIDs.MetricsPageSelectAllUnselectAllButton).eq(0).should('be.visible');
     cy.byTestID(DataTestIDs.MetricsPageSeriesButton).eq(0).should('be.visible');
@@ -53,8 +73,12 @@ export const metricsPage = {
   redirectedToMetricsPageWithoutDatapoints: () => {
     cy.log('metricsPage.redirectedToMetricsPageWithoutDatapoints');
     commonPages.titleShouldHaveText('Metrics');
-    cy.byTestID(DataTestIDs.MetricGraphUnitsDropDown).contains(MetricsPageUnits.NO_UNITS).should('be.visible');
-    cy.byTestID(DataTestIDs.MetricDropdownPollInterval).contains(MonitoringRefreshInterval.REFRESH_OFF).should('be.visible');
+    cy.byTestID(DataTestIDs.MetricGraphUnitsDropDown)
+      .contains(MetricsPageUnits.NO_UNITS)
+      .should('be.visible');
+    cy.byTestID(DataTestIDs.MetricDropdownPollInterval)
+      .contains(MonitoringRefreshInterval.REFRESH_OFF)
+      .should('be.visible');
     cy.byTestID(DataTestIDs.MetricsPageActionsDropdownButton).should('be.visible');
     cy.byTestID(DataTestIDs.MetricHideShowGraphButton).should('be.visible');
     cy.byTestID(DataTestIDs.MetricGraph).should('be.visible');
@@ -63,16 +87,24 @@ export const metricsPage = {
     cy.byTestID(DataTestIDs.MetricResetZoomButton).should('be.visible');
     cy.byTestID(DataTestIDs.MetricStackedCheckbox).should('be.visible');
     cy.byTestID(DataTestIDs.MetricDisconnectedCheckbox).should('be.visible');
-    cy.byTestID(DataTestIDs.MetricGraphNoDatapointsFound).contains(MetricGraphEmptyState.NO_DATAPOINTS_FOUND).should('be.visible');
+    cy.byTestID(DataTestIDs.MetricGraphNoDatapointsFound)
+      .contains(MetricGraphEmptyState.NO_DATAPOINTS_FOUND)
+      .should('be.visible');
     cy.byTestID(DataTestIDs.TypeaheadSelectInput).should('be.visible');
     cy.byTestID(DataTestIDs.MetricsPageAddQueryButton).should('be.visible');
     cy.byTestID(DataTestIDs.MetricsPageRunQueriesButton).should('be.visible');
     cy.byTestID(DataTestIDs.MetricsPageExpandCollapseRowButton).eq(0).should('be.visible');
     cy.get(Classes.MetricsPageExpandedRowIcon).eq(0).should('be.visible');
-    cy.get(Classes.MetricsPageQueryInput).eq(0).should('not.have.text', MetricsPageQueryInput.EXPRESSION_PRESS_SHIFT_ENTER_FOR_NEWLINES);
-    cy.byTestID(DataTestIDs.MetricsPageDisableEnableQuerySwitch).eq(0).should('have.attr', 'checked');
+    cy.get(Classes.MetricsPageQueryInput)
+      .eq(0)
+      .should('not.have.text', MetricsPageQueryInput.EXPRESSION_PRESS_SHIFT_ENTER_FOR_NEWLINES);
+    cy.byTestID(DataTestIDs.MetricsPageDisableEnableQuerySwitch)
+      .eq(0)
+      .should('have.attr', 'checked');
     cy.byTestID(DataTestIDs.KebabDropdownButton).eq(0).should('be.visible');
-    cy.byTestID(DataTestIDs.MetricsPageYellowNoDatapointsFound).contains(MetricGraphEmptyState.NO_DATAPOINTS_FOUND).should('be.visible');
+    cy.byTestID(DataTestIDs.MetricsPageYellowNoDatapointsFound)
+      .contains(MetricGraphEmptyState.NO_DATAPOINTS_FOUND)
+      .should('be.visible');
     cy.byTestID(DataTestIDs.MetricsPageQueryTable).eq(0).should('not.exist');
     cy.byTestID(DataTestIDs.MetricsPageSelectAllUnselectAllButton).eq(0).should('not.exist');
     cy.byTestID(DataTestIDs.MetricsPageSeriesButton).eq(0).should('not.exist');
@@ -121,7 +153,7 @@ export const metricsPage = {
   },
 
   unitsAxisYAssertion: (unit: MetricsPageUnits) => {
-    cy.log('metricsPage.unitsAxisYAssertion');
+    cy.log(`metricsPage.unitsAxisYAssertion: ${unit}`);
     cy.get('[id^="' + IDs.ChartAxis1ChartLabel + '"]').should('be.visible');
     cy.get('[id^="' + IDs.ChartAxis1ChartLabel + '"]').should('not.contain', 'undefined');
   },
@@ -164,16 +196,28 @@ export const metricsPage = {
 
   clickActions: () => {
     cy.log('metricsPage.clickActions');
-    cy.byTestID(DataTestIDs.MetricsPageActionsDropdownButton).should('have.attr', 'aria-expanded', 'false').click();
+    cy.byTestID(DataTestIDs.MetricsPageActionsDropdownButton)
+      .should('have.attr', 'aria-expanded', 'false')
+      .click();
   },
 
   actionsDropdownAssertion: () => {
     cy.log('metricsPage.actionsDropdownAssertion');
-    cy.byTestID(DataTestIDs.MetricsPageActionsDropdownButton).should('have.attr', 'aria-expanded', 'false').click();
-    cy.byTestID(DataTestIDs.MetricsPageAddQueryDropdownItem).contains(MetricsPageActions.ADD_QUERY).should('be.visible');
-    cy.byTestID(DataTestIDs.MetricsPageDeleteAllQueriesDropdownItem).contains(MetricsPageActions.DELETE_ALL_QUERIES).should('be.visible');
-    cy.byTestID(DataTestIDs.MetricsPageExpandCollapseAllDropdownItem).contains(MetricsPageActions.COLLAPSE_ALL_QUERY_TABLES).should('be.visible');
-    cy.byTestID(DataTestIDs.MetricsPageActionsDropdownButton).should('have.attr', 'aria-expanded', 'true').click();
+    cy.byTestID(DataTestIDs.MetricsPageActionsDropdownButton)
+      .should('have.attr', 'aria-expanded', 'false')
+      .click();
+    cy.byTestID(DataTestIDs.MetricsPageAddQueryDropdownItem)
+      .contains(MetricsPageActions.ADD_QUERY)
+      .should('be.visible');
+    cy.byTestID(DataTestIDs.MetricsPageDeleteAllQueriesDropdownItem)
+      .contains(MetricsPageActions.DELETE_ALL_QUERIES)
+      .should('be.visible');
+    cy.byTestID(DataTestIDs.MetricsPageExpandCollapseAllDropdownItem)
+      .contains(MetricsPageActions.COLLAPSE_ALL_QUERY_TABLES)
+      .should('be.visible');
+    cy.byTestID(DataTestIDs.MetricsPageActionsDropdownButton)
+      .should('have.attr', 'aria-expanded', 'true')
+      .click();
   },
 
   clickActionsAddQuery: () => {
@@ -189,23 +233,28 @@ export const metricsPage = {
   },
 
   /**
-   * 
+   *
    * @param toExpand true: expand all query tables, false: collapse all query tables
    */
   clickActionsExpandCollapseAllQuery: (toExpand: boolean) => {
     cy.log('metricsPage.clickActionsExpandCollapseAllQuery');
     metricsPage.clickActions();
     if (toExpand) {
-      cy.byTestID(DataTestIDs.MetricsPageExpandCollapseAllDropdownItem).contains(MetricsPageActions.EXPAND_ALL_QUERY_TABLES).click();
+      cy.byTestID(DataTestIDs.MetricsPageExpandCollapseAllDropdownItem)
+        .contains(MetricsPageActions.EXPAND_ALL_QUERY_TABLES)
+        .click();
     } else {
-      cy.byTestID(DataTestIDs.MetricsPageExpandCollapseAllDropdownItem).contains(MetricsPageActions.COLLAPSE_ALL_QUERY_TABLES).click();
+      cy.byTestID(DataTestIDs.MetricsPageExpandCollapseAllDropdownItem)
+        .contains(MetricsPageActions.COLLAPSE_ALL_QUERY_TABLES)
+        .click();
     }
   },
 
   /**
-   * 
+   *
    * @param expand true: to assert it is expanded, false: to assert it is collapsed
-   * @param withQuery if there is any row with query,true: to assert the query table is visible, false: to assert the query table is not visible
+   * @param withQuery if there is any row with query,true: to assert the query table is visible,
+   *   false: to assert the query table is not visible
    */
   expandCollapseAllQueryAssertion: (expanded: boolean) => {
     cy.log('metricsPage.expandCollapseAllQueryAssertion');
@@ -214,65 +263,130 @@ export const metricsPage = {
       for (let i = 0; i < rowIconsCount; i++) {
         if (expanded) {
           cy.get(Classes.MetricsPageRows).find('li').eq(i).should('be.visible');
-          cy.byTestID(DataTestIDs.MetricsPageDisableEnableQuerySwitch).eq(i).should('have.attr', 'checked');
-        } else { //collapsed
+          cy.byTestID(DataTestIDs.MetricsPageDisableEnableQuerySwitch)
+            .eq(i)
+            .should('have.attr', 'checked');
+        } else {
+          //collapsed
           cy.get(Classes.MetricsPageRows).find('li').eq(i).should('be.visible');
-          cy.byTestID(DataTestIDs.MetricsPageDisableEnableQuerySwitch).eq(i).should('have.attr', 'checked'); //collapsed does not change switch state when from actions
+          cy.byTestID(DataTestIDs.MetricsPageDisableEnableQuerySwitch)
+            .eq(i)
+            .should('have.attr', 'checked'); //collapsed does not change switch state when from actions
         }
       }
-    })
+    });
   },
 
   /**
-   * 
+   *
    * @param expand true: to expand the row, false: to collapse the row
    * @param index index of the row to expand or collapse, starting from 0
    */
   expandCollapseRow: (index: number) => {
     cy.log('metricsPage.expandCollapseRow');
-    cy.get(Classes.MetricsPageRows).find('li').eq(index).should('be.visible').click()
+    cy.get(Classes.MetricsPageRows).find('li').eq(index).should('be.visible').click();
   },
 
   /**
    * assertion for expand/collapse All rows from Actions dropdown, not manually
-   * @param expanded 
-   * @param index 
-   * @param withQuery 
+   * @param expanded
+   * @param index
+   * @param withQuery
    */
-  expandCollapseRowAssertion: (expanded: boolean, index: number, withQuery: boolean, withSwitch: boolean) => {
+  expandCollapseRowAssertion: (
+    expanded: boolean,
+    index: number,
+    withQuery: boolean,
+    withSwitch: boolean,
+  ) => {
     cy.log('metricsPage.expandCollapseRowAssertion');
 
     if (withQuery) {
-      cy.get(Classes.MetricsPageQueryInput).eq(index).should('not.contain', MetricsPageQueryInput.EXPRESSION_PRESS_SHIFT_ENTER_FOR_NEWLINES);
+      cy.get(Classes.MetricsPageQueryInput)
+        .eq(index)
+        .should('not.contain', MetricsPageQueryInput.EXPRESSION_PRESS_SHIFT_ENTER_FOR_NEWLINES);
     } else {
-      cy.get(Classes.MetricsPageQueryInput).eq(index).should('contain', MetricsPageQueryInput.EXPRESSION_PRESS_SHIFT_ENTER_FOR_NEWLINES);
+      cy.get(Classes.MetricsPageQueryInput)
+        .eq(index)
+        .should('contain', MetricsPageQueryInput.EXPRESSION_PRESS_SHIFT_ENTER_FOR_NEWLINES);
     }
 
     if (expanded) {
       if (withQuery) {
         cy.get(Classes.MetricsPageRows).find('li').eq(index).scrollIntoView().should('be.visible');
-        cy.get(Classes.MetricsPageRows).find('li').eq(index).find('[data-test="' + DataTestIDs.MetricsPageDisableEnableQuerySwitch + '"]').should('have.attr', 'checked');
-        cy.get(Classes.MetricsPageRows).find('li').eq(index).find('[data-test="' + DataTestIDs.MetricsPageQueryTable + '"]').should('be.visible');
-        cy.get(Classes.MetricsPageRows).find('li').eq(index).find('[data-test="' + DataTestIDs.MetricsPageSelectAllUnselectAllButton + '"]').should('be.visible');
-        cy.get(Classes.MetricsPageRows).find('li').eq(index).find('[data-test="' + DataTestIDs.MetricsPageSeriesButton + '"]').should('have.length.gt', 0);
+        cy.get(Classes.MetricsPageRows)
+          .find('li')
+          .eq(index)
+          .find('[data-test="' + DataTestIDs.MetricsPageDisableEnableQuerySwitch + '"]')
+          .should('have.attr', 'checked');
+        cy.get(Classes.MetricsPageRows)
+          .find('li')
+          .eq(index)
+          .find('[data-test="' + DataTestIDs.MetricsPageQueryTable + '"]')
+          .should('be.visible');
+        cy.get(Classes.MetricsPageRows)
+          .find('li')
+          .eq(index)
+          .find('[data-test="' + DataTestIDs.MetricsPageSelectAllUnselectAllButton + '"]')
+          .should('be.visible');
+        cy.get(Classes.MetricsPageRows)
+          .find('li')
+          .eq(index)
+          .find('[data-test="' + DataTestIDs.MetricsPageSeriesButton + '"]')
+          .should('have.length.gt', 0);
       } else {
         cy.get(Classes.MetricsPageRows).find('li').eq(index).should('be.visible');
-        cy.get(Classes.MetricsPageRows).find('li').eq(index).find('[data-test="' + DataTestIDs.MetricsPageDisableEnableQuerySwitch + '"]').should('have.attr', 'checked');
-        cy.get(Classes.MetricsPageRows).find('li').eq(index).find('[data-test="' + DataTestIDs.MetricsPageQueryTable + '"]').should('not.exist');
-        cy.get(Classes.MetricsPageRows).find('li').eq(index).find('[data-test="' + DataTestIDs.MetricsPageSelectAllUnselectAllButton + '"]').should('not.exist');
-        cy.get(Classes.MetricsPageRows).find('li').eq(index).find('[data-test="' + DataTestIDs.MetricsPageSeriesButton + '"]').should('not.exist');
+        cy.get(Classes.MetricsPageRows)
+          .find('li')
+          .eq(index)
+          .find('[data-test="' + DataTestIDs.MetricsPageDisableEnableQuerySwitch + '"]')
+          .should('have.attr', 'checked');
+        cy.get(Classes.MetricsPageRows)
+          .find('li')
+          .eq(index)
+          .find('[data-test="' + DataTestIDs.MetricsPageQueryTable + '"]')
+          .should('not.exist');
+        cy.get(Classes.MetricsPageRows)
+          .find('li')
+          .eq(index)
+          .find('[data-test="' + DataTestIDs.MetricsPageSelectAllUnselectAllButton + '"]')
+          .should('not.exist');
+        cy.get(Classes.MetricsPageRows)
+          .find('li')
+          .eq(index)
+          .find('[data-test="' + DataTestIDs.MetricsPageSeriesButton + '"]')
+          .should('not.exist');
       }
     } else {
-      if (withSwitch){
-        cy.get(Classes.MetricsPageRows).find('li').eq(index).find('[data-test="' + DataTestIDs.MetricsPageDisableEnableQuerySwitch + '"]').should('not.have.attr', 'checked');
-      }
-      else {
-        cy.get(Classes.MetricsPageRows).find('li').eq(index).find('[data-test="' + DataTestIDs.MetricsPageDisableEnableQuerySwitch + '"]').should('have.attr', 'checked');  
+      if (withSwitch) {
+        cy.get(Classes.MetricsPageRows)
+          .find('li')
+          .eq(index)
+          .find('[data-test="' + DataTestIDs.MetricsPageDisableEnableQuerySwitch + '"]')
+          .should('not.have.attr', 'checked');
+      } else {
+        cy.get(Classes.MetricsPageRows)
+          .find('li')
+          .eq(index)
+          .find('[data-test="' + DataTestIDs.MetricsPageDisableEnableQuerySwitch + '"]')
+          .should('have.attr', 'checked');
       }
       cy.get(Classes.MetricsPageRows).find('li').eq(index).should('be.visible');
-      cy.get(Classes.MetricsPageRows).find('li').eq(index).find('[data-test="' + DataTestIDs.MetricsPageQueryTable + '"]').should('not.exist');
-      cy.get(Classes.MetricsPageRows).find('li').eq(index).find('[data-test="' + DataTestIDs.MetricsPageSelectAllUnselectAllButton + '"]').should('not.exist');
-      cy.get(Classes.MetricsPageRows).find('li').eq(index).find('[data-test="' + DataTestIDs.MetricsPageSeriesButton + '"]').should('not.exist');
+      cy.get(Classes.MetricsPageRows)
+        .find('li')
+        .eq(index)
+        .find('[data-test="' + DataTestIDs.MetricsPageQueryTable + '"]')
+        .should('not.exist');
+      cy.get(Classes.MetricsPageRows)
+        .find('li')
+        .eq(index)
+        .find('[data-test="' + DataTestIDs.MetricsPageSelectAllUnselectAllButton + '"]')
+        .should('not.exist');
+      cy.get(Classes.MetricsPageRows)
+        .find('li')
+        .eq(index)
+        .find('[data-test="' + DataTestIDs.MetricsPageSeriesButton + '"]')
+        .should('not.exist');
     }
   },
 
@@ -289,7 +403,10 @@ export const metricsPage = {
 
   clickGraphTimespanDropdown: (timespan: GraphTimespan) => {
     cy.log('metricsPage.clickGraphTimespanDropdown');
-    cy.byTestID(DataTestIDs.MetricGraphTimespanDropdown).scrollIntoView().should('be.visible').click();
+    cy.byTestID(DataTestIDs.MetricGraphTimespanDropdown)
+      .scrollIntoView()
+      .should('be.visible')
+      .click();
     cy.get(Classes.MenuItem).contains(timespan).should('be.visible').click();
     cy.byPFRole('progressbar').should('be.visible');
     cy.byPFRole('progressbar').should('not.exist');
@@ -297,7 +414,10 @@ export const metricsPage = {
 
   enterGraphTimespan: (timespan: GraphTimespan) => {
     cy.log('metricsPage.enterGraphTimespan');
-    cy.byTestID(DataTestIDs.MetricGraphTimespanInput).scrollIntoView().should('be.visible').type('{selectall}{backspace}', {delay: 1000});
+    cy.byTestID(DataTestIDs.MetricGraphTimespanInput)
+      .scrollIntoView()
+      .should('be.visible')
+      .type('{selectall}{backspace}', { delay: 1000 });
     cy.byTestID(DataTestIDs.MetricGraphTimespanInput).type(timespan);
     cy.byTestID(DataTestIDs.MetricGraphTimespanInput).should('have.attr', 'value', timespan);
     cy.byPFRole('progressbar').should('be.visible');
@@ -322,19 +442,28 @@ export const metricsPage = {
 
   clickHideGraphButton: () => {
     cy.log('metricsPage.clickHideGraphButton');
-    cy.byTestID(DataTestIDs.MetricHideShowGraphButton).scrollIntoView().should('be.visible').click();
+    cy.byTestID(DataTestIDs.MetricHideShowGraphButton)
+      .scrollIntoView()
+      .should('be.visible')
+      .click();
     cy.byTestID(DataTestIDs.MetricGraph).should('not.exist');
   },
 
   clickShowGraphButton: () => {
     cy.log('metricsPage.clickShowGraphButton');
-    cy.byTestID(DataTestIDs.MetricHideShowGraphButton).scrollIntoView().should('be.visible').click();
+    cy.byTestID(DataTestIDs.MetricHideShowGraphButton)
+      .scrollIntoView()
+      .should('be.visible')
+      .click();
     cy.byTestID(DataTestIDs.MetricGraph).should('be.visible');
   },
 
   clickDisconnectedCheckbox: () => {
     cy.log('metricsPage.clickDisconnectedCheckbox');
-    cy.byTestID(DataTestIDs.MetricDisconnectedCheckbox).scrollIntoView().should('be.visible').click();
+    cy.byTestID(DataTestIDs.MetricDisconnectedCheckbox)
+      .scrollIntoView()
+      .should('be.visible')
+      .click();
   },
 
   clickStackedCheckbox: () => {
@@ -344,14 +473,20 @@ export const metricsPage = {
 
   clickStackedCheckboxAndAssert: () => {
     cy.log('metricsPage.clickStackedCheckboxAndAssert');
-    cy.get('[id^="' + IDs.ChartAxis1ChartLabel + '"]').invoke('text').as('yAxisLabel');
+    cy.get('[id^="' + IDs.ChartAxis1ChartLabel + '"]')
+      .invoke('text')
+      .as('yAxisLabel');
     cy.byTestID(DataTestIDs.MetricStackedCheckbox).scrollIntoView().should('be.visible').click();
     cy.get('[id^="' + IDs.ChartAxis1ChartLabel + '"]').then(() => {
       cy.get('@yAxisLabel').then((value) => {
         cy.get('[id^="' + IDs.ChartAxis1ChartLabel + '"]').should('not.contain', value);
       });
     });
-    cy.byTestID(DataTestIDs.MetricStackedCheckbox).should('have.attr', 'data-checked-state', 'true');
+    cy.byTestID(DataTestIDs.MetricStackedCheckbox).should(
+      'have.attr',
+      'data-checked-state',
+      'true',
+    );
   },
 
   graphCardInlineInfoAssertion: (visible: boolean) => {
@@ -377,7 +512,10 @@ export const metricsPage = {
   clickPredefinedQuery: (query: MetricsPagePredefinedQueries) => {
     cy.log('metricsPage.clickPredefinedQuery');
     cy.byTestID(DataTestIDs.TypeaheadSelectInput).scrollIntoView().should('be.visible').click();
-    cy.get(Classes.MetricsPagePredefinedQueriesMenuItem).contains(query).should('be.visible').click();
+    cy.get(Classes.MetricsPagePredefinedQueriesMenuItem)
+      .contains(query)
+      .should('be.visible')
+      .click();
   },
 
   clickKebabDropdown: (index: number) => {
@@ -388,56 +526,85 @@ export const metricsPage = {
   kebabDropdownAssertionWithoutQuery: () => {
     cy.log('metricsPage.kebabDropdownAssertionWithoutQuery');
     metricsPage.clickKebabDropdown(0);
-    cy.byTestID(DataTestIDs.MetricsPageDisableEnableQueryDropdownItem).contains(MetricsPageQueryKebabDropdown.DISABLE_QUERY).should('be.visible');
-    cy.byTestID(DataTestIDs.MetricsPageHideShowAllSeriesDropdownItem).contains(MetricsPageQueryKebabDropdown.HIDE_ALL_SERIES).should('be.visible');
-    cy.byTestID(DataTestIDs.MetricsPageDeleteQueryDropdownItem).contains(MetricsPageQueryKebabDropdown.DELETE_QUERY).should('be.visible');
-    cy.byTestID(DataTestIDs.MetricsPageDuplicateQueryDropdownItem).contains(MetricsPageQueryKebabDropdown.DUPLICATE_QUERY).should('be.visible');
+    cy.byTestID(DataTestIDs.MetricsPageDisableEnableQueryDropdownItem)
+      .contains(MetricsPageQueryKebabDropdown.DISABLE_QUERY)
+      .should('be.visible');
+    cy.byTestID(DataTestIDs.MetricsPageHideShowAllSeriesDropdownItem)
+      .contains(MetricsPageQueryKebabDropdown.HIDE_ALL_SERIES)
+      .should('be.visible');
+    cy.byTestID(DataTestIDs.MetricsPageDeleteQueryDropdownItem)
+      .contains(MetricsPageQueryKebabDropdown.DELETE_QUERY)
+      .should('be.visible');
+    cy.byTestID(DataTestIDs.MetricsPageDuplicateQueryDropdownItem)
+      .contains(MetricsPageQueryKebabDropdown.DUPLICATE_QUERY)
+      .should('be.visible');
     cy.byTestID(DataTestIDs.MetricsPageExportCsvDropdownItem).should('not.exist');
 
-    cy.byTestID(DataTestIDs.KebabDropdownButton).eq(0).should('have.attr', 'aria-expanded', 'true').click();
+    cy.byTestID(DataTestIDs.KebabDropdownButton)
+      .eq(0)
+      .should('have.attr', 'aria-expanded', 'true')
+      .click();
   },
 
   kebabDropdownAssertionWithQuery: () => {
     cy.log('metricsPage.kebabDropdownAssertionWithQuery');
     metricsPage.clickKebabDropdown(0);
-    cy.byTestID(DataTestIDs.MetricsPageDisableEnableQueryDropdownItem).contains(MetricsPageQueryKebabDropdown.DISABLE_QUERY).should('be.visible');
-    cy.byTestID(DataTestIDs.MetricsPageHideShowAllSeriesDropdownItem).contains(MetricsPageQueryKebabDropdown.HIDE_ALL_SERIES).should('be.visible');
-    cy.byTestID(DataTestIDs.MetricsPageDeleteQueryDropdownItem).contains(MetricsPageQueryKebabDropdown.DELETE_QUERY).should('be.visible');
-    cy.byTestID(DataTestIDs.MetricsPageDuplicateQueryDropdownItem).contains(MetricsPageQueryKebabDropdown.DUPLICATE_QUERY).should('be.visible');
-    cy.byTestID(DataTestIDs.MetricsPageExportCsvDropdownItem).contains(MetricsPageQueryKebabDropdown.EXPORT_AS_CSV).should('be.visible');
-    cy.byTestID(DataTestIDs.KebabDropdownButton).eq(0).should('have.attr', 'aria-expanded', 'true').click();
+    cy.byTestID(DataTestIDs.MetricsPageDisableEnableQueryDropdownItem)
+      .contains(MetricsPageQueryKebabDropdown.DISABLE_QUERY)
+      .should('be.visible');
+    cy.byTestID(DataTestIDs.MetricsPageHideShowAllSeriesDropdownItem)
+      .contains(MetricsPageQueryKebabDropdown.HIDE_ALL_SERIES)
+      .should('be.visible');
+    cy.byTestID(DataTestIDs.MetricsPageDeleteQueryDropdownItem)
+      .contains(MetricsPageQueryKebabDropdown.DELETE_QUERY)
+      .should('be.visible');
+    cy.byTestID(DataTestIDs.MetricsPageDuplicateQueryDropdownItem)
+      .contains(MetricsPageQueryKebabDropdown.DUPLICATE_QUERY)
+      .should('be.visible');
+    cy.byTestID(DataTestIDs.MetricsPageExportCsvDropdownItem)
+      .contains(MetricsPageQueryKebabDropdown.EXPORT_AS_CSV)
+      .should('be.visible');
+    cy.byTestID(DataTestIDs.KebabDropdownButton)
+      .eq(0)
+      .should('have.attr', 'aria-expanded', 'true')
+      .click();
   },
 
   clickKebabDropdownItem: (option: MetricsPageQueryKebabDropdown, index: number) => {
     cy.log('metricsPage.clickKebabDropdownItem');
     metricsPage.clickKebabDropdown(index);
-    cy.byTestID(DataTestIDs.MetricsPageDisableEnableQueryDropdownItem).contains(option).should('be.visible').click();
+    cy.byTestID(DataTestIDs.MetricsPageDisableEnableQueryDropdownItem)
+      .contains(option)
+      .should('be.visible')
+      .click();
   },
 
   assertKebabDropdownItem: (option: MetricsPageQueryKebabDropdown, index: number) => {
     cy.log('metricsPage.assertKebabDropdownItem');
     metricsPage.clickKebabDropdown(index);
-    cy.byTestID(DataTestIDs.MetricsPageDisableEnableQueryDropdownItem).contains(option).should('be.visible');
+    cy.byTestID(DataTestIDs.MetricsPageDisableEnableQueryDropdownItem)
+      .contains(option)
+      .should('be.visible');
   },
 
   /** viewport width: 1920px
- * viewport height: 1080px
- * configurations from cypress.config.ts:
- * 5m - 20 labels
- * 15m - 15 labels
- * 30m - 30 labels - 15 labels
- * 1h - 12 labels
- * 2h - 24 labels
- * 6h - 12 labels
- * 12h - 12 labels
- * 1d - 24 labels
- * 2h - 16 labels
- * 1w - 14 labels
- * 2w - 14 labels
- */
+   * viewport height: 1080px
+   * configurations from cypress.config.ts:
+   * 5m - 20 labels
+   * 15m - 15 labels
+   * 30m - 30 labels - 15 labels
+   * 1h - 12 labels
+   * 2h - 24 labels
+   * 6h - 12 labels
+   * 12h - 12 labels
+   * 1d - 24 labels
+   * 2h - 16 labels
+   * 1w - 14 labels
+   * 2w - 14 labels
+   */
   graphAxisXAssertion: (graphTimespan: GraphTimespan) => {
     cy.log('metricsPage.graphAxisAssertion');
-    cy.get('body').then($body => {
+    cy.get('body').then(($body) => {
       if ($body.find('[id^="' + IDs.ChartAxis0ChartLabel + '"]').length > 0) {
         switch (graphTimespan) {
           case GraphTimespan.FIVE_MINUTES:
@@ -478,7 +645,10 @@ export const metricsPage = {
             break;
         }
       } else {
-        cy.byTestID(DataTestIDs.MetricGraphNoDatapointsFound).scrollIntoView().contains(MetricGraphEmptyState.NO_DATAPOINTS_FOUND).should('be.visible');
+        cy.byTestID(DataTestIDs.MetricGraphNoDatapointsFound)
+          .scrollIntoView()
+          .contains(MetricGraphEmptyState.NO_DATAPOINTS_FOUND)
+          .should('be.visible');
       }
     });
   },
@@ -486,7 +656,9 @@ export const metricsPage = {
   enterQueryInput: (index: number, query: string) => {
     cy.log('metricsPage.enterQueryInput');
     cy.get(Classes.MetricsPageQueryInput).eq(index).should('be.visible').clear();
-    cy.get(Classes.MetricsPageQueryInput).eq(index).type(query + '{enter}');
+    cy.get(Classes.MetricsPageQueryInput)
+      .eq(index)
+      .type(query + '{enter}');
   },
 
   clickRunQueriesButton: () => {
@@ -496,54 +668,94 @@ export const metricsPage = {
 
   clickDisableEnableQuerySwitch: (index: number) => {
     cy.log('metricsPage.clickDisableEnableQuerySwitch');
-    cy.byTestID(DataTestIDs.MetricsPageDisableEnableQuerySwitch).eq(index).parent('label').should('be.visible').click();
+    cy.byTestID(DataTestIDs.MetricsPageDisableEnableQuerySwitch)
+      .eq(index)
+      .parent('label')
+      .should('be.visible')
+      .click();
   },
 
   disableEnableQuerySwitchAssertion: (index: number, enabled: boolean) => {
     cy.log('metricsPage.disableEnableQuerySwitchAssertion');
     if (enabled) {
-      cy.byTestID(DataTestIDs.MetricsPageDisableEnableQuerySwitch).eq(index).should('have.attr', 'checked');
+      cy.byTestID(DataTestIDs.MetricsPageDisableEnableQuerySwitch)
+        .eq(index)
+        .should('have.attr', 'checked');
     } else {
-      cy.byTestID(DataTestIDs.MetricsPageDisableEnableQuerySwitch).eq(index).should('not.have.attr', 'checked');
+      cy.byTestID(DataTestIDs.MetricsPageDisableEnableQuerySwitch)
+        .eq(index)
+        .should('not.have.attr', 'checked');
     }
   },
 
   clickSeriesButton: (rowIndex: number, seriesIndex: number, toEnable: boolean) => {
     cy.log('metricsPage.clickSeriesButton');
     if (toEnable) {
-      cy.get(Classes.MetricsPageExpandedRowIcon).eq(rowIndex).find('[data-test="' + DataTestIDs.MetricsPageSeriesButton + '"]').eq(seriesIndex).should('have.attr', 'aria-label', 'Show series').click();
+      cy.get(Classes.MetricsPageExpandedRowIcon)
+        .eq(rowIndex)
+        .find('[data-test="' + DataTestIDs.MetricsPageSeriesButton + '"]')
+        .eq(seriesIndex)
+        .should('have.attr', 'aria-label', 'Show series')
+        .click();
     } else {
-      cy.get(Classes.MetricsPageExpandedRowIcon).eq(rowIndex).find('[data-test="' + DataTestIDs.MetricsPageSeriesButton + '"]').eq(seriesIndex).should('have.attr', 'aria-label', 'Hide series').click();
+      cy.get(Classes.MetricsPageExpandedRowIcon)
+        .eq(rowIndex)
+        .find('[data-test="' + DataTestIDs.MetricsPageSeriesButton + '"]')
+        .eq(seriesIndex)
+        .should('have.attr', 'aria-label', 'Hide series')
+        .click();
     }
   },
 
-  seriesButtonAssertion: (rowIndex: number, seriesIndex: number, enabled: boolean) => { 
+  seriesButtonAssertion: (rowIndex: number, seriesIndex: number, enabled: boolean) => {
     cy.log('metricsPage.seriesButtonAssertion');
     if (enabled) {
-      cy.get(Classes.MetricsPageExpandedRowIcon).eq(rowIndex).find('[data-test="' + DataTestIDs.MetricsPageSeriesButton + '"]').eq(seriesIndex).should('have.attr', 'aria-label', 'Hide series');
+      cy.get(Classes.MetricsPageExpandedRowIcon)
+        .eq(rowIndex)
+        .find('[data-test="' + DataTestIDs.MetricsPageSeriesButton + '"]')
+        .eq(seriesIndex)
+        .should('have.attr', 'aria-label', 'Hide series');
     } else {
-      cy.get(Classes.MetricsPageExpandedRowIcon).eq(rowIndex).find('[data-test="' + DataTestIDs.MetricsPageSeriesButton + '"]').eq(seriesIndex).should('have.attr', 'aria-label', 'Show series');
+      cy.get(Classes.MetricsPageExpandedRowIcon)
+        .eq(rowIndex)
+        .find('[data-test="' + DataTestIDs.MetricsPageSeriesButton + '"]')
+        .eq(seriesIndex)
+        .should('have.attr', 'aria-label', 'Show series');
     }
   },
 
   selectAllUnselectAllButtonAssertion: (rowIndex: number, unselectAll: boolean) => {
     cy.log('metricsPage.selectAllUnselectAllButtonAssertion');
     if (unselectAll) {
-      cy.byTestID(DataTestIDs.MetricsPageSelectAllUnselectAllButton).eq(rowIndex).contains('Unselect all').should('be.visible');
+      cy.byTestID(DataTestIDs.MetricsPageSelectAllUnselectAllButton)
+        .eq(rowIndex)
+        .contains('Unselect all')
+        .should('be.visible');
     } else {
-      cy.byTestID(DataTestIDs.MetricsPageSelectAllUnselectAllButton).eq(rowIndex).contains('Select all').should('be.visible');
+      cy.byTestID(DataTestIDs.MetricsPageSelectAllUnselectAllButton)
+        .eq(rowIndex)
+        .contains('Select all')
+        .should('be.visible');
     }
   },
 
   clickSelectAllUnselectAllButton: (rowIndex: number, unselectAll: boolean) => {
     cy.log('metricsPage.clickSelectAllUnselectAllButton');
     if (unselectAll) {
-      cy.byTestID(DataTestIDs.MetricsPageSelectAllUnselectAllButton).eq(rowIndex).contains('Unselect all').should('be.visible').click();
+      cy.byTestID(DataTestIDs.MetricsPageSelectAllUnselectAllButton)
+        .eq(rowIndex)
+        .contains('Unselect all')
+        .should('be.visible')
+        .click();
     } else {
-      cy.byTestID(DataTestIDs.MetricsPageSelectAllUnselectAllButton).eq(rowIndex).contains('Select all').should('be.visible').click();
+      cy.byTestID(DataTestIDs.MetricsPageSelectAllUnselectAllButton)
+        .eq(rowIndex)
+        .contains('Select all')
+        .should('be.visible')
+        .click();
     }
   },
-  
+
   exportAsCSV: (clearFolder: boolean, fileNameExp: string) => {
     cy.log('metricsPage.exportAsCSV');
     let downloadedFileName: string | null = null;
@@ -554,36 +766,44 @@ export const metricsPage = {
     }
     cy.byTestID(DataTestIDs.MetricsPageExportCsvDropdownItem).should('be.visible').click();
 
-    cy.waitUntil(() => {
-      return cy.task('getFilesInFolder', downloadsFolder).then((currentFiles: string[]) => {
-        const matchingFile = currentFiles.find(file => file.includes(expectedFileNamePattern));
-        if (matchingFile) {
-          downloadedFileName = matchingFile;
-          return true;
-        }
-        return false;
-      });
-    }, {
-      timeout: 20000,
-      interval: 1000,
-      errorMsg: `CSV file matching "${expectedFileNamePattern}" was not downloaded within timeout.`
-    });
+    cy.waitUntil(
+      () => {
+        return cy.task('getFilesInFolder', downloadsFolder).then((currentFiles: string[]) => {
+          const matchingFile = currentFiles.find((file) => file.includes(expectedFileNamePattern));
+          if (matchingFile) {
+            downloadedFileName = matchingFile;
+            return true;
+          }
+          return false;
+        });
+      },
+      {
+        timeout: 20000,
+        interval: 1000,
+        errorMsg: [
+          `CSV file matching "${expectedFileNamePattern}"`,
+          'was not downloaded within timeout.',
+        ].join(' '),
+      },
+    );
 
     cy.then(() => {
-      expect(downloadedFileName).to.not.be.null;
+      expect(downloadedFileName).to.not.equal(null);
       cy.task('doesFileExist', { fileName: downloadedFileName }).should('be.true');
     });
-
   },
 
   noDatapointsFound: () => {
     cy.log('metricsPage.noDatapointsFound');
-    cy.byTestID(DataTestIDs.MetricGraphNoDatapointsFound).contains(MetricGraphEmptyState.NO_DATAPOINTS_FOUND).should('be.visible');
-    cy.byTestID(DataTestIDs.MetricsPageYellowNoDatapointsFound).contains(MetricGraphEmptyState.NO_DATAPOINTS_FOUND).should('be.visible');
+    cy.byTestID(DataTestIDs.MetricGraphNoDatapointsFound)
+      .contains(MetricGraphEmptyState.NO_DATAPOINTS_FOUND)
+      .should('be.visible');
+    cy.byTestID(DataTestIDs.MetricsPageYellowNoDatapointsFound)
+      .contains(MetricGraphEmptyState.NO_DATAPOINTS_FOUND)
+      .should('be.visible');
     cy.byTestID(DataTestIDs.MetricsPageInsertExampleQueryButton).should('not.exist');
     cy.byTestID(DataTestIDs.MetricsPageQueryTable).should('not.exist');
     cy.byTestID(DataTestIDs.MetricsPageSelectAllUnselectAllButton).should('not.exist');
     cy.byTestID(DataTestIDs.MetricsPageSeriesButton).should('not.exist');
   },
-
 };

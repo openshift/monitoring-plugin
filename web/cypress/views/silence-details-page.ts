@@ -1,9 +1,8 @@
-import { commonPages } from "./common";
-import { detailsPage } from "./details-page";
-import { DataTestIDs } from "../../src/components/data-test";
+import { commonPages } from './common';
+import { detailsPage } from './details-page';
+import { DataTestIDs } from '../../src/components/data-test';
 
 export const silenceDetailsPage = {
-
   assertSilenceDetailsPage: (title: string, section: string, labelname: string) => {
     cy.log('silenceDetailsPage.assertSilenceDetailsPage');
     commonPages.titleShouldHaveText(title);
@@ -47,7 +46,7 @@ export const silenceDetailsPage = {
   },
 
   /**
-   * 
+   *
    * @param toOpen true: to open Actions dropdown, false: assuming it is already opened
    * @param yes true: confirm, false: cancel
    */
@@ -64,13 +63,13 @@ export const silenceDetailsPage = {
     cy.byTestID(DataTestIDs.SilenceRecreateDropdownItem).should('be.visible').click();
   },
 
-  clickSilencesBreadcrumb:() => {
+  clickSilencesBreadcrumb: () => {
     cy.log('silenceDetailsPage.clickSilencesBreadcrumb');
-     try {
-       cy.byTestID(DataTestIDs.Breadcrumb).contains('Silences').should('be.visible').click();
-      } catch (error) {
-        cy.log(`${error.message}`);
-        throw error; 
-      }
-  }
+    try {
+      cy.byTestID(DataTestIDs.Breadcrumb).contains('Silences').should('be.visible').click();
+    } catch (error) {
+      cy.log(`${error.message}`);
+      throw error;
+    }
+  },
 };
