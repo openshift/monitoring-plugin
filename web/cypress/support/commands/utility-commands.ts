@@ -135,7 +135,6 @@ Cypress.Commands.add('waitUntilWithCustomTimeout', (
       }
     });
     cy.get(`a[data-test^="${pod}"]`).eq(0).as('podLink').click();
-      cy.get('@podLink').should('be.visible').click();
       cy.byPFRole('rowgroup').find('td').eq(1).scrollIntoView().should('be.visible').then(($td) => {
         cy.log('Pod image: ' + $td.text());
       });
