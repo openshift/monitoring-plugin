@@ -1,5 +1,4 @@
 import { runBVTMonitoringTests } from '../../support/monitoring/00.bvt_monitoring.cy';
-import { runBVTMonitoringTestsNamespace } from '../../support/monitoring/00.bvt_monitoring_namespace.cy';
 import { guidedTour } from '../../views/tour';
 import { alerts } from '../../fixtures/monitoring/alert';
 import { nav } from '../../views/nav';
@@ -31,23 +30,24 @@ const KBV = {
   crd: {
     kubevirt: 'kubevirts.kubevirt.io',
     hyperconverged: 'hyperconvergeds.hco.kubevirt.io',
-  }
+  },
 };
 
-describe('Installation: COO and setting up Monitoring Plugin', { tags: ['@virtualization', '@slow'] }, () => {
+describe(
+  'Installation: COO and setting up Monitoring Plugin',
+  { tags: ['@virtualization', '@slow'] },
+  () => {
+    before(() => {
+      cy.beforeBlockCOO(MCP, MP);
+    });
 
-  before(() => {
-    cy.beforeBlockCOO(MCP, MP);
-
-  });
-
-  it('1. Installation: COO and setting up Monitoring Plugin', () => {
-    cy.log('Installation: COO and setting up Monitoring Plugin');
-  });
-});
+    it('1. Installation: COO and setting up Monitoring Plugin', () => {
+      cy.log('Installation: COO and setting up Monitoring Plugin');
+    });
+  },
+);
 
 describe('Installation: Virtualization', { tags: ['@virtualization', '@slow'] }, () => {
-
   before(() => {
     cy.beforeBlockVirtualization(KBV);
   });
@@ -60,7 +60,6 @@ describe('Installation: Virtualization', { tags: ['@virtualization', '@slow'] },
 });
 
 describe('IVT: Monitoring + Virtualization', { tags: ['@smoke', '@virtualization'] }, () => {
-
   beforeEach(() => {
     cy.visit('/');
     guidedTour.close();
@@ -69,7 +68,7 @@ describe('IVT: Monitoring + Virtualization', { tags: ['@smoke', '@virtualization
     guidedTour.closeKubevirtTour();
     nav.sidenav.clickNavLink(['Observe', 'Metrics']);
     commonPages.titleShouldHaveText('Metrics');
-    cy.changeNamespace("All Projects");
+    cy.changeNamespace('All Projects');
     alerts.getWatchdogAlert();
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     commonPages.titleShouldHaveText('Alerting');
@@ -80,5 +79,4 @@ describe('IVT: Monitoring + Virtualization', { tags: ['@smoke', '@virtualization
   runBVTMonitoringTests({
     name: 'Virtualization',
   });
-
 });

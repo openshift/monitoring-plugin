@@ -14,12 +14,11 @@ export {
   YellowExclamationTriangleIcon,
 } from '@openshift-console/dynamic-plugin-sdk';
 
-export const consoleFetchJSON = (url) => fetch(url)
-  .then(response => response.json());
-consoleFetchJSON.delete = (url) => fetch(url, { method: 'DELETE' })
-  .then(response => response.json());
-consoleFetchJSON.post = (url, json) => fetch(url, { body: JSON.stringify(json), method: 'POST'})
-  .then(response => response.json());
+export const consoleFetchJSON = (url) => fetch(url).then((response) => response.json());
+consoleFetchJSON.delete = (url) =>
+  fetch(url, { method: 'DELETE' }).then((response) => response.json());
+consoleFetchJSON.post = (url, json) =>
+  fetch(url, { body: JSON.stringify(json), method: 'POST' }).then((response) => response.json());
 
 export const ListPageFilter = () => <input data-test="name-filter-input"></input>;
 
@@ -27,7 +26,9 @@ export const VirtualizedTable = ({ data, Row }) => (
   <table>
     <tbody>
       <tr data-test-rows="resource-row">
-        {data.map((obj, i) => <Row key={i} obj={obj} />)}
+        {data.map((obj, i) => (
+          <Row key={i} obj={obj} />
+        ))}
       </tr>
     </tbody>
   </table>
@@ -36,4 +37,5 @@ export const VirtualizedTable = ({ data, Row }) => (
 export const Timestamp = () => <div>Mock_Timestamp</div>;
 
 export const useActivePerspective = () => ['admin'];
-export const useListPageFilter = (data, rowFilters) => [data, data, () => {}];
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const useListPageFilter = (data, _rowFilters) => [data, data, () => {}];

@@ -1,8 +1,7 @@
-import { commonPages } from "./common";
+import { commonPages } from './common';
 import { DataTestIDs, Classes, LegacyTestIDs } from '../../src/components/data-test';
 
 export const silencesListPage = {
-
   shouldBeLoaded: () => {
     cy.log('silencesListPage.shouldBeLoaded');
     cy.byTestID(DataTestIDs.SilenceButton).should('be.visible');
@@ -11,8 +10,8 @@ export const silencesListPage = {
     cy.get('table').find(Classes.TableHeaderColumn).contains('Firing alerts').should('be.visible');
     cy.get('table').find(Classes.TableHeaderColumn).contains('State').should('be.visible');
     cy.get('table').find(Classes.TableHeaderColumn).contains('Creator').should('be.visible');
-
   },
+
   firstTimeEmptyState: () => {
     cy.log('silencesListPage.firstTimeEmptyState');
     cy.byTestID(DataTestIDs.EmptyBoxBody).contains('No silences found').should('be.visible');
@@ -23,10 +22,24 @@ export const silencesListPage = {
     cy.log('silencesListPage.emptyState');
     cy.byTestID(DataTestIDs.EmptyBoxBody).contains('No Silences found').should('be.visible');
     cy.bySemanticElement('button', 'Clear all filters').should('be.visible');
-    cy.get(Classes.MainTag).contains('Silence State').parent().next('div').children('button').should('be.visible');
-    cy.get(Classes.IndividualTag).contains('Active').parent().next('span').children('button').should('be.visible');
-    cy.get(Classes.IndividualTag).contains('Pending').parent().next('span').children('button').should('be.visible'); 
-
+    cy.get(Classes.MainTag)
+      .contains('Silence State')
+      .parent()
+      .next('div')
+      .children('button')
+      .should('be.visible');
+    cy.get(Classes.IndividualTag)
+      .contains('Active')
+      .parent()
+      .next('span')
+      .children('button')
+      .should('be.visible');
+    cy.get(Classes.IndividualTag)
+      .contains('Pending')
+      .parent()
+      .next('span')
+      .children('button')
+      .should('be.visible');
   },
 
   createSilence: () => {
@@ -34,21 +47,19 @@ export const silencesListPage = {
     cy.byTestID(DataTestIDs.SilenceButton).should('be.visible').click();
   },
 
-  
-
   filter: {
     /**
-     * @param name 
+     * @param name
      */
     byName: (name: string) => {
       cy.log('silencesListPage.filter.byName');
       try {
-          cy.byTestID(DataTestIDs.NameInput).scrollIntoView().as('input').should('be.visible');
-          cy.get('@input', { timeout: 10000 }).scrollIntoView().type(name + '{enter}');
-          cy.get('@input', { timeout: 10000 }).scrollIntoView().should('have.attr', 'value', name);
-        
-      }
-      catch (error) {
+        cy.byTestID(DataTestIDs.NameInput).scrollIntoView().as('input').should('be.visible');
+        cy.get('@input', { timeout: 10000 })
+          .scrollIntoView()
+          .type(name + '{enter}');
+        cy.get('@input', { timeout: 10000 }).scrollIntoView().should('have.attr', 'value', name);
+      } catch (error) {
         cy.log(`${error.message}`);
         throw error;
       }
@@ -58,7 +69,7 @@ export const silencesListPage = {
   rows: {
     shouldBe: (alert: string, state: string) => {
       cy.log('silencesListPage.rows.shouldBe');
-      cy.get('#'+LegacyTestIDs.SelectAllSilencesCheckbox).should('be.visible');
+      cy.get('#' + LegacyTestIDs.SelectAllSilencesCheckbox).should('be.visible');
       cy.byTestID(DataTestIDs.SilenceResourceIcon).contains('S');
       cy.byTestID(DataTestIDs.SilenceResourceLink).contains(alert).should('be.visible');
       cy.get(Classes.SilenceState).eq(0).contains(state).should('be.visible');
@@ -96,7 +107,6 @@ export const silencesListPage = {
       cy.log('silencesListPage.rows.editSilence');
       silencesListPage.rows.clickAlertKebab();
       cy.byTestID(DataTestIDs.SilenceEditDropdownItem).should('be.visible').click();
-
     },
     /**
      * * @param yes boolean: true to expire and false to cancel
@@ -106,6 +116,6 @@ export const silencesListPage = {
       silencesListPage.rows.clickAlertKebab();
       cy.byTestID(DataTestIDs.SilenceExpireDropdownItem).should('be.visible').click();
       commonPages.confirmExpireAlert(yes);
-    }
+    },
   },
-}
+};

@@ -1,4 +1,4 @@
-import { commonPages } from "./common";
+import { commonPages } from './common';
 import { DataTestIDs, Classes } from '../../src/components/data-test';
 
 export const detailsPage = {
@@ -6,7 +6,7 @@ export const detailsPage = {
     cy.log('detailsPage.sectionHeaderShouldExist');
     cy.get(Classes.SectionHeader).contains(sectionHeading).should('be.visible');
   },
-    
+
   labelShouldExist: (labelName: string) => {
     cy.log('detailsPage.labelShouldExist');
     cy.get(Classes.LabelTag).contains(labelName);
@@ -15,12 +15,15 @@ export const detailsPage = {
   clickAlertRule: (alert: string) => {
     cy.log('detailsPage.clickAlertRule');
     cy.byTestID(DataTestIDs.AlertingRuleResourceLink).scrollIntoView();
-    try{
-      cy.byTestID(DataTestIDs.AlertingRuleResourceLink).contains(alert).should('be.visible').click();
-      commonPages.detailsPage.alertRule;
+    try {
+      cy.byTestID(DataTestIDs.AlertingRuleResourceLink)
+        .contains(alert)
+        .should('be.visible')
+        .click();
+      commonPages.detailsPage.alertRule();
     } catch (error) {
       cy.log(`${error.message}`);
-      throw error; 
+      throw error;
     }
   },
 
@@ -31,36 +34,32 @@ export const detailsPage = {
       cy.byTestID(DataTestIDs.AlertResourceLink).contains(desc).should('be.visible').click();
     } catch (error) {
       cy.log(`${error.message}`);
-      throw error; 
+      throw error;
     }
   },
 
-  clickInspectAlertPage: () =>{
+  clickInspectAlertPage: () => {
     cy.log('detailsPage.clickInspectAlertPage');
     try {
       cy.byAriaLabel('Inspect').should('be.visible');
-      cy.get(`a[aria-label="Inspect"]` , { timeout: 10000 }).click();
+      cy.get(`a[aria-label="Inspect"]`, { timeout: 10000 }).click();
     } catch (error) {
       cy.log(`${error.message}`);
-      throw error; 
+      throw error;
     }
   },
 
   clickOnSilencedBy: (alertname: string) => {
-   cy.log('detailsPage.clickOnSilencedBy');
-   try {
-    cy.byLegacyTestID(DataTestIDs.SilenceResourceLink)
-      .contains(alertname)
-      .scrollIntoView();
-      cy.byLegacyTestID(DataTestIDs.SilenceResourceLink)
-      .contains(alertname)
-      .click({force: true});
-   } catch (error) {
+    cy.log('detailsPage.clickOnSilencedBy');
+    try {
+      cy.byLegacyTestID(DataTestIDs.SilenceResourceLink).contains(alertname).scrollIntoView();
+      cy.byLegacyTestID(DataTestIDs.SilenceResourceLink).contains(alertname).click({ force: true });
+    } catch (error) {
       cy.log(`${error.message}`);
-      throw error; 
+      throw error;
     }
   },
-  
+
   assertSilencedAlert: () => {
     cy.log('detailsPage.assertSilencedAlert');
     try {
@@ -68,10 +67,9 @@ export const detailsPage = {
       detailsPage.clickOnSilenceByKebab();
       cy.byPFRole('menuitem').contains('Edit silence').should('be.visible');
       cy.byPFRole('menuitem').contains('Expire silence').should('be.visible');
-
     } catch (error) {
       cy.log(`${error.message}`);
-      throw error; 
+      throw error;
     }
   },
 
@@ -82,44 +80,46 @@ export const detailsPage = {
       cy.get('table').should('be.visible');
       cy.wait(2000);
       cy.get('table').find(Classes.SilenceKebabDropdown).should('be.visible');
-      cy.get('table').find(Classes.SilenceKebabDropdown).should('be.visible').click({force: true});
+      cy.get('table')
+        .find(Classes.SilenceKebabDropdown)
+        .should('be.visible')
+        .click({ force: true });
     } catch (error) {
       cy.log(`${error.message}`);
-      throw error; 
+      throw error;
     }
   },
-  
-  editSilence:() => {
+
+  editSilence: () => {
     cy.log('detailsPage.editSilence');
     try {
       detailsPage.clickOnSilenceByKebab();
       cy.byPFRole('menuitem').contains('Edit silence').should('be.visible').click();
     } catch (error) {
       cy.log(`${error.message}`);
-      throw error; 
+      throw error;
     }
   },
   /**
-   * 
+   *
    * @param yes boolean: true to expire and false to cancel
    */
-  expireSilence:(yes: boolean) => {
+  expireSilence: (yes: boolean) => {
     cy.log('detailsPage.expireSilence');
     try {
       detailsPage.clickOnSilenceByKebab();
-      cy.byPFRole('menuitem').contains('Expire silence').should('be.visible').click({force: true});
+      cy.byPFRole('menuitem')
+        .contains('Expire silence')
+        .should('be.visible')
+        .click({ force: true });
       commonPages.confirmExpireAlert(yes);
     } catch (error) {
       cy.log(`${error.message}`);
-      throw error; 
+      throw error;
     }
-    
-    
   },
-  clickSilenceAlertButton:()=>{
+  clickSilenceAlertButton: () => {
     cy.log('detailsPage.clickSilenceAlertButton');
     cy.byTestID(DataTestIDs.SilenceButton).should('be.visible').click();
   },
-
-  
 };

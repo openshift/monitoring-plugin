@@ -3,7 +3,8 @@ import * as helperfuncs from '../views/utils';
 export const operatorHubPage = {
   installOperator: (operatorName, csName, installNamespace?) => {
     cy.visit(
-      `/operatorhub/subscribe?pkg=${operatorName}&catalog=${csName}&catalogNamespace=openshift-marketplace&targetNamespace=undefined`,
+      `/operatorhub/subscribe?pkg=${operatorName}&catalog=${csName}` +
+        `&catalogNamespace=openshift-marketplace&targetNamespace=undefined`,
     );
     cy.get('body').should('be.visible');
     if (installNamespace) {

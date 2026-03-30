@@ -1,5 +1,5 @@
-import { DataTestIDs, Classes } from "../../src/components/data-test";
-import { listPage } from "./list-page";
+import { DataTestIDs, Classes } from '../../src/components/data-test';
+import { listPage } from './list-page';
 
 export const alertingRuleListPage = {
   shouldBeLoaded: () => {
@@ -14,9 +14,9 @@ export const alertingRuleListPage = {
 
   filter: {
     /**
-    * 
-    * @param tab alerts-tab, silences, alerting-rules 
-    */
+     *
+     * @param tab alerts-tab, silences, alerting-rules
+     */
     assertNoClearAllFilters: () => {
       cy.log('alertingRuleListPage.filter.assertNoclearAllFilters');
       try {
@@ -26,13 +26,15 @@ export const alertingRuleListPage = {
         throw error;
       }
     },
-
   },
 
   clickAlertingRule: (alertRule: string) => {
     cy.log('alertingRuleListPage.clickAlertingRule');
     try {
-      cy.byTestID(DataTestIDs.AlertingRuleResourceLink).contains(alertRule).should('be.visible').click();
+      cy.byTestID(DataTestIDs.AlertingRuleResourceLink)
+        .contains(alertRule)
+        .should('be.visible')
+        .click();
     } catch (error) {
       cy.log(`${error.message}`);
       throw error;
@@ -59,5 +61,4 @@ export const alertingRuleListPage = {
     cy.bySemanticElement('button', 'Clear all filters').should('not.exist');
     cy.byOUIAID(DataTestIDs.Table).should('not.exist');
   },
-
 };

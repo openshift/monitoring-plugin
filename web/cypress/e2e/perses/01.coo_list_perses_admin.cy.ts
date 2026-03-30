@@ -1,5 +1,8 @@
 import { nav } from '../../views/nav';
-import { runCOOListPersesDuplicateDashboardTests, runCOOListPersesTests } from '../../support/perses/01.coo_list_perses_admin.cy';
+import {
+  runCOOListPersesDuplicateDashboardTests,
+  runCOOListPersesTests,
+} from '../../support/perses/01.coo_list_perses_admin.cy';
 import { runCOOListPersesTestsNamespace } from '../../support/perses/01.coo_list_perses_admin_namespace.cy';
 
 // Set constants for the operators that need to be installed for tests.
@@ -19,45 +22,49 @@ const MP = {
 };
 
 //TODO: change tag to @dashboards when customizable-dashboards gets merged
-describe('COO - Dashboards (Perses) - List perses dashboards', { tags: ['@perses', '@dashboards-'] }, () => {
+describe(
+  'COO - Dashboards (Perses) - List perses dashboards',
+  { tags: ['@perses', '@dashboards'] },
+  () => {
+    before(() => {
+      cy.beforeBlockCOO(MCP, MP, { dashboards: true, troubleshootingPanel: false });
+      cy.cleanupPersesTestDashboardsBeforeTests();
+    });
 
-  before(() => {
-    cy.beforeBlockCOO(MCP, MP);
-    cy.cleanupPersesTestDashboardsBeforeTests();
-  });
+    beforeEach(() => {
+      nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
+      cy.wait(5000);
+      cy.changeNamespace('All Projects');
+    });
 
-  beforeEach(() => {
-    nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
-    cy.wait(5000);
-    cy.changeNamespace('All Projects');
-  });
+    runCOOListPersesTests({
+      name: 'Administrator',
+    });
 
-  runCOOListPersesTests({
-    name: 'Administrator',
-  });
-
-  runCOOListPersesDuplicateDashboardTests({
-    name: 'Administrator',
-  });
-
-});
+    runCOOListPersesDuplicateDashboardTests({
+      name: 'Administrator',
+    });
+  },
+);
 
 //TODO: change tag to @dashboards when customizable-dashboards gets merged
-describe('COO - Dashboards (Perses) - List perses dashboards - Namespace', { tags: ['@perses', '@dashboards-'] }, () => {
+describe(
+  'COO - Dashboards (Perses) - List perses dashboards - Namespace',
+  { tags: ['@perses', '@dashboards'] },
+  () => {
+    before(() => {
+      cy.beforeBlockCOO(MCP, MP);
+      cy.cleanupPersesTestDashboardsBeforeTests();
+    });
 
-  before(() => {
-    cy.beforeBlockCOO(MCP, MP);
-    cy.cleanupPersesTestDashboardsBeforeTests();
-  });
+    beforeEach(() => {
+      nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
+      cy.wait(5000);
+      cy.changeNamespace('All Projects');
+    });
 
-  beforeEach(() => {
-    nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
-    cy.changeNamespace('All Projects');
-  });
-
-  runCOOListPersesTestsNamespace({
-    name: 'Administrator',
-  });
-
-});
-
+    runCOOListPersesTestsNamespace({
+      name: 'Administrator',
+    });
+  },
+);
