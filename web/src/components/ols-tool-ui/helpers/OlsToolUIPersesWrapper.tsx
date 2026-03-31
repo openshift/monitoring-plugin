@@ -2,6 +2,7 @@ import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { VariableProvider } from '@perses-dev/dashboards';
 import { TimeRangeProviderBasic } from '@perses-dev/plugin-system';
+import { TimeZoneProvider } from '@perses-dev/components';
 import type { DurationString, TimeRangeValue } from '@perses-dev/core';
 
 import {
@@ -32,13 +33,15 @@ export const OlsToolUIPersesWrapper: React.FC<OlsToolUIPersesWrapperProps> = ({
   return (
     <QueryClientProvider client={queryClient}>
       <PersesWrapper project={null}>
-        <TimeRangeProviderBasic initialTimeRange={initialTimeRange}>
-          <VariableProvider>
-            <PersesPrometheusDatasourceWrapper queries={[]}>
-              <div style={{ width: '100%', height: height }}>{children}</div>
-            </PersesPrometheusDatasourceWrapper>
-          </VariableProvider>
-        </TimeRangeProviderBasic>
+        <TimeZoneProvider timeZone="UTC">
+          <TimeRangeProviderBasic initialTimeRange={initialTimeRange}>
+            <VariableProvider>
+              <PersesPrometheusDatasourceWrapper queries={[]}>
+                <div style={{ width: '100%', height: height }}>{children}</div>
+              </PersesPrometheusDatasourceWrapper>
+            </VariableProvider>
+          </TimeRangeProviderBasic>
+        </TimeZoneProvider>
       </PersesWrapper>
     </QueryClientProvider>
   );

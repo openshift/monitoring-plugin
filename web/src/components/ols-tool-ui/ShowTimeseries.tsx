@@ -22,6 +22,7 @@ export const ShowTimeseries: React.FC<{ tool: ShowTimeseriesTool }> = ({ tool })
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { query, title, description, start, end, duration } = tool.args;
   const timeRange = useTimeRange(start, end, duration);
+
   const queryDescription = t('Query: {{query}}', { query: query });
   const definitions = [
     {
@@ -34,7 +35,7 @@ export const ShowTimeseries: React.FC<{ tool: ShowTimeseriesTool }> = ({ tool })
 
   return (
     <>
-      <OlsToolUIPersesWrapper initialTimeRange={timeRange}>
+      <OlsToolUIPersesWrapper initialTimeRange={timeRange} initialTimeZone="UTC">
         <DataQueriesProvider
           definitions={definitions}
           options={{ suggestedStepMs: 15000, mode: 'range' }}

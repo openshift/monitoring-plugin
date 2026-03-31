@@ -108,4 +108,10 @@ describe('ShowTimeseries', () => {
         });
     });
   });
+
+  it('timezone support: defaults to UTC when not specified', () => {
+    cy.mount(<ShowTimeseries tool={tool} />);
+    cy.get('[data-testid="perses-wrapper"]')
+      .should('have.attr', 'data-timezone', 'UTC');
+  });
 });
