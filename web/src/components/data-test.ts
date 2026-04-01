@@ -277,6 +277,7 @@ export const persesAriaLabels = {
   dashboardActionsMenu: 'Dashboard actions',
   importDashboardProjectInputButton: 'Typeahead menu toggle',
   importDashboardDuplicatedDashboardError: 'Danger alert:document already exists',
+  traceTablePanel_TraceTable: 'Trace name column menu',
 };
 
 //data-testid from MUI components
@@ -294,6 +295,8 @@ export const persesMUIDataTestIDs = {
   editDashboardEditVariableDatasourceEditButton: 'PencilIcon',
   editDashboardEditVariableDatasourceDeleteButton: 'TrashCanIcon',
   addPanelGroupFormName: 'panel-group-editor-name',
+  logsTableContainer: 'log-row-container-0',
+  scatterChartPanel_ScatterPlot: 'ScatterChartPanel_ScatterPlot',
 };
 
 export const persesDashboardDataTestIDs = {
