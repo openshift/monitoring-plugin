@@ -3,6 +3,16 @@ declare module '*.svg' {
   export = value;
 }
 
+declare module '*.css' {
+  const content: { [className: string]: string };
+  export default content;
+}
+
+declare module '*.scss' {
+  const content: { [className: string]: string };
+  export default content;
+}
+
 declare interface Window {
   SERVER_FLAGS: {
     alertManagerBaseURL: string;

@@ -1,7 +1,7 @@
 import '@patternfly/patternfly/patternfly.css';
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
-import { BrowserRouter, Link, Route, Routes } from 'react-router-dom-v5-compat';
+import { BrowserRouter, Link, Route, Routes } from 'react-router';
 import { combineReducers, createStore } from 'redux';
 import { MpCmoAlertingPage } from './components/alerting/AlertingPage';
 import { MpCmoAlertRulesDetailsPage } from './components/alerting/AlertRulesDetailsPage';
@@ -63,5 +63,7 @@ const App = () => (
 );
 
 i18n.on('initialized', () => {
-  ReactDOM.render(<App />, document.getElementById('app'));
+  const container = document.getElementById('app');
+  const root = createRoot(container);
+  root.render(<App />);
 });

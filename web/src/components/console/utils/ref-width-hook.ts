@@ -22,13 +22,11 @@ export const useRefWidth = () => {
     };
   }, []);
 
-  const clientWidth = ref.current?.clientWidth;
-
   useEffect(() => {
-    if (width !== clientWidth) {
-      setWidth(clientWidth);
+    if (width !== ref.current?.clientWidth) {
+      setWidth(ref.current?.clientWidth);
     }
-  }, [clientWidth, width]);
+  }, [ref, width]);
 
   return [setRef, width] as [React.Ref<HTMLDivElement>, number];
 };

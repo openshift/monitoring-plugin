@@ -9,7 +9,6 @@ import { PagePadding } from './dashboard-page-padding';
 
 interface DashboardFrameProps {
   activeProject: string | null;
-  setActiveProject: (project: string | null) => void;
   activeProjectDashboardsMetadata: CombinedDashboardMetadata[];
   changeBoard: (boardName: string) => void;
   dashboardDisplayName: string;
@@ -18,7 +17,6 @@ interface DashboardFrameProps {
 
 export const DashboardFrame: React.FC<DashboardFrameProps> = ({
   activeProject,
-  setActiveProject,
   activeProjectDashboardsMetadata,
   changeBoard,
   dashboardDisplayName,
@@ -26,7 +24,7 @@ export const DashboardFrame: React.FC<DashboardFrameProps> = ({
 }) => {
   return (
     <>
-      <ProjectBar activeProject={activeProject} setActiveProject={setActiveProject} />
+      <ProjectBar activeProject={activeProject} />
       <ToastProvider>
         <PersesWrapper project={activeProject}>
           {activeProjectDashboardsMetadata?.length === 0 ? (

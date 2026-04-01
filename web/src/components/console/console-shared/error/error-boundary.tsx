@@ -1,9 +1,15 @@
-import type { ComponentType, FC } from 'react';
+import { ErrorBoundaryFallbackProps } from '@openshift-console/dynamic-plugin-sdk';
+import type { ComponentType, ReactNode, FC } from 'react';
 import { Component } from 'react';
-import { history } from '../../utils/router';
+import { useLocation } from 'react-router';
 
 type ErrorBoundaryProps = {
   FallbackComponent?: ComponentType<ErrorBoundaryFallbackProps>;
+  children?: ReactNode;
+};
+
+type ErrorBoundaryInnerProps = ErrorBoundaryProps & {
+  locationPathname?: string;
 };
 
 /** Needed for tests -- should not be imported by application logic */
@@ -15,10 +21,7 @@ export type ErrorBoundaryState = {
 
 const DefaultFallback: FC = () => <div />;
 
-class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  // eslint-disable-next-line
-  unlisten: () => void = () => {};
-
+class ErrorBoundaryInner extends Component<ErrorBoundaryInnerProps, ErrorBoundaryState> {
   readonly defaultState: ErrorBoundaryState = {
     hasError: false,
     error: {
@@ -36,15 +39,15 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     this.state = this.defaultState;
   }
 
-  componentDidMount() {
-    this.unlisten = history.listen(() => {
-      // reset state to default when location changes
+  componentDidUpdate(prevProps: ErrorBoundaryInnerProps) {
+    // Reset error state when location changes
+    if (
+      this.state.hasError &&
+      prevProps.locationPathname &&
+      this.props.locationPathname !== prevProps.locationPathname
+    ) {
       this.setState(this.defaultState);
-    });
-  }
-
-  componentWillUnmount() {
-    this.unlisten();
+    }
   }
 
   componentDidCatch(error, errorInfo) {
@@ -74,11 +77,15 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   }
 }
 
-export default ErrorBoundary;
+// Functional wrapper to handle location changes
+const ErrorBoundary: FC<ErrorBoundaryProps> = ({ children, FallbackComponent }) => {
+  const location = useLocation();
 
-type ErrorBoundaryFallbackProps = {
-  errorMessage: string;
-  componentStack: string;
-  stack: string;
-  title: string;
+  return (
+    <ErrorBoundaryInner locationPathname={location.pathname} FallbackComponent={FallbackComponent}>
+      {children}
+    </ErrorBoundaryInner>
+  );
 };
+
+export default ErrorBoundary;

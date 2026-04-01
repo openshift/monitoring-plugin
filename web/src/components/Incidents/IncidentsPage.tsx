@@ -53,7 +53,7 @@ import {
   setIncidentsActiveFilters,
   setIncidentsLastRefreshTime,
 } from '../../store/actions';
-import { useLocation } from 'react-router-dom-v5-compat';
+import { useLocation } from 'react-router';
 import { changeDaysFilter } from './utils';
 import { parsePrometheusDuration } from '../console/console-shared/src/datetime/prometheus';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
@@ -370,10 +370,13 @@ const IncidentsPage = () => {
   useEffect(() => {
     // Set up 5-minute timer to hide banner automatically on first visit
     if (showDataDelayAlert) {
-      const timer = setTimeout(() => {
-        setShowDataDelayAlert(false);
-        localStorage.setItem(INCIDENTS_DATA_ALERT_DISPLAYED, 'true');
-      }, 5 * 60 * 1000);
+      const timer = setTimeout(
+        () => {
+          setShowDataDelayAlert(false);
+          localStorage.setItem(INCIDENTS_DATA_ALERT_DISPLAYED, 'true');
+        },
+        5 * 60 * 1000,
+      );
 
       return () => clearTimeout(timer);
     }

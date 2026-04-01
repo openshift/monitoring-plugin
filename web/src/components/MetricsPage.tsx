@@ -85,11 +85,6 @@ import {
 import { getPrometheusBasePath, buildPrometheusUrl } from './utils';
 import { AsyncComponent } from './console/utils/async';
 import { usePoll } from './console/utils/poll-hook';
-import {
-  getAllQueryArguments,
-  getQueryArgument,
-  setAllQueryArguments,
-} from './console/utils/router';
 import { useSafeFetch } from './console/utils/safe-fetch-hook';
 
 import {
@@ -123,6 +118,7 @@ import { MonitoringProvider } from '../contexts/MonitoringContext';
 import { DataTestIDs } from './data-test';
 import { useMonitoring } from '../hooks/useMonitoring';
 import { useMonitoringNamespace } from './hooks/useMonitoringNamespace';
+import { useSearchParams } from 'react-router';
 
 // Stores information about the currently focused query input
 let focusedQuery;
@@ -130,12 +126,10 @@ let focusedQuery;
 const predefinedQueriesAdmin: SelectOptionProps[] = [
   {
     name: 'CPU Usage',
-    // eslint-disable-next-line max-len
     value: `sum(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate) by (pod)`,
   },
   {
     name: 'Memory Usage',
-    // eslint-disable-next-line max-len
     value: `sum(container_memory_working_set_bytes{container!=""}) by (pod)`,
   },
   {
@@ -927,8 +921,8 @@ export const QueryTable: FC<QueryTableProps> = ({ index, namespace, customDataso
                           typeof cell === 'string' ? cell : cell?.title,
                         )
                       : typeof cell === 'string'
-                      ? cell
-                      : cell?.title}
+                        ? cell
+                        : cell?.title}
                   </Td>
                 ))}
               </Tr>
@@ -1092,6 +1086,8 @@ const QueryBrowserWrapper: FC<{
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { plugin } = useMonitoring();
   const [activeNamespace] = useActiveNamespace();
+  const [queryParams, setQueryParams] = useSearchParams();
+  const [isFirstRender, , , setFirstRenderFalse] = useBoolean(true);
 
   const dispatch = useDispatch();
 
@@ -1102,12 +1098,14 @@ const QueryBrowserWrapper: FC<{
     (state: MonitoringState) => getObserveState(plugin, state).queryBrowser?.queries,
   );
 
-  // Initialize queries from URL parameters
+  // Initialize queries from URL parameters on first render
   useEffect(() => {
+    if (!isFirstRender) {
+      return;
+    }
     dispatch(queryBrowserDeleteAllQueries());
-    const searchParams = getAllQueryArguments();
-    for (let i = 0; _.has(searchParams, `query${i}`); i++) {
-      const query = searchParams[`query${i}`];
+    for (let i = 0; queryParams.has(`query${i}`); i++) {
+      const query = queryParams.get(`query${i}`);
       dispatch(
         queryBrowserPatchQuery(i, {
           isEnabled: true,
@@ -1117,7 +1115,8 @@ const QueryBrowserWrapper: FC<{
         }),
       );
     }
-  }, [dispatch]);
+    setFirstRenderFalse();
+  }, [dispatch, queryParams, isFirstRender, setFirstRenderFalse]);
 
   /* eslint-disable react-hooks/exhaustive-deps */
   // Use React.useMemo() to prevent these two arrays being recreated on every render, which would
@@ -1134,13 +1133,16 @@ const QueryBrowserWrapper: FC<{
 
   // Update the URL parameters when the queries shown in the graph change
   useEffect(() => {
-    const newParams: Record<string, string> = {};
-    _.each(queryStrings, (q, i) => (newParams[`query${i}`] = q || ''));
-    if (customDataSourceName) {
-      newParams.datasource = customDataSourceName;
+    if (isFirstRender) {
+      return;
     }
-    setAllQueryArguments(newParams);
-  }, [queryStrings, customDataSourceName]);
+    const newParams = new URLSearchParams(queryParams);
+    queryStrings.forEach((query, i) => newParams.set(`query${i}`, query || ''));
+    if (customDataSourceName) {
+      newParams.set('datasource', customDataSourceName);
+    }
+    setQueryParams(newParams);
+  }, [queryStrings, customDataSourceName, isFirstRender, queryParams]);
 
   if (hideGraphs) {
     return null;
@@ -1323,6 +1325,7 @@ const GraphUnitsDropDown: FC = () => {
 const MetricsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const [units, setUnits] = useQueryParam(QueryParams.Units, StringParam);
+  const [customDataSourceName] = useQueryParam(QueryParams.Datasource, StringParam);
   const { setNamespace } = useMonitoringNamespace();
   const { displayNamespaceSelector } = useMonitoring();
 
@@ -1342,7 +1345,6 @@ const MetricsPage_: FC = () => {
   }, [dispatch]);
   const [customDataSource, setCustomDataSource] = useState<CustomDataSource>(undefined);
   const [customDataSourceIsResolved, setCustomDataSourceIsResolved] = useState<boolean>(false);
-  const customDataSourceName = getQueryArgument(QueryParams.Datasource);
   const [extensions, extensionsResolved] = useResolvedExtensions<DataSource>(isDataSource);
   const hasExtensions = !_.isEmpty(extensions);
   const [customDatasourceError, setCustomDataSourceError] = useState(false);

@@ -25,6 +25,7 @@ import {
   getAdditionalSources,
 } from '../components/alerting/AlertUtils';
 import { MonitoringState } from '../store/store';
+import { AppDispatch } from '../store/actions';
 import { getObserveState } from '../components/hooks/usePerspective';
 import { useMonitoringNamespace } from '../components/hooks/useMonitoringNamespace';
 
@@ -122,7 +123,7 @@ const useAlertsPoller = ({
   useAlertsTenancy: boolean;
   accessCheckLoading: boolean;
 }) => {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const [customExtensions] =
     useResolvedExtensions<AlertingRulesSourceExtension>(isAlertingRulesSource);
 

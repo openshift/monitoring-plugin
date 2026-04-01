@@ -5,7 +5,6 @@ import { ProjectBar } from './project/ProjectBar';
 
 interface DashboardListFrameProps {
   activeProject: string | null;
-  setActiveProject: (project: string | null) => void;
   activeProjectDashboardsMetadata: CombinedDashboardMetadata[];
   changeBoard: (boardName: string) => void;
   dashboardName: string;
@@ -14,7 +13,6 @@ interface DashboardListFrameProps {
 
 export const DashboardListFrame: React.FC<DashboardListFrameProps> = ({
   activeProject,
-  setActiveProject,
   activeProjectDashboardsMetadata,
   changeBoard,
   dashboardName,
@@ -22,7 +20,7 @@ export const DashboardListFrame: React.FC<DashboardListFrameProps> = ({
 }) => {
   return (
     <>
-      <ProjectBar activeProject={activeProject} setActiveProject={setActiveProject} />
+      <ProjectBar activeProject={activeProject} />
       <DashboardListHeader
         boardItems={activeProjectDashboardsMetadata}
         changeBoard={changeBoard}

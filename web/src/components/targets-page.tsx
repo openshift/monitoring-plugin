@@ -40,7 +40,7 @@ import { find, includes, isEmpty } from 'lodash-es';
 import type { FC } from 'react';
 import { createContext, useContext, memo, useMemo, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useParams } from 'react-router-dom-v5-compat';
+import { Link, useParams } from 'react-router';
 import { EmptyBox } from './console/console-shared/src/components/empty-state/EmptyBox';
 import { LoadingInline } from './console/console-shared/src/components/loading/LoadingInline';
 import { StatusBox } from './console/console-shared/src/components/status/StatusBox';

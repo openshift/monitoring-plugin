@@ -7,20 +7,20 @@ const defaultPerPageOptions: PerPageOptions[] = [10, 20, 50, 100, 200, 500].map(
   value: n,
 }));
 
-const LocalizedToggleTemplate: FC<LocalizedToggleTemplateProps> = ({
+const LocalizedToggleTemplate = ({
   firstIndex,
   itemCount,
   itemsTitle,
   lastIndex,
-}) => {
+}: LocalizedToggleTemplateProps) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
-    <Trans t={t}>
+    <Trans t={t} values={{ firstIndex, lastIndex, itemCount, itemsTitle }}>
       <b>
-        {{ firstIndex }} - {{ lastIndex }}
+        {firstIndex} - {lastIndex}
       </b>{' '}
-      of <b>{{ itemCount }}</b> {{ itemsTitle }}
+      of <b>{itemCount}</b> {itemsTitle}
     </Trans>
   );
 };
@@ -82,8 +82,8 @@ type TablePaginationProps = {
   page: number;
   perPage: number;
   perPageOptions?: PerPageOptions[];
-  setPage: (number) => void;
-  setPerPage: (number) => void;
+  setPage: (page: number) => void;
+  setPerPage: (perPage: number) => void;
 };
 
 export default TablePagination;
