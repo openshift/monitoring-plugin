@@ -1,0 +1,79 @@
+apiVersion: perses.dev/v1alpha2
+kind: PersesGlobalDatasource
+metadata:
+  name: thanos-querier-datasource
+spec:
+  config:
+    display:
+      name: "Thanos Querier Datasource"
+    default: true
+    plugin:
+      kind: "PrometheusDatasource"
+      spec:
+        proxy:
+          kind: HTTPProxy
+          spec:
+            url: https://thanos-querier.openshift-monitoring.svc.cluster.local:9091
+            secret: thanos-querier-datasource-secret
+  client:
+    tls:
+      enable: true
+      caCert:
+        type: file
+        certPath: /ca/service-ca.crt
+---
+apiVersion: perses.dev/v1alpha2
+kind: PersesGlobalDatasource
+metadata:
+  name: loki-datasource
+spec:
+  config:
+    display:
+      name: "Loki Datasource (Application Logs)"
+    default: true
+    plugin:
+      kind: "LokiDatasource"
+      spec:
+        proxy:
+          kind: HTTPProxy
+          spec:
+            # URL structure for LokiStack with openshift-logging tenancy:
+            # https://{gateway-svc}.{ns}.svc:8080/api/logs/v1/{tenant}
+            # Perses will append /loki/api/v1/... for queries
+            url: https://logging-loki-gateway-http.openshift-logging.svc.cluster.local:8080/api/logs/v1/application
+            headers:
+              X-Scope-OrgID: application
+            # IMPORTANT: Must reference secret for TLS config
+            secret: loki-datasource-secret
+  client:
+    tls:
+      enable: true
+      caCert:
+        type: file
+        certPath: /ca/service-ca.crt
+---
+apiVersion: perses.dev/v1alpha2
+kind: PersesGlobalDatasource
+metadata:
+  name: tempo-platform
+spec:
+  config:
+    display:
+      name: "Tempo Datasource"
+    default: true
+    plugin:
+      kind: "TempoDatasource"
+      spec:
+        proxy:
+          kind: HTTPProxy
+          spec:
+            url: https://tempo-platform-gateway.openshift-tracing.svc.cluster.local:8080/api/traces/v1/platform/tempo
+            headers:
+              X-Scope-OrgID: platform
+            secret: tempo-platform-secret
+  client:
+    tls:
+      enable: true
+      caCert:
+        type: file
+        certPath: /ca/service-ca.crt

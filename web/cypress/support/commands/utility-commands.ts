@@ -14,6 +14,7 @@ declare global {
       aboutModal(): Chainable<Element>;
       podImage(pod: string, namespace: string): Chainable<Element>;
       assertNamespace(namespace: string, exists: boolean): Chainable<Element>;
+      checkForAlertRecursively(attemptsLeft?: number): Chainable<Element>;
     }
   }
 }
@@ -249,6 +250,28 @@ Cypress.Commands.add('assertNamespace', (namespace: string, exists: boolean) => 
         .scrollIntoView()
         .should('be.visible')
         .click({ force: true });
+    }
+  });
+});
+
+Cypress.Commands.add('checkForAlertRecursively', (attemptsLeft = 24) => {
+  cy.get('body', { timeout: 10000 }).then(($body) => {
+    if (
+      $body.find('.pf-v5-c-alert, .pf-v6-c-alert').length > 0 &&
+      $body.text().includes('Web console update is available')
+    ) {
+      cy.log('Web console update alert found');
+      cy.get('.pf-v5-c-alert, .pf-v6-c-alert')
+        .contains('Web console update is available')
+        .should('exist');
+    } else if (attemptsLeft > 0) {
+      cy.log(
+        `Alert not found, checking again in 5 seconds... (${attemptsLeft} attempts remaining)`,
+      );
+      cy.wait(5000);
+      cy.checkForAlertRecursively(attemptsLeft - 1);
+    } else {
+      cy.log('No web console update alert found after 2 minutes, continuing...');
     }
   });
 });
