@@ -9,7 +9,7 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { MonitoringProvider } from '../../contexts/MonitoringContext';
 import { useMonitoring } from '../../hooks/useMonitoring';
-import { useLocation } from 'react-router-dom-v5-compat';
+import { useLocation } from 'react-router';
 import { AlertResource, RuleResource, SilenceResource } from '../utils';
 import { useDispatch } from 'react-redux';
 import { alertingClearSelectorData } from '../../store/actions';

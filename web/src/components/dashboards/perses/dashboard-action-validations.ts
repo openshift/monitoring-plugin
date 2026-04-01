@@ -75,7 +75,6 @@ export function useDashboardValidationSchema(
         });
       },
       (schema) => ({
-        // eslint-disable-next-line max-len
         message: t
           ? t(`Dashboard name '{{dashboardName}}' already exists in '{{projectName}}' project!`, {
               dashboardName: schema.dashboardName,

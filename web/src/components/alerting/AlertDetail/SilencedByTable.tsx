@@ -2,7 +2,7 @@ import type { FC, MouseEvent } from 'react';
 import { useState, useMemo } from 'react';
 import { ResourceIcon, Silence, SilenceStates } from '@openshift-console/dynamic-plugin-sdk';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { useNavigate, Link } from 'react-router';
 import {
   getEditSilenceAlertUrl,
   getSilenceAlertUrl,
@@ -19,7 +19,6 @@ import { ActionsColumn, IAction } from '@patternfly/react-table';
 import { ExpireSilenceModal, SilenceMatchersList, SilenceState } from '../SilencesUtils';
 import { useBoolean } from '../../hooks/useBoolean';
 import { SilenceResource } from '../../utils';
-import { Link } from 'react-router-dom-v5-compat';
 import { SeverityCounts, StateTimestamp } from '../AlertUtils';
 import { t_global_spacer_xs } from '@patternfly/react-tokens';
 

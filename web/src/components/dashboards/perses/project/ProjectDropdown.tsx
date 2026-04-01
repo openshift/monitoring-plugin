@@ -20,6 +20,7 @@ import ProjectMenuToggle from './ProjectMenuToggle';
 import { alphanumericCompare } from './utils';
 import { useEditableProjects } from '../hooks/useEditableProjects';
 import { useCallback, useMemo, useRef, useState } from 'react';
+import { ALL_NAMESPACES_KEY } from '../../../utils';
 
 export const NoResults: React.FC<{
   onClear: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
@@ -120,11 +121,11 @@ const ProjectMenu: React.FC<{
         return { title: projectName, key: projectName };
       }) || [];
 
-    if (selected && !items.some((option) => option.key === selected)) {
-      items.push({ title: selected, key: selected }); // Add current project if it isn't included
-    }
     items.sort((a, b) => alphanumericCompare(a.title, b.title));
-    items.unshift({ title: t('All Projects'), key: '' });
+    items.unshift({ title: t('All Projects'), key: ALL_NAMESPACES_KEY });
+    if (selected && !items.some((option) => option.key === selected)) {
+      items.unshift({ title: selected, key: selected }); // Add current project if it isn't included
+    }
 
     return items;
   }, [allProjects, selected, t]);
@@ -192,8 +193,6 @@ const ProjectDropdown: React.FC<ProjectDropdownProps> = ({
   const menuRef = useRef(null);
   const [isOpen, setOpen] = useState(false);
   const { allProjects, permissionsLoading, permissionsError } = useEditableProjects();
-
-  // const title = selected === LEGACY_DASHBOARDS_KEY ? legacyDashboardsTitle : selected;
 
   const menuProps = {
     setOpen,

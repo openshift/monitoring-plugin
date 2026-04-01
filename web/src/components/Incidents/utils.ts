@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 import {
   t_global_color_status_danger_default,
   t_global_color_status_info_default,
@@ -75,7 +74,8 @@ export const roundDateToInterval = (date: Date): Date => {
 };
 
 /**
- * Determines if an incident or alert is resolved based on the time elapsed since the last data point.
+ * Determines if an incident or alert is resolved based on the time elapsed since the last
+ * data point.
  *
  * An incident/alert is considered resolved if the last data point is older than or equal to
  * twice the Prometheus query interval (10 minutes). This threshold provides a buffer to avoid
@@ -103,7 +103,7 @@ export const isResolved = (lastTimestamp: number, currentTime: number): boolean 
  * - After the last item of a continuous sequence (gap with next point > interval)
  *
  * @param values - Array of [timestamp, severity] tuples (assumed to be sorted by time)
- * @param currentTime - The current time in milliseconds (for determining if last item needs padding)
+ * @param currentTime - The current time in milliseconds (to determine if last item needs padding)
  * @returns New array with additional data points inserted where needed
  */
 export function insertPaddingPointsForChart(
@@ -255,7 +255,8 @@ function generateIntervalsWithGaps(filteredValues: Array<Timestamps>, dateArray:
 }
 
 /**
- * Checks if there is a gap larger than the Prometheus query interval between consecutive timestamps.
+ * Checks if there is a gap larger than the Prometheus query interval
+ * between consecutive timestamps.
  * @param {Array} filteredValues - The array of filtered timestamps and severities.
  * @param {number} index - The current index in the array.
  * @returns {boolean} - Whether a gap exists.
@@ -284,10 +285,13 @@ function createNodataInterval(
 }
 
 /**
- * Creates an array of incident data for chart bars, ensuring that when two severities have the same time range, the lower severity is removed.
+ * Creates an array of incident data for chart bars, ensuring that when
+ * two severities have the same time range, the lower severity is removed.
  *
- * @param {Object} incident - The incident data containing values with timestamps and severity levels.
- * @returns {Array} - An array of incident objects with `y0`, `y`, `x`, and `name` fields representing the bars for the chart.
+ * @param {Object} incident - The incident data containing
+ * values with timestamps and severity levels.
+ * @returns {Array} - An array of incident objects with `y0`,
+ * `y`, `x`, and `name` fields representing the bars for the chart.
  */
 export const createIncidentsChartBars = (incident: Incident, dateArray: SpanDates) => {
   const groupedData = consolidateAndMergeIntervals(incident, dateArray);
@@ -329,8 +333,8 @@ export const createIncidentsChartBars = (incident: Incident, dateArray: SpanDate
         severity === 'Critical'
           ? barChartColorScheme.critical
           : severity === 'Warning'
-          ? barChartColorScheme.warning
-          : barChartColorScheme.info,
+            ? barChartColorScheme.warning
+            : barChartColorScheme.info,
     });
   }
 
@@ -398,8 +402,8 @@ export const createAlertsChartBars = (alert: IncidentsDetailsAlert): AlertsChart
         alert.severity === 'critical'
           ? barChartColorScheme.critical
           : alert.severity === 'warning'
-          ? barChartColorScheme.warning
-          : barChartColorScheme.info,
+            ? barChartColorScheme.warning
+            : barChartColorScheme.info,
     });
   }
 
@@ -407,15 +411,20 @@ export const createAlertsChartBars = (alert: IncidentsDetailsAlert): AlertsChart
 };
 
 /**
- * Generates an array of dates, each representing midnight (00:00:00) of the past `days` number of days, starting from today.
+ * Generates an array of dates, each representing midnight (00:00:00) of the
+ * past `days` number of days, starting from today.
  *
- * @param {number} days - The number of days for which to generate the date array. The array will contain dates starting from `days` ago up to today.
- * @returns {Array<number>} An array of timestamps (in seconds) representing midnight (00:00:00) in UTC, for the past `days` number of days.
+ * @param {number} days - The number of days for which to generate the date array.
+ * The array will contain dates starting from `days` ago up to today.
+ * @returns {Array<number>} An array of timestamps (in seconds) representing
+ * midnight (00:00:00) in UTC, for the past `days` number of days.
  *
  * @description
- * This function creates an array of timestamps, starting from `days` ago up to the current day. Each timestamp in the array is set to midnight (00:00:00) to represent the start of the day.
+ * This function creates an array of timestamps, starting from `days` ago up to the current
+ * day. Each timestamp in the array is set to midnight (00:00:00) to represent the start of the day.
  *
- * The function works by subtracting days from the current date and setting the time to 00:00:00 for each day.
+ * The function works by subtracting days from the current date and setting the time to
+ * 00:00:00 for each day.
  *
  * @example
  * // Generate an array of 7 days (last 7 days including today)
@@ -450,7 +459,8 @@ export function generateDateArray(days: number, currentTime: number): Array<numb
  * This creates a focused timeline that spans only the relevant alert activity period.
  *
  * @param {Array<Alert>} alertsData - Array of alert objects containing timestamp values
- * @returns {Array<number>} - Array of timestamp values representing the date range with some padding
+ * @returns {Array<number>} - Array of timestamp values representing the
+ * date range with some padding
  *
  * @example
  * const alertsDateRange = generateAlertsDateArray(alertsData);
@@ -510,9 +520,11 @@ export function generateAlertsDateArray(
  *
  * @param {IncidentFiltersCombined} filters - An object containing filter criteria.
  * @param {Array<Incident>} incidents - An array of incidents to be filtered.
- * @returns {Array<Object>} A filtered array of incidents that match at least one of the specified filters.
+ * @returns {Array<Object>} A filtered array of incidents that
+ * match at least one of the specified filters.
  *
- * The `conditions` object maps filter keys to incident properties. If no filters are applied, all incidents are returned.
+ * The `conditions` object maps filter keys to incident properties.
+ * If no filters are applied, all incidents are returned.
  * Filters are case-sensitive and must match the keys defined in the `conditions` object.
  *
  * Example usage:
@@ -688,16 +700,19 @@ export const onDeleteGroupIncidentFilterChip = (
 };
 
 const makeIncidentUrlParams = (params?: IncidentFiltersCombined, incidentGroupId?: string) => {
-  const processedParams = Object.entries(params ?? {}).reduce((acc, [key, value]) => {
-    if (Array.isArray(value)) {
-      if (value.length > 0) {
-        acc[key] = value.join(',');
+  const processedParams = Object.entries(params ?? {}).reduce(
+    (acc, [key, value]) => {
+      if (Array.isArray(value)) {
+        if (value.length > 0) {
+          acc[key] = value.join(',');
+        }
+      } else {
+        acc[key] = value;
       }
-    } else {
-      acc[key] = value;
-    }
-    return acc;
-  }, {} as Record<string, string>);
+      return acc;
+    },
+    {} as Record<string, string>,
+  );
 
   if (incidentGroupId) {
     processedParams['groupId'] = incidentGroupId;
@@ -742,7 +757,8 @@ export const changeDaysFilter = (
  * @param {string | undefined} selection - The value of the filter being selected or deselected.
  * @param {Function} dispatch - The Redux dispatch function to trigger state changes.
  * @param {object} incidentsActiveFilters - The current state of active filters.
- * @param {string} filterCategoryType - The category of the filter (e.g., 'Incident ID', 'severity').
+ * @param {string} filterCategoryType - The category of the filter (e.g., 'Incident ID',
+ * 'severity').
  * @returns {void}
  */
 export const onIncidentFiltersSelect = (
@@ -865,7 +881,8 @@ export const parseUrlParams = (search) => {
  * suitable for a dropdown or filter component.
  *
  * @param {Array<Incident>} incidents - An array of incident objects.
- * @returns {{value: string}[]} An array of objects, where each object has a `value` key with a unique incident ID.
+ * @returns {{value: string}[]} An array of objects, where each object has a
+ * `value` key with a unique incident ID.
  */
 export const getIncidentIdOptions = (incidents: Array<Incident>, t: (key: string) => string) => {
   const incidentMap = new Map<string, Incident>();

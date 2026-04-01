@@ -24,7 +24,6 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import { SingleTypeaheadDropdown } from '../../console/utils/single-typeahead-dropdown';
 import { getPrometheusBasePath, buildPrometheusUrl, ALL_NAMESPACES_KEY } from '../../utils';
-import { getQueryArgument, setQueryArgument } from '../../console/utils/router';
 import { useSafeFetch } from '../../console/utils/safe-fetch-hook';
 
 import { dashboardsPatchVariable, dashboardsVariableOptionsLoaded } from '../../../store/actions';
@@ -38,6 +37,8 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
 import { useMonitoring } from '../../../hooks/useMonitoring';
 import { useDeepMemo } from '../../hooks/useDeepMemo';
+import { StringParam, useQueryParam } from 'use-query-params';
+import { QueryParams } from '../../query-params';
 
 const intervalVariableRegExps = ['__interval', '__rate_interval', '__auto_interval_[a-z]+'];
 
@@ -58,10 +59,8 @@ export const evaluateVariableTemplate = (
   const allVariables = {
     ...variables,
     __range: range,
-    /* eslint-disable camelcase */
     __range_ms: range,
     __range_s: range,
-    /* eslint-enable camelcase */
   };
 
   // Handle the special "interval" variables
@@ -111,6 +110,7 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({ id, name 
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { plugin, accessCheckLoading, useMetricsTenancy } = useMonitoring();
   const [namespace] = useActiveNamespace();
+  const [queryParam, setQueryParam] = useQueryParam(name, StringParam);
 
   const timespan = useSelector(
     (state: MonitoringState) => getObserveState(plugin, state).dashboards.timespan,
@@ -254,19 +254,25 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({ id, name 
   ]);
 
   useEffect(() => {
-    if (variable?.value && variable?.value !== getQueryArgument(name)) {
-      setQueryArgument(name, variable?.value);
+    if (variable?.value !== queryParam && name !== QueryParams.Namespace) {
+      // Default to using the query param to allow for sharable links, expect for namespace
+      if (queryParam) {
+        dispatch(dashboardsPatchVariable(name, { value: queryParam }));
+        // set the url if it isn't set
+      } else if (variable?.value) {
+        setQueryParam(variable?.value);
+      }
     }
-  }, [name, variable?.value]);
+  }, [name, variable?.value, queryParam, setQueryParam, dispatch]);
 
   const onChange = useCallback(
     (v: string) => {
       if (v !== variable?.value) {
-        setQueryArgument(name, v);
+        setQueryParam(v);
         dispatch(dashboardsPatchVariable(name, { value: v }));
       }
     },
-    [dispatch, name, variable?.value],
+    [dispatch, name, variable?.value, setQueryParam],
   );
 
   if (variable?.isHidden || (!isError && _.isEmpty(variable?.options))) {

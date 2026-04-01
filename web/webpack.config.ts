@@ -68,6 +68,8 @@ const config: Configuration = {
   },
   devServer: {
     static: './dist',
+    hot: false,
+    liveReload: true,
     port: process.env.PORT || 9001,
     // Allow bridge running in a container to connect to the plugin dev server.
     allowedHosts: 'all',
@@ -99,6 +101,9 @@ const config: Configuration = {
   optimization: {
     chunkIds: 'named',
     minimize: false,
+  },
+  stats: {
+    errorDetails: true,
   },
 };
 

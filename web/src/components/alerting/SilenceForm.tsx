@@ -36,7 +36,7 @@ import type { ComponentType, FC, FormEventHandler, MouseEvent, ChangeEvent, Ref 
 import { useState, useEffect, useMemo } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { useNavigate } from 'react-router';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 import {
   formatPrometheusDuration,
@@ -94,8 +94,8 @@ const DatetimeTextInput = (props: DatetimeTextInputProps) => {
         props.tooltip
           ? props.tooltip
           : isValid
-          ? formatDate(new Date(props.value))
-          : t('Invalid date / time')
+            ? formatDate(new Date(props.value))
+            : t('Invalid date / time')
       }
     >
       <TextInput

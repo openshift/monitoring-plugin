@@ -1,8 +1,8 @@
-import React, { useMemo } from 'react';
+import React, { PropsWithChildren, useMemo } from 'react';
 import { MonitoringPlugins, Prometheus } from '../components/utils';
 import { QueryParamProvider } from 'use-query-params';
-import { ReactRouter5Adapter } from 'use-query-params/adapters/react-router-5';
 import { useAccessReview } from '@openshift-console/dynamic-plugin-sdk';
+import { ReactRouter7Adapter } from '../react-router-7-adapter';
 
 type MonitoringContextType = {
   /** Dictates which plugin this code is being run in */
@@ -35,13 +35,15 @@ export const MonitoringContext = React.createContext<MonitoringContextType>({
   displayNamespaceSelector: true,
 });
 
-export const MonitoringProvider: React.FC<{
-  monitoringContext: {
-    plugin: MonitoringPlugins;
-    prometheus: Prometheus;
-    displayNamespaceSelector?: boolean;
-  };
-}> = ({ children, monitoringContext }) => {
+export const MonitoringProvider: React.FC<
+  PropsWithChildren<{
+    monitoringContext: {
+      plugin: MonitoringPlugins;
+      prometheus: Prometheus;
+      displayNamespaceSelector?: boolean;
+    };
+  }>
+> = ({ children, monitoringContext }) => {
   const [allNamespaceAlertsTenancy, alertAccessCheckLoading] = useAccessReview({
     group: 'monitoring.coreos.com',
     resource: 'prometheusrules',
@@ -75,7 +77,7 @@ export const MonitoringProvider: React.FC<{
 
   return (
     <MonitoringContext.Provider value={monContext}>
-      <QueryParamProvider adapter={ReactRouter5Adapter}>{children}</QueryParamProvider>
+      <QueryParamProvider adapter={ReactRouter7Adapter}>{children}</QueryParamProvider>
     </MonitoringContext.Provider>
   );
 };

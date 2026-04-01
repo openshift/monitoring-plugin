@@ -22,7 +22,7 @@ import { TypeaheadSelect, TypeaheadSelectOption } from '@patternfly/react-templa
 import yaml from 'js-yaml';
 import { ChangeEvent, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { useNavigate } from 'react-router';
 import { useEditableProjects } from './hooks/useEditableProjects';
 
 import { DashboardResource } from '@perses-dev/core';
