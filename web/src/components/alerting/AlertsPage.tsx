@@ -4,13 +4,12 @@ import {
   DocumentTitle,
   ListPageFilter,
   RowFilter,
-  useActiveNamespace,
   useListPageFilter,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { Flex, PageSection } from '@patternfly/react-core';
 import { Table, TableGridBreakpoint, Th, Thead, Tr } from '@patternfly/react-table';
 import * as _ from 'lodash-es';
-import type { FC } from 'react';
+import { type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
@@ -33,11 +32,12 @@ import { MonitoringProvider } from '../../contexts/MonitoringContext';
 import { useAlerts } from '../../hooks/useAlerts';
 import { AccessDenied } from '../console/console-shared/src/components/empty-state/AccessDenied';
 import { useMonitoring } from '../../hooks/useMonitoring';
+import { useMonitoringNamespace } from '../hooks/useMonitoringNamespace';
 
 const AlertsPage_: FC = () => {
   const { useAlertsTenancy } = useMonitoring();
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const [namespace] = useActiveNamespace();
+  const { namespace } = useMonitoringNamespace();
   const { defaultAlertTenant, perspective } = usePerspective();
 
   const { alerts, additionalAlertSourceLabels, alertClusterLabels, rulesAlertLoading, silences } =
@@ -110,7 +110,20 @@ const AlertsPage_: FC = () => {
     rowFilters = rowFilters.filter((filter) => filter.type !== 'alert-source');
   }
 
-  const [staticData, filteredData, onFilterChange] = useListPageFilter(alerts, rowFilters);
+  /**
+   * Filters alerts based on tenancy:
+   * - with tenancy: alerts are automatically pre-filtered.
+   * - without tenancy (admin): filters by selected namespace for UX consistency.
+   * - "All Projects": returns all alerts, including those without a namespace label.
+   */
+  const namespacedAlerts =
+    useAlertsTenancy || ALL_NAMESPACES_KEY === namespace
+      ? alerts
+      : alerts?.filter((a) => a.labels?.namespace === namespace);
+  const [staticData, filteredData, onFilterChange] = useListPageFilter(
+    namespacedAlerts,
+    rowFilters,
+  );
 
   const columns = useAggregateAlertColumns();
   const selectedFilters = useSelectedFilters();
