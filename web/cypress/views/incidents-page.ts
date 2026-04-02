@@ -607,7 +607,11 @@ export const incidentsPage = {
   },
 
   prepareIncidentsPageForSearch: () => {
-    cy.log('incidentsPage.prepareIncidentsPageForSearch: Setting up page for search');
+    cy.log('incidentsPage.prepareIncidentsPageForSearch: Setting up page...');
+    // Force a hard page reload to release DOM memory from previous search iterations.
+    // Without this, repeated searches within waitUntil accumulate Cypress command
+    // snapshots and browser DOM nodes, causing OOM (exit 137) in CI containers.
+    cy.reload({ log: false });
     incidentsPage.goTo();
     incidentsPage.setDays(incidentsPage.SEARCH_CONFIG.DEFAULT_DAYS);
     incidentsPage.elements.incidentsChartContainer().should('be.visible');
