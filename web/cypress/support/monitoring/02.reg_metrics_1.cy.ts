@@ -1,6 +1,11 @@
 import { metricsPage } from '../../views/metrics';
 import { Classes, DataTestIDs } from '../../../src/components/data-test';
-import { GraphTimespan, MetricsPagePredefinedQueries, MetricsPageQueryInput, MetricsPageUnits } from '../../fixtures/monitoring/constants';
+import {
+  GraphTimespan,
+  MetricsPagePredefinedQueries,
+  MetricsPageQueryInput,
+  MetricsPageUnits,
+} from '../../fixtures/monitoring/constants';
 
 export interface PerspectiveConfig {
   name: string;
@@ -12,7 +17,6 @@ export function runAllRegressionMetricsTests1(perspective: PerspectiveConfig) {
 }
 
 export function testMetricsRegression1(perspective: PerspectiveConfig) {
-
   it(`${perspective.name} perspective - Metrics`, () => {
     cy.log('1.1 Metrics page loaded');
     metricsPage.shouldBeLoaded();
@@ -31,7 +35,6 @@ export function testMetricsRegression1(perspective: PerspectiveConfig) {
 
     cy.log('1.6 Kebab dropdown');
     metricsPage.kebabDropdownAssertionWithoutQuery();
-
   });
 
   it(`${perspective.name} perspective - Metrics > Actions - No query added`, () => {
@@ -69,8 +72,10 @@ export function testMetricsRegression1(perspective: PerspectiveConfig) {
 
     cy.log('2.9 Only one query deleted, resulting in 1 row');
     cy.byTestID(DataTestIDs.MetricsPageExpandCollapseRowButton).should('have.length', 1);
-    cy.byTestID(DataTestIDs.MetricsPageExpandCollapseRowButton).find('button').eq(0).should('have.attr', 'aria-expanded', 'true');
-
+    cy.byTestID(DataTestIDs.MetricsPageExpandCollapseRowButton)
+      .find('button')
+      .eq(0)
+      .should('have.attr', 'aria-expanded', 'true');
   });
 
   it(`${perspective.name} perspective - Metrics > Actions - One query added`, () => {
@@ -86,8 +91,14 @@ export function testMetricsRegression1(perspective: PerspectiveConfig) {
 
     cy.log('3.4 Only one query added, resulting in 2 rows');
     cy.byTestID(DataTestIDs.MetricsPageExpandCollapseRowButton).should('have.length', 2);
-    cy.byTestID(DataTestIDs.MetricsPageExpandCollapseRowButton).find('button').eq(0).should('have.attr', 'aria-expanded', 'true');
-    cy.byTestID(DataTestIDs.MetricsPageExpandCollapseRowButton).find('button').eq(1).should('have.attr', 'aria-expanded', 'true');
+    cy.byTestID(DataTestIDs.MetricsPageExpandCollapseRowButton)
+      .find('button')
+      .eq(0)
+      .should('have.attr', 'aria-expanded', 'true');
+    cy.byTestID(DataTestIDs.MetricsPageExpandCollapseRowButton)
+      .find('button')
+      .eq(1)
+      .should('have.attr', 'aria-expanded', 'true');
 
     cy.log('3.4.1 Assert 2 rows');
     metricsPage.expandCollapseAllQueryAssertion(true);
@@ -98,8 +109,14 @@ export function testMetricsRegression1(perspective: PerspectiveConfig) {
     metricsPage.clickActionsExpandCollapseAllQuery(false);
 
     cy.log('3.6 All queries collapsed');
-    cy.byTestID(DataTestIDs.MetricsPageExpandCollapseRowButton).find('button').eq(0).should('have.attr', 'aria-expanded', 'false');
-    cy.byTestID(DataTestIDs.MetricsPageExpandCollapseRowButton).find('button').eq(1).should('have.attr', 'aria-expanded', 'false');
+    cy.byTestID(DataTestIDs.MetricsPageExpandCollapseRowButton)
+      .find('button')
+      .eq(0)
+      .should('have.attr', 'aria-expanded', 'false');
+    cy.byTestID(DataTestIDs.MetricsPageExpandCollapseRowButton)
+      .find('button')
+      .eq(1)
+      .should('have.attr', 'aria-expanded', 'false');
 
     cy.log('3.6.1 Assert 2 rows - Empty state');
     metricsPage.expandCollapseAllQueryAssertion(false);
@@ -110,8 +127,14 @@ export function testMetricsRegression1(perspective: PerspectiveConfig) {
     metricsPage.clickActionsExpandCollapseAllQuery(true);
 
     cy.log('3.8 All queries expanded');
-    cy.byTestID(DataTestIDs.MetricsPageExpandCollapseRowButton).find('button').eq(0).should('have.attr', 'aria-expanded', 'true');
-    cy.byTestID(DataTestIDs.MetricsPageExpandCollapseRowButton).find('button').eq(1).should('have.attr', 'aria-expanded', 'true');
+    cy.byTestID(DataTestIDs.MetricsPageExpandCollapseRowButton)
+      .find('button')
+      .eq(0)
+      .should('have.attr', 'aria-expanded', 'true');
+    cy.byTestID(DataTestIDs.MetricsPageExpandCollapseRowButton)
+      .find('button')
+      .eq(1)
+      .should('have.attr', 'aria-expanded', 'true');
 
     cy.log('3.8.1 Assert 2 rows');
     metricsPage.expandCollapseAllQueryAssertion(true);
@@ -123,16 +146,20 @@ export function testMetricsRegression1(perspective: PerspectiveConfig) {
 
     cy.log('3.10 Only one query deleted, resulting in 1 row');
     cy.byTestID(DataTestIDs.MetricsPageExpandCollapseRowButton).should('have.length', 1);
-    cy.byTestID(DataTestIDs.MetricsPageExpandCollapseRowButton).find('button').eq(0).should('have.attr', 'aria-expanded', 'true');
+    cy.byTestID(DataTestIDs.MetricsPageExpandCollapseRowButton)
+      .find('button')
+      .eq(0)
+      .should('have.attr', 'aria-expanded', 'true');
     metricsPage.shouldBeLoaded();
-
   });
 
   it(`${perspective.name} perspective - Metrics > Insert Example Query`, () => {
     cy.log('4.1 Insert Example Query');
     metricsPage.clickInsertExampleQuery();
     metricsPage.shouldBeLoadedWithGraph();
-    cy.get(Classes.MetricsPageQueryInput).eq(0).should('contain', MetricsPageQueryInput.INSERT_EXAMPLE_QUERY);
+    cy.get(Classes.MetricsPageQueryInput)
+      .eq(0)
+      .should('contain', MetricsPageQueryInput.INSERT_EXAMPLE_QUERY);
     metricsPage.graphAxisXAssertion(GraphTimespan.THIRTY_MINUTES);
 
     cy.log('4.2 Graph Timespan Dropdown');
@@ -163,7 +190,11 @@ export function testMetricsRegression1(perspective: PerspectiveConfig) {
 
     cy.log('4.6 Reset Zoom Button');
     metricsPage.clickResetZoomButton();
-    cy.byTestID(DataTestIDs.MetricGraphTimespanInput).should('have.attr', 'value', GraphTimespan.THIRTY_MINUTES);
+    cy.byTestID(DataTestIDs.MetricGraphTimespanInput).should(
+      'have.attr',
+      'value',
+      GraphTimespan.THIRTY_MINUTES,
+    );
 
     cy.log('4.7 Hide Graph Button');
     metricsPage.clickHideGraphButton();
@@ -182,7 +213,6 @@ export function testMetricsRegression1(perspective: PerspectiveConfig) {
 
     cy.log('4.11 Stacked Checkbox');
     metricsPage.clickStackedCheckboxAndAssert();
-
   });
 
   //https://issues.redhat.com/browse/OU-974 - [Metrics] - Units - undefined showing in Y axis and tooltip
@@ -197,6 +227,4 @@ export function testMetricsRegression1(perspective: PerspectiveConfig) {
       metricsPage.unitsAxisYAssertion(unit);
     });
   });
-  
 }
-

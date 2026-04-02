@@ -2,7 +2,6 @@ import { commonPages } from '../../views/common';
 import { nav } from '../../views/nav';
 import { troubleshootingPanelPage } from '../../views/troubleshooting-panel';
 
-
 // Set constants for the operators that need to be installed for tests.
 const MCP = {
   namespace: Cypress.env('COO_NAMESPACE'),
@@ -20,10 +19,8 @@ const MP = {
 };
 
 describe('BVT: COO', { tags: ['@smoke', '@coo'] }, () => {
-
   before(() => {
     cy.beforeBlockCOO(MCP, MP);
-
   });
 
   it('1. Admin perspective - Observe Menu', () => {
@@ -40,11 +37,9 @@ describe('BVT: COO', { tags: ['@smoke', '@coo'] }, () => {
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     troubleshootingPanelPage.openSignalCorrelation();
     troubleshootingPanelPage.troubleshootingPanelPageShouldBeLoadedEnabled();
-
   });
 
   /**
    * TODO: To be replaced by COO validation such as Dashboards (Perses) scenarios
    */
-
 });

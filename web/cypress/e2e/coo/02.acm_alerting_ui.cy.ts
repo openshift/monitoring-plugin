@@ -29,7 +29,7 @@ describe('ACM Alerting UI', { tags: ['@coo', '@alerts'] }, () => {
     // check monitoring-plugin UI is not been affected
     cy.switchPerspective('Core platform');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-    commonPages.titleShouldHaveText('Alerting')
+    commonPages.titleShouldHaveText('Alerting');
     nav.sidenav.clickNavLink(['Observe', 'Metrics']);
     commonPages.titleShouldHaveText('Metrics');
     // switch to Fleet Management page
@@ -50,8 +50,9 @@ describe('ACM Alerting UI', { tags: ['@coo', '@alerts'] }, () => {
     acmAlertingPage.shouldBeLoaded();
     // check test alerts exist
     expectedAlerts.forEach((alert) => {
-      cy.contains('a[data-test-id="alert-resource-link"]', alert, { timeout: 120000 })
-        .should('be.visible');
+      cy.contains('a[data-test-id="alert-resource-link"]', alert, { timeout: 120000 }).should(
+        'be.visible',
+      );
     });
     cy.log('Verified all expected alerts are visible on the Alerting page');
     cy.log('ACM Alerting UI test completed successfully');

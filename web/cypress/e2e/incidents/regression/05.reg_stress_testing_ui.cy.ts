@@ -32,7 +32,6 @@ const MAX_GAP_STANDARD = 250;
 const MAX_GAP_RELAXED = 500;
 
 describe('Regression: Stress Testing UI', { tags: ['@incidents'] }, () => {
-
   before(() => {
     cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
   });
@@ -42,7 +41,7 @@ describe('Regression: Stress Testing UI', { tags: ['@incidents'] }, () => {
       fixtureFile: string,
       incidentId: string,
       maxGap: number,
-      label: string
+      label: string,
     ) => {
       cy.mockIncidentFixture(`incident-scenarios/${fixtureFile}`);
       incidentsPage.clearAllFilters();
@@ -52,19 +51,23 @@ describe('Regression: Stress Testing UI', { tags: ['@incidents'] }, () => {
       incidentsPage.selectIncidentById(incidentId);
 
       incidentsPage.elements.alertsChartCard().should('be.visible');
-      incidentsPage.elements.alertsChartBarsVisiblePaths()
-        .should('have.length.greaterThan', 0);
+      incidentsPage.elements.alertsChartBarsVisiblePaths().should('have.length.greaterThan', 0);
 
       incidentsPage.elements.alertsChartContainer().first().scrollIntoView();
-      incidentsPage.elements.alertsChartContainer().first().then(($container) => {
-        const containerTop = $container[0].getBoundingClientRect().top;
-        incidentsPage.getAlertBarRect(0).then((barRect) => {
-          const gap = barRect.top - containerTop;
-          cy.log(`${label}: Gap between container top and first alert bar = ${gap}px`);
-          expect(gap, `${label}: first alert bar should start near chart top`).to.be.lessThan(maxGap);
-          expect(gap, `${label}: gap should be non-negative`).to.be.at.least(0);
+      incidentsPage.elements
+        .alertsChartContainer()
+        .first()
+        .then(($container) => {
+          const containerTop = $container[0].getBoundingClientRect().top;
+          incidentsPage.getAlertBarRect(0).then((barRect) => {
+            const gap = barRect.top - containerTop;
+            cy.log(`${label}: Gap between container top and first alert bar = ${gap}px`);
+            expect(gap, `${label}: first alert bar should start near chart top`).to.be.lessThan(
+              maxGap,
+            );
+            expect(gap, `${label}: gap should be non-negative`).to.be.at.least(0);
+          });
         });
-      });
     };
 
     cy.log('5.1.1 Verify no excessive padding with 100 alerts');
@@ -72,7 +75,7 @@ describe('Regression: Stress Testing UI', { tags: ['@incidents'] }, () => {
       '15-stress-test-100-alerts.yaml',
       'cluster-wide-failure-100-alerts',
       MAX_GAP_STANDARD,
-      '100 alerts'
+      '100 alerts',
     );
 
     cy.log('5.1.2 Verify no excessive padding with 200 alerts');
@@ -80,7 +83,7 @@ describe('Regression: Stress Testing UI', { tags: ['@incidents'] }, () => {
       '16-stress-test-200-alerts.yaml',
       'cluster-wide-failure-200-alerts',
       MAX_GAP_STANDARD,
-      '200 alerts'
+      '200 alerts',
     );
 
     cy.log('5.1.3 Verify accepted limitation with 500 alerts (relaxed threshold)');
@@ -88,7 +91,7 @@ describe('Regression: Stress Testing UI', { tags: ['@incidents'] }, () => {
       '17-stress-test-500-alerts.yaml',
       'cluster-wide-failure-500-alerts',
       MAX_GAP_RELAXED,
-      '500 alerts'
+      '500 alerts',
     );
 
     cy.log('Verified: Alert bars have no excessive padding for 100, 200, and 500 alerts');

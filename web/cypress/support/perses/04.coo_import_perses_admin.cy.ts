@@ -1,7 +1,7 @@
-import { listPersesDashboardsPage } from "../../views/perses-dashboards-list-dashboards";
+import { listPersesDashboardsPage } from '../../views/perses-dashboards-list-dashboards';
 import { persesDashboardsPage } from '../../views/perses-dashboards';
-import { persesImportDashboardsPage } from "../../views/perses-dashboards-import-dashboard";
-import { nav } from "../../views/nav";
+import { persesImportDashboardsPage } from '../../views/perses-dashboards-import-dashboard';
+import { nav } from '../../views/nav';
 
 export interface PerspectiveConfig {
   name: string;
@@ -13,7 +13,6 @@ export function runCOOImportPersesTests(perspective: PerspectiveConfig) {
 }
 
 export function testCOOImportPerses(perspective: PerspectiveConfig) {
-
   it(`1. ${perspective.name} perspective - Import Dashboard - wrong format`, () => {
     cy.log(`1.1 use sidebar nav to go to Observe > Dashboards (Perses)`);
     listPersesDashboardsPage.shouldBeLoaded();
@@ -23,21 +22,27 @@ export function testCOOImportPerses(perspective: PerspectiveConfig) {
     persesImportDashboardsPage.importDashboardShouldBeLoaded();
 
     cy.log(`1.3 Upload wrong format file`);
-    persesImportDashboardsPage.uploadFile('./cypress/fixtures/coo/coo141_perses/import/accelerators-dashboard-cr-v1alpha1.yaml');
+    persesImportDashboardsPage.uploadFile(
+      './cypress/fixtures/coo/coo140_perses/import/accelerators-dashboard-cr-v1alpha1.yaml',
+    );
     persesImportDashboardsPage.assertUnableToDetectDashboardFormat();
 
     cy.log(`1.4 Clear file`);
     persesImportDashboardsPage.clickClearFileButton();
-    
+
     cy.log(`1.5 Upload another wrong format file`);
-    persesImportDashboardsPage.uploadFile('./cypress/fixtures/coo/coo141_perses/import/accelerators-dashboard-cr-v1alpha2.yaml');
-    persesImportDashboardsPage.assertUnableToDetectDashboardFormat(); 
+    persesImportDashboardsPage.uploadFile(
+      './cypress/fixtures/coo/coo140_perses/import/accelerators-dashboard-cr-v1alpha2.yaml',
+    );
+    persesImportDashboardsPage.assertUnableToDetectDashboardFormat();
 
     cy.log(`1.6 Clear file`);
     persesImportDashboardsPage.clickClearFileButton();
 
     cy.log(`1.7 Upload Grafana dashboard file`);
-    persesImportDashboardsPage.uploadFile('./cypress/fixtures/coo/coo141_perses/import/grafana_to_check_errors.json');
+    persesImportDashboardsPage.uploadFile(
+      './cypress/fixtures/coo/coo140_perses/import/grafana_to_check_errors.json',
+    );
     persesImportDashboardsPage.assertGrafanaDashboardDetected();
 
     cy.log(`1.8 Select a project`);
@@ -48,10 +53,10 @@ export function testCOOImportPerses(perspective: PerspectiveConfig) {
 
     cy.log(`1.10 Assert failed to migrate Grafana dashboard`);
     persesImportDashboardsPage.assertFailedToMigrateGrafanaDashboard();
-    
+    persesDashboardsPage.closeAlert();
+
     cy.log(`1.11 Cancel import`);
     persesImportDashboardsPage.clickCancelButton();
-
   });
 
   it(`2. ${perspective.name} perspective - Import Dashboard - ACM Grafana dashboard`, () => {
@@ -63,7 +68,9 @@ export function testCOOImportPerses(perspective: PerspectiveConfig) {
     persesImportDashboardsPage.importDashboardShouldBeLoaded();
 
     cy.log(`2.3 Upload Grafana dashboard file`);
-    persesImportDashboardsPage.uploadFile('./cypress/fixtures/coo/coo141_perses/import/acm-vm-status.json');
+    persesImportDashboardsPage.uploadFile(
+      './cypress/fixtures/coo/coo140_perses/import/acm-vm-status.json',
+    );
     persesImportDashboardsPage.assertGrafanaDashboardDetected();
 
     cy.log(`2.4 Select a project`);
@@ -71,16 +78,19 @@ export function testCOOImportPerses(perspective: PerspectiveConfig) {
 
     cy.log(`2.5 Import dashboard`);
     persesImportDashboardsPage.clickImportFileButton();
-    persesDashboardsPage.closeSuccessAlert();
 
     cy.log(`2.6 Assert dashboard is imported`);
-    persesDashboardsPage.shouldBeLoadedEditionMode('Service Level dashboards / Virtual Machines by Time in Status');
+    persesDashboardsPage.shouldBeLoadedEditionMode(
+      'Service Level dashboards / Virtual Machines by Time in Status',
+    );
 
     cy.log(`2.7 Back to list of dashboards`);
     persesDashboardsPage.backToListPersesDashboardsPage();
 
     cy.log(`2.8 Filter by Name`);
-    listPersesDashboardsPage.filter.byName('Service Level dashboards / Virtual Machines by Time in Status');
+    listPersesDashboardsPage.filter.byName(
+      'Service Level dashboards / Virtual Machines by Time in Status',
+    );
     listPersesDashboardsPage.countDashboards('1');
     listPersesDashboardsPage.clearAllFilters();
     cy.wait(2000);
@@ -88,13 +98,15 @@ export function testCOOImportPerses(perspective: PerspectiveConfig) {
     cy.log(`2.9 Import the same dashboard - Duplicated error`);
     listPersesDashboardsPage.clickImportButton();
     persesImportDashboardsPage.importDashboardShouldBeLoaded();
-    persesImportDashboardsPage.uploadFile('./cypress/fixtures/coo/coo141_perses/import/acm-vm-status.json');
+    persesImportDashboardsPage.uploadFile(
+      './cypress/fixtures/coo/coo140_perses/import/acm-vm-status.json',
+    );
     persesImportDashboardsPage.assertGrafanaDashboardDetected();
     persesImportDashboardsPage.selectProject('openshift-cluster-observability-operator');
     persesImportDashboardsPage.clickImportFileButton();
     persesImportDashboardsPage.assertDuplicatedDashboardError();
     persesImportDashboardsPage.clickCancelButton();
-
+    persesDashboardsPage.closeAlert();
   });
 
   it(`3. ${perspective.name} perspective - Import Dashboard - Perses dashboard - JSON file`, () => {
@@ -106,7 +118,9 @@ export function testCOOImportPerses(perspective: PerspectiveConfig) {
     persesImportDashboardsPage.importDashboardShouldBeLoaded();
 
     cy.log(`3.3 Upload Perses dashboard JSON file`);
-    persesImportDashboardsPage.uploadFile('./cypress/fixtures/coo/coo141_perses/import/testing-perses-dashboard.json');
+    persesImportDashboardsPage.uploadFile(
+      './cypress/fixtures/coo/coo140_perses/import/testing-perses-dashboard.json',
+    );
     persesImportDashboardsPage.assertPersesDashboardDetected();
 
     cy.log(`3.4 Select a project`);
@@ -114,7 +128,7 @@ export function testCOOImportPerses(perspective: PerspectiveConfig) {
 
     cy.log(`3.5 Import dashboard`);
     persesImportDashboardsPage.clickImportFileButton();
-    persesDashboardsPage.closeSuccessAlert();
+    persesDashboardsPage.closeAlert();
 
     cy.log(`3.6 Assert dashboard is imported`);
     persesDashboardsPage.shouldBeLoadedEditionMode('Testing Perses dashboard - JSON');
@@ -131,13 +145,14 @@ export function testCOOImportPerses(perspective: PerspectiveConfig) {
     cy.log(`3.9 Import the same dashboard - Duplicated error`);
     listPersesDashboardsPage.clickImportButton();
     persesImportDashboardsPage.importDashboardShouldBeLoaded();
-    persesImportDashboardsPage.uploadFile('./cypress/fixtures/coo/coo141_perses/import/testing-perses-dashboard.json');
+    persesImportDashboardsPage.uploadFile(
+      './cypress/fixtures/coo/coo140_perses/import/testing-perses-dashboard.json',
+    );
     persesImportDashboardsPage.assertPersesDashboardDetected();
     persesImportDashboardsPage.selectProject('openshift-cluster-observability-operator');
     persesImportDashboardsPage.clickImportFileButton();
     persesImportDashboardsPage.assertDuplicatedDashboardError();
     persesImportDashboardsPage.clickCancelButton();
-
   });
 
   it(`4. ${perspective.name} perspective - Import Dashboard - Perses dashboard - YAML file`, () => {
@@ -149,7 +164,9 @@ export function testCOOImportPerses(perspective: PerspectiveConfig) {
     persesImportDashboardsPage.importDashboardShouldBeLoaded();
 
     cy.log(`4.3 Upload Perses dashboard YAML file`);
-    persesImportDashboardsPage.uploadFile('./cypress/fixtures/coo/coo141_perses/import/testing-perses-dashboard.yaml');
+    persesImportDashboardsPage.uploadFile(
+      './cypress/fixtures/coo/coo140_perses/import/testing-perses-dashboard.yaml',
+    );
     persesImportDashboardsPage.assertPersesDashboardDetected();
 
     cy.log(`4.4 Select a project`);
@@ -157,7 +174,7 @@ export function testCOOImportPerses(perspective: PerspectiveConfig) {
 
     cy.log(`4.5 Import dashboard`);
     persesImportDashboardsPage.clickImportFileButton();
-    persesDashboardsPage.closeSuccessAlert();
+    persesDashboardsPage.closeAlert();
 
     cy.log(`4.6 Assert dashboard is imported`);
     persesDashboardsPage.shouldBeLoadedEditionMode('Testing Perses dashboard - YAML');
@@ -170,24 +187,25 @@ export function testCOOImportPerses(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.countDashboards('1');
     listPersesDashboardsPage.clearAllFilters();
     cy.wait(2000);
-    
+
     cy.log(`4.9 Import the same dashboard - Duplicated error`);
     listPersesDashboardsPage.clickImportButton();
     persesImportDashboardsPage.importDashboardShouldBeLoaded();
-    persesImportDashboardsPage.uploadFile('./cypress/fixtures/coo/coo141_perses/import/testing-perses-dashboard.yaml');
+    persesImportDashboardsPage.uploadFile(
+      './cypress/fixtures/coo/coo140_perses/import/testing-perses-dashboard.yaml',
+    );
     persesImportDashboardsPage.assertPersesDashboardDetected();
     persesImportDashboardsPage.selectProject('openshift-cluster-observability-operator');
     persesImportDashboardsPage.clickImportFileButton();
     persesImportDashboardsPage.assertDuplicatedDashboardError();
     persesImportDashboardsPage.clickCancelButton();
-
   });
 
   it(`5. ${perspective.name} perspective - Delete imported dashboard`, () => {
     const dashboardsToDelete = [
       'Testing Perses dashboard - JSON',
       'Testing Perses dashboard - YAML',
-      'Service Level dashboards / Virtual Machines by Time in Status'
+      'Service Level dashboards / Virtual Machines by Time in Status',
     ];
 
     cy.log(`5.1 Navigate to Observe > Dashboards (Perses)`);

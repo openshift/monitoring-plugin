@@ -6,45 +6,45 @@ export enum MonitoringPageTitles {
   RECREATE_SILENCE = 'Recreate silence',
   EDIT_SILENCE = 'Edit silence',
   SILENCE_ALERT = 'Silence alert',
-};
+}
 
 export enum AlertsAlertState {
   FIRING = 'Firing',
   PENDING = 'Pending',
   SILENCED = 'Silenced',
-};
+}
 
 export enum AlertingRulesAlertState {
   FIRING = 'Firing',
   PENDING = 'Pending',
   SILENCED = 'Silenced',
   NOT_FIRING = 'Not Firing',
-};
+}
 
 export enum Severity {
   CRITICAL = 'Critical',
   WARNING = 'Warning',
   INFO = 'Info',
   NONE = 'None',
-};
+}
 
 export enum SilenceState {
   ACTIVE = 'Active',
   PENDING = 'Pending',
   EXPIRED = 'Expired',
-};
+}
 
 export enum MainTagState {
   ALERT_STATE = 'Alert State',
   SEVERITY = 'Severity',
   SOURCE = 'Source',
   SILENCE_STATE = 'Silence State',
-};
+}
 
 export enum Source {
   PLATFORM = 'Platform',
   USER = 'User',
-};
+}
 
 export enum GraphTimespan {
   FIVE_MINUTES = '5m',
@@ -58,7 +58,7 @@ export enum GraphTimespan {
   TWO_DAYS = '2d',
   ONE_WEEK = '1w',
   TWO_WEEKS = '2w',
-};
+}
 
 export enum MetricsPageUnits {
   NO_UNITS = 'No Units',
@@ -70,7 +70,7 @@ export enum MetricsPageUnits {
   MILISECONDS = 'Miliseconds',
   SECONDS = 'Seconds',
   PERCENTAGE = 'Percentage',
-};
+}
 
 export enum MonitoringRefreshInterval {
   REFRESH_OFF = 'Refresh off',
@@ -81,7 +81,7 @@ export enum MonitoringRefreshInterval {
   ONE_HOUR = '1 hour',
   TWO_HOURS = '2 hours',
   ONE_DAY = '1 day',
-};
+}
 
 export enum MetricsPagePredefinedQueries {
   CPU_USAGE = 'CPU Usage',
@@ -93,13 +93,13 @@ export enum MetricsPagePredefinedQueries {
   RATE_OF_TRANSMITTED_PACKETS = 'Rate of transmitted packets',
   RATE_OF_RECEIVED_PACKETS_DROPPED = 'Rate of received packets dropped',
   RATE_OF_TRANSMITTED_PACKETS_DROPPED = 'Rate of transmitted packets dropped',
-};
+}
 
 export enum MetricsPageQueryInput {
   EXPRESSION_PRESS_SHIFT_ENTER_FOR_NEWLINES = 'Expression (press Shift+Enter for newlines)',
   INSERT_EXAMPLE_QUERY = 'sort_desc(sum(sum_over_time(ALERTS{alertstate="firing"}[24h])) by (alertname))',
   INSERT_EXAMPLE_QUERY_NAMESPACE = 'sort_desc(sum(sum_over_time(ALERTS{alertstate="firing", namespace="openshift-monitoring"}[24h])) by (alertname))',
-  VECTOR_QUERY='vector(1)',
+  VECTOR_QUERY = 'vector(1)',
   CPU_USAGE = 'OpenShift_Metrics_QueryTable_sum(node_namespace_pod_container_container_cpu_usage_seconds_total_sum_irate) by (pod).csv',
   MEMORY_USAGE = 'OpenShift_Metrics_QueryTable_sum(container_memory_working_set_bytes{container!=__}) by (pod).csv',
   FILESYSTEM_USAGE = 'OpenShift_Metrics_QueryTable_topk(25, sort_desc(sum(pod_container_fs_usage_bytes_sum{container=__,pod!=__}) BY (pod, namespace))).csv',
@@ -124,15 +124,15 @@ export enum MetricsPageQueryInput {
 }
 
 export enum MetricsPageQueryInputByNamespace {
-  CPU_USAGE = 'OpenShift_Metrics_QueryTable_sum(node_namespace_pod_container_container_cpu_usage_seconds_total_sum_irate{namespace=\'openshift-monitoring\'}) by (pod).csv',
-  MEMORY_USAGE = 'OpenShift_Metrics_QueryTable_sum(container_memory_working_set_bytes{container!=__, namespace=\'openshift-monitoring\'}) by (pod).csv',
-  FILESYSTEM_USAGE = 'OpenShift_Metrics_QueryTable_topk(25, sort_desc(sum(pod_container_fs_usage_bytes_sum{container=__,pod!=__,namespace=\'openshift-monitoring\'}) BY (pod, namespace))).csv',
-  RECEIVE_BANDWIDTH = 'OpenShift_Metrics_QueryTable_sum(irate(container_network_receive_bytes_total{namespace=\'openshift-monitoring\'}[2h])) by (pod).csv',
-  TRANSMIT_BANDWIDTH = 'OpenShift_Metrics_QueryTable_sum(irate(container_network_transmit_bytes_total{namespace=\'openshift-monitoring\'}[2h])) by (pod).csv',
-  RATE_OF_RECEIVED_PACKETS = 'OpenShift_Metrics_QueryTable_sum(irate(container_network_receive_packets_total{namespace=\'openshift-monitoring\'}[2h])) by (pod).csv',
-  RATE_OF_TRANSMITTED_PACKETS = 'OpenShift_Metrics_QueryTable_sum(irate(container_network_transmit_packets_total{namespace=\'openshift-monitoring\'}[2h])) by (pod).csv',
-  RATE_OF_RECEIVED_PACKETS_DROPPED = 'OpenShift_Metrics_QueryTable_sum(irate(container_network_receive_packets_dropped_total{namespace=\'openshift-monitoring\'}[2h])) by (pod).csv',
-  RATE_OF_TRANSMITTED_PACKETS_DROPPED = 'OpenShift_Metrics_QueryTable_sum(irate(container_network_transmit_packets_dropped_total{namespace=\'openshift-monitoring\'}[2h])) by (pod).csv',
+  CPU_USAGE = "OpenShift_Metrics_QueryTable_sum(node_namespace_pod_container_container_cpu_usage_seconds_total_sum_irate{namespace='openshift-monitoring'}) by (pod).csv",
+  MEMORY_USAGE = "OpenShift_Metrics_QueryTable_sum(container_memory_working_set_bytes{container!=__, namespace='openshift-monitoring'}) by (pod).csv",
+  FILESYSTEM_USAGE = "OpenShift_Metrics_QueryTable_topk(25, sort_desc(sum(pod_container_fs_usage_bytes_sum{container=__,pod!=__,namespace='openshift-monitoring'}) BY (pod, namespace))).csv",
+  RECEIVE_BANDWIDTH = "OpenShift_Metrics_QueryTable_sum(irate(container_network_receive_bytes_total{namespace='openshift-monitoring'}[2h])) by (pod).csv",
+  TRANSMIT_BANDWIDTH = "OpenShift_Metrics_QueryTable_sum(irate(container_network_transmit_bytes_total{namespace='openshift-monitoring'}[2h])) by (pod).csv",
+  RATE_OF_RECEIVED_PACKETS = "OpenShift_Metrics_QueryTable_sum(irate(container_network_receive_packets_total{namespace='openshift-monitoring'}[2h])) by (pod).csv",
+  RATE_OF_TRANSMITTED_PACKETS = "OpenShift_Metrics_QueryTable_sum(irate(container_network_transmit_packets_total{namespace='openshift-monitoring'}[2h])) by (pod).csv",
+  RATE_OF_RECEIVED_PACKETS_DROPPED = "OpenShift_Metrics_QueryTable_sum(irate(container_network_receive_packets_dropped_total{namespace='openshift-monitoring'}[2h])) by (pod).csv",
+  RATE_OF_TRANSMITTED_PACKETS_DROPPED = "OpenShift_Metrics_QueryTable_sum(irate(container_network_transmit_packets_dropped_total{namespace='openshift-monitoring'}[2h])) by (pod).csv",
   CPU_UTILISATION_FROM_REQUESTS = 'sum(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{namespace="openshift-monitoring"}) / sum(kube_pod_container_resource_requests{job="kube-state-metrics", namespace="openshift-monitoring", resource="cpu"})',
 }
 
@@ -151,7 +151,7 @@ export enum MetricGraphEmptyState {
   UNGRAPHABLE_RESULTS_DESCRIPTION = 'The resulting dataset is too large to graph.',
 }
 
-export enum MetricsPageQueryKebabDropdown{
+export enum MetricsPageQueryKebabDropdown {
   DISABLE_QUERY = 'Disable query',
   ENABLE_QUERY = 'Enable query',
   HIDE_ALL_SERIES = 'Hide all series',
@@ -177,32 +177,47 @@ export enum LegacyDashboardsTimeRange {
 }
 
 export const LegacyDashboardsDashboardDropdown = {
-API_PERFORMANCE: ['API Performance', ''],
-ETCD: ['etcd', 'etcd-mixin'],
-K8S_COMPUTE_RESOURCES_CLUSTER: ['Kubernetes / Compute Resources / Cluster', 'kubernetes-mixin'],
-K8S_COMPUTE_RESOURCES_NAMESPACE_PODS: ['Kubernetes / Compute Resources / Namespace (Pods)', 'kubernetes-mixin'],
-K8S_COMPUTE_RESOURCES_NAMESPACE_WORKLOADS: ['Kubernetes / Compute Resources / Namespace (Workloads)', 'kubernetes-mixin'],
-K8S_COMPUTE_RESOURCES_NODE_PODS: ['Kubernetes / Compute Resources / Node (Pods)', 'kubernetes-mixin'],
-K8S_COMPUTE_RESOURCES_POD: ['Kubernetes / Compute Resources / Pod', 'kubernetes-mixin'],
-K8S_COMPUTE_RESOURCES_WORKLOAD: ['Kubernetes / Compute Resources / Workload', 'kubernetes-mixin'],
-K8S_NETWORKING_CLUSTER: ['Kubernetes / Networking / Cluster', 'kubernetes-mixin'],
-K8S_NETWORKING_NAMESPACE_PODS: ['Kubernetes / Networking / Namespace (Pods)', 'kubernetes-mixin'],
-K8S_NETWORKING_POD: ['Kubernetes / Networking / Pod', 'kubernetes-mixin'],
-NETWORKING_INFRASTRUCTURE: ['Networking / Infrastructure', 'networking-mixin'],
-NETWORKING_INGRESS: ['Networking / Ingress', 'networking-mixin'],
-NETWORKING_LINUX_SUBSYSTEM_STATS: ['Networking / Linux Subsystem Stats', 'networking-mixin'],
-NODE_CLUSTER: ['Node Cluster', ''],
-NODE_EXPORTER_USE_METHOD_CLUSTER: ['Node Exporter / USE Method / Cluster', 'node-exporter-mixin'],
-NODE_EXPORTER_USE_METHOD_NODE: ['Node Exporter / USE Method / Node', 'node-exporter-mixin'],
-PROMETHEUS_OVERVIEW: ['Prometheus / Overview', 'prometheus-mixin'],
-}
-
-export const LegacyDashboardsDashboardDropdownNamespace = {
-  K8S_COMPUTE_RESOURCES_NAMESPACE_PODS: ['Kubernetes / Compute Resources / Namespace (Pods)', 'kubernetes-mixin'],
-  K8S_COMPUTE_RESOURCES_NAMESPACE_WORKLOADS: ['Kubernetes / Compute Resources / Namespace (Workloads)', 'kubernetes-mixin'],
+  API_PERFORMANCE: ['API Performance', ''],
+  ETCD: ['etcd', 'etcd-mixin'],
+  K8S_COMPUTE_RESOURCES_CLUSTER: ['Kubernetes / Compute Resources / Cluster', 'kubernetes-mixin'],
+  K8S_COMPUTE_RESOURCES_NAMESPACE_PODS: [
+    'Kubernetes / Compute Resources / Namespace (Pods)',
+    'kubernetes-mixin',
+  ],
+  K8S_COMPUTE_RESOURCES_NAMESPACE_WORKLOADS: [
+    'Kubernetes / Compute Resources / Namespace (Workloads)',
+    'kubernetes-mixin',
+  ],
+  K8S_COMPUTE_RESOURCES_NODE_PODS: [
+    'Kubernetes / Compute Resources / Node (Pods)',
+    'kubernetes-mixin',
+  ],
   K8S_COMPUTE_RESOURCES_POD: ['Kubernetes / Compute Resources / Pod', 'kubernetes-mixin'],
   K8S_COMPUTE_RESOURCES_WORKLOAD: ['Kubernetes / Compute Resources / Workload', 'kubernetes-mixin'],
-}
+  K8S_NETWORKING_CLUSTER: ['Kubernetes / Networking / Cluster', 'kubernetes-mixin'],
+  K8S_NETWORKING_NAMESPACE_PODS: ['Kubernetes / Networking / Namespace (Pods)', 'kubernetes-mixin'],
+  K8S_NETWORKING_POD: ['Kubernetes / Networking / Pod', 'kubernetes-mixin'],
+  NETWORKING_INFRASTRUCTURE: ['Networking / Infrastructure', 'networking-mixin'],
+  NETWORKING_INGRESS: ['Networking / Ingress', 'networking-mixin'],
+  NETWORKING_LINUX_SUBSYSTEM_STATS: ['Networking / Linux Subsystem Stats', 'networking-mixin'],
+  NODE_CLUSTER: ['Node Cluster', ''],
+  NODE_EXPORTER_USE_METHOD_CLUSTER: ['Node Exporter / USE Method / Cluster', 'node-exporter-mixin'],
+  NODE_EXPORTER_USE_METHOD_NODE: ['Node Exporter / USE Method / Node', 'node-exporter-mixin'],
+  PROMETHEUS_OVERVIEW: ['Prometheus / Overview', 'prometheus-mixin'],
+};
+
+export const LegacyDashboardsDashboardDropdownNamespace = {
+  K8S_COMPUTE_RESOURCES_NAMESPACE_PODS: [
+    'Kubernetes / Compute Resources / Namespace (Pods)',
+    'kubernetes-mixin',
+  ],
+  K8S_COMPUTE_RESOURCES_NAMESPACE_WORKLOADS: [
+    'Kubernetes / Compute Resources / Namespace (Workloads)',
+    'kubernetes-mixin',
+  ],
+  K8S_COMPUTE_RESOURCES_POD: ['Kubernetes / Compute Resources / Pod', 'kubernetes-mixin'],
+  K8S_COMPUTE_RESOURCES_WORKLOAD: ['Kubernetes / Compute Resources / Workload', 'kubernetes-mixin'],
+};
 
 export enum API_PERFORMANCE_DASHBOARD_PANELS {
   API_PERFORMANCE_PANEL_1 = 'API Request Duration by Verb - 99th Percentile',
@@ -242,7 +257,6 @@ export enum KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANELS {
   KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANEL_16 = 'IOPS(Reads+Writes)',
   KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANEL_17 = 'ThroughPut(Read+Write)',
   KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANEL_18 = 'Current Storage IO',
-  
 }
 
 export enum WatchdogAlert {
@@ -251,7 +265,6 @@ export enum WatchdogAlert {
   SEVERITY = 'None',
   ALERT_DESC = 'This is an alert meant to ensure that the entire alerting pipeline is functional. This alert is always firing, therefore it should always be firing in Alertmanager and always fire against a receiver. There are integrations with various notification mechanisms that send a notification when this alert is not firing. For example the "DeadMansSnitch" integration in PagerDuty.',
   ALERT_SUMMARY = 'An alert that should always be firing to certify that Alertmanager is working properly.',
-  
 }
 
 export enum SilenceComment {

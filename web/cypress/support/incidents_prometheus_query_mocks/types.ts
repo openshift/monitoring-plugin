@@ -25,10 +25,11 @@ export interface IncidentDefinition {
 
 export interface AlertDefinition {
   name: string; // src_alertname
-  namespace: string; // src_namespace  
+  namespace: string; // src_namespace
   severity: 'critical' | 'warning' | 'info';
   component?: string; // Optional: override component for this specific alert
-  firing?: boolean; // Optional: override firing state (default: true for critical/warning, false for resolved incidents)
+  // Optional: override firing state (default: true for critical/warning, false for resolved)
+  firing?: boolean;
   silenced?: boolean; // Optional: mark alert as silenced for testing
   timeline?: IncidentTimeline; // Individual alert timeline
 }
