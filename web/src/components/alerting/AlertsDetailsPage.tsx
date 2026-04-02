@@ -16,9 +16,8 @@ import type { FC, ReactNode } from 'react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
-import { Link, useNavigate, useParams } from 'react-router-dom-v5-compat';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { ExternalLink, LinkifyExternal } from '../console/utils/link';
-import { getAllQueryArguments } from '../console/utils/router';
 import {
   getAlertsUrl,
   getObserveState,
@@ -97,6 +96,7 @@ const AlertsDetailsPage_: FC = () => {
   const navigate = useNavigate();
   const { plugin } = useMonitoring();
   const { namespace } = useMonitoringNamespace();
+  const [queryParams] = useSearchParams();
 
   const { perspective } = usePerspective();
 
@@ -111,8 +111,9 @@ const AlertsDetailsPage_: FC = () => {
 
   // Search for an alert that matches all of the labels in the URL parameters. We expect there to be
   // only one such alert that matches, so don't display any alert if multiple matches were found.
-  const queryParams = getAllQueryArguments();
-  const foundAlerts = _.filter(ruleAlerts, (a) => _.isMatch(a.labels, queryParams));
+  const foundAlerts = _.filter(ruleAlerts, (a) =>
+    _.isMatch(a.labels, Object.fromEntries(queryParams)),
+  );
   const alert = foundAlerts.length === 1 ? foundAlerts[0] : undefined;
 
   const state = alertState(alert);
@@ -121,7 +122,6 @@ const AlertsDetailsPage_: FC = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const labels: PrometheusLabels = useMemo(() => alert?.labels, [labelsMemoKey]);
 
-  // eslint-disable-next-line camelcase
   const runbookURL = alert?.annotations?.runbook_url;
 
   const sourceId = rule?.sourceId;

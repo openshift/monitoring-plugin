@@ -41,7 +41,7 @@ import * as _ from 'lodash-es';
 import type { FC, Ref } from 'react';
 import { useContext, useCallback, createContext, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate } from 'react-router-dom-v5-compat';
+import { Link, useNavigate } from 'react-router';
 import { useBoolean } from '../hooks/useBoolean';
 import {
   getEditSilenceAlertUrl,

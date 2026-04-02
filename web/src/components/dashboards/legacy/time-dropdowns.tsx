@@ -89,7 +89,10 @@ export const TimespanDropdown: FC = () => {
   }, [selectedKey, t, timeRangeFromParams, setTimeRange, setEndTime]);
 
   const defaultTimerange = timespan ?? undefined;
-  const defaultEndTime = Number(endTime) ?? undefined;
+  let defaultEndTime = Number(endTime);
+  if (Number.isNaN(defaultEndTime)) {
+    defaultEndTime = undefined;
+  }
 
   return (
     <>

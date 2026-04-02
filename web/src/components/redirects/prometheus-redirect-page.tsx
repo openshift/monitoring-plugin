@@ -1,6 +1,5 @@
 import type { FC } from 'react';
-import { Navigate } from 'react-router-dom-v5-compat';
-import { getAllQueryArguments } from '../console/utils/router';
+import { Navigate, useSearchParams } from 'react-router';
 import { usePerspective } from '../hooks/usePerspective';
 
 // Handles links that have the Prometheus UI's URL format (expected for links in alerts sent by
@@ -9,7 +8,7 @@ import { usePerspective } from '../hooks/usePerspective';
 const PrometheusRouterRedirect: FC = () => {
   const { urlRoot } = usePerspective();
 
-  const params = getAllQueryArguments();
+  const [params] = useSearchParams();
   // leaving perspective redirect to future work
   return <Navigate to={`/${urlRoot}/query-browser?query0=${params['g0.expr'] || ''}`} />;
 };

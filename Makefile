@@ -129,3 +129,7 @@ podman-cross-build-push: podman-cross-build
 .PHONY: test-translations
 test-translations:
 	./scripts/test-translations.sh
+
+.PHONY: patch-frontend
+patch-frontend:
+	cd web && npm run postinstall

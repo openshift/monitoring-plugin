@@ -23,7 +23,7 @@ import { DataViewToolbar } from '@patternfly/react-data-view/dist/dynamic/DataVi
 import { useDataViewFilters, useDataViewSort } from '@patternfly/react-data-view';
 import { useDataViewPagination } from '@patternfly/react-data-view/dist/dynamic/Hooks';
 import { ActionsColumn, ThProps } from '@patternfly/react-table';
-import { Link, useSearchParams } from 'react-router-dom-v5-compat';
+import { Link, useSearchParams } from 'react-router';
 
 import { getDashboardUrl, usePerspective } from '../../hooks/usePerspective';
 import { Timestamp } from '@openshift-console/dynamic-plugin-sdk';
@@ -37,6 +37,7 @@ import {
   RenameActionModal,
 } from './dashboard-action-modals';
 import { useEditableProjects } from './hooks/useEditableProjects';
+import { ALL_NAMESPACES_KEY } from '../../utils';
 const perPageOptions = [
   { title: '10', value: 10 },
   { title: '20', value: 20 },
@@ -257,7 +258,7 @@ const DashboardsTable: React.FunctionComponent<DashboardsTableProps> = ({
             item.project
               ?.toLocaleLowerCase()
               .includes(filters['project-filter']?.toLocaleLowerCase())) &&
-          (!activeProject || item.project === activeProject),
+          (activeProject === ALL_NAMESPACES_KEY || item.project === activeProject),
       ),
     [filters, tableRows, activeProject],
   );
@@ -344,15 +345,16 @@ const DashboardsTable: React.FunctionComponent<DashboardsTableProps> = ({
     handleDeleteModalOpen,
   ]);
 
-  const PaginationTool = () => {
-    return (
+  const PaginationTool = useMemo(
+    () => (
       <Pagination
         perPageOptions={perPageOptions}
         itemCount={sortedAndFilteredData.length}
         {...pagination}
       />
-    );
-  };
+    ),
+    [sortedAndFilteredData, pagination],
+  );
 
   const hasFiltersApplied = filters.name || filters['project-filter'];
   const hasData = sortedAndFilteredData.length > 0;
@@ -362,7 +364,7 @@ const DashboardsTable: React.FunctionComponent<DashboardsTableProps> = ({
       <DataViewToolbar
         ouiaId="PersesDashList-DataViewHeader"
         clearAllFilters={clearAllFilters}
-        pagination={<PaginationTool />}
+        pagination={PaginationTool}
         filters={
           <DataViewFilters onChange={(_e, values) => onSetFilters(values)} values={filters}>
             <DataViewTextFilter
@@ -432,7 +434,7 @@ const DashboardsTable: React.FunctionComponent<DashboardsTableProps> = ({
           )}
         </EmptyState>
       )}
-      <DataViewToolbar ouiaId="PersesDashList-DataViewFooter" pagination={<PaginationTool />} />
+      <DataViewToolbar ouiaId="PersesDashList-DataViewFooter" pagination={PaginationTool} />
     </DataView>
   );
 };
@@ -442,7 +444,6 @@ export const DashboardList: FC = () => {
     activeProjectDashboardsMetadata,
     changeBoard,
     dashboardName,
-    setActiveProject,
     activeProject,
     persesDashboards,
     combinedInitialLoad,
@@ -451,7 +452,6 @@ export const DashboardList: FC = () => {
   return (
     <DashboardListFrame
       activeProject={activeProject}
-      setActiveProject={setActiveProject}
       activeProjectDashboardsMetadata={activeProjectDashboardsMetadata}
       changeBoard={changeBoard}
       dashboardName={dashboardName}
