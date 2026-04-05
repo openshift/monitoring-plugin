@@ -130,6 +130,7 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 
 	var k8sclient *dynamic.DynamicClient
 	if acmMode || alertManagementAPIMode {
+		// Local development: use kubeconfig file
 		k8sconfig, err = clientcmd.BuildConfigFromFlags("", os.Getenv("KUBECONFIG"))
 		if err != nil {
 			return nil, fmt.Errorf("cannot get kubeconfig from file: %w", err)
