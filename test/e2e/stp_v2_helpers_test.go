@@ -16,6 +16,7 @@ import (
 	"time"
 
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
 
@@ -451,6 +452,105 @@ func assertPatchStatusCode(t *testing.T, httpStatus int, resp *managementrouter.
 	}
 	if resp.StatusCode != expected {
 		t.Fatalf("Expected inner status_code %d, got %d (message: %s)", expected, resp.StatusCode, resp.Message)
+	}
+}
+
+// enableUserWorkloadMonitoring ensures UWM is enabled by creating or updating
+// the cluster-monitoring-config ConfigMap in openshift-monitoring.
+// It returns a cleanup function that restores the original state.
+func enableUserWorkloadMonitoring(ctx context.Context, f *framework.Framework) (framework.CleanupFunc, error) {
+	cmName := "cluster-monitoring-config"
+	cmNamespace := k8s.ClusterMonitoringNamespace
+
+	// Check if ConfigMap already exists
+	existing, err := f.Clientset.CoreV1().ConfigMaps(cmNamespace).Get(ctx, cmName, metav1.GetOptions{})
+	if err == nil {
+		// ConfigMap exists -- check if UWM is already enabled
+		configYaml := existing.Data["config.yaml"]
+		if strings.Contains(configYaml, "enableUserWorkload: true") {
+			// Already enabled, no-op cleanup
+			return func() error { return nil }, nil
+		}
+
+		// Save original for restore
+		originalData := make(map[string]string)
+		for k, v := range existing.Data {
+			originalData[k] = v
+		}
+
+		// Update to enable UWM
+		existing.Data["config.yaml"] = "enableUserWorkload: true\n"
+		_, err = f.Clientset.CoreV1().ConfigMaps(cmNamespace).Update(ctx, existing, metav1.UpdateOptions{})
+		if err != nil {
+			return nil, fmt.Errorf("failed to update %s/%s: %w", cmNamespace, cmName, err)
+		}
+
+		return func() error {
+			cm, getErr := f.Clientset.CoreV1().ConfigMaps(cmNamespace).Get(context.Background(), cmName, metav1.GetOptions{})
+			if getErr != nil {
+				return getErr
+			}
+			cm.Data = originalData
+			_, updateErr := f.Clientset.CoreV1().ConfigMaps(cmNamespace).Update(context.Background(), cm, metav1.UpdateOptions{})
+			return updateErr
+		}, nil
+	}
+
+	// ConfigMap doesn't exist -- create it
+	cm := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      cmName,
+			Namespace: cmNamespace,
+		},
+		Data: map[string]string{
+			"config.yaml": "enableUserWorkload: true\n",
+		},
+	}
+	_, err = f.Clientset.CoreV1().ConfigMaps(cmNamespace).Create(ctx, cm, metav1.CreateOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create %s/%s: %w", cmNamespace, cmName, err)
+	}
+
+	return func() error {
+		return f.Clientset.CoreV1().ConfigMaps(cmNamespace).Delete(context.Background(), cmName, metav1.DeleteOptions{})
+	}, nil
+}
+
+// waitForUserWorkloadMonitoring polls until the user-workload-monitoring
+// prometheus pods are ready, indicating UWM is fully operational.
+func waitForUserWorkloadMonitoring(ctx context.Context, t *testing.T, f *framework.Framework, timeout time.Duration) {
+	t.Helper()
+	t.Log("Waiting for user-workload-monitoring to become ready...")
+	err := wait.PollUntilContextTimeout(ctx, 5*time.Second, timeout, true, func(ctx context.Context) (bool, error) {
+		pods, err := f.Clientset.CoreV1().Pods("openshift-user-workload-monitoring").List(ctx, metav1.ListOptions{
+			LabelSelector: "app.kubernetes.io/name=prometheus",
+		})
+		if err != nil {
+			t.Logf("  UWM poll: list pods error: %v", err)
+			return false, nil
+		}
+		if len(pods.Items) == 0 {
+			t.Log("  UWM poll: no prometheus pods yet")
+			return false, nil
+		}
+		for _, pod := range pods.Items {
+			ready := false
+			for _, cond := range pod.Status.Conditions {
+				if cond.Type == corev1.PodReady && cond.Status == corev1.ConditionTrue {
+					ready = true
+					break
+				}
+			}
+			if !ready {
+				t.Logf("  UWM poll: pod %s not ready yet", pod.Name)
+				return false, nil
+			}
+		}
+		t.Logf("  UWM poll: all %d prometheus pods ready", len(pods.Items))
+		return true, nil
+	})
+	if err != nil {
+		t.Fatalf("Timeout waiting for user-workload-monitoring to be ready: %v", err)
 	}
 }
 

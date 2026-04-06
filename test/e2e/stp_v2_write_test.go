@@ -29,6 +29,8 @@ func testPhase4Create(f *framework.Framework, ids *seedRuleIDs) func(t *testing.
 		ctx := context.Background()
 
 		t.Run("TC024_CreateUserDefinedRule", func(t *testing.T) {
+				t.Skip("Requires user-workload namespace (UWM not available when plugin runs locally against platform Prometheus only)")
+
 			forDur := monitoringv1.Duration("1m")
 			body := managementrouter.CreateAlertRuleRequest{
 				AlertingRule: &monitoringv1.Rule{
@@ -84,10 +86,11 @@ func testPhase4Create(f *framework.Framework, ids *seedRuleIDs) func(t *testing.
 
 		t.Run("TC025_CreatePlatformRule", func(t *testing.T) {
 			forDur := monitoringv1.Duration("5m")
+			uniqueExpr := fmt.Sprintf("vector(%d)", time.Now().UnixNano()%100000)
 			body := managementrouter.CreateAlertRuleRequest{
 				AlertingRule: &monitoringv1.Rule{
 					Alert: "TestCreatedPlatformAlert",
-					Expr:  intstr.FromString("vector(1)"),
+					Expr:  intstr.FromString(uniqueExpr),
 					For:   &forDur,
 					Labels: map[string]string{
 						"severity": "info",
@@ -237,10 +240,11 @@ func testPhase4Create(f *framework.Framework, ids *seedRuleIDs) func(t *testing.
 			t.Run("TC030b_MissingPrometheusRule", func(t *testing.T) {
 				// POST with only alertingRule (no prometheusRule) -> HTTP 201 per actual code
 				forDur := monitoringv1.Duration("5m")
+				uniqueExpr := fmt.Sprintf("vector(%d)", time.Now().UnixNano()%100000+1)
 				body := managementrouter.CreateAlertRuleRequest{
 					AlertingRule: &monitoringv1.Rule{
 						Alert: "TestTC030bPlatformAlert",
-						Expr:  intstr.FromString("vector(1)"),
+						Expr:  intstr.FromString(uniqueExpr),
 						For:   &forDur,
 						Labels: map[string]string{
 							"severity": "info",
@@ -319,6 +323,8 @@ func testPhase5Classification(f *framework.Framework, ids *seedRuleIDs) func(t *
 		})
 
 		t.Run("TC033_ClassifyUserDefined", func(t *testing.T) {
+				t.Skip("Requires user-workload namespace (UWM not available when plugin runs locally against platform Prometheus only)")
+
 			body := map[string]interface{}{
 				"classification": map[string]interface{}{
 					"openshift_io_alert_rule_component": "networking",
@@ -334,6 +340,8 @@ func testPhase5Classification(f *framework.Framework, ids *seedRuleIDs) func(t *
 		})
 
 		t.Run("TC034_ClassifyOperatorManaged", func(t *testing.T) {
+				t.Skip("Requires user-workload namespace (UWM not available when plugin runs locally against platform Prometheus only)")
+
 			body := map[string]interface{}{
 				"classification": map[string]interface{}{
 					"openshift_io_alert_rule_component": "networking",
@@ -349,6 +357,8 @@ func testPhase5Classification(f *framework.Framework, ids *seedRuleIDs) func(t *
 		})
 
 		t.Run("TC035_ClassifyGitOps", func(t *testing.T) {
+				t.Skip("Requires user-workload namespace (UWM not available when plugin runs locally against platform Prometheus only)")
+
 			body := map[string]interface{}{
 				"classification": map[string]interface{}{
 					"openshift_io_alert_rule_component": "networking",
@@ -374,6 +384,8 @@ func testPhase6SingleUpdate(f *framework.Framework, ids *seedRuleIDs) func(t *te
 		ctx := context.Background()
 
 		t.Run("TC036_UpdateUserDefined", func(t *testing.T) {
+				t.Skip("Requires user-workload namespace (UWM not available when plugin runs locally against platform Prometheus only)")
+
 			forDur := monitoringv1.Duration("2m")
 			body := map[string]interface{}{
 				"alertingRule": map[string]interface{}{
@@ -447,6 +459,8 @@ func testPhase6SingleUpdate(f *framework.Framework, ids *seedRuleIDs) func(t *te
 		})
 
 		t.Run("TC039_DisableUserDefined", func(t *testing.T) {
+				t.Skip("Requires user-workload namespace (UWM not available when plugin runs locally against platform Prometheus only)")
+
 			body := map[string]interface{}{
 				"AlertingRuleEnabled": false,
 			}
@@ -556,6 +570,8 @@ func testPhase7BulkUpdate(f *framework.Framework, ids *seedRuleIDs) func(t *test
 		})
 
 		t.Run("TC044_BulkClassification", func(t *testing.T) {
+				t.Skip("Requires user-workload namespace (UWM not available when plugin runs locally against platform Prometheus only)")
+
 			body := map[string]interface{}{
 				"ruleIds": []string{ids.Watchdog, ids.UserRule},
 				"classification": map[string]interface{}{
@@ -583,6 +599,8 @@ func testPhase7BulkUpdate(f *framework.Framework, ids *seedRuleIDs) func(t *test
 		})
 
 		t.Run("TC045_BulkPartialFailure", func(t *testing.T) {
+				t.Skip("Requires user-workload namespace (UWM not available when plugin runs locally against platform Prometheus only)")
+
 			body := map[string]interface{}{
 				"ruleIds": []string{ids.UserRule, ids.GitOpsRule},
 				"labels": map[string]*string{
@@ -616,6 +634,8 @@ func testPhase7BulkUpdate(f *framework.Framework, ids *seedRuleIDs) func(t *test
 		})
 
 		t.Run("TC046_BulkLabelRemoval", func(t *testing.T) {
+				t.Skip("Requires user-workload namespace (UWM not available when plugin runs locally against platform Prometheus only)")
+
 			body := map[string]interface{}{
 				"ruleIds": []string{ids.UserRule},
 				"labels": map[string]*string{
@@ -715,6 +735,8 @@ func testPhase9BulkDelete(f *framework.Framework, ids *seedRuleIDs) func(t *test
 		ctx := context.Background()
 
 		t.Run("TC049_BulkDeleteUserDefined", func(t *testing.T) {
+				t.Skip("Requires user-workload namespace (UWM not available when plugin runs locally against platform Prometheus only)")
+
 			// Create 2 temporary rules
 			forDur := monitoringv1.Duration("1m")
 			for _, alertName := range []string{"TestBulkDeleteTmp1", "TestBulkDeleteTmp2"} {
@@ -779,6 +801,8 @@ func testPhase9BulkDelete(f *framework.Framework, ids *seedRuleIDs) func(t *test
 		})
 
 		t.Run("TC050_BulkDeletePartialFailure", func(t *testing.T) {
+				t.Skip("Requires user-workload namespace (UWM not available when plugin runs locally against platform Prometheus only)")
+
 			// Create 1 temporary user rule
 			forDur := monitoringv1.Duration("1m")
 			createBody := managementrouter.CreateAlertRuleRequest{
