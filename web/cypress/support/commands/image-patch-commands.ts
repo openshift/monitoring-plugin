@@ -1,6 +1,6 @@
 import { waitForPodsReady, waitForPodsReadyOrAbsent } from './wait-utils';
 
-export { };
+export {};
 
 const readyTimeoutMilliseconds = Cypress.config('readyTimeoutMilliseconds') as number;
 
@@ -8,23 +8,24 @@ export const imagePatchUtils = {
   setupMonitoringPluginImage(MP: { namespace: string }): void {
     cy.log('Set Monitoring Plugin image in operator CSV');
     if (Cypress.env('MP_IMAGE')) {
-      cy.exec(
-        './cypress/fixtures/cmo/update-monitoring-plugin-image.sh',
-        {
-          env: {
-            MP_IMAGE: Cypress.env('MP_IMAGE'),
-            KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
-            MP_NAMESPACE: `${MP.namespace}`,
-          },
-          timeout: readyTimeoutMilliseconds,
-          failOnNonZeroExit: true,
+      cy.exec('./cypress/fixtures/cmo/update-monitoring-plugin-image.sh', {
+        env: {
+          MP_IMAGE: Cypress.env('MP_IMAGE'),
+          KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
+          MP_NAMESPACE: `${MP.namespace}`,
         },
-      ).then((result) => {
+        timeout: readyTimeoutMilliseconds,
+        failOnNonZeroExit: true,
+      }).then((result) => {
         expect(result.code).to.eq(0);
         cy.log(`CMO deployment Scaled Down successfully: ${result.stdout}`);
       });
 
-      waitForPodsReady('app.kubernetes.io/name=monitoring-plugin', MP.namespace, readyTimeoutMilliseconds);
+      waitForPodsReady(
+        'app.kubernetes.io/name=monitoring-plugin',
+        MP.namespace,
+        readyTimeoutMilliseconds,
+      );
       cy.log(`Monitoring plugin pod is now running in namespace: ${MP.namespace}`);
       cy.reload(true);
     } else {
@@ -85,22 +86,23 @@ export const imagePatchUtils = {
   revertMonitoringPluginImage(MP: { namespace: string }): void {
     if (Cypress.env('MP_IMAGE')) {
       cy.log('MP_IMAGE is set. Lets revert CMO operator CSV');
-      cy.exec(
-        './cypress/fixtures/cmo/reenable-monitoring.sh',
-        {
-          env: {
-            MP_IMAGE: Cypress.env('MP_IMAGE'),
-            KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
-            MP_NAMESPACE: `${MP.namespace}`,
-          },
-          timeout: readyTimeoutMilliseconds,
-          failOnNonZeroExit: true,
+      cy.exec('./cypress/fixtures/cmo/reenable-monitoring.sh', {
+        env: {
+          MP_IMAGE: Cypress.env('MP_IMAGE'),
+          KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
+          MP_NAMESPACE: `${MP.namespace}`,
         },
-      ).then((result) => {
+        timeout: readyTimeoutMilliseconds,
+        failOnNonZeroExit: true,
+      }).then((result) => {
         expect(result.code).to.eq(0);
         cy.log(`CMO CSV reverted successfully with Monitoring Plugin image: ${result.stdout}`);
 
-        waitForPodsReadyOrAbsent('app.kubernetes.io/name=monitoring-plugin', MP.namespace, readyTimeoutMilliseconds);
+        waitForPodsReadyOrAbsent(
+          'app.kubernetes.io/name=monitoring-plugin',
+          MP.namespace,
+          readyTimeoutMilliseconds,
+        );
         cy.log(`Monitoring plugin pods verified in namespace: ${MP.namespace}`);
 
         cy.reload(true);

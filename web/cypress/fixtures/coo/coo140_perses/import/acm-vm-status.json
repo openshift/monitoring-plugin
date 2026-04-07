@@ -521,10 +521,10 @@
       "schemaVersion": 30,
       "style": "dark",
       "tags": [
-        "ACM",
-        "KubeVirt",
-        "OpenShift",
-        "Virtualization"
+        "acm",
+        "kubevirt",
+        "openshift",
+        "virtualization"
       ],
       "templating": {
         "list": [

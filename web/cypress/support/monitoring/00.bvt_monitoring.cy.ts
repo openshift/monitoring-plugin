@@ -6,7 +6,12 @@ import { nav } from '../../views/nav';
 import { silenceDetailsPage } from '../../views/silence-details-page';
 import { silencesListPage } from '../../views/silences-list-page';
 import { getValFromElement } from '../../views/utils';
-import { AlertsAlertState, SilenceComment, SilenceState, WatchdogAlert } from '../../fixtures/monitoring/constants';
+import {
+  AlertsAlertState,
+  SilenceComment,
+  SilenceState,
+  WatchdogAlert,
+} from '../../fixtures/monitoring/constants';
 import { alertingRuleListPage } from '../../views/alerting-rule-list-page';
 
 export interface PerspectiveConfig {
@@ -19,65 +24,81 @@ export function runBVTMonitoringTests(perspective: PerspectiveConfig) {
 }
 
 export function testBVTMonitoring(perspective: PerspectiveConfig) {
+  it(
+    `${perspective.name} perspective - ` +
+      'Alerting > Alerting Details page > Alerting Rule > Metrics',
+    () => {
+      cy.log('5.1. use sidebar nav to go to Observe > Alerting');
+      commonPages.titleShouldHaveText('Alerting');
+      listPage.tabShouldHaveText('Alerts');
+      listPage.tabShouldHaveText('Silences');
+      listPage.tabShouldHaveText('Alerting rules');
+      commonPages.linkShouldExist('Export as CSV');
+      commonPages.linkShouldExist('Clear all filters');
+      listPage.ARRows.shouldBeLoaded();
 
-  it(`${perspective.name} perspective - Alerting > Alerting Details page > Alerting Rule > Metrics`, () => {
-    cy.log('5.1. use sidebar nav to go to Observe > Alerting');
-    commonPages.titleShouldHaveText('Alerting');
-    listPage.tabShouldHaveText('Alerts');
-    listPage.tabShouldHaveText('Silences');
-    listPage.tabShouldHaveText('Alerting rules');
-    commonPages.linkShouldExist('Export as CSV');
-    commonPages.linkShouldExist('Clear all filters');
-    listPage.ARRows.shouldBeLoaded();
+      cy.log('5.2. filter Alerts and click on Alert');
+      listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
+      listPage.ARRows.countShouldBe(1);
+      listPage.ARRows.ARShouldBe(
+        `${WatchdogAlert.ALERTNAME}`,
+        `${WatchdogAlert.SEVERITY}`,
+        1,
+        'Firing',
+      );
+      listPage.ARRows.expandRow();
+      listPage.ARRows.AShouldBe(
+        `${WatchdogAlert.ALERTNAME}`,
+        `${WatchdogAlert.SEVERITY}`,
+        `${WatchdogAlert.NAMESPACE}`,
+      );
+      listPage.ARRows.clickAlert();
 
-    cy.log('5.2. filter Alerts and click on Alert');
-    listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
-    listPage.ARRows.countShouldBe(1);
-    listPage.ARRows.ARShouldBe(`${WatchdogAlert.ALERTNAME}`, `${WatchdogAlert.SEVERITY}`, 1, 'Firing');
-    listPage.ARRows.expandRow();
-    listPage.ARRows.AShouldBe(`${WatchdogAlert.ALERTNAME}`, `${WatchdogAlert.SEVERITY}`, `${WatchdogAlert.NAMESPACE}`);
-    listPage.ARRows.clickAlert();
+      cy.log('5.3. click on Alert Details Page');
+      commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
+      commonPages.detailsPage.common(`${WatchdogAlert.ALERTNAME}`);
+      commonPages.detailsPage.alert(`${WatchdogAlert.ALERTNAME}`);
 
-    cy.log('5.3. click on Alert Details Page');
-    commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
-    commonPages.detailsPage.common(`${WatchdogAlert.ALERTNAME}`, `${WatchdogAlert.SEVERITY}`);
-    commonPages.detailsPage.alert(`${WatchdogAlert.ALERTNAME}`);
+      const timeIntervalValue = getValFromElement(
+        `[data-ouia-component-id^="OUIA-Generated-TextInputBase"]`,
+      );
+      timeIntervalValue.then((value) => {
+        expect(value).to.be.a('string');
+        expect(String(value).trim()).not.to.equal('');
+      });
 
-    const timeIntervalValue = getValFromElement(`[data-ouia-component-id^="OUIA-Generated-TextInputBase"]`);
-    timeIntervalValue.then((value) => {
-      expect(value).to.not.be.empty;
-    });
+      cy.log('5.4. click on Alert Rule link');
+      detailsPage.clickAlertRule(`${WatchdogAlert.ALERTNAME}`);
+      commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
+      commonPages.detailsPage.alertRule();
+      commonPages.detailsPage.common(`${WatchdogAlert.ALERTNAME}`);
+      cy.get(`[class="pf-v6-c-code-block__content"]`)
+        .invoke('text')
+        .then((expText) => {
+          cy.log(`${expText}`);
+          cy.wrap(expText).as('alertExpression');
+        });
 
-    cy.log('5.4. click on Alert Rule link');
-    detailsPage.clickAlertRule(`${WatchdogAlert.ALERTNAME}`);
-    commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
-    commonPages.detailsPage.alertRule;
-    commonPages.detailsPage.common(`${WatchdogAlert.ALERTNAME}`, `${WatchdogAlert.SEVERITY}`);
-    cy.get(`[class="pf-v6-c-code-block__content"]`).invoke('text').then((expText) => {
-      cy.log(`${expText}`);
-      cy.wrap(expText).as('alertExpression');
-    });
+      cy.log('5.5. click on Alert Details Page');
+      detailsPage.clickAlertDesc(`${WatchdogAlert.ALERT_DESC}`);
+      commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
+      commonPages.detailsPage.common(`${WatchdogAlert.ALERTNAME}`);
+      commonPages.detailsPage.alert(`${WatchdogAlert.ALERTNAME}`);
 
+      cy.log('5.6. click on Inspect on Alert Details Page');
+      detailsPage.clickInspectAlertPage();
 
-    cy.log('5.5. click on Alert Details Page');
-    detailsPage.clickAlertDesc(`${WatchdogAlert.ALERT_DESC}`);
-    commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
-    commonPages.detailsPage.common(`${WatchdogAlert.ALERTNAME}`, `${WatchdogAlert.SEVERITY}`);
-    commonPages.detailsPage.alert(`${WatchdogAlert.ALERTNAME}`);
+      cy.log('5.7. Metrics page is loaded');
+      commonPages.titleShouldHaveText('Metrics');
 
-    cy.log('5.6. click on Inspect on Alert Details Page');
-    detailsPage.clickInspectAlertPage();
-
-    cy.log('5.7. Metrics page is loaded');
-    commonPages.titleShouldHaveText('Metrics');
-
-    cy.log('5.8. Assert Expression');
-    cy.get('[class="cm-line"]').should('be.visible');
-    cy.get(`@alertExpression`).then((expText) => {
-      cy.log(`${expText}`);
-      cy.get('[class="cm-line"]').invoke('text').should('equal', `${expText}`);
-    });
-  });
+      cy.log('5.8. Assert Expression');
+      cy.get('[class="cm-line"]').should('be.visible');
+      cy.get(`@alertExpression`).then((expText) => {
+        cy.log(`${expText}`);
+        cy.get('[class="cm-line"]').invoke('text').should('equal', `${expText}`);
+      });
+    },
+  );
 
   it(`${perspective.name} perspective - Creates and expires a Silence`, () => {
     cy.log('6.1 filter to Watchdog alert');
@@ -97,10 +118,26 @@ export function testBVTMonitoring(perspective: PerspectiveConfig) {
     silenceAlertPage.silenceAlertSectionDefault();
     silenceAlertPage.durationSectionDefault();
     silenceAlertPage.alertLabelsSectionDefault();
-    silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('alertname', `${WatchdogAlert.ALERTNAME}`, false, false);
-    // silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('severity', `${SEVERITY}`, false, false);
-    silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('namespace', `${WatchdogAlert.NAMESPACE}`, false, false);
-    silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher('prometheus', 'openshift-monitoring/k8s', false, false);
+    silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher(
+      'alertname',
+      `${WatchdogAlert.ALERTNAME}`,
+      false,
+      false,
+    );
+    // silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher(
+    //   'severity', `${SEVERITY}`, false, false);
+    silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher(
+      'namespace',
+      `${WatchdogAlert.NAMESPACE}`,
+      false,
+      false,
+    );
+    silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher(
+      'prometheus',
+      'openshift-monitoring/k8s',
+      false,
+      false,
+    );
 
     // Change duration
     silenceAlertPage.setForAndStartImmediately('1h', true);
@@ -119,7 +156,11 @@ export function testBVTMonitoring(perspective: PerspectiveConfig) {
 
     // After creating the Silence, should be redirected to its details page
     cy.log('6.4 Assert Silence details page');
-    silenceDetailsPage.assertSilenceDetailsPage(`${WatchdogAlert.ALERTNAME}`, 'Silence details', 'alertname=Watchdog');
+    silenceDetailsPage.assertSilenceDetailsPage(
+      `${WatchdogAlert.ALERTNAME}`,
+      'Silence details',
+      'alertname=Watchdog',
+    );
 
     cy.log('6.5 Click on Firing alerts');
     silenceDetailsPage.clickOnFiringAlerts(`${WatchdogAlert.ALERTNAME}`);
@@ -148,14 +189,24 @@ export function testBVTMonitoring(perspective: PerspectiveConfig) {
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     nav.tabs.switchTab('Alerting rules');
     listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
-    alertingRuleListPage.ARShouldBe(`${WatchdogAlert.ALERTNAME}`, `${WatchdogAlert.SEVERITY}`, 1, AlertsAlertState.SILENCED);
+    alertingRuleListPage.ARShouldBe(
+      `${WatchdogAlert.ALERTNAME}`,
+      `${WatchdogAlert.SEVERITY}`,
+      1,
+      AlertsAlertState.SILENCED,
+    );
 
     cy.log('6.9 verify on Alerts list page again');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     listPage.filter.clearAllFilters();
     listPage.filter.selectFilterOption(true, AlertsAlertState.SILENCED, true);
     listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
-    listPage.ARRows.ARShouldBe(`${WatchdogAlert.ALERTNAME}`, `${WatchdogAlert.SEVERITY}`, 1, AlertsAlertState.SILENCED);
+    listPage.ARRows.ARShouldBe(
+      `${WatchdogAlert.ALERTNAME}`,
+      `${WatchdogAlert.SEVERITY}`,
+      1,
+      AlertsAlertState.SILENCED,
+    );
 
     cy.log('6.10 expires the Silence');
     listPage.ARRows.expandRow();
@@ -163,12 +214,15 @@ export function testBVTMonitoring(perspective: PerspectiveConfig) {
     detailsPage.clickOnSilencedBy(`${WatchdogAlert.ALERTNAME}`);
     silenceDetailsPage.expireSilence(true, true);
 
-
     cy.log('6.11 verify on Alerts list page again');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     listPage.filter.clearAllFilters();
     listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
-    listPage.ARRows.ARShouldBe(`${WatchdogAlert.ALERTNAME}`, `${WatchdogAlert.SEVERITY}`, 1, AlertsAlertState.FIRING);
-
+    listPage.ARRows.ARShouldBe(
+      `${WatchdogAlert.ALERTNAME}`,
+      `${WatchdogAlert.SEVERITY}`,
+      1,
+      AlertsAlertState.FIRING,
+    );
   });
 }
