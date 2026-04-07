@@ -72,7 +72,7 @@ const QueryBrowserLink = ({
   }
 
   if (customDataSourceName) {
-    params.set('datasource', customDataSourceName);
+    params.set(QueryParams.Datasource, customDataSourceName);
   }
 
   return (

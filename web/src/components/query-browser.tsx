@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/refs */
 import {
   PrometheusEndpoint,
   PrometheusLabels,
@@ -45,7 +46,7 @@ import { ChartLineIcon } from '@patternfly/react-icons';
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
 import type { FC, Ref, ReactNode, KeyboardEvent, MouseEvent, ComponentType } from 'react';
-import { memo, useState, useEffect, useCallback, useLayoutEffect } from 'react';
+import { memo, useState, useEffect, useCallback, useLayoutEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -641,7 +642,7 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
   const [samples, setSamples] = useState(maxSamplesForSpan);
   const [updating, setUpdating] = useState(true);
   // Track if we ever received valid data to prevent flickering "No datapoints" during refresh
-  const [hasReceivedData, , setReceivedData] = useBoolean(false);
+  const hasReceivedData = useRef(false);
 
   useEffect(() => {
     onLoadingChange?.(updating);
@@ -818,7 +819,7 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
           onDataChange?.(newGraphData);
           // Mark that we've received valid data to prevent flickering during refresh
           if (newGraphData && newGraphData.some((d) => d.length > 0)) {
-            setReceivedData();
+            hasReceivedData.current = true;
           }
 
           setIsDisconnectedEnabled(dataIsDisconnected);
@@ -1026,7 +1027,7 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
             data-test={DataTestIDs.MetricGraph}
           >
             {error && <Error error={error} />}
-            {isGraphDataEmpty && !(hideControls && updating && hasReceivedData) ? (
+            {isGraphDataEmpty && !(hideControls && updating && hasReceivedData.current) ? (
               <GraphEmpty loading={updating} />
             ) : (
               <>

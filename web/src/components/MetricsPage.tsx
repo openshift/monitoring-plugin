@@ -1139,7 +1139,7 @@ const QueryBrowserWrapper: FC<{
     const newParams = new URLSearchParams(queryParams);
     queryStrings.forEach((query, i) => newParams.set(`query${i}`, query || ''));
     if (customDataSourceName) {
-      newParams.set('datasource', customDataSourceName);
+      newParams.set(QueryParams.Datasource, customDataSourceName);
     }
     setQueryParams(newParams);
   }, [queryStrings, customDataSourceName, isFirstRender, queryParams]);

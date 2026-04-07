@@ -3,6 +3,7 @@ import { KEYBOARD_SHORTCUTS } from './utils';
 import ProjectDropdown from './ProjectDropdown';
 import { getDashboardsListUrl, usePerspective } from '../../../hooks/usePerspective';
 import { useNavigate } from 'react-router';
+import { QueryParams } from '../../../query-params';
 
 export type ProjectBarProps = {
   activeProject: string | null;
@@ -18,7 +19,7 @@ export const ProjectBar: FC<ProjectBarProps> = ({ activeProject }) => {
         <ProjectDropdown
           onSelect={(event, newProject) => {
             const params = new URLSearchParams();
-            params.set('project', newProject);
+            params.set(QueryParams.Project, newProject);
             const url = `${getDashboardsListUrl(perspective)}?${params.toString()}`;
             navigate(url);
           }}
