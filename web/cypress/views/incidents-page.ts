@@ -1,6 +1,12 @@
 import { nav } from './nav';
 import { DataTestIDs } from '../../src/components/data-test';
 
+// Hard timeout safety net for findIncidentWithAlert retry loops.
+// Prevents infinite loops if cy.waitUntil's timeout mechanism fails
+// (e.g., due to cy.reload() interfering with the Cypress command queue).
+let _findIncidentSearchStart: number | null = null;
+const _FIND_INCIDENT_HARD_TIMEOUT_MS = 35 * 60 * 1000; // 35 minutes
+
 export const incidentsPage = {
   // Centralized element selectors - all selectors defined in one place
   elements: {
@@ -600,6 +606,10 @@ export const incidentsPage = {
     return incidentsPage.waitForTooltip();
   },
 
+  resetSearchTimeout: () => {
+    _findIncidentSearchStart = null;
+  },
+
   // Constants for search configuration
   SEARCH_CONFIG: {
     CHART_LOAD_WAIT: 1000,
@@ -807,19 +817,39 @@ export const incidentsPage = {
    * @returns Promise resolving to true if alert is found in any incident
    */
   findIncidentWithAlert: (alertName: string): Cypress.Chainable<boolean> => {
+    // Hard timeout safety net: if waitUntil's timeout fails to trigger
+    // (e.g., cy.reload() breaks the command queue), this prevents a 2h+ hang.
+    if (_findIncidentSearchStart === null) {
+      _findIncidentSearchStart = Date.now();
+    }
+    const elapsed = Date.now() - _findIncidentSearchStart;
+    if (elapsed > _FIND_INCIDENT_HARD_TIMEOUT_MS) {
+      _findIncidentSearchStart = null;
+      throw new Error(
+        `findIncidentWithAlert: hard timeout after ${Math.round(elapsed / 60000)} minutes searching for "${alertName}"`
+      );
+    }
+
     cy.log(`incidentsPage.findIncidentWithAlert: Starting search for alert "${alertName}"`);
 
     incidentsPage.prepareIncidentsPageForSearch();
 
-    return incidentsPage.elements.incidentsChartBarsVisiblePaths().then(($paths) => {
-      const totalPaths = $paths.length;
-      if (totalPaths === 0) {
-        cy.log('No visible incident bar paths found in chart');
-        return cy.wrap(false);
-      }
+    return incidentsPage.elements.incidentsChartBarsVisiblePaths()
+      .then(($paths) => {
+        const totalPaths = $paths.length;
+        if (totalPaths === 0) {
+          cy.log('No visible incident bar paths found in chart');
+          return cy.wrap(false);
+        }
 
-      return incidentsPage.traverseAllIncidentsBars(alertName, totalPaths);
-    });
+        return incidentsPage.traverseAllIncidentsBars(alertName, totalPaths);
+      })
+      .then((found: boolean) => {
+        if (found) {
+          _findIncidentSearchStart = null; // Reset on success
+        }
+        return found;
+      });
   },
 
   /**
