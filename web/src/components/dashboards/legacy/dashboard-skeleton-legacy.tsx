@@ -29,7 +29,7 @@ const HeaderTop: FC = memo(() => {
 
 type MonitoringDashboardsLegacyPageProps = PropsWithChildren<{
   boardItems: CombinedDashboardMetadata[];
-  changeBoard: (dashboardName: string) => void;
+  changeBoard: (params: { newBoard?: string; initialLoad?: boolean; newProject?: string }) => void;
   dashboardName: string;
 }>;
 
@@ -39,7 +39,7 @@ export const DashboardSkeletonLegacy: FC<MonitoringDashboardsLegacyPageProps> = 
 
     const onChangeBoard = useCallback(
       (selectedDashboard: string) => {
-        changeBoard(selectedDashboard);
+        changeBoard({ newBoard: selectedDashboard });
       },
       [changeBoard],
     );

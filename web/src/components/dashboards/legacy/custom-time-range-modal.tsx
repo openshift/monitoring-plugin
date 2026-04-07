@@ -21,7 +21,7 @@ import { useDispatch } from 'react-redux';
 import { dashboardsSetEndTime, dashboardsSetTimespan } from '../../../store/actions';
 
 import { QueryParams } from '../../query-params';
-import { useSearchParams } from 'react-router';
+import { StringParam, useQueryParam } from 'use-query-params';
 
 const zeroPad = (number: number) => (number < 10 ? `0${number}` : number);
 
@@ -49,7 +49,8 @@ const CustomTimeRangeModal: FC<CustomTimeRangeModalProps> = ({
   endTime,
 }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const [, setQueryParams] = useSearchParams();
+  const [, setEndTimeParam] = useQueryParam(QueryParams.EndTime, StringParam);
+  const [, setTimeRangeParam] = useQueryParam(QueryParams.TimeRange, StringParam);
 
   const dispatch = useDispatch();
 
@@ -68,10 +69,8 @@ const CustomTimeRangeModal: FC<CustomTimeRangeModalProps> = ({
     if (_.isInteger(from) && _.isInteger(to)) {
       dispatch(dashboardsSetEndTime(to));
       dispatch(dashboardsSetTimespan(to - from));
-      setQueryParams([
-        [QueryParams.EndTime, to.toString()],
-        [QueryParams.TimeRange, (to - from).toString()],
-      ]);
+      setEndTimeParam(to.toString());
+      setTimeRangeParam((to - from).toString());
       setClosed();
     }
   };

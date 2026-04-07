@@ -1,5 +1,5 @@
 import { useActiveNamespace } from '@openshift-console/dynamic-plugin-sdk';
-import { useCallback, useEffect } from 'react';
+import { useEffect } from 'react';
 import { QueryParams } from '../../query-params';
 import { StringParam, useQueryParam } from 'use-query-params';
 import { useDispatch, useSelector } from 'react-redux';
@@ -53,19 +53,7 @@ export const useOpenshiftProject = () => {
     routeNamespace,
   ]);
 
-  const setProject = useCallback(
-    (namespace: string) => {
-      if (perspective === 'dev') {
-        setActiveNamespace(namespace);
-      } else {
-        setOpenshiftProject(namespace);
-      }
-    },
-    [setActiveNamespace, setOpenshiftProject, perspective],
-  );
-
   return {
     project: perspective === 'dev' ? routeNamespace || activeNamespace : openshiftProject,
-    setProject,
   };
 };

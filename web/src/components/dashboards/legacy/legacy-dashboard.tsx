@@ -21,7 +21,7 @@ import type { FC } from 'react';
 import { memo, useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
-import { Link, useSearchParams } from 'react-router';
+import { Link } from 'react-router';
 
 import { Perspective } from '../../../store/actions';
 import BarChart from '../legacy/bar-chart';
@@ -50,6 +50,7 @@ import { t_global_font_size_heading_h2 } from '@patternfly/react-tokens';
 import { GraphUnits } from '../../../components/metrics/units';
 import { LegacyDashboardPageTestIDs } from '../../../components/data-test';
 import { useMonitoring } from '../../../hooks/useMonitoring';
+import { StringParam, useQueryParam } from 'use-query-params';
 
 const QueryBrowserLink = ({
   queries,
@@ -124,8 +125,9 @@ const Card: FC<CardProps> = memo(({ panel, perspective }) => {
   const [isChartLoading, setIsChartLoading] = useState<boolean>(panel.type === 'graph');
   const customDataSourceName = panel.datasource?.name;
   const [extensions, extensionsResolved] = useResolvedExtensions<DataSource>(isDataSource);
+  const [, setEndTimeParam] = useQueryParam(QueryParams.EndTime, StringParam);
+  const [, setTimeRangeParam] = useQueryParam(QueryParams.TimeRange, StringParam);
   const hasExtensions = !_.isEmpty(extensions);
-  const [, setQueryParams] = useSearchParams();
 
   const formatSeriesTitle = useCallback(
     (labels, i) => {
@@ -249,10 +251,8 @@ const Card: FC<CardProps> = memo(({ panel, perspective }) => {
   }, [extensions, extensionsResolved, customDataSourceName, hasExtensions]);
 
   const handleZoom = (timeRange: number, endTime: number) => {
-    setQueryParams([
-      [QueryParams.EndTime, endTime.toString()],
-      [QueryParams.TimeRange, timeRange.toString()],
-    ]);
+    setEndTimeParam(endTime.toString());
+    setTimeRangeParam(timeRange.toString());
   };
 
   const panelBreakpoints = useMemo(() => {
