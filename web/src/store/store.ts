@@ -69,6 +69,8 @@ export const defaultObserveState: ObserveState = {
     endTime: null,
     pollInterval: 30 * 1000,
     timespan: MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
+    isOpened: false,
+    addPersesPanelExternally: null,
     variables: {},
   },
   queryBrowser: {
