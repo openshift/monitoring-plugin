@@ -7,7 +7,7 @@ import { OlsToolUIPersesWrapper } from './helpers/OlsToolUIPersesWrapper';
 import { AddToDashboardButton } from './helpers/AddToDashboardButton';
 import { useTimeRange } from './helpers/useTimeRange';
 
-type ExecuteRangeQueryTool = {
+type ShowTimeseriesTool = {
   args: {
     title: string;
     description: string;
@@ -18,7 +18,7 @@ type ExecuteRangeQueryTool = {
   };
 };
 
-export const ShowTimeseries: React.FC<{ tool: ExecuteRangeQueryTool }> = ({ tool }) => {
+export const ShowTimeseries: React.FC<{ tool: ShowTimeseriesTool }> = ({ tool }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { query, title, description, start, end, duration } = tool.args;
   const timeRange = useTimeRange(start, end, duration);

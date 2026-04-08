@@ -400,7 +400,12 @@ export function PersesWrapper({ children, project }: PersesWrapperProps) {
   );
 }
 
-function InnerWrapper({ children, project }) {
+interface InnerWrapperProps {
+  children?: React.ReactNode;
+  project: string;
+}
+
+function InnerWrapper({ children, project }: InnerWrapperProps) {
   const [dashboardName] = useQueryParam(QueryParams.Dashboard, StringParam);
   const { data } = usePluginBuiltinVariableDefinitions();
   const { persesDashboard, persesDashboardLoading } = useFetchPersesDashboard(

@@ -60,15 +60,13 @@ export const AddToDashboardButton: React.FC<AddToDashboardButtonProps> = ({
 }) => {
   const dispatch = useDispatch();
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const isCustomDashboardOpen: boolean = useSelector(
-    (s: any) => s.plugins?.mcp?.dashboards?.isOpened,
-  );
+  const isDashboardOpen: boolean = useSelector((s: any) => s.plugins?.mcp?.dashboards?.isOpened);
   const addToPersesDashboard = React.useCallback(() => {
     const panelDefinition = createPanelDefinition(query, name, description);
     dispatch(dashboardsAddPersesPanelExternally(panelDefinition));
   }, [query, name, description, dispatch]);
 
-  if (!isCustomDashboardOpen) {
+  if (!isDashboardOpen) {
     // No dashboard is opened - nothing to add to.
     return null;
   }

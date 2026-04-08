@@ -224,6 +224,9 @@ type Actions = {
   dashboardsSetPollInterval: typeof dashboardsSetPollInterval;
   dashboardsSetTimespan: typeof dashboardsSetTimespan;
   dashboardsVariableOptionsLoaded: typeof dashboardsVariableOptionsLoaded;
+  dashboardsOpened: typeof dashboardsOpened;
+  dashboardsPersesPanelExternallyAdded: typeof dashboardsPersesPanelExternallyAdded;
+  dashboardsAddPersesPanelExternally: typeof dashboardsAddPersesPanelExternally;
   queryBrowserAddQuery: typeof queryBrowserAddQuery;
   queryBrowserDuplicateQuery: typeof queryBrowserDuplicateQuery;
   queryBrowserDeleteAllQueries: typeof queryBrowserDeleteAllQueries;

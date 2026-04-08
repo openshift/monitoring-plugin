@@ -29,7 +29,7 @@ import { useUpdateDashboardMutation } from './dashboard-api';
 import { useTranslation } from 'react-i18next';
 import { useToast } from './ToastProvider';
 import { useSearchParams } from 'react-router';
-import { useExternalPanelAddition } from './useExternalPanelAddition';
+import { setupExternalPanelAddition } from './setupExternalPanelAddition';
 
 export interface DashboardAppProps {
   dashboardResource: DashboardResource | EphemeralDashboardResource;
@@ -125,7 +125,9 @@ export const OCPDashboardApp = (props: DashboardAppProps): ReactElement => {
     }
   };
 
-  useExternalPanelAddition({ isEditMode, onEditButtonClick });
+  // Register hooks related to exposing adding panels from external intergrations.
+  // See components/ols-tool-ui/helpers/AddToDashboardButton.tsx for example use.
+  setupExternalPanelAddition({ isEditMode, onEditButtonClick });
 
   const updateDashboardMutation = useUpdateDashboardMutation();
 

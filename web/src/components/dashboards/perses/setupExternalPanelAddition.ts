@@ -3,15 +3,15 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useDashboardActions, useDashboardStore } from '@perses-dev/dashboards';
 import { dashboardsOpened, dashboardsPersesPanelExternallyAdded } from '../../../store/actions';
 
-interface UseExternalPanelAdditionOptions {
+interface SetupExternalPanelAdditionOptions {
   isEditMode: boolean;
   onEditButtonClick: () => void;
 }
 
-export function useExternalPanelAddition({
+export function setupExternalPanelAddition({
   isEditMode,
   onEditButtonClick,
-}: UseExternalPanelAdditionOptions) {
+}: SetupExternalPanelAdditionOptions) {
   const dispatch = useDispatch();
   const addPersesPanelExternally: any = useSelector(
     (s: any) => s.plugins?.mcp?.dashboards?.addPersesPanelExternally,
@@ -67,7 +67,7 @@ export function useExternalPanelAddition({
     addPersesPanelExternally,
   ]);
 
-  // Advertise when custom dashboard is opened/closed
+  // Advertise when a dashboard is opened/closed
   useEffect(() => {
     dispatch(dashboardsOpened(true));
     return () => {

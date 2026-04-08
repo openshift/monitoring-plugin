@@ -29,7 +29,7 @@ export type ObserveState = {
     timespan: number;
     variables: Record<string, Variable>;
     isOpened: boolean;
-    addPersesPanelExternally: PanelDefinition;
+    addPersesPanelExternally: PanelDefinition | null;
   };
   incidentsData: {
     incidents: Array<any>;
