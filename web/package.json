@@ -13,6 +13,7 @@
     "cypress:run": "cypress run",
     "cypress:run:component": "cypress run --component",
     "cypress:run:ci": "NO_COLOR=1 npx cypress run --browser chrome",
+    "cypress:run:ci:component": "NO_COLOR=1 npx cypress run --browser chrome --component",
     "delete:reports": "rm -rf gui_test_screenshots/* || true",
     "i18n": "i18n-scripts/build-i18n.sh && node i18n-scripts/set-english-defaults.js",
     "i18n-to-po": "node ./i18n-scripts/i18n-to-po.js",
