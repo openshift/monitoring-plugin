@@ -44,8 +44,7 @@
     "test-cypress-fast": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@smoke --@slow --@demo --@flaky --@xfail'",
     "test-cypress-perses-dev": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@perses-dev --@demo --@xfail'",
     "test-cypress-perses": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@perses --@smoke --@flaky --@demo --@xfail'",
-    "ts-node": "ts-node -O '{\"module\":\"commonjs\"}'",
-    "postinstall": "node ./node_modules/.bin/patch-package"
+    "ts-node": "ts-node -O '{\"module\":\"commonjs\"}'"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.0.4",
@@ -116,7 +115,7 @@
     "@types/node": "^22.19.15",
     "@types/react": "^18.3.1",
     "@typescript-eslint/eslint-plugin": "^8.57.2",
-    "@typescript-eslint/parser": "^8.57.2",
+    "@typescript-eslint/parser": "^8.58.1",
     "copy-webpack-plugin": "^14.0.0",
     "css-loader": "^6.7.1",
     "cypress": "^14.2.1",

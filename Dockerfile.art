@@ -10,7 +10,7 @@ USER 0
 # use dependencies provided by Cachito
 ENV HUSKY=0
 ENV CYPRESS_INSTALL_BINARY=0
-RUN make install-frontend-ci && make patch-frontend && make build-frontend
+RUN make install-frontend-ci && make build-frontend
 
 FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.25-openshift-4.22 AS go-builder
 

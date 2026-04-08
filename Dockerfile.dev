@@ -7,10 +7,8 @@ USER 0
 ENV HUSKY=0
 
 COPY web/package.json web/package-lock.json web/
-COPY web/patches/@openshift-console+dynamic-plugin-sdk+4.22.0-prerelease.2.patch  web/patches/
 COPY Makefile Makefile
 RUN make install-frontend-ci
-RUN make patch-frontend
 
 COPY web/ web/
 RUN make build-frontend
