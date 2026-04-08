@@ -13,7 +13,7 @@
 
 import { DatasourceResource } from '@perses-dev/core';
 import buildURL from './url-builder';
-import { ocpPersesFetchJson } from '../perses-client';
+import { consoleFetchJSON } from '@openshift-console/dynamic-plugin-sdk';
 
 export const resource = 'datasources';
 
@@ -40,11 +40,11 @@ export function fetchDatasourceList(
   kind?: string,
   defaultDatasource?: boolean,
   name?: string,
-) {
+): Promise<DatasourceResource[]> {
   const url = buildURL({
     resource: resource,
     project: project,
     queryParams: buildDatasourceQueryParameters(kind, defaultDatasource, name),
   });
-  return ocpPersesFetchJson<DatasourceResource[]>(url);
+  return consoleFetchJSON(url);
 }

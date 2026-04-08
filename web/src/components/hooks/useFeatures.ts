@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { proxiedFetch } from '../proxied-fetch';
+import { consoleFetchJSON } from '@openshift-console/dynamic-plugin-sdk';
 
 type features = {
   'acm-alerting': boolean;
@@ -7,7 +7,7 @@ type features = {
   incidents: boolean;
 };
 
-type featuresResponse = {
+type FeaturesResponse = {
   'acm-alerting'?: boolean;
   'perses-dashboards'?: boolean;
   incidents?: boolean;
@@ -32,7 +32,7 @@ export const useFeatures = () => {
         dashboardsAbort.current();
       }
 
-      const response = await proxiedFetch<featuresResponse>(featuresEndpoint);
+      const response: FeaturesResponse = await consoleFetchJSON(featuresEndpoint);
       setFeatures({ ...noFeatures, ...response });
     } catch {
       setFeatures(noFeatures);
