@@ -1,17 +1,20 @@
-import { useEffect, useState, useCallback } from 'react';
+import { ReactElement, useEffect, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useDashboardActions, useDashboardStore } from '@perses-dev/dashboards';
 import { dashboardsOpened, dashboardsPersesPanelExternallyAdded } from '../../../store/actions';
 
-interface SetupExternalPanelAdditionOptions {
+interface ExternalPanelAdditionProps {
   isEditMode: boolean;
   onEditButtonClick: () => void;
 }
 
-export function setupExternalPanelAddition({
+// Effect-only component that registers hooks related to exposing adding panels
+// from external intergrations.
+// See components/ols-tool-ui/helpers/AddToDashboardButton.tsx for example use.
+export function ExternalPanelAddition({
   isEditMode,
   onEditButtonClick,
-}: SetupExternalPanelAdditionOptions) {
+}: ExternalPanelAdditionProps): ReactElement | null {
   const dispatch = useDispatch();
   const addPersesPanelExternally: any = useSelector(
     (s: any) => s.plugins?.mcp?.dashboards?.addPersesPanelExternally,
@@ -74,4 +77,6 @@ export function setupExternalPanelAddition({
       dispatch(dashboardsOpened(false));
     };
   }, [dispatch]);
+
+  return null;
 }

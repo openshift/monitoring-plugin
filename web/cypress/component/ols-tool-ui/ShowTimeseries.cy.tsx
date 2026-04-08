@@ -98,12 +98,18 @@ describe('ShowTimeseries', () => {
           if (expected.startISO) {
             expect(timeRange.start).to.eq(expected.startISO);
           } else {
-            expect(new Date(timeRange.start).getTime()).to.be.closeTo(now - expected.startOffsetMs, 5000);
+            expect(new Date(timeRange.start).getTime()).to.be.closeTo(
+              now - expected.startOffsetMs,
+              5000,
+            );
           }
           if (expected.endISO) {
             expect(timeRange.end).to.eq(expected.endISO);
           } else {
-            expect(new Date(timeRange.end).getTime()).to.be.closeTo(now - expected.endOffsetMs, 5000);
+            expect(new Date(timeRange.end).getTime()).to.be.closeTo(
+              now - expected.endOffsetMs,
+              5000,
+            );
           }
         });
     });
@@ -111,7 +117,6 @@ describe('ShowTimeseries', () => {
 
   it('timezone support: defaults to UTC when not specified', () => {
     cy.mount(<ShowTimeseries tool={tool} />);
-    cy.get('[data-testid="perses-wrapper"]')
-      .should('have.attr', 'data-timezone', 'UTC');
+    cy.get('[data-testid="perses-wrapper"]').should('have.attr', 'data-timezone', 'UTC');
   });
 });
