@@ -1136,7 +1136,7 @@ const QueryBrowserWrapper: FC<{
     if (isFirstRender) {
       return;
     }
-    const newParams = new URLSearchParams(queryParams);
+    const newParams = new URLSearchParams(removeQueryKeys(queryParams));
     queryStrings.forEach((query, i) => newParams.set(`query${i}`, query || ''));
     if (customDataSourceName) {
       newParams.set(QueryParams.Datasource, customDataSourceName);
@@ -1213,6 +1213,16 @@ const QueryBrowserWrapper: FC<{
       showDisconnectedControl
     />
   );
+};
+
+const removeQueryKeys = (searchParams: URLSearchParams): URLSearchParams => {
+  const newParams = new URLSearchParams(searchParams);
+  for (const key of searchParams.keys()) {
+    if (key.startsWith('query')) {
+      newParams.delete(key);
+    }
+  }
+  return newParams;
 };
 
 const AddQueryButton: FC = () => {
