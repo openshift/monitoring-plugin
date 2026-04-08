@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-use-before-define */
 import Loggable = Cypress.Loggable;
 import Timeoutable = Cypress.Timeoutable;
 import Withinable = Cypress.Withinable;

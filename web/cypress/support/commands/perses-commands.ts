@@ -43,7 +43,7 @@ declare global {
 Cypress.Commands.add('setupPersesRBACandExtraDashboards', () => {
   if (
     `${Cypress.env('LOGIN_USERNAME1')}` !== 'kubeadmin' &&
-    `${Cypress.env('LOGIN_USERNAME2')}` !== undefined
+    Cypress.env('LOGIN_USERNAME2') !== undefined
   ) {
     cy.exec('./cypress/fixtures/coo/coo140_perses/rbac/rbac_perses_e2e_ci_users.sh', {
       env: {

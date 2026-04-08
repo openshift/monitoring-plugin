@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-use-before-define */
 import 'cypress-wait-until';
 import { operatorAuthUtils } from './auth-commands';
 import { cooInstallUtils } from './coo-install-commands';
