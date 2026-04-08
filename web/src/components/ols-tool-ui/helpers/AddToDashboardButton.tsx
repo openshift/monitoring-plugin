@@ -61,7 +61,7 @@ export const AddToDashboardButton: React.FC<AddToDashboardButtonProps> = ({
   const dispatch = useDispatch();
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const isCustomDashboardOpen: boolean = useSelector(
-    (s: any) => s.plugins?.mp?.dashboards?.isOpened,
+    (s: any) => s.plugins?.mcp?.dashboards?.isOpened,
   );
   const addToPersesDashboard = React.useCallback(() => {
     const panelDefinition = createPanelDefinition(query, name, description);

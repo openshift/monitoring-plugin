@@ -14,7 +14,7 @@ export function useExternalPanelAddition({
 }: UseExternalPanelAdditionOptions) {
   const dispatch = useDispatch();
   const addPersesPanelExternally: any = useSelector(
-    (s: any) => s.plugins?.mp?.dashboards?.addPersesPanelExternally,
+    (s: any) => s.plugins?.mcp?.dashboards?.addPersesPanelExternally,
   );
   const { openAddPanel } = useDashboardActions();
   const dashboardStore = useDashboardStore();
