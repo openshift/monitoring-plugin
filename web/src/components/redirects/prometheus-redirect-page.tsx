@@ -11,7 +11,13 @@ const PrometheusRouterRedirect: FC = () => {
 
   const params = getAllQueryArguments();
   // leaving perspective redirect to future work
-  return <Navigate to={`/${urlRoot}/query-browser?query0=${params['g0.expr'] || ''}`} />;
+  return (
+    <Navigate
+      to={`/${urlRoot}/query-browser?query0=${
+        params['g0.expr'] ? encodeURIComponent(params['g0.expr']) : ''
+      }`}
+    />
+  );
 };
 
 export default PrometheusRouterRedirect;
