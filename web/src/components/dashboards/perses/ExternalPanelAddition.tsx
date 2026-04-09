@@ -21,9 +21,11 @@ export function ExternalPanelAddition({
   );
   const { openAddPanel } = useDashboardActions();
   const dashboardStore = useDashboardStore();
-  const [externallyAddedPanel, setExternallyAddedPanel] = useState(null);
+  const [queuedPanel, setQueuedPanel] = useState(null);
 
-  const addPanelExternally = useCallback(
+  // Turn the dashboard into editable mode and added it to `queuedPanel`.
+  // The `queuedPanel` will be added in the next refresh cycle.
+  const queuePanelAddition = useCallback(
     (panelDefinition: any): void => {
       // Simulate opening a panel to add the pane so that we can use it to programatically
       // add a panel to the dashboard from an external source (AI assistant).
@@ -36,37 +38,42 @@ export function ExternalPanelAddition({
         groupId: 0,
         panelDefinition,
       };
-      setExternallyAddedPanel(change);
+      setQueuedPanel(change);
     },
     [isEditMode, onEditButtonClick, openAddPanel],
   );
 
   useEffect(() => {
     // Listen for external panel addition requests
-    if (addPersesPanelExternally) {
-      addPanelExternally(addPersesPanelExternally);
-      dispatch(dashboardsPersesPanelExternallyAdded());
+    if (addPersesPanelExternally && !queuedPanel) {
+      queuePanelAddition(addPersesPanelExternally);
     }
 
     // Apply externally added panel
-    if (externallyAddedPanel) {
-      const groupId = dashboardStore.panelGroupOrder[0];
-      externallyAddedPanel.groupId = groupId;
+    if (queuedPanel) {
+      try {
+        const groupId = dashboardStore.panelGroupOrder[0];
+        queuedPanel.groupId = groupId;
 
-      // Use the temporary panelEditor to add changes to the dashboard.
-      const panelEditor = dashboardStore.panelEditor;
-      panelEditor.applyChanges(externallyAddedPanel);
-      panelEditor.close();
-
-      // Clear the externally added panel after applying changes
-      setExternallyAddedPanel(null);
+        // Use the temporary panelEditor to add changes to the dashboard.
+        const panelEditor = dashboardStore.panelEditor;
+        panelEditor.applyChanges(queuedPanel);
+        panelEditor.close();
+      } finally {
+        // Clear the externally added panel after applying changes.
+        // We assume only one panel is being added in one cycle: no need to complicate
+        // with multiple panels in the queue.
+        // We make sure we clean up even on error to avoid endless loops.
+        setQueuedPanel(null);
+        dispatch(dashboardsPersesPanelExternallyAdded());
+      }
     }
   }, [
     dispatch,
     dashboardStore.panelGroupOrder,
     dashboardStore.panelEditor,
-    externallyAddedPanel,
-    addPanelExternally,
+    queuePanelAddition,
+    queuedPanel,
     addPersesPanelExternally,
   ]);
 
