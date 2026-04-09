@@ -19,6 +19,7 @@ export const DataTestIDs = {
   ExpireSilenceButton: 'expire-silence-button',
   ExpireXSilencesButton: 'expire-x-silences-button',
   Expression: 'expression',
+  FavoriteStarButton: 'favorite-button',
   KebabDropdownButton: 'kebab-dropdown-button',
   MastHeadHelpIcon: 'help-dropdown-toggle',
   MastHeadApplicationItem: 'application-launcher-item',
@@ -175,6 +176,8 @@ export const LegacyTestIDs = {
 export const IDs = {
   ChartAxis0ChartLabel: 'chart-axis-0-ChartLabel', //id^=IDs.ChartAxis0ChartLabel AxisX
   ChartAxis1ChartLabel: 'chart-axis-1-ChartLabel', //id^=IDs.ChartAxis1ChartLabel AxisY
+  persesDashboardCount: 'options-menu-top-pagination',
+  persesDashboardDownloadButton: 'download-dashboard-button',
 };
 
 export const Classes = {
@@ -202,6 +205,7 @@ export const Classes = {
   MetricsPageQueryAutocomplete: '.cm-tooltip-autocomplete.cm-tooltip.cm-tooltip-below',
   MoreLessTag: '.pf-v6-c-label-group__label, .pf-v5-c-chip-group__label',
   NamespaceDropdown: '.pf-v6-c-menu-toggle.co-namespace-dropdown__menu-toggle',
+  PersesListDashboardCount: '.pf-v6-c-menu-toggle__text',
   SectionHeader: '.pf-v6-c-title.pf-m-h2, .co-section-heading',
   TableHeaderColumn: '.pf-v6-c-table__button, .pf-c-table__button',
   SilenceAlertTitle: '.pf-v6-c-alert__title, .pf-v5-c-alert__title',
@@ -221,10 +225,38 @@ export const persesAriaLabels = {
   RefreshIntervalDropdown: 'Select refresh interval. Currently set to 0s',
   ZoomInButton: 'Zoom in',
   ZoomOutButton: 'Zoom out',
+  ViewJSONButton: 'View JSON',
 };
 
-export const persesDataTestIDs = {
+//data-testid from MUI components
+export const persesMUIDataTestIDs = {
   variableDropdown: 'variable',
   panelGroupHeader: 'panel-group-header',
   panelHeader: 'panel',
+};
+
+export const persesDashboardDataTestIDs = {
+  editDashboardButtonToolbar: 'edit-dashboard-button-toolbar',
+  cancelButtonToolbar: 'cancel-button-toolbar',
+};
+
+export const listPersesDashboardsDataTestIDs = {
+  PersesBreadcrumbDashboardItem: 'perses-dashboards-breadcrumb-dashboard-item',
+  PersesBreadcrumbDashboardNameItem: 'perses-dashboards-breadcrumb-dashboard-name-item',
+  NameFilter: 'name-filter',
+  ProjectFilter: 'project-filter',
+  EmptyStateTitle: 'empty-state-title',
+  EmptyStateBody: 'empty-state-body',
+  ClearAllFiltersButton: 'clear-all-filters-button',
+  DashboardLinkPrefix: 'perseslistpage-',
+};
+
+export const listPersesDashboardsOUIAIDs = {
+  PageHeaderSubtitle: 'PageHeader-subtitle',
+  PersesBreadcrumb: 'perses-dashboards-breadcrumb',
+  PersesDashListDataViewTable: 'PersesDashList-DataViewTable',
+  persesListDataViewHeaderClearAllFiltersButton: 'PersesDashList-DataViewHeader-clear-all-filters',
+  persesListDataViewFilters: 'DataViewFilters',
+  persesListDataViewHeaderSortButton: 'PersesDashList-DataViewTable-th',
+  persesListDataViewTableDashboardNameTD: 'PersesDashList-DataViewTable-td-',
 };
