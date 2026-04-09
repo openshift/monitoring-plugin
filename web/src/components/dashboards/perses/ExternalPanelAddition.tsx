@@ -2,6 +2,7 @@ import { ReactElement, useEffect, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useDashboardActions, useDashboardStore } from '@perses-dev/dashboards';
 import { dashboardsOpened, dashboardsPersesPanelExternallyAdded } from '../../../store/actions';
+import type { RootState } from '../../../store';
 
 interface ExternalPanelAdditionProps {
   isEditMode: boolean;
@@ -9,7 +10,7 @@ interface ExternalPanelAdditionProps {
 }
 
 // Effect-only component that registers hooks related to exposing adding panels
-// from external intergrations.
+// from external integrations.
 // See components/ols-tool-ui/helpers/AddToDashboardButton.tsx for example use.
 export function ExternalPanelAddition({
   isEditMode,
@@ -17,7 +18,7 @@ export function ExternalPanelAddition({
 }: ExternalPanelAdditionProps): ReactElement | null {
   const dispatch = useDispatch();
   const addPersesPanelExternally: any = useSelector(
-    (s: any) => s.plugins?.mcp?.dashboards?.addPersesPanelExternally,
+    (s: RootState) => s.plugins?.mcp?.dashboards?.addPersesPanelExternally,
   );
   const { openAddPanel } = useDashboardActions();
   const dashboardStore = useDashboardStore();
@@ -48,16 +49,16 @@ export function ExternalPanelAddition({
     if (addPersesPanelExternally && !queuedPanel) {
       queuePanelAddition(addPersesPanelExternally);
     }
+  }, [queuedPanel, queuePanelAddition, addPersesPanelExternally]);
 
+  useEffect(() => {
     // Apply externally added panel
     if (queuedPanel) {
       try {
-        const groupId = dashboardStore.panelGroupOrder[0];
-        queuedPanel.groupId = groupId;
-
         // Use the temporary panelEditor to add changes to the dashboard.
         const panelEditor = dashboardStore.panelEditor;
-        panelEditor.applyChanges(queuedPanel);
+        const groupId = dashboardStore.panelGroupOrder[0];
+        panelEditor.applyChanges({ ...queuedPanel, groupId });
         panelEditor.close();
       } finally {
         // Clear the externally added panel after applying changes.
@@ -68,14 +69,7 @@ export function ExternalPanelAddition({
         dispatch(dashboardsPersesPanelExternallyAdded());
       }
     }
-  }, [
-    dispatch,
-    dashboardStore.panelGroupOrder,
-    dashboardStore.panelEditor,
-    queuePanelAddition,
-    queuedPanel,
-    addPersesPanelExternally,
-  ]);
+  }, [dispatch, dashboardStore.panelGroupOrder, dashboardStore.panelEditor, queuedPanel]);
 
   // Advertise when a dashboard is opened/closed
   useEffect(() => {

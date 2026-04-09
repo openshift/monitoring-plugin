@@ -10,6 +10,7 @@ import type { PanelDefinition } from '@perses-dev/core';
 import { InfoTooltip } from '@perses-dev/components';
 
 import { dashboardsAddPersesPanelExternally } from '../../../store/actions';
+import type { RootState } from '../../../store';
 
 export const HeaderIconButton: StyledComponent<IconButtonProps & { theme?: Theme }> = styled(
   IconButton,
@@ -60,7 +61,9 @@ export const AddToDashboardButton: React.FC<AddToDashboardButtonProps> = ({
 }) => {
   const dispatch = useDispatch();
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const isDashboardOpen: boolean = useSelector((s: any) => s.plugins?.mcp?.dashboards?.isOpened);
+  const isDashboardOpen: boolean = useSelector(
+    (s: RootState) => s.plugins?.mcp?.dashboards?.isOpened,
+  );
   const addToPersesDashboard = React.useCallback(() => {
     const panelDefinition = createPanelDefinition(query, name, description);
     dispatch(dashboardsAddPersesPanelExternally(panelDefinition));
