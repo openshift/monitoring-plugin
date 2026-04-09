@@ -23,17 +23,19 @@ interface OlsToolUIPersesWrapperProps {
   children: React.ReactNode;
   height?: string;
   initialTimeRange?: TimeRangeValue;
+  initialTimeZone?: string;
 }
 
 export const OlsToolUIPersesWrapper: React.FC<OlsToolUIPersesWrapperProps> = ({
   children,
   initialTimeRange = { pastDuration: '1h' as DurationString },
   height = '300px',
+  initialTimeZone = 'UTC',
 }) => {
   return (
     <QueryClientProvider client={queryClient}>
       <PersesWrapper project={null}>
-        <TimeZoneProvider timeZone="UTC">
+        <TimeZoneProvider timeZone={initialTimeZone}>
           <TimeRangeProviderBasic initialTimeRange={initialTimeRange}>
             <VariableProvider>
               <PersesPrometheusDatasourceWrapper queries={[]}>

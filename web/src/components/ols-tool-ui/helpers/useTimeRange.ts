@@ -8,7 +8,8 @@ import { isDurationString, parseDurationString } from '@perses-dev/core';
 const parseTimeExpr = (expr: string, now: Date): Date | undefined => {
   const match = expr.match(/^NOW(?:-(.+))?$/);
   if (!match) {
-    return new Date(expr);
+    const parsed = new Date(expr);
+    return Number.isNaN(parsed.getTime()) ? undefined : parsed;
   }
   if (!match[1]) {
     return now;
@@ -22,17 +23,18 @@ const parseTimeExpr = (expr: string, now: Date): Date | undefined => {
 export const useTimeRange = (start?: string, end?: string, duration?: string): TimeRangeValue => {
   return useMemo(() => {
     const now = new Date();
+    const safeDuration = duration && isDurationString(duration) ? duration : '1h';
     const startDate = start ? parseTimeExpr(start, now) : undefined;
     const endDate = end ? parseTimeExpr(end, now) : undefined;
 
     // If end is exactly "NOW" with no offset and no explicit start, use relative time range
     if (end === 'NOW' && !start) {
-      return { pastDuration: duration || '1h' } as RelativeTimeRange;
+      return { pastDuration: safeDuration } as RelativeTimeRange;
     }
 
     if (startDate && endDate) {
       return { start: startDate, end: endDate } as AbsoluteTimeRange;
     }
-    return { pastDuration: duration || '1h' } as RelativeTimeRange;
+    return { pastDuration: safeDuration } as RelativeTimeRange;
   }, [duration, end, start]);
 };

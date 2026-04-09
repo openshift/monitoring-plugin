@@ -73,13 +73,15 @@ export const AddToDashboardButton: React.FC<AddToDashboardButtonProps> = ({
 
   return (
     <InfoTooltip description={t('Add To Dashboard')}>
-      <HeaderIconButton aria-label="panel description" size="small">
+      <HeaderIconButton
+        aria-label={t('Add to dashboard')}
+        size="small"
+        onClick={addToPersesDashboard}
+      >
         <ViewGridPlusIcon
-          aria-describedby="info-tooltip"
-          aria-hidden={false}
+          aria-hidden={true}
           fontSize="inherit"
           sx={{ color: (theme) => theme.palette.text.secondary }}
-          onClick={addToPersesDashboard}
         />
       </HeaderIconButton>
     </InfoTooltip>
