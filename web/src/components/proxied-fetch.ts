@@ -43,7 +43,8 @@ export const proxiedFetch = <T>(url: string, init?: RequestInitWithTimeout): Pro
     return response.json();
   });
 
-  const timeout = init?.timeout ?? 30 * 1000;
+  // Disable client-side timeout by default (-1) to let the backend control query timeouts
+  const timeout = init?.timeout ?? -1;
 
   if (timeout <= 0) {
     return fetchPromise;
