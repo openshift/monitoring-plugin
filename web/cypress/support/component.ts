@@ -1,14 +1,6 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
+import { mount } from 'cypress/react';
 import '@patternfly/react-core/dist/styles/base.css';
 import * as ReactI18next from 'react-i18next';
-
-function mount(jsx: React.ReactElement) {
-  const root = document.querySelector('[data-cy-root]');
-  return cy.then(() => {
-    ReactDOM.render(jsx, root);
-  });
-}
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
