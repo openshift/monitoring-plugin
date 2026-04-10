@@ -29,6 +29,7 @@ import {
 } from '@patternfly/react-core';
 import { useTranslation } from 'react-i18next';
 import { getAlertUrl, getRuleUrl, getSilencesUrl, usePerspective } from '../hooks/usePerspective';
+import { useMonitoringNamespace } from '../hooks/useMonitoringNamespace';
 import KebabDropdown from '../kebab-dropdown';
 import { alertDescription, SilenceResource } from '../utils';
 import { SeverityBadge, SeverityCounts } from './AlertUtils';
@@ -46,6 +47,7 @@ const SilencesDetailsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const params = useParams<{ id: string }>();
+  const { namespace } = useMonitoringNamespace();
 
   const id = params.id;
 
@@ -70,7 +72,10 @@ const SilencesDetailsPage_: FC = () => {
           <PageBreadcrumb hasBodyWrapper={false}>
             <Breadcrumb>
               <BreadcrumbItem>
-                <Link to={getSilencesUrl(perspective)} data-test={DataTestIDs.Breadcrumb}>
+                <Link
+                  to={getSilencesUrl(perspective, namespace)}
+                  data-test={DataTestIDs.Breadcrumb}
+                >
                   {t('Silences')}
                 </Link>
               </BreadcrumbItem>
@@ -213,6 +218,7 @@ const SilencedAlertsList: FC<SilencedAlertsListProps> = ({ alerts }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const navigate = useNavigate();
   const { perspective } = usePerspective();
+  const { namespace } = useMonitoringNamespace();
 
   return _.isEmpty(alerts) ? (
     <div>{t('No Alerts found')}</div>
@@ -230,7 +236,7 @@ const SilencedAlertsList: FC<SilencedAlertsListProps> = ({ alerts }) => {
             <Td>
               <Link
                 data-test={DataTestIDs.AlertResourceLink}
-                to={getAlertUrl(perspective, a, a.rule.id)}
+                to={getAlertUrl(perspective, a, a.rule.id, namespace)}
               >
                 {a.labels.alertname}
               </Link>
@@ -244,7 +250,7 @@ const SilencedAlertsList: FC<SilencedAlertsListProps> = ({ alerts }) => {
                 dropdownItems={[
                   <DropdownItem
                     key="view-rule"
-                    onClick={() => navigate(getRuleUrl(perspective, a.rule))}
+                    onClick={() => navigate(getRuleUrl(perspective, a.rule, namespace))}
                   >
                     {t('View alerting rule')}
                   </DropdownItem>,
