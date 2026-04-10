@@ -22,12 +22,12 @@ import {
   MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
   MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY,
 } from './utils';
-import { useOpenshiftProject } from './useOpenshiftProject';
+import { useLegacyDashboardsProject } from './useLegacyDashboardsProject';
 
 export const useLegacyDashboards = (urlBoard: string) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
   const { perspective } = usePerspective();
-  const { project } = useOpenshiftProject();
+  const { project } = useLegacyDashboardsProject();
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const safeFetch = useCallback(useSafeFetch(), []);

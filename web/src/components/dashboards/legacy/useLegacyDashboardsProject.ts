@@ -9,7 +9,7 @@ import { useMonitoring } from '../../../hooks/useMonitoring';
 import { useParams } from 'react-router';
 import { dashboardsPatchVariable } from '../../../store/actions';
 
-export const useOpenshiftProject = () => {
+export const useLegacyDashboardsProject = () => {
   const { perspective } = usePerspective();
   const [activeNamespace, setActiveNamespace] = useActiveNamespace();
   const { ns: routeNamespace } = useParams<{ ns?: string }>();
