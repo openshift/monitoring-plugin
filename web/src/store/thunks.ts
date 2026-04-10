@@ -1,5 +1,4 @@
 import { consoleFetchJSON, Silence } from '@openshift-console/dynamic-plugin-sdk';
-import { Action } from 'redux';
 import { ThunkAction } from 'redux-thunk';
 
 import {
@@ -9,6 +8,7 @@ import {
   alertingApplySilences,
   alertingSetSilencesErrored,
   alertingSetErrored,
+  ObserveAction,
 } from './actions';
 import { getAlertsAndRules, getSilenceName, Prometheus } from '../components/utils';
 import { fetchAlerts } from '../components/fetch-alerts';
@@ -23,7 +23,7 @@ export const fetchAlertingData =
     alertsSource: any,
     silencesUrl: string,
     active: boolean,
-  ): ThunkAction<void, RootState, unknown, Action<string>> =>
+  ): ThunkAction<void, RootState, unknown, ObserveAction> =>
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async (dispatch, getState) => {
     if (!active) {

@@ -277,7 +277,7 @@ export const getMutlipleQueryBrowserUrl = (
 
 export const getLegacyDashboardsUrl = (
   perspective: Perspective,
-  boardName: string,
+  boardName?: string,
   namespace?: string,
 ) => {
   switch (perspective) {
@@ -286,10 +286,10 @@ export const getLegacyDashboardsUrl = (
     case 'dev':
       return `/dev-monitoring/ns/${namespace}`;
     case 'virtualization-perspective':
-      return `/virt-monitoring/dashboards/${boardName}`;
+      return `/virt-monitoring/dashboards` + (boardName ? `/${boardName}` : '');
     case 'admin':
     default:
-      return `/monitoring/dashboards/${boardName}`;
+      return `/monitoring/dashboards` + (boardName ? `/${boardName}` : '');
   }
 };
 

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/refs */
 import {
   PrometheusEndpoint,
   PrometheusLabels,
@@ -257,6 +258,7 @@ const Graph: FC<GraphProps> = memo(
     const tooltipSeriesLabels: PrometheusLabels[] = [];
     const legendData: { name: string }[] = [];
 
+    // eslint-disable-next-line react-hooks/purity
     const [xDomain, setXDomain] = useState(fixedXDomain || getXDomain(Date.now(), span));
 
     // Only update X-axis if the time range (fixedXDomain or span) or graph data (allSeries) change
@@ -1025,10 +1027,9 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
             data-test={DataTestIDs.MetricGraph}
           >
             {error && <Error error={error} />}
-            {isGraphDataEmpty && !(hideControls && (updating || hasReceivedData.current)) && (
+            {isGraphDataEmpty && !(hideControls && updating && hasReceivedData.current) ? (
               <GraphEmpty loading={updating} />
-            )}
-            {!isGraphDataEmpty && width > 0 && (
+            ) : (
               <>
                 {disableZoom ? (
                   <Graph

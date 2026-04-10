@@ -21,7 +21,7 @@ import { DropdownItem, Flex, FlexItem } from '@patternfly/react-core';
 import KebabDropdown from '../../../components/kebab-dropdown';
 import type { FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { useNavigate, Link } from 'react-router';
 import { AlertResource, alertState } from '../../../components/utils';
 import {
   getAlertUrl,
@@ -29,7 +29,6 @@ import {
   usePerspective,
 } from '../../../components/hooks/usePerspective';
 import { useMonitoringNamespace } from '../../hooks/useMonitoringNamespace';
-import { Link } from 'react-router-dom-v5-compat';
 import { DataTestIDs } from '../../data-test';
 
 const AlertTableRow: FC<{ alert: Alert }> = ({ alert }) => {

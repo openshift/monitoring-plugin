@@ -1,15 +1,15 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useEffect, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSearchParams } from 'react-router-dom-v5-compat';
+import { useSearchParams } from 'react-router';
 import { QueryParamProvider } from 'use-query-params';
-import { ReactRouter5Adapter } from 'use-query-params/adapters/react-router-5';
 import { LoadingInline } from '../../console/console-shared/src/components/loading/LoadingInline';
 import { OCPDashboardApp } from './dashboard-app';
 import { DashboardFrame } from './dashboard-frame';
 import { ProjectEmptyState } from './emptystates/ProjectEmptyState';
 import { useDashboardsData } from './hooks/useDashboardsData';
 import { ToastProvider } from './ToastProvider';
+import { ReactRouter7Adapter } from '../../../react-router-7-adapter';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -79,7 +79,6 @@ const DashboardPage_: FC = () => {
   return (
     <DashboardFrame
       activeProject={activeProject}
-      setActiveProject={setActiveProject}
       activeProjectDashboardsMetadata={activeProjectDashboardsMetadata}
       changeBoard={changeBoard}
       dashboardDisplayName={currentDashboard.title}
@@ -100,7 +99,7 @@ const DashboardPage_: FC = () => {
 
 const DashboardPage: React.FC = () => {
   return (
-    <QueryParamProvider adapter={ReactRouter5Adapter}>
+    <QueryParamProvider adapter={ReactRouter7Adapter}>
       <QueryClientProvider client={queryClient}>
         <ToastProvider>
           <DashboardPage_ />

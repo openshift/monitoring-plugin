@@ -1,17 +1,17 @@
-import type { SetStateAction, Dispatch, FC } from 'react';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import type { FC } from 'react';
 import { KEYBOARD_SHORTCUTS } from './utils';
-import { getDashboardsListUrl, usePerspective } from '../../../hooks/usePerspective';
 import ProjectDropdown from './ProjectDropdown';
+import { getDashboardsListUrl, usePerspective } from '../../../hooks/usePerspective';
+import { useNavigate } from 'react-router';
+import { QueryParams } from '../../../query-params';
 
 export type ProjectBarProps = {
-  setActiveProject: Dispatch<SetStateAction<string | null>>;
   activeProject: string | null;
 };
 
-export const ProjectBar: FC<ProjectBarProps> = ({ setActiveProject, activeProject }) => {
-  const navigate = useNavigate();
+export const ProjectBar: FC<ProjectBarProps> = ({ activeProject }) => {
   const { perspective } = usePerspective();
+  const navigate = useNavigate();
 
   return (
     <div className="co-namespace-bar">
@@ -19,12 +19,7 @@ export const ProjectBar: FC<ProjectBarProps> = ({ setActiveProject, activeProjec
         <ProjectDropdown
           onSelect={(event, newProject) => {
             const params = new URLSearchParams();
-            if (newProject === '') {
-              setActiveProject(null);
-            } else {
-              params.set('project', newProject);
-              setActiveProject(newProject);
-            }
+            params.set(QueryParams.Project, newProject);
             const url = `${getDashboardsListUrl(perspective)}?${params.toString()}`;
             navigate(url);
           }}

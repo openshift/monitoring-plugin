@@ -1,9 +1,9 @@
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
-import type { FC, RefObject, Ref } from 'react';
+import type { FC, Ref, PropsWithChildren } from 'react';
 import { forwardRef } from 'react';
 import { connect } from 'react-redux';
-import { Link } from 'react-router-dom-v5-compat';
+import { Link } from 'react-router';
 import { Title } from '@patternfly/react-core';
 
 import { getMutlipleQueryBrowserUrl, usePerspective } from '../../hooks/usePerspective';
@@ -19,7 +19,7 @@ const mapStateToProps = (state: RootState) => ({
   namespace: getActiveNamespace(state),
 });
 
-const PrometheusGraphLink_: FC<PrometheusGraphLinkProps> = ({
+const PrometheusGraphLink_: FC<PropsWithChildren<PrometheusGraphLinkProps>> = ({
   children,
   query,
   ariaChartLinkLabel,
@@ -47,8 +47,8 @@ const PrometheusGraphLink_: FC<PrometheusGraphLinkProps> = ({
 };
 export const PrometheusGraphLink = connect(mapStateToProps)(PrometheusGraphLink_);
 
-export const PrometheusGraph: FC<PrometheusGraphProps> = forwardRef(
-  ({ children, className, title }, ref: RefObject<HTMLDivElement>) => (
+export const PrometheusGraph = forwardRef<HTMLDivElement, PropsWithChildren<PrometheusGraphProps>>(
+  ({ children, className, title }, ref) => (
     <div ref={ref} className={classNames('graph-wrapper graph-wrapper__horizontal-bar', className)}>
       {title && (
         <Title headingLevel="h5" className="graph-title">

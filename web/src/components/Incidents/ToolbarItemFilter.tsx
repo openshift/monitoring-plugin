@@ -62,10 +62,13 @@ const IncidentFilterToolbarItem: React.FC<IncidentFilterToolbarItemProps> = ({
 
   const translateLabels = (values: string[]) => {
     if (!values) return values;
-    const labelMap = options.reduce((acc, opt) => {
-      acc[opt.value] = opt.label || opt.value;
-      return acc;
-    }, {} as Record<string, string>);
+    const labelMap = options.reduce(
+      (acc, opt) => {
+        acc[opt.value] = opt.label || opt.value;
+        return acc;
+      },
+      {} as Record<string, string>,
+    );
     return values.map((val) => labelMap[val] || val);
   };
 
