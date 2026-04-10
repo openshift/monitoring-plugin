@@ -119,5 +119,18 @@
         "component": { "$codeRef": "DashboardPage" }
       }
     }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/1",
+    "value": {
+      "type": "ols.tool-ui",
+      "properties": {
+        "id": "mcp-obs/show-timeseries",
+        "component": {
+          "$codeRef": "ols-tool-ui.ShowTimeseries"
+        }
+      }
+    }
   }
 ]

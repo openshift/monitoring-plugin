@@ -9,8 +9,11 @@
     "build:standalone": "npm run clean && npm run ts-node node_modules/.bin/webpack --config webpack.standalone.config.ts",
     "clean": "rm -rf dist",
     "cypress:open": "cypress open",
+    "cypress:open:component": "cypress open --component",
     "cypress:run": "cypress run",
+    "cypress:run:component": "cypress run --component",
     "cypress:run:ci": "NO_COLOR=1 npx cypress run --browser chrome",
+    "cypress:run:ci:component": "NO_COLOR=1 npx cypress run --browser chrome --component",
     "delete:reports": "rm -rf gui_test_screenshots/* || true",
     "i18n": "i18n-scripts/build-i18n.sh && node i18n-scripts/set-english-defaults.js",
     "i18n-to-po": "node ./i18n-scripts/i18n-to-po.js",
@@ -183,7 +186,8 @@
       "IncidentsPage": "./components/Incidents/IncidentsPage",
       "TargetsPage": "./components/targets-page",
       "PrometheusRedirectPage": "./components/redirects/prometheus-redirect-page",
-      "MonitoringContext": "./contexts/MonitoringContext"
+      "MonitoringContext": "./contexts/MonitoringContext",
+      "ols-tool-ui": "./components/ols-tool-ui"
     },
     "dependencies": {
       "@console/pluginAPI": "*"

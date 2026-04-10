@@ -411,6 +411,23 @@ cd web/cypress
 npm run cypress:run --spec "cypress/e2e/**/regression/**"
 ```
 
+### Component Tests (Cypress)
+
+For testing individual React components in isolation (no cluster required):
+
+- Test files: `web/cypress/component/` (`.cy.tsx` extension)
+- Support file: `web/cypress/support/component.ts`
+
+```bash
+cd web
+
+# Interactive mode
+npm run cypress:open:component
+
+# Headless mode
+npm run cypress:run:component
+```
+
 ---
 
 ## Internationalization (i18n)

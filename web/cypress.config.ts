@@ -3,6 +3,7 @@ import * as fs from 'fs-extra';
 import * as console from 'console';
 import * as path from 'path';
 import registerCypressGrep from '@cypress/grep/src/plugin';
+import { DefinePlugin, NormalModuleReplacementPlugin } from 'webpack';
 
 const getLoginCredentials = (index: number): { username: string; password: string } => {
   const users = (process.env.CYPRESS_LOGIN_USERS || '').split(',').filter(Boolean);
@@ -174,5 +175,62 @@ export default defineConfig({
     experimentalOriginDependencies: true,
     experimentalMemoryManagement: true,
     experimentalStudio: true,
+  },
+  component: {
+    devServer: {
+      framework: 'react',
+      bundler: 'webpack',
+      webpackConfig: {
+        resolve: {
+          extensions: ['.ts', '.tsx', '.js', '.jsx'],
+          alias: {
+            '@perses-dev/plugin-system': path.resolve(__dirname, 'cypress/component/mocks/perses-plugin-system.tsx'),
+            '@perses-dev/dashboards': path.resolve(__dirname, 'cypress/component/mocks/perses-dashboards.tsx'),
+            '@perses-dev/prometheus-plugin': path.resolve(__dirname, 'cypress/component/mocks/perses-prometheus-plugin.ts'),
+          },
+        },
+        module: {
+          rules: [
+            {
+              test: /\.(jsx?|tsx?)$/,
+              exclude: /node_modules/,
+              use: { loader: 'swc-loader' },
+            },
+            {
+              test: /\.scss$/,
+              exclude: /node_modules\/(?!(@patternfly|@openshift-console\/plugin-shared)\/).*/,
+              use: ['style-loader', 'css-loader', 'sass-loader'],
+            },
+            {
+              test: /\.css$/,
+              use: ['style-loader', 'css-loader'],
+            },
+            {
+              test: /\.(png|jpg|jpeg|gif|svg|woff2?|ttf|eot|otf)(\?.*$|$)/,
+              type: 'asset/resource',
+            },
+            {
+              test: /\.m?js/,
+              resolve: { fullySpecified: false },
+            },
+          ],
+        },
+        plugins: [
+          new DefinePlugin({
+            'process.env.I18N_NAMESPACE': JSON.stringify('plugin__monitoring-plugin'),
+          }),
+          new NormalModuleReplacementPlugin(
+            /helpers\/OlsToolUIPersesWrapper/,
+            path.resolve(__dirname, 'cypress/component/mocks/OlsToolUIPersesWrapper.tsx'),
+          ),
+          new NormalModuleReplacementPlugin(
+            /helpers\/AddToDashboardButton/,
+            path.resolve(__dirname, 'cypress/component/mocks/AddToDashboardButton.tsx'),
+          ),
+        ],
+      },
+    },
+    specPattern: './cypress/component/**/*.cy.{js,jsx,ts,tsx}',
+    supportFile: './cypress/support/component.ts',
   },
 });

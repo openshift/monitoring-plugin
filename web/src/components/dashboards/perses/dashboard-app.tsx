@@ -29,6 +29,7 @@ import { useUpdateDashboardMutation } from './dashboard-api';
 import { useTranslation } from 'react-i18next';
 import { useToast } from './ToastProvider';
 import { useSearchParams } from 'react-router';
+import { ExternalPanelAddition } from './ExternalPanelAddition';
 
 export interface DashboardAppProps {
   dashboardResource: DashboardResource | EphemeralDashboardResource;
@@ -168,6 +169,7 @@ export const OCPDashboardApp = (props: DashboardAppProps): ReactElement => {
         flexDirection: 'column',
       }}
     >
+      <ExternalPanelAddition isEditMode={isEditMode} onEditButtonClick={onEditButtonClick} />
       <OCPDashboardToolbar
         dashboardName={dashboardResource.metadata.name}
         initialVariableIsSticky={isInitialVariableSticky}

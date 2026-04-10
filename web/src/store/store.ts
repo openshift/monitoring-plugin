@@ -1,5 +1,6 @@
 import * as _ from 'lodash-es';
 
+import type { PanelDefinition } from '@perses-dev/core';
 import { MONITORING_DASHBOARDS_DEFAULT_TIMESPAN } from '../components/dashboards/legacy/utils';
 import { Alert, PrometheusLabels, Rule } from '@openshift-console/dynamic-plugin-sdk';
 import { Silences } from '../components/types';
@@ -27,6 +28,8 @@ export type ObserveState = {
     pollInterval: number;
     timespan: number;
     variables: Record<string, Variable>;
+    isOpened: boolean;
+    addPersesPanelExternally: PanelDefinition | null;
   };
   incidentsData: {
     incidents: Array<any>;
@@ -66,6 +69,8 @@ export const defaultObserveState: ObserveState = {
     endTime: null,
     pollInterval: 30 * 1000,
     timespan: MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
+    isOpened: false,
+    addPersesPanelExternally: null,
     variables: {},
   },
   queryBrowser: {
