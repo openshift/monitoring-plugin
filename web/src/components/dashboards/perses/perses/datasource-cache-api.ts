@@ -11,12 +11,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { getCSRFToken } from '@openshift-console/dynamic-plugin-sdk/lib/utils/fetch/console-fetch-utils';
 import {
+  BuildDatasourceProxyUrlFunc,
+  DatasourceApi,
   DatasourceResource,
   DatasourceSelector,
   GlobalDatasourceResource,
-  BuildDatasourceProxyUrlFunc,
-  DatasourceApi,
 } from '@perses-dev/core';
 import LRUCache from 'lru-cache';
 
@@ -126,7 +127,7 @@ export class CachedDatasourceAPI implements DatasourceApi {
   ): Promise<DatasourceResource | undefined> {
     const { resource, keyExist } = this.cache.getDatasource(project, selector);
     if (resource) {
-      return Promise.resolve(resource);
+      return Promise.resolve(addCsrfToken(resource));
     }
     if (keyExist) {
       // in case the keyExist, then it means we already did the query,
@@ -145,14 +146,14 @@ export class CachedDatasourceAPI implements DatasourceApi {
       } else {
         this.cache.setDatasource(result);
       }
-      return result;
+      return addCsrfToken(result);
     });
   }
 
   getGlobalDatasource(selector: DatasourceSelector): Promise<GlobalDatasourceResource | undefined> {
     const { resource, keyExist } = this.cache.getGlobalDatasource(selector);
     if (resource) {
-      return Promise.resolve(resource);
+      return Promise.resolve(addCsrfToken(resource));
     }
     if (keyExist) {
       return Promise.resolve(undefined);
@@ -163,7 +164,7 @@ export class CachedDatasourceAPI implements DatasourceApi {
       } else {
         this.cache.setGlobalDatasource(result);
       }
-      return result;
+      return addCsrfToken(result);
     });
   }
 
@@ -183,3 +184,35 @@ export class CachedDatasourceAPI implements DatasourceApi {
       });
   }
 }
+
+// Perses panels use @perses-dev/core fetch internally, this is a workaround to add the
+// CSRF token needed in the OpenShift console.
+// TODO: Remove once Perses supports overriding the internal fetch function.
+const addCsrfToken = <T extends DatasourceResource | GlobalDatasourceResource | undefined>(
+  datasource: T,
+): T => {
+  if (!datasource) {
+    return datasource;
+  }
+
+  const pluginSpec = datasource.spec.plugin.spec as Record<string, unknown>;
+  const proxySpec = (pluginSpec.proxy as Record<string, unknown>)?.spec as
+    | Record<string, unknown>
+    | undefined;
+  const existingHeaders = (proxySpec?.headers as Record<string, string>) ?? {};
+
+  datasource.spec.plugin.spec = {
+    ...pluginSpec,
+    proxy: {
+      spec: {
+        ...proxySpec,
+        headers: {
+          ...existingHeaders,
+          'X-CSRFToken': getCSRFToken(),
+          'Sec-Fetch-Site': 'same-origin',
+        },
+      },
+    },
+  };
+  return datasource;
+};
