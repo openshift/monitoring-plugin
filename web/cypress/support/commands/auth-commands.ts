@@ -164,6 +164,21 @@ export const operatorAuthUtils = {
     const envVars = [Cypress.env('SKIP_KBV_INSTALL'), Cypress.env('KBV_UI_INSTALL')];
     return [...baseKey, ...envVars.map((v) => v || '')];
   },
+
+  generateTracesLoggingSessionKey(
+    operatorType: string,
+    operator: { namespace: string; packageName: string },
+  ): string[] {
+    const baseKey = [
+      Cypress.env('LOGIN_IDP'),
+      Cypress.env('LOGIN_USERNAME'),
+      operatorType,
+      operator.namespace,
+      operator.packageName,
+    ];
+    const envVars = [Cypress.env('SKIP_COO_INSTALL')];
+    return [...baseKey, ...envVars.map((v) => v || '')];
+  },
 };
 
 // Core login function (used by both session and non-session versions)
