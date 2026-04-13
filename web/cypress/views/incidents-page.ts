@@ -203,7 +203,10 @@ export const incidentsPage = {
 
   setDays: (value: '1 day' | '3 days' | '7 days' | '15 days') => {
     cy.log('incidentsPage.setDays');
-    incidentsPage.elements.daysSelectToggle().scrollIntoView().click();
+    cy.wait(250);
+    incidentsPage.elements.daysSelectToggle().scrollIntoView().click({ force: true });
+    incidentsPage.elements.daysSelectList().should('be.visible');
+    cy.wait(250);
     const dayKey = value.replace(' ', '-');
     cy.byTestID(`${DataTestIDs.IncidentsPage.DaysSelectOption}-${dayKey}`)
       .should('be.visible')
@@ -406,19 +409,19 @@ export const incidentsPage = {
    * @param incidentId - The incident ID to select (e.g., 'etcd-six-alerts-001')
    * @returns Promise that resolves when the incidents table is visible
    */
-  selectIncidentById: (incidentId: string) => {
-    cy.log(`incidentsPage.selectIncidentById: ${incidentId}`);
-    return incidentsPage.elements
-      .incidentsChartBarsGroups()
-      .filter(`[data-test*="${incidentId}"]`)
-      .should('have.length', 1)
-      .first()
-      .find('path[role="presentation"]')
-      .first()
-      .click({ force: true })
+  selectIncidentById: (incidentId: string, options?: { log?: boolean }) => {
+    const log = options?.log ?? true;
+    if (log) cy.log(`incidentsPage.selectIncidentById: ${incidentId}`);
+    return cy.get(
+      `[data-test="incidents-chart-bars"] g[data-test$="-${incidentId}"] path[role="presentation"]`,
+      { log },
+    )
+      .first({ log })
+      .click({ force: true, log })
       .then(() => {
-        cy.wait(2000);
-        return incidentsPage.elements.incidentsTable().scrollIntoView().should('exist');
+        return cy.get(`[data-test="incidents-alerts-table"]`, { log })
+          .scrollIntoView({ log })
+          .should('exist');
       });
   },
 
@@ -429,18 +432,18 @@ export const incidentsPage = {
    * @param incidentId - The incident ID to deselect (e.g., 'etcd-six-alerts-001')
    * @returns Promise that resolves when the incidents table is hidden
    */
-  deselectIncidentById: (incidentId: string) => {
-    cy.log(`incidentsPage.deselectIncidentById: ${incidentId}`);
-    return incidentsPage.elements
-      .incidentsChartBarsGroups()
-      .filter(`[data-test*="${incidentId}"]`)
-      .should('have.length', 1)
-      .first()
-      .find('path[role="presentation"]')
-      .first()
-      .click({ force: true })
+  deselectIncidentById: (incidentId: string, options?: { log?: boolean }) => {
+    const log = options?.log ?? true;
+    if (log) cy.log(`incidentsPage.deselectIncidentById: ${incidentId}`);
+    return cy.get(
+      `[data-test="incidents-chart-bars"] g[data-test$="-${incidentId}"] path[role="presentation"]`,
+      { log },
+    )
+      .first({ log })
+      .click({ force: true, log })
       .then(() => {
-        return incidentsPage.elements.incidentsTable().should('not.exist');
+        return cy.get(`[data-test="incidents-alerts-table"]`, { log })
+          .should('not.exist');
       });
   },
 
