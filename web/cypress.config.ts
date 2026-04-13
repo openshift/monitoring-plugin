@@ -169,7 +169,7 @@ export default defineConfig({
     supportFile: './cypress/support/index.ts',
     specPattern: './cypress/e2e/**/*.cy.{js,jsx,ts,tsx}',
     downloadsFolder: './cypress/downloads',
-    numTestsKeptInMemory: 1,
+    numTestsKeptInMemory: 0,
     testIsolation: false,
     experimentalModifyObstructiveThirdPartyCode: true,
     experimentalOriginDependencies: true,
