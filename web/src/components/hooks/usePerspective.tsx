@@ -14,7 +14,7 @@ import {
 } from '../utils';
 import { GraphUnits } from '../metrics/units';
 import { QueryParams } from '../query-params';
-import { MonitoringState } from 'src/store/store';
+import { MonitoringState } from '../../store/store';
 
 export type UrlRoot = 'monitoring' | 'dev-monitoring' | 'multicloud/monitoring' | 'virt-monitoring';
 
@@ -277,7 +277,7 @@ export const getMutlipleQueryBrowserUrl = (
 
 export const getLegacyDashboardsUrl = (
   perspective: Perspective,
-  boardName: string,
+  boardName?: string,
   namespace?: string,
 ) => {
   switch (perspective) {
@@ -286,14 +286,27 @@ export const getLegacyDashboardsUrl = (
     case 'dev':
       return `/dev-monitoring/ns/${namespace}`;
     case 'virtualization-perspective':
-      return `/virt-monitoring/dashboards/${boardName}`;
+      return `/virt-monitoring/dashboards` + (boardName ? `/${boardName}` : '');
     case 'admin':
     default:
-      return `/monitoring/dashboards/${boardName}`;
+      return `/monitoring/dashboards` + (boardName ? `/${boardName}` : '');
   }
 };
 
-export const getDashboardsUrl = (perspective: Perspective) => {
+export const getDashboardUrl = (perspective: Perspective) => {
+  switch (perspective) {
+    case 'virtualization-perspective':
+      return `/virt-monitoring/v2/dashboards/view`;
+    case 'admin':
+      return `/monitoring/v2/dashboards/view`;
+    case 'acm':
+      return `/multicloud/monitoring/v2/dashboards/view`;
+    default:
+      return '';
+  }
+};
+
+export const getDashboardsListUrl = (perspective: Perspective) => {
   switch (perspective) {
     case 'virtualization-perspective':
       return `/virt-monitoring/v2/dashboards`;
