@@ -10,7 +10,6 @@ import ErrorAlert from './error';
 import { DashboardSkeletonLegacy } from './dashboard-skeleton-legacy';
 import { useLegacyDashboards } from './useLegacyDashboards';
 import { MonitoringProvider } from '../../../contexts/MonitoringContext';
-import { useMonitoringNamespace } from '../../hooks/useMonitoringNamespace';
 import { useMonitoring } from '../../../hooks/useMonitoring';
 import { StringParam, useQueryParam } from 'use-query-params';
 import { QueryParams } from '../../../components/query-params';
@@ -20,7 +19,6 @@ type LegacyDashboardsPageProps = {
 };
 
 const LegacyDashboardsPage_: FC<LegacyDashboardsPageProps> = ({ urlBoard }) => {
-  const { namespace, setNamespace } = useMonitoringNamespace();
   const {
     legacyDashboardsError,
     legacyRows,
@@ -28,14 +26,20 @@ const LegacyDashboardsPage_: FC<LegacyDashboardsPageProps> = ({ urlBoard }) => {
     legacyDashboardsMetadata,
     changeLegacyDashboard,
     legacyDashboard,
-  } = useLegacyDashboards(namespace, urlBoard);
+  } = useLegacyDashboards(urlBoard);
   const { perspective } = usePerspective();
   const { displayNamespaceSelector } = useMonitoring();
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
     <>
-      {displayNamespaceSelector && <NamespaceBar onNamespaceChange={(ns) => setNamespace(ns)} />}
+      {displayNamespaceSelector && (
+        <NamespaceBar
+          onNamespaceChange={(ns) => {
+            changeLegacyDashboard({ newProject: ns });
+          }}
+        />
+      )}
       <DashboardSkeletonLegacy
         boardItems={legacyDashboardsMetadata}
         changeBoard={changeLegacyDashboard}
