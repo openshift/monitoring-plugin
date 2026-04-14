@@ -761,7 +761,13 @@ const PollerPages = () => {
 const PrometheusUIRedirect = () => {
   const params = getAllQueryArguments();
   // leaving perspective redirect to future work
-  return <Redirect to={`/monitoring/query-browser?query0=${params['g0.expr'] || ''}`} />;
+  return (
+    <Redirect
+      to={`/monitoring/query-browser?query0=${
+        params['g0.expr'] ? encodeURIComponent(params['g0.expr']) : ''
+      }`}
+    />
+  );
 };
 
 const MonitoringUI = () => {
