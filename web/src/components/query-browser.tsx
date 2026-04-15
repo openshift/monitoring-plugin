@@ -1025,10 +1025,9 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
             data-test={DataTestIDs.MetricGraph}
           >
             {error && <Error error={error} />}
-            {isGraphDataEmpty && !(hideControls && (updating || hasReceivedData.current)) && (
+            {isGraphDataEmpty && !(hideControls && updating && hasReceivedData.current) ? (
               <GraphEmpty loading={updating} />
-            )}
-            {!isGraphDataEmpty && width > 0 && (
+            ) : (
               <>
                 {disableZoom ? (
                   <Graph

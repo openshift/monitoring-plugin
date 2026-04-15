@@ -85,11 +85,6 @@ import {
 import { getPrometheusBasePath, buildPrometheusUrl } from './utils';
 import { AsyncComponent } from './console/utils/async';
 import { usePoll } from './console/utils/poll-hook';
-import {
-  getAllQueryArguments,
-  getQueryArgument,
-  setAllQueryArguments,
-} from './console/utils/router';
 import { useSafeFetch } from './console/utils/safe-fetch-hook';
 
 import {
@@ -123,6 +118,7 @@ import { MonitoringProvider } from '../contexts/MonitoringContext';
 import { DataTestIDs } from './data-test';
 import { useMonitoring } from '../hooks/useMonitoring';
 import { useMonitoringNamespace } from './hooks/useMonitoringNamespace';
+import { useSearchParams } from 'react-router-dom-v5-compat';
 
 // Stores information about the currently focused query input
 let focusedQuery;
@@ -130,12 +126,10 @@ let focusedQuery;
 const predefinedQueriesAdmin: SelectOptionProps[] = [
   {
     name: 'CPU Usage',
-    // eslint-disable-next-line max-len
     value: `sum(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate) by (pod)`,
   },
   {
     name: 'Memory Usage',
-    // eslint-disable-next-line max-len
     value: `sum(container_memory_working_set_bytes{container!=""}) by (pod)`,
   },
   {
@@ -710,135 +704,170 @@ export const QueryTable: FC<QueryTableProps> = ({ index, namespace, customDataso
     setSortBy({});
   }, [namespace, query]);
 
-  if (!isEnabled || !isExpanded || !query) {
+  const isUnused = !isEnabled || !isExpanded || !query;
+  const isError = !!error;
+  const isLoading = !data;
+  const result = useMemo(() => {
+    if (isUnused || isError || isLoading) {
+      return [];
+    }
+    // Add any data series from `series` (those displayed in the graph) that are not
+    // in `data.result`.This happens for queries that exclude a series currently, but
+    // included that same series at some point during the graph's range.
+    const expiredSeries = _.differenceWith(series, data.result, (s, r) => _.isEqual(s, r.metric));
+    return expiredSeries.length
+      ? [...data.result, ...expiredSeries.map((metric) => ({ metric }))]
+      : data.result;
+  }, [data?.result, series, isUnused, isError, isLoading]);
+  const isEmptyGraph = !result || result.length === 0;
+
+  const tableData = useMemo(() => {
+    if (isUnused || isError || isLoading || isEmptyGraph) {
+      return {};
+    }
+    const transforms: ITransform[] = [sortable, wrappable];
+
+    const buttonCell = (labels) => ({ title: <SeriesButton index={index} labels={labels} /> });
+
+    let columns, rows;
+    if (data.resultType === 'scalar') {
+      columns = [
+        '',
+        {
+          title: t('Value'),
+          transforms,
+          cellTransforms: [
+            (data: IFormatterValueType) => {
+              const val = data?.title ? data.title : data;
+              return !Number.isNaN(Number(val)) ? valueFormat(Number(val)) : val;
+            },
+          ],
+        },
+      ];
+      rows = [[buttonCell({}), _.get(result, '[1]')]];
+    } else if (data.resultType === 'string') {
+      columns = [
+        {
+          title: t('Value'),
+          transforms,
+          cellTransforms: [
+            (data: IFormatterValueType) => {
+              const val = data?.title ? data.title : data;
+              return !Number.isNaN(Number(val)) ? valueFormat(Number(val)) : val;
+            },
+          ],
+        },
+      ];
+      rows = [[result?.[1]]];
+    } else {
+      const allLabelKeys = _.uniq(_.flatMap(result, ({ metric }) => Object.keys(metric))).sort();
+
+      columns = [
+        '',
+        ...allLabelKeys.map((k) => ({
+          title: <span>{k === '__name__' ? t('Name') : k}</span>,
+          transforms,
+        })),
+        {
+          title: t('Value'),
+          transforms,
+          cellTransforms: [
+            (data: IFormatterValueType) => {
+              const val = data?.title ? data.title : data;
+              return !Number.isNaN(Number(val)) ? valueFormat(Number(val)) : val;
+            },
+          ],
+        },
+      ];
+
+      let rowMapper;
+      if (data.resultType === 'matrix') {
+        rowMapper = ({ metric, values }) => [
+          '',
+          ..._.map(allLabelKeys, (k) => metric[k]),
+          {
+            title: (
+              <>
+                {_.map(values, ([time, v]) => (
+                  <div key={time}>
+                    {v}&nbsp;@{time}
+                  </div>
+                ))}
+              </>
+            ),
+          },
+        ];
+      } else {
+        rowMapper = ({ metric, value }) => [
+          buttonCell(metric),
+          ..._.map(allLabelKeys, (k) => metric[k]),
+          _.get(value, '[1]', { title: <span>{t('None')}</span> }),
+        ];
+      }
+
+      rows = _.map(result, rowMapper);
+      if (sortBy) {
+        // Sort Values column numerically and sort all the other columns alphabetically
+        const valuesColIndex = allLabelKeys.length + 1;
+        const sort =
+          sortBy.index === valuesColIndex
+            ? (cells) => {
+                const v = Number(cells[valuesColIndex]);
+                return Number.isNaN(v) ? 0 : v;
+              }
+            : `${sortBy.index}`;
+        rows = _.orderBy(rows, [sort], [sortBy.direction]);
+      }
+    }
+
+    const onSort = (e, i, direction) => setSortBy({ index: i, direction });
+
+    const tableRows = rows.slice((page - 1) * perPage, page * perPage).map((cells) => ({ cells }));
+
+    return {
+      onSort,
+      tableRows,
+      columns,
+      rows,
+    };
+  }, [
+    data?.resultType,
+    isEmptyGraph,
+    index,
+    isUnused,
+    isError,
+    isLoading,
+    page,
+    perPage,
+    result,
+    sortBy,
+    t,
+    valueFormat,
+  ]);
+
+  useEffect(() => {
+    if (tableData.columns && tableData.rows) {
+      dispatch(
+        queryBrowserPatchQuery(index, {
+          queryTableData: { columns: tableData.columns, rows: tableData.rows },
+        }),
+      );
+    }
+  }, [dispatch, index, tableData?.columns, tableData?.rows]);
+
+  if (isUnused) {
     return null;
-  }
-
-  if (error) {
+  } else if (isError) {
     return <Error error={error} title={t('Error loading values')} />;
-  }
-
-  if (!data) {
+  } else if (isLoading) {
     return <LoadingInline />;
-  }
-
-  // Add any data series from `series` (those displayed in the graph) that are not in `data.result`.
-  // This happens for queries that exclude a series currently, but included that same series at some
-  // point during the graph's range.
-  const expiredSeries = _.differenceWith(series, data.result, (s, r) => _.isEqual(s, r.metric));
-  const result = expiredSeries.length
-    ? [...data.result, ...expiredSeries.map((metric) => ({ metric }))]
-    : data.result;
-
-  if (!result || result.length === 0) {
+  } else if (isEmptyGraph) {
     return (
       <div data-test={DataTestIDs.MetricsPageYellowNoDatapointsFound}>
         <YellowExclamationTriangleIcon /> {t('No datapoints found.')}
       </div>
     );
   }
-
-  const transforms: ITransform[] = [sortable, wrappable];
-
-  const buttonCell = (labels) => ({ title: <SeriesButton index={index} labels={labels} /> });
-
-  let columns, rows;
-  if (data.resultType === 'scalar') {
-    columns = [
-      '',
-      {
-        title: t('Value'),
-        transforms,
-        cellTransforms: [
-          (data: IFormatterValueType) => {
-            const val = data?.title ? data.title : data;
-            return !Number.isNaN(Number(val)) ? valueFormat(Number(val)) : val;
-          },
-        ],
-      },
-    ];
-    rows = [[buttonCell({}), _.get(result, '[1]')]];
-  } else if (data.resultType === 'string') {
-    columns = [
-      {
-        title: t('Value'),
-        transforms,
-        cellTransforms: [
-          (data: IFormatterValueType) => {
-            const val = data?.title ? data.title : data;
-            return !Number.isNaN(Number(val)) ? valueFormat(Number(val)) : val;
-          },
-        ],
-      },
-    ];
-    rows = [[result?.[1]]];
-  } else {
-    const allLabelKeys = _.uniq(_.flatMap(result, ({ metric }) => Object.keys(metric))).sort();
-
-    columns = [
-      '',
-      ...allLabelKeys.map((k) => ({
-        title: <span>{k === '__name__' ? t('Name') : k}</span>,
-        transforms,
-      })),
-      {
-        title: t('Value'),
-        transforms,
-        cellTransforms: [
-          (data: IFormatterValueType) => {
-            const val = data?.title ? data.title : data;
-            return !Number.isNaN(Number(val)) ? valueFormat(Number(val)) : val;
-          },
-        ],
-      },
-    ];
-
-    let rowMapper;
-    if (data.resultType === 'matrix') {
-      rowMapper = ({ metric, values }) => [
-        '',
-        ..._.map(allLabelKeys, (k) => metric[k]),
-        {
-          title: (
-            <>
-              {_.map(values, ([time, v]) => (
-                <div key={time}>
-                  {v}&nbsp;@{time}
-                </div>
-              ))}
-            </>
-          ),
-        },
-      ];
-    } else {
-      rowMapper = ({ metric, value }) => [
-        buttonCell(metric),
-        ..._.map(allLabelKeys, (k) => metric[k]),
-        _.get(value, '[1]', { title: <span>{t('None')}</span> }),
-      ];
-    }
-
-    rows = _.map(result, rowMapper);
-    if (sortBy) {
-      // Sort Values column numerically and sort all the other columns alphabetically
-      const valuesColIndex = allLabelKeys.length + 1;
-      const sort =
-        sortBy.index === valuesColIndex
-          ? (cells) => {
-              const v = Number(cells[valuesColIndex]);
-              return Number.isNaN(v) ? 0 : v;
-            }
-          : `${sortBy.index}`;
-      rows = _.orderBy(rows, [sort], [sortBy.direction]);
-    }
-  }
-
-  // Dispatch query table result so QueryKebab can access it for data export
-  dispatch(queryBrowserPatchQuery(index, { queryTableData: { columns, rows } }));
-
-  const onSort = (e, i, direction) => setSortBy({ index: i, direction });
-
-  const tableRows = rows.slice((page - 1) * perPage, page * perPage).map((cells) => ({ cells }));
 
   return (
     <>
@@ -854,19 +883,19 @@ export const QueryTable: FC<QueryTableProps> = ({ index, namespace, customDataso
         <Table
           aria-label={t('query results table')}
           gridBreakPoint={TableGridBreakpoint.none}
-          rows={tableRows.length}
+          rows={tableData?.tableRows.length}
           variant={TableVariant.compact}
           data-test={DataTestIDs.MetricsPageQueryTable}
         >
           <Thead>
             <Tr>
-              {columns.map((col, columnIndex) => {
+              {tableData?.columns.map((col, columnIndex) => {
                 const sortParams =
                   columnIndex !== 0
                     ? {
                         sort: {
                           sortBy,
-                          onSort,
+                          onSort: tableData?.onSort,
                           columnIndex,
                         },
                       }
@@ -880,15 +909,15 @@ export const QueryTable: FC<QueryTableProps> = ({ index, namespace, customDataso
             </Tr>
           </Thead>
           <Tbody>
-            {tableRows.map((row, rowIndex) => (
+            {tableData?.tableRows.map((row, rowIndex) => (
               <Tr key={`row-${rowIndex}`}>
                 {row.cells?.map((cell, cellIndex) => (
                   <Td
                     style={{ fontFamily: t_global_font_family_mono.var }}
                     key={`cell-${rowIndex}-${cellIndex}`}
                   >
-                    {columns[cellIndex].cellTransforms
-                      ? columns[cellIndex].cellTransforms[0](
+                    {tableData?.columns[cellIndex].cellTransforms
+                      ? tableData?.columns[cellIndex].cellTransforms[0](
                           typeof cell === 'string' ? cell : cell?.title,
                         )
                       : typeof cell === 'string'
@@ -902,7 +931,7 @@ export const QueryTable: FC<QueryTableProps> = ({ index, namespace, customDataso
         </Table>
       </InnerScrollContainer>
       <TablePagination
-        itemCount={rows.length}
+        itemCount={tableData?.rows.length}
         page={page}
         perPage={perPage}
         setPage={setPage}
@@ -1057,6 +1086,8 @@ const QueryBrowserWrapper: FC<{
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { plugin } = useMonitoring();
   const [activeNamespace] = useActiveNamespace();
+  const [queryParams, setQueryParams] = useSearchParams();
+  const [isFirstRender, , , setFirstRenderFalse] = useBoolean(true);
 
   const dispatch = useDispatch();
 
@@ -1067,12 +1098,14 @@ const QueryBrowserWrapper: FC<{
     (state: MonitoringState) => getObserveState(plugin, state).queryBrowser?.queries,
   );
 
-  // Initialize queries from URL parameters
+  // Initialize queries from URL parameters on first render
   useEffect(() => {
+    if (!isFirstRender) {
+      return;
+    }
     dispatch(queryBrowserDeleteAllQueries());
-    const searchParams = getAllQueryArguments();
-    for (let i = 0; _.has(searchParams, `query${i}`); i++) {
-      const query = searchParams[`query${i}`];
+    for (let i = 0; queryParams.has(`query${i}`); i++) {
+      const query = queryParams.get(`query${i}`);
       dispatch(
         queryBrowserPatchQuery(i, {
           isEnabled: true,
@@ -1082,7 +1115,8 @@ const QueryBrowserWrapper: FC<{
         }),
       );
     }
-  }, [dispatch]);
+    setFirstRenderFalse();
+  }, [dispatch, queryParams, isFirstRender, setFirstRenderFalse]);
 
   /* eslint-disable react-hooks/exhaustive-deps */
   // Use React.useMemo() to prevent these two arrays being recreated on every render, which would
@@ -1099,13 +1133,16 @@ const QueryBrowserWrapper: FC<{
 
   // Update the URL parameters when the queries shown in the graph change
   useEffect(() => {
-    const newParams: Record<string, string> = {};
-    _.each(queryStrings, (q, i) => (newParams[`query${i}`] = q || ''));
-    if (customDataSourceName) {
-      newParams.datasource = customDataSourceName;
+    if (isFirstRender) {
+      return;
     }
-    setAllQueryArguments(newParams);
-  }, [queryStrings, customDataSourceName]);
+    const newParams = new URLSearchParams(removeQueryKeys(queryParams));
+    queryStrings.forEach((query, i) => newParams.set(`query${i}`, query || ''));
+    if (customDataSourceName) {
+      newParams.set(QueryParams.Datasource, customDataSourceName);
+    }
+    setQueryParams(newParams);
+  }, [queryStrings, customDataSourceName, isFirstRender, queryParams]);
 
   if (hideGraphs) {
     return null;
@@ -1176,6 +1213,16 @@ const QueryBrowserWrapper: FC<{
       showDisconnectedControl
     />
   );
+};
+
+const removeQueryKeys = (searchParams: URLSearchParams): URLSearchParams => {
+  const newParams = new URLSearchParams(searchParams);
+  for (const key of searchParams.keys()) {
+    if (key.startsWith('query')) {
+      newParams.delete(key);
+    }
+  }
+  return newParams;
 };
 
 const AddQueryButton: FC = () => {
@@ -1288,6 +1335,7 @@ const GraphUnitsDropDown: FC = () => {
 const MetricsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const [units, setUnits] = useQueryParam(QueryParams.Units, StringParam);
+  const [customDataSourceName] = useQueryParam(QueryParams.Datasource, StringParam);
   const { setNamespace } = useMonitoringNamespace();
   const { displayNamespaceSelector } = useMonitoring();
 
@@ -1307,7 +1355,6 @@ const MetricsPage_: FC = () => {
   }, [dispatch]);
   const [customDataSource, setCustomDataSource] = useState<CustomDataSource>(undefined);
   const [customDataSourceIsResolved, setCustomDataSourceIsResolved] = useState<boolean>(false);
-  const customDataSourceName = getQueryArgument(QueryParams.Datasource);
   const [extensions, extensionsResolved] = useResolvedExtensions<DataSource>(isDataSource);
   const hasExtensions = !_.isEmpty(extensions);
   const [customDatasourceError, setCustomDataSourceError] = useState(false);
