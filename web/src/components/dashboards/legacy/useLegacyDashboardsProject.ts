@@ -30,9 +30,6 @@ export const useLegacyDashboardsProject = () => {
         setOpenshiftProject(activeNamespace);
       }
     } else {
-      if (routeNamespace && activeNamespace !== routeNamespace) {
-        setActiveNamespace(routeNamespace);
-      }
       if (variableNamespace && variableNamespace !== routeNamespace) {
         dispatch(
           dashboardsPatchVariable('namespace', {
