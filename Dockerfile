@@ -2,17 +2,15 @@ FROM registry.redhat.io/ubi8/nodejs-18:1-71.1698060565 AS builder
 
 WORKDIR /usr/src/app
 
-RUN npm install --global yarn
-
 ENV HUSKY=0
 
-COPY package.json yarn.lock .
-RUN yarn
+COPY package.json package-lock.json .
+RUN npm ci
 
 COPY ./console-extensions.json ./tsconfig.json ./webpack.config.ts .
 COPY ./locales ./locales
 COPY ./src ./src
-RUN yarn build
+RUN npm run build
 
 FROM registry.ci.openshift.org/ocp/4.17:base-rhel9
 
