@@ -1,0 +1,314 @@
+name: "22 - Performance Benchmark - 20 Incidents"
+description: >
+  20 incidents across various components for benchmarking incidents chart
+  rendering performance. Each incident has 2-3 alerts. Uses 1h timeline
+  consistent with other stress test fixtures.
+incidents:
+  - id: bench-01
+    component: monitoring
+    layer: core
+    timeline:
+      start: 1h
+    alerts:
+      - name: BenchMonAlert01a
+        namespace: openshift-monitoring
+        severity: critical
+        firing: true
+      - name: BenchMonAlert01b
+        namespace: openshift-monitoring
+        severity: warning
+        firing: true
+  - id: bench-02
+    component: monitoring
+    layer: core
+    timeline:
+      start: 55m
+    alerts:
+      - name: BenchMonAlert02a
+        namespace: openshift-monitoring
+        severity: warning
+        firing: true
+      - name: BenchMonAlert02b
+        namespace: openshift-monitoring
+        severity: info
+        firing: true
+  - id: bench-03
+    component: monitoring
+    layer: core
+    timeline:
+      start: 50m
+    alerts:
+      - name: BenchMonAlert03a
+        namespace: openshift-monitoring
+        severity: critical
+        firing: true
+      - name: BenchMonAlert03b
+        namespace: openshift-monitoring
+        severity: warning
+        firing: true
+      - name: BenchMonAlert03c
+        namespace: openshift-monitoring
+        severity: info
+        firing: true
+  - id: bench-04
+    component: network
+    layer: core
+    timeline:
+      start: 48m
+    alerts:
+      - name: BenchNetAlert01a
+        namespace: openshift-network
+        severity: critical
+        firing: true
+      - name: BenchNetAlert01b
+        namespace: openshift-network
+        severity: warning
+        firing: true
+  - id: bench-05
+    component: network
+    layer: core
+    timeline:
+      start: 45m
+    alerts:
+      - name: BenchNetAlert02a
+        namespace: openshift-network
+        severity: warning
+        firing: true
+      - name: BenchNetAlert02b
+        namespace: openshift-network
+        severity: info
+        firing: true
+      - name: BenchNetAlert02c
+        namespace: openshift-network
+        severity: critical
+        firing: true
+  - id: bench-06
+    component: network
+    layer: core
+    timeline:
+      start: 42m
+    alerts:
+      - name: BenchNetAlert03a
+        namespace: openshift-network
+        severity: critical
+        firing: true
+      - name: BenchNetAlert03b
+        namespace: openshift-network
+        severity: warning
+        firing: true
+  - id: bench-07
+    component: storage
+    layer: core
+    timeline:
+      start: 40m
+    alerts:
+      - name: BenchStorAlert01a
+        namespace: openshift-storage
+        severity: critical
+        firing: true
+      - name: BenchStorAlert01b
+        namespace: openshift-storage
+        severity: warning
+        firing: true
+  - id: bench-08
+    component: storage
+    layer: core
+    timeline:
+      start: 38m
+    alerts:
+      - name: BenchStorAlert02a
+        namespace: openshift-storage
+        severity: warning
+        firing: true
+      - name: BenchStorAlert02b
+        namespace: openshift-storage
+        severity: critical
+        firing: true
+      - name: BenchStorAlert02c
+        namespace: openshift-storage
+        severity: info
+        firing: true
+  - id: bench-09
+    component: storage
+    layer: core
+    timeline:
+      start: 35m
+    alerts:
+      - name: BenchStorAlert03a
+        namespace: openshift-storage
+        severity: critical
+        firing: true
+      - name: BenchStorAlert03b
+        namespace: openshift-storage
+        severity: warning
+        firing: true
+  - id: bench-10
+    component: compute
+    layer: core
+    timeline:
+      start: 32m
+    alerts:
+      - name: BenchCompAlert01a
+        namespace: openshift-compute
+        severity: critical
+        firing: true
+      - name: BenchCompAlert01b
+        namespace: openshift-compute
+        severity: warning
+        firing: true
+  - id: bench-11
+    component: compute
+    layer: core
+    timeline:
+      start: 30m
+    alerts:
+      - name: BenchCompAlert02a
+        namespace: openshift-compute
+        severity: warning
+        firing: true
+      - name: BenchCompAlert02b
+        namespace: openshift-compute
+        severity: info
+        firing: true
+      - name: BenchCompAlert02c
+        namespace: openshift-compute
+        severity: critical
+        firing: true
+  - id: bench-12
+    component: compute
+    layer: core
+    timeline:
+      start: 28m
+    alerts:
+      - name: BenchCompAlert03a
+        namespace: openshift-compute
+        severity: critical
+        firing: true
+      - name: BenchCompAlert03b
+        namespace: openshift-compute
+        severity: warning
+        firing: true
+  - id: bench-13
+    component: etcd
+    layer: core
+    timeline:
+      start: 25m
+    alerts:
+      - name: BenchEtcdAlert01a
+        namespace: openshift-etcd
+        severity: critical
+        firing: true
+      - name: BenchEtcdAlert01b
+        namespace: openshift-etcd
+        severity: warning
+        firing: true
+  - id: bench-14
+    component: etcd
+    layer: core
+    timeline:
+      start: 22m
+    alerts:
+      - name: BenchEtcdAlert02a
+        namespace: openshift-etcd
+        severity: warning
+        firing: true
+      - name: BenchEtcdAlert02b
+        namespace: openshift-etcd
+        severity: critical
+        firing: true
+      - name: BenchEtcdAlert02c
+        namespace: openshift-etcd
+        severity: info
+        firing: true
+  - id: bench-15
+    component: etcd
+    layer: core
+    timeline:
+      start: 20m
+    alerts:
+      - name: BenchEtcdAlert03a
+        namespace: openshift-etcd
+        severity: critical
+        firing: true
+      - name: BenchEtcdAlert03b
+        namespace: openshift-etcd
+        severity: warning
+        firing: true
+  - id: bench-16
+    component: api-server
+    layer: core
+    timeline:
+      start: 18m
+    alerts:
+      - name: BenchApiAlert01a
+        namespace: openshift-apiserver
+        severity: critical
+        firing: true
+      - name: BenchApiAlert01b
+        namespace: openshift-apiserver
+        severity: warning
+        firing: true
+  - id: bench-17
+    component: api-server
+    layer: core
+    timeline:
+      start: 15m
+    alerts:
+      - name: BenchApiAlert02a
+        namespace: openshift-apiserver
+        severity: warning
+        firing: true
+      - name: BenchApiAlert02b
+        namespace: openshift-apiserver
+        severity: info
+        firing: true
+      - name: BenchApiAlert02c
+        namespace: openshift-apiserver
+        severity: critical
+        firing: true
+  - id: bench-18
+    component: version
+    layer: core
+    timeline:
+      start: 12m
+    alerts:
+      - name: BenchVerAlert01a
+        namespace: openshift-cluster-version
+        severity: warning
+        firing: true
+      - name: BenchVerAlert01b
+        namespace: openshift-cluster-version
+        severity: critical
+        firing: true
+  - id: bench-19
+    component: monitoring
+    layer: core
+    timeline:
+      start: 10m
+    alerts:
+      - name: BenchMonAlert04a
+        namespace: openshift-monitoring
+        severity: critical
+        firing: true
+      - name: BenchMonAlert04b
+        namespace: openshift-monitoring
+        severity: warning
+        firing: true
+      - name: BenchMonAlert04c
+        namespace: openshift-monitoring
+        severity: info
+        firing: true
+  - id: bench-20
+    component: network
+    layer: core
+    timeline:
+      start: 5m
+    alerts:
+      - name: BenchNetAlert04a
+        namespace: openshift-network
+        severity: critical
+        firing: true
+      - name: BenchNetAlert04b
+        namespace: openshift-network
+        severity: warning
+        firing: true
