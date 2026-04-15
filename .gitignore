@@ -15,3 +15,4 @@ dist/
 web/po-files/
 .claude/commands/configs
 _output/
+sandbox/sandboxes.json
