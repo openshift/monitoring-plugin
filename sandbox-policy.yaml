@@ -1,0 +1,96 @@
+version: 1
+
+filesystem_policy:
+  include_workdir: true
+  read_only:
+    - /usr
+    - /lib
+    - /proc
+    - /dev/urandom
+    - /etc
+  read_write:
+    - /sandbox
+    - /tmp
+    - /dev/null
+    - /home
+
+landlock:
+  compatibility: best_effort
+
+network_policies:
+  google_oauth:
+    endpoints:
+      - host: oauth2.googleapis.com
+        port: 443
+        enforcement: enforce
+    binaries:
+      - { path: /usr/local/bin/claude }
+      - { path: /sandbox/claude }
+      - { path: /usr/bin/node }
+      - { path: /usr/bin/bash }
+
+  anthropic_api:
+    endpoints:
+      - host: api.anthropic.com
+        port: 443
+        enforcement: enforce
+    binaries:
+      - { path: /usr/local/bin/claude }
+      - { path: /sandbox/claude }
+
+  vertex_ai:
+    endpoints:
+      - host: us-east5-aiplatform.googleapis.com
+        port: 443
+        enforcement: enforce
+    binaries:
+      - { path: /usr/bin/node }
+      - { path: /usr/bin/bash }
+
+  github:
+    endpoints:
+      - host: github.com
+        port: 443
+        enforcement: enforce
+      - host: api.github.com
+        port: 443
+        enforcement: enforce
+    binaries:
+      - { path: /usr/bin/git }
+      - { path: /usr/bin/gh }
+      - { path: /usr/bin/node }
+      - { path: /usr/bin/bash }
+
+  openshift:
+    endpoints:
+      - host: 10.200.0.1
+        port: 9444
+        enforcement: enforce
+      - host: "*.ci-ln-8bnwfst-76ef8.aws-4.ci.openshift.org"
+        port: 443
+        enforcement: enforce
+      - host: console-openshift-console.apps.ci-ln-8bnwfst-76ef8.aws-4.ci.openshift.org
+        port: 443
+        enforcement: enforce
+    binaries:
+      - { path: /sandbox/oc/oc }
+      - { path: /usr/bin/node }
+      - { path: /usr/bin/bash }
+      - { path: /usr/bin/curl }
+
+  npm_registry:
+    endpoints:
+      - host: registry.npmjs.org
+        port: 443
+        enforcement: enforce
+    binaries:
+      - { path: /usr/bin/node }
+      - { path: /usr/bin/bash }
+
+  bun_install:
+    endpoints:
+      - host: bun.sh
+        port: 443
+        enforcement: enforce
+    binaries:
+      - { path: /usr/bin/curl }
