@@ -203,7 +203,10 @@ export const incidentsPage = {
 
   setDays: (value: '1 day' | '3 days' | '7 days' | '15 days') => {
     cy.log('incidentsPage.setDays');
-    incidentsPage.elements.daysSelectToggle().scrollIntoView().click();
+    cy.wait(250);
+    incidentsPage.elements.daysSelectToggle().scrollIntoView().click({ force: true });
+    incidentsPage.elements.daysSelectList().should('be.visible');
+    cy.wait(250);
     const dayKey = value.replace(' ', '-');
     cy.byTestID(`${DataTestIDs.IncidentsPage.DaysSelectOption}-${dayKey}`)
       .should('be.visible')
