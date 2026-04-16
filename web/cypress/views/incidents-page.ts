@@ -18,6 +18,23 @@ const _resetSearchState = () => {
   _quietSearch = false;
 };
 
+// jQuery selector for the Incidents tab — covers both PatternFly v6 and
+// legacy Console horizontal nav markup. Used by goTo()/warmUpForPlugin()
+// to poll for plugin registration without Cypress command overhead.
+const _INCIDENTS_TAB_SELECTOR =
+  '.pf-v6-c-tabs__item:contains("Incidents"), ' +
+  '.co-m-horizontal-nav__menu-item:contains("Incidents")';
+
+// Selector for bar group containers in the incidents chart (one per incident).
+const _BAR_GROUP_SELECTOR = 'g[role="presentation"][data-test*="incidents-chart-bar-"]';
+
+// Filter predicate for visible path segments (fill-opacity > 0).
+// Multi-severity incidents have placeholder paths with zero opacity.
+const _isVisiblePath = (_: number, el: HTMLElement) => {
+  const opacity = Cypress.$(el).css('fill-opacity') || Cypress.$(el).attr('fill-opacity');
+  return parseFloat(opacity || '0') > 0;
+};
+
 export const incidentsPage = {
   // Centralized element selectors - all selectors defined in one place
   elements: {
@@ -93,11 +110,10 @@ export const incidentsPage = {
         // or conditional testing semantics.
         cy.wait(500, _qLog());
         // We need to use the $body as both cases when the element is there or not are valid.
-        const exists =
-          $body.find('g[role="presentation"][data-test*="incidents-chart-bar-"]').length > 0;
+        const exists = $body.find(_BAR_GROUP_SELECTOR).length > 0;
         if (exists) {
           return cy
-            .get('g[role="presentation"][data-test*="incidents-chart-bar-"]', _qLog())
+            .get(_BAR_GROUP_SELECTOR, _qLog())
             .find('path[role="presentation"]')
             .filter((index, element) => {
               const fillOpacity =
@@ -123,9 +139,7 @@ export const incidentsPage = {
         });
     },
     incidentsChartBarsGroups: () =>
-      cy
-        .byTestID(DataTestIDs.IncidentsChart.ChartBars)
-        .find('g[role="presentation"][data-test*="incidents-chart-bar-"]'),
+      cy.byTestID(DataTestIDs.IncidentsChart.ChartBars).find(_BAR_GROUP_SELECTOR),
     incidentsChartSvg: () => incidentsPage.elements.incidentsChartCard().find('svg'),
 
     alertsChartTitle: () => cy.byTestID(DataTestIDs.AlertsChart.Title),
@@ -212,8 +226,11 @@ export const incidentsPage = {
   },
 
   goTo: () => {
-    cy.log('incidentsPage.goTo');
+    if (!_quietSearch) cy.log('incidentsPage.goTo');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    // Wait for the Incidents tab to be registered by the dynamic plugin.
+    // After session restore the plugin may need up to 2 min to re-register.
+    incidentsPage.waitForIncidentsTab();
     nav.tabs.switchTab('Incidents');
     incidentsPage.elements.daysSelectToggle().should('be.visible');
   },
@@ -228,19 +245,20 @@ export const incidentsPage = {
     // Wait up to 3 minutes for the Incidents tab to appear. Uses synchronous jQuery check
     // inside cy.waitUntil() to avoid the 80s default command timeout, then uses
     // nav.tabs.switchTab() which correctly clicks the button element (not the li wrapper).
-    cy.waitUntil(
-      () =>
-        Cypress.$(
-          '.pf-v6-c-tabs__item:contains("Incidents"), .co-m-horizontal-nav__menu-item:contains("Incidents")',
-        ).length > 0,
-      {
-        interval: 3000,
-        timeout: 180000,
-        errorMsg: 'Incidents tab not registered within 3 minutes',
-      },
-    );
+    incidentsPage.waitForIncidentsTab();
     nav.tabs.switchTab('Incidents');
-    cy.get('[data-test="incidents-days-select-toggle"]', { timeout: 180000 }).should('be.visible');
+    incidentsPage.elements.daysSelectToggle().should('be.visible');
+  },
+
+  // Polls for the Incidents tab to appear in the horizontal nav using a
+  // synchronous jQuery check (no Cypress command overhead / DOM snapshots).
+  // Shared by goTo() and warmUpForPlugin().
+  waitForIncidentsTab: () => {
+    cy.waitUntil(() => Cypress.$(_INCIDENTS_TAB_SELECTOR).length > 0, {
+      interval: 2000,
+      timeout: 180000,
+      errorMsg: 'Incidents tab not registered within 3 minutes',
+    });
   },
 
   setDays: (value: '1 day' | '3 days' | '7 days' | '15 days') => {
@@ -399,42 +417,39 @@ export const incidentsPage = {
   },
 
   /**
-   * Selects an incident from the chart by clicking on a bar at the specified index.
-   * BUG: Problems with multi-severity incidents (multiple paths in a single incident bar)
+   * Selects an incident from the chart by clicking on a bar group at the
+   * specified index. Uses bar groups (one per incident) instead of flattened
+   * paths to correctly handle multi-severity incidents.
    *
    * @param index - Zero-based index of the incident bar to click (default: 0)
    * @returns Promise that resolves when the incidents table is visible
    */
   selectIncidentByBarIndex: (index = 0) => {
-    if (!_quietSearch)
-      cy.log(`incidentsPage.selectIncidentByBarIndex: ${index} (clicking visible path elements)`);
+    if (!_quietSearch) cy.log(`incidentsPage.selectIncidentByBarIndex: ${index}`);
 
     return incidentsPage.elements
-      .incidentsChartBarsVisiblePaths()
+      .incidentsChartBarsGroups()
       .should('have.length.greaterThan', index)
-      .then(($paths) => {
-        if (index >= $paths.length) {
-          throw new Error(`Index ${index} exceeds available paths (${$paths.length})`);
-        }
-
-        return cy.wrap($paths.eq(index), _qLog()).click({ force: true, ..._qLog() });
-      })
+      .eq(index)
+      .find('path[role="presentation"]')
+      .filter(_isVisiblePath)
+      .first()
+      .click({ force: true, ..._qLog() })
       .then(() => {
         cy.wait(2000, _qLog());
         return incidentsPage.elements.incidentsTable().scrollIntoView().should('exist');
       });
   },
 
-  deselectIncidentByBar: () => {
+  deselectIncidentByBar: (index = 0) => {
     if (!_quietSearch) cy.log('incidentsPage.deselectIncidentByBar');
     return incidentsPage.elements
-      .incidentsChartBarsVisiblePaths()
-      .then(($paths) => {
-        if ($paths.length === 0) {
-          throw new Error('No paths found in incidents chart');
-        }
-        return cy.wrap($paths.eq(0), _qLog()).click({ force: true, ..._qLog() });
-      })
+      .incidentsChartBarsGroups()
+      .eq(index)
+      .find('path[role="presentation"]')
+      .filter(_isVisiblePath)
+      .first()
+      .click({ force: true, ..._qLog() })
       .then(() => {
         return incidentsPage.elements.incidentsTable().should('not.exist');
       });
@@ -653,8 +668,10 @@ export const incidentsPage = {
 
   prepareIncidentsPageForSearch: () => {
     if (!_quietSearch) cy.log('incidentsPage.prepareIncidentsPageForSearch: Setting up page...');
-    // Force a hard page reload to release browser DOM memory from previous search iterations.
-    cy.reload({ log: false });
+    // Use SPA navigation instead of cy.reload() — the Incidents component is a
+    // dynamic plugin chunk, and cy.reload() causes the Console to re-resolve all
+    // plugins from scratch, which silently fails in headless CI (blank page).
+    // OOM is handled by _quietSearch suppressing DOM snapshots, not by reload.
     incidentsPage.goTo();
     incidentsPage.setDays(incidentsPage.SEARCH_CONFIG.DEFAULT_DAYS);
     incidentsPage.elements.incidentsChartContainer().should('be.visible');
@@ -821,7 +838,7 @@ export const incidentsPage = {
         if (found) {
           return cy.wrap(true, _qLog());
         }
-        incidentsPage.deselectIncidentByBar();
+        incidentsPage.deselectIncidentByBar(currentIndex);
         cy.wait(500, _qLog());
         return searchNextIncidentBar(currentIndex + 1);
       });
@@ -859,16 +876,18 @@ export const incidentsPage = {
 
     incidentsPage.prepareIncidentsPageForSearch();
 
-    return incidentsPage.elements
-      .incidentsChartBarsVisiblePaths()
-      .then(($paths) => {
-        const totalPaths = $paths.length;
-        if (totalPaths === 0) {
-          cy.log('No visible incident bar paths found in chart');
+    // Check for bar groups without asserting existence — an empty chart is
+    // valid (e.g. when mocking empty incidents or before detection fires).
+    return cy
+      .get('body', _qLog())
+      .then(($body) => {
+        const totalIncidents = $body.find(_BAR_GROUP_SELECTOR).length;
+        if (totalIncidents === 0) {
+          if (!_quietSearch) cy.log('No incident bar groups found in chart');
           return cy.wrap(false, { log: false });
         }
 
-        return incidentsPage.traverseAllIncidentsBars(alertName, totalPaths);
+        return incidentsPage.traverseAllIncidentsBars(alertName, totalIncidents);
       })
       .then((found: boolean) => {
         if (found) {
