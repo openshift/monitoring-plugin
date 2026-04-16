@@ -1,7 +1,5 @@
 import { useActiveNamespace } from '@openshift-console/dynamic-plugin-sdk';
-import { useEffect } from 'react';
 import { useParams } from 'react-router';
-import { useMonitoring } from '../../hooks/useMonitoring';
 
 /**
  * Utility hook to synchronize the namespace route in the URL with the activeNamespace
@@ -12,13 +10,6 @@ import { useMonitoring } from '../../hooks/useMonitoring';
 export const useMonitoringNamespace = () => {
   const { ns: routeNamespace } = useParams<{ ns?: string }>();
   const [activeNamespace, setActiveNamespace] = useActiveNamespace();
-  const { displayNamespaceSelector } = useMonitoring();
-
-  useEffect(() => {
-    if (routeNamespace && activeNamespace !== routeNamespace) {
-      setActiveNamespace(routeNamespace);
-    }
-  }, [routeNamespace, activeNamespace, setActiveNamespace, displayNamespaceSelector]);
 
   return {
     namespace: routeNamespace || activeNamespace,
