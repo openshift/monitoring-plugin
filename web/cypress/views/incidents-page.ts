@@ -13,6 +13,11 @@ const _FIND_INCIDENT_HARD_TIMEOUT_MS = 35 * 60 * 1000; // 35 minutes
 let _quietSearch = false;
 const _qLog = (): { log: false } | Record<string, never> => (_quietSearch ? { log: false } : {});
 
+const _resetSearchState = () => {
+  _findIncidentSearchStart = null;
+  _quietSearch = false;
+};
+
 export const incidentsPage = {
   // Centralized element selectors - all selectors defined in one place
   elements: {
@@ -637,7 +642,7 @@ export const incidentsPage = {
   },
 
   resetSearchTimeout: () => {
-    _findIncidentSearchStart = null;
+    _resetSearchState();
   },
 
   // Constants for search configuration
@@ -840,8 +845,7 @@ export const incidentsPage = {
     }
     const elapsed = Date.now() - _findIncidentSearchStart;
     if (elapsed > _FIND_INCIDENT_HARD_TIMEOUT_MS) {
-      _findIncidentSearchStart = null;
-      _quietSearch = false;
+      _resetSearchState();
       const mins = Math.round(elapsed / 60000);
       throw new Error(`findIncidentWithAlert: hard timeout after ${mins} min for "${alertName}"`);
     }
@@ -867,9 +871,10 @@ export const incidentsPage = {
         return incidentsPage.traverseAllIncidentsBars(alertName, totalPaths);
       })
       .then((found: boolean) => {
-        _quietSearch = false;
         if (found) {
-          _findIncidentSearchStart = null;
+          _resetSearchState();
+        } else {
+          _quietSearch = false;
         }
         return found;
       });

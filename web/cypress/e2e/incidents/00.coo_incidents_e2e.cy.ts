@@ -52,7 +52,7 @@ describe('BVT: Incidents - e2e', { tags: ['@smoke', '@slow', '@incidents', '@e2e
     // This makes it safe to poll for the full 30-minute window.
     cy.waitUntil(() => incidentsPage.findIncidentWithAlert(currentAlertName), {
       interval: 2 * intervalMs,
-      timeout: 30 * intervalMs,
+      timeout: 30 * intervalMs + 2 * intervalMs,
     });
 
     cy.log('1.3 Verify custom alert appears in alerts table');

@@ -41,6 +41,7 @@ describe(
 
     before(() => {
       cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
+      incidentsPage.warmUpForPlugin();
 
       // Reset the search timeout so this spec gets a fresh 35-minute window
       incidentsPage.resetSearchTimeout();
