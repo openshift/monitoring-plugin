@@ -42,12 +42,17 @@ describe('BVT: Incidents - e2e', { tags: ['@smoke', '@slow', '@incidents', '@e2e
     incidentsPage.clearAllFilters();
 
     const intervalMs = 60_000;
-    const maxMinutes = 30;
 
     cy.log('1.2 Wait for incident with custom alert to appear');
+    // Poll via UI traversal with OOM-safe findIncidentWithAlert.
+    // The search loop has three layers of OOM protection:
+    //   1. cy.reload() — releases browser DOM each iteration
+    //   2. _quietSearch — suppresses Cypress DOM snapshots
+    //   3. Hard timeout (35 min) — kills infinite loops
+    // This makes it safe to poll for the full 30-minute window.
     cy.waitUntil(() => incidentsPage.findIncidentWithAlert(currentAlertName), {
-      interval: intervalMs,
-      timeout: maxMinutes * intervalMs,
+      interval: 2 * intervalMs,
+      timeout: 30 * intervalMs,
     });
 
     cy.log('1.3 Verify custom alert appears in alerts table');
