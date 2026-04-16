@@ -1,6 +1,18 @@
 import { nav } from './nav';
 import { DataTestIDs } from '../../src/components/data-test';
 
+// Hard timeout safety net for findIncidentWithAlert retry loops.
+// Prevents infinite loops if cy.waitUntil's timeout mechanism fails
+// (e.g., due to cy.reload() interfering with the Cypress command queue).
+let _findIncidentSearchStart: number | null = null;
+const _FIND_INCIDENT_HARD_TIMEOUT_MS = 35 * 60 * 1000; // 35 minutes
+
+// When true, search methods suppress Cypress command logging to prevent
+// DOM snapshot accumulation that causes OOM (exit 137) in CI containers.
+// Toggled by findIncidentWithAlert during its retry loop.
+let _quietSearch = false;
+const _qLog = (): { log: false } | Record<string, never> => (_quietSearch ? { log: false } : {});
+
 export const incidentsPage = {
   // Centralized element selectors - all selectors defined in one place
   elements: {
@@ -70,17 +82,17 @@ export const incidentsPage = {
     incidentsChartBar: (groupId: string) =>
       cy.byTestID(`${DataTestIDs.IncidentsChart.ChartBar}-${groupId}`),
     incidentsChartBarsVisiblePaths: () => {
-      return cy.get('body').then(($body) => {
+      return cy.get('body', _qLog()).then(($body) => {
         // There is a delay between the element being rendered and the paths being visible.
-        // The case when no paths are visible is valid, so we can not use should or conditional
-        // testing semantics.
-        cy.wait(500);
+        // The case when no paths are visible is valid, so we can not use should
+        // or conditional testing semantics.
+        cy.wait(500, _qLog());
         // We need to use the $body as both cases when the element is there or not are valid.
         const exists =
           $body.find('g[role="presentation"][data-test*="incidents-chart-bar-"]').length > 0;
         if (exists) {
           return cy
-            .get('g[role="presentation"][data-test*="incidents-chart-bar-"]')
+            .get('g[role="presentation"][data-test*="incidents-chart-bar-"]', _qLog())
             .find('path[role="presentation"]')
             .filter((index, element) => {
               const fillOpacity =
@@ -88,8 +100,8 @@ export const incidentsPage = {
               return parseFloat(fillOpacity || '0') > 0;
             });
         } else {
-          cy.log('Chart bars were not found. Test continues.');
-          return cy.wrap([]);
+          if (!_quietSearch) cy.log('Chart bars were not found. Test continues.');
+          return cy.wrap([], _qLog());
         }
       });
     },
@@ -201,6 +213,31 @@ export const incidentsPage = {
     incidentsPage.elements.daysSelectToggle().should('be.visible');
   },
 
+  // Used in before() hooks as a warm-up to ensure the monitoring-console-plugin has fully
+  // registered the Incidents tab extension before beforeEach() runs. Uses a 3-minute timeout
+  // instead of the default 80s, because plugin registration after session restoration can
+  // take 80-120 seconds when the console reloads its dynamic plugin manifest.
+  warmUpForPlugin: () => {
+    cy.log('incidentsPage.warmUpForPlugin: waiting for monitoring-console-plugin Incidents tab');
+    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    // Wait up to 3 minutes for the Incidents tab to appear. Uses synchronous jQuery check
+    // inside cy.waitUntil() to avoid the 80s default command timeout, then uses
+    // nav.tabs.switchTab() which correctly clicks the button element (not the li wrapper).
+    cy.waitUntil(
+      () =>
+        Cypress.$(
+          '.pf-v6-c-tabs__item:contains("Incidents"), .co-m-horizontal-nav__menu-item:contains("Incidents")',
+        ).length > 0,
+      {
+        interval: 3000,
+        timeout: 180000,
+        errorMsg: 'Incidents tab not registered within 3 minutes',
+      },
+    );
+    nav.tabs.switchTab('Incidents');
+    cy.get('[data-test="incidents-days-select-toggle"]', { timeout: 180000 }).should('be.visible');
+  },
+
   setDays: (value: '1 day' | '3 days' | '7 days' | '15 days') => {
     cy.log('incidentsPage.setDays');
     incidentsPage.elements.daysSelectToggle().scrollIntoView().click();
@@ -285,10 +322,7 @@ export const incidentsPage = {
             throw new Error(`Failed to deselect "${name}" via dropdown after ${attempt} attempts`);
           }
 
-          cy.log(
-            `Retrying deselection for "${name}" because option click was
-            visible but selection state did not change`,
-          );
+          cy.log(`Retrying deselection for "${name}": clicked but selection state unchanged`);
           return attemptDeselect(attempt + 1);
         });
       };
@@ -299,6 +333,7 @@ export const incidentsPage = {
 
   toggleFilter: (name: 'Critical' | 'Warning' | 'Informative' | 'Firing' | 'Resolved') => {
     cy.log('incidentsPage.toggleFilter');
+
     const isSeverityFilter = ['Critical', 'Warning', 'Informative'].includes(name);
     const filterType = isSeverityFilter ? 'Severity' : 'State';
     const valueToggleSelector = isSeverityFilter
@@ -366,7 +401,8 @@ export const incidentsPage = {
    * @returns Promise that resolves when the incidents table is visible
    */
   selectIncidentByBarIndex: (index = 0) => {
-    cy.log(`incidentsPage.selectIncidentByBarIndex: ${index} (clicking visible path elements)`);
+    if (!_quietSearch)
+      cy.log(`incidentsPage.selectIncidentByBarIndex: ${index} (clicking visible path elements)`);
 
     return incidentsPage.elements
       .incidentsChartBarsVisiblePaths()
@@ -376,23 +412,23 @@ export const incidentsPage = {
           throw new Error(`Index ${index} exceeds available paths (${$paths.length})`);
         }
 
-        return cy.wrap($paths.eq(index)).click({ force: true });
+        return cy.wrap($paths.eq(index), _qLog()).click({ force: true, ..._qLog() });
       })
       .then(() => {
-        cy.wait(2000);
+        cy.wait(2000, _qLog());
         return incidentsPage.elements.incidentsTable().scrollIntoView().should('exist');
       });
   },
 
   deselectIncidentByBar: () => {
-    cy.log('incidentsPage.deselectIncidentByBar');
+    if (!_quietSearch) cy.log('incidentsPage.deselectIncidentByBar');
     return incidentsPage.elements
       .incidentsChartBarsVisiblePaths()
       .then(($paths) => {
         if ($paths.length === 0) {
           throw new Error('No paths found in incidents chart');
         }
-        return cy.wrap($paths.eq(0)).click({ force: true });
+        return cy.wrap($paths.eq(0), _qLog()).click({ force: true, ..._qLog() });
       })
       .then(() => {
         return incidentsPage.elements.incidentsTable().should('not.exist');
@@ -445,8 +481,8 @@ export const incidentsPage = {
   },
 
   expandRow: (rowIndex = 0) => {
-    cy.log('incidentsPage.expandRow');
-    incidentsPage.elements.incidentsTableExpandButton(rowIndex).click({ force: true });
+    if (!_quietSearch) cy.log('incidentsPage.expandRow');
+    incidentsPage.elements.incidentsTableExpandButton(rowIndex).click({ force: true, ..._qLog() });
   },
 
   waitForTooltip: () => {
@@ -521,9 +557,9 @@ export const incidentsPage = {
     cy.log(`incidentsPage.hoverOverIncidentBarSegment: bar=${barIndex}, segment=${segmentIndex}`);
     incidentsPage.getIncidentBarVisibleSegments(barIndex).then((segments) => {
       if (segmentIndex >= segments.length) {
+        const visCount = segments.length;
         throw new Error(
-          `Segment ${segmentIndex} not found (only ${segments.length}
-          visible segments in bar ${barIndex})`,
+          `Segment ${segmentIndex} not found — only ${visCount} segments in bar ${barIndex}`,
         );
       }
       const path = segments[segmentIndex];
@@ -600,6 +636,10 @@ export const incidentsPage = {
     return incidentsPage.waitForTooltip();
   },
 
+  resetSearchTimeout: () => {
+    _findIncidentSearchStart = null;
+  },
+
   // Constants for search configuration
   SEARCH_CONFIG: {
     CHART_LOAD_WAIT: 1000,
@@ -607,11 +647,13 @@ export const incidentsPage = {
   },
 
   prepareIncidentsPageForSearch: () => {
-    cy.log('incidentsPage.prepareIncidentsPageForSearch: Setting up page for search');
+    if (!_quietSearch) cy.log('incidentsPage.prepareIncidentsPageForSearch: Setting up page...');
+    // Force a hard page reload to release browser DOM memory from previous search iterations.
+    cy.reload({ log: false });
     incidentsPage.goTo();
     incidentsPage.setDays(incidentsPage.SEARCH_CONFIG.DEFAULT_DAYS);
     incidentsPage.elements.incidentsChartContainer().should('be.visible');
-    cy.wait(incidentsPage.SEARCH_CONFIG.CHART_LOAD_WAIT);
+    cy.wait(incidentsPage.SEARCH_CONFIG.CHART_LOAD_WAIT, _qLog());
   },
 
   /**
@@ -631,10 +673,9 @@ export const incidentsPage = {
       .then((text) => {
         if (String(text).includes(alertName)) {
           cy.log(`Found alert "${alertName}" in incident ${incidentIndex + 1} table content`);
-          cy.log(text);
-          return cy.wrap(true);
+          return cy.wrap(true, _qLog());
         }
-        return cy.wrap(false);
+        return cy.wrap(false, _qLog());
       });
   },
 
@@ -655,23 +696,21 @@ export const incidentsPage = {
     currentRowIndex: number = 0,
   ): Cypress.Chainable<boolean> => {
     if (currentRowIndex >= totalRows) {
-      cy.log(`Checked all ${totalRows} rows in incident ${incidentIndex + 1}, alert not found`);
-      return cy.wrap(false);
+      if (!_quietSearch)
+        cy.log(`Checked all ${totalRows} rows in incident ${incidentIndex + 1}, alert not found`);
+      return cy.wrap(false, _qLog());
     }
 
-    cy.log(`Expanding and checking row ${currentRowIndex} in incident ${incidentIndex + 1}`);
+    if (!_quietSearch)
+      cy.log(`Expanding and checking row ${currentRowIndex} in incident ${incidentIndex + 1}`);
     incidentsPage.expandRow(currentRowIndex);
 
     return incidentsPage
       .checkComponentRowInIncidentTableForAlert(alertName, incidentIndex)
       .then((found) => {
         if (found) {
-          cy.log(
-            `Found alert "${alertName}" in expanded row ${currentRowIndex} of incident ${
-              incidentIndex + 1
-            }`,
-          );
-          return cy.wrap(true);
+          cy.log(`Found "${alertName}" in row ${currentRowIndex}, incident ${incidentIndex + 1}`);
+          return cy.wrap(true, _qLog());
         }
         return incidentsPage.checkComponentInIncident(
           alertName,
@@ -683,8 +722,8 @@ export const incidentsPage = {
   },
 
   /**
-   * Searches for an alert in all components (usually connected with namespaces) of a single
-   * incident.
+   * Searches for an alert in all components (usually connected with namespaces)
+   * of a single incident.
    * First checks main table content, then recursively expands and checks each row.
    *
    * @param alertName - Name of the alert to search for
@@ -695,17 +734,16 @@ export const incidentsPage = {
     alertName: string,
     incidentIndex: number,
   ): Cypress.Chainable<boolean> => {
-    cy.log(
-      `incidentsPage.searchAllRowsInIncident: Checking all rows in incident ${
-        incidentIndex + 1
-      } for alert "${alertName}"`,
-    );
+    if (!_quietSearch)
+      cy.log(
+        `incidentsPage.searchAllRowsInIncident: incident ${incidentIndex + 1} for "${alertName}"`,
+      );
 
     return incidentsPage
       .checkComponentRowInIncidentTableForAlert(alertName, incidentIndex)
       .then((foundInMain) => {
         if (foundInMain) {
-          return cy.wrap(true);
+          return cy.wrap(true, _qLog());
         }
 
         return incidentsPage.elements
@@ -714,11 +752,12 @@ export const incidentsPage = {
           .then(($rows) => {
             const totalRows = $rows.length;
             if (totalRows === 0) {
-              cy.log(`No rows found in incident ${incidentIndex + 1}`);
-              return cy.wrap(false);
+              if (!_quietSearch) cy.log(`No rows found in incident ${incidentIndex + 1}`);
+              return cy.wrap(false, _qLog());
             }
 
-            cy.log(`Found ${totalRows} incident rows to check in incident ${incidentIndex + 1}`);
+            if (!_quietSearch)
+              cy.log(`Found ${totalRows} incident rows to check in incident ${incidentIndex + 1}`);
             return incidentsPage.checkComponentInIncident(alertName, incidentIndex, totalRows);
           });
       });
@@ -736,14 +775,13 @@ export const incidentsPage = {
     alertName: string,
     incidentIndex: number,
   ): Cypress.Chainable<boolean> => {
-    cy.log(
-      `incidentsPage.searchForAlertInIncident: Checking incident ${
-        incidentIndex + 1
-      } for alert "${alertName}"`,
-    );
+    if (!_quietSearch)
+      cy.log(
+        `incidentsPage.searchForAlertInIncident: incident ${incidentIndex + 1} for "${alertName}"`,
+      );
 
     return cy
-      .wrap(null)
+      .wrap(null, _qLog())
       .then(() => {
         incidentsPage.selectIncidentByBarIndex(incidentIndex);
         return null;
@@ -752,10 +790,9 @@ export const incidentsPage = {
   },
 
   /**
-   * Recursively traverses all incident bars in the chart, searching each one for a specific
-   * alert.
-   * Uses internal recursive function to systematically check each incident until found or
-   * exhausted.
+   * Recursively traverses all incident bars in the chart, searching each one for a specific alert.
+   * Uses internal recursive function to systematically check each incident
+   * until found or exhausted.
    *
    * @param alertName - Name of the alert to search for
    * @param totalIncidents - Total number of incidents to traverse
@@ -765,29 +802,22 @@ export const incidentsPage = {
     alertName: string,
     totalIncidents: number,
   ): Cypress.Chainable<boolean> => {
-    cy.log(
-      `incidentsPage.searchAllIncidents: Searching ${totalIncidents} incidents for alert ` +
-        `"${alertName}"`,
-    );
+    if (!_quietSearch)
+      cy.log(`incidentsPage.searchAllIncidents: Searching ${totalIncidents} for "${alertName}"`);
 
     const searchNextIncidentBar = (currentIndex: number): Cypress.Chainable<boolean> => {
       if (currentIndex >= totalIncidents) {
-        cy.log(`Checked all ${totalIncidents} incidents, alert "${alertName}" not found`);
-        return cy.wrap(false);
+        if (!_quietSearch)
+          cy.log(`Checked all ${totalIncidents} incidents, alert "${alertName}" not found`);
+        return cy.wrap(false, _qLog());
       }
 
       return incidentsPage.searchForAlertInIncident(alertName, currentIndex).then((found) => {
         if (found) {
-          return cy.wrap(true);
+          return cy.wrap(true, _qLog());
         }
         incidentsPage.deselectIncidentByBar();
-        // Wait for the incident to be deselected
-        // Quick workaround, could be improved by waiting for the number of paths to change, but
-        // it does not has to if 1 initially. The check for the alert table non existance is
-        // already implemented,
-        // but there seems to be a short delay between the alert table closing and new bars
-        // rendering.
-        cy.wait(500);
+        cy.wait(500, _qLog());
         return searchNextIncidentBar(currentIndex + 1);
       });
     };
@@ -803,19 +833,46 @@ export const incidentsPage = {
    * @returns Promise resolving to true if alert is found in any incident
    */
   findIncidentWithAlert: (alertName: string): Cypress.Chainable<boolean> => {
+    // Hard timeout safety net: if waitUntil's timeout fails to trigger
+    // (e.g., cy.reload() breaks the command queue), this prevents a 2h+ hang.
+    if (_findIncidentSearchStart === null) {
+      _findIncidentSearchStart = Date.now();
+    }
+    const elapsed = Date.now() - _findIncidentSearchStart;
+    if (elapsed > _FIND_INCIDENT_HARD_TIMEOUT_MS) {
+      _findIncidentSearchStart = null;
+      _quietSearch = false;
+      const mins = Math.round(elapsed / 60000);
+      throw new Error(`findIncidentWithAlert: hard timeout after ${mins} min for "${alertName}"`);
+    }
+
     cy.log(`incidentsPage.findIncidentWithAlert: Starting search for alert "${alertName}"`);
+
+    // Enable quiet mode to suppress Cypress DOM snapshots during the search.
+    // Each snapshot stores a serialized copy of the DOM (~1-5 MB). Without this,
+    // ~40 snapshots per search iteration * 15+ iterations = OOM in CI containers.
+    _quietSearch = true;
 
     incidentsPage.prepareIncidentsPageForSearch();
 
-    return incidentsPage.elements.incidentsChartBarsVisiblePaths().then(($paths) => {
-      const totalPaths = $paths.length;
-      if (totalPaths === 0) {
-        cy.log('No visible incident bar paths found in chart');
-        return cy.wrap(false);
-      }
+    return incidentsPage.elements
+      .incidentsChartBarsVisiblePaths()
+      .then(($paths) => {
+        const totalPaths = $paths.length;
+        if (totalPaths === 0) {
+          cy.log('No visible incident bar paths found in chart');
+          return cy.wrap(false, { log: false });
+        }
 
-      return incidentsPage.traverseAllIncidentsBars(alertName, totalPaths);
-    });
+        return incidentsPage.traverseAllIncidentsBars(alertName, totalPaths);
+      })
+      .then((found: boolean) => {
+        _quietSearch = false;
+        if (found) {
+          _findIncidentSearchStart = null;
+        }
+        return found;
+      });
   },
 
   /**
