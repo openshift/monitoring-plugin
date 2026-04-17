@@ -15,6 +15,7 @@ Verifies: OBSINTA-1006
 */
 
 import { incidentsPage } from '../../../views/incidents-page';
+import { BenchmarkCollector } from '../../../support/benchmark-utils';
 
 const MCP = {
   namespace: Cypress.env('COO_NAMESPACE'),
@@ -49,36 +50,7 @@ const THRESHOLDS = {
   INCIDENTS_CHART_MIXED_12: 5_000,
 };
 
-interface BenchmarkResult {
-  label: string;
-  elapsedMs: number;
-  thresholdMs: number;
-}
-
-const benchmarkResults: BenchmarkResult[] = [];
-
-const markStart = (label: string) => {
-  cy.window({ log: false }).then((win) => {
-    win.performance.clearMarks(label);
-    win.performance.clearMeasures(`measure:${label}`);
-    win.performance.mark(label);
-  });
-};
-
-const recordBenchmark = (label: string, thresholdMs: number) => {
-  cy.window({ log: false }).then((win) => {
-    const entry = win.performance.measure(`measure:${label}`, label);
-    const elapsedMs = Math.round(entry.duration);
-    benchmarkResults.push({ label, elapsedMs, thresholdMs });
-    const status = elapsedMs <= thresholdMs ? 'PASS' : 'FAIL';
-    const msg = `BENCHMARK [${status}] ${label}: ${elapsedMs}ms (threshold: ${thresholdMs}ms)`;
-    cy.log(msg);
-    cy.task('log', msg);
-    expect(elapsedMs, `${label} should complete within ${thresholdMs}ms`).to.be.at.most(
-      thresholdMs,
-    );
-  });
-};
+const collector = new BenchmarkCollector('01.performance_benchmark.cy.ts');
 
 describe(
   'Regression: Performance Benchmark',
@@ -88,18 +60,12 @@ describe(
       cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
     });
 
-    afterEach(function () {
-      if (benchmarkResults.length > 0) {
-        cy.log('--- Benchmark results for this test ---');
-        cy.task('log', '--- Benchmark results for this test ---');
-        benchmarkResults.forEach((r) => {
-          const status = r.elapsedMs <= r.thresholdMs ? 'PASS' : 'FAIL';
-          const line = `  [${status}] ${r.label}: ${r.elapsedMs}ms / ${r.thresholdMs}ms`;
-          cy.log(line);
-          cy.task('log', line);
-        });
-        benchmarkResults.length = 0;
-      }
+    afterEach(() => {
+      collector.reportAfterEach();
+    });
+
+    after(() => {
+      collector.writeReport();
     });
 
     it('6.1 Benchmark: Incidents chart render time with escalating alert counts', () => {
@@ -112,13 +78,13 @@ describe(
       ) => {
         cy.mockIncidentFixture(`incident-scenarios/${fixture}`);
 
-        markStart(label);
+        collector.markStart(label);
 
         incidentsPage.clearAllFilters();
         incidentsPage.setDays(days);
         incidentsPage.elements.incidentsChartBarsGroups().should('have.length', expectedBars);
 
-        recordBenchmark(label, thresholdMs);
+        collector.recordBenchmark(label, thresholdMs);
       };
 
       cy.log('6.1.1 Incidents chart with 100 alerts (single incident)');
@@ -163,12 +129,12 @@ describe(
 
         incidentsPage.selectIncidentById(incidentId);
 
-        markStart(label);
+        collector.markStart(label);
 
         incidentsPage.elements.alertsChartCard().should('be.visible');
         incidentsPage.elements.alertsChartBarsVisiblePaths().should('have.length.greaterThan', 0);
 
-        recordBenchmark(label, thresholdMs);
+        collector.recordBenchmark(label, thresholdMs);
       };
 
       cy.log('6.2.1 Alerts chart after selecting incident with 100 alerts');
@@ -201,13 +167,13 @@ describe(
 
       cy.mockIncidentFixture('incident-scenarios/22-benchmark-20-incidents.yaml');
 
-      markStart('Incidents chart - 20 uniform incidents');
+      collector.markStart('Incidents chart - 20 uniform incidents');
 
       incidentsPage.clearAllFilters();
       incidentsPage.setDays('1 day');
       incidentsPage.elements.incidentsChartBarsGroups().should('have.length', 20);
 
-      recordBenchmark(
+      collector.recordBenchmark(
         'Incidents chart - 20 uniform incidents',
         THRESHOLDS.INCIDENTS_CHART_20_INCIDENTS,
       );
@@ -218,13 +184,13 @@ describe(
 
       cy.mockIncidentFixture('incident-scenarios/23-benchmark-mixed-size-incidents.yaml');
 
-      markStart('Incidents chart - 12 mixed-size incidents (67 alerts)');
+      collector.markStart('Incidents chart - 12 mixed-size incidents (67 alerts)');
 
       incidentsPage.clearAllFilters();
       incidentsPage.setDays('1 day');
       incidentsPage.elements.incidentsChartBarsGroups().should('have.length', 12);
 
-      recordBenchmark(
+      collector.recordBenchmark(
         'Incidents chart - 12 mixed-size incidents (67 alerts)',
         THRESHOLDS.INCIDENTS_CHART_MIXED_12,
       );

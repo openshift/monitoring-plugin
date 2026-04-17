@@ -9,6 +9,7 @@ Verifies: OBSINTA-1006
 */
 
 import { incidentsPage } from '../../../views/incidents-page';
+import { BenchmarkCollector } from '../../../support/benchmark-utils';
 
 const MCP = {
   namespace: Cypress.env('COO_NAMESPACE'),
@@ -33,36 +34,7 @@ const THRESHOLDS = {
   TABLE_EXPAND_500: 20_000,
 };
 
-interface BenchmarkResult {
-  label: string;
-  elapsedMs: number;
-  thresholdMs: number;
-}
-
-const benchmarkResults: BenchmarkResult[] = [];
-
-const markStart = (label: string) => {
-  cy.window({ log: false }).then((win) => {
-    win.performance.clearMarks(label);
-    win.performance.clearMeasures(`measure:${label}`);
-    win.performance.mark(label);
-  });
-};
-
-const recordBenchmark = (label: string, thresholdMs: number) => {
-  cy.window({ log: false }).then((win) => {
-    const entry = win.performance.measure(`measure:${label}`, label);
-    const elapsedMs = Math.round(entry.duration);
-    benchmarkResults.push({ label, elapsedMs, thresholdMs });
-    const status = elapsedMs < thresholdMs ? 'PASS' : 'FAIL';
-    const msg = `BENCHMARK [${status}] ${label}: ${elapsedMs}ms (threshold: ${thresholdMs}ms)`;
-    cy.log(msg);
-    cy.task('log', msg);
-    expect(elapsedMs, `${label} should complete within ${thresholdMs}ms`).to.be.lessThan(
-      thresholdMs,
-    );
-  });
-};
+const collector = new BenchmarkCollector('02.performance_walkthrough.cy.ts');
 
 describe(
   'Performance: Interactive Walkthrough',
@@ -72,18 +44,12 @@ describe(
       cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
     });
 
-    afterEach(function () {
-      if (benchmarkResults.length > 0) {
-        cy.log('--- Benchmark results for this test ---');
-        cy.task('log', '--- Benchmark results for this test ---');
-        benchmarkResults.forEach((r) => {
-          const status = r.elapsedMs < r.thresholdMs ? 'PASS' : 'FAIL';
-          const line = `  [${status}] ${r.label}: ${r.elapsedMs}ms / ${r.thresholdMs}ms`;
-          cy.log(line);
-          cy.task('log', line);
-        });
-        benchmarkResults.length = 0;
-      }
+    afterEach(() => {
+      collector.reportAfterEach();
+    });
+
+    after(() => {
+      collector.writeReport();
     });
 
     it('7.1 Walkthrough: Filter interaction and time range switching with 20 incidents', () => {
@@ -95,76 +61,76 @@ describe(
       // --- Phase 1: Filter interaction ---
 
       cy.log('7.1.1 Apply Critical severity filter');
-      markStart('Filter apply - Critical');
+      collector.markStart('Filter apply - Critical');
 
       incidentsPage.toggleFilter('Critical');
       incidentsPage.elements.incidentsChartContainer().should('be.visible');
       incidentsPage.elements.incidentsChartBarsGroups().should('exist');
 
-      recordBenchmark('Filter apply - Critical', THRESHOLDS.FILTER_APPLY);
+      collector.recordBenchmark('Filter apply - Critical', THRESHOLDS.FILTER_APPLY);
 
       cy.log('7.1.2 Clear all filters (restore 20 incidents)');
-      markStart('Filter clear - all');
+      collector.markStart('Filter clear - all');
 
       incidentsPage.clearAllFilters();
       incidentsPage.elements.incidentsChartBarsGroups().should('have.length', 20);
 
-      recordBenchmark('Filter clear - all', THRESHOLDS.FILTER_CLEAR);
+      collector.recordBenchmark('Filter clear - all', THRESHOLDS.FILTER_CLEAR);
 
       cy.log('7.1.3 Apply Warning severity filter');
-      markStart('Filter apply - Warning');
+      collector.markStart('Filter apply - Warning');
 
       incidentsPage.toggleFilter('Warning');
       incidentsPage.elements.incidentsChartContainer().should('be.visible');
       incidentsPage.elements.incidentsChartBarsGroups().should('exist');
 
-      recordBenchmark('Filter apply - Warning', THRESHOLDS.FILTER_APPLY);
+      collector.recordBenchmark('Filter apply - Warning', THRESHOLDS.FILTER_APPLY);
 
       cy.log('7.1.4 Clear all filters again');
-      markStart('Filter clear - all (2nd)');
+      collector.markStart('Filter clear - all (2nd)');
 
       incidentsPage.clearAllFilters();
       incidentsPage.elements.incidentsChartBarsGroups().should('have.length', 20);
 
-      recordBenchmark('Filter clear - all (2nd)', THRESHOLDS.FILTER_CLEAR);
+      collector.recordBenchmark('Filter clear - all (2nd)', THRESHOLDS.FILTER_CLEAR);
 
       // --- Phase 2: Time range switching ---
 
       cy.log('7.1.5 Switch time range from 1 day to 3 days');
-      markStart('Time range switch - 1d to 3d');
+      collector.markStart('Time range switch - 1d to 3d');
 
       incidentsPage.setDays('3 days');
       incidentsPage.elements.incidentsChartContainer().should('be.visible');
       incidentsPage.elements.incidentsChartBarsGroups().should('exist');
 
-      recordBenchmark('Time range switch - 1d to 3d', THRESHOLDS.TIME_RANGE_SWITCH);
+      collector.recordBenchmark('Time range switch - 1d to 3d', THRESHOLDS.TIME_RANGE_SWITCH);
 
       cy.log('7.1.6 Switch time range from 3 days to 7 days');
-      markStart('Time range switch - 3d to 7d');
+      collector.markStart('Time range switch - 3d to 7d');
 
       incidentsPage.setDays('7 days');
       incidentsPage.elements.incidentsChartContainer().should('be.visible');
       incidentsPage.elements.incidentsChartBarsGroups().should('exist');
 
-      recordBenchmark('Time range switch - 3d to 7d', THRESHOLDS.TIME_RANGE_SWITCH);
+      collector.recordBenchmark('Time range switch - 3d to 7d', THRESHOLDS.TIME_RANGE_SWITCH);
 
       cy.log('7.1.7 Switch time range from 7 days to 15 days');
-      markStart('Time range switch - 7d to 15d');
+      collector.markStart('Time range switch - 7d to 15d');
 
       incidentsPage.setDays('15 days');
       incidentsPage.elements.incidentsChartContainer().should('be.visible');
       incidentsPage.elements.incidentsChartBarsGroups().should('exist');
 
-      recordBenchmark('Time range switch - 7d to 15d', THRESHOLDS.TIME_RANGE_SWITCH);
+      collector.recordBenchmark('Time range switch - 7d to 15d', THRESHOLDS.TIME_RANGE_SWITCH);
 
       cy.log('7.1.8 Switch time range back to 1 day');
-      markStart('Time range switch - 15d to 1d');
+      collector.markStart('Time range switch - 15d to 1d');
 
       incidentsPage.setDays('1 day');
       incidentsPage.elements.incidentsChartContainer().should('be.visible');
       incidentsPage.elements.incidentsChartBarsGroups().should('have.length', 20);
 
-      recordBenchmark('Time range switch - 15d to 1d', THRESHOLDS.TIME_RANGE_SWITCH);
+      collector.recordBenchmark('Time range switch - 15d to 1d', THRESHOLDS.TIME_RANGE_SWITCH);
     });
 
     it('7.2 Walkthrough: Table row expansion with 100 and 500 alerts', () => {
@@ -180,12 +146,12 @@ describe(
       incidentsPage.elements.incidentsTable().should('be.visible');
 
       cy.log('7.2.2 Expand first component row (100 alerts)');
-      markStart('Table expand - 100 alerts');
+      collector.markStart('Table expand - 100 alerts');
 
       incidentsPage.expandRow(0);
       incidentsPage.elements.incidentsDetailsTableRows().should('have.length.greaterThan', 0);
 
-      recordBenchmark('Table expand - 100 alerts', THRESHOLDS.TABLE_EXPAND_100);
+      collector.recordBenchmark('Table expand - 100 alerts', THRESHOLDS.TABLE_EXPAND_100);
 
       // --- Phase 3b: Table expansion with 500 alerts ---
 
@@ -197,12 +163,12 @@ describe(
       incidentsPage.elements.incidentsTable().should('be.visible');
 
       cy.log('7.2.4 Expand first component row (500 alerts)');
-      markStart('Table expand - 500 alerts');
+      collector.markStart('Table expand - 500 alerts');
 
       incidentsPage.expandRow(0);
       incidentsPage.elements.incidentsDetailsTableRows().should('have.length.greaterThan', 0);
 
-      recordBenchmark('Table expand - 500 alerts', THRESHOLDS.TABLE_EXPAND_500);
+      collector.recordBenchmark('Table expand - 500 alerts', THRESHOLDS.TABLE_EXPAND_500);
     });
   },
 );
