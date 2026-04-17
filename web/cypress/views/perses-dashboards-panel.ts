@@ -111,7 +111,9 @@ export const persesDashboardsPanel = {
     legend?: string,
   ) => {
     cy.log('persesDashboardsPanel.addPanel');
-    cy.wait(2000);
+    cy.waitUntil(() => cy.get('#' + IDs.persesDashboardAddPanelForm).should('be.visible'), {
+      timeout: 60000,
+    });
     cy.get('input[name="' + editPersesDashboardsAddPanel.inputName + '"]')
       .clear()
       .type(name);
@@ -121,18 +123,16 @@ export const persesDashboardsPanel = {
         .type(description);
     }
     persesDashboardsPanel.clickDropdownAndSelectOption('Group', group);
-
-    cy.wait(1000);
     persesDashboardsPanel.clickDropdownAndSelectOption('Type', type);
 
     switch (type) {
       //BAR_GAUGE_HEAT_HISTOGRAM_PIE_STAT_STATUS_TABLE_TIMESERIES
-      case persesDashboardsAddListPanelType.BAR_CHART:
       // case persesDashboardsAddListPanelType.HEATMAP_CHART:
       // case persesDashboardsAddListPanelType.HISTOGRAM_CHART:
       // case persesDashboardsAddListPanelType.PIE_CHART:
       // case persesDashboardsAddListPanelType.STAT_CHART:
       // falls through
+      case persesDashboardsAddListPanelType.BAR_CHART:
       case persesDashboardsAddListPanelType.STATUS_HISTORY_CHART:
       case persesDashboardsAddListPanelType.TABLE:
       case persesDashboardsAddListPanelType.TIME_SERIES_CHART:
@@ -153,6 +153,36 @@ export const persesDashboardsPanel = {
           cy.get('label').contains('Legend').next('div').find('input').click().type(legend);
         }
         break;
+      case persesDashboardsAddListPanelType.SCATTER_CHART:
+      case persesDashboardsAddListPanelType.TRACE_TABLE:
+      case persesDashboardsAddListPanelType.TRACING_GANTT_CHART:
+        cy.wait(2000);
+        persesDashboardsPanel.clickDropdownAndSelectOption(
+          'Query Type',
+          persesDashboardsAddPanelAddQueryType.SCATTER_TRACE_TRACINGGANTT.TEMPO_TRACE_QUERY,
+        );
+
+        cy.get('button').contains('Show query').click();
+        cy.wait(2000);
+        if (query !== undefined && query !== '') {
+          persesDashboardsPanel.enterTraceQLExpression(query);
+        } else {
+          persesDashboardsPanel.enterTraceQLExpression('{}');
+        }
+        break;
+      case persesDashboardsAddListPanelType.LOGS_TABLE:
+        cy.wait(2000);
+        persesDashboardsPanel.clickDropdownAndSelectOption(
+          'Query Type',
+          persesDashboardsAddPanelAddQueryType.LOGS_TABLE.LOKI_LOG_QUERY,
+        );
+        cy.wait(2000);
+        if (query !== undefined && query !== '') {
+          persesDashboardsPanel.enterLogQLQuery(query);
+        } else {
+          persesDashboardsPanel.enterLogQLQuery('{ log_type="application" } | json');
+        }
+        break;
     }
     cy.get('#' + IDs.persesDashboardAddPanelForm)
       .parent('div')
@@ -162,6 +192,39 @@ export const persesDashboardsPanel = {
       .contains('Add')
       .should('be.visible')
       .click();
+  },
+
+  // CM6 needs direct DOM manipulation so the query value is captured
+  // in the editor's internal state via its MutationObserver.
+  // Using .type() fails because CM6 replaces the .cm-line element
+  // after clearing, leaving Cypress typing into a detached node.
+  enterCM6Expression: (label: 'TraceQL Expression' | 'LogQL Query', expression: string) => {
+    cy.log(`persesDashboardsPanel.enterCM6Expression (${label})`);
+    cy.contains('label', label)
+      .parent()
+      .find('[role="textbox"] .cm-line')
+      .should('be.visible')
+      .then(($el) => {
+        $el[0].textContent = expression;
+        $el[0].dispatchEvent(new Event('input', { bubbles: true }));
+        $el[0].dispatchEvent(new Event('blur', { bubbles: true }));
+      });
+    cy.wait(3000);
+    cy.contains('label', label).parent().find('[role="textbox"] .cm-line').click();
+    cy.wait(3000);
+    cy.bySemanticElement('button', 'Run Query')
+      .scrollIntoView()
+      .should('be.visible')
+      .click({ force: true });
+    cy.wait(3000);
+  },
+
+  enterTraceQLExpression: (expression: string) => {
+    persesDashboardsPanel.enterCM6Expression('TraceQL Expression', expression);
+  },
+
+  enterLogQLQuery: (expression: string) => {
+    persesDashboardsPanel.enterCM6Expression('LogQL Query', expression);
   },
 
   enterPromQLQuery: (query: string | 'up' | 'haproxy_up') => {

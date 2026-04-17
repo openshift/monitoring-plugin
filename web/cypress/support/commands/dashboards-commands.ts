@@ -21,6 +21,7 @@ export const dashboardsUtils = {
       readyTimeoutMilliseconds,
     );
     cy.log(`Monitoring plugin pod is now running in namespace: ${MCP.namespace}`);
+    cy.checkForAlertRecursively();
   },
 
   setupDashboardsAndPlugins(MCP: { namespace: string }): void {
@@ -158,7 +159,7 @@ export const dashboardsUtils = {
       installTimeoutMilliseconds,
     );
     cy.log(`Korrel8r pod is now running in namespace: ${MCP.namespace}`);
-
+    cy.checkForAlertRecursively();
     cy.reload(true);
 
     // Dynamic plugins may take time to register after reload.

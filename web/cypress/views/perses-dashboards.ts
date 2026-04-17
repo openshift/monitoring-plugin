@@ -87,7 +87,6 @@ export const persesDashboardsPage = {
 
   shouldBeLoadedEditionMode: (dashboardName: string) => {
     cy.log('persesDashboardsPage.shouldBeLoadedEditionMode');
-    cy.wait(10000);
     commonPages.titleShouldHaveText(MonitoringPageTitles.DASHBOARDS);
     cy.byOUIAID(listPersesDashboardsOUIAIDs.PageHeaderSubtitle)
       .scrollIntoView()
@@ -127,16 +126,19 @@ export const persesDashboardsPage = {
 
   shouldBeLoadedEditionModeFromCreateDashboard: () => {
     cy.log('persesDashboardsPage.shouldBeLoadedEditionModeFromCreateDashboard');
-    cy.wait(10000);
-    cy.get('h2')
-      .contains(persesDashboardsEmptyDashboard.TITLE)
-      .scrollIntoView()
-      .should('be.visible');
+    cy.waitUntil(
+      () =>
+        cy
+          .get('h2')
+          .contains(persesDashboardsEmptyDashboard.TITLE)
+          .scrollIntoView()
+          .should('be.visible'),
+      { timeout: 60000 },
+    );
     cy.get('p')
       .contains(persesDashboardsEmptyDashboard.DESCRIPTION)
       .scrollIntoView()
       .should('be.visible');
-
     cy.get('h2')
       .siblings('div')
       .find('[aria-label="Add panel"]')
@@ -651,10 +653,7 @@ export const persesDashboardsPage = {
     cy.log('persesDashboardsPage.clickSaveDashboardButton');
     cy.wait(2000);
     cy.get('body').then((body) => {
-      if (
-        body.find('[data-testid="CloseIcon"]').length > 0 &&
-        body.find('[data-testid="CloseIcon"]').is(':visible')
-      ) {
+      if (body.find('button:contains("Save Changes"):visible').length > 0) {
         cy.bySemanticElement('button', 'Save Changes')
           .scrollIntoView()
           .should('be.visible')
@@ -812,5 +811,20 @@ export const persesDashboardsPage = {
           .click({ force: true });
       }
     });
+  },
+
+  assertLogsTablePanel: () => {
+    cy.log('persesDashboardsPage.assertLogsTablePanel');
+    cy.byDataTestID(persesMUIDataTestIDs.logsTableContainer).should('exist');
+  },
+
+  assertScatterChartPanel: () => {
+    cy.log('persesDashboardsPage.assertScatterChartPanel');
+    cy.byDataTestID(persesMUIDataTestIDs.scatterChartPanel_ScatterPlot).should('exist');
+  },
+
+  assertTraceTablePanel: () => {
+    cy.log('persesDashboardsPage.assertTraceTablePanel');
+    cy.byAriaLabel(persesAriaLabels.traceTablePanel_TraceTable).should('exist');
   },
 };
