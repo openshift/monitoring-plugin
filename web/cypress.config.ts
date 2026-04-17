@@ -3,6 +3,7 @@ import * as fs from 'fs-extra';
 import * as console from 'console';
 import * as path from 'path';
 import registerCypressGrep from '@cypress/grep/src/plugin';
+import { writeBenchmarkReport, injectBenchmarksIntoMochawesome } from './cypress/plugins/benchmark-reporter';
 
 const getLoginCredentials = (index: number): { username: string; password: string } => {
   const users = (process.env.CYPRESS_LOGIN_USERS || '').split(',').filter(Boolean);
@@ -150,17 +151,23 @@ export default defineConfig({
           return files;
         },
 
+        writeBenchmarkReport,
+
       });
       on('after:spec', (spec: Cypress.Spec, results: CypressCommandLine.RunResult) => {
         if (results && results.video) {
-          // Do we have failures for any retry attempts?
           const failures = results.tests.some((test) =>
             test.attempts.some((attempt) => attempt.state === 'failed'),
           );
           if (!failures && fs.existsSync(results.video)) {
-            // Delete the video if the spec passed and no tests retried
             fs.unlinkSync(results.video);
           }
+        }
+
+        try {
+          injectBenchmarksIntoMochawesome(spec.relative);
+        } catch (e) {
+          console.log(`Benchmark injection skipped: ${(e as Error).message}`);
         }
       });
       return config;
