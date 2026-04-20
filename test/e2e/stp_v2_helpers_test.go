@@ -288,6 +288,42 @@ func patchRulesBulk(ctx context.Context, pluginURL string, body interface{}) (in
 	return resp.StatusCode, &parsed, nil
 }
 
+// patchSingleRuleViaBulk sends PATCH /rules with a single ruleId, wrapping the
+// single-rule operation through the bulk endpoint. Returns the first result.
+func patchSingleRuleViaBulk(ctx context.Context, pluginURL string, ruleID string, body map[string]interface{}) (int, *managementrouter.UpdateAlertRuleResponse, error) {
+	bulkBody := map[string]interface{}{
+		"ruleIds": []string{ruleID},
+	}
+	for k, v := range body {
+		bulkBody[k] = v
+	}
+
+	httpStatus, resp, err := patchRulesBulk(ctx, pluginURL, bulkBody)
+	if err != nil {
+		return httpStatus, nil, err
+	}
+	if len(resp.Rules) == 0 {
+		return httpStatus, nil, fmt.Errorf("bulk patch returned 0 results")
+	}
+	return httpStatus, &resp.Rules[0], nil
+}
+
+// deleteSingleRuleViaBulk sends DELETE /rules with a single ruleId, wrapping the
+// single-rule operation through the bulk endpoint. Returns the first result's status code.
+func deleteSingleRuleViaBulk(ctx context.Context, pluginURL string, ruleID string) (int, error) {
+	body := managementrouter.BulkDeleteUserDefinedAlertRulesRequest{
+		RuleIds: []string{ruleID},
+	}
+	_, resp, err := deleteRulesBulk(ctx, pluginURL, body)
+	if err != nil {
+		return 0, err
+	}
+	if len(resp.Rules) == 0 {
+		return 0, fmt.Errorf("bulk delete returned 0 results")
+	}
+	return resp.Rules[0].StatusCode, nil
+}
+
 // deleteRule sends DELETE /rules/{ruleId} and returns the HTTP status code + body.
 func deleteRule(ctx context.Context, pluginURL string, ruleID string) (int, []byte, error) {
 	u := fmt.Sprintf("%s/api/v1/alerting/rules/%s", pluginURL, ruleID)

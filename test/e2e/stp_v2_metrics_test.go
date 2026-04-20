@@ -8,8 +8,6 @@ import (
 	"github.com/openshift/monitoring-plugin/test/e2e/framework"
 )
 
-const metricsSkipMessage = "metric alerts_effective_active_at_timestamp_seconds not yet implemented"
-
 // ==========================================================================
 // Phase 12: Metrics (TC-053 to TC-058)
 // ==========================================================================
@@ -19,7 +17,7 @@ func testPhase12Metrics(f *framework.Framework) func(t *testing.T) {
 		ctx := context.Background()
 
 		t.Run("TC053_MetricEndpointExposesEffectiveMetric", func(t *testing.T) {
-			t.Skip(metricsSkipMessage)
+			// metric now implemented in sradco's code
 
 			body, err := getMetrics(ctx, f.PluginURL)
 			if err != nil {
@@ -47,7 +45,7 @@ func testPhase12Metrics(f *framework.Framework) func(t *testing.T) {
 		})
 
 		t.Run("TC054_MetricSeriesHaveRequiredLabels", func(t *testing.T) {
-			t.Skip(metricsSkipMessage)
+			// metric now implemented in sradco's code
 
 			body, err := getMetrics(ctx, f.PluginURL)
 			if err != nil {
@@ -74,7 +72,7 @@ func testPhase12Metrics(f *framework.Framework) func(t *testing.T) {
 		})
 
 		t.Run("TC055_MetricExcludesThanosBackend", func(t *testing.T) {
-			t.Skip(metricsSkipMessage)
+			// metric now implemented in sradco's code
 
 			body, err := getMetrics(ctx, f.PluginURL)
 			if err != nil {
@@ -91,7 +89,7 @@ func testPhase12Metrics(f *framework.Framework) func(t *testing.T) {
 		})
 
 		t.Run("TC056_MetricIncludesClassificationLabels", func(t *testing.T) {
-			t.Skip(metricsSkipMessage)
+			// metric now implemented in sradco's code
 
 			body, err := getMetrics(ctx, f.PluginURL)
 			if err != nil {
@@ -114,7 +112,7 @@ func testPhase12Metrics(f *framework.Framework) func(t *testing.T) {
 		})
 
 		t.Run("TC057_MetricExcludesAnnotations", func(t *testing.T) {
-			t.Skip(metricsSkipMessage)
+			// metric now implemented in sradco's code
 
 			body, err := getMetrics(ctx, f.PluginURL)
 			if err != nil {
@@ -134,7 +132,7 @@ func testPhase12Metrics(f *framework.Framework) func(t *testing.T) {
 		})
 
 		t.Run("TC058_MetricActiveAtTimestampsAreReasonable", func(t *testing.T) {
-			t.Skip(metricsSkipMessage)
+			// metric now implemented in sradco's code
 
 			body, err := getMetrics(ctx, f.PluginURL)
 			if err != nil {

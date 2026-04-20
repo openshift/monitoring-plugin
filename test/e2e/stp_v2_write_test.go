@@ -300,7 +300,7 @@ func testPhase5Classification(f *framework.Framework, ids *seedRuleIDs) func(t *
 				},
 			}
 
-			httpStatus, resp, err := patchRule(ctx, f.PluginURL, ids.Watchdog, body)
+			httpStatus, resp, err := patchSingleRuleViaBulk(ctx, f.PluginURL, ids.Watchdog, body)
 			if err != nil {
 				t.Fatalf("PATCH failed: %v", err)
 			}
@@ -315,7 +315,7 @@ func testPhase5Classification(f *framework.Framework, ids *seedRuleIDs) func(t *
 				},
 			}
 
-			httpStatus, resp, err := patchRule(ctx, f.PluginURL, ids.PlatformRule, body)
+			httpStatus, resp, err := patchSingleRuleViaBulk(ctx, f.PluginURL, ids.PlatformRule, body)
 			if err != nil {
 				t.Fatalf("PATCH failed: %v", err)
 			}
@@ -439,7 +439,7 @@ func testPhase6SingleUpdate(f *framework.Framework, ids *seedRuleIDs) func(t *te
 				"AlertingRuleEnabled": false,
 			}
 
-			httpStatus, resp, err := patchRule(ctx, f.PluginURL, ids.Watchdog, body)
+			httpStatus, resp, err := patchSingleRuleViaBulk(ctx, f.PluginURL, ids.Watchdog, body)
 			if err != nil {
 				t.Fatalf("PATCH failed: %v", err)
 			}
@@ -451,7 +451,7 @@ func testPhase6SingleUpdate(f *framework.Framework, ids *seedRuleIDs) func(t *te
 				"AlertingRuleEnabled": true,
 			}
 
-			httpStatus, resp, err := patchRule(ctx, f.PluginURL, ids.Watchdog, body)
+			httpStatus, resp, err := patchSingleRuleViaBulk(ctx, f.PluginURL, ids.Watchdog, body)
 			if err != nil {
 				t.Fatalf("PATCH failed: %v", err)
 			}
@@ -481,7 +481,7 @@ func testPhase6SingleUpdate(f *framework.Framework, ids *seedRuleIDs) func(t *te
 				},
 			}
 
-			httpStatus, resp, err := patchRule(ctx, f.PluginURL, ids.Watchdog, body)
+			httpStatus, resp, err := patchSingleRuleViaBulk(ctx, f.PluginURL, ids.Watchdog, body)
 			if err != nil {
 				t.Fatalf("PATCH failed: %v", err)
 			}
@@ -715,12 +715,12 @@ func testPhase8SingleDelete(f *framework.Framework, ids *seedRuleIDs) func(t *te
 		})
 
 		t.Run("TC048_DeleteGitOps", func(t *testing.T) {
-			statusCode, body, err := deleteRule(ctx, f.PluginURL, ids.GitOpsRule)
+			resultStatus, err := deleteSingleRuleViaBulk(ctx, f.PluginURL, ids.GitOpsRule)
 			if err != nil {
-				t.Fatalf("DELETE /rules/%s failed: %v", ids.GitOpsRule, err)
+				t.Fatalf("DELETE GitOps rule failed: %v", err)
 			}
-			if statusCode != http.StatusMethodNotAllowed {
-				t.Fatalf("Expected HTTP 405, got %d: %s", statusCode, string(body))
+			if resultStatus != http.StatusMethodNotAllowed {
+				t.Fatalf("Expected result status 405, got %d", resultStatus)
 			}
 		})
 	}
