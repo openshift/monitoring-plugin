@@ -218,10 +218,16 @@ func TestAlertManagementAPI(t *testing.T) {
 		}
 
 		found := 0
+		withID := 0
 		for _, name := range seedAlerts {
-			id := findRuleIDInGroups(groups, name)
+			rule := findRuleInGroups(groups, name)
+			if rule == nil {
+				continue
+			}
+			found++
+			id := rule.Labels[k8s.AlertRuleLabelId]
 			if id != "" {
-				found++
+				withID++
 				switch name {
 				case "TestUserAlert":
 					ids.UserRule = id
@@ -238,8 +244,8 @@ func TestAlertManagementAPI(t *testing.T) {
 				}
 			}
 		}
-		t.Logf("  poll: found %d/%d seed rules", found, len(seedAlerts))
-		return found == len(seedAlerts), nil
+		t.Logf("  poll: found %d/%d seed rules (%d with ID)", found, len(seedAlerts), withID)
+		return withID == len(seedAlerts), nil
 	})
 	if err != nil {
 		t.Fatalf("Timeout waiting for seed rules: %v (ids so far: %+v)", err, ids)
