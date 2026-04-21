@@ -24,10 +24,11 @@ const IncidentsDetailsRowTable = ({ alerts }: IncidentsDetailsRowTableProps) => 
   const sortedAndMappedAlerts = useMemo(() => {
     if (alerts && alerts.length > 0) {
       return [...alerts]
-        .sort(
-          (a: IncidentsDetailsAlert, b: IncidentsDetailsAlert) =>
-            a.alertsStartFiring - b.alertsStartFiring,
-        )
+        .sort((a: IncidentsDetailsAlert, b: IncidentsDetailsAlert) => {
+          const aStart = a.firstTimestamp > 0 ? a.firstTimestamp : a.alertsStartFiring;
+          const bStart = b.firstTimestamp > 0 ? b.firstTimestamp : b.alertsStartFiring;
+          return aStart - bStart;
+        })
         .map((alertDetails: IncidentsDetailsAlert, rowIndex) => {
           return (
             <Tr key={rowIndex}>
@@ -45,13 +46,21 @@ const IncidentsDetailsRowTable = ({ alerts }: IncidentsDetailsRowTableProps) => 
                 <SeverityBadge severity={alertDetails.severity} />
               </Td>
               <Td dataLabel="expanded-details-firingstart">
-                <Timestamp timestamp={String(alertDetails.alertsStartFiring * 1000)} />
+                <Timestamp
+                  timestamp={new Date(
+                    (alertDetails.firstTimestamp > 0
+                      ? alertDetails.firstTimestamp
+                      : alertDetails.alertsStartFiring) * 1000,
+                  ).toISOString()}
+                />
               </Td>
               <Td dataLabel="expanded-details-firingend">
                 {!alertDetails.resolved ? (
                   '---'
                 ) : (
-                  <Timestamp timestamp={String(alertDetails.alertsEndFiring * 1000)} />
+                  <Timestamp
+                    timestamp={new Date(alertDetails.alertsEndFiring * 1000).toISOString()}
+                  />
                 )}
               </Td>
               <Td dataLabel="expanded-details-alertstate">
