@@ -39,6 +39,7 @@ import {
   onIncidentFiltersSelect,
   parseUrlParams,
   updateBrowserUrl,
+  DAY_MS,
 } from './utils';
 import { groupAlertsForTable, convertToAlerts } from './processAlerts';
 import { CompressArrowsAltIcon, CompressIcon, FilterIcon } from '@patternfly/react-icons';
@@ -231,52 +232,54 @@ const IncidentsPage = () => {
   }, [incidentsActiveFilters.days]);
 
   useEffect(() => {
-    (async () => {
-      const currentTime = incidentsLastRefreshTime;
-      Promise.all(
-        timeRanges.map(async (range) => {
-          const response = await fetchDataForIncidentsAndAlerts(
-            safeFetch,
-            range,
-            createAlertsQuery(incidentForAlertProcessing),
-          );
-          return response.data.result;
-        }),
-      )
-        .then((results) => {
-          const prometheusResults = results.flat();
-          const alerts = convertToAlerts(
-            prometheusResults,
-            incidentForAlertProcessing,
-            currentTime,
-          );
+    if (incidentForAlertProcessing.length === 0) {
+      return;
+    }
+
+    const currentTime = incidentsLastRefreshTime;
+
+    // Always fetch 15 days of alert data so firstTimestamp is computed from full history
+    const fetchTimeRanges = getIncidentsTimeRanges(15 * DAY_MS, currentTime);
+
+    Promise.all(
+      fetchTimeRanges.map(async (range) => {
+        const response = await fetchDataForIncidentsAndAlerts(
+          safeFetch,
+          range,
+          createAlertsQuery(incidentForAlertProcessing),
+        );
+        return response.data.result;
+      }),
+    )
+      .then((alertsResults) => {
+        const prometheusResults = alertsResults.flat();
+        const alerts = convertToAlerts(
+          prometheusResults,
+          incidentForAlertProcessing,
+          currentTime,
+          daysSpan,
+        );
+        dispatch(
+          setAlertsData({
+            alertsData: alerts,
+          }),
+        );
+        if (rules && alerts) {
           dispatch(
-            setAlertsData({
-              alertsData: alerts,
+            setAlertsTableData({
+              alertsTableData: groupAlertsForTable(alerts, rules),
             }),
           );
-          if (rules && alerts) {
-            dispatch(
-              setAlertsTableData({
-                alertsTableData: groupAlertsForTable(alerts, rules),
-              }),
-            );
-          }
-          if (!isEmpty(filteredData)) {
-            dispatch(setAlertsAreLoading({ alertsAreLoading: false }));
-          } else {
-            dispatch(setAlertsAreLoading({ alertsAreLoading: true }));
-          }
-        })
-        .catch((err) => {
-          // eslint-disable-next-line no-console
-          console.log(err);
-
-          dispatch(setAlertsAreLoading({ alertsAreLoading: false }));
-          setLoadError(err);
-        });
-    })();
-  }, [incidentForAlertProcessing]);
+        }
+        dispatch(setAlertsAreLoading({ alertsAreLoading: false }));
+      })
+      .catch((err) => {
+        // eslint-disable-next-line no-console
+        console.error(err);
+        dispatch(setAlertsAreLoading({ alertsAreLoading: false }));
+        setLoadError(err);
+      });
+  }, [incidentForAlertProcessing, rules, daysSpan]);
 
   useEffect(() => {
     if (!isInitialized) return;
@@ -293,30 +296,34 @@ const IncidentsPage = () => {
         ? incidentsActiveFilters.days[0].split(' ')[0] + 'd'
         : '',
     );
-    const calculatedTimeRanges = getIncidentsTimeRanges(daysDuration, currentTime);
 
     const isGroupSelected = !!selectedGroupId;
     const incidentsQuery = isGroupSelected
       ? `cluster_health_components_map{group_id='${selectedGroupId}'}`
       : 'cluster_health_components_map';
 
+    // Always fetch 15 days of data so firstTimestamp is computed from full history
+    const fetchTimeRanges = getIncidentsTimeRanges(15 * DAY_MS, currentTime);
+
     Promise.all(
-      calculatedTimeRanges.map(async (range) => {
+      fetchTimeRanges.map(async (range) => {
         const response = await fetchDataForIncidentsAndAlerts(safeFetch, range, incidentsQuery);
         return response.data.result;
       }),
     )
-      .then((results) => {
-        const prometheusResults = results.flat();
-        const incidents = convertToIncidents(prometheusResults, currentTime);
+      .then((incidentsResults) => {
+        const prometheusResults = incidentsResults.flat();
+        const incidents = convertToIncidents(prometheusResults, currentTime, daysDuration);
 
         // Update the raw, unfiltered incidents state
         dispatch(setIncidents({ incidents }));
 
+        const filteredData = filterIncident(incidentsActiveFilters, incidents);
+
         // Filter the incidents and dispatch
         dispatch(
           setFilteredIncidentsData({
-            filteredIncidentsData: filterIncident(incidentsActiveFilters, incidents),
+            filteredIncidentsData: filteredData,
           }),
         );
 
