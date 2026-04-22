@@ -49,11 +49,12 @@ const barTheme = {
   },
 };
 
+const Label: FC<LabelComponentProps> = ({ metric }) => <>{Object.values(metric).join()}</>;
+
 const BarChart: FC<BarChartProps> = ({
   barSpacing = 15,
   barWidth = DEFAULT_BAR_WIDTH,
   data = [],
-  LabelComponent,
   loading = false,
   noLink = false,
   query,
@@ -85,11 +86,7 @@ const BarChart: FC<BarChartProps> = ({
           data.map((datum, index) => (
             <Fragment key={index}>
               <div className="graph-bar__label">
-                {LabelComponent ? (
-                  <LabelComponent title={datum.x} metric={datum.metric} />
-                ) : (
-                  datum.x
-                )}
+                <Label title={datum.x} metric={datum.metric} />
               </div>
               <div className="graph-bar__chart">
                 <ChartBar
