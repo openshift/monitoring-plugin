@@ -128,9 +128,17 @@ Output your diagnosis in this exact format:
 - Change: [specific description of what to change]
 - [If multiple files need changing, list each]
 
+**History Check**:
+- Run `git log origin/main -- <file>` for each file in the recommended fix
+- Look for prior commits that removed or replaced the pattern being proposed
+- If found, note: "WARNING: commit <sha> removed this pattern because <reason>"
+- Example: cy.reload() was removed from prepareIncidentsPageForSearch in e8d0007
+  because it breaks dynamic plugin chunk loading. Do NOT re-introduce it.
+
 **Risk Assessment**:
 - Will this fix affect other tests? [yes/no and why]
 - Could this mask a real bug? [yes/no and why]
+- Does this fix re-introduce a previously reverted pattern? [yes/no]
 
 **Alternative Hypotheses**:
 - [If confidence is MEDIUM or LOW, list other possible causes]

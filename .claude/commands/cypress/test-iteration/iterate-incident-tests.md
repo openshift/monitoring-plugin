@@ -302,6 +302,14 @@ You must NOT edit:
 - If fixing a fixture, validate it against the fixture schema
   (run /cypress:test-development:validate-incident-fixtures mentally or reference the schema)
 - If adding a page object method, follow existing naming conventions
+- **Before applying any fix, check git history** for the file being changed:
+  `git log origin/main -- <file>` — look for prior commits that explicitly
+  removed or replaced the pattern you are about to introduce. For example,
+  `cy.reload()` was previously removed from prepareIncidentsPageForSearch
+  because it breaks dynamic plugin chunk loading in headless CI. The iteration
+  agent lacks git history context and will re-discover "fixes" that were
+  already tried and reverted. If a prior commit removed the pattern for a
+  documented reason, do NOT re-introduce it.
 ```
 
 After the Fix Agent returns, verify the fix makes sense:
