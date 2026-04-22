@@ -15,14 +15,13 @@ import {
   Flex,
   FlexItem,
   ExpandableSectionToggle,
+  Spinner,
 } from '@patternfly/react-core';
 import type { FC } from 'react';
 import { memo, useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom-v5-compat';
-
-import { setQueryArguments } from '../../console/utils/router';
 
 import { Perspective } from '../../../store/actions';
 import BarChart from '../legacy/bar-chart';
@@ -36,6 +35,7 @@ import {
   getObserveState,
   usePerspective,
 } from '../../hooks/usePerspective';
+import { useMonitoringNamespace } from '../../hooks/useMonitoringNamespace';
 import KebabDropdown from '../../kebab-dropdown';
 import { MonitoringState } from '../../../store/store';
 import { evaluateVariableTemplate, Variable } from './legacy-variable-dropdowns';
@@ -47,10 +47,10 @@ import {
   isDataSource,
 } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
 import { t_global_font_size_heading_h2 } from '@patternfly/react-tokens';
-import { GraphEmpty } from '../../../components/console/graphs/graph-empty';
 import { GraphUnits } from '../../../components/metrics/units';
 import { LegacyDashboardPageTestIDs } from '../../../components/data-test';
 import { useMonitoring } from '../../../hooks/useMonitoring';
+import { StringParam, useQueryParam } from 'use-query-params';
 
 const QueryBrowserLink = ({
   queries,
@@ -63,6 +63,7 @@ const QueryBrowserLink = ({
 }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
+  const { namespace } = useMonitoringNamespace();
 
   const params = new URLSearchParams();
   queries.forEach((q, i) => params.set(`query${i}`, q));
@@ -71,13 +72,13 @@ const QueryBrowserLink = ({
   }
 
   if (customDataSourceName) {
-    params.set('datasource', customDataSourceName);
+    params.set(QueryParams.Datasource, customDataSourceName);
   }
 
   return (
     <Link
       aria-label={t('Inspect')}
-      to={getMutlipleQueryBrowserUrl(perspective, params)}
+      to={getMutlipleQueryBrowserUrl(perspective, params, namespace)}
       data-test={LegacyDashboardPageTestIDs.Inspect}
     >
       {t('Inspect')}
@@ -121,8 +122,11 @@ const Card: FC<CardProps> = memo(({ panel, perspective }) => {
   const [isError, setIsError] = useState<boolean>(false);
   const [dataSourceInfoLoading, setDataSourceInfoLoading] = useState<boolean>(true);
   const [customDataSource, setCustomDataSource] = useState<CustomDataSource>(undefined);
+  const [isChartLoading, setIsChartLoading] = useState<boolean>(panel.type === 'graph');
   const customDataSourceName = panel.datasource?.name;
   const [extensions, extensionsResolved] = useResolvedExtensions<DataSource>(isDataSource);
+  const [, setEndTimeParam] = useQueryParam(QueryParams.EndTime, StringParam);
+  const [, setTimeRangeParam] = useQueryParam(QueryParams.TimeRange, StringParam);
   const hasExtensions = !_.isEmpty(extensions);
 
   const formatSeriesTitle = useCallback(
@@ -246,12 +250,10 @@ const Card: FC<CardProps> = memo(({ panel, perspective }) => {
     });
   }, [extensions, extensionsResolved, customDataSourceName, hasExtensions]);
 
-  const handleZoom = useCallback((timeRange: number, endTime: number) => {
-    setQueryArguments({
-      [QueryParams.EndTime]: endTime.toString(),
-      [QueryParams.TimeRange]: timeRange.toString(),
-    });
-  }, []);
+  const handleZoom = (timeRange: number, endTime: number) => {
+    setEndTimeParam(endTime.toString());
+    setTimeRangeParam(timeRange.toString());
+  };
 
   const panelBreakpoints = useMemo(() => {
     const panelSpan = getPanelSpan(panel);
@@ -304,6 +306,7 @@ const Card: FC<CardProps> = memo(({ panel, perspective }) => {
           actions={{
             actions: (
               <>
+                {(isLoading || isChartLoading) && <Spinner size="md" aria-label={t('Loading')} />}
                 {!isLoading && (
                   <QueryBrowserLink
                     queries={queries}
@@ -325,10 +328,12 @@ const Card: FC<CardProps> = memo(({ panel, perspective }) => {
               <RedExclamationCircleIcon /> {t('Error loading card')}
             </>
           ) : (
-            <div ref={ref} style={{ height: '100%' }} data-test={LegacyDashboardPageTestIDs.Graph}>
-              {isLoading || !wasEverVisible ? (
-                <GraphEmpty loading />
-              ) : (
+            <div
+              ref={ref}
+              style={{ height: '100%', minHeight: 180 }}
+              data-test={LegacyDashboardPageTestIDs.Graph}
+            >
+              {!isLoading && wasEverVisible && (
                 <>
                   {panel.type === 'grafana-piechart-panel' && (
                     <BarChart
@@ -341,6 +346,7 @@ const Card: FC<CardProps> = memo(({ panel, perspective }) => {
                     <Graph
                       formatSeriesTitle={formatSeriesTitle}
                       isStack={panel.stack}
+                      onLoadingChange={setIsChartLoading}
                       pollInterval={pollInterval}
                       queries={queries}
                       showLegend={panel.legend?.show}
