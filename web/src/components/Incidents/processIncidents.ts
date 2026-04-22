@@ -178,7 +178,7 @@ export function getIncidents(
 ): Array<PrometheusResult & { metric: Metric }> {
   const incidents = new Map<string, PrometheusResult & { metric: Metric }>();
   // Track which metric labels correspond to each severity value per group_id
-  const severityMetrics = new Map<string, Map<string, PrometheusLabels>>();
+  const severityMetrics = new Map<string, Map<string, PrometheusLabels[]>>();
 
   for (const result of prometheusResults) {
     const groupId = result.metric.group_id;
@@ -188,9 +188,13 @@ export function getIncidents(
       if (!severityMetrics.has(groupId)) {
         severityMetrics.set(groupId, new Map());
       }
+      const metricsForGroup = severityMetrics.get(groupId);
       const severityValues = new Set(result.values.map((v) => v[1]));
       for (const sv of severityValues) {
-        severityMetrics.get(groupId).set(sv, result.metric);
+        if (!metricsForGroup.has(sv)) {
+          metricsForGroup.set(sv, []);
+        }
+        metricsForGroup.get(sv).push(result.metric);
       }
     }
 
@@ -250,7 +254,8 @@ export function getIncidents(
       const segmentSeverity = segmentValues[0][1]; // uniform within a segment
       // Use the metric from the Prometheus result that contributed this severity,
       // preserving shared properties (componentList, silenced) from the merged incident
-      const severitySpecificMetric = groupSeverityMetrics?.get(segmentSeverity);
+      const metricsArray = groupSeverityMetrics?.get(segmentSeverity);
+      const severitySpecificMetric = metricsArray?.shift();
 
       result.push({
         metric: {

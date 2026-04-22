@@ -1,11 +1,12 @@
 import {
+  createAlertsChartBars,
   getCurrentTime,
   insertPaddingPointsForChart,
   removeTrailingPaddingFromSeveritySegments,
   roundDateToInterval,
   roundTimestampToFiveMinutes,
 } from './utils';
-import { Incident } from './model';
+import { Alert, Incident } from './model';
 
 describe('getCurrentTime', () => {
   it('should return current time rounded down to 5-minute boundary', () => {
@@ -624,5 +625,222 @@ describe('removeTrailingPaddingFromSeveritySegments', () => {
 
     // Original incident should still have all 3 values
     expect(original.values).toHaveLength(3);
+  });
+});
+
+describe('createAlertsChartBars - padding boundary gap detection', () => {
+  const makeAlert = (
+    overrides: Partial<Alert> & { values: Array<[number, string]>; firstTimestamp: number },
+  ): Alert => ({
+    alertname: 'TestAlert',
+    alertsStartFiring: 0,
+    alertsEndFiring: 0,
+    alertstate: 'firing',
+    component: 'test-component',
+    layer: 'compute',
+    name: 'TestAlert',
+    namespace: 'test-ns',
+    resolved: false,
+    severity: 'critical',
+    silenced: false,
+    x: 1,
+    ...overrides,
+  });
+
+  it('should detect gap between alerts whose padded values would overlap', () => {
+    // Alert A: real data at [1000, 1300]. Padded: [700, 1000, 1300, 1600]
+    // Alert B: real data at [2200, 2500]. Padded: [1900, 2200, 2500, 2800]
+    // Real gap: 2200 - 1300 = 900s (15 min) — should be detected
+    // Without fix: padded timestamps 1600 and 1900 are only 300s (5 min) apart — no gap
+    const alertA = makeAlert({
+      values: [
+        [700, '2'],
+        [1000, '2'],
+        [1300, '2'],
+        [1600, '2'],
+      ],
+      firstTimestamp: 700,
+    });
+
+    const alertB = makeAlert({
+      values: [
+        [1900, '2'],
+        [2200, '2'],
+        [2500, '2'],
+        [2800, '2'],
+      ],
+      firstTimestamp: 1900,
+    });
+
+    const bars = createAlertsChartBars([alertA, alertB]);
+
+    const dataBars = bars.filter((b) => !b.nodata);
+    const nodataBars = bars.filter((b) => b.nodata);
+
+    expect(dataBars.length).toBe(2);
+    expect(nodataBars.length).toBe(1);
+  });
+
+  it('should merge alerts whose real data is within 5 minutes of each other', () => {
+    // Alert A: real data at [1000, 1300]. Padded: [700, 1000, 1300, 1600]
+    // Alert B: real data at [1500, 1800]. Padded: [1200, 1500, 1800, 2100]
+    // Real gap: 1500 - 1300 = 200s (3.3 min) — should merge
+    const alertA = makeAlert({
+      values: [
+        [700, '2'],
+        [1000, '2'],
+        [1300, '2'],
+        [1600, '2'],
+      ],
+      firstTimestamp: 700,
+    });
+
+    const alertB = makeAlert({
+      values: [
+        [1200, '2'],
+        [1500, '2'],
+        [1800, '2'],
+        [2100, '2'],
+      ],
+      firstTimestamp: 1200,
+    });
+
+    const bars = createAlertsChartBars([alertA, alertB]);
+
+    const dataBars = bars.filter((b) => !b.nodata);
+    expect(dataBars.length).toBe(1);
+  });
+
+  it('should handle alerts with only 2 values (single real point + padding)', () => {
+    // Alert with 2 values: [pad, real]. Only the last (real) value is used.
+    const alertA = makeAlert({
+      values: [
+        [700, '2'],
+        [1000, '2'],
+      ],
+      firstTimestamp: 700,
+    });
+
+    const alertB = makeAlert({
+      values: [
+        [1900, '2'],
+        [2200, '2'],
+      ],
+      firstTimestamp: 1900,
+    });
+
+    const bars = createAlertsChartBars([alertA, alertB]);
+
+    const dataBars = bars.filter((b) => !b.nodata);
+    const nodataBars = bars.filter((b) => b.nodata);
+
+    // Real gap: 2200 - 1000 = 1200s (20 min) > 5 min — should detect gap
+    expect(dataBars.length).toBe(2);
+    expect(nodataBars.length).toBe(1);
+  });
+
+  it('should preserve firstTimestamp per interval after gap detection', () => {
+    const alertA = makeAlert({
+      values: [
+        [700, '2'],
+        [1000, '2'],
+        [1300, '2'],
+        [1600, '2'],
+      ],
+      firstTimestamp: 500,
+    });
+
+    const alertB = makeAlert({
+      values: [
+        [1900, '2'],
+        [2200, '2'],
+        [2500, '2'],
+        [2800, '2'],
+      ],
+      firstTimestamp: 1700,
+    });
+
+    const bars = createAlertsChartBars([alertA, alertB]) as any[];
+
+    const dataBars = bars.filter((b) => !b.nodata);
+    expect(dataBars.length).toBe(2);
+
+    const startDates = dataBars.map((b) => b.startDate.getTime() / 1000);
+    expect(startDates).toContain(500);
+    expect(startDates).toContain(1700);
+  });
+
+  it('should preserve last real data point for firing alerts without trailing padding', () => {
+    // Firing alert where currentTime < lastReal + 300, so no trailing padding was added.
+    // Padded values: [700, 1000, 1100, 1200] (leading pad only, no trailing).
+    // The old slice(1, -1) would drop 1200. The fix keeps it.
+    const alertA = makeAlert({
+      values: [
+        [700, '2'],
+        [1000, '2'],
+        [1100, '2'],
+        [1200, '2'],
+      ],
+      firstTimestamp: 700,
+      resolved: false,
+    });
+
+    // Second alert starts 20 minutes later — should be a separate interval
+    const alertB = makeAlert({
+      values: [
+        [2100, '2'],
+        [2400, '2'],
+        [2500, '2'],
+        [2600, '2'],
+      ],
+      firstTimestamp: 2100,
+      resolved: false,
+    });
+
+    const bars = createAlertsChartBars([alertA, alertB]);
+
+    const dataBars = bars.filter((b) => !b.nodata);
+    expect(dataBars.length).toBe(2);
+
+    // Verify the first interval ends at 1200 (last real point), not 1100
+    const firstInterval = dataBars[0] as any;
+    expect(firstInterval.y.getTime() / 1000).toBe(1200);
+  });
+
+  it('should strip trailing padding from resolved alerts for accurate gap detection', () => {
+    // Resolved alert A: real data [1000, 1300], trailing pad at 1600
+    // Resolved alert B: real data [1900, 2200], trailing pad at 2500
+    // Real gap: 1900 - 1300 = 600s = 10 min — should be detected
+    const alertA = makeAlert({
+      values: [
+        [700, '2'],
+        [1000, '2'],
+        [1300, '2'],
+        [1600, '2'],
+      ],
+      firstTimestamp: 700,
+      resolved: true,
+      alertstate: 'resolved',
+    });
+
+    const alertB = makeAlert({
+      values: [
+        [1600, '2'],
+        [1900, '2'],
+        [2200, '2'],
+        [2500, '2'],
+      ],
+      firstTimestamp: 1600,
+      resolved: true,
+      alertstate: 'resolved',
+    });
+
+    const bars = createAlertsChartBars([alertA, alertB]);
+
+    const dataBars = bars.filter((b) => !b.nodata);
+    const nodataBars = bars.filter((b) => b.nodata);
+
+    expect(dataBars.length).toBe(2);
+    expect(nodataBars.length).toBe(1);
   });
 });
