@@ -36,7 +36,7 @@ dev:
       # Use the instance selector that CMO & helm add
       app.kubernetes.io/component: monitoring-plugin
     # Replace the container image with this dev-optimized image (allows to skip image building during development)
-    devImage: quay.io/rh-ee-pyurkovi/monitoring-plugin:devspace-2
+    devImage: quay.io/rh-ee-pyurkovi/monitoring-plugin:v4.19-devspace
     # Sync files between the local filesystem and the development container
     sync:
       - path: ./web/dist:/opt/app-root/web/dist

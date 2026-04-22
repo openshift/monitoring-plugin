@@ -45,7 +45,7 @@ import { ChartLineIcon } from '@patternfly/react-icons';
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
 import type { FC, Ref, ReactNode, KeyboardEvent, MouseEvent, ComponentType } from 'react';
-import { memo, useState, useEffect, useCallback, useLayoutEffect } from 'react';
+import { memo, useState, useEffect, useCallback, useLayoutEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -596,6 +596,7 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
   GraphLink,
   hideControls,
   isStack = false,
+  onLoadingChange,
   onZoom,
   pollInterval,
   queries,
@@ -638,6 +639,12 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
   const [graphData, setGraphData] = useState<Series[][]>(null);
   const [samples, setSamples] = useState(maxSamplesForSpan);
   const [updating, setUpdating] = useState(true);
+  // Track if we ever received valid data to prevent flickering "No datapoints" during refresh
+  const hasReceivedData = useRef(false);
+
+  useEffect(() => {
+    onLoadingChange?.(updating);
+  }, [updating, onLoadingChange]);
 
   const [containerRef, width] = useRefWidth();
 
@@ -808,6 +815,10 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
           );
           setGraphData(newGraphData);
           onDataChange?.(newGraphData);
+          // Mark that we've received valid data to prevent flickering during refresh
+          if (newGraphData && newGraphData.some((d) => d.length > 0)) {
+            hasReceivedData.current = true;
+          }
 
           setIsDisconnectedEnabled(dataIsDisconnected);
 
@@ -932,7 +943,7 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
     <>
       <Card isCompact isPlain={isPlain} style={{ overflow: 'visible' }}>
         {hideControls ? (
-          <>{updating && <LoadingInline />}</>
+          <>{updating && !onLoadingChange && <LoadingInline />}</>
         ) : (
           <CardHeader>
             <Split>
@@ -1014,8 +1025,9 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
             data-test={DataTestIDs.MetricGraph}
           >
             {error && <Error error={error} />}
-            {isGraphDataEmpty && <GraphEmpty loading={updating} />}
-            {!isGraphDataEmpty && width > 0 && (
+            {isGraphDataEmpty && !(hideControls && updating && hasReceivedData.current) ? (
+              <GraphEmpty loading={updating} />
+            ) : (
               <>
                 {disableZoom ? (
                   <Graph
@@ -1102,6 +1114,7 @@ export type QueryBrowserProps = {
   GraphLink?: ComponentType;
   hideControls?: boolean;
   isStack?: boolean;
+  onLoadingChange?: (isLoading: boolean) => void;
   onZoom?: GraphOnZoom;
   pollInterval?: number;
   queries: string[];

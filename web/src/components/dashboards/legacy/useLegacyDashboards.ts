@@ -1,16 +1,9 @@
-import { useCallback, useState, useMemo, useEffect } from 'react';
 import * as _ from 'lodash-es';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
-import { useSafeFetch } from '../../console/utils/safe-fetch-hook';
-import { useBoolean } from '../../hooks/useBoolean';
-import { Board } from './types';
-import { getLegacyDashboardsUrl, usePerspective } from '../../hooks/usePerspective';
-import { getAllQueryArguments, getQueryArgument } from '../../console/utils/router';
-import {
-  MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
-  MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY,
-} from './utils';
+import { useNavigate, useSearchParams } from 'react-router-dom-v5-compat';
+import { NumberParam, useQueryParam } from 'use-query-params';
 import {
   DashboardsClearVariables,
   dashboardsPatchAllVariables,
@@ -18,15 +11,23 @@ import {
   dashboardsSetPollInterval,
   dashboardsSetTimespan,
 } from '../../../store/actions';
-import { CombinedDashboardMetadata } from '../perses/hooks/useDashboardsData';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { useSafeFetch } from '../../console/utils/safe-fetch-hook';
+import { useBoolean } from '../../hooks/useBoolean';
+import { getLegacyDashboardsUrl, usePerspective } from '../../hooks/usePerspective';
 import { QueryParams } from '../../query-params';
-import { NumberParam, useQueryParam } from 'use-query-params';
 import { ALL_NAMESPACES_KEY } from '../../utils';
+import { CombinedDashboardMetadata } from '../perses/hooks/useDashboardsData';
+import { Board } from './types';
+import {
+  MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
+  MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY,
+} from './utils';
+import { useLegacyDashboardsProject } from './useLegacyDashboardsProject';
 
-export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
+export const useLegacyDashboards = (urlBoard: string) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
   const { perspective } = usePerspective();
+  const { project } = useLegacyDashboardsProject();
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const safeFetch = useCallback(useSafeFetch(), []);
@@ -34,9 +35,10 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
   const [legacyDashboardsError, setLegacyDashboardsError] = useState<string>();
   const [refreshInterval] = useQueryParam(QueryParams.RefreshInterval, NumberParam);
   const [legacyDashboardsLoading, , , setLegacyDashboardsLoaded] = useBoolean(true);
-  const [initialLoad, , setInitialUnloaded, setInitialLoaded] = useBoolean(true);
+  const [initialLoad, , , setInitialLoaded] = useBoolean(true);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [queryParams] = useSearchParams();
 
   useEffect(() => {
     safeFetch<any>('/api/console/monitoring-dashboard-config')
@@ -56,7 +58,7 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
   // Move namespace filtering out of the fetch response call to avoid race conditions
   const legacyDashboards = useMemo<Board[]>(() => {
     let items = unfilteredLegacyDashboards;
-    if (namespace && namespace !== ALL_NAMESPACES_KEY) {
+    if (project && project !== ALL_NAMESPACES_KEY) {
       items = _.filter(
         items,
         (item) => item.metadata?.labels['console.openshift.io/odc-dashboard'] === 'true',
@@ -78,7 +80,7 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
       }
     };
     return _.sortBy(_.map(items, getBoardData), (v) => _.toLower(v?.data?.title));
-  }, [namespace, unfilteredLegacyDashboards, setLegacyDashboardsError, t]);
+  }, [project, unfilteredLegacyDashboards, setLegacyDashboardsError, t]);
 
   const legacyRows = useMemo(() => {
     const data = _.find(legacyDashboards, { name: urlBoard })?.data;
@@ -117,25 +119,51 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
   }, [legacyDashboards, legacyDashboardsLoading]);
 
   const changeLegacyDashboard = useCallback(
-    (newBoard: string) => {
-      if (!newBoard) {
-        // If the board is being cleared then don't do anything
-        return;
+    ({
+      newBoard,
+      newProject,
+      initialLoad = false,
+    }: {
+      newBoard?: string;
+      newProject?: string;
+      initialLoad?: boolean;
+    }) => {
+      const dashboardProject = newProject ? newProject : project;
+
+      const url = getLegacyDashboardsUrl(perspective, newBoard, dashboardProject);
+
+      let params: URLSearchParams;
+      if (initialLoad) {
+        params = new URLSearchParams(queryParams);
+        if (perspective === 'dev') {
+          params.delete(QueryParams.Namespace);
+          params.delete(QueryParams.OpenshiftProject);
+        }
+      } else {
+        params = new URLSearchParams();
       }
 
-      const allVariables = getAllVariables(legacyDashboards, newBoard, namespace);
-
-      const queryArguments = getAllQueryArguments();
-      const params = new URLSearchParams(queryArguments);
-
-      const url = `${getLegacyDashboardsUrl(perspective, newBoard)}?${params.toString()}`;
-
-      if (newBoard !== urlBoard || initialLoad) {
-        if (params.get(QueryParams.Dashboard) !== newBoard) {
-          navigate(url, { replace: true });
+      if (newBoard !== urlBoard || newProject !== project || initialLoad) {
+        if (
+          perspective === 'dev' &&
+          (!params.has(QueryParams.Dashboard) || params.get(QueryParams.Dashboard) !== newBoard)
+        ) {
+          params.set(QueryParams.Dashboard, newBoard);
         }
+        if (perspective !== 'dev') {
+          if (params.get(QueryParams.OpenshiftProject) !== ALL_NAMESPACES_KEY) {
+            params.delete(QueryParams.Namespace);
+          }
+          params.set(QueryParams.OpenshiftProject, dashboardProject);
+        }
+        const srt = `${url}?${params.toString()}`;
+        navigate(srt, { replace: true });
 
-        dispatch(dashboardsPatchAllVariables(allVariables));
+        dispatch(
+          dashboardsPatchAllVariables(
+            getAllVariables(params, legacyDashboards, dashboardProject, newBoard),
+          ),
+        );
 
         // Set time range and poll interval options to their defaults or from the query params if
         // available
@@ -155,10 +183,10 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
       urlBoard,
       dispatch,
       navigate,
-      namespace,
-      legacyDashboards,
-      initialLoad,
+      project,
       refreshInterval,
+      queryParams,
+      legacyDashboards,
     ],
   );
 
@@ -169,19 +197,29 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
         initialLoad) &&
       !_.isEmpty(legacyDashboards)
     ) {
-      changeLegacyDashboard(urlBoard || legacyDashboards?.[0]?.name);
+      changeLegacyDashboard({
+        newBoard: urlBoard || legacyDashboards?.[0]?.name,
+        initialLoad: initialLoad,
+        newProject: project,
+      });
       setInitialLoaded();
     }
-  }, [legacyDashboards, changeLegacyDashboard, initialLoad, setInitialLoaded, urlBoard]);
+  }, [legacyDashboards, changeLegacyDashboard, initialLoad, setInitialLoaded, urlBoard, project]);
 
   useEffect(() => {
-    // Basically perform a full reload when changing a namespace to force the variables and the
-    // dashboard to reset. This is needed for when we transition between ALL_NS and a normal
-    // namespace, but is performed quickly and should help insure consistency when transitioning
-    // between any namespaces
-    setInitialUnloaded();
-    /* eslint-disable react-hooks/exhaustive-deps */
-  }, [namespace]);
+    if (initialLoad || _.isEmpty(legacyDashboards)) {
+      return;
+    }
+
+    const currentBoard = urlBoard || legacyDashboards?.[0]?.name;
+    if (currentBoard) {
+      dispatch(
+        dashboardsPatchAllVariables(
+          getAllVariables(queryParams, legacyDashboards, project, currentBoard),
+        ),
+      );
+    }
+  }, [project, legacyDashboards, urlBoard, dispatch, initialLoad, queryParams]);
 
   // Clear variables on unmount
   useEffect(() => {
@@ -201,14 +239,18 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
   };
 };
 
-const getAllVariables = (boards: Board[], newBoardName: string, namespace: string) => {
+const getAllVariables = (
+  params: URLSearchParams,
+  boards: Board[],
+  namespace: string,
+  newBoardName: string,
+) => {
   const data = _.find(boards, { name: newBoardName })?.data;
-
   const allVariables = {};
   _.each(data?.templating?.list, (v) => {
     if (v.type === 'query' || v.type === 'interval') {
       // Look for query param that is equal to the variable name
-      let value = getQueryArgument(v.name);
+      let value = params.get(v.name);
 
       // Look for an option that should be selected by default
       if (value === null) {
@@ -234,6 +276,5 @@ const getAllVariables = (boards: Board[], newBoardName: string, namespace: strin
       };
     }
   });
-
   return allVariables;
 };
