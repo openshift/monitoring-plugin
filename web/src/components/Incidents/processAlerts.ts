@@ -305,7 +305,7 @@ export function convertToAlerts(
       const alertFirstTimestamp = roundTimestampToFiveMinutes(
         alert.values[0][0] - PROMETHEUS_QUERY_INTERVAL_SECONDS,
       );
-      lastTimestamp = roundTimestampToFiveMinutes(paddedValues[paddedValues.length - 1][0]);
+      lastTimestamp = roundTimestampToFiveMinutes(sortedValues[sortedValues.length - 1][0]);
 
       return {
         alertname: alert.metric.alertname,

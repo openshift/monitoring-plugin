@@ -1017,6 +1017,171 @@ describe('getIncidents', () => {
     });
   });
 
+  describe('severityMetrics per-segment correctness', () => {
+    it('should assign correct metric to each segment when severity repeats (W→C→W)', () => {
+      const t1 = 1000;
+      const t2 = 1300;
+      const t3 = 1600;
+      const t4 = 1900;
+      const t5 = 2200;
+      const t6 = 2500;
+
+      const data: PrometheusResult[] = [
+        {
+          metric: {
+            group_id: 'g1',
+            component: 'comp-warn-early',
+            src_alertname: 'AlertWarnEarly',
+            src_namespace: 'ns-early',
+            src_severity: 'warning',
+          },
+          values: [
+            [t1, '1'],
+            [t2, '1'],
+          ],
+        },
+        {
+          metric: {
+            group_id: 'g1',
+            component: 'comp-crit',
+            src_alertname: 'AlertCrit',
+            src_namespace: 'ns-crit',
+            src_severity: 'critical',
+          },
+          values: [
+            [t3, '2'],
+            [t4, '2'],
+          ],
+        },
+        {
+          metric: {
+            group_id: 'g1',
+            component: 'comp-warn-late',
+            src_alertname: 'AlertWarnLate',
+            src_namespace: 'ns-late',
+            src_severity: 'warning',
+          },
+          values: [
+            [t5, '1'],
+            [t6, '1'],
+          ],
+        },
+      ];
+
+      const result = getIncidents(data);
+      expect(result).toHaveLength(3);
+
+      const segments = [...result].sort((a, b) => a.values[0][0] - b.values[0][0]);
+
+      expect(segments[0].metric.src_alertname).toBe('AlertWarnEarly');
+      expect(segments[0].metric.src_namespace).toBe('ns-early');
+
+      expect(segments[1].metric.src_alertname).toBe('AlertCrit');
+
+      expect(segments[2].metric.src_alertname).toBe('AlertWarnLate');
+      expect(segments[2].metric.src_namespace).toBe('ns-late');
+    });
+
+    it('should not let later results overwrite earlier metric for same severity', () => {
+      const data: PrometheusResult[] = [
+        {
+          metric: {
+            group_id: 'g1',
+            component: 'first',
+            src_alertname: 'First',
+            src_namespace: 'ns-first',
+            src_severity: 'warning',
+          },
+          values: [[1000, '1']],
+        },
+        {
+          metric: {
+            group_id: 'g1',
+            component: 'middle',
+            src_alertname: 'Middle',
+            src_namespace: 'ns-middle',
+            src_severity: 'critical',
+          },
+          values: [[1300, '2']],
+        },
+        {
+          metric: {
+            group_id: 'g1',
+            component: 'second',
+            src_alertname: 'Second',
+            src_namespace: 'ns-second',
+            src_severity: 'warning',
+          },
+          values: [[1600, '1']],
+        },
+      ];
+
+      const result = getIncidents(data);
+      const segments = [...result].sort((a, b) => a.values[0][0] - b.values[0][0]);
+
+      const firstWarning = segments[0];
+      const secondWarning = segments[2];
+
+      expect(firstWarning.metric.src_alertname).not.toBe(secondWarning.metric.src_alertname);
+      expect(firstWarning.metric.src_alertname).toBe('First');
+      expect(secondWarning.metric.src_alertname).toBe('Second');
+    });
+
+    it('should handle four segments with two severity repetitions', () => {
+      const data: PrometheusResult[] = [
+        {
+          metric: {
+            group_id: 'g1',
+            component: 'c1',
+            src_alertname: 'A1',
+            src_namespace: 'ns1',
+            src_severity: 'critical',
+          },
+          values: [[1000, '2']],
+        },
+        {
+          metric: {
+            group_id: 'g1',
+            component: 'c2',
+            src_alertname: 'A2',
+            src_namespace: 'ns2',
+            src_severity: 'warning',
+          },
+          values: [[1300, '1']],
+        },
+        {
+          metric: {
+            group_id: 'g1',
+            component: 'c3',
+            src_alertname: 'A3',
+            src_namespace: 'ns3',
+            src_severity: 'critical',
+          },
+          values: [[1600, '2']],
+        },
+        {
+          metric: {
+            group_id: 'g1',
+            component: 'c4',
+            src_alertname: 'A4',
+            src_namespace: 'ns4',
+            src_severity: 'warning',
+          },
+          values: [[1900, '1']],
+        },
+      ];
+
+      const result = getIncidents(data);
+      const segments = [...result].sort((a, b) => a.values[0][0] - b.values[0][0]);
+
+      expect(segments).toHaveLength(4);
+      expect(segments[0].metric.src_alertname).toBe('A1');
+      expect(segments[1].metric.src_alertname).toBe('A2');
+      expect(segments[2].metric.src_alertname).toBe('A3');
+      expect(segments[3].metric.src_alertname).toBe('A4');
+    });
+  });
+
   describe('silenced status handling', () => {
     it('should use silenced value from most recent timestamp when merging', () => {
       // Use same severity to avoid severity splitting; test focuses on silenced status

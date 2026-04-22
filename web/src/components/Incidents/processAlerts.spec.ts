@@ -1,7 +1,7 @@
 import { PrometheusResult } from '@openshift-console/dynamic-plugin-sdk';
 import { convertToAlerts, deduplicateAlerts } from './processAlerts';
 import { Incident } from './model';
-import { getCurrentTime, DAY_MS } from './utils';
+import { getCurrentTime, DAY_MS, roundTimestampToFiveMinutes } from './utils';
 
 describe('convertToAlerts', () => {
   const now = getCurrentTime();
@@ -230,11 +230,9 @@ describe('convertToAlerts', () => {
       expect(result).toHaveLength(1);
       expect(result[0].alertsStartFiring).toBeGreaterThan(0);
       expect(result[0].alertsEndFiring).toBeGreaterThan(0);
-      // alertsStartFiring and alertsEndFiring use padded timestamps
-      // This ensures table displays same times as chart
       const expectedStart = timestamp - 300; // Padding point 5 minutes before
       expect(result[0].alertsStartFiring).toBe(expectedStart);
-      const expectedEnd = timestamp + 300; // Padding point 5 minutes after
+      const expectedEnd = roundTimestampToFiveMinutes(timestamp); // Real data, not padded
       expect(result[0].alertsEndFiring).toBe(expectedEnd);
     });
 

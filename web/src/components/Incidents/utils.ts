@@ -381,10 +381,21 @@ export const createIncidentsChartBars = (incidents: Incident[], dateArray: SpanD
 function consolidateAndMergeAlertIntervals(alerts: Array<Alert>): Array<AlertsIntervalsArray> {
   if (alerts.length === 0) return [];
 
-  // Tag each value with its source alert's firstTimestamp, then sort
-  const taggedValues = alerts.flatMap((alert) =>
-    alert.values.map((v) => ({ timestamp: v[0], firstTimestamp: alert.firstTimestamp })),
-  );
+  // Strip boundary padding from insertPaddingPointsForChart so gap detection
+  // uses real data timestamps and doesn't merge across alert boundaries.
+  // Leading padding (index 0) is always present. Trailing padding (last index)
+  // is only guaranteed for resolved alerts (last data point >= 600s old, so the
+  // >= 300s condition for after-padding is always met). Firing alerts may lack
+  // trailing padding when their last data point is very recent, so keep the
+  // last value to avoid dropping real data.
+  const taggedValues = alerts.flatMap((alert) => {
+    const values = alert.values;
+    if (values.length <= 1) {
+      return values.map((v) => ({ timestamp: v[0], firstTimestamp: alert.firstTimestamp }));
+    }
+    const coreValues = values.length >= 3 && alert.resolved ? values.slice(1, -1) : values.slice(1);
+    return coreValues.map((v) => ({ timestamp: v[0], firstTimestamp: alert.firstTimestamp }));
+  });
 
   if (taggedValues.length === 0) return [];
 
