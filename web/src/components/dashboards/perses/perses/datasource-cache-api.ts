@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { getCSRFToken } from '@openshift-console/dynamic-plugin-sdk/lib/utils/fetch/console-fetch-utils';
+import { getCSRFToken } from '@openshift-console/dynamic-plugin-sdk-internal';
 import {
   BuildDatasourceProxyUrlFunc,
   DatasourceApi,
@@ -187,7 +187,7 @@ export class CachedDatasourceAPI implements DatasourceApi {
 
 // Perses panels use @perses-dev/core fetch internally, this is a workaround to add the
 // CSRF token needed in the OpenShift console.
-// TODO: Remove once Perses supports overriding the internal fetch function.
+// TODO: Remove and notify Console team once Perses supports overriding the internal fetch function.
 const addCsrfToken = <T extends DatasourceResource | GlobalDatasourceResource | undefined>(
   datasource: T,
 ): T => {
