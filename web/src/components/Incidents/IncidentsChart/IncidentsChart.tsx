@@ -33,6 +33,7 @@ import {
   calculateIncidentsChartDomain,
   createIncidentsChartBars,
   generateDateArray,
+  removeTrailingPaddingFromSeveritySegments,
   roundDateToInterval,
 } from '../utils';
 import { dateTimeFormatter, timeFormatter } from '../../console/utils/datetime';
@@ -89,10 +90,29 @@ const IncidentsChart = ({
       ? incidentsData.filter((incident) => incident.group_id === selectedGroupId)
       : incidentsData;
 
-    // Create chart bars and sort by original x values to maintain proper order
-    const chartBars = filteredIncidents.map((incident) =>
-      createIncidentsChartBars(incident, dateValues),
+    // Group incidents by group_id so split severity segments share the same row
+    const incidentsByGroupId = new Map<string, typeof filteredIncidents>();
+    for (const incident of filteredIncidents) {
+      const existing = incidentsByGroupId.get(incident.group_id);
+      if (existing) {
+        existing.push(incident);
+      } else {
+        incidentsByGroupId.set(incident.group_id, [incident]);
+      }
+    }
+
+    // When an incident changes severity, its segments share the same row.
+    // Non-last segments have trailing padding (+300s) that overlaps with the
+    // next segment's leading padding (-300s). Remove the trailing padding
+    // value from non-last segments to prevent visual overlap.
+    const adjustedGroups = Array.from(incidentsByGroupId.values()).map((group) =>
+      removeTrailingPaddingFromSeveritySegments(group),
     );
+
+    // Create chart bars per group and sort by original x values
+    const chartBars = adjustedGroups
+      .map((group) => createIncidentsChartBars(group, dateValues))
+      .filter((bars) => bars.length > 0);
     chartBars.sort((a, b) => a[0].x - b[0].x);
 
     // Reassign consecutive x values to eliminate gaps between bars
@@ -102,7 +122,6 @@ const IncidentsChart = ({
   useEffect(() => {
     setIsLoading(false);
   }, [incidentsData]);
-
   useEffect(() => {
     setChartContainerHeight(chartData?.length < 5 ? 300 : chartData?.length * 60);
     setChartHeight(chartData?.length < 5 ? 250 : chartData?.length * 55);
@@ -176,7 +195,7 @@ const IncidentsChart = ({
                     if (datum.nodata) {
                       return '';
                     }
-                    const startDate = dateTimeFormatter(i18n.language).format(new Date(datum.y0));
+                    const startDate = dateTimeFormatter(i18n.language).format(datum.startDate);
                     const endDate = datum.firing
                       ? '---'
                       : dateTimeFormatter(i18n.language).format(
