@@ -8,7 +8,7 @@ ENV HUSKY=0
 
 COPY web/package.json web/package-lock.json web/
 COPY Makefile Makefile
-RUN make install-frontend
+RUN make install-frontend-ci
 
 COPY web/ web/
 RUN make build-frontend
