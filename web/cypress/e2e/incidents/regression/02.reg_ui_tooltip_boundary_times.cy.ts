@@ -113,7 +113,6 @@ describe(
       incidentsPage.setDays('1 day');
       incidentsPage.elements.incidentsChartContainer().should('be.visible');
       incidentsPage.elements.incidentsChartBarsGroups().should('have.length', 1);
-      cy.pause();
 
       cy.log(
         '2.2 Consecutive interval boundaries: End of segment 1 should equal Start of segment 2',
@@ -141,7 +140,6 @@ describe(
               ).to.equal(firstEnd);
             });
         });
-      cy.pause();
 
       cy.log('2.3 Incident tooltip Start vs alert tooltip Start vs alerts table Start');
       incidentsPage.hoverOverIncidentBarSegment(0, 0);
@@ -188,7 +186,6 @@ describe(
               });
           });
         });
-      cy.pause();
 
       cy.log('Expected failure: Incident tooltip Start times are 5 minutes off (OU-1221)');
     });

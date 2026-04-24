@@ -103,6 +103,7 @@ const MP = {
 describe('Regression: Charts UI - Comprehensive', { tags: ['@incidents'] }, () => {
   before(() => {
     cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
+    incidentsPage.warmUpForPlugin();
   });
 
   beforeEach(() => {

@@ -27,6 +27,7 @@ const MP = {
 describe('BVT: Incidents - UI', { tags: ['@smoke', '@incidents'] }, () => {
   before(() => {
     cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
+    incidentsPage.warmUpForPlugin();
     cy.mockIncidentFixture(
       'incident-scenarios/1-single-incident-firing-critical-and-warning-alerts.yaml',
     );
