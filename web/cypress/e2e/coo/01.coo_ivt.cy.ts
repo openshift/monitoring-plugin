@@ -5,7 +5,7 @@ import { troubleshootingPanelPage } from '../../views/troubleshooting-panel';
 const KBV = {
   namespace: 'openshift-cnv',
   packageName: 'kubevirt-hyperconverged',
-  operatorName: 'kubevirt-hyperconverged-operator.v4.19.6',
+  operatorName: 'kubevirt-hyperconverged-operator.v4.21.3',
   config: {
     kind: 'HyperConverged',
     name: 'kubevirt-hyperconverged',
@@ -28,7 +28,7 @@ describe('IVT: Monitoring UIPlugin + Virtualization', { tags: ['@smoke', '@coo']
     cy.byAriaLabel('Welcome modal').should('be.visible');
     guidedTour.closeKubevirtTour();
     troubleshootingPanelPage.signalCorrelationShouldNotBeVisible();
-    cy.switchPerspective('Administrator');
+    cy.switchPerspective('Core platform');
 
   });
 

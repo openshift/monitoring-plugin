@@ -15,7 +15,7 @@ declare global {
     namespace Cypress {
       interface Chainable {
         adminCLI(command: string, options?);
-        executeAndDelete(command: string);
+        executeAndDelete(command: string, options?: { timeout?: number });
         beforeBlockVirtualization(KBV: { namespace: string, packageName: string });
         cleanupKBV(KBV: { namespace: string, packageName: string });
       }
@@ -146,15 +146,14 @@ const virtualizationUtils = {
       });
     }
 
-    cy.reload(true);
-    cy.byLegacyTestID('perspective-switcher-toggle').should('be.visible');
-
+    cy.waitUntil(() => {
+      return cy.get('button[data-test-id="perspective-switcher-toggle"]').should('be.visible');
+    }, {
+      timeout: 30000
+    });
   },
 
   cleanup(KBV: { namespace: string, config?: { kind: string, name: string }, crd?: { kubevirt: string, hyperconverged: string } }): void {
-    const config = KBV.config || { kind: 'HyperConverged', name: 'kubevirt-hyperconverged' }
-    const crd = KBV.crd || { kubevirt: 'kubevirts.kubevirt.io', hyperconverged: 'hyperconvergeds.hco.kubevirt.io' };
-
     cy.adminCLI(
       `oc adm policy add-cluster-role-to-user cluster-admin ${Cypress.env('LOGIN_USERNAME')}`,
     );
@@ -163,33 +162,55 @@ const virtualizationUtils = {
       cy.log('Maintain Openshift Virtualization');
       
     } else {
-      //https://docs.redhat.com/en/documentation/openshift_container_platform/4.19/html/virtualization/installing#virt-deleting-virt-cli_uninstalling-virt
+      // https://docs.redhat.com/en/documentation/openshift_container_platform/4.21/html/virtualization/installing#virt-deleting-virt-cli_uninstalling-virt
 
-      cy.log('Delete Hyperconverged instance.');  
-      cy.executeAndDelete(`oc patch hyperconverged.hco.kubevirt.io/kubevirt-hyperconverged -n ${KBV.namespace} -p '{"metadata":{"finalizers":[]}}' --type=merge --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+      const kc = `--kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`;
+      const cleanupTimeout = { timeout: 300000 };
 
-      cy.executeAndDelete(`oc patch kubevirt.kubevirt.io/kubevirt -n ${KBV.namespace} --type=merge -p '{"metadata":{"finalizers":[]}}' --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+      cy.log('Delete all VMs and VMIs before uninstalling');
+      cy.executeAndDelete(`oc delete vm --all --all-namespaces --ignore-not-found ${kc}`, cleanupTimeout);
+      cy.executeAndDelete(`oc delete vmi --all --all-namespaces --ignore-not-found ${kc}`, cleanupTimeout);
 
-      cy.executeAndDelete(`oc delete HyperConverged kubevirt-hyperconverged -n ${KBV.namespace} --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
-      
-      cy.log('Remove Openshift Virtualization subscription');
-      cy.executeAndDelete(`oc delete subscription ${config.name} -n ${KBV.namespace} --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+      cy.log('Patch finalizers on stuck resources to prevent namespace hang');
+      cy.executeAndDelete(`oc patch hyperconverged.hco.kubevirt.io/kubevirt-hyperconverged -n ${KBV.namespace} -p '{"metadata":{"finalizers":[]}}' --type=merge ${kc}`);
+      cy.executeAndDelete(`oc patch kubevirt.kubevirt.io/kubevirt-kubevirt-hyperconverged -n ${KBV.namespace} -p '{"metadata":{"finalizers":[]}}' --type=merge ${kc}`);
 
-      cy.log('Remove Openshift Virtualization CSV');
-      cy.executeAndDelete(`oc delete csv -n ${KBV.namespace} -l operators.coreos.com/kubevirt-hyperconverged.openshift-cnv --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+      cy.log('Delete HyperConverged custom resource');
+      cy.executeAndDelete(`oc delete HyperConverged kubevirt-hyperconverged -n ${KBV.namespace} --ignore-not-found ${kc}`, cleanupTimeout);
+
+      cy.log('Remove stale webhooks to unblock resource deletion');
+      cy.executeAndDelete(`oc delete validatingwebhookconfiguration virt-operator-validator virt-api-validator --ignore-not-found ${kc}`);
+      cy.executeAndDelete(`oc delete mutatingwebhookconfiguration virt-operator-validator virt-api-validator --ignore-not-found ${kc}`);
+
+      cy.log('Patch remaining finalizers on namespace resources');
+      cy.executeAndDelete(`for r in $(oc get migcontrollers.migrations.kubevirt.io -n ${KBV.namespace} -o name ${kc} 2>/dev/null); do oc patch "$r" -n ${KBV.namespace} -p '{"metadata":{"finalizers":[]}}' --type=merge ${kc}; done`);
+      cy.executeAndDelete(`for r in $(oc get ssps.ssp.kubevirt.io -n ${KBV.namespace} -o name ${kc} 2>/dev/null); do oc patch "$r" -n ${KBV.namespace} -p '{"metadata":{"finalizers":[]}}' --type=merge ${kc}; done`);
+
+      cy.log('Delete OpenShift Virtualization Operator subscription');
+      cy.executeAndDelete(`oc delete subscription hco-operatorhub -n ${KBV.namespace} --ignore-not-found ${kc}`);
+
+      cy.log('Delete OpenShift Virtualization ClusterServiceVersion');
+      cy.executeAndDelete(`oc delete csv -n ${KBV.namespace} -l operators.coreos.com/kubevirt-hyperconverged.openshift-cnv --ignore-not-found ${kc}`);
+
+      cy.log('Remove stale API services to unblock namespace deletion');
+      cy.executeAndDelete(`oc delete apiservices v1.subresources.kubevirt.io v1alpha3.subresources.kubevirt.io v1beta1.upload.cdi.kubevirt.io --ignore-not-found ${kc}`);
+
+      cy.log('Delete OpenShift Virtualization namespace');
+      cy.executeAndDelete(`oc delete namespace ${KBV.namespace} --ignore-not-found ${kc}`, cleanupTimeout);
+
+      cy.log('Patch finalizers on remaining CR instances to unblock CRD deletion');
+      cy.executeAndDelete(`for r in $(oc get cdis.cdi.kubevirt.io --all-namespaces -o name ${kc} 2>/dev/null); do oc patch "$r" -p '{"metadata":{"finalizers":[]}}' --type=merge ${kc}; done`);
+      cy.executeAndDelete(`for r in $(oc get hostpathprovisioners.hostpathprovisioner.kubevirt.io --all-namespaces -o name ${kc} 2>/dev/null); do oc patch "$r" -p '{"metadata":{"finalizers":[]}}' --type=merge ${kc}; done`);
+      cy.executeAndDelete(`for r in $(oc get networkaddonsconfigs.networkaddonsoperator.network.kubevirt.io --all-namespaces -o name ${kc} 2>/dev/null); do oc patch "$r" -p '{"metadata":{"finalizers":[]}}' --type=merge ${kc}; done`);
+
+      cy.log('List OpenShift Virtualization CRDs (dry-run)');
+      cy.executeAndDelete(
+        `oc delete crd --dry-run=client -l operators.coreos.com/kubevirt-hyperconverged.openshift-cnv --ignore-not-found ${kc}`,
       );
 
-      cy.log('Remove Openshift Virtualization namespace');
-      cy.executeAndDelete(`oc delete namespace ${KBV.namespace} --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
-
-      cy.log('Delete Hyperconverged CRD instance.');
+      cy.log('Delete OpenShift Virtualization CRDs');
       cy.executeAndDelete(
-        `oc delete crd --dry-run=client -l operators.coreos.com/kubevirt-hyperconverged.openshift-cnv --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
-      );
-
-      cy.log('Delete Kubevirt instance.');
-      cy.executeAndDelete(
-        `oc delete crd -l operators.coreos.com/kubevirt-hyperconverged.openshift-cnv --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+        `oc delete crd -l operators.coreos.com/kubevirt-hyperconverged.openshift-cnv --ignore-not-found ${kc}`, cleanupTimeout,
       );
 
     }
@@ -208,6 +229,7 @@ const virtualizationUtils = {
           cy.cleanupKBV(KBV);
 
           operatorAuthUtils.loginAndAuthNoSession();
+          cy.cleanupACM();
           virtualizationUtils.installVirtualization(KBV);
           virtualizationUtils.waitForVirtualizationReady(KBV);
           virtualizationUtils.setupHyperconverged(KBV);
@@ -218,8 +240,12 @@ const virtualizationUtils = {
           validate() {
             cy.validateLogin();
             // Additional validation for Virtualization setup
-            cy.visit('/k8s/all-namespaces/virtualization-overview');
-            cy.url().should('include', '/k8s/all-namespaces/virtualization-overview');
+            cy.waitUntil(() => {
+              return cy.get('button[data-test-id="perspective-switcher-toggle"]').should('be.visible');
+            }, {
+              timeout: 30000
+            });
+            cy.switchPerspective('Virtualization');
             guidedTour.closeKubevirtTour();
 
           },
@@ -229,7 +255,7 @@ const virtualizationUtils = {
       cy.log('Before block Virtualization (no session)');
 
       cy.cleanupKBV(KBV);
-
+      cy.cleanupACM();
       operatorAuthUtils.loginAndAuth();
       virtualizationUtils.installVirtualization(KBV);
       virtualizationUtils.waitForVirtualizationReady(KBV);

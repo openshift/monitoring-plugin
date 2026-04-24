@@ -14,7 +14,7 @@ declare global {
     namespace Cypress {
       interface Chainable {
         adminCLI(command: string, options?);
-        executeAndDelete(command: string);
+        executeAndDelete(command: string, options?: { timeout?: number });
         beforeBlock(MP: { namespace: string, operatorName: string });
         cleanupMP(MP: { namespace: string, operatorName: string });
         beforeBlockCOO(MCP: { namespace: string, operatorName: string, packageName: string }, MP: { namespace: string, operatorName: string});
@@ -23,6 +23,7 @@ declare global {
         setupCOO(MCP: { namespace: string, operatorName: string, packageName: string }, MP: { namespace: string, operatorName: string });
         beforeBlockACM( MCP: { namespace: string; operatorName: string; packageName: string }, MP: { namespace: string; operatorName: string },): Chainable<void>;
         closeOnboardingModalIfPresent(): Chainable<void>;
+        cleanupACM(): Chainable<void>;
       }
     }
   }
@@ -813,15 +814,27 @@ Cypress.Commands.add('beforeBlock', (MP: { namespace: string, operatorName: stri
 
 Cypress.Commands.add('beforeBlockACM', (MCP, MP) => {
   cy.beforeBlockCOO(MCP, MP);
+  cy.exec(`oc patch Scheduler cluster --type='json' -p '[{ "op": "replace", "path": "/spec/mastersSchedulable", "value": true }]'`);
+  
+  const kc = Cypress.env('KUBECONFIG_PATH');
+
+  cy.cleanupACM();
+
   cy.log('=== [Setup] Installing ACM Operator & MCO ===');
   cy.exec('bash ./cypress/fixtures/coo/acm-install.sh', {
-    env: { KUBECONFIG: Cypress.env('KUBECONFIG_PATH'), },
+    env: { KUBECONFIG: kc },
     failOnNonZeroExit: false,
-    timeout: 1200000, // long time script
+    timeout: 1200000,
+  }).then((result) => {
+    if (result.code !== 0) {
+      cy.log(`ACM install script exited with code ${result.code}`);
+      cy.log(`stderr: ${result.stderr}`);
+      throw new Error(`ACM install failed (exit code ${result.code}): ${result.stderr}`);
+    }
   });
-  cy.exec(`oc apply -f ./cypress/fixtures/coo/acm-uiplugin.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
-  // add example alerts for test
-  cy.exec(`oc apply -f ./cypress/fixtures/coo/acm-alerrule-test.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+
+  cy.exec(`oc apply -f ./cypress/fixtures/coo/acm-uiplugin.yaml --kubeconfig ${kc}`);
+  cy.exec(`oc apply -f ./cypress/fixtures/coo/acm-alerrule-test.yaml --kubeconfig ${kc}`);
   cy.log('ACM environment setup completed');
 });
 
@@ -841,5 +854,14 @@ Cypress.Commands.add('closeOnboardingModalIfPresent', () => {
     } else {
       cy.log('No onboarding modal found');
     }
+  });
+});
+
+Cypress.Commands.add('cleanupACM', () => {
+  cy.log('=== [Cleanup] Uninstalling previous ACM if present ===');
+  cy.exec(`bash ./cypress/fixtures/coo/acm-uninstall.sh`, {
+    env: { KUBECONFIG: Cypress.env('KUBECONFIG_PATH') },
+    failOnNonZeroExit: false,
+    timeout: 900000,
   });
 });
