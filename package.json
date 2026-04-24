@@ -46,7 +46,7 @@
     "i18next": "^21.8.14",
     "i18next-http-backend": "^2.2.0",
     "i18next-parser": "^8.11.0",
-    "immutable": "3.x",
+    "immutable": "^3.8.3",
     "lodash-es": "^4.17.21",
     "murmurhash-js": "1.0.x",
     "react": "^17.0.1",
