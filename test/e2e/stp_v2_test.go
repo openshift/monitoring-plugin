@@ -245,7 +245,7 @@ func TestAlertManagementAPI(t *testing.T) {
 			}
 		}
 		t.Logf("  poll: found %d/%d seed rules (%d with ID)", found, len(seedAlerts), withID)
-		return withID == len(seedAlerts), nil
+		return found == len(seedAlerts), nil
 	})
 	if err != nil {
 		t.Fatalf("Timeout waiting for seed rules: %v (ids so far: %+v)", err, ids)
