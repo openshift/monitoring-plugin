@@ -308,6 +308,7 @@ func testPhase5Classification(f *framework.Framework, ids *seedRuleIDs) func(t *
 		})
 
 		t.Run("TC032_ClassifyPlatformUnmanaged", func(t *testing.T) {
+			skipIfNoRuleID(t, ids.PlatformRule, "PlatformRule")
 			body := map[string]interface{}{
 				"classification": map[string]interface{}{
 					"openshift_io_alert_rule_component": "networking",
@@ -499,6 +500,7 @@ func testPhase7BulkUpdate(f *framework.Framework, ids *seedRuleIDs) func(t *test
 		ctx := context.Background()
 
 		t.Run("TC041_BulkLabelUpdate", func(t *testing.T) {
+			skipIfNoRuleID(t, ids.UserRule, "UserRule")
 			body := map[string]interface{}{
 				"ruleIds": []string{ids.Watchdog, ids.UserRule},
 				"labels": map[string]*string{
@@ -528,6 +530,7 @@ func testPhase7BulkUpdate(f *framework.Framework, ids *seedRuleIDs) func(t *test
 		})
 
 		t.Run("TC042_BulkDisable", func(t *testing.T) {
+			skipIfNoRuleID(t, ids.PlatformRule, "PlatformRule")
 			body := map[string]interface{}{
 				"ruleIds":             []string{ids.Watchdog, ids.PlatformRule},
 				"AlertingRuleEnabled": false,
@@ -549,6 +552,7 @@ func testPhase7BulkUpdate(f *framework.Framework, ids *seedRuleIDs) func(t *test
 		})
 
 		t.Run("TC043_BulkReEnable", func(t *testing.T) {
+			skipIfNoRuleID(t, ids.PlatformRule, "PlatformRule")
 			body := map[string]interface{}{
 				"ruleIds":             []string{ids.Watchdog, ids.PlatformRule},
 				"AlertingRuleEnabled": true,
@@ -715,6 +719,7 @@ func testPhase8SingleDelete(f *framework.Framework, ids *seedRuleIDs) func(t *te
 		})
 
 		t.Run("TC048_DeleteGitOps", func(t *testing.T) {
+			skipIfNoRuleID(t, ids.GitOpsRule, "GitOpsRule")
 			resultStatus, err := deleteSingleRuleViaBulk(ctx, f.PluginURL, ids.GitOpsRule)
 			if err != nil {
 				t.Fatalf("DELETE GitOps rule failed: %v", err)

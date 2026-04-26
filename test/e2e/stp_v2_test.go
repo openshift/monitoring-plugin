@@ -245,6 +245,9 @@ func TestAlertManagementAPI(t *testing.T) {
 			}
 		}
 		t.Logf("  poll: found %d/%d seed rules (%d with ID)", found, len(seedAlerts), withID)
+		// TODO(CNV-85482): Change back to `withID == len(seedAlerts)` once the
+		// relabeled rules cache re-sync bug is fixed. Currently new rules never
+		// get openshift_io_alert_rule_id stamped after plugin startup.
 		return found == len(seedAlerts), nil
 	})
 	if err != nil {

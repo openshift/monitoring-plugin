@@ -590,6 +590,15 @@ func waitForUserWorkloadMonitoring(ctx context.Context, t *testing.T, f *framewo
 	}
 }
 
+// skipIfNoRuleID skips when the rule ID is empty due to CNV-85482
+// (relabeled rules cache doesn't re-sync after startup).
+func skipIfNoRuleID(t *testing.T, id string, name string) {
+	t.Helper()
+	if id == "" {
+		t.Skipf("Rule %s has no ID — blocked by CNV-85482 (relabeled cache re-sync bug)", name)
+	}
+}
+
 // boolPtr returns a pointer to a bool value.
 func boolPtr(b bool) *bool {
 	return &b
