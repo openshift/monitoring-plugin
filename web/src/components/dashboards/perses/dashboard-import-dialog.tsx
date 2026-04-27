@@ -28,7 +28,6 @@ import {
 import { DashboardResource } from '@perses-dev/core';
 import * as React from 'react';
 import { useCreateDashboardMutation } from './dashboard-api';
-import { usePatternFlyTheme } from './hooks/usePatternflyTheme';
 import { useMigrateDashboard } from './migrate-api';
 import { useToast } from './ToastProvider';
 import {
@@ -86,7 +85,6 @@ export const DashboardImportDialog: React.FunctionComponent<DashboardImportDialo
 
   const { ensureProjectExists, isCreatingProject } = useProjectCreation();
   const { navigateToDashboard } = useDashboardNavigation();
-  const { theme } = usePatternFlyTheme();
 
   const form = useForm<ImportDashboardValidationType>({
     resolver: zodResolver(importDashboardDialogValidationSchema()),
