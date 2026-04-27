@@ -786,7 +786,6 @@ const QueryBrowser_: React.FC<QueryBrowserProps> = ({
                   namespace: perspective === 'dev' ? activeNamespace : '',
                   query,
                   samples: Math.ceil(samples / timeRanges.length),
-                  timeout: '60s',
                   timespan: timeRange.duration - 1,
                 },
                 perspective,
