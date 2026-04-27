@@ -92,16 +92,11 @@ export function testLegacyDashboardsRegression(perspective: PerspectiveConfig) {
     listPage.ARRows.clickAlertingRule();
     commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
     alertingRuleDetailsPage.clickHideGraphButton();
-    cy.wait(2000);
     cy.byTestID(DataTestIDs.MetricGraph).should('not.exist');
     alertingRuleDetailsPage.clickShowGraphButton();
-    cy.wait(2000);
     cy.byTestID(DataTestIDs.MetricGraph).should('be.visible');
-    cy.wait(2000);
     alertingRuleDetailsPage.clickHideGraphButton();
-    cy.wait(2000);
     cy.byTestID(DataTestIDs.MetricGraph).should('not.exist');
-    cy.wait(2000);
 
     cy.log('4.4 Observe > Alert details - Verify graph is visible');
     cy.byTestID(DataTestIDs.AlertResourceLink).first().click();
