@@ -288,7 +288,6 @@ const VariableDropdown: React.FC<VariableDropdownProps> = ({
           endpoint: PrometheusEndpoint.QUERY_RANGE,
           query: prometheusQuery,
           samples: Math.ceil(DEFAULT_GRAPH_SAMPLES / timeRanges.length),
-          timeout: '60s',
           timespan: timeRange.duration,
           namespace,
           endTime: timeRange.endTime,
