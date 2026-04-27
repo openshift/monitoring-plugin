@@ -32,6 +32,7 @@ describe(
 
       // Step 2: Setup COO and Perses dashboards (requires admin privileges)
       cy.beforeBlockCOO(MCP, MP, { dashboards: true, troubleshootingPanel: false });
+      cy.cleanupPersesTestDashboardsBeforeTests();
       cy.setupPersesRBACandExtraDashboards();
 
       //TODO: https://issues.redhat.com/browse/OCPBUGS-58468 - when it gets fixed, installation can be don using non-admin user
@@ -68,6 +69,7 @@ describe(
 
     beforeEach(() => {
       nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
+      cy.wait(2000);
       nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
       cy.changeNamespace('All Projects');
     });

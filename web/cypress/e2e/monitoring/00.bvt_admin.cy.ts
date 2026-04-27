@@ -16,6 +16,8 @@ describe('BVT: Monitoring', { tags: ['@smoke', '@monitoring'] }, () => {
 
   beforeEach(() => {
     nav.sidenav.clickNavLink(['Observe', 'Metrics']);
+    //TODO: remove this double Metrics click after the issue is fixed
+    nav.sidenav.clickNavLink(['Observe', 'Metrics']);
     commonPages.titleShouldHaveText('Metrics');
     cy.changeNamespace('All Projects');
     alerts.getWatchdogAlert();
@@ -35,6 +37,8 @@ describe('BVT: Monitoring', { tags: ['@smoke', '@monitoring'] }, () => {
     commonPages.titleShouldHaveText('Metrics');
     nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
     commonPages.titleShouldHaveText('Dashboards');
+    nav.sidenav.clickNavLink(['Observe', 'Targets']);
+    //TODO: remove this double Targets click after the issue is fixed
     nav.sidenav.clickNavLink(['Observe', 'Targets']);
     commonPages.titleShouldHaveText('Metrics targets');
   });

@@ -302,8 +302,8 @@ export const listPersesDashboardsPage = {
 
   assertDuplicateDashboardAlreadyExists: () => {
     cy.log('listPersesDashboardsPage.assertDuplicateDashboardAlreadyExists');
-    cy.byPFRole('dialog')
-      .find(Classes.PersesCreateDashboardDashboardNameError)
+    cy.byPFRole('list')
+      .find('h4')
       .contains(persesDashboardsDuplicateDashboard.DIALOG_DUPLICATED_NAME_VALIDATION)
       .should('be.visible');
   },

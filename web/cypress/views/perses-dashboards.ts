@@ -170,6 +170,7 @@ export const persesDashboardsPage = {
     cy.byTestID(DataTestIDs.PersesDashboardDropdown)
       .find('input')
       .should('have.value', dashboardName);
+    cy.wait(2000);
   },
 
   clickTimeRangeDropdown: (timeRange: persesDashboardsTimeRange) => {

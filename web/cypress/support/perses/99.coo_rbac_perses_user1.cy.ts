@@ -442,9 +442,11 @@ export function testCOORBACPersesTestsDevUser1(perspective: PerspectiveConfig) {
 
     cy.log(`6.4. Change namespace to openshift-cluster-observability-operator`);
     cy.changeNamespace('openshift-cluster-observability-operator');
+    cy.wait(2000);
 
     cy.log(`6.5. Assert Kebab icon is enabled`);
     listPersesDashboardsPage.clearAllFilters();
+    listPersesDashboardsPage.filter.byProject('openshift-cluster-observability-operator');
     listPersesDashboardsPage.filter.byName(
       persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[0],
     );
@@ -452,11 +454,11 @@ export function testCOORBACPersesTestsDevUser1(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.assertKebabIconOptions();
     listPersesDashboardsPage.clickKebabIcon();
 
-    cy.log(`6.2. Change namespace to All Projects`);
+    cy.log(`6.6. Change namespace to All Projects`);
     cy.changeNamespace('All Projects');
     listPersesDashboardsPage.clearAllFilters();
 
-    cy.log(`6.3. Filter by Project and Name`);
+    cy.log(`6.7. Filter by Project and Name`);
     listPersesDashboardsPage.filter.byProject('observ-test');
     listPersesDashboardsPage.filter.byName(
       persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0],
@@ -466,7 +468,7 @@ export function testCOORBACPersesTestsDevUser1(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.assertKebabIconDisabled();
     listPersesDashboardsPage.clearAllFilters();
 
-    cy.log(`6.4. Filter by Project and Name`);
+    cy.log(`6.8. Filter by Project and Name`);
     listPersesDashboardsPage.filter.byProject('openshift-cluster-observability-operator');
     listPersesDashboardsPage.filter.byName(
       persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[0],

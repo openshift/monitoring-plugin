@@ -1,5 +1,9 @@
 import { Classes, IDs, persesAriaLabels } from '../../src/components/data-test';
-import { persesCreateDashboard, persesDashboardsModalTitles } from '../fixtures/perses/constants';
+import {
+  persesCreateDashboard,
+  persesDashboardsDuplicateDashboard,
+  persesDashboardsModalTitles,
+} from '../fixtures/perses/constants';
 
 export const persesCreateDashboardsPage = {
   createDashboardShouldBeLoaded: () => {
@@ -65,15 +69,29 @@ export const persesCreateDashboardsPage = {
   assertMaxLengthValidation: () => {
     cy.log('persesCreateDashboardsPage.assertMaxLengthValidation');
     cy.byPFRole('dialog')
-      .find(Classes.PersesCreateDashboardDashboardNameError)
-      .should('have.text', `${persesCreateDashboard.DIALOG_MAX_LENGTH_VALIDATION}`)
+      .find('h4')
+      .should('have.text', persesCreateDashboard.DIALOG_MAX_LENGTH_VALIDATION)
       .should('be.visible');
   },
 
   assertDuplicatedNameValidation: () => {
     cy.log('persesCreateDashboardsPage.assertDuplicatedNameValidation');
-    cy.get(Classes.PersesDuplicateDashboardNameError)
-      .should('have.text', persesCreateDashboard.DIALOG_DUPLICATED_NAME_BKD_VALIDATION)
+    cy.byPFRole('dialog')
+      .find('h4')
+      .should('have.text', persesCreateDashboard.DIALOG_CREATE_NAME_BKD_VALIDATION)
+      .should('be.visible');
+  },
+
+  assertDuplicatedNameValidationFed: (dashboardName: string) => {
+    cy.log('persesCreateDashboardsPage.assertDuplicatedNameValidationFed');
+    cy.byPFRole('dialog')
+      .find(Classes.PersesCreateDashboardDashboardNameError)
+      .should(
+        'have.text',
+        persesDashboardsDuplicateDashboard.DIALOG_DUPLICATED_NAME_FED_VALIDATION_1 +
+          dashboardName +
+          persesDashboardsDuplicateDashboard.DIALOG_DUPLICATED_NAME_FED_VALIDATION_2,
+      )
       .should('be.visible');
   },
 

@@ -141,7 +141,7 @@ export const metricsPage = {
 
   unitsDropdownAssertion: () => {
     cy.log('metricsPage.unitsDropdownAssertion');
-    cy.byTestID(DataTestIDs.MetricGraphUnitsDropDown).should('be.visible').click();
+    cy.byTestID(DataTestIDs.MetricGraphUnitsDropDown).scrollIntoView().should('be.visible').click();
 
     const units = Object.values(MetricsPageUnits);
     units.forEach((unit) => {

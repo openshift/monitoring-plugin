@@ -30,6 +30,7 @@ describe(
 
     beforeEach(() => {
       nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
+      cy.wait(2000);
       nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
       cy.wait(5000);
       cy.changeNamespace('All Projects');
