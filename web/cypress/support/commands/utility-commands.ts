@@ -128,7 +128,7 @@ Cypress.Commands.add('waitUntilWithCustomTimeout', (
       if (hasDataViewFilters) {
         cy.byOUIAID('DataViewFilters').find('button').contains('Status').scrollIntoView().should('be.visible').click();
         cy.byOUIAID('OUIA-Generated-Menu').find('button').contains('Name').scrollIntoView().should('be.visible').click();
-        cy.byAriaLabel('Name filter').scrollIntoView().should('be.visible').type(pod);
+        cy.get('[placeholder="Filter by name"]').scrollIntoView().should('be.visible').type(pod);
       } else {
         cy.byTestID('name-filter-input').should('be.visible').type(pod);
       }

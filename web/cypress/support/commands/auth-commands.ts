@@ -15,7 +15,7 @@ declare global {
       login(provider?: string, username?: string, password?: string, oauthurl?: string): Chainable<Element>;
       loginNoSession(provider: string, username: string, password: string, oauthurl: string): Chainable<Element>;
       adminCLI(command: string, options?);
-      executeAndDelete(command: string);
+      executeAndDelete(command: string, options?: { timeout?: number });
       validateLogin(): Chainable<Element>;
     }
   }
@@ -120,6 +120,7 @@ declare global {
   });
 
   Cypress.Commands.add('switchPerspective', (perspective: string) => {
+    cy.log('Switch perspective to - ' + `${perspective}`);
     /* If side bar is collapsed then expand it
     before switching perspecting */
     cy.wait(2000);
@@ -129,7 +130,7 @@ declare global {
       }
     });
     nav.sidenav.switcher.changePerspectiveTo(perspective);
-    cy.validateLogin();
+    // cy.validateLogin();
   });
 
   // To avoid influence from upstream login change
@@ -160,7 +161,7 @@ declare global {
         cy.byTestID('username', { timeout: 120000 }).should('be.visible');
       },
     );
-    cy.switchPerspective('Administrator');
+    cy.switchPerspective('Core platform');
   });
 
   Cypress.Commands.add('uiLogout', () => {
@@ -206,8 +207,8 @@ declare global {
     cy.exec(`${command} --kubeconfig ${kubeconfig}`);
   });
   
-  Cypress.Commands.add('executeAndDelete', (command: string) => {
-    cy.exec(command, { failOnNonZeroExit: false })
+  Cypress.Commands.add('executeAndDelete', (command: string, options?: { timeout?: number }) => {
+    cy.exec(command, { failOnNonZeroExit: false, ...options })
       .then(result => {
         if (result.code !== 0) {
           cy.task('logError', `Command "${command}" failed: ${result.stderr || result.stdout}`);

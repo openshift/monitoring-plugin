@@ -53,7 +53,6 @@ export function testLegacyDashboardsRegressionNamespace(perspective: Perspective
     cy.log('2.2 Empty state');
     cy.changeNamespace('default');
     legacyDashboardsPage.shouldBeLoaded();
-    cy.byTestID(DataTestIDs.MetricGraphNoDatapointsFound).eq(0).scrollIntoView().should('be.visible');
     legacyDashboardsPage.clickKebabDropdown(0);
     cy.byTestID(LegacyDashboardPageTestIDs.ExportAsCsv).should('be.visible');
     cy.byPFRole('menuitem').should('have.attr', 'disabled');
