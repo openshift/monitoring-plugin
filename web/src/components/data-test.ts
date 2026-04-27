@@ -196,7 +196,7 @@ export const LegacyTestIDs = {
 export const IDs = {
   ChartAxis0ChartLabel: 'chart-axis-0-ChartLabel', //id^=IDs.ChartAxis0ChartLabel AxisX
   ChartAxis1ChartLabel: 'chart-axis-1-ChartLabel', //id^=IDs.ChartAxis1ChartLabel AxisY
-  persesDashboardCount: 'options-menu-top-pagination',
+  persesDashboardCount: 'options-menu-bottom-toggle',
   persesDashboardDownloadButton: 'download-dashboard-button',
   persesDashboardActionMenuModal: 'action-menu',
   persesDashboardEditVariablesModalBuiltinButton: 'builtin',

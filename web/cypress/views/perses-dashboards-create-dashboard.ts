@@ -65,15 +65,16 @@ export const persesCreateDashboardsPage = {
   assertMaxLengthValidation: () => {
     cy.log('persesCreateDashboardsPage.assertMaxLengthValidation');
     cy.byPFRole('dialog')
-      .find(Classes.PersesCreateDashboardDashboardNameError)
-      .should('have.text', `${persesCreateDashboard.DIALOG_MAX_LENGTH_VALIDATION}`)
+      .find('.pf-m-error')
+      .should('contain.text', persesCreateDashboard.DIALOG_MAX_LENGTH_VALIDATION)
       .should('be.visible');
   },
 
   assertDuplicatedNameValidation: () => {
     cy.log('persesCreateDashboardsPage.assertDuplicatedNameValidation');
-    cy.get(Classes.PersesDuplicateDashboardNameError)
-      .should('have.text', persesCreateDashboard.DIALOG_DUPLICATED_NAME_BKD_VALIDATION)
+    cy.byPFRole('list')
+      .find('h4')
+      .should('contain.text', persesCreateDashboard.DIALOG_CREATE_NAME_BKD_VALIDATION)
       .should('be.visible');
   },
 

@@ -60,7 +60,6 @@ Cypress.Commands.add('clickNavLink', (path: string[]) => {
 
 Cypress.Commands.add('changeNamespace', (namespace: string) => {
   cy.log('Changing Namespace to: ' + namespace);
-  cy.wait(2000);
   cy.get('body').then(($body) => {
     const hasNamespaceBarDropdown =
       $body.find('[data-test-id="' + LegacyTestIDs.NamespaceBarDropdown + '"]').length > 0;
@@ -76,10 +75,21 @@ Cypress.Commands.add('changeNamespace', (namespace: string) => {
         .click({ force: true });
     } else {
       cy.get(Classes.NamespaceDropdown).scrollIntoView().should('be.visible');
-      cy.get(Classes.NamespaceDropdown)
-        .scrollIntoView()
-        .should('be.visible')
-        .click({ force: true });
+      cy.waitUntil(
+        () => {
+          cy.get(Classes.NamespaceDropdown)
+            .scrollIntoView()
+            .should('be.visible')
+            .click({ force: true });
+          return cy
+            .get('body')
+            .then(
+              ($b) =>
+                $b.find('[data-test="' + DataTestIDs.NamespaceDropdownTextFilter + '"]').length > 0,
+            );
+        },
+        { timeout: 10000, interval: 1000 },
+      );
     }
   });
   cy.get('body').then(($body) => {
@@ -101,12 +111,22 @@ Cypress.Commands.add('changeNamespace', (namespace: string) => {
       });
     }
   });
-  cy.byTestID(DataTestIDs.NamespaceDropdownTextFilter).type(namespace, { delay: 100 });
+  cy.byTestID(DataTestIDs.NamespaceDropdownTextFilter).clear().type(namespace, { delay: 100 });
   cy.byTestID(DataTestIDs.NamespaceDropdownMenuLink).contains(namespace).should('be.visible');
   cy.byTestID(DataTestIDs.NamespaceDropdownMenuLink)
     .contains(namespace)
     .should('be.visible')
     .click({ force: true });
+  cy.get('body').then(($body) => {
+    cy.log('Checking namespace: ' + namespace);
+    const hasNamespaceBarDropdown =
+      $body.find('[data-test-id="' + LegacyTestIDs.NamespaceBarDropdown + '"]').length > 0;
+    if (hasNamespaceBarDropdown) {
+      cy.byLegacyTestID(LegacyTestIDs.NamespaceBarDropdown).should('contain.text', namespace);
+    } else {
+      cy.get(Classes.NamespaceDropdown).should('contain.text', namespace);
+    }
+  });
   cy.log('Namespace changed to: ' + namespace);
 });
 
@@ -115,6 +135,7 @@ Cypress.Commands.add('aboutModal', () => {
   if (Cypress.env('LOGIN_USERNAME') === 'kubeadmin') {
     cy.byTestID(DataTestIDs.MastHeadHelpIcon).should('be.visible');
     cy.byTestID(DataTestIDs.MastHeadHelpIcon).should('be.visible').click({ force: true });
+    cy.wait(3000);
     cy.byTestID(DataTestIDs.MastHeadApplicationItem).contains('About').should('be.visible').click();
     cy.byAriaLabel('About modal')
       .find('div[class*="co-select-to-copy"]')
@@ -144,31 +165,41 @@ Cypress.Commands.overwrite('log', (log, ...args) => {
 Cypress.Commands.add('podImage', (pod: string, namespace: string) => {
   cy.log('Get pod image');
   cy.switchPerspective('Core platform', 'Administrator');
-  cy.wait(5000);
   cy.clickNavLink(['Workloads', 'Pods']);
-  cy.changeNamespace(namespace);
   cy.byTestID('page-heading').contains('Pods').should('be.visible');
-  cy.wait(5000);
-  // Check for DataViewFilters component using Cypress's built-in retry-ability
+  cy.changeNamespace(namespace);
+  // Wait for the pod table to load after namespace change so the page stabilizes
+  cy.get('table tbody tr, [data-ouia-component-id="DataViewTable"] tbody tr', {
+    timeout: 30000,
+  }).should('have.length.greaterThan', 0);
+  // Re-check for DataViewFilters after the table has stabilized
   cy.get('body').then(($body) => {
     const hasDataViewFilters = $body.find('[data-ouia-component-id="DataViewFilters"]').length > 0;
+    let filterSelector: string;
     if (hasDataViewFilters) {
-      cy.byOUIAID('DataViewFilters')
-        .find('button')
-        .contains('Status')
-        .scrollIntoView()
-        .should('be.visible')
-        .click();
-      cy.byOUIAID('OUIA-Generated-Menu')
-        .find('button')
-        .contains('Name')
-        .scrollIntoView()
-        .should('be.visible')
-        .click();
-      cy.get('[placeholder="Filter by name"]').scrollIntoView().should('be.visible').type(pod);
+      const hasFilterByName = $body.find('[placeholder="Filter by name"]').length > 0;
+      filterSelector = '[placeholder="Filter by name"]';
+      if (!hasFilterByName) {
+        cy.byOUIAID('DataViewFilters')
+          .find('button')
+          .contains('Status')
+          .scrollIntoView()
+          .should('be.visible')
+          .click();
+        cy.byOUIAID('OUIA-Generated-Menu')
+          .find('button')
+          .contains('Name')
+          .scrollIntoView()
+          .should('be.visible')
+          .click();
+      }
     } else {
-      cy.byTestID('name-filter-input').should('be.visible').type(pod);
+      filterSelector = '[data-test="name-filter-input"]';
     }
+    // Separate the visibility assertion from the type action so Cypress
+    // re-queries the element for each command independently.
+    cy.get(filterSelector).scrollIntoView().should('be.visible');
+    cy.get(filterSelector).type(pod);
   });
   cy.get(`a[data-test^="${pod}"]`).eq(0).as('podLink').click();
   cy.byPFRole('rowgroup')
@@ -184,7 +215,6 @@ Cypress.Commands.add('podImage', (pod: string, namespace: string) => {
 
 Cypress.Commands.add('assertNamespace', (namespace: string, exists: boolean) => {
   cy.log('Asserting Namespace: ' + namespace + ' exists: ' + exists);
-  cy.wait(2000);
   cy.get('body').then(($body) => {
     const hasNamespaceBarDropdown =
       $body.find('[data-test-id="' + LegacyTestIDs.NamespaceBarDropdown + '"]').length > 0;
@@ -200,10 +230,21 @@ Cypress.Commands.add('assertNamespace', (namespace: string, exists: boolean) => 
         .click({ force: true });
     } else {
       cy.get(Classes.NamespaceDropdown).scrollIntoView().should('be.visible');
-      cy.get(Classes.NamespaceDropdown)
-        .scrollIntoView()
-        .should('be.visible')
-        .click({ force: true });
+      cy.waitUntil(
+        () => {
+          cy.get(Classes.NamespaceDropdown)
+            .scrollIntoView()
+            .should('be.visible')
+            .click({ force: true });
+          return cy
+            .get('body')
+            .then(
+              ($b) =>
+                $b.find('[data-test="' + DataTestIDs.NamespaceDropdownTextFilter + '"]').length > 0,
+            );
+        },
+        { timeout: 10000, interval: 1000 },
+      );
     }
   });
   cy.get('body').then(($body) => {
@@ -225,7 +266,8 @@ Cypress.Commands.add('assertNamespace', (namespace: string, exists: boolean) => 
       });
     }
   });
-  cy.byTestID(DataTestIDs.NamespaceDropdownTextFilter).type(namespace, { delay: 100 });
+  cy.byTestID(DataTestIDs.NamespaceDropdownTextFilter).clear();
+  cy.byTestID(DataTestIDs.NamespaceDropdownTextFilter).clear().type(namespace, { delay: 100 });
   if (exists) {
     cy.log('Namespace: ' + namespace + ' exists');
     cy.byTestID(DataTestIDs.NamespaceDropdownMenuLink).contains(namespace).should('be.visible');

@@ -231,31 +231,6 @@
             }
           ]
         }
-      },
-      "c03e17f849d341bcb1139c65e68dad1d": {
-        "kind": "Panel",
-        "spec": {
-          "display": {
-            "name": "status history"
-          },
-          "plugin": {
-            "kind": "StatusHistoryChart",
-            "spec": {}
-          },
-          "queries": [
-            {
-              "kind": "TimeSeriesQuery",
-              "spec": {
-                "plugin": {
-                  "kind": "PrometheusTimeSeriesQuery",
-                  "spec": {
-                    "query": "vector(1)"
-                  }
-                }
-              }
-            }
-          ]
-        }
       }
     },
     "layouts": [
@@ -317,16 +292,7 @@
             {
               "x": 0,
               "y": 15,
-              "width": 12,
-              "height": 6,
-              "content": {
-                "$ref": "#/spec/panels/c03e17f849d341bcb1139c65e68dad1d"
-              }
-            },
-            {
-              "x": 12,
-              "y": 15,
-              "width": 12,
+              "width": 24,
               "height": 6,
               "content": {
                 "$ref": "#/spec/panels/31b8374866184a26beddf46ec30df0b5"

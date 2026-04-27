@@ -20,7 +20,13 @@ export function testCOORBACPersesTestsDevUser6(perspective: PerspectiveConfig) {
     () => {
       cy.log(`1.1. Namespace validation`);
       listPersesDashboardsPage.noDashboardsFoundState();
-      listPersesDashboardsPage.projectDropdownNotExists();
+      cy.assertNamespace('All Projects', true);
+      cy.assertNamespace('openshift-monitoring', false);
+      cy.assertNamespace('openshift-cluster-observability-operator', false);
+      cy.assertNamespace('observ-test', false);
+      cy.assertNamespace('perses-dev', false);
+      cy.assertNamespace('empty-namespace3', false);
+      cy.assertNamespace('empty-namespace4', false);
 
       cy.log(`1.2. Create button validation`);
       listPersesDashboardsPage.assertCreateButtonIsDisabled();
