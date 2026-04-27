@@ -103,13 +103,13 @@ export const metricsPage = {
 
   clickUnitsDropdown: (units: MetricsPageUnits) => {
     cy.log('metricsPage.clickUnitsDropdown');
-    cy.byTestID(DataTestIDs.MetricGraphUnitsDropDown).should('be.visible').click();
+    cy.byTestID(DataTestIDs.MetricGraphUnitsDropDown).scrollIntoView().should('be.visible').click();
     cy.get(Classes.MenuItem).contains(units).should('be.visible').click();
   },
 
   unitsDropdownAssertion: () => {
     cy.log('metricsPage.unitsDropdownAssertion');
-    cy.byTestID(DataTestIDs.MetricGraphUnitsDropDown).should('be.visible').click();
+    cy.byTestID(DataTestIDs.MetricGraphUnitsDropDown).scrollIntoView().should('be.visible').click();
 
     const units = Object.values(MetricsPageUnits);
     units.forEach((unit) => {
@@ -128,13 +128,13 @@ export const metricsPage = {
 
   clickRefreshIntervalDropdown: (interval: MonitoringRefreshInterval) => {
     cy.log('metricsPage.clickRefreshIntervalDropdown');
-    cy.byTestID(DataTestIDs.MetricDropdownPollInterval).should('be.visible').click();
+    cy.byTestID(DataTestIDs.MetricDropdownPollInterval).scrollIntoView().should('be.visible').click();
     cy.get(Classes.MenuItem).contains(interval).should('be.visible').click();
   },
 
   refreshIntervalDropdownAssertion: () => {
     cy.log('metricsPage.refreshIntervalDropdownAssertion');
-    cy.byTestID(DataTestIDs.MetricDropdownPollInterval).should('be.visible').click();
+    cy.byTestID(DataTestIDs.MetricDropdownPollInterval).scrollIntoView().should('be.visible').click();
 
     const intervals = Object.values(MonitoringRefreshInterval);
     intervals.forEach((interval) => {
