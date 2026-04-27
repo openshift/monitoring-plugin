@@ -36,7 +36,7 @@
     "@openshift-console/dynamic-plugin-sdk": "1.0.0",
     "@openshift-console/dynamic-plugin-sdk-internal": "^1.0.0",
     "@openshift-console/dynamic-plugin-sdk-webpack": "^0.0.10",
-    "@patternfly/react-charts": "6.94.19",
+    "@patternfly/react-charts": "6.94.21",
     "@patternfly/react-core": "4.276.8",
     "@patternfly/react-table": "4.113.0",
     "@prometheus-io/codemirror-promql": "^0.37.0",
@@ -46,7 +46,7 @@
     "i18next-http-backend": "^2.2.0",
     "i18next-parser": "^8.11.0",
     "immutable": "3.x",
-    "lodash-es": "^4.17.21",
+    "lodash-es": "^4.18.0",
     "murmurhash-js": "1.0.x",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
@@ -99,7 +99,8 @@
     "ws": "^8.17.1",
     "braces": "^3.0.3",
     "follow-redirects": "^1.15.6",
-    "cross-spawn": "^7.0.5"
+    "cross-spawn": "^7.0.5",
+    "lodash": "^4.18.0"
   },
   "consolePlugin": {
     "name": "monitoring-plugin",
