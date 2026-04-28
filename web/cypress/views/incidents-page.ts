@@ -1,6 +1,22 @@
 import { nav } from './nav';
 import { DataTestIDs } from '../../src/components/data-test';
 
+const isPathVisible = (el: Element): boolean => {
+  const opacity = Cypress.$(el).css('fill-opacity') || Cypress.$(el).attr('fill-opacity');
+  return parseFloat(opacity || '0') > 0;
+};
+
+export interface SegmentDates {
+  severity: string;
+  start: string;
+  end: string;
+}
+
+export interface AlertDates {
+  start: string;
+  end: string;
+}
+
 export const incidentsPage = {
   // Centralized element selectors - all selectors defined in one place
   elements: {
@@ -82,11 +98,7 @@ export const incidentsPage = {
           return cy
             .get('g[role="presentation"][data-test*="incidents-chart-bar-"]')
             .find('path[role="presentation"]')
-            .filter((index, element) => {
-              const fillOpacity =
-                Cypress.$(element).css('fill-opacity') || Cypress.$(element).attr('fill-opacity');
-              return parseFloat(fillOpacity || '0') > 0;
-            });
+            .filter((_, element) => isPathVisible(element));
         } else {
           cy.log('Chart bars were not found. Test continues.');
           return cy.wrap([]);
@@ -99,11 +111,7 @@ export const incidentsPage = {
         .should('exist')
         .find('path[role="presentation"]')
         .should('have.length.greaterThan', 0)
-        .filter((index, element) => {
-          const fillOpacity =
-            Cypress.$(element).css('fill-opacity') || Cypress.$(element).attr('fill-opacity');
-          return parseFloat(fillOpacity || '0') > 0;
-        });
+        .filter((_, element) => isPathVisible(element));
     },
     incidentsChartBarsGroups: () =>
       cy
@@ -127,11 +135,7 @@ export const incidentsPage = {
           return cy
             .get('g[role="presentation"][data-test*="alerts-chart-bar-"]')
             .find('path[role="presentation"]')
-            .filter((index, element) => {
-              const fillOpacity =
-                Cypress.$(element).css('fill-opacity') || Cypress.$(element).attr('fill-opacity');
-              return parseFloat(fillOpacity || '0') > 0;
-            });
+            .filter((_, element) => isPathVisible(element));
         } else {
           cy.log('Alert chart bars were not found. Test continues.');
           return cy.wrap([]);
@@ -151,6 +155,18 @@ export const incidentsPage = {
       cy.byTestID(`${DataTestIDs.IncidentsTable.SeverityCell}-${index}`),
     incidentsTableStateCell: (index: number) =>
       cy.byTestID(`${DataTestIDs.IncidentsTable.StateCell}-${index}`),
+    incidentsTableStartCell: (index: number) =>
+      incidentsPage.elements
+        .incidentsTable()
+        .find('td[data-label="Start"]')
+        .eq(index)
+        .find('span[data-test="timestamp"]'),
+    incidentsTableEndCell: (index: number) =>
+      incidentsPage.elements
+        .incidentsTable()
+        .find('td[data-label="End"]')
+        .eq(index)
+        .find('span[data-test="timestamp"]'),
 
     // Details table (expanded row)
     incidentsDetailsTable: () => cy.byTestID(DataTestIDs.IncidentsDetailsTable.Table),
@@ -168,8 +184,26 @@ export const incidentsPage = {
       cy.byTestID(`${DataTestIDs.IncidentsDetailsTable.SeverityCell}-${index}`),
     incidentsDetailsStateCell: (index: number) =>
       cy.byTestID(`${DataTestIDs.IncidentsDetailsTable.StateCell}-${index}`),
+    // TODO: DataTestIDs.IncidentsDetailsTable.StartCell is defined but not rendered
+    // in IncidentsDetailsRowTable.tsx — use dataLabel fallback until data-test is wired up
     incidentsDetailsStartCell: (index: number) =>
-      cy.byTestID(`${DataTestIDs.IncidentsDetailsTable.StartCell}-${index}`),
+      incidentsPage.elements
+        .incidentsDetailsTable()
+        .find('td[data-label="expanded-details-firingstart"]')
+        .eq(index)
+        .find('span[data-test="timestamp"]'),
+    incidentsDetailsFiringStartCell: (index: number) =>
+      incidentsPage.elements
+        .incidentsDetailsTable()
+        .find('td[data-label="expanded-details-firingstart"]')
+        .eq(index)
+        .find('span[data-test="timestamp"]'),
+    incidentsDetailsFiringEndCell: (index: number) =>
+      incidentsPage.elements
+        .incidentsDetailsTable()
+        .find('td[data-label="expanded-details-firingend"]')
+        .eq(index)
+        .find('span[data-test="timestamp"]'),
     incidentsDetailsEndCell: (index: number) =>
       cy.byTestID(`${DataTestIDs.IncidentsDetailsTable.EndCell}-${index}`),
 
@@ -461,13 +495,7 @@ export const incidentsPage = {
       .eq(index)
       .find('path[role="presentation"]')
       .then(($paths) => {
-        const visiblePath = $paths
-          .filter((i, el) => {
-            const fillOpacity =
-              Cypress.$(el).css('fill-opacity') || Cypress.$(el).attr('fill-opacity');
-            return parseFloat(fillOpacity || '0') > 0;
-          })
-          .first();
+        const visiblePath = $paths.filter((_, el) => isPathVisible(el)).first();
 
         if (visiblePath.length > 0) {
           const rect = visiblePath[0].getBoundingClientRect();
@@ -502,10 +530,7 @@ export const incidentsPage = {
       .eq(barIndex)
       .find('path[role="presentation"]')
       .then(($paths) => {
-        return $paths.filter((_, el) => {
-          const opacity = Cypress.$(el).css('fill-opacity') || Cypress.$(el).attr('fill-opacity');
-          return parseFloat(opacity || '0') > 0;
-        });
+        return $paths.filter((_, el) => isPathVisible(el));
       });
   },
 
@@ -538,6 +563,45 @@ export const incidentsPage = {
         })
         .wait(200);
     });
+    return incidentsPage.waitForTooltip();
+  },
+
+  getIncidentBarVisibleSegmentCount: (incidentId: string): Cypress.Chainable<number> => {
+    cy.log(`incidentsPage.getIncidentBarVisibleSegmentCount: ${incidentId}`);
+    return incidentsPage.elements
+      .incidentsChartBar(incidentId)
+      .find('path[role="presentation"]')
+      .then(($paths) => {
+        const count = $paths.filter((_, el) => isPathVisible(el)).length;
+        return cy.wrap(count);
+      });
+  },
+
+  hoverOverIncidentBarById: (incidentId: string, segmentIndex = 0) => {
+    cy.log(`incidentsPage.hoverOverIncidentBarById: ${incidentId}, segment: ${segmentIndex}`);
+    incidentsPage.elements
+      .incidentsChartBar(incidentId)
+      .find('path[role="presentation"]')
+      .then(($paths) => {
+        const visiblePaths = $paths.filter((_, el) => isPathVisible(el));
+
+        if (segmentIndex >= visiblePaths.length) {
+          throw new Error(
+            `Segment ${segmentIndex} not found for incident ` +
+              `${incidentId} (${visiblePaths.length} visible)`,
+          );
+        }
+
+        const rect = visiblePaths[segmentIndex].getBoundingClientRect();
+        const x = rect.left + rect.width / 2;
+        const y = rect.top + rect.height / 2;
+
+        incidentsPage.elements
+          .incidentsChartSvg()
+          .first()
+          .trigger('mousemove', { clientX: x, clientY: y, force: true })
+          .wait(100);
+      });
     return incidentsPage.waitForTooltip();
   },
 
@@ -583,21 +647,116 @@ export const incidentsPage = {
 
   hoverOverAlertBar: (index: number) => {
     cy.log(`incidentsPage.hoverOverAlertBar: ${index}`);
-    incidentsPage.elements
-      .alertsChartBarsPaths()
-      .eq(index)
-      .then(($bar) => {
-        const rect = $bar[0].getBoundingClientRect();
-        const x = rect.left + rect.width / 2;
-        const y = rect.top + rect.height / 2;
+    incidentsPage.elements.alertsChartBarsPaths().then(($paths) => {
+      const visiblePaths = $paths.filter((_, el) => isPathVisible(el));
 
-        incidentsPage.elements
-          .alertsChartSvg()
-          .first()
-          .trigger('mousemove', { clientX: x, clientY: y, force: true })
-          .wait(100);
-      });
+      if (index >= visiblePaths.length) {
+        throw new Error(`Alert bar ${index} not found (${visiblePaths.length} visible)`);
+      }
+
+      const rect = visiblePaths[index].getBoundingClientRect();
+      const x = rect.left + rect.width / 2;
+      const y = rect.top + rect.height / 2;
+
+      incidentsPage.elements
+        .alertsChartSvg()
+        .first()
+        .trigger('mousemove', { clientX: x, clientY: y, force: true })
+        .wait(100);
+    });
     return incidentsPage.waitForTooltip();
+  },
+
+  getTooltipStartDate: (): Cypress.Chainable<string> => {
+    cy.log('incidentsPage.getTooltipStartDate');
+    return incidentsPage.elements
+      .tooltip()
+      .find('p')
+      .contains('Start:')
+      .invoke('text')
+      .then((text) => {
+        const match = text.match(/Start\s*:\s*(.*)/);
+        return cy.wrap(match ? match[1].trim() : '');
+      });
+  },
+
+  getTooltipSeverity: (): Cypress.Chainable<string> => {
+    cy.log('incidentsPage.getTooltipSeverity');
+    return incidentsPage.elements
+      .tooltip()
+      .find('p')
+      .contains('Severity:')
+      .invoke('text')
+      .then((text) => {
+        const match = text.match(/Severity\s*:\s*(.*)/);
+        return cy.wrap(match ? match[1].trim() : '');
+      });
+  },
+
+  getTooltipEndDate: (): Cypress.Chainable<string> => {
+    cy.log('incidentsPage.getTooltipEndDate');
+    return incidentsPage.elements
+      .tooltip()
+      .find('p')
+      .contains('End:')
+      .invoke('text')
+      .then((text) => {
+        const match = text.match(/End\s*:\s*(.*)/);
+        return cy.wrap(match ? match[1].trim() : '');
+      });
+  },
+
+  getAlertsTooltipStartDate: (): Cypress.Chainable<string> => {
+    cy.log('incidentsPage.getAlertsTooltipStartDate');
+    return incidentsPage.elements
+      .alertsChartTooltip()
+      .find('p')
+      .contains('Start:')
+      .invoke('text')
+      .then((text) => {
+        const match = text.match(/Start\s*:\s*(.*)/);
+        return cy.wrap(match ? match[1].trim() : '');
+      });
+  },
+
+  getAlertsTooltipEndDate: (): Cypress.Chainable<string> => {
+    cy.log('incidentsPage.getAlertsTooltipEndDate');
+    return incidentsPage.elements
+      .alertsChartTooltip()
+      .find('p')
+      .contains('End:')
+      .invoke('text')
+      .then((text) => {
+        const match = text.match(/End\s*:\s*(.*)/);
+        return cy.wrap(match ? match[1].trim() : '');
+      });
+  },
+
+  collectSegmentTooltip: (
+    incidentId: string,
+    segmentIndex: number,
+  ): Cypress.Chainable<SegmentDates> => {
+    cy.log(`incidentsPage.collectSegmentTooltip: ${incidentId}, segment: ${segmentIndex}`);
+    let severity: string;
+    let start: string;
+    incidentsPage.hoverOverIncidentBarById(incidentId, segmentIndex);
+    incidentsPage.getTooltipSeverity().then((s) => {
+      severity = s;
+    });
+    incidentsPage.getTooltipStartDate().then((d) => {
+      start = d;
+    });
+    return incidentsPage.getTooltipEndDate().then((end) => cy.wrap({ severity, start, end }));
+  },
+
+  collectAlertTooltip: (barIndex: number): Cypress.Chainable<AlertDates> => {
+    cy.log(`incidentsPage.collectAlertTooltip: ${barIndex}`);
+    let start: string;
+    incidentsPage.hoverOverAlertBar(barIndex);
+    incidentsPage.getAlertsTooltipStartDate().then((d) => {
+      start = d;
+    });
+    return incidentsPage.getAlertsTooltipEndDate().then((end) => cy.wrap({ start, end }));
   },
 
   // Constants for search configuration

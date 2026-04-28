@@ -129,6 +129,8 @@ export const DataTestIDs = {
   },
 
   // Incidents Table Test IDs
+  // NOTE: StartCell is missing — IncidentsTable.tsx line 182 has no data-test attribute.
+  // The Cypress page object uses a dataLabel fallback for now (incidentsTableStartCell).
   IncidentsTable: {
     Table: 'incidents-alerts-table',
     ExpandButton: 'incidents-table-expand-button',
@@ -139,6 +141,11 @@ export const DataTestIDs = {
   },
 
   // Incidents Details Row Table Test IDs
+  // NOTE: Only Table and LoadingSpinner are rendered in IncidentsDetailsRowTable.tsx.
+  // All per-row/per-cell IDs below (Row through AlertRuleLink) are defined here but
+  // NOT wired up as data-test attributes in the component. The Cypress page object
+  // uses dataLabel-based fallback selectors for these. When adding data-test attrs
+  // to the component, the page object selectors can switch to cy.byTestID().
   IncidentsDetailsTable: {
     Table: 'incidents-details-table',
     LoadingSpinner: 'incidents-details-loading-spinner',

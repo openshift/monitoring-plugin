@@ -23,7 +23,7 @@ export interface PermissionDeniedEndpoints {
 
 export const NEW_METRIC_NAME = 'cluster_health_components_map';
 export const OLD_METRIC_NAME = 'cluster:health:components:map';
-const MOCK_QUERY = '/api/prometheus/api/v1/query_range*';
+const MOCK_QUERY_RANGE = '/api/prometheus/api/v1/query_range*';
 
 /**
  * Main mocking function - sets up cy.intercept for Prometheus query_range API
@@ -34,7 +34,7 @@ const MOCK_QUERY = '/api/prometheus/api/v1/query_range*';
  * @param incidents - Array of incident definitions to mock
  */
 export function mockPrometheusQueryRange(incidents: IncidentDefinition[]): void {
-  cy.intercept('GET', MOCK_QUERY, (req) => {
+  cy.intercept('GET', MOCK_QUERY_RANGE, (req) => {
     const url = new URL(req.url, window.location.origin);
     const query = url.searchParams.get('query') || '';
     const startTime = url.searchParams.get('start');
@@ -128,7 +128,7 @@ Cypress.Commands.add('transformMetrics', () => {
 
   cy.log('Transforming old metric queries to new format');
 
-  cy.intercept('GET', MOCK_QUERY, (req) => {
+  cy.intercept('GET', MOCK_QUERY_RANGE, (req) => {
     const url = new URL(req.url, window.location.origin);
     const query = url.searchParams.get('query') || '';
     const hasNewMetric = query.includes(NEW_METRIC_NAME);
@@ -191,7 +191,7 @@ export function mockPermissionDeniedResponses(endpoints: PermissionDeniedEndpoin
   }
 
   if (prometheus) {
-    cy.intercept('GET', MOCK_QUERY, (req) => {
+    cy.intercept('GET', MOCK_QUERY_RANGE, (req) => {
       Cypress.log({ name: '403', message: `${req.method} ${req.url}` });
       req.reply(forbiddenResponse);
     }).as('prometheusQueryRangePermissionDenied');
