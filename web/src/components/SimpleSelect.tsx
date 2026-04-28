@@ -70,7 +70,7 @@ const SimpleSelectBase: React.FunctionComponent<SimpleSelectProps> = ({
   });
 
   const onToggleClick = () => {
-    onToggle && onToggle(!isOpen);
+    onToggle?.(!isOpen);
     setIsOpen(!isOpen);
   };
 
@@ -78,9 +78,9 @@ const SimpleSelectBase: React.FunctionComponent<SimpleSelectProps> = ({
     _event: React.MouseEvent<Element, MouseEvent> | undefined,
     value: string | number | undefined,
   ) => {
-    onSelect && onSelect(_event, value);
+    onSelect?.(_event, value);
     setSelected(initialOptions.find((o) => o.value === value));
-    onToggle && onToggle(true);
+    onToggle?.(true);
     setIsOpen(false);
   };
 
@@ -108,7 +108,7 @@ const SimpleSelectBase: React.FunctionComponent<SimpleSelectProps> = ({
       selected={selected}
       onSelect={_onSelect}
       onOpenChange={(isOpen) => {
-        onToggle && onToggle(isOpen);
+        onToggle?.(isOpen);
         setIsOpen(isOpen);
       }}
       toggle={toggle}

@@ -203,7 +203,7 @@ export const SingleTypeaheadDropdown: React.FC<SingleTypeaheadDropdownProps> = (
     if (enableCreateNew && value === CREATE_NEW) {
       if (!selectOptions.some((item) => item.value === filterValue)) {
         setSelectOptions([...selectOptions, { value: filterValue, children: filterValue }]);
-        onCreate && onCreate(filterValue);
+        onCreate?.(filterValue);
       }
       selectOption(filterValue, filterValue);
       resetActiveAndFocusedItem();
@@ -220,7 +220,7 @@ export const SingleTypeaheadDropdown: React.FC<SingleTypeaheadDropdownProps> = (
   const onTextInputChange = (_event: React.FormEvent<HTMLInputElement>, value: string) => {
     setInputValue(value);
     setFilterValue(value);
-    onInputChange && onInputChange(value);
+    onInputChange?.(value);
 
     resetActiveAndFocusedItem();
   };
@@ -311,7 +311,7 @@ export const SingleTypeaheadDropdown: React.FC<SingleTypeaheadDropdownProps> = (
     setFilterValue('');
     resetActiveAndFocusedItem();
     textInputRef?.current?.focus();
-    onClear && onClear(selectedKey);
+    onClear?.(selectedKey);
   };
 
   const selectedItemWidth = React.useMemo(() => {
@@ -337,7 +337,9 @@ export const SingleTypeaheadDropdown: React.FC<SingleTypeaheadDropdownProps> = (
           onClick={onInputClick}
           onChange={onTextInputChange}
           onKeyDown={(ev: React.KeyboardEvent<HTMLInputElement>) => {
-            ev.key === 'Enter' && ev.preventDefault(); // prevent accidental form submission
+            if (ev.key === 'Enter') {
+              ev.preventDefault(); // prevent accidental form submission
+            }
             onInputKeyDown(ev);
           }}
           id={`${ID_PREFIX}-input`}
@@ -380,7 +382,11 @@ export const SingleTypeaheadDropdown: React.FC<SingleTypeaheadDropdownProps> = (
       selected={selectedKey}
       onSelect={onSelect}
       onOpenChange={(open) => {
-        open ? setIsOpen(true) : closeMenu();
+        if (open) {
+          setIsOpen(true);
+        } else {
+          closeMenu();
+        }
       }}
       toggle={toggle}
       shouldFocusFirstItemOnOpen={false}

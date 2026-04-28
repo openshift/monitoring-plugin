@@ -256,7 +256,9 @@ export const TypeaheadSelect: React.FC<TypeaheadSelectProps> = ({
       isOpen={isOpen}
       onSelect={handleSelect}
       onOpenChange={(isOpen) => {
-        !isOpen && closeMenu();
+        if (!isOpen) {
+          closeMenu();
+        }
       }}
       toggle={toggle}
       shouldFocusFirstItemOnOpen={false}
