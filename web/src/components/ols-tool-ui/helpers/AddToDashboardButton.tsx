@@ -10,7 +10,7 @@ import type { PanelDefinition } from '@perses-dev/core';
 import { InfoTooltip } from '@perses-dev/components';
 
 import { dashboardsAddPersesPanelExternally } from '../../../store/actions';
-import type { RootState } from '../../../store';
+import type { RootState } from '../../../store/store';
 
 export const HeaderIconButton: StyledComponent<IconButtonProps & { theme?: Theme }> = styled(
   IconButton,
