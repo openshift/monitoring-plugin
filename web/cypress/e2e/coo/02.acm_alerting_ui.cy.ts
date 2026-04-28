@@ -25,15 +25,14 @@ describe('ACM Alerting UI', { tags: ['@coo', '@alerts'] }, () => {
   });
 
   it('Navigate to Fleet Management > local-cluster > Observe > Alerting', () => {
-    // wait for console page loading completed
-    cy.visit('/');
-    cy.get('body', { timeout: 60000 }).should('contain.text', 'Administrator');
+    cy.get('button[data-test-id="perspective-switcher-toggle"]', { timeout: 120000 }).should('be.visible');
     // switch to Fleet Management page
     cy.switchPerspective('Fleet Management');
     // close pop-up window
     cy.closeOnboardingModalIfPresent();
     // click “local-cluster” when visible
     cy.log('Waiting for local-cluster link to appear...');
+    nav.sidenav.clickNavLink(['Infrastructure', 'Clusters']);
     cy.contains('local-cluster', { timeout: 120000 })
       .should('exist')
       .should('be.visible')
@@ -42,10 +41,6 @@ describe('ACM Alerting UI', { tags: ['@coo', '@alerts'] }, () => {
       });
     // click side menu -> Observe -> Alerting
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-    // Wait for alert tab content to become visible
-    cy.get('section#alerts-tab-content', { timeout: 60000 })
-      .should('be.visible');
-    // confirm Alerting page loading completed
     acmAlertingPage.shouldBeLoaded();
     // check three test alerts exist
     expectedAlerts.forEach((alert) => {
