@@ -24,8 +24,9 @@ const getLabelsAsString = (obj: any, path = 'metadata.labels'): string[] => {
 
 const MAX_SUGGESTIONS = 5;
 
-const labelParser = (resources: any[] = [], labelPath = 'metadata.labels'): Set<string> => {
-  return resources.reduce((acc: Set<string>, resource: any) => {
+const labelParser = (resources: any = [], labelPath = 'metadata.labels'): Set<string> => {
+  const safeResources = Array.isArray(resources) ? resources : [];
+  return safeResources.reduce((acc: Set<string>, resource: any) => {
     getLabelsAsString(resource, labelPath).forEach((label) => acc.add(label));
     return acc;
   }, new Set<string>());

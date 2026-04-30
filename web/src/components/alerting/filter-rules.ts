@@ -48,9 +48,12 @@ export const filterRules = (rules: Rule[], selectedFilters: AlertRulesFilters) =
       return false;
     }
     if (selectedFilters[AlertRulesFilterOptions.LABEL]?.length) {
-      const labelMatchers = selectedFilters[AlertRulesFilterOptions.LABEL].split(',');
+      const labelMatchers = selectedFilters[AlertRulesFilterOptions.LABEL]
+        .split(',')
+        .map((m) => m.trim())
+        .filter(Boolean);
       for (const labelMatcher of labelMatchers) {
-        const keyValue = labelMatcher.split('=');
+        const keyValue = labelMatcher.split('=').map((s) => s.trim());
         if (keyValue.length !== 2) {
           return false;
         }
