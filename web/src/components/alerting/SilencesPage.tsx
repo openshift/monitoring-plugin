@@ -152,7 +152,11 @@ const SilencesPage_: FC = () => {
         props: { width: 10 as BaseCellProps['width'] },
       },
       { label: t('State'), key: rowFilter(SilenceFilterOptions.STATE) },
-      { label: t('Creator'), key: rowFilter('createdBy') },
+      {
+        label: t('Creator'),
+        key: rowFilter('createdBy'),
+        props: { width: 10 as BaseCellProps['width'] },
+      },
     ];
     if (perspective === 'acm') {
       keys.push({ label: t('Cluster'), key: rowFilter(SilenceFilterOptions.CLUSTER) });
