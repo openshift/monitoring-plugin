@@ -281,19 +281,23 @@ export function testAlertsRegression(perspective: PerspectiveConfig) {
     alertingRuleListPage.countShouldBe(1);
     listPage.filter.clearAllFilters();
 
-    cy.log('4.4 Search by Name and see details');
+    cy.log('4.4 Search by Label');
+    listPage.filter.byLabel(`namespace=${WatchdogAlert.NAMESPACE}`);
+    listPage.filter.clearAllFilters();
+
+    cy.log('4.5 Search by Name and see details');
     listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`, FilterOUIAIDs.RuleNameFilter);
     alertingRuleListPage.countShouldBe(1);
     alertingRuleListPage.clickAlertingRule(`${WatchdogAlert.ALERTNAME}`);
     alertingRuleDetailsPage.assertAlertingRuleDetailsPage(`${WatchdogAlert.ALERTNAME}`);
 
-    cy.log('4.5 Alerting rule details > Silence alert');
+    cy.log('4.6 Alerting rule details > Silence alert');
     alertingRuleDetailsPage.clickOnKebabSilenceAlert();
     silenceAlertPage.addComment(SilenceComment.SILENCE_COMMENT);
     silenceAlertPage.clickSubmit();
     commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
 
-    cy.log('4.6 Alerting rule details > Assert Kebab');
+    cy.log('4.7 Alerting rule details > Assert Kebab');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     nav.tabs.switchTab('Alerting rules');
     listPage.filter.clearAllFilters();
@@ -301,7 +305,7 @@ export function testAlertsRegression(perspective: PerspectiveConfig) {
     alertingRuleListPage.clickAlertingRule(`${WatchdogAlert.ALERTNAME}`);
     alertingRuleDetailsPage.assertNoKebab();
 
-    cy.log('4.7 Expire silence');
+    cy.log('4.8 Expire silence');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     nav.tabs.switchTab('Silences');
     silencesListPage.shouldBeLoaded();
