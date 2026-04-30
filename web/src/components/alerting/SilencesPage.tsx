@@ -5,7 +5,9 @@ import {
   Silence,
   SilenceStates,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { BulkSelect, BulkSelectValue } from '@patternfly/react-component-groups';
+import BulkSelect, {
+  BulkSelectValue,
+} from '@patternfly/react-component-groups/dist/dynamic/BulkSelect';
 import {
   Button,
   Flex,
