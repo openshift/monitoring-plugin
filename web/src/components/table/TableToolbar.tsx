@@ -1,4 +1,3 @@
-import { FC, PropsWithChildren, useRef } from 'react';
 import {
   Button,
   Toolbar,
@@ -7,6 +6,8 @@ import {
   ToolbarItemVariant,
   ToolbarProps,
 } from '@patternfly/react-core';
+import { FC, PropsWithChildren, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 
 /** extends ToolbarProps */
 export interface DataViewToolbarProps extends Omit<PropsWithChildren<ToolbarProps>, 'ref'> {
@@ -32,20 +33,25 @@ export const TableToolbar: FC<DataViewToolbarProps> = ({
   children,
   ...props
 }: DataViewToolbarProps) => {
-  const defaultClearFilters = useRef(
-    <ToolbarItem>
-      <Button
-        ouiaId={`${ouiaId}-clear-all-filters`}
-        variant="link"
-        onClick={clearAllFilters}
-        isInline
-      >
-        Clear filters
-      </Button>
-    </ToolbarItem>,
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
+
+  const defaultClearFilters = useMemo(
+    () => (
+      <ToolbarItem>
+        <Button
+          ouiaId={`${ouiaId}-clear-all-filters`}
+          variant="link"
+          onClick={clearAllFilters}
+          isInline
+        >
+          {t('Clear all filters')}
+        </Button>
+      </ToolbarItem>
+    ),
+    [ouiaId, clearAllFilters, t],
   );
   return (
-    <Toolbar ouiaId={ouiaId} customLabelGroupContent={defaultClearFilters.current} {...props}>
+    <Toolbar ouiaId={ouiaId} customLabelGroupContent={defaultClearFilters} {...props}>
       <ToolbarContent>
         {bulkSelect && (
           <ToolbarItem data-ouia-component-id={`${ouiaId}-bulk-select`}>{bulkSelect}</ToolbarItem>

@@ -1,40 +1,39 @@
 import { AlertSeverity, AlertStates, DocumentTitle } from '@openshift-console/dynamic-plugin-sdk';
+import { PageSection, PaginationVariant } from '@patternfly/react-core';
+import DataView from '@patternfly/react-data-view/dist/dynamic/DataView';
+import { DataViewTh } from '@patternfly/react-data-view/dist/dynamic/DataViewTable';
+import DataViewTableHead from '@patternfly/react-data-view/dist/dynamic/DataViewTableHead';
+import DataViewToolbar from '@patternfly/react-data-view/dist/dynamic/DataViewToolbar';
+import { useDataViewSort } from '@patternfly/react-data-view/dist/dynamic/Hooks';
 import { Table, TableGridBreakpoint, ThProps } from '@patternfly/react-table';
 import { useCallback, useEffect, useMemo, useRef, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import withFallback from '../console/console-shared/error/fallbacks/withFallback';
-import { LoadingBox } from '../console/console-shared/src/components/loading/LoadingBox';
-import { usePerspective } from '../hooks/usePerspective';
-import { AlertSource } from '../types';
-import { ALL_NAMESPACES_KEY } from '../utils';
-import AggregateAlertTableRow from './AlertList/AggregateAlertTableRow';
-import DownloadCSVButton from './AlertList/DownloadCSVButton';
-import { AggregatedAlert, getAggregateAlertsLists } from './AlertsAggregates';
-import { rowFilter, SilencesNotLoadedWarning } from './AlertUtils';
 import { MonitoringProvider } from '../../contexts/MonitoringContext';
 import { useAlerts } from '../../hooks/useAlerts';
+import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 import { AccessDenied } from '../console/console-shared/src/components/empty-state/AccessDenied';
-import { useMonitoringNamespace } from '../hooks/useMonitoringNamespace';
-import { PageSection, PaginationVariant } from '@patternfly/react-core';
-import { useSearchParams } from 'react-router';
-import { filterAlerts } from './AlertList/filter-alerts';
-import { useTableFilters } from '../table/useTableFilters';
-import { useDeepMemo } from '../hooks/useDeepMemo';
-import { ITEMS_PER_PAGE, TablePagination } from '../table-pagination';
 import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
-import { useDataViewSort } from '@patternfly/react-data-view/dist/dynamic/Hooks';
-import { DataViewTh } from '@patternfly/react-data-view/dist/dynamic/DataViewTable';
-import DataView from '@patternfly/react-data-view/dist/dynamic/DataView';
-import DataViewToolbar from '@patternfly/react-data-view/dist/dynamic/DataViewToolbar';
-import DataViewTableHead from '@patternfly/react-data-view/dist/dynamic/DataViewTableHead';
-import { TableToolbar } from '../table/TableToolbar';
+import { LoadingBox } from '../console/console-shared/src/components/loading/LoadingBox';
+import { useDeepMemo } from '../hooks/useDeepMemo';
+import { useMonitoringNamespace } from '../hooks/useMonitoringNamespace';
+import { usePerspective } from '../hooks/usePerspective';
+import { ITEMS_PER_PAGE, TablePagination } from '../table-pagination';
 import {
   TableFilter,
   TableFilterOption,
   TableFilterProps,
   TableFilters,
 } from '../table/TableFilters';
+import { TableToolbar } from '../table/TableToolbar';
+import { useTableFilters } from '../table/useTableFilters';
 import { useTablePagination } from '../table/useTablePagination';
+import { AlertSource } from '../types';
+import { ALL_NAMESPACES_KEY, severitySort } from '../utils';
+import AggregateAlertTableRow from './AlertList/AggregateAlertTableRow';
+import DownloadCSVButton from './AlertList/DownloadCSVButton';
+import { filterAlerts } from './AlertList/filter-alerts';
+import { AggregatedAlert, getAggregateAlertsLists } from './AlertsAggregates';
+import { rowFilter, SilencesNotLoadedWarning } from './AlertUtils';
 
 export const enum AlertFilterOptions {
   NAME = 'name',
@@ -58,7 +57,6 @@ const AlertsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { namespace } = useMonitoringNamespace();
   const { defaultAlertTenant, perspective } = usePerspective();
-  const [searchParams, setSearchParams] = useSearchParams();
   const [activeAttributeMenu, setActiveAttributeMenu] = useState<string>(t('Alert Name'));
   const initialFilters = useDeepMemo(() => {
     const filters = {
@@ -82,19 +80,13 @@ const AlertsPage_: FC = () => {
   // with no search parameters. Future changes are reflected
   const pagination = useTablePagination({
     perPage: ITEMS_PER_PAGE[0],
-    searchParams,
-    setSearchParams,
   });
   const { filters, onSetFilters, clearAllFilters, deleteFilter } =
     useTableFilters<AggregatedAlertFilters>({
       initialFilters,
-      searchParams,
-      setSearchParams,
     });
   const { sortBy, direction, onSort } = useDataViewSort({
     initialSort: { sortBy: rowFilter(AlertFilterOptions.NAME), direction: 'asc' },
-    searchParams,
-    setSearchParams,
   });
 
   const columnKeys = useMemo(() => {
@@ -318,8 +310,8 @@ const AlertsPage_: FC = () => {
               }
               pagination={
                 <TablePagination
-                  itemCount={aggregatedAlerts?.length}
                   variant={PaginationVariant.top}
+                  itemCount={aggregatedAlerts?.length}
                   {...pagination}
                 />
               }
@@ -370,32 +362,19 @@ const sortAggregatedAlerts = (
   if (!sortBy || !direction) {
     return data;
   }
-  const lower = direction === 'asc' ? 0 : 1;
-  const upper = direction === 'asc' ? 1 : 0;
+  const directionMultiplier = direction === 'asc' ? 1 : -1;
   if (sortBy === rowFilter(AlertFilterOptions.NAME)) {
-    return [...data].sort((a, b) =>
-      a.name?.toLocaleLowerCase() < b.name?.toLocaleLowerCase() ? lower : upper,
+    return [...data].sort(
+      (a, b) =>
+        (a.name ?? '').localeCompare(b.name ?? '', undefined, { sensitivity: 'base' }) *
+        directionMultiplier,
     );
   } else if (sortBy === rowFilter(AlertFilterOptions.SEVERITY)) {
-    return [...data].sort((a, b) => {
-      const aOrder: number =
-        {
-          [AlertSeverity.Critical]: 1,
-          [AlertSeverity.Warning]: 2,
-          [AlertSeverity.None]: 4,
-        }[a.severity] ?? 3;
-      const bOrder: number =
-        {
-          [AlertSeverity.Critical]: 1,
-          [AlertSeverity.Warning]: 2,
-          [AlertSeverity.None]: 4,
-        }[b.severity] ?? 3;
-      return aOrder > bOrder ? lower : upper;
-    });
+    return [...data].sort((a, b) => severitySort(a, b) * directionMultiplier);
   } else if (sortBy === rowFilter('alert-total')) {
-    return [...data].sort((a, b) => (a.alerts.length < b.alerts.length ? lower : upper));
+    return [...data].sort((a, b) => (a.alerts.length - b.alerts.length) * directionMultiplier);
   } else if (sortBy === rowFilter(AlertFilterOptions.STATE)) {
-    return [...data].sort((a, b) => (a.state < b.state ? lower : upper));
+    return [...data].sort((a, b) => a.state.localeCompare(b.state) * directionMultiplier);
   }
   return data;
 };

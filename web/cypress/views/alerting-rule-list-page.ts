@@ -10,7 +10,7 @@ export const alertingRuleListPage = {
     cy.get(Classes.TableHeaderColumn).contains('Name').should('be.visible');
     cy.get(Classes.TableHeaderColumn).contains('Severity').should('be.visible');
     cy.get(Classes.TableHeaderColumn).contains('State').should('be.visible');
-    cy.get(Classes.TableHeaderColumn).contains('Total').should('be.visible');
+    cy.get(Classes.TableHeaderColumn).contains('Source').should('be.visible');
   },
 
   filter: {

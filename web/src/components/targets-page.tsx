@@ -30,16 +30,25 @@ import {
   Title,
   Tooltip,
 } from '@patternfly/react-core';
+import DataView from '@patternfly/react-data-view/dist/dynamic/DataView';
+import DataViewTable, {
+  DataViewTh,
+  DataViewTr,
+} from '@patternfly/react-data-view/dist/dynamic/DataViewTable';
+import DataViewToolbar from '@patternfly/react-data-view/dist/dynamic/DataViewToolbar';
+import { useDataViewSort } from '@patternfly/react-data-view/dist/dynamic/Hooks';
 import { ThProps } from '@patternfly/react-table';
 import { find, includes } from 'lodash-es';
 import type { FC } from 'react';
-import { createContext, useContext, memo, useMemo, useState, useCallback, useEffect } from 'react';
+import { createContext, memo, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useParams, useSearchParams } from 'react-router';
+import { Link, useParams } from 'react-router';
+import { MonitoringProvider } from '../contexts/MonitoringContext';
+import { rowFilter } from './alerting/AlertUtils';
 import { EmptyBox } from './console/console-shared/src/components/empty-state/EmptyBox';
+import { LoadingBox } from './console/console-shared/src/components/loading/LoadingBox';
 import { LoadingInline } from './console/console-shared/src/components/loading/LoadingInline';
 import { StatusBox } from './console/console-shared/src/components/status/StatusBox';
-import { PROMETHEUS_BASE_PATH } from './utils';
 import {
   NamespaceModel,
   PodModel,
@@ -50,30 +59,21 @@ import {
 import { LabelSelector } from './console/module/k8s/label-selector';
 import { usePoll } from './console/utils/poll-hook';
 import { useSafeFetch } from './console/utils/safe-fetch-hook';
+import { filterTargets } from './filter-targets';
 import { useBoolean } from './hooks/useBoolean';
 import { Labels } from './labels';
-import { AlertSource, PrometheusAPIError, Target } from './types';
-import { MonitoringProvider } from '../contexts/MonitoringContext';
-import { useTablePagination } from './table/useTablePagination';
 import { ITEMS_PER_PAGE, TablePagination } from './table-pagination';
-import { useTableFilters } from './table/useTableFilters';
-import { useDataViewSort } from '@patternfly/react-data-view/dist/dynamic/Hooks';
-import { rowFilter } from './alerting/AlertUtils';
-import DataViewTable, {
-  DataViewTh,
-  DataViewTr,
-} from '@patternfly/react-data-view/dist/dynamic/DataViewTable';
-import { filterTargets } from './filter-targets';
 import {
   TableFilter,
   TableFilterOption,
   TableFilterProps,
   TableFilters,
 } from './table/TableFilters';
-import DataView from '@patternfly/react-data-view/dist/dynamic/DataView';
 import { TableToolbar } from './table/TableToolbar';
-import DataViewToolbar from '@patternfly/react-data-view/dist/dynamic/DataViewToolbar';
-import { LoadingBox } from './console/console-shared/src/components/loading/LoadingBox';
+import { useTableFilters } from './table/useTableFilters';
+import { useTablePagination } from './table/useTablePagination';
+import { AlertSource, PrometheusAPIError, Target } from './types';
+import { PROMETHEUS_BASE_PATH } from './utils';
 
 export const enum TargetsFilterOptions {
   NAME = 'name',
@@ -389,7 +389,6 @@ const ListPage: FC<ListPageProps> = ({ loaded, loadError, targets }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const [activeAttributeMenu, setActiveAttributeMenu] = useState<string>(t('Text'));
 
-  const [searchParams, setSearchParams] = useSearchParams();
   const [, , serviceMonitorsLoadError] = useContext(ServiceMonitorsWatchContext);
   const [, , podMonitorsLoadError] = useContext(PodMonitorsWatchContext);
   const initialFilters = {
@@ -405,18 +404,12 @@ const ListPage: FC<ListPageProps> = ({ loaded, loadError, targets }) => {
   // with no search parameters. Future changes are reflected
   const pagination = useTablePagination({
     perPage: ITEMS_PER_PAGE[0],
-    searchParams,
-    setSearchParams,
   });
   const { filters, onSetFilters, clearAllFilters } = useTableFilters<TargetsFilters>({
     initialFilters,
-    searchParams,
-    setSearchParams,
   });
   const { sortBy, direction, onSort } = useDataViewSort({
     initialSort: { sortBy: rowFilter(TargetsFilterOptions.NAME), direction: 'asc' },
-    searchParams,
-    setSearchParams,
   });
 
   const columnKeys = useMemo(() => {
@@ -644,7 +637,7 @@ const ListPage: FC<ListPageProps> = ({ loaded, loadError, targets }) => {
             {selectedPageOfTargets?.length > 0 && (
               <>
                 <DataViewTable
-                  aria-label="Repositories table"
+                  aria-label={t('Targets Table')}
                   columns={columns}
                   rows={selectedPageOfTargets}
                 />
@@ -685,17 +678,28 @@ const sortTargets = (
 
   if (sortBy === rowFilter('scrapeUrl')) {
     return [...data].sort(
-      (a, b) => a.scrapeUrl?.localeCompare(b.scrapeUrl) * directionMultiplier || 0,
+      (a, b) =>
+        a.scrapeUrl?.localeCompare(b.scrapeUrl, undefined, { sensitivity: 'base' }) *
+          directionMultiplier || 0,
     );
   } else if (sortBy === rowFilter('health')) {
-    return [...data].sort((a, b) => a.health.localeCompare(b.health) * directionMultiplier || 0);
+    return [...data].sort(
+      (a, b) =>
+        a.health.localeCompare(b.health, undefined, { sensitivity: 'base' }) *
+          directionMultiplier || 0,
+    );
   } else if (sortBy === rowFilter('namespace')) {
     return [...data].sort(
-      (a, b) => a.labels?.namespace.localeCompare(b.labels?.namespace) * directionMultiplier || 0,
+      (a, b) =>
+        (a.labels?.namespace ?? '').localeCompare(b.labels?.namespace ?? '', undefined, {
+          sensitivity: 'base',
+        }) * directionMultiplier || 0,
     );
   } else if (sortBy === rowFilter('lastScrape')) {
     return [...data].sort(
-      (a, b) => a.lastScrape.localeCompare(b.lastScrape) * directionMultiplier || 0,
+      (a, b) =>
+        a.lastScrape.localeCompare(b.lastScrape, undefined, { sensitivity: 'base' }) *
+          directionMultiplier || 0,
     );
   } else if (sortBy === rowFilter('lastScrapeDuration')) {
     return [...data].sort(

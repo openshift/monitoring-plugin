@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { KEYBOARD_SHORTCUTS } from '../constants/common';
 
 const isModalOpen = () => document.body.classList.contains('ReactModal__Body--open');
@@ -24,38 +24,41 @@ export const useDocumentListener = <T extends HTMLElement>(
   const [visible, setVisible] = useState(true);
   const ref = useRef<T>(null);
 
-  const handleEvent = (e) => {
+  const handleEvent = useCallback((e) => {
     if (!ref?.current?.contains(e.target)) {
       setVisible(false);
     }
-  };
+  }, []);
 
-  const handleKeyEvents = (e) => {
-    // Don't steal focus from a modal open on top of the page.
-    if (isModalOpen()) {
-      return;
-    }
-    const { nodeName } = e.target;
-    switch (keyEventMap[e.key]) {
-      case KeyEventModes.HIDE:
-        setVisible(false);
-        ref.current.blur();
-        break;
-      case KeyEventModes.FOCUS:
-        if (
-          document.activeElement !== ref.current &&
-          // Don't steal focus if the user types the focus shortcut in another text input.
-          nodeName !== 'INPUT' &&
-          nodeName !== 'TEXTAREA'
-        ) {
-          ref.current.focus();
-          e.preventDefault();
-        }
-        break;
-      default:
-        break;
-    }
-  };
+  const handleKeyEvents = useCallback(
+    (e) => {
+      // Don't steal focus from a modal open on top of the page.
+      if (isModalOpen()) {
+        return;
+      }
+      const { nodeName } = e.target;
+      switch (keyEventMap[e.key]) {
+        case KeyEventModes.HIDE:
+          setVisible(false);
+          ref.current.blur();
+          break;
+        case KeyEventModes.FOCUS:
+          if (
+            document.activeElement !== ref.current &&
+            // Don't steal focus if the user types the focus shortcut in another text input.
+            nodeName !== 'INPUT' &&
+            nodeName !== 'TEXTAREA'
+          ) {
+            ref.current.focus();
+            e.preventDefault();
+          }
+          break;
+        default:
+          break;
+      }
+    },
+    [keyEventMap],
+  );
 
   useEffect(() => {
     document.addEventListener('click', handleEvent, true);
@@ -64,7 +67,7 @@ export const useDocumentListener = <T extends HTMLElement>(
       document.removeEventListener('click', handleEvent, true);
       document.removeEventListener('keydown', handleKeyEvents, true);
     };
-  });
+  }, [handleEvent, handleKeyEvents]);
 
   return { visible, setVisible, ref };
 };

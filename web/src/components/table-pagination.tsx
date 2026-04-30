@@ -6,7 +6,7 @@ import {
   PerPageOptions,
 } from '@patternfly/react-core';
 import type { FC } from 'react';
-import { useTranslation, Trans } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 
 export const ITEMS_PER_PAGE = [10, 20, 50, 100, 200, 500];
 
@@ -14,24 +14,6 @@ const defaultPerPageOptions: PerPageOptions[] = ITEMS_PER_PAGE.map((n) => ({
   title: n.toString(),
   value: n,
 }));
-
-const LocalizedToggleTemplate = ({
-  firstIndex,
-  itemCount,
-  itemsTitle,
-  lastIndex,
-}: LocalizedToggleTemplateProps) => {
-  const { t } = useTranslation(process.env.I18N_NAMESPACE);
-
-  return (
-    <Trans t={t} values={{ firstIndex, lastIndex, itemCount, itemsTitle }}>
-      <b>
-        {firstIndex} - {lastIndex}
-      </b>{' '}
-      of <b>{itemCount}</b> {itemsTitle}
-    </Trans>
-  );
-};
 
 export const TablePagination: FC<TablePaginationProps> = ({
   itemCount,
@@ -65,7 +47,6 @@ export const TablePagination: FC<TablePaginationProps> = ({
       perPage={perPage}
       perPageOptions={perPageOptions}
       variant={variant}
-      toggleTemplate={LocalizedToggleTemplate}
       titles={{
         items: '',
         page: '',
@@ -82,13 +63,6 @@ export const TablePagination: FC<TablePaginationProps> = ({
       }}
     />
   );
-};
-
-type LocalizedToggleTemplateProps = {
-  firstIndex: number;
-  itemCount: number;
-  itemsTitle: string;
-  lastIndex: number;
 };
 
 type TablePaginationProps = {

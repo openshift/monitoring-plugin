@@ -59,6 +59,9 @@ const DownloadCSVButton: FC<DownloadCSVButtonProps> = ({ loaded, filteredData })
     link.href = csvURL;
     link.download = `openshift.csv`;
     link.click();
+
+    // Clean up the URL object after the download is triggered
+    URL.revokeObjectURL(csvURL);
   };
 
   return (

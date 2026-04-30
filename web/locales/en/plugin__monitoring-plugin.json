@@ -34,7 +34,6 @@
   "Labels": "Labels",
   "Active alerts": "Active alerts",
   "None found": "None found",
-  "Total": "Total",
   "Filter by Name": "Filter by Name",
   "Alert State": "Alert State",
   "Filter by State": "Filter by State",
@@ -48,6 +47,7 @@
   "Info": "Info",
   "None": "None",
   "Filter by Source": "Filter by Source",
+  "Alert Rules Table": "Alert Rules Table",
   "No alerting rules found": "No alerting rules found",
   "Alert details": "Alert details",
   "Alerting rule": "Alerting rule",
@@ -59,6 +59,7 @@
   "Silenced: ": "Silenced: ",
   "The alert is now silenced for a defined time period. Silences temporarily mute alerts based on a set of label selectors that you define. Notifications will not be sent for alerts that match all the listed values or regular expressions.": "The alert is now silenced for a defined time period. Silences temporarily mute alerts based on a set of label selectors that you define. Notifications will not be sent for alerts that match all the listed values or regular expressions.",
   "Alert Name": "Alert Name",
+  "Total": "Total",
   "Label": "Label",
   "Filter by Label": "Filter by Label",
   "Filter by Cluster": "Filter by Cluster",
@@ -128,6 +129,7 @@
   "View alerting rule": "View alerting rule",
   "Silence State": "Silence State",
   "Active": "Active",
+  "Silences Table": "Silences Table",
   "Error loading silences from Alertmanager. Alertmanager may be unavailable.": "Error loading silences from Alertmanager. Alertmanager may be unavailable.",
   "No silences found": "No silences found",
   "Error": "Error",
@@ -388,5 +390,6 @@
   "Filter by Status": "Filter by Status",
   "Metrics targets": "Metrics targets",
   "Error loading latest targets data": "Error loading latest targets data",
+  "Targets Table": "Targets Table",
   "No metrics targets found": "No metrics targets found"
 }

@@ -11,12 +11,21 @@ import * as _ from 'lodash-es';
 import type { FC } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useSearchParams } from 'react-router';
+import { Link } from 'react-router';
 
 import { AlertSource } from '../types';
-import { alertingRuleStateOrder, RuleResource } from '../utils';
+import { alertingRuleStateOrder, RuleResource, severitySort } from '../utils';
 
 import { Flex, FlexItem, PageSection, PaginationVariant, Truncate } from '@patternfly/react-core';
+import DataView from '@patternfly/react-data-view/dist/dynamic/DataView';
+import DataViewTable, {
+  DataViewTh,
+  DataViewTr,
+} from '@patternfly/react-data-view/dist/dynamic/DataViewTable';
+import DataViewToolbar from '@patternfly/react-data-view/dist/dynamic/DataViewToolbar';
+import { useDataViewSort } from '@patternfly/react-data-view/dist/dynamic/Hooks';
+import { MonitoringProvider } from '../../contexts/MonitoringContext';
+import { useAlerts } from '../../hooks/useAlerts';
 import {
   alertingRuleSource,
   AlertStateIcon,
@@ -27,30 +36,21 @@ import {
 } from '../alerting/AlertUtils';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
-import { getRuleUrl, usePerspective } from '../hooks/usePerspective';
-import { MonitoringProvider } from '../../contexts/MonitoringContext';
+import { LoadingBox } from '../console/console-shared/src/components/loading/LoadingBox';
 import { DataTestIDs } from '../data-test';
-import { useAlerts } from '../../hooks/useAlerts';
 import { useMonitoringNamespace } from '../hooks/useMonitoringNamespace';
-import { useTablePagination } from '../table/useTablePagination';
+import { getRuleUrl, usePerspective } from '../hooks/usePerspective';
 import { ITEMS_PER_PAGE, TablePagination } from '../table-pagination';
-import { useTableFilters } from '../table/useTableFilters';
-import { useDataViewSort } from '@patternfly/react-data-view/dist/dynamic/Hooks';
-import DataViewTable, {
-  DataViewTh,
-  DataViewTr,
-} from '@patternfly/react-data-view/dist/dynamic/DataViewTable';
-import { filterRules } from './filter-rules';
 import {
   TableFilter,
   TableFilterOption,
   TableFilterProps,
   TableFilters,
 } from '../table/TableFilters';
-import DataView from '@patternfly/react-data-view/dist/dynamic/DataView';
 import { TableToolbar } from '../table/TableToolbar';
-import DataViewToolbar from '@patternfly/react-data-view/dist/dynamic/DataViewToolbar';
-import { LoadingBox } from '../console/console-shared/src/components/loading/LoadingBox';
+import { useTableFilters } from '../table/useTableFilters';
+import { useTablePagination } from '../table/useTablePagination';
+import { filterRules } from './filter-rules';
 
 export const enum AlertRulesFilterOptions {
   NAME = 'name',
@@ -71,7 +71,6 @@ const AlertRulesPage_: FC = () => {
 
   const { namespace } = useMonitoringNamespace();
   const { defaultAlertTenant, perspective } = usePerspective();
-  const [searchParams, setSearchParams] = useSearchParams();
   const [activeAttributeMenu, setActiveAttributeMenu] = useState<string>(t('Name'));
   const initialFilters = useMemo(() => {
     const filters = {
@@ -89,18 +88,12 @@ const AlertRulesPage_: FC = () => {
   // with no search parameters. Future changes are reflected
   const pagination = useTablePagination({
     perPage: ITEMS_PER_PAGE[0],
-    searchParams,
-    setSearchParams,
   });
   const { filters, onSetFilters, clearAllFilters } = useTableFilters<AlertRulesFilters>({
     initialFilters,
-    searchParams,
-    setSearchParams,
   });
   const { sortBy, direction, onSort } = useDataViewSort({
     initialSort: { sortBy: rowFilter(AlertRulesFilterOptions.NAME), direction: 'asc' },
-    searchParams,
-    setSearchParams,
   });
 
   const columnKeys = useMemo(() => {
@@ -308,7 +301,7 @@ const AlertRulesPage_: FC = () => {
             {selectedPageOfRules?.length > 0 && (
               <>
                 <DataViewTable
-                  aria-label="Repositories table"
+                  aria-label={t('Alert Rules Table')}
                   columns={columns}
                   rows={selectedPageOfRules}
                 />
@@ -374,11 +367,7 @@ const sortRules = (
         a.name?.localeCompare(b.name, undefined, { sensitivity: 'base' }) * directionMultiplier,
     );
   } else if (sortBy === rowFilter(AlertRulesFilterOptions.SEVERITY)) {
-    return [...data].sort(
-      (a, b) =>
-        a.labels?.severity.localeCompare(b.labels?.severity, undefined, { sensitivity: 'base' }) *
-        directionMultiplier,
-    );
+    return [...data].sort((a, b) => severitySort(a, b) * directionMultiplier);
   } else if (sortBy === rowFilter(AlertRulesFilterOptions.STATE)) {
     return [...data].sort((a, b) =>
       alertingRuleStateOrder(a) > alertingRuleStateOrder(b) ? lower : upper,

@@ -1,6 +1,3 @@
-import fuzzy from 'fuzzysearch';
-import * as _ from 'lodash-es';
-import { murmur3 } from 'murmurhash-js';
 import {
   Alert,
   AlertSeverity,
@@ -14,9 +11,13 @@ import {
   Silence,
   SilenceStates,
 } from '@openshift-console/dynamic-plugin-sdk';
+import fuzzy from 'fuzzysearch';
+import * as _ from 'lodash-es';
+import { murmur3 } from 'murmurhash-js';
 
-import { AlertSource, MonitoringResource, Target, TimeRange } from './types';
 import { QueryParams } from './query-params';
+import { AlertSource, MonitoringResource, Target, TimeRange } from './types';
+import { AggregatedAlert } from './alerting/AlertsAggregates';
 
 export const QUERY_CHUNK_SIZE = 24 * 60 * 60 * 1000;
 
@@ -127,23 +128,30 @@ export const alertDescription = (alert: PrometheusAlert | Rule): string =>
 
 export type ListOrder = (number | string)[];
 
-// Severity sort order is "critical" > "warning" > (anything else in A-Z order) > "none"
-export const alertSeverityOrder = (alert: Alert | Rule): ListOrder => {
-  const { severity } = alert.labels;
-  const order: number =
-    {
-      [AlertSeverity.Critical]: 1,
-      [AlertSeverity.Warning]: 2,
-      [AlertSeverity.None]: 4,
-    }[severity] ?? 3;
-  return [order, severity];
-};
-
 export const alertingRuleStateOrder = (rule: Rule): ListOrder => {
   const counts = _.countBy(rule.alerts, 'state');
   return [AlertStates.Firing, AlertStates.Pending, AlertStates.Silenced].map(
     (state) => Number.MAX_SAFE_INTEGER - (counts[state] ?? 0),
   );
+};
+
+export const severitySort = (
+  a: Alert | Rule | AggregatedAlert,
+  b: Alert | Rule | AggregatedAlert,
+): number => {
+  const severityA = 'severity' in a ? a.severity : (a.labels?.severity ?? '');
+  const severityB = 'severity' in b ? b.severity : (b.labels?.severity ?? '');
+  if (severityA === severityB) {
+    return 0;
+  } else if (severityA === AlertSeverity.Critical || severityB === AlertSeverity.None) {
+    return 1;
+  } else if (severityA === AlertSeverity.Warning) {
+    return severityB === AlertSeverity.Critical ? -1 : 1;
+  } else if (severityA === AlertSeverity.None || severityB === AlertSeverity.Critical) {
+    return -1;
+  } else {
+    return severityA.localeCompare(severityB, undefined, { sensitivity: 'base' });
+  }
 };
 
 export const targetSource = (target: Target): AlertSource =>

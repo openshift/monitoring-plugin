@@ -1,11 +1,11 @@
 import {
-  AlertSeverity,
   consoleFetchJSON,
   DocumentTitle,
   ResourceIcon,
   Silence,
   SilenceStates,
 } from '@openshift-console/dynamic-plugin-sdk';
+import { BulkSelect, BulkSelectValue } from '@patternfly/react-component-groups';
 import {
   Button,
   Flex,
@@ -16,15 +16,32 @@ import {
   Stack,
   StackItem,
 } from '@patternfly/react-core';
-import { ActionsColumn, IAction, ThProps } from '@patternfly/react-table';
+import DataView from '@patternfly/react-data-view/dist/dynamic/DataView';
+import DataViewTable, {
+  DataViewTh,
+  DataViewTr,
+} from '@patternfly/react-data-view/dist/dynamic/DataViewTable';
+import DataViewToolbar from '@patternfly/react-data-view/dist/dynamic/DataViewToolbar';
+import {
+  useDataViewSelection,
+  useDataViewSort,
+} from '@patternfly/react-data-view/dist/dynamic/Hooks';
+import { ActionsColumn, BaseCellProps, IAction, ThProps } from '@patternfly/react-table';
+import { t_global_spacer_xs } from '@patternfly/react-tokens';
 import * as _ from 'lodash-es';
 import type { FC } from 'react';
-import { useState, useMemo, useCallback, memo, useEffect } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate, useSearchParams } from 'react-router';
+import { Link, useNavigate } from 'react-router';
+import { MonitoringProvider } from '../../contexts/MonitoringContext';
+import { useAlerts } from '../../hooks/useAlerts';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
+import { LoadingBox } from '../console/console-shared/src/components/loading/LoadingBox';
+import { DataTestIDs } from '../data-test';
 import { useBoolean } from '../hooks/useBoolean';
+import { useDeepMemo } from '../hooks/useDeepMemo';
+import { useMonitoringNamespace } from '../hooks/useMonitoringNamespace';
 import {
   getEditSilenceAlertUrl,
   getFetchSilenceUrl,
@@ -32,25 +49,7 @@ import {
   getSilenceAlertUrl,
   usePerspective,
 } from '../hooks/usePerspective';
-import { SilenceResource, silenceState } from '../utils';
-import { ExpireSilenceModal, SilenceMatchersList, SilenceState } from './SilencesUtils';
-import { MonitoringProvider } from '../../contexts/MonitoringContext';
-import { DataTestIDs } from '../data-test';
-import { useAlerts } from '../../hooks/useAlerts';
-import { useMonitoringNamespace } from '../hooks/useMonitoringNamespace';
-import { useDeepMemo } from '../hooks/useDeepMemo';
-import { useTablePagination } from '../table/useTablePagination';
-import { useTableFilters } from '../table/useTableFilters';
-import {
-  useDataViewSelection,
-  useDataViewSort,
-} from '@patternfly/react-data-view/dist/dynamic/Hooks';
 import { ITEMS_PER_PAGE, TablePagination } from '../table-pagination';
-import { rowFilter, SeverityCounts, StateTimestamp } from './AlertUtils';
-import DataViewTable, {
-  DataViewTh,
-  DataViewTr,
-} from '@patternfly/react-data-view/dist/dynamic/DataViewTable';
 import {
   TableFilter,
   TableFilterOption,
@@ -58,12 +57,12 @@ import {
   TableFilters,
 } from '../table/TableFilters';
 import { TableToolbar } from '../table/TableToolbar';
-import DataView from '@patternfly/react-data-view/dist/dynamic/DataView';
-import DataViewToolbar from '@patternfly/react-data-view/dist/dynamic/DataViewToolbar';
-import { LoadingBox } from '../console/console-shared/src/components/loading/LoadingBox';
-import { BulkSelect, BulkSelectValue } from '@patternfly/react-component-groups';
-import { t_global_spacer_xs } from '@patternfly/react-tokens';
+import { useTableFilters } from '../table/useTableFilters';
+import { useTablePagination } from '../table/useTablePagination';
+import { severitySort, SilenceResource, silenceState } from '../utils';
+import { rowFilter, SeverityCounts, StateTimestamp } from './AlertUtils';
 import { filterSilences } from './filter-silences';
+import { ExpireSilenceModal, SilenceMatchersList, SilenceState } from './SilencesUtils';
 
 export const enum SilenceFilterOptions {
   NAME = 'name',
@@ -82,7 +81,6 @@ const SilencesPage_: FC = () => {
   const { namespace } = useMonitoringNamespace();
   const { perspective } = usePerspective();
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
   const [activeAttributeMenu, setActiveAttributeMenu] = useState<string>(t('Name'));
   const [errorMessage, setErrorMessage] = useState();
   const [modalState, setModalState] = useState({ modalOpen: false, silenceID: '' });
@@ -134,18 +132,12 @@ const SilencesPage_: FC = () => {
   // with no search parameters. Future changes are reflected
   const pagination = useTablePagination({
     perPage: ITEMS_PER_PAGE[0],
-    searchParams,
-    setSearchParams,
   });
   const { filters, onSetFilters, clearAllFilters } = useTableFilters<SilenceFilters>({
     initialFilters,
-    searchParams,
-    setSearchParams,
   });
   const { sortBy, direction, onSort } = useDataViewSort({
     initialSort: { sortBy: rowFilter(SilenceFilterOptions.NAME), direction: 'asc' },
-    searchParams,
-    setSearchParams,
   });
   const selection = useDataViewSelection({
     matchOption: (a, b) => a?.silence?.name === b?.silence?.name,
@@ -155,7 +147,11 @@ const SilencesPage_: FC = () => {
   const columnKeys = useMemo(() => {
     const keys = [
       { label: t('Name'), key: rowFilter(SilenceFilterOptions.NAME) },
-      { label: t('Firing alerts'), key: rowFilter('firing-alerts') },
+      {
+        label: t('Firing alerts'),
+        key: rowFilter('firing-alerts'),
+        width: 10 as BaseCellProps['width'],
+      },
       { label: t('State'), key: rowFilter(SilenceFilterOptions.STATE) },
       { label: t('Creator'), key: rowFilter('createdBy') },
     ];
@@ -189,7 +185,10 @@ const SilencesPage_: FC = () => {
     () =>
       columnKeys.map((column, index) => ({
         cell: column.label,
-        props: { sort: getSortParams(index) },
+        props: {
+          sort: getSortParams(index),
+          width: column.width,
+        },
       })),
     [getSortParams, columnKeys],
   );
@@ -397,11 +396,18 @@ const SilencesPage_: FC = () => {
                   setErrorMessage={setErrorMessage}
                 />,
               ]}
+              pagination={
+                <TablePagination
+                  itemCount={namespacedSilences?.length}
+                  variant={PaginationVariant.top}
+                  {...pagination}
+                />
+              }
             />
             {selectedPageOfSilences?.length > 0 && (
               <>
                 <DataViewTable
-                  aria-label="Repositories table"
+                  aria-label={t('Silences Table')}
                   columns={columns}
                   rows={selectedPageOfSilences}
                 />
@@ -450,28 +456,59 @@ const SilencesPage_: FC = () => {
 };
 const SilencesPageWithFallback = withFallback(SilencesPage_);
 
-const silenceFiringAlertsOrder = (silence: Silence) => {
-  const counts = _.countBy(silence.firingAlerts, 'labels.severity');
-  return [
-    Number.MAX_SAFE_INTEGER - (counts[AlertSeverity.Critical] ?? 0),
-    Number.MAX_SAFE_INTEGER - (counts[AlertSeverity.Warning] ?? 0),
-    silence.firingAlerts.length,
-  ];
+const silenceFiringAlertsOrder = (silenceA: Silence, silenceB: Silence): number => {
+  const aAlerts = silenceA.firingAlerts || [];
+  const bAlerts = silenceB.firingAlerts || [];
+  if (aAlerts.length !== bAlerts.length) {
+    return aAlerts.length - bAlerts.length;
+  }
+
+  const severitySortedA = [...aAlerts].sort(severitySort);
+  const severitySortedB = [...bAlerts].sort(severitySort);
+  const highestSeverityA = severitySortedA[0];
+  const highestSeverityB = severitySortedB[0];
+  if (highestSeverityA && highestSeverityB) {
+    return severitySort(highestSeverityA, highestSeverityB);
+  } else if (highestSeverityA) {
+    return -1;
+  } else if (highestSeverityB) {
+    return 1;
+  }
+
+  return new Date(silenceB.endsAt).getTime() - new Date(silenceA.endsAt).getTime();
 };
 
-const silenceStateOrder = (silence: Silence) => [
-  [SilenceStates.Active, SilenceStates.Pending, SilenceStates.Expired].indexOf(
-    silenceState(silence),
-  ),
-  _.get(silence, silenceState(silence) === SilenceStates.Pending ? 'startsAt' : 'endsAt'),
-  silenceStateOrder,
-];
+const silenceStateOrder = (silenceA: Silence, silenceB: Silence): number => {
+  const stateA = silenceState(silenceA);
+  const stateB = silenceState(silenceB);
+  if (stateA === stateB) {
+    if (stateA === SilenceStates.Pending) {
+      return new Date(silenceB.startsAt).getTime() - new Date(silenceA.startsAt).getTime();
+    }
+    return new Date(silenceB.endsAt).getTime() - new Date(silenceA.endsAt).getTime();
+  }
+  if (stateA === SilenceStates.Active) {
+    return -1;
+  }
+  if (stateB === SilenceStates.Active) {
+    return 1;
+  }
+  if (stateA === SilenceStates.Pending) {
+    return -1;
+  }
+  if (stateB === SilenceStates.Pending) {
+    return 1;
+  }
+  return 0;
+};
 
 const silenceClusterOrder = (clusters: Array<string>) => {
-  clusters.sort();
-  return (silence: Silence) => [
-    clusters.indexOf(silence.matchers.find((label) => label.name === 'cluster')?.value),
-  ];
+  const sortedClusters = [...clusters].sort();
+  return (silenceA: Silence, silenceB: Silence): number => {
+    const clusterA = silenceA.matchers.find((label) => label.name === 'cluster')?.value;
+    const clusterB = silenceB.matchers.find((label) => label.name === 'cluster')?.value;
+    return sortedClusters.indexOf(clusterA) - sortedClusters.indexOf(clusterB);
+  };
 };
 
 const sortSilences = (
@@ -483,26 +520,27 @@ const sortSilences = (
   if (!sortBy || !direction) {
     return data;
   }
-  const lower = direction === 'asc' ? 0 : 1;
-  const upper = direction === 'asc' ? 1 : 0;
+  const directionMultiplier = direction === 'asc' ? 1 : -1;
   const clusterSort = silenceClusterOrder(silenceClusterLabels);
 
   if (sortBy === rowFilter(SilenceFilterOptions.NAME)) {
-    return [...data].sort((a, b) =>
-      a.name?.toLocaleLowerCase() < b.name?.toLocaleLowerCase() ? lower : upper,
+    return [...data].sort(
+      (a, b) =>
+        (a.name ?? '').localeCompare(b.name ?? '', undefined, { sensitivity: 'base' }) *
+        directionMultiplier,
     );
   } else if (sortBy === rowFilter('firing-alerts')) {
-    return [...data].sort((a, b) =>
-      silenceFiringAlertsOrder(a) > silenceFiringAlertsOrder(b) ? lower : upper,
-    );
+    return [...data].sort((a, b) => silenceFiringAlertsOrder(a, b) * directionMultiplier);
   } else if (sortBy === rowFilter(SilenceFilterOptions.STATE)) {
-    return [...data].sort((a, b) => (silenceStateOrder(a) > silenceStateOrder(b) ? lower : upper));
+    return [...data].sort((a, b) => silenceStateOrder(a, b) * directionMultiplier);
   } else if (sortBy === rowFilter('createdBy')) {
-    return [...data].sort((a, b) =>
-      a.createdBy?.toLocaleLowerCase() < b.createdBy?.toLocaleLowerCase() ? lower : upper,
+    return [...data].sort(
+      (a, b) =>
+        (a.createdBy ?? '').localeCompare(b.createdBy ?? '', undefined, { sensitivity: 'base' }) *
+        directionMultiplier,
     );
   } else if (sortBy === rowFilter(SilenceFilterOptions.CLUSTER)) {
-    return [...data].sort((a, b) => (clusterSort(a) > clusterSort(b) ? lower : upper));
+    return [...data].sort((a, b) => clusterSort(a, b) * directionMultiplier);
   }
   return data;
 };

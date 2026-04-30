@@ -2,7 +2,7 @@ import {
   PaginationParams,
   UseDataViewPaginationProps,
 } from '@patternfly/react-data-view/dist/dynamic/Hooks';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useSearchParams } from 'react-router';
 
 const parsePositiveInt = (value: string | null, fallback: number) => {
@@ -25,30 +25,19 @@ export const useTablePagination = ({
 
   const updateSearchParams = useCallback(
     (page: number, perPage: number) => {
-      const params = new URLSearchParams(searchParams);
-      params.set(pageParam, `${page}`);
-      params.set(perPageParam, `${perPage}`);
-
-      setSearchParams?.(params);
+      setSearchParams?.((prev) => {
+        const prevParams = new URLSearchParams(prev);
+        prevParams.set(pageParam, `${page}`);
+        prevParams.set(perPageParam, `${perPage}`);
+        // Only update if there is a change in parameters to avoid unnecessary re-renders
+        if (prev.toString() !== prevParams.toString()) {
+          return prevParams;
+        }
+        return prev;
+      });
     },
-    [searchParams, setSearchParams, pageParam, perPageParam],
+    [setSearchParams, pageParam, perPageParam],
   );
-
-  useEffect(() => {
-    // Make sure search params are loaded or set if not present on mount
-    updateSearchParams(state.page, state.perPage);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    // Listen on URL params changes
-    const currentPage = parseInt(searchParams?.get(pageParam) || `${state.page}`);
-    const currentPerPage = parseInt(searchParams?.get(perPageParam) || `${state.perPage}`);
-    if (currentPage !== state.page || currentPerPage !== state.perPage) {
-      setState({ page: currentPage, perPage: currentPerPage });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams?.toString()]);
 
   const onPerPageSelect = (
     _event: React.MouseEvent | React.KeyboardEvent | MouseEvent | undefined,
