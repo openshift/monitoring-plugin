@@ -10,14 +10,14 @@ import { AlertState, SeverityBadge } from '../AlertUtils';
 import AlertTableRow from './AlertTableRow';
 import { RuleResource } from '../../../components/utils';
 import { Link } from 'react-router';
-import { SelectedFilters } from '../useSelectedFilters';
-import { filterAlerts } from './hooks/utils';
+import { filterAlerts } from './filter-alerts';
 import { Badge, Flex, FlexItem } from '@patternfly/react-core';
 import { DataTestIDs } from '../../data-test';
+import { AggregatedAlertFilters } from '../AlertsPage';
 
 type AggregateAlertTableRowProps = FC<{
   aggregatedAlert: AggregatedAlert;
-  rowData: { rowIndex: number; selectedFilters: SelectedFilters };
+  rowData: { rowIndex: number; selectedFilters: AggregatedAlertFilters };
 }>;
 
 const AggregateAlertTableRow: AggregateAlertTableRowProps = ({
@@ -32,8 +32,8 @@ const AggregateAlertTableRow: AggregateAlertTableRowProps = ({
   const isACMPerspective = perspective === 'acm';
 
   const filteredAlerts = useMemo(
-    () => filterAlerts(aggregatedAlert.alerts, selectedFilters),
-    [aggregatedAlert.alerts, selectedFilters],
+    () => filterAlerts(aggregatedAlert.alerts, selectedFilters, namespace, perspective),
+    [aggregatedAlert.alerts, selectedFilters, namespace, perspective],
   );
 
   const filteredStates = Array.from(new Set(filteredAlerts.map((alert) => alert.state)));

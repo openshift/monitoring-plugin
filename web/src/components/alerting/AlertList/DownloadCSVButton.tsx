@@ -23,7 +23,7 @@ const DownloadCSVButton: FC<DownloadCSVButtonProps> = ({ loaded, filteredData })
       return filteredData?.map((row) => {
         const name = row?.name ?? '';
         const severity = row?.severity ?? '';
-        const state = Array.from(row?.states || [])?.join(', ');
+        const state = row?.state ?? '';
         const total = row?.alerts?.length ?? 0;
         const rowData = [name, severity, state, total];
         if (perspective === 'acm') {
@@ -63,7 +63,6 @@ const DownloadCSVButton: FC<DownloadCSVButtonProps> = ({ loaded, filteredData })
 
   return (
     <Button
-      className="co-virtualized-table--export-csv-button"
       onClick={downloadCsv}
       variant={ButtonVariant.link}
       data-test={DataTestIDs.DownloadCSVButton}

@@ -153,6 +153,24 @@ export const DataTestIDs = {
   },
 };
 
+export const FilterOUIAIDs = {
+  AlertNameFilter: 'AlertNameFilter',
+  AlertStateFilter: 'AlertStateFilter',
+  AlertSeverityFilter: 'AlertSeverityFilter',
+  AlertSourceFilter: 'AlertSourceFilter',
+  AlertClusterFilter: 'AlertClusterFilter',
+  SilenceNameFilter: 'SilenceNameFilter',
+  SilenceStateFilter: 'SilenceStateFilter',
+  SilenceClusterFilter: 'SilenceClusterFilter',
+  RuleNameFilter: 'RuleNameFilter',
+  RuleStateFilter: 'RuleStateFilter',
+  RuleSeverityFilter: 'RuleSeverityFilter',
+  RuleSourceFilter: 'RuleSourceFilter',
+  TargetTextFilter: 'TargetTextFilter',
+  TargetStatusFilter: 'TargetStatusFilter',
+  TargetSourceFilter: 'TargetSourceFilter',
+};
+
 export const LegacyDashboardPageTestIDs = {
   TimeRangeDropdown: 'time-range-dropdown', //div
   TimeRangeDropdownOptions: 'time-range-dropdown-options',

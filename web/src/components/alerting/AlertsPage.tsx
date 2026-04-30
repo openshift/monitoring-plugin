@@ -1,182 +1,357 @@
-import {
-  Alert,
-  AlertStates,
-  DocumentTitle,
-  ListPageFilter,
-  RowFilter,
-  useListPageFilter,
-} from '@openshift-console/dynamic-plugin-sdk';
-import { Flex, PageSection } from '@patternfly/react-core';
-import { Table, TableGridBreakpoint, Th, Thead, Tr } from '@patternfly/react-table';
-import * as _ from 'lodash-es';
-import { type FC } from 'react';
+import { AlertSeverity, AlertStates, DocumentTitle } from '@openshift-console/dynamic-plugin-sdk';
+import { Table, TableGridBreakpoint, ThProps } from '@patternfly/react-table';
+import { useCallback, useEffect, useMemo, useRef, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
-import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
 import { LoadingBox } from '../console/console-shared/src/components/loading/LoadingBox';
 import { usePerspective } from '../hooks/usePerspective';
 import { AlertSource } from '../types';
-import { alertState, ALL_NAMESPACES_KEY, fuzzyCaseInsensitive } from '../utils';
+import { ALL_NAMESPACES_KEY } from '../utils';
 import AggregateAlertTableRow from './AlertList/AggregateAlertTableRow';
 import DownloadCSVButton from './AlertList/DownloadCSVButton';
-import useAggregateAlertColumns from './AlertList/hooks/useAggregateAlertColumns';
-import { getAggregateAlertsLists } from './AlertsAggregates';
-import {
-  alertCluster,
-  alertSource,
-  severityRowFilter,
-  SilencesNotLoadedWarning,
-} from './AlertUtils';
-import useSelectedFilters from './useSelectedFilters';
+import { AggregatedAlert, getAggregateAlertsLists } from './AlertsAggregates';
+import { rowFilter, SilencesNotLoadedWarning } from './AlertUtils';
 import { MonitoringProvider } from '../../contexts/MonitoringContext';
 import { useAlerts } from '../../hooks/useAlerts';
 import { AccessDenied } from '../console/console-shared/src/components/empty-state/AccessDenied';
-import { useMonitoring } from '../../hooks/useMonitoring';
 import { useMonitoringNamespace } from '../hooks/useMonitoringNamespace';
+import { PageSection, PaginationVariant } from '@patternfly/react-core';
+import { useSearchParams } from 'react-router';
+import { filterAlerts } from './AlertList/filter-alerts';
+import { useTableFilters } from '../table/useTableFilters';
+import { useDeepMemo } from '../hooks/useDeepMemo';
+import { ITEMS_PER_PAGE, TablePagination } from '../table-pagination';
+import { EmptyBox } from '../console/console-shared/src/components/empty-state/EmptyBox';
+import { useDataViewSort } from '@patternfly/react-data-view/dist/dynamic/Hooks';
+import { DataViewTh } from '@patternfly/react-data-view/dist/dynamic/DataViewTable';
+import DataView from '@patternfly/react-data-view/dist/dynamic/DataView';
+import DataViewToolbar from '@patternfly/react-data-view/dist/dynamic/DataViewToolbar';
+import DataViewTableHead from '@patternfly/react-data-view/dist/dynamic/DataViewTableHead';
+import { TableToolbar } from '../table/TableToolbar';
+import {
+  TableFilter,
+  TableFilterOption,
+  TableFilterProps,
+  TableFilters,
+} from '../table/TableFilters';
+import { useTablePagination } from '../table/useTablePagination';
+
+export const enum AlertFilterOptions {
+  NAME = 'name',
+  STATE = 'alert-state',
+  SEVERITY = 'alert-severity',
+  LABEL = 'label',
+  SOURCE = 'alert-source',
+  CLUSTER = 'alert-cluster',
+}
+
+export interface AggregatedAlertFilters {
+  [AlertFilterOptions.NAME]: string;
+  [AlertFilterOptions.STATE]: string[];
+  [AlertFilterOptions.SEVERITY]: string[];
+  [AlertFilterOptions.LABEL]: string;
+  [AlertFilterOptions.SOURCE]?: AlertSource[];
+  [AlertFilterOptions.CLUSTER]?: string[];
+}
 
 const AlertsPage_: FC = () => {
-  const { useAlertsTenancy } = useMonitoring();
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { namespace } = useMonitoringNamespace();
   const { defaultAlertTenant, perspective } = usePerspective();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [activeAttributeMenu, setActiveAttributeMenu] = useState<string>(t('Alert Name'));
+  const initialFilters = useDeepMemo(() => {
+    const filters = {
+      [AlertFilterOptions.NAME]: '',
+      [AlertFilterOptions.STATE]: [AlertStates.Firing],
+      [AlertFilterOptions.SEVERITY]: [],
+      [AlertFilterOptions.SOURCE]: defaultAlertTenant,
+      [AlertFilterOptions.LABEL]: '',
+    };
+    if (perspective === 'acm') {
+      filters[AlertFilterOptions.CLUSTER] = [];
+    } else if (namespace && namespace !== ALL_NAMESPACES_KEY) {
+      delete filters[AlertFilterOptions.SOURCE];
+    }
+    return filters;
+  }, [perspective, defaultAlertTenant, namespace]);
+
+  // KNOWN ISSUE: the useDataViewPagination, useDataViewFilters, and useDataViewSort functions
+  // do not work together for URL initialization, so only the search parameters for the last
+  // function will be set when initially loading the page
+  // with no search parameters. Future changes are reflected
+  const pagination = useTablePagination({
+    perPage: ITEMS_PER_PAGE[0],
+    searchParams,
+    setSearchParams,
+  });
+  const { filters, onSetFilters, clearAllFilters, deleteFilter } =
+    useTableFilters<AggregatedAlertFilters>({
+      initialFilters,
+      searchParams,
+      setSearchParams,
+    });
+  const { sortBy, direction, onSort } = useDataViewSort({
+    initialSort: { sortBy: rowFilter(AlertFilterOptions.NAME), direction: 'asc' },
+    searchParams,
+    setSearchParams,
+  });
+
+  const columnKeys = useMemo(() => {
+    const keys = [
+      { label: '', key: 'expandable' },
+      { label: t('Name'), key: rowFilter(AlertFilterOptions.NAME) },
+      { label: t('Severity'), key: rowFilter(AlertFilterOptions.SEVERITY) },
+      { label: t('Total'), key: rowFilter('alert-total') },
+      { label: t('State'), key: rowFilter(AlertFilterOptions.STATE) },
+    ];
+    if (perspective === 'acm') {
+      keys.push({ label: t('Cluster'), key: rowFilter(AlertFilterOptions.CLUSTER) });
+    }
+    return keys;
+  }, [t, perspective]);
+
+  const sortByIndex = useMemo(
+    () => columnKeys.findIndex((item) => item.key === sortBy),
+    [sortBy, columnKeys],
+  );
+
+  const getSortParams = useCallback(
+    (columnIndex: number): ThProps['sort'] => {
+      if (columnIndex === 0) {
+        return undefined;
+      }
+      return {
+        sortBy: {
+          index: sortByIndex,
+          direction,
+          defaultDirection: 'asc',
+        },
+        onSort: (_event, index, direction) => onSort(_event, columnKeys[index].key, direction),
+        columnIndex,
+      };
+    },
+    [columnKeys, direction, onSort, sortByIndex],
+  );
+
+  const columns: DataViewTh[] = useMemo(
+    () =>
+      columnKeys.map((column, index) => ({
+        cell: column.label,
+        props: { sort: getSortParams(index) },
+      })),
+    [getSortParams, columnKeys],
+  );
+
+  const prevNamespaceRef = useRef(namespace);
+  useEffect(() => {
+    // Only update filters when namespace changes
+    if (prevNamespaceRef.current === namespace) {
+      return;
+    }
+    prevNamespaceRef.current = namespace;
+
+    if (namespace && namespace !== ALL_NAMESPACES_KEY) {
+      // alert source filter should not be present when viewing in a specific namespace
+      deleteFilter(AlertFilterOptions.SOURCE);
+    } else if (namespace === ALL_NAMESPACES_KEY) {
+      onSetFilters({ [AlertFilterOptions.SOURCE]: defaultAlertTenant });
+    }
+  }, [namespace, deleteFilter, onSetFilters, defaultAlertTenant]);
+
+  useEffect(() => {
+    // When changing filters change back to being on page 1
+    pagination.onSetPage(undefined, 1);
+  }, [filters]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const { page, perPage } = pagination;
 
   const { alerts, additionalAlertSourceLabels, alertClusterLabels, rulesAlertLoading, silences } =
     useAlerts();
 
-  let rowFilters: RowFilter[] = [
-    // TODO: The "name" filter doesn't really fit useListPageFilter's idea of a RowFilter, but
-    //       useListPageFilter doesn't yet provide a better way to add a filter like this
-    {
-      filter: (filter, alert: Alert) =>
-        fuzzyCaseInsensitive(filter.selected?.[0], alert.labels?.alertname),
-      filterGroupName: '',
-      items: [],
-      type: 'name',
-    } as RowFilter,
-    {
-      defaultSelected: [AlertStates.Firing],
-      filter: (filter, alert: Alert) =>
-        filter.selected.length === 0 ||
-        filter.selected?.includes(alertState(alert)) ||
-        _.isEmpty(filter.selected),
-      filterGroupName: t('Alert State'),
-      items: [
-        { id: AlertStates.Firing, title: t('Firing') },
-        { id: AlertStates.Pending, title: t('Pending') },
-        { id: AlertStates.Silenced, title: t('Silenced') },
-      ],
-      reducer: alertState,
-      type: 'alert-state',
-    },
-    severityRowFilter(t),
-    {
-      defaultSelected: defaultAlertTenant,
-      filter: (filter, alert: Alert) =>
-        filter.selected.length === 0 ||
-        filter.selected?.includes(alertSource(alert)) ||
-        _.isEmpty(filter.selected),
-      filterGroupName: t('Source'),
-      items: [
-        { id: AlertSource.Platform, title: t('Platform') },
-        { id: AlertSource.User, title: t('User') },
-        ...additionalAlertSourceLabels,
-      ],
-      reducer: alertSource,
-      type: 'alert-source',
-    },
-  ];
-
-  if (perspective === 'acm') {
-    rowFilters.splice(-1, 0, {
-      filter: (filter, alert: Alert) => {
-        return (
-          filter.selected.length === 0 ||
-          filter.selected.some((selectedFilter) =>
-            fuzzyCaseInsensitive(selectedFilter, alert.labels?.cluster),
-          )
-        );
-      },
-      filterGroupName: t('Cluster'),
-      items: alertClusterLabels.map((clusterName) => ({
-        id: clusterName,
-        title: clusterName?.length > 50 ? clusterName.slice(0, 50) + '...' : clusterName,
-      })),
-      reducer: alertCluster,
-      isMatch: (alert: Alert, clusterName: string) =>
-        fuzzyCaseInsensitive(clusterName, alert.labels?.cluster),
-      type: 'alert-cluster',
-    } as RowFilter);
-  } else if (useAlertsTenancy && namespace && namespace !== ALL_NAMESPACES_KEY) {
-    rowFilters = rowFilters.filter((filter) => filter.type !== 'alert-source');
-  }
-
-  /**
-   * Filters alerts based on tenancy:
-   * - with tenancy: alerts are automatically pre-filtered.
-   * - without tenancy (admin): filters by selected namespace for UX consistency.
-   * - "All Projects": returns all alerts, including those without a namespace label.
-   */
-  const namespacedAlerts =
-    useAlertsTenancy || ALL_NAMESPACES_KEY === namespace
-      ? alerts
-      : alerts?.filter((a) => a.labels?.namespace === namespace);
-  const [staticData, filteredData, onFilterChange] = useListPageFilter(
-    namespacedAlerts,
-    rowFilters,
+  const aggregatedAlerts = useMemo(() => {
+    const filteredAlerts = filterAlerts(alerts, filters, namespace, perspective);
+    const aggregatedAlerts = getAggregateAlertsLists(filteredAlerts);
+    return sortAggregatedAlerts(aggregatedAlerts, sortBy, direction);
+  }, [alerts, namespace, filters, perspective, sortBy, direction]);
+  const selectedPageOfAggregatedAlerts = useMemo(
+    () => aggregatedAlerts.slice((page - 1) * perPage, (page - 1) * perPage + perPage),
+    [aggregatedAlerts, page, perPage],
   );
 
-  const columns = useAggregateAlertColumns();
-  const selectedFilters = useSelectedFilters();
-
-  const filteredAggregatedAlerts = getAggregateAlertsLists(filteredData);
   const loaded = !!rulesAlertLoading?.loaded;
   const loadError = rulesAlertLoading?.loadError ? rulesAlertLoading.loadError : undefined;
+
+  const onFiltersChange = useMemo(
+    () => (filterName: keyof AggregatedAlertFilters) => {
+      return (_e, val) => {
+        onSetFilters({ [filterName]: val });
+      };
+    },
+    [onSetFilters],
+  );
+
+  const filterItems = useMemo<TableFilterProps<any>[]>(() => {
+    const filtersVals: TableFilterProps<any>[] = [
+      {
+        filterId: AlertFilterOptions.NAME,
+        type: TableFilterOption.TEXT,
+        title: t('Alert Name'),
+        placeholder: t('Filter by Name'),
+        onChange: onFiltersChange(AlertFilterOptions.NAME),
+        value: filters.name,
+        ouiaId: 'AlertNameFilter',
+      },
+      {
+        filterId: AlertFilterOptions.LABEL,
+        type: TableFilterOption.LABEL,
+        title: t('Label'),
+        placeholder: t('Filter by Label'),
+        onChange: onFiltersChange(AlertFilterOptions.LABEL),
+        value: filters[AlertFilterOptions.LABEL],
+        labelPath: 'labels',
+        data: alerts,
+      },
+      {
+        filterId: AlertFilterOptions.STATE,
+        type: TableFilterOption.CHECKBOX,
+        title: t('Alert State'),
+        placeholder: t('Filter by State'),
+        onChange: onFiltersChange(AlertFilterOptions.STATE),
+        value: filters[AlertFilterOptions.STATE],
+        options: [
+          { value: AlertStates.Firing, label: t('Firing') },
+          { value: AlertStates.Pending, label: t('Pending') },
+          { value: AlertStates.Silenced, label: t('Silenced') },
+        ],
+        ouiaId: 'AlertStateFilter',
+      },
+      {
+        filterId: AlertFilterOptions.SEVERITY,
+        type: TableFilterOption.CHECKBOX,
+        title: t('Severity'),
+        placeholder: t('Filter by Severity'),
+        onChange: onFiltersChange(AlertFilterOptions.SEVERITY),
+        value: filters[AlertFilterOptions.SEVERITY],
+        options: [
+          { value: AlertSeverity.Critical, label: t('Critical') },
+          { value: AlertSeverity.Warning, label: t('Warning') },
+          { value: AlertSeverity.Info, label: t('Info') },
+          { value: AlertSeverity.None, label: t('None') },
+        ],
+        ouiaId: 'AlertSeverityFilter',
+      },
+    ];
+    if (namespace === ALL_NAMESPACES_KEY) {
+      filtersVals.push({
+        filterId: AlertFilterOptions.SOURCE,
+        type: TableFilterOption.CHECKBOX,
+        title: t('Source'),
+        placeholder: t('Filter by Source'),
+        onChange: onFiltersChange(AlertFilterOptions.SOURCE),
+        value: filters[AlertFilterOptions.SOURCE],
+        options: [
+          { value: AlertSource.Platform, label: t('Platform') },
+          { value: AlertSource.User, label: t('User') },
+          ...additionalAlertSourceLabels,
+        ],
+        ouiaId: 'AlertSourceFilter',
+      });
+    }
+    if (perspective === 'acm') {
+      filtersVals.push({
+        filterId: AlertFilterOptions.CLUSTER,
+        type: TableFilterOption.CHECKBOX,
+        title: t('Cluster'),
+        placeholder: t('Filter by Cluster'),
+        onChange: onFiltersChange(AlertFilterOptions.CLUSTER),
+        value: filters[AlertFilterOptions.CLUSTER],
+        options: alertClusterLabels.map((clusterName) => ({
+          value: clusterName,
+          label: clusterName?.length > 50 ? clusterName.slice(0, 50) + '...' : clusterName,
+        })),
+        ouiaId: 'AlertClusterFilter',
+      });
+    }
+    return filtersVals;
+  }, [
+    filters,
+    t,
+    onFiltersChange,
+    alerts,
+    namespace,
+    additionalAlertSourceLabels,
+    perspective,
+    alertClusterLabels,
+  ]);
 
   return (
     <>
       <DocumentTitle>{t('Alerting')}</DocumentTitle>
       <PageSection hasBodyWrapper={false} type="subnav">
-        <Flex>
-          <ListPageFilter
-            data={staticData}
-            labelFilter="alerts"
-            labelPath="labels"
-            loaded={loaded}
-            onFilterChange={onFilterChange}
-            rowFilters={rowFilters}
-          />
-
-          {loaded && filteredAggregatedAlerts?.length > 0 && (
-            <DownloadCSVButton loaded={loaded} filteredData={filteredAggregatedAlerts} />
-          )}
-        </Flex>
         {/* Only show the silences error when the alerts have loaded, since failing to load the
           silences doesn't matter if the alerts haven't loaded*/}
         {silences?.loadError && !loadError && (
           <SilencesNotLoadedWarning silencesLoadError={silences?.loadError} />
         )}
-        {filteredAggregatedAlerts?.length > 0 && loaded && (
-          <Table gridBreakPoint={TableGridBreakpoint.none} role="presentation">
-            <Thead>
-              <Tr>
-                {columns.map((column) => (
-                  <Th key={column.id} {...column?.props}>
-                    {column.title}
-                  </Th>
-                ))}
-              </Tr>
-            </Thead>
-            {filteredAggregatedAlerts.map((aggregatedAlert, index) => (
-              <AggregateAlertTableRow
-                key={aggregatedAlert.name}
-                aggregatedAlert={aggregatedAlert}
-                rowData={{ rowIndex: index, selectedFilters }}
-              />
-            ))}
-          </Table>
+        {loaded && (
+          <DataView>
+            <TableToolbar
+              clearAllFilters={clearAllFilters}
+              filters={
+                <TableFilters
+                  activeAttributeMenu={activeAttributeMenu}
+                  setActiveAttributeMenu={setActiveAttributeMenu}
+                  filterItems={filterItems}
+                >
+                  {filterItems.map((filterItem) => (
+                    <TableFilter
+                      key={`table-filter-${filterItem.filterId}`}
+                      {...filterItem}
+                      showToolbarItem={filterItem.title === activeAttributeMenu}
+                    />
+                  ))}
+                </TableFilters>
+              }
+              actions={
+                <DownloadCSVButton loaded={loaded} filteredData={selectedPageOfAggregatedAlerts} />
+              }
+              pagination={
+                <TablePagination
+                  itemCount={aggregatedAlerts?.length}
+                  variant={PaginationVariant.top}
+                  {...pagination}
+                />
+              }
+            />
+            {selectedPageOfAggregatedAlerts?.length > 0 && (
+              <>
+                <Table gridBreakPoint={TableGridBreakpoint.none} role="presentation" isExpandable>
+                  <DataViewTableHead columns={columns} />
+                  {selectedPageOfAggregatedAlerts.map((aggregatedAlert, index) => (
+                    <AggregateAlertTableRow
+                      key={aggregatedAlert.name}
+                      aggregatedAlert={aggregatedAlert}
+                      rowData={{ rowIndex: index, selectedFilters: filters }}
+                    />
+                  ))}
+                </Table>
+                <DataViewToolbar
+                  style={{ paddingTop: '16px' }}
+                  pagination={
+                    <TablePagination
+                      itemCount={aggregatedAlerts?.length}
+                      variant={PaginationVariant.bottom}
+                      {...pagination}
+                    />
+                  }
+                />
+              </>
+            )}
+          </DataView>
         )}
         {loadError && <AccessDenied message={loadError.message} />}
-        {loaded && filteredAggregatedAlerts?.length === 0 && !loadError && (
+        {loaded && selectedPageOfAggregatedAlerts?.length === 0 && !loadError && (
           <EmptyBox customMessage={t('No alerts found')} />
         )}
         {!loaded && <LoadingBox />}
@@ -185,6 +360,44 @@ const AlertsPage_: FC = () => {
   );
 };
 const AlertsPageWithFallback = withFallback(AlertsPage_);
+
+const sortAggregatedAlerts = (
+  data: AggregatedAlert[],
+  sortBy: string | undefined,
+  direction: 'asc' | 'desc' | undefined,
+) => {
+  if (!sortBy || !direction) {
+    return data;
+  }
+  const lower = direction === 'asc' ? 0 : 1;
+  const upper = direction === 'asc' ? 1 : 0;
+  if (sortBy === rowFilter(AlertFilterOptions.NAME)) {
+    return [...data].sort((a, b) =>
+      a.name?.toLocaleLowerCase() < b.name?.toLocaleLowerCase() ? lower : upper,
+    );
+  } else if (sortBy === rowFilter(AlertFilterOptions.SEVERITY)) {
+    return [...data].sort((a, b) => {
+      const aOrder: number =
+        {
+          [AlertSeverity.Critical]: 1,
+          [AlertSeverity.Warning]: 2,
+          [AlertSeverity.None]: 4,
+        }[a.severity] ?? 3;
+      const bOrder: number =
+        {
+          [AlertSeverity.Critical]: 1,
+          [AlertSeverity.Warning]: 2,
+          [AlertSeverity.None]: 4,
+        }[b.severity] ?? 3;
+      return aOrder > bOrder ? lower : upper;
+    });
+  } else if (sortBy === rowFilter('alert-total')) {
+    return [...data].sort((a, b) => (a.alerts.length < b.alerts.length ? lower : upper));
+  } else if (sortBy === rowFilter(AlertFilterOptions.STATE)) {
+    return [...data].sort((a, b) => (a.state < b.state ? lower : upper));
+  }
+  return data;
+};
 
 export const MpCmoAlertsPage = () => {
   return (

@@ -108,6 +108,7 @@
     "@eslint/compat": "^2.0.3",
     "@eslint/eslintrc": "^3.3.5",
     "@eslint/js": "^9.39.4",
+    "@patternfly/react-component-groups": "^6.4.0",
     "@swc/core": "^1.15.3",
     "@swc/helpers": "^0.5.17",
     "@types/ajv": "^0.0.5",

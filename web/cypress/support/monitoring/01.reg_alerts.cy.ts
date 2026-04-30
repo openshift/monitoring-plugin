@@ -16,6 +16,7 @@ import {
   SilenceComment,
   WatchdogAlert,
 } from '../../fixtures/monitoring/constants';
+import { FilterOUIAIDs } from '../../../src/components/data-test';
 
 export interface PerspectiveConfig {
   name: string;
@@ -29,14 +30,15 @@ export function runAllRegressionAlertsTests(perspective: PerspectiveConfig) {
 export function testAlertsRegression(perspective: PerspectiveConfig) {
   it(`${perspective.name} perspective - Alerting > Alerts page - Filtering`, () => {
     cy.log('1.1 Header components');
-    listPage.filter.selectFilterOption(true, AlertingRulesAlertState.PENDING, false);
-    listPage.filter.selectFilterOption(false, AlertingRulesAlertState.SILENCED, false);
-    listPage.filter.selectFilterOption(false, Severity.CRITICAL, false);
-    listPage.filter.selectFilterOption(false, Severity.WARNING, false);
-    listPage.filter.selectFilterOption(false, Severity.INFO, false);
-    listPage.filter.selectFilterOption(false, Severity.NONE, false);
-    listPage.filter.selectFilterOption(false, Source.USER, true);
-    listPage.filter.removeMainTag(MainTagState.SOURCE);
+    listPage.filter.selectFilterOption('Alert State', AlertingRulesAlertState.PENDING);
+    listPage.filter.selectFilterOption('Alert State', AlertingRulesAlertState.SILENCED);
+    listPage.filter.selectFilterOption('Severity', Severity.CRITICAL);
+    listPage.filter.selectFilterOption('Severity', Severity.WARNING);
+    listPage.filter.selectFilterOption('Severity', Severity.INFO);
+    listPage.filter.selectFilterOption('Severity', Severity.NONE);
+    listPage.filter.selectFilterOption('Source', Source.USER);
+    listPage.filter.removeIndividualTag(Source.PLATFORM);
+    listPage.filter.removeIndividualTag(Source.USER);
     listPage.filter.removeIndividualTag(AlertingRulesAlertState.FIRING);
     listPage.filter.removeIndividualTag(AlertingRulesAlertState.PENDING);
     listPage.filter.removeIndividualTag(AlertingRulesAlertState.SILENCED);
@@ -45,7 +47,7 @@ export function testAlertsRegression(perspective: PerspectiveConfig) {
     listPage.exportAsCSV(true, /openshift.csv/);
 
     listPage.filter.byLabel('alertname=' + `${WatchdogAlert.ALERTNAME}`);
-    listPage.filter.removeMainTag('Label');
+    listPage.filter.removeIndividualTag('alertname=' + `${WatchdogAlert.ALERTNAME}`);
     listPage.filter.byLabel('alertname=' + `${WatchdogAlert.ALERTNAME}`);
     listPage.filter.removeIndividualTag('alertname=' + `${WatchdogAlert.ALERTNAME}`);
   });
@@ -106,8 +108,7 @@ export function testAlertsRegression(perspective: PerspectiveConfig) {
       listPage.filter.removeIndividualTag(SilenceState.ACTIVE);
       listPage.filter.removeIndividualTag(SilenceState.PENDING);
       silencesListPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
-      listPage.filter.clickFilter(true, false);
-      listPage.filter.selectFilterOption(false, SilenceState.ACTIVE, true);
+      listPage.filter.selectFilterOption('Silence State', SilenceState.ACTIVE);
       silencesListPage.rows.assertSilencedAlertKebab();
 
       cy.log('3.6 Click on Silenced alert and Assert Actions button');
@@ -124,10 +125,11 @@ export function testAlertsRegression(perspective: PerspectiveConfig) {
       cy.log('3.8 Assert Kebab on Silence List page for Expired alert');
       silencesListPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
       silencesListPage.emptyState();
-      listPage.filter.removeMainTag(MainTagState.SILENCE_STATE);
-      listPage.filter.selectFilterOption(true, SilenceState.EXPIRED, false);
-      listPage.filter.selectFilterOption(false, SilenceState.ACTIVE, false);
-      listPage.filter.selectFilterOption(false, SilenceState.PENDING, true);
+      listPage.filter.removeIndividualTag(SilenceState.ACTIVE);
+      listPage.filter.removeIndividualTag(SilenceState.PENDING);
+      listPage.filter.selectFilterOption('Silence State', SilenceState.EXPIRED);
+      listPage.filter.selectFilterOption('Silence State', SilenceState.ACTIVE);
+      listPage.filter.selectFilterOption('Silence State', SilenceState.PENDING);
       silencesListPage.rows.assertExpiredAlertKebab('0');
 
       cy.log('3.9 Click on Expired alert and Assert Actions button');
@@ -214,8 +216,7 @@ export function testAlertsRegression(perspective: PerspectiveConfig) {
       listPage.filter.removeIndividualTag(SilenceState.ACTIVE);
       listPage.filter.removeIndividualTag(SilenceState.PENDING);
       silencesListPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
-      listPage.filter.clickFilter(true, false);
-      listPage.filter.selectFilterOption(false, SilenceState.ACTIVE, true);
+      listPage.filter.selectFilterOption('Silence State', SilenceState.ACTIVE);
       silencesListPage.rows.expireSilence(true);
 
       cy.log('3.13 Alert Details > Silence alert button > Cancel');
@@ -241,16 +242,16 @@ export function testAlertsRegression(perspective: PerspectiveConfig) {
     alertingRuleListPage.shouldBeLoaded();
 
     cy.log('4.2 clear all filters, verify filters and tags');
-    listPage.filter.selectFilterOption(true, AlertingRulesAlertState.FIRING, false);
-    listPage.filter.selectFilterOption(false, AlertingRulesAlertState.PENDING, false);
-    listPage.filter.selectFilterOption(false, AlertingRulesAlertState.SILENCED, false);
-    listPage.filter.selectFilterOption(false, AlertingRulesAlertState.NOT_FIRING, false);
-    listPage.filter.selectFilterOption(false, Severity.CRITICAL, false);
-    listPage.filter.selectFilterOption(false, Severity.WARNING, false);
-    listPage.filter.selectFilterOption(false, Severity.INFO, false);
-    listPage.filter.selectFilterOption(false, Severity.NONE, false);
-    listPage.filter.selectFilterOption(false, Source.PLATFORM, false);
-    listPage.filter.selectFilterOption(false, Source.USER, true);
+    listPage.filter.selectFilterOption('Alert State', AlertingRulesAlertState.FIRING);
+    listPage.filter.selectFilterOption('Alert State', AlertingRulesAlertState.PENDING);
+    listPage.filter.selectFilterOption('Alert State', AlertingRulesAlertState.SILENCED);
+    listPage.filter.selectFilterOption('Alert State', AlertingRulesAlertState.NOT_FIRING);
+    listPage.filter.selectFilterOption('Severity', Severity.CRITICAL);
+    listPage.filter.selectFilterOption('Severity', Severity.WARNING);
+    listPage.filter.selectFilterOption('Severity', Severity.INFO);
+    listPage.filter.selectFilterOption('Severity', Severity.NONE);
+    listPage.filter.selectFilterOption('Source', Source.PLATFORM);
+    listPage.filter.selectFilterOption('Source', Source.USER);
 
     listPage.filter.clickOn1more(MainTagState.ALERT_STATE);
     listPage.filter.clickOn1more(MainTagState.SEVERITY);
@@ -258,54 +259,56 @@ export function testAlertsRegression(perspective: PerspectiveConfig) {
     listPage.filter.clickOnShowLess(MainTagState.ALERT_STATE);
     listPage.filter.clickOnShowLess(MainTagState.SEVERITY);
 
+    listPage.filter.clickOn1more(MainTagState.ALERT_STATE);
+    listPage.filter.clickOn1more(MainTagState.SEVERITY);
+
     listPage.filter.removeIndividualTag(AlertingRulesAlertState.FIRING);
     listPage.filter.removeIndividualTag(AlertingRulesAlertState.PENDING);
     listPage.filter.removeIndividualTag(AlertingRulesAlertState.SILENCED);
     listPage.filter.removeIndividualTag(AlertingRulesAlertState.NOT_FIRING);
 
-    listPage.filter.removeMainTag(MainTagState.SEVERITY);
-    listPage.filter.removeMainTag(MainTagState.SOURCE);
+    listPage.filter.removeIndividualTag(Severity.CRITICAL);
+    listPage.filter.removeIndividualTag(Severity.WARNING);
+    listPage.filter.removeIndividualTag(Severity.INFO);
+    listPage.filter.removeIndividualTag(Severity.NONE);
+    listPage.filter.removeIndividualTag(Source.PLATFORM);
+    listPage.filter.removeIndividualTag(Source.USER);
 
     alertingRuleListPage.filter.assertNoClearAllFilters();
 
     cy.log('4.3 Search by Name');
-    listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
+    listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`, FilterOUIAIDs.RuleNameFilter);
     alertingRuleListPage.countShouldBe(1);
     listPage.filter.clearAllFilters();
 
-    cy.log('4.4 Search by Label');
-    listPage.filter.byLabel(`namespace=${WatchdogAlert.NAMESPACE}`);
-    listPage.filter.clearAllFilters();
-
-    cy.log('4.5 Search by Name and see details');
-    listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
+    cy.log('4.4 Search by Name and see details');
+    listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`, FilterOUIAIDs.RuleNameFilter);
     alertingRuleListPage.countShouldBe(1);
     alertingRuleListPage.clickAlertingRule(`${WatchdogAlert.ALERTNAME}`);
     alertingRuleDetailsPage.assertAlertingRuleDetailsPage(`${WatchdogAlert.ALERTNAME}`);
 
-    cy.log('4.6 Alerting rule details > Silence alert');
+    cy.log('4.5 Alerting rule details > Silence alert');
     alertingRuleDetailsPage.clickOnKebabSilenceAlert();
     silenceAlertPage.addComment(SilenceComment.SILENCE_COMMENT);
     silenceAlertPage.clickSubmit();
     commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
 
-    cy.log('4.7 Alerting rule details > Assert Kebab');
+    cy.log('4.6 Alerting rule details > Assert Kebab');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     nav.tabs.switchTab('Alerting rules');
     listPage.filter.clearAllFilters();
-    listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
+    listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`, FilterOUIAIDs.RuleNameFilter);
     alertingRuleListPage.clickAlertingRule(`${WatchdogAlert.ALERTNAME}`);
     alertingRuleDetailsPage.assertNoKebab();
 
-    cy.log('4.8 Expire silence');
+    cy.log('4.7 Expire silence');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     nav.tabs.switchTab('Silences');
     silencesListPage.shouldBeLoaded();
     listPage.filter.removeIndividualTag(SilenceState.ACTIVE);
     listPage.filter.removeIndividualTag(SilenceState.PENDING);
     silencesListPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
-    listPage.filter.clickFilter(true, false);
-    listPage.filter.selectFilterOption(false, SilenceState.ACTIVE, true);
+    listPage.filter.selectFilterOption('Silence State', SilenceState.ACTIVE);
     silencesListPage.rows.expireSilence(true);
   });
 }
