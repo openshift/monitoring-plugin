@@ -128,6 +128,8 @@ export const queryBrowserToggleSeries = (index: number, labels: { [key: string]:
 
 export const setAlertCount = (alertCount) => action(ActionType.SetAlertCount, { alertCount });
 
+// ESLint disable comment to indicate this is only used for type inference
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const actions = {
   alertingErrored,
   alertingLoaded,

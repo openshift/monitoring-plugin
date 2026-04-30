@@ -35,6 +35,18 @@ type Config struct {
 	PluginConfigPath string
 	AlertmanagerUrl  string
 	ThanosQuerierUrl string
+	TLSMinVersion    uint16
+	TLSMaxVersion    uint16
+	TLSCipherSuites  []uint16
+}
+
+func (c *Config) IsTLSEnabled() bool {
+	return c.CertFile != "" && c.PrivateKeyFile != ""
+}
+
+type PluginServer struct {
+	*http.Server
+	Config *Config
 }
 
 type PluginConfig struct {
@@ -60,19 +72,47 @@ func (pluginConfig *PluginConfig) MarshalJSON() ([]byte, error) {
 	})
 }
 
-func Start(cfg *Config) {
+func CreateServer(ctx context.Context, cfg *Config) (*PluginServer, error) {
+	httpServer, err := createHTTPServer(ctx, cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	return &PluginServer{
+		Config: cfg,
+		Server: httpServer,
+	}, nil
+}
+
+func (s *PluginServer) StartHTTPServer() error {
+	if s.Config.IsTLSEnabled() {
+		log.Infof("listening for https on %s", s.Server.Addr)
+		return s.Server.ListenAndServeTLS(s.Config.CertFile, s.Config.PrivateKeyFile)
+	}
+	log.Infof("listening for http on %s", s.Server.Addr)
+	return s.Server.ListenAndServe()
+}
+
+func (s *PluginServer) Shutdown(ctx context.Context) error {
+	if s.Server != nil {
+		return s.Server.Shutdown(ctx)
+	}
+	return nil
+}
+
+func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 	acmMode := cfg.Features[AcmAlerting]
 	acmLocationsLength := len(cfg.AlertmanagerUrl) + len(cfg.ThanosQuerierUrl)
 
 	if acmLocationsLength > 0 && !acmMode {
-		log.Panic("alertmanager and thanos-querier cannot be set without the 'acm-alerting' feature flag")
+		return nil, fmt.Errorf("alertmanager and thanos-querier cannot be set without the 'acm-alerting' feature flag")
 	}
 	if acmLocationsLength == 0 && acmMode {
-		log.Panic("alertmanager and thanos-querier must be set to use the 'acm-alerting' feature flag")
+		return nil, fmt.Errorf("alertmanager and thanos-querier must be set to use the 'acm-alerting' feature flag")
 	}
 
 	if cfg.Port == int(proxy.AlertmanagerPort) || cfg.Port == int(proxy.ThanosQuerierPort) {
-		log.Panic(fmt.Printf("Cannot set default port to reserved port %d", cfg.Port))
+		return nil, fmt.Errorf("cannot set default port to reserved port %d", cfg.Port)
 	}
 
 	// Uncomment the following line for local development:
@@ -83,14 +123,13 @@ func Start(cfg *Config) {
 	if acmMode {
 
 		k8sconfig, err := rest.InClusterConfig()
-
 		if err != nil {
-			panic(fmt.Errorf("cannot get in cluster config: %w", err))
+			return nil, fmt.Errorf("cannot get in cluster config: %w", err)
 		}
 
 		k8sclient, err = dynamic.NewForConfig(k8sconfig)
 		if err != nil {
-			panic(fmt.Errorf("error creating dynamicClient: %w", err))
+			return nil, fmt.Errorf("error creating dynamicClient: %w", err)
 		}
 	} else {
 		k8sclient = nil
@@ -99,14 +138,33 @@ func Start(cfg *Config) {
 	router, pluginConfig := setupRoutes(cfg)
 	router.Use(corsHeaderMiddleware())
 
-	tlsConfig := &tls.Config{
-		MinVersion: tls.VersionTLS12,
-	}
-	tlsEnabled := cfg.CertFile != "" && cfg.PrivateKeyFile != ""
+	tlsConfig := &tls.Config{}
+
+	tlsEnabled := cfg.IsTLSEnabled()
 	if tlsEnabled {
+		// Set MinVersion - default to TLS 1.2 if not specified
+		tlsConfig.MinVersion = tls.VersionTLS12
+		if cfg.TLSMinVersion != 0 {
+			tlsConfig.MinVersion = cfg.TLSMinVersion
+		}
+
+		if cfg.TLSMaxVersion != 0 {
+			tlsConfig.MaxVersion = cfg.TLSMaxVersion
+			if tlsConfig.MaxVersion < tlsConfig.MinVersion {
+				return nil, fmt.Errorf(
+					"min TLS version %q greater than max TLS version %q",
+					tls.VersionName(tlsConfig.MinVersion),
+					tls.VersionName(tlsConfig.MaxVersion),
+				)
+			}
+		}
+
+		if len(cfg.TLSCipherSuites) > 0 {
+			tlsConfig.CipherSuites = cfg.TLSCipherSuites
+		}
+
 		// Build and run the controller which reloads the certificate and key
 		// files whenever they change.
-		ctx := context.Background()
 
 		certKeyPair, err := dynamiccertificates.NewDynamicServingContentFromFiles("serving-cert", cfg.CertFile, cfg.PrivateKeyFile)
 		if err != nil {
@@ -137,6 +195,7 @@ func Start(cfg *Config) {
 		// Notify cert/key file changes to the controller.
 		certKeyPair.AddListener(ctrl)
 
+		// Start certificate controllers in background
 		go ctrl.Run(1, ctx.Done())
 		go certKeyPair.Run(ctx, 1)
 	}
@@ -159,17 +218,24 @@ func Start(cfg *Config) {
 		httpServer.Handler = loggedRouter
 	}
 
-	if tlsEnabled {
-		if acmMode {
-			startProxy(cfg, k8sclient, tlsConfig, timeout, proxy.AlertManagerKind, proxy.AlertmanagerPort)
-			startProxy(cfg, k8sclient, tlsConfig, timeout, proxy.ThanosQuerierKind, proxy.ThanosQuerierPort)
-		}
+	// Start proxy servers if in ACM mode
+	if tlsEnabled && acmMode {
+		startProxy(cfg, k8sclient, tlsConfig, timeout, proxy.AlertManagerKind, proxy.AlertmanagerPort)
+		startProxy(cfg, k8sclient, tlsConfig, timeout, proxy.ThanosQuerierKind, proxy.ThanosQuerierPort)
+	}
 
-		log.Infof("listening for https on %s", httpServer.Addr)
-		panic(httpServer.ListenAndServeTLS(cfg.CertFile, cfg.PrivateKeyFile))
-	} else {
-		log.Infof("listening for http on %s", httpServer.Addr)
-		panic(httpServer.ListenAndServe())
+	return httpServer, nil
+}
+
+// Start is kept for backward compatibility
+func Start(cfg *Config) {
+	ctx := context.Background()
+	srv, err := CreateServer(ctx, cfg)
+	if err != nil {
+		panic(err)
+	}
+	if err := srv.StartHTTPServer(); err != nil {
+		panic(err)
 	}
 }
 

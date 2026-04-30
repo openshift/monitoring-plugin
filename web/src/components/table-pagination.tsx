@@ -17,15 +17,9 @@ const LocalizedToggleTemplate: React.FC<LocalizedToggleTemplateProps> = ({
 
   return (
     <Trans t={t}>
-      {/*
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore TODO */}
       <b>
         {{ firstIndex }} - {{ lastIndex }}
       </b>{' '}
-      {/*
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore TODO */}
       of <b>{{ itemCount }}</b> {{ itemsTitle }}
     </Trans>
   );

@@ -251,7 +251,7 @@ export const DashboardImportDialog: React.FunctionComponent<DashboardImportDialo
 
     try {
       await ensureProjectExists(currentProject, persesProjects || []);
-    } catch (error) {
+    } catch {
       return;
     }
 

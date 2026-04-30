@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"os"
 	"strconv"
@@ -8,6 +9,7 @@ import (
 
 	server "github.com/openshift/monitoring-plugin/pkg"
 	"github.com/sirupsen/logrus"
+	k8sapiflag "k8s.io/component-base/cli/flag"
 )
 
 var (
@@ -21,6 +23,9 @@ var (
 	logLevelArg         = flag.String("log-level", logrus.InfoLevel.String(), "verbosity of logs\noptions: ['panic', 'fatal', 'error', 'warn', 'info', 'debug', 'trace']\n'trace' level will log all incoming requests\n(default 'error')")
 	alertmanagerUrlArg  = flag.String("alertmanager", "", "alertmanager url to proxy to for acm mode")
 	thanosQuerierUrlArg = flag.String("thanos-querier", "", "thanos querier url to proxy to for acm mode")
+	tlsMinVersionArg    = flag.String("tls-min-version", "VersionTLS12", "minimum TLS version\noptions: ['VersionTLS10', 'VersionTLS11', 'VersionTLS12', 'VersionTLS13']")
+	tlsMaxVersionArg    = flag.String("tls-max-version", "", "maximum TLS version\noptions: ['VersionTLS10', 'VersionTLS11', 'VersionTLS12', 'VersionTLS13']\n(default is the highest supported by Go)")
+	tlsCipherSuitesArg  = flag.String("tls-cipher-suites", "", "comma-separated list of cipher suites for the server\nvalues are from tls package constants (https://golang.org/pkg/crypto/tls/#pkg-constants)")
 	log                 = logrus.WithField("module", "main")
 )
 
@@ -37,6 +42,9 @@ func main() {
 	logLevel := mergeEnvValue("MONITORING_PLUGIN_LOG_LEVEL", *logLevelArg, logrus.InfoLevel.String())
 	alertmanagerUrl := mergeEnvValue("MONITORING_PLUGIN_ALERTMANAGER", *alertmanagerUrlArg, "")
 	thanosQuerierUrl := mergeEnvValue("MONITORING_PLUGIN_THANOS_QUERIER", *thanosQuerierUrlArg, "")
+	tlsMinVersion := mergeEnvValue("TLS_MIN_VERSION", *tlsMinVersionArg, "VersionTLS12")
+	tlsMaxVersion := mergeEnvValue("TLS_MAX_VERSION", *tlsMaxVersionArg, "")
+	tlsCipherSuites := mergeEnvValue("TLS_CIPHER_SUITES", *tlsCipherSuitesArg, "")
 
 	featuresList := strings.Fields(strings.Join(strings.Split(strings.ToLower(features), ","), " "))
 
@@ -54,7 +62,32 @@ func main() {
 
 	log.Infof("enabled features: %+q\n", featuresList)
 
-	server.Start(&server.Config{
+	// Parse the TLS configuration using k8s component-base
+	tlsMinVer, err := parseTLSVersion(tlsMinVersion)
+	if err != nil {
+		log.WithError(err).Fatalf("Invalid TLS min version: %s", tlsMinVersion)
+	}
+	log.Infof("Min TLS version: %s", tlsMinVersion)
+
+	tlsMaxVer, err := parseTLSVersion(tlsMaxVersion)
+	if err != nil {
+		log.WithError(err).Fatalf("Invalid TLS max version: %s", tlsMaxVersion)
+	}
+	if tlsMaxVersion != "" {
+		log.Infof("Max TLS version: %s", tlsMaxVersion)
+	}
+
+	var tlsCiphers []uint16
+	if tlsCipherSuites != "" {
+		cipherNames := strings.Split(strings.ReplaceAll(tlsCipherSuites, " ", ""), ",")
+		tlsCiphers, err = k8sapiflag.TLSCipherSuites(cipherNames)
+		if err != nil {
+			log.WithError(err).Fatalf("Invalid TLS cipher suites: %s", tlsCipherSuites)
+		}
+		log.Infof("TLS ciphers: %s", tlsCipherSuites)
+	}
+
+	srv, err := server.CreateServer(context.Background(), &server.Config{
 		Port:             port,
 		CertFile:         cert,
 		PrivateKeyFile:   key,
@@ -64,7 +97,18 @@ func main() {
 		PluginConfigPath: pluginConfigPath,
 		AlertmanagerUrl:  alertmanagerUrl,
 		ThanosQuerierUrl: thanosQuerierUrl,
+		TLSMinVersion:    tlsMinVer,
+		TLSMaxVersion:    tlsMaxVer,
+		TLSCipherSuites:  tlsCiphers,
 	})
+
+	if err != nil {
+		panic(err)
+	}
+
+	if err = srv.StartHTTPServer(); err != nil {
+		panic(err)
+	}
 }
 
 func mergeEnvValue(key string, arg string, defaultValue string) string {
@@ -94,4 +138,11 @@ func mergeEnvValueInt(key string, arg int, defaultValue int) int {
 	}
 
 	return defaultValue
+}
+
+func parseTLSVersion(version string) (uint16, error) {
+	if version == "" {
+		return 0, nil
+	}
+	return k8sapiflag.TLSVersion(version)
 }

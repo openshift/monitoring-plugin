@@ -533,9 +533,6 @@ const ListPage: React.FC<ListPageProps> = ({ loaded, loadError, targets }) => {
         <title>{title}</title>
       </Helmet>
       <ListPageHeader title={title} />
-      {/*
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore TODO */}
       <ListPageBody>
         {loadError && (
           <Alert title={t('Error loading latest targets data')} variant="danger">
