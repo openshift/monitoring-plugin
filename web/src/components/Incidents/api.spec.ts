@@ -1,12 +1,3 @@
-// Setup global.window before importing modules that use it
-(global as any).window = {
-  SERVER_FLAGS: {
-    prometheusBaseURL: '/api/prometheus',
-    prometheusTenancyBaseURL: '/api/prometheus-tenancy',
-    alertManagerBaseURL: '/api/alertmanager',
-  },
-};
-
 import { createAlertsQuery, fetchDataForIncidentsAndAlerts } from './api';
 import { PrometheusResponse, consoleFetchJSON } from '@openshift-console/dynamic-plugin-sdk';
 import { buildPrometheusUrl } from '../utils';

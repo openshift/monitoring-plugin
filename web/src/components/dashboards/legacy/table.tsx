@@ -1,5 +1,4 @@
 import { PrometheusEndpoint, PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
-import { PerPageOptions } from '@patternfly/react-core';
 import {
   ISortBy,
   Table as PFTable,
@@ -23,7 +22,7 @@ import { usePoll } from '../../console/utils/poll-hook';
 import { useSafeFetch } from '../../console/utils/safe-fetch-hook';
 
 import { formatNumber } from '../../format';
-import TablePagination from '../../table-pagination';
+import { ITEMS_PER_PAGE, TablePagination } from '../../table-pagination';
 import { ColumnStyle, Panel } from './types';
 import { CustomDataSource } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
 import { GraphEmpty } from '../../console/graphs/graph-empty';
@@ -60,11 +59,6 @@ const getColumns = (styles: ColumnStyle[]): AugmentedColumnStyle[] => {
   return [...labelColumns, ...valueColumns];
 };
 
-const perPageOptions: PerPageOptions[] = [5, 10, 20, 50, 100].map((n) => ({
-  title: n.toString(),
-  value: n,
-}));
-
 const Table: FC<Props> = ({ customDataSource, panel, pollInterval, queries, namespace }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { accessCheckLoading, useMetricsTenancy } = useMonitoring();
@@ -73,7 +67,7 @@ const Table: FC<Props> = ({ customDataSource, panel, pollInterval, queries, name
   const [isLoading, setLoading] = useState(true);
   const [data, setData] = useState();
   const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(5);
+  const [perPage, setPerPage] = useState(ITEMS_PER_PAGE[0]);
   const [sortBy, setSortBy] = useState<ISortBy>({ index: 0, direction: 'asc' });
   const onSort = (e, index: ISortBy['index'], direction: ISortBy['direction']) =>
     setSortBy({ index, direction });
@@ -244,7 +238,6 @@ const Table: FC<Props> = ({ customDataSource, panel, pollInterval, queries, name
         itemCount={sortedData.length}
         page={page}
         perPage={perPage}
-        perPageOptions={perPageOptions}
         setPage={setPage}
         setPerPage={setPerPage}
       />

@@ -10,9 +10,12 @@ For testing workflows, test architecture, and creating tests, see **[CYPRESS_TES
 
 ```bash
 cd web/cypress
-npm install                 # Install dependencies
-source ./configure-env.sh   # Interactive configuration
-npm run cypress:open           # Start Cypress GUI
+# Install dependencies
+npm install
+# Interactive configuration
+source ./configure-env.sh
+# Start Cypress GUI
+npm run cypress:open
 ```
 
 ---
