@@ -17,14 +17,14 @@ const mapLabelsToStrings = (labels: { [key: string]: string }): string[] => {
   return _.map(requirements, requirementToString);
 };
 
-const getLabelsAsString = (obj: any, path: string = 'metadata.labels'): string[] => {
+const getLabelsAsString = (obj: any, path = 'metadata.labels'): string[] => {
   const labels = _.get(obj, path);
-  return mapLabelsToStrings(labels);
+  return labels ? mapLabelsToStrings(labels) : [];
 };
 
 const MAX_SUGGESTIONS = 5;
 
-const labelParser = (resources: any[], labelPath: string): Set<string> => {
+const labelParser = (resources: any[] = [], labelPath = 'metadata.labels'): Set<string> => {
   return resources.reduce((acc: Set<string>, resource: any) => {
     getLabelsAsString(resource, labelPath).forEach((label) => acc.add(label));
     return acc;

@@ -44,7 +44,11 @@ export const TableLabelFilter = <TData,>({
       showToolbarItem={showToolbarItem}
       deleteLabel={(_category, label: ToolbarLabel) => {
         setLabelInputText('');
-        applyLabelFilters(_.difference(labelSelection, [label]).map((labels) => labels.key));
+        applyLabelFilters(
+          labelSelection
+            .filter((selectedLabel) => selectedLabel.key !== label.key)
+            .map((selectedLabel) => selectedLabel.key),
+        );
       }}
     >
       <div className="pf-v6-c-input-group">

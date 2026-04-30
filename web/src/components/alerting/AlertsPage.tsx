@@ -330,7 +330,8 @@ const AlertsPage_: FC = () => {
                   <DataViewTableHead columns={columns} />
                   {selectedPageOfAggregatedAlerts.map((aggregatedAlert, index) => (
                     <AggregateAlertTableRow
-                      key={aggregatedAlert.name}
+                      // eslint-disable-next-line max-len
+                      key={`${aggregatedAlert.name}-${aggregatedAlert.state}-${aggregatedAlert.severity}`}
                       aggregatedAlert={aggregatedAlert}
                       rowData={{ rowIndex: index, selectedFilters: filters }}
                     />

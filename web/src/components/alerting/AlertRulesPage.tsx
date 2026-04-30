@@ -108,7 +108,7 @@ const AlertRulesPage_: FC = () => {
       { label: t('Name'), key: rowFilter(AlertRulesFilterOptions.NAME) },
       { label: t('Severity'), key: rowFilter(AlertRulesFilterOptions.SEVERITY) },
       { label: t('State'), key: rowFilter(AlertRulesFilterOptions.STATE) },
-      { label: t('Total'), key: rowFilter(AlertRulesFilterOptions.SOURCE) },
+      { label: t('Source'), key: rowFilter(AlertRulesFilterOptions.SOURCE) },
     ];
     return keys;
   }, [t]);
@@ -366,12 +366,19 @@ const sortRules = (
   const lower = direction === 'asc' ? 0 : 1;
   const upper = direction === 'asc' ? 1 : 0;
 
+  const directionMultiplier = direction === 'asc' ? 1 : -1;
+
   if (sortBy === rowFilter(AlertRulesFilterOptions.NAME)) {
-    return [...data].sort((a, b) =>
-      a.name?.toLocaleLowerCase() < b.name?.toLocaleLowerCase() ? lower : upper,
+    return [...data].sort(
+      (a, b) =>
+        a.name?.localeCompare(b.name, undefined, { sensitivity: 'base' }) * directionMultiplier,
     );
   } else if (sortBy === rowFilter(AlertRulesFilterOptions.SEVERITY)) {
-    return [...data].sort((a, b) => (a?.labels?.severity > b?.labels?.severity ? lower : upper));
+    return [...data].sort(
+      (a, b) =>
+        a.labels?.severity.localeCompare(b.labels?.severity, undefined, { sensitivity: 'base' }) *
+        directionMultiplier,
+    );
   } else if (sortBy === rowFilter(AlertRulesFilterOptions.STATE)) {
     return [...data].sort((a, b) =>
       alertingRuleStateOrder(a) > alertingRuleStateOrder(b) ? lower : upper,

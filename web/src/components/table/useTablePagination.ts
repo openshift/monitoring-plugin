@@ -5,17 +5,22 @@ import {
 import { useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router';
 
+const parsePositiveInt = (value: string | null, fallback: number) => {
+  const parsed = Number.parseInt(value ?? '', 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+};
+
 export const useTablePagination = ({
   page = 1,
-  perPage,
+  perPage = 20,
   pageParam = PaginationParams.PAGE,
   perPageParam = PaginationParams.PER_PAGE,
 }: UseDataViewPaginationProps) => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [state, setState] = useState({
-    page: parseInt(searchParams?.get(pageParam) || `${page}`),
-    perPage: parseInt(searchParams?.get(perPageParam) || `${perPage}`),
+    page: parsePositiveInt(searchParams?.get(pageParam), page),
+    perPage: parsePositiveInt(searchParams?.get(perPageParam), perPage),
   });
 
   const updateSearchParams = useCallback(

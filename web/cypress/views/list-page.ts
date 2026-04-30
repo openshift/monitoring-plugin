@@ -1,5 +1,7 @@
 import { DataTestIDs, Classes, LegacyTestIDs, FilterOUIAIDs } from '../../src/components/data-test';
 
+const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 export const listPage = {
   /**
    *
@@ -153,7 +155,7 @@ export const listPage = {
       cy.log('listPage.filter.removeIndividualTag');
       cy.byOUIAID('DataViewFilters').scrollIntoView();
       cy.get(Classes.IndividualTag)
-        .contains(new RegExp(`^${tagName}$`))
+        .contains(new RegExp(`^${escapeRegExp(tagName)}$`))
         .parent()
         .next('span')
         .children('button')

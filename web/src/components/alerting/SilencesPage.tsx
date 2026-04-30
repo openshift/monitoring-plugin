@@ -148,7 +148,7 @@ const SilencesPage_: FC = () => {
     setSearchParams,
   });
   const selection = useDataViewSelection({
-    matchOption: (a, b) => a?.index === b?.index,
+    matchOption: (a, b) => a?.silence?.name === b?.silence?.name,
   });
   const { selected, onSelect, setSelected } = selection;
 

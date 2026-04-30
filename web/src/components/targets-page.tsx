@@ -681,23 +681,28 @@ const sortTargets = (
   if (!sortBy || !direction) {
     return data;
   }
-  const lower = direction === 'asc' ? 0 : 1;
-  const upper = direction === 'asc' ? 1 : 0;
+  const directionMultiplier = direction === 'asc' ? 1 : -1;
 
   if (sortBy === rowFilter('scrapeUrl')) {
-    return [...data].sort((a, b) =>
-      a.scrapeUrl?.toLocaleLowerCase() < b.scrapeUrl?.toLocaleLowerCase() ? lower : upper,
+    return [...data].sort(
+      (a, b) => a.scrapeUrl?.localeCompare(b.scrapeUrl) * directionMultiplier || 0,
     );
   } else if (sortBy === rowFilter('health')) {
-    return [...data].sort((a, b) => (a.health > b.health ? lower : upper));
+    return [...data].sort((a, b) => a.health.localeCompare(b.health) * directionMultiplier || 0);
   } else if (sortBy === rowFilter('namespace')) {
-    return [...data].sort((a, b) => (a.labels?.namespace < b.labels?.namespace ? lower : upper));
+    return [...data].sort(
+      (a, b) => a.labels?.namespace.localeCompare(b.labels?.namespace) * directionMultiplier || 0,
+    );
   } else if (sortBy === rowFilter('lastScrape')) {
-    return [...data].sort((a, b) => (a.lastScrape < b.lastScrape ? lower : upper));
+    return [...data].sort(
+      (a, b) => a.lastScrape.localeCompare(b.lastScrape) * directionMultiplier || 0,
+    );
   } else if (sortBy === rowFilter('lastScrapeDuration')) {
-    return [...data].sort((a, b) => (a.lastScrapeDuration < b.lastScrapeDuration ? lower : upper));
+    return [...data].sort(
+      (a, b) => (a.lastScrapeDuration - b.lastScrapeDuration) * directionMultiplier,
+    );
   } else if (sortBy === rowFilter(TargetsFilterOptions.STATUS)) {
-    return [...data].sort((a, b) => (a.health < b.health ? lower : upper));
+    return [...data].sort((a, b) => a.health.localeCompare(b.health) * directionMultiplier || 0);
   }
   return data;
 };

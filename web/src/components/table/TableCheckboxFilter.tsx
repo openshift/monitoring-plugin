@@ -80,10 +80,10 @@ export const TableCheckboxFilter: FC<CustomDataViewCheckboxFilterProps> = ({
     <ToolbarFilter
       key={ouiaId}
       data-ouia-component-id={ouiaId}
-      labels={value.map((item) => {
-        const activeOption = options.find((option) => option.value === item);
-        return { key: activeOption?.value as string, node: activeOption?.label };
-      })}
+      labels={value
+        .map((item) => options.find((option) => option.value === item))
+        .filter(Boolean)
+        .map((activeOption) => ({ key: activeOption.value as string, node: activeOption.label }))}
       deleteLabel={(_, label) =>
         onChange?.(
           undefined,

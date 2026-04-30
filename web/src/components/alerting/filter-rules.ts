@@ -3,6 +3,7 @@ import { fuzzyCaseInsensitive } from '../utils';
 import { AlertRulesFilterOptions, AlertRulesFilters } from './AlertRulesPage';
 import { alertingRuleSource } from './AlertUtils';
 import { AlertSource } from '../types';
+import { isEmpty, some } from 'lodash-es';
 
 export const filterRules = (rules: Rule[], selectedFilters: AlertRulesFilters) => {
   if (!rules) {
@@ -51,4 +52,4 @@ export const filterRules = (rules: Rule[], selectedFilters: AlertRulesFilters) =
 };
 
 export const ruleHasAlertState = (rule: Rule, state: AlertStates): boolean =>
-  state === AlertStates.NotFiring ? _.isEmpty(rule.alerts) : _.some(rule.alerts, { state });
+  state === AlertStates.NotFiring ? isEmpty(rule.alerts) : some(rule.alerts, { state });

@@ -23,9 +23,7 @@ export const filterSilences = (
   return silences.filter((silence) => {
     if (
       shouldFilterNamespace &&
-      !silences?.filter((s) =>
-        s.matchers.some((m) => m.name === 'namespace' && m.value === namespace),
-      )
+      !silence.matchers?.some((m) => m.name === 'namespace' && m.value === namespace)
     ) {
       return false;
     }

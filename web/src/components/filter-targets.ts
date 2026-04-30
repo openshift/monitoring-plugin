@@ -2,6 +2,7 @@ import { AlertStates, Rule } from '@openshift-console/dynamic-plugin-sdk';
 import { Target } from './types';
 import { TargetsFilterOptions, TargetsFilters } from './targets-page';
 import { fuzzyCaseInsensitive, targetSource } from './utils';
+import { isEmpty, some } from 'lodash-es';
 
 export const filterTargets = (targets: Target[], selectedFilters: TargetsFilters) => {
   if (!targets) {
@@ -60,4 +61,4 @@ export const filterTargets = (targets: Target[], selectedFilters: TargetsFilters
 };
 
 export const ruleHasAlertState = (rule: Rule, state: AlertStates): boolean =>
-  state === AlertStates.NotFiring ? _.isEmpty(rule.alerts) : _.some(rule.alerts, { state });
+  state === AlertStates.NotFiring ? isEmpty(rule.alerts) : some(rule.alerts, { state });
