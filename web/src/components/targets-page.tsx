@@ -31,13 +31,9 @@ import {
   Tooltip,
 } from '@patternfly/react-core';
 import DataView from '@patternfly/react-data-view/dist/dynamic/DataView';
-import DataViewTable, {
-  DataViewTh,
-  DataViewTr,
-} from '@patternfly/react-data-view/dist/dynamic/DataViewTable';
+import DataViewTable, { DataViewTr } from '@patternfly/react-data-view/dist/dynamic/DataViewTable';
 import DataViewToolbar from '@patternfly/react-data-view/dist/dynamic/DataViewToolbar';
 import { useDataViewSort } from '@patternfly/react-data-view/dist/dynamic/Hooks';
-import { ThProps } from '@patternfly/react-table';
 import { find, includes } from 'lodash-es';
 import type { FC } from 'react';
 import { createContext, memo, useCallback, useContext, useEffect, useMemo, useState } from 'react';
@@ -60,6 +56,8 @@ import { LabelSelector } from './console/module/k8s/label-selector';
 import { usePoll } from './console/utils/poll-hook';
 import { useSafeFetch } from './console/utils/safe-fetch-hook';
 import { filterTargets } from './filter-targets';
+import { directedSort, localeCompareSort } from './table/sort-utils';
+import { useTableColumns } from './table/useTableColumns';
 import { useBoolean } from './hooks/useBoolean';
 import { Labels } from './labels';
 import { ITEMS_PER_PAGE, TablePagination } from './table-pagination';
@@ -424,37 +422,7 @@ const ListPage: FC<ListPageProps> = ({ loaded, loadError, targets }) => {
     return keys;
   }, [t]);
 
-  const sortByIndex = useMemo(
-    () => columnKeys.findIndex((item) => item.key === sortBy),
-    [sortBy, columnKeys],
-  );
-
-  const getSortParams = useCallback(
-    (columnIndex: number): ThProps['sort'] => {
-      if (columnIndex === 1) {
-        return undefined;
-      }
-      return {
-        sortBy: {
-          index: sortByIndex,
-          direction,
-          defaultDirection: 'asc',
-        },
-        onSort: (_event, index, direction) => onSort(_event, columnKeys[index].key, direction),
-        columnIndex,
-      };
-    },
-    [columnKeys, direction, onSort, sortByIndex],
-  );
-
-  const columns: DataViewTh[] = useMemo(
-    () =>
-      columnKeys.map((column, index) => ({
-        cell: column.label,
-        props: { sort: getSortParams(index) },
-      })),
-    [getSortParams, columnKeys],
-  );
+  const columns = useTableColumns(columnKeys, sortBy, direction, onSort, [1]);
 
   useEffect(() => {
     // When changing filters change back to being on page 1
@@ -674,39 +642,23 @@ const sortTargets = (
   if (!sortBy || !direction) {
     return data;
   }
-  const directionMultiplier = direction === 'asc' ? 1 : -1;
 
   if (sortBy === rowFilter('scrapeUrl')) {
-    return [...data].sort(
-      (a, b) =>
-        a.scrapeUrl?.localeCompare(b.scrapeUrl, undefined, { sensitivity: 'base' }) *
-          directionMultiplier || 0,
-    );
+    return [...data].sort((a, b) => localeCompareSort(a.scrapeUrl, b.scrapeUrl, direction));
   } else if (sortBy === rowFilter('health')) {
-    return [...data].sort(
-      (a, b) =>
-        a.health.localeCompare(b.health, undefined, { sensitivity: 'base' }) *
-          directionMultiplier || 0,
-    );
+    return [...data].sort((a, b) => localeCompareSort(a.health, b.health, direction));
   } else if (sortBy === rowFilter('namespace')) {
-    return [...data].sort(
-      (a, b) =>
-        (a.labels?.namespace ?? '').localeCompare(b.labels?.namespace ?? '', undefined, {
-          sensitivity: 'base',
-        }) * directionMultiplier || 0,
+    return [...data].sort((a, b) =>
+      localeCompareSort(a.labels?.namespace, b.labels?.namespace, direction),
     );
   } else if (sortBy === rowFilter('lastScrape')) {
-    return [...data].sort(
-      (a, b) =>
-        a.lastScrape.localeCompare(b.lastScrape, undefined, { sensitivity: 'base' }) *
-          directionMultiplier || 0,
-    );
+    return [...data].sort((a, b) => localeCompareSort(a.lastScrape, b.lastScrape, direction));
   } else if (sortBy === rowFilter('lastScrapeDuration')) {
-    return [...data].sort(
-      (a, b) => (a.lastScrapeDuration - b.lastScrapeDuration) * directionMultiplier,
+    return [...data].sort((a, b) =>
+      directedSort(a.lastScrapeDuration - b.lastScrapeDuration, direction),
     );
   } else if (sortBy === rowFilter(TargetsFilterOptions.STATUS)) {
-    return [...data].sort((a, b) => a.health.localeCompare(b.health) * directionMultiplier || 0);
+    return [...data].sort((a, b) => localeCompareSort(a.health, b.health, direction));
   }
   return data;
 };

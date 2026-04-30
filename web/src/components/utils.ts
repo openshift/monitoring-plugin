@@ -126,13 +126,14 @@ export const getSilenceName = (silence: Silence) => {
 export const alertDescription = (alert: PrometheusAlert | Rule): string =>
   alert.annotations?.description || alert.annotations?.message || alert.labels?.alertname;
 
-export type ListOrder = (number | string)[];
-
-export const alertingRuleStateOrder = (rule: Rule): ListOrder => {
-  const counts = _.countBy(rule.alerts, 'state');
-  return [AlertStates.Firing, AlertStates.Pending, AlertStates.Silenced].map(
-    (state) => Number.MAX_SAFE_INTEGER - (counts[state] ?? 0),
-  );
+export const alertingRuleStateSort = (a: Rule, b: Rule): number => {
+  const countsA = _.countBy(a.alerts, 'state');
+  const countsB = _.countBy(b.alerts, 'state');
+  for (const state of [AlertStates.Firing, AlertStates.Pending, AlertStates.Silenced]) {
+    const diff = (countsB[state] ?? 0) - (countsA[state] ?? 0);
+    if (diff !== 0) return diff;
+  }
+  return 0;
 };
 
 export const severitySort = (

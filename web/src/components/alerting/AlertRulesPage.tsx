@@ -6,22 +6,18 @@ import {
   ResourceIcon,
   Rule,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { ThProps } from '@patternfly/react-table';
 import * as _ from 'lodash-es';
 import type { FC } from 'react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 
 import { AlertSource } from '../types';
-import { alertingRuleStateOrder, RuleResource, severitySort } from '../utils';
+import { alertingRuleStateSort, RuleResource, severitySort } from '../utils';
 
 import { Flex, FlexItem, PageSection, PaginationVariant, Truncate } from '@patternfly/react-core';
 import DataView from '@patternfly/react-data-view/dist/dynamic/DataView';
-import DataViewTable, {
-  DataViewTh,
-  DataViewTr,
-} from '@patternfly/react-data-view/dist/dynamic/DataViewTable';
+import DataViewTable, { DataViewTr } from '@patternfly/react-data-view/dist/dynamic/DataViewTable';
 import DataViewToolbar from '@patternfly/react-data-view/dist/dynamic/DataViewToolbar';
 import { useDataViewSort } from '@patternfly/react-data-view/dist/dynamic/Hooks';
 import { MonitoringProvider } from '../../contexts/MonitoringContext';
@@ -48,6 +44,8 @@ import {
   TableFilters,
 } from '../table/TableFilters';
 import { TableToolbar } from '../table/TableToolbar';
+import { directedSort, localeCompareSort } from '../table/sort-utils';
+import { useTableColumns } from '../table/useTableColumns';
 import { useTableFilters } from '../table/useTableFilters';
 import { useTablePagination } from '../table/useTablePagination';
 import { filterRules } from './filter-rules';
@@ -106,34 +104,7 @@ const AlertRulesPage_: FC = () => {
     return keys;
   }, [t]);
 
-  const sortByIndex = useMemo(
-    () => columnKeys.findIndex((item) => item.key === sortBy),
-    [sortBy, columnKeys],
-  );
-
-  const getSortParams = useCallback(
-    (columnIndex: number): ThProps['sort'] => {
-      return {
-        sortBy: {
-          index: sortByIndex,
-          direction,
-          defaultDirection: 'asc',
-        },
-        onSort: (_event, index, direction) => onSort(_event, columnKeys[index].key, direction),
-        columnIndex,
-      };
-    },
-    [columnKeys, direction, onSort, sortByIndex],
-  );
-
-  const columns: DataViewTh[] = useMemo(
-    () =>
-      columnKeys.map((column, index) => ({
-        cell: column.label,
-        props: { sort: getSortParams(index) },
-      })),
-    [getSortParams, columnKeys],
-  );
+  const columns = useTableColumns(columnKeys, sortBy, direction, onSort);
 
   useEffect(() => {
     // When changing filters change back to being on page 1
@@ -356,25 +327,16 @@ const sortRules = (
   if (!sortBy || !direction) {
     return data;
   }
-  const lower = direction === 'asc' ? 0 : 1;
-  const upper = direction === 'asc' ? 1 : 0;
-
-  const directionMultiplier = direction === 'asc' ? 1 : -1;
 
   if (sortBy === rowFilter(AlertRulesFilterOptions.NAME)) {
-    return [...data].sort(
-      (a, b) =>
-        a.name?.localeCompare(b.name, undefined, { sensitivity: 'base' }) * directionMultiplier,
-    );
+    return [...data].sort((a, b) => localeCompareSort(a.name, b.name, direction));
   } else if (sortBy === rowFilter(AlertRulesFilterOptions.SEVERITY)) {
-    return [...data].sort((a, b) => severitySort(a, b) * directionMultiplier);
+    return [...data].sort((a, b) => directedSort(severitySort(a, b), direction));
   } else if (sortBy === rowFilter(AlertRulesFilterOptions.STATE)) {
-    return [...data].sort((a, b) =>
-      alertingRuleStateOrder(a) > alertingRuleStateOrder(b) ? lower : upper,
-    );
+    return [...data].sort((a, b) => directedSort(alertingRuleStateSort(a, b), direction));
   } else if (sortBy === rowFilter(AlertRulesFilterOptions.SOURCE)) {
     return [...data].sort((a, b) =>
-      alertingRuleSource(a) > alertingRuleSource(b) ? lower : upper,
+      localeCompareSort(alertingRuleSource(a), alertingRuleSource(b), direction),
     );
   }
   return data;

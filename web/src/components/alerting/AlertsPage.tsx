@@ -1,12 +1,11 @@
 import { AlertSeverity, AlertStates, DocumentTitle } from '@openshift-console/dynamic-plugin-sdk';
 import { PageSection, PaginationVariant } from '@patternfly/react-core';
 import DataView from '@patternfly/react-data-view/dist/dynamic/DataView';
-import { DataViewTh } from '@patternfly/react-data-view/dist/dynamic/DataViewTable';
 import DataViewTableHead from '@patternfly/react-data-view/dist/dynamic/DataViewTableHead';
 import DataViewToolbar from '@patternfly/react-data-view/dist/dynamic/DataViewToolbar';
 import { useDataViewSort } from '@patternfly/react-data-view/dist/dynamic/Hooks';
-import { Table, TableGridBreakpoint, ThProps } from '@patternfly/react-table';
-import { useCallback, useEffect, useMemo, useRef, useState, type FC } from 'react';
+import { Table, TableGridBreakpoint } from '@patternfly/react-table';
+import { useEffect, useMemo, useRef, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MonitoringProvider } from '../../contexts/MonitoringContext';
 import { useAlerts } from '../../hooks/useAlerts';
@@ -25,6 +24,8 @@ import {
   TableFilters,
 } from '../table/TableFilters';
 import { TableToolbar } from '../table/TableToolbar';
+import { directedSort, localeCompareSort } from '../table/sort-utils';
+import { useTableColumns } from '../table/useTableColumns';
 import { useTableFilters } from '../table/useTableFilters';
 import { useTablePagination } from '../table/useTablePagination';
 import { AlertSource } from '../types';
@@ -103,37 +104,7 @@ const AlertsPage_: FC = () => {
     return keys;
   }, [t, perspective]);
 
-  const sortByIndex = useMemo(
-    () => columnKeys.findIndex((item) => item.key === sortBy),
-    [sortBy, columnKeys],
-  );
-
-  const getSortParams = useCallback(
-    (columnIndex: number): ThProps['sort'] => {
-      if (columnIndex === 0) {
-        return undefined;
-      }
-      return {
-        sortBy: {
-          index: sortByIndex,
-          direction,
-          defaultDirection: 'asc',
-        },
-        onSort: (_event, index, direction) => onSort(_event, columnKeys[index].key, direction),
-        columnIndex,
-      };
-    },
-    [columnKeys, direction, onSort, sortByIndex],
-  );
-
-  const columns: DataViewTh[] = useMemo(
-    () =>
-      columnKeys.map((column, index) => ({
-        cell: column.label,
-        props: { sort: getSortParams(index) },
-      })),
-    [getSortParams, columnKeys],
-  );
+  const columns = useTableColumns(columnKeys, sortBy, direction, onSort, [0]);
 
   const prevNamespaceRef = useRef(namespace);
   useEffect(() => {
@@ -362,19 +333,14 @@ const sortAggregatedAlerts = (
   if (!sortBy || !direction) {
     return data;
   }
-  const directionMultiplier = direction === 'asc' ? 1 : -1;
   if (sortBy === rowFilter(AlertFilterOptions.NAME)) {
-    return [...data].sort(
-      (a, b) =>
-        (a.name ?? '').localeCompare(b.name ?? '', undefined, { sensitivity: 'base' }) *
-        directionMultiplier,
-    );
+    return [...data].sort((a, b) => localeCompareSort(a.name, b.name, direction));
   } else if (sortBy === rowFilter(AlertFilterOptions.SEVERITY)) {
-    return [...data].sort((a, b) => severitySort(a, b) * directionMultiplier);
+    return [...data].sort((a, b) => directedSort(severitySort(a, b), direction));
   } else if (sortBy === rowFilter('alert-total')) {
-    return [...data].sort((a, b) => (a.alerts.length - b.alerts.length) * directionMultiplier);
+    return [...data].sort((a, b) => directedSort(a.alerts.length - b.alerts.length, direction));
   } else if (sortBy === rowFilter(AlertFilterOptions.STATE)) {
-    return [...data].sort((a, b) => a.state.localeCompare(b.state) * directionMultiplier);
+    return [...data].sort((a, b) => localeCompareSort(a.state, b.state, direction));
   }
   return data;
 };

@@ -17,16 +17,13 @@ import {
   StackItem,
 } from '@patternfly/react-core';
 import DataView from '@patternfly/react-data-view/dist/dynamic/DataView';
-import DataViewTable, {
-  DataViewTh,
-  DataViewTr,
-} from '@patternfly/react-data-view/dist/dynamic/DataViewTable';
+import DataViewTable, { DataViewTr } from '@patternfly/react-data-view/dist/dynamic/DataViewTable';
 import DataViewToolbar from '@patternfly/react-data-view/dist/dynamic/DataViewToolbar';
 import {
   useDataViewSelection,
   useDataViewSort,
 } from '@patternfly/react-data-view/dist/dynamic/Hooks';
-import { ActionsColumn, BaseCellProps, IAction, ThProps } from '@patternfly/react-table';
+import { ActionsColumn, BaseCellProps, IAction } from '@patternfly/react-table';
 import { t_global_spacer_xs } from '@patternfly/react-tokens';
 import * as _ from 'lodash-es';
 import type { FC } from 'react';
@@ -49,6 +46,8 @@ import {
   getSilenceAlertUrl,
   usePerspective,
 } from '../hooks/usePerspective';
+import { directedSort, localeCompareSort } from '../table/sort-utils';
+import { useTableColumns } from '../table/useTableColumns';
 import { ITEMS_PER_PAGE, TablePagination } from '../table-pagination';
 import {
   TableFilter,
@@ -150,7 +149,7 @@ const SilencesPage_: FC = () => {
       {
         label: t('Firing alerts'),
         key: rowFilter('firing-alerts'),
-        width: 10 as BaseCellProps['width'],
+        props: { width: 10 as BaseCellProps['width'] },
       },
       { label: t('State'), key: rowFilter(SilenceFilterOptions.STATE) },
       { label: t('Creator'), key: rowFilter('createdBy') },
@@ -161,37 +160,7 @@ const SilencesPage_: FC = () => {
     return keys;
   }, [t, perspective]);
 
-  const sortByIndex = useMemo(
-    () => columnKeys.findIndex((item) => item.key === sortBy),
-    [sortBy, columnKeys],
-  );
-
-  const getSortParams = useCallback(
-    (columnIndex: number): ThProps['sort'] => {
-      return {
-        sortBy: {
-          index: sortByIndex,
-          direction,
-          defaultDirection: 'asc',
-        },
-        onSort: (_event, index, direction) => onSort(_event, columnKeys[index].key, direction),
-        columnIndex,
-      };
-    },
-    [columnKeys, direction, onSort, sortByIndex],
-  );
-
-  const columns: DataViewTh[] = useMemo(
-    () =>
-      columnKeys.map((column, index) => ({
-        cell: column.label,
-        props: {
-          sort: getSortParams(index),
-          width: column.width,
-        },
-      })),
-    [getSortParams, columnKeys],
-  );
+  const columns = useTableColumns(columnKeys, sortBy, direction, onSort);
 
   useEffect(() => {
     // When changing filters change back to being on page 1
@@ -265,6 +234,9 @@ const SilencesPage_: FC = () => {
               ),
             },
             silence.createdBy || '',
+            ...(perspective === 'acm'
+              ? [silence.matchers.find((label) => label.name === 'cluster')?.value ?? '']
+              : []),
             { cell: <ActionsColumn items={rowActions(silence)} />, props: { isActionCell: true } },
           ],
           silence: silence,
@@ -520,27 +492,18 @@ const sortSilences = (
   if (!sortBy || !direction) {
     return data;
   }
-  const directionMultiplier = direction === 'asc' ? 1 : -1;
   const clusterSort = silenceClusterOrder(silenceClusterLabels);
 
   if (sortBy === rowFilter(SilenceFilterOptions.NAME)) {
-    return [...data].sort(
-      (a, b) =>
-        (a.name ?? '').localeCompare(b.name ?? '', undefined, { sensitivity: 'base' }) *
-        directionMultiplier,
-    );
+    return [...data].sort((a, b) => localeCompareSort(a.name, b.name, direction));
   } else if (sortBy === rowFilter('firing-alerts')) {
-    return [...data].sort((a, b) => silenceFiringAlertsOrder(a, b) * directionMultiplier);
+    return [...data].sort((a, b) => directedSort(silenceFiringAlertsOrder(a, b), direction));
   } else if (sortBy === rowFilter(SilenceFilterOptions.STATE)) {
-    return [...data].sort((a, b) => silenceStateOrder(a, b) * directionMultiplier);
+    return [...data].sort((a, b) => directedSort(silenceStateOrder(a, b), direction));
   } else if (sortBy === rowFilter('createdBy')) {
-    return [...data].sort(
-      (a, b) =>
-        (a.createdBy ?? '').localeCompare(b.createdBy ?? '', undefined, { sensitivity: 'base' }) *
-        directionMultiplier,
-    );
+    return [...data].sort((a, b) => localeCompareSort(a.createdBy, b.createdBy, direction));
   } else if (sortBy === rowFilter(SilenceFilterOptions.CLUSTER)) {
-    return [...data].sort((a, b) => clusterSort(a, b) * directionMultiplier);
+    return [...data].sort((a, b) => directedSort(clusterSort(a, b), direction));
   }
   return data;
 };
