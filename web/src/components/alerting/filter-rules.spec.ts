@@ -17,6 +17,7 @@ const emptyFilters: AlertRulesFilters = {
   [AlertRulesFilterOptions.STATE]: [],
   [AlertRulesFilterOptions.SEVERITY]: [],
   [AlertRulesFilterOptions.SOURCE]: [],
+  [AlertRulesFilterOptions.LABEL]: '',
 };
 
 const makeRule = (overrides: Partial<Rule> & { name: string }): Rule =>
@@ -108,12 +109,53 @@ describe('filterRules', () => {
     expect(result.every((r) => r.labels?.prometheus !== 'openshift-monitoring/k8s')).toBe(true);
   });
 
+  describe('label filter', () => {
+    it('should filter by single label key=value', () => {
+      const filters = {
+        ...emptyFilters,
+        [AlertRulesFilterOptions.LABEL]: 'severity=critical',
+      };
+      const result = filterRules(rules, filters);
+      expect(result).toHaveLength(1);
+      expect(result[0].name).toBe('HighMemory');
+    });
+
+    it('should filter by multiple comma-separated labels', () => {
+      const filters = {
+        ...emptyFilters,
+        [AlertRulesFilterOptions.LABEL]: 'severity=critical,prometheus=openshift-monitoring/k8s',
+      };
+      const result = filterRules(rules, filters);
+      expect(result).toHaveLength(1);
+      expect(result[0].name).toBe('HighMemory');
+    });
+
+    it('should exclude rules that do not match all labels', () => {
+      const filters = {
+        ...emptyFilters,
+        [AlertRulesFilterOptions.LABEL]: 'severity=critical,prometheus=user-workload',
+      };
+      const result = filterRules(rules, filters);
+      expect(result).toHaveLength(0);
+    });
+
+    it('should reject malformed label matchers', () => {
+      const filters = {
+        ...emptyFilters,
+        [AlertRulesFilterOptions.LABEL]: 'badformat',
+      };
+      const result = filterRules(rules, filters);
+      expect(result).toHaveLength(0);
+    });
+  });
+
   it('should apply combined filters', () => {
     const filters: AlertRulesFilters = {
       [AlertRulesFilterOptions.NAME]: '',
       [AlertRulesFilterOptions.STATE]: [AlertStates.Firing],
       [AlertRulesFilterOptions.SEVERITY]: ['critical'],
       [AlertRulesFilterOptions.SOURCE]: [],
+      [AlertRulesFilterOptions.LABEL]: '',
     };
     const result = filterRules(rules, filters);
     expect(result).toHaveLength(1);

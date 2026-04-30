@@ -47,6 +47,19 @@ export const filterRules = (rules: Rule[], selectedFilters: AlertRulesFilters) =
     ) {
       return false;
     }
+    if (selectedFilters[AlertRulesFilterOptions.LABEL]?.length) {
+      const labelMatchers = selectedFilters[AlertRulesFilterOptions.LABEL].split(',');
+      for (const labelMatcher of labelMatchers) {
+        const keyValue = labelMatcher.split('=');
+        if (keyValue.length !== 2) {
+          return false;
+        }
+        const [key, value] = keyValue;
+        if (rule.labels?.[key] !== value) {
+          return false;
+        }
+      }
+    }
     return true;
   });
 };

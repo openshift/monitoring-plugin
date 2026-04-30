@@ -55,6 +55,7 @@ export const enum AlertRulesFilterOptions {
   STATE = 'alert-state',
   SEVERITY = 'alert-severity',
   SOURCE = 'alert-source',
+  LABEL = 'label',
 }
 
 export interface AlertRulesFilters {
@@ -62,6 +63,7 @@ export interface AlertRulesFilters {
   [AlertRulesFilterOptions.STATE]: string[];
   [AlertRulesFilterOptions.SEVERITY]: string[];
   [AlertRulesFilterOptions.SOURCE]?: AlertSource[];
+  [AlertRulesFilterOptions.LABEL]: string;
 }
 
 const AlertRulesPage_: FC = () => {
@@ -76,6 +78,7 @@ const AlertRulesPage_: FC = () => {
       [AlertRulesFilterOptions.STATE]: [],
       [AlertRulesFilterOptions.SEVERITY]: [],
       [AlertRulesFilterOptions.SOURCE]: defaultAlertTenant,
+      [AlertRulesFilterOptions.LABEL]: '',
     };
     return filters;
   }, [defaultAlertTenant]);
@@ -231,9 +234,19 @@ const AlertRulesPage_: FC = () => {
         ],
         ouiaId: 'RuleSourceFilter',
       },
+      {
+        filterId: AlertRulesFilterOptions.LABEL,
+        type: TableFilterOption.LABEL,
+        title: t('Label'),
+        placeholder: t('Filter by Label'),
+        onChange: onFiltersChange(AlertRulesFilterOptions.LABEL),
+        value: filters[AlertRulesFilterOptions.LABEL],
+        labelPath: 'labels',
+        data: rules,
+      },
     ];
     return filtersVals;
-  }, [filters, t, onFiltersChange, additionalRuleSourceLabels]);
+  }, [filters, t, onFiltersChange, additionalRuleSourceLabels, rules]);
 
   return (
     <>
