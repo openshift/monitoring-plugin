@@ -40,16 +40,17 @@ export const useDocumentListener = <T extends HTMLElement>(
       switch (keyEventMap[e.key]) {
         case KeyEventModes.HIDE:
           setVisible(false);
-          ref.current.blur();
+          ref.current?.blur();
           break;
         case KeyEventModes.FOCUS:
           if (
+            ref.current &&
             document.activeElement !== ref.current &&
             // Don't steal focus if the user types the focus shortcut in another text input.
             nodeName !== 'INPUT' &&
             nodeName !== 'TEXTAREA'
           ) {
-            ref.current.focus();
+            ref.current?.focus();
             e.preventDefault();
           }
           break;

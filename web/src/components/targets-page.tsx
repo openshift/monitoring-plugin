@@ -407,7 +407,7 @@ const ListPage: FC<ListPageProps> = ({ loaded, loadError, targets }) => {
     initialFilters,
   });
   const { sortBy, direction, onSort } = useDataViewSort({
-    initialSort: { sortBy: rowFilter(TargetsFilterOptions.NAME), direction: 'asc' },
+    initialSort: { sortBy: rowFilter('scrapeUrl'), direction: 'asc' },
   });
 
   const columnKeys = useMemo(() => {

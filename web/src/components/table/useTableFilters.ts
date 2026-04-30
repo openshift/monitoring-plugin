@@ -72,13 +72,17 @@ export const useTableFilters = <T extends object>({
     [resetFilterValues],
   );
 
-  const deleteFilter = useCallback((filterToDelete: string) => {
-    setFilters((prevFilters) => {
-      const updatedFilters = { ...prevFilters };
-      delete updatedFilters[filterToDelete];
-      return updatedFilters;
-    });
-  }, []);
+  const deleteFilter = useCallback(
+    (filterToDelete: string) => {
+      setFilters((prevFilters) => {
+        return {
+          ...prevFilters,
+          ...resetFilterValues({ [filterToDelete]: prevFilters[filterToDelete] } as Partial<T>),
+        };
+      });
+    },
+    [resetFilterValues],
+  );
 
   const clearAllFilters = useCallback(() => {
     setFilters((prevFilters) => {

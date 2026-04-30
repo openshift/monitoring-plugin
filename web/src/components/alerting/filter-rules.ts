@@ -26,7 +26,7 @@ export const filterRules = (rules: Rule[], selectedFilters: AlertRulesFilters) =
       return false;
     }
     if (
-      selectedFilters[AlertRulesFilterOptions.STATE].length > 0 &&
+      selectedFilters[AlertRulesFilterOptions.STATE]?.length > 0 &&
       !selectedFilters[AlertRulesFilterOptions.STATE].some((state) =>
         ruleHasAlertState(rule, state as AlertStates),
       )
@@ -34,13 +34,13 @@ export const filterRules = (rules: Rule[], selectedFilters: AlertRulesFilters) =
       return false;
     }
     if (
-      selectedFilters[AlertRulesFilterOptions.SEVERITY].length > 0 &&
+      selectedFilters[AlertRulesFilterOptions.SEVERITY]?.length > 0 &&
       !selectedFilters[AlertRulesFilterOptions.SEVERITY].includes(rule?.labels?.severity)
     ) {
       return false;
     }
     if (
-      selectedFilters[AlertRulesFilterOptions.SOURCE].length > 0 &&
+      selectedFilters[AlertRulesFilterOptions.SOURCE]?.length > 0 &&
       !selectedFilters[AlertRulesFilterOptions.SOURCE].includes(
         alertingRuleSource(rule) as AlertSource,
       )

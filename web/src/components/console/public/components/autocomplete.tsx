@@ -19,7 +19,7 @@ const mapLabelsToStrings = (labels: { [key: string]: string }): string[] => {
 
 const getLabelsAsString = (obj: any, path = 'metadata.labels'): string[] => {
   const labels = _.get(obj, path);
-  return labels ? mapLabelsToStrings(labels) : [];
+  return _.isPlainObject(labels) ? mapLabelsToStrings(labels as Record<string, string>) : [];
 };
 
 const MAX_SUGGESTIONS = 5;
@@ -76,6 +76,7 @@ const AutocompleteInput: FC<AutocompleteInputProps> = (props) => {
     setTextValue,
     onSuggestionSelect,
     placeholder,
+    suggestionCount,
     showSuggestions,
     data,
     color,
@@ -109,12 +110,13 @@ const AutocompleteInput: FC<AutocompleteInputProps> = (props) => {
       const processed = labelParser(data, labelPath);
       // User input without whitespace
       const processedText = textValue.trim().replace(/\s*=\s*/, '=');
+      const maxSuggestions = suggestionCount ?? MAX_SUGGESTIONS;
       const filtered = [...processed]
         .filter((item) => fuzzyCaseInsensitive(processedText, item))
-        .slice(0, MAX_SUGGESTIONS);
+        .slice(0, maxSuggestions);
       setSuggestions(filtered);
     }
-  }, [visible, textValue, showSuggestions, data, labelPath]);
+  }, [visible, textValue, showSuggestions, data, labelPath, suggestionCount]);
 
   return (
     <div className="co-suggestion-box" ref={ref}>

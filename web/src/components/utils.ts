@@ -140,19 +140,21 @@ export const severitySort = (
   a: Alert | Rule | AggregatedAlert,
   b: Alert | Rule | AggregatedAlert,
 ): number => {
-  const severityA = 'severity' in a ? a.severity : (a.labels?.severity ?? '');
-  const severityB = 'severity' in b ? b.severity : (b.labels?.severity ?? '');
-  if (severityA === severityB) {
-    return 0;
-  } else if (severityA === AlertSeverity.Critical || severityB === AlertSeverity.None) {
-    return 1;
-  } else if (severityA === AlertSeverity.Warning) {
-    return severityB === AlertSeverity.Critical ? -1 : 1;
-  } else if (severityA === AlertSeverity.None || severityB === AlertSeverity.Critical) {
-    return -1;
-  } else {
-    return severityA.localeCompare(severityB, undefined, { sensitivity: 'base' });
-  }
+  const severityA = (('severity' in a ? a.severity : a.labels?.severity) ?? '').toLowerCase();
+  const severityB = (('severity' in b ? b.severity : b.labels?.severity) ?? '').toLowerCase();
+
+  const rank = new Map<string, number>([
+    [AlertSeverity.None, 0],
+    [AlertSeverity.Info, 1],
+    [AlertSeverity.Warning, 2],
+    [AlertSeverity.Critical, 3],
+  ]);
+
+  const rankA = rank.get(severityA) ?? -1;
+  const rankB = rank.get(severityB) ?? -1;
+  if (rankA !== rankB) return rankB - rankA;
+
+  return severityA.localeCompare(severityB, undefined, { sensitivity: 'base' });
 };
 
 export const targetSource = (target: Target): AlertSource =>
