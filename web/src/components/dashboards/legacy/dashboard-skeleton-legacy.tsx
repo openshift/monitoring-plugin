@@ -61,7 +61,10 @@ export const DashboardSkeletonLegacy: FC<MonitoringDashboardsLegacyPageProps> = 
             )}
 
             <StackItem>
-              <LegacyDashboardsAllVariableDropdowns key={dashboardName} />
+              <LegacyDashboardsAllVariableDropdowns
+                key={dashboardName}
+                dashboardName={dashboardName}
+              />
             </StackItem>
             <StackItem>
               <Split>

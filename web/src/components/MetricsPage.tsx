@@ -1208,7 +1208,6 @@ const QueryBrowserWrapper: FC<{
   return (
     <QueryBrowser
       customDataSource={customDataSource}
-      defaultTimespan={30 * 60 * 1000}
       disabledSeries={disabledSeries}
       queries={queryStrings}
       units={units}

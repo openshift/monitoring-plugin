@@ -29,43 +29,32 @@ const monitoringReducer = produce((draft: ObserveState, action: ObserveAction): 
 
   switch (action.type) {
     case ActionType.DashboardsPatchVariable: {
-      // Don't worry about checking if they key exists, since we will just write into the slot
-      // regardless of if it does or doesn't
-      draft.dashboards.variables[action.payload.key] = {
-        ...draft.dashboards.variables[action.payload.key],
-        ...action.payload.patch,
+      const { dashboardName, key, patch } = action.payload;
+      if (!draft.dashboards.legacy[dashboardName]) {
+        draft.dashboards.legacy[dashboardName] = { variables: {} };
+      }
+      draft.dashboards.legacy[dashboardName].variables[key] = {
+        ...draft.dashboards.legacy[dashboardName].variables[key],
+        ...patch,
       };
       break;
     }
 
     case ActionType.DashboardsPatchAllVariables: {
-      draft.dashboards.variables = action.payload.variables;
-      break;
-    }
-
-    case ActionType.DashboardsClearVariables: {
-      draft.dashboards.variables = {};
-      break;
-    }
-
-    case ActionType.DashboardsSetEndTime: {
-      draft.dashboards.endTime = action.payload.endTime;
-      break;
-    }
-
-    case ActionType.DashboardsSetPollInterval: {
-      draft.dashboards.pollInterval = action.payload.pollInterval;
-      break;
-    }
-
-    case ActionType.DashboardsSetTimespan: {
-      draft.dashboards.timespan = action.payload.timespan;
+      const { dashboardName, variables } = action.payload;
+      if (!draft.dashboards.legacy[dashboardName]) {
+        draft.dashboards.legacy[dashboardName] = { variables: {} };
+      }
+      draft.dashboards.legacy[dashboardName].variables = variables;
       break;
     }
 
     case ActionType.DashboardsVariableOptionsLoaded: {
-      const { key, newOptions } = action.payload;
-      const val = draft.dashboards.variables[key];
+      const { dashboardName, key, newOptions } = action.payload;
+      if (!draft.dashboards.legacy[dashboardName]) {
+        draft.dashboards.legacy[dashboardName] = { variables: {} };
+      }
+      const val = draft.dashboards.legacy[dashboardName].variables[key];
       const patch = _.isEqual(val?.options, newOptions)
         ? { isLoading: false }
         : {
@@ -77,7 +66,10 @@ const monitoringReducer = produce((draft: ObserveState, action: ObserveAction): 
                 ? val?.value
                 : newOptions[0],
           };
-      draft.dashboards.variables[key] = { ...draft.dashboards.variables[key], ...patch };
+      draft.dashboards.legacy[dashboardName].variables[key] = {
+        ...draft.dashboards.legacy[dashboardName].variables[key],
+        ...patch,
+      };
       break;
     }
 

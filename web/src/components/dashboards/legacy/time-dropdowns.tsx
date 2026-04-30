@@ -1,28 +1,19 @@
 import { Stack, StackItem } from '@patternfly/react-core';
 import { SimpleSelect, SimpleSelectOption } from '@patternfly/react-templates';
-import * as _ from 'lodash-es';
 import type { FC } from 'react';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
 import { NumberParam, useQueryParam } from 'use-query-params';
-import {
-  dashboardsSetEndTime,
-  dashboardsSetPollInterval,
-  dashboardsSetTimespan,
-} from '../../../store/actions';
-import { MonitoringState } from '../../../store/store';
 import {
   formatPrometheusDuration,
   parsePrometheusDuration,
 } from '../../console/console-shared/src/datetime/prometheus';
-import { DEFAULT_REFRESH_INTERVAL, DropDownPollInterval } from '../../dropdown-poll-interval';
+import { DropDownPollInterval } from '../../dropdown-poll-interval';
 import { useBoolean } from '../../hooks/useBoolean';
-import { getObserveState } from '../../hooks/usePerspective';
 import { QueryParams } from '../../query-params';
 import CustomTimeRangeModal from './custom-time-range-modal';
 import { LegacyDashboardPageTestIDs } from '../../data-test';
-import { useMonitoring } from '../../../hooks/useMonitoring';
+import { RefreshIntervalParam, TimeRangeParam } from './utils';
 
 const CUSTOM_TIME_RANGE_KEY = 'CUSTOM_TIME_RANGE_KEY';
 const DEFAULT_TIMERANGE = '30m';
@@ -30,26 +21,13 @@ const DEFAULT_TIMERANGE = '30m';
 export const TimespanDropdown: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
-  const { plugin } = useMonitoring();
-
   const [isModalOpen, , setModalOpen, setModalClosed] = useBoolean(false);
 
-  const timespan = useSelector(
-    (state: MonitoringState) => getObserveState(plugin, state).dashboards.timespan,
-  );
-  const endTime = useSelector(
-    (state: MonitoringState) => getObserveState(plugin, state).dashboards.endTime,
-  );
+  const [timeRange, setTimeRange] = useQueryParam(QueryParams.TimeRange, TimeRangeParam);
+  const [endTime, setEndTime] = useQueryParam(QueryParams.EndTime, NumberParam);
 
-  const [timeRangeFromParams, setTimeRange] = useQueryParam(QueryParams.TimeRange, NumberParam);
-  const [endTimeFromParams, setEndTime] = useQueryParam(QueryParams.EndTime, NumberParam);
+  const selectedKey = endTime ? CUSTOM_TIME_RANGE_KEY : formatPrometheusDuration(timeRange);
 
-  const selectedKey =
-    endTime || endTimeFromParams
-      ? CUSTOM_TIME_RANGE_KEY
-      : formatPrometheusDuration(_.toNumber(timeRangeFromParams) || timespan);
-
-  const dispatch = useDispatch();
   const onChange = useCallback(
     (v: string) => {
       if (v === CUSTOM_TIME_RANGE_KEY) {
@@ -57,11 +35,9 @@ export const TimespanDropdown: FC = () => {
       } else {
         setTimeRange(parsePrometheusDuration(v));
         setEndTime(undefined);
-        dispatch(dashboardsSetTimespan(parsePrometheusDuration(v)));
-        dispatch(dashboardsSetEndTime(undefined));
       }
     },
-    [setModalOpen, dispatch, setTimeRange, setEndTime],
+    [setModalOpen, setTimeRange, setEndTime],
   );
 
   const initialOptions = useMemo<SimpleSelectOption[]>(() => {
@@ -81,14 +57,14 @@ export const TimespanDropdown: FC = () => {
     ];
 
     // If selectedKey is empty, the dashboard has changed. Reset selected to default value.
-    if (selectedKey === '' || (selectedKey === DEFAULT_TIMERANGE && !timeRangeFromParams)) {
+    if (selectedKey === '' || (selectedKey === DEFAULT_TIMERANGE && !timeRange)) {
       setTimeRange(parsePrometheusDuration(DEFAULT_TIMERANGE));
       setEndTime(undefined);
     }
     return intervalOptions.map((o) => ({ ...o, selected: o.value === selectedKey }));
-  }, [selectedKey, t, timeRangeFromParams, setTimeRange, setEndTime]);
+  }, [selectedKey, t, timeRange, setTimeRange, setEndTime]);
 
-  const defaultTimerange = timespan ?? undefined;
+  const defaultTimerange = timeRange ?? undefined;
   let defaultEndTime = Number(endTime);
   if (Number.isNaN(defaultEndTime)) {
     defaultEndTime = undefined;
@@ -126,18 +102,9 @@ export const TimespanDropdown: FC = () => {
 
 export const PollIntervalDropdown: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const [selectedInterval, setSelectedInterval] = useState(DEFAULT_REFRESH_INTERVAL);
-
-  const dispatch = useDispatch();
-  const [, setRefreshInterval] = useQueryParam(QueryParams.RefreshInterval, NumberParam);
-
-  const setInterval = useCallback(
-    (v: number) => {
-      setSelectedInterval(v);
-      setRefreshInterval(v);
-      dispatch(dashboardsSetPollInterval(v));
-    },
-    [dispatch, setRefreshInterval],
+  const [refreshInterval, setRefreshInterval] = useQueryParam(
+    QueryParams.RefreshInterval,
+    RefreshIntervalParam,
   );
 
   return (
@@ -148,8 +115,8 @@ export const PollIntervalDropdown: FC = () => {
       <StackItem data-test={LegacyDashboardPageTestIDs.PollIntervalDropdown}>
         <DropDownPollInterval
           id="refresh-interval-dropdown"
-          setInterval={setInterval}
-          selectedInterval={selectedInterval}
+          setInterval={setRefreshInterval}
+          selectedInterval={refreshInterval}
           data-test={LegacyDashboardPageTestIDs.PollIntervalDropdownOptions}
         />
       </StackItem>
