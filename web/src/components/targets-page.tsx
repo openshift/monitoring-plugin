@@ -518,6 +518,7 @@ const ListPage: FC<ListPageProps> = ({ loaded, loadError, targets }) => {
         title: t('Label'),
         placeholder: t('Filter by Label'),
         onChange: onFiltersChange(TargetsFilterOptions.LABEL),
+        value: filters[TargetsFilterOptions.LABEL],
         labelPath: 'labels',
         data: targets,
       },
