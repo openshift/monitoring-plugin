@@ -109,7 +109,14 @@ export const useLegacyDashboards = (urlBoard: string) => {
   const changeLegacyDashboard = useCallback(
     ({ newBoard, newProject }: { newBoard?: string; newProject?: string }) => {
       const dashboardProject = newProject ? newProject : project;
-      const dashboardName = newBoard ? newBoard : urlBoard;
+      // If no new dashboard is specified use the current dashboard name unless
+      // the project is changing to "All Namespaces"
+      let dashboardName = newBoard;
+      if (!newBoard && newProject === ALL_NAMESPACES_KEY) {
+        dashboardName = undefined;
+      } else if (!newBoard) {
+        dashboardName = urlBoard;
+      }
 
       const url = getLegacyDashboardsUrl(perspective, dashboardName, dashboardProject);
 
