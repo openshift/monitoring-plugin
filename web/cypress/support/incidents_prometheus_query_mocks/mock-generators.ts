@@ -10,24 +10,24 @@ import { NEW_METRIC_NAME, OLD_METRIC_NAME } from './prometheus-mocks';
  * For longer durations, uses 5-minute intervals
  */
 function generateIntervalTimestamps(startTime: number, endTime: number): number[] {
-  const duration = endTime - startTime;
   const fiveMinutes = 300;
+
+  // Align to 5-minute grid (matches real Prometheus query_range step=300 behavior)
+  const alignedStart = Math.ceil(startTime / fiveMinutes) * fiveMinutes;
+  const alignedEnd = Math.floor(endTime / fiveMinutes) * fiveMinutes;
+
+  const duration = alignedEnd - alignedStart;
   const timestamps: number[] = [];
 
   if (duration < fiveMinutes) {
-    timestamps.push(startTime);
+    timestamps.push(alignedStart);
     return timestamps;
   }
 
-  let currentTime = startTime;
-  while (currentTime <= endTime) {
+  let currentTime = alignedStart;
+  while (currentTime <= alignedEnd) {
     timestamps.push(currentTime);
     currentTime += fiveMinutes;
-  }
-
-  // Ensure we have the end timestamp if it doesn't align with 5-minute intervals
-  if (timestamps[timestamps.length - 1] !== endTime) {
-    timestamps.push(endTime);
   }
 
   return timestamps;
