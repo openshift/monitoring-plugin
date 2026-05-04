@@ -30,7 +30,12 @@ import { dashboardsPatchVariable, dashboardsVariableOptionsLoaded } from '../../
 import { getTimeRanges, isTimeoutError, QUERY_CHUNK_SIZE } from '../../utils';
 import { getObserveState, usePerspective } from '../../hooks/usePerspective';
 import { MonitoringState } from '../../../store/store';
-import { DEFAULT_GRAPH_SAMPLES, MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY } from './utils';
+import {
+  DEFAULT_GRAPH_SAMPLES,
+  MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY,
+  TimeRangeParam,
+} from './utils';
+import { QueryParams } from '../../query-params';
 import {
   DataSource,
   isDataSource,
@@ -105,19 +110,22 @@ const LegacyDashboardsVariableOption = ({ value, isSelected, ...rest }) =>
     </SelectOption>
   );
 
-const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({ id, name }) => {
+const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({
+  id,
+  name,
+  dashboardName,
+}) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { plugin, accessCheckLoading, useMetricsTenancy } = useMonitoring();
   const { perspective } = usePerspective();
   const [namespace] = useActiveNamespace();
   const [queryParam, setQueryParam] = useQueryParam(name, StringParam);
 
-  const timespan = useSelector(
-    (state: MonitoringState) => getObserveState(plugin, state).dashboards.timespan,
-  );
+  const [timespan] = useQueryParam(QueryParams.TimeRange, TimeRangeParam);
 
   const variables = useSelector(
-    (state: MonitoringState) => getObserveState(plugin, state).dashboards.variables,
+    (state: MonitoringState) =>
+      getObserveState(plugin, state).dashboards.legacy[dashboardName]?.variables || {},
   );
   const variable = variables?.[name] as Variable;
 
@@ -193,7 +201,7 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({ id, name 
     const timeRanges = getTimeRanges(timespan);
     const newOptions = new Set<string>();
     let abortError = false;
-    dispatch(dashboardsPatchVariable(name, { isLoading: true }));
+    dispatch(dashboardsPatchVariable(dashboardName, name, { isLoading: true }));
     Promise.allSettled(
       timeRanges.map(async (timeRange) => {
         const prometheusProps = {
@@ -234,10 +242,10 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({ id, name 
         setIsError(false);
         // Options were found or no options were found but that wasn't in error
         const newOptionArray = Array.from(newOptions).sort();
-        dispatch(dashboardsVariableOptionsLoaded(name, newOptionArray));
+        dispatch(dashboardsVariableOptionsLoaded(dashboardName, name, newOptionArray));
       } else {
         // No options were found, and there were errors (timeouts or other) in fetching the data
-        dispatch(dashboardsPatchVariable(name, { isLoading: false }));
+        dispatch(dashboardsPatchVariable(dashboardName, name, { isLoading: false }));
         if (!abortError) {
           setIsError(true);
         }
@@ -246,6 +254,7 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({ id, name 
   }, [
     dispatch,
     getURL,
+    dashboardName,
     name,
     namespace,
     query,
@@ -259,23 +268,32 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({ id, name 
   useEffect(() => {
     if (variable?.value !== queryParam) {
       // Default to using the query param to allow for sharable links
-      if (queryParam) {
-        dispatch(dashboardsPatchVariable(name, { value: queryParam }));
+      if (queryParam && options?.includes(queryParam)) {
+        dispatch(dashboardsPatchVariable(dashboardName, name, { value: queryParam }));
         // set the url if it isn't set
       } else if (variable?.value && shouldSetQueryParam) {
         setQueryParam(variable?.value);
       }
     }
-  }, [name, variable?.value, queryParam, setQueryParam, dispatch, shouldSetQueryParam]);
+  }, [
+    dashboardName,
+    name,
+    variable?.value,
+    queryParam,
+    setQueryParam,
+    dispatch,
+    shouldSetQueryParam,
+    options,
+  ]);
 
   const onChange = useCallback(
     (v: string) => {
       if (v !== variable?.value && shouldSetQueryParam) {
         setQueryParam(v);
-        dispatch(dashboardsPatchVariable(name, { value: v }));
+        dispatch(dashboardsPatchVariable(dashboardName, name, { value: v }));
       }
     },
-    [dispatch, name, variable?.value, setQueryParam, shouldSetQueryParam],
+    [dispatch, dashboardName, name, variable?.value, setQueryParam, shouldSetQueryParam],
   );
 
   if (variable?.isHidden || (!isError && _.isEmpty(variable?.options))) {
@@ -328,21 +346,29 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({ id, name 
 };
 
 // Expects to be inside of a Patternfly Split Component
-export const LegacyDashboardsAllVariableDropdowns: FC = () => {
+export const LegacyDashboardsAllVariableDropdowns: FC<{ dashboardName: string }> = ({
+  dashboardName,
+}) => {
   const { plugin } = useMonitoring();
 
   const variables = useSelector(
-    (state: MonitoringState) => getObserveState(plugin, state).dashboards.variables,
+    (state: MonitoringState) =>
+      getObserveState(plugin, state).dashboards.legacy[dashboardName]?.variables || {},
   );
 
-  if (!variables) {
+  if (!variables || Object.keys(variables).length === 0) {
     return null;
   }
 
   return (
     <Split hasGutter isWrappable>
       {Object.keys(variables).map((name: string) => (
-        <LegacyDashboardsVariableDropdown id={name} key={name} name={name} />
+        <LegacyDashboardsVariableDropdown
+          id={name}
+          key={`${dashboardName}-${name}`}
+          name={name}
+          dashboardName={dashboardName}
+        />
       ))}
     </Split>
   );
@@ -361,4 +387,5 @@ export type Variable = {
 type VariableDropdownProps = {
   id: string;
   name: string;
+  dashboardName: string;
 };

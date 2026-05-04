@@ -53,7 +53,11 @@ const LegacyDashboardsPage_: FC<LegacyDashboardsPageProps> = ({ urlBoard }) => {
               error={{ message: legacyDashboardsError, name: t('Error Loading Dashboards') }}
             />
           ) : (
-            <LegacyDashboard rows={legacyRows} perspective={perspective} />
+            <LegacyDashboard
+              rows={legacyRows}
+              perspective={perspective}
+              dashboardName={legacyDashboard}
+            />
           )}
         </Overview>
       </DashboardSkeletonLegacy>
