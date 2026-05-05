@@ -15,7 +15,7 @@ export type Incident = {
   src_severity: string;
   src_alertname: string;
   src_namespace: string;
-  severity: any;
+  severity: Severity;
   silenced: boolean;
   x: number;
   values: Array<Timestamps>;
