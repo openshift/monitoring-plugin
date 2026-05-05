@@ -99,13 +99,13 @@ export const OCPDashboardApp = (props: DashboardAppProps): ReactElement => {
     setEditMode(false);
     closeDiscardChangesConfirmationDialog();
     if (onDiscard) {
-      onDiscard(dashboard as unknown as DashboardResource);
+      onDiscard(dashboard as DashboardResource);
     }
   };
 
   const onEditButtonClick = (): void => {
     setEditMode(true);
-    setOriginalDashboard(dashboard);
+    setOriginalDashboard(dashboard as DashboardResource);
     setSavedDatasources(dashboard.spec.datasources ?? {});
   };
 

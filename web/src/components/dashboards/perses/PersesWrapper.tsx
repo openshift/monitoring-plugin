@@ -20,6 +20,7 @@ import {
   DashboardProvider,
   DatasourceStoreProvider,
   VariableProviderWithQueryParams,
+  PanelFocusProvider,
 } from '@perses-dev/dashboards';
 import {
   DataQueriesProvider,
@@ -519,8 +520,10 @@ export function PersesPrometheusDatasourceWrapper({
   }, [t]);
 
   return (
-    <DatasourceStoreProvider dashboardResource={dashboardResource} datasourceApi={datasourceApi}>
-      <DataQueriesProvider definitions={queries}>{children}</DataQueriesProvider>
-    </DatasourceStoreProvider>
+    <PanelFocusProvider>
+      <DatasourceStoreProvider dashboardResource={dashboardResource} datasourceApi={datasourceApi}>
+        <DataQueriesProvider definitions={queries}>{children}</DataQueriesProvider>
+      </DatasourceStoreProvider>
+    </PanelFocusProvider>
   );
 }
