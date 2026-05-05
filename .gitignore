@@ -16,3 +16,4 @@ web/po-files/
 .claude/commands/configs
 .claude/settings.local.json
 _output/
+sandbox/sandboxes.json
