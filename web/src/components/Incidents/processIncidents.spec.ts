@@ -5,7 +5,7 @@ import {
   getIncidentsTimeRanges,
   processIncidentsForAlerts,
 } from './processIncidents';
-import { getCurrentTime } from './utils';
+import { getCurrentTime, DAY_MS } from './utils';
 
 describe('convertToIncidents', () => {
   const now = getCurrentTime();
@@ -13,7 +13,7 @@ describe('convertToIncidents', () => {
 
   describe('edge cases', () => {
     it('should return empty array when no data provided', () => {
-      const result = convertToIncidents([], now);
+      const result = convertToIncidents([], now, 15 * DAY_MS);
       expect(result).toEqual([]);
     });
 
@@ -43,7 +43,7 @@ describe('convertToIncidents', () => {
         },
       ];
 
-      const result = convertToIncidents(data, now);
+      const result = convertToIncidents(data, now, 15 * DAY_MS);
       expect(result).toHaveLength(1);
       expect(result[0].src_alertname).toBe('ClusterOperatorDegraded');
     });
@@ -67,7 +67,7 @@ describe('convertToIncidents', () => {
         },
       ];
 
-      const result = convertToIncidents(data, now);
+      const result = convertToIncidents(data, now, 15 * DAY_MS);
       expect(result).toHaveLength(1);
 
       // Verify resolved is determined from ORIGINAL values (before padding)
@@ -99,7 +99,7 @@ describe('convertToIncidents', () => {
         },
       ];
 
-      const result = convertToIncidents(data, now);
+      const result = convertToIncidents(data, now, 15 * DAY_MS);
       expect(result).toHaveLength(1);
       expect(result[0].firing).toBe(true);
       expect(result[0].resolved).toBe(false);
@@ -122,7 +122,7 @@ describe('convertToIncidents', () => {
         },
       ];
 
-      const result = convertToIncidents(data, now);
+      const result = convertToIncidents(data, now, 15 * DAY_MS);
       expect(result).toHaveLength(1);
       expect(result[0].firing).toBe(false);
       expect(result[0].resolved).toBe(true);
@@ -145,7 +145,7 @@ describe('convertToIncidents', () => {
         },
       ];
 
-      const result = convertToIncidents(data, now);
+      const result = convertToIncidents(data, now, 15 * DAY_MS);
       expect(result).toHaveLength(1);
       expect(result[0].firing).toBe(false); // >= 10 minutes is resolved
       expect(result[0].resolved).toBe(true);
@@ -179,7 +179,7 @@ describe('convertToIncidents', () => {
         },
       ];
 
-      const result = convertToIncidents(data, now);
+      const result = convertToIncidents(data, now, 15 * DAY_MS);
       expect(result).toHaveLength(2);
       expect(result[0].group_id).toBe('incident1'); // Earliest first
       expect(result[1].group_id).toBe('incident2');
@@ -211,7 +211,7 @@ describe('convertToIncidents', () => {
         },
       ];
 
-      const result = convertToIncidents(data, now);
+      const result = convertToIncidents(data, now, 15 * DAY_MS);
       expect(result).toHaveLength(2);
       expect(result[0].x).toBe(2); // Earliest has highest x
       expect(result[1].x).toBe(1); // Latest has lowest x
@@ -234,7 +234,7 @@ describe('convertToIncidents', () => {
         },
       ];
 
-      const result = convertToIncidents(data, now);
+      const result = convertToIncidents(data, now, 15 * DAY_MS);
       expect(result).toHaveLength(1);
       expect(result[0].src_alertname).toBe('TestAlert');
       expect(result[0].src_namespace).toBe('test-namespace');
@@ -254,7 +254,7 @@ describe('convertToIncidents', () => {
         },
       ];
 
-      const result = convertToIncidents(data, now);
+      const result = convertToIncidents(data, now, 15 * DAY_MS);
       expect(result).toHaveLength(1);
       expect(result[0].src_alertname).toBe('TestAlert');
       // Only src_ properties should be extracted
@@ -280,7 +280,7 @@ describe('convertToIncidents', () => {
         },
       ];
 
-      const result = convertToIncidents(data, now);
+      const result = convertToIncidents(data, now, 15 * DAY_MS);
       expect(result).toHaveLength(1);
       // insertPaddingPointsForChart adds a point 5 minutes before and after the point
       // After padding is added because now >= timestamp + 300 (since timestamp = nowSeconds - 600)
@@ -307,11 +307,477 @@ describe('convertToIncidents', () => {
         },
       ];
 
-      const result = convertToIncidents(data, now);
+      const result = convertToIncidents(data, now, 15 * DAY_MS);
       expect(result).toHaveLength(1);
       expect(result[0].component).toBe('test-component');
       // componentList is created by getIncidents
       expect(result[0].componentList).toBeDefined();
+    });
+  });
+
+  describe('firstTimestamp computation', () => {
+    it('should compute firstTimestamp as first value timestamp minus 300s', () => {
+      const timestamp = nowSeconds - 3600;
+      const data: PrometheusResult[] = [
+        {
+          metric: {
+            group_id: 'incident1',
+            component: 'test-component',
+            layer: 'test-layer',
+            src_alertname: 'TestAlert',
+            src_namespace: 'test-namespace',
+            src_severity: 'critical',
+          },
+          values: [[timestamp, '2']],
+        },
+      ];
+
+      const result = convertToIncidents(data, now, 15 * DAY_MS);
+      expect(result).toHaveLength(1);
+      expect(result[0].firstTimestamp).toBe(timestamp - 300);
+    });
+
+    it('should use earliest timestamp for firstTimestamp when values are unsorted', () => {
+      const earliest = nowSeconds - 3600;
+      const data: PrometheusResult[] = [
+        {
+          metric: {
+            group_id: 'incident1',
+            component: 'test-component',
+            layer: 'test-layer',
+            src_alertname: 'TestAlert',
+            src_namespace: 'test-namespace',
+            src_severity: 'critical',
+          },
+          values: [
+            [nowSeconds - 1800, '2'],
+            [earliest, '2'],
+            [nowSeconds - 900, '2'],
+          ],
+        },
+      ];
+
+      const result = convertToIncidents(data, now, 15 * DAY_MS);
+      expect(result).toHaveLength(1);
+      expect(result[0].firstTimestamp).toBe(earliest - 300);
+    });
+
+    it('should compute firstTimestamp independently for each incident', () => {
+      const startA = nowSeconds - 7200;
+      const startB = nowSeconds - 1800;
+      const data: PrometheusResult[] = [
+        {
+          metric: {
+            group_id: 'incidentA',
+            component: 'compA',
+            layer: 'layerA',
+            src_alertname: 'AlertA',
+            src_namespace: 'nsA',
+            src_severity: 'critical',
+          },
+          values: [[startA, '2']],
+        },
+        {
+          metric: {
+            group_id: 'incidentB',
+            component: 'compB',
+            layer: 'layerB',
+            src_alertname: 'AlertB',
+            src_namespace: 'nsB',
+            src_severity: 'warning',
+          },
+          values: [[startB, '1']],
+        },
+      ];
+
+      const result = convertToIncidents(data, now, 15 * DAY_MS);
+      expect(result).toHaveLength(2);
+      const incidentA = result.find((i) => i.group_id === 'incidentA');
+      const incidentB = result.find((i) => i.group_id === 'incidentB');
+      expect(incidentA.firstTimestamp).toBe(startA - 300);
+      expect(incidentB.firstTimestamp).toBe(startB - 300);
+    });
+  });
+
+  describe('N-day window filtering', () => {
+    it('should filter values to N-day window but preserve firstTimestamp from full data', () => {
+      const fourteenDaysAgo = nowSeconds - 14 * 86400;
+      const oneHourAgo = nowSeconds - 3600;
+      const data: PrometheusResult[] = [
+        {
+          metric: {
+            group_id: 'incident1',
+            component: 'test-component',
+            layer: 'test-layer',
+            src_alertname: 'TestAlert',
+            src_namespace: 'test-namespace',
+            src_severity: 'critical',
+          },
+          values: [
+            [fourteenDaysAgo, '2'],
+            [oneHourAgo, '2'],
+          ],
+        },
+      ];
+
+      const result = convertToIncidents(data, now, 7 * DAY_MS);
+      expect(result).toHaveLength(1);
+      expect(result[0].firstTimestamp).toBe(fourteenDaysAgo - 300);
+      const timestamps = result[0].values.map(([ts]) => ts);
+      expect(timestamps).toContain(oneHourAgo);
+      expect(timestamps).not.toContain(fourteenDaysAgo);
+    });
+
+    it('should exclude incident when all values are outside the N-day window', () => {
+      const tenDaysAgo = nowSeconds - 10 * 86400;
+      const data: PrometheusResult[] = [
+        {
+          metric: {
+            group_id: 'incident1',
+            component: 'test-component',
+            layer: 'test-layer',
+            src_alertname: 'TestAlert',
+            src_namespace: 'test-namespace',
+            src_severity: 'critical',
+          },
+          values: [[tenDaysAgo, '2']],
+        },
+      ];
+
+      const result = convertToIncidents(data, now, 7 * DAY_MS);
+      expect(result).toHaveLength(0);
+    });
+
+    it('should keep incident when some values fall within the N-day window', () => {
+      const tenDaysAgo = nowSeconds - 10 * 86400;
+      const fiveDaysAgo = nowSeconds - 5 * 86400;
+      const oneDayAgo = nowSeconds - 86400;
+      const data: PrometheusResult[] = [
+        {
+          metric: {
+            group_id: 'incident1',
+            component: 'test-component',
+            layer: 'test-layer',
+            src_alertname: 'TestAlert',
+            src_namespace: 'test-namespace',
+            src_severity: 'critical',
+          },
+          values: [
+            [tenDaysAgo, '2'],
+            [fiveDaysAgo, '2'],
+            [oneDayAgo, '2'],
+          ],
+        },
+      ];
+
+      const result = convertToIncidents(data, now, 7 * DAY_MS);
+      expect(result).toHaveLength(1);
+      expect(result[0].firstTimestamp).toBe(tenDaysAgo - 300);
+      const timestamps = result[0].values.map(([ts]) => ts);
+      expect(timestamps).toContain(fiveDaysAgo);
+      expect(timestamps).toContain(oneDayAgo);
+      expect(timestamps).not.toContain(tenDaysAgo);
+    });
+  });
+
+  describe('severity splitting', () => {
+    it('should produce separate entries when severity changes within a group_id', () => {
+      const t1 = nowSeconds - 3600;
+      const t2 = t1 + 300;
+      const t3 = t2 + 300;
+      const t4 = t3 + 300;
+      const data: PrometheusResult[] = [
+        {
+          metric: {
+            group_id: 'incident1',
+            component: 'comp-warn',
+            layer: 'core',
+            src_alertname: 'Alert_warn',
+            src_namespace: 'test-ns',
+            src_severity: 'warning',
+          },
+          values: [
+            [t1, '1'],
+            [t2, '1'],
+          ],
+        },
+        {
+          metric: {
+            group_id: 'incident1',
+            component: 'comp-crit',
+            layer: 'core',
+            src_alertname: 'Alert_crit',
+            src_namespace: 'test-ns',
+            src_severity: 'critical',
+          },
+          values: [
+            [t3, '2'],
+            [t4, '2'],
+          ],
+        },
+      ];
+
+      const result = convertToIncidents(data, now, 15 * DAY_MS);
+      expect(result).toHaveLength(2);
+      expect(result.some((i) => i.src_severity === 'warning')).toBe(true);
+      expect(result.some((i) => i.src_severity === 'critical')).toBe(true);
+    });
+
+    it('should assign same x value to severity segments of same group_id', () => {
+      const t1 = nowSeconds - 3600;
+      const t2 = t1 + 300;
+      const t3 = t2 + 300;
+      const t4 = t3 + 300;
+      const data: PrometheusResult[] = [
+        {
+          metric: {
+            group_id: 'incident1',
+            component: 'comp-warn',
+            layer: 'core',
+            src_alertname: 'Alert_warn',
+            src_namespace: 'test-ns',
+            src_severity: 'warning',
+          },
+          values: [
+            [t1, '1'],
+            [t2, '1'],
+          ],
+        },
+        {
+          metric: {
+            group_id: 'incident1',
+            component: 'comp-crit',
+            layer: 'core',
+            src_alertname: 'Alert_crit',
+            src_namespace: 'test-ns',
+            src_severity: 'critical',
+          },
+          values: [
+            [t3, '2'],
+            [t4, '2'],
+          ],
+        },
+      ];
+
+      const result = convertToIncidents(data, now, 15 * DAY_MS);
+      expect(result).toHaveLength(2);
+      expect(result[0].x).toBe(result[1].x);
+    });
+
+    it('should compute distinct firstTimestamp for each severity segment', () => {
+      const t1 = nowSeconds - 3600;
+      const t2 = t1 + 300;
+      const t3 = t2 + 300;
+      const t4 = t3 + 300;
+      const data: PrometheusResult[] = [
+        {
+          metric: {
+            group_id: 'incident1',
+            component: 'comp-warn',
+            layer: 'core',
+            src_alertname: 'Alert_warn',
+            src_namespace: 'test-ns',
+            src_severity: 'warning',
+          },
+          values: [
+            [t1, '1'],
+            [t2, '1'],
+          ],
+        },
+        {
+          metric: {
+            group_id: 'incident1',
+            component: 'comp-crit',
+            layer: 'core',
+            src_alertname: 'Alert_crit',
+            src_namespace: 'test-ns',
+            src_severity: 'critical',
+          },
+          values: [
+            [t3, '2'],
+            [t4, '2'],
+          ],
+        },
+      ];
+
+      const result = convertToIncidents(data, now, 15 * DAY_MS);
+      expect(result).toHaveLength(2);
+      const warnSegment = result.find((i) => i.src_severity === 'warning');
+      const critSegment = result.find((i) => i.src_severity === 'critical');
+      expect(warnSegment.firstTimestamp).toBe(t1 - 300);
+      expect(critSegment.firstTimestamp).toBe(t3 - 300);
+    });
+  });
+
+  describe('multiple concurrent incidents', () => {
+    it('should process 4 simultaneous incidents with different group_ids', () => {
+      const data: PrometheusResult[] = [
+        {
+          metric: {
+            group_id: 'inc-monitoring',
+            component: 'monitoring',
+            layer: 'core',
+            src_alertname: 'MonAlert',
+            src_namespace: 'openshift-monitoring',
+            src_severity: 'warning',
+          },
+          values: [[nowSeconds - 14 * 86400, '1']],
+        },
+        {
+          metric: {
+            group_id: 'inc-dns',
+            component: 'dns',
+            layer: 'core',
+            src_alertname: 'DnsAlert',
+            src_namespace: 'openshift-dns',
+            src_severity: 'warning',
+          },
+          values: [[nowSeconds - 12 * 86400, '1']],
+        },
+        {
+          metric: {
+            group_id: 'inc-network',
+            component: 'network',
+            layer: 'core',
+            src_alertname: 'NetAlert',
+            src_namespace: 'openshift-network',
+            src_severity: 'warning',
+          },
+          values: [[nowSeconds - 8 * 86400, '1']],
+        },
+        {
+          metric: {
+            group_id: 'inc-ingress',
+            component: 'ingress',
+            layer: 'core',
+            src_alertname: 'IngressAlert',
+            src_namespace: 'openshift-ingress',
+            src_severity: 'critical',
+          },
+          values: [[nowSeconds - 3600, '2']],
+        },
+      ];
+
+      const result = convertToIncidents(data, now, 15 * DAY_MS);
+      expect(result).toHaveLength(4);
+      const groupIds = result.map((i) => i.group_id);
+      expect(groupIds).toContain('inc-monitoring');
+      expect(groupIds).toContain('inc-dns');
+      expect(groupIds).toContain('inc-network');
+      expect(groupIds).toContain('inc-ingress');
+    });
+
+    it('should assign unique x values to each incident', () => {
+      const data: PrometheusResult[] = [
+        {
+          metric: {
+            group_id: 'inc-monitoring',
+            component: 'monitoring',
+            layer: 'core',
+            src_alertname: 'MonAlert',
+            src_namespace: 'openshift-monitoring',
+            src_severity: 'warning',
+          },
+          values: [[nowSeconds - 14 * 86400, '1']],
+        },
+        {
+          metric: {
+            group_id: 'inc-dns',
+            component: 'dns',
+            layer: 'core',
+            src_alertname: 'DnsAlert',
+            src_namespace: 'openshift-dns',
+            src_severity: 'warning',
+          },
+          values: [[nowSeconds - 12 * 86400, '1']],
+        },
+        {
+          metric: {
+            group_id: 'inc-network',
+            component: 'network',
+            layer: 'core',
+            src_alertname: 'NetAlert',
+            src_namespace: 'openshift-network',
+            src_severity: 'warning',
+          },
+          values: [[nowSeconds - 8 * 86400, '1']],
+        },
+        {
+          metric: {
+            group_id: 'inc-ingress',
+            component: 'ingress',
+            layer: 'core',
+            src_alertname: 'IngressAlert',
+            src_namespace: 'openshift-ingress',
+            src_severity: 'critical',
+          },
+          values: [[nowSeconds - 3600, '2']],
+        },
+      ];
+
+      const result = convertToIncidents(data, now, 15 * DAY_MS);
+      const xValues = result.map((i) => i.x);
+      expect(new Set(xValues).size).toBe(4);
+    });
+
+    it('should sort by earliest timestamp with correct x assignment', () => {
+      const data: PrometheusResult[] = [
+        {
+          metric: {
+            group_id: 'inc-monitoring',
+            component: 'monitoring',
+            layer: 'core',
+            src_alertname: 'MonAlert',
+            src_namespace: 'openshift-monitoring',
+            src_severity: 'warning',
+          },
+          values: [[nowSeconds - 14 * 86400, '1']],
+        },
+        {
+          metric: {
+            group_id: 'inc-dns',
+            component: 'dns',
+            layer: 'core',
+            src_alertname: 'DnsAlert',
+            src_namespace: 'openshift-dns',
+            src_severity: 'warning',
+          },
+          values: [[nowSeconds - 12 * 86400, '1']],
+        },
+        {
+          metric: {
+            group_id: 'inc-network',
+            component: 'network',
+            layer: 'core',
+            src_alertname: 'NetAlert',
+            src_namespace: 'openshift-network',
+            src_severity: 'warning',
+          },
+          values: [[nowSeconds - 8 * 86400, '1']],
+        },
+        {
+          metric: {
+            group_id: 'inc-ingress',
+            component: 'ingress',
+            layer: 'core',
+            src_alertname: 'IngressAlert',
+            src_namespace: 'openshift-ingress',
+            src_severity: 'critical',
+          },
+          values: [[nowSeconds - 3600, '2']],
+        },
+      ];
+
+      const result = convertToIncidents(data, now, 15 * DAY_MS);
+      expect(result).toHaveLength(4);
+      expect(result[0].group_id).toBe('inc-monitoring');
+      expect(result[1].group_id).toBe('inc-dns');
+      expect(result[2].group_id).toBe('inc-network');
+      expect(result[3].group_id).toBe('inc-ingress');
+      expect(result[0].x).toBe(4);
+      expect(result[1].x).toBe(3);
+      expect(result[2].x).toBe(2);
+      expect(result[3].x).toBe(1);
     });
   });
 });
@@ -355,7 +821,7 @@ describe('getIncidents', () => {
             group_id: 'incident1',
             component: 'comp2',
           },
-          values: [[1100, '1']],
+          values: [[1100, '2']], // Same severity to avoid severity splitting
         },
       ];
 
@@ -493,6 +959,7 @@ describe('getIncidents', () => {
     });
 
     it('should build componentList when merging incidents with different components', () => {
+      // Use same severity to avoid severity splitting; test focuses on componentList
       const data: PrometheusResult[] = [
         {
           metric: {
@@ -506,14 +973,14 @@ describe('getIncidents', () => {
             group_id: 'incident1',
             component: 'comp2',
           },
-          values: [[1100, '1']],
+          values: [[1100, '2']],
         },
         {
           metric: {
             group_id: 'incident1',
             component: 'comp3',
           },
-          values: [[1200, '0']],
+          values: [[1200, '2']],
         },
       ];
 
@@ -526,6 +993,7 @@ describe('getIncidents', () => {
     });
 
     it('should not add duplicate components to componentList', () => {
+      // Use same severity to avoid severity splitting; test focuses on componentList
       const data: PrometheusResult[] = [
         {
           metric: {
@@ -539,7 +1007,7 @@ describe('getIncidents', () => {
             group_id: 'incident1',
             component: 'comp1', // Same component
           },
-          values: [[1100, '1']],
+          values: [[1100, '2']],
         },
       ];
 
@@ -549,8 +1017,174 @@ describe('getIncidents', () => {
     });
   });
 
+  describe('severityMetrics per-segment correctness', () => {
+    it('should assign correct metric to each segment when severity repeats (W→C→W)', () => {
+      const t1 = 1000;
+      const t2 = 1300;
+      const t3 = 1600;
+      const t4 = 1900;
+      const t5 = 2200;
+      const t6 = 2500;
+
+      const data: PrometheusResult[] = [
+        {
+          metric: {
+            group_id: 'g1',
+            component: 'comp-warn-early',
+            src_alertname: 'AlertWarnEarly',
+            src_namespace: 'ns-early',
+            src_severity: 'warning',
+          },
+          values: [
+            [t1, '1'],
+            [t2, '1'],
+          ],
+        },
+        {
+          metric: {
+            group_id: 'g1',
+            component: 'comp-crit',
+            src_alertname: 'AlertCrit',
+            src_namespace: 'ns-crit',
+            src_severity: 'critical',
+          },
+          values: [
+            [t3, '2'],
+            [t4, '2'],
+          ],
+        },
+        {
+          metric: {
+            group_id: 'g1',
+            component: 'comp-warn-late',
+            src_alertname: 'AlertWarnLate',
+            src_namespace: 'ns-late',
+            src_severity: 'warning',
+          },
+          values: [
+            [t5, '1'],
+            [t6, '1'],
+          ],
+        },
+      ];
+
+      const result = getIncidents(data);
+      expect(result).toHaveLength(3);
+
+      const segments = [...result].sort((a, b) => a.values[0][0] - b.values[0][0]);
+
+      expect(segments[0].metric.src_alertname).toBe('AlertWarnEarly');
+      expect(segments[0].metric.src_namespace).toBe('ns-early');
+
+      expect(segments[1].metric.src_alertname).toBe('AlertCrit');
+
+      expect(segments[2].metric.src_alertname).toBe('AlertWarnLate');
+      expect(segments[2].metric.src_namespace).toBe('ns-late');
+    });
+
+    it('should not let later results overwrite earlier metric for same severity', () => {
+      const data: PrometheusResult[] = [
+        {
+          metric: {
+            group_id: 'g1',
+            component: 'first',
+            src_alertname: 'First',
+            src_namespace: 'ns-first',
+            src_severity: 'warning',
+          },
+          values: [[1000, '1']],
+        },
+        {
+          metric: {
+            group_id: 'g1',
+            component: 'middle',
+            src_alertname: 'Middle',
+            src_namespace: 'ns-middle',
+            src_severity: 'critical',
+          },
+          values: [[1300, '2']],
+        },
+        {
+          metric: {
+            group_id: 'g1',
+            component: 'second',
+            src_alertname: 'Second',
+            src_namespace: 'ns-second',
+            src_severity: 'warning',
+          },
+          values: [[1600, '1']],
+        },
+      ];
+
+      const result = getIncidents(data);
+      const segments = [...result].sort((a, b) => a.values[0][0] - b.values[0][0]);
+
+      const firstWarning = segments[0];
+      const secondWarning = segments[2];
+
+      expect(firstWarning.metric.src_alertname).not.toBe(secondWarning.metric.src_alertname);
+      expect(firstWarning.metric.src_alertname).toBe('First');
+      expect(secondWarning.metric.src_alertname).toBe('Second');
+    });
+
+    it('should handle four segments with two severity repetitions', () => {
+      const data: PrometheusResult[] = [
+        {
+          metric: {
+            group_id: 'g1',
+            component: 'c1',
+            src_alertname: 'A1',
+            src_namespace: 'ns1',
+            src_severity: 'critical',
+          },
+          values: [[1000, '2']],
+        },
+        {
+          metric: {
+            group_id: 'g1',
+            component: 'c2',
+            src_alertname: 'A2',
+            src_namespace: 'ns2',
+            src_severity: 'warning',
+          },
+          values: [[1300, '1']],
+        },
+        {
+          metric: {
+            group_id: 'g1',
+            component: 'c3',
+            src_alertname: 'A3',
+            src_namespace: 'ns3',
+            src_severity: 'critical',
+          },
+          values: [[1600, '2']],
+        },
+        {
+          metric: {
+            group_id: 'g1',
+            component: 'c4',
+            src_alertname: 'A4',
+            src_namespace: 'ns4',
+            src_severity: 'warning',
+          },
+          values: [[1900, '1']],
+        },
+      ];
+
+      const result = getIncidents(data);
+      const segments = [...result].sort((a, b) => a.values[0][0] - b.values[0][0]);
+
+      expect(segments).toHaveLength(4);
+      expect(segments[0].metric.src_alertname).toBe('A1');
+      expect(segments[1].metric.src_alertname).toBe('A2');
+      expect(segments[2].metric.src_alertname).toBe('A3');
+      expect(segments[3].metric.src_alertname).toBe('A4');
+    });
+  });
+
   describe('silenced status handling', () => {
     it('should use silenced value from most recent timestamp when merging', () => {
+      // Use same severity to avoid severity splitting; test focuses on silenced status
       const data: PrometheusResult[] = [
         {
           metric: {
@@ -566,7 +1200,7 @@ describe('getIncidents', () => {
             component: 'comp2',
             silenced: 'true',
           },
-          values: [[2000, '1']], // More recent
+          values: [[2000, '2']], // More recent, same severity
         },
       ];
 
@@ -576,6 +1210,7 @@ describe('getIncidents', () => {
     });
 
     it('should keep older silenced value if new result has older timestamps', () => {
+      // Use same severity to avoid severity splitting; test focuses on silenced status
       const data: PrometheusResult[] = [
         {
           metric: {
@@ -591,7 +1226,7 @@ describe('getIncidents', () => {
             component: 'comp2',
             silenced: 'false',
           },
-          values: [[1000, '1']], // Older
+          values: [[1000, '2']], // Older, same severity
         },
       ];
 
@@ -772,7 +1407,7 @@ describe('processIncidentsForAlerts', () => {
         },
       ];
 
-      const result = processIncidentsForAlerts(incidents);
+      const result = processIncidentsForAlerts(incidents) as any[];
       expect(result).toHaveLength(1);
       expect(result[0].group_id).toBe('incident1');
       expect(result[0].component).toBe('test-component');
@@ -799,6 +1434,29 @@ describe('processIncidentsForAlerts', () => {
     });
   });
 
+  describe('firstTimestamp', () => {
+    it('should default firstTimestamp to 0', () => {
+      const incidents: PrometheusResult[] = [
+        {
+          metric: {
+            group_id: 'incident1',
+            src_alertname: 'TestAlert',
+            src_namespace: 'test-namespace',
+            component: 'test-component',
+            src_severity: 'critical',
+          },
+          values: [[1704067300, '2']],
+        },
+      ];
+
+      const result = processIncidentsForAlerts(incidents);
+      expect(result).toHaveLength(1);
+      // processIncidentsForAlerts sets firstTimestamp to 0;
+      // the real firstTimestamp is computed in convertToAlerts from alert data
+      expect(result[0].firstTimestamp).toBe(0);
+    });
+  });
+
   describe('edge cases', () => {
     it('should handle empty array', () => {
       const result = processIncidentsForAlerts([]);
@@ -813,7 +1471,7 @@ describe('processIncidentsForAlerts', () => {
         },
       ];
 
-      const result = processIncidentsForAlerts(incidents);
+      const result = processIncidentsForAlerts(incidents) as any[];
       expect(result).toHaveLength(1);
       expect(result[0].group_id).toBe('incident1');
       expect(result[0].silenced).toBe(true);

@@ -95,7 +95,7 @@ export const IncidentsTable = () => {
     if (!alert.alertsExpandedRowData || alert.alertsExpandedRowData.length === 0) {
       return 0;
     }
-    return Math.min(...alert.alertsExpandedRowData.map((alertData) => alertData.alertsStartFiring));
+    return Math.min(...alert.alertsExpandedRowData.map((alertData) => alertData.firstTimestamp));
   };
 
   if (isEmpty(alertsTableData) || alertsAreLoading || isEmpty(incidentsActiveFilters.groupId)) {
@@ -180,7 +180,9 @@ export const IncidentsTable = () => {
                       )}
                     </Td>
                     <Td dataLabel={columnNames.startDate}>
-                      <Timestamp timestamp={String(getMinStartDate(alert) * 1000)} />
+                      <Timestamp
+                        timestamp={new Date(getMinStartDate(alert) * 1000).toISOString()}
+                      />
                     </Td>
                     <Td
                       dataLabel={columnNames.state}
