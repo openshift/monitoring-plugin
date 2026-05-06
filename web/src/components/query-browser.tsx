@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/refs */
 import {
   PrometheusEndpoint,
   PrometheusLabels,

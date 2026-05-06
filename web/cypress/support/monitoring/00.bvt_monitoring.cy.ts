@@ -34,7 +34,7 @@ export function testBVTMonitoring(perspective: PerspectiveConfig) {
       listPage.tabShouldHaveText('Silences');
       listPage.tabShouldHaveText('Alerting rules');
       commonPages.linkShouldExist('Export as CSV');
-      commonPages.linkShouldExist('Clear all filters');
+      commonPages.linkShouldExist('Clear filters');
       listPage.ARRows.shouldBeLoaded();
 
       cy.log('5.2. filter Alerts and click on Alert');
@@ -181,8 +181,7 @@ export function testBVTMonitoring(perspective: PerspectiveConfig) {
     listPage.filter.removeIndividualTag(SilenceState.ACTIVE);
     listPage.filter.removeIndividualTag(SilenceState.PENDING);
     silencesListPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
-    listPage.filter.clickFilter(true, false);
-    listPage.filter.selectFilterOption(false, SilenceState.ACTIVE, true);
+    listPage.filter.selectFilterOption('Silence State', SilenceState.ACTIVE);
     silencesListPage.rows.shouldBe(`${WatchdogAlert.ALERTNAME}`, SilenceState.ACTIVE);
 
     cy.log('6.8 verify on Alerting Rules list page again');
@@ -199,7 +198,7 @@ export function testBVTMonitoring(perspective: PerspectiveConfig) {
     cy.log('6.9 verify on Alerts list page again');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     listPage.filter.clearAllFilters();
-    listPage.filter.selectFilterOption(true, AlertsAlertState.SILENCED, true);
+    listPage.filter.selectFilterOption('Alert State', AlertsAlertState.SILENCED);
     listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
     listPage.ARRows.ARShouldBe(
       `${WatchdogAlert.ALERTNAME}`,

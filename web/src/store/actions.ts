@@ -13,13 +13,9 @@ export enum ActionType {
   AlertingSetErrored = 'v2/AlertingSetErrored',
   AlertingSetSilencesErrored = 'v2/AlertingSetSilencesErrored',
   AlertingClearSelectorData = 'v2/AlertingClearSelectorData',
-  DashboardsPatchAllVariables = 'v2/dashboardsPatchAllVariables',
-  DashboardsPatchVariable = 'v2/dashboardsPatchVariable',
-  DashboardsClearVariables = 'v2/dashboardsClearVariables',
-  DashboardsSetEndTime = 'v2/dashboardsSetEndTime',
-  DashboardsSetPollInterval = 'v2/dashboardsSetPollInterval',
-  DashboardsSetTimespan = 'v2/dashboardsSetTimespan',
-  DashboardsVariableOptionsLoaded = 'v2/dashboardsVariableOptionsLoaded',
+  DashboardsPatchAllVariables = 'v3/dashboardsPatchAllVariables',
+  DashboardsPatchVariable = 'v3/dashboardsPatchVariable',
+  DashboardsVariableOptionsLoaded = 'v3/dashboardsVariableOptionsLoaded',
   DashboardsOpened = 'dashboardsPersesDashboardsOpened',
   DashboardsAddPersesPanelExternally = 'dashboardsAddPersesPanelExternally',
   DashboardsPersesPanelExternallyAdded = 'dashboardsPersesPanelExternallyAdded',
@@ -54,25 +50,17 @@ export enum ActionType {
 
 export type Perspective = 'admin' | 'dev' | 'acm' | 'virtualization-perspective';
 
-export const dashboardsPatchVariable = (key: string, patch: any) =>
-  action(ActionType.DashboardsPatchVariable, { key, patch });
+export const dashboardsPatchVariable = (dashboardName: string, key: string, patch: any) =>
+  action(ActionType.DashboardsPatchVariable, { dashboardName, key, patch });
 
-export const dashboardsPatchAllVariables = (variables: any) =>
-  action(ActionType.DashboardsPatchAllVariables, { variables });
+export const dashboardsPatchAllVariables = (dashboardName: string, variables: any) =>
+  action(ActionType.DashboardsPatchAllVariables, { dashboardName, variables });
 
-export const DashboardsClearVariables = () => action(ActionType.DashboardsClearVariables, {});
-
-export const dashboardsSetEndTime = (endTime: number) =>
-  action(ActionType.DashboardsSetEndTime, { endTime });
-
-export const dashboardsSetPollInterval = (pollInterval: number) =>
-  action(ActionType.DashboardsSetPollInterval, { pollInterval });
-
-export const dashboardsSetTimespan = (timespan: number) =>
-  action(ActionType.DashboardsSetTimespan, { timespan });
-
-export const dashboardsVariableOptionsLoaded = (key: string, newOptions: string[]) =>
-  action(ActionType.DashboardsVariableOptionsLoaded, { key, newOptions });
+export const dashboardsVariableOptionsLoaded = (
+  dashboardName: string,
+  key: string,
+  newOptions: string[],
+) => action(ActionType.DashboardsVariableOptionsLoaded, { dashboardName, key, newOptions });
 
 export const dashboardsOpened = (isOpened: boolean) =>
   action(ActionType.DashboardsOpened, { isOpened });
@@ -219,10 +207,6 @@ type Actions = {
   AlertingClearSelectorData: typeof alertingClearSelectorData;
   dashboardsPatchAllVariables: typeof dashboardsPatchAllVariables;
   dashboardsPatchVariable: typeof dashboardsPatchVariable;
-  DashboardsClearVariables: typeof DashboardsClearVariables;
-  dashboardsSetEndTime: typeof dashboardsSetEndTime;
-  dashboardsSetPollInterval: typeof dashboardsSetPollInterval;
-  dashboardsSetTimespan: typeof dashboardsSetTimespan;
   dashboardsVariableOptionsLoaded: typeof dashboardsVariableOptionsLoaded;
   dashboardsOpened: typeof dashboardsOpened;
   dashboardsPersesPanelExternallyAdded: typeof dashboardsPersesPanelExternallyAdded;

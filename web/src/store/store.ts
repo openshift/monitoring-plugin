@@ -24,10 +24,11 @@ export type RootState = {
 export type LegacyObserveState = Map<string, any>;
 export type ObserveState = {
   dashboards: {
-    endTime?: number;
-    pollInterval: number;
-    timespan: number;
-    variables: Record<string, Variable>;
+    legacy: {
+      [dashboardName: string]: {
+        variables: Record<string, Variable>;
+      };
+    };
     isOpened: boolean;
     addPersesPanelExternally: PanelDefinition | null;
   };
@@ -66,12 +67,9 @@ export type ObserveState = {
 
 export const defaultObserveState: ObserveState = {
   dashboards: {
-    endTime: null,
-    pollInterval: 30 * 1000,
-    timespan: MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
     isOpened: false,
     addPersesPanelExternally: null,
-    variables: {},
+    legacy: {},
   },
   queryBrowser: {
     pollInterval: null,

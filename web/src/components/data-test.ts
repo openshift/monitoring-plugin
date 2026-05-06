@@ -153,6 +153,24 @@ export const DataTestIDs = {
   },
 };
 
+export const FilterOUIAIDs = {
+  AlertNameFilter: 'AlertNameFilter',
+  AlertStateFilter: 'AlertStateFilter',
+  AlertSeverityFilter: 'AlertSeverityFilter',
+  AlertSourceFilter: 'AlertSourceFilter',
+  AlertClusterFilter: 'AlertClusterFilter',
+  SilenceNameFilter: 'SilenceNameFilter',
+  SilenceStateFilter: 'SilenceStateFilter',
+  SilenceClusterFilter: 'SilenceClusterFilter',
+  RuleNameFilter: 'RuleNameFilter',
+  RuleStateFilter: 'RuleStateFilter',
+  RuleSeverityFilter: 'RuleSeverityFilter',
+  RuleSourceFilter: 'RuleSourceFilter',
+  TargetTextFilter: 'TargetTextFilter',
+  TargetStatusFilter: 'TargetStatusFilter',
+  TargetSourceFilter: 'TargetSourceFilter',
+};
+
 export const LegacyDashboardPageTestIDs = {
   TimeRangeDropdown: 'time-range-dropdown', //div
   TimeRangeDropdownOptions: 'time-range-dropdown-options',
@@ -277,6 +295,7 @@ export const persesAriaLabels = {
   dashboardActionsMenu: 'Dashboard actions',
   importDashboardProjectInputButton: 'Typeahead menu toggle',
   importDashboardDuplicatedDashboardError: 'Danger alert:document already exists',
+  traceTablePanel_TraceTable: 'Trace name column menu',
 };
 
 //data-testid from MUI components
@@ -294,6 +313,8 @@ export const persesMUIDataTestIDs = {
   editDashboardEditVariableDatasourceEditButton: 'PencilIcon',
   editDashboardEditVariableDatasourceDeleteButton: 'TrashCanIcon',
   addPanelGroupFormName: 'panel-group-editor-name',
+  logsTableContainer: 'log-row-container-0',
+  scatterChartPanel_ScatterPlot: 'ScatterChartPanel_ScatterPlot',
 };
 
 export const persesDashboardDataTestIDs = {

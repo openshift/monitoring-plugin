@@ -67,7 +67,7 @@ export const getAdditionalSources = <T extends Alert | Rule>(
         additionalSources.add(source);
       }
     });
-    return Array.from(additionalSources).map((item) => ({ id: item, title: _.startCase(item) }));
+    return Array.from(additionalSources).map((item) => ({ value: item, label: _.startCase(item) }));
   }
   return [];
 };
@@ -405,7 +405,7 @@ export const SeverityCounts: FC<{ alerts: Alert[] }> = ({ alerts }) => {
 export type OnToggle = (value: boolean, e: MouseEvent) => void;
 
 export const severityRowFilter = (t): RowFilter => ({
-  filter: (filter, alert: Alert) =>
+  filter: (filter, alert: Rule) =>
     filter.selected?.includes(alert.labels?.severity) || _.isEmpty(filter.selected),
   filterGroupName: t('Severity'),
   items: [
@@ -566,4 +566,11 @@ const isAlertSilenced = (alert: PrometheusAlert, silence: Silence): boolean => {
 // Determine if an Rule is silenced by a Silence (if all alerts for a rule are silenced)
 export const isRuleSilenced = (rule: PrometheusRule, silence: Silence): boolean => {
   return isRuleFiring(rule) && rule.alerts.every((alert) => isAlertSilenced(alert, silence));
+};
+
+/**
+ * Add 'rowFilter-' to a column key
+ */
+export const rowFilter = (key: string) => {
+  return `row-filter-${key}`;
 };

@@ -10,7 +10,7 @@ import {
 import { MonitoringProvider } from '../../contexts/MonitoringContext';
 import { useMonitoring } from '../../hooks/useMonitoring';
 import { useLocation } from 'react-router';
-import { AlertResource, RuleResource, SilenceResource } from '../utils';
+import { AlertResource, SilenceResource } from '../utils';
 import { useDispatch } from 'react-redux';
 import { alertingClearSelectorData } from '../../store/actions';
 import { useMonitoringNamespace } from '../hooks/useMonitoringNamespace';
@@ -49,8 +49,6 @@ const CooAlertRulesPage = lazy(() =>
 const namespacedPages = [
   AlertResource.url,
   AlertResource.virtUrl,
-  RuleResource.url,
-  RuleResource.virtUrl,
   SilenceResource.url,
   SilenceResource.virtUrl,
 ];

@@ -78,6 +78,7 @@ export default defineConfig([
       'react-hooks/set-state-in-render': 'off',
       'react-hooks/incompatible-library': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
+      'react-hooks/refs': 'off',
     },
   },
 ]);

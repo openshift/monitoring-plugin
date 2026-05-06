@@ -25,6 +25,7 @@ import {
   DataQueriesProvider,
   PluginLoader,
   PluginRegistry,
+  RouterProvider,
   TimeRangeProviderWithQueryParams,
   useInitialRefreshInterval,
   useInitialTimeRange,
@@ -51,6 +52,7 @@ import { StringParam, useQueryParam } from 'use-query-params';
 import { useTranslation } from 'react-i18next';
 import { LoadingBox } from '../../../components/console/console-shared/src/components/loading/LoadingBox';
 import { remotePluginLoader } from '@perses-dev/plugin-system';
+import { Link, useNavigate } from 'react-router';
 
 // Override eChart defaults with PatternFly colors.
 const patternflyBlue100 = chart_color_blue_100.value;
@@ -365,6 +367,8 @@ export function useRemotePluginLoader(): PluginLoader {
 
 export function PersesWrapper({ children, project }: PersesWrapperProps) {
   const { theme } = usePatternFlyTheme();
+  const navigate = useNavigate();
+
   const muiTheme = getTheme(theme, {
     shape: {
       borderRadius: 6,
@@ -386,16 +390,22 @@ export function PersesWrapper({ children, project }: PersesWrapperProps) {
 
   return (
     <ThemeProvider theme={muiTheme}>
-      <ChartsProvider chartsTheme={chartsTheme}>
-        <SnackbarProvider
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-          variant="default"
-        >
-          <PluginRegistry pluginLoader={pluginLoader}>
-            {!project ? <>{children}</> : <InnerWrapper project={project}>{children}</InnerWrapper>}
-          </PluginRegistry>
-        </SnackbarProvider>
-      </ChartsProvider>
+      <RouterProvider RouterComponent={Link} navigate={navigate}>
+        <ChartsProvider chartsTheme={chartsTheme}>
+          <SnackbarProvider
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            variant="default"
+          >
+            <PluginRegistry pluginLoader={pluginLoader}>
+              {!project ? (
+                <>{children}</>
+              ) : (
+                <InnerWrapper project={project}>{children}</InnerWrapper>
+              )}
+            </PluginRegistry>
+          </SnackbarProvider>
+        </ChartsProvider>
+      </RouterProvider>
     </ThemeProvider>
   );
 }

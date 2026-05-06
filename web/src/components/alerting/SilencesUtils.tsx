@@ -1,18 +1,14 @@
 import {
   consoleFetchJSON,
   GreenCheckCircleIcon,
-  ResourceIcon,
   Silence,
   SilenceStates,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Button,
-  Checkbox,
   Dropdown,
   DropdownItem,
   DropdownList,
-  Flex,
-  FlexItem,
   Label,
   LabelGroup,
   MenuToggle,
@@ -26,8 +22,6 @@ import {
   PanelMain,
   PanelMainBody,
   Alert as PFAlert,
-  Stack,
-  StackItem,
 } from '@patternfly/react-core';
 import {
   BanIcon,
@@ -35,126 +29,20 @@ import {
   EllipsisVIcon,
   HourglassHalfIcon,
 } from '@patternfly/react-icons';
-import { Td } from '@patternfly/react-table';
-import { t_global_spacer_xs } from '@patternfly/react-tokens';
 import * as _ from 'lodash-es';
 import type { FC, Ref } from 'react';
-import { useContext, useCallback, createContext, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate } from 'react-router';
+import { useNavigate } from 'react-router';
 import { useBoolean } from '../hooks/useBoolean';
 import {
   getEditSilenceAlertUrl,
   getFetchSilenceUrl,
-  getSilenceAlertUrl,
   usePerspective,
 } from '../hooks/usePerspective';
 import { useMonitoringNamespace } from '../hooks/useMonitoringNamespace';
-import { silenceMatcherEqualitySymbol, SilenceResource, silenceState } from '../utils';
-import { SeverityCounts, StateTimestamp } from './AlertUtils';
+import { silenceMatcherEqualitySymbol, silenceState } from '../utils';
 import { DataTestIDs } from '../data-test';
-
-export const SilenceTableRow: FC<SilenceTableRowProps> = ({ obj, showCheckbox }) => {
-  const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { perspective } = usePerspective();
-  const { namespace } = useMonitoringNamespace();
-
-  const { createdBy, endsAt, firingAlerts, id, name, startsAt, matchers } = obj;
-  const state = silenceState(obj);
-  const cluster = matchers.find((label) => label.name === 'cluster')?.value;
-
-  const { selectedSilences, setSelectedSilences } = useContext(SelectedSilencesContext);
-
-  const onCheckboxChange = useCallback(
-    (isChecked: boolean) => {
-      setSelectedSilences((oldSet) => {
-        const newSet = new Set(oldSet);
-        if (isChecked) {
-          newSet.add(id);
-        } else {
-          newSet.delete(id);
-        }
-        return newSet;
-      });
-    },
-    [id, setSelectedSilences],
-  );
-
-  return (
-    <>
-      {showCheckbox && (
-        <Td width={10}>
-          <Checkbox
-            id={id}
-            isChecked={selectedSilences.has(id)}
-            isDisabled={state === SilenceStates.Expired}
-            onChange={(_e, checked) => {
-              onCheckboxChange(checked);
-            }}
-          />
-        </Td>
-      )}
-      <Td width={40}>
-        <Flex
-          spaceItems={{ default: 'spaceItemsNone' }}
-          flexWrap={{ default: 'nowrap' }}
-          style={{ paddingBottom: t_global_spacer_xs.var }}
-        >
-          <FlexItem data-test={DataTestIDs.SilenceResourceIcon}>
-            <ResourceIcon kind={SilenceResource.kind} />
-          </FlexItem>
-          <FlexItem>
-            <Link
-              data-test-id="silence-resource-link"
-              title={id}
-              to={getSilenceAlertUrl(perspective, id, namespace)}
-              data-test={DataTestIDs.SilenceResourceLink}
-            >
-              {name}
-            </Link>
-          </FlexItem>
-        </Flex>
-        <SilenceMatchersList silence={obj} />
-      </Td>
-      <Td width={15}>
-        <SeverityCounts alerts={firingAlerts} />
-      </Td>
-      <Td width={20}>
-        <Stack>
-          <StackItem>
-            <SilenceState silence={obj} />
-          </StackItem>
-          <StackItem>
-            {state === SilenceStates.Pending && (
-              <StateTimestamp text={t('Starts')} timestamp={startsAt} />
-            )}
-            {state === SilenceStates.Active && (
-              <StateTimestamp text={t('Ends')} timestamp={endsAt} />
-            )}
-            {state === SilenceStates.Expired && (
-              <StateTimestamp text={t('Expired')} timestamp={endsAt} />
-            )}
-          </StackItem>
-        </Stack>
-      </Td>
-      <Td width={15}>{createdBy || '-'}</Td>
-      {perspective === 'acm' && <Td width={15}>{cluster}</Td>}
-      <Td width={10}>
-        <SilenceDropdown silence={obj} />
-      </Td>
-    </>
-  );
-};
-
-type SilenceTableRowProps = {
-  obj: Silence;
-  showCheckbox?: boolean;
-};
-
-export const SelectedSilencesContext = createContext({
-  selectedSilences: new Set(),
-  setSelectedSilences: undefined,
-});
 
 export const SilenceMatchersList = ({ silence }) => (
   <LabelGroup numLabels={20}>
@@ -168,7 +56,7 @@ export const SilenceMatchersList = ({ silence }) => (
   </LabelGroup>
 );
 
-export type ExpireSilenceModalProps = {
+type ExpireSilenceModalProps = {
   isOpen: boolean;
   setClosed: () => void;
   silenceID: string;

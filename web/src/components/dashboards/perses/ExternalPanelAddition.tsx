@@ -2,7 +2,7 @@ import { ReactElement, useEffect, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useDashboardActions, useDashboardStore } from '@perses-dev/dashboards';
 import { dashboardsOpened, dashboardsPersesPanelExternallyAdded } from '../../../store/actions';
-import type { RootState } from '../../../store';
+import type { RootState } from '../../../store/store';
 
 interface ExternalPanelAdditionProps {
   isEditMode: boolean;
@@ -21,7 +21,7 @@ export function ExternalPanelAddition({
     (s: RootState) => s.plugins?.mcp?.dashboards?.addPersesPanelExternally,
   );
   const { openAddPanel } = useDashboardActions();
-  const dashboardStore = useDashboardStore();
+  const dashboardStore = useDashboardStore((state) => state);
   const [queuedPanel, setQueuedPanel] = useState(null);
 
   // Turn the dashboard into editable mode and added it to `queuedPanel`.

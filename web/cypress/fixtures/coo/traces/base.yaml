@@ -1,0 +1,388 @@
+apiVersion: project.openshift.io/v1
+kind: Project
+metadata:
+  name: openshift-tracing
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    app.kubernetes.io/name: minio
+  name: minio
+  namespace: openshift-tracing
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minio
+  namespace: openshift-tracing
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: minio
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: minio
+    spec:
+      containers:
+        - command:
+            - /bin/sh
+            - -c
+            - |
+              mkdir -p /storage/tempo && \
+              minio server /storage
+          env:
+            - name: MINIO_ACCESS_KEY
+              value: tempo
+            - name: MINIO_SECRET_KEY
+              value: supersecret
+          image: minio/minio
+          name: minio
+          ports:
+            - containerPort: 9000
+          volumeMounts:
+            - mountPath: /storage
+              name: storage
+      volumes:
+        - name: storage
+          persistentVolumeClaim:
+            claimName: minio
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio
+  namespace: openshift-tracing
+spec:
+  ports:
+    - port: 9000
+      protocol: TCP
+      targetPort: 9000
+  selector:
+    app.kubernetes.io/name: minio
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: minio
+  namespace: openshift-tracing
+stringData:
+  endpoint: http://minio:9000
+  bucket: tempo
+  access_key_id: tempo
+  access_key_secret: supersecret
+type: Opaque
+---
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: platform
+  namespace: openshift-tracing
+spec:
+  observability:
+    metrics:
+      enableMetrics: true
+  config:
+    extensions:
+      bearertokenauth:
+        filename: /var/run/secrets/kubernetes.io/serviceaccount/token
+
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+      jaeger:
+        protocols:
+          thrift_compact:
+            endpoint: 0.0.0.0:6831
+
+    connectors:
+      spanmetrics:
+        metrics_flush_interval: 5s # default: 1 min
+        dimensions:
+        - name: k8s.namespace.name
+
+    processors:
+      k8sattributes: {}
+
+    exporters:
+      otlp:
+        endpoint: tempo-platform-gateway.openshift-tracing.svc.cluster.local:8090
+        tls:
+          ca_file: /var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt
+        auth:
+          authenticator: bearertokenauth
+        headers:
+          X-Scope-OrgID: platform
+      prometheus:
+        endpoint: 0.0.0.0:8889
+        add_metric_suffixes: false
+        resource_to_telemetry_conversion:
+          enabled: true # by default resource attributes are dropped
+
+    service:
+      extensions: [bearertokenauth]
+      pipelines:
+        traces:
+          receivers: [otlp, jaeger]
+          processors: [k8sattributes]
+          exporters: [otlp, spanmetrics]
+        metrics:
+          receivers: [spanmetrics]
+          processors: []
+          exporters: [prometheus]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: openshift-tracing-platform-collector
+rules:
+- apiGroups: [""]
+  resources: ["namespaces", "pods"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["apps"]
+  resources: ["replicasets"]
+  verbs: ["get", "list", "watch"]
+---
+# allow platform-collector to read namespaces, pods and replicasets (required for k8sattributes processor)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: openshift-tracing-platform-collector
+roleRef:
+  kind: ClusterRole
+  name: openshift-tracing-platform-collector
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+- kind: ServiceAccount
+  name: platform-collector
+  namespace: openshift-tracing
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: traces-writer-platform
+rules:
+- apiGroups: [tempo.grafana.com]
+  resources: [platform]
+  resourceNames: [traces]
+  verbs: [create]
+---
+# allow platform-collector to write traces to the 'platform' tenant in Tempo
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: traces-writer-platform
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: traces-writer-platform
+subjects:
+- kind: ServiceAccount
+  name: platform-collector
+  namespace: openshift-tracing
+---
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: user
+  namespace: openshift-tracing
+spec:
+  observability:
+    metrics:
+      enableMetrics: true
+  config:
+    extensions:
+      bearertokenauth:
+        filename: /var/run/secrets/kubernetes.io/serviceaccount/token
+
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+      jaeger:
+        protocols:
+          thrift_compact:
+            endpoint: 0.0.0.0:6831
+
+    connectors:
+      spanmetrics:
+        metrics_flush_interval: 5s # default: 1 min
+        dimensions:
+        - name: k8s.namespace.name
+
+    processors:
+      k8sattributes: {}
+
+    exporters:
+      otlp:
+        endpoint: tempo-platform-gateway.openshift-tracing.svc.cluster.local:8090
+        tls:
+          ca_file: /var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt
+        auth:
+          authenticator: bearertokenauth
+        headers:
+          X-Scope-OrgID: user
+      prometheus:
+        endpoint: 0.0.0.0:8889
+        add_metric_suffixes: false
+        resource_to_telemetry_conversion:
+          enabled: true # by default resource attributes are dropped
+
+    service:
+      extensions: [bearertokenauth]
+      pipelines:
+        traces:
+          receivers: [otlp, jaeger]
+          processors: [k8sattributes]
+          exporters: [otlp, spanmetrics]
+        metrics:
+          receivers: [spanmetrics]
+          processors: []
+          exporters: [prometheus]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: openshift-tracing-user-collector
+rules:
+- apiGroups: [""]
+  resources: ["namespaces", "pods"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["apps"]
+  resources: ["replicasets"]
+  verbs: ["get", "list", "watch"]
+---
+# allow user-collector to read namespaces, pods and replicasets (required for k8sattributes processor)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: openshift-tracing-user-collector
+roleRef:
+  kind: ClusterRole
+  name: openshift-tracing-user-collector
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+- kind: ServiceAccount
+  name: user-collector
+  namespace: openshift-tracing
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: traces-writer-user
+rules:
+- apiGroups: [tempo.grafana.com]
+  resources: [user]
+  resourceNames: [traces]
+  verbs: [create]
+---
+# allow user-collector to write traces to the 'user' tenant in Tempo
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: traces-writer-user
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: traces-writer-user
+subjects:
+- kind: ServiceAccount
+  name: user-collector
+  namespace: openshift-tracing
+---
+apiVersion: tempo.grafana.com/v1alpha1
+kind:  TempoStack
+metadata:
+  name: platform
+  namespace: openshift-tracing
+spec:
+  storage:
+    secret:
+      name: minio
+      type: s3
+  storageSize: 1Gi
+  tenants:
+    mode: openshift
+    authentication:
+    - tenantName: platform
+      tenantId: 1610b0c3-c509-4592-a256-a1871353dbfa
+    - tenantName: user
+      tenantId: 1610b0c3-c509-4592-a256-a1871353dbfb
+  observability:
+    tracing:
+      otlp_http_endpoint: http://platform-collector.openshift-tracing:4318
+      sampling_fraction: "1"
+  template:
+    gateway:
+      enabled: true
+    queryFrontend:
+      jaegerQuery:
+        enabled: true
+        monitorTab:
+          enabled: true
+          prometheusEndpoint: https://thanos-querier.openshift-monitoring.svc.cluster.local:9092
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: traces-reader-platform
+rules:
+- apiGroups: [tempo.grafana.com]
+  resources: [platform]
+  resourceNames: [traces]
+  verbs: [get]
+---
+# allow any authenticated user to read traces from the 'platform' tenant in Tempo
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: traces-reader-platform
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: traces-reader-platform
+subjects:
+- kind: Group
+  apiGroup: rbac.authorization.k8s.io
+  name: system:authenticated
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: traces-reader-user
+rules:
+- apiGroups: [tempo.grafana.com]
+  resources: [user]
+  resourceNames: [traces]
+  verbs: [get]
+---
+# allow any authenticated user to read traces from the 'user' tenant in Tempo
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: traces-reader-user
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: traces-reader-user
+subjects:
+- kind: Group
+  apiGroup: rbac.authorization.k8s.io
+  name: system:authenticated
