@@ -9,7 +9,7 @@ import { useMonitoring } from '../../../hooks/useMonitoring';
 import { useParams } from 'react-router';
 import { dashboardsPatchVariable } from '../../../store/actions';
 
-export const useLegacyDashboardsProject = () => {
+export const useLegacyDashboardsProject = (dashboardName?: string) => {
   const { perspective } = usePerspective();
   const [activeNamespace, setActiveNamespace] = useActiveNamespace();
   const { ns: routeNamespace } = useParams<{ ns?: string }>();
@@ -18,9 +18,11 @@ export const useLegacyDashboardsProject = () => {
     StringParam,
   );
   const { plugin } = useMonitoring();
-  const variableNamespace = useSelector(
-    (state: MonitoringState) =>
-      getObserveState(plugin, state).dashboards.variables['namespace']?.value ?? '',
+  const variableNamespace = useSelector((state: MonitoringState) =>
+    dashboardName
+      ? (getObserveState(plugin, state).dashboards.legacy[dashboardName]?.variables['namespace']
+          ?.value ?? '')
+      : '',
   );
   const dispatch = useDispatch();
 
@@ -30,9 +32,9 @@ export const useLegacyDashboardsProject = () => {
         setOpenshiftProject(activeNamespace);
       }
     } else {
-      if (variableNamespace && variableNamespace !== routeNamespace) {
+      if (dashboardName && variableNamespace && variableNamespace !== routeNamespace) {
         dispatch(
-          dashboardsPatchVariable('namespace', {
+          dashboardsPatchVariable(dashboardName, 'namespace', {
             // Dashboards space variable shouldn't use the ALL_NAMESPACES_KEY
             value: routeNamespace,
           }),
@@ -48,6 +50,7 @@ export const useLegacyDashboardsProject = () => {
     variableNamespace,
     perspective,
     routeNamespace,
+    dashboardName,
   ]);
 
   return {

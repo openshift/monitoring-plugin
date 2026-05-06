@@ -7,7 +7,6 @@ import {
   EmptyState,
   EmptyStateBody,
   EmptyStateVariant,
-  Pagination,
   Title,
   Tooltip,
 } from '@patternfly/react-core';
@@ -20,8 +19,11 @@ import {
 } from '@patternfly/react-data-view/dist/dynamic/DataViewTable';
 import { DataViewTextFilter } from '@patternfly/react-data-view/dist/dynamic/DataViewTextFilter';
 import { DataViewToolbar } from '@patternfly/react-data-view/dist/dynamic/DataViewToolbar';
-import { useDataViewFilters, useDataViewSort } from '@patternfly/react-data-view';
-import { useDataViewPagination } from '@patternfly/react-data-view/dist/dynamic/Hooks';
+import {
+  useDataViewFilters,
+  useDataViewPagination,
+  useDataViewSort,
+} from '@patternfly/react-data-view/dist/dynamic/Hooks';
 import { ActionsColumn, ThProps } from '@patternfly/react-table';
 import { Link, useSearchParams } from 'react-router';
 
@@ -38,10 +40,7 @@ import {
 } from './dashboard-action-modals';
 import { useEditableProjects } from './hooks/useEditableProjects';
 import { ALL_NAMESPACES_KEY } from '../../utils';
-const perPageOptions = [
-  { title: '10', value: 10 },
-  { title: '20', value: 20 },
-];
+import { ITEMS_PER_PAGE, TablePagination } from '../../../components/table-pagination';
 
 const DashboardActionsCell = React.memo(
   ({
@@ -185,7 +184,7 @@ const DashboardsTable: React.FunctionComponent<DashboardsTableProps> = ({
     searchParams,
     setSearchParams,
   });
-  const pagination = useDataViewPagination({ perPage: perPageOptions[0].value });
+  const pagination = useDataViewPagination({ perPage: ITEMS_PER_PAGE[0] });
   const { page, perPage } = pagination;
 
   const DASHBOARD_COLUMNS = useMemo(
@@ -345,17 +344,6 @@ const DashboardsTable: React.FunctionComponent<DashboardsTableProps> = ({
     handleDeleteModalOpen,
   ]);
 
-  const PaginationTool = useMemo(
-    () => (
-      <Pagination
-        perPageOptions={perPageOptions}
-        itemCount={sortedAndFilteredData.length}
-        {...pagination}
-      />
-    ),
-    [sortedAndFilteredData, pagination],
-  );
-
   const hasFiltersApplied = filters.name || filters['project-filter'];
   const hasData = sortedAndFilteredData.length > 0;
 
@@ -364,7 +352,7 @@ const DashboardsTable: React.FunctionComponent<DashboardsTableProps> = ({
       <DataViewToolbar
         ouiaId="PersesDashList-DataViewHeader"
         clearAllFilters={clearAllFilters}
-        pagination={PaginationTool}
+        pagination={<TablePagination itemCount={sortedAndFilteredData.length} {...pagination} />}
         filters={
           <DataViewFilters onChange={(_e, values) => onSetFilters(values)} values={filters}>
             <DataViewTextFilter
@@ -434,7 +422,10 @@ const DashboardsTable: React.FunctionComponent<DashboardsTableProps> = ({
           )}
         </EmptyState>
       )}
-      <DataViewToolbar ouiaId="PersesDashList-DataViewFooter" pagination={PaginationTool} />
+      <DataViewToolbar
+        ouiaId="PersesDashList-DataViewFooter"
+        pagination={<TablePagination itemCount={sortedAndFilteredData.length} {...pagination} />}
+      />
     </DataView>
   );
 };

@@ -12,6 +12,7 @@ import './commands/utility-commands';
 import './incidents_prometheus_query_mocks';
 import './commands/virtualization-commands';
 import './commands/perses-commands';
+import './commands/traces-logging-commands';
 
 export const checkErrors = () =>
   cy.window().then((win) => {
@@ -31,7 +32,8 @@ Cypress.on('uncaught:exception', (err) => {
     message.includes('Bad Gateway') ||
     message.includes(`Cannot read properties of null (reading 'default')`) ||
     message.includes(`(intermediate value) is not a function`) ||
-    message.includes(`Cannot read properties of null (reading '0')`)
+    message.includes(`Cannot read properties of null (reading '0')`) ||
+    message.includes(`load_plugin_entry`)
   ) {
     // eslint-disable-next-line no-console
     console.warn('Ignored frontend exception:', err.message);

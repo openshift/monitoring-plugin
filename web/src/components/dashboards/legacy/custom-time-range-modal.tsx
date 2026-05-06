@@ -16,12 +16,10 @@ import * as _ from 'lodash-es';
 import type { FC, MouseEventHandler } from 'react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useDispatch } from 'react-redux';
-
-import { dashboardsSetEndTime, dashboardsSetTimespan } from '../../../store/actions';
 
 import { QueryParams } from '../../query-params';
-import { StringParam, useQueryParam } from 'use-query-params';
+import { NumberParam, useQueryParam } from 'use-query-params';
+import { TimeRangeParam } from './utils';
 
 const zeroPad = (number: number) => (number < 10 ? `0${number}` : number);
 
@@ -49,10 +47,8 @@ const CustomTimeRangeModal: FC<CustomTimeRangeModalProps> = ({
   endTime,
 }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const [, setEndTimeParam] = useQueryParam(QueryParams.EndTime, StringParam);
-  const [, setTimeRangeParam] = useQueryParam(QueryParams.TimeRange, StringParam);
-
-  const dispatch = useDispatch();
+  const [, setEndTimeParam] = useQueryParam(QueryParams.EndTime, NumberParam);
+  const [, setTimeRangeParam] = useQueryParam(QueryParams.TimeRange, TimeRangeParam);
 
   // If a time is already set in Redux, default to that, otherwise default to a time range that
   // covers all of today
@@ -67,10 +63,8 @@ const CustomTimeRangeModal: FC<CustomTimeRangeModalProps> = ({
     const from = Date.parse(`${fromDate} ${fromTime}`);
     const to = Date.parse(`${toDate} ${toTime}`);
     if (_.isInteger(from) && _.isInteger(to)) {
-      dispatch(dashboardsSetEndTime(to));
-      dispatch(dashboardsSetTimespan(to - from));
-      setEndTimeParam(to.toString());
-      setTimeRangeParam((to - from).toString());
+      setEndTimeParam(to);
+      setTimeRangeParam(to - from);
       setClosed();
     }
   };

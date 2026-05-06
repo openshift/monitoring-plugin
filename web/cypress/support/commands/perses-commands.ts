@@ -16,6 +16,7 @@ const PERSES_TEST_DASHBOARD_NAME_PREFIXES = [
   'Dashboard to test rename',
   'Dashboard to test duplication',
   'DashboardToTestDuplication',
+  'Tempo Loki Perses Global Datasources',
 ];
 const PERSES_TEST_DASHBOARD_NAME_EXACT = [
   'Testing Perses dashboard - YAML',

@@ -71,7 +71,7 @@ export const NamespaceModel: K8sModel = {
   kind: 'Namespace',
   id: 'namespace',
   labelPlural: 'Namespaces',
-  labelPluralKey: 'public~Namespaces',
+  labelPluralKey: 'Namespaces',
 };
 
 export const ProjectModel: K8sModel = {
@@ -84,7 +84,7 @@ export const ProjectModel: K8sModel = {
   kind: 'Project',
   id: 'project',
   labelPlural: 'Projects',
-  labelPluralKey: 'public~Projects',
+  labelPluralKey: 'Projects',
 };
 
 export const StatefulSetModel = {

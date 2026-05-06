@@ -1,5 +1,6 @@
-import { getPFVersion } from './utils';
-import { DataTestIDs, Classes, LegacyTestIDs } from '../../src/components/data-test';
+import { DataTestIDs, Classes, LegacyTestIDs, FilterOUIAIDs } from '../../src/components/data-test';
+
+const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 export const listPage = {
   /**
@@ -54,15 +55,32 @@ export const listPage = {
   },
 
   filter: {
+    selectAttribute: (attributeName: string) => {
+      cy.log('listPage.filter.selectAttribute');
+      cy.byOUIAID('DataViewFilters').scrollIntoView();
+      cy.byOUIAID('DataViewFilters')
+        .find('.pf-v6-c-menu-toggle')
+        .first()
+        .then(($toggle) => {
+          if (!$toggle.text().includes(attributeName)) {
+            cy.wrap($toggle).click();
+            cy.get('.pf-v6-c-menu__item').contains(attributeName).click();
+          }
+        });
+    },
+
     /**
      * @param name
      */
-    byName: (name: string) => {
+    byName: (name: string, ouiaId: string = FilterOUIAIDs.AlertNameFilter) => {
       cy.log('listPage.filter.byName');
       try {
-        cy.byTestID(DataTestIDs.NameLabelDropdown).scrollIntoView().click();
-        cy.byTestID(DataTestIDs.NameLabelDropdownOptions).contains('Name').click();
-        cy.byTestID(DataTestIDs.NameInput).scrollIntoView().as('input').should('be.visible');
+        listPage.filter.selectAttribute('Name');
+        cy.byOUIAID(`${ouiaId}-input`)
+          .find('input')
+          .scrollIntoView()
+          .as('input')
+          .should('be.visible');
         cy.get('@input', { timeout: 10000 })
           .scrollIntoView()
           .type(name + '{enter}');
@@ -77,8 +95,7 @@ export const listPage = {
      */
     byLabel: (label: string) => {
       cy.log('listPage.filter.byLabel');
-      cy.byTestID(DataTestIDs.NameLabelDropdown).scrollIntoView().click();
-      cy.byTestID(DataTestIDs.NameLabelDropdownOptions).contains('Label').click();
+      listPage.filter.selectAttribute('Label');
       cy.byLegacyTestID(LegacyTestIDs.ItemFilter).scrollIntoView().as('input').should('be.visible');
       cy.get('@input', { timeout: 10000 })
         .scrollIntoView()
@@ -90,7 +107,8 @@ export const listPage = {
     clearAllFilters: () => {
       cy.log('listPage.filter.clearAllFilters');
       try {
-        cy.bySemanticElement('button', 'Clear all filters').click();
+        cy.byOUIAID('DataViewFilters').scrollIntoView();
+        cy.byOUIAID('DataViewToolbar-clear-all-filters').first().click();
       } catch (error) {
         cy.log(`${error.message}`);
         throw error;
@@ -98,52 +116,30 @@ export const listPage = {
     },
 
     /**
+     * Select a filter option from a checkbox filter.
+     * First selects the filter attribute, then opens the checkbox dropdown and clicks the option.
      *
-     * @param toOpen true = open, false = nothing
-     * @param toClose true = close, false = nothing
+     * @param filterCategory The filter attribute name
+     * ie. 'Alert State', 'Severity', 'Source', 'Silence State'
+     * @param option The option value to select (e.g., 'Firing', 'Critical', 'Platform')
      */
-    clickFilter: (toOpen: boolean, toClose: boolean) => {
-      cy.log('listPage.filter.clickFilter');
-      if (toOpen) {
-        cy.get(Classes.FilterDropdown)
-          .contains('Filter')
-          .scrollIntoView()
-          .should('be.visible')
-          .click();
-      }
-      if (toClose) {
-        cy.get(Classes.FilterDropdownExpanded).contains('Filter').should('be.visible').click();
-      }
-    },
-
-    /**
-     *
-     * @param open true = open, false = nothing
-     * @param option i.e. Firing
-     * @param close true = close, false = nothing
-     */
-    selectFilterOption: (open: boolean, option: string, close: boolean) => {
+    selectFilterOption: (filterCategory: string, option: string) => {
       cy.log('listPage.filter.selectFilterOption');
-      if (open) {
-        listPage.filter.clickFilter(open, false);
-      }
+      listPage.filter.selectAttribute(filterCategory);
+      cy.byOUIAID('DataViewFilters').scrollIntoView();
+      cy.byOUIAID('DataViewFilters')
+        .find(Classes.FilterDropdown)
+        .filter(':visible')
+        .last()
+        .scrollIntoView()
+        .click();
       cy.get(Classes.FilterDropdownOption).contains(option).should('be.visible').click();
-      if (close) {
-        listPage.filter.clickFilter(false, close);
-      }
-    },
-
-    /**
-     *  Click on the X for the whole tag group
-     * @param groupTagName
-     */
-    removeMainTag: (groupTagName: string) => {
-      cy.log('listPage.filter.removeMainTag');
-      cy.get(Classes.MainTag)
-        .contains(groupTagName)
-        .parent()
-        .next('div')
-        .children('button')
+      cy.byOUIAID('DataViewFilters').scrollIntoView();
+      cy.byOUIAID('DataViewFilters')
+        .find(Classes.FilterDropdown)
+        .filter(':visible')
+        .last()
+        .scrollIntoView()
         .click();
     },
 
@@ -157,8 +153,9 @@ export const listPage = {
      */
     removeIndividualTag: (tagName: string) => {
       cy.log('listPage.filter.removeIndividualTag');
+      cy.byOUIAID('DataViewFilters').scrollIntoView();
       cy.get(Classes.IndividualTag)
-        .contains(tagName)
+        .contains(new RegExp(`^${escapeRegExp(tagName)}$`))
         .parent()
         .next('span')
         .children('button')
@@ -172,6 +169,7 @@ export const listPage = {
      */
     clickOn1more: (groupTagName: string) => {
       cy.log('listPage.filter.clickOn1more');
+      cy.byOUIAID('DataViewFilters').scrollIntoView();
       cy.get(Classes.MoreLessTag)
         .contains(groupTagName)
         .siblings('ul')
@@ -187,11 +185,12 @@ export const listPage = {
      */
     clickOnShowLess: (groupTagName: string) => {
       cy.log('listPage.filter.clickOnShowLess');
+      cy.byOUIAID('DataViewFilters').scrollIntoView();
       cy.get(Classes.MoreLessTag)
         .contains(groupTagName)
         .siblings('ul')
         .children('li')
-        .contains('Show less')
+        .contains('Show Less')
         .click();
     },
   },
@@ -208,21 +207,18 @@ export const listPage = {
     //pf-6 only
     ARShouldBe: (alert: string, severity: string, total: number, state: string) => {
       cy.log('listPage.ARRows.ARShouldBe');
-      if (getPFVersion() === 'v6') {
-        cy.byOUIAID('OUIA-Generated-Button-plain').should('exist');
-        cy.byTestID(DataTestIDs.AlertingRuleResourceIcon).contains('AR');
-        cy.byTestID(DataTestIDs.AlertingRuleResourceLink).contains(alert).should('exist');
-        cy.byTestID(DataTestIDs.AlertingRuleSeverityBadge).contains(severity).should('exist');
-        cy.byTestID(DataTestIDs.AlertingRuleTotalAlertsBadge).contains(total).should('exist');
-        cy.byTestID(DataTestIDs.AlertingRuleStateBadge).contains(state).should('exist');
-      }
+      cy.byTestID(DataTestIDs.AlertingRuleResourceIcon).contains('AR');
+      cy.byTestID(DataTestIDs.AlertingRuleResourceLink).contains(alert).should('exist');
+      cy.byTestID(DataTestIDs.AlertingRuleSeverityBadge).contains(severity).should('exist');
+      cy.byTestID(DataTestIDs.AlertingRuleTotalAlertsBadge).contains(total).should('exist');
+      cy.byTestID(DataTestIDs.AlertingRuleStateBadge).contains(state).should('exist');
     },
     AShouldBe: (alert: string, severity: string, namespace: string) => {
       cy.log('listPage.ARRows.AShouldBe');
       cy.byTestID(DataTestIDs.AlertResourceIcon).should('exist');
       cy.byTestID(DataTestIDs.AlertResourceLink).contains(alert).should('exist');
       cy.byTestID(DataTestIDs.SeverityBadge).contains(severity).should('exist');
-      cy.byTestID(DataTestIDs.AlertNamespace).contains(namespace).should('exist'); //pf-6 only
+      cy.byTestID(DataTestIDs.AlertNamespace).contains(namespace).should('exist');
     },
     //pf-6 only
     expandRow: () => {
@@ -232,7 +228,7 @@ export const listPage = {
           if ($provider.find(Classes.ExpandedRow).length > 0) {
             cy.log('Already expanded');
           } else {
-            cy.get(Classes.ToExpandRow, { timeout: 10000 }).eq(2).click();
+            cy.byTestID(DataTestIDs.AlertingRuleArrow).first().find('button').click();
           }
         });
       } catch (error) {
@@ -291,7 +287,7 @@ export const listPage = {
   emptyState: () => {
     cy.log('listPage.emptyState');
     cy.byTestID(DataTestIDs.EmptyBoxBody).contains('No alerts found').should('be.visible');
-    cy.bySemanticElement('button', 'Clear all filters').should('not.exist');
+    cy.byOUIAID('DataViewToolbar-clear-all-filters').should('not.be.visible');
     cy.byTestID(DataTestIDs.DownloadCSVButton).should('not.exist');
     cy.byOUIAID(DataTestIDs.Table).should('not.exist');
   },

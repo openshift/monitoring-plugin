@@ -50,7 +50,8 @@ import { t_global_font_size_heading_h2 } from '@patternfly/react-tokens';
 import { GraphUnits } from '../../../components/metrics/units';
 import { LegacyDashboardPageTestIDs } from '../../../components/data-test';
 import { useMonitoring } from '../../../hooks/useMonitoring';
-import { StringParam, useQueryParam } from 'use-query-params';
+import { useQueryParam } from 'use-query-params';
+import { RefreshIntervalParam, TimeRangeParam } from './utils';
 
 const QueryBrowserLink = ({
   queries,
@@ -99,18 +100,13 @@ const getPanelSpan = (panel: Panel): gridSpans => {
   return 12;
 };
 
-const Card: FC<CardProps> = memo(({ panel, perspective }) => {
+const Card: FC<CardProps> = memo(({ panel, perspective, dashboardName }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { plugin } = useMonitoring();
 
-  const pollInterval = useSelector(
-    (state: MonitoringState) => getObserveState(plugin, state).dashboards.pollInterval,
-  );
-  const timespan = useSelector(
-    (state: MonitoringState) => getObserveState(plugin, state).dashboards.timespan,
-  );
   const variables = useSelector(
-    (state: MonitoringState) => getObserveState(plugin, state).dashboards.variables,
+    (state: MonitoringState) =>
+      getObserveState(plugin, state).dashboards.legacy[dashboardName]?.variables || {},
   );
 
   // Directly use the namespace variable to prevent desync
@@ -125,8 +121,8 @@ const Card: FC<CardProps> = memo(({ panel, perspective }) => {
   const [isChartLoading, setIsChartLoading] = useState<boolean>(panel.type === 'graph');
   const customDataSourceName = panel.datasource?.name;
   const [extensions, extensionsResolved] = useResolvedExtensions<DataSource>(isDataSource);
-  const [, setEndTimeParam] = useQueryParam(QueryParams.EndTime, StringParam);
-  const [, setTimeRangeParam] = useQueryParam(QueryParams.TimeRange, StringParam);
+  const [refreshInterval] = useQueryParam(QueryParams.RefreshInterval, RefreshIntervalParam);
+  const [timeRange] = useQueryParam(QueryParams.TimeRange, TimeRangeParam);
   const hasExtensions = !_.isEmpty(extensions);
 
   const formatSeriesTitle = useCallback(
@@ -250,11 +246,6 @@ const Card: FC<CardProps> = memo(({ panel, perspective }) => {
     });
   }, [extensions, extensionsResolved, customDataSourceName, hasExtensions]);
 
-  const handleZoom = (timeRange: number, endTime: number) => {
-    setEndTimeParam(endTime.toString());
-    setTimeRangeParam(timeRange.toString());
-  };
-
   const panelBreakpoints = useMemo(() => {
     const panelSpan = getPanelSpan(panel);
     return {
@@ -269,7 +260,7 @@ const Card: FC<CardProps> = memo(({ panel, perspective }) => {
     return (
       <>
         {_.map(panel.panels, (p) => (
-          <Card key={p.id} panel={p} perspective={perspective} />
+          <Card key={p.id} panel={p} perspective={perspective} dashboardName={dashboardName} />
         ))}
       </>
     );
@@ -284,7 +275,7 @@ const Card: FC<CardProps> = memo(({ panel, perspective }) => {
     return null;
   }
   const queries = rawQueries.map((expr) =>
-    evaluateVariableTemplate(expr, variables, timespan, namespace?.value ?? ''),
+    evaluateVariableTemplate(expr, variables, timeRange, namespace?.value ?? ''),
   );
   const isLoading =
     (_.some(queries, _.isUndefined) && dataSourceInfoLoading) || customDataSource === undefined;
@@ -337,7 +328,7 @@ const Card: FC<CardProps> = memo(({ panel, perspective }) => {
                 <>
                   {panel.type === 'grafana-piechart-panel' && (
                     <BarChart
-                      pollInterval={pollInterval}
+                      pollInterval={refreshInterval}
                       query={queries[0]}
                       customDataSource={customDataSource}
                     />
@@ -347,11 +338,10 @@ const Card: FC<CardProps> = memo(({ panel, perspective }) => {
                       formatSeriesTitle={formatSeriesTitle}
                       isStack={panel.stack}
                       onLoadingChange={setIsChartLoading}
-                      pollInterval={pollInterval}
+                      pollInterval={refreshInterval}
                       queries={queries}
                       showLegend={panel.legend?.show}
                       units={panel.yaxes?.[0]?.format}
-                      onZoomHandle={handleZoom}
                       customDataSource={customDataSource}
                       onDataChange={(data) => setCsvData(data)}
                     />
@@ -359,7 +349,7 @@ const Card: FC<CardProps> = memo(({ panel, perspective }) => {
                   {(panel.type === 'singlestat' || panel.type === 'gauge') && (
                     <SingleStat
                       panel={panel}
-                      pollInterval={pollInterval}
+                      pollInterval={refreshInterval}
                       query={queries[0]}
                       namespace={namespace?.value ?? ''}
                       customDataSource={customDataSource}
@@ -368,7 +358,7 @@ const Card: FC<CardProps> = memo(({ panel, perspective }) => {
                   {panel.type === 'table' && (
                     <Table
                       panel={panel}
-                      pollInterval={pollInterval}
+                      pollInterval={refreshInterval}
                       queries={queries}
                       namespace={namespace?.value ?? ''}
                       customDataSource={customDataSource}
@@ -384,7 +374,7 @@ const Card: FC<CardProps> = memo(({ panel, perspective }) => {
   );
 });
 
-const PanelsRow: FC<PanelsRowProps> = ({ row, perspective }) => {
+const PanelsRow: FC<PanelsRowProps> = ({ row, perspective, dashboardName }) => {
   const showButton = row.showTitle && !_.isEmpty(row.title);
 
   const [isExpanded, toggleIsExpanded] = useBoolean(showButton ? !row.collapse : true);
@@ -402,7 +392,12 @@ const PanelsRow: FC<PanelsRowProps> = ({ row, perspective }) => {
         <FlexItem>
           <Grid hasGutter>
             {_.map(row.panels, (panel) => (
-              <Card key={panel.id} panel={panel} perspective={perspective} />
+              <Card
+                key={panel.id}
+                panel={panel}
+                perspective={perspective}
+                dashboardName={dashboardName}
+              />
             ))}
           </Grid>
         </FlexItem>
@@ -411,11 +406,11 @@ const PanelsRow: FC<PanelsRowProps> = ({ row, perspective }) => {
   );
 };
 
-export const LegacyDashboard: FC<BoardProps> = ({ rows, perspective }) => (
+export const LegacyDashboard: FC<BoardProps> = ({ rows, perspective, dashboardName }) => (
   <Flex direction={{ default: 'column' }}>
     {rows.map((row) => (
       <FlexItem key={row.panels.map((panel) => `${panel.id}-${row.title}`).join()}>
-        <PanelsRow row={row} perspective={perspective} />
+        <PanelsRow row={row} perspective={perspective} dashboardName={dashboardName} />
       </FlexItem>
     ))}
   </Flex>
@@ -424,14 +419,17 @@ export const LegacyDashboard: FC<BoardProps> = ({ rows, perspective }) => (
 type BoardProps = {
   rows: Row[];
   perspective: Perspective;
+  dashboardName: string;
 };
 
 type CardProps = {
   panel: Panel;
   perspective: Perspective;
+  dashboardName: string;
 };
 
 type PanelsRowProps = {
   row: Row;
   perspective: Perspective;
+  dashboardName: string;
 };

@@ -99,7 +99,7 @@ import { getObserveState } from './hooks/usePerspective';
 import KebabDropdown from './kebab-dropdown';
 import { colors, Error, QueryBrowser } from './query-browser';
 import { QueryParams } from './query-params';
-import TablePagination from './table-pagination';
+import { TablePagination } from './table-pagination';
 import { PrometheusAPIError } from './types';
 import { TypeaheadSelect } from './TypeaheadSelect';
 import { LoadingInline } from './console/console-shared/src/components/loading/LoadingInline';
@@ -1141,6 +1141,9 @@ const QueryBrowserWrapper: FC<{
     if (customDataSourceName) {
       newParams.set(QueryParams.Datasource, customDataSourceName);
     }
+    if (!newParams.get(QueryParams.Units)) {
+      newParams.set(QueryParams.Units, 'short');
+    }
     setQueryParams(newParams);
   }, [queryStrings, customDataSourceName, isFirstRender, queryParams]);
 
@@ -1205,7 +1208,6 @@ const QueryBrowserWrapper: FC<{
   return (
     <QueryBrowser
       customDataSource={customDataSource}
-      defaultTimespan={30 * 60 * 1000}
       disabledSeries={disabledSeries}
       queries={queryStrings}
       units={units}
