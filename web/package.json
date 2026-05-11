@@ -60,7 +60,7 @@
     "fuzzysearch": "1.0.x",
     "i18next": "^21.8.14",
     "i18next-http-backend": "^2.2.0",
-    "immutable": "3.x",
+    "immutable": "^3.8.3",
     "lodash-es": "^4.17.21",
     "murmurhash-js": "1.0.x",
     "react": "^17.0.1",
@@ -121,7 +121,10 @@
     "path-to-regexp": "^1.9.0",
     "cross-spawn": "^7.0.5",
     "qs": "^6.14.1",
-    "http-errors": "2.0.1"
+    "http-errors": "2.0.1",
+    "sass": {
+      "immutable": "^4.3.7"
+    }
   },
   "consolePlugin": {
     "name": "monitoring-plugin",
