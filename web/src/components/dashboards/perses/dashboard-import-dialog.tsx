@@ -28,9 +28,10 @@ import { useEditableProjects } from './hooks/useEditableProjects';
 import { DashboardResource } from '@perses-dev/core';
 import { usePatternFlyTheme } from '../../hooks/usePatternflyTheme';
 import { getDashboardUrl, usePerspective } from '../../hooks/usePerspective';
-import { useCreateDashboardMutation } from './dashboard-api';
+import { useCreateDashboardMutation, useCreateProjectMutation } from './dashboard-api';
 import { useMigrateDashboard } from './migrate-api';
 import { useToast } from './ToastProvider';
+import { usePerses } from './hooks/usePerses';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_MIME_TYPES = ['application/json', 'text/yaml', 'application/x-yaml', 'text/x-yaml'];
@@ -72,6 +73,7 @@ export const DashboardImportDialog: React.FunctionComponent<DashboardImportDialo
   const { addAlert } = useToast();
   const { editableProjects, permissionsError } = useEditableProjects();
   const { theme } = usePatternFlyTheme();
+  const { persesProjects } = usePerses();
 
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
   const [dashboardInput, setDashboardInput] = useState<string>('');
@@ -81,6 +83,7 @@ export const DashboardImportDialog: React.FunctionComponent<DashboardImportDialo
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
   const [isUploadingFile, setIsUploadingFile] = useState(false);
 
+  const createProjectMutation = useCreateProjectMutation();
   const createDashboardMutation = useCreateDashboardMutation();
   const migrateMutation = useMigrateDashboard();
 
@@ -242,6 +245,25 @@ export const DashboardImportDialog: React.FunctionComponent<DashboardImportDialo
     // Capture current values before async operations to prevent race conditions
     const currentProject = selectedProject;
     const currentParsedDashboard = parsedDashboard;
+
+    const projectExistsInPerses = persesProjects.some(
+      (project) => project.metadata.name === currentProject,
+    );
+
+    if (!projectExistsInPerses) {
+      try {
+        await createProjectMutation.mutateAsync(currentProject);
+      } catch (projectError) {
+        const errorMessage =
+          getErrorMessage(projectError) ||
+          t('Failed to create project "{{project}}". Please try again.', {
+            project: currentProject,
+          });
+        addAlert(t('Error creating project: {{error}}', { error: errorMessage }), 'danger');
+        setFormErrors({ general: errorMessage });
+        return;
+      }
+    }
 
     try {
       if (currentParsedDashboard.kind === 'grafana') {
