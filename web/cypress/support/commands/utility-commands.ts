@@ -142,39 +142,47 @@ Cypress.Commands.add('podImage', (pod: string, namespace: string) => {
   cy.clickNavLink(['Workloads', 'Pods']);
   cy.byTestID('page-heading').contains('Pods').should('be.visible');
   cy.changeNamespace(namespace);
-  // Check for DataViewFilters component using Cypress's built-in retry-ability
-  cy.get('body').then(($body) => {
-    const hasDataViewFilters = $body.find('[data-ouia-component-id="DataViewFilters"]').length > 0;
-    let filterSelector: string;
-    if (hasDataViewFilters) {
-      const hasFilterByName = $body.find('[placeholder="Filter by name"]').length > 0;
-      filterSelector = '[placeholder="Filter by name"]';
-      if (!hasFilterByName) {
-        cy.byOUIAID('DataViewFilters')
-          .find('button')
-          .contains('Status')
-          .scrollIntoView()
-          .should('be.visible')
-          .click();
-        cy.byOUIAID('OUIA-Generated-Menu')
-          .find('button')
-          .contains('Name')
-          .scrollIntoView()
-          .should('be.visible')
-          .click();
+
+  const dataViewFiltersSelector = '[data-ouia-component-id="DataViewFilters"]';
+  const legacyFilterSelector = '[data-test="name-filter-input"]';
+  const nameFilterPlaceholder = '[placeholder="Filter by name"]';
+
+  // Wait for either filter variant to appear in the DOM (retries automatically)
+  cy.get(`${dataViewFiltersSelector}, ${legacyFilterSelector}`, { timeout: 30000 })
+    .should('exist')
+    .then(($el) => {
+      if ($el.filter(dataViewFiltersSelector).length > 0) {
+        // DataViewFilters variant — ensure the Name filter input is available
+        cy.get('body').then(($body) => {
+          if ($body.find(nameFilterPlaceholder).length > 0) {
+            cy.get(nameFilterPlaceholder).scrollIntoView().should('be.visible').type(pod);
+          } else {
+            cy.byOUIAID('DataViewFilters')
+              .find('button')
+              .contains('Status')
+              .scrollIntoView()
+              .should('be.visible')
+              .click();
+            cy.byOUIAID('OUIA-Generated-Menu')
+              .find('button')
+              .contains('Name')
+              .scrollIntoView()
+              .should('be.visible')
+              .click();
+            cy.get(nameFilterPlaceholder).scrollIntoView().should('be.visible').type(pod);
+          }
+        });
+      } else {
+        // Legacy filter variant
+        cy.get(legacyFilterSelector).scrollIntoView().should('be.visible').type(pod);
       }
-    } else {
-      filterSelector = '[data-test="name-filter-input"]';
-    }
-    cy.get(filterSelector).scrollIntoView().should('be.visible');
-    cy.get(filterSelector).type(pod);
-  });
-  cy.get(`a[data-test^="${pod}"]`).eq(0).as('podLink').click();
-    cy.get('@podLink').should('be.visible').click();
-    cy.byPFRole('rowgroup').find('td').eq(1).scrollIntoView().should('be.visible').then(($td) => {
-      cy.log('Pod image: ' + $td.text());
     });
-    cy.log('Get pod image completed');
+
+  cy.get(`a[data-test^="${pod}"]`).eq(0).should('be.visible').click();
+  cy.byPFRole('rowgroup').find('td').eq(1).scrollIntoView().should('be.visible').then(($td) => {
+    cy.log('Pod image: ' + $td.text());
+  });
+  cy.log('Get pod image completed');
 });
 
 Cypress.Commands.add('assertNamespace', (namespace: string, exists: boolean) => {
