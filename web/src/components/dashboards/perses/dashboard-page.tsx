@@ -10,6 +10,7 @@ import { DashboardFrame } from './dashboard-frame';
 import { ProjectEmptyState } from './emptystates/ProjectEmptyState';
 import { useDashboardsData } from './hooks/useDashboardsData';
 import { ToastProvider } from './ToastProvider';
+import './dashboard-page.css';
 
 const queryClient = new QueryClient({
   defaultOptions: {
