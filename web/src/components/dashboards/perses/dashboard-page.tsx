@@ -18,6 +18,7 @@ import {
   Spinner,
 } from '@patternfly/react-core';
 import { SearchIcon } from '@patternfly/react-icons';
+import './dashboard-page.css';
 
 const queryClient = new QueryClient({
   defaultOptions: {
