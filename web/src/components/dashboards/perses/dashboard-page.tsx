@@ -10,6 +10,7 @@ import { ProjectEmptyState } from './emptystates/ProjectEmptyState';
 import { useDashboardsData } from './hooks/useDashboardsData';
 import { ToastProvider } from './ToastProvider';
 import { ReactRouter7Adapter } from '../../../react-router-7-adapter';
+import './dashboard-page.css';
 
 const queryClient = new QueryClient({
   defaultOptions: {
