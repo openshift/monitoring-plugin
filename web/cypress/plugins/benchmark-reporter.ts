@@ -67,10 +67,14 @@ export function injectBenchmarksIntoMochawesome(specRelative: string): void {
   const report = fs.readJsonSync(reportPath);
 
   let injected = false;
-  const suites = (report.results || []).flatMap((r: any) => r.suites || []);
-  for (const suite of suites) {
-    for (const test of suite.tests || []) {
-      const matched = benchmarks.filter((b: any) => test.code && test.code.includes(b.label));
+  const suites = (report.results || []).flatMap(
+    (r: Record<string, unknown>) => (r.suites as unknown[]) || [],
+  );
+  for (const suite of suites as Array<Record<string, unknown>>) {
+    for (const test of (suite.tests || []) as Array<Record<string, unknown>>) {
+      const matched = benchmarks.filter(
+        (b) => test.code && (test.code as string).includes(b.label),
+      );
       if (matched.length > 0) {
         test.context = JSON.stringify([{ title: 'Benchmark Results', value: matched }]);
         injected = true;

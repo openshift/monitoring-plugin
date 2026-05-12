@@ -54,7 +54,7 @@ const collector = new BenchmarkCollector('01.performance_benchmark.cy.ts');
 
 describe(
   'Regression: Performance Benchmark',
-  { tags: ['@demo', '@incidents', '@performance', '@regression'], numTestsKeptInMemory: 0 },
+  { tags: ['@incidents', '@performance', '@regression'], numTestsKeptInMemory: 0 },
   () => {
     before(() => {
       cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
