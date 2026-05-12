@@ -62,7 +62,7 @@ import {
 } from '@patternfly/react-table';
 import * as _ from 'lodash-es';
 import type { FC, Ref } from 'react';
-import { useMemo, useCallback, useEffect, useState } from 'react';
+import { useMemo, useCallback, useEffect, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -1338,7 +1338,7 @@ const MetricsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const [units, setUnits] = useQueryParam(QueryParams.Units, StringParam);
   const [customDataSourceName] = useQueryParam(QueryParams.Datasource, StringParam);
-  const { setNamespace } = useMonitoringNamespace();
+  const { namespace, setNamespace } = useMonitoringNamespace();
   const { displayNamespaceSelector } = useMonitoring();
 
   const dispatch = useDispatch();
@@ -1402,6 +1402,17 @@ const MetricsPage_: FC = () => {
       setCustomDataSourceError(true);
     });
   }, [extensions, extensionsResolved, customDataSourceName, hasExtensions]);
+
+  const prevNamespace = useRef(namespace);
+  useEffect(() => {
+    // In the developer perspective (display namespace selector is false since all dev perspective
+    // pages add them automatically) then clear queries when the namespace changes
+    if (prevNamespace.current === namespace || displayNamespaceSelector) {
+      return;
+    }
+    prevNamespace.current = namespace;
+    dispatch(queryBrowserDeleteAllQueries());
+  }, [namespace, dispatch, setNamespace]);
 
   if (customDataSourceName) {
     if (!extensionsResolved || (!customDataSourceIsResolved && !customDatasourceError)) {
