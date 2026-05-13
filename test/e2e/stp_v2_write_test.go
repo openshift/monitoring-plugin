@@ -10,13 +10,10 @@ import (
 	"testing"
 	"time"
 
-	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"github.com/openshift/monitoring-plugin/internal/managementrouter"
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
-	"github.com/openshift/monitoring-plugin/pkg/management"
 	"github.com/openshift/monitoring-plugin/test/e2e/framework"
 )
 
@@ -31,20 +28,19 @@ func testPhase4Create(f *framework.Framework, ids *seedRuleIDs) func(t *testing.
 		t.Run("TC024_CreateUserDefinedRule", func(t *testing.T) {
 				t.Skip("Requires user-workload namespace (UWM not available when plugin runs locally against platform Prometheus only)")
 
-			forDur := monitoringv1.Duration("1m")
 			body := managementrouter.CreateAlertRuleRequest{
-				AlertingRule: &monitoringv1.Rule{
-					Alert: "TestCreatedUserAlert",
-					Expr:  intstr.FromString("vector(2)"),
-					For:   &forDur,
-					Labels: map[string]string{
+				AlertingRule: &managementrouter.AlertRuleSpec{
+					Alert: strPtr("TestCreatedUserAlert"),
+					Expr:  strPtr("vector(2)"),
+					For:   strPtr("1m"),
+					Labels: &map[string]string{
 						"severity":     "warning",
 						"test_created": "true",
 					},
 				},
-				PrometheusRule: &management.PrometheusRuleOptions{
-					Name:      "test-user-rule",
-					Namespace: seedNamespace,
+				PrometheusRule: &managementrouter.PrometheusRuleTarget{
+					PrometheusRuleName:      "test-user-rule",
+					PrometheusRuleNamespace: seedNamespace,
 				},
 			}
 
@@ -85,14 +81,13 @@ func testPhase4Create(f *framework.Framework, ids *seedRuleIDs) func(t *testing.
 		})
 
 		t.Run("TC025_CreatePlatformRule", func(t *testing.T) {
-			forDur := monitoringv1.Duration("5m")
 			uniqueExpr := fmt.Sprintf("vector(%d)", time.Now().UnixNano()%100000)
 			body := managementrouter.CreateAlertRuleRequest{
-				AlertingRule: &monitoringv1.Rule{
-					Alert: "TestCreatedPlatformAlert",
-					Expr:  intstr.FromString(uniqueExpr),
-					For:   &forDur,
-					Labels: map[string]string{
+				AlertingRule: &managementrouter.AlertRuleSpec{
+					Alert: strPtr("TestCreatedPlatformAlert"),
+					Expr:  strPtr(uniqueExpr),
+					For:   strPtr("5m"),
+					Labels: &map[string]string{
 						"severity": "info",
 					},
 				},
@@ -116,19 +111,18 @@ func testPhase4Create(f *framework.Framework, ids *seedRuleIDs) func(t *testing.
 		})
 
 		t.Run("TC026_CreateInGitOpsPR", func(t *testing.T) {
-			forDur := monitoringv1.Duration("1m")
 			body := managementrouter.CreateAlertRuleRequest{
-				AlertingRule: &monitoringv1.Rule{
-					Alert: "TestGitOpsBlocked",
-					Expr:  intstr.FromString("vector(1)"),
-					For:   &forDur,
-					Labels: map[string]string{
+				AlertingRule: &managementrouter.AlertRuleSpec{
+					Alert: strPtr("TestGitOpsBlocked"),
+					Expr:  strPtr("vector(1)"),
+					For:   strPtr("1m"),
+					Labels: &map[string]string{
 						"severity": "warning",
 					},
 				},
-				PrometheusRule: &management.PrometheusRuleOptions{
-					Name:      "test-gitops-user-rule",
-					Namespace: seedNamespace,
+				PrometheusRule: &managementrouter.PrometheusRuleTarget{
+					PrometheusRuleName:      "test-gitops-user-rule",
+					PrometheusRuleNamespace: seedNamespace,
 				},
 			}
 
@@ -142,19 +136,18 @@ func testPhase4Create(f *framework.Framework, ids *seedRuleIDs) func(t *testing.
 		})
 
 		t.Run("TC027_CreateInOperatorPR", func(t *testing.T) {
-			forDur := monitoringv1.Duration("1m")
 			body := managementrouter.CreateAlertRuleRequest{
-				AlertingRule: &monitoringv1.Rule{
-					Alert: "TestOperatorBlocked",
-					Expr:  intstr.FromString("vector(1)"),
-					For:   &forDur,
-					Labels: map[string]string{
+				AlertingRule: &managementrouter.AlertRuleSpec{
+					Alert: strPtr("TestOperatorBlocked"),
+					Expr:  strPtr("vector(1)"),
+					For:   strPtr("1m"),
+					Labels: &map[string]string{
 						"severity": "warning",
 					},
 				},
-				PrometheusRule: &management.PrometheusRuleOptions{
-					Name:      "test-operator-managed-user-rule",
-					Namespace: seedNamespace,
+				PrometheusRule: &managementrouter.PrometheusRuleTarget{
+					PrometheusRuleName:      "test-operator-managed-user-rule",
+					PrometheusRuleNamespace: seedNamespace,
 				},
 			}
 
@@ -168,19 +161,18 @@ func testPhase4Create(f *framework.Framework, ids *seedRuleIDs) func(t *testing.
 		})
 
 		t.Run("TC028_CreateInPlatformNS", func(t *testing.T) {
-			forDur := monitoringv1.Duration("1m")
 			body := managementrouter.CreateAlertRuleRequest{
-				AlertingRule: &monitoringv1.Rule{
-					Alert: "TestPlatformNSBlocked",
-					Expr:  intstr.FromString("vector(1)"),
-					For:   &forDur,
-					Labels: map[string]string{
+				AlertingRule: &managementrouter.AlertRuleSpec{
+					Alert: strPtr("TestPlatformNSBlocked"),
+					Expr:  strPtr("vector(1)"),
+					For:   strPtr("1m"),
+					Labels: &map[string]string{
 						"severity": "warning",
 					},
 				},
-				PrometheusRule: &management.PrometheusRuleOptions{
-					Name:      "test-user-platform-rule",
-					Namespace: k8s.ClusterMonitoringNamespace,
+				PrometheusRule: &managementrouter.PrometheusRuleTarget{
+					PrometheusRuleName:      "test-user-platform-rule",
+					PrometheusRuleNamespace: k8s.ClusterMonitoringNamespace,
 				},
 			}
 
@@ -194,19 +186,18 @@ func testPhase4Create(f *framework.Framework, ids *seedRuleIDs) func(t *testing.
 		})
 
 		t.Run("TC029_CreateDuplicate", func(t *testing.T) {
-			forDur := monitoringv1.Duration("5m")
 			body := managementrouter.CreateAlertRuleRequest{
-				AlertingRule: &monitoringv1.Rule{
-					Alert: "TestUserAlert",
-					Expr:  intstr.FromString("vector(1)"),
-					For:   &forDur,
-					Labels: map[string]string{
+				AlertingRule: &managementrouter.AlertRuleSpec{
+					Alert: strPtr("TestUserAlert"),
+					Expr:  strPtr("vector(1)"),
+					For:   strPtr("5m"),
+					Labels: &map[string]string{
 						"severity": "warning",
 					},
 				},
-				PrometheusRule: &management.PrometheusRuleOptions{
-					Name:      "test-user-rule",
-					Namespace: seedNamespace,
+				PrometheusRule: &managementrouter.PrometheusRuleTarget{
+					PrometheusRuleName:      "test-user-rule",
+					PrometheusRuleNamespace: seedNamespace,
 				},
 			}
 
@@ -222,9 +213,9 @@ func testPhase4Create(f *framework.Framework, ids *seedRuleIDs) func(t *testing.
 		t.Run("TC030_CreateInputValidation", func(t *testing.T) {
 			t.Run("TC030a_MissingAlertingRule", func(t *testing.T) {
 				body := managementrouter.CreateAlertRuleRequest{
-					PrometheusRule: &management.PrometheusRuleOptions{
-						Name:      "test-user-rule",
-						Namespace: seedNamespace,
+					PrometheusRule: &managementrouter.PrometheusRuleTarget{
+						PrometheusRuleName:      "test-user-rule",
+						PrometheusRuleNamespace: seedNamespace,
 					},
 				}
 
@@ -239,14 +230,13 @@ func testPhase4Create(f *framework.Framework, ids *seedRuleIDs) func(t *testing.
 
 			t.Run("TC030b_MissingPrometheusRule", func(t *testing.T) {
 				// POST with only alertingRule (no prometheusRule) -> HTTP 201 per actual code
-				forDur := monitoringv1.Duration("5m")
 				uniqueExpr := fmt.Sprintf("vector(%d)", time.Now().UnixNano()%100000+1)
 				body := managementrouter.CreateAlertRuleRequest{
-					AlertingRule: &monitoringv1.Rule{
-						Alert: "TestTC030bPlatformAlert",
-						Expr:  intstr.FromString(uniqueExpr),
-						For:   &forDur,
-						Labels: map[string]string{
+					AlertingRule: &managementrouter.AlertRuleSpec{
+						Alert: strPtr("TestTC030bPlatformAlert"),
+						Expr:  strPtr(uniqueExpr),
+						For:   strPtr("5m"),
+						Labels: &map[string]string{
 							"severity": "info",
 						},
 					},
@@ -387,7 +377,6 @@ func testPhase6SingleUpdate(f *framework.Framework, ids *seedRuleIDs) func(t *te
 		t.Run("TC036_UpdateUserDefined", func(t *testing.T) {
 				t.Skip("Requires user-workload namespace (UWM not available when plugin runs locally against platform Prometheus only)")
 
-			forDur := monitoringv1.Duration("2m")
 			body := map[string]interface{}{
 				"alertingRule": map[string]interface{}{
 					"alert": "TestUserAlert",
@@ -402,7 +391,6 @@ func testPhase6SingleUpdate(f *framework.Framework, ids *seedRuleIDs) func(t *te
 					},
 				},
 			}
-			_ = forDur
 
 			httpStatus, resp, err := patchRule(ctx, f.PluginURL, ids.UserRule, body)
 			if err != nil {
@@ -546,7 +534,7 @@ func testPhase7BulkUpdate(f *framework.Framework, ids *seedRuleIDs) func(t *test
 
 			for _, r := range resp.Rules {
 				if r.StatusCode != http.StatusNoContent {
-					t.Errorf("Rule %s: expected inner 204, got %d (message: %s)", r.Id, r.StatusCode, r.Message)
+					t.Errorf("Rule %s: expected inner 204, got %d (message: %v)", r.Id, r.StatusCode, r.Message)
 				}
 			}
 		})
@@ -568,7 +556,7 @@ func testPhase7BulkUpdate(f *framework.Framework, ids *seedRuleIDs) func(t *test
 
 			for _, r := range resp.Rules {
 				if r.StatusCode != http.StatusNoContent {
-					t.Errorf("Rule %s: expected inner 204, got %d (message: %s)", r.Id, r.StatusCode, r.Message)
+					t.Errorf("Rule %s: expected inner 204, got %d (message: %v)", r.Id, r.StatusCode, r.Message)
 				}
 			}
 		})
@@ -743,20 +731,19 @@ func testPhase9BulkDelete(f *framework.Framework, ids *seedRuleIDs) func(t *test
 				t.Skip("Requires user-workload namespace (UWM not available when plugin runs locally against platform Prometheus only)")
 
 			// Create 2 temporary rules
-			forDur := monitoringv1.Duration("1m")
 			for _, alertName := range []string{"TestBulkDeleteTmp1", "TestBulkDeleteTmp2"} {
 				body := managementrouter.CreateAlertRuleRequest{
-					AlertingRule: &monitoringv1.Rule{
-						Alert: alertName,
-						Expr:  intstr.FromString("vector(1)"),
-						For:   &forDur,
-						Labels: map[string]string{
+					AlertingRule: &managementrouter.AlertRuleSpec{
+						Alert: strPtr(alertName),
+						Expr:  strPtr("vector(1)"),
+						For:   strPtr("1m"),
+						Labels: &map[string]string{
 							"severity": "info",
 						},
 					},
-					PrometheusRule: &management.PrometheusRuleOptions{
-						Name:      "test-user-rule",
-						Namespace: seedNamespace,
+					PrometheusRule: &managementrouter.PrometheusRuleTarget{
+						PrometheusRuleName:      "test-user-rule",
+						PrometheusRuleNamespace: seedNamespace,
 					},
 				}
 				statusCode, respBody, err := postRule(ctx, f.PluginURL, body)
@@ -773,7 +760,7 @@ func testPhase9BulkDelete(f *framework.Framework, ids *seedRuleIDs) func(t *test
 			id2 := pollForRuleID(ctx, t, f.PluginURL, "TestBulkDeleteTmp2", 3*time.Minute)
 
 			// Bulk delete
-			body := managementrouter.BulkDeleteUserDefinedAlertRulesRequest{
+			body := managementrouter.BulkDeleteAlertRulesRequest{
 				RuleIds: []string{id1, id2},
 			}
 
@@ -787,7 +774,7 @@ func testPhase9BulkDelete(f *framework.Framework, ids *seedRuleIDs) func(t *test
 
 			for _, r := range resp.Rules {
 				if r.StatusCode != http.StatusNoContent {
-					t.Errorf("Rule %s: expected 204, got %d (message: %s)", r.Id, r.StatusCode, r.Message)
+					t.Errorf("Rule %s: expected 204, got %d (message: %v)", r.Id, r.StatusCode, r.Message)
 				}
 			}
 
@@ -809,19 +796,18 @@ func testPhase9BulkDelete(f *framework.Framework, ids *seedRuleIDs) func(t *test
 				t.Skip("Requires user-workload namespace (UWM not available when plugin runs locally against platform Prometheus only)")
 
 			// Create 1 temporary user rule
-			forDur := monitoringv1.Duration("1m")
 			createBody := managementrouter.CreateAlertRuleRequest{
-				AlertingRule: &monitoringv1.Rule{
-					Alert: "TestBulkDeletePartial",
-					Expr:  intstr.FromString("vector(1)"),
-					For:   &forDur,
-					Labels: map[string]string{
+				AlertingRule: &managementrouter.AlertRuleSpec{
+					Alert: strPtr("TestBulkDeletePartial"),
+					Expr:  strPtr("vector(1)"),
+					For:   strPtr("1m"),
+					Labels: &map[string]string{
 						"severity": "info",
 					},
 				},
-				PrometheusRule: &management.PrometheusRuleOptions{
-					Name:      "test-user-rule",
-					Namespace: seedNamespace,
+				PrometheusRule: &managementrouter.PrometheusRuleTarget{
+					PrometheusRuleName:      "test-user-rule",
+					PrometheusRuleNamespace: seedNamespace,
 				},
 			}
 			statusCode, respBody, err := postRule(ctx, f.PluginURL, createBody)
@@ -834,7 +820,7 @@ func testPhase9BulkDelete(f *framework.Framework, ids *seedRuleIDs) func(t *test
 
 			tempID := pollForRuleID(ctx, t, f.PluginURL, "TestBulkDeletePartial", 3*time.Minute)
 
-			body := managementrouter.BulkDeleteUserDefinedAlertRulesRequest{
+			body := managementrouter.BulkDeleteAlertRulesRequest{
 				RuleIds: []string{tempID, ids.GitOpsRule},
 			}
 
@@ -857,7 +843,7 @@ func testPhase9BulkDelete(f *framework.Framework, ids *seedRuleIDs) func(t *test
 		})
 
 		t.Run("TC051_BulkDeleteNonexistent", func(t *testing.T) {
-			body := managementrouter.BulkDeleteUserDefinedAlertRulesRequest{
+			body := managementrouter.BulkDeleteAlertRulesRequest{
 				RuleIds: []string{"nonexistent-id-1", "nonexistent-id-2"},
 			}
 

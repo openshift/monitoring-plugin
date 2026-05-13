@@ -260,14 +260,14 @@ func postRule(ctx context.Context, pluginURL string, body interface{}) (int, []b
 }
 
 // patchRule sends PATCH /rules/{ruleId} and returns status code + parsed response.
-func patchRule(ctx context.Context, pluginURL string, ruleID string, body interface{}) (int, *managementrouter.UpdateAlertRuleResponse, error) {
+func patchRule(ctx context.Context, pluginURL string, ruleID string, body interface{}) (int, *managementrouter.UpdateAlertRuleResult, error) {
 	u := fmt.Sprintf("%s/api/v1/alerting/rules/%s", pluginURL, ruleID)
 	resp, respBody, err := doHTTPRequest(ctx, http.MethodPatch, u, body)
 	if err != nil {
 		return 0, nil, err
 	}
 
-	var parsed managementrouter.UpdateAlertRuleResponse
+	var parsed managementrouter.UpdateAlertRuleResult
 	if err := json.Unmarshal(respBody, &parsed); err != nil {
 		return resp.StatusCode, nil, fmt.Errorf("decode patch response: %w (body: %s)", err, string(respBody))
 	}
@@ -290,7 +290,7 @@ func patchRulesBulk(ctx context.Context, pluginURL string, body interface{}) (in
 
 // patchSingleRuleViaBulk sends PATCH /rules with a single ruleId, wrapping the
 // single-rule operation through the bulk endpoint. Returns the first result.
-func patchSingleRuleViaBulk(ctx context.Context, pluginURL string, ruleID string, body map[string]interface{}) (int, *managementrouter.UpdateAlertRuleResponse, error) {
+func patchSingleRuleViaBulk(ctx context.Context, pluginURL string, ruleID string, body map[string]interface{}) (int, *managementrouter.UpdateAlertRuleResult, error) {
 	bulkBody := map[string]interface{}{
 		"ruleIds": []string{ruleID},
 	}
@@ -311,7 +311,7 @@ func patchSingleRuleViaBulk(ctx context.Context, pluginURL string, ruleID string
 // deleteSingleRuleViaBulk sends DELETE /rules with a single ruleId, wrapping the
 // single-rule operation through the bulk endpoint. Returns the first result's status code.
 func deleteSingleRuleViaBulk(ctx context.Context, pluginURL string, ruleID string) (int, error) {
-	body := managementrouter.BulkDeleteUserDefinedAlertRulesRequest{
+	body := managementrouter.BulkDeleteAlertRulesRequest{
 		RuleIds: []string{ruleID},
 	}
 	_, resp, err := deleteRulesBulk(ctx, pluginURL, body)
@@ -321,7 +321,7 @@ func deleteSingleRuleViaBulk(ctx context.Context, pluginURL string, ruleID strin
 	if len(resp.Rules) == 0 {
 		return 0, fmt.Errorf("bulk delete returned 0 results")
 	}
-	return resp.Rules[0].StatusCode, nil
+	return int(resp.Rules[0].StatusCode), nil
 }
 
 // deleteRule sends DELETE /rules/{ruleId} and returns the HTTP status code + body.
@@ -335,13 +335,13 @@ func deleteRule(ctx context.Context, pluginURL string, ruleID string) (int, []by
 }
 
 // deleteRulesBulk sends DELETE /rules (bulk) and returns status code + parsed response.
-func deleteRulesBulk(ctx context.Context, pluginURL string, body interface{}) (int, *managementrouter.BulkDeleteUserDefinedAlertRulesResponse, error) {
+func deleteRulesBulk(ctx context.Context, pluginURL string, body interface{}) (int, *managementrouter.BulkDeleteAlertRulesResponse, error) {
 	resp, respBody, err := doHTTPRequest(ctx, http.MethodDelete, pluginURL+"/api/v1/alerting/rules", body)
 	if err != nil {
 		return 0, nil, err
 	}
 
-	var parsed managementrouter.BulkDeleteUserDefinedAlertRulesResponse
+	var parsed managementrouter.BulkDeleteAlertRulesResponse
 	if err := json.Unmarshal(respBody, &parsed); err != nil {
 		return resp.StatusCode, nil, fmt.Errorf("decode bulk delete response: %w (body: %s)", err, string(respBody))
 	}
@@ -470,24 +470,24 @@ func pollForRuleAbsent(ctx context.Context, t *testing.T, pluginURL string, aler
 // ---------------------------------------------------------------------------
 
 // assertPatchSuccess asserts outer HTTP 200 and inner status_code 204.
-func assertPatchSuccess(t *testing.T, httpStatus int, resp *managementrouter.UpdateAlertRuleResponse) {
+func assertPatchSuccess(t *testing.T, httpStatus int, resp *managementrouter.UpdateAlertRuleResult) {
 	t.Helper()
 	if httpStatus != http.StatusOK {
 		t.Fatalf("Expected outer HTTP 200, got %d", httpStatus)
 	}
-	if resp.StatusCode != http.StatusNoContent {
-		t.Fatalf("Expected inner status_code 204, got %d (message: %s)", resp.StatusCode, resp.Message)
+	if int(resp.StatusCode) != http.StatusNoContent {
+		t.Fatalf("Expected inner status_code 204, got %d (message: %v)", resp.StatusCode, resp.Message)
 	}
 }
 
 // assertPatchStatusCode asserts outer HTTP 200 and a specific inner status_code.
-func assertPatchStatusCode(t *testing.T, httpStatus int, resp *managementrouter.UpdateAlertRuleResponse, expected int) {
+func assertPatchStatusCode(t *testing.T, httpStatus int, resp *managementrouter.UpdateAlertRuleResult, expected int) {
 	t.Helper()
 	if httpStatus != http.StatusOK {
 		t.Fatalf("Expected outer HTTP 200, got %d", httpStatus)
 	}
-	if resp.StatusCode != expected {
-		t.Fatalf("Expected inner status_code %d, got %d (message: %s)", expected, resp.StatusCode, resp.Message)
+	if int(resp.StatusCode) != expected {
+		t.Fatalf("Expected inner status_code %d, got %d (message: %v)", expected, resp.StatusCode, resp.Message)
 	}
 }
 
@@ -604,7 +604,3 @@ func boolPtr(b bool) *bool {
 	return &b
 }
 
-// strPtr returns a pointer to a string value.
-func strPtr(s string) *string {
-	return &s
-}

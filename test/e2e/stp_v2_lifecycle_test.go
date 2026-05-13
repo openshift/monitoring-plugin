@@ -12,7 +12,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"github.com/openshift/monitoring-plugin/internal/managementrouter"
-	"github.com/openshift/monitoring-plugin/pkg/management"
 	"github.com/openshift/monitoring-plugin/test/e2e/framework"
 )
 
@@ -56,19 +55,18 @@ func testPhase10CRUDLifecycle(f *framework.Framework) func(t *testing.T) {
 			_ = pollForRuleID(ctx, t, f.PluginURL, "TestLifecycleSeed", 3*time.Minute)
 
 			// Step 4: POST to create TestLifecycleCreated
-			createForDur := monitoringv1.Duration("1m")
 			createBody := managementrouter.CreateAlertRuleRequest{
-				AlertingRule: &monitoringv1.Rule{
-					Alert: "TestLifecycleCreated",
-					Expr:  intstr.FromString("vector(2)"),
-					For:   &createForDur,
-					Labels: map[string]string{
+				AlertingRule: &managementrouter.AlertRuleSpec{
+					Alert: strPtr("TestLifecycleCreated"),
+					Expr:  strPtr("vector(2)"),
+					For:   strPtr("1m"),
+					Labels: &map[string]string{
 						"severity": "info",
 					},
 				},
-				PrometheusRule: &management.PrometheusRuleOptions{
-					Name:      "test-lifecycle-rule",
-					Namespace: testNamespace,
+				PrometheusRule: &managementrouter.PrometheusRuleTarget{
+					PrometheusRuleName:      "test-lifecycle-rule",
+					PrometheusRuleNamespace: testNamespace,
 				},
 			}
 
