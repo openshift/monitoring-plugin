@@ -257,7 +257,8 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({ id, name 
   ]);
 
   useEffect(() => {
-    if (variable?.value !== queryParam) {
+    // Wait to set variable and query values until all options have been loaded
+    if (variable?.value !== queryParam && options?.length > 0) {
       // Default to using the query param to allow for sharable links
       if (queryParam) {
         dispatch(dashboardsPatchVariable(name, { value: queryParam }));
