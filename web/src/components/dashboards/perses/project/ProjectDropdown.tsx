@@ -234,6 +234,13 @@ const ProjectDropdown: React.FC<ProjectDropdownProps> = ({
         <Tooltip content={t('Checking permissions...')} position={TooltipPosition.bottom}>
           {toggle}
         </Tooltip>
+      ) : permissionsError ? (
+        <Tooltip
+          content={t('Failed to load project permissions. Please refresh the page and try again.')}
+          position={TooltipPosition.bottom}
+        >
+          {toggle}
+        </Tooltip>
       ) : (
         toggle
       )}
