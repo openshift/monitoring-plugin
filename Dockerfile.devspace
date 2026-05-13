@@ -20,6 +20,7 @@ RUN make install-backend
 COPY config/ config/
 COPY cmd/ cmd/
 COPY pkg/ pkg/
+COPY internal/ internal/
 
 RUN make build-backend
 
