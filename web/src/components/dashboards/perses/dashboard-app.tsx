@@ -107,7 +107,7 @@ export const OCPDashboardApp = (props: DashboardAppProps): React.ReactElement =>
 
   const onEditButtonClick = (): void => {
     setEditMode(true);
-    setOriginalDashboard(dashboard);
+    setOriginalDashboard(dashboard as DashboardResource);
     setSavedDatasources(dashboard.spec.datasources ?? {});
   };
 
