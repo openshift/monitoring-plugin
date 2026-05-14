@@ -13,6 +13,8 @@ import {
   TextInput,
   EmptyStateActions,
   EmptyStateFooter,
+  Tooltip,
+  TooltipPosition,
 } from '@patternfly/react-core';
 import fuzzysearch from 'fuzzysearch';
 import { useTranslation } from 'react-i18next';
@@ -201,25 +203,47 @@ const ProjectDropdown: React.FC<ProjectDropdownProps> = ({
     menuRef,
   };
 
-  if (permissionsLoading || permissionsError || !allProjects || allProjects.length === 0) {
-    return null;
+  let title = t('All Projects');
+  // While loading permissions, or if there is a permission error fallback to the "selected" value
+  // 'All Projects' is the user friendly ALL_NAMESPACES_KEY
+  if (
+    selected &&
+    (allProjects?.includes(selected) || permissionsLoading || !!permissionsError) &&
+    selected !== ALL_NAMESPACES_KEY
+  ) {
+    title = selected;
   }
 
-  const title = selected && allProjects.includes(selected) ? selected : t('All Projects');
+  const toggle = (
+    <ProjectMenuToggle
+      disabled={disabled || permissionsLoading || !!permissionsError}
+      menu={<ProjectMenu {...menuProps} />}
+      menuRef={menuRef}
+      isOpen={isOpen}
+      title={`${t('Project')}: ${title}`}
+      onToggle={(menuState) => {
+        setOpen(menuState);
+      }}
+      shortCut={shortCut}
+    />
+  );
 
   return (
     <div className="co-namespace-dropdown">
-      <ProjectMenuToggle
-        disabled={disabled}
-        menu={<ProjectMenu {...menuProps} />}
-        menuRef={menuRef}
-        isOpen={isOpen}
-        title={`${t('Project')}: ${title}`}
-        onToggle={(menuState) => {
-          setOpen(menuState);
-        }}
-        shortCut={shortCut}
-      />
+      {permissionsLoading ? (
+        <Tooltip content={t('Checking permissions...')} position={TooltipPosition.bottom}>
+          {toggle}
+        </Tooltip>
+      ) : permissionsError ? (
+        <Tooltip
+          content={t('Failed to load project permissions. Please refresh the page and try again.')}
+          position={TooltipPosition.bottom}
+        >
+          {toggle}
+        </Tooltip>
+      ) : (
+        toggle
+      )}
     </div>
   );
 };
