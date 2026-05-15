@@ -2,8 +2,7 @@ import { nav } from './nav';
 import { DataTestIDs } from '../../src/components/data-test';
 
 // Hard timeout safety net for findIncidentWithAlert retry loops.
-// Prevents infinite loops if cy.waitUntil's timeout mechanism fails
-// (e.g., due to cy.reload() interfering with the Cypress command queue).
+// Prevents infinite loops if cy.waitUntil's timeout mechanism fails.
 let _findIncidentSearchStart: number | null = null;
 const _FIND_INCIDENT_HARD_TIMEOUT_MS = 35 * 60 * 1000; // 35 minutes
 
@@ -354,39 +353,101 @@ export const incidentsPage = {
     });
   },
 
+  // The first-level filter type option for Incident ID uses a hardcoded
+  // data-test suffix "incident-id" (hyphenated), unlike Severity/State which
+  // use the lowercased name directly. This map resolves the mismatch.
+  _filterTypeDataTestSuffix: {
+    Severity: 'severity',
+    State: 'state',
+    'Incident ID': 'incident-id',
+  } as Record<string, string>,
+
+  // The second-level filter selectors (toggle, list, options) use the
+  // lowercased categoryName from ToolbarItemFilter — with a space for
+  // Incident ID.
+  _filterValueKey: {
+    Severity: 'severity',
+    State: 'state',
+    'Incident ID': 'incident id',
+  } as Record<string, string>,
+
+  ensureFilterTypeSelected: (filterType: 'Severity' | 'State' | 'Incident ID') => {
+    const valueKey = incidentsPage._filterValueKey[filterType];
+    const toggleId = DataTestIDs.IncidentsPage.FiltersSelectToggle;
+    const valueToggleSelector = `[data-test="${toggleId}-${valueKey}"]`;
+
+    cy.wait(500, _qLog());
+
+    // If the value toggle is already visible (filter type already selected), skip
+    // re-selecting the filter type. Re-selecting triggers a React re-render and can
+    // leave PatternFly Select in a stale state where options render but ignore clicks.
+    cy.get('body', _qLog()).then(($body) => {
+      const isToggleVisible = $body.find(valueToggleSelector).filter(':visible').length > 0;
+      if (!isToggleVisible) {
+        incidentsPage.elements.filtersSelectToggle().scrollIntoView().click();
+        const suffix = incidentsPage._filterTypeDataTestSuffix[filterType];
+        cy.byTestID(`${DataTestIDs.IncidentsPage.FiltersSelectOption}-${suffix}`)
+          .scrollIntoView()
+          .click();
+      }
+    });
+  },
+
   toggleFilter: (name: 'Critical' | 'Warning' | 'Informative' | 'Firing' | 'Resolved') => {
     cy.log('incidentsPage.toggleFilter');
 
     const isSeverityFilter = ['Critical', 'Warning', 'Informative'].includes(name);
     const filterType = isSeverityFilter ? 'Severity' : 'State';
-    const valueToggleSelector = isSeverityFilter
-      ? `[data-test="${DataTestIDs.IncidentsPage.FiltersSelectToggle}-severity"]`
-      : `[data-test="${DataTestIDs.IncidentsPage.FiltersSelectToggle}-state"]`;
 
-    cy.wait(500);
+    incidentsPage.ensureFilterTypeSelected(filterType);
 
-    // If the value toggle is already visible (filter type already selected), skip
-    // re-selecting the filter type. Re-selecting triggers a React re-render and can
-    // leave PatternFly Select in a stale state where options render but ignore clicks.
-    cy.get('body').then(($body) => {
-      const isToggleVisible = $body.find(valueToggleSelector).filter(':visible').length > 0;
+    if (isSeverityFilter) {
+      incidentsPage.toggleFilterValueFromDropdown('severity', name);
+    } else {
+      incidentsPage.toggleFilterValueFromDropdown('state', name);
+    }
+  },
 
-      if (!isToggleVisible) {
-        incidentsPage.elements.filtersSelectToggle().click();
-        incidentsPage.elements.filtersSelectOption(filterType).click();
-      }
+  selectIncidentIdFilter: (incidentId: string) => {
+    if (!_quietSearch) cy.log(`incidentsPage.selectIncidentIdFilter: ${incidentId}`);
 
-      if (isSeverityFilter) {
-        incidentsPage.toggleFilterValueFromDropdown('severity', name);
-      } else {
-        incidentsPage.toggleFilterValueFromDropdown('state', name);
-      }
-    });
+    incidentsPage.ensureFilterTypeSelected('Incident ID');
+    incidentsPage.elements.incidentIdFilterToggle().scrollIntoView().click({ force: true });
+    incidentsPage.elements.incidentIdFilterList().should('be.visible');
+    cy.wait(250, _qLog());
+    incidentsPage.elements.incidentIdFilterOption(incidentId).scrollIntoView().click();
+    // Incident ID dropdown auto-closes on select (single-select behavior)
+  },
+
+  getIncidentIds: (): Cypress.Chainable<string[]> => {
+    if (!_quietSearch) cy.log('incidentsPage.getIncidentIds');
+
+    incidentsPage.ensureFilterTypeSelected('Incident ID');
+    incidentsPage.elements.incidentIdFilterToggle().scrollIntoView().click({ force: true });
+    incidentsPage.elements.incidentIdFilterList().should('be.visible');
+
+    return incidentsPage.elements
+      .incidentIdFilterList()
+      .find('button[role="menuitem"] .pf-v6-c-menu__item-text')
+      .then(($texts) => {
+        const ids: string[] = [];
+        $texts.each((_, el) => {
+          const text = Cypress.$(el).text().trim();
+          if (text) ids.push(text);
+        });
+        // Close the dropdown without selecting
+        incidentsPage.elements.incidentIdFilterToggle().scrollIntoView().click({ force: true });
+        return cy.wrap(ids, _qLog());
+      });
   },
 
   clearAllFilters: () => {
     cy.log('incidentsPage.clearAllFilters');
-    incidentsPage.elements.clearAllFiltersButton().should('be.visible').click({ force: true });
+    incidentsPage.elements
+      .clearAllFiltersButton()
+      .scrollIntoView()
+      .should('be.visible')
+      .click({ force: true });
   },
 
   removeFilter: (category: 'Severity' | 'State' | 'Incident ID', value: string) => {
@@ -668,10 +729,6 @@ export const incidentsPage = {
 
   prepareIncidentsPageForSearch: () => {
     if (!_quietSearch) cy.log('incidentsPage.prepareIncidentsPageForSearch: Setting up page...');
-    // Use SPA navigation instead of cy.reload() — the Incidents component is a
-    // dynamic plugin chunk, and cy.reload() causes the Console to re-resolve all
-    // plugins from scratch, which silently fails in headless CI (blank page).
-    // OOM is handled by _quietSearch suppressing DOM snapshots, not by reload.
     incidentsPage.goTo();
     incidentsPage.setDays(incidentsPage.SEARCH_CONFIG.DEFAULT_DAYS);
     incidentsPage.elements.incidentsChartContainer().should('be.visible');
@@ -786,20 +843,17 @@ export const incidentsPage = {
   },
 
   /**
-   * Searches for an alert within a specific incident by selecting it and checking all components.
-   * Combines incident selection with comprehensive component search.
-   *
-   * @param alertName - Name of the alert to search for
-   * @param incidentIndex - Zero-based index of the incident to search
-   * @returns Promise resolving to true if alert is found in the incident
+   * @deprecated Use findIncidentWithAlert (filter-based) instead.
+   * Searches for an alert within a specific incident by selecting it via bar click.
    */
-  searchForAlertInIncident: (
+  searchForAlertInIncident_legacy: (
     alertName: string,
     incidentIndex: number,
   ): Cypress.Chainable<boolean> => {
     if (!_quietSearch)
       cy.log(
-        `incidentsPage.searchForAlertInIncident: incident ${incidentIndex + 1} for "${alertName}"`,
+        `incidentsPage.searchForAlertInIncident_legacy: ` +
+          `incident ${incidentIndex + 1} for "${alertName}"`,
       );
 
     return cy
@@ -812,20 +866,18 @@ export const incidentsPage = {
   },
 
   /**
-   * Recursively traverses all incident bars in the chart, searching each one for a specific alert.
-   * Uses internal recursive function to systematically check each incident
-   * until found or exhausted.
-   *
-   * @param alertName - Name of the alert to search for
-   * @param totalIncidents - Total number of incidents to traverse
-   * @returns Promise resolving to true if alert is found in any incident
+   * @deprecated Use findIncidentWithAlert (filter-based) instead.
+   * Recursively traverses all incident bars in the chart via click-based selection.
    */
-  traverseAllIncidentsBars: (
+  traverseAllIncidentsBars_legacy: (
     alertName: string,
     totalIncidents: number,
   ): Cypress.Chainable<boolean> => {
     if (!_quietSearch)
-      cy.log(`incidentsPage.searchAllIncidents: Searching ${totalIncidents} for "${alertName}"`);
+      cy.log(
+        `incidentsPage.traverseAllIncidentsBars_legacy: ` +
+          `Searching ${totalIncidents} for "${alertName}"`,
+      );
 
     const searchNextIncidentBar = (currentIndex: number): Cypress.Chainable<boolean> => {
       if (currentIndex >= totalIncidents) {
@@ -834,29 +886,85 @@ export const incidentsPage = {
         return cy.wrap(false, _qLog());
       }
 
-      return incidentsPage.searchForAlertInIncident(alertName, currentIndex).then((found) => {
-        if (found) {
-          return cy.wrap(true, _qLog());
-        }
-        incidentsPage.deselectIncidentByBar(currentIndex);
-        cy.wait(500, _qLog());
-        return searchNextIncidentBar(currentIndex + 1);
-      });
+      return incidentsPage
+        .searchForAlertInIncident_legacy(alertName, currentIndex)
+        .then((found) => {
+          if (found) {
+            return cy.wrap(true, _qLog());
+          }
+          incidentsPage.deselectIncidentByBar(currentIndex);
+          cy.wait(500, _qLog());
+          return searchNextIncidentBar(currentIndex + 1);
+        });
     };
 
     return searchNextIncidentBar(0);
   },
 
   /**
+   * Selects an incident via the Incident ID filter, searches all its
+   * components for the given alert, then clears the filter.
+   */
+  searchForAlertInIncidentByFilter: (
+    alertName: string,
+    incidentId: string,
+  ): Cypress.Chainable<boolean> => {
+    if (!_quietSearch)
+      cy.log(`incidentsPage.searchForAlertInIncidentByFilter: "${incidentId}" for "${alertName}"`);
+
+    incidentsPage.selectIncidentIdFilter(incidentId);
+    cy.wait(2000, _qLog());
+
+    return incidentsPage.elements
+      .incidentsTable()
+      .should('exist')
+      .scrollIntoView()
+      .then(() => incidentsPage.searchAllComponentsInIncident(alertName, 0))
+      .then((found: boolean) => {
+        incidentsPage.clearAllFilters();
+        cy.wait(500, _qLog());
+        return cy.wrap(found, _qLog());
+      });
+  },
+
+  /**
+   * Discovers all incident IDs from the filter dropdown, then searches
+   * each one for the given alert using filter-based selection.
+   */
+  traverseAllIncidentsByFilter: (alertName: string): Cypress.Chainable<boolean> => {
+    if (!_quietSearch)
+      cy.log(`incidentsPage.traverseAllIncidentsByFilter: discovering incident IDs`);
+
+    return incidentsPage.getIncidentIds().then((incidentIds) => {
+      if (incidentIds.length === 0) {
+        return cy.wrap(false, _qLog());
+      }
+
+      let result = cy.wrap(false, _qLog());
+      for (let i = 0; i < incidentIds.length; i++) {
+        result = result.then((found) => {
+          if (found) return cy.wrap(true, _qLog());
+          return incidentsPage.searchForAlertInIncidentByFilter(alertName, incidentIds[i]);
+        });
+      }
+
+      return result.then((found) => {
+        if (!found && !_quietSearch)
+          cy.log(`Checked all ${incidentIds.length} incidents, alert "${alertName}" not found`);
+        return cy.wrap(found, _qLog());
+      });
+    });
+  },
+
+  /**
    * Main entry point for finding an alert across all incidents in the chart.
-   * Prepares the page, gets visible incident bars, and initiates comprehensive search.
+   * Prepares the page, discovers incidents via the Incident ID filter dropdown,
+   * and searches each one by selecting it through the filter UI.
    *
    * @param alertName - Name of the alert to search for across all incidents
    * @returns Promise resolving to true if alert is found in any incident
    */
   findIncidentWithAlert: (alertName: string): Cypress.Chainable<boolean> => {
-    // Hard timeout safety net: if waitUntil's timeout fails to trigger
-    // (e.g., cy.reload() breaks the command queue), this prevents a 2h+ hang.
     if (_findIncidentSearchStart === null) {
       _findIncidentSearchStart = Date.now();
     }
@@ -869,34 +977,19 @@ export const incidentsPage = {
 
     cy.log(`incidentsPage.findIncidentWithAlert: Starting search for alert "${alertName}"`);
 
-    // Enable quiet mode to suppress Cypress DOM snapshots during the search.
-    // Each snapshot stores a serialized copy of the DOM (~1-5 MB). Without this,
-    // ~40 snapshots per search iteration * 15+ iterations = OOM in CI containers.
     _quietSearch = true;
 
     incidentsPage.prepareIncidentsPageForSearch();
+    incidentsPage.clearAllFilters();
 
-    // Check for bar groups without asserting existence — an empty chart is
-    // valid (e.g. when mocking empty incidents or before detection fires).
-    return cy
-      .get('body', _qLog())
-      .then(($body) => {
-        const totalIncidents = $body.find(_BAR_GROUP_SELECTOR).length;
-        if (totalIncidents === 0) {
-          if (!_quietSearch) cy.log('No incident bar groups found in chart');
-          return cy.wrap(false, { log: false });
-        }
-
-        return incidentsPage.traverseAllIncidentsBars(alertName, totalIncidents);
-      })
-      .then((found: boolean) => {
-        if (found) {
-          _resetSearchState();
-        } else {
-          _quietSearch = false;
-        }
-        return found;
-      });
+    return incidentsPage.traverseAllIncidentsByFilter(alertName).then((found: boolean) => {
+      if (found) {
+        _resetSearchState();
+      } else {
+        _quietSearch = false;
+      }
+      return found;
+    });
   },
 
   /**
