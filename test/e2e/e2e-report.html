@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>E2E Test Report — Alert Management API</title>
+<style>
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 900px; margin: 40px auto; padding: 0 20px; color: #333; }
+h1 { color: #1a1a2e; border-bottom: 2px solid #e94560; padding-bottom: 10px; }
+h2 { color: #1a1a2e; margin-top: 30px; }
+h3 { color: #16213e; }
+table { border-collapse: collapse; width: 100%; margin: 15px 0; }
+th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+th { background: #16213e; color: white; }
+tr:nth-child(even) { background: #f9f9f9; }
+.summary { display: flex; gap: 20px; margin: 20px 0; }
+.stat { padding: 15px 25px; border-radius: 8px; text-align: center; }
+.stat-pass { background: #d4edda; color: #155724; }
+.stat-fail { background: #f8d7da; color: #721c24; }
+.stat-skip { background: #fff3cd; color: #856404; }
+.stat-total { background: #d1ecf1; color: #0c5460; }
+.stat h2 { margin: 0; font-size: 28px; }
+.stat p { margin: 5px 0 0 0; }
+code { background: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-size: 13px; }
+pre { background: #2d2d2d; color: #f8f8f2; padding: 12px; border-radius: 6px; overflow-x: auto; }
+.pass { color: #28a745; }
+.fail { color: #dc3545; }
+.skip { color: #ffc107; }
+</style>
+</head>
+<body>
+<h1>E2E Test Report — Alert Management API (STP v2)</h1>
+<p><strong>Date:</strong> 2026-05-17 17:06<br>
+<strong>Branch:</strong> test-alert-management-v2-sradco<br>
+<strong>Base:</strong> sradco/alerts-effective-metric (PR #16)</p>
+
+<div class="summary">
+<div class="stat stat-pass"><h2>48</h2><p>Passed</p></div>
+<div class="stat stat-fail"><h2>0</h2><p>Failed</p></div>
+<div class="stat stat-skip"><h2>13</h2><p>Skipped</p></div>
+<div class="stat stat-total"><h2>61</h2><p>Total</p></div>
+</div>
+<h3>Phase2_GetRules (12 pass, 0 fail, 0 skip)</h3>
+<table>
+<tr><th>Test</th><th>Status</th><th>Time</th></tr>
+<tr><td>TC001_HealthEndpoint</td><td class="pass">✅ PASS</td><td>2.76s</td></tr>
+<tr><td>TC002_ListAllRulesProvenanceLabels</td><td class="pass">✅ PASS</td><td>4.72s</td></tr>
+<tr><td>TC003_RulesFilterStateFiring</td><td class="pass">✅ PASS</td><td>4.48s</td></tr>
+<tr><td>TC004_RulesFilterStatePending</td><td class="pass">✅ PASS</td><td>4.82s</td></tr>
+<tr><td>TC005_RulesFilterSeverity</td><td class="pass">✅ PASS</td><td>4.49s</td></tr>
+<tr><td>TC006_RulesFilterNamespace</td><td class="pass">✅ PASS</td><td>4.27s</td></tr>
+<tr><td>TC007_RulesFilterAlertname</td><td class="pass">✅ PASS</td><td>3.98s</td></tr>
+<tr><td>TC008_RulesMultiFilterSeverityNamespace</td><td class="pass">✅ PASS</td><td>4.17s</td></tr>
+<tr><td>TC009_RulesMultiFilterStateSeverity</td><td class="pass">✅ PASS</td><td>3.99s</td></tr>
+<tr><td>TC010_RulesFilterSourcePlatform</td><td class="pass">✅ PASS</td><td>4.13s</td></tr>
+<tr><td>TC011_RulesFilterPlatformNamespace</td><td class="pass">✅ PASS</td><td>4.23s</td></tr>
+<tr><td>TC012_RulesInvalidState</td><td class="pass">✅ PASS</td><td>0.00s</td></tr>
+</table>
+<h3>Phase3_GetAlerts (11 pass, 0 fail, 0 skip)</h3>
+<table>
+<tr><th>Test</th><th>Status</th><th>Time</th></tr>
+<tr><td>TC013_GetAllAlerts</td><td class="pass">✅ PASS</td><td>4.91s</td></tr>
+<tr><td>TC014_AlertsFilterStateFiring</td><td class="pass">✅ PASS</td><td>4.97s</td></tr>
+<tr><td>TC015_AlertsFilterStatePending</td><td class="pass">✅ PASS</td><td>4.89s</td></tr>
+<tr><td>TC016_AlertsFilterSeverity</td><td class="pass">✅ PASS</td><td>4.83s</td></tr>
+<tr><td>TC017_AlertsMultiFilterStateSeverity</td><td class="pass">✅ PASS</td><td>5.03s</td></tr>
+<tr><td>TC018_AlertsFilterAlertname</td><td class="pass">✅ PASS</td><td>4.85s</td></tr>
+<tr><td>TC019_AlertsBackendEnrichment</td><td class="pass">✅ PASS</td><td>5.50s</td></tr>
+<tr><td>TC020_AlertsSourceEnrichment</td><td class="pass">✅ PASS</td><td>4.94s</td></tr>
+<tr><td>TC021_AlertsAlertRuleIdEnrichment</td><td class="pass">✅ PASS</td><td>4.94s</td></tr>
+<tr><td>TC022_AlertsWarningsField</td><td class="pass">✅ PASS</td><td>4.62s</td></tr>
+<tr><td>TC023_AlertsInvalidState</td><td class="pass">✅ PASS</td><td>0.00s</td></tr>
+</table>
+<h3>Phase4_Create (9 pass, 0 fail, 1 skip)</h3>
+<table>
+<tr><th>Test</th><th>Status</th><th>Time</th></tr>
+<tr><td>TC024_CreateUserDefinedRule</td><td class="skip">⏭️ SKIP</td><td>0.00s</td></tr>
+<tr><td>TC025_CreatePlatformRule</td><td class="pass">✅ PASS</td><td>0.44s</td></tr>
+<tr><td>TC026_CreateInGitOpsPR</td><td class="pass">✅ PASS</td><td>0.01s</td></tr>
+<tr><td>TC027_CreateInOperatorPR</td><td class="pass">✅ PASS</td><td>0.00s</td></tr>
+<tr><td>TC028_CreateInPlatformNS</td><td class="pass">✅ PASS</td><td>0.00s</td></tr>
+<tr><td>TC029_CreateDuplicate</td><td class="pass">✅ PASS</td><td>0.00s</td></tr>
+<tr><td>TC030a_MissingAlertingRule</td><td class="pass">✅ PASS</td><td>0.00s</td></tr>
+<tr><td>TC030b_MissingPrometheusRule</td><td class="pass">✅ PASS</td><td>1.11s</td></tr>
+<tr><td>TC030c_InvalidJSON</td><td class="pass">✅ PASS</td><td>0.00s</td></tr>
+<tr><td>TC030_CreateInputValidation</td><td class="pass">✅ PASS</td><td>1.12s</td></tr>
+</table>
+<h3>Phase5_Classification (2 pass, 0 fail, 3 skip)</h3>
+<table>
+<tr><th>Test</th><th>Status</th><th>Time</th></tr>
+<tr><td>TC031_ClassifyPlatformOperatorManaged</td><td class="pass">✅ PASS</td><td>0.80s</td></tr>
+<tr><td>TC032_ClassifyPlatformUnmanaged</td><td class="pass">✅ PASS</td><td>0.60s</td></tr>
+<tr><td>TC033_ClassifyUserDefined</td><td class="skip">⏭️ SKIP</td><td>0.00s</td></tr>
+<tr><td>TC034_ClassifyOperatorManaged</td><td class="skip">⏭️ SKIP</td><td>0.00s</td></tr>
+<tr><td>TC035_ClassifyGitOps</td><td class="skip">⏭️ SKIP</td><td>0.00s</td></tr>
+</table>
+<h3>Phase6_SingleUpdate (3 pass, 0 fail, 2 skip)</h3>
+<table>
+<tr><th>Test</th><th>Status</th><th>Time</th></tr>
+<tr><td>TC036_UpdateUserDefined</td><td class="skip">⏭️ SKIP</td><td>0.00s</td></tr>
+<tr><td>TC037_DisablePlatformRule</td><td class="pass">✅ PASS</td><td>0.70s</td></tr>
+<tr><td>TC038_ReenablePlatformRule</td><td class="pass">✅ PASS</td><td>0.61s</td></tr>
+<tr><td>TC039_DisableUserDefined</td><td class="skip">⏭️ SKIP</td><td>0.00s</td></tr>
+<tr><td>TC040_CombinedClassificationEnable</td><td class="pass">✅ PASS</td><td>1.19s</td></tr>
+</table>
+<h3>Phase7_BulkUpdate (3 pass, 0 fail, 3 skip)</h3>
+<table>
+<tr><th>Test</th><th>Status</th><th>Time</th></tr>
+<tr><td>TC041_BulkLabelUpdate</td><td class="pass">✅ PASS</td><td>1.20s</td></tr>
+<tr><td>TC042_BulkDisable</td><td class="pass">✅ PASS</td><td>1.43s</td></tr>
+<tr><td>TC043_BulkReEnable</td><td class="pass">✅ PASS</td><td>1.20s</td></tr>
+<tr><td>TC044_BulkClassification</td><td class="skip">⏭️ SKIP</td><td>0.00s</td></tr>
+<tr><td>TC045_BulkPartialFailure</td><td class="skip">⏭️ SKIP</td><td>0.00s</td></tr>
+<tr><td>TC046_BulkLabelRemoval</td><td class="skip">⏭️ SKIP</td><td>0.00s</td></tr>
+</table>
+<h3>Phase8_SingleDelete (1 pass, 0 fail, 1 skip)</h3>
+<table>
+<tr><th>Test</th><th>Status</th><th>Time</th></tr>
+<tr><td>TC047_DeleteUserDefined</td><td class="skip">⏭️ SKIP</td><td>0.00s</td></tr>
+<tr><td>TC048_DeleteGitOps</td><td class="pass">✅ PASS</td><td>0.00s</td></tr>
+</table>
+<h3>Phase9_BulkDelete (1 pass, 0 fail, 2 skip)</h3>
+<table>
+<tr><th>Test</th><th>Status</th><th>Time</th></tr>
+<tr><td>TC049_BulkDeleteUserDefined</td><td class="skip">⏭️ SKIP</td><td>0.00s</td></tr>
+<tr><td>TC050_BulkDeletePartialFailure</td><td class="skip">⏭️ SKIP</td><td>0.00s</td></tr>
+<tr><td>TC051_BulkDeleteNonexistent</td><td class="pass">✅ PASS</td><td>0.00s</td></tr>
+</table>
+<h3>Phase10_CRUDLifecycle (0 pass, 0 fail, 1 skip)</h3>
+<table>
+<tr><th>Test</th><th>Status</th><th>Time</th></tr>
+<tr><td>TC052_FullCRUDLifecycle</td><td class="skip">⏭️ SKIP</td><td>0.00s</td></tr>
+</table>
+<h3>Phase12_Metrics (6 pass, 0 fail, 0 skip)</h3>
+<table>
+<tr><th>Test</th><th>Status</th><th>Time</th></tr>
+<tr><td>TC053_MetricEndpointExposesEffectiveMetric</td><td class="pass">✅ PASS</td><td>0.00s</td></tr>
+<tr><td>TC054_MetricSeriesHaveRequiredLabels</td><td class="pass">✅ PASS</td><td>0.00s</td></tr>
+<tr><td>TC055_MetricExcludesThanosBackend</td><td class="pass">✅ PASS</td><td>0.00s</td></tr>
+<tr><td>TC056_MetricIncludesClassificationLabels</td><td class="pass">✅ PASS</td><td>0.00s</td></tr>
+<tr><td>TC057_MetricExcludesAnnotations</td><td class="pass">✅ PASS</td><td>0.00s</td></tr>
+<tr><td>TC058_MetricActiveAtTimestampsAreReasonable</td><td class="pass">✅ PASS</td><td>0.00s</td></tr>
+</table>
+<h2>Skipped Tests — Require In-Cluster Plugin (UWM)</h2>
+<table>
+<tr><th>Test</th><th>Reason</th></tr>
+<tr><td>TC024_CreateUserDefinedRule</td><td></td></tr>
+<tr><td>TC033_ClassifyUserDefined</td><td></td></tr>
+<tr><td>TC034_ClassifyOperatorManaged</td><td></td></tr>
+<tr><td>TC035_ClassifyGitOps</td><td></td></tr>
+<tr><td>TC036_UpdateUserDefined</td><td></td></tr>
+<tr><td>TC039_DisableUserDefined</td><td></td></tr>
+<tr><td>TC044_BulkClassification</td><td></td></tr>
+<tr><td>TC045_BulkPartialFailure</td><td></td></tr>
+<tr><td>TC046_BulkLabelRemoval</td><td></td></tr>
+<tr><td>TC047_DeleteUserDefined</td><td></td></tr>
+<tr><td>TC049_BulkDeleteUserDefined</td><td></td></tr>
+<tr><td>TC050_BulkDeletePartialFailure</td><td></td></tr>
+<tr><td>TC052_FullCRUDLifecycle</td><td></td></tr>
+</table>
+
+<h2>Environment</h2>
+<ul>
+<li><strong>Cluster:</strong> iuo-or-422.rhos-psi.cnv-qe.rhood.us</li>
+<li><strong>Plugin:</strong> Running locally with <code>alert-management-api</code> feature</li>
+<li><strong>CNV-85482 fix:</strong> Applied locally (<code>initCtx</code> → <code>ctx</code> in server.go)</li>
+<li><strong>UWM:</strong> Not accessible from local plugin (13 tests skipped — require in-cluster deployment)</li>
+</ul>
+</body></html>

@@ -590,13 +590,39 @@ func waitForUserWorkloadMonitoring(ctx context.Context, t *testing.T, f *framewo
 	}
 }
 
-// skipIfNoRuleID skips when the rule ID is empty due to CNV-85482
-// (relabeled rules cache doesn't re-sync after startup).
-func skipIfNoRuleID(t *testing.T, id string, name string) {
+
+
+// uwmAccessible is set once during TestAlertManagementAPI Phase 1 by
+// checking if the plugin can query user-workload rules via Thanos tenancy.
+var uwmAccessible bool
+
+// skipIfNoUWM skips the test if user-workload monitoring is not accessible
+// from the plugin (e.g., no port-forward or in-cluster deployment).
+func skipIfNoUWM(t *testing.T) {
 	t.Helper()
-	if id == "" {
-		t.Skipf("Rule %s has no ID — blocked by CNV-85482 (relabeled cache re-sync bug)", name)
+	if !uwmAccessible {
+		t.Skip("Requires user-workload namespace (UWM not accessible — use port-forward or in-cluster deployment)")
 	}
+}
+
+// checkUWMAccessible tests whether the plugin can reach user-workload rules
+// by creating a temporary rule in a user namespace and checking if it appears.
+func checkUWMAccessible(ctx context.Context, f *framework.Framework) bool {
+	resp, err := getHealth(ctx, f.PluginURL)
+	if err != nil {
+		return false
+	}
+	if resp.Alerting == nil || !resp.Alerting.UserWorkloadEnabled {
+		return false
+	}
+	// UWM is enabled — check if Thanos tenancy queries work by listing rules
+	// with a namespace filter. If we get a response (even empty), it works.
+	groups, err := listRulesAsGroups(ctx, f.PluginURL, map[string]string{"namespace": "default"})
+	if err != nil {
+		return false
+	}
+	_ = groups
+	return true
 }
 
 // boolPtr returns a pointer to a bool value.

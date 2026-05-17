@@ -24,8 +24,13 @@ const (
 	pollInterval = 2 * time.Second
 )
 
-// seedNamespace is set dynamically by TestAlertManagementAPI via f.CreateNamespace.
-var seedNamespace string
+// seedNamespace is the platform namespace (cluster-monitoring=true) for platform rule tests.
+// userSeedNamespace is the user namespace (cluster-monitoring=false) for user-defined rule tests.
+// When UWM is not accessible, userSeedNamespace falls back to seedNamespace.
+var (
+	seedNamespace     string
+	userSeedNamespace string
+)
 
 func TestAlertManagementAPI(t *testing.T) {
 	f, err := framework.New()
@@ -36,17 +41,33 @@ func TestAlertManagementAPI(t *testing.T) {
 	ctx := context.Background()
 	ids := &seedRuleIDs{}
 
-	// -----------------------------------------------------------------------
-	// Phase 1: Seed Data — create a dedicated namespace with cluster-monitoring label
-	// -----------------------------------------------------------------------
-	t.Log("Phase 1: Creating dedicated test namespace")
+	// Check if UWM is accessible (Thanos tenancy via port-forward or in-cluster)
+	uwmAccessible = checkUWMAccessible(ctx, f)
+	t.Logf("Phase 1: UWM accessible: %v", uwmAccessible)
 
+	// -----------------------------------------------------------------------
+	// Phase 1: Seed Data — create namespaces
+	// -----------------------------------------------------------------------
+	// Platform seed namespace (cluster-monitoring=true) for platform rule operations
 	var nsCleanup framework.CleanupFunc
 	seedNamespace, nsCleanup, err = f.CreateNamespace(ctx, "stp-v2-seed", true)
 	if err != nil {
 		t.Fatalf("Failed to create seed namespace: %v", err)
 	}
-	t.Logf("Phase 1: Seed namespace created: %s", seedNamespace)
+	t.Logf("Phase 1: Platform seed namespace created: %s", seedNamespace)
+
+	// User seed namespace (cluster-monitoring=false) for user-defined rule operations
+	var userNsCleanup framework.CleanupFunc
+	if uwmAccessible {
+		userSeedNamespace, userNsCleanup, err = f.CreateNamespace(ctx, "stp-v2-user", false)
+		if err != nil {
+			t.Fatalf("Failed to create user seed namespace: %v", err)
+		}
+		t.Logf("Phase 1: User seed namespace created: %s", userSeedNamespace)
+	} else {
+		userSeedNamespace = seedNamespace
+		t.Log("Phase 1: UWM not accessible — user rules in platform namespace, user-specific tests will skip")
+	}
 
 	// -----------------------------------------------------------------------
 	// Phase 13: Cleanup (deferred first so it runs on any failure)
@@ -79,7 +100,14 @@ func TestAlertManagementAPI(t *testing.T) {
 			cleanupCtx, "platform-alert-rules", metav1.DeleteOptions{},
 		)
 
-		// Delete the seed namespace (removes all resources inside it)
+		// Delete the user seed namespace
+		if userNsCleanup != nil {
+			if cleanupErr := userNsCleanup(); cleanupErr != nil {
+				t.Logf("Phase 13: user namespace cleanup error: %v", cleanupErr)
+			}
+		}
+
+		// Delete the platform seed namespace
 		if nsCleanup != nil {
 			if cleanupErr := nsCleanup(); cleanupErr != nil {
 				t.Logf("Phase 13: namespace cleanup error: %v", cleanupErr)
@@ -91,15 +119,15 @@ func TestAlertManagementAPI(t *testing.T) {
 
 	t.Log("Phase 1: Creating seed data")
 
-	// Create ConfigMap for operator-managed ownerReference
+	// Create ConfigMap for operator-managed ownerReference (in user namespace)
 	cm := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "test-operator-managed-owner",
-			Namespace: seedNamespace,
+			Namespace: userSeedNamespace,
 		},
 		Data: map[string]string{"placeholder": "true"},
 	}
-	createdCM, err := f.Clientset.CoreV1().ConfigMaps(seedNamespace).Create(ctx, cm, metav1.CreateOptions{})
+	createdCM, err := f.Clientset.CoreV1().ConfigMaps(userSeedNamespace).Create(ctx, cm, metav1.CreateOptions{})
 	if err != nil {
 		t.Fatalf("Failed to create ConfigMap: %v", err)
 	}
@@ -107,9 +135,9 @@ func TestAlertManagementAPI(t *testing.T) {
 	forDuration := monitoringv1.Duration("5m")
 	forPending := monitoringv1.Duration("999h")
 
-	// Seed 1: Unmanaged user rule
+	// Seed 1: Unmanaged user rule (in user namespace)
 	_, err = createNamedPrometheusRule(ctx, f,
-		"test-user-rule", seedNamespace, "test-group", nil, nil,
+		"test-user-rule", userSeedNamespace, "test-group", nil, nil,
 		monitoringv1.Rule{
 			Alert: "TestUserAlert",
 			Expr:  intstr.FromString("vector(1)"),
@@ -123,9 +151,9 @@ func TestAlertManagementAPI(t *testing.T) {
 		t.Fatalf("Failed to create test-user-rule: %v", err)
 	}
 
-	// Seed 2: GitOps-managed user rule
+	// Seed 2: GitOps-managed user rule (in user namespace)
 	_, err = createNamedPrometheusRule(ctx, f,
-		"test-gitops-user-rule", seedNamespace, "test-group",
+		"test-gitops-user-rule", userSeedNamespace, "test-group",
 		map[string]string{
 			"argocd.argoproj.io/tracking-id": "gitops-test",
 		},
@@ -143,9 +171,9 @@ func TestAlertManagementAPI(t *testing.T) {
 		t.Fatalf("Failed to create test-gitops-user-rule: %v", err)
 	}
 
-	// Seed 3: Operator-managed user rule
+	// Seed 3: Operator-managed user rule (in user namespace)
 	_, err = createNamedPrometheusRule(ctx, f,
-		"test-operator-managed-user-rule", seedNamespace, "test-group",
+		"test-operator-managed-user-rule", userSeedNamespace, "test-group",
 		nil,
 		[]metav1.OwnerReference{{
 			APIVersion: "v1",
@@ -167,9 +195,9 @@ func TestAlertManagementAPI(t *testing.T) {
 		t.Fatalf("Failed to create test-operator-managed-user-rule: %v", err)
 	}
 
-	// Seed 4: Pending rule (for: 999h ensures it stays pending)
+	// Seed 4: Pending rule (for: 999h ensures it stays pending, in user namespace)
 	_, err = createNamedPrometheusRule(ctx, f,
-		"test-pending-rule", seedNamespace, "test-group", nil, nil,
+		"test-pending-rule", userSeedNamespace, "test-group", nil, nil,
 		monitoringv1.Rule{
 			Alert: "TestPendingAlert",
 			Expr:  intstr.FromString("vector(1)"),
@@ -245,10 +273,7 @@ func TestAlertManagementAPI(t *testing.T) {
 			}
 		}
 		t.Logf("  poll: found %d/%d seed rules (%d with ID)", found, len(seedAlerts), withID)
-		// TODO(CNV-85482): Change back to `withID == len(seedAlerts)` once the
-		// relabeled rules cache re-sync bug is fixed. Currently new rules never
-		// get openshift_io_alert_rule_id stamped after plugin startup.
-		return found == len(seedAlerts), nil
+		return withID == len(seedAlerts), nil
 	})
 	if err != nil {
 		t.Fatalf("Timeout waiting for seed rules: %v (ids so far: %+v)", err, ids)
@@ -410,12 +435,12 @@ func runPhase2GetRulesTests(t *testing.T, f *framework.Framework, ids *seedRuleI
 		if userAlert == nil {
 			t.Fatal("Expected TestUserAlert to be present in unfiltered rules")
 		}
-		if userAlert.Labels[k8s.PrometheusRuleLabelNamespace] != seedNamespace {
+		if userAlert.Labels[k8s.PrometheusRuleLabelNamespace] != userSeedNamespace {
 			t.Errorf("Expected TestUserAlert rule namespace label %q, got %q",
-				seedNamespace, userAlert.Labels[k8s.PrometheusRuleLabelNamespace])
+				userSeedNamespace, userAlert.Labels[k8s.PrometheusRuleLabelNamespace])
 		}
 
-		// Platform rules should be in openshift-monitoring, not seed namespace
+		// Platform rules should be in openshift-monitoring, not user namespace
 		platformAlert := findRuleInGroups(groups, "TestUserPlatformAlert")
 		if platformAlert == nil {
 			t.Fatal("Expected TestUserPlatformAlert to be present")
@@ -456,9 +481,9 @@ func runPhase2GetRulesTests(t *testing.T, f *framework.Framework, ids *seedRuleI
 		if userAlert == nil {
 			t.Fatal("Expected TestUserAlert to be present with severity=warning")
 		}
-		if userAlert.Labels[k8s.PrometheusRuleLabelNamespace] != seedNamespace {
+		if userAlert.Labels[k8s.PrometheusRuleLabelNamespace] != userSeedNamespace {
 			t.Errorf("Expected TestUserAlert in namespace %q, got %q",
-				seedNamespace, userAlert.Labels[k8s.PrometheusRuleLabelNamespace])
+				userSeedNamespace, userAlert.Labels[k8s.PrometheusRuleLabelNamespace])
 		}
 	})
 

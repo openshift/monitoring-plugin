@@ -24,7 +24,7 @@ func testPhase10CRUDLifecycle(f *framework.Framework) func(t *testing.T) {
 		ctx := context.Background()
 
 		t.Run("TC052_FullCRUDLifecycle", func(t *testing.T) {
-			t.Skip("Requires user-workload namespace (UWM not available when plugin runs locally against platform Prometheus only)")
+			skipIfNoUWM(t)
 
 			// Step 1: Create namespace
 			testNamespace, cleanup, err := f.CreateNamespace(ctx, "test-crud-lifecycle", false)

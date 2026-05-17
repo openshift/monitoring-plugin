@@ -153,7 +153,7 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 		initCtx, initCancel := context.WithTimeout(ctx, initTimeout)
 		defer initCancel()
 
-		k8sClient, err := k8s.NewClient(initCtx, k8sconfig)
+		k8sClient, err := k8s.NewClient(ctx, k8sconfig)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create k8s client for alert management API: %w", err)
 		}

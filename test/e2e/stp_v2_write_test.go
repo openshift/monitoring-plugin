@@ -26,7 +26,7 @@ func testPhase4Create(f *framework.Framework, ids *seedRuleIDs) func(t *testing.
 		ctx := context.Background()
 
 		t.Run("TC024_CreateUserDefinedRule", func(t *testing.T) {
-				t.Skip("Requires user-workload namespace (UWM not available when plugin runs locally against platform Prometheus only)")
+				skipIfNoUWM(t)
 
 			body := managementrouter.CreateAlertRuleRequest{
 				AlertingRule: &managementrouter.AlertRuleSpec{
@@ -40,7 +40,7 @@ func testPhase4Create(f *framework.Framework, ids *seedRuleIDs) func(t *testing.
 				},
 				PrometheusRule: &managementrouter.PrometheusRuleTarget{
 					PrometheusRuleName:      "test-user-rule",
-					PrometheusRuleNamespace: seedNamespace,
+					PrometheusRuleNamespace: userSeedNamespace,
 				},
 			}
 
@@ -63,7 +63,7 @@ func testPhase4Create(f *framework.Framework, ids *seedRuleIDs) func(t *testing.
 			t.Logf("Created user rule with ID: %s", createResp.Id)
 
 			// Dual verify: check K8s PrometheusRule CR
-			pr, err := f.Monitoringv1clientset.MonitoringV1().PrometheusRules(seedNamespace).Get(ctx, "test-user-rule", metav1.GetOptions{})
+			pr, err := f.Monitoringv1clientset.MonitoringV1().PrometheusRules(userSeedNamespace).Get(ctx, "test-user-rule", metav1.GetOptions{})
 			if err != nil {
 				t.Fatalf("Failed to get PrometheusRule: %v", err)
 			}
@@ -122,7 +122,7 @@ func testPhase4Create(f *framework.Framework, ids *seedRuleIDs) func(t *testing.
 				},
 				PrometheusRule: &managementrouter.PrometheusRuleTarget{
 					PrometheusRuleName:      "test-gitops-user-rule",
-					PrometheusRuleNamespace: seedNamespace,
+					PrometheusRuleNamespace: userSeedNamespace,
 				},
 			}
 
@@ -147,7 +147,7 @@ func testPhase4Create(f *framework.Framework, ids *seedRuleIDs) func(t *testing.
 				},
 				PrometheusRule: &managementrouter.PrometheusRuleTarget{
 					PrometheusRuleName:      "test-operator-managed-user-rule",
-					PrometheusRuleNamespace: seedNamespace,
+					PrometheusRuleNamespace: userSeedNamespace,
 				},
 			}
 
@@ -197,7 +197,7 @@ func testPhase4Create(f *framework.Framework, ids *seedRuleIDs) func(t *testing.
 				},
 				PrometheusRule: &managementrouter.PrometheusRuleTarget{
 					PrometheusRuleName:      "test-user-rule",
-					PrometheusRuleNamespace: seedNamespace,
+					PrometheusRuleNamespace: userSeedNamespace,
 				},
 			}
 
@@ -215,7 +215,7 @@ func testPhase4Create(f *framework.Framework, ids *seedRuleIDs) func(t *testing.
 				body := managementrouter.CreateAlertRuleRequest{
 					PrometheusRule: &managementrouter.PrometheusRuleTarget{
 						PrometheusRuleName:      "test-user-rule",
-						PrometheusRuleNamespace: seedNamespace,
+						PrometheusRuleNamespace: userSeedNamespace,
 					},
 				}
 
@@ -258,6 +258,9 @@ func testPhase4Create(f *framework.Framework, ids *seedRuleIDs) func(t *testing.
 					t.Fatalf("Failed to create request: %v", err)
 				}
 				req.Header.Set("Content-Type", "application/json")
+				if token := getBearerToken(); token != "" {
+					req.Header.Set("Authorization", "Bearer "+token)
+				}
 
 				resp, err := stpHTTPClient().Do(req)
 				if err != nil {
@@ -298,7 +301,6 @@ func testPhase5Classification(f *framework.Framework, ids *seedRuleIDs) func(t *
 		})
 
 		t.Run("TC032_ClassifyPlatformUnmanaged", func(t *testing.T) {
-			skipIfNoRuleID(t, ids.PlatformRule, "PlatformRule")
 			body := map[string]interface{}{
 				"classification": map[string]interface{}{
 					"openshift_io_alert_rule_component": "networking",
@@ -314,7 +316,7 @@ func testPhase5Classification(f *framework.Framework, ids *seedRuleIDs) func(t *
 		})
 
 		t.Run("TC033_ClassifyUserDefined", func(t *testing.T) {
-				t.Skip("Requires user-workload namespace (UWM not available when plugin runs locally against platform Prometheus only)")
+				skipIfNoUWM(t)
 
 			body := map[string]interface{}{
 				"classification": map[string]interface{}{
@@ -331,7 +333,7 @@ func testPhase5Classification(f *framework.Framework, ids *seedRuleIDs) func(t *
 		})
 
 		t.Run("TC034_ClassifyOperatorManaged", func(t *testing.T) {
-				t.Skip("Requires user-workload namespace (UWM not available when plugin runs locally against platform Prometheus only)")
+				skipIfNoUWM(t)
 
 			body := map[string]interface{}{
 				"classification": map[string]interface{}{
@@ -348,7 +350,7 @@ func testPhase5Classification(f *framework.Framework, ids *seedRuleIDs) func(t *
 		})
 
 		t.Run("TC035_ClassifyGitOps", func(t *testing.T) {
-				t.Skip("Requires user-workload namespace (UWM not available when plugin runs locally against platform Prometheus only)")
+				skipIfNoUWM(t)
 
 			body := map[string]interface{}{
 				"classification": map[string]interface{}{
@@ -375,7 +377,7 @@ func testPhase6SingleUpdate(f *framework.Framework, ids *seedRuleIDs) func(t *te
 		ctx := context.Background()
 
 		t.Run("TC036_UpdateUserDefined", func(t *testing.T) {
-				t.Skip("Requires user-workload namespace (UWM not available when plugin runs locally against platform Prometheus only)")
+				skipIfNoUWM(t)
 
 			body := map[string]interface{}{
 				"alertingRule": map[string]interface{}{
@@ -405,7 +407,7 @@ func testPhase6SingleUpdate(f *framework.Framework, ids *seedRuleIDs) func(t *te
 			}
 
 			// Dual verify: check K8s PrometheusRule CR
-			pr, err := f.Monitoringv1clientset.MonitoringV1().PrometheusRules(seedNamespace).Get(ctx, "test-user-rule", metav1.GetOptions{})
+			pr, err := f.Monitoringv1clientset.MonitoringV1().PrometheusRules(userSeedNamespace).Get(ctx, "test-user-rule", metav1.GetOptions{})
 			if err != nil {
 				t.Fatalf("Failed to get PrometheusRule: %v", err)
 			}
@@ -448,7 +450,7 @@ func testPhase6SingleUpdate(f *framework.Framework, ids *seedRuleIDs) func(t *te
 		})
 
 		t.Run("TC039_DisableUserDefined", func(t *testing.T) {
-				t.Skip("Requires user-workload namespace (UWM not available when plugin runs locally against platform Prometheus only)")
+				skipIfNoUWM(t)
 
 			body := map[string]interface{}{
 				"AlertingRuleEnabled": false,
@@ -488,7 +490,6 @@ func testPhase7BulkUpdate(f *framework.Framework, ids *seedRuleIDs) func(t *test
 		ctx := context.Background()
 
 		t.Run("TC041_BulkLabelUpdate", func(t *testing.T) {
-			skipIfNoRuleID(t, ids.UserRule, "UserRule")
 			body := map[string]interface{}{
 				"ruleIds": []string{ids.Watchdog, ids.UserRule},
 				"labels": map[string]*string{
@@ -518,7 +519,6 @@ func testPhase7BulkUpdate(f *framework.Framework, ids *seedRuleIDs) func(t *test
 		})
 
 		t.Run("TC042_BulkDisable", func(t *testing.T) {
-			skipIfNoRuleID(t, ids.PlatformRule, "PlatformRule")
 			body := map[string]interface{}{
 				"ruleIds":             []string{ids.Watchdog, ids.PlatformRule},
 				"AlertingRuleEnabled": false,
@@ -540,7 +540,6 @@ func testPhase7BulkUpdate(f *framework.Framework, ids *seedRuleIDs) func(t *test
 		})
 
 		t.Run("TC043_BulkReEnable", func(t *testing.T) {
-			skipIfNoRuleID(t, ids.PlatformRule, "PlatformRule")
 			body := map[string]interface{}{
 				"ruleIds":             []string{ids.Watchdog, ids.PlatformRule},
 				"AlertingRuleEnabled": true,
@@ -562,7 +561,7 @@ func testPhase7BulkUpdate(f *framework.Framework, ids *seedRuleIDs) func(t *test
 		})
 
 		t.Run("TC044_BulkClassification", func(t *testing.T) {
-				t.Skip("Requires user-workload namespace (UWM not available when plugin runs locally against platform Prometheus only)")
+				skipIfNoUWM(t)
 
 			body := map[string]interface{}{
 				"ruleIds": []string{ids.Watchdog, ids.UserRule},
@@ -591,7 +590,7 @@ func testPhase7BulkUpdate(f *framework.Framework, ids *seedRuleIDs) func(t *test
 		})
 
 		t.Run("TC045_BulkPartialFailure", func(t *testing.T) {
-				t.Skip("Requires user-workload namespace (UWM not available when plugin runs locally against platform Prometheus only)")
+				skipIfNoUWM(t)
 
 			body := map[string]interface{}{
 				"ruleIds": []string{ids.UserRule, ids.GitOpsRule},
@@ -626,7 +625,7 @@ func testPhase7BulkUpdate(f *framework.Framework, ids *seedRuleIDs) func(t *test
 		})
 
 		t.Run("TC046_BulkLabelRemoval", func(t *testing.T) {
-				t.Skip("Requires user-workload namespace (UWM not available when plugin runs locally against platform Prometheus only)")
+				skipIfNoUWM(t)
 
 			body := map[string]interface{}{
 				"ruleIds": []string{ids.UserRule},
@@ -654,7 +653,7 @@ func testPhase7BulkUpdate(f *framework.Framework, ids *seedRuleIDs) func(t *test
 			}
 
 			// Dual verify: check K8s PrometheusRule CR for label removal
-			pr, err := f.Monitoringv1clientset.MonitoringV1().PrometheusRules(seedNamespace).Get(ctx, "test-user-rule", metav1.GetOptions{})
+			pr, err := f.Monitoringv1clientset.MonitoringV1().PrometheusRules(userSeedNamespace).Get(ctx, "test-user-rule", metav1.GetOptions{})
 			if err != nil {
 				t.Fatalf("Failed to get PrometheusRule: %v", err)
 			}
@@ -693,7 +692,7 @@ func testPhase8SingleDelete(f *framework.Framework, ids *seedRuleIDs) func(t *te
 			}
 
 			// Dual verify: check K8s PrometheusRule CR
-			pr, err := f.Monitoringv1clientset.MonitoringV1().PrometheusRules(seedNamespace).Get(ctx, "test-user-rule", metav1.GetOptions{})
+			pr, err := f.Monitoringv1clientset.MonitoringV1().PrometheusRules(userSeedNamespace).Get(ctx, "test-user-rule", metav1.GetOptions{})
 			if err != nil {
 				t.Fatalf("Failed to get PrometheusRule: %v", err)
 			}
@@ -707,7 +706,6 @@ func testPhase8SingleDelete(f *framework.Framework, ids *seedRuleIDs) func(t *te
 		})
 
 		t.Run("TC048_DeleteGitOps", func(t *testing.T) {
-			skipIfNoRuleID(t, ids.GitOpsRule, "GitOpsRule")
 			resultStatus, err := deleteSingleRuleViaBulk(ctx, f.PluginURL, ids.GitOpsRule)
 			if err != nil {
 				t.Fatalf("DELETE GitOps rule failed: %v", err)
@@ -728,7 +726,7 @@ func testPhase9BulkDelete(f *framework.Framework, ids *seedRuleIDs) func(t *test
 		ctx := context.Background()
 
 		t.Run("TC049_BulkDeleteUserDefined", func(t *testing.T) {
-				t.Skip("Requires user-workload namespace (UWM not available when plugin runs locally against platform Prometheus only)")
+				skipIfNoUWM(t)
 
 			// Create 2 temporary rules
 			for _, alertName := range []string{"TestBulkDeleteTmp1", "TestBulkDeleteTmp2"} {
@@ -743,7 +741,7 @@ func testPhase9BulkDelete(f *framework.Framework, ids *seedRuleIDs) func(t *test
 					},
 					PrometheusRule: &managementrouter.PrometheusRuleTarget{
 						PrometheusRuleName:      "test-user-rule",
-						PrometheusRuleNamespace: seedNamespace,
+						PrometheusRuleNamespace: userSeedNamespace,
 					},
 				}
 				statusCode, respBody, err := postRule(ctx, f.PluginURL, body)
@@ -779,7 +777,7 @@ func testPhase9BulkDelete(f *framework.Framework, ids *seedRuleIDs) func(t *test
 			}
 
 			// Dual verify
-			pr, err := f.Monitoringv1clientset.MonitoringV1().PrometheusRules(seedNamespace).Get(ctx, "test-user-rule", metav1.GetOptions{})
+			pr, err := f.Monitoringv1clientset.MonitoringV1().PrometheusRules(userSeedNamespace).Get(ctx, "test-user-rule", metav1.GetOptions{})
 			if err != nil {
 				t.Fatalf("Failed to get PrometheusRule: %v", err)
 			}
@@ -793,7 +791,7 @@ func testPhase9BulkDelete(f *framework.Framework, ids *seedRuleIDs) func(t *test
 		})
 
 		t.Run("TC050_BulkDeletePartialFailure", func(t *testing.T) {
-				t.Skip("Requires user-workload namespace (UWM not available when plugin runs locally against platform Prometheus only)")
+				skipIfNoUWM(t)
 
 			// Create 1 temporary user rule
 			createBody := managementrouter.CreateAlertRuleRequest{
@@ -807,7 +805,7 @@ func testPhase9BulkDelete(f *framework.Framework, ids *seedRuleIDs) func(t *test
 				},
 				PrometheusRule: &managementrouter.PrometheusRuleTarget{
 					PrometheusRuleName:      "test-user-rule",
-					PrometheusRuleNamespace: seedNamespace,
+					PrometheusRuleNamespace: userSeedNamespace,
 				},
 			}
 			statusCode, respBody, err := postRule(ctx, f.PluginURL, createBody)
