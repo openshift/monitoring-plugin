@@ -93,7 +93,8 @@ func testPhase10CRUDLifecycle(f *framework.Framework) func(t *testing.T) {
 			t.Logf("Step 5: TestLifecycleCreated appeared with ID: %s", createdID)
 
 			// Refresh the ID — the relabeled cache may have stamped new labels
-			time.Sleep(5 * time.Second)
+			t.Log("Waiting 90s for cache to sync created rule...")
+			time.Sleep(90 * time.Second)
 			createdID = refreshRuleID(ctx, t, f.PluginURL, "TestLifecycleCreated")
 			t.Logf("Step 5b: Refreshed createdID to: %s", createdID)
 
