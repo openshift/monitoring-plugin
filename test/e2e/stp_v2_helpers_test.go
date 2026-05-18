@@ -404,6 +404,25 @@ func findRuleInGroups(groups []k8s.PrometheusRuleGroup, alertName string) *k8s.P
 	return nil
 }
 
+// refreshRuleID re-discovers the current rule ID for an alert by name.
+// Rule IDs can change when the relabeled cache stamps new labels.
+func refreshRuleID(ctx context.Context, t *testing.T, pluginURL string, alertName string) string {
+	t.Helper()
+	groups, err := listRulesAsGroups(ctx, pluginURL, nil)
+	if err != nil {
+		t.Fatalf("Failed to refresh rule ID for %s: %v", alertName, err)
+	}
+	rule := findRuleInGroups(groups, alertName)
+	if rule == nil {
+		t.Fatalf("Rule %s not found when refreshing ID", alertName)
+	}
+	id := rule.Labels[k8s.AlertRuleLabelId]
+	if id == "" {
+		t.Fatalf("Rule %s found but has no ID", alertName)
+	}
+	return id
+}
+
 // findAllRulesInGroups returns all rules from all groups as a flat slice.
 func findAllRulesInGroups(groups []k8s.PrometheusRuleGroup) []k8s.PrometheusRule {
 	var out []k8s.PrometheusRule

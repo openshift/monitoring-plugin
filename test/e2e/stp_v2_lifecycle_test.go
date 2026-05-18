@@ -104,7 +104,7 @@ func testPhase10CRUDLifecycle(f *framework.Framework) func(t *testing.T) {
 				},
 			}
 
-			httpStatus, patchResp, err := patchRule(ctx, f.PluginURL, createdID, patchBody)
+			httpStatus, patchResp, err := patchSingleRuleViaBulk(ctx, f.PluginURL, createdID, patchBody)
 			if err != nil {
 				t.Fatalf("PATCH failed: %v", err)
 			}
@@ -114,12 +114,12 @@ func testPhase10CRUDLifecycle(f *framework.Framework) func(t *testing.T) {
 			t.Logf("Step 6: Updated rule, new ID: %s", newID)
 
 			// Step 7: DELETE the updated rule
-			deleteStatusCode, deleteBody, err := deleteRule(ctx, f.PluginURL, newID)
+			resultStatus, err := deleteSingleRuleViaBulk(ctx, f.PluginURL, newID)
 			if err != nil {
 				t.Fatalf("DELETE failed: %v", err)
 			}
-			if deleteStatusCode != http.StatusNoContent {
-				t.Fatalf("Expected HTTP 204, got %d: %s", deleteStatusCode, string(deleteBody))
+			if resultStatus != http.StatusNoContent {
+				t.Fatalf("Expected result status 204, got %d", resultStatus)
 			}
 			t.Log("Step 7: Deleted rule successfully")
 

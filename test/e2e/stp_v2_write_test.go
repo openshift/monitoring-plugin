@@ -379,6 +379,7 @@ func testPhase6SingleUpdate(f *framework.Framework, ids *seedRuleIDs) func(t *te
 		t.Run("TC036_UpdateUserDefined", func(t *testing.T) {
 				skipIfNoUWM(t)
 
+			ids.UserRule = refreshRuleID(ctx, t, f.PluginURL, "TestUserAlert")
 			body := map[string]interface{}{
 				"alertingRule": map[string]interface{}{
 					"alert": "TestUserAlert",
@@ -488,6 +489,10 @@ func testPhase6SingleUpdate(f *framework.Framework, ids *seedRuleIDs) func(t *te
 func testPhase7BulkUpdate(f *framework.Framework, ids *seedRuleIDs) func(t *testing.T) {
 	return func(t *testing.T) {
 		ctx := context.Background()
+
+		// Refresh rule IDs — they may have changed after relabeled cache re-sync
+		ids.UserRule = refreshRuleID(ctx, t, f.PluginURL, "TestUserAlert")
+		ids.GitOpsRule = refreshRuleID(ctx, t, f.PluginURL, "TestGitOpsUserAlert")
 
 		t.Run("TC041_BulkLabelUpdate", func(t *testing.T) {
 			body := map[string]interface{}{
