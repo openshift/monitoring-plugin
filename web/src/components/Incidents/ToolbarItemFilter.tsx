@@ -1,4 +1,4 @@
-import React from 'react';
+import { ChangeEvent, FC, MouseEvent, MouseEventHandler } from 'react';
 import {
   ToolbarItem,
   ToolbarFilter,
@@ -32,19 +32,19 @@ interface IncidentFilterToolbarItemProps {
   onDeleteGroupIncidentFilterChip: (activeFilters: any, dispatch: any, category: any) => void;
   incidentFilterIsExpanded: boolean;
   onIncidentFiltersSelect: (
-    event: React.MouseEvent | React.ChangeEvent | undefined,
+    event: MouseEvent | ChangeEvent | undefined,
     selection: any,
     dispatch: any,
     activeFilters: any,
     categoryFilterType: string,
   ) => void;
   setIncidentIsExpanded: (isOpen: boolean) => void;
-  onIncidentFilterToggle: React.MouseEventHandler<HTMLButtonElement | HTMLDivElement>;
+  onIncidentFilterToggle: MouseEventHandler<HTMLButtonElement | HTMLDivElement>;
   dispatch: any;
   showToolbarItem?: boolean;
 }
 
-const IncidentFilterToolbarItem: React.FC<IncidentFilterToolbarItemProps> = ({
+const IncidentFilterToolbarItem: FC<IncidentFilterToolbarItemProps> = ({
   categoryName,
   toggleLabel,
   options,

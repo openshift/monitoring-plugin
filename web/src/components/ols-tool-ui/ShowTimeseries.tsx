@@ -1,4 +1,4 @@
-import React from 'react';
+import { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DataQueriesProvider } from '@perses-dev/plugin-system';
 import { Panel } from '@perses-dev/dashboards';
@@ -18,7 +18,7 @@ type ShowTimeseriesTool = {
   };
 };
 
-export const ShowTimeseries: React.FC<{ tool: ShowTimeseriesTool }> = ({ tool }) => {
+export const ShowTimeseries: FC<{ tool: ShowTimeseriesTool }> = ({ tool }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { query, title, description, start, end, duration } = tool.args;
   const timeRange = useTimeRange(start, end, duration);

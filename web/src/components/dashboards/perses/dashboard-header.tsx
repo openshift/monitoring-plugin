@@ -1,5 +1,5 @@
 import type { FC, PropsWithChildren } from 'react';
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Divider, Stack, StackItem } from '@patternfly/react-core';
@@ -29,9 +29,7 @@ const shouldHideFavoriteButton = (): boolean => {
   return currentUrl.includes(DASHBOARD_VIEW_PATH);
 };
 
-const DashboardBreadCrumb: React.FunctionComponent<{ dashboardDisplayName?: string }> = ({
-  dashboardDisplayName,
-}) => {
+const DashboardBreadCrumb: FC<{ dashboardDisplayName?: string }> = ({ dashboardDisplayName }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const { perspective } = usePerspective();
@@ -74,9 +72,7 @@ const DashboardBreadCrumb: React.FunctionComponent<{ dashboardDisplayName?: stri
   );
 };
 
-const DashboardPageHeader: React.FunctionComponent<{ dashboardDisplayName?: string }> = ({
-  dashboardDisplayName,
-}) => {
+const DashboardPageHeader: FC<{ dashboardDisplayName?: string }> = ({ dashboardDisplayName }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const hideFavBtn = shouldHideFavoriteButton();
 
@@ -97,7 +93,7 @@ const DashboardPageHeader: React.FunctionComponent<{ dashboardDisplayName?: stri
   );
 };
 
-const DashboardListPageHeader: React.FunctionComponent = () => {
+const DashboardListPageHeader: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const hideFavBtn = shouldHideFavoriteButton();
 

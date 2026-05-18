@@ -17,6 +17,7 @@ import {
   SpanDates,
   Timestamps,
 } from './model';
+import { TFunction } from 'i18next';
 
 /**
  * The Prometheus query step interval in seconds.
@@ -884,7 +885,7 @@ export const parseUrlParams = (search) => {
  * @returns {{value: string}[]} An array of objects, where each object has a
  * `value` key with a unique incident ID.
  */
-export const getIncidentIdOptions = (incidents: Array<Incident>, t: (key: string) => string) => {
+export const getIncidentIdOptions = (incidents: Array<Incident>, t: TFunction) => {
   const incidentMap = new Map<string, Incident>();
   incidents.forEach((incident) => {
     if (incident.group_id) {

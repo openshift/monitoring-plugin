@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, FormEvent } from 'react';
 import {
   SearchInput,
   SearchInputProps,
@@ -15,7 +15,7 @@ export interface DataViewTextFilterProps extends SearchInputProps {
   /** Filter title displayed in the toolbar */
   title: string;
   /** Callback for when the input value changes */
-  onChange?: (event: React.FormEvent<HTMLInputElement> | undefined, value: string) => void;
+  onChange?: (event: FormEvent<HTMLInputElement> | undefined, value: string) => void;
   /** Controls visibility of the filter in the toolbar */
   showToolbarItem?: ToolbarFilterProps['showToolbarItem'];
   /** Trims input value on change */

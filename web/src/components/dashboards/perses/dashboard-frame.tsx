@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import { FC, ReactNode } from 'react';
 import { DashboardEmptyState } from './emptystates/DashboardEmptyState';
 import { DashboardHeader } from './dashboard-header';
 import { CombinedDashboardMetadata } from './hooks/useDashboardsData';
@@ -15,7 +15,7 @@ interface DashboardFrameProps {
   children: ReactNode;
 }
 
-export const DashboardFrame: React.FC<DashboardFrameProps> = ({
+export const DashboardFrame: FC<DashboardFrameProps> = ({
   activeProject,
   activeProjectDashboardsMetadata,
   changeBoard,

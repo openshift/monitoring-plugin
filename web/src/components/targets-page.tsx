@@ -730,7 +730,7 @@ const TargetsPage_: FC = () => {
   );
 };
 
-export const MpCmoTargetsPage: React.FC = () => {
+export const MpCmoTargetsPage: FC = () => {
   return (
     <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
       <TargetsPage_ />

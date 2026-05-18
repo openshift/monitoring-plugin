@@ -58,6 +58,8 @@ export class OcpDatasourceApi implements DatasourceApi {
       selector.name,
     ).then((list) => {
       if (!Array.isArray(list) || list.length === 0) {
+        // eslint-disable-next-line no-console
+        console.warn('No matching local datasource found');
         return undefined;
       }
       const datasource = list[0];
@@ -74,7 +76,9 @@ export class OcpDatasourceApi implements DatasourceApi {
       selector.name,
     ).then((list) => {
       if (!Array.isArray(list) || list.length === 0) {
-        throw new Error(this.t('No matching datasource found'));
+        // eslint-disable-next-line no-console
+        console.warn('No matching local datasource found');
+        return undefined;
       }
       const datasource = list[0];
       return datasource;

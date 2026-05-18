@@ -1,4 +1,4 @@
-import React from 'react';
+import { FC, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { IconButton, IconButtonProps, styled } from '@mui/material';
@@ -54,7 +54,7 @@ type AddToDashboardButtonProps = {
   description?: string;
 };
 
-export const AddToDashboardButton: React.FC<AddToDashboardButtonProps> = ({
+export const AddToDashboardButton: FC<AddToDashboardButtonProps> = ({
   query,
   name,
   description,
@@ -64,7 +64,7 @@ export const AddToDashboardButton: React.FC<AddToDashboardButtonProps> = ({
   const isDashboardOpen: boolean = useSelector(
     (s: RootState) => s.plugins?.mcp?.dashboards?.isOpened,
   );
-  const addToPersesDashboard = React.useCallback(() => {
+  const addToPersesDashboard = useCallback(() => {
     const panelDefinition = createPanelDefinition(query, name, description);
     dispatch(dashboardsAddPersesPanelExternally(panelDefinition));
   }, [query, name, description, dispatch]);

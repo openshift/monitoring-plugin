@@ -11,6 +11,7 @@ export const DataTestIDs = {
   AlertingRuleSeverityBadge: 'alerting-rule-severity-badge',
   AlertingRuleStateBadge: 'alerting-rule-state-badge',
   AlertingRuleTotalAlertsBadge: 'alerting-rule-total-alerts-badge',
+  AlertingRuleCluster: 'alerting-rule-cluster',
   LabelSuggestion: 'suggestion-line',
   CancelButton: 'cancel-button',
   Breadcrumb: 'breadcrumb',

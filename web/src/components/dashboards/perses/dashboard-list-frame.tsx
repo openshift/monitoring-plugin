@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import { FC, ReactNode } from 'react';
 import { DashboardListHeader } from './dashboard-header';
 import { CombinedDashboardMetadata } from './hooks/useDashboardsData';
 import { ProjectBar } from './project/ProjectBar';
@@ -11,7 +11,7 @@ interface DashboardListFrameProps {
   children: ReactNode;
 }
 
-export const DashboardListFrame: React.FC<DashboardListFrameProps> = ({
+export const DashboardListFrame: FC<DashboardListFrameProps> = ({
   activeProject,
   activeProjectDashboardsMetadata,
   changeBoard,

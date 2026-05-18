@@ -19,7 +19,7 @@ import {
 } from '@patternfly/react-core';
 import { TypeaheadSelect, TypeaheadSelectOption } from '@patternfly/react-templates';
 import { ExclamationCircleIcon } from '@patternfly/react-icons';
-import React, { useMemo } from 'react';
+import { CSSProperties, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   useUpdateDashboardMutation,
@@ -46,11 +46,11 @@ import { t_global_spacer_200, t_global_font_weight_200 } from '@patternfly/react
 import { useNavigate } from 'react-router';
 import { usePerspective, getDashboardUrl } from '../../hooks/usePerspective';
 
-const formGroupStyle = {
+export const formGroupStyle = {
   fontWeight: t_global_font_weight_200.value,
-} as React.CSSProperties;
+} as CSSProperties;
 
-const LabelSpacer = () => {
+export const LabelSpacer = () => {
   return <div style={{ paddingBottom: t_global_spacer_200.value }} />;
 };
 
@@ -217,8 +217,8 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
   const dashboardName = form.watch('dashboardName');
 
   const { schema: dynamicValidationSchema, isSchemaLoading } = useDashboardValidationSchema(
-    selectedProjectName,
     t,
+    selectedProjectName,
   );
 
   const projectOptions = useMemo<TypeaheadSelectOption[]>(() => {
@@ -234,7 +234,7 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
 
   const createDashboardMutation = useCreateDashboardMutation();
 
-  React.useEffect(() => {
+  useEffect(() => {
     const isPerseProject = persesProjects?.some(
       (project) => project.metadata?.name === selectedProjectName,
     );
@@ -276,7 +276,7 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
     persesProjects,
   ]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isOpen && dashboard && editableProjects?.length > 0 && defaultProject) {
       form.reset({
         projectName: defaultProject,
@@ -355,7 +355,7 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
 
   const handleClose = () => {
     onClose();
-    form.reset();
+    form.reset({ dashboardName: '' });
   };
 
   const onProjectSelect = (_event: any, selection: string) => {

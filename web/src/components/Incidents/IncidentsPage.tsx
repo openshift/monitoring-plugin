@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useMemo, useState, useEffect, useCallback } from 'react';
+import { useMemo, useState, useEffect, useCallback, MouseEvent } from 'react';
 import { useSafeFetch } from '../console/utils/safe-fetch-hook';
 import { createAlertsQuery, fetchDataForIncidentsAndAlerts } from './api';
 import { useTranslation } from 'react-i18next';
@@ -110,7 +110,7 @@ const IncidentsPage = () => {
   });
 
   const onFilterToggle = (
-    ev: React.MouseEvent,
+    ev: MouseEvent,
     filterName: keyof IncidentsPageFiltersExpandedState | 'filterType',
     setter,
   ) => {

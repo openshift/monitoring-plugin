@@ -1,4 +1,4 @@
-import React, { PropsWithChildren, useMemo } from 'react';
+import { createContext, FC, PropsWithChildren, useMemo } from 'react';
 import { MonitoringPlugins, Prometheus } from '../components/utils';
 import { QueryParamProvider } from 'use-query-params';
 import { useAccessReview } from '@openshift-console/dynamic-plugin-sdk';
@@ -26,7 +26,7 @@ type MonitoringContextType = {
   displayNamespaceSelector: boolean;
 };
 
-export const MonitoringContext = React.createContext<MonitoringContextType>({
+export const MonitoringContext = createContext<MonitoringContextType>({
   plugin: 'monitoring-plugin',
   prometheus: 'cmo',
   useAlertsTenancy: false,
@@ -35,7 +35,7 @@ export const MonitoringContext = React.createContext<MonitoringContextType>({
   displayNamespaceSelector: true,
 });
 
-export const MonitoringProvider: React.FC<
+export const MonitoringProvider: FC<
   PropsWithChildren<{
     monitoringContext: {
       plugin: MonitoringPlugins;

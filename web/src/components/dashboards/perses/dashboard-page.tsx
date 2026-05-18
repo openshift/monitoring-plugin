@@ -98,7 +98,7 @@ const DashboardPage_: FC = () => {
   );
 };
 
-const DashboardPage: React.FC = () => {
+const DashboardPage: FC = () => {
   return (
     <QueryParamProvider adapter={ReactRouter7Adapter}>
       <QueryClientProvider client={queryClient}>

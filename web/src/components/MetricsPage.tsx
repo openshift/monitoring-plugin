@@ -61,8 +61,8 @@ import {
   wrappable,
 } from '@patternfly/react-table';
 import * as _ from 'lodash-es';
-import type { FC, Ref } from 'react';
-import { useMemo, useCallback, useEffect, useState } from 'react';
+import type { FC, MouseEvent as ReactMouseEvent, Ref } from 'react';
+import { useMemo, useCallback, useEffect, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -1119,7 +1119,7 @@ const QueryBrowserWrapper: FC<{
   }, [dispatch, queryParams, isFirstRender, setFirstRenderFalse]);
 
   /* eslint-disable react-hooks/exhaustive-deps */
-  // Use React.useMemo() to prevent these two arrays being recreated on every render, which would
+  // Use useMemo() to prevent these two arrays being recreated on every render, which would
   // trigger unnecessary re-renders of QueryBrowser, which can be quite slow
   const queriesMemoKey = JSON.stringify(_.map(queries, 'query'));
   const queryStrings = useMemo(() => _.map(queries, 'query'), [queriesMemoKey]);
@@ -1321,7 +1321,7 @@ const GraphUnitsDropDown: FC = () => {
     return intervalOptions.map((o) => ({ ...o, selected: o.value === selectedUnits }));
   }, [selectedUnits, t]);
 
-  const onSelect = (_ev: React.MouseEvent<Element, MouseEvent>, selection: string) => {
+  const onSelect = (_ev: ReactMouseEvent<Element, MouseEvent>, selection: string) => {
     setUnits(selection);
   };
 
@@ -1338,7 +1338,7 @@ const MetricsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const [units, setUnits] = useQueryParam(QueryParams.Units, StringParam);
   const [customDataSourceName] = useQueryParam(QueryParams.Datasource, StringParam);
-  const { setNamespace } = useMonitoringNamespace();
+  const { namespace, setNamespace } = useMonitoringNamespace();
   const { displayNamespaceSelector } = useMonitoring();
 
   const dispatch = useDispatch();
@@ -1402,6 +1402,17 @@ const MetricsPage_: FC = () => {
       setCustomDataSourceError(true);
     });
   }, [extensions, extensionsResolved, customDataSourceName, hasExtensions]);
+
+  const prevNamespace = useRef(namespace);
+  useEffect(() => {
+    // In the developer perspective (display namespace selector is false since all dev perspective
+    // pages add them automatically) then clear queries when the namespace changes
+    if (prevNamespace.current === namespace || displayNamespaceSelector) {
+      return;
+    }
+    prevNamespace.current = namespace;
+    dispatch(queryBrowserDeleteAllQueries());
+  }, [namespace, dispatch, setNamespace]);
 
   if (customDataSourceName) {
     if (!extensionsResolved || (!customDataSourceIsResolved && !customDatasourceError)) {
@@ -1481,7 +1492,7 @@ const MetricsPage_: FC = () => {
 
 const MetricsPage = withFallback(MetricsPage_);
 
-export const MpCmoMetricsPage: React.FC = () => {
+export const MpCmoMetricsPage: FC = () => {
   return (
     <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
       <MetricsPage />
@@ -1489,7 +1500,7 @@ export const MpCmoMetricsPage: React.FC = () => {
   );
 };
 
-export const MpCmoDevMetricsPage: React.FC = () => {
+export const MpCmoDevMetricsPage: FC = () => {
   return (
     <MonitoringProvider
       monitoringContext={{

@@ -2,7 +2,7 @@ import {
   PaginationParams,
   UseDataViewPaginationProps,
 } from '@patternfly/react-data-view/dist/dynamic/Hooks';
-import { useCallback, useState } from 'react';
+import { KeyboardEvent, MouseEvent as ReactMouseEvent, useCallback, useState } from 'react';
 import { useSearchParams } from 'react-router';
 
 const parsePositiveInt = (value: string | null, fallback: number) => {
@@ -40,7 +40,7 @@ export const useTablePagination = ({
   );
 
   const onPerPageSelect = (
-    _event: React.MouseEvent | React.KeyboardEvent | MouseEvent | undefined,
+    _event: ReactMouseEvent | KeyboardEvent | MouseEvent | undefined,
     newPerPage: number,
   ) => {
     if (newPerPage !== state.perPage) {
@@ -50,7 +50,7 @@ export const useTablePagination = ({
   };
 
   const onSetPage = (
-    _event: React.MouseEvent | React.KeyboardEvent | MouseEvent | undefined,
+    _event: ReactMouseEvent | KeyboardEvent | MouseEvent | undefined,
     newPage: number,
   ) => {
     if (newPage !== state.page) {

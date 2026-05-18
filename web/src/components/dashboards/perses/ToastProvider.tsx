@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode, FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Alert,
@@ -31,7 +31,7 @@ export const useToast = () => {
   return context;
 };
 
-export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const ToastProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [alerts, setAlerts] = useState<ToastItem[]>([]);
 
   const addAlert = (title: string, variant: AlertProps['variant']) => {
