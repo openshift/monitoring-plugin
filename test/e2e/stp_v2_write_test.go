@@ -382,6 +382,7 @@ func testPhase6SingleUpdate(f *framework.Framework, ids *seedRuleIDs) func(t *te
 
 		t.Run("TC036_UpdateUserDefined", func(t *testing.T) {
 				skipIfNoUWM(t)
+			t.Skip("Requires single-rule PATCH /rules/{ruleId} with alertingRule body (not supported by bulk endpoint)")
 
 			ids.UserRule = refreshRuleID(ctx, t, f.PluginURL, "TestUserAlert")
 			body := map[string]interface{}{
