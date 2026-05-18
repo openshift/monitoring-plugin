@@ -406,40 +406,21 @@ func findRuleInGroups(groups []k8s.PrometheusRuleGroup, alertName string) *k8s.P
 
 // refreshRuleID re-discovers the current rule ID for an alert by name.
 // Rule IDs can change when the relabeled cache stamps new labels.
-// Polls up to 90s to wait for the cache to stabilize.
 func refreshRuleID(ctx context.Context, t *testing.T, pluginURL string, alertName string) string {
 	t.Helper()
-	var lastID string
-	err := wait.PollUntilContextTimeout(ctx, 3*time.Second, 90*time.Second, true, func(ctx context.Context) (bool, error) {
-		groups, err := listRulesAsGroups(ctx, pluginURL, nil)
-		if err != nil {
-			return false, nil
-		}
-		rule := findRuleInGroups(groups, alertName)
-		if rule == nil {
-			return false, nil
-		}
-		id := rule.Labels[k8s.AlertRuleLabelId]
-		if id == "" {
-			return false, nil
-		}
-		// Verify the ID is valid by checking it can be used in a bulk query
-		_, resp, err := patchRulesBulk(ctx, pluginURL, map[string]interface{}{
-			"ruleIds": []string{id},
-		})
-		if err != nil {
-			return false, nil
-		}
-		if len(resp.Rules) > 0 && int(resp.Rules[0].StatusCode) != http.StatusNotFound {
-			lastID = id
-			return true, nil
-		}
-		return false, nil
-	})
+	groups, err := listRulesAsGroups(ctx, pluginURL, nil)
 	if err != nil {
-		t.Fatalf("Timeout refreshing rule ID for %s (last seen: %s): %v", alertName, lastID, err)
+		t.Fatalf("Failed to refresh rule ID for %s: %v", alertName, err)
 	}
-	return lastID
+	rule := findRuleInGroups(groups, alertName)
+	if rule == nil {
+		t.Fatalf("Rule %s not found when refreshing ID", alertName)
+	}
+	id := rule.Labels[k8s.AlertRuleLabelId]
+	if id == "" {
+		t.Fatalf("Rule %s found but has no ID", alertName)
+	}
+	return id
 }
 
 // findAllRulesInGroups returns all rules from all groups as a flat slice.
