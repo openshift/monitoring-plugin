@@ -325,7 +325,7 @@ func testPhase5Classification(f *framework.Framework, ids *seedRuleIDs) func(t *
 				},
 			}
 
-			httpStatus, resp, err := patchRule(ctx, f.PluginURL, ids.UserRule, body)
+			httpStatus, resp, err := patchSingleRuleViaBulk(ctx, f.PluginURL, ids.UserRule, body)
 			if err != nil {
 				t.Fatalf("PATCH failed: %v", err)
 			}
@@ -342,7 +342,7 @@ func testPhase5Classification(f *framework.Framework, ids *seedRuleIDs) func(t *
 				},
 			}
 
-			httpStatus, resp, err := patchRule(ctx, f.PluginURL, ids.OperatorManaged, body)
+			httpStatus, resp, err := patchSingleRuleViaBulk(ctx, f.PluginURL, ids.OperatorManaged, body)
 			if err != nil {
 				t.Fatalf("PATCH failed: %v", err)
 			}
@@ -359,7 +359,7 @@ func testPhase5Classification(f *framework.Framework, ids *seedRuleIDs) func(t *
 				},
 			}
 
-			httpStatus, resp, err := patchRule(ctx, f.PluginURL, ids.GitOpsRule, body)
+			httpStatus, resp, err := patchSingleRuleViaBulk(ctx, f.PluginURL, ids.GitOpsRule, body)
 			if err != nil {
 				t.Fatalf("PATCH failed: %v", err)
 			}
@@ -394,7 +394,7 @@ func testPhase6SingleUpdate(f *framework.Framework, ids *seedRuleIDs) func(t *te
 				},
 			}
 
-			httpStatus, resp, err := patchRule(ctx, f.PluginURL, ids.UserRule, body)
+			httpStatus, resp, err := patchSingleRuleViaBulk(ctx, f.PluginURL, ids.UserRule, body)
 			if err != nil {
 				t.Fatalf("PATCH failed: %v", err)
 			}
@@ -456,7 +456,7 @@ func testPhase6SingleUpdate(f *framework.Framework, ids *seedRuleIDs) func(t *te
 				"AlertingRuleEnabled": false,
 			}
 
-			httpStatus, resp, err := patchRule(ctx, f.PluginURL, ids.UserRule, body)
+			httpStatus, resp, err := patchSingleRuleViaBulk(ctx, f.PluginURL, ids.UserRule, body)
 			if err != nil {
 				t.Fatalf("PATCH failed: %v", err)
 			}
@@ -683,12 +683,12 @@ func testPhase8SingleDelete(f *framework.Framework, ids *seedRuleIDs) func(t *te
 				t.Skip("No created user rule ID (TC-024 may not have run)")
 			}
 
-			statusCode, body, err := deleteRule(ctx, f.PluginURL, ids.CreatedUserRule)
+			resultStatus, err := deleteSingleRuleViaBulk(ctx, f.PluginURL, ids.CreatedUserRule)
 			if err != nil {
 				t.Fatalf("DELETE /rules/%s failed: %v", ids.CreatedUserRule, err)
 			}
-			if statusCode != http.StatusNoContent {
-				t.Fatalf("Expected HTTP 204, got %d: %s", statusCode, string(body))
+			if resultStatus != http.StatusNoContent {
+				t.Fatalf("Expected result status 204, got %d", resultStatus)
 			}
 
 			// Dual verify: check K8s PrometheusRule CR

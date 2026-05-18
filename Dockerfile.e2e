@@ -1,0 +1,21 @@
+FROM docker.io/library/golang:1.24 AS go-builder
+
+WORKDIR /opt/app-root
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY cmd/ cmd/
+COPY pkg/ pkg/
+COPY internal/ internal/
+
+RUN CGO_ENABLED=0 go build -o plugin-backend cmd/plugin-backend.go
+
+FROM gcr.io/distroless/static-debian12
+
+USER 1001
+
+COPY --from=go-builder /opt/app-root/plugin-backend /opt/app-root/
+COPY config/ /opt/app-root/config
+
+ENTRYPOINT ["/opt/app-root/plugin-backend", "-config-path", "/opt/app-root/config"]
