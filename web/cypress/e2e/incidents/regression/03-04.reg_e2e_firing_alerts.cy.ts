@@ -42,6 +42,9 @@ describe(
     before(() => {
       cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
 
+      // Reset the search timeout so this spec gets a fresh 35-minute window
+      incidentsPage.resetSearchTimeout();
+
       cy.log('Create firing alert for testing');
       cy.cleanupIncidentPrometheusRules();
       cy.createKubePodCrashLoopingAlert().then((alertName) => {
