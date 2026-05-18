@@ -1,4 +1,4 @@
-import React from 'react';
+import { FC, ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { VariableProvider } from '@perses-dev/dashboards';
 import { TimeRangeProviderBasic } from '@perses-dev/plugin-system';
@@ -20,13 +20,13 @@ const queryClient = new QueryClient({
 });
 
 interface OlsToolUIPersesWrapperProps {
-  children: React.ReactNode;
+  children: ReactNode;
   height?: string;
   initialTimeRange?: TimeRangeValue;
   initialTimeZone?: string;
 }
 
-export const OlsToolUIPersesWrapper: React.FC<OlsToolUIPersesWrapperProps> = ({
+export const OlsToolUIPersesWrapper: FC<OlsToolUIPersesWrapperProps> = ({
   children,
   initialTimeRange = { pastDuration: '1h' as DurationString },
   height = '300px',

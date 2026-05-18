@@ -3,17 +3,23 @@ import { useMemo } from 'react';
 import { nameSchema } from '@perses-dev/core';
 import { useDashboardList } from './dashboard-api';
 import { generateMetadataName } from './dashboard-utils';
+import { TFunction } from 'i18next';
 
-export const createDashboardDisplayNameValidationSchema = (t: (key: string) => string) =>
+export const createDashboardDisplayNameValidationSchema = (t: TFunction) =>
   z.string().min(1, t('Required')).max(75, t('Must be 75 or fewer characters long'));
 
-export const createDashboardDialogValidationSchema = (t: (key: string) => string) =>
+export const createDashboardDialogValidationSchema = (t: TFunction) =>
   z.object({
     projectName: nameSchema,
     dashboardName: createDashboardDisplayNameValidationSchema(t),
   });
 
-export const renameDashboardDialogValidationSchema = (t: (key: string) => string) =>
+export const importDashboardDialogValidationSchema = () =>
+  z.object({
+    projectName: nameSchema,
+  });
+
+export const renameDashboardDialogValidationSchema = (t: TFunction) =>
   z.object({
     dashboardName: createDashboardDisplayNameValidationSchema(t),
   });
@@ -24,6 +30,9 @@ export type CreateDashboardValidationType = z.infer<
 export type RenameDashboardValidationType = z.infer<
   ReturnType<typeof renameDashboardDialogValidationSchema>
 >;
+export type ImportDashboardValidationType = z.infer<
+  ReturnType<typeof importDashboardDialogValidationSchema>
+>;
 
 export interface DashboardValidationSchema {
   schema?: z.ZodSchema;
@@ -33,8 +42,8 @@ export interface DashboardValidationSchema {
 
 // Validate dashboard name and check if it doesn't already exist
 export function useDashboardValidationSchema(
+  t: TFunction,
   projectName?: string,
-  t?: (key: string, options?: any) => string,
 ): DashboardValidationSchema {
   const {
     data: dashboards,
@@ -42,12 +51,13 @@ export function useDashboardValidationSchema(
     isError,
   } = useDashboardList({ project: projectName });
   return useMemo((): DashboardValidationSchema => {
-    if (isDashboardsLoading)
+    if (isDashboardsLoading) {
       return {
         schema: undefined,
         isSchemaLoading: true,
         hasSchemaError: false,
       };
+    }
 
     if (isError) {
       return {
@@ -57,12 +67,13 @@ export function useDashboardValidationSchema(
       };
     }
 
-    if (!dashboards?.length)
+    if (!dashboards?.length) {
       return {
         schema: createDashboardDialogValidationSchema(t),
         isSchemaLoading: false,
         hasSchemaError: false,
       };
+    }
 
     const refinedSchema = createDashboardDialogValidationSchema(t).refine(
       (schema) => {
@@ -75,13 +86,13 @@ export function useDashboardValidationSchema(
         });
       },
       (schema) => ({
-        message: t
-          ? t(`Dashboard name '{{dashboardName}}' already exists in '{{projectName}}' project!`, {
-              dashboardName: schema.dashboardName,
-              projectName: schema.projectName,
-            })
-          : // eslint-disable-next-line max-len
-            `Dashboard name '${schema.dashboardName}' already exists in '${schema.projectName}' project!`,
+        message: t(
+          `Dashboard name '{{dashboardName}}' already exists in '{{projectName}}' project!`,
+          {
+            dashboardName: schema.dashboardName,
+            projectName: schema.projectName,
+          },
+        ),
         path: ['dashboardName'],
       }),
     );

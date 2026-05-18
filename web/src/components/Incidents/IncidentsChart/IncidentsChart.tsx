@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   Chart,
@@ -282,4 +282,4 @@ const IncidentsChart = ({
   );
 };
 
-export default React.memo(IncidentsChart);
+export default memo(IncidentsChart);

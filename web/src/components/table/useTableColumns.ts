@@ -1,6 +1,6 @@
 import { DataViewTh } from '@patternfly/react-data-view/dist/dynamic/DataViewTable';
 import { ISortBy, ThProps } from '@patternfly/react-table';
-import { useCallback, useMemo } from 'react';
+import { KeyboardEvent, MouseEvent as ReactMouseEvent, useCallback, useMemo } from 'react';
 
 export interface ColumnKey {
   label: string;
@@ -13,7 +13,7 @@ export const useTableColumns = (
   sortBy: string | undefined,
   direction: ISortBy['direction'],
   onSort: (
-    _event: React.MouseEvent | React.KeyboardEvent | MouseEvent | undefined,
+    _event: ReactMouseEvent | KeyboardEvent | MouseEvent | undefined,
     newSortBy: string,
     newSortDirection: ISortBy['direction'],
   ) => void,

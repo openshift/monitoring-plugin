@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { FC, Ref, useState } from 'react';
 import {
   Dropdown,
   DropdownList,
@@ -14,7 +14,7 @@ import { DashboardCreateDialog } from './dashboard-create-dialog';
 import { DashboardImportDialog } from './dashboard-import-dialog';
 import { persesDashboardDataTestIDs } from '../../data-test';
 
-export const DashboardActionsMenu: React.FunctionComponent = () => {
+export const DashboardActionsMenu: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { hasEditableProject, permissionsLoading } = useEditableProjects();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -46,7 +46,7 @@ export const DashboardActionsMenu: React.FunctionComponent = () => {
       isOpen={isDropdownOpen}
       onSelect={onSelect}
       onOpenChange={(open: boolean) => setIsDropdownOpen(open)}
-      toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+      toggle={(toggleRef: Ref<MenuToggleElement>) => (
         <MenuToggle
           ref={toggleRef}
           variant="primary"

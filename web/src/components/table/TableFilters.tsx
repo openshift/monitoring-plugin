@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, ReactNode } from 'react';
 import {
   Menu,
   MenuContent,
@@ -20,7 +20,7 @@ interface TableFiltersProps extends Omit<
   ToolbarToggleGroupProps,
   'toggleIcon' | 'breakpoint' | 'onChange'
 > {
-  children: React.ReactNode;
+  children: ReactNode;
   ouiaId?: string;
   activeAttributeMenu: string;
   setActiveAttributeMenu: (name: string) => void;

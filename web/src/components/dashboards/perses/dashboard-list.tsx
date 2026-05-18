@@ -1,4 +1,4 @@
-import React, { ReactNode, useCallback, useMemo, useState, type FC } from 'react';
+import { memo, ReactNode, useCallback, useMemo, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDashboardsData } from './hooks/useDashboardsData';
 
@@ -42,7 +42,7 @@ import { useEditableProjects } from './hooks/useEditableProjects';
 import { ALL_NAMESPACES_KEY } from '../../utils';
 import { ITEMS_PER_PAGE, TablePagination } from '../../../components/table-pagination';
 
-const DashboardActionsCell = React.memo(
+const DashboardActionsCell = memo(
   ({
     project,
     dashboard,
@@ -166,7 +166,7 @@ interface DashboardsTableProps {
   activeProject: string | null;
 }
 
-const DashboardsTable: React.FunctionComponent<DashboardsTableProps> = ({
+const DashboardsTable: FC<DashboardsTableProps> = ({
   persesDashboards,
   persesDashboardsLoading,
   activeProject,

@@ -6,7 +6,7 @@ import {
   ToolbarItemVariant,
   ToolbarProps,
 } from '@patternfly/react-core';
-import { FC, PropsWithChildren, useMemo } from 'react';
+import { FC, PropsWithChildren, ReactNode, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 /** extends ToolbarProps */
@@ -14,13 +14,13 @@ export interface DataViewToolbarProps extends Omit<PropsWithChildren<ToolbarProp
   /** Custom OUIA ID */
   ouiaId?: string;
   /** React node to display bulk select */
-  bulkSelect?: React.ReactNode;
+  bulkSelect?: ReactNode;
   /** React node to display pagination */
-  pagination?: React.ReactNode;
+  pagination?: ReactNode;
   /** React node to display actions */
-  actions?: React.ReactNode;
+  actions?: ReactNode;
   /** React node to display filters */
-  filters?: React.ReactNode;
+  filters?: ReactNode;
 }
 
 export const TableToolbar: FC<DataViewToolbarProps> = ({

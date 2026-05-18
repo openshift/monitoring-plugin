@@ -13,7 +13,7 @@ import {
 } from '@patternfly/react-core';
 import { TimesIcon } from '@patternfly/react-icons';
 import { DataTestIDs } from './data-test';
-import { FC, useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, FormEvent, KeyboardEvent, Ref, FC } from 'react';
 
 const NO_RESULTS = 'no results';
 
@@ -105,7 +105,7 @@ export const TypeaheadSelect: FC<TypeaheadSelectProps> = ({ options, onSelect, p
     }
   };
 
-  const onTextInputChange = (_event: React.FormEvent<HTMLInputElement>, value: string) => {
+  const onTextInputChange = (_event: FormEvent<HTMLInputElement>, value: string) => {
     setInputValue(value);
     setFilterValue(value);
 
@@ -125,7 +125,7 @@ export const TypeaheadSelect: FC<TypeaheadSelectProps> = ({ options, onSelect, p
     closeMenu();
   };
 
-  const onInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+  const onInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     const focusedItem = focusedItemIndex !== null ? selectOptions[focusedItemIndex] : null;
 
     switch (event.key) {
@@ -204,7 +204,7 @@ export const TypeaheadSelect: FC<TypeaheadSelectProps> = ({ options, onSelect, p
     setActiveAndFocusedItem(indexToFocus);
   };
 
-  const toggle = (toggleRef: React.Ref<MenuToggleElement>) => (
+  const toggle = (toggleRef: Ref<MenuToggleElement>) => (
     <MenuToggle
       ref={toggleRef}
       variant="typeahead"

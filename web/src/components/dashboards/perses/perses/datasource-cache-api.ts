@@ -191,7 +191,7 @@ export class CachedDatasourceAPI implements DatasourceApi {
 const addCsrfToken = <T extends DatasourceResource | GlobalDatasourceResource | undefined>(
   datasource: T,
 ): T => {
-  if (!datasource) {
+  if (!datasource?.spec?.plugin?.spec) {
     return datasource;
   }
 

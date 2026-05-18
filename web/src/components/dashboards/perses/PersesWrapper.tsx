@@ -33,7 +33,7 @@ import {
   usePluginBuiltinVariableDefinitions,
   ValidationProvider,
 } from '@perses-dev/plugin-system';
-import React, { useMemo } from 'react';
+import { ReactNode, useMemo } from 'react';
 import { usePatternFlyTheme } from '../../hooks/usePatternflyTheme';
 import { OcpDatasourceApi } from './datasource-api';
 import { PERSES_PROXY_BASE_PATH, useFetchPersesDashboard } from './perses-client';
@@ -74,7 +74,7 @@ const patternflyChartsMultiUnorderedPalette = Array.isArray(chartColorScale)
   : [];
 
 interface PersesWrapperProps {
-  children?: React.ReactNode;
+  children?: ReactNode;
   project: string;
 }
 
@@ -412,7 +412,7 @@ export function PersesWrapper({ children, project }: PersesWrapperProps) {
 }
 
 interface InnerWrapperProps {
-  children?: React.ReactNode;
+  children?: ReactNode;
   project: string;
 }
 
@@ -506,7 +506,7 @@ interface PersesPrometheusDatasourceWrapperProps {
   queries: Definition<UnknownSpec>[];
   dashboardResource?: DashboardResource;
   duration?: DurationString;
-  children?: React.ReactNode;
+  children?: ReactNode;
 }
 
 export function PersesPrometheusDatasourceWrapper({

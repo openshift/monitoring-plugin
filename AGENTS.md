@@ -320,7 +320,6 @@ npx cypress run --component --spec cypress/component/labels.cy.tsx
 Component test files use the `.cy.tsx` extension and go in `web/cypress/component/`:
 
 ```typescript
-import React from 'react';
 import { MyComponent } from '../../src/components/MyComponent';
 
 describe('MyComponent', () => {

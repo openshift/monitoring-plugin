@@ -98,11 +98,8 @@ const AlertsPage_: FC = () => {
       { label: t('Total'), key: rowFilter('alert-total') },
       { label: t('State'), key: rowFilter(AlertFilterOptions.STATE) },
     ];
-    if (perspective === 'acm') {
-      keys.push({ label: t('Cluster'), key: rowFilter(AlertFilterOptions.CLUSTER) });
-    }
     return keys;
-  }, [t, perspective]);
+  }, [t]);
 
   const columns = useTableColumns(columnKeys, sortBy, direction, onSort, [0]);
 

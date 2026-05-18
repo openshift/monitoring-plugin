@@ -113,7 +113,6 @@ Component tests mount individual React components in isolation using Cypress, wi
 Component test files use the `.cy.tsx` extension and live in `cypress/component/`:
 
 ```typescript
-import React from 'react';
 import { Labels } from '../../src/components/labels';
 
 describe('Labels', () => {
@@ -313,4 +312,3 @@ Cypress tests run automatically in the CI pipeline:
 - **Test Scenarios Catalog**: `E2E_TEST_SCENARIOS.md`
 - **Setup Instructions**: `README.md`
 - **Main Guide**: `../../AGENTS.md`
-
