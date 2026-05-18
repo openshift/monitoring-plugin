@@ -36,7 +36,9 @@ export class OcpDatasourceApi implements DatasourceApi {
       name,
     )}`;
     if (dashboard) {
-      url = `dashboards/${encodeURIComponent(dashboard)}/${url}`;
+      throw new Error(
+        'Dashboard level datasources are not supported in OpenShift, please use a project or global level datasource',
+      );
     }
     if (project) {
       url = `projects/${encodeURIComponent(project)}/${url}`;
@@ -56,7 +58,7 @@ export class OcpDatasourceApi implements DatasourceApi {
     ).then((list) => {
       if (!Array.isArray(list) || list.length === 0) {
         // eslint-disable-next-line no-console
-        console.warn('No matching local datasource found');
+        console.warn('No matching global datasource found');
         return undefined;
       }
       const datasource = list[0];
