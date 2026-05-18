@@ -316,6 +316,66 @@
     "type": "console.page/route",
     "properties": {
       "exact": false,
+      "path": "/multicloud/monitoring",
+      "component": {
+        "$codeRef": "AlertingPage.MpCmoAlertingPage"
+      }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
+      "path": "/multicloud/monitoring/silences/~new",
+      "component": {
+        "$codeRef": "SilenceCreatePage.MpCmoCreateSilencePage"
+      }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
+      "path": "/multicloud/monitoring/silences/:id",
+      "component": {
+        "$codeRef": "SilencesDetailsPage.MpCmoSilencesDetailsPage"
+      }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
+      "path": "/multicloud/monitoring/silences/:id/edit",
+      "component": {
+        "$codeRef": "SilenceEditPage.MpCmoSilenceEditPage"
+      }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
+      "path": ["/multicloud/monitoring/alertrules/:id"],
+      "component": {
+        "$codeRef": "AlertRulesDetailsPage.MpCmoAlertRulesDetailsPage"
+      }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
+      "path": ["/multicloud/monitoring/alerts/:ruleID"],
+      "component": {
+        "$codeRef": "AlertsDetailsPage.MpCmoAlertsDetailsPage"
+      }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
       "path": "/dev-monitoring/ns/:ns/alerts/:ruleID",
       "component": {
         "$codeRef": "AlertsDetailsPage.MpCmoAlertsDetailsPage"
