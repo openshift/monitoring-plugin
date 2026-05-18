@@ -91,6 +91,11 @@ func testPhase10CRUDLifecycle(f *framework.Framework) func(t *testing.T) {
 			createdID := pollForRuleID(ctx, t, f.PluginURL, "TestLifecycleCreated", 3*time.Minute)
 			t.Logf("Step 5: TestLifecycleCreated appeared with ID: %s", createdID)
 
+			// Refresh the ID — the relabeled cache may have stamped new labels
+			time.Sleep(5 * time.Second)
+			createdID = refreshRuleID(ctx, t, f.PluginURL, "TestLifecycleCreated")
+			t.Logf("Step 5b: Refreshed createdID to: %s", createdID)
+
 			// Step 6: PATCH to update labels
 			patchBody := map[string]interface{}{
 				"alertingRule": map[string]interface{}{
