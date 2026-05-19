@@ -15,6 +15,8 @@ import {
   EmptyStateActions,
   EmptyStateHeader,
   EmptyStateFooter,
+  Tooltip,
+  TooltipPosition,
 } from '@patternfly/react-core';
 import fuzzysearch from 'fuzzysearch';
 import { useTranslation } from 'react-i18next';
@@ -22,6 +24,8 @@ import ProjectMenuToggle from './ProjectMenuToggle';
 import './ProjectDropdown.scss';
 import { alphanumericCompare } from './utils';
 import { useEditableProjects } from '../hooks/useEditableProjects';
+
+const ALL_NAMESPACES_KEY = '#ALL_NS#';
 
 export const NoResults: React.FC<{
   onClear: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
@@ -196,8 +200,6 @@ const ProjectDropdown: React.FC<ProjectDropdownProps> = ({
   const [isOpen, setOpen] = React.useState(false);
   const { allProjects, permissionsLoading, permissionsError } = useEditableProjects();
 
-  // const title = selected === LEGACY_DASHBOARDS_KEY ? legacyDashboardsTitle : selected;
-
   const menuProps = {
     setOpen,
     onSelect,
@@ -205,25 +207,47 @@ const ProjectDropdown: React.FC<ProjectDropdownProps> = ({
     menuRef,
   };
 
-  if (permissionsLoading || permissionsError || !allProjects || allProjects.length === 0) {
-    return null;
+  let title = t('All Projects');
+  // While loading permissions, or if there is a permission error fallback to the "selected" value
+  // 'All Projects' is the user friendly ALL_NAMESPACES_KEY
+  if (
+    selected &&
+    (allProjects?.includes(selected) || permissionsLoading || !!permissionsError) &&
+    selected !== ALL_NAMESPACES_KEY
+  ) {
+    title = selected;
   }
 
-  const title = selected && allProjects.includes(selected) ? selected : t('All Projects');
+  const toggle = (
+    <ProjectMenuToggle
+      disabled={disabled || permissionsLoading || !!permissionsError}
+      menu={<ProjectMenu {...menuProps} />}
+      menuRef={menuRef}
+      isOpen={isOpen}
+      title={`${t('Project')}: ${title}`}
+      onToggle={(menuState) => {
+        setOpen(menuState);
+      }}
+      shortCut={shortCut}
+    />
+  );
 
   return (
     <div className="monitoring__project-dropdown">
-      <ProjectMenuToggle
-        disabled={disabled}
-        menu={<ProjectMenu {...menuProps} />}
-        menuRef={menuRef}
-        isOpen={isOpen}
-        title={`${t('Project')}: ${title}`}
-        onToggle={(menuState) => {
-          setOpen(menuState);
-        }}
-        shortCut={shortCut}
-      />
+      {permissionsLoading ? (
+        <Tooltip content={t('Checking permissions...')} position={TooltipPosition.bottom}>
+          {toggle}
+        </Tooltip>
+      ) : permissionsError ? (
+        <Tooltip
+          content={t('Failed to load project permissions. Please refresh the page and try again.')}
+          position={TooltipPosition.bottom}
+        >
+          {toggle}
+        </Tooltip>
+      ) : (
+        toggle
+      )}
     </div>
   );
 };
