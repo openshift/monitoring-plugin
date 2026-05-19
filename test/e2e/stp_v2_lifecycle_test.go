@@ -92,9 +92,9 @@ func testPhase10CRUDLifecycle(f *framework.Framework) func(t *testing.T) {
 			createdID := pollForRuleID(ctx, t, f.PluginURL, "TestLifecycleCreated", 3*time.Minute)
 			t.Logf("Step 5: TestLifecycleCreated appeared with ID: %s", createdID)
 
-			// Wait for Prometheus to re-evaluate with the stamped ID
-			createdID = waitForIDChange(ctx, t, f.PluginURL, "TestLifecycleCreated", createdID)
-			t.Logf("Step 5b: Stable createdID: %s", createdID)
+			// Newly created rule already has correct ID stamped. Just refresh.
+			createdID = refreshRuleID(ctx, t, f.PluginURL, "TestLifecycleCreated")
+			t.Logf("Step 5b: Confirmed createdID: %s", createdID)
 
 			// Step 6: PATCH to update labels
 			patchBody := map[string]interface{}{

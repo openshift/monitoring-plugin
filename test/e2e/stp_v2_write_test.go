@@ -529,9 +529,15 @@ func testPhase7BulkUpdate(f *framework.Framework, ids *seedRuleIDs) func(t *test
 			}
 		})
 
-		// Wait for Prometheus to re-evaluate rules after TC-041 label changes
-		oldUserID := ids.UserRule
-		ids.UserRule = waitForIDChange(ctx, t, f.PluginURL, "TestUserAlert", oldUserID)
+		// After TC-041 label changes, wait for IDs to stabilize
+		if uwmAccessible {
+			// In-cluster: labels were applied to user rules, IDs will change
+			oldUserID := ids.UserRule
+			ids.UserRule = waitForIDChange(ctx, t, f.PluginURL, "TestUserAlert", oldUserID)
+		} else {
+			// Local: user rules are in platform namespace, labels may not apply
+			ids.UserRule = refreshRuleID(ctx, t, f.PluginURL, "TestUserAlert")
+		}
 
 		t.Run("TC042_BulkDisable", func(t *testing.T) {
 			ids.PlatformRule = refreshRuleID(ctx, t, f.PluginURL, "TestUserPlatformAlert")
@@ -780,9 +786,10 @@ func testPhase9BulkDelete(f *framework.Framework, ids *seedRuleIDs) func(t *test
 			id1 := pollForRuleID(ctx, t, f.PluginURL, "TestBulkDeleteTmp1", 3*time.Minute)
 			id2 := pollForRuleID(ctx, t, f.PluginURL, "TestBulkDeleteTmp2", 3*time.Minute)
 
-			// Wait for Prometheus to re-evaluate with stamped IDs
-			id1 = waitForIDChange(ctx, t, f.PluginURL, "TestBulkDeleteTmp1", id1)
-			id2 = waitForIDChange(ctx, t, f.PluginURL, "TestBulkDeleteTmp2", id2)
+			// Newly created rules already have the correct ID stamped on the CRD.
+			// Just refresh to confirm the cache has synced.
+			id1 = refreshRuleID(ctx, t, f.PluginURL, "TestBulkDeleteTmp1")
+			id2 = refreshRuleID(ctx, t, f.PluginURL, "TestBulkDeleteTmp2")
 
 			// Bulk delete
 			body := managementrouter.BulkDeleteAlertRulesRequest{
@@ -845,8 +852,8 @@ func testPhase9BulkDelete(f *framework.Framework, ids *seedRuleIDs) func(t *test
 
 			tempID := pollForRuleID(ctx, t, f.PluginURL, "TestBulkDeletePartial", 3*time.Minute)
 
-			// Wait for Prometheus to re-evaluate with stamped IDs
-			tempID = waitForIDChange(ctx, t, f.PluginURL, "TestBulkDeletePartial", tempID)
+			// Newly created rule already has correct ID stamped. Just refresh.
+			tempID = refreshRuleID(ctx, t, f.PluginURL, "TestBulkDeletePartial")
 			ids.GitOpsRule = refreshRuleID(ctx, t, f.PluginURL, "TestGitOpsUserAlert")
 
 			body := managementrouter.BulkDeleteAlertRulesRequest{
