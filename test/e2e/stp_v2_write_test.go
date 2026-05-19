@@ -529,9 +529,9 @@ func testPhase7BulkUpdate(f *framework.Framework, ids *seedRuleIDs) func(t *test
 			}
 		})
 
-		// Wait for relabeled cache to stabilize after TC-041 label changes
-		t.Log("Waiting 90s for relabeled cache to sync after label changes...")
-		time.Sleep(90 * time.Second)
+		// Wait for Prometheus to re-evaluate rules after TC-041 label changes
+		oldUserID := ids.UserRule
+		ids.UserRule = waitForIDChange(ctx, t, f.PluginURL, "TestUserAlert", oldUserID)
 
 		t.Run("TC042_BulkDisable", func(t *testing.T) {
 			ids.PlatformRule = refreshRuleID(ctx, t, f.PluginURL, "TestUserPlatformAlert")
@@ -780,11 +780,9 @@ func testPhase9BulkDelete(f *framework.Framework, ids *seedRuleIDs) func(t *test
 			id1 := pollForRuleID(ctx, t, f.PluginURL, "TestBulkDeleteTmp1", 3*time.Minute)
 			id2 := pollForRuleID(ctx, t, f.PluginURL, "TestBulkDeleteTmp2", 3*time.Minute)
 
-			// Wait for relabeled cache to sync and stamp IDs on new rules
-			t.Log("Waiting 90s for cache to sync temp rules...")
-			time.Sleep(90 * time.Second)
-			id1 = refreshRuleID(ctx, t, f.PluginURL, "TestBulkDeleteTmp1")
-			id2 = refreshRuleID(ctx, t, f.PluginURL, "TestBulkDeleteTmp2")
+			// Wait for Prometheus to re-evaluate with stamped IDs
+			id1 = waitForIDChange(ctx, t, f.PluginURL, "TestBulkDeleteTmp1", id1)
+			id2 = waitForIDChange(ctx, t, f.PluginURL, "TestBulkDeleteTmp2", id2)
 
 			// Bulk delete
 			body := managementrouter.BulkDeleteAlertRulesRequest{
@@ -847,10 +845,8 @@ func testPhase9BulkDelete(f *framework.Framework, ids *seedRuleIDs) func(t *test
 
 			tempID := pollForRuleID(ctx, t, f.PluginURL, "TestBulkDeletePartial", 3*time.Minute)
 
-			// Wait for relabeled cache to sync and stamp IDs on new rules
-			t.Log("Waiting 90s for cache to sync temp rule...")
-			time.Sleep(90 * time.Second)
-			tempID = refreshRuleID(ctx, t, f.PluginURL, "TestBulkDeletePartial")
+			// Wait for Prometheus to re-evaluate with stamped IDs
+			tempID = waitForIDChange(ctx, t, f.PluginURL, "TestBulkDeletePartial", tempID)
 			ids.GitOpsRule = refreshRuleID(ctx, t, f.PluginURL, "TestGitOpsUserAlert")
 
 			body := managementrouter.BulkDeleteAlertRulesRequest{

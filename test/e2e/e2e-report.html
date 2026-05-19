@@ -4,165 +4,207 @@
 <meta charset="utf-8">
 <title>E2E Test Report — Alert Management API</title>
 <style>
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 900px; margin: 40px auto; padding: 0 20px; color: #333; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 1000px; margin: 40px auto; padding: 0 20px; color: #333; line-height: 1.6; }
 h1 { color: #1a1a2e; border-bottom: 2px solid #e94560; padding-bottom: 10px; }
-h2 { color: #1a1a2e; margin-top: 30px; }
+h2 { color: #1a1a2e; margin-top: 30px; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
 h3 { color: #16213e; }
+h4 { color: #0f3460; }
 table { border-collapse: collapse; width: 100%; margin: 15px 0; }
 th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
 th { background: #16213e; color: white; }
 tr:nth-child(even) { background: #f9f9f9; }
-.summary { display: flex; gap: 20px; margin: 20px 0; }
-.stat { padding: 15px 25px; border-radius: 8px; text-align: center; }
+.summary { display: flex; gap: 20px; margin: 20px 0; flex-wrap: wrap; }
+.stat { padding: 15px 25px; border-radius: 8px; text-align: center; min-width: 100px; }
 .stat-pass { background: #d4edda; color: #155724; }
 .stat-fail { background: #f8d7da; color: #721c24; }
 .stat-skip { background: #fff3cd; color: #856404; }
 .stat-total { background: #d1ecf1; color: #0c5460; }
 .stat h2 { margin: 0; font-size: 28px; }
-.stat p { margin: 5px 0 0 0; }
+.stat p { margin: 5px 0 0 0; font-size: 14px; }
 code { background: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-size: 13px; }
-pre { background: #2d2d2d; color: #f8f8f2; padding: 12px; border-radius: 6px; overflow-x: auto; }
+pre { background: #2d2d2d; color: #f8f8f2; padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 13px; }
 .pass { color: #28a745; }
-.fail { color: #dc3545; }
+.fail { color: #dc3545; font-weight: bold; }
 .skip { color: #ffc107; }
+.root-cause { background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 15px 0; border-radius: 4px; }
+.tried { background: #d1ecf1; border-left: 4px solid #17a2b8; padding: 15px; margin: 15px 0; border-radius: 4px; }
+.bug { background: #f8d7da; border-left: 4px solid #dc3545; padding: 15px; margin: 15px 0; border-radius: 4px; }
+.resolution { background: #d4edda; border-left: 4px solid #28a745; padding: 15px; margin: 15px 0; border-radius: 4px; }
 </style>
 </head>
 <body>
 <h1>E2E Test Report — Alert Management API (STP v2)</h1>
-<p><strong>Date:</strong> 2026-05-17 17:06<br>
+<p>
+<strong>Date:</strong> 2026-05-18 20:29<br>
 <strong>Branch:</strong> test-alert-management-v2-sradco<br>
-<strong>Base:</strong> sradco/alerts-effective-metric (PR #16)</p>
+<strong>Base:</strong> sradco/alerts-effective-metric (PR #16)<br>
+<strong>Plugin:</strong> In-cluster deployment<br>
+<strong>Cluster:</strong> iuo-or-422.rhos-psi.cnv-qe.rhood.us
+</p>
 
 <div class="summary">
-<div class="stat stat-pass"><h2>48</h2><p>Passed</p></div>
-<div class="stat stat-fail"><h2>0</h2><p>Failed</p></div>
-<div class="stat stat-skip"><h2>13</h2><p>Skipped</p></div>
+<div class="stat stat-pass"><h2>54</h2><p>Passed</p></div>
+<div class="stat stat-fail"><h2>5</h2><p>Failed</p></div>
+<div class="stat stat-skip"><h2>2</h2><p>Skipped</p></div>
 <div class="stat stat-total"><h2>61</h2><p>Total</p></div>
 </div>
 <h3>Phase2_GetRules (12 pass, 0 fail, 0 skip)</h3>
 <table>
 <tr><th>Test</th><th>Status</th><th>Time</th></tr>
-<tr><td>TC001_HealthEndpoint</td><td class="pass">✅ PASS</td><td>2.76s</td></tr>
-<tr><td>TC002_ListAllRulesProvenanceLabels</td><td class="pass">✅ PASS</td><td>4.72s</td></tr>
-<tr><td>TC003_RulesFilterStateFiring</td><td class="pass">✅ PASS</td><td>4.48s</td></tr>
-<tr><td>TC004_RulesFilterStatePending</td><td class="pass">✅ PASS</td><td>4.82s</td></tr>
-<tr><td>TC005_RulesFilterSeverity</td><td class="pass">✅ PASS</td><td>4.49s</td></tr>
-<tr><td>TC006_RulesFilterNamespace</td><td class="pass">✅ PASS</td><td>4.27s</td></tr>
-<tr><td>TC007_RulesFilterAlertname</td><td class="pass">✅ PASS</td><td>3.98s</td></tr>
-<tr><td>TC008_RulesMultiFilterSeverityNamespace</td><td class="pass">✅ PASS</td><td>4.17s</td></tr>
-<tr><td>TC009_RulesMultiFilterStateSeverity</td><td class="pass">✅ PASS</td><td>3.99s</td></tr>
-<tr><td>TC010_RulesFilterSourcePlatform</td><td class="pass">✅ PASS</td><td>4.13s</td></tr>
-<tr><td>TC011_RulesFilterPlatformNamespace</td><td class="pass">✅ PASS</td><td>4.23s</td></tr>
-<tr><td>TC012_RulesInvalidState</td><td class="pass">✅ PASS</td><td>0.00s</td></tr>
+<tr><td>TC001_HealthEndpoint</td><td class="pass">✅ PASS</td><td>0.41s</td></tr>
+<tr><td>TC002_ListAllRulesProvenanceLabels</td><td class="pass">✅ PASS</td><td>3.80s</td></tr>
+<tr><td>TC003_RulesFilterStateFiring</td><td class="pass">✅ PASS</td><td>2.95s</td></tr>
+<tr><td>TC004_RulesFilterStatePending</td><td class="pass">✅ PASS</td><td>2.80s</td></tr>
+<tr><td>TC005_RulesFilterSeverity</td><td class="pass">✅ PASS</td><td>3.35s</td></tr>
+<tr><td>TC006_RulesFilterNamespace</td><td class="pass">✅ PASS</td><td>4.21s</td></tr>
+<tr><td>TC007_RulesFilterAlertname</td><td class="pass">✅ PASS</td><td>2.80s</td></tr>
+<tr><td>TC008_RulesMultiFilterSeverityNamespace</td><td class="pass">✅ PASS</td><td>2.91s</td></tr>
+<tr><td>TC009_RulesMultiFilterStateSeverity</td><td class="pass">✅ PASS</td><td>2.98s</td></tr>
+<tr><td>TC010_RulesFilterSourcePlatform</td><td class="pass">✅ PASS</td><td>2.97s</td></tr>
+<tr><td>TC011_RulesFilterPlatformNamespace</td><td class="pass">✅ PASS</td><td>3.85s</td></tr>
+<tr><td>TC012_RulesInvalidState</td><td class="pass">✅ PASS</td><td>0.35s</td></tr>
 </table>
 <h3>Phase3_GetAlerts (11 pass, 0 fail, 0 skip)</h3>
 <table>
 <tr><th>Test</th><th>Status</th><th>Time</th></tr>
-<tr><td>TC013_GetAllAlerts</td><td class="pass">✅ PASS</td><td>4.91s</td></tr>
-<tr><td>TC014_AlertsFilterStateFiring</td><td class="pass">✅ PASS</td><td>4.97s</td></tr>
-<tr><td>TC015_AlertsFilterStatePending</td><td class="pass">✅ PASS</td><td>4.89s</td></tr>
-<tr><td>TC016_AlertsFilterSeverity</td><td class="pass">✅ PASS</td><td>4.83s</td></tr>
-<tr><td>TC017_AlertsMultiFilterStateSeverity</td><td class="pass">✅ PASS</td><td>5.03s</td></tr>
-<tr><td>TC018_AlertsFilterAlertname</td><td class="pass">✅ PASS</td><td>4.85s</td></tr>
-<tr><td>TC019_AlertsBackendEnrichment</td><td class="pass">✅ PASS</td><td>5.50s</td></tr>
-<tr><td>TC020_AlertsSourceEnrichment</td><td class="pass">✅ PASS</td><td>4.94s</td></tr>
-<tr><td>TC021_AlertsAlertRuleIdEnrichment</td><td class="pass">✅ PASS</td><td>4.94s</td></tr>
-<tr><td>TC022_AlertsWarningsField</td><td class="pass">✅ PASS</td><td>4.62s</td></tr>
-<tr><td>TC023_AlertsInvalidState</td><td class="pass">✅ PASS</td><td>0.00s</td></tr>
+<tr><td>TC013_GetAllAlerts</td><td class="pass">✅ PASS</td><td>1.89s</td></tr>
+<tr><td>TC014_AlertsFilterStateFiring</td><td class="pass">✅ PASS</td><td>1.95s</td></tr>
+<tr><td>TC015_AlertsFilterStatePending</td><td class="pass">✅ PASS</td><td>1.68s</td></tr>
+<tr><td>TC016_AlertsFilterSeverity</td><td class="pass">✅ PASS</td><td>1.98s</td></tr>
+<tr><td>TC017_AlertsMultiFilterStateSeverity</td><td class="pass">✅ PASS</td><td>2.26s</td></tr>
+<tr><td>TC018_AlertsFilterAlertname</td><td class="pass">✅ PASS</td><td>1.95s</td></tr>
+<tr><td>TC019_AlertsBackendEnrichment</td><td class="pass">✅ PASS</td><td>1.96s</td></tr>
+<tr><td>TC020_AlertsSourceEnrichment</td><td class="pass">✅ PASS</td><td>2.05s</td></tr>
+<tr><td>TC021_AlertsAlertRuleIdEnrichment</td><td class="pass">✅ PASS</td><td>1.82s</td></tr>
+<tr><td>TC022_AlertsWarningsField</td><td class="pass">✅ PASS</td><td>2.05s</td></tr>
+<tr><td>TC023_AlertsInvalidState</td><td class="pass">✅ PASS</td><td>0.32s</td></tr>
 </table>
-<h3>Phase4_Create (9 pass, 0 fail, 1 skip)</h3>
+<h3>Phase4_Create (10 pass, 0 fail, 0 skip)</h3>
 <table>
 <tr><th>Test</th><th>Status</th><th>Time</th></tr>
-<tr><td>TC024_CreateUserDefinedRule</td><td class="skip">⏭️ SKIP</td><td>0.00s</td></tr>
-<tr><td>TC025_CreatePlatformRule</td><td class="pass">✅ PASS</td><td>0.44s</td></tr>
-<tr><td>TC026_CreateInGitOpsPR</td><td class="pass">✅ PASS</td><td>0.01s</td></tr>
-<tr><td>TC027_CreateInOperatorPR</td><td class="pass">✅ PASS</td><td>0.00s</td></tr>
-<tr><td>TC028_CreateInPlatformNS</td><td class="pass">✅ PASS</td><td>0.00s</td></tr>
-<tr><td>TC029_CreateDuplicate</td><td class="pass">✅ PASS</td><td>0.00s</td></tr>
-<tr><td>TC030a_MissingAlertingRule</td><td class="pass">✅ PASS</td><td>0.00s</td></tr>
-<tr><td>TC030b_MissingPrometheusRule</td><td class="pass">✅ PASS</td><td>1.11s</td></tr>
-<tr><td>TC030c_InvalidJSON</td><td class="pass">✅ PASS</td><td>0.00s</td></tr>
-<tr><td>TC030_CreateInputValidation</td><td class="pass">✅ PASS</td><td>1.12s</td></tr>
+<tr><td>TC024_CreateUserDefinedRule</td><td class="pass">✅ PASS</td><td>0.85s</td></tr>
+<tr><td>TC025_CreatePlatformRule</td><td class="pass">✅ PASS</td><td>0.72s</td></tr>
+<tr><td>TC026_CreateInGitOpsPR</td><td class="pass">✅ PASS</td><td>0.34s</td></tr>
+<tr><td>TC027_CreateInOperatorPR</td><td class="pass">✅ PASS</td><td>0.36s</td></tr>
+<tr><td>TC028_CreateInPlatformNS</td><td class="pass">✅ PASS</td><td>0.35s</td></tr>
+<tr><td>TC029_CreateDuplicate</td><td class="pass">✅ PASS</td><td>0.32s</td></tr>
+<tr><td>TC030a_MissingAlertingRule</td><td class="pass">✅ PASS</td><td>0.37s</td></tr>
+<tr><td>TC030b_MissingPrometheusRule</td><td class="pass">✅ PASS</td><td>0.66s</td></tr>
+<tr><td>TC030c_InvalidJSON</td><td class="pass">✅ PASS</td><td>0.39s</td></tr>
+<tr><td>TC030_CreateInputValidation</td><td class="pass">✅ PASS</td><td>1.41s</td></tr>
 </table>
-<h3>Phase5_Classification (2 pass, 0 fail, 3 skip)</h3>
+<h3>Phase5_Classification (5 pass, 0 fail, 0 skip)</h3>
 <table>
 <tr><th>Test</th><th>Status</th><th>Time</th></tr>
-<tr><td>TC031_ClassifyPlatformOperatorManaged</td><td class="pass">✅ PASS</td><td>0.80s</td></tr>
-<tr><td>TC032_ClassifyPlatformUnmanaged</td><td class="pass">✅ PASS</td><td>0.60s</td></tr>
-<tr><td>TC033_ClassifyUserDefined</td><td class="skip">⏭️ SKIP</td><td>0.00s</td></tr>
-<tr><td>TC034_ClassifyOperatorManaged</td><td class="skip">⏭️ SKIP</td><td>0.00s</td></tr>
-<tr><td>TC035_ClassifyGitOps</td><td class="skip">⏭️ SKIP</td><td>0.00s</td></tr>
+<tr><td>TC031_ClassifyPlatformOperatorManaged</td><td class="pass">✅ PASS</td><td>0.61s</td></tr>
+<tr><td>TC032_ClassifyPlatformUnmanaged</td><td class="pass">✅ PASS</td><td>4.48s</td></tr>
+<tr><td>TC033_ClassifyUserDefined</td><td class="pass">✅ PASS</td><td>4.19s</td></tr>
+<tr><td>TC034_ClassifyOperatorManaged</td><td class="pass">✅ PASS</td><td>4.01s</td></tr>
+<tr><td>TC035_ClassifyGitOps</td><td class="pass">✅ PASS</td><td>4.38s</td></tr>
 </table>
-<h3>Phase6_SingleUpdate (3 pass, 0 fail, 2 skip)</h3>
+<h3>Phase6_SingleUpdate (4 pass, 0 fail, 1 skip)</h3>
 <table>
 <tr><th>Test</th><th>Status</th><th>Time</th></tr>
 <tr><td>TC036_UpdateUserDefined</td><td class="skip">⏭️ SKIP</td><td>0.00s</td></tr>
-<tr><td>TC037_DisablePlatformRule</td><td class="pass">✅ PASS</td><td>0.70s</td></tr>
-<tr><td>TC038_ReenablePlatformRule</td><td class="pass">✅ PASS</td><td>0.61s</td></tr>
-<tr><td>TC039_DisableUserDefined</td><td class="skip">⏭️ SKIP</td><td>0.00s</td></tr>
-<tr><td>TC040_CombinedClassificationEnable</td><td class="pass">✅ PASS</td><td>1.19s</td></tr>
+<tr><td>TC037_DisablePlatformRule</td><td class="pass">✅ PASS</td><td>0.54s</td></tr>
+<tr><td>TC038_ReenablePlatformRule</td><td class="pass">✅ PASS</td><td>0.60s</td></tr>
+<tr><td>TC039_DisableUserDefined</td><td class="pass">✅ PASS</td><td>4.26s</td></tr>
+<tr><td>TC040_CombinedClassificationEnable</td><td class="pass">✅ PASS</td><td>0.94s</td></tr>
 </table>
-<h3>Phase7_BulkUpdate (3 pass, 0 fail, 3 skip)</h3>
+<h3>Phase7_BulkUpdate (4 pass, 2 fail, 0 skip)</h3>
 <table>
 <tr><th>Test</th><th>Status</th><th>Time</th></tr>
-<tr><td>TC041_BulkLabelUpdate</td><td class="pass">✅ PASS</td><td>1.20s</td></tr>
-<tr><td>TC042_BulkDisable</td><td class="pass">✅ PASS</td><td>1.43s</td></tr>
-<tr><td>TC043_BulkReEnable</td><td class="pass">✅ PASS</td><td>1.20s</td></tr>
-<tr><td>TC044_BulkClassification</td><td class="skip">⏭️ SKIP</td><td>0.00s</td></tr>
-<tr><td>TC045_BulkPartialFailure</td><td class="skip">⏭️ SKIP</td><td>0.00s</td></tr>
-<tr><td>TC046_BulkLabelRemoval</td><td class="skip">⏭️ SKIP</td><td>0.00s</td></tr>
+<tr><td>TC041_BulkLabelUpdate</td><td class="pass">✅ PASS</td><td>0.77s</td></tr>
+<tr><td>TC042_BulkDisable</td><td class="pass">✅ PASS</td><td>4.72s</td></tr>
+<tr><td>TC043_BulkReEnable</td><td class="pass">✅ PASS</td><td>4.81s</td></tr>
+<tr><td>TC044_BulkClassification</td><td class="pass">✅ PASS</td><td>4.80s</td></tr>
+<tr><td>TC045_BulkPartialFailure</td><td class="fail">❌ FAIL</td><td>9.01s</td></tr>
+<tr><td>TC046_BulkLabelRemoval</td><td class="fail">❌ FAIL</td><td>4.70s</td></tr>
 </table>
-<h3>Phase8_SingleDelete (1 pass, 0 fail, 1 skip)</h3>
+<h3>Phase8_SingleDelete (2 pass, 0 fail, 0 skip)</h3>
 <table>
 <tr><th>Test</th><th>Status</th><th>Time</th></tr>
-<tr><td>TC047_DeleteUserDefined</td><td class="skip">⏭️ SKIP</td><td>0.00s</td></tr>
-<tr><td>TC048_DeleteGitOps</td><td class="pass">✅ PASS</td><td>0.00s</td></tr>
+<tr><td>TC047_DeleteUserDefined</td><td class="pass">✅ PASS</td><td>4.23s</td></tr>
+<tr><td>TC048_DeleteGitOps</td><td class="pass">✅ PASS</td><td>3.98s</td></tr>
 </table>
-<h3>Phase9_BulkDelete (1 pass, 0 fail, 2 skip)</h3>
+<h3>Phase9_BulkDelete (2 pass, 1 fail, 0 skip)</h3>
 <table>
 <tr><th>Test</th><th>Status</th><th>Time</th></tr>
-<tr><td>TC049_BulkDeleteUserDefined</td><td class="skip">⏭️ SKIP</td><td>0.00s</td></tr>
-<tr><td>TC050_BulkDeletePartialFailure</td><td class="skip">⏭️ SKIP</td><td>0.00s</td></tr>
-<tr><td>TC051_BulkDeleteNonexistent</td><td class="pass">✅ PASS</td><td>0.00s</td></tr>
+<tr><td>TC049_BulkDeleteUserDefined</td><td class="fail">❌ FAIL</td><td>126.72s</td></tr>
+<tr><td>TC050_BulkDeletePartialFailure</td><td class="pass">✅ PASS</td><td>145.07s</td></tr>
+<tr><td>TC051_BulkDeleteNonexistent</td><td class="pass">✅ PASS</td><td>0.32s</td></tr>
 </table>
 <h3>Phase10_CRUDLifecycle (0 pass, 0 fail, 1 skip)</h3>
 <table>
 <tr><th>Test</th><th>Status</th><th>Time</th></tr>
 <tr><td>TC052_FullCRUDLifecycle</td><td class="skip">⏭️ SKIP</td><td>0.00s</td></tr>
 </table>
-<h3>Phase12_Metrics (6 pass, 0 fail, 0 skip)</h3>
+<h3>Phase12_Metrics (4 pass, 2 fail, 0 skip)</h3>
 <table>
 <tr><th>Test</th><th>Status</th><th>Time</th></tr>
-<tr><td>TC053_MetricEndpointExposesEffectiveMetric</td><td class="pass">✅ PASS</td><td>0.00s</td></tr>
-<tr><td>TC054_MetricSeriesHaveRequiredLabels</td><td class="pass">✅ PASS</td><td>0.00s</td></tr>
-<tr><td>TC055_MetricExcludesThanosBackend</td><td class="pass">✅ PASS</td><td>0.00s</td></tr>
-<tr><td>TC056_MetricIncludesClassificationLabels</td><td class="pass">✅ PASS</td><td>0.00s</td></tr>
-<tr><td>TC057_MetricExcludesAnnotations</td><td class="pass">✅ PASS</td><td>0.00s</td></tr>
-<tr><td>TC058_MetricActiveAtTimestampsAreReasonable</td><td class="pass">✅ PASS</td><td>0.00s</td></tr>
-</table>
-<h2>Skipped Tests — Require In-Cluster Plugin (UWM)</h2>
-<table>
-<tr><th>Test</th><th>Reason</th></tr>
-<tr><td>TC024_CreateUserDefinedRule</td><td></td></tr>
-<tr><td>TC033_ClassifyUserDefined</td><td></td></tr>
-<tr><td>TC034_ClassifyOperatorManaged</td><td></td></tr>
-<tr><td>TC035_ClassifyGitOps</td><td></td></tr>
-<tr><td>TC036_UpdateUserDefined</td><td></td></tr>
-<tr><td>TC039_DisableUserDefined</td><td></td></tr>
-<tr><td>TC044_BulkClassification</td><td></td></tr>
-<tr><td>TC045_BulkPartialFailure</td><td></td></tr>
-<tr><td>TC046_BulkLabelRemoval</td><td></td></tr>
-<tr><td>TC047_DeleteUserDefined</td><td></td></tr>
-<tr><td>TC049_BulkDeleteUserDefined</td><td></td></tr>
-<tr><td>TC050_BulkDeletePartialFailure</td><td></td></tr>
-<tr><td>TC052_FullCRUDLifecycle</td><td></td></tr>
+<tr><td>TC053_MetricEndpointExposesEffectiveMetric</td><td class="fail">❌ FAIL</td><td>0.36s</td></tr>
+<tr><td>TC054_MetricSeriesHaveRequiredLabels</td><td class="pass">✅ PASS</td><td>0.35s</td></tr>
+<tr><td>TC055_MetricExcludesThanosBackend</td><td class="pass">✅ PASS</td><td>0.33s</td></tr>
+<tr><td>TC056_MetricIncludesClassificationLabels</td><td class="fail">❌ FAIL</td><td>0.36s</td></tr>
+<tr><td>TC057_MetricExcludesAnnotations</td><td class="pass">✅ PASS</td><td>0.32s</td></tr>
+<tr><td>TC058_MetricActiveAtTimestampsAreReasonable</td><td class="pass">✅ PASS</td><td>0.39s</td></tr>
 </table>
 
-<h2>Environment</h2>
+<h2>Failed Tests — Root Cause Analysis</h2>
+
+<h4>TC-045 (BulkPartialFailure), TC-046 (BulkLabelRemoval) — Stale Rule IDs</h4>
+
+<div class="root-cause">
+<strong>Root Cause:</strong> The <code>openshift_io_alert_rule_id</code> is a hash of the rule content (including labels). When TC-041 adds <code>bulk_test_label</code>, the labels change → the hash changes → the ID changes. The relabeled cache takes ~75s to re-sync. The GET /rules response (from Prometheus) still returns the OLD ID. When the test refreshes and sends that old ID to the bulk PATCH, the cache rejects it with 404.
+</div>
+
+<div class="tried">
+<strong>What was tried:</strong>
 <ul>
-<li><strong>Cluster:</strong> iuo-or-422.rhos-psi.cnv-qe.rhood.us</li>
-<li><strong>Plugin:</strong> Running locally with <code>alert-management-api</code> feature</li>
-<li><strong>CNV-85482 fix:</strong> Applied locally (<code>initCtx</code> → <code>ctx</code> in server.go)</li>
-<li><strong>UWM:</strong> Not accessible from local plugin (13 tests skipped — require in-cluster deployment)</li>
+<li><code>refreshRuleID()</code> before every operation — gets old ID from Prometheus response</li>
+<li>90-second sleep between TC-041 and TC-042 — helped some tests but not TC-045/046</li>
+<li>Polling with bulk PATCH probe to verify ID validity — caused side effects (empty PATCH modified rules)</li>
 </ul>
+</div>
+
+<div class="resolution">
+<strong>Resolution needed from developer:</strong> The mismatch between the Prometheus response ID and the relabeled cache ID needs to be resolved. Options:
+<ol>
+<li>Stamp <code>openshift_io_alert_rule_id</code> directly on the PrometheusRule CRD so Prometheus evaluates with the correct ID</li>
+<li>Accept both old and new IDs during transition periods</li>
+<li>Use the relabeled cache ID in the GET /rules response instead of the Prometheus-reported ID</li>
+</ol>
+</div>
+
+<h4>TC-049 (BulkDeleteUserDefined) — Same Stale ID Issue</h4>
+<p>Temporary rules created by POST get IDs from the response. After the relabeled cache re-syncs (~75s), the IDs change. Even with a 90-second wait and refresh, the refreshed ID comes from Prometheus (old) while the cache has the new one.</p>
+
+<h4>TC-053, TC-056 — Intermittent Metrics</h4>
+<p>The <code>/metrics</code> endpoint intermittently doesn't expose <code>alerts_effective_active_at_timestamp_seconds</code>. Depends on leader election and successful Prometheus alert fetching. These tests passed in previous runs.</p>
+
+<h2>Skipped Tests</h2>
+<table>
+<tr><th>Test</th><th>Reason</th></tr>
+<tr><td>TC-036 (UpdateUserDefined)</td><td>Requires single-rule PATCH <code>/rules/{ruleId}</code> with <code>alertingRule</code> body — bulk endpoint only supports labels/classification/enable-disable</td></tr>
+<tr><td>TC-052 (FullCRUDLifecycle)</td><td>Same — lifecycle PATCH step needs single-rule endpoint</td></tr>
+</table>
+<p>These tests will work once sradco adds the single-rule PATCH/DELETE routes.</p>
+
+<h2>Bugs Found During Testing</h2>
+
+<div class="bug">
+<h4>CNV-85482 — Relabeled Rules Cache Stops Syncing</h4>
+<p><strong>Status:</strong> MODIFIED in Jira, fix applied locally</p>
+<p><strong>Root Cause:</strong> <code>pkg/server.go</code> passes a 30-second timeout context (<code>initCtx</code>) to <code>k8s.NewClient()</code>. After the timeout, all informer watches die and the relabeled cache never re-syncs.</p>
+<p><strong>Fix:</strong> Pass the server-scoped <code>ctx</code> instead of <code>initCtx</code> to <code>k8s.NewClient()</code></p>
+<p><strong>Evidence:</strong> Without fix: "Synced 380 relabeled rules" appears only at startup, never again. With fix: sync count changes dynamically (395 → 400 → 401).</p>
+</div>
+
+<h2>Test Environment</h2>
+<table>
+<tr><th>Environment</th><th>Pass</th><th>Fail</th><th>Skip</th></tr>
+<tr><td>Local plugin</td><td>48</td><td>0</td><td>13 (UWM not accessible)</td></tr>
+<tr><td>In-cluster plugin</td><td>54</td><td>5 (stale IDs + metrics)</td><td>2 (single-rule endpoint)</td></tr>
+</table>
+
 </body></html>

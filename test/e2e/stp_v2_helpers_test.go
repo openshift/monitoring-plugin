@@ -423,6 +423,35 @@ func refreshRuleID(ctx context.Context, t *testing.T, pluginURL string, alertNam
 	return id
 }
 
+// waitForIDChange polls GET /rules until the rule ID for alertName differs
+// from oldID, meaning Prometheus has re-evaluated the rule with updated labels.
+// Returns the new stable ID. Times out after 2 minutes.
+func waitForIDChange(ctx context.Context, t *testing.T, pluginURL string, alertName string, oldID string) string {
+	t.Helper()
+	var newID string
+	err := wait.PollUntilContextTimeout(ctx, 5*time.Second, 2*time.Minute, true, func(ctx context.Context) (bool, error) {
+		groups, err := listRulesAsGroups(ctx, pluginURL, nil)
+		if err != nil {
+			return false, nil
+		}
+		rule := findRuleInGroups(groups, alertName)
+		if rule == nil {
+			return false, nil
+		}
+		id := rule.Labels[k8s.AlertRuleLabelId]
+		if id != "" && id != oldID {
+			newID = id
+			return true, nil
+		}
+		return false, nil
+	})
+	if err != nil {
+		t.Fatalf("Timeout waiting for %s ID to change from %s: %v", alertName, oldID, err)
+	}
+	t.Logf("Rule %s ID changed: %s → %s", alertName, oldID, newID)
+	return newID
+}
+
 // findAllRulesInGroups returns all rules from all groups as a flat slice.
 func findAllRulesInGroups(groups []k8s.PrometheusRuleGroup) []k8s.PrometheusRule {
 	var out []k8s.PrometheusRule
