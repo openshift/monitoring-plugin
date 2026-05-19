@@ -382,34 +382,34 @@ func testPhase6SingleUpdate(f *framework.Framework, ids *seedRuleIDs) func(t *te
 
 		t.Run("TC036_UpdateUserDefined", func(t *testing.T) {
 				skipIfNoUWM(t)
-			t.Skip("Requires single-rule PATCH /rules/{ruleId} with alertingRule body (not supported by bulk endpoint)")
 
 			ids.UserRule = waitForIDReady(ctx, t, f.PluginURL, "TestUserAlert")
 			body := map[string]interface{}{
-				"alertingRule": map[string]interface{}{
-					"alert": "TestUserAlert",
-					"expr":  "vector(1) > 0",
-					"for":   "2m",
-					"labels": map[string]string{
-						"severity": "critical",
-						"team":     "test",
-					},
-					"annotations": map[string]string{
-						"summary": "Updated test alert",
-					},
+				"ruleIds": []string{ids.UserRule},
+				"labels": map[string]*string{
+					"severity": strPtr("critical"),
+					"team":     strPtr("test"),
 				},
 			}
 
-			httpStatus, resp, err := patchSingleRuleViaBulk(ctx, f.PluginURL, ids.UserRule, body)
+			httpStatus, resp, err := patchRulesBulk(ctx, f.PluginURL, body)
 			if err != nil {
-				t.Fatalf("PATCH failed: %v", err)
+				t.Fatalf("PATCH /rules bulk failed: %v", err)
 			}
-			assertPatchSuccess(t, httpStatus, resp)
+			if httpStatus != http.StatusOK {
+				t.Fatalf("Expected HTTP 200, got %d", httpStatus)
+			}
+			if len(resp.Rules) == 0 {
+				t.Fatal("Expected at least 1 result")
+			}
+			if int(resp.Rules[0].StatusCode) != http.StatusNoContent {
+				t.Fatalf("Expected inner 204, got %d", resp.Rules[0].StatusCode)
+			}
 
-			// Update the seed rule ID (it changes after update)
-			if resp.Id != "" {
-				t.Logf("UserRule ID changed from %s to %s", ids.UserRule, resp.Id)
-				ids.UserRule = resp.Id
+			// Update the seed rule ID (it changes after label update)
+			if resp.Rules[0].Id != "" && resp.Rules[0].Id != ids.UserRule {
+				t.Logf("UserRule ID changed from %s to %s", ids.UserRule, resp.Rules[0].Id)
+				ids.UserRule = resp.Rules[0].Id
 			}
 
 			// Dual verify: check K8s PrometheusRule CR

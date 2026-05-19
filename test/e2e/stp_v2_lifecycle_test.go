@@ -25,7 +25,6 @@ func testPhase10CRUDLifecycle(f *framework.Framework) func(t *testing.T) {
 
 		t.Run("TC052_FullCRUDLifecycle", func(t *testing.T) {
 			skipIfNoUWM(t)
-			t.Skip("Requires single-rule PATCH /rules/{ruleId} with alertingRule body (not supported by bulk endpoint)")
 
 			// Step 1: Create namespace
 			testNamespace, cleanup, err := f.CreateNamespace(ctx, "test-crud-lifecycle", false)
@@ -96,27 +95,34 @@ func testPhase10CRUDLifecycle(f *framework.Framework) func(t *testing.T) {
 			createdID = waitForIDReady(ctx, t, f.PluginURL, "TestLifecycleCreated")
 			t.Logf("Step 5b: Confirmed createdID: %s", createdID)
 
-			// Step 6: PATCH to update labels
+			// Step 6: PATCH to update labels via bulk
 			patchBody := map[string]interface{}{
-				"alertingRule": map[string]interface{}{
-					"alert": "TestLifecycleCreated",
-					"expr":  "vector(2)",
-					"for":   "1m",
-					"labels": map[string]string{
-						"severity": "info",
-						"team":     "lifecycle",
-					},
+				"ruleIds": []string{createdID},
+				"labels": map[string]*string{
+					"team": strPtr("lifecycle"),
 				},
 			}
 
-			httpStatus, patchResp, err := patchSingleRuleViaBulk(ctx, f.PluginURL, createdID, patchBody)
+			httpStatus, patchResp, err := patchRulesBulk(ctx, f.PluginURL, patchBody)
 			if err != nil {
-				t.Fatalf("PATCH failed: %v", err)
+				t.Fatalf("PATCH /rules bulk failed: %v", err)
 			}
-			assertPatchSuccess(t, httpStatus, patchResp)
+			if httpStatus != http.StatusOK {
+				t.Fatalf("Expected HTTP 200, got %d", httpStatus)
+			}
+			if len(patchResp.Rules) == 0 || int(patchResp.Rules[0].StatusCode) != http.StatusNoContent {
+				t.Fatalf("Expected inner 204, got %v", patchResp.Rules)
+			}
 
-			newID := patchResp.Id
+			// ID may change after label update
+			newID := patchResp.Rules[0].Id
+			if newID == "" {
+				newID = createdID
+			}
 			t.Logf("Step 6: Updated rule, new ID: %s", newID)
+
+			// Wait for cache to recognize the new ID
+			newID = waitForIDReady(ctx, t, f.PluginURL, "TestLifecycleCreated")
 
 			// Step 7: DELETE the updated rule
 			resultStatus, err := deleteSingleRuleViaBulk(ctx, f.PluginURL, newID)
