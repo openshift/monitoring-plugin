@@ -653,8 +653,9 @@ func skipIfNoUWM(t *testing.T) {
 	}
 }
 
-// checkUWMAccessible tests whether the plugin can reach user-workload rules
-// by creating a temporary rule in a user namespace and checking if it appears.
+// checkUWMAccessible tests whether the plugin can reach user-workload rules.
+// Checks the health endpoint — if UWM is enabled AND user-workload Prometheus
+// is reachable (directly or via Thanos fallback), UWM is accessible.
 func checkUWMAccessible(ctx context.Context, f *framework.Framework) bool {
 	resp, err := getHealth(ctx, f.PluginURL)
 	if err != nil {
@@ -663,14 +664,12 @@ func checkUWMAccessible(ctx context.Context, f *framework.Framework) bool {
 	if resp.Alerting == nil || !resp.Alerting.UserWorkloadEnabled {
 		return false
 	}
-	// UWM is enabled — check if Thanos tenancy queries work by listing rules
-	// with a namespace filter. If we get a response (even empty), it works.
-	groups, err := listRulesAsGroups(ctx, f.PluginURL, map[string]string{"namespace": "default"})
-	if err != nil {
+	uw := resp.Alerting.UserWorkload
+	if uw == nil {
 		return false
 	}
-	_ = groups
-	return true
+	// Accessible if user-workload Prometheus is reachable directly or via Thanos fallback
+	return uw.Prometheus.Status == k8s.RouteReachable || uw.Prometheus.FallbackReachable
 }
 
 // boolPtr returns a pointer to a bool value.
