@@ -301,7 +301,7 @@ func testPhase5Classification(f *framework.Framework, ids *seedRuleIDs) func(t *
 		})
 
 		t.Run("TC032_ClassifyPlatformUnmanaged", func(t *testing.T) {
-			ids.PlatformRule = refreshRuleID(ctx, t, f.PluginURL, "TestUserPlatformAlert")
+			ids.PlatformRule = waitForIDReady(ctx, t, f.PluginURL, "TestUserPlatformAlert")
 			body := map[string]interface{}{
 				"classification": map[string]interface{}{
 					"openshift_io_alert_rule_component": "networking",
@@ -319,7 +319,7 @@ func testPhase5Classification(f *framework.Framework, ids *seedRuleIDs) func(t *
 		t.Run("TC033_ClassifyUserDefined", func(t *testing.T) {
 				skipIfNoUWM(t)
 
-			ids.UserRule = refreshRuleID(ctx, t, f.PluginURL, "TestUserAlert")
+			ids.UserRule = waitForIDReady(ctx, t, f.PluginURL, "TestUserAlert")
 			body := map[string]interface{}{
 				"classification": map[string]interface{}{
 					"openshift_io_alert_rule_component": "networking",
@@ -337,7 +337,7 @@ func testPhase5Classification(f *framework.Framework, ids *seedRuleIDs) func(t *
 		t.Run("TC034_ClassifyOperatorManaged", func(t *testing.T) {
 				skipIfNoUWM(t)
 
-			ids.OperatorManaged = refreshRuleID(ctx, t, f.PluginURL, "TestOperatorManagedUserAlert")
+			ids.OperatorManaged = waitForIDReady(ctx, t, f.PluginURL, "TestOperatorManagedUserAlert")
 			body := map[string]interface{}{
 				"classification": map[string]interface{}{
 					"openshift_io_alert_rule_component": "networking",
@@ -355,7 +355,7 @@ func testPhase5Classification(f *framework.Framework, ids *seedRuleIDs) func(t *
 		t.Run("TC035_ClassifyGitOps", func(t *testing.T) {
 				skipIfNoUWM(t)
 
-			ids.GitOpsRule = refreshRuleID(ctx, t, f.PluginURL, "TestGitOpsUserAlert")
+			ids.GitOpsRule = waitForIDReady(ctx, t, f.PluginURL, "TestGitOpsUserAlert")
 			body := map[string]interface{}{
 				"classification": map[string]interface{}{
 					"openshift_io_alert_rule_component": "networking",
@@ -384,7 +384,7 @@ func testPhase6SingleUpdate(f *framework.Framework, ids *seedRuleIDs) func(t *te
 				skipIfNoUWM(t)
 			t.Skip("Requires single-rule PATCH /rules/{ruleId} with alertingRule body (not supported by bulk endpoint)")
 
-			ids.UserRule = refreshRuleID(ctx, t, f.PluginURL, "TestUserAlert")
+			ids.UserRule = waitForIDReady(ctx, t, f.PluginURL, "TestUserAlert")
 			body := map[string]interface{}{
 				"alertingRule": map[string]interface{}{
 					"alert": "TestUserAlert",
@@ -458,7 +458,7 @@ func testPhase6SingleUpdate(f *framework.Framework, ids *seedRuleIDs) func(t *te
 		t.Run("TC039_DisableUserDefined", func(t *testing.T) {
 				skipIfNoUWM(t)
 
-			ids.UserRule = refreshRuleID(ctx, t, f.PluginURL, "TestUserAlert")
+			ids.UserRule = waitForIDReady(ctx, t, f.PluginURL, "TestUserAlert")
 			body := map[string]interface{}{
 				"AlertingRuleEnabled": false,
 			}
@@ -497,8 +497,8 @@ func testPhase7BulkUpdate(f *framework.Framework, ids *seedRuleIDs) func(t *test
 		ctx := context.Background()
 
 		// Refresh rule IDs — they may have changed after relabeled cache re-sync
-		ids.UserRule = refreshRuleID(ctx, t, f.PluginURL, "TestUserAlert")
-		ids.GitOpsRule = refreshRuleID(ctx, t, f.PluginURL, "TestGitOpsUserAlert")
+		ids.UserRule = waitForIDReady(ctx, t, f.PluginURL, "TestUserAlert")
+		ids.GitOpsRule = waitForIDReady(ctx, t, f.PluginURL, "TestGitOpsUserAlert")
 
 		t.Run("TC041_BulkLabelUpdate", func(t *testing.T) {
 			body := map[string]interface{}{
@@ -536,11 +536,11 @@ func testPhase7BulkUpdate(f *framework.Framework, ids *seedRuleIDs) func(t *test
 			ids.UserRule = waitForIDChange(ctx, t, f.PluginURL, "TestUserAlert", oldUserID)
 		} else {
 			// Local: user rules are in platform namespace, labels may not apply
-			ids.UserRule = refreshRuleID(ctx, t, f.PluginURL, "TestUserAlert")
+			ids.UserRule = waitForIDReady(ctx, t, f.PluginURL, "TestUserAlert")
 		}
 
 		t.Run("TC042_BulkDisable", func(t *testing.T) {
-			ids.PlatformRule = refreshRuleID(ctx, t, f.PluginURL, "TestUserPlatformAlert")
+			ids.PlatformRule = waitForIDReady(ctx, t, f.PluginURL, "TestUserPlatformAlert")
 			body := map[string]interface{}{
 				"ruleIds":             []string{ids.Watchdog, ids.PlatformRule},
 				"AlertingRuleEnabled": false,
@@ -562,7 +562,7 @@ func testPhase7BulkUpdate(f *framework.Framework, ids *seedRuleIDs) func(t *test
 		})
 
 		t.Run("TC043_BulkReEnable", func(t *testing.T) {
-			ids.PlatformRule = refreshRuleID(ctx, t, f.PluginURL, "TestUserPlatformAlert")
+			ids.PlatformRule = waitForIDReady(ctx, t, f.PluginURL, "TestUserPlatformAlert")
 			body := map[string]interface{}{
 				"ruleIds":             []string{ids.Watchdog, ids.PlatformRule},
 				"AlertingRuleEnabled": true,
@@ -586,7 +586,7 @@ func testPhase7BulkUpdate(f *framework.Framework, ids *seedRuleIDs) func(t *test
 		t.Run("TC044_BulkClassification", func(t *testing.T) {
 				skipIfNoUWM(t)
 
-			ids.UserRule = refreshRuleID(ctx, t, f.PluginURL, "TestUserAlert")
+			ids.UserRule = waitForIDReady(ctx, t, f.PluginURL, "TestUserAlert")
 			body := map[string]interface{}{
 				"ruleIds": []string{ids.Watchdog, ids.UserRule},
 				"classification": map[string]interface{}{
@@ -616,8 +616,8 @@ func testPhase7BulkUpdate(f *framework.Framework, ids *seedRuleIDs) func(t *test
 		t.Run("TC045_BulkPartialFailure", func(t *testing.T) {
 				skipIfNoUWM(t)
 
-			ids.UserRule = refreshRuleID(ctx, t, f.PluginURL, "TestUserAlert")
-			ids.GitOpsRule = refreshRuleID(ctx, t, f.PluginURL, "TestGitOpsUserAlert")
+			ids.UserRule = waitForIDReady(ctx, t, f.PluginURL, "TestUserAlert")
+			ids.GitOpsRule = waitForIDReady(ctx, t, f.PluginURL, "TestGitOpsUserAlert")
 			body := map[string]interface{}{
 				"ruleIds": []string{ids.UserRule, ids.GitOpsRule},
 				"labels": map[string]*string{
@@ -653,7 +653,7 @@ func testPhase7BulkUpdate(f *framework.Framework, ids *seedRuleIDs) func(t *test
 		t.Run("TC046_BulkLabelRemoval", func(t *testing.T) {
 				skipIfNoUWM(t)
 
-			ids.UserRule = refreshRuleID(ctx, t, f.PluginURL, "TestUserAlert")
+			ids.UserRule = waitForIDReady(ctx, t, f.PluginURL, "TestUserAlert")
 			body := map[string]interface{}{
 				"ruleIds": []string{ids.UserRule},
 				"labels": map[string]*string{
@@ -710,7 +710,7 @@ func testPhase8SingleDelete(f *framework.Framework, ids *seedRuleIDs) func(t *te
 				t.Skip("No created user rule ID (TC-024 may not have run)")
 			}
 
-			ids.CreatedUserRule = refreshRuleID(ctx, t, f.PluginURL, "TestCreatedUserAlert")
+			ids.CreatedUserRule = waitForIDReady(ctx, t, f.PluginURL, "TestCreatedUserAlert")
 			resultStatus, err := deleteSingleRuleViaBulk(ctx, f.PluginURL, ids.CreatedUserRule)
 			if err != nil {
 				t.Fatalf("DELETE /rules/%s failed: %v", ids.CreatedUserRule, err)
@@ -734,7 +734,7 @@ func testPhase8SingleDelete(f *framework.Framework, ids *seedRuleIDs) func(t *te
 		})
 
 		t.Run("TC048_DeleteGitOps", func(t *testing.T) {
-			ids.GitOpsRule = refreshRuleID(ctx, t, f.PluginURL, "TestGitOpsUserAlert")
+			ids.GitOpsRule = waitForIDReady(ctx, t, f.PluginURL, "TestGitOpsUserAlert")
 			resultStatus, err := deleteSingleRuleViaBulk(ctx, f.PluginURL, ids.GitOpsRule)
 			if err != nil {
 				t.Fatalf("DELETE GitOps rule failed: %v", err)
@@ -788,8 +788,8 @@ func testPhase9BulkDelete(f *framework.Framework, ids *seedRuleIDs) func(t *test
 
 			// Newly created rules already have the correct ID stamped on the CRD.
 			// Just refresh to confirm the cache has synced.
-			id1 = refreshRuleID(ctx, t, f.PluginURL, "TestBulkDeleteTmp1")
-			id2 = refreshRuleID(ctx, t, f.PluginURL, "TestBulkDeleteTmp2")
+			id1 = waitForIDReady(ctx, t, f.PluginURL, "TestBulkDeleteTmp1")
+			id2 = waitForIDReady(ctx, t, f.PluginURL, "TestBulkDeleteTmp2")
 
 			// Bulk delete
 			body := managementrouter.BulkDeleteAlertRulesRequest{
@@ -853,8 +853,8 @@ func testPhase9BulkDelete(f *framework.Framework, ids *seedRuleIDs) func(t *test
 			tempID := pollForRuleID(ctx, t, f.PluginURL, "TestBulkDeletePartial", 3*time.Minute)
 
 			// Newly created rule already has correct ID stamped. Just refresh.
-			tempID = refreshRuleID(ctx, t, f.PluginURL, "TestBulkDeletePartial")
-			ids.GitOpsRule = refreshRuleID(ctx, t, f.PluginURL, "TestGitOpsUserAlert")
+			tempID = waitForIDReady(ctx, t, f.PluginURL, "TestBulkDeletePartial")
+			ids.GitOpsRule = waitForIDReady(ctx, t, f.PluginURL, "TestGitOpsUserAlert")
 
 			body := managementrouter.BulkDeleteAlertRulesRequest{
 				RuleIds: []string{tempID, ids.GitOpsRule},

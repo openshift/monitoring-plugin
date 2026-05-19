@@ -423,9 +423,21 @@ func refreshRuleID(ctx context.Context, t *testing.T, pluginURL string, alertNam
 	return id
 }
 
-// waitForIDChange polls GET /rules until the rule ID for alertName differs
-// from oldID, meaning Prometheus has re-evaluated the rule with updated labels.
-// Returns the new stable ID. Times out after 2 minutes.
+// isIDInCache probes whether the relabeled cache recognizes a rule ID by
+// sending a no-op bulk PATCH. Returns true if the ID is found (not 404).
+func isIDInCache(ctx context.Context, pluginURL string, ruleID string) bool {
+	_, resp, err := patchRulesBulk(ctx, pluginURL, map[string]interface{}{
+		"ruleIds": []string{ruleID},
+	})
+	if err != nil || len(resp.Rules) == 0 {
+		return false
+	}
+	return int(resp.Rules[0].StatusCode) != http.StatusNotFound
+}
+
+// waitForIDChange polls until the rule ID changes from oldID AND the new ID
+// is recognized by the relabeled cache. This ensures both Prometheus and the
+// cache agree on the new ID. Times out after 2 minutes.
 func waitForIDChange(ctx context.Context, t *testing.T, pluginURL string, alertName string, oldID string) string {
 	t.Helper()
 	var newID string
@@ -439,17 +451,53 @@ func waitForIDChange(ctx context.Context, t *testing.T, pluginURL string, alertN
 			return false, nil
 		}
 		id := rule.Labels[k8s.AlertRuleLabelId]
-		if id != "" && id != oldID {
-			newID = id
-			return true, nil
+		if id == "" || id == oldID {
+			return false, nil
 		}
-		return false, nil
+		// Prometheus has the new ID — verify cache also recognizes it
+		if !isIDInCache(ctx, pluginURL, id) {
+			return false, nil
+		}
+		newID = id
+		return true, nil
 	})
 	if err != nil {
 		t.Fatalf("Timeout waiting for %s ID to change from %s: %v", alertName, oldID, err)
 	}
-	t.Logf("Rule %s ID changed: %s → %s", alertName, oldID, newID)
+	t.Logf("Rule %s ID synced: %s → %s", alertName, oldID, newID)
 	return newID
+}
+
+// waitForIDReady polls until a rule ID is recognized by the relabeled cache.
+// Use for newly created rules where the ID doesn't change but the cache
+// needs time to sync. Times out after 2 minutes.
+func waitForIDReady(ctx context.Context, t *testing.T, pluginURL string, alertName string) string {
+	t.Helper()
+	var readyID string
+	err := wait.PollUntilContextTimeout(ctx, 5*time.Second, 2*time.Minute, true, func(ctx context.Context) (bool, error) {
+		groups, err := listRulesAsGroups(ctx, pluginURL, nil)
+		if err != nil {
+			return false, nil
+		}
+		rule := findRuleInGroups(groups, alertName)
+		if rule == nil {
+			return false, nil
+		}
+		id := rule.Labels[k8s.AlertRuleLabelId]
+		if id == "" {
+			return false, nil
+		}
+		if !isIDInCache(ctx, pluginURL, id) {
+			return false, nil
+		}
+		readyID = id
+		return true, nil
+	})
+	if err != nil {
+		t.Fatalf("Timeout waiting for %s ID to be ready in cache: %v", alertName, err)
+	}
+	t.Logf("Rule %s ID ready in cache: %s", alertName, readyID)
+	return readyID
 }
 
 // findAllRulesInGroups returns all rules from all groups as a flat slice.

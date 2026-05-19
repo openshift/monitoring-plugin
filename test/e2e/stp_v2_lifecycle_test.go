@@ -93,7 +93,7 @@ func testPhase10CRUDLifecycle(f *framework.Framework) func(t *testing.T) {
 			t.Logf("Step 5: TestLifecycleCreated appeared with ID: %s", createdID)
 
 			// Newly created rule already has correct ID stamped. Just refresh.
-			createdID = refreshRuleID(ctx, t, f.PluginURL, "TestLifecycleCreated")
+			createdID = waitForIDReady(ctx, t, f.PluginURL, "TestLifecycleCreated")
 			t.Logf("Step 5b: Confirmed createdID: %s", createdID)
 
 			// Step 6: PATCH to update labels
