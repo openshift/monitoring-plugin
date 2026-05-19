@@ -424,15 +424,27 @@ func refreshRuleID(ctx context.Context, t *testing.T, pluginURL string, alertNam
 }
 
 // isIDInCache probes whether the relabeled cache recognizes a rule ID by
-// sending a no-op bulk PATCH. Returns true if the ID is found (not 404).
+// sending AlertingRuleEnabled=false (which checks cache lookup) then
+// immediately re-enabling. Returns true if the ID is found (not 404).
 func isIDInCache(ctx context.Context, pluginURL string, ruleID string) bool {
+	disabled := false
 	_, resp, err := patchRulesBulk(ctx, pluginURL, map[string]interface{}{
-		"ruleIds": []string{ruleID},
+		"ruleIds":             []string{ruleID},
+		"alertingRuleEnabled": &disabled,
 	})
 	if err != nil || len(resp.Rules) == 0 {
 		return false
 	}
-	return int(resp.Rules[0].StatusCode) != http.StatusNotFound
+	found := int(resp.Rules[0].StatusCode) != http.StatusNotFound
+	if found {
+		// Immediately re-enable to undo the drop
+		enabled := true
+		patchRulesBulk(ctx, pluginURL, map[string]interface{}{
+			"ruleIds":             []string{ruleID},
+			"alertingRuleEnabled": &enabled,
+		})
+	}
+	return found
 }
 
 // waitForIDChange polls until the rule ID changes from oldID AND the new ID
