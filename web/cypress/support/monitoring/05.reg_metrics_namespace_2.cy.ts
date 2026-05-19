@@ -316,6 +316,9 @@ export function testMetricsRegressionNamespace2(perspective: PerspectiveConfig) 
       .contains(MetricsPageQueryKebabDropdown.HIDE_ALL_SERIES)
       .should('have.attr', 'aria-disabled', 'true');
     cy.byTestID(DataTestIDs.MetricsPageExportCsvDropdownItem).should('not.exist');
+
+    cy.log('6.18 Delete All Queries');
+    metricsPage.clickActionsDeleteAllQueries();
   });
 
   it(`${perspective.name} perspective - Metrics > Predefined Queries > Export as CSV`, () => {

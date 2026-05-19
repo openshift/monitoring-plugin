@@ -103,6 +103,16 @@ Cypress.Commands.add('changeNamespace', (namespace: string) => {
     .contains(namespace)
     .should('be.visible')
     .click({ force: true });
+  cy.get('body').then(($body) => {
+    cy.log('Checking namespace: ' + namespace);
+    const hasNamespaceBarDropdown =
+      $body.find('[data-test-id="' + LegacyTestIDs.NamespaceBarDropdown + '"]').length > 0;
+    if (hasNamespaceBarDropdown) {
+      cy.byLegacyTestID(LegacyTestIDs.NamespaceBarDropdown).should('contain.text', namespace);
+    } else {
+      cy.get(Classes.NamespaceDropdown).should('contain.text', namespace);
+    }
+  });
   cy.log('Namespace changed to: ' + namespace);
 });
 

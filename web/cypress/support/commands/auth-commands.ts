@@ -72,7 +72,7 @@ export const operatorAuthUtils = {
     }
     cy.exec(
       `oc get oauthclient openshift-browser-client -o go-template ` +
-        `--template="{{index .redirectURIs 0}}" --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+        `--template="{{index .redirectURIs 0}}" --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
     ).then((result) => {
       if (result.stderr === '') {
         const oauth = result.stdout;
@@ -325,7 +325,7 @@ Cypress.Commands.add('relogin', (provider: string, username: string, password: s
   // Get the OAuth URL from the cluster (same as performLoginAndAuth does)
   cy.exec(
     `oc get oauthclient openshift-browser-client -o go-template ` +
-      `--template="{{index .redirectURIs 0}}" --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+      `--template="{{index .redirectURIs 0}}" --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
   ).then((result) => {
     if (result.stderr !== '') {
       throw new Error(`Failed to get OAuth URL: ${result.stderr}`);
