@@ -130,11 +130,6 @@ func getProxy(kind KindType, proxyUrlString string, serviceCAfile string) (*http
 	return proxy, nil
 }
 
-func handleError(w http.ResponseWriter, code int, err error) {
-	log.Error(err)
-	http.Error(w, err.Error(), code)
-}
-
 func (h *ProxyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h.proxy.ServeHTTP(w, r)
 }

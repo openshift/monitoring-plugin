@@ -98,6 +98,7 @@ export enum MetricsPagePredefinedQueries {
 export enum MetricsPageQueryInput {
   EXPRESSION_PRESS_SHIFT_ENTER_FOR_NEWLINES = 'Expression (press Shift+Enter for newlines)',
   INSERT_EXAMPLE_QUERY = 'sort_desc(sum(sum_over_time(ALERTS{alertstate="firing"}[24h])) by (alertname))',
+  INSERT_EXAMPLE_QUERY_NAMESPACE = 'sort_desc(sum(sum_over_time(ALERTS{alertstate="firing", namespace="openshift-monitoring"}[24h])) by (alertname))',
   VECTOR_QUERY='vector(1)',
   CPU_USAGE = 'OpenShift_Metrics_QueryTable_sum(node_namespace_pod_container_container_cpu_usage_seconds_total_sum_irate) by (pod).csv',
   MEMORY_USAGE = 'OpenShift_Metrics_QueryTable_sum(container_memory_working_set_bytes{container!=__}) by (pod).csv',
@@ -132,7 +133,7 @@ export enum MetricsPageQueryInputByNamespace {
   RATE_OF_TRANSMITTED_PACKETS = 'OpenShift_Metrics_QueryTable_sum(irate(container_network_transmit_packets_total{namespace=\'openshift-monitoring\'}[2h])) by (pod).csv',
   RATE_OF_RECEIVED_PACKETS_DROPPED = 'OpenShift_Metrics_QueryTable_sum(irate(container_network_receive_packets_dropped_total{namespace=\'openshift-monitoring\'}[2h])) by (pod).csv',
   RATE_OF_TRANSMITTED_PACKETS_DROPPED = 'OpenShift_Metrics_QueryTable_sum(irate(container_network_transmit_packets_dropped_total{namespace=\'openshift-monitoring\'}[2h])) by (pod).csv',
-  CPU_UTILISATION_FROM_REQUESTS = 'sum(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{cluster="", namespace="openshift-monitoring"}) / sum(kube_pod_container_resource_requests{job="kube-state-metrics", cluster="", namespace="openshift-monitoring", resource="cpu"})',
+  CPU_UTILISATION_FROM_REQUESTS = 'sum(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{namespace="openshift-monitoring"}) / sum(kube_pod_container_resource_requests{job="kube-state-metrics", namespace="openshift-monitoring", resource="cpu"})',
 }
 
 export enum MetricsPageActions {

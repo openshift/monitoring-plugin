@@ -34,7 +34,7 @@ const KBV = {
   }
 };
 
-describe('Installation: COO and setting up Monitoring Plugin', () => {
+describe('Installation: COO and setting up Monitoring Plugin', { tags: ['@virtualization', '@slow'] }, () => {
 
   before(() => {
     cy.beforeBlockCOO(MCP, MP);
@@ -46,7 +46,7 @@ describe('Installation: COO and setting up Monitoring Plugin', () => {
   });
 });
 
-describe('Installation: Virtualization', () => {
+describe('Installation: Virtualization', { tags: ['@virtualization', '@slow'] }, () => {
 
   before(() => {
     cy.beforeBlockVirtualization(KBV);
@@ -59,7 +59,7 @@ describe('Installation: Virtualization', () => {
   });
 });
 
-describe('IVT: Monitoring + Virtualization', () => {
+describe('IVT: Monitoring + Virtualization', { tags: ['@smoke', '@virtualization'] }, () => {
 
   beforeEach(() => {
     cy.visit('/');
@@ -67,37 +67,17 @@ describe('IVT: Monitoring + Virtualization', () => {
     cy.validateLogin();
     cy.switchPerspective('Virtualization');
     guidedTour.closeKubevirtTour();
+    nav.sidenav.clickNavLink(['Observe', 'Metrics']);
+    commonPages.titleShouldHaveText('Metrics');
+    cy.changeNamespace("All Projects");
     alerts.getWatchdogAlert();
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     commonPages.titleShouldHaveText('Alerting');
-    cy.changeNamespace("All Projects");
     alerts.getWatchdogAlert();
   });
 
   // Run tests in Administrator perspective
   runBVTMonitoringTests({
-    name: 'Virtualization',
-  });
-
-});
-
-describe('IVT: Monitoring + Virtualization - Namespaced', () => {
-
-  beforeEach(() => {
-    cy.visit('/');
-    guidedTour.close();
-    cy.validateLogin();
-    cy.switchPerspective('Virtualization');
-    guidedTour.closeKubevirtTour();
-    alerts.getWatchdogAlert();
-    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-    commonPages.titleShouldHaveText('Alerting');
-    cy.changeNamespace(MP.namespace);
-    alerts.getWatchdogAlert();
-  });
-
-  // Run tests in Administrator perspective
-  runBVTMonitoringTestsNamespace({  
     name: 'Virtualization',
   });
 

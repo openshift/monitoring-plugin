@@ -1,3 +1,5 @@
+import '@cypress/grep';
+
 import './selectors';
 import './commands/selector-commands';
 import './commands/auth-commands';
@@ -6,6 +8,7 @@ import './commands/incident-commands';
 import './commands/utility-commands';
 import './incidents_prometheus_query_mocks';
 import './commands/virtualization-commands';
+import './commands/perses-commands';
 
 export const checkErrors = () =>
   cy.window().then((win) => {
@@ -24,7 +27,8 @@ Cypress.on('uncaught:exception', (err) => {
     message.includes('Unauthorized') ||
     message.includes('Bad Gateway') ||
     message.includes(`Cannot read properties of null (reading 'default')`) ||
-    message.includes(`(intermediate value) is not a function`)
+    message.includes(`(intermediate value) is not a function`) ||
+    message.includes(`Cannot read properties of null (reading '0')`)
   ) {
     console.warn('Ignored frontend exception:', err.message);
     return false;

@@ -10,15 +10,18 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/cache"
+	"k8s.io/client-go/util/retry"
 )
 
 type prometheusRuleManager struct {
 	clientset *monitoringv1client.Clientset
+	config    *rest.Config
 	informer  cache.SharedIndexInformer
 }
 
-func newPrometheusRuleManager(ctx context.Context, clientset *monitoringv1client.Clientset) (*prometheusRuleManager, error) {
+func newPrometheusRuleManager(ctx context.Context, clientset *monitoringv1client.Clientset, config *rest.Config) (*prometheusRuleManager, error) {
 	informer := cache.NewSharedIndexInformer(
 		prometheusRuleListWatchForAllNamespaces(clientset),
 		&monitoringv1.PrometheusRule{},
@@ -34,6 +37,7 @@ func newPrometheusRuleManager(ctx context.Context, clientset *monitoringv1client
 
 	return &prometheusRuleManager{
 		clientset: clientset,
+		config:    config,
 		informer:  informer,
 	}, nil
 }
@@ -71,7 +75,11 @@ func (prm *prometheusRuleManager) Get(ctx context.Context, namespace string, nam
 }
 
 func (prm *prometheusRuleManager) Update(ctx context.Context, pr monitoringv1.PrometheusRule) error {
-	_, err := prm.clientset.MonitoringV1().PrometheusRules(pr.Namespace).Update(ctx, &pr, metav1.UpdateOptions{})
+	cs, err := prm.clientsetForCtx(ctx)
+	if err != nil {
+		return err
+	}
+	_, err = cs.MonitoringV1().PrometheusRules(pr.Namespace).Update(ctx, &pr, metav1.UpdateOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to update PrometheusRule %s/%s: %w", pr.Namespace, pr.Name, err)
 	}
@@ -80,7 +88,11 @@ func (prm *prometheusRuleManager) Update(ctx context.Context, pr monitoringv1.Pr
 }
 
 func (prm *prometheusRuleManager) Delete(ctx context.Context, namespace string, name string) error {
-	err := prm.clientset.MonitoringV1().PrometheusRules(namespace).Delete(ctx, name, metav1.DeleteOptions{})
+	cs, err := prm.clientsetForCtx(ctx)
+	if err != nil {
+		return err
+	}
+	err = cs.MonitoringV1().PrometheusRules(namespace).Delete(ctx, name, metav1.DeleteOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to delete PrometheusRule %s: %w", name, err)
 	}
@@ -88,44 +100,69 @@ func (prm *prometheusRuleManager) Delete(ctx context.Context, namespace string, 
 	return nil
 }
 
+// clientsetForCtx returns a user-scoped clientset when the context carries a
+// bearer token (i.e. on API handler requests), or the SA-level clientset for
+// background / informer bootstrap calls.
+func (prm *prometheusRuleManager) clientsetForCtx(ctx context.Context) (*monitoringv1client.Clientset, error) {
+	token := BearerTokenFromContext(ctx)
+	if token == "" {
+		return prm.clientset, nil
+	}
+	cs, err := newUserScopedClientsets(prm.config, token)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create user-scoped clientset: %w", err)
+	}
+	return cs.monitoringV1, nil
+}
+
 func (prm *prometheusRuleManager) AddRule(ctx context.Context, namespacedName types.NamespacedName, groupName string, rule monitoringv1.Rule) error {
-	pr, err := prm.getOrCreatePrometheusRule(ctx, namespacedName)
+	cs, err := prm.clientsetForCtx(ctx)
 	if err != nil {
 		return err
 	}
 
-	// Find or create the group
-	var group *monitoringv1.RuleGroup
-	for i := range pr.Spec.Groups {
-		if pr.Spec.Groups[i].Name == groupName {
-			group = &pr.Spec.Groups[i]
-			break
+	// RetryOnConflict handles the concurrent update (409) case that arises when
+	// multiple replicas perform a read-modify-write on the same PrometheusRule
+	// at the same time.
+	return retry.RetryOnConflict(retry.DefaultRetry, func() error {
+		pr, err := prm.getOrCreatePrometheusRule(ctx, cs, namespacedName)
+		if err != nil {
+			return err
 		}
-	}
-	if group == nil {
-		pr.Spec.Groups = append(pr.Spec.Groups, monitoringv1.RuleGroup{
-			Name:  groupName,
-			Rules: []monitoringv1.Rule{},
-		})
-		group = &pr.Spec.Groups[len(pr.Spec.Groups)-1]
-	}
 
-	// Add the new rule to the group
-	group.Rules = append(group.Rules, rule)
+		// Find or create the group
+		var group *monitoringv1.RuleGroup
+		for i := range pr.Spec.Groups {
+			if pr.Spec.Groups[i].Name == groupName {
+				group = &pr.Spec.Groups[i]
+				break
+			}
+		}
+		if group == nil {
+			pr.Spec.Groups = append(pr.Spec.Groups, monitoringv1.RuleGroup{
+				Name:  groupName,
+				Rules: []monitoringv1.Rule{},
+			})
+			group = &pr.Spec.Groups[len(pr.Spec.Groups)-1]
+		}
 
-	_, err = prm.clientset.MonitoringV1().PrometheusRules(namespacedName.Namespace).Update(ctx, pr, metav1.UpdateOptions{})
-	if err != nil {
-		return fmt.Errorf("failed to update PrometheusRule %s/%s: %w", namespacedName.Namespace, namespacedName.Name, err)
-	}
+		// Add the new rule to the group
+		group.Rules = append(group.Rules, rule)
 
-	return nil
+		_, err = cs.MonitoringV1().PrometheusRules(namespacedName.Namespace).Update(ctx, pr, metav1.UpdateOptions{})
+		if err != nil {
+			return fmt.Errorf("failed to update PrometheusRule %s/%s: %w", namespacedName.Namespace, namespacedName.Name, err)
+		}
+
+		return nil
+	})
 }
 
-func (prm *prometheusRuleManager) getOrCreatePrometheusRule(ctx context.Context, namespacedName types.NamespacedName) (*monitoringv1.PrometheusRule, error) {
-	pr, err := prm.clientset.MonitoringV1().PrometheusRules(namespacedName.Namespace).Get(ctx, namespacedName.Name, metav1.GetOptions{})
+func (prm *prometheusRuleManager) getOrCreatePrometheusRule(ctx context.Context, cs *monitoringv1client.Clientset, namespacedName types.NamespacedName) (*monitoringv1.PrometheusRule, error) {
+	pr, err := cs.MonitoringV1().PrometheusRules(namespacedName.Namespace).Get(ctx, namespacedName.Name, metav1.GetOptions{})
 	if err != nil {
 		if errors.IsNotFound(err) {
-			return prm.createPrometheusRule(ctx, namespacedName)
+			return prm.createPrometheusRule(ctx, cs, namespacedName)
 		}
 
 		return nil, fmt.Errorf("failed to get PrometheusRule %s/%s: %w", namespacedName.Namespace, namespacedName.Name, err)
@@ -134,7 +171,7 @@ func (prm *prometheusRuleManager) getOrCreatePrometheusRule(ctx context.Context,
 	return pr, nil
 }
 
-func (prm *prometheusRuleManager) createPrometheusRule(ctx context.Context, namespacedName types.NamespacedName) (*monitoringv1.PrometheusRule, error) {
+func (prm *prometheusRuleManager) createPrometheusRule(ctx context.Context, cs *monitoringv1client.Clientset, namespacedName types.NamespacedName) (*monitoringv1.PrometheusRule, error) {
 	pr := &monitoringv1.PrometheusRule{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      namespacedName.Name,
@@ -145,7 +182,7 @@ func (prm *prometheusRuleManager) createPrometheusRule(ctx context.Context, name
 		},
 	}
 
-	pr, err := prm.clientset.MonitoringV1().PrometheusRules(namespacedName.Namespace).Create(ctx, pr, metav1.CreateOptions{})
+	pr, err := cs.MonitoringV1().PrometheusRules(namespacedName.Namespace).Create(ctx, pr, metav1.CreateOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create PrometheusRule %s/%s: %w", namespacedName.Namespace, namespacedName.Name, err)
 	}

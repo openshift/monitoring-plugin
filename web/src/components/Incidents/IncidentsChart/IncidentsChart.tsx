@@ -33,6 +33,7 @@ import {
   calculateIncidentsChartDomain,
   createIncidentsChartBars,
   generateDateArray,
+  roundDateToInterval,
 } from '../utils';
 import { dateTimeFormatter, timeFormatter } from '../../console/utils/datetime';
 import { useTranslation } from 'react-i18next';
@@ -178,7 +179,9 @@ const IncidentsChart = ({
                     const startDate = dateTimeFormatter(i18n.language).format(new Date(datum.y0));
                     const endDate = datum.firing
                       ? '---'
-                      : dateTimeFormatter(i18n.language).format(new Date(datum.y));
+                      : dateTimeFormatter(i18n.language).format(
+                          roundDateToInterval(new Date(datum.y)),
+                        );
                     const components = formatComponentList(datum.componentList);
 
                     return `${t('Severity')}: ${t(datum.name)}

@@ -22,9 +22,13 @@ export const fetchAlertingData =
     rulesUrl: string,
     alertsSource: any,
     silencesUrl: string,
+    active: boolean,
   ): ThunkAction<void, RootState, unknown, Action<string>> =>
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async (dispatch, getState) => {
+    if (!active) {
+      return;
+    }
     dispatch(alertingSetLoading(prometheus, namespace));
 
     const [rulesResponse, silencesResponse] = await Promise.allSettled([

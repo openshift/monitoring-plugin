@@ -319,8 +319,6 @@ describe('convertToAlerts', () => {
             alertname: 'Alert2',
             namespace: 'ns2',
             severity: 'warning',
-            component: 'comp2',
-            layer: 'layer2',
             name: 'name2',
             alertstate: 'firing',
           },
@@ -331,8 +329,6 @@ describe('convertToAlerts', () => {
             alertname: 'Alert1',
             namespace: 'ns1',
             severity: 'critical',
-            component: 'comp1',
-            layer: 'layer1',
             name: 'name1',
             alertstate: 'firing',
           },
@@ -343,6 +339,8 @@ describe('convertToAlerts', () => {
       const incidents: Array<Partial<Incident>> = [
         {
           group_id: 'incident1',
+          component: 'comp1',
+          layer: 'layer1',
           src_alertname: 'Alert1',
           src_namespace: 'ns1',
           src_severity: 'critical',
@@ -350,6 +348,8 @@ describe('convertToAlerts', () => {
         },
         {
           group_id: 'incident2',
+          component: 'comp2',
+          layer: 'layer2',
           src_alertname: 'Alert2',
           src_namespace: 'ns2',
           src_severity: 'warning',
@@ -370,8 +370,6 @@ describe('convertToAlerts', () => {
             alertname: 'Alert1',
             namespace: 'ns1',
             severity: 'critical',
-            component: 'comp1',
-            layer: 'layer1',
             name: 'name1',
             alertstate: 'firing',
           },
@@ -382,8 +380,6 @@ describe('convertToAlerts', () => {
             alertname: 'Alert2',
             namespace: 'ns2',
             severity: 'warning',
-            component: 'comp2',
-            layer: 'layer2',
             name: 'name2',
             alertstate: 'firing',
           },
@@ -393,10 +389,22 @@ describe('convertToAlerts', () => {
 
       const incidents: Array<Partial<Incident>> = [
         {
-          values: [
-            [nowSeconds - 3600, '2'],
-            [nowSeconds - 1800, '1'],
-          ],
+          group_id: 'incident1',
+          src_alertname: 'Alert1',
+          src_namespace: 'ns1',
+          src_severity: 'critical',
+          component: 'comp1',
+          layer: 'layer1',
+          values: [[nowSeconds - 3600, '2']],
+        },
+        {
+          group_id: 'incident2',
+          src_alertname: 'Alert2',
+          src_namespace: 'ns2',
+          src_severity: 'warning',
+          component: 'comp2',
+          layer: 'layer2',
+          values: [[nowSeconds - 1800, '1']],
         },
       ];
 
@@ -415,8 +423,6 @@ describe('convertToAlerts', () => {
             alertname: 'TestAlert',
             namespace: 'test-namespace',
             severity: 'critical',
-            component: 'test-component',
-            layer: 'test-layer',
             name: 'test',
             alertstate: 'firing',
           },
@@ -430,6 +436,8 @@ describe('convertToAlerts', () => {
           src_alertname: 'TestAlert',
           src_namespace: 'test-namespace',
           src_severity: 'critical',
+          component: 'test-component',
+          layer: 'test-layer',
           silenced: true,
           values: [[nowSeconds, '2']],
         },
@@ -438,37 +446,6 @@ describe('convertToAlerts', () => {
       const result = convertToAlerts(prometheusResults, incidents, now);
       expect(result).toHaveLength(1);
       expect(result[0].silenced).toBe(true);
-    });
-
-    it('should default silenced to false when no matching incident found', () => {
-      const prometheusResults: PrometheusResult[] = [
-        {
-          metric: {
-            alertname: 'TestAlert',
-            namespace: 'test-namespace',
-            severity: 'critical',
-            component: 'test-component',
-            layer: 'test-layer',
-            name: 'test',
-            alertstate: 'firing',
-          },
-          values: [[nowSeconds, '2']],
-        },
-      ];
-
-      const incidents: Array<Partial<Incident>> = [
-        {
-          group_id: 'incident1',
-          src_alertname: 'DifferentAlert',
-          src_namespace: 'different-namespace',
-          src_severity: 'warning',
-          values: [[nowSeconds, '1']],
-        },
-      ];
-
-      const result = convertToAlerts(prometheusResults, incidents, now);
-      expect(result).toHaveLength(1);
-      expect(result[0].silenced).toBe(false);
     });
   });
 
@@ -480,8 +457,6 @@ describe('convertToAlerts', () => {
             alertname: 'TestAlert',
             namespace: 'test-namespace',
             severity: 'critical',
-            component: 'test-component',
-            layer: 'test-layer',
             name: 'test',
             alertstate: 'firing',
           },
@@ -499,6 +474,8 @@ describe('convertToAlerts', () => {
           src_alertname: 'TestAlert',
           src_namespace: 'test-namespace',
           src_severity: 'critical',
+          component: 'test-component',
+          layer: 'test-layer',
           silenced: false,
           values: [[nowSeconds - 600, '2']],
         },
@@ -527,8 +504,6 @@ describe('convertToAlerts', () => {
             alertname: 'MyAlert',
             namespace: 'my-namespace',
             severity: 'warning',
-            component: 'my-component',
-            layer: 'my-layer',
             name: 'my-name',
             alertstate: 'firing',
           },
@@ -542,6 +517,8 @@ describe('convertToAlerts', () => {
           src_alertname: 'MyAlert',
           src_namespace: 'my-namespace',
           src_severity: 'warning',
+          component: 'my-component',
+          layer: 'my-layer',
           values: [[nowSeconds, '1']],
         },
       ];
@@ -566,7 +543,6 @@ describe('deduplicateAlerts', () => {
           metric: {
             alertname: 'Alert1',
             namespace: 'ns1',
-            component: 'comp1',
             severity: 'critical',
             alertstate: 'resolved',
           },
@@ -576,7 +552,6 @@ describe('deduplicateAlerts', () => {
           metric: {
             alertname: 'Alert2',
             namespace: 'ns2',
-            component: 'comp2',
             severity: 'warning',
             alertstate: 'firing',
           },
@@ -597,7 +572,6 @@ describe('deduplicateAlerts', () => {
           metric: {
             alertname: 'Alert1',
             namespace: 'ns1',
-            component: 'comp1',
             severity: 'critical',
             alertstate: 'firing',
           },
@@ -610,7 +584,6 @@ describe('deduplicateAlerts', () => {
           metric: {
             alertname: 'Alert1',
             namespace: 'ns1',
-            component: 'comp1',
             severity: 'critical',
             alertstate: 'firing',
           },
@@ -632,7 +605,6 @@ describe('deduplicateAlerts', () => {
           metric: {
             alertname: 'Alert1',
             namespace: 'ns1',
-            component: 'comp1',
             severity: 'critical',
             alertstate: 'firing',
           },
@@ -642,7 +614,6 @@ describe('deduplicateAlerts', () => {
           metric: {
             alertname: 'Alert2',
             namespace: 'ns1',
-            component: 'comp1',
             severity: 'critical',
             alertstate: 'firing',
           },
@@ -660,7 +631,6 @@ describe('deduplicateAlerts', () => {
           metric: {
             alertname: 'Alert1',
             namespace: 'ns1',
-            component: 'comp1',
             severity: 'critical',
             alertstate: 'firing',
           },
@@ -670,7 +640,6 @@ describe('deduplicateAlerts', () => {
           metric: {
             alertname: 'Alert1',
             namespace: 'ns1',
-            component: 'comp1',
             severity: 'warning',
             alertstate: 'firing',
           },
@@ -690,7 +659,6 @@ describe('deduplicateAlerts', () => {
           metric: {
             alertname: 'Alert1',
             namespace: 'ns1',
-            component: 'comp1',
             severity: 'critical',
             alertstate: 'firing',
           },

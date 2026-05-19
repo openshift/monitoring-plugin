@@ -1,7 +1,6 @@
 import {
   consoleFetchJSON,
   DocumentTitle,
-  NamespaceBar,
   useActiveNamespace,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
@@ -136,6 +135,7 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
   const [namespace] = useActiveNamespace();
   const { prometheus } = useMonitoring();
   const navigate = useNavigate();
+  const isPageNamespaceLocked = isNamespaced && namespace !== ALL_NAMESPACES_KEY;
 
   const durations = useMemo(() => {
     return {
@@ -150,8 +150,6 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
       '1w': t('1w'),
     };
   }, [t]);
-
-  const requireNamespace = isNamespaced && namespace !== ALL_NAMESPACES_KEY;
 
   const now = new Date();
 
@@ -189,7 +187,7 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
   // Since the namespace matcher MUST be the same as the namespace the request is being
   // made in, we remove the namespace value here and re-add it before sending the request
   const [matchers, setMatchers] = useState<Array<Matcher>>(
-    (requireNamespace
+    (isPageNamespaceLocked
       ? (defaults.matchers as Matcher[])?.filter((matcher) => matcher.name !== 'namespace')
       : defaults.matchers) ?? [{ isRegex: false, isEqual: true, name: '', value: '' }],
   );
@@ -213,7 +211,7 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
   };
 
   const setMatcherField = (i: number, field: string, v: string | boolean): void => {
-    const newMatchers = _.clone(matchers);
+    const newMatchers = _.cloneDeep(matchers);
     _.set(newMatchers, [i, field], v);
     setMatchers(newMatchers);
   };
@@ -223,11 +221,6 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
   };
 
   const removeMatcher = (i: number): void => {
-    // If we require the namespace don't allow removing it
-    if (requireNamespace && i === 0) {
-      return;
-    }
-
     const newMatchers = _.clone(matchers);
     newMatchers.splice(i, 1);
 
@@ -244,13 +237,17 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
 
     // Don't allow comments to only contain whitespace
     if (_.trim(comment) === '') {
-      setError('Comment is required.');
+      setError(t('Comment is required.'));
       return;
     }
 
-    const url = getAlertmanagerSilencesUrl({ prometheus, namespace });
+    const url = getAlertmanagerSilencesUrl({
+      prometheus,
+      namespace,
+      useTenancyPath: isPageNamespaceLocked,
+    });
     if (!url) {
-      setError('Alertmanager URL not set');
+      setError(t('Alertmanager URL not set'));
       return;
     }
 
@@ -267,7 +264,7 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
       createdBy,
       endsAt: saveEndsAt.toISOString(),
       id: defaults.id,
-      matchers: isNamespaced
+      matchers: isPageNamespaceLocked
         ? matchers.concat({
             name: 'namespace',
             value: namespace,
@@ -279,17 +276,27 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
     };
 
     consoleFetchJSON
-      .post(getAlertmanagerSilencesUrl({ prometheus, namespace }), body)
+      .post(
+        getAlertmanagerSilencesUrl({
+          prometheus,
+          namespace,
+          useTenancyPath: isPageNamespaceLocked,
+        }),
+        body,
+      )
       .then(({ silenceID }) => {
         setError(undefined);
         refetchSilencesAndAlerts();
-        navigate(getSilenceAlertUrl(perspective, silenceID, namespace));
+        navigate(getSilenceAlertUrl(perspective, silenceID));
       })
       .catch((err) => {
-        const errorMessage =
+        let errorMessage =
           typeof _.get(err, 'json') === 'string'
             ? _.get(err, 'json')
-            : err.message || 'Error saving Silence';
+            : err.message || t('Error saving Silence');
+        if (errorMessage === 'Forbidden') {
+          errorMessage = t('Forbidden: Missing permissions for silences');
+        }
         setError(errorMessage);
         setInProgress(false);
       });
@@ -304,7 +311,6 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
   return (
     <>
       <DocumentTitle>{title}</DocumentTitle>
-      <NamespaceBar />
       <PageSection hasBodyWrapper={false}>
         <Title headingLevel="h1">{title}</Title>
         <HelperText>
@@ -358,7 +364,7 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
                       isFullWidth
                       data-test={DataTestIDs.SilencesPageFormTestIDs.SilenceForToggle}
                     >
-                      {duration}
+                      {t(duration)}
                     </MenuToggle>
                   )}
                   onOpenChange={setIsOpen}
@@ -420,7 +426,7 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
             </HelperText>
           </FormHelperText>
 
-          {requireNamespace && (
+          {isPageNamespaceLocked && (
             <Grid key={'namespace'} sm={12} md={4} hasGutter>
               <GridItem>
                 <FormGroup label={t('Label name')}>

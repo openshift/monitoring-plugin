@@ -272,7 +272,7 @@ export const listPage = {
   },
   emptyState: () => {
     cy.log('listPage.emptyState');
-    cy.byTestID(DataTestIDs.EmptyBoxBody).contains('No Alerts found').should('be.visible');
+    cy.byTestID(DataTestIDs.EmptyBoxBody).contains('No alerts found').should('be.visible');
     cy.bySemanticElement('button', 'Clear all filters').should('not.exist');
     cy.byTestID(DataTestIDs.DownloadCSVButton).should('not.exist');
     cy.byOUIAID(DataTestIDs.Table).should('not.exist');

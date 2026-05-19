@@ -19,8 +19,12 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/record"
 
+	"github.com/openshift/monitoring-plugin/internal/managementrouter"
+	"github.com/openshift/monitoring-plugin/pkg/k8s"
+	"github.com/openshift/monitoring-plugin/pkg/management"
 	"github.com/openshift/monitoring-plugin/pkg/proxy"
 )
 
@@ -57,11 +61,12 @@ type PluginConfig struct {
 type Feature string
 
 const (
-	AcmAlerting        Feature = "acm-alerting"
-	Incidents          Feature = "incidents"
-	DevConfig          Feature = "dev-config"
-	PersesDashboards   Feature = "perses-dashboards"
-	AlertManagementAPI Feature = "alert-management-api"
+	AcmAlerting           Feature = "acm-alerting"
+	Incidents             Feature = "incidents"
+	DevConfig             Feature = "dev-config"
+	PersesDashboards      Feature = "perses-dashboards"
+	AlertManagementAPI    Feature = "alert-management-api"
+	ClusterHealthAnalyzer Feature = "cluster-health-analyzer"
 )
 
 func (pluginConfig *PluginConfig) MarshalJSON() ([]byte, error) {
@@ -89,11 +94,11 @@ func CreateServer(ctx context.Context, cfg *Config) (*PluginServer, error) {
 
 func (s *PluginServer) StartHTTPServer() error {
 	if s.Config.IsTLSEnabled() {
-		log.Infof("listening for https on %s", s.Server.Addr)
-		return s.Server.ListenAndServeTLS(s.Config.CertFile, s.Config.PrivateKeyFile)
+		log.Infof("listening for https on %s", s.Addr)
+		return s.ListenAndServeTLS(s.Config.CertFile, s.Config.PrivateKeyFile)
 	}
-	log.Infof("listening for http on %s", s.Server.Addr)
-	return s.Server.ListenAndServe()
+	log.Infof("listening for http on %s", s.Addr)
+	return s.ListenAndServe()
 }
 
 func (s *PluginServer) Shutdown(ctx context.Context) error {
@@ -123,18 +128,14 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 	var k8sconfig *rest.Config
 	var err error
 
-	// Uncomment the following line for local development:
-	// k8sconfig, err = clientcmd.BuildConfigFromFlags("", os.Getenv("KUBECONFIG"))
-	// if err != nil {
-	// 	return nil, fmt.Errorf("cannot get kubeconfig from file: %w", err)
-	// }
-
-	// Comment the following line for local development:
 	var k8sclient *dynamic.DynamicClient
 	if acmMode || alertManagementAPIMode {
 		k8sconfig, err = rest.InClusterConfig()
 		if err != nil {
-			return nil, fmt.Errorf("cannot get in cluster config: %w", err)
+			k8sconfig, err = clientcmd.BuildConfigFromFlags("", os.Getenv("KUBECONFIG"))
+			if err != nil {
+				return nil, fmt.Errorf("cannot get k8s config: %w", err)
+			}
 		}
 
 		k8sclient, err = dynamic.NewForConfig(k8sconfig)
@@ -145,7 +146,32 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 		k8sclient = nil
 	}
 
-	router, pluginConfig := setupRoutes(cfg)
+	// Initialize management client if management API feature is enabled.
+	// Use a bounded timeout so a slow/unreachable API server doesn't
+	// hang the entire server startup indefinitely.
+	var managementClient management.Client
+	if alertManagementAPIMode {
+		const initTimeout = 30 * time.Second
+		initCtx, initCancel := context.WithTimeout(ctx, initTimeout)
+		defer initCancel()
+
+		k8sClient, err := k8s.NewClient(ctx, k8sconfig)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create k8s client for alert management API: %w", err)
+		}
+
+		if err := k8sClient.TestConnection(initCtx); err != nil {
+			return nil, fmt.Errorf("failed to connect to kubernetes cluster for alert management API: %w", err)
+		}
+
+		managementClient = management.New(ctx, k8sClient)
+		log.Info("alert management API enabled")
+	}
+
+	router, pluginConfig, err := setupRoutes(ctx, cfg, managementClient, k8sconfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed to set up routes: %w", err)
+	}
 	router.Use(corsHeaderMiddleware())
 
 	tlsConfig := &tls.Config{}
@@ -153,14 +179,20 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 	tlsEnabled := cfg.IsTLSEnabled()
 	if tlsEnabled {
 		// Set MinVersion - default to TLS 1.2 if not specified
+		tlsConfig.MinVersion = tls.VersionTLS12
 		if cfg.TLSMinVersion != 0 {
 			tlsConfig.MinVersion = cfg.TLSMinVersion
-		} else {
-			tlsConfig.MinVersion = tls.VersionTLS12
 		}
 
 		if cfg.TLSMaxVersion != 0 {
 			tlsConfig.MaxVersion = cfg.TLSMaxVersion
+			if tlsConfig.MaxVersion < tlsConfig.MinVersion {
+				return nil, fmt.Errorf(
+					"min TLS version %q greater than max TLS version %q",
+					tls.VersionName(tlsConfig.MinVersion),
+					tls.VersionName(tlsConfig.MaxVersion),
+				)
+			}
 		}
 
 		if len(cfg.TLSCipherSuites) > 0 {
@@ -230,7 +262,7 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 	return httpServer, nil
 }
 
-func setupRoutes(cfg *Config) (*mux.Router, *PluginConfig) {
+func setupRoutes(ctx context.Context, cfg *Config, managementClient management.Client, k8sconfig *rest.Config) (*mux.Router, *PluginConfig, error) {
 	configHandlerFunc, pluginConfig := configHandler(cfg)
 
 	router := mux.NewRouter()
@@ -241,9 +273,22 @@ func setupRoutes(cfg *Config) (*mux.Router, *PluginConfig) {
 
 	router.PathPrefix("/features").HandlerFunc(featuresHandler(cfg))
 	router.PathPrefix("/config").HandlerFunc(configHandlerFunc)
+
+	if managementClient != nil {
+		managementRouter := managementrouter.New(managementClient)
+		router.PathPrefix("/api/v1/alerting").Handler(managementRouter)
+
+		metricsHandler, err := managementClient.MetricsHandler(ctx, k8sconfig)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to start alert management metrics: %w", err)
+		}
+		router.Path("/metrics").Handler(metricsHandler)
+		log.Info("alert management metrics started")
+	}
+
 	router.PathPrefix("/").Handler(filesHandler(http.Dir(cfg.StaticPath)))
 
-	return router, pluginConfig
+	return router, pluginConfig, nil
 }
 
 func setupProxyRoutes(cfg *Config, k8sclient *dynamic.DynamicClient, kind proxy.KindType) *mux.Router {

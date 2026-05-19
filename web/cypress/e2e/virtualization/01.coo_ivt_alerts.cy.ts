@@ -34,7 +34,7 @@ const KBV = {
   }
 };
 
-describe('Installation: COO and setting up Monitoring Plugin', () => {
+describe('Installation: COO and setting up Monitoring Plugin', { tags: ['@virtualization', '@slow'] }, () => {
 
   before(() => {
     cy.beforeBlockCOO(MCP, MP);
@@ -45,7 +45,7 @@ describe('Installation: COO and setting up Monitoring Plugin', () => {
   });
 });
 
-describe('IVT: Monitoring UIPlugin + Virtualization', () => {
+describe('IVT: Monitoring UIPlugin + Virtualization', { tags: ['@virtualization', '@slow'] }, () => {
 
   before(() => {
     cy.beforeBlockVirtualization(KBV);
@@ -58,44 +58,24 @@ describe('IVT: Monitoring UIPlugin + Virtualization', () => {
   });
 });
 
-describe('Regression: Monitoring - Alerts (Virtualization)', () => {
+describe('Regression: Monitoring - Alerts (Virtualization)', { tags: ['@virtualization', '@alerts'] }, () => {
 
   beforeEach(() => {
     cy.visit('/');
     cy.validateLogin();
     cy.switchPerspective('Virtualization');
     guidedTour.closeKubevirtTour();
+    nav.sidenav.clickNavLink(['Observe', 'Metrics']);
+    commonPages.titleShouldHaveText('Metrics');
+    cy.changeNamespace("All Projects");
     alerts.getWatchdogAlert();
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     commonPages.titleShouldHaveText('Alerting');
-    cy.changeNamespace("All Projects");
     alerts.getWatchdogAlert();
   });
   // Run tests in Virtualization perspective
   runAllRegressionAlertsTests({
     name: 'Virtualization',
-  });
-
-});
-
-describe('Regression: Monitoring - Alerts Namespaced (Virtualization)', () => {
-
-  beforeEach(() => {
-    cy.visit('/');
-    cy.validateLogin();
-    cy.switchPerspective('Virtualization');
-    guidedTour.closeKubevirtTour();
-    alerts.getWatchdogAlert();
-    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-    commonPages.titleShouldHaveText('Alerting');
-    cy.changeNamespace(MP.namespace);
-    alerts.getWatchdogAlert();
-    
-  });
-  // Run tests in Virtualization perspective
-  runAllRegressionAlertsTestsNamespace({
-    name: 'Virtualization',
-
   });
 
 });

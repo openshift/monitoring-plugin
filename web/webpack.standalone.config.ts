@@ -31,9 +31,10 @@ const config: Configuration = {
         exclude: /node_modules/,
         use: [
           {
-            loader: 'ts-loader',
+            loader: 'esbuild-loader',
             options: {
-              configFile: path.resolve(__dirname, 'tsconfig.json'),
+              target: 'es2021',
+              tsconfig: path.resolve(__dirname, 'tsconfig.json'),
             },
           },
         ],
@@ -90,7 +91,7 @@ const config: Configuration = {
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
-      'Access-Control-Allow-Headers': 'X-Requested-With, Content-Type, Authorization'
+      'Access-Control-Allow-Headers': 'X-Requested-With, Content-Type, Authorization',
     },
     devMiddleware: {
       writeToDisk: true,

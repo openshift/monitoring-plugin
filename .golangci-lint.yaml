@@ -1,0 +1,26 @@
+# List of all configuration options at https://github.com/golangci/golangci-lint/blob/HEAD/.golangci.reference.yml
+version: "2"
+
+linters:
+  settings:
+    errcheck:
+      exclude-functions:
+        - (net/http.ResponseWriter).Write
+  exclusions:
+    generated: strict
+    rules:
+      # Disable errcheck linter for test files.
+      - linters:
+          - errcheck
+        path: _test.go
+
+formatters:
+  enable:
+    - gci
+    - gofmt
+  settings:
+    gci:
+      sections:
+        - standard
+        - default
+        - prefix(github.com/openshift/monitoring-plugin)

@@ -114,8 +114,7 @@ import {
   t_global_spacer_sm,
   t_global_font_family_mono,
 } from '@patternfly/react-tokens';
-import { QueryParamProvider, StringParam, useQueryParam } from 'use-query-params';
-import { ReactRouter5Adapter } from 'use-query-params/adapters/react-router-5';
+import { StringParam, useQueryParam } from 'use-query-params';
 import { GraphUnits, isGraphUnit } from './metrics/units';
 import { SimpleSelect, SimpleSelectOption } from '@patternfly/react-templates';
 import { valueFormatter } from './console/console-shared/src/components/query-browser/QueryBrowserTooltip';
@@ -123,6 +122,7 @@ import { ALL_NAMESPACES_KEY } from './utils';
 import { MonitoringProvider } from '../contexts/MonitoringContext';
 import { DataTestIDs } from './data-test';
 import { useMonitoring } from '../hooks/useMonitoring';
+import { useQueryNamespace } from './hooks/useQueryNamespace';
 
 // Stores information about the currently focused query input
 let focusedQuery;
@@ -304,7 +304,7 @@ const MetricsActionsMenu: FC = () => {
           isExpanded={isOpen}
           data-test={DataTestIDs.MetricsPageActionsDropdownButton}
         >
-          Actions
+          {t('Actions')}
         </MenuToggle>
       )}
       popperProps={{ position: 'right' }}
@@ -613,7 +613,7 @@ const QueryKebab: FC<{ index: number }> = ({ index }) => {
 
 export const QueryTable: FC<QueryTableProps> = ({ index, namespace, customDatasource, units }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { plugin } = useMonitoring();
+  const { plugin, accessCheckLoading, useMetricsTenancy } = useMonitoring();
 
   const [data, setData] = useState<PrometheusData>();
   const [error, setError] = useState<PrometheusAPIError>();
@@ -630,9 +630,8 @@ export const QueryTable: FC<QueryTableProps> = ({ index, namespace, customDataso
     (state: MonitoringState) =>
       getObserveState(plugin, state).queryBrowser.queries[index]?.isExpanded,
   );
-  const pollInterval = useSelector(
-    (state: MonitoringState) =>
-      Number(getObserveState(plugin, state).queryBrowser.pollInterval) * 15 * 1000,
+  const pollInterval = useSelector((state: MonitoringState) =>
+    Number(getObserveState(plugin, state).queryBrowser.pollInterval),
   );
   const query = useSelector(
     (state: MonitoringState) => getObserveState(plugin, state).queryBrowser.queries[index]?.query,
@@ -665,7 +664,7 @@ export const QueryTable: FC<QueryTableProps> = ({ index, namespace, customDataso
   // If the namespace is defined getPrometheusURL will use
   // the PROMETHEUS_TENANCY_BASE_PATH for requests in the developer view
   const tick = () => {
-    if (isEnabled && isExpanded && query) {
+    if (isEnabled && isExpanded && !accessCheckLoading && query) {
       safeFetch<PrometheusResponse>(
         buildPrometheusUrl({
           prometheusUrlProps: {
@@ -675,7 +674,7 @@ export const QueryTable: FC<QueryTableProps> = ({ index, namespace, customDataso
           },
           basePath: getPrometheusBasePath({
             prometheus: 'cmo',
-            namespace,
+            useTenancyPath: useMetricsTenancy,
             basePathOverride: customDatasource?.basePath,
           }),
         }),
@@ -693,7 +692,16 @@ export const QueryTable: FC<QueryTableProps> = ({ index, namespace, customDataso
     }
   };
 
-  usePoll(tick, pollInterval, namespace, query, span, lastRequestTime);
+  usePoll(
+    tick,
+    pollInterval,
+    namespace,
+    query,
+    span,
+    lastRequestTime,
+    useMetricsTenancy,
+    accessCheckLoading,
+  );
 
   useEffect(() => {
     setData(undefined);
@@ -702,135 +710,170 @@ export const QueryTable: FC<QueryTableProps> = ({ index, namespace, customDataso
     setSortBy({});
   }, [namespace, query]);
 
-  if (!isEnabled || !isExpanded || !query) {
+  const isUnused = !isEnabled || !isExpanded || !query;
+  const isError = !!error;
+  const isLoading = !data;
+  const result = useMemo(() => {
+    if (isUnused || isError || isLoading) {
+      return [];
+    }
+    // Add any data series from `series` (those displayed in the graph) that are not
+    // in `data.result`.This happens for queries that exclude a series currently, but
+    // included that same series at some point during the graph's range.
+    const expiredSeries = _.differenceWith(series, data.result, (s, r) => _.isEqual(s, r.metric));
+    return expiredSeries.length
+      ? [...data.result, ...expiredSeries.map((metric) => ({ metric }))]
+      : data.result;
+  }, [data?.result, series, isUnused, isError, isLoading]);
+  const isEmptyGraph = !result || result.length === 0;
+
+  const tableData = useMemo(() => {
+    if (isUnused || isError || isLoading || isEmptyGraph) {
+      return {};
+    }
+    const transforms: ITransform[] = [sortable, wrappable];
+
+    const buttonCell = (labels) => ({ title: <SeriesButton index={index} labels={labels} /> });
+
+    let columns, rows;
+    if (data.resultType === 'scalar') {
+      columns = [
+        '',
+        {
+          title: t('Value'),
+          transforms,
+          cellTransforms: [
+            (data: IFormatterValueType) => {
+              const val = data?.title ? data.title : data;
+              return !Number.isNaN(Number(val)) ? valueFormat(Number(val)) : val;
+            },
+          ],
+        },
+      ];
+      rows = [[buttonCell({}), _.get(result, '[1]')]];
+    } else if (data.resultType === 'string') {
+      columns = [
+        {
+          title: t('Value'),
+          transforms,
+          cellTransforms: [
+            (data: IFormatterValueType) => {
+              const val = data?.title ? data.title : data;
+              return !Number.isNaN(Number(val)) ? valueFormat(Number(val)) : val;
+            },
+          ],
+        },
+      ];
+      rows = [[result?.[1]]];
+    } else {
+      const allLabelKeys = _.uniq(_.flatMap(result, ({ metric }) => Object.keys(metric))).sort();
+
+      columns = [
+        '',
+        ...allLabelKeys.map((k) => ({
+          title: <span>{k === '__name__' ? t('Name') : k}</span>,
+          transforms,
+        })),
+        {
+          title: t('Value'),
+          transforms,
+          cellTransforms: [
+            (data: IFormatterValueType) => {
+              const val = data?.title ? data.title : data;
+              return !Number.isNaN(Number(val)) ? valueFormat(Number(val)) : val;
+            },
+          ],
+        },
+      ];
+
+      let rowMapper;
+      if (data.resultType === 'matrix') {
+        rowMapper = ({ metric, values }) => [
+          '',
+          ..._.map(allLabelKeys, (k) => metric[k]),
+          {
+            title: (
+              <>
+                {_.map(values, ([time, v]) => (
+                  <div key={time}>
+                    {v}&nbsp;@{time}
+                  </div>
+                ))}
+              </>
+            ),
+          },
+        ];
+      } else {
+        rowMapper = ({ metric, value }) => [
+          buttonCell(metric),
+          ..._.map(allLabelKeys, (k) => metric[k]),
+          _.get(value, '[1]', { title: <span>{t('None')}</span> }),
+        ];
+      }
+
+      rows = _.map(result, rowMapper);
+      if (sortBy) {
+        // Sort Values column numerically and sort all the other columns alphabetically
+        const valuesColIndex = allLabelKeys.length + 1;
+        const sort =
+          sortBy.index === valuesColIndex
+            ? (cells) => {
+                const v = Number(cells[valuesColIndex]);
+                return Number.isNaN(v) ? 0 : v;
+              }
+            : `${sortBy.index}`;
+        rows = _.orderBy(rows, [sort], [sortBy.direction]);
+      }
+    }
+
+    const onSort = (e, i, direction) => setSortBy({ index: i, direction });
+
+    const tableRows = rows.slice((page - 1) * perPage, page * perPage).map((cells) => ({ cells }));
+
+    return {
+      onSort,
+      tableRows,
+      columns,
+      rows,
+    };
+  }, [
+    data?.resultType,
+    isEmptyGraph,
+    index,
+    isUnused,
+    isError,
+    isLoading,
+    page,
+    perPage,
+    result,
+    sortBy,
+    t,
+    valueFormat,
+  ]);
+
+  useEffect(() => {
+    if (tableData.columns && tableData.rows) {
+      dispatch(
+        queryBrowserPatchQuery(index, {
+          queryTableData: { columns: tableData.columns, rows: tableData.rows },
+        }),
+      );
+    }
+  }, [dispatch, index, tableData?.columns, tableData?.rows]);
+
+  if (isUnused) {
     return null;
-  }
-
-  if (error) {
+  } else if (isError) {
     return <Error error={error} title={t('Error loading values')} />;
-  }
-
-  if (!data) {
+  } else if (isLoading) {
     return <LoadingInline />;
-  }
-
-  // Add any data series from `series` (those displayed in the graph) that are not in `data.result`.
-  // This happens for queries that exclude a series currently, but included that same series at some
-  // point during the graph's range.
-  const expiredSeries = _.differenceWith(series, data.result, (s, r) => _.isEqual(s, r.metric));
-  const result = expiredSeries.length
-    ? [...data.result, ...expiredSeries.map((metric) => ({ metric }))]
-    : data.result;
-
-  if (!result || result.length === 0) {
+  } else if (isEmptyGraph) {
     return (
       <div data-test={DataTestIDs.MetricsPageYellowNoDatapointsFound}>
         <YellowExclamationTriangleIcon /> {t('No datapoints found.')}
       </div>
     );
   }
-
-  const transforms: ITransform[] = [sortable, wrappable];
-
-  const buttonCell = (labels) => ({ title: <SeriesButton index={index} labels={labels} /> });
-
-  let columns, rows;
-  if (data.resultType === 'scalar') {
-    columns = [
-      '',
-      {
-        title: t('Value'),
-        transforms,
-        cellTransforms: [
-          (data: IFormatterValueType) => {
-            const val = data?.title ? data.title : data;
-            return !Number.isNaN(Number(val)) ? valueFormat(Number(val)) : val;
-          },
-        ],
-      },
-    ];
-    rows = [[buttonCell({}), _.get(result, '[1]')]];
-  } else if (data.resultType === 'string') {
-    columns = [
-      {
-        title: t('Value'),
-        transforms,
-        cellTransforms: [
-          (data: IFormatterValueType) => {
-            const val = data?.title ? data.title : data;
-            return !Number.isNaN(Number(val)) ? valueFormat(Number(val)) : val;
-          },
-        ],
-      },
-    ];
-    rows = [[result?.[1]]];
-  } else {
-    const allLabelKeys = _.uniq(_.flatMap(result, ({ metric }) => Object.keys(metric))).sort();
-
-    columns = [
-      '',
-      ...allLabelKeys.map((k) => ({
-        title: <span>{k === '__name__' ? t('Name') : k}</span>,
-        transforms,
-      })),
-      {
-        title: t('Value'),
-        transforms,
-        cellTransforms: [
-          (data: IFormatterValueType) => {
-            const val = data?.title ? data.title : data;
-            return !Number.isNaN(Number(val)) ? valueFormat(Number(val)) : val;
-          },
-        ],
-      },
-    ];
-
-    let rowMapper;
-    if (data.resultType === 'matrix') {
-      rowMapper = ({ metric, values }) => [
-        '',
-        ..._.map(allLabelKeys, (k) => metric[k]),
-        {
-          title: (
-            <>
-              {_.map(values, ([time, v]) => (
-                <div key={time}>
-                  {v}&nbsp;@{time}
-                </div>
-              ))}
-            </>
-          ),
-        },
-      ];
-    } else {
-      rowMapper = ({ metric, value }) => [
-        buttonCell(metric),
-        ..._.map(allLabelKeys, (k) => metric[k]),
-        _.get(value, '[1]', { title: <span>{t('None')}</span> }),
-      ];
-    }
-
-    rows = _.map(result, rowMapper);
-    if (sortBy) {
-      // Sort Values column numerically and sort all the other columns alphabetically
-      const valuesColIndex = allLabelKeys.length + 1;
-      const sort =
-        sortBy.index === valuesColIndex
-          ? (cells) => {
-              const v = Number(cells[valuesColIndex]);
-              return Number.isNaN(v) ? 0 : v;
-            }
-          : `${sortBy.index}`;
-      rows = _.orderBy(rows, [sort], [sortBy.direction]);
-    }
-  }
-
-  // Dispatch query table result so QueryKebab can access it for data export
-  dispatch(queryBrowserPatchQuery(index, { queryTableData: { columns, rows } }));
-
-  const onSort = (e, i, direction) => setSortBy({ index: i, direction });
-
-  const tableRows = rows.slice((page - 1) * perPage, page * perPage).map((cells) => ({ cells }));
 
   return (
     <>
@@ -846,19 +889,19 @@ export const QueryTable: FC<QueryTableProps> = ({ index, namespace, customDataso
         <Table
           aria-label={t('query results table')}
           gridBreakPoint={TableGridBreakpoint.none}
-          rows={tableRows.length}
+          rows={tableData?.tableRows.length}
           variant={TableVariant.compact}
           data-test={DataTestIDs.MetricsPageQueryTable}
         >
           <Thead>
             <Tr>
-              {columns.map((col, columnIndex) => {
+              {tableData?.columns.map((col, columnIndex) => {
                 const sortParams =
                   columnIndex !== 0
                     ? {
                         sort: {
                           sortBy,
-                          onSort,
+                          onSort: tableData?.onSort,
                           columnIndex,
                         },
                       }
@@ -872,15 +915,15 @@ export const QueryTable: FC<QueryTableProps> = ({ index, namespace, customDataso
             </Tr>
           </Thead>
           <Tbody>
-            {tableRows.map((row, rowIndex) => (
+            {tableData?.tableRows.map((row, rowIndex) => (
               <Tr key={`row-${rowIndex}`}>
                 {row.cells?.map((cell, cellIndex) => (
                   <Td
                     style={{ fontFamily: t_global_font_family_mono.var }}
                     key={`cell-${rowIndex}-${cellIndex}`}
                   >
-                    {columns[cellIndex].cellTransforms
-                      ? columns[cellIndex].cellTransforms[0](
+                    {tableData?.columns[cellIndex].cellTransforms
+                      ? tableData?.columns[cellIndex].cellTransforms[0](
                           typeof cell === 'string' ? cell : cell?.title,
                         )
                       : typeof cell === 'string'
@@ -894,7 +937,7 @@ export const QueryTable: FC<QueryTableProps> = ({ index, namespace, customDataso
         </Table>
       </InnerScrollContainer>
       <TablePagination
-        itemCount={rows.length}
+        itemCount={tableData?.rows.length}
         page={page}
         perPage={perPage}
         setPage={setPage}
@@ -1047,8 +1090,8 @@ const QueryBrowserWrapper: FC<{
   units: GraphUnits;
 }> = ({ customDataSourceName, customDataSource, customDatasourceError, units }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const [activeNamespace] = useActiveNamespace();
   const { plugin } = useMonitoring();
+  const [activeNamespace] = useActiveNamespace();
 
   const dispatch = useDispatch();
 
@@ -1106,7 +1149,11 @@ const QueryBrowserWrapper: FC<{
   const insertExampleQuery = () => {
     const focusedIndex = focusedQuery?.index ?? 0;
     const index = queries[focusedIndex] ? focusedIndex : 0;
-    const text = 'sort_desc(sum(sum_over_time(ALERTS{alertstate="firing"}[24h])) by (alertname))';
+    const labelMatchers =
+      activeNamespace === ALL_NAMESPACES_KEY
+        ? '{alertstate="firing"}'
+        : `{alertstate="firing", namespace="${activeNamespace}"}`;
+    const text = `sort_desc(sum(sum_over_time(ALERTS${labelMatchers}[24h])) by (alertname))`;
     dispatch(queryBrowserPatchQuery(index, { isEnabled: true, query: text, text }));
   };
 
@@ -1162,7 +1209,6 @@ const QueryBrowserWrapper: FC<{
       units={units}
       showStackedControl
       showDisconnectedControl
-      useTenancy={activeNamespace !== ALL_NAMESPACES_KEY}
     />
   );
 };
@@ -1236,9 +1282,8 @@ const IntervalDropdown = () => {
     (v: number) => dispatch(queryBrowserSetPollInterval(v)),
     [dispatch],
   );
-  const pollInterval = useSelector(
-    (state: MonitoringState) =>
-      Number(getObserveState(plugin, state).queryBrowser.pollInterval) * 15 * 1000,
+  const pollInterval = useSelector((state: MonitoringState) =>
+    Number(getObserveState(plugin, state).queryBrowser.pollInterval),
   );
   return <DropDownPollInterval setInterval={setInterval} selectedInterval={pollInterval} />;
 };
@@ -1278,14 +1323,7 @@ const GraphUnitsDropDown: FC = () => {
 const MetricsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const [units, setUnits] = useQueryParam(QueryParams.Units, StringParam);
-  const [queryNamespace, setQueryNamespace] = useQueryParam(QueryParams.Namespace, StringParam);
-  const [activeNamespace, setActiveNamespace] = useActiveNamespace();
-
-  useEffect(() => {
-    if (queryNamespace && activeNamespace !== queryNamespace) {
-      setActiveNamespace(queryNamespace);
-    }
-  }, [queryNamespace, activeNamespace, setActiveNamespace]);
+  const { setNamespace } = useQueryNamespace();
 
   const dispatch = useDispatch();
 
@@ -1368,7 +1406,7 @@ const MetricsPage_: FC = () => {
       <NamespaceBar
         onNamespaceChange={(namespace) => {
           dispatch(queryBrowserDeleteAllQueries());
-          setQueryNamespace(namespace);
+          setNamespace(namespace);
         }}
       />
       <ListPageHeader title={t('Metrics')}>
@@ -1427,9 +1465,7 @@ const MetricsPage = withFallback(MetricsPage_);
 export const MpCmoMetricsPage: React.FC = () => {
   return (
     <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
-      <QueryParamProvider adapter={ReactRouter5Adapter}>
-        <MetricsPage />
-      </QueryParamProvider>
+      <MetricsPage />
     </MonitoringProvider>
   );
 };

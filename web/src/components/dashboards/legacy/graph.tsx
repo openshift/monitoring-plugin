@@ -8,7 +8,7 @@ import { MonitoringState } from '../../../store/store';
 import { getObserveState } from '../../hooks/usePerspective';
 import { DEFAULT_GRAPH_SAMPLES } from './utils';
 import { CustomDataSource } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
-import { GraphUnits } from 'src/components/metrics/units';
+import { GraphUnits } from '../../../components/metrics/units';
 import { useMonitoring } from '../../../hooks/useMonitoring';
 
 type Props = {

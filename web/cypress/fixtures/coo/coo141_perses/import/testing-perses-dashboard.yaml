@@ -1,0 +1,264 @@
+kind: Dashboard
+metadata:
+  createdAt: "2026-01-26T13:16:38.627059456Z"
+  name: testing-perses-dashboard-yaml
+  project: openshift-cluster-observability-operator
+  updatedAt: "2026-01-26T15:55:50.145711006Z"
+  version: 14
+spec:
+  display:
+    name: Testing Perses dashboard - YAML
+  panels:
+    2ae6af9385b74280b00978aa304ce3bb:
+      kind: Panel
+      spec:
+        display:
+          name: time series table
+        plugin:
+          kind: TimeSeriesTable
+          spec: {}
+        queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  query: up
+    31b8374866184a26beddf46ec30df0b5:
+      kind: Panel
+      spec:
+        display:
+          name: table
+        plugin:
+          kind: Table
+          spec:
+            density: standard
+            enableFiltering: true
+        queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  query: up
+    57ce686052c9464fa9486ff49d3757cd:
+      kind: Panel
+      spec:
+        display:
+          name: "scat "
+        plugin:
+          kind: StatChart
+          spec:
+            calculation: last-number
+            format:
+              unit: decimal
+            legendMode: auto
+            sparkline: {}
+        queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  query: up
+    626437cc3e1a46fd84a6a690923c3531:
+      kind: Panel
+      spec:
+        display:
+          name: gauge
+        plugin:
+          kind: GaugeChart
+          spec:
+            calculation: last-number
+            format:
+              unit: percent-decimal
+            thresholds:
+              steps:
+                - value: 0.8
+                - value: 0.9
+        queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  query: up
+    940582f41e824aa3bc10f2d0454af98a:
+      kind: Panel
+      spec:
+        display:
+          name: markdown
+        plugin:
+          kind: Markdown
+          spec:
+            text: <marquee bgcolor='red'> eve </marquee>
+        queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  query: up
+    9877adfad20947e5b0af761cdad2b246:
+      kind: Panel
+      spec:
+        display:
+          name: pie chart
+        plugin:
+          kind: PieChart
+          spec:
+            calculation: last
+            format:
+              shortValues: true
+              unit: decimal
+            mode: value
+            radius: 50
+            showLabels: false
+            sort: desc
+        queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  query: up
+    99778df0db9b4855ae0cda2cc7eb731f:
+      kind: Panel
+      spec:
+        display:
+          name: bar chart
+        plugin:
+          kind: BarChart
+          spec:
+            calculation: last
+            format:
+              shortValues: true
+              unit: decimal
+            mode: value
+            sort: desc
+        queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  query: up
+    c03e17f849d341bcb1139c65e68dad1d:
+      kind: Panel
+      spec:
+        display:
+          name: status history
+        plugin:
+          kind: StatusHistoryChart
+          spec: {}
+        queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  query: vector(1)
+  layouts:
+    - kind: Grid
+      spec:
+        display:
+          title: Row 3
+          collapse:
+            open: true
+        items:
+          - x: 0
+            "y": 0
+            width: 6
+            height: 6
+            content:
+              $ref: "#/spec/panels/99778df0db9b4855ae0cda2cc7eb731f"
+          - x: 6
+            "y": 0
+            width: 5
+            height: 6
+            content:
+              $ref: "#/spec/panels/626437cc3e1a46fd84a6a690923c3531"
+          - x: 11
+            "y": 0
+            width: 5
+            height: 6
+            content:
+              $ref: "#/spec/panels/940582f41e824aa3bc10f2d0454af98a"
+          - x: 0
+            "y": 6
+            width: 24
+            height: 9
+            content:
+              $ref: "#/spec/panels/9877adfad20947e5b0af761cdad2b246"
+          - x: 16
+            "y": 0
+            width: 8
+            height: 6
+            content:
+              $ref: "#/spec/panels/57ce686052c9464fa9486ff49d3757cd"
+          - x: 0
+            "y": 15
+            width: 12
+            height: 6
+            content:
+              $ref: "#/spec/panels/c03e17f849d341bcb1139c65e68dad1d"
+          - x: 12
+            "y": 15
+            width: 12
+            height: 6
+            content:
+              $ref: "#/spec/panels/31b8374866184a26beddf46ec30df0b5"
+          - x: 0
+            "y": 21
+            width: 12
+            height: 6
+            content:
+              $ref: "#/spec/panels/2ae6af9385b74280b00978aa304ce3bb"
+  variables:
+    - kind: ListVariable
+      spec:
+        defaultValue: node-exporter
+        allowAllValue: false
+        allowMultiple: false
+        sort: none
+        plugin:
+          kind: PrometheusLabelValuesVariable
+          spec:
+            labelName: job
+        name: job
+    - kind: ListVariable
+      spec:
+        defaultValue: ip-10-0-11-36.us-east-2.compute.internal
+        allowAllValue: false
+        allowMultiple: false
+        sort: none
+        plugin:
+          kind: PrometheusLabelValuesVariable
+          spec:
+            labelName: instance
+            matchers:
+              - up{job=~"$job"}
+        name: instance
+    - kind: ListVariable
+      spec:
+        defaultValue: 1m
+        allowAllValue: false
+        allowMultiple: false
+        sort: none
+        plugin:
+          kind: StaticListVariable
+          spec:
+            values:
+              - label: 1m
+                value: 1m
+              - label: 5m
+                value: 5m
+        name: interval
+    - kind: TextVariable
+      spec:
+        value: test
+        constant: true
+        name: text
+  duration: 30m
+  refreshInterval: 0s
+  datasources: {}

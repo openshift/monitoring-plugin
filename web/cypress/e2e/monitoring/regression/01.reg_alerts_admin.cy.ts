@@ -1,9 +1,7 @@
 import { alerts } from '../../../fixtures/monitoring/alert';
 import { runAllRegressionAlertsTests } from '../../../support/monitoring/01.reg_alerts.cy';
-import { runAllRegressionAlertsTestsNamespace } from '../../../support/monitoring/04.reg_alerts_namespace.cy';
 import { commonPages } from '../../../views/common';
 import { nav } from '../../../views/nav';
-import { guidedTour } from '../../../views/tour';
 
 const MP = {
   namespace: 'openshift-monitoring',
@@ -11,21 +9,20 @@ const MP = {
 };
 
 // Test suite for Administrator perspective
-describe('Regression: Monitoring - Alerts (Administrator)', () => {
+describe('Regression: Monitoring - Alerts (Administrator)', { tags: ['@monitoring', '@alerts'] }, () => {
 
   before(() => {
     cy.beforeBlock(MP);
   });
 
   beforeEach(() => {
-    cy.visit('/');
-    guidedTour.close();
-    cy.validateLogin();
     alerts.getWatchdogAlert();
+    nav.sidenav.clickNavLink(['Observe', 'Metrics']);
+    commonPages.titleShouldHaveText('Metrics');
+    cy.changeNamespace("All Projects");
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     commonPages.titleShouldHaveText('Alerting');
     alerts.getWatchdogAlert();
-    cy.changeNamespace("All Projects");
   });
 
   // Run tests in Administrator perspective
@@ -35,27 +32,4 @@ describe('Regression: Monitoring - Alerts (Administrator)', () => {
 
 });
 
-describe('Regression: Monitoring - Alerts Namespaced (Administrator)', () => {
-
-    before(() => {
-      cy.beforeBlock(MP);
-    });
-
-    beforeEach(() => {
-      cy.visit('/');
-      guidedTour.close();
-      cy.validateLogin();
-      alerts.getWatchdogAlert();
-      nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-      commonPages.titleShouldHaveText('Alerting');
-      alerts.getWatchdogAlert();
-      cy.changeNamespace(MP.namespace);
-    });
-  
-    // Run tests in Administrator perspective
-    runAllRegressionAlertsTestsNamespace({
-      name: 'Administrator',
-    });
-  
-});
 

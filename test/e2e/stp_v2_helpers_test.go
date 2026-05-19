@@ -1,0 +1,739 @@
+package e2e
+
+import (
+	"bytes"
+	"context"
+	"crypto/tls"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+	"os"
+	"os/exec"
+	"strings"
+	"sync"
+	"testing"
+	"time"
+
+	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/wait"
+
+	"github.com/openshift/monitoring-plugin/internal/managementrouter"
+	"github.com/openshift/monitoring-plugin/pkg/k8s"
+	"github.com/openshift/monitoring-plugin/test/e2e/framework"
+)
+
+// bearerToken caches the OpenShift bearer token for API requests.
+var (
+	bearerTokenOnce sync.Once
+	bearerToken     string
+)
+
+// getBearerToken returns the bearer token, resolving it once from BEARER_TOKEN
+// env var, then `oc whoami --show-token`, then the kubeconfig token field.
+func getBearerToken() string {
+	bearerTokenOnce.Do(func() {
+		bearerToken = os.Getenv("BEARER_TOKEN")
+		if bearerToken != "" {
+			return
+		}
+		// Try oc CLI (works when logged in interactively)
+		out, err := exec.Command("oc", "whoami", "--show-token").Output()
+		if err == nil {
+			bearerToken = strings.TrimSpace(string(out))
+			if bearerToken != "" {
+				return
+			}
+		}
+		// Fall back to reading token from kubeconfig
+		kubeconfig := os.Getenv("KUBECONFIG")
+		if kubeconfig == "" {
+			return
+		}
+		raw, err := os.ReadFile(kubeconfig)
+		if err != nil {
+			return
+		}
+		// Simple extraction: look for "token: <value>" in kubeconfig
+		for _, line := range strings.Split(string(raw), "\n") {
+			trimmed := strings.TrimSpace(line)
+			if strings.HasPrefix(trimmed, "token:") {
+				bearerToken = strings.TrimSpace(strings.TrimPrefix(trimmed, "token:"))
+				return
+			}
+		}
+	})
+	return bearerToken
+}
+
+// seedRuleIDs stores discovered rule IDs for all seed rules.
+type seedRuleIDs struct {
+	Watchdog            string
+	UserRule            string
+	PlatformRule        string
+	GitOpsRule          string
+	OperatorManaged     string
+	PendingRule         string
+	CreatedUserRule     string
+	CreatedPlatformRule string
+}
+
+// getRulesGroupsResponse models the GET /rules JSON envelope.
+type getRulesGroupsResponse struct {
+	Data     getRulesGroupsResponseData `json:"data"`
+	Status   string                     `json:"status,omitempty"`
+	Warnings []string                   `json:"warnings,omitempty"`
+}
+
+type getRulesGroupsResponseData struct {
+	Groups []k8s.PrometheusRuleGroup `json:"groups"`
+}
+
+// getAlertsFullResponse models the GET /alerts JSON envelope.
+type getAlertsFullResponse struct {
+	Data     getAlertsFullResponseData `json:"data"`
+	Warnings []string                  `json:"warnings"`
+}
+
+type getAlertsFullResponseData struct {
+	Alerts []k8s.PrometheusAlert `json:"alerts"`
+}
+
+// ---------------------------------------------------------------------------
+// HTTP helpers
+// ---------------------------------------------------------------------------
+
+func stpHTTPClient() *http.Client {
+	return &http.Client{
+		Timeout: 30 * time.Second,
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, //nolint:gosec
+		},
+	}
+}
+
+// doHTTPRequest builds and executes an HTTP request, returning the raw
+// response, body bytes and any error.
+func doHTTPRequest(ctx context.Context, method, url string, body interface{}) (*http.Response, []byte, error) {
+	var bodyReader io.Reader
+	if body != nil {
+		data, err := json.Marshal(body)
+		if err != nil {
+			return nil, nil, fmt.Errorf("marshal request body: %w", err)
+		}
+		bodyReader = bytes.NewReader(data)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, method, url, bodyReader)
+	if err != nil {
+		return nil, nil, fmt.Errorf("create request: %w", err)
+	}
+	if body != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
+	if token := getBearerToken(); token != "" {
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
+
+	resp, err := stpHTTPClient().Do(req)
+	if err != nil {
+		return nil, nil, fmt.Errorf("execute request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return resp, nil, fmt.Errorf("read response body: %w", err)
+	}
+	return resp, respBody, nil
+}
+
+// doRawGET sends a raw GET and returns status code + body bytes.
+func doRawGET(ctx context.Context, url string) (int, []byte, error) {
+	resp, body, err := doHTTPRequest(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return 0, nil, err
+	}
+	return resp.StatusCode, body, nil
+}
+
+// ---------------------------------------------------------------------------
+// GET helpers
+// ---------------------------------------------------------------------------
+
+// listRulesAsGroups fetches GET /rules with optional query params and returns
+// the parsed groups.
+func listRulesAsGroups(ctx context.Context, pluginURL string, queryParams map[string]string) ([]k8s.PrometheusRuleGroup, error) {
+	u := pluginURL + "/api/v1/alerting/rules"
+	if len(queryParams) > 0 {
+		u += "?"
+		first := true
+		for k, v := range queryParams {
+			if !first {
+				u += "&"
+			}
+			u += k + "=" + v
+			first = false
+		}
+	}
+
+	_, body, err := doHTTPRequest(ctx, http.MethodGet, u, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var parsed getRulesGroupsResponse
+	if err := json.Unmarshal(body, &parsed); err != nil {
+		return nil, fmt.Errorf("decode rules response: %w", err)
+	}
+	return parsed.Data.Groups, nil
+}
+
+// getAlertsWithResponse fetches GET /alerts and returns the full response
+// including warnings and the HTTP status code.
+func getAlertsWithResponse(ctx context.Context, pluginURL string, queryParams map[string]string) (*getAlertsFullResponse, int, error) {
+	u := pluginURL + "/api/v1/alerting/alerts"
+	if len(queryParams) > 0 {
+		u += "?"
+		first := true
+		for k, v := range queryParams {
+			if !first {
+				u += "&"
+			}
+			u += k + "=" + v
+			first = false
+		}
+	}
+
+	resp, body, err := doHTTPRequest(ctx, http.MethodGet, u, nil)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, resp.StatusCode, fmt.Errorf("unexpected status %d: %s", resp.StatusCode, string(body))
+	}
+
+	var parsed getAlertsFullResponse
+	if err := json.Unmarshal(body, &parsed); err != nil {
+		return nil, resp.StatusCode, fmt.Errorf("decode alerts response: %w", err)
+	}
+	return &parsed, resp.StatusCode, nil
+}
+
+// getHealth fetches GET /health and returns the parsed response.
+func getHealth(ctx context.Context, pluginURL string) (*managementrouter.GetHealthResponse, error) {
+	_, body, err := doHTTPRequest(ctx, http.MethodGet, pluginURL+"/api/v1/alerting/health", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var parsed managementrouter.GetHealthResponse
+	if err := json.Unmarshal(body, &parsed); err != nil {
+		return nil, fmt.Errorf("decode health response: %w", err)
+	}
+	return &parsed, nil
+}
+
+// getMetrics fetches GET /metrics and returns the raw text body.
+func getMetrics(ctx context.Context, pluginURL string) (string, error) {
+	_, body, err := doHTTPRequest(ctx, http.MethodGet, pluginURL+"/metrics", nil)
+	if err != nil {
+		return "", err
+	}
+	return string(body), nil
+}
+
+// ---------------------------------------------------------------------------
+// Write helpers
+// ---------------------------------------------------------------------------
+
+// postRule sends POST /rules and returns status code + raw response body.
+func postRule(ctx context.Context, pluginURL string, body interface{}) (int, []byte, error) {
+	resp, respBody, err := doHTTPRequest(ctx, http.MethodPost, pluginURL+"/api/v1/alerting/rules", body)
+	if err != nil {
+		return 0, nil, err
+	}
+	return resp.StatusCode, respBody, nil
+}
+
+// patchRule sends PATCH /rules/{ruleId} and returns status code + parsed response.
+func patchRule(ctx context.Context, pluginURL string, ruleID string, body interface{}) (int, *managementrouter.UpdateAlertRuleResult, error) {
+	u := fmt.Sprintf("%s/api/v1/alerting/rules/%s", pluginURL, ruleID)
+	resp, respBody, err := doHTTPRequest(ctx, http.MethodPatch, u, body)
+	if err != nil {
+		return 0, nil, err
+	}
+
+	var parsed managementrouter.UpdateAlertRuleResult
+	if err := json.Unmarshal(respBody, &parsed); err != nil {
+		return resp.StatusCode, nil, fmt.Errorf("decode patch response: %w (body: %s)", err, string(respBody))
+	}
+	return resp.StatusCode, &parsed, nil
+}
+
+// patchRulesBulk sends PATCH /rules (bulk) and returns status code + parsed response.
+func patchRulesBulk(ctx context.Context, pluginURL string, body interface{}) (int, *managementrouter.BulkUpdateAlertRulesResponse, error) {
+	resp, respBody, err := doHTTPRequest(ctx, http.MethodPatch, pluginURL+"/api/v1/alerting/rules", body)
+	if err != nil {
+		return 0, nil, err
+	}
+
+	var parsed managementrouter.BulkUpdateAlertRulesResponse
+	if err := json.Unmarshal(respBody, &parsed); err != nil {
+		return resp.StatusCode, nil, fmt.Errorf("decode bulk patch response: %w (body: %s)", err, string(respBody))
+	}
+	return resp.StatusCode, &parsed, nil
+}
+
+// patchSingleRuleViaBulk sends PATCH /rules with a single ruleId, wrapping the
+// single-rule operation through the bulk endpoint. Returns the first result.
+func patchSingleRuleViaBulk(ctx context.Context, pluginURL string, ruleID string, body map[string]interface{}) (int, *managementrouter.UpdateAlertRuleResult, error) {
+	bulkBody := map[string]interface{}{
+		"ruleIds": []string{ruleID},
+	}
+	for k, v := range body {
+		bulkBody[k] = v
+	}
+
+	httpStatus, resp, err := patchRulesBulk(ctx, pluginURL, bulkBody)
+	if err != nil {
+		return httpStatus, nil, err
+	}
+	if len(resp.Rules) == 0 {
+		return httpStatus, nil, fmt.Errorf("bulk patch returned 0 results")
+	}
+	return httpStatus, &resp.Rules[0], nil
+}
+
+// deleteSingleRuleViaBulk sends DELETE /rules with a single ruleId, wrapping the
+// single-rule operation through the bulk endpoint. Returns the first result's status code.
+func deleteSingleRuleViaBulk(ctx context.Context, pluginURL string, ruleID string) (int, error) {
+	body := managementrouter.BulkDeleteAlertRulesRequest{
+		RuleIds: []string{ruleID},
+	}
+	_, resp, err := deleteRulesBulk(ctx, pluginURL, body)
+	if err != nil {
+		return 0, err
+	}
+	if len(resp.Rules) == 0 {
+		return 0, fmt.Errorf("bulk delete returned 0 results")
+	}
+	return int(resp.Rules[0].StatusCode), nil
+}
+
+// deleteRule sends DELETE /rules/{ruleId} and returns the HTTP status code + body.
+func deleteRule(ctx context.Context, pluginURL string, ruleID string) (int, []byte, error) {
+	u := fmt.Sprintf("%s/api/v1/alerting/rules/%s", pluginURL, ruleID)
+	resp, body, err := doHTTPRequest(ctx, http.MethodDelete, u, nil)
+	if err != nil {
+		return 0, nil, err
+	}
+	return resp.StatusCode, body, nil
+}
+
+// deleteRulesBulk sends DELETE /rules (bulk) and returns status code + parsed response.
+func deleteRulesBulk(ctx context.Context, pluginURL string, body interface{}) (int, *managementrouter.BulkDeleteAlertRulesResponse, error) {
+	resp, respBody, err := doHTTPRequest(ctx, http.MethodDelete, pluginURL+"/api/v1/alerting/rules", body)
+	if err != nil {
+		return 0, nil, err
+	}
+
+	var parsed managementrouter.BulkDeleteAlertRulesResponse
+	if err := json.Unmarshal(respBody, &parsed); err != nil {
+		return resp.StatusCode, nil, fmt.Errorf("decode bulk delete response: %w (body: %s)", err, string(respBody))
+	}
+	return resp.StatusCode, &parsed, nil
+}
+
+// ---------------------------------------------------------------------------
+// Seed data helpers
+// ---------------------------------------------------------------------------
+
+// createNamedPrometheusRule creates a PrometheusRule with a custom name,
+// annotations, and ownerReferences.
+func createNamedPrometheusRule(
+	ctx context.Context,
+	f *framework.Framework,
+	name string,
+	namespace string,
+	groupName string,
+	annotations map[string]string,
+	ownerRefs []metav1.OwnerReference,
+	rules ...monitoringv1.Rule,
+) (*monitoringv1.PrometheusRule, error) {
+	interval := monitoringv1.Duration("30s")
+	pr := &monitoringv1.PrometheusRule{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:            name,
+			Namespace:       namespace,
+			Annotations:     annotations,
+			OwnerReferences: ownerRefs,
+		},
+		Spec: monitoringv1.PrometheusRuleSpec{
+			Groups: []monitoringv1.RuleGroup{
+				{
+					Name:     groupName,
+					Interval: &interval,
+					Rules:    rules,
+				},
+			},
+		},
+	}
+
+	return f.Monitoringv1clientset.MonitoringV1().PrometheusRules(namespace).Create(
+		ctx, pr, metav1.CreateOptions{},
+	)
+}
+
+// ---------------------------------------------------------------------------
+// Rule search helpers
+// ---------------------------------------------------------------------------
+
+// findRuleInGroups searches groups for the first rule matching alertName.
+func findRuleInGroups(groups []k8s.PrometheusRuleGroup, alertName string) *k8s.PrometheusRule {
+	for gi := range groups {
+		for ri := range groups[gi].Rules {
+			if groups[gi].Rules[ri].Name == alertName {
+				return &groups[gi].Rules[ri]
+			}
+		}
+	}
+	return nil
+}
+
+// refreshRuleID re-discovers the current rule ID for an alert by name.
+// Rule IDs can change when the relabeled cache stamps new labels.
+func refreshRuleID(ctx context.Context, t *testing.T, pluginURL string, alertName string) string {
+	t.Helper()
+	groups, err := listRulesAsGroups(ctx, pluginURL, nil)
+	if err != nil {
+		t.Fatalf("Failed to refresh rule ID for %s: %v", alertName, err)
+	}
+	rule := findRuleInGroups(groups, alertName)
+	if rule == nil {
+		t.Fatalf("Rule %s not found when refreshing ID", alertName)
+	}
+	id := rule.Labels[k8s.AlertRuleLabelId]
+	if id == "" {
+		t.Fatalf("Rule %s found but has no ID", alertName)
+	}
+	return id
+}
+
+// isIDInCache probes whether the relabeled cache recognizes a rule ID by
+// sending AlertingRuleEnabled=false (which checks cache lookup) then
+// immediately re-enabling. Returns true if the ID is found (not 404).
+func isIDInCache(ctx context.Context, pluginURL string, ruleID string) bool {
+	disabled := false
+	_, resp, err := patchRulesBulk(ctx, pluginURL, map[string]interface{}{
+		"ruleIds":             []string{ruleID},
+		"alertingRuleEnabled": &disabled,
+	})
+	if err != nil || len(resp.Rules) == 0 {
+		return false
+	}
+	found := int(resp.Rules[0].StatusCode) != http.StatusNotFound
+	if found {
+		// Immediately re-enable to undo the drop
+		enabled := true
+		patchRulesBulk(ctx, pluginURL, map[string]interface{}{
+			"ruleIds":             []string{ruleID},
+			"alertingRuleEnabled": &enabled,
+		})
+	}
+	return found
+}
+
+// waitForIDChange polls until the rule ID changes from oldID AND the new ID
+// is recognized by the relabeled cache. This ensures both Prometheus and the
+// cache agree on the new ID. Times out after 2 minutes.
+func waitForIDChange(ctx context.Context, t *testing.T, pluginURL string, alertName string, oldID string) string {
+	t.Helper()
+	var newID string
+	err := wait.PollUntilContextTimeout(ctx, 5*time.Second, 2*time.Minute, true, func(ctx context.Context) (bool, error) {
+		groups, err := listRulesAsGroups(ctx, pluginURL, nil)
+		if err != nil {
+			return false, nil
+		}
+		rule := findRuleInGroups(groups, alertName)
+		if rule == nil {
+			return false, nil
+		}
+		id := rule.Labels[k8s.AlertRuleLabelId]
+		if id == "" || id == oldID {
+			return false, nil
+		}
+		// Prometheus has the new ID — verify cache also recognizes it
+		if !isIDInCache(ctx, pluginURL, id) {
+			return false, nil
+		}
+		newID = id
+		return true, nil
+	})
+	if err != nil {
+		t.Fatalf("Timeout waiting for %s ID to change from %s: %v", alertName, oldID, err)
+	}
+	t.Logf("Rule %s ID synced: %s → %s", alertName, oldID, newID)
+	return newID
+}
+
+// waitForIDReady polls until a rule ID is recognized by the relabeled cache.
+// Use for newly created rules where the ID doesn't change but the cache
+// needs time to sync. Times out after 2 minutes.
+func waitForIDReady(ctx context.Context, t *testing.T, pluginURL string, alertName string) string {
+	t.Helper()
+	var readyID string
+	err := wait.PollUntilContextTimeout(ctx, 5*time.Second, 2*time.Minute, true, func(ctx context.Context) (bool, error) {
+		groups, err := listRulesAsGroups(ctx, pluginURL, nil)
+		if err != nil {
+			return false, nil
+		}
+		rule := findRuleInGroups(groups, alertName)
+		if rule == nil {
+			return false, nil
+		}
+		id := rule.Labels[k8s.AlertRuleLabelId]
+		if id == "" {
+			return false, nil
+		}
+		if !isIDInCache(ctx, pluginURL, id) {
+			return false, nil
+		}
+		readyID = id
+		return true, nil
+	})
+	if err != nil {
+		t.Fatalf("Timeout waiting for %s ID to be ready in cache: %v", alertName, err)
+	}
+	t.Logf("Rule %s ID ready in cache: %s", alertName, readyID)
+	return readyID
+}
+
+// findAllRulesInGroups returns all rules from all groups as a flat slice.
+func findAllRulesInGroups(groups []k8s.PrometheusRuleGroup) []k8s.PrometheusRule {
+	var out []k8s.PrometheusRule
+	for _, g := range groups {
+		out = append(out, g.Rules...)
+	}
+	return out
+}
+
+// findRuleIDInGroups searches groups for a rule matching alertName and returns
+// its openshift_io_alert_rule_id label value.
+func findRuleIDInGroups(groups []k8s.PrometheusRuleGroup, alertName string) string {
+	rule := findRuleInGroups(groups, alertName)
+	if rule == nil {
+		return ""
+	}
+	return rule.Labels[k8s.AlertRuleLabelId]
+}
+
+// pollForRuleID polls GET /rules until a rule with the given alertName appears
+// and returns its ID.
+func pollForRuleID(ctx context.Context, t *testing.T, pluginURL string, alertName string, timeout time.Duration) string {
+	t.Helper()
+	var ruleID string
+	err := wait.PollUntilContextTimeout(ctx, 2*time.Second, timeout, true, func(ctx context.Context) (bool, error) {
+		groups, err := listRulesAsGroups(ctx, pluginURL, nil)
+		if err != nil {
+			t.Logf("pollForRuleID(%s): list error: %v", alertName, err)
+			return false, nil
+		}
+		id := findRuleIDInGroups(groups, alertName)
+		if id == "" {
+			return false, nil
+		}
+		ruleID = id
+		return true, nil
+	})
+	if err != nil {
+		t.Fatalf("Timeout waiting for rule %q to appear: %v", alertName, err)
+	}
+	return ruleID
+}
+
+// pollForRuleAbsent polls GET /rules until a rule with the given alertName is
+// no longer present.
+func pollForRuleAbsent(ctx context.Context, t *testing.T, pluginURL string, alertName string, timeout time.Duration) {
+	t.Helper()
+	err := wait.PollUntilContextTimeout(ctx, 2*time.Second, timeout, true, func(ctx context.Context) (bool, error) {
+		groups, err := listRulesAsGroups(ctx, pluginURL, nil)
+		if err != nil {
+			t.Logf("pollForRuleAbsent(%s): list error: %v", alertName, err)
+			return false, nil
+		}
+		id := findRuleIDInGroups(groups, alertName)
+		return id == "", nil
+	})
+	if err != nil {
+		t.Fatalf("Timeout waiting for rule %q to disappear: %v", alertName, err)
+	}
+}
+
+// ---------------------------------------------------------------------------
+// Assertion helpers
+// ---------------------------------------------------------------------------
+
+// assertPatchSuccess asserts outer HTTP 200 and inner status_code 204.
+func assertPatchSuccess(t *testing.T, httpStatus int, resp *managementrouter.UpdateAlertRuleResult) {
+	t.Helper()
+	if httpStatus != http.StatusOK {
+		t.Fatalf("Expected outer HTTP 200, got %d", httpStatus)
+	}
+	if int(resp.StatusCode) != http.StatusNoContent {
+		t.Fatalf("Expected inner status_code 204, got %d (message: %v)", resp.StatusCode, resp.Message)
+	}
+}
+
+// assertPatchStatusCode asserts outer HTTP 200 and a specific inner status_code.
+func assertPatchStatusCode(t *testing.T, httpStatus int, resp *managementrouter.UpdateAlertRuleResult, expected int) {
+	t.Helper()
+	if httpStatus != http.StatusOK {
+		t.Fatalf("Expected outer HTTP 200, got %d", httpStatus)
+	}
+	if int(resp.StatusCode) != expected {
+		t.Fatalf("Expected inner status_code %d, got %d (message: %v)", expected, resp.StatusCode, resp.Message)
+	}
+}
+
+// enableUserWorkloadMonitoring ensures UWM is enabled by creating or updating
+// the cluster-monitoring-config ConfigMap in openshift-monitoring.
+// It returns a cleanup function that restores the original state.
+func enableUserWorkloadMonitoring(ctx context.Context, f *framework.Framework) (framework.CleanupFunc, error) {
+	cmName := "cluster-monitoring-config"
+	cmNamespace := k8s.ClusterMonitoringNamespace
+
+	// Check if ConfigMap already exists
+	existing, err := f.Clientset.CoreV1().ConfigMaps(cmNamespace).Get(ctx, cmName, metav1.GetOptions{})
+	if err == nil {
+		// ConfigMap exists -- check if UWM is already enabled
+		configYaml := existing.Data["config.yaml"]
+		if strings.Contains(configYaml, "enableUserWorkload: true") {
+			// Already enabled, no-op cleanup
+			return func() error { return nil }, nil
+		}
+
+		// Save original for restore
+		originalData := make(map[string]string)
+		for k, v := range existing.Data {
+			originalData[k] = v
+		}
+
+		// Update to enable UWM
+		existing.Data["config.yaml"] = "enableUserWorkload: true\n"
+		_, err = f.Clientset.CoreV1().ConfigMaps(cmNamespace).Update(ctx, existing, metav1.UpdateOptions{})
+		if err != nil {
+			return nil, fmt.Errorf("failed to update %s/%s: %w", cmNamespace, cmName, err)
+		}
+
+		return func() error {
+			cm, getErr := f.Clientset.CoreV1().ConfigMaps(cmNamespace).Get(context.Background(), cmName, metav1.GetOptions{})
+			if getErr != nil {
+				return getErr
+			}
+			cm.Data = originalData
+			_, updateErr := f.Clientset.CoreV1().ConfigMaps(cmNamespace).Update(context.Background(), cm, metav1.UpdateOptions{})
+			return updateErr
+		}, nil
+	}
+
+	// ConfigMap doesn't exist -- create it
+	cm := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      cmName,
+			Namespace: cmNamespace,
+		},
+		Data: map[string]string{
+			"config.yaml": "enableUserWorkload: true\n",
+		},
+	}
+	_, err = f.Clientset.CoreV1().ConfigMaps(cmNamespace).Create(ctx, cm, metav1.CreateOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create %s/%s: %w", cmNamespace, cmName, err)
+	}
+
+	return func() error {
+		return f.Clientset.CoreV1().ConfigMaps(cmNamespace).Delete(context.Background(), cmName, metav1.DeleteOptions{})
+	}, nil
+}
+
+// waitForUserWorkloadMonitoring polls until the user-workload-monitoring
+// prometheus pods are ready, indicating UWM is fully operational.
+func waitForUserWorkloadMonitoring(ctx context.Context, t *testing.T, f *framework.Framework, timeout time.Duration) {
+	t.Helper()
+	t.Log("Waiting for user-workload-monitoring to become ready...")
+	err := wait.PollUntilContextTimeout(ctx, 5*time.Second, timeout, true, func(ctx context.Context) (bool, error) {
+		pods, err := f.Clientset.CoreV1().Pods("openshift-user-workload-monitoring").List(ctx, metav1.ListOptions{
+			LabelSelector: "app.kubernetes.io/name=prometheus",
+		})
+		if err != nil {
+			t.Logf("  UWM poll: list pods error: %v", err)
+			return false, nil
+		}
+		if len(pods.Items) == 0 {
+			t.Log("  UWM poll: no prometheus pods yet")
+			return false, nil
+		}
+		for _, pod := range pods.Items {
+			ready := false
+			for _, cond := range pod.Status.Conditions {
+				if cond.Type == corev1.PodReady && cond.Status == corev1.ConditionTrue {
+					ready = true
+					break
+				}
+			}
+			if !ready {
+				t.Logf("  UWM poll: pod %s not ready yet", pod.Name)
+				return false, nil
+			}
+		}
+		t.Logf("  UWM poll: all %d prometheus pods ready", len(pods.Items))
+		return true, nil
+	})
+	if err != nil {
+		t.Fatalf("Timeout waiting for user-workload-monitoring to be ready: %v", err)
+	}
+}
+
+
+
+// uwmAccessible is set once during TestAlertManagementAPI Phase 1 by
+// checking if the plugin can query user-workload rules via Thanos tenancy.
+var uwmAccessible bool
+
+// skipIfNoUWM skips the test if user-workload monitoring is not accessible
+// from the plugin (e.g., no port-forward or in-cluster deployment).
+func skipIfNoUWM(t *testing.T) {
+	t.Helper()
+	if !uwmAccessible {
+		t.Skip("Requires user-workload namespace (UWM not accessible — use port-forward or in-cluster deployment)")
+	}
+}
+
+// checkUWMAccessible tests whether the plugin can reach user-workload rules.
+// Checks the health endpoint — if UWM is enabled AND user-workload Prometheus
+// is reachable (directly or via Thanos fallback), UWM is accessible.
+func checkUWMAccessible(ctx context.Context, f *framework.Framework) bool {
+	resp, err := getHealth(ctx, f.PluginURL)
+	if err != nil {
+		return false
+	}
+	if resp.Alerting == nil || !resp.Alerting.UserWorkloadEnabled {
+		return false
+	}
+	uw := resp.Alerting.UserWorkload
+	if uw == nil {
+		return false
+	}
+	// Accessible if user-workload Prometheus is reachable directly or via Thanos fallback
+	return uw.Prometheus.Status == k8s.RouteReachable || uw.Prometheus.FallbackReachable
+}
+
+// boolPtr returns a pointer to a bool value.
+func boolPtr(b bool) *bool {
+	return &b
+}
+

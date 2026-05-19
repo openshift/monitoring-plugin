@@ -56,8 +56,8 @@ export function testBVTMonitoring(perspective: PerspectiveConfig) {
     cy.get(`[class="pf-v6-c-code-block__content"]`).invoke('text').then((expText) => {
       cy.log(`${expText}`);
       cy.wrap(expText).as('alertExpression');
-      });
-    
+    });
+
 
     cy.log('5.5. click on Alert Details Page');
     detailsPage.clickAlertDesc(`${WatchdogAlert.ALERT_DESC}`);

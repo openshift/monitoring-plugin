@@ -5,13 +5,18 @@ PLUGIN_NAME ?=monitoring-plugin
 IMAGE       ?= quay.io/${ORG}/${PLUGIN_NAME}:${VERSION}
 FEATURES    ?=incidents,perses-dashboards,dev-config
 
+GOLANGCI_LINT = $(shell pwd)/_output/tools/bin/golangci-lint
+GOLANGCI_LINT_VERSION ?= v2.11.3
+
+export NODE_OPTIONS?=--max_old_space_size=4096
+
 .PHONY: install-frontend
 install-frontend:
 	cd web && npm install
 
 .PHONY: install-frontend-ci
 install-frontend-ci:
-	cd web && npm ci --omit=optional --ignore-scripts
+	cd web && npm ci --ignore-scripts
 
 .PHONY: install-frontend-ci-clean
 install-frontend-ci-clean: install-frontend-ci
@@ -37,15 +42,13 @@ i18n-frontend:
 lint-frontend:
 	cd web && npm run lint
 
-.PHONY: lint-backend
-lint-backend:
-	go mod tidy
-	go fmt ./cmd/
-	go fmt ./pkg/
-
 .PHONY: install-backend
 install-backend:
 	go mod download
+
+.PHONY: generate-backend
+generate-backend:
+	go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen --config api/oapi-codegen.yaml api/openapi.yaml
 
 .PHONY: build-backend
 build-backend:
@@ -57,12 +60,19 @@ start-backend:
 
 .PHONY: test-backend
 test-backend:
-	go test ./pkg/... -v
+	go test ./pkg/... ./internal/... -v
+
+.PHONY: test-e2e
+test-e2e:
+	PLUGIN_URL=http://localhost:9001 go test -v -timeout=150m -count=1 ./test/e2e
+
+.PHONY: test-frontend
+test-frontend:
+	cd web && npm run test:unit
 
 .PHONY: build-image
 build-image:
 	./scripts/build-image.sh
-
 
 .PHONY: install
 install:
@@ -73,8 +83,7 @@ update-plugin-name:
 	./scripts/update-plugin-name.sh
 
 .PHONY: deploy
-deploy:
-	make lint-backend
+deploy: lint-backend
 	PUSH=1 scripts/build-image.sh
 	helm uninstall $(PLUGIN_NAME) -n $(PLUGIN_NAME)-ns || true
 	helm install $(PLUGIN_NAME) charts/openshift-console-plugin -n monitoring-plugin-ns --create-namespace --set plugin.image=$(IMAGE)
@@ -82,6 +91,19 @@ deploy:
 .PHONY: deploy-acm
 deploy-acm:
 	./scripts/deploy-acm.sh
+
+# Download and install golangci-lint if not already installed
+.PHONY: golangci-lint
+golangci-lint:
+	@[ -f $(GOLANGCI_LINT) ] || { \
+		set -e ;\
+		curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell dirname $(GOLANGCI_LINT)) $(GOLANGCI_LINT_VERSION) ;\
+	}
+
+.PHONY: lint-backend
+lint-backend: golangci-lint
+	go mod tidy
+	$(GOLANGCI_LINT) -c $(shell pwd)/.golangci-lint.yaml run --verbose
 
 .PHONY: build-mcp-image
 build-mcp-image:
@@ -105,8 +127,11 @@ start-devspace-backend:
 
 .PHONY: podman-cross-build
 podman-cross-build:
-	podman manifest create ${IMAGE}
+	podman manifest create -a ${IMAGE}
 	podman build --platform ${PLATFORMS} --manifest ${IMAGE} -f Dockerfile.mcp
+
+.PHONY: podman-cross-build-push
+podman-cross-build-push: podman-cross-build
 	podman manifest push ${IMAGE}
 
 .PHONY: test-translations
