@@ -20,64 +20,67 @@ export function runBVTMonitoringTests(perspective: PerspectiveConfig) {
 
 export function testBVTMonitoring(perspective: PerspectiveConfig) {
 
-  it(`${perspective.name} perspective - Alerting > Alerting Details page > Alerting Rule > Metrics`, () => {
-    cy.log('5.1. use sidebar nav to go to Observe > Alerting');
-    commonPages.titleShouldHaveText('Alerting');
-    listPage.tabShouldHaveText('Alerts');
-    listPage.tabShouldHaveText('Silences');
-    listPage.tabShouldHaveText('Alerting rules');
-    commonPages.linkShouldExist('Export as CSV');
-    commonPages.linkShouldExist('Clear all filters');
-    listPage.ARRows.shouldBeLoaded();
+  it(
+    `${perspective.name} perspective - ` +
+    'Alerting > Alerting Details page > Alerting Rule > Metrics',
+    () => {
+      cy.log('5.1. use sidebar nav to go to Observe > Alerting');
+      commonPages.titleShouldHaveText('Alerting');
+      listPage.tabShouldHaveText('Alerts');
+      listPage.tabShouldHaveText('Silences');
+      listPage.tabShouldHaveText('Alerting rules');
+      commonPages.linkShouldExist('Export as CSV');
+      commonPages.linkShouldExist('Clear all filters');
+      listPage.ARRows.shouldBeLoaded();
 
-    cy.log('5.2. filter Alerts and click on Alert');
-    listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
-    listPage.ARRows.countShouldBe(1);
-    listPage.ARRows.ARShouldBe(`${WatchdogAlert.ALERTNAME}`, `${WatchdogAlert.SEVERITY}`, 1, 'Firing');
-    listPage.ARRows.expandRow();
-    listPage.ARRows.AShouldBe(`${WatchdogAlert.ALERTNAME}`, `${WatchdogAlert.SEVERITY}`, `${WatchdogAlert.NAMESPACE}`);
-    listPage.ARRows.clickAlert();
+      cy.log('5.2. filter Alerts and click on Alert');
+      listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
+      listPage.ARRows.countShouldBe(1);
+      listPage.ARRows.ARShouldBe(`${WatchdogAlert.ALERTNAME}`, `${WatchdogAlert.SEVERITY}`, 1, 'Firing');
+      listPage.ARRows.expandRow();
+      listPage.ARRows.AShouldBe(`${WatchdogAlert.ALERTNAME}`, `${WatchdogAlert.SEVERITY}`, `${WatchdogAlert.NAMESPACE}`);
+      listPage.ARRows.clickAlert();
 
-    cy.log('5.3. click on Alert Details Page');
-    commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
-    commonPages.detailsPage.common(`${WatchdogAlert.ALERTNAME}`, `${WatchdogAlert.SEVERITY}`);
-    commonPages.detailsPage.alert(`${WatchdogAlert.ALERTNAME}`);
+      cy.log('5.3. click on Alert Details Page');
+      commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
+      commonPages.detailsPage.common(`${WatchdogAlert.ALERTNAME}`, `${WatchdogAlert.SEVERITY}`);
+      commonPages.detailsPage.alert(`${WatchdogAlert.ALERTNAME}`);
 
-    const timeIntervalValue = getValFromElement(`[data-ouia-component-id^="OUIA-Generated-TextInputBase"]`);
-    timeIntervalValue.then((value) => {
-      expect(value).to.not.be.empty;
+      const timeIntervalValue = getValFromElement(`[data-ouia-component-id^="OUIA-Generated-TextInputBase"]`);
+      timeIntervalValue.then((value) => {
+        expect(value).to.not.be.empty;
+      });
+
+      cy.log('5.4. click on Alert Rule link');
+      detailsPage.clickAlertRule(`${WatchdogAlert.ALERTNAME}`);
+      commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
+      commonPages.detailsPage.alertRule;
+      commonPages.detailsPage.common(`${WatchdogAlert.ALERTNAME}`, `${WatchdogAlert.SEVERITY}`);
+      cy.get(`[class="pf-v6-c-code-block__content"]`).invoke('text').then((expText) => {
+        cy.log(`${expText}`);
+        cy.wrap(expText).as('alertExpression');
+      });
+
+
+      cy.log('5.5. click on Alert Details Page');
+      detailsPage.clickAlertDesc(`${WatchdogAlert.ALERT_DESC}`);
+      commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
+      commonPages.detailsPage.common(`${WatchdogAlert.ALERTNAME}`, `${WatchdogAlert.SEVERITY}`);
+      commonPages.detailsPage.alert(`${WatchdogAlert.ALERTNAME}`);
+
+      cy.log('5.6. click on Inspect on Alert Details Page');
+      detailsPage.clickInspectAlertPage();
+
+      cy.log('5.7. Metrics page is loaded');
+      commonPages.titleShouldHaveText('Metrics');
+
+      cy.log('5.8. Assert Expression');
+      cy.get('[class="cm-line"]').should('be.visible');
+      cy.get(`@alertExpression`).then((expText) => {
+        cy.log(`${expText}`);
+        cy.get('[class="cm-line"]').invoke('text').should('equal', `${expText}`);
+      });
     });
-
-    cy.log('5.4. click on Alert Rule link');
-    detailsPage.clickAlertRule(`${WatchdogAlert.ALERTNAME}`);
-    commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
-    commonPages.detailsPage.alertRule;
-    commonPages.detailsPage.common(`${WatchdogAlert.ALERTNAME}`, `${WatchdogAlert.SEVERITY}`);
-    cy.get(`[class="pf-v6-c-code-block__content"]`).invoke('text').then((expText) => {
-      cy.log(`${expText}`);
-      cy.wrap(expText).as('alertExpression');
-    });
-
-
-    cy.log('5.5. click on Alert Details Page');
-    detailsPage.clickAlertDesc(`${WatchdogAlert.ALERT_DESC}`);
-    commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
-    commonPages.detailsPage.common(`${WatchdogAlert.ALERTNAME}`, `${WatchdogAlert.SEVERITY}`);
-    commonPages.detailsPage.alert(`${WatchdogAlert.ALERTNAME}`);
-
-    cy.log('5.6. click on Inspect on Alert Details Page');
-    detailsPage.clickInspectAlertPage();
-
-    cy.log('5.7. Metrics page is loaded');
-    commonPages.titleShouldHaveText('Metrics');
-
-    cy.log('5.8. Assert Expression');
-    cy.get('[class="cm-line"]').should('be.visible');
-    cy.get(`@alertExpression`).then((expText) => {
-      cy.log(`${expText}`);
-      cy.get('[class="cm-line"]').invoke('text').should('equal', `${expText}`);
-    });
-  });
 
   it(`${perspective.name} perspective - Creates and expires a Silence`, () => {
     cy.log('6.1 filter to Watchdog alert');
@@ -147,6 +150,7 @@ export function testBVTMonitoring(perspective: PerspectiveConfig) {
     cy.log('6.8 verify on Alerting Rules list page again');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     nav.tabs.switchTab('Alerting rules');
+
     listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
     alertingRuleListPage.ARShouldBe(`${WatchdogAlert.ALERTNAME}`, `${WatchdogAlert.SEVERITY}`, 1, AlertsAlertState.SILENCED);
 

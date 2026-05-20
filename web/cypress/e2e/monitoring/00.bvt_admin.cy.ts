@@ -37,6 +37,7 @@ describe('BVT: Monitoring', { tags: ['@smoke', '@monitoring'] }, () => {
     nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
     commonPages.titleShouldHaveText('Dashboards');
     nav.sidenav.clickNavLink(['Observe', 'Targets']);
+    nav.sidenav.clickNavLink(['Observe', 'Targets']);
     commonPages.titleShouldHaveText('Metrics targets');
 
 
