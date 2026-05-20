@@ -713,6 +713,7 @@ export const metricsPage = {
     if (toEnable) {
       cy.get(Classes.MetricsPageExpandedRowIcon)
         .eq(rowIndex)
+        .scrollIntoView()
         .find('[data-test="' + DataTestIDs.MetricsPageSeriesButton + '"]')
         .eq(seriesIndex)
         .should('have.attr', 'aria-label', 'Show series')
@@ -720,6 +721,7 @@ export const metricsPage = {
     } else {
       cy.get(Classes.MetricsPageExpandedRowIcon)
         .eq(rowIndex)
+        .scrollIntoView()
         .find('[data-test="' + DataTestIDs.MetricsPageSeriesButton + '"]')
         .eq(seriesIndex)
         .should('have.attr', 'aria-label', 'Hide series')
@@ -749,11 +751,13 @@ export const metricsPage = {
     if (unselectAll) {
       cy.byTestID(DataTestIDs.MetricsPageSelectAllUnselectAllButton)
         .eq(rowIndex)
+        .scrollIntoView()
         .contains('Unselect all')
         .should('be.visible');
     } else {
       cy.byTestID(DataTestIDs.MetricsPageSelectAllUnselectAllButton)
         .eq(rowIndex)
+        .scrollIntoView()
         .contains('Select all')
         .should('be.visible');
     }
