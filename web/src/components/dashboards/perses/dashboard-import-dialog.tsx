@@ -140,18 +140,21 @@ export const DashboardImportDialog: FC<DashboardImportDialogProps> = ({ isOpen, 
     if (!input.trim()) {
       setParsedDashboard(undefined);
       setParseError('');
+      setDashboardInput('');
       return;
     }
+    // Remove BOM (Byte Order Mark)
+    const cleanedInput = input.replace(/\uFEFF/g, '');
 
-    const detectedFormat = detectInputFormat(input);
+    const detectedFormat = detectInputFormat(cleanedInput);
 
     try {
       let parsed: Record<string, unknown>;
 
       if (detectedFormat === 'json') {
-        parsed = JSON.parse(input);
+        parsed = JSON.parse(cleanedInput);
       } else {
-        const loaded = yaml.load(input);
+        const loaded = yaml.load(cleanedInput);
         if (typeof loaded !== 'object' || loaded === null || Array.isArray(loaded)) {
           throw new Error('Dashboard must be a valid object');
         }
@@ -180,10 +183,10 @@ export const DashboardImportDialog: FC<DashboardImportDialogProps> = ({ isOpen, 
         }),
       );
     }
+    setDashboardInput(cleanedInput);
   };
 
   const handleDashboardInputChange = (value: string) => {
-    setDashboardInput(value);
     parseDashboardInput(value);
   };
 
@@ -207,7 +210,6 @@ export const DashboardImportDialog: FC<DashboardImportDialogProps> = ({ isOpen, 
       try {
         setFilename(file.name);
         const text = await file.text();
-        setDashboardInput(text);
         parseDashboardInput(text);
       } finally {
         setIsUploadingFile(false);
@@ -217,9 +219,7 @@ export const DashboardImportDialog: FC<DashboardImportDialogProps> = ({ isOpen, 
 
   const handleClearFile = (): void => {
     setFilename('');
-    setDashboardInput('');
-    setParsedDashboard(undefined);
-    setParseError('');
+    parseDashboardInput('');
   };
 
   const isImporting =
@@ -312,9 +312,7 @@ export const DashboardImportDialog: FC<DashboardImportDialogProps> = ({ isOpen, 
   };
 
   const resetForm = () => {
-    setDashboardInput('');
-    setParsedDashboard(undefined);
-    setParseError('');
+    parseDashboardInput('');
     setFilename('');
     form.reset();
   };
