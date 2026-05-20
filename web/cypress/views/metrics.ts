@@ -164,12 +164,12 @@ export const metricsPage = {
 
   clickActions: () => {
     cy.log('metricsPage.clickActions');
-    cy.byTestID(DataTestIDs.MetricsPageActionsDropdownButton).should('have.attr', 'aria-expanded', 'false').click();
+    cy.byTestID(DataTestIDs.MetricsPageActionsDropdownButton).scrollIntoView().should('have.attr', 'aria-expanded', 'false').click();
   },
 
   actionsDropdownAssertion: () => {
     cy.log('metricsPage.actionsDropdownAssertion');
-    cy.byTestID(DataTestIDs.MetricsPageActionsDropdownButton).should('have.attr', 'aria-expanded', 'false').click();
+    cy.byTestID(DataTestIDs.MetricsPageActionsDropdownButton).scrollIntoView().should('have.attr', 'aria-expanded', 'false').click();
     cy.byTestID(DataTestIDs.MetricsPageAddQueryDropdownItem).contains(MetricsPageActions.ADD_QUERY).should('be.visible');
     cy.byTestID(DataTestIDs.MetricsPageDeleteAllQueriesDropdownItem).contains(MetricsPageActions.DELETE_ALL_QUERIES).should('be.visible');
     cy.byTestID(DataTestIDs.MetricsPageExpandCollapseAllDropdownItem).contains(MetricsPageActions.COLLAPSE_ALL_QUERY_TABLES).should('be.visible');
@@ -243,9 +243,9 @@ export const metricsPage = {
     cy.log('metricsPage.expandCollapseRowAssertion');
 
     if (withQuery) {
-      cy.get(Classes.MetricsPageQueryInput).eq(index).should('not.contain', MetricsPageQueryInput.EXPRESSION_PRESS_SHIFT_ENTER_FOR_NEWLINES);
+      cy.get(Classes.MetricsPageQueryInput).eq(index).scrollIntoView().should('not.contain', MetricsPageQueryInput.EXPRESSION_PRESS_SHIFT_ENTER_FOR_NEWLINES);
     } else {
-      cy.get(Classes.MetricsPageQueryInput).eq(index).should('contain', MetricsPageQueryInput.EXPRESSION_PRESS_SHIFT_ENTER_FOR_NEWLINES);
+      cy.get(Classes.MetricsPageQueryInput).eq(index).scrollIntoView().should('contain', MetricsPageQueryInput.EXPRESSION_PRESS_SHIFT_ENTER_FOR_NEWLINES);
     }
 
     if (expanded) {
@@ -256,7 +256,7 @@ export const metricsPage = {
         cy.get(Classes.MetricsPageRows).find('li').eq(index).find('[data-test="' + DataTestIDs.MetricsPageSelectAllUnselectAllButton + '"]').should('be.visible');
         cy.get(Classes.MetricsPageRows).find('li').eq(index).find('[data-test="' + DataTestIDs.MetricsPageSeriesButton + '"]').should('have.length.gt', 0);
       } else {
-        cy.get(Classes.MetricsPageRows).find('li').eq(index).should('be.visible');
+        cy.get(Classes.MetricsPageRows).find('li').eq(index).scrollIntoView().should('be.visible');
         cy.get(Classes.MetricsPageRows).find('li').eq(index).find('[data-test="' + DataTestIDs.MetricsPageDisableEnableQuerySwitch + '"]').should('have.attr', 'checked');
         cy.get(Classes.MetricsPageRows).find('li').eq(index).find('[data-test="' + DataTestIDs.MetricsPageQueryTable + '"]').should('not.exist');
         cy.get(Classes.MetricsPageRows).find('li').eq(index).find('[data-test="' + DataTestIDs.MetricsPageSelectAllUnselectAllButton + '"]').should('not.exist');
@@ -264,12 +264,12 @@ export const metricsPage = {
       }
     } else {
       if (withSwitch){
-        cy.get(Classes.MetricsPageRows).find('li').eq(index).find('[data-test="' + DataTestIDs.MetricsPageDisableEnableQuerySwitch + '"]').should('not.have.attr', 'checked');
+        cy.get(Classes.MetricsPageRows).find('li').eq(index).scrollIntoView().find('[data-test="' + DataTestIDs.MetricsPageDisableEnableQuerySwitch + '"]').should('not.have.attr', 'checked');
       }
       else {
-        cy.get(Classes.MetricsPageRows).find('li').eq(index).find('[data-test="' + DataTestIDs.MetricsPageDisableEnableQuerySwitch + '"]').should('have.attr', 'checked');  
+        cy.get(Classes.MetricsPageRows).find('li').eq(index).scrollIntoView().find('[data-test="' + DataTestIDs.MetricsPageDisableEnableQuerySwitch + '"]').should('have.attr', 'checked');  
       }
-      cy.get(Classes.MetricsPageRows).find('li').eq(index).should('be.visible');
+      cy.get(Classes.MetricsPageRows).find('li').eq(index).scrollIntoView().should('be.visible');
       cy.get(Classes.MetricsPageRows).find('li').eq(index).find('[data-test="' + DataTestIDs.MetricsPageQueryTable + '"]').should('not.exist');
       cy.get(Classes.MetricsPageRows).find('li').eq(index).find('[data-test="' + DataTestIDs.MetricsPageSelectAllUnselectAllButton + '"]').should('not.exist');
       cy.get(Classes.MetricsPageRows).find('li').eq(index).find('[data-test="' + DataTestIDs.MetricsPageSeriesButton + '"]').should('not.exist');
@@ -380,13 +380,13 @@ export const metricsPage = {
 
   clickPredefinedQuery: (query: MetricsPagePredefinedQueries) => {
     cy.log('metricsPage.clickPredefinedQuery');
-    cy.byTestID(DataTestIDs.TypeaheadSelectInput).should('be.visible').click();
+    cy.byTestID(DataTestIDs.TypeaheadSelectInput).scrollIntoView().should('be.visible').click();
     cy.get(Classes.MetricsPagePredefinedQueriesMenuItem).contains(query).should('be.visible').click();
   },
 
   clickKebabDropdown: (index: number) => {
     cy.log('metricsPage.clickKebabDropdown');
-    cy.byTestID(DataTestIDs.KebabDropdownButton).eq(index).click();
+    cy.byTestID(DataTestIDs.KebabDropdownButton).eq(index).scrollIntoView().click();
   },
 
   kebabDropdownAssertionWithoutQuery: () => {
@@ -491,12 +491,12 @@ export const metricsPage = {
 
   clickRunQueriesButton: () => {
     cy.log('metricsPage.clickRunQueriesButton');
-    cy.byTestID(DataTestIDs.MetricsPageRunQueriesButton).should('be.visible').click();
+    cy.byTestID(DataTestIDs.MetricsPageRunQueriesButton).scrollIntoView().should('be.visible').click();
   },
 
   clickDisableEnableQuerySwitch: (index: number) => {
     cy.log('metricsPage.clickDisableEnableQuerySwitch');
-    cy.byTestID(DataTestIDs.MetricsPageDisableEnableQuerySwitch).eq(index).parent('label').should('be.visible').click();
+    cy.byTestID(DataTestIDs.MetricsPageDisableEnableQuerySwitch).eq(index).scrollIntoView().parent('label').should('be.visible').click();
   },
 
   disableEnableQuerySwitchAssertion: (index: number, enabled: boolean) => {
