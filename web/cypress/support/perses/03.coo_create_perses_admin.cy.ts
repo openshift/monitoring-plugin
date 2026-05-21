@@ -96,7 +96,7 @@ export function testCOOCreatePerses(perspective: PerspectiveConfig) {
       persesCreateDashboardsPage.selectProject('openshift-cluster-observability-operator');
       persesCreateDashboardsPage.enterDashboardName(dashboardName);
       persesCreateDashboardsPage.createDashboardDialogCreateButton();
-      persesCreateDashboardsPage.assertDuplicatedNameValidationFed(dashboardName);
+      persesCreateDashboardsPage.assertDuplicatedNameValidation();
 
       cy.log(`2.7. Create another dashboard with the same name in other project`);
       persesCreateDashboardsPage.selectProject('perses-dev');

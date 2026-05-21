@@ -202,7 +202,7 @@ export const IDs = {
   persesDashboardAddPanelGroupForm: 'panel-group-editor-form',
   persesDashboardAddPanelForm: 'panel-editor-form',
   persesDashboardDiscardChangesDialog: 'discard-dialog',
-  persesDashboardCreateDashboardName: 'text-input-create-dashboard-dialog-name',
+  persesDashboardCreateDashboardName: 'create-modal-dashboard-name-form-group-text-input',
   persesDashboardRenameDashboardName: 'rename-modal-text-input',
   persesDashboardDuplicateDashboardName: 'duplicate-modal-dashboard-name-form-group-text-input',
   persesDashboardImportDashboardUploadFileInput: 'import-dashboard-file-filename',

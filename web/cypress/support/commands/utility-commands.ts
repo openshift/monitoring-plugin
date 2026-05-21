@@ -72,10 +72,21 @@ Cypress.Commands.add('changeNamespace', (namespace: string) => {
         .click({ force: true });
     } else {
       cy.get(Classes.NamespaceDropdown).scrollIntoView().should('be.visible');
-      cy.get(Classes.NamespaceDropdown)
-        .scrollIntoView()
-        .should('be.visible')
-        .click({ force: true });
+      cy.waitUntil(
+        () => {
+          cy.get(Classes.NamespaceDropdown)
+            .scrollIntoView()
+            .should('be.visible')
+            .click({ force: true });
+          return cy
+            .get('body')
+            .then(
+              ($b) =>
+                $b.find('[data-test="' + DataTestIDs.NamespaceDropdownTextFilter + '"]').length > 0,
+            );
+        },
+        { timeout: 10000, interval: 1000 },
+      );
     }
   });
   cy.get('body').then(($body) => {

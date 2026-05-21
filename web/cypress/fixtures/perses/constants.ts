@@ -142,12 +142,11 @@ export const persesDashboardsAddPanelAddQueryType = {
 };
 
 export const persesCreateDashboard = {
-  DIALOG_MAX_LENGTH_VALIDATION:
-    'Danger alert:bad request: code=400, message=cannot contain more than 75 characters, internal=cannot contain more than 75 characters',
+  DIALOG_MAX_LENGTH_VALIDATION: 'Must be 75 or fewer characters long',
   DIALOG_DUPLICATED_NAME_PF_VALIDATION_PREFIX: 'Dashboard name ',
   DIALOG_DUPLICATED_NAME_PF_VALIDATION_SUFFIX: ' already exists in ',
   DIALOG_DUPLICATED_NAME_PF_VALIDATION_SUFFIX_PROJECT: ' project!: error status;',
-  DIALOG_CREATE_NAME_BKD_VALIDATION: 'Danger alert:document already exists',
+  DIALOG_CREATE_NAME_BKD_VALIDATION: 'document already exists',
 };
 
 export const persesDashboardsEmptyDashboard = {
