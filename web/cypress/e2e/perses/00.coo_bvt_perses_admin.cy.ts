@@ -30,7 +30,6 @@ describe(
 
     beforeEach(() => {
       nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
-      cy.changeNamespace('All Projects');
     });
 
     //TODO: rename after customizable-dashboards gets merged

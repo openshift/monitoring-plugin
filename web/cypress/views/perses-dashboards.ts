@@ -331,6 +331,7 @@ export const persesDashboardsPage = {
         .scrollIntoView()
         .should('be.visible');
     });
+    cy.byTestID(DataTestIDs.PersesDashboardDropdown).scrollIntoView().should('be.visible');
   },
 
   expandPanel: (panel: string) => {
