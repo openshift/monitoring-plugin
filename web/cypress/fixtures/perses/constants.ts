@@ -180,7 +180,6 @@ export const persesDashboardsImportDashboard = {
   DIALOG_GRAFANA_DASHBOARD_DETECTED:
     'Grafana dashboard detected. It will be automatically migrated to Perses format. Note: migration may be partial as not all Grafana features are supported.',
   DIALOG_PERSES_DASHBOARD_DETECTED: 'Perses dashboard detected.',
-  DIALOG_FAILED_TO_MIGRATE_GRAFANA_DASHBOARD:
-    'Danger alert:Failed to migrate dashboard: internal server error',
-  DIALOG_DUPLICATED_DASHBOARD_ERROR: 'Danger alert:document already exists',
+  DIALOG_FAILED_TO_MIGRATE_GRAFANA_DASHBOARD: 'Failed to migrate dashboard',
+  DIALOG_DUPLICATED_DASHBOARD_ERROR: 'document already exists',
 };
