@@ -104,27 +104,27 @@ The orchestrator could automatically transition from Phase A to Phase B when loc
 
 ---
 
-  ## Test Stability Ledger
+## Test Stability Ledger
 
-  **Status**: Partially implemented. Ledger file created at `web/cypress/reports/test-stability.md`. Update step added to `/cypress:test-iteration:iterate-incident-tests` (Step 14). Still needs to be wired into `/cypress:test-iteration:iterate-ci-flaky`.
+**Status**: Partially implemented. Ledger file created at `web/cypress/reports/test-stability.md`. Update step added to `/cypress:test-iteration:iterate-incident-tests` (Step 14). Still needs to be wired into `/cypress:test-iteration:iterate-ci-flaky`.
 
-  **Problem**: Flakiness data is ephemeral — it exists in the agent's report from one run and is lost. Next time the agent runs, it has no memory of previous results.
+**Problem**: Flakiness data is ephemeral — it exists in the agent's report from one run and is lost. Next time the agent runs, it has no memory of previous results.
 
-  **Design**: A markdown file with embedded machine-readable JSON, updated by both skills after each run.
+**Design**: A markdown file with embedded machine-readable JSON, updated by both skills after each run.
 
-  **Location**: `web/cypress/reports/test-stability.md` — committed to the working branch, travels with the fixes.
+**Location**: `web/cypress/reports/test-stability.md` — committed to the working branch, travels with the fixes.
 
-  **Contents**:
-  - Human-readable table: per-test pass rate, trend, last failure reason, fix commit
-  - Run history log: date, type (local/CI), branch, pass/fail counts
-  - Machine-readable JSON block for programmatic parsing by the agent
+**Contents**:
+- Human-readable table: per-test pass rate, trend, last failure reason, fix commit
+- Run history log: date, type (local/CI), branch, pass/fail counts
+- Machine-readable JSON block for programmatic parsing by the agent
 
-  **Agent behavior**:
-  - Reads the ledger at the start of each run to prioritize — "this test was flaky in last 3 runs, focus here"
-  - Updates the ledger after each run with new results
-  - Commits the ledger update alongside fixes
+**Agent behavior**:
+- Reads the ledger at the start of each run to prioritize — "this test was flaky in last 3 runs, focus here"
+- Updates the ledger after each run with new results
+- Commits the ledger update alongside fixes
 
-  ---
+---
 
 ## Slack Notifications for Long-Running Loops
 
@@ -145,7 +145,7 @@ The core tension: **autonomy vs oversight**. The agent should run independently,
 
 The CI loop has built-in pauses where user input is most valuable:
 
-```
+```text
 Push fix ──→ [PAUSE: fix_applied] ──→ CI runs (~2h) ──→ [PAUSE: ci_complete] ──→ Analyze ──→ ...
 ```
 
@@ -159,7 +159,7 @@ Push fix ──→ [PAUSE: fix_applied] ──→ CI runs (~2h) ──→ [PAUSE
 
 For the `fix_applied` event, the agent could optionally **wait before pushing**, giving the user a time window to respond:
 
-```
+```text
 Agent: "I'm about to push this fix. Waiting 10 minutes for feedback before proceeding."
        [Shows diff summary in Slack]
 
@@ -175,7 +175,7 @@ Configuration: `review-window=10m` parameter on `/cypress:test-iteration:iterate
 ### Notification Content — What Makes Each Message Actionable
 
 **`fix_applied`** — the most important notification:
-```
+```text
 :wrench: Agent: Fix Applied
 
 *What changed:*
@@ -196,7 +196,7 @@ PR #860 | Branch: test/incident-robustness-2026-03-24
 The key: show **what** changed, **why** the agent chose that fix, and **how confident** it is. This lets the user quickly decide "looks good, let it run" vs "wrong approach, let me intervene."
 
 **`ci_complete`** — actionable status:
-```
+```text
 :white_check_mark: Agent: CI Complete — PASSED (run 2/5)
 
 *Results:* 15/15 tests passed in 1h 47m
@@ -208,7 +208,7 @@ PR #860 | Branch: test/incident-robustness-2026-03-24 | CI Run
 ```
 
 Or on failure:
-```
+```text
 :x: Agent: CI Complete — FAILED (iteration 2/3)
 
 *Results:* 13/15 passed, 2 failed
@@ -226,7 +226,7 @@ PR #860 | Branch: test/incident-robustness-2026-03-24 | CI Run
 ```
 
 **`blocked`** — requires user action:
-```
+```text
 :octagonal_sign: Agent: Blocked — REAL_REGRESSION
 
 *Test:* "should display incident bars in chart"
@@ -257,7 +257,7 @@ PR #860 | Branch: test/incident-robustness-2026-03-24
 - If user replied in the Slack thread → agent reads the reply and adjusts
 - If no reply within the review window → agent proceeds
 
-```
+```text
 Agent posts:  "Fix applied. Reply in this thread to change approach. Proceeding in 10 min."
 User replies: "Use data-test attributes instead of class selectors"
 Agent reads:  conversations.replies → sees user feedback → adjusts fix

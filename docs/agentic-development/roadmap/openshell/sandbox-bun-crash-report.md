@@ -26,7 +26,7 @@ Claude Code fails to start inside an openshell sandbox due to a Bun runtime segf
 
 ## Observed Behavior
 
-```
+```text
 Bun v1.3.11 (0d72d5a9) Linux x64 (baseline)
 Linux Kernel v6.18.13 | glibc v2.39
 CPU: sse42 popcnt avx avx2
@@ -61,7 +61,7 @@ The crash report link: https://bun.report/1.3.11/B_10d72d5aAggggC+ypRktvoBq/5luG
 
 ## Potential Solutions
 
-1. **Create a claude provider and use `-- claude` flag** when creating the sandbox. This may configure the sandbox environment specifically for Claude (e.g., relaxed seccomp profile for Bun). This was not attempted because no claude provider was configured.
+1. **Create a Claude provider and use `-- claude` flag** when creating the sandbox. This may configure the sandbox environment specifically for Claude (e.g., relaxed seccomp profile for Bun). This was not attempted because no Claude provider was configured.
 
 2. **Install Claude Code via npm to a user-writable directory** (uses Node.js instead of Bun):
    ```bash
@@ -87,4 +87,4 @@ The crash report link: https://bun.report/1.3.11/B_10d72d5aAggggC+ypRktvoBq/5luG
 
 ## Recommended Next Step
 
-Configure a claude provider (`openshell provider create --type anthropic ...`) and recreate the sandbox with `-- claude` to let openshell handle the Claude runtime environment properly.
+Configure a Claude provider (`openshell provider create --type anthropic ...`) and recreate the sandbox with `-- claude` to let openshell handle the Claude runtime environment properly.

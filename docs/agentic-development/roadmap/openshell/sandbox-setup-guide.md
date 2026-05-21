@@ -85,7 +85,7 @@ openshell sandbox upload my-project \
 ```
 
 > **Note:** `openshell sandbox upload` treats the destination as a directory and places the source file inside it. So the actual file path inside the sandbox will be `/sandbox/adc.json/application_default_credentials.json`.
-
+>
 > **Security tradeoff:** The ADC file contains a refresh token (not raw credentials). The agent inside the sandbox can read it. This is a known limitation — see the Troubleshooting section for alternatives.
 
 ## Step 4: Connect and install Claude via npm

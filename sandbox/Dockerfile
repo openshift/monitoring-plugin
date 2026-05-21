@@ -22,12 +22,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg -o /usr/share/keyrings/githubcli-archive-keyring.gpg \
     && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
         > /etc/apt/sources.list.d/github-cli.list \
-    && apt-get update && apt-get install -y gh \
+    && apt-get update && apt-get install -y --no-install-recommends gh \
     && rm -rf /var/lib/apt/lists/*
 
-# Install oc CLI
-RUN curl -fsSL https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz \
-    | tar xz -C /usr/local/bin oc kubectl
+# Install oc CLI (with checksum verification)
+SHELL ["/bin/bash", "-c"]
+RUN set -euo pipefail; \
+    OC_BASE_URL="https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable"; \
+    curl -fsSL "$OC_BASE_URL/openshift-client-linux.tar.gz" -o /tmp/oc.tar.gz && \
+    curl -fsSL "$OC_BASE_URL/sha256sum.txt" -o /tmp/sha256sum.txt && \
+    grep "openshift-client-linux.tar.gz" /tmp/sha256sum.txt | sed "s|openshift-client-linux.tar.gz|/tmp/oc.tar.gz|" | sha256sum -c - && \
+    tar xzf /tmp/oc.tar.gz -C /usr/local/bin oc kubectl && \
+    rm -f /tmp/oc.tar.gz /tmp/sha256sum.txt
+SHELL ["/bin/sh", "-c"]
 
 # Install Claude Code via npm (uses Node.js, not Bun)
 RUN npm install -g @anthropic-ai/claude-code@latest
@@ -41,9 +48,8 @@ WORKDIR /sandbox
 # Vertex AI configuration
 ENV CLAUDE_CODE_USE_VERTEX=1
 ENV ANTHROPIC_VERTEX_PROJECT_ID=itpc-gcp-hcm-pe-eng-claude
-ENV CLOUD_ML_REGION=us-east5
+ENV CLOUD_ML_REGION=global
 ENV GOOGLE_APPLICATION_CREDENTIALS=/tmp/adc.json
-ENV KUBECONFIG=/tmp/kubeconfig
 
 # Git config for the container
 RUN git config --global user.name "Claude Agent" \
