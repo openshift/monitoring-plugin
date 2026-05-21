@@ -112,7 +112,7 @@ Export a kubeconfig for that SA and pass it to the sandbox.
 
 ### ADC token expired
 
-```
+```text
 ERROR: GCP ADC credentials not found at ...
 ```
 

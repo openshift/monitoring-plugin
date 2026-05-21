@@ -50,22 +50,21 @@ def poll(pr, job_substring="e2e-incidents", max_attempts=30, interval=300):
             time.sleep(interval)
             continue
 
-        found = False
-        for check in checks:
-            if job_substring in check.get("name", ""):
-                found = True
-                state = check["state"]
-                url = check.get("link", "")
+        matching = [c for c in checks if job_substring in c.get("name", "")]
+        found = bool(matching)
 
-                if state in ("SUCCESS", "FAILURE"):
-                    print(f"CI_COMPLETE state={state} url={url}")
-                    return 0
+        if found:
+            completed = [c for c in matching if c["state"] in ("SUCCESS", "FAILURE")]
+            if completed:
+                check = completed[-1]
+                print(f"CI_COMPLETE state={check['state']} url={check.get('link', '')}")
+                return 0
 
-                print(
-                    f"CI_PENDING state={state}, attempt {attempt + 1}/{max_attempts}, sleeping {interval}s...",
-                    flush=True,
-                )
-                break
+            latest = matching[-1]
+            print(
+                f"CI_PENDING state={latest['state']}, attempt {attempt + 1}/{max_attempts}, sleeping {interval}s...",
+                flush=True,
+            )
 
         if not found:
             print(
@@ -86,7 +85,16 @@ if __name__ == "__main__":
 
     pr = sys.argv[1]
     job = sys.argv[2] if len(sys.argv) > 2 else "e2e-incidents"
-    attempts = int(sys.argv[3]) if len(sys.argv) > 3 else 30
-    interval = int(sys.argv[4]) if len(sys.argv) > 4 else 300
+
+    try:
+        attempts = int(sys.argv[3]) if len(sys.argv) > 3 else 30
+        interval = int(sys.argv[4]) if len(sys.argv) > 4 else 300
+    except ValueError:
+        print("ERROR: max_attempts and interval_seconds must be positive integers")
+        sys.exit(2)
+
+    if attempts <= 0 or interval <= 0:
+        print("ERROR: max_attempts and interval_seconds must be positive integers")
+        sys.exit(2)
 
     sys.exit(poll(pr, job, attempts, interval))

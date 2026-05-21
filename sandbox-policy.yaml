@@ -12,7 +12,7 @@ filesystem_policy:
     - /sandbox
     - /tmp
     - /dev/null
-    - /home
+    - /home/sandbox
 
 landlock:
   compatibility: best_effort

@@ -32,9 +32,9 @@ Follow these steps in order:
 
 ### Step 3: Create or Update Environment Configuration
 
-**Important**: Do NOT run the interactive `configure-env.sh` script. Instead, create the `web/cypress/export-env.sh` file directly.
+**Important**: Do NOT run the interactive `configure-env.sh` script. Instead, create `export-env.sh` directly (in the `web/cypress/` directory from Step 2).
 
-1. Check if `web/cypress/export-env.sh` already exists
+1. Check if `export-env.sh` already exists
 2. If it exists, read it and show the current values to the user. Ask if they want to keep or update them.
 3. Look for cluster credentials in the following order:
    - **Conversation context**: Check if the user already provided a console URL and kubeadmin password earlier in the conversation
@@ -46,7 +46,7 @@ Follow these steps in order:
 4. Write the file directly:
 
 ```bash
-cat > web/cypress/export-env.sh << 'ENVEOF'
+cat > export-env.sh << 'ENVEOF'
 # shellcheck shell=bash
 export CYPRESS_BASE_URL='<console-url>'
 export CYPRESS_LOGIN_IDP='kube:admin'
@@ -64,6 +64,11 @@ export CYPRESS_DEBUG='false'
 ENVEOF
 ```
 
+5. Set restrictive permissions (the file contains credentials):
+```bash
+chmod 600 export-env.sh
+```
+
 Notes on the values:
 - `CYPRESS_BASE_URL`: The OpenShift console URL from the cluster provisioning output
 - `CYPRESS_LOGIN_USERS`: Format is `kubeadmin:<password>` using the password from cluster provisioning
@@ -76,7 +81,7 @@ Notes on the values:
 Source the file and confirm the variables are set:
 
 ```bash
-source web/cypress/export-env.sh
+source export-env.sh
 echo "Base URL: $CYPRESS_BASE_URL"
 ```
 

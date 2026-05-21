@@ -1,4 +1,5 @@
 ---
+name: productize-iterations
 description: Consolidate one or more agentic test iteration branches into a clean, shippable fix branch — analyzes overlaps, merges intelligently, verifies with flakiness probing, and pushes
 parameters:
   - name: branch-name
@@ -33,7 +34,7 @@ or conflicting — then merge them intelligently rather than blindly stacking ch
 
 ## Step 1: Discover and Fetch Source Branches
 
-Parse `$2` (source-branches):
+Parse `source-branches` parameter:
 - If it contains `*`, treat as a glob: `git ls-remote origin | grep <pattern>`
 - If comma-separated, split into a list
 
@@ -46,7 +47,7 @@ If any source branch has an overview/index document (e.g. `docs/agentic-fix-prop
 read it first — it may describe the branches and their relationships.
 
 Report what was found:
-```
+```text
 Found N source branches:
   - origin/<branch-1> — N commits above main
   - origin/<branch-2> — N commits above main
@@ -61,7 +62,7 @@ For each source branch, extract:
 3. **Commit messages and descriptions**: Read each commit message for intent
 
 Build a structured summary per branch:
-```
+```text
 Branch: <name>
 Origin: <how it was created — CI loop, local sandbox, manual>
 Commits: N
@@ -101,7 +102,7 @@ applies. The iteration agent doesn't have git history context and will often
 re-discover a "fix" that was already tried and reverted.
 
 Produce an evaluation report:
-```
+```text
 ## Overlap Analysis
 
 ### <file-path>
@@ -120,7 +121,7 @@ Strategy: Take branch-2 only — it's a superset
 ## Step 4: Create Clean Branch
 
 ```bash
-git checkout -b $1 origin/main
+git checkout -b <branch-name> origin/main
 ```
 
 If the branch already exists, ask the user whether to overwrite or append a suffix.
@@ -159,7 +160,7 @@ Bad commit groupings:
 - Separate "fix lint" commits
 
 Commit message format:
-```
+```text
 fix(tests): <summary of what problem this solves>
 
 <description of the approach and why>
@@ -180,13 +181,14 @@ and inline constants that should be consolidated before shipping.
 
 ### 7a: Resolve test target
 
-Based on `$4` (test-target, default: `all`):
+Based on `test-target` parameter (default: `all`):
 
 | Target | Spec | Grep Tags |
 |--------|------|-----------|
 | `all` | `cypress/e2e/incidents/**/*.cy.ts` | `@incidents --@e2e-real --@xfail --@demo` |
 | `regression` | `cypress/e2e/incidents/regression/**/*.cy.ts` | `@incidents --@e2e-real --@xfail` |
-| specific file | `cypress/e2e/incidents/{target}` | (none) |
+| specific file | Use target as-is (e.g. `cypress/e2e/incidents/01.incidents.cy.ts`) | (none) |
+| grepTags pattern | `cypress/e2e/incidents/**/*.cy.ts` | `{target}` (via `--env grepTags="{target}"`) |
 
 ### 7b: Run tests once
 
@@ -215,13 +217,13 @@ If it fails, diagnose the failure — it may reveal issues the regression suite 
 
 ### 7d: Flakiness probe
 
-Run the test target `$3` times (default: 3). For each run:
+Run the test target `flakiness-runs` times (default: 3). For each run:
 1. Clean artifacts
 2. Run tests
 3. Record per-test pass/fail
 
 Compute flakiness:
-```
+```text
 Flakiness Report:
   Total tests: N
   Stable (all runs passed): N
@@ -234,10 +236,10 @@ If any flaky tests are found, diagnose and fix them. Re-run the probe on fixed t
 ## Step 8: Present Results and Confirm Push
 
 Present the final state to the user:
-```
+```text
 # Ready to Push
 
-## Branch: $1
+## Branch: <branch-name>
 ## Commits: N
 
 | # | SHA | Description |
@@ -257,13 +259,12 @@ Present the final state to the user:
 ## Step 9: Push
 
 ```bash
-git push origin $1
+git push origin <branch-name>
 ```
 
-If the push fails due to auth, try HTTPS with `gh auth token`:
+If the push fails due to auth, use an ephemeral auth header (avoids persisting credentials in git config):
 ```bash
-git remote set-url origin https://$(gh auth token)@github.com/<owner>/<repo>.git
-git push origin $1
+git -c "http.https://github.com/.extraheader=AUTHORIZATION: bearer $(gh auth token)" push origin <branch-name>
 ```
 
 Report the push result and suggest PR creation if desired.

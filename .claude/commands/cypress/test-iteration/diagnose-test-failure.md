@@ -20,6 +20,9 @@ parameters:
   - name: ci-context
     description: "Optional context from /cypress:test-iteration:analyze-ci-results (commit correlation, infra status)"
     required: false
+  - name: stability-context
+    description: "Optional context from the test stability ledger (pass rate history, previous failure reasons, fix attempts)"
+    required: false
 ---
 
 # Diagnose Test Failure
@@ -108,7 +111,7 @@ Now combine visual evidence + code analysis + error message to determine root ca
 
 Output your diagnosis in this exact format:
 
-```
+```text
 ## Diagnosis
 
 **Classification**: TEST_BUG | FIXTURE_ISSUE | PAGE_OBJECT_GAP | MOCK_ISSUE | REAL_REGRESSION | INFRA_ISSUE
