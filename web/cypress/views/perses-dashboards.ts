@@ -393,6 +393,7 @@ export const persesDashboardsPage = {
     cy.log('persesDashboardsPage.searchAndSelectVariable');
     cy.byDataTestID(persesMUIDataTestIDs.variableDropdown + '-' + variable)
       .find('input')
+      .scrollIntoView()
       .type(value);
     cy.byPFRole('option').contains(value).click({ force: true });
     cy.byDataTestID(persesMUIDataTestIDs.variableDropdown + '-' + variable)

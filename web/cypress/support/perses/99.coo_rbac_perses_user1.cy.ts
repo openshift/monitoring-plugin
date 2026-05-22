@@ -52,7 +52,6 @@ export function testCOORBACPersesTestsDevUser1(perspective: PerspectiveConfig) {
         `1.2. All Projects validation - Dashboard search - ` +
           `${persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[2]} dashboard`,
       );
-      cy.changeNamespace('All Projects');
       listPersesDashboardsPage.filter.byName(
         persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[0],
       );
