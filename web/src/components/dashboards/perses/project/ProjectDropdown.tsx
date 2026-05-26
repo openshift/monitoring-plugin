@@ -22,6 +22,7 @@ import ProjectMenuToggle from './ProjectMenuToggle';
 import { alphanumericCompare } from './utils';
 import { useEditableProjects } from '../hooks/useEditableProjects';
 import { useCallback, useMemo, useRef, useState } from 'react';
+import { ALL_NAMESPACES_KEY } from '../../../utils';
 
 export const NoResults: React.FC<{
   onClear: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
