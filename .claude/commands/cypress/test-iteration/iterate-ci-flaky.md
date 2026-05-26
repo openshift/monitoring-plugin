@@ -118,6 +118,12 @@ Same as `/cypress:test-iteration:iterate-incident-tests` — all commits use `--
 - **Never combine `cd` with other commands** — `cd && git` triggers an unskippable security prompt.
 - When you need to process command output (e.g., parse JSON), capture it with a Bash call first, then process it in a second call or read the output directly.
 
+### Step 1.5: Ensure Environment (if local validation is planned)
+
+If you intend to run local validation in Step 7.3, call `/cypress:test-iteration:ensure-env` now (before the CI wait loop begins) so setup errors surface early rather than mid-loop.
+
+If it returns `ENV_READY: no` and local validation is not critical to this session: continue without local validation and note this in the final report. If local validation is required: stop and report the setup issue to the user.
+
 ### Step 1: Gather PR Context
 
 Fetch PR metadata:
@@ -149,27 +155,17 @@ Latest run status: {SUCCESS|FAILURE|PENDING|none}
 
 ### Step 2: Read Stability Ledger
 
-Read `web/cypress/reports/test-stability.md` and parse the JSON block between `STABILITY_DATA_START` and `STABILITY_DATA_END`.
+Read `web/cypress/reports/test-stability.md` and parse the JSON block between `STABILITY_DATA_START` and `STABILITY_DATA_END`. If the ledger is missing or empty, note "No prior stability data" and continue.
 
-Extract a compressed summary for use during diagnosis:
-
+Produce a compressed `stability_context` in this format:
 ```
 Stability context (from {N} previous runs):
-  Known flaky:
-    - "test full title" — passed {X}/{Y} runs, last failure: {date}, reason: {reason}
-    - "test full title" — passed {X}/{Y} runs, last failure: {date}, reason: {reason}
-  Recently fixed:
-    - "test full title" — fixed by {commit}, stable since {date}
-  Persistent failures:
-    - "test full title" — failed {X}/{Y} runs, never fixed
+  Known flaky:    - "full title" — passed {X}/{Y} runs, last failure: {date}, reason: {reason}
+  Recently fixed: - "full title" — fixed by {commit}, stable since {date}
+  Persistent:     - "full title" — failed {X}/{Y} runs, never fixed
 ```
 
-If the ledger has no data yet (first run), note "No prior stability data" and continue.
-
-Store this as `stability_context` — it will be passed to Diagnosis Agents in Step 7 to help them:
-- Prioritize known-flaky tests (these are higher value to fix)
-- Avoid re-attempting fixes that already failed in previous runs
-- Distinguish new failures from recurring ones
+Pass `stability_context` to all Diagnosis Agent calls in Step 7 to avoid re-attempting previously failed fixes and to distinguish new failures from recurring ones.
 
 ### Step 3: Determine Current CI State
 
@@ -268,10 +264,14 @@ For each fixable failure:
 2. **Fix** — edit the relevant files. Same constraints as `/cypress:test-iteration:iterate-incident-tests`:
    - May edit: `cypress/e2e/incidents/**`, `cypress/fixtures/incident-scenarios/**`, `cypress/views/incidents-page.ts`, `cypress/support/incidents_prometheus_query_mocks/**`
    - Must NOT edit: `src/**`, non-incident tests, cypress config
-3. **Validate locally** (optional but recommended if cluster is accessible):
-   ```bash
-   source cypress/export-env.sh && npx cypress run --spec "{SPEC}" --env grep="{TEST_NAME}"
-   ```
+3. **Validate locally** (optional but recommended if cluster is accessible and `ensure-env` returned `ENV_READY: yes`):
+
+   Clean artifacts, then call `/cypress:test-iteration:run-suite` with:
+   - `spec`: the failing test's spec file (e.g. `cypress/e2e/incidents/regression/02.reg_ui_tooltip_boundary_times.cy.ts`)
+   - `grep-tags`: (omit) — run all tests in that spec to avoid tag-vs-text match confusion
+   - `run-label`: `ci-local-validate`
+
+   Check the output: if the previously-failing test now shows `[pass]`, proceed to commit and push. If it still shows `[fail]`, re-diagnose before pushing.
 4. **Commit**:
    ```bash
    git add {files}

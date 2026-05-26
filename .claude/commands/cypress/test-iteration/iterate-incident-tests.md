@@ -32,7 +32,9 @@ Autonomous test iteration loop: run tests, diagnose failures, apply fixes, verif
 
 ### 1. Cypress Environment
 
-Ensure `web/cypress/export-env.sh` exists with cluster credentials. If missing, create it directly — do NOT run the interactive `/cypress:setup` configurator. Use the cluster credentials provided in the conversation (console URL, kubeadmin password) to write the file:
+The `/cypress:test-iteration:ensure-env` call in Step 1.5 handles npm dependency installation and kubeconfig writability automatically. You only need to act here if `web/cypress/export-env.sh` does not exist yet.
+
+If `export-env.sh` is missing, create it directly using the cluster credentials from the conversation — do NOT run the interactive `/cypress:setup` configurator:
 
 ```bash
 cat > web/cypress/export-env.sh << 'EOF'
@@ -135,6 +137,14 @@ If that branch name already exists, append a suffix: `-2`, `-3`, etc.
 
 **IMPORTANT**: Do NOT combine `cd` and `git` in the same command — compound `cd && git` commands trigger a security approval prompt that blocks autonomous execution. Always use separate Bash calls, or set the working directory before running git.
 
+### Step 1.5: Ensure Environment
+
+Call `/cypress:test-iteration:ensure-env` (with `setup-profile: incidents` unless the user specified otherwise).
+
+If it returns `ENV_READY: no`: stop and report the reason to the user. Do not proceed into the iteration loop.
+
+This step runs **once per session** — not once per iteration. `ensure-env` installs npm deps, validates kubeconfig writability, checks connection vars, and writes setup-profile vars into `export-env.sh`. All subsequent `run-suite` calls in Steps 5, 10, and 13 inherit the configured env without re-running setup.
+
 ### Step 2: Read Stability Ledger
 
 Read `web/cypress/reports/test-stability.md` and parse the JSON block between `STABILITY_DATA_START` and `STABILITY_DATA_END`.
@@ -177,71 +187,27 @@ From the `web/` directory:
 bash scripts/clean-test-artifacts.sh
 ```
 
-### Step 5: Run Tests
+### Step 5: Run Suite
 
-Execute Cypress inline (NOT in a separate terminal). From the `web/` directory:
+Call `/cypress:test-iteration:run-suite` with:
+- `spec`: resolved from Step 3
+- `grep-tags`: resolved from Step 3 (omit if none)
+- `run-label`: `iteration-{N}` (e.g. `iteration-1`, `iteration-2`)
 
-```bash
-source cypress/export-env.sh && npx cypress run --spec "{SPEC}" --env grepTags="{GREP_TAGS}"
-```
+Capture the full output block.
 
-Where `{GREP_TAGS}` comes from the "Grep Tags" column in the target table above. If the target has no grep tags, omit the `--env` flag entirely.
+### Step 6: Extract Results
 
-**IMPORTANT**: Use `grepTags` (not `grep`). The `grep` option searches test names as text, while `grepTags` filters by `@tag` annotations. Using `grep` with tag strings like `@incidents --@e2e-real` will match nothing and cause all specs to run unfiltered.
-
-Note: `source && npx` is one logical operation (env setup + run) and is acceptable as a single command.
-
-**IMPORTANT**: Tests can run for a long time, especially e2e tests that wait for alerts to fire. Use `run_in_background` to avoid blocking, and check the output when notified of completion.
-
-Capture the exit code:
-- `0` = all passed
-- non-zero = failures occurred
-
-### Step 6: Parse Results
-
-Merge mochawesome reports and parse. From the `web/` directory:
-
-```bash
-npx mochawesome-merge screenshots/cypress_report_*.json -o screenshots/merged-report.json
-```
-
-Read `screenshots/merged-report.json` and extract:
-
-For each test:
-```text
-{
-  spec_file: string,        // from results[].fullFile
-  suite: string,            // from suites[].title
-  test_name: string,        // from tests[].title
-  full_title: string,       // from tests[].fullTitle
-  state: "passed" | "failed" | "skipped",
-  error_message: string,    // from tests[].err.message (if failed)
-  stack_trace: string,      // from tests[].err.estack (if failed)
-  duration_ms: number       // from tests[].duration
-}
-```
+From the `run-suite` output block, extract:
+- Exit code (0 = all passed, non-zero = failures)
+- Per-test list: `full_title`, `state`, `error_message`, `stack_trace`, `spec_file`
+- Screenshot paths for each failure
 
 Build a failure list and a pass list.
 
-**Note**: Mochawesome JSON has nested suites. Walk the tree recursively:
-```text
-results[] -> suites[] -> tests[]
-                      -> suites[] -> tests[]  (nested suites)
-```
+### Step 7: (Incorporated into run-suite)
 
-### Step 7: Identify Screenshots
-
-For each failure, find the corresponding screenshot:
-
-```bash
-find cypress/screenshots -name "*.png" -type f
-```
-
-Match screenshots to failures using the naming convention:
-```text
-{Suite Name} -- {Test Title} (failed).png
-{Suite Name} -- {Test Title} -- before all hook (failed).png
-```
+Screenshot identification is handled by `run-suite`. Use the screenshot paths already present in the Step 5 output block — no separate `find` command needed.
 
 ### Step 8: Diagnosis Loop
 
@@ -323,15 +289,20 @@ If the fix looks wrong, re-diagnose with additional context.
 
 ### Step 10: Validate Fixes
 
-After applying fixes, re-run **only the previously failing tests**:
+After applying fixes, re-run only the previously failing tests.
 
-From the `web/` directory:
+Clean artifacts first:
 ```bash
-source cypress/export-env.sh && npx cypress run --spec "{SPEC}" --env grepTags="{FAILING_TEST_TAGS}"
+bash scripts/clean-test-artifacts.sh
 ```
 
-For each test:
-- **Now passes**: Stage the fix files with `git add`
+Call `/cypress:test-iteration:run-suite` with:
+- `spec`: resolved from Step 3
+- `grep-tags`: a tag expression targeting only the previously-failing tests (e.g. test title as grepTags, or the original tags if all tests were failing)
+- `run-label`: `validate-iteration-{N}`
+
+For each test in the run-suite output:
+- **Exit code 0 / state pass**: Stage the fix files with `git add`
 - **Still fails**: Re-diagnose (increment retry counter). Max 2 retries per test.
 - **After 2 retries still failing**: Mark as `UNRESOLVED` and report to user
 
@@ -376,13 +347,15 @@ If all tests pass: Proceed to Step 13.
 
 Run the full target test suite `flakiness-runs` times (default: 3), even if everything is green.
 
-For each run:
-1. Clean previous results (Step 4)
-2. Run tests (Step 5)
-3. Parse results (Step 6)
-4. Record per-test pass/fail
+For each probe run `i` in `1..flakiness-runs`:
+1. Clean artifacts: `bash scripts/clean-test-artifacts.sh`
+2. Call `/cypress:test-iteration:run-suite` with:
+   - `spec`: resolved from Step 3
+   - `grep-tags`: resolved from Step 3
+   - `run-label`: `probe-{i}`
+3. Record per-test state from the output block
 
-After all runs, compute flakiness:
+After all runs, aggregate per-test across all probe outputs:
 
 ```text
 Flakiness Report:
@@ -399,10 +372,10 @@ Flakiness Report:
 ```
 
 For each **flaky** test:
-- Diagnose it using `/cypress:test-iteration:diagnose-test-failure` with the context that it's intermittent
+- Call `/cypress:test-iteration:diagnose-test-failure` with the context that it's intermittent
 - Common flaky patterns: race conditions, animation timing, network mock timing, DOM detach/reattach
 - Apply fix if confident (add `.should('exist')` guards, use `{ timeout: N }`, avoid `.eq(N)` on dynamic lists)
-- Re-run flakiness probe on just the fixed tests to verify
+- Re-run flakiness probe on just the fixed tests to verify (clean + run-suite + aggregate)
 
 ### Step 14: Final Report
 
