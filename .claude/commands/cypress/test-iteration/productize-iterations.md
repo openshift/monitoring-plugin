@@ -30,7 +30,7 @@ or conflicting — then merge them intelligently rather than blindly stacking ch
 
 - `web/cypress/export-env.sh` must exist with cluster credentials.
   If missing, create it from cluster credentials in the conversation (do NOT run `/cypress:setup`).
-- Node modules installed in `web/` (`npm install`).
+- npm dependencies and kubeconfig writability are handled automatically by `ensure-env` in Step 6.5.
 
 ## Step 1: Discover and Fetch Source Branches
 
@@ -177,6 +177,14 @@ After structuring commits, if any page object files were modified (e.g.
 them. Iteration branches often introduce raw selectors, duplicated patterns,
 and inline constants that should be consolidated before shipping.
 
+## Step 6.5: Ensure Environment
+
+Call `/cypress:test-iteration:ensure-env` (with `setup-profile: incidents` unless the user specified otherwise).
+
+If it returns `ENV_READY: no`: stop and report the reason to the user. Do not proceed to verification.
+
+This runs **once** before the verification steps below — not once per run.
+
 ## Step 7: Run Verification
 
 ### 7a: Resolve test target
@@ -190,39 +198,34 @@ Based on `test-target` parameter (default: `all`):
 | specific file | Use target as-is (e.g. `cypress/e2e/incidents/01.incidents.cy.ts`) | (none) |
 | grepTags pattern | `cypress/e2e/incidents/**/*.cy.ts` | `{target}` (via `--env grepTags="{target}"`) |
 
+**Note**: This skill uses `--@xfail` (not `--@flaky`) in its exclusion tags. The `@xfail` tag marks tests that are known to fail due to upstream bugs (e.g. source-code defects) — they are excluded from this productization run to avoid noise.
+
 ### 7b: Run tests once
 
-From `web/`:
-```bash
-bash scripts/clean-test-artifacts.sh
-source cypress/export-env.sh && node --max-old-space-size=4096 \
-  ./node_modules/.bin/cypress run --browser electron \
-  --spec "{SPEC}" --env grepTags="{GREP_TAGS}"
-```
+Clean artifacts, then call `/cypress:test-iteration:run-suite` with:
+- `spec`: resolved from Step 7a
+- `grep-tags`: resolved from Step 7a (omit if none)
+- `run-label`: `productize-verify`
 
-If there are failures, diagnose using `/cypress:test-iteration:diagnose-test-failure`.
-Apply fixes and re-run. Max 2 retries per test.
+If there are failures in the output, spawn `/cypress:test-iteration:diagnose-test-failure` per failure. Apply fixes and re-run (clean + run-suite again). Max 2 retries per test.
 
 ### 7c: Run e2e-real (if cluster available)
 
-If `web/cypress/export-env.sh` has cluster credentials and the cluster is reachable:
-```bash
-source cypress/export-env.sh && node --max-old-space-size=4096 \
-  ./node_modules/.bin/cypress run --browser electron \
-  --spec "cypress/e2e/incidents/00.coo_incidents_e2e.cy.ts"
-```
+If `web/cypress/export-env.sh` has cluster credentials and the cluster is reachable, clean artifacts and call `/cypress:test-iteration:run-suite` with:
+- `spec`: `cypress/e2e/incidents/00.coo_incidents_e2e.cy.ts`
+- `grep-tags`: (none — run all tests in this spec)
+- `run-label`: `productize-e2e-real`
 
-This test takes 10-25 minutes. Run in background.
-If it fails, diagnose the failure — it may reveal issues the regression suite doesn't cover.
+This test takes 10–25 minutes. If it fails, diagnose — it may reveal issues the regression suite doesn't cover.
 
 ### 7d: Flakiness probe
 
-Run the test target `flakiness-runs` times (default: 3). For each run:
-1. Clean artifacts
-2. Run tests
-3. Record per-test pass/fail
+For each probe run `i` in `1..flakiness-runs` (default: 3):
+1. Clean artifacts: `bash scripts/clean-test-artifacts.sh`
+2. Call `/cypress:test-iteration:run-suite` with the spec/grepTags from Step 7a and `run-label: probe-{i}`
+3. Record per-test state from the output
 
-Compute flakiness:
+Aggregate across all probe outputs:
 ```text
 Flakiness Report:
   Total tests: N
@@ -231,7 +234,7 @@ Flakiness Report:
   Broken (all runs failed): N
 ```
 
-If any flaky tests are found, diagnose and fix them. Re-run the probe on fixed tests.
+If any flaky tests are found, diagnose and fix them. Re-run the probe on fixed tests (clean + run-suite, N times).
 
 ## Step 8: Present Results and Confirm Push
 
