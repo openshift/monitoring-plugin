@@ -68,7 +68,7 @@ if [ ! -f "$KUBECONFIG_PATH" ]; then
     echo "WARNING: kubeconfig not found at $KUBECONFIG_PATH — oc commands won't work"
     KUBECONFIG_MOUNT=""
 else
-    KUBECONFIG_MOUNT="-v ${KUBECONFIG_PATH}:/tmp/kubeconfig:ro"
+    KUBECONFIG_MOUNT="yes"
 fi
 
 if [ -z "${GITHUB_TOKEN:-}" ]; then
@@ -178,7 +178,7 @@ echo "  Branch:      ${CURRENT_BRANCH:-detached at ${CURRENT_COMMIT:0:12}}"
 echo "  Sandbox:     $SANDBOX_DIR"
 echo "  Vertex AI:   $VERTEX_PROJECT ($VERTEX_REGION)"
 echo "  GitHub:      $([ -n "${GITHUB_TOKEN:-}" ] && echo 'token set' || echo 'NOT SET')"
-echo "  Kubeconfig:  $([ -n "${KUBECONFIG_MOUNT:-}" ] && echo 'mounted (read-only)' || echo 'NOT SET')"
+echo "  Kubeconfig:  $([ -n "${KUBECONFIG_MOUNT:-}" ] && echo 'mounted' || echo 'NOT SET')"
 echo "  DNS:         $([ -n "${DNS_SERVERS:-}" ] && echo "$DNS_SERVERS" || echo '8.8.8.8 (Docker default — may fail on corporate networks)')"
 echo ""
 echo "  Filesystem:  Only worktree is writable. Host is isolated."

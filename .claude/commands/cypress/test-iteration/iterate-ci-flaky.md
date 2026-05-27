@@ -264,6 +264,7 @@ For each fixable failure:
 2. **Fix** — edit the relevant files. Same constraints as `/cypress:test-iteration:iterate-incident-tests`:
    - May edit: `cypress/e2e/incidents/**`, `cypress/fixtures/incident-scenarios/**`, `cypress/views/incidents-page.ts`, `cypress/support/incidents_prometheus_query_mocks/**`
    - Must NOT edit: `src/**`, non-incident tests, cypress config
+   - **Before applying any fix**, run `git log origin/main -- <file>` for each file you plan to change. If a prior commit intentionally removed a pattern you are about to reintroduce, abort that fix. Example: `cy.reload()` was removed from `prepareIncidentsPageForSearch` in `e8d0007` because it breaks dynamic plugin chunk loading in headless CI — do NOT reintroduce it.
 3. **Validate locally** (optional but recommended if cluster is accessible and `ensure-env` returned `ENV_READY: yes`):
 
    Clean artifacts, then call `/cypress:test-iteration:run-suite` with:
