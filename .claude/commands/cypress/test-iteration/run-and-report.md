@@ -9,7 +9,7 @@ Layer 3 developer DX skill: single-pass full execution. Run the test suite, diag
 | Param | Required | Description |
 |-------|----------|-------------|
 | `target` | yes | `all` / `regression` / spec file path / grep pattern |
-| `setup-profile` | no | `incidents` / `full-ui-install` / `skip-all-install` / `custom-images`. Passed to `ensure-env`; prompts if absent and not already configured. |
+| `setup-profile` | no | Passed through to `ensure-env`. See `/cypress:test-iteration:ensure-env` for the available profiles and what each one does. Prompts if absent and not already configured. |
 | `stability-context` | no | Compressed ledger summary from a prior run (passed to diagnose sub-agents as prior flakiness context) |
 | `ci-context` | no | CI analysis output from `analyze-ci-results` (passed to diagnose sub-agents for additional context) |
 

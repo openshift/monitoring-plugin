@@ -179,7 +179,7 @@ and inline constants that should be consolidated before shipping.
 
 ## Step 6.5: Ensure Environment
 
-Call `/cypress:test-iteration:ensure-env` (with `setup-profile: incidents` unless the user specified otherwise).
+Call `/cypress:test-iteration:ensure-env`, passing `setup-profile` if the user specified one. `ensure-env` will infer the profile from the existing `export-env.sh` or prompt the user to select — see its docs for available profiles.
 
 If it returns `ENV_READY: no`: stop and report the reason to the user. Do not proceed to verification.
 
