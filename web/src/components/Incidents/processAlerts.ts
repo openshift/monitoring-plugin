@@ -221,7 +221,7 @@ export function convertToAlerts(
   const distinctAlerts = deduplicateAlerts(validAlerts);
 
   // Filter alerts to only include values within the incident's time window
-  const ALERT_WINDOW_PADDING_SECONDS = PROMETHEUS_QUERY_INTERVAL_SECONDS / 2;
+  const ALERT_WINDOW_PADDING_SECONDS = PROMETHEUS_QUERY_INTERVAL_SECONDS;
 
   const alerts = distinctAlerts
     .map((alert: PrometheusResult): Alert | null => {

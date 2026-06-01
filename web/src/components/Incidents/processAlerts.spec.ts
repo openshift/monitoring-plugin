@@ -120,6 +120,54 @@ describe('convertToAlerts', () => {
       expect(result[0].values.length).toBeGreaterThan(0);
     });
 
+    it('should not filter out alert that fired one query step before the incident metric appeared', () => {
+      // Reproduces a real production scenario where:
+      // - An alert fires for ~4 minutes (e.g. InstallPlanStepAppliedWithWarnings)
+      // - The health-analyzer creates the incident metric near the end of the alert
+      // - With step=300s, the alert's only eval point lands one full step (300s)
+      //   before the incident's eval point
+      // - The current padding of 150s (half a step) is insufficient to cover this gap
+      //
+      // Real data from cluster:
+      //   ALERTS eval point: 1780294200
+      //   cluster_health_components_map eval point: 1780294500
+      //   Gap: 300s, but padding is only 150s -> alert filtered out -> zero alerts shown
+
+      const incidentEvalPoint = nowSeconds - 3600; // arbitrary base time
+      const alertEvalPoint = incidentEvalPoint - 300; // one full step earlier
+
+      const prometheusResults: PrometheusResult[] = [
+        {
+          metric: {
+            alertname: 'InstallPlanStepAppliedWithWarnings',
+            namespace: 'openshift-operator-lifecycle-manager',
+            severity: 'warning',
+            component: 'operator-lifecycle-manager',
+            layer: 'core',
+            name: 'operator-lifecycle-manager',
+            alertstate: 'firing',
+          },
+          values: [[alertEvalPoint, '1']],
+        },
+      ];
+
+      const incidents: Array<Partial<Incident>> = [
+        {
+          group_id: 'incident1',
+          src_alertname: 'InstallPlanStepAppliedWithWarnings',
+          src_namespace: 'openshift-operator-lifecycle-manager',
+          src_severity: 'warning',
+          component: 'operator-lifecycle-manager',
+          layer: 'core',
+          values: [[incidentEvalPoint, '1']],
+        },
+      ];
+
+      const result = convertToAlerts(prometheusResults, incidents, now);
+      expect(result).toHaveLength(1);
+      expect(result[0].alertname).toBe('InstallPlanStepAppliedWithWarnings');
+    });
+
     it('should exclude alerts with no values in incident time window', () => {
       const incidentTime = nowSeconds - 3600; // 1 hour ago
 
