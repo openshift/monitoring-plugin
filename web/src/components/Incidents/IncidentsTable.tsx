@@ -180,7 +180,9 @@ export const IncidentsTable = () => {
                       )}
                     </Td>
                     <Td dataLabel={columnNames.startDate}>
-                      <Timestamp timestamp={String(getMinStartDate(alert) * 1000)} />
+                      <Timestamp
+                        timestamp={new Date(getMinStartDate(alert) * 1000).toISOString()}
+                      />
                     </Td>
                     <Td
                       dataLabel={columnNames.state}
