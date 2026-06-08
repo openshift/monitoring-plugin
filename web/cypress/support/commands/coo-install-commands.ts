@@ -48,7 +48,7 @@ export const cooInstallUtils = {
         )}`,
       );
       cy.exec(
-        `operator-sdk run bundle --timeout=10m --namespace ${
+        `operator-sdk run bundle --timeout=10m --install-mode=AllNamespaces --namespace ${
           MCP.namespace
         } --security-context-config restricted ${Cypress.env(
           'KONFLUX_COO_BUNDLE_IMAGE',
@@ -78,7 +78,7 @@ export const cooInstallUtils = {
         )}`,
       );
       cy.exec(
-        `operator-sdk run bundle --timeout=10m --namespace ${
+        `operator-sdk run bundle --timeout=10m --install-mode=AllNamespaces --namespace ${
           MCP.namespace
         } --security-context-config restricted ${Cypress.env(
           'CUSTOM_COO_BUNDLE_IMAGE',
