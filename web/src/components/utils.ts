@@ -215,6 +215,7 @@ const getSearchParams = ({
   endTime,
   timespan,
   samples,
+  namespace,
   ...params
 }: PrometheusURLProps): URLSearchParams => {
   const searchParams =
@@ -222,8 +223,11 @@ const getSearchParams = ({
       ? getRangeVectorSearchParams(endTime, samples, timespan)
       : new URLSearchParams();
   _.each(params, (value, key) => value && searchParams.append(key, value.toString()));
-  if (searchParams.get(QueryParams.Namespace) === ALL_NAMESPACES_KEY) {
-    searchParams.delete(QueryParams.Namespace);
+  if (Array.isArray(namespace)) {
+    const filtered = namespace.filter((ns) => ns && ns !== ALL_NAMESPACES_KEY);
+    filtered.forEach((ns) => searchParams.append(QueryParams.Namespace, ns));
+  } else if (namespace && namespace !== ALL_NAMESPACES_KEY) {
+    searchParams.append(QueryParams.Namespace, namespace);
   }
   return searchParams;
 };
@@ -257,14 +261,14 @@ export const buildPrometheusUrl = ({
   prometheusUrlProps: PrometheusURLProps;
   basePath: string;
 }): string | null => {
-  if (
-    basePath !== PROMETHEUS_TENANCY_BASE_PATH ||
-    prometheusUrlProps.namespace === ALL_NAMESPACES_KEY
-  ) {
+  const ns = prometheusUrlProps.namespace;
+  const isAllNs = Array.isArray(ns)
+    ? ns.length === 0 || ns.includes(ALL_NAMESPACES_KEY)
+    : ns === ALL_NAMESPACES_KEY;
+  if (basePath !== PROMETHEUS_TENANCY_BASE_PATH || isAllNs) {
     prometheusUrlProps.namespace = undefined;
   }
   if (prometheusUrlProps.endpoint !== PrometheusEndpoint.RULES && !prometheusUrlProps.query) {
-    // Empty query provided, skipping API call
     return null;
   }
 
@@ -277,7 +281,7 @@ export const buildPrometheusUrl = ({
 type PrometheusURLProps = {
   endpoint: PrometheusEndpoint;
   endTime?: number;
-  namespace?: string;
+  namespace?: string | string[];
   query?: string;
   samples?: number;
   timeout?: string;

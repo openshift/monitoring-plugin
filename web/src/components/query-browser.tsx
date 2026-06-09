@@ -597,6 +597,7 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
   GraphLink,
   hideControls,
   isStack = false,
+  namespace: namespaceProp,
   onLoadingChange,
   onZoom,
   pollInterval,
@@ -659,7 +660,8 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
 
   const canStack = _.sumBy(graphData, 'length') <= maxStacks;
 
-  const [namespace] = useActiveNamespace();
+  const [activeNs] = useActiveNamespace();
+  const namespace = namespaceProp ?? activeNs;
 
   // If provided, `timespan` overrides any existing span setting
   useEffect(() => {
@@ -1115,6 +1117,7 @@ export type QueryBrowserProps = {
   GraphLink?: ComponentType;
   hideControls?: boolean;
   isStack?: boolean;
+  namespace?: string | string[];
   onLoadingChange?: (isLoading: boolean) => void;
   onZoom?: GraphOnZoom;
   pollInterval?: number;
