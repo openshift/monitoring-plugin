@@ -68,9 +68,11 @@ describe(
     });
 
     beforeEach(() => {
+      cy.switchPerspective('Core platform');
       nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
       cy.wait(2000);
       nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
+      cy.wait(2000);
       cy.changeNamespace('All Projects');
     });
 
@@ -80,7 +82,7 @@ describe(
 
     //TODO: rename after customizable-dashboards gets merged
     runCOORBACPersesTestsDevUser5({
-      name: 'Administrator',
+      name: 'Core platform',
     });
   },
 );

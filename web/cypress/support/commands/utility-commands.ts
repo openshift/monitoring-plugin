@@ -108,7 +108,7 @@ Cypress.Commands.add('changeNamespace', (namespace: string) => {
       });
     }
   });
-  cy.byTestID(DataTestIDs.NamespaceDropdownTextFilter).type(namespace, { delay: 100 });
+  cy.byTestID(DataTestIDs.NamespaceDropdownTextFilter).clear().type(namespace, { delay: 100 });
   cy.byTestID(DataTestIDs.NamespaceDropdownMenuLink).contains(namespace).should('be.visible');
   cy.byTestID(DataTestIDs.NamespaceDropdownMenuLink)
     .contains(namespace)
@@ -263,7 +263,7 @@ Cypress.Commands.add('assertNamespace', (namespace: string, exists: boolean) => 
     }
   });
   cy.byTestID(DataTestIDs.NamespaceDropdownTextFilter).clear();
-  cy.byTestID(DataTestIDs.NamespaceDropdownTextFilter).type(namespace, { delay: 100 });
+  cy.byTestID(DataTestIDs.NamespaceDropdownTextFilter).clear().type(namespace, { delay: 100 });
   if (exists) {
     cy.log('Namespace: ' + namespace + ' exists');
     cy.byTestID(DataTestIDs.NamespaceDropdownMenuLink).contains(namespace).should('be.visible');
