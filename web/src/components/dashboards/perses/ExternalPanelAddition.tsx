@@ -1,4 +1,4 @@
-import { ReactElement, useEffect, useState, useCallback } from 'react';
+import { ReactElement, useEffect, useState, useCallback, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useDashboardActions, useDashboardStore } from '@perses-dev/dashboards';
 import { dashboardsOpened, dashboardsPersesPanelExternallyAdded } from '../../../store/actions';
@@ -23,6 +23,11 @@ export function ExternalPanelAddition({
   const { openAddPanel } = useDashboardActions();
   const dashboardStore = useDashboardStore((state) => state);
   const [queuedPanel, setQueuedPanel] = useState(null);
+  // Guard against re-entrant calls: when openAddPanel() or onEditButtonClick()
+  // trigger state updates, this effect's dependencies change and it re-runs.
+  // Without this ref the effect would call openAddPanel() again, causing
+  // React error #185 (Maximum update depth exceeded).
+  const processingRef = useRef(false);
 
   // Turn the dashboard into editable mode and added it to `queuedPanel`.
   // The `queuedPanel` will be added in the next refresh cycle.
@@ -46,26 +51,25 @@ export function ExternalPanelAddition({
 
   useEffect(() => {
     // Listen for external panel addition requests
-    if (addPersesPanelExternally && !queuedPanel) {
+    if (addPersesPanelExternally && !queuedPanel && !processingRef.current) {
+      processingRef.current = true;
       queuePanelAddition(addPersesPanelExternally);
     }
   }, [queuedPanel, queuePanelAddition, addPersesPanelExternally]);
 
   useEffect(() => {
-    // Apply externally added panel
-    if (queuedPanel) {
+    // Apply externally added panel.
+    // Wait for panelEditor to be available — openAddPanel() sets it asynchronously
+    // via the Zustand store, so it may not exist on the same render cycle.
+    if (queuedPanel && dashboardStore.panelEditor) {
       try {
-        // Use the temporary panelEditor to add changes to the dashboard.
         const panelEditor = dashboardStore.panelEditor;
         const groupId = dashboardStore.panelGroupOrder[0];
         panelEditor.applyChanges({ ...queuedPanel, groupId });
         panelEditor.close();
       } finally {
-        // Clear the externally added panel after applying changes.
-        // We assume only one panel is being added in one cycle: no need to complicate
-        // with multiple panels in the queue.
-        // We make sure we clean up even on error to avoid endless loops.
         setQueuedPanel(null);
+        processingRef.current = false;
         dispatch(dashboardsPersesPanelExternallyAdded());
       }
     }
