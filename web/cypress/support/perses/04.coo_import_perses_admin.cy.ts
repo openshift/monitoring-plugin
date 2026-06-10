@@ -53,7 +53,6 @@ export function testCOOImportPerses(perspective: PerspectiveConfig) {
 
     cy.log(`1.10 Assert failed to migrate Grafana dashboard`);
     persesImportDashboardsPage.assertFailedToMigrateGrafanaDashboard();
-    persesDashboardsPage.closeAlert();
 
     cy.log(`1.11 Cancel import`);
     persesImportDashboardsPage.clickCancelButton();
@@ -106,7 +105,6 @@ export function testCOOImportPerses(perspective: PerspectiveConfig) {
     persesImportDashboardsPage.clickImportFileButton();
     persesImportDashboardsPage.assertDuplicatedDashboardError();
     persesImportDashboardsPage.clickCancelButton();
-    persesDashboardsPage.closeAlert();
   });
 
   it(`3. ${perspective.name} perspective - Import Dashboard - Perses dashboard - JSON file`, () => {

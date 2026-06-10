@@ -58,7 +58,7 @@ function removeClusterAdminRole(): void {
   cy.executeAndDelete(
     `oc adm policy remove-cluster-role-from-user cluster-admin ${Cypress.env(
       'LOGIN_USERNAME',
-    )} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+    )} --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
   );
 }
 

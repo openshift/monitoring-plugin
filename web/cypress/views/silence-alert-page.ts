@@ -388,7 +388,7 @@ export const silenceAlertPage = {
     cy.log('silenceAlertPage.assertLabelValueError');
     cy.get(Classes.SilenceAlertTitle).should(
       'contain.text',
-      'invalid silence: at least one matcher must not match the empty string',
+      'at least one matcher must not match the empty string',
     );
   },
 };

@@ -43,12 +43,12 @@ const virtualizationUtils = {
       cy.log('Install Openshift Virtualization');
 
       cy.exec(
-        `oc create namespace ${KBV.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+        `oc create namespace ${KBV.namespace} --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
       );
       cy.exec(
         `operator-sdk run bundle --timeout=10m --namespace ${KBV.namespace} ${Cypress.env(
           'KONFLUX_KBV_BUNDLE_IMAGE',
-        )} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} --verbose `,
+        )} --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}" --verbose `,
         { timeout: installTimeoutMilliseconds },
       );
     } else if (Cypress.env('CUSTOM_KBV_BUNDLE_IMAGE')) {
@@ -58,12 +58,12 @@ const virtualizationUtils = {
       cy.log('Install Openshift Virtualization');
 
       cy.exec(
-        `oc create namespace ${KBV.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+        `oc create namespace ${KBV.namespace} --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
       );
       cy.exec(
         `operator-sdk run bundle --timeout=10m --namespace ${KBV.namespace} ${Cypress.env(
           'CUSTOM_KBV_BUNDLE_IMAGE',
-        )} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} --verbose `,
+        )} --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}" --verbose `,
         { timeout: installTimeoutMilliseconds },
       );
     } else if (Cypress.env('FBC_STAGE_KBV_IMAGE')) {
@@ -102,7 +102,7 @@ const virtualizationUtils = {
             `--for=jsonpath='{.status.phase}'=Succeeded ` +
             `ClusterServiceVersion/${KBV_OPERATOR_NAME} ` +
             `-n ${KBV.namespace} ` +
-            `--timeout=300s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+            `--timeout=300s --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
           {
             timeout: readyTimeoutMilliseconds, // Set a long timeout for the 'oc wait' command
           },
@@ -150,12 +150,12 @@ const virtualizationUtils = {
       cy.log('Create Hyperconverged instance.');
       cy.exec(
         `oc apply -f ./cypress/fixtures/virtualization/hyperconverged.yaml ` +
-          `--kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+          `--kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
       );
       cy.exec(
         `sleep 15 && oc wait --for=condition=Available --selector=app=kubevirt-hyperconverged -n ${
           KBV.namespace
-        } --timeout=60s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+        } --timeout=60s --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
         {
           timeout: readyTimeoutMilliseconds,
           failOnNonZeroExit: true,
@@ -206,21 +206,21 @@ const virtualizationUtils = {
       cy.executeAndDelete(
         `oc delete HyperConverged kubevirt-hyperconverged -n ${
           KBV.namespace
-        } --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+        } --ignore-not-found --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
       );
 
       cy.log('Remove Openshift Virtualization subscription');
       cy.executeAndDelete(
         `oc delete subscription ${config.name} -n ${
           KBV.namespace
-        } --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+        } --ignore-not-found --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
       );
 
       cy.log('Remove Openshift Virtualization CSV');
       cy.executeAndDelete(
         `oc delete csv -n ${KBV.namespace} ` +
           `-l operators.coreos.com/kubevirt-hyperconverged.openshift-cnv ` +
-          `--ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+          `--ignore-not-found --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
       );
 
       cy.log('Remove Openshift Virtualization namespace');
@@ -234,14 +234,14 @@ const virtualizationUtils = {
       cy.executeAndDelete(
         `oc delete crd --dry-run=client ` +
           `-l operators.coreos.com/kubevirt-hyperconverged.openshift-cnv ` +
-          `--ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+          `--ignore-not-found --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
       );
 
       cy.log('Delete Kubevirt instance.');
       cy.executeAndDelete(
         `oc delete crd ` +
           `-l operators.coreos.com/kubevirt-hyperconverged.openshift-cnv ` +
-          `--ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+          `--ignore-not-found --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
       );
     }
   },
