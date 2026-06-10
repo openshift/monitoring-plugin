@@ -26,6 +26,12 @@ Located in `e2e/coo/`
 |------|------------|---------------|-------------|
 | `02.acm_alerting_ui.cy.ts` | ACM Alerting UI | 1. Fleet Management perspective - ACM Alerting | Validates ACM integration with COO, Fleet Management perspective navigation, local-cluster access, and ACM alert visibility (Watchdog, Watchdog-spoke, ClusterCPUHealth) |
 
+### OLS (OpenShift LightSpeed) Integration Tests
+
+| File | Test Suite | Test Scenario | Description |
+|------|------------|---------------|-------------|
+| `03.coo_lightspeed_show_timeseries.cy.ts` | COO-LightSpeed: show_timeseries | switches to troubleshooting mode, sends a prompt, and renders a Perses dashboard | **Non-deterministic** — sends a natural-language prompt to the live OLS AI and asserts it responds with a `show_timeseries` tool call that renders a Perses chart. Tagged `@ols`, must not gate CI. |
+
 ---
 
 ## Virtualization Tests
