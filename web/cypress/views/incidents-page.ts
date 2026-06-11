@@ -17,12 +17,9 @@ const _resetSearchState = () => {
   _quietSearch = false;
 };
 
-// jQuery selector for the Incidents tab — covers both PatternFly v6 and
-// legacy Console horizontal nav markup. Used by goTo()/warmUpForPlugin()
-// to poll for plugin registration without Cypress command overhead.
-const _INCIDENTS_TAB_SELECTOR =
-  '.pf-v6-c-tabs__item:contains("Incidents"), ' +
-  '.co-m-horizontal-nav__menu-item:contains("Incidents")';
+// Selector for the Incidents tab rendered by the Console SDK's HorizontalNav.
+// The Console assigns data-test-id="horizontal-link-<href>" to each tab.
+const _INCIDENTS_TAB_SELECTOR = '[data-test-id="horizontal-link-incidents"]';
 
 // Selector for bar group containers in the incidents chart (one per incident).
 const _BAR_GROUP_SELECTOR = 'g[role="presentation"][data-test*="incidents-chart-bar-"]';
@@ -227,8 +224,6 @@ export const incidentsPage = {
   goTo: () => {
     if (!_quietSearch) cy.log('incidentsPage.goTo');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-    // Wait for the Incidents tab to be registered by the dynamic plugin.
-    // After session restore the plugin may need up to 2 min to re-register.
     incidentsPage.waitForIncidentsTab();
     nav.tabs.switchTab('Incidents');
     incidentsPage.elements.daysSelectToggle().should('be.visible');
@@ -236,14 +231,10 @@ export const incidentsPage = {
 
   // Used in before() hooks as a warm-up to ensure the monitoring-console-plugin has fully
   // registered the Incidents tab extension before beforeEach() runs. Uses a 3-minute timeout
-  // instead of the default 80s, because plugin registration after session restoration can
-  // take 80-120 seconds when the console reloads its dynamic plugin manifest.
+  // because plugin registration after session restoration can take 80-120 seconds.
   warmUpForPlugin: () => {
     cy.log('incidentsPage.warmUpForPlugin: waiting for monitoring-console-plugin Incidents tab');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-    // Wait up to 3 minutes for the Incidents tab to appear. Uses synchronous jQuery check
-    // inside cy.waitUntil() to avoid the 80s default command timeout, then uses
-    // nav.tabs.switchTab() which correctly clicks the button element (not the li wrapper).
     incidentsPage.waitForIncidentsTab();
     nav.tabs.switchTab('Incidents');
     incidentsPage.elements.daysSelectToggle().should('be.visible');
