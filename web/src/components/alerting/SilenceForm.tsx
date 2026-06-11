@@ -61,6 +61,7 @@ type Matcher = {
 };
 
 type SilenceFormProps = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   defaults: any;
   Info?: ComponentType;
   title: string;

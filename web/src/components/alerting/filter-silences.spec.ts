@@ -50,6 +50,7 @@ const silences = [activeSilence, pendingSilence, expiredSilence, clusterSilence]
 
 describe('filterSilences', () => {
   it('should return empty array for null input', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect(filterSilences(null as any, emptyFilters, ALL_NAMESPACES_KEY, 'admin')).toEqual([]);
   });
 

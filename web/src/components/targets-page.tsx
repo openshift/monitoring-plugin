@@ -212,6 +212,7 @@ const ServiceMonitor: FC<{ target: Target }> = ({ target }) => {
   );
 };
 
+// eslint-disable-next-line react/display-name, react/prop-types
 const Health: FC<{ health: 'up' | 'down' }> = memo(({ health }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
@@ -501,7 +502,9 @@ const ListPage: FC<ListPageProps> = ({ loaded, loadError, targets }) => {
     [onSetFilters],
   );
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const filterItems = useMemo<TableFilterProps<any>[]>(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const filtersVals: TableFilterProps<any>[] = [
       {
         filterId: TargetsFilterOptions.NAME,

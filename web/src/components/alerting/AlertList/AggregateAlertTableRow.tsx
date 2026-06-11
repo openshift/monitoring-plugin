@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { Alert, ResourceIcon, TableColumn } from '@openshift-console/dynamic-plugin-sdk';
 import { ExpandableRowContent, Table, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
 import type { FC } from 'react';

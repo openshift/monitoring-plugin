@@ -27,6 +27,8 @@ const HeaderTop: FC = memo(() => {
   );
 });
 
+HeaderTop.displayName = 'HeaderTop';
+
 type MonitoringDashboardsLegacyPageProps = PropsWithChildren<{
   boardItems: CombinedDashboardMetadata[];
   changeBoard: (params: { newBoard?: string; initialLoad?: boolean; newProject?: string }) => void;
@@ -34,6 +36,7 @@ type MonitoringDashboardsLegacyPageProps = PropsWithChildren<{
 }>;
 
 export const DashboardSkeletonLegacy: FC<MonitoringDashboardsLegacyPageProps> = memo(
+  // eslint-disable-next-line react/prop-types
   ({ children, boardItems, changeBoard, dashboardName }) => {
     const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
@@ -79,3 +82,5 @@ export const DashboardSkeletonLegacy: FC<MonitoringDashboardsLegacyPageProps> = 
     );
   },
 );
+
+DashboardSkeletonLegacy.displayName = 'DashboardSkeletonLegacy';

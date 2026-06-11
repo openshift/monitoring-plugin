@@ -85,6 +85,7 @@ export class AsyncComponent extends Component<AsyncComponentProps, AsyncComponen
 type AsyncComponentProps = {
   loader: () => Promise<ComponentType>;
   LoadingComponent?: ReactNode;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 } & any;
 type AsyncComponentState = {
   Component: ComponentType;

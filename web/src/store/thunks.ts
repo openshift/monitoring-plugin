@@ -20,6 +20,7 @@ export const fetchAlertingData =
     prometheus: Prometheus,
     namespace: string,
     rulesUrl: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     alertsSource: any,
     silencesUrl: string,
     active: boolean,

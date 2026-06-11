@@ -60,6 +60,8 @@ export const PrometheusGraph = forwardRef<HTMLDivElement, PropsWithChildren<Prom
   ),
 );
 
+PrometheusGraph.displayName = 'PrometheusGraph';
+
 type PrometheusGraphLinkProps = {
   canAccessMonitoring: boolean;
   query: string | string[];

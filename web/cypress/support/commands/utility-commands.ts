@@ -6,8 +6,10 @@ declare global {
   namespace Cypress {
     interface Chainable {
       waitUntilWithCustomTimeout(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         fn: () => any,
         options: { interval: number; timeout: number; timeoutMessage: string },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ): Cypress.Chainable<any>;
       clickNavLink(path: string[]): Chainable<Element>;
       changeNamespace(namespace: string): Chainable<Element>;
@@ -22,6 +24,7 @@ declare global {
 // Custom waitUntil with timeout message
 Cypress.Commands.add(
   'waitUntilWithCustomTimeout',
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (fn: () => any, options: { interval: number; timeout: number; timeoutMessage: string }) => {
     const { timeoutMessage, ...waitOptions } = options;
 

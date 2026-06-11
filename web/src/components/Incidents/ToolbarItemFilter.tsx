@@ -26,20 +26,27 @@ interface IncidentFilterToolbarItemProps {
   onDeleteIncidentFilterChip: (
     category: string,
     chip: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     activeFilters: any,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     dispatch: any,
   ) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onDeleteGroupIncidentFilterChip: (activeFilters: any, dispatch: any, category: any) => void;
   incidentFilterIsExpanded: boolean;
   onIncidentFiltersSelect: (
     event: MouseEvent | ChangeEvent | undefined,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     selection: any,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     dispatch: any,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     activeFilters: any,
     categoryFilterType: string,
   ) => void;
   setIncidentIsExpanded: (isOpen: boolean) => void;
   onIncidentFilterToggle: MouseEventHandler<HTMLButtonElement | HTMLDivElement>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   dispatch: any;
   showToolbarItem?: boolean;
 }

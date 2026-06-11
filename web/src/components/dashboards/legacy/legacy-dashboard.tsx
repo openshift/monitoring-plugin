@@ -1,3 +1,5 @@
+/* eslint-disable react/prop-types */
+
 import * as _ from 'lodash-es';
 import {
   RedExclamationCircleIcon,
@@ -373,6 +375,8 @@ const Card: FC<CardProps> = memo(({ panel, perspective, dashboardName }) => {
     </GridItem>
   );
 });
+
+Card.displayName = 'Card';
 
 const PanelsRow: FC<PanelsRowProps> = ({ row, perspective, dashboardName }) => {
   const showButton = row.showTitle && !_.isEmpty(row.title);

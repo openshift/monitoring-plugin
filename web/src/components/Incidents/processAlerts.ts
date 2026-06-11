@@ -298,6 +298,7 @@ export const groupAlertsForTable = (
     const rule = alertingRulesData?.find((rule) => alertname === rule.name);
     // Use silenced value from alert object (already sourced from cluster_health_components_map)
     if (existingGroup) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       existingGroup.alertsExpandedRowData.push({ ...alert, rule, silenced } as any);
       if (severity === 'warning') existingGroup.warning += 1;
       else if (severity === 'info') existingGroup.info += 1;
@@ -310,6 +311,7 @@ export const groupAlertsForTable = (
         warning: severity === 'warning' ? 1 : 0,
         info: severity === 'info' ? 1 : 0,
         critical: severity === 'critical' ? 1 : 0,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         alertsExpandedRowData: [{ ...alert, rule, silenced } as any],
       });
     }

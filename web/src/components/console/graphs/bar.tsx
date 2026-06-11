@@ -164,6 +164,7 @@ type BarChartProps = {
   loading?: boolean;
   noLink?: boolean;
   query?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   theme?: any; // TODO figure out the best way to import VictoryThemeDefinition
   title?: string;
   titleClassName?: string;
@@ -179,6 +180,7 @@ type BarProps = {
   namespace?: string;
   noLink?: boolean;
   query: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   theme?: any; // TODO figure out the best way to import VictoryThemeDefinition
   title?: string;
   titleClassName?: string;

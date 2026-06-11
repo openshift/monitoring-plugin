@@ -104,6 +104,7 @@ export const TableFilters = ({
             triggerRef={attributeToggleRef}
             popper={attributeMenu}
             popperRef={attributeMenuRef}
+            /*eslint-disable-next-line react-hooks/refs */
             appendTo={attributeContainerRef.current || undefined}
             isVisible={isAttributeMenuOpen}
           />

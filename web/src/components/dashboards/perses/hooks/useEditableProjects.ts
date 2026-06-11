@@ -10,6 +10,7 @@ interface Projects {
 }
 
 const useUsername = (): string => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const getUser = (state: any) => state.sdkCore?.user;
   const user = useSelector(getUser);
   return user?.metadata?.name || user?.username;

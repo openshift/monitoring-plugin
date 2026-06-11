@@ -72,13 +72,6 @@ export default defineConfig([
       ],
 
       'no-console': ['error'],
-      'react/display-name': 'off',
-      'react/prop-types': 'off',
-      'react-hooks/set-state-in-effect': 'off',
-      'react-hooks/set-state-in-render': 'off',
-      'react-hooks/incompatible-library': 'off',
-      '@typescript-eslint/no-explicit-any': 'off',
-      'react-hooks/refs': 'off',
 
       // Prevent directly importing react as a lint rule
       'no-restricted-syntax': [

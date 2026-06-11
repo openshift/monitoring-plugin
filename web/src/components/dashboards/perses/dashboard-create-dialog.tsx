@@ -185,6 +185,7 @@ export const DashboardCreateDialog: FC<DashboardCreateDialogProps> = ({ isOpen, 
           key="create-modal-btn-create"
           variant="primary"
           isDisabled={
+            // eslint-disable-next-line react-hooks/incompatible-library
             !(form.watch('dashboardName') || '')?.trim() ||
             !(form.watch('projectName') || '')?.trim() ||
             !hasEditableProject

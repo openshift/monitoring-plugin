@@ -50,9 +50,11 @@ export enum ActionType {
 
 export type Perspective = 'admin' | 'dev' | 'acm' | 'virtualization-perspective';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const dashboardsPatchVariable = (dashboardName: string, key: string, patch: any) =>
   action(ActionType.DashboardsPatchVariable, { dashboardName, key, patch });
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const dashboardsPatchAllVariables = (dashboardName: string, variables: any) =>
   action(ActionType.DashboardsPatchAllVariables, { dashboardName, variables });
 

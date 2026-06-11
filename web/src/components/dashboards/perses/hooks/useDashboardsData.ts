@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/refs */
 import { useMemo, useCallback, useRef } from 'react';
 
 import { DashboardResource } from '@perses-dev/core';

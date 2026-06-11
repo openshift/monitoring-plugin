@@ -17,6 +17,7 @@ const mapLabelsToStrings = (labels: { [key: string]: string }): string[] => {
   return _.map(requirements, requirementToString);
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getLabelsAsString = (obj: any, path = 'metadata.labels'): string[] => {
   const labels = _.get(obj, path);
   return _.isPlainObject(labels) ? mapLabelsToStrings(labels as Record<string, string>) : [];
@@ -24,8 +25,10 @@ const getLabelsAsString = (obj: any, path = 'metadata.labels'): string[] => {
 
 const MAX_SUGGESTIONS = 5;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const labelParser = (resources: any = [], labelPath = 'metadata.labels'): Set<string> => {
   const safeResources = Array.isArray(resources) ? resources : [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return safeResources.reduce((acc: Set<string>, resource: any) => {
     getLabelsAsString(resource, labelPath).forEach((label) => acc.add(label));
     return acc;
@@ -65,6 +68,7 @@ type AutocompleteInputProps = {
   textValue: string;
   setTextValue: Dispatch<SetStateAction<string>>;
   color?: SuggestionLineProps['color'];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data?: any;
   labelPath?: string;
 };
@@ -115,6 +119,7 @@ const AutocompleteInput: FC<AutocompleteInputProps> = (props) => {
       const filtered = [...processed]
         .filter((item) => fuzzyCaseInsensitive(processedText, item))
         .slice(0, maxSuggestions);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSuggestions(filtered);
     }
   }, [visible, textValue, showSuggestions, data, labelPath, suggestionCount]);

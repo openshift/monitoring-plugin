@@ -63,6 +63,7 @@ export const useProjectCreation = () => {
   const { addAlert } = useToast();
   const createProjectMutation = useCreateProjectMutation();
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const ensureProjectExists = async (projectName: string, persesProjects: any[]) => {
     const projectExists = persesProjects?.some((project) => project.metadata.name === projectName);
 
@@ -149,6 +150,7 @@ export const PermissionStateWrapper: FC<PermissionStateProps> = ({
 };
 
 interface ProjectSelectFormGroupProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   control: Control<any>;
   projectOptions: SelectOptionProps[];
   defaultValue: string;

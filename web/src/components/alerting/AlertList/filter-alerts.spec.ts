@@ -3,6 +3,7 @@ jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
 }));
 
 jest.mock('../AlertUtils', () => ({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   alertSource: (alert: any) =>
     alert.rule?.labels?.prometheus === 'openshift-monitoring/k8s' ? 'platform' : 'user',
 }));
@@ -37,6 +38,7 @@ const firingCritical = makeAlert({
     env: 'prod',
   },
   state: AlertStates.Firing,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   rule: { labels: { prometheus: 'openshift-monitoring/k8s' } } as any,
 });
 
@@ -48,6 +50,7 @@ const pendingWarning = makeAlert({
     env: 'staging',
   },
   state: AlertStates.Pending,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   rule: { labels: {} } as any,
 });
 
@@ -59,6 +62,7 @@ const silencedInfo = makeAlert({
     cluster: 'cluster-a',
   },
   state: AlertStates.Silenced,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   rule: { labels: {} } as any,
 });
 
@@ -66,10 +70,12 @@ const alerts = [firingCritical, pendingWarning, silencedInfo];
 
 describe('filterAlerts', () => {
   it('should return empty array for null input', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect(filterAlerts(null as any, emptyFilters, ALL_NAMESPACES_KEY, 'admin')).toEqual([]);
   });
 
   it('should return empty array for undefined input', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect(filterAlerts(undefined as any, emptyFilters, ALL_NAMESPACES_KEY, 'admin')).toEqual([]);
   });
 

@@ -177,6 +177,7 @@ export const SingleTypeaheadDropdown: FC<SingleTypeaheadDropdownProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterValue]);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const createItemId = (value: any) => `${ID_PREFIX}-option-${String(value).replace(' ', '-')}`;
 
   const setActiveAndFocusedItem = (itemIndex: number) => {
