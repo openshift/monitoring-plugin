@@ -31,6 +31,7 @@ Located in `e2e/coo/`
 | File | Test Suite | Test Scenario | Description |
 |------|------------|---------------|-------------|
 | `03.coo_lightspeed_show_timeseries.cy.ts` | COO-LightSpeed: show_timeseries | switches to troubleshooting mode, sends a prompt, and renders a Perses dashboard | **Non-deterministic** — sends a natural-language prompt to the live OLS AI and asserts it responds with a `show_timeseries` tool call that renders a Perses chart. Tagged `@ols`, must not gate CI. |
+| `03.coo_lightspeed_show_timeseries.cy.ts` | COO-LightSpeed: show_timeseries | adds the rendered chart to a new Perses dashboard via Add to Dashboard button | **Non-deterministic** — creates a new Perses dashboard, sends a prompt to OLS, then uses the "Add to Dashboard" button to add the rendered chart to the dashboard. Verifies the panel appears and persists after save. Tagged `@ols`, must not gate CI. |
 
 ---
 
