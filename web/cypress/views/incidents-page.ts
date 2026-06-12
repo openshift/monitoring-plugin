@@ -1,6 +1,36 @@
 import { nav } from './nav';
 import { DataTestIDs } from '../../src/components/data-test';
 
+// Hard timeout safety net for findIncidentWithAlert retry loops.
+// Prevents infinite loops if cy.waitUntil's timeout mechanism fails.
+let _findIncidentSearchStart: number | null = null;
+const _FIND_INCIDENT_HARD_TIMEOUT_MS = 35 * 60 * 1000; // 35 minutes
+
+// When true, search methods suppress Cypress command logging to prevent
+// DOM snapshot accumulation that causes OOM (exit 137) in CI containers.
+// Toggled by findIncidentWithAlert during its retry loop.
+let _quietSearch = false;
+const _qLog = (): { log: false } | Record<string, never> => (_quietSearch ? { log: false } : {});
+
+const _resetSearchState = () => {
+  _findIncidentSearchStart = null;
+  _quietSearch = false;
+};
+
+// Selector for the Incidents tab rendered by the Console SDK's HorizontalNav.
+// The Console assigns data-test-id="horizontal-link-<href>" to each tab.
+const _INCIDENTS_TAB_SELECTOR = '[data-test-id="horizontal-link-incidents"]';
+
+// Selector for bar group containers in the incidents chart (one per incident).
+const _BAR_GROUP_SELECTOR = 'g[role="presentation"][data-test*="incidents-chart-bar-"]';
+
+// Filter predicate for visible path segments (fill-opacity > 0).
+// Multi-severity incidents have placeholder paths with zero opacity.
+const _isVisiblePath = (_: number, el: HTMLElement) => {
+  const opacity = Cypress.$(el).css('fill-opacity') || Cypress.$(el).attr('fill-opacity');
+  return parseFloat(opacity || '0') > 0;
+};
+
 export const incidentsPage = {
   // Centralized element selectors - all selectors defined in one place
   elements: {
@@ -70,17 +100,16 @@ export const incidentsPage = {
     incidentsChartBar: (groupId: string) =>
       cy.byTestID(`${DataTestIDs.IncidentsChart.ChartBar}-${groupId}`),
     incidentsChartBarsVisiblePaths: () => {
-      return cy.get('body').then(($body) => {
+      return cy.get('body', _qLog()).then(($body) => {
         // There is a delay between the element being rendered and the paths being visible.
-        // The case when no paths are visible is valid, so we can not use should or conditional
-        // testing semantics.
-        cy.wait(500);
+        // The case when no paths are visible is valid, so we can not use should
+        // or conditional testing semantics.
+        cy.wait(500, _qLog());
         // We need to use the $body as both cases when the element is there or not are valid.
-        const exists =
-          $body.find('g[role="presentation"][data-test*="incidents-chart-bar-"]').length > 0;
+        const exists = $body.find(_BAR_GROUP_SELECTOR).length > 0;
         if (exists) {
           return cy
-            .get('g[role="presentation"][data-test*="incidents-chart-bar-"]')
+            .get(_BAR_GROUP_SELECTOR, _qLog())
             .find('path[role="presentation"]')
             .filter((index, element) => {
               const fillOpacity =
@@ -88,8 +117,8 @@ export const incidentsPage = {
               return parseFloat(fillOpacity || '0') > 0;
             });
         } else {
-          cy.log('Chart bars were not found. Test continues.');
-          return cy.wrap([]);
+          if (!_quietSearch) cy.log('Chart bars were not found. Test continues.');
+          return cy.wrap([], _qLog());
         }
       });
     },
@@ -106,9 +135,7 @@ export const incidentsPage = {
         });
     },
     incidentsChartBarsGroups: () =>
-      cy
-        .byTestID(DataTestIDs.IncidentsChart.ChartBars)
-        .find('g[role="presentation"][data-test*="incidents-chart-bar-"]'),
+      cy.byTestID(DataTestIDs.IncidentsChart.ChartBars).find(_BAR_GROUP_SELECTOR),
     incidentsChartSvg: () => incidentsPage.elements.incidentsChartCard().find('svg'),
 
     alertsChartTitle: () => cy.byTestID(DataTestIDs.AlertsChart.Title),
@@ -195,10 +222,33 @@ export const incidentsPage = {
   },
 
   goTo: () => {
-    cy.log('incidentsPage.goTo');
+    if (!_quietSearch) cy.log('incidentsPage.goTo');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    incidentsPage.waitForIncidentsTab();
     nav.tabs.switchTab('Incidents');
     incidentsPage.elements.daysSelectToggle().should('be.visible');
+  },
+
+  // Used in before() hooks as a warm-up to ensure the monitoring-console-plugin has fully
+  // registered the Incidents tab extension before beforeEach() runs. Uses a 3-minute timeout
+  // because plugin registration after session restoration can take 80-120 seconds.
+  warmUpForPlugin: () => {
+    cy.log('incidentsPage.warmUpForPlugin: waiting for monitoring-console-plugin Incidents tab');
+    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+    incidentsPage.waitForIncidentsTab();
+    nav.tabs.switchTab('Incidents');
+    incidentsPage.elements.daysSelectToggle().should('be.visible');
+  },
+
+  // Polls for the Incidents tab to appear in the horizontal nav using a
+  // synchronous jQuery check (no Cypress command overhead / DOM snapshots).
+  // Shared by goTo() and warmUpForPlugin().
+  waitForIncidentsTab: () => {
+    cy.waitUntil(() => Cypress.$(_INCIDENTS_TAB_SELECTOR).length > 0, {
+      interval: 2000,
+      timeout: 180000,
+      errorMsg: 'Incidents tab not registered within 3 minutes',
+    });
   },
 
   setDays: (value: '1 day' | '3 days' | '7 days' | '15 days') => {
@@ -285,10 +335,7 @@ export const incidentsPage = {
             throw new Error(`Failed to deselect "${name}" via dropdown after ${attempt} attempts`);
           }
 
-          cy.log(
-            `Retrying deselection for "${name}" because option click was
-            visible but selection state did not change`,
-          );
+          cy.log(`Retrying deselection for "${name}": clicked but selection state unchanged`);
           return attemptDeselect(attempt + 1);
         });
       };
@@ -297,38 +344,101 @@ export const incidentsPage = {
     });
   },
 
-  toggleFilter: (name: 'Critical' | 'Warning' | 'Informative' | 'Firing' | 'Resolved') => {
-    cy.log('incidentsPage.toggleFilter');
-    const isSeverityFilter = ['Critical', 'Warning', 'Informative'].includes(name);
-    const filterType = isSeverityFilter ? 'Severity' : 'State';
-    const valueToggleSelector = isSeverityFilter
-      ? `[data-test="${DataTestIDs.IncidentsPage.FiltersSelectToggle}-severity"]`
-      : `[data-test="${DataTestIDs.IncidentsPage.FiltersSelectToggle}-state"]`;
+  // The first-level filter type option for Incident ID uses a hardcoded
+  // data-test suffix "incident-id" (hyphenated), unlike Severity/State which
+  // use the lowercased name directly. This map resolves the mismatch.
+  _filterTypeDataTestSuffix: {
+    Severity: 'severity',
+    State: 'state',
+    'Incident ID': 'incident-id',
+  } as Record<string, string>,
 
-    cy.wait(500);
+  // The second-level filter selectors (toggle, list, options) use the
+  // lowercased categoryName from ToolbarItemFilter — with a space for
+  // Incident ID.
+  _filterValueKey: {
+    Severity: 'severity',
+    State: 'state',
+    'Incident ID': 'incident id',
+  } as Record<string, string>,
+
+  ensureFilterTypeSelected: (filterType: 'Severity' | 'State' | 'Incident ID') => {
+    const valueKey = incidentsPage._filterValueKey[filterType];
+    const toggleId = DataTestIDs.IncidentsPage.FiltersSelectToggle;
+    const valueToggleSelector = `[data-test="${toggleId}-${valueKey}"]`;
+
+    cy.wait(500, _qLog());
 
     // If the value toggle is already visible (filter type already selected), skip
     // re-selecting the filter type. Re-selecting triggers a React re-render and can
     // leave PatternFly Select in a stale state where options render but ignore clicks.
-    cy.get('body').then(($body) => {
+    cy.get('body', _qLog()).then(($body) => {
       const isToggleVisible = $body.find(valueToggleSelector).filter(':visible').length > 0;
-
       if (!isToggleVisible) {
-        incidentsPage.elements.filtersSelectToggle().click();
-        incidentsPage.elements.filtersSelectOption(filterType).click();
-      }
-
-      if (isSeverityFilter) {
-        incidentsPage.toggleFilterValueFromDropdown('severity', name);
-      } else {
-        incidentsPage.toggleFilterValueFromDropdown('state', name);
+        incidentsPage.elements.filtersSelectToggle().scrollIntoView().click();
+        const suffix = incidentsPage._filterTypeDataTestSuffix[filterType];
+        cy.byTestID(`${DataTestIDs.IncidentsPage.FiltersSelectOption}-${suffix}`)
+          .scrollIntoView()
+          .click();
       }
     });
   },
 
+  toggleFilter: (name: 'Critical' | 'Warning' | 'Informative' | 'Firing' | 'Resolved') => {
+    cy.log('incidentsPage.toggleFilter');
+
+    const isSeverityFilter = ['Critical', 'Warning', 'Informative'].includes(name);
+    const filterType = isSeverityFilter ? 'Severity' : 'State';
+
+    incidentsPage.ensureFilterTypeSelected(filterType);
+
+    if (isSeverityFilter) {
+      incidentsPage.toggleFilterValueFromDropdown('severity', name);
+    } else {
+      incidentsPage.toggleFilterValueFromDropdown('state', name);
+    }
+  },
+
+  selectIncidentIdFilter: (incidentId: string) => {
+    if (!_quietSearch) cy.log(`incidentsPage.selectIncidentIdFilter: ${incidentId}`);
+
+    incidentsPage.ensureFilterTypeSelected('Incident ID');
+    incidentsPage.elements.incidentIdFilterToggle().scrollIntoView().click({ force: true });
+    incidentsPage.elements.incidentIdFilterList().should('be.visible');
+    cy.wait(250, _qLog());
+    incidentsPage.elements.incidentIdFilterOption(incidentId).scrollIntoView().click();
+    // Incident ID dropdown auto-closes on select (single-select behavior)
+  },
+
+  getIncidentIds: (): Cypress.Chainable<string[]> => {
+    if (!_quietSearch) cy.log('incidentsPage.getIncidentIds');
+
+    incidentsPage.ensureFilterTypeSelected('Incident ID');
+    incidentsPage.elements.incidentIdFilterToggle().scrollIntoView().click({ force: true });
+    incidentsPage.elements.incidentIdFilterList().should('be.visible');
+
+    return incidentsPage.elements
+      .incidentIdFilterList()
+      .find('button[role="menuitem"] .pf-v6-c-menu__item-text')
+      .then(($texts) => {
+        const ids: string[] = [];
+        $texts.each((_, el) => {
+          const text = Cypress.$(el).text().trim();
+          if (text) ids.push(text);
+        });
+        // Close the dropdown without selecting
+        incidentsPage.elements.incidentIdFilterToggle().scrollIntoView().click({ force: true });
+        return cy.wrap(ids, _qLog());
+      });
+  },
+
   clearAllFilters: () => {
     cy.log('incidentsPage.clearAllFilters');
-    incidentsPage.elements.clearAllFiltersButton().should('be.visible').click({ force: true });
+    incidentsPage.elements
+      .clearAllFiltersButton()
+      .scrollIntoView()
+      .should('be.visible')
+      .click({ force: true });
   },
 
   removeFilter: (category: 'Severity' | 'State' | 'Incident ID', value: string) => {
@@ -359,41 +469,39 @@ export const incidentsPage = {
   },
 
   /**
-   * Selects an incident from the chart by clicking on a bar at the specified index.
-   * BUG: Problems with multi-severity incidents (multiple paths in a single incident bar)
+   * Selects an incident from the chart by clicking on a bar group at the
+   * specified index. Uses bar groups (one per incident) instead of flattened
+   * paths to correctly handle multi-severity incidents.
    *
    * @param index - Zero-based index of the incident bar to click (default: 0)
    * @returns Promise that resolves when the incidents table is visible
    */
   selectIncidentByBarIndex: (index = 0) => {
-    cy.log(`incidentsPage.selectIncidentByBarIndex: ${index} (clicking visible path elements)`);
+    if (!_quietSearch) cy.log(`incidentsPage.selectIncidentByBarIndex: ${index}`);
 
     return incidentsPage.elements
-      .incidentsChartBarsVisiblePaths()
+      .incidentsChartBarsGroups()
       .should('have.length.greaterThan', index)
-      .then(($paths) => {
-        if (index >= $paths.length) {
-          throw new Error(`Index ${index} exceeds available paths (${$paths.length})`);
-        }
-
-        return cy.wrap($paths.eq(index)).click({ force: true });
-      })
+      .eq(index)
+      .find('path[role="presentation"]')
+      .filter(_isVisiblePath)
+      .first()
+      .click({ force: true, ..._qLog() })
       .then(() => {
-        cy.wait(2000);
+        cy.wait(2000, _qLog());
         return incidentsPage.elements.incidentsTable().scrollIntoView().should('exist');
       });
   },
 
-  deselectIncidentByBar: () => {
-    cy.log('incidentsPage.deselectIncidentByBar');
+  deselectIncidentByBar: (index = 0) => {
+    if (!_quietSearch) cy.log('incidentsPage.deselectIncidentByBar');
     return incidentsPage.elements
-      .incidentsChartBarsVisiblePaths()
-      .then(($paths) => {
-        if ($paths.length === 0) {
-          throw new Error('No paths found in incidents chart');
-        }
-        return cy.wrap($paths.eq(0)).click({ force: true });
-      })
+      .incidentsChartBarsGroups()
+      .eq(index)
+      .find('path[role="presentation"]')
+      .filter(_isVisiblePath)
+      .first()
+      .click({ force: true, ..._qLog() })
       .then(() => {
         return incidentsPage.elements.incidentsTable().should('not.exist');
       });
@@ -445,8 +553,8 @@ export const incidentsPage = {
   },
 
   expandRow: (rowIndex = 0) => {
-    cy.log('incidentsPage.expandRow');
-    incidentsPage.elements.incidentsTableExpandButton(rowIndex).click({ force: true });
+    if (!_quietSearch) cy.log('incidentsPage.expandRow');
+    incidentsPage.elements.incidentsTableExpandButton(rowIndex).click({ force: true, ..._qLog() });
   },
 
   waitForTooltip: () => {
@@ -521,9 +629,9 @@ export const incidentsPage = {
     cy.log(`incidentsPage.hoverOverIncidentBarSegment: bar=${barIndex}, segment=${segmentIndex}`);
     incidentsPage.getIncidentBarVisibleSegments(barIndex).then((segments) => {
       if (segmentIndex >= segments.length) {
+        const visCount = segments.length;
         throw new Error(
-          `Segment ${segmentIndex} not found (only ${segments.length}
-          visible segments in bar ${barIndex})`,
+          `Segment ${segmentIndex} not found — only ${visCount} segments in bar ${barIndex}`,
         );
       }
       const path = segments[segmentIndex];
@@ -600,6 +708,10 @@ export const incidentsPage = {
     return incidentsPage.waitForTooltip();
   },
 
+  resetSearchTimeout: () => {
+    _resetSearchState();
+  },
+
   // Constants for search configuration
   SEARCH_CONFIG: {
     CHART_LOAD_WAIT: 1000,
@@ -607,11 +719,11 @@ export const incidentsPage = {
   },
 
   prepareIncidentsPageForSearch: () => {
-    cy.log('incidentsPage.prepareIncidentsPageForSearch: Setting up page for search');
+    if (!_quietSearch) cy.log('incidentsPage.prepareIncidentsPageForSearch: Setting up page...');
     incidentsPage.goTo();
     incidentsPage.setDays(incidentsPage.SEARCH_CONFIG.DEFAULT_DAYS);
     incidentsPage.elements.incidentsChartContainer().should('be.visible');
-    cy.wait(incidentsPage.SEARCH_CONFIG.CHART_LOAD_WAIT);
+    cy.wait(incidentsPage.SEARCH_CONFIG.CHART_LOAD_WAIT, _qLog());
   },
 
   /**
@@ -631,10 +743,9 @@ export const incidentsPage = {
       .then((text) => {
         if (String(text).includes(alertName)) {
           cy.log(`Found alert "${alertName}" in incident ${incidentIndex + 1} table content`);
-          cy.log(text);
-          return cy.wrap(true);
+          return cy.wrap(true, _qLog());
         }
-        return cy.wrap(false);
+        return cy.wrap(false, _qLog());
       });
   },
 
@@ -655,23 +766,21 @@ export const incidentsPage = {
     currentRowIndex: number = 0,
   ): Cypress.Chainable<boolean> => {
     if (currentRowIndex >= totalRows) {
-      cy.log(`Checked all ${totalRows} rows in incident ${incidentIndex + 1}, alert not found`);
-      return cy.wrap(false);
+      if (!_quietSearch)
+        cy.log(`Checked all ${totalRows} rows in incident ${incidentIndex + 1}, alert not found`);
+      return cy.wrap(false, _qLog());
     }
 
-    cy.log(`Expanding and checking row ${currentRowIndex} in incident ${incidentIndex + 1}`);
+    if (!_quietSearch)
+      cy.log(`Expanding and checking row ${currentRowIndex} in incident ${incidentIndex + 1}`);
     incidentsPage.expandRow(currentRowIndex);
 
     return incidentsPage
       .checkComponentRowInIncidentTableForAlert(alertName, incidentIndex)
       .then((found) => {
         if (found) {
-          cy.log(
-            `Found alert "${alertName}" in expanded row ${currentRowIndex} of incident ${
-              incidentIndex + 1
-            }`,
-          );
-          return cy.wrap(true);
+          cy.log(`Found "${alertName}" in row ${currentRowIndex}, incident ${incidentIndex + 1}`);
+          return cy.wrap(true, _qLog());
         }
         return incidentsPage.checkComponentInIncident(
           alertName,
@@ -683,8 +792,8 @@ export const incidentsPage = {
   },
 
   /**
-   * Searches for an alert in all components (usually connected with namespaces) of a single
-   * incident.
+   * Searches for an alert in all components (usually connected with namespaces)
+   * of a single incident.
    * First checks main table content, then recursively expands and checks each row.
    *
    * @param alertName - Name of the alert to search for
@@ -695,17 +804,16 @@ export const incidentsPage = {
     alertName: string,
     incidentIndex: number,
   ): Cypress.Chainable<boolean> => {
-    cy.log(
-      `incidentsPage.searchAllRowsInIncident: Checking all rows in incident ${
-        incidentIndex + 1
-      } for alert "${alertName}"`,
-    );
+    if (!_quietSearch)
+      cy.log(
+        `incidentsPage.searchAllRowsInIncident: incident ${incidentIndex + 1} for "${alertName}"`,
+      );
 
     return incidentsPage
       .checkComponentRowInIncidentTableForAlert(alertName, incidentIndex)
       .then((foundInMain) => {
         if (foundInMain) {
-          return cy.wrap(true);
+          return cy.wrap(true, _qLog());
         }
 
         return incidentsPage.elements
@@ -714,36 +822,33 @@ export const incidentsPage = {
           .then(($rows) => {
             const totalRows = $rows.length;
             if (totalRows === 0) {
-              cy.log(`No rows found in incident ${incidentIndex + 1}`);
-              return cy.wrap(false);
+              if (!_quietSearch) cy.log(`No rows found in incident ${incidentIndex + 1}`);
+              return cy.wrap(false, _qLog());
             }
 
-            cy.log(`Found ${totalRows} incident rows to check in incident ${incidentIndex + 1}`);
+            if (!_quietSearch)
+              cy.log(`Found ${totalRows} incident rows to check in incident ${incidentIndex + 1}`);
             return incidentsPage.checkComponentInIncident(alertName, incidentIndex, totalRows);
           });
       });
   },
 
   /**
-   * Searches for an alert within a specific incident by selecting it and checking all components.
-   * Combines incident selection with comprehensive component search.
-   *
-   * @param alertName - Name of the alert to search for
-   * @param incidentIndex - Zero-based index of the incident to search
-   * @returns Promise resolving to true if alert is found in the incident
+   * @deprecated Use findIncidentWithAlert (filter-based) instead.
+   * Searches for an alert within a specific incident by selecting it via bar click.
    */
-  searchForAlertInIncident: (
+  searchForAlertInIncident_legacy: (
     alertName: string,
     incidentIndex: number,
   ): Cypress.Chainable<boolean> => {
-    cy.log(
-      `incidentsPage.searchForAlertInIncident: Checking incident ${
-        incidentIndex + 1
-      } for alert "${alertName}"`,
-    );
+    if (!_quietSearch)
+      cy.log(
+        `incidentsPage.searchForAlertInIncident_legacy: ` +
+          `incident ${incidentIndex + 1} for "${alertName}"`,
+      );
 
     return cy
-      .wrap(null)
+      .wrap(null, _qLog())
       .then(() => {
         incidentsPage.selectIncidentByBarIndex(incidentIndex);
         return null;
@@ -752,69 +857,129 @@ export const incidentsPage = {
   },
 
   /**
-   * Recursively traverses all incident bars in the chart, searching each one for a specific
-   * alert.
-   * Uses internal recursive function to systematically check each incident until found or
-   * exhausted.
-   *
-   * @param alertName - Name of the alert to search for
-   * @param totalIncidents - Total number of incidents to traverse
-   * @returns Promise resolving to true if alert is found in any incident
+   * @deprecated Use findIncidentWithAlert (filter-based) instead.
+   * Recursively traverses all incident bars in the chart via click-based selection.
    */
-  traverseAllIncidentsBars: (
+  traverseAllIncidentsBars_legacy: (
     alertName: string,
     totalIncidents: number,
   ): Cypress.Chainable<boolean> => {
-    cy.log(
-      `incidentsPage.searchAllIncidents: Searching ${totalIncidents} incidents for alert ` +
-        `"${alertName}"`,
-    );
+    if (!_quietSearch)
+      cy.log(
+        `incidentsPage.traverseAllIncidentsBars_legacy: ` +
+          `Searching ${totalIncidents} for "${alertName}"`,
+      );
 
     const searchNextIncidentBar = (currentIndex: number): Cypress.Chainable<boolean> => {
       if (currentIndex >= totalIncidents) {
-        cy.log(`Checked all ${totalIncidents} incidents, alert "${alertName}" not found`);
-        return cy.wrap(false);
+        if (!_quietSearch)
+          cy.log(`Checked all ${totalIncidents} incidents, alert "${alertName}" not found`);
+        return cy.wrap(false, _qLog());
       }
 
-      return incidentsPage.searchForAlertInIncident(alertName, currentIndex).then((found) => {
-        if (found) {
-          return cy.wrap(true);
-        }
-        incidentsPage.deselectIncidentByBar();
-        // Wait for the incident to be deselected
-        // Quick workaround, could be improved by waiting for the number of paths to change, but
-        // it does not has to if 1 initially. The check for the alert table non existance is
-        // already implemented,
-        // but there seems to be a short delay between the alert table closing and new bars
-        // rendering.
-        cy.wait(500);
-        return searchNextIncidentBar(currentIndex + 1);
-      });
+      return incidentsPage
+        .searchForAlertInIncident_legacy(alertName, currentIndex)
+        .then((found) => {
+          if (found) {
+            return cy.wrap(true, _qLog());
+          }
+          incidentsPage.deselectIncidentByBar(currentIndex);
+          cy.wait(500, _qLog());
+          return searchNextIncidentBar(currentIndex + 1);
+        });
     };
 
     return searchNextIncidentBar(0);
   },
 
   /**
+   * Selects an incident via the Incident ID filter, searches all its
+   * components for the given alert, then clears the filter.
+   */
+  searchForAlertInIncidentByFilter: (
+    alertName: string,
+    incidentId: string,
+  ): Cypress.Chainable<boolean> => {
+    if (!_quietSearch)
+      cy.log(`incidentsPage.searchForAlertInIncidentByFilter: "${incidentId}" for "${alertName}"`);
+
+    incidentsPage.selectIncidentIdFilter(incidentId);
+    cy.wait(2000, _qLog());
+
+    return incidentsPage.elements
+      .incidentsTable()
+      .should('exist')
+      .scrollIntoView()
+      .then(() => incidentsPage.searchAllComponentsInIncident(alertName, 0))
+      .then((found: boolean) => {
+        incidentsPage.clearAllFilters();
+        cy.wait(500, _qLog());
+        return cy.wrap(found, _qLog());
+      });
+  },
+
+  /**
+   * Discovers all incident IDs from the filter dropdown, then searches
+   * each one for the given alert using filter-based selection.
+   */
+  traverseAllIncidentsByFilter: (alertName: string): Cypress.Chainable<boolean> => {
+    if (!_quietSearch)
+      cy.log(`incidentsPage.traverseAllIncidentsByFilter: discovering incident IDs`);
+
+    return incidentsPage.getIncidentIds().then((incidentIds) => {
+      if (incidentIds.length === 0) {
+        return cy.wrap(false, _qLog());
+      }
+
+      let result = cy.wrap(false, _qLog());
+      for (let i = 0; i < incidentIds.length; i++) {
+        result = result.then((found) => {
+          if (found) return cy.wrap(true, _qLog());
+          return incidentsPage.searchForAlertInIncidentByFilter(alertName, incidentIds[i]);
+        });
+      }
+
+      return result.then((found) => {
+        if (!found && !_quietSearch)
+          cy.log(`Checked all ${incidentIds.length} incidents, alert "${alertName}" not found`);
+        return cy.wrap(found, _qLog());
+      });
+    });
+  },
+
+  /**
    * Main entry point for finding an alert across all incidents in the chart.
-   * Prepares the page, gets visible incident bars, and initiates comprehensive search.
+   * Prepares the page, discovers incidents via the Incident ID filter dropdown,
+   * and searches each one by selecting it through the filter UI.
    *
    * @param alertName - Name of the alert to search for across all incidents
    * @returns Promise resolving to true if alert is found in any incident
    */
   findIncidentWithAlert: (alertName: string): Cypress.Chainable<boolean> => {
+    if (_findIncidentSearchStart === null) {
+      _findIncidentSearchStart = Date.now();
+    }
+    const elapsed = Date.now() - _findIncidentSearchStart;
+    if (elapsed > _FIND_INCIDENT_HARD_TIMEOUT_MS) {
+      _resetSearchState();
+      const mins = Math.round(elapsed / 60000);
+      throw new Error(`findIncidentWithAlert: hard timeout after ${mins} min for "${alertName}"`);
+    }
+
     cy.log(`incidentsPage.findIncidentWithAlert: Starting search for alert "${alertName}"`);
 
+    _quietSearch = true;
+
     incidentsPage.prepareIncidentsPageForSearch();
+    incidentsPage.clearAllFilters();
 
-    return incidentsPage.elements.incidentsChartBarsVisiblePaths().then(($paths) => {
-      const totalPaths = $paths.length;
-      if (totalPaths === 0) {
-        cy.log('No visible incident bar paths found in chart');
-        return cy.wrap(false);
+    return incidentsPage.traverseAllIncidentsByFilter(alertName).then((found: boolean) => {
+      if (found) {
+        _resetSearchState();
+      } else {
+        _quietSearch = false;
       }
-
-      return incidentsPage.traverseAllIncidentsBars(alertName, totalPaths);
+      return found;
     });
   },
 

@@ -110,7 +110,54 @@ describe('Regression: Incidents Filtering', { tags: ['@incidents'] }, () => {
     incidentsPage.clearAllFilters();
   });
 
-  it('2. Chart interaction with active filters', () => {
+  it('2. Incident ID filter - select, verify, and traverse', () => {
+    cy.log('2.1 Clear filters and verify all incidents are loaded');
+    incidentsPage.clearAllFilters();
+    incidentsPage.elements.incidentsChartBarsGroups().should('have.length', 12);
+
+    cy.log('2.2 Discover all incident IDs from the filter dropdown');
+    incidentsPage.getIncidentIds().then((ids) => {
+      expect(ids.length).to.equal(12);
+      cy.log(`Discovered ${ids.length} incident IDs`);
+
+      cy.log('2.3 Select an incident by ID filter and verify table appears');
+      incidentsPage.selectIncidentIdFilter(ids[0]);
+      incidentsPage.elements.incidentsTable().should('be.visible');
+      incidentsPage.elements.incidentsChartBarsGroups().should('have.length', 1);
+
+      cy.log('2.4 Clear the Incident ID filter and verify all incidents return');
+      incidentsPage.clearAllFilters();
+      incidentsPage.elements.incidentsTable().should('not.exist');
+      incidentsPage.elements.incidentsChartBarsGroups().should('have.length', 12);
+
+      cy.log('2.5 Filter-based traversal finds a known alert');
+      cy.mockIncidentFixture('incident-scenarios/6-multi-incident-target-alert-scenario.yaml');
+      incidentsPage.clearAllFilters();
+      incidentsPage.setDays('7 days');
+      incidentsPage.findIncidentWithAlert('TargetAlert').should('be.true');
+
+      cy.log('2.6 Filter-based traversal returns false for non-existent alert');
+      incidentsPage.findIncidentWithAlert('NonExistentAlert').should('be.false');
+    });
+
+    cy.log('2.7 Select incident by ID filter and verify matching alerts are present');
+    cy.mockIncidentFixture('incident-scenarios/7-comprehensive-filtering-test-scenarios.yaml');
+    incidentsPage.clearAllFilters();
+    incidentsPage.selectIncidentIdFilter('etcd-critical-warning-001');
+    incidentsPage.elements.incidentsTable().should('be.visible');
+    incidentsPage.elements.incidentsTableComponentCell(0).should('contain.text', 'etcd');
+    incidentsPage.expandRow(0);
+    incidentsPage.elements.incidentsDetailsTable().should('be.visible');
+    incidentsPage.elements
+      .incidentsDetailsTable()
+      .should('contain.text', 'EtcdClusterUnavailable001');
+    incidentsPage.elements.incidentsDetailsTable().should('contain.text', 'EtcdHighLatency001');
+    incidentsPage.elements.incidentsDetailsTable().should('contain.text', 'EtcdBackupFailed001');
+
+    incidentsPage.clearAllFilters();
+  });
+
+  it('3. Chart interaction with active filters', () => {
     cy.log('Setting up filters for chart interaction testing');
     incidentsPage.clearAllFilters();
 
@@ -120,16 +167,16 @@ describe('Regression: Incidents Filtering', { tags: ['@incidents'] }, () => {
     incidentsPage.elements.incidentsChartBarsGroups().should('have.length', 2);
     cy.log('Setup complete: Informative + Firing filters active, 2 incidents shown');
 
-    cy.log('2.1 Select incident bar while filters are active');
+    cy.log('3.1 Select incident bar while filters are active');
     incidentsPage.selectIncidentByBarIndex(0);
     incidentsPage.elements.incidentsTable().should('be.visible');
     cy.log('Incident table displayed after bar selection');
 
-    cy.log('2.2 Verify just selected incident is shown in the chart');
+    cy.log('3.2 Verify just selected incident is shown in the chart');
     incidentsPage.elements.incidentsChartBarsGroups().should('have.length', 1);
     cy.log('Verified: 1 incident shown');
 
-    cy.log('2.3 Deselect incident bar and verify filter persistence');
+    cy.log('3.3 Deselect incident bar and verify filter persistence');
     incidentsPage.deselectIncidentByBar();
     incidentsPage.elements.incidentsTable().should('not.exist');
     incidentsPage.elements.incidentsChartBarsGroups().should('have.length', 2);
