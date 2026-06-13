@@ -52,10 +52,12 @@ const targets = [healthyTarget, unhealthyTarget, otherTarget];
 
 describe('filterTargets', () => {
   it('should return empty array for null input', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect(filterTargets(null as any, emptyFilters)).toEqual([]);
   });
 
   it('should return empty array for undefined input', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect(filterTargets(undefined as any, emptyFilters)).toEqual([]);
   });
 

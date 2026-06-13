@@ -67,6 +67,7 @@ function severityToMetricValue(
  * Builds timeline values for both health and alerts metrics
  */
 function buildTimelineValues(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   timeline: any,
   alertSeverity: 'critical' | 'warning' | 'info',
   metricType: 'health' | 'alerts',

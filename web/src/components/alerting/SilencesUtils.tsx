@@ -44,8 +44,10 @@ import { useMonitoringNamespace } from '../hooks/useMonitoringNamespace';
 import { silenceMatcherEqualitySymbol, silenceState } from '../utils';
 import { DataTestIDs } from '../data-test';
 
+// eslint-disable-next-line react/prop-types
 export const SilenceMatchersList = ({ silence }) => (
   <LabelGroup numLabels={20}>
+    {/*eslint-disable-next-line react/prop-types*/}
     {_.map(silence.matchers, ({ name, isEqual, isRegex, value }, i) => (
       <Label key={i}>
         <span>{name}</span>
@@ -62,6 +64,7 @@ type ExpireSilenceModalProps = {
   silenceID: string;
 };
 
+// eslint-disable-next-line react/prop-types
 export const SilenceState = ({ silence }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 

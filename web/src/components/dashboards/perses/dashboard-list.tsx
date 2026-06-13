@@ -56,6 +56,7 @@ const DashboardActionsCell = memo(
     onRename: (dashboard: DashboardResource) => void;
     onDuplicate: (dashboard: DashboardResource) => void;
     onDelete: (dashboard: DashboardResource) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     emptyActions: any[];
   }) => {
     const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -105,6 +106,8 @@ const DashboardActionsCell = memo(
   },
 );
 
+DashboardActionsCell.displayName = 'DashboardActionsCell';
+
 interface DashboardRowNameLink {
   link: ReactNode;
   label: string;
@@ -135,7 +138,9 @@ const sortDashboardData = (
   if (!sortBy || !direction) return data;
 
   return [...data].sort((a, b) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let aValue: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let bValue: any;
 
     if (sortBy === 'name') {

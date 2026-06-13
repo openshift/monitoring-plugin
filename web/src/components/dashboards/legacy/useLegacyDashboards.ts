@@ -21,6 +21,7 @@ export const useLegacyDashboards = (urlBoard: string) => {
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const safeFetch = useCallback(useSafeFetch(), []);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [unfilteredLegacyDashboards, setUnfilteredLegacyDashboards] = useState<any>([]);
   const [legacyDashboardsError, setLegacyDashboardsError] = useState<string>();
   const [legacyDashboardsLoading, , , setLegacyDashboardsLoaded] = useBoolean(true);
@@ -29,6 +30,7 @@ export const useLegacyDashboards = (urlBoard: string) => {
   const [queryParams] = useSearchParams();
 
   useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     safeFetch<any>('/api/console/monitoring-dashboard-config')
       .then((response) => {
         setLegacyDashboardsLoaded();

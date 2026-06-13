@@ -3,6 +3,7 @@ jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
 }));
 
 jest.mock('./AlertUtils', () => ({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   alertingRuleSource: (rule: any) =>
     rule.labels?.prometheus === 'openshift-monitoring/k8s' ? 'platform' : 'user',
 }));
@@ -30,12 +31,14 @@ const makeRule = (overrides: Partial<Rule> & { name: string }): Rule =>
 const platformRule = makeRule({
   name: 'HighMemory',
   labels: { severity: 'critical', prometheus: 'openshift-monitoring/k8s' },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   alerts: [{ state: AlertStates.Firing, labels: {}, annotations: {} }] as any,
 });
 
 const userRule = makeRule({
   name: 'CustomAlert',
   labels: { severity: 'warning' },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   alerts: [{ state: AlertStates.Pending, labels: {}, annotations: {} }] as any,
 });
 
@@ -49,10 +52,12 @@ const rules = [platformRule, userRule, silentRule];
 
 describe('filterRules', () => {
   it('should return empty array for null input', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect(filterRules(null as any, emptyFilters)).toEqual([]);
   });
 
   it('should return empty array for undefined input', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect(filterRules(undefined as any, emptyFilters)).toEqual([]);
   });
 

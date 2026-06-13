@@ -35,9 +35,9 @@ function validateFixture(filePath: string): boolean {
     if (valid) {
       // eslint-disable-next-line no-console
       console.log(`VALID: ${filePath}`);
-      // eslint-disable-next-line no-console
+      // eslint-disable-next-line no-console, @typescript-eslint/no-explicit-any
       console.log(`   Name: ${(fixture as any).name}`);
-      // eslint-disable-next-line no-console
+      // eslint-disable-next-line no-console, @typescript-eslint/no-explicit-any
       console.log(`   Incidents: ${(fixture as any).incidents?.length || 0}`);
       return true;
     } else {

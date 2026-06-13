@@ -145,6 +145,7 @@ Cypress.Commands.add('transformMetrics', () => {
       // Also transform the response to use new metric names
       req.continue((res) => {
         if (res.body?.data?.result) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           res.body.data.result.forEach((result: any) => {
             if (result?.metric?.__name__ === OLD_METRIC_NAME) {
               // eslint-disable-next-line no-console

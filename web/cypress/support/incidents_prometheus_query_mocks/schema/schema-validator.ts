@@ -13,6 +13,7 @@ const validate = ajv.compile(schema);
 /**
  * Validates a fixture object against the JSON schema
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function validateFixture(fixture: any): { valid: boolean; errors?: string[] } {
   const valid = validate(fixture);
 

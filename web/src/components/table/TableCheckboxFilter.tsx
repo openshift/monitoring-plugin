@@ -139,6 +139,7 @@ export const TableCheckboxFilter: FC<CustomDataViewCheckboxFilterProps> = ({
           </Menu>
         }
         popperRef={menuRef}
+        /*eslint-disable-next-line react-hooks/refs */
         appendTo={containerRef.current || undefined}
         aria-label={`${title ?? filterId} filter`}
         isVisible={isOpen}

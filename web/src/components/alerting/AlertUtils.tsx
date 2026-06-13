@@ -85,6 +85,7 @@ export const alertingRuleSource = (rule: Rule): AlertSource | string => {
 export const alertSource = (alert: Alert): AlertSource | string => alertingRuleSource(alert.rule);
 export const alertCluster = (alert: Alert): string => alert.labels?.cluster ?? '';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const SilencesNotLoadedWarning: FC<{ silencesLoadError: any }> = ({ silencesLoadError }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
@@ -123,6 +124,7 @@ const getSeverityKey = (severity: string, t) => {
   }
 };
 
+// eslint-disable-next-line react/prop-types
 export const SeverityIcon: FC<{ severity: string }> = memo(({ severity }) => {
   switch (severity) {
     case AlertSeverity.Critical:
@@ -138,6 +140,9 @@ export const SeverityIcon: FC<{ severity: string }> = memo(({ severity }) => {
   }
 });
 
+SeverityIcon.displayName = 'SeverityIcon';
+
+// eslint-disable-next-line react/prop-types
 export const AlertState: FC<AlertStateProps> = memo(({ state }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
@@ -154,10 +159,13 @@ export const AlertState: FC<AlertStateProps> = memo(({ state }) => {
   ) : null;
 });
 
+AlertState.displayName = 'AlertState';
+
 type AlertStateProps = {
   state: AlertStates;
 };
 
+// eslint-disable-next-line react/prop-types
 export const AlertStateIcon: FC<{ state: string }> = memo(({ state }) => {
   switch (state) {
     case AlertStates.Firing:
@@ -170,6 +178,8 @@ export const AlertStateIcon: FC<{ state: string }> = memo(({ state }) => {
       return null;
   }
 });
+
+AlertStateIcon.displayName = 'AlertStateIcon';
 
 export const getAlertStateKey = (state, t) => {
   switch (state) {
@@ -196,6 +206,7 @@ export const AlertStateDescription: FC<{ alert: Alert }> = ({ alert }) => {
   return null;
 };
 
+// eslint-disable-next-line react/prop-types
 export const StateTimestamp = ({ text, timestamp }) => (
   <div style={{ color: t_global_text_color_subtle.var }}>
     {text}&nbsp;
@@ -204,6 +215,7 @@ export const StateTimestamp = ({ text, timestamp }) => (
 );
 
 export const SeverityBadge: FC<{ severity: string; count?: number }> = memo(
+  // eslint-disable-next-line react/prop-types
   ({ severity, count }) => {
     const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
@@ -230,6 +242,8 @@ export const SeverityBadge: FC<{ severity: string; count?: number }> = memo(
     }
   },
 );
+
+SeverityBadge.displayName = 'SeverityBadge';
 
 export const PopoverField: FC<{ bodyContent: ReactNode; label: string }> = ({
   bodyContent,

@@ -5,6 +5,7 @@ import { EllipsisVIcon } from '@patternfly/react-icons';
 import { useBoolean } from './hooks/useBoolean';
 import { DataTestIDs } from './data-test';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const KebabDropdown: FC<{ dropdownItems: any[] }> = ({ dropdownItems }) => {
   const [isOpen, setIsOpen, setOpen, setClosed] = useBoolean(false);
 

@@ -51,6 +51,7 @@ const isIntervalVariable = (itemKey: string): boolean =>
 
 export const evaluateVariableTemplate = (
   template: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   variables: any,
   timespan: number,
   namespace: string,
@@ -97,6 +98,7 @@ export const evaluateVariableTemplate = (
   return result;
 };
 
+// eslint-disable-next-line react/prop-types
 const LegacyDashboardsVariableOption = ({ value, isSelected, ...rest }) =>
   isIntervalVariable(String(value)) ? (
     <Tooltip content={value}>
@@ -382,6 +384,7 @@ export type Variable = {
   options?: string[];
   query?: string;
   value?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   datasource?: any;
 };
 

@@ -80,7 +80,9 @@ describe('severitySort', () => {
   });
 
   it('should handle objects with severity property (AggregatedAlert shape)', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const a = { severity: AlertSeverity.Critical } as any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const b = { severity: AlertSeverity.Warning } as any;
     expect(severitySort(a, b)).toBeGreaterThan(0);
   });

@@ -26,6 +26,7 @@ export type Metric = {
   group_id: string; // The unique ID for grouping
   component: string; // Component name
   componentList?: string[]; // List of all unique components
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any; // Allow other dynamic fields in Metric
 };
 
@@ -104,6 +105,7 @@ export type IncidentsDetailsAlert = {
   values: Array<Timestamps>;
   silenced: boolean;
   rule: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     alerts: any[];
     annotations: { [key: string]: string };
     type: string;
@@ -115,6 +117,7 @@ export type IncidentsDetailsAlert = {
     id: string;
     sourceId?: string;
     silencedBy?: Silence[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [key: string]: any;
   };
 };

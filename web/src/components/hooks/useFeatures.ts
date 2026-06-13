@@ -41,6 +41,7 @@ export const useFeatures = () => {
 
   // Use useEffect to call getFeatures only once after the component mounts
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     getFeatures();
   }, [getFeatures]);
 

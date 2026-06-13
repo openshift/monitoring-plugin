@@ -1,3 +1,4 @@
+// eslint-disable-next-line react/prop-types
 export const AddToDashboardButton = ({ query, name, description }) => (
   <button
     data-testid="add-to-dashboard"

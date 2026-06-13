@@ -17,6 +17,7 @@ export function ExternalPanelAddition({
   onEditButtonClick,
 }: ExternalPanelAdditionProps): ReactElement | null {
   const dispatch = useDispatch();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const addPersesPanelExternally: any = useSelector(
     (s: RootState) => s.plugins?.mcp?.dashboards?.addPersesPanelExternally,
   );
@@ -32,6 +33,7 @@ export function ExternalPanelAddition({
   // Turn the dashboard into editable mode and added it to `queuedPanel`.
   // The `queuedPanel` will be added in the next refresh cycle.
   const queuePanelAddition = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (panelDefinition: any): void => {
       // Simulate opening a panel to add the pane so that we can use it to programatically
       // add a panel to the dashboard from an external source (AI assistant).

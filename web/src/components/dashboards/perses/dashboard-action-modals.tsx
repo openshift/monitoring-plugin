@@ -160,6 +160,7 @@ export const RenameActionModal = ({ dashboard, isOpen, onClose }: ActionModalPro
               variant="primary"
               type="submit"
               isDisabled={
+                // eslint-disable-next-line react-hooks/incompatible-library
                 !(form.watch('dashboardName') || '')?.trim() || updateDashboardMutation.isPending
               }
               isLoading={updateDashboardMutation.isPending}
@@ -213,6 +214,7 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
     },
   });
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const selectedProjectName = form.watch('projectName');
   const dashboardName = form.watch('dashboardName');
 
@@ -358,6 +360,7 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
     form.reset({ dashboardName: '' });
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const onProjectSelect = (_event: any, selection: string) => {
     form.setValue('projectName', selection);
   };

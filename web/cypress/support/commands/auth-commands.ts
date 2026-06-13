@@ -190,6 +190,7 @@ function performLogin(
 ): void {
   cy.visit(Cypress.config('baseUrl'));
   cy.log('Session - after visiting');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   cy.window().then((win: any) => {
     // Check if auth is disabled (for a local development environment)
     if (win.SERVER_FLAGS?.authDisabled) {
@@ -294,6 +295,7 @@ Cypress.Commands.add('uiLogin', (provider: string, username: string, password: s
   cy.log('Commands uiLogin');
   cy.clearCookie('openshift-session-token');
   cy.visit('/');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   cy.window().then((win: any) => {
     if (win.SERVER_FLAGS?.authDisabled) {
       cy.task('log', 'Skipping login, console is running with auth disabled');
@@ -369,6 +371,7 @@ Cypress.Commands.add('relogin', (provider: string, username: string, password: s
 });
 
 Cypress.Commands.add('uiLogout', () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   cy.window().then((win: any) => {
     if (win.SERVER_FLAGS?.authDisabled) {
       cy.log('Skipping logout, console is running with auth disabled');

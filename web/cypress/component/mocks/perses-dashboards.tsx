@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 export const Panel = ({ definition, panelOptions }) => (
   <div data-testid="mock-panel">
     <div data-testid="panel-definition" data-definition={JSON.stringify(definition)} />

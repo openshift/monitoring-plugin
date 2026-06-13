@@ -36,6 +36,7 @@ export const persesImportDashboardsPage = {
       cy.get(Classes.ImportDashboardTextArea).should('be.visible').click({ force: true });
 
       cy.window().then((win) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const models = (win as any).monaco?.editor?.getModels?.();
         if (Array.isArray(models) && models.length > 0) {
           models[0].setValue(textContent);

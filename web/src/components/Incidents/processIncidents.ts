@@ -82,12 +82,15 @@ function deduplicateByTimestampWithHighestSeverity(
  */
 
 function getSrcProperties(metric: PrometheusLabels): Partial<Metric> {
-  return Object.keys(metric)
-    .filter((key) => key.startsWith('src_'))
-    .reduce((acc: Record<string, any>, key) => {
-      acc[key] = metric[key as keyof Metric];
-      return acc;
-    }, {} as Partial<Metric>);
+  return (
+    Object.keys(metric)
+      .filter((key) => key.startsWith('src_'))
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .reduce((acc: Record<string, any>, key) => {
+        acc[key] = metric[key as keyof Metric];
+        return acc;
+      }, {} as Partial<Metric>)
+  );
 }
 
 /**

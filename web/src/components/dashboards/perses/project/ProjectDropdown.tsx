@@ -58,6 +58,7 @@ export const NoResults: FC<{
 /* ****************************************** */
 
 export const Filter: FC<{
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   filterRef: Ref<any>;
   onFilterChange: (filterText: string) => void;
   filterText: string;

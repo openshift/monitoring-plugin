@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /*
 Regression tests for time-based alert resolution issues with real firing alerts.
 
@@ -63,7 +64,7 @@ describe(
       cy.waitUntil(() => incidentsPage.findIncidentWithAlert(currentAlertName), {
         interval: intervalMs,
         timeout: maxMinutes * intervalMs,
-        errorMsg: `Incident with alert ${currentAlertName} should appear within ${maxMinutes} 
+        errorMsg: `Incident with alert ${currentAlertName} should appear within ${maxMinutes}
           minutes`,
       });
 

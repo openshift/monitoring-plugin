@@ -53,6 +53,7 @@ export const IncidentsTable = () => {
     if (alertsTableData && !alertsAreLoading) {
       const currentLength = alertsTableData.length;
       if (currentLength !== previousAlertDataLength) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setExpandedAlerts([]);
         setPreviousAlertDataLength(currentLength);
       }

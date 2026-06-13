@@ -19,6 +19,7 @@ import { MpCmoTargetsPage } from './components/targets-page';
 import i18n from './i18n';
 import ObserveReducers from './store/reducers';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type RootState = { observe: any };
 
 const baseReducers = Object.freeze({ observe: ObserveReducers });

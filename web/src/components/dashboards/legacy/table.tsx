@@ -120,6 +120,7 @@ const Table: FC<Props> = ({ customDataSource, panel, pollInterval, queries, name
               });
             }
             return acc;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           }, {} as any),
         );
       })

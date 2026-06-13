@@ -151,7 +151,9 @@ const AlertsPage_: FC = () => {
     [onSetFilters],
   );
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const filterItems = useMemo<TableFilterProps<any>[]>(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const filtersVals: TableFilterProps<any>[] = [
       {
         filterId: AlertFilterOptions.NAME,

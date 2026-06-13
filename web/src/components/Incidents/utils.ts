@@ -732,6 +732,7 @@ export const updateBrowserUrl = (params?: IncidentFiltersCombined, incidentGroup
 
 export const changeDaysFilter = (
   days: DaysFilters,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   dispatch: Dispatch<any>,
   filters: IncidentFiltersCombined,
 ) => {
@@ -860,6 +861,7 @@ export const calculateIncidentsChartDomain = (
 
 export const parseUrlParams = (search) => {
   const params = new URLSearchParams(search);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const result: { [key: string]: any } = {};
   const arrayKeys = ['days', 'groupId', 'severity', 'state'];
 

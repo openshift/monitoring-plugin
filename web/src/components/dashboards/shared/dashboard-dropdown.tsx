@@ -18,11 +18,14 @@ import { CombinedDashboardMetadata } from '../perses/hooks/useDashboardsData';
 type TagColor = 'red' | 'purple' | 'blue' | 'green' | 'teal' | 'orange';
 const tagColors: TagColor[] = ['red', 'purple', 'blue', 'green', 'teal', 'orange'];
 
+// eslint-disable-next-line react/prop-types
 const Tag: FC<{ color: TagColor; text: string }> = memo(({ color, text }) => (
   <Label isCompact color={color}>
     {text}
   </Label>
 ));
+
+Tag.displayName = 'Tag';
 
 export const DashboardDropdown: FC<DashboardDropdownProps> = ({ items, onChange, selectedKey }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -30,6 +33,7 @@ export const DashboardDropdown: FC<DashboardDropdownProps> = ({ items, onChange,
   const allTags = _.flatMap(items, 'tags');
   const uniqueTags = _.uniq(allTags);
 
+  // eslint-disable-next-line react/prop-types
   const OptionComponent = ({ value, isSelected, ...rest }) => {
     const matchedValue = items.find((item) => {
       return item.name === value;

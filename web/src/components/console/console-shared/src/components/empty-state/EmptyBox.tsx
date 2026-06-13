@@ -2,6 +2,7 @@ import type { FCC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ConsoleEmptyState } from './ConsoleEmptyState';
 
+// eslint-disable-next-line react/prop-types
 export const EmptyBox: FCC<EmptyBoxProps> = ({ label, customMessage }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 

@@ -24,6 +24,7 @@ export const useRefWidth = () => {
 
   useEffect(() => {
     if (width !== ref.current?.clientWidth) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setWidth(ref.current?.clientWidth);
     }
   }, [ref, width]);

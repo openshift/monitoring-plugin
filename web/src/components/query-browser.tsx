@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import {
   PrometheusEndpoint,
   PrometheusLabels,
@@ -123,6 +124,7 @@ const GraphEmptyState: FC<GraphEmptyStateProps> = ({ children, title }) => (
   </div>
 );
 
+// eslint-disable-next-line react/display-name
 const SpanControls: FC<SpanControlsProps> = memo(
   ({ defaultSpanText, onChange, span, hasReducedResolution }) => {
     const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -238,6 +240,7 @@ const getXDomain = (endTime: number, span: number): AxisDomain => [endTime - spa
 
 const ONE_MINUTE = 60 * 1000;
 
+// eslint-disable-next-line react/display-name
 const Graph: FC<GraphProps> = memo(
   ({
     allSeries,
@@ -1026,6 +1029,7 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
             data-test={DataTestIDs.MetricGraph}
           >
             {error && <Error error={error} />}
+            {/*eslint-disable-next-line react-hooks/refs */}
             {isGraphDataEmpty && !(hideControls && updating && hasReceivedData.current) ? (
               <GraphEmpty loading={updating} />
             ) : (
@@ -1124,6 +1128,7 @@ export type QueryBrowserProps = {
   showDisconnectedControl?: boolean;
   timespan?: number;
   units?: GraphUnits;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onDataChange?: (data: any) => void;
   isPlain?: boolean;
 };
