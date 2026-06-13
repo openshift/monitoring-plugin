@@ -67,6 +67,11 @@ function collectDebugInfo(MP: { namespace: string }, MCP?: { namespace: string }
     cy.log('DEBUG not set. Skipping operator debug information collection.');
     return;
   }
+  // TODO: Remove once DataViewFilters incompatibility with COO 1.5.0 is resolved
+  if (Cypress.env('COO_1_5_0')) {
+    cy.log('COO_1_5_0 set: skipping collectDebugInfo (DataViewFilters incompatibility)');
+    return;
+  }
   cy.aboutModal();
   cy.podImage('monitoring-plugin', MP.namespace);
   if (MCP && MCP.namespace) {
@@ -234,6 +239,7 @@ Cypress.Commands.add(
     }
     cooInstallUtils.installCOO(MCP);
     cooInstallUtils.waitForCOOReady(MCP);
+    cooInstallUtils.enableOpenShiftMode(MCP);
     imagePatchUtils.setupMonitoringConsolePlugin(MCP);
     if (opts.healthAnalyzer) {
       imagePatchUtils.setupClusterHealthAnalyzer(MCP);
