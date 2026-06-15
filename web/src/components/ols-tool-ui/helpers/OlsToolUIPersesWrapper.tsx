@@ -19,7 +19,7 @@ const queryClient = new QueryClient({
   },
 });
 
-interface OlsToolUIPersesWrapperProps {
+export interface OlsToolUIPersesWrapperProps {
   children: ReactNode;
   height?: string;
   initialTimeRange?: TimeRangeValue;

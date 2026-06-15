@@ -115,9 +115,8 @@ type MonitoringDashboardsPageProps = PropsWithChildren<{
   activeProject?: string;
 }>;
 
-export const DashboardHeader: FC<MonitoringDashboardsPageProps> = memo(
-  // eslint-disable-next-line react/prop-types
-  ({ children, dashboardDisplayName }) => {
+export const DashboardHeader = memo(
+  ({ children, dashboardDisplayName }: MonitoringDashboardsPageProps) => {
     const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
     return (
@@ -134,8 +133,7 @@ export const DashboardHeader: FC<MonitoringDashboardsPageProps> = memo(
 
 DashboardHeader.displayName = 'DashboardHeader';
 
-// eslint-disable-next-line react/prop-types
-export const DashboardListHeader: FC<MonitoringDashboardsPageProps> = memo(({ children }) => {
+export const DashboardListHeader = memo(({ children }: MonitoringDashboardsPageProps) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (

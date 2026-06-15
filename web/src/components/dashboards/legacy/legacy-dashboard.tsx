@@ -1,5 +1,3 @@
-/* eslint-disable react/prop-types */
-
 import * as _ from 'lodash-es';
 import {
   RedExclamationCircleIcon,
@@ -102,7 +100,7 @@ const getPanelSpan = (panel: Panel): gridSpans => {
   return 12;
 };
 
-const Card: FC<CardProps> = memo(({ panel, perspective, dashboardName }) => {
+const Card = memo(({ panel, perspective, dashboardName }: CardProps) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { plugin } = useMonitoring();
 

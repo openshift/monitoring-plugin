@@ -71,11 +71,9 @@ import { DataTestIDs } from '../data-test';
 import { useAlerts } from '../../hooks/useAlerts';
 
 // Renders Prometheus template text and highlights any {{ ... }} tags that it contains
-// eslint-disable-next-line react/prop-types
-const PrometheusTemplate = ({ text }) => (
+const PrometheusTemplate = ({ text }: { text: string }) => (
   <>
     {text
-      // eslint-disable-next-line react/prop-types
       ?.split(/(\{\{[^{}]*\}\})/)
       ?.map((part: string, i: number) =>
         part.match(/^\{\{[^{}]*\}\}$/) ? <code key={i}>{part}</code> : part,
