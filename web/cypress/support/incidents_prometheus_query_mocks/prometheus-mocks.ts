@@ -43,17 +43,13 @@ export function mockPrometheusQueryRange(incidents: IncidentDefinition[]): void 
     const queryStartTime = startTime ? parseFloat(startTime) : undefined;
     const queryEndTime = endTime ? parseFloat(endTime) : undefined;
 
-    // eslint-disable-next-line no-console
     console.log(`INTERCEPTED: ${req.method} ${req.url}`);
-    // eslint-disable-next-line no-console
     console.log(`Query: ${query}`);
-    // eslint-disable-next-line no-console
     console.log(`Time range: ${queryStartTime} - ${queryEndTime}`);
 
     const versioned_metric = query.includes(NEW_METRIC_NAME) ? NEW_METRIC_NAME : OLD_METRIC_NAME;
 
     if (!(query.includes(versioned_metric) || query.includes('ALERTS{'))) {
-      // eslint-disable-next-line no-console
       console.log(`Passing through non-mocked query`);
       req.continue();
       return;
@@ -135,7 +131,6 @@ Cypress.Commands.add('transformMetrics', () => {
 
     if (hasNewMetric) {
       const transformedQuery = query.replace(new RegExp(NEW_METRIC_NAME, 'g'), OLD_METRIC_NAME);
-      // eslint-disable-next-line no-console
       console.log(`Transforming metric query: ${query} -> ${transformedQuery}`);
 
       // Update the URL with the transformed query
@@ -148,7 +143,6 @@ Cypress.Commands.add('transformMetrics', () => {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           res.body.data.result.forEach((result: any) => {
             if (result?.metric?.__name__ === OLD_METRIC_NAME) {
-              // eslint-disable-next-line no-console
               console.log(
                 `Transforming response metric name: ${OLD_METRIC_NAME} -> ${NEW_METRIC_NAME}`,
               );

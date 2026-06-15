@@ -185,17 +185,13 @@ export function createIncidentMock(
         return;
       }
 
-      // eslint-disable-next-line no-console
       console.log(`Adding alert: ${alert.name} from incident: ${incident.id}`);
-      // eslint-disable-next-line no-console
       console.log(`Results array length before push: ${results.length}`);
       results.push({ metric, values });
-      // eslint-disable-next-line no-console
       console.log(`Results array length after push: ${results.length}`);
     });
   });
 
-  // eslint-disable-next-line no-console
   console.log(`Final results array length: ${results.length}`);
   return results;
 }
@@ -280,17 +276,13 @@ export function createAlertDetailsMock(
         return;
       }
 
-      // eslint-disable-next-line no-console
       console.log(`Adding ALERTS alert: ${alert.name} from incident: ${incident.id}`);
-      // eslint-disable-next-line no-console
       console.log(`ALERTS Results array length before push: ${results.length}`);
       results.push({ metric, values });
-      // eslint-disable-next-line no-console
       console.log(`ALERTS Results array length after push: ${results.length}`);
     });
   });
 
-  // eslint-disable-next-line no-console
   console.log(`Final ALERTS results array length: ${results.length}`);
   return results;
 }

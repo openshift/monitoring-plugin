@@ -22,7 +22,6 @@ const validate = ajv.compile(schema);
 
 function validateFixture(filePath: string): boolean {
   try {
-    // eslint-disable-next-line no-console
     console.log(`Validating: ${filePath}`);
 
     // Read and parse YAML
@@ -33,27 +32,22 @@ function validateFixture(filePath: string): boolean {
     const valid = validate(fixture);
 
     if (valid) {
-      // eslint-disable-next-line no-console
       console.log(`VALID: ${filePath}`);
-      // eslint-disable-next-line no-console, @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       console.log(`   Name: ${(fixture as any).name}`);
-      // eslint-disable-next-line no-console, @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       console.log(`   Incidents: ${(fixture as any).incidents?.length || 0}`);
       return true;
     } else {
-      // eslint-disable-next-line no-console
       console.log(`INVALID: ${filePath}`);
       validate.errors?.forEach((error) => {
         const errorPath = error.instancePath || 'root';
-        // eslint-disable-next-line no-console
         console.log(`   ${errorPath}: ${error.message}`);
       });
       return false;
     }
   } catch (error) {
-    // eslint-disable-next-line no-console
     console.log(`PARSE ERROR: ${filePath}`);
-    // eslint-disable-next-line no-console
     console.log(`   ${error instanceof Error ? error.message : 'Unknown error'}`);
     return false;
   }
@@ -63,13 +57,10 @@ function validateFixture(filePath: string): boolean {
 const args: string[] = process.argv.slice(2);
 
 if (args.length === 0) {
-  // eslint-disable-next-line no-console
   console.log('Usage: npm run ts-node validate-fixtures.ts <fixture-file.yaml> [<file2.yaml> ...]');
-  // eslint-disable-next-line no-console
   console.log(
     '   or: npm run ts-node validate-fixtures.ts --all (validates all .yaml files in fixtures directory)',
   );
-  // eslint-disable-next-line no-console
   console.log(
     'From web directory: npm run ts-node cypress/support/incidents_prometheus_query_mocks/schema/validate-fixtures.ts -- --all',
   );
@@ -83,7 +74,6 @@ if (args[0] === '--all') {
   const fixturesDir = path.join(__dirname, '../../../fixtures/incident-scenarios');
 
   if (!fs.existsSync(fixturesDir)) {
-    // eslint-disable-next-line no-console
     console.log(`ERROR: Fixtures directory not found: ${fixturesDir}`);
     process.exit(1);
   }
@@ -93,28 +83,23 @@ if (args[0] === '--all') {
     .filter((file) => file.endsWith('.yaml') || file.endsWith('.yml'));
 
   if (files.length === 0) {
-    // eslint-disable-next-line no-console
     console.log('No YAML fixture files found');
     process.exit(0);
   }
 
-  // eslint-disable-next-line no-console
   console.log(`Found ${files.length} YAML fixture files:`);
-  // eslint-disable-next-line no-console
   console.log('');
 
   files.forEach((file) => {
     const filePath = path.join(fixturesDir, file);
     const valid = validateFixture(filePath);
     if (!valid) allValid = false;
-    // eslint-disable-next-line no-console
     console.log('');
   });
 } else {
   // Validate specific files
   args.forEach((filePath) => {
     if (!fs.existsSync(filePath)) {
-      // eslint-disable-next-line no-console
       console.log(`ERROR: File not found: ${filePath}`);
       allValid = false;
       return;
@@ -122,7 +107,6 @@ if (args[0] === '--all') {
 
     const valid = validateFixture(filePath);
     if (!valid) allValid = false;
-    // eslint-disable-next-line no-console
     console.log('');
   });
 }
