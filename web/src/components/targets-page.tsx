@@ -212,7 +212,7 @@ const ServiceMonitor: FC<{ target: Target }> = ({ target }) => {
   );
 };
 
-const Health = memo(({ health }: { health: 'up' | 'down' }) => {
+const Health = memo(({ health }: { health?: 'up' | 'down' }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return health === 'up' ? (

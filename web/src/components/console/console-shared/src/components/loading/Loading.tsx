@@ -1,7 +1,6 @@
 import { Spinner } from '@patternfly/react-core';
-import type { FCC } from 'react';
 
-export const Loading: FCC<LoadingProps> = ({ className }: { className: string }) => (
+export const Loading = ({ className }: LoadingProps) => (
   <div className={className} data-test="loading-indicator">
     <Spinner size="lg" />
   </div>

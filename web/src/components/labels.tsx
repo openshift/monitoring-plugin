@@ -11,7 +11,7 @@ const Label = ({ k, v }: { k: string; v: string }) => (
   </PfLabel>
 );
 
-export const Labels = ({ labels }: { labels: PrometheusLabels }) => {
+export const Labels = ({ labels }: { labels?: PrometheusLabels }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return _.isEmpty(labels) ? (
