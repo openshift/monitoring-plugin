@@ -212,7 +212,7 @@ const ServiceMonitor: FC<{ target: Target }> = ({ target }) => {
   );
 };
 
-// eslint-disable-next-line react/display-name, react/prop-types
+// eslint-disable-next-line react/prop-types
 const Health: FC<{ health: 'up' | 'down' }> = memo(({ health }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
@@ -226,6 +226,8 @@ const Health: FC<{ health: 'up' | 'down' }> = memo(({ health }) => {
     </>
   );
 });
+
+Health.displayName = 'Health';
 
 type WatchErrorAlertProps = {
   loadError: { code: number; message: string };
