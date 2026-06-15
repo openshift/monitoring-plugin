@@ -124,7 +124,6 @@ const GraphEmptyState: FC<GraphEmptyStateProps> = ({ children, title }) => (
   </div>
 );
 
-// eslint-disable-next-line react/display-name
 const SpanControls: FC<SpanControlsProps> = memo(
   ({ defaultSpanText, onChange, span, hasReducedResolution }) => {
     const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -218,6 +217,8 @@ const SpanControls: FC<SpanControlsProps> = memo(
   },
 );
 
+SpanControls.displayName = 'SpanControls';
+
 const LegendContainer = ({ children }: { children?: ReactNode }) => {
   // The first child should be a <rect> with a `width` prop giving the legend's content width
   const width = children?.[0]?.props?.width ?? '100%';
@@ -240,7 +241,6 @@ const getXDomain = (endTime: number, span: number): AxisDomain => [endTime - spa
 
 const ONE_MINUTE = 60 * 1000;
 
-// eslint-disable-next-line react/display-name
 const Graph: FC<GraphProps> = memo(
   ({
     allSeries,
@@ -425,6 +425,8 @@ const Graph: FC<GraphProps> = memo(
     );
   },
 );
+
+Graph.displayName = 'Graph';
 
 const formatSeriesValues = (
   values: PrometheusValue[],
