@@ -38,6 +38,7 @@ import {
 import { dateTimeFormatter, timeFormatter } from '../../console/utils/datetime';
 import { useTranslation } from 'react-i18next';
 import { DataTestIDs } from '../../data-test';
+import { DEFAULT_CHART_CONTAINER_HEIGHT, DEFAULT_CHART_HEIGHT } from '../AlertsChart/AlertsChart';
 
 /**
  * Processes component list: moves "Others" to end and limits display to 3 components
@@ -73,8 +74,6 @@ const IncidentsChart = ({
   lastRefreshTime: number | null;
 }) => {
   const [isLoading, setIsLoading] = useState(true);
-  const [chartContainerHeight, setChartContainerHeight] = useState<number>();
-  const [chartHeight, setChartHeight] = useState<number>();
   const dateValues = useMemo(
     () => generateDateArray(chartDays, currentTime),
     [chartDays, currentTime],
@@ -82,8 +81,14 @@ const IncidentsChart = ({
 
   const { t, i18n } = useTranslation(process.env.I18N_NAMESPACE);
 
-  const chartData = useMemo(() => {
-    if (!Array.isArray(incidentsData) || incidentsData.length === 0) return [];
+  const { chartData, chartContainerHeight, chartHeight } = useMemo(() => {
+    if (!Array.isArray(incidentsData) || incidentsData.length === 0) {
+      return {
+        chartData: [],
+        chartContainerHeight: DEFAULT_CHART_CONTAINER_HEIGHT,
+        chartHeight: DEFAULT_CHART_HEIGHT,
+      };
+    }
 
     const filteredIncidents = selectedGroupId
       ? incidentsData.filter((incident) => incident.group_id === selectedGroupId)
@@ -96,19 +101,26 @@ const IncidentsChart = ({
     chartBars.sort((a, b) => a[0].x - b[0].x);
 
     // Reassign consecutive x values to eliminate gaps between bars
-    return chartBars.map((bars, index) => bars.map((bar) => ({ ...bar, x: index + 1 })));
+    const chartData = chartBars.map((bars, index) => bars.map((bar) => ({ ...bar, x: index + 1 })));
+    if (chartData.length < 5) {
+      return {
+        chartData,
+        chartContainerHeight: DEFAULT_CHART_CONTAINER_HEIGHT,
+        chartHeight: DEFAULT_CHART_HEIGHT,
+      };
+    }
+
+    return {
+      chartData,
+      chartContainerHeight: chartData.length * 60,
+      chartHeight: chartData.length * 55,
+    };
   }, [incidentsData, dateValues, selectedGroupId]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsLoading(false);
   }, [incidentsData]);
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setChartContainerHeight(chartData?.length < 5 ? 300 : chartData?.length * 60);
-    setChartHeight(chartData?.length < 5 ? 250 : chartData?.length * 55);
-  }, [chartData]);
 
   const [width, setWidth] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
