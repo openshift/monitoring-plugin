@@ -212,8 +212,7 @@ const ServiceMonitor: FC<{ target: Target }> = ({ target }) => {
   );
 };
 
-// eslint-disable-next-line react/prop-types
-const Health: FC<{ health: 'up' | 'down' }> = memo(({ health }) => {
+const Health = memo(({ health }: { health?: 'up' | 'down' }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return health === 'up' ? (

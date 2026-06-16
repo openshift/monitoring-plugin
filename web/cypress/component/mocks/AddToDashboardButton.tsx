@@ -1,5 +1,6 @@
-// eslint-disable-next-line react/prop-types
-export const AddToDashboardButton = ({ query, name, description }) => (
+import { AddToDashboardButtonProps } from '../../../src/components/ols-tool-ui/helpers/AddToDashboardButton';
+
+export const AddToDashboardButton = ({ query, name, description }: AddToDashboardButtonProps) => (
   <button
     data-testid="add-to-dashboard"
     data-name={name}

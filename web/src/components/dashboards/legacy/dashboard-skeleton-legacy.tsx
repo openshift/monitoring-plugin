@@ -35,9 +35,8 @@ type MonitoringDashboardsLegacyPageProps = PropsWithChildren<{
   dashboardName: string;
 }>;
 
-export const DashboardSkeletonLegacy: FC<MonitoringDashboardsLegacyPageProps> = memo(
-  // eslint-disable-next-line react/prop-types
-  ({ children, boardItems, changeBoard, dashboardName }) => {
+export const DashboardSkeletonLegacy = memo(
+  ({ children, boardItems, changeBoard, dashboardName }: MonitoringDashboardsLegacyPageProps) => {
     const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
     const onChangeBoard = useCallback(

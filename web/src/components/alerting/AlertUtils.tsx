@@ -124,8 +124,7 @@ const getSeverityKey = (severity: string, t) => {
   }
 };
 
-// eslint-disable-next-line react/prop-types
-export const SeverityIcon: FC<{ severity: string }> = memo(({ severity }) => {
+export const SeverityIcon = memo(({ severity }: { severity: string }) => {
   switch (severity) {
     case AlertSeverity.Critical:
       return <ExclamationCircleIcon color={t_global_color_status_danger_default.var} />;
@@ -142,8 +141,7 @@ export const SeverityIcon: FC<{ severity: string }> = memo(({ severity }) => {
 
 SeverityIcon.displayName = 'SeverityIcon';
 
-// eslint-disable-next-line react/prop-types
-export const AlertState: FC<AlertStateProps> = memo(({ state }) => {
+export const AlertState = memo(({ state }: AlertStateProps) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const icon = <AlertStateIcon state={state} />;
@@ -165,8 +163,7 @@ type AlertStateProps = {
   state: AlertStates;
 };
 
-// eslint-disable-next-line react/prop-types
-export const AlertStateIcon: FC<{ state: string }> = memo(({ state }) => {
+export const AlertStateIcon = memo(({ state }: { state: string }) => {
   switch (state) {
     case AlertStates.Firing:
       return <BellIcon />;
@@ -206,42 +203,38 @@ export const AlertStateDescription: FC<{ alert: Alert }> = ({ alert }) => {
   return null;
 };
 
-// eslint-disable-next-line react/prop-types
-export const StateTimestamp = ({ text, timestamp }) => (
+export const StateTimestamp = ({ text, timestamp }: { text: string; timestamp: string }) => (
   <div style={{ color: t_global_text_color_subtle.var }}>
     {text}&nbsp;
     <Timestamp timestamp={timestamp} className="pf-v6-u-display-inline" />
   </div>
 );
 
-export const SeverityBadge: FC<{ severity: string; count?: number }> = memo(
-  // eslint-disable-next-line react/prop-types
-  ({ severity, count }) => {
-    const { t } = useTranslation(process.env.I18N_NAMESPACE);
+export const SeverityBadge = memo(({ severity, count }: { severity: string; count?: number }) => {
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
-    if (_.isNil(severity)) return null;
+  if (_.isNil(severity)) return null;
 
-    const labelText = count ? count : getSeverityKey(severity, t);
-    switch (severity) {
-      case AlertSeverity.Critical:
-        return <Label status="danger">{labelText}</Label>;
-      case AlertSeverity.Warning:
-        return <Label status="warning">{labelText}</Label>;
-      case AlertSeverity.Info:
-        return <Label status="info">{labelText}</Label>;
-      case AlertSeverity.None:
-        return (
-          <Label variant="outline">
-            <SeverityUndefinedIcon color={t_global_icon_color_severity_undefined_default.var} />
-            &nbsp;
-            {labelText}
-          </Label>
-        );
-      default:
-        return <Label status="custom">{labelText}</Label>;
-    }
-  },
-);
+  const labelText = count ? count : getSeverityKey(severity, t);
+  switch (severity) {
+    case AlertSeverity.Critical:
+      return <Label status="danger">{labelText}</Label>;
+    case AlertSeverity.Warning:
+      return <Label status="warning">{labelText}</Label>;
+    case AlertSeverity.Info:
+      return <Label status="info">{labelText}</Label>;
+    case AlertSeverity.None:
+      return (
+        <Label variant="outline">
+          <SeverityUndefinedIcon color={t_global_icon_color_severity_undefined_default.var} />
+          &nbsp;
+          {labelText}
+        </Label>
+      );
+    default:
+      return <Label status="custom">{labelText}</Label>;
+  }
+});
 
 SeverityBadge.displayName = 'SeverityBadge';
 

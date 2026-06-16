@@ -48,7 +48,7 @@ function createPanelDefinition(query: string, name: string, description: string)
   };
 }
 
-type AddToDashboardButtonProps = {
+export type AddToDashboardButtonProps = {
   query: string;
   name?: string;
   description?: string;

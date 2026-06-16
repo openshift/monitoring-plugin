@@ -1,7 +1,5 @@
-/* eslint-disable react/prop-types */
 import { Alert, ResourceIcon, TableColumn } from '@openshift-console/dynamic-plugin-sdk';
 import { ExpandableRowContent, Table, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
-import type { FC } from 'react';
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getRuleUrl, usePerspective } from '../../../components/hooks/usePerspective';
@@ -16,15 +14,15 @@ import { Badge, Flex, FlexItem } from '@patternfly/react-core';
 import { DataTestIDs } from '../../data-test';
 import { AggregatedAlertFilters } from '../AlertsPage';
 
-type AggregateAlertTableRowProps = FC<{
+type AggregateAlertTableRowProps = {
   aggregatedAlert: AggregatedAlert;
   rowData: { rowIndex: number; selectedFilters: AggregatedAlertFilters };
-}>;
+};
 
-const AggregateAlertTableRow: AggregateAlertTableRowProps = ({
+const AggregateAlertTableRow = ({
   aggregatedAlert,
   rowData: { rowIndex, selectedFilters },
-}) => {
+}: AggregateAlertTableRowProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();

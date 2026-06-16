@@ -16,6 +16,7 @@ import {
   StackItem,
   SplitItem,
   Split,
+  SelectOptionProps,
 } from '@patternfly/react-core';
 import type { FC, Ref } from 'react';
 import { useCallback, useState, useEffect } from 'react';
@@ -98,8 +99,7 @@ export const evaluateVariableTemplate = (
   return result;
 };
 
-// eslint-disable-next-line react/prop-types
-const LegacyDashboardsVariableOption = ({ value, isSelected, ...rest }) =>
+const LegacyDashboardsVariableOption = ({ value, isSelected, ...rest }: SelectOptionProps) =>
   isIntervalVariable(String(value)) ? (
     <Tooltip content={value}>
       <SelectOption value={value} isSelected={isSelected || false}>

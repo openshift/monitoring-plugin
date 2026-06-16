@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import {
   PrometheusEndpoint,
   PrometheusLabels,
@@ -124,8 +123,8 @@ const GraphEmptyState: FC<GraphEmptyStateProps> = ({ children, title }) => (
   </div>
 );
 
-const SpanControls: FC<SpanControlsProps> = memo(
-  ({ defaultSpanText, onChange, span, hasReducedResolution }) => {
+const SpanControls = memo(
+  ({ defaultSpanText, onChange, span, hasReducedResolution }: SpanControlsProps) => {
     const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
     const [isValid, setIsValid] = useState(true);
@@ -241,7 +240,7 @@ const getXDomain = (endTime: number, span: number): AxisDomain => [endTime - spa
 
 const ONE_MINUTE = 60 * 1000;
 
-const Graph: FC<GraphProps> = memo(
+const Graph = memo(
   ({
     allSeries,
     disabledSeries,
@@ -252,7 +251,7 @@ const Graph: FC<GraphProps> = memo(
     span,
     units,
     width,
-  }) => {
+  }: GraphProps) => {
     const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
     const data: GraphSeries[] = [];
