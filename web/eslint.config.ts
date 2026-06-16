@@ -89,4 +89,10 @@ export default defineConfig([
       ],
     },
   },
+  {
+    files: ['cypress/**/*'],
+    rules: {
+      'no-console': 'off',
+    },
+  },
 ]);

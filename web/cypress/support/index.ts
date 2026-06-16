@@ -35,7 +35,6 @@ Cypress.on('uncaught:exception', (err) => {
     message.includes(`Cannot read properties of null (reading '0')`) ||
     message.includes(`load_plugin_entry`)
   ) {
-    // eslint-disable-next-line no-console
     console.warn('Ignored frontend exception:', err.message);
     return false;
   }
