@@ -221,7 +221,7 @@ const DashboardsTable: FC<DashboardsTableProps> = ({
     }
     return persesDashboards.map((board) => {
       const metadata = board?.metadata;
-      const displayName = board?.spec?.display?.name;
+      const displayName = board?.spec?.display?.name || metadata?.name;
       const dashboardsParams = `?dashboard=${metadata?.name}&project=${metadata?.project}`;
       const dashboardName: DashboardRowNameLink = {
         link: (
