@@ -27,6 +27,7 @@ const MP = {
 describe('BVT: Incidents - UI', { tags: ['@smoke', '@incidents'] }, () => {
   before(() => {
     cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
+    incidentsPage.warmUpForPlugin();
     cy.mockIncidentFixture(
       'incident-scenarios/1-single-incident-firing-critical-and-warning-alerts.yaml',
     );
@@ -88,6 +89,53 @@ describe('BVT: Incidents - UI', { tags: ['@smoke', '@incidents'] }, () => {
 
     cy.log('5.3 Verify traversing incident table works when the alert is present');
     cy.mockIncidentFixture('incident-scenarios/6-multi-incident-target-alert-scenario.yaml');
+    incidentsPage.clearAllFilters();
     incidentsPage.findIncidentWithAlert('TargetAlert').should('be.true');
+  });
+
+  it('6. Admin perspective - Incidents page - Bar click selection walkthrough', () => {
+    cy.log('6.1 Load multi-incident fixture and verify chart bars are clickable');
+    cy.mockIncidentFixture(
+      'incident-scenarios/1-single-incident-firing-critical-and-warning-alerts.yaml',
+    );
+    incidentsPage.goTo();
+    incidentsPage.clearAllFilters();
+    incidentsPage.setDays('7 days');
+    incidentsPage.elements.incidentsChartContainer().should('be.visible');
+
+    cy.log('6.2 Select incident bar and verify table appears with expected alerts');
+    incidentsPage.selectIncidentByBarIndex(0);
+    incidentsPage.elements.incidentsTable().should('be.visible');
+    incidentsPage.elements.incidentsTableComponentCell(0).should('contain.text', 'monitoring');
+    incidentsPage.expandRow(0);
+    incidentsPage.elements.incidentsDetailsTable().should('be.visible');
+    incidentsPage.elements.incidentsDetailsAlertRuleCell(0).should('be.visible');
+    incidentsPage.elements
+      .incidentsDetailsTable()
+      .should('contain.text', 'AlertmanagerReceiversNotConfigured');
+    incidentsPage.elements
+      .incidentsDetailsTable()
+      .should('contain.text', 'KubeDeploymentReplicasMismatch');
+    incidentsPage.elements.incidentsDetailsTable().should('contain.text', 'KubePodCrashLooping');
+
+    cy.log('6.3 Deselect incident bar and verify table disappears');
+    incidentsPage.deselectIncidentByBar(0);
+    incidentsPage.elements.incidentsTable().should('not.exist');
+
+    cy.log('6.4 Select by incident ID and verify table appears with expected alerts');
+    incidentsPage.selectIncidentById('monitoring-critical-001');
+    incidentsPage.elements.incidentsTable().should('be.visible');
+    incidentsPage.expandRow(0);
+    incidentsPage.elements
+      .incidentsDetailsTable()
+      .should('contain.text', 'AlertmanagerReceiversNotConfigured');
+    incidentsPage.elements
+      .incidentsDetailsTable()
+      .should('contain.text', 'KubeDeploymentReplicasMismatch');
+    incidentsPage.elements.incidentsDetailsTable().should('contain.text', 'KubePodCrashLooping');
+
+    cy.log('6.5 Deselect by incident ID and verify table disappears');
+    incidentsPage.deselectIncidentById('monitoring-critical-001');
+    incidentsPage.elements.incidentsTable().should('not.exist');
   });
 });

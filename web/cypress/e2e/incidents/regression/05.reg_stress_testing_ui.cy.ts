@@ -34,6 +34,7 @@ const MAX_GAP_RELAXED = 500;
 describe('Regression: Stress Testing UI', { tags: ['@incidents'] }, () => {
   before(() => {
     cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
+    incidentsPage.warmUpForPlugin();
   });
 
   it('5.1 No excessive padding between chart top and alert bars for 100, 200, and 500 alerts', () => {

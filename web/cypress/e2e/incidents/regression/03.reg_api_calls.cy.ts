@@ -34,6 +34,7 @@ const MP = {
 describe('Regression: Silences Not Applied Correctly', { tags: ['@incidents'] }, () => {
   before(() => {
     cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
+    incidentsPage.warmUpForPlugin();
   });
 
   beforeEach(() => {
