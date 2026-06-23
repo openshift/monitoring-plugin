@@ -1,4 +1,3 @@
-import * as _ from 'lodash-es';
 import {
   PrometheusEndpoint,
   PrometheusResponse,
@@ -7,97 +6,48 @@ import {
   useResolvedExtensions,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
-  Tooltip,
-  Select,
-  SelectOption,
   MenuToggle,
   MenuToggleElement,
+  Select,
+  SelectOption,
+  SelectOptionProps,
+  Split,
+  SplitItem,
   Stack,
   StackItem,
-  SplitItem,
-  Split,
-  SelectOptionProps,
+  Tooltip,
 } from '@patternfly/react-core';
+import * as _ from 'lodash-es';
 import type { FC, Ref } from 'react';
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { SingleTypeaheadDropdown } from '../../console/utils/single-typeahead-dropdown';
-import { getPrometheusBasePath, buildPrometheusUrl, ALL_NAMESPACES_KEY } from '../../utils';
 import { useSafeFetch } from '../../console/utils/safe-fetch-hook';
+import { SingleTypeaheadDropdown } from '../../console/utils/single-typeahead-dropdown';
+import { buildPrometheusUrl, getPrometheusBasePath } from '../../utils';
 
+import {
+  DataSource,
+  isDataSource,
+} from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
+import { StringParam, useQueryParam } from 'use-query-params';
+import { useMonitoring } from '../../../hooks/useMonitoring';
 import { dashboardsPatchVariable, dashboardsVariableOptionsLoaded } from '../../../store/actions';
-import { getTimeRanges, isTimeoutError, QUERY_CHUNK_SIZE } from '../../utils';
-import { getObserveState, usePerspective } from '../../hooks/usePerspective';
 import { MonitoringState } from '../../../store/store';
+import { useDeepMemo } from '../../hooks/useDeepMemo';
+import { getObserveState, usePerspective } from '../../hooks/usePerspective';
+import { QueryParams } from '../../query-params';
+import { getTimeRanges, isTimeoutError, QUERY_CHUNK_SIZE } from '../../utils';
 import {
   DEFAULT_GRAPH_SAMPLES,
   MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY,
   TimeRangeParam,
 } from './utils';
-import { QueryParams } from '../../query-params';
-import {
-  DataSource,
-  isDataSource,
-} from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
-import { useMonitoring } from '../../../hooks/useMonitoring';
-import { useDeepMemo } from '../../hooks/useDeepMemo';
-import { StringParam, useQueryParam } from 'use-query-params';
-
-const intervalVariableRegExps = ['__interval', '__rate_interval', '__auto_interval_[a-z]+'];
-
-const isIntervalVariable = (itemKey: string): boolean =>
-  _.some(intervalVariableRegExps, (re) => itemKey?.match(new RegExp(`\\$${re}`, 'g')));
-
-export const evaluateVariableTemplate = (
-  template: string,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  variables: any,
-  timespan: number,
-  namespace: string,
-): string => {
-  if (_.isEmpty(template)) {
-    return undefined;
-  }
-
-  const range: Variable = { value: `${Math.floor(timespan / 1000)}s` };
-  const allVariables = {
-    ...variables,
-    __range: range,
-    __range_ms: range,
-    __range_s: range,
-  };
-
-  // Handle the special "interval" variables
-  const intervalMS = timespan / DEFAULT_GRAPH_SAMPLES;
-  const intervalMinutes = Math.floor(intervalMS / 1000 / 60);
-  // Use a minimum of 5m to make sure we have enough data to perform `irate` calculations, which
-  // require 2 data points each. Otherwise, there could be gaps in the graph.
-  const interval: Variable = { value: `${Math.max(intervalMinutes, 5)}m` };
-  // Add these last to ensure they are applied after other variable substitutions (because the other
-  // variable substitutions may result in interval variables like $__interval being inserted)
-  intervalVariableRegExps.forEach((k) => (allVariables[k] = interval));
-
-  let result = template;
-  _.each(allVariables, (v, k) => {
-    const re = new RegExp(`\\$${k}`, 'g');
-    if (result.match(re)) {
-      if (v.isLoading) {
-        result = undefined;
-        return false;
-      }
-      let replacement =
-        v.value === MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY ? '.+' : v.value || '';
-      if (v.name === 'namespace' && namespace !== ALL_NAMESPACES_KEY) {
-        replacement = namespace;
-      }
-      result = result.replace(re, replacement);
-    }
-  });
-
-  return result;
-};
+import type { Variable } from './variable-utils';
+import { evaluateVariableTemplate, isIntervalVariable } from './variable-utils';
+export { evaluateVariableTemplate } from './variable-utils';
+export type { Variable } from './variable-utils';
 
 const LegacyDashboardsVariableOption = ({ value, isSelected, ...rest }: SelectOptionProps) =>
   isIntervalVariable(String(value)) ? (
@@ -375,17 +325,6 @@ export const LegacyDashboardsAllVariableDropdowns: FC<{ dashboardName: string }>
       ))}
     </Split>
   );
-};
-
-export type Variable = {
-  isHidden?: boolean;
-  isLoading?: boolean;
-  includeAll?: boolean;
-  options?: string[];
-  query?: string;
-  value?: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  datasource?: any;
 };
 
 type VariableDropdownProps = {
