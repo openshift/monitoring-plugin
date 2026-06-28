@@ -1144,7 +1144,7 @@ const QueryBrowserWrapper: FC<{
     if (!newParams.get(QueryParams.Units)) {
       newParams.set(QueryParams.Units, 'short');
     }
-    setQueryParams(newParams);
+    setQueryParams(newParams, { replace: true });
   }, [queryStrings, customDataSourceName, isFirstRender, queryParams]);
 
   if (hideGraphs) {
