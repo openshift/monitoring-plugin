@@ -22,6 +22,7 @@ export const dashboardsUtils = {
     );
     cy.log(`Monitoring plugin pod is now running in namespace: ${MCP.namespace}`);
     cy.checkForAlertRecursively();
+    cy.dynamicPluginWorkConsoleAround();
   },
 
   setupDashboardsAndPlugins(MCP: { namespace: string }): void {
@@ -113,6 +114,7 @@ export const dashboardsUtils = {
     );
     cy.log(`Korrel8r pod is now running in namespace: ${MCP.namespace}`);
     cy.checkForAlertRecursively();
+    cy.dynamicPluginWorkConsoleAround();
     cy.reload(true);
 
     // Dynamic plugins may take time to register after reload.
@@ -126,7 +128,7 @@ export const dashboardsUtils = {
           .then(() =>
             cy
               .get(`[data-test="${DataTestIDs.MastHeadApplicationItem}"]`, { timeout: 5000 })
-              .then(($items) => $items.filter(':contains("Signal Correlation")').length > 0)
+              .then(($items) => $items.filter(':contains("Signal correlation")').length > 0)
               .then((found) => {
                 if (!found) {
                   cy.byLegacyTestID(LegacyTestIDs.ApplicationLauncher).click();

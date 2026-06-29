@@ -6,7 +6,7 @@ export const troubleshootingPanelPage = {
     cy.byLegacyTestID(LegacyTestIDs.ApplicationLauncher).should('be.visible').click();
     cy.wait(3000);
     cy.byTestID(DataTestIDs.MastHeadApplicationItem)
-      .contains('Signal Correlation')
+      .contains('Signal correlation')
       .should('be.visible')
       .click();
     cy.wait(3000);
@@ -16,7 +16,7 @@ export const troubleshootingPanelPage = {
     cy.log('troubleshootingPanelPage.signalCorrelationShouldNotBeVisible');
     cy.byLegacyTestID(LegacyTestIDs.ApplicationLauncher).should('be.visible').click();
     cy.byTestID(DataTestIDs.MastHeadApplicationItem)
-      .contains('Signal Correlation')
+      .contains('Signal correlation')
       .should('not.exist');
     cy.byLegacyTestID(LegacyTestIDs.ApplicationLauncher).should('be.visible').click();
   },

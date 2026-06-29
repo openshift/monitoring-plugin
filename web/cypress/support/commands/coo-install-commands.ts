@@ -111,7 +111,7 @@ export const cooInstallUtils = {
 
   waitForCOOReady(MCP: { namespace: string }): void {
     cy.log('Check Cluster Observability Operator status');
-    const kubeconfig = Cypress.env('KUBECONFIG_PATH') as string;
+    const kubeconfig = Cypress.env('KUBECONFIG_PATH');
 
     cy.exec(`oc project ${MCP.namespace} --kubeconfig ${kubeconfig}`);
 
@@ -151,6 +151,8 @@ export const cooInstallUtils = {
       });
 
     if (Cypress.env('COO_UI_INSTALL')) {
+      cy.dynamicPluginWorkConsoleAround();
+
       cy.switchPerspective('Core platform');
       cy.get('#page-sidebar').then(($sidebar) => {
         const section = $sidebar.text().includes('Ecosystem') ? 'Ecosystem' : 'Operators';

@@ -17,6 +17,7 @@ declare global {
       podImage(pod: string, namespace: string): Chainable<Element>;
       assertNamespace(namespace: string, exists: boolean): Chainable<Element>;
       checkForAlertRecursively(attemptsLeft?: number): Chainable<Element>;
+      dynamicPluginWorkConsoleAround(): Chainable<Element>;
     }
   }
 }
@@ -133,6 +134,9 @@ Cypress.Commands.add('changeNamespace', (namespace: string) => {
 Cypress.Commands.add('aboutModal', () => {
   cy.log('Getting OCP version');
   if (Cypress.env('LOGIN_USERNAME') === 'kubeadmin') {
+    cy.visit('/');
+    cy.wait(10000);
+    cy.waitUntil(() => cy.byTestID('Operators', { timeout: 10000 }).should('be.visible'));
     cy.byTestID(DataTestIDs.MastHeadHelpIcon).should('be.visible');
     cy.byTestID(DataTestIDs.MastHeadHelpIcon).should('be.visible').click({ force: true });
     cy.wait(3000);
@@ -167,6 +171,10 @@ Cypress.Commands.add('podImage', (pod: string, namespace: string) => {
   cy.switchPerspective('Core platform', 'Administrator');
   cy.clickNavLink(['Workloads', 'Pods']);
   cy.byTestID('page-heading').contains('Pods').should('be.visible');
+  // Wait for the pod table to load to not compromise the namespace change
+  cy.get('table tbody tr, [data-ouia-component-id="DataViewTable"] tbody tr', {
+    timeout: 30000,
+  }).should('have.length.greaterThan', 0);
   cy.changeNamespace(namespace);
   // Wait for the pod table to load after namespace change so the page stabilizes
   cy.get('table tbody tr, [data-ouia-component-id="DataViewTable"] tbody tr', {
@@ -317,6 +325,50 @@ Cypress.Commands.add('checkForAlertRecursively', (attemptsLeft = 24) => {
       cy.checkForAlertRecursively(attemptsLeft - 1);
     } else {
       cy.log('No web console update alert found after 2 minutes, continuing...');
+    }
+  });
+});
+
+Cypress.Commands.add('dynamicPluginWorkConsoleAround', () => {
+  cy.visit('/');
+  cy.wait(10000);
+  cy.get('body').then(($body) => {
+    let a = 0;
+    while ($body.find('[data-test="Operators"]').length === 0 && a < 6) {
+      cy.log('Operators not found. Waiting for 10 seconds and trying again.');
+      cy.wait(10000);
+      a++;
+      let i = 0;
+      cy.log('Checking for try again button');
+      while ($body.find('button:contains("Try again")').length > 0 && i < 2) {
+        cy.log('Try again button found. Clicking it.');
+        cy.bySemanticElement('button', 'Try again').click();
+        cy.wait(10000);
+        i++;
+      }
+
+      cy.reload();
+      cy.wait(10000);
+
+      i = 0;
+      cy.log('Checking for loading state');
+      while (
+        $body.find('[data-test^="loading"]').length > 0 &&
+        $body.find('button:contains("Refresh")').length === 0 &&
+        i < 6
+      ) {
+        cy.log('Refresh button not found. Waiting for 10 seconds and trying again.');
+        cy.wait(10000);
+        i++;
+      }
+      i = 0;
+      cy.log('Checking for refresh button');
+      while ($body.find('button:contains("Refresh")').length > 0 && i < 6) {
+        cy.log('Refresh button found. Clicking it.');
+        cy.bySemanticElement('button', 'Refresh').click();
+        cy.wait(10000);
+        i++;
+      }
     }
   });
 });
