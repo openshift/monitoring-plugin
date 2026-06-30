@@ -1,4 +1,5 @@
 import { AlertSeverity, AlertStates, DocumentTitle } from '@openshift-console/dynamic-plugin-sdk';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { PageSection, PaginationVariant } from '@patternfly/react-core';
 import DataView from '@patternfly/react-data-view/dist/dynamic/DataView';
 import DataViewTableHead from '@patternfly/react-data-view/dist/dynamic/DataViewTableHead';
@@ -322,6 +323,15 @@ const AlertsPage_: FC = () => {
 };
 const AlertsPageWithFallback = withFallback(AlertsPage_);
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: false,
+    },
+  },
+});
+
 const sortAggregatedAlerts = (
   data: AggregatedAlert[],
   sortBy: string | undefined,
@@ -344,18 +354,22 @@ const sortAggregatedAlerts = (
 
 export const MpCmoAlertsPage = () => {
   return (
-    <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
-      <AlertsPageWithFallback />
-    </MonitoringProvider>
+    <QueryClientProvider client={queryClient}>
+      <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
+        <AlertsPageWithFallback />
+      </MonitoringProvider>
+    </QueryClientProvider>
   );
 };
 
 export const McpAcmAlertsPage = () => {
   return (
-    <MonitoringProvider
-      monitoringContext={{ plugin: 'monitoring-console-plugin', prometheus: 'acm' }}
-    >
-      <AlertsPageWithFallback />
-    </MonitoringProvider>
+    <QueryClientProvider client={queryClient}>
+      <MonitoringProvider
+        monitoringContext={{ plugin: 'monitoring-console-plugin', prometheus: 'acm' }}
+      >
+        <AlertsPageWithFallback />
+      </MonitoringProvider>
+    </QueryClientProvider>
   );
 };

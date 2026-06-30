@@ -318,3 +318,15 @@ export const getDashboardsListUrl = (perspective: Perspective) => {
       return '';
   }
 };
+
+export const getProposalsUrl = (perspective: Perspective, params?: URLSearchParams): string => {
+  const qs = params ? params.toString() : '';
+  const queryParams = qs ? `?${qs}` : '';
+
+  switch (perspective) {
+    case 'admin':
+      return `/monitoring/v2/ai/proposals${queryParams}`;
+    default:
+      return '';
+  }
+};

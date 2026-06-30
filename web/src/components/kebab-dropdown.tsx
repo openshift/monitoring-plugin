@@ -1,12 +1,14 @@
-import type { FC, Ref } from 'react';
+import type { FC, MouseEventHandler, ReactNode, Ref } from 'react';
 import { Dropdown, DropdownList, MenuToggle, MenuToggleElement } from '@patternfly/react-core';
 import { EllipsisVIcon } from '@patternfly/react-icons';
 
 import { useBoolean } from './hooks/useBoolean';
 import { DataTestIDs } from './data-test';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const KebabDropdown: FC<{ dropdownItems: any[] }> = ({ dropdownItems }) => {
+const KebabDropdown: FC<{
+  dropdownItems: ReactNode;
+  onMouseEnter?: MouseEventHandler;
+}> = ({ dropdownItems, onMouseEnter }) => {
   const [isOpen, setIsOpen, setOpen, setClosed] = useBoolean(false);
 
   return (
@@ -23,6 +25,7 @@ const KebabDropdown: FC<{ dropdownItems: any[] }> = ({ dropdownItems }) => {
           data-test={DataTestIDs.KebabDropdownButton}
           variant="plain"
           onClick={setIsOpen}
+          onMouseEnter={onMouseEnter}
           isExpanded={isOpen}
         >
           <EllipsisVIcon />

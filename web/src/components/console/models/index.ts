@@ -91,3 +91,17 @@ export const StatefulSetModel = {
   namespaced: true,
   kind: 'StatefulSet',
 };
+
+export const ProposalModel: K8sModel = {
+  kind: 'Proposal',
+  label: 'Proposal',
+  labelKey: 'Proposal',
+  labelPlural: 'Proposals',
+  labelPluralKey: 'Proposals',
+  apiGroup: 'agentic.openshift.io',
+  apiVersion: 'v1alpha1',
+  abbr: 'PP',
+  namespaced: true,
+  crd: true,
+  plural: 'proposals',
+};
