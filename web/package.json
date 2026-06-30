@@ -47,6 +47,7 @@
     "test-cypress-fast": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@smoke --@slow --@demo --@flaky --@xfail'",
     "test-cypress-perses-dev": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@perses-dev --@demo --@xfail'",
     "test-cypress-perses": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@perses --@smoke --@flaky --@demo --@xfail'",
+    "test-cypress-perses-ivt": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@perses-ivt --@smoke --@flaky --@demo --@xfail'",
     "ts-node": "ts-node -O '{\"module\":\"commonjs\"}'"
   },
   "dependencies": {

@@ -75,7 +75,7 @@ export function testMetricsRegression2(perspective: PerspectiveConfig) {
     cy.get(Classes.MetricsPageQueryInput)
       .eq(1)
       .should('contain', MetricsPageQueryInput.INSERT_EXAMPLE_QUERY);
-    cy.byTestID(DataTestIDs.MetricGraph).should('be.visible');
+    cy.byTestID(DataTestIDs.MetricGraph).scrollIntoView().should('be.visible');
     metricsPage.clickKebabDropdown(0);
     cy.get(Classes.MenuItemDisabled)
       .contains(MetricsPageQueryKebabDropdown.HIDE_ALL_SERIES)
@@ -316,6 +316,9 @@ export function testMetricsRegression2(perspective: PerspectiveConfig) {
       .contains(MetricsPageQueryKebabDropdown.HIDE_ALL_SERIES)
       .should('have.attr', 'aria-disabled', 'true');
     cy.byTestID(DataTestIDs.MetricsPageExportCsvDropdownItem).should('not.exist');
+
+    cy.log('6.18 Delete All Queries');
+    metricsPage.clickActionsDeleteAllQueries();
   });
 
   it(`${perspective.name} perspective - Metrics > Predefined Queries > Export as CSV`, () => {

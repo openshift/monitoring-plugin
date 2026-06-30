@@ -170,6 +170,7 @@ export const persesDashboardsPage = {
     cy.byTestID(DataTestIDs.PersesDashboardDropdown)
       .find('input')
       .should('have.value', dashboardName);
+    cy.wait(2000);
   },
 
   clickTimeRangeDropdown: (timeRange: persesDashboardsTimeRange) => {
@@ -330,6 +331,7 @@ export const persesDashboardsPage = {
         .scrollIntoView()
         .should('be.visible');
     });
+    cy.byTestID(DataTestIDs.PersesDashboardDropdown).scrollIntoView().should('be.visible');
   },
 
   expandPanel: (panel: string) => {
@@ -391,6 +393,7 @@ export const persesDashboardsPage = {
     cy.log('persesDashboardsPage.searchAndSelectVariable');
     cy.byDataTestID(persesMUIDataTestIDs.variableDropdown + '-' + variable)
       .find('input')
+      .scrollIntoView()
       .type(value);
     cy.byPFRole('option').contains(value).click({ force: true });
     cy.byDataTestID(persesMUIDataTestIDs.variableDropdown + '-' + variable)

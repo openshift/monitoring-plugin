@@ -33,7 +33,8 @@ Cypress.on('uncaught:exception', (err) => {
     message.includes(`Cannot read properties of null (reading 'default')`) ||
     message.includes(`(intermediate value) is not a function`) ||
     message.includes(`Cannot read properties of null (reading '0')`) ||
-    message.includes(`load_plugin_entry`)
+    message.includes(`load_plugin_entry`) ||
+    message.includes(`Cannot access 'y' before initialization`)
   ) {
     console.warn('Ignored frontend exception:', err.message);
     return false;

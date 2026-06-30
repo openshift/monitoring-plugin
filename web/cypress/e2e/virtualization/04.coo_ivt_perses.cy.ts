@@ -61,7 +61,7 @@ describe('Installation: Virtualization', { tags: ['@virtualization', '@slow'] },
 
 describe(
   'IVT: COO - Dashboards (Perses) - Virtualization perspective',
-  { tags: ['@virtualization', '@perses'] },
+  { tags: ['@virtualization', '@perses-ivt'] },
   () => {
     beforeEach(() => {
       cy.visit('/');

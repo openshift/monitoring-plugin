@@ -21,9 +21,9 @@ export const cooInstallUtils = {
       cy.exec(
         `oc label namespace ${
           MCP.namespace
-        } openshift.io/cluster-monitoring=true --overwrite=true --kubeconfig ${Cypress.env(
+        } openshift.io/cluster-monitoring=true --overwrite=true --kubeconfig "${Cypress.env(
           'KUBECONFIG_PATH',
-        )}`,
+        )}"`,
       );
     } else if (Cypress.env('KONFLUX_COO_BUNDLE_IMAGE')) {
       cy.log(
@@ -31,28 +31,28 @@ export const cooInstallUtils = {
       );
       cy.log('Install Cluster Observability Operator');
       cy.exec(
-        `oc --kubeconfig ${Cypress.env(
+        `oc --kubeconfig "${Cypress.env(
           'KUBECONFIG_PATH',
-        )} apply -f ./cypress/fixtures/coo/coo-imagecontentsourcepolicy.yaml`,
+        )}" apply -f ./cypress/fixtures/coo/coo-imagecontentsourcepolicy.yaml`,
       );
       cy.exec(
-        `oc create namespace ${MCP.namespace} --kubeconfig ${Cypress.env(
+        `oc create namespace ${MCP.namespace} --kubeconfig "${Cypress.env(
           'KUBECONFIG_PATH',
-        )} --dry-run=client -o yaml | oc apply --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} -f -`,
+        )}" --dry-run=client -o yaml | oc apply --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}" -f -`,
       );
       cy.exec(
         `oc label namespace ${
           MCP.namespace
-        } openshift.io/cluster-monitoring=true --overwrite=true --kubeconfig ${Cypress.env(
+        } openshift.io/cluster-monitoring=true --overwrite=true --kubeconfig "${Cypress.env(
           'KUBECONFIG_PATH',
-        )}`,
+        )}"`,
       );
       cy.exec(
         `operator-sdk run bundle --timeout=10m --install-mode=AllNamespaces --namespace ${
           MCP.namespace
         } --security-context-config restricted ${Cypress.env(
           'KONFLUX_COO_BUNDLE_IMAGE',
-        )} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} --verbose `,
+        )} --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}" --verbose `,
         { timeout: installTimeoutMilliseconds },
       );
     } else if (Cypress.env('CUSTOM_COO_BUNDLE_IMAGE')) {
@@ -61,44 +61,44 @@ export const cooInstallUtils = {
       );
       cy.log('Install Cluster Observability Operator');
       cy.exec(
-        `oc --kubeconfig ${Cypress.env(
+        `oc --kubeconfig "${Cypress.env(
           'KUBECONFIG_PATH',
-        )} apply -f ./cypress/fixtures/coo/coo-imagecontentsourcepolicy.yaml`,
+        )}" apply -f ./cypress/fixtures/coo/coo-imagecontentsourcepolicy.yaml`,
       );
       cy.log(`Creating namespace ${MCP.namespace}`);
       cy.exec(
-        `oc create namespace ${MCP.namespace} --kubeconfig ${Cypress.env(
+        `oc create namespace ${MCP.namespace} --kubeconfig "${Cypress.env(
           'KUBECONFIG_PATH',
-        )} --dry-run=client -o yaml | oc apply --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} -f -`,
+        )}" --dry-run=client -o yaml | oc apply --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}" -f -`,
       );
       cy.log(`Labeling namespace ${MCP.namespace} with openshift.io/cluster-monitoring=true`);
       cy.exec(
         `oc label namespace ${
           MCP.namespace
-        } openshift.io/cluster-monitoring=true --overwrite=true --kubeconfig ${Cypress.env(
+        } openshift.io/cluster-monitoring=true --overwrite=true --kubeconfig "${Cypress.env(
           'KUBECONFIG_PATH',
-        )}`,
+        )}"`,
       );
       cy.exec(
         `operator-sdk run bundle --timeout=10m --install-mode=AllNamespaces --namespace ${
           MCP.namespace
         } --security-context-config restricted ${Cypress.env(
           'CUSTOM_COO_BUNDLE_IMAGE',
-        )} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} --verbose `,
+        )} --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}" --verbose `,
         { timeout: installTimeoutMilliseconds },
       );
     } else if (Cypress.env('FBC_STAGE_COO_IMAGE')) {
       cy.log('FBC_COO_IMAGE is set. COO operator will be installed from FBC image.');
       cy.log('Install Cluster Observability Operator');
       cy.exec(
-        `oc --kubeconfig ${Cypress.env(
+        `oc --kubeconfig "${Cypress.env(
           'KUBECONFIG_PATH',
-        )} apply -f ./cypress/fixtures/coo/coo-imagecontentsourcepolicy.yaml`,
+        )}" apply -f ./cypress/fixtures/coo/coo-imagecontentsourcepolicy.yaml`,
       );
       cy.exec('./cypress/fixtures/coo/coo_stage.sh', {
         env: {
           FBC_STAGE_COO_IMAGE: Cypress.env('FBC_STAGE_COO_IMAGE'),
-          KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
+          KUBECONFIG: Cypress.env('KUBECONFIG_PATH') as string,
         },
         timeout: installTimeoutMilliseconds,
       });
@@ -151,6 +151,8 @@ export const cooInstallUtils = {
       });
 
     if (Cypress.env('COO_UI_INSTALL')) {
+      cy.dynamicPluginWorkConsoleAround();
+
       cy.switchPerspective('Core platform');
       cy.get('#page-sidebar').then(($sidebar) => {
         const section = $sidebar.text().includes('Ecosystem') ? 'Ecosystem' : 'Operators';
@@ -300,7 +302,7 @@ export const cooInstallUtils = {
         cy.exec(
           `oc delete csv --all -n ${
             MCP.namespace
-          } --ignore-not-found --wait=false --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+          } --ignore-not-found --wait=false --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
           { timeout: 30000, failOnNonZeroExit: false },
         ).then((result) => {
           if (result.code === 0) {
@@ -313,7 +315,7 @@ export const cooInstallUtils = {
         cy.exec(
           `oc delete subscription --all -n ${
             MCP.namespace
-          } --ignore-not-found --wait=false --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+          } --ignore-not-found --wait=false --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
           { timeout: 30000, failOnNonZeroExit: false },
         ).then((result) => {
           if (result.code === 0) {
@@ -326,7 +328,7 @@ export const cooInstallUtils = {
         cy.exec(
           `oc delete namespace ${
             MCP.namespace
-          } --ignore-not-found --wait=false --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+          } --ignore-not-found --wait=false --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
           { timeout: 30000, failOnNonZeroExit: false },
         ).then((result) => {
           if (result.code === 0) {
@@ -351,9 +353,9 @@ export const cooInstallUtils = {
             );
             return cy
               .exec(
-                `./cypress/fixtures/coo/force_delete_ns.sh ${MCP.namespace} ${Cypress.env(
+                `./cypress/fixtures/coo/force_delete_ns.sh ${MCP.namespace} "${Cypress.env(
                   'KUBECONFIG_PATH',
-                )}`,
+                )}"`,
                 { failOnNonZeroExit: false, timeout: installTimeoutMilliseconds },
               )
               .then((result) => {
@@ -365,9 +367,9 @@ export const cooInstallUtils = {
           }
 
           cy.exec(
-            `oc get ns ${MCP.namespace} --kubeconfig ${Cypress.env(
+            `oc get ns ${MCP.namespace} --kubeconfig "${Cypress.env(
               'KUBECONFIG_PATH',
-            )} -o jsonpath='{.status.phase}'`,
+            )}" -o jsonpath='{.status.phase}'`,
             { failOnNonZeroExit: false },
           ).then((result) => {
             if (result.code !== 0) {
@@ -383,9 +385,9 @@ export const cooInstallUtils = {
                 }s. Elapsed: ${Math.round(elapsed / 1000)}s`,
               );
               cy.exec(
-                `./cypress/fixtures/coo/force_delete_ns.sh ${MCP.namespace} ${Cypress.env(
+                `./cypress/fixtures/coo/force_delete_ns.sh ${MCP.namespace} "${Cypress.env(
                   'KUBECONFIG_PATH',
-                )}`,
+                )}"`,
                 { failOnNonZeroExit: false, timeout: installTimeoutMilliseconds },
               ).then((forceResult) => {
                 cy.log(`${elapsed}ms - Force delete output: ${forceResult.stdout}`);
@@ -417,7 +419,7 @@ export const cooInstallUtils = {
   },
 
   waitForPodsDeleted(namespace: string, maxWaitMs: number = 120000): void {
-    const kubeconfigPath = Cypress.env('KUBECONFIG_PATH');
+    const kubeconfigPath = Cypress.env('KUBECONFIG_PATH') as string;
     const checkIntervalMs = 5000;
     const startTime = Date.now();
     const podPatterns = 'monitoring|perses|perses-0|health-analyzer|troubleshooting-panel|korrel8r';

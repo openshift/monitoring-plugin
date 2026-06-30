@@ -1,26 +1,27 @@
 import { nav } from '../../views/nav';
 import { runCOORBACPersesTestsDevUser4 } from '../../support/perses/99.coo_rbac_perses_user4.cy';
+import { operatorAuthUtils } from '../../support/commands/auth-commands';
 
 // Set constants for the operators that need to be installed for tests.
-const MCP = {
-  namespace: 'openshift-cluster-observability-operator',
-  packageName: 'cluster-observability-operator',
-  operatorName: 'Cluster Observability Operator',
-  config: {
-    kind: 'UIPlugin',
-    name: 'monitoring',
-  },
-};
+// const MCP = {
+//   namespace: 'openshift-cluster-observability-operator',
+//   packageName: 'cluster-observability-operator',
+//   operatorName: 'Cluster Observability Operator',
+//   config: {
+//     kind: 'UIPlugin',
+//     name: 'monitoring',
+//   },
+// };
 
-const MP = {
-  namespace: 'openshift-monitoring',
-  operatorName: 'Cluster Monitoring Operator',
-};
+// const MP = {
+//   namespace: 'openshift-monitoring',
+//   operatorName: 'Cluster Monitoring Operator',
+// };
 
 //TODO: change tag to @smoke, @dashboards, @perses when customizable-dashboards gets merged
 describe(
   'RBAC User4: COO - Dashboards (Perses) - Administrator perspective',
-  { tags: ['@perses', '@perses-dev'] },
+  { tags: ['@perses-dev'] },
   () => {
     before(() => {
       //TODO: https://issues.redhat.com/browse/OCPBUGS-58468 - when it gets fixed, installation can be don using non-admin user
@@ -31,7 +32,9 @@ describe(
       // );
 
       // Step 2: Setup COO and Perses dashboards (requires admin privileges)
-      cy.beforeBlockCOO(MCP, MP, { dashboards: true, troubleshootingPanel: false });
+      // cy.beforeBlockCOO(MCP, MP, { dashboards: true, troubleshootingPanel: false });
+      operatorAuthUtils.loginAndAuth();
+      cy.cleanupPersesTestDashboardsBeforeTests();
       cy.setupPersesRBACandExtraDashboards();
 
       //TODO: https://issues.redhat.com/browse/OCPBUGS-58468 - when it gets fixed, installation can be don using non-admin user
@@ -67,8 +70,12 @@ describe(
     });
 
     beforeEach(() => {
+      cy.switchPerspective('Core platform');
       nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
+      cy.wait(2000);
       nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
+      cy.wait(2000);
+      cy.changeNamespace('All Projects');
     });
 
     after(() => {
@@ -77,7 +84,7 @@ describe(
 
     //TODO: rename after customizable-dashboards gets merged
     runCOORBACPersesTestsDevUser4({
-      name: 'Administrator',
+      name: 'Core platform',
     });
   },
 );

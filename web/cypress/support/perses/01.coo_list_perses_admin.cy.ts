@@ -367,7 +367,7 @@ export function testCOOListPersesDuplicateDashboard(perspective: PerspectiveConf
 
       cy.log(`6.4. Back to the list and duplicate to another project`);
       persesDashboardsPage.backToListPersesDashboardsPage();
-
+      cy.wait(2000);
       listPersesDashboardsPage.filter.byProject('perses-dev');
       listPersesDashboardsPage.filter.byName(
         persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0],

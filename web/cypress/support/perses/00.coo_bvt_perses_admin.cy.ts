@@ -29,6 +29,7 @@ export function runBVTCOOPersesTests1(perspective: PerspectiveConfig) {
 export function testBVTCOOPerses1(perspective: PerspectiveConfig) {
   it(`1.${perspective.name} perspective - Dashboards (Perses) page`, () => {
     cy.log(`1.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
+    cy.changeNamespace('All Projects');
     listPersesDashboardsPage.shouldBeLoaded();
     listPersesDashboardsPage.clickDashboard(
       persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[0],
@@ -41,8 +42,8 @@ export function testBVTCOOPerses1(perspective: PerspectiveConfig) {
       `2.1. use sidebar nav to go to Observe > Dashboards (Perses) > ` +
         `Accelerators common metrics dashboard`,
     );
-    listPersesDashboardsPage.shouldBeLoaded();
     cy.changeNamespace('openshift-cluster-observability-operator');
+    listPersesDashboardsPage.shouldBeLoaded();
     listPersesDashboardsPage.clickDashboard(
       persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[0],
     );
@@ -91,6 +92,7 @@ export function testBVTCOOPerses1(perspective: PerspectiveConfig) {
 
   it(`4.${perspective.name} perspective - Download and View JSON`, () => {
     cy.log(`4.1. use sidebar nav to go to Observe > Dashboards (Perses) > Download and View JSON`);
+    cy.changeNamespace('openshift-cluster-observability-operator');
     listPersesDashboardsPage.clickDashboard(
       persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[0],
     );
