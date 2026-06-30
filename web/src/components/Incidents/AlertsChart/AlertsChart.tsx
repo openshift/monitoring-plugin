@@ -42,10 +42,11 @@ import { MonitoringState } from '../../../store/store';
 import { isEmpty } from 'lodash-es';
 import { DataTestIDs } from '../../data-test';
 
+export const DEFAULT_CHART_CONTAINER_HEIGHT = 300;
+export const DEFAULT_CHART_HEIGHT = 250;
+
 const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
   const dispatch = useDispatch();
-  const [chartContainerHeight, setChartContainerHeight] = useState<number>();
-  const [chartHeight, setChartHeight] = useState<number>();
   const alertsData = useSelector(
     (state: MonitoringState) => state.plugins.mcp.incidentsData.alertsData,
   );
@@ -71,16 +72,34 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
     return generateAlertsDateArray(alertsData, currentTime);
   }, [alertsData, currentTime]);
 
-  const chartData: AlertsChartBar[][] = useMemo(() => {
-    if (!Array.isArray(alertsData) || alertsData.length === 0) return [];
-    return alertsData.map((alert) => createAlertsChartBars(alert));
-  }, [alertsData]);
+  const {
+    chartData,
+    chartContainerHeight,
+    chartHeight,
+  }: { chartData: AlertsChartBar[][]; chartContainerHeight: number; chartHeight: number } =
+    useMemo(() => {
+      if (!Array.isArray(alertsData) || alertsData.length === 0) {
+        return {
+          chartData: [],
+          chartContainerHeight: DEFAULT_CHART_CONTAINER_HEIGHT,
+          chartHeight: DEFAULT_CHART_HEIGHT,
+        };
+      }
+      const chartData = alertsData.map((alert) => createAlertsChartBars(alert));
+      if (chartData.length < 5) {
+        return {
+          chartData,
+          chartContainerHeight: DEFAULT_CHART_CONTAINER_HEIGHT,
+          chartHeight: DEFAULT_CHART_HEIGHT,
+        };
+      }
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setChartContainerHeight(chartData?.length < 5 ? 300 : chartData?.length * 55);
-    setChartHeight(chartData?.length < 5 ? 250 : chartData?.length * 55);
-  }, [chartData]);
+      return {
+        chartData,
+        chartContainerHeight: chartData.length * 55,
+        chartHeight: chartData.length * 55,
+      };
+    }, [alertsData]);
 
   const selectedIncidentIsVisible = useMemo(() => {
     return filteredData.some(
@@ -100,8 +119,6 @@ const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
     }
   }, []);
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
     const observer = getResizeObserver(containerRef.current, handleResize);
     handleResize();
     return () => observer();

@@ -1,5 +1,5 @@
 import type { ComponentProps, FC, SetStateAction, Dispatch, FormEvent } from 'react';
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import { css } from '@patternfly/react-styles';
 import * as _ from 'lodash-es';
 
@@ -74,7 +74,6 @@ type AutocompleteInputProps = {
 };
 
 const AutocompleteInput: FC<AutocompleteInputProps> = (props) => {
-  const [suggestions, setSuggestions] = useState<string[]>();
   const { visible, setVisible, ref } = useDocumentListener<HTMLDivElement>(suggestionBoxKeyHandler);
   const {
     textValue,
@@ -110,18 +109,19 @@ const AutocompleteInput: FC<AutocompleteInputProps> = (props) => {
     setTextValue(input);
   };
 
-  useEffect(() => {
-    if (textValue && visible && showSuggestions) {
-      const processed = labelParser(data, labelPath);
-      // User input without whitespace
-      const processedText = textValue.trim().replace(/\s*=\s*/, '=');
-      const maxSuggestions = suggestionCount ?? MAX_SUGGESTIONS;
-      const filtered = [...processed]
-        .filter((item) => fuzzyCaseInsensitive(processedText, item))
-        .slice(0, maxSuggestions);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setSuggestions(filtered);
+  const suggestions = useMemo(() => {
+    if (!textValue || !visible || !showSuggestions) {
+      return [];
     }
+
+    const processed = labelParser(data, labelPath);
+    // User input without whitespace
+    const processedText = textValue.trim().replace(/\s*=\s*/, '=');
+    const maxSuggestions = suggestionCount ?? MAX_SUGGESTIONS;
+    const filtered = [...processed]
+      .filter((item) => fuzzyCaseInsensitive(processedText, item))
+      .slice(0, maxSuggestions);
+    return filtered;
   }, [visible, textValue, showSuggestions, data, labelPath, suggestionCount]);
 
   return (
