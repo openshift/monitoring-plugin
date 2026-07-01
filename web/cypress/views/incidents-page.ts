@@ -183,21 +183,49 @@ export const incidentsPage = {
     incidentsDetailsLoadingSpinner: () =>
       cy.byTestID(DataTestIDs.IncidentsDetailsTable.LoadingSpinner),
     incidentsDetailsRow: (index: number) =>
-      cy.byTestID(`${DataTestIDs.IncidentsDetailsTable.Row}-${index}`),
+      incidentsPage.elements.incidentsDetailsTable().find('tbody tr').eq(index),
     incidentsDetailsAlertRuleCell: (index: number) =>
-      cy.byTestID(`${DataTestIDs.IncidentsDetailsTable.AlertRuleCell}-${index}`),
+      incidentsPage.elements
+        .incidentsDetailsTable()
+        .find('tbody tr')
+        .eq(index)
+        .find('td[data-label="expanded-details-alertname"]'),
     incidentsDetailsAlertRuleLink: (index: number) =>
-      cy.byTestID(`${DataTestIDs.IncidentsDetailsTable.AlertRuleLink}-${index}`),
+      incidentsPage.elements
+        .incidentsDetailsTable()
+        .find('tbody tr')
+        .eq(index)
+        .find('td[data-label="expanded-details-alertname"] a'),
     incidentsDetailsNamespaceCell: (index: number) =>
-      cy.byTestID(`${DataTestIDs.IncidentsDetailsTable.NamespaceCell}-${index}`),
+      incidentsPage.elements
+        .incidentsDetailsTable()
+        .find('tbody tr')
+        .eq(index)
+        .find('td[data-label="expanded-details-namespace"]'),
     incidentsDetailsSeverityCell: (index: number) =>
-      cy.byTestID(`${DataTestIDs.IncidentsDetailsTable.SeverityCell}-${index}`),
+      incidentsPage.elements
+        .incidentsDetailsTable()
+        .find('tbody tr')
+        .eq(index)
+        .find('td[data-label="expanded-details-severity"]'),
     incidentsDetailsStateCell: (index: number) =>
-      cy.byTestID(`${DataTestIDs.IncidentsDetailsTable.StateCell}-${index}`),
+      incidentsPage.elements
+        .incidentsDetailsTable()
+        .find('tbody tr')
+        .eq(index)
+        .find('td[data-label="expanded-details-alertstate"]'),
     incidentsDetailsStartCell: (index: number) =>
-      cy.byTestID(`${DataTestIDs.IncidentsDetailsTable.StartCell}-${index}`),
+      incidentsPage.elements
+        .incidentsDetailsTable()
+        .find('tbody tr')
+        .eq(index)
+        .find('td[data-label="expanded-details-firingstart"]'),
     incidentsDetailsEndCell: (index: number) =>
-      cy.byTestID(`${DataTestIDs.IncidentsDetailsTable.EndCell}-${index}`),
+      incidentsPage.elements
+        .incidentsDetailsTable()
+        .find('tbody tr')
+        .eq(index)
+        .find('td[data-label="expanded-details-firingend"]'),
 
     // Generic selectors for incident table rows and details table rows
     incidentsTableRows: () =>
