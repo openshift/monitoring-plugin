@@ -17,9 +17,8 @@ const _resetSearchState = () => {
   _quietSearch = false;
 };
 
-// Selector for the Incidents tab rendered by the Console SDK's HorizontalNav.
-// The Console assigns data-test-id="horizontal-link-<href>" to each tab.
-const _INCIDENTS_TAB_SELECTOR = '[data-test-id="horizontal-link-incidents"]';
+// Case-insensitive selector — the console has shipped both "incidents" and "Incidents".
+const _INCIDENTS_TAB_SELECTOR = '[data-test-id="horizontal-link-incidents" i]';
 
 // Selector for bar group containers in the incidents chart (one per incident).
 const _BAR_GROUP_SELECTOR = 'g[role="presentation"][data-test*="incidents-chart-bar-"]';
