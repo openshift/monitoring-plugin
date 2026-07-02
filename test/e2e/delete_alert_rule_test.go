@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"testing"
+	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -41,6 +42,10 @@ func TestDeleteAlertRule(t *testing.T) {
 	}
 
 	t.Logf("Created 3 rules with IDs: %v", ruleIDs)
+
+	// Allow time for the informer watch event to propagate and
+	// the relabeled-rules cache to sync the new PrometheusRule.
+	time.Sleep(2 * time.Second)
 
 	deleteReq := managementrouter.BulkDeleteAlertRulesRequest{
 		RuleIds: []string{ruleIDs[0], ruleIDs[1]},

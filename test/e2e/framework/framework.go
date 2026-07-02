@@ -12,9 +12,13 @@ import (
 
 	osmv1client "github.com/openshift/client-go/monitoring/clientset/versioned"
 	monitoringv1client "github.com/prometheus-operator/prometheus-operator/pkg/client/versioned"
+	authv1 "k8s.io/api/authentication/v1"
 	corev1 "k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
@@ -73,12 +77,17 @@ func New() (*Framework, error) {
 		return nil, fmt.Errorf("failed to create osmv1 clientset: %w", err)
 	}
 
+	bearerToken, err := resolveToken(clientset, config)
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve bearer token: %w", err)
+	}
+
 	f = &Framework{
 		Clientset:             clientset,
 		Monitoringv1clientset: monitoringv1clientset,
 		Osmv1clientset:        osmv1clientset,
 		PluginURL:             pluginURL,
-		BearerToken:           config.BearerToken,
+		BearerToken:           bearerToken,
 	}
 
 	return f, nil
@@ -134,4 +143,71 @@ func (f *Framework) AuthorizedRequest(ctx context.Context, method, url string, b
 		req.Header.Set("Authorization", "Bearer "+f.BearerToken)
 	}
 	return req, nil
+}
+
+// resolveToken returns a bearer token for authenticating HTTP requests to the
+// plugin server. It tries, in order: inline BearerToken, BearerTokenFile, and
+// finally creates a short-lived ServiceAccount token (for CI kubeconfigs that
+// use client-certificate auth).
+func resolveToken(clientset *kubernetes.Clientset, config *rest.Config) (string, error) {
+	if config.BearerToken != "" {
+		return config.BearerToken, nil
+	}
+	if config.BearerTokenFile != "" {
+		data, err := os.ReadFile(config.BearerTokenFile)
+		if err != nil {
+			return "", fmt.Errorf("reading bearer token file: %w", err)
+		}
+		token := strings.TrimSpace(string(data))
+		if token != "" {
+			return token, nil
+		}
+	}
+	return createServiceAccountToken(clientset)
+}
+
+// createServiceAccountToken creates a ServiceAccount with cluster-admin
+// privileges and returns a short-lived bearer token for it. This covers CI
+// environments where the kubeconfig authenticates via client certificates
+// and no bearer token is available.
+func createServiceAccountToken(clientset *kubernetes.Clientset) (string, error) {
+	ctx := context.Background()
+	const saName = "e2e-management-api"
+	const ns = "default"
+
+	sa := &corev1.ServiceAccount{
+		ObjectMeta: metav1.ObjectMeta{Name: saName},
+	}
+	if _, err := clientset.CoreV1().ServiceAccounts(ns).Create(ctx, sa, metav1.CreateOptions{}); err != nil && !apierrors.IsAlreadyExists(err) {
+		return "", fmt.Errorf("creating service account: %w", err)
+	}
+
+	crb := &rbacv1.ClusterRoleBinding{
+		ObjectMeta: metav1.ObjectMeta{Name: saName},
+		Subjects: []rbacv1.Subject{{
+			Kind:      rbacv1.ServiceAccountKind,
+			Name:      saName,
+			Namespace: ns,
+		}},
+		RoleRef: rbacv1.RoleRef{
+			APIGroup: rbacv1.GroupName,
+			Kind:     "ClusterRole",
+			Name:     "cluster-admin",
+		},
+	}
+	if _, err := clientset.RbacV1().ClusterRoleBindings().Create(ctx, crb, metav1.CreateOptions{}); err != nil && !apierrors.IsAlreadyExists(err) {
+		return "", fmt.Errorf("creating cluster role binding: %w", err)
+	}
+
+	expSeconds := int64(3600)
+	treq := &authv1.TokenRequest{
+		Spec: authv1.TokenRequestSpec{
+			ExpirationSeconds: &expSeconds,
+		},
+	}
+	resp, err := clientset.CoreV1().ServiceAccounts(ns).CreateToken(ctx, saName, treq, metav1.CreateOptions{})
+	if err != nil {
+		return "", fmt.Errorf("requesting service account token: %w", err)
+	}
+	return resp.Status.Token, nil
 }
