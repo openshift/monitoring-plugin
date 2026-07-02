@@ -32,10 +32,11 @@ func TestCreateUserDefinedAlertRule(t *testing.T) {
 	}
 	defer cleanup()
 
+	createExpr := "vector(1) or vector(0)"
 	payload := managementrouter.CreateAlertRuleRequest{
 		AlertingRule: &managementrouter.AlertRuleSpec{
 			Alert: strPtr("E2ECreateAlert"),
-			Expr:  strPtr("vector(1)"),
+			Expr:  &createExpr,
 			For:   strPtr("1m"),
 			Labels: &map[string]string{
 				"severity": "info",
@@ -102,8 +103,8 @@ func TestCreateUserDefinedAlertRule(t *testing.T) {
 		for _, rule := range group.Rules {
 			if rule.Alert == "E2ECreateAlert" {
 				foundAlert = true
-				if rule.Expr.String() != "vector(1)" {
-					t.Errorf("Expected expr 'vector(1)', got %q", rule.Expr.String())
+				if rule.Expr.String() != createExpr {
+					t.Errorf("Expected expr %q, got %q", createExpr, rule.Expr.String())
 				}
 				if rule.For == nil || string(*rule.For) != "1m" {
 					t.Errorf("Expected for '1m', got %v", rule.For)

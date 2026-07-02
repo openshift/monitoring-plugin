@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"testing"
@@ -17,10 +18,16 @@ func strPtr(s string) *string { return &s }
 func createRuleViaAPI(t *testing.T, f *framework.Framework, ctx context.Context, namespace, alertName, prName string) string {
 	t.Helper()
 
+	// Each rule needs a unique expression so the spec-equivalence check
+	// does not reject it as a duplicate of a rule from another test.
+	// absent() returns 1 when the selector matches nothing, which is
+	// always the case for a fabricated metric name.
+	expr := fmt.Sprintf("absent(nonexistent{e2e_rule=%q})", alertName)
+
 	payload := managementrouter.CreateAlertRuleRequest{
 		AlertingRule: &managementrouter.AlertRuleSpec{
 			Alert: &alertName,
-			Expr:  strPtr("vector(1)"),
+			Expr:  &expr,
 			For:   strPtr("1m"),
 			Labels: &map[string]string{
 				"severity": "info",

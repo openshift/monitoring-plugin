@@ -19,6 +19,7 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/record"
 
 	"github.com/openshift/monitoring-plugin/internal/managementrouter"
@@ -127,18 +128,11 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 	var k8sconfig *rest.Config
 	var err error
 
-	// Uncomment the following line for local development:
-	// k8sconfig, err = clientcmd.BuildConfigFromFlags("", os.Getenv("KUBECONFIG"))
-	// if err != nil {
-	// 	return nil, fmt.Errorf("cannot get kubeconfig from file: %w", err)
-	// }
-
-	// Comment the following line for local development:
 	var k8sclient *dynamic.DynamicClient
 	if acmMode || alertManagementAPIMode {
-		k8sconfig, err = rest.InClusterConfig()
+		k8sconfig, err = loadKubeConfig()
 		if err != nil {
-			return nil, fmt.Errorf("cannot get in cluster config: %w", err)
+			return nil, fmt.Errorf("cannot load kubernetes config: %w", err)
 		}
 
 		k8sclient, err = dynamic.NewForConfig(k8sconfig)
@@ -154,14 +148,19 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 	// hang the entire server startup indefinitely.
 	var managementClient management.Client
 	if alertManagementAPIMode {
-		const initTimeout = 30 * time.Second
-		initCtx, initCancel := context.WithTimeout(ctx, initTimeout)
-		defer initCancel()
-
-		k8sClient, err := k8s.NewClient(initCtx, k8sconfig)
+		// The k8s client must receive the long-lived ctx so that its
+		// informers keep running for the lifetime of the server.
+		// Do NOT pass a timeout-scoped context here: informers that
+		// are started with a cancelled context stop watching and the
+		// relabeled-rules cache freezes.
+		k8sClient, err := k8s.NewClient(ctx, k8sconfig)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create k8s client for alert management API: %w", err)
 		}
+
+		const initTimeout = 30 * time.Second
+		initCtx, initCancel := context.WithTimeout(ctx, initTimeout)
+		defer initCancel()
 
 		if err := k8sClient.TestConnection(initCtx); err != nil {
 			return nil, fmt.Errorf("failed to connect to kubernetes cluster for alert management API: %w", err)
@@ -400,6 +399,23 @@ func configHandler(cfg *Config) (http.HandlerFunc, *PluginConfig) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(jsonPluginConfig)
 	}), &pluginConfig
+}
+
+// loadKubeConfig returns a *rest.Config by preferring KUBECONFIG (useful for
+// local development and CI) and falling back to in-cluster service-account config.
+func loadKubeConfig() (*rest.Config, error) {
+	if kubeconfig := os.Getenv("KUBECONFIG"); kubeconfig != "" {
+		cfg, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
+		if err != nil {
+			return nil, fmt.Errorf("cannot build config from KUBECONFIG: %w", err)
+		}
+		return cfg, nil
+	}
+	cfg, err := rest.InClusterConfig()
+	if err != nil {
+		return nil, fmt.Errorf("cannot get in-cluster config: %w", err)
+	}
+	return cfg, nil
 }
 
 func startProxy(cfg *Config, k8sclient *dynamic.DynamicClient, tlsConfig *tls.Config, timeout time.Duration, kind proxy.KindType, port proxy.ProxyPort) {
