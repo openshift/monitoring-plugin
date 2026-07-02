@@ -16,7 +16,6 @@ export const persesDashboardsPage = {
     cy.byTestID(DataTestIDs.PersesDashboardDropdown).find('input').should('be.visible');
     cy.byTestID(DataTestIDs.PersesDashboardDropdown).find('button').should('be.visible');
     cy.byLegacyTestID(LegacyTestIDs.PersesDashboardSection).should('be.visible');
-
   },
 
   clickTimeRangeDropdown: (timeRange: persesDashboardsTimeRange) => {
