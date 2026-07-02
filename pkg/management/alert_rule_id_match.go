@@ -18,6 +18,8 @@ func ruleMatchesAlertRuleID(rule monitoringv1.Rule, alertRuleId string) bool {
 	return alertRuleId != "" && alertRuleId == alertrule.GetAlertingRuleId(&rule)
 }
 
+// getOriginalPlatformRule fetches the PrometheusRule and delegates the rule
+// lookup to getOriginalPlatformRuleFromPR.
 func (c *client) getOriginalPlatformRule(ctx context.Context, namespace string, name string, alertRuleId string) (*monitoringv1.Rule, error) {
 	pr, found, err := c.k8sClient.PrometheusRules().Get(ctx, namespace, name)
 	if err != nil {
@@ -31,19 +33,5 @@ func (c *client) getOriginalPlatformRule(ctx context.Context, namespace string, 
 			AdditionalInfo: fmt.Sprintf("PrometheusRule %s/%s not found", namespace, name),
 		}
 	}
-
-	for groupIdx := range pr.Spec.Groups {
-		for ruleIdx := range pr.Spec.Groups[groupIdx].Rules {
-			rule := &pr.Spec.Groups[groupIdx].Rules[ruleIdx]
-			if ruleMatchesAlertRuleID(*rule, alertRuleId) {
-				return rule, nil
-			}
-		}
-	}
-
-	return nil, &NotFoundError{
-		Resource:       "AlertRule",
-		Id:             alertRuleId,
-		AdditionalInfo: fmt.Sprintf("in PrometheusRule %s/%s", namespace, name),
-	}
+	return getOriginalPlatformRuleFromPR(pr, namespace, name, alertRuleId)
 }
