@@ -177,7 +177,8 @@
     "axios": "1.15.0",
     "sass": {
       "immutable": "^5.1.5"
-    }
+    },
+    "ws": "^8.20.1"
   },
   "consolePlugin": {
     "name": "monitoring-plugin",
