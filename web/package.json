@@ -179,7 +179,8 @@
     "follow-redirects": "^1.16.0",
     "sass": {
       "immutable": "^5.1.5"
-    }
+    },
+    "ws": "^8.20.1"
   },
   "consolePlugin": {
     "name": "monitoring-plugin",
