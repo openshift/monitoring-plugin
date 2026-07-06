@@ -267,7 +267,15 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({ id, name 
         setQueryParam(variable?.value);
       }
     }
-  }, [name, variable?.value, queryParam, setQueryParam, dispatch, shouldSetQueryParam]);
+  }, [
+    name,
+    variable?.value,
+    queryParam,
+    setQueryParam,
+    dispatch,
+    shouldSetQueryParam,
+    options?.length,
+  ]);
 
   const onChange = useCallback(
     (v: string) => {
