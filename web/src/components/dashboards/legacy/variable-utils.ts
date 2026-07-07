@@ -5,7 +5,9 @@ import { ALL_NAMESPACES_KEY } from '../../utils';
 const intervalVariableRegExps = ['__interval', '__rate_interval', '__auto_interval_[a-z]+'];
 
 export const isIntervalVariable = (itemKey: string): boolean =>
-  _.some(intervalVariableRegExps, (re) => itemKey?.match(new RegExp(`\\$${re}`, 'g')));
+  _.some(intervalVariableRegExps, (re) =>
+    itemKey?.match(new RegExp(`\\$${re}(?![a-zA-Z0-9_])`, 'g')),
+  );
 
 export type Variable = {
   isHidden?: boolean;
@@ -62,7 +64,7 @@ export const evaluateVariableTemplate = (
 
   let result = template;
   _.each(allVariables, (v, k) => {
-    const re = new RegExp(`\\$${k}`, 'g');
+    const re = new RegExp(`\\$${k}(?![a-zA-Z0-9_])`, 'g');
     if (result.match(re)) {
       if (v.isLoading) {
         result = undefined;
