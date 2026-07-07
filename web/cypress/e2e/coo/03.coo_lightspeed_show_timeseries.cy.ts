@@ -4,7 +4,7 @@ import { commonPages } from '../../views/common';
 import { listPersesDashboardsPage } from '../../views/perses-dashboards-list-dashboards';
 import { persesCreateDashboardsPage } from '../../views/perses-dashboards-create-dashboard';
 import { persesDashboardsPage } from '../../views/perses-dashboards';
-import { persesMUIDataTestIDs } from '../../../src/components/data-test';
+import { persesMUIDataTestIDs } from '../../../src/shared/constants/data-test';
 
 const PROMPT = 'visualize CPU consumption in the openshift-monitoring namespace in last 2 hours';
 

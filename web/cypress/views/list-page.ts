@@ -1,4 +1,9 @@
-import { DataTestIDs, Classes, LegacyTestIDs, FilterOUIAIDs } from '../../src/components/data-test';
+import {
+  DataTestIDs,
+  Classes,
+  LegacyTestIDs,
+  FilterOUIAIDs,
+} from '../../src/shared/constants/data-test';
 
 const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 

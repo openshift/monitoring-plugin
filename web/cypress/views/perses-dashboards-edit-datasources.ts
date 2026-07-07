@@ -4,7 +4,7 @@ import {
   persesMUIDataTestIDs,
   editPersesDashboardsAddDatasource,
   IDs,
-} from '../../src/components/data-test';
+} from '../../src/shared/constants/data-test';
 import {
   persesDashboardsModalTitles,
   persesDashboardsRequiredFields,

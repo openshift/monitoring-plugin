@@ -9,7 +9,7 @@ import {
   Classes,
   LegacyDashboardPageTestIDs,
   DataTestIDs,
-} from '../../../src/components/data-test';
+} from '../../../src/shared/constants/data-test';
 import { metricsPage } from '../../views/metrics';
 import { alertingRuleDetailsPage } from '../../views/alerting-rule-details-page';
 import { alerts } from '../../fixtures/monitoring/alert';

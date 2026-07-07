@@ -9,7 +9,7 @@ import {
   IDs,
   persesDashboardDataTestIDs,
   listPersesDashboardsDataTestIDs,
-} from '../../src/components/data-test';
+} from '../../src/shared/constants/data-test';
 import { MonitoringPageTitles } from '../fixtures/monitoring/constants';
 import {
   listPersesDashboardsPageSubtitle,

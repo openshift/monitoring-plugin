@@ -1,5 +1,5 @@
 import { detailsPage } from './details-page';
-import { DataTestIDs } from '../../src/components/data-test';
+import { DataTestIDs } from '../../src/shared/constants/data-test';
 
 export const commonPages = {
   projectDropdownShouldNotExist: () =>

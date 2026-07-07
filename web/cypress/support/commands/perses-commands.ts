@@ -2,7 +2,7 @@ export {};
 
 import { nav } from '../../views/nav';
 import { listPersesDashboardsPage } from '../../views/perses-dashboards-list-dashboards';
-import { listPersesDashboardsOUIAIDs } from '../../../src/components/data-test';
+import { listPersesDashboardsOUIAIDs } from '../../../src/shared/constants/data-test';
 
 // Display name prefixes/exact matches for test-created PersesDashboards to delete before
 // Perses tests.

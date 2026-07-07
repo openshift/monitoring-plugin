@@ -1,5 +1,9 @@
 import { commonPages } from './common';
-import { LegacyDashboardPageTestIDs, DataTestIDs, Classes } from '../../src/components/data-test';
+import {
+  LegacyDashboardPageTestIDs,
+  DataTestIDs,
+  Classes,
+} from '../../src/shared/constants/data-test';
 import {
   MonitoringPageTitles,
   LegacyDashboardsTimeRange,

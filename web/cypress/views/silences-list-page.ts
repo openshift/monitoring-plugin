@@ -1,5 +1,5 @@
 import { commonPages } from './common';
-import { DataTestIDs, Classes, FilterOUIAIDs } from '../../src/components/data-test';
+import { DataTestIDs, Classes, FilterOUIAIDs } from '../../src/shared/constants/data-test';
 
 export const silencesListPage = {
   shouldBeLoaded: () => {

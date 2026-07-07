@@ -10,7 +10,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	server "github.com/openshift/monitoring-plugin/pkg"
+	server "github.com/openshift/monitoring-plugin/pkg/server"
 )
 
 var (

@@ -7,7 +7,7 @@ import {
   IDs,
   persesAriaLabels,
   LegacyTestIDs,
-} from '../../src/components/data-test';
+} from '../../src/shared/constants/data-test';
 import {
   listPersesDashboardsEmptyState,
   listPersesDashboardsNoDashboardsFoundState,
