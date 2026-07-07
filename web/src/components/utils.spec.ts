@@ -60,35 +60,35 @@ describe('severitySort', () => {
   });
 
   it('should sort critical above warning', () => {
-    expect(severitySort(makeSeverity('critical'), makeSeverity('warning'))).toBeGreaterThan(0);
-    expect(severitySort(makeSeverity('warning'), makeSeverity('critical'))).toBeLessThan(0);
+    expect(severitySort(makeSeverity('critical'), makeSeverity('warning'))).toBeLessThan(0);
+    expect(severitySort(makeSeverity('warning'), makeSeverity('critical'))).toBeGreaterThan(0);
   });
 
   it('should sort warning above info', () => {
-    expect(severitySort(makeSeverity('warning'), makeSeverity('info'))).toBeGreaterThan(0);
-    expect(severitySort(makeSeverity('info'), makeSeverity('warning'))).toBeLessThan(0);
+    expect(severitySort(makeSeverity('warning'), makeSeverity('info'))).toBeLessThan(0);
+    expect(severitySort(makeSeverity('info'), makeSeverity('warning'))).toBeGreaterThan(0);
   });
 
   it('should sort critical above none', () => {
-    expect(severitySort(makeSeverity('critical'), makeSeverity('none'))).toBeGreaterThan(0);
-    expect(severitySort(makeSeverity('none'), makeSeverity('critical'))).toBeLessThan(0);
+    expect(severitySort(makeSeverity('critical'), makeSeverity('none'))).toBeLessThan(0);
+    expect(severitySort(makeSeverity('none'), makeSeverity('critical'))).toBeGreaterThan(0);
   });
 
   it('should sort info above none', () => {
-    expect(severitySort(makeSeverity('info'), makeSeverity('none'))).toBeGreaterThan(0);
-    expect(severitySort(makeSeverity('none'), makeSeverity('info'))).toBeLessThan(0);
+    expect(severitySort(makeSeverity('info'), makeSeverity('none'))).toBeLessThan(0);
+    expect(severitySort(makeSeverity('none'), makeSeverity('info'))).toBeGreaterThan(0);
   });
 
   it('should handle objects with severity property (AggregatedAlert shape)', () => {
     const a = { severity: AlertSeverity.Critical } as any;
     const b = { severity: AlertSeverity.Warning } as any;
-    expect(severitySort(a, b)).toBeGreaterThan(0);
+    expect(severitySort(a, b)).toBeLessThan(0);
   });
 
   it('should handle missing severity labels as empty string', () => {
     const noSeverity = { labels: {} } as unknown as Rule;
     const withSeverity = makeSeverity('critical');
-    expect(severitySort(withSeverity, noSeverity)).toBeGreaterThan(0);
+    expect(severitySort(withSeverity, noSeverity)).toBeLessThan(0);
   });
 
   it('should produce a stable sort order across all known severities', () => {
@@ -100,6 +100,6 @@ describe('severitySort', () => {
     ];
     const sorted = [...items].sort(severitySort);
     const severities = sorted.map((i) => i.labels.severity);
-    expect(severities).toEqual(['none', 'info', 'warning', 'critical']);
+    expect(severities).toEqual(['critical', 'warning', 'info', 'none']);
   });
 });
