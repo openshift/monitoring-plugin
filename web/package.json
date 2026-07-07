@@ -178,7 +178,7 @@
     "axios": "^1.16.0",
     "follow-redirects": "^1.16.0",
     "koa": "^3.1.2",
-    "fast-uri": "^3.1.2",
+    "fast-uri": "3.1.3",
     "sass": {
       "immutable": "^5.1.5"
     }
