@@ -275,9 +275,9 @@ describe('convertToAlerts', () => {
     });
 
     it('should mark alert as firing if ended less than 10 minutes ago', () => {
-      const recentTimestamp = nowSeconds - 840; // 14 minutes ago
-      // After padding (+300s), last timestamp will be 9 minutes ago (840-300=540s ago)
-      // which is < 10 minutes, so it should still be firing
+      // Resolution is determined from original (pre-padding) timestamps.
+      // 9 minutes ago is < 10-minute threshold, so it should still be firing.
+      const recentTimestamp = nowSeconds - 540;
 
       const prometheusResults: PrometheusResult[] = [
         {
