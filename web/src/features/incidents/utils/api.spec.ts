@@ -11,7 +11,7 @@ jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
 }));
 
 // Mock the global utils to avoid window access side effects
-jest.mock('../utils', () => ({
+jest.mock('../../../shared/utils/utils', () => ({
   getPrometheusBasePath: jest.fn(),
   buildPrometheusUrl: jest.fn(),
 }));

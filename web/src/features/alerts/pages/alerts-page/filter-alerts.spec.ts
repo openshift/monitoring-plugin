@@ -2,7 +2,7 @@ jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
   ...jest.requireActual('@openshift-console/dynamic-plugin-sdk/lib/api/common-types'),
 }));
 
-jest.mock('../AlertUtils', () => ({
+jest.mock('../../components/AlertUtils', () => ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   alertSource: (alert: any) =>
     alert.rule?.labels?.prometheus === 'openshift-monitoring/k8s' ? 'platform' : 'user',
