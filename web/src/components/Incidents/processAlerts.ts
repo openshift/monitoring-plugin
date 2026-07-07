@@ -239,8 +239,8 @@ export function convertToAlerts(
 
       // Determine resolved status based on original values before padding
       const sortedValues = values.sort((a, b) => a[0] - b[0]);
-      let lastTimestamp = sortedValues[sortedValues.length - 1][0];
-      const resolved = isResolved(lastTimestamp, currentTime);
+      const lastOriginalTimestamp = sortedValues[sortedValues.length - 1][0];
+      const resolved = isResolved(lastOriginalTimestamp, currentTime);
 
       // Find the associated incident, if it's one of the select ones
       // Since incidents are already merged by (group_id, src_alertname, src_namespace, src_severity),
@@ -260,7 +260,7 @@ export function convertToAlerts(
       // Add padding points for chart rendering
       const paddedValues = insertPaddingPointsForChart(sortedValues, currentTime);
       const firstTimestamp = paddedValues[0][0];
-      lastTimestamp = paddedValues[paddedValues.length - 1][0];
+      const lastTimestamp = paddedValues[paddedValues.length - 1][0];
 
       return {
         alertname: alert.metric.alertname,
