@@ -1,25 +1,23 @@
 import type { FC } from 'react';
 import { useCallback } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { NumberParam, useQueryParam } from 'use-query-params';
 
-import { dashboardsSetEndTime, dashboardsSetTimespan } from '../../../store/actions';
 import { FormatSeriesTitle, QueryBrowser } from '../../query-browser';
-import { MonitoringState } from '../../../store/store';
-import { getObserveState } from '../../hooks/usePerspective';
-import { DEFAULT_GRAPH_SAMPLES } from './utils';
+import { DEFAULT_GRAPH_SAMPLES, TimeRangeParam } from './utils';
 import { CustomDataSource } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
 import { GraphUnits } from '../../../components/metrics/units';
-import { useMonitoring } from '../../../hooks/useMonitoring';
+import { QueryParams } from '../../query-params';
 
 type Props = {
   customDataSource?: CustomDataSource;
   formatSeriesTitle?: FormatSeriesTitle;
   isStack: boolean;
+  onLoadingChange?: (isLoading: boolean) => void;
   pollInterval: number;
   queries: string[];
   showLegend?: boolean;
   units: string;
-  onZoomHandle?: (timeRange: number, endTime: number) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onDataChange?: (data: any) => void;
 };
 
@@ -27,44 +25,38 @@ const Graph: FC<Props> = ({
   customDataSource,
   formatSeriesTitle,
   isStack,
+  onLoadingChange,
   pollInterval,
   queries,
   showLegend,
   units,
-  onZoomHandle,
   onDataChange,
 }) => {
-  const dispatch = useDispatch();
-  const { plugin } = useMonitoring();
-  const endTime = useSelector(
-    (state: MonitoringState) => getObserveState(plugin, state).dashboards.endTime,
-  );
-  const timespan = useSelector(
-    (state: MonitoringState) => getObserveState(plugin, state).dashboards.timespan,
-  );
+  const [timeRange, setTimeRange] = useQueryParam(QueryParams.TimeRange, TimeRangeParam);
+  const [endTime, setEndTime] = useQueryParam(QueryParams.EndTime, NumberParam);
 
   const onZoom = useCallback(
-    (from, to) => {
-      dispatch(dashboardsSetEndTime(to));
-      dispatch(dashboardsSetTimespan(to - from));
-      onZoomHandle?.(to - from, to);
+    (from: number, to: number) => {
+      setEndTime(to);
+      setTimeRange(to - from);
     },
-    [dispatch, onZoomHandle],
+    [setEndTime, setTimeRange],
   );
 
   return (
     <QueryBrowser
       customDataSource={customDataSource}
       defaultSamples={DEFAULT_GRAPH_SAMPLES}
-      fixedEndTime={Number(endTime)}
+      fixedEndTime={endTime}
       formatSeriesTitle={formatSeriesTitle}
       hideControls
       isStack={isStack}
+      onLoadingChange={onLoadingChange}
       onZoom={onZoom}
       pollInterval={pollInterval}
       queries={queries}
       showLegend={showLegend}
-      timespan={timespan}
+      timespan={timeRange}
       units={units as GraphUnits}
       onDataChange={onDataChange}
       isPlain

@@ -1,5 +1,5 @@
 import type { FC, PropsWithChildren } from 'react';
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Divider, Stack, StackItem } from '@patternfly/react-core';
@@ -8,7 +8,7 @@ import { DocumentTitle, ListPageHeader } from '@openshift-console/dynamic-plugin
 import { CombinedDashboardMetadata } from './hooks/useDashboardsData';
 
 import { Breadcrumb, BreadcrumbItem } from '@patternfly/react-core';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { useNavigate } from 'react-router';
 import { getDashboardsListUrl, usePerspective } from '../../hooks/usePerspective';
 
 import {
@@ -29,9 +29,7 @@ const shouldHideFavoriteButton = (): boolean => {
   return currentUrl.includes(DASHBOARD_VIEW_PATH);
 };
 
-const DashboardBreadCrumb: React.FunctionComponent<{ dashboardDisplayName?: string }> = ({
-  dashboardDisplayName,
-}) => {
+const DashboardBreadCrumb: FC<{ dashboardDisplayName?: string }> = ({ dashboardDisplayName }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const { perspective } = usePerspective();
@@ -74,9 +72,7 @@ const DashboardBreadCrumb: React.FunctionComponent<{ dashboardDisplayName?: stri
   );
 };
 
-const DashboardPageHeader: React.FunctionComponent<{ dashboardDisplayName?: string }> = ({
-  dashboardDisplayName,
-}) => {
+const DashboardPageHeader: FC<{ dashboardDisplayName?: string }> = ({ dashboardDisplayName }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const hideFavBtn = shouldHideFavoriteButton();
 
@@ -97,7 +93,7 @@ const DashboardPageHeader: React.FunctionComponent<{ dashboardDisplayName?: stri
   );
 };
 
-const DashboardListPageHeader: React.FunctionComponent = () => {
+const DashboardListPageHeader: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const hideFavBtn = shouldHideFavoriteButton();
 
@@ -119,8 +115,8 @@ type MonitoringDashboardsPageProps = PropsWithChildren<{
   activeProject?: string;
 }>;
 
-export const DashboardHeader: FC<MonitoringDashboardsPageProps> = memo(
-  ({ children, dashboardDisplayName }) => {
+export const DashboardHeader = memo(
+  ({ children, dashboardDisplayName }: MonitoringDashboardsPageProps) => {
     const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
     return (
@@ -135,7 +131,9 @@ export const DashboardHeader: FC<MonitoringDashboardsPageProps> = memo(
   },
 );
 
-export const DashboardListHeader: FC<MonitoringDashboardsPageProps> = memo(({ children }) => {
+DashboardHeader.displayName = 'DashboardHeader';
+
+export const DashboardListHeader = memo(({ children }: MonitoringDashboardsPageProps) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
@@ -149,3 +147,5 @@ export const DashboardListHeader: FC<MonitoringDashboardsPageProps> = memo(({ ch
     </>
   );
 });
+
+DashboardListHeader.displayName = 'DashboardListHeader';

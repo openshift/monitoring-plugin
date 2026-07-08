@@ -9,7 +9,6 @@ const MP = {
 };
 
 describe('BVT: Monitoring - Namespaced', { tags: ['@monitoring-dev', '@smoke-dev'] }, () => {
-
   before(() => {
     cy.beforeBlock(MP);
   });
@@ -23,8 +22,7 @@ describe('BVT: Monitoring - Namespaced', { tags: ['@monitoring-dev', '@smoke-dev
   });
 
   // Run tests in Administrator perspective
-  runBVTMonitoringTestsNamespace({  
+  runBVTMonitoringTestsNamespace({
     name: 'Administrator',
   });
-
 });

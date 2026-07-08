@@ -1,4 +1,4 @@
-import React, { ReactNode, useCallback, useMemo, useState, type FC } from 'react';
+import { memo, ReactNode, useCallback, useMemo, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDashboardsData } from './hooks/useDashboardsData';
 
@@ -7,7 +7,6 @@ import {
   EmptyState,
   EmptyStateBody,
   EmptyStateVariant,
-  Pagination,
   Title,
   Tooltip,
 } from '@patternfly/react-core';
@@ -20,10 +19,13 @@ import {
 } from '@patternfly/react-data-view/dist/dynamic/DataViewTable';
 import { DataViewTextFilter } from '@patternfly/react-data-view/dist/dynamic/DataViewTextFilter';
 import { DataViewToolbar } from '@patternfly/react-data-view/dist/dynamic/DataViewToolbar';
-import { useDataViewFilters, useDataViewSort } from '@patternfly/react-data-view';
-import { useDataViewPagination } from '@patternfly/react-data-view/dist/dynamic/Hooks';
+import {
+  useDataViewFilters,
+  useDataViewPagination,
+  useDataViewSort,
+} from '@patternfly/react-data-view/dist/dynamic/Hooks';
 import { ActionsColumn, ThProps } from '@patternfly/react-table';
-import { Link, useSearchParams } from 'react-router-dom-v5-compat';
+import { Link, useSearchParams } from 'react-router';
 
 import { getDashboardUrl, usePerspective } from '../../hooks/usePerspective';
 import { Timestamp } from '@openshift-console/dynamic-plugin-sdk';
@@ -37,12 +39,10 @@ import {
   RenameActionModal,
 } from './dashboard-action-modals';
 import { useEditableProjects } from './hooks/useEditableProjects';
-const perPageOptions = [
-  { title: '10', value: 10 },
-  { title: '20', value: 20 },
-];
+import { ALL_NAMESPACES_KEY } from '../../utils';
+import { ITEMS_PER_PAGE, TablePagination } from '../../../components/table-pagination';
 
-const DashboardActionsCell = React.memo(
+const DashboardActionsCell = memo(
   ({
     project,
     dashboard,
@@ -56,6 +56,7 @@ const DashboardActionsCell = React.memo(
     onRename: (dashboard: DashboardResource) => void;
     onDuplicate: (dashboard: DashboardResource) => void;
     onDelete: (dashboard: DashboardResource) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     emptyActions: any[];
   }) => {
     const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -105,6 +106,8 @@ const DashboardActionsCell = React.memo(
   },
 );
 
+DashboardActionsCell.displayName = 'DashboardActionsCell';
+
 interface DashboardRowNameLink {
   link: ReactNode;
   label: string;
@@ -135,7 +138,9 @@ const sortDashboardData = (
   if (!sortBy || !direction) return data;
 
   return [...data].sort((a, b) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let aValue: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let bValue: any;
 
     if (sortBy === 'name') {
@@ -166,7 +171,7 @@ interface DashboardsTableProps {
   activeProject: string | null;
 }
 
-const DashboardsTable: React.FunctionComponent<DashboardsTableProps> = ({
+const DashboardsTable: FC<DashboardsTableProps> = ({
   persesDashboards,
   persesDashboardsLoading,
   activeProject,
@@ -184,7 +189,7 @@ const DashboardsTable: React.FunctionComponent<DashboardsTableProps> = ({
     searchParams,
     setSearchParams,
   });
-  const pagination = useDataViewPagination({ perPage: perPageOptions[0].value });
+  const pagination = useDataViewPagination({ perPage: ITEMS_PER_PAGE[0] });
   const { page, perPage } = pagination;
 
   const DASHBOARD_COLUMNS = useMemo(
@@ -221,7 +226,7 @@ const DashboardsTable: React.FunctionComponent<DashboardsTableProps> = ({
     }
     return persesDashboards.map((board) => {
       const metadata = board?.metadata;
-      const displayName = board?.spec?.display?.name;
+      const displayName = board?.spec?.display?.name || metadata?.name;
       const dashboardsParams = `?dashboard=${metadata?.name}&project=${metadata?.project}`;
       const dashboardName: DashboardRowNameLink = {
         link: (
@@ -257,7 +262,7 @@ const DashboardsTable: React.FunctionComponent<DashboardsTableProps> = ({
             item.project
               ?.toLocaleLowerCase()
               .includes(filters['project-filter']?.toLocaleLowerCase())) &&
-          (!activeProject || item.project === activeProject),
+          (activeProject === ALL_NAMESPACES_KEY || item.project === activeProject),
       ),
     [filters, tableRows, activeProject],
   );
@@ -344,16 +349,6 @@ const DashboardsTable: React.FunctionComponent<DashboardsTableProps> = ({
     handleDeleteModalOpen,
   ]);
 
-  const PaginationTool = () => {
-    return (
-      <Pagination
-        perPageOptions={perPageOptions}
-        itemCount={sortedAndFilteredData.length}
-        {...pagination}
-      />
-    );
-  };
-
   const hasFiltersApplied = filters.name || filters['project-filter'];
   const hasData = sortedAndFilteredData.length > 0;
 
@@ -362,7 +357,7 @@ const DashboardsTable: React.FunctionComponent<DashboardsTableProps> = ({
       <DataViewToolbar
         ouiaId="PersesDashList-DataViewHeader"
         clearAllFilters={clearAllFilters}
-        pagination={<PaginationTool />}
+        pagination={<TablePagination itemCount={sortedAndFilteredData.length} {...pagination} />}
         filters={
           <DataViewFilters onChange={(_e, values) => onSetFilters(values)} values={filters}>
             <DataViewTextFilter
@@ -432,7 +427,10 @@ const DashboardsTable: React.FunctionComponent<DashboardsTableProps> = ({
           )}
         </EmptyState>
       )}
-      <DataViewToolbar ouiaId="PersesDashList-DataViewFooter" pagination={<PaginationTool />} />
+      <DataViewToolbar
+        ouiaId="PersesDashList-DataViewFooter"
+        pagination={<TablePagination itemCount={sortedAndFilteredData.length} {...pagination} />}
+      />
     </DataView>
   );
 };
@@ -442,7 +440,6 @@ export const DashboardList: FC = () => {
     activeProjectDashboardsMetadata,
     changeBoard,
     dashboardName,
-    setActiveProject,
     activeProject,
     persesDashboards,
     combinedInitialLoad,
@@ -451,7 +448,6 @@ export const DashboardList: FC = () => {
   return (
     <DashboardListFrame
       activeProject={activeProject}
-      setActiveProject={setActiveProject}
       activeProjectDashboardsMetadata={activeProjectDashboardsMetadata}
       changeBoard={changeBoard}
       dashboardName={dashboardName}

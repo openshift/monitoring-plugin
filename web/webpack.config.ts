@@ -22,6 +22,12 @@ const config: Configuration = {
   },
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.jsx'],
+    alias: {
+      // @console/internal modules are provided by the OpenShift Console at runtime.
+      // Stub them out during development builds to prevent webpack resolution errors.
+      '@console/internal': false,
+      '@console/shared': false,
+    },
   },
   module: {
     rules: [
@@ -68,6 +74,8 @@ const config: Configuration = {
   },
   devServer: {
     static: './dist',
+    hot: false,
+    liveReload: true,
     port: process.env.PORT || 9001,
     // Allow bridge running in a container to connect to the plugin dev server.
     allowedHosts: 'all',
@@ -99,6 +107,9 @@ const config: Configuration = {
   optimization: {
     chunkIds: 'named',
     minimize: false,
+  },
+  stats: {
+    errorDetails: true,
   },
 };
 

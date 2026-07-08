@@ -1,6 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { consoleFetchJSON } from '@openshift-console/dynamic-plugin-sdk';
 
+// Disable client-side timeout (-1) to let the backend control query timeouts
+const NO_TIMEOUT = -1;
+
 export const useSafeFetch = () => {
   const controller = useRef<AbortController>();
   useEffect(() => {
@@ -9,5 +12,5 @@ export const useSafeFetch = () => {
   }, []);
 
   return <T>(url: string): Promise<T> =>
-    consoleFetchJSON(url, 'get', { signal: controller.current.signal as AbortSignal });
+    consoleFetchJSON(url, 'GET', { signal: controller.current.signal as AbortSignal }, NO_TIMEOUT);
 };

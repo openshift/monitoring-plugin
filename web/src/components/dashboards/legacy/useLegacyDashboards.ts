@@ -1,44 +1,36 @@
-import { useCallback, useState, useMemo, useEffect } from 'react';
 import * as _ from 'lodash-es';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
+import { useNavigate, useSearchParams } from 'react-router';
+import { dashboardsPatchAllVariables } from '../../../store/actions';
 import { useSafeFetch } from '../../console/utils/safe-fetch-hook';
 import { useBoolean } from '../../hooks/useBoolean';
-import { Board } from './types';
 import { getLegacyDashboardsUrl, usePerspective } from '../../hooks/usePerspective';
-import { getAllQueryArguments, getQueryArgument } from '../../console/utils/router';
-import {
-  MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
-  MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY,
-} from './utils';
-import {
-  DashboardsClearVariables,
-  dashboardsPatchAllVariables,
-  dashboardsSetEndTime,
-  dashboardsSetPollInterval,
-  dashboardsSetTimespan,
-} from '../../../store/actions';
-import { CombinedDashboardMetadata } from '../perses/hooks/useDashboardsData';
-import { useNavigate } from 'react-router-dom-v5-compat';
 import { QueryParams } from '../../query-params';
-import { NumberParam, useQueryParam } from 'use-query-params';
 import { ALL_NAMESPACES_KEY } from '../../utils';
+import { CombinedDashboardMetadata } from '../perses/hooks/useDashboardsData';
+import { Board } from './types';
+import { MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY } from './utils';
+import { useLegacyDashboardsProject } from './useLegacyDashboardsProject';
 
-export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
+export const useLegacyDashboards = (urlBoard: string) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
   const { perspective } = usePerspective();
+  const { project } = useLegacyDashboardsProject(urlBoard);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const safeFetch = useCallback(useSafeFetch(), []);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [unfilteredLegacyDashboards, setUnfilteredLegacyDashboards] = useState<any>([]);
   const [legacyDashboardsError, setLegacyDashboardsError] = useState<string>();
-  const [refreshInterval] = useQueryParam(QueryParams.RefreshInterval, NumberParam);
   const [legacyDashboardsLoading, , , setLegacyDashboardsLoaded] = useBoolean(true);
-  const [initialLoad, , setInitialUnloaded, setInitialLoaded] = useBoolean(true);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [queryParams] = useSearchParams();
 
   useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     safeFetch<any>('/api/console/monitoring-dashboard-config')
       .then((response) => {
         setLegacyDashboardsLoaded();
@@ -56,7 +48,7 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
   // Move namespace filtering out of the fetch response call to avoid race conditions
   const legacyDashboards = useMemo<Board[]>(() => {
     let items = unfilteredLegacyDashboards;
-    if (namespace && namespace !== ALL_NAMESPACES_KEY) {
+    if (project && project !== ALL_NAMESPACES_KEY) {
       items = _.filter(
         items,
         (item) => item.metadata?.labels['console.openshift.io/odc-dashboard'] === 'true',
@@ -78,14 +70,14 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
       }
     };
     return _.sortBy(_.map(items, getBoardData), (v) => _.toLower(v?.data?.title));
-  }, [namespace, unfilteredLegacyDashboards, setLegacyDashboardsError, t]);
+  }, [project, unfilteredLegacyDashboards, setLegacyDashboardsError, t]);
 
   const legacyRows = useMemo(() => {
     const data = _.find(legacyDashboards, { name: urlBoard })?.data;
 
     return data?.rows?.length
       ? data.rows
-      : data?.panels?.reduce((acc, panel) => {
+      : (data?.panels?.reduce((acc, panel) => {
           if (panel.type === 'row') {
             acc.push(_.cloneDeep(panel));
           } else if (acc.length === 0) {
@@ -98,7 +90,7 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
             row.panels.push(panel);
           }
           return acc;
-        }, []) ?? [];
+        }, []) ?? []);
   }, [urlBoard, legacyDashboards]);
 
   // Homogenize data needed for dashboards dropdown between legacy and perses dashboards
@@ -117,78 +109,81 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
   }, [legacyDashboards, legacyDashboardsLoading]);
 
   const changeLegacyDashboard = useCallback(
-    (newBoard: string) => {
-      if (!newBoard) {
-        // If the board is being cleared then don't do anything
-        return;
+    ({ newBoard, newProject }: { newBoard?: string; newProject?: string }) => {
+      const dashboardProject = newProject ? newProject : project;
+      // If no new dashboard is specified use the current dashboard name unless
+      // the project is changing to "All Namespaces"
+      let dashboardName = newBoard;
+      if (!newBoard && newProject === ALL_NAMESPACES_KEY) {
+        dashboardName = undefined;
+      } else if (!newBoard) {
+        dashboardName = urlBoard;
       }
 
-      const allVariables = getAllVariables(legacyDashboards, newBoard, namespace);
+      const url = getLegacyDashboardsUrl(perspective, dashboardName, dashboardProject);
 
-      const queryArguments = getAllQueryArguments();
-      const params = new URLSearchParams(queryArguments);
-
-      const url = `${getLegacyDashboardsUrl(perspective, newBoard)}?${params.toString()}`;
-
-      if (newBoard !== urlBoard || initialLoad) {
-        if (params.get(QueryParams.Dashboard) !== newBoard) {
-          navigate(url, { replace: true });
+      const params = new URLSearchParams();
+      if (perspective === 'dev') {
+        params.set(QueryParams.Dashboard, queryParams.get(QueryParams.Dashboard));
+        if (
+          !params.has(QueryParams.Dashboard) ||
+          params.get(QueryParams.Dashboard) !== dashboardName
+        ) {
+          params.set(QueryParams.Dashboard, dashboardName);
         }
-
-        dispatch(dashboardsPatchAllVariables(allVariables));
-
-        // Set time range and poll interval options to their defaults or from the query params if
-        // available
-        if (refreshInterval !== undefined) {
-          dispatch(dashboardsSetPollInterval(_.toNumber(refreshInterval)));
+      } else {
+        if (params.get(QueryParams.OpenshiftProject) !== ALL_NAMESPACES_KEY) {
+          params.delete(QueryParams.Namespace);
         }
-        dispatch(dashboardsSetEndTime(_.toNumber(params.get(QueryParams.EndTime)) || null));
-        dispatch(
-          dashboardsSetTimespan(
-            _.toNumber(params.get(QueryParams.TimeRange)) || MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
-          ),
-        );
+        params.set(QueryParams.OpenshiftProject, dashboardProject);
       }
+      const srt = `${url}?${params.toString()}`;
+      navigate(srt, { replace: true });
+
+      dispatch(
+        dashboardsPatchAllVariables(
+          dashboardName,
+          getAllVariables(params, legacyDashboards, dashboardProject, dashboardName),
+        ),
+      );
     },
-    [
-      perspective,
-      urlBoard,
-      dispatch,
-      navigate,
-      namespace,
-      legacyDashboards,
-      initialLoad,
-      refreshInterval,
-    ],
+    [perspective, urlBoard, dispatch, navigate, project, queryParams, legacyDashboards],
   );
 
+  const previousProject = useRef(project);
   useEffect(() => {
+    let replacementBoard = urlBoard;
     if (
-      (!urlBoard ||
-        !legacyDashboards.some((legacyBoard) => legacyBoard.name === urlBoard) ||
-        initialLoad) &&
-      !_.isEmpty(legacyDashboards)
+      !urlBoard ||
+      (!legacyDashboards.some((legacyBoard) => legacyBoard.name === urlBoard) &&
+        !_.isEmpty(legacyDashboards))
     ) {
-      changeLegacyDashboard(urlBoard || legacyDashboards?.[0]?.name);
-      setInitialLoaded();
+      replacementBoard = legacyDashboards?.[0]?.name;
     }
-  }, [legacyDashboards, changeLegacyDashboard, initialLoad, setInitialLoaded, urlBoard]);
+    if (urlBoard !== replacementBoard || project !== previousProject.current) {
+      previousProject.current = project;
+      changeLegacyDashboard({
+        newBoard: replacementBoard,
+        newProject: project,
+      });
+    }
+  }, [legacyDashboards, changeLegacyDashboard, urlBoard, project]);
 
   useEffect(() => {
-    // Basically perform a full reload when changing a namespace to force the variables and the
-    // dashboard to reset. This is needed for when we transition between ALL_NS and a normal
-    // namespace, but is performed quickly and should help insure consistency when transitioning
-    // between any namespaces
-    setInitialUnloaded();
-    /* eslint-disable react-hooks/exhaustive-deps */
-  }, [namespace]);
+    if (_.isEmpty(legacyDashboards)) {
+      return;
+    }
 
-  // Clear variables on unmount
-  useEffect(() => {
-    return () => {
-      dispatch(DashboardsClearVariables());
-    };
-  }, [dispatch]);
+    const currentBoard = urlBoard || legacyDashboards?.[0]?.name;
+    if (currentBoard) {
+      dispatch(
+        dashboardsPatchAllVariables(
+          currentBoard,
+          getAllVariables(queryParams, legacyDashboards, project, currentBoard),
+        ),
+      );
+    }
+  }, [project, legacyDashboards, urlBoard, dispatch, queryParams]);
 
   return {
     legacyDashboards,
@@ -201,14 +196,18 @@ export const useLegacyDashboards = (namespace: string, urlBoard: string) => {
   };
 };
 
-const getAllVariables = (boards: Board[], newBoardName: string, namespace: string) => {
+const getAllVariables = (
+  params: URLSearchParams,
+  boards: Board[],
+  namespace: string,
+  newBoardName: string,
+) => {
   const data = _.find(boards, { name: newBoardName })?.data;
-
   const allVariables = {};
   _.each(data?.templating?.list, (v) => {
     if (v.type === 'query' || v.type === 'interval') {
       // Look for query param that is equal to the variable name
-      let value = getQueryArgument(v.name);
+      let value = params.get(v.name);
 
       // Look for an option that should be selected by default
       if (value === null) {
@@ -234,6 +233,5 @@ const getAllVariables = (boards: Board[], newBoardName: string, namespace: strin
       };
     }
   });
-
   return allVariables;
 };

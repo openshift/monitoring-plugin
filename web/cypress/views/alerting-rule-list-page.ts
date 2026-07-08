@@ -1,38 +1,60 @@
-import { DataTestIDs, Classes } from "../../src/components/data-test";
-import { listPage } from "./list-page";
+import { DataTestIDs, Classes, FilterOUIAIDs } from '../../src/components/data-test';
+import { Source } from '../fixtures/monitoring/constants';
+import { listPage } from './list-page';
 
 export const alertingRuleListPage = {
   shouldBeLoaded: () => {
     cy.log('alertingRuleListPage.shouldBeLoaded');
-    listPage.filter.removeMainTag('Source');
+    listPage.filter.removeIndividualTag(Source.PLATFORM);
     cy.byTestID(DataTestIDs.AlertingRuleResourceIcon).contains('AR');
     cy.get(Classes.TableHeaderColumn).contains('Name').should('be.visible');
     cy.get(Classes.TableHeaderColumn).contains('Severity').should('be.visible');
-    cy.get(Classes.TableHeaderColumn).contains('Alert state').should('be.visible');
+    cy.get(Classes.TableHeaderColumn).contains('State').should('be.visible');
     cy.get(Classes.TableHeaderColumn).contains('Source').should('be.visible');
   },
 
   filter: {
     /**
-    * 
-    * @param tab alerts-tab, silences, alerting-rules 
-    */
+     *
+     * @param tab alerts-tab, silences, alerting-rules
+     */
     assertNoClearAllFilters: () => {
       cy.log('alertingRuleListPage.filter.assertNoclearAllFilters');
       try {
-        cy.bySemanticElement('button').contains('Clear all filters').should('not.exist');
+        cy.byOUIAID('DataViewToolbar-clear-all-filters').should('not.be.visible');
       } catch (error) {
         cy.log(`${error.message}`);
         throw error;
       }
     },
 
+    byName: (name: string, ouiaId: string = FilterOUIAIDs.RuleNameFilter) => {
+      cy.log('listPage.filter.byName');
+      try {
+        listPage.filter.selectAttribute('Name');
+        cy.byOUIAID(`${ouiaId}-input`)
+          .find('input')
+          .scrollIntoView()
+          .as('input')
+          .should('be.visible');
+        cy.get('@input', { timeout: 10000 })
+          .scrollIntoView()
+          .type(name + '{enter}');
+        cy.get('@input', { timeout: 10000 }).scrollIntoView().should('have.attr', 'value', name);
+      } catch (error) {
+        cy.log(`${error.message}`);
+        throw error;
+      }
+    },
   },
 
   clickAlertingRule: (alertRule: string) => {
     cy.log('alertingRuleListPage.clickAlertingRule');
     try {
-      cy.byTestID(DataTestIDs.AlertingRuleResourceLink).contains(alertRule).should('be.visible').click();
+      cy.byTestID(DataTestIDs.AlertingRuleResourceLink)
+        .contains(alertRule)
+        .should('be.visible')
+        .click();
     } catch (error) {
       cy.log(`${error.message}`);
       throw error;
@@ -46,7 +68,6 @@ export const alertingRuleListPage = {
 
   ARShouldBe: (alert: string, severity: string, total: number, state: string) => {
     cy.log('alertingRuleListPage.ARShouldBe');
-    cy.byOUIAID('OUIA-Generated-Button-plain').should('exist');
     cy.byTestID(DataTestIDs.AlertingRuleResourceIcon).contains('AR');
     cy.byTestID(DataTestIDs.AlertingRuleResourceLink).contains(alert).should('exist');
     cy.byTestID(DataTestIDs.SeverityBadge).contains(severity).should('exist');
@@ -56,8 +77,6 @@ export const alertingRuleListPage = {
   emptyState: () => {
     cy.log('alertingRuleListPage.emptyState');
     cy.byTestID(DataTestIDs.EmptyBoxBody).contains('No alerting rules found').should('be.visible');
-    cy.bySemanticElement('button', 'Clear all filters').should('not.exist');
-    cy.byOUIAID(DataTestIDs.Table).should('not.exist');
+    cy.byOUIAID('DataViewToolbar-clear-all-filters').should('not.be.visible');
   },
-
 };

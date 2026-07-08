@@ -1,15 +1,19 @@
 // Utility functions for Prometheus mocking system
-import { TZDate } from "@date-fns/tz";
+import { TZDate } from '@date-fns/tz';
 
 /**
  * Converts severity string to numeric value expected by UI
  */
 export function severityToValue(severity: 'critical' | 'warning' | 'info'): string {
   switch (severity) {
-    case 'critical': return '2';
-    case 'warning': return '1';  
-    case 'info': return '0';
-    default: return '0';
+    case 'critical':
+      return '2';
+    case 'warning':
+      return '1';
+    case 'info':
+      return '0';
+    default:
+      return '0';
   }
 }
 
@@ -28,7 +32,8 @@ export function parseDuration(duration: string): number {
   const fullPattern = /^(?:\d+[smhd])+$/;
   if (!fullPattern.test(normalized)) {
     throw new Error(
-      `Invalid duration format: ${duration}. Use formats like "30m", "2h", "7d", "1h30m", "7d2h30m"`
+      `Invalid duration format: ${duration}. ` +
+        `Use formats like "30m", "2h", "7d", "1h30m", "7d2h30m"`,
     );
   }
 
@@ -60,14 +65,16 @@ export function parseDuration(duration: string): number {
         throw new Error(`Unknown duration unit: ${unit}`);
     }
   }
-  
 
   // Ensure the entire string was valid; reject strings with invalid characters/order
   if (!matchedAny) {
-    cy.log(`Invalid duration format: ${duration}. Use formats like "30m", "2h", "7d", "1h30m", "7d2h30m"`);
+    cy.log(
+      `Invalid duration format: ${duration}. ` +
+        `Use formats like "30m", "2h", "7d", "1h30m", "7d2h30m"`,
+    );
     throw new Error(
       `Invalid duration format: ${duration}. Use formats like "30m", "2h", "7d", "1h30m", "7d2h30m",
-       ${normalized}, ${componentRegex.lastIndex}, ${matchedAny}, ${totalSeconds}`
+       ${normalized}, ${componentRegex.lastIndex}, ${matchedAny}, ${totalSeconds}`,
     );
   }
 
@@ -79,14 +86,14 @@ export function parseDuration(duration: string): number {
  */
 export function parseQueryLabels(query: string): Record<string, string | string[]> {
   const labels: Record<string, string | string[]> = {};
-  
+
   // Match label selectors in the format: labelname="value" or labelname='value'
   const regex = /(\w+)=["']([^"']+)["']/g;
   let match;
-  
+
   while ((match = regex.exec(query)) !== null) {
     const [, labelName, labelValue] = match;
-    
+
     if (labels[labelName]) {
       // If we already have a value for this label, convert to array
       if (Array.isArray(labels[labelName])) {
@@ -98,7 +105,7 @@ export function parseQueryLabels(query: string): Record<string, string | string[
       labels[labelName] = labelValue;
     }
   }
-  
+
   return labels;
 }
 

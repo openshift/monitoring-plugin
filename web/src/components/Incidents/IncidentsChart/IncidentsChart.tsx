@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   Chart,
@@ -100,10 +100,12 @@ const IncidentsChart = ({
   }, [incidentsData, dateValues, selectedGroupId]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsLoading(false);
   }, [incidentsData]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setChartContainerHeight(chartData?.length < 5 ? 300 : chartData?.length * 60);
     setChartHeight(chartData?.length < 5 ? 250 : chartData?.length * 55);
   }, [chartData]);
@@ -282,4 +284,4 @@ const IncidentsChart = ({
   );
 };
 
-export default React.memo(IncidentsChart);
+export default memo(IncidentsChart);

@@ -27,19 +27,21 @@ const HeaderTop: FC = memo(() => {
   );
 });
 
+HeaderTop.displayName = 'HeaderTop';
+
 type MonitoringDashboardsLegacyPageProps = PropsWithChildren<{
   boardItems: CombinedDashboardMetadata[];
-  changeBoard: (dashboardName: string) => void;
+  changeBoard: (params: { newBoard?: string; initialLoad?: boolean; newProject?: string }) => void;
   dashboardName: string;
 }>;
 
-export const DashboardSkeletonLegacy: FC<MonitoringDashboardsLegacyPageProps> = memo(
-  ({ children, boardItems, changeBoard, dashboardName }) => {
+export const DashboardSkeletonLegacy = memo(
+  ({ children, boardItems, changeBoard, dashboardName }: MonitoringDashboardsLegacyPageProps) => {
     const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
     const onChangeBoard = useCallback(
       (selectedDashboard: string) => {
-        changeBoard(selectedDashboard);
+        changeBoard({ newBoard: selectedDashboard });
       },
       [changeBoard],
     );
@@ -61,7 +63,10 @@ export const DashboardSkeletonLegacy: FC<MonitoringDashboardsLegacyPageProps> = 
             )}
 
             <StackItem>
-              <LegacyDashboardsAllVariableDropdowns key={dashboardName} />
+              <LegacyDashboardsAllVariableDropdowns
+                key={dashboardName}
+                dashboardName={dashboardName}
+              />
             </StackItem>
             <StackItem>
               <Split>
@@ -76,3 +81,5 @@ export const DashboardSkeletonLegacy: FC<MonitoringDashboardsLegacyPageProps> = 
     );
   },
 );
+
+DashboardSkeletonLegacy.displayName = 'DashboardSkeletonLegacy';

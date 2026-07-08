@@ -49,11 +49,12 @@ const barTheme = {
   },
 };
 
+const Label: FC<LabelComponentProps> = ({ metric }) => <>{Object.values(metric).join()}</>;
+
 const BarChart: FC<BarChartProps> = ({
   barSpacing = 15,
   barWidth = DEFAULT_BAR_WIDTH,
   data = [],
-  LabelComponent,
   loading = false,
   noLink = false,
   query,
@@ -85,11 +86,7 @@ const BarChart: FC<BarChartProps> = ({
           data.map((datum, index) => (
             <Fragment key={index}>
               <div className="graph-bar__label">
-                {LabelComponent ? (
-                  <LabelComponent title={datum.x} metric={datum.metric} />
-                ) : (
-                  datum.x
-                )}
+                <Label title={datum.x} metric={datum.metric} />
               </div>
               <div className="graph-bar__chart">
                 <ChartBar
@@ -167,6 +164,7 @@ type BarChartProps = {
   loading?: boolean;
   noLink?: boolean;
   query?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   theme?: any; // TODO figure out the best way to import VictoryThemeDefinition
   title?: string;
   titleClassName?: string;
@@ -182,6 +180,7 @@ type BarProps = {
   namespace?: string;
   noLink?: boolean;
   query: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   theme?: any; // TODO figure out the best way to import VictoryThemeDefinition
   title?: string;
   titleClassName?: string;

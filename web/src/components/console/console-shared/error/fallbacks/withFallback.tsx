@@ -3,6 +3,7 @@ import ErrorBoundary from '../error-boundary';
 
 type WithFallback = <P = object>(
   Component: ComponentType<P>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   FallbackComponent?: ComponentType<any>,
 ) => ComponentType<P>;
 

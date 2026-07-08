@@ -8,6 +8,9 @@ import {
 import { getPrometheusBasePath, buildPrometheusUrl } from '../utils';
 import { PROMETHEUS_QUERY_INTERVAL_SECONDS } from './utils';
 
+// Disable client-side timeout (-1) to let the backend control query timeouts
+const NO_TIMEOUT = -1;
+
 const MAX_URL_LENGTH = 2048;
 
 /**
@@ -136,7 +139,7 @@ export const fetchDataForIncidentsAndAlerts = async (
       } as PrometheusResponse);
     }
 
-    return consoleFetchJSON(url);
+    return consoleFetchJSON(url, 'GET', {}, NO_TIMEOUT);
   });
 
   const responses = await Promise.all(promises);

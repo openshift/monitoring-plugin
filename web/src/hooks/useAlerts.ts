@@ -25,15 +25,16 @@ import {
   getAdditionalSources,
 } from '../components/alerting/AlertUtils';
 import { MonitoringState } from '../store/store';
+import { AppDispatch } from '../store/actions';
 import { getObserveState } from '../components/hooks/usePerspective';
-import { useQueryNamespace } from '../components/hooks/useQueryNamespace';
+import { useMonitoringNamespace } from '../components/hooks/useMonitoringNamespace';
 
 const POLLING_INTERVAL_MS = 15 * 1000; // 15 seconds
 
 export const useAlerts = (props?: { dontUseTenancy?: boolean }) => {
   // Retrieve external information which dictates which alerts to load and use
   const { plugin } = useMonitoring();
-  const { namespace } = useQueryNamespace();
+  const { namespace } = useMonitoringNamespace();
   const { prometheus, useAlertsTenancy, accessCheckLoading } = useMonitoring();
   const overriddenNamespace =
     props?.dontUseTenancy || !useAlertsTenancy ? ALL_NAMESPACES_KEY : namespace;
@@ -122,7 +123,7 @@ const useAlertsPoller = ({
   useAlertsTenancy: boolean;
   accessCheckLoading: boolean;
 }) => {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const [customExtensions] =
     useResolvedExtensions<AlertingRulesSourceExtension>(isAlertingRulesSource);
 

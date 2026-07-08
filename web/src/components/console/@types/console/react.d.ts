@@ -8,6 +8,7 @@ declare module 'react' {
 
   // Type def for a childless FunctionComponent
   interface FCC<P = object> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (props: P, context?: any): ReactElement | null;
     propTypes?: FunctionComponent<P>['propTypes'];
     contextTypes?: FunctionComponent<P>['contextTypes'];

@@ -4,11 +4,11 @@ export type AggregatedAlert = {
   severity: Alert['labels']['severity'];
   alerts: Alert[];
   name: Alert['labels']['alertname'];
-  states: Set<Alert['state']>;
+  state: Alert['state'];
 };
 
 export const getAggregatedAlertKey = (alert: Alert): string =>
-  `${alert.labels.alertname}-${alert.labels?.severity}`;
+  `${alert.labels.alertname}-${alert.labels?.severity}-${alert.state}`;
 
 export const getAggregateAlertsLists = (data: Alert[]): AggregatedAlert[] => {
   const aggregatedAlertsMap = (data || []).reduce((aggregatedAlertsMap, alert) => {
@@ -18,14 +18,13 @@ export const getAggregateAlertsLists = (data: Alert[]): AggregatedAlert[] => {
       aggregatedAlertsMap.set(key, {
         name: alert.labels.alertname,
         severity: alert.labels?.severity,
+        state: alert.state,
         alerts: [],
-        states: new Set(),
       });
     }
 
     const aggregatedAlert = aggregatedAlertsMap.get(key);
     aggregatedAlert.alerts.push(alert);
-    aggregatedAlert.states.add(alert.state);
 
     return aggregatedAlertsMap;
   }, new Map<string, AggregatedAlert>());

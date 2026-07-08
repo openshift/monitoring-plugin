@@ -28,7 +28,8 @@ import { OCPDashboardToolbar } from './dashboard-toolbar';
 import { useUpdateDashboardMutation } from './dashboard-api';
 import { useTranslation } from 'react-i18next';
 import { useToast } from './ToastProvider';
-import { useSearchParams } from 'react-router-dom-v5-compat';
+import { useSearchParams } from 'react-router';
+import { ExternalPanelAddition } from './ExternalPanelAddition';
 
 export interface DashboardAppProps {
   dashboardResource: DashboardResource | EphemeralDashboardResource;
@@ -98,13 +99,13 @@ export const OCPDashboardApp = (props: DashboardAppProps): ReactElement => {
     setEditMode(false);
     closeDiscardChangesConfirmationDialog();
     if (onDiscard) {
-      onDiscard(dashboard as unknown as DashboardResource);
+      onDiscard(dashboard as DashboardResource);
     }
   };
 
   const onEditButtonClick = (): void => {
     setEditMode(true);
-    setOriginalDashboard(dashboard);
+    setOriginalDashboard(dashboard as DashboardResource);
     setSavedDatasources(dashboard.spec.datasources ?? {});
   };
 
@@ -168,6 +169,7 @@ export const OCPDashboardApp = (props: DashboardAppProps): ReactElement => {
         flexDirection: 'column',
       }}
     >
+      <ExternalPanelAddition isEditMode={isEditMode} onEditButtonClick={onEditButtonClick} />
       <OCPDashboardToolbar
         dashboardName={dashboardResource.metadata.name}
         initialVariableIsSticky={isInitialVariableSticky}

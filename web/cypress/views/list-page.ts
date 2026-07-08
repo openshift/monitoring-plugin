@@ -1,10 +1,10 @@
-import { getPFVersion } from "./utils";
-import { DataTestIDs, Classes, LegacyTestIDs } from "../../src/components/data-test";
+import { DataTestIDs, Classes, LegacyTestIDs, FilterOUIAIDs } from '../../src/components/data-test';
+
+const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 export const listPage = {
-
   /**
-   * 
+   *
    * @param tab
    */
   tabShouldHaveText: (tab: string) => {
@@ -13,15 +13,11 @@ export const listPage = {
   },
 
   /**
-   * 
+   *
    * @param clearFolder true = clear folder, false = do not clear folder
    * @param fileNameExp i.e openshift.csv
-   * @param alertName 
-   * @param severity 
-   * @param state 
-   * @param total 
    */
-  exportAsCSV: (clearFolder: boolean, fileNameExp: RegExp, alertName: string, severity: string, state: string, total: number) => {
+  exportAsCSV: (clearFolder: boolean, fileNameExp: RegExp) => {
     cy.log('listPage.exportAsCSV');
     let downloadedFileName: string | null = null;
     const downloadsFolder = Cypress.config('downloadsFolder');
@@ -31,65 +27,88 @@ export const listPage = {
     }
     cy.byTestID(DataTestIDs.DownloadCSVButton).should('be.visible').click();
 
-    cy.waitUntil(() => {
-      return cy.task('getFilesInFolder', downloadsFolder).then((currentFiles: string[]) => {
-        const matchingFile = currentFiles.find(file => expectedFileNamePattern.test(file));
-        if (matchingFile) {
-          downloadedFileName = matchingFile;
-          return true;
-        }
-        return false;
-      });
-    }, {
-      timeout: 20000,
-      interval: 1000,
-      errorMsg: `CSV file matching "${expectedFileNamePattern}" was not downloaded within timeout.`
-    });
+    cy.waitUntil(
+      () => {
+        return cy.task('getFilesInFolder', downloadsFolder).then((currentFiles: string[]) => {
+          const matchingFile = currentFiles.find((file) => expectedFileNamePattern.test(file));
+          if (matchingFile) {
+            downloadedFileName = matchingFile;
+            return true;
+          }
+          return false;
+        });
+      },
+      {
+        timeout: 20000,
+        interval: 1000,
+        errorMsg: [
+          `CSV file matching "${expectedFileNamePattern}"`,
+          'was not downloaded within timeout.',
+        ].join(' '),
+      },
+    );
 
     cy.then(() => {
-      expect(downloadedFileName).to.not.be.null;
+      expect(downloadedFileName).to.not.equal(null);
       cy.task('doesFileExist', { fileName: downloadedFileName }).should('be.true');
     });
-
   },
 
-
   filter: {
+    selectAttribute: (attributeName: string) => {
+      cy.log('listPage.filter.selectAttribute');
+      cy.byOUIAID('DataViewFilters').scrollIntoView();
+      cy.byOUIAID('DataViewFilters')
+        .find('.pf-v6-c-menu-toggle')
+        .first()
+        .then(($toggle) => {
+          if (!$toggle.text().includes(attributeName)) {
+            cy.wrap($toggle).click();
+            cy.get('.pf-v6-c-menu__item').contains(attributeName).click();
+          }
+        });
+    },
+
     /**
-     * @param name 
+     * @param name
      */
-    byName: (name: string) => {
+    byName: (name: string, ouiaId: string = FilterOUIAIDs.AlertNameFilter) => {
       cy.log('listPage.filter.byName');
       try {
-          cy.byTestID(DataTestIDs.NameLabelDropdown).scrollIntoView().click();
-          cy.byTestID(DataTestIDs.NameLabelDropdownOptions).contains('Name').click();
-          cy.byTestID(DataTestIDs.NameInput).scrollIntoView().as('input').should('be.visible');
-          cy.get('@input', { timeout: 10000 }).scrollIntoView().type(name + '{enter}');
-          cy.get('@input', { timeout: 10000 }).scrollIntoView().should('have.attr', 'value', name);
-        
-      }
-      catch (error) {
+        listPage.filter.selectAttribute('Name');
+        cy.byOUIAID(`${ouiaId}-input`)
+          .find('input')
+          .scrollIntoView()
+          .as('input')
+          .should('be.visible');
+        cy.get('@input', { timeout: 10000 })
+          .scrollIntoView()
+          .type(name + '{enter}');
+        cy.get('@input', { timeout: 10000 }).scrollIntoView().should('have.attr', 'value', name);
+      } catch (error) {
         cy.log(`${error.message}`);
         throw error;
       }
     },
     /**
-     * @param label 
+     * @param label
      */
     byLabel: (label: string) => {
       cy.log('listPage.filter.byLabel');
-      cy.byTestID(DataTestIDs.NameLabelDropdown).scrollIntoView().click();
-      cy.byTestID(DataTestIDs.NameLabelDropdownOptions).contains('Label').click();
-      cy.byLegacyTestID(LegacyTestIDs.ItemFilter).scrollIntoView()
-        .as('input').should('be.visible');
-      cy.get('@input', { timeout: 10000 }).scrollIntoView().type(label + '{enter}').should('have.attr', 'value', label);
+      listPage.filter.selectAttribute('Label');
+      cy.byLegacyTestID(LegacyTestIDs.ItemFilter).scrollIntoView().as('input').should('be.visible');
+      cy.get('@input', { timeout: 10000 })
+        .scrollIntoView()
+        .type(label + '{enter}')
+        .should('have.attr', 'value', label);
       cy.byTestID(DataTestIDs.LabelSuggestion).contains(label).click();
     },
-    
+
     clearAllFilters: () => {
       cy.log('listPage.filter.clearAllFilters');
       try {
-        cy.bySemanticElement('button', 'Clear all filters').click();
+        cy.byOUIAID('DataViewFilters').scrollIntoView();
+        cy.byOUIAID('DataViewToolbar-clear-all-filters').first().click();
       } catch (error) {
         cy.log(`${error.message}`);
         throw error;
@@ -97,77 +116,83 @@ export const listPage = {
     },
 
     /**
-     * 
-     * @param toOpen true = open, false = nothing
-     * @param toClose true = close, false = nothing
+     * Select a filter option from a checkbox filter.
+     * First selects the filter attribute, then opens the checkbox dropdown and clicks the option.
+     *
+     * @param filterCategory The filter attribute name
+     * ie. 'Alert State', 'Severity', 'Source', 'Silence State'
+     * @param option The option value to select (e.g., 'Firing', 'Critical', 'Platform')
      */
-    clickFilter: (toOpen: boolean, toClose: boolean) => {
-      cy.log('listPage.filter.clickFilter');
-      if (toOpen) {
-        cy.get(Classes.FilterDropdown).contains('Filter').scrollIntoView().should('be.visible').click();
-      }
-      if (toClose) {
-        cy.get(Classes.FilterDropdownExpanded).contains('Filter').should('be.visible').click();
-      }
-    },
-
-    /**
-     * 
-     * @param open true = open, false = nothing
-     * @param option i.e. Firing
-     * @param close true = close, false = nothing
-     */
-    selectFilterOption: (open: boolean, option: string, close: boolean) => {
+    selectFilterOption: (filterCategory: string, option: string) => {
       cy.log('listPage.filter.selectFilterOption');
-      if (open) {
-        listPage.filter.clickFilter(open, false);
-      };
+      listPage.filter.selectAttribute(filterCategory);
+      cy.byOUIAID('DataViewFilters').scrollIntoView();
+      cy.byOUIAID('DataViewFilters')
+        .find(Classes.FilterDropdown)
+        .filter(':visible')
+        .last()
+        .scrollIntoView()
+        .click();
       cy.get(Classes.FilterDropdownOption).contains(option).should('be.visible').click();
-      if (close) {
-        listPage.filter.clickFilter(false, close);
-      };
+      cy.byOUIAID('DataViewFilters').scrollIntoView();
+      cy.byOUIAID('DataViewFilters')
+        .find(Classes.FilterDropdown)
+        .filter(':visible')
+        .last()
+        .scrollIntoView()
+        .click();
     },
 
     /**
-     *  Click on the X for the whole tag group
-     * @param groupTagName 
-     */
-    removeMainTag: (groupTagName: string) => {
-      cy.log('listPage.filter.removeMainTag');
-      cy.get(Classes.MainTag).contains(groupTagName).parent().next('div').children('button').click();
-    },
-
-    /**
-     * 
-     * @param tagName alerts-tab: Firing, Pending, Silenced, Critical, Warning, Info, None, Platform, User
-     *                silences: Active, Pending, Expired
-     *                alerting-rules: Firing, Pending, Silenced, Not Firing, Critical, Warning, Info, None, Platform, User
+     *
+     * @param tagName alerts-tab: Firing, Pending, Silenced, Critical, Warning, Info, None,
+     *   Platform, User
+     *   silences: Active, Pending, Expired
+     *   alerting-rules: Firing, Pending, Silenced, Not Firing, Critical, Warning, Info, None,
+     *   Platform, User
      */
     removeIndividualTag: (tagName: string) => {
       cy.log('listPage.filter.removeIndividualTag');
-      cy.get(Classes.IndividualTag).contains(tagName).parent().next('span').children('button').click();
+      cy.byOUIAID('DataViewFilters').scrollIntoView();
+      cy.get(Classes.IndividualTag)
+        .contains(new RegExp(`^${escapeRegExp(tagName)}$`))
+        .parent()
+        .next('span')
+        .children('button')
+        .click();
     },
 
     /**
-     * 
-     * @param groupTagName alerts-tab (Alert State, Severity, Source), Silence State, alerting-rules (Alert State, Severity, Source)
+     *
+     * @param groupTagName alerts-tab (Alert State, Severity, Source), Silence State,
+     *   alerting-rules (Alert State, Severity, Source)
      */
     clickOn1more: (groupTagName: string) => {
       cy.log('listPage.filter.clickOn1more');
-      cy.get(Classes.MoreLessTag).contains(groupTagName).siblings('ul').children('li').contains('1 more').click();
-
+      cy.byOUIAID('DataViewFilters').scrollIntoView();
+      cy.get(Classes.MoreLessTag)
+        .contains(groupTagName)
+        .siblings('ul')
+        .children('li')
+        .contains('1 more')
+        .click();
     },
 
     /**
-     * 
-     * @param groupTagName alerts-tab (Alert State, Severity, Source), Silence State, alerting-rules (Alert State, Severity, Source)
+     *
+     * @param groupTagName alerts-tab (Alert State, Severity, Source), Silence State,
+     *   alerting-rules (Alert State, Severity, Source)
      */
     clickOnShowLess: (groupTagName: string) => {
       cy.log('listPage.filter.clickOnShowLess');
-      cy.get(Classes.MoreLessTag).contains(groupTagName).siblings('ul').children('li').contains('Show less').click();
-
+      cy.byOUIAID('DataViewFilters').scrollIntoView();
+      cy.get(Classes.MoreLessTag)
+        .contains(groupTagName)
+        .siblings('ul')
+        .children('li')
+        .contains('Show Less')
+        .click();
     },
-
   },
   ARRows: {
     shouldBeLoaded: () => {
@@ -178,27 +203,22 @@ export const listPage = {
       cy.log('listPage.ARRows.countShouldBe');
       cy.byTestID(DataTestIDs.AlertingRuleResourceIcon).should('have.length', count);
     },
-    
+
     //pf-6 only
     ARShouldBe: (alert: string, severity: string, total: number, state: string) => {
       cy.log('listPage.ARRows.ARShouldBe');
-      if (getPFVersion() === 'v6') {
-        cy.byOUIAID('OUIA-Generated-Button-plain').should('exist');
-        cy.byTestID(DataTestIDs.AlertingRuleResourceIcon).contains('AR');
-        cy.byTestID(DataTestIDs.AlertingRuleResourceLink).contains(alert).should('exist');
-        cy.byTestID(DataTestIDs.AlertingRuleSeverityBadge).contains(severity).should('exist');
-        cy.byTestID(DataTestIDs.AlertingRuleTotalAlertsBadge).contains(total).should('exist');
-        cy.byTestID(DataTestIDs.AlertingRuleStateBadge).contains(state).should('exist');
-      }
-    
+      cy.byTestID(DataTestIDs.AlertingRuleResourceIcon).contains('AR');
+      cy.byTestID(DataTestIDs.AlertingRuleResourceLink).contains(alert).should('exist');
+      cy.byTestID(DataTestIDs.AlertingRuleSeverityBadge).contains(severity).should('exist');
+      cy.byTestID(DataTestIDs.AlertingRuleTotalAlertsBadge).contains(total).should('exist');
+      cy.byTestID(DataTestIDs.AlertingRuleStateBadge).contains(state).should('exist');
     },
     AShouldBe: (alert: string, severity: string, namespace: string) => {
       cy.log('listPage.ARRows.AShouldBe');
       cy.byTestID(DataTestIDs.AlertResourceIcon).should('exist');
       cy.byTestID(DataTestIDs.AlertResourceLink).contains(alert).should('exist');
       cy.byTestID(DataTestIDs.SeverityBadge).contains(severity).should('exist');
-      cy.byTestID(DataTestIDs.AlertNamespace).contains(namespace).should('exist'); //pf-6 only
-      
+      cy.byTestID(DataTestIDs.AlertNamespace).contains(namespace).should('exist');
     },
     //pf-6 only
     expandRow: () => {
@@ -208,11 +228,9 @@ export const listPage = {
           if ($provider.find(Classes.ExpandedRow).length > 0) {
             cy.log('Already expanded');
           } else {
-            cy.get(Classes.ToExpandRow, { timeout: 10000 })
-              .eq(2)
-              .click();
+            cy.byTestID(DataTestIDs.AlertingRuleArrow).first().find('button').click();
           }
-        })
+        });
       } catch (error) {
         cy.log(`${error.message}`);
         throw error;
@@ -222,9 +240,7 @@ export const listPage = {
     clickAlertingRule: () => {
       cy.log('listPage.ARRows.clickAlertingRule');
       try {
-        cy.byTestID(DataTestIDs.AlertingRuleResourceLink)
-          .should('be.visible')
-          .click();
+        cy.byTestID(DataTestIDs.AlertingRuleResourceLink).should('be.visible').click();
       } catch (error) {
         cy.log(`${error.message}`);
         throw error;
@@ -233,9 +249,7 @@ export const listPage = {
     clickAlert: () => {
       cy.log('listPage.ARRows.clickAlert');
       try {
-        cy.byTestID(DataTestIDs.AlertResourceLink)
-          .should('be.visible')
-          .click();
+        cy.byTestID(DataTestIDs.AlertResourceLink).should('be.visible').click();
       } catch (error) {
         cy.log(`${error.message}`);
         throw error;
@@ -273,7 +287,7 @@ export const listPage = {
   emptyState: () => {
     cy.log('listPage.emptyState');
     cy.byTestID(DataTestIDs.EmptyBoxBody).contains('No alerts found').should('be.visible');
-    cy.bySemanticElement('button', 'Clear all filters').should('not.exist');
+    cy.byOUIAID('DataViewToolbar-clear-all-filters').should('not.be.visible');
     cy.byTestID(DataTestIDs.DownloadCSVButton).should('not.exist');
     cy.byOUIAID(DataTestIDs.Table).should('not.exist');
   },

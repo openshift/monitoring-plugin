@@ -2,12 +2,13 @@ import type { FC, MouseEvent } from 'react';
 import { useState, useMemo } from 'react';
 import { ResourceIcon, Silence, SilenceStates } from '@openshift-console/dynamic-plugin-sdk';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { useNavigate, Link } from 'react-router';
 import {
   getEditSilenceAlertUrl,
   getSilenceAlertUrl,
   usePerspective,
 } from '../../hooks/usePerspective';
+import { useMonitoringNamespace } from '../../hooks/useMonitoringNamespace';
 import {
   DataViewTable,
   DataViewTr,
@@ -18,7 +19,6 @@ import { ActionsColumn, IAction } from '@patternfly/react-table';
 import { ExpireSilenceModal, SilenceMatchersList, SilenceState } from '../SilencesUtils';
 import { useBoolean } from '../../hooks/useBoolean';
 import { SilenceResource } from '../../utils';
-import { Link } from 'react-router-dom-v5-compat';
 import { SeverityCounts, StateTimestamp } from '../AlertUtils';
 import { t_global_spacer_xs } from '@patternfly/react-tokens';
 
@@ -26,11 +26,12 @@ export const SilencedByList: FC<{ silences: Silence[] }> = ({ silences }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
   const navigate = useNavigate();
+  const { namespace } = useMonitoringNamespace();
   const [isModalOpen, , setModalOpen, setModalClosed] = useBoolean(false);
   const [silence, setSilence] = useState<Silence | null>(null);
 
   const editSilence = (event: MouseEvent, rowIndex: number) => {
-    navigate(getEditSilenceAlertUrl(perspective, silences.at(rowIndex)?.id));
+    navigate(getEditSilenceAlertUrl(perspective, silences.at(rowIndex)?.id, namespace));
   };
 
   const rowActions = (silence: Silence): IAction[] => {
@@ -73,7 +74,7 @@ export const SilencedByList: FC<{ silences: Silence[] }> = ({ silences }) => {
               <Link
                 data-test-id="silence-resource-link"
                 title={silence.id}
-                to={getSilenceAlertUrl(perspective, silence.id)}
+                to={getSilenceAlertUrl(perspective, silence.id, namespace)}
               >
                 {silence.name}
               </Link>

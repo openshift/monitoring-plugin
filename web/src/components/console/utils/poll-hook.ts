@@ -27,7 +27,6 @@ export const usePoll = (callback, delay, ...dependencies) => {
     if (delay === 0 && intervalId.current) {
       clearInterval(intervalId.current);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
 
     return () => {
       if (intervalId.current) {

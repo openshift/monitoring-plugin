@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, Ref } from 'react';
 
 export const useRefWidth = () => {
   const ref = useRef<HTMLDivElement>(null);
@@ -22,13 +22,12 @@ export const useRefWidth = () => {
     };
   }, []);
 
-  const clientWidth = ref.current?.clientWidth;
-
   useEffect(() => {
-    if (width !== clientWidth) {
-      setWidth(clientWidth);
+    if (width !== ref.current?.clientWidth) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setWidth(ref.current?.clientWidth);
     }
-  }, [clientWidth, width]);
+  }, [ref, width]);
 
-  return [setRef, width] as [React.Ref<HTMLDivElement>, number];
+  return [setRef, width] as [Ref<HTMLDivElement>, number];
 };

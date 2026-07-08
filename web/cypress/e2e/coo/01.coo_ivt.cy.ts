@@ -13,11 +13,10 @@ const KBV = {
   crd: {
     kubevirt: 'kubevirts.kubevirt.io',
     hyperconverged: 'hyperconvergeds.hco.kubevirt.io',
-  }
+  },
 };
 
 describe('IVT: Monitoring UIPlugin + Virtualization', { tags: ['@smoke', '@coo'] }, () => {
-
   before(() => {
     cy.beforeBlockVirtualization(KBV);
   });
@@ -28,11 +27,9 @@ describe('IVT: Monitoring UIPlugin + Virtualization', { tags: ['@smoke', '@coo']
     guidedTour.closeKubevirtTour();
     troubleshootingPanelPage.signalCorrelationShouldNotBeVisible();
     cy.switchPerspective('Core platform', 'Administrator');
-
   });
 
   /**
    * TODO: To be replaced by COO validation such as Dashboards (Perses) scenarios
    */
-
 });

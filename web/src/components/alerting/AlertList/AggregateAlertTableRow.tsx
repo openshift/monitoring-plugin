@@ -1,37 +1,38 @@
 import { Alert, ResourceIcon, TableColumn } from '@openshift-console/dynamic-plugin-sdk';
 import { ExpandableRowContent, Table, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
-import type { FC } from 'react';
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getRuleUrl, usePerspective } from '../../../components/hooks/usePerspective';
+import { useMonitoringNamespace } from '../../hooks/useMonitoringNamespace';
 import { AggregatedAlert } from '../AlertsAggregates';
 import { AlertState, SeverityBadge } from '../AlertUtils';
 import AlertTableRow from './AlertTableRow';
 import { RuleResource } from '../../../components/utils';
-import { Link } from 'react-router-dom-v5-compat';
-import { SelectedFilters } from '../useSelectedFilters';
-import { filterAlerts } from './hooks/utils';
+import { Link } from 'react-router';
+import { filterAlerts } from './filter-alerts';
 import { Badge, Flex, FlexItem } from '@patternfly/react-core';
 import { DataTestIDs } from '../../data-test';
+import { AggregatedAlertFilters } from '../AlertsPage';
 
-type AggregateAlertTableRowProps = FC<{
+type AggregateAlertTableRowProps = {
   aggregatedAlert: AggregatedAlert;
-  rowData: { rowIndex: number; selectedFilters: SelectedFilters };
-}>;
+  rowData: { rowIndex: number; selectedFilters: AggregatedAlertFilters };
+};
 
-const AggregateAlertTableRow: AggregateAlertTableRowProps = ({
+const AggregateAlertTableRow = ({
   aggregatedAlert,
   rowData: { rowIndex, selectedFilters },
-}) => {
+}: AggregateAlertTableRowProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
+  const { namespace } = useMonitoringNamespace();
   const title = aggregatedAlert.name;
   const isACMPerspective = perspective === 'acm';
 
   const filteredAlerts = useMemo(
-    () => filterAlerts(aggregatedAlert.alerts, selectedFilters),
-    [aggregatedAlert.alerts, selectedFilters],
+    () => filterAlerts(aggregatedAlert.alerts, selectedFilters, namespace, perspective),
+    [aggregatedAlert.alerts, selectedFilters, namespace, perspective],
   );
 
   const filteredStates = Array.from(new Set(filteredAlerts.map((alert) => alert.state)));
@@ -93,7 +94,7 @@ const AggregateAlertTableRow: AggregateAlertTableRowProps = ({
             </FlexItem>
             <FlexItem>
               <Link
-                to={getRuleUrl(perspective, firstAlert?.rule)}
+                to={getRuleUrl(perspective, firstAlert?.rule, namespace)}
                 data-test-id="alert-resource-link"
                 data-test={DataTestIDs.AlertingRuleResourceLink}
               >

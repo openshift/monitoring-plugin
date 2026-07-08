@@ -20,18 +20,20 @@ import {
   DashboardProvider,
   DatasourceStoreProvider,
   VariableProviderWithQueryParams,
+  PanelFocusProvider,
 } from '@perses-dev/dashboards';
 import {
   DataQueriesProvider,
   PluginLoader,
   PluginRegistry,
+  RouterProvider,
   TimeRangeProviderWithQueryParams,
   useInitialRefreshInterval,
   useInitialTimeRange,
   usePluginBuiltinVariableDefinitions,
   ValidationProvider,
 } from '@perses-dev/plugin-system';
-import React, { useMemo } from 'react';
+import { ReactNode, useMemo } from 'react';
 import { usePatternFlyTheme } from '../../hooks/usePatternflyTheme';
 import { OcpDatasourceApi } from './datasource-api';
 import { PERSES_PROXY_BASE_PATH, useFetchPersesDashboard } from './perses-client';
@@ -51,6 +53,7 @@ import { StringParam, useQueryParam } from 'use-query-params';
 import { useTranslation } from 'react-i18next';
 import { LoadingBox } from '../../../components/console/console-shared/src/components/loading/LoadingBox';
 import { remotePluginLoader } from '@perses-dev/plugin-system';
+import { Link, useNavigate } from 'react-router';
 
 // Override eChart defaults with PatternFly colors.
 const patternflyBlue100 = chart_color_blue_100.value;
@@ -71,7 +74,7 @@ const patternflyChartsMultiUnorderedPalette = Array.isArray(chartColorScale)
   : [];
 
 interface PersesWrapperProps {
-  children?: React.ReactNode;
+  children?: ReactNode;
   project: string;
 }
 
@@ -365,7 +368,8 @@ export function useRemotePluginLoader(): PluginLoader {
 
 export function PersesWrapper({ children, project }: PersesWrapperProps) {
   const { theme } = usePatternFlyTheme();
-  const [dashboardName] = useQueryParam(QueryParams.Dashboard, StringParam);
+  const navigate = useNavigate();
+
   const muiTheme = getTheme(theme, {
     shape: {
       borderRadius: 6,
@@ -387,27 +391,33 @@ export function PersesWrapper({ children, project }: PersesWrapperProps) {
 
   return (
     <ThemeProvider theme={muiTheme}>
-      <ChartsProvider chartsTheme={chartsTheme}>
-        <SnackbarProvider
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-          variant="default"
-        >
-          <PluginRegistry pluginLoader={pluginLoader}>
-            {!project ? (
-              <>{children}</>
-            ) : (
-              <InnerWrapper project={project} dashboardName={dashboardName}>
-                {children}
-              </InnerWrapper>
-            )}
-          </PluginRegistry>
-        </SnackbarProvider>
-      </ChartsProvider>
+      <RouterProvider RouterComponent={Link} navigate={navigate}>
+        <ChartsProvider chartsTheme={chartsTheme}>
+          <SnackbarProvider
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            variant="default"
+          >
+            <PluginRegistry pluginLoader={pluginLoader}>
+              {!project ? (
+                <>{children}</>
+              ) : (
+                <InnerWrapper project={project}>{children}</InnerWrapper>
+              )}
+            </PluginRegistry>
+          </SnackbarProvider>
+        </ChartsProvider>
+      </RouterProvider>
     </ThemeProvider>
   );
 }
 
-function InnerWrapper({ children, project, dashboardName }) {
+interface InnerWrapperProps {
+  children?: ReactNode;
+  project: string;
+}
+
+function InnerWrapper({ children, project }: InnerWrapperProps) {
+  const [dashboardName] = useQueryParam(QueryParams.Dashboard, StringParam);
   const { data } = usePluginBuiltinVariableDefinitions();
   const { persesDashboard, persesDashboardLoading } = useFetchPersesDashboard(
     project,
@@ -496,7 +506,7 @@ interface PersesPrometheusDatasourceWrapperProps {
   queries: Definition<UnknownSpec>[];
   dashboardResource?: DashboardResource;
   duration?: DurationString;
-  children?: React.ReactNode;
+  children?: ReactNode;
 }
 
 export function PersesPrometheusDatasourceWrapper({
@@ -510,8 +520,10 @@ export function PersesPrometheusDatasourceWrapper({
   }, [t]);
 
   return (
-    <DatasourceStoreProvider dashboardResource={dashboardResource} datasourceApi={datasourceApi}>
-      <DataQueriesProvider definitions={queries}>{children}</DataQueriesProvider>
-    </DatasourceStoreProvider>
+    <PanelFocusProvider>
+      <DatasourceStoreProvider dashboardResource={dashboardResource} datasourceApi={datasourceApi}>
+        <DataQueriesProvider definitions={queries}>{children}</DataQueriesProvider>
+      </DatasourceStoreProvider>
+    </PanelFocusProvider>
   );
 }

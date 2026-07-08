@@ -1,4 +1,3 @@
-import * as _ from 'lodash-es';
 import {
   PrometheusEndpoint,
   PrometheusResponse,
@@ -7,94 +6,50 @@ import {
   useResolvedExtensions,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
-  Tooltip,
-  Select,
-  SelectOption,
   MenuToggle,
   MenuToggleElement,
+  Select,
+  SelectOption,
+  SelectOptionProps,
+  Split,
+  SplitItem,
   Stack,
   StackItem,
-  SplitItem,
-  Split,
+  Tooltip,
 } from '@patternfly/react-core';
+import * as _ from 'lodash-es';
 import type { FC, Ref } from 'react';
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { SingleTypeaheadDropdown } from '../../console/utils/single-typeahead-dropdown';
-import { getPrometheusBasePath, buildPrometheusUrl, ALL_NAMESPACES_KEY } from '../../utils';
-import { getQueryArgument, setQueryArgument } from '../../console/utils/router';
 import { useSafeFetch } from '../../console/utils/safe-fetch-hook';
+import { SingleTypeaheadDropdown } from '../../console/utils/single-typeahead-dropdown';
+import { buildPrometheusUrl, getPrometheusBasePath } from '../../utils';
 
-import { dashboardsPatchVariable, dashboardsVariableOptionsLoaded } from '../../../store/actions';
-import { getTimeRanges, isTimeoutError, QUERY_CHUNK_SIZE } from '../../utils';
-import { getObserveState } from '../../hooks/usePerspective';
-import { MonitoringState } from '../../../store/store';
-import { DEFAULT_GRAPH_SAMPLES, MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY } from './utils';
 import {
   DataSource,
   isDataSource,
 } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
+import { StringParam, useQueryParam } from 'use-query-params';
 import { useMonitoring } from '../../../hooks/useMonitoring';
+import { dashboardsPatchVariable, dashboardsVariableOptionsLoaded } from '../../../store/actions';
+import { MonitoringState } from '../../../store/store';
 import { useDeepMemo } from '../../hooks/useDeepMemo';
+import { getObserveState, usePerspective } from '../../hooks/usePerspective';
+import { QueryParams } from '../../query-params';
+import { getTimeRanges, isTimeoutError, QUERY_CHUNK_SIZE } from '../../utils';
+import {
+  DEFAULT_GRAPH_SAMPLES,
+  MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY,
+  TimeRangeParam,
+} from './utils';
+import type { Variable } from './variable-utils';
+import { evaluateVariableTemplate, isIntervalVariable } from './variable-utils';
+export { evaluateVariableTemplate } from './variable-utils';
+export type { Variable } from './variable-utils';
 
-const intervalVariableRegExps = ['__interval', '__rate_interval', '__auto_interval_[a-z]+'];
-
-const isIntervalVariable = (itemKey: string): boolean =>
-  _.some(intervalVariableRegExps, (re) => itemKey?.match(new RegExp(`\\$${re}`, 'g')));
-
-export const evaluateVariableTemplate = (
-  template: string,
-  variables: any,
-  timespan: number,
-  namespace: string,
-): string => {
-  if (_.isEmpty(template)) {
-    return undefined;
-  }
-
-  const range: Variable = { value: `${Math.floor(timespan / 1000)}s` };
-  const allVariables = {
-    ...variables,
-    __range: range,
-    /* eslint-disable camelcase */
-    __range_ms: range,
-    __range_s: range,
-    /* eslint-enable camelcase */
-  };
-
-  // Handle the special "interval" variables
-  const intervalMS = timespan / DEFAULT_GRAPH_SAMPLES;
-  const intervalMinutes = Math.floor(intervalMS / 1000 / 60);
-  // Use a minimum of 5m to make sure we have enough data to perform `irate` calculations, which
-  // require 2 data points each. Otherwise, there could be gaps in the graph.
-  const interval: Variable = { value: `${Math.max(intervalMinutes, 5)}m` };
-  // Add these last to ensure they are applied after other variable substitutions (because the other
-  // variable substitutions may result in interval variables like $__interval being inserted)
-  intervalVariableRegExps.forEach((k) => (allVariables[k] = interval));
-
-  let result = template;
-  _.each(allVariables, (v, k) => {
-    const re = new RegExp(`\\$${k}`, 'g');
-    if (result.match(re)) {
-      if (v.isLoading) {
-        result = undefined;
-        return false;
-      }
-      let replacement =
-        v.value === MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY ? '.+' : v.value || '';
-      if (v.name === 'namespace' && namespace !== ALL_NAMESPACES_KEY) {
-        replacement = namespace;
-      }
-      result = result.replace(re, replacement);
-    }
-  });
-
-  return result;
-};
-
-const LegacyDashboardsVariableOption = ({ value, isSelected, ...rest }) =>
+const LegacyDashboardsVariableOption = ({ value, isSelected, ...rest }: SelectOptionProps) =>
   isIntervalVariable(String(value)) ? (
     <Tooltip content={value}>
       <SelectOption value={value} isSelected={isSelected || false}>
@@ -107,17 +62,22 @@ const LegacyDashboardsVariableOption = ({ value, isSelected, ...rest }) =>
     </SelectOption>
   );
 
-const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({ id, name }) => {
+const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({
+  id,
+  name,
+  dashboardName,
+}) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { plugin, accessCheckLoading, useMetricsTenancy } = useMonitoring();
+  const { perspective } = usePerspective();
   const [namespace] = useActiveNamespace();
+  const [queryParam, setQueryParam] = useQueryParam(name, StringParam);
 
-  const timespan = useSelector(
-    (state: MonitoringState) => getObserveState(plugin, state).dashboards.timespan,
-  );
+  const [timespan] = useQueryParam(QueryParams.TimeRange, TimeRangeParam);
 
   const variables = useSelector(
-    (state: MonitoringState) => getObserveState(plugin, state).dashboards.variables,
+    (state: MonitoringState) =>
+      getObserveState(plugin, state).dashboards.legacy[dashboardName]?.variables || {},
   );
   const variable = variables?.[name] as Variable;
 
@@ -137,6 +97,9 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({ id, name 
   const customDataSourceName = variable?.datasource?.name;
   const [extensions, extensionsResolved] = useResolvedExtensions<DataSource>(isDataSource);
   const hasExtensions = !_.isEmpty(extensions);
+
+  // Don't set namespace param while in dev perspective
+  const shouldSetQueryParam = !(perspective === 'dev' && name === 'namespace');
 
   const getURL = useCallback(
     async (prometheusProps) => {
@@ -190,7 +153,7 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({ id, name 
     const timeRanges = getTimeRanges(timespan);
     const newOptions = new Set<string>();
     let abortError = false;
-    dispatch(dashboardsPatchVariable(name, { isLoading: true }));
+    dispatch(dashboardsPatchVariable(dashboardName, name, { isLoading: true }));
     Promise.allSettled(
       timeRanges.map(async (timeRange) => {
         const prometheusProps = {
@@ -231,10 +194,10 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({ id, name 
         setIsError(false);
         // Options were found or no options were found but that wasn't in error
         const newOptionArray = Array.from(newOptions).sort();
-        dispatch(dashboardsVariableOptionsLoaded(name, newOptionArray));
+        dispatch(dashboardsVariableOptionsLoaded(dashboardName, name, newOptionArray));
       } else {
         // No options were found, and there were errors (timeouts or other) in fetching the data
-        dispatch(dashboardsPatchVariable(name, { isLoading: false }));
+        dispatch(dashboardsPatchVariable(dashboardName, name, { isLoading: false }));
         if (!abortError) {
           setIsError(true);
         }
@@ -243,6 +206,7 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({ id, name 
   }, [
     dispatch,
     getURL,
+    dashboardName,
     name,
     namespace,
     query,
@@ -254,19 +218,35 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({ id, name 
   ]);
 
   useEffect(() => {
-    if (variable?.value && variable?.value !== getQueryArgument(name)) {
-      setQueryArgument(name, variable?.value);
+    // Wait to set variable and query values until all options have been loaded
+    if (variable?.value !== queryParam && options?.length > 0) {
+      // Default to using the query param to allow for sharable links
+      if (queryParam && options?.includes(queryParam)) {
+        dispatch(dashboardsPatchVariable(dashboardName, name, { value: queryParam }));
+        // set the url if it isn't set
+      } else if (variable?.value && shouldSetQueryParam) {
+        setQueryParam(variable?.value);
+      }
     }
-  }, [name, variable?.value]);
+  }, [
+    dashboardName,
+    name,
+    variable?.value,
+    queryParam,
+    setQueryParam,
+    dispatch,
+    shouldSetQueryParam,
+    options,
+  ]);
 
   const onChange = useCallback(
     (v: string) => {
-      if (v !== variable?.value) {
-        setQueryArgument(name, v);
-        dispatch(dashboardsPatchVariable(name, { value: v }));
+      if (v !== variable?.value && shouldSetQueryParam) {
+        setQueryParam(v);
+        dispatch(dashboardsPatchVariable(dashboardName, name, { value: v }));
       }
     },
-    [dispatch, name, variable?.value],
+    [dispatch, dashboardName, name, variable?.value, setQueryParam, shouldSetQueryParam],
   );
 
   if (variable?.isHidden || (!isError && _.isEmpty(variable?.options))) {
@@ -319,37 +299,36 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({ id, name 
 };
 
 // Expects to be inside of a Patternfly Split Component
-export const LegacyDashboardsAllVariableDropdowns: FC = () => {
+export const LegacyDashboardsAllVariableDropdowns: FC<{ dashboardName: string }> = ({
+  dashboardName,
+}) => {
   const { plugin } = useMonitoring();
 
   const variables = useSelector(
-    (state: MonitoringState) => getObserveState(plugin, state).dashboards.variables,
+    (state: MonitoringState) =>
+      getObserveState(plugin, state).dashboards.legacy[dashboardName]?.variables || {},
   );
 
-  if (!variables) {
+  if (!variables || Object.keys(variables).length === 0) {
     return null;
   }
 
   return (
     <Split hasGutter isWrappable>
       {Object.keys(variables).map((name: string) => (
-        <LegacyDashboardsVariableDropdown id={name} key={name} name={name} />
+        <LegacyDashboardsVariableDropdown
+          id={name}
+          key={`${dashboardName}-${name}`}
+          name={name}
+          dashboardName={dashboardName}
+        />
       ))}
     </Split>
   );
 };
 
-export type Variable = {
-  isHidden?: boolean;
-  isLoading?: boolean;
-  includeAll?: boolean;
-  options?: string[];
-  query?: string;
-  value?: string;
-  datasource?: any;
-};
-
 type VariableDropdownProps = {
   id: string;
   name: string;
+  dashboardName: string;
 };

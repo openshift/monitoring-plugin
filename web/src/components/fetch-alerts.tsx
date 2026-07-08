@@ -1,5 +1,8 @@
 import { consoleFetchJSON, PrometheusRulesResponse } from '@openshift-console/dynamic-plugin-sdk';
 
+// Disable client-side timeout (-1) to let the backend control query timeouts
+const NO_TIMEOUT = -1;
+
 // Merges Prometheus monitoring alerts with external sources
 export const fetchAlerts = async (
   prometheusURL: string,
@@ -10,7 +13,7 @@ export const fetchAlerts = async (
   namespace?: string,
 ): Promise<PrometheusRulesResponse> => {
   if (!externalAlertsFetch || externalAlertsFetch.length === 0) {
-    return consoleFetchJSON(prometheusURL);
+    return consoleFetchJSON(prometheusURL, 'GET', {}, NO_TIMEOUT);
   }
 
   const resolvedExternalAlertsSources = externalAlertsFetch.map((extensionProperties) => ({
@@ -22,7 +25,7 @@ export const fetchAlerts = async (
 
   try {
     const groups = await Promise.allSettled([
-      consoleFetchJSON(prometheusURL),
+      consoleFetchJSON(prometheusURL, 'GET', {}, NO_TIMEOUT),
       ...resolvedExternalAlertsSources.map((source) => source.fetch(namespace)),
     ]).then((results) =>
       results
@@ -39,6 +42,6 @@ export const fetchAlerts = async (
 
     return { data: { groups }, status: 'success' };
   } catch {
-    return consoleFetchJSON(prometheusURL);
+    return consoleFetchJSON(prometheusURL, 'GET', {}, NO_TIMEOUT);
   }
 };

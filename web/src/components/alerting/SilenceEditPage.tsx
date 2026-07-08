@@ -2,7 +2,7 @@ import { Silence, SilenceStates } from '@openshift-console/dynamic-plugin-sdk';
 import { Alert } from '@patternfly/react-core';
 import * as _ from 'lodash-es';
 import { useTranslation } from 'react-i18next';
-import { useParams } from 'react-router-dom-v5-compat';
+import { useParams } from 'react-router';
 import { StatusBox } from '../console/console-shared/src/components/status/StatusBox';
 import { SilenceResource, silenceState } from '../utils';
 import { SilenceForm } from './SilenceForm';

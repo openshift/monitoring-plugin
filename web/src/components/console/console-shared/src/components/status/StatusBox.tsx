@@ -92,16 +92,21 @@ type DataProps = {
   NoDataEmptyMsg?: ComponentType;
   EmptyMsg?: ComponentType;
   label?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   unfilteredData?: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data?: any;
   children?: ReactNode;
 };
 
 type StatusBoxProps = {
   label?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   loadError?: any;
   loaded?: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data?: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   unfilteredData?: any;
   skeleton?: ReactNode;
   NoDataEmptyMsg?: ComponentType;

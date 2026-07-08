@@ -19,7 +19,7 @@ import {
 } from '@patternfly/react-core';
 import { TypeaheadSelect, TypeaheadSelectOption } from '@patternfly/react-templates';
 import { ExclamationCircleIcon } from '@patternfly/react-icons';
-import React, { useMemo } from 'react';
+import { CSSProperties, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   useUpdateDashboardMutation,
@@ -43,14 +43,14 @@ import { generateMetadataName } from './dashboard-utils';
 import { useEditableProjects } from './hooks/useEditableProjects';
 import { usePerses } from './hooks/usePerses';
 import { t_global_spacer_200, t_global_font_weight_200 } from '@patternfly/react-tokens';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { useNavigate } from 'react-router';
 import { usePerspective, getDashboardUrl } from '../../hooks/usePerspective';
 
-const formGroupStyle = {
+export const formGroupStyle = {
   fontWeight: t_global_font_weight_200.value,
-} as React.CSSProperties;
+} as CSSProperties;
 
-const LabelSpacer = () => {
+export const LabelSpacer = () => {
   return <div style={{ paddingBottom: t_global_spacer_200.value }} />;
 };
 
@@ -160,6 +160,7 @@ export const RenameActionModal = ({ dashboard, isOpen, onClose }: ActionModalPro
               variant="primary"
               type="submit"
               isDisabled={
+                // eslint-disable-next-line react-hooks/incompatible-library
                 !(form.watch('dashboardName') || '')?.trim() || updateDashboardMutation.isPending
               }
               isLoading={updateDashboardMutation.isPending}
@@ -213,12 +214,13 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
     },
   });
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const selectedProjectName = form.watch('projectName');
   const dashboardName = form.watch('dashboardName');
 
   const { schema: dynamicValidationSchema, isSchemaLoading } = useDashboardValidationSchema(
-    selectedProjectName,
     t,
+    selectedProjectName,
   );
 
   const projectOptions = useMemo<TypeaheadSelectOption[]>(() => {
@@ -234,7 +236,7 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
 
   const createDashboardMutation = useCreateDashboardMutation();
 
-  React.useEffect(() => {
+  useEffect(() => {
     const isPerseProject = persesProjects?.some(
       (project) => project.metadata?.name === selectedProjectName,
     );
@@ -276,7 +278,7 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
     persesProjects,
   ]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isOpen && dashboard && editableProjects?.length > 0 && defaultProject) {
       form.reset({
         projectName: defaultProject,
@@ -355,9 +357,10 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
 
   const handleClose = () => {
     onClose();
-    form.reset();
+    form.reset({ dashboardName: '' });
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const onProjectSelect = (_event: any, selection: string) => {
     form.setValue('projectName', selection);
   };

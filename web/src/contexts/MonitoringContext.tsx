@@ -1,8 +1,8 @@
-import React, { useMemo } from 'react';
+import { createContext, FC, PropsWithChildren, useMemo } from 'react';
 import { MonitoringPlugins, Prometheus } from '../components/utils';
 import { QueryParamProvider } from 'use-query-params';
-import { ReactRouter5Adapter } from 'use-query-params/adapters/react-router-5';
 import { useAccessReview } from '@openshift-console/dynamic-plugin-sdk';
+import { ReactRouter7Adapter } from '../react-router-7-adapter';
 
 type MonitoringContextType = {
   /** Dictates which plugin this code is being run in */
@@ -19,22 +19,31 @@ type MonitoringContextType = {
   useMetricsTenancy: boolean;
   /** Dictates if the users access is being loaded. */
   accessCheckLoading: boolean;
+  /**
+   * Dictates if the namespace selector is shown inside the view,
+   * in some perspectives the selector already exist outside monitoring components scope
+   */
+  displayNamespaceSelector: boolean;
 };
 
-export const MonitoringContext = React.createContext<MonitoringContextType>({
+export const MonitoringContext = createContext<MonitoringContextType>({
   plugin: 'monitoring-plugin',
   prometheus: 'cmo',
   useAlertsTenancy: false,
   useMetricsTenancy: false,
   accessCheckLoading: true,
+  displayNamespaceSelector: true,
 });
 
-export const MonitoringProvider: React.FC<{
-  monitoringContext: {
-    plugin: MonitoringPlugins;
-    prometheus: Prometheus;
-  };
-}> = ({ children, monitoringContext }) => {
+export const MonitoringProvider: FC<
+  PropsWithChildren<{
+    monitoringContext: {
+      plugin: MonitoringPlugins;
+      prometheus: Prometheus;
+      displayNamespaceSelector?: boolean;
+    };
+  }>
+> = ({ children, monitoringContext }) => {
   const [allNamespaceAlertsTenancy, alertAccessCheckLoading] = useAccessReview({
     group: 'monitoring.coreos.com',
     resource: 'prometheusrules',
@@ -56,6 +65,7 @@ export const MonitoringProvider: React.FC<{
       useAlertsTenancy: monitoringContext.prometheus === 'cmo' && !allNamespaceAlertsTenancy,
       useMetricsTenancy: monitoringContext.prometheus === 'cmo' && !allNamespaceMeticsTenancy,
       accessCheckLoading: alertAccessCheckLoading || metricsAccessCheckLoading,
+      displayNamespaceSelector: monitoringContext.displayNamespaceSelector ?? true,
     };
   }, [
     monitoringContext,
@@ -67,7 +77,7 @@ export const MonitoringProvider: React.FC<{
 
   return (
     <MonitoringContext.Provider value={monContext}>
-      <QueryParamProvider adapter={ReactRouter5Adapter}>{children}</QueryParamProvider>
+      <QueryParamProvider adapter={ReactRouter7Adapter}>{children}</QueryParamProvider>
     </MonitoringContext.Provider>
   );
 };

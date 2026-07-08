@@ -20,7 +20,17 @@ import * as _ from 'lodash-es';
 import { useTranslation } from 'react-i18next';
 import { TimesIcon } from '@patternfly/react-icons';
 import { t_global_spacer_control_horizontal_default } from '@patternfly/react-tokens';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  FC,
+  FormEvent,
+  KeyboardEvent,
+  MouseEvent as ReactMouseEvent,
+  Ref,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 export type SingleTypeaheadDropdownProps = {
   /** The items to display in the dropdown */
@@ -46,7 +56,7 @@ export type SingleTypeaheadDropdownProps = {
   /** Whether to enable creating new items */
   enableCreateNew?: boolean;
   /** The component to use render the dropdown options */
-  OptionComponent?: React.FC<SelectOptionProps>;
+  OptionComponent?: FC<SelectOptionProps>;
 
   /** Additional props to pass to MenuToggle */
   menuToggleProps?: Partial<MenuToggleProps>;
@@ -79,7 +89,7 @@ const getTextWidth = (text: string, font: string): number => {
 };
 
 /** A PF Select with typeahead filtering and single selection */
-export const SingleTypeaheadDropdown: React.FC<SingleTypeaheadDropdownProps> = ({
+export const SingleTypeaheadDropdown: FC<SingleTypeaheadDropdownProps> = ({
   items,
   onChange,
   onClear,
@@ -167,6 +177,7 @@ export const SingleTypeaheadDropdown: React.FC<SingleTypeaheadDropdownProps> = (
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterValue]);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const createItemId = (value: any) => `${ID_PREFIX}-option-${String(value).replace(' ', '-')}`;
 
   const setActiveAndFocusedItem = (itemIndex: number) => {
@@ -202,7 +213,7 @@ export const SingleTypeaheadDropdown: React.FC<SingleTypeaheadDropdownProps> = (
   };
 
   const onSelect = (
-    _event: React.MouseEvent<Element, MouseEvent> | undefined,
+    _event: ReactMouseEvent<Element, MouseEvent> | undefined,
     value: string | number | undefined,
   ) => {
     if (enableCreateNew && value === CREATE_NEW) {
@@ -224,7 +235,7 @@ export const SingleTypeaheadDropdown: React.FC<SingleTypeaheadDropdownProps> = (
     setInputValue(selectedValue?.children ?? selectedValue?.value ?? '');
   }, [selectedValue]);
 
-  const onTextInputChange = (_event: React.FormEvent<HTMLInputElement>, value: string) => {
+  const onTextInputChange = (_event: FormEvent<HTMLInputElement>, value: string) => {
     setInputValue(value);
     setFilterValue(value);
     if (onInputChange) {
@@ -279,7 +290,7 @@ export const SingleTypeaheadDropdown: React.FC<SingleTypeaheadDropdownProps> = (
     setActiveAndFocusedItem(indexToFocus);
   };
 
-  const onInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+  const onInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     const focusedItem = focusedItemIndex !== null ? filteredSelectOptions[focusedItemIndex] : null;
 
     switch (event.key) {
@@ -333,7 +344,7 @@ export const SingleTypeaheadDropdown: React.FC<SingleTypeaheadDropdownProps> = (
     );
   }, [resizeToFit, selectedValue]);
 
-  const toggle = (toggleRef: React.Ref<MenuToggleElement>) => (
+  const toggle = (toggleRef: Ref<MenuToggleElement>) => (
     <MenuToggle
       ref={toggleRef}
       variant="typeahead"
@@ -346,7 +357,7 @@ export const SingleTypeaheadDropdown: React.FC<SingleTypeaheadDropdownProps> = (
           value={inputValue}
           onClick={onInputClick}
           onChange={onTextInputChange}
-          onKeyDown={(ev: React.KeyboardEvent<HTMLInputElement>) => {
+          onKeyDown={(ev: KeyboardEvent<HTMLInputElement>) => {
             if (ev.key === 'Enter') {
               ev.preventDefault(); // prevent accidental form submission
             }
@@ -404,7 +415,7 @@ export const SingleTypeaheadDropdown: React.FC<SingleTypeaheadDropdownProps> = (
       <SelectList id={`${ID_PREFIX}-listbox`}>
         {filteredSelectOptions.map((v, k) => {
           const SelectOptionComponent =
-            v.value === CREATE_NEW ? SelectOption : OptionComponent ?? SelectOption;
+            v.value === CREATE_NEW ? SelectOption : (OptionComponent ?? SelectOption);
 
           return (
             <SelectOptionComponent

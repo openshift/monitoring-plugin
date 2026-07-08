@@ -39,7 +39,7 @@ import { Table, TableVariant, Tbody, Td, Th, Thead, Tr } from '@patternfly/react
 import * as _ from 'lodash-es';
 import type { FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate, useParams } from 'react-router-dom-v5-compat';
+import { Link, useNavigate, useParams } from 'react-router';
 import {
   alertingRuleSource,
   AlertState,
@@ -60,6 +60,7 @@ import {
   getQueryBrowserUrl,
   usePerspective,
 } from '../hooks/usePerspective';
+import { useMonitoringNamespace } from '../hooks/useMonitoringNamespace';
 import KebabDropdown from '../kebab-dropdown';
 import { Labels } from '../labels';
 import { ToggleGraph } from '../MetricsPage';
@@ -70,7 +71,7 @@ import { DataTestIDs } from '../data-test';
 import { useAlerts } from '../../hooks/useAlerts';
 
 // Renders Prometheus template text and highlights any {{ ... }} tags that it contains
-const PrometheusTemplate = ({ text }) => (
+const PrometheusTemplate = ({ text }: { text: string }) => (
   <>
     {text
       ?.split(/(\{\{[^{}]*\}\})/)
@@ -89,6 +90,7 @@ export const ActiveAlerts: FC<ActiveAlertsProps> = ({ alerts, ruleID }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
   const navigate = useNavigate();
+  const { namespace } = useMonitoringNamespace();
 
   return (
     <Table variant={TableVariant.compact}>
@@ -108,7 +110,7 @@ export const ActiveAlerts: FC<ActiveAlertsProps> = ({ alerts, ruleID }) => {
             <Td>
               <Link
                 data-test={DataTestIDs.AlertResourceLink}
-                to={getAlertUrl(perspective, a, ruleID)}
+                to={getAlertUrl(perspective, a, ruleID, namespace)}
               >
                 {alertDescription(a)}
               </Link>
@@ -126,7 +128,7 @@ export const ActiveAlerts: FC<ActiveAlertsProps> = ({ alerts, ruleID }) => {
                   <DropdownItem
                     component="button"
                     key="silence"
-                    onClick={() => navigate(getNewSilenceAlertUrl(perspective, a))}
+                    onClick={() => navigate(getNewSilenceAlertUrl(perspective, a, namespace))}
                   >
                     {t('Silence alert')}
                   </DropdownItem>,
@@ -141,7 +143,8 @@ export const ActiveAlerts: FC<ActiveAlertsProps> = ({ alerts, ruleID }) => {
 };
 const AlertRulesDetailsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const params = useParams<{ ns?: string; id: string }>();
+  const params = useParams<{ id: string }>();
+  const { namespace } = useMonitoringNamespace();
 
   const { rules, rulesAlertLoading } = useAlerts();
 
@@ -166,7 +169,6 @@ const AlertRulesDetailsPage_: FC = () => {
     return `${nameLabel}{${_.map(otherLabels, (v, k) => `${k}="${v}"`).join(',')}}`;
   };
 
-  // eslint-disable-next-line camelcase
   const runbookURL = rule?.annotations?.runbook_url;
 
   return (
@@ -184,7 +186,10 @@ const AlertRulesDetailsPage_: FC = () => {
           <PageBreadcrumb hasBodyWrapper={false}>
             <Breadcrumb>
               <BreadcrumbItem>
-                <Link to={getAlertRulesUrl(perspective)} data-test={DataTestIDs.Breadcrumb}>
+                <Link
+                  to={getAlertRulesUrl(perspective, namespace)}
+                  data-test={DataTestIDs.Breadcrumb}
+                >
                   {t('Alerting rules')}
                 </Link>
               </BreadcrumbItem>
@@ -310,6 +315,7 @@ const AlertRulesDetailsPage_: FC = () => {
                           to={getQueryBrowserUrl({
                             perspective: perspective,
                             query: rule?.query,
+                            namespace,
                           })}
                         >
                           <CodeBlock>

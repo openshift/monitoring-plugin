@@ -9,42 +9,45 @@ const MP = {
 };
 
 // Test suite for Administrator perspective
-describe('Regression: Monitoring - Metrics (Administrator)', { tags: ['@monitoring', '@metrics'] }, () => {
+describe(
+  'Regression: Monitoring - Metrics (Administrator)',
+  { tags: ['@monitoring', '@metrics'] },
+  () => {
+    before(() => {
+      cy.beforeBlock(MP);
+    });
 
-  before(() => {
-    cy.beforeBlock(MP);
-  });
+    beforeEach(() => {
+      nav.sidenav.clickNavLink(['Observe', 'Metrics']);
+      commonPages.titleShouldHaveText('Metrics');
+      cy.changeNamespace('All Projects');
+    });
 
-  beforeEach(() => {
-    nav.sidenav.clickNavLink(['Observe', 'Metrics']);
-    commonPages.titleShouldHaveText('Metrics');
-    cy.changeNamespace("All Projects");
-  });
-
-  // Run tests in Administrator perspective
-  runAllRegressionMetricsTests2({
-    name: 'Administrator',
-  });
-
-});
+    // Run tests in Administrator perspective
+    runAllRegressionMetricsTests2({
+      name: 'Administrator',
+    });
+  },
+);
 
 // Test suite for Administrator perspective
-describe('Regression: Monitoring - Metrics Namespaced (Administrator)', { tags: ['@monitoring', '@metrics'] }, () => {
+describe(
+  'Regression: Monitoring - Metrics Namespaced (Administrator)',
+  { tags: ['@monitoring', '@metrics'] },
+  () => {
+    before(() => {
+      cy.beforeBlock(MP);
+    });
 
-  before(() => {
-    cy.beforeBlock(MP);
-  });
+    beforeEach(() => {
+      nav.sidenav.clickNavLink(['Observe', 'Metrics']);
+      commonPages.titleShouldHaveText('Metrics');
+      cy.changeNamespace(MP.namespace);
+    });
 
-  beforeEach(() => {
-    nav.sidenav.clickNavLink(['Observe', 'Metrics']);
-    commonPages.titleShouldHaveText('Metrics');
-    cy.changeNamespace(MP.namespace);
-  });
-
-  // Run tests in Administrator perspective
-  runAllRegressionMetricsTestsNamespace2({
-    name: 'Administrator',
-  });
-
-});
-
+    // Run tests in Administrator perspective
+    runAllRegressionMetricsTestsNamespace2({
+      name: 'Administrator',
+    });
+  },
+);

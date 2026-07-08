@@ -5,6 +5,7 @@ import {
   Level,
   LevelItem,
   SelectOption,
+  SelectOptionProps,
   Stack,
   StackItem,
 } from '@patternfly/react-core';
@@ -18,11 +19,13 @@ import { CombinedDashboardMetadata } from '../perses/hooks/useDashboardsData';
 type TagColor = 'red' | 'purple' | 'blue' | 'green' | 'teal' | 'orange';
 const tagColors: TagColor[] = ['red', 'purple', 'blue', 'green', 'teal', 'orange'];
 
-const Tag: FC<{ color: TagColor; text: string }> = memo(({ color, text }) => (
+const Tag = memo(({ color, text }: { color: TagColor; text: string }) => (
   <Label isCompact color={color}>
     {text}
   </Label>
 ));
+
+Tag.displayName = 'Tag';
 
 export const DashboardDropdown: FC<DashboardDropdownProps> = ({ items, onChange, selectedKey }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -30,7 +33,7 @@ export const DashboardDropdown: FC<DashboardDropdownProps> = ({ items, onChange,
   const allTags = _.flatMap(items, 'tags');
   const uniqueTags = _.uniq(allTags);
 
-  const OptionComponent = ({ value, isSelected, ...rest }) => {
+  const OptionComponent = ({ value, isSelected, ...rest }: SelectOptionProps) => {
     const matchedValue = items.find((item) => {
       return item.name === value;
     });

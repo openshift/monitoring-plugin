@@ -9,46 +9,51 @@ const MP = {
 };
 
 // Test suite for Administrator perspective
-describe('Regression: Monitoring - Legacy Dashboards (Administrator)', { tags: ['@monitoring', '@dashboards'] }, () => {
+describe(
+  'Regression: Monitoring - Legacy Dashboards (Administrator)',
+  { tags: ['@monitoring', '@dashboards'] },
+  () => {
+    before(() => {
+      cy.beforeBlock(MP);
+    });
 
-  before(() => {
-    cy.beforeBlock(MP);
-  });
+    beforeEach(() => {
+      // When running only this file, beforeBlock changes the namespace to openshift-monitoring so
+      // we need to change it back to All Projects before landing to Dashboards page in order to
+      // have API Performance dashboard loaded by default
+      nav.sidenav.clickNavLink(['Observe', 'Metrics']);
+      commonPages.titleShouldHaveText('Metrics');
+      cy.changeNamespace('All Projects');
+      nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
+      commonPages.titleShouldHaveText('Dashboards');
+      cy.changeNamespace('All Projects');
+    });
 
-  beforeEach(() => {
-    //when running only this file, beforeBlock changes the namespace to openshift-monitoring
-    //so we need to change it back to All Projects before landing to Dashboards page in order to have API Performance dashboard loaded by default
-    nav.sidenav.clickNavLink(['Observe', 'Metrics']);
-    commonPages.titleShouldHaveText('Metrics');
-    cy.changeNamespace("All Projects");
-    nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
-    commonPages.titleShouldHaveText('Dashboards');
-    cy.changeNamespace("All Projects");
-  });
-
-  // Run tests in Administrator perspective
-  runAllRegressionLegacyDashboardsTests({
-    name: 'Administrator',
-  });
-
-});
+    // Run tests in Administrator perspective
+    runAllRegressionLegacyDashboardsTests({
+      name: 'Administrator',
+    });
+  },
+);
 
 // Test suite for Administrator perspective
-describe('Regression: Monitoring - Legacy Dashboards Namespaced (Administrator)', { tags: ['@monitoring', '@dashboards'] }, () => {
+describe(
+  'Regression: Monitoring - Legacy Dashboards Namespaced (Administrator)',
+  { tags: ['@monitoring', '@dashboards'] },
+  () => {
+    before(() => {
+      cy.beforeBlock(MP);
+    });
 
-  before(() => {
-    cy.beforeBlock(MP);
-  });
+    beforeEach(() => {
+      nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
+      commonPages.titleShouldHaveText('Dashboards');
+      cy.changeNamespace(MP.namespace);
+    });
 
-  beforeEach(() => {
-    nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
-    commonPages.titleShouldHaveText('Dashboards');
-    cy.changeNamespace(MP.namespace);
-  });
-
-  // Run tests in Administrator perspective
-  runAllRegressionLegacyDashboardsTestsNamespace({
-    name: 'Administrator',
-  });
-
-});
+    // Run tests in Administrator perspective
+    runAllRegressionLegacyDashboardsTestsNamespace({
+      name: 'Administrator',
+    });
+  },
+);

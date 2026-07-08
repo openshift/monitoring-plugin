@@ -1,6 +1,3 @@
-import fuzzy from 'fuzzysearch';
-import * as _ from 'lodash-es';
-import { murmur3 } from 'murmurhash-js';
 import {
   Alert,
   AlertSeverity,
@@ -14,9 +11,13 @@ import {
   Silence,
   SilenceStates,
 } from '@openshift-console/dynamic-plugin-sdk';
+import fuzzy from 'fuzzysearch';
+import * as _ from 'lodash-es';
+import { murmur3 } from 'murmurhash-js';
 
-import { AlertSource, MonitoringResource, Target, TimeRange } from './types';
 import { QueryParams } from './query-params';
+import { AlertSource, MonitoringResource, Target, TimeRange } from './types';
+import { AggregatedAlert } from './alerting/AlertsAggregates';
 
 export const QUERY_CHUNK_SIZE = 24 * 60 * 60 * 1000;
 
@@ -125,25 +126,35 @@ export const getSilenceName = (silence: Silence) => {
 export const alertDescription = (alert: PrometheusAlert | Rule): string =>
   alert.annotations?.description || alert.annotations?.message || alert.labels?.alertname;
 
-export type ListOrder = (number | string)[];
-
-// Severity sort order is "critical" > "warning" > (anything else in A-Z order) > "none"
-export const alertSeverityOrder = (alert: Alert | Rule): ListOrder => {
-  const { severity } = alert.labels;
-  const order: number =
-    {
-      [AlertSeverity.Critical]: 1,
-      [AlertSeverity.Warning]: 2,
-      [AlertSeverity.None]: 4,
-    }[severity] ?? 3;
-  return [order, severity];
+export const alertingRuleStateSort = (a: Rule, b: Rule): number => {
+  const countsA = _.countBy(a.alerts, 'state');
+  const countsB = _.countBy(b.alerts, 'state');
+  for (const state of [AlertStates.Firing, AlertStates.Pending, AlertStates.Silenced]) {
+    const diff = (countsB[state] ?? 0) - (countsA[state] ?? 0);
+    if (diff !== 0) return diff;
+  }
+  return 0;
 };
 
-export const alertingRuleStateOrder = (rule: Rule): ListOrder => {
-  const counts = _.countBy(rule.alerts, 'state');
-  return [AlertStates.Firing, AlertStates.Pending, AlertStates.Silenced].map(
-    (state) => Number.MAX_SAFE_INTEGER - (counts[state] ?? 0),
-  );
+export const severitySort = (
+  a: Alert | Rule | AggregatedAlert,
+  b: Alert | Rule | AggregatedAlert,
+): number => {
+  const severityA = (('severity' in a ? a.severity : a.labels?.severity) ?? '').toLowerCase();
+  const severityB = (('severity' in b ? b.severity : b.labels?.severity) ?? '').toLowerCase();
+
+  const rank = new Map<string, number>([
+    [AlertSeverity.None, 0],
+    [AlertSeverity.Info, 1],
+    [AlertSeverity.Warning, 2],
+    [AlertSeverity.Critical, 3],
+  ]);
+
+  const rankA = rank.get(severityA) ?? -1;
+  const rankB = rank.get(severityB) ?? -1;
+  if (rankA !== rankB) return rankB - rankA;
+
+  return severityA.localeCompare(severityB, undefined, { sensitivity: 'base' });
 };
 
 export const targetSource = (target: Target): AlertSource =>

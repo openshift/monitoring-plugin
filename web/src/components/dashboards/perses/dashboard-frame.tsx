@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import { FC, ReactNode } from 'react';
 import { DashboardEmptyState } from './emptystates/DashboardEmptyState';
 import { DashboardHeader } from './dashboard-header';
 import { CombinedDashboardMetadata } from './hooks/useDashboardsData';
@@ -9,16 +9,14 @@ import { PagePadding } from './dashboard-page-padding';
 
 interface DashboardFrameProps {
   activeProject: string | null;
-  setActiveProject: (project: string | null) => void;
   activeProjectDashboardsMetadata: CombinedDashboardMetadata[];
   changeBoard: (boardName: string) => void;
   dashboardDisplayName: string;
   children: ReactNode;
 }
 
-export const DashboardFrame: React.FC<DashboardFrameProps> = ({
+export const DashboardFrame: FC<DashboardFrameProps> = ({
   activeProject,
-  setActiveProject,
   activeProjectDashboardsMetadata,
   changeBoard,
   dashboardDisplayName,
@@ -26,7 +24,7 @@ export const DashboardFrame: React.FC<DashboardFrameProps> = ({
 }) => {
   return (
     <>
-      <ProjectBar activeProject={activeProject} setActiveProject={setActiveProject} />
+      <ProjectBar activeProject={activeProject} />
       <ToastProvider>
         <PersesWrapper project={activeProject}>
           {activeProjectDashboardsMetadata?.length === 0 ? (
