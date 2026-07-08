@@ -1141,7 +1141,7 @@ const QueryBrowserWrapper: FC<{
     if (customDataSourceName) {
       newParams.set(QueryParams.Datasource, customDataSourceName);
     }
-    setQueryParams(newParams);
+    setQueryParams(newParams, { replace: true });
   }, [queryStrings, customDataSourceName, isFirstRender, queryParams]);
 
   if (hideGraphs) {
