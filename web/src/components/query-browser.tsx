@@ -45,7 +45,7 @@ import { ChartLineIcon } from '@patternfly/react-icons';
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
 import type { FC, Ref, ReactNode, KeyboardEvent, MouseEvent, ComponentType } from 'react';
-import { memo, useState, useEffect, useCallback, useLayoutEffect } from 'react';
+import { memo, useState, useEffect, useCallback, useLayoutEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -123,8 +123,8 @@ const GraphEmptyState: FC<GraphEmptyStateProps> = ({ children, title }) => (
   </div>
 );
 
-const SpanControls: FC<SpanControlsProps> = memo(
-  ({ defaultSpanText, onChange, span, hasReducedResolution }) => {
+const SpanControls = memo(
+  ({ defaultSpanText, onChange, span, hasReducedResolution }: SpanControlsProps) => {
     const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
     const [isValid, setIsValid] = useState(true);
@@ -216,6 +216,8 @@ const SpanControls: FC<SpanControlsProps> = memo(
   },
 );
 
+SpanControls.displayName = 'SpanControls';
+
 const LegendContainer = ({ children }: { children?: ReactNode }) => {
   // The first child should be a <rect> with a `width` prop giving the legend's content width
   const width = children?.[0]?.props?.width ?? '100%';
@@ -238,7 +240,7 @@ const getXDomain = (endTime: number, span: number): AxisDomain => [endTime - spa
 
 const ONE_MINUTE = 60 * 1000;
 
-const Graph: FC<GraphProps> = memo(
+const Graph = memo(
   ({
     allSeries,
     disabledSeries,
@@ -249,7 +251,7 @@ const Graph: FC<GraphProps> = memo(
     span,
     units,
     width,
-  }) => {
+  }: GraphProps) => {
     const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
     const data: GraphSeries[] = [];
@@ -257,6 +259,7 @@ const Graph: FC<GraphProps> = memo(
     const tooltipSeriesLabels: PrometheusLabels[] = [];
     const legendData: { name: string }[] = [];
 
+    // eslint-disable-next-line react-hooks/purity
     const [xDomain, setXDomain] = useState(fixedXDomain || getXDomain(Date.now(), span));
 
     // Only update X-axis if the time range (fixedXDomain or span) or graph data (allSeries) change
@@ -421,6 +424,8 @@ const Graph: FC<GraphProps> = memo(
     );
   },
 );
+
+Graph.displayName = 'Graph';
 
 const formatSeriesValues = (
   values: PrometheusValue[],
@@ -596,6 +601,7 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
   GraphLink,
   hideControls,
   isStack = false,
+  onLoadingChange,
   onZoom,
   pollInterval,
   queries,
@@ -638,6 +644,12 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
   const [graphData, setGraphData] = useState<Series[][]>(null);
   const [samples, setSamples] = useState(maxSamplesForSpan);
   const [updating, setUpdating] = useState(true);
+  // Track if we ever received valid data to prevent flickering "No datapoints" during refresh
+  const hasReceivedData = useRef(false);
+
+  useEffect(() => {
+    onLoadingChange?.(updating);
+  }, [updating, onLoadingChange]);
 
   const [containerRef, width] = useRefWidth();
 
@@ -808,6 +820,10 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
           );
           setGraphData(newGraphData);
           onDataChange?.(newGraphData);
+          // Mark that we've received valid data to prevent flickering during refresh
+          if (newGraphData && newGraphData.some((d) => d.length > 0)) {
+            hasReceivedData.current = true;
+          }
 
           setIsDisconnectedEnabled(dataIsDisconnected);
 
@@ -932,7 +948,7 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
     <>
       <Card isCompact isPlain={isPlain} style={{ overflow: 'visible' }}>
         {hideControls ? (
-          <>{updating && <LoadingInline />}</>
+          <>{updating && !onLoadingChange && <LoadingInline />}</>
         ) : (
           <CardHeader>
             <Split>
@@ -1014,8 +1030,10 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
             data-test={DataTestIDs.MetricGraph}
           >
             {error && <Error error={error} />}
-            {isGraphDataEmpty && <GraphEmpty loading={updating} />}
-            {!isGraphDataEmpty && width > 0 && (
+            {/*eslint-disable-next-line react-hooks/refs */}
+            {isGraphDataEmpty && !(hideControls && updating && hasReceivedData.current) ? (
+              <GraphEmpty loading={updating} />
+            ) : (
               <>
                 {disableZoom ? (
                   <Graph
@@ -1102,6 +1120,7 @@ export type QueryBrowserProps = {
   GraphLink?: ComponentType;
   hideControls?: boolean;
   isStack?: boolean;
+  onLoadingChange?: (isLoading: boolean) => void;
   onZoom?: GraphOnZoom;
   pollInterval?: number;
   queries: string[];
@@ -1110,6 +1129,7 @@ export type QueryBrowserProps = {
   showDisconnectedControl?: boolean;
   timespan?: number;
   units?: GraphUnits;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onDataChange?: (data: any) => void;
   isPlain?: boolean;
 };

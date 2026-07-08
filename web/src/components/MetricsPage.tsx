@@ -61,8 +61,8 @@ import {
   wrappable,
 } from '@patternfly/react-table';
 import * as _ from 'lodash-es';
-import type { FC, Ref } from 'react';
-import { useMemo, useCallback, useEffect, useState } from 'react';
+import type { FC, MouseEvent as ReactMouseEvent, Ref } from 'react';
+import { useMemo, useCallback, useEffect, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -85,11 +85,6 @@ import {
 import { getPrometheusBasePath, buildPrometheusUrl } from './utils';
 import { AsyncComponent } from './console/utils/async';
 import { usePoll } from './console/utils/poll-hook';
-import {
-  getAllQueryArguments,
-  getQueryArgument,
-  setAllQueryArguments,
-} from './console/utils/router';
 import { useSafeFetch } from './console/utils/safe-fetch-hook';
 
 import {
@@ -104,7 +99,7 @@ import { getObserveState } from './hooks/usePerspective';
 import KebabDropdown from './kebab-dropdown';
 import { colors, Error, QueryBrowser } from './query-browser';
 import { QueryParams } from './query-params';
-import TablePagination from './table-pagination';
+import { TablePagination } from './table-pagination';
 import { PrometheusAPIError } from './types';
 import { TypeaheadSelect } from './TypeaheadSelect';
 import { LoadingInline } from './console/console-shared/src/components/loading/LoadingInline';
@@ -122,7 +117,8 @@ import { ALL_NAMESPACES_KEY } from './utils';
 import { MonitoringProvider } from '../contexts/MonitoringContext';
 import { DataTestIDs } from './data-test';
 import { useMonitoring } from '../hooks/useMonitoring';
-import { useQueryNamespace } from './hooks/useQueryNamespace';
+import { useMonitoringNamespace } from './hooks/useMonitoringNamespace';
+import { useSearchParams } from 'react-router';
 
 // Stores information about the currently focused query input
 let focusedQuery;
@@ -130,12 +126,10 @@ let focusedQuery;
 const predefinedQueriesAdmin: SelectOptionProps[] = [
   {
     name: 'CPU Usage',
-    // eslint-disable-next-line max-len
     value: `sum(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate) by (pod)`,
   },
   {
     name: 'Memory Usage',
-    // eslint-disable-next-line max-len
     value: `sum(container_memory_working_set_bytes{container!=""}) by (pod)`,
   },
   {
@@ -927,8 +921,8 @@ export const QueryTable: FC<QueryTableProps> = ({ index, namespace, customDataso
                           typeof cell === 'string' ? cell : cell?.title,
                         )
                       : typeof cell === 'string'
-                      ? cell
-                      : cell?.title}
+                        ? cell
+                        : cell?.title}
                   </Td>
                 ))}
               </Tr>
@@ -1092,6 +1086,8 @@ const QueryBrowserWrapper: FC<{
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { plugin } = useMonitoring();
   const [activeNamespace] = useActiveNamespace();
+  const [queryParams, setQueryParams] = useSearchParams();
+  const [isFirstRender, , , setFirstRenderFalse] = useBoolean(true);
 
   const dispatch = useDispatch();
 
@@ -1102,12 +1098,14 @@ const QueryBrowserWrapper: FC<{
     (state: MonitoringState) => getObserveState(plugin, state).queryBrowser?.queries,
   );
 
-  // Initialize queries from URL parameters
+  // Initialize queries from URL parameters on first render
   useEffect(() => {
+    if (!isFirstRender) {
+      return;
+    }
     dispatch(queryBrowserDeleteAllQueries());
-    const searchParams = getAllQueryArguments();
-    for (let i = 0; _.has(searchParams, `query${i}`); i++) {
-      const query = searchParams[`query${i}`];
+    for (let i = 0; queryParams.has(`query${i}`); i++) {
+      const query = queryParams.get(`query${i}`);
       dispatch(
         queryBrowserPatchQuery(i, {
           isEnabled: true,
@@ -1117,10 +1115,11 @@ const QueryBrowserWrapper: FC<{
         }),
       );
     }
-  }, [dispatch]);
+    setFirstRenderFalse();
+  }, [dispatch, queryParams, isFirstRender, setFirstRenderFalse]);
 
   /* eslint-disable react-hooks/exhaustive-deps */
-  // Use React.useMemo() to prevent these two arrays being recreated on every render, which would
+  // Use useMemo() to prevent these two arrays being recreated on every render, which would
   // trigger unnecessary re-renders of QueryBrowser, which can be quite slow
   const queriesMemoKey = JSON.stringify(_.map(queries, 'query'));
   const queryStrings = useMemo(() => _.map(queries, 'query'), [queriesMemoKey]);
@@ -1134,13 +1133,19 @@ const QueryBrowserWrapper: FC<{
 
   // Update the URL parameters when the queries shown in the graph change
   useEffect(() => {
-    const newParams: Record<string, string> = {};
-    _.each(queryStrings, (q, i) => (newParams[`query${i}`] = q || ''));
-    if (customDataSourceName) {
-      newParams.datasource = customDataSourceName;
+    if (isFirstRender) {
+      return;
     }
-    setAllQueryArguments(newParams);
-  }, [queryStrings, customDataSourceName]);
+    const newParams = new URLSearchParams(removeQueryKeys(queryParams));
+    queryStrings.forEach((query, i) => newParams.set(`query${i}`, query || ''));
+    if (customDataSourceName) {
+      newParams.set(QueryParams.Datasource, customDataSourceName);
+    }
+    if (!newParams.get(QueryParams.Units)) {
+      newParams.set(QueryParams.Units, 'short');
+    }
+    setQueryParams(newParams, { replace: true });
+  }, [queryStrings, customDataSourceName, isFirstRender, queryParams]);
 
   if (hideGraphs) {
     return null;
@@ -1203,7 +1208,6 @@ const QueryBrowserWrapper: FC<{
   return (
     <QueryBrowser
       customDataSource={customDataSource}
-      defaultTimespan={30 * 60 * 1000}
       disabledSeries={disabledSeries}
       queries={queryStrings}
       units={units}
@@ -1211,6 +1215,16 @@ const QueryBrowserWrapper: FC<{
       showDisconnectedControl
     />
   );
+};
+
+const removeQueryKeys = (searchParams: URLSearchParams): URLSearchParams => {
+  const newParams = new URLSearchParams(searchParams);
+  for (const key of searchParams.keys()) {
+    if (key.startsWith('query')) {
+      newParams.delete(key);
+    }
+  }
+  return newParams;
 };
 
 const AddQueryButton: FC = () => {
@@ -1307,7 +1321,7 @@ const GraphUnitsDropDown: FC = () => {
     return intervalOptions.map((o) => ({ ...o, selected: o.value === selectedUnits }));
   }, [selectedUnits, t]);
 
-  const onSelect = (_ev: React.MouseEvent<Element, MouseEvent>, selection: string) => {
+  const onSelect = (_ev: ReactMouseEvent<Element, MouseEvent>, selection: string) => {
     setUnits(selection);
   };
 
@@ -1323,7 +1337,9 @@ const GraphUnitsDropDown: FC = () => {
 const MetricsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const [units, setUnits] = useQueryParam(QueryParams.Units, StringParam);
-  const { setNamespace } = useQueryNamespace();
+  const [customDataSourceName] = useQueryParam(QueryParams.Datasource, StringParam);
+  const { namespace, setNamespace } = useMonitoringNamespace();
+  const { displayNamespaceSelector } = useMonitoring();
 
   const dispatch = useDispatch();
 
@@ -1341,7 +1357,6 @@ const MetricsPage_: FC = () => {
   }, [dispatch]);
   const [customDataSource, setCustomDataSource] = useState<CustomDataSource>(undefined);
   const [customDataSourceIsResolved, setCustomDataSourceIsResolved] = useState<boolean>(false);
-  const customDataSourceName = getQueryArgument(QueryParams.Datasource);
   const [extensions, extensionsResolved] = useResolvedExtensions<DataSource>(isDataSource);
   const hasExtensions = !_.isEmpty(extensions);
   const [customDatasourceError, setCustomDataSourceError] = useState(false);
@@ -1388,6 +1403,17 @@ const MetricsPage_: FC = () => {
     });
   }, [extensions, extensionsResolved, customDataSourceName, hasExtensions]);
 
+  const prevNamespace = useRef(namespace);
+  useEffect(() => {
+    // In the developer perspective (display namespace selector is false since all dev perspective
+    // pages add them automatically) then clear queries when the namespace changes
+    if (prevNamespace.current === namespace || displayNamespaceSelector) {
+      return;
+    }
+    prevNamespace.current = namespace;
+    dispatch(queryBrowserDeleteAllQueries());
+  }, [namespace, dispatch, setNamespace]);
+
   if (customDataSourceName) {
     if (!extensionsResolved || (!customDataSourceIsResolved && !customDatasourceError)) {
       return (
@@ -1402,14 +1428,18 @@ const MetricsPage_: FC = () => {
 
   return (
     <>
-      <DocumentTitle>{t('Metrics')}</DocumentTitle>
-      <NamespaceBar
-        onNamespaceChange={(namespace) => {
-          dispatch(queryBrowserDeleteAllQueries());
-          setNamespace(namespace);
-        }}
-      />
-      <ListPageHeader title={t('Metrics')}>
+      {displayNamespaceSelector && (
+        <>
+          <DocumentTitle>{t('Metrics')}</DocumentTitle>
+          <NamespaceBar
+            onNamespaceChange={(namespace) => {
+              dispatch(queryBrowserDeleteAllQueries());
+              setNamespace(namespace);
+            }}
+          />
+        </>
+      )}
+      <ListPageHeader title={displayNamespaceSelector ? t('Metrics') : ' '}>
         <Split hasGutter>
           <SplitItem data-test={DataTestIDs.MetricGraphUnitsDropDown}>
             <Tooltip content={<>{t('This dropdown only formats results.')}</>}>
@@ -1462,9 +1492,23 @@ const MetricsPage_: FC = () => {
 
 const MetricsPage = withFallback(MetricsPage_);
 
-export const MpCmoMetricsPage: React.FC = () => {
+export const MpCmoMetricsPage: FC = () => {
   return (
     <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
+      <MetricsPage />
+    </MonitoringProvider>
+  );
+};
+
+export const MpCmoDevMetricsPage: FC = () => {
+  return (
+    <MonitoringProvider
+      monitoringContext={{
+        plugin: 'monitoring-plugin',
+        prometheus: 'cmo',
+        displayNamespaceSelector: false,
+      }}
+    >
       <MetricsPage />
     </MonitoringProvider>
   );

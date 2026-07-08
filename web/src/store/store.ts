@@ -1,5 +1,6 @@
 import * as _ from 'lodash-es';
 
+import type { PanelDefinition } from '@perses-dev/core';
 import { MONITORING_DASHBOARDS_DEFAULT_TIMESPAN } from '../components/dashboards/legacy/utils';
 import { Alert, PrometheusLabels, Rule } from '@openshift-console/dynamic-plugin-sdk';
 import { Silences } from '../components/types';
@@ -11,8 +12,10 @@ import {
 import { Variable } from '../components/dashboards/legacy/legacy-variable-dropdowns';
 
 export type RootState = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   k8s: { [key: string]: any };
   observe: LegacyObserveState;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   UI: any;
   plugins: {
     mcp?: ObserveState;
@@ -20,18 +23,26 @@ export type RootState = {
   };
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type LegacyObserveState = Map<string, any>;
 export type ObserveState = {
   dashboards: {
-    endTime?: number;
-    pollInterval: number;
-    timespan: number;
-    variables: Record<string, Variable>;
+    legacy: {
+      [dashboardName: string]: {
+        variables: Record<string, Variable>;
+      };
+    };
+    isOpened: boolean;
+    addPersesPanelExternally: PanelDefinition | null;
   };
   incidentsData: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     incidents: Array<any>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     alertsData: Array<any>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     alertsTableData: Array<any>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     filteredIncidentsData: Array<any>;
     alertsAreLoading: boolean;
     incidentsChartSelectedId: string;
@@ -63,10 +74,9 @@ export type ObserveState = {
 
 export const defaultObserveState: ObserveState = {
   dashboards: {
-    endTime: null,
-    pollInterval: 30 * 1000,
-    timespan: MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
-    variables: {},
+    isOpened: false,
+    addPersesPanelExternally: null,
+    legacy: {},
   },
   queryBrowser: {
     pollInterval: null,
@@ -115,10 +125,13 @@ export type QueryStructure = {
   isExpanded: boolean;
   text: string;
   query: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   series: any;
   disabledSeries: PrometheusLabels[];
   queryTableData: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     columns: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     rows: any;
   };
 };

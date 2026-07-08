@@ -1,0 +1,8 @@
+start,end,alertname,namespace,severity,silenced,labels
+420,420,AlertC_ShortDuration,openshift-apiserver,warning,false,{"component": "api-server"}
+480,780,AlertD_Info,openshift-monitoring,info,false,{"component": "monitoring"}
+540,780,AlertD_Warning,openshift-monitoring,warning,false,{"component": "monitoring"}
+600,780,AlertD_Critical,openshift-monitoring,critical,false,{"component": "monitoring"}
+840,1080,AlertE_Etcd,openshift-etcd,critical,false,{"component": "etcd"}
+840,1080,AlertE_KubeAPI,openshift-kube-apiserver,critical,false,{"component": "kube-apiserver"}
+840,1080,AlertE_Controller_Very_Very_Very_Very_Long_Name_Alert,openshift-kube-controller,critical,false,{"component": "kube-controller"}

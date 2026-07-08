@@ -1,7 +1,7 @@
 import { Table, Thead, Tr, Th, Tbody, Td } from '@patternfly/react-table';
 import { ResourceIcon, Timestamp, useActiveNamespace } from '@openshift-console/dynamic-plugin-sdk';
 import { Bullseye, Spinner } from '@patternfly/react-core';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { ALL_NAMESPACES_KEY, RuleResource } from '../utils';
 import { useTranslation } from 'react-i18next';
 import { getRuleUrl, usePerspective } from '../hooks/usePerspective';
@@ -45,13 +45,21 @@ const IncidentsDetailsRowTable = ({ alerts }: IncidentsDetailsRowTableProps) => 
                 <SeverityBadge severity={alertDetails.severity} />
               </Td>
               <Td dataLabel="expanded-details-firingstart">
-                <Timestamp timestamp={alertDetails.alertsStartFiring * 1000} />
+                {alertDetails.alertsStartFiring ? (
+                  <Timestamp
+                    timestamp={new Date(alertDetails.alertsStartFiring * 1000).toISOString()}
+                  />
+                ) : (
+                  '---'
+                )}
               </Td>
               <Td dataLabel="expanded-details-firingend">
-                {!alertDetails.resolved ? (
+                {!alertDetails.resolved || !alertDetails.alertsEndFiring ? (
                   '---'
                 ) : (
-                  <Timestamp timestamp={alertDetails.alertsEndFiring * 1000} />
+                  <Timestamp
+                    timestamp={new Date(alertDetails.alertsEndFiring * 1000).toISOString()}
+                  />
                 )}
               </Td>
               <Td dataLabel="expanded-details-alertstate">

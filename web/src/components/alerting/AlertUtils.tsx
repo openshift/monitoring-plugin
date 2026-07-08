@@ -1,5 +1,3 @@
-import type { FC, ReactNode } from 'react';
-import { memo } from 'react';
 import {
   Action,
   Alert,
@@ -15,18 +13,15 @@ import {
   SilenceStates,
   Timestamp,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { AlertSource } from '../types';
-import * as _ from 'lodash-es';
-import { useTranslation } from 'react-i18next';
 import {
-  Alert as PFAlert,
-  Popover,
   Button,
   DescriptionList,
+  DescriptionListDescription,
   DescriptionListGroup,
   DescriptionListTerm,
-  DescriptionListDescription,
   Label,
+  Alert as PFAlert,
+  Popover,
   Tooltip,
 } from '@patternfly/react-core';
 import {
@@ -38,11 +33,6 @@ import {
   OutlinedBellIcon,
   SeverityUndefinedIcon,
 } from '@patternfly/react-icons';
-import { FormatSeriesTitle, QueryBrowser } from '../query-browser';
-import { Link } from 'react-router-dom-v5-compat';
-import { TFunction } from 'i18next';
-import { getQueryBrowserUrl, usePerspective } from '../hooks/usePerspective';
-import { NamespaceModel } from '../console/models';
 import {
   t_global_border_color_status_info_default,
   t_global_color_status_danger_default,
@@ -53,6 +43,17 @@ import {
   t_global_text_color_disabled,
   t_global_text_color_subtle,
 } from '@patternfly/react-tokens';
+import { TFunction } from 'i18next';
+import * as _ from 'lodash-es';
+import type { FC, ReactNode } from 'react';
+import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router';
+import { NamespaceModel } from '../console/models';
+import { getQueryBrowserUrl, usePerspective } from '../hooks/usePerspective';
+import { useMonitoringNamespace } from '../hooks/useMonitoringNamespace';
+import { FormatSeriesTitle, QueryBrowser } from '../query-browser';
+import { AlertSource } from '../types';
 
 export const getAdditionalSources = <T extends Alert | Rule>(
   data: Array<T>,
@@ -66,7 +67,7 @@ export const getAdditionalSources = <T extends Alert | Rule>(
         additionalSources.add(source);
       }
     });
-    return Array.from(additionalSources).map((item) => ({ id: item, title: _.startCase(item) }));
+    return Array.from(additionalSources).map((item) => ({ value: item, label: _.startCase(item) }));
   }
   return [];
 };
@@ -84,6 +85,7 @@ export const alertingRuleSource = (rule: Rule): AlertSource | string => {
 export const alertSource = (alert: Alert): AlertSource | string => alertingRuleSource(alert.rule);
 export const alertCluster = (alert: Alert): string => alert.labels?.cluster ?? '';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const SilencesNotLoadedWarning: FC<{ silencesLoadError: any }> = ({ silencesLoadError }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
@@ -122,7 +124,7 @@ const getSeverityKey = (severity: string, t) => {
   }
 };
 
-export const SeverityIcon: FC<{ severity: string }> = memo(({ severity }) => {
+export const SeverityIcon = memo(({ severity }: { severity: string }) => {
   switch (severity) {
     case AlertSeverity.Critical:
       return <ExclamationCircleIcon color={t_global_color_status_danger_default.var} />;
@@ -137,7 +139,9 @@ export const SeverityIcon: FC<{ severity: string }> = memo(({ severity }) => {
   }
 });
 
-export const AlertState: FC<AlertStateProps> = memo(({ state }) => {
+SeverityIcon.displayName = 'SeverityIcon';
+
+export const AlertState = memo(({ state }: AlertStateProps) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const icon = <AlertStateIcon state={state} />;
@@ -153,11 +157,13 @@ export const AlertState: FC<AlertStateProps> = memo(({ state }) => {
   ) : null;
 });
 
+AlertState.displayName = 'AlertState';
+
 type AlertStateProps = {
   state: AlertStates;
 };
 
-export const AlertStateIcon: FC<{ state: string }> = memo(({ state }) => {
+export const AlertStateIcon = memo(({ state }: { state: string }) => {
   switch (state) {
     case AlertStates.Firing:
       return <BellIcon />;
@@ -169,6 +175,8 @@ export const AlertStateIcon: FC<{ state: string }> = memo(({ state }) => {
       return null;
   }
 });
+
+AlertStateIcon.displayName = 'AlertStateIcon';
 
 export const getAlertStateKey = (state, t) => {
   switch (state) {
@@ -195,40 +203,40 @@ export const AlertStateDescription: FC<{ alert: Alert }> = ({ alert }) => {
   return null;
 };
 
-export const StateTimestamp = ({ text, timestamp }) => (
+export const StateTimestamp = ({ text, timestamp }: { text: string; timestamp: string }) => (
   <div style={{ color: t_global_text_color_subtle.var }}>
     {text}&nbsp;
     <Timestamp timestamp={timestamp} className="pf-v6-u-display-inline" />
   </div>
 );
 
-export const SeverityBadge: FC<{ severity: string; count?: number }> = memo(
-  ({ severity, count }) => {
-    const { t } = useTranslation(process.env.I18N_NAMESPACE);
+export const SeverityBadge = memo(({ severity, count }: { severity: string; count?: number }) => {
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
-    if (_.isNil(severity)) return null;
+  if (_.isNil(severity)) return null;
 
-    const labelText = count ? count : getSeverityKey(severity, t);
-    switch (severity) {
-      case AlertSeverity.Critical:
-        return <Label status="danger">{labelText}</Label>;
-      case AlertSeverity.Warning:
-        return <Label status="warning">{labelText}</Label>;
-      case AlertSeverity.Info:
-        return <Label status="info">{labelText}</Label>;
-      case AlertSeverity.None:
-        return (
-          <Label variant="outline">
-            <SeverityUndefinedIcon color={t_global_icon_color_severity_undefined_default.var} />
-            &nbsp;
-            {labelText}
-          </Label>
-        );
-      default:
-        return <Label status="custom">{labelText}</Label>;
-    }
-  },
-);
+  const labelText = count ? count : getSeverityKey(severity, t);
+  switch (severity) {
+    case AlertSeverity.Critical:
+      return <Label status="danger">{labelText}</Label>;
+    case AlertSeverity.Warning:
+      return <Label status="warning">{labelText}</Label>;
+    case AlertSeverity.Info:
+      return <Label status="info">{labelText}</Label>;
+    case AlertSeverity.None:
+      return (
+        <Label variant="outline">
+          <SeverityUndefinedIcon color={t_global_icon_color_severity_undefined_default.var} />
+          &nbsp;
+          {labelText}
+        </Label>
+      );
+    default:
+      return <Label status="custom">{labelText}</Label>;
+  }
+});
+
+SeverityBadge.displayName = 'SeverityBadge';
 
 export const PopoverField: FC<{ bodyContent: ReactNode; label: string }> = ({
   bodyContent,
@@ -247,13 +255,14 @@ export const Graph: FC<GraphProps> = ({
 }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
+  const { namespace } = useMonitoringNamespace();
 
   // 3 times the rule's duration, but not less than 30 minutes
   const timespan = Math.max(3 * ruleDuration, 30 * 60) * 1000;
 
   const GraphLink = () =>
     query && perspective !== 'acm' ? (
-      <Link aria-label={t('Inspect')} to={getQueryBrowserUrl({ perspective, query })}>
+      <Link aria-label={t('Inspect')} to={getQueryBrowserUrl({ perspective, query, namespace })}>
         {t('Inspect')}
       </Link>
     ) : null;
@@ -403,7 +412,7 @@ export const SeverityCounts: FC<{ alerts: Alert[] }> = ({ alerts }) => {
 export type OnToggle = (value: boolean, e: MouseEvent) => void;
 
 export const severityRowFilter = (t): RowFilter => ({
-  filter: (filter, alert: Alert) =>
+  filter: (filter, alert: Rule) =>
     filter.selected?.includes(alert.labels?.severity) || _.isEmpty(filter.selected),
   filterGroupName: t('Severity'),
   items: [
@@ -564,4 +573,11 @@ const isAlertSilenced = (alert: PrometheusAlert, silence: Silence): boolean => {
 // Determine if an Rule is silenced by a Silence (if all alerts for a rule are silenced)
 export const isRuleSilenced = (rule: PrometheusRule, silence: Silence): boolean => {
   return isRuleFiring(rule) && rule.alerts.every((alert) => isAlertSilenced(alert, silence));
+};
+
+/**
+ * Add 'rowFilter-' to a column key
+ */
+export const rowFilter = (key: string) => {
+  return `row-filter-${key}`;
 };

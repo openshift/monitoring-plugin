@@ -1,0 +1,7 @@
+start,end,alertname,namespace,severity,silenced,labels
+0,180,AlertA_Info,openshift-logging,info,false,{"component": "logging"}
+240,360,AlertB_Warning,openshift-storage,warning,false,{"component": "storage"}
+480,780,AlertD_Info,openshift-monitoring,info,false,{"component": "monitoring"}
+540,780,AlertD_Warning,openshift-monitoring,warning,false,{"component": "monitoring"}
+600,780,AlertD_Critical,openshift-monitoring,critical,false,{"component": "monitoring"}
+1560,1740,AlertH_Critical,openshift-network,critical,false,{"component": "network"}

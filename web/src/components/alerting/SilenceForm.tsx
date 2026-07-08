@@ -1,8 +1,4 @@
-import {
-  consoleFetchJSON,
-  DocumentTitle,
-  useActiveNamespace,
-} from '@openshift-console/dynamic-plugin-sdk';
+import { consoleFetchJSON, DocumentTitle } from '@openshift-console/dynamic-plugin-sdk';
 import {
   ActionGroup,
   Alert,
@@ -40,7 +36,7 @@ import type { ComponentType, FC, FormEventHandler, MouseEvent, ChangeEvent, Ref 
 import { useState, useEffect, useMemo } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { useNavigate } from 'react-router';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
 import {
   formatPrometheusDuration,
@@ -49,6 +45,7 @@ import {
 import { ExternalLink } from '../console/utils/link';
 import { useBoolean } from '../hooks/useBoolean';
 import { getSilenceAlertUrl, usePerspective } from '../hooks/usePerspective';
+import { useMonitoringNamespace } from '../hooks/useMonitoringNamespace';
 import { DataTestIDs } from '../data-test';
 import { ALL_NAMESPACES_KEY, getAlertmanagerSilencesUrl } from '../utils';
 import { useAlerts } from '../../hooks/useAlerts';
@@ -64,6 +61,7 @@ type Matcher = {
 };
 
 type SilenceFormProps = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   defaults: any;
   Info?: ComponentType;
   title: string;
@@ -97,8 +95,8 @@ const DatetimeTextInput = (props: DatetimeTextInputProps) => {
         props.tooltip
           ? props.tooltip
           : isValid
-          ? formatDate(new Date(props.value))
-          : t('Invalid date / time')
+            ? formatDate(new Date(props.value))
+            : t('Invalid date / time')
       }
     >
       <TextInput
@@ -132,7 +130,7 @@ const NegativeMatcherHelp = () => {
 
 const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespaced }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const [namespace] = useActiveNamespace();
+  const { namespace } = useMonitoringNamespace();
   const { prometheus } = useMonitoring();
   const navigate = useNavigate();
   const isPageNamespaceLocked = isNamespaced && namespace !== ALL_NAMESPACES_KEY;
@@ -287,7 +285,7 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
       .then(({ silenceID }) => {
         setError(undefined);
         refetchSilencesAndAlerts();
-        navigate(getSilenceAlertUrl(perspective, silenceID));
+        navigate(getSilenceAlertUrl(perspective, silenceID, namespace));
       })
       .catch((err) => {
         let errorMessage =

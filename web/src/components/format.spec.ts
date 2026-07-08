@@ -3,10 +3,12 @@ import { formatNumber } from './format';
 describe('formatNumber', () => {
   describe('edge cases', () => {
     it('should return "-" for null values', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect(formatNumber(null as any)).toBe('-');
     });
 
     it('should return "-" for undefined values', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect(formatNumber(undefined as any)).toBe('-');
     });
 
@@ -204,12 +206,14 @@ describe('formatNumber', () => {
 
   describe('unknown format', () => {
     it('should fall back to humanizeNumber for unknown format', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = formatNumber('999', 2, 'unknown-format' as any);
       expect(result).toBeTruthy();
       expect(typeof result).toBe('string');
     });
 
     it('should produce same result as short format for unknown format', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const unknownResult = formatNumber('123', 2, 'invalid' as any);
       const shortResult = formatNumber('123', 2, 'short');
       expect(unknownResult).toBe(shortResult);

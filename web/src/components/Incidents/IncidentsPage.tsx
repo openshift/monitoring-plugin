@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useMemo, useState, useEffect, useCallback } from 'react';
+import { useMemo, useState, useEffect, useCallback, MouseEvent } from 'react';
 import { useSafeFetch } from '../console/utils/safe-fetch-hook';
 import { createAlertsQuery, fetchDataForIncidentsAndAlerts } from './api';
 import { useTranslation } from 'react-i18next';
@@ -53,7 +53,7 @@ import {
   setIncidentsActiveFilters,
   setIncidentsLastRefreshTime,
 } from '../../store/actions';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router';
 import { changeDaysFilter } from './utils';
 import { parsePrometheusDuration } from '../console/console-shared/src/datetime/prometheus';
 import withFallback from '../console/console-shared/error/fallbacks/withFallback';
@@ -110,7 +110,7 @@ const IncidentsPage = () => {
   });
 
   const onFilterToggle = (
-    ev: React.MouseEvent,
+    ev: MouseEvent,
     filterName: keyof IncidentsPageFiltersExpandedState | 'filterType',
     setter,
   ) => {
@@ -370,10 +370,13 @@ const IncidentsPage = () => {
   useEffect(() => {
     // Set up 5-minute timer to hide banner automatically on first visit
     if (showDataDelayAlert) {
-      const timer = setTimeout(() => {
-        setShowDataDelayAlert(false);
-        localStorage.setItem(INCIDENTS_DATA_ALERT_DISPLAYED, 'true');
-      }, 5 * 60 * 1000);
+      const timer = setTimeout(
+        () => {
+          setShowDataDelayAlert(false);
+          localStorage.setItem(INCIDENTS_DATA_ALERT_DISPLAYED, 'true');
+        },
+        5 * 60 * 1000,
+      );
 
       return () => clearTimeout(timer);
     }

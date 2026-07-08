@@ -1,4 +1,3 @@
-import { alerts } from '../../fixtures/monitoring/alert';
 import { runAllRegressionLegacyDashboardsTests } from '../../support/monitoring/03.reg_legacy_dashboards.cy';
 import { runAllRegressionLegacyDashboardsTestsNamespace } from '../../support/monitoring/06.reg_legacy_dashboards_namespace.cy';
 import { commonPages } from '../../views/common';
@@ -30,63 +29,75 @@ const KBV = {
   crd: {
     kubevirt: 'kubevirts.kubevirt.io',
     hyperconverged: 'hyperconvergeds.hco.kubevirt.io',
-  }
+  },
 };
 
-describe('Installation: COO and setting up Monitoring Plugin', { tags: ['@virtualization', '@slow'] }, () => {
+describe(
+  'Installation: COO and setting up Monitoring Plugin',
+  { tags: ['@virtualization', '@slow'] },
+  () => {
+    before(() => {
+      cy.beforeBlockCOO(MCP, MP);
+    });
 
-  before(() => {
-    cy.beforeBlockCOO(MCP, MP);
-  });
+    it('1. Installation: COO and setting up Monitoring Plugin', () => {
+      cy.log('Installation: COO and setting up Monitoring Plugin');
+    });
+  },
+);
 
-  it('1. Installation: COO and setting up Monitoring Plugin', () => {
-    cy.log('Installation: COO and setting up Monitoring Plugin');
-  });
-});
+describe(
+  'IVT: Monitoring UIPlugin + Virtualization',
+  { tags: ['@virtualization', '@slow'] },
+  () => {
+    before(() => {
+      cy.beforeBlockVirtualization(KBV);
+    });
 
-describe('IVT: Monitoring UIPlugin + Virtualization', { tags: ['@virtualization', '@slow'] }, () => {
+    it('1. Virtualization perspective - Observe Menu', () => {
+      cy.log('Virtualization perspective - Observe Menu and verify all submenus');
+      cy.switchPerspective('Virtualization');
+      guidedTour.closeKubevirtTour();
+    });
+  },
+);
 
-  before(() => {
-    cy.beforeBlockVirtualization(KBV);
-  });
+describe(
+  'Regression: Monitoring - Legacy Dashboards (Virtualization)',
+  { tags: ['@virtualization', '@dashboards'] },
+  () => {
+    beforeEach(() => {
+      cy.visit('/');
+      cy.validateLogin();
+      cy.switchPerspective('Virtualization');
+      guidedTour.closeKubevirtTour();
+      nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
+      commonPages.titleShouldHaveText('Dashboards');
+      cy.changeNamespace('All Projects');
+    });
 
-  it('1. Virtualization perspective - Observe Menu', () => {
-    cy.log('Virtualization perspective - Observe Menu and verify all submenus');
-    cy.switchPerspective('Virtualization');
-    guidedTour.closeKubevirtTour();
-  });
-});
+    runAllRegressionLegacyDashboardsTests({
+      name: 'Virtualization',
+    });
+  },
+);
 
-describe('Regression: Monitoring - Legacy Dashboards (Virtualization)', { tags: ['@virtualization', '@dashboards'] }, () => {
+describe(
+  'Regression: Monitoring - Legacy Dashboards Namespaced (Virtualization)',
+  { tags: ['@virtualization', '@dashboards'] },
+  () => {
+    beforeEach(() => {
+      cy.visit('/');
+      cy.validateLogin();
+      cy.switchPerspective('Virtualization');
+      guidedTour.closeKubevirtTour();
+      nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
+      commonPages.titleShouldHaveText('Dashboards');
+      cy.changeNamespace(MP.namespace);
+    });
 
-  beforeEach(() => {
-    cy.visit('/');
-    cy.validateLogin();
-    cy.switchPerspective('Virtualization');
-    guidedTour.closeKubevirtTour();
-    nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
-    commonPages.titleShouldHaveText('Dashboards');
-    cy.changeNamespace("All Projects");
-  });
-
-  runAllRegressionLegacyDashboardsTests({
-    name: 'Virtualization',
-  });
-
-});
-
-describe('Regression: Monitoring - Legacy Dashboards Namespaced (Virtualization)', { tags: ['@virtualization', '@dashboards'] }, () => {
-  beforeEach(() => {
-    cy.visit('/');
-    cy.validateLogin();
-    cy.switchPerspective('Virtualization');
-    guidedTour.closeKubevirtTour();
-    nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
-    commonPages.titleShouldHaveText('Dashboards');
-    cy.changeNamespace(MP.namespace);
-  });
-
-  runAllRegressionLegacyDashboardsTestsNamespace({
-    name: 'Virtualization',
-  });
-});
+    runAllRegressionLegacyDashboardsTestsNamespace({
+      name: 'Virtualization',
+    });
+  },
+);

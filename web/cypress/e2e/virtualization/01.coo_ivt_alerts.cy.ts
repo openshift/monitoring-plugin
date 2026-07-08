@@ -1,6 +1,5 @@
 import { alerts } from '../../fixtures/monitoring/alert';
 import { runAllRegressionAlertsTests } from '../../support/monitoring/01.reg_alerts.cy';
-import { runAllRegressionAlertsTestsNamespace } from '../../support/monitoring/04.reg_alerts_namespace.cy';
 import { commonPages } from '../../views/common';
 import { nav } from '../../views/nav';
 import { guidedTour } from '../../views/tour';
@@ -31,51 +30,59 @@ const KBV = {
   crd: {
     kubevirt: 'kubevirts.kubevirt.io',
     hyperconverged: 'hyperconvergeds.hco.kubevirt.io',
-  }
+  },
 };
 
-describe('Installation: COO and setting up Monitoring Plugin', { tags: ['@virtualization', '@slow'] }, () => {
+describe(
+  'Installation: COO and setting up Monitoring Plugin',
+  { tags: ['@virtualization', '@slow'] },
+  () => {
+    before(() => {
+      cy.beforeBlockCOO(MCP, MP);
+    });
 
-  before(() => {
-    cy.beforeBlockCOO(MCP, MP);
-  });
+    it('1. Installation: COO and setting up Monitoring Plugin', () => {
+      cy.log('Installation: COO and setting up Monitoring Plugin');
+    });
+  },
+);
 
-  it('1. Installation: COO and setting up Monitoring Plugin', () => {
-    cy.log('Installation: COO and setting up Monitoring Plugin');
-  });
-});
+describe(
+  'IVT: Monitoring UIPlugin + Virtualization',
+  { tags: ['@virtualization', '@slow'] },
+  () => {
+    before(() => {
+      cy.beforeBlockVirtualization(KBV);
+    });
 
-describe('IVT: Monitoring UIPlugin + Virtualization', { tags: ['@virtualization', '@slow'] }, () => {
+    it('1. Virtualization perspective - Observe Menu', () => {
+      cy.log('Virtualization perspective - Observe Menu and verify all submenus');
+      cy.switchPerspective('Virtualization');
+      guidedTour.closeKubevirtTour();
+    });
+  },
+);
 
-  before(() => {
-    cy.beforeBlockVirtualization(KBV);
-  });
-
-  it('1. Virtualization perspective - Observe Menu', () => {
-    cy.log('Virtualization perspective - Observe Menu and verify all submenus');
-    cy.switchPerspective('Virtualization');
-    guidedTour.closeKubevirtTour();
-  });
-});
-
-describe('Regression: Monitoring - Alerts (Virtualization)', { tags: ['@virtualization', '@alerts'] }, () => {
-
-  beforeEach(() => {
-    cy.visit('/');
-    cy.validateLogin();
-    cy.switchPerspective('Virtualization');
-    guidedTour.closeKubevirtTour();
-    nav.sidenav.clickNavLink(['Observe', 'Metrics']);
-    commonPages.titleShouldHaveText('Metrics');
-    cy.changeNamespace("All Projects");
-    alerts.getWatchdogAlert();
-    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-    commonPages.titleShouldHaveText('Alerting');
-    alerts.getWatchdogAlert();
-  });
-  // Run tests in Virtualization perspective
-  runAllRegressionAlertsTests({
-    name: 'Virtualization',
-  });
-
-});
+describe(
+  'Regression: Monitoring - Alerts (Virtualization)',
+  { tags: ['@virtualization', '@alerts'] },
+  () => {
+    beforeEach(() => {
+      cy.visit('/');
+      cy.validateLogin();
+      cy.switchPerspective('Virtualization');
+      guidedTour.closeKubevirtTour();
+      nav.sidenav.clickNavLink(['Observe', 'Metrics']);
+      commonPages.titleShouldHaveText('Metrics');
+      cy.changeNamespace('All Projects');
+      alerts.getWatchdogAlert();
+      nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+      commonPages.titleShouldHaveText('Alerting');
+      alerts.getWatchdogAlert();
+    });
+    // Run tests in Virtualization perspective
+    runAllRegressionAlertsTests({
+      name: 'Virtualization',
+    });
+  },
+);

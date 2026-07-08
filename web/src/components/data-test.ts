@@ -11,6 +11,7 @@ export const DataTestIDs = {
   AlertingRuleSeverityBadge: 'alerting-rule-severity-badge',
   AlertingRuleStateBadge: 'alerting-rule-state-badge',
   AlertingRuleTotalAlertsBadge: 'alerting-rule-total-alerts-badge',
+  AlertingRuleCluster: 'alerting-rule-cluster',
   LabelSuggestion: 'suggestion-line',
   CancelButton: 'cancel-button',
   Breadcrumb: 'breadcrumb',
@@ -64,6 +65,7 @@ export const DataTestIDs = {
   SeverityBadgeHeader: 'severity-badge-header',
   SeverityBadge: 'severity-badge',
   SilenceAlertDropdownItem: 'silence-alert-dropdown-item',
+  ViewAIInvestigationDropdownItem: 'view-ai-investigation-dropdown-item',
   SilenceButton: 'silence-button',
   SilenceEditDropdownItem: 'silence-edit-dropdown-item',
   SilenceExpireDropdownItem: 'silence-expire-dropdown-item',
@@ -153,6 +155,24 @@ export const DataTestIDs = {
   },
 };
 
+export const FilterOUIAIDs = {
+  AlertNameFilter: 'AlertNameFilter',
+  AlertStateFilter: 'AlertStateFilter',
+  AlertSeverityFilter: 'AlertSeverityFilter',
+  AlertSourceFilter: 'AlertSourceFilter',
+  AlertClusterFilter: 'AlertClusterFilter',
+  SilenceNameFilter: 'SilenceNameFilter',
+  SilenceStateFilter: 'SilenceStateFilter',
+  SilenceClusterFilter: 'SilenceClusterFilter',
+  RuleNameFilter: 'RuleNameFilter',
+  RuleStateFilter: 'RuleStateFilter',
+  RuleSeverityFilter: 'RuleSeverityFilter',
+  RuleSourceFilter: 'RuleSourceFilter',
+  TargetTextFilter: 'TargetTextFilter',
+  TargetStatusFilter: 'TargetStatusFilter',
+  TargetSourceFilter: 'TargetSourceFilter',
+};
+
 export const LegacyDashboardPageTestIDs = {
   TimeRangeDropdown: 'time-range-dropdown', //div
   TimeRangeDropdownOptions: 'time-range-dropdown-options',
@@ -177,14 +197,14 @@ export const LegacyTestIDs = {
 export const IDs = {
   ChartAxis0ChartLabel: 'chart-axis-0-ChartLabel', //id^=IDs.ChartAxis0ChartLabel AxisX
   ChartAxis1ChartLabel: 'chart-axis-1-ChartLabel', //id^=IDs.ChartAxis1ChartLabel AxisY
-  persesDashboardCount: 'options-menu-top-pagination',
+  persesDashboardCount: 'options-menu-bottom-toggle',
   persesDashboardDownloadButton: 'download-dashboard-button',
   persesDashboardActionMenuModal: 'action-menu',
   persesDashboardEditVariablesModalBuiltinButton: 'builtin',
   persesDashboardAddPanelGroupForm: 'panel-group-editor-form',
   persesDashboardAddPanelForm: 'panel-editor-form',
   persesDashboardDiscardChangesDialog: 'discard-dialog',
-  persesDashboardCreateDashboardName: 'text-input-create-dashboard-dialog-name',
+  persesDashboardCreateDashboardName: 'create-modal-dashboard-name-form-group-text-input',
   persesDashboardRenameDashboardName: 'rename-modal-text-input',
   persesDashboardDuplicateDashboardName: 'duplicate-modal-dashboard-name-form-group-text-input',
   persesDashboardImportDashboardUploadFileInput: 'import-dashboard-file-filename',
@@ -218,8 +238,9 @@ export const Classes = {
   NamespaceDropdown: '.pf-v6-c-menu-toggle.co-namespace-dropdown__menu-toggle',
   NamespaceDropdownExpanded:
     '.pf-v6-c-menu-toggle.pf-m-expanded.co-namespace-dropdown__menu-toggle',
-  PersesCreateDashboardProjectDropdown: '.pf-v6-c-menu-toggle.pf-m-full-width.pf-m-typeahead',
+  PersesCreateDashboardProjectDropdown: 'button[class="pf-v6-c-menu-toggle__button"]',
   PersesCreateDashboardDashboardNameError: '.pf-v6-c-helper-text__item-text',
+  PersesDuplicateDashboardNameError: '.pf-v6-c-alert__title',
   PersesListDashboardCount: '.pf-v6-c-menu-toggle__text',
   SectionHeader: '.pf-v6-c-title.pf-m-h2, .co-section-heading',
   TableHeaderColumn: '.pf-v6-c-table__button, .pf-c-table__button',
@@ -276,6 +297,7 @@ export const persesAriaLabels = {
   dashboardActionsMenu: 'Dashboard actions',
   importDashboardProjectInputButton: 'Typeahead menu toggle',
   importDashboardDuplicatedDashboardError: 'Danger alert:document already exists',
+  traceTablePanel_TraceTable: 'Trace name column menu',
 };
 
 //data-testid from MUI components
@@ -293,6 +315,8 @@ export const persesMUIDataTestIDs = {
   editDashboardEditVariableDatasourceEditButton: 'PencilIcon',
   editDashboardEditVariableDatasourceDeleteButton: 'TrashCanIcon',
   addPanelGroupFormName: 'panel-group-editor-name',
+  logsTableContainer: 'log-row-container-0',
+  scatterChartPanel_ScatterPlot: 'ScatterChartPanel_ScatterPlot',
 };
 
 export const persesDashboardDataTestIDs = {

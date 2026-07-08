@@ -1,6 +1,9 @@
+import type { PanelDefinition } from '@perses-dev/core';
 import { action, ActionType as Action } from 'typesafe-actions';
 
 import { Alert, Rule, Silence } from '@openshift-console/dynamic-plugin-sdk';
+import { ThunkDispatch } from 'redux-thunk';
+import { RootState } from './store';
 
 export enum ActionType {
   AlertingSetLoading = 'v2/AlertingSetLoading',
@@ -10,13 +13,12 @@ export enum ActionType {
   AlertingSetErrored = 'v2/AlertingSetErrored',
   AlertingSetSilencesErrored = 'v2/AlertingSetSilencesErrored',
   AlertingClearSelectorData = 'v2/AlertingClearSelectorData',
-  DashboardsPatchAllVariables = 'v2/dashboardsPatchAllVariables',
-  DashboardsPatchVariable = 'v2/dashboardsPatchVariable',
-  DashboardsClearVariables = 'v2/dashboardsClearVariables',
-  DashboardsSetEndTime = 'v2/dashboardsSetEndTime',
-  DashboardsSetPollInterval = 'v2/dashboardsSetPollInterval',
-  DashboardsSetTimespan = 'v2/dashboardsSetTimespan',
-  DashboardsVariableOptionsLoaded = 'v2/dashboardsVariableOptionsLoaded',
+  DashboardsPatchAllVariables = 'v3/dashboardsPatchAllVariables',
+  DashboardsPatchVariable = 'v3/dashboardsPatchVariable',
+  DashboardsVariableOptionsLoaded = 'v3/dashboardsVariableOptionsLoaded',
+  DashboardsOpened = 'dashboardsPersesDashboardsOpened',
+  DashboardsAddPersesPanelExternally = 'dashboardsAddPersesPanelExternally',
+  DashboardsPersesPanelExternallyAdded = 'dashboardsPersesPanelExternallyAdded',
   QueryBrowserAddQuery = 'queryBrowserAddQuery',
   QueryBrowserDuplicateQuery = 'queryBrowserDuplicateQuery',
   QueryBrowserDeleteAllQueries = 'queryBrowserDeleteAllQueries',
@@ -48,25 +50,28 @@ export enum ActionType {
 
 export type Perspective = 'admin' | 'dev' | 'acm' | 'virtualization-perspective';
 
-export const dashboardsPatchVariable = (key: string, patch: any) =>
-  action(ActionType.DashboardsPatchVariable, { key, patch });
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const dashboardsPatchVariable = (dashboardName: string, key: string, patch: any) =>
+  action(ActionType.DashboardsPatchVariable, { dashboardName, key, patch });
 
-export const dashboardsPatchAllVariables = (variables: any) =>
-  action(ActionType.DashboardsPatchAllVariables, { variables });
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const dashboardsPatchAllVariables = (dashboardName: string, variables: any) =>
+  action(ActionType.DashboardsPatchAllVariables, { dashboardName, variables });
 
-export const DashboardsClearVariables = () => action(ActionType.DashboardsClearVariables, {});
+export const dashboardsVariableOptionsLoaded = (
+  dashboardName: string,
+  key: string,
+  newOptions: string[],
+) => action(ActionType.DashboardsVariableOptionsLoaded, { dashboardName, key, newOptions });
 
-export const dashboardsSetEndTime = (endTime: number) =>
-  action(ActionType.DashboardsSetEndTime, { endTime });
+export const dashboardsOpened = (isOpened: boolean) =>
+  action(ActionType.DashboardsOpened, { isOpened });
 
-export const dashboardsSetPollInterval = (pollInterval: number) =>
-  action(ActionType.DashboardsSetPollInterval, { pollInterval });
+export const dashboardsPersesPanelExternallyAdded = () =>
+  action(ActionType.DashboardsPersesPanelExternallyAdded, {});
 
-export const dashboardsSetTimespan = (timespan: number) =>
-  action(ActionType.DashboardsSetTimespan, { timespan });
-
-export const dashboardsVariableOptionsLoaded = (key: string, newOptions: string[]) =>
-  action(ActionType.DashboardsVariableOptionsLoaded, { key, newOptions });
+export const dashboardsAddPersesPanelExternally = (panelDefinition: PanelDefinition) =>
+  action(ActionType.DashboardsAddPersesPanelExternally, { panelDefinition });
 
 export const alertingSetLoading = (datasource: string, identifier: string) =>
   action(ActionType.AlertingSetLoading, {
@@ -204,11 +209,10 @@ type Actions = {
   AlertingClearSelectorData: typeof alertingClearSelectorData;
   dashboardsPatchAllVariables: typeof dashboardsPatchAllVariables;
   dashboardsPatchVariable: typeof dashboardsPatchVariable;
-  DashboardsClearVariables: typeof DashboardsClearVariables;
-  dashboardsSetEndTime: typeof dashboardsSetEndTime;
-  dashboardsSetPollInterval: typeof dashboardsSetPollInterval;
-  dashboardsSetTimespan: typeof dashboardsSetTimespan;
   dashboardsVariableOptionsLoaded: typeof dashboardsVariableOptionsLoaded;
+  dashboardsOpened: typeof dashboardsOpened;
+  dashboardsPersesPanelExternallyAdded: typeof dashboardsPersesPanelExternallyAdded;
+  dashboardsAddPersesPanelExternally: typeof dashboardsAddPersesPanelExternally;
   queryBrowserAddQuery: typeof queryBrowserAddQuery;
   queryBrowserDuplicateQuery: typeof queryBrowserDuplicateQuery;
   queryBrowserDeleteAllQueries: typeof queryBrowserDeleteAllQueries;
@@ -239,3 +243,4 @@ type Actions = {
 };
 
 export type ObserveAction = Action<Actions>;
+export type AppDispatch = ThunkDispatch<RootState, unknown, ObserveAction>;

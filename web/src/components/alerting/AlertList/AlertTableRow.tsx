@@ -17,26 +17,32 @@ import {
 } from '../AlertUtils';
 import { AlertSource } from '../../../components/types';
 import { Td, Tr } from '@patternfly/react-table';
-import { DropdownItem, Flex, FlexItem } from '@patternfly/react-core';
+import { DropdownItem, Flex, FlexItem, Spinner } from '@patternfly/react-core';
 import KebabDropdown from '../../../components/kebab-dropdown';
 import type { FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { useNavigate, Link } from 'react-router';
 import { AlertResource, alertState } from '../../../components/utils';
 import {
   getAlertUrl,
   getNewSilenceAlertUrl,
+  getProposalsUrl,
   usePerspective,
 } from '../../../components/hooks/usePerspective';
-import { Link } from 'react-router-dom-v5-compat';
+import { useMonitoringNamespace } from '../../hooks/useMonitoringNamespace';
 import { DataTestIDs } from '../../data-test';
+import { useProposalCheck } from '../../ai-proposals/useProposalCheck';
+import CustomIcon from '../../CustomIcon';
 
 const AlertTableRow: FC<{ alert: Alert }> = ({ alert }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
   const navigate = useNavigate();
+  const { namespace } = useMonitoringNamespace();
 
   const state = alertState(alert);
+  const { proposals, hasProposal, prefetch, alertFingerprint, isFetching } =
+    useProposalCheck(alert);
 
   const title: string = alert.annotations?.description || alert.annotations?.message;
 
@@ -46,10 +52,40 @@ const AlertTableRow: FC<{ alert: Alert }> = ({ alert }) => {
     dropdownItems.unshift(
       <DropdownItem
         key="silence-alert"
-        onClick={() => navigate(getNewSilenceAlertUrl(perspective, alert))}
+        onClick={() => navigate(getNewSilenceAlertUrl(perspective, alert, namespace))}
         data-test={DataTestIDs.SilenceAlertDropdownItem}
       >
         {t('Silence alert')}
+      </DropdownItem>,
+    );
+  }
+
+  if (hasProposal) {
+    const proposalName = proposals.length === 1 ? proposals[0].metadata?.name : undefined;
+    const proposalUrl = getProposalsUrl(
+      perspective,
+      new URLSearchParams(
+        proposalName ? { name: proposalName } : { fingerprint: alertFingerprint },
+      ),
+    );
+    dropdownItems.push(
+      <DropdownItem
+        key="view-ai-investigation"
+        icon={<CustomIcon name="ai-experience" />}
+        onClick={() => navigate(proposalUrl)}
+        data-test={DataTestIDs.ViewAIInvestigationDropdownItem}
+      >
+        {t('View AI Investigation')}
+      </DropdownItem>,
+    );
+  } else if (isFetching) {
+    dropdownItems.push(
+      <DropdownItem
+        key="loading-ai-investigation"
+        icon={<CustomIcon name="ai-experience" />}
+        isDisabled
+      >
+        <Spinner size="sm" /> {t('Loading investigations...')}
       </DropdownItem>,
     );
   }
@@ -83,7 +119,7 @@ const AlertTableRow: FC<{ alert: Alert }> = ({ alert }) => {
           </FlexItem>
           <FlexItem>
             <Link
-              to={getAlertUrl(perspective, alert, alert?.rule?.id)}
+              to={getAlertUrl(perspective, alert, alert?.rule?.id, namespace)}
               data-test-id="alert-resource-link"
               data-test={DataTestIDs.AlertResourceLink}
             >
@@ -120,13 +156,11 @@ const AlertTableRow: FC<{ alert: Alert }> = ({ alert }) => {
       <Td title={title}>
         <ActionServiceProvider context={{ 'monitoring-alert-list-item': { alert: alert } }}>
           {({ actions, loaded }) => {
-            if (loaded && actions.length > 0) {
-              return <KebabDropdown dropdownItems={getDropdownItemsWithExtension(actions)} />;
-            } else {
-              return dropdownItems?.length > 0 ? (
-                <KebabDropdown dropdownItems={dropdownItems} />
-              ) : null;
-            }
+            const items =
+              loaded && actions.length > 0 ? getDropdownItemsWithExtension(actions) : dropdownItems;
+            return items?.length > 0 ? (
+              <KebabDropdown dropdownItems={items} onMouseEnter={prefetch} />
+            ) : null;
           }}
         </ActionServiceProvider>
       </Td>

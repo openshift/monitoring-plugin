@@ -1,4 +1,4 @@
-FROM registry.ci.openshift.org/ocp/builder:rhel-9-base-nodejs-openshift-4.19 AS web-builder
+FROM registry.redhat.io/ubi9/nodejs-22:latest AS web-builder
 
 WORKDIR /opt/app-root
 
@@ -8,12 +8,12 @@ ENV HUSKY=0
 
 COPY web/package.json web/package-lock.json web/
 COPY Makefile Makefile
-RUN make install-frontend
+RUN make install-frontend-ci
 
 COPY web/ web/
 RUN make build-frontend
 
-FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.24-openshift-4.20 as go-builder
+FROM registry.access.redhat.com/ubi9/go-toolset:1.26 AS go-builder
 
 WORKDIR /opt/app-root
 
@@ -32,7 +32,7 @@ ENV CGO_ENABLED=1
 
 RUN make build-backend BUILD_OPTS="-tags strictfipsruntime"
 
-FROM registry.ci.openshift.org/ocp/4.19:base-rhel9
+FROM registry.access.redhat.com/ubi9/ubi-minimal
 
 USER 1001
 

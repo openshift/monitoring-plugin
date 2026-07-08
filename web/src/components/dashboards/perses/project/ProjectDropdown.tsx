@@ -13,16 +13,29 @@ import {
   TextInput,
   EmptyStateActions,
   EmptyStateFooter,
+  Tooltip,
+  TooltipPosition,
 } from '@patternfly/react-core';
 import fuzzysearch from 'fuzzysearch';
 import { useTranslation } from 'react-i18next';
 import ProjectMenuToggle from './ProjectMenuToggle';
 import { alphanumericCompare } from './utils';
 import { useEditableProjects } from '../hooks/useEditableProjects';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import {
+  ChangeEvent,
+  FC,
+  MutableRefObject,
+  MouseEvent as ReactMouseEvent,
+  Ref,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { ALL_NAMESPACES_KEY } from '../../../utils';
 
-export const NoResults: React.FC<{
-  onClear: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
+export const NoResults: FC<{
+  onClear: (event: ReactMouseEvent<HTMLButtonElement, MouseEvent>) => void;
 }> = ({ onClear }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   return (
@@ -44,8 +57,9 @@ export const NoResults: React.FC<{
 
 /* ****************************************** */
 
-export const Filter: React.FC<{
-  filterRef: React.Ref<any>;
+export const Filter: FC<{
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  filterRef: Ref<any>;
   onFilterChange: (filterText: string) => void;
   filterText: string;
 }> = ({ filterText, filterRef, onFilterChange }) => {
@@ -70,7 +84,7 @@ export const Filter: React.FC<{
 
 /* ****************************************** */
 
-export const ProjectGroup: React.FC<{
+export const ProjectGroup: FC<{
   options: { key: string; title: string }[];
   selectedKey: string;
 }> = ({ options, selectedKey }) => {
@@ -101,11 +115,11 @@ export const ProjectGroup: React.FC<{
 
 /* ****************************************** */
 
-const ProjectMenu: React.FC<{
+const ProjectMenu: FC<{
   setOpen: (isOpen: boolean) => void;
-  onSelect: (event: React.MouseEvent, itemId: string) => void;
+  onSelect: (event: ReactMouseEvent, itemId: string) => void;
   selected?: string;
-  menuRef: React.MutableRefObject<HTMLDivElement>;
+  menuRef: MutableRefObject<HTMLDivElement>;
 }> = ({ setOpen, onSelect, selected, menuRef }) => {
   const filterRef = useRef(null);
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -120,11 +134,11 @@ const ProjectMenu: React.FC<{
         return { title: projectName, key: projectName };
       }) || [];
 
-    if (selected && !items.some((option) => option.key === selected)) {
-      items.push({ title: selected, key: selected }); // Add current project if it isn't included
-    }
     items.sort((a, b) => alphanumericCompare(a.title, b.title));
-    items.unshift({ title: t('All Projects'), key: '' });
+    items.unshift({ title: t('All Projects'), key: ALL_NAMESPACES_KEY });
+    if (selected && !items.some((option) => option.key === selected)) {
+      items.unshift({ title: selected, key: selected }); // Add current project if it isn't included
+    }
 
     return items;
   }, [allProjects, selected, t]);
@@ -154,7 +168,7 @@ const ProjectMenu: React.FC<{
     <Menu
       ref={menuRef}
       className="co-namespace-dropdown__menu"
-      onSelect={(event: React.MouseEvent, itemId: string) => {
+      onSelect={(event: ReactMouseEvent, itemId: string) => {
         setOpen(false);
         onSelect(event, itemId);
       }}
@@ -182,18 +196,11 @@ const ProjectMenu: React.FC<{
 
 /* ****************************************** */
 
-const ProjectDropdown: React.FC<ProjectDropdownProps> = ({
-  disabled,
-  onSelect,
-  selected,
-  shortCut,
-}) => {
+const ProjectDropdown: FC<ProjectDropdownProps> = ({ disabled, onSelect, selected, shortCut }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const menuRef = useRef(null);
   const [isOpen, setOpen] = useState(false);
   const { allProjects, permissionsLoading, permissionsError } = useEditableProjects();
-
-  // const title = selected === LEGACY_DASHBOARDS_KEY ? legacyDashboardsTitle : selected;
 
   const menuProps = {
     setOpen,
@@ -202,32 +209,54 @@ const ProjectDropdown: React.FC<ProjectDropdownProps> = ({
     menuRef,
   };
 
-  if (permissionsLoading || permissionsError || !allProjects || allProjects.length === 0) {
-    return null;
+  let title = t('All Projects');
+  // While loading permissions, or if there is a permission error fallback to the "selected" value
+  // 'All Projects' is the user friendly ALL_NAMESPACES_KEY
+  if (
+    selected &&
+    (allProjects?.includes(selected) || permissionsLoading || !!permissionsError) &&
+    selected !== ALL_NAMESPACES_KEY
+  ) {
+    title = selected;
   }
 
-  const title = selected && allProjects.includes(selected) ? selected : t('All Projects');
+  const toggle = (
+    <ProjectMenuToggle
+      disabled={disabled || permissionsLoading || !!permissionsError}
+      menu={<ProjectMenu {...menuProps} />}
+      menuRef={menuRef}
+      isOpen={isOpen}
+      title={`${t('Project')}: ${title}`}
+      onToggle={(menuState) => {
+        setOpen(menuState);
+      }}
+      shortCut={shortCut}
+    />
+  );
 
   return (
     <div className="co-namespace-dropdown">
-      <ProjectMenuToggle
-        disabled={disabled}
-        menu={<ProjectMenu {...menuProps} />}
-        menuRef={menuRef}
-        isOpen={isOpen}
-        title={`${t('Project')}: ${title}`}
-        onToggle={(menuState) => {
-          setOpen(menuState);
-        }}
-        shortCut={shortCut}
-      />
+      {permissionsLoading ? (
+        <Tooltip content={t('Checking permissions...')} position={TooltipPosition.bottom}>
+          {toggle}
+        </Tooltip>
+      ) : permissionsError ? (
+        <Tooltip
+          content={t('Failed to load project permissions. Please refresh the page and try again.')}
+          position={TooltipPosition.bottom}
+        >
+          {toggle}
+        </Tooltip>
+      ) : (
+        toggle
+      )}
     </div>
   );
 };
 
 type ProjectDropdownProps = {
   disabled?: boolean;
-  onSelect?: (event: React.MouseEvent | React.ChangeEvent, value: string) => void;
+  onSelect?: (event: ReactMouseEvent | ChangeEvent, value: string) => void;
   shortCut?: string;
   selected?: string;
 };

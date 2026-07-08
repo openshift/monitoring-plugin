@@ -1,4 +1,4 @@
-import React from 'react';
+import { FC } from 'react';
 import { Tooltip } from '@patternfly/react-core';
 import { BellIcon, CheckIcon, BellSlashIcon } from '@patternfly/react-icons';
 import { useTranslation } from 'react-i18next';
@@ -20,7 +20,7 @@ const getAlertState = (alertDetails: IncidentsDetailsAlert): 'firing' | 'resolve
   return 'firing';
 };
 
-export const IncidentAlertStateIcon: React.FC<IncidentAlertStateIconProps> = ({
+export const IncidentAlertStateIcon: FC<IncidentAlertStateIconProps> = ({
   alertDetails,
   showTooltip = true,
 }) => {
@@ -75,7 +75,7 @@ const getGroupedAlertState = (groupedAlert: GroupedAlert): 'firing' | 'resolved'
   return 'firing';
 };
 
-export const GroupedAlertStateIcon: React.FC<GroupedAlertStateIconProps> = ({
+export const GroupedAlertStateIcon: FC<GroupedAlertStateIconProps> = ({
   groupedAlert,
   showTooltip = true,
 }) => {

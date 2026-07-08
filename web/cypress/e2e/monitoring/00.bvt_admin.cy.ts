@@ -10,7 +10,6 @@ const MP = {
 };
 
 describe('BVT: Monitoring', { tags: ['@smoke', '@monitoring'] }, () => {
-
   before(() => {
     cy.beforeBlock(MP);
   });
@@ -18,7 +17,7 @@ describe('BVT: Monitoring', { tags: ['@smoke', '@monitoring'] }, () => {
   beforeEach(() => {
     nav.sidenav.clickNavLink(['Observe', 'Metrics']);
     commonPages.titleShouldHaveText('Metrics');
-    cy.changeNamespace("All Projects");
+    cy.changeNamespace('All Projects');
     alerts.getWatchdogAlert();
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     commonPages.titleShouldHaveText('Alerting');
@@ -38,10 +37,9 @@ describe('BVT: Monitoring', { tags: ['@smoke', '@monitoring'] }, () => {
     commonPages.titleShouldHaveText('Dashboards');
     nav.sidenav.clickNavLink(['Observe', 'Targets']);
     commonPages.titleShouldHaveText('Metrics targets');
-
-
   });
-  // TODO: Intercept Bell GET request to inject an alert (Watchdog to have it opened in Alert Details page?)
+  // TODO: Intercept Bell GET request to inject an alert (Watchdog to have it opened in
+  // Alert Details page?)
   // it('Admin perspective - Bell > Alert details > Alerting rule details > Metrics flow', () => {
   //   cy.visit('/');
   //   commonPages.clickBellIcon();
@@ -50,14 +48,14 @@ describe('BVT: Monitoring', { tags: ['@smoke', '@monitoring'] }, () => {
 
   // });
 
-
   it(`2. Admin perspective - Overview Page > Status - View alerts`, () => {
     nav.sidenav.clickNavLink(['Home', 'Overview']);
     overviewPage.clickStatusViewAlerts();
     commonPages.titleShouldHaveText('Alerting');
   });
 
-  //TODO: Intercept and inject a valid alert into status-card to be opened correctly to Alerting / Alerts page
+  // TODO: Intercept and inject a valid alert into status-card to be opened correctly to Alerting /
+  // Alerts page
   // I couldn't make Watchdog working on status-card
   // it('3. Admin perspective - Overview Page > Status - View details', () => {
   //   cy.visit('/');
@@ -77,5 +75,4 @@ describe('BVT: Monitoring', { tags: ['@smoke', '@monitoring'] }, () => {
   runBVTMonitoringTests({
     name: 'Administrator',
   });
-
 });

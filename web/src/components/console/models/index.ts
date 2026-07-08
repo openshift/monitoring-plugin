@@ -71,7 +71,7 @@ export const NamespaceModel: K8sModel = {
   kind: 'Namespace',
   id: 'namespace',
   labelPlural: 'Namespaces',
-  labelPluralKey: 'public~Namespaces',
+  labelPluralKey: 'Namespaces',
 };
 
 export const ProjectModel: K8sModel = {
@@ -84,10 +84,24 @@ export const ProjectModel: K8sModel = {
   kind: 'Project',
   id: 'project',
   labelPlural: 'Projects',
-  labelPluralKey: 'public~Projects',
+  labelPluralKey: 'Projects',
 };
 
 export const StatefulSetModel = {
   namespaced: true,
   kind: 'StatefulSet',
+};
+
+export const ProposalModel: K8sModel = {
+  kind: 'Proposal',
+  label: 'Proposal',
+  labelKey: 'Proposal',
+  labelPlural: 'Proposals',
+  labelPluralKey: 'Proposals',
+  apiGroup: 'agentic.openshift.io',
+  apiVersion: 'v1alpha1',
+  abbr: 'PP',
+  namespaced: true,
+  crd: true,
+  plural: 'proposals',
 };

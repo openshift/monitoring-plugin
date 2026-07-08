@@ -53,6 +53,7 @@ export const IncidentsTable = () => {
     if (alertsTableData && !alertsAreLoading) {
       const currentLength = alertsTableData.length;
       if (currentLength !== previousAlertDataLength) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setExpandedAlerts([]);
         setPreviousAlertDataLength(currentLength);
       }
@@ -95,7 +96,10 @@ export const IncidentsTable = () => {
     if (!alert.alertsExpandedRowData || alert.alertsExpandedRowData.length === 0) {
       return 0;
     }
-    return Math.min(...alert.alertsExpandedRowData.map((alertData) => alertData.alertsStartFiring));
+    const min = Math.min(
+      ...alert.alertsExpandedRowData.map((alertData) => alertData.alertsStartFiring),
+    );
+    return Number.isFinite(min) ? min : 0;
   };
 
   if (isEmpty(alertsTableData) || alertsAreLoading || isEmpty(incidentsActiveFilters.groupId)) {
@@ -180,7 +184,13 @@ export const IncidentsTable = () => {
                       )}
                     </Td>
                     <Td dataLabel={columnNames.startDate}>
-                      <Timestamp timestamp={getMinStartDate(alert) * 1000} />
+                      {getMinStartDate(alert) > 0 ? (
+                        <Timestamp
+                          timestamp={new Date(getMinStartDate(alert) * 1000).toISOString()}
+                        />
+                      ) : (
+                        '---'
+                      )}
                     </Td>
                     <Td
                       dataLabel={columnNames.state}

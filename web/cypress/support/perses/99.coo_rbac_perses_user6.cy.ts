@@ -14,15 +14,24 @@ export function runCOORBACPersesTestsDevUser6(perspective: PerspectiveConfig) {
  * - no access to any namespaces
  */
 export function testCOORBACPersesTestsDevUser6(perspective: PerspectiveConfig) {
+  it(
+    `1.${perspective.name} perspective - List Dashboards - Namespace validation and ` +
+      `Dashboard search`,
+    () => {
+      cy.log(`1.1. Namespace validation`);
+      listPersesDashboardsPage.noDashboardsFoundState();
+      cy.assertNamespace('All Projects', true);
+      cy.assertNamespace('openshift-monitoring', false);
+      cy.assertNamespace('openshift-cluster-observability-operator', false);
+      cy.assertNamespace('observ-test', false);
+      cy.assertNamespace('perses-dev', false);
+      cy.assertNamespace('empty-namespace3', false);
+      cy.assertNamespace('empty-namespace4', false);
 
-  it(`1.${perspective.name} perspective - List Dashboards - Namespace validation and Dashboard search`, () => {
-    cy.log(`1.1. Namespace validation`);
-    listPersesDashboardsPage.noDashboardsFoundState();
-    listPersesDashboardsPage.projectDropdownNotExists();
-
-    cy.log(`1.2. Create button validation`);
-    listPersesDashboardsPage.assertCreateButtonIsDisabled();
-  });
+      cy.log(`1.2. Create button validation`);
+      listPersesDashboardsPage.assertCreateButtonIsDisabled();
+    },
+  );
 
   it(`2.${perspective.name} perspective - Import button validation - Disabled`, () => {
     cy.log(`2.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
@@ -31,6 +40,4 @@ export function testCOORBACPersesTestsDevUser6(perspective: PerspectiveConfig) {
     cy.log(`2.2. Verify Import button is disabled`);
     listPersesDashboardsPage.assertImportButtonIsDisabled();
   });
-
-
 }

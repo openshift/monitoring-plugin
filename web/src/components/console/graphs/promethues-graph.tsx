@@ -1,12 +1,13 @@
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
-import type { FC, RefObject, Ref } from 'react';
+import type { FC, Ref, PropsWithChildren } from 'react';
 import { forwardRef } from 'react';
 import { connect } from 'react-redux';
-import { Link } from 'react-router-dom-v5-compat';
+import { Link } from 'react-router';
 import { Title } from '@patternfly/react-core';
 
 import { getMutlipleQueryBrowserUrl, usePerspective } from '../../hooks/usePerspective';
+import { useMonitoringNamespace } from '../../hooks/useMonitoringNamespace';
 import { RootState } from '../../../store/store';
 
 const getActiveNamespace = ({ UI }: RootState): string => UI.get('activeNamespace');
@@ -18,12 +19,13 @@ const mapStateToProps = (state: RootState) => ({
   namespace: getActiveNamespace(state),
 });
 
-const PrometheusGraphLink_: FC<PrometheusGraphLinkProps> = ({
+const PrometheusGraphLink_: FC<PropsWithChildren<PrometheusGraphLinkProps>> = ({
   children,
   query,
   ariaChartLinkLabel,
 }) => {
   const { perspective } = usePerspective();
+  const { namespace } = useMonitoringNamespace();
   const queries = _.compact(_.castArray(query));
   if (!queries.length) {
     return <>{children}</>;
@@ -31,7 +33,7 @@ const PrometheusGraphLink_: FC<PrometheusGraphLinkProps> = ({
 
   const params = new URLSearchParams();
   queries.forEach((q, index) => params.set(`query${index}`, q));
-  const url = getMutlipleQueryBrowserUrl(perspective, params);
+  const url = getMutlipleQueryBrowserUrl(perspective, params, namespace);
 
   return (
     <Link
@@ -45,8 +47,8 @@ const PrometheusGraphLink_: FC<PrometheusGraphLinkProps> = ({
 };
 export const PrometheusGraphLink = connect(mapStateToProps)(PrometheusGraphLink_);
 
-export const PrometheusGraph: FC<PrometheusGraphProps> = forwardRef(
-  ({ children, className, title }, ref: RefObject<HTMLDivElement>) => (
+export const PrometheusGraph = forwardRef<HTMLDivElement, PropsWithChildren<PrometheusGraphProps>>(
+  ({ children, className, title }, ref) => (
     <div ref={ref} className={classNames('graph-wrapper graph-wrapper__horizontal-bar', className)}>
       {title && (
         <Title headingLevel="h5" className="graph-title">
@@ -57,6 +59,8 @@ export const PrometheusGraph: FC<PrometheusGraphProps> = forwardRef(
     </div>
   ),
 );
+
+PrometheusGraph.displayName = 'PrometheusGraph';
 
 type PrometheusGraphLinkProps = {
   canAccessMonitoring: boolean;

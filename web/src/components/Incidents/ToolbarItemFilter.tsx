@@ -1,4 +1,4 @@
-import React from 'react';
+import { ChangeEvent, FC, MouseEvent, MouseEventHandler } from 'react';
 import {
   ToolbarItem,
   ToolbarFilter,
@@ -26,25 +26,32 @@ interface IncidentFilterToolbarItemProps {
   onDeleteIncidentFilterChip: (
     category: string,
     chip: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     activeFilters: any,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     dispatch: any,
   ) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onDeleteGroupIncidentFilterChip: (activeFilters: any, dispatch: any, category: any) => void;
   incidentFilterIsExpanded: boolean;
   onIncidentFiltersSelect: (
-    event: React.MouseEvent | React.ChangeEvent | undefined,
+    event: MouseEvent | ChangeEvent | undefined,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     selection: any,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     dispatch: any,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     activeFilters: any,
     categoryFilterType: string,
   ) => void;
   setIncidentIsExpanded: (isOpen: boolean) => void;
-  onIncidentFilterToggle: React.MouseEventHandler<HTMLButtonElement | HTMLDivElement>;
+  onIncidentFilterToggle: MouseEventHandler<HTMLButtonElement | HTMLDivElement>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   dispatch: any;
   showToolbarItem?: boolean;
 }
 
-const IncidentFilterToolbarItem: React.FC<IncidentFilterToolbarItemProps> = ({
+const IncidentFilterToolbarItem: FC<IncidentFilterToolbarItemProps> = ({
   categoryName,
   toggleLabel,
   options,
@@ -62,10 +69,13 @@ const IncidentFilterToolbarItem: React.FC<IncidentFilterToolbarItemProps> = ({
 
   const translateLabels = (values: string[]) => {
     if (!values) return values;
-    const labelMap = options.reduce((acc, opt) => {
-      acc[opt.value] = opt.label || opt.value;
-      return acc;
-    }, {} as Record<string, string>);
+    const labelMap = options.reduce(
+      (acc, opt) => {
+        acc[opt.value] = opt.label || opt.value;
+        return acc;
+      },
+      {} as Record<string, string>,
+    );
     return values.map((val) => labelMap[val] || val);
   };
 
