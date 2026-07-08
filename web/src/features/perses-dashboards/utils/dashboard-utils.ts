@@ -1,4 +1,4 @@
-import { DashboardResource } from '@perses-dev/core';
+import { DashboardResource } from '@perses-dev/client';
 
 /**
  * Generated a resource name valid for the API.

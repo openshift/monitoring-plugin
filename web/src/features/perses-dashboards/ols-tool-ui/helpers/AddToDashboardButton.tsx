@@ -2,7 +2,7 @@ import { StyledComponent } from '@emotion/styled';
 import { IconButton, IconButtonProps, styled } from '@mui/material';
 import { Theme } from '@mui/material/styles';
 import { InfoTooltip } from '@perses-dev/components';
-import type { PanelDefinition } from '@perses-dev/core';
+import type { PanelDefinition } from '@perses-dev/spec';
 import ViewGridPlusIcon from 'mdi-material-ui/ViewGridPlus';
 import { FC, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -19,12 +19,18 @@ export const HeaderIconButton: StyledComponent<IconButtonProps & { theme?: Theme
 }));
 
 function createPanelDefinition(query: string, name: string, description: string): PanelDefinition {
+  let updatedDescription = description?.trim() ?? '';
+
+  if (!updatedDescription.toLowerCase().includes('ai-assisted')) {
+    updatedDescription = updatedDescription ? `AI-assisted: ${updatedDescription}` : 'AI-assisted';
+  }
+
   return {
     kind: 'Panel',
     spec: {
       display: {
         name: name,
-        description: description,
+        description: updatedDescription,
       },
       plugin: {
         kind: 'TimeSeriesChart',

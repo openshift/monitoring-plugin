@@ -12,7 +12,7 @@
 // limitations under the License.
 
 import { consoleFetchJSON } from '@openshift-console/dynamic-plugin-sdk';
-import { GlobalDatasourceResource } from '@perses-dev/core';
+import { GlobalDatasourceResource } from '@perses-dev/client';
 
 import { buildDatasourceQueryParameters } from '@/features/perses-dashboards/utils/perses/datasource-client';
 import buildURL from '@/features/perses-dashboards/utils/perses/url-builder';

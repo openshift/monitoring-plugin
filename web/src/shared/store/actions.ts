@@ -1,5 +1,5 @@
 import { Alert, Rule, Silence } from '@openshift-console/dynamic-plugin-sdk';
-import type { PanelDefinition } from '@perses-dev/core';
+import type { PanelDefinition } from '@perses-dev/spec';
 import { ThunkDispatch } from 'redux-thunk';
 import { action, ActionType as Action } from 'typesafe-actions';
 

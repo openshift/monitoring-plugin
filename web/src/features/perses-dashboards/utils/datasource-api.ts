@@ -3,7 +3,7 @@ import {
   DatasourceResource,
   DatasourceSelector,
   GlobalDatasourceResource,
-} from '@perses-dev/core';
+} from '@perses-dev/client';
 import { TFunction } from 'i18next';
 
 import { fetchDatasourceList } from '@/features/perses-dashboards/utils/perses/datasource-client';

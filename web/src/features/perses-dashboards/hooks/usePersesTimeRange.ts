@@ -1,4 +1,5 @@
-import { DEFAULT_DASHBOARD_DURATION, DurationString, TimeRangeValue } from '@perses-dev/core';
+import { DEFAULT_DASHBOARD_DURATION } from '@perses-dev/dashboards';
+import { DurationString, TimeRangeValue } from '@perses-dev/spec';
 import { NumberParam, useQueryParam } from 'use-query-params';
 
 import { QueryParams } from '@/shared/constants/query-params';

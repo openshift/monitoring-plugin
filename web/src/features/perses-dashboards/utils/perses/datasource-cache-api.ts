@@ -18,7 +18,7 @@ import {
   DatasourceResource,
   DatasourceSelector,
   GlobalDatasourceResource,
-} from '@perses-dev/core';
+} from '@perses-dev/client';
 import LRUCache from 'lru-cache';
 
 class Cache {
@@ -185,7 +185,7 @@ export class CachedDatasourceAPI implements DatasourceApi {
   }
 }
 
-// Perses panels use @perses-dev/core fetch internally, this is a workaround to add the
+// Perses panels use @perses-dev/client fetch internally, this is a workaround to add the
 // CSRF token needed in the OpenShift console.
 // TODO: Remove once Perses supports overriding the internal fetch function.
 const addCsrfToken = <T extends DatasourceResource | GlobalDatasourceResource | undefined>(

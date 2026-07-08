@@ -1,8 +1,13 @@
 import { consoleFetchJSON } from '@openshift-console/dynamic-plugin-sdk';
-import { DashboardResource, ProjectResource } from '@perses-dev/core';
-import { StatusError } from '@perses-dev/core';
-import { useMutation, UseMutationResult, useQueryClient } from '@tanstack/react-query';
-import { useQuery, UseQueryOptions, UseQueryResult } from '@tanstack/react-query';
+import { DashboardResource, ProjectResource, StatusError } from '@perses-dev/client';
+import {
+  useMutation,
+  UseMutationResult,
+  useQuery,
+  useQueryClient,
+  UseQueryOptions,
+  UseQueryResult,
+} from '@tanstack/react-query';
 
 import buildURL from '@/features/perses-dashboards/utils/perses/url-builder';
 import { PERSES_PROXY_BASE_PATH } from '@/features/perses-dashboards/utils/perses-client';

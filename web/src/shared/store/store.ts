@@ -1,5 +1,5 @@
 import { Alert, PrometheusLabels, Rule } from '@openshift-console/dynamic-plugin-sdk';
-import type { PanelDefinition } from '@perses-dev/core';
+import type { PanelDefinition } from '@perses-dev/spec';
 import * as _ from 'lodash-es';
 
 import {

@@ -17,7 +17,7 @@ import {
   StackItem,
 } from '@patternfly/react-core';
 import { ExclamationCircleIcon } from '@patternfly/react-icons';
-import { DashboardResource } from '@perses-dev/core';
+import { DashboardResource } from '@perses-dev/client';
 import yaml from 'js-yaml';
 import { ChangeEvent, FC, useEffect, useState } from 'react';
 import { FormProvider, SubmitHandler, useForm } from 'react-hook-form';

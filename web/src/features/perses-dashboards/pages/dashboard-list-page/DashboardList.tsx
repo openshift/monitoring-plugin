@@ -3,6 +3,9 @@ import {
   EmptyState,
   EmptyStateBody,
   EmptyStateVariant,
+  Flex,
+  FlexItem,
+  Label,
   Title,
   Tooltip,
 } from '@patternfly/react-core';
@@ -14,7 +17,7 @@ import {
 import { DataViewToolbar } from '@patternfly/react-data-view/dist/dynamic/DataViewToolbar';
 import { useDataViewSort } from '@patternfly/react-data-view/dist/dynamic/Hooks';
 import { ActionsColumn } from '@patternfly/react-table';
-import type { DashboardResource } from '@perses-dev/core';
+import type { DashboardResource } from '@perses-dev/client';
 import { type FC, memo, type ReactNode, useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useSearchParams } from 'react-router';
@@ -31,7 +34,7 @@ import { DashboardListFrame } from '@/features/perses-dashboards/pages/dashboard
 import { useTableColumns } from '@/shared/components/table/hooks/useTableColumns';
 import { rowFilter, useTableFilters } from '@/shared/components/table/hooks/useTableFilters';
 import { useTablePagination } from '@/shared/components/table/hooks/useTablePagination';
-import { localeCompareSort } from '@/shared/components/table/sort-utils';
+import { directedSort, localeCompareSort } from '@/shared/components/table/sort-utils';
 import {
   TableFilter,
   TableFilterOption,
@@ -116,6 +119,7 @@ interface DashboardRowNameLink {
 
 interface DashboardRow {
   name: DashboardRowNameLink;
+  tags: ReactNode;
   project: string;
   created: ReactNode;
   modified: ReactNode;
@@ -129,6 +133,7 @@ interface DashboardRow {
 interface DashboardRowFilters {
   name?: string;
   'project-filter'?: string;
+  tags?: string;
 }
 
 const sortDashboardData = (
@@ -151,6 +156,15 @@ const sortDashboardData = (
   if (sortBy === rowFilter('modified')) {
     return [...data].sort((a, b) => localeCompareSort(a.updatedAt, b.updatedAt, direction));
   }
+  if (sortBy === rowFilter('tags')) {
+    return [...data].sort((a, b) =>
+      directedSort(
+        (a.dashboard.metadata?.tags?.length || 0) - (b.dashboard.metadata?.tags?.length || 0),
+        direction,
+      ),
+    );
+  }
+
   return data;
 };
 
@@ -174,7 +188,7 @@ const DashboardsTable: FC<DashboardsTableProps> = ({
   const { sortBy, direction, onSort } = useDataViewSort({ searchParams, setSearchParams });
 
   const { filters, onSetFilters, clearAllFilters } = useTableFilters<DashboardRowFilters>({
-    initialFilters: { name: '', 'project-filter': '' },
+    initialFilters: { name: '', 'project-filter': '', tags: '' },
   });
   const pagination = useTablePagination({ perPage: ITEMS_PER_PAGE[0] });
   const { page, perPage, onSetPage } = pagination;
@@ -185,6 +199,7 @@ const DashboardsTable: FC<DashboardsTableProps> = ({
     () => [
       { label: t('Dashboard'), key: rowFilter('name') },
       { label: t('Project'), key: rowFilter('project') },
+      { label: t('Tags'), key: rowFilter('tags') },
       { label: t('Created on'), key: rowFilter('created') },
       { label: t('Last Modified'), key: rowFilter('modified') },
     ],
@@ -213,9 +228,24 @@ const DashboardsTable: FC<DashboardsTableProps> = ({
         label: displayName || '',
       };
 
+      const sortedTags = board?.metadata?.tags ? board.metadata.tags.slice().sort() : [];
+
+      const dashboardTags = (
+        <Flex spaceItems={{ default: 'spaceItemsXs' }} wrap="wrap">
+          {sortedTags.map((tag, ix) => (
+            <FlexItem key={ix}>
+              <Label variant="outline" isCompact>
+                {tag}
+              </Label>
+            </FlexItem>
+          ))}
+        </Flex>
+      );
+
       return {
         name: dashboardName,
         project: board?.metadata?.project || '',
+        tags: dashboardTags,
         created: <Timestamp timestamp={metadata?.createdAt} />,
         modified: <Timestamp timestamp={metadata?.updatedAt} />,
         createdAt: metadata?.createdAt,
@@ -292,9 +322,10 @@ const DashboardsTable: FC<DashboardsTableProps> = ({
   const pageRows: DataViewTr[] = useMemo(() => {
     return sortedAndFilteredData
       .slice((page - 1) * perPage, (page - 1) * perPage + perPage)
-      .map(({ name, project, created, modified, dashboard }) => [
+      .map(({ name, project, tags, created, modified, dashboard }) => [
         name.link,
         project,
+        tags,
         created,
         modified,
         {

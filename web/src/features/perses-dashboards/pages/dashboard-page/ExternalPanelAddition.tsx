@@ -70,10 +70,16 @@ export function ExternalPanelAddition({
         const groupId = dashboardStore.panelGroupOrder[0];
         const tags = dashboardStore.metadata?.tags || [];
         if (!tags.includes('ai-assisted')) {
-          dashboardStore.setMetadata((prev) => ({
-            ...prev,
-            tags: [...(prev?.tags || []), 'ai-assisted'],
-          }));
+          dashboardStore.setMetadata((prev) => {
+            let prevTags = prev?.tags || [];
+            if (!prevTags.includes('ai-assisted')) {
+              prevTags = [...prevTags, 'ai-assisted'];
+            }
+            return {
+              ...prev,
+              tags: prevTags,
+            };
+          });
         }
         panelEditor.applyChanges({ ...queuedPanel, groupId });
         panelEditor.close();

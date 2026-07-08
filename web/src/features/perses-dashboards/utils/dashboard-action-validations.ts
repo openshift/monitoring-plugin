@@ -1,4 +1,4 @@
-import { nameSchema } from '@perses-dev/core';
+import { nameSchema } from '@perses-dev/client';
 import { TFunction } from 'i18next';
 import { useMemo } from 'react';
 import { z } from 'zod';
