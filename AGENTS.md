@@ -5,14 +5,14 @@
 - **What**: Dual frontend plugins for OpenShift observability (monitoring-plugin + monitoring-console-plugin)
 - **Purpose**: Alerts, Metrics, Targets, Dashboards + Perses, Incidents, ACM integration
 - **Tech Stack**: React + TypeScript + Webpack + i18next + Go
-- **Key Files**: `web/console-extensions.json`, `web/src/components/`
+- **Key Files**: `config/*.patch.json`, `web/src/components/`
 
 ## Common Tasks & Workflows
 
 ### Adding a New Feature
 
 1. Check if it belongs in `monitoring-plugin` (core) or `monitoring-console-plugin` (extended)
-2. Update console extensions in `web/console-extensions.json`
+2. Add or update the relevant patch file in `config/` (e.g. `config/alerting.patch.json`)
 3. Add React components in `web/src/components/`
 4. Add translations in `public/locales/`
 5. Test with `make lint-frontend && make test-backend`
@@ -20,7 +20,7 @@
 ### Debugging Issues
 
 - **Build failures**: Check `Makefile` targets
-- **Console integration**: Verify `console-extensions.json`
+- **Console integration**: Verify the relevant `config/*.patch.json` patch file
 - **Plugin loading**: Check OpenShift Console logs
 - **Perses dashboards**: Debug at `web/src/components/dashboards/perses/`
 

@@ -22,11 +22,11 @@ Then go clockwise and split horitzontally.
 - Pane 2
     - Path: monitoring-plugin (root of this repo)
     - Label: monitoring-console-plugin-console  
-    - Run: make start-feature-console
+    - Run: make start-console
 - Pane 4
     - Path: monitoring-plugin (root of this repo)
     - Label: monitoring-console-plugin-backend 
-    - Run: make start-feature-backend
+    - Run: make start-coo-backend
 - Pane 6
     - Path: monitoring-plugin (root of this repo)
     - Label: port-forward-promtheus-operator
@@ -45,6 +45,4 @@ Then go clockwise and split horitzontally.
 - In bold output, tell the user the name of the session and tmux session tips like how to attach to sessions, how to move around the panels using prefix + arrows, how to delete a session, how to list session
 - Navigate to `{perses_path}/dev/config.yaml`. The spec `security.enable_auth` should be `false`. 
 - Tell user that openshift console platform is located at  http://localhost:9000
-- Tell user that perses is located at http://localhost:3000 
- 
-
+- Tell user that perses is located at http://localhost:3000

@@ -1,0 +1,103 @@
+[
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.navigation/href",
+      "properties": {
+        "id": "metrics",
+        "name": "%plugin__monitoring-plugin~Metrics%",
+        "href": "/monitoring/query-browser",
+        "perspective": "admin",
+        "section": "observe",
+        "insertAfter": "alerts"
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.navigation/href",
+      "properties": {
+        "id": "metrics-virt",
+        "name": "%plugin__monitoring-plugin~Metrics%",
+        "href": "/virt-monitoring/query-browser",
+        "perspective": "virtualization-perspective",
+        "section": "observe-virt-perspective",
+        "insertAfter": "alerts"
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.page/route",
+      "properties": {
+        "exact": false,
+        "path": ["/monitoring/query-browser"],
+        "component": {
+          "$codeRef": "MetricsPage.MpCmoMetricsPage"
+        }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.page/route",
+      "properties": {
+        "exact": false,
+        "path": ["/monitoring/graph"],
+        "component": {
+          "$codeRef": "PrometheusRedirectPage"
+        }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.page/route",
+      "properties": {
+        "exact": false,
+        "path": ["/virt-monitoring/query-browser"],
+        "component": {
+          "$codeRef": "MetricsPage.MpCmoMetricsPage"
+        }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.page/route",
+      "properties": {
+        "exact": false,
+        "path": ["/virt-monitoring/graph"],
+        "component": {
+          "$codeRef": "PrometheusRedirectPage"
+        }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.tab",
+      "properties": {
+        "contextId": "dev-console-observe",
+        "name": "%plugin__monitoring-plugin~Metrics%",
+        "href": "metrics",
+        "component": {
+          "$codeRef": "MetricsPage.MpCmoDevMetricsPage"
+        }
+      }
+    }
+  }
+]

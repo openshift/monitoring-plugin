@@ -1,0 +1,34 @@
+[
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "properties": {
+        "dataAttributes": {
+          "data-quickstart-id": "qs-nav-monitoring"
+        },
+        "id": "observe-virt-perspective",
+        "insertBefore": [
+          "compute-virt-perspective",
+          "usermanagement-virt-perspective"
+        ],
+        "name": "%console-app~Observe%",
+        "perspective": "virtualization-perspective"
+      },
+      "type": "console.navigation/section"
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.redux-reducer",
+      "properties": {
+        "scope": "mp",
+        "reducer": {
+          "$codeRef": "MonitoringReducer"
+        }
+      }
+    }
+  }
+]

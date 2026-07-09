@@ -33,19 +33,18 @@ func manifestHandler(cfg *Config) http.HandlerFunc {
 }
 
 func patchManifest(baseManifestData []byte, cfg *Config) []byte {
-	if len(cfg.Features) == 0 {
-		return baseManifestData
-	}
-
 	patchedManifest := baseManifestData
-	if !cfg.Features[DevConfig] {
-		// Don't clear the extensions when running in dev mode, so only 1 instance of the monitoring-plugin
-		// can be run as a development environment
-		patchedManifest = performPatch(baseManifestData, filepath.Join(cfg.ConfigPath, "clear-extensions.patch.json"))
-	}
 
 	if cfg.Features[Incidents] || cfg.Features[ClusterHealthAnalyzer] {
 		patchedManifest = performPatch(patchedManifest, filepath.Join(cfg.ConfigPath, "cluster-health-analyzer.patch.json"))
+	}
+
+	if cfg.Features[Alerting] || cfg.Features[LegacyDashboards] || cfg.Features[Metrics] || cfg.Features[Targets] {
+		patchedManifest = performPatch(patchedManifest, filepath.Join(cfg.ConfigPath, "monitoring-plugin.patch.json"))
+	}
+
+	if cfg.Features[Incidents] || cfg.Features[ClusterHealthAnalyzer] || cfg.Features[PersesDashboards] || cfg.Features[AcmAlerting] {
+		patchedManifest = performPatch(patchedManifest, filepath.Join(cfg.ConfigPath, "monitoring-console-plugin.patch.json"))
 	}
 
 	for feature := range cfg.Features {

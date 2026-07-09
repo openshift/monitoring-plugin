@@ -1,7 +1,7 @@
 [
   {
     "op": "add",
-    "path": "/extensions/1",
+    "path": "/extensions/0",
     "value": {
       "type": "console.page/route",
       "properties": {
@@ -15,7 +15,7 @@
   },
   {
     "op": "add",
-    "path": "/extensions/1",
+    "path": "/extensions/0",
     "value": {
       "type": "console.navigation/href",
       "properties": {
@@ -30,7 +30,7 @@
   },
   {
     "op": "add",
-    "path": "/extensions/1",
+    "path": "/extensions/0",
     "value": {
       "type": "console.page/route",
       "properties": {
@@ -42,7 +42,7 @@
   },
   {
     "op": "add",
-    "path": "/extensions/1",
+    "path": "/extensions/0",
     "value": {
       "type": "console.navigation/href",
 
@@ -58,7 +58,7 @@
   },
   {
     "op": "add",
-    "path": "/extensions/1",
+    "path": "/extensions/0",
     "value": {
       "type": "console.page/route",
       "properties": {
@@ -70,7 +70,7 @@
   },
   {
     "op": "add",
-    "path": "/extensions/1",
+    "path": "/extensions/0",
     "value": {
       "type": "console.navigation/href",
 
@@ -86,7 +86,7 @@
   },
   {
     "op": "add",
-    "path": "/extensions/1",
+    "path": "/extensions/0",
     "value": {
       "type": "console.page/route",
       "properties": {
@@ -98,7 +98,7 @@
   },
   {
     "op": "add",
-    "path": "/extensions/1",
+    "path": "/extensions/0",
     "value": {
       "type": "console.page/route",
       "properties": {
@@ -110,7 +110,7 @@
   },
   {
     "op": "add",
-    "path": "/extensions/1",
+    "path": "/extensions/0",
     "value": {
       "type": "console.page/route",
       "properties": {
@@ -122,7 +122,7 @@
   },
   {
     "op": "add",
-    "path": "/extensions/1",
+    "path": "/extensions/0",
     "value": {
       "type": "ols.tool-ui",
       "properties": {

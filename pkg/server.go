@@ -58,8 +58,11 @@ type Feature string
 
 const (
 	AcmAlerting           Feature = "acm-alerting"
+	Alerting              Feature = "alerting"
 	Incidents             Feature = "incidents"
-	DevConfig             Feature = "dev-config"
+	LegacyDashboards      Feature = "legacy-dashboards"
+	Metrics               Feature = "metrics"
+	Targets               Feature = "targets"
 	PersesDashboards      Feature = "perses-dashboards"
 	ClusterHealthAnalyzer Feature = "cluster-health-analyzer"
 )
@@ -116,6 +119,14 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 
 	if cfg.Port == int(proxy.AlertmanagerPort) || cfg.Port == int(proxy.ThanosQuerierPort) {
 		return nil, fmt.Errorf("cannot set default port to reserved port %d", cfg.Port)
+	}
+
+	if len(cfg.Features) == 0 {
+		cfg.Features = make(map[Feature]bool)
+		cfg.Features[Alerting] = true
+		cfg.Features[LegacyDashboards] = true
+		cfg.Features[Metrics] = true
+		cfg.Features[Targets] = true
 	}
 
 	// Uncomment the following line for local development:
