@@ -4,7 +4,7 @@ ORG         ?= openshift-observability-ui
 PLUGIN_NAME ?=monitoring-plugin
 IMAGE       ?= quay.io/${ORG}/${PLUGIN_NAME}:${VERSION}
 MONITORING_FEATURES    ?=alerting,targets,legacy-dashboards,metrics
-ALL_FEATURES    ?=alerting,targets,legacy-dashboards,metrics,incidents,perses-dashboards
+ALL_FEATURES    ?=$(MONITORING_FEATURES),incidents,perses-dashboards
 
 GOLANGCI_LINT = $(shell pwd)/_output/tools/bin/golangci-lint
 GOLANGCI_LINT_VERSION ?= v2.11.3

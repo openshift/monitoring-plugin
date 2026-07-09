@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -33,25 +32,27 @@ func manifestHandler(cfg *Config) http.HandlerFunc {
 }
 
 func patchManifest(baseManifestData []byte, cfg *Config) []byte {
+	features := cfg.Features
+	patches := []struct {
+		file    string
+		enabled bool
+	}{
+		{"monitoring-plugin.patch.json", features[Alerting] || features[LegacyDashboards] || features[Metrics] || features[Targets]},
+		{"alerting.patch.json", features[Alerting]},
+		{"metrics.patch.json", features[Metrics]},
+		{"legacy-dashboards.patch.json", features[LegacyDashboards]},
+		{"targets.patch.json", features[Targets]},
+		{"monitoring-console-plugin.patch.json", features[Incidents] || features[ClusterHealthAnalyzer] || features[PersesDashboards] || features[AcmAlerting]},
+		{"acm-alerting.patch.json", features[AcmAlerting]},
+		{"cluster-health-analyzer.patch.json", features[Incidents] || features[ClusterHealthAnalyzer]},
+		{"perses-dashboards.patch.json", features[PersesDashboards]},
+	}
+
 	patchedManifest := baseManifestData
-
-	if cfg.Features[Incidents] || cfg.Features[ClusterHealthAnalyzer] {
-		patchedManifest = performPatch(patchedManifest, filepath.Join(cfg.ConfigPath, "cluster-health-analyzer.patch.json"))
-	}
-
-	if cfg.Features[Alerting] || cfg.Features[LegacyDashboards] || cfg.Features[Metrics] || cfg.Features[Targets] {
-		patchedManifest = performPatch(patchedManifest, filepath.Join(cfg.ConfigPath, "monitoring-plugin.patch.json"))
-	}
-
-	if cfg.Features[Incidents] || cfg.Features[ClusterHealthAnalyzer] || cfg.Features[PersesDashboards] || cfg.Features[AcmAlerting] {
-		patchedManifest = performPatch(patchedManifest, filepath.Join(cfg.ConfigPath, "monitoring-console-plugin.patch.json"))
-	}
-
-	for feature := range cfg.Features {
-		if feature == ClusterHealthAnalyzer || feature == Incidents {
-			continue
+	for _, p := range patches {
+		if p.enabled {
+			patchedManifest = performPatch(patchedManifest, filepath.Join(cfg.ConfigPath, p.file))
 		}
-		patchedManifest = performPatch(patchedManifest, filepath.Join(cfg.ConfigPath, fmt.Sprintf("%s.patch.json", feature)))
 	}
 
 	return []byte(patchedManifest)
