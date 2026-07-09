@@ -3,7 +3,8 @@ PLATFORMS   ?= linux/arm64,linux/amd64
 ORG         ?= openshift-observability-ui
 PLUGIN_NAME ?=monitoring-plugin
 IMAGE       ?= quay.io/${ORG}/${PLUGIN_NAME}:${VERSION}
-FEATURES    ?=incidents,perses-dashboards,dev-config
+MONITORING_FEATURES    ?=alerting,targets,legacy-dashboards,metrics
+ALL_FEATURES    ?=$(MONITORING_FEATURES),incidents,perses-dashboards
 
 GOLANGCI_LINT = $(shell pwd)/_output/tools/bin/golangci-lint
 GOLANGCI_LINT_VERSION ?= v2.11.3
@@ -52,7 +53,11 @@ build-backend:
 
 .PHONY: start-backend
 start-backend:
-	go run ./cmd/plugin-backend.go -port='9001' -config-path='./config' -static-path='./web/dist'
+	go run ./cmd/plugin-backend.go -port='9443' -config-path='./config' -static-path='./web/dist' -features='${MONITORING_FEATURES}'
+
+.PHONY: start-coo-backend
+start-coo-backend:
+	go run ./cmd/plugin-backend.go -port='9443' -config-path='./config' -static-path='./web/dist' -features='${ALL_FEATURES}'
 
 .PHONY: test-backend
 test-backend:
@@ -107,17 +112,9 @@ build-mcp-image:
 build-dev-mcp-image:
 	DOCKER_FILE_NAME="Dockerfile.dev-mcp" REPO="monitoring-console-plugin" scripts/build-image.sh
 
-.PHONY: start-feature-console
-start-feature-console:
-	PLUGIN_PORT=9443 ./scripts/start-console.sh
-
-.PHONY: start-feature-backend
-start-feature-backend:
-	go run ./cmd/plugin-backend.go -port='9443' -config-path='./config' -static-path='./web/dist' -features='${FEATURES}'
-
 .PHONY: start-devspace-backend
 start-devspace-backend:
-	/opt/app-root/plugin-backend -port='9443' -cert='/var/cert/tls.crt' -key='/var/cert/tls.key' -static-path='/opt/app-root/web/dist' -config-path='/opt/app-root/config' -features='${FEATURES}'
+	/opt/app-root/plugin-backend -port='9443' -cert='/var/cert/tls.crt' -key='/var/cert/tls.key' -static-path='/opt/app-root/web/dist' -config-path='/opt/app-root/config' -features='${ALL_FEATURES}'
 
 .PHONY: podman-cross-build
 podman-cross-build:

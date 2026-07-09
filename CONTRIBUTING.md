@@ -547,11 +547,11 @@ grep "^\.PHONY" Makefile | sed 's/.PHONY: //'
 
 #### Port conflicts
 
-If ports 9001 or 3000 are in use:
+If ports 9443 or 3000 are in use:
 
 ```bash
 # Find and kill processes
-lsof -ti:9001 | xargs kill -9  # Backend
+lsof -ti:9443 | xargs kill -9  # Backend
 lsof -ti:3000 | xargs kill -9  # Frontend
 ```
 

@@ -91,6 +91,7 @@ const config: Configuration = {
   plugins: [
     new ConsoleRemotePlugin({
       validateExtensionIntegrity: false,
+      extensions: [],
     }),
     new CopyWebpackPlugin({
       patterns: [{ from: path.resolve(__dirname, 'locales'), to: 'locales' }],
@@ -111,6 +112,16 @@ const config: Configuration = {
   stats: {
     errorDetails: true,
   },
+  ignoreWarnings: [
+    (warning) => {
+      // Since we are adding all features in dynamically on the backend, we want to
+      // suppress the warning that what were are building does not have any extensions
+      if (warning.message === 'Plugin has no extensions') {
+        return true;
+      }
+      return false;
+    },
+  ],
 };
 
 if (process.env.NODE_ENV === 'production') {

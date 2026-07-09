@@ -17,7 +17,7 @@ var (
 	portArg             = flag.Int("port", 9443, "server port to listen on\nports 9444 and 9445 reserved for other use")
 	certArg             = flag.String("cert", "", "cert file path to enable TLS (disabled by default)")
 	keyArg              = flag.String("key", "", "private key file path to enable TLS (disabled by default)")
-	featuresArg         = flag.String("features", "", "enabled features, comma separated.\noptions: ['acm-alerting', 'incidents', 'dev-config', 'perses-dashboards']")
+	featuresArg         = flag.String("features", "", "enabled features, comma separated.\noptions: ['acm-alerting', 'alerting', 'incidents', 'legacy-dashboards', 'metrics', 'targets', 'perses-dashboards', 'cluster-health-analyzer']")
 	staticPathArg       = flag.String("static-path", "/opt/app-root/web/dist", "static files path to serve frontend")
 	configPathArg       = flag.String("config-path", "/opt/app-root/config", "config files path")
 	pluginConfigArg     = flag.String("plugin-config-path", "/etc/plugin/config.yaml", "plugin yaml configuration")
