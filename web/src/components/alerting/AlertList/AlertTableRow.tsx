@@ -30,11 +30,11 @@ import {
 } from '../../../components/hooks/usePerspective';
 import { useMonitoringNamespace } from '../../hooks/useMonitoringNamespace';
 import { DataTestIDs } from '../../data-test';
-import { useProposalCheck } from '../../ai-proposals/useProposalCheck';
+import { useAgenticRunCheck } from '../../agentic-runs/useAgenticRunCheck';
 import CustomIcon from '../../CustomIcon';
 
-const getProposalUrl = (namespace: string, name: string): string => {
-  return `/lightspeed/proposals/${namespace}/${name}`;
+const getAgenticRunUrl = (namespace: string, name: string): string => {
+  return `/lightspeed/runs/${namespace}/${name}`;
 };
 
 const AlertTableRow: FC<{ alert: Alert }> = ({ alert }) => {
@@ -42,9 +42,8 @@ const AlertTableRow: FC<{ alert: Alert }> = ({ alert }) => {
   const { perspective } = usePerspective();
   const navigate = useNavigate();
   const { namespace } = useMonitoringNamespace();
-
   const state = alertState(alert);
-  const { proposals, hasProposal, prefetch, isFetching } = useProposalCheck(alert);
+  const { agenticRuns, hasAgenticRun, prefetch, isFetching } = useAgenticRunCheck(alert);
 
   const title: string = alert.annotations?.description || alert.annotations?.message;
 
@@ -62,16 +61,16 @@ const AlertTableRow: FC<{ alert: Alert }> = ({ alert }) => {
     );
   }
 
-  if (hasProposal) {
-    const proposal = proposals[0];
-    const proposalName = proposal.metadata?.name;
-    if (proposalName) {
-      const proposalUrl = getProposalUrl(proposal.metadata.namespace, proposalName);
+  if (hasAgenticRun) {
+    const run = agenticRuns[0];
+    const runName = run.metadata?.name;
+    if (runName) {
+      const runUrl = getAgenticRunUrl(run.metadata.namespace, runName);
       dropdownItems.push(
         <DropdownItem
           key="view-ai-investigation"
           icon={<CustomIcon name="ai-experience" />}
-          onClick={() => navigate(proposalUrl)}
+          onClick={() => navigate(runUrl)}
           data-test={DataTestIDs.ViewAIInvestigationDropdownItem}
         >
           {t('View AI Investigation')}

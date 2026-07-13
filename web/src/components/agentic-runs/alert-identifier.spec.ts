@@ -6,7 +6,7 @@ import { Alert, AlertStates, K8sResourceCommon } from '@openshift-console/dynami
 import {
   computeAlertFingerprint,
   getAlertFingerprintPrefix,
-  matchesProposal,
+  matchesAgenticRun,
 } from './alert-identifier';
 
 const makeAlert = (labels: Record<string, string>): Alert =>
@@ -17,9 +17,9 @@ const makeAlert = (labels: Record<string, string>): Alert =>
     rule: { id: '1', alerts: [], labels: {}, name: 'TestAlert', query: '', duration: 0 },
   }) as unknown as Alert;
 
-const makeProposal = (labels: Record<string, string>): K8sResourceCommon => ({
+const makeAgenticRun = (labels: Record<string, string>): K8sResourceCommon => ({
   apiVersion: 'agentic.openshift.io/v1alpha1',
-  kind: 'Proposal',
+  kind: 'AgenticRun',
   metadata: {
     name: 'test-proposal',
     namespace: 'openshift-lightspeed',
@@ -72,28 +72,28 @@ describe('matchesProposal', () => {
   it('matches by fingerprint prefix', () => {
     const alert = makeAlert({ severity: 'critical' });
     const fp8 = getAlertFingerprintPrefix(alert.labels);
-    const proposal = makeProposal({
+    const proposal = makeAgenticRun({
       'agentic.openshift.io/alert-fingerprint': fp8,
       'agentic.openshift.io/source': 'alertmanager',
     });
-    expect(matchesProposal(alert, proposal)).toBe(true);
+    expect(matchesAgenticRun(alert, proposal)).toBe(true);
   });
 
   it('does not match when fingerprint differs', () => {
     const alert = makeAlert({ severity: 'critical' });
-    const proposal = makeProposal({
+    const proposal = makeAgenticRun({
       'agentic.openshift.io/alert-fingerprint': 'deadbeef',
       'agentic.openshift.io/source': 'alertmanager',
     });
-    expect(matchesProposal(alert, proposal)).toBe(false);
+    expect(matchesAgenticRun(alert, proposal)).toBe(false);
   });
 
   it('does not match when proposal has no fingerprint label', () => {
     const alert = makeAlert({ severity: 'warning' });
-    const proposal = makeProposal({
+    const proposal = makeAgenticRun({
       'agentic.openshift.io/alert-name': 'testalert',
       'agentic.openshift.io/alert-severity': 'warning',
     });
-    expect(matchesProposal(alert, proposal)).toBe(false);
+    expect(matchesAgenticRun(alert, proposal)).toBe(false);
   });
 });
