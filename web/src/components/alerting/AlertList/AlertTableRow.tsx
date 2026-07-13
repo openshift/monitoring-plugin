@@ -26,13 +26,16 @@ import { AlertResource, alertState } from '../../../components/utils';
 import {
   getAlertUrl,
   getNewSilenceAlertUrl,
-  getProposalsUrl,
   usePerspective,
 } from '../../../components/hooks/usePerspective';
 import { useMonitoringNamespace } from '../../hooks/useMonitoringNamespace';
 import { DataTestIDs } from '../../data-test';
 import { useProposalCheck } from '../../ai-proposals/useProposalCheck';
 import CustomIcon from '../../CustomIcon';
+
+const getProposalUrl = (namespace: string, name: string): string => {
+  return `/lightspeed/proposals/${namespace}/${name}`;
+};
 
 const AlertTableRow: FC<{ alert: Alert }> = ({ alert }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -41,8 +44,7 @@ const AlertTableRow: FC<{ alert: Alert }> = ({ alert }) => {
   const { namespace } = useMonitoringNamespace();
 
   const state = alertState(alert);
-  const { proposals, hasProposal, prefetch, alertFingerprint, isFetching } =
-    useProposalCheck(alert);
+  const { proposals, hasProposal, prefetch, isFetching } = useProposalCheck(alert);
 
   const title: string = alert.annotations?.description || alert.annotations?.message;
 
@@ -61,23 +63,21 @@ const AlertTableRow: FC<{ alert: Alert }> = ({ alert }) => {
   }
 
   if (hasProposal) {
-    const proposalName = proposals.length === 1 ? proposals[0].metadata?.name : undefined;
-    const proposalUrl = getProposalsUrl(
-      perspective,
-      new URLSearchParams(
-        proposalName ? { name: proposalName } : { fingerprint: alertFingerprint },
-      ),
-    );
-    dropdownItems.push(
-      <DropdownItem
-        key="view-ai-investigation"
-        icon={<CustomIcon name="ai-experience" />}
-        onClick={() => navigate(proposalUrl)}
-        data-test={DataTestIDs.ViewAIInvestigationDropdownItem}
-      >
-        {t('View AI Investigation')}
-      </DropdownItem>,
-    );
+    const proposal = proposals[0];
+    const proposalName = proposal.metadata?.name;
+    if (proposalName) {
+      const proposalUrl = getProposalUrl(proposal.metadata.namespace, proposalName);
+      dropdownItems.push(
+        <DropdownItem
+          key="view-ai-investigation"
+          icon={<CustomIcon name="ai-experience" />}
+          onClick={() => navigate(proposalUrl)}
+          data-test={DataTestIDs.ViewAIInvestigationDropdownItem}
+        >
+          {t('View AI Investigation')}
+        </DropdownItem>,
+      );
+    }
   } else if (isFetching) {
     dropdownItems.push(
       <DropdownItem
