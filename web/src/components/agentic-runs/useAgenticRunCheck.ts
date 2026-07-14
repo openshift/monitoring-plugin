@@ -2,34 +2,34 @@ import { Alert, K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk'
 import { k8sListResourceItems } from '@openshift-console/dynamic-plugin-sdk/lib/utils/k8s';
 import { useQuery } from '@tanstack/react-query';
 import { useCallback, useMemo, useState } from 'react';
-import { ProposalModel } from '../console/models';
+import { AgenticRunModel } from '../console/models';
 import { getAlertFingerprintPrefix } from './alert-identifier';
 import {
-  PROPOSAL_LABEL_FINGERPRINT,
-  PROPOSAL_LABEL_SOURCE,
-  PROPOSAL_NAMESPACE,
-  PROPOSAL_SOURCE_ALERTMANAGER,
-  PROPOSAL_STALE_TIME,
+  AGENTIC_RUN_LABEL_FINGERPRINT,
+  AGENTIC_RUN_LABEL_SOURCE,
+  AGENTIC_RUN_NAMESPACE,
+  AGENTIC_RUN_SOURCE_ALERTMANAGER,
+  AGENTIC_RUN_STALE_TIME,
 } from './constants';
 
 const buildQueryFn = (namespace: string, alertFingerprint: string) => () =>
   k8sListResourceItems<K8sResourceCommon>({
-    model: ProposalModel,
+    model: AgenticRunModel,
     queryParams: {
       ns: namespace,
       labelSelector: {
         matchLabels: {
-          [PROPOSAL_LABEL_FINGERPRINT]: alertFingerprint,
-          [PROPOSAL_LABEL_SOURCE]: PROPOSAL_SOURCE_ALERTMANAGER,
+          [AGENTIC_RUN_LABEL_FINGERPRINT]: alertFingerprint,
+          [AGENTIC_RUN_LABEL_SOURCE]: AGENTIC_RUN_SOURCE_ALERTMANAGER,
         },
       },
     },
   });
 
-export const useProposalCheck = (alert: Alert) => {
+export const useAgenticRunCheck = (alert: Alert) => {
   const alertFingerprint = useMemo(() => getAlertFingerprintPrefix(alert.labels), [alert.labels]);
   const alertNamespace = alert.labels?.namespace;
-  const hasDistinctAlertNamespace = !!alertNamespace && alertNamespace !== PROPOSAL_NAMESPACE;
+  const hasDistinctAlertNamespace = !!alertNamespace && alertNamespace !== AGENTIC_RUN_NAMESPACE;
   const [shouldFetch, setShouldFetch] = useState(false);
 
   const {
@@ -37,10 +37,10 @@ export const useProposalCheck = (alert: Alert) => {
     isFetching: defaultNsFetching,
     isError: defaultNsError,
   } = useQuery({
-    queryKey: ['proposal-check', PROPOSAL_NAMESPACE, alertFingerprint],
-    queryFn: buildQueryFn(PROPOSAL_NAMESPACE, alertFingerprint),
+    queryKey: ['agentic-run-check', AGENTIC_RUN_NAMESPACE, alertFingerprint],
+    queryFn: buildQueryFn(AGENTIC_RUN_NAMESPACE, alertFingerprint),
     enabled: shouldFetch,
-    staleTime: PROPOSAL_STALE_TIME,
+    staleTime: AGENTIC_RUN_STALE_TIME,
     retry: false,
   });
 
@@ -49,18 +49,18 @@ export const useProposalCheck = (alert: Alert) => {
     isFetching: alertNsFetching,
     isError: alertNsError,
   } = useQuery({
-    queryKey: ['proposal-check', alertNamespace, alertFingerprint],
+    queryKey: ['agentic-run-check', alertNamespace, alertFingerprint],
     queryFn: buildQueryFn(alertNamespace!, alertFingerprint),
     enabled: shouldFetch && hasDistinctAlertNamespace,
-    staleTime: PROPOSAL_STALE_TIME,
+    staleTime: AGENTIC_RUN_STALE_TIME,
     retry: false,
   });
 
   const prefetch = useCallback(() => setShouldFetch(true), []);
 
-  const proposals = useMemo(() => {
+  const agenticRuns = useMemo(() => {
     const matchesFp = (p: K8sResourceCommon) =>
-      p.metadata?.labels?.[PROPOSAL_LABEL_FINGERPRINT] === alertFingerprint;
+      p.metadata?.labels?.[AGENTIC_RUN_LABEL_FINGERPRINT] === alertFingerprint;
 
     return [...(defaultNsData ?? []).filter(matchesFp), ...(alertNsData ?? []).filter(matchesFp)];
   }, [defaultNsData, alertNsData, alertFingerprint]);
@@ -69,8 +69,8 @@ export const useProposalCheck = (alert: Alert) => {
   const isError = defaultNsError && (hasDistinctAlertNamespace ? alertNsError : true);
 
   return {
-    proposals,
-    hasProposal: proposals.length > 0,
+    agenticRuns,
+    hasAgenticRun: agenticRuns.length > 0,
     isFetching,
     isError,
     prefetch,

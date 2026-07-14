@@ -92,16 +92,16 @@ export const StatefulSetModel = {
   kind: 'StatefulSet',
 };
 
-export const ProposalModel: K8sModel = {
-  kind: 'Proposal',
-  label: 'Proposal',
-  labelKey: 'Proposal',
-  labelPlural: 'Proposals',
-  labelPluralKey: 'Proposals',
+export const AgenticRunModel: K8sModel = {
+  kind: 'AgenticRun',
+  label: 'AgenticRun',
+  labelKey: 'AgenticRun',
+  labelPlural: 'AgenticRuns',
+  labelPluralKey: 'AgenticRuns',
   apiGroup: 'agentic.openshift.io',
   apiVersion: 'v1alpha1',
-  abbr: 'PP',
+  abbr: 'AGR',
   namespaced: true,
   crd: true,
-  plural: 'proposals',
+  plural: 'agenticruns',
 };
