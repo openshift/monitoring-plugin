@@ -5,7 +5,7 @@
 - **What**: Dual frontend plugins for OpenShift observability (monitoring-plugin + monitoring-console-plugin)
 - **Purpose**: Alerts, Metrics, Targets, Dashboards + Perses, Incidents, ACM integration
 - **Tech Stack**: React + TypeScript + Webpack + i18next + Go
-- **Key Files**: `config/*.patch.json`, `web/src/components/`
+- **Key Files**: `config/*.patch.json`, `web/src/features/`, `web/src/shared/`
 
 ## Common Tasks & Workflows
 
@@ -13,7 +13,7 @@
 
 1. Check if it belongs in `monitoring-plugin` (core) or `monitoring-console-plugin` (extended)
 2. Add or update the relevant patch file in `config/` (e.g. `config/alerting.patch.json`)
-3. Add React components in `web/src/components/`
+3. Add React components in `web/src/features/` (feature-specific) or `web/src/shared/` (shared)
 4. Add translations in `public/locales/`
 5. Test with `make lint-frontend && make test-backend`
 
@@ -22,7 +22,7 @@
 - **Build failures**: Check `Makefile` targets
 - **Console integration**: Verify the relevant `config/*.patch.json` patch file
 - **Plugin loading**: Check OpenShift Console logs
-- **Perses dashboards**: Debug at `web/src/components/dashboards/perses/`
+- **Perses dashboards**: Debug at `web/src/features/perses-dashboards/`
 
 ### Development Setup
 
@@ -33,14 +33,14 @@
 
 ### When working on Alerts:
 
-- Files: `web/src/components/alerts/`
+- Files: `web/src/features/alerts/`
 - Integration: Alertmanager API
 - Testing: Cypress tests in `web/cypress/`
 
 ### When working on Dashboards:
 
 - **Legacy**: Standard OpenShift dashboards
-- **Perses**: `web/src/components/dashboards/perses/` (uses ECharts wrapper)
+- **Perses**: `web/src/features/perses-dashboards/` (uses ECharts wrapper)
 - **Upstream**: https://github.com/perses/perses
 
 ### When working on ACM:
@@ -61,6 +61,41 @@
 - Check compatibility with OpenShift Console versions
 - Verify i18next translation support
 - Consider CMO vs COO deployment differences
+
+## Frontend Source Layout
+
+The `web/src/` directory is organized into two top-level areas:
+
+- **`web/src/features/`** — Feature-specific code, one subdirectory per feature. Each feature directory contains sub-folders as needed: `components/`, `pages/`, `hooks/`, `utils/`, `types/`, `assets/`.
+- **`web/src/shared/`** — Code used by more than one feature, organized by kind.
+
+| Feature | Directory |
+| ------- | --------- |
+| Alerting (alerts, silences, alert rules) | `features/alerts/` |
+| Incidents | `features/incidents/` |
+| Legacy Dashboards | `features/legacy-dashboards/` |
+| Metrics / PromQL | `features/metrics/` |
+| Perses Dashboards | `features/perses-dashboards/` |
+| Targets | `features/targets/` |
+
+| Shared Directory | Contents |
+| ---------------- | -------- |
+| `shared/components/` | Reusable UI components (`labels.tsx`, `format.tsx`, `query-browser/`) |
+| `shared/hooks/` | Shared React hooks (`useAlerts.ts`, `usePerspective.tsx`) |
+| `shared/store/` | Redux store, actions, reducers, thunks, alert fetching |
+| `shared/contexts/` | React contexts (`MonitoringContext.tsx`) |
+| `shared/constants/` | Shared constants (`data-test.ts`, `query-params.ts`) |
+| `shared/types/` | Shared TypeScript types (`types.ts`) |
+| `shared/utils/` | Shared pure utility functions (`utils.ts`) |
+| `shared/assets/` | Static assets such as fonts (`codicon.ttf`) |
+| `shared/console/` | Vendored/adapted OpenShift Console internals |
+
+**Placement rules:**
+- If a file is only used within one feature, it belongs in that feature's directory.
+- If a component or utility is only used by a single page, co-locate it inside that page's own subdirectory (e.g. `features/alerts/pages/alerts-page/AggregateAlertTableRow.tsx`).
+- If a file is used across multiple features, it belongs in `shared/`.
+
+> **Note**: `web/src/components/` no longer exists. Do not create files there.
 
 ## External Dependencies & Operators
 
@@ -160,7 +195,7 @@ Unit tests focus on isolated function testing and run quickly in CI/CD pipelines
 
 **Backend Tests:**
 
-- **Location**: Co-located with source files in `pkg/`
+- **Location**: Co-located with source files in `pkg/` (sub-packages: `pkg/server/`, `pkg/monitoring/`)
 - **Naming**: `*_test.go` (e.g., `server_test.go`)
 - **Framework**: Go testing package + testify/require
 - **Configuration**: Standard Go test conventions
@@ -320,7 +355,7 @@ npx cypress run --component --spec cypress/component/labels.cy.tsx
 Component test files use the `.cy.tsx` extension and go in `web/cypress/component/`:
 
 ```typescript
-import { MyComponent } from '../../src/components/MyComponent';
+import { MyComponent } from '../../src/shared/components/MyComponent';
 
 describe('MyComponent', () => {
   it('renders correctly', () => {
