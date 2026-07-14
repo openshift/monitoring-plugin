@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Divider, Stack, StackItem } from '@patternfly/react-core';
 
 import { DocumentTitle, ListPageHeader } from '@openshift-console/dynamic-plugin-sdk';
-import { CombinedDashboardMetadata } from '../hooks/useDashboardsData';
+import type { CombinedDashboardMetadata } from '../../../shared/types/types';
 
 import { Breadcrumb, BreadcrumbItem } from '@patternfly/react-core';
 import { useNavigate } from 'react-router';

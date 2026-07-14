@@ -31,7 +31,7 @@ import { getDashboardUrl, usePerspective } from '../../../../shared/hooks/usePer
 import { Timestamp } from '@openshift-console/dynamic-plugin-sdk';
 import { listPersesDashboardsDataTestIDs } from '../../../../shared/constants/data-test';
 import { DashboardListFrame } from './dashboard-list-frame';
-import { usePersesEditPermissions } from '../dashboard-page/dashboard-toolbar';
+import { usePersesEditPermissions } from '../../hooks/usePersesEditPermissions';
 import { DashboardResource } from '@perses-dev/core';
 import {
   DeleteActionModal,

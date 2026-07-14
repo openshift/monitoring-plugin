@@ -47,7 +47,7 @@ import {
   isDataSource,
 } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
 import { t_global_font_size_heading_h2 } from '@patternfly/react-tokens';
-import { GraphUnits } from '../../metrics/utils/units';
+import { GraphUnits } from '../../../shared/utils/units';
 import { LegacyDashboardPageTestIDs } from '../../../shared/constants/data-test';
 import { useMonitoring } from '../../../shared/hooks/useMonitoring';
 import { useQueryParam } from 'use-query-params';

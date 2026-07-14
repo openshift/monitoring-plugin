@@ -3,6 +3,7 @@ import { useMemo, useCallback, useRef } from 'react';
 
 import { DashboardResource } from '@perses-dev/core';
 import { StringParam, useQueryParam } from 'use-query-params';
+import type { CombinedDashboardMetadata } from '../../../shared/types/types';
 import { useBoolean } from '../../../shared/hooks/useBoolean';
 import { getDashboardUrl, usePerspective } from '../../../shared/hooks/usePerspective';
 import { QueryParams } from '../../../shared/constants/query-params';
@@ -142,12 +143,4 @@ export const useDashboardsData = () => {
     setActiveProject,
     activeProject,
   };
-};
-
-export type CombinedDashboardMetadata = {
-  name: string;
-  project?: string;
-  tags: string[];
-  title: string;
-  persesDashboard?: DashboardResource;
 };

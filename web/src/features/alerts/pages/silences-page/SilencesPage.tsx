@@ -61,10 +61,10 @@ import {
   TableFilters,
 } from '../../../../shared/components/table/TableFilters';
 import { TableToolbar } from '../../../../shared/components/table/TableToolbar';
-import { useTableFilters } from '../../../../shared/components/table/useTableFilters';
+import { useTableFilters, rowFilter } from '../../../../shared/components/table/useTableFilters';
 import { useTablePagination } from '../../../../shared/components/table/useTablePagination';
 import { severitySort, SilenceResource, silenceState } from '../../../../shared/utils/utils';
-import { rowFilter, SeverityCounts, StateTimestamp } from '../../components/AlertUtils';
+import { SeverityCounts, StateTimestamp } from '../../components/AlertUtils';
 import { filterSilences } from './filter-silences';
 import {
   ExpireSilenceModal,

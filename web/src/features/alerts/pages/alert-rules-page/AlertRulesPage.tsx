@@ -26,8 +26,6 @@ import {
   alertingRuleSource,
   AlertStateIcon,
   getAlertStateKey,
-  rowFilter,
-  SeverityBadge,
   SilencesNotLoadedWarning,
 } from '../../components/AlertUtils';
 import withFallback from '../../../../shared/console/console-shared/error/fallbacks/withFallback';
@@ -49,9 +47,10 @@ import {
 import { TableToolbar } from '../../../../shared/components/table/TableToolbar';
 import { directedSort, localeCompareSort } from '../../../../shared/components/table/sort-utils';
 import { useTableColumns } from '../../../../shared/components/table/useTableColumns';
-import { useTableFilters } from '../../../../shared/components/table/useTableFilters';
+import { useTableFilters, rowFilter } from '../../../../shared/components/table/useTableFilters';
 import { useTablePagination } from '../../../../shared/components/table/useTablePagination';
 import { filterRules } from './filter-rules';
+import { SeverityBadge } from '../../../../shared/components/SeverityBadge';
 
 export const enum AlertRulesFilterOptions {
   NAME = 'name',

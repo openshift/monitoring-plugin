@@ -40,7 +40,6 @@ import { createContext, memo, useCallback, useContext, useEffect, useMemo, useSt
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router';
 import { MonitoringProvider } from '../../../shared/contexts/MonitoringContext';
-import { rowFilter } from '../../alerts/components/AlertUtils';
 import { EmptyBox } from '../../../shared/console/console-shared/src/components/empty-state/EmptyBox';
 import { LoadingBox } from '../../../shared/console/console-shared/src/components/loading/LoadingBox';
 import { LoadingInline } from '../../../shared/console/console-shared/src/components/loading/LoadingInline';
@@ -68,7 +67,7 @@ import {
   TableFilters,
 } from '../../../shared/components/table/TableFilters';
 import { TableToolbar } from '../../../shared/components/table/TableToolbar';
-import { useTableFilters } from '../../../shared/components/table/useTableFilters';
+import { useTableFilters, rowFilter } from '../../../shared/components/table/useTableFilters';
 import { useTablePagination } from '../../../shared/components/table/useTablePagination';
 import { AlertSource, PrometheusAPIError, Target } from '../../../shared/types/types';
 import { PROMETHEUS_BASE_PATH } from '../../../shared/utils/utils';

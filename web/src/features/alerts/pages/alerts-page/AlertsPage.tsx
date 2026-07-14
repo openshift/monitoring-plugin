@@ -30,7 +30,7 @@ import {
 import { TableToolbar } from '../../../../shared/components/table/TableToolbar';
 import { directedSort, localeCompareSort } from '../../../../shared/components/table/sort-utils';
 import { useTableColumns } from '../../../../shared/components/table/useTableColumns';
-import { useTableFilters } from '../../../../shared/components/table/useTableFilters';
+import { useTableFilters, rowFilter } from '../../../../shared/components/table/useTableFilters';
 import { useTablePagination } from '../../../../shared/components/table/useTablePagination';
 import { AlertSource } from '../../../../shared/types/types';
 import { ALL_NAMESPACES_KEY, severitySort } from '../../../../shared/utils/utils';
@@ -38,7 +38,7 @@ import AggregateAlertTableRow from './AggregateAlertTableRow';
 import DownloadCSVButton from './DownloadCSVButton';
 import { filterAlerts } from './filter-alerts';
 import { AggregatedAlert, getAggregateAlertsLists } from './AlertsAggregates';
-import { rowFilter, SilencesNotLoadedWarning } from '../../components/AlertUtils';
+import { SilencesNotLoadedWarning } from '../../components/AlertUtils';
 
 export const enum AlertFilterOptions {
   NAME = 'name',

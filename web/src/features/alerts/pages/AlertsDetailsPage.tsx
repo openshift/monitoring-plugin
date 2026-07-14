@@ -70,7 +70,7 @@ import {
   StatefulSetModel,
 } from '../../../shared/console/models';
 import { Labels } from '../../../shared/components/labels';
-import { ToggleGraph } from '../../metrics/pages/MetricsPage';
+import { ToggleGraph } from '../../../shared/components/ToggleGraph';
 import { SilencedByList } from '../components/SilencedByTable';
 import {
   alertSource,
@@ -81,7 +81,6 @@ import {
   Graph,
   isActionWithCallback,
   isActionWithHref,
-  SeverityBadge,
   SeverityHelp,
   SourceHelp,
 } from '../components/AlertUtils';
@@ -89,6 +88,7 @@ import {
 import { DataTestIDs } from '../../../shared/constants/data-test';
 import { useAlerts } from '../../../shared/hooks/useAlerts';
 import { useMonitoring } from '../../../shared/hooks/useMonitoring';
+import { SeverityBadge } from '../../../shared/components/SeverityBadge';
 
 const AlertsDetailsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);

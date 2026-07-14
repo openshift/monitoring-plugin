@@ -9,7 +9,7 @@ import { useBoolean } from '../../../shared/hooks/useBoolean';
 import { getLegacyDashboardsUrl, usePerspective } from '../../../shared/hooks/usePerspective';
 import { QueryParams } from '../../../shared/constants/query-params';
 import { ALL_NAMESPACES_KEY } from '../../../shared/utils/utils';
-import { CombinedDashboardMetadata } from '../../perses-dashboards/hooks/useDashboardsData';
+import type { CombinedDashboardMetadata } from '../../../shared/types/types';
 import { Board } from '../types/types';
 import { MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY } from '../utils/utils';
 import { useLegacyDashboardsProject } from './useLegacyDashboardsProject';

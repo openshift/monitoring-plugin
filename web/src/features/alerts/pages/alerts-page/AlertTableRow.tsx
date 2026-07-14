@@ -13,7 +13,6 @@ import {
   isActionWithCallback,
   isActionWithHref,
   NamespaceGroupVersionKind,
-  SeverityBadge,
 } from '../../components/AlertUtils';
 import { AlertSource } from '../../../../shared/types/types';
 import { Td, Tr } from '@patternfly/react-table';
@@ -32,6 +31,7 @@ import { useMonitoringNamespace } from '../../../../shared/hooks/useMonitoringNa
 import { DataTestIDs } from '../../../../shared/constants/data-test';
 import { useAgenticRunCheck } from './agentic-runs/useAgenticRunCheck';
 import CustomIcon from '../../../../shared/components/CustomIcon';
+import { SeverityBadge } from '../../../../shared/components/SeverityBadge';
 
 const getAgenticRunUrl = (namespace: string, name: string): string => {
   return `/lightspeed/runs/${namespace}/${name}`;

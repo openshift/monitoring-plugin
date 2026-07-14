@@ -5,7 +5,7 @@ import { Link } from 'react-router';
 import { ALL_NAMESPACES_KEY, RuleResource } from '../../../shared/utils/utils';
 import { useTranslation } from 'react-i18next';
 import { getRuleUrl, usePerspective } from '../../../shared/hooks/usePerspective';
-import { SeverityBadge } from '../../alerts/components/AlertUtils';
+import { SeverityBadge } from '../../../shared/components/SeverityBadge';
 import { Alert, IncidentsDetailsAlert } from '../types/model';
 import { IncidentAlertStateIcon } from './IncidentAlertStateIcon';
 import { useMemo } from 'react';

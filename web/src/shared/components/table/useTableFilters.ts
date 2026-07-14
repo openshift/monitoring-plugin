@@ -99,3 +99,7 @@ export const useTableFilters = <T extends object>({
     deleteFilter,
   };
 };
+
+export const rowFilter = (key: string) => {
+  return `row-filter-${key}`;
+};
