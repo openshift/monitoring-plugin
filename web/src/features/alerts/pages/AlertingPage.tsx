@@ -1,3 +1,4 @@
+/* eslint-disable import/no-restricted-paths */
 import type { FC } from 'react';
 import { lazy, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
