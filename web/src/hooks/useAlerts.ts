@@ -160,8 +160,8 @@ const useAlertsPoller = ({
     );
 
   const dependencies = useMemo(
-    () => [namespace, rulesUrl, silencesUrl, useAlertsTenancy, accessCheckLoading],
-    [namespace, rulesUrl, silencesUrl, useAlertsTenancy, accessCheckLoading],
+    () => [namespace, rulesUrl, silencesUrl, useAlertsTenancy, accessCheckLoading, alertsSource],
+    [namespace, rulesUrl, silencesUrl, useAlertsTenancy, accessCheckLoading, alertsSource],
   );
 
   usePoll(fetchDispatch, POLLING_INTERVAL_MS, dependencies);
