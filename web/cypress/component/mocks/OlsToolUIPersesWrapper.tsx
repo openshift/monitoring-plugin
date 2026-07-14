@@ -1,4 +1,4 @@
-import { OlsToolUIPersesWrapperProps } from '../../../src/components/ols-tool-ui/helpers/OlsToolUIPersesWrapper';
+import { OlsToolUIPersesWrapperProps } from '../../../src/features/perses-dashboards/ols-tool-ui/helpers/OlsToolUIPersesWrapper';
 
 export const OlsToolUIPersesWrapper = ({
   children,

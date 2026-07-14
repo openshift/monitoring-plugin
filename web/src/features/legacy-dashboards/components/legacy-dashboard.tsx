@@ -1,0 +1,437 @@
+import * as _ from 'lodash-es';
+import {
+  RedExclamationCircleIcon,
+  useResolvedExtensions,
+} from '@openshift-console/dynamic-plugin-sdk';
+import {
+  Card as PFCard,
+  CardBody,
+  CardHeader,
+  CardTitle,
+  DropdownItem,
+  Grid,
+  GridItem,
+  gridSpans,
+  Flex,
+  FlexItem,
+  ExpandableSectionToggle,
+  Spinner,
+} from '@patternfly/react-core';
+import type { FC } from 'react';
+import { memo, useRef, useState, useCallback, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useSelector } from 'react-redux';
+import { Link } from 'react-router';
+
+import { Perspective } from '../../../shared/store/actions';
+import BarChart from './panels/bar-chart';
+import Graph from './panels/graph';
+import SingleStat from './panels/single-stat';
+import Table from './panels/table';
+import { useBoolean } from '../../../shared/hooks/useBoolean';
+import { useIsVisible } from '../../../shared/hooks/useIsVisible';
+import {
+  getMutlipleQueryBrowserUrl,
+  getObserveState,
+  usePerspective,
+} from '../../../shared/hooks/usePerspective';
+import { useMonitoringNamespace } from '../../../shared/hooks/useMonitoringNamespace';
+import KebabDropdown from '../../../shared/components/KebabDropdown';
+import { MonitoringState } from '../../../shared/store/store';
+import { evaluateVariableTemplate, Variable } from './legacy-variable-dropdowns';
+import { Panel, Row } from '../types/types';
+import { QueryParams } from '../../../shared/constants/query-params';
+import { CustomDataSource } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/dashboard-data-source';
+import {
+  DataSource,
+  isDataSource,
+} from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
+import { t_global_font_size_heading_h2 } from '@patternfly/react-tokens';
+import { GraphUnits } from '../../metrics/utils/units';
+import { LegacyDashboardPageTestIDs } from '../../../shared/constants/data-test';
+import { useMonitoring } from '../../../shared/hooks/useMonitoring';
+import { useQueryParam } from 'use-query-params';
+import { RefreshIntervalParam, TimeRangeParam } from '../utils/utils';
+
+const QueryBrowserLink = ({
+  queries,
+  customDataSourceName,
+  units,
+}: {
+  queries: Array<string>;
+  customDataSourceName: string;
+  units?: GraphUnits;
+}) => {
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const { perspective } = usePerspective();
+  const { namespace } = useMonitoringNamespace();
+
+  const params = new URLSearchParams();
+  queries.forEach((q, i) => params.set(`query${i}`, q));
+  if (units) {
+    params.set(QueryParams.Units, units);
+  }
+
+  if (customDataSourceName) {
+    params.set(QueryParams.Datasource, customDataSourceName);
+  }
+
+  return (
+    <Link
+      aria-label={t('Inspect')}
+      to={getMutlipleQueryBrowserUrl(perspective, params, namespace)}
+      data-test={LegacyDashboardPageTestIDs.Inspect}
+    >
+      {t('Inspect')}
+    </Link>
+  );
+};
+
+// Determine how many columns a panel should span. If panel specifies a `span`, use that. Otherwise
+// look for a `breakpoint` percentage. If neither are specified, default to 12 (full width).
+const getPanelSpan = (panel: Panel): gridSpans => {
+  if (panel.span) {
+    return panel.span as gridSpans;
+  }
+  const breakpoint = _.toInteger(_.trimEnd(panel.breakpoint, '%'));
+  if (breakpoint > 0) {
+    return Math.round(12 * (breakpoint / 100)) as gridSpans;
+  }
+  return 12;
+};
+
+const Card = memo(({ panel, perspective, dashboardName }: CardProps) => {
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const { plugin } = useMonitoring();
+
+  const variables = useSelector(
+    (state: MonitoringState) =>
+      getObserveState(plugin, state).dashboards.legacy[dashboardName]?.variables || {},
+  );
+
+  // Directly use the namespace variable to prevent desync
+  const namespace = variables?.['namespace'] as Variable;
+
+  const ref = useRef();
+  const [, wasEverVisible] = useIsVisible(ref);
+
+  const [isError, setIsError] = useState<boolean>(false);
+  const [dataSourceInfoLoading, setDataSourceInfoLoading] = useState<boolean>(true);
+  const [customDataSource, setCustomDataSource] = useState<CustomDataSource>(undefined);
+  const [isChartLoading, setIsChartLoading] = useState<boolean>(panel.type === 'graph');
+  const customDataSourceName = panel.datasource?.name;
+  const [extensions, extensionsResolved] = useResolvedExtensions<DataSource>(isDataSource);
+  const [refreshInterval] = useQueryParam(QueryParams.RefreshInterval, RefreshIntervalParam);
+  const [timeRange] = useQueryParam(QueryParams.TimeRange, TimeRangeParam);
+  const hasExtensions = !_.isEmpty(extensions);
+
+  const formatSeriesTitle = useCallback(
+    (labels, i) => {
+      const title = panel.targets?.[i]?.legendFormat;
+      if (_.isNil(title)) {
+        return _.isEmpty(labels) ? '{}' : '';
+      }
+      // Replace Prometheus labels surrounded by {{ }} in the graph legend label templates
+      // Regex is based on https://prometheus.io/docs/concepts/data_model/#metric-names-and-labels
+      // with additional matchers to allow leading and trailing whitespace
+      return title.replace(
+        /{{\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*}}/g,
+        (match, key) => labels[key] ?? '',
+      );
+    },
+    [panel],
+  );
+  const [csvData, setCsvData] = useState([]);
+
+  const csvExportHandler = () => {
+    let csvString = '';
+    const result = {};
+    const seriesNames = [];
+    for (let i = 0; i < csvData.length; i++) {
+      const query = csvData[i];
+      for (const series of query) {
+        if (!series[0]) {
+          continue;
+        }
+        const name = formatSeriesTitle(series[0], i);
+        seriesNames.push(name);
+        if (!name) {
+          continue;
+        }
+        if (!Array.isArray(series[1])) {
+          continue;
+        }
+        for (const entry of series[1]) {
+          const dateTime = entry.x.toISOString();
+          const value = entry.y;
+          if (!result[dateTime]) {
+            result[dateTime] = {};
+          }
+          result[dateTime][name] = value;
+        }
+      }
+    }
+    const uniqueSeriesNames = new Set(seriesNames);
+    const uniqueSeriesArray = Array.from(uniqueSeriesNames);
+
+    csvString = `DateTime,${uniqueSeriesArray.join(',')}\n`;
+
+    for (const dateTime in result) {
+      const temp = [];
+      for (const name of uniqueSeriesArray) {
+        temp.push(result[dateTime][name]);
+      }
+      csvString += `${dateTime},${temp.join(',')}\n`;
+    }
+
+    const blobCsvData = new Blob([csvString], { type: 'text/csv' });
+    const csvURL = URL.createObjectURL(blobCsvData);
+    const link = document.createElement('a');
+    link.href = csvURL;
+    link.download = `graphData.csv`;
+    link.click();
+  };
+
+  const isThereCsvData = () => {
+    if (csvData.length > 0) {
+      if (csvData[0].length > 0) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  const dropdownItems = [
+    <DropdownItem
+      key="action"
+      component="button"
+      onClick={csvExportHandler}
+      isDisabled={!isThereCsvData()}
+      data-test={LegacyDashboardPageTestIDs.ExportAsCsv}
+    >
+      {t('Export as CSV')}
+    </DropdownItem>,
+  ];
+
+  useEffect(() => {
+    const getCustomDataSource = async () => {
+      if (!customDataSourceName) {
+        setDataSourceInfoLoading(false);
+        setCustomDataSource(null);
+      } else if (!extensionsResolved) {
+        setDataSourceInfoLoading(true);
+      } else if (hasExtensions) {
+        const extension = extensions.find(
+          (ext) => ext?.properties?.contextId === 'monitoring-dashboards',
+        );
+        const getDataSource = extension?.properties?.getDataSource;
+        const dataSource = await getDataSource?.(customDataSourceName);
+
+        if (!dataSource || !dataSource.basePath) {
+          setIsError(true);
+          setDataSourceInfoLoading(false);
+        } else {
+          setCustomDataSource(dataSource);
+          setDataSourceInfoLoading(false);
+        }
+      } else {
+        setDataSourceInfoLoading(false);
+        setIsError(true);
+      }
+    };
+    getCustomDataSource().catch((err) => {
+      // eslint-disable-next-line no-console
+      console.error(err);
+      setIsError(true);
+    });
+  }, [extensions, extensionsResolved, customDataSourceName, hasExtensions]);
+
+  const panelBreakpoints = useMemo(() => {
+    const panelSpan = getPanelSpan(panel);
+    return {
+      sm: 12 as gridSpans,
+      md: Math.max(panelSpan, 6) as gridSpans,
+      lg: Math.max(panelSpan, 4) as gridSpans,
+      xl: Math.max(panelSpan, 3) as gridSpans,
+    };
+  }, [panel]);
+
+  if (panel.type === 'row') {
+    return (
+      <>
+        {_.map(panel.panels, (p) => (
+          <Card key={p.id} panel={p} perspective={perspective} dashboardName={dashboardName} />
+        ))}
+      </>
+    );
+  }
+
+  if (!['gauge', 'grafana-piechart-panel', 'graph', 'singlestat', 'table'].includes(panel.type)) {
+    return null;
+  }
+
+  const rawQueries = _.map(panel.targets, 'expr');
+  if (!rawQueries.length) {
+    return null;
+  }
+  const queries = rawQueries.map((expr) =>
+    evaluateVariableTemplate(expr, variables, timeRange, namespace?.value ?? ''),
+  );
+  const isLoading =
+    (_.some(queries, _.isUndefined) && dataSourceInfoLoading) || customDataSource === undefined;
+
+  return (
+    <GridItem
+      span={panelBreakpoints.sm}
+      md={panelBreakpoints.md}
+      lg={panelBreakpoints.lg}
+      xl={panelBreakpoints.xl}
+    >
+      <PFCard
+        data-test={`${panel.title.toLowerCase().replace(/\s+/g, '-')}-chart`}
+        data-test-id={panel.id ? `chart-${panel.id}` : undefined}
+        style={{ overflow: 'visible' }}
+        isFullHeight
+      >
+        <CardHeader
+          actions={{
+            actions: (
+              <>
+                {(isLoading || isChartLoading) && <Spinner size="md" aria-label={t('Loading')} />}
+                {!isLoading && (
+                  <QueryBrowserLink
+                    queries={queries}
+                    customDataSourceName={customDataSourceName}
+                    units={panel?.yaxes?.[0]?.format as GraphUnits}
+                  />
+                )}
+                {panel.type === 'graph' && <KebabDropdown dropdownItems={dropdownItems} />}
+              </>
+            ),
+            hasNoOffset: true,
+          }}
+        >
+          <CardTitle>{panel.title}</CardTitle>
+        </CardHeader>
+        <CardBody>
+          {isError ? (
+            <>
+              <RedExclamationCircleIcon /> {t('Error loading card')}
+            </>
+          ) : (
+            <div
+              ref={ref}
+              style={{ height: '100%', minHeight: 180 }}
+              data-test={LegacyDashboardPageTestIDs.Graph}
+            >
+              {!isLoading && wasEverVisible && (
+                <>
+                  {panel.type === 'grafana-piechart-panel' && (
+                    <BarChart
+                      pollInterval={refreshInterval}
+                      query={queries[0]}
+                      customDataSource={customDataSource}
+                    />
+                  )}
+                  {panel.type === 'graph' && (
+                    <Graph
+                      formatSeriesTitle={formatSeriesTitle}
+                      isStack={panel.stack}
+                      onLoadingChange={setIsChartLoading}
+                      pollInterval={refreshInterval}
+                      queries={queries}
+                      showLegend={panel.legend?.show}
+                      units={panel.yaxes?.[0]?.format}
+                      customDataSource={customDataSource}
+                      onDataChange={(data) => setCsvData(data)}
+                    />
+                  )}
+                  {(panel.type === 'singlestat' || panel.type === 'gauge') && (
+                    <SingleStat
+                      panel={panel}
+                      pollInterval={refreshInterval}
+                      query={queries[0]}
+                      namespace={namespace?.value ?? ''}
+                      customDataSource={customDataSource}
+                    />
+                  )}
+                  {panel.type === 'table' && (
+                    <Table
+                      panel={panel}
+                      pollInterval={refreshInterval}
+                      queries={queries}
+                      namespace={namespace?.value ?? ''}
+                      customDataSource={customDataSource}
+                    />
+                  )}
+                </>
+              )}
+            </div>
+          )}
+        </CardBody>
+      </PFCard>
+    </GridItem>
+  );
+});
+
+Card.displayName = 'Card';
+
+const PanelsRow: FC<PanelsRowProps> = ({ row, perspective, dashboardName }) => {
+  const showButton = row.showTitle && !_.isEmpty(row.title);
+
+  const [isExpanded, toggleIsExpanded] = useBoolean(showButton ? !row.collapse : true);
+
+  return (
+    <Flex direction={{ default: 'column' }} data-test-id={`panel-${_.kebabCase(row?.title)}`}>
+      {showButton && (
+        <FlexItem>
+          <ExpandableSectionToggle isExpanded={isExpanded} onToggle={toggleIsExpanded}>
+            <span style={{ fontSize: t_global_font_size_heading_h2.var }}>{row.title}</span>
+          </ExpandableSectionToggle>
+        </FlexItem>
+      )}
+      {isExpanded && (
+        <FlexItem>
+          <Grid hasGutter>
+            {_.map(row.panels, (panel) => (
+              <Card
+                key={panel.id}
+                panel={panel}
+                perspective={perspective}
+                dashboardName={dashboardName}
+              />
+            ))}
+          </Grid>
+        </FlexItem>
+      )}
+    </Flex>
+  );
+};
+
+export const LegacyDashboard: FC<BoardProps> = ({ rows, perspective, dashboardName }) => (
+  <Flex direction={{ default: 'column' }}>
+    {rows.map((row) => (
+      <FlexItem key={row.panels.map((panel) => `${panel.id}-${row.title}`).join()}>
+        <PanelsRow row={row} perspective={perspective} dashboardName={dashboardName} />
+      </FlexItem>
+    ))}
+  </Flex>
+);
+
+type BoardProps = {
+  rows: Row[];
+  perspective: Perspective;
+  dashboardName: string;
+};
+
+type CardProps = {
+  panel: Panel;
+  perspective: Perspective;
+  dashboardName: string;
+};
+
+type PanelsRowProps = {
+  row: Row;
+  perspective: Perspective;
+  dashboardName: string;
+};

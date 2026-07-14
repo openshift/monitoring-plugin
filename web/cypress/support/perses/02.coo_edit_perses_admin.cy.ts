@@ -2,7 +2,7 @@ import {
   editPersesDashboardsAddVariable,
   persesMUIDataTestIDs,
   IDs,
-} from '../../../src/components/data-test';
+} from '../../../src/shared/constants/data-test';
 import {
   persesDashboardsDashboardDropdownCOO,
   persesDashboardsDashboardDropdownPersesDev,
@@ -319,7 +319,7 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
     },
   );
 
-  /**TODO: https://issues.redhat.com/browse/OU-1054 is targeted for COO1.5.0, 
+  /**TODO: https://issues.redhat.com/browse/OU-1054 is targeted for COO1.5.0,
    * so, commenting all Datasources related scenarios
   it(`6.${perspective.name} perspective - Edit Toolbar - Edit Datasources
    - Add and Delete Prometheus Datasource`, () => {
@@ -372,7 +372,7 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
     // persesDashboardsPage.clickEditActionButton('Save');
   });
 
-  it(`7.${perspective.name} perspective - Edit Toolbar - Edit Datasources - 
+  it(`7.${perspective.name} perspective - Edit Toolbar - Edit Datasources -
   - Edit Prometheus Datasource`, () => {
     cy.log(`7.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
     commonPages.titleShouldHaveText('Dashboards');
@@ -410,11 +410,11 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
 
   });
 
-  // it(`8.${perspective.name} perspective - Edit Toolbar - 
+  // it(`8.${perspective.name} perspective - Edit Toolbar -
   // Edit Datasources - Add Tempo Datasource`, () => {
   // });
 
-  it(`8.${perspective.name} perspective - Edit Toolbar - 
+  it(`8.${perspective.name} perspective - Edit Toolbar -
   - Edit Datasources - Required field validation`, () => {
     cy.log(`8.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
     commonPages.titleShouldHaveText('Dashboards');

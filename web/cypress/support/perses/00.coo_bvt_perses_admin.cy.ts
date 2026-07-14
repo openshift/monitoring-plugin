@@ -5,7 +5,7 @@ import {
   persesDashboardsEmptyDashboard,
 } from '../../fixtures/perses/constants';
 import { persesDashboardsPage } from '../../views/perses-dashboards';
-import { persesMUIDataTestIDs } from '../../../src/components/data-test';
+import { persesMUIDataTestIDs } from '../../../src/shared/constants/data-test';
 import { listPersesDashboardsPage } from '../../views/perses-dashboards-list-dashboards';
 import { persesDashboardsPanelGroup } from '../../views/perses-dashboards-panelgroup';
 import { persesDashboardsPanel } from '../../views/perses-dashboards-panel';

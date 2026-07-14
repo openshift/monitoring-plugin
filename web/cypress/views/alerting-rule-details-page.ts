@@ -1,6 +1,6 @@
 import { commonPages } from './common';
 import { detailsPage } from './details-page';
-import { DataTestIDs } from '../../src/components/data-test';
+import { DataTestIDs } from '../../src/shared/constants/data-test';
 
 export const alertingRuleDetailsPage = {
   assertAlertingRuleDetailsPage: (title: string) => {

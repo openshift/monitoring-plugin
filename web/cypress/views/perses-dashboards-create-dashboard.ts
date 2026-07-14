@@ -1,4 +1,4 @@
-import { Classes, IDs, persesAriaLabels } from '../../src/components/data-test';
+import { Classes, IDs, persesAriaLabels } from '../../src/shared/constants/data-test';
 import { persesCreateDashboard, persesDashboardsModalTitles } from '../fixtures/perses/constants';
 
 export const persesCreateDashboardsPage = {
