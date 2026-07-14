@@ -21,30 +21,32 @@ const getSeverityKey = (severity: string, t) => {
   }
 };
 
-export const SeverityBadge = memo(({ severity, count }: { severity: string; count?: number }) => {
-  const { t } = useTranslation(process.env.I18N_NAMESPACE);
+export const SeverityBadge = memo(
+  ({ severity, count }: { severity?: string | null; count?: number }) => {
+    const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
-  if (_.isNil(severity)) return null;
+    if (_.isNil(severity)) return null;
 
-  const labelText = count ? count : getSeverityKey(severity, t);
-  switch (severity) {
-    case AlertSeverity.Critical:
-      return <Label status="danger">{labelText}</Label>;
-    case AlertSeverity.Warning:
-      return <Label status="warning">{labelText}</Label>;
-    case AlertSeverity.Info:
-      return <Label status="info">{labelText}</Label>;
-    case AlertSeverity.None:
-      return (
-        <Label variant="outline">
-          <SeverityUndefinedIcon color={t_global_icon_color_severity_undefined_default.var} />
-          &nbsp;
-          {labelText}
-        </Label>
-      );
-    default:
-      return <Label status="custom">{labelText}</Label>;
-  }
-});
+    const labelText = count ? count : getSeverityKey(severity, t);
+    switch (severity) {
+      case AlertSeverity.Critical:
+        return <Label status="danger">{labelText}</Label>;
+      case AlertSeverity.Warning:
+        return <Label status="warning">{labelText}</Label>;
+      case AlertSeverity.Info:
+        return <Label status="info">{labelText}</Label>;
+      case AlertSeverity.None:
+        return (
+          <Label variant="outline">
+            <SeverityUndefinedIcon color={t_global_icon_color_severity_undefined_default.var} />
+            &nbsp;
+            {labelText}
+          </Label>
+        );
+      default:
+        return <Label status="custom">{labelText}</Label>;
+    }
+  },
+);
 
 SeverityBadge.displayName = 'SeverityBadge';
