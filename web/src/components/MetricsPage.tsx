@@ -118,6 +118,8 @@ import { MonitoringProvider } from '../contexts/MonitoringContext';
 import { DataTestIDs } from './data-test';
 import { useMonitoring } from '../hooks/useMonitoring';
 import { useMonitoringNamespace } from './hooks/useMonitoringNamespace';
+import { useMultiNamespace } from './hooks/useMultiNamespace';
+import { MultiNamespaceSelector } from './multi-namespace-selector';
 import { useSearchParams } from 'react-router';
 
 // Stores information about the currently focused query input
@@ -952,7 +954,8 @@ const Query: FC<{
   index: number;
   customDatasource?: CustomDataSource;
   units: GraphUnits;
-}> = ({ index, customDatasource, units }) => {
+  namespaceOverride?: string | string[];
+}> = ({ index, customDatasource, units, namespaceOverride }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { plugin } = useMonitoring();
 
@@ -1069,7 +1072,7 @@ const Query: FC<{
         <QueryTable
           index={index}
           customDatasource={customDatasource}
-          namespace={activeNamespace}
+          namespace={namespaceOverride ?? activeNamespace}
           units={units}
         />
       </DataListContent>
@@ -1082,7 +1085,14 @@ const QueryBrowserWrapper: FC<{
   customDataSource: CustomDataSource;
   customDatasourceError: boolean;
   units: GraphUnits;
-}> = ({ customDataSourceName, customDataSource, customDatasourceError, units }) => {
+  namespaceOverride?: string | string[];
+}> = ({
+  customDataSourceName,
+  customDataSource,
+  customDatasourceError,
+  units,
+  namespaceOverride,
+}) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { plugin } = useMonitoring();
   const [activeNamespace] = useActiveNamespace();
@@ -1209,6 +1219,7 @@ const QueryBrowserWrapper: FC<{
     <QueryBrowser
       customDataSource={customDataSource}
       disabledSeries={disabledSeries}
+      namespace={namespaceOverride}
       queries={queryStrings}
       units={units}
       showStackedControl
@@ -1263,10 +1274,11 @@ const RunQueriesButton: FC = () => {
   );
 };
 
-const QueriesList: FC<{ customDatasource?: CustomDataSource; units: GraphUnits }> = ({
-  customDatasource,
-  units,
-}) => {
+const QueriesList: FC<{
+  customDatasource?: CustomDataSource;
+  units: GraphUnits;
+  namespaceOverride?: string | string[];
+}> = ({ customDatasource, units, namespaceOverride }) => {
   const { plugin } = useMonitoring();
   const count = useSelector(
     (state: MonitoringState) => getObserveState(plugin, state).queryBrowser.queries.length,
@@ -1282,6 +1294,7 @@ const QueriesList: FC<{ customDatasource?: CustomDataSource; units: GraphUnits }
             key={reversedIndex}
             customDatasource={customDatasource}
             units={units}
+            namespaceOverride={namespaceOverride}
           />
         );
       })}
@@ -1339,7 +1352,8 @@ const MetricsPage_: FC = () => {
   const [units, setUnits] = useQueryParam(QueryParams.Units, StringParam);
   const [customDataSourceName] = useQueryParam(QueryParams.Datasource, StringParam);
   const { namespace, setNamespace } = useMonitoringNamespace();
-  const { displayNamespaceSelector } = useMonitoring();
+  const { displayNamespaceSelector, useMetricsTenancy } = useMonitoring();
+  const multiNs = useMultiNamespace();
 
   const dispatch = useDispatch();
 
@@ -1456,6 +1470,18 @@ const MetricsPage_: FC = () => {
       </ListPageHeader>
       <PageSection hasBodyWrapper={false}>
         <Stack hasGutter>
+          {useMetricsTenancy && (
+            <StackItem>
+              <MultiNamespaceSelector
+                accessibleNamespaces={multiNs.accessibleNamespaces}
+                selectedNamespaces={multiNs.selectedNamespaces}
+                allSelected={multiNs.allSelected}
+                toggleNamespace={multiNs.toggleNamespace}
+                toggleAll={multiNs.toggleAll}
+                deselectAll={multiNs.deselectAll}
+              />
+            </StackItem>
+          )}
           <StackItem>
             <ToggleGraph />
           </StackItem>
@@ -1465,6 +1491,7 @@ const MetricsPage_: FC = () => {
               customDataSourceName={customDataSourceName}
               customDatasourceError={customDatasourceError}
               units={units as GraphUnits}
+              namespaceOverride={useMetricsTenancy ? multiNs.namespaceForQuery : undefined}
             />
           </StackItem>
           <StackItem>
@@ -1482,7 +1509,11 @@ const MetricsPage_: FC = () => {
             </Flex>
           </StackItem>
           <StackItem>
-            <QueriesList customDatasource={customDataSource} units={units as GraphUnits} />
+            <QueriesList
+              customDatasource={customDataSource}
+              units={units as GraphUnits}
+              namespaceOverride={useMetricsTenancy ? multiNs.namespaceForQuery : undefined}
+            />
           </StackItem>
         </Stack>
       </PageSection>
@@ -1516,7 +1547,7 @@ export const MpCmoDevMetricsPage: FC = () => {
 
 type QueryTableProps = {
   index: number;
-  namespace?: string;
+  namespace?: string | string[];
   customDatasource?: CustomDataSource;
   units: GraphUnits;
 };
