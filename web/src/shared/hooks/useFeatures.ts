@@ -2,20 +2,35 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { consoleFetchJSON } from '@openshift-console/dynamic-plugin-sdk';
 
 type features = {
+  alerting: boolean;
   'acm-alerting': boolean;
   'perses-dashboards': boolean;
+  'legacy-dashboards': boolean;
+  metrics: boolean;
+  targets: boolean;
+  'cluster-health-analyzer': boolean;
   incidents: boolean;
 };
 
 type FeaturesResponse = {
+  alerting?: boolean;
   'acm-alerting'?: boolean;
   'perses-dashboards'?: boolean;
+  'legacy-dashboards'?: boolean;
+  metrics?: boolean;
+  targets?: boolean;
+  'cluster-health-analyzer'?: boolean;
   incidents?: boolean;
 };
 
 const noFeatures: features = {
+  alerting: false,
   'acm-alerting': false,
   'perses-dashboards': false,
+  'legacy-dashboards': false,
+  metrics: false,
+  targets: false,
+  'cluster-health-analyzer': false,
   incidents: false,
 };
 // monitoring-console-plugin proxy via. cluster observability operator
@@ -47,8 +62,5 @@ export const useFeatures = () => {
 
   return {
     features,
-    isAcmAlertingActive: features['acm-alerting'],
-    arePersesDashboardsActive: features['perses-dashboards'],
-    areIncidentsActive: features.incidents,
   };
 };

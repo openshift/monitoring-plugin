@@ -161,6 +161,40 @@ changes
 | Tests            | `.spec.ts` suffix                 | `MetricsPage.spec.tsx`, `safe-fetch-hook.spec.ts`, `format.spec.ts`, `utils.spec.ts` |
 | Styles           | `.scss` suffix matching component | `query-browser.scss`                                                                 |
 
+#### File Placement
+
+The frontend source is split into two top-level directories under `web/src/`:
+
+- **`web/src/features/`** — one subdirectory per product feature. Each feature directory follows an internal structure of `components/`, `pages/`, `hooks/`, `utils/`, `types/`, and `assets/` as needed. New feature-specific code goes here.
+- **`web/src/shared/`** — code that is used by more than one feature. Organized by kind:
+
+| Directory | Contents | Example files |
+| --------- | -------- | ------------- |
+| `shared/components/` | Reusable UI components | `labels.tsx`, `format.tsx`, `query-browser/query-browser.tsx` |
+| `shared/hooks/` | Shared custom hooks | `useBoolean.ts`, `useAlerts.ts`, `usePerspective.tsx` |
+| `shared/store/` | Redux store, actions, reducers, thunks | `store.ts`, `actions.ts`, `reducers.ts` |
+| `shared/contexts/` | React contexts | `MonitoringContext.tsx` |
+| `shared/constants/` | Shared constants | `data-test.ts`, `query-params.ts` |
+| `shared/types/` | Shared TypeScript types | `types.ts` |
+| `shared/utils/` | Shared pure utility functions | `utils.ts`, `react-router-7-adapter.ts` |
+| `shared/assets/` | Static assets (fonts, images) | `codicon.ttf` |
+| `shared/console/` | Vendored/adapted OpenShift Console internals | `utils/safe-fetch-hook.ts`, `graphs/` |
+
+**Decision rules**:
+- If a file is only ever imported by code inside a single feature directory, it belongs in that feature. If it is (or may be) imported by multiple features, it belongs in `shared/`.
+- If a component or utility is only used by a single page, it should be co-located inside that page's own subdirectory rather than the feature-level `components/` or `utils/` folder. For example, `AggregateAlertTableRow.tsx` lives inside `features/alerts/pages/alerts-page/` because it is only used by `AlertsPage.tsx`. A page that has page-scoped files should be promoted to its own subdirectory (e.g. `alerts-page/AlertsPage.tsx`) rather than being a standalone file at the `pages/` level.
+
+The current features are:
+
+| Feature | Directory |
+| ------- | --------- |
+| Alerting (alerts, silences, alert rules) | `features/alerts/` |
+| Incidents | `features/incidents/` |
+| Legacy Dashboards | `features/legacy-dashboards/` |
+| Metrics / PromQL | `features/metrics/` |
+| Perses Dashboards | `features/perses-dashboards/` |
+| Targets | `features/targets/` |
+
 #### Types and Interfaces
 
 | Type            | Convention                                       | Example                                                 |
@@ -237,7 +271,7 @@ export const AlertResource: MonitoringResource = {
 
 #### Test IDs
 
-Use the centralized `DataTestIDs` object in `web/src/components/data-test.ts`:
+Use the centralized `DataTestIDs` object in `web/src/shared/constants/data-test.ts`:
 
 ```typescript
 // ✅ Good: Test ID definitions
@@ -342,13 +376,13 @@ type RequiredFields = Required<Pick<Config, "name" | "url">>;
 
 ### Go Backend Guidelines
 
-The backend that serves plugin assets and proxies APIs is written in Go (see `/cmd` and `/pkg`).
+The backend that serves plugin assets and proxies APIs is written in Go (see `/cmd` and `/pkg`). The main packages under `pkg/` are `pkg/server/` (HTTP server and plugin handler) and `pkg/monitoring/` (proxy and API sanitization).
 Follow these Go-specific conventions in addition to the general naming rules:
 
 #### Files and Packages
 
 - **File names**: lowercase with underscores only when required (e.g., `plugin_handler.go`, `server_test.go`).
-- **Packages**: short, all lowercase, no underscores or mixedCaps (e.g., `proxy`, `handlers`).
+- **Packages**: short, all lowercase, no underscores or mixedCaps (e.g., `monitoring`, `server`).
 - **Tests**: co-locate `_test.go` files next to the implementation and keep table-driven tests when feasible.
 
 #### Variables and Constants
