@@ -2,17 +2,17 @@ import { Alert, ResourceIcon, TableColumn } from '@openshift-console/dynamic-plu
 import { ExpandableRowContent, Table, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getRuleUrl, usePerspective } from '../../../../shared/hooks/usePerspective';
-import { useMonitoringNamespace } from '../../../../shared/hooks/useMonitoringNamespace';
+import { getRuleUrl, usePerspective } from '@shared/hooks/usePerspective';
+import { useMonitoringNamespace } from '@shared/hooks/useMonitoringNamespace';
 import { AggregatedAlert } from './AlertsAggregates';
 import { AlertState } from '../../components/AlertUtils';
-import { SeverityBadge } from '../../../../shared/components/SeverityBadge';
+import { SeverityBadge } from '@shared/components/SeverityBadge';
 import AlertTableRow from './AlertTableRow';
-import { RuleResource } from '../../../../shared/utils/utils';
+import { RuleResource } from '@shared/utils/utils';
 import { Link } from 'react-router';
 import { filterAlerts } from './filter-alerts';
 import { Badge, Flex, FlexItem } from '@patternfly/react-core';
-import { DataTestIDs } from '../../../../shared/constants/data-test';
+import { DataTestIDs } from '@shared/constants/data-test';
 import { AggregatedAlertFilters } from './AlertsPage';
 
 type AggregateAlertTableRowProps = {

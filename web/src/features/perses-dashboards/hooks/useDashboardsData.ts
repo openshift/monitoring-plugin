@@ -3,14 +3,14 @@ import { useMemo, useCallback, useRef } from 'react';
 
 import { DashboardResource } from '@perses-dev/core';
 import { StringParam, useQueryParam } from 'use-query-params';
-import type { CombinedDashboardMetadata } from '../../../shared/types/types';
-import { useBoolean } from '../../../shared/hooks/useBoolean';
-import { getDashboardUrl, usePerspective } from '../../../shared/hooks/usePerspective';
-import { QueryParams } from '../../../shared/constants/query-params';
+import type { CombinedDashboardMetadata } from '@shared/types/types';
+import { useBoolean } from '@shared/hooks/useBoolean';
+import { getDashboardUrl, usePerspective } from '@shared/hooks/usePerspective';
+import { QueryParams } from '@shared/constants/query-params';
 import { useActiveProject } from '../components/project/useActiveProject';
 import { usePerses } from './usePerses';
 import { useNavigate, useSearchParams } from 'react-router';
-import { ALL_NAMESPACES_KEY } from '../../../shared/utils/utils';
+import { ALL_NAMESPACES_KEY } from '@shared/utils/utils';
 
 // This hook syncs with mutliple external API's, redux, and URL state. Its a lot, but needs to all
 // be in a single location

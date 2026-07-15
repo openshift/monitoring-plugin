@@ -1,6 +1,9 @@
 {
   "compilerOptions": {
     "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["src/shared/*"]
+    },
     "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "bundler",

@@ -5,7 +5,7 @@ import {
 } from '@patternfly/react-tokens';
 import { PrometheusResult } from '@openshift-console/dynamic-plugin-sdk';
 import { Dispatch } from 'redux';
-import { setIncidentsActiveFilters } from '../../../shared/store/actions';
+import { setIncidentsActiveFilters } from '@shared/store/actions';
 import {
   Alert,
   AlertsChartBar,

@@ -13,13 +13,13 @@ import { isEmpty } from 'lodash-es';
 import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
-import { MonitoringState } from '../../../shared/store/store';
-import { SeverityBadge } from '../../../shared/components/SeverityBadge';
+import { MonitoringState } from '@shared/store/store';
+import { SeverityBadge } from '@shared/components/SeverityBadge';
 import IncidentsDetailsRowTable from './IncidentsDetailsRowTable';
 import { GroupedAlertStateIcon } from './IncidentAlertStateIcon';
 
 import { GroupedAlert } from '../types/model';
-import { DataTestIDs } from '../../../shared/constants/data-test';
+import { DataTestIDs } from '@shared/constants/data-test';
 
 export const IncidentsTable = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);

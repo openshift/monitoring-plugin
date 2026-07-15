@@ -49,7 +49,7 @@ import type { FC } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { useSafeFetch } from '../../../shared/console/utils/safe-fetch-hook';
+import { useSafeFetch } from '@shared/console/utils/safe-fetch-hook';
 
 import {
   t_global_color_brand_default,
@@ -67,9 +67,9 @@ import {
   t_global_text_color_regular,
   t_global_text_color_subtle,
 } from '@patternfly/react-tokens';
-import { useMonitoring } from '../../../shared/hooks/useMonitoring';
-import { usePatternFlyTheme } from '../../../shared/hooks/usePatternflyTheme';
-import { getPrometheusBasePath, PROMETHEUS_BASE_PATH } from '../../../shared/utils/utils';
+import { useMonitoring } from '@shared/hooks/useMonitoring';
+import { usePatternFlyTheme } from '@shared/hooks/usePatternflyTheme';
+import { getPrometheusBasePath, PROMETHEUS_BASE_PATH } from '@shared/utils/utils';
 
 const box_shadow = `
     var(--pf-t--global--box-shadow--X--md--default)

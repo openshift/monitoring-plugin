@@ -14,24 +14,20 @@ import {
   isActionWithHref,
   NamespaceGroupVersionKind,
 } from '../../components/AlertUtils';
-import { AlertSource } from '../../../../shared/types/types';
+import { AlertSource } from '@shared/types/types';
 import { Td, Tr } from '@patternfly/react-table';
 import { DropdownItem, Flex, FlexItem, Spinner } from '@patternfly/react-core';
-import KebabDropdown from '../../../../shared/components/KebabDropdown';
+import KebabDropdown from '@shared/components/KebabDropdown';
 import type { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, Link } from 'react-router';
-import { AlertResource, alertState } from '../../../../shared/utils/utils';
-import {
-  getAlertUrl,
-  getNewSilenceAlertUrl,
-  usePerspective,
-} from '../../../../shared/hooks/usePerspective';
-import { useMonitoringNamespace } from '../../../../shared/hooks/useMonitoringNamespace';
-import { DataTestIDs } from '../../../../shared/constants/data-test';
+import { AlertResource, alertState } from '@shared/utils/utils';
+import { getAlertUrl, getNewSilenceAlertUrl, usePerspective } from '@shared/hooks/usePerspective';
+import { useMonitoringNamespace } from '@shared/hooks/useMonitoringNamespace';
+import { DataTestIDs } from '@shared/constants/data-test';
 import { useAgenticRunCheck } from './agentic-runs/useAgenticRunCheck';
-import CustomIcon from '../../../../shared/components/CustomIcon';
-import { SeverityBadge } from '../../../../shared/components/SeverityBadge';
+import CustomIcon from '@shared/components/CustomIcon';
+import { SeverityBadge } from '@shared/components/SeverityBadge';
 
 const getAgenticRunUrl = (namespace: string, name: string): string => {
   return `/lightspeed/runs/${namespace}/${name}`;

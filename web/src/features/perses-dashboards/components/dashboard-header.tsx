@@ -5,11 +5,11 @@ import { useTranslation } from 'react-i18next';
 import { Divider, Stack, StackItem } from '@patternfly/react-core';
 
 import { DocumentTitle, ListPageHeader } from '@openshift-console/dynamic-plugin-sdk';
-import type { CombinedDashboardMetadata } from '../../../shared/types/types';
+import type { CombinedDashboardMetadata } from '@shared/types/types';
 
 import { Breadcrumb, BreadcrumbItem } from '@patternfly/react-core';
 import { useNavigate } from 'react-router';
-import { getDashboardsListUrl, usePerspective } from '../../../shared/hooks/usePerspective';
+import { getDashboardsListUrl, usePerspective } from '@shared/hooks/usePerspective';
 
 import {
   chart_color_blue_100,
@@ -17,8 +17,8 @@ import {
   t_global_spacer_md,
   t_global_spacer_xl,
 } from '@patternfly/react-tokens';
-import { listPersesDashboardsDataTestIDs } from '../../../shared/constants/data-test';
-import { usePatternFlyTheme } from '../../../shared/hooks/usePatternflyTheme';
+import { listPersesDashboardsDataTestIDs } from '@shared/constants/data-test';
+import { usePatternFlyTheme } from '@shared/hooks/usePatternflyTheme';
 import { DashboardActionsMenu } from './dashboard-actions-menu';
 import { PagePadding } from '../pages/dashboard-page/dashboard-page-padding';
 

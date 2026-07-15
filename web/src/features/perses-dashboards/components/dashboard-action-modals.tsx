@@ -44,7 +44,7 @@ import { useEditableProjects } from '../hooks/useEditableProjects';
 import { usePerses } from '../hooks/usePerses';
 import { t_global_spacer_200, t_global_font_weight_200 } from '@patternfly/react-tokens';
 import { useNavigate } from 'react-router';
-import { usePerspective, getDashboardUrl } from '../../../shared/hooks/usePerspective';
+import { usePerspective, getDashboardUrl } from '@shared/hooks/usePerspective';
 
 export const formGroupStyle = {
   fontWeight: t_global_font_weight_200.value,

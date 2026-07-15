@@ -4,7 +4,7 @@ jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
 
 import { filterTargets } from './filter-targets';
 import { TargetsFilterOptions, TargetsFilters } from '../pages/targets-page';
-import { Target } from '../../../shared/types/types';
+import { Target } from '@shared/types/types';
 
 const emptyFilters: TargetsFilters = {
   [TargetsFilterOptions.NAME]: '',

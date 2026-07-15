@@ -1,6 +1,6 @@
 import type { FC } from 'react';
 
-import { Bar } from '../../../../shared/console/graphs/bar';
+import { Bar } from '@shared/console/graphs/bar';
 import { CustomDataSource } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
 
 const BarChart: FC<BarChartProps> = ({ customDataSource, pollInterval, query }) => (

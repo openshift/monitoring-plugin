@@ -48,27 +48,27 @@ import {
   SeverityHelp,
   SourceHelp,
 } from '../components/AlertUtils';
-import withFallback from '../../../shared/console/console-shared/error/fallbacks/withFallback';
-import { StatusBox } from '../../../shared/console/console-shared/src/components/status/StatusBox';
-import { formatPrometheusDuration } from '../../../shared/console/console-shared/src/datetime/prometheus';
-import { ExternalLink } from '../../../shared/console/utils/link';
+import withFallback from '@shared/console/console-shared/error/fallbacks/withFallback';
+import { StatusBox } from '@shared/console/console-shared/src/components/status/StatusBox';
+import { formatPrometheusDuration } from '@shared/console/console-shared/src/datetime/prometheus';
+import { ExternalLink } from '@shared/console/utils/link';
 import {
   getAlertRulesUrl,
   getAlertUrl,
   getNewSilenceAlertUrl,
   getQueryBrowserUrl,
   usePerspective,
-} from '../../../shared/hooks/usePerspective';
-import { useMonitoringNamespace } from '../../../shared/hooks/useMonitoringNamespace';
-import KebabDropdown from '../../../shared/components/KebabDropdown';
-import { Labels } from '../../../shared/components/labels';
-import { alertDescription, RuleResource } from '../../../shared/utils/utils';
-import { MonitoringProvider } from '../../../shared/contexts/MonitoringContext';
+} from '@shared/hooks/usePerspective';
+import { useMonitoringNamespace } from '@shared/hooks/useMonitoringNamespace';
+import KebabDropdown from '@shared/components/KebabDropdown';
+import { Labels } from '@shared/components/labels';
+import { alertDescription, RuleResource } from '@shared/utils/utils';
+import { MonitoringProvider } from '@shared/contexts/MonitoringContext';
 
-import { DataTestIDs } from '../../../shared/constants/data-test';
-import { useAlerts } from '../../../shared/hooks/useAlerts';
-import { SeverityBadge } from '../../../shared/components/SeverityBadge';
-import { ToggleGraph } from '../../../shared/components/ToggleGraph';
+import { DataTestIDs } from '@shared/constants/data-test';
+import { useAlerts } from '@shared/hooks/useAlerts';
+import { SeverityBadge } from '@shared/components/SeverityBadge';
+import { ToggleGraph } from '@shared/components/ToggleGraph';
 
 // Renders Prometheus template text and highlights any {{ ... }} tags that it contains
 const PrometheusTemplate = ({ text }: { text: string }) => (

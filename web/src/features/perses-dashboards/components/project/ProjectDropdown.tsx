@@ -32,7 +32,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import { ALL_NAMESPACES_KEY } from '../../../../shared/utils/utils';
+import { ALL_NAMESPACES_KEY } from '@shared/utils/utils';
 
 export const NoResults: FC<{
   onClear: (event: ReactMouseEvent<HTMLButtonElement, MouseEvent>) => void;

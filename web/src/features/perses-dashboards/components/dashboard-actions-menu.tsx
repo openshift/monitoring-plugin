@@ -12,7 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { useEditableProjects } from '../hooks/useEditableProjects';
 import { DashboardCreateDialog } from './dashboard-create-dialog';
 import { DashboardImportDialog } from './dashboard-import-dialog';
-import { persesDashboardDataTestIDs } from '../../../shared/constants/data-test';
+import { persesDashboardDataTestIDs } from '@shared/constants/data-test';
 
 export const DashboardActionsMenu: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);

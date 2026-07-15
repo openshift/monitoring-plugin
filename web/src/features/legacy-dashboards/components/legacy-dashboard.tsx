@@ -23,33 +23,33 @@ import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router';
 
-import { Perspective } from '../../../shared/store/actions';
+import { Perspective } from '@shared/store/actions';
 import BarChart from './panels/bar-chart';
 import Graph from './panels/graph';
 import SingleStat from './panels/single-stat';
 import Table from './panels/table';
-import { useBoolean } from '../../../shared/hooks/useBoolean';
-import { useIsVisible } from '../../../shared/hooks/useIsVisible';
+import { useBoolean } from '@shared/hooks/useBoolean';
+import { useIsVisible } from '@shared/hooks/useIsVisible';
 import {
   getMutlipleQueryBrowserUrl,
   getObserveState,
   usePerspective,
-} from '../../../shared/hooks/usePerspective';
-import { useMonitoringNamespace } from '../../../shared/hooks/useMonitoringNamespace';
-import KebabDropdown from '../../../shared/components/KebabDropdown';
-import { MonitoringState } from '../../../shared/store/store';
+} from '@shared/hooks/usePerspective';
+import { useMonitoringNamespace } from '@shared/hooks/useMonitoringNamespace';
+import KebabDropdown from '@shared/components/KebabDropdown';
+import { MonitoringState } from '@shared/store/store';
 import { evaluateVariableTemplate, Variable } from './legacy-variable-dropdowns';
 import { Panel, Row } from '../types/types';
-import { QueryParams } from '../../../shared/constants/query-params';
+import { QueryParams } from '@shared/constants/query-params';
 import { CustomDataSource } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/dashboard-data-source';
 import {
   DataSource,
   isDataSource,
 } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
 import { t_global_font_size_heading_h2 } from '@patternfly/react-tokens';
-import { GraphUnits } from '../../../shared/utils/units';
-import { LegacyDashboardPageTestIDs } from '../../../shared/constants/data-test';
-import { useMonitoring } from '../../../shared/hooks/useMonitoring';
+import { GraphUnits } from '@shared/utils/units';
+import { LegacyDashboardPageTestIDs } from '@shared/constants/data-test';
+import { useMonitoring } from '@shared/hooks/useMonitoring';
 import { useQueryParam } from 'use-query-params';
 import { RefreshIntervalParam, TimeRangeParam } from '../utils/utils';
 

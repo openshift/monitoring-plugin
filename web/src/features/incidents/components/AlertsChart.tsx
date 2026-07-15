@@ -34,13 +34,13 @@ import {
   getCurrentTime,
   roundDateToInterval,
 } from '../utils/utils';
-import { dateTimeFormatter, timeFormatter } from '../../../shared/console/utils/datetime';
+import { dateTimeFormatter, timeFormatter } from '@shared/console/utils/datetime';
 import { useTranslation } from 'react-i18next';
 import { AlertsChartBar } from '../types/model';
-import { setAlertsAreLoading } from '../../../shared/store/actions';
-import { MonitoringState } from '../../../shared/store/store';
+import { setAlertsAreLoading } from '@shared/store/actions';
+import { MonitoringState } from '@shared/store/store';
 import { isEmpty } from 'lodash-es';
-import { DataTestIDs } from '../../../shared/constants/data-test';
+import { DataTestIDs } from '@shared/constants/data-test';
 
 const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
   const dispatch = useDispatch();

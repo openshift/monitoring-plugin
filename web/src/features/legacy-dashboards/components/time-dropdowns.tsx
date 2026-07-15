@@ -7,12 +7,12 @@ import { NumberParam, useQueryParam } from 'use-query-params';
 import {
   formatPrometheusDuration,
   parsePrometheusDuration,
-} from '../../../shared/console/console-shared/src/datetime/prometheus';
-import { DropDownPollInterval } from '../../../shared/components/DropdownPollInterval';
-import { useBoolean } from '../../../shared/hooks/useBoolean';
-import { QueryParams } from '../../../shared/constants/query-params';
+} from '@shared/console/console-shared/src/datetime/prometheus';
+import { DropDownPollInterval } from '@shared/components/DropdownPollInterval';
+import { useBoolean } from '@shared/hooks/useBoolean';
+import { QueryParams } from '@shared/constants/query-params';
 import CustomTimeRangeModal from './custom-time-range-modal';
-import { LegacyDashboardPageTestIDs } from '../../../shared/constants/data-test';
+import { LegacyDashboardPageTestIDs } from '@shared/constants/data-test';
 import { RefreshIntervalParam, TimeRangeParam } from '../utils/utils';
 
 const CUSTOM_TIME_RANGE_KEY = 'CUSTOM_TIME_RANGE_KEY';

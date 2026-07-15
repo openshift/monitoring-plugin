@@ -1,10 +1,10 @@
 import * as _ from 'lodash-es';
 import { useTranslation } from 'react-i18next';
 import { SilenceForm } from '../components/SilenceForm';
-import { MonitoringProvider } from '../../../shared/contexts/MonitoringContext';
-import { useMonitoring } from '../../../shared/hooks/useMonitoring';
-import { LoadingBox } from '../../../shared/console/console-shared/src/components/loading/LoadingBox';
-import { useMonitoringNamespace } from '../../../shared/hooks/useMonitoringNamespace';
+import { MonitoringProvider } from '@shared/contexts/MonitoringContext';
+import { useMonitoring } from '@shared/hooks/useMonitoring';
+import { LoadingBox } from '@shared/console/console-shared/src/components/loading/LoadingBox';
+import { useMonitoringNamespace } from '@shared/hooks/useMonitoringNamespace';
 import { useSearchParams } from 'react-router';
 
 const CreateSilencePage = () => {

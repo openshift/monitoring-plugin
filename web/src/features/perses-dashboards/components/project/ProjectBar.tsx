@@ -1,9 +1,9 @@
 import type { FC } from 'react';
 import { KEYBOARD_SHORTCUTS } from './utils';
 import ProjectDropdown from './ProjectDropdown';
-import { getDashboardsListUrl, usePerspective } from '../../../../shared/hooks/usePerspective';
+import { getDashboardsListUrl, usePerspective } from '@shared/hooks/usePerspective';
 import { useNavigate } from 'react-router';
-import { QueryParams } from '../../../../shared/constants/query-params';
+import { QueryParams } from '@shared/constants/query-params';
 
 export type ProjectBarProps = {
   activeProject: string | null;

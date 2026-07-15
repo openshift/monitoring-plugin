@@ -1,13 +1,13 @@
 import { useActiveNamespace } from '@openshift-console/dynamic-plugin-sdk';
 import { useEffect } from 'react';
-import { QueryParams } from '../../../shared/constants/query-params';
+import { QueryParams } from '@shared/constants/query-params';
 import { StringParam, useQueryParam } from 'use-query-params';
 import { useDispatch, useSelector } from 'react-redux';
-import { MonitoringState } from '../../../shared/store/store';
-import { getObserveState, usePerspective } from '../../../shared/hooks/usePerspective';
-import { useMonitoring } from '../../../shared/hooks/useMonitoring';
+import { MonitoringState } from '@shared/store/store';
+import { getObserveState, usePerspective } from '@shared/hooks/usePerspective';
+import { useMonitoring } from '@shared/hooks/useMonitoring';
 import { useParams } from 'react-router';
-import { dashboardsPatchVariable } from '../../../shared/store/actions';
+import { dashboardsPatchVariable } from '@shared/store/actions';
 
 export const useLegacyDashboardsProject = (dashboardName?: string) => {
   const { perspective } = usePerspective();

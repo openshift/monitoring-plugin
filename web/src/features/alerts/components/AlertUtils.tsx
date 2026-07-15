@@ -48,15 +48,12 @@ import type { FC, ReactNode } from 'react';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
-import { NamespaceModel } from '../../../shared/console/models';
-import { getQueryBrowserUrl, usePerspective } from '../../../shared/hooks/usePerspective';
-import { useMonitoringNamespace } from '../../../shared/hooks/useMonitoringNamespace';
-import {
-  FormatSeriesTitle,
-  QueryBrowser,
-} from '../../../shared/components/query-browser/query-browser';
-import { AlertSource } from '../../../shared/types/types';
-import { SeverityBadge } from '../../../shared/components/SeverityBadge';
+import { NamespaceModel } from '@shared/console/models';
+import { getQueryBrowserUrl, usePerspective } from '@shared/hooks/usePerspective';
+import { useMonitoringNamespace } from '@shared/hooks/useMonitoringNamespace';
+import { FormatSeriesTitle, QueryBrowser } from '@shared/components/query-browser/query-browser';
+import { AlertSource } from '@shared/types/types';
+import { SeverityBadge } from '@shared/components/SeverityBadge';
 
 export const getAdditionalSources = <T extends Alert | Rule>(
   data: Array<T>,

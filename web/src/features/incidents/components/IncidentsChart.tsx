@@ -34,9 +34,9 @@ import {
   generateDateArray,
   roundDateToInterval,
 } from '../utils/utils';
-import { dateTimeFormatter, timeFormatter } from '../../../shared/console/utils/datetime';
+import { dateTimeFormatter, timeFormatter } from '@shared/console/utils/datetime';
 import { useTranslation } from 'react-i18next';
-import { DataTestIDs } from '../../../shared/constants/data-test';
+import { DataTestIDs } from '@shared/constants/data-test';
 
 /**
  * Processes component list: moves "Others" to end and limits display to 3 components

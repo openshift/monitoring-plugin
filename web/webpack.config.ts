@@ -27,6 +27,8 @@ const config: Configuration = {
       // Stub them out during development builds to prevent webpack resolution errors.
       '@console/internal': false,
       '@console/shared': false,
+      // Alias for shared utilities, components, hooks, etc.
+      '@shared': path.resolve(__dirname, 'src/shared'),
     },
   },
   module: {

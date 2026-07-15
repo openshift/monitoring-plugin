@@ -39,38 +39,38 @@ import type { FC } from 'react';
 import { createContext, memo, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router';
-import { MonitoringProvider } from '../../../shared/contexts/MonitoringContext';
-import { EmptyBox } from '../../../shared/console/console-shared/src/components/empty-state/EmptyBox';
-import { LoadingBox } from '../../../shared/console/console-shared/src/components/loading/LoadingBox';
-import { LoadingInline } from '../../../shared/console/console-shared/src/components/loading/LoadingInline';
-import { StatusBox } from '../../../shared/console/console-shared/src/components/status/StatusBox';
+import { MonitoringProvider } from '@shared/contexts/MonitoringContext';
+import { EmptyBox } from '@shared/console/console-shared/src/components/empty-state/EmptyBox';
+import { LoadingBox } from '@shared/console/console-shared/src/components/loading/LoadingBox';
+import { LoadingInline } from '@shared/console/console-shared/src/components/loading/LoadingInline';
+import { StatusBox } from '@shared/console/console-shared/src/components/status/StatusBox';
 import {
   NamespaceModel,
   PodModel,
   PodMonitorModel,
   ServiceModel,
   ServiceMonitorModel,
-} from '../../../shared/console/models';
-import { LabelSelector } from '../../../shared/console/module/k8s/label-selector';
-import { usePoll } from '../../../shared/console/utils/poll-hook';
-import { useSafeFetch } from '../../../shared/console/utils/safe-fetch-hook';
+} from '@shared/console/models';
+import { LabelSelector } from '@shared/console/module/k8s/label-selector';
+import { usePoll } from '@shared/console/utils/poll-hook';
+import { useSafeFetch } from '@shared/console/utils/safe-fetch-hook';
 import { filterTargets } from '../utils/filter-targets';
-import { directedSort, localeCompareSort } from '../../../shared/components/table/sort-utils';
-import { useTableColumns } from '../../../shared/components/table/hooks/useTableColumns';
-import { useBoolean } from '../../../shared/hooks/useBoolean';
-import { Labels } from '../../../shared/components/labels';
-import { ITEMS_PER_PAGE, TablePagination } from '../../../shared/components/table/table-pagination';
+import { directedSort, localeCompareSort } from '@shared/components/table/sort-utils';
+import { useTableColumns } from '@shared/components/table/hooks/useTableColumns';
+import { useBoolean } from '@shared/hooks/useBoolean';
+import { Labels } from '@shared/components/labels';
+import { ITEMS_PER_PAGE, TablePagination } from '@shared/components/table/table-pagination';
 import {
   TableFilter,
   TableFilterOption,
   TableFilterProps,
   TableFilters,
-} from '../../../shared/components/table/TableFilters';
-import { TableToolbar } from '../../../shared/components/table/TableToolbar';
-import { useTableFilters, rowFilter } from '../../../shared/components/table/hooks/useTableFilters';
-import { useTablePagination } from '../../../shared/components/table/hooks/useTablePagination';
-import { AlertSource, PrometheusAPIError, Target } from '../../../shared/types/types';
-import { PROMETHEUS_BASE_PATH } from '../../../shared/utils/utils';
+} from '@shared/components/table/TableFilters';
+import { TableToolbar } from '@shared/components/table/TableToolbar';
+import { useTableFilters, rowFilter } from '@shared/components/table/hooks/useTableFilters';
+import { useTablePagination } from '@shared/components/table/hooks/useTablePagination';
+import { AlertSource, PrometheusAPIError, Target } from '@shared/types/types';
+import { PROMETHEUS_BASE_PATH } from '@shared/utils/utils';
 
 export const enum TargetsFilterOptions {
   NAME = 'name',

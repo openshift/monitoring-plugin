@@ -3,7 +3,7 @@ import { type FC } from 'react';
 import { QueryParamProvider } from 'use-query-params';
 import { DashboardList } from './dashboard-list';
 import { ToastProvider } from '../../components/ToastProvider';
-import { ReactRouter7Adapter } from '../../../../shared/utils/react-router-7-adapter';
+import { ReactRouter7Adapter } from '@shared/utils/react-router-7-adapter';
 
 const queryClient = new QueryClient({
   defaultOptions: {

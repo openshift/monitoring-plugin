@@ -2,14 +2,14 @@ import { Table, Thead, Tr, Th, Tbody, Td } from '@patternfly/react-table';
 import { ResourceIcon, Timestamp, useActiveNamespace } from '@openshift-console/dynamic-plugin-sdk';
 import { Bullseye, Spinner } from '@patternfly/react-core';
 import { Link } from 'react-router';
-import { ALL_NAMESPACES_KEY, RuleResource } from '../../../shared/utils/utils';
+import { ALL_NAMESPACES_KEY, RuleResource } from '@shared/utils/utils';
 import { useTranslation } from 'react-i18next';
-import { getRuleUrl, usePerspective } from '../../../shared/hooks/usePerspective';
-import { SeverityBadge } from '../../../shared/components/SeverityBadge';
+import { getRuleUrl, usePerspective } from '@shared/hooks/usePerspective';
+import { SeverityBadge } from '@shared/components/SeverityBadge';
 import { Alert, IncidentsDetailsAlert } from '../types/model';
 import { IncidentAlertStateIcon } from './IncidentAlertStateIcon';
 import { useMemo } from 'react';
-import { DataTestIDs } from '../../../shared/constants/data-test';
+import { DataTestIDs } from '@shared/constants/data-test';
 
 interface IncidentsDetailsRowTableProps {
   alerts: Alert[];

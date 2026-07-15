@@ -23,25 +23,22 @@ import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { useSafeFetch } from '../../../shared/console/utils/safe-fetch-hook';
-import { SingleTypeaheadDropdown } from '../../../shared/console/utils/single-typeahead-dropdown';
-import { buildPrometheusUrl, getPrometheusBasePath } from '../../../shared/utils/utils';
+import { useSafeFetch } from '@shared/console/utils/safe-fetch-hook';
+import { SingleTypeaheadDropdown } from '@shared/console/utils/single-typeahead-dropdown';
+import { buildPrometheusUrl, getPrometheusBasePath } from '@shared/utils/utils';
 
 import {
   DataSource,
   isDataSource,
 } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
 import { StringParam, useQueryParam } from 'use-query-params';
-import { useMonitoring } from '../../../shared/hooks/useMonitoring';
-import {
-  dashboardsPatchVariable,
-  dashboardsVariableOptionsLoaded,
-} from '../../../shared/store/actions';
-import { MonitoringState } from '../../../shared/store/store';
-import { useDeepMemo } from '../../../shared/hooks/useDeepMemo';
-import { getObserveState, usePerspective } from '../../../shared/hooks/usePerspective';
-import { QueryParams } from '../../../shared/constants/query-params';
-import { getTimeRanges, isTimeoutError, QUERY_CHUNK_SIZE } from '../../../shared/utils/utils';
+import { useMonitoring } from '@shared/hooks/useMonitoring';
+import { dashboardsPatchVariable, dashboardsVariableOptionsLoaded } from '@shared/store/actions';
+import { MonitoringState } from '@shared/store/store';
+import { useDeepMemo } from '@shared/hooks/useDeepMemo';
+import { getObserveState, usePerspective } from '@shared/hooks/usePerspective';
+import { QueryParams } from '@shared/constants/query-params';
+import { getTimeRanges, isTimeoutError, QUERY_CHUNK_SIZE } from '@shared/utils/utils';
 import {
   DEFAULT_GRAPH_SAMPLES,
   MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY,

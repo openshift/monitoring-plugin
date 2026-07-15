@@ -4,8 +4,8 @@ import { memo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Divider, PageSection, Split, SplitItem, Stack, StackItem } from '@patternfly/react-core';
-import type { CombinedDashboardMetadata } from '../../../shared/types/types';
-import { DashboardDropdown } from '../../../shared/components/dashboard-dropdown';
+import type { CombinedDashboardMetadata } from '@shared/types/types';
+import { DashboardDropdown } from '@shared/components/dashboard-dropdown';
 import { PollIntervalDropdown, TimespanDropdown } from './time-dropdowns';
 import { LegacyDashboardsAllVariableDropdowns } from './legacy-variable-dropdowns';
 import { DocumentTitle, ListPageHeader } from '@openshift-console/dynamic-plugin-sdk';

@@ -27,9 +27,9 @@ import {
 import { ActionsColumn, ThProps } from '@patternfly/react-table';
 import { Link, useSearchParams } from 'react-router';
 
-import { getDashboardUrl, usePerspective } from '../../../../shared/hooks/usePerspective';
+import { getDashboardUrl, usePerspective } from '@shared/hooks/usePerspective';
 import { Timestamp } from '@openshift-console/dynamic-plugin-sdk';
-import { listPersesDashboardsDataTestIDs } from '../../../../shared/constants/data-test';
+import { listPersesDashboardsDataTestIDs } from '@shared/constants/data-test';
 import { DashboardListFrame } from './dashboard-list-frame';
 import { usePersesEditPermissions } from '../../hooks/usePersesEditPermissions';
 import { DashboardResource } from '@perses-dev/core';
@@ -39,11 +39,8 @@ import {
   RenameActionModal,
 } from '../../components/dashboard-action-modals';
 import { useEditableProjects } from '../../hooks/useEditableProjects';
-import { ALL_NAMESPACES_KEY } from '../../../../shared/utils/utils';
-import {
-  ITEMS_PER_PAGE,
-  TablePagination,
-} from '../../../../shared/components/table/table-pagination';
+import { ALL_NAMESPACES_KEY } from '@shared/utils/utils';
+import { ITEMS_PER_PAGE, TablePagination } from '@shared/components/table/table-pagination';
 
 const DashboardActionsCell = memo(
   ({

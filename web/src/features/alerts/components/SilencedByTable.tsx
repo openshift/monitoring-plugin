@@ -7,8 +7,8 @@ import {
   getEditSilenceAlertUrl,
   getSilenceAlertUrl,
   usePerspective,
-} from '../../../shared/hooks/usePerspective';
-import { useMonitoringNamespace } from '../../../shared/hooks/useMonitoringNamespace';
+} from '@shared/hooks/usePerspective';
+import { useMonitoringNamespace } from '@shared/hooks/useMonitoringNamespace';
 import {
   DataViewTable,
   DataViewTr,
@@ -17,8 +17,8 @@ import {
 import { Flex, FlexItem, Stack, StackItem } from '@patternfly/react-core';
 import { ActionsColumn, IAction } from '@patternfly/react-table';
 import { ExpireSilenceModal, SilenceMatchersList, SilenceState } from '../components/SilencesUtils';
-import { useBoolean } from '../../../shared/hooks/useBoolean';
-import { SilenceResource } from '../../../shared/utils/utils';
+import { useBoolean } from '@shared/hooks/useBoolean';
+import { SilenceResource } from '@shared/utils/utils';
 import { SeverityCounts, StateTimestamp } from '../components/AlertUtils';
 import { t_global_spacer_xs } from '@patternfly/react-tokens';
 

@@ -34,7 +34,7 @@ import {
   ValidationProvider,
 } from '@perses-dev/plugin-system';
 import { ReactNode, useMemo } from 'react';
-import { usePatternFlyTheme } from '../../../shared/hooks/usePatternflyTheme';
+import { usePatternFlyTheme } from '@shared/hooks/usePatternflyTheme';
 import { OcpDatasourceApi } from '../utils/datasource-api';
 import { PERSES_PROXY_BASE_PATH, useFetchPersesDashboard } from '../utils/perses-client';
 import { CachedDatasourceAPI } from '../utils/perses/datasource-cache-api';
@@ -48,10 +48,10 @@ import {
   t_global_background_color_100,
   t_global_background_color_400,
 } from '@patternfly/react-tokens';
-import { QueryParams } from '../../../shared/constants/query-params';
+import { QueryParams } from '@shared/constants/query-params';
 import { StringParam, useQueryParam } from 'use-query-params';
 import { useTranslation } from 'react-i18next';
-import { LoadingBox } from '../../../shared/console/console-shared/src/components/loading/LoadingBox';
+import { LoadingBox } from '@shared/console/console-shared/src/components/loading/LoadingBox';
 import { remotePluginLoader } from '@perses-dev/plugin-system';
 import { Link, useNavigate } from 'react-router';
 

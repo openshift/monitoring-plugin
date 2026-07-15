@@ -20,11 +20,11 @@ import { StackItem } from '@patternfly/react-core';
 import * as _ from 'lodash-es';
 import PencilIcon from 'mdi-material-ui/PencilOutline';
 import { useTranslation } from 'react-i18next';
-import { DashboardDropdown } from '../../../../shared/components/dashboard-dropdown';
+import { DashboardDropdown } from '@shared/components/dashboard-dropdown';
 import { useDashboardsData } from '../../hooks/useDashboardsData';
 import { usePersesEditPermissions } from '../../hooks/usePersesEditPermissions';
 
-import { persesDashboardDataTestIDs } from '../../../../shared/constants/data-test';
+import { persesDashboardDataTestIDs } from '@shared/constants/data-test';
 
 export interface DashboardToolbarProps {
   dashboardName: string;

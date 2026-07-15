@@ -8,35 +8,29 @@ import { useDataViewSort } from '@patternfly/react-data-view/dist/dynamic/Hooks'
 import { Table, TableGridBreakpoint } from '@patternfly/react-table';
 import { useEffect, useMemo, useRef, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { MonitoringProvider } from '../../../../shared/contexts/MonitoringContext';
-import { useAlerts } from '../../../../shared/hooks/useAlerts';
-import withFallback from '../../../../shared/console/console-shared/error/fallbacks/withFallback';
-import { AccessDenied } from '../../../../shared/console/console-shared/src/components/empty-state/AccessDenied';
-import { EmptyBox } from '../../../../shared/console/console-shared/src/components/empty-state/EmptyBox';
-import { LoadingBox } from '../../../../shared/console/console-shared/src/components/loading/LoadingBox';
-import { useDeepMemo } from '../../../../shared/hooks/useDeepMemo';
-import { useMonitoringNamespace } from '../../../../shared/hooks/useMonitoringNamespace';
-import { usePerspective } from '../../../../shared/hooks/usePerspective';
-import {
-  ITEMS_PER_PAGE,
-  TablePagination,
-} from '../../../../shared/components/table/table-pagination';
+import { MonitoringProvider } from '@shared/contexts/MonitoringContext';
+import { useAlerts } from '@shared/hooks/useAlerts';
+import withFallback from '@shared/console/console-shared/error/fallbacks/withFallback';
+import { AccessDenied } from '@shared/console/console-shared/src/components/empty-state/AccessDenied';
+import { EmptyBox } from '@shared/console/console-shared/src/components/empty-state/EmptyBox';
+import { LoadingBox } from '@shared/console/console-shared/src/components/loading/LoadingBox';
+import { useDeepMemo } from '@shared/hooks/useDeepMemo';
+import { useMonitoringNamespace } from '@shared/hooks/useMonitoringNamespace';
+import { usePerspective } from '@shared/hooks/usePerspective';
+import { ITEMS_PER_PAGE, TablePagination } from '@shared/components/table/table-pagination';
 import {
   TableFilter,
   TableFilterOption,
   TableFilterProps,
   TableFilters,
-} from '../../../../shared/components/table/TableFilters';
-import { TableToolbar } from '../../../../shared/components/table/TableToolbar';
-import { directedSort, localeCompareSort } from '../../../../shared/components/table/sort-utils';
-import { useTableColumns } from '../../../../shared/components/table/hooks/useTableColumns';
-import {
-  useTableFilters,
-  rowFilter,
-} from '../../../../shared/components/table/hooks/useTableFilters';
-import { useTablePagination } from '../../../../shared/components/table/hooks/useTablePagination';
-import { AlertSource } from '../../../../shared/types/types';
-import { ALL_NAMESPACES_KEY, severitySort } from '../../../../shared/utils/utils';
+} from '@shared/components/table/TableFilters';
+import { TableToolbar } from '@shared/components/table/TableToolbar';
+import { directedSort, localeCompareSort } from '@shared/components/table/sort-utils';
+import { useTableColumns } from '@shared/components/table/hooks/useTableColumns';
+import { useTableFilters, rowFilter } from '@shared/components/table/hooks/useTableFilters';
+import { useTablePagination } from '@shared/components/table/hooks/useTablePagination';
+import { AlertSource } from '@shared/types/types';
+import { ALL_NAMESPACES_KEY, severitySort } from '@shared/utils/utils';
 import AggregateAlertTableRow from './AggregateAlertTableRow';
 import DownloadCSVButton from './DownloadCSVButton';
 import { filterAlerts } from './filter-alerts';

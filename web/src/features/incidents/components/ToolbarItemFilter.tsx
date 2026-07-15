@@ -10,8 +10,8 @@ import {
 } from '@patternfly/react-core';
 import { getFilterKey } from '../utils/utils';
 import { IncidentFiltersCombined } from '../types/model';
-import { setAlertsAreLoading } from '../../../shared/store/actions';
-import { DataTestIDs } from '../../../shared/constants/data-test';
+import { setAlertsAreLoading } from '@shared/store/actions';
+import { DataTestIDs } from '@shared/constants/data-test';
 import { useTranslation } from 'react-i18next';
 
 interface IncidentFilterToolbarItemProps {

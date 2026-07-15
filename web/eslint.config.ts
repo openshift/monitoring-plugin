@@ -109,6 +109,18 @@ export default defineConfig([
     },
     rules: {
       'import/no-restricted-paths': ['error', { zones: importBoundaryZones }],
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              regex: '^(\\.\\./)+shared/',
+              message:
+                'Use the @shared alias instead of relative imports to src/shared/ (e.g. `@shared/hooks/useAlerts`).',
+            },
+          ],
+        },
+      ],
     },
   },
 ]);

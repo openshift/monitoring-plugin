@@ -8,13 +8,13 @@ import {
   NamespaceBar,
   useActivePerspective,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { MonitoringProvider } from '../../../shared/contexts/MonitoringContext';
-import { useMonitoring } from '../../../shared/hooks/useMonitoring';
+import { MonitoringProvider } from '@shared/contexts/MonitoringContext';
+import { useMonitoring } from '@shared/hooks/useMonitoring';
 import { useLocation } from 'react-router';
-import { AlertResource, SilenceResource } from '../../../shared/utils/utils';
+import { AlertResource, SilenceResource } from '@shared/utils/utils';
 import { useDispatch } from 'react-redux';
-import { alertingClearSelectorData } from '../../../shared/store/actions';
-import { useMonitoringNamespace } from '../../../shared/hooks/useMonitoringNamespace';
+import { alertingClearSelectorData } from '@shared/store/actions';
+import { useMonitoringNamespace } from '@shared/hooks/useMonitoringNamespace';
 
 const CmoAlertsPage = lazy(() =>
   import(/* webpackChunkName: "CmoAlertsPage" */ './alerts-page/AlertsPage').then((module) => ({

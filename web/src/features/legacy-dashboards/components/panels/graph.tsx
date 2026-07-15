@@ -2,14 +2,11 @@ import type { FC } from 'react';
 import { useCallback } from 'react';
 import { NumberParam, useQueryParam } from 'use-query-params';
 
-import {
-  FormatSeriesTitle,
-  QueryBrowser,
-} from '../../../../shared/components/query-browser/query-browser';
+import { FormatSeriesTitle, QueryBrowser } from '@shared/components/query-browser/query-browser';
 import { DEFAULT_GRAPH_SAMPLES, TimeRangeParam } from '../../utils/utils';
 import { CustomDataSource } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
-import { GraphUnits } from '../../../../shared/utils/units';
-import { QueryParams } from '../../../../shared/constants/query-params';
+import { GraphUnits } from '@shared/utils/units';
+import { QueryParams } from '@shared/constants/query-params';
 
 type Props = {
   customDataSource?: CustomDataSource;

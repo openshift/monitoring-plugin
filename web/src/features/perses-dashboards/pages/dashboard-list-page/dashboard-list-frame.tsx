@@ -1,6 +1,6 @@
 import { FC, ReactNode } from 'react';
 import { DashboardListHeader } from '../../components/dashboard-header';
-import type { CombinedDashboardMetadata } from '../../../../shared/types/types';
+import type { CombinedDashboardMetadata } from '@shared/types/types';
 import { ProjectBar } from '../../components/project/ProjectBar';
 
 interface DashboardListFrameProps {

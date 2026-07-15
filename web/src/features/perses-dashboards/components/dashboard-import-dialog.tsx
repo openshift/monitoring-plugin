@@ -30,7 +30,7 @@ import {
 } from './dashboard-dialog-helpers';
 
 import { DashboardResource } from '@perses-dev/core';
-import { usePatternFlyTheme } from '../../../shared/hooks/usePatternflyTheme';
+import { usePatternFlyTheme } from '@shared/hooks/usePatternflyTheme';
 import {
   importDashboardDialogValidationSchema,
   ImportDashboardValidationType,

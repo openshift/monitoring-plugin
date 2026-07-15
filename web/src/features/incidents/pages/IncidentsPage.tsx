@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useMemo, useState, useEffect, useCallback, MouseEvent } from 'react';
-import { useSafeFetch } from '../../../shared/console/utils/safe-fetch-hook';
+import { useSafeFetch } from '@shared/console/utils/safe-fetch-hook';
 import { createAlertsQuery, fetchDataForIncidentsAndAlerts } from '../utils/api';
 import { useTranslation } from 'react-i18next';
 import {
@@ -23,7 +23,7 @@ import {
   Alert,
   AlertActionCloseButton,
 } from '@patternfly/react-core';
-import { AccessDenied } from '../../../shared/console/console-shared/src/components/empty-state/AccessDenied';
+import { AccessDenied } from '@shared/console/console-shared/src/components/empty-state/AccessDenied';
 import { IncidentsTable } from '../components/IncidentsTable';
 import '../assets/incidents-styles.css';
 import {
@@ -53,24 +53,24 @@ import {
   setIncidents,
   setIncidentsActiveFilters,
   setIncidentsLastRefreshTime,
-} from '../../../shared/store/actions';
+} from '@shared/store/actions';
 import { useLocation } from 'react-router';
 import { changeDaysFilter } from '../utils/utils';
-import { parsePrometheusDuration } from '../../../shared/console/console-shared/src/datetime/prometheus';
-import withFallback from '../../../shared/console/console-shared/error/fallbacks/withFallback';
+import { parsePrometheusDuration } from '@shared/console/console-shared/src/datetime/prometheus';
+import withFallback from '@shared/console/console-shared/error/fallbacks/withFallback';
 import IncidentsChart from '../components/IncidentsChart';
 import AlertsChart from '../components/AlertsChart';
-import { usePatternFlyTheme } from '../../../shared/hooks/usePatternflyTheme';
-import { MonitoringState } from '../../../shared/store/store';
+import { usePatternFlyTheme } from '@shared/hooks/usePatternflyTheme';
+import { MonitoringState } from '@shared/store/store';
 import { Incident, IncidentsPageFiltersExpandedState } from '../types/model';
-import { useAlerts } from '../../../shared/hooks/useAlerts';
+import { useAlerts } from '@shared/hooks/useAlerts';
 import IncidentFilterToolbarItem, {
   useSeverityOptions,
   useStateOptions,
 } from '../components/ToolbarItemFilter';
-import { MonitoringProvider } from '../../../shared/contexts/MonitoringContext';
+import { MonitoringProvider } from '@shared/contexts/MonitoringContext';
 import { isEmpty } from 'lodash-es';
-import { DataTestIDs } from '../../../shared/constants/data-test';
+import { DataTestIDs } from '@shared/constants/data-test';
 import { DocumentTitle } from '@openshift-console/dynamic-plugin-sdk';
 
 const IncidentsPage = () => {

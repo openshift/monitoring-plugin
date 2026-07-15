@@ -33,21 +33,21 @@ import {
   getRuleUrl,
   getSilencesUrl,
   usePerspective,
-} from '../../../shared/hooks/usePerspective';
-import { useMonitoringNamespace } from '../../../shared/hooks/useMonitoringNamespace';
-import KebabDropdown from '../../../shared/components/KebabDropdown';
-import { alertDescription, SilenceResource } from '../../../shared/utils/utils';
-import { SeverityBadge } from '../../../shared/components/SeverityBadge';
+} from '@shared/hooks/usePerspective';
+import { useMonitoringNamespace } from '@shared/hooks/useMonitoringNamespace';
+import KebabDropdown from '@shared/components/KebabDropdown';
+import { alertDescription, SilenceResource } from '@shared/utils/utils';
+import { SeverityBadge } from '@shared/components/SeverityBadge';
 import { SeverityCounts } from '../components/AlertUtils';
 import { SilenceDropdown, SilenceMatchersList, SilenceState } from '../components/SilencesUtils';
-import { StatusBox } from '../../../shared/console/console-shared/src/components/status/StatusBox';
-import { LoadingInline } from '../../../shared/console/console-shared/src/components/loading/LoadingInline';
-import withFallback from '../../../shared/console/console-shared/error/fallbacks/withFallback';
+import { StatusBox } from '@shared/console/console-shared/src/components/status/StatusBox';
+import { LoadingInline } from '@shared/console/console-shared/src/components/loading/LoadingInline';
+import withFallback from '@shared/console/console-shared/error/fallbacks/withFallback';
 import { Table, TableVariant, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
 import { useNavigate, useParams, Link } from 'react-router';
-import { MonitoringProvider } from '../../../shared/contexts/MonitoringContext';
-import { DataTestIDs } from '../../../shared/constants/data-test';
-import { useAlerts } from '../../../shared/hooks/useAlerts';
+import { MonitoringProvider } from '@shared/contexts/MonitoringContext';
+import { DataTestIDs } from '@shared/constants/data-test';
+import { useAlerts } from '@shared/hooks/useAlerts';
 
 const SilencesDetailsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
