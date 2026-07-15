@@ -1,7 +1,7 @@
-import type { ReactElement, RefObject } from 'react';
-import { useRef, useEffect } from 'react';
 import { MenuToggle, Popper } from '@patternfly/react-core';
 import classNames from 'classnames';
+import type { ReactElement, RefObject } from 'react';
+import { useRef, useEffect } from 'react';
 
 const ProjectMenuToggle = (props: {
   disabled: boolean;

@@ -3,13 +3,15 @@ import { useEffect, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router';
 import { QueryParamProvider } from 'use-query-params';
+
 import { LoadingInline } from '@shared/console/console-shared/src/components/loading/LoadingInline';
+import { ReactRouter7Adapter } from '@shared/utils/react-router-7-adapter';
+
 import { OCPDashboardApp } from './dashboard-app';
 import { DashboardFrame } from './dashboard-frame';
 import { ProjectEmptyState } from '../../components/emptystates/ProjectEmptyState';
-import { useDashboardsData } from '../../hooks/useDashboardsData';
 import { ToastProvider } from '../../components/ToastProvider';
-import { ReactRouter7Adapter } from '@shared/utils/react-router-7-adapter';
+import { useDashboardsData } from '../../hooks/useDashboardsData';
 import './dashboard-page.css';
 
 const queryClient = new QueryClient({

@@ -1,6 +1,8 @@
-import { createAlertsQuery, fetchDataForIncidentsAndAlerts } from './api';
 import { PrometheusResponse, consoleFetchJSON } from '@openshift-console/dynamic-plugin-sdk';
+
 import { buildPrometheusUrl } from '@shared/utils/utils';
+
+import { createAlertsQuery, fetchDataForIncidentsAndAlerts } from './api';
 
 // Mock the SDK
 jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
@@ -11,7 +13,7 @@ jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
 }));
 
 // Mock the global utils to avoid window access side effects
-jest.mock('../../../shared/utils/utils', () => ({
+jest.mock('@shared/utils/utils', () => ({
   getPrometheusBasePath: jest.fn(),
   buildPrometheusUrl: jest.fn(),
 }));

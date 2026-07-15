@@ -17,10 +17,14 @@ import {
   StackItem,
 } from '@patternfly/react-core';
 import { ExclamationCircleIcon } from '@patternfly/react-icons';
+import { DashboardResource } from '@perses-dev/core';
 import yaml from 'js-yaml';
 import { ChangeEvent, FC, useEffect, useState } from 'react';
 import { FormProvider, SubmitHandler, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
+
+import { usePatternFlyTheme } from '@shared/hooks/usePatternflyTheme';
+
 import {
   PermissionStateWrapper,
   ProjectSelectFormGroup,
@@ -28,16 +32,13 @@ import {
   useDashboardProjects,
   useProjectCreation,
 } from './dashboard-dialog-helpers';
-
-import { DashboardResource } from '@perses-dev/core';
-import { usePatternFlyTheme } from '@shared/hooks/usePatternflyTheme';
+import { useToast } from './ToastProvider';
 import {
   importDashboardDialogValidationSchema,
   ImportDashboardValidationType,
 } from '../utils/dashboard-action-validations';
 import { useCreateDashboardMutation } from '../utils/dashboard-api';
 import { useMigrateDashboard } from '../utils/migrate-api';
-import { useToast } from './ToastProvider';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_MIME_TYPES = [

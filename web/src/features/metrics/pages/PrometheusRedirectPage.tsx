@@ -1,5 +1,6 @@
 import type { FC } from 'react';
 import { Navigate, useSearchParams } from 'react-router';
+
 import { usePerspective } from '@shared/hooks/usePerspective';
 
 // Handles links that have the Prometheus UI's URL format (expected for links in alerts sent by

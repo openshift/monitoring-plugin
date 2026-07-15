@@ -1,12 +1,13 @@
 /* eslint-disable max-len */
 
 import { PrometheusResult, PrometheusRule } from '@openshift-console/dynamic-plugin-sdk';
-import { Alert, GroupedAlert, Incident, Severity } from '../types/model';
+
 import {
   insertPaddingPointsForChart,
   isResolved,
   PROMETHEUS_QUERY_INTERVAL_SECONDS,
 } from './utils';
+import { Alert, GroupedAlert, Incident, Severity } from '../types/model';
 
 /**
  * Deduplicates alert objects by their `alertname`, `namespace`, `component`, and `severity` fields and merges their values

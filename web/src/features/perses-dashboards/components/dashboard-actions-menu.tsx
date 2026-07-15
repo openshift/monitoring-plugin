@@ -1,4 +1,3 @@
-import { FC, Ref, useState } from 'react';
 import {
   Dropdown,
   DropdownList,
@@ -8,11 +7,14 @@ import {
   MenuToggleAction,
   Tooltip,
 } from '@patternfly/react-core';
+import { FC, Ref, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useEditableProjects } from '../hooks/useEditableProjects';
+
+import { persesDashboardDataTestIDs } from '@shared/constants/data-test';
+
 import { DashboardCreateDialog } from './dashboard-create-dialog';
 import { DashboardImportDialog } from './dashboard-import-dialog';
-import { persesDashboardDataTestIDs } from '@shared/constants/data-test';
+import { useEditableProjects } from '../hooks/useEditableProjects';
 
 export const DashboardActionsMenu: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);

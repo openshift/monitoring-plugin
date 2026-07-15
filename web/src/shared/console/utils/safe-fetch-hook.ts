@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
 import { consoleFetchJSON } from '@openshift-console/dynamic-plugin-sdk';
+import { useEffect, useRef } from 'react';
 
 // Disable client-side timeout (-1) to let the backend control query timeouts
 const NO_TIMEOUT = -1;

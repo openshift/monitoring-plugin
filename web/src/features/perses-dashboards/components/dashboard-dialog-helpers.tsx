@@ -12,12 +12,14 @@ import { FC, ReactNode, useMemo } from 'react';
 import { Control, Controller } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
+
 import { getDashboardUrl, usePerspective } from '@shared/hooks/usePerspective';
+
 import { formGroupStyle, LabelSpacer } from './dashboard-action-modals';
-import { useCreateProjectMutation } from '../utils/dashboard-api';
+import { useToast } from './ToastProvider';
 import { useEditableProjects } from '../hooks/useEditableProjects';
 import { usePerses } from '../hooks/usePerses';
-import { useToast } from './ToastProvider';
+import { useCreateProjectMutation } from '../utils/dashboard-api';
 
 export const useDashboardProjects = () => {
   const {

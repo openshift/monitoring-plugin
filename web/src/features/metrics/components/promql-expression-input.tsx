@@ -44,13 +44,6 @@ import {
   ValidatedOptions,
 } from '@patternfly/react-core';
 import { CloseIcon, ExclamationCircleIcon } from '@patternfly/react-icons';
-import { PromQLExtension } from '@prometheus-io/codemirror-promql';
-import type { FC } from 'react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-
-import { useSafeFetch } from '@shared/console/utils/safe-fetch-hook';
-
 import {
   t_global_color_brand_default,
   t_global_color_nonstatus_purple_default,
@@ -67,6 +60,12 @@ import {
   t_global_text_color_regular,
   t_global_text_color_subtle,
 } from '@patternfly/react-tokens';
+import { PromQLExtension } from '@prometheus-io/codemirror-promql';
+import type { FC } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+
+import { useSafeFetch } from '@shared/console/utils/safe-fetch-hook';
 import { useMonitoring } from '@shared/hooks/useMonitoring';
 import { usePatternFlyTheme } from '@shared/hooks/usePatternflyTheme';
 import { getPrometheusBasePath, PROMETHEUS_BASE_PATH } from '@shared/utils/utils';

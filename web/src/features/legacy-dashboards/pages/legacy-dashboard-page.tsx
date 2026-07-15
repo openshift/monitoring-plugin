@@ -2,17 +2,19 @@ import { NamespaceBar, Overview } from '@openshift-console/dynamic-plugin-sdk';
 import type { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router';
-import { LoadingInline } from '@shared/console/console-shared/src/components/loading/LoadingInline';
+import { StringParam, useQueryParam } from 'use-query-params';
+
 import withFallback from '@shared/console/console-shared/error/fallbacks/withFallback';
-import { usePerspective } from '@shared/hooks/usePerspective';
-import { LegacyDashboard } from '../components/legacy-dashboard';
-import ErrorAlert from '../components/error';
-import { DashboardSkeletonLegacy } from '../components/dashboard-skeleton-legacy';
-import { useLegacyDashboards } from '../hooks/useLegacyDashboards';
+import { LoadingInline } from '@shared/console/console-shared/src/components/loading/LoadingInline';
+import { QueryParams } from '@shared/constants/query-params';
 import { MonitoringProvider } from '@shared/contexts/MonitoringContext';
 import { useMonitoring } from '@shared/hooks/useMonitoring';
-import { StringParam, useQueryParam } from 'use-query-params';
-import { QueryParams } from '@shared/constants/query-params';
+import { usePerspective } from '@shared/hooks/usePerspective';
+
+import { DashboardSkeletonLegacy } from '../components/dashboard-skeleton-legacy';
+import ErrorAlert from '../components/error';
+import { LegacyDashboard } from '../components/legacy-dashboard';
+import { useLegacyDashboards } from '../hooks/useLegacyDashboards';
 
 type LegacyDashboardsPageProps = {
   urlBoard: string;

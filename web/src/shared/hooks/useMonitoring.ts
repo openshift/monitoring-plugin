@@ -1,4 +1,5 @@
 import { useContext } from 'react';
+
 import { MonitoringContext } from '../contexts/MonitoringContext';
 
 export const useMonitoring = () => {

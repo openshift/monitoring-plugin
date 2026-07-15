@@ -1,4 +1,5 @@
 import { Alert, Box, Button, Stack, Tooltip, useMediaQuery, useTheme } from '@mui/material';
+import { StackItem } from '@patternfly/react-core';
 import { ErrorAlert, ErrorBoundary } from '@perses-dev/components';
 import {
   AddGroupButton,
@@ -14,17 +15,16 @@ import {
   useEditMode,
 } from '@perses-dev/dashboards';
 import { TimeRangeControls, useTimeZoneParams } from '@perses-dev/plugin-system';
-import { ReactElement, ReactNode, useCallback, useEffect } from 'react';
-
-import { StackItem } from '@patternfly/react-core';
 import * as _ from 'lodash-es';
 import PencilIcon from 'mdi-material-ui/PencilOutline';
+import { ReactElement, ReactNode, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+
 import { DashboardDropdown } from '@shared/components/dashboard-dropdown';
+import { persesDashboardDataTestIDs } from '@shared/constants/data-test';
+
 import { useDashboardsData } from '../../hooks/useDashboardsData';
 import { usePersesEditPermissions } from '../../hooks/usePersesEditPermissions';
-
-import { persesDashboardDataTestIDs } from '@shared/constants/data-test';
 
 export interface DashboardToolbarProps {
   dashboardName: string;

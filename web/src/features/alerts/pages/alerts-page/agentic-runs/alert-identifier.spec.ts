@@ -3,6 +3,7 @@ jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
 }));
 
 import { Alert, AlertStates, K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
+
 import {
   computeAlertFingerprint,
   getAlertFingerprintPrefix,

@@ -1,5 +1,6 @@
 import { Alert, EmptyState, Flex, FlexItem } from '@patternfly/react-core';
 import { useTranslation } from 'react-i18next';
+
 import RestrictedSignImg from '../../../../imgs/restricted-sign.svg';
 
 const RestrictedSignIcon = () => {

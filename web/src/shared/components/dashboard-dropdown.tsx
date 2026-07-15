@@ -1,4 +1,3 @@
-import * as _ from 'lodash-es';
 import {
   Label,
   LabelGroup,
@@ -9,12 +8,13 @@ import {
   Stack,
   StackItem,
 } from '@patternfly/react-core';
+import * as _ from 'lodash-es';
 import type { FC } from 'react';
 import { memo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { SingleTypeaheadDropdown } from '../console/utils/single-typeahead-dropdown';
 import { CombinedDashboardMetadata } from '../../features/perses-dashboards/hooks/useDashboardsData';
+import { SingleTypeaheadDropdown } from '../console/utils/single-typeahead-dropdown';
 
 type TagColor = 'red' | 'purple' | 'blue' | 'green' | 'teal' | 'orange';
 const tagColors: TagColor[] = ['red', 'purple', 'blue', 'green', 'teal', 'orange'];

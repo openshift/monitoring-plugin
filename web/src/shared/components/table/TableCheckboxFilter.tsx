@@ -1,4 +1,3 @@
-import { FC, useState, useRef, useEffect, MouseEvent as ReactMouseEvent } from 'react';
 import {
   Badge,
   Menu,
@@ -12,6 +11,7 @@ import {
 } from '@patternfly/react-core';
 import { DataViewCheckboxFilterProps } from '@patternfly/react-data-view/dist/dynamic/DataViewCheckboxFilter';
 import { DataViewFilterOption } from '@patternfly/react-data-view/dist/dynamic/DataViewFilters';
+import { FC, useState, useRef, useEffect, MouseEvent as ReactMouseEvent } from 'react';
 
 const isToolbarLabel = (label: string | ToolbarLabel): label is ToolbarLabel =>
   typeof label === 'object' && 'key' in label;

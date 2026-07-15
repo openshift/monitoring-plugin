@@ -11,9 +11,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { DatasourceResource } from '@perses-dev/core';
-import buildURL from './url-builder';
 import { consoleFetchJSON } from '@openshift-console/dynamic-plugin-sdk';
+import { DatasourceResource } from '@perses-dev/core';
+
+import buildURL from './url-builder';
 
 export const resource = 'datasources';
 

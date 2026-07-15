@@ -1,13 +1,14 @@
-import type { FC, ComponentType, ReactNode } from 'react';
+import { IncompleteDataError } from '@openshift-console/dynamic-plugin-sdk/lib/utils/error/http-error';
 import { Alert, Flex, FlexItem, PageSection, Title } from '@patternfly/react-core';
 import * as _ from 'lodash-es';
+import type { FC, ComponentType, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { IncompleteDataError } from '@openshift-console/dynamic-plugin-sdk/lib/utils/error/http-error';
-import { EmptyBox } from '../empty-state/EmptyBox';
-import { AccessDenied } from '../empty-state/AccessDenied';
-import { LoadingBox } from '../loading/LoadingBox';
-import { LoadError } from '../loading/LoadError';
+
 import { getLastLanguage } from '../../../../utils/getLastLanguage';
+import { AccessDenied } from '../empty-state/AccessDenied';
+import { EmptyBox } from '../empty-state/EmptyBox';
+import { LoadError } from '../loading/LoadError';
+import { LoadingBox } from '../loading/LoadingBox';
 
 const Data: FC<DataProps> = ({
   NoDataEmptyMsg,

@@ -1,4 +1,5 @@
 import type { FCC } from 'react';
+
 import { Loading } from './Loading';
 
 // Leave to keep compatibility with console looks

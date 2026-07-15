@@ -1,11 +1,13 @@
 import { FC, ReactNode } from 'react';
-import { DashboardEmptyState } from '../../components/emptystates/DashboardEmptyState';
-import { DashboardHeader } from '../../components/dashboard-header';
+
 import type { CombinedDashboardMetadata } from '@shared/types/types';
-import { ProjectBar } from '../../components/project/ProjectBar';
-import { PersesWrapper } from '../../components/PersesWrapper';
-import { ToastProvider } from '../../components/ToastProvider';
+
 import { PagePadding } from './dashboard-page-padding';
+import { DashboardHeader } from '../../components/dashboard-header';
+import { DashboardEmptyState } from '../../components/emptystates/DashboardEmptyState';
+import { PersesWrapper } from '../../components/PersesWrapper';
+import { ProjectBar } from '../../components/project/ProjectBar';
+import { ToastProvider } from '../../components/ToastProvider';
 
 interface DashboardFrameProps {
   activeProject: string | null;

@@ -1,4 +1,3 @@
-import type { FC, ComponentType, ReactElement } from 'react';
 import {
   EmptyStateActions,
   EmptyStateBody,
@@ -7,6 +6,7 @@ import {
   EmptyState,
   EmptyStateProps,
 } from '@patternfly/react-core';
+import type { FC, ComponentType, ReactElement } from 'react';
 
 export const ConsoleEmptyState: FC<ConsoleEmptyStateProps> = ({
   children,

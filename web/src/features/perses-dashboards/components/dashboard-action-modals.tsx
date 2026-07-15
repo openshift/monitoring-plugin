@@ -1,3 +1,4 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Button,
   Modal,
@@ -17,16 +18,20 @@ import {
   StackItem,
   Spinner,
 } from '@patternfly/react-core';
-import { TypeaheadSelect, TypeaheadSelectOption } from '@patternfly/react-templates';
 import { ExclamationCircleIcon } from '@patternfly/react-icons';
+import { TypeaheadSelect, TypeaheadSelectOption } from '@patternfly/react-templates';
+import { t_global_spacer_200, t_global_font_weight_200 } from '@patternfly/react-tokens';
+import { DashboardResource, getResourceExtendedDisplayName } from '@perses-dev/core';
 import { CSSProperties, useEffect, useMemo } from 'react';
+import { Controller, FormProvider, SubmitHandler, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import {
-  useUpdateDashboardMutation,
-  useCreateDashboardMutation,
-  useDeleteDashboardMutation,
-  useCreateProjectMutation,
-} from '../utils/dashboard-api';
+import { useNavigate } from 'react-router';
+
+import { usePerspective, getDashboardUrl } from '@shared/hooks/usePerspective';
+
+import { useToast } from './ToastProvider';
+import { useEditableProjects } from '../hooks/useEditableProjects';
+import { usePerses } from '../hooks/usePerses';
 import {
   renameDashboardDialogValidationSchema,
   RenameDashboardValidationType,
@@ -34,17 +39,13 @@ import {
   CreateDashboardValidationType,
   useDashboardValidationSchema,
 } from '../utils/dashboard-action-validations';
-
-import { Controller, FormProvider, SubmitHandler, useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { DashboardResource, getResourceExtendedDisplayName } from '@perses-dev/core';
-import { useToast } from './ToastProvider';
+import {
+  useUpdateDashboardMutation,
+  useCreateDashboardMutation,
+  useDeleteDashboardMutation,
+  useCreateProjectMutation,
+} from '../utils/dashboard-api';
 import { generateMetadataName } from '../utils/dashboard-utils';
-import { useEditableProjects } from '../hooks/useEditableProjects';
-import { usePerses } from '../hooks/usePerses';
-import { t_global_spacer_200, t_global_font_weight_200 } from '@patternfly/react-tokens';
-import { useNavigate } from 'react-router';
-import { usePerspective, getDashboardUrl } from '@shared/hooks/usePerspective';
 
 export const formGroupStyle = {
   fontWeight: t_global_font_weight_200.value,

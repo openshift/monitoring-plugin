@@ -11,15 +11,16 @@ import { SearchIcon, AngleDownIcon, AngleRightIcon } from '@patternfly/react-ico
 import { ExpandableRowContent, Table, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
 import { isEmpty } from 'lodash-es';
 import { useState, useEffect } from 'react';
-import { useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
-import { MonitoringState } from '@shared/store/store';
-import { SeverityBadge } from '@shared/components/SeverityBadge';
-import IncidentsDetailsRowTable from './IncidentsDetailsRowTable';
-import { GroupedAlertStateIcon } from './IncidentAlertStateIcon';
+import { useSelector } from 'react-redux';
 
-import { GroupedAlert } from '../types/model';
+import { SeverityBadge } from '@shared/components/SeverityBadge';
 import { DataTestIDs } from '@shared/constants/data-test';
+import { MonitoringState } from '@shared/store/store';
+
+import { GroupedAlertStateIcon } from './IncidentAlertStateIcon';
+import IncidentsDetailsRowTable from './IncidentsDetailsRowTable';
+import { GroupedAlert } from '../types/model';
 
 export const IncidentsTable = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);

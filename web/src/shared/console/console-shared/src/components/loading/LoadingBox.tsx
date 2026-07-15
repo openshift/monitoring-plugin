@@ -1,4 +1,5 @@
 import type { FC, PropsWithChildren } from 'react';
+
 import { Loading } from './Loading';
 import { ConsoleEmptyState } from '../empty-state/ConsoleEmptyState';
 

@@ -1,16 +1,16 @@
-import type { ComponentProps, FC, SetStateAction, Dispatch, FormEvent } from 'react';
-import { useState, useEffect } from 'react';
-import { css } from '@patternfly/react-styles';
-import * as _ from 'lodash-es';
-
-import { TextFilter } from './factory/text-filter';
-import { Label, SelectList } from '@patternfly/react-core';
-import { KeyEventModes, useDocumentListener } from '../../console-shared/hooks/useDocumentListener';
 import {
   requirementToString,
   toRequirements,
 } from '@openshift-console/dynamic-plugin-sdk/lib/utils/k8s';
+import { Label, SelectList } from '@patternfly/react-core';
+import { css } from '@patternfly/react-styles';
+import * as _ from 'lodash-es';
+import type { ComponentProps, FC, SetStateAction, Dispatch, FormEvent } from 'react';
+import { useState, useEffect } from 'react';
+
+import { TextFilter } from './factory/text-filter';
 import { fuzzyCaseInsensitive } from '../../../utils/utils';
+import { KeyEventModes, useDocumentListener } from '../../console-shared/hooks/useDocumentListener';
 
 const mapLabelsToStrings = (labels: { [key: string]: string }): string[] => {
   const requirements = toRequirements(labels);

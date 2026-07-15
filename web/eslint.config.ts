@@ -98,6 +98,37 @@ export default defineConfig([
     },
   },
   {
+    files: ['src/**/*.ts', 'src/**/*.tsx'],
+    plugins: {
+      import: fixupPluginRules(importPlugin as any),
+    },
+    settings: {
+      'import/resolver': {
+        node: { extensions: ['.js', '.jsx', '.ts', '.tsx'] },
+      },
+    },
+    rules: {
+      'import/order': [
+        'error',
+        {
+          groups: [['builtin', 'external'], 'internal', ['parent', 'sibling', 'index']],
+          pathGroups: [
+            {
+              pattern: '@shared/**',
+              group: 'internal',
+            },
+          ],
+          pathGroupsExcludedImportTypes: [],
+          'newlines-between': 'always',
+          alphabetize: {
+            order: 'asc',
+            caseInsensitive: true,
+          },
+        },
+      ],
+    },
+  },
+  {
     files: ['src/features/**/*.ts', 'src/features/**/*.tsx'],
     plugins: {
       import: fixupPluginRules(importPlugin as any),

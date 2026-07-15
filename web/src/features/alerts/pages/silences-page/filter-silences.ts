@@ -1,6 +1,8 @@
 import { Silence } from '@openshift-console/dynamic-plugin-sdk';
-import { ALL_NAMESPACES_KEY, fuzzyCaseInsensitive, silenceState } from '@shared/utils/utils';
+
 import { Perspective } from '@shared/store/actions';
+import { ALL_NAMESPACES_KEY, fuzzyCaseInsensitive, silenceState } from '@shared/utils/utils';
+
 import { SilenceFilterOptions, SilenceFilters } from './SilencesPage';
 
 export const filterSilences = (

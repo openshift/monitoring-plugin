@@ -1,7 +1,11 @@
 import { PrometheusAlert, Rule, useActivePerspective } from '@openshift-console/dynamic-plugin-sdk';
-import { Perspective } from '../store/actions';
-import { AlertSource } from '../types/types';
 import * as _ from 'lodash-es';
+
+import { GraphUnits } from '../../features/metrics/utils/units';
+import { QueryParams } from '../constants/query-params';
+import { Perspective } from '../store/actions';
+import { MonitoringState } from '../store/store';
+import { AlertSource } from '../types/types';
 import {
   ALERTMANAGER_BASE_PATH,
   ALERTMANAGER_PROXY_PATH,
@@ -12,9 +16,6 @@ import {
   RuleResource,
   SilenceResource,
 } from '../utils/utils';
-import { GraphUnits } from '../../features/metrics/utils/units';
-import { QueryParams } from '../constants/query-params';
-import { MonitoringState } from '../store/store';
 
 export type UrlRoot = 'monitoring' | 'dev-monitoring' | 'multicloud/monitoring' | 'virt-monitoring';
 

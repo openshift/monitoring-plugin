@@ -1,4 +1,3 @@
-import { ReactElement, ReactNode, useState, useCallback, useEffect } from 'react';
 import { Box } from '@mui/material';
 import { ChartsProvider, ErrorAlert, ErrorBoundary, useChartsTheme } from '@perses-dev/components';
 import {
@@ -6,7 +5,6 @@ import {
   EphemeralDashboardResource,
   getResourceExtendedDisplayName,
 } from '@perses-dev/core';
-import { useDatasourceStore } from '@perses-dev/plugin-system';
 import {
   PanelDrawer,
   Dashboard,
@@ -24,12 +22,15 @@ import {
   useDiscardChangesConfirmationDialog,
   useEditMode,
 } from '@perses-dev/dashboards';
-import { OCPDashboardToolbar } from './dashboard-toolbar';
-import { useUpdateDashboardMutation } from '../../utils/dashboard-api';
+import { useDatasourceStore } from '@perses-dev/plugin-system';
+import { ReactElement, ReactNode, useState, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useToast } from '../../components/ToastProvider';
 import { useSearchParams } from 'react-router';
+
+import { OCPDashboardToolbar } from './dashboard-toolbar';
 import { ExternalPanelAddition } from './external-panel-addition';
+import { useToast } from '../../components/ToastProvider';
+import { useUpdateDashboardMutation } from '../../utils/dashboard-api';
 
 export interface DashboardAppProps {
   dashboardResource: DashboardResource | EphemeralDashboardResource;

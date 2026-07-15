@@ -16,9 +16,10 @@ import * as _ from 'lodash-es';
 import type { FC, MouseEventHandler } from 'react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { NumberParam, useQueryParam } from 'use-query-params';
 
 import { QueryParams } from '@shared/constants/query-params';
-import { NumberParam, useQueryParam } from 'use-query-params';
+
 import { TimeRangeParam } from '../utils/utils';
 
 const zeroPad = (number: number) => (number < 10 ? `0${number}` : number);

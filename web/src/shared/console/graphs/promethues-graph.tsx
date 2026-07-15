@@ -1,13 +1,13 @@
+import { Title } from '@patternfly/react-core';
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
 import type { FC, Ref, PropsWithChildren } from 'react';
 import { forwardRef } from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router';
-import { Title } from '@patternfly/react-core';
 
-import { getMutlipleQueryBrowserUrl, usePerspective } from '../../hooks/usePerspective';
 import { useMonitoringNamespace } from '../../hooks/useMonitoringNamespace';
+import { getMutlipleQueryBrowserUrl, usePerspective } from '../../hooks/usePerspective';
 import { RootState } from '../../store/store';
 
 const getActiveNamespace = ({ UI }: RootState): string => UI.get('activeNamespace');

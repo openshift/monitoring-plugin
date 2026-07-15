@@ -1,7 +1,8 @@
 import { PrometheusResult } from '@openshift-console/dynamic-plugin-sdk';
+
 import { convertToAlerts, deduplicateAlerts } from './processAlerts';
-import { Incident } from '../types/model';
 import { getCurrentTime } from './utils';
+import { Incident } from '../types/model';
 
 describe('convertToAlerts', () => {
   const now = getCurrentTime();

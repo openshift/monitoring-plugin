@@ -11,6 +11,11 @@ import {
   YellowExclamationTriangleIcon,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
+  CustomDataSource,
+  DataSource,
+  isDataSource,
+} from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
+import {
   Bullseye,
   Button,
   DataList,
@@ -60,12 +65,39 @@ import {
   Tr,
   wrappable,
 } from '@patternfly/react-table';
+import { SimpleSelect, SimpleSelectOption } from '@patternfly/react-templates';
+import {
+  t_global_spacer_md,
+  t_global_spacer_sm,
+  t_global_font_family_mono,
+} from '@patternfly/react-tokens';
 import * as _ from 'lodash-es';
 import type { FC, MouseEvent as ReactMouseEvent, Ref } from 'react';
 import { useMemo, useCallback, useEffect, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
+import { useSearchParams } from 'react-router';
+import { StringParam, useQueryParam } from 'use-query-params';
 
+import { DropDownPollInterval } from '@shared/components/DropdownPollInterval';
+import KebabDropdown from '@shared/components/KebabDropdown';
+import { colors, Error, QueryBrowser } from '@shared/components/query-browser/query-browser';
+import { TablePagination } from '@shared/components/table/table-pagination';
+import { ToggleGraph } from '@shared/components/ToggleGraph';
+import { TypeaheadSelect } from '@shared/components/TypeaheadSelect';
+import withFallback from '@shared/console/console-shared/error/fallbacks/withFallback';
+import { LoadingInline } from '@shared/console/console-shared/src/components/loading/LoadingInline';
+import { valueFormatter } from '@shared/console/console-shared/src/components/query-browser/QueryBrowserTooltip';
+import { AsyncComponent } from '@shared/console/utils/async';
+import { usePoll } from '@shared/console/utils/poll-hook';
+import { useSafeFetch } from '@shared/console/utils/safe-fetch-hook';
+import { DataTestIDs } from '@shared/constants/data-test';
+import { QueryParams } from '@shared/constants/query-params';
+import { MonitoringProvider } from '@shared/contexts/MonitoringContext';
+import { useBoolean } from '@shared/hooks/useBoolean';
+import { useMonitoring } from '@shared/hooks/useMonitoring';
+import { useMonitoringNamespace } from '@shared/hooks/useMonitoringNamespace';
+import { getObserveState } from '@shared/hooks/usePerspective';
 import {
   queryBrowserAddQuery,
   queryBrowserDeleteAllQueries,
@@ -79,45 +111,11 @@ import {
   queryBrowserToggleIsEnabled,
   queryBrowserToggleSeries,
 } from '@shared/store/actions';
-
-import { getPrometheusBasePath, buildPrometheusUrl } from '@shared/utils/utils';
-import { AsyncComponent } from '@shared/console/utils/async';
-import { usePoll } from '@shared/console/utils/poll-hook';
-import { useSafeFetch } from '@shared/console/utils/safe-fetch-hook';
-
-import {
-  CustomDataSource,
-  DataSource,
-  isDataSource,
-} from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
 import { MonitoringState } from '@shared/store/store';
-import { DropDownPollInterval } from '@shared/components/DropdownPollInterval';
-import { useBoolean } from '@shared/hooks/useBoolean';
-import { getObserveState } from '@shared/hooks/usePerspective';
-import KebabDropdown from '@shared/components/KebabDropdown';
-import { colors, Error, QueryBrowser } from '@shared/components/query-browser/query-browser';
-import { QueryParams } from '@shared/constants/query-params';
-import { TablePagination } from '@shared/components/table/table-pagination';
 import { PrometheusAPIError } from '@shared/types/types';
-import { TypeaheadSelect } from '@shared/components/TypeaheadSelect';
-import { LoadingInline } from '@shared/console/console-shared/src/components/loading/LoadingInline';
-import withFallback from '@shared/console/console-shared/error/fallbacks/withFallback';
-import {
-  t_global_spacer_md,
-  t_global_spacer_sm,
-  t_global_font_family_mono,
-} from '@patternfly/react-tokens';
-import { StringParam, useQueryParam } from 'use-query-params';
-import { SimpleSelect, SimpleSelectOption } from '@patternfly/react-templates';
-import { valueFormatter } from '@shared/console/console-shared/src/components/query-browser/QueryBrowserTooltip';
-import { ALL_NAMESPACES_KEY } from '@shared/utils/utils';
-import { MonitoringProvider } from '@shared/contexts/MonitoringContext';
-import { DataTestIDs } from '@shared/constants/data-test';
-import { useMonitoring } from '@shared/hooks/useMonitoring';
-import { ToggleGraph } from '@shared/components/ToggleGraph';
-import { useMonitoringNamespace } from '@shared/hooks/useMonitoringNamespace';
-import { useSearchParams } from 'react-router';
 import { GraphUnits, isGraphUnit } from '@shared/utils/units';
+import { ALL_NAMESPACES_KEY } from '@shared/utils/utils';
+import { getPrometheusBasePath, buildPrometheusUrl } from '@shared/utils/utils';
 
 // Stores information about the currently focused query input
 let focusedQuery;

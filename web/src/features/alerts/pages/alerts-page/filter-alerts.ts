@@ -1,8 +1,10 @@
 import { Alert } from '@openshift-console/dynamic-plugin-sdk';
-import { alertSource } from '../../components/AlertUtils';
-import { AlertFilterOptions, AggregatedAlertFilters } from './AlertsPage';
-import { alertState, ALL_NAMESPACES_KEY, fuzzyCaseInsensitive } from '@shared/utils/utils';
+
 import { Perspective } from '@shared/store/actions';
+import { alertState, ALL_NAMESPACES_KEY, fuzzyCaseInsensitive } from '@shared/utils/utils';
+
+import { AlertFilterOptions, AggregatedAlertFilters } from './AlertsPage';
+import { alertSource } from '../../components/AlertUtils';
 
 export const filterAlerts = (
   alerts: Alert[],

@@ -16,10 +16,9 @@ import {
   TextInputGroupMain,
   TextInputGroupUtilities,
 } from '@patternfly/react-core';
-import * as _ from 'lodash-es';
-import { useTranslation } from 'react-i18next';
 import { TimesIcon } from '@patternfly/react-icons';
 import { t_global_spacer_control_horizontal_default } from '@patternfly/react-tokens';
+import * as _ from 'lodash-es';
 import {
   FC,
   FormEvent,
@@ -31,6 +30,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export type SingleTypeaheadDropdownProps = {
   /** The items to display in the dropdown */

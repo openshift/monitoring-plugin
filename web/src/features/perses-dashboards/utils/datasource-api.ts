@@ -4,9 +4,10 @@ import {
   GlobalDatasourceResource,
   DatasourceApi,
 } from '@perses-dev/core';
+import { TFunction } from 'i18next';
+
 import { fetchDatasourceList } from './perses/datasource-client';
 import { fetchGlobalDatasourceList } from './perses/global-datasource-client';
-import { TFunction } from 'i18next';
 
 export class OcpDatasourceApi implements DatasourceApi {
   constructor(

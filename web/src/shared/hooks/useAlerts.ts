@@ -1,6 +1,3 @@
-import { useMemo } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { fetchAlertingData } from '../store/thunks';
 import {
   AlertingRulesSourceExtension,
   isAlertingRulesSource,
@@ -8,6 +5,21 @@ import {
   Rule,
   useResolvedExtensions,
 } from '@openshift-console/dynamic-plugin-sdk';
+import { useMemo } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+
+import { useMonitoring } from './useMonitoring';
+import { useMonitoringNamespace } from './useMonitoringNamespace';
+import { getObserveState } from './usePerspective';
+import {
+  alertingRuleSource,
+  alertSource,
+  getAdditionalSources,
+} from '../../features/alerts/components/AlertUtils';
+import { usePoll } from '../console/utils/poll-hook';
+import { AppDispatch } from '../store/actions';
+import { MonitoringState } from '../store/store';
+import { fetchAlertingData } from '../store/thunks';
 import {
   ALL_NAMESPACES_KEY,
   buildPrometheusUrl,
@@ -17,17 +29,6 @@ import {
   Prometheus,
   silenceCluster,
 } from '../utils/utils';
-import { usePoll } from '../console/utils/poll-hook';
-import { useMonitoring } from './useMonitoring';
-import {
-  alertingRuleSource,
-  alertSource,
-  getAdditionalSources,
-} from '../../features/alerts/components/AlertUtils';
-import { MonitoringState } from '../store/store';
-import { AppDispatch } from '../store/actions';
-import { getObserveState } from './usePerspective';
-import { useMonitoringNamespace } from './useMonitoringNamespace';
 
 const POLLING_INTERVAL_MS = 15 * 1000; // 15 seconds
 

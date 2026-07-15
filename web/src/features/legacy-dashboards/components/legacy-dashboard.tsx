@@ -1,8 +1,12 @@
-import * as _ from 'lodash-es';
 import {
   RedExclamationCircleIcon,
   useResolvedExtensions,
 } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  DataSource,
+  isDataSource,
+} from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
+import { CustomDataSource } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/dashboard-data-source';
 import {
   Card as PFCard,
   CardBody,
@@ -17,40 +21,37 @@ import {
   ExpandableSectionToggle,
   Spinner,
 } from '@patternfly/react-core';
+import { t_global_font_size_heading_h2 } from '@patternfly/react-tokens';
+import * as _ from 'lodash-es';
 import type { FC } from 'react';
 import { memo, useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router';
+import { useQueryParam } from 'use-query-params';
 
-import { Perspective } from '@shared/store/actions';
-import BarChart from './panels/bar-chart';
-import Graph from './panels/graph';
-import SingleStat from './panels/single-stat';
-import Table from './panels/table';
+import KebabDropdown from '@shared/components/KebabDropdown';
+import { LegacyDashboardPageTestIDs } from '@shared/constants/data-test';
+import { QueryParams } from '@shared/constants/query-params';
 import { useBoolean } from '@shared/hooks/useBoolean';
 import { useIsVisible } from '@shared/hooks/useIsVisible';
+import { useMonitoring } from '@shared/hooks/useMonitoring';
+import { useMonitoringNamespace } from '@shared/hooks/useMonitoringNamespace';
 import {
   getMutlipleQueryBrowserUrl,
   getObserveState,
   usePerspective,
 } from '@shared/hooks/usePerspective';
-import { useMonitoringNamespace } from '@shared/hooks/useMonitoringNamespace';
-import KebabDropdown from '@shared/components/KebabDropdown';
+import { Perspective } from '@shared/store/actions';
 import { MonitoringState } from '@shared/store/store';
-import { evaluateVariableTemplate, Variable } from './legacy-variable-dropdowns';
-import { Panel, Row } from '../types/types';
-import { QueryParams } from '@shared/constants/query-params';
-import { CustomDataSource } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/dashboard-data-source';
-import {
-  DataSource,
-  isDataSource,
-} from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
-import { t_global_font_size_heading_h2 } from '@patternfly/react-tokens';
 import { GraphUnits } from '@shared/utils/units';
-import { LegacyDashboardPageTestIDs } from '@shared/constants/data-test';
-import { useMonitoring } from '@shared/hooks/useMonitoring';
-import { useQueryParam } from 'use-query-params';
+
+import { evaluateVariableTemplate, Variable } from './legacy-variable-dropdowns';
+import BarChart from './panels/bar-chart';
+import Graph from './panels/graph';
+import SingleStat from './panels/single-stat';
+import Table from './panels/table';
+import { Panel, Row } from '../types/types';
 import { RefreshIntervalParam, TimeRangeParam } from '../utils/utils';
 
 const QueryBrowserLink = ({

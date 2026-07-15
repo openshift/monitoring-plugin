@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+
 import { KEYBOARD_SHORTCUTS } from '../constants/common';
 
 const isModalOpen = () => document.body.classList.contains('ReactModal__Body--open');

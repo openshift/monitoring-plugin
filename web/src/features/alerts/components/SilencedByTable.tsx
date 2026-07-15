@@ -1,26 +1,28 @@
-import type { FC, MouseEvent } from 'react';
-import { useState, useMemo } from 'react';
 import { ResourceIcon, Silence, SilenceStates } from '@openshift-console/dynamic-plugin-sdk';
-import { useTranslation } from 'react-i18next';
-import { useNavigate, Link } from 'react-router';
-import {
-  getEditSilenceAlertUrl,
-  getSilenceAlertUrl,
-  usePerspective,
-} from '@shared/hooks/usePerspective';
-import { useMonitoringNamespace } from '@shared/hooks/useMonitoringNamespace';
+import { Flex, FlexItem, Stack, StackItem } from '@patternfly/react-core';
 import {
   DataViewTable,
   DataViewTr,
   DataViewTh,
 } from '@patternfly/react-data-view/dist/dynamic/DataViewTable';
-import { Flex, FlexItem, Stack, StackItem } from '@patternfly/react-core';
 import { ActionsColumn, IAction } from '@patternfly/react-table';
-import { ExpireSilenceModal, SilenceMatchersList, SilenceState } from '../components/SilencesUtils';
-import { useBoolean } from '@shared/hooks/useBoolean';
-import { SilenceResource } from '@shared/utils/utils';
-import { SeverityCounts, StateTimestamp } from '../components/AlertUtils';
 import { t_global_spacer_xs } from '@patternfly/react-tokens';
+import type { FC, MouseEvent } from 'react';
+import { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate, Link } from 'react-router';
+
+import { useBoolean } from '@shared/hooks/useBoolean';
+import { useMonitoringNamespace } from '@shared/hooks/useMonitoringNamespace';
+import {
+  getEditSilenceAlertUrl,
+  getSilenceAlertUrl,
+  usePerspective,
+} from '@shared/hooks/usePerspective';
+import { SilenceResource } from '@shared/utils/utils';
+
+import { SeverityCounts, StateTimestamp } from '../components/AlertUtils';
+import { ExpireSilenceModal, SilenceMatchersList, SilenceState } from '../components/SilencesUtils';
 
 export const SilencedByList: FC<{ silences: Silence[] }> = ({ silences }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);

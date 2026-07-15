@@ -1,8 +1,9 @@
+import { K8sResourceKind } from '@openshift-console/dynamic-plugin-sdk';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { PersesUserPermissions, useFetchPersesPermissions } from '../utils/perses-client';
+
 import { useOcpProjects } from './useOcpProjects';
-import { K8sResourceKind } from '@openshift-console/dynamic-plugin-sdk';
+import { PersesUserPermissions, useFetchPersesPermissions } from '../utils/perses-client';
 
 interface Projects {
   editableProjects: string[] | undefined;

@@ -1,5 +1,5 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
 import { consoleFetchJSON } from '@openshift-console/dynamic-plugin-sdk';
+import { useState, useRef, useCallback, useEffect } from 'react';
 
 type features = {
   alerting: boolean;

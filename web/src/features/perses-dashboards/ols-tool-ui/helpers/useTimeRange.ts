@@ -1,7 +1,7 @@
-import { useMemo } from 'react';
-import { sub } from 'date-fns';
 import type { AbsoluteTimeRange, RelativeTimeRange, TimeRangeValue } from '@perses-dev/core';
 import { isDurationString, parseDurationString } from '@perses-dev/core';
+import { sub } from 'date-fns';
+import { useMemo } from 'react';
 
 // Parse a Prometheus-style time expression like "NOW", "NOW-48h", "NOW-1d2h30m",
 // or a plain date string like "2024-01-01T00:00:00Z".

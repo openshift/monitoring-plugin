@@ -1,6 +1,7 @@
-import { TargetsFilterOptions, TargetsFilters } from '../pages/targets-page';
 import { Target } from '@shared/types/types';
 import { fuzzyCaseInsensitive, targetSource } from '@shared/utils/utils';
+
+import { TargetsFilterOptions, TargetsFilters } from '../pages/targets-page';
 
 export const filterTargets = (targets: Target[], selectedFilters: TargetsFilters) => {
   if (!targets) {

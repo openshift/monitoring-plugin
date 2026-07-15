@@ -1,20 +1,21 @@
 /* eslint-disable import/no-restricted-paths */
-import type { FC } from 'react';
-import { lazy, useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
 import {
   HorizontalNav,
   ListPageHeader,
   NamespaceBar,
   useActivePerspective,
 } from '@openshift-console/dynamic-plugin-sdk';
+import type { FC } from 'react';
+import { lazy, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useDispatch } from 'react-redux';
+import { useLocation } from 'react-router';
+
 import { MonitoringProvider } from '@shared/contexts/MonitoringContext';
 import { useMonitoring } from '@shared/hooks/useMonitoring';
-import { useLocation } from 'react-router';
-import { AlertResource, SilenceResource } from '@shared/utils/utils';
-import { useDispatch } from 'react-redux';
-import { alertingClearSelectorData } from '@shared/store/actions';
 import { useMonitoringNamespace } from '@shared/hooks/useMonitoringNamespace';
+import { alertingClearSelectorData } from '@shared/store/actions';
+import { AlertResource, SilenceResource } from '@shared/utils/utils';
 
 const CmoAlertsPage = lazy(() =>
   import(/* webpackChunkName: "CmoAlertsPage" */ './alerts-page/AlertsPage').then((module) => ({

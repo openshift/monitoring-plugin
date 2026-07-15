@@ -1,4 +1,5 @@
 import type { ComponentType } from 'react';
+
 import ErrorBoundary from '../error-boundary';
 
 type WithFallback = <P = object>(

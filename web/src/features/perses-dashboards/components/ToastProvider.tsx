@@ -1,5 +1,3 @@
-import { createContext, useContext, useState, ReactNode, FC } from 'react';
-import { useTranslation } from 'react-i18next';
 import {
   Alert,
   AlertProps,
@@ -7,6 +5,8 @@ import {
   AlertActionCloseButton,
   AlertVariant,
 } from '@patternfly/react-core';
+import { createContext, useContext, useState, ReactNode, FC } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface ToastItem {
   key: string;

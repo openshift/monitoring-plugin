@@ -4,9 +4,10 @@ import {
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { useEffect } from 'react';
+import { StringParam, useQueryParam } from 'use-query-params';
+
 import { ProjectModel } from '@shared/console/models';
 import { QueryParams } from '@shared/constants/query-params';
-import { StringParam, useQueryParam } from 'use-query-params';
 import { ALL_NAMESPACES_KEY } from '@shared/utils/utils';
 
 export const useActiveProject = () => {

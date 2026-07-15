@@ -1,4 +1,3 @@
-import { ChangeEvent, FC, MouseEvent, MouseEventHandler } from 'react';
 import {
   ToolbarItem,
   ToolbarFilter,
@@ -8,11 +7,14 @@ import {
   MenuToggle,
   Badge,
 } from '@patternfly/react-core';
-import { getFilterKey } from '../utils/utils';
-import { IncidentFiltersCombined } from '../types/model';
-import { setAlertsAreLoading } from '@shared/store/actions';
-import { DataTestIDs } from '@shared/constants/data-test';
+import { ChangeEvent, FC, MouseEvent, MouseEventHandler } from 'react';
 import { useTranslation } from 'react-i18next';
+
+import { DataTestIDs } from '@shared/constants/data-test';
+import { setAlertsAreLoading } from '@shared/store/actions';
+
+import { IncidentFiltersCombined } from '../types/model';
+import { getFilterKey } from '../utils/utils';
 
 interface IncidentFilterToolbarItemProps {
   categoryName: string;

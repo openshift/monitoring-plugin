@@ -1,4 +1,3 @@
-import { useState, useRef, useEffect, ReactNode } from 'react';
 import {
   Menu,
   MenuContent,
@@ -10,11 +9,13 @@ import {
   ToolbarToggleGroup,
   ToolbarToggleGroupProps,
 } from '@patternfly/react-core';
-import { FilterIcon } from '@patternfly/react-icons';
 import { DataViewTextFilterProps } from '@patternfly/react-data-view/dist/dynamic/DataViewTextFilter';
+import { FilterIcon } from '@patternfly/react-icons';
+import { useState, useRef, useEffect, ReactNode } from 'react';
+
+import { CustomDataViewCheckboxFilterProps, TableCheckboxFilter } from './TableCheckboxFilter';
 import { TableLabelFilter, DataViewLabelFilterProps } from './TableLabelFilter';
 import { TableTextFilter } from './TableTextFilter';
-import { CustomDataViewCheckboxFilterProps, TableCheckboxFilter } from './TableCheckboxFilter';
 
 interface TableFiltersProps extends Omit<
   ToolbarToggleGroupProps,

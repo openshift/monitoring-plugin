@@ -1,4 +1,4 @@
-import { FC, useEffect } from 'react';
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Button,
   Modal,
@@ -16,18 +16,12 @@ import {
   Stack,
   StackItem,
 } from '@patternfly/react-core';
+import { DashboardResource } from '@perses-dev/core';
+import { FC, useEffect } from 'react';
+import { Controller, FormProvider, SubmitHandler, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
-import { DashboardResource } from '@perses-dev/core';
-import { useCreateDashboardMutation } from '../utils/dashboard-api';
-import { createNewDashboard } from '../utils/dashboard-utils';
-import { useToast } from './ToastProvider';
-import {
-  createDashboardDialogValidationSchema,
-  CreateDashboardValidationType,
-  useDashboardValidationSchema,
-} from '../utils/dashboard-action-validations';
-import { Controller, FormProvider, SubmitHandler, useForm } from 'react-hook-form';
+import { formGroupStyle, LabelSpacer } from './dashboard-action-modals';
 import {
   PermissionStateWrapper,
   ProjectSelectFormGroup,
@@ -35,8 +29,14 @@ import {
   useDashboardProjects,
   useProjectCreation,
 } from './dashboard-dialog-helpers';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { formGroupStyle, LabelSpacer } from './dashboard-action-modals';
+import { useToast } from './ToastProvider';
+import {
+  createDashboardDialogValidationSchema,
+  CreateDashboardValidationType,
+  useDashboardValidationSchema,
+} from '../utils/dashboard-action-validations';
+import { useCreateDashboardMutation } from '../utils/dashboard-api';
+import { createNewDashboard } from '../utils/dashboard-utils';
 
 interface DashboardCreateDialogProps {
   isOpen: boolean;

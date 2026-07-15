@@ -1,24 +1,22 @@
-import type { FC, PropsWithChildren } from 'react';
-import { memo } from 'react';
-import { useTranslation } from 'react-i18next';
-
-import { Divider, Stack, StackItem } from '@patternfly/react-core';
-
 import { DocumentTitle, ListPageHeader } from '@openshift-console/dynamic-plugin-sdk';
-import type { CombinedDashboardMetadata } from '@shared/types/types';
-
+import { Divider, Stack, StackItem } from '@patternfly/react-core';
 import { Breadcrumb, BreadcrumbItem } from '@patternfly/react-core';
-import { useNavigate } from 'react-router';
-import { getDashboardsListUrl, usePerspective } from '@shared/hooks/usePerspective';
-
 import {
   chart_color_blue_100,
   chart_color_blue_300,
   t_global_spacer_md,
   t_global_spacer_xl,
 } from '@patternfly/react-tokens';
+import { memo } from 'react';
+import type { FC, PropsWithChildren } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router';
+
 import { listPersesDashboardsDataTestIDs } from '@shared/constants/data-test';
 import { usePatternFlyTheme } from '@shared/hooks/usePatternflyTheme';
+import { getDashboardsListUrl, usePerspective } from '@shared/hooks/usePerspective';
+import type { CombinedDashboardMetadata } from '@shared/types/types';
+
 import { DashboardActionsMenu } from './dashboard-actions-menu';
 import { PagePadding } from '../pages/dashboard-page/dashboard-page-padding';
 

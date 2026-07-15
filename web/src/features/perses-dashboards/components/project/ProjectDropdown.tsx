@@ -17,10 +17,6 @@ import {
   TooltipPosition,
 } from '@patternfly/react-core';
 import fuzzysearch from 'fuzzysearch';
-import { useTranslation } from 'react-i18next';
-import ProjectMenuToggle from './ProjectMenuToggle';
-import { alphanumericCompare } from './utils';
-import { useEditableProjects } from '../../hooks/useEditableProjects';
 import {
   ChangeEvent,
   FC,
@@ -32,7 +28,13 @@ import {
   useRef,
   useState,
 } from 'react';
+import { useTranslation } from 'react-i18next';
+
 import { ALL_NAMESPACES_KEY } from '@shared/utils/utils';
+
+import ProjectMenuToggle from './ProjectMenuToggle';
+import { alphanumericCompare } from './utils';
+import { useEditableProjects } from '../../hooks/useEditableProjects';
 
 export const NoResults: FC<{
   onClear: (event: ReactMouseEvent<HTMLButtonElement, MouseEvent>) => void;

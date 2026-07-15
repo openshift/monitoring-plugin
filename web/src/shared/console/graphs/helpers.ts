@@ -1,8 +1,8 @@
-import * as _ from 'lodash-es';
 import {
   Humanize,
   PrometheusResponse,
 } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/console-types';
+import * as _ from 'lodash-es';
 
 export const getInstantVectorStats: GetInstantStats = (response, metric, humanize) => {
   const results = _.get(response, 'data.result', []);

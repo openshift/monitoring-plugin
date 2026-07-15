@@ -1,19 +1,21 @@
 import { Alert, ResourceIcon, TableColumn } from '@openshift-console/dynamic-plugin-sdk';
+import { Badge, Flex, FlexItem } from '@patternfly/react-core';
 import { ExpandableRowContent, Table, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getRuleUrl, usePerspective } from '@shared/hooks/usePerspective';
-import { useMonitoringNamespace } from '@shared/hooks/useMonitoringNamespace';
-import { AggregatedAlert } from './AlertsAggregates';
-import { AlertState } from '../../components/AlertUtils';
-import { SeverityBadge } from '@shared/components/SeverityBadge';
-import AlertTableRow from './AlertTableRow';
-import { RuleResource } from '@shared/utils/utils';
 import { Link } from 'react-router';
-import { filterAlerts } from './filter-alerts';
-import { Badge, Flex, FlexItem } from '@patternfly/react-core';
+
+import { SeverityBadge } from '@shared/components/SeverityBadge';
 import { DataTestIDs } from '@shared/constants/data-test';
+import { useMonitoringNamespace } from '@shared/hooks/useMonitoringNamespace';
+import { getRuleUrl, usePerspective } from '@shared/hooks/usePerspective';
+import { RuleResource } from '@shared/utils/utils';
+
+import { AggregatedAlert } from './AlertsAggregates';
 import { AggregatedAlertFilters } from './AlertsPage';
+import AlertTableRow from './AlertTableRow';
+import { filterAlerts } from './filter-alerts';
+import { AlertState } from '../../components/AlertUtils';
 
 type AggregateAlertTableRowProps = {
   aggregatedAlert: AggregatedAlert;

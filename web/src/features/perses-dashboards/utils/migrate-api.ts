@@ -1,6 +1,7 @@
+import { consoleFetchJSON } from '@openshift-console/dynamic-plugin-sdk';
 import { DashboardResource } from '@perses-dev/core';
 import { useMutation, UseMutationResult } from '@tanstack/react-query';
-import { consoleFetchJSON } from '@openshift-console/dynamic-plugin-sdk';
+
 import { PERSES_PROXY_BASE_PATH } from './perses-client';
 
 const MIGRATE_ENDPOINT = `${PERSES_PROXY_BASE_PATH}/api/migrate`;

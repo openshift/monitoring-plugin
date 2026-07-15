@@ -1,7 +1,4 @@
-import { memo, ReactNode, useCallback, useMemo, useState, type FC } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useDashboardsData } from '../../hooks/useDashboardsData';
-
+import { Timestamp } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Button,
   EmptyState,
@@ -25,22 +22,25 @@ import {
   useDataViewSort,
 } from '@patternfly/react-data-view/dist/dynamic/Hooks';
 import { ActionsColumn, ThProps } from '@patternfly/react-table';
+import { DashboardResource } from '@perses-dev/core';
+import { memo, ReactNode, useCallback, useMemo, useState, type FC } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useSearchParams } from 'react-router';
 
-import { getDashboardUrl, usePerspective } from '@shared/hooks/usePerspective';
-import { Timestamp } from '@openshift-console/dynamic-plugin-sdk';
+import { ITEMS_PER_PAGE, TablePagination } from '@shared/components/table/table-pagination';
 import { listPersesDashboardsDataTestIDs } from '@shared/constants/data-test';
+import { getDashboardUrl, usePerspective } from '@shared/hooks/usePerspective';
+import { ALL_NAMESPACES_KEY } from '@shared/utils/utils';
+
 import { DashboardListFrame } from './dashboard-list-frame';
-import { usePersesEditPermissions } from '../../hooks/usePersesEditPermissions';
-import { DashboardResource } from '@perses-dev/core';
 import {
   DeleteActionModal,
   DuplicateActionModal,
   RenameActionModal,
 } from '../../components/dashboard-action-modals';
+import { useDashboardsData } from '../../hooks/useDashboardsData';
 import { useEditableProjects } from '../../hooks/useEditableProjects';
-import { ALL_NAMESPACES_KEY } from '@shared/utils/utils';
-import { ITEMS_PER_PAGE, TablePagination } from '@shared/components/table/table-pagination';
+import { usePersesEditPermissions } from '../../hooks/usePersesEditPermissions';
 
 const DashboardActionsCell = memo(
   ({

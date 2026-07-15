@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+
 import { ConsoleEmptyState } from './ConsoleEmptyState';
 
 export const EmptyBox = ({ label, customMessage }: EmptyBoxProps) => {

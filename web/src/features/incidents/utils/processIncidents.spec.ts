@@ -1,4 +1,5 @@
 import { PrometheusResult } from '@openshift-console/dynamic-plugin-sdk';
+
 import {
   convertToIncidents,
   getIncidents,

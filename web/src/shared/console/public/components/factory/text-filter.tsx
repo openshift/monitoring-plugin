@@ -1,6 +1,7 @@
 import { TextInput, TextInputProps } from '@patternfly/react-core';
 import { FC } from 'react';
 import { useTranslation } from 'react-i18next';
+
 import { KEYBOARD_SHORTCUTS } from '../../../console-shared/constants/common';
 import { useDocumentListener } from '../../../console-shared/hooks/useDocumentListener';
 

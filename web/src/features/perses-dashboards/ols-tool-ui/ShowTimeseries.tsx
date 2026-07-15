@@ -1,10 +1,10 @@
+import { Panel } from '@perses-dev/dashboards';
+import { DataQueriesProvider } from '@perses-dev/plugin-system';
 import { FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { DataQueriesProvider } from '@perses-dev/plugin-system';
-import { Panel } from '@perses-dev/dashboards';
 
-import { OlsToolUIPersesWrapper } from './helpers/OlsToolUIPersesWrapper';
 import { AddToDashboardButton } from './helpers/AddToDashboardButton';
+import { OlsToolUIPersesWrapper } from './helpers/OlsToolUIPersesWrapper';
 import { useTimeRange } from './helpers/useTimeRange';
 
 type ShowTimeseriesTool = {

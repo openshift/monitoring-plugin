@@ -1,6 +1,7 @@
 import { EmptyState, EmptyStateVariant, Spinner } from '@patternfly/react-core';
 import type { FC } from 'react';
 import { useTranslation } from 'react-i18next';
+
 import { DataTestIDs } from '../../constants/data-test';
 
 export const GraphEmpty: FC<GraphEmptyProps> = ({ minHeight = 180, loading = false }) => {

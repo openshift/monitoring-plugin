@@ -1,9 +1,9 @@
-import type { FC, MouseEventHandler, ReactNode, Ref } from 'react';
 import { Dropdown, DropdownList, MenuToggle, MenuToggleElement } from '@patternfly/react-core';
 import { EllipsisVIcon } from '@patternfly/react-icons';
+import type { FC, MouseEventHandler, ReactNode, Ref } from 'react';
 
-import { useBoolean } from '../hooks/useBoolean';
 import { DataTestIDs } from '../constants/data-test';
+import { useBoolean } from '../hooks/useBoolean';
 
 const KebabDropdown: FC<{
   dropdownItems: ReactNode;

@@ -1,6 +1,6 @@
-import { FC, useEffect } from 'react';
 import { SearchInput, ToolbarFilter } from '@patternfly/react-core';
 import { DataViewTextFilterProps } from '@patternfly/react-data-view/dist/dynamic/DataViewTextFilter';
+import { FC, useEffect } from 'react';
 
 export const TableTextFilter: FC<DataViewTextFilterProps> = ({
   filterId,
