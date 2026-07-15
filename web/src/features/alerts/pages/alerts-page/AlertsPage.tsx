@@ -29,9 +29,12 @@ import {
 } from '../../../../shared/components/table/TableFilters';
 import { TableToolbar } from '../../../../shared/components/table/TableToolbar';
 import { directedSort, localeCompareSort } from '../../../../shared/components/table/sort-utils';
-import { useTableColumns } from '../../../../shared/components/table/useTableColumns';
-import { useTableFilters, rowFilter } from '../../../../shared/components/table/useTableFilters';
-import { useTablePagination } from '../../../../shared/components/table/useTablePagination';
+import { useTableColumns } from '../../../../shared/components/table/hooks/useTableColumns';
+import {
+  useTableFilters,
+  rowFilter,
+} from '../../../../shared/components/table/hooks/useTableFilters';
+import { useTablePagination } from '../../../../shared/components/table/hooks/useTablePagination';
 import { AlertSource } from '../../../../shared/types/types';
 import { ALL_NAMESPACES_KEY, severitySort } from '../../../../shared/utils/utils';
 import AggregateAlertTableRow from './AggregateAlertTableRow';
