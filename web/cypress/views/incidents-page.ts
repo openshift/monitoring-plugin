@@ -189,7 +189,8 @@ export const incidentsPage = {
         .incidentsDetailsTable()
         .find('tbody tr')
         .eq(index)
-        .find('td[data-label="expanded-details-alertname"]'),
+        .find('td[data-label="expanded-details-alertname"]')
+        .scrollIntoView(),
     incidentsDetailsAlertRuleLink: (index: number) =>
       incidentsPage.elements
         .incidentsDetailsTable()
@@ -445,18 +446,21 @@ export const incidentsPage = {
 
     incidentsPage.ensureFilterTypeSelected('Incident ID');
     incidentsPage.elements.incidentIdFilterToggle().scrollIntoView().click({ force: true });
-    incidentsPage.elements.incidentIdFilterList().should('be.visible');
 
+    // Container has 0 height so .should('be.visible') fails on it.
+    // Empty list is valid (no incidents), so we wait for the container then read items.
+    // Extract IDs from data-test attributes to avoid reading text that includes descriptions.
+    const prefix = `${DataTestIDs.IncidentsPage.FiltersSelectOption}-incident id-`;
     return incidentsPage.elements
       .incidentIdFilterList()
-      .find('button[role="menuitem"] .pf-v6-c-menu__item-text')
-      .then(($texts) => {
+      .should('exist')
+      .then(($list) => {
+        const $items = $list.find(`[data-test^="${prefix}"]`);
         const ids: string[] = [];
-        $texts.each((_, el) => {
-          const text = Cypress.$(el).text().trim();
-          if (text) ids.push(text);
+        $items.each((_, el) => {
+          const id = Cypress.$(el).attr('data-test')?.slice(prefix.length);
+          if (id) ids.push(id);
         });
-        // Close the dropdown without selecting
         incidentsPage.elements.incidentIdFilterToggle().scrollIntoView().click({ force: true });
         return cy.wrap(ids, _qLog());
       });
