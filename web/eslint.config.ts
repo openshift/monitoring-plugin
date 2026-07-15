@@ -9,6 +9,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import js from '@eslint/js';
 import { FlatCompat } from '@eslint/eslintrc';
+import importPlugin from 'eslint-plugin-import';
+import { importBoundaryZones } from './eslint-rules/import-boundary-zones';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -93,6 +95,20 @@ export default defineConfig([
     files: ['cypress/**/*'],
     rules: {
       'no-console': 'off',
+    },
+  },
+  {
+    files: ['src/features/**/*.ts', 'src/features/**/*.tsx'],
+    plugins: {
+      import: fixupPluginRules(importPlugin as any),
+    },
+    settings: {
+      'import/resolver': {
+        node: { extensions: ['.js', '.jsx', '.ts', '.tsx'] },
+      },
+    },
+    rules: {
+      'import/no-restricted-paths': ['error', { zones: importBoundaryZones }],
     },
   },
 ]);

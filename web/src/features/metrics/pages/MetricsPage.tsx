@@ -43,7 +43,7 @@ import {
   Title,
   Tooltip,
 } from '@patternfly/react-core';
-import { ChartLineIcon, CompressIcon } from '@patternfly/react-icons';
+import { ChartLineIcon } from '@patternfly/react-icons';
 import {
   IFormatterValueType,
   InnerScrollContainer,
@@ -78,8 +78,6 @@ import {
   queryBrowserToggleAllSeries,
   queryBrowserToggleIsEnabled,
   queryBrowserToggleSeries,
-  showGraphs,
-  toggleGraphs,
 } from '../../../shared/store/actions';
 
 import { getPrometheusBasePath, buildPrometheusUrl } from '../../../shared/utils/utils';
@@ -114,15 +112,16 @@ import {
   t_global_font_family_mono,
 } from '@patternfly/react-tokens';
 import { StringParam, useQueryParam } from 'use-query-params';
-import { GraphUnits, isGraphUnit } from '../utils/units';
 import { SimpleSelect, SimpleSelectOption } from '@patternfly/react-templates';
 import { valueFormatter } from '../../../shared/console/console-shared/src/components/query-browser/QueryBrowserTooltip';
 import { ALL_NAMESPACES_KEY } from '../../../shared/utils/utils';
 import { MonitoringProvider } from '../../../shared/contexts/MonitoringContext';
 import { DataTestIDs } from '../../../shared/constants/data-test';
 import { useMonitoring } from '../../../shared/hooks/useMonitoring';
+import { ToggleGraph } from '../../../shared/components/ToggleGraph';
 import { useMonitoringNamespace } from '../../../shared/hooks/useMonitoringNamespace';
 import { useSearchParams } from 'react-router';
+import { GraphUnits, isGraphUnit } from '../../../shared/utils/units';
 
 // Stores information about the currently focused query input
 let focusedQuery;
@@ -335,43 +334,6 @@ const MetricsActionsMenu: FC = () => {
         </DropdownItem>
       </DropdownList>
     </Dropdown>
-  );
-};
-
-export const ToggleGraph: FC = () => {
-  const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { plugin } = useMonitoring();
-
-  const hideGraphs = useSelector(
-    (state: MonitoringState) => !!getObserveState(plugin, state).hideGraphs,
-  );
-
-  const dispatch = useDispatch();
-  const toggle = useCallback(() => dispatch(toggleGraphs()), [dispatch]);
-
-  // Use an empty useEffect to get access to the cleanup function so that if graphs are
-  // currently hidden then we show the graphs as we unmount
-  useEffect(() => {
-    return () => {
-      dispatch(showGraphs());
-    };
-  }, [dispatch]);
-
-  const icon = hideGraphs ? <ChartLineIcon /> : <CompressIcon />;
-
-  return (
-    <Flex justifyContent={{ default: 'justifyContentFlexEnd' }}>
-      <FlexItem>
-        <Button
-          type="button"
-          onClick={toggle}
-          variant="link"
-          data-test={DataTestIDs.MetricHideShowGraphButton}
-        >
-          {icon} {hideGraphs ? t('Show graph') : t('Hide graph')}
-        </Button>
-      </FlexItem>
-    </Flex>
   );
 };
 
@@ -609,7 +571,7 @@ const QueryKebab: FC<{ index: number }> = ({ index }) => {
   return <KebabDropdown dropdownItems={dropdownItems} />;
 };
 
-export const QueryTable: FC<QueryTableProps> = ({ index, namespace, customDatasource, units }) => {
+const QueryTable: FC<QueryTableProps> = ({ index, namespace, customDatasource, units }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { plugin, accessCheckLoading, useMetricsTenancy } = useMonitoring();
 

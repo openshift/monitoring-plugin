@@ -37,7 +37,8 @@ import {
 import { useMonitoringNamespace } from '../../../shared/hooks/useMonitoringNamespace';
 import KebabDropdown from '../../../shared/components/KebabDropdown';
 import { alertDescription, SilenceResource } from '../../../shared/utils/utils';
-import { SeverityBadge, SeverityCounts } from '../components/AlertUtils';
+import { SeverityBadge } from '../../../shared/components/SeverityBadge';
+import { SeverityCounts } from '../components/AlertUtils';
 import { SilenceDropdown, SilenceMatchersList, SilenceState } from '../components/SilencesUtils';
 import { StatusBox } from '../../../shared/console/console-shared/src/components/status/StatusBox';
 import { LoadingInline } from '../../../shared/console/console-shared/src/components/loading/LoadingInline';

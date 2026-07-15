@@ -8,7 +8,7 @@ import {
 } from '../../../../shared/components/query-browser/query-browser';
 import { DEFAULT_GRAPH_SAMPLES, TimeRangeParam } from '../../utils/utils';
 import { CustomDataSource } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
-import { GraphUnits } from '../../../metrics/utils/units';
+import { GraphUnits } from '../../../../shared/utils/units';
 import { QueryParams } from '../../../../shared/constants/query-params';
 
 type Props = {

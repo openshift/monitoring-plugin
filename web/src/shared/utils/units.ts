@@ -1,4 +1,4 @@
-const AllGraphUnits = [
+const ALL_GRAPH_UNITS = [
   'Bytes',
   'bytes',
   'bps',
@@ -9,8 +9,8 @@ const AllGraphUnits = [
   'percentunit',
   'short',
 ] as const;
-export type GraphUnits = (typeof AllGraphUnits)[number];
+export type GraphUnits = (typeof ALL_GRAPH_UNITS)[number];
 
 export function isGraphUnit(value: string): value is GraphUnits {
-  return AllGraphUnits.includes(value as GraphUnits);
+  return ALL_GRAPH_UNITS.includes(value as GraphUnits);
 }

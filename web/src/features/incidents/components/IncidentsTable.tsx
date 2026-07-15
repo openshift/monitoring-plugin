@@ -14,7 +14,7 @@ import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { MonitoringState } from '../../../shared/store/store';
-import { SeverityBadge } from '../../alerts/components/AlertUtils';
+import { SeverityBadge } from '../../../shared/components/SeverityBadge';
 import IncidentsDetailsRowTable from './IncidentsDetailsRowTable';
 import { GroupedAlertStateIcon } from './IncidentAlertStateIcon';
 

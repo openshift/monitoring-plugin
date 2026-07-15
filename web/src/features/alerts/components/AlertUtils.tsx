@@ -19,7 +19,6 @@ import {
   DescriptionListDescription,
   DescriptionListGroup,
   DescriptionListTerm,
-  Label,
   Alert as PFAlert,
   Popover,
   Tooltip,
@@ -57,6 +56,7 @@ import {
   QueryBrowser,
 } from '../../../shared/components/query-browser/query-browser';
 import { AlertSource } from '../../../shared/types/types';
+import { SeverityBadge } from '../../../shared/components/SeverityBadge';
 
 export const getAdditionalSources = <T extends Alert | Rule>(
   data: Array<T>,
@@ -111,21 +111,6 @@ export const isActionWithHref = (action: Action): action is ActionWithHref => 'h
 type ActionWithCallBack = Omit<Action, 'cta'> & { cta: () => void };
 export const isActionWithCallback = (action: Action): action is ActionWithCallBack =>
   typeof action.cta === 'function';
-
-const getSeverityKey = (severity: string, t) => {
-  switch (severity) {
-    case AlertSeverity.Critical:
-      return t('Critical');
-    case AlertSeverity.Info:
-      return t('Info');
-    case AlertSeverity.Warning:
-      return t('Warning');
-    case AlertSeverity.None:
-      return t('None');
-    default:
-      return severity;
-  }
-};
 
 export const SeverityIcon = memo(({ severity }: { severity: string }) => {
   switch (severity) {
@@ -212,34 +197,6 @@ export const StateTimestamp = ({ text, timestamp }: { text: string; timestamp: s
     <Timestamp timestamp={timestamp} className="pf-v6-u-display-inline" />
   </div>
 );
-
-export const SeverityBadge = memo(({ severity, count }: { severity: string; count?: number }) => {
-  const { t } = useTranslation(process.env.I18N_NAMESPACE);
-
-  if (_.isNil(severity)) return null;
-
-  const labelText = count ? count : getSeverityKey(severity, t);
-  switch (severity) {
-    case AlertSeverity.Critical:
-      return <Label status="danger">{labelText}</Label>;
-    case AlertSeverity.Warning:
-      return <Label status="warning">{labelText}</Label>;
-    case AlertSeverity.Info:
-      return <Label status="info">{labelText}</Label>;
-    case AlertSeverity.None:
-      return (
-        <Label variant="outline">
-          <SeverityUndefinedIcon color={t_global_icon_color_severity_undefined_default.var} />
-          &nbsp;
-          {labelText}
-        </Label>
-      );
-    default:
-      return <Label status="custom">{labelText}</Label>;
-  }
-});
-
-SeverityBadge.displayName = 'SeverityBadge';
 
 export const PopoverField: FC<{ bodyContent: ReactNode; label: string }> = ({
   bodyContent,
@@ -576,11 +533,4 @@ const isAlertSilenced = (alert: PrometheusAlert, silence: Silence): boolean => {
 // Determine if an Rule is silenced by a Silence (if all alerts for a rule are silenced)
 export const isRuleSilenced = (rule: PrometheusRule, silence: Silence): boolean => {
   return isRuleFiring(rule) && rule.alerts.every((alert) => isAlertSilenced(alert, silence));
-};
-
-/**
- * Add 'rowFilter-' to a column key
- */
-export const rowFilter = (key: string) => {
-  return `row-filter-${key}`;
 };

@@ -45,7 +45,6 @@ import {
   AlertState,
   getSourceKey,
   Graph,
-  SeverityBadge,
   SeverityHelp,
   SourceHelp,
 } from '../components/AlertUtils';
@@ -63,12 +62,13 @@ import {
 import { useMonitoringNamespace } from '../../../shared/hooks/useMonitoringNamespace';
 import KebabDropdown from '../../../shared/components/KebabDropdown';
 import { Labels } from '../../../shared/components/labels';
-import { ToggleGraph } from '../../metrics/pages/MetricsPage';
 import { alertDescription, RuleResource } from '../../../shared/utils/utils';
 import { MonitoringProvider } from '../../../shared/contexts/MonitoringContext';
 
 import { DataTestIDs } from '../../../shared/constants/data-test';
 import { useAlerts } from '../../../shared/hooks/useAlerts';
+import { SeverityBadge } from '../../../shared/components/SeverityBadge';
+import { ToggleGraph } from '../../../shared/components/ToggleGraph';
 
 // Renders Prometheus template text and highlights any {{ ... }} tags that it contains
 const PrometheusTemplate = ({ text }: { text: string }) => (

@@ -49,7 +49,7 @@ import {
   usePerspective,
 } from '../../../../shared/hooks/usePerspective';
 import { directedSort, localeCompareSort } from '../../../../shared/components/table/sort-utils';
-import { useTableColumns } from '../../../../shared/components/table/useTableColumns';
+import { useTableColumns } from '../../../../shared/components/table/hooks/useTableColumns';
 import {
   ITEMS_PER_PAGE,
   TablePagination,
@@ -61,10 +61,13 @@ import {
   TableFilters,
 } from '../../../../shared/components/table/TableFilters';
 import { TableToolbar } from '../../../../shared/components/table/TableToolbar';
-import { useTableFilters } from '../../../../shared/components/table/useTableFilters';
-import { useTablePagination } from '../../../../shared/components/table/useTablePagination';
+import {
+  useTableFilters,
+  rowFilter,
+} from '../../../../shared/components/table/hooks/useTableFilters';
+import { useTablePagination } from '../../../../shared/components/table/hooks/useTablePagination';
 import { severitySort, SilenceResource, silenceState } from '../../../../shared/utils/utils';
-import { rowFilter, SeverityCounts, StateTimestamp } from '../../components/AlertUtils';
+import { SeverityCounts, StateTimestamp } from '../../components/AlertUtils';
 import { filterSilences } from './filter-silences';
 import {
   ExpireSilenceModal,

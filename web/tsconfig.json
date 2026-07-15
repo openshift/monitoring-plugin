@@ -15,6 +15,6 @@
     "noUncheckedIndexedAccess": true,
     "types": ["node", "jest"],
   },
-  "include": ["src", "eslint.config.ts"],
+  "include": ["src", "eslint.config.ts", "eslint-rules"],
   "exclude": ["node_modules"],
 }
