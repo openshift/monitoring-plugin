@@ -26,9 +26,14 @@ export const ShowTimeseries: FC<{ tool: ShowTimeseriesTool }> = ({ tool }) => {
   const queryDescription = t('Query: {{query}}', { query: query });
   const definitions = [
     {
-      kind: 'PrometheusTimeSeriesQuery',
+      kind: 'TimeSeriesQuery',
       spec: {
-        query: query,
+        plugin: {
+          kind: 'PrometheusTimeSeriesQuery',
+          spec: {
+            query: query,
+          },
+        },
       },
     },
   ];

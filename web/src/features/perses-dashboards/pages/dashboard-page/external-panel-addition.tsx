@@ -70,6 +70,13 @@ export function ExternalPanelAddition({
       try {
         const panelEditor = dashboardStore.panelEditor;
         const groupId = dashboardStore.panelGroupOrder[0];
+        const tags = dashboardStore.metadata?.tags || [];
+        if (!tags.includes('ai-assisted')) {
+          dashboardStore.setMetadata((prev) => ({
+            ...prev,
+            tags: [...(prev?.tags || []), 'ai-assisted'],
+          }));
+        }
         panelEditor.applyChanges({ ...queuedPanel, groupId });
         panelEditor.close();
       } finally {
@@ -78,6 +85,9 @@ export function ExternalPanelAddition({
         dispatch(dashboardsPersesPanelExternallyAdded());
       }
     }
+    // dashboardStore is excluded purposely to avoid re-running this effect when the store changes.
+    // dashboardStore.setMetadata is stable and does not change between renders.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, dashboardStore.panelGroupOrder, dashboardStore.panelEditor, queuedPanel]);
 
   // Advertise when a dashboard is opened/closed

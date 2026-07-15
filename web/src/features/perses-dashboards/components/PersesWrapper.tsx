@@ -10,35 +10,6 @@ import {
   typography,
 } from '@perses-dev/components';
 import {
-  BuiltinVariableDefinition,
-  DashboardResource,
-  Definition,
-  DurationString,
-  UnknownSpec,
-} from '@perses-dev/core';
-import {
-  DashboardProvider,
-  DatasourceStoreProvider,
-  VariableProviderWithQueryParams,
-  PanelFocusProvider,
-} from '@perses-dev/dashboards';
-import {
-  DataQueriesProvider,
-  PluginLoader,
-  PluginRegistry,
-  RouterProvider,
-  TimeRangeProviderWithQueryParams,
-  useInitialRefreshInterval,
-  useInitialTimeRange,
-  usePluginBuiltinVariableDefinitions,
-  ValidationProvider,
-} from '@perses-dev/plugin-system';
-import { ReactNode, useMemo } from 'react';
-import { usePatternFlyTheme } from '../../../shared/hooks/usePatternflyTheme';
-import { OcpDatasourceApi } from '../utils/datasource-api';
-import { PERSES_PROXY_BASE_PATH, useFetchPersesDashboard } from '../utils/perses-client';
-import { CachedDatasourceAPI } from '../utils/perses/datasource-cache-api';
-import {
   chart_color_blue_100,
   chart_color_blue_300,
   chart_color_blue_400,
@@ -48,12 +19,41 @@ import {
   t_global_background_color_100,
   t_global_background_color_400,
 } from '@patternfly/react-tokens';
-import { QueryParams } from '../../../shared/constants/query-params';
-import { StringParam, useQueryParam } from 'use-query-params';
+import { DashboardResource, Kind } from '@perses-dev/client';
+import {
+  DashboardProvider,
+  DatasourceStoreProvider,
+  PanelFocusProvider,
+  VariableProviderWithQueryParams,
+} from '@perses-dev/dashboards';
+import {
+  DataQueriesProvider,
+  PluginLoader,
+  PluginRegistry,
+  remotePluginLoader,
+  RouterProvider,
+  TimeRangeProviderWithQueryParams,
+  useInitialRefreshInterval,
+  useInitialTimeRange,
+  usePluginBuiltinVariableDefinitions,
+  ValidationProvider,
+} from '@perses-dev/plugin-system';
+import {
+  BuiltinVariableDefinition,
+  DurationString,
+  QueryDefinition,
+  UnknownSpec,
+} from '@perses-dev/spec';
+import { ReactNode, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LoadingBox } from '../../../shared/console/console-shared/src/components/loading/LoadingBox';
-import { remotePluginLoader } from '@perses-dev/plugin-system';
 import { Link, useNavigate } from 'react-router';
+import { StringParam, useQueryParam } from 'use-query-params';
+import { usePatternFlyTheme } from 'src/shared/hooks/usePatternflyTheme';
+import { QueryParams } from 'src/shared/constants/query-params';
+import { PERSES_PROXY_BASE_PATH, useFetchPersesDashboard } from '../utils/perses-client';
+import { CachedDatasourceAPI } from '../utils/perses/datasource-cache-api';
+import { OcpDatasourceApi } from '../utils/datasource-api';
 
 // Override eChart defaults with PatternFly colors.
 const patternflyBlue100 = chart_color_blue_100.value;
@@ -503,7 +503,7 @@ function InnerWrapper({ children, project }: InnerWrapperProps) {
 }
 
 interface PersesPrometheusDatasourceWrapperProps {
-  queries: Definition<UnknownSpec>[];
+  queries: Array<QueryDefinition<Kind, UnknownSpec>>;
   dashboardResource?: DashboardResource;
   duration?: DurationString;
   children?: ReactNode;
