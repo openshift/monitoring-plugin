@@ -246,12 +246,12 @@ func setupRoutes(cfg *Config) (*mux.Router, *PluginConfig) {
 
 	router := mux.NewRouter()
 
-	router.PathPrefix("/health").HandlerFunc(healthHandler())
+	router.Path("/health").HandlerFunc(healthHandler())
 
 	router.Path("/plugin-manifest.json").Handler(manifestHandler(cfg))
 
-	router.PathPrefix("/features").HandlerFunc(featuresHandler(cfg))
-	router.PathPrefix("/config").HandlerFunc(configHandlerFunc)
+	router.Path("/features").HandlerFunc(featuresHandler(cfg))
+	router.Path("/config").HandlerFunc(configHandlerFunc)
 	router.PathPrefix("/").Handler(filesHandler(http.Dir(cfg.StaticPath)))
 
 	return router, pluginConfig
