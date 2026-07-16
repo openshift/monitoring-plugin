@@ -32,6 +32,9 @@ export default defineConfig([
         'prettier',
       ),
     ),
+    linterOptions: {
+      reportUnusedDisableDirectives: 'off',
+    },
 
     plugins: {
       prettier,
