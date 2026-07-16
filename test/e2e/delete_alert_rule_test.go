@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"testing"
@@ -37,7 +38,28 @@ func TestDeleteAlertRule(t *testing.T) {
 	ruleIDs := make([]string, 0, len(ruleNames))
 
 	for _, name := range ruleNames {
-		id := createRuleViaAPI(t, f, ctx, testNamespace, name, "e2e-delete-pr")
+		// Each rule needs a unique expression so the spec-equivalence check
+		// does not reject it as a duplicate of a rule from another test.
+		// absent() returns 1 when the selector matches nothing, which is
+		// always the case for a fabricated metric name.
+		expr := fmt.Sprintf("absent(nonexistent{e2e_rule=%q})", name)
+		id, err := createRuleViaAPI(ctx, f, managementrouter.CreateAlertRuleRequest{
+			AlertingRule: &managementrouter.AlertRuleSpec{
+				Alert: new(name),
+				Expr:  &expr,
+				For:   new("1m"),
+				Labels: &map[string]string{
+					"severity": "info",
+				},
+			},
+			PrometheusRule: &managementrouter.PrometheusRuleTarget{
+				PrometheusRuleName:      "e2e-delete-pr",
+				PrometheusRuleNamespace: testNamespace,
+			},
+		})
+		if err != nil {
+			t.Fatalf("Failed to create alert rule %s: %v", name, err)
+		}
 		ruleIDs = append(ruleIDs, id)
 	}
 
