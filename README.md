@@ -1,4 +1,5 @@
 # OpenShift Monitoring Plugin
+hi
 
 This plugin enables frontend UI based on feature flags passed to the backend. These features are generally grouped under two sets, those deployed by the [Cluster Monitoring Operator](https://github.com/openshift/cluster-monitoring-operator) (alerting, dashboards, metrics and targets) and those deployed by the [Cluster Observability Operator](https://github.com/rhobs/observability-operator) (ACM Alerting, Perses Dashboards, Incidents). CMO is included and enabled by default on most installations of OpenShift so observability signals needed for these features are expected to be present in any cluster, while the COO features utilize optional observability signals which are installed through COO. Information on running the plugin as it if were deployed through CMO can be found under the [monitoring-plugin](#monitoring-plugin) heading and the other set can be found under the [monitoring-console-plugin](#monitoring-console-plugin) heading.
 
