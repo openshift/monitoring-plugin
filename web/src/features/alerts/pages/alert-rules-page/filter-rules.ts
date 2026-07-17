@@ -1,11 +1,13 @@
 import { AlertStates, Rule } from '@openshift-console/dynamic-plugin-sdk';
 import { isEmpty, some } from 'lodash-es';
 
-import { AlertSource } from '@shared/types/types';
-import { fuzzyCaseInsensitive } from '@shared/utils/utils';
-
-import { AlertRulesFilterOptions, AlertRulesFilters } from './AlertRulesPage';
-import { alertingRuleSource } from '../../components/AlertUtils';
+import { alertingRuleSource } from '@/features/alerts/components/AlertUtils';
+import {
+  AlertRulesFilterOptions,
+  AlertRulesFilters,
+} from '@/features/alerts/pages/alert-rules-page/AlertRulesPage';
+import { AlertSource } from '@/shared/types/types';
+import { fuzzyCaseInsensitive } from '@/shared/utils/utils';
 
 export const filterRules = (rules: Rule[], selectedFilters: AlertRulesFilters) => {
   if (!rules) {

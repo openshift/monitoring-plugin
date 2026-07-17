@@ -16,7 +16,7 @@ import {
   SilenceComment,
   WatchdogAlert,
 } from '../../fixtures/monitoring/constants';
-import { FilterOUIAIDs } from '../../../src/shared/constants/data-test';
+import { FilterOUIAIDs } from '@/shared/constants/data-test';
 
 export interface PerspectiveConfig {
   name: string;

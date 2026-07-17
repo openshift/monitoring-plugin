@@ -4,11 +4,11 @@ import * as _ from 'lodash-es';
 import type { FC, ComponentType, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { getLastLanguage } from '../../../../utils/getLastLanguage';
-import { AccessDenied } from '../empty-state/AccessDenied';
-import { EmptyBox } from '../empty-state/EmptyBox';
-import { LoadError } from '../loading/LoadError';
-import { LoadingBox } from '../loading/LoadingBox';
+import { AccessDenied } from '@/shared/console/console-shared/src/components/empty-state/AccessDenied';
+import { EmptyBox } from '@/shared/console/console-shared/src/components/empty-state/EmptyBox';
+import { LoadError } from '@/shared/console/console-shared/src/components/loading/LoadError';
+import { LoadingBox } from '@/shared/console/console-shared/src/components/loading/LoadingBox';
+import { getLastLanguage } from '@/shared/console/utils/getLastLanguage';
 
 const Data: FC<DataProps> = ({
   NoDataEmptyMsg,

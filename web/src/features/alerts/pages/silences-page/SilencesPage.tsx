@@ -28,48 +28,47 @@ import {
 import { ActionsColumn, BaseCellProps, IAction } from '@patternfly/react-table';
 import { t_global_spacer_xs } from '@patternfly/react-tokens';
 import * as _ from 'lodash-es';
-import type { FC } from 'react';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import type { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 
-import { useTableColumns } from '@shared/components/table/hooks/useTableColumns';
-import { useTableFilters, rowFilter } from '@shared/components/table/hooks/useTableFilters';
-import { useTablePagination } from '@shared/components/table/hooks/useTablePagination';
-import { directedSort, localeCompareSort } from '@shared/components/table/sort-utils';
-import { ITEMS_PER_PAGE, TablePagination } from '@shared/components/table/table-pagination';
+import { SeverityCounts, StateTimestamp } from '@/features/alerts/components/AlertUtils';
+import {
+  ExpireSilenceModal,
+  SilenceMatchersList,
+  SilenceState,
+} from '@/features/alerts/components/SilencesUtils';
+import { filterSilences } from '@/features/alerts/pages/silences-page/filter-silences';
+import { useTableColumns } from '@/shared/components/table/hooks/useTableColumns';
+import { useTableFilters, rowFilter } from '@/shared/components/table/hooks/useTableFilters';
+import { useTablePagination } from '@/shared/components/table/hooks/useTablePagination';
+import { directedSort, localeCompareSort } from '@/shared/components/table/sort-utils';
+import { ITEMS_PER_PAGE, TablePagination } from '@/shared/components/table/table-pagination';
 import {
   TableFilter,
   TableFilterOption,
   TableFilterProps,
   TableFilters,
-} from '@shared/components/table/TableFilters';
-import { TableToolbar } from '@shared/components/table/TableToolbar';
-import withFallback from '@shared/console/console-shared/error/fallbacks/withFallback';
-import { EmptyBox } from '@shared/console/console-shared/src/components/empty-state/EmptyBox';
-import { LoadingBox } from '@shared/console/console-shared/src/components/loading/LoadingBox';
-import { DataTestIDs } from '@shared/constants/data-test';
-import { MonitoringProvider } from '@shared/contexts/MonitoringContext';
-import { useAlerts } from '@shared/hooks/useAlerts';
-import { useBoolean } from '@shared/hooks/useBoolean';
-import { useDeepMemo } from '@shared/hooks/useDeepMemo';
-import { useMonitoringNamespace } from '@shared/hooks/useMonitoringNamespace';
+} from '@/shared/components/table/TableFilters';
+import { TableToolbar } from '@/shared/components/table/TableToolbar';
+import withFallback from '@/shared/console/console-shared/error/fallbacks/withFallback';
+import { EmptyBox } from '@/shared/console/console-shared/src/components/empty-state/EmptyBox';
+import { LoadingBox } from '@/shared/console/console-shared/src/components/loading/LoadingBox';
+import { DataTestIDs } from '@/shared/constants/data-test';
+import { MonitoringProvider } from '@/shared/contexts/MonitoringContext';
+import { useAlerts } from '@/shared/hooks/useAlerts';
+import { useBoolean } from '@/shared/hooks/useBoolean';
+import { useDeepMemo } from '@/shared/hooks/useDeepMemo';
+import { useMonitoringNamespace } from '@/shared/hooks/useMonitoringNamespace';
 import {
   getEditSilenceAlertUrl,
   getFetchSilenceUrl,
   getNewSilenceUrl,
   getSilenceAlertUrl,
   usePerspective,
-} from '@shared/hooks/usePerspective';
-import { severitySort, SilenceResource, silenceState } from '@shared/utils/utils';
-
-import { filterSilences } from './filter-silences';
-import { SeverityCounts, StateTimestamp } from '../../components/AlertUtils';
-import {
-  ExpireSilenceModal,
-  SilenceMatchersList,
-  SilenceState,
-} from '../../components/SilencesUtils';
+} from '@/shared/hooks/usePerspective';
+import { severitySort, SilenceResource, silenceState } from '@/shared/utils/utils';
 
 export const enum SilenceFilterOptions {
   NAME = 'name',

@@ -3,12 +3,12 @@ import { DashboardResource, ProjectResource } from '@perses-dev/core';
 import { useQuery } from '@tanstack/react-query';
 import { NumberParam, useQueryParam } from 'use-query-params';
 
-import { QueryParams } from '@shared/constants/query-params';
+import { QueryParams } from '@/shared/constants/query-params';
 
-export const PERSES_PROXY_BASE_PATH = '/api/proxy/plugin/monitoring-console-plugin/perses';
+export const PERSES_PROXY_BASE_PATH = '@/shared/api/proxy/plugin/monitoring-console-plugin/perses';
 
 export const fetchPersesDashboardsMetadata = (): Promise<DashboardResource[]> => {
-  const listDashboardsMetadata = '/api/v1/dashboards';
+  const listDashboardsMetadata = '@/shared/api/v1/dashboards';
   const persesURL = `${PERSES_PROXY_BASE_PATH}${listDashboardsMetadata}`;
 
   return consoleFetchJSON(persesURL);
@@ -22,7 +22,7 @@ export const fetchPersesDashboardsByProject = (project: string): Promise<Dashboa
 };
 
 export const fetchPersesProjects = (): Promise<ProjectResource[]> => {
-  const listProjectURL = '/api/v1/projects';
+  const listProjectURL = '@/shared/api/v1/projects';
   const persesURL = `${PERSES_PROXY_BASE_PATH}${listProjectURL}`;
 
   return consoleFetchJSON(persesURL);

@@ -4,13 +4,12 @@ import * as _ from 'lodash-es';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router';
 
-import { StatusBox } from '@shared/console/console-shared/src/components/status/StatusBox';
-import { MonitoringProvider } from '@shared/contexts/MonitoringContext';
-import { useAlerts } from '@shared/hooks/useAlerts';
-import { useMonitoring } from '@shared/hooks/useMonitoring';
-import { SilenceResource, silenceState } from '@shared/utils/utils';
-
-import { SilenceForm } from '../components/SilenceForm';
+import { SilenceForm } from '@/features/alerts/components/SilenceForm';
+import { StatusBox } from '@/shared/console/console-shared/src/components/status/StatusBox';
+import { MonitoringProvider } from '@/shared/contexts/MonitoringContext';
+import { useAlerts } from '@/shared/hooks/useAlerts';
+import { useMonitoring } from '@/shared/hooks/useMonitoring';
+import { SilenceResource, silenceState } from '@/shared/utils/utils';
 
 const pad = (i: number): string => (i < 10 ? `0${i}` : String(i));
 

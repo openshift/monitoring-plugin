@@ -1,4 +1,4 @@
-import { Classes, DataTestIDs, LegacyTestIDs } from '../../../src/shared/constants/data-test';
+import { Classes, DataTestIDs, LegacyTestIDs } from '@/shared/constants/data-test';
 export {};
 
 declare global {

@@ -1,4 +1,4 @@
-import { Labels } from '../../src/shared/components/labels';
+import { Labels } from '@/shared/components/labels';
 
 describe('Labels', () => {
   it('renders "No labels" when labels is empty', () => {

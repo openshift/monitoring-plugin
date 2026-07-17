@@ -6,10 +6,10 @@ import {
   DaysFilters,
   IncidentSeverityFilters,
   IncidentStateFilters,
-} from '../../features/incidents/types/model';
-import { Variable } from '../../features/legacy-dashboards/components/legacy-variable-dropdowns';
-import { MONITORING_DASHBOARDS_DEFAULT_TIMESPAN } from '../../features/legacy-dashboards/utils/utils';
-import { Silences } from '../types/types';
+} from '@/features/incidents/types/model';
+import { Variable } from '@/features/legacy-dashboards/components/legacy-variable-dropdowns';
+import { MONITORING_DASHBOARDS_DEFAULT_TIMESPAN } from '@/features/legacy-dashboards/utils/utils';
+import { Silences } from '@/shared/types/types';
 
 export type RootState = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

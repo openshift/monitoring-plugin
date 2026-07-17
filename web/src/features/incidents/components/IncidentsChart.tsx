@@ -27,17 +27,16 @@ import {
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { dateTimeFormatter, timeFormatter } from '@shared/console/utils/datetime';
-import { DataTestIDs } from '@shared/constants/data-test';
-
-import { IncidentsTooltip } from './IncidentsTooltip';
-import { Incident } from '../types/model';
+import { IncidentsTooltip } from '@/features/incidents/components/IncidentsTooltip';
+import { Incident } from '@/features/incidents/types/model';
 import {
   calculateIncidentsChartDomain,
   createIncidentsChartBars,
   generateDateArray,
   roundDateToInterval,
-} from '../utils/utils';
+} from '@/features/incidents/utils/utils';
+import { dateTimeFormatter, timeFormatter } from '@/shared/console/utils/datetime';
+import { DataTestIDs } from '@/shared/constants/data-test';
 
 /**
  * Processes component list: moves "Others" to end and limits display to 3 components

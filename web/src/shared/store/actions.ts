@@ -3,7 +3,7 @@ import type { PanelDefinition } from '@perses-dev/core';
 import { ThunkDispatch } from 'redux-thunk';
 import { action, ActionType as Action } from 'typesafe-actions';
 
-import { RootState } from './store';
+import { RootState } from '@/shared/store/store';
 
 export enum ActionType {
   AlertingSetLoading = 'v2/AlertingSetLoading',

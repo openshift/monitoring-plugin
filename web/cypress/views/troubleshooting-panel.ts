@@ -1,4 +1,4 @@
-import { DataTestIDs, LegacyTestIDs } from '../../src/shared/constants/data-test';
+import { DataTestIDs, LegacyTestIDs } from '@/shared/constants/data-test';
 
 export const troubleshootingPanelPage = {
   openSignalCorrelation: () => {

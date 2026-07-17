@@ -21,22 +21,25 @@ import { FC, useEffect } from 'react';
 import { Controller, FormProvider, SubmitHandler, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
-import { formGroupStyle, LabelSpacer } from './dashboard-action-modals';
+import {
+  formGroupStyle,
+  LabelSpacer,
+} from '@/features/perses-dashboards/components/dashboard-action-modals';
 import {
   PermissionStateWrapper,
   ProjectSelectFormGroup,
   useDashboardNavigation,
   useDashboardProjects,
   useProjectCreation,
-} from './dashboard-dialog-helpers';
-import { useToast } from './ToastProvider';
+} from '@/features/perses-dashboards/components/dashboard-dialog-helpers';
+import { useToast } from '@/features/perses-dashboards/components/ToastProvider';
 import {
   createDashboardDialogValidationSchema,
   CreateDashboardValidationType,
   useDashboardValidationSchema,
-} from '../utils/dashboard-action-validations';
-import { useCreateDashboardMutation } from '../utils/dashboard-api';
-import { createNewDashboard } from '../utils/dashboard-utils';
+} from '@/features/perses-dashboards/utils/dashboard-action-validations';
+import { useCreateDashboardMutation } from '@/features/perses-dashboards/utils/dashboard-api';
+import { createNewDashboard } from '@/features/perses-dashboards/utils/dashboard-utils';
 
 interface DashboardCreateDialogProps {
   isOpen: boolean;

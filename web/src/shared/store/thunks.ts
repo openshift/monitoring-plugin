@@ -9,10 +9,10 @@ import {
   alertingSetSilencesErrored,
   alertingSetErrored,
   ObserveAction,
-} from './actions';
-import { fetchAlerts } from './fetch-alerts';
-import type { RootState } from './store';
-import { getAlertsAndRules, getSilenceName, Prometheus } from '../utils/utils';
+} from '@/shared/store/actions';
+import { fetchAlerts } from '@/shared/store/fetch-alerts';
+import type { RootState } from '@/shared/store/store';
+import { getAlertsAndRules, getSilenceName, Prometheus } from '@/shared/utils/utils';
 
 export const fetchAlertingData =
   (

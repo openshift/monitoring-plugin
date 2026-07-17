@@ -11,11 +11,11 @@ import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 import { useLocation } from 'react-router';
 
-import { MonitoringProvider } from '@shared/contexts/MonitoringContext';
-import { useMonitoring } from '@shared/hooks/useMonitoring';
-import { useMonitoringNamespace } from '@shared/hooks/useMonitoringNamespace';
-import { alertingClearSelectorData } from '@shared/store/actions';
-import { AlertResource, SilenceResource } from '@shared/utils/utils';
+import { MonitoringProvider } from '@/shared/contexts/MonitoringContext';
+import { useMonitoring } from '@/shared/hooks/useMonitoring';
+import { useMonitoringNamespace } from '@/shared/hooks/useMonitoringNamespace';
+import { alertingClearSelectorData } from '@/shared/store/actions';
+import { AlertResource, SilenceResource } from '@/shared/utils/utils';
 
 const CmoAlertsPage = lazy(() =>
   import(/* webpackChunkName: "CmoAlertsPage" */ './alerts-page/AlertsPage').then((module) => ({

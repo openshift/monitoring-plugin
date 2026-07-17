@@ -1,4 +1,4 @@
-import { DataTestIDs, Classes, FilterOUIAIDs } from '../../src/shared/constants/data-test';
+import { DataTestIDs, Classes, FilterOUIAIDs } from '@/shared/constants/data-test';
 import { Source } from '../fixtures/monitoring/constants';
 import { listPage } from './list-page';
 

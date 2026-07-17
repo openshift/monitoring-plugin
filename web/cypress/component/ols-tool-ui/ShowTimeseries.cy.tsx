@@ -1,4 +1,4 @@
-import { ShowTimeseries } from '../../../src/features/perses-dashboards/ols-tool-ui/ShowTimeseries';
+import { ShowTimeseries } from '@/features/perses-dashboards/ols-tool-ui/ShowTimeseries';
 
 describe('ShowTimeseries', () => {
   const tool = {

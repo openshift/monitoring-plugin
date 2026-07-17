@@ -20,11 +20,10 @@ import PencilIcon from 'mdi-material-ui/PencilOutline';
 import { ReactElement, ReactNode, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { DashboardDropdown } from '@shared/components/dashboard-dropdown';
-import { persesDashboardDataTestIDs } from '@shared/constants/data-test';
-
-import { useDashboardsData } from '../../hooks/useDashboardsData';
-import { usePersesEditPermissions } from '../../hooks/usePersesEditPermissions';
+import { useDashboardsData } from '@/features/perses-dashboards/hooks/useDashboardsData';
+import { usePersesEditPermissions } from '@/features/perses-dashboards/hooks/usePersesEditPermissions';
+import { DashboardDropdown } from '@/shared/components/dashboard-dropdown';
+import { persesDashboardDataTestIDs } from '@/shared/constants/data-test';
 
 export interface DashboardToolbarProps {
   dashboardName: string;

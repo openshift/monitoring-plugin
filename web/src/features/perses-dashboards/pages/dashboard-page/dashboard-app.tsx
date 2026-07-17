@@ -27,10 +27,10 @@ import { ReactElement, ReactNode, useState, useCallback, useEffect } from 'react
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router';
 
-import { OCPDashboardToolbar } from './dashboard-toolbar';
-import { ExternalPanelAddition } from './external-panel-addition';
-import { useToast } from '../../components/ToastProvider';
-import { useUpdateDashboardMutation } from '../../utils/dashboard-api';
+import { useToast } from '@/features/perses-dashboards/components/ToastProvider';
+import { OCPDashboardToolbar } from '@/features/perses-dashboards/pages/dashboard-page/dashboard-toolbar';
+import { ExternalPanelAddition } from '@/features/perses-dashboards/pages/dashboard-page/external-panel-addition';
+import { useUpdateDashboardMutation } from '@/features/perses-dashboards/utils/dashboard-api';
 
 export interface DashboardAppProps {
   dashboardResource: DashboardResource | EphemeralDashboardResource;

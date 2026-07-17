@@ -1,7 +1,7 @@
 import { K8sResourceKind, useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { useMemo } from 'react';
 
-import { ProjectModel } from '@shared/console/models';
+import { ProjectModel } from '@/shared/console/models';
 
 export const useOcpProjects = () => {
   const [ocpProjects, ocpProjectsLoaded] = useK8sWatchResource<K8sResourceKind[]>({

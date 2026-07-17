@@ -1,6 +1,6 @@
 import { useContext } from 'react';
 
-import { MonitoringContext } from '../contexts/MonitoringContext';
+import { MonitoringContext } from '@/shared/contexts/MonitoringContext';
 
 export const useMonitoring = () => {
   const {

@@ -1,5 +1,5 @@
 import { metricsPage } from '../../views/metrics';
-import { Classes, DataTestIDs } from '../../../src/shared/constants/data-test';
+import { Classes, DataTestIDs } from '@/shared/constants/data-test';
 import {
   MetricsPagePredefinedQueries,
   MetricsPageQueryInput,

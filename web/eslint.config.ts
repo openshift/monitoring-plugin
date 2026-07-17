@@ -101,6 +101,31 @@ export default defineConfig([
     },
   },
   {
+    files: ['cypress/**/*.ts', 'cypress/**/*.tsx'],
+    plugins: {
+      import: fixupPluginRules(importPlugin as any),
+    },
+    settings: {
+      'import/resolver': {
+        node: { extensions: ['.js', '.jsx', '.ts', '.tsx'] },
+      },
+    },
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              regex: '^(\\.\\./)+src/',
+              message:
+                'Use the @ alias instead of relative imports into src/ (e.g. `@/shared/constants/data-test`).',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     files: ['src/**/*.ts', 'src/**/*.tsx'],
     plugins: {
       import: fixupPluginRules(importPlugin as any),
@@ -111,13 +136,26 @@ export default defineConfig([
       },
     },
     rules: {
+      // Disallow relative imports — use the @ alias instead (e.g. `@/shared/hooks/useAlerts`).
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              regex: '^\\.', // matches ./ and ../
+              message:
+                'Use the @ alias instead of relative imports (e.g. `@/shared/hooks/useAlerts`).',
+            },
+          ],
+        },
+      ],
       'import/order': [
         'error',
         {
-          groups: [['builtin', 'external'], 'internal', ['parent', 'sibling', 'index']],
+          groups: [['builtin', 'external'], 'internal'],
           pathGroups: [
             {
-              pattern: '@shared/**',
+              pattern: '@/**',
               group: 'internal',
             },
           ],
@@ -143,18 +181,6 @@ export default defineConfig([
     },
     rules: {
       'import/no-restricted-paths': ['error', { zones: importBoundaryZones }],
-      'no-restricted-imports': [
-        'error',
-        {
-          patterns: [
-            {
-              regex: '^(\\.\\./)+shared/',
-              message:
-                'Use the @shared alias instead of relative imports to src/shared/ (e.g. `@shared/hooks/useAlerts`).',
-            },
-          ],
-        },
-      ],
     },
   },
 ]);

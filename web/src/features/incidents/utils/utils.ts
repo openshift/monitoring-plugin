@@ -7,8 +7,6 @@ import {
 import { TFunction } from 'i18next';
 import { Dispatch } from 'redux';
 
-import { setIncidentsActiveFilters } from '@shared/store/actions';
-
 import {
   Alert,
   AlertsChartBar,
@@ -19,7 +17,8 @@ import {
   IncidentsDetailsAlert,
   SpanDates,
   Timestamps,
-} from '../types/model';
+} from '@/features/incidents/types/model';
+import { setIncidentsActiveFilters } from '@/shared/store/actions';
 
 /**
  * The Prometheus query step interval in seconds.

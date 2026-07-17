@@ -49,12 +49,12 @@ import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 
-import { FormatSeriesTitle, QueryBrowser } from '@shared/components/query-browser/query-browser';
-import { SeverityBadge } from '@shared/components/SeverityBadge';
-import { NamespaceModel } from '@shared/console/models';
-import { useMonitoringNamespace } from '@shared/hooks/useMonitoringNamespace';
-import { getQueryBrowserUrl, usePerspective } from '@shared/hooks/usePerspective';
-import { AlertSource } from '@shared/types/types';
+import { FormatSeriesTitle, QueryBrowser } from '@/shared/components/query-browser/query-browser';
+import { SeverityBadge } from '@/shared/components/SeverityBadge';
+import { NamespaceModel } from '@/shared/console/models';
+import { useMonitoringNamespace } from '@/shared/hooks/useMonitoringNamespace';
+import { getQueryBrowserUrl, usePerspective } from '@/shared/hooks/usePerspective';
+import { AlertSource } from '@/shared/types/types';
 
 export const getAdditionalSources = <T extends Alert | Rule>(
   data: Array<T>,

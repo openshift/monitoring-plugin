@@ -6,8 +6,8 @@ import { useTranslation } from 'react-i18next';
 import {
   formatPrometheusDuration,
   parsePrometheusDuration,
-} from '../console/console-shared/src/datetime/prometheus';
-import { LegacyDashboardPageTestIDs } from '../constants/data-test';
+} from '@/shared/console/console-shared/src/datetime/prometheus';
+import { LegacyDashboardPageTestIDs } from '@/shared/constants/data-test';
 
 type DropDownPollIntervalProps = {
   setInterval: (v: number) => void;

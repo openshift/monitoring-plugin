@@ -8,18 +8,18 @@ import {
 import { useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { useMonitoring } from './useMonitoring';
-import { useMonitoringNamespace } from './useMonitoringNamespace';
-import { getObserveState } from './usePerspective';
 import {
   alertingRuleSource,
   alertSource,
   getAdditionalSources,
-} from '../../features/alerts/components/AlertUtils';
-import { usePoll } from '../console/utils/poll-hook';
-import { AppDispatch } from '../store/actions';
-import { MonitoringState } from '../store/store';
-import { fetchAlertingData } from '../store/thunks';
+} from '@/features/alerts/components/AlertUtils';
+import { usePoll } from '@/shared/console/utils/poll-hook';
+import { useMonitoring } from '@/shared/hooks/useMonitoring';
+import { useMonitoringNamespace } from '@/shared/hooks/useMonitoringNamespace';
+import { getObserveState } from '@/shared/hooks/usePerspective';
+import { AppDispatch } from '@/shared/store/actions';
+import { MonitoringState } from '@/shared/store/store';
+import { fetchAlertingData } from '@/shared/store/thunks';
 import {
   ALL_NAMESPACES_KEY,
   buildPrometheusUrl,
@@ -28,7 +28,7 @@ import {
   getPrometheusBasePath,
   Prometheus,
   silenceCluster,
-} from '../utils/utils';
+} from '@/shared/utils/utils';
 
 const POLLING_INTERVAL_MS = 15 * 1000; // 15 seconds
 

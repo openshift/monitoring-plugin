@@ -10,11 +10,11 @@ import {
 import type { FC, ComponentType } from 'react';
 import { Fragment } from 'react';
 
-import { GraphEmpty } from './graph-empty';
-import { DataPoint, getInstantVectorStats } from './helpers';
-import { PrometheusGraph, PrometheusGraphLink } from './promethues-graph';
-import { useRefWidth } from '../utils/ref-width-hook';
-import { humanizeNumber } from '../utils/units';
+import { GraphEmpty } from '@/shared/console/graphs/graph-empty';
+import { DataPoint, getInstantVectorStats } from '@/shared/console/graphs/helpers';
+import { PrometheusGraph, PrometheusGraphLink } from '@/shared/console/graphs/promethues-graph';
+import { useRefWidth } from '@/shared/console/utils/ref-width-hook';
+import { humanizeNumber } from '@/shared/console/utils/units';
 
 const DEFAULT_BAR_WIDTH = 10;
 const PADDING_RATIO = 1 / 3;

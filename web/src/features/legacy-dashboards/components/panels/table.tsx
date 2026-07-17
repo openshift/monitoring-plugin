@@ -13,20 +13,19 @@ import {
   Tr,
 } from '@patternfly/react-table';
 import * as _ from 'lodash-es';
-import type { FC } from 'react';
 import { useState, useCallback } from 'react';
+import type { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { formatNumber } from '@shared/components/format';
-import { ITEMS_PER_PAGE, TablePagination } from '@shared/components/table/table-pagination';
-import { GraphEmpty } from '@shared/console/graphs/graph-empty';
-import { usePoll } from '@shared/console/utils/poll-hook';
-import { useSafeFetch } from '@shared/console/utils/safe-fetch-hook';
-import { useMonitoring } from '@shared/hooks/useMonitoring';
-import { getPrometheusBasePath, buildPrometheusUrl } from '@shared/utils/utils';
-
-import { ColumnStyle, Panel } from '../../types/types';
-import ErrorAlert from '../error';
+import ErrorAlert from '@/features/legacy-dashboards/components/error';
+import { ColumnStyle, Panel } from '@/features/legacy-dashboards/types/types';
+import { formatNumber } from '@/shared/components/format';
+import { ITEMS_PER_PAGE, TablePagination } from '@/shared/components/table/table-pagination';
+import { GraphEmpty } from '@/shared/console/graphs/graph-empty';
+import { usePoll } from '@/shared/console/utils/poll-hook';
+import { useSafeFetch } from '@/shared/console/utils/safe-fetch-hook';
+import { useMonitoring } from '@/shared/hooks/useMonitoring';
+import { getPrometheusBasePath, buildPrometheusUrl } from '@/shared/utils/utils';
 
 type AugmentedColumnStyle = ColumnStyle & {
   className?: string;
@@ -39,7 +38,7 @@ const getColumns = (styles: ColumnStyle[]): AugmentedColumnStyle[] => {
   const valueColumns = [];
   styles.forEach((col: ColumnStyle) => {
     // Remove hidden or regex columns.
-    if (col.type === 'hidden' || col.pattern.startsWith('/') || !col.alias) {
+    if (col.type === 'hidden' || col.pattern.startsWith('@/shared/') || !col.alias) {
       return;
     }
 

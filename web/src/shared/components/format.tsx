@@ -8,7 +8,7 @@ import {
   humanizeNumber,
   humanizePacketsPerSec,
   humanizeSeconds,
-} from '../console/utils/units';
+} from '@/shared/console/utils/units';
 
 export const formatNumber = (s: string, decimals = 2, format = 'short'): string => {
   const value = Number(s);

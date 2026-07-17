@@ -12,17 +12,20 @@ import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, Link } from 'react-router';
 
-import { useBoolean } from '@shared/hooks/useBoolean';
-import { useMonitoringNamespace } from '@shared/hooks/useMonitoringNamespace';
+import { SeverityCounts, StateTimestamp } from '@/features/alerts/components/AlertUtils';
+import {
+  ExpireSilenceModal,
+  SilenceMatchersList,
+  SilenceState,
+} from '@/features/alerts/components/SilencesUtils';
+import { useBoolean } from '@/shared/hooks/useBoolean';
+import { useMonitoringNamespace } from '@/shared/hooks/useMonitoringNamespace';
 import {
   getEditSilenceAlertUrl,
   getSilenceAlertUrl,
   usePerspective,
-} from '@shared/hooks/usePerspective';
-import { SilenceResource } from '@shared/utils/utils';
-
-import { SeverityCounts, StateTimestamp } from '../components/AlertUtils';
-import { ExpireSilenceModal, SilenceMatchersList, SilenceState } from '../components/SilencesUtils';
+} from '@/shared/hooks/usePerspective';
+import { SilenceResource } from '@/shared/utils/utils';
 
 export const SilencedByList: FC<{ silences: Silence[] }> = ({ silences }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);

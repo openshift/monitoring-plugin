@@ -4,10 +4,10 @@ import * as _ from 'lodash-es';
 import type { FC } from 'react';
 import { VictoryPortal } from 'victory';
 
-import { formatNumber } from '../../../../../components/format';
-import { dateTimeFormatterWithSeconds } from '../../../../utils/datetime';
-import { humanizeNumberSI } from '../../../../utils/units';
-import withFallback from '../../../error/fallbacks/withFallback';
+import { formatNumber } from '@/shared/components/format';
+import withFallback from '@/shared/console/console-shared/error/fallbacks/withFallback';
+import { dateTimeFormatterWithSeconds } from '@/shared/console/utils/datetime';
+import { humanizeNumberSI } from '@/shared/console/utils/units';
 
 const TOOLTIP_MAX_ENTRIES = 20;
 const TOOLTIP_MAX_WIDTH = 400;

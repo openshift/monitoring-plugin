@@ -27,20 +27,19 @@ import { memo, ReactNode, useCallback, useMemo, useState, type FC } from 'react'
 import { useTranslation } from 'react-i18next';
 import { Link, useSearchParams } from 'react-router';
 
-import { ITEMS_PER_PAGE, TablePagination } from '@shared/components/table/table-pagination';
-import { listPersesDashboardsDataTestIDs } from '@shared/constants/data-test';
-import { getDashboardUrl, usePerspective } from '@shared/hooks/usePerspective';
-import { ALL_NAMESPACES_KEY } from '@shared/utils/utils';
-
-import { DashboardListFrame } from './dashboard-list-frame';
 import {
   DeleteActionModal,
   DuplicateActionModal,
   RenameActionModal,
-} from '../../components/dashboard-action-modals';
-import { useDashboardsData } from '../../hooks/useDashboardsData';
-import { useEditableProjects } from '../../hooks/useEditableProjects';
-import { usePersesEditPermissions } from '../../hooks/usePersesEditPermissions';
+} from '@/features/perses-dashboards/components/dashboard-action-modals';
+import { useDashboardsData } from '@/features/perses-dashboards/hooks/useDashboardsData';
+import { useEditableProjects } from '@/features/perses-dashboards/hooks/useEditableProjects';
+import { usePersesEditPermissions } from '@/features/perses-dashboards/hooks/usePersesEditPermissions';
+import { DashboardListFrame } from '@/features/perses-dashboards/pages/dashboard-list-page/dashboard-list-frame';
+import { ITEMS_PER_PAGE, TablePagination } from '@/shared/components/table/table-pagination';
+import { listPersesDashboardsDataTestIDs } from '@/shared/constants/data-test';
+import { getDashboardUrl, usePerspective } from '@/shared/hooks/usePerspective';
+import { ALL_NAMESPACES_KEY } from '@/shared/utils/utils';
 
 const DashboardActionsCell = memo(
   ({

@@ -1,16 +1,16 @@
 import { produce } from 'immer';
 import * as _ from 'lodash-es';
 
-import { ActionType, ObserveAction } from './actions';
+import { applySilences } from '@/features/alerts/components/AlertUtils';
+import { MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY } from '@/features/legacy-dashboards/utils/utils';
+import { ActionType, ObserveAction } from '@/shared/store/actions';
 import {
   defaultObserveState,
   newAlertsInfo,
   newQueryBrowserQuery,
   ObserveState,
   QueryStructure,
-} from './store';
-import { applySilences } from '../../features/alerts/components/AlertUtils';
-import { MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY } from '../../features/legacy-dashboards/utils/utils';
+} from '@/shared/store/store';
 
 const monitoringReducer = produce((draft: ObserveState, action: ObserveAction): ObserveState => {
   if (!draft) {

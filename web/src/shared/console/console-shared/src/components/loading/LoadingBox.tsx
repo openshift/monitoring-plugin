@@ -1,7 +1,7 @@
 import type { FC, PropsWithChildren } from 'react';
 
-import { Loading } from './Loading';
-import { ConsoleEmptyState } from '../empty-state/ConsoleEmptyState';
+import { ConsoleEmptyState } from '@/shared/console/console-shared/src/components/empty-state/ConsoleEmptyState';
+import { Loading } from '@/shared/console/console-shared/src/components/loading/Loading';
 
 export const LoadingBox: FC<PropsWithChildren> = ({ children }) => (
   <ConsoleEmptyState data-test="loading-box" isFullHeight>

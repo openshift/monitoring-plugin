@@ -2,7 +2,7 @@ import * as _ from 'lodash-es';
 import { Component } from 'react';
 import type { ComponentType, ReactNode } from 'react';
 
-import { LoadingBox } from '../console-shared/src/components/loading/LoadingBox';
+import { LoadingBox } from '@/shared/console/console-shared/src/components/loading/LoadingBox';
 
 /**
  * FIXME: Comparing two functions is not the *best* solution, but we can handle false negatives.

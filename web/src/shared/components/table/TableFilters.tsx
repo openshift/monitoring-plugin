@@ -13,9 +13,15 @@ import { DataViewTextFilterProps } from '@patternfly/react-data-view/dist/dynami
 import { FilterIcon } from '@patternfly/react-icons';
 import { useState, useRef, useEffect, ReactNode } from 'react';
 
-import { CustomDataViewCheckboxFilterProps, TableCheckboxFilter } from './TableCheckboxFilter';
-import { TableLabelFilter, DataViewLabelFilterProps } from './TableLabelFilter';
-import { TableTextFilter } from './TableTextFilter';
+import {
+  CustomDataViewCheckboxFilterProps,
+  TableCheckboxFilter,
+} from '@/shared/components/table/TableCheckboxFilter';
+import {
+  TableLabelFilter,
+  DataViewLabelFilterProps,
+} from '@/shared/components/table/TableLabelFilter';
+import { TableTextFilter } from '@/shared/components/table/TableTextFilter';
 
 interface TableFiltersProps extends Omit<
   ToolbarToggleGroupProps,

@@ -5,11 +5,13 @@ import type { FC, PropsWithChildren } from 'react';
 import { memo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { DashboardDropdown } from '@shared/components/dashboard-dropdown';
-import type { CombinedDashboardMetadata } from '@shared/types/types';
-
-import { LegacyDashboardsAllVariableDropdowns } from './legacy-variable-dropdowns';
-import { PollIntervalDropdown, TimespanDropdown } from './time-dropdowns';
+import { LegacyDashboardsAllVariableDropdowns } from '@/features/legacy-dashboards/components/legacy-variable-dropdowns';
+import {
+  PollIntervalDropdown,
+  TimespanDropdown,
+} from '@/features/legacy-dashboards/components/time-dropdowns';
+import { DashboardDropdown } from '@/shared/components/dashboard-dropdown';
+import type { CombinedDashboardMetadata } from '@/shared/types/types';
 
 const HeaderTop: FC = memo(() => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);

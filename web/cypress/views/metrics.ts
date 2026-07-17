@@ -1,5 +1,5 @@
 import { commonPages } from './common';
-import { DataTestIDs, Classes, IDs } from '../../src/shared/constants/data-test';
+import { DataTestIDs, Classes, IDs } from '@/shared/constants/data-test';
 import {
   MetricsPageUnits,
   MonitoringRefreshInterval,

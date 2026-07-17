@@ -1,4 +1,4 @@
-import { AddToDashboardButtonProps } from '../../../src/features/perses-dashboards/ols-tool-ui/helpers/AddToDashboardButton';
+import { AddToDashboardButtonProps } from '@/features/perses-dashboards/ols-tool-ui/helpers/AddToDashboardButton';
 
 export const AddToDashboardButton = ({ query, name, description }: AddToDashboardButtonProps) => (
   <button

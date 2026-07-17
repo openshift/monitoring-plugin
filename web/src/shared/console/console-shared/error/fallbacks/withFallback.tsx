@@ -1,6 +1,6 @@
 import type { ComponentType } from 'react';
 
-import ErrorBoundary from '../error-boundary';
+import ErrorBoundary from '@/shared/console/console-shared/error/error-boundary';
 
 type WithFallback = <P = object>(
   Component: ComponentType<P>,

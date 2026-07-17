@@ -3,9 +3,9 @@ import { DataQueriesProvider } from '@perses-dev/plugin-system';
 import { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { AddToDashboardButton } from './helpers/AddToDashboardButton';
-import { OlsToolUIPersesWrapper } from './helpers/OlsToolUIPersesWrapper';
-import { useTimeRange } from './helpers/useTimeRange';
+import { AddToDashboardButton } from '@/features/perses-dashboards/ols-tool-ui/helpers/AddToDashboardButton';
+import { OlsToolUIPersesWrapper } from '@/features/perses-dashboards/ols-tool-ui/helpers/OlsToolUIPersesWrapper';
+import { useTimeRange } from '@/features/perses-dashboards/ols-tool-ui/helpers/useTimeRange';
 
 type ShowTimeseriesTool = {
   args: {

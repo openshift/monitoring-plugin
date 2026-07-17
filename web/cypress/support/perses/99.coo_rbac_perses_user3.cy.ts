@@ -13,7 +13,7 @@ import { persesDashboardsPanel } from '../../views/perses-dashboards-panel';
 import { persesDashboardsAddListPanelType } from '../../fixtures/perses/constants';
 import { persesImportDashboardsPage } from '../../views/perses-dashboards-import-dashboard';
 import { nav } from '../../views/nav';
-import { persesAriaLabels } from '../../../src/shared/constants/data-test';
+import { persesAriaLabels } from '@/shared/constants/data-test';
 
 export interface PerspectiveConfig {
   name: string;

@@ -5,11 +5,7 @@ import {
   MetricsPageQueryInput,
   WatchdogAlert,
 } from '../../fixtures/monitoring/constants';
-import {
-  Classes,
-  LegacyDashboardPageTestIDs,
-  DataTestIDs,
-} from '../../../src/shared/constants/data-test';
+import { Classes, LegacyDashboardPageTestIDs, DataTestIDs } from '@/shared/constants/data-test';
 import { metricsPage } from '../../views/metrics';
 import { alertingRuleDetailsPage } from '../../views/alerting-rule-details-page';
 import { alerts } from '../../fixtures/monitoring/alert';

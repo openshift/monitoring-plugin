@@ -30,11 +30,10 @@ import {
 } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { ALL_NAMESPACES_KEY } from '@shared/utils/utils';
-
-import ProjectMenuToggle from './ProjectMenuToggle';
-import { alphanumericCompare } from './utils';
-import { useEditableProjects } from '../../hooks/useEditableProjects';
+import ProjectMenuToggle from '@/features/perses-dashboards/components/project/ProjectMenuToggle';
+import { alphanumericCompare } from '@/features/perses-dashboards/components/project/utils';
+import { useEditableProjects } from '@/features/perses-dashboards/hooks/useEditableProjects';
+import { ALL_NAMESPACES_KEY } from '@/shared/utils/utils';
 
 export const NoResults: FC<{
   onClear: (event: ReactMouseEvent<HTMLButtonElement, MouseEvent>) => void;

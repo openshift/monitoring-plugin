@@ -1,4 +1,4 @@
-import '../utils/perses-config';
+import '@/features/perses-dashboards/utils/perses-config';
 import { ThemeOptions, ThemeProvider } from '@mui/material';
 import { ChartThemeColor, getThemeColors } from '@patternfly/react-charts/victory';
 import {
@@ -49,13 +49,15 @@ import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 import { StringParam, useQueryParam } from 'use-query-params';
 
-import { LoadingBox } from '@shared/console/console-shared/src/components/loading/LoadingBox';
-import { QueryParams } from '@shared/constants/query-params';
-import { usePatternFlyTheme } from '@shared/hooks/usePatternflyTheme';
-
-import { OcpDatasourceApi } from '../utils/datasource-api';
-import { CachedDatasourceAPI } from '../utils/perses/datasource-cache-api';
-import { PERSES_PROXY_BASE_PATH, useFetchPersesDashboard } from '../utils/perses-client';
+import { OcpDatasourceApi } from '@/features/perses-dashboards/utils/datasource-api';
+import { CachedDatasourceAPI } from '@/features/perses-dashboards/utils/perses/datasource-cache-api';
+import {
+  PERSES_PROXY_BASE_PATH,
+  useFetchPersesDashboard,
+} from '@/features/perses-dashboards/utils/perses-client';
+import { LoadingBox } from '@/shared/console/console-shared/src/components/loading/LoadingBox';
+import { QueryParams } from '@/shared/constants/query-params';
+import { usePatternFlyTheme } from '@/shared/hooks/usePatternflyTheme';
 
 // Override eChart defaults with PatternFly colors.
 const patternflyBlue100 = chart_color_blue_100.value;

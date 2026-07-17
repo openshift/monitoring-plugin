@@ -10,11 +10,10 @@ import {
 import { ChangeEvent, FC, MouseEvent, MouseEventHandler } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { DataTestIDs } from '@shared/constants/data-test';
-import { setAlertsAreLoading } from '@shared/store/actions';
-
-import { IncidentFiltersCombined } from '../types/model';
-import { getFilterKey } from '../utils/utils';
+import { IncidentFiltersCombined } from '@/features/incidents/types/model';
+import { getFilterKey } from '@/features/incidents/utils/utils';
+import { DataTestIDs } from '@/shared/constants/data-test';
+import { setAlertsAreLoading } from '@/shared/store/actions';
 
 interface IncidentFilterToolbarItemProps {
   categoryName: string;

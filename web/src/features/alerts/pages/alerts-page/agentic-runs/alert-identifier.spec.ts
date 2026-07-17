@@ -8,7 +8,7 @@ import {
   computeAlertFingerprint,
   getAlertFingerprintPrefix,
   matchesAgenticRun,
-} from './alert-identifier';
+} from '@/features/alerts/pages/alerts-page/agentic-runs/alert-identifier';
 
 const makeAlert = (labels: Record<string, string>): Alert =>
   ({

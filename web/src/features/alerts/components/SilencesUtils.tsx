@@ -35,15 +35,15 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 
-import { DataTestIDs } from '@shared/constants/data-test';
-import { useBoolean } from '@shared/hooks/useBoolean';
-import { useMonitoringNamespace } from '@shared/hooks/useMonitoringNamespace';
+import { DataTestIDs } from '@/shared/constants/data-test';
+import { useBoolean } from '@/shared/hooks/useBoolean';
+import { useMonitoringNamespace } from '@/shared/hooks/useMonitoringNamespace';
 import {
   getEditSilenceAlertUrl,
   getFetchSilenceUrl,
   usePerspective,
-} from '@shared/hooks/usePerspective';
-import { silenceMatcherEqualitySymbol, silenceState } from '@shared/utils/utils';
+} from '@/shared/hooks/usePerspective';
+import { silenceMatcherEqualitySymbol, silenceState } from '@/shared/utils/utils';
 
 export const SilenceMatchersList = ({ silence }: { silence: Silence }) => (
   <LabelGroup numLabels={20}>

@@ -1,4 +1,4 @@
-import { formatNumber } from './format';
+import { formatNumber } from '@/shared/components/format';
 
 describe('formatNumber', () => {
   describe('edge cases', () => {

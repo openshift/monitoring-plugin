@@ -17,6 +17,6 @@ module.exports = {
   },
   transformIgnorePatterns: ['node_modules/(?!(@openshift-console|@patternfly|lodash-es)/)'],
   moduleNameMapper: {
-    '^@shared/(.*)$': '<rootDir>/src/shared/$1',
+    '^@/(.*)$': '<rootDir>/src/$1',
   },
 };

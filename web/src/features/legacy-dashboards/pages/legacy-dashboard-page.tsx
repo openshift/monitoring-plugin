@@ -4,17 +4,16 @@ import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router';
 import { StringParam, useQueryParam } from 'use-query-params';
 
-import withFallback from '@shared/console/console-shared/error/fallbacks/withFallback';
-import { LoadingInline } from '@shared/console/console-shared/src/components/loading/LoadingInline';
-import { QueryParams } from '@shared/constants/query-params';
-import { MonitoringProvider } from '@shared/contexts/MonitoringContext';
-import { useMonitoring } from '@shared/hooks/useMonitoring';
-import { usePerspective } from '@shared/hooks/usePerspective';
-
-import { DashboardSkeletonLegacy } from '../components/dashboard-skeleton-legacy';
-import ErrorAlert from '../components/error';
-import { LegacyDashboard } from '../components/legacy-dashboard';
-import { useLegacyDashboards } from '../hooks/useLegacyDashboards';
+import { DashboardSkeletonLegacy } from '@/features/legacy-dashboards/components/dashboard-skeleton-legacy';
+import ErrorAlert from '@/features/legacy-dashboards/components/error';
+import { LegacyDashboard } from '@/features/legacy-dashboards/components/legacy-dashboard';
+import { useLegacyDashboards } from '@/features/legacy-dashboards/hooks/useLegacyDashboards';
+import withFallback from '@/shared/console/console-shared/error/fallbacks/withFallback';
+import { LoadingInline } from '@/shared/console/console-shared/src/components/loading/LoadingInline';
+import { QueryParams } from '@/shared/constants/query-params';
+import { MonitoringProvider } from '@/shared/contexts/MonitoringContext';
+import { useMonitoring } from '@/shared/hooks/useMonitoring';
+import { usePerspective } from '@/shared/hooks/usePerspective';
 
 type LegacyDashboardsPageProps = {
   urlBoard: string;

@@ -13,13 +13,15 @@ import { Control, Controller } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 
-import { getDashboardUrl, usePerspective } from '@shared/hooks/usePerspective';
-
-import { formGroupStyle, LabelSpacer } from './dashboard-action-modals';
-import { useToast } from './ToastProvider';
-import { useEditableProjects } from '../hooks/useEditableProjects';
-import { usePerses } from '../hooks/usePerses';
-import { useCreateProjectMutation } from '../utils/dashboard-api';
+import {
+  formGroupStyle,
+  LabelSpacer,
+} from '@/features/perses-dashboards/components/dashboard-action-modals';
+import { useToast } from '@/features/perses-dashboards/components/ToastProvider';
+import { useEditableProjects } from '@/features/perses-dashboards/hooks/useEditableProjects';
+import { usePerses } from '@/features/perses-dashboards/hooks/usePerses';
+import { useCreateProjectMutation } from '@/features/perses-dashboards/utils/dashboard-api';
+import { getDashboardUrl, usePerspective } from '@/shared/hooks/usePerspective';
 
 export const useDashboardProjects = () => {
   const {

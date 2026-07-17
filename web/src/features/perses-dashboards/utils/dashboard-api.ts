@@ -4,8 +4,8 @@ import { StatusError } from '@perses-dev/core';
 import { useMutation, UseMutationResult, useQueryClient } from '@tanstack/react-query';
 import { useQuery, UseQueryOptions, UseQueryResult } from '@tanstack/react-query';
 
-import buildURL from './perses/url-builder';
-import { PERSES_PROXY_BASE_PATH } from './perses-client';
+import buildURL from '@/features/perses-dashboards/utils/perses/url-builder';
+import { PERSES_PROXY_BASE_PATH } from '@/features/perses-dashboards/utils/perses-client';
 
 const resource = 'dashboards';
 

@@ -6,9 +6,9 @@ import { forwardRef } from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router';
 
-import { useMonitoringNamespace } from '../../hooks/useMonitoringNamespace';
-import { getMutlipleQueryBrowserUrl, usePerspective } from '../../hooks/usePerspective';
-import { RootState } from '../../store/store';
+import { useMonitoringNamespace } from '@/shared/hooks/useMonitoringNamespace';
+import { getMutlipleQueryBrowserUrl, usePerspective } from '@/shared/hooks/usePerspective';
+import { RootState } from '@/shared/store/store';
 
 const getActiveNamespace = ({ UI }: RootState): string => UI.get('activeNamespace');
 

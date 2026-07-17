@@ -14,8 +14,8 @@
 import { consoleFetchJSON } from '@openshift-console/dynamic-plugin-sdk';
 import { GlobalDatasourceResource } from '@perses-dev/core';
 
-import { buildDatasourceQueryParameters } from './datasource-client';
-import buildURL from './url-builder';
+import { buildDatasourceQueryParameters } from '@/features/perses-dashboards/utils/perses/datasource-client';
+import buildURL from '@/features/perses-dashboards/utils/perses/url-builder';
 
 const globalDatasourceResource = 'globaldatasources';
 

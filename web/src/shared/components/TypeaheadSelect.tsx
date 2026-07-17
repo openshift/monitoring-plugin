@@ -14,7 +14,7 @@ import {
 import { TimesIcon } from '@patternfly/react-icons';
 import { useState, useRef, useEffect, FormEvent, KeyboardEvent, Ref, FC } from 'react';
 
-import { DataTestIDs } from '../constants/data-test';
+import { DataTestIDs } from '@/shared/constants/data-test';
 
 const NO_RESULTS = 'no results';
 

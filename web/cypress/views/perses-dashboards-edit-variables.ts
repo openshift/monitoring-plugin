@@ -4,7 +4,7 @@ import {
   persesMUIDataTestIDs,
   IDs,
   editPersesDashboardsAddVariable,
-} from '../../src/shared/constants/data-test';
+} from '@/shared/constants/data-test';
 import {
   persesDashboardsModalTitles,
   persesDashboardsAddListVariableSource,

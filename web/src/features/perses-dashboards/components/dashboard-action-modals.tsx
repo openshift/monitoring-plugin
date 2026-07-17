@@ -27,25 +27,24 @@ import { Controller, FormProvider, SubmitHandler, useForm } from 'react-hook-for
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 
-import { usePerspective, getDashboardUrl } from '@shared/hooks/usePerspective';
-
-import { useToast } from './ToastProvider';
-import { useEditableProjects } from '../hooks/useEditableProjects';
-import { usePerses } from '../hooks/usePerses';
+import { useToast } from '@/features/perses-dashboards/components/ToastProvider';
+import { useEditableProjects } from '@/features/perses-dashboards/hooks/useEditableProjects';
+import { usePerses } from '@/features/perses-dashboards/hooks/usePerses';
 import {
   renameDashboardDialogValidationSchema,
   RenameDashboardValidationType,
   createDashboardDialogValidationSchema,
   CreateDashboardValidationType,
   useDashboardValidationSchema,
-} from '../utils/dashboard-action-validations';
+} from '@/features/perses-dashboards/utils/dashboard-action-validations';
 import {
   useUpdateDashboardMutation,
   useCreateDashboardMutation,
   useDeleteDashboardMutation,
   useCreateProjectMutation,
-} from '../utils/dashboard-api';
-import { generateMetadataName } from '../utils/dashboard-utils';
+} from '@/features/perses-dashboards/utils/dashboard-api';
+import { generateMetadataName } from '@/features/perses-dashboards/utils/dashboard-utils';
+import { usePerspective, getDashboardUrl } from '@/shared/hooks/usePerspective';
 
 export const formGroupStyle = {
   fontWeight: t_global_font_weight_200.value,

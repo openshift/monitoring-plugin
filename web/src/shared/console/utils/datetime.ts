@@ -1,4 +1,4 @@
-import { getLastLanguage } from './getLastLanguage';
+import { getLastLanguage } from '@/shared/console/utils/getLastLanguage';
 
 const lang = getLastLanguage() || undefined;
 

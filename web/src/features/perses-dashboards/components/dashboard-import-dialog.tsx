@@ -23,22 +23,21 @@ import { ChangeEvent, FC, useEffect, useState } from 'react';
 import { FormProvider, SubmitHandler, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
-import { usePatternFlyTheme } from '@shared/hooks/usePatternflyTheme';
-
 import {
   PermissionStateWrapper,
   ProjectSelectFormGroup,
   useDashboardNavigation,
   useDashboardProjects,
   useProjectCreation,
-} from './dashboard-dialog-helpers';
-import { useToast } from './ToastProvider';
+} from '@/features/perses-dashboards/components/dashboard-dialog-helpers';
+import { useToast } from '@/features/perses-dashboards/components/ToastProvider';
 import {
   importDashboardDialogValidationSchema,
   ImportDashboardValidationType,
-} from '../utils/dashboard-action-validations';
-import { useCreateDashboardMutation } from '../utils/dashboard-api';
-import { useMigrateDashboard } from '../utils/migrate-api';
+} from '@/features/perses-dashboards/utils/dashboard-action-validations';
+import { useCreateDashboardMutation } from '@/features/perses-dashboards/utils/dashboard-api';
+import { useMigrateDashboard } from '@/features/perses-dashboards/utils/migrate-api';
+import { usePatternFlyTheme } from '@/shared/hooks/usePatternflyTheme';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_MIME_TYPES = [

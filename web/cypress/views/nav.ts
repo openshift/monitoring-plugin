@@ -1,4 +1,4 @@
-import { Classes } from '../../src/shared/constants/data-test';
+import { Classes } from '@/shared/constants/data-test';
 export const nav = {
   sidenav: {
     clickNavLink: (path: string[]) => {

@@ -2,7 +2,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@shared/*": ["src/shared/*"]
+      "@/*": ["src/*"]
     },
     "esModuleInterop": true,
     "module": "esnext",

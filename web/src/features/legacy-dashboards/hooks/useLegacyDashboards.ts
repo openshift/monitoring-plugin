@@ -4,17 +4,16 @@ import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 import { useNavigate, useSearchParams } from 'react-router';
 
-import { useSafeFetch } from '@shared/console/utils/safe-fetch-hook';
-import { QueryParams } from '@shared/constants/query-params';
-import { useBoolean } from '@shared/hooks/useBoolean';
-import { getLegacyDashboardsUrl, usePerspective } from '@shared/hooks/usePerspective';
-import { dashboardsPatchAllVariables } from '@shared/store/actions';
-import type { CombinedDashboardMetadata } from '@shared/types/types';
-import { ALL_NAMESPACES_KEY } from '@shared/utils/utils';
-
-import { useLegacyDashboardsProject } from './useLegacyDashboardsProject';
-import { Board } from '../types/types';
-import { MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY } from '../utils/utils';
+import { useLegacyDashboardsProject } from '@/features/legacy-dashboards/hooks/useLegacyDashboardsProject';
+import { Board } from '@/features/legacy-dashboards/types/types';
+import { MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY } from '@/features/legacy-dashboards/utils/utils';
+import { useSafeFetch } from '@/shared/console/utils/safe-fetch-hook';
+import { QueryParams } from '@/shared/constants/query-params';
+import { useBoolean } from '@/shared/hooks/useBoolean';
+import { getLegacyDashboardsUrl, usePerspective } from '@/shared/hooks/usePerspective';
+import { dashboardsPatchAllVariables } from '@/shared/store/actions';
+import type { CombinedDashboardMetadata } from '@/shared/types/types';
+import { ALL_NAMESPACES_KEY } from '@/shared/utils/utils';
 
 export const useLegacyDashboards = (urlBoard: string) => {
   const { t } = useTranslation('plugin__monitoring-plugin');
@@ -33,7 +32,7 @@ export const useLegacyDashboards = (urlBoard: string) => {
 
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    safeFetch<any>('/api/console/monitoring-dashboard-config')
+    safeFetch<any>('@/shared/api/console/monitoring-dashboard-config')
       .then((response) => {
         setLegacyDashboardsLoaded();
         setLegacyDashboardsError(undefined);

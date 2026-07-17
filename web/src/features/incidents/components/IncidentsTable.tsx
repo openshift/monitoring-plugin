@@ -14,13 +14,12 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
-import { SeverityBadge } from '@shared/components/SeverityBadge';
-import { DataTestIDs } from '@shared/constants/data-test';
-import { MonitoringState } from '@shared/store/store';
-
-import { GroupedAlertStateIcon } from './IncidentAlertStateIcon';
-import IncidentsDetailsRowTable from './IncidentsDetailsRowTable';
-import { GroupedAlert } from '../types/model';
+import { GroupedAlertStateIcon } from '@/features/incidents/components/IncidentAlertStateIcon';
+import IncidentsDetailsRowTable from '@/features/incidents/components/IncidentsDetailsRowTable';
+import { GroupedAlert } from '@/features/incidents/types/model';
+import { SeverityBadge } from '@/shared/components/SeverityBadge';
+import { DataTestIDs } from '@/shared/constants/data-test';
+import { MonitoringState } from '@/shared/store/store';
 
 export const IncidentsTable = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);

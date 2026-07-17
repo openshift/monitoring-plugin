@@ -8,9 +8,12 @@ import * as _ from 'lodash-es';
 import type { ComponentProps, FC, SetStateAction, Dispatch, FormEvent } from 'react';
 import { useState, useEffect } from 'react';
 
-import { TextFilter } from './factory/text-filter';
-import { fuzzyCaseInsensitive } from '../../../utils/utils';
-import { KeyEventModes, useDocumentListener } from '../../console-shared/hooks/useDocumentListener';
+import {
+  KeyEventModes,
+  useDocumentListener,
+} from '@/shared/console/console-shared/hooks/useDocumentListener';
+import { TextFilter } from '@/shared/console/public/components/factory/text-filter';
+import { fuzzyCaseInsensitive } from '@/shared/utils/utils';
 
 const mapLabelsToStrings = (labels: { [key: string]: string }): string[] => {
   const requirements = toRequirements(labels);

@@ -3,11 +3,10 @@ import type { FC } from 'react';
 import { useCallback } from 'react';
 import { NumberParam, useQueryParam } from 'use-query-params';
 
-import { FormatSeriesTitle, QueryBrowser } from '@shared/components/query-browser/query-browser';
-import { QueryParams } from '@shared/constants/query-params';
-import { GraphUnits } from '@shared/utils/units';
-
-import { DEFAULT_GRAPH_SAMPLES, TimeRangeParam } from '../../utils/utils';
+import { DEFAULT_GRAPH_SAMPLES, TimeRangeParam } from '@/features/legacy-dashboards/utils/utils';
+import { FormatSeriesTitle, QueryBrowser } from '@/shared/components/query-browser/query-browser';
+import { QueryParams } from '@/shared/constants/query-params';
+import { GraphUnits } from '@/shared/utils/units';
 
 type Props = {
   customDataSource?: CustomDataSource;

@@ -12,16 +12,6 @@ import type { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, Link } from 'react-router';
 
-import CustomIcon from '@shared/components/CustomIcon';
-import KebabDropdown from '@shared/components/KebabDropdown';
-import { SeverityBadge } from '@shared/components/SeverityBadge';
-import { DataTestIDs } from '@shared/constants/data-test';
-import { useMonitoringNamespace } from '@shared/hooks/useMonitoringNamespace';
-import { getAlertUrl, getNewSilenceAlertUrl, usePerspective } from '@shared/hooks/usePerspective';
-import { AlertSource } from '@shared/types/types';
-import { AlertResource, alertState } from '@shared/utils/utils';
-
-import { useAgenticRunCheck } from './agentic-runs/useAgenticRunCheck';
 import {
   alertSource,
   AlertState,
@@ -29,7 +19,16 @@ import {
   isActionWithCallback,
   isActionWithHref,
   NamespaceGroupVersionKind,
-} from '../../components/AlertUtils';
+} from '@/features/alerts/components/AlertUtils';
+import { useAgenticRunCheck } from '@/features/alerts/pages/alerts-page/agentic-runs/useAgenticRunCheck';
+import CustomIcon from '@/shared/components/CustomIcon';
+import KebabDropdown from '@/shared/components/KebabDropdown';
+import { SeverityBadge } from '@/shared/components/SeverityBadge';
+import { DataTestIDs } from '@/shared/constants/data-test';
+import { useMonitoringNamespace } from '@/shared/hooks/useMonitoringNamespace';
+import { getAlertUrl, getNewSilenceAlertUrl, usePerspective } from '@/shared/hooks/usePerspective';
+import { AlertSource } from '@/shared/types/types';
+import { AlertResource, alertState } from '@/shared/utils/utils';
 
 const getAgenticRunUrl = (namespace: string, name: string): string => {
   return `/lightspeed/runs/${namespace}/${name}`;

@@ -4,11 +4,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router';
 import { StringParam, useQueryParam } from 'use-query-params';
 
-import { QueryParams } from '@shared/constants/query-params';
-import { useMonitoring } from '@shared/hooks/useMonitoring';
-import { getObserveState, usePerspective } from '@shared/hooks/usePerspective';
-import { dashboardsPatchVariable } from '@shared/store/actions';
-import { MonitoringState } from '@shared/store/store';
+import { QueryParams } from '@/shared/constants/query-params';
+import { useMonitoring } from '@/shared/hooks/useMonitoring';
+import { getObserveState, usePerspective } from '@/shared/hooks/usePerspective';
+import { dashboardsPatchVariable } from '@/shared/store/actions';
+import { MonitoringState } from '@/shared/store/store';
 
 export const useLegacyDashboardsProject = (dashboardName?: string) => {
   const { perspective } = usePerspective();

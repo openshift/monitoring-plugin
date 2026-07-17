@@ -2,7 +2,7 @@ import { Button } from '@patternfly/react-core';
 import type { FC, PropsWithChildren } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { ConsoleEmptyState } from '../empty-state/ConsoleEmptyState';
+import { ConsoleEmptyState } from '@/shared/console/console-shared/src/components/empty-state/ConsoleEmptyState';
 
 export const LoadError: FC<PropsWithChildren<LoadErrorProps>> = ({
   label,

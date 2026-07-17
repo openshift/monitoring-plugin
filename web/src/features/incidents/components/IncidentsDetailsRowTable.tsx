@@ -5,13 +5,12 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 
-import { SeverityBadge } from '@shared/components/SeverityBadge';
-import { DataTestIDs } from '@shared/constants/data-test';
-import { getRuleUrl, usePerspective } from '@shared/hooks/usePerspective';
-import { ALL_NAMESPACES_KEY, RuleResource } from '@shared/utils/utils';
-
-import { IncidentAlertStateIcon } from './IncidentAlertStateIcon';
-import { Alert, IncidentsDetailsAlert } from '../types/model';
+import { IncidentAlertStateIcon } from '@/features/incidents/components/IncidentAlertStateIcon';
+import { Alert, IncidentsDetailsAlert } from '@/features/incidents/types/model';
+import { SeverityBadge } from '@/shared/components/SeverityBadge';
+import { DataTestIDs } from '@/shared/constants/data-test';
+import { getRuleUrl, usePerspective } from '@/shared/hooks/usePerspective';
+import { ALL_NAMESPACES_KEY, RuleResource } from '@/shared/utils/utils';
 
 interface IncidentsDetailsRowTableProps {
   alerts: Alert[];

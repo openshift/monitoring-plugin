@@ -3,16 +3,15 @@ import { k8sListResourceItems } from '@openshift-console/dynamic-plugin-sdk/lib/
 import { useQuery } from '@tanstack/react-query';
 import { useCallback, useMemo, useState } from 'react';
 
-import { AgenticRunModel } from '@shared/console/models';
-
-import { getAlertFingerprintPrefix } from './alert-identifier';
+import { getAlertFingerprintPrefix } from '@/features/alerts/pages/alerts-page/agentic-runs/alert-identifier';
 import {
   AGENTIC_RUN_LABEL_FINGERPRINT,
   AGENTIC_RUN_LABEL_SOURCE,
   AGENTIC_RUN_NAMESPACE,
   AGENTIC_RUN_SOURCE_ALERTMANAGER,
   AGENTIC_RUN_STALE_TIME,
-} from './constants';
+} from '@/features/alerts/pages/alerts-page/agentic-runs/constants';
+import { AgenticRunModel } from '@/shared/console/models';
 
 const buildQueryFn = (namespace: string, alertFingerprint: string) => () =>
   k8sListResourceItems<K8sResourceCommon>({
