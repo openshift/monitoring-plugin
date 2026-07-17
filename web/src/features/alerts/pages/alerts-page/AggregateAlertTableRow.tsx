@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 
 import { AlertState } from '@/features/alerts/components/AlertUtils';
-import { AggregatedAlert } from '@/features/alerts/pages/alerts-page/AlertsAggregates';
+import { AggregatedAlert } from '@/features/alerts/pages/alerts-page/alerts-aggregates';
 import { AggregatedAlertFilters } from '@/features/alerts/pages/alerts-page/AlertsPage';
 import AlertTableRow from '@/features/alerts/pages/alerts-page/AlertTableRow';
 import { filterAlerts } from '@/features/alerts/pages/alerts-page/filter-alerts';

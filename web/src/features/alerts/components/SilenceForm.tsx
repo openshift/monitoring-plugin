@@ -38,12 +38,12 @@ import { Trans, useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 
-import withFallback from '@/shared/console/console-shared/error/fallbacks/withFallback';
+import withFallback from '@/shared/console/console-shared/error/fallbacks/WithFallback';
 import {
   formatPrometheusDuration,
   parsePrometheusDuration,
 } from '@/shared/console/console-shared/src/datetime/prometheus';
-import { ExternalLink } from '@/shared/console/utils/link';
+import { ExternalLink } from '@/shared/console/utils/Link';
 import { DataTestIDs } from '@/shared/constants/data-test';
 import { useAlerts } from '@/shared/hooks/useAlerts';
 import { useBoolean } from '@/shared/hooks/useBoolean';

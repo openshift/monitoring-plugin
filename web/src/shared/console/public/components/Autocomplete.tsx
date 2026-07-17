@@ -12,7 +12,7 @@ import {
   KeyEventModes,
   useDocumentListener,
 } from '@/shared/console/console-shared/hooks/useDocumentListener';
-import { TextFilter } from '@/shared/console/public/components/factory/text-filter';
+import { TextFilter } from '@/shared/console/public/components/factory/TextFilter';
 import { fuzzyCaseInsensitive } from '@/shared/utils/utils';
 
 const mapLabelsToStrings = (labels: { [key: string]: string }): string[] => {

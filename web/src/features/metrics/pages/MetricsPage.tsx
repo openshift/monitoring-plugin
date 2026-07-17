@@ -81,14 +81,14 @@ import { StringParam, useQueryParam } from 'use-query-params';
 
 import { DropDownPollInterval } from '@/shared/components/DropdownPollInterval';
 import KebabDropdown from '@/shared/components/KebabDropdown';
-import { colors, Error, QueryBrowser } from '@/shared/components/query-browser/query-browser';
-import { TablePagination } from '@/shared/components/table/table-pagination';
+import { colors, Error, QueryBrowser } from '@/shared/components/query-browser/QueryBrowser';
+import { TablePagination } from '@/shared/components/table/TablePagination';
 import { ToggleGraph } from '@/shared/components/ToggleGraph';
 import { TypeaheadSelect } from '@/shared/components/TypeaheadSelect';
-import withFallback from '@/shared/console/console-shared/error/fallbacks/withFallback';
+import withFallback from '@/shared/console/console-shared/error/fallbacks/WithFallback';
 import { LoadingInline } from '@/shared/console/console-shared/src/components/loading/LoadingInline';
 import { valueFormatter } from '@/shared/console/console-shared/src/components/query-browser/QueryBrowserTooltip';
-import { AsyncComponent } from '@/shared/console/utils/async';
+import { AsyncComponent } from '@/shared/console/utils/Async';
 import { usePoll } from '@/shared/console/utils/poll-hook';
 import { useSafeFetch } from '@/shared/console/utils/safe-fetch-hook';
 import { DataTestIDs } from '@/shared/constants/data-test';
@@ -904,7 +904,7 @@ const QueryTable: FC<QueryTableProps> = ({ index, namespace, customDatasource, u
 const PromQLExpressionInput = (props) => (
   <AsyncComponent
     loader={() =>
-      import('../components/promql-expression-input').then((c) => c.PromQLExpressionInput)
+      import('../components/PromqlExpressionInput').then((c) => c.PromQLExpressionInput)
     }
     {...props}
   />

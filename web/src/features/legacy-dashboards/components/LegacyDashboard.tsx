@@ -33,11 +33,11 @@ import { useQueryParam } from 'use-query-params';
 import {
   evaluateVariableTemplate,
   Variable,
-} from '@/features/legacy-dashboards/components/legacy-variable-dropdowns';
-import BarChart from '@/features/legacy-dashboards/components/panels/bar-chart';
-import Graph from '@/features/legacy-dashboards/components/panels/graph';
-import SingleStat from '@/features/legacy-dashboards/components/panels/single-stat';
-import Table from '@/features/legacy-dashboards/components/panels/table';
+} from '@/features/legacy-dashboards/components/LegacyVariableDropdowns';
+import BarChart from '@/features/legacy-dashboards/components/panels/BarChart';
+import Graph from '@/features/legacy-dashboards/components/panels/Graph';
+import SingleStat from '@/features/legacy-dashboards/components/panels/SingleStat';
+import Table from '@/features/legacy-dashboards/components/panels/Table';
 import { Panel, Row } from '@/features/legacy-dashboards/types/types';
 import { RefreshIntervalParam, TimeRangeParam } from '@/features/legacy-dashboards/utils/utils';
 import KebabDropdown from '@/shared/components/KebabDropdown';

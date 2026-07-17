@@ -39,7 +39,7 @@ import {
   isIntervalVariable,
 } from '@/features/legacy-dashboards/utils/variable-utils';
 import { useSafeFetch } from '@/shared/console/utils/safe-fetch-hook';
-import { SingleTypeaheadDropdown } from '@/shared/console/utils/single-typeahead-dropdown';
+import { SingleTypeaheadDropdown } from '@/shared/console/utils/SingleTypeaheadDropdown';
 import { QueryParams } from '@/shared/constants/query-params';
 import { useDeepMemo } from '@/shared/hooks/useDeepMemo';
 import { useMonitoring } from '@/shared/hooks/useMonitoring';

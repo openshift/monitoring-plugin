@@ -31,12 +31,12 @@ import {
   DeleteActionModal,
   DuplicateActionModal,
   RenameActionModal,
-} from '@/features/perses-dashboards/components/dashboard-action-modals';
+} from '@/features/perses-dashboards/components/DashboardActionModals';
 import { useDashboardsData } from '@/features/perses-dashboards/hooks/useDashboardsData';
 import { useEditableProjects } from '@/features/perses-dashboards/hooks/useEditableProjects';
 import { usePersesEditPermissions } from '@/features/perses-dashboards/hooks/usePersesEditPermissions';
-import { DashboardListFrame } from '@/features/perses-dashboards/pages/dashboard-list-page/dashboard-list-frame';
-import { ITEMS_PER_PAGE, TablePagination } from '@/shared/components/table/table-pagination';
+import { DashboardListFrame } from '@/features/perses-dashboards/pages/dashboard-list-page/DashboardListFrame';
+import { ITEMS_PER_PAGE, TablePagination } from '@/shared/components/table/TablePagination';
 import { listPersesDashboardsDataTestIDs } from '@/shared/constants/data-test';
 import { getDashboardUrl, usePerspective } from '@/shared/hooks/usePerspective';
 import { ALL_NAMESPACES_KEY } from '@/shared/utils/utils';

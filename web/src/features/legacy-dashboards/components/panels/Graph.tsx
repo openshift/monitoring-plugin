@@ -4,7 +4,7 @@ import { useCallback } from 'react';
 import { NumberParam, useQueryParam } from 'use-query-params';
 
 import { DEFAULT_GRAPH_SAMPLES, TimeRangeParam } from '@/features/legacy-dashboards/utils/utils';
-import { FormatSeriesTitle, QueryBrowser } from '@/shared/components/query-browser/query-browser';
+import { FormatSeriesTitle, QueryBrowser } from '@/shared/components/query-browser/QueryBrowser';
 import { QueryParams } from '@/shared/constants/query-params';
 import { GraphUnits } from '@/shared/utils/units';
 

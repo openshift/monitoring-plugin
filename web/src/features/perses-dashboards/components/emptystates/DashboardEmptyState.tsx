@@ -3,7 +3,7 @@ import { ListIcon } from '@patternfly/react-icons';
 import { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { ExternalLink } from '@/shared/console/utils/link';
+import { ExternalLink } from '@/shared/console/utils/Link';
 
 export function DashboardEmptyState(): ReactElement {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);

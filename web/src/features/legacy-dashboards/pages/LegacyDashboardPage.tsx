@@ -4,11 +4,11 @@ import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router';
 import { StringParam, useQueryParam } from 'use-query-params';
 
-import { DashboardSkeletonLegacy } from '@/features/legacy-dashboards/components/dashboard-skeleton-legacy';
-import ErrorAlert from '@/features/legacy-dashboards/components/error';
-import { LegacyDashboard } from '@/features/legacy-dashboards/components/legacy-dashboard';
+import { DashboardSkeletonLegacy } from '@/features/legacy-dashboards/components/DashboardSkeletonLegacy';
+import ErrorAlert from '@/features/legacy-dashboards/components/Error';
+import { LegacyDashboard } from '@/features/legacy-dashboards/components/LegacyDashboard';
 import { useLegacyDashboards } from '@/features/legacy-dashboards/hooks/useLegacyDashboards';
-import withFallback from '@/shared/console/console-shared/error/fallbacks/withFallback';
+import withFallback from '@/shared/console/console-shared/error/fallbacks/WithFallback';
 import { LoadingInline } from '@/shared/console/console-shared/src/components/loading/LoadingInline';
 import { QueryParams } from '@/shared/constants/query-params';
 import { MonitoringProvider } from '@/shared/contexts/MonitoringContext';

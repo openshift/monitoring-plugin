@@ -5,7 +5,7 @@ import type { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NumberParam, useQueryParam } from 'use-query-params';
 
-import CustomTimeRangeModal from '@/features/legacy-dashboards/components/custom-time-range-modal';
+import CustomTimeRangeModal from '@/features/legacy-dashboards/components/CustomTimeRangeModal';
 import { RefreshIntervalParam, TimeRangeParam } from '@/features/legacy-dashboards/utils/utils';
 import { DropDownPollInterval } from '@/shared/components/DropdownPollInterval';
 import {

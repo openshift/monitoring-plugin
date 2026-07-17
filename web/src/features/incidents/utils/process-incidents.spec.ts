@@ -5,7 +5,7 @@ import {
   getIncidents,
   getIncidentsTimeRanges,
   processIncidentsForAlerts,
-} from '@/features/incidents/utils/processIncidents';
+} from '@/features/incidents/utils/process-incidents';
 import { getCurrentTime } from '@/features/incidents/utils/utils';
 
 describe('convertToIncidents', () => {

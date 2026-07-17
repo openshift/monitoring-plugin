@@ -10,8 +10,8 @@ import {
 import { FC, Ref, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { DashboardCreateDialog } from '@/features/perses-dashboards/components/dashboard-create-dialog';
-import { DashboardImportDialog } from '@/features/perses-dashboards/components/dashboard-import-dialog';
+import { DashboardCreateDialog } from '@/features/perses-dashboards/components/DashboardCreateDialog';
+import { DashboardImportDialog } from '@/features/perses-dashboards/components/DashboardImportDialog';
 import { useEditableProjects } from '@/features/perses-dashboards/hooks/useEditableProjects';
 import { persesDashboardDataTestIDs } from '@/shared/constants/data-test';
 

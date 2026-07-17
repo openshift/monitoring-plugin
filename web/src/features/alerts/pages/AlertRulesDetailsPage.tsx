@@ -50,13 +50,13 @@ import {
   SourceHelp,
 } from '@/features/alerts/components/AlertUtils';
 import KebabDropdown from '@/shared/components/KebabDropdown';
-import { Labels } from '@/shared/components/labels';
+import { Labels } from '@/shared/components/Labels';
 import { SeverityBadge } from '@/shared/components/SeverityBadge';
 import { ToggleGraph } from '@/shared/components/ToggleGraph';
-import withFallback from '@/shared/console/console-shared/error/fallbacks/withFallback';
+import withFallback from '@/shared/console/console-shared/error/fallbacks/WithFallback';
 import { StatusBox } from '@/shared/console/console-shared/src/components/status/StatusBox';
 import { formatPrometheusDuration } from '@/shared/console/console-shared/src/datetime/prometheus';
-import { ExternalLink } from '@/shared/console/utils/link';
+import { ExternalLink } from '@/shared/console/utils/Link';
 import { DataTestIDs } from '@/shared/constants/data-test';
 import { MonitoringProvider } from '@/shared/contexts/MonitoringContext';
 import { useAlerts } from '@/shared/hooks/useAlerts';
