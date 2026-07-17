@@ -1,11 +1,11 @@
 import {
   Alert,
-  AlertProps,
-  AlertGroup,
   AlertActionCloseButton,
+  AlertGroup,
+  AlertProps,
   AlertVariant,
 } from '@patternfly/react-core';
-import { createContext, useContext, useState, ReactNode, FC } from 'react';
+import { createContext, FC, ReactNode, useContext, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 interface ToastItem {

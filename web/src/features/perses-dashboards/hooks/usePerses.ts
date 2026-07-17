@@ -3,9 +3,9 @@ import { useTranslation } from 'react-i18next';
 import { NumberParam, useQueryParam } from 'use-query-params';
 
 import {
-  fetchPersesProjects,
-  fetchPersesDashboardsMetadata,
   fetchPersesDashboardsByProject,
+  fetchPersesDashboardsMetadata,
+  fetchPersesProjects,
 } from '@/features/perses-dashboards/utils/perses-client';
 import { QueryParams } from '@/shared/constants/query-params';
 

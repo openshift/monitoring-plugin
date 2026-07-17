@@ -1,8 +1,8 @@
 import {
+  DatasourceApi,
   DatasourceResource,
   DatasourceSelector,
   GlobalDatasourceResource,
-  DatasourceApi,
 } from '@perses-dev/core';
 import { TFunction } from 'i18next';
 

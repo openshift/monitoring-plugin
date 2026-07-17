@@ -8,22 +8,22 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
 import { CustomDataSource } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/dashboard-data-source';
 import {
-  Card as PFCard,
   CardBody,
   CardHeader,
   CardTitle,
   DropdownItem,
+  ExpandableSectionToggle,
+  Flex,
+  FlexItem,
   Grid,
   GridItem,
   gridSpans,
-  Flex,
-  FlexItem,
-  ExpandableSectionToggle,
+  Card as PFCard,
   Spinner,
 } from '@patternfly/react-core';
 import { t_global_font_size_heading_h2 } from '@patternfly/react-tokens';
 import * as _ from 'lodash-es';
-import { memo, useRef, useState, useCallback, useEffect, useMemo } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';

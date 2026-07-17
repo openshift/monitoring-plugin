@@ -6,16 +6,16 @@ import {
   getResourceExtendedDisplayName,
 } from '@perses-dev/core';
 import {
-  PanelDrawer,
   Dashboard,
-  PanelGroupDialog,
-  DeletePanelGroupDialog,
   DashboardDiscardChangesConfirmationDialog,
   DeletePanelDialog,
-  EmptyDashboardProps,
+  DeletePanelGroupDialog,
   EditJsonDialog,
-  SaveChangesConfirmationDialog,
+  EmptyDashboardProps,
   LeaveDialog,
+  PanelDrawer,
+  PanelGroupDialog,
+  SaveChangesConfirmationDialog,
 } from '@perses-dev/dashboards';
 import {
   useDashboard,
@@ -23,7 +23,7 @@ import {
   useEditMode,
 } from '@perses-dev/dashboards';
 import { useDatasourceStore } from '@perses-dev/plugin-system';
-import { ReactElement, ReactNode, useState, useCallback, useEffect } from 'react';
+import { ReactElement, ReactNode, useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router';
 

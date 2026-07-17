@@ -1,10 +1,10 @@
 import { Alert, K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 
 import {
+  AGENTIC_RUN_LABEL_FINGERPRINT,
   FINGERPRINT_PREFIX_LEN,
   FNV_OFFSET_BASIS,
   FNV_PRIME,
-  AGENTIC_RUN_LABEL_FINGERPRINT,
   SEPARATOR_BYTE,
   UINT64_MASK,
 } from '@/features/alerts/pages/alerts-page/agentic-runs/constants';

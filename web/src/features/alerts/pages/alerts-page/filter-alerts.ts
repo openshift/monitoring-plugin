@@ -2,8 +2,8 @@ import { Alert } from '@openshift-console/dynamic-plugin-sdk';
 
 import { alertSource } from '@/features/alerts/components/AlertUtils';
 import {
-  AlertFilterOptions,
   AggregatedAlertFilters,
+  AlertFilterOptions,
 } from '@/features/alerts/pages/alerts-page/AlertsPage';
 import { Perspective } from '@/shared/store/actions';
 import { alertState, ALL_NAMESPACES_KEY, fuzzyCaseInsensitive } from '@/shared/utils/utils';

@@ -67,12 +67,12 @@ import {
 } from '@patternfly/react-table';
 import { SimpleSelect, SimpleSelectOption } from '@patternfly/react-templates';
 import {
+  t_global_font_family_mono,
   t_global_spacer_md,
   t_global_spacer_sm,
-  t_global_font_family_mono,
 } from '@patternfly/react-tokens';
 import * as _ from 'lodash-es';
-import { useMemo, useCallback, useEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { FC, MouseEvent as ReactMouseEvent, Ref } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -115,7 +115,7 @@ import { MonitoringState } from '@/shared/store/store';
 import { PrometheusAPIError } from '@/shared/types/types';
 import { GraphUnits, isGraphUnit } from '@/shared/utils/units';
 import { ALL_NAMESPACES_KEY } from '@/shared/utils/utils';
-import { getPrometheusBasePath, buildPrometheusUrl } from '@/shared/utils/utils';
+import { buildPrometheusUrl, getPrometheusBasePath } from '@/shared/utils/utils';
 
 // Stores information about the currently focused query input
 let focusedQuery;

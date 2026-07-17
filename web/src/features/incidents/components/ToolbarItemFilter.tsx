@@ -1,11 +1,11 @@
 import {
-  ToolbarItem,
-  ToolbarFilter,
+  Badge,
+  MenuToggle,
   Select,
   SelectList,
   SelectOption,
-  MenuToggle,
-  Badge,
+  ToolbarFilter,
+  ToolbarItem,
 } from '@patternfly/react-core';
 import { ChangeEvent, FC, MouseEvent, MouseEventHandler } from 'react';
 import { useTranslation } from 'react-i18next';

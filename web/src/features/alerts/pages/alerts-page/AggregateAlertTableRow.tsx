@@ -1,7 +1,7 @@
 import { Alert, ResourceIcon, TableColumn } from '@openshift-console/dynamic-plugin-sdk';
 import { Badge, Flex, FlexItem } from '@patternfly/react-core';
 import { ExpandableRowContent, Table, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 

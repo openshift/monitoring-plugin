@@ -1,20 +1,20 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
+  AlertVariant,
   Button,
-  Modal,
-  ModalBody,
-  ModalHeader,
-  ModalFooter,
-  ModalVariant,
   FormGroup,
-  TextInput,
   FormHelperText,
   HelperText,
   HelperTextItem,
-  ValidatedOptions,
-  AlertVariant,
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+  ModalVariant,
   Stack,
   StackItem,
+  TextInput,
+  ValidatedOptions,
 } from '@patternfly/react-core';
 import { DashboardResource } from '@perses-dev/core';
 import { FC, useEffect } from 'react';

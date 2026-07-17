@@ -1,10 +1,10 @@
 import {
   Dropdown,
-  DropdownList,
   DropdownItem,
+  DropdownList,
   MenuToggle,
-  MenuToggleElement,
   MenuToggleAction,
+  MenuToggleElement,
   Tooltip,
 } from '@patternfly/react-core';
 import { FC, Ref, useState } from 'react';

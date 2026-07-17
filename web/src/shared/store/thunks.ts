@@ -2,12 +2,12 @@ import { consoleFetchJSON, Silence } from '@openshift-console/dynamic-plugin-sdk
 import { ThunkAction } from 'redux-thunk';
 
 import {
+  alertingApplySilences,
+  alertingSetErrored,
   alertingSetLoading,
   alertingSetRulesLoaded,
-  alertingSetSilencesLoaded,
-  alertingApplySilences,
   alertingSetSilencesErrored,
-  alertingSetErrored,
+  alertingSetSilencesLoaded,
   ObserveAction,
 } from '@/shared/store/actions';
 import { fetchAlerts } from '@/shared/store/fetch-alerts';

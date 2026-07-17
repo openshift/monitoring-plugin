@@ -50,8 +50,8 @@ import {
 } from '@patternfly/react-tokens';
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
-import { memo, useState, useEffect, useCallback, useLayoutEffect, useRef } from 'react';
-import type { FC, Ref, ReactNode, KeyboardEvent, MouseEvent, ComponentType } from 'react';
+import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import type { ComponentType, FC, KeyboardEvent, MouseEvent, ReactNode, Ref } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 

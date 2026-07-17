@@ -1,10 +1,10 @@
 import { metricsPage } from '../../views/metrics';
 import { Classes, DataTestIDs } from '@/shared/constants/data-test';
 import {
-  MetricsPageUnits,
   GraphTimespan,
   MetricsPagePredefinedQueries,
   MetricsPageQueryInput,
+  MetricsPageUnits,
 } from '../../fixtures/monitoring/constants';
 
 export interface PerspectiveConfig {

@@ -29,8 +29,8 @@ import {
 import {
   DashboardProvider,
   DatasourceStoreProvider,
-  VariableProviderWithQueryParams,
   PanelFocusProvider,
+  VariableProviderWithQueryParams,
 } from '@perses-dev/dashboards';
 import {
   DataQueriesProvider,

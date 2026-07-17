@@ -6,12 +6,12 @@ import {
   MenuList,
   MenuToggle,
   Popper,
-  ToolbarLabel,
   ToolbarFilter,
+  ToolbarLabel,
 } from '@patternfly/react-core';
 import { DataViewCheckboxFilterProps } from '@patternfly/react-data-view/dist/dynamic/DataViewCheckboxFilter';
 import { DataViewFilterOption } from '@patternfly/react-data-view/dist/dynamic/DataViewFilters';
-import { FC, useState, useRef, useEffect, MouseEvent as ReactMouseEvent } from 'react';
+import { FC, MouseEvent as ReactMouseEvent, useEffect, useRef, useState } from 'react';
 
 const isToolbarLabel = (label: string | ToolbarLabel): label is ToolbarLabel =>
   typeof label === 'object' && 'key' in label;

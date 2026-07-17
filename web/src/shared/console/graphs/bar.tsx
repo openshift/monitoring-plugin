@@ -7,7 +7,7 @@ import {
   ChartThemeColor,
   getCustomTheme,
 } from '@patternfly/react-charts/victory';
-import type { FC, ComponentType } from 'react';
+import type { ComponentType, FC } from 'react';
 import { Fragment } from 'react';
 
 import { GraphEmpty } from '@/shared/console/graphs/graph-empty';

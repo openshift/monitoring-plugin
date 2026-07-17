@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { KEYBOARD_SHORTCUTS } from '@/shared/console/console-shared/constants/common';
 

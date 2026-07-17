@@ -11,9 +11,9 @@ import {
   AlertingRulesAlertState,
   MainTagState,
   Severity,
+  SilenceComment,
   SilenceState,
   Source,
-  SilenceComment,
   WatchdogAlert,
 } from '../../fixtures/monitoring/constants';
 import { FilterOUIAIDs } from '@/shared/constants/data-test';

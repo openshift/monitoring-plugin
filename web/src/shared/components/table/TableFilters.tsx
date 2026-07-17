@@ -11,15 +11,15 @@ import {
 } from '@patternfly/react-core';
 import { DataViewTextFilterProps } from '@patternfly/react-data-view/dist/dynamic/DataViewTextFilter';
 import { FilterIcon } from '@patternfly/react-icons';
-import { useState, useRef, useEffect, ReactNode } from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
 
 import {
   CustomDataViewCheckboxFilterProps,
   TableCheckboxFilter,
 } from '@/shared/components/table/TableCheckboxFilter';
 import {
-  TableLabelFilter,
   DataViewLabelFilterProps,
+  TableLabelFilter,
 } from '@/shared/components/table/TableLabelFilter';
 import { TableTextFilter } from '@/shared/components/table/TableTextFilter';
 

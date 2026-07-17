@@ -34,8 +34,8 @@ import {
   t_chart_color_yellow_500,
 } from '@patternfly/react-tokens';
 import * as _ from 'lodash-es';
-import { useState, useCallback } from 'react';
-import type { ReactNode, FC } from 'react';
+import { useCallback, useState } from 'react';
+import type { FC, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import ErrorAlert from '@/features/legacy-dashboards/components/error';
@@ -46,7 +46,7 @@ import { usePoll } from '@/shared/console/utils/poll-hook';
 import { useSafeFetch } from '@/shared/console/utils/safe-fetch-hook';
 import { useMonitoring } from '@/shared/hooks/useMonitoring';
 import { PatternflyToken } from '@/shared/types/types';
-import { getPrometheusBasePath, buildPrometheusUrl } from '@/shared/utils/utils';
+import { buildPrometheusUrl, getPrometheusBasePath } from '@/shared/utils/utils';
 
 const colorMap: Record<string, PatternflyToken> = {
   'super-light-blue': t_chart_color_blue_100,

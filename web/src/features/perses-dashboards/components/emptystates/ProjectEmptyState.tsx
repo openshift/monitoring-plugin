@@ -1,4 +1,4 @@
-import { Title, EmptyState, EmptyStateBody, Bullseye } from '@patternfly/react-core';
+import { Bullseye, EmptyState, EmptyStateBody, Title } from '@patternfly/react-core';
 import { ListIcon } from '@patternfly/react-icons';
 import { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';

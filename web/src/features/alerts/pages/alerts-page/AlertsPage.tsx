@@ -6,7 +6,7 @@ import DataViewToolbar from '@patternfly/react-data-view/dist/dynamic/DataViewTo
 import { useDataViewSort } from '@patternfly/react-data-view/dist/dynamic/Hooks';
 import { Table, TableGridBreakpoint } from '@patternfly/react-table';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useEffect, useMemo, useRef, useState, type FC } from 'react';
+import { type FC, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { SilencesNotLoadedWarning } from '@/features/alerts/components/AlertUtils';
@@ -18,7 +18,7 @@ import {
 import DownloadCSVButton from '@/features/alerts/pages/alerts-page/DownloadCSVButton';
 import { filterAlerts } from '@/features/alerts/pages/alerts-page/filter-alerts';
 import { useTableColumns } from '@/shared/components/table/hooks/useTableColumns';
-import { useTableFilters, rowFilter } from '@/shared/components/table/hooks/useTableFilters';
+import { rowFilter, useTableFilters } from '@/shared/components/table/hooks/useTableFilters';
 import { useTablePagination } from '@/shared/components/table/hooks/useTablePagination';
 import { directedSort, localeCompareSort } from '@/shared/components/table/sort-utils';
 import { ITEMS_PER_PAGE, TablePagination } from '@/shared/components/table/table-pagination';

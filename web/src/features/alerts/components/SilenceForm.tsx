@@ -32,8 +32,8 @@ import {
 import { ExclamationCircleIcon, MinusCircleIcon, PlusCircleIcon } from '@patternfly/react-icons';
 import { t_global_spacer_sm } from '@patternfly/react-tokens';
 import * as _ from 'lodash-es';
-import { useState, useEffect, useMemo } from 'react';
-import type { ComponentType, FC, FormEventHandler, MouseEvent, ChangeEvent, Ref } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import type { ChangeEvent, ComponentType, FC, FormEventHandler, MouseEvent, Ref } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';

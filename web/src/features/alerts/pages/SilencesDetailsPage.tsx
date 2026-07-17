@@ -28,7 +28,7 @@ import { Table, TableVariant, Tbody, Td, Th, Thead, Tr } from '@patternfly/react
 import * as _ from 'lodash-es';
 import type { FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useParams, Link } from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router';
 
 import { SeverityCounts } from '@/features/alerts/components/AlertUtils';
 import {

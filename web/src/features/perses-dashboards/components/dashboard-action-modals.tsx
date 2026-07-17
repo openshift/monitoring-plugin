@@ -1,26 +1,26 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
+  AlertVariant,
   Button,
+  FormGroup,
+  FormHelperText,
+  HelperText,
+  HelperTextItem,
+  HelperTextItemVariant,
   Modal,
   ModalBody,
   ModalFooter,
   ModalHeader,
-  FormGroup,
-  TextInput,
-  FormHelperText,
-  HelperText,
-  HelperTextItem,
-  ValidatedOptions,
-  HelperTextItemVariant,
   ModalVariant,
-  AlertVariant,
+  Spinner,
   Stack,
   StackItem,
-  Spinner,
+  TextInput,
+  ValidatedOptions,
 } from '@patternfly/react-core';
 import { ExclamationCircleIcon } from '@patternfly/react-icons';
 import { TypeaheadSelect, TypeaheadSelectOption } from '@patternfly/react-templates';
-import { t_global_spacer_200, t_global_font_weight_200 } from '@patternfly/react-tokens';
+import { t_global_font_weight_200, t_global_spacer_200 } from '@patternfly/react-tokens';
 import { DashboardResource, getResourceExtendedDisplayName } from '@perses-dev/core';
 import { CSSProperties, useEffect, useMemo } from 'react';
 import { Controller, FormProvider, SubmitHandler, useForm } from 'react-hook-form';
@@ -31,20 +31,20 @@ import { useToast } from '@/features/perses-dashboards/components/ToastProvider'
 import { useEditableProjects } from '@/features/perses-dashboards/hooks/useEditableProjects';
 import { usePerses } from '@/features/perses-dashboards/hooks/usePerses';
 import {
-  renameDashboardDialogValidationSchema,
-  RenameDashboardValidationType,
   createDashboardDialogValidationSchema,
   CreateDashboardValidationType,
+  renameDashboardDialogValidationSchema,
+  RenameDashboardValidationType,
   useDashboardValidationSchema,
 } from '@/features/perses-dashboards/utils/dashboard-action-validations';
 import {
-  useUpdateDashboardMutation,
   useCreateDashboardMutation,
-  useDeleteDashboardMutation,
   useCreateProjectMutation,
+  useDeleteDashboardMutation,
+  useUpdateDashboardMutation,
 } from '@/features/perses-dashboards/utils/dashboard-api';
 import { generateMetadataName } from '@/features/perses-dashboards/utils/dashboard-utils';
-import { usePerspective, getDashboardUrl } from '@/shared/hooks/usePerspective';
+import { getDashboardUrl, usePerspective } from '@/shared/hooks/usePerspective';
 
 export const formGroupStyle = {
   fontWeight: t_global_font_weight_200.value,

@@ -5,8 +5,8 @@ import {
 import { Label, SelectList } from '@patternfly/react-core';
 import { css } from '@patternfly/react-styles';
 import * as _ from 'lodash-es';
-import type { ComponentProps, FC, SetStateAction, Dispatch, FormEvent } from 'react';
-import { useState, useEffect } from 'react';
+import type { ComponentProps, Dispatch, FC, FormEvent, SetStateAction } from 'react';
+import { useEffect, useState } from 'react';
 
 import {
   KeyEventModes,

@@ -32,7 +32,7 @@ export const useLegacyDashboards = (urlBoard: string) => {
 
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    safeFetch<any>('@/shared/api/console/monitoring-dashboard-config')
+    safeFetch<any>('/api/console/monitoring-dashboard-config')
       .then((response) => {
         setLegacyDashboardsLoaded();
         setLegacyDashboardsError(undefined);

@@ -11,8 +11,8 @@ jest.mock('../../components/AlertUtils', () => ({
 import { Alert, AlertStates } from '@openshift-console/dynamic-plugin-sdk';
 
 import {
-  AlertFilterOptions,
   AggregatedAlertFilters,
+  AlertFilterOptions,
 } from '@/features/alerts/pages/alerts-page/AlertsPage';
 import { filterAlerts } from '@/features/alerts/pages/alerts-page/filter-alerts';
 import { AlertSource } from '@/shared/types/types';

@@ -22,7 +22,7 @@ import {
 } from '@patternfly/react-core';
 import { CompressArrowsAltIcon, CompressIcon, FilterIcon } from '@patternfly/react-icons';
 import { isEmpty } from 'lodash-es';
-import { useCallback, useEffect, useMemo, useState, MouseEvent } from 'react';
+import { MouseEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation } from 'react-router';
@@ -37,7 +37,7 @@ import IncidentFilterToolbarItem, {
 } from '@/features/incidents/components/ToolbarItemFilter';
 import { Incident, IncidentsPageFiltersExpandedState } from '@/features/incidents/types/model';
 import { createAlertsQuery, fetchDataForIncidentsAndAlerts } from '@/features/incidents/utils/api';
-import { groupAlertsForTable, convertToAlerts } from '@/features/incidents/utils/processAlerts';
+import { convertToAlerts, groupAlertsForTable } from '@/features/incidents/utils/processAlerts';
 import {
   convertToIncidents,
   getIncidentsTimeRanges,

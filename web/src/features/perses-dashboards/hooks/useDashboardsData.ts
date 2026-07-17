@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/refs */
 import { DashboardResource } from '@perses-dev/core';
-import { useMemo, useCallback, useRef } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { StringParam, useQueryParam } from 'use-query-params';
 

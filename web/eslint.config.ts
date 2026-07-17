@@ -78,6 +78,15 @@ export default defineConfig([
 
       'no-console': ['error'],
 
+      'sort-imports': [
+        'error',
+        {
+          ignoreCase: true,
+          ignoreDeclarationSort: true,
+          ignoreMemberSort: false,
+        },
+      ],
+
       // Prevent directly importing react as a lint rule
       'no-restricted-syntax': [
         'error',

@@ -1,4 +1,4 @@
-import { localeCompareSort, directedSort } from '@/shared/components/table/sort-utils';
+import { directedSort, localeCompareSort } from '@/shared/components/table/sort-utils';
 
 describe('localeCompareSort', () => {
   it('should return negative when a < b in asc', () => {

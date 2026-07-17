@@ -23,7 +23,7 @@ import {
 } from '@patternfly/react-data-view/dist/dynamic/Hooks';
 import { ActionsColumn, ThProps } from '@patternfly/react-table';
 import { DashboardResource } from '@perses-dev/core';
-import { memo, ReactNode, useCallback, useMemo, useState, type FC } from 'react';
+import { type FC, memo, ReactNode, useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useSearchParams } from 'react-router';
 

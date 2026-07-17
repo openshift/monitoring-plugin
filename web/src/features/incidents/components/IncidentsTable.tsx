@@ -1,16 +1,16 @@
 import { AlertSeverity, Timestamp } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Bullseye,
+  Button,
   Card,
   CardBody,
   EmptyState,
   EmptyStateBody,
-  Button,
 } from '@patternfly/react-core';
-import { SearchIcon, AngleDownIcon, AngleRightIcon } from '@patternfly/react-icons';
+import { AngleDownIcon, AngleRightIcon, SearchIcon } from '@patternfly/react-icons';
 import { ExpandableRowContent, Table, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
 import { isEmpty } from 'lodash-es';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 

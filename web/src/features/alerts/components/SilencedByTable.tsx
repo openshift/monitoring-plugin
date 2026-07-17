@@ -2,15 +2,15 @@ import { ResourceIcon, Silence, SilenceStates } from '@openshift-console/dynamic
 import { Flex, FlexItem, Stack, StackItem } from '@patternfly/react-core';
 import {
   DataViewTable,
-  DataViewTr,
   DataViewTh,
+  DataViewTr,
 } from '@patternfly/react-data-view/dist/dynamic/DataViewTable';
 import { ActionsColumn, IAction } from '@patternfly/react-table';
 import { t_global_spacer_xs } from '@patternfly/react-tokens';
 import type { FC, MouseEvent } from 'react';
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 
 import { SeverityCounts, StateTimestamp } from '@/features/alerts/components/AlertUtils';
 import {

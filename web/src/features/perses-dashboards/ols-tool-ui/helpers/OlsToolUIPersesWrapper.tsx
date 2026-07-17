@@ -6,8 +6,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { FC, ReactNode } from 'react';
 
 import {
-  PersesWrapper,
   PersesPrometheusDatasourceWrapper,
+  PersesWrapper,
 } from '@/features/perses-dashboards/components/PersesWrapper';
 
 const queryClient = new QueryClient({

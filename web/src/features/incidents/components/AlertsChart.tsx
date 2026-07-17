@@ -32,8 +32,8 @@ import { IncidentsTooltip } from '@/features/incidents/components/IncidentsToolt
 import { AlertsChartBar } from '@/features/incidents/types/model';
 import {
   createAlertsChartBars,
-  generateDateArray,
   generateAlertsDateArray,
+  generateDateArray,
   getCurrentTime,
   roundDateToInterval,
 } from '@/features/incidents/utils/utils';

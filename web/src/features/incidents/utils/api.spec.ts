@@ -1,4 +1,4 @@
-import { PrometheusResponse, consoleFetchJSON } from '@openshift-console/dynamic-plugin-sdk';
+import { consoleFetchJSON, PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
 
 import { createAlertsQuery, fetchDataForIncidentsAndAlerts } from '@/features/incidents/utils/api';
 import { buildPrometheusUrl } from '@/shared/utils/utils';

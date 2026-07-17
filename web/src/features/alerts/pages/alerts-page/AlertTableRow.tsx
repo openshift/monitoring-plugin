@@ -10,7 +10,7 @@ import { DropdownItem, Flex, FlexItem, Spinner } from '@patternfly/react-core';
 import { Td, Tr } from '@patternfly/react-table';
 import type { FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 
 import {
   alertSource,

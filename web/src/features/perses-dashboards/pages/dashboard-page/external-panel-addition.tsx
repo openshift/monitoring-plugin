@@ -1,5 +1,5 @@
 import { useDashboardActions, useDashboardStore } from '@perses-dev/dashboards';
-import { ReactElement, useEffect, useState, useCallback, useRef } from 'react';
+import { ReactElement, useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { dashboardsOpened, dashboardsPersesPanelExternallyAdded } from '@/shared/store/actions';

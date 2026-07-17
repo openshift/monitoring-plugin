@@ -1,7 +1,7 @@
 import { IncompleteDataError } from '@openshift-console/dynamic-plugin-sdk/lib/utils/error/http-error';
 import { Alert, Flex, FlexItem, PageSection, Title } from '@patternfly/react-core';
 import * as _ from 'lodash-es';
-import type { FC, ComponentType, ReactNode } from 'react';
+import type { ComponentType, FC, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { AccessDenied } from '@/shared/console/console-shared/src/components/empty-state/AccessDenied';

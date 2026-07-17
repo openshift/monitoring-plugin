@@ -13,7 +13,7 @@ import {
   Tr,
 } from '@patternfly/react-table';
 import * as _ from 'lodash-es';
-import { useState, useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import type { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -25,7 +25,7 @@ import { GraphEmpty } from '@/shared/console/graphs/graph-empty';
 import { usePoll } from '@/shared/console/utils/poll-hook';
 import { useSafeFetch } from '@/shared/console/utils/safe-fetch-hook';
 import { useMonitoring } from '@/shared/hooks/useMonitoring';
-import { getPrometheusBasePath, buildPrometheusUrl } from '@/shared/utils/utils';
+import { buildPrometheusUrl, getPrometheusBasePath } from '@/shared/utils/utils';
 
 type AugmentedColumnStyle = ColumnStyle & {
   className?: string;
@@ -38,7 +38,7 @@ const getColumns = (styles: ColumnStyle[]): AugmentedColumnStyle[] => {
   const valueColumns = [];
   styles.forEach((col: ColumnStyle) => {
     // Remove hidden or regex columns.
-    if (col.type === 'hidden' || col.pattern.startsWith('@/shared/') || !col.alias) {
+    if (col.type === 'hidden' || col.pattern.startsWith('/') || !col.alias) {
       return;
     }
 

@@ -7,7 +7,7 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 
 import { PROMETHEUS_QUERY_INTERVAL_SECONDS } from '@/features/incidents/utils/utils';
-import { getPrometheusBasePath, buildPrometheusUrl } from '@/shared/utils/utils';
+import { buildPrometheusUrl, getPrometheusBasePath } from '@/shared/utils/utils';
 
 // Disable client-side timeout (-1) to let the backend control query timeouts
 const NO_TIMEOUT = -1;

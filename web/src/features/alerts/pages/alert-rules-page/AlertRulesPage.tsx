@@ -26,7 +26,7 @@ import {
 import { filterRules } from '@/features/alerts/pages/alert-rules-page/filter-rules';
 import { SeverityBadge } from '@/shared/components/SeverityBadge';
 import { useTableColumns } from '@/shared/components/table/hooks/useTableColumns';
-import { useTableFilters, rowFilter } from '@/shared/components/table/hooks/useTableFilters';
+import { rowFilter, useTableFilters } from '@/shared/components/table/hooks/useTableFilters';
 import { useTablePagination } from '@/shared/components/table/hooks/useTablePagination';
 import { directedSort, localeCompareSort } from '@/shared/components/table/sort-utils';
 import { ITEMS_PER_PAGE, TablePagination } from '@/shared/components/table/table-pagination';

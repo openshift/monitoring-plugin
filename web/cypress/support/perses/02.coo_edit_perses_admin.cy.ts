@@ -1,7 +1,7 @@
 import {
   editPersesDashboardsAddVariable,
-  persesMUIDataTestIDs,
   IDs,
+  persesMUIDataTestIDs,
 } from '@/shared/constants/data-test';
 import {
   persesDashboardsDashboardDropdownCOO,

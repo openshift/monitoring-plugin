@@ -2,11 +2,11 @@ import { ChartThemeDefinition } from '@patternfly/react-charts/victory';
 import { ChartThemeColor, getCustomTheme } from '@patternfly/react-charts/victory';
 import {
   chart_axis_grid_stroke_Color,
+  chart_axis_tick_label_Fill,
   chart_axis_tick_Size,
   chart_axis_tick_stroke_Color,
   chart_axis_tick_Width,
   chart_global_FontFamily,
-  chart_axis_tick_label_Fill,
   chart_global_letter_spacing,
   chart_line_data_Opacity,
 } from '@patternfly/react-tokens';

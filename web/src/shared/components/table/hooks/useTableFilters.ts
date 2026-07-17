@@ -3,7 +3,7 @@
 // array filters, and changed to always sync URL
 
 import { UseDataViewFiltersProps } from '@patternfly/react-data-view/dist/dynamic/Hooks';
-import { useState, useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router';
 
 export const useTableFilters = <T extends object>({

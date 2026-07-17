@@ -1,9 +1,9 @@
 import { commonPages } from './common';
 import {
-  persesAriaLabels,
-  persesMUIDataTestIDs,
   editPersesDashboardsAddDatasource,
   IDs,
+  persesAriaLabels,
+  persesMUIDataTestIDs,
 } from '@/shared/constants/data-test';
 import {
   persesDashboardsModalTitles,

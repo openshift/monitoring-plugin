@@ -43,7 +43,7 @@ import { Link, useParams } from 'react-router';
 import { filterTargets } from '@/features/targets/utils/filter-targets';
 import { Labels } from '@/shared/components/labels';
 import { useTableColumns } from '@/shared/components/table/hooks/useTableColumns';
-import { useTableFilters, rowFilter } from '@/shared/components/table/hooks/useTableFilters';
+import { rowFilter, useTableFilters } from '@/shared/components/table/hooks/useTableFilters';
 import { useTablePagination } from '@/shared/components/table/hooks/useTablePagination';
 import { directedSort, localeCompareSort } from '@/shared/components/table/sort-utils';
 import { ITEMS_PER_PAGE, TablePagination } from '@/shared/components/table/table-pagination';

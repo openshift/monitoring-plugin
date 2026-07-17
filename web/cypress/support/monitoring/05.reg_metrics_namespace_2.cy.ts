@@ -3,8 +3,8 @@ import { Classes, DataTestIDs } from '@/shared/constants/data-test';
 import {
   MetricsPagePredefinedQueries,
   MetricsPageQueryInput,
-  MetricsPageQueryKebabDropdown,
   MetricsPageQueryInputByNamespace,
+  MetricsPageQueryKebabDropdown,
 } from '../../fixtures/monitoring/constants';
 
 export interface PerspectiveConfig {

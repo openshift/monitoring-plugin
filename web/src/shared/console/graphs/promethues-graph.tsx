@@ -1,7 +1,7 @@
 import { Title } from '@patternfly/react-core';
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
-import type { FC, Ref, PropsWithChildren } from 'react';
+import type { FC, PropsWithChildren, Ref } from 'react';
 import { forwardRef } from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router';

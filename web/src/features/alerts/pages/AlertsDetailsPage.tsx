@@ -81,8 +81,8 @@ import { useMonitoring } from '@/shared/hooks/useMonitoring';
 import { useMonitoringNamespace } from '@/shared/hooks/useMonitoringNamespace';
 import {
   getAlertsUrl,
-  getObserveState,
   getNewSilenceAlertUrl,
+  getObserveState,
   getRuleUrl,
   usePerspective,
 } from '@/shared/hooks/usePerspective';
