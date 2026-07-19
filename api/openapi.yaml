@@ -12,6 +12,52 @@ servers:
 
 paths:
   /rules:
+    patch:
+      operationId: BulkUpdateAlertRules
+      summary: Bulk update alert rules
+      description: >
+        Updates one or more alert rules by their stable IDs. Each rule is
+        updated independently; per-rule status is returned in the response
+        so partial success is visible to the caller.
+        Supports label overrides, drop/restore toggles (platform rules only),
+        and classification label updates.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BulkUpdateAlertRulesRequest"
+      responses:
+        "200":
+          description: Update results (may include per-rule errors)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BulkUpdateAlertRulesResponse"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Missing or invalid authorization token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "413":
+          description: Request body exceeds the 1 MB limit
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
     delete:
       operationId: BulkDeleteUserDefinedAlertRules
       summary: Bulk delete user-defined alert rules
@@ -203,6 +249,9 @@ components:
           description: The stable alert rule ID that was processed.
         statusCode:
           type: integer
+          format: int32
+          minimum: 100
+          maximum: 599
           description: HTTP status code for this rule's deletion result.
         message:
           type: string
@@ -218,6 +267,95 @@ components:
           items:
             $ref: "#/components/schemas/DeleteAlertRuleResult"
           description: Per-rule deletion results.
+
+    AlertRuleClassificationUpdate:
+      type: object
+      description: >
+        Partial update for alert rule classification labels.
+        Each field supports three states: omitted (leave unchanged),
+        null (clear the override), or a string value (set the override).
+        The three-state semantics require a custom JSON decoder; the Go
+        type AlertRuleClassificationPatch is used at runtime instead of
+        the generated struct.
+      x-go-type: AlertRuleClassificationPatch
+      properties:
+        openshift_io_alert_rule_component:
+          type: string
+          nullable: true
+          description: Component classification label override.
+        openshift_io_alert_rule_layer:
+          type: string
+          nullable: true
+          description: Layer classification label override.
+        openshift_io_alert_rule_component_from:
+          type: string
+          nullable: true
+          description: Dynamic component source label key.
+        openshift_io_alert_rule_layer_from:
+          type: string
+          nullable: true
+          description: Dynamic layer source label key.
+
+    BulkUpdateAlertRulesRequest:
+      type: object
+      required:
+        - ruleIds
+      properties:
+        ruleIds:
+          type: array
+          minItems: 1
+          maxItems: 100
+          items:
+            type: string
+          description: List of stable alert rule IDs to update (at most 100 per request).
+        labels:
+          type: object
+          additionalProperties:
+            type: string
+            nullable: true
+          description: >
+            Label key/value pairs to set. A null or empty-string value removes
+            the label. Omitting this field leaves existing labels unchanged.
+        alertingRuleEnabled:
+          type: boolean
+          nullable: true
+          description: >
+            When false, drops the alert rule via an AlertRelabelConfig Drop
+            action — the rule no longer appears in Prometheus query results.
+            When true, restores a previously dropped rule.
+            Only supported for platform alert rules.
+        classification:
+          $ref: "#/components/schemas/AlertRuleClassificationUpdate"
+
+    UpdateAlertRuleResult:
+      type: object
+      required:
+        - id
+        - statusCode
+      properties:
+        id:
+          type: string
+          description: The stable alert rule ID that was processed.
+        statusCode:
+          type: integer
+          format: int32
+          minimum: 100
+          maximum: 599
+          description: HTTP status code for this rule's update result.
+        message:
+          type: string
+          description: Error message if update failed; omitted on success.
+
+    BulkUpdateAlertRulesResponse:
+      type: object
+      required:
+        - rules
+      properties:
+        rules:
+          type: array
+          items:
+            $ref: "#/components/schemas/UpdateAlertRuleResult"
+          description: Per-rule update results.
 
     ErrorResponse:
       type: object

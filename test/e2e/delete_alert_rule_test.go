@@ -308,7 +308,7 @@ func tryDeleteAlertRule(f *framework.Framework, ctx context.Context, token, rule
 	if len(deleteResp.Rules) != 1 {
 		return 0, fmt.Errorf("expected 1 per-rule result, got %d", len(deleteResp.Rules))
 	}
-	return deleteResp.Rules[0].StatusCode, nil
+	return int(deleteResp.Rules[0].StatusCode), nil
 }
 
 // deleteAlertRuleWithToken sends a bulk-delete request for a single rule ID

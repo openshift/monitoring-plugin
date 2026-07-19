@@ -23,6 +23,7 @@ var log = logrus.WithField("module", "managementrouter")
 const maxRequestBodyBytes = 1 << 20 // 1 MB
 
 const maxBulkDeleteRuleIds = 100
+const maxBulkUpdateRuleIds = 100
 
 type httpRouter struct {
 	managementClient management.Client

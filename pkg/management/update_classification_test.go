@@ -371,7 +371,7 @@ func TestUpdateAlertRuleClassification_PlatformRule_CreatesARCWithFromLabels(t *
 
 // --- User-defined rules ---
 
-func TestUpdateAlertRuleClassification_UserRule_NotAllowedWhenFlagDisabled(t *testing.T) {
+func TestUpdateAlertRuleClassification_UserRule_NotAllowed(t *testing.T) {
 	client, mockK8s := newClassificationClient(t)
 
 	mockK8s.NamespaceFunc = func() k8s.NamespaceInterface {
@@ -390,85 +390,11 @@ func TestUpdateAlertRuleClassification_UserRule_NotAllowedWhenFlagDisabled(t *te
 		ComponentSet: true,
 	})
 	if err == nil {
-		t.Fatal("expected NotAllowedError when ENABLE_USER_WORKLOAD_ARCS is disabled")
+		t.Fatal("expected NotAllowedError for user-defined rule classification")
 	}
 	var na *management.NotAllowedError
 	if !errors.As(err, &na) {
 		t.Errorf("expected NotAllowedError, got %T: %v", err, err)
-	}
-}
-
-func TestUpdateAlertRuleClassification_UserRule_CreatesARCInUserWorkloadNamespace(t *testing.T) {
-	t.Setenv("ENABLE_USER_WORKLOAD_ARCS", "true")
-	// Recreate client to pick up the env var.
-	mockK8s := &testutils.MockClient{}
-	client := management.New(context.Background(), mockK8s)
-
-	mockK8s.NamespaceFunc = func() k8s.NamespaceInterface {
-		return &testutils.MockNamespaceInterface{
-			MonitoringNamespaces: map[string]bool{clTestPlatformNamespace: true},
-		}
-	}
-
-	relabeled := makeUserRelabeled()
-	pr := makeClassificationPR(clTestUserNamespace, clTestRuleName, userOriginal)
-
-	mockK8s.RelabeledRulesFunc = mockRelabeledRules(userRuleId, relabeled)
-	prStore := &testutils.MockPrometheusRuleInterface{
-		PrometheusRules: map[string]*monitoringv1.PrometheusRule{
-			clTestUserNamespace + "/" + clTestRuleName: pr,
-		},
-	}
-	mockK8s.PrometheusRulesFunc = func() k8s.PrometheusRuleInterface { return prStore }
-
-	arcStore := &testutils.MockAlertRelabelConfigInterface{}
-	mockK8s.AlertRelabelConfigsFunc = func() k8s.AlertRelabelConfigInterface { return arcStore }
-
-	component := "team_a"
-	layer := "namespace"
-	if err := client.UpdateAlertRuleClassification(context.Background(), management.UpdateRuleClassificationRequest{
-		RuleId:       userRuleId,
-		Component:    &component,
-		ComponentSet: true,
-		Layer:        &layer,
-		LayerSet:     true,
-	}); err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	if len(arcStore.AlertRelabelConfigs) != 1 {
-		t.Fatalf("expected 1 ARC, got %d", len(arcStore.AlertRelabelConfigs))
-	}
-
-	for _, arc := range arcStore.AlertRelabelConfigs {
-		if arc.Namespace != k8s.UserWorkloadMonitoringNamespace {
-			t.Errorf("expected ARC namespace %q, got %q", k8s.UserWorkloadMonitoringNamespace, arc.Namespace)
-		}
-		if arc.Annotations[managementlabels.ARCAnnotationAlertRuleIDKey] != userRuleId {
-			t.Errorf("ARC missing expected alert rule ID annotation")
-		}
-
-		hasComponent, hasLayer := false, false
-		for _, rc := range arc.Spec.Configs {
-			if rc.Action == "Replace" && rc.TargetLabel == k8s.AlertRuleClassificationComponentKey {
-				if rc.Replacement != "team_a" {
-					t.Errorf("expected component replacement %q, got %q", "team_a", rc.Replacement)
-				}
-				hasComponent = true
-			}
-			if rc.Action == "Replace" && rc.TargetLabel == k8s.AlertRuleClassificationLayerKey {
-				if rc.Replacement != "namespace" {
-					t.Errorf("expected layer replacement %q, got %q", "namespace", rc.Replacement)
-				}
-				hasLayer = true
-			}
-		}
-		if !hasComponent {
-			t.Error("ARC should have component replace config")
-		}
-		if !hasLayer {
-			t.Error("ARC should have layer replace config")
-		}
 	}
 }
 
