@@ -1,18 +1,19 @@
-import { ChangeEvent, FC, MouseEvent, MouseEventHandler } from 'react';
 import {
-  ToolbarItem,
-  ToolbarFilter,
+  Badge,
+  MenuToggle,
   Select,
   SelectList,
   SelectOption,
-  MenuToggle,
-  Badge,
+  ToolbarFilter,
+  ToolbarItem,
 } from '@patternfly/react-core';
-import { getFilterKey } from '../utils/utils';
-import { IncidentFiltersCombined } from '../types/model';
-import { setAlertsAreLoading } from '../../../shared/store/actions';
-import { DataTestIDs } from '../../../shared/constants/data-test';
+import { ChangeEvent, FC, MouseEvent, MouseEventHandler } from 'react';
 import { useTranslation } from 'react-i18next';
+
+import { IncidentFiltersCombined } from '@/features/incidents/types/model';
+import { getFilterKey } from '@/features/incidents/utils/utils';
+import { DataTestIDs } from '@/shared/constants/data-test';
+import { setAlertsAreLoading } from '@/shared/store/actions';
 
 interface IncidentFilterToolbarItemProps {
   categoryName: string;

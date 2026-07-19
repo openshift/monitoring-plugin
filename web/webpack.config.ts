@@ -27,6 +27,8 @@ const config: Configuration = {
       // Stub them out during development builds to prevent webpack resolution errors.
       '@console/internal': false,
       '@console/shared': false,
+      // Alias for all source modules — use @/ instead of relative imports.
+      '@': path.resolve(__dirname, 'src'),
     },
   },
   module: {

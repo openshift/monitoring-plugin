@@ -1,50 +1,50 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
+  AlertVariant,
   Button,
+  FormGroup,
+  FormHelperText,
+  HelperText,
+  HelperTextItem,
+  HelperTextItemVariant,
   Modal,
   ModalBody,
   ModalFooter,
   ModalHeader,
-  FormGroup,
-  TextInput,
-  FormHelperText,
-  HelperText,
-  HelperTextItem,
-  ValidatedOptions,
-  HelperTextItemVariant,
   ModalVariant,
-  AlertVariant,
+  Spinner,
   Stack,
   StackItem,
-  Spinner,
+  TextInput,
+  ValidatedOptions,
 } from '@patternfly/react-core';
-import { TypeaheadSelect, TypeaheadSelectOption } from '@patternfly/react-templates';
 import { ExclamationCircleIcon } from '@patternfly/react-icons';
+import { TypeaheadSelect, TypeaheadSelectOption } from '@patternfly/react-templates';
+import { t_global_font_weight_200, t_global_spacer_200 } from '@patternfly/react-tokens';
+import { DashboardResource, getResourceExtendedDisplayName } from '@perses-dev/core';
 import { CSSProperties, useEffect, useMemo } from 'react';
+import { Controller, FormProvider, SubmitHandler, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router';
+
+import { useToast } from '@/features/perses-dashboards/components/ToastProvider';
+import { useEditableProjects } from '@/features/perses-dashboards/hooks/useEditableProjects';
+import { usePerses } from '@/features/perses-dashboards/hooks/usePerses';
 import {
-  useUpdateDashboardMutation,
-  useCreateDashboardMutation,
-  useDeleteDashboardMutation,
-  useCreateProjectMutation,
-} from '../utils/dashboard-api';
-import {
-  renameDashboardDialogValidationSchema,
-  RenameDashboardValidationType,
   createDashboardDialogValidationSchema,
   CreateDashboardValidationType,
+  renameDashboardDialogValidationSchema,
+  RenameDashboardValidationType,
   useDashboardValidationSchema,
-} from '../utils/dashboard-action-validations';
-
-import { Controller, FormProvider, SubmitHandler, useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { DashboardResource, getResourceExtendedDisplayName } from '@perses-dev/core';
-import { useToast } from './ToastProvider';
-import { generateMetadataName } from '../utils/dashboard-utils';
-import { useEditableProjects } from '../hooks/useEditableProjects';
-import { usePerses } from '../hooks/usePerses';
-import { t_global_spacer_200, t_global_font_weight_200 } from '@patternfly/react-tokens';
-import { useNavigate } from 'react-router';
-import { usePerspective, getDashboardUrl } from '../../../shared/hooks/usePerspective';
+} from '@/features/perses-dashboards/utils/dashboard-action-validations';
+import {
+  useCreateDashboardMutation,
+  useCreateProjectMutation,
+  useDeleteDashboardMutation,
+  useUpdateDashboardMutation,
+} from '@/features/perses-dashboards/utils/dashboard-api';
+import { generateMetadataName } from '@/features/perses-dashboards/utils/dashboard-utils';
+import { getDashboardUrl, usePerspective } from '@/shared/hooks/usePerspective';
 
 export const formGroupStyle = {
   fontWeight: t_global_font_weight_200.value,

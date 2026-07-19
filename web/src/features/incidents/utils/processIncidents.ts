@@ -1,8 +1,13 @@
 /* eslint-disable max-len */
 
 import { PrometheusLabels, PrometheusResult } from '@openshift-console/dynamic-plugin-sdk';
-import { Incident, Metric, ProcessedIncident } from '../types/model';
-import { insertPaddingPointsForChart, isResolved, sortByEarliestTimestamp } from './utils';
+
+import { Incident, Metric, ProcessedIncident } from '@/features/incidents/types/model';
+import {
+  insertPaddingPointsForChart,
+  isResolved,
+  sortByEarliestTimestamp,
+} from '@/features/incidents/utils/utils';
 
 /**
  * Converts Prometheus results into processed incidents, filtering out Watchdog incidents.

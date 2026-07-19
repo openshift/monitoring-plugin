@@ -1,9 +1,10 @@
 import { Button, ButtonVariant } from '@patternfly/react-core';
 import { FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { usePerspective } from '../../../../shared/hooks/usePerspective';
-import { AggregatedAlert } from './AlertsAggregates';
-import { DataTestIDs } from '../../../../shared/constants/data-test';
+
+import { AggregatedAlert } from '@/features/alerts/pages/alerts-page/AlertsAggregates';
+import { DataTestIDs } from '@/shared/constants/data-test';
+import { usePerspective } from '@/shared/hooks/usePerspective';
 
 type DownloadCSVButtonProps = {
   loaded: boolean;

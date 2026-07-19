@@ -1,5 +1,5 @@
-import type { FC } from 'react';
 import { Alert, Panel, PanelMain, PanelMainBody } from '@patternfly/react-core';
+import type { FC } from 'react';
 
 const ErrorAlert: FC<{ error: Error }> = ({ error }) => {
   return (

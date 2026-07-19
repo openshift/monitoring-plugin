@@ -1,15 +1,15 @@
 import { commonPages } from './common';
 import {
-  DataTestIDs,
   Classes,
-  LegacyTestIDs,
-  persesAriaLabels,
-  persesMUIDataTestIDs,
-  listPersesDashboardsOUIAIDs,
+  DataTestIDs,
   IDs,
-  persesDashboardDataTestIDs,
+  LegacyTestIDs,
   listPersesDashboardsDataTestIDs,
-} from '../../src/shared/constants/data-test';
+  listPersesDashboardsOUIAIDs,
+  persesAriaLabels,
+  persesDashboardDataTestIDs,
+  persesMUIDataTestIDs,
+} from '@/shared/constants/data-test';
 import { MonitoringPageTitles } from '../fixtures/monitoring/constants';
 import {
   listPersesDashboardsPageSubtitle,
@@ -17,11 +17,11 @@ import {
   persesDashboardsModalTitles,
 } from '../fixtures/perses/constants';
 import {
-  persesDashboardsTimeRange,
-  persesDashboardsRefreshInterval,
+  persesDashboardsAcceleratorsCommonMetricsPanels,
   persesDashboardsDashboardDropdownCOO,
   persesDashboardsDashboardDropdownPersesDev,
-  persesDashboardsAcceleratorsCommonMetricsPanels,
+  persesDashboardsRefreshInterval,
+  persesDashboardsTimeRange,
 } from '../fixtures/perses/constants';
 
 export const persesDashboardsPage = {

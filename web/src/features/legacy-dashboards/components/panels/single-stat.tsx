@@ -1,19 +1,6 @@
-import * as _ from 'lodash-es';
-import type { ReactNode, FC } from 'react';
-import { useState, useCallback } from 'react';
 import { PrometheusEndpoint, PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
-import { Bullseye, Title } from '@patternfly/react-core';
-
-import ErrorAlert from '../error';
-import { getPrometheusBasePath, buildPrometheusUrl } from '../../../../shared/utils/utils';
-import { usePoll } from '../../../../shared/console/utils/poll-hook';
-import { useSafeFetch } from '../../../../shared/console/utils/safe-fetch-hook';
-
-import { formatNumber } from '../../../../shared/components/format';
-import { Panel } from '../../types/types';
-import { useTranslation } from 'react-i18next';
-import { LoadingInline } from '../../../../shared/console/console-shared/src/components/loading/LoadingInline';
 import { CustomDataSource } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
+import { Bullseye, Title } from '@patternfly/react-core';
 import {
   t_chart_color_blue_100,
   t_chart_color_blue_200,
@@ -46,8 +33,20 @@ import {
   t_chart_color_yellow_400,
   t_chart_color_yellow_500,
 } from '@patternfly/react-tokens';
-import { PatternflyToken } from '../../../../shared/types/types';
-import { useMonitoring } from '../../../../shared/hooks/useMonitoring';
+import * as _ from 'lodash-es';
+import { useCallback, useState } from 'react';
+import type { FC, ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
+
+import ErrorAlert from '@/features/legacy-dashboards/components/error';
+import { Panel } from '@/features/legacy-dashboards/types/types';
+import { formatNumber } from '@/shared/components/format';
+import { LoadingInline } from '@/shared/console/console-shared/src/components/loading/LoadingInline';
+import { usePoll } from '@/shared/console/utils/poll-hook';
+import { useSafeFetch } from '@/shared/console/utils/safe-fetch-hook';
+import { useMonitoring } from '@/shared/hooks/useMonitoring';
+import { PatternflyToken } from '@/shared/types/types';
+import { buildPrometheusUrl, getPrometheusBasePath } from '@/shared/utils/utils';
 
 const colorMap: Record<string, PatternflyToken> = {
   'super-light-blue': t_chart_color_blue_100,

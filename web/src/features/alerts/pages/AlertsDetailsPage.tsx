@@ -11,24 +11,6 @@ import {
   Rule,
   useResolvedExtensions,
 } from '@openshift-console/dynamic-plugin-sdk';
-import * as _ from 'lodash-es';
-import type { FC, ReactNode } from 'react';
-import { useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
-import { ExternalLink, LinkifyExternal } from '../../../shared/console/utils/link';
-import {
-  getAlertsUrl,
-  getObserveState,
-  getNewSilenceAlertUrl,
-  getRuleUrl,
-  usePerspective,
-} from '../../../shared/hooks/usePerspective';
-import { useMonitoringNamespace } from '../../../shared/hooks/useMonitoringNamespace';
-import { AlertResource, alertState, RuleResource } from '../../../shared/utils/utils';
-import { MonitoringProvider } from '../../../shared/contexts/MonitoringContext';
-
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -56,22 +38,13 @@ import {
   ToolbarGroup,
   ToolbarItem,
 } from '@patternfly/react-core';
-import { MonitoringState } from '../../../shared/store/store';
-import withFallback from '../../../shared/console/console-shared/error/fallbacks/withFallback';
-import { StatusBox } from '../../../shared/console/console-shared/src/components/status/StatusBox';
-import {
-  ContainerModel,
-  DaemonSetModel,
-  DeploymentModel,
-  JobModel,
-  NamespaceModel,
-  NodeModel,
-  PodModel,
-  StatefulSetModel,
-} from '../../../shared/console/models';
-import { Labels } from '../../../shared/components/labels';
-import { ToggleGraph } from '../../../shared/components/ToggleGraph';
-import { SilencedByList } from '../components/SilencedByTable';
+import * as _ from 'lodash-es';
+import { useMemo } from 'react';
+import type { FC, ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useSelector } from 'react-redux';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
+
 import {
   alertSource,
   AlertState,
@@ -83,12 +56,38 @@ import {
   isActionWithHref,
   SeverityHelp,
   SourceHelp,
-} from '../components/AlertUtils';
-
-import { DataTestIDs } from '../../../shared/constants/data-test';
-import { useAlerts } from '../../../shared/hooks/useAlerts';
-import { useMonitoring } from '../../../shared/hooks/useMonitoring';
-import { SeverityBadge } from '../../../shared/components/SeverityBadge';
+} from '@/features/alerts/components/AlertUtils';
+import { SilencedByList } from '@/features/alerts/components/SilencedByTable';
+import { Labels } from '@/shared/components/labels';
+import { SeverityBadge } from '@/shared/components/SeverityBadge';
+import { ToggleGraph } from '@/shared/components/ToggleGraph';
+import withFallback from '@/shared/console/console-shared/error/fallbacks/withFallback';
+import { StatusBox } from '@/shared/console/console-shared/src/components/status/StatusBox';
+import {
+  ContainerModel,
+  DaemonSetModel,
+  DeploymentModel,
+  JobModel,
+  NamespaceModel,
+  NodeModel,
+  PodModel,
+  StatefulSetModel,
+} from '@/shared/console/models';
+import { ExternalLink, LinkifyExternal } from '@/shared/console/utils/link';
+import { DataTestIDs } from '@/shared/constants/data-test';
+import { MonitoringProvider } from '@/shared/contexts/MonitoringContext';
+import { useAlerts } from '@/shared/hooks/useAlerts';
+import { useMonitoring } from '@/shared/hooks/useMonitoring';
+import { useMonitoringNamespace } from '@/shared/hooks/useMonitoringNamespace';
+import {
+  getAlertsUrl,
+  getNewSilenceAlertUrl,
+  getObserveState,
+  getRuleUrl,
+  usePerspective,
+} from '@/shared/hooks/usePerspective';
+import { MonitoringState } from '@/shared/store/store';
+import { AlertResource, alertState, RuleResource } from '@/shared/utils/utils';
 
 const AlertsDetailsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);

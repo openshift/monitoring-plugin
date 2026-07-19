@@ -6,54 +6,47 @@ import {
   ResourceIcon,
   Rule,
 } from '@openshift-console/dynamic-plugin-sdk';
-import * as _ from 'lodash-es';
-import type { FC } from 'react';
-import { useEffect, useMemo, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router';
-
-import { AlertSource } from '../../../../shared/types/types';
-import { alertingRuleStateSort, RuleResource, severitySort } from '../../../../shared/utils/utils';
-
 import { Flex, FlexItem, PageSection, PaginationVariant, Truncate } from '@patternfly/react-core';
 import DataView from '@patternfly/react-data-view/dist/dynamic/DataView';
 import DataViewTable, { DataViewTr } from '@patternfly/react-data-view/dist/dynamic/DataViewTable';
 import DataViewToolbar from '@patternfly/react-data-view/dist/dynamic/DataViewToolbar';
 import { useDataViewSort } from '@patternfly/react-data-view/dist/dynamic/Hooks';
-import { MonitoringProvider } from '../../../../shared/contexts/MonitoringContext';
-import { useAlerts } from '../../../../shared/hooks/useAlerts';
+import * as _ from 'lodash-es';
+import { useEffect, useMemo, useState } from 'react';
+import type { FC } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router';
+
 import {
   alertingRuleSource,
   AlertStateIcon,
   getAlertStateKey,
   SilencesNotLoadedWarning,
-} from '../../components/AlertUtils';
-import withFallback from '../../../../shared/console/console-shared/error/fallbacks/withFallback';
-import { EmptyBox } from '../../../../shared/console/console-shared/src/components/empty-state/EmptyBox';
-import { LoadingBox } from '../../../../shared/console/console-shared/src/components/loading/LoadingBox';
-import { DataTestIDs } from '../../../../shared/constants/data-test';
-import { useMonitoringNamespace } from '../../../../shared/hooks/useMonitoringNamespace';
-import { getRuleUrl, usePerspective } from '../../../../shared/hooks/usePerspective';
-import {
-  ITEMS_PER_PAGE,
-  TablePagination,
-} from '../../../../shared/components/table/table-pagination';
+} from '@/features/alerts/components/AlertUtils';
+import { filterRules } from '@/features/alerts/pages/alert-rules-page/filter-rules';
+import { SeverityBadge } from '@/shared/components/SeverityBadge';
+import { useTableColumns } from '@/shared/components/table/hooks/useTableColumns';
+import { rowFilter, useTableFilters } from '@/shared/components/table/hooks/useTableFilters';
+import { useTablePagination } from '@/shared/components/table/hooks/useTablePagination';
+import { directedSort, localeCompareSort } from '@/shared/components/table/sort-utils';
+import { ITEMS_PER_PAGE, TablePagination } from '@/shared/components/table/table-pagination';
 import {
   TableFilter,
   TableFilterOption,
   TableFilterProps,
   TableFilters,
-} from '../../../../shared/components/table/TableFilters';
-import { TableToolbar } from '../../../../shared/components/table/TableToolbar';
-import { directedSort, localeCompareSort } from '../../../../shared/components/table/sort-utils';
-import { useTableColumns } from '../../../../shared/components/table/hooks/useTableColumns';
-import {
-  useTableFilters,
-  rowFilter,
-} from '../../../../shared/components/table/hooks/useTableFilters';
-import { useTablePagination } from '../../../../shared/components/table/hooks/useTablePagination';
-import { filterRules } from './filter-rules';
-import { SeverityBadge } from '../../../../shared/components/SeverityBadge';
+} from '@/shared/components/table/TableFilters';
+import { TableToolbar } from '@/shared/components/table/TableToolbar';
+import withFallback from '@/shared/console/console-shared/error/fallbacks/withFallback';
+import { EmptyBox } from '@/shared/console/console-shared/src/components/empty-state/EmptyBox';
+import { LoadingBox } from '@/shared/console/console-shared/src/components/loading/LoadingBox';
+import { DataTestIDs } from '@/shared/constants/data-test';
+import { MonitoringProvider } from '@/shared/contexts/MonitoringContext';
+import { useAlerts } from '@/shared/hooks/useAlerts';
+import { useMonitoringNamespace } from '@/shared/hooks/useMonitoringNamespace';
+import { getRuleUrl, usePerspective } from '@/shared/hooks/usePerspective';
+import { AlertSource } from '@/shared/types/types';
+import { alertingRuleStateSort, RuleResource, severitySort } from '@/shared/utils/utils';
 
 export const enum AlertRulesFilterOptions {
   NAME = 'name',

@@ -1,7 +1,8 @@
 import { FC, ReactNode } from 'react';
-import { DashboardListHeader } from '../../components/dashboard-header';
-import type { CombinedDashboardMetadata } from '../../../../shared/types/types';
-import { ProjectBar } from '../../components/project/ProjectBar';
+
+import { DashboardListHeader } from '@/features/perses-dashboards/components/dashboard-header';
+import { ProjectBar } from '@/features/perses-dashboards/components/project/ProjectBar';
+import type { CombinedDashboardMetadata } from '@/shared/types/types';
 
 interface DashboardListFrameProps {
   activeProject: string | null;

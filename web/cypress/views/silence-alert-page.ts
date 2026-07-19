@@ -1,4 +1,4 @@
-import { DataTestIDs, Classes } from '../../src/shared/constants/data-test';
+import { Classes, DataTestIDs } from '@/shared/constants/data-test';
 const silenceText =
   'Silences temporarily mute alerts based on a set of label selectors that you define. Notifications will not be sent for alerts that match all the listed values or regular expressions.';
 const alertText =

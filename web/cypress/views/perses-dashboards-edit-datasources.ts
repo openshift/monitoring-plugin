@@ -1,10 +1,10 @@
 import { commonPages } from './common';
 import {
-  persesAriaLabels,
-  persesMUIDataTestIDs,
   editPersesDashboardsAddDatasource,
   IDs,
-} from '../../src/shared/constants/data-test';
+  persesAriaLabels,
+  persesMUIDataTestIDs,
+} from '@/shared/constants/data-test';
 import {
   persesDashboardsModalTitles,
   persesDashboardsRequiredFields,

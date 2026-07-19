@@ -5,11 +5,11 @@ import { useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { DataTestIDs } from '../constants/data-test';
-import { useMonitoring } from '../hooks/useMonitoring';
-import { getObserveState } from '../hooks/usePerspective';
-import { showGraphs, toggleGraphs } from '../store/actions';
-import { MonitoringState } from '../store/store';
+import { DataTestIDs } from '@/shared/constants/data-test';
+import { useMonitoring } from '@/shared/hooks/useMonitoring';
+import { getObserveState } from '@/shared/hooks/usePerspective';
+import { showGraphs, toggleGraphs } from '@/shared/store/actions';
+import { MonitoringState } from '@/shared/store/store';
 
 export const ToggleGraph: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);

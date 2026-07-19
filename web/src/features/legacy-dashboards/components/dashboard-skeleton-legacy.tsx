@@ -1,14 +1,17 @@
+import { DocumentTitle, ListPageHeader } from '@openshift-console/dynamic-plugin-sdk';
+import { Divider, PageSection, Split, SplitItem, Stack, StackItem } from '@patternfly/react-core';
 import * as _ from 'lodash-es';
 import type { FC, PropsWithChildren } from 'react';
 import { memo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Divider, PageSection, Split, SplitItem, Stack, StackItem } from '@patternfly/react-core';
-import type { CombinedDashboardMetadata } from '../../../shared/types/types';
-import { DashboardDropdown } from '../../../shared/components/dashboard-dropdown';
-import { PollIntervalDropdown, TimespanDropdown } from './time-dropdowns';
-import { LegacyDashboardsAllVariableDropdowns } from './legacy-variable-dropdowns';
-import { DocumentTitle, ListPageHeader } from '@openshift-console/dynamic-plugin-sdk';
+import { LegacyDashboardsAllVariableDropdowns } from '@/features/legacy-dashboards/components/legacy-variable-dropdowns';
+import {
+  PollIntervalDropdown,
+  TimespanDropdown,
+} from '@/features/legacy-dashboards/components/time-dropdowns';
+import { DashboardDropdown } from '@/shared/components/dashboard-dropdown';
+import type { CombinedDashboardMetadata } from '@/shared/types/types';
 
 const HeaderTop: FC = memo(() => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);

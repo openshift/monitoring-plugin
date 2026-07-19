@@ -1,5 +1,3 @@
-import { memo, useEffect, useMemo, useRef, useState } from 'react';
-
 import {
   Chart,
   ChartAxis,
@@ -26,17 +24,19 @@ import {
   t_global_color_status_info_default,
   t_global_color_status_warning_default,
 } from '@patternfly/react-tokens';
-import { IncidentsTooltip } from './IncidentsTooltip';
-import { Incident } from '../types/model';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+
+import { IncidentsTooltip } from '@/features/incidents/components/IncidentsTooltip';
+import { Incident } from '@/features/incidents/types/model';
 import {
   calculateIncidentsChartDomain,
   createIncidentsChartBars,
   generateDateArray,
   roundDateToInterval,
-} from '../utils/utils';
-import { dateTimeFormatter, timeFormatter } from '../../../shared/console/utils/datetime';
-import { useTranslation } from 'react-i18next';
-import { DataTestIDs } from '../../../shared/constants/data-test';
+} from '@/features/incidents/utils/utils';
+import { dateTimeFormatter, timeFormatter } from '@/shared/console/utils/datetime';
+import { DataTestIDs } from '@/shared/constants/data-test';
 
 /**
  * Processes component list: moves "Others" to end and limits display to 3 components

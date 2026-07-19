@@ -1,8 +1,9 @@
-import { createContext, FC, PropsWithChildren, useMemo } from 'react';
-import { MonitoringPlugins, Prometheus } from '../utils/utils';
-import { QueryParamProvider } from 'use-query-params';
 import { useAccessReview } from '@openshift-console/dynamic-plugin-sdk';
-import { ReactRouter7Adapter } from '../utils/react-router-7-adapter';
+import { createContext, FC, PropsWithChildren, useMemo } from 'react';
+import { QueryParamProvider } from 'use-query-params';
+
+import { ReactRouter7Adapter } from '@/shared/utils/react-router-7-adapter';
+import { MonitoringPlugins, Prometheus } from '@/shared/utils/utils';
 
 type MonitoringContextType = {
   /** Dictates which plugin this code is being run in */

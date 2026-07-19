@@ -1,4 +1,4 @@
-import { insertPaddingPointsForChart, roundDateToInterval } from './utils';
+import { insertPaddingPointsForChart, roundDateToInterval } from '@/features/incidents/utils/utils';
 
 describe('insertPaddingPointsForChart', () => {
   describe('edge cases', () => {

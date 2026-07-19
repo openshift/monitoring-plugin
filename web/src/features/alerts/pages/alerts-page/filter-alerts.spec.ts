@@ -9,10 +9,14 @@ jest.mock('../../components/AlertUtils', () => ({
 }));
 
 import { Alert, AlertStates } from '@openshift-console/dynamic-plugin-sdk';
-import { filterAlerts } from './filter-alerts';
-import { AlertFilterOptions, AggregatedAlertFilters } from './AlertsPage';
-import { ALL_NAMESPACES_KEY } from '../../../../shared/utils/utils';
-import { AlertSource } from '../../../../shared/types/types';
+
+import {
+  AggregatedAlertFilters,
+  AlertFilterOptions,
+} from '@/features/alerts/pages/alerts-page/AlertsPage';
+import { filterAlerts } from '@/features/alerts/pages/alerts-page/filter-alerts';
+import { AlertSource } from '@/shared/types/types';
+import { ALL_NAMESPACES_KEY } from '@/shared/utils/utils';
 
 const emptyFilters: AggregatedAlertFilters = {
   [AlertFilterOptions.NAME]: '',

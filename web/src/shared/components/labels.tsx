@@ -1,7 +1,7 @@
+import { PrometheusLabels } from '@openshift-console/dynamic-plugin-sdk';
+import { Label as PfLabel, LabelGroup as PfLabelGroup } from '@patternfly/react-core';
 import * as _ from 'lodash-es';
 import { useTranslation } from 'react-i18next';
-import { Label as PfLabel, LabelGroup as PfLabelGroup } from '@patternfly/react-core';
-import { PrometheusLabels } from '@openshift-console/dynamic-plugin-sdk';
 
 const Label = ({ k, v }: { k: string; v: string }) => (
   <PfLabel key={k}>

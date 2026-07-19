@@ -1,4 +1,4 @@
-import { Classes, IDs, persesAriaLabels } from '../../src/shared/constants/data-test';
+import { Classes, IDs, persesAriaLabels } from '@/shared/constants/data-test';
 import {
   persesDashboardsImportDashboard,
   persesDashboardsModalTitles,

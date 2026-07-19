@@ -1,9 +1,9 @@
-import { ReactElement } from 'react';
-import { Title, EmptyState, EmptyStateBody, Bullseye } from '@patternfly/react-core';
+import { Bullseye, EmptyState, EmptyStateBody, Title } from '@patternfly/react-core';
 import { ListIcon } from '@patternfly/react-icons';
-
+import { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ExternalLink } from '../../../../shared/console/utils/link';
+
+import { ExternalLink } from '@/shared/console/utils/link';
 
 export function ProjectEmptyState(): ReactElement {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);

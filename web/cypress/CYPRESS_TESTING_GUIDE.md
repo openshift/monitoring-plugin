@@ -113,7 +113,7 @@ Component tests mount individual React components in isolation using Cypress, wi
 Component test files use the `.cy.tsx` extension and live in `cypress/component/`:
 
 ```typescript
-import { Labels } from '../../src/shared/components/labels';
+import { Labels } from '@/shared/components/labels';
 
 describe('Labels', () => {
   it('renders "No labels" when labels is empty', () => {

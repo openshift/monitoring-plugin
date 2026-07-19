@@ -1,12 +1,12 @@
-import type { FC, ComponentType, ReactElement } from 'react';
 import {
+  EmptyState,
   EmptyStateActions,
   EmptyStateBody,
   EmptyStateFooter,
-  EmptyStateVariant,
-  EmptyState,
   EmptyStateProps,
+  EmptyStateVariant,
 } from '@patternfly/react-core';
+import type { ComponentType, FC, ReactElement } from 'react';
 
 export const ConsoleEmptyState: FC<ConsoleEmptyStateProps> = ({
   children,

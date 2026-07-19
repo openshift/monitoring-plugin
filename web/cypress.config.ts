@@ -4,7 +4,10 @@ import * as console from 'console';
 import * as path from 'path';
 import registerCypressGrep from '@cypress/grep/src/plugin';
 import { DefinePlugin, NormalModuleReplacementPlugin } from 'webpack';
-import { writeBenchmarkReport, injectBenchmarksIntoMochawesome } from './cypress/plugins/benchmark-reporter';
+import {
+  writeBenchmarkReport,
+  injectBenchmarksIntoMochawesome,
+} from './cypress/plugins/benchmark-reporter';
 
 const getLoginCredentials = (index: number): { username: string; password: string } => {
   const users = (process.env.CYPRESS_LOGIN_USERS || '').split(',').filter(Boolean);
@@ -161,7 +164,6 @@ export default defineConfig({
         },
 
         writeBenchmarkReport,
-
       });
       on('after:spec', (spec: Cypress.Spec, results: CypressCommandLine.RunResult) => {
         if (results && results.video) {
@@ -199,6 +201,7 @@ export default defineConfig({
         resolve: {
           extensions: ['.ts', '.tsx', '.js', '.jsx'],
           alias: {
+            '@': path.resolve(__dirname, 'src'),
             '@perses-dev/plugin-system': path.resolve(
               __dirname,
               'cypress/component/mocks/perses-plugin-system.tsx',

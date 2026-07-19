@@ -3,7 +3,8 @@ jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
 }));
 
 import { AlertSeverity, AlertStates, Rule } from '@openshift-console/dynamic-plugin-sdk';
-import { alertingRuleStateSort, severitySort } from './utils';
+
+import { alertingRuleStateSort, severitySort } from '@/shared/utils/utils';
 
 const makeRule = (alerts: { state: AlertStates }[]): Rule => ({ alerts }) as unknown as Rule;
 

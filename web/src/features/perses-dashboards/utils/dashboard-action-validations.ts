@@ -1,9 +1,10 @@
-import { z } from 'zod';
-import { useMemo } from 'react';
 import { nameSchema } from '@perses-dev/core';
-import { useDashboardList } from './dashboard-api';
-import { generateMetadataName } from './dashboard-utils';
 import { TFunction } from 'i18next';
+import { useMemo } from 'react';
+import { z } from 'zod';
+
+import { useDashboardList } from '@/features/perses-dashboards/utils/dashboard-api';
+import { generateMetadataName } from '@/features/perses-dashboards/utils/dashboard-utils';
 
 export const createDashboardDisplayNameValidationSchema = (t: TFunction) =>
   z.string().min(1, t('Required')).max(75, t('Must be 75 or fewer characters long'));

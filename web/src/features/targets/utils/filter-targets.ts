@@ -1,6 +1,6 @@
-import { TargetsFilterOptions, TargetsFilters } from '../pages/targets-page';
-import { Target } from '../../../shared/types/types';
-import { fuzzyCaseInsensitive, targetSource } from '../../../shared/utils/utils';
+import { TargetsFilterOptions, TargetsFilters } from '@/features/targets/pages/targets-page';
+import { Target } from '@/shared/types/types';
+import { fuzzyCaseInsensitive, targetSource } from '@/shared/utils/utils';
 
 export const filterTargets = (targets: Target[], selectedFilters: TargetsFilters) => {
   if (!targets) {

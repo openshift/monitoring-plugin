@@ -2,7 +2,8 @@ import { consoleFetchJSON } from '@openshift-console/dynamic-plugin-sdk';
 import { DashboardResource, ProjectResource } from '@perses-dev/core';
 import { useQuery } from '@tanstack/react-query';
 import { NumberParam, useQueryParam } from 'use-query-params';
-import { QueryParams } from '../../../shared/constants/query-params';
+
+import { QueryParams } from '@/shared/constants/query-params';
 
 export const PERSES_PROXY_BASE_PATH = '/api/proxy/plugin/monitoring-console-plugin/perses';
 

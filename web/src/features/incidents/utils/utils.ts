@@ -1,11 +1,12 @@
+import { PrometheusResult } from '@openshift-console/dynamic-plugin-sdk';
 import {
   t_global_color_status_danger_default,
   t_global_color_status_info_default,
   t_global_color_status_warning_default,
 } from '@patternfly/react-tokens';
-import { PrometheusResult } from '@openshift-console/dynamic-plugin-sdk';
+import { TFunction } from 'i18next';
 import { Dispatch } from 'redux';
-import { setIncidentsActiveFilters } from '../../../shared/store/actions';
+
 import {
   Alert,
   AlertsChartBar,
@@ -16,8 +17,8 @@ import {
   IncidentsDetailsAlert,
   SpanDates,
   Timestamps,
-} from '../types/model';
-import { TFunction } from 'i18next';
+} from '@/features/incidents/types/model';
+import { setIncidentsActiveFilters } from '@/shared/store/actions';
 
 /**
  * The Prometheus query step interval in seconds.

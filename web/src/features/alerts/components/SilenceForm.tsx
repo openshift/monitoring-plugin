@@ -32,24 +32,25 @@ import {
 import { ExclamationCircleIcon, MinusCircleIcon, PlusCircleIcon } from '@patternfly/react-icons';
 import { t_global_spacer_sm } from '@patternfly/react-tokens';
 import * as _ from 'lodash-es';
-import type { ComponentType, FC, FormEventHandler, MouseEvent, ChangeEvent, Ref } from 'react';
-import { useState, useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import type { ChangeEvent, ComponentType, FC, FormEventHandler, MouseEvent, Ref } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
-import withFallback from '../../../shared/console/console-shared/error/fallbacks/withFallback';
+
+import withFallback from '@/shared/console/console-shared/error/fallbacks/withFallback';
 import {
   formatPrometheusDuration,
   parsePrometheusDuration,
-} from '../../../shared/console/console-shared/src/datetime/prometheus';
-import { ExternalLink } from '../../../shared/console/utils/link';
-import { useBoolean } from '../../../shared/hooks/useBoolean';
-import { getSilenceAlertUrl, usePerspective } from '../../../shared/hooks/usePerspective';
-import { useMonitoringNamespace } from '../../../shared/hooks/useMonitoringNamespace';
-import { DataTestIDs } from '../../../shared/constants/data-test';
-import { ALL_NAMESPACES_KEY, getAlertmanagerSilencesUrl } from '../../../shared/utils/utils';
-import { useAlerts } from '../../../shared/hooks/useAlerts';
-import { useMonitoring } from '../../../shared/hooks/useMonitoring';
+} from '@/shared/console/console-shared/src/datetime/prometheus';
+import { ExternalLink } from '@/shared/console/utils/link';
+import { DataTestIDs } from '@/shared/constants/data-test';
+import { useAlerts } from '@/shared/hooks/useAlerts';
+import { useBoolean } from '@/shared/hooks/useBoolean';
+import { useMonitoring } from '@/shared/hooks/useMonitoring';
+import { useMonitoringNamespace } from '@/shared/hooks/useMonitoringNamespace';
+import { getSilenceAlertUrl, usePerspective } from '@/shared/hooks/usePerspective';
+import { ALL_NAMESPACES_KEY, getAlertmanagerSilencesUrl } from '@/shared/utils/utils';
 
 const durationOff = '-';
 

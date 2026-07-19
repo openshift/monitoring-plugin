@@ -1,9 +1,10 @@
 import type { FC } from 'react';
-import { KEYBOARD_SHORTCUTS } from './utils';
-import ProjectDropdown from './ProjectDropdown';
-import { getDashboardsListUrl, usePerspective } from '../../../../shared/hooks/usePerspective';
 import { useNavigate } from 'react-router';
-import { QueryParams } from '../../../../shared/constants/query-params';
+
+import ProjectDropdown from '@/features/perses-dashboards/components/project/ProjectDropdown';
+import { KEYBOARD_SHORTCUTS } from '@/features/perses-dashboards/components/project/utils';
+import { QueryParams } from '@/shared/constants/query-params';
+import { getDashboardsListUrl, usePerspective } from '@/shared/hooks/usePerspective';
 
 export type ProjectBarProps = {
   activeProject: string | null;

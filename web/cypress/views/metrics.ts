@@ -1,14 +1,14 @@
 import { commonPages } from './common';
-import { DataTestIDs, Classes, IDs } from '../../src/shared/constants/data-test';
+import { Classes, DataTestIDs, IDs } from '@/shared/constants/data-test';
 import {
+  GraphTimespan,
+  MetricGraphEmptyState,
+  MetricsPageActions,
+  MetricsPagePredefinedQueries,
+  MetricsPageQueryInput,
+  MetricsPageQueryKebabDropdown,
   MetricsPageUnits,
   MonitoringRefreshInterval,
-  MetricsPageQueryInput,
-  MetricsPageActions,
-  MetricGraphEmptyState,
-  MetricsPagePredefinedQueries,
-  MetricsPageQueryKebabDropdown,
-  GraphTimespan,
 } from '../fixtures/monitoring/constants';
 
 export const metricsPage = {

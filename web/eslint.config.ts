@@ -32,6 +32,9 @@ export default defineConfig([
         'prettier',
       ),
     ),
+    linterOptions: {
+      reportUnusedDisableDirectives: 'off',
+    },
 
     plugins: {
       prettier,
@@ -75,6 +78,15 @@ export default defineConfig([
 
       'no-console': ['error'],
 
+      'sort-imports': [
+        'error',
+        {
+          ignoreCase: true,
+          ignoreDeclarationSort: true,
+          ignoreMemberSort: false,
+        },
+      ],
+
       // Prevent directly importing react as a lint rule
       'no-restricted-syntax': [
         'error',
@@ -95,6 +107,75 @@ export default defineConfig([
     files: ['cypress/**/*'],
     rules: {
       'no-console': 'off',
+    },
+  },
+  {
+    files: ['cypress/**/*.ts', 'cypress/**/*.tsx'],
+    plugins: {
+      import: fixupPluginRules(importPlugin as any),
+    },
+    settings: {
+      'import/resolver': {
+        node: { extensions: ['.js', '.jsx', '.ts', '.tsx'] },
+      },
+    },
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              regex: '^(\\.\\./)+src/',
+              message:
+                'Use the @ alias instead of relative imports into src/ (e.g. `@/shared/constants/data-test`).',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ['src/**/*.ts', 'src/**/*.tsx'],
+    plugins: {
+      import: fixupPluginRules(importPlugin as any),
+    },
+    settings: {
+      'import/resolver': {
+        node: { extensions: ['.js', '.jsx', '.ts', '.tsx'] },
+      },
+    },
+    rules: {
+      // Disallow relative imports — use the @ alias instead (e.g. `@/shared/hooks/useAlerts`).
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              regex: '^\\.', // matches ./ and ../
+              message:
+                'Use the @ alias instead of relative imports (e.g. `@/shared/hooks/useAlerts`).',
+            },
+          ],
+        },
+      ],
+      'import/order': [
+        'error',
+        {
+          groups: [['builtin', 'external'], 'internal'],
+          pathGroups: [
+            {
+              pattern: '@/**',
+              group: 'internal',
+            },
+          ],
+          pathGroupsExcludedImportTypes: [],
+          'newlines-between': 'always',
+          alphabetize: {
+            order: 'asc',
+            caseInsensitive: true,
+          },
+        },
+      ],
     },
   },
   {

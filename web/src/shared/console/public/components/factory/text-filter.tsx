@@ -1,8 +1,9 @@
 import { TextInput, TextInputProps } from '@patternfly/react-core';
 import { FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { KEYBOARD_SHORTCUTS } from '../../../console-shared/constants/common';
-import { useDocumentListener } from '../../../console-shared/hooks/useDocumentListener';
+
+import { KEYBOARD_SHORTCUTS } from '@/shared/console/console-shared/constants/common';
+import { useDocumentListener } from '@/shared/console/console-shared/hooks/useDocumentListener';
 
 type TextFilterProps = Omit<TextInputProps, 'type' | 'tabIndex'> & {
   label?: string;

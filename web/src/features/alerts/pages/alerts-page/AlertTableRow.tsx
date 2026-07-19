@@ -6,6 +6,12 @@ import {
   ResourceIcon,
   ResourceLink,
 } from '@openshift-console/dynamic-plugin-sdk';
+import { DropdownItem, Flex, FlexItem, Spinner } from '@patternfly/react-core';
+import { Td, Tr } from '@patternfly/react-table';
+import type { FC } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Link, useNavigate } from 'react-router';
+
 import {
   alertSource,
   AlertState,
@@ -13,25 +19,16 @@ import {
   isActionWithCallback,
   isActionWithHref,
   NamespaceGroupVersionKind,
-} from '../../components/AlertUtils';
-import { AlertSource } from '../../../../shared/types/types';
-import { Td, Tr } from '@patternfly/react-table';
-import { DropdownItem, Flex, FlexItem, Spinner } from '@patternfly/react-core';
-import KebabDropdown from '../../../../shared/components/KebabDropdown';
-import type { FC } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useNavigate, Link } from 'react-router';
-import { AlertResource, alertState } from '../../../../shared/utils/utils';
-import {
-  getAlertUrl,
-  getNewSilenceAlertUrl,
-  usePerspective,
-} from '../../../../shared/hooks/usePerspective';
-import { useMonitoringNamespace } from '../../../../shared/hooks/useMonitoringNamespace';
-import { DataTestIDs } from '../../../../shared/constants/data-test';
-import { useAgenticRunCheck } from './agentic-runs/useAgenticRunCheck';
-import CustomIcon from '../../../../shared/components/CustomIcon';
-import { SeverityBadge } from '../../../../shared/components/SeverityBadge';
+} from '@/features/alerts/components/AlertUtils';
+import { useAgenticRunCheck } from '@/features/alerts/pages/alerts-page/agentic-runs/useAgenticRunCheck';
+import CustomIcon from '@/shared/components/CustomIcon';
+import KebabDropdown from '@/shared/components/KebabDropdown';
+import { SeverityBadge } from '@/shared/components/SeverityBadge';
+import { DataTestIDs } from '@/shared/constants/data-test';
+import { useMonitoringNamespace } from '@/shared/hooks/useMonitoringNamespace';
+import { getAlertUrl, getNewSilenceAlertUrl, usePerspective } from '@/shared/hooks/usePerspective';
+import { AlertSource } from '@/shared/types/types';
+import { AlertResource, alertState } from '@/shared/utils/utils';
 
 const getAgenticRunUrl = (namespace: string, name: string): string => {
   return `/lightspeed/runs/${namespace}/${name}`;

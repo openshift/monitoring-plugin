@@ -1,7 +1,7 @@
-import type { FC, PropsWithChildren, ReactNode } from 'react';
-import Linkify from 'react-linkify';
 import { Button, Icon } from '@patternfly/react-core';
 import { ExternalLinkAltIcon } from '@patternfly/react-icons';
+import type { FC, PropsWithChildren, ReactNode } from 'react';
+import Linkify from 'react-linkify';
 
 export const ExternalLink: FC<PropsWithChildren<ExternalLinkProps>> = ({
   children,

@@ -1,9 +1,10 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { type FC } from 'react';
 import { QueryParamProvider } from 'use-query-params';
-import { DashboardList } from './dashboard-list';
-import { ToastProvider } from '../../components/ToastProvider';
-import { ReactRouter7Adapter } from '../../../../shared/utils/react-router-7-adapter';
+
+import { ToastProvider } from '@/features/perses-dashboards/components/ToastProvider';
+import { DashboardList } from '@/features/perses-dashboards/pages/dashboard-list-page/dashboard-list';
+import { ReactRouter7Adapter } from '@/shared/utils/react-router-7-adapter';
 
 const queryClient = new QueryClient({
   defaultOptions: {

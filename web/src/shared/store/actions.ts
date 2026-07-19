@@ -1,9 +1,9 @@
+import { Alert, Rule, Silence } from '@openshift-console/dynamic-plugin-sdk';
 import type { PanelDefinition } from '@perses-dev/core';
+import { ThunkDispatch } from 'redux-thunk';
 import { action, ActionType as Action } from 'typesafe-actions';
 
-import { Alert, Rule, Silence } from '@openshift-console/dynamic-plugin-sdk';
-import { ThunkDispatch } from 'redux-thunk';
-import { RootState } from './store';
+import { RootState } from '@/shared/store/store';
 
 export enum ActionType {
   AlertingSetLoading = 'v2/AlertingSetLoading',

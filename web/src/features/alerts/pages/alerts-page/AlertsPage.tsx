@@ -1,47 +1,45 @@
 import { AlertSeverity, AlertStates, DocumentTitle } from '@openshift-console/dynamic-plugin-sdk';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { PageSection, PaginationVariant } from '@patternfly/react-core';
 import DataView from '@patternfly/react-data-view/dist/dynamic/DataView';
 import DataViewTableHead from '@patternfly/react-data-view/dist/dynamic/DataViewTableHead';
 import DataViewToolbar from '@patternfly/react-data-view/dist/dynamic/DataViewToolbar';
 import { useDataViewSort } from '@patternfly/react-data-view/dist/dynamic/Hooks';
 import { Table, TableGridBreakpoint } from '@patternfly/react-table';
-import { useEffect, useMemo, useRef, useState, type FC } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { type FC, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { MonitoringProvider } from '../../../../shared/contexts/MonitoringContext';
-import { useAlerts } from '../../../../shared/hooks/useAlerts';
-import withFallback from '../../../../shared/console/console-shared/error/fallbacks/withFallback';
-import { AccessDenied } from '../../../../shared/console/console-shared/src/components/empty-state/AccessDenied';
-import { EmptyBox } from '../../../../shared/console/console-shared/src/components/empty-state/EmptyBox';
-import { LoadingBox } from '../../../../shared/console/console-shared/src/components/loading/LoadingBox';
-import { useDeepMemo } from '../../../../shared/hooks/useDeepMemo';
-import { useMonitoringNamespace } from '../../../../shared/hooks/useMonitoringNamespace';
-import { usePerspective } from '../../../../shared/hooks/usePerspective';
+
+import { SilencesNotLoadedWarning } from '@/features/alerts/components/AlertUtils';
+import AggregateAlertTableRow from '@/features/alerts/pages/alerts-page/AggregateAlertTableRow';
 import {
-  ITEMS_PER_PAGE,
-  TablePagination,
-} from '../../../../shared/components/table/table-pagination';
+  AggregatedAlert,
+  getAggregateAlertsLists,
+} from '@/features/alerts/pages/alerts-page/AlertsAggregates';
+import DownloadCSVButton from '@/features/alerts/pages/alerts-page/DownloadCSVButton';
+import { filterAlerts } from '@/features/alerts/pages/alerts-page/filter-alerts';
+import { useTableColumns } from '@/shared/components/table/hooks/useTableColumns';
+import { rowFilter, useTableFilters } from '@/shared/components/table/hooks/useTableFilters';
+import { useTablePagination } from '@/shared/components/table/hooks/useTablePagination';
+import { directedSort, localeCompareSort } from '@/shared/components/table/sort-utils';
+import { ITEMS_PER_PAGE, TablePagination } from '@/shared/components/table/table-pagination';
 import {
   TableFilter,
   TableFilterOption,
   TableFilterProps,
   TableFilters,
-} from '../../../../shared/components/table/TableFilters';
-import { TableToolbar } from '../../../../shared/components/table/TableToolbar';
-import { directedSort, localeCompareSort } from '../../../../shared/components/table/sort-utils';
-import { useTableColumns } from '../../../../shared/components/table/hooks/useTableColumns';
-import {
-  useTableFilters,
-  rowFilter,
-} from '../../../../shared/components/table/hooks/useTableFilters';
-import { useTablePagination } from '../../../../shared/components/table/hooks/useTablePagination';
-import { AlertSource } from '../../../../shared/types/types';
-import { ALL_NAMESPACES_KEY, severitySort } from '../../../../shared/utils/utils';
-import AggregateAlertTableRow from './AggregateAlertTableRow';
-import DownloadCSVButton from './DownloadCSVButton';
-import { filterAlerts } from './filter-alerts';
-import { AggregatedAlert, getAggregateAlertsLists } from './AlertsAggregates';
-import { SilencesNotLoadedWarning } from '../../components/AlertUtils';
+} from '@/shared/components/table/TableFilters';
+import { TableToolbar } from '@/shared/components/table/TableToolbar';
+import withFallback from '@/shared/console/console-shared/error/fallbacks/withFallback';
+import { AccessDenied } from '@/shared/console/console-shared/src/components/empty-state/AccessDenied';
+import { EmptyBox } from '@/shared/console/console-shared/src/components/empty-state/EmptyBox';
+import { LoadingBox } from '@/shared/console/console-shared/src/components/loading/LoadingBox';
+import { MonitoringProvider } from '@/shared/contexts/MonitoringContext';
+import { useAlerts } from '@/shared/hooks/useAlerts';
+import { useDeepMemo } from '@/shared/hooks/useDeepMemo';
+import { useMonitoringNamespace } from '@/shared/hooks/useMonitoringNamespace';
+import { usePerspective } from '@/shared/hooks/usePerspective';
+import { AlertSource } from '@/shared/types/types';
+import { ALL_NAMESPACES_KEY, severitySort } from '@/shared/utils/utils';
 
 export const enum AlertFilterOptions {
   NAME = 'name',

@@ -1,15 +1,16 @@
-import { Table, Thead, Tr, Th, Tbody, Td } from '@patternfly/react-table';
 import { ResourceIcon, Timestamp, useActiveNamespace } from '@openshift-console/dynamic-plugin-sdk';
 import { Bullseye, Spinner } from '@patternfly/react-core';
-import { Link } from 'react-router';
-import { ALL_NAMESPACES_KEY, RuleResource } from '../../../shared/utils/utils';
-import { useTranslation } from 'react-i18next';
-import { getRuleUrl, usePerspective } from '../../../shared/hooks/usePerspective';
-import { SeverityBadge } from '../../../shared/components/SeverityBadge';
-import { Alert, IncidentsDetailsAlert } from '../types/model';
-import { IncidentAlertStateIcon } from './IncidentAlertStateIcon';
+import { Table, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
 import { useMemo } from 'react';
-import { DataTestIDs } from '../../../shared/constants/data-test';
+import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router';
+
+import { IncidentAlertStateIcon } from '@/features/incidents/components/IncidentAlertStateIcon';
+import { Alert, IncidentsDetailsAlert } from '@/features/incidents/types/model';
+import { SeverityBadge } from '@/shared/components/SeverityBadge';
+import { DataTestIDs } from '@/shared/constants/data-test';
+import { getRuleUrl, usePerspective } from '@/shared/hooks/usePerspective';
+import { ALL_NAMESPACES_KEY, RuleResource } from '@/shared/utils/utils';
 
 interface IncidentsDetailsRowTableProps {
   alerts: Alert[];

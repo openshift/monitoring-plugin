@@ -1,16 +1,15 @@
+import { StyledComponent } from '@emotion/styled';
+import { IconButton, IconButtonProps, styled } from '@mui/material';
+import { Theme } from '@mui/material/styles';
+import { InfoTooltip } from '@perses-dev/components';
+import type { PanelDefinition } from '@perses-dev/core';
+import ViewGridPlusIcon from 'mdi-material-ui/ViewGridPlus';
 import { FC, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { IconButton, IconButtonProps, styled } from '@mui/material';
-import { Theme } from '@mui/material/styles';
-import ViewGridPlusIcon from 'mdi-material-ui/ViewGridPlus';
-import { StyledComponent } from '@emotion/styled';
 
-import type { PanelDefinition } from '@perses-dev/core';
-import { InfoTooltip } from '@perses-dev/components';
-
-import { dashboardsAddPersesPanelExternally } from '../../../../shared/store/actions';
-import type { RootState } from '../../../../shared/store/store';
+import { dashboardsAddPersesPanelExternally } from '@/shared/store/actions';
+import type { RootState } from '@/shared/store/store';
 
 export const HeaderIconButton: StyledComponent<IconButtonProps & { theme?: Theme }> = styled(
   IconButton,

@@ -9,9 +9,16 @@ jest.mock('../../components/AlertUtils', () => ({
 }));
 
 import { AlertStates, Rule } from '@openshift-console/dynamic-plugin-sdk';
-import { AlertSource } from '../../../../shared/types/types';
-import { filterRules, ruleHasAlertState } from './filter-rules';
-import { AlertRulesFilterOptions, AlertRulesFilters } from './AlertRulesPage';
+
+import {
+  AlertRulesFilterOptions,
+  AlertRulesFilters,
+} from '@/features/alerts/pages/alert-rules-page/AlertRulesPage';
+import {
+  filterRules,
+  ruleHasAlertState,
+} from '@/features/alerts/pages/alert-rules-page/filter-rules';
+import { AlertSource } from '@/shared/types/types';
 
 const emptyFilters: AlertRulesFilters = {
   [AlertRulesFilterOptions.NAME]: '',

@@ -1,4 +1,3 @@
-import { ReactElement, ReactNode, useState, useCallback, useEffect } from 'react';
 import { Box } from '@mui/material';
 import { ChartsProvider, ErrorAlert, ErrorBoundary, useChartsTheme } from '@perses-dev/components';
 import {
@@ -6,30 +5,32 @@ import {
   EphemeralDashboardResource,
   getResourceExtendedDisplayName,
 } from '@perses-dev/core';
-import { useDatasourceStore } from '@perses-dev/plugin-system';
 import {
-  PanelDrawer,
   Dashboard,
-  PanelGroupDialog,
-  DeletePanelGroupDialog,
   DashboardDiscardChangesConfirmationDialog,
   DeletePanelDialog,
-  EmptyDashboardProps,
+  DeletePanelGroupDialog,
   EditJsonDialog,
-  SaveChangesConfirmationDialog,
+  EmptyDashboardProps,
   LeaveDialog,
+  PanelDrawer,
+  PanelGroupDialog,
+  SaveChangesConfirmationDialog,
 } from '@perses-dev/dashboards';
 import {
   useDashboard,
   useDiscardChangesConfirmationDialog,
   useEditMode,
 } from '@perses-dev/dashboards';
-import { OCPDashboardToolbar } from './dashboard-toolbar';
-import { useUpdateDashboardMutation } from '../../utils/dashboard-api';
+import { useDatasourceStore } from '@perses-dev/plugin-system';
+import { ReactElement, ReactNode, useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useToast } from '../../components/ToastProvider';
 import { useSearchParams } from 'react-router';
-import { ExternalPanelAddition } from './external-panel-addition';
+
+import { useToast } from '@/features/perses-dashboards/components/ToastProvider';
+import { OCPDashboardToolbar } from '@/features/perses-dashboards/pages/dashboard-page/dashboard-toolbar';
+import { ExternalPanelAddition } from '@/features/perses-dashboards/pages/dashboard-page/external-panel-addition';
+import { useUpdateDashboardMutation } from '@/features/perses-dashboards/utils/dashboard-api';
 
 export interface DashboardAppProps {
   dashboardResource: DashboardResource | EphemeralDashboardResource;

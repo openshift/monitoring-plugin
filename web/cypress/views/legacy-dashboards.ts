@@ -1,17 +1,13 @@
 import { commonPages } from './common';
+import { Classes, DataTestIDs, LegacyDashboardPageTestIDs } from '@/shared/constants/data-test';
 import {
-  LegacyDashboardPageTestIDs,
-  DataTestIDs,
-  Classes,
-} from '../../src/shared/constants/data-test';
-import {
-  MonitoringPageTitles,
-  LegacyDashboardsTimeRange,
-  MonitoringRefreshInterval,
-  LegacyDashboardsDashboardDropdown,
   API_PERFORMANCE_DASHBOARD_PANELS,
-  LegacyDashboardsDashboardDropdownNamespace,
   KUBERNETES_COMPUTE_RESOURCES_NAMESPACE_PODS_PANELS,
+  LegacyDashboardsDashboardDropdown,
+  LegacyDashboardsDashboardDropdownNamespace,
+  LegacyDashboardsTimeRange,
+  MonitoringPageTitles,
+  MonitoringRefreshInterval,
 } from '../fixtures/monitoring/constants';
 export const legacyDashboardsPage = {
   shouldBeLoaded: () => {

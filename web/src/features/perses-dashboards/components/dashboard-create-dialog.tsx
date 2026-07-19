@@ -1,42 +1,45 @@
-import { FC, useEffect } from 'react';
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
+  AlertVariant,
   Button,
-  Modal,
-  ModalBody,
-  ModalHeader,
-  ModalFooter,
-  ModalVariant,
   FormGroup,
-  TextInput,
   FormHelperText,
   HelperText,
   HelperTextItem,
-  ValidatedOptions,
-  AlertVariant,
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+  ModalVariant,
   Stack,
   StackItem,
+  TextInput,
+  ValidatedOptions,
 } from '@patternfly/react-core';
+import { DashboardResource } from '@perses-dev/core';
+import { FC, useEffect } from 'react';
+import { Controller, FormProvider, SubmitHandler, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
-import { DashboardResource } from '@perses-dev/core';
-import { useCreateDashboardMutation } from '../utils/dashboard-api';
-import { createNewDashboard } from '../utils/dashboard-utils';
-import { useToast } from './ToastProvider';
 import {
-  createDashboardDialogValidationSchema,
-  CreateDashboardValidationType,
-  useDashboardValidationSchema,
-} from '../utils/dashboard-action-validations';
-import { Controller, FormProvider, SubmitHandler, useForm } from 'react-hook-form';
+  formGroupStyle,
+  LabelSpacer,
+} from '@/features/perses-dashboards/components/dashboard-action-modals';
 import {
   PermissionStateWrapper,
   ProjectSelectFormGroup,
   useDashboardNavigation,
   useDashboardProjects,
   useProjectCreation,
-} from './dashboard-dialog-helpers';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { formGroupStyle, LabelSpacer } from './dashboard-action-modals';
+} from '@/features/perses-dashboards/components/dashboard-dialog-helpers';
+import { useToast } from '@/features/perses-dashboards/components/ToastProvider';
+import {
+  createDashboardDialogValidationSchema,
+  CreateDashboardValidationType,
+  useDashboardValidationSchema,
+} from '@/features/perses-dashboards/utils/dashboard-action-validations';
+import { useCreateDashboardMutation } from '@/features/perses-dashboards/utils/dashboard-api';
+import { createNewDashboard } from '@/features/perses-dashboards/utils/dashboard-utils';
 
 interface DashboardCreateDialogProps {
   isOpen: boolean;

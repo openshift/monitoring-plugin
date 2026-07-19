@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback, Ref } from 'react';
+import { Ref, useCallback, useEffect, useRef, useState } from 'react';
 
 export const useRefWidth = () => {
   const ref = useRef<HTMLDivElement>(null);

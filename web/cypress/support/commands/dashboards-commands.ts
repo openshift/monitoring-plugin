@@ -1,5 +1,5 @@
 import 'cypress-wait-until';
-import { DataTestIDs, LegacyTestIDs } from '../../../src/shared/constants/data-test';
+import { DataTestIDs, LegacyTestIDs } from '@/shared/constants/data-test';
 import { waitForPodsReady, waitForResourceCondition } from './wait-utils';
 
 export {};

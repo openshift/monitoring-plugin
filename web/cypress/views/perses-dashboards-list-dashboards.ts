@@ -1,13 +1,13 @@
 import { commonPages } from './common';
 import {
-  DataTestIDs,
   Classes,
-  listPersesDashboardsOUIAIDs,
-  listPersesDashboardsDataTestIDs,
+  DataTestIDs,
   IDs,
-  persesAriaLabels,
   LegacyTestIDs,
-} from '../../src/shared/constants/data-test';
+  listPersesDashboardsDataTestIDs,
+  listPersesDashboardsOUIAIDs,
+  persesAriaLabels,
+} from '@/shared/constants/data-test';
 import {
   listPersesDashboardsEmptyState,
   listPersesDashboardsNoDashboardsFoundState,

@@ -1,11 +1,9 @@
-import { ReactElement, useEffect, useState, useCallback, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 import { useDashboardActions, useDashboardStore } from '@perses-dev/dashboards';
-import {
-  dashboardsOpened,
-  dashboardsPersesPanelExternallyAdded,
-} from '../../../../shared/store/actions';
-import type { RootState } from '../../../../shared/store/store';
+import { ReactElement, useCallback, useEffect, useRef, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+
+import { dashboardsOpened, dashboardsPersesPanelExternallyAdded } from '@/shared/store/actions';
+import type { RootState } from '@/shared/store/store';
 
 interface ExternalPanelAdditionProps {
   isEditMode: boolean;

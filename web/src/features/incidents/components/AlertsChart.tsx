@@ -1,5 +1,3 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-
 import {
   Chart,
   ChartAxis,
@@ -25,22 +23,24 @@ import {
   t_global_color_status_info_default,
   t_global_color_status_warning_default,
 } from '@patternfly/react-tokens';
+import { isEmpty } from 'lodash-es';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { IncidentsTooltip } from './IncidentsTooltip';
+
+import { IncidentsTooltip } from '@/features/incidents/components/IncidentsTooltip';
+import { AlertsChartBar } from '@/features/incidents/types/model';
 import {
   createAlertsChartBars,
-  generateDateArray,
   generateAlertsDateArray,
+  generateDateArray,
   getCurrentTime,
   roundDateToInterval,
-} from '../utils/utils';
-import { dateTimeFormatter, timeFormatter } from '../../../shared/console/utils/datetime';
-import { useTranslation } from 'react-i18next';
-import { AlertsChartBar } from '../types/model';
-import { setAlertsAreLoading } from '../../../shared/store/actions';
-import { MonitoringState } from '../../../shared/store/store';
-import { isEmpty } from 'lodash-es';
-import { DataTestIDs } from '../../../shared/constants/data-test';
+} from '@/features/incidents/utils/utils';
+import { dateTimeFormatter, timeFormatter } from '@/shared/console/utils/datetime';
+import { DataTestIDs } from '@/shared/constants/data-test';
+import { setAlertsAreLoading } from '@/shared/store/actions';
+import { MonitoringState } from '@/shared/store/store';
 
 const AlertsChart = ({ theme }: { theme: 'light' | 'dark' }) => {
   const dispatch = useDispatch();

@@ -1,5 +1,5 @@
 import { ErrorBoundaryFallbackProps } from '@openshift-console/dynamic-plugin-sdk';
-import type { ComponentType, ReactNode, FC } from 'react';
+import type { ComponentType, FC, ReactNode } from 'react';
 import { Component } from 'react';
 import { useLocation } from 'react-router';
 

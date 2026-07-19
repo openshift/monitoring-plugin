@@ -1,8 +1,9 @@
-import { FC } from 'react';
 import { Tooltip } from '@patternfly/react-core';
-import { BellIcon, CheckIcon, BellSlashIcon } from '@patternfly/react-icons';
+import { BellIcon, BellSlashIcon, CheckIcon } from '@patternfly/react-icons';
+import { FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { GroupedAlert, IncidentsDetailsAlert } from '../types/model';
+
+import { GroupedAlert, IncidentsDetailsAlert } from '@/features/incidents/types/model';
 
 interface IncidentAlertStateIconProps {
   alertDetails: IncidentsDetailsAlert;

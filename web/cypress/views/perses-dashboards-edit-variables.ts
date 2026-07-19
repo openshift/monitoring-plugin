@@ -1,14 +1,14 @@
 import { commonPages } from './common';
 import {
+  editPersesDashboardsAddVariable,
+  IDs,
   persesAriaLabels,
   persesMUIDataTestIDs,
-  IDs,
-  editPersesDashboardsAddVariable,
-} from '../../src/shared/constants/data-test';
+} from '@/shared/constants/data-test';
 import {
-  persesDashboardsModalTitles,
-  persesDashboardsAddListVariableSource,
   persesDashboardsAddListVariableSort,
+  persesDashboardsAddListVariableSource,
+  persesDashboardsModalTitles,
   persesDashboardsRequiredFields,
 } from '../fixtures/perses/constants';
 

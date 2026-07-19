@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import * as _ from 'lodash';
-import AutocompleteInput from '../../console/public/components/autocomplete';
 import { ToolbarFilter, ToolbarLabel } from '@patternfly/react-core';
+import * as _ from 'lodash';
+import { useState } from 'react';
+
+import AutocompleteInput from '@/shared/console/public/components/autocomplete';
 
 export type DataViewLabelFilterProps<TData> = {
   data: TData[];

@@ -6,14 +6,15 @@ import {
   SelectList,
   SelectOption,
   SelectOptionProps,
+  SelectProps,
   TextInputGroup,
   TextInputGroupMain,
   TextInputGroupUtilities,
-  SelectProps,
 } from '@patternfly/react-core';
 import { TimesIcon } from '@patternfly/react-icons';
-import { DataTestIDs } from '../constants/data-test';
-import { useState, useRef, useEffect, FormEvent, KeyboardEvent, Ref, FC } from 'react';
+import { FC, FormEvent, KeyboardEvent, Ref, useEffect, useRef, useState } from 'react';
+
+import { DataTestIDs } from '@/shared/constants/data-test';
 
 const NO_RESULTS = 'no results';
 

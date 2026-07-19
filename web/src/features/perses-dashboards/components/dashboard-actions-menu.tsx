@@ -1,18 +1,19 @@
-import { FC, Ref, useState } from 'react';
 import {
   Dropdown,
-  DropdownList,
   DropdownItem,
+  DropdownList,
   MenuToggle,
-  MenuToggleElement,
   MenuToggleAction,
+  MenuToggleElement,
   Tooltip,
 } from '@patternfly/react-core';
+import { FC, Ref, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useEditableProjects } from '../hooks/useEditableProjects';
-import { DashboardCreateDialog } from './dashboard-create-dialog';
-import { DashboardImportDialog } from './dashboard-import-dialog';
-import { persesDashboardDataTestIDs } from '../../../shared/constants/data-test';
+
+import { DashboardCreateDialog } from '@/features/perses-dashboards/components/dashboard-create-dialog';
+import { DashboardImportDialog } from '@/features/perses-dashboards/components/dashboard-import-dialog';
+import { useEditableProjects } from '@/features/perses-dashboards/hooks/useEditableProjects';
+import { persesDashboardDataTestIDs } from '@/shared/constants/data-test';
 
 export const DashboardActionsMenu: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);

@@ -1,5 +1,5 @@
 import { nav } from './nav';
-import { DataTestIDs } from '../../src/shared/constants/data-test';
+import { DataTestIDs } from '@/shared/constants/data-test';
 
 // Hard timeout safety net for findIncidentWithAlert retry loops.
 // Prevents infinite loops if cy.waitUntil's timeout mechanism fails.

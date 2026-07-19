@@ -1,10 +1,10 @@
-import { FC, FormEvent } from 'react';
 import {
   SearchInput,
   SearchInputProps,
   ToolbarFilter,
   ToolbarFilterProps,
 } from '@patternfly/react-core';
+import { FC, FormEvent } from 'react';
 
 /** extends SearchInputProps */
 export interface DataViewTextFilterProps extends SearchInputProps {

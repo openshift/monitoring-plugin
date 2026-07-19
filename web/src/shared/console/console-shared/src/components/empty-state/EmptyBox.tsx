@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { ConsoleEmptyState } from './ConsoleEmptyState';
+
+import { ConsoleEmptyState } from '@/shared/console/console-shared/src/components/empty-state/ConsoleEmptyState';
 
 export const EmptyBox = ({ label, customMessage }: EmptyBoxProps) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);

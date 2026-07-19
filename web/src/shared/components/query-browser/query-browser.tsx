@@ -6,6 +6,7 @@ import {
   PrometheusValue,
   useActiveNamespace,
 } from '@openshift-console/dynamic-plugin-sdk';
+import { CustomDataSource } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
 import {
   Chart,
   ChartArea,
@@ -42,57 +43,52 @@ import {
   Tooltip,
 } from '@patternfly/react-core';
 import { ChartLineIcon } from '@patternfly/react-icons';
-import classNames from 'classnames';
-import * as _ from 'lodash-es';
-import type { FC, Ref, ReactNode, KeyboardEvent, MouseEvent, ComponentType } from 'react';
-import { memo, useState, useEffect, useCallback, useLayoutEffect, useRef } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
-
-import {
-  queryBrowserDeleteAllSeries,
-  queryBrowserPatchQuery,
-  queryBrowserSetTimespan,
-} from '../../../shared/store/actions';
-
-import { GraphEmpty } from '../../../shared/console/graphs/graph-empty';
-import { getPrometheusBasePath, buildPrometheusUrl } from '../../../shared/utils/utils';
-import {
-  dateFormatterNoYear,
-  timeFormatter,
-  timeFormatterWithSeconds,
-} from '../../../shared/console/utils/datetime';
-import { usePoll } from '../../../shared/console/utils/poll-hook';
-import { useRefWidth } from '../../../shared/console/utils/ref-width-hook';
-import { useSafeFetch } from '../../../shared/console/utils/safe-fetch-hook';
-
-import { useBoolean } from '../../hooks/useBoolean';
-import { queryBrowserTheme } from './query-browser-theme';
-import { PrometheusAPIError, TimeRange } from '../../../shared/types/types';
-import { getTimeRanges } from '../../../shared/utils/utils';
-
-import { CustomDataSource } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
 import {
   chart_area_Opacity,
   chart_axis_tick_Size,
   t_chart_global_fill_color_200,
 } from '@patternfly/react-tokens';
-import { MonitoringState } from '../../../shared/store/store';
-import withFallback from '../../../shared/console/console-shared/error/fallbacks/withFallback';
-import { LoadingInline } from '../../../shared/console/console-shared/src/components/loading/LoadingInline';
+import classNames from 'classnames';
+import * as _ from 'lodash-es';
+import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import type { ComponentType, FC, KeyboardEvent, MouseEvent, ReactNode, Ref } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useDispatch, useSelector } from 'react-redux';
+
+import { GraphUnits } from '@/features/metrics/utils/units';
+import { queryBrowserTheme } from '@/shared/components/query-browser/query-browser-theme';
+import '@/shared/components/query-browser/query-browser.scss';
+import withFallback from '@/shared/console/console-shared/error/fallbacks/withFallback';
+import { LoadingInline } from '@/shared/console/console-shared/src/components/loading/LoadingInline';
 import {
   QueryBrowserTooltip,
   valueFormatter,
-} from '../../../shared/console/console-shared/src/components/query-browser/QueryBrowserTooltip';
+} from '@/shared/console/console-shared/src/components/query-browser/QueryBrowserTooltip';
 import {
   formatPrometheusDuration,
   parsePrometheusDuration,
-} from '../../../shared/console/console-shared/src/datetime/prometheus';
-import { getObserveState } from '../../hooks/usePerspective';
-import './query-browser.scss';
-import { GraphUnits } from '../../../features/metrics/utils/units';
-import { DataTestIDs } from '../../constants/data-test';
-import { useMonitoring } from '../../../shared/hooks/useMonitoring';
+} from '@/shared/console/console-shared/src/datetime/prometheus';
+import { GraphEmpty } from '@/shared/console/graphs/graph-empty';
+import {
+  dateFormatterNoYear,
+  timeFormatter,
+  timeFormatterWithSeconds,
+} from '@/shared/console/utils/datetime';
+import { usePoll } from '@/shared/console/utils/poll-hook';
+import { useRefWidth } from '@/shared/console/utils/ref-width-hook';
+import { useSafeFetch } from '@/shared/console/utils/safe-fetch-hook';
+import { DataTestIDs } from '@/shared/constants/data-test';
+import { useBoolean } from '@/shared/hooks/useBoolean';
+import { useMonitoring } from '@/shared/hooks/useMonitoring';
+import { getObserveState } from '@/shared/hooks/usePerspective';
+import {
+  queryBrowserDeleteAllSeries,
+  queryBrowserPatchQuery,
+  queryBrowserSetTimespan,
+} from '@/shared/store/actions';
+import { MonitoringState } from '@/shared/store/store';
+import { PrometheusAPIError, TimeRange } from '@/shared/types/types';
+import { buildPrometheusUrl, getPrometheusBasePath, getTimeRanges } from '@/shared/utils/utils';
 
 const spans = ['5m', '15m', '30m', '1h', '2h', '6h', '12h', '1d', '2d', '1w', '2w'];
 export const colors = queryBrowserTheme.line.colorScale;

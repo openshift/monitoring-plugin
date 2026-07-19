@@ -1,20 +1,20 @@
-import type { FC, ComponentType } from 'react';
-import { Fragment } from 'react';
+import { Humanize, usePrometheusPoll } from '@openshift-console/dynamic-plugin-sdk';
+import { PrometheusEndpoint } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
+import { CustomDataSource } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
 import {
   ChartBar,
   ChartLabel,
   ChartThemeColor,
   getCustomTheme,
 } from '@patternfly/react-charts/victory';
+import type { ComponentType, FC } from 'react';
+import { Fragment } from 'react';
 
-import { useRefWidth } from '../utils/ref-width-hook';
-import { DataPoint, getInstantVectorStats } from './helpers';
-import { GraphEmpty } from './graph-empty';
-import { CustomDataSource } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
-import { humanizeNumber } from '../utils/units';
-import { Humanize, usePrometheusPoll } from '@openshift-console/dynamic-plugin-sdk';
-import { PrometheusEndpoint } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
-import { PrometheusGraph, PrometheusGraphLink } from './promethues-graph';
+import { GraphEmpty } from '@/shared/console/graphs/graph-empty';
+import { DataPoint, getInstantVectorStats } from '@/shared/console/graphs/helpers';
+import { PrometheusGraph, PrometheusGraphLink } from '@/shared/console/graphs/promethues-graph';
+import { useRefWidth } from '@/shared/console/utils/ref-width-hook';
+import { humanizeNumber } from '@/shared/console/utils/units';
 
 const DEFAULT_BAR_WIDTH = 10;
 const PADDING_RATIO = 1 / 3;

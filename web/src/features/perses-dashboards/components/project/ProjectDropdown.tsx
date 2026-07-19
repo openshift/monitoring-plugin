@@ -2,25 +2,21 @@ import {
   Button,
   Divider,
   EmptyState,
+  EmptyStateActions,
   EmptyStateBody,
+  EmptyStateFooter,
   Menu,
   MenuContent,
   MenuGroup,
-  MenuSearch,
-  MenuSearchInput,
   MenuItem,
   MenuList,
+  MenuSearch,
+  MenuSearchInput,
   TextInput,
-  EmptyStateActions,
-  EmptyStateFooter,
   Tooltip,
   TooltipPosition,
 } from '@patternfly/react-core';
 import fuzzysearch from 'fuzzysearch';
-import { useTranslation } from 'react-i18next';
-import ProjectMenuToggle from './ProjectMenuToggle';
-import { alphanumericCompare } from './utils';
-import { useEditableProjects } from '../../hooks/useEditableProjects';
 import {
   ChangeEvent,
   FC,
@@ -32,7 +28,12 @@ import {
   useRef,
   useState,
 } from 'react';
-import { ALL_NAMESPACES_KEY } from '../../../../shared/utils/utils';
+import { useTranslation } from 'react-i18next';
+
+import ProjectMenuToggle from '@/features/perses-dashboards/components/project/ProjectMenuToggle';
+import { alphanumericCompare } from '@/features/perses-dashboards/components/project/utils';
+import { useEditableProjects } from '@/features/perses-dashboards/hooks/useEditableProjects';
+import { ALL_NAMESPACES_KEY } from '@/shared/utils/utils';
 
 export const NoResults: FC<{
   onClear: (event: ReactMouseEvent<HTMLButtonElement, MouseEvent>) => void;

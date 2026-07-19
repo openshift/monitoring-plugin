@@ -1,7 +1,4 @@
-import { memo, ReactNode, useCallback, useMemo, useState, type FC } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useDashboardsData } from '../../hooks/useDashboardsData';
-
+import { Timestamp } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Button,
   EmptyState,
@@ -25,25 +22,24 @@ import {
   useDataViewSort,
 } from '@patternfly/react-data-view/dist/dynamic/Hooks';
 import { ActionsColumn, ThProps } from '@patternfly/react-table';
+import { DashboardResource } from '@perses-dev/core';
+import { type FC, memo, ReactNode, useCallback, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useSearchParams } from 'react-router';
 
-import { getDashboardUrl, usePerspective } from '../../../../shared/hooks/usePerspective';
-import { Timestamp } from '@openshift-console/dynamic-plugin-sdk';
-import { listPersesDashboardsDataTestIDs } from '../../../../shared/constants/data-test';
-import { DashboardListFrame } from './dashboard-list-frame';
-import { usePersesEditPermissions } from '../../hooks/usePersesEditPermissions';
-import { DashboardResource } from '@perses-dev/core';
 import {
   DeleteActionModal,
   DuplicateActionModal,
   RenameActionModal,
-} from '../../components/dashboard-action-modals';
-import { useEditableProjects } from '../../hooks/useEditableProjects';
-import { ALL_NAMESPACES_KEY } from '../../../../shared/utils/utils';
-import {
-  ITEMS_PER_PAGE,
-  TablePagination,
-} from '../../../../shared/components/table/table-pagination';
+} from '@/features/perses-dashboards/components/dashboard-action-modals';
+import { useDashboardsData } from '@/features/perses-dashboards/hooks/useDashboardsData';
+import { useEditableProjects } from '@/features/perses-dashboards/hooks/useEditableProjects';
+import { usePersesEditPermissions } from '@/features/perses-dashboards/hooks/usePersesEditPermissions';
+import { DashboardListFrame } from '@/features/perses-dashboards/pages/dashboard-list-page/dashboard-list-frame';
+import { ITEMS_PER_PAGE, TablePagination } from '@/shared/components/table/table-pagination';
+import { listPersesDashboardsDataTestIDs } from '@/shared/constants/data-test';
+import { getDashboardUrl, usePerspective } from '@/shared/hooks/usePerspective';
+import { ALL_NAMESPACES_KEY } from '@/shared/utils/utils';
 
 const DashboardActionsCell = memo(
   ({

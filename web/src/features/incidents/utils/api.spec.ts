@@ -1,6 +1,7 @@
-import { createAlertsQuery, fetchDataForIncidentsAndAlerts } from './api';
-import { PrometheusResponse, consoleFetchJSON } from '@openshift-console/dynamic-plugin-sdk';
-import { buildPrometheusUrl } from '../../../shared/utils/utils';
+import { consoleFetchJSON, PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
+
+import { createAlertsQuery, fetchDataForIncidentsAndAlerts } from '@/features/incidents/utils/api';
+import { buildPrometheusUrl } from '@/shared/utils/utils';
 
 // Mock the SDK
 jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
@@ -11,7 +12,7 @@ jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
 }));
 
 // Mock the global utils to avoid window access side effects
-jest.mock('../../../shared/utils/utils', () => ({
+jest.mock('@/shared/utils/utils', () => ({
   getPrometheusBasePath: jest.fn(),
   buildPrometheusUrl: jest.fn(),
 }));
@@ -75,7 +76,7 @@ describe('createAlertsQuery', () => {
 
 describe('fetchDataForIncidentsAndAlerts', () => {
   it('should fetch data for incidents and alerts', async () => {
-    (buildPrometheusUrl as jest.Mock).mockReturnValue('/mock/url');
+    (buildPrometheusUrl as jest.Mock).mockReturnValue('@/shared/mock/url');
     const now = Date.now();
 
     const result1 = {

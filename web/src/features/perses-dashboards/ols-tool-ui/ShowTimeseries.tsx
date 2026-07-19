@@ -1,11 +1,11 @@
+import { Panel } from '@perses-dev/dashboards';
+import { DataQueriesProvider } from '@perses-dev/plugin-system';
 import { FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { DataQueriesProvider } from '@perses-dev/plugin-system';
-import { Panel } from '@perses-dev/dashboards';
 
-import { OlsToolUIPersesWrapper } from './helpers/OlsToolUIPersesWrapper';
-import { AddToDashboardButton } from './helpers/AddToDashboardButton';
-import { useTimeRange } from './helpers/useTimeRange';
+import { AddToDashboardButton } from '@/features/perses-dashboards/ols-tool-ui/helpers/AddToDashboardButton';
+import { OlsToolUIPersesWrapper } from '@/features/perses-dashboards/ols-tool-ui/helpers/OlsToolUIPersesWrapper';
+import { useTimeRange } from '@/features/perses-dashboards/ols-tool-ui/helpers/useTimeRange';
 
 type ShowTimeseriesTool = {
   args: {

@@ -1,6 +1,10 @@
 import * as _ from 'lodash-es';
-import { DEFAULT_GRAPH_SAMPLES, MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY } from './utils';
-import { ALL_NAMESPACES_KEY } from '../../../shared/utils/utils';
+
+import {
+  DEFAULT_GRAPH_SAMPLES,
+  MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY,
+} from '@/features/legacy-dashboards/utils/utils';
+import { ALL_NAMESPACES_KEY } from '@/shared/utils/utils';
 
 const intervalVariableRegExps = ['__interval', '__rate_interval', '__auto_interval_[a-z]+'];
 
