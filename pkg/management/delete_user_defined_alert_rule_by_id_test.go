@@ -242,6 +242,72 @@ func TestDeleteAlertRuleById_PlatformRuleOperatorManaged(t *testing.T) {
 	}
 }
 
+func TestDeleteAlertRuleById_PlatformFallbackRejectsOperatorManagedPR(t *testing.T) {
+	mockK8s := &testutils.MockClient{}
+	mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
+		return &testutils.MockRelabeledRulesInterface{
+			GetFunc: func(_ context.Context, id string) (monitoringv1.Rule, bool) {
+				if id == deletePlatformRuleId {
+					return deletePlatformRule, true
+				}
+				return monitoringv1.Rule{}, false
+			},
+		}
+	}
+	mockK8s.NamespaceFunc = func() k8s.NamespaceInterface {
+		return &testutils.MockNamespaceInterface{
+			IsClusterMonitoringNamespaceFunc: func(name string) bool { return name == "openshift-monitoring" },
+		}
+	}
+	controller := true
+	var updatedPR bool
+	var deletedPR bool
+	mockK8s.PrometheusRulesFunc = func() k8s.PrometheusRuleInterface {
+		return &testutils.MockPrometheusRuleInterface{
+			GetFunc: func(_ context.Context, namespace, name string) (*monitoringv1.PrometheusRule, bool, error) {
+				return &monitoringv1.PrometheusRule{
+					ObjectMeta: metav1.ObjectMeta{
+						Namespace: namespace,
+						Name:      name,
+						OwnerReferences: []metav1.OwnerReference{
+							{Kind: "ClusterOperator", Name: "monitoring", Controller: &controller},
+						},
+					},
+					Spec: monitoringv1.PrometheusRuleSpec{
+						Groups: []monitoringv1.RuleGroup{{Name: "grp", Rules: []monitoringv1.Rule{deletePlatformRule}}},
+					},
+				}, true, nil
+			},
+			UpdateFunc: func(_ context.Context, _ monitoringv1.PrometheusRule) error {
+				updatedPR = true
+				return nil
+			},
+			DeleteFunc: func(_ context.Context, _, _ string) error {
+				deletedPR = true
+				return nil
+			},
+		}
+	}
+	mockK8s.AlertingRulesFunc = func() k8s.AlertingRuleInterface {
+		return &testutils.MockAlertingRuleInterface{
+			GetFunc: func(_ context.Context, _ string) (*osmv1.AlertingRule, bool, error) {
+				return nil, false, nil
+			},
+		}
+	}
+
+	err := newDeleteClient(mockK8s).DeleteAlertRuleById(context.Background(), deletePlatformRuleId)
+	if err == nil {
+		t.Fatal("expected error for operator-managed PrometheusRule fallback")
+	}
+	if !errors.As(err, new(*management.NotAllowedError)) {
+		t.Errorf("expected NotAllowedError, got %T: %v", err, err)
+	}
+	if updatedPR || deletedPR {
+		t.Error("operator-managed PrometheusRule must not be mutated when AlertingRule is absent")
+	}
+}
+
 func TestDeleteAlertRuleById_PrometheusRuleNotFound(t *testing.T) {
 	mockK8s := &testutils.MockClient{}
 	mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {

@@ -81,11 +81,7 @@ func (c *client) UpdateAlertRuleClassification(ctx context.Context, req UpdateRu
 		return c.applyClassificationViaARC(ctx, req.RuleId, rule, labels, k8s.ClusterMonitoringNamespace)
 	}
 
-	if !c.enableUserWorkloadARCs {
-		return &NotAllowedError{Message: "classification updates for user-defined workload rules require ENABLE_USER_WORKLOAD_ARCS"}
-	}
-
-	return c.applyClassificationViaARC(ctx, req.RuleId, rule, labels, k8s.UserWorkloadMonitoringNamespace)
+	return &NotAllowedError{Message: "classification updates are only supported for platform alert rules"}
 }
 
 // BulkUpdateAlertRuleClassification updates multiple entries; returns per-item errors collected by caller
