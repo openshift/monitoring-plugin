@@ -1,10 +1,11 @@
+//go:build e2e
+
 package e2e
 
 import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -19,9 +20,6 @@ import (
 
 func TestDeleteAlertRule(t *testing.T) {
 	f, err := framework.New()
-	if errors.Is(err, framework.ErrSkip) {
-		t.Skip(err)
-	}
 	if err != nil {
 		t.Fatalf("Failed to create framework: %v", err)
 	}
@@ -38,10 +36,6 @@ func TestDeleteAlertRule(t *testing.T) {
 	ruleIDs := make([]string, 0, len(ruleNames))
 
 	for _, name := range ruleNames {
-		// Each rule needs a unique expression so the spec-equivalence check
-		// does not reject it as a duplicate of a rule from another test.
-		// absent() returns 1 when the selector matches nothing, which is
-		// always the case for a fabricated metric name.
 		expr := fmt.Sprintf("absent(nonexistent{e2e_rule=%q})", name)
 		id, err := createRuleViaAPI(ctx, f, managementrouter.CreateAlertRuleRequest{
 			AlertingRule: &managementrouter.AlertRuleSpec{
@@ -65,8 +59,6 @@ func TestDeleteAlertRule(t *testing.T) {
 
 	t.Logf("Created 3 rules with IDs: %v", ruleIDs)
 
-	// Allow time for the informer watch event to propagate and
-	// the relabeled-rules cache to sync the new PrometheusRule.
 	time.Sleep(2 * time.Second)
 
 	deleteReq := managementrouter.BulkDeleteAlertRulesRequest{
