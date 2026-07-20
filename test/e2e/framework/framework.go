@@ -1,3 +1,5 @@
+//go:build e2e
+
 package framework
 
 import (
@@ -38,10 +40,9 @@ type Framework struct {
 
 type CleanupFunc func() error
 
-// ErrSkip is returned by New when required environment variables are not set,
-// so callers can distinguish a missing-env skip from a real error.
-var ErrSkip = fmt.Errorf("required environment variables not set, skipping e2e test")
-
+// New creates a Framework backed by a real Kubernetes cluster. It reads
+// KUBECONFIG and PLUGIN_URL from the environment and returns a singleton
+// so that expensive client setup happens only once per test binary.
 func New() (*Framework, error) {
 	if f != nil {
 		return f, nil
@@ -49,12 +50,12 @@ func New() (*Framework, error) {
 
 	kubeConfigPath := os.Getenv("KUBECONFIG")
 	if kubeConfigPath == "" {
-		return nil, fmt.Errorf("%w: KUBECONFIG", ErrSkip)
+		return nil, fmt.Errorf("KUBECONFIG environment variable is not set")
 	}
 
 	pluginURL := os.Getenv("PLUGIN_URL")
 	if pluginURL == "" {
-		return nil, fmt.Errorf("%w: PLUGIN_URL", ErrSkip)
+		return nil, fmt.Errorf("PLUGIN_URL environment variable is not set")
 	}
 
 	config, err := clientcmd.BuildConfigFromFlags("", kubeConfigPath)
