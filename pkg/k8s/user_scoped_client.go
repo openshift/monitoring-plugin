@@ -13,14 +13,21 @@ type userScopedClientsets struct {
 	osmV1        *osmv1client.Clientset
 }
 
+// buildUserScopedConfig creates a rest.Config that authenticates exclusively
+// with the given bearer token. It uses AnonymousClientConfig to strip all
+// existing auth (certs, basic auth, auth/exec providers, impersonation) while
+// preserving the server connection settings (host, TLS CA, proxy).
+func buildUserScopedConfig(baseConfig *rest.Config, userToken string) *rest.Config {
+	cfg := rest.AnonymousClientConfig(baseConfig)
+	cfg.BearerToken = userToken
+	return cfg
+}
+
 // newUserScopedClientsets creates clientsets that carry the supplied bearer
 // token so that Kubernetes RBAC is enforced for the requesting user on all
 // mutating API calls.
 func newUserScopedClientsets(baseConfig *rest.Config, userToken string) (*userScopedClientsets, error) {
-	cfg := rest.CopyConfig(baseConfig)
-	// Override any SA token loaded from the file system with the user's token.
-	cfg.BearerToken = userToken
-	cfg.BearerTokenFile = ""
+	cfg := buildUserScopedConfig(baseConfig, userToken)
 
 	monClient, err := monitoringv1client.NewForConfig(cfg)
 	if err != nil {

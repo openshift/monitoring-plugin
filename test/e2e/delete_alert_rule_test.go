@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"testing"
 	"time"
 
@@ -141,4 +142,200 @@ func TestDeleteAlertRule(t *testing.T) {
 		return nil
 	})
 	require.NoError(t, err)
+}
+
+// TestRBAC_DeleteAlertRule verifies that the bulk-delete endpoint enforces
+// Kubernetes RBAC across three user profiles: anonymous (403),
+// namespace-scoped (204 in own namespace, 403 elsewhere), and cluster-admin
+// (204 everywhere).
+func TestRBAC_DeleteAlertRule(t *testing.T) {
+	f, err := framework.New()
+	if err != nil {
+		t.Fatalf("Failed to create framework: %v", err)
+	}
+
+	ctx := context.Background()
+
+	nsY, cleanupY, err := f.CreateUserNamespace(ctx, "test-rbac-del-y")
+	if err != nil {
+		t.Fatalf("Failed to create namespace Y: %v", err)
+	}
+	defer func() { _ = cleanupY() }()
+
+	nsZ, cleanupZ, err := f.CreateUserNamespace(ctx, "test-rbac-del-z")
+	if err != nil {
+		t.Fatalf("Failed to create namespace Z: %v", err)
+	}
+	defer func() { _ = cleanupZ() }()
+
+	anonymousUser, err := f.CreateAnonymousUser(ctx, "e2e-rbac-del-a", "default")
+	if err != nil {
+		t.Fatalf("Failed to create anonymous user: %v", err)
+	}
+	defer func() { _ = anonymousUser.Cleanup() }()
+
+	userScopedToNamespaceY, err := f.CreateScopedUser(ctx, "e2e-rbac-del-b", nsY,
+		"monitoring.coreos.com", []string{"prometheusrules"}, []string{"get", "create", "update", "patch", "delete"})
+	if err != nil {
+		t.Fatalf("Failed to create scoped user for namespace Y: %v", err)
+	}
+	defer func() { _ = userScopedToNamespaceY.Cleanup() }()
+
+	ruleInY, err := createRuleViaAPI(ctx, f, managementrouter.CreateAlertRuleRequest{
+		AlertingRule: &managementrouter.AlertRuleSpec{
+			Alert: new("RBACDelAlertY"),
+			Expr:  new(fmt.Sprintf("absent(nonexistent{e2e_rbac_del=%q})", "y")),
+			Labels: &map[string]string{
+				"severity": "info",
+			},
+		},
+		PrometheusRule: &managementrouter.PrometheusRuleTarget{
+			PrometheusRuleName:      "e2e-rbac-del-pr",
+			PrometheusRuleNamespace: nsY,
+		},
+	})
+	if err != nil {
+		t.Fatalf("Failed to create rule in namespace Y: %v", err)
+	}
+	t.Logf("Created rule in namespace Y: %s", ruleInY)
+
+	ruleInZ, err := createRuleViaAPI(ctx, f, managementrouter.CreateAlertRuleRequest{
+		AlertingRule: &managementrouter.AlertRuleSpec{
+			Alert: new("RBACDelAlertZ"),
+			Expr:  new(fmt.Sprintf("absent(nonexistent{e2e_rbac_del=%q})", "z")),
+			Labels: &map[string]string{
+				"severity": "info",
+			},
+		},
+		PrometheusRule: &managementrouter.PrometheusRuleTarget{
+			PrometheusRuleName:      "e2e-rbac-del-pr",
+			PrometheusRuleNamespace: nsZ,
+		},
+	})
+	if err != nil {
+		t.Fatalf("Failed to create rule in namespace Z: %v", err)
+	}
+	t.Logf("Created rule in namespace Z: %s", ruleInZ)
+
+	ruleInY2, err := createRuleViaAPI(ctx, f, managementrouter.CreateAlertRuleRequest{
+		AlertingRule: &managementrouter.AlertRuleSpec{
+			Alert: new("RBACDelAlertY2"),
+			Expr:  new(fmt.Sprintf("absent(nonexistent{e2e_rbac_del=%q})", "y2")),
+			Labels: &map[string]string{
+				"severity": "info",
+			},
+		},
+		PrometheusRule: &managementrouter.PrometheusRuleTarget{
+			PrometheusRuleName:      "e2e-rbac-del-pr",
+			PrometheusRuleNamespace: nsY,
+		},
+	})
+	if err != nil {
+		t.Fatalf("Failed to create second rule in namespace Y: %v", err)
+	}
+	t.Logf("Created second rule in namespace Y: %s", ruleInY2)
+
+	// Probe with the anonymous user so a successful sync check cannot
+	// accidentally delete the rule (expects 403 once the cache has the ID).
+	for _, ruleID := range []string{ruleInY, ruleInY2, ruleInZ} {
+		waitForCacheSync(ctx, t, f, anonymousUser.Token, ruleID)
+	}
+
+	cases := []struct {
+		name       string
+		token      string
+		ruleID     string
+		wantStatus int
+	}{
+		{"AnonymousUser_DeniedNamespaceY", anonymousUser.Token, ruleInY, http.StatusForbidden},
+		{"AnonymousUser_DeniedNamespaceZ", anonymousUser.Token, ruleInZ, http.StatusForbidden},
+		{"ScopedUser_SucceedsNamespaceY", userScopedToNamespaceY.Token, ruleInY, http.StatusNoContent},
+		{"ScopedUser_DeniedNamespaceZ", userScopedToNamespaceY.Token, ruleInZ, http.StatusForbidden},
+		{"ClusterAdmin_SucceedsNamespaceZ", f.BearerToken, ruleInZ, http.StatusNoContent},
+		{"ClusterAdmin_SucceedsNamespaceY", f.BearerToken, ruleInY2, http.StatusNoContent},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			status := deleteAlertRuleWithToken(ctx, t, f, tc.token, tc.ruleID)
+			if status != tc.wantStatus {
+				t.Fatalf("Expected per-rule status %d, got %d", tc.wantStatus, status)
+			}
+		})
+	}
+}
+
+// waitForCacheSync polls until the relabeled-rules cache has synced by
+// attempting a bulk-delete probe with a non-deleting token. A 403
+// (Forbidden) per-rule status indicates the rule was found in cache and
+// RBAC was evaluated without mutating the rule.
+func waitForCacheSync(ctx context.Context, t *testing.T, f *framework.Framework, token, ruleID string) {
+	t.Helper()
+	err := poll(time.Second, 30*time.Second, func() error {
+		status, err := tryDeleteAlertRule(ctx, f, token, ruleID)
+		if err != nil {
+			return err
+		}
+		if status == http.StatusForbidden {
+			return nil
+		}
+		return fmt.Errorf("per-rule status %d, waiting for cache sync", status)
+	})
+	if err != nil {
+		t.Fatalf("Cache sync timed out for rule %s: %v", ruleID, err)
+	}
+}
+
+// tryDeleteAlertRule attempts a single-rule bulk-delete and returns the per-rule
+// status code without calling t.Fatal, making it suitable for polling loops.
+func tryDeleteAlertRule(ctx context.Context, f *framework.Framework, token, ruleID string) (int, error) {
+	payload := managementrouter.BulkDeleteAlertRulesRequest{
+		RuleIds: []string{ruleID},
+	}
+	reqBody, err := json.Marshal(payload)
+	if err != nil {
+		return 0, fmt.Errorf("marshal delete request: %w", err)
+	}
+	deleteURL, err := url.JoinPath(f.PluginURL, "api/v1/alerting/rules")
+	if err != nil {
+		return 0, fmt.Errorf("build URL: %w", err)
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, deleteURL, bytes.NewBuffer(reqBody))
+	if err != nil {
+		return 0, fmt.Errorf("create HTTP request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	resp, err := f.HTTPClient().Do(req)
+	if err != nil {
+		return 0, fmt.Errorf("make delete request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return resp.StatusCode, fmt.Errorf("expected bulk response 200, got %d: %s", resp.StatusCode, string(body))
+	}
+
+	var deleteResp managementrouter.BulkDeleteAlertRulesResponse
+	if err := json.NewDecoder(resp.Body).Decode(&deleteResp); err != nil {
+		return 0, fmt.Errorf("decode delete response: %w", err)
+	}
+	if len(deleteResp.Rules) != 1 {
+		return 0, fmt.Errorf("expected 1 per-rule result, got %d", len(deleteResp.Rules))
+	}
+	return deleteResp.Rules[0].StatusCode, nil
+}
+
+// deleteAlertRuleWithToken sends a bulk-delete request for a single rule ID
+// using the given bearer token and returns the per-rule HTTP status code.
+func deleteAlertRuleWithToken(ctx context.Context, t *testing.T, f *framework.Framework, token, ruleID string) int {
+	t.Helper()
+
+	status, err := tryDeleteAlertRule(ctx, f, token, ruleID)
+	if err != nil {
+		t.Fatalf("Delete request for rule %s failed: %v", ruleID, err)
+	}
+	return status
 }
