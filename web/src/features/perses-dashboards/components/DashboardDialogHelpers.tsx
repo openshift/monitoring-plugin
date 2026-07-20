@@ -16,7 +16,7 @@ import { useNavigate } from 'react-router';
 import {
   formGroupStyle,
   LabelSpacer,
-} from '@/features/perses-dashboards/components/dashboard-action-modals';
+} from '@/features/perses-dashboards/components/DashboardActionModals';
 import { useToast } from '@/features/perses-dashboards/components/ToastProvider';
 import { useEditableProjects } from '@/features/perses-dashboards/hooks/useEditableProjects';
 import { usePerses } from '@/features/perses-dashboards/hooks/usePerses';

@@ -3,7 +3,7 @@ import { type FC } from 'react';
 import { QueryParamProvider } from 'use-query-params';
 
 import { ToastProvider } from '@/features/perses-dashboards/components/ToastProvider';
-import { DashboardList } from '@/features/perses-dashboards/pages/dashboard-list-page/dashboard-list';
+import { DashboardList } from '@/features/perses-dashboards/pages/dashboard-list-page/DashboardList';
 import { ReactRouter7Adapter } from '@/shared/utils/react-router-7-adapter';
 
 const queryClient = new QueryClient({

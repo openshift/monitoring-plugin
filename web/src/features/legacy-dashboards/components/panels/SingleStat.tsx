@@ -38,7 +38,7 @@ import { useCallback, useState } from 'react';
 import type { FC, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import ErrorAlert from '@/features/legacy-dashboards/components/error';
+import ErrorAlert from '@/features/legacy-dashboards/components/Error';
 import { Panel } from '@/features/legacy-dashboards/types/types';
 import { formatNumber } from '@/shared/components/format';
 import { LoadingInline } from '@/shared/console/console-shared/src/components/loading/LoadingInline';

@@ -10,9 +10,9 @@ import {
 import type { ComponentType, FC } from 'react';
 import { Fragment } from 'react';
 
-import { GraphEmpty } from '@/shared/console/graphs/graph-empty';
+import { GraphEmpty } from '@/shared/console/graphs/GraphEmpty';
 import { DataPoint, getInstantVectorStats } from '@/shared/console/graphs/helpers';
-import { PrometheusGraph, PrometheusGraphLink } from '@/shared/console/graphs/promethues-graph';
+import { PrometheusGraph, PrometheusGraphLink } from '@/shared/console/graphs/PromethuesGraph';
 import { useRefWidth } from '@/shared/console/utils/ref-width-hook';
 import { humanizeNumber } from '@/shared/console/utils/units';
 

@@ -7,7 +7,7 @@ import {
   IncidentSeverityFilters,
   IncidentStateFilters,
 } from '@/features/incidents/types/model';
-import { Variable } from '@/features/legacy-dashboards/components/legacy-variable-dropdowns';
+import { Variable } from '@/features/legacy-dashboards/components/LegacyVariableDropdowns';
 import { MONITORING_DASHBOARDS_DEFAULT_TIMESPAN } from '@/features/legacy-dashboards/utils/utils';
 import { Silences } from '@/shared/types/types';
 

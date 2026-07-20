@@ -41,18 +41,18 @@ import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router';
 
 import { filterTargets } from '@/features/targets/utils/filter-targets';
-import { Labels } from '@/shared/components/labels';
+import { Labels } from '@/shared/components/Labels';
 import { useTableColumns } from '@/shared/components/table/hooks/useTableColumns';
 import { rowFilter, useTableFilters } from '@/shared/components/table/hooks/useTableFilters';
 import { useTablePagination } from '@/shared/components/table/hooks/useTablePagination';
 import { directedSort, localeCompareSort } from '@/shared/components/table/sort-utils';
-import { ITEMS_PER_PAGE, TablePagination } from '@/shared/components/table/table-pagination';
 import {
   TableFilter,
   TableFilterOption,
   TableFilterProps,
   TableFilters,
 } from '@/shared/components/table/TableFilters';
+import { ITEMS_PER_PAGE, TablePagination } from '@/shared/components/table/TablePagination';
 import { TableToolbar } from '@/shared/components/table/TableToolbar';
 import { EmptyBox } from '@/shared/console/console-shared/src/components/empty-state/EmptyBox';
 import { LoadingBox } from '@/shared/console/console-shared/src/components/loading/LoadingBox';

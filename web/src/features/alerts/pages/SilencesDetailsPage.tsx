@@ -38,7 +38,7 @@ import {
 } from '@/features/alerts/components/SilencesUtils';
 import KebabDropdown from '@/shared/components/KebabDropdown';
 import { SeverityBadge } from '@/shared/components/SeverityBadge';
-import withFallback from '@/shared/console/console-shared/error/fallbacks/withFallback';
+import withFallback from '@/shared/console/console-shared/error/fallbacks/WithFallback';
 import { LoadingInline } from '@/shared/console/console-shared/src/components/loading/LoadingInline';
 import { StatusBox } from '@/shared/console/console-shared/src/components/status/StatusBox';
 import { DataTestIDs } from '@/shared/constants/data-test';

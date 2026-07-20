@@ -1,6 +1,6 @@
 import { FC, ReactNode } from 'react';
 
-import { DashboardListHeader } from '@/features/perses-dashboards/components/dashboard-header';
+import { DashboardListHeader } from '@/features/perses-dashboards/components/DashboardHeader';
 import { ProjectBar } from '@/features/perses-dashboards/components/project/ProjectBar';
 import type { CombinedDashboardMetadata } from '@/shared/types/types';
 

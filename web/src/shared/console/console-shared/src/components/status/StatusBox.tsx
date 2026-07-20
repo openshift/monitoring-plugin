@@ -8,7 +8,7 @@ import { AccessDenied } from '@/shared/console/console-shared/src/components/emp
 import { EmptyBox } from '@/shared/console/console-shared/src/components/empty-state/EmptyBox';
 import { LoadError } from '@/shared/console/console-shared/src/components/loading/LoadError';
 import { LoadingBox } from '@/shared/console/console-shared/src/components/loading/LoadingBox';
-import { getLastLanguage } from '@/shared/console/utils/getLastLanguage';
+import { getLastLanguage } from '@/shared/console/utils/get-last-language';
 
 const Data: FC<DataProps> = ({
   NoDataEmptyMsg,

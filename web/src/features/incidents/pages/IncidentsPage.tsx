@@ -37,12 +37,12 @@ import IncidentFilterToolbarItem, {
 } from '@/features/incidents/components/ToolbarItemFilter';
 import { Incident, IncidentsPageFiltersExpandedState } from '@/features/incidents/types/model';
 import { createAlertsQuery, fetchDataForIncidentsAndAlerts } from '@/features/incidents/utils/api';
-import { convertToAlerts, groupAlertsForTable } from '@/features/incidents/utils/processAlerts';
+import { convertToAlerts, groupAlertsForTable } from '@/features/incidents/utils/process-alerts';
 import {
   convertToIncidents,
   getIncidentsTimeRanges,
   processIncidentsForAlerts,
-} from '@/features/incidents/utils/processIncidents';
+} from '@/features/incidents/utils/process-incidents';
 import {
   changeDaysFilter,
   filterIncident,
@@ -54,7 +54,7 @@ import {
   parseUrlParams,
   updateBrowserUrl,
 } from '@/features/incidents/utils/utils';
-import withFallback from '@/shared/console/console-shared/error/fallbacks/withFallback';
+import withFallback from '@/shared/console/console-shared/error/fallbacks/WithFallback';
 import { AccessDenied } from '@/shared/console/console-shared/src/components/empty-state/AccessDenied';
 import { parsePrometheusDuration } from '@/shared/console/console-shared/src/datetime/prometheus';
 import { useSafeFetch } from '@/shared/console/utils/safe-fetch-hook';

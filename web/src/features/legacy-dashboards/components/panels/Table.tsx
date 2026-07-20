@@ -17,11 +17,11 @@ import { useCallback, useState } from 'react';
 import type { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import ErrorAlert from '@/features/legacy-dashboards/components/error';
+import ErrorAlert from '@/features/legacy-dashboards/components/Error';
 import { ColumnStyle, Panel } from '@/features/legacy-dashboards/types/types';
 import { formatNumber } from '@/shared/components/format';
-import { ITEMS_PER_PAGE, TablePagination } from '@/shared/components/table/table-pagination';
-import { GraphEmpty } from '@/shared/console/graphs/graph-empty';
+import { ITEMS_PER_PAGE, TablePagination } from '@/shared/components/table/TablePagination';
+import { GraphEmpty } from '@/shared/console/graphs/GraphEmpty';
 import { usePoll } from '@/shared/console/utils/poll-hook';
 import { useSafeFetch } from '@/shared/console/utils/safe-fetch-hook';
 import { useMonitoring } from '@/shared/hooks/useMonitoring';

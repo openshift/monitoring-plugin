@@ -28,8 +28,8 @@ import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router';
 
 import { useToast } from '@/features/perses-dashboards/components/ToastProvider';
-import { OCPDashboardToolbar } from '@/features/perses-dashboards/pages/dashboard-page/dashboard-toolbar';
-import { ExternalPanelAddition } from '@/features/perses-dashboards/pages/dashboard-page/external-panel-addition';
+import { OCPDashboardToolbar } from '@/features/perses-dashboards/pages/dashboard-page/DashboardToolbar';
+import { ExternalPanelAddition } from '@/features/perses-dashboards/pages/dashboard-page/ExternalPanelAddition';
 import { useUpdateDashboardMutation } from '@/features/perses-dashboards/utils/dashboard-api';
 
 export interface DashboardAppProps {

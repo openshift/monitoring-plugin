@@ -5,12 +5,12 @@ import type { FC, PropsWithChildren } from 'react';
 import { memo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { LegacyDashboardsAllVariableDropdowns } from '@/features/legacy-dashboards/components/legacy-variable-dropdowns';
+import { LegacyDashboardsAllVariableDropdowns } from '@/features/legacy-dashboards/components/LegacyVariableDropdowns';
 import {
   PollIntervalDropdown,
   TimespanDropdown,
-} from '@/features/legacy-dashboards/components/time-dropdowns';
-import { DashboardDropdown } from '@/shared/components/dashboard-dropdown';
+} from '@/features/legacy-dashboards/components/TimeDropdowns';
+import { DashboardDropdown } from '@/shared/components/DashboardDropdown';
 import type { CombinedDashboardMetadata } from '@/shared/types/types';
 
 const HeaderTop: FC = memo(() => {

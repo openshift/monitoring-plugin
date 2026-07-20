@@ -5,7 +5,7 @@ import type { FC } from 'react';
 import { VictoryPortal } from 'victory';
 
 import { formatNumber } from '@/shared/components/format';
-import withFallback from '@/shared/console/console-shared/error/fallbacks/withFallback';
+import withFallback from '@/shared/console/console-shared/error/fallbacks/WithFallback';
 import { dateTimeFormatterWithSeconds } from '@/shared/console/utils/datetime';
 import { humanizeNumberSI } from '@/shared/console/utils/units';
 

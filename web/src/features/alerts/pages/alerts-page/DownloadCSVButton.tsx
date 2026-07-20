@@ -2,7 +2,7 @@ import { Button, ButtonVariant } from '@patternfly/react-core';
 import { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { AggregatedAlert } from '@/features/alerts/pages/alerts-page/AlertsAggregates';
+import { AggregatedAlert } from '@/features/alerts/pages/alerts-page/alerts-aggregates';
 import { DataTestIDs } from '@/shared/constants/data-test';
 import { usePerspective } from '@/shared/hooks/usePerspective';
 

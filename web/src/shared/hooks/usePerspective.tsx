@@ -1,11 +1,11 @@
 import { PrometheusAlert, Rule, useActivePerspective } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 
-import { GraphUnits } from '@/features/metrics/utils/units';
 import { QueryParams } from '@/shared/constants/query-params';
 import { Perspective } from '@/shared/store/actions';
 import { MonitoringState } from '@/shared/store/store';
 import { AlertSource } from '@/shared/types/types';
+import { GraphUnits } from '@/shared/utils/units';
 import {
   ALERTMANAGER_BASE_PATH,
   ALERTMANAGER_PROXY_PATH,

@@ -12,8 +12,8 @@ import type { FC, PropsWithChildren } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 
-import { DashboardActionsMenu } from '@/features/perses-dashboards/components/dashboard-actions-menu';
-import { PagePadding } from '@/features/perses-dashboards/pages/dashboard-page/dashboard-page-padding';
+import { DashboardActionsMenu } from '@/features/perses-dashboards/components/DashboardActionsMenu';
+import { PagePadding } from '@/features/perses-dashboards/pages/dashboard-page/DashboardPagePadding';
 import { listPersesDashboardsDataTestIDs } from '@/shared/constants/data-test';
 import { usePatternFlyTheme } from '@/shared/hooks/usePatternflyTheme';
 import { getDashboardsListUrl, usePerspective } from '@/shared/hooks/usePerspective';

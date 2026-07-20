@@ -29,7 +29,7 @@ import {
   useDashboardNavigation,
   useDashboardProjects,
   useProjectCreation,
-} from '@/features/perses-dashboards/components/dashboard-dialog-helpers';
+} from '@/features/perses-dashboards/components/DashboardDialogHelpers';
 import { useToast } from '@/features/perses-dashboards/components/ToastProvider';
 import {
   importDashboardDialogValidationSchema,

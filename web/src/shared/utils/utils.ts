@@ -15,7 +15,7 @@ import fuzzy from 'fuzzysearch';
 import * as _ from 'lodash-es';
 import { murmur3 } from 'murmurhash-js';
 
-import { AggregatedAlert } from '@/features/alerts/pages/alerts-page/AlertsAggregates';
+import { AggregatedAlert } from '@/features/alerts/pages/alerts-page/alerts-aggregates';
 import { QueryParams } from '@/shared/constants/query-params';
 import { AlertSource, MonitoringResource, Target, TimeRange } from '@/shared/types/types';
 

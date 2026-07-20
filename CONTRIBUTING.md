@@ -153,13 +153,7 @@ changes
 
 #### Files
 
-| Type             | Convention                        | Example                                                                              |
-| ---------------- | --------------------------------- | ------------------------------------------------------------------------------------ |
-| React Components | PascalCase                        | `MetricsPage.tsx`, `QueryBrowser.tsx`                                                |
-| Utilities        | kebab-case                        | `safe-fetch-hook.ts`, `poll-hook.ts`                                                 |
-| Types            | kebab-case or PascalCase          | `types.ts`, `AlertUtils.tsx`                                                         |
-| Tests            | `.spec.ts` suffix                 | `MetricsPage.spec.tsx`, `safe-fetch-hook.spec.ts`, `format.spec.ts`, `utils.spec.ts` |
-| Styles           | `.scss` suffix matching component | `query-browser.scss`                                                                 |
+File naming conventions (TypeScript, Go, shell scripts, CSS, and more) are defined in the canonical **[Style Guide](STYLEGUIDE.md)**. All new and renamed files must conform to those rules.
 
 #### File Placement
 

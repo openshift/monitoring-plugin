@@ -55,10 +55,9 @@ import type { ComponentType, FC, KeyboardEvent, MouseEvent, ReactNode, Ref } fro
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { GraphUnits } from '@/features/metrics/utils/units';
 import { queryBrowserTheme } from '@/shared/components/query-browser/query-browser-theme';
 import '@/shared/components/query-browser/query-browser.scss';
-import withFallback from '@/shared/console/console-shared/error/fallbacks/withFallback';
+import withFallback from '@/shared/console/console-shared/error/fallbacks/WithFallback';
 import { LoadingInline } from '@/shared/console/console-shared/src/components/loading/LoadingInline';
 import {
   QueryBrowserTooltip,
@@ -68,7 +67,7 @@ import {
   formatPrometheusDuration,
   parsePrometheusDuration,
 } from '@/shared/console/console-shared/src/datetime/prometheus';
-import { GraphEmpty } from '@/shared/console/graphs/graph-empty';
+import { GraphEmpty } from '@/shared/console/graphs/GraphEmpty';
 import {
   dateFormatterNoYear,
   timeFormatter,
@@ -88,6 +87,7 @@ import {
 } from '@/shared/store/actions';
 import { MonitoringState } from '@/shared/store/store';
 import { PrometheusAPIError, TimeRange } from '@/shared/types/types';
+import { GraphUnits } from '@/shared/utils/units';
 import { buildPrometheusUrl, getPrometheusBasePath, getTimeRanges } from '@/shared/utils/utils';
 
 const spans = ['5m', '15m', '30m', '1h', '2h', '6h', '12h', '1d', '2d', '1w', '2w'];

@@ -22,7 +22,7 @@ import { useTranslation } from 'react-i18next';
 
 import { useDashboardsData } from '@/features/perses-dashboards/hooks/useDashboardsData';
 import { usePersesEditPermissions } from '@/features/perses-dashboards/hooks/usePersesEditPermissions';
-import { DashboardDropdown } from '@/shared/components/dashboard-dropdown';
+import { DashboardDropdown } from '@/shared/components/DashboardDropdown';
 import { persesDashboardDataTestIDs } from '@/shared/constants/data-test';
 
 export interface DashboardToolbarProps {

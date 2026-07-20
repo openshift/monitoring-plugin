@@ -49,7 +49,7 @@ import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 
-import { FormatSeriesTitle, QueryBrowser } from '@/shared/components/query-browser/query-browser';
+import { FormatSeriesTitle, QueryBrowser } from '@/shared/components/query-browser/QueryBrowser';
 import { SeverityBadge } from '@/shared/components/SeverityBadge';
 import { NamespaceModel } from '@/shared/console/models';
 import { useMonitoringNamespace } from '@/shared/hooks/useMonitoringNamespace';

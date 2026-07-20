@@ -175,7 +175,7 @@
     "exposedModules": {
       "DashboardListPage": "./features/perses-dashboards/pages/dashboard-list-page/DashboardListPage",
       "DashboardPage": "./features/perses-dashboards/pages/dashboard-page/DashboardPage",
-      "LegacyDashboardsPage": "./features/legacy-dashboards/pages/legacy-dashboard-page",
+      "LegacyDashboardsPage": "./features/legacy-dashboards/pages/LegacyDashboardPage",
       "SilencesPage": "./features/alerts/pages/silences-page/SilencesPage",
       "SilencesDetailsPage": "./features/alerts/pages/SilencesDetailsPage",
       "SilenceCreatePage": "./features/alerts/pages/SilenceCreatePage",
@@ -188,7 +188,7 @@
       "AlertRulesDetailsPage": "./features/alerts/pages/AlertRulesDetailsPage",
       "MonitoringReducer": "./shared/store/reducers",
       "IncidentsPage": "./features/incidents/pages/IncidentsPage",
-      "TargetsPage": "./features/targets/pages/targets-page",
+      "TargetsPage": "./features/targets/pages/TargetsPage",
       "PrometheusRedirectPage": "./features/metrics/pages/PrometheusRedirectPage",
       "MonitoringContext": "./shared/contexts/MonitoringContext",
       "ols-tool-ui": "./features/perses-dashboards/ols-tool-ui/ShowTimeseries"
