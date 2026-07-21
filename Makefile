@@ -64,7 +64,7 @@ test-backend:
 
 .PHONY: test-e2e
 test-e2e:
-	go test -v -timeout=150m -count=1 ./test/e2e
+	go test -tags e2e -v -timeout=150m -count=1 ./test/e2e
 
 .PHONY: test-frontend
 test-frontend:

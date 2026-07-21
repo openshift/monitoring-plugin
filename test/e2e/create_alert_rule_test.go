@@ -1,8 +1,9 @@
+//go:build e2e
+
 package e2e
 
 import (
 	"context"
-	"errors"
 	"testing"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -13,9 +14,6 @@ import (
 
 func TestCreateUserDefinedAlertRule(t *testing.T) {
 	f, err := framework.New()
-	if errors.Is(err, framework.ErrSkip) {
-		t.Skip(err)
-	}
 	if err != nil {
 		t.Fatalf("Failed to create framework: %v", err)
 	}
