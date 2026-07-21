@@ -5,6 +5,7 @@ import { DefinePlugin, Configuration as WebpackConfiguration } from 'webpack';
 import { Configuration as WebpackDevServerConfiguration } from 'webpack-dev-server';
 import * as path from 'path';
 import { ConsoleRemotePlugin } from '@openshift-console/dynamic-plugin-sdk-webpack';
+import pkg from './package.json';
 
 interface Configuration extends WebpackConfiguration {
   devServer?: WebpackDevServerConfiguration;
@@ -92,6 +93,9 @@ const config: Configuration = {
   },
   plugins: [
     new ConsoleRemotePlugin({
+      pluginMetadata: process.env.CONSOLE_PLUGIN_NAME
+        ? { ...pkg.consolePlugin, name: process.env.CONSOLE_PLUGIN_NAME }
+        : undefined,
       validateExtensionIntegrity: false,
       extensions: [],
     }),
@@ -100,7 +104,9 @@ const config: Configuration = {
     }),
     new DefinePlugin({
       // Build-time injection of proxy path for config module
-      PERSES_PROXY_BASE_URL: JSON.stringify('/api/proxy/plugin/monitoring-console-plugin/perses'),
+      PERSES_PROXY_BASE_URL: JSON.stringify(
+        `/api/proxy/plugin/${process.env.CONSOLE_PLUGIN_NAME ?? pkg.consolePlugin.name}/perses`,
+      ),
       'process.env.I18N_NAMESPACE': process.env.I18N_NAMESPACE
         ? JSON.stringify(process.env.I18N_NAMESPACE)
         : JSON.stringify('plugin__monitoring-plugin'),

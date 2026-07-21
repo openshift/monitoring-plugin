@@ -66,18 +66,31 @@ helm upgrade -i monitoring-plugin charts/openshift-console-plugin -n my-plugin-n
 
 Install the [devspace](https://www.devspace.sh/docs/getting-started/installation) cli.
 
-1. Install the frontend dependencies running `make install-frontend`.
-2. Start the frontend `make start-frontend`.
-3. Select the namespace the monitoring-plugin is located in `devspace use namespace openshift-monitoring`.
-4. In a different terminal start the devspace sync `devspace dev`.
+Devspace works by "taking over" a pod. It does this by scaling down the original, forwarding the traffic to its own pod, copying any mounted files and directories (like certs) and then syncing changes you make locally into that pod. Our configuration works by running the go backend normally in the devspace pod, and then syncing the changes from your `web/dist` folder to the `/opt/app-root/web/dist` folder which is where the go backend serves the frontend files from.
 
-When running the `devspace dev` command, the pipeline will run the `scale_down_cmo` function to prevent CMO from fighting over control of the pod. After CMO has been scaled down, devspace will "take over" the monitoring-plugin pod, grabbing all of the certificates and backend binary and configuration to run in the devspace pod. The backend will stay the same as what is built in the Dockerfile.devspace file, only the frontend changes will be reflected live in cluster.
+By running the webpack dev server locally any changes to your frontend files they will be rebuilt and then copied into the pod. You will need to disable your network cache in your dev tools to allow for overriding the previous webpack chunks and then perform a page refresh to see your changes.
 
-After the pod has been "taken over" Devspace begins a sync process which will mirror changes from you local `./web/dist` folder into the `/opt/app-root/web/dist` folder in the devspace pod. You can then make changes to your frontend files locally which will trigger the locally running webpack dev server to rebuild the `./web/dist` folder, which will trigger Devspace to re-synced. You can then reload your console webpage to see your local changes running in the cluster.
+#### Monitoring Features
 
-The devspace command will enable all features from a single deployment for easy development, however it does not install other needed observability signals, which will need to be created through COO.
+When running the `devspace dev` command, the pipeline will run `scale-down-cmo.sh` function to scale down the CMO deployment, which keeps it from fighting over control of the monitoring-plugin pod.
 
-After development you can run `devspace purge` which will cleanup and then call the `scale_up_cmo` pipeline.
+```sh
+make start-frontend
+devspace dev # select mp
+```
+
+Running `devspace purge` and selecting `mp` will scale the CMO deployment back up
+
+#### COO Features
+
+When running the `devspace dev` command, the pipeline will run `install-coo.sh` which will attempt to install COO if it isn't already installed. It will then create a `Monitoring` type `UIPlugin` with all features enabled. Once the `monitoring-console-plugin` deployment is ready it will scale down COO to prevent it from fighting over the deployment.
+
+```sh
+make start-mcp-frontend
+devspace dev # select mcp
+```
+
+Running `devspace purge` and selecting `mcp` will scale the COO deployment back up.
 
 ### Local Development
 
