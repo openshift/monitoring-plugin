@@ -946,8 +946,10 @@ export const incidentsPage = {
       .scrollIntoView()
       .then(() => incidentsPage.searchAllComponentsInIncident(alertName, 0))
       .then((found: boolean) => {
-        incidentsPage.clearAllFilters();
-        cy.wait(500, _qLog());
+        if (!found) {
+          incidentsPage.clearAllFilters();
+          cy.wait(500, _qLog());
+        }
         return cy.wrap(found, _qLog());
       });
   },
