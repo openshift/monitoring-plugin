@@ -9,7 +9,7 @@ ALL_FEATURES    ?=$(MONITORING_FEATURES),incidents,perses-dashboards
 GOLANGCI_LINT = $(shell pwd)/_output/tools/bin/golangci-lint
 GOLANGCI_LINT_VERSION ?= v2.11.3
 
-export NODE_OPTIONS?=--max_old_space_size=4096
+export NODE_OPTIONS?=--max_old_space_size=8192
 
 .PHONY: install-frontend
 install-frontend:
