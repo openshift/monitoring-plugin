@@ -4,8 +4,12 @@ package e2e
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"testing"
+	"time"
 
+	"github.com/stretchr/testify/require"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/openshift/monitoring-plugin/internal/managementrouter"
@@ -27,7 +31,7 @@ func TestCreateUserDefinedAlertRule(t *testing.T) {
 	defer cleanup()
 
 	createExpr := "vector(1) or vector(0)"
-	id, err := createRuleViaAPI(ctx, f, managementrouter.CreateAlertRuleRequest{
+	createAlertRuleRequest := managementrouter.CreateAlertRuleRequest{
 		AlertingRule: &managementrouter.AlertRuleSpec{
 			Alert: new("E2ECreateAlert"),
 			Expr:  &createExpr,
@@ -43,47 +47,43 @@ func TestCreateUserDefinedAlertRule(t *testing.T) {
 			PrometheusRuleName:      "e2e-create-pr",
 			PrometheusRuleNamespace: testNamespace,
 		},
-	})
-	if err != nil {
-		t.Fatalf("Failed to create alert rule: %v", err)
 	}
+	id, err := createRuleViaAPIWithRetry(ctx, f, createAlertRuleRequest)
+	require.NoError(t, err)
+	require.NotEmpty(t, id)
+
 	t.Logf("Created rule with ID: %s", id)
 
-	promRule, err := f.Monitoringv1clientset.MonitoringV1().PrometheusRules(testNamespace).Get(
-		ctx, "e2e-create-pr", metav1.GetOptions{},
-	)
-	if err != nil {
-		t.Fatalf("Failed to get PrometheusRule: %v", err)
-	}
+	err = poll(time.Second, time.Minute, func() error {
+		promRule, err := f.Monitoringv1clientset.MonitoringV1().PrometheusRules(testNamespace).Get(
+			ctx, "e2e-create-pr", metav1.GetOptions{},
+		)
+		if err != nil {
+			return fmt.Errorf("failed to get PrometheusRule: %w", err)
+		}
 
-	if len(promRule.Spec.Groups) == 0 {
-		t.Fatal("Expected at least one rule group in PrometheusRule")
-	}
+		for _, group := range promRule.Spec.Groups {
+			for _, rule := range group.Rules {
+				if rule.Alert == "E2ECreateAlert" {
+					if rule.Expr.String() != createExpr {
+						return fmt.Errorf("expected expr %q, got %q", createExpr, rule.Expr.String())
+					}
+					if rule.For == nil || string(*rule.For) != "1m" {
+						return fmt.Errorf("expected for '1m', got %v", rule.For)
+					}
+					if rule.Labels["severity"] != "info" {
+						return fmt.Errorf("expected severity=info, got %q", rule.Labels["severity"])
+					}
+					if rule.Annotations["summary"] != "E2E test alert for create-rule" {
+						return fmt.Errorf("expected summary annotation, got %q", rule.Annotations["summary"])
+					}
 
-	var foundAlert bool
-	for _, group := range promRule.Spec.Groups {
-		for _, rule := range group.Rules {
-			if rule.Alert == "E2ECreateAlert" {
-				foundAlert = true
-				if rule.Expr.String() != createExpr {
-					t.Errorf("Expected expr %q, got %q", createExpr, rule.Expr.String())
-				}
-				if rule.For == nil || string(*rule.For) != "1m" {
-					t.Errorf("Expected for '1m', got %v", rule.For)
-				}
-				if rule.Labels["severity"] != "info" {
-					t.Errorf("Expected severity=info, got %q", rule.Labels["severity"])
-				}
-				if rule.Annotations["summary"] != "E2E test alert for create-rule" {
-					t.Errorf("Expected summary annotation, got %q", rule.Annotations["summary"])
+					return nil
 				}
 			}
 		}
-	}
 
-	if !foundAlert {
-		t.Fatal("Alert 'E2ECreateAlert' not found in PrometheusRule")
-	}
-
-	t.Log("Create alert rule e2e test passed successfully")
+		return errors.New("alerting rule 'E2ECreateAlert' not found in PrometheusRule")
+	})
+	require.NoError(t, err)
 }
