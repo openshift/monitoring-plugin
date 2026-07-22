@@ -98,3 +98,9 @@ export type DataSource = {
   name: string;
   type: string;
 };
+
+export type LegacyDashboardMetadata = {
+  name: string;
+  tags: string[];
+  title: string;
+};

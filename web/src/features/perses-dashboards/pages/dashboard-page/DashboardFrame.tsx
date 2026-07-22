@@ -6,12 +6,11 @@ import { PersesWrapper } from '@/features/perses-dashboards/components/PersesWra
 import { ProjectBar } from '@/features/perses-dashboards/components/project/ProjectBar';
 import { ToastProvider } from '@/features/perses-dashboards/components/ToastProvider';
 import { PagePadding } from '@/features/perses-dashboards/pages/dashboard-page/DashboardPagePadding';
-import type { CombinedDashboardMetadata } from '@/shared/types/types';
+import type { DashboardMetadata } from '@/features/perses-dashboards/types/types';
 
 interface DashboardFrameProps {
   activeProject: string | null;
-  activeProjectDashboardsMetadata: CombinedDashboardMetadata[];
-  changeBoard: (boardName: string) => void;
+  activeProjectDashboardsMetadata: DashboardMetadata[];
   dashboardDisplayName: string;
   children: ReactNode;
 }
@@ -19,7 +18,6 @@ interface DashboardFrameProps {
 export const DashboardFrame: FC<DashboardFrameProps> = ({
   activeProject,
   activeProjectDashboardsMetadata,
-  changeBoard,
   dashboardDisplayName,
   children,
 }) => {
@@ -32,12 +30,7 @@ export const DashboardFrame: FC<DashboardFrameProps> = ({
             <DashboardEmptyState />
           ) : (
             <>
-              <DashboardHeader
-                boardItems={activeProjectDashboardsMetadata}
-                changeBoard={changeBoard}
-                dashboardDisplayName={dashboardDisplayName}
-                activeProject={activeProject}
-              >
+              <DashboardHeader dashboardDisplayName={dashboardDisplayName}>
                 <PagePadding top="0">{children}</PagePadding>
               </DashboardHeader>
             </>

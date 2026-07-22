@@ -13,8 +13,9 @@ import type { FC } from 'react';
 import { memo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { CombinedDashboardMetadata } from '@/features/perses-dashboards/hooks/useDashboardsData';
+import { LegacyDashboardMetadata } from '@/features/legacy-dashboards/types/types';
 import { SingleTypeaheadDropdown } from '@/shared/console/utils/SingleTypeaheadDropdown';
+import { LegacyDashboardPageTestIDs } from '@/shared/constants/data-test';
 
 type TagColor = 'red' | 'purple' | 'blue' | 'green' | 'teal' | 'orange';
 const tagColors: TagColor[] = ['red', 'purple', 'blue', 'green', 'teal', 'orange'];
@@ -59,7 +60,7 @@ export const DashboardDropdown: FC<DashboardDropdownProps> = ({ items, onChange,
     );
   };
 
-  const selectItems = _.map(items, (item: CombinedDashboardMetadata) => ({
+  const selectItems = _.map(items, (item: LegacyDashboardMetadata) => ({
     value: item.name,
     children: item.title,
   }));
@@ -71,7 +72,7 @@ export const DashboardDropdown: FC<DashboardDropdownProps> = ({ items, onChange,
   }, [items, selectedKey, onChange]);
 
   return (
-    <Stack data-test="dashboard-dropdown" className="pf-v6-u-mb-sm">
+    <Stack data-test={LegacyDashboardPageTestIDs.DashboardDropdown} className="pf-v6-u-mb-sm">
       <StackItem>
         <label htmlFor="monitoring-board-dropdown">{t('Dashboard')}</label>
       </StackItem>
@@ -90,7 +91,7 @@ export const DashboardDropdown: FC<DashboardDropdownProps> = ({ items, onChange,
 };
 
 type DashboardDropdownProps = {
-  items: CombinedDashboardMetadata[];
+  items: LegacyDashboardMetadata[];
   onChange: (v: string) => void;
   selectedKey: string;
 };

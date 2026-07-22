@@ -1,5 +1,4 @@
 import { Alert, PrometheusLabels, Silence } from '@openshift-console/dynamic-plugin-sdk';
-import type { DashboardResource } from '@perses-dev/core';
 
 export const enum AlertSource {
   Platform = 'platform',
@@ -59,12 +58,4 @@ export type PatternflyToken = {
   name: string;
   value: string;
   var: string;
-};
-
-export type CombinedDashboardMetadata = {
-  name: string;
-  project?: string;
-  tags: string[];
-  title: string;
-  persesDashboard?: DashboardResource;
 };

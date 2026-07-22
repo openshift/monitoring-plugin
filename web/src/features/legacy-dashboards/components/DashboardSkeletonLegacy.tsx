@@ -5,13 +5,13 @@ import type { FC, PropsWithChildren } from 'react';
 import { memo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { DashboardDropdown } from '@/features/legacy-dashboards/components/LegacyDashboardDropdown';
 import { LegacyDashboardsAllVariableDropdowns } from '@/features/legacy-dashboards/components/LegacyVariableDropdowns';
 import {
   PollIntervalDropdown,
   TimespanDropdown,
 } from '@/features/legacy-dashboards/components/TimeDropdowns';
-import { DashboardDropdown } from '@/shared/components/DashboardDropdown';
-import type { CombinedDashboardMetadata } from '@/shared/types/types';
+import { LegacyDashboardMetadata } from '@/features/legacy-dashboards/types/types';
 
 const HeaderTop: FC = memo(() => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -33,7 +33,7 @@ const HeaderTop: FC = memo(() => {
 HeaderTop.displayName = 'HeaderTop';
 
 type MonitoringDashboardsLegacyPageProps = PropsWithChildren<{
-  boardItems: CombinedDashboardMetadata[];
+  boardItems: LegacyDashboardMetadata[];
   changeBoard: (params: { newBoard?: string; initialLoad?: boolean; newProject?: string }) => void;
   dashboardName: string;
 }>;
