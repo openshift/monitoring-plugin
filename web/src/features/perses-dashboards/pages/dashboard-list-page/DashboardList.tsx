@@ -435,22 +435,10 @@ const DashboardsTable: FC<DashboardsTableProps> = ({
 };
 
 export const DashboardList: FC = () => {
-  const {
-    activeProjectDashboardsMetadata,
-    changeBoard,
-    dashboardName,
-    activeProject,
-    persesDashboards,
-    combinedInitialLoad,
-  } = useDashboardsData();
+  const { activeProject, persesDashboards, combinedInitialLoad } = useDashboardsData();
 
   return (
-    <DashboardListFrame
-      activeProject={activeProject}
-      activeProjectDashboardsMetadata={activeProjectDashboardsMetadata}
-      changeBoard={changeBoard}
-      dashboardName={dashboardName}
-    >
+    <DashboardListFrame activeProject={activeProject}>
       <DashboardsTable
         persesDashboards={persesDashboards}
         persesDashboardsLoading={combinedInitialLoad}

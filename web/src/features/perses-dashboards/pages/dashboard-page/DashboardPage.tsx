@@ -83,7 +83,6 @@ const DashboardPage_: FC = () => {
     <DashboardFrame
       activeProject={activeProject}
       activeProjectDashboardsMetadata={activeProjectDashboardsMetadata}
-      changeBoard={changeBoard}
       dashboardDisplayName={currentDashboard.title}
     >
       <OCPDashboardApp

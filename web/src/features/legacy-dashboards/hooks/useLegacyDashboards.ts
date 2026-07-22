@@ -5,14 +5,13 @@ import { useDispatch } from 'react-redux';
 import { useNavigate, useSearchParams } from 'react-router';
 
 import { useLegacyDashboardsProject } from '@/features/legacy-dashboards/hooks/useLegacyDashboardsProject';
-import { Board } from '@/features/legacy-dashboards/types/types';
+import { Board, LegacyDashboardMetadata } from '@/features/legacy-dashboards/types/types';
 import { MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY } from '@/features/legacy-dashboards/utils/utils';
 import { useSafeFetch } from '@/shared/console/utils/safe-fetch-hook';
 import { QueryParams } from '@/shared/constants/query-params';
 import { useBoolean } from '@/shared/hooks/useBoolean';
 import { getLegacyDashboardsUrl, usePerspective } from '@/shared/hooks/usePerspective';
 import { dashboardsPatchAllVariables } from '@/shared/store/actions';
-import type { CombinedDashboardMetadata } from '@/shared/types/types';
 import { ALL_NAMESPACES_KEY } from '@/shared/utils/utils';
 
 export const useLegacyDashboards = (urlBoard: string) => {
@@ -96,7 +95,7 @@ export const useLegacyDashboards = (urlBoard: string) => {
 
   // Homogenize data needed for dashboards dropdown between legacy and perses dashboards
   // to enable both to use the same component
-  const legacyDashboardsMetadata = useMemo<CombinedDashboardMetadata[]>(() => {
+  const legacyDashboardsMetadata = useMemo<LegacyDashboardMetadata[]>(() => {
     if (legacyDashboardsLoading) {
       return [];
     }

@@ -8,7 +8,7 @@ import {
   t_global_spacer_xl,
 } from '@patternfly/react-tokens';
 import { memo } from 'react';
-import type { FC, PropsWithChildren } from 'react';
+import type { FC, PropsWithChildren, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 
@@ -17,7 +17,6 @@ import { PagePadding } from '@/features/perses-dashboards/pages/dashboard-page/D
 import { listPersesDashboardsDataTestIDs } from '@/shared/constants/data-test';
 import { usePatternFlyTheme } from '@/shared/hooks/usePatternflyTheme';
 import { getDashboardsListUrl, usePerspective } from '@/shared/hooks/usePerspective';
-import type { CombinedDashboardMetadata } from '@/shared/types/types';
 
 const DASHBOARD_VIEW_PATH = 'v2/dashboards/view';
 
@@ -106,10 +105,7 @@ const DashboardListPageHeader: FC = () => {
 };
 
 type MonitoringDashboardsPageProps = PropsWithChildren<{
-  boardItems: CombinedDashboardMetadata[];
-  changeBoard: (dashboardName: string) => void;
   dashboardDisplayName: string;
-  activeProject?: string;
 }>;
 
 export const DashboardHeader = memo(
@@ -130,7 +126,7 @@ export const DashboardHeader = memo(
 
 DashboardHeader.displayName = 'DashboardHeader';
 
-export const DashboardListHeader = memo(({ children }: MonitoringDashboardsPageProps) => {
+export const DashboardListHeader = memo(({ children }: { children: ReactNode | undefined }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (

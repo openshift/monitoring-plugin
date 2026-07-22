@@ -6,10 +6,10 @@ import { StringParam, useQueryParam } from 'use-query-params';
 
 import { useActiveProject } from '@/features/perses-dashboards/components/project/useActiveProject';
 import { usePerses } from '@/features/perses-dashboards/hooks/usePerses';
+import type { DashboardMetadata } from '@/features/perses-dashboards/types/types';
 import { QueryParams } from '@/shared/constants/query-params';
 import { useBoolean } from '@/shared/hooks/useBoolean';
 import { getDashboardUrl, usePerspective } from '@/shared/hooks/usePerspective';
-import type { CombinedDashboardMetadata } from '@/shared/types/types';
 import { ALL_NAMESPACES_KEY } from '@/shared/utils/utils';
 
 // This hook syncs with mutliple external API's, redux, and URL state. Its a lot, but needs to all
@@ -43,11 +43,11 @@ export const useDashboardsData = () => {
   }, [persesProjectsLoading, persesDashboardsLoading, initialPageLoad, setInitialPageLoadFalse]);
 
   const prevDashboardsRef = useRef<DashboardResource[]>([]);
-  const prevMetadataRef = useRef<CombinedDashboardMetadata[]>([]);
+  const prevMetadataRef = useRef<DashboardMetadata[]>([]);
 
   // Homogenize data needed for dashboards dropdown between legacy and perses dashboards
   // to enable both to use the same component
-  const combinedDashboardsMetadata = useMemo<CombinedDashboardMetadata[]>(() => {
+  const combinedDashboardsMetadata = useMemo<DashboardMetadata[]>(() => {
     if (combinedInitialLoad) {
       return [];
     }
@@ -87,7 +87,7 @@ export const useDashboardsData = () => {
   }, [persesDashboards, combinedInitialLoad]);
 
   // Retrieve dashboard metadata for the currently selected project
-  const activeProjectDashboardsMetadata = useMemo<CombinedDashboardMetadata[]>(() => {
+  const activeProjectDashboardsMetadata = useMemo<DashboardMetadata[]>(() => {
     if (activeProject === ALL_NAMESPACES_KEY) {
       return combinedDashboardsMetadata;
     }

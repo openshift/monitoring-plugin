@@ -60,7 +60,7 @@ export const DataTestIDs = {
   NameLabelDropdownOptions: 'console-select-item',
   NamespaceDropdownShowSwitch: 'showSystemSwitch',
   NamespaceDropdownTextFilter: 'dropdown-text-filter',
-  PersesDashboardDropdown: 'dashboard-dropdown',
+  PersesDashboardDropdown: 'perses-dashboard-dropdown',
   PersesCreateDashboardButton: 'create-dashboard-button-list-page',
   SeverityBadgeHeader: 'severity-badge-header',
   SeverityBadge: 'severity-badge',
