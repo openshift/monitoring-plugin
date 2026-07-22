@@ -34,6 +34,13 @@ const (
 	testHostname = "127.0.0.1"
 )
 
+var defaultFeatures = map[Feature]bool{
+	Alerting:         true,
+	Metrics:          true,
+	LegacyDashboards: true,
+	Targets:          true,
+}
+
 func TestCreateHTTPServer(t *testing.T) {
 	for _, tc := range []struct {
 		cfg *Config
@@ -45,6 +52,7 @@ func TestCreateHTTPServer(t *testing.T) {
 				TLSMaxVersion:  tls.VersionTLS11,
 				CertFile:       "/etc/tls/server.crt",
 				PrivateKeyFile: "/etc/tls/server.key",
+				Features:       defaultFeatures,
 			},
 			err: true,
 		},
@@ -54,6 +62,7 @@ func TestCreateHTTPServer(t *testing.T) {
 				TLSMaxVersion:  tls.VersionTLS12,
 				CertFile:       "/etc/tls/server.crt",
 				PrivateKeyFile: "/etc/tls/server.key",
+				Features:       defaultFeatures,
 			},
 			err: true,
 		},
@@ -115,7 +124,8 @@ func TestServerRunning(t *testing.T) {
 	defer os.RemoveAll(tmpDir)
 
 	_, cleanup := startTestServer(t, &Config{
-		Port: testPort,
+		Port:     testPort,
+		Features: defaultFeatures,
 	})
 	defer cleanup()
 
@@ -186,6 +196,7 @@ func TestSecureServerRunning(t *testing.T) {
 		CertFile:       testServerCertFile,
 		PrivateKeyFile: testServerKeyFile,
 		Port:           testPort,
+		Features:       defaultFeatures,
 	}
 
 	serverURL := fmt.Sprintf("https://%s", testServerHostPort)
@@ -430,6 +441,7 @@ func TestTLSConfigWithCustomSettings(t *testing.T) {
 		TLSMinVersion:   tls.VersionTLS12,
 		TLSMaxVersion:   tls.VersionTLS13,
 		TLSCipherSuites: []uint16{tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384},
+		Features:        defaultFeatures,
 	}
 
 	serverURL := fmt.Sprintf("https://%s", testServerHostPort)
@@ -518,6 +530,7 @@ func TestTLSConfigWithDefaults(t *testing.T) {
 		PrivateKeyFile: testServerKeyFile,
 		Port:           testPort,
 		// No TLS settings - should use Go defaults
+		Features: defaultFeatures,
 	}
 
 	serverURL := fmt.Sprintf("https://%s", testServerHostPort)
@@ -602,6 +615,7 @@ func TestTLSConfigMinVersionOnly(t *testing.T) {
 		Port:           testPort,
 		TLSMinVersion:  tls.VersionTLS13,
 		// No MaxVersion - should allow TLS 1.3
+		Features: defaultFeatures,
 	}
 
 	serverURL := fmt.Sprintf("https://%s", testServerHostPort)
