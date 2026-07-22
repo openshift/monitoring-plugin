@@ -123,8 +123,8 @@ describe('Regression: Redux State Management', { tags: ['@incidents', '@incident
           .first()
           .click({ force: true });
 
-        incidentsPage.elements.alertsChartContainer().should('be.visible');
-        incidentsPage.elements.incidentIdFilterChip().should('be.visible');
+        incidentsPage.elements.alertsChartContainer().first().scrollIntoView().should('be.visible');
+        incidentsPage.elements.incidentIdFilterChip().first().scrollIntoView().should('be.visible');
 
         dropdown.setup();
 
@@ -153,11 +153,11 @@ describe('Regression: Redux State Management', { tags: ['@incidents', '@incident
     incidentsPage.elements.incidentsChartBarsVisiblePathsNonEmpty().first().click({ force: true });
 
     cy.log('3.4 Verify incident ID filter chip appears');
-    incidentsPage.elements.incidentIdFilterChip().should('be.visible');
+    incidentsPage.elements.incidentIdFilterChip().first().should('be.visible');
 
     cy.log('3.5 Verify both Critical and Incident ID chips are present');
     incidentsPage.elements.filterChipValue('Critical').should('be.visible');
-    incidentsPage.elements.incidentIdFilterChip().should('be.visible');
+    incidentsPage.elements.incidentIdFilterChip().first().should('be.visible');
 
     cy.log(
       '3.6 Deselect Critical and Apply Warning filter (which does not match the critical incident)',
@@ -174,7 +174,7 @@ describe('Regression: Redux State Management', { tags: ['@incidents', '@incident
 
     cy.log('3.8 Verify BOTH Warning filter and Incident ID filter are still applied');
     incidentsPage.elements.filterChipValue('Warning').should('be.visible');
-    incidentsPage.elements.incidentIdFilterChip().should('be.visible');
+    incidentsPage.elements.incidentIdFilterChip().first().should('be.visible');
 
     cy.log(
       'SUCCESS: Incident ID filter was not removed when non-matching severity filter was added',
@@ -187,7 +187,7 @@ describe('Regression: Redux State Management', { tags: ['@incidents', '@incident
 
     cy.log('3.10 With only Incident ID filter, incident should be visible again');
     incidentsPage.elements.incidentsChartBarsGroups().should('have.length', 1);
-    incidentsPage.elements.incidentIdFilterChip().should('be.visible');
+    incidentsPage.elements.incidentIdFilterChip().first().should('be.visible');
     cy.log('SUCCESS: Incident reappears when conflicting filter removed');
   });
 });

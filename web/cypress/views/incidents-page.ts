@@ -17,9 +17,8 @@ const _resetSearchState = () => {
   _quietSearch = false;
 };
 
-// Selector for the Incidents tab rendered by the Console SDK's HorizontalNav.
-// The Console assigns data-test-id="horizontal-link-<href>" to each tab.
-const _INCIDENTS_TAB_SELECTOR = '[data-test-id="horizontal-link-incidents"]';
+// Case-insensitive selector — the console has shipped both "incidents" and "Incidents".
+const _INCIDENTS_TAB_SELECTOR = '[data-test-id="horizontal-link-incidents" i]';
 
 // Selector for bar group containers in the incidents chart (one per incident).
 const _BAR_GROUP_SELECTOR = 'g[role="presentation"][data-test*="incidents-chart-bar-"]';
@@ -184,21 +183,50 @@ export const incidentsPage = {
     incidentsDetailsLoadingSpinner: () =>
       cy.byTestID(DataTestIDs.IncidentsDetailsTable.LoadingSpinner),
     incidentsDetailsRow: (index: number) =>
-      cy.byTestID(`${DataTestIDs.IncidentsDetailsTable.Row}-${index}`),
+      incidentsPage.elements.incidentsDetailsTable().find('tbody tr').eq(index),
     incidentsDetailsAlertRuleCell: (index: number) =>
-      cy.byTestID(`${DataTestIDs.IncidentsDetailsTable.AlertRuleCell}-${index}`),
+      incidentsPage.elements
+        .incidentsDetailsTable()
+        .find('tbody tr')
+        .eq(index)
+        .find('td[data-label="expanded-details-alertname"]')
+        .scrollIntoView(),
     incidentsDetailsAlertRuleLink: (index: number) =>
-      cy.byTestID(`${DataTestIDs.IncidentsDetailsTable.AlertRuleLink}-${index}`),
+      incidentsPage.elements
+        .incidentsDetailsTable()
+        .find('tbody tr')
+        .eq(index)
+        .find('td[data-label="expanded-details-alertname"] a'),
     incidentsDetailsNamespaceCell: (index: number) =>
-      cy.byTestID(`${DataTestIDs.IncidentsDetailsTable.NamespaceCell}-${index}`),
+      incidentsPage.elements
+        .incidentsDetailsTable()
+        .find('tbody tr')
+        .eq(index)
+        .find('td[data-label="expanded-details-namespace"]'),
     incidentsDetailsSeverityCell: (index: number) =>
-      cy.byTestID(`${DataTestIDs.IncidentsDetailsTable.SeverityCell}-${index}`),
+      incidentsPage.elements
+        .incidentsDetailsTable()
+        .find('tbody tr')
+        .eq(index)
+        .find('td[data-label="expanded-details-severity"]'),
     incidentsDetailsStateCell: (index: number) =>
-      cy.byTestID(`${DataTestIDs.IncidentsDetailsTable.StateCell}-${index}`),
+      incidentsPage.elements
+        .incidentsDetailsTable()
+        .find('tbody tr')
+        .eq(index)
+        .find('td[data-label="expanded-details-alertstate"]'),
     incidentsDetailsStartCell: (index: number) =>
-      cy.byTestID(`${DataTestIDs.IncidentsDetailsTable.StartCell}-${index}`),
+      incidentsPage.elements
+        .incidentsDetailsTable()
+        .find('tbody tr')
+        .eq(index)
+        .find('td[data-label="expanded-details-firingstart"]'),
     incidentsDetailsEndCell: (index: number) =>
-      cy.byTestID(`${DataTestIDs.IncidentsDetailsTable.EndCell}-${index}`),
+      incidentsPage.elements
+        .incidentsDetailsTable()
+        .find('tbody tr')
+        .eq(index)
+        .find('td[data-label="expanded-details-firingend"]'),
 
     // Generic selectors for incident table rows and details table rows
     incidentsTableRows: () =>
@@ -418,18 +446,21 @@ export const incidentsPage = {
 
     incidentsPage.ensureFilterTypeSelected('Incident ID');
     incidentsPage.elements.incidentIdFilterToggle().scrollIntoView().click({ force: true });
-    incidentsPage.elements.incidentIdFilterList().should('be.visible');
 
+    // Container has 0 height so .should('be.visible') fails on it.
+    // Empty list is valid (no incidents), so we wait for the container then read items.
+    // Extract IDs from data-test attributes to avoid reading text that includes descriptions.
+    const prefix = `${DataTestIDs.IncidentsPage.FiltersSelectOption}-incident id-`;
     return incidentsPage.elements
       .incidentIdFilterList()
-      .find('button[role="menuitem"] .pf-v6-c-menu__item-text')
-      .then(($texts) => {
+      .should('exist')
+      .then(($list) => {
+        const $items = $list.find(`[data-test^="${prefix}"]`);
         const ids: string[] = [];
-        $texts.each((_, el) => {
-          const text = Cypress.$(el).text().trim();
-          if (text) ids.push(text);
+        $items.each((_, el) => {
+          const id = Cypress.$(el).attr('data-test')?.slice(prefix.length);
+          if (id) ids.push(id);
         });
-        // Close the dropdown without selecting
         incidentsPage.elements.incidentIdFilterToggle().scrollIntoView().click({ force: true });
         return cy.wrap(ids, _qLog());
       });
