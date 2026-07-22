@@ -12,6 +12,7 @@ import { FlatCompat } from '@eslint/eslintrc';
 import importPlugin from 'eslint-plugin-import';
 import { importBoundaryZones } from './eslint-rules/import-boundary-zones';
 import { fileNaming } from './eslint-rules/file-naming';
+import { requireFeatureOwners } from './eslint-rules/require-feature-owners';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -183,10 +184,11 @@ export default defineConfig([
     files: ['src/**/*.ts', 'src/**/*.tsx'],
     ignores: ['cypress/**', 'src/**/*.d.ts'],
     plugins: {
-      'local-rules': { rules: { 'file-naming': fileNaming } } as any,
+      'local-rules': { rules: { 'file-naming': fileNaming, 'require-feature-owners': requireFeatureOwners } } as any,
     },
     rules: {
       'local-rules/file-naming': 'error',
+      'local-rules/require-feature-owners': 'error',
     },
   },
   {
