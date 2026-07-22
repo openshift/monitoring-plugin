@@ -184,7 +184,9 @@ export default defineConfig([
     files: ['src/**/*.ts', 'src/**/*.tsx'],
     ignores: ['cypress/**', 'src/**/*.d.ts'],
     plugins: {
-      'local-rules': { rules: { 'file-naming': fileNaming, 'require-feature-owners': requireFeatureOwners } } as any,
+      'local-rules': {
+        rules: { 'file-naming': fileNaming, 'require-feature-owners': requireFeatureOwners },
+      } as any,
     },
     rules: {
       'local-rules/file-naming': 'error',

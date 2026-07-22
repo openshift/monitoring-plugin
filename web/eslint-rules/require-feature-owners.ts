@@ -7,10 +7,6 @@ const FEATURES_MARKER = path.join('src', 'features') + path.sep;
 export function createRequireFeatureOwners(
   existsSync: (p: string) => boolean = fs.existsSync,
 ): Rule.RuleModule {
-  // Cache results per feature directory so each feature is checked at most once
-  // per ESLint run, regardless of how many files it contains.
-  const cache = new Map<string, boolean>();
-
   return {
     meta: {
       type: 'problem',
@@ -38,17 +34,12 @@ export function createRequireFeatureOwners(
       const featureDir = filename.slice(0, markerIndex + FEATURES_MARKER.length + feature.length);
       const ownersPath = path.join(featureDir, 'OWNERS');
 
-      if (!cache.has(featureDir)) {
-        const ownersExists = existsSync(ownersPath);
-        cache.set(featureDir, ownersExists);
-
-        if (!ownersExists) {
-          context.report({
-            loc: { line: 1, column: 0 },
-            messageId: 'missingOwners',
-            data: { feature },
-          });
-        }
+      if (!existsSync(ownersPath)) {
+        context.report({
+          loc: { line: 1, column: 0 },
+          messageId: 'missingOwners',
+          data: { feature },
+        });
       }
 
       return {};

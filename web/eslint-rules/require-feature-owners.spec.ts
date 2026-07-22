@@ -1,3 +1,4 @@
+import type { Rule } from 'eslint';
 import { RuleTester } from 'eslint';
 import { createRequireFeatureOwners } from './require-feature-owners';
 
@@ -43,3 +44,31 @@ ruleTester.run(
     ],
   },
 );
+
+describe('require-feature-owners (stale cache regression)', () => {
+  it('re-checks existsSync on each invocation instead of reusing a cached result', () => {
+    let ownersExists = false;
+    const rule = createRequireFeatureOwners(() => ownersExists);
+
+    const reports: Rule.ReportDescriptor[] = [];
+    const makeContext = (filename: string) =>
+      ({
+        filename,
+        report: (descriptor: Rule.ReportDescriptor) => reports.push(descriptor),
+      }) as unknown as Rule.RuleContext;
+
+    const filename = '/repo/web/src/features/alerts/AlertList.tsx';
+
+    // First invocation: OWNERS missing — expect one report.
+    rule.create(makeContext(filename));
+    expect(reports).toHaveLength(1);
+
+    // OWNERS file now exists (e.g. created mid watch-mode session).
+    ownersExists = true;
+    reports.length = 0;
+
+    // Second invocation with the same rule instance — must not return a stale result.
+    rule.create(makeContext(filename));
+    expect(reports).toHaveLength(0);
+  });
+});
