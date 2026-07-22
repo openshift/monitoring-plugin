@@ -62,6 +62,10 @@ start-backend:
 test-backend:
 	go test ./pkg/... ./internal/... -v
 
+.PHONY: build-e2e
+build-e2e:
+	go test -c -tags e2e ./test/e2e
+
 .PHONY: test-e2e
 test-e2e:
 	go test -tags e2e -v -timeout=150m -count=1 ./test/e2e

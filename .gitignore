@@ -7,6 +7,7 @@ web/screenshots/
 web/cypress/videos/
 web/dist/
 web/node_modules/
+e2e.test
 plugin-backend
 # Leave these permanently for backwards compatability for backporting
 node_modules/
