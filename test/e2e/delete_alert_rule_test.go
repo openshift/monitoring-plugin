@@ -26,7 +26,7 @@ func TestDeleteAlertRule(t *testing.T) {
 
 	ctx := context.Background()
 
-	testNamespace, cleanup, err := f.CreateNamespace(ctx, "test-delete-rule", false)
+	testNamespace, cleanup, err := f.CreateUserNamespace(ctx, "test-delete-rule")
 	if err != nil {
 		t.Fatalf("Failed to create test namespace: %v", err)
 	}

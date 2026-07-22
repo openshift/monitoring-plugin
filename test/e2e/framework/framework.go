@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -113,15 +112,27 @@ func (f *Framework) HTTPClient() *http.Client {
 	return f.httpClient
 }
 
-func (f *Framework) CreateNamespace(ctx context.Context, name string, isClusterMonitoringNamespace bool) (string, CleanupFunc, error) {
+// CreatePlatformNamespace creates a namespace which is monitored by the platform monitoring stack.
+func (f *Framework) CreatePlatformNamespace(ctx context.Context, name string) (string, CleanupFunc, error) {
+	return f.createNamespace(ctx, name, true)
+}
+
+// CreateUserNamespace creates a namespace which is monitored by the user-defined monitoring stack.
+func (f *Framework) CreateUserNamespace(ctx context.Context, name string) (string, CleanupFunc, error) {
+	return f.createNamespace(ctx, name, false)
+}
+
+func (f *Framework) createNamespace(ctx context.Context, name string, isClusterMonitoringNamespace bool) (string, CleanupFunc, error) {
 	testNamespace := fmt.Sprintf("%s-%d", name, time.Now().Unix())
 	namespace := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: testNamespace,
-			Labels: map[string]string{
-				k8s.ClusterMonitoringLabel: strconv.FormatBool(isClusterMonitoringNamespace),
-			},
+			Name:   testNamespace,
+			Labels: map[string]string{},
 		},
+	}
+
+	if isClusterMonitoringNamespace {
+		namespace.Labels[k8s.ClusterMonitoringLabel] = "true"
 	}
 
 	_, err := f.Clientset.CoreV1().Namespaces().Create(ctx, namespace, metav1.CreateOptions{})
