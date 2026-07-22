@@ -122,7 +122,7 @@ describe('Regression: Incidents Filtering', { tags: ['@incidents'] }, () => {
 
       cy.log('2.3 Select an incident by ID filter and verify table appears');
       incidentsPage.selectIncidentIdFilter(ids[0]);
-      incidentsPage.elements.incidentsTable().should('be.visible');
+      incidentsPage.elements.incidentsTable().scrollIntoView().should('be.visible');
       incidentsPage.elements.incidentsChartBarsGroups().should('have.length', 1);
 
       cy.log('2.4 Clear the Incident ID filter and verify all incidents return');
@@ -144,10 +144,10 @@ describe('Regression: Incidents Filtering', { tags: ['@incidents'] }, () => {
     cy.mockIncidentFixture('incident-scenarios/7-comprehensive-filtering-test-scenarios.yaml');
     incidentsPage.clearAllFilters();
     incidentsPage.selectIncidentIdFilter('etcd-critical-warning-001');
-    incidentsPage.elements.incidentsTable().should('be.visible');
+    incidentsPage.elements.incidentsTable().scrollIntoView().should('be.visible');
     incidentsPage.elements.incidentsTableComponentCell(0).should('contain.text', 'etcd');
     incidentsPage.expandRow(0);
-    incidentsPage.elements.incidentsDetailsTable().should('be.visible');
+    incidentsPage.elements.incidentsDetailsTable().scrollIntoView().should('be.visible');
     incidentsPage.elements
       .incidentsDetailsTable()
       .should('contain.text', 'EtcdClusterUnavailable001');
