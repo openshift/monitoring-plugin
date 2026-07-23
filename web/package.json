@@ -182,7 +182,8 @@
     "sass": {
       "immutable": "^5.1.5"
     },
-    "ws": "^8.21.0"
+    "ws": "^8.21.0",
+    "dompurify": "^3.4.11"
   },
   "consolePlugin": {
     "name": "monitoring-plugin",
