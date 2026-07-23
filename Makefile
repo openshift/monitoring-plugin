@@ -67,6 +67,10 @@ test-backend:
 test-frontend:
 	cd web && npm run test:unit
 
+.PHONY: test-frontend-unit
+test-frontend-unit:
+	cd web && npm run test:unit:ci
+
 .PHONY: build-image
 build-image:
 	./scripts/build-image.sh
