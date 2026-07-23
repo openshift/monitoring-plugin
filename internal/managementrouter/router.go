@@ -11,6 +11,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
 	"github.com/openshift/monitoring-plugin/pkg/management"
@@ -22,6 +23,7 @@ var log = logrus.WithField("module", "managementrouter")
 const maxRequestBodyBytes = 1 << 20 // 1 MB
 
 const maxBulkDeleteRuleIds = 100
+const maxBulkUpdateRuleIds = 100
 
 type httpRouter struct {
 	managementClient management.Client
@@ -62,6 +64,7 @@ func authMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+// writeError sends a JSON {"error": message} response with the given status code.
 func writeError(w http.ResponseWriter, statusCode int, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
@@ -75,28 +78,38 @@ func writeError(w http.ResponseWriter, statusCode int, message string) {
 	}
 }
 
+// handleError maps err to an HTTP status via parseError and writes the response.
 func handleError(w http.ResponseWriter, err error) {
 	status, message := parseError(err)
 	writeError(w, status, message)
 }
 
+// parseError inspects err and returns a (statusCode, userMessage) pair.
+// Kubernetes auth errors are checked first to prevent information leakage;
+// domain errors are then mapped to 4xx codes.
 func parseError(err error) (int, string) {
-	var nf *management.NotFoundError
-	if errors.As(err, &nf) {
+	var (
+		nf *management.NotFoundError
+		ve *management.ValidationError
+		na *management.NotAllowedError
+		ce *management.ConflictError
+	)
+
+	switch {
+	case apierrors.IsUnauthorized(err):
+		return http.StatusUnauthorized, "authentication failed"
+	case apierrors.IsForbidden(err):
+		return http.StatusForbidden, "insufficient permissions"
+	case errors.As(err, &nf):
 		return http.StatusNotFound, err.Error()
-	}
-	var ve *management.ValidationError
-	if errors.As(err, &ve) {
+	case errors.As(err, &ve):
 		return http.StatusBadRequest, err.Error()
-	}
-	var na *management.NotAllowedError
-	if errors.As(err, &na) {
+	case errors.As(err, &na):
 		return http.StatusMethodNotAllowed, err.Error()
-	}
-	var ce *management.ConflictError
-	if errors.As(err, &ce) {
+	case errors.As(err, &ce):
 		return http.StatusConflict, err.Error()
+	default:
+		log.WithError(err).Error("unexpected management API error")
+		return http.StatusInternalServerError, "An unexpected error occurred"
 	}
-	log.WithError(err).Error("unexpected management API error")
-	return http.StatusInternalServerError, "An unexpected error occurred"
 }

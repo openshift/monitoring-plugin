@@ -39,3 +39,22 @@ OpenShift supports routing user workload alerts to:
 This is a cluster configuration choice and does not change the plugin API shape. The plugin reads alerts from Alertmanager (for firing/silenced) and Prometheus (for pending), then merges platform and user workload results when available.
 
 The plugin intentionally reads from only the in-cluster Alertmanager endpoints. Supporting multiple external Alertmanagers would introduce ambiguous alert state and silencing outcomes because each instance can apply different routing, inhibition, and silence configurations.
+
+### Managing user-defined alert rules
+
+| Rule ownership | Editable? | Classification? | Drop/Restore? |
+|---|---|---|---|
+| User-owned | Yes (direct PR mutation) | Yes (set labels directly) | No (ARC not supported) |
+| Operator-managed | No (reconciled) | No | No |
+| GitOps-managed | No (reconciled) | No | No |
+
+**User-owned** rules can be fully edited (labels, severity, expr, annotations)
+via the update API, which mutates the PrometheusRule directly.
+
+**Operator-managed** and **GitOps-managed** user-defined rules cannot be edited
+because the owning controller would reconcile the change. These alerts can only
+be **silenced** via Alertmanager silences.
+
+ARC-based operations (classification overrides, drop/restore) are not available
+for any user-defined rule because the user workload stack does not process
+AlertRelabelConfigs. If this capability is needed, open an RFE against CMO.

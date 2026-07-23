@@ -10,6 +10,9 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// AlertRuleClassificationUpdate Partial update for alert rule classification labels. Each field supports three states: omitted (leave unchanged), null (clear the override), or a string value (set the override). The three-state semantics require a custom JSON decoder; the Go type AlertRuleClassificationPatch is used at runtime instead of the generated struct.
+type AlertRuleClassificationUpdate = AlertRuleClassificationPatch
+
 // AlertRuleSpec Specification of a Prometheus alerting or recording rule. Maps to prometheus-operator Rule fields.
 type AlertRuleSpec struct {
 	// Alert Name of the alert. Must be set for alerting rules.
@@ -46,6 +49,27 @@ type BulkDeleteAlertRulesResponse struct {
 	Rules []DeleteAlertRuleResult `json:"rules"`
 }
 
+// BulkUpdateAlertRulesRequest defines model for BulkUpdateAlertRulesRequest.
+type BulkUpdateAlertRulesRequest struct {
+	// AlertingRuleEnabled When false, drops the alert rule via an AlertRelabelConfig Drop action — the rule no longer appears in Prometheus query results. When true, restores a previously dropped rule. Only supported for platform alert rules. Cannot be combined with labels or classification in the same request (returns HTTP 400).
+	AlertingRuleEnabled *bool `json:"alertingRuleEnabled,omitempty"`
+
+	// Classification Partial update for alert rule classification labels. Each field supports three states: omitted (leave unchanged), null (clear the override), or a string value (set the override). The three-state semantics require a custom JSON decoder; the Go type AlertRuleClassificationPatch is used at runtime instead of the generated struct.
+	Classification *AlertRuleClassificationUpdate `json:"classification,omitempty"`
+
+	// Labels Label key/value pairs to set. A null or empty-string value removes the label. Omitting this field leaves existing labels unchanged.
+	Labels *map[string]*string `json:"labels,omitempty"`
+
+	// RuleIds List of stable alert rule IDs to update.
+	RuleIds []string `json:"ruleIds"`
+}
+
+// BulkUpdateAlertRulesResponse defines model for BulkUpdateAlertRulesResponse.
+type BulkUpdateAlertRulesResponse struct {
+	// Rules Per-rule update results.
+	Rules []UpdateAlertRuleResult `json:"rules"`
+}
+
 // CreateAlertRuleRequest defines model for CreateAlertRuleRequest.
 type CreateAlertRuleRequest struct {
 	// AlertingRule Specification of a Prometheus alerting or recording rule. Maps to prometheus-operator Rule fields.
@@ -70,7 +94,7 @@ type DeleteAlertRuleResult struct {
 	Message *string `json:"message,omitempty"`
 
 	// StatusCode HTTP status code for this rule's deletion result.
-	StatusCode int `json:"statusCode"`
+	StatusCode int32 `json:"statusCode"`
 }
 
 // ErrorResponse defines model for ErrorResponse.
@@ -91,8 +115,23 @@ type PrometheusRuleTarget struct {
 	PrometheusRuleNamespace string `json:"prometheusRuleNamespace"`
 }
 
+// UpdateAlertRuleResult defines model for UpdateAlertRuleResult.
+type UpdateAlertRuleResult struct {
+	// Id The stable alert rule ID that was processed.
+	Id string `json:"id"`
+
+	// Message Error message if update failed; omitted on success.
+	Message *string `json:"message,omitempty"`
+
+	// StatusCode HTTP status code for this rule's update result.
+	StatusCode int32 `json:"statusCode"`
+}
+
 // BulkDeleteUserDefinedAlertRulesJSONRequestBody defines body for BulkDeleteUserDefinedAlertRules for application/json ContentType.
 type BulkDeleteUserDefinedAlertRulesJSONRequestBody = BulkDeleteAlertRulesRequest
+
+// BulkUpdateAlertRulesJSONRequestBody defines body for BulkUpdateAlertRules for application/json ContentType.
+type BulkUpdateAlertRulesJSONRequestBody = BulkUpdateAlertRulesRequest
 
 // CreateAlertRuleJSONRequestBody defines body for CreateAlertRule for application/json ContentType.
 type CreateAlertRuleJSONRequestBody = CreateAlertRuleRequest
@@ -102,6 +141,9 @@ type ServerInterface interface {
 	// Bulk delete user-defined alert rules
 	// (DELETE /rules)
 	BulkDeleteUserDefinedAlertRules(w http.ResponseWriter, r *http.Request)
+	// Bulk update alert rules
+	// (PATCH /rules)
+	BulkUpdateAlertRules(w http.ResponseWriter, r *http.Request)
 	// Create an alert rule
 	// (POST /rules)
 	CreateAlertRule(w http.ResponseWriter, r *http.Request)
@@ -121,6 +163,20 @@ func (siw *ServerInterfaceWrapper) BulkDeleteUserDefinedAlertRules(w http.Respon
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.BulkDeleteUserDefinedAlertRules(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// BulkUpdateAlertRules operation middleware
+func (siw *ServerInterfaceWrapper) BulkUpdateAlertRules(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.BulkUpdateAlertRules(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -258,6 +314,8 @@ func HandlerWithOptions(si ServerInterface, options GorillaServerOptions) http.H
 	}
 
 	r.HandleFunc(options.BaseURL+"/rules", wrapper.BulkDeleteUserDefinedAlertRules).Methods("DELETE")
+
+	r.HandleFunc(options.BaseURL+"/rules", wrapper.BulkUpdateAlertRules).Methods("PATCH")
 
 	r.HandleFunc(options.BaseURL+"/rules", wrapper.CreateAlertRule).Methods("POST")
 
