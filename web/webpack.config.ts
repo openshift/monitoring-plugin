@@ -100,16 +100,32 @@ const config: Configuration = {
       extensions: [],
     }),
     new CopyWebpackPlugin({
-      patterns: [{ from: path.resolve(__dirname, 'locales'), to: 'locales' }],
+      patterns: [
+        {
+          from: path.resolve(__dirname, 'locales'),
+          to({ absoluteFilename }) {
+            if (!absoluteFilename) {
+              return 'locales/[path][name][ext]';
+            }
+            const i18nNamespace = `plugin__${process.env.CONSOLE_PLUGIN_NAME ?? 'monitoring-plugin'}`;
+            const relativePath = path.relative(
+              path.resolve(__dirname, 'locales'),
+              absoluteFilename,
+            );
+            return path.join(
+              'locales',
+              relativePath.replace('plugin__monitoring-plugin', i18nNamespace),
+            );
+          },
+        },
+      ],
     }),
     new DefinePlugin({
       // Build-time injection of proxy path for config module
-      PERSES_PROXY_BASE_URL: JSON.stringify(
-        `/api/proxy/plugin/${process.env.CONSOLE_PLUGIN_NAME ?? pkg.consolePlugin.name}/perses`,
+      PERSES_PROXY_BASE_URL: JSON.stringify('/api/proxy/plugin/monitoring-console-plugin/perses'),
+      'process.env.I18N_NAMESPACE': JSON.stringify(
+        `plugin__${process.env.CONSOLE_PLUGIN_NAME ?? 'monitoring-plugin'}`,
       ),
-      'process.env.I18N_NAMESPACE': process.env.I18N_NAMESPACE
-        ? JSON.stringify(process.env.I18N_NAMESPACE)
-        : JSON.stringify('plugin__monitoring-plugin'),
     }),
   ],
   devtool: 'source-map',

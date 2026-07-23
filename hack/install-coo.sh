@@ -37,8 +37,13 @@ EOF
 
 echo "Waiting for COO CSV to reach Succeeded phase (timeout 5m)..."
 SECONDS_ELAPSED=0
-until kubectl get csv -n openshift-cluster-observability-operator \
-    -o jsonpath='{.items[0].status.phase}' 2>/dev/null | grep -q "^Succeeded$"; do
+until \
+    CSV_NAME=$(kubectl get csv -n openshift-cluster-observability-operator \
+        -o jsonpath='{.items[?(@.spec.displayName=="Cluster Observability Operator")].metadata.name}' \
+        2>/dev/null) && \
+    [[ -n "${CSV_NAME}" ]] && \
+    kubectl get csv -n openshift-cluster-observability-operator "${CSV_NAME}" \
+        -o jsonpath='{.status.phase}' 2>/dev/null | grep -q "^Succeeded$"; do
     if [[ ${SECONDS_ELAPSED} -ge 300 ]]; then
         echo "ERROR: Timed out waiting for COO CSV to succeed."
         exit 1

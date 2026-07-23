@@ -244,7 +244,9 @@ export default defineConfig({
         },
         plugins: [
           new DefinePlugin({
-            'process.env.I18N_NAMESPACE': JSON.stringify('plugin__monitoring-plugin'),
+            'process.env.I18N_NAMESPACE': JSON.stringify(
+              `plugin__${process.env.CONSOLE_PLUGIN_NAME ?? 'monitoring-plugin'}`,
+            ),
           }),
           new NormalModuleReplacementPlugin(
             /helpers\/OlsToolUIPersesWrapper/,

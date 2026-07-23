@@ -80,10 +80,6 @@ build-image:
 install:
 	make install-frontend && make install-backend
 
-.PHONY: update-plugin-name
-update-plugin-name:
-	./scripts/update-plugin-name.sh
-
 .PHONY: deploy
 deploy: lint-backend
 	PUSH=1 scripts/build-image.sh
