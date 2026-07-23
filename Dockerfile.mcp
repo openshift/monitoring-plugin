@@ -11,9 +11,7 @@ RUN cd web && npm ci --legacy-peer-deps --ignore-scripts
 
 COPY web/ web/
 COPY config/ config/
-COPY scripts/update-plugin-name.sh scripts/update-plugin-name.sh
-RUN make update-plugin-name
-ENV I18N_NAMESPACE="plugin__monitoring-console-plugin"
+ENV CONSOLE_PLUGIN_NAME="monitoring-console-plugin"
 RUN make build-frontend
 
 FROM registry.access.redhat.com/ubi9/go-toolset:1.26 AS go-builder

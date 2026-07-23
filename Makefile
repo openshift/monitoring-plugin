@@ -4,7 +4,8 @@ ORG         ?= openshift-observability-ui
 PLUGIN_NAME ?=monitoring-plugin
 IMAGE       ?= quay.io/${ORG}/${PLUGIN_NAME}:${VERSION}
 MONITORING_FEATURES    ?=alerting,targets,legacy-dashboards,metrics
-ALL_FEATURES    ?=$(MONITORING_FEATURES),incidents,perses-dashboards
+ALL_FEATURES    ?=$(MONITORING_FEATURES),cluster-health-analyzer,perses-dashboards
+MCP_DEVSPACE_FEATURES  ?=cluster-health-analyzer,perses-dashboards,acm-alerting
 
 GOLANGCI_LINT = $(shell pwd)/_output/tools/bin/golangci-lint
 GOLANGCI_LINT_VERSION ?= v2.11.3
@@ -30,6 +31,10 @@ build-frontend:
 .PHONY: start-frontend
 start-frontend:
 	cd web && npm run start
+
+.PHONY: start-mcp-frontend
+start-mcp-frontend:
+	cd web && CONSOLE_PLUGIN_NAME=monitoring-console-plugin npm run start
 
 .PHONY: start-console
 start-console:
@@ -75,10 +80,6 @@ build-image:
 install:
 	make install-frontend && make install-backend
 
-.PHONY: update-plugin-name
-update-plugin-name:
-	./scripts/update-plugin-name.sh
-
 .PHONY: deploy
 deploy: lint-backend
 	PUSH=1 scripts/build-image.sh
@@ -114,7 +115,11 @@ build-dev-mcp-image:
 
 .PHONY: start-devspace-backend
 start-devspace-backend:
-	/opt/app-root/plugin-backend -port='9443' -cert='/var/cert/tls.crt' -key='/var/cert/tls.key' -static-path='/opt/app-root/web/dist' -config-path='/opt/app-root/config' -features='${ALL_FEATURES}'
+	/opt/app-root/plugin-backend -port='9443' -cert='/var/cert/tls.crt' -key='/var/cert/tls.key' -static-path='/opt/app-root/web/dist' -config-path='/opt/app-root/config' -features='${MONITORING_FEATURES}'
+
+.PHONY: start-devspace-mcp-backend
+start-devspace-mcp-backend:
+	/opt/app-root/plugin-backend -port='9443' -cert='/var/serving-cert/tls.crt' -key='/var/serving-cert/tls.key' -static-path='/opt/app-root/web/dist' -config-path='/opt/app-root/config' -features='${MCP_DEVSPACE_FEATURES}' -alertmanager='https://alertmanager.open-cluster-management-observability.svc:9095' -thanos-querier='https://rbac-query-proxy.open-cluster-management-observability.svc:8443'
 
 .PHONY: podman-cross-build
 podman-cross-build:
