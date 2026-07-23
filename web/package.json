@@ -26,6 +26,7 @@
     "dev": "npm run ts-node node_modules/.bin/webpack serve",
     "start-console": "../scripts/start-console.sh",
     "test:unit": "TZ=UTC jest --config jest.config.js --passWithNoTests",
+    "test:unit:ci": "TZ=UTC jest --config jest.config.js --passWithNoTests --maxWorkers=2",
     "test": "npm run cypress:run:ci",
     "test-cypress-console": "./node_modules/.bin/cypress open --browser chrome",
     "test-cypress-console-headless": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless",
