@@ -1,6 +1,6 @@
 reviewers:
   - observability-ui-devs
+  - DavidRajnoha
 approvers:
-  - jan--f
-  - kyoto
   - observability-ui
+  - DavidRajnoha
