@@ -1,5 +1,5 @@
 ---
-name: cypress-run 
+name: run
 description: Display Cypress test commands - choose execution mode (headless recommended)
 parameters:
   - name: execution-mode
@@ -11,8 +11,8 @@ parameters:
 # Cypress Test Commands
 
 **Prerequisites**: 
-1. Run `/cypress-setup` first to configure your environment.
-2. Ensure the "Cypress Tests" terminal window is open (created by `/cypress-setup`)
+1. Run `/cypress:setup` first to configure your environment.
+2. Ensure the "Cypress Tests" terminal window is open (created by `/cypress:setup`)
 
 **Note**: All commands are executed in the "Cypress Tests" terminal window using the helper scripts.
 
@@ -340,7 +340,7 @@ Use these tags with `--env grepTags`:
 
 ## Related Commands
 
-- **`/cypress-setup`** - Configure testing environment and open Cypress Tests terminal
+- **`/cypress:setup`** - Configure testing environment and open Cypress Tests terminal
 
 ---
 
