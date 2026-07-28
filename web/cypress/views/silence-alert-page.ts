@@ -97,6 +97,7 @@ export const silenceAlertPage = {
               }
               cy.wrap($row)
                 .find('[data-test="' + DataTestIDs.SilencesPageFormTestIDs.RemoveLabel + '"]')
+                .scrollIntoView()
                 .should('be.visible');
             } else {
               return;

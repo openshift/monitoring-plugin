@@ -6,6 +6,7 @@ import { nav } from '../../views/nav';
 export interface PerspectiveConfig {
   name: string;
   beforeEach?: () => void;
+  dashboardsPageName?: string;
 }
 
 export function runCOOImportPersesTests(perspective: PerspectiveConfig) {
@@ -15,7 +16,7 @@ export function runCOOImportPersesTests(perspective: PerspectiveConfig) {
 export function testCOOImportPerses(perspective: PerspectiveConfig) {
   it(`1. ${perspective.name} perspective - Import Dashboard - wrong format`, () => {
     cy.log(`1.1 use sidebar nav to go to Observe > Dashboards (Perses)`);
-    listPersesDashboardsPage.shouldBeLoaded();
+    listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
 
     cy.log(`1.2 Click on Import button`);
     listPersesDashboardsPage.clickImportButton();
@@ -60,7 +61,7 @@ export function testCOOImportPerses(perspective: PerspectiveConfig) {
 
   it(`2. ${perspective.name} perspective - Import Dashboard - ACM Grafana dashboard`, () => {
     cy.log(`2.1 use sidebar nav to go to Observe > Dashboards (Perses)`);
-    listPersesDashboardsPage.shouldBeLoaded();
+    listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
 
     cy.log(`2.2 Click on Import button`);
     listPersesDashboardsPage.clickImportButton();
@@ -109,7 +110,7 @@ export function testCOOImportPerses(perspective: PerspectiveConfig) {
 
   it(`3. ${perspective.name} perspective - Import Dashboard - Perses dashboard - JSON file`, () => {
     cy.log(`3.1 use sidebar nav to go to Observe > Dashboards (Perses)`);
-    listPersesDashboardsPage.shouldBeLoaded();
+    listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
 
     cy.log(`3.2 Click on Import button`);
     listPersesDashboardsPage.clickImportButton();
@@ -155,7 +156,7 @@ export function testCOOImportPerses(perspective: PerspectiveConfig) {
 
   it(`4. ${perspective.name} perspective - Import Dashboard - Perses dashboard - YAML file`, () => {
     cy.log(`4.1 use sidebar nav to go to Observe > Dashboards (Perses)`);
-    listPersesDashboardsPage.shouldBeLoaded();
+    listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
 
     cy.log(`4.2 Click on Import button`);
     listPersesDashboardsPage.clickImportButton();
@@ -207,7 +208,7 @@ export function testCOOImportPerses(perspective: PerspectiveConfig) {
     ];
 
     cy.log(`5.1 Navigate to Observe > Dashboards (Perses)`);
-    listPersesDashboardsPage.shouldBeLoaded();
+    listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
 
     dashboardsToDelete.forEach((dashboardName, index) => {
       cy.log(`5.${index + 2}.1 Filter by Name: ${dashboardName}`);
@@ -222,13 +223,19 @@ export function testCOOImportPerses(perspective: PerspectiveConfig) {
       listPersesDashboardsPage.emptyState();
       listPersesDashboardsPage.countDashboards('0');
       nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-      nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
+      nav.sidenav.clickNavLink([
+        'Observe',
+        perspective.dashboardsPageName ?? 'Dashboards (Perses)',
+      ]);
 
       cy.log(`5.${index + 2}.3 Verify dashboard is deleted`);
       listPersesDashboardsPage.filter.byName(dashboardName);
       listPersesDashboardsPage.countDashboards('0');
       nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-      nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
+      nav.sidenav.clickNavLink([
+        'Observe',
+        perspective.dashboardsPageName ?? 'Dashboards (Perses)',
+      ]);
     });
   });
 }

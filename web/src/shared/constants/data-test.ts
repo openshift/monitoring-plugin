@@ -333,7 +333,6 @@ export const listPersesDashboardsDataTestIDs = {
   ProjectFilter: 'project-filter',
   EmptyStateTitle: 'empty-state-title',
   EmptyStateBody: 'empty-state-body',
-  ClearAllFiltersButton: 'clear-all-filters-button',
   DashboardLinkPrefix: 'perseslistpage-',
 };
 

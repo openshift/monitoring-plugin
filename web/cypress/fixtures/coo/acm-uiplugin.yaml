@@ -4,6 +4,10 @@ metadata:
   name: monitoring
 spec:
   monitoring:
+    incidents:
+      enabled: true
+    perses:
+      enabled: true
     acm:    
       enabled: true
       alertmanager:

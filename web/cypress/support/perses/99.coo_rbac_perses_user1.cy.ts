@@ -19,6 +19,7 @@ import { nav } from '../../views/nav';
 export interface PerspectiveConfig {
   name: string;
   beforeEach?: () => void;
+  dashboardsPageName?: string;
 }
 
 export function runCOORBACPersesTestsDevUser1(perspective: PerspectiveConfig) {
@@ -39,7 +40,7 @@ export function testCOORBACPersesTestsDevUser1(perspective: PerspectiveConfig) {
       `Dashboard search`,
     () => {
       cy.log(`1.1. Namespace validation`);
-      listPersesDashboardsPage.shouldBeLoaded();
+      listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
       cy.assertNamespace('All Projects', true);
       cy.assertNamespace('openshift-cluster-observability-operator', true);
       cy.assertNamespace('observ-test', true);
@@ -100,11 +101,11 @@ export function testCOORBACPersesTestsDevUser1(perspective: PerspectiveConfig) {
 
   it(`2.${perspective.name} perspective - Edit button validation - Editable dashboard`, () => {
     cy.log(`2.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
-    listPersesDashboardsPage.shouldBeLoaded();
+    listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
 
     cy.log(`2.2 change namespace to openshift-cluster-observability-operator`);
     cy.changeNamespace('openshift-cluster-observability-operator');
-    listPersesDashboardsPage.shouldBeLoaded();
+    listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
 
     cy.log(`2.3. Filter by Name`);
     listPersesDashboardsPage.filter.byName(

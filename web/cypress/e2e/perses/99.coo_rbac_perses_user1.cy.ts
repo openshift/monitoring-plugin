@@ -24,6 +24,7 @@ describe(
     before(() => {
       // Setup COO and Perses dashboards (requires admin privileges)
       cy.beforeBlockCOO(MCP, MP, { dashboards: true, troubleshootingPanel: false });
+      cy.switchPerspective('Core platform');
       cy.cleanupPersesTestDashboardsBeforeTests();
       cy.setupPersesRBACandExtraDashboards();
 

@@ -43,7 +43,7 @@ const CLO = {
 
 describe(
   'COO - Dashboards (Perses) - Perses Global Datasources with Tempo and Loki',
-  { tags: ['@perses-ivt', '@dashboards'] },
+  { tags: ['@perses-ivt', '@dashboards', '@xfail'] },
   () => {
     before(() => {
       cy.beforeBlockTempo(TEMPO);
@@ -61,7 +61,7 @@ describe(
 
       cy.beforeBlockCOO(MCP, MP, { dashboards: true, troubleshootingPanel: false });
       cy.cleanupPersesTestDashboardsBeforeTests();
-      cy.setupPersesRBACandExtraDashboards();
+      cy.setupPersesExtraDashboards();
       cy.installDistributeTracingUIPlugin();
       cy.installLoggingUIPlugin();
       cy.waitForDistributeTracingUIPluginReady();

@@ -23,7 +23,7 @@ describe('IVT: Monitoring UIPlugin + Virtualization', { tags: ['@smoke', '@coo']
 
   it('1. Virtualization perspective - Observe Menu', () => {
     cy.log('Virtualization perspective - Observe Menu and verify all submenus');
-    cy.switchPerspective('Virtualization');
+    cy.switchPerspective('Virtualization', 'Fleet virtualization');
     guidedTour.closeKubevirtTour();
     troubleshootingPanelPage.signalCorrelationShouldNotBeVisible();
     cy.switchPerspective('Core platform', 'Administrator');
