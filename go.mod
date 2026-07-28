@@ -1,6 +1,6 @@
 module github.com/openshift/monitoring-plugin
 
-go 1.26.3
+go 1.26.5
 
 require (
 	github.com/evanphx/json-patch v4.12.0+incompatible
@@ -45,7 +45,7 @@ require (
 	golang.org/x/oauth2 v0.27.0 // indirect
 	golang.org/x/sys v0.46.0 // indirect
 	golang.org/x/term v0.44.0 // indirect
-	golang.org/x/text v0.38.0 // indirect
+	golang.org/x/text v0.39.0 // indirect
 	golang.org/x/time v0.9.0 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
