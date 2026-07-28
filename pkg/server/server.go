@@ -107,6 +107,17 @@ func (s *PluginServer) Shutdown(ctx context.Context) error {
 }
 
 func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
+	hasFeatures := false
+	for _, enabled := range cfg.Features {
+		if enabled {
+			hasFeatures = true
+			break
+		}
+	}
+	if !hasFeatures {
+		return nil, fmt.Errorf("cannot start server without any features selected")
+	}
+
 	acmMode := cfg.Features[AcmAlerting]
 	acmLocationsLength := len(cfg.AlertmanagerUrl) + len(cfg.ThanosQuerierUrl)
 
@@ -119,14 +130,6 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 
 	if cfg.Port == int(monitoring.AlertmanagerPort) || cfg.Port == int(monitoring.ThanosQuerierPort) {
 		return nil, fmt.Errorf("cannot set default port to reserved port %d", cfg.Port)
-	}
-
-	if len(cfg.Features) == 0 {
-		cfg.Features = make(map[Feature]bool)
-		cfg.Features[Alerting] = true
-		cfg.Features[LegacyDashboards] = true
-		cfg.Features[Metrics] = true
-		cfg.Features[Targets] = true
 	}
 
 	// Uncomment the following line for local development:
