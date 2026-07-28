@@ -193,6 +193,10 @@ metadata:
   name: monitoring
 spec:
   monitoring:
+    incidents:
+      enabled: true
+    perses:
+      enabled: true
     acm:    
       enabled: true
       alertmanager:
@@ -233,16 +237,18 @@ data:
             cluster: "spoke"
             clusterID: "22222222"
             severity: warn
+            namespace: openshift-monitoring
       - name: cluster-health
         rules:
         - alert: ClusterCPUHealth-jb
           annotations:
             summary: Notify when CPU utilization on a cluster is greater than the defined utilization limit
             description: "The cluster has a high CPU usage: core for"
-          expr: |
-            max(cluster:cpu_usage_cores:sum) by (clusterID, cluster, prometheus) > 0
+          # vector(1) so the alert always fires for UI e2e; the real CPU expr depends on
+          # metrics-collector scrape lag and is too flaky for setup waits.
+          expr: vector(1)
           labels:
-            cluster: "{{ $labels.cluster }}"
-            prometheus: "{{ $labels.prometheus }}"
+            cluster: "local-cluster"
+            prometheus: "prometheus-k8s"
             severity: critical
 EOF

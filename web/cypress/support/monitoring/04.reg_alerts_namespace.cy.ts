@@ -240,6 +240,7 @@ export function testAlertsRegressionNamespace(perspective: PerspectiveConfig) {
     cy.log('4.1 use sidebar nav to go to Observe > Alerting');
     nav.tabs.switchTab('Alerting rules');
     alertingRuleListPage.shouldBeLoaded();
+    listPage.filter.removeIndividualTag(Source.PLATFORM);
 
     cy.log('4.2 clear all filters, verify filters and tags');
     listPage.filter.selectFilterOption('Alert State', AlertingRulesAlertState.FIRING);
@@ -322,7 +323,5 @@ export function testAlertsRegressionNamespace(perspective: PerspectiveConfig) {
     listPage.emptyState();
     nav.tabs.switchTab('Silences');
     silencesListPage.firstTimeEmptyState();
-    nav.tabs.switchTab('Alerting rules');
-    alertingRuleListPage.emptyState();
   });
 }

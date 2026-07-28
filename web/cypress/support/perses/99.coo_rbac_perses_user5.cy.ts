@@ -16,6 +16,7 @@ import { nav } from '../../views/nav';
 export interface PerspectiveConfig {
   name: string;
   beforeEach?: () => void;
+  dashboardsPageName?: string;
 }
 
 export function runCOORBACPersesTestsDevUser5(perspective: PerspectiveConfig) {

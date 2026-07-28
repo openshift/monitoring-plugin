@@ -1,0 +1,37 @@
+// 02.acm_perses.cy.ts
+// E2E test for validating ACM Perses integration with Cluster Observability Operator (COO)
+import { nav } from 'cypress/views/nav';
+import '../../support/commands/auth-commands';
+import { runBVTCOOPersesTests1 } from 'cypress/support/perses/00.coo_bvt_perses_admin.cy';
+
+const MCP = {
+  namespace: Cypress.env('COO_NAMESPACE'),
+  packageName: 'cluster-observability-operator',
+  operatorName: 'Cluster Observability Operator',
+  config: {
+    kind: 'UIPlugin',
+    name: 'monitoring',
+  },
+};
+const MP = {
+  namespace: 'openshift-monitoring',
+  operatorName: 'Cluster Monitoring Operator',
+};
+
+describe('ACM - Perses', { tags: ['@coo', '@perses-ivt', '@acm'] }, () => {
+  before(() => {
+    cy.beforeBlockACM(MCP, MP);
+    cy.switchPerspective('Core platform');
+    cy.cleanupPersesTestDashboardsBeforeTests();
+  });
+
+  beforeEach(() => {
+    cy.switchPerspective('Fleet management');
+    nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
+  });
+
+  runBVTCOOPersesTests1({
+    name: 'Fleet management',
+    dashboardsPageName: 'Dashboards',
+  });
+});

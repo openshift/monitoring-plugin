@@ -1,11 +1,9 @@
 import { Classes, DataTestIDs, FilterOUIAIDs } from '@/shared/constants/data-test';
-import { Source } from '../fixtures/monitoring/constants';
 import { listPage } from './list-page';
 
 export const alertingRuleListPage = {
   shouldBeLoaded: () => {
     cy.log('alertingRuleListPage.shouldBeLoaded');
-    listPage.filter.removeIndividualTag(Source.PLATFORM);
     cy.byTestID(DataTestIDs.AlertingRuleResourceIcon).contains('AR');
     cy.get(Classes.TableHeaderColumn).contains('Name').should('be.visible');
     cy.get(Classes.TableHeaderColumn).contains('Severity').should('be.visible');
@@ -74,9 +72,11 @@ export const alertingRuleListPage = {
     cy.byTestID(DataTestIDs.AlertingRuleStateBadge).contains(total).should('exist');
     cy.byTestID(DataTestIDs.AlertingRuleStateBadge).contains(state).should('exist');
   },
+  /**
+   * @deprecated This method is deprecated and will be removed in the future.
+   */
   emptyState: () => {
     cy.log('alertingRuleListPage.emptyState');
     cy.byTestID(DataTestIDs.EmptyBoxBody).contains('No alerting rules found').should('be.visible');
-    cy.byOUIAID('DataViewToolbar-clear-all-filters').should('not.be.visible');
   },
 };

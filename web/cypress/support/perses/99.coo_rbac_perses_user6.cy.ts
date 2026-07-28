@@ -3,6 +3,7 @@ import { listPersesDashboardsPage } from '../../views/perses-dashboards-list-das
 export interface PerspectiveConfig {
   name: string;
   beforeEach?: () => void;
+  dashboardSearch?: string;
 }
 
 export function runCOORBACPersesTestsDevUser6(perspective: PerspectiveConfig) {

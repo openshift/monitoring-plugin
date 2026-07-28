@@ -224,11 +224,23 @@ const virtualizationUtils = {
       );
 
       cy.log('Remove Openshift Virtualization namespace');
-      cy.executeAndDelete(
-        `oc delete namespace ${KBV.namespace} --ignore-not-found --kubeconfig ${Cypress.env(
-          'KUBECONFIG_PATH',
-        )}`,
-      );
+      const kubeconfig = Cypress.env('KUBECONFIG_PATH');
+      cy.exec(
+        `oc delete namespace ${KBV.namespace} --ignore-not-found ` +
+          `--timeout=60s --kubeconfig ${kubeconfig}`,
+        { failOnNonZeroExit: false, timeout: 90000 },
+      ).then((result) => {
+        if (result.code !== 0 && result.stderr?.includes('timed out')) {
+          cy.log('Namespace stuck in Terminating, removing finalizers');
+          cy.exec(
+            `oc get namespace ${KBV.namespace} -o json --kubeconfig ${kubeconfig}` +
+              ` | jq '.spec.finalizers = []'` +
+              ` | oc replace --raw "/api/v1/namespaces/${KBV.namespace}/finalize" -f - ` +
+              `--kubeconfig ${kubeconfig}`,
+            { failOnNonZeroExit: false },
+          );
+        }
+      });
 
       cy.log('Delete Hyperconverged CRD instance.');
       cy.executeAndDelete(
@@ -238,10 +250,11 @@ const virtualizationUtils = {
       );
 
       cy.log('Delete Kubevirt instance.');
-      cy.executeAndDelete(
+      cy.exec(
         `oc delete crd ` +
           `-l operators.coreos.com/kubevirt-hyperconverged.openshift-cnv ` +
-          `--ignore-not-found --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
+          `--ignore-not-found --timeout=120s --kubeconfig "${kubeconfig}"`,
+        { failOnNonZeroExit: false, timeout: 150000 },
       );
     }
   },
