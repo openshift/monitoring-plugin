@@ -17,7 +17,7 @@ export const filterSilences = (
     return [];
   }
 
-  const shouldFilterNamespace = namespace !== ALL_NAMESPACES_KEY;
+  const shouldFilterNamespace = namespace !== ALL_NAMESPACES_KEY && perspective !== 'acm';
   /**
    * Filters alerts based on tenancy:
    * - with tenancy: alerts are automatically pre-filtered.
