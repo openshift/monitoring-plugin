@@ -270,7 +270,7 @@ export const buildPrometheusUrl = ({
 
   const params = getSearchParams(prometheusUrlProps);
   return `${basePath}/${prometheusUrlProps.endpoint}${
-    params.size > 0 ? '?' + params.toString() : ''
+    params.toString() ? '?' + params.toString() : ''
   }`;
 };
 
