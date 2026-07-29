@@ -2,47 +2,68 @@ version: v2beta1
 name: monitoring-plugin
 
 vars:
-  USE_HELM:
-    question: Do you want to deploy using helm? (y/[n])
-    default: "n"
+  PLUGIN:
+    question: "Which deployment do you want to develop? (mp = monitoring-plugin/CMO, mcp = monitoring-console-plugin/COO)"
+    default: mp
     noCache: true
+    options:
+      - mp
+      - mcp
 
-functions:
-  scale_down_cmo: |-
-    oc patch clusterversion version --type json -p "$(cat ./web/cypress/fixtures/cmo/disable-monitoring.yaml)"
-    kubectl scale --replicas=0 -n ${DEVSPACE_NAMESPACE} deployment/cluster-monitoring-operator
-  scale_up_cmo: |-
-    kubectl scale --replicas=1 -n ${DEVSPACE_NAMESPACE} deployment/cluster-monitoring-operator
-
-# This is a list of `pipelines` that DevSpace can execute (you can define your own)
 pipelines:
-  # This is the pipeline for the main command: `devspace dev` (or `devspace run-pipeline dev`)
   dev:
     run: |-
-      scale_down_cmo
-      start_dev app
+      if [ "${PLUGIN}" = "mcp" ]; then
+        echo "==> Installing COO (if not already present)..."
+        ./hack/install-coo.sh
+        echo "==> Applying UIPlugin CR with all features enabled..."
+        ./hack/create-uiplugin.sh
+        echo "==> Scaling down COO..."
+        ./hack/scale-down-coo.sh
+        start_dev app-mcp
+      else
+        echo "==> Scaling down CMO..."
+        ./hack/scale-down-cmo.sh
+        start_dev app-mp
+      fi
+
   purge:
     run: |-
       stop_dev --all
-      scale_up_cmo
+      if [ "${PLUGIN}" = "mp" ]; then
+        ./hack/scale-up-cmo.sh
+      else
+        ./hack/scale-up-coo.sh
+      fi
 
-deployments: $( [ ${USE_HELM} == "y" ] && cat devspace-deployment.yaml || echo "app:")
-
-# This is a list of `dev` containers that are based on the containers created by your deployments
 dev:
-  app:
-    # Search for the container that runs this image
+  app-mp:
+    namespace: openshift-monitoring
     labelSelector:
-      # Use the instance selector that CMO & helm add
       app.kubernetes.io/component: monitoring-plugin
-    # Replace the container image with this dev-optimized image (allows to skip image building during development)
-    devImage: quay.io/rh-ee-pyurkovi/monitoring-plugin:v4.19-devspace
-    # Sync files between the local filesystem and the development container
+    devImage: quay.io/openshift-observability-ui/monitoring-plugin:devspace-5.0
     sync:
       - path: ./web/dist:/opt/app-root/web/dist
         startContainer: true
     command: ["make"]
     args: ["start-devspace-backend"]
-    # Inject a lightweight SSH server into the container (so your IDE can connect to the remote dev env)
+    ssh:
+      enabled: true
+
+  app-mcp:
+    namespace: openshift-cluster-observability-operator
+    labelSelector:
+      app.kubernetes.io/instance: monitoring
+      app.kubernetes.io/managed-by: observability-operator
+    devImage: quay.io/openshift-observability-ui/monitoring-plugin:devspace-5.0
+    patches:
+      - op: replace
+        path: spec.containers[0].imagePullPolicy
+        value: Always
+    sync:
+      - path: ./web/dist:/opt/app-root/web/dist
+        startContainer: true
+    command: ["make"]
+    args: ["start-devspace-mcp-backend"]
     ssh:
       enabled: true

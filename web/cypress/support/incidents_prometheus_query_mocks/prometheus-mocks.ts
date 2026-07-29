@@ -1,5 +1,5 @@
-import { IncidentDefinition, PrometheusResponse, IncidentScenarioFixture } from './types';
-import { createIncidentMock, createAlertDetailsMock } from './mock-generators';
+import { IncidentDefinition, IncidentScenarioFixture, PrometheusResponse } from './types';
+import { createAlertDetailsMock, createIncidentMock } from './mock-generators';
 import { convertFixtureToIncidents, parseYamlFixture } from './schema/fixture-converter';
 import { incidentsPage } from '../../views/incidents-page';
 

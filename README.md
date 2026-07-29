@@ -1,8 +1,20 @@
 # OpenShift Monitoring Plugin
 
-This plugin runs in one of two modes, with and without feature flags. When deployed without any feature flags enabled, it will add the monitoring UI to the OpenShift web console. This is most commonly seen in the [CMO](https://github.com/openshift/cluster-monitoring-operator) deployment of it, which is shipped by default with every OpenShift cluster. Documentation for this mode is located under the [monitoring-plugin](#monitoring-plugin) heading.
+This plugin enables frontend UI based on feature flags passed to the backend. These features are generally grouped under two sets, those deployed by the [Cluster Monitoring Operator](https://github.com/openshift/cluster-monitoring-operator) (alerting, dashboards, metrics and targets) and those deployed by the [Cluster Observability Operator](https://github.com/rhobs/observability-operator) (ACM Alerting, Perses Dashboards, Incidents). CMO is included and enabled by default on most installations of OpenShift so observability signals needed for these features are expected to be present in any cluster, while the COO features utilize optional observability signals which are installed through COO. Information on running the plugin as it if were deployed through CMO can be found under the [monitoring-plugin](#monitoring-plugin) heading and the other set can be found under the [monitoring-console-plugin](#monitoring-console-plugin) heading.
 
-When started with feature flag(s), it will instead only add functionality to the OpenShift web console related to the features. Documentation for this mode is located under the [monitoring-console-plugin](#monitoring-console-plugin) heading.
+## Feature Flags
+
+Feature flags should be added to the Feature enum [here](pkg/server/server.go) and to the useFeatures hook [here](web/src/shared/hooks/useFeatures.ts). Whenever a feature is enabled, a set of related feature extension points is included in the plugin-manifest.json served by the backend. These feature extension points are created through the use of [json-patches](https://datatracker.ietf.org/doc/html/rfc6902), such as the `acm-alerting` patch [here](config/acm-alerting.patch.json). The server looks for a patch in the format of `{feature-flag-name}.patch.json` to apply. Some feature flags, such as `acm-alerting` require other flags to be set such as `alertmanager` and `thanos-querier` to instruct the backend how to communicate with the observability signals they utilize
+
+| Feature           | OCP Version |
+| ----------------- | ----------- |
+| acm-alerting      | 4.14+       |
+| perses-dashboards | 4.14+       |
+| incidents         | 4.17+       |
+| alerting          | 5.0+        |
+| legacy-dashboards | 5.0+        |
+| metrics           | 5.0+        |
+| targets           | 5.0+        |
 
 ## monitoring-plugin
 
@@ -30,7 +42,7 @@ Before you can deploy the plugin on a cluster, you must build an image and push 
    docker push quay.io/my-repository/my-plugin:latest
    ```
 
-NOTE: If you have a Mac with Apple silicon, you will need to add the flag `--platform=linux/amd64` when building the image to target the correct platform to run in-cluster.
+NOTE: If you have a Mac with Apple silicon, you will need to add the flag `--platform=linux/amd64` when building the image to target the correct platform to run in-cluster. We recommend utilizing the `make build-image` action to build and push the image.
 
 ### Deployment on cluster
 
@@ -50,28 +62,49 @@ Install the chart into a new namespace or an existing namespace as specified by 
 helm upgrade -i monitoring-plugin charts/openshift-console-plugin -n my-plugin-namespace --create-namespace --set plugin.image=my-plugin-image-location
 ```
 
-### Redux Store
-
-The monitoring-plugin is currently in a transitionary state as the remaining pages are moved from the [openshift/console](https://github.com/openshift/console) repo to this one. One such instance of this is the redux store [definition](https://github.com/openshift/console/blob/master/frontend/public/reducers/observe.ts), which lives within the `openshift/console` codebase.
-
-Changes to the store must be completed in the `openshift/console` codebase and are not backwards compatible unless cherry-picked with purpose.
-
 ### Running using Devspace
 
 Install the [devspace](https://www.devspace.sh/docs/getting-started/installation) cli.
 
-1. Install the frontend dependencies running `make install-frontend`.
-2. Start the frontend `make start-feature-frontend`.
-4. Select the namespace the monitoring-plugin is located in `devspace use namespace openshift-monitoring`.
-5. In a different terminal start the devspace sync `devspace dev`.
+Devspace works by "taking over" a pod. It does this by scaling down the original, forwarding the traffic to its own pod, copying any mounted files and directories (like certs) and then syncing changes you make locally into that pod. Our configuration works by running the go backend normally in the devspace pod, and then syncing the changes from your `web/dist` folder to the `/opt/app-root/web/dist` folder which is where the go backend serves the frontend files from.
 
-When running the `devspace dev` command, the pipeline will run the `scale_down_cmo` function to prevent CMO from fighting over control of the pod. After CMO has been scaled down, devspace will "take over" the monitoring-plugin pod, grabbing all of the certificates and backend binary and configuration to run in the devspace pod. The backend will stay the same as what is built in the Dockerfile.devspace file, only the frontend changes will be reflected live in cluster.
+By running the webpack dev server locally any changes to your frontend files they will be rebuilt and then copied into the pod. You will need to disable your network cache in your dev tools to allow for overriding the previous webpack chunks and then perform a page refresh to see your changes.
 
-After the pod has been "taken over" Devspace begins a sync process which will mirror changes from you local `./web/dist` folder into the `/opt/app-root/web/dist` folder in the devspace pod. You can then make changes to your frontend files locally which will trigger the locally running webpack dev server to rebuild the `./web/dist` folder, which will trigger Devspace to re-synced. You can then reload your console webpage to see your local changes running in the cluster.
+#### Monitoring Features
 
-After development you can run `devspace purge` which will cleanup and then call the `scale_up_cmo` pipeline.
+When running the `devspace dev` command, the pipeline will run `scale-down-cmo.sh` function to scale down the CMO deployment, which keeps it from fighting over control of the monitoring-plugin pod.
+
+```sh
+make start-frontend
+devspace dev # select mp
+```
+
+Running `devspace purge` and selecting `mp` will scale the CMO deployment back up
+
+#### COO Features
+
+When running the `devspace dev` command, the pipeline will run `install-coo.sh` which will attempt to install COO if it isn't already installed. It will then create a `Monitoring` type `UIPlugin` with all features enabled. Once the `monitoring-console-plugin` deployment is ready it will scale down COO to prevent it from fighting over the deployment.
+
+```sh
+make start-mcp-frontend
+devspace dev # select mcp
+```
+
+Running `devspace purge` and selecting `mcp` will scale the COO deployment back up.
 
 ### Local Development
+
+#### Editor configuration
+
+Some of the lint rules for typescript which we have enabled in our codebase are not supported by prettier and need to be solved by running `eslint --fix` You can configure your code editor to perform this on save/format although some setup is needed:
+
+- zed: https://zed.dev/docs/languages/javascript#eslint
+- vscode: https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint
+
+We recommend running the following eslint rules when formatting:
+
+- `import/order`
+- `sort-imports`
 
 #### Dependencies
 
@@ -93,8 +126,11 @@ $ podman machine start
 # Install dependencies
 $ make install
 
-# Run the application
+# Run the frontend
 $ make start-frontend
+# In a separate terminal
+# Run the backend
+$ make start-backend
 # In a separate terminal
 $ make start-console
 ```
@@ -109,28 +145,18 @@ The application will be running at [localhost:9000](http://localhost:9000/).
 ## monitoring-console-plugin (mcp)
 
 ### Dependencies
+
 1. [Local Development Dependencies](README#Dependencies)
 2. [yq](https://github.com/mikefarah/yq) for acm deployment
 3. sed ([gnu-sed](https://formulae.brew.sh/formula/gnu-sed) for mac, with sed being aliased to that gnu-sed)
 
-
 ### Building an image
+
 Images for the mcp can be built by running the following command. Due to the limitation of linux/amd64 image builds on Apple Silicon Macs's, some of the changes are run locally and not just in the Dockerfiles. If you are on a Mac, it is not suggested to cancel the exection of this scipt part way through
 
 ```bash
 make build-dev-mcp-image
 ```
-
-### Feature Flags
-
-Feature flags are used by the mcp mode to dictate the specific features which are enabled when the server starts up. Feature flags should be added to the Feature enum [here](pkg/server.go) and to the useFeature hook [here](web/src/components/hooks/useFeatures.ts). When any feature flag is enabled the default extension points are overridden, including a new monitoring-console-plugin exclusive redux store and all extension points for the flags. These feature extension points are created through the use of [json-patches](https://datatracker.ietf.org/doc/html/rfc6902), such as the `acm-alerting` patch [here](config/acm-alerting.patch.json). The server looks for a patch in the format of `{feature-flag-name}.patch.json` to apply.
-
-| Feature           | OCP Version |
-|-------------------|-------------|
-| acm-alerting      | 4.14+       |
-| perses-dashboards | 4.14+       |
-| incidents         | 4.17+       |
-| dev-config        |             |
 
 #### ACM
 
@@ -152,7 +178,7 @@ Since the store for the `monitoring-plugin` is stored in the `openshift/console`
 # Login to an OpenShift cluster
 $ oc login <clusterAddress> -u <username> -p <password>
 
-# Start podman (or Docker) - Linux machines can skip this part 
+# Start podman (or Docker) - Linux machines can skip this part
 $ podman machine init
 $ podman machine start
 
@@ -163,15 +189,16 @@ $ make install
 $ make start-frontend
 
 # In a separate terminal
-$ make start-feature-console
+$ make start-console
 
 # In a separate terminal
-$ make start-feature-backend
+$ make start-coo-backend
 ```
 
-`make start-feature-backend` will inject the `perses-dashboards`, `incidents`, and `dev-config` features by default. Features such as `acm-alerting` which take in extra parameters will need to run the `make start-feature-backend` command with the appropriate environment variables, such as `MONITORING_PLUGIN_ALERTMANAGER`.
+`make start-coo-backend` will inject the `alerting,targets,legacy-dashboards,metrics,incidents,perses-dashboards` features.
 
 #### Local Development with Perses Proxy
+
 The bridge script `start-console.sh` is configured to proxy to a local Perses instance running at port `:8080`. To run the local Perses instance you will need to clone the [perses/perses](https://github.com/perses/perses) repository and follow the start up instructions in [ui/README.md](https://github.com/perses/perses/blob/63601751674403f626d1dea3dec168bdad0ef1c7/ui/README.md) :
 
 ```
@@ -188,16 +215,18 @@ $ ./scripts/api_backend_dev.sh
 # Lastly navigate to http://localhost:8080/ to see Perses app running
 ```
 
-##### Install COO && Perses Datasource && Perses Sample Dashboard 
-1. Install COO through the OpenShift UI > OperatorHub > Cluster Observability Operator 
-2. Install UIPlugin > monitoring 
-3. oc apply -f <PERSES_DATASOURCE_YAML>
-   - See sample yaml [here](https://github.com/observability-ui/development-tools/blob/main/monitoring-plugin/monitoring-console-plugin/perses/thanos-querier-datasource.yaml) 
-4. oc apply -f <PERSES_DASHBOARD_YAML>
-   - See sample yaml  [here](https://github.com/observability-ui/development-tools/blob/main/monitoring-plugin/monitoring-console-plugin/perses/perses-dashboard.yaml)
+##### Install COO && Perses Datasource && Perses Sample Dashboard
 
-##### Port forward Perses Datasource 
-To use the PERSES_DATASOURCE you deployed above, you'll need to forward it to your local machine then proxy it using the local Perses Instance. 
+1. Install COO through the OpenShift UI > OperatorHub > Cluster Observability Operator
+2. Install UIPlugin > monitoring
+3. oc apply -f <PERSES_DATASOURCE_YAML>
+   - See sample yaml [here](https://github.com/observability-ui/development-tools/blob/main/monitoring-plugin/monitoring-console-plugin/perses/thanos-querier-datasource.yaml)
+4. oc apply -f <PERSES_DASHBOARD_YAML>
+   - See sample yaml [here](https://github.com/observability-ui/development-tools/blob/main/monitoring-plugin/monitoring-console-plugin/perses/perses-dashboard.yaml)
+
+##### Port forward Perses Datasource
+
+To use the PERSES_DATASOURCE you deployed above, you'll need to forward it to your local machine then proxy it using the local Perses Instance.
 
 ```
 # Forward cluster Prometheus Instance to localhost:9090

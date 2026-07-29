@@ -1,5 +1,5 @@
 import { commonPages } from './common';
-import { persesAriaLabels, persesMUIDataTestIDs, IDs } from '../../src/components/data-test';
+import { IDs, persesAriaLabels, persesMUIDataTestIDs } from '@/shared/constants/data-test';
 import {
   persesDashboardsModalTitles,
   persesDashboardsRequiredFields,
