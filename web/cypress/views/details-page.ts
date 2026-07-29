@@ -1,5 +1,5 @@
 import { commonPages } from './common';
-import { DataTestIDs, Classes } from '../../src/components/data-test';
+import { Classes, DataTestIDs } from '@/shared/constants/data-test';
 
 export const detailsPage = {
   sectionHeaderShouldExist: (sectionHeading: string) => {

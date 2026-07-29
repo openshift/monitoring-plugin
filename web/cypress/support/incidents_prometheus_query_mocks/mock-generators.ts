@@ -1,6 +1,6 @@
 // Mock data generators for Prometheus mocking system
 import { IncidentDefinition, PrometheusResult } from './types';
-import { severityToValue, parseQueryLabels } from './utils';
+import { parseQueryLabels, severityToValue } from './utils';
 import { nowInClusterTimezone } from './utils';
 import { NEW_METRIC_NAME, OLD_METRIC_NAME } from './prometheus-mocks';
 

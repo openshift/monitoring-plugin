@@ -1,0 +1,323 @@
+[
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.navigation/href",
+      "properties": {
+        "id": "alerting",
+        "name": "%plugin__monitoring-plugin~Alerting%",
+        "href": "/monitoring/alerts",
+        "perspective": "admin",
+        "section": "observe",
+        "startsWith": [
+          "monitoring/alertrules",
+          "monitoring/silences",
+          "monitoring/incidents"
+        ]
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.navigation/href",
+      "properties": {
+        "id": "alerting-virt",
+        "name": "%plugin__monitoring-plugin~Alerting%",
+        "href": "/virt-monitoring/alerts",
+        "perspective": "virtualization-perspective",
+        "section": "observe-virt-perspective",
+        "startsWith": [
+          "virt-monitoring/alertrules",
+          "virt-monitoring/silences",
+          "virt-monitoring/incidents"
+        ]
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.page/route",
+      "properties": {
+        "exact": false,
+        "path": "/monitoring",
+        "component": {
+          "$codeRef": "AlertingPage.MpCmoAlertingPage"
+        }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.page/route",
+      "properties": {
+        "exact": false,
+        "path": "/monitoring/silences/~new",
+        "component": {
+          "$codeRef": "SilenceCreatePage.MpCmoCreateSilencePage"
+        }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.page/route",
+      "properties": {
+        "exact": false,
+        "path": "/monitoring/silences/:id",
+        "component": {
+          "$codeRef": "SilencesDetailsPage.MpCmoSilencesDetailsPage"
+        }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.page/route",
+      "properties": {
+        "exact": false,
+        "path": "/monitoring/silences/:id/edit",
+        "component": {
+          "$codeRef": "SilenceEditPage.MpCmoSilenceEditPage"
+        }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.page/route",
+      "properties": {
+        "exact": false,
+        "path": ["/monitoring/alertrules/:id"],
+        "component": {
+          "$codeRef": "AlertRulesDetailsPage.MpCmoAlertRulesDetailsPage"
+        }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.page/route",
+      "properties": {
+        "exact": false,
+        "path": ["/monitoring/alerts/:ruleID"],
+        "component": {
+          "$codeRef": "AlertsDetailsPage.MpCmoAlertsDetailsPage"
+        }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.page/route",
+      "properties": {
+        "exact": false,
+        "path": ["/virt-monitoring"],
+        "component": {
+          "$codeRef": "AlertingPage.MpCmoAlertingPage"
+        }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.page/route",
+      "properties": {
+        "exact": false,
+        "path": "/virt-monitoring/silences/~new",
+        "component": {
+          "$codeRef": "SilenceCreatePage.MpCmoCreateSilencePage"
+        }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.page/route",
+      "properties": {
+        "exact": false,
+        "path": "/virt-monitoring/silences/:id",
+        "component": {
+          "$codeRef": "SilencesDetailsPage.MpCmoSilencesDetailsPage"
+        }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.page/route",
+      "properties": {
+        "exact": false,
+        "path": "/virt-monitoring/silences/:id/edit",
+        "component": {
+          "$codeRef": "SilenceEditPage.MpCmoSilenceEditPage"
+        }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.page/route",
+      "properties": {
+        "exact": false,
+        "path": ["/virt-monitoring/alertrules/:id"],
+        "component": {
+          "$codeRef": "AlertRulesDetailsPage.MpCmoAlertRulesDetailsPage"
+        }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.page/route",
+      "properties": {
+        "exact": false,
+        "path": ["/virt-monitoring/alerts/:ruleID"],
+        "component": {
+          "$codeRef": "AlertsDetailsPage.MpCmoAlertsDetailsPage"
+        }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.page/route",
+      "properties": {
+        "exact": false,
+        "path": "/dev-monitoring/ns/:ns/alerts/:ruleID",
+        "component": {
+          "$codeRef": "AlertsDetailsPage.MpCmoAlertsDetailsPage"
+        }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.page/route",
+      "properties": {
+        "exact": false,
+        "path": "/dev-monitoring/ns/:ns/rules/:id",
+        "component": {
+          "$codeRef": "AlertRulesDetailsPage.MpCmoAlertRulesDetailsPage"
+        }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.page/route",
+      "properties": {
+        "exact": false,
+        "path": "/dev-monitoring/ns/:ns/silences/:id",
+        "component": {
+          "$codeRef": "SilencesDetailsPage.MpCmoSilencesDetailsPage"
+        }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.page/route",
+      "properties": {
+        "exact": false,
+        "path": "/dev-monitoring/ns/:ns/silences/:id/edit",
+        "component": {
+          "$codeRef": "SilenceEditPage.MpCmoSilenceEditPage"
+        }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.page/route",
+      "properties": {
+        "exact": false,
+        "path": "/dev-monitoring/ns/:ns/silences/~new",
+        "component": {
+          "$codeRef": "SilenceCreatePage.MpCmoCreateSilencePage"
+        }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.tab",
+      "properties": {
+        "contextId": "dev-console-observe",
+        "name": "%plugin__monitoring-plugin~Silences%",
+        "href": "silences",
+        "component": {
+          "$codeRef": "SilencesPage.MpCmoSilencesPage"
+        }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.tab",
+      "properties": {
+        "contextId": "dev-console-observe",
+        "name": "%plugin__monitoring-plugin~Alerts%",
+        "href": "alerts",
+        "component": {
+          "$codeRef": "AlertsPage.MpCmoAlertsPage"
+        }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.tab",
+      "properties": {
+        "contextId": "dev-console-observe",
+        "name": "%plugin__monitoring-plugin~Alerting rules%",
+        "href": "alertrules",
+        "component": {
+          "$codeRef": "AlertRulesPage.MpCmoAlertRulesPage"
+        }
+      }
+    }
+  }
+]

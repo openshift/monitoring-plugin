@@ -1,0 +1,63 @@
+[
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.navigation/href",
+      "properties": {
+        "id": "targets",
+        "name": "%plugin__monitoring-plugin~Targets%",
+        "href": "/monitoring/targets",
+        "perspective": "admin",
+        "section": "observe",
+        "insertAfter": "dashboards"
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.navigation/href",
+      "properties": {
+        "id": "targets-virt",
+        "name": "%plugin__monitoring-plugin~Targets%",
+        "href": "/virt-monitoring/targets",
+        "perspective": "virtualization-perspective",
+        "section": "observe-virt-perspective",
+        "insertAfter": "dashboards-virt"
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.page/route",
+      "properties": {
+        "exact": false,
+        "path": ["/monitoring/targets", "/monitoring/targets/:scrapeUrl"],
+        "component": {
+          "$codeRef": "TargetsPage.MpCmoTargetsPage"
+        }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.page/route",
+      "properties": {
+        "exact": false,
+        "path": [
+          "/virt-monitoring/targets",
+          "/virt-monitoring/targets/:scrapeUrl"
+        ],
+        "component": {
+          "$codeRef": "TargetsPage.MpCmoTargetsPage"
+        }
+      }
+    }
+  }
+]

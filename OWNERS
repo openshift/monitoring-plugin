@@ -1,12 +1,6 @@
 reviewers:
-  - jgbernalp
-  - zhuje
-  - peteryurkovich
-  - etmurasaki
+  - observability-ui-devs
 approvers:
   - jan--f
-  - jgbernalp
   - kyoto
-  - zhuje
-  - peteryurkovich
-  - etmurasaki
+  - observability-ui

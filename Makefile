@@ -3,12 +3,14 @@ PLATFORMS   ?= linux/arm64,linux/amd64
 ORG         ?= openshift-observability-ui
 PLUGIN_NAME ?=monitoring-plugin
 IMAGE       ?= quay.io/${ORG}/${PLUGIN_NAME}:${VERSION}
-FEATURES    ?=incidents,perses-dashboards,dev-config
+MONITORING_FEATURES    ?=alerting,targets,legacy-dashboards,metrics
+ALL_FEATURES    ?=$(MONITORING_FEATURES),cluster-health-analyzer,perses-dashboards
+MCP_DEVSPACE_FEATURES  ?=cluster-health-analyzer,perses-dashboards,acm-alerting
 
 GOLANGCI_LINT = $(shell pwd)/_output/tools/bin/golangci-lint
 GOLANGCI_LINT_VERSION ?= v2.11.3
 
-export NODE_OPTIONS?=--max_old_space_size=4096
+export NODE_OPTIONS?=--max_old_space_size=8192
 
 .PHONY: install-frontend
 install-frontend:
@@ -29,6 +31,10 @@ build-frontend:
 .PHONY: start-frontend
 start-frontend:
 	cd web && npm run start
+
+.PHONY: start-mcp-frontend
+start-mcp-frontend:
+	cd web && CONSOLE_PLUGIN_NAME=monitoring-console-plugin npm run start
 
 .PHONY: start-console
 start-console:
@@ -56,7 +62,11 @@ build-backend:
 
 .PHONY: start-backend
 start-backend:
-	go run ./cmd/plugin-backend.go -port='9001' -config-path='./config' -static-path='./web/dist'
+	go run ./cmd/plugin-backend.go -port='9443' -config-path='./config' -static-path='./web/dist' -features='${MONITORING_FEATURES}'
+
+.PHONY: start-coo-backend
+start-coo-backend:
+	go run ./cmd/plugin-backend.go -port='9443' -config-path='./config' -static-path='./web/dist' -features='${ALL_FEATURES}'
 
 .PHONY: test-backend
 test-backend:
@@ -74,6 +84,10 @@ test-e2e:
 test-frontend:
 	cd web && npm run test:unit
 
+.PHONY: test-frontend-unit
+test-frontend-unit:
+	cd web && npm run test:unit:ci
+
 .PHONY: build-image
 build-image:
 	./scripts/build-image.sh
@@ -81,10 +95,6 @@ build-image:
 .PHONY: install
 install:
 	make install-frontend && make install-backend
-
-.PHONY: update-plugin-name
-update-plugin-name:
-	./scripts/update-plugin-name.sh
 
 .PHONY: deploy
 deploy: lint-backend
@@ -119,17 +129,13 @@ build-mcp-image:
 build-dev-mcp-image:
 	DOCKER_FILE_NAME="Dockerfile.dev-mcp" REPO="monitoring-console-plugin" scripts/build-image.sh
 
-.PHONY: start-feature-console
-start-feature-console:
-	PLUGIN_PORT=9443 ./scripts/start-console.sh
-
-.PHONY: start-feature-backend
-start-feature-backend:
-	go run ./cmd/plugin-backend.go -port='9443' -config-path='./config' -static-path='./web/dist' -features='${FEATURES}'
-
 .PHONY: start-devspace-backend
 start-devspace-backend:
-	/opt/app-root/plugin-backend -port='9443' -cert='/var/cert/tls.crt' -key='/var/cert/tls.key' -static-path='/opt/app-root/web/dist' -config-path='/opt/app-root/config' -features='${FEATURES}'
+	/opt/app-root/plugin-backend -port='9443' -cert='/var/cert/tls.crt' -key='/var/cert/tls.key' -static-path='/opt/app-root/web/dist' -config-path='/opt/app-root/config' -features='${MONITORING_FEATURES}'
+
+.PHONY: start-devspace-mcp-backend
+start-devspace-mcp-backend:
+	/opt/app-root/plugin-backend -port='9443' -cert='/var/serving-cert/tls.crt' -key='/var/serving-cert/tls.key' -static-path='/opt/app-root/web/dist' -config-path='/opt/app-root/config' -features='${MCP_DEVSPACE_FEATURES}' -alertmanager='https://alertmanager.open-cluster-management-observability.svc:9095' -thanos-querier='https://rbac-query-proxy.open-cluster-management-observability.svc:8443'
 
 .PHONY: podman-cross-build
 podman-cross-build:

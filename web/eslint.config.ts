@@ -9,6 +9,10 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import js from '@eslint/js';
 import { FlatCompat } from '@eslint/eslintrc';
+import importPlugin from 'eslint-plugin-import';
+import { importBoundaryZones } from './eslint-rules/import-boundary-zones';
+import { fileNaming } from './eslint-rules/file-naming';
+import { requireFeatureOwners } from './eslint-rules/require-feature-owners';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -30,6 +34,9 @@ export default defineConfig([
         'prettier',
       ),
     ),
+    linterOptions: {
+      reportUnusedDisableDirectives: 'off',
+    },
 
     plugins: {
       prettier,
@@ -73,6 +80,15 @@ export default defineConfig([
 
       'no-console': ['error'],
 
+      'sort-imports': [
+        'error',
+        {
+          ignoreCase: true,
+          ignoreDeclarationSort: true,
+          ignoreMemberSort: false,
+        },
+      ],
+
       // Prevent directly importing react as a lint rule
       'no-restricted-syntax': [
         'error',
@@ -93,6 +109,106 @@ export default defineConfig([
     files: ['cypress/**/*'],
     rules: {
       'no-console': 'off',
+    },
+  },
+  {
+    files: ['cypress/**/*.ts', 'cypress/**/*.tsx'],
+    plugins: {
+      import: fixupPluginRules(importPlugin as any),
+    },
+    settings: {
+      'import/resolver': {
+        node: { extensions: ['.js', '.jsx', '.ts', '.tsx'] },
+      },
+    },
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              regex: '^(\\.\\./)+src/',
+              message:
+                'Use the @ alias instead of relative imports into src/ (e.g. `@/shared/constants/data-test`).',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ['src/**/*.ts', 'src/**/*.tsx'],
+    plugins: {
+      import: fixupPluginRules(importPlugin as any),
+    },
+    settings: {
+      'import/resolver': {
+        node: { extensions: ['.js', '.jsx', '.ts', '.tsx'] },
+      },
+    },
+    rules: {
+      // Disallow relative imports — use the @ alias instead (e.g. `@/shared/hooks/useAlerts`).
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              regex: '^\\.', // matches ./ and ../
+              message:
+                'Use the @ alias instead of relative imports (e.g. `@/shared/hooks/useAlerts`).',
+            },
+          ],
+        },
+      ],
+      'import/order': [
+        'error',
+        {
+          groups: [['builtin', 'external'], 'internal'],
+          pathGroups: [
+            {
+              pattern: '@/**',
+              group: 'internal',
+            },
+          ],
+          pathGroupsExcludedImportTypes: [],
+          'newlines-between': 'always',
+          alphabetize: {
+            order: 'asc',
+            caseInsensitive: true,
+          },
+        },
+      ],
+    },
+  },
+  {
+    files: ['src/**/*.ts', 'src/**/*.tsx'],
+    ignores: ['cypress/**', 'src/**/*.d.ts'],
+    plugins: {
+      'local-rules': {
+        rules: { 'file-naming': fileNaming, 'require-feature-owners': requireFeatureOwners },
+      } as any,
+    },
+    rules: {
+      'local-rules/file-naming': 'error',
+      'local-rules/require-feature-owners': 'error',
+    },
+  },
+  {
+    files: ['src/features/**/*.ts', 'src/features/**/*.tsx'],
+    plugins: {
+      import: fixupPluginRules(importPlugin as any),
+    },
+    settings: {
+      'import/resolver': {
+        typescript: {
+          alwaysTryTypes: true,
+          project: './tsconfig.json',
+        },
+        node: { extensions: ['.js', '.jsx', '.ts', '.tsx'] },
+      },
+    },
+    rules: {
+      'import/no-restricted-paths': ['error', { zones: importBoundaryZones }],
     },
   },
 ]);

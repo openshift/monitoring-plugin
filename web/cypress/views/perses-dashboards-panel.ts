@@ -1,13 +1,9 @@
 import { commonPages } from './common';
+import { editPersesDashboardsAddPanel, IDs, persesAriaLabels } from '@/shared/constants/data-test';
 import {
-  persesAriaLabels,
-  IDs,
-  editPersesDashboardsAddPanel,
-} from '../../src/components/data-test';
-import {
-  persesDashboardsModalTitles,
-  persesDashboardsAddPanelAddQueryType,
   persesDashboardsAddListPanelType,
+  persesDashboardsAddPanelAddQueryType,
+  persesDashboardsModalTitles,
 } from '../fixtures/perses/constants';
 
 export const persesDashboardsPanel = {

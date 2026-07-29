@@ -95,12 +95,11 @@ describe('BVT: Incidents - UI', { tags: ['@smoke', '@incidents'] }, () => {
 
   it('6. Admin perspective - Incidents page - Bar click selection walkthrough', () => {
     cy.log('6.1 Load multi-incident fixture and verify chart bars are clickable');
+    incidentsPage.setDays('7 days');
     cy.mockIncidentFixture(
       'incident-scenarios/1-single-incident-firing-critical-and-warning-alerts.yaml',
     );
-    incidentsPage.goTo();
     incidentsPage.clearAllFilters();
-    incidentsPage.setDays('7 days');
     incidentsPage.elements.incidentsChartContainer().should('be.visible');
 
     cy.log('6.2 Select incident bar and verify table appears with expected alerts');
