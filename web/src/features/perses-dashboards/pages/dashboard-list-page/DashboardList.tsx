@@ -1,29 +1,21 @@
 import { Timestamp } from '@openshift-console/dynamic-plugin-sdk';
 import {
-  Button,
   EmptyState,
   EmptyStateBody,
   EmptyStateVariant,
   Title,
   Tooltip,
 } from '@patternfly/react-core';
-import { DataView } from '@patternfly/react-data-view/dist/dynamic/DataView';
-import { DataViewFilters } from '@patternfly/react-data-view/dist/dynamic/DataViewFilters';
+import DataView from '@patternfly/react-data-view/dist/dynamic/DataView';
 import {
   DataViewTable,
-  DataViewTh,
-  DataViewTr,
+  type DataViewTr,
 } from '@patternfly/react-data-view/dist/dynamic/DataViewTable';
-import { DataViewTextFilter } from '@patternfly/react-data-view/dist/dynamic/DataViewTextFilter';
 import { DataViewToolbar } from '@patternfly/react-data-view/dist/dynamic/DataViewToolbar';
-import {
-  useDataViewFilters,
-  useDataViewPagination,
-  useDataViewSort,
-} from '@patternfly/react-data-view/dist/dynamic/Hooks';
-import { ActionsColumn, ThProps } from '@patternfly/react-table';
-import { DashboardResource } from '@perses-dev/core';
-import { type FC, memo, ReactNode, useCallback, useMemo, useState } from 'react';
+import { useDataViewSort } from '@patternfly/react-data-view/dist/dynamic/Hooks';
+import { ActionsColumn } from '@patternfly/react-table';
+import type { DashboardResource } from '@perses-dev/core';
+import { type FC, memo, type ReactNode, useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useSearchParams } from 'react-router';
 
@@ -36,7 +28,18 @@ import { useDashboardsData } from '@/features/perses-dashboards/hooks/useDashboa
 import { useEditableProjects } from '@/features/perses-dashboards/hooks/useEditableProjects';
 import { usePersesEditPermissions } from '@/features/perses-dashboards/hooks/usePersesEditPermissions';
 import { DashboardListFrame } from '@/features/perses-dashboards/pages/dashboard-list-page/DashboardListFrame';
+import { useTableColumns } from '@/shared/components/table/hooks/useTableColumns';
+import { rowFilter, useTableFilters } from '@/shared/components/table/hooks/useTableFilters';
+import { useTablePagination } from '@/shared/components/table/hooks/useTablePagination';
+import { localeCompareSort } from '@/shared/components/table/sort-utils';
+import {
+  TableFilter,
+  TableFilterOption,
+  type TableFilterProps,
+  TableFilters,
+} from '@/shared/components/table/TableFilters';
 import { ITEMS_PER_PAGE, TablePagination } from '@/shared/components/table/TablePagination';
+import { TableToolbar } from '@/shared/components/table/TableToolbar';
 import { listPersesDashboardsDataTestIDs } from '@/shared/constants/data-test';
 import { getDashboardUrl, usePerspective } from '@/shared/hooks/usePerspective';
 import { ALL_NAMESPACES_KEY } from '@/shared/utils/utils';
@@ -55,8 +58,7 @@ const DashboardActionsCell = memo(
     onRename: (dashboard: DashboardResource) => void;
     onDuplicate: (dashboard: DashboardResource) => void;
     onDelete: (dashboard: DashboardResource) => void;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    emptyActions: any[];
+    emptyActions: { title: string; onClick: () => void }[];
   }) => {
     const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
@@ -131,37 +133,25 @@ interface DashboardRowFilters {
 
 const sortDashboardData = (
   data: DashboardRow[],
-  sortBy: keyof DashboardRow | undefined,
+  sortBy: string | undefined,
   direction: 'asc' | 'desc' | undefined,
 ): DashboardRow[] => {
-  if (!sortBy || !direction) return data;
-
-  return [...data].sort((a, b) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let aValue: any;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let bValue: any;
-
-    if (sortBy === 'name') {
-      aValue = a.name.label;
-      bValue = b.name.label;
-    } else if (sortBy === 'created') {
-      aValue = a.createdAt;
-      bValue = b.createdAt;
-    } else if (sortBy === 'modified') {
-      aValue = a.updatedAt;
-      bValue = b.updatedAt;
-    } else {
-      aValue = a[sortBy];
-      bValue = b[sortBy];
-    }
-
-    if (direction === 'asc') {
-      return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
-    } else {
-      return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
-    }
-  });
+  if (!sortBy || !direction) {
+    return data;
+  }
+  if (sortBy === rowFilter('name')) {
+    return [...data].sort((a, b) => localeCompareSort(a.name.label, b.name.label, direction));
+  }
+  if (sortBy === rowFilter('project')) {
+    return [...data].sort((a, b) => localeCompareSort(a.project, b.project, direction));
+  }
+  if (sortBy === rowFilter('created')) {
+    return [...data].sort((a, b) => localeCompareSort(a.createdAt, b.createdAt, direction));
+  }
+  if (sortBy === rowFilter('modified')) {
+    return [...data].sort((a, b) => localeCompareSort(a.updatedAt, b.updatedAt, direction));
+  }
+  return data;
 };
 
 interface DashboardsTableProps {
@@ -183,41 +173,25 @@ const DashboardsTable: FC<DashboardsTableProps> = ({
   const [searchParams, setSearchParams] = useSearchParams();
   const { sortBy, direction, onSort } = useDataViewSort({ searchParams, setSearchParams });
 
-  const { filters, onSetFilters, clearAllFilters } = useDataViewFilters<DashboardRowFilters>({
+  const { filters, onSetFilters, clearAllFilters } = useTableFilters<DashboardRowFilters>({
     initialFilters: { name: '', 'project-filter': '' },
-    searchParams,
-    setSearchParams,
   });
-  const pagination = useDataViewPagination({ perPage: ITEMS_PER_PAGE[0] });
-  const { page, perPage } = pagination;
+  const pagination = useTablePagination({ perPage: ITEMS_PER_PAGE[0] });
+  const { page, perPage, onSetPage } = pagination;
 
-  const DASHBOARD_COLUMNS = useMemo(
+  const [activeAttributeMenu, setActiveAttributeMenu] = useState<string>(t('Dashboard'));
+
+  const columnKeys = useMemo(
     () => [
-      { label: t('Dashboard'), key: 'name' as keyof DashboardRow, index: 0 },
-      { label: t('Project'), key: 'project' as keyof DashboardRow, index: 1 },
-      { label: t('Created on'), key: 'created' as keyof DashboardRow, index: 2 },
-      { label: t('Last Modified'), key: 'modified' as keyof DashboardRow, index: 3 },
+      { label: t('Dashboard'), key: rowFilter('name') },
+      { label: t('Project'), key: rowFilter('project') },
+      { label: t('Created on'), key: rowFilter('created') },
+      { label: t('Last Modified'), key: rowFilter('modified') },
     ],
     [t],
   );
-  const sortByIndex = useMemo(() => {
-    return DASHBOARD_COLUMNS.findIndex((item) => item.key === sortBy);
-  }, [DASHBOARD_COLUMNS, sortBy]);
 
-  const getSortParams = (columnIndex: number): ThProps['sort'] => ({
-    sortBy: {
-      index: sortByIndex,
-      direction,
-      defaultDirection: 'asc',
-    },
-    onSort: (_event, index, direction) => onSort(_event, DASHBOARD_COLUMNS[index].key, direction),
-    columnIndex,
-  });
-
-  const tableColumns: DataViewTh[] = DASHBOARD_COLUMNS.map((column, index) => ({
-    cell: t(column.label),
-    props: { sort: getSortParams(index) },
-  }));
+  const columns = useTableColumns(columnKeys, sortBy, direction, onSort);
 
   const tableRows: DashboardRow[] = useMemo(() => {
     if (persesDashboardsLoading) {
@@ -251,24 +225,23 @@ const DashboardsTable: FC<DashboardsTableProps> = ({
     });
   }, [dashboardBaseURL, persesDashboards, persesDashboardsLoading]);
 
-  const filteredData = useMemo(
-    () =>
-      tableRows.filter(
-        (item) =>
-          (!filters.name ||
-            item.name?.label?.toLocaleLowerCase().includes(filters.name?.toLocaleLowerCase())) &&
-          (!filters['project-filter'] ||
-            item.project
-              ?.toLocaleLowerCase()
-              .includes(filters['project-filter']?.toLocaleLowerCase())) &&
-          (activeProject === ALL_NAMESPACES_KEY || item.project === activeProject),
-      ),
-    [filters, tableRows, activeProject],
-  );
-
   const sortedAndFilteredData = useMemo(
-    () => sortDashboardData(filteredData, sortBy as keyof DashboardRow, direction),
-    [filteredData, sortBy, direction],
+    () =>
+      sortDashboardData(
+        tableRows.filter(
+          (item) =>
+            (!filters.name ||
+              item.name?.label?.toLocaleLowerCase().includes(filters.name?.toLocaleLowerCase())) &&
+            (!filters['project-filter'] ||
+              item.project
+                ?.toLocaleLowerCase()
+                .includes(filters['project-filter']?.toLocaleLowerCase())) &&
+            (activeProject === ALL_NAMESPACES_KEY || item.project === activeProject),
+        ),
+        sortBy,
+        direction,
+      ),
+    [filters, tableRows, activeProject, direction, sortBy],
   );
 
   const [targetedDashboard, setTargetedDashboard] = useState<DashboardResource>();
@@ -348,30 +321,63 @@ const DashboardsTable: FC<DashboardsTableProps> = ({
     handleDeleteModalOpen,
   ]);
 
+  const onFiltersChange = useMemo(
+    () => (filterName: keyof DashboardRowFilters) => {
+      return (_e, val) => {
+        onSetFilters({ [filterName]: val });
+        onSetPage(undefined, 1);
+      };
+    },
+    [onSetFilters, onSetPage],
+  );
+
+  const filterItems = useMemo<TableFilterProps<never>[]>(
+    () => [
+      {
+        filterId: 'name',
+        type: TableFilterOption.TEXT,
+        title: t('Dashboard'),
+        placeholder: t('Filter by name'),
+        onChange: onFiltersChange('name'),
+        value: filters.name ?? '',
+        'data-test': listPersesDashboardsDataTestIDs.NameFilter,
+      },
+      {
+        filterId: 'project-filter',
+        type: TableFilterOption.TEXT,
+        title: t('Project'),
+        placeholder: t('Filter by project'),
+        onChange: onFiltersChange('project-filter'),
+        value: filters['project-filter'] ?? '',
+        'data-test': listPersesDashboardsDataTestIDs.ProjectFilter,
+      },
+    ],
+    [t, filters, onFiltersChange],
+  );
+
   const hasFiltersApplied = filters.name || filters['project-filter'];
   const hasData = sortedAndFilteredData.length > 0;
 
   return (
     <DataView className="pf-v6-u-m-lg">
-      <DataViewToolbar
+      <TableToolbar
         ouiaId="PersesDashList-DataViewHeader"
         clearAllFilters={clearAllFilters}
         pagination={<TablePagination itemCount={sortedAndFilteredData.length} {...pagination} />}
         filters={
-          <DataViewFilters onChange={(_e, values) => onSetFilters(values)} values={filters}>
-            <DataViewTextFilter
-              filterId="name"
-              title={t('Name')}
-              placeholder={t('Filter by name')}
-              data-test={listPersesDashboardsDataTestIDs.NameFilter}
-            />
-            <DataViewTextFilter
-              filterId="project-filter"
-              title={t('Project')}
-              placeholder={t('Filter by project')}
-              data-test={listPersesDashboardsDataTestIDs.ProjectFilter}
-            />
-          </DataViewFilters>
+          <TableFilters
+            activeAttributeMenu={activeAttributeMenu}
+            setActiveAttributeMenu={setActiveAttributeMenu}
+            filterItems={filterItems}
+          >
+            {filterItems.map((filterItem) => (
+              <TableFilter
+                key={`table-filter-${filterItem.filterId}`}
+                {...filterItem}
+                showToolbarItem={filterItem.title === activeAttributeMenu}
+              />
+            ))}
+          </TableFilters>
         }
       />
       {hasData ? (
@@ -397,7 +403,7 @@ const DashboardsTable: FC<DashboardsTableProps> = ({
           <DataViewTable
             aria-label="Perses Dashboards List"
             ouiaId={'PersesDashList-DataViewTable'}
-            columns={tableColumns}
+            columns={columns}
             rows={pageRows}
           />
         </>
@@ -415,15 +421,6 @@ const DashboardsTable: FC<DashboardsTableProps> = ({
               ? t('No results match the filter criteria. Clear filters to show results.')
               : t('No Perses dashboards are currently available in this project.')}
           </EmptyStateBody>
-          {hasFiltersApplied && (
-            <Button
-              onClick={clearAllFilters}
-              className="pf-c-button pf-m-link"
-              data-test={listPersesDashboardsDataTestIDs.ClearAllFiltersButton}
-            >
-              {t('Clear all filters')}
-            </Button>
-          )}
         </EmptyState>
       )}
       <DataViewToolbar
