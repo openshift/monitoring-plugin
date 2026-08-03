@@ -1,5 +1,5 @@
 import { Alert, K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
-import { k8sListResourceItems } from '@openshift-console/dynamic-plugin-sdk/lib/utils/k8s';
+import { k8sListItems } from '@openshift-console/dynamic-plugin-sdk';
 import { useQuery } from '@tanstack/react-query';
 import { useCallback, useMemo, useState } from 'react';
 
@@ -14,7 +14,7 @@ import {
 import { AgenticRunModel } from '@/shared/console/models';
 
 const buildQueryFn = (namespace: string, alertFingerprint: string) => () =>
-  k8sListResourceItems<K8sResourceCommon>({
+  k8sListItems<K8sResourceCommon>({
     model: AgenticRunModel,
     queryParams: {
       ns: namespace,
