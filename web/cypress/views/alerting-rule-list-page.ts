@@ -26,7 +26,6 @@ export const alertingRuleListPage = {
         throw error;
       }
     },
-
   },
 
   clickAlertingRule: (alertRule: string) => {
