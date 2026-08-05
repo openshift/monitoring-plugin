@@ -1,0 +1,60 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "schedule": ["* 6 * * *"],
+  "timezone": "UTC",
+  "prConcurrentLimit": 10,
+  "rangeStrategy": "pin",
+  "includePaths": ["go.mod", "go.sum", "web/**"],
+  "ignoreDeps": ["eslint", "eslint-config-base"],
+  "lockFileMaintenance": {
+    "enabled": false
+  },
+  "vulnerabilityAlerts": {
+    "labels": ["security"],
+    "commitMessagePrefix": "NO-JIRA: chore(security):"
+  },
+  "packageRules": [
+    {
+      "matchDepTypes": ["peerDependencies"],
+      "rangeStrategy": "auto"
+    },
+    {
+      "matchUpdateTypes": ["minor", "patch"],
+      "minimumReleaseAge": "14 days"
+    },
+    {
+      "matchFileNames": ["web/**"],
+      "matchPackageNames": [
+        "react",
+        "react-dom",
+        "react-i18next",
+        "react-redux",
+        "react-router",
+        "redux",
+        "redux-thunk",
+        "@perses-dev/*",
+        "@codemirror/*",
+        "@emotion/*",
+        "@hookform/resolvers",
+        "@lezer/highlight",
+        "@mui/material"
+      ],
+      "enabled": false
+    },
+    {
+      "matchFileNames": ["web/**"],
+      "matchPackageNames": [
+        "@openshift-console/dynamic-plugin-sdk",
+        "@openshift-console/dynamic-plugin-sdk-webpack",
+        "@openshift-console/dynamic-plugin-sdk-internal"
+      ],
+      "matchUpdateTypes": ["major", "minor"],
+      "enabled": false
+    },
+    {
+      "matchFileNames": ["web/**"],
+      "groupName": "patternfly",
+      "matchPackageNames": ["@patternfly/*"]
+    }
+  ]
+}
