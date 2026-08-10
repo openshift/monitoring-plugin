@@ -42,7 +42,6 @@ import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams } from 'react-router';
 
 import {
-  alertingRuleSource,
   AlertState,
   getSourceKey,
   Graph,
@@ -68,6 +67,7 @@ import {
   getQueryBrowserUrl,
   usePerspective,
 } from '@/shared/hooks/usePerspective';
+import { alertingRuleSource } from '@/shared/utils/alert-utils';
 import { alertDescription, RuleResource } from '@/shared/utils/utils';
 
 // Renders Prometheus template text and highlights any {{ ... }} tags that it contains

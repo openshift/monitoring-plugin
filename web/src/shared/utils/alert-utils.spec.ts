@@ -2,21 +2,43 @@ jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
   ...jest.requireActual('@openshift-console/dynamic-plugin-sdk/lib/api/common-types'),
 }));
 
-jest.mock('../../components/AlertUtils', () => ({
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  alertSource: (alert: any) =>
-    alert.rule?.labels?.prometheus === 'openshift-monitoring/k8s' ? 'platform' : 'user',
-}));
+import { Alert, AlertStates, type Rule } from '@openshift-console/dynamic-plugin-sdk';
 
-import { Alert, AlertStates } from '@openshift-console/dynamic-plugin-sdk';
-
+import { AlertSource } from '@/shared/types/types';
 import {
   AggregatedAlertFilters,
   AlertFilterOptions,
-} from '@/features/alerts/pages/alerts-page/AlertsPage';
-import { filterAlerts } from '@/features/alerts/pages/alerts-page/filter-alerts';
-import { AlertSource } from '@/shared/types/types';
+  alertingRuleSource,
+  filterAlerts,
+} from '@/shared/utils/alert-utils';
 import { ALL_NAMESPACES_KEY } from '@/shared/utils/utils';
+
+const makeRule = (overrides: Partial<Rule> = {}): Rule =>
+  ({
+    alerts: [],
+    labels: {},
+    ...overrides,
+  }) as unknown as Rule;
+
+describe('alertingRuleSource', () => {
+  it('should return Platform for prometheus source with platform label', () => {
+    const rule = makeRule({
+      sourceId: 'prometheus',
+      labels: { prometheus: 'openshift-monitoring/k8s' },
+    });
+    expect(alertingRuleSource(rule)).toBe(AlertSource.Platform);
+  });
+
+  it('should return User for prometheus source without platform label', () => {
+    const rule = makeRule({ sourceId: 'prometheus' });
+    expect(alertingRuleSource(rule)).toBe(AlertSource.User);
+  });
+
+  it('should return the custom source ID as-is', () => {
+    const rule = makeRule({ sourceId: 'custom-datasource' });
+    expect(alertingRuleSource(rule)).toBe('custom-datasource');
+  });
+});
 
 const emptyFilters: AggregatedAlertFilters = {
   [AlertFilterOptions.NAME]: '',

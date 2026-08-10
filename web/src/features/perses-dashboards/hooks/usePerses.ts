@@ -2,12 +2,12 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { NumberParam, useQueryParam } from 'use-query-params';
 
+import { QueryParams } from '@/shared/constants/query-params';
 import {
   fetchPersesDashboardsByProject,
   fetchPersesDashboardsMetadata,
   fetchPersesProjects,
-} from '@/features/perses-dashboards/utils/perses-client';
-import { QueryParams } from '@/shared/constants/query-params';
+} from '@/shared/utils/perses-client';
 
 export const usePerses = (project?: string | number) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);

@@ -1,12 +1,38 @@
-import { Alert } from '@openshift-console/dynamic-plugin-sdk';
+import { Alert, Rule } from '@openshift-console/dynamic-plugin-sdk';
 
-import { alertSource } from '@/features/alerts/components/AlertUtils';
-import {
-  AggregatedAlertFilters,
-  AlertFilterOptions,
-} from '@/features/alerts/pages/alerts-page/AlertsPage';
 import { Perspective } from '@/shared/store/actions';
+import { AlertSource } from '@/shared/types/types';
 import { alertState, ALL_NAMESPACES_KEY, fuzzyCaseInsensitive } from '@/shared/utils/utils';
+
+export const enum AlertFilterOptions {
+  NAME = 'name',
+  STATE = 'alert-state',
+  SEVERITY = 'alert-severity',
+  LABEL = 'label',
+  SOURCE = 'alert-source',
+  CLUSTER = 'alert-cluster',
+}
+
+export interface AggregatedAlertFilters {
+  [AlertFilterOptions.NAME]: string;
+  [AlertFilterOptions.STATE]: string[];
+  [AlertFilterOptions.SEVERITY]: string[];
+  [AlertFilterOptions.LABEL]: string;
+  [AlertFilterOptions.SOURCE]?: AlertSource[];
+  [AlertFilterOptions.CLUSTER]?: string[];
+}
+
+export const alertingRuleSource = (rule: Rule): AlertSource | string => {
+  if (rule.sourceId === undefined || rule.sourceId === 'prometheus') {
+    return rule.labels?.prometheus === 'openshift-monitoring/k8s'
+      ? AlertSource.Platform
+      : AlertSource.User;
+  }
+
+  return rule.sourceId;
+};
+
+export const alertSource = (alert: Alert): AlertSource | string => alertingRuleSource(alert.rule);
 
 export const filterAlerts = (
   alerts: Alert[],

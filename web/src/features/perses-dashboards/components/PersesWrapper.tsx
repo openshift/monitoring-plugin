@@ -51,13 +51,10 @@ import { StringParam, useQueryParam } from 'use-query-params';
 
 import { OcpDatasourceApi } from '@/features/perses-dashboards/utils/datasource-api';
 import { CachedDatasourceAPI } from '@/features/perses-dashboards/utils/perses/datasource-cache-api';
-import {
-  PERSES_PROXY_BASE_PATH,
-  useFetchPersesDashboard,
-} from '@/features/perses-dashboards/utils/perses-client';
 import { LoadingBox } from '@/shared/console/console-shared/src/components/loading/LoadingBox';
 import { QueryParams } from '@/shared/constants/query-params';
 import { usePatternFlyTheme } from '@/shared/hooks/usePatternflyTheme';
+import { PERSES_PROXY_BASE_PATH, useFetchPersesDashboard } from '@/shared/utils/perses-client';
 
 // Override eChart defaults with PatternFly colors.
 const patternflyBlue100 = chart_color_blue_100.value;

@@ -1,5 +1,5 @@
 import { consoleFetchJSON } from '@openshift-console/dynamic-plugin-sdk';
-import { DashboardResource, ProjectResource } from '@perses-dev/core';
+import type { DashboardResource, ProjectResource } from '@perses-dev/core';
 import { useQuery } from '@tanstack/react-query';
 import { NumberParam, useQueryParam } from 'use-query-params';
 

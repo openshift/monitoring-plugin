@@ -47,6 +47,7 @@
     "test-cypress-perses-ivt": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@perses-ivt --@smoke --@flaky --@demo --@xfail'",
     "test-cypress-incidents": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@cluster-health-analyzer --@flaky --@xfail'",
     "test-cypress-incidents-e2e": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@cluster-health-analyzer --@flaky --@xfail'",
+    "test-cypress-mcp-overview": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@mcp-overview --@flaky --@demo --@xfail'",
     "ts-node": "ts-node -O '{\"module\":\"commonjs\"}'"
   },
   "dependencies": {
@@ -183,6 +184,7 @@
       "SilenceCreatePage": "./features/alerts/pages/SilenceCreatePage",
       "SilenceEditPage": "./features/alerts/pages/SilenceEditPage",
       "MetricsPage": "./features/metrics/pages/MetricsPage",
+      "McpOverviewPage": "./features/mcp-overview/pages/McpOverviewPage",
       "AlertsPage": "./features/alerts/pages/alerts-page/AlertsPage",
       "AlertingPage": "./features/alerts/pages/AlertingPage",
       "AlertsDetailsPage": "./features/alerts/pages/AlertsDetailsPage",

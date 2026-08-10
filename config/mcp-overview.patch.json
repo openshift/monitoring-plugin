@@ -1,0 +1,30 @@
+[
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.navigation/href",
+      "properties": {
+        "id": "mcp-overview",
+        "name": "%plugin__monitoring-plugin~Observability services%",
+        "href": "/monitoring/overview",
+        "perspective": "admin",
+        "section": "observe"
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.page/route",
+      "properties": {
+        "exact": false,
+        "path": "/monitoring/overview",
+        "component": {
+          "$codeRef": "McpOverviewPage.MpCmoMcpOverviewPage"
+        }
+      }
+    }
+  }
+]

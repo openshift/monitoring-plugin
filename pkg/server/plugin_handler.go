@@ -43,6 +43,7 @@ func patchManifest(baseManifestData []byte, cfg *Config) []byte {
 		{"legacy-dashboards.patch.json", features[LegacyDashboards]},
 		{"targets.patch.json", features[Targets]},
 		{"monitoring-console-plugin.patch.json", features[ClusterHealthAnalyzer] || features[PersesDashboards] || features[AcmAlerting]},
+		{"mcp-overview.patch.json", features[McpOverview]},
 		{"acm-alerting.patch.json", features[AcmAlerting]},
 		{"cluster-health-analyzer.patch.json", features[ClusterHealthAnalyzer]},
 		{"perses-dashboards.patch.json", features[PersesDashboards]},

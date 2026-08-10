@@ -62,6 +62,7 @@ const (
 	LegacyDashboards      Feature = "legacy-dashboards"
 	Metrics               Feature = "metrics"
 	Targets               Feature = "targets"
+	McpOverview           Feature = "mcp-overview"
 	PersesDashboards      Feature = "perses-dashboards"
 	ClusterHealthAnalyzer Feature = "cluster-health-analyzer"
 )

@@ -153,6 +153,17 @@ export const DataTestIDs = {
     EndCell: 'incidents-details-end-cell',
     AlertRuleLink: 'incidents-details-alert-rule-link',
   },
+
+  // MCP Overview Page Test IDs
+  McpOverviewPage: {
+    InfoAlert: 'mcp-overview-info-alert',
+    InfoAlertClose: 'mcp-overview-info-alert-close',
+    SummarySection: 'mcp-overview-observability-stack-summary',
+    SummaryCard: 'mcp-overview-summary-card',
+    SummaryCardCount: 'mcp-overview-summary-card-count',
+    SummaryCardError: 'mcp-overview-summary-card-error',
+    SummaryCardLoading: 'mcp-overview-summary-card-loading',
+  },
 };
 
 export const FilterOUIAIDs = {

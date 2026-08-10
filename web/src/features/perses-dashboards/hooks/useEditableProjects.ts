@@ -3,10 +3,7 @@ import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 
 import { useOcpProjects } from '@/features/perses-dashboards/hooks/useOcpProjects';
-import {
-  PersesUserPermissions,
-  useFetchPersesPermissions,
-} from '@/features/perses-dashboards/utils/perses-client';
+import { PersesUserPermissions, useFetchPersesPermissions } from '@/shared/utils/perses-client';
 
 interface Projects {
   editableProjects: string[] | undefined;

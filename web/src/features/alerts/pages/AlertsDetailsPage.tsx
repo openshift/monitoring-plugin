@@ -46,7 +46,6 @@ import { useSelector } from 'react-redux';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 
 import {
-  alertSource,
   AlertState,
   AlertStateDescription,
   AlertStateIcon,
@@ -87,6 +86,7 @@ import {
   usePerspective,
 } from '@/shared/hooks/usePerspective';
 import { MonitoringState } from '@/shared/store/store';
+import { alertSource } from '@/shared/utils/alert-utils';
 import { AlertResource, alertState, RuleResource } from '@/shared/utils/utils';
 
 const AlertsDetailsPage_: FC = () => {

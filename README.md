@@ -7,7 +7,7 @@ This plugin enables frontend UI based on feature flags passed to the backend. Th
 Feature flags should be added to the Feature enum [here](pkg/server/server.go) and to the useFeatures hook [here](web/src/shared/hooks/useFeatures.ts). Whenever a feature is enabled, a set of related feature extension points is included in the plugin-manifest.json served by the backend. These feature extension points are created through the use of [json-patches](https://datatracker.ietf.org/doc/html/rfc6902), such as the `acm-alerting` patch [here](config/acm-alerting.patch.json). The server looks for a patch in the format of `{feature-flag-name}.patch.json` to apply. Some feature flags, such as `acm-alerting` require other flags to be set such as `alertmanager` and `thanos-querier` to instruct the backend how to communicate with the observability signals they utilize
 
 | Feature           | OCP Version |
-| ----------------- | ----------- |
+|-------------------| ----------- |
 | acm-alerting      | 4.14+       |
 | perses-dashboards | 4.14+       |
 | incidents         | 4.17+       |
@@ -15,6 +15,7 @@ Feature flags should be added to the Feature enum [here](pkg/server/server.go) a
 | legacy-dashboards | 5.0+        |
 | metrics           | 5.0+        |
 | targets           | 5.0+        |
+| mcp-overview      | 5.0+        |
 
 ## monitoring-plugin
 
@@ -169,7 +170,7 @@ $ make start-console
 $ make start-coo-backend
 ```
 
-`make start-coo-backend` will inject the `alerting,targets,legacy-dashboards,metrics,incidents,perses-dashboards` features.
+`make start-coo-backend` will inject the `alerting,targets,mcp-overview,legacy-dashboards,metrics,incidents,perses-dashboards` features.
 
 #### Local Development with Perses Proxy
 

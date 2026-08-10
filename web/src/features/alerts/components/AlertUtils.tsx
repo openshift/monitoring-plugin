@@ -73,17 +73,6 @@ export const getAdditionalSources = <T extends Alert | Rule>(
   return [];
 };
 
-export const alertingRuleSource = (rule: Rule): AlertSource | string => {
-  if (rule.sourceId === undefined || rule.sourceId === 'prometheus') {
-    return rule.labels?.prometheus === 'openshift-monitoring/k8s'
-      ? AlertSource.Platform
-      : AlertSource.User;
-  }
-
-  return rule.sourceId;
-};
-
-export const alertSource = (alert: Alert): AlertSource | string => alertingRuleSource(alert.rule);
 export const alertCluster = (alert: Alert): string => alert.labels?.cluster ?? '';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
