@@ -38,7 +38,7 @@ const collector = new BenchmarkCollector('02.performance_walkthrough.cy.ts');
 
 describe(
   'Performance: Interactive Walkthrough',
-  { tags: ['@incidents', '@performance'], numTestsKeptInMemory: 0 },
+  { tags: ['@cluster-health-analyzer'], numTestsKeptInMemory: 0 },
   () => {
     before(() => {
       cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });

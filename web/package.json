@@ -40,14 +40,13 @@
     "test-cypress-coo": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@coo --@flaky --@demo --@xfail'",
     "test-cypress-coo-bvt": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@coo+@smoke --@demo --@xfail'",
     "test-cypress-virtualization": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@virtualization --@flaky --@demo --@xfail'",
-    "test-cypress-incidents": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@incidents --@flaky --@demo --@xfail'",
-    "test-cypress-incidents-e2e": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@incidents+@e2e-real --@flaky --@demo --@xfail'",
     "test-cypress-smoke": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@smoke --@flaky --@demo --@xfail'",
     "test-cypress-fast": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@smoke --@slow --@demo --@flaky --@xfail'",
     "test-cypress-perses-dev": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@perses-dev --@demo --@xfail'",
     "test-cypress-perses": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@perses --@smoke --@flaky --@demo --@xfail'",
     "test-cypress-perses-ivt": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@perses-ivt --@smoke --@flaky --@demo --@xfail'",
-    "test-cypress-acm": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@acm --@smoke --@flaky --@demo --@xfail'",
+    "test-cypress-incidents": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@cluster-health-analyzer --@flaky --@xfail'",
+    "test-cypress-incidents-e2e": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@cluster-health-analyzer --@flaky --@xfail'",
     "ts-node": "ts-node -O '{\"module\":\"commonjs\"}'"
   },
   "dependencies": {

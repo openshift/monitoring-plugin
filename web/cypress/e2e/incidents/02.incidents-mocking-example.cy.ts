@@ -24,7 +24,7 @@ const MP = {
   operatorName: 'Cluster Monitoring Operator',
 };
 
-describe('Incidents - Mocking Examples', { tags: ['@demo', '@incidents'] }, () => {
+describe('Incidents - Mocking Examples', { tags: ['@cluster-health-analyzer'] }, () => {
   before(() => {
     cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
   });

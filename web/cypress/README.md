@@ -219,7 +219,6 @@ Tests are organized using tags for selective execution using [@cypress/grep](htt
 
 **2. High-Level Component Tags:**
 - `@monitoring` - Monitoring plugin tests
-- `@incidents` - Incidents feature tests
 - `@coo` - Cluster Observability Operator functionality tests (operator installation, ACM integration)
 - `@virtualization` - Virtualization integration tests
 - `@alerts` - Alert-related tests
@@ -229,6 +228,7 @@ Tests are organized using tags for selective execution using [@cypress/grep](htt
 **3. Specific Feature Tags** (format: `@{component}-{label}`):
 - Example: `@incidents-redux`
 - Add specific feature tags as needed
+- `@cluster-health-analyzer` - Incidents feature tests
 
 **4. JIRA Tags** (format: `@JIRA-{ID}`):
 - Example: `@JIRA-OU-1033`
@@ -277,12 +277,12 @@ npx cypress run --env grepTags="@smoke @slow"
 
 **Run tests with BOTH tags (AND logic):**
 ```bash
-npx cypress run --env grepTags="@smoke+@incidents"
+npx cypress run --env grepTags="@smoke+@cluster-health-analyzer"
 ```
 
 **Complex filtering:**
 ```bash
-npx cypress run --env grepTags="@incidents --@slow --@flaky"
+npx cypress run --env grepTags="@cluster-health-analyzer --@slow --@flaky"
 ```
 
 ---
