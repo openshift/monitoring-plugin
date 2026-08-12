@@ -11,7 +11,7 @@ import {
   SilenceComment,
   SilenceState,
   WatchdogAlert,
-} from '../../fixtures/monitoring/constants';
+} from '../../fixtures/shared/cluster-monitoring-operator/constants';
 import { alertingRuleListPage } from '../../views/alerting-rule-list-page';
 import type { CustomerPerspective } from '@/shared/constants/perspective';
 

@@ -5,7 +5,7 @@ import {
   MetricsPageQueryInput,
   MetricsPageQueryInputByNamespace,
   MetricsPageQueryKebabDropdown,
-} from '../../fixtures/monitoring/constants';
+} from '../../fixtures/shared/cluster-monitoring-operator/constants';
 import type { CustomerPerspective } from '@/shared/constants/perspective';
 
 export function testMetricsRegressionNamespace2(perspectiveName: CustomerPerspective) {
