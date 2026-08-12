@@ -281,13 +281,17 @@ Cypress.Commands.add('waitForAcmAlertsFiring', (alertNames?: string[]) => {
 Cypress.Commands.add('beforeBlockACM', () => {
   cy.ensureMonitoringConsolePlugin();
   cy.log('=== [Setup] Installing ACM test resources ===');
-  cy.exec('bash ./cypress/fixtures/coo/acm-install.sh', {
+  cy.exec('bash ./cypress/fixtures/shared/fleet-management/fleet-management-install.sh', {
     env: { KUBECONFIG: Cypress.env('KUBECONFIG_PATH') },
     failOnNonZeroExit: false,
     timeout: 1200000,
   });
-  cy.adminCLI(`oc apply -f ./cypress/fixtures/coo/acm-uiplugin.yaml`);
-  cy.adminCLI(`oc apply -f ./cypress/fixtures/coo/acm-alerrule-test.yaml`);
+  cy.adminCLI(
+    `oc apply -f ./cypress/fixtures/shared/fleet-management/fleet-management-uiplugin.yaml`,
+  );
+  cy.adminCLI(
+    `oc apply -f ./cypress/fixtures/shared/fleet-management/fleet-management-alertrule-test.yaml`,
+  );
   cy.waitForAcmAlertsFiring(ACM_DEFAULT_TEST_ALERTS);
   cy.log('ACM environment setup completed');
 });

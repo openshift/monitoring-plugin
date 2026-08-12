@@ -174,7 +174,7 @@ export function testCOORBACPersesTestsDevUser2(
     listPersesDashboardsPage.clickImportButton();
     persesImportDashboardsPage.importDashboardShouldBeLoaded();
     persesImportDashboardsPage.uploadFile(
-      './cypress/fixtures/coo/coo140_perses/import/testing-perses-dashboard.json',
+      './cypress/fixtures/perses/dashboards/import/testing-perses-dashboard.json',
     );
     persesImportDashboardsPage.assertPersesDashboardDetected();
     persesImportDashboardsPage.assertImportAccessDenied('perses-dev');
