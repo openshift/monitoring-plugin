@@ -1,48 +1,26 @@
 import {
+  CLUSTER_LOGGING_OPERATOR,
   CLUSTER_MONITORING_OPERATOR,
   CLUSTER_OBSERVABILITY_OPERATOR,
+  LOKI_OPERATOR,
+  OPENTELEMETRY_OPERATOR,
+  TEMPO_OPERATOR,
 } from '../../support/operators';
 import { runCOOCreateImportPersesTests } from '../../support/perses/05.coo_create_import_perses_admin.cy';
 import { nav } from '../../views/nav';
-
-// Set constants for the operators that need to be installed for tests.
-
-const OTEL = {
-  namespace: 'openshift-opentelemetry-operator',
-  packageName: 'opentelemetry-product',
-  operatorName: 'Red Hat build of OpenTelemetry',
-};
-
-const TEMPO = {
-  namespace: 'openshift-tempo-operator',
-  packageName: 'tempo-product',
-  operatorName: 'Tempo Operator',
-};
-
-const LOKI = {
-  namespace: 'openshift-operators-redhat',
-  packageName: 'loki-operator',
-  operatorName: 'Loki Operator',
-};
-
-const CLO = {
-  namespace: 'openshift-logging',
-  packageName: 'cluster-logging',
-  operatorName: 'Logging Operator',
-};
 
 describe(
   'COO - Dashboards (Perses) - Perses Global Datasources with Tempo and Loki',
   { tags: ['@perses-dashboards', '@coo', '@xfail'] },
   () => {
     before(() => {
-      cy.beforeBlockTempo(TEMPO);
-      cy.beforeBlockOtel(OTEL);
+      cy.beforeBlockTempo(TEMPO_OPERATOR);
+      cy.beforeBlockOtel(OPENTELEMETRY_OPERATOR);
       cy.configureBase();
       cy.configureTracingApps();
 
-      cy.beforeBlockLoki(LOKI);
-      cy.beforeBlockLogging(CLO);
+      cy.beforeBlockLoki(LOKI_OPERATOR);
+      cy.beforeBlockLogging(CLUSTER_LOGGING_OPERATOR);
       cy.configureLoggingLoki();
 
       cy.cleanupDistributeTracingUIPlugin();
@@ -79,12 +57,12 @@ describe(
         troubleshootingPanel: false,
       });
       cy.cleanupLoggingLoki();
-      cy.cleanupLogging(CLO);
-      cy.cleanupLoki(LOKI);
+      cy.cleanupLogging(CLUSTER_LOGGING_OPERATOR);
+      cy.cleanupLoki(LOKI_OPERATOR);
       cy.cleanupTracingApps();
       cy.cleanupBase();
-      cy.cleanupOtel(OTEL);
-      cy.cleanupTempo(TEMPO);
+      cy.cleanupOtel(OPENTELEMETRY_OPERATOR);
+      cy.cleanupTempo(TEMPO_OPERATOR);
     });
 
     runCOOCreateImportPersesTests({
