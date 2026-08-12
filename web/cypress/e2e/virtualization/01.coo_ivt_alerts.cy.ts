@@ -75,10 +75,10 @@ describe(
       nav.sidenav.clickNavLink(['Observe', 'Metrics']);
       commonPages.titleShouldHaveText('Metrics');
       cy.changeNamespace('All Projects');
-      alerts.getWatchdogAlert();
+      alerts.interceptWatchdogAlert();
       nav.sidenav.clickNavLink(['Observe', 'Alerting']);
       commonPages.titleShouldHaveText('Alerting');
-      alerts.getWatchdogAlert();
+      alerts.interceptWatchdogAlert();
     });
     // Run tests in Virtualization perspective
     runAllRegressionAlertsTests({

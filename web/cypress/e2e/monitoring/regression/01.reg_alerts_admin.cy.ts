@@ -19,13 +19,13 @@ describe(
     });
 
     beforeEach(() => {
-      alerts.getWatchdogAlert();
+      alerts.interceptWatchdogAlert();
       nav.sidenav.clickNavLink(['Observe', 'Metrics']);
       commonPages.titleShouldHaveText('Metrics');
       cy.changeNamespace('All Projects');
       nav.sidenav.clickNavLink(['Observe', 'Alerting']);
       commonPages.titleShouldHaveText('Alerting');
-      alerts.getWatchdogAlert();
+      alerts.interceptWatchdogAlert();
     });
 
     // Run tests in Core platform perspective

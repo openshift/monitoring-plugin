@@ -72,11 +72,11 @@ describe(
       cy.validateLogin();
       cy.switchPerspective('Virtualization', 'Fleet virtualization');
       guidedTour.closeKubevirtTour();
-      alerts.getWatchdogAlert();
+      alerts.interceptWatchdogAlert();
       nav.sidenav.clickNavLink(['Observe', 'Metrics']);
       commonPages.titleShouldHaveText('Metrics');
       cy.changeNamespace('All Projects');
-      alerts.getWatchdogAlert();
+      alerts.interceptWatchdogAlert();
     });
 
     runAllRegressionMetricsTests2({
@@ -94,11 +94,11 @@ describe(
       cy.validateLogin();
       cy.switchPerspective('Virtualization', 'Fleet virtualization');
       guidedTour.closeKubevirtTour();
-      alerts.getWatchdogAlert();
+      alerts.interceptWatchdogAlert();
       nav.sidenav.clickNavLink(['Observe', 'Metrics']);
       commonPages.titleShouldHaveText('Metrics');
       cy.changeNamespace(MP.namespace);
-      alerts.getWatchdogAlert();
+      alerts.interceptWatchdogAlert();
     });
 
     runAllRegressionMetricsTestsNamespace2({
