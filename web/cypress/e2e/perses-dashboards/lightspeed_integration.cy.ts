@@ -1,4 +1,4 @@
-import { operatorAuthUtils } from '../../support/commands/auth-commands';
+import { operatorAuthUtils } from '../../support/shared/commands/auth-commands';
 import { nav } from '../../views/nav';
 import { commonPages } from '../../views/common';
 import { listPersesDashboardsPage } from '../../views/perses-dashboards-list-dashboards';

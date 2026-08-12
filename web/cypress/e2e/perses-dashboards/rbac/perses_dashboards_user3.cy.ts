@@ -1,6 +1,6 @@
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 import { nav } from '../../../views/nav';
-import { operatorAuthUtils } from '../../../support/commands/auth-commands';
+import { operatorAuthUtils } from '../../../support/shared/commands/auth-commands';
 import { testCOORBACPersesTestsDevUser3 } from '../../../support/perses/rbac/perses_user3.cy';
 
 describe(

@@ -1,6 +1,6 @@
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 import { nav } from '../../views/nav';
-import { operatorAuthUtils } from '../../support/commands/auth-commands';
+import { operatorAuthUtils } from '../../support/shared/commands/auth-commands';
 import { testCOOEditPerses } from '../../support/perses/perses_edit_admin.cy';
 import { testCOOEditPerses1 } from '../../support/perses/perses_edit_admin_1.cy';
 

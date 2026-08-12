@@ -1,5 +1,5 @@
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
-import { CLUSTER_MONITORING_OPERATOR } from '../../support/operators';
+import { CLUSTER_MONITORING_OPERATOR } from '../../support/shared/operators';
 import { testLegacyDashboardsRegression } from '../../support/legacy-dashboards/legacy_dashboards_regressions.cy';
 import { testLegacyDashboardsRegressionNamespace } from '../../support/legacy-dashboards/legacy_dashboards_regressions_namespaced.cy';
 import { commonPages } from '../../views/common';

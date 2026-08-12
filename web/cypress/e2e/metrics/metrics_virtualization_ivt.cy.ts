@@ -11,7 +11,7 @@ import {
 import { commonPages } from '../../views/common';
 import { nav } from '../../views/nav';
 import { guidedTour } from '../../views/tour';
-import { CLUSTER_MONITORING_OPERATOR } from '../../support/operators';
+import { CLUSTER_MONITORING_OPERATOR } from '../../support/shared/operators';
 
 describe('Regression: Monitoring - Metrics (Virtualization)', () => {
   before(() => {
