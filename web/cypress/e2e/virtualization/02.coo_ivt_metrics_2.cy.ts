@@ -1,7 +1,7 @@
 import {
   CLUSTER_MONITORING_OPERATOR,
   CLUSTER_OBSERVABILITY_OPERATOR,
-  HYPERCONVERGED_CLUSTER_OPERATOR,
+  KUBEVIRT_HYPERCONVERGED_OPERATOR,
 } from '../../support/operators';
 import { alerts } from '../../fixtures/monitoring/alert';
 import { runAllRegressionMetricsTests2 } from '../../support/monitoring/02.reg_metrics_2.cy';
@@ -29,7 +29,7 @@ describe(
   { tags: ['@coo', '@virtualization', '@slow'] },
   () => {
     before(() => {
-      cy.beforeBlockVirtualization(HYPERCONVERGED_CLUSTER_OPERATOR);
+      cy.beforeBlockVirtualization(KUBEVIRT_HYPERCONVERGED_OPERATOR);
     });
 
     it('1. Virtualization perspective - Observe Menu', () => {

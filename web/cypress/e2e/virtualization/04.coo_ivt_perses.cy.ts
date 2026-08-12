@@ -5,7 +5,7 @@ import { commonPages } from '../../views/common';
 import {
   CLUSTER_MONITORING_OPERATOR,
   CLUSTER_OBSERVABILITY_OPERATOR,
-  HYPERCONVERGED_CLUSTER_OPERATOR,
+  KUBEVIRT_HYPERCONVERGED_OPERATOR,
 } from '../../support/operators';
 
 describe(
@@ -25,7 +25,7 @@ describe(
 
 describe('Installation: Virtualization', { tags: ['@virtualization', '@slow'] }, () => {
   before(() => {
-    cy.beforeBlockVirtualization(HYPERCONVERGED_CLUSTER_OPERATOR);
+    cy.beforeBlockVirtualization(KUBEVIRT_HYPERCONVERGED_OPERATOR);
   });
 
   it('1. Installation: Virtualization', () => {
