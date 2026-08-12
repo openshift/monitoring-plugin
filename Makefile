@@ -84,18 +84,6 @@ build-image:
 install:
 	make install-frontend && make install-backend
 
-.PHONY: deploy
-deploy: lint-backend
-	PUSH=1 scripts/build-image.sh
-	helm uninstall $(PLUGIN_NAME) -n $(PLUGIN_NAME)-ns || true
-	helm install $(PLUGIN_NAME) charts/openshift-console-plugin -n monitoring-plugin-ns --create-namespace --set plugin.image=$(IMAGE)
-
-.PHONY: deploy-acm
-deploy-acm:
-	PUSH=1 REPO=monitoring-console-plugin DOCKER_FILE_NAME=Dockerfile.dev-mcp scripts/build-image.sh
-	helm uninstall $(PLUGIN_NAME) -n $(PLUGIN_NAME)-ns || true
-	helm install $(PLUGIN_NAME) charts/openshift-console-plugin -n monitoring-plugin-ns --create-namespace --set plugin.image=$(IMAGE) --set plugin.features.acm.enabled=true
-
 # Download and install golangci-lint if not already installed
 .PHONY: golangci-lint
 golangci-lint:

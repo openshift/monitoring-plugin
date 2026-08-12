@@ -46,22 +46,6 @@ NOTE: If you have a Mac with Apple silicon, you will need to add the flag `--pla
 
 ### Deployment on cluster
 
-A [Helm](https://helm.sh) chart is available to deploy the plugin to an OpenShift environment.
-
-The following Helm parameters are required:
-
-`plugin.image`: The location of the image containing the plugin that was previously pushed
-
-Additional parameters can be specified if desired. Consult the chart [values](charts/openshift-console-plugin/values.yaml) file for the full set of supported parameters.
-
-#### Installing the Helm Chart
-
-Install the chart into a new namespace or an existing namespace as specified by the `my-plugin-namespace` parameter and providing the location of the image within the `plugin.image` parameter by using the following command:
-
-```shell
-helm upgrade -i monitoring-plugin charts/openshift-console-plugin -n my-plugin-namespace --create-namespace --set plugin.image=my-plugin-image-location
-```
-
 ### Running using Devspace
 
 Install the [devspace](https://www.devspace.sh/docs/getting-started/installation) cli.
@@ -81,7 +65,7 @@ devspace dev # select mp
 
 Running `devspace purge` and selecting `mp` will scale the CMO deployment back up
 
-#### COO Features
+#### COO Features: ACM Alerting, Perses Dashboards, Health analyzer.
 
 When running the `devspace dev` command, the pipeline will run `install-coo.sh` which will attempt to install COO if it isn't already installed. It will then create a `Monitoring` type `UIPlugin` with all features enabled. Once the `monitoring-console-plugin` deployment is ready it will scale down COO to prevent it from fighting over the deployment.
 
@@ -157,16 +141,6 @@ Images for the mcp can be built by running the following command. Due to the lim
 ```bash
 make build-dev-mcp-image
 ```
-
-#### ACM
-
-Due to the extensive number of items which would need to be run to locally run the ACM perspective, the suggested development pattern is instead repeat installations with helm. A small number of scripts have been put together to help you deploy the monitoring-plugin in its `acm-alerting` configuration. REGISTRY_ORG and TAG variables are available to adjust the quay image generated and used for deployment. Certain build time changes to the codebase are created when running these scripts.
-
-```bash
-make deploy-acm
-```
-
-Once the code has been updated, make sure to update the helm chart and variables ([variable example](https://github.com/openshift/monitoring-plugin/blob/main/charts/openshift-console-plugin/values.yaml#L32), [chart example](https://github.com/openshift/monitoring-plugin/blob/main/charts/openshift-console-plugin/templates/deployment.yaml#L49)) for ease of deployment of your feature.
 
 ### Redux Store
 
